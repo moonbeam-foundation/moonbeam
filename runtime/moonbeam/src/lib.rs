@@ -949,7 +949,9 @@ parameter_types! {
 		parents:1,
 		interior: Junctions::X2(
 			Parachain(ParachainInfo::parachain_id().into()),
-			PalletInstance(<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8)
+			PalletInstance(
+				<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8
+			)
 		)
 	};
 }
@@ -1560,11 +1562,6 @@ impl OffchainWorker<BlockNumber> for MaintenanceHooks {
 	}
 }
 
-// AllPalletsReversedWithSystemFirst here imply all the specfied pallets in the runtime, except frame_system,
-// will run the associated hook
-// AllPalletsReversedWithSystemFirst is simply a nested tuple containing all the pallets except System
-// In cases where we need only specific pallets to run the hook,
-// we should state them in nested tuples
 impl pallet_maintenance_mode::Config for Runtime {
 	type Event = Event;
 	type NormalCallFilter = NormalFilter;
@@ -1575,7 +1572,8 @@ impl pallet_maintenance_mode::Config for Runtime {
 	type MaintenanceDmpHandler = MaintenanceDmpHandler;
 	type NormalXcmpHandler = XcmpQueue;
 	type MaintenanceXcmpHandler = MaintenanceXcmpHandler;
-	// We use AllPalletsReversedWithSystemFirst because we dont want to change the hooks in normal operation
+	// We use AllPalletsReversedWithSystemFirst because we dont want to change the hooks in normal
+	// operation
 	type NormalExecutiveHooks = AllPalletsReversedWithSystemFirst;
 	type MaitenanceExecutiveHooks = MaintenanceHooks;
 }

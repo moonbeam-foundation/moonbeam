@@ -45,7 +45,7 @@ use xtokens_precompiles::Action as XtokensAction;
 use pallet_transaction_payment::Multiplier;
 use parity_scale_codec::Encode;
 use sha3::{Digest, Keccak256};
-use sp_core::{Pair, ByteArray, crypto::UncheckedFrom, H160, U256};
+use sp_core::{crypto::UncheckedFrom, ByteArray, Pair, H160, U256};
 use sp_runtime::{
 	traits::{Convert, One},
 	DispatchError,

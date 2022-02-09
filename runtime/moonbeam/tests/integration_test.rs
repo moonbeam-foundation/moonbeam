@@ -42,7 +42,7 @@ use pallet_transaction_payment::Multiplier;
 use parity_scale_codec::Encode;
 use precompile_utils::{Address as EvmAddress, EvmDataWriter, LogsBuilder};
 use sha3::{Digest, Keccak256};
-use sp_core::{Pair, ByteArray, H160, U256};
+use sp_core::{ByteArray, Pair, H160, U256};
 use sp_runtime::{
 	traits::{Convert, One},
 	DispatchError,

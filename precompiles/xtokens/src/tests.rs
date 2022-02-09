@@ -151,13 +151,13 @@ fn transfer_self_reserve_works() {
 					logs: vec![]
 				}))
 			);
-			let expected: crate::mock::Event =
-				XtokensEvent::Transferred {
-					sender: Alice,
-					currency_id: CurrencyId::SelfReserve,
-					amount: 500,
-					dest: destination
-				}.into();
+			let expected: crate::mock::Event = XtokensEvent::Transferred {
+				sender: Alice,
+				currency_id: CurrencyId::SelfReserve,
+				amount: 500,
+				dest: destination,
+			}
+			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -201,13 +201,13 @@ fn transfer_to_reserve_works() {
 					logs: vec![]
 				}))
 			);
-			let expected: crate::mock::Event =
-				XtokensEvent::Transferred {
-					sender: Alice,
-					currency_id: CurrencyId::OtherReserve(0u128),
-					amount: 500,
-					dest: destination
-				}.into();
+			let expected: crate::mock::Event = XtokensEvent::Transferred {
+				sender: Alice,
+				currency_id: CurrencyId::OtherReserve(0u128),
+				amount: 500,
+				dest: destination,
+			}
+			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -305,13 +305,13 @@ fn transfer_non_reserve_to_non_reserve_works() {
 					logs: vec![]
 				}))
 			);
-			let expected: crate::mock::Event =
-				XtokensEvent::Transferred {
-					sender: Alice,
-					currency_id: CurrencyId::OtherReserve(1u128),
-					amount: 500,
-					dest: destination
-				}.into();
+			let expected: crate::mock::Event = XtokensEvent::Transferred {
+				sender: Alice,
+				currency_id: CurrencyId::OtherReserve(1u128),
+				amount: 500,
+				dest: destination,
+			}
+			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
