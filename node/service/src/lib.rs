@@ -207,7 +207,7 @@ pub fn open_frontier_backend(config: &Configuration) -> Result<Arc<fc_db::Backen
 	)?))
 }
 
-use sp_runtime::{Percent, traits::BlakeTwo256};
+use sp_runtime::{traits::BlakeTwo256, Percent};
 use sp_trie::PrefixedMemoryDB;
 
 pub const SOFT_DEADLINE_PERCENT: Percent = Percent::from_percent(100);
@@ -676,6 +676,32 @@ where
 			);
 			proposer_factory.set_soft_deadline(SOFT_DEADLINE_PERCENT);
 
+			let provider = move |_, (relay_parent, validation_data, author_id)| {
+				let relay_chain_interface = relay_chain_interface.clone();
+				async move {
+					let parachain_inherent =
+						cumulus_primitives_parachain_inherent::ParachainInherentData::create_at(
+							relay_parent,
+							&relay_chain_interface,
+							&validation_data,
+							id,
+						)
+						.await;
+
+					let time = sp_timestamp::InherentDataProvider::from_system_time();
+
+					let parachain_inherent = parachain_inherent.ok_or_else(|| {
+						Box::<dyn std::error::Error + Send + Sync>::from(
+							"Failed to create parachain inherent",
+						)
+					})?;
+
+					let author = nimbus_primitives::InherentDataProvider::<NimbusId>(author_id);
+
+					Ok((time, parachain_inherent, author))
+				}
+			};
+			
 			Ok(NimbusConsensus::build(BuildNimbusConsensusParams {
 				para_id: id,
 				proposer_factory,
@@ -683,35 +709,7 @@ where
 				parachain_client: client.clone(),
 				keystore,
 				skip_prediction: force_authoring,
-				create_inherent_data_providers: move |_,
-				                                      (
-					relay_parent,
-					validation_data,
-					author_id,
-				)| {
-					let relay_chain_interface = relay_chain_interface.clone();
-					async move {
-						let parachain_inherent =
-							cumulus_primitives_parachain_inherent::ParachainInherentData::create_at(
-								relay_parent,
-								&relay_chain_interface,
-								&validation_data,
-								id,
-							).await;
-
-						let time = sp_timestamp::InherentDataProvider::from_system_time();
-
-						let parachain_inherent = parachain_inherent.ok_or_else(|| {
-							Box::<dyn std::error::Error + Send + Sync>::from(
-								"Failed to create parachain inherent",
-							)
-						})?;
-
-						let author = nimbus_primitives::InherentDataProvider::<NimbusId>(author_id);
-
-						Ok((time, parachain_inherent, author))
-					}
-				},
+				create_inherent_data_providers: provider,
 			}))
 		},
 	)
