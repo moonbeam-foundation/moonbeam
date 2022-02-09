@@ -31,7 +31,7 @@ use frame_support::{
 };
 use moonbase_runtime::{
 	currency::UNIT, AccountId, AssetId, AssetManager, AssetRegistrarMetadata, AssetType, Assets,
-	Balances, BlockWeights, Call, CrowdloanRewards, Event, ParachainStaking, PolkadotXcm,
+	Balances, BaseFee, BlockWeights, Call, CrowdloanRewards, Event, ParachainStaking, PolkadotXcm,
 	Precompiles, Runtime, System, XTokens, XcmTransactor,
 };
 use nimbus_primitives::NimbusId;
@@ -1839,4 +1839,82 @@ fn author_mapping_precompile_associate_update_and_clear() {
 			);
 			assert_eq!(last_event(), expected_clear_event);
 		});
+}
+
+#[test]
+fn precompile_existance() {
+	ExtBuilder::default().build().execute_with(|| {
+		let precompiles = Precompiles::new();
+		let precompile_addresses: std::collections::BTreeSet<_> = vec![
+			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2050, 2051, 2052, 2053, 2054,
+			2055,
+		]
+		.into_iter()
+		.map(H160::from_low_u64_be)
+		.collect();
+
+		for i in 0..3000 {
+			let address = H160::from_low_u64_be(i);
+
+			if precompile_addresses.contains(&address) {
+				assert!(
+					precompiles.is_precompile(address),
+					"is_precompile({}) should return true",
+					i
+				);
+
+				assert!(
+					precompiles
+						.execute(
+							address,
+							&vec![],
+							None,
+							&Context {
+								address,
+								caller: H160::zero(),
+								apparent_value: U256::zero()
+							},
+							false
+						)
+						.is_some(),
+					"execute({},..) should return Some(_)",
+					i
+				);
+			} else {
+				assert!(
+					!precompiles.is_precompile(address),
+					"is_precompile({}) should return false",
+					i
+				);
+
+				assert!(
+					precompiles
+						.execute(
+							address,
+							&vec![],
+							None,
+							&Context {
+								address,
+								caller: H160::zero(),
+								apparent_value: U256::zero()
+							},
+							false
+						)
+						.is_none(),
+					"execute({},..) should return None",
+					i
+				);
+			}
+		}
+	});
+}
+
+#[test]
+fn base_fee_should_default_to_associate_type_value() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_eq!(
+			BaseFee::base_fee_per_gas(),
+			(1 * GIGAWEI * SUPPLY_FACTOR).into()
+		);
+	});
 }

@@ -30,7 +30,7 @@ use frame_support::{
 	StorageHasher, Twox128,
 };
 use moonriver_runtime::{
-	BlockWeights, CurrencyId, PolkadotXcm, Precompiles, XTokens, XcmTransactor,
+	BaseFee, BlockWeights, CurrencyId, PolkadotXcm, Precompiles, XTokens, XcmTransactor,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
@@ -1899,4 +1899,82 @@ fn call_xtokens_with_fee() {
 			// At least these much (plus fees) should have been charged
 			assert_eq!(before_balance - 100_000_000_000_000 - 100, after_balance);
 		});
+}
+
+#[test]
+fn precompile_existance() {
+	ExtBuilder::default().build().execute_with(|| {
+		let precompiles = Precompiles::new();
+		let precompile_addresses: std::collections::BTreeSet<_> = vec![
+			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2050, 2051, 2052, 2053, 2054,
+			2055,
+		]
+		.into_iter()
+		.map(H160::from_low_u64_be)
+		.collect();
+
+		for i in 0..3000 {
+			let address = H160::from_low_u64_be(i);
+
+			if precompile_addresses.contains(&address) {
+				assert!(
+					precompiles.is_precompile(address),
+					"is_precompile({}) should return true",
+					i
+				);
+
+				assert!(
+					precompiles
+						.execute(
+							address,
+							&vec![],
+							None,
+							&Context {
+								address,
+								caller: H160::zero(),
+								apparent_value: U256::zero()
+							},
+							false
+						)
+						.is_some(),
+					"execute({},..) should return Some(_)",
+					i
+				);
+			} else {
+				assert!(
+					!precompiles.is_precompile(address),
+					"is_precompile({}) should return false",
+					i
+				);
+
+				assert!(
+					precompiles
+						.execute(
+							address,
+							&vec![],
+							None,
+							&Context {
+								address,
+								caller: H160::zero(),
+								apparent_value: U256::zero()
+							},
+							false
+						)
+						.is_none(),
+					"execute({},..) should return None",
+					i
+				);
+			}
+		}
+	});
+}
+
+#[test]
+fn base_fee_should_default_to_associate_type_value() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_eq!(
+			BaseFee::base_fee_per_gas(),
+			(1 * GIGAWEI * SUPPLY_FACTOR).into()
+		);
+	});
 }
