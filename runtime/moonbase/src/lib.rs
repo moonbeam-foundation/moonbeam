@@ -424,7 +424,7 @@ pub type SlowAdjustingFeeUpdate<R> =
 impl AccountIdAssetIdConversion<AccountId, AssetId> for Runtime {
 	/// The way to convert an account to assetId is by ensuring that the prefix is 0XFFFFFFFF
 	/// and by taking the lowest 128 bits as the assetId
-	fn account_to_asset_id(account: AccountId) -> Option<AssetId> {
+	fn account_to_asset_id(account: AccountId) -> Option<(Vec<u8>, AssetId)> {
 		let h160_account: H160 = account.into();
 		let mut data = [0u8; 16];
 		let (prefix_part, id_part) = h160_account.as_fixed_bytes().split_at(4);
@@ -433,7 +433,7 @@ impl AccountIdAssetIdConversion<AccountId, AssetId> for Runtime {
 		{
 			data.copy_from_slice(id_part);
 			let asset_id: AssetId = u128::from_be_bytes(data).into();
-			Some(asset_id)
+			Some((prefix_part.to_vec(), asset_id))
 		} else {
 			None
 		}
@@ -1059,7 +1059,7 @@ pub type LocationToAccountId = (
 // This is intended to match FOREIGN ASSETS
 pub type ForeignFungiblesTransactor = FungiblesAdapter<
 	// Use this fungibles implementation:
-	ForeignAssets,
+	Assets,
 	// Use this currency when it is a fungible asset matching the given location or name:
 	(
 		ConvertedConcreteAssetId<
@@ -1178,7 +1178,7 @@ parameter_types! {
 /// We do not burn anything because we want to mimic exactly what
 /// the sovereign account has
 pub type XcmFeesToAccount = xcm_primitives::XcmFeesToAccount<
-	ForeignAssets,
+	Assets,
 	(
 		ConvertedConcreteAssetId<
 			AssetId,
@@ -1400,7 +1400,7 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		metadata: AssetRegistrarMetadata,
 		is_sufficient: bool,
 	) -> DispatchResult {
-		ForeignAssets::force_create(
+		Assets::force_create(
 			Origin::root(),
 			asset,
 			AssetManager::account_id(),
@@ -1418,7 +1418,7 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		);*/
 
 		// Lastly, the metadata
-		ForeignAssets::force_set_metadata(
+		Assets::force_set_metadata(
 			Origin::root(),
 			asset,
 			metadata.name,
@@ -1500,8 +1500,13 @@ impl AccountIdToCurrencyId<AccountId, CurrencyId> for Runtime {
 			// the self-reserve currency is identified by the pallet-balances address
 			a if a == H160::from_low_u64_be(2050).into() => Some(CurrencyId::SelfReserve),
 			// the rest of the currencies, by their corresponding erc20 address
-			_ => Runtime::account_to_asset_id(account)
-				.map(|asset_id| CurrencyId::ForeignAsset(asset_id)),
+			_ => Runtime::account_to_asset_id(account).map(|(prefix, asset_id)| {
+				if prefix == FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX.to_vec() {
+					CurrencyId::ForeignAsset(asset_id)
+				} else {
+					CurrencyId::LocalAssetReserve(asset_id)
+				}
+			}),
 		}
 	}
 }
@@ -1615,7 +1620,7 @@ pub struct MaintenanceFilter;
 impl Contains<Call> for MaintenanceFilter {
 	fn contains(c: &Call) -> bool {
 		match c {
-			Call::ForeignAssets(_) => false,
+			Call::Assets(_) => false,
 			Call::LocalAssets(_) => false,
 			Call::Balances(_) => false,
 			Call::CrowdloanRewards(_) => false,
@@ -1641,7 +1646,7 @@ pub struct NormalFilter;
 impl Contains<Call> for NormalFilter {
 	fn contains(c: &Call) -> bool {
 		match c {
-			Call::ForeignAssets(method) => match method {
+			Call::Assets(method) => match method {
 				pallet_assets::Call::transfer { .. } => true,
 				pallet_assets::Call::transfer_keep_alive { .. } => true,
 				pallet_assets::Call::approve_transfer { .. } => true,
@@ -1826,7 +1831,7 @@ construct_runtime! {
 		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin} = 26,
 		DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>} = 27,
 		PolkadotXcm: pallet_xcm::{Pallet, Call, Storage, Event<T>, Origin, Config} = 28,
-		ForeignAssets: pallet_assets::<Instance1>::{Pallet, Call, Storage, Event<T>} = 29,
+		Assets: pallet_assets::<Instance1>::{Pallet, Call, Storage, Event<T>} = 29,
 		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>} = 30,
 		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>} = 31,
 		Migrations: pallet_migrations::{Pallet, Storage, Config, Event<T>} = 32,

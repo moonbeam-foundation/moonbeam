@@ -16,6 +16,7 @@
 
 use crowdloan_rewards_precompiles::CrowdloanRewardsWrapper;
 use fp_evm::Context;
+use frame_support::traits::Get;
 use moonbeam_relay_encoder::kusama::KusamaEncoder;
 use pallet_author_mapping_precompiles::AuthorMappingWrapper;
 use pallet_democracy_precompiles::DemocracyWrapper;
@@ -64,7 +65,8 @@ impl Erc20Metadata for NativeErc20Metadata {
 
 /// The asset precompile address prefix. Addresses that match against this prefix will be routed
 /// to Erc20AssetsPrecompileSet
-pub const ASSET_PRECOMPILE_ADDRESS_PREFIX: &[u8] = &[255u8; 4];
+pub const FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX: &[u8] = &[255u8; 4];
+pub const LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX: &[u8] = &[255u8, 255u8, 255u8, 254u8];
 
 /// The PrecompileSet installed in the Moonriver runtime.
 /// We include the nine Istanbul precompiles
@@ -92,6 +94,16 @@ where
 	}
 }
 
+/// Implement `Get<bool>` using the given const.
+/// to be replaced by frame_support::traits::ConstBool
+pub struct ConstBool<const T: bool>;
+
+impl<const T: bool> Get<bool> for ConstBool<T> {
+	fn get() -> bool {
+		T
+	}
+}
+
 /// The following distribution has been decided for the precompiles
 /// 0-1023: Ethereum Mainnet Precompiles
 /// 1024-2047 Precompiles that are not in Ethereum Mainnet but are neither Moonbeam specific
@@ -102,7 +114,8 @@ where
 	ParachainStakingWrapper<R>: Precompile,
 	CrowdloanRewardsWrapper<R>: Precompile,
 	Erc20BalancesPrecompile<R, NativeErc20Metadata>: Precompile,
-	Erc20AssetsPrecompileSet<R>: PrecompileSet,
+	Erc20AssetsPrecompileSet<R, ConstBool<false>, pallet_assets::Instance1>: PrecompileSet,
+	Erc20AssetsPrecompileSet<R, ConstBool<true>, pallet_assets::Instance2>: PrecompileSet,
 	XtokensWrapper<R>: Precompile,
 	RelayEncoderWrapper<R, KusamaEncoder>: Precompile,
 	XcmTransactorWrapper<R>: Precompile,
@@ -167,8 +180,13 @@ where
 				input, target_gas, context, is_static,
 			)),
 			// If the address matches asset prefix, the we route through the asset precompile set
-			a if &a.to_fixed_bytes()[0..4] == ASSET_PRECOMPILE_ADDRESS_PREFIX => {
-				Erc20AssetsPrecompileSet::<R>::new()
+			a if &a.to_fixed_bytes()[0..4] == FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX => {
+				Erc20AssetsPrecompileSet::<R, ConstBool<false>, pallet_assets::Instance1>::new()
+					.execute(address, input, target_gas, context, is_static)
+			}
+			// If the address matches asset prefix, the we route through the asset precompile set
+			a if &a.to_fixed_bytes()[0..4] == LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX => {
+				Erc20AssetsPrecompileSet::<R, ConstBool<true>, pallet_assets::Instance2>::new()
 					.execute(address, input, target_gas, context, is_static)
 			}
 			_ => None,
@@ -177,7 +195,11 @@ where
 	fn is_precompile(&self, address: H160) -> bool {
 		Self::used_addresses()
 			.find(|x| x == &R::AddressMapping::into_account_id(address))
-			.is_some() || Erc20AssetsPrecompileSet::<R>::new().is_precompile(address)
+			.is_some()
+			|| Erc20AssetsPrecompileSet::<R, ConstBool<false>, pallet_assets::Instance1>::new()
+				.is_precompile(address)
+			|| Erc20AssetsPrecompileSet::<R, ConstBool<true>, pallet_assets::Instance2>::new()
+				.is_precompile(address)
 	}
 }
 

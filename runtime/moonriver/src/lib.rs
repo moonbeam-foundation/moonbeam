@@ -36,7 +36,7 @@ use frame_support::{
 	traits::{
 		Contains, EqualPrivilegeOnly, Everything, Get, Imbalance, InstanceFilter, Nothing,
 		OffchainWorker, OnFinalize, OnIdle, OnInitialize, OnRuntimeUpgrade, OnUnbalanced,
-		PalletInfo as PalletInfoTrait,
+		PalletInfo as PalletInfoTrait, PalletInfoAccess,
 	},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
@@ -82,10 +82,10 @@ use sp_std::{convert::TryFrom, prelude::*};
 
 use xcm_builder::{
 	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
-	AllowTopLevelPaidExecutionFrom, ConvertedConcreteAssetId, EnsureXcmOrigin, FixedWeightBounds,
-	FungiblesAdapter, LocationInverter, ParentIsDefault, RelayChainAsNative,
-	SiblingParachainAsNative, SiblingParachainConvertsVia, SignedAccountKey20AsNative,
-	SovereignSignedViaLocation, TakeWeightCredit,
+	AllowTopLevelPaidExecutionFrom, AsPrefixedGeneralIndex, ConvertedConcreteAssetId,
+	EnsureXcmOrigin, FixedWeightBounds, FungiblesAdapter, LocationInverter, ParentIsDefault,
+	RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
+	SignedAccountKey20AsNative, SovereignSignedViaLocation, TakeWeightCredit,
 };
 
 use xcm_executor::traits::JustTry;
@@ -107,7 +107,10 @@ use sp_version::RuntimeVersion;
 use nimbus_primitives::{CanAuthor, NimbusId};
 
 mod precompiles;
-use precompiles::{MoonriverPrecompiles, ASSET_PRECOMPILE_ADDRESS_PREFIX};
+use precompiles::{
+	MoonriverPrecompiles, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+};
 
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
@@ -960,6 +963,13 @@ parameter_types! {
 			PalletInstance(<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8)
 		)
 	};
+	pub LocalAssetsPalletLocation: MultiLocation = MultiLocation {
+		parents:1,
+		interior: Junctions::X2(
+			Parachain(ParachainInfo::parachain_id().into()),
+			PalletInstance(<LocalAssets as PalletInfoAccess>::index() as u8)
+		)
+	};
 }
 
 /// Type for specifying how a `MultiLocation` can be converted into an `AccountId`. This is used
@@ -976,7 +986,7 @@ pub type LocationToAccountId = (
 
 // The non-reserve fungible transactor type
 // It will use pallet-assets, and the Id will be matched against AsAssetType
-pub type FungiblesTransactor = FungiblesAdapter<
+pub type ForeignFungiblesTransactor = FungiblesAdapter<
 	// Use this fungibles implementation:
 	Assets,
 	// Use this currency when it is a fungible asset matching the given location or name:
@@ -998,10 +1008,31 @@ pub type FungiblesTransactor = FungiblesAdapter<
 	(),
 >;
 
+/// Means for transacting local assets besides the native currency on this chain.
+pub type LocalFungiblesTransactor = FungiblesAdapter<
+	// Use this fungibles implementation:
+	LocalAssets,
+	// Use this currency when it is a fungible asset matching the given location or name:
+	ConvertedConcreteAssetId<
+		AssetId,
+		Balance,
+		AsPrefixedGeneralIndex<LocalAssetsPalletLocation, AssetId, JustTry>,
+		JustTry,
+	>,
+	// Convert an XCM MultiLocation into a local account id:
+	LocationToAccountId,
+	// Our chain's account ID type (we can't get away without mentioning it explicitly):
+	AccountId,
+	// We dont want to allow teleporting assets
+	Nothing,
+	// The account to use for tracking teleports.
+	(),
+>;
+
 // We use only fungiblesAdapter transactor for now
 // The idea is that we only accept the relay token, hence no need to handle the local token
 // As long as this does not contain the local transactor, we are good
-pub type AssetTransactors = FungiblesTransactor;
+pub type AssetTransactors = (ForeignFungiblesTransactor, LocalFungiblesTransactor);
 
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
 /// ready for dispatching a transaction with Xcm's `Transact`. There is an `OriginKind` which can
@@ -1140,6 +1171,9 @@ impl cumulus_pallet_dmp_queue::Config for Runtime {
 	type ExecuteOverweightOrigin = EnsureRoot<AccountId>;
 }
 
+type ForeignAssetInstance = pallet_assets::Instance1;
+type LocalAssetInstance = pallet_assets::Instance2;
+
 // These parameters dont matter much as this will only be called by root with the forced arguments
 // No deposit is substracted with those methods
 parameter_types! {
@@ -1158,7 +1192,24 @@ pub type AssetsForceOrigin = EnsureOneOf<
 	pallet_collective::EnsureProportionMoreThan<_1, _2, AccountId, CouncilInstance>,
 >;
 
-impl pallet_assets::Config for Runtime {
+impl pallet_assets::Config<ForeignAssetInstance> for Runtime {
+	type Event = Event;
+	type Balance = Balance;
+	type AssetId = AssetId;
+	type Currency = Balances;
+	type ForceOrigin = AssetsForceOrigin;
+	type AssetDeposit = AssetDeposit;
+	type MetadataDepositBase = MetadataDepositBase;
+	type MetadataDepositPerByte = MetadataDepositPerByte;
+	type ApprovalDeposit = ApprovalDeposit;
+	type StringLimit = AssetsStringLimit;
+	type Freezer = ();
+	type Extra = ();
+	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
+}
+
+// Local assets
+impl pallet_assets::Config<LocalAssetInstance> for Runtime {
 	type Event = Event;
 	type Balance = Balance;
 	type AssetId = AssetId;
@@ -1243,7 +1294,7 @@ use frame_support::{pallet_prelude::DispatchResult, transactional};
 
 impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 	#[transactional]
-	fn create_asset(
+	fn create_foreign_asset(
 		asset: AssetId,
 		min_balance: Balance,
 		metadata: AssetRegistrarMetadata,
@@ -1260,7 +1311,7 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		// TODO uncomment when we feel comfortable
 		/*
 		// The asset has been created. Let's put the revert code in the precompile address
-		let precompile_address = Runtime::asset_id_to_account(asset);
+		let precompile_address = Runtime::asset_id_to_account(ASSET_PRECOMPILE_ADDRESS_PREFIX, asset);
 		pallet_evm::AccountCodes::<Runtime>::insert(
 			precompile_address,
 			vec![0x60, 0x00, 0x60, 0x00, 0xfd],
@@ -1275,6 +1326,33 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 			metadata.decimals,
 			metadata.is_frozen,
 		)
+	}
+
+	#[transactional]
+	fn create_local_asset(
+		asset: AssetId,
+		creator: AccountId,
+		min_balance: Balance,
+		is_sufficient: bool,
+		owner: AccountId,
+	) -> DispatchResult {
+		LocalAssets::create(Origin::signed(creator), asset, owner, min_balance)?;
+		Ok(())
+	}
+}
+
+pub struct LocalAssetIdCreator;
+impl pallet_asset_manager::LocalAssetIdCreator<Runtime> for LocalAssetIdCreator {
+	fn create_asset_id_from_account(account: AccountId) -> AssetId {
+		// Our means of converting a creator to an assetId
+		// We basically hash nonce+account
+		let mut result: [u8; 16] = [0u8; 16];
+		let account_info = System::account(account);
+		let mut to_hash = account.encode();
+		to_hash.append(&mut account_info.nonce.encode());
+		let hash: H256 = to_hash.using_encoded(<Runtime as frame_system::Config>::Hashing::hash);
+		result.copy_from_slice(&hash.as_fixed_bytes()[0..16]);
+		u128::from_le_bytes(result)
 	}
 }
 
@@ -1291,9 +1369,11 @@ impl pallet_asset_manager::Config for Runtime {
 	type Balance = Balance;
 	type AssetId = AssetId;
 	type AssetRegistrarMetadata = AssetRegistrarMetadata;
-	type AssetType = AssetType;
+	type ForeignAssetType = AssetType;
 	type AssetRegistrar = AssetRegistrar;
-	type AssetModifierOrigin = EnsureRoot<AccountId>;
+	type ForeignAssetModifierOrigin = EnsureRoot<AccountId>;
+	type LocalAssetModifierOrigin = EnsureRoot<AccountId>;
+	type LocalAssetIdCreator = LocalAssetIdCreator;
 	type WeightInfo = pallet_asset_manager::weights::SubstrateWeight<Runtime>;
 }
 
@@ -1302,23 +1382,25 @@ impl pallet_asset_manager::Config for Runtime {
 impl AccountIdAssetIdConversion<AccountId, AssetId> for Runtime {
 	/// The way to convert an account to assetId is by ensuring that the prefix is 0XFFFFFFFF
 	/// and by taking the lowest 128 bits as the assetId
-	fn account_to_asset_id(account: AccountId) -> Option<AssetId> {
+	fn account_to_asset_id(account: AccountId) -> Option<(Vec<u8>, AssetId)> {
 		let h160_account: H160 = account.into();
 		let mut data = [0u8; 16];
 		let (prefix_part, id_part) = h160_account.as_fixed_bytes().split_at(4);
-		if prefix_part == ASSET_PRECOMPILE_ADDRESS_PREFIX {
+		if prefix_part == FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX
+			|| prefix_part == LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX
+		{
 			data.copy_from_slice(id_part);
 			let asset_id: AssetId = u128::from_be_bytes(data).into();
-			Some(asset_id)
+			Some((prefix_part.to_vec(), asset_id))
 		} else {
 			None
 		}
 	}
 
 	// The opposite conversion
-	fn asset_id_to_account(asset_id: AssetId) -> AccountId {
+	fn asset_id_to_account(prefix: &[u8], asset_id: AssetId) -> AccountId {
 		let mut data = [0u8; 20];
-		data[0..4].copy_from_slice(ASSET_PRECOMPILE_ADDRESS_PREFIX);
+		data[0..4].copy_from_slice(prefix);
 		data[4..20].copy_from_slice(&asset_id.to_be_bytes());
 		AccountId::from(data)
 	}
@@ -1328,7 +1410,8 @@ impl AccountIdAssetIdConversion<AccountId, AssetId> for Runtime {
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
 pub enum CurrencyId {
 	SelfReserve,
-	OtherReserve(AssetId),
+	ForeignAsset(AssetId),
+	LocalAssetReserve(AssetId),
 }
 
 impl AccountIdToCurrencyId<AccountId, CurrencyId> for Runtime {
@@ -1337,13 +1420,18 @@ impl AccountIdToCurrencyId<AccountId, CurrencyId> for Runtime {
 			// the self-reserve currency is identified by the pallet-balances address
 			a if a == H160::from_low_u64_be(2050).into() => Some(CurrencyId::SelfReserve),
 			// the rest of the currencies, by their corresponding erc20 address
-			_ => Runtime::account_to_asset_id(account)
-				.map(|asset_id| CurrencyId::OtherReserve(asset_id)),
+			_ => Runtime::account_to_asset_id(account).map(|(prefix, asset_id)| {
+				if prefix == FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX.to_vec() {
+					CurrencyId::ForeignAsset(asset_id)
+				} else {
+					CurrencyId::LocalAssetReserve(asset_id)
+				}
+			}),
 		}
 	}
 }
-
 // How to convert from CurrencyId to MultiLocation
+
 pub struct CurrencyIdtoMultiLocation<AssetXConverter>(sp_std::marker::PhantomData<AssetXConverter>);
 impl<AssetXConverter> sp_runtime::traits::Convert<CurrencyId, Option<MultiLocation>>
 	for CurrencyIdtoMultiLocation<AssetXConverter>
@@ -1356,7 +1444,12 @@ where
 				let multi: MultiLocation = SelfReserve::get();
 				Some(multi)
 			}
-			CurrencyId::OtherReserve(asset) => AssetXConverter::reverse_ref(asset).ok(),
+			CurrencyId::ForeignAsset(asset) => AssetXConverter::reverse_ref(asset).ok(),
+			CurrencyId::LocalAssetReserve(asset) => {
+				let mut location = LocalAssetsPalletLocation::get();
+				location.push_interior(Junction::GeneralIndex(asset)).ok();
+				Some(location)
+			}
 		}
 	}
 }
@@ -1448,6 +1541,7 @@ impl Contains<Call> for MaintenanceFilter {
 	fn contains(c: &Call) -> bool {
 		match c {
 			Call::Assets(_) => false,
+			Call::LocalAssets(_) => false,
 			Call::Balances(_) => false,
 			Call::CrowdloanRewards(_) => false,
 			Call::Ethereum(_) => false,
@@ -1479,6 +1573,10 @@ impl Contains<Call> for NormalFilter {
 				pallet_assets::Call::transfer_approved { .. } => true,
 				pallet_assets::Call::cancel_approval { .. } => true,
 				_ => false,
+			},
+			Call::LocalAssets(method) => match method {
+				pallet_assets::Call::create { .. } => false,
+				_ => true,
 			},
 			// We just want to enable this in case of live chains, since the default version
 			// is populated at genesis
@@ -1647,10 +1745,11 @@ construct_runtime! {
 		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin} = 101,
 		DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>} = 102,
 		PolkadotXcm: pallet_xcm::{Pallet, Storage, Call, Event<T>, Origin, Config} = 103,
-		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>} = 104,
+		Assets: pallet_assets::<Instance1>::{Pallet, Call, Storage, Event<T>} = 104,
 		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>} = 105,
 		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>} = 106,
 		XcmTransactor: xcm_transactor::{Pallet, Call, Storage, Event<T>} = 107,
+		LocalAssets: pallet_assets::<Instance2>::{Pallet, Call, Storage, Event<T>} = 108,
 	}
 }
 

@@ -32,6 +32,7 @@ use precompile_utils::{
 	Gasometer, LogsBuilder, RuntimeHelper,
 };
 use sp_runtime::traits::{Bounded, Zero};
+use sp_std::vec::Vec;
 
 use sp_core::{H160, U256};
 use sp_std::{
@@ -84,8 +85,8 @@ pub enum Action {
 /// This trait ensure we can convert AccountIds to AssetIds
 /// We will require Runtime to have this trait implemented
 pub trait AccountIdAssetIdConversion<Account, AssetId> {
-	// Get assetId from account
-	fn account_to_asset_id(account: Account) -> Option<AssetId>;
+	// Get assetId and prefix from account
+	fn account_to_asset_id(account: Account) -> Option<(Vec<u8>, AssetId)>;
 
 	// Get AccountId from AssetId
 	fn asset_id_to_account(prefix: &[u8], asset_id: AssetId) -> Account;
@@ -130,7 +131,7 @@ where
 		context: &Context,
 		is_static: bool,
 	) -> Option<EvmResult<PrecompileOutput>> {
-		if let Some(asset_id) =
+		if let Some((_, asset_id)) =
 			Runtime::account_to_asset_id(Runtime::AddressMapping::into_account_id(address))
 		{
 			// If the assetId has non-zero supply
@@ -201,7 +202,7 @@ where
 	}
 
 	fn is_precompile(&self, address: H160) -> bool {
-		if let Some(asset_id) =
+		if let Some((_, asset_id)) =
 			Runtime::account_to_asset_id(Runtime::AddressMapping::into_account_id(address))
 		{
 			// If the assetId has non-zero supply
