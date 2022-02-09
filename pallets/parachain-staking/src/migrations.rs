@@ -16,10 +16,9 @@
 
 //! # Migrations
 use crate::{
-	pallet::{migrate_nominator_to_delegator_state, RoundIndex, Total},
-	BalanceOf, Bond, BottomDelegations, CandidateInfo, CandidateMetadata, CandidateState,
-	CapacityStatus, CollatorCandidate, CollatorState2, Config, Delegations, DelegatorState, Event,
-	NominatorState2, Pallet, Points, Round, Staked, TopDelegations,
+	pallet::Total, BalanceOf, Bond, BottomDelegations, CandidateInfo, CandidateMetadata,
+	CandidateState, CapacityStatus, CollatorCandidate, Config, Delegations, DelegatorState, Event,
+	Pallet, Points, Round, Staked, TopDelegations,
 };
 #[cfg(feature = "try-runtime")]
 use crate::{Collator2, Delegator, Nominator2};
@@ -36,7 +35,7 @@ use frame_support::{
 	weights::Weight,
 };
 use sp_runtime::traits::Zero;
-use sp_std::{collections::btree_map::BTreeMap, convert::TryInto, vec::Vec};
+use sp_std::{convert::TryInto, vec::Vec};
 
 /// Migration to split CandidateState and minimize unnecessary storage reads
 /// for PoV optimization

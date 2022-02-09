@@ -71,7 +71,7 @@ pub mod pallet {
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{Currency, Get, Imbalance, ReservableCurrency};
 	use frame_system::pallet_prelude::*;
-	use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+	use parity_scale_codec::{Decode, Encode};
 	use scale_info::TypeInfo;
 	use sp_runtime::{
 		traits::{AtLeast32BitUnsigned, Saturating, Zero},
@@ -81,6 +81,7 @@ pub mod pallet {
 
 	/// Pallet for parachain staking
 	#[pallet::pallet]
+	#[pallet::without_storage_info]
 	pub struct Pallet<T>(PhantomData<T>);
 
 	#[derive(Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
