@@ -701,7 +701,7 @@ where
 					Ok((time, parachain_inherent, author))
 				}
 			};
-			
+
 			Ok(NimbusConsensus::build(BuildNimbusConsensusParams {
 				para_id: id,
 				proposer_factory,
