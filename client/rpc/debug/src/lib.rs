@@ -448,7 +448,7 @@ where
 
 		// Get DebugRuntimeApi version
 		let trace_api_version = if let Ok(Some(api_version)) =
-			api.api_version::<dyn DebugRuntimeApi<B>>(&reference_id)
+			api.api_version::<dyn DebugRuntimeApi<B>>(&parent_block_id)
 		{
 			api_version
 		} else {
