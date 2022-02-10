@@ -161,15 +161,13 @@ fn take_transact_info() {
 			);
 
 			// Root can set transact info
-			assert_ok!(
-				XcmTransactor::set_transact_info(
-					Origin::root(),
-					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-					0,
-					1,
-					10000,
-				)
-			);
+			assert_ok!(XcmTransactor::set_transact_info(
+				Origin::root(),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				0,
+				1,
+				10000,
+			));
 
 			// Expected result is zero
 			let expected_result = Some(Ok(PrecompileOutput {

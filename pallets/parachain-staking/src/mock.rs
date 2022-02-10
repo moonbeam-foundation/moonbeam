@@ -291,7 +291,7 @@ macro_rules! assert_last_event {
 	($event:expr) => {
 		match &$event {
 			e => assert_eq!(*e, crate::mock::last_event()),
-			}
+		}
 	};
 }
 
@@ -302,7 +302,7 @@ macro_rules! assert_eq_events {
 	($events:expr) => {
 		match &$events {
 			e => similar_asserts::assert_eq!(*e, crate::mock::events()),
-			}
+		}
 	};
 }
 
@@ -339,11 +339,11 @@ macro_rules! assert_tail_eq {
 
 			if $tail.len() > $arr.len() {
 				similar_asserts::assert_eq!($tail, $arr); // will fail
-				}
+			}
 
 			let len_diff = $arr.len() - $tail.len();
 			similar_asserts::assert_eq!($tail, $arr[len_diff..]);
-			}
+		}
 	};
 }
 
@@ -359,8 +359,8 @@ macro_rules! assert_event_emitted {
 					e,
 					crate::mock::events()
 				);
-				}
 			}
+		}
 	};
 }
 
@@ -376,8 +376,8 @@ macro_rules! assert_event_not_emitted {
 					e,
 					crate::mock::events()
 				);
-				}
 			}
+		}
 	};
 }
 
