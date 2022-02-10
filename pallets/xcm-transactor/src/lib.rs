@@ -191,7 +191,7 @@ pub mod pallet {
 	pub enum Event<T: Config> {
 		/// Transacted the inner call through a derivative account in a destination chain.
 		TransactedDerivative {
-			who: T::AccountId,
+			account_id: T::AccountId,
 			dest: MultiLocation,
 			call: Vec<u8>,
 			index: u16
@@ -204,7 +204,7 @@ pub mod pallet {
 		},
 		/// Registered a derivative index for an account id.
 		RegisterdDerivative {
-			who: T::AccountId,
+			account_id: T::AccountId,
 			index: u16
 		},
 		/// Transact failed
@@ -238,7 +238,10 @@ pub mod pallet {
 			IndexToAccount::<T>::insert(&index, who.clone());
 
 			// Deposit event
-			Self::deposit_event(Event::<T>::RegisterdDerivative(who, index));
+			Self::deposit_event(Event::<T>::RegisterdDerivative { 
+				account_id: who, 
+				index: index
+			});
 
 			Ok(())
 		}
@@ -292,9 +295,12 @@ pub mod pallet {
 			)?;
 
 			// Deposit event
-			Self::deposit_event(Event::<T>::TransactedDerivative(
-				who, dest, call_bytes, index,
-			));
+			Self::deposit_event(Event::<T>::TransactedDerivative {
+				account_id: who,
+				dest: dest,
+				call: call_bytes,
+				index: index,
+			});
 
 			Ok(())
 		}
@@ -348,9 +354,12 @@ pub mod pallet {
 				call_bytes.clone(),
 			)?;
 			// Deposit event
-			Self::deposit_event(Event::<T>::TransactedDerivative(
-				who, dest, call_bytes, index,
-			));
+			Self::deposit_event(Event::<T>::TransactedDerivative {
+				account_id: who,
+				dest: dest,
+				call: call_bytes,
+				index: index,
+			});
 
 			Ok(())
 		}
@@ -391,7 +400,7 @@ pub mod pallet {
 			)?;
 
 			// Deposit event
-			Self::deposit_event(Event::<T>::TransactedSovereign(fee_payer, dest, call));
+			Self::deposit_event(Event::<T>::TransactedSovereign { fee_payer, dest, call });
 
 			Ok(())
 		}
@@ -416,7 +425,7 @@ pub mod pallet {
 
 			TransactInfoWithWeightLimit::<T>::insert(&location, &remote_info);
 
-			Self::deposit_event(Event::TransactInfoChanged(location, remote_info));
+			Self::deposit_event(Event::TransactInfoChanged { location, remote_info });
 			Ok(())
 		}
 	}

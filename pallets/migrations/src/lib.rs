@@ -270,7 +270,9 @@ pub mod pallet {
 			let migration_done = <MigrationState<T>>::get(migration_name_as_bytes);
 
 			if !migration_done {
-				<Pallet<T>>::deposit_event(Event::MigrationStarted(migration_name_as_bytes.into()));
+				<Pallet<T>>::deposit_event(Event::MigrationStarted { 
+					migration_name: migration_name_as_bytes.into()
+				});
 
 				// when we go overweight, leave a warning... there's nothing we can really do about
 				// this scenario other than hope that the block is actually accepted.
@@ -293,10 +295,10 @@ pub mod pallet {
 				);
 
 				let consumed_weight = migration.migrate(available_for_step);
-				<Pallet<T>>::deposit_event(Event::MigrationCompleted(
-					migration_name_as_bytes.into(),
-					consumed_weight,
-				));
+				<Pallet<T>>::deposit_event(Event::MigrationCompleted {
+					migration_name: migration_name_as_bytes.into(),
+					consumed_weight: consumed_weight,
+				});
 				<MigrationState<T>>::insert(migration_name_as_bytes, true);
 
 				weight = weight.saturating_add(consumed_weight);
@@ -313,7 +315,7 @@ pub mod pallet {
 
 		<FullyUpgraded<T>>::put(true);
 		weight += T::DbWeight::get().writes(1);
-		<Pallet<T>>::deposit_event(Event::RuntimeUpgradeCompleted(weight));
+		<Pallet<T>>::deposit_event(Event::RuntimeUpgradeCompleted { weight });
 
 		weight
 	}

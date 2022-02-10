@@ -130,7 +130,7 @@ pub mod pallet {
 
 			Self::enact_registration(&author_id, &account_id)?;
 
-			<Pallet<T>>::deposit_event(Event::AuthorRegistered(author_id, account_id));
+			<Pallet<T>>::deposit_event(Event::AuthorRegistered { author_id, account_id });
 
 			Ok(())
 		}
@@ -162,7 +162,10 @@ pub mod pallet {
 			MappingWithDeposit::<T>::remove(&old_author_id);
 			MappingWithDeposit::<T>::insert(&new_author_id, &stored_info);
 
-			<Pallet<T>>::deposit_event(Event::AuthorRotated(new_author_id, stored_info.account));
+			<Pallet<T>>::deposit_event(Event::AuthorRotated { 
+				new_author_id: new_author_id,
+				account_id: stored_info.account
+			});
 
 			Ok(())
 		}
@@ -190,7 +193,7 @@ pub mod pallet {
 
 			T::DepositCurrency::unreserve(&account_id, stored_info.deposit);
 
-			<Pallet<T>>::deposit_event(Event::AuthorDeRegistered(author_id));
+			<Pallet<T>>::deposit_event(Event::AuthorDeRegistered { author_id });
 
 			Ok(().into())
 		}

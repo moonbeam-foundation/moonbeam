@@ -137,7 +137,7 @@ pub mod pallet {
 			units_per_second: u128
 		},
 		/// Changed the xcm type mapping for a given asset id
-		AssetTypeChanged{
+		AssetTypeChanged {
 			asset_id: T::AssetId,
 			new_asset_type: T::AssetType
 		},
@@ -190,7 +190,7 @@ pub mod pallet {
 			AssetIdType::<T>::insert(&asset_id, &asset);
 			AssetTypeId::<T>::insert(&asset, &asset_id);
 
-			Self::deposit_event(Event::AssetRegistered(asset_id, asset, metadata));
+			Self::deposit_event(Event::AssetRegistered { asset_id, asset, metadata });
 			Ok(())
 		}
 
@@ -210,7 +210,7 @@ pub mod pallet {
 
 			AssetTypeUnitsPerSecond::<T>::insert(&asset_type, &units_per_second);
 
-			Self::deposit_event(Event::UnitsPerSecondChanged(asset_type, units_per_second));
+			Self::deposit_event(Event::UnitsPerSecondChanged { asset_type, units_per_second	});
 			Ok(())
 		}
 
@@ -241,7 +241,7 @@ pub mod pallet {
 				AssetTypeUnitsPerSecond::<T>::insert(&new_asset_type, units);
 			}
 
-			Self::deposit_event(Event::AssetTypeChanged(asset_id, new_asset_type));
+			Self::deposit_event(Event::AssetTypeChanged { asset_id, new_asset_type });
 			Ok(())
 		}
 	}
