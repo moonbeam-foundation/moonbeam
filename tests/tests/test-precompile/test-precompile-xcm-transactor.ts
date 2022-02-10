@@ -188,7 +188,10 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
 
     await mockAssetBalance(context, assetBalance, assetDetails, sudoAccount, assetId);
 
-    let beforeAssetBalance =  (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any;
+    let beforeAssetBalance = (await context.polkadotApi.query.assets.account(
+      assetId,
+      ALITH
+    )) as any;
     let beforeAssetDetails = (await context.polkadotApi.query.assets.asset(assetId)) as any;
 
     // supply and balance should be the same
@@ -294,8 +297,10 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
 
     await mockAssetBalance(context, assetBalance, assetDetails, sudoAccount, assetId);
 
-    let beforeAssetBalance =  (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any;
-
+    let beforeAssetBalance = (await context.polkadotApi.query.assets.account(
+      assetId,
+      ALITH
+    )) as any;
 
     let beforeAssetDetails = (await context.polkadotApi.query.assets.asset(assetId)) as any;
 
@@ -335,7 +340,6 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
     // We have used 1000 units to pay for the fees in the relay, so balance and supply should
     // have changed
     let afterAssetBalance = (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any;
-
 
     let expectedBalance = new BN(100000000000000).sub(new BN(1000));
     expect(afterAssetBalance.unwrap()["balance"].eq(expectedBalance)).to.equal(true);

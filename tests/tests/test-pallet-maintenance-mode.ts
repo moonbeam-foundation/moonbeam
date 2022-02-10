@@ -599,9 +599,7 @@ describeDevMoonbeam(
       await context.createBlock();
 
       // Make sure the state does not have ALITH's foreign asset tokens
-      let alithBalance = (
-        (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any
-      );
+      let alithBalance = (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any;
       // Alith balance is 0
       expect(alithBalance.isNone).to.eq(true);
 

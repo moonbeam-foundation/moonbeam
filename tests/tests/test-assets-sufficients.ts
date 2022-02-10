@@ -149,7 +149,7 @@ describeDevMoonbeam(
         assetId,
         freshAccount.address
       )) as any;
-      
+
       expect(freshAccountBalance.unwrap()["balance"].eq(new BN(10000000000000))).to.equal(true);
 
       expect(
@@ -174,7 +174,6 @@ describeDevMoonbeam(
         .transfer(freshAccount.address, BigInt(fee) - BigInt(4359))
         .signAndSend(alith);
       await context.createBlock();
-
 
       expect(
         (
