@@ -640,6 +640,8 @@ where
 }
 
 /// Start a normal parachain node.
+// Rustfmt wants to format the closure with space identation.
+#[rustfmt::skip]
 pub async fn start_node<RuntimeApi, Executor>(
 	parachain_config: Configuration,
 	polkadot_config: Configuration,
@@ -658,15 +660,17 @@ where
 		polkadot_config,
 		id,
 		rpc_config,
-		|client,
-		 prometheus_registry,
-		 telemetry,
-		 task_manager,
-		 relay_chain_interface,
-		 transaction_pool,
-		 _sync_oracle,
-		 keystore,
-		 force_authoring| {
+		|
+			client,
+			prometheus_registry,
+			telemetry,
+			task_manager,
+			relay_chain_interface,
+			transaction_pool,
+			_sync_oracle,
+			keystore,
+			force_authoring
+		| {
 			let mut proposer_factory = sc_basic_authorship::ProposerFactory::with_proof_recording(
 				task_manager.spawn_handle(),
 				client.clone(),
