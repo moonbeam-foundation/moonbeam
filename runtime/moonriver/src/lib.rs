@@ -864,18 +864,16 @@ impl InstanceFilter<Call> for ProxyType {
 	fn filter(&self, c: &Call) -> bool {
 		match self {
 			ProxyType::Any => true,
-			ProxyType::NonTransfer => {
-				matches!(
-					c,
-					Call::System(..)
-						| Call::Timestamp(..) | Call::ParachainStaking(..)
-						| Call::Democracy(..) | Call::CouncilCollective(..)
-						| Call::Identity(..) | Call::TechCommitteeCollective(..)
-						| Call::Utility(..) | Call::Proxy(..)
-						| Call::AuthorMapping(..)
-						| Call::CrowdloanRewards(pallet_crowdloan_rewards::Call::claim { .. })
-				)
-			}
+			ProxyType::NonTransfer => matches!(
+				c,
+				Call::System(..)
+					| Call::Timestamp(..) | Call::ParachainStaking(..)
+					| Call::Democracy(..) | Call::CouncilCollective(..)
+					| Call::Identity(..) | Call::TechCommitteeCollective(..)
+					| Call::Utility(..) | Call::Proxy(..)
+					| Call::AuthorMapping(..)
+					| Call::CrowdloanRewards(pallet_crowdloan_rewards::Call::claim { .. })
+			),
 			ProxyType::Governance => matches!(
 				c,
 				Call::Democracy(..)
@@ -887,18 +885,12 @@ impl InstanceFilter<Call> for ProxyType {
 				c,
 				Call::ParachainStaking(..) | Call::Utility(..) | Call::AuthorMapping(..)
 			),
-			ProxyType::CancelProxy => {
-				matches!(
-					c,
-					Call::Proxy(pallet_proxy::Call::reject_announcement { .. })
-				)
-			}
-			ProxyType::Balances => {
-				matches!(c, Call::Balances(..) | Call::Utility(..))
-			}
-			ProxyType::AuthorMapping => {
-				matches!(c, Call::AuthorMapping(..))
-			}
+			ProxyType::CancelProxy => matches!(
+				c,
+				Call::Proxy(pallet_proxy::Call::reject_announcement { .. })
+			),
+			ProxyType::Balances => matches!(c, Call::Balances(..) | Call::Utility(..)),
+			ProxyType::AuthorMapping => matches!(c, Call::AuthorMapping(..)),
 		}
 	}
 

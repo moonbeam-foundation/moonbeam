@@ -94,22 +94,20 @@ pub mod pallet {
 		/// A NimbusId has been registered and mapped to an AccountId.
 		AuthorRegistered {
 			author_id: NimbusId,
-			account_id: T::AccountId
+			account_id: T::AccountId,
 		},
 		/// An NimbusId has been de-registered, and its AccountId mapping removed.
-		AuthorDeRegistered {
-			author_id: NimbusId
-		},
+		AuthorDeRegistered { author_id: NimbusId },
 		/// An NimbusId has been registered, replacing a previous registration and its mapping.
 		AuthorRotated {
-			new_author_id: NimbusId, 
-			account_id: T::AccountId
+			new_author_id: NimbusId,
+			account_id: T::AccountId,
 		},
 		/// An NimbusId has been forcibly deregistered after not being rotated or cleaned up.
 		/// The reporteing account has been rewarded accordingly.
 		DefunctAuthorBusted {
 			author_id: NimbusId,
-			account_id: T::AccountId
+			account_id: T::AccountId,
 		},
 	}
 
@@ -130,7 +128,10 @@ pub mod pallet {
 
 			Self::enact_registration(&author_id, &account_id)?;
 
-			<Pallet<T>>::deposit_event(Event::AuthorRegistered { author_id, account_id });
+			<Pallet<T>>::deposit_event(Event::AuthorRegistered {
+				author_id,
+				account_id,
+			});
 
 			Ok(())
 		}
@@ -162,9 +163,9 @@ pub mod pallet {
 			MappingWithDeposit::<T>::remove(&old_author_id);
 			MappingWithDeposit::<T>::insert(&new_author_id, &stored_info);
 
-			<Pallet<T>>::deposit_event(Event::AuthorRotated { 
+			<Pallet<T>>::deposit_event(Event::AuthorRotated {
 				new_author_id: new_author_id,
-				account_id: stored_info.account
+				account_id: stored_info.account,
 			});
 
 			Ok(())

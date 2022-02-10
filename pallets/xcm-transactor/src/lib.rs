@@ -194,25 +194,25 @@ pub mod pallet {
 			account_id: T::AccountId,
 			dest: MultiLocation,
 			call: Vec<u8>,
-			index: u16
+			index: u16,
 		},
 		/// Transacted the call through the sovereign account in a destination chain.
 		TransactedSovereign {
 			fee_payer: T::AccountId,
 			dest: MultiLocation,
-			call: Vec<u8>
+			call: Vec<u8>,
 		},
 		/// Registered a derivative index for an account id.
 		RegisterdDerivative {
 			account_id: T::AccountId,
-			index: u16
+			index: u16,
 		},
 		/// Transact failed
 		TransactFailed { error: XcmError },
 		/// Changed the transact info of a location
 		TransactInfoChanged {
 			location: MultiLocation,
-			remote_info: RemoteTransactInfoWithMaxWeight
+			remote_info: RemoteTransactInfoWithMaxWeight,
 		},
 	}
 
@@ -238,9 +238,9 @@ pub mod pallet {
 			IndexToAccount::<T>::insert(&index, who.clone());
 
 			// Deposit event
-			Self::deposit_event(Event::<T>::RegisterdDerivative { 
-				account_id: who, 
-				index: index
+			Self::deposit_event(Event::<T>::RegisterdDerivative {
+				account_id: who,
+				index: index,
 			});
 
 			Ok(())
@@ -400,7 +400,11 @@ pub mod pallet {
 			)?;
 
 			// Deposit event
-			Self::deposit_event(Event::<T>::TransactedSovereign { fee_payer, dest, call });
+			Self::deposit_event(Event::<T>::TransactedSovereign {
+				fee_payer,
+				dest,
+				call,
+			});
 
 			Ok(())
 		}
@@ -425,7 +429,10 @@ pub mod pallet {
 
 			TransactInfoWithWeightLimit::<T>::insert(&location, &remote_info);
 
-			Self::deposit_event(Event::TransactInfoChanged { location, remote_info });
+			Self::deposit_event(Event::TransactInfoChanged {
+				location,
+				remote_info,
+			});
 			Ok(())
 		}
 	}

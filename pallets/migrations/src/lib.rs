@@ -107,8 +107,8 @@ pub mod pallet {
 		MigrationStarted { migration_name: Vec<u8> },
 		/// Migration completed
 		MigrationCompleted {
-			migration_name: Vec<u8>, 
-			consumed_weight: Weight
+			migration_name: Vec<u8>,
+			consumed_weight: Weight,
 		},
 	}
 
@@ -270,8 +270,8 @@ pub mod pallet {
 			let migration_done = <MigrationState<T>>::get(migration_name_as_bytes);
 
 			if !migration_done {
-				<Pallet<T>>::deposit_event(Event::MigrationStarted { 
-					migration_name: migration_name_as_bytes.into()
+				<Pallet<T>>::deposit_event(Event::MigrationStarted {
+					migration_name: migration_name_as_bytes.into(),
 				});
 
 				// when we go overweight, leave a warning... there's nothing we can really do about
