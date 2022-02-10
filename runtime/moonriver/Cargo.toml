@@ -180,6 +180,7 @@ std = [
 	"pallet-ethereum/std",
 	"pallet-evm-precompile-balances-erc20/std",
 	"pallet-evm/std",
+	"pallet-identity/std",
 	"pallet-maintenance-mode/std",
 	"pallet-migrations/std",
 	"pallet-proxy-genesis-companion/std",
@@ -219,7 +220,6 @@ std = [
 	"xcm-transactor/std",
 	"xcm/std",
 	"xtokens-precompiles/std",
-	"pallet-identity/std",
 ]
 
 # Must be enabled for tracing runtimes only
