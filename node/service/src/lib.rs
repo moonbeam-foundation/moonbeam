@@ -653,65 +653,71 @@ where
 		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
 	Executor: NativeExecutionDispatch + 'static,
 {
+	// Rustfmt wants to format the closure with space identation.
+	#[rustfmt::skip]
+	let build_consensus = |
+		client,
+		prometheus_registry,
+		telemetry,
+		task_manager,
+		relay_chain_interface,
+		transaction_pool,
+		_sync_oracle,
+		keystore,
+		force_authoring
+	| {
+		let mut proposer_factory = sc_basic_authorship::ProposerFactory::with_proof_recording(
+			task_manager.spawn_handle(),
+			client.clone(),
+			transaction_pool,
+			prometheus_registry,
+			telemetry.clone(),
+		);
+		proposer_factory.set_soft_deadline(SOFT_DEADLINE_PERCENT);
+
+		let provider = move |_, (relay_parent, validation_data, author_id)| {
+			let relay_chain_interface = relay_chain_interface.clone();
+			async move {
+				let parachain_inherent =
+					cumulus_primitives_parachain_inherent::ParachainInherentData::create_at(
+						relay_parent,
+						&relay_chain_interface,
+						&validation_data,
+						id,
+					)
+					.await;
+
+				let time = sp_timestamp::InherentDataProvider::from_system_time();
+
+				let parachain_inherent = parachain_inherent.ok_or_else(|| {
+					Box::<dyn std::error::Error + Send + Sync>::from(
+						"Failed to create parachain inherent",
+					)
+				})?;
+
+				let author = nimbus_primitives::InherentDataProvider::<NimbusId>(author_id);
+
+				Ok((time, parachain_inherent, author))
+			}
+		};
+
+		Ok(NimbusConsensus::build(BuildNimbusConsensusParams {
+			para_id: id,
+			proposer_factory,
+			block_import: client.clone(),
+			parachain_client: client.clone(),
+			keystore,
+			skip_prediction: force_authoring,
+			create_inherent_data_providers: provider,
+		}))
+	};
+
 	start_node_impl(
 		parachain_config,
 		polkadot_config,
 		id,
 		rpc_config,
-		|client,
-		 prometheus_registry,
-		 telemetry,
-		 task_manager,
-		 relay_chain_interface,
-		 transaction_pool,
-		 _sync_oracle,
-		 keystore,
-		 force_authoring| {
-			let mut proposer_factory = sc_basic_authorship::ProposerFactory::with_proof_recording(
-				task_manager.spawn_handle(),
-				client.clone(),
-				transaction_pool,
-				prometheus_registry,
-				telemetry.clone(),
-			);
-			proposer_factory.set_soft_deadline(SOFT_DEADLINE_PERCENT);
-
-			let provider = move |_, (relay_parent, validation_data, author_id)| {
-				let relay_chain_interface = relay_chain_interface.clone();
-				async move {
-					let parachain_inherent =
-						cumulus_primitives_parachain_inherent::ParachainInherentData::create_at(
-							relay_parent,
-							&relay_chain_interface,
-							&validation_data,
-							id,
-						)
-						.await;
-
-					let time = sp_timestamp::InherentDataProvider::from_system_time();
-
-					let parachain_inherent = parachain_inherent.ok_or_else(|| {
-						Box::<dyn std::error::Error + Send + Sync>::from(
-							"Failed to create parachain inherent",
-						)
-					})?;
-
-					let author = nimbus_primitives::InherentDataProvider::<NimbusId>(author_id);
-
-					Ok((time, parachain_inherent, author))
-				}
-			};
-
-			Ok(NimbusConsensus::build(BuildNimbusConsensusParams {
-				para_id: id,
-				proposer_factory,
-				block_import: client.clone(),
-				parachain_client: client.clone(),
-				keystore,
-				skip_prediction: force_authoring,
-				create_inherent_data_providers: provider,
-			}))
-		},
+		build_consensus,
 	)
 	.await
 }
