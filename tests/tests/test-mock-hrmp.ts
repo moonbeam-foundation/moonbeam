@@ -96,8 +96,8 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
 
     // Make sure the state has ALITH's foreign parachain tokens
     let alith_dot_balance = (
-      await context.polkadotApi.query.assets.account(assetId, alith.address)
-    ).balance.toBigInt();
+      (await context.polkadotApi.query.assets.account(assetId, alith.address)) as any
+    ).unwrap()["balance"].toBigInt();
 
     expect(alith_dot_balance).to.eq(10n * FOREIGN_TOKEN);
   });
@@ -223,8 +223,8 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
 
     // Make sure the state has ALITH's foreign parachain tokens
     let alith_dot_balance = (
-      await context.polkadotApi.query.assets.account(assetId, alith.address)
-    ).balance.toBigInt();
+      (await context.polkadotApi.query.assets.account(assetId, alith.address)) as any
+    ).unwrap()["balance"].toBigInt();
 
     expect(alith_dot_balance).to.eq(10n * FOREIGN_TOKEN);
   });
@@ -362,8 +362,8 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
 
     // Make sure the state has ALITH's foreign parachain tokens
     let alith_dot_balance = (
-      await context.polkadotApi.query.assets.account(assetId, alith.address)
-    ).balance.toBigInt();
+      (await context.polkadotApi.query.assets.account(assetId, alith.address)) as any
+    ).unwrap()["balance"].toBigInt();
 
     expect(alith_dot_balance).to.eq(10n * FOREIGN_TOKEN);
   });
