@@ -1993,7 +1993,7 @@ pub mod pallet {
 			exit_allowed_round: RoundIndex,
 			candidate: T::AccountId,
 			scheduled_exit: RoundIndex
-		}
+		},
 		/// Cancelled request to leave the set of candidates.
 		CancelledCandidateExit {
 			candidate: T::AccountId
@@ -2081,7 +2081,7 @@ pub mod pallet {
 		DelegatorLeftCandidate {
 			delegator: T::AccountId,
 			candidate: T::AccountId,
-			unstaked_amount: BalanceOf<T>	
+			unstaked_amount: BalanceOf<T>,	
 			total_candidate_staked: BalanceOf<T>
 		},
 		/// Paid the account (delegator or collator) the balance as liquid rewards.
