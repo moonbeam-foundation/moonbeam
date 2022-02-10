@@ -125,9 +125,22 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
-		AssetRegistered(T::AssetId, T::AssetType, T::AssetRegistrarMetadata),
-		UnitsPerSecondChanged(T::AssetType, u128),
-		AssetTypeChanged(T::AssetId, T::AssetType),
+		/// New asset with the asset manager is registered
+		AssetRegistered {
+			asset_id: T::AssetId,
+			asset: T::AssetType,
+			metadata: T::AssetRegistrarMetadata
+		},
+		/// Changed the amount of units we are charging per execution second for a given asset
+		UnitsPerSecondChanged {
+			asset_type: T::AssetType,
+			units_per_second: u128
+		},
+		/// Changed the xcm type mapping for a given asset id
+		AssetTypeChanged{
+			asset_id: T::AssetId,
+			new_asset_type: T::AssetType
+		},
 	}
 
 	/// Mapping from an asset id to asset type.

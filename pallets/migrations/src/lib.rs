@@ -99,10 +99,17 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
+		/// Runtime upgrade started
 		RuntimeUpgradeStarted(),
-		RuntimeUpgradeCompleted(Weight),
-		MigrationStarted(Vec<u8>),
-		MigrationCompleted(Vec<u8>, Weight),
+		/// Runtime upgrade completed
+		RuntimeUpgradeCompleted { weight: Weight },
+		/// Migration started
+		MigrationStarted { migration_name: Vec<u8> },
+		/// Migration completed
+		MigrationCompleted {
+			migration_name: Vec<u8>, 
+			consumed_weight: Weight
+		},
 	}
 
 	#[pallet::hooks]

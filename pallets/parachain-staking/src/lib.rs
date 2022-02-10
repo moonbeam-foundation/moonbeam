@@ -1940,85 +1940,202 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
-		/// Starting Block, Round, Number of Collators Selected, Total Balance
-		NewRound(T::BlockNumber, RoundIndex, u32, BalanceOf<T>),
-		/// Account, Amount Locked, New Total Amt Locked
-		JoinedCollatorCandidates(T::AccountId, BalanceOf<T>, BalanceOf<T>),
-		/// Round, Collator Account, Total Exposed Amount (includes all delegations)
-		CollatorChosen(RoundIndex, T::AccountId, BalanceOf<T>),
-		/// Candidate, Amount To Decrease, Round at which request can be executed by caller
-		CandidateBondLessRequested(T::AccountId, BalanceOf<T>, RoundIndex),
-		/// Candidate, Amount, New Bond Total
-		CandidateBondedMore(T::AccountId, BalanceOf<T>, BalanceOf<T>),
-		/// Candidate, Amount, New Bond
-		CandidateBondedLess(T::AccountId, BalanceOf<T>, BalanceOf<T>),
-		/// Candidate
-		CandidateWentOffline(T::AccountId),
-		/// Candidate
-		CandidateBackOnline(T::AccountId),
-		/// Round At Which Exit Is Allowed, Candidate, Scheduled Exit
-		CandidateScheduledExit(RoundIndex, T::AccountId, RoundIndex),
-		/// Candidate
-		CancelledCandidateExit(T::AccountId),
-		/// Candidate, Amount, Round at which could be executed
-		CancelledCandidateBondLess(T::AccountId, BalanceOf<T>, RoundIndex),
-		/// Ex-Candidate, Amount Unlocked, New Total Amt Locked
-		CandidateLeft(T::AccountId, BalanceOf<T>, BalanceOf<T>),
-		/// Delegator, Candidate, Amount to be decreased, Round at which can be executed
-		DelegationDecreaseScheduled(T::AccountId, T::AccountId, BalanceOf<T>, RoundIndex),
-		// Delegator, Candidate, Amount, If in top delegations for candidate after increase
-		DelegationIncreased(T::AccountId, T::AccountId, BalanceOf<T>, bool),
-		// Delegator, Candidate, Amount, If in top delegations for candidate after decrease
-		DelegationDecreased(T::AccountId, T::AccountId, BalanceOf<T>, bool),
-		/// Round, Delegator, Scheduled Exit
-		DelegatorExitScheduled(RoundIndex, T::AccountId, RoundIndex),
-		/// Round, Delegator, Candidate, Scheduled Exit
-		DelegationRevocationScheduled(RoundIndex, T::AccountId, T::AccountId, RoundIndex),
-		/// Delegator, Amount Unstaked
-		DelegatorLeft(T::AccountId, BalanceOf<T>),
-		/// Delegator, Candidate, Amount Unstaked
-		DelegationRevoked(T::AccountId, T::AccountId, BalanceOf<T>),
-		/// Delegator, Candidate, Amount Unstaked
-		DelegationKicked(T::AccountId, T::AccountId, BalanceOf<T>),
-		/// Delegator
-		DelegatorExitCancelled(T::AccountId),
-		/// Delegator, Cancelled Request
-		CancelledDelegationRequest(T::AccountId, DelegationRequest<T::AccountId, BalanceOf<T>>),
-		/// Delegator, Amount Locked, Candidate, Delegator Position with New Total Counted if in Top
-		Delegation(
-			T::AccountId,
-			BalanceOf<T>,
-			T::AccountId,
-			DelegatorAdded<BalanceOf<T>>,
-		),
-		/// Delegator, Candidate, Amount Unstaked, New Total Amt Staked for Candidate
-		DelegatorLeftCandidate(T::AccountId, T::AccountId, BalanceOf<T>, BalanceOf<T>),
-		/// Paid the account (delegator or collator) the balance as liquid rewards
-		Rewarded(T::AccountId, BalanceOf<T>),
-		/// Transferred to account which holds funds reserved for parachain bond
-		ReservedForParachainBond(T::AccountId, BalanceOf<T>),
-		/// Account (re)set for parachain bond treasury [old, new]
-		ParachainBondAccountSet(T::AccountId, T::AccountId),
-		/// Percent of inflation reserved for parachain bond (re)set [old, new]
-		ParachainBondReservePercentSet(Percent, Percent),
+		/// Started new round.
+		NewRound { 
+			starting_block: T::BlockNumber, 
+			round: RoundIndex, 
+			selected_collators_number: u32, 
+			total_balance: BalanceOf<T> 
+		},
+		/// Account joined the set of collator candidates.
+		JoinedCollatorCandidates {
+			account: T::AccountId,
+			amount_locked: BalanceOf<T>,
+			new_total_amt_locked: BalanceOf<T>
+		},
+		/// Candidate selected for collators. Total Exposed Amount includes all delegations.
+		CollatorChosen {
+			round: RoundIndex,
+			collator_account: T::AccountId,
+			total_exposed_amount: BalanceOf<T>
+		},
+		/// Сandidate requested to decrease a self bond.
+		CandidateBondLessRequested {
+			candidate: T::AccountId,
+			amount_to_decrease: BalanceOf<T>,
+			execute_round: RoundIndex
+		},
+		/// Сandidate has increased a self bond.
+		CandidateBondedMore {
+			candidate: T::AccountId,
+			amount: BalanceOf<T>,
+			new_total_bond: BalanceOf<T>
+		},
+		/// Сandidate has decreased a self bond.
+		CandidateBondedLess{
+			candidate: T::AccountId,
+			amount: BalanceOf<T>,
+			new_bond: BalanceOf<T>
+		},
+		/// Candidate temporarily leave the set of collator candidates without unbonding.
+		CandidateWentOffline {
+			candidate: T::AccountId
+		},
+		/// Candidate rejoins the set of collator candidates.
+		CandidateBackOnline {
+			candidate: T::AccountId
+		},
+		/// Сandidate has requested to leave the set of candidates.
+		CandidateScheduledExit {
+			exit_allowed_round: RoundIndex,
+			candidate: T::AccountId,
+			scheduled_exit: RoundIndex
+		}
+		/// Cancelled request to leave the set of candidates.
+		CancelledCandidateExit {
+			candidate: T::AccountId
+		},
+		/// Cancelled request to decrease candidate's bond.
+		CancelledCandidateBondLess {
+			candidate: T::AccountId,
+			amount: BalanceOf<T>,
+			execute_round: RoundIndex
+		},
+		/// Candidate has left the set of candidates.
+		CandidateLeft {
+			ex_candidate: T::AccountId,
+			unlocked_amount: BalanceOf<T>,
+			new_total_amt_locked: BalanceOf<T>
+		},
+		/// Delegator requested to decrease a bond for the collator candidate.
+		DelegationDecreaseScheduled {
+			delegator: T::AccountId,
+			candidate: T::AccountId,
+			amount_to_decrease: BalanceOf<T>,
+			execute_round: RoundIndex
+		},
+		// Delegation increased.
+		DelegationIncreased {
+			delegator: T::AccountId,
+			candidate: T::AccountId,
+			amount: BalanceOf<T>,
+			if_in_top: bool
+		},
+		// Delegation decreased.
+		DelegationDecreased {
+			delegator: T::AccountId,
+			candidate: T::AccountId,
+			amount: BalanceOf<T>,
+			if_in_top: bool
+		},
+		/// Delegator requested to leave the set of delegators.
+		DelegatorExitScheduled {
+			round: RoundIndex,
+			delegator: T::AccountId,
+			scheduled_exit: RoundIndex
+		},
+		/// Delegator requested to revoke delegation.
+		DelegationRevocationScheduled {
+			round: RoundIndex,
+			delegator: T::AccountId,
+			candidate: T::AccountId,
+			scheduled_exit: RoundIndex			
+		},
+		/// Delegator has left the set of delegators.
+		DelegatorLeft {
+			delegator: T::AccountId,
+			unstaked_amount: BalanceOf<T>
+		},
+		/// Delegation revoked.
+		DelegationRevoked {
+			delegator: T::AccountId,
+			candidate: T::AccountId,
+			unstaked_amount: BalanceOf<T>
+		},
+		/// Delegation kicked.
+		DelegationKicked {
+			delegator: T::AccountId,
+			candidate: T::AccountId,
+			unstaked_amount: BalanceOf<T>			
+		},
+		/// Cancelled a pending request to exit the set of delegators.
+		DelegatorExitCancelled {
+			delegator: T::AccountId,
+		},
+		/// Cancelled request to change an existing delegation.
+		CancelledDelegationRequest {
+			delegator: T::AccountId,
+			cancelled_request: DelegationRequest<T::AccountId, BalanceOf<T>>
+		},
+		/// New delegation (increase of the existing one).
+		Delegation {
+			delegator: T::AccountId,
+			locked_amount: BalanceOf<T>,
+			candidate: T::AccountId,
+			delegator_position: DelegatorAdded<BalanceOf<T>>,
+		},
+		/// Delegation from candidate state has been remove.
+		DelegatorLeftCandidate {
+			delegator: T::AccountId,
+			candidate: T::AccountId,
+			unstaked_amount: BalanceOf<T>	
+			total_candidate_staked_amount: BalanceOf<T>
+		},
+		/// Paid the account (delegator or collator) the balance as liquid rewards.
+		Rewarded {
+			account: T::AccountId,
+			rewards: BalanceOf<T>
+		},
+		/// Transferred to account which holds funds reserved for parachain bond.
+		ReservedForParachainBond {
+			account: T::AccountId,
+			value: BalanceOf<T>
+		},
+		/// Account (re)set for parachain bond treasury.
+		ParachainBondAccountSet {
+			old: T::AccountId,
+			new: T::AccountId
+		},
+		/// Percent of inflation reserved for parachain bond (re)set.
+		ParachainBondReservePercentSet {
+			old: Percent,
+			new: Percent
+		},
 		/// Annual inflation input (first 3) was used to derive new per-round inflation (last 3)
-		InflationSet(Perbill, Perbill, Perbill, Perbill, Perbill, Perbill),
-		/// Staking expectations set
-		StakeExpectationsSet(BalanceOf<T>, BalanceOf<T>, BalanceOf<T>),
-		/// Set total selected candidates to this value [old, new]
-		TotalSelectedSet(u32, u32),
-		/// Set collator commission to this value [old, new]
-		CollatorCommissionSet(Perbill, Perbill),
-		/// Set blocks per round [current_round, first_block, old, new, new_per_round_inflation]
-		BlocksPerRoundSet(
-			RoundIndex,
-			T::BlockNumber,
-			u32,
-			u32,
-			Perbill,
-			Perbill,
-			Perbill,
-		),
+		InflationSet {
+			annual_min: Perbill,
+			annual_ideal: Perbill,
+			annual_max: Perbill,
+			round_min: Perbill,
+			round_ideal: Perbill,
+			round_max: Perbill
+		},
+		/// Staking expectations set.
+		StakeExpectationsSet{
+			expect_min: BalanceOf<T>,
+			expect_ideal: BalanceOf<T>,
+			expect_max: BalanceOf<T>
+		},
+		/// Set total selected candidates to this value.
+		TotalSelectedSet {
+			old: u32,
+			new: u32
+		},
+		/// Set collator commission to this value.
+		CollatorCommissionSet {
+			old: Perbill,
+			new: Perbill
+		},
+		/// Set blocks per round
+		BlocksPerRoundSet{
+			current_round: RoundIndex,
+			first_block: T::BlockNumber,
+			old: u32,
+			new: u32,
+			new_per_round_inflation_min: Perbill,
+			new_per_round_inflation_ideal: Perbill,
+			new_per_round_inflation_max: Perbill,
+		},
 	}
 
 	#[pallet::hooks]

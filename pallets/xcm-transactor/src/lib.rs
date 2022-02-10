@@ -189,11 +189,31 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
-		TransactedDerivative(T::AccountId, MultiLocation, Vec<u8>, u16),
-		TransactedSovereign(T::AccountId, MultiLocation, Vec<u8>),
-		RegisterdDerivative(T::AccountId, u16),
-		TransactFailed(XcmError),
-		TransactInfoChanged(MultiLocation, RemoteTransactInfoWithMaxWeight),
+		/// Transacted the inner call through a derivative account in a destination chain.
+		TransactedDerivative {
+			who: T::AccountId,
+			dest: MultiLocation,
+			call: Vec<u8>,
+			index: u16
+		},
+		/// Transacted the call through the sovereign account in a destination chain.
+		TransactedSovereign {
+			fee_payer: T::AccountId,
+			dest: MultiLocation,
+			call: Vec<u8>
+		},
+		/// Registered a derivative index for an account id.
+		RegisterdDerivative {
+			who: T::AccountId,
+			index: u16
+		},
+		/// Transact failed
+		TransactFailed { error: XcmError },
+		/// Changed the transact info of a location
+		TransactInfoChanged {
+			location: MultiLocation,
+			remote_info: RemoteTransactInfoWithMaxWeight
+		},
 	}
 
 	#[pallet::call]

@@ -92,14 +92,25 @@ pub mod pallet {
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
 		/// A NimbusId has been registered and mapped to an AccountId.
-		AuthorRegistered(NimbusId, T::AccountId),
+		AuthorRegistered {
+			author_id: NimbusId,
+			account_id: T::AccountId
+		},
 		/// An NimbusId has been de-registered, and its AccountId mapping removed.
-		AuthorDeRegistered(NimbusId),
+		AuthorDeRegistered {
+			author_id: NimbusId
+		},
 		/// An NimbusId has been registered, replacing a previous registration and its mapping.
-		AuthorRotated(NimbusId, T::AccountId),
+		AuthorRotated {
+			new_author_id: NimbusId, 
+			account_id: T::AccountId
+		},
 		/// An NimbusId has been forcibly deregistered after not being rotated or cleaned up.
 		/// The reporteing account has been rewarded accordingly.
-		DefunctAuthorBusted(NimbusId, T::AccountId),
+		DefunctAuthorBusted {
+			author_id: NimbusId,
+			account_id: T::AccountId
+		},
 	}
 
 	#[pallet::call]
