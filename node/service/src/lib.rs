@@ -325,6 +325,10 @@ where
 		})
 		.transpose()?;
 
+	// Temporarily hardcode this paramater
+	// TODO: found why it's not correctly mapped from cli
+	config.runtime_cache_size = 32;
+
 	let executor = NativeElseWasmExecutor::<Executor>::new(
 		config.wasm_method,
 		config.default_heap_pages,
