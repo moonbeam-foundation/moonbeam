@@ -22,10 +22,10 @@ xcm-transactor = { path = "../../pallets/xcm-transactor", optional = true, defau
 frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.16", default-features = false }
 frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.16", default-features = false }
 pallet-collective = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.16", default-features = false }
+pallet-scheduler = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.16", default-features = false }
 sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.16", default-features = false }
 sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.16", default-features = false }
 sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.16", default-features = false }
-pallet-scheduler = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.16", default-features = false }
 
 # Frontier
 pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.16", default-features = false }
@@ -40,8 +40,8 @@ std = [
 	"pallet-author-mapping/std",
 	"pallet-evm/std",
 	"pallet-migrations/std",
-	"parachain-staking/std",
 	"pallet-scheduler/std",
+	"parachain-staking/std",
 	"sp-core/std",
 	"sp-runtime/std",
 	"sp-std/std",
