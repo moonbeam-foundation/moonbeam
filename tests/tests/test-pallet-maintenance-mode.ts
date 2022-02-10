@@ -503,12 +503,10 @@ describeDevMoonbeam(
       await context.createBlock();
 
       // Make sure the state does not have ALITH's DOT tokens
-      let alithBalance = (
-        (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any
-      ).balance.toBigInt();
+      let alithBalance = (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any;
 
       // Alith balance is 0
-      expect(alithBalance).to.eq(BigInt(0));
+      expect(alithBalance.isNone).to.eq(true);
 
       // turn maintenance off
       await execFromAllMembersOfTechCommittee(
@@ -520,9 +518,9 @@ describeDevMoonbeam(
       await context.createBlock();
 
       // Make sure the state has ALITH's to DOT tokens
-      alithBalance = (
-        (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any
-      ).balance.toBigInt();
+      alithBalance = ((await context.polkadotApi.query.assets.account(assetId, ALITH)) as any)
+        .unwrap()
+        ["balance"].toBigInt();
 
       // Alith balance is 10 DOT
       expect(alithBalance).to.eq(BigInt(10000000000000));
