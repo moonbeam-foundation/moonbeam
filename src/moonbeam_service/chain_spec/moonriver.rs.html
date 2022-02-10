@@ -315,6 +315,19 @@
 <span id="315">315</span>
 <span id="316">316</span>
 <span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -345,7 +358,7 @@
 	<span class="ident">CouncilCollectiveConfig</span>, <span class="ident">CrowdloanRewardsConfig</span>, <span class="ident">DemocracyConfig</span>, <span class="ident">EVMConfig</span>,
 	<span class="ident">EthereumChainIdConfig</span>, <span class="ident">EthereumConfig</span>, <span class="ident">GenesisAccount</span>, <span class="ident">GenesisConfig</span>, <span class="ident">InflationInfo</span>,
 	<span class="ident">MaintenanceModeConfig</span>, <span class="ident">ParachainInfoConfig</span>, <span class="ident">ParachainStakingConfig</span>, <span class="ident">PolkadotXcmConfig</span>,
-	<span class="ident">Precompiles</span>, <span class="ident">Range</span>, <span class="ident">SchedulerConfig</span>, <span class="ident">SystemConfig</span>, <span class="ident">TechCommitteeCollectiveConfig</span>, <span class="ident">WASM_BINARY</span>,
+	<span class="ident">Precompiles</span>, <span class="ident">Range</span>, <span class="ident">SystemConfig</span>, <span class="ident">TechCommitteeCollectiveConfig</span>, <span class="ident">WASM_BINARY</span>,
 };
 <span class="kw">use</span> <span class="ident">nimbus_primitives::NimbusId</span>;
 <span class="kw">use</span> <span class="ident">sc_service::ChainType</span>;
@@ -390,15 +403,22 @@
 				<span class="number">1281</span>,               <span class="comment">//ChainId</span>
 			)
 		},
+		<span class="comment">// Bootnodes</span>
 		<span class="macro">vec!</span>[],
+		<span class="comment">// Telemetry</span>
 		<span class="prelude-val">None</span>,
+		<span class="comment">// Protocol ID</span>
 		<span class="prelude-val">None</span>,
+		<span class="comment">// Fork ID</span>
+		<span class="prelude-val">None</span>,
+		<span class="comment">// Properties</span>
 		<span class="prelude-val">Some</span>(
 			<span class="ident">serde_json::from_str</span>(
 				<span class="string">&quot;{\&quot;tokenDecimals\&quot;: 18, \&quot;tokenSymbol\&quot;: \&quot;MOVR\&quot;, \&quot;SS58Prefix\&quot;: 1285}&quot;</span>,
 			)
 			.<span class="ident">expect</span>(<span class="string">&quot;Provided valid json map&quot;</span>),
 		),
+		<span class="comment">// Extensions</span>
 		<span class="ident">Extensions</span> {
 			<span class="ident">relay_chain</span>: <span class="string">&quot;dev-service&quot;</span>.<span class="ident">into</span>(),
 			<span class="ident">para_id</span>: <span class="ident">Default::default</span>(),
@@ -455,15 +475,22 @@
 				<span class="number">1280</span>, <span class="comment">//ChainId</span>
 			)
 		},
+		<span class="comment">// Bootnodes</span>
 		<span class="macro">vec!</span>[],
+		<span class="comment">// Telemetry</span>
 		<span class="prelude-val">None</span>,
+		<span class="comment">// Protocol ID</span>
 		<span class="prelude-val">None</span>,
+		<span class="comment">// Fork ID</span>
+		<span class="prelude-val">None</span>,
+		<span class="comment">// Properties</span>
 		<span class="prelude-val">Some</span>(
 			<span class="ident">serde_json::from_str</span>(
 				<span class="string">&quot;{\&quot;tokenDecimals\&quot;: 18, \&quot;tokenSymbol\&quot;: \&quot;MOVR\&quot;, \&quot;SS58Prefix\&quot;: 1285}&quot;</span>,
 			)
 			.<span class="ident">expect</span>(<span class="string">&quot;Provided valid json map&quot;</span>),
 		),
+		<span class="comment">// Extensions</span>
 		<span class="ident">Extensions</span> {
 			<span class="ident">relay_chain</span>: <span class="string">&quot;kusama-local&quot;</span>.<span class="ident">into</span>(),
 			<span class="ident">para_id</span>: <span class="ident">para_id</span>.<span class="ident">into</span>(),
@@ -554,7 +581,6 @@
 		<span class="ident">ethereum</span>: <span class="ident">EthereumConfig</span> {},
 		<span class="ident">base_fee</span>: <span class="ident">Default::default</span>(),
 		<span class="ident">democracy</span>: <span class="ident">DemocracyConfig::default</span>(),
-		<span class="ident">scheduler</span>: <span class="ident">SchedulerConfig</span> {},
 		<span class="ident">parachain_staking</span>: <span class="ident">ParachainStakingConfig</span> {
 			<span class="ident">candidates</span>: <span class="ident">candidates</span>
 				.<span class="ident">iter</span>()

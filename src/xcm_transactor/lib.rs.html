@@ -641,7 +641,6 @@
 <span id="641">641</span>
 <span id="642">642</span>
 <span id="643">643</span>
-<span id="644">644</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -717,6 +716,7 @@
 	<span class="kw">use</span> <span class="ident">xcm_primitives</span>::{<span class="ident">UtilityAvailableCalls</span>, <span class="ident">UtilityEncodeCall</span>, <span class="ident">XcmTransact</span>};
 
 	<span class="attribute">#[<span class="ident">pallet::pallet</span>]</span>
+	<span class="attribute">#[<span class="ident">pallet::without_storage_info</span>]</span>
 	<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
 
 	<span class="attribute">#[<span class="ident">pallet::config</span>]</span>
@@ -1129,10 +1129,9 @@
 			<span class="ident">at</span>: <span class="kw-2">&amp;</span><span class="ident">MultiLocation</span>,
 			<span class="ident">weight</span>: <span class="ident">u64</span>,
 		) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Instruction</span><span class="op">&lt;</span>()<span class="op">&gt;</span>, <span class="ident">DispatchError</span><span class="op">&gt;</span> {
-			<span class="kw">let</span> <span class="ident">inv_at</span> <span class="op">=</span> <span class="ident">T::LocationInverter::invert_location</span>(<span class="ident">at</span>)
-				.<span class="ident">map_err</span>(<span class="op">|</span>()<span class="op">|</span> <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::DestinationNotInvertible</span>)<span class="question-mark">?</span>;
+			<span class="kw">let</span> <span class="ident">ancestry</span> <span class="op">=</span> <span class="ident">T::LocationInverter::ancestry</span>();
 			<span class="kw">let</span> <span class="ident">fees</span> <span class="op">=</span> <span class="ident">asset</span>
-				.<span class="ident">reanchored</span>(<span class="kw-2">&amp;</span><span class="ident">inv_at</span>)
+				.<span class="ident">reanchored</span>(<span class="ident">at</span>, <span class="kw-2">&amp;</span><span class="ident">ancestry</span>)
 				.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::CannotReanchor</span>)<span class="question-mark">?</span>;
 
 			<span class="prelude-val">Ok</span>(<span class="ident">BuyExecution</span> {
@@ -1146,10 +1145,9 @@
 			<span class="ident">asset</span>: <span class="ident">MultiAsset</span>,
 			<span class="ident">at</span>: <span class="kw-2">&amp;</span><span class="ident">MultiLocation</span>,
 		) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Instruction</span><span class="op">&lt;</span>()<span class="op">&gt;</span>, <span class="ident">DispatchError</span><span class="op">&gt;</span> {
-			<span class="kw">let</span> <span class="ident">inv_at</span> <span class="op">=</span> <span class="ident">T::LocationInverter::invert_location</span>(<span class="ident">at</span>)
-				.<span class="ident">map_err</span>(<span class="op">|</span>()<span class="op">|</span> <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::DestinationNotInvertible</span>)<span class="question-mark">?</span>;
+			<span class="kw">let</span> <span class="ident">ancestry</span> <span class="op">=</span> <span class="ident">T::LocationInverter::ancestry</span>();
 			<span class="kw">let</span> <span class="ident">fees</span> <span class="op">=</span> <span class="ident">asset</span>
-				.<span class="ident">reanchored</span>(<span class="kw-2">&amp;</span><span class="ident">inv_at</span>)
+				.<span class="ident">reanchored</span>(<span class="ident">at</span>, <span class="kw-2">&amp;</span><span class="ident">ancestry</span>)
 				.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::CannotReanchor</span>)<span class="question-mark">?</span>;
 
 			<span class="prelude-val">Ok</span>(<span class="ident">WithdrawAsset</span>(<span class="ident">fees</span>.<span class="ident">into</span>()))

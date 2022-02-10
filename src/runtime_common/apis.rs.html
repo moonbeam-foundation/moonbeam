@@ -512,6 +512,7 @@
 <span id="512">512</span>
 <span id="513">513</span>
 <span id="514">514</span>
+<span id="515">515</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -878,7 +879,6 @@
 						<span class="kw-2">&amp;</span><span class="ident">block_number</span>,
 						<span class="kw-2">&amp;</span><span class="ident">parent_header</span>.<span class="ident">hash</span>(),
 						<span class="kw-2">&amp;</span><span class="ident">parent_header</span>.<span class="ident">digest</span>,
-						<span class="ident">frame_system::InitKind::Inspection</span>
 					);
 					<span class="ident">RandomnessCollectiveFlip::on_initialize</span>(<span class="ident">block_number</span>);
 
@@ -916,8 +916,10 @@
 			}
 
 			<span class="kw">impl</span> <span class="ident">cumulus_primitives_core::CollectCollationInfo</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
-				<span class="kw">fn</span> <span class="ident">collect_collation_info</span>() -&gt; <span class="ident">cumulus_primitives_core::CollationInfo</span> {
-					<span class="ident">ParachainSystem::collect_collation_info</span>()
+				<span class="kw">fn</span> <span class="ident">collect_collation_info</span>(
+					<span class="ident">header</span>: <span class="kw-2">&amp;</span><span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Header</span>
+				) -&gt; <span class="ident">cumulus_primitives_core::CollationInfo</span> {
+					<span class="ident">ParachainSystem::collect_collation_info</span>(<span class="ident">header</span>)
 				}
 			}
 

@@ -535,6 +535,7 @@
 <span id="535">535</span>
 <span id="536">536</span>
 <span id="537">537</span>
+<span id="538">538</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -653,13 +654,14 @@
 		<span class="comment">// TODO: no need for prometheus here...</span>
 		<span class="kw">let</span> <span class="ident">prometheus_registry</span> <span class="op">=</span> <span class="ident">config</span>.<span class="ident">prometheus_registry</span>().<span class="ident">cloned</span>();
 
-		<span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="ident">sc_basic_authorship::ProposerFactory::new</span>(
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">env</span> <span class="op">=</span> <span class="ident">sc_basic_authorship::ProposerFactory::new</span>(
 			<span class="ident">task_manager</span>.<span class="ident">spawn_handle</span>(),
 			<span class="ident">client</span>.<span class="ident">clone</span>(),
 			<span class="ident">transaction_pool</span>.<span class="ident">clone</span>(),
 			<span class="ident">prometheus_registry</span>.<span class="ident">as_ref</span>(),
 			<span class="ident">telemetry</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">handle</span>()),
 		);
+		<span class="ident">env</span>.<span class="ident">set_soft_deadline</span>(<span class="ident">service::SOFT_DEADLINE_PERCENT</span>);
 
 		<span class="kw">let</span> <span class="ident">command_sink</span>;
 		<span class="kw">let</span> <span class="ident">command_stream</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">EngineCommand</span><span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Unpin</span><span class="op">&gt;</span> <span class="op">=</span> {

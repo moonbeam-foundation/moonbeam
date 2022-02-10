@@ -3255,6 +3255,18 @@
 <span id="3255">3255</span>
 <span id="3256">3256</span>
 <span id="3257">3257</span>
+<span id="3258">3258</span>
+<span id="3259">3259</span>
+<span id="3260">3260</span>
+<span id="3261">3261</span>
+<span id="3262">3262</span>
+<span id="3263">3263</span>
+<span id="3264">3264</span>
+<span id="3265">3265</span>
+<span id="3266">3266</span>
+<span id="3267">3267</span>
+<span id="3268">3268</span>
+<span id="3269">3269</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -3338,12 +3350,23 @@
 
 	<span class="doccomment">/// Pallet for parachain staking</span>
 	<span class="attribute">#[<span class="ident">pallet::pallet</span>]</span>
+	<span class="attribute">#[<span class="ident">pallet::without_storage_info</span>]</span>
 	<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
 
-	<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>, <span class="ident">Clone</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">RuntimeDebug</span>, <span class="ident">TypeInfo</span>)]</span>
+	<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">RuntimeDebug</span>, <span class="ident">TypeInfo</span>)]</span>
 	<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Bond</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">Balance</span><span class="op">&gt;</span> {
 		<span class="kw">pub</span> <span class="ident">owner</span>: <span class="ident">AccountId</span>,
 		<span class="kw">pub</span> <span class="ident">amount</span>: <span class="ident">Balance</span>,
+	}
+
+	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Decode</span>, <span class="ident">B</span>: <span class="ident">Default</span><span class="op">&gt;</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Bond</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span> {
+		<span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="ident">Bond</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span> {
+			<span class="ident">Bond</span> {
+				<span class="ident">owner</span>: <span class="ident">A::decode</span>(<span class="kw-2">&amp;mut</span> <span class="ident">sp_runtime::traits::TrailingZeroInput::zeroes</span>())
+					.<span class="ident">expect</span>(<span class="string">&quot;infinite length input; no invalid inputs for type; qed&quot;</span>),
+				<span class="ident">amount</span>: <span class="ident">B::default</span>(),
+			}
+		}
 	}
 
 	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span>: <span class="ident">Default</span><span class="op">&gt;</span> <span class="ident">Bond</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span> {
@@ -3392,12 +3415,22 @@
 		}
 	}
 
-	<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">RuntimeDebug</span>, <span class="ident">TypeInfo</span>)]</span>
+	<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">RuntimeDebug</span>, <span class="ident">TypeInfo</span>)]</span>
 	<span class="doccomment">/// Snapshot of collator state at the start of the round for which they are selected</span>
 	<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CollatorSnapshot</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">Balance</span><span class="op">&gt;</span> {
 		<span class="kw">pub</span> <span class="ident">bond</span>: <span class="ident">Balance</span>,
 		<span class="kw">pub</span> <span class="ident">delegations</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Bond</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">Balance</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 		<span class="kw">pub</span> <span class="ident">total</span>: <span class="ident">Balance</span>,
+	}
+
+	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span>: <span class="ident">Default</span><span class="op">&gt;</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">CollatorSnapshot</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span> {
+		<span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="ident">CollatorSnapshot</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span> {
+			<span class="ident">CollatorSnapshot</span> {
+				<span class="ident">bond</span>: <span class="ident">B::default</span>(),
+				<span class="ident">delegations</span>: <span class="ident">Vec::new</span>(),
+				<span class="ident">total</span>: <span class="ident">B::default</span>(),
+			}
+		}
 	}
 
 	<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">RuntimeDebug</span>, <span class="ident">TypeInfo</span>)]</span>
@@ -3480,11 +3513,20 @@
 		<span class="kw">pub</span> <span class="ident">state</span>: <span class="ident">CollatorStatus</span>,
 	}
 
-	<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Default</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">RuntimeDebug</span>, <span class="ident">TypeInfo</span>)]</span>
+	<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">RuntimeDebug</span>, <span class="ident">TypeInfo</span>)]</span>
 	<span class="doccomment">/// Type for top and bottom delegation storage item</span>
 	<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Delegations</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">Balance</span><span class="op">&gt;</span> {
 		<span class="kw">pub</span> <span class="ident">delegations</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Bond</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">Balance</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 		<span class="kw">pub</span> <span class="ident">total</span>: <span class="ident">Balance</span>,
+	}
+
+	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span>: <span class="ident">Default</span><span class="op">&gt;</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Delegations</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span> {
+		<span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="ident">Delegations</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span> {
+			<span class="ident">Delegations</span> {
+				<span class="ident">delegations</span>: <span class="ident">Vec::new</span>(),
+				<span class="ident">total</span>: <span class="ident">B::default</span>(),
+			}
+		}
 	}
 
 	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">Balance</span>: <span class="ident">Copy</span> <span class="op">+</span> <span class="ident">Ord</span> <span class="op">+</span> <span class="ident">sp_std::ops::AddAssign</span> <span class="op">+</span> <span class="ident">Zero</span> <span class="op">+</span> <span class="ident">Saturating</span><span class="op">&gt;</span>
@@ -4495,7 +4537,7 @@
 	}
 
 	<span class="kw">impl</span><span class="op">&lt;</span>
-			<span class="ident">AccountId</span>: <span class="ident">Ord</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Default</span>,
+			<span class="ident">AccountId</span>: <span class="ident">Ord</span> <span class="op">+</span> <span class="ident">Clone</span>,
 			<span class="ident">Balance</span>: <span class="ident">Copy</span>
 				<span class="op">+</span> <span class="ident">sp_std::ops::AddAssign</span>
 				<span class="op">+</span> <span class="ident">sp_std::ops::Add</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="ident">Balance</span><span class="op">&gt;</span>
@@ -4984,19 +5026,19 @@
 		<span class="kw">pub</span> <span class="ident">status</span>: <span class="ident">DelegatorStatus</span>,
 	}
 
-	<span class="doccomment">/// Temporary function to migrate state</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">migrate_nominator_to_delegator_state</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span>(
-		<span class="ident">id</span>: <span class="ident">T::AccountId</span>,
-		<span class="ident">nominator</span>: <span class="ident">Nominator2</span><span class="op">&lt;</span><span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	) -&gt; <span class="ident">Delegator</span><span class="op">&lt;</span><span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="ident">Delegator</span> {
-			<span class="ident">id</span>,
-			<span class="ident">delegations</span>: <span class="ident">nominator</span>.<span class="ident">delegations</span>,
-			<span class="ident">total</span>: <span class="ident">nominator</span>.<span class="ident">total</span>,
-			<span class="ident">requests</span>: <span class="ident">PendingDelegationRequests::new</span>(),
-			<span class="ident">status</span>: <span class="ident">nominator</span>.<span class="ident">status</span>,
-		}
-	}
+	<span class="comment">// /// Temporary function to migrate state</span>
+	<span class="comment">// pub(crate) fn migrate_nominator_to_delegator_state&lt;T: Config&gt;(</span>
+	<span class="comment">// 	id: T::AccountId,</span>
+	<span class="comment">// 	nominator: Nominator2&lt;T::AccountId, BalanceOf&lt;T&gt;&gt;,</span>
+	<span class="comment">// ) -&gt; Delegator&lt;T::AccountId, BalanceOf&lt;T&gt;&gt; {</span>
+	<span class="comment">// 	Delegator {</span>
+	<span class="comment">// 		id,</span>
+	<span class="comment">// 		delegations: nominator.delegations,</span>
+	<span class="comment">// 		total: nominator.total,</span>
+	<span class="comment">// 		requests: PendingDelegationRequests::new(),</span>
+	<span class="comment">// 		status: nominator.status,</span>
+	<span class="comment">// 	}</span>
+	<span class="comment">// }</span>
 
 	<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">RuntimeDebug</span>, <span class="ident">TypeInfo</span>)]</span>
 	<span class="doccomment">/// The current round index and transition information</span>
@@ -5054,27 +5096,14 @@
 		<span class="doccomment">/// Percent of inflation set aside for parachain bond account</span>
 		<span class="kw">pub</span> <span class="ident">percent</span>: <span class="ident">Percent</span>,
 	}
-	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Default</span><span class="op">&gt;</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">ParachainBondConfig</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
+	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Decode</span><span class="op">&gt;</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">ParachainBondConfig</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
 		<span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="ident">ParachainBondConfig</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
 			<span class="ident">ParachainBondConfig</span> {
-				<span class="ident">account</span>: <span class="ident">A::default</span>(),
+				<span class="ident">account</span>: <span class="ident">A::decode</span>(<span class="kw-2">&amp;mut</span> <span class="ident">sp_runtime::traits::TrailingZeroInput::zeroes</span>())
+					.<span class="ident">expect</span>(<span class="string">&quot;infinite length input; no invalid inputs for type; qed&quot;</span>),
 				<span class="ident">percent</span>: <span class="ident">Percent::zero</span>(),
 			}
 		}
-	}
-
-	<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">RuntimeDebug</span>, <span class="ident">Default</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">TypeInfo</span>)]</span>
-	<span class="doccomment">/// DEPRECATED</span>
-	<span class="doccomment">/// Store and process all delayed exits by collators and nominators</span>
-	<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ExitQ</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span> {
-		<span class="doccomment">/// Candidate exit set</span>
-		<span class="kw">pub</span> <span class="ident">candidates</span>: <span class="ident">OrderedSet</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>,
-		<span class="doccomment">/// Nominator exit set (does not include nominators that made `revoke` requests)</span>
-		<span class="kw">pub</span> <span class="ident">nominators_leaving</span>: <span class="ident">OrderedSet</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>,
-		<span class="doccomment">/// [Candidate, Round to Exit]</span>
-		<span class="kw">pub</span> <span class="ident">candidate_schedule</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">AccountId</span>, <span class="ident">RoundIndex</span>)<span class="op">&gt;</span>,
-		<span class="doccomment">/// [Nominator, Some(ValidatorId) || None =&gt; All Delegations, Round To Exit]</span>
-		<span class="kw">pub</span> <span class="ident">nominator_schedule</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">AccountId</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>, <span class="ident">RoundIndex</span>)<span class="op">&gt;</span>,
 	}
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">RoundIndex</span> <span class="op">=</span> <span class="ident">u32</span>;
@@ -5425,12 +5454,6 @@
 		<span class="ident">StorageValue</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">OrderedSet</span><span class="op">&lt;</span><span class="ident">Bond</span><span class="op">&lt;</span><span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">ValueQuery</span><span class="op">&gt;</span>;
 
 	<span class="attribute">#[<span class="ident">pallet::storage</span>]</span>
-	<span class="attribute">#[<span class="ident">pallet::getter</span>(<span class="kw">fn</span> <span class="ident">exit_queue2</span>)]</span>
-	<span class="doccomment">/// DEPRECATED, to be removed in future runtime upgrade but necessary for runtime migration</span>
-	<span class="doccomment">/// A queue of collators and nominators awaiting exit</span>
-	<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">ExitQueue2</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">StorageValue</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">ExitQ</span><span class="op">&lt;</span><span class="ident">T::AccountId</span><span class="op">&gt;</span>, <span class="ident">ValueQuery</span><span class="op">&gt;</span>;
-
-	<span class="attribute">#[<span class="ident">pallet::storage</span>]</span>
 	<span class="attribute">#[<span class="ident">pallet::getter</span>(<span class="kw">fn</span> <span class="ident">at_stake</span>)]</span>
 	<span class="doccomment">/// Snapshot of collator delegation stake at the start of the round</span>
 	<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">AtStake</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">StorageDoubleMap</span><span class="op">&lt;</span>
@@ -5562,7 +5585,8 @@
 			<span class="comment">// Set parachain bond config to default config</span>
 			<span class="op">&lt;</span><span class="ident">ParachainBondInfo</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::put</span>(<span class="ident">ParachainBondConfig</span> {
 				<span class="comment">// must be set soon; if not =&gt; due inflation will be sent to collators/delegators</span>
-				<span class="ident">account</span>: <span class="ident">T::AccountId::default</span>(),
+				<span class="ident">account</span>: <span class="ident">T::AccountId::decode</span>(<span class="kw-2">&amp;mut</span> <span class="ident">sp_runtime::traits::TrailingZeroInput::zeroes</span>())
+					.<span class="ident">expect</span>(<span class="string">&quot;infinite length input; no invalid inputs for type; qed&quot;</span>),
 				<span class="ident">percent</span>: <span class="ident">T::DefaultParachainBondReservePercent::get</span>(),
 			});
 			<span class="comment">// Set total selected candidates to minimum config</span>
