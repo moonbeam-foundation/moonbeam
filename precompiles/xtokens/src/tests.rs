@@ -412,7 +412,7 @@ fn transfer_multi_asset_to_reserve_works() {
 			);
 			// Seems in the last refactor one event was removed in xtokens
 			// This should be commented when such event is brought back
-/* 			let expected: crate::mock::Event = XtokensEvent::TransferredMultiAsset {
+			/* 			let expected: crate::mock::Event = XtokensEvent::TransferredMultiAsset {
 				sender: Alice,
 				asset: MultiAsset {
 					id: AssetId::Concrete(asset),
@@ -643,7 +643,7 @@ fn transfer_multi_asset_non_reserve_to_non_reserve_with_fee() {
 			);
 			// Seems in the last refactor one event was removed in xtokens
 			// This should be commented when such event is brought back
-/* 			let expected: crate::mock::Event = XtokensEvent::TransferredMultiAssetWithFee {
+			/* 			let expected: crate::mock::Event = XtokensEvent::TransferredMultiAssetWithFee {
 				sender: Alice,
 				asset: MultiAsset {
 					id: AssetId::Concrete(asset_location.clone()),
