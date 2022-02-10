@@ -219,6 +219,7 @@ std = [
 	"xcm-transactor/std",
 	"xcm/std",
 	"xtokens-precompiles/std",
+	"pallet-identity/std",
 ]
 
 # Must be enabled for tracing runtimes only

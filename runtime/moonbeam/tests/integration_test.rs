@@ -182,7 +182,7 @@ fn verify_pallet_prefixes() {
 			storage_name: b"MaintenanceMode".to_vec(),
 			prefix: prefix(b"MaintenanceMode", b"MaintenanceMode"),
 			max_values: Some(1),
-			max_size: Some(1),
+			max_size: None,
 		},]
 	);
 }

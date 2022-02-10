@@ -216,6 +216,7 @@ std = [
 	"xcm-transactor/std",
 	"xcm/std",
 	"xtokens-precompiles/std",
+	"pallet-identity/std"
 ]
 evm-tracing = [ "evm-tracing-events", "moonbeam-evm-tracer", "rlp", "sha3" ]
 
