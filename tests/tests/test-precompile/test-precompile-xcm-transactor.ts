@@ -174,7 +174,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
     // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
     // And we need relay tokens for issuing a transaction to be executed in the relay
     const balance = context.polkadotApi.createType("Balance", 100000000000000);
-    const assetBalance = context.polkadotApi.createType("PalletAssetsAssetBalance", {
+    const assetBalance = context.polkadotApi.createType("PalletAssetsAssetAccount", {
       balance: balance,
     });
 
@@ -187,14 +187,12 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
     });
 
     await mockAssetBalance(context, assetBalance, assetDetails, sudoAccount, assetId);
-    let beforeAssetBalance = (
-      (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any
-    ).balance as BN;
 
+    let beforeAssetBalance =  (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any;
     let beforeAssetDetails = (await context.polkadotApi.query.assets.asset(assetId)) as any;
 
     // supply and balance should be the same
-    expect(beforeAssetBalance.eq(new BN(100000000000000))).to.equal(true);
+    expect(beforeAssetBalance.unwrap()["balance"].eq(new BN(100000000000000))).to.equal(true);
     expect(beforeAssetDetails.unwrap()["supply"].eq(new BN(100000000000000))).to.equal(true);
 
     let transactor = 0;
@@ -232,12 +230,10 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
 
     // We have used 1000 units to pay for the fees in the relay, so balance and supply should
     // have changed
-    let afterAssetBalance = (
-      (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any
-    ).balance as BN;
+    let afterAssetBalance = (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any;
 
     let expectedBalance = new BN(100000000000000).sub(new BN(1000));
-    expect(afterAssetBalance.eq(expectedBalance)).to.equal(true);
+    expect(afterAssetBalance.unwrap()["balance"].eq(expectedBalance)).to.equal(true);
 
     let AfterAssetDetails = (await context.polkadotApi.query.assets.asset(assetId)) as any;
 
@@ -284,7 +280,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
     // And we need relay tokens for issuing a transaction to be executed in the relay
 
     const balance = context.polkadotApi.createType("Balance", 100000000000000);
-    const assetBalance = context.polkadotApi.createType("PalletAssetsAssetBalance", {
+    const assetBalance = context.polkadotApi.createType("PalletAssetsAssetAccount", {
       balance: balance,
     });
 
@@ -298,14 +294,13 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
 
     await mockAssetBalance(context, assetBalance, assetDetails, sudoAccount, assetId);
 
-    let beforeAssetBalance = (
-      (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any
-    ).balance as BN;
+    let beforeAssetBalance =  (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any;
+
 
     let beforeAssetDetails = (await context.polkadotApi.query.assets.asset(assetId)) as any;
 
     // supply and balance should be the same
-    expect(beforeAssetBalance.eq(new BN(100000000000000))).to.equal(true);
+    expect(beforeAssetBalance.unwrap()["balance"].eq(new BN(100000000000000))).to.equal(true);
     expect(beforeAssetDetails.unwrap()["supply"].eq(new BN(100000000000000))).to.equal(true);
 
     let transactor = 0;
@@ -339,12 +334,11 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
 
     // We have used 1000 units to pay for the fees in the relay, so balance and supply should
     // have changed
-    let afterAssetBalance = (
-      (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any
-    ).balance as BN;
+    let afterAssetBalance = (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any;
+
 
     let expectedBalance = new BN(100000000000000).sub(new BN(1000));
-    expect(afterAssetBalance.eq(expectedBalance)).to.equal(true);
+    expect(afterAssetBalance.unwrap()["balance"].eq(expectedBalance)).to.equal(true);
 
     let AfterAssetDetails = (await context.polkadotApi.query.assets.asset(assetId)) as any;
 

@@ -18,7 +18,7 @@ describeDevMoonbeam("Pallet Assets Pallet - assets transfer", (context) => {
     // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
     // And we need relay tokens for issuing a transaction to be executed in the relay
     const balance = context.polkadotApi.createType("Balance", 100000000000000);
-    const assetBalance = context.polkadotApi.createType("PalletAssetsAssetBalance", {
+    const assetBalance = context.polkadotApi.createType("PalletAssetsAssetAccountOf", {
       balance: balance,
     });
 

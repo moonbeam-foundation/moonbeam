@@ -116,7 +116,7 @@ describeDevMoonbeamAllEthTxTypes(
       // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
       // And we need relay tokens for issuing a transaction to be executed in the relay
       const balance = new BN("100000000000000");
-      const assetBalance = context.polkadotApi.createType("PalletAssetsAssetBalance", {
+      const assetBalance = context.polkadotApi.createType("PalletAssetsAssetAccount", {
         balance: balance,
       });
       assetId = context.polkadotApi.createType(
@@ -274,7 +274,7 @@ describeDevMoonbeamAllEthTxTypes(
       // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
       // And we need relay tokens for issuing a transaction to be executed in the relay
       const balance = context.polkadotApi.createType("Balance", 100000000000000);
-      const assetBalance = context.polkadotApi.createType("PalletAssetsAssetBalance", {
+      const assetBalance = context.polkadotApi.createType("PalletAssetsAssetAccount", {
         balance: balance,
       });
 
@@ -365,7 +365,7 @@ describeDevMoonbeamAllEthTxTypes(
       // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
       // And we need relay tokens for issuing a transaction to be executed in the relay
       const balance = context.polkadotApi.createType("Balance", 100000000000000);
-      const assetBalance = context.polkadotApi.createType("PalletAssetsAssetBalance", {
+      const assetBalance = context.polkadotApi.createType("PalletAssetsAssetAccount", {
         balance: balance,
       });
 
@@ -455,7 +455,7 @@ describeDevMoonbeamAllEthTxTypes(
         assetId,
         CHARLETH
       )) as any;
-      expect(charletBalance.balance.eq(new BN(1000))).to.equal(true);
+      expect(charletBalance.unwrap()["balance"].eq(new BN(1000))).to.equal(true);
     });
   },
   true
@@ -471,7 +471,7 @@ describeDevMoonbeamAllEthTxTypes(
       // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
       // And we need relay tokens for issuing a transaction to be executed in the relay
       const balance = context.polkadotApi.createType("Balance", 100000000000000);
-      const assetBalance = context.polkadotApi.createType("PalletAssetsAssetBalance", {
+      const assetBalance = context.polkadotApi.createType("PalletAssetsAssetAccount", {
         balance: balance,
       });
 
@@ -520,7 +520,7 @@ describeDevMoonbeamAllEthTxTypes(
         assetId,
         BALTATHAR
       )) as any;
-      expect(baltatharBalance.balance.eq(new BN(1000))).to.equal(true);
+      expect(baltatharBalance.unwrap()["balance"].eq(new BN(1000))).to.equal(true);
     });
   },
   true
@@ -534,7 +534,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
     // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
     // And we need relay tokens for issuing a transaction to be executed in the relay
     const balance = context.polkadotApi.createType("Balance", 100000000000000);
-    const assetBalance = context.polkadotApi.createType("PalletAssetsAssetBalance", {
+    const assetBalance = context.polkadotApi.createType("PalletAssetsAssetAccount", {
       balance: balance,
     });
 
@@ -629,7 +629,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
 
     // Charleth balance is 1000
     let charletBalance = (await context.polkadotApi.query.assets.account(assetId, CHARLETH)) as any;
-    expect(charletBalance.balance.eq(new BN(1000))).to.equal(true);
+    expect(charletBalance.unwrap()["balance"].eq(new BN(1000))).to.equal(true);
   });
 });
 
@@ -643,7 +643,7 @@ describeDevMoonbeamAllEthTxTypes(
       // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
       // And we need relay tokens for issuing a transaction to be executed in the relay
       const balance = context.polkadotApi.createType("Balance", 100000000000000);
-      const assetBalance = context.polkadotApi.createType("PalletAssetsAssetBalance", {
+      const assetBalance = context.polkadotApi.createType("PalletAssetsAssetAccount", {
         balance: balance,
       });
 
@@ -693,7 +693,7 @@ describeDevMoonbeamAllEthTxTypes(
         assetId,
         BALTATHAR
       )) as any;
-      expect(baltatharBalance.balance.eq(new BN(1000))).to.equal(true);
+      expect(baltatharBalance.unwrap()["balance"].eq(new BN(1000))).to.equal(true);
     });
   },
   true
@@ -707,7 +707,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
     // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
     // And we need relay tokens for issuing a transaction to be executed in the relay
     const balance = context.polkadotApi.createType("Balance", 100000000000000);
-    const assetBalance = context.polkadotApi.createType("PalletAssetsAssetBalance", {
+    const assetBalance = context.polkadotApi.createType("PalletAssetsAssetAccount", {
       balance: balance,
     });
 
@@ -838,7 +838,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
 
     // Charleth balance is 2000
     let charletBalance = (await context.polkadotApi.query.assets.account(assetId, CHARLETH)) as any;
-    expect(charletBalance.balance.eq(new BN(2000))).to.equal(true);
+    expect(charletBalance.unwrap()["balance"].eq(new BN(2000))).to.equal(true);
   });
 });
 
@@ -850,7 +850,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
     // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
     // And we need relay tokens for issuing a transaction to be executed in the relay
     const balance = context.polkadotApi.createType("Balance", 100000000000000);
-    const assetBalance = context.polkadotApi.createType("PalletAssetsAssetBalance", {
+    const assetBalance = context.polkadotApi.createType("PalletAssetsAssetAccount", {
       balance: balance,
     });
 
@@ -945,7 +945,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
 
     // Charleth balance is 1000
     let charletBalance = (await context.polkadotApi.query.assets.account(assetId, CHARLETH)) as any;
-    expect(charletBalance.balance.eq(new BN(1000))).to.equal(true);
+    expect(charletBalance.unwrap()["balance"].eq(new BN(1000))).to.equal(true);
   });
 });
 
@@ -959,7 +959,7 @@ describeDevMoonbeamAllEthTxTypes(
       // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
       // And we need relay tokens for issuing a transaction to be executed in the relay
       const balance = context.polkadotApi.createType("Balance", 100000000000000);
-      const assetBalance = context.polkadotApi.createType("PalletAssetsAssetBalance", {
+      const assetBalance = context.polkadotApi.createType("PalletAssetsAssetAccount", {
         balance: balance,
       });
 
@@ -1016,7 +1016,7 @@ describeDevMoonbeamAllEthTxTypes(
         assetId,
         BALTATHAR
       )) as any;
-      expect(baltatharBalance.balance.eq(new BN(1000))).to.equal(true);
+      expect(baltatharBalance.unwrap()["balance"].eq(new BN(1000))).to.equal(true);
     });
   },
   true

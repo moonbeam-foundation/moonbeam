@@ -97,7 +97,7 @@ describeDevMoonbeam(
       // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
       // And we need relay tokens for issuing a transaction to be executed in the relay
       const balance = new BN("100000000000000");
-      const assetBalance = context.polkadotApi.createType("PalletAssetsAssetBalance", {
+      const assetBalance = context.polkadotApi.createType("PalletAssetsAssetAccount", {
         balance: balance,
       });
       assetId = context.polkadotApi.createType(
@@ -126,7 +126,7 @@ describeDevMoonbeam(
       ).balance as BN;
       await context.createBlock();
       let alithBalance = (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any;
-      expect(alithBalance.balance.eq(new BN(100000000000000))).to.equal(true);
+      expect(alithBalance.unwrap()["balance"].eq(new BN(100000000000000))).to.equal(true);
     });
 
     it("Send MOVR and assets to an account, then drain assets, then MOVR", async function () {
@@ -149,7 +149,8 @@ describeDevMoonbeam(
         assetId,
         freshAccount.address
       )) as any;
-      expect(freshAccountBalance.balance.eq(new BN(10000000000000))).to.equal(true);
+      
+      expect(freshAccountBalance.unwrap()["balance"].eq(new BN(10000000000000))).to.equal(true);
 
       expect(
         (
@@ -174,6 +175,7 @@ describeDevMoonbeam(
         .signAndSend(alith);
       await context.createBlock();
 
+
       expect(
         (
           await context.polkadotApi.query.system.account(freshAccount.address)
@@ -195,7 +197,7 @@ describeDevMoonbeam(
         assetId,
         freshAccount.address
       )) as any;
-      expect(freshAccountBalance.balance.eq(new BN(0))).to.equal(true);
+      expect(freshAccountBalance.isNone).to.equal(true);
 
       // Sufficients should go to 0
       expect(
@@ -233,7 +235,7 @@ describeDevMoonbeam(
       // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
       // And we need relay tokens for issuing a transaction to be executed in the relay
       const balance = new BN("100000000000000");
-      const assetBalance = context.polkadotApi.createType("PalletAssetsAssetBalance", {
+      const assetBalance = context.polkadotApi.createType("PalletAssetsAssetAccount", {
         balance: balance,
       });
       assetId = context.polkadotApi.createType(
@@ -262,7 +264,7 @@ describeDevMoonbeam(
       ).balance as BN;
       await context.createBlock();
       let alithBalance = (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any;
-      expect(alithBalance.balance.eq(new BN(100000000000000))).to.equal(true);
+      expect(alithBalance.unwrap()["balance"].eq(new BN(100000000000000))).to.equal(true);
     });
 
     it("Send MOVR and assets to an account, then drain assets, dont drain MOVR", async function () {
@@ -285,7 +287,7 @@ describeDevMoonbeam(
         assetId,
         freshAccount.address
       )) as any;
-      expect(freshAccountBalance.balance.eq(new BN(10000000000000))).to.equal(true);
+      expect(freshAccountBalance.unwrap()["balance"].eq(new BN(10000000000000))).to.equal(true);
 
       expect(
         (
@@ -330,7 +332,7 @@ describeDevMoonbeam(
         assetId,
         freshAccount.address
       )) as any;
-      expect(freshAccountBalance.balance.eq(new BN(0))).to.equal(true);
+      expect(freshAccountBalance.isNone).to.equal(true);
 
       // Sufficients should go to 0
       expect(
@@ -370,7 +372,7 @@ describeDevMoonbeam(
       // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
       // And we need relay tokens for issuing a transaction to be executed in the relay
       const balance = new BN("100000000000000");
-      const assetBalance = context.polkadotApi.createType("PalletAssetsAssetBalance", {
+      const assetBalance = context.polkadotApi.createType("PalletAssetsAssetAccount", {
         balance: balance,
       });
       assetId = context.polkadotApi.createType(
@@ -399,7 +401,7 @@ describeDevMoonbeam(
       ).balance as BN;
       await context.createBlock();
       let alithBalance = (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any;
-      expect(alithBalance.balance.eq(new BN(100000000000000))).to.equal(true);
+      expect(alithBalance.unwrap()["balance"].eq(new BN(100000000000000))).to.equal(true);
     });
 
     it("Send MOVR and assets to an account, then drain assets, dont drain MOVR", async function () {
@@ -422,7 +424,7 @@ describeDevMoonbeam(
         assetId,
         freshAccount.address
       )) as any;
-      expect(freshAccountBalance.balance.eq(new BN(0))).to.equal(true);
+      expect(freshAccountBalance.isNone).to.equal(true);
 
       expect(
         (
@@ -468,7 +470,7 @@ describeDevMoonbeam(
         assetId,
         freshAccount.address
       )) as any;
-      expect(freshAccountBalance.balance.eq(transferAmount)).to.equal(true);
+      expect(freshAccountBalance.unwrap()["balance"].eq(transferAmount)).to.equal(true);
 
       expect(
         (
@@ -495,7 +497,7 @@ describeDevMoonbeam(
         assetId,
         freshAccount.address
       )) as any;
-      expect(freshAccountBalance.balance.eq(new BN(0))).to.equal(true);
+      expect(freshAccountBalance.isNone).to.equal(true);
 
       // Sufficients should be 0
       expect(

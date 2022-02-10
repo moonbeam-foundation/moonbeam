@@ -304,7 +304,7 @@ describeDevMoonbeam(
       // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
       // And we need relay tokens for issuing a transaction to be executed in the relay
       const balance = context.polkadotApi.createType("Balance", 100000000000000);
-      const assetBalance = context.polkadotApi.createType("PalletAssetsAssetBalance", {
+      const assetBalance = context.polkadotApi.createType("PalletAssetsAssetAccount", {
         balance: balance,
       });
 
@@ -601,9 +601,9 @@ describeDevMoonbeam(
       // Make sure the state does not have ALITH's foreign asset tokens
       let alithBalance = (
         (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any
-      ).balance.toBigInt();
+      );
       // Alith balance is 0
-      expect(alithBalance).to.eq(BigInt(0));
+      expect(alithBalance.isNone).to.eq(true);
 
       // turn maintenance off
       await execFromAllMembersOfTechCommittee(
@@ -617,9 +617,9 @@ describeDevMoonbeam(
       // Make sure the state has ALITH's to foreign assets tokens
       alithBalance = (
         (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any
-      ).balance.toBigInt();
+      ).unwrap()["balance"];
 
-      expect(alithBalance).to.eq(BigInt(10000000000000));
+      expect(alithBalance.toBigInt()).to.eq(BigInt(10000000000000));
     });
   }
 );
