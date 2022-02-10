@@ -323,7 +323,7 @@ where
 		// Get Blockchain backend
 		let blockchain = backend.blockchain();
 		// Get the header I want to work with.
-		let header =  match client.header(reference_id) {
+		let header = match client.header(reference_id) {
 			Ok(Some(h)) => h,
 			_ => return Err(internal_err("Block header not found")),
 		};
@@ -449,7 +449,7 @@ where
 		// Get Blockchain backend
 		let blockchain = backend.blockchain();
 		// Get the header I want to work with.
-		let header =  match client.header(reference_id) {
+		let header = match client.header(reference_id) {
 			Ok(Some(h)) => h,
 			_ => return Err(internal_err("Block header not found")),
 		};
