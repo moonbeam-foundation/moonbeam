@@ -26,7 +26,7 @@ use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
 #[cfg(feature = "std")]
 use serde::{Deserialize, Serialize};
-use sp_core::{Public, H256};
+use sp_core::{ByteArray, H256};
 use sp_io;
 use sp_runtime::{
 	testing::Header,
@@ -53,6 +53,7 @@ impl Into<NimbusId> for TestAuthor {
 			Self::Bob => NimbusId::from_slice(&[1u8; 32]),
 			Self::Charlie => NimbusId::from_slice(&[2u8; 32]),
 		}
+		.expect("valid ids")
 	}
 }
 
@@ -106,6 +107,7 @@ impl frame_system::Config for Runtime {
 	type BlockLength = ();
 	type SS58Prefix = ();
 	type OnSetCode = ();
+	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 parameter_types! {
 	pub const ExistentialDeposit: u128 = 1;

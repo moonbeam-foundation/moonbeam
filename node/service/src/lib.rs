@@ -207,8 +207,10 @@ pub fn open_frontier_backend(config: &Configuration) -> Result<Arc<fc_db::Backen
 	)?))
 }
 
-use sp_runtime::traits::BlakeTwo256;
+use sp_runtime::{traits::BlakeTwo256, Percent};
 use sp_trie::PrefixedMemoryDB;
+
+pub const SOFT_DEADLINE_PERCENT: Percent = Percent::from_percent(100);
 
 /// Builds a new object suitable for chain operations.
 #[allow(clippy::type_complexity)]
@@ -589,47 +591,6 @@ where
 	let relay_chain_slot_duration = Duration::from_secs(6);
 
 	if collator {
-		// let proposer_factory = sc_basic_authorship::ProposerFactory::with_proof_recording(
-		// 	task_manager.spawn_handle(),
-		// 	client.clone(),
-		// 	transaction_pool,
-		// 	prometheus_registry.as_ref(),
-		// 	telemetry.as_ref().map(|t| t.handle()),
-		// );
-
-		// let parachain_consensus = build_nimbus_consensus(BuildNimbusConsensusParams {
-		// 	para_id: id,
-		// 	proposer_factory,
-		// 	block_import,
-		// 	relay_chain_client: relay_chain_full_node.client.clone(),
-		// 	relay_chain_backend: relay_chain_full_node.backend.clone(),
-		// 	parachain_client: client.clone(),
-		// 	keystore: params.keystore_container.sync_keystore(),
-		// 	skip_prediction,
-		// 	create_inherent_data_providers: move |_, (relay_parent, validation_data, author_id)| {
-		// 		let parachain_inherent = ParachainInherentData::create_at_with_client(
-		// 			relay_parent,
-		// 			&relay_chain_client,
-		// 			&*relay_chain_backend,
-		// 			&validation_data,
-		// 			id,
-		// 		);
-		// 		async move {
-		// 			let time = sp_timestamp::InherentDataProvider::from_system_time();
-
-		// 			let parachain_inherent = parachain_inherent.ok_or_else(|| {
-		// 				Box::<dyn std::error::Error + Send + Sync>::from(
-		// 					"Failed to create parachain inherent",
-		// 				)
-		// 			})?;
-
-		// 			let author = nimbus_primitives::InherentDataProvider::<NimbusId>(author_id);
-
-		// 			Ok((time, parachain_inherent, author))
-		// 		}
-		// 	},
-		// });
-
 		let parachain_consensus = build_consensus(
 			client.clone(),
 			prometheus_registry.as_ref(),
@@ -706,13 +667,40 @@ where
 		 _sync_oracle,
 		 keystore,
 		 force_authoring| {
-			let proposer_factory = sc_basic_authorship::ProposerFactory::with_proof_recording(
+			let mut proposer_factory = sc_basic_authorship::ProposerFactory::with_proof_recording(
 				task_manager.spawn_handle(),
 				client.clone(),
 				transaction_pool,
 				prometheus_registry,
 				telemetry.clone(),
 			);
+			proposer_factory.set_soft_deadline(SOFT_DEADLINE_PERCENT);
+
+			let provider = move |_, (relay_parent, validation_data, author_id)| {
+				let relay_chain_interface = relay_chain_interface.clone();
+				async move {
+					let parachain_inherent =
+						cumulus_primitives_parachain_inherent::ParachainInherentData::create_at(
+							relay_parent,
+							&relay_chain_interface,
+							&validation_data,
+							id,
+						)
+						.await;
+
+					let time = sp_timestamp::InherentDataProvider::from_system_time();
+
+					let parachain_inherent = parachain_inherent.ok_or_else(|| {
+						Box::<dyn std::error::Error + Send + Sync>::from(
+							"Failed to create parachain inherent",
+						)
+					})?;
+
+					let author = nimbus_primitives::InherentDataProvider::<NimbusId>(author_id);
+
+					Ok((time, parachain_inherent, author))
+				}
+			};
 
 			Ok(NimbusConsensus::build(BuildNimbusConsensusParams {
 				para_id: id,
@@ -721,35 +709,7 @@ where
 				parachain_client: client.clone(),
 				keystore,
 				skip_prediction: force_authoring,
-				create_inherent_data_providers: move |_,
-				                                      (
-					relay_parent,
-					validation_data,
-					author_id,
-				)| {
-					let relay_chain_interface = relay_chain_interface.clone();
-					async move {
-						let parachain_inherent =
-							cumulus_primitives_parachain_inherent::ParachainInherentData::create_at(
-								relay_parent,
-								&relay_chain_interface,
-								&validation_data,
-								id,
-							).await;
-
-						let time = sp_timestamp::InherentDataProvider::from_system_time();
-
-						let parachain_inherent = parachain_inherent.ok_or_else(|| {
-							Box::<dyn std::error::Error + Send + Sync>::from(
-								"Failed to create parachain inherent",
-							)
-						})?;
-
-						let author = nimbus_primitives::InherentDataProvider::<NimbusId>(author_id);
-
-						Ok((time, parachain_inherent, author))
-					}
-				},
+				create_inherent_data_providers: provider,
 			}))
 		},
 	)
@@ -825,13 +785,14 @@ where
 	let collator = config.role.is_authority();
 
 	if collator {
-		let env = sc_basic_authorship::ProposerFactory::new(
+		let mut env = sc_basic_authorship::ProposerFactory::new(
 			task_manager.spawn_handle(),
 			client.clone(),
 			transaction_pool.clone(),
 			prometheus_registry.as_ref(),
 			telemetry.as_ref().map(|x| x.handle()),
 		);
+		env.set_soft_deadline(SOFT_DEADLINE_PERCENT);
 		let commands_stream: Box<dyn Stream<Item = EngineCommand<H256>> + Send + Sync + Unpin> =
 			match sealing {
 				cli_opt::Sealing::Instant => {

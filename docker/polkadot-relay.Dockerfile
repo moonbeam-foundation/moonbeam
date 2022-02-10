@@ -36,7 +36,7 @@ RUN useradd -m -u 1000 -U -s /bin/sh -d /moonbase-alphanet moonbeam && \
 
 USER moonbeam
 
-COPY --chown=moonbeam specs/alphanet/rococo-embedded-specs-v8.json /moonbase-alphanet/alphanet-relay-raw-specs.json
+COPY --chown=moonbeam specs/alphanet/westend-embedded-specs-v8.json /moonbase-alphanet/alphanet-relay-raw-specs.json
 RUN grep -v '/p2p/' /moonbase-alphanet/alphanet-relay-raw-specs.json > \
     /moonbase-alphanet/alphanet-relay-raw-specs-no-bootnodes.json
 
