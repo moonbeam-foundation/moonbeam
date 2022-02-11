@@ -78,6 +78,7 @@ pub mod pallet {
 	use xcm_primitives::{UtilityAvailableCalls, UtilityEncodeCall, XcmTransact};
 
 	#[pallet::pallet]
+	#[pallet::without_storage_info]
 	pub struct Pallet<T>(PhantomData<T>);
 
 	#[pallet::config]
@@ -522,10 +523,9 @@ pub mod pallet {
 			at: &MultiLocation,
 			weight: u64,
 		) -> Result<Instruction<()>, DispatchError> {
-			let inv_at = T::LocationInverter::invert_location(at)
-				.map_err(|()| Error::<T>::DestinationNotInvertible)?;
+			let ancestry = T::LocationInverter::ancestry();
 			let fees = asset
-				.reanchored(&inv_at)
+				.reanchored(at, &ancestry)
 				.map_err(|_| Error::<T>::CannotReanchor)?;
 
 			Ok(BuyExecution {
@@ -539,10 +539,9 @@ pub mod pallet {
 			asset: MultiAsset,
 			at: &MultiLocation,
 		) -> Result<Instruction<()>, DispatchError> {
-			let inv_at = T::LocationInverter::invert_location(at)
-				.map_err(|()| Error::<T>::DestinationNotInvertible)?;
+			let ancestry = T::LocationInverter::ancestry();
 			let fees = asset
-				.reanchored(&inv_at)
+				.reanchored(at, &ancestry)
 				.map_err(|_| Error::<T>::CannotReanchor)?;
 
 			Ok(WithdrawAsset(fees.into()))
