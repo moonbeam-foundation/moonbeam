@@ -90,17 +90,17 @@ impl<T: Config> OnRuntimeUpgrade for SplitCandidateStateToDecreasePoV<T> {
 								.expect("Delegation existence => DelegatorState existence");
 							let leaving = delegator_state.delegations.0.len() == 1usize;
 							delegator_state.rm_delegation(&account);
-							Pallet::<T>::deposit_event(Event::DelegationKicked(
-								owner.clone(),
-								account.clone(),
-								*amount,
-							));
+							Pallet::<T>::deposit_event(Event::DelegationKicked {
+								delegator: owner.clone(),
+								candidate: account.clone(),
+								unstaked_amount: *amount,
+							});
 							if leaving {
 								<DelegatorState<T>>::remove(&owner);
-								Pallet::<T>::deposit_event(Event::DelegatorLeft(
-									owner.clone(),
-									*amount,
-								));
+								Pallet::<T>::deposit_event(Event::DelegatorLeft {
+									delegator: owner.clone(),
+									unstaked_amount: *amount,
+								});
 							} else {
 								<DelegatorState<T>>::insert(&owner, delegator_state);
 							}
