@@ -38,11 +38,10 @@ export async function getCommitAndLabels(
   let more = true;
   let page = 0;
   while (more) {
-    const compare = await octokit.rest.repos.compareCommits({
+    const compare = await octokit.rest.repos.compareCommitsWithBasehead({
       owner,
       repo,
-      base: previousTag,
-      head: newTag,
+      basehead: previousTag + "..." + newTag,
       per_page: 200,
       page,
     });
@@ -53,16 +52,20 @@ export async function getCommitAndLabels(
 
   const prByLabels = {};
   for (const commit of commits) {
-    const prs = await octokit.rest.repos.listPullRequestsAssociatedWithCommit({
-      owner,
-      repo,
-      commit_sha: commit.sha,
-    });
-    for (const pr of prs.data) {
-      if (pr.labels && pr.labels.length > 0) {
-        for (const label of pr.labels) {
+    const foundPrsNumbers = commit.commit.message.split('\n')[0].match(/\(#([0-9]+)\)/);
+    if (foundPrsNumbers && foundPrsNumbers.length > 1) {
+      console.log("pr number = " + foundPrsNumbers[1]);
+      console.log("repo: " + owner + "/" + repo);
+      const pr = await octokit.rest.pulls.get({
+        owner,
+        repo,
+        pull_number: parseInt(foundPrsNumbers[1]),
+      });
+
+      if (pr.data.labels && pr.data.labels.length > 0) {
+        for (const label of pr.data.labels) {
           prByLabels[label.name] = prByLabels[label.name] || [];
-          prByLabels[label.name].push(pr);
+          prByLabels[label.name].push(pr.data);
         }
       } else {
         prByLabels[""] = prByLabels[""] || [];
