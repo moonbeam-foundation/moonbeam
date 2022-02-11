@@ -327,6 +327,7 @@ impl<T: AssetManagerConfig> Migration for XcmPaymentSupportedAssets<T> {
 
 	fn migrate(&self, _available_weight: Weight) -> Weight {
 		PopulateSupportedFeePaymentAssets::<T>::on_runtime_upgrade()
+	}
 
 	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
 	#[cfg(feature = "try-runtime")]
@@ -359,7 +360,6 @@ impl<T: pallet_scheduler::Config> Migration for SchedulerMigrationV3<T> {
 	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade(&self) -> Result<(), &'static str> {
-
 		pallet_scheduler::Pallet::<T>::post_migrate_to_v3()
 	}
 }
