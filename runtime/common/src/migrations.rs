@@ -335,6 +335,7 @@ impl<T: AssetManagerConfig> Migration for XcmPaymentSupportedAssets<T> {
 		PopulateSupportedFeePaymentAssets::<T>::pre_upgrade()
 	}
 
+	#[cfg(feature = "try-runtime")]
 	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
 	fn post_upgrade(&self) -> Result<(), &'static str> {
 		PopulateSupportedFeePaymentAssets::<T>::post_upgrade()
