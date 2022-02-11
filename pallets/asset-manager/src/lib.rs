@@ -56,6 +56,7 @@ pub mod pallet {
 	use sp_std::vec::Vec;
 
 	#[pallet::pallet]
+	#[pallet::without_storage_info]
 	pub struct Pallet<T>(PhantomData<T>);
 
 	/// The AssetManagers's pallet id

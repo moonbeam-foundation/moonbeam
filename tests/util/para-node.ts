@@ -138,7 +138,7 @@ export async function startParachainNodes(options: ParachainOptions): Promise<{
             configuration: {
               config: {
                 validation_upgrade_frequency: 1,
-                validation_upgrade_delay: 1,
+                validation_upgrade_delay: 30,
               },
             },
           },
