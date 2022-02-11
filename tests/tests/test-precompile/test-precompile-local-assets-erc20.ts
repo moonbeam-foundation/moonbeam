@@ -487,7 +487,7 @@ describeDevMoonbeamAllEthTxTypes(
         assetId,
         CHARLETH
       )) as any;
-      expect(charletBalance.balance.eq(new BN(1000))).to.equal(true);
+      expect(charletBalance.unwrap()["balance"].eq(new BN(1000))).to.equal(true);
     });
   },
   true
@@ -587,7 +587,7 @@ describeDevMoonbeamAllEthTxTypes(
         assetId,
         BALTATHAR
       )) as any;
-      expect(baltatharBalance.balance.eq(new BN(1000))).to.equal(true);
+      expect(baltatharBalance.unwrap()["balance"].eq(new BN(1000))).to.equal(true);
     });
   },
   true
@@ -743,7 +743,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
       assetId,
       CHARLETH
     )) as any;
-    expect(charletBalance.balance.eq(new BN(1000))).to.equal(true);
+    expect(charletBalance.unwrap()["balance"].eq(new BN(1000))).to.equal(true);
   });
 });
 
@@ -841,7 +841,7 @@ describeDevMoonbeamAllEthTxTypes(
         assetId,
         BALTATHAR
       )) as any;
-      expect(baltatharBalance.balance.eq(new BN(1000))).to.equal(true);
+      expect(baltatharBalance.unwrap()["balance"].eq(new BN(1000))).to.equal(true);
     });
   },
   true
@@ -1028,7 +1028,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
       assetId,
       CHARLETH
     )) as any;
-    expect(charletBalance.balance.eq(new BN(2000))).to.equal(true);
+    expect(charletBalance.unwrap()["balance"].eq(new BN(2000))).to.equal(true);
   });
 });
 
@@ -1171,7 +1171,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
       assetId,
       CHARLETH
     )) as any;
-    expect(charletBalance.balance.eq(new BN(1000))).to.equal(true);
+    expect(charletBalance.unwrap()["balance"].eq(new BN(1000))).to.equal(true);
   });
 });
 
@@ -1271,7 +1271,7 @@ describeDevMoonbeamAllEthTxTypes(
         assetId,
         BALTATHAR
       )) as any;
-      expect(baltatharBalance.balance.eq(new BN(1000))).to.equal(true);
+      expect(baltatharBalance.unwrap()["balance"].eq(new BN(1000))).to.equal(true);
     });
   },
   true
@@ -1372,9 +1372,9 @@ describeDevMoonbeamAllEthTxTypes(
 
       let baltatharBalance = (
         (await context.polkadotApi.query.localAssets.account(assetId, BALTATHAR)) as any
-      ).balance as BN;
+      );
 
-      expect(baltatharBalance.eq(new BN(1000))).to.equal(true);
+      expect(baltatharBalance.unwrap()["balance"].eq(new BN(1000))).to.equal(true);
     });
   },
   true
@@ -1475,9 +1475,9 @@ describeDevMoonbeamAllEthTxTypes(
 
       let alithBalance = (
         (await context.polkadotApi.query.localAssets.account(assetId, ALITH)) as any
-      ).balance as BN;
+      );
 
-      expect(alithBalance.eq(new BN(99000000000000))).to.equal(true);
+      expect(alithBalance.unwrap()["balance"].eq(new BN(99000000000000))).to.equal(true);
     });
   },
   true
@@ -1574,9 +1574,9 @@ describeDevMoonbeamAllEthTxTypes(
 
       let alithFrozen = (
         (await context.polkadotApi.query.localAssets.account(assetId, ALITH)) as any
-      ).isFrozen as any;
+      );
 
-      expect(alithFrozen.toHuman()).to.be.true;
+      expect(alithFrozen.unwrap()["isFrozen"].toHuman()).to.be.true;
     });
   },
   true
@@ -1679,9 +1679,9 @@ describeDevMoonbeamAllEthTxTypes(
 
       let baltatharFrozen = (
         (await context.polkadotApi.query.localAssets.account(assetId, ALITH)) as any
-      ).isFrozen as any;
+      );
 
-      expect(baltatharFrozen.toHuman()).to.be.false;
+      expect(baltatharFrozen.unwrap()["isFrozen"].toHuman()).to.be.false;
     });
   },
   true

@@ -77,8 +77,8 @@ pub enum Action {
 	FreezeAsset = "freeze_asset()",
 	ThawAsset = "thaw_asset()",
 	TransferOwnership = "transfer_ownership(address)",
-	SetTeam = "set_team(address, address, address)",
-	SetMetadata = "set_metadata(string, string, uint8)",
+	SetTeam = "set_team(address,address,address)",
+	SetMetadata = "set_metadata(string,string,uint8)",
 	ClearMetadata = "clear_metadata()",
 }
 
