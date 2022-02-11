@@ -54,8 +54,6 @@ export async function getCommitAndLabels(
   for (const commit of commits) {
     const foundPrsNumbers = commit.commit.message.split('\n')[0].match(/\(#([0-9]+)\)/);
     if (foundPrsNumbers && foundPrsNumbers.length > 1) {
-      console.log("pr number = " + foundPrsNumbers[1]);
-      console.log("repo: " + owner + "/" + repo);
       const pr = await octokit.rest.pulls.get({
         owner,
         repo,
