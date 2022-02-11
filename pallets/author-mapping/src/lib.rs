@@ -58,6 +58,7 @@ pub mod pallet {
 	}
 
 	#[pallet::pallet]
+	#[pallet::without_storage_info]
 	pub struct Pallet<T>(PhantomData<T>);
 
 	/// Configuration trait of this pallet. We tightly couple to Parachain Staking in order to

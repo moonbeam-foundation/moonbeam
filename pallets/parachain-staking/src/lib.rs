@@ -81,12 +81,23 @@ pub mod pallet {
 
 	/// Pallet for parachain staking
 	#[pallet::pallet]
+	#[pallet::without_storage_info]
 	pub struct Pallet<T>(PhantomData<T>);
 
-	#[derive(Default, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
+	#[derive(Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
 	pub struct Bond<AccountId, Balance> {
 		pub owner: AccountId,
 		pub amount: Balance,
+	}
+
+	impl<A: Decode, B: Default> Default for Bond<A, B> {
+		fn default() -> Bond<A, B> {
+			Bond {
+				owner: A::decode(&mut sp_runtime::traits::TrailingZeroInput::zeroes())
+					.expect("infinite length input; no invalid inputs for type; qed"),
+				amount: B::default(),
+			}
+		}
 	}
 
 	impl<A, B: Default> Bond<A, B> {
@@ -135,12 +146,22 @@ pub mod pallet {
 		}
 	}
 
-	#[derive(Default, Encode, Decode, RuntimeDebug, TypeInfo)]
+	#[derive(Encode, Decode, RuntimeDebug, TypeInfo)]
 	/// Snapshot of collator state at the start of the round for which they are selected
 	pub struct CollatorSnapshot<AccountId, Balance> {
 		pub bond: Balance,
 		pub delegations: Vec<Bond<AccountId, Balance>>,
 		pub total: Balance,
+	}
+
+	impl<A, B: Default> Default for CollatorSnapshot<A, B> {
+		fn default() -> CollatorSnapshot<A, B> {
+			CollatorSnapshot {
+				bond: B::default(),
+				delegations: Vec::new(),
+				total: B::default(),
+			}
+		}
 	}
 
 	#[derive(Default, Encode, Decode, RuntimeDebug, TypeInfo)]
@@ -223,11 +244,20 @@ pub mod pallet {
 		pub state: CollatorStatus,
 	}
 
-	#[derive(Clone, Default, Encode, Decode, RuntimeDebug, TypeInfo)]
+	#[derive(Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
 	/// Type for top and bottom delegation storage item
 	pub struct Delegations<AccountId, Balance> {
 		pub delegations: Vec<Bond<AccountId, Balance>>,
 		pub total: Balance,
+	}
+
+	impl<A, B: Default> Default for Delegations<A, B> {
+		fn default() -> Delegations<A, B> {
+			Delegations {
+				delegations: Vec::new(),
+				total: B::default(),
+			}
+		}
 	}
 
 	impl<AccountId, Balance: Copy + Ord + sp_std::ops::AddAssign + Zero + Saturating>
@@ -1238,7 +1268,7 @@ pub mod pallet {
 	}
 
 	impl<
-			AccountId: Ord + Clone + Default,
+			AccountId: Ord + Clone,
 			Balance: Copy
 				+ sp_std::ops::AddAssign
 				+ sp_std::ops::Add<Output = Balance>
@@ -1727,19 +1757,19 @@ pub mod pallet {
 		pub status: DelegatorStatus,
 	}
 
-	/// Temporary function to migrate state
-	pub(crate) fn migrate_nominator_to_delegator_state<T: Config>(
-		id: T::AccountId,
-		nominator: Nominator2<T::AccountId, BalanceOf<T>>,
-	) -> Delegator<T::AccountId, BalanceOf<T>> {
-		Delegator {
-			id,
-			delegations: nominator.delegations,
-			total: nominator.total,
-			requests: PendingDelegationRequests::new(),
-			status: nominator.status,
-		}
-	}
+	// /// Temporary function to migrate state
+	// pub(crate) fn migrate_nominator_to_delegator_state<T: Config>(
+	// 	id: T::AccountId,
+	// 	nominator: Nominator2<T::AccountId, BalanceOf<T>>,
+	// ) -> Delegator<T::AccountId, BalanceOf<T>> {
+	// 	Delegator {
+	// 		id,
+	// 		delegations: nominator.delegations,
+	// 		total: nominator.total,
+	// 		requests: PendingDelegationRequests::new(),
+	// 		status: nominator.status,
+	// 	}
+	// }
 
 	#[derive(Copy, Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug, TypeInfo)]
 	/// The current round index and transition information
@@ -1797,27 +1827,14 @@ pub mod pallet {
 		/// Percent of inflation set aside for parachain bond account
 		pub percent: Percent,
 	}
-	impl<A: Default> Default for ParachainBondConfig<A> {
+	impl<A: Decode> Default for ParachainBondConfig<A> {
 		fn default() -> ParachainBondConfig<A> {
 			ParachainBondConfig {
-				account: A::default(),
+				account: A::decode(&mut sp_runtime::traits::TrailingZeroInput::zeroes())
+					.expect("infinite length input; no invalid inputs for type; qed"),
 				percent: Percent::zero(),
 			}
 		}
-	}
-
-	#[derive(Encode, Decode, RuntimeDebug, Default, PartialEq, Eq, TypeInfo)]
-	/// DEPRECATED
-	/// Store and process all delayed exits by collators and nominators
-	pub struct ExitQ<AccountId> {
-		/// Candidate exit set
-		pub candidates: OrderedSet<AccountId>,
-		/// Nominator exit set (does not include nominators that made `revoke` requests)
-		pub nominators_leaving: OrderedSet<AccountId>,
-		/// [Candidate, Round to Exit]
-		pub candidate_schedule: Vec<(AccountId, RoundIndex)>,
-		/// [Nominator, Some(ValidatorId) || None => All Delegations, Round To Exit]
-		pub nominator_schedule: Vec<(AccountId, Option<AccountId>, RoundIndex)>,
 	}
 
 	pub(crate) type RoundIndex = u32;
@@ -2168,12 +2185,6 @@ pub mod pallet {
 		StorageValue<_, OrderedSet<Bond<T::AccountId, BalanceOf<T>>>, ValueQuery>;
 
 	#[pallet::storage]
-	#[pallet::getter(fn exit_queue2)]
-	/// DEPRECATED, to be removed in future runtime upgrade but necessary for runtime migration
-	/// A queue of collators and nominators awaiting exit
-	pub type ExitQueue2<T: Config> = StorageValue<_, ExitQ<T::AccountId>, ValueQuery>;
-
-	#[pallet::storage]
 	#[pallet::getter(fn at_stake)]
 	/// Snapshot of collator delegation stake at the start of the round
 	pub type AtStake<T: Config> = StorageDoubleMap<
@@ -2305,7 +2316,8 @@ pub mod pallet {
 			// Set parachain bond config to default config
 			<ParachainBondInfo<T>>::put(ParachainBondConfig {
 				// must be set soon; if not => due inflation will be sent to collators/delegators
-				account: T::AccountId::default(),
+				account: T::AccountId::decode(&mut sp_runtime::traits::TrailingZeroInput::zeroes())
+					.expect("infinite length input; no invalid inputs for type; qed"),
 				percent: T::DefaultParachainBondReservePercent::get(),
 			});
 			// Set total selected candidates to minimum config

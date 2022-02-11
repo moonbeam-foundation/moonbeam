@@ -30,8 +30,7 @@ use pallet_author_mapping::{migrations::TwoXToBlake, Config as AuthorMappingConf
 use pallet_migrations::{GetMigrations, Migration};
 use parachain_staking::{
 	migrations::{
-		IncreaseMaxDelegationsPerCandidate, PurgeStaleStorage, RemoveExitQueue,
-		SplitCandidateStateToDecreasePoV,
+		IncreaseMaxDelegationsPerCandidate, PurgeStaleStorage, SplitCandidateStateToDecreasePoV,
 	},
 	Config as ParachainStakingConfig,
 };
@@ -94,29 +93,29 @@ impl<T: ParachainStakingConfig> Migration
 	}
 }
 
-/// Staking transition from automatic to manual exits, delay bond_{more, less} requests
-pub struct ParachainStakingManualExits<T>(PhantomData<T>);
-impl<T: ParachainStakingConfig> Migration for ParachainStakingManualExits<T> {
-	fn friendly_name(&self) -> &str {
-		"MM_Parachain_Staking_ManualExits"
-	}
+// /// Staking transition from automatic to manual exits, delay bond_{more, less} requests
+// pub struct ParachainStakingManualExits<T>(PhantomData<T>);
+// impl<T: ParachainStakingConfig> Migration for ParachainStakingManualExits<T> {
+// 	fn friendly_name(&self) -> &str {
+// 		"MM_Parachain_Staking_ManualExits"
+// 	}
 
-	fn migrate(&self, _available_weight: Weight) -> Weight {
-		RemoveExitQueue::<T>::on_runtime_upgrade()
-	}
+// 	fn migrate(&self, _available_weight: Weight) -> Weight {
+// 		RemoveExitQueue::<T>::on_runtime_upgrade()
+// 	}
 
-	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
-	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade(&self) -> Result<(), &'static str> {
-		RemoveExitQueue::<T>::pre_upgrade()
-	}
+// 	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+// 	#[cfg(feature = "try-runtime")]
+// 	fn pre_upgrade(&self) -> Result<(), &'static str> {
+// 		RemoveExitQueue::<T>::pre_upgrade()
+// 	}
 
-	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
-	#[cfg(feature = "try-runtime")]
-	fn post_upgrade(&self) -> Result<(), &'static str> {
-		RemoveExitQueue::<T>::post_upgrade()
-	}
-}
+// 	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+// 	#[cfg(feature = "try-runtime")]
+// 	fn post_upgrade(&self) -> Result<(), &'static str> {
+// 		RemoveExitQueue::<T>::post_upgrade()
+// 	}
+// }
 
 /// A moonbeam migration wrapping the similarly named migration in parachain-staking
 pub struct ParachainStakingPurgeStaleStorage<T>(PhantomData<T>);
@@ -315,11 +314,36 @@ where
 	}
 }
 
+pub struct SchedulerMigrationV3<T>(PhantomData<T>);
+impl<T: pallet_scheduler::Config> Migration for SchedulerMigrationV3<T> {
+	fn friendly_name(&self) -> &str {
+		"MM_SchedulerMigrationV3"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		pallet_scheduler::Pallet::<T>::migrate_v2_to_v3()
+	}
+
+	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<(), &'static str> {
+		pallet_scheduler::Pallet::<T>::pre_migrate_to_v3()
+	}
+
+	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self) -> Result<(), &'static str> {
+		pallet_scheduler::Pallet::<T>::post_migrate_to_v3()
+	}
+}
+
 pub struct CommonMigrations<Runtime, Council, Tech>(PhantomData<(Runtime, Council, Tech)>);
 
 impl<Runtime, Council, Tech> GetMigrations for CommonMigrations<Runtime, Council, Tech>
 where
-	Runtime: pallet_author_mapping::Config + parachain_staking::Config,
+	Runtime: pallet_author_mapping::Config,
+	Runtime: parachain_staking::Config,
+	Runtime: pallet_scheduler::Config,
 	Council: GetStorageVersion + PalletInfoAccess + 'static,
 	Tech: GetStorageVersion + PalletInfoAccess + 'static,
 {
@@ -337,6 +361,8 @@ where
 		let migration_parachain_staking_split_candidate_state =
 			ParachainStakingSplitCandidateState::<Runtime>(Default::default());
 
+		let migration_scheduler_v3 = SchedulerMigrationV3::<Runtime>(Default::default());
+
 		// TODO: this is a lot of allocation to do upon every get() call. this *should* be avoided
 		// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review
 
@@ -351,6 +377,7 @@ where
 			// completed in runtime 1101
 			// Box::new(migration_parachain_staking_increase_max_delegations_per_candidate),
 			Box::new(migration_parachain_staking_split_candidate_state),
+			Box::new(migration_scheduler_v3),
 		]
 	}
 }
