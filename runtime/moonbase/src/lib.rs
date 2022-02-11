@@ -38,8 +38,8 @@ use sp_runtime::traits::Hash as THash;
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{
-		Contains, Currency as CurrencyT, EqualPrivilegeOnly, Everything, FindAuthor, Get,
-		Imbalance, InstanceFilter, Nothing, OffchainWorker, OnFinalize, OnIdle, OnInitialize,
+		Contains, Currency as CurrencyT, EnsureOneOf, EqualPrivilegeOnly, Everything, FindAuthor,
+		Get, Imbalance, InstanceFilter, Nothing, OffchainWorker, OnFinalize, OnIdle, OnInitialize,
 		OnRuntimeUpgrade, OnUnbalanced, PalletInfo as PalletInfoTrait,
 	},
 	weights::{
@@ -61,7 +61,7 @@ use xcm_builder::{
 
 use xcm_executor::traits::JustTry;
 
-use frame_system::{EnsureOneOf, EnsureRoot, EnsureSigned};
+use frame_system::{EnsureRoot, EnsureSigned};
 pub use moonbeam_core_primitives::{
 	AccountId, AccountIndex, Address, AssetId, Balance, BlockNumber, DigestItem, Hash, Header,
 	Index, Signature,
@@ -179,6 +179,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
+	state_version: 0,
 };
 
 /// The version information used to identify this runtime when compiled natively.
@@ -244,6 +245,7 @@ impl frame_system::Config for Runtime {
 	/// This is used as an identifier of the chain. 42 is the generic substrate prefix.
 	type SS58Prefix = SS58Prefix;
 	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
+	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 
 impl pallet_utility::Config for Runtime {
@@ -531,6 +533,8 @@ impl pallet_scheduler::Config for Runtime {
 	type MaxScheduledPerBlock = MaxScheduledPerBlock;
 	type WeightInfo = pallet_scheduler::weights::SubstrateWeight<Runtime>;
 	type OriginPrivilegeCmp = EqualPrivilegeOnly;
+	type PreimageProvider = ();
+	type NoPreimagePostponement = ();
 }
 
 parameter_types! {
@@ -617,13 +621,11 @@ impl pallet_democracy::Config for Runtime {
 		pallet_collective::EnsureProportionAtLeast<_3, _5, AccountId, TechCommitteeInstance>;
 	// To cancel a proposal which has been passed.
 	type CancellationOrigin = EnsureOneOf<
-		AccountId,
 		EnsureRoot<AccountId>,
 		pallet_collective::EnsureProportionAtLeast<_3, _5, AccountId, CouncilInstance>,
 	>;
 	// To cancel a proposal before it has been passed.
 	type CancelProposalOrigin = EnsureOneOf<
-		AccountId,
 		EnsureRoot<AccountId>,
 		pallet_collective::EnsureProportionAtLeast<_3, _5, AccountId, TechCommitteeInstance>,
 	>;
@@ -652,13 +654,11 @@ parameter_types! {
 }
 
 type TreasuryApproveOrigin = EnsureOneOf<
-	AccountId,
 	EnsureRoot<AccountId>,
 	pallet_collective::EnsureProportionAtLeast<_3, _5, AccountId, CouncilInstance>,
 >;
 
 type TreasuryRejectOrigin = EnsureOneOf<
-	AccountId,
 	EnsureRoot<AccountId>,
 	pallet_collective::EnsureProportionMoreThan<_1, _2, AccountId, CouncilInstance>,
 >;
@@ -681,6 +681,7 @@ impl pallet_treasury::Config for Runtime {
 	type MaxApprovals = MaxApprovals;
 	type WeightInfo = pallet_treasury::weights::SubstrateWeight<Runtime>;
 	type SpendFunds = ();
+	type ProposalBondMaximum = ();
 }
 
 parameter_types! {
@@ -696,12 +697,10 @@ parameter_types! {
 }
 
 type IdentityForceOrigin = EnsureOneOf<
-	AccountId,
 	EnsureRoot<AccountId>,
 	pallet_collective::EnsureProportionMoreThan<_1, _2, AccountId, CouncilInstance>,
 >;
 type IdentityRegistrarOrigin = EnsureOneOf<
-	AccountId,
 	EnsureRoot<AccountId>,
 	pallet_collective::EnsureProportionMoreThan<_1, _2, AccountId, CouncilInstance>,
 >;
@@ -757,7 +756,7 @@ parameter_types! {
 
 impl cumulus_pallet_parachain_system::Config for Runtime {
 	type Event = Event;
-	type OnValidationData = ();
+	type OnSystemEvent = ();
 	type SelfParaId = ParachainInfo;
 	type DmpMessageHandler = MaintenanceMode;
 	type ReservedDmpWeight = ReservedDmpWeight;
@@ -1026,7 +1025,9 @@ parameter_types! {
 		parents:1,
 		interior: Junctions::X2(
 			Parachain(ParachainInfo::parachain_id().into()),
-			PalletInstance(<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8)
+			PalletInstance(
+				<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8
+			)
 		)
 	};
 	// Bew Self Reserve location, defines the multilocation identifiying the self-reserve currency
@@ -1257,6 +1258,7 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type XcmExecutor = XcmExecutor;
 	type ChannelInfo = ParachainSystem;
 	type VersionWrapper = PolkadotXcm;
+	type ExecuteOverweightOrigin = EnsureRoot<AccountId>;
 }
 
 impl cumulus_pallet_dmp_queue::Config for Runtime {
@@ -1274,11 +1276,11 @@ parameter_types! {
 	pub const MetadataDepositBase: Balance = 0;
 	pub const MetadataDepositPerByte: Balance = 0;
 	pub const ExecutiveBody: BodyId = BodyId::Executive;
+	pub const AssetAccountDeposit: Balance = currency::deposit(1, 18);
 }
 
 /// We allow root and Chain council to execute privileged asset operations.
 pub type AssetsForceOrigin = EnsureOneOf<
-	AccountId,
 	EnsureRoot<AccountId>,
 	pallet_collective::EnsureProportionMoreThan<_1, _2, AccountId, CouncilInstance>,
 >;
@@ -1296,6 +1298,7 @@ impl pallet_assets::Config for Runtime {
 	type StringLimit = AssetsStringLimit;
 	type Freezer = ();
 	type Extra = ();
+	type AssetAccountDeposit = AssetAccountDeposit;
 	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
 }
 
@@ -1466,6 +1469,8 @@ where
 
 parameter_types! {
 	pub const BaseXcmWeight: Weight = 100_000_000;
+	pub const MaxAssetsForTransfer: usize = 2;
+
 	// This is how we are going to detect whether the asset is a Reserve asset
 	// This however is the chain part only
 	pub SelfLocation: MultiLocation = MultiLocation {
@@ -1488,6 +1493,7 @@ impl orml_xtokens::Config for Runtime {
 	type Weigher = XcmWeigher;
 	type BaseXcmWeight = BaseXcmWeight;
 	type LocationInverter = LocationInverter<Ancestry>;
+	type MaxAssetsForTransfer = MaxAssetsForTransfer;
 }
 
 // For now we only allow to transact in the relay, although this might change in the future
@@ -1626,7 +1632,7 @@ pub struct MaintenanceHooks;
 
 impl OnInitialize<BlockNumber> for MaintenanceHooks {
 	fn on_initialize(n: BlockNumber) -> Weight {
-		AllPallets::on_initialize(n)
+		AllPalletsReversedWithSystemFirst::on_initialize(n)
 	}
 }
 
@@ -1644,36 +1650,31 @@ impl OnIdle<BlockNumber> for MaintenanceHooks {
 
 impl OnRuntimeUpgrade for MaintenanceHooks {
 	fn on_runtime_upgrade() -> Weight {
-		AllPallets::on_runtime_upgrade()
+		AllPalletsReversedWithSystemFirst::on_runtime_upgrade()
 	}
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade() -> Result<(), &'static str> {
-		AllPallets::pre_upgrade()
+		AllPalletsReversedWithSystemFirst::pre_upgrade()
 	}
 
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade() -> Result<(), &'static str> {
-		AllPallets::post_upgrade()
+		AllPalletsReversedWithSystemFirst::post_upgrade()
 	}
 }
 
 impl OnFinalize<BlockNumber> for MaintenanceHooks {
 	fn on_finalize(n: BlockNumber) {
-		AllPallets::on_finalize(n)
+		AllPalletsReversedWithSystemFirst::on_finalize(n)
 	}
 }
 
 impl OffchainWorker<BlockNumber> for MaintenanceHooks {
 	fn offchain_worker(n: BlockNumber) {
-		AllPallets::offchain_worker(n)
+		AllPalletsReversedWithSystemFirst::offchain_worker(n)
 	}
 }
 
-// AllPallets here implies all the specfied pallets in the runtime, except frame_system,
-// will run the associated hook
-// AllPallets is simply a nested tuple containing all the pallets except System
-// In cases where we need only specific pallets to run the hook,
-// we should state them in nested tuples
 impl pallet_maintenance_mode::Config for Runtime {
 	type Event = Event;
 	type NormalCallFilter = NormalFilter;
@@ -1684,8 +1685,9 @@ impl pallet_maintenance_mode::Config for Runtime {
 	type MaintenanceDmpHandler = MaintenanceDmpHandler;
 	type NormalXcmpHandler = XcmpQueue;
 	type MaintenanceXcmpHandler = MaintenanceXcmpHandler;
-	// We use AllPallets because we dont want to change the hooks in normal operation
-	type NormalExecutiveHooks = AllPallets;
+	// We use AllPalletsReversedWithSystemFirst because we dont want to change the hooks in normal
+	// operation
+	type NormalExecutiveHooks = AllPalletsReversedWithSystemFirst;
 	type MaitenanceExecutiveHooks = MaintenanceHooks;
 }
 
@@ -1696,6 +1698,7 @@ impl pallet_proxy_genesis_companion::Config for Runtime {
 parameter_types! {
 	// Tells `pallet_base_fee` whether to calculate a new BaseFee `on_finalize` or not.
 	pub IsActive: bool = false;
+	pub DefaultBaseFeePerGas: U256 = (1 * currency::GIGAWEI * currency::SUPPLY_FACTOR).into();
 }
 
 pub struct BaseFeeThreshold;
@@ -1715,6 +1718,7 @@ impl pallet_base_fee::Config for Runtime {
 	type Event = Event;
 	type Threshold = BaseFeeThreshold;
 	type IsActive = IsActive;
+	type DefaultBaseFeePerGas = DefaultBaseFeePerGas;
 }
 
 construct_runtime! {
@@ -1736,7 +1740,7 @@ construct_runtime! {
 		EVM: pallet_evm::{Pallet, Config, Call, Storage, Event<T>} = 10,
 		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Origin, Config} = 11,
 		ParachainStaking: parachain_staking::{Pallet, Call, Storage, Event<T>, Config<T>} = 12,
-		Scheduler: pallet_scheduler::{Pallet, Storage, Config, Event<T>, Call} = 13,
+		Scheduler: pallet_scheduler::{Pallet, Storage, Event<T>, Call} = 13,
 		Democracy: pallet_democracy::{Pallet, Storage, Config<T>, Event<T>, Call} = 14,
 		CouncilCollective:
 			pallet_collective::<Instance1>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 15,

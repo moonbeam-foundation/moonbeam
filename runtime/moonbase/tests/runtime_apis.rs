@@ -21,12 +21,11 @@ use common::*;
 
 use nimbus_primitives::NimbusId;
 use pallet_evm::{Account as EVMAccount, AddressMapping, FeeCalculator, GenesisAccount};
-use sp_core::{Public, H160, H256, U256};
+use sp_core::{ByteArray, H160, H256, U256};
 
 use fp_rpc::runtime_decl_for_EthereumRuntimeRPCApi::EthereumRuntimeRPCApi;
 use moonbeam_rpc_primitives_txpool::runtime_decl_for_TxPoolRuntimeApi::TxPoolRuntimeApi;
-use std::collections::BTreeMap;
-use std::str::FromStr;
+use std::{collections::BTreeMap, str::FromStr};
 
 #[test]
 fn ethereum_runtime_rpc_api_chain_id() {
@@ -87,7 +86,7 @@ fn ethereum_runtime_rpc_api_author() {
 	ExtBuilder::default()
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * UNIT)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.with_balances(vec![
@@ -102,7 +101,7 @@ fn ethereum_runtime_rpc_api_author() {
 		.build()
 		.execute_with(|| {
 			set_parachain_inherent_data();
-			run_to_block(2, Some(NimbusId::from_slice(&ALICE_NIMBUS)));
+			run_to_block(2, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			assert_eq!(Runtime::author(), H160::from(ALICE));
 		});
 }
@@ -192,7 +191,7 @@ fn ethereum_runtime_rpc_api_current_transaction_statuses() {
 	ExtBuilder::default()
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * UNIT)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.with_balances(vec![
@@ -221,7 +220,7 @@ fn ethereum_runtime_rpc_api_current_block() {
 	ExtBuilder::default()
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * UNIT)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.with_balances(vec![
@@ -238,7 +237,7 @@ fn ethereum_runtime_rpc_api_current_block() {
 			set_parachain_inherent_data();
 			run_to_block(2, None);
 			let block = Runtime::current_block().expect("Block result.");
-			assert_eq!(block.header.number, U256::from(1));
+			assert_eq!(block.header.number, U256::from(1u8));
 		});
 }
 
@@ -251,7 +250,7 @@ fn ethereum_runtime_rpc_api_current_receipts() {
 	ExtBuilder::default()
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * UNIT)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.with_balances(vec![
