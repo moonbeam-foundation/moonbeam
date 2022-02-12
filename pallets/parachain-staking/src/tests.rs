@@ -3835,19 +3835,19 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				},
 				Event::Rewarded {
 					account: 1,
-					value: 20,
+					rewards: 20,
 				},
 				Event::Rewarded {
 					account: 6,
-					value: 5,
+					rewards: 5,
 				},
 				Event::Rewarded {
 					account: 7,
-					value: 5,
+					rewards: 5,
 				},
 				Event::Rewarded {
 					account: 10,
-					value: 5,
+					rewards: 5,
 				},
 			];
 			expected.append(&mut new);
@@ -3916,24 +3916,20 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				},
 				Event::Rewarded {
 					account: 1,
-					value: 21,
+					rewards: 21,
 				},
-				(1, 21),
 				Event::Rewarded {
 					account: 6,
-					value: 5,
+					rewards: 5,
 				},
-				(6, 5),
 				Event::Rewarded {
 					account: 7,
-					value: 5,
+					rewards: 5,
 				},
-				(7, 5),
 				Event::Rewarded {
 					account: 10,
-					value: 5,
+					rewards: 5,
 				},
-				(10, 5),
 				Event::ReservedForParachainBond {
 					account: 11,
 					value: 16,
@@ -3971,22 +3967,22 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				},
 				Event::Rewarded {
 					account: 1,
-					value: 22,
+					rewards: 22,
 				},
 				(1, 22),
 				Event::Rewarded {
 					account: 6,
-					value: 6,
+					rewards: 6,
 				},
 				(6, 6),
 				Event::Rewarded {
 					account: 7,
-					value: 6,
+					rewards: 6,
 				},
 				(7, 6),
 				Event::Rewarded {
 					account: 10,
-					value: 6,
+					rewards: 6,
 				},
 				(10, 6),
 				Event::DelegatorLeftCandidate {
@@ -4036,19 +4032,19 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				},
 				Event::Rewarded {
 					account: 1,
-					value: 24,
+					rewards: 24,
 				},
 				Event::Rewarded {
 					account: 6,
-					value: 6,
+					rewards: 6,
 				},
 				Event::Rewarded {
 					account: 7,
-					value: 6,
+					rewards: 6,
 				},
 				Event::Rewarded {
 					account: 10,
-					value: 6,
+					rewards: 6,
 				},
 			];
 			expected.append(&mut new2);
@@ -4104,19 +4100,19 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				},
 				Event::Rewarded {
 					account: 1,
-					value: 20,
+					rewards: 20,
 				},
 				Event::Rewarded {
 					account: 6,
-					value: 4,
+					rewards: 4,
 				},
 				Event::Rewarded {
 					account: 7,
-					value: 4,
+					rewards: 4,
 				},
 				Event::Rewarded {
 					account: 10,
-					value: 4,
+					rewards: 4,
 				},
 			];
 			expected.append(&mut new3);
@@ -4163,15 +4159,15 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				},
 				Event::Rewarded {
 					account: 1,
-					value: 22,
+					rewards: 22,
 				},
 				Event::Rewarded {
 					account: 7,
-					value: 5,
+					rewards: 5,
 				},
 				Event::Rewarded {
 					account: 10,
-					value: 5,
+					rewards: 5,
 				},
 			];
 			expected.append(&mut new4);
@@ -4225,15 +4221,15 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				},
 				Event::Rewarded {
 					account: 1,
-					value: 23,
+					rewards: 23,
 				},
 				Event::Rewarded {
 					account: 7,
-					value: 5,
+					rewards: 5,
 				},
 				Event::Rewarded {
 					account: 10,
-					value: 5,
+					rewards: 5,
 				},
 			];
 			expected.append(&mut new5);
@@ -4281,15 +4277,15 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				},
 				Event::Rewarded {
 					account: 1,
-					value: 24,
+					rewards: 24,
 				},
 				Event::Rewarded {
 					account: 7,
-					value: 5,
+					rewards: 5,
 				},
 				Event::Rewarded {
 					account: 10,
-					value: 5,
+					rewards: 5,
 				},
 			];
 			expected.append(&mut new6);
@@ -4335,19 +4331,19 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				},
 				Event::Rewarded {
 					account: 1,
-					value: 24,
+					rewards: 24,
 				},
 				Event::Rewarded {
 					account: 7,
-					value: 4,
+					rewards: 4,
 				},
 				Event::Rewarded {
 					account: 10,
-					value: 4,
+					rewards: 4,
 				},
 				Event::Rewarded {
 					account: 8,
-					value: 4,
+					rewards: 4,
 				},
 			];
 			expected.append(&mut new7);
@@ -4480,15 +4476,15 @@ fn paid_collator_commission_matches_config() {
 				},
 				Event::Rewarded {
 					account: 4,
-					value: 18,
+					rewards: 18,
 				},
 				Event::Rewarded {
 					account: 5,
-					value: 6,
+					rewards: 6,
 				},
 				Event::Rewarded {
 					account: 6,
-					value: 6,
+					rewards: 6,
 				},
 			];
 			expected.append(&mut new2);
@@ -5200,42 +5196,36 @@ fn multiple_delegations() {
 			// chooses top TotalSelectedCandidates (5), in order
 			let mut expected = vec![
 				Event::CollatorChosen {
-					round: 8,
-					collator_account: 3,
-					total_exposed_amount: 80,
+					round: 2,
+					collator_account: 1,
+					total_exposed_amount: 50,
 				},
-				(2, 1, 50),
 				Event::CollatorChosen {
-					round: 8,
-					collator_account: 3,
-					total_exposed_amount: 80,
+					round: 2,
+					collator_account: 2,
+					total_exposed_amount: 40,
 				},
-				(2, 2, 40),
 				Event::CollatorChosen {
-					round: 8,
+					round: 2,
 					collator_account: 3,
-					total_exposed_amount: 80,
+					total_exposed_amount: 20,
 				},
-				(2, 3, 20),
 				Event::CollatorChosen {
-					round: 8,
-					collator_account: 3,
-					total_exposed_amount: 80,
+					round: 2,
+					collator_account: 4,
+					total_exposed_amount: 20,
 				},
-				(2, 4, 20),
 				Event::CollatorChosen {
-					round: 8,
-					collator_account: 3,
-					total_exposed_amount: 80,
+					round: 2,
+					collator_account: 5,
+					total_exposed_amount: 10,
 				},
-				(2, 5, 10),
 				Event::NewRound {
-					starting_block: 35,
-					round: 8,
+					starting_block: 5,
+					round: 2,
 					selected_collators_number: 5,
-					total_balance: 400,
+					total_balance: 140,
 				},
-				(5, 2, 5, 140),
 			];
 			assert_eq_events!(expected.clone());
 			assert_ok!(ParachainStaking::delegate(Origin::signed(6), 2, 10, 10, 10));
