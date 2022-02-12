@@ -121,9 +121,9 @@ fn add_association_works() {
 						amount: 10
 					}
 					.into(),
-					AuthorMappingEvent::AuthorRegistered { 
-						author_id: expected_nimbus_id, 
-						account_id: Alice 
+					AuthorMappingEvent::AuthorRegistered {
+						author_id: expected_nimbus_id,
+						account_id: Alice
 					}
 					.into(),
 					EvmEvent::Executed(Precompile.into()).into(),
@@ -165,13 +165,13 @@ fn update_association_works() {
 						amount: 10
 					}
 					.into(),
-					AuthorMappingEvent::AuthorRegistered { 
-						author_id: first_nimbus_id, 
-						account_id: Alice 
+					AuthorMappingEvent::AuthorRegistered {
+						author_id: first_nimbus_id,
+						account_id: Alice
 					}
 					.into(),
 					AuthorMappingEvent::AuthorRotated {
-						new_author_id: second_nimbus_id, 
+						new_author_id: second_nimbus_id,
 						account_id: Alice
 					}
 					.into(),
@@ -211,7 +211,7 @@ fn clear_association_works() {
 					}
 					.into(),
 					AuthorMappingEvent::AuthorRegistered {
-						author_id: nimbus_id.clone(), 
+						author_id: nimbus_id.clone(),
 						account_id: Alice
 					}
 					.into(),
