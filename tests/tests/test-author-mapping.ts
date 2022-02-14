@@ -151,9 +151,9 @@ describeDevMoonbeam("Author Mapping - Fail without deposit", (context) => {
   // TODO: Fix this test as there is no failed extrinsic in the block
   it.skip("should check events for failure", async function () {
     const signedBlock = await context.polkadotApi.rpc.chain.getBlock();
-    const allRecords = await context.polkadotApi.query.system.events.at(
+    const allRecords = (await context.polkadotApi.query.system.events.at(
       signedBlock.block.header.hash
-    );
+    )) as any;
 
     // map between the extrinsics and events
     signedBlock.block.extrinsics.forEach(({ method: { method, section } }, index) => {
