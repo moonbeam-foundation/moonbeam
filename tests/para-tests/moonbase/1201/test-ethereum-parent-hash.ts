@@ -81,7 +81,7 @@ describeParachain(
 
       expect(
         (await context.web3.eth.getBlock((await runtimePromise) + 1)).parentHash
-      ).to.not.be.string("0x0000000000000000000000000000000000000000000000000000000000000000"); // new runtime only allow 50 bottom
+      ).to.not.be.string("0x0000000000000000000000000000000000000000000000000000000000000000");
       process.stdout.write(`✅\n`);
 
       process.stdout.write("Waiting extra block being produced...");

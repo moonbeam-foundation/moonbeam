@@ -221,7 +221,8 @@ export function describeParachain(
                 );
                 unsub();
                 if (waitMigration) {
-                  await context.waitBlocks(1); // Wait for next block to have the new runtime applied
+                  // Wait for next block to have the new runtime applied
+                  await context.waitBlocks(1);
                 }
                 resolve(blockNumber);
               }
