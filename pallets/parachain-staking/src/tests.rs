@@ -6085,17 +6085,14 @@ fn payouts_follow_delegation_changes() {
 					account: 1,
 					rewards: 42,
 				},
-				(1, 42),
 				Event::Rewarded {
 					account: 7,
 					rewards: 14,
 				},
-				(7, 14),
 				Event::Rewarded {
 					account: 10,
 					rewards: 14,
 				},
-				(10, 14),
 			];
 			expected.append(&mut new6);
 			assert_eq_events!(expected.clone());
@@ -6968,7 +6965,6 @@ fn deferred_payment_steady_state_event_flow() {
 						account: 2,
 						rewards: 19,
 					},
-					(2, 19),
 					Event::Rewarded {
 						account: 11,
 						rewards: 6,
