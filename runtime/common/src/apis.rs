@@ -364,7 +364,6 @@ macro_rules! impl_runtime_apis_plus_common {
 						&block_number,
 						&parent_header.hash(),
 						&parent_header.digest,
-						frame_system::InitKind::Inspection
 					);
 					RandomnessCollectiveFlip::on_initialize(block_number);
 
@@ -402,8 +401,10 @@ macro_rules! impl_runtime_apis_plus_common {
 			}
 
 			impl cumulus_primitives_core::CollectCollationInfo<Block> for Runtime {
-				fn collect_collation_info() -> cumulus_primitives_core::CollationInfo {
-					ParachainSystem::collect_collation_info()
+				fn collect_collation_info(
+					header: &<Block as BlockT>::Header
+				) -> cumulus_primitives_core::CollationInfo {
+					ParachainSystem::collect_collation_info(header)
 				}
 			}
 

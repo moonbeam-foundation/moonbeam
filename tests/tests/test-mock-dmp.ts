@@ -80,8 +80,9 @@ describeDevMoonbeam("Mock XCM - receive downward transfer", (context) => {
     // Make sure the state has ALITH's to DOT tokens
     let alith_dot_balance = (
       (await context.polkadotApi.query.assets.account(assetId, alith.address)) as any
-    ).balance // TODO fix type
-      .toBigInt();
+    )
+      .unwrap()
+      ["balance"].toBigInt();
 
     expect(alith_dot_balance).to.eq(10n * RELAY_TOKEN);
   });

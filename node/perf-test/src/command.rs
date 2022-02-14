@@ -116,13 +116,14 @@ where
 		// TODO: no need for prometheus here...
 		let prometheus_registry = config.prometheus_registry().cloned();
 
-		let env = sc_basic_authorship::ProposerFactory::new(
+		let mut env = sc_basic_authorship::ProposerFactory::new(
 			task_manager.spawn_handle(),
 			client.clone(),
 			transaction_pool.clone(),
 			prometheus_registry.as_ref(),
 			telemetry.as_ref().map(|x| x.handle()),
 		);
+		env.set_soft_deadline(service::SOFT_DEADLINE_PERCENT);
 
 		let command_sink;
 		let command_stream: Box<dyn Stream<Item = EngineCommand<H256>> + Send + Sync + Unpin> = {

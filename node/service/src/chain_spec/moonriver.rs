@@ -28,7 +28,7 @@ use moonriver_runtime::{
 	CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig,
 	EthereumChainIdConfig, EthereumConfig, GenesisAccount, GenesisConfig, InflationInfo,
 	MaintenanceModeConfig, ParachainInfoConfig, ParachainStakingConfig, PolkadotXcmConfig,
-	Precompiles, Range, SchedulerConfig, SystemConfig, TechCommitteeCollectiveConfig, WASM_BINARY,
+	Precompiles, Range, SystemConfig, TechCommitteeCollectiveConfig, WASM_BINARY,
 };
 use nimbus_primitives::NimbusId;
 use sc_service::ChainType;
@@ -73,15 +73,22 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 				1281,               //ChainId
 			)
 		},
+		// Bootnodes
 		vec![],
+		// Telemetry
 		None,
+		// Protocol ID
 		None,
+		// Fork ID
+		None,
+		// Properties
 		Some(
 			serde_json::from_str(
 				"{\"tokenDecimals\": 18, \"tokenSymbol\": \"MOVR\", \"SS58Prefix\": 1285}",
 			)
 			.expect("Provided valid json map"),
 		),
+		// Extensions
 		Extensions {
 			relay_chain: "dev-service".into(),
 			para_id: Default::default(),
@@ -138,15 +145,22 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 				1280, //ChainId
 			)
 		},
+		// Bootnodes
 		vec![],
+		// Telemetry
 		None,
+		// Protocol ID
 		None,
+		// Fork ID
+		None,
+		// Properties
 		Some(
 			serde_json::from_str(
 				"{\"tokenDecimals\": 18, \"tokenSymbol\": \"MOVR\", \"SS58Prefix\": 1285}",
 			)
 			.expect("Provided valid json map"),
 		),
+		// Extensions
 		Extensions {
 			relay_chain: "kusama-local".into(),
 			para_id: para_id.into(),
@@ -237,7 +251,6 @@ pub fn testnet_genesis(
 		ethereum: EthereumConfig {},
 		base_fee: Default::default(),
 		democracy: DemocracyConfig::default(),
-		scheduler: SchedulerConfig {},
 		parachain_staking: ParachainStakingConfig {
 			candidates: candidates
 				.iter()
