@@ -1239,7 +1239,7 @@ use frame_support::{pallet_prelude::DispatchResult, transactional};
 
 impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 	#[transactional]
-	fn create_asset(
+	fn create_foreign_asset(
 		asset: AssetId,
 		min_balance: Balance,
 		metadata: AssetRegistrarMetadata,
@@ -1272,6 +1272,31 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 			metadata.is_frozen,
 		)
 	}
+	#[transactional]
+	fn create_local_asset(
+		_asset: AssetId,
+		_creator: AccountId,
+		_min_balance: Balance,
+		_is_sufficient: bool,
+		_owner: AccountId,
+	) -> DispatchResult {
+		Err(sp_runtime::DispatchError::BadOrigin)
+	}
+}
+
+pub struct LocalAssetIdCreator;
+impl pallet_asset_manager::LocalAssetIdCreator<Runtime> for LocalAssetIdCreator {
+	fn create_asset_id_from_account(account: AccountId) -> AssetId {
+		// Our means of converting a creator to an assetId
+		// We basically hash nonce+account
+		let mut result: [u8; 16] = [0u8; 16];
+		let account_info = System::account(account);
+		let mut to_hash = account.encode();
+		to_hash.append(&mut account_info.nonce.encode());
+		let hash: H256 = to_hash.using_encoded(<Runtime as frame_system::Config>::Hashing::hash);
+		result.copy_from_slice(&hash.as_fixed_bytes()[0..16]);
+		u128::from_le_bytes(result)
+	}
 }
 
 #[derive(Clone, Default, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
@@ -1287,9 +1312,11 @@ impl pallet_asset_manager::Config for Runtime {
 	type Balance = Balance;
 	type AssetId = AssetId;
 	type AssetRegistrarMetadata = AssetRegistrarMetadata;
-	type AssetType = AssetType;
+	type ForeignAssetType = AssetType;
 	type AssetRegistrar = AssetRegistrar;
-	type AssetModifierOrigin = EnsureRoot<AccountId>;
+	type ForeignAssetModifierOrigin = EnsureRoot<AccountId>;
+	type LocalAssetModifierOrigin = EnsureRoot<AccountId>;
+	type LocalAssetIdCreator = LocalAssetIdCreator;
 	type WeightInfo = pallet_asset_manager::weights::SubstrateWeight<Runtime>;
 }
 
@@ -1298,23 +1325,23 @@ impl pallet_asset_manager::Config for Runtime {
 impl AccountIdAssetIdConversion<AccountId, AssetId> for Runtime {
 	/// The way to convert an account to assetId is by ensuring that the prefix is 0XFFFFFFFF
 	/// and by taking the lowest 128 bits as the assetId
-	fn account_to_asset_id(account: AccountId) -> Option<AssetId> {
+	fn account_to_asset_id(account: AccountId) -> Option<(Vec<u8>, AssetId)> {
 		let h160_account: H160 = account.into();
 		let mut data = [0u8; 16];
 		let (prefix_part, id_part) = h160_account.as_fixed_bytes().split_at(4);
 		if prefix_part == ASSET_PRECOMPILE_ADDRESS_PREFIX {
 			data.copy_from_slice(id_part);
 			let asset_id: AssetId = u128::from_be_bytes(data).into();
-			Some(asset_id)
+			Some((prefix_part.to_vec(), asset_id))
 		} else {
 			None
 		}
 	}
 
 	// The opposite conversion
-	fn asset_id_to_account(asset_id: AssetId) -> AccountId {
+	fn asset_id_to_account(prefix: &[u8], asset_id: AssetId) -> AccountId {
 		let mut data = [0u8; 20];
-		data[0..4].copy_from_slice(ASSET_PRECOMPILE_ADDRESS_PREFIX);
+		data[0..4].copy_from_slice(prefix);
 		data[4..20].copy_from_slice(&asset_id.to_be_bytes());
 		AccountId::from(data)
 	}
@@ -1324,7 +1351,7 @@ impl AccountIdAssetIdConversion<AccountId, AssetId> for Runtime {
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
 pub enum CurrencyId {
 	SelfReserve,
-	OtherReserve(AssetId),
+	ForeignAsset(AssetId),
 }
 
 impl AccountIdToCurrencyId<AccountId, CurrencyId> for Runtime {
@@ -1334,7 +1361,7 @@ impl AccountIdToCurrencyId<AccountId, CurrencyId> for Runtime {
 			a if a == H160::from_low_u64_be(2050).into() => Some(CurrencyId::SelfReserve),
 			// the rest of the currencies, by their corresponding erc20 address
 			_ => Runtime::account_to_asset_id(account)
-				.map(|asset_id| CurrencyId::OtherReserve(asset_id)),
+				.map(|(_, asset_id)| CurrencyId::ForeignAsset(asset_id)),
 		}
 	}
 }
@@ -1352,7 +1379,7 @@ where
 				let multi: MultiLocation = SelfReserve::get();
 				Some(multi)
 			}
-			CurrencyId::OtherReserve(asset) => AssetXConverter::reverse_ref(asset).ok(),
+			CurrencyId::ForeignAsset(asset) => AssetXConverter::reverse_ref(asset).ok(),
 		}
 	}
 }
