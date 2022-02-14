@@ -15,30 +15,31 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{Call, Config, Pallet};
-use frame_benchmarking::{benchmarks, impl_benchmark_test_suite};
+use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
 use frame_system::RawOrigin;
 use sp_std::boxed::Box;
 use xcm::latest::prelude::*;
 
 benchmarks! {
-	register {
-		let account = T::AccountId::default();
+	  register {
+		let user: T::AccountId  = account("account id", 0u32, 0u32);
+
 		let index = 1u16;
-	}: _(RawOrigin::Root, account.clone(), index)
+	}: _(RawOrigin::Root, user.clone(), index)
 	verify {
-		assert_eq!(Pallet::<T>::index_to_account(index), Some(account));
+		assert_eq!(Pallet::<T>::index_to_account(index), Some(user));
 	}
 
-	deregister {
-		let account = T::AccountId::default();
+	  deregister {
+		let user: T::AccountId  = account("account id", 0u32, 0u32);
 		let index = 1u16;
-		Pallet::<T>::register(RawOrigin::Root.into(), account, index)?;
+		Pallet::<T>::register(RawOrigin::Root.into(), user, index).unwrap();
 	}: _(RawOrigin::Root, index)
 	verify {
 		assert!(Pallet::<T>::index_to_account(index).is_none());
 	}
 
-	set_transact_info {
+	 set_transact_info {
 		let extra_weight = 300000000u64;
 		let fee_per_second = 1;
 		let max_weight = 20000000000u64;
@@ -58,7 +59,7 @@ benchmarks! {
 		}));
 	}
 
-	remove_transact_info {
+	 remove_transact_info {
 		let extra_weight = 300000000u64;
 		let fee_per_second = 1;
 		let max_weight = 20000000000u64;
@@ -69,8 +70,7 @@ benchmarks! {
 			extra_weight,
 			fee_per_second,
 			max_weight
-		)?;
-
+		).unwrap();
 	}: _(RawOrigin::Root, Box::new(xcm::VersionedMultiLocation::V1(location.clone())))
 	verify {
 		assert!(Pallet::<T>::transact_info(&location).is_none());
