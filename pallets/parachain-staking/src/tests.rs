@@ -3969,22 +3969,18 @@ fn parachain_bond_inflation_reserve_matches_config() {
 					account: 1,
 					rewards: 22,
 				},
-				(1, 22),
 				Event::Rewarded {
 					account: 6,
 					rewards: 6,
 				},
-				(6, 6),
 				Event::Rewarded {
 					account: 7,
 					rewards: 6,
 				},
-				(7, 6),
 				Event::Rewarded {
 					account: 10,
 					rewards: 6,
 				},
-				(10, 6),
 				Event::DelegatorLeftCandidate {
 					delegator: 6,
 					candidate: 1,
