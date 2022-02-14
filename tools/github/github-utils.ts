@@ -52,8 +52,13 @@ export async function getCommitAndLabels(
 
   const prByLabels = {};
   for (const commit of commits) {
-    const foundPrsNumbers = commit.commit.message.split("\n")[0].match(/\(#([0-9]+)\)/);
-    if (foundPrsNumbers && foundPrsNumbers.length > 1) {
+    const commitMessageFirstLine = commit.commit.message.split("\n")[0];
+    const foundPrsNumbers = commitMessageFirstLine.match(/\(#([0-9]+)\)/);
+    if (
+      !commitMessageFirstLine.startsWith("Revert ") &&
+      foundPrsNumbers &&
+      foundPrsNumbers.length > 1
+    ) {
       const pr = await octokit.rest.pulls.get({
         owner,
         repo,
