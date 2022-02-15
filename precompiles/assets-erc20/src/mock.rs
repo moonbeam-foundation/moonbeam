@@ -107,10 +107,14 @@ impl AddressMapping<Account> for Account {
 impl AccountIdAssetIdConversion<AccountId, AssetId> for Runtime {
 	/// The way to convert an account to assetId is by ensuring that the prefix is 0XFFFFFFFF
 	/// and by taking the lowest 128 bits as the assetId
-	fn account_to_asset_id(account: AccountId) -> Option<AssetId> {
+	fn account_to_asset_id(account: AccountId) -> Option<(Vec<u8>, AssetId)> {
 		match account {
-			Account::ForeignAssetId(asset_id) => Some(asset_id),
-			Account::LocalAssetId(asset_id) => Some(asset_id),
+			Account::ForeignAssetId(asset_id) => {
+				Some((FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX.to_vec(), asset_id))
+			}
+			Account::LocalAssetId(asset_id) => {
+				Some((LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX.to_vec(), asset_id))
+			}
 			_ => None,
 		}
 	}
@@ -266,6 +270,7 @@ impl pallet_assets::Config<ForeignAssetInstance> for Runtime {
 	type StringLimit = AssetsStringLimit;
 	type Freezer = ();
 	type Extra = ();
+	type AssetAccountDeposit = AssetAccountDeposit;
 	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
 }
 
