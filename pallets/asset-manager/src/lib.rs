@@ -158,6 +158,7 @@ pub mod pallet {
 		LocalAssetRegistered(T::AssetId, T::AccountId, T::AccountId),
 		UnitsPerSecondChanged(T::ForeignAssetType, u128),
 		ForeignAssetTypeChanged(T::AssetId, T::ForeignAssetType),
+		LocalAssetAuthorizationGiven(T::AccountId, T::AccountId, T::Balance),
 	}
 
 	/// Mapping from an asset id to asset type.
@@ -234,9 +235,19 @@ pub mod pallet {
 		) -> DispatchResult {
 			T::LocalAssetModifierOrigin::ensure_origin(origin)?;
 
-			let local_asset_info = LocalAssetInfo::<T> { owner, min_balance };
+			let local_asset_info = LocalAssetInfo::<T> {
+				owner: owner.clone(),
+				min_balance: min_balance.clone(),
+			};
 
-			LocalAssetCreationauthorization::insert(creator, local_asset_info);
+			LocalAssetCreationauthorization::insert(&creator, local_asset_info);
+
+			Self::deposit_event(Event::LocalAssetAuthorizationGiven(
+				creator,
+				owner,
+				min_balance,
+			));
+
 			Ok(())
 		}
 

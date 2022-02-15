@@ -1128,10 +1128,10 @@ pub type LocalFungiblesTransactorOldReanchor = FungiblesAdapter<
 	// Use this currency when it is a fungible asset matching the given location or name:
 	(
 		ConvertedConcreteAssetId<
-		AssetId,
-		Balance,
-		AsPrefixedGeneralIndex<LocalAssetsPalletLocationOldReanchor, AssetId, JustTry>,
-		JustTry,
+			AssetId,
+			Balance,
+			AsPrefixedGeneralIndex<LocalAssetsPalletLocationOldReanchor, AssetId, JustTry>,
+			JustTry,
 		>,
 	),
 	// Convert an XCM MultiLocation into a local account id:
@@ -1151,10 +1151,10 @@ pub type LocalFungiblesTransactorNewReanchor = FungiblesAdapter<
 	// Use this currency when it is a fungible asset matching the given location or name:
 	(
 		ConvertedConcreteAssetId<
-		AssetId,
-		Balance,
-		AsPrefixedGeneralIndex<LocalAssetsPalletLocationNewReanchor, AssetId, JustTry>,
-		JustTry,
+			AssetId,
+			Balance,
+			AsPrefixedGeneralIndex<LocalAssetsPalletLocationNewReanchor, AssetId, JustTry>,
+			JustTry,
 		>,
 	),
 	// Convert an XCM MultiLocation into a local account id:

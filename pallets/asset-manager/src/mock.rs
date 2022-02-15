@@ -160,11 +160,26 @@ impl AssetRegistrar<Test> for MockAssetPalletRegistrar {
 
 	fn create_local_asset(
 		_asset: u32,
+		_account: u64,
 		_min_balance: u64,
-		_metadata: u32,
 		_owner: u64,
 	) -> sp_runtime::DispatchResult {
 		Ok(())
+	}
+}
+
+pub struct MockLocalAssetIdCreator;
+impl pallet_asset_manager::LocalAssetIdCreator<Test> for MockLocalAssetIdCreator {
+	fn create_asset_id_from_account(account: u64) -> AssetId {
+		// Our means of converting a creator to an assetId
+		// We basically hash nonce+account
+		let mut result: [u8; 4] = [0u8; 4];
+		let account_info = System::account(account);
+		let mut to_hash = account.encode();
+		to_hash.append(&mut account_info.nonce.encode());
+		let hash: H256 = to_hash.using_encoded(<Test as frame_system::Config>::Hashing::hash);
+		result.copy_from_slice(&hash.as_fixed_bytes()[0..4]);
+		u32::from_le_bytes(result)
 	}
 }
 
@@ -177,6 +192,7 @@ impl Config for Test {
 	type AssetRegistrar = MockAssetPalletRegistrar;
 	type ForeignAssetModifierOrigin = EnsureRoot<u64>;
 	type LocalAssetModifierOrigin = EnsureRoot<u64>;
+	type LocalAssetIdCreator = MockLocalAssetIdCreator;
 	type WeightInfo = ();
 }
 

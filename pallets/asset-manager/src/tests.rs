@@ -55,16 +55,37 @@ fn registering_foreign_works() {
 #[test]
 fn registering_local_works() {
 	new_test_ext().execute_with(|| {
-		assert_ok!(AssetManager::register_local_asset(
+		let asset_id = MockLocalAssetIdCreator::create_asset_id_from_account(1u64);
+		assert_ok!(AssetManager::authorize_local_assset(
 			Origin::root(),
-			0u32,
+			1u64,
+			1u64,
 			0u32.into(),
-			1u32.into(),
-			true,
-			1u64
 		));
 
-		expect_events(vec![crate::Event::LocalAssetRegistered(0, 0)])
+		assert_ok!(AssetManager::register_local_asset(Origin::signed(1u64),));
+
+		expect_events(vec![
+			crate::Event::LocalAssetAuthorizationGiven(1, 1, 0),
+			crate::Event::LocalAssetRegistered(asset_id, 1, 1),
+		])
+	});
+}
+
+#[test]
+fn registering_local_fails_if_not_authorization_given() {
+	new_test_ext().execute_with(|| {
+		assert_ok!(AssetManager::authorize_local_assset(
+			Origin::root(),
+			1u64,
+			1u64,
+			0u32.into(),
+		));
+
+		assert_noop!(
+			AssetManager::register_local_asset(Origin::signed(2u64)),
+			Error::<Test>::NotAuthorizedToCreateLocalAssets
+		);
 	});
 }
 
