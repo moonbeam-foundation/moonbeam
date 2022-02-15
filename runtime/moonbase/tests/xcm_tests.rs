@@ -26,10 +26,13 @@ use xcm::{VersionedMultiLocation, WrapVersion};
 use xcm_mock::*;
 use xcm_primitives::UtilityEncodeCall;
 
+use pallet_asset_manager::LocalAssetIdCreator;
 use sp_std::boxed::Box;
 use xcm::latest::prelude::*;
 use xcm_executor::traits::Convert;
 use xcm_simulator::TestExt;
+mod common;
+use common::ExtBuilder;
 // Send a relay asset (like DOT) to a parachain A
 #[test]
 fn receive_relay_asset_from_relay() {
@@ -1996,6 +1999,283 @@ fn test_statemint_like_prefix_change() {
 	// Make sure that balance increases, as both prefixes are supported
 	ParaA::execute_with(|| {
 		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 246);
+	});
+}
+
+#[test]
+fn send_para_a_local_asset_to_para_b() {
+	ExtBuilder::default().build().execute_with(|| {
+		MockNet::reset();
+
+		let asset_id =
+			parachain::LocalAssetIdCreator::create_asset_id_from_account(PARAALICE.into());
+		let para_a_local_asset = MultiLocation::new(
+			1,
+			X3(Parachain(1), PalletInstance(11u8), GeneralIndex(asset_id)),
+		);
+		let source_location = parachain::AssetType::Xcm(para_a_local_asset);
+		let source_id: parachain::AssetId = source_location.clone().into();
+
+		let dest_para = MultiLocation::new(1, X1(Parachain(2)));
+
+		let asset_metadata = parachain::AssetMetadata {
+			name: b"ParaALocalAsset".to_vec(),
+			symbol: b"ParaALocalAsset".to_vec(),
+			decimals: 12,
+		};
+
+		let sov = xcm_builder::SiblingParachainConvertsVia::<
+			polkadot_parachain::primitives::Sibling,
+			parachain::AccountId,
+		>::convert_ref(dest_para)
+		.unwrap();
+
+		ParaA::execute_with(|| {
+			assert_ok!(AssetManager::authorize_local_assset(
+				parachain::Origin::root(),
+				PARAALICE.into(),
+				PARAALICE.into(),
+				1
+			));
+
+			assert_ok!(AssetManager::register_local_asset(
+				parachain::Origin::signed(PARAALICE.into()),
+			));
+
+			assert_ok!(LocalAssets::mint(
+				parachain::Origin::signed(PARAALICE.into()),
+				asset_id,
+				PARAALICE.into(),
+				300000000000000
+			));
+
+			// This is needed, since the asset is created as non-sufficient
+			assert_ok!(Balances::transfer(
+				parachain::Origin::signed(PARAALICE.into()),
+				sov,
+				100000000000000
+			));
+		});
+
+		ParaB::execute_with(|| {
+			assert_ok!(AssetManager::register_foreign_asset(
+				parachain::Origin::root(),
+				source_location.clone(),
+				asset_metadata,
+				1u128,
+				true
+			));
+			assert_ok!(AssetManager::set_asset_units_per_second(
+				parachain::Origin::root(),
+				source_location,
+				0u128
+			));
+		});
+
+		let dest = MultiLocation {
+			parents: 1,
+			interior: X2(
+				Parachain(2),
+				AccountKey20 {
+					network: NetworkId::Any,
+					key: PARAALICE.into(),
+				},
+			),
+		};
+
+		ParaA::execute_with(|| {
+			// free execution, full amount received
+			assert_ok!(XTokens::transfer(
+				parachain::Origin::signed(PARAALICE.into()),
+				parachain::CurrencyId::LocalAssetReserve(asset_id),
+				100,
+				Box::new(VersionedMultiLocation::V1(dest)),
+				800000
+			));
+		});
+
+		ParaB::execute_with(|| {
+			// free execution, full amount received
+			assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 100);
+		});
+	});
+}
+
+#[test]
+fn send_para_a_local_asset_to_para_b_and_send_it_back_together_with_some_dev() {
+	ExtBuilder::default().build().execute_with(|| {
+		MockNet::reset();
+
+		let asset_id =
+			parachain::LocalAssetIdCreator::create_asset_id_from_account(PARAALICE.into());
+		let para_a_local_asset = MultiLocation::new(
+			1,
+			X3(Parachain(1), PalletInstance(11u8), GeneralIndex(asset_id)),
+		);
+		let source_location_local_asset = parachain::AssetType::Xcm(para_a_local_asset);
+		let source_id_local_asset: parachain::AssetId = source_location_local_asset.clone().into();
+
+		let asset_metadata_local_asset = parachain::AssetMetadata {
+			name: b"ParaALocalAsset".to_vec(),
+			symbol: b"ParaALocalAsset".to_vec(),
+			decimals: 12,
+		};
+
+		let para_a_balances = MultiLocation::new(1, X2(Parachain(1), PalletInstance(1u8)));
+		let source_location_balances = parachain::AssetType::Xcm(para_a_balances);
+		let source_id_balances: parachain::AssetId = source_location_balances.clone().into();
+
+		let asset_metadata_balances = parachain::AssetMetadata {
+			name: b"ParaAToken".to_vec(),
+			symbol: b"ParaA".to_vec(),
+			decimals: 18,
+		};
+
+		let dest_para = MultiLocation::new(1, X1(Parachain(2)));
+
+		ParaB::execute_with(|| {
+			assert_ok!(AssetManager::register_foreign_asset(
+				parachain::Origin::root(),
+				source_location_local_asset.clone(),
+				asset_metadata_local_asset,
+				1u128,
+				true
+			));
+			assert_ok!(AssetManager::set_asset_units_per_second(
+				parachain::Origin::root(),
+				source_location_local_asset,
+				0u128
+			));
+
+			assert_ok!(AssetManager::register_foreign_asset(
+				parachain::Origin::root(),
+				source_location_balances.clone(),
+				asset_metadata_balances,
+				1u128,
+				true
+			));
+			assert_ok!(AssetManager::set_asset_units_per_second(
+				parachain::Origin::root(),
+				source_location_balances,
+				0u128
+			));
+		});
+
+		let sov = xcm_builder::SiblingParachainConvertsVia::<
+			polkadot_parachain::primitives::Sibling,
+			parachain::AccountId,
+		>::convert_ref(dest_para)
+		.unwrap();
+
+		ParaA::execute_with(|| {
+			assert_ok!(AssetManager::authorize_local_assset(
+				parachain::Origin::root(),
+				PARAALICE.into(),
+				PARAALICE.into(),
+				1
+			));
+
+			assert_ok!(AssetManager::register_local_asset(
+				parachain::Origin::signed(PARAALICE.into()),
+			));
+
+			assert_ok!(LocalAssets::mint(
+				parachain::Origin::signed(PARAALICE.into()),
+				asset_id,
+				PARAALICE.into(),
+				300000000000000
+			));
+
+			// This is needed, since the asset is created as non-sufficient
+			assert_ok!(Balances::transfer(
+				parachain::Origin::signed(PARAALICE.into()),
+				sov,
+				100000000000000
+			));
+
+			let alith_balance_asset_before = LocalAssets::balance(asset_id, &PARAALICE.into());
+		});
+
+		let dest = MultiLocation {
+			parents: 1,
+			interior: X2(
+				Parachain(2),
+				AccountKey20 {
+					network: NetworkId::Any,
+					key: PARAALICE.into(),
+				},
+			),
+		};
+
+		ParaA::execute_with(|| {
+			// free execution, full amount received
+			assert_ok!(XTokens::transfer_multicurrencies(
+				parachain::Origin::signed(PARAALICE.into()),
+				vec![
+					(parachain::CurrencyId::LocalAssetReserve(asset_id), 100),
+					(parachain::CurrencyId::SelfReserve, 1000000)
+				],
+				0,
+				Box::new(VersionedMultiLocation::V1(dest)),
+				800000
+			));
+		});
+
+		let mut alith_balance_asset_before = 0;
+		let mut alith_balance_native_token_before = 0;
+
+		ParaA::execute_with(|| {
+			alith_balance_asset_before = LocalAssets::balance(asset_id, &PARAALICE.into());
+			alith_balance_native_token_before = Balances::free_balance(&PARAALICE.into());
+		});
+
+		let new_dest = MultiLocation {
+			parents: 1,
+			interior: X2(
+				Parachain(1),
+				AccountKey20 {
+					network: NetworkId::Any,
+					key: PARAALICE.into(),
+				},
+			),
+		};
+
+		ParaB::execute_with(|| {
+			// free execution, full amount received
+			assert_eq!(
+				Assets::balance(source_id_local_asset, &PARAALICE.into()),
+				100
+			);
+			assert_eq!(
+				Assets::balance(source_id_balances, &PARAALICE.into()),
+				1000000
+			);
+
+			// free execution, full amount received
+			assert_ok!(XTokens::transfer_multicurrencies(
+				parachain::Origin::signed(PARAALICE.into()),
+				vec![
+					(parachain::CurrencyId::ForeignAsset(source_id_balances), 4),
+					(
+						parachain::CurrencyId::ForeignAsset(source_id_local_asset),
+						50
+					)
+				],
+				0,
+				Box::new(VersionedMultiLocation::V1(new_dest)),
+				4
+			));
+		});
+
+		ParaA::execute_with(|| {
+			let alith_balance_asset_after = LocalAssets::balance(asset_id, &PARAALICE.into());
+			let alith_balance_native_token_after = Balances::free_balance(&PARAALICE.into());
+			assert_eq!(alith_balance_asset_after, alith_balance_asset_before + 50);
+			assert_eq!(
+				alith_balance_native_token_before,
+				alith_balance_native_token_after
+			);
+		});
 	});
 }
 

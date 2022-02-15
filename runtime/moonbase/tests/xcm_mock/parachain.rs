@@ -111,7 +111,7 @@ impl pallet_balances::Config for Runtime {
 }
 
 pub type ForeignAssetInstance = pallet_assets::Instance1;
-type LocalAssetInstance = pallet_assets::Instance2;
+pub type LocalAssetInstance = pallet_assets::Instance2;
 
 parameter_types! {
 	pub const AssetDeposit: Balance = 0; // Does not really matter as this will be only called by root
@@ -239,12 +239,14 @@ pub type LocalFungiblesTransactorOldReanchor = FungiblesAdapter<
 	// Use this fungibles implementation:
 	LocalAssets,
 	// Use this currency when it is a fungible asset matching the given location or name:
-	ConvertedConcreteAssetId<
-		AssetId,
-		Balance,
-		AsPrefixedGeneralIndex<LocalAssetsPalletLocationOldReanchor, AssetId, JustTry>,
-		JustTry,
-	>,
+	(
+		ConvertedConcreteAssetId<
+			AssetId,
+			Balance,
+			AsPrefixedGeneralIndex<LocalAssetsPalletLocationOldReanchor, AssetId, JustTry>,
+			JustTry,
+		>,
+	),
 	// Convert an XCM MultiLocation into a local account id:
 	LocationToAccountId,
 	// Our chain's account ID type (we can't get away without mentioning it explicitly):
@@ -260,12 +262,14 @@ pub type LocalFungiblesTransactorNewReanchor = FungiblesAdapter<
 	// Use this fungibles implementation:
 	LocalAssets,
 	// Use this currency when it is a fungible asset matching the given location or name:
-	ConvertedConcreteAssetId<
-		AssetId,
-		Balance,
-		AsPrefixedGeneralIndex<LocalAssetsPalletLocationNewReanchor, AssetId, JustTry>,
-		JustTry,
-	>,
+	(
+		ConvertedConcreteAssetId<
+			AssetId,
+			Balance,
+			AsPrefixedGeneralIndex<LocalAssetsPalletLocationNewReanchor, AssetId, JustTry>,
+			JustTry,
+		>,
+	),
 	// Convert an XCM MultiLocation into a local account id:
 	LocationToAccountId,
 	// Our chain's account ID type (we can't get away without mentioning it explicitly):
@@ -281,8 +285,8 @@ pub type LocalFungiblesTransactorNewReanchor = FungiblesAdapter<
 pub type AssetTransactors = (
 	LocalAssetTransactor,
 	ForeignFungiblesTransactor,
-	LocalFungiblesTransactorOldReanchor,
 	LocalFungiblesTransactorNewReanchor,
+	LocalFungiblesTransactorOldReanchor,
 );
 pub type XcmRouter = super::ParachainXcmRouter<MsgQueue>;
 
@@ -806,7 +810,6 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		asset: AssetId,
 		creator: AccountId,
 		min_balance: Balance,
-		is_sufficient: bool,
 		owner: AccountId,
 	) -> DispatchResult {
 		LocalAssets::create(Origin::signed(creator), asset, owner, min_balance)?;

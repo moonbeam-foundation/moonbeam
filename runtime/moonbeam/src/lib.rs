@@ -1277,7 +1277,6 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		_asset: AssetId,
 		_creator: AccountId,
 		_min_balance: Balance,
-		_is_sufficient: bool,
 		_owner: AccountId,
 	) -> DispatchResult {
 		Err(sp_runtime::DispatchError::BadOrigin)

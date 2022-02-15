@@ -76,8 +76,6 @@ pub mod pallet {
 			asset: T::AssetId,
 			account: T::AccountId,
 			min_balance: T::Balance,
-			// Wether or not an asset-receiving account increments the sufficient counter
-			is_sufficient: bool,
 			owner: T::AccountId,
 		) -> DispatchResult;
 	}
@@ -255,7 +253,6 @@ pub mod pallet {
 				asset_id,
 				who.clone(),
 				asset_info.min_balance,
-				false,
 				asset_info.owner.clone(),
 			)
 			.map_err(|_| Error::<T>::ErrorCreatingAsset)?;

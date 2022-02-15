@@ -1500,7 +1500,6 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		asset: AssetId,
 		creator: AccountId,
 		min_balance: Balance,
-		is_sufficient: bool,
 		owner: AccountId,
 	) -> DispatchResult {
 		LocalAssets::create(Origin::signed(creator), asset, owner, min_balance)?;
