@@ -130,7 +130,7 @@ fn double_registration_costs_twice_as_much() {
 			assert_eq!(
 				last_event(),
 				MetaEvent::AuthorMapping(Event::AuthorRegistered {
-					author_id: TestAuthor::Bob.into(),
+					author_id: TestAuthor::Alice.into(),
 					account_id: 2
 				})
 			);
