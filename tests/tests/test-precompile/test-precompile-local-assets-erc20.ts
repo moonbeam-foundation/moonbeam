@@ -1370,9 +1370,10 @@ describeDevMoonbeamAllEthTxTypes(
       expect(receipt.logs[0].topics.length).to.eq(3);
       expect(receipt.logs[0].topics[0]).to.eq(SELECTORS.logTransfer);
 
-      let baltatharBalance = (
-        (await context.polkadotApi.query.localAssets.account(assetId, BALTATHAR)) as any
-      );
+      let baltatharBalance = (await context.polkadotApi.query.localAssets.account(
+        assetId,
+        BALTATHAR
+      )) as any;
 
       expect(baltatharBalance.unwrap()["balance"].eq(new BN(1000))).to.equal(true);
     });
@@ -1473,9 +1474,10 @@ describeDevMoonbeamAllEthTxTypes(
       expect(receipt.logs[0].topics.length).to.eq(3);
       expect(receipt.logs[0].topics[0]).to.eq(SELECTORS.logTransfer);
 
-      let alithBalance = (
-        (await context.polkadotApi.query.localAssets.account(assetId, ALITH)) as any
-      );
+      let alithBalance = (await context.polkadotApi.query.localAssets.account(
+        assetId,
+        ALITH
+      )) as any;
 
       expect(alithBalance.unwrap()["balance"].eq(new BN(99000000000000))).to.equal(true);
     });
@@ -1572,9 +1574,10 @@ describeDevMoonbeamAllEthTxTypes(
 
       expect(receipt.status).to.equal(true);
 
-      let alithFrozen = (
-        (await context.polkadotApi.query.localAssets.account(assetId, ALITH)) as any
-      );
+      let alithFrozen = (await context.polkadotApi.query.localAssets.account(
+        assetId,
+        ALITH
+      )) as any;
 
       expect(alithFrozen.unwrap()["isFrozen"].toHuman()).to.be.true;
     });
@@ -1677,9 +1680,10 @@ describeDevMoonbeamAllEthTxTypes(
 
       expect(receipt.status).to.equal(true);
 
-      let baltatharFrozen = (
-        (await context.polkadotApi.query.localAssets.account(assetId, ALITH)) as any
-      );
+      let baltatharFrozen = (await context.polkadotApi.query.localAssets.account(
+        assetId,
+        ALITH
+      )) as any;
 
       expect(baltatharFrozen.unwrap()["isFrozen"].toHuman()).to.be.false;
     });

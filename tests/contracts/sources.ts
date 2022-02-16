@@ -1708,6 +1708,5 @@ export const contractSources: { [key: string]: string } = {
                 abi.encodeWithSignature("transferFrom(address,address,uint256)", from, to, value));
             return result;
             }
-    }`
-    
+    }`,
 };
