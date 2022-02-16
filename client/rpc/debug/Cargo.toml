@@ -20,19 +20,19 @@ moonbeam-rpc-core-types = { path = "../../rpc-core/types" }
 moonbeam-rpc-primitives-debug = { path = "../../../primitives/rpc/debug" }
 
 # Substrate
-sc-client-api = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.16" }
-sc-utils = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.16" }
-sp-api = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.16" }
-sp-block-builder = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.16" }
-sp-blockchain = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.16" }
-sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.16" }
-sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.16" }
-sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.16" }
+sc-client-api = { git = "https://github.com/purestake/substrate", branch = "jsonrpsee-moonbeam-polkadot-v0.9.16" }
+sc-utils = { git = "https://github.com/purestake/substrate", branch = "jsonrpsee-moonbeam-polkadot-v0.9.16" }
+sp-api = { git = "https://github.com/purestake/substrate", branch = "jsonrpsee-moonbeam-polkadot-v0.9.16" }
+sp-block-builder = { git = "https://github.com/purestake/substrate", branch = "jsonrpsee-moonbeam-polkadot-v0.9.16" }
+sp-blockchain = { git = "https://github.com/purestake/substrate", branch = "jsonrpsee-moonbeam-polkadot-v0.9.16" }
+sp-core = { git = "https://github.com/purestake/substrate", branch = "jsonrpsee-moonbeam-polkadot-v0.9.16" }
+sp-io = { git = "https://github.com/purestake/substrate", branch = "jsonrpsee-moonbeam-polkadot-v0.9.16" }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "jsonrpsee-moonbeam-polkadot-v0.9.16" }
 
 # Frontier
 ethereum = { version = "0.11.1", default-features = false, features = [ "with-codec" ] }
 ethereum-types = "0.12.1"
-fc-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.16" }
-fc-db = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.16" }
-fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.16", features = [ "rpc_binary_search_estimate" ] }
-fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.16" }
+fc-consensus = { git = "https://github.com/purestake/frontier", branch = "jsonrpsee-moonbeam-polkadot-v0.9.16" }
+fc-db = { git = "https://github.com/purestake/frontier", branch = "jsonrpsee-moonbeam-polkadot-v0.9.16" }
+fc-rpc = { git = "https://github.com/purestake/frontier", branch = "jsonrpsee-moonbeam-polkadot-v0.9.16", features = [ "rpc_binary_search_estimate" ] }
+fp-rpc = { git = "https://github.com/purestake/frontier", branch = "jsonrpsee-moonbeam-polkadot-v0.9.16" }

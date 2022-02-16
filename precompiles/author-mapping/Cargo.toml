@@ -15,29 +15,29 @@ precompile-utils = { path = "../utils", default-features = false }
 
 # Substrate
 codec = { package = "parity-scale-codec", version = "2.0.0", default-features = false }
-fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.16", default-features = false }
-frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.16", default-features = false }
-frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.16", default-features = false }
-sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.16", default-features = false }
-sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.16", default-features = false }
-sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.16", default-features = false }
+fp-evm = { git = "https://github.com/purestake/frontier", branch = "jsonrpsee-moonbeam-polkadot-v0.9.16", default-features = false }
+frame-support = { git = "https://github.com/purestake/substrate", branch = "jsonrpsee-moonbeam-polkadot-v0.9.16", default-features = false }
+frame-system = { git = "https://github.com/purestake/substrate", branch = "jsonrpsee-moonbeam-polkadot-v0.9.16", default-features = false }
+sp-core = { git = "https://github.com/purestake/substrate", branch = "jsonrpsee-moonbeam-polkadot-v0.9.16", default-features = false }
+sp-io = { git = "https://github.com/purestake/substrate", branch = "jsonrpsee-moonbeam-polkadot-v0.9.16", default-features = false }
+sp-std = { git = "https://github.com/purestake/substrate", branch = "jsonrpsee-moonbeam-polkadot-v0.9.16", default-features = false }
 
 # Frontier
-pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.16", default-features = false }
+pallet-evm = { git = "https://github.com/purestake/frontier", branch = "jsonrpsee-moonbeam-polkadot-v0.9.16", default-features = false }
 
 [dev-dependencies]
 derive_more = "0.99"
 hex-literal = "0.3.4"
 # Nimbus
-nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.16" }
+nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "jsonrpsee-moonbeam-polkadot-v0.9.16" }
 serde = "1.0.100"
 
 # Substrate
-pallet-balances = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.16" }
-pallet-scheduler = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.16" }
-pallet-timestamp = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.16" }
+pallet-balances = { git = "https://github.com/purestake/substrate", branch = "jsonrpsee-moonbeam-polkadot-v0.9.16" }
+pallet-scheduler = { git = "https://github.com/purestake/substrate", branch = "jsonrpsee-moonbeam-polkadot-v0.9.16" }
+pallet-timestamp = { git = "https://github.com/purestake/substrate", branch = "jsonrpsee-moonbeam-polkadot-v0.9.16" }
 scale-info = { version = "1.0", default-features = false, features = [ "derive" ] }
-sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.16" }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "jsonrpsee-moonbeam-polkadot-v0.9.16" }
 
 [features]
 default = [ "std" ]
