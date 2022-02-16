@@ -41,6 +41,10 @@ use sp_std::{convert::TryInto, vec::Vec};
 pub struct PatchIncorrectDelegationSums<T>(PhantomData<T>);
 impl<T: Config> OnRuntimeUpgrade for PatchIncorrectDelegationSums<T> {
 	fn on_runtime_upgrade() -> Weight {
+		log::info!(
+			target: "PatchIncorrectDelegationSums",
+			"running migration to patch incorrect delegation sums"
+		);
 		let pallet_prefix: &[u8] = b"ParachainStaking";
 		let top_delegations_prefix: &[u8] = b"TopDelegations";
 		let bottom_delegations_prefix: &[u8] = b"BottomDelegations";
@@ -73,8 +77,11 @@ impl<T: Config> OnRuntimeUpgrade for PatchIncorrectDelegationSums<T> {
 				.delegations
 				.iter()
 				.fold(BalanceOf::<T>::zero(), |acc, b| acc + b.amount);
-			// TODO print both as debug output
-			// let _potentially_incorrect_total = delegations.total;
+			log::info!(
+				target: "PatchIncorrectDelegationSums",
+				"Correcting total from {:?} to {:?}",
+				delegations.total, correct_total
+			);
 			Delegations {
 				delegations: delegations.delegations,
 				total: correct_total,
@@ -103,29 +110,27 @@ impl<T: Config> OnRuntimeUpgrade for PatchIncorrectDelegationSums<T> {
 	}
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade() -> Result<(), &'static str> {
-		// get delegation count for all candidates to check consistency
-		// for (account, state) in <CandidateState<T>>::iter() {
-		// 	// insert top + bottom into some temp map?
-		// 	let total_delegation_count =
-		// 		state.top_delegations.len() as u32 + state.bottom_delegations.len() as u32;
-		// 	Self::set_temp_storage(
-		// 		total_delegation_count,
-		// 		&format!("Candidate{}DelegationCount", account)[..],
-		// 	);
-		// }
+		// get delegation count for all candidates
+		for (account, state) in <CandidateInfo<T>>::iter() {
+			let total_delegation_count = state;
+			Self::set_temp_storage(
+				state.delegation_count,
+				&format!("Candidate{:?}DelegationCount", account)[..],
+			);
+		}
 		Ok(())
 	}
 
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade() -> Result<(), &'static str> {
-		// check that top + bottom are the same as the expected (stored in temp)
-		// for (account, state) in <CandidateInfo<T>>::iter() {
-		// 	let expected_count: u32 =
-		// 		Self::get_temp_storage(&format!("Candidate{}DelegationCount", account)[..])
-		// 			.expect("qed");
-		// 	let actual_count = state.delegation_count;
-		// 	assert_eq!(expected_count, actual_count);
-		// }
+		// ensure delegation count was unchanged by migration
+		for (account, state) in <CandidateInfo<T>>::iter() {
+			let expected_count: u32 =
+				Self::get_temp_storage(&format!("Candidate{:?}DelegationCount", account)[..])
+					.expect("qed");
+			let actual_count = state.delegation_count;
+			assert_eq!(expected_count, actual_count);
+		}
 		Ok(())
 	}
 }
