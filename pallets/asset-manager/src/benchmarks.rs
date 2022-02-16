@@ -23,10 +23,10 @@ use xcm::latest::prelude::*;
 
 benchmarks! {
 	// This where clause allows us to create assetTypes
-	where_clause { where T::AssetType: From<MultiLocation> }
-	register_asset {
+	where_clause { where T::ForeignAssetType: From<MultiLocation> }
+	register_foreign_asset {
 		// does not really matter what we register
-		let asset_type = T::AssetType::default();
+		let asset_type = T::ForeignAssetType::default();
 		let metadata = T::AssetRegistrarMetadata::default();
 		let amount = 1u32.into();
 		let asset_id: T::AssetId = asset_type.clone().into();
@@ -38,11 +38,11 @@ benchmarks! {
 
 	set_asset_units_per_second {
 		// does not really matter what we register
-		let asset_type = T::AssetType::default();
+		let asset_type = T::ForeignAssetType::default();
 		let metadata = T::AssetRegistrarMetadata::default();
 		let amount = 1u32.into();
 		let asset_id: T::AssetId = asset_type.clone().into();
-		Pallet::<T>::register_asset(RawOrigin::Root.into(), asset_type.clone(), metadata, amount, true)?;
+		Pallet::<T>::register_foreign_asset(RawOrigin::Root.into(), asset_type.clone(), metadata, amount, true)?;
 
 	}: _(RawOrigin::Root, asset_type.clone(), 1)
 	verify {
@@ -51,8 +51,8 @@ benchmarks! {
 
 	change_existing_asset_type {
 		// does not really matter what we register
-		let asset_type = T::AssetType::default();
-		let new_asset_type: T::AssetType = MultiLocation::new(
+		let asset_type = T::ForeignAssetType::default();
+		let new_asset_type: T::ForeignAssetType = MultiLocation::new(
 			0,
 			X1(GeneralIndex(0))
 		).into();
@@ -60,7 +60,7 @@ benchmarks! {
 		let metadata = T::AssetRegistrarMetadata::default();
 		let amount = 1u32.into();
 		let asset_id: T::AssetId = asset_type.clone().into();
-		Pallet::<T>::register_asset(RawOrigin::Root.into(), asset_type.clone(), metadata, amount, true)?;
+		Pallet::<T>::register_foreign_asset(RawOrigin::Root.into(), asset_type.clone(), metadata, amount, true)?;
 		// Worst case: we also set assets units per second
 		Pallet::<T>::set_asset_units_per_second(RawOrigin::Root.into(), asset_type.clone(), 1)?;
 
