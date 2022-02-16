@@ -84,9 +84,10 @@ use sp_std::{convert::TryFrom, prelude::*};
 use xcm_builder::{
 	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
 	AllowTopLevelPaidExecutionFrom, AsPrefixedGeneralIndex, ConvertedConcreteAssetId,
-	EnsureXcmOrigin, FixedWeightBounds, FungiblesAdapter, LocationInverter, ParentIsDefault,
-	RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
-	SignedAccountKey20AsNative, SovereignSignedViaLocation, TakeWeightCredit, UsingComponents
+	CurrencyAdapter as XcmCurrencyAdapter, EnsureXcmOrigin, FixedWeightBounds, FungiblesAdapter,
+	LocationInverter, ParentIsDefault, RelayChainAsNative, SiblingParachainAsNative,
+	SiblingParachainConvertsVia, SignedAccountKey20AsNative, SovereignSignedViaLocation,
+	TakeWeightCredit, UsingComponents,
 };
 
 use xcm_executor::traits::JustTry;
@@ -109,7 +110,7 @@ use sp_version::RuntimeVersion;
 use nimbus_primitives::{CanAuthor, NimbusId};
 
 mod precompiles;
-use precompiles::{
+pub use precompiles::{
 	MoonriverPrecompiles, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 	LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
@@ -990,13 +991,6 @@ parameter_types! {
 			)
 		)
 	};
-	pub LocalAssetsPalletLocation: MultiLocation = MultiLocation {
-		parents:1,
-		interior: Junctions::X2(
-			Parachain(ParachainInfo::parachain_id().into()),
-			PalletInstance(<LocalAssets as PalletInfoAccess>::index() as u8)
-		)
-	};
 	// Bew Self Reserve location, defines the multilocation identifiying the self-reserve currency
 	// This is used to match it also against our Balances pallet when we receive such
 	// a MultiLocation: (Self Balances pallet index)
@@ -1005,6 +999,21 @@ parameter_types! {
 		parents:0,
 		interior: Junctions::X1(
 			PalletInstance(<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8)
+		)
+	};
+
+	pub LocalAssetsPalletLocationOldReanchor: MultiLocation = MultiLocation {
+		parents:1,
+		interior: Junctions::X2(
+			Parachain(ParachainInfo::parachain_id().into()),
+			PalletInstance(<LocalAssets as PalletInfoAccess>::index() as u8)
+		)
+	};
+
+	pub LocalAssetsPalletLocationNewReanchor: MultiLocation = MultiLocation {
+		parents:0,
+		interior: Junctions::X1(
+			PalletInstance(<LocalAssets as PalletInfoAccess>::index() as u8)
 		)
 	};
 
@@ -1052,26 +1061,7 @@ pub type ForeignFungiblesTransactor = FungiblesAdapter<
 	(),
 >;
 
-/// Means for transacting local assets besides the native currency on this chain.
-pub type LocalFungiblesTransactor = FungiblesAdapter<
-	// Use this fungibles implementation:
-	LocalAssets,
-	// Use this currency when it is a fungible asset matching the given location or name:
-	ConvertedConcreteAssetId<
-		AssetId,
-		Balance,
-		AsPrefixedGeneralIndex<LocalAssetsPalletLocation, AssetId, JustTry>,
-		JustTry,
-	>,
-	// Convert an XCM MultiLocation into a local account id:
-	LocationToAccountId,
-	// Our chain's account ID type (we can't get away without mentioning it explicitly):
-	AccountId,
-	// We dont want to allow teleporting assets
-	Nothing,
-	// The account to use for tracking teleports.
->;	
-
+/// The transactor for our own chain currency.
 pub type LocalAssetTransactor = XcmCurrencyAdapter<
 	// Use this currency:
 	Balances,
@@ -1081,15 +1071,65 @@ pub type LocalAssetTransactor = XcmCurrencyAdapter<
 	// We can convert the MultiLocations with our converter above:
 	LocationToAccountId,
 	// Our chain's account ID type (we can't get away without mentioning it explicitly):
+	AccountId,
 	// We dont allow teleport
 	(),
 >;
 
-// We use only fungiblesAdapter transactor for now
-// The idea is that we only accept the relay token, hence no need to handle the local token
-// As long as this does not contain the local transactor, we are good
-<<<<<<< HEAD
-pub type AssetTransactors = (ForeignFungiblesTransactor, LocalFungiblesTransactor);
+/// Means for transacting local assets besides the native currency on this chain.
+pub type LocalFungiblesTransactorOldReanchor = FungiblesAdapter<
+	// Use this fungibles implementation:
+	LocalAssets,
+	// Use this currency when it is a fungible asset matching the given location or name:
+	(
+		ConvertedConcreteAssetId<
+			AssetId,
+			Balance,
+			AsPrefixedGeneralIndex<LocalAssetsPalletLocationOldReanchor, AssetId, JustTry>,
+			JustTry,
+		>,
+	),
+	// Convert an XCM MultiLocation into a local account id:
+	LocationToAccountId,
+	// Our chain's account ID type (we can't get away without mentioning it explicitly):
+	AccountId,
+	// We dont want to allow teleporting assets
+	Nothing,
+	// The account to use for tracking teleports.
+	(),
+>;
+
+/// Means for transacting local assets besides the native currency on this chain.
+pub type LocalFungiblesTransactorNewReanchor = FungiblesAdapter<
+	// Use this fungibles implementation:
+	LocalAssets,
+	// Use this currency when it is a fungible asset matching the given location or name:
+	(
+		ConvertedConcreteAssetId<
+			AssetId,
+			Balance,
+			AsPrefixedGeneralIndex<LocalAssetsPalletLocationNewReanchor, AssetId, JustTry>,
+			JustTry,
+		>,
+	),
+	// Convert an XCM MultiLocation into a local account id:
+	LocationToAccountId,
+	// Our chain's account ID type (we can't get away without mentioning it explicitly):
+	AccountId,
+	// We dont want to allow teleporting assets
+	Nothing,
+	// The account to use for tracking teleports.
+	(),
+>;
+
+// We use both transactors
+pub type AssetTransactors = (
+	LocalAssetTransactor,
+	ForeignFungiblesTransactor,
+	LocalFungiblesTransactorOldReanchor,
+	LocalFungiblesTransactorNewReanchor,
+);
+
 /// ready for dispatching a transaction with Xcm's `Transact`. There is an `OriginKind` which can
 /// biases the kind of local `Origin` it will become.
 pub type XcmOriginToTransactDispatchOrigin = (
@@ -1527,7 +1567,7 @@ where
 			}
 			CurrencyId::ForeignAsset(asset) => AssetXConverter::reverse_ref(asset).ok(),
 			CurrencyId::LocalAssetReserve(asset) => {
-				let mut location = LocalAssetsPalletLocation::get();
+				let mut location = LocalAssetsPalletLocationOldReanchor::get();
 				location.push_interior(Junction::GeneralIndex(asset)).ok();
 				Some(location)
 			}

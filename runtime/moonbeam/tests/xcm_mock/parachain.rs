@@ -276,7 +276,7 @@ impl cumulus_pallet_xcm::Config for Runtime {
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
 pub enum CurrencyId {
 	SelfReserve,
-	OtherReserve(AssetId),
+	ForeignAsset(AssetId),
 }
 
 // How to convert from CurrencyId to MultiLocation
@@ -292,7 +292,7 @@ where
 				let multi: MultiLocation = SelfReserve::get();
 				Some(multi)
 			}
-			CurrencyId::OtherReserve(asset) => AssetXConverter::reverse_ref(asset).ok(),
+			CurrencyId::ForeignAsset(asset) => AssetXConverter::reverse_ref(asset).ok(),
 		}
 	}
 }
@@ -627,7 +627,7 @@ impl From<AssetType> for AssetId {
 pub struct AssetRegistrar;
 use frame_support::pallet_prelude::DispatchResult;
 impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
-	fn create_asset(
+	fn create_foreign_asset(
 		asset: AssetId,
 		min_balance: Balance,
 		metadata: AssetMetadata,
@@ -650,6 +650,14 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 			false,
 		)
 	}
+	fn create_local_asset(
+		_asset: AssetId,
+		_creator: AccountId,
+		_min_balance: Balance,
+		_owner: AccountId,
+	) -> DispatchResult {
+		Err(sp_runtime::DispatchError::BadOrigin)
+	}
 }
 
 #[derive(Clone, Default, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
@@ -659,14 +667,31 @@ pub struct AssetMetadata {
 	pub decimals: u8,
 }
 
+pub struct LocalAssetIdCreator;
+impl pallet_asset_manager::LocalAssetIdCreator<Runtime> for LocalAssetIdCreator {
+	fn create_asset_id_from_account(account: AccountId) -> AssetId {
+		// Our means of converting a creator to an assetId
+		// We basically hash nonce+account
+		let mut result: [u8; 16] = [0u8; 16];
+		let account_info = System::account(account);
+		let mut to_hash = account.encode();
+		to_hash.append(&mut account_info.nonce.encode());
+		let hash: H256 = to_hash.using_encoded(<Runtime as frame_system::Config>::Hashing::hash);
+		result.copy_from_slice(&hash.as_fixed_bytes()[0..16]);
+		u128::from_le_bytes(result)
+	}
+}
+
 impl pallet_asset_manager::Config for Runtime {
 	type Event = Event;
 	type Balance = Balance;
 	type AssetId = AssetId;
 	type AssetRegistrarMetadata = AssetMetadata;
-	type AssetType = AssetType;
+	type ForeignAssetType = AssetType;
 	type AssetRegistrar = AssetRegistrar;
-	type AssetModifierOrigin = EnsureRoot<AccountId>;
+	type ForeignAssetModifierOrigin = EnsureRoot<AccountId>;
+	type LocalAssetModifierOrigin = EnsureRoot<AccountId>;
+	type LocalAssetIdCreator = LocalAssetIdCreator;
 	type WeightInfo = ();
 }
 

@@ -300,7 +300,7 @@ impl ExtBuilder {
 			// If any xcm assets specified, we register them here
 			for xcm_asset_initialization in xcm_assets {
 				let asset_id: AssetId = xcm_asset_initialization.asset_type.clone().into();
-				AssetManager::register_asset(
+				AssetManager::register_foreign_asset(
 					root_origin(),
 					xcm_asset_initialization.asset_type,
 					xcm_asset_initialization.metadata,

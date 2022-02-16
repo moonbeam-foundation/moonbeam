@@ -31,6 +31,7 @@ use frame_support::{
 };
 use moonriver_runtime::{
 	BaseFee, BlockWeights, CurrencyId, PolkadotXcm, Precompiles, XTokens, XcmTransactor,
+	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
@@ -1258,7 +1259,7 @@ fn root_can_change_default_xcm_vers() {
 			assert_noop!(
 				XTokens::transfer(
 					origin_of(AccountId::from(ALICE)),
-					CurrencyId::OtherReserve(source_id),
+					CurrencyId::ForeignAsset(source_id),
 					100_000_000_000_000,
 					Box::new(xcm::VersionedMultiLocation::V1(dest.clone())),
 					4000000000
@@ -1275,7 +1276,7 @@ fn root_can_change_default_xcm_vers() {
 			// Now transferring does not fail
 			assert_ok!(XTokens::transfer(
 				origin_of(AccountId::from(ALICE)),
-				CurrencyId::OtherReserve(source_id),
+				CurrencyId::ForeignAsset(source_id),
 				100_000_000_000_000,
 				Box::new(xcm::VersionedMultiLocation::V1(dest)),
 				4000000000
@@ -1294,7 +1295,7 @@ fn asset_can_be_registered() {
 			decimals: 12,
 			is_frozen: false,
 		};
-		assert_ok!(AssetManager::register_asset(
+		assert_ok!(AssetManager::register_foreign_asset(
 			moonriver_runtime::Origin::root(),
 			source_location,
 			asset_metadata,
@@ -1315,7 +1316,8 @@ fn asset_erc20_precompiles_supply_and_balance() {
 			assert_eq!(Assets::total_supply(0u128), 1_000 * MOVR);
 
 			// Convert the assetId to its corresponding precompile address
-			let asset_precompile_address = Runtime::asset_id_to_account(0u128).into();
+			let asset_precompile_address =
+				Runtime::asset_id_to_account(FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, 0u128).into();
 
 			// The expected result for both total supply and balance of is the same, as only Alice
 			// holds balance
@@ -1372,7 +1374,8 @@ fn asset_erc20_precompiles_transfer() {
 		])
 		.build()
 		.execute_with(|| {
-			let asset_precompile_address = Runtime::asset_id_to_account(0u128).into();
+			let asset_precompile_address =
+				Runtime::asset_id_to_account(FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, 0u128).into();
 
 			// Expected result for a transfer
 			let expected_result = Some(Ok(PrecompileOutput {
@@ -1446,7 +1449,8 @@ fn asset_erc20_precompiles_approve() {
 		])
 		.build()
 		.execute_with(|| {
-			let asset_precompile_address = Runtime::asset_id_to_account(0u128).into();
+			let asset_precompile_address =
+				Runtime::asset_id_to_account(FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, 0u128).into();
 
 			// Expected result for approve
 			let expected_result = Some(Ok(PrecompileOutput {
@@ -1573,7 +1577,11 @@ fn xtokens_precompiles_transfer() {
 				AssetType::Xcm(MultiLocation::parent()).into();
 
 			// Its address is
-			let asset_precompile_address = Runtime::asset_id_to_account(relay_asset_id).into();
+			let asset_precompile_address = Runtime::asset_id_to_account(
+				FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+				relay_asset_id,
+			)
+			.into();
 
 			// Alice has 1000 tokens. She should be able to send through precompile
 			let destination = MultiLocation::new(
@@ -1841,7 +1849,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 					origin_of(AccountId::from(ALICE)),
 					moonriver_runtime::Transactors::Relay,
 					0,
-					moonriver_runtime::CurrencyId::OtherReserve(source_id),
+					moonriver_runtime::CurrencyId::ForeignAsset(source_id),
 					// 20000 is the max
 					17000,
 					vec![],
@@ -1887,7 +1895,7 @@ fn call_xtokens_with_fee() {
 			// We are able to transfer with fee
 			assert_ok!(XTokens::transfer_with_fee(
 				origin_of(AccountId::from(ALICE)),
-				CurrencyId::OtherReserve(source_id),
+				CurrencyId::ForeignAsset(source_id),
 				100_000_000_000_000,
 				100,
 				Box::new(xcm::VersionedMultiLocation::V1(dest.clone())),

@@ -109,7 +109,7 @@ use sp_version::RuntimeVersion;
 use nimbus_primitives::{CanAuthor, NimbusId};
 
 mod precompiles;
-use precompiles::{MoonbeamPrecompiles, ASSET_PRECOMPILE_ADDRESS_PREFIX};
+pub use precompiles::{MoonbeamPrecompiles, ASSET_PRECOMPILE_ADDRESS_PREFIX};
 
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
