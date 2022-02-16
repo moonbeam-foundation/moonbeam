@@ -1529,6 +1529,8 @@ impl pallet_asset_manager::LocalAssetIdCreator<Runtime> for LocalAssetIdCreator 
 		let account_info = System::account(account);
 		let mut to_hash = account.encode();
 		to_hash.append(&mut account_info.nonce.encode());
+		to_hash.append(&mut System::extrinsic_index().encode());
+		to_hash.append(&mut System::parent_hash().encode());
 		let hash: H256 = to_hash.using_encoded(<Runtime as frame_system::Config>::Hashing::hash);
 		result.copy_from_slice(&hash.as_fixed_bytes()[0..16]);
 		u128::from_le_bytes(result)
