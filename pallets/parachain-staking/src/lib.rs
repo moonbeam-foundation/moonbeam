@@ -527,13 +527,18 @@ pub mod pallet {
 		/// Reset top delegations metadata
 		pub fn reset_top_data<T: Config>(
 			&mut self,
+			candidate: T::AccountId,
 			top_delegations: &Delegations<T::AccountId, BalanceOf<T>>,
 		) where
-			BalanceOf<T>: Into<Balance>,
+			BalanceOf<T>: Into<Balance> + From<Balance>,
 		{
 			self.lowest_top_delegation_amount = top_delegations.lowest_delegation_amount().into();
 			self.top_capacity = top_delegations.top_capacity::<T>();
+			let old_total_counted = self.total_counted;
 			self.total_counted = self.bond + top_delegations.total.into();
+			if old_total_counted != self.total_counted && self.is_active() {
+				Pallet::<T>::update_active(candidate, self.total_counted.into());
+			}
 		}
 		/// Reset bottom delegations metadata
 		pub fn reset_bottom_data<T: Config>(
@@ -558,7 +563,7 @@ pub mod pallet {
 			delegation: Bond<T::AccountId, BalanceOf<T>>,
 		) -> Result<(DelegatorAdded<Balance>, Option<Balance>), DispatchError>
 		where
-			BalanceOf<T>: Into<Balance>,
+			BalanceOf<T>: Into<Balance> + From<Balance>,
 		{
 			let mut less_total_staked = None;
 			let delegator_added = match self.top_capacity {
@@ -605,7 +610,7 @@ pub mod pallet {
 			delegation: Bond<T::AccountId, BalanceOf<T>>,
 		) -> Option<Balance>
 		where
-			BalanceOf<T>: Into<Balance>,
+			BalanceOf<T>: Into<Balance> + From<Balance>,
 		{
 			let mut less_total_staked = None;
 			let mut top_delegations = <TopDelegations<T>>::get(candidate)
@@ -625,7 +630,7 @@ pub mod pallet {
 			// insert into top
 			top_delegations.insert_sorted_greatest_to_least(delegation);
 			// update candidate info
-			self.reset_top_data::<T>(&top_delegations);
+			self.reset_top_data::<T>(candidate.clone(), &top_delegations);
 			if less_total_staked.is_none() {
 				// only increment delegation count if we are not kicking a bottom delegation
 				self.delegation_count += 1u32;
@@ -643,7 +648,7 @@ pub mod pallet {
 			candidate: &T::AccountId,
 			delegation: Bond<T::AccountId, BalanceOf<T>>,
 		) where
-			BalanceOf<T>: Into<Balance>,
+			BalanceOf<T>: Into<Balance> + From<Balance>,
 		{
 			let mut bottom_delegations = <BottomDelegations<T>>::get(candidate)
 				.expect("CandidateInfo existence => BottomDelegations existence");
@@ -740,7 +745,7 @@ pub mod pallet {
 			delegator: T::AccountId,
 		) -> Result<bool, DispatchError>
 		where
-			BalanceOf<T>: Into<Balance>,
+			BalanceOf<T>: Into<Balance> + From<Balance>,
 		{
 			let old_total_counted = self.total_counted;
 			// remove top delegation
@@ -777,7 +782,7 @@ pub mod pallet {
 				top_delegations.insert_sorted_greatest_to_least(highest_bottom_delegation);
 			}
 			// update candidate info
-			self.reset_top_data::<T>(&top_delegations);
+			self.reset_top_data::<T>(candidate.clone(), &top_delegations);
 			self.delegation_count -= 1u32;
 			<TopDelegations<T>>::insert(candidate, top_delegations);
 			// return whether total counted changed
@@ -827,7 +832,7 @@ pub mod pallet {
 			more: BalanceOf<T>,
 		) -> Result<bool, DispatchError>
 		where
-			BalanceOf<T>: Into<Balance>,
+			BalanceOf<T>: Into<Balance> + From<Balance>,
 		{
 			let lowest_top_eq_highest_bottom =
 				self.lowest_top_delegation_amount == self.highest_bottom_delegation_amount;
@@ -857,7 +862,7 @@ pub mod pallet {
 			more: BalanceOf<T>,
 		) -> Result<bool, DispatchError>
 		where
-			BalanceOf<T>: Into<Balance>,
+			BalanceOf<T>: Into<Balance> + From<Balance>,
 		{
 			let mut top_delegations = <TopDelegations<T>>::get(candidate)
 				.expect("CandidateInfo exists => TopDelegations exists");
@@ -882,7 +887,7 @@ pub mod pallet {
 			ensure!(in_top, Error::<T>::DelegationDNE);
 			top_delegations.total = top_delegations.total.saturating_add(more);
 			top_delegations.sort_greatest_to_least();
-			self.reset_top_data::<T>(&top_delegations);
+			self.reset_top_data::<T>(candidate.clone(), &top_delegations);
 			<TopDelegations<T>>::insert(candidate, top_delegations);
 			Ok(true)
 		}
@@ -895,7 +900,7 @@ pub mod pallet {
 			more: BalanceOf<T>,
 		) -> Result<bool, DispatchError>
 		where
-			BalanceOf<T>: Into<Balance>,
+			BalanceOf<T>: Into<Balance> + From<Balance>,
 		{
 			let mut bottom_delegations =
 				<BottomDelegations<T>>::get(candidate).ok_or(Error::<T>::CandidateDNE)?;
@@ -938,7 +943,7 @@ pub mod pallet {
 					}
 					// insert into top
 					top_delegations.insert_sorted_greatest_to_least(delegation);
-					self.reset_top_data::<T>(&top_delegations);
+					self.reset_top_data::<T>(candidate.clone(), &top_delegations);
 					<TopDelegations<T>>::insert(candidate, top_delegations);
 					true
 				} else {
@@ -1014,7 +1019,7 @@ pub mod pallet {
 			less: BalanceOf<T>,
 		) -> Result<bool, DispatchError>
 		where
-			BalanceOf<T>: Into<Balance>,
+			BalanceOf<T>: Into<Balance> + From<Balance>,
 		{
 			// The delegation after the `decrease-delegation` will be strictly less than the
 			// highest bottom delegation
@@ -1086,7 +1091,7 @@ pub mod pallet {
 				top_delegations.sort_greatest_to_least();
 				true
 			};
-			self.reset_top_data::<T>(&top_delegations);
+			self.reset_top_data::<T>(candidate.clone(), &top_delegations);
 			<TopDelegations<T>>::insert(candidate, top_delegations);
 			Ok(in_top_after)
 		}
@@ -1576,7 +1581,6 @@ pub mod pallet {
 								let mut collator = <CandidateInfo<T>>::get(&candidate_id)
 									.ok_or(Error::<T>::CandidateDNE)?;
 								T::Currency::unreserve(&delegator_id, balance_amt);
-								let before = collator.total_counted;
 								// need to go into decrease_delegation
 								let in_top = collator.decrease_delegation::<T>(
 									&candidate_id,
@@ -1584,10 +1588,6 @@ pub mod pallet {
 									amount_before,
 									balance_amt,
 								)?;
-								let after = collator.total_counted;
-								if collator.is_active() && (before != after) {
-									Pallet::<T>::update_active(candidate_id.clone(), after);
-								}
 								<CandidateInfo<T>>::insert(&candidate_id, collator);
 								let new_total_staked =
 									<Total<T>>::get().saturating_sub(balance_amt);
@@ -2860,11 +2860,6 @@ pub mod pallet {
 			)?;
 			T::Currency::reserve(&delegator, amount)
 				.expect("verified can reserve at top of this extrinsic body");
-			if let DelegatorAdded::AddedToTop { new_total } = delegator_position {
-				if state.is_active() {
-					Self::update_active(candidate.clone(), new_total);
-				}
-			}
 			// only is_some if kicked the lowest bottom as a consequence of this new delegation
 			let net_total_increase = if let Some(less) = less_total_staked {
 				amount - less
@@ -3049,12 +3044,8 @@ pub mod pallet {
 			amount: BalanceOf<T>,
 		) -> DispatchResult {
 			let mut state = <CandidateInfo<T>>::get(&candidate).ok_or(Error::<T>::CandidateDNE)?;
-			let total_changed =
-				state.rm_delegation_if_exists::<T>(&candidate, delegator.clone(), amount)?;
+			state.rm_delegation_if_exists::<T>(&candidate, delegator.clone(), amount)?;
 			T::Currency::unreserve(&delegator, amount);
-			if state.is_active() && total_changed {
-				Self::update_active(candidate.clone(), state.total_counted);
-			}
 			let new_total_locked = <Total<T>>::get().saturating_sub(amount);
 			<Total<T>>::put(new_total_locked);
 			let new_total = state.total_counted;
