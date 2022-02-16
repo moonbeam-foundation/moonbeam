@@ -2440,6 +2440,7 @@ fn delegator_bond_more_updates_candidate_state_bottom_delegations() {
 					.amount,
 				10
 			);
+			assert_eq!(ParachainStaking::bottom_delegations(1).unwrap().total, 10);
 			assert_ok!(ParachainStaking::delegator_bond_more(
 				Origin::signed(2),
 				1,
@@ -2462,6 +2463,7 @@ fn delegator_bond_more_updates_candidate_state_bottom_delegations() {
 					.amount,
 				15
 			);
+			assert_eq!(ParachainStaking::bottom_delegations(1).unwrap().total, 15);
 		});
 }
 
