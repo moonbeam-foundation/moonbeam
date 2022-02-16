@@ -55,13 +55,7 @@ export async function findAvailablePorts(parachainCount: number = 1) {
 let nodeStarted = false;
 
 export type ParachainOptions = {
-  chain:
-    | "moonbase-local"
-    | "moonriver-local"
-    | "moonbeam-local"
-    | "moonbase"
-    | "moonriver"
-    | "moonbeam";
+  chain: "moonbase-local" | "moonriver-local" | "moonbeam-local";
   relaychain?: "rococo-local" | "westend-local" | "kusama-local" | "polkadot-local";
   // specify the version of the binary using tag. Ex: "v0.18.1"
   // "local" uses target/release/moonbeam binary
@@ -175,6 +169,20 @@ export async function getRawSpecsFromTag(
   return specPath;
 }
 
+export async function generateRawSpecs(
+  binaryPath: string,
+  runtimeName: "moonbase-local" | "moonriver-local" | "moonbeam-local"
+) {
+  const specPath = path.join(SPECS_DIRECTORY, `${runtimeName}-raw-specs.json`);
+  if (!fs.existsSync(specPath)) {
+    child_process.execSync(
+      `mkdir -p ${path.dirname(specPath)} && ` +
+        `${binaryPath} build-spec --chain moonbase-local --raw > ${specPath}`
+    );
+  }
+  return specPath;
+}
+
 // This will start a parachain node, only 1 at a time (check every 100ms).
 // This will prevent race condition on the findAvailablePorts which uses the PID of the process
 // Returns ports for the 3rd parachain node
@@ -217,14 +225,14 @@ export async function startParachainNodes(options: ParachainOptions): Promise<{
   });
 
   const chain = options.chain || "moonbase-local";
-  const specs =
-    !options.runtime || options.runtime == "local"
-      ? chain
-      : await getRawSpecsFromTag(chain.split("-")[0] as any, options.runtime);
   const paraBinary =
     !options.binary || options.binary == "local"
       ? BINARY_PATH
       : await getMoonbeamReleaseBinary(options.binary);
+  const specs =
+    !options.runtime || options.runtime == "local"
+      ? await generateRawSpecs(paraBinary, chain)
+      : await getRawSpecsFromTag(chain.split("-")[0] as any, options.runtime);
 
   // Build launchConfig
   const launchConfig = {
