@@ -40,7 +40,8 @@ use frame_support::{
 	},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
-		DispatchClass, GetDispatchInfo, IdentityFee, Weight,
+		DispatchClass, GetDispatchInfo, IdentityFee, Weight, WeightToFeeCoefficient,
+		WeightToFeeCoefficients, WeightToFeePolynomial,
 	},
 	PalletId,
 };
@@ -85,13 +86,14 @@ use xcm_builder::{
 	AllowTopLevelPaidExecutionFrom, AsPrefixedGeneralIndex, ConvertedConcreteAssetId,
 	EnsureXcmOrigin, FixedWeightBounds, FungiblesAdapter, LocationInverter, ParentIsDefault,
 	RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
-	SignedAccountKey20AsNative, SovereignSignedViaLocation, TakeWeightCredit,
+	SignedAccountKey20AsNative, SovereignSignedViaLocation, TakeWeightCredit, UsingComponents
 };
 
 use xcm_executor::traits::JustTry;
 
 use xcm::latest::prelude::*;
 
+use smallvec::smallvec;
 use xcm_primitives::{
 	AccountIdToCurrencyId, AccountIdToMultiLocation, AsAssetType, FirstAssetTrader,
 	MultiNativeAsset, SignedToAccountId20, UtilityAvailableCalls, UtilityEncodeCall, XcmTransact,
@@ -135,6 +137,7 @@ pub mod currency {
 
 	pub const TRANSACTION_BYTE_FEE: Balance = 10 * MICROMOVR * SUPPLY_FACTOR;
 	pub const STORAGE_BYTE_FEE: Balance = 100 * MICROMOVR * SUPPLY_FACTOR;
+	pub const WEIGHT_FEE: Balance = 50 * KILOWEI * SUPPLY_FACTOR;
 
 	pub const fn deposit(items: u32, bytes: u32) -> Balance {
 		items as Balance * 1 * MOVR * SUPPLY_FACTOR + (bytes as Balance) * STORAGE_BYTE_FEE
@@ -317,6 +320,28 @@ where
 parameter_types! {
 	pub const TransactionByteFee: Balance = currency::TRANSACTION_BYTE_FEE;
 	pub OperationalFeeMultiplier: u8 = 5;
+}
+
+pub struct WeightToFee;
+impl WeightToFeePolynomial for WeightToFee {
+	type Balance = Balance;
+
+	/// Return a vec of coefficients. Here we just use one coefficient and reduce it to a constant
+	/// modifier in order to closely match Ethereum-based fees.
+	///
+	/// Calculation, per the documentation in `frame_support`:
+	///
+	/// ```ignore
+	/// coeff_integer * x^(degree) + coeff_frac * x^(degree)
+	/// ```
+	fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
+		smallvec![WeightToFeeCoefficient {
+			degree: 1,
+			coeff_frac: Perbill::zero(),
+			coeff_integer: currency::WEIGHT_FEE,
+			negative: false,
+		}]
+	}
 }
 
 impl pallet_transaction_payment::Config for Runtime {
@@ -952,10 +977,11 @@ parameter_types! {
 	pub RelayChainOrigin: Origin = cumulus_pallet_xcm::Origin::Relay.into();
 	// The ancestry, defines the multilocation describing this consensus system
 	pub Ancestry: MultiLocation = Parachain(ParachainInfo::parachain_id().into()).into();
-	// Self Reserve location, defines the multilocation identifiying the self-reserve currency
+	// Old Self Reserve location, defines the multilocation identifiying the self-reserve currency
 	// This is used to match it against our Balances pallet when we receive such a MultiLocation
 	// (Parent, Self Para Id, Self Balances pallet index)
-	pub SelfReserve: MultiLocation = MultiLocation {
+	// This is the old anchoring way
+	pub OldAnchoringSelfReserve: MultiLocation = MultiLocation {
 		parents:1,
 		interior: Junctions::X2(
 			Parachain(ParachainInfo::parachain_id().into()),
@@ -971,6 +997,23 @@ parameter_types! {
 			PalletInstance(<LocalAssets as PalletInfoAccess>::index() as u8)
 		)
 	};
+	// Bew Self Reserve location, defines the multilocation identifiying the self-reserve currency
+	// This is used to match it also against our Balances pallet when we receive such
+	// a MultiLocation: (Self Balances pallet index)
+	// This is the new anchoring way
+	pub NewAnchoringSelfReserve: MultiLocation = MultiLocation {
+		parents:0,
+		interior: Junctions::X1(
+			PalletInstance(<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8)
+		)
+	};
+
+	// The Locations we accept to refer to our own currency. We need to support both pre and
+	// post 0.9.16 versions, hence the reason for this being a Vec
+	pub SelfReserveRepresentations: Vec<MultiLocation> = vec![
+		OldAnchoringSelfReserve::get(),
+		NewAnchoringSelfReserve::get()
+	];
 }
 
 /// Type for specifying how a `MultiLocation` can be converted into an `AccountId`. This is used
@@ -1027,15 +1070,26 @@ pub type LocalFungiblesTransactor = FungiblesAdapter<
 	// We dont want to allow teleporting assets
 	Nothing,
 	// The account to use for tracking teleports.
+>;	
+
+pub type LocalAssetTransactor = XcmCurrencyAdapter<
+	// Use this currency:
+	Balances,
+	// Use this currency when it is a fungible asset matching any of the locations in
+	// SelfReserveRepresentations
+	xcm_primitives::MultiIsConcrete<SelfReserveRepresentations>,
+	// We can convert the MultiLocations with our converter above:
+	LocationToAccountId,
+	// Our chain's account ID type (we can't get away without mentioning it explicitly):
+	// We dont allow teleport
 	(),
 >;
 
 // We use only fungiblesAdapter transactor for now
 // The idea is that we only accept the relay token, hence no need to handle the local token
 // As long as this does not contain the local transactor, we are good
+<<<<<<< HEAD
 pub type AssetTransactors = (ForeignFungiblesTransactor, LocalFungiblesTransactor);
-
-/// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
 /// ready for dispatching a transaction with Xcm's `Transact`. There is an `OriginKind` which can
 /// biases the kind of local `Origin` it will become.
 pub type XcmOriginToTransactDispatchOrigin = (
@@ -1110,9 +1164,28 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type LocationInverter = LocationInverter<Ancestry>;
 	type Barrier = XcmBarrier;
 	type Weigher = XcmWeigher;
+	// We use three traders
+	// When we receive either representation of the self-reserve asset,
+	// we use UsingComponents and the local way of handling fees
 	// When we receive a non-reserve asset, we use AssetManager to fetch how many
 	// units per second we should charge
-	type Trader = FirstAssetTrader<AssetType, AssetManager, XcmFeesToAccount>;
+	type Trader = (
+		UsingComponents<
+			WeightToFee,
+			OldAnchoringSelfReserve,
+			AccountId,
+			Balances,
+			DealWithFees<Runtime>,
+		>,
+		UsingComponents<
+			WeightToFee,
+			NewAnchoringSelfReserve,
+			AccountId,
+			Balances,
+			DealWithFees<Runtime>,
+		>,
+		FirstAssetTrader<AssetType, AssetManager, XcmFeesToAccount>,
+	);
 	type ResponseHandler = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;
 	type AssetTrap = PolkadotXcm;
@@ -1443,8 +1516,13 @@ where
 {
 	fn convert(currency: CurrencyId) -> Option<MultiLocation> {
 		match currency {
+			// For now (and until we upgrade to 0.9.16 is adapted) we need to use the old anchoring
+			// here
+			// This is not a problem in either cases, since the view of the destination chain
+			// does not change
+			// TODO! change this to NewAnchoringSelfReserve once we uprade to 0.9.16
 			CurrencyId::SelfReserve => {
-				let multi: MultiLocation = SelfReserve::get();
+				let multi: MultiLocation = OldAnchoringSelfReserve::get();
 				Some(multi)
 			}
 			CurrencyId::ForeignAsset(asset) => AssetXConverter::reverse_ref(asset).ok(),
