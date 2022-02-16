@@ -422,6 +422,7 @@ jobs:
         env:
           OVERRIDE_RUNTIME_PATH: ./runtimes
           BINARY_PATH: ../build/moonbeam
+          MOONBEAM_LOG: info
           RELAY_BINARY_PATH: ../build/polkadot
         run: |
           chmod uog+x build/polkadot
