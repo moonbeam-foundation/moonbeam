@@ -2192,8 +2192,6 @@ fn send_para_a_local_asset_to_para_b_and_send_it_back_together_with_some_dev() {
 				sov,
 				100000000000000
 			));
-
-			let alith_balance_asset_before = LocalAssets::balance(asset_id, &PARAALICE.into());
 		});
 
 		let dest = MultiLocation {
