@@ -880,6 +880,7 @@ pub mod pallet {
 				})
 				.collect();
 			ensure!(in_top, Error::<T>::DelegationDNE);
+			top_delegations.total = top_delegations.total.saturating_add(more);
 			top_delegations.sort_greatest_to_least();
 			self.reset_top_data::<T>(&top_delegations);
 			<TopDelegations<T>>::insert(candidate, top_delegations);
@@ -960,6 +961,7 @@ pub mod pallet {
 						})
 						.collect();
 					ensure!(in_bottom, Error::<T>::DelegationDNE);
+					bottom_delegations.total = bottom_delegations.total.saturating_add(more);
 					bottom_delegations.sort_greatest_to_least();
 					false
 				};
