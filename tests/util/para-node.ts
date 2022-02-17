@@ -370,14 +370,15 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
   if (process.env.MOONBEAM_LOG) {
     new Array(numberOfParachains + 1).fill(0).forEach(async (_, i) => {
       const filename = `${RELAY_CHAIN_NODE_NAMES[i]}.log`;
-      const stream = tailStream.createReadStream(filename, { waitForCreate: true });
-      stream.pipe(prepend(`relay-${i} `));
-      stream.pipe(process.stdout);
+      tailStream
+        .createReadStream(filename, { waitForCreate: true })
+        .pipe(prepend(`relay-${i} `))
+        .pipe(process.stdout);
     });
     parachainArray.forEach(async (_, i) => {
       const filenames = [
-        `${ports[i * 2 + numberOfParachains + 1].wsPort}.log`,
-        `${ports[i * 2 + numberOfParachains + 2].wsPort}.log`,
+        `${ports[i * 4 + numberOfParachains + 1].wsPort}.log`,
+        `${ports[i * 4 + numberOfParachains + 3].wsPort}.log`,
       ];
       filenames.forEach(async (filename, nodeIndex) => {
         tailStream
