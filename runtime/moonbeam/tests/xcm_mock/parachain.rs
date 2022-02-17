@@ -18,7 +18,7 @@
 
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Everything, Get, Nothing, PalletInfo as PalletInfoTrait},
+	traits::{Everything, Get, Nothing, PalletInfoAccess},
 	weights::Weight,
 	PalletId,
 };
@@ -244,7 +244,7 @@ parameter_types! {
 		parents:1,
 		interior: Junctions::X2(
 			Parachain(MsgQueue::parachain_id().into()),
-			PalletInstance(<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8)
+			PalletInstance(<Balances as PalletInfoAccess>::index() as u8)
 		)
 	};
 }
