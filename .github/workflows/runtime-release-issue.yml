@@ -3,13 +3,13 @@ on:
   workflow_dispatch:
     inputs:
       from:
-        description: "Previous runtime version"
+        description: "Previous runtime version (example: runtime-1103)"
         required: true
       to:
-        description: "Next runtime version"
+        description: "Next runtime version (example: runtime-1201)"
         required: true
       client:
-        description: "Last client version"
+        description: "Last client release version"
         required: true
 
 jobs:
