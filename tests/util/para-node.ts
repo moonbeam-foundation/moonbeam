@@ -325,19 +325,34 @@ export async function startParachainNodes(options: ParachainOptions): Promise<{
   process.once("exit", onProcessExit);
   process.once("SIGINT", onProcessInterrupt);
 
-  await run("", launchConfig);
+  const runPromise = run("", launchConfig);
   // if (process.env.MOONBEAM_LOG) {
-  new Array(numberOfParachains + 1).fill(0).forEach((_, i) => {
-    const stream = fs.createReadStream(`${RELAY_CHAIN_NODE_NAMES[i]}.log`);
+
+  new Array(numberOfParachains + 1).fill(0).forEach(async (_, i) => {
+    const filename = `${RELAY_CHAIN_NODE_NAMES[i]}.log`;
+    while (!fs.existsSync(filename)) {
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+    const stream = fs.createReadStream(filename);
     stream.pipe(prepend(`relay-${i} `));
     stream.pipe(process.stdout);
   });
-  parachainArray.forEach((_, i) => {
-    fs.createReadStream(`${ports[i * 2 + numberOfParachains + 1].wsPort}.log`)
-      .pipe(prepend(`para-${i} `))
-      .pipe(process.stdout);
+  parachainArray.forEach(async (_, i) => {
+    const filenames = [
+      `${ports[i * 2 + numberOfParachains + 1].wsPort}.log`,
+      `${ports[i * 2 + numberOfParachains + 2].wsPort}.log`,
+    ];
+    filenames.forEach(async (filename, nodeIndex) => {
+      while (!fs.existsSync(filename)) {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
+      fs.createReadStream(filename)
+        .pipe(prepend(`para-${i}-${nodeIndex} `))
+        .pipe(process.stdout);
+    });
   });
   // }
+  await runPromise;
 
   return {
     relayPorts: new Array(numberOfParachains + 1).fill(0).map((_, i) => {
