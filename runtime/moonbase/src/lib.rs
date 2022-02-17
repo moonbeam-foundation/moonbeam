@@ -1451,11 +1451,11 @@ where
 {
 	fn convert(currency: CurrencyId) -> Option<MultiLocation> {
 		match currency {
-			// For now (and until we upgrade to 0.9.16 is adapted) we need to use the old anchoring
-			// here
-			// This is not a problem in either cases, since the view of the destination chain
-			// does not change
-			// TODO! change this to NewAnchoringSelfReserve once we uprade to 0.9.16
+			// For now and until Xtokens is adapted to handle 0.9.16 version we use
+			// the old anchoring here
+			// This is not a problem in either cases, since the view of the destination
+			// chain does not change
+			// TODO! change this to NewAnchoringSelfReserve once xtokens is adapted for it
 			CurrencyId::SelfReserve => {
 				let multi: MultiLocation = OldAnchoringSelfReserve::get();
 				Some(multi)
