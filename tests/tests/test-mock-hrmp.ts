@@ -39,6 +39,19 @@ const statemintLocation = {
   },
 };
 
+const statemintLocationAssetOne = {
+  XCM: {
+    parents: 1,
+    interior: {
+      X3: [
+        { Parachain: statemint_para_id },
+        { PalletInstance: statemint_assets_pallet_instance },
+        { GeneralIndex: 1 },
+      ],
+    },
+  },
+};
+
 describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
   let assetId: string;
   let alith: KeyringPair;
@@ -631,3 +644,165 @@ describeDevMoonbeam(
     });
   }
 );
+
+describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
+  let assetIdZero: string;
+  let assetIdOne: string;
+  let alith: KeyringPair;
+
+  before(
+    "Should Register two asset from same para but set unit per sec for one",
+    async function () {
+      const keyringEth = new Keyring({ type: "ethereum" });
+      alith = keyringEth.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
+
+      // registerAsset Asset 0
+      // We register statemine with the new prefix
+      const { events: eventsRegisterZero } = await createBlockWithExtrinsic(
+        context,
+        alith,
+        context.polkadotApi.tx.sudo.sudo(
+          context.polkadotApi.tx.assetManager.registerAsset(
+            statemintLocation,
+            assetMetadata,
+            new BN(1),
+            true
+          )
+        )
+      );
+      // Look for assetId in events
+      eventsRegisterZero.forEach((e) => {
+        if (e.section.toString() === "assetManager") {
+          assetIdZero = e.data[0].toHex();
+        }
+      });
+      assetIdZero = assetIdZero.replace(/,/g, "");
+
+      // registerAsset Asset 1
+      // We register statemine with the new prefix
+      const { events: eventsRegisterOne } = await createBlockWithExtrinsic(
+        context,
+        alith,
+        context.polkadotApi.tx.sudo.sudo(
+          context.polkadotApi.tx.assetManager.registerAsset(
+            statemintLocationAssetOne,
+            assetMetadata,
+            new BN(1),
+            true
+          )
+        )
+      );
+      // Look for assetId in events
+      eventsRegisterOne.forEach((e) => {
+        if (e.section.toString() === "assetManager") {
+          assetIdOne = e.data[0].toHex();
+        }
+      });
+      assetIdOne = assetIdOne.replace(/,/g, "");
+
+      // setAssetUnitsPerSecond.We only set it for statemintLocationAssetOne
+      const { events } = await createBlockWithExtrinsic(
+        context,
+        alith,
+        context.polkadotApi.tx.sudo.sudo(
+          context.polkadotApi.tx.assetManager.setAssetUnitsPerSecond(statemintLocationAssetOne, 0)
+        )
+      );
+      expect(events[1].method.toString()).to.eq("UnitsPerSecondChanged");
+      expect(events[4].method.toString()).to.eq("ExtrinsicSuccess");
+
+      // check assets in storage
+      const registeredAssetZero = (
+        (await context.polkadotApi.query.assets.asset(assetIdZero)) as any
+      ).unwrap();
+      expect(registeredAssetZero.owner.toHex()).to.eq(palletId.toLowerCase());
+      const registeredAssetOne = (
+        (await context.polkadotApi.query.assets.asset(assetIdZero)) as any
+      ).unwrap();
+      expect(registeredAssetOne.owner.toHex()).to.eq(palletId.toLowerCase());
+    }
+  );
+
+  it("Should receive 10 Statemine asset 0 tokens to Alith using statemint asset 1 as fee payment ", async function () {
+    // We are going to test that, using one of them as fee payment (assetOne), we can receive the other
+    let xcmMessage = {
+      V2: [
+        {
+          ReserveAssetDeposited: [
+            {
+              id: {
+                Concrete: {
+                  parents: 1,
+                  interior: { X2: [{ Parachain: statemint_para_id }, { GeneralIndex: 0 }] },
+                },
+              },
+              fun: { Fungible: new BN(10000000000000) },
+            },
+            {
+              id: {
+                Concrete: {
+                  parents: 1,
+                  interior: { X2: [{ Parachain: statemint_para_id }, { GeneralIndex: 1 }] },
+                },
+              },
+              fun: { Fungible: new BN(10000000000000) },
+            },
+          ],
+        },
+        { ClearOrigin: null },
+        {
+          BuyExecution: {
+            fees: {
+              id: {
+                Concrete: {
+                  parents: new BN(1),
+                  interior: { X2: [{ Parachain: statemint_para_id }, { GeneralIndex: 1 }] },
+                },
+              },
+              fun: { Fungible: new BN(10000000000000) },
+            },
+            weightLimit: { Limited: new BN(4000000000) },
+          },
+        },
+        {
+          DepositAsset: {
+            assets: { Wild: "All" },
+            maxAssets: new BN(2),
+            beneficiary: {
+              parents: 0,
+              interior: { X1: { AccountKey20: { network: "Any", key: alith.address } } },
+            },
+          },
+        },
+      ],
+    };
+    const xcmpFormat: XcmpMessageFormat = context.polkadotApi.createType(
+      "XcmpMessageFormat",
+      "ConcatenatedVersionedXcm"
+    );
+    const receivedMessage: XcmVersionedXcm = context.polkadotApi.createType(
+      "XcmVersionedXcm",
+      xcmMessage
+    );
+
+    const totalMessage = [...xcmpFormat.toU8a(), ...receivedMessage.toU8a()];
+    // Send RPC call to inject XCM message
+    // We will set a specific message knowing that it should mint the statemint asset
+    await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [
+      statemint_para_id,
+      totalMessage,
+    ]);
+
+    // Create a block in which the XCM will be executed
+    await context.createBlock();
+
+    // Make sure the state has ALITH's foreign parachain tokens
+    let alithAssetZeroBalance = (
+      (await context.polkadotApi.query.assets.account(assetIdZero, alith.address)) as any
+    )
+      .unwrap()
+      ["balance"].toBigInt();
+
+    expect(alithAssetZeroBalance).to.eq(10n * FOREIGN_TOKEN);
+  });
+});
