@@ -64,7 +64,8 @@ export type ParaTestOptions = {
     // "local" uses target/release/moonbeam binary
     binary?: "local" | string;
     // specify the version of the runtime using tag. Ex: "runtime-1103"
-    // "local" uses target/release/wbuild/<runtime>-runtime/<runtime>_runtime.compact.compressed.wasm
+    // "local" uses
+    // target/release/wbuild/<runtime>-runtime/<runtime>_runtime.compact.compressed.wasm
     runtime?: "local" | string;
   };
   relaychain?: {

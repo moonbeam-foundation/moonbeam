@@ -19,7 +19,8 @@ const alreadyReleased = child_process
   .trim();
 const previousRelease = child_process
   .execSync(
-    `git tag -l -n 'runtime-[0-9]*' | cut -d' ' -f 1 | cut -d'-' -f 2 | sort -n -r | uniq | grep -A1 "${localVersion}" | tail -1`
+    `git tag -l -n 'runtime-[0-9]*' | cut -d' ' -f 1 | cut -d'-' -f 2 | sort -n -r ` +
+      `| uniq | grep -A1 "${localVersion}" | tail -1`
   )
   .toString()
   .trim();
