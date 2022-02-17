@@ -326,18 +326,18 @@ export async function startParachainNodes(options: ParachainOptions): Promise<{
   process.once("SIGINT", onProcessInterrupt);
 
   await run("", launchConfig);
-  if (process.env.MOONBEAM_LOG) {
-    new Array(numberOfParachains + 1).fill(0).forEach((_, i) => {
-      const stream = fs.createReadStream(`${RELAY_CHAIN_NODE_NAMES[i]}.log`);
-      stream.pipe(prepend(`relay-${i} `));
-      stream.pipe(process.stdout);
-    });
-    parachainArray.forEach((_, i) => {
-      fs.createReadStream(`${ports[i * 2 + numberOfParachains + 1].wsPort}.log`)
-        .pipe(prepend(`para-${i} `))
-        .pipe(process.stdout);
-    });
-  }
+  // if (process.env.MOONBEAM_LOG) {
+  new Array(numberOfParachains + 1).fill(0).forEach((_, i) => {
+    const stream = fs.createReadStream(`${RELAY_CHAIN_NODE_NAMES[i]}.log`);
+    stream.pipe(prepend(`relay-${i} `));
+    stream.pipe(process.stdout);
+  });
+  parachainArray.forEach((_, i) => {
+    fs.createReadStream(`${ports[i * 2 + numberOfParachains + 1].wsPort}.log`)
+      .pipe(prepend(`para-${i} `))
+      .pipe(process.stdout);
+  });
+  // }
 
   return {
     relayPorts: new Array(numberOfParachains + 1).fill(0).map((_, i) => {
