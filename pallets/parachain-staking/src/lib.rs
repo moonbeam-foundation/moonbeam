@@ -536,6 +536,9 @@ pub mod pallet {
 			self.top_capacity = top_delegations.top_capacity::<T>();
 			let old_total_counted = self.total_counted;
 			self.total_counted = self.bond + top_delegations.total.into();
+			// CandidatePool value for candidate always changes if top delegations total changes
+			// so we moved the update into this function to deduplicate code and patch a bug that
+			// forgot to apply the update when increasing top delegation
 			if old_total_counted != self.total_counted && self.is_active() {
 				Pallet::<T>::update_active(candidate, self.total_counted.into());
 			}

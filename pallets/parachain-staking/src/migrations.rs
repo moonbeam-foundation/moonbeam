@@ -110,12 +110,11 @@ impl<T: Config> OnRuntimeUpgrade for PatchIncorrectDelegationSums<T> {
 	}
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade() -> Result<(), &'static str> {
-		// get delegation count for all candidates
+		// get total counted for all candidates
 		for (account, state) in <CandidateInfo<T>>::iter() {
-			let total_delegation_count = state;
 			Self::set_temp_storage(
-				state.delegation_count,
-				&format!("Candidate{:?}DelegationCount", account)[..],
+				state.total_counted,
+				&format!("Candidate{:?}TotalCounted", account)[..],
 			);
 		}
 		Ok(())
@@ -123,13 +122,26 @@ impl<T: Config> OnRuntimeUpgrade for PatchIncorrectDelegationSums<T> {
 
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade() -> Result<(), &'static str> {
-		// ensure delegation count was unchanged by migration
+		// ensure new total counted = top_delegations.sum() + collator self bond
 		for (account, state) in <CandidateInfo<T>>::iter() {
-			let expected_count: u32 =
-				Self::get_temp_storage(&format!("Candidate{:?}DelegationCount", account)[..])
+			let old_count =
+				Self::get_temp_storage(&format!("Candidate{:?}TotalCounted", account)[..])
 					.expect("qed");
-			let actual_count = state.delegation_count;
-			assert_eq!(expected_count, actual_count);
+			let new_count = state.total_counted;
+			let top_delegations_sum = <TopDelegations<T>>::get(account)
+				.expect("CandidateInfo exists => TopDelegations exists")
+				.delegations
+				.iter()
+				.fold(BalanceOf::<T>::zero(), |acc, b| acc + b.amount);
+			let correct_total_counted = top_delegations_sum + state.bond;
+			assert_eq!(new_count, correct_total_counted);
+			if new_count != old_count {
+				log::info!(
+					target: "PatchIncorrectDelegationSums",
+					"Corrected total from {:?} to {:?}",
+					old_count, new_count
+				);
+			}
 		}
 		Ok(())
 	}
