@@ -411,9 +411,6 @@ where
 	}
 }
 
-//TODO: Once the statemine prefix migration is applied,
-// we can remove StatemineParaIdInfo and StatemineAssetsInstanceInfo
-// but for now we need a way to pass these parameters, which are distinct for each of the runtimes
 #[cfg(feature = "xcm-support")]
 pub struct XcmMigrations<Runtime, StatemineParaIdInfo, StatemineAssetsInstanceInfo>(
 	PhantomData<(Runtime, StatemineParaIdInfo, StatemineAssetsInstanceInfo)>,
@@ -424,35 +421,37 @@ impl<Runtime, StatemineParaIdInfo, StatemineAssetsInstanceInfo> GetMigrations
 	for XcmMigrations<Runtime, StatemineParaIdInfo, StatemineAssetsInstanceInfo>
 where
 	Runtime: xcm_transactor::Config + pallet_migrations::Config + pallet_asset_manager::Config,
-	StatemineParaIdInfo: Get<u32> + 'static,
-	StatemineAssetsInstanceInfo: Get<u8> + 'static,
 	<Runtime as pallet_asset_manager::Config>::AssetType:
 		Into<Option<MultiLocation>> + From<MultiLocation>,
 {
 	fn get_migrations() -> Vec<Box<dyn Migration>> {
-		let xcm_transactor_max_weight =
-			XcmTransactorMaxTransactWeight::<Runtime>(Default::default());
+		// let xcm_transactor_max_weight =
+		// 	XcmTransactorMaxTransactWeight::<Runtime>(Default::default());
 
-		let asset_manager_units_with_asset_type =
-			AssetManagerUnitsWithAssetType::<Runtime>(Default::default());
+		// let asset_manager_units_with_asset_type =
+		// 	AssetManagerUnitsWithAssetType::<Runtime>(Default::default());
 
-		let asset_manager_populate_asset_type_id_storage =
-			AssetManagerPopulateAssetTypeIdStorage::<Runtime>(Default::default());
+		// let asset_manager_populate_asset_type_id_storage =
+		// 	AssetManagerPopulateAssetTypeIdStorage::<Runtime>(Default::default());
 
-		let asset_manager_change_statemine_prefixes = AssetManagerChangeStateminePrefixes::<
-			Runtime,
-			StatemineParaIdInfo,
-			StatemineAssetsInstanceInfo,
-		>(Default::default());
+		// let asset_manager_change_statemine_prefixes = AssetManagerChangeStateminePrefixes::<
+		// 	Runtime,
+		// 	StatemineParaIdInfo,
+		// 	StatemineAssetsInstanceInfo,
+		// >(Default::default());
 
 		// TODO: this is a lot of allocation to do upon every get() call. this *should* be avoided
 		// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review
 
 		vec![
-			Box::new(xcm_transactor_max_weight),
-			Box::new(asset_manager_units_with_asset_type),
-			Box::new(asset_manager_change_statemine_prefixes),
-			Box::new(asset_manager_populate_asset_type_id_storage),
+			// completed in runtime 1201
+			// Box::new(xcm_transactor_max_weight),
+			// completed in runtime 1201
+			// Box::new(asset_manager_units_with_asset_type),
+			// completed in runtime 1201
+			// Box::new(asset_manager_change_statemine_prefixes),
+			// completed in runtime 1201
+			// Box::new(asset_manager_populate_asset_type_id_storage),
 		]
 	}
 }
