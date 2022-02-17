@@ -268,6 +268,9 @@ pub mod pallet {
 			)
 			.map_err(|_| Error::<T>::ErrorCreatingAsset)?;
 
+			// Remove the authorization
+			LocalAssetCreationauthorization::<T>::remove(&who);
+
 			Self::deposit_event(Event::LocalAssetRegistered(asset_id, who, asset_info.owner));
 			Ok(())
 		}

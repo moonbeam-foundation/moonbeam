@@ -65,6 +65,7 @@ fn registering_local_works() {
 
 		assert_ok!(AssetManager::register_local_asset(Origin::signed(1u64),));
 
+		assert_eq!(AssetManager::local_asset_creation_authorization(1u64), None);
 		expect_events(vec![
 			crate::Event::LocalAssetAuthorizationGiven(1, 1, 0),
 			crate::Event::LocalAssetRegistered(asset_id, 1, 1),
