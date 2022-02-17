@@ -28,6 +28,7 @@ sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbea
 sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.16", default-features = false }
 
 # Frontier
+pallet-base-fee = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.16", default-features = false }
 pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.16", default-features = false }
 
 # Polkadot
@@ -38,6 +39,7 @@ std = [
 	"frame-support/std",
 	"pallet-asset-manager/std",
 	"pallet-author-mapping/std",
+	"pallet-base-fee/std",
 	"pallet-evm/std",
 	"pallet-migrations/std",
 	"pallet-scheduler/std",
