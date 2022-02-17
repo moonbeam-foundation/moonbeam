@@ -311,7 +311,7 @@ export const contractSources: { [key: string]: string } = {
         // Now the dispatchables
     
         /// Join the set of collator candidates
-        function join_candidates(uint256 amount) external;
+        function join_candidates(uint256 amount, uint256 candidateCount) external;
     
         /// Request to leave the set of candidates. If successful, the account is immediately
         /// removed from the candidate pool to prevent selection as a collator, but unbonding is
@@ -356,16 +356,16 @@ export const contractSources: { [key: string]: string } = {
         /// Solely for debugging purposes
         event Trace(uint256);
 
-        constructor(address _staking) {
-            staking = ParachainStaking(_staking);
+        constructor() {
+            staking = ParachainStaking(0x0000000000000000000000000000000000000800);
         }
 
         receive() external payable {}
 
         function join() public {
-            emit Trace(1 << 250);
-            staking.join_candidates(1234 ether);
-            emit Trace(2 << 250);
+            // emit Trace(1 << 250);
+            staking.join_candidates(600 ether, 10);
+            // emit Trace(2 << 250);
         }
     }`,
   OverflowingTrace: `
