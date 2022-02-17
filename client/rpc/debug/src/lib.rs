@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 use futures::{future::BoxFuture, FutureExt, SinkExt, StreamExt};
-use jsonrpc_core::Result as RpcResult;
+use jsonrpsee::cor::RpcResult;
+
 pub use moonbeam_rpc_core_debug::{Debug as DebugT, DebugServer, TraceParams};
 
 use tokio::{

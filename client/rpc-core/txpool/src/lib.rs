@@ -15,8 +15,10 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use ethereum_types::U256;
-use jsonrpc_core::Result;
-use jsonrpc_derive::rpc;
+use jsonrpsee::{
+	core::{async_trait, Error as JsonRpseeError, RpcResult},
+	proc_macros::rpc,
+};
 
 mod types;
 
@@ -24,14 +26,14 @@ pub use crate::types::{Get as GetT, Summary, Transaction, TransactionMap, TxPool
 
 pub use rpc_impl_TxPool::gen_server::TxPool as TxPoolServer;
 
-#[rpc(server)]
+#[rpc(server, namespace = "txpool")]
 pub trait TxPool {
-	#[rpc(name = "txpool_content")]
+	#[method(name = "content")]
 	fn content(&self) -> Result<TxPoolResult<TransactionMap<Transaction>>>;
 
-	#[rpc(name = "txpool_inspect")]
+	#[method(name = "inspect")]
 	fn inspect(&self) -> Result<TxPoolResult<TransactionMap<Summary>>>;
 
-	#[rpc(name = "txpool_status")]
+	#[method(name = "status")]
 	fn status(&self) -> Result<TxPoolResult<U256>>;
 }
