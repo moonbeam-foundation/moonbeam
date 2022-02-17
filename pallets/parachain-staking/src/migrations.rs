@@ -295,7 +295,7 @@ impl<T: Config> OnRuntimeUpgrade for SplitCandidateStateToDecreasePoV<T> {
 				state.top_delegations.len() as u32 + state.bottom_delegations.len() as u32;
 			Self::set_temp_storage(
 				total_delegation_count,
-				&format!("Candidate{}DelegationCount", account)[..],
+				&format!("Candidate{:?}DelegationCount", account)[..],
 			);
 		}
 		Ok(())
@@ -306,7 +306,7 @@ impl<T: Config> OnRuntimeUpgrade for SplitCandidateStateToDecreasePoV<T> {
 		// check that top + bottom are the same as the expected (stored in temp)
 		for (account, state) in <CandidateInfo<T>>::iter() {
 			let expected_count: u32 =
-				Self::get_temp_storage(&format!("Candidate{}DelegationCount", account)[..])
+				Self::get_temp_storage(&format!("Candidate{:?}DelegationCount", account)[..])
 					.expect("qed");
 			let actual_count = state.delegation_count;
 			assert_eq!(expected_count, actual_count);
