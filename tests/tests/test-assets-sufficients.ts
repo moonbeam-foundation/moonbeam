@@ -37,7 +37,7 @@ async function mockAssetBalance(
   // Register the asset
   await context.polkadotApi.tx.sudo
     .sudo(
-      context.polkadotApi.tx.assetManager.registerAsset(
+      context.polkadotApi.tx.assetManager.registerForeignAsset(
         sourceLocationRelayAssetType,
         relayAssetMetadata,
         new BN(1),

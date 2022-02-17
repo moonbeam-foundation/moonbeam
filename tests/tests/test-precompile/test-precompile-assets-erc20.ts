@@ -554,7 +554,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
     contractInstanceAddress = contract.options.address;
     await context.createBlock({ transactions: [rawTx] });
   });
-  it("allows to approve transfer and use transferFrom through delegateCalls", async function () {
+  it.only("allows to approve transfer and use transferFrom through delegateCalls", async function () {
     // Create approval
     let data = iFace.encodeFunctionData(
       // action

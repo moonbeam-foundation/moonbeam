@@ -117,7 +117,7 @@ describeDevMoonbeamAllEthTxTypes(
           value: "0x0",
           gas: "0x10000",
           gasPrice: GAS_PRICE,
-          to: contractInstanceAddress,
+          to: assetAddress,
           data: data,
         },
       ]);
@@ -654,6 +654,28 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
     const { contract, rawTx } = await createContract(context, "LocalAssetExtendedErc20Instance");
     contractInstanceAddress = contract.options.address;
     await context.createBlock({ transactions: [rawTx] });
+
+    // set asset address
+    let setAddressData = iFace.encodeFunctionData(
+      // action
+      "set_address_interface",
+      [context.web3.utils.toChecksumAddress(assetAddress)]
+    );
+
+    // We need this because the asset addres is random, so we need a way to correctly reference it in the contract
+    let setDataTx = await createTransaction(context, {
+      from: ALITH,
+      privateKey: ALITH_PRIV_KEY,
+      value: "0x0",
+      gas: "0x200000",
+      gasPrice: GAS_PRICE,
+      to: contractInstanceAddress,
+      data: setAddressData,
+    });
+
+    await context.createBlock({
+      transactions: [setDataTx],
+    });
   });
   it("allows to approve transfer and use transferFrom through delegateCalls", async function () {
     // Create approval
@@ -673,16 +695,6 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
       data: data,
     });
 
-    const tx_call = await customWeb3Request(context.web3, "eth_call", [
-      {
-        from: ALITH,
-        value: "0x0",
-        gas: "0x10000",
-        gasPrice: GAS_PRICE,
-        to: contractInstanceAddress,
-        data: data,
-      },
-    ]);
     let block = await context.createBlock({
       transactions: [tx],
     });
@@ -810,6 +822,27 @@ describeDevMoonbeamAllEthTxTypes(
       const { contract, rawTx } = await createContract(context, "LocalAssetExtendedErc20Instance");
       contractInstanceAddress = contract.options.address;
       await context.createBlock({ transactions: [rawTx] });
+      // set asset address
+      let setAddressData = iFace.encodeFunctionData(
+        // action
+        "set_address_interface",
+        [context.web3.utils.toChecksumAddress(assetAddress)]
+      );
+
+      // We need this because the asset addres is random, so we need a way to correctly reference it in the contract
+      let setDataTx = await createTransaction(context, {
+        from: ALITH,
+        privateKey: ALITH_PRIV_KEY,
+        value: "0x0",
+        gas: "0x200000",
+        gasPrice: GAS_PRICE,
+        to: contractInstanceAddress,
+        data: setAddressData,
+      });
+
+      await context.createBlock({
+        transactions: [setDataTx],
+      });
     });
     it("allows to transfer through delegateCall", async function () {
       // Create approval
@@ -910,6 +943,27 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
       baltatharAccount,
       context.polkadotApi.tx.localAssets.mint(assetId, contractInstanceAddress, 100000000000000)
     );
+    // set asset address
+    let setAddressData = iFace.encodeFunctionData(
+      // action
+      "set_address_interface",
+      [context.web3.utils.toChecksumAddress(assetAddress)]
+    );
+
+    // We need this because the asset addres is random, so we need a way to correctly reference it in the contract
+    let setDataTx = await createTransaction(context, {
+      from: ALITH,
+      privateKey: ALITH_PRIV_KEY,
+      value: "0x0",
+      gas: "0x200000",
+      gasPrice: GAS_PRICE,
+      to: contractInstanceAddress,
+      data: setAddressData,
+    });
+
+    await context.createBlock({
+      transactions: [setDataTx],
+    });
   });
   it("allows to approve transfer and use transferFrom from contract calls", async function () {
     // Create approval
@@ -1093,6 +1147,27 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
     const { contract, rawTx } = await createContract(context, "LocalAssetExtendedErc20Instance");
     contractInstanceAddress = contract.options.address;
     await context.createBlock({ transactions: [rawTx] });
+    // set asset address
+    let setAddressData = iFace.encodeFunctionData(
+      // action
+      "set_address_interface",
+      [context.web3.utils.toChecksumAddress(assetAddress)]
+    );
+
+    // We need this because the asset addres is random, so we need a way to correctly reference it in the contract
+    let setDataTx = await createTransaction(context, {
+      from: ALITH,
+      privateKey: ALITH_PRIV_KEY,
+      value: "0x0",
+      gas: "0x200000",
+      gasPrice: GAS_PRICE,
+      to: contractInstanceAddress,
+      data: setAddressData,
+    });
+
+    await context.createBlock({
+      transactions: [setDataTx],
+    });
   });
   it("Bob approves contract and use transferFrom from contract calls", async function () {
     // Create approval
@@ -1240,6 +1315,27 @@ describeDevMoonbeamAllEthTxTypes(
         baltatharAccount,
         context.polkadotApi.tx.localAssets.mint(assetId, contractInstanceAddress, 100000000000000)
       );
+      // set asset address
+      let setAddressData = iFace.encodeFunctionData(
+        // action
+        "set_address_interface",
+        [context.web3.utils.toChecksumAddress(assetAddress)]
+      );
+
+      // We need this because the asset addres is random, so we need a way to correctly reference it in the contract
+      let setDataTx = await createTransaction(context, {
+        from: ALITH,
+        privateKey: ALITH_PRIV_KEY,
+        value: "0x0",
+        gas: "0x200000",
+        gasPrice: GAS_PRICE,
+        to: contractInstanceAddress,
+        data: setAddressData,
+      });
+
+      await context.createBlock({
+        transactions: [setDataTx],
+      });
     });
     it("allows to transfer through call from SC ", async function () {
       // Create approval

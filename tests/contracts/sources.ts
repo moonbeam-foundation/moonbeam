@@ -1593,11 +1593,20 @@ export const contractSources: { [key: string]: string } = {
     contract LocalAssetExtendedErc20Instance is LocalAssetExtendedErc20 {
 
         /// The ierc20 at the known pre-compile address.
-        LocalAssetExtendedErc20 public localasseterc20 = LocalAssetExtendedErc20(0xfffFFffEAFc30AfB95B7B8425a4Ae7a98D9941E1);
-        address localasseterc20address = 0xfffFFffEAFc30AfB95B7B8425a4Ae7a98D9941E1;
+        LocalAssetExtendedErc20 public localasseterc20 = LocalAssetExtendedErc20(0xffFfFffEDe9001a6f7F4798cCb76ef1E7f664701);
+        address localasseterc20address = 0xffFfFffEDe9001a6f7F4798cCb76ef1E7f664701;
 
             receive() external payable {
             // React to receiving ether
+            }
+
+            function set_address_interface(address instance_address) public {
+                localasseterc20 = LocalAssetExtendedErc20(instance_address);
+                localasseterc20address = instance_address;
+            }
+
+            function get_address() public view returns(address) {
+                return localasseterc20address;
             }
 
             function name() override external view returns (string memory) {

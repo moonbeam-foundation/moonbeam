@@ -23,12 +23,17 @@ describeDevMoonbeam("XCM - asset manager - register asset", (context) => {
     const alith = keyringEth.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
 
     const parachainOne = context.polkadotApi;
-    // registerAsset
+    // registerForeignAsset
     const { events: eventsRegister } = await createBlockWithExtrinsic(
       context,
       alith,
       parachainOne.tx.sudo.sudo(
-        parachainOne.tx.assetManager.registerAsset(sourceLocation, assetMetadata, new BN(1), true)
+        parachainOne.tx.assetManager.registerForeignAsset(
+          sourceLocation,
+          assetMetadata,
+          new BN(1),
+          true
+        )
       )
     );
     // Look for assetId in events
