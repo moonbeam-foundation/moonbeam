@@ -1,15 +1,48 @@
 import { Keyring } from "@polkadot/api";
 import { expect } from "chai";
+import child_process from "child_process";
 
 import { ALITH_PRIV_KEY } from "../../util/constants";
 import { describeParachain } from "../../util/setup-para-tests";
 
 // This test will run on local until the new runtime is available
 
-const RUNTIME_VERSION = "local"; // TODO: replace by `runtime-1200`
+const localVersion = child_process
+  .execSync(`grep 'spec_version: [0-9]*' ../runtime/moonbase/src/lib.rs | grep -o '[0-9]*'`)
+  .toString()
+  .trim();
+const alreadyReleased = child_process
+  .execSync(
+    `git tag -l -n 'runtime-[0-9]*' | cut -d' ' -f 1 | cut -d'-' -f 2 | grep "${localVersion}"`
+  )
+  .toString()
+  .trim();
+const previousRelease = child_process
+  .execSync(
+    `git tag -l -n 'runtime-[0-9]*' | cut -d' ' -f 1 | cut -d'-' -f 2 | sort -n -r | uniq | grep -A1 "${localVersion}" | tail -1`
+  )
+  .toString()
+  .trim();
+
+if (localVersion == alreadyReleased) {
+  console.log(`${localVersion} already released. Trying to upgrade on top of it`);
+}
+const baseRuntime = localVersion == alreadyReleased ? localVersion : previousRelease;
+console.log(`Using base runtime ${baseRuntime}`);
+
+const RUNTIME_VERSION = "local";
 describeParachain(
   `Runtime upgrade ${RUNTIME_VERSION}`,
-  { chain: "moonbase-local", runtime: "runtime-1103", binary: "local" },
+  {
+    parachain: {
+      chain: "moonbase-local",
+      runtime: `runtime-${baseRuntime}`,
+      binary: "local",
+    },
+    relaychain: {
+      binary: "local",
+    },
+  },
   (context) => {
     it("should not fail", async function () {
       // Expected to take 10 blocks for upgrade + 4 blocks to check =>
@@ -23,7 +56,7 @@ describeParachain(
         (await context.polkadotApiParaone.query.system.lastRuntimeUpgrade()) as any
       ).unwrap();
       expect(currentVersion.toJSON()).to.deep.equal({
-        specVersion: 1103,
+        specVersion: Number(baseRuntime),
         specName: "moonbase",
       });
       console.log(
@@ -32,17 +65,17 @@ describeParachain(
 
       await context.upgradeRuntime(alith, "moonbase", RUNTIME_VERSION);
 
-      process.stdout.write("Checking on-chain runtime version 1200...");
+      process.stdout.write(`Checking on-chain runtime version ${localVersion}...`);
       expect(
         await (await context.polkadotApiParaone.query.system.lastRuntimeUpgrade()).toJSON()
       ).to.deep.equal({
-        specVersion: 1200,
+        specVersion: Number(localVersion),
         specName: "moonbase",
       });
       process.stdout.write("✅\n");
 
       process.stdout.write("Waiting extra block being produced...");
-      await context.waitBlocks(2); // Make sure the new runtime is producing blocks
+      await context.waitBlocks(4); // Make sure the new runtime is producing blocks
       process.stdout.write(`✅ total ${context.blockNumber} block produced\n`);
     });
   }

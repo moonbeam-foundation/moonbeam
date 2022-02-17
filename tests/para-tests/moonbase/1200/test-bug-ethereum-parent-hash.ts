@@ -12,7 +12,16 @@ import { createTransfer } from "../../../util/transactions";
 const runtimeVersion = "runtime-1200";
 describeParachain(
   `Runtime ${runtimeVersion} migration`,
-  { chain: "moonbase-local", runtime: "runtime-1103", binary: "v0.19.1" },
+  {
+    parachain: {
+      chain: "moonbase-local",
+      runtime: "runtime-1103",
+      binary: "v0.19.1",
+    },
+    relaychain: {
+      binary: "v0.9.13",
+    },
+  },
   (context) => {
     it("have proper parent hash", async function () {
       // Expected to take 4 blocks to setup + 10 blocks for upgrade + 4 blocks to check =>
