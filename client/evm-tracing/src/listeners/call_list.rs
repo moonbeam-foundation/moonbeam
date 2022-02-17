@@ -367,6 +367,7 @@ impl Listener {
 			}
 
 			EvmEvent::Call {
+				code_address,
 				input,
 				is_static,
 				context,
@@ -404,7 +405,7 @@ impl Listener {
 						start_gas: None,
 
 						data: input.to_vec(),
-						to: context.address,
+						to: code_address,
 					});
 
 					self.entries_next_index += 1;
