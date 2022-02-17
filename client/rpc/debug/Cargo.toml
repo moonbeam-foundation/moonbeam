@@ -10,7 +10,7 @@ version = "0.1.0"
 [dependencies]
 futures = { version = "0.3", features = [ "compat" ] }
 hex-literal = "0.3.4"
-jsonrpc-core = "18.0.0"
+jsonrpsee = { version = "0.9", default-features = false, features = [ "macros", "server" ] }
 tokio = { version = "1.10", features = [ "sync", "time" ] }
 
 # Moonbeam
