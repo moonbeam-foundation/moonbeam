@@ -481,11 +481,10 @@ impl<T: Config> OnRuntimeUpgrade for PopulateSupportedFeePaymentAssets<T> {
 
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade() -> Result<(), &'static str> {
-		use frame_support::storage::migration::{storage_iter, storage_key_iter};
 		use frame_support::traits::OnRuntimeUpgradeHelpersExt;
 
 		let pallet_prefix: &[u8] = b"AssetManager";
-		let storage_item_prefix: &[u8] = b"AssetIdUnitsPerSecond";
+		let storage_item_prefix: &[u8] = b"AssetTypeUnitsPerSecond";
 
 		// We want to test that:
 		// There are no entries in the new storage beforehand
@@ -500,7 +499,7 @@ impl<T: Config> OnRuntimeUpgrade for PopulateSupportedFeePaymentAssets<T> {
 		assert!(SupportedFeePaymentAssets::<T>::get().len() == 0);
 
 		// Check number of entries, and set it aside in temp storage
-		let stored_data: Vec<_> = storage_key_iter::<T::AssetId, u128, Blake2_128Concat>(
+		let stored_data: Vec<_> = storage_key_iter::<T::AssetType, u128, Blake2_128Concat>(
 			pallet_prefix,
 			storage_item_prefix,
 		)
@@ -514,6 +513,7 @@ impl<T: Config> OnRuntimeUpgrade for PopulateSupportedFeePaymentAssets<T> {
 				.iter()
 				.next()
 				.expect("We already confirmed that there was at least one item stored")
+				.clone()
 				.0;
 
 			Self::set_temp_storage(example_key, "example_key");
@@ -534,10 +534,10 @@ impl<T: Config> OnRuntimeUpgrade for PopulateSupportedFeePaymentAssets<T> {
 
 		// Check that our example pair is still well-mapped after the migration
 		if new_mapping_count > 0 {
-			let asset_id: T::AssetId = Self::get_temp_storage("example_pair").expect("qed");
+			let asset_type: T::AssetType = Self::get_temp_storage("example_pair").expect("qed");
 			let migrated_info = SupportedFeePaymentAssets::<T>::get();
 			// Check that the asset_id exists in migrated_info
-			assert!(migrated_info.contais(asset_id));
+			assert!(migrated_info.contains(&asset_type));
 		}
 
 		Ok(())
