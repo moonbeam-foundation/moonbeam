@@ -195,7 +195,7 @@ pub mod pallet {
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		/// Register new asset with the asset manager
-		#[pallet::weight(T::WeightInfo::register_asset())]
+		#[pallet::weight(T::WeightInfo::register_foreign_asset())]
 		pub fn register_foreign_asset(
 			origin: OriginFor<T>,
 			asset: T::ForeignAssetType,
@@ -226,7 +226,7 @@ pub mod pallet {
 		}
 
 		/// Register new asset with the asset manager
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::authorize_local_assset())]
 		pub fn authorize_local_assset(
 			origin: OriginFor<T>,
 			creator: T::AccountId,
@@ -252,7 +252,7 @@ pub mod pallet {
 		}
 
 		/// Register new asset with the asset manager
-		#[pallet::weight(T::WeightInfo::register_asset())]
+		#[pallet::weight(T::WeightInfo::register_local_asset())]
 		pub fn register_local_asset(origin: OriginFor<T>) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
