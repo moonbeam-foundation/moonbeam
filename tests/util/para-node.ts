@@ -389,7 +389,7 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
 
   await Promise.race([
     runPromise,
-    new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 20000)),
+    new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 60000)),
   ]);
 
   return {
