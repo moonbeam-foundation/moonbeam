@@ -264,6 +264,10 @@ where
 	Executor: NativeExecutionDispatch + 'static,
 {
 	config.keystore = sc_service::config::KeystoreConfig::InMemory;
+
+	// Inject ethereum style rpc id provider
+	config.rpc_id_provider = Some(Box::new(fc_rpc::EthSubscriptionIdProvider));
+
 	let PartialComponents {
 		client,
 		backend,
@@ -426,7 +430,7 @@ where
 /// This is the actual implementation that is abstract over the executor and the runtime api.
 #[sc_tracing::logging::prefix_logs_with("🌗")]
 async fn start_node_impl<RuntimeApi, Executor, BIC>(
-	parachain_config: Configuration,
+	mut parachain_config: Configuration,
 	polkadot_config: Configuration,
 	id: polkadot_primitives::v0::Id,
 	rpc_config: RpcConfig,
@@ -458,6 +462,9 @@ where
 	if matches!(parachain_config.role, Role::Light) {
 		return Err("Light client not supported!".into());
 	}
+
+	// Inject ethereum style rpc id provider
+	parachain_config.rpc_id_provider = Some(Box::new(fc_rpc::EthSubscriptionIdProvider));
 
 	let mut parachain_config = prepare_node_config(parachain_config);
 
@@ -546,9 +553,10 @@ where
 		overrides.clone(),
 		rpc_config.eth_log_block_cache,
 		rpc_config.eth_log_block_cache,
+		prometheus_registry.clone(),
 	));
 
-	let rpc_extensions_builder = {
+	let rpc_builder = {
 		let client = client.clone();
 		let pool = transaction_pool.clone();
 		let network = network.clone();
@@ -561,7 +569,7 @@ where
 		let fee_history_cache = fee_history_cache.clone();
 		let block_data_cache = block_data_cache.clone();
 
-		Box::new(move |deny_unsafe, _| {
+		move |deny_unsafe, _| {
 			let deps = rpc::FullDeps {
 				backend: backend.clone(),
 				client: client.clone(),
@@ -581,22 +589,25 @@ where
 				block_data_cache: block_data_cache.clone(),
 				overrides: overrides.clone(),
 			};
-			#[allow(unused_mut)]
-			let mut io = rpc::create_full(deps, subscription_task_executor.clone());
+
 			if ethapi_cmd.contains(&EthApiCmd::Debug) || ethapi_cmd.contains(&EthApiCmd::Trace) {
-				rpc::tracing::extend_with_tracing(
-					client.clone(),
-					tracing_requesters.clone(),
-					rpc_config.ethapi_trace_max_count,
-					&mut io,
-				);
+				rpc::create_full(
+					deps,
+					subscription_task_executor.clone(),
+					Some(crate::rpc::TracingConfig {
+						tracing_requesters: tracing_requesters.clone(),
+						trace_filter_max_count: rpc_config.ethapi_trace_max_count,
+					}),
+				)
+				.map_err(Into::into)
+			} else {
+				rpc::create_full(deps, subscription_task_executor.clone(), None).map_err(Into::into)
 			}
-			Ok(io)
-		})
+		}
 	};
 
 	sc_service::spawn_tasks(sc_service::SpawnTasksParams {
-		rpc_extensions_builder,
+		rpc_builder: Box::new(rpc_builder),
 		client: client.clone(),
 		transaction_pool: transaction_pool.clone(),
 		task_manager: &mut task_manager,
@@ -764,6 +775,9 @@ where
 	use futures::Stream;
 	use sc_consensus_manual_seal::{run_manual_seal, EngineCommand, ManualSealParams};
 	use sp_core::H256;
+
+	// Inject ethereum style rpc id provider
+	config.rpc_id_provider = Some(Box::new(fc_rpc::EthSubscriptionIdProvider));
 
 	let sc_service::PartialComponents {
 		client,
@@ -954,9 +968,10 @@ where
 		overrides.clone(),
 		rpc_config.eth_log_block_cache,
 		rpc_config.eth_log_block_cache,
+		prometheus_registry,
 	));
 
-	let rpc_extensions_builder = {
+	let rpc_builder = {
 		let client = client.clone();
 		let pool = transaction_pool.clone();
 		let backend = backend.clone();
@@ -967,7 +982,7 @@ where
 		let fee_history_cache = fee_history_cache.clone();
 		let block_data_cache = block_data_cache.clone();
 
-		Box::new(move |deny_unsafe, _| {
+		move |deny_unsafe, _| {
 			let deps = rpc::FullDeps {
 				backend: backend.clone(),
 				client: client.clone(),
@@ -987,18 +1002,21 @@ where
 				overrides: overrides.clone(),
 				block_data_cache: block_data_cache.clone(),
 			};
-			#[allow(unused_mut)]
-			let mut io = rpc::create_full(deps, subscription_task_executor.clone());
+
 			if ethapi_cmd.contains(&EthApiCmd::Debug) || ethapi_cmd.contains(&EthApiCmd::Trace) {
-				rpc::tracing::extend_with_tracing(
-					client.clone(),
-					tracing_requesters.clone(),
-					rpc_config.ethapi_trace_max_count,
-					&mut io,
-				);
+				rpc::create_full(
+					deps,
+					subscription_task_executor.clone(),
+					Some(crate::rpc::TracingConfig {
+						tracing_requesters: tracing_requesters.clone(),
+						trace_filter_max_count: rpc_config.ethapi_trace_max_count,
+					}),
+				)
+				.map_err(Into::into)
+			} else {
+				rpc::create_full(deps, subscription_task_executor.clone(), None).map_err(Into::into)
 			}
-			Ok(io)
-		})
+		}
 	};
 
 	let _rpc_handlers = sc_service::spawn_tasks(sc_service::SpawnTasksParams {
@@ -1007,7 +1025,7 @@ where
 		keystore: keystore_container.sync_keystore(),
 		task_manager: &mut task_manager,
 		transaction_pool,
-		rpc_extensions_builder,
+		rpc_builder: Box::new(rpc_builder),
 		backend,
 		system_rpc_tx,
 		config,

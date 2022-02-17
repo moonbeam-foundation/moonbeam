@@ -801,6 +801,7 @@ impl pallet_author_slot_filter::Config for Runtime {
 	type Event = Event;
 	type RandomnessSource = RandomnessCollectiveFlip;
 	type PotentialAuthors = ParachainStaking;
+	type WeightInfo = ();
 }
 
 parameter_types! {

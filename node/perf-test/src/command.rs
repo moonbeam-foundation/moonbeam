@@ -77,6 +77,7 @@ where
 {
 	pub fn from_cmd(mut config: Configuration, _cmd: &PerfCmd) -> CliResult<Self> {
 		println!("perf-test from_cmd");
+
 		let sc_service::PartialComponents {
 			client,
 			backend,
@@ -208,9 +209,10 @@ where
 			overrides.clone(),
 			3000,
 			3000,
+			prometheus_registry,
 		));
 
-		let rpc_extensions_builder = {
+		let rpc_builder = {
 			let client = client.clone();
 			let pool = transaction_pool.clone();
 			let backend = backend.clone();
@@ -240,9 +242,8 @@ where
 					overrides: overrides.clone(),
 					block_data_cache: block_data_cache.clone(),
 				};
-				#[allow(unused_mut)]
-				let mut io = rpc::create_full(deps, subscription_task_executor.clone());
-				Ok(io)
+
+				rpc::create_full(deps, subscription_task_executor.clone(), None).map_err(Into::into)
 			})
 		};
 
@@ -252,7 +253,7 @@ where
 			keystore: keystore_container.sync_keystore(),
 			task_manager: &mut task_manager,
 			transaction_pool: transaction_pool.clone(),
-			rpc_extensions_builder,
+			rpc_builder: Box::new(rpc_builder),
 			backend,
 			system_rpc_tx,
 			config,
