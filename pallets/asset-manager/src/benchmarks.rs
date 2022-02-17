@@ -80,6 +80,16 @@ benchmarks! {
 		assert_eq!(Pallet::<T>::local_asset_creation_authorization(&creator).unwrap().owner, owner);
 		assert_eq!(Pallet::<T>::local_asset_creation_authorization(&creator).unwrap().min_balance, min_balance);
 	}
+
+	register_local_asset {
+		let creator: T::AccountId  = account("account id", 0u32, 0u32);
+		let owner: T::AccountId  = account("account id", 1u32, 0u32);
+		let min_balance: T::Balance = 1u32.into();
+		Pallet::<T>::authorize_local_assset(RawOrigin::Root.into(), creator.clone(), owner.clone(), min_balance.clone())?;
+	}: _(RawOrigin::Signed(creator.clone()))
+	verify {
+		assert!(Pallet::<T>::local_asset_creation_authorization(&creator).is_none());
+	}
 }
 
 #[cfg(test)]
