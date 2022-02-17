@@ -17,7 +17,7 @@
 #![cfg(feature = "runtime-benchmarks")]
 
 use crate::{Call, Config, Pallet};
-use frame_benchmarking::{benchmarks, impl_benchmark_test_suite};
+use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
 use frame_system::RawOrigin;
 use xcm::latest::prelude::*;
 
@@ -68,6 +68,17 @@ benchmarks! {
 	verify {
 		assert_eq!(Pallet::<T>::asset_id_type(asset_id), Some(new_asset_type.clone()));
 		assert_eq!(Pallet::<T>::asset_type_units_per_second(&new_asset_type), Some(1));
+	}
+
+	authorize_local_assset {
+		let creator: T::AccountId  = account("account id", 0u32, 0u32);
+		let owner: T::AccountId  = account("account id", 1u32, 0u32);
+		let min_balance: T::Balance = 1u32.into();
+
+	}: _(RawOrigin::Root, creator.clone(), owner.clone(), min_balance.clone())
+	verify {
+		assert_eq!(Pallet::<T>::local_asset_creation_authorization(&creator).unwrap().owner, owner);
+		assert_eq!(Pallet::<T>::local_asset_creation_authorization(&creator).unwrap().min_balance, min_balance);
 	}
 }
 
