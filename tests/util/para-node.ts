@@ -1,8 +1,10 @@
 import tcpPortUsed from "tcp-port-used";
 import path from "path";
 import fs from "fs";
+import prepend from "prepend-transform";
 import child_process from "child_process";
 import { killAll, run } from "polkadot-launch";
+import { Transform } from "stream";
 import {
   BINARY_PATH,
   OVERRIDE_RUNTIME_PATH,
@@ -100,7 +102,7 @@ export async function getRuntimeWasm(
     console.log(`     Missing ${runtimePath} locally, downloading it...`);
     child_process.execSync(
       `mkdir -p ${path.dirname(runtimePath)} && ` +
-        `wget https://github.com/PureStake/moonbeam/releases/` +
+        `wget -q https://github.com/PureStake/moonbeam/releases/` +
         `download/${runtimeTag}/${runtimeName}-${runtimeTag}.wasm ` +
         `-O ${runtimePath}.bin`
     );
@@ -118,7 +120,7 @@ export async function getMoonbeamReleaseBinary(binaryTag: string): Promise<strin
     console.log(`     Missing ${binaryPath} locally, downloading it...`);
     child_process.execSync(
       `mkdir -p ${path.dirname(binaryPath)} &&` +
-        ` wget https://github.com/PureStake/moonbeam/releases/download/${binaryTag}/moonbeam` +
+        ` wget -q https://github.com/PureStake/moonbeam/releases/download/${binaryTag}/moonbeam` +
         ` -O ${binaryPath} &&` +
         ` chmod u+x ${binaryPath}`
     );
@@ -324,6 +326,18 @@ export async function startParachainNodes(options: ParachainOptions): Promise<{
   process.once("SIGINT", onProcessInterrupt);
 
   await run("", launchConfig);
+  if (process.env.MOONBEAM_LOG) {
+    new Array(numberOfParachains + 1).fill(0).forEach((_, i) => {
+      const stream = fs.createReadStream(`${RELAY_CHAIN_NODE_NAMES[i]}.log`);
+      stream.pipe(prepend(`relay-${i} `));
+      stream.pipe(process.stdout);
+    });
+    parachainArray.forEach((_, i) => {
+      fs.createReadStream(`${ports[i * 2 + numberOfParachains + 1].wsPort}.log`)
+        .pipe(prepend(`para-${i} `))
+        .pipe(process.stdout);
+    });
+  }
 
   return {
     relayPorts: new Array(numberOfParachains + 1).fill(0).map((_, i) => {
