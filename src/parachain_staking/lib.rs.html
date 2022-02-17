@@ -3263,10 +3263,6 @@
 <span id="3263">3263</span>
 <span id="3264">3264</span>
 <span id="3265">3265</span>
-<span id="3266">3266</span>
-<span id="3267">3267</span>
-<span id="3268">3268</span>
-<span id="3269">3269</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -3796,13 +3792,21 @@
 		<span class="doccomment">/// Reset top delegations metadata</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reset_top_data</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span>(
 			<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+			<span class="ident">candidate</span>: <span class="ident">T::AccountId</span>,
 			<span class="ident">top_delegations</span>: <span class="kw-2">&amp;</span><span class="ident">Delegations</span><span class="op">&lt;</span><span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 		) <span class="kw">where</span>
-			<span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span>,
+			<span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span>,
 		{
 			<span class="self">self</span>.<span class="ident">lowest_top_delegation_amount</span> <span class="op">=</span> <span class="ident">top_delegations</span>.<span class="ident">lowest_delegation_amount</span>().<span class="ident">into</span>();
 			<span class="self">self</span>.<span class="ident">top_capacity</span> <span class="op">=</span> <span class="ident">top_delegations</span>.<span class="ident">top_capacity</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>();
+			<span class="kw">let</span> <span class="ident">old_total_counted</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">total_counted</span>;
 			<span class="self">self</span>.<span class="ident">total_counted</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">bond</span> <span class="op">+</span> <span class="ident">top_delegations</span>.<span class="ident">total</span>.<span class="ident">into</span>();
+			<span class="comment">// CandidatePool value for candidate always changes if top delegations total changes</span>
+			<span class="comment">// so we moved the update into this function to deduplicate code and patch a bug that</span>
+			<span class="comment">// forgot to apply the update when increasing top delegation</span>
+			<span class="kw">if</span> <span class="ident">old_total_counted</span> <span class="op">!</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">total_counted</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">is_active</span>() {
+				<span class="ident">Pallet</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::update_active</span>(<span class="ident">candidate</span>, <span class="self">self</span>.<span class="ident">total_counted</span>.<span class="ident">into</span>());
+			}
 		}
 		<span class="doccomment">/// Reset bottom delegations metadata</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reset_bottom_data</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span>(
@@ -3827,7 +3831,7 @@
 			<span class="ident">delegation</span>: <span class="ident">Bond</span><span class="op">&lt;</span><span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 		) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">DelegatorAdded</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span>), <span class="ident">DispatchError</span><span class="op">&gt;</span>
 		<span class="kw">where</span>
-			<span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span>,
+			<span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span>,
 		{
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">less_total_staked</span> <span class="op">=</span> <span class="prelude-val">None</span>;
 			<span class="kw">let</span> <span class="ident">delegator_added</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">top_capacity</span> {
@@ -3874,7 +3878,7 @@
 			<span class="ident">delegation</span>: <span class="ident">Bond</span><span class="op">&lt;</span><span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 		) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span>
 		<span class="kw">where</span>
-			<span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span>,
+			<span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span>,
 		{
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">less_total_staked</span> <span class="op">=</span> <span class="prelude-val">None</span>;
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">top_delegations</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">TopDelegations</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="ident">candidate</span>)
@@ -3894,7 +3898,7 @@
 			<span class="comment">// insert into top</span>
 			<span class="ident">top_delegations</span>.<span class="ident">insert_sorted_greatest_to_least</span>(<span class="ident">delegation</span>);
 			<span class="comment">// update candidate info</span>
-			<span class="self">self</span>.<span class="ident">reset_top_data</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="ident">top_delegations</span>);
+			<span class="self">self</span>.<span class="ident">reset_top_data</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">candidate</span>.<span class="ident">clone</span>(), <span class="kw-2">&amp;</span><span class="ident">top_delegations</span>);
 			<span class="kw">if</span> <span class="ident">less_total_staked</span>.<span class="ident">is_none</span>() {
 				<span class="comment">// only increment delegation count if we are not kicking a bottom delegation</span>
 				<span class="self">self</span>.<span class="ident">delegation_count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1u32</span>;
@@ -3912,7 +3916,7 @@
 			<span class="ident">candidate</span>: <span class="kw-2">&amp;</span><span class="ident">T::AccountId</span>,
 			<span class="ident">delegation</span>: <span class="ident">Bond</span><span class="op">&lt;</span><span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 		) <span class="kw">where</span>
-			<span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span>,
+			<span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span>,
 		{
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bottom_delegations</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">BottomDelegations</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="ident">candidate</span>)
 				.<span class="ident">expect</span>(<span class="string">&quot;CandidateInfo existence =&gt; BottomDelegations existence&quot;</span>);
@@ -4009,7 +4013,7 @@
 			<span class="ident">delegator</span>: <span class="ident">T::AccountId</span>,
 		) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">bool</span>, <span class="ident">DispatchError</span><span class="op">&gt;</span>
 		<span class="kw">where</span>
-			<span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span>,
+			<span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span>,
 		{
 			<span class="kw">let</span> <span class="ident">old_total_counted</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">total_counted</span>;
 			<span class="comment">// remove top delegation</span>
@@ -4046,7 +4050,7 @@
 				<span class="ident">top_delegations</span>.<span class="ident">insert_sorted_greatest_to_least</span>(<span class="ident">highest_bottom_delegation</span>);
 			}
 			<span class="comment">// update candidate info</span>
-			<span class="self">self</span>.<span class="ident">reset_top_data</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="ident">top_delegations</span>);
+			<span class="self">self</span>.<span class="ident">reset_top_data</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">candidate</span>.<span class="ident">clone</span>(), <span class="kw-2">&amp;</span><span class="ident">top_delegations</span>);
 			<span class="self">self</span>.<span class="ident">delegation_count</span> <span class="op">-</span><span class="op">=</span> <span class="number">1u32</span>;
 			<span class="op">&lt;</span><span class="ident">TopDelegations</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="ident">candidate</span>, <span class="ident">top_delegations</span>);
 			<span class="comment">// return whether total counted changed</span>
@@ -4096,7 +4100,7 @@
 			<span class="ident">more</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 		) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">bool</span>, <span class="ident">DispatchError</span><span class="op">&gt;</span>
 		<span class="kw">where</span>
-			<span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span>,
+			<span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span>,
 		{
 			<span class="kw">let</span> <span class="ident">lowest_top_eq_highest_bottom</span> <span class="op">=</span>
 				<span class="self">self</span>.<span class="ident">lowest_top_delegation_amount</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">highest_bottom_delegation_amount</span>;
@@ -4126,7 +4130,7 @@
 			<span class="ident">more</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 		) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">bool</span>, <span class="ident">DispatchError</span><span class="op">&gt;</span>
 		<span class="kw">where</span>
-			<span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span>,
+			<span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span>,
 		{
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">top_delegations</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">TopDelegations</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="ident">candidate</span>)
 				.<span class="ident">expect</span>(<span class="string">&quot;CandidateInfo exists =&gt; TopDelegations exists&quot;</span>);
@@ -4149,8 +4153,9 @@
 				})
 				.<span class="ident">collect</span>();
 			<span class="macro">ensure!</span>(<span class="ident">in_top</span>, <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::DelegationDNE</span>);
+			<span class="ident">top_delegations</span>.<span class="ident">total</span> <span class="op">=</span> <span class="ident">top_delegations</span>.<span class="ident">total</span>.<span class="ident">saturating_add</span>(<span class="ident">more</span>);
 			<span class="ident">top_delegations</span>.<span class="ident">sort_greatest_to_least</span>();
-			<span class="self">self</span>.<span class="ident">reset_top_data</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="ident">top_delegations</span>);
+			<span class="self">self</span>.<span class="ident">reset_top_data</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">candidate</span>.<span class="ident">clone</span>(), <span class="kw-2">&amp;</span><span class="ident">top_delegations</span>);
 			<span class="op">&lt;</span><span class="ident">TopDelegations</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="ident">candidate</span>, <span class="ident">top_delegations</span>);
 			<span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
 		}
@@ -4163,7 +4168,7 @@
 			<span class="ident">more</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 		) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">bool</span>, <span class="ident">DispatchError</span><span class="op">&gt;</span>
 		<span class="kw">where</span>
-			<span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span>,
+			<span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span>,
 		{
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bottom_delegations</span> <span class="op">=</span>
 				<span class="op">&lt;</span><span class="ident">BottomDelegations</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="ident">candidate</span>).<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::CandidateDNE</span>)<span class="question-mark">?</span>;
@@ -4206,7 +4211,7 @@
 					}
 					<span class="comment">// insert into top</span>
 					<span class="ident">top_delegations</span>.<span class="ident">insert_sorted_greatest_to_least</span>(<span class="ident">delegation</span>);
-					<span class="self">self</span>.<span class="ident">reset_top_data</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="ident">top_delegations</span>);
+					<span class="self">self</span>.<span class="ident">reset_top_data</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">candidate</span>.<span class="ident">clone</span>(), <span class="kw-2">&amp;</span><span class="ident">top_delegations</span>);
 					<span class="op">&lt;</span><span class="ident">TopDelegations</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="ident">candidate</span>, <span class="ident">top_delegations</span>);
 					<span class="bool-val">true</span>
 				} <span class="kw">else</span> {
@@ -4229,6 +4234,7 @@
 						})
 						.<span class="ident">collect</span>();
 					<span class="macro">ensure!</span>(<span class="ident">in_bottom</span>, <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::DelegationDNE</span>);
+					<span class="ident">bottom_delegations</span>.<span class="ident">total</span> <span class="op">=</span> <span class="ident">bottom_delegations</span>.<span class="ident">total</span>.<span class="ident">saturating_add</span>(<span class="ident">more</span>);
 					<span class="ident">bottom_delegations</span>.<span class="ident">sort_greatest_to_least</span>();
 					<span class="bool-val">false</span>
 				};
@@ -4281,7 +4287,7 @@
 			<span class="ident">less</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 		) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">bool</span>, <span class="ident">DispatchError</span><span class="op">&gt;</span>
 		<span class="kw">where</span>
-			<span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span>,
+			<span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span>,
 		{
 			<span class="comment">// The delegation after the `decrease-delegation` will be strictly less than the</span>
 			<span class="comment">// highest bottom delegation</span>
@@ -4353,7 +4359,7 @@
 				<span class="ident">top_delegations</span>.<span class="ident">sort_greatest_to_least</span>();
 				<span class="bool-val">true</span>
 			};
-			<span class="self">self</span>.<span class="ident">reset_top_data</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="ident">top_delegations</span>);
+			<span class="self">self</span>.<span class="ident">reset_top_data</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">candidate</span>.<span class="ident">clone</span>(), <span class="kw-2">&amp;</span><span class="ident">top_delegations</span>);
 			<span class="op">&lt;</span><span class="ident">TopDelegations</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="ident">candidate</span>, <span class="ident">top_delegations</span>);
 			<span class="prelude-val">Ok</span>(<span class="ident">in_top_after</span>)
 		}
@@ -4843,7 +4849,6 @@
 								<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">collator</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">CandidateInfo</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">candidate_id</span>)
 									.<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::CandidateDNE</span>)<span class="question-mark">?</span>;
 								<span class="ident">T::Currency::unreserve</span>(<span class="kw-2">&amp;</span><span class="ident">delegator_id</span>, <span class="ident">balance_amt</span>);
-								<span class="kw">let</span> <span class="ident">before</span> <span class="op">=</span> <span class="ident">collator</span>.<span class="ident">total_counted</span>;
 								<span class="comment">// need to go into decrease_delegation</span>
 								<span class="kw">let</span> <span class="ident">in_top</span> <span class="op">=</span> <span class="ident">collator</span>.<span class="ident">decrease_delegation</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(
 									<span class="kw-2">&amp;</span><span class="ident">candidate_id</span>,
@@ -4851,10 +4856,6 @@
 									<span class="ident">amount_before</span>,
 									<span class="ident">balance_amt</span>,
 								)<span class="question-mark">?</span>;
-								<span class="kw">let</span> <span class="ident">after</span> <span class="op">=</span> <span class="ident">collator</span>.<span class="ident">total_counted</span>;
-								<span class="kw">if</span> <span class="ident">collator</span>.<span class="ident">is_active</span>() <span class="op">&amp;&amp;</span> (<span class="ident">before</span> <span class="op">!</span><span class="op">=</span> <span class="ident">after</span>) {
-									<span class="ident">Pallet</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::update_active</span>(<span class="ident">candidate_id</span>.<span class="ident">clone</span>(), <span class="ident">after</span>);
-								}
 								<span class="op">&lt;</span><span class="ident">CandidateInfo</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="kw-2">&amp;</span><span class="ident">candidate_id</span>, <span class="ident">collator</span>);
 								<span class="kw">let</span> <span class="ident">new_total_staked</span> <span class="op">=</span>
 									<span class="op">&lt;</span><span class="ident">Total</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>().<span class="ident">saturating_sub</span>(<span class="ident">balance_amt</span>);
@@ -6127,11 +6128,6 @@
 			)<span class="question-mark">?</span>;
 			<span class="ident">T::Currency::reserve</span>(<span class="kw-2">&amp;</span><span class="ident">delegator</span>, <span class="ident">amount</span>)
 				.<span class="ident">expect</span>(<span class="string">&quot;verified can reserve at top of this extrinsic body&quot;</span>);
-			<span class="kw">if</span> <span class="kw">let</span> <span class="ident">DelegatorAdded::AddedToTop</span> { <span class="ident">new_total</span> } <span class="op">=</span> <span class="ident">delegator_position</span> {
-				<span class="kw">if</span> <span class="ident">state</span>.<span class="ident">is_active</span>() {
-					<span class="ident"><span class="self">Self</span>::update_active</span>(<span class="ident">candidate</span>.<span class="ident">clone</span>(), <span class="ident">new_total</span>);
-				}
-			}
 			<span class="comment">// only is_some if kicked the lowest bottom as a consequence of this new delegation</span>
 			<span class="kw">let</span> <span class="ident">net_total_increase</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">less</span>) <span class="op">=</span> <span class="ident">less_total_staked</span> {
 				<span class="ident">amount</span> <span class="op">-</span> <span class="ident">less</span>
@@ -6316,12 +6312,8 @@
 			<span class="ident">amount</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 		) -&gt; <span class="ident">DispatchResult</span> {
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">CandidateInfo</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">candidate</span>).<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::CandidateDNE</span>)<span class="question-mark">?</span>;
-			<span class="kw">let</span> <span class="ident">total_changed</span> <span class="op">=</span>
-				<span class="ident">state</span>.<span class="ident">rm_delegation_if_exists</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="ident">candidate</span>, <span class="ident">delegator</span>.<span class="ident">clone</span>(), <span class="ident">amount</span>)<span class="question-mark">?</span>;
+			<span class="ident">state</span>.<span class="ident">rm_delegation_if_exists</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="ident">candidate</span>, <span class="ident">delegator</span>.<span class="ident">clone</span>(), <span class="ident">amount</span>)<span class="question-mark">?</span>;
 			<span class="ident">T::Currency::unreserve</span>(<span class="kw-2">&amp;</span><span class="ident">delegator</span>, <span class="ident">amount</span>);
-			<span class="kw">if</span> <span class="ident">state</span>.<span class="ident">is_active</span>() <span class="op">&amp;&amp;</span> <span class="ident">total_changed</span> {
-				<span class="ident"><span class="self">Self</span>::update_active</span>(<span class="ident">candidate</span>.<span class="ident">clone</span>(), <span class="ident">state</span>.<span class="ident">total_counted</span>);
-			}
 			<span class="kw">let</span> <span class="ident">new_total_locked</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Total</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>().<span class="ident">saturating_sub</span>(<span class="ident">amount</span>);
 			<span class="op">&lt;</span><span class="ident">Total</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::put</span>(<span class="ident">new_total_locked</span>);
 			<span class="kw">let</span> <span class="ident">new_total</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">total_counted</span>;

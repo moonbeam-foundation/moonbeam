@@ -427,6 +427,34 @@
 <span id="427">427</span>
 <span id="428">428</span>
 <span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2020 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -459,7 +487,8 @@
 <span class="kw">use</span> <span class="ident">pallet_migrations</span>::{<span class="ident">GetMigrations</span>, <span class="ident">Migration</span>};
 <span class="kw">use</span> <span class="ident">parachain_staking</span>::{
 	<span class="ident">migrations</span>::{
-		<span class="ident">IncreaseMaxDelegationsPerCandidate</span>, <span class="ident">PurgeStaleStorage</span>, <span class="ident">SplitCandidateStateToDecreasePoV</span>,
+		<span class="ident">IncreaseMaxDelegationsPerCandidate</span>, <span class="ident">PatchIncorrectDelegationSums</span>, <span class="ident">PurgeStaleStorage</span>,
+		<span class="ident">SplitCandidateStateToDecreasePoV</span>,
 	},
 	<span class="ident">Config</span> <span class="kw">as</span> <span class="ident">ParachainStakingConfig</span>,
 };
@@ -471,6 +500,30 @@
 
 <span class="doccomment">/// This module acts as a registry where each migration is defined. Each migration should implement</span>
 <span class="doccomment">/// the &quot;Migration&quot; trait declared in the pallet-migrations crate.</span>
+
+<span class="doccomment">/// Patch delegations total mismatch</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ParachainStakingPatchIncorrectDelegationSums</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">ParachainStakingConfig</span><span class="op">&gt;</span> <span class="ident">Migration</span> <span class="kw">for</span> <span class="ident">ParachainStakingPatchIncorrectDelegationSums</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">friendly_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
+		<span class="string">&quot;MM_Parachain_Staking_Patch_Incorrect_Delegation_Sums&quot;</span>
+	}
+
+	<span class="kw">fn</span> <span class="ident">migrate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_available_weight</span>: <span class="ident">Weight</span>) -&gt; <span class="ident">Weight</span> {
+		<span class="ident">PatchIncorrectDelegationSums</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::on_runtime_upgrade</span>()
+	}
+
+	<span class="doccomment">/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.</span>
+	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
+	<span class="kw">fn</span> <span class="ident">pre_upgrade</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
+		<span class="ident">PatchIncorrectDelegationSums</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::pre_upgrade</span>()
+	}
+
+	<span class="doccomment">/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.</span>
+	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
+	<span class="kw">fn</span> <span class="ident">post_upgrade</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
+		<span class="ident">PatchIncorrectDelegationSums</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::post_upgrade</span>()
+	}
+}
 
 <span class="doccomment">/// Staking split candidate state</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ParachainStakingSplitCandidateState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
@@ -787,8 +840,10 @@
 		<span class="comment">// 	ParachainStakingManualExits::&lt;Runtime&gt;(Default::default());</span>
 		<span class="comment">// let migration_parachain_staking_increase_max_delegations_per_candidate =</span>
 		<span class="comment">// 	ParachainStakingIncreaseMaxDelegationsPerCandidate::&lt;Runtime&gt;(Default::default());</span>
-		<span class="kw">let</span> <span class="ident">migration_parachain_staking_split_candidate_state</span> <span class="op">=</span>
-			<span class="ident">ParachainStakingSplitCandidateState</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>(<span class="ident">Default::default</span>());
+		<span class="comment">// let migration_parachain_staking_split_candidate_state =</span>
+		<span class="comment">// 	ParachainStakingSplitCandidateState::&lt;Runtime&gt;(Default::default());</span>
+		<span class="kw">let</span> <span class="ident">migration_parachain_staking_patch_incorrect_delegation_sums</span> <span class="op">=</span>
+			<span class="ident">ParachainStakingPatchIncorrectDelegationSums</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>(<span class="ident">Default::default</span>());
 
 		<span class="kw">let</span> <span class="ident">migration_scheduler_v3</span> <span class="op">=</span> <span class="ident">SchedulerMigrationV3</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>(<span class="ident">Default::default</span>());
 
@@ -805,15 +860,14 @@
 			<span class="comment">// Box::new(migration_parachain_staking_manual_exits),</span>
 			<span class="comment">// completed in runtime 1101</span>
 			<span class="comment">// Box::new(migration_parachain_staking_increase_max_delegations_per_candidate),</span>
-			<span class="ident">Box::new</span>(<span class="ident">migration_parachain_staking_split_candidate_state</span>),
+			<span class="comment">// completed in runtime 1201</span>
+			<span class="comment">// Box::new(migration_parachain_staking_split_candidate_state),</span>
 			<span class="ident">Box::new</span>(<span class="ident">migration_scheduler_v3</span>),
+			<span class="ident">Box::new</span>(<span class="ident">migration_parachain_staking_patch_incorrect_delegation_sums</span>),
 		]
 	}
 }
 
-<span class="comment">//TODO: Once the statemine prefix migration is applied,</span>
-<span class="comment">// we can remove StatemineParaIdInfo and StatemineAssetsInstanceInfo</span>
-<span class="comment">// but for now we need a way to pass these parameters, which are distinct for each of the runtimes</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;xcm-support&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">XcmMigrations</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">StatemineParaIdInfo</span>, <span class="ident">StatemineAssetsInstanceInfo</span><span class="op">&gt;</span>(
 	<span class="ident">PhantomData</span><span class="op">&lt;</span>(<span class="ident">Runtime</span>, <span class="ident">StatemineParaIdInfo</span>, <span class="ident">StatemineAssetsInstanceInfo</span>)<span class="op">&gt;</span>,
@@ -824,35 +878,37 @@
 	<span class="kw">for</span> <span class="ident">XcmMigrations</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">StatemineParaIdInfo</span>, <span class="ident">StatemineAssetsInstanceInfo</span><span class="op">&gt;</span>
 <span class="kw">where</span>
 	<span class="ident">Runtime</span>: <span class="ident">xcm_transactor::Config</span> <span class="op">+</span> <span class="ident">pallet_migrations::Config</span> <span class="op">+</span> <span class="ident">pallet_asset_manager::Config</span>,
-	<span class="ident">StatemineParaIdInfo</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-	<span class="ident">StatemineAssetsInstanceInfo</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 	<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_asset_manager::Config</span><span class="op">&gt;</span><span class="ident">::AssetType</span>:
 		<span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span>,
 {
 	<span class="kw">fn</span> <span class="ident">get_migrations</span>() -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Migration</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">xcm_transactor_max_weight</span> <span class="op">=</span>
-			<span class="ident">XcmTransactorMaxTransactWeight</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>(<span class="ident">Default::default</span>());
+		<span class="comment">// let xcm_transactor_max_weight =</span>
+		<span class="comment">// 	XcmTransactorMaxTransactWeight::&lt;Runtime&gt;(Default::default());</span>
 
-		<span class="kw">let</span> <span class="ident">asset_manager_units_with_asset_type</span> <span class="op">=</span>
-			<span class="ident">AssetManagerUnitsWithAssetType</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>(<span class="ident">Default::default</span>());
+		<span class="comment">// let asset_manager_units_with_asset_type =</span>
+		<span class="comment">// 	AssetManagerUnitsWithAssetType::&lt;Runtime&gt;(Default::default());</span>
 
-		<span class="kw">let</span> <span class="ident">asset_manager_populate_asset_type_id_storage</span> <span class="op">=</span>
-			<span class="ident">AssetManagerPopulateAssetTypeIdStorage</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>(<span class="ident">Default::default</span>());
+		<span class="comment">// let asset_manager_populate_asset_type_id_storage =</span>
+		<span class="comment">// 	AssetManagerPopulateAssetTypeIdStorage::&lt;Runtime&gt;(Default::default());</span>
 
-		<span class="kw">let</span> <span class="ident">asset_manager_change_statemine_prefixes</span> <span class="op">=</span> <span class="ident">AssetManagerChangeStateminePrefixes</span>::<span class="op">&lt;</span>
-			<span class="ident">Runtime</span>,
-			<span class="ident">StatemineParaIdInfo</span>,
-			<span class="ident">StatemineAssetsInstanceInfo</span>,
-		<span class="op">&gt;</span>(<span class="ident">Default::default</span>());
+		<span class="comment">// let asset_manager_change_statemine_prefixes = AssetManagerChangeStateminePrefixes::&lt;</span>
+		<span class="comment">// 	Runtime,</span>
+		<span class="comment">// 	StatemineParaIdInfo,</span>
+		<span class="comment">// 	StatemineAssetsInstanceInfo,</span>
+		<span class="comment">// &gt;(Default::default());</span>
 
 		<span class="comment">// TODO: this is a lot of allocation to do upon every get() call. this *should* be avoided</span>
 		<span class="comment">// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review</span>
 
 		<span class="macro">vec!</span>[
-			<span class="ident">Box::new</span>(<span class="ident">xcm_transactor_max_weight</span>),
-			<span class="ident">Box::new</span>(<span class="ident">asset_manager_units_with_asset_type</span>),
-			<span class="ident">Box::new</span>(<span class="ident">asset_manager_change_statemine_prefixes</span>),
-			<span class="ident">Box::new</span>(<span class="ident">asset_manager_populate_asset_type_id_storage</span>),
+			<span class="comment">// completed in runtime 1201</span>
+			<span class="comment">// Box::new(xcm_transactor_max_weight),</span>
+			<span class="comment">// completed in runtime 1201</span>
+			<span class="comment">// Box::new(asset_manager_units_with_asset_type),</span>
+			<span class="comment">// completed in runtime 1201</span>
+			<span class="comment">// Box::new(asset_manager_change_statemine_prefixes),</span>
+			<span class="comment">// completed in runtime 1201</span>
+			<span class="comment">// Box::new(asset_manager_populate_asset_type_id_storage),</span>
 		]
 	}
 }

@@ -495,6 +495,116 @@
 <span id="495">495</span>
 <span id="496">496</span>
 <span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
+<span id="552">552</span>
+<span id="553">553</span>
+<span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
+<span id="557">557</span>
+<span id="558">558</span>
+<span id="559">559</span>
+<span id="560">560</span>
+<span id="561">561</span>
+<span id="562">562</span>
+<span id="563">563</span>
+<span id="564">564</span>
+<span id="565">565</span>
+<span id="566">566</span>
+<span id="567">567</span>
+<span id="568">568</span>
+<span id="569">569</span>
+<span id="570">570</span>
+<span id="571">571</span>
+<span id="572">572</span>
+<span id="573">573</span>
+<span id="574">574</span>
+<span id="575">575</span>
+<span id="576">576</span>
+<span id="577">577</span>
+<span id="578">578</span>
+<span id="579">579</span>
+<span id="580">580</span>
+<span id="581">581</span>
+<span id="582">582</span>
+<span id="583">583</span>
+<span id="584">584</span>
+<span id="585">585</span>
+<span id="586">586</span>
+<span id="587">587</span>
+<span id="588">588</span>
+<span id="589">589</span>
+<span id="590">590</span>
+<span id="591">591</span>
+<span id="592">592</span>
+<span id="593">593</span>
+<span id="594">594</span>
+<span id="595">595</span>
+<span id="596">596</span>
+<span id="597">597</span>
+<span id="598">598</span>
+<span id="599">599</span>
+<span id="600">600</span>
+<span id="601">601</span>
+<span id="602">602</span>
+<span id="603">603</span>
+<span id="604">604</span>
+<span id="605">605</span>
+<span id="606">606</span>
+<span id="607">607</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -533,6 +643,116 @@
 };
 <span class="kw">use</span> <span class="ident">sp_runtime::traits::Zero</span>;
 <span class="kw">use</span> <span class="ident">sp_std</span>::{<span class="ident">convert::TryInto</span>, <span class="ident">vec::Vec</span>};
+
+<span class="doccomment">/// Migration to patch the incorrect delegations sums for all candidates</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PatchIncorrectDelegationSums</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">OnRuntimeUpgrade</span> <span class="kw">for</span> <span class="ident">PatchIncorrectDelegationSums</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">on_runtime_upgrade</span>() -&gt; <span class="ident">Weight</span> {
+		<span class="macro">log::info!</span>(
+			<span class="ident">target</span>: <span class="string">&quot;PatchIncorrectDelegationSums&quot;</span>,
+			<span class="string">&quot;running migration to patch incorrect delegation sums&quot;</span>
+		);
+		<span class="kw">let</span> <span class="ident">pallet_prefix</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;ParachainStaking&quot;</span>;
+		<span class="kw">let</span> <span class="ident">top_delegations_prefix</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;TopDelegations&quot;</span>;
+		<span class="kw">let</span> <span class="ident">bottom_delegations_prefix</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;BottomDelegations&quot;</span>;
+		<span class="comment">// Read all the data into memory.</span>
+		<span class="comment">// https://crates.parity.io/frame_support/storage/migration/fn.storage_key_iter.html</span>
+		<span class="kw">let</span> <span class="ident">stored_top_delegations</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">storage_key_iter</span>::<span class="op">&lt;</span>
+			<span class="ident">T::AccountId</span>,
+			<span class="ident">Delegations</span><span class="op">&lt;</span><span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+			<span class="ident">Twox64Concat</span>,
+		<span class="op">&gt;</span>(<span class="ident">pallet_prefix</span>, <span class="ident">top_delegations_prefix</span>)
+		.<span class="ident">collect</span>();
+		<span class="kw">let</span> <span class="ident">migrated_candidates_top_count</span>: <span class="ident">Weight</span> <span class="op">=</span> <span class="ident">stored_top_delegations</span>
+			.<span class="ident">len</span>()
+			.<span class="ident">try_into</span>()
+			.<span class="ident">expect</span>(<span class="string">&quot;There are between 0 and 2**64 mappings stored.&quot;</span>);
+		<span class="kw">let</span> <span class="ident">stored_bottom_delegations</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">storage_key_iter</span>::<span class="op">&lt;</span>
+			<span class="ident">T::AccountId</span>,
+			<span class="ident">Delegations</span><span class="op">&lt;</span><span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+			<span class="ident">Twox64Concat</span>,
+		<span class="op">&gt;</span>(<span class="ident">pallet_prefix</span>, <span class="ident">bottom_delegations_prefix</span>)
+		.<span class="ident">collect</span>();
+		<span class="kw">let</span> <span class="ident">migrated_candidates_bottom_count</span>: <span class="ident">Weight</span> <span class="op">=</span> <span class="ident">stored_bottom_delegations</span>
+			.<span class="ident">len</span>()
+			.<span class="ident">try_into</span>()
+			.<span class="ident">expect</span>(<span class="string">&quot;There are between 0 and 2**64 mappings stored.&quot;</span>);
+		<span class="kw">fn</span> <span class="ident">fix_delegations</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span>(
+			<span class="ident">delegations</span>: <span class="ident">Delegations</span><span class="op">&lt;</span><span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+		) -&gt; <span class="ident">Delegations</span><span class="op">&lt;</span><span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+			<span class="kw">let</span> <span class="ident">correct_total</span> <span class="op">=</span> <span class="ident">delegations</span>
+				.<span class="ident">delegations</span>
+				.<span class="ident">iter</span>()
+				.<span class="ident">fold</span>(<span class="ident">BalanceOf</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::zero</span>(), <span class="op">|</span><span class="ident">acc</span>, <span class="ident">b</span><span class="op">|</span> <span class="ident">acc</span> <span class="op">+</span> <span class="ident">b</span>.<span class="ident">amount</span>);
+			<span class="macro">log::info!</span>(
+				<span class="ident">target</span>: <span class="string">&quot;PatchIncorrectDelegationSums&quot;</span>,
+				<span class="string">&quot;Correcting total from {:?} to {:?}&quot;</span>,
+				<span class="ident">delegations</span>.<span class="ident">total</span>, <span class="ident">correct_total</span>
+			);
+			<span class="ident">Delegations</span> {
+				<span class="ident">delegations</span>: <span class="ident">delegations</span>.<span class="ident">delegations</span>,
+				<span class="ident">total</span>: <span class="ident">correct_total</span>,
+			}
+		}
+		<span class="kw">for</span> (<span class="ident">account</span>, <span class="ident">old_top_delegations</span>) <span class="kw">in</span> <span class="ident">stored_top_delegations</span> {
+			<span class="kw">let</span> <span class="ident">new_top_delegations</span> <span class="op">=</span> <span class="ident">fix_delegations</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">old_top_delegations</span>);
+			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">candidate_info</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">CandidateInfo</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">account</span>)
+				.<span class="ident">expect</span>(<span class="string">&quot;TopDelegations exists =&gt; CandidateInfo exists&quot;</span>);
+			<span class="ident">candidate_info</span>.<span class="ident">total_counted</span> <span class="op">=</span> <span class="ident">candidate_info</span>.<span class="ident">bond</span> <span class="op">+</span> <span class="ident">new_top_delegations</span>.<span class="ident">total</span>;
+			<span class="kw">if</span> <span class="ident">candidate_info</span>.<span class="ident">is_active</span>() {
+				<span class="ident">Pallet</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::update_active</span>(<span class="ident">account</span>.<span class="ident">clone</span>(), <span class="ident">candidate_info</span>.<span class="ident">total_counted</span>);
+			}
+			<span class="op">&lt;</span><span class="ident">CandidateInfo</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="kw-2">&amp;</span><span class="ident">account</span>, <span class="ident">candidate_info</span>);
+			<span class="op">&lt;</span><span class="ident">TopDelegations</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="kw-2">&amp;</span><span class="ident">account</span>, <span class="ident">new_top_delegations</span>);
+		}
+		<span class="kw">for</span> (<span class="ident">account</span>, <span class="ident">old_bottom_delegations</span>) <span class="kw">in</span> <span class="ident">stored_bottom_delegations</span> {
+			<span class="kw">let</span> <span class="ident">new_bottom_delegations</span> <span class="op">=</span> <span class="ident">fix_delegations</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">old_bottom_delegations</span>);
+			<span class="op">&lt;</span><span class="ident">BottomDelegations</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="kw-2">&amp;</span><span class="ident">account</span>, <span class="ident">new_bottom_delegations</span>);
+		}
+		<span class="kw">let</span> <span class="ident">weight</span> <span class="op">=</span> <span class="ident">T::DbWeight::get</span>();
+		<span class="kw">let</span> <span class="ident">top</span> <span class="op">=</span> <span class="ident">migrated_candidates_top_count</span>.<span class="ident">saturating_mul</span>(<span class="number">3</span> <span class="op">*</span> <span class="ident">weight</span>.<span class="ident">write</span> <span class="op">+</span> <span class="number">3</span> <span class="op">*</span> <span class="ident">weight</span>.<span class="ident">read</span>);
+		<span class="kw">let</span> <span class="ident">bottom</span> <span class="op">=</span> <span class="ident">migrated_candidates_bottom_count</span>.<span class="ident">saturating_mul</span>(<span class="ident">weight</span>.<span class="ident">write</span> <span class="op">+</span> <span class="ident">weight</span>.<span class="ident">read</span>);
+		<span class="comment">// 20% max block weight as margin for error</span>
+		<span class="ident">top</span> <span class="op">+</span> <span class="ident">bottom</span> <span class="op">+</span> <span class="number">100_000_000_000</span>
+	}
+	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
+	<span class="kw">fn</span> <span class="ident">pre_upgrade</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
+		<span class="comment">// get total counted for all candidates</span>
+		<span class="kw">for</span> (<span class="ident">account</span>, <span class="ident">state</span>) <span class="kw">in</span> <span class="op">&lt;</span><span class="ident">CandidateInfo</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::iter</span>() {
+			<span class="ident"><span class="self">Self</span>::set_temp_storage</span>(
+				<span class="ident">state</span>.<span class="ident">total_counted</span>,
+				<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Candidate{:?}TotalCounted&quot;</span>, <span class="ident">account</span>)[..],
+			);
+		}
+		<span class="prelude-val">Ok</span>(())
+	}
+
+	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
+	<span class="kw">fn</span> <span class="ident">post_upgrade</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
+		<span class="comment">// ensure new total counted = top_delegations.sum() + collator self bond</span>
+		<span class="kw">for</span> (<span class="ident">account</span>, <span class="ident">state</span>) <span class="kw">in</span> <span class="op">&lt;</span><span class="ident">CandidateInfo</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::iter</span>() {
+			<span class="kw">let</span> <span class="ident">old_count</span> <span class="op">=</span>
+				<span class="ident"><span class="self">Self</span>::get_temp_storage</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Candidate{:?}TotalCounted&quot;</span>, <span class="ident">account</span>)[..])
+					.<span class="ident">expect</span>(<span class="string">&quot;qed&quot;</span>);
+			<span class="kw">let</span> <span class="ident">new_count</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">total_counted</span>;
+			<span class="kw">let</span> <span class="ident">top_delegations_sum</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">TopDelegations</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="ident">account</span>)
+				.<span class="ident">expect</span>(<span class="string">&quot;CandidateInfo exists =&gt; TopDelegations exists&quot;</span>)
+				.<span class="ident">delegations</span>
+				.<span class="ident">iter</span>()
+				.<span class="ident">fold</span>(<span class="ident">BalanceOf</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::zero</span>(), <span class="op">|</span><span class="ident">acc</span>, <span class="ident">b</span><span class="op">|</span> <span class="ident">acc</span> <span class="op">+</span> <span class="ident">b</span>.<span class="ident">amount</span>);
+			<span class="kw">let</span> <span class="ident">correct_total_counted</span> <span class="op">=</span> <span class="ident">top_delegations_sum</span> <span class="op">+</span> <span class="ident">state</span>.<span class="ident">bond</span>;
+			<span class="macro">assert_eq!</span>(<span class="ident">new_count</span>, <span class="ident">correct_total_counted</span>);
+			<span class="kw">if</span> <span class="ident">new_count</span> <span class="op">!</span><span class="op">=</span> <span class="ident">old_count</span> {
+				<span class="macro">log::info!</span>(
+					<span class="ident">target</span>: <span class="string">&quot;PatchIncorrectDelegationSums&quot;</span>,
+					<span class="string">&quot;Corrected total from {:?} to {:?}&quot;</span>,
+					<span class="ident">old_count</span>, <span class="ident">new_count</span>
+				);
+			}
+		}
+		<span class="prelude-val">Ok</span>(())
+	}
+}
 
 <span class="doccomment">/// Migration to split CandidateState and minimize unnecessary storage reads</span>
 <span class="doccomment">/// for PoV optimization</span>
@@ -682,7 +902,7 @@
 				<span class="ident">state</span>.<span class="ident">top_delegations</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span> <span class="op">+</span> <span class="ident">state</span>.<span class="ident">bottom_delegations</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>;
 			<span class="ident"><span class="self">Self</span>::set_temp_storage</span>(
 				<span class="ident">total_delegation_count</span>,
-				<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Candidate{}DelegationCount&quot;</span>, <span class="ident">account</span>)[..],
+				<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Candidate{:?}DelegationCount&quot;</span>, <span class="ident">account</span>)[..],
 			);
 		}
 		<span class="prelude-val">Ok</span>(())
@@ -693,7 +913,7 @@
 		<span class="comment">// check that top + bottom are the same as the expected (stored in temp)</span>
 		<span class="kw">for</span> (<span class="ident">account</span>, <span class="ident">state</span>) <span class="kw">in</span> <span class="op">&lt;</span><span class="ident">CandidateInfo</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::iter</span>() {
 			<span class="kw">let</span> <span class="ident">expected_count</span>: <span class="ident">u32</span> <span class="op">=</span>
-				<span class="ident"><span class="self">Self</span>::get_temp_storage</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Candidate{}DelegationCount&quot;</span>, <span class="ident">account</span>)[..])
+				<span class="ident"><span class="self">Self</span>::get_temp_storage</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Candidate{:?}DelegationCount&quot;</span>, <span class="ident">account</span>)[..])
 					.<span class="ident">expect</span>(<span class="string">&quot;qed&quot;</span>);
 			<span class="kw">let</span> <span class="ident">actual_count</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">delegation_count</span>;
 			<span class="macro">assert_eq!</span>(<span class="ident">expected_count</span>, <span class="ident">actual_count</span>);
