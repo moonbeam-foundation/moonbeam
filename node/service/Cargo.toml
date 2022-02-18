@@ -14,7 +14,7 @@ derive_more = "0.99"
 exit-future = "0.2"
 flume = "0.10.9"
 futures = { version = "0.3.1", features = [ "compat" ] }
-jsonrpsee = { version = "0.9", default-features = false, features = ["server", "macros"] }
+jsonrpsee = { version = "0.9", default-features = false, features = [ "macros", "server" ] }
 libsecp256k1 = { version = "0.6", features = [ "hmac" ] }
 log = "0.4"
 parking_lot = "0.12.0"

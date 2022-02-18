@@ -10,7 +10,7 @@ version = "0.1.0"
 
 [dependencies]
 futures = { version = "0.3", features = [ "compat" ] }
-jsonrpsee = { version = "0.9", default-features = false, features = ["server", "macros"] }
+jsonrpsee = { version = "0.9", default-features = false, features = [ "macros", "server" ] }
 parity-scale-codec = "2.2"
 tokio = { version = "1.12.0", features = [ "sync", "time" ] }
 

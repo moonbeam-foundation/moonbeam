@@ -8,7 +8,7 @@ repository = "https://github.com/PureStake/moonbeam/"
 version = "0.6.0"
 
 [dependencies]
-jsonrpsee = { version = "0.9", default-features = false, features = ["server", "macros"] }
+jsonrpsee = { version = "0.9", default-features = false, features = [ "macros", "server" ] }
 rlp = "0.5"
 serde = { version = "1.0", features = [ "derive" ] }
 sha3 = "0.9"
