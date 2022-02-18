@@ -237,7 +237,6 @@ impl<T: BaseFeeConfig> OnRuntimeUpgrade for BaseFeePerGas<T> {
 	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade() -> Result<(), &'static str> {
-		log::info!("verifying I can see logs in pre");
 		let module: &[u8] = b"BaseFee";
 		// Verify the storage before the upgrade is empty
 		{
@@ -289,7 +288,6 @@ impl<T: BaseFeeConfig> OnRuntimeUpgrade for BaseFeePerGas<T> {
 	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade() -> Result<(), &'static str> {
-		log::info!("verifying I can see logs in post");
 		if Self::get_temp_storage::<bool>("base_fee_is_empty").is_some()
 			&& Self::get_temp_storage::<bool>("elasticity_is_empty").is_some()
 		{
@@ -314,7 +312,6 @@ impl<T: BaseFeeConfig> OnRuntimeUpgrade for BaseFeePerGas<T> {
 }
 
 pub struct MigrateBaseFeePerGas<T>(PhantomData<T>);
-
 // This is not strictly a migration, just an `on_runtime_upgrade` alternative to open a democracy
 // proposal to set this values through an extrinsic.
 impl<T: BaseFeeConfig> Migration for MigrateBaseFeePerGas<T> {
