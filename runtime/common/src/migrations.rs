@@ -453,7 +453,7 @@ where
 
 		// let migration_parachain_staking_split_candidate_state =
 		// 	ParachainStakingSplitCandidateState::<Runtime>(Default::default());
-		// let migration_scheduler_v3 = SchedulerMigrationV3::<Runtime>(Default::default());
+		let migration_scheduler_v3 = SchedulerMigrationV3::<Runtime>(Default::default());
 
 		let migration_base_fee = BaseFeePerGas::<Runtime>(Default::default());
 
@@ -472,7 +472,7 @@ where
 			// Box::new(migration_parachain_staking_increase_max_delegations_per_candidate),
 			// completed in runtime 1200
 			// Box::new(migration_parachain_staking_split_candidate_state),
-			// Box::new(migration_scheduler_v3),
+			Box::new(migration_scheduler_v3),
 			Box::new(migration_base_fee)
 
 		]
