@@ -94,7 +94,8 @@ fn test_root_can_change_units_per_second() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			Origin::root(),
 			MockAssetType::MockAsset(1),
-			200u128.into()
+			200u128.into(),
+			0
 		));
 
 		assert_eq!(
@@ -128,7 +129,8 @@ fn test_regular_user_cannot_call_extrinsics() {
 			AssetManager::set_asset_units_per_second(
 				Origin::signed(1),
 				MockAssetType::MockAsset(1),
-				200u128.into()
+				200u128.into(),
+				0
 			),
 			sp_runtime::DispatchError::BadOrigin
 		);
@@ -158,7 +160,8 @@ fn test_root_can_change_asset_id_type() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			Origin::root(),
 			MockAssetType::MockAsset(1),
-			200u128.into()
+			200u128.into(),
+			0
 		));
 
 		assert_ok!(AssetManager::change_existing_asset_type(
@@ -211,7 +214,8 @@ fn test_change_units_per_second_after_setting_it_once() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			Origin::root(),
 			MockAssetType::MockAsset(1),
-			200u128.into()
+			200u128.into(),
+			0
 		));
 
 		assert_eq!(
@@ -223,7 +227,8 @@ fn test_change_units_per_second_after_setting_it_once() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			Origin::root(),
 			MockAssetType::MockAsset(1),
-			100u128.into()
+			100u128.into(),
+			1
 		));
 
 		assert_eq!(
@@ -254,7 +259,8 @@ fn test_root_can_change_units_per_second_and_then_remove() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			Origin::root(),
 			MockAssetType::MockAsset(1),
-			200u128.into()
+			200u128.into(),
+			0
 		));
 
 		assert_eq!(
@@ -291,7 +297,8 @@ fn test_weight_hint_error() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			Origin::root(),
 			MockAssetType::MockAsset(1),
-			200u128.into()
+			200u128.into(),
+			0
 		));
 
 		assert_noop!(
@@ -308,7 +315,8 @@ fn test_asset_id_non_existent_error() {
 			AssetManager::set_asset_units_per_second(
 				Origin::root(),
 				MockAssetType::MockAsset(1),
-				200u128.into()
+				200u128.into(),
+				0
 			),
 			Error::<Test>::AssetDoesNotExist
 		);
@@ -348,7 +356,8 @@ fn test_populate_supported_fee_payment_assets_works() {
 			AssetManager::set_asset_units_per_second(
 				Origin::root(),
 				MockAssetType::MockAsset(1),
-				200u128.into()
+				200u128.into(),
+				0
 			),
 			Error::<Test>::AssetDoesNotExist
 		);
@@ -509,7 +518,8 @@ fn test_asset_manager_change_statemine_prefixes() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			Origin::root(),
 			statemine_multilocation_3.clone(),
-			1u128
+			1u128,
+			0
 		));
 
 		// We run the migration

@@ -194,11 +194,12 @@ pub mod pallet {
 		}
 
 		/// Change the amount of units we are charging per execution second for a given AssetType
-		#[pallet::weight(T::WeightInfo::set_asset_units_per_second())]
+		#[pallet::weight(T::WeightInfo::set_asset_units_per_second(*num_assets_weight_hint))]
 		pub fn set_asset_units_per_second(
 			origin: OriginFor<T>,
 			asset_type: T::AssetType,
 			units_per_second: u128,
+			num_assets_weight_hint: u32,
 		) -> DispatchResult {
 			T::AssetModifierOrigin::ensure_origin(origin)?;
 
@@ -209,6 +210,11 @@ pub mod pallet {
 
 			// Grab supported assets
 			let mut supported_assets = SupportedFeePaymentAssets::<T>::get();
+
+			ensure!(
+				num_assets_weight_hint >= (supported_assets.len() as u32),
+				Error::<T>::TooLowNumAssetsWeightHint
+			);
 
 			// If not in our supported asset list, then put it
 			if !supported_assets.contains(&asset_type) {
@@ -243,7 +249,36 @@ pub mod pallet {
 			// Remove previous asset type info
 			AssetTypeId::<T>::remove(&previous_asset_type);
 
+			// Grab supported assets
+			let mut supported_assets = SupportedFeePaymentAssets::<T>::get();
+
+			// Change AssetTypeUnitsPerSecond
 			if let Some(units) = AssetTypeUnitsPerSecond::<T>::get(&previous_asset_type) {
+
+				// If the old exists in supported assts (it should), remove it
+				if let Some(index) = supported_assets
+				.iter()
+				.enumerate()
+				.find_map(|(index, asset)| {
+					if previous_asset_type == asset.clone() {
+						Some(index)
+					} else {
+						None
+					}
+				}) {
+					// Remove
+					supported_assets.remove(index);
+				}
+
+				// If new is not in supported assets, push it
+				if !supported_assets.contains(&new_asset_type) {
+					// Push the new one
+					supported_assets.push(new_asset_type.clone());
+				}
+
+				// Insert supported fee payment assets
+				SupportedFeePaymentAssets::<T>::put(supported_assets);
+				
 				// Remove previous asset type info
 				AssetTypeUnitsPerSecond::<T>::remove(&previous_asset_type);
 				AssetTypeUnitsPerSecond::<T>::insert(&new_asset_type, units);
