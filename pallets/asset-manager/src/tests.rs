@@ -140,6 +140,7 @@ fn test_regular_user_cannot_call_extrinsics() {
 				Origin::signed(1),
 				1,
 				MockAssetType::MockAsset(2),
+				1
 			),
 			sp_runtime::DispatchError::BadOrigin
 		);
@@ -168,6 +169,7 @@ fn test_root_can_change_asset_id_type() {
 			Origin::root(),
 			1,
 			MockAssetType::MockAsset(2),
+			1
 		));
 
 		// New one contains the new asset type units per second
@@ -325,6 +327,7 @@ fn test_asset_id_non_existent_error() {
 				Origin::root(),
 				1,
 				MockAssetType::MockAsset(2),
+				1
 			),
 			Error::<Test>::AssetDoesNotExist
 		);

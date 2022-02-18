@@ -231,13 +231,22 @@ pub mod pallet {
 		/// Change the xcm type mapping for a given assetId
 		/// We also change this if the previous units per second where pointing at the old
 		/// assetType
-		#[pallet::weight(T::WeightInfo::change_existing_asset_type())]
+		#[pallet::weight(T::WeightInfo::change_existing_asset_type(*num_assets_weight_hint))]
 		pub fn change_existing_asset_type(
 			origin: OriginFor<T>,
 			asset_id: T::AssetId,
 			new_asset_type: T::AssetType,
+			num_assets_weight_hint: u32,
 		) -> DispatchResult {
 			T::AssetModifierOrigin::ensure_origin(origin)?;
+
+			// Grab supported assets
+			let mut supported_assets = SupportedFeePaymentAssets::<T>::get();
+
+			ensure!(
+				num_assets_weight_hint >= (supported_assets.len() as u32),
+				Error::<T>::TooLowNumAssetsWeightHint
+			);
 
 			let previous_asset_type =
 				AssetIdType::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
@@ -249,23 +258,20 @@ pub mod pallet {
 			// Remove previous asset type info
 			AssetTypeId::<T>::remove(&previous_asset_type);
 
-			// Grab supported assets
-			let mut supported_assets = SupportedFeePaymentAssets::<T>::get();
-
 			// Change AssetTypeUnitsPerSecond
 			if let Some(units) = AssetTypeUnitsPerSecond::<T>::get(&previous_asset_type) {
-
 				// If the old exists in supported assts (it should), remove it
-				if let Some(index) = supported_assets
-				.iter()
-				.enumerate()
-				.find_map(|(index, asset)| {
-					if previous_asset_type == asset.clone() {
-						Some(index)
-					} else {
-						None
-					}
-				}) {
+				if let Some(index) =
+					supported_assets
+						.iter()
+						.enumerate()
+						.find_map(|(index, asset)| {
+							if previous_asset_type == asset.clone() {
+								Some(index)
+							} else {
+								None
+							}
+						}) {
 					// Remove
 					supported_assets.remove(index);
 				}
@@ -278,7 +284,7 @@ pub mod pallet {
 
 				// Insert supported fee payment assets
 				SupportedFeePaymentAssets::<T>::put(supported_assets);
-				
+
 				// Remove previous asset type info
 				AssetTypeUnitsPerSecond::<T>::remove(&previous_asset_type);
 				AssetTypeUnitsPerSecond::<T>::insert(&new_asset_type, units);

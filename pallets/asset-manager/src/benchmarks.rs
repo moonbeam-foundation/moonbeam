@@ -78,7 +78,7 @@ benchmarks! {
 		).into();
 		let asset_id_to_be_changed = asset_type_to_be_changed.into();
 
-	}: _(RawOrigin::Root, asset_id_to_be_changed, new_asset_type.clone())
+	}: _(RawOrigin::Root, asset_id_to_be_changed, new_asset_type.clone(), x)
 	verify {
 		assert_eq!(Pallet::<T>::asset_id_type(asset_id_to_be_changed), Some(new_asset_type.clone()));
 		assert_eq!(Pallet::<T>::asset_type_units_per_second(&new_asset_type), Some(1));
