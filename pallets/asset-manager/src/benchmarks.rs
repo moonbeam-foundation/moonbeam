@@ -37,7 +37,17 @@ benchmarks! {
 	}
 
 	set_asset_units_per_second {
-		// does not really matter what we register
+		// We make it dependent on the number of existing assets already
+		let x in 5..100;
+		for i in 0..x {
+			let asset_type:  T::AssetType = MultiLocation::new(0, X1(GeneralIndex(i as u128))).into();
+			let metadata = T::AssetRegistrarMetadata::default();
+			let amount = 1u32.into();
+			Pallet::<T>::register_asset(RawOrigin::Root.into(), asset_type.clone(), metadata, amount, true)?;
+			Pallet::<T>::set_asset_units_per_second(RawOrigin::Root.into(), asset_type.clone(), 1)?;
+		}
+
+		// does not really matter what we register, as long as it is different than the previous
 		let asset_type = T::AssetType::default();
 		let metadata = T::AssetRegistrarMetadata::default();
 		let amount = 1u32.into();
