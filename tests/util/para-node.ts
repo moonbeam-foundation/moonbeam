@@ -5,6 +5,7 @@ import child_process from "child_process";
 import { killAll, run } from "polkadot-launch";
 import {
   BINARY_PATH,
+  DISPLAY_LOG,
   OVERRIDE_RUNTIME_PATH,
   RELAY_BINARY_PATH,
   RELAY_CHAIN_NODE_NAMES,
@@ -205,6 +206,9 @@ export async function generateRawSpecs(
   return specPath;
 }
 
+// log listeners to kill at the end;
+const logListener = [];
+
 // This will start a parachain node, only 1 at a time (check every 100ms).
 // This will prevent race condition on the findAvailablePorts which uses the PID of the process
 // Returns ports for the 3rd parachain node
@@ -271,7 +275,7 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
           configuration: {
             config: {
               validation_upgrade_frequency: 2,
-              validation_upgrade_delay: 2,
+              validation_upgrade_delay: 30,
             },
           },
         },
@@ -372,9 +376,10 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
     tailProcess.stdout.on("data", function (data) {
       console.log(`${prepend} ${data.toString().trim()}`);
     });
+    logListener.push(tailProcess);
   };
   const runPromise = run("", launchConfig);
-  if (process.env.MOONBEAM_LOG) {
+  if (DISPLAY_LOG) {
     new Array(numberOfParachains + 1).fill(0).forEach(async (_, i) => {
       listenTo(`${RELAY_CHAIN_NODE_NAMES[i]}.log`, `relay-${i}`);
     });
@@ -422,6 +427,9 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
 
 export async function stopParachainNodes() {
   killAll();
+  logListener.forEach((process) => {
+    process.kill();
+  });
   await new Promise((resolve) => {
     // TODO: improve, make killAll async https://github.com/paritytech/polkadot-launch/issues/139
     process.stdout.write("Waiting 5 seconds for processes to shut down...");
