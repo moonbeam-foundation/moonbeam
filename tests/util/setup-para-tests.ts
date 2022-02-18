@@ -199,6 +199,15 @@ export function describeParachain(
                 .readFileSync(await getRuntimeWasm(runtimeName, runtimeVersion))
                 .toString();
 
+              const existingCode = await context.polkadotApiParaone.rpc.state.getStorage(":code");
+              if (existingCode.toString() == code) {
+                reject(
+                  `Runtime upgrade with same code: ${existingCode.toString().slice(0, 20)} vs ${code
+                    .toString()
+                    .slice(0, 20)}`
+                );
+              }
+
               process.stdout.write(
                 `Sending sudo.setCode (${sha256(Buffer.from(code))} [~${Math.floor(
                   code.length / 1024
@@ -222,6 +231,14 @@ export function describeParachain(
                       `✅ New runtime ${version.implName} ${version.specVersion} [#${blockNumber}]`
                     );
                     unsub();
+                    const newCode = await context.polkadotApiParaone.rpc.state.getStorage(":code");
+                    if (newCode.toString() != code) {
+                      reject(
+                        `Unexpected new code: ${newCode.toString().slice(0, 20)} vs ${code
+                          .toString()
+                          .slice(0, 20)}`
+                      );
+                    }
                     if (waitMigration) {
                       // Wait for next block to have the new runtime applied
                       await context.waitBlocks(1);
