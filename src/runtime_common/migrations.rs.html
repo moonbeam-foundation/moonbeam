@@ -455,6 +455,120 @@
 <span id="455">455</span>
 <span id="456">456</span>
 <span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
+<span id="552">552</span>
+<span id="553">553</span>
+<span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
+<span id="557">557</span>
+<span id="558">558</span>
+<span id="559">559</span>
+<span id="560">560</span>
+<span id="561">561</span>
+<span id="562">562</span>
+<span id="563">563</span>
+<span id="564">564</span>
+<span id="565">565</span>
+<span id="566">566</span>
+<span id="567">567</span>
+<span id="568">568</span>
+<span id="569">569</span>
+<span id="570">570</span>
+<span id="571">571</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2020 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -473,8 +587,11 @@
 
 <span class="doccomment">//! # Migrations</span>
 
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
+<span class="kw">use</span> <span class="ident">frame_support::traits::OnRuntimeUpgradeHelpersExt</span>;
 <span class="kw">use</span> <span class="ident">frame_support</span>::{
 	<span class="ident">dispatch::GetStorageVersion</span>,
+	<span class="ident">storage::migration::get_storage_value</span>,
 	<span class="ident">traits</span>::{<span class="ident">Get</span>, <span class="ident">OnRuntimeUpgrade</span>, <span class="ident">PalletInfoAccess</span>},
 	<span class="ident">weights::Weight</span>,
 };
@@ -484,6 +601,7 @@
 	<span class="ident">Config</span> <span class="kw">as</span> <span class="ident">AssetManagerConfig</span>,
 };
 <span class="kw">use</span> <span class="ident">pallet_author_mapping</span>::{<span class="ident">migrations::TwoXToBlake</span>, <span class="ident">Config</span> <span class="kw">as</span> <span class="ident">AuthorMappingConfig</span>};
+<span class="kw">use</span> <span class="ident">pallet_base_fee::Config</span> <span class="kw">as</span> <span class="ident">BaseFeeConfig</span>;
 <span class="kw">use</span> <span class="ident">pallet_migrations</span>::{<span class="ident">GetMigrations</span>, <span class="ident">Migration</span>};
 <span class="kw">use</span> <span class="ident">parachain_staking</span>::{
 	<span class="ident">migrations</span>::{
@@ -492,6 +610,7 @@
 	},
 	<span class="ident">Config</span> <span class="kw">as</span> <span class="ident">ParachainStakingConfig</span>,
 };
+<span class="kw">use</span> <span class="ident">sp_runtime::Permill</span>;
 <span class="kw">use</span> <span class="ident">sp_std</span>::{<span class="ident">marker::PhantomData</span>, <span class="ident">prelude</span>::<span class="kw-2">*</span>};
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;xcm-support&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">xcm::latest::MultiLocation</span>;
@@ -683,6 +802,111 @@
 	}
 }
 
+<span class="doccomment">/// BaseFee pallet, set missing storage values.</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BaseFeePerGas</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">BaseFeeConfig</span><span class="op">&gt;</span> <span class="ident">OnRuntimeUpgrade</span> <span class="kw">for</span> <span class="ident">BaseFeePerGas</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+	<span class="doccomment">/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.</span>
+	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
+	<span class="kw">fn</span> <span class="ident">pre_upgrade</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
+		<span class="kw">let</span> <span class="ident">module</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;BaseFee&quot;</span>;
+		<span class="comment">// Verify the storage before the upgrade is empty</span>
+		{
+			<span class="kw">let</span> <span class="ident">item</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;BaseFeePerGas&quot;</span>;
+			<span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">get_storage_value</span>::<span class="op">&lt;</span><span class="ident">sp_core::U256</span><span class="op">&gt;</span>(<span class="ident">module</span>, <span class="ident">item</span>, <span class="kw-2">&amp;</span>[]);
+			<span class="ident"><span class="self">Self</span>::set_temp_storage</span>(<span class="ident">value</span>.<span class="ident">is_none</span>(), <span class="string">&quot;base_fee_is_empty&quot;</span>);
+		}
+		<span class="comment">// Elasticity storage value</span>
+		{
+			<span class="kw">let</span> <span class="ident">item</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;Elasticity&quot;</span>;
+			<span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">get_storage_value</span>::<span class="op">&lt;</span><span class="ident">Permill</span><span class="op">&gt;</span>(<span class="ident">module</span>, <span class="ident">item</span>, <span class="kw-2">&amp;</span>[]);
+			<span class="ident"><span class="self">Self</span>::set_temp_storage</span>(<span class="ident">value</span>.<span class="ident">is_none</span>(), <span class="string">&quot;elasticity_is_empty&quot;</span>);
+		}
+
+		<span class="prelude-val">Ok</span>(())
+	}
+
+	<span class="kw">fn</span> <span class="ident">on_runtime_upgrade</span>() -&gt; <span class="ident">Weight</span> {
+		<span class="kw">let</span> <span class="ident">module</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;BaseFee&quot;</span>;
+		<span class="kw">let</span> <span class="ident">db_weights</span> <span class="op">=</span> <span class="ident">T::DbWeight::get</span>();
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">weight</span>: <span class="ident">Weight</span> <span class="op">=</span> <span class="number">2</span> <span class="op">*</span> <span class="ident">db_weights</span>.<span class="ident">read</span>;
+		<span class="comment">// BaseFeePerGas storage value</span>
+		{
+			<span class="kw">let</span> <span class="ident">item</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;BaseFeePerGas&quot;</span>;
+			<span class="kw">let</span> <span class="ident">current_value</span> <span class="op">=</span> <span class="ident">get_storage_value</span>::<span class="op">&lt;</span><span class="ident">sp_core::U256</span><span class="op">&gt;</span>(<span class="ident">module</span>, <span class="ident">item</span>, <span class="kw-2">&amp;</span>[]);
+			<span class="kw">if</span> <span class="ident">current_value</span>.<span class="ident">is_none</span>() {
+				<span class="comment">// Put the default configured value in storage</span>
+				<span class="kw">let</span> <span class="ident">write</span> <span class="op">=</span> <span class="ident">pallet_base_fee::Pallet</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::set_base_fee_per_gas_inner</span>(
+					<span class="ident">T::DefaultBaseFeePerGas::get</span>(),
+				);
+				<span class="ident">weight</span> <span class="op">=</span> <span class="ident">weight</span>.<span class="ident">saturating_add</span>(<span class="ident">write</span>);
+			}
+		}
+		<span class="comment">// Elasticity storage value</span>
+		{
+			<span class="kw">let</span> <span class="ident">item</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;Elasticity&quot;</span>;
+			<span class="kw">let</span> <span class="ident">current_value</span> <span class="op">=</span> <span class="ident">get_storage_value</span>::<span class="op">&lt;</span><span class="ident">Permill</span><span class="op">&gt;</span>(<span class="ident">module</span>, <span class="ident">item</span>, <span class="kw-2">&amp;</span>[]);
+			<span class="kw">if</span> <span class="ident">current_value</span>.<span class="ident">is_none</span>() {
+				<span class="comment">// Put the default value in storage</span>
+				<span class="kw">let</span> <span class="ident">write</span> <span class="op">=</span> <span class="ident">pallet_base_fee::Pallet</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::set_elasticity_inner</span>(
+					<span class="ident">Permill::from_parts</span>(<span class="number">125_000</span>),
+				);
+				<span class="ident">weight</span> <span class="op">=</span> <span class="ident">weight</span>.<span class="ident">saturating_add</span>(<span class="ident">write</span>);
+			}
+		}
+		<span class="ident">weight</span>
+	}
+
+	<span class="doccomment">/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.</span>
+	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
+	<span class="kw">fn</span> <span class="ident">post_upgrade</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
+		<span class="kw">if</span> <span class="ident"><span class="self">Self</span>::get_temp_storage</span>::<span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>(<span class="string">&quot;base_fee_is_empty&quot;</span>).<span class="ident">is_some</span>()
+			<span class="op">&amp;&amp;</span> <span class="ident"><span class="self">Self</span>::get_temp_storage</span>::<span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>(<span class="string">&quot;elasticity_is_empty&quot;</span>).<span class="ident">is_some</span>()
+		{
+			<span class="comment">// Verify the storage after the upgrade matches the runtime configured default</span>
+			<span class="kw">let</span> <span class="ident">module</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;BaseFee&quot;</span>;
+			<span class="comment">// BaseFeePerGas storage value</span>
+			{
+				<span class="kw">let</span> <span class="ident">item</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;BaseFeePerGas&quot;</span>;
+				<span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">get_storage_value</span>::<span class="op">&lt;</span><span class="ident">sp_core::U256</span><span class="op">&gt;</span>(<span class="ident">module</span>, <span class="ident">item</span>, <span class="kw-2">&amp;</span>[]);
+				<span class="macro">assert_eq!</span>(<span class="ident">value</span>, <span class="prelude-val">Some</span>(<span class="ident">T::DefaultBaseFeePerGas::get</span>()));
+			}
+			<span class="comment">// Elasticity storage value</span>
+			{
+				<span class="kw">let</span> <span class="ident">item</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;Elasticity&quot;</span>;
+				<span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">get_storage_value</span>::<span class="op">&lt;</span><span class="ident">Permill</span><span class="op">&gt;</span>(<span class="ident">module</span>, <span class="ident">item</span>, <span class="kw-2">&amp;</span>[]);
+				<span class="macro">assert_eq!</span>(<span class="ident">value</span>, <span class="prelude-val">Some</span>(<span class="ident">Permill::from_parts</span>(<span class="number">125_000</span>)));
+			}
+		}
+
+		<span class="prelude-val">Ok</span>(())
+	}
+}
+
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MigrateBaseFeePerGas</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
+<span class="comment">// This is not strictly a migration, just an `on_runtime_upgrade` alternative to open a democracy</span>
+<span class="comment">// proposal to set this values through an extrinsic.</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">BaseFeeConfig</span><span class="op">&gt;</span> <span class="ident">Migration</span> <span class="kw">for</span> <span class="ident">MigrateBaseFeePerGas</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">friendly_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
+		<span class="string">&quot;MM_Base_Fee_Per_Gas&quot;</span>
+	}
+
+	<span class="kw">fn</span> <span class="ident">migrate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_available_weight</span>: <span class="ident">Weight</span>) -&gt; <span class="ident">Weight</span> {
+		<span class="ident">BaseFeePerGas</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::on_runtime_upgrade</span>()
+	}
+
+	<span class="doccomment">/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.</span>
+	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
+	<span class="kw">fn</span> <span class="ident">pre_upgrade</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
+		<span class="ident">BaseFeePerGas</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::pre_upgrade</span>()
+	}
+
+	<span class="doccomment">/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.</span>
+	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
+	<span class="kw">fn</span> <span class="ident">post_upgrade</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
+		<span class="ident">BaseFeePerGas</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::post_upgrade</span>()
+	}
+}
+
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;xcm-support&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">XcmTransactorMaxTransactWeight</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;xcm-support&quot;</span>)]</span>
@@ -826,6 +1050,7 @@
 	<span class="ident">Runtime</span>: <span class="ident">pallet_author_mapping::Config</span>,
 	<span class="ident">Runtime</span>: <span class="ident">parachain_staking::Config</span>,
 	<span class="ident">Runtime</span>: <span class="ident">pallet_scheduler::Config</span>,
+	<span class="ident">Runtime</span>: <span class="ident">pallet_base_fee::Config</span>,
 	<span class="ident">Council</span>: <span class="ident">GetStorageVersion</span> <span class="op">+</span> <span class="ident">PalletInfoAccess</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 	<span class="ident">Tech</span>: <span class="ident">GetStorageVersion</span> <span class="op">+</span> <span class="ident">PalletInfoAccess</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 {
@@ -847,6 +1072,8 @@
 
 		<span class="kw">let</span> <span class="ident">migration_scheduler_v3</span> <span class="op">=</span> <span class="ident">SchedulerMigrationV3</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>(<span class="ident">Default::default</span>());
 
+		<span class="kw">let</span> <span class="ident">migration_base_fee</span> <span class="op">=</span> <span class="ident">MigrateBaseFeePerGas</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>(<span class="ident">Default::default</span>());
+
 		<span class="comment">// TODO: this is a lot of allocation to do upon every get() call. this *should* be avoided</span>
 		<span class="comment">// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review</span>
 
@@ -864,6 +1091,7 @@
 			<span class="comment">// Box::new(migration_parachain_staking_split_candidate_state),</span>
 			<span class="ident">Box::new</span>(<span class="ident">migration_scheduler_v3</span>),
 			<span class="ident">Box::new</span>(<span class="ident">migration_parachain_staking_patch_incorrect_delegation_sums</span>),
+			<span class="ident">Box::new</span>(<span class="ident">migration_base_fee</span>),
 		]
 	}
 }
