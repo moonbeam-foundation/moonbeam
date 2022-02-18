@@ -705,7 +705,11 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
         context,
         alith,
         context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.assetManager.setAssetUnitsPerSecond(statemintLocationAssetOne, 0, 0)
+          context.polkadotApi.tx.assetManager.setAssetUnitsPerSecond(
+            statemintLocationAssetOne,
+            0,
+            0
+          )
         )
       );
       expect(events[1].method.toString()).to.eq("UnitsPerSecondChanged");
