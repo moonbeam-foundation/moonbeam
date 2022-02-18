@@ -3,10 +3,13 @@ on:
   workflow_dispatch:
     inputs:
       from:
-        description: "Previous runtime version"
+        description: "Previous runtime version (example: runtime-1103)"
         required: true
       to:
-        description: "Next runtime version"
+        description: "Next runtime version (example: runtime-1201)"
+        required: true
+      client:
+        description: "Last client release version"
         required: true
 
 jobs:
@@ -25,7 +28,7 @@ jobs:
         run: |
           cd tools
           npm i
-          npm run --silent print-runtime-release-issue -- --from ${{ github.event.inputs.from }} --to ${{ github.event.inputs.to }} | tee ../runtime-release-issue.md
+          npm run --silent print-runtime-release-issue -- --from ${{ github.event.inputs.from }} --to ${{ github.event.inputs.to }} --client ${{ github.event.inputs.client }} | tee ../runtime-release-issue.md
       - name: Create version bump issue
         uses: peter-evans/create-issue-from-file@v3
         with:

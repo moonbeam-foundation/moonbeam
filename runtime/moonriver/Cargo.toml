@@ -263,7 +263,9 @@ try-runtime = [
 	"pallet-maintenance-mode/try-runtime",
 	#"pallet-crowdloan-rewards/try-runtime",
 	"pallet-migrations/try-runtime",
+	"pallet-scheduler/try-runtime",
 	"pallet-society/try-runtime",
 	"pallet-timestamp/try-runtime",
 	"parachain-staking/try-runtime",
+	"runtime-common/try-runtime",
 ]
