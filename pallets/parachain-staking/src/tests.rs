@@ -28,10 +28,10 @@ use crate::mock::{
 use crate::{
 	assert_eq_events, assert_eq_last_events, assert_event_emitted, assert_event_not_emitted,
 	assert_last_event, assert_tail_eq, pallet::CapacityStatus, set::OrderedSet, BalanceOf, Bond,
-	BottomDelegations, CandidateInfo, CandidatePool, CandidateState, CollatorCandidate,
-	CollatorStatus, Config, DelegationChange, DelegationRequest, Delegator, DelegatorAdded,
-	DelegatorState, DelegatorStatus, Error, Event, PendingDelegationRequests, Range,
-	TopDelegations, Total,
+	BottomDelegations, CandidateInfo, CandidateMetadata, CandidatePool, CandidateState,
+	CollatorCandidate, CollatorStatus, Config, DelegationChange, DelegationRequest, Delegations,
+	Delegator, DelegatorAdded, DelegatorState, DelegatorStatus, Error, Event,
+	PendingDelegationRequests, Range, TopDelegations, Total,
 };
 use frame_support::{assert_noop, assert_ok, traits::ReservableCurrency};
 use sp_runtime::{traits::Zero, DispatchError, Perbill, Percent};
@@ -2394,6 +2394,7 @@ fn delegator_bond_more_updates_candidate_state_top_delegations() {
 				ParachainStaking::top_delegations(1).unwrap().delegations[0].amount,
 				10
 			);
+			assert_eq!(ParachainStaking::top_delegations(1).unwrap().total, 10);
 			assert_ok!(ParachainStaking::delegator_bond_more(
 				Origin::signed(2),
 				1,
@@ -2407,6 +2408,7 @@ fn delegator_bond_more_updates_candidate_state_top_delegations() {
 				ParachainStaking::top_delegations(1).unwrap().delegations[0].amount,
 				15
 			);
+			assert_eq!(ParachainStaking::top_delegations(1).unwrap().total, 15);
 		});
 }
 
@@ -2438,6 +2440,7 @@ fn delegator_bond_more_updates_candidate_state_bottom_delegations() {
 					.amount,
 				10
 			);
+			assert_eq!(ParachainStaking::bottom_delegations(1).unwrap().total, 10);
 			assert_ok!(ParachainStaking::delegator_bond_more(
 				Origin::signed(2),
 				1,
@@ -2460,6 +2463,7 @@ fn delegator_bond_more_updates_candidate_state_bottom_delegations() {
 					.amount,
 				15
 			);
+			assert_eq!(ParachainStaking::bottom_delegations(1).unwrap().total, 15);
 		});
 }
 
@@ -5319,6 +5323,92 @@ fn hotfix_update_candidate_pool_value_updates_candidate_pool() {
 
 // MIGRATION UNIT TESTS
 use frame_support::traits::OnRuntimeUpgrade;
+
+#[test]
+fn patch_incorrect_delegations_sums() {
+	ExtBuilder::default()
+		.with_balances(vec![(11, 22), (12, 20)])
+		.build()
+		.execute_with(|| {
+			// corrupt top and bottom delegations so totals are incorrect
+			let old_top_delegations = Delegations {
+				delegations: vec![
+					Bond {
+						owner: 2,
+						amount: 103,
+					},
+					Bond {
+						owner: 3,
+						amount: 102,
+					},
+					Bond {
+						owner: 4,
+						amount: 101,
+					},
+					Bond {
+						owner: 5,
+						amount: 100,
+					},
+				],
+				// should be 406
+				total: 453,
+			};
+			<TopDelegations<Test>>::insert(&1, old_top_delegations);
+			let old_bottom_delegations = Delegations {
+				delegations: vec![
+					Bond {
+						owner: 6,
+						amount: 25,
+					},
+					Bond {
+						owner: 7,
+						amount: 24,
+					},
+					Bond {
+						owner: 8,
+						amount: 23,
+					},
+					Bond {
+						owner: 9,
+						amount: 22,
+					},
+				],
+				// should be 94
+				total: 222,
+			};
+			<BottomDelegations<Test>>::insert(&1, old_bottom_delegations);
+			<CandidateInfo<Test>>::insert(
+				&1,
+				CandidateMetadata {
+					bond: 25,
+					delegation_count: 8,
+					// 25 + 453 (incorrect), should be 25 + 406 after upgrade
+					total_counted: 478,
+					lowest_top_delegation_amount: 100,
+					highest_bottom_delegation_amount: 25,
+					lowest_bottom_delegation_amount: 22,
+					top_capacity: CapacityStatus::Full,
+					bottom_capacity: CapacityStatus::Full,
+					request: None,
+					status: CollatorStatus::Active,
+				},
+			);
+			<CandidatePool<Test>>::put(OrderedSet::from(vec![Bond {
+				owner: 1,
+				amount: 478,
+			}]));
+			crate::migrations::PatchIncorrectDelegationSums::<Test>::on_runtime_upgrade();
+			let top = <TopDelegations<Test>>::get(&1).expect("just updated so exists");
+			assert_eq!(top.total, 406);
+			let bottom = <BottomDelegations<Test>>::get(&1).expect("just updated so exists");
+			assert_eq!(bottom.total, 94);
+			let info = <CandidateInfo<Test>>::get(&1).expect("just updated so exists");
+			assert_eq!(info.total_counted, 431);
+			let only_bond = <CandidatePool<Test>>::get().0[0].clone();
+			assert_eq!(only_bond.owner, 1);
+			assert_eq!(only_bond.amount, 431);
+		});
+}
 
 #[test]
 /// Kicks extra bottom delegations to force leave delegators if last delegation

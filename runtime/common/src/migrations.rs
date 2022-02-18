@@ -33,7 +33,8 @@ use pallet_author_mapping::{migrations::TwoXToBlake, Config as AuthorMappingConf
 use pallet_migrations::{GetMigrations, Migration};
 use parachain_staking::{
 	migrations::{
-		IncreaseMaxDelegationsPerCandidate, PurgeStaleStorage, SplitCandidateStateToDecreasePoV,
+		IncreaseMaxDelegationsPerCandidate, PatchIncorrectDelegationSums, PurgeStaleStorage,
+		SplitCandidateStateToDecreasePoV,
 	},
 	Config as ParachainStakingConfig,
 };
@@ -45,6 +46,30 @@ use xcm_transactor::{migrations::MaxTransactWeight, Config as XcmTransactorConfi
 
 /// This module acts as a registry where each migration is defined. Each migration should implement
 /// the "Migration" trait declared in the pallet-migrations crate.
+
+/// Patch delegations total mismatch
+pub struct ParachainStakingPatchIncorrectDelegationSums<T>(PhantomData<T>);
+impl<T: ParachainStakingConfig> Migration for ParachainStakingPatchIncorrectDelegationSums<T> {
+	fn friendly_name(&self) -> &str {
+		"MM_Parachain_Staking_Patch_Incorrect_Delegation_Sums"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		PatchIncorrectDelegationSums::<T>::on_runtime_upgrade()
+	}
+
+	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<(), &'static str> {
+		PatchIncorrectDelegationSums::<T>::pre_upgrade()
+	}
+
+	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self) -> Result<(), &'static str> {
+		PatchIncorrectDelegationSums::<T>::post_upgrade()
+	}
+}
 
 /// Staking split candidate state
 pub struct ParachainStakingSplitCandidateState<T>(PhantomData<T>);
@@ -386,8 +411,10 @@ where
 		// 	ParachainStakingManualExits::<Runtime>(Default::default());
 		// let migration_parachain_staking_increase_max_delegations_per_candidate =
 		// 	ParachainStakingIncreaseMaxDelegationsPerCandidate::<Runtime>(Default::default());
-		let migration_parachain_staking_split_candidate_state =
-			ParachainStakingSplitCandidateState::<Runtime>(Default::default());
+		// let migration_parachain_staking_split_candidate_state =
+		// 	ParachainStakingSplitCandidateState::<Runtime>(Default::default());
+		let migration_parachain_staking_patch_incorrect_delegation_sums =
+			ParachainStakingPatchIncorrectDelegationSums::<Runtime>(Default::default());
 
 		let migration_scheduler_v3 = SchedulerMigrationV3::<Runtime>(Default::default());
 
@@ -404,15 +431,14 @@ where
 			// Box::new(migration_parachain_staking_manual_exits),
 			// completed in runtime 1101
 			// Box::new(migration_parachain_staking_increase_max_delegations_per_candidate),
-			Box::new(migration_parachain_staking_split_candidate_state),
+			// completed in runtime 1201
+			// Box::new(migration_parachain_staking_split_candidate_state),
 			Box::new(migration_scheduler_v3),
+			Box::new(migration_parachain_staking_patch_incorrect_delegation_sums),
 		]
 	}
 }
 
-//TODO: Once the statemine prefix migration is applied,
-// we can remove StatemineParaIdInfo and StatemineAssetsInstanceInfo
-// but for now we need a way to pass these parameters, which are distinct for each of the runtimes
 #[cfg(feature = "xcm-support")]
 pub struct XcmMigrations<Runtime, StatemineParaIdInfo, StatemineAssetsInstanceInfo>(
 	PhantomData<(Runtime, StatemineParaIdInfo, StatemineAssetsInstanceInfo)>,
@@ -423,26 +449,24 @@ impl<Runtime, StatemineParaIdInfo, StatemineAssetsInstanceInfo> GetMigrations
 	for XcmMigrations<Runtime, StatemineParaIdInfo, StatemineAssetsInstanceInfo>
 where
 	Runtime: xcm_transactor::Config + pallet_migrations::Config + pallet_asset_manager::Config,
-	StatemineParaIdInfo: Get<u32> + 'static,
-	StatemineAssetsInstanceInfo: Get<u8> + 'static,
 	<Runtime as pallet_asset_manager::Config>::AssetType:
 		Into<Option<MultiLocation>> + From<MultiLocation>,
 {
 	fn get_migrations() -> Vec<Box<dyn Migration>> {
-		let xcm_transactor_max_weight =
-			XcmTransactorMaxTransactWeight::<Runtime>(Default::default());
+		// let xcm_transactor_max_weight =
+		// 	XcmTransactorMaxTransactWeight::<Runtime>(Default::default());
 
-		let asset_manager_units_with_asset_type =
-			AssetManagerUnitsWithAssetType::<Runtime>(Default::default());
+		// let asset_manager_units_with_asset_type =
+		// 	AssetManagerUnitsWithAssetType::<Runtime>(Default::default());
 
-		let asset_manager_populate_asset_type_id_storage =
-			AssetManagerPopulateAssetTypeIdStorage::<Runtime>(Default::default());
+		// let asset_manager_populate_asset_type_id_storage =
+		// 	AssetManagerPopulateAssetTypeIdStorage::<Runtime>(Default::default());
 
-		let asset_manager_change_statemine_prefixes = AssetManagerChangeStateminePrefixes::<
-			Runtime,
-			StatemineParaIdInfo,
-			StatemineAssetsInstanceInfo,
-		>(Default::default());
+		// let asset_manager_change_statemine_prefixes = AssetManagerChangeStateminePrefixes::<
+		// 	Runtime,
+		// 	StatemineParaIdInfo,
+		// 	StatemineAssetsInstanceInfo,
+		// >(Default::default());
 
 		let xcm_supported_assets = XcmPaymentSupportedAssets::<Runtime>(Default::default());
 
@@ -450,10 +474,14 @@ where
 		// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review
 
 		vec![
-			Box::new(xcm_transactor_max_weight),
-			Box::new(asset_manager_units_with_asset_type),
-			Box::new(asset_manager_change_statemine_prefixes),
-			Box::new(asset_manager_populate_asset_type_id_storage),
+			// completed in runtime 1201
+			// Box::new(xcm_transactor_max_weight),
+			// completed in runtime 1201
+			// Box::new(asset_manager_units_with_asset_type),
+			// completed in runtime 1201
+			// Box::new(asset_manager_change_statemine_prefixes),
+			// completed in runtime 1201
+			// Box::new(asset_manager_populate_asset_type_id_storage),
 			Box::new(xcm_supported_assets),
 		]
 	}
