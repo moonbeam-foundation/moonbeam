@@ -45,7 +45,7 @@ describeDevMoonbeam("XCM - asset manager - register asset", (context) => {
       context,
       alith,
       parachainOne.tx.sudo.sudo(
-        parachainOne.tx.assetManager.setAssetUnitsPerSecond(sourceLocation, 0)
+        parachainOne.tx.assetManager.setAssetUnitsPerSecond(sourceLocation, 0, 0)
       )
     );
     expect(events[1].method.toString()).to.eq("UnitsPerSecondChanged");
