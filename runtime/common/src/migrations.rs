@@ -20,7 +20,7 @@
 use frame_support::traits::OnRuntimeUpgradeHelpersExt;
 use frame_support::{
 	dispatch::GetStorageVersion,
-	//storage::migration::get_storage_value,
+	storage::migration::get_storage_value,
 	traits::{Get, OnRuntimeUpgrade, PalletInfoAccess},
 	weights::Weight,
 };
@@ -39,7 +39,7 @@ use parachain_staking::{
 	},
 	Config as ParachainStakingConfig,
 };
-//use sp_runtime::Permill;
+use sp_runtime::Permill;
 use sp_std::{marker::PhantomData, prelude::*};
 #[cfg(feature = "xcm-support")]
 use xcm::latest::MultiLocation;
@@ -255,7 +255,7 @@ impl<T: BaseFeeConfig> OnRuntimeUpgrade for BaseFeePerGas<T> {
 	}
 
 	fn on_runtime_upgrade() -> Weight {
-		/*let module: &[u8] = b"BaseFee";
+		let module: &[u8] = b"BaseFee";
 		let db_weights = T::DbWeight::get();
 		let mut weight: Weight = 2 * db_weights.read;
 		// BaseFeePerGas storage value
@@ -282,8 +282,7 @@ impl<T: BaseFeeConfig> OnRuntimeUpgrade for BaseFeePerGas<T> {
 				weight = weight.saturating_add(write);
 			}
 		}
-		weight*/
-		0
+		weight
 	}
 
 	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
