@@ -391,12 +391,21 @@ impl Listener {
 						vec![]
 					};
 
+					// For subcalls we want to have "from" always be the parent context address
+					// instead of `context.caller`, since the latter will not have the correct
+					// value inside a DelegateCall.
+					let from = if let Some(parent_context) = self.context_stack.last() {
+						parent_context.to.clone()
+					} else {
+						context.caller
+					};
+
 					self.context_stack.push(Context {
 						entries_index: self.entries_next_index,
 
 						context_type: ContextType::Call(call_type),
 
-						from: context.caller,
+						from,
 						trace_address,
 						subtraces: 0,
 						value: context.apparent_value,
