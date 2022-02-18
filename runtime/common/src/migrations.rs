@@ -16,6 +16,8 @@
 
 //! # Migrations
 
+#[cfg(feature = "try-runtime")]
+use frame_support::traits::OnRuntimeUpgradeHelpersExt;
 use frame_support::{
 	dispatch::GetStorageVersion,
 	storage::migration::get_storage_value,
@@ -231,49 +233,11 @@ where
 
 /// BaseFee pallet, set missing storage values.
 pub struct BaseFeePerGas<T>(PhantomData<T>);
-// This is not strictly a migration, just an `on_runtime_upgrade` alternative to open a democracy
-// proposal to set this values through an extrinsic.
-impl<T: BaseFeeConfig> Migration for BaseFeePerGas<T> {
-	fn friendly_name(&self) -> &str {
-		"MM_Base_Fee_Per_Gas"
-	}
-
-	fn migrate(&self, _available_weight: Weight) -> Weight {
-		let module: &[u8] = b"BaseFee";
-		let db_weights = T::DbWeight::get();
-		let mut weight: Weight = 2 * db_weights.read;
-		// BaseFeePerGas storage value
-		{
-			let item: &[u8] = b"BaseFeePerGas";
-			let current_value = get_storage_value::<sp_core::U256>(module, item, &[]);
-			if current_value.is_none() {
-				// Put the default configured value in storage
-				let write = pallet_base_fee::Pallet::<T>::set_base_fee_per_gas_inner(
-					T::DefaultBaseFeePerGas::get()
-				);
-				weight = weight.saturating_add(write);
-			}
-
-		}
-		// Elasticity storage value
-		{
-			let item: &[u8] = b"Elasticity";
-			let current_value = get_storage_value::<Permill>(module, item, &[]);
-			if current_value.is_none() {
-				// Put the default value in storage
-				let write = pallet_base_fee::Pallet::<T>::set_elasticity_inner(
-					Permill::from_parts(125_000)
-				);
-				weight = weight.saturating_add(write);
-			}
-
-		}
-		weight
-	}
-
+impl<T: BaseFeeConfig> OnRuntimeUpgrade for BaseFeePerGas<T> {
 	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
 	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade(&self) -> Result<(), &'static str> {
+	fn pre_upgrade() -> Result<(), &'static str> {
+		log::info!("verifying I can see logs in pre");
 		let module: &[u8] = b"BaseFee";
 		// Verify the storage before the upgrade is empty
 		{
@@ -291,12 +255,44 @@ impl<T: BaseFeeConfig> Migration for BaseFeePerGas<T> {
 		Ok(())
 	}
 
+	fn on_runtime_upgrade() -> Weight {
+		let module: &[u8] = b"BaseFee";
+		let db_weights = T::DbWeight::get();
+		let mut weight: Weight = 2 * db_weights.read;
+		// BaseFeePerGas storage value
+		{
+			let item: &[u8] = b"BaseFeePerGas";
+			let current_value = get_storage_value::<sp_core::U256>(module, item, &[]);
+			if current_value.is_none() {
+				// Put the default configured value in storage
+				let write = pallet_base_fee::Pallet::<T>::set_base_fee_per_gas_inner(
+					T::DefaultBaseFeePerGas::get(),
+				);
+				weight = weight.saturating_add(write);
+			}
+		}
+		// Elasticity storage value
+		{
+			let item: &[u8] = b"Elasticity";
+			let current_value = get_storage_value::<Permill>(module, item, &[]);
+			if current_value.is_none() {
+				// Put the default value in storage
+				let write = pallet_base_fee::Pallet::<T>::set_elasticity_inner(
+					Permill::from_parts(125_000),
+				);
+				weight = weight.saturating_add(write);
+			}
+		}
+		weight
+	}
+
 	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
 	#[cfg(feature = "try-runtime")]
-	fn post_upgrade(&self) -> Result<(), &'static str> {
-		if Self::get_temp_storage("base_fee_is_empty")
-			&& Self::get_temp_storage("elasticity_is_empty") {
-
+	fn post_upgrade() -> Result<(), &'static str> {
+		log::info!("verifying I can see logs in post");
+		if Self::get_temp_storage::<bool>("base_fee_is_empty").is_some()
+			&& Self::get_temp_storage::<bool>("elasticity_is_empty").is_some()
+		{
 			// Verify the storage after the upgrade matches the runtime configured default
 			let module: &[u8] = b"BaseFee";
 			// BaseFeePerGas storage value
@@ -312,8 +308,34 @@ impl<T: BaseFeeConfig> Migration for BaseFeePerGas<T> {
 				assert_eq!(value, Some(Permill::from_parts(125_000)));
 			}
 		}
-		
+
 		Ok(())
+	}
+}
+
+pub struct MigrateBaseFeePerGas<T>(PhantomData<T>);
+
+// This is not strictly a migration, just an `on_runtime_upgrade` alternative to open a democracy
+// proposal to set this values through an extrinsic.
+impl<T: BaseFeeConfig> Migration for MigrateBaseFeePerGas<T> {
+	fn friendly_name(&self) -> &str {
+		"MM_Base_Fee_Per_Gas"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		BaseFeePerGas::<T>::on_runtime_upgrade()
+	}
+
+	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<(), &'static str> {
+		BaseFeePerGas::<T>::pre_upgrade()
+	}
+
+	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self) -> Result<(), &'static str> {
+		BaseFeePerGas::<T>::post_upgrade()
 	}
 }
 
@@ -480,10 +502,9 @@ where
 		let migration_parachain_staking_patch_incorrect_delegation_sums =
 			ParachainStakingPatchIncorrectDelegationSums::<Runtime>(Default::default());
 
-
 		let migration_scheduler_v3 = SchedulerMigrationV3::<Runtime>(Default::default());
 
-		let migration_base_fee = BaseFeePerGas::<Runtime>(Default::default());
+		let migration_base_fee = MigrateBaseFeePerGas::<Runtime>(Default::default());
 
 		// TODO: this is a lot of allocation to do upon every get() call. this *should* be avoided
 		// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review

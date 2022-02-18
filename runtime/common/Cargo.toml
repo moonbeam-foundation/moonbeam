@@ -50,4 +50,8 @@ std = [
 	"xcm-transactor/std",
 	"xcm/std",
 ]
+try-runtime = [
+	"frame-support/try-runtime",
+	"pallet-migrations/try-runtime",
+]
 xcm-support = [ "pallet-asset-manager", "xcm", "xcm-transactor" ]
