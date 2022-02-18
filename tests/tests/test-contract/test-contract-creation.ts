@@ -20,9 +20,7 @@ describeDevMoonbeamAllEthTxTypes("Contract creation", (context) => {
 describeDevMoonbeamAllEthTxTypes("eth_call contract create", (context) => {
   it("should return the contract code", async () => {
     const contractData = await getCompiled("TestContract");
-    let callCode = await context.web3.eth.call({
-			data: contractData.byteCode
-		});
+    let callCode = await context.web3.eth.call({ data: contractData.byteCode });
     const { rawTx } = await createContract(context, "TestContract");
     const { txResults } = await context.createBlock({ transactions: [rawTx] });
     let receipt = await context.web3.eth.getTransactionReceipt(txResults[0].result);
