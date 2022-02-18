@@ -723,8 +723,9 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     }
   );
 
-  it("Should receive 10 Statemine asset 0 tokens to Alith using statemint asset 1 as fee payment ", async function () {
-    // We are going to test that, using one of them as fee payment (assetOne), we can receive the other
+  it("Should receive 10 asset 0 tokens using statemint asset 1 as fee ", async function () {
+    // We are going to test that, using one of them as fee payment (assetOne),
+    // we can receive the other
     let xcmMessage = {
       V2: [
         {
@@ -844,8 +845,9 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     expect(registeredAssetZero.owner.toHex()).to.eq(palletId.toLowerCase());
   });
 
-  it("Should not receive 10 Statemine asset 0 tokens because fee payment not supported ", async function () {
-    // We are going to test that, using one of them as fee payment (assetOne), we can receive the other
+  it("Should not receive 10 asset 0 tokens because fee not supported ", async function () {
+    // We are going to test that, using one of them as fee payment (assetOne),
+    // we can receive the other
     let xcmMessage = {
       V2: [
         {
