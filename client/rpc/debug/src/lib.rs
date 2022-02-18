@@ -13,10 +13,10 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
-use futures::{future::BoxFuture, FutureExt, SinkExt, StreamExt};
-use jsonrpsee::cor::RpcResult;
+use futures::{SinkExt, StreamExt};
+use jsonrpsee::core::{async_trait, RpcResult};
 
-pub use moonbeam_rpc_core_debug::{Debug as DebugT, DebugServer, TraceParams};
+pub use moonbeam_rpc_core_debug::{DebugServer as DebugT, DebugServer, TraceParams};
 
 use tokio::{
 	self,
@@ -63,73 +63,64 @@ impl Debug {
 	}
 }
 
+#[async_trait]
 impl DebugT for Debug {
 	/// Handler for `debug_traceTransaction` request. Communicates with the service-defined task
 	/// using channels.
-	fn trace_transaction(
+	async fn trace_transaction(
 		&self,
 		transaction_hash: H256,
 		params: Option<TraceParams>,
-	) -> BoxFuture<'static, RpcResult<single::TransactionTrace>> {
+	) -> RpcResult<single::TransactionTrace> {
 		let mut requester = self.requester.clone();
 
-		async move {
-			let (tx, rx) = oneshot::channel();
-			// Send a message from the rpc handler to the service level task.
-			requester
-				.send(((RequesterInput::Transaction(transaction_hash), params), tx))
-				.await
-				.map_err(|err| {
-					internal_err(format!(
-						"failed to send request to debug service : {:?}",
-						err
-					))
-				})?;
+		let (tx, rx) = oneshot::channel();
+		// Send a message from the rpc handler to the service level task.
+		requester
+			.send(((RequesterInput::Transaction(transaction_hash), params), tx))
+			.await
+			.map_err(|err| {
+				internal_err(format!(
+					"failed to send request to debug service : {:?}",
+					err
+				))
+			})?;
 
-			// Receive a message from the service level task and send the rpc response.
-			rx.await
-				.map_err(|err| {
-					internal_err(format!("debug service dropped the channel : {:?}", err))
-				})?
-				.map(|res| match res {
-					Response::Single(res) => res,
-					_ => unreachable!(),
-				})
-		}
-		.boxed()
+		// Receive a message from the service level task and send the rpc response.
+		rx.await
+			.map_err(|err| internal_err(format!("debug service dropped the channel : {:?}", err)))?
+			.map(|res| match res {
+				Response::Single(res) => res,
+				_ => unreachable!(),
+			})
 	}
 
-	fn trace_block(
+	async fn trace_block(
 		&self,
 		id: RequestBlockId,
 		params: Option<TraceParams>,
-	) -> BoxFuture<'static, RpcResult<Vec<single::TransactionTrace>>> {
+	) -> RpcResult<Vec<single::TransactionTrace>> {
 		let mut requester = self.requester.clone();
 
-		async move {
-			let (tx, rx) = oneshot::channel();
-			// Send a message from the rpc handler to the service level task.
-			requester
-				.send(((RequesterInput::Block(id), params), tx))
-				.await
-				.map_err(|err| {
-					internal_err(format!(
-						"failed to send request to debug service : {:?}",
-						err
-					))
-				})?;
+		let (tx, rx) = oneshot::channel();
+		// Send a message from the rpc handler to the service level task.
+		requester
+			.send(((RequesterInput::Block(id), params), tx))
+			.await
+			.map_err(|err| {
+				internal_err(format!(
+					"failed to send request to debug service : {:?}",
+					err
+				))
+			})?;
 
-			// Receive a message from the service level task and send the rpc response.
-			rx.await
-				.map_err(|err| {
-					internal_err(format!("debug service dropped the channel : {:?}", err))
-				})?
-				.map(|res| match res {
-					Response::Block(res) => res,
-					_ => unreachable!(),
-				})
-		}
-		.boxed()
+		// Receive a message from the service level task and send the rpc response.
+		rx.await
+			.map_err(|err| internal_err(format!("debug service dropped the channel : {:?}", err)))?
+			.map(|res| match res {
+				Response::Block(res) => res,
+				_ => unreachable!(),
+			})
 	}
 }
 

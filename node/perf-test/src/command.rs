@@ -78,6 +78,7 @@ where
 {
 	pub fn from_cmd(config: Configuration, _cmd: &PerfCmd) -> CliResult<Self> {
 		println!("perf-test from_cmd");
+
 		let sc_service::PartialComponents {
 			client,
 			backend,
@@ -204,7 +205,7 @@ where
 
 		let command_sink_for_deps = command_sink.clone();
 
-		let rpc_extensions_builder = {
+		let rpc_builder = {
 			let client = client.clone();
 			let pool = transaction_pool.clone();
 			let backend = backend.clone();
@@ -232,9 +233,13 @@ where
 					fee_history_cache: fee_history_cache.clone(),
 					xcm_senders: None,
 				};
-				#[allow(unused_mut)]
-				let mut io = rpc::create_full(deps, subscription_task_executor.clone(), overrides.clone());
-				Ok(io)
+				rpc::create_full(
+					deps,
+					subscription_task_executor.clone(),
+					overrides.clone(),
+					None,
+				)
+				.map_err(Into::into)
 			})
 		};
 
@@ -244,7 +249,7 @@ where
 			keystore: keystore_container.sync_keystore(),
 			task_manager: &mut task_manager,
 			transaction_pool: transaction_pool.clone(),
-			rpc_extensions_builder,
+			rpc_builder: Box::new(rpc_builder),
 			backend,
 			system_rpc_tx,
 			config,
