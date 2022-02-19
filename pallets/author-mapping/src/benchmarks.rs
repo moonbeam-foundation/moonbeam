@@ -41,7 +41,7 @@ fn create_funded_user<T: Config>() -> T::AccountId {
 /// Create a valid nimbus id from a simple u8 seed
 pub fn nimbus_id(seed: u8) -> NimbusId {
 	let id = [seed; 32];
-	NimbusId::decode(&mut &id[..]).unwrap_or_default()
+	NimbusId::decode(&mut &id[..]).expect("valid input")
 }
 
 benchmarks! {

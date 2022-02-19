@@ -28,10 +28,10 @@ use crate::mock::{
 use crate::{
 	assert_eq_events, assert_eq_last_events, assert_event_emitted, assert_event_not_emitted,
 	assert_last_event, assert_tail_eq, pallet::CapacityStatus, set::OrderedSet, BalanceOf, Bond,
-	BottomDelegations, CandidateInfo, CandidatePool, CandidateState, CollatorCandidate,
-	CollatorStatus, Config, DelegationChange, DelegationRequest, Delegator, DelegatorAdded,
-	DelegatorState, DelegatorStatus, Error, Event, PendingDelegationRequests, Range,
-	TopDelegations, Total,
+	BottomDelegations, CandidateInfo, CandidateMetadata, CandidatePool, CandidateState,
+	CollatorCandidate, CollatorStatus, Config, DelegationChange, DelegationRequest, Delegations,
+	Delegator, DelegatorAdded, DelegatorState, DelegatorStatus, Error, Event,
+	PendingDelegationRequests, Range, TopDelegations, Total,
 };
 use frame_support::{assert_noop, assert_ok, traits::ReservableCurrency};
 use sp_runtime::{traits::Zero, DispatchError, Perbill, Percent};
@@ -2448,6 +2448,7 @@ fn delegator_bond_more_updates_candidate_state_top_delegations() {
 				ParachainStaking::top_delegations(1).unwrap().delegations[0].amount,
 				10
 			);
+			assert_eq!(ParachainStaking::top_delegations(1).unwrap().total, 10);
 			assert_ok!(ParachainStaking::delegator_bond_more(
 				Origin::signed(2),
 				1,
@@ -2461,6 +2462,7 @@ fn delegator_bond_more_updates_candidate_state_top_delegations() {
 				ParachainStaking::top_delegations(1).unwrap().delegations[0].amount,
 				15
 			);
+			assert_eq!(ParachainStaking::top_delegations(1).unwrap().total, 15);
 		});
 }
 
@@ -2492,6 +2494,7 @@ fn delegator_bond_more_updates_candidate_state_bottom_delegations() {
 					.amount,
 				10
 			);
+			assert_eq!(ParachainStaking::bottom_delegations(1).unwrap().total, 10);
 			assert_ok!(ParachainStaking::delegator_bond_more(
 				Origin::signed(2),
 				1,
@@ -2517,6 +2520,7 @@ fn delegator_bond_more_updates_candidate_state_bottom_delegations() {
 					.amount,
 				15
 			);
+			assert_eq!(ParachainStaking::bottom_delegations(1).unwrap().total, 15);
 		});
 }
 
@@ -7106,6 +7110,92 @@ fn hotfix_update_candidate_pool_value_updates_candidate_pool() {
 use frame_support::traits::OnRuntimeUpgrade;
 
 #[test]
+fn patch_incorrect_delegations_sums() {
+	ExtBuilder::default()
+		.with_balances(vec![(11, 22), (12, 20)])
+		.build()
+		.execute_with(|| {
+			// corrupt top and bottom delegations so totals are incorrect
+			let old_top_delegations = Delegations {
+				delegations: vec![
+					Bond {
+						owner: 2,
+						amount: 103,
+					},
+					Bond {
+						owner: 3,
+						amount: 102,
+					},
+					Bond {
+						owner: 4,
+						amount: 101,
+					},
+					Bond {
+						owner: 5,
+						amount: 100,
+					},
+				],
+				// should be 406
+				total: 453,
+			};
+			<TopDelegations<Test>>::insert(&1, old_top_delegations);
+			let old_bottom_delegations = Delegations {
+				delegations: vec![
+					Bond {
+						owner: 6,
+						amount: 25,
+					},
+					Bond {
+						owner: 7,
+						amount: 24,
+					},
+					Bond {
+						owner: 8,
+						amount: 23,
+					},
+					Bond {
+						owner: 9,
+						amount: 22,
+					},
+				],
+				// should be 94
+				total: 222,
+			};
+			<BottomDelegations<Test>>::insert(&1, old_bottom_delegations);
+			<CandidateInfo<Test>>::insert(
+				&1,
+				CandidateMetadata {
+					bond: 25,
+					delegation_count: 8,
+					// 25 + 453 (incorrect), should be 25 + 406 after upgrade
+					total_counted: 478,
+					lowest_top_delegation_amount: 100,
+					highest_bottom_delegation_amount: 25,
+					lowest_bottom_delegation_amount: 22,
+					top_capacity: CapacityStatus::Full,
+					bottom_capacity: CapacityStatus::Full,
+					request: None,
+					status: CollatorStatus::Active,
+				},
+			);
+			<CandidatePool<Test>>::put(OrderedSet::from(vec![Bond {
+				owner: 1,
+				amount: 478,
+			}]));
+			crate::migrations::PatchIncorrectDelegationSums::<Test>::on_runtime_upgrade();
+			let top = <TopDelegations<Test>>::get(&1).expect("just updated so exists");
+			assert_eq!(top.total, 406);
+			let bottom = <BottomDelegations<Test>>::get(&1).expect("just updated so exists");
+			assert_eq!(bottom.total, 94);
+			let info = <CandidateInfo<Test>>::get(&1).expect("just updated so exists");
+			assert_eq!(info.total_counted, 431);
+			let only_bond = <CandidatePool<Test>>::get().0[0].clone();
+			assert_eq!(only_bond.owner, 1);
+			assert_eq!(only_bond.amount, 431);
+		});
+}
+
+#[test]
 /// Kicks extra bottom delegations to force leave delegators if last delegation
 fn split_candidate_state_kicks_extra_bottom_delegators_to_exit() {
 	ExtBuilder::default()
@@ -7926,162 +8016,162 @@ fn split_candidate_state_migrates_full_top_and_bottom_delegations_correctly() {
 		});
 }
 
-#[test]
-fn remove_exit_queue_migration_migrates_leaving_candidates() {
-	use crate::pallet::ExitQueue2;
-	use crate::set::*;
-	use crate::*;
-	ExtBuilder::default()
-		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
-		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
-		.build()
-		.execute_with(|| {
-			// prepare leaving state for all 5 candidates before the migration
-			for i in 1..6 {
-				// manually change the CollatorState2 status
-				<CollatorState2<Test>>::insert(
-					i,
-					Collator2 {
-						id: i,
-						bond: 20,
-						nominators: OrderedSet::new(),
-						top_nominators: Vec::new(),
-						bottom_nominators: Vec::new(),
-						total_counted: 20,
-						total_backing: 20,
-						// set to leaving
-						state: CollatorStatus::Leaving(3),
-					},
-				);
-			}
-			<ExitQueue2<Test>>::put(ExitQ {
-				candidates: OrderedSet(vec![1, 2, 3, 4, 5]),
-				candidate_schedule: vec![(1, 3), (2, 3), (3, 3), (4, 3), (5, 3)],
-				..Default::default()
-			});
-			// execute migration
-			migrations::RemoveExitQueue::<Test>::on_runtime_upgrade();
-			// check expected candidate state reflects previous state
-			for i in 1..6 {
-				assert!(<CollatorState2<Test>>::get(i).is_none());
-				assert_eq!(
-					<CandidateState<Test>>::get(i).unwrap().state,
-					CollatorStatus::Leaving(3)
-				);
-			}
-			// exit queue should be empty
-			assert_eq!(<ExitQueue2<Test>>::get(), ExitQ::default());
-		});
-}
+// #[test]
+// fn remove_exit_queue_migration_migrates_leaving_candidates() {
+// 	use crate::pallet::ExitQueue2;
+// 	use crate::set::*;
+// 	use crate::*;
+// 	ExtBuilder::default()
+// 		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
+// 		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
+// 		.build()
+// 		.execute_with(|| {
+// 			// prepare leaving state for all 5 candidates before the migration
+// 			for i in 1..6 {
+// 				// manually change the CollatorState2 status
+// 				<CollatorState2<Test>>::insert(
+// 					i,
+// 					Collator2 {
+// 						id: i,
+// 						bond: 20,
+// 						nominators: OrderedSet::new(),
+// 						top_nominators: Vec::new(),
+// 						bottom_nominators: Vec::new(),
+// 						total_counted: 20,
+// 						total_backing: 20,
+// 						// set to leaving
+// 						state: CollatorStatus::Leaving(3),
+// 					},
+// 				);
+// 			}
+// 			<ExitQueue2<Test>>::put(ExitQ {
+// 				candidates: OrderedSet(vec![1, 2, 3, 4, 5]),
+// 				candidate_schedule: vec![(1, 3), (2, 3), (3, 3), (4, 3), (5, 3)],
+// 				..Default::default()
+// 			});
+// 			// execute migration
+// 			migrations::RemoveExitQueue::<Test>::on_runtime_upgrade();
+// 			// check expected candidate state reflects previous state
+// 			for i in 1..6 {
+// 				assert!(<CollatorState2<Test>>::get(i).is_none());
+// 				assert_eq!(
+// 					<CandidateState<Test>>::get(i).unwrap().state,
+// 					CollatorStatus::Leaving(3)
+// 				);
+// 			}
+// 			// exit queue should be empty
+// 			assert_eq!(<ExitQueue2<Test>>::get(), ExitQ::default());
+// 		});
+// }
 
-#[test]
-fn remove_exit_queue_migration_migrates_leaving_delegators() {
-	use crate::pallet::ExitQueue2;
-	use crate::set::*;
-	use crate::*;
-	ExtBuilder::default()
-		.with_balances(vec![(2, 100), (3, 100), (4, 100), (5, 100), (6, 100)])
-		.with_candidates(vec![(2, 20)])
-		.with_delegations(vec![(3, 1, 10), (4, 1, 10), (5, 1, 10), (6, 1, 10)])
-		.build()
-		.execute_with(|| {
-			// prepare leaving state for all 4 delegators before the migration
-			for i in 3..7 {
-				<NominatorState2<Test>>::insert(
-					i,
-					Nominator2 {
-						delegations: OrderedSet(vec![Bond {
-							owner: 1,
-							amount: 10,
-						}]),
-						revocations: OrderedSet::new(),
-						total: 10,
-						scheduled_revocations_count: 0u32,
-						scheduled_revocations_total: 0u32.into(),
-						status: DelegatorStatus::Leaving(3),
-					},
-				);
-			}
-			<ExitQueue2<Test>>::put(ExitQ {
-				nominators_leaving: OrderedSet(vec![3, 4, 5, 6]),
-				nominator_schedule: vec![(3, None, 3), (4, None, 3), (5, None, 3), (6, None, 3)],
-				..Default::default()
-			});
-			// execute migration
-			migrations::RemoveExitQueue::<Test>::on_runtime_upgrade();
-			// check expected delegator state reflects previous state
-			for i in 3..7 {
-				assert!(<NominatorState2<Test>>::get(i).is_none());
-				assert_eq!(
-					ParachainStaking::delegator_state(i).unwrap().status,
-					DelegatorStatus::Leaving(3)
-				);
-			}
-			// exit queue should be empty
-			assert_eq!(<ExitQueue2<Test>>::get(), ExitQ::default());
-		});
-}
+// #[test]
+// fn remove_exit_queue_migration_migrates_leaving_delegators() {
+// 	use crate::pallet::ExitQueue2;
+// 	use crate::set::*;
+// 	use crate::*;
+// 	ExtBuilder::default()
+// 		.with_balances(vec![(2, 100), (3, 100), (4, 100), (5, 100), (6, 100)])
+// 		.with_candidates(vec![(2, 20)])
+// 		.with_delegations(vec![(3, 1, 10), (4, 1, 10), (5, 1, 10), (6, 1, 10)])
+// 		.build()
+// 		.execute_with(|| {
+// 			// prepare leaving state for all 4 delegators before the migration
+// 			for i in 3..7 {
+// 				<NominatorState2<Test>>::insert(
+// 					i,
+// 					Nominator2 {
+// 						delegations: OrderedSet(vec![Bond {
+// 							owner: 1,
+// 							amount: 10,
+// 						}]),
+// 						revocations: OrderedSet::new(),
+// 						total: 10,
+// 						scheduled_revocations_count: 0u32,
+// 						scheduled_revocations_total: 0u32.into(),
+// 						status: DelegatorStatus::Leaving(3),
+// 					},
+// 				);
+// 			}
+// 			<ExitQueue2<Test>>::put(ExitQ {
+// 				nominators_leaving: OrderedSet(vec![3, 4, 5, 6]),
+// 				nominator_schedule: vec![(3, None, 3), (4, None, 3), (5, None, 3), (6, None, 3)],
+// 				..Default::default()
+// 			});
+// 			// execute migration
+// 			migrations::RemoveExitQueue::<Test>::on_runtime_upgrade();
+// 			// check expected delegator state reflects previous state
+// 			for i in 3..7 {
+// 				assert!(<NominatorState2<Test>>::get(i).is_none());
+// 				assert_eq!(
+// 					ParachainStaking::delegator_state(i).unwrap().status,
+// 					DelegatorStatus::Leaving(3)
+// 				);
+// 			}
+// 			// exit queue should be empty
+// 			assert_eq!(<ExitQueue2<Test>>::get(), ExitQ::default());
+// 		});
+// }
 
-#[test]
-fn remove_exit_queue_migration_migrates_delegator_revocations() {
-	use crate::pallet::ExitQueue2;
-	use crate::set::*;
-	use crate::*;
-	ExtBuilder::default()
-		.with_balances(vec![(2, 100), (3, 100), (4, 100), (5, 100), (6, 100)])
-		.with_candidates(vec![(2, 20)])
-		.with_delegations(vec![(3, 1, 10), (4, 1, 10), (5, 1, 10), (6, 1, 10)])
-		.build()
-		.execute_with(|| {
-			// prepare leaving state for all 4 delegators before the migration
-			for i in 3..7 {
-				<NominatorState2<Test>>::insert(
-					i,
-					Nominator2 {
-						delegations: OrderedSet(vec![Bond {
-							owner: 1,
-							amount: 10,
-						}]),
-						revocations: OrderedSet(vec![1]),
-						total: 10,
-						scheduled_revocations_count: 1u32,
-						scheduled_revocations_total: 10u32.into(),
-						status: DelegatorStatus::Active,
-					},
-				);
-			}
-			<ExitQueue2<Test>>::put(ExitQ {
-				nominator_schedule: vec![
-					(3, Some(1), 3),
-					(4, Some(1), 3),
-					(5, Some(1), 3),
-					(6, Some(1), 3),
-				],
-				..Default::default()
-			});
-			// execute migration
-			migrations::RemoveExitQueue::<Test>::on_runtime_upgrade();
-			// check expected delegator state reflects previous state
-			for i in 3..7 {
-				assert!(<NominatorState2<Test>>::get(i).is_none());
-				assert_eq!(
-					ParachainStaking::delegator_state(i)
-						.unwrap()
-						.requests
-						.requests
-						.get(&1),
-					Some(&DelegationRequest {
-						collator: 1,
-						amount: 10,
-						when_executable: 3,
-						action: DelegationChange::Revoke
-					})
-				);
-			}
-			// exit queue should be empty
-			assert_eq!(<ExitQueue2<Test>>::get(), ExitQ::default());
-		});
-}
+// #[test]
+// fn remove_exit_queue_migration_migrates_delegator_revocations() {
+// 	use crate::pallet::ExitQueue2;
+// 	use crate::set::*;
+// 	use crate::*;
+// 	ExtBuilder::default()
+// 		.with_balances(vec![(2, 100), (3, 100), (4, 100), (5, 100), (6, 100)])
+// 		.with_candidates(vec![(2, 20)])
+// 		.with_delegations(vec![(3, 1, 10), (4, 1, 10), (5, 1, 10), (6, 1, 10)])
+// 		.build()
+// 		.execute_with(|| {
+// 			// prepare leaving state for all 4 delegators before the migration
+// 			for i in 3..7 {
+// 				<NominatorState2<Test>>::insert(
+// 					i,
+// 					Nominator2 {
+// 						delegations: OrderedSet(vec![Bond {
+// 							owner: 1,
+// 							amount: 10,
+// 						}]),
+// 						revocations: OrderedSet(vec![1]),
+// 						total: 10,
+// 						scheduled_revocations_count: 1u32,
+// 						scheduled_revocations_total: 10u32.into(),
+// 						status: DelegatorStatus::Active,
+// 					},
+// 				);
+// 			}
+// 			<ExitQueue2<Test>>::put(ExitQ {
+// 				nominator_schedule: vec![
+// 					(3, Some(1), 3),
+// 					(4, Some(1), 3),
+// 					(5, Some(1), 3),
+// 					(6, Some(1), 3),
+// 				],
+// 				..Default::default()
+// 			});
+// 			// execute migration
+// 			migrations::RemoveExitQueue::<Test>::on_runtime_upgrade();
+// 			// check expected delegator state reflects previous state
+// 			for i in 3..7 {
+// 				assert!(<NominatorState2<Test>>::get(i).is_none());
+// 				assert_eq!(
+// 					ParachainStaking::delegator_state(i)
+// 						.unwrap()
+// 						.requests
+// 						.requests
+// 						.get(&1),
+// 					Some(&DelegationRequest {
+// 						collator: 1,
+// 						amount: 10,
+// 						when_executable: 3,
+// 						action: DelegationChange::Revoke
+// 					})
+// 				);
+// 			}
+// 			// exit queue should be empty
+// 			assert_eq!(<ExitQueue2<Test>>::get(), ExitQ::default());
+// 		});
+// }
 
 #[test]
 fn verify_purge_storage_migration_works() {
