@@ -5051,7 +5051,7 @@ fn payout_distribution_to_solo_collators() {
 					rewards: 192,
 				},
 				Event::Rewarded {
-					account: 1,
+					account: 2,
 					rewards: 128,
 				},
 			];
@@ -5233,7 +5233,7 @@ fn multiple_delegations() {
 					delegator: 6,
 					locked_amount: 10,
 					candidate: 2,
-					delegator_position: DelegatorAdded::AddedToTop { new_total: 30 },
+					delegator_position: DelegatorAdded::AddedToTop { new_total: 50 },
 				},
 				Event::Delegation {
 					delegator: 6,
@@ -6595,7 +6595,7 @@ fn no_rewards_paid_until_after_reward_payment_delay() {
 			roll_one_block();
 			expected.push(Event::Rewarded {
 				account: 1,
-				rewards: 2,
+				rewards: 1,
 			});
 			assert_eq_events!(expected);
 
