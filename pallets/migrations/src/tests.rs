@@ -191,7 +191,7 @@ fn migration_should_only_be_invoked_once() {
 					expected.append(&mut vec![
 						Event::RuntimeUpgradeStarted(),
 						Event::RuntimeUpgradeCompleted {
-							weight: 100000001u32.into(),
+							weight: 100000000u32.into(),
 						},
 					]);
 					assert_eq!(events(), expected);
