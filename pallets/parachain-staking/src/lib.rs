@@ -759,12 +759,12 @@ pub mod pallet {
 				.delegations
 				.clone()
 				.into_iter()
-				.filter_map(|d| {
+				.filter(|d| {
 					if d.owner != delegator {
-						Some(d)
+						true
 					} else {
 						actual_amount_option = Some(d.amount);
-						None
+						false
 					}
 				})
 				.collect();
@@ -809,12 +809,12 @@ pub mod pallet {
 				.delegations
 				.clone()
 				.into_iter()
-				.filter_map(|d| {
+				.filter(|d| {
 					if d.owner != delegator {
-						Some(d)
+						true
 					} else {
 						actual_amount_option = Some(d.amount);
-						None
+						false
 					}
 				})
 				.collect();
@@ -915,15 +915,15 @@ pub mod pallet {
 						.delegations
 						.clone()
 						.into_iter()
-						.filter_map(|d| {
+						.filter(|d| {
 							if d.owner != delegator {
-								Some(d)
+								true
 							} else {
 								delegation_option = Some(Bond {
-									owner: d.owner,
+									owner: d.owner.clone(),
 									amount: d.amount.saturating_add(more),
 								});
-								None
+								false
 							}
 						})
 						.collect();
@@ -1042,16 +1042,16 @@ pub mod pallet {
 					.delegations
 					.clone()
 					.into_iter()
-					.filter_map(|d| {
+					.filter(|d| {
 						if d.owner != delegator {
-							Some(d)
+							true
 						} else {
 							top_delegations.total = top_delegations.total.saturating_sub(d.amount);
 							delegation_option = Some(Bond {
-								owner: d.owner,
+								owner: d.owner.clone(),
 								amount: d.amount.saturating_sub(less),
 							});
-							None
+							false
 						}
 					})
 					.collect();
@@ -2462,13 +2462,7 @@ pub mod pallet {
 				if let Some(mut state) = <DelegatorState<T>>::get(&delegator) {
 					// go through all requests and remove ones without corresponding delegation
 					for (candidate, request) in state.requests.requests.clone().into_iter() {
-						if state
-							.delegations
-							.0
-							.iter()
-							.find(|x| x.owner == candidate)
-							.is_none()
-						{
+						if !state.delegations.0.iter().any(|x| x.owner == candidate) {
 							state.requests.requests.remove(&candidate);
 							state.requests.less_total =
 								state.requests.less_total.saturating_sub(request.amount);

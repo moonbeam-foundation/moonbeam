@@ -136,9 +136,8 @@ where
 		}
 	}
 	fn is_precompile(&self, address: H160) -> bool {
-		Self::used_addresses()
-			.find(|x| x == &R::AddressMapping::into_account_id(address))
-			.is_some() || Erc20AssetsPrecompileSet::<R>::new().is_precompile(address)
+		Self::used_addresses().any(|x| x == R::AddressMapping::into_account_id(address))
+			|| Erc20AssetsPrecompileSet::<R>::new().is_precompile(address)
 	}
 }
 

@@ -197,6 +197,19 @@ jobs:
 
   ####### Building and Testing binaries #######
 
+  cargo-clippy:
+    runs-on: self-hosted
+    needs: ["set-tags"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
+      - name: Setup Rust toolchain
+        run: rustup show
+      - name: Clippy
+        run: SKIP_WASM_BUILD=1 env -u RUSTFLAGS cargo +nightly clippy --all-targets
+
   build:
     runs-on: self-hosted
     needs: ["set-tags"]
@@ -275,10 +288,6 @@ jobs:
             echo $DIFF_INDEX | grep Cargo.lock
             false
           fi
-      - name: Check with Clippy
-        env:
-          RUSTFLAGS: "" # override RUSTFLAGS to disable option -D warnings
-        run: cargo clippy --release --workspace
       - name: Ensure benchmarking compiles
         run: cargo check --release --features=runtime-benchmarks
       - name: Save moonbeam binary
