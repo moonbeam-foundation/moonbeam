@@ -154,7 +154,7 @@ describeDevMoonbeam(
 
       expect(
         (
-          (await context.polkadotApi.query.system.account(freshAccount.address)) as any as any
+          (await context.polkadotApi.query.system.account(freshAccount.address)) as any
         ).sufficients.toBigInt()
       ).to.eq(1n);
       // Providers should still be 0
@@ -548,7 +548,7 @@ describeDevMoonbeam(
       // Nonce should be 1
       expect(
         (
-          (await context.polkadotApi.query.system.account(freshAccount.address)) as any as any
+          (await context.polkadotApi.query.system.account(freshAccount.address)) as any
         ).providers.toBigInt()
       ).to.eq(1n);
 
