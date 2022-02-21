@@ -39,12 +39,6 @@ fn selector_less_than_four_bytes() {
 			true,
 			1
 		));
-		assert_ok!(ForeignAssets::mint(
-			Origin::signed(Account::Alice),
-			0u128,
-			Account::Alice.into(),
-			1000
-		));
 		// This selector is only three bytes long when four are required.
 		let bogus_selector = vec![1u8, 2u8, 3u8];
 
@@ -75,12 +69,6 @@ fn no_selector_exists_but_length_is_right() {
 			Account::Alice.into(),
 			true,
 			1
-		));
-		assert_ok!(ForeignAssets::mint(
-			Origin::signed(Account::Alice),
-			0u128,
-			Account::Alice.into(),
-			1000
 		));
 		let bogus_selector = vec![1u8, 2u8, 3u8, 4u8];
 
@@ -221,12 +209,6 @@ fn get_balances_unknown_user() {
 				Account::Alice.into(),
 				true,
 				1
-			));
-			assert_ok!(ForeignAssets::mint(
-				Origin::signed(Account::Alice),
-				0u128,
-				Account::Alice.into(),
-				1000
 			));
 			assert_eq!(
 				precompiles().execute(
@@ -451,12 +433,6 @@ fn check_allowance_not_existing() {
 				Account::Alice.into(),
 				true,
 				1
-			));
-			assert_ok!(ForeignAssets::mint(
-				Origin::signed(Account::Alice),
-				0u128,
-				Account::Alice.into(),
-				1000
 			));
 			assert_eq!(
 				precompiles().execute(
@@ -1044,12 +1020,6 @@ fn get_metadata() {
 				12,
 				false
 			));
-			assert_ok!(ForeignAssets::mint(
-				Origin::signed(Account::Alice),
-				0u128,
-				Account::Alice.into(),
-				1000
-			));
 			{
 				assert_eq!(
 					precompiles().execute(
@@ -1140,12 +1110,6 @@ fn local_functions_cannot_be_accessed_by_foreign_assets() {
 				12,
 				false
 			));
-			assert_ok!(ForeignAssets::mint(
-				Origin::signed(Account::Alice),
-				0u128,
-				Account::Alice.into(),
-				1000
-			));
 			{
 				assert_matches!(
 					precompiles().execute(
@@ -1209,12 +1173,6 @@ fn mint_local_assets() {
 				b"Test".to_vec(),
 				12,
 				false
-			));
-			assert_ok!(LocalAssets::mint(
-				Origin::signed(Account::Alice),
-				0u128,
-				Account::Alice.into(),
-				1000
 			));
 			{
 				assert_eq!(
@@ -1728,12 +1686,6 @@ fn transfer_ownership_local_assets() {
 				12,
 				false
 			));
-			assert_ok!(LocalAssets::mint(
-				Origin::signed(Account::Alice),
-				0u128,
-				Account::Alice.into(),
-				1000
-			));
 			{
 				assert_eq!(
 					precompiles().execute(
@@ -1823,12 +1775,6 @@ fn set_team_local_assets() {
 				b"Test".to_vec(),
 				12,
 				false
-			));
-			assert_ok!(LocalAssets::mint(
-				Origin::signed(Account::Alice),
-				0u128,
-				Account::Alice.into(),
-				1000
 			));
 			{
 				assert_eq!(
@@ -1953,12 +1899,6 @@ fn set_metadata() {
 				12,
 				false
 			));
-			assert_ok!(LocalAssets::mint(
-				Origin::signed(Account::Alice),
-				0u128,
-				Account::Alice.into(),
-				1000
-			));
 			{
 				assert_eq!(
 					precompiles().execute(
@@ -2072,12 +2012,6 @@ fn clear_metadata() {
 				b"Test".to_vec(),
 				12,
 				false
-			));
-			assert_ok!(LocalAssets::mint(
-				Origin::signed(Account::Alice),
-				0u128,
-				Account::Alice.into(),
-				1000
 			));
 			{
 				assert_eq!(

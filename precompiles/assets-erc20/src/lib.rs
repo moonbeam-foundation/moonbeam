@@ -31,7 +31,7 @@ use precompile_utils::{
 	keccak256, Address, Bytes, EvmData, EvmDataReader, EvmDataWriter, EvmResult, FunctionModifier,
 	Gasometer, LogsBuilder, RuntimeHelper,
 };
-use sp_runtime::traits::{Bounded, Zero};
+use sp_runtime::traits::Bounded;
 use sp_std::vec::Vec;
 
 use sp_core::{H160, U256};
@@ -141,7 +141,7 @@ where
 			// storage we can use another function for this, like check_asset_existence.
 			// The other options is to check the asset existence in pallet-asset-manager, but
 			// this makes the precompiles dependent on such a pallet, which is not ideal
-			if !pallet_assets::Pallet::<Runtime, Instance>::total_supply(asset_id).is_zero() {
+			if pallet_assets::Pallet::<Runtime, Instance>::maybe_total_supply(asset_id).is_some() {
 				let result = {
 					let mut gasometer = Gasometer::new(target_gas);
 					let gasometer = &mut gasometer;
@@ -212,7 +212,7 @@ where
 			// storage we can use another function for this, like check_asset_existence.
 			// The other options is to check the asset existence in pallet-asset-manager, but
 			// this makes the precompiles dependent on such a pallet, which is not ideal
-			!pallet_assets::Pallet::<Runtime, Instance>::total_supply(asset_id).is_zero()
+			pallet_assets::Pallet::<Runtime, Instance>::maybe_total_supply(asset_id).is_some()
 		} else {
 			false
 		}
