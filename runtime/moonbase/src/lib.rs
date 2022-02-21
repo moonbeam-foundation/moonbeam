@@ -1350,11 +1350,11 @@ type LocalAssetInstance = pallet_assets::Instance2;
 // These parameters dont matter much as this will only be called by root with the forced arguments
 // No deposit is substracted with those methods
 parameter_types! {
-	pub const AssetDeposit: Balance = 0;
+	pub const AssetDeposit: Balance = currency::UNIT;
 	pub const ApprovalDeposit: Balance = 0;
 	pub const AssetsStringLimit: u32 = 50;
-	pub const MetadataDepositBase: Balance = 0;
-	pub const MetadataDepositPerByte: Balance = 0;
+	pub const MetadataDepositBase: Balance = currency::deposit(1,68);
+	pub const MetadataDepositPerByte: Balance = currency::deposit(0, 1);
 	pub const ExecutiveBody: BodyId = BodyId::Executive;
 	pub const AssetAccountDeposit: Balance = currency::deposit(1, 18);
 }
@@ -1520,8 +1520,8 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		// TODO uncomment when we feel comfortable
 
 		// The asset has been created. Let's put the revert code in the precompile address
-		let precompile_address =
-			Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, asset);
+		let precompile_address: H160 =
+			Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, asset).into();
 		pallet_evm::AccountCodes::<Runtime>::insert(
 			precompile_address,
 			vec![0x60, 0x00, 0x60, 0x00, 0xfd],
