@@ -1395,7 +1395,7 @@ export const contractSources: { [key: string]: string } = {
                 author_mapping.clear_association(nimbus_id);
             }
     }`,
-    TestCallList: `
+  TestCallList: `
       pragma solidity >=0.8.0;
       
       contract TestCallList {
@@ -1403,7 +1403,10 @@ export const contractSources: { [key: string]: string } = {
               return target.call(data);
           }
       
-          function delegateCall(address target, bytes memory data) public returns (bool, bytes memory) {
+          function delegateCall(
+            address target,
+            bytes memory data
+          ) public returns (bool, bytes memory) {
               return target.delegatecall(data);
           }
       }`,
