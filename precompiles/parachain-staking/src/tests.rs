@@ -745,8 +745,12 @@ fn join_candidates_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Alice, input_data)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event =
-				StakingEvent::JoinedCollatorCandidates(TestAccount::Alice, 1000, 1000).into();
+			let expected: crate::mock::Event = StakingEvent::JoinedCollatorCandidates {
+				account: TestAccount::Alice,
+				amount_locked: 1000,
+				new_total_amt_locked: 1000,
+			}
+			.into();
 			// Assert that the events vector contains the one expected
 			println!("{:?}", events());
 			assert!(events().contains(&expected));
@@ -772,8 +776,12 @@ fn leave_candidates_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Alice, input_data)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event =
-				StakingEvent::CandidateScheduledExit(1, TestAccount::Alice, 3).into();
+			let expected: crate::mock::Event = StakingEvent::CandidateScheduledExit {
+				exit_allowed_round: 1,
+				candidate: TestAccount::Alice,
+				scheduled_exit: 3,
+			}
+			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -797,8 +805,12 @@ fn schedule_leave_candidates_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Alice, input_data)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event =
-				StakingEvent::CandidateScheduledExit(1, TestAccount::Alice, 3).into();
+			let expected: crate::mock::Event = StakingEvent::CandidateScheduledExit {
+				exit_allowed_round: 1,
+				candidate: TestAccount::Alice,
+				scheduled_exit: 3,
+			}
+			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -828,8 +840,12 @@ fn execute_leave_candidates_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Alice, input_data)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event =
-				StakingEvent::CandidateLeft(TestAccount::Alice, 1_000, 0).into();
+			let expected: crate::mock::Event = StakingEvent::CandidateLeft {
+				ex_candidate: TestAccount::Alice,
+				unlocked_amount: 1_000,
+				new_total_amt_locked: 0,
+			}
+			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -857,8 +873,10 @@ fn cancel_leave_candidates_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Alice, input_data)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event =
-				StakingEvent::CancelledCandidateExit(TestAccount::Alice).into();
+			let expected: crate::mock::Event = StakingEvent::CancelledCandidateExit {
+				candidate: TestAccount::Alice,
+			}
+			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -883,8 +901,10 @@ fn go_online_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Alice, input_data)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event =
-				StakingEvent::CandidateBackOnline(TestAccount::Alice).into();
+			let expected: crate::mock::Event = StakingEvent::CandidateBackOnline {
+				candidate: TestAccount::Alice,
+			}
+			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -906,8 +926,10 @@ fn go_offline_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Alice, input_data)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event =
-				StakingEvent::CandidateWentOffline(TestAccount::Alice).into();
+			let expected: crate::mock::Event = StakingEvent::CandidateWentOffline {
+				candidate: TestAccount::Alice,
+			}
+			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -931,8 +953,12 @@ fn candidate_bond_more_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Alice, input_data)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event =
-				StakingEvent::CandidateBondedMore(TestAccount::Alice, 500, 1500).into();
+			let expected: crate::mock::Event = StakingEvent::CandidateBondedMore {
+				candidate: TestAccount::Alice,
+				amount: 500,
+				new_total_bond: 1500,
+			}
+			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -957,8 +983,12 @@ fn candidate_bond_less_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Alice, input_data)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event =
-				StakingEvent::CandidateBondLessRequested(TestAccount::Alice, 500, 3).into();
+			let expected: crate::mock::Event = StakingEvent::CandidateBondLessRequested {
+				candidate: TestAccount::Alice,
+				amount_to_decrease: 500,
+				execute_round: 3,
+			}
+			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -982,8 +1012,12 @@ fn schedule_candidate_bond_less_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Alice, input_data)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event =
-				StakingEvent::CandidateBondLessRequested(TestAccount::Alice, 500, 3).into();
+			let expected: crate::mock::Event = StakingEvent::CandidateBondLessRequested {
+				candidate: TestAccount::Alice,
+				amount_to_decrease: 500,
+				execute_round: 3,
+			}
+			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -1012,8 +1046,12 @@ fn execute_candidate_bond_less_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Alice, input_data)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event =
-				StakingEvent::CandidateBondedLess(TestAccount::Alice, 500, 1000).into();
+			let expected: crate::mock::Event = StakingEvent::CandidateBondedLess {
+				candidate: TestAccount::Alice,
+				amount: 500,
+				new_bond: 1000,
+			}
+			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -1040,8 +1078,12 @@ fn cancel_candidate_bond_less_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Alice, input_data)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event =
-				StakingEvent::CancelledCandidateBondLess(TestAccount::Alice, 200, 3).into();
+			let expected: crate::mock::Event = StakingEvent::CancelledCandidateBondLess {
+				candidate: TestAccount::Alice,
+				amount: 200,
+				execute_round: 3,
+			}
+			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -1073,12 +1115,14 @@ fn nominate_works() {
 
 			assert!(ParachainStaking::is_delegator(&TestAccount::Bob));
 
-			let expected: crate::mock::Event = StakingEvent::Delegation(
-				TestAccount::Bob,
-				1_000,
-				TestAccount::Alice,
-				parachain_staking::DelegatorAdded::AddedToTop { new_total: 2_000 },
-			)
+			let expected: crate::mock::Event = StakingEvent::Delegation {
+				delegator: TestAccount::Bob,
+				locked_amount: 1_000,
+				candidate: TestAccount::Alice,
+				delegator_position: parachain_staking::DelegatorAdded::AddedToTop {
+					new_total: 2_000,
+				},
+			}
 			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
@@ -1110,12 +1154,14 @@ fn delegate_works() {
 
 			assert!(ParachainStaking::is_delegator(&TestAccount::Bob));
 
-			let expected: crate::mock::Event = StakingEvent::Delegation(
-				TestAccount::Bob,
-				1_000,
-				TestAccount::Alice,
-				parachain_staking::DelegatorAdded::AddedToTop { new_total: 2_000 },
-			)
+			let expected: crate::mock::Event = StakingEvent::Delegation {
+				delegator: TestAccount::Bob,
+				locked_amount: 1_000,
+				candidate: TestAccount::Alice,
+				delegator_position: parachain_staking::DelegatorAdded::AddedToTop {
+					new_total: 2_000,
+				},
+			}
 			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
@@ -1142,8 +1188,12 @@ fn leave_nominators_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Bob, input_data)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event =
-				StakingEvent::DelegatorExitScheduled(1, TestAccount::Bob, 3).into();
+			let expected: crate::mock::Event = StakingEvent::DelegatorExitScheduled {
+				round: 1,
+				delegator: TestAccount::Bob,
+				scheduled_exit: 3,
+			}
+			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -1166,8 +1216,12 @@ fn schedule_leave_delegators_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Bob, input_data)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event =
-				StakingEvent::DelegatorExitScheduled(1, TestAccount::Bob, 3).into();
+			let expected: crate::mock::Event = StakingEvent::DelegatorExitScheduled {
+				round: 1,
+				delegator: TestAccount::Bob,
+				scheduled_exit: 3,
+			}
+			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -1197,8 +1251,11 @@ fn execute_leave_delegators_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Alice, input_data)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event =
-				StakingEvent::DelegatorLeft(TestAccount::Bob, 500).into();
+			let expected: crate::mock::Event = StakingEvent::DelegatorLeft {
+				delegator: TestAccount::Bob,
+				unstaked_amount: 500,
+			}
+			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -1224,8 +1281,10 @@ fn cancel_leave_delegators_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Bob, input_data)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event =
-				StakingEvent::DelegatorExitCancelled(TestAccount::Bob).into();
+			let expected: crate::mock::Event = StakingEvent::DelegatorExitCancelled {
+				delegator: TestAccount::Bob,
+			}
+			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -1250,12 +1309,12 @@ fn revoke_nomination_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Bob, input_data)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event = StakingEvent::DelegationRevocationScheduled(
-				1,
-				TestAccount::Bob,
-				TestAccount::Alice,
-				3,
-			)
+			let expected: crate::mock::Event = StakingEvent::DelegationRevocationScheduled {
+				round: 1,
+				delegator: TestAccount::Bob,
+				candidate: TestAccount::Alice,
+				scheduled_exit: 3,
+			}
 			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
@@ -1280,12 +1339,12 @@ fn schedule_revoke_delegation_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Bob, input_data)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event = StakingEvent::DelegationRevocationScheduled(
-				1,
-				TestAccount::Bob,
-				TestAccount::Alice,
-				3,
-			)
+			let expected: crate::mock::Event = StakingEvent::DelegationRevocationScheduled {
+				round: 1,
+				delegator: TestAccount::Bob,
+				candidate: TestAccount::Alice,
+				scheduled_exit: 3,
+			}
 			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
@@ -1311,9 +1370,13 @@ fn nominator_bond_more_works() {
 
 			assert_ok!(Call::Evm(evm_call(TestAccount::Bob, input_data)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event =
-				StakingEvent::DelegationIncreased(TestAccount::Bob, TestAccount::Alice, 500, true)
-					.into();
+			let expected: crate::mock::Event = StakingEvent::DelegationIncreased {
+				delegator: TestAccount::Bob,
+				candidate: TestAccount::Alice,
+				amount: 500,
+				in_top: true,
+			}
+			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -1337,9 +1400,13 @@ fn delegator_bond_more_works() {
 
 			assert_ok!(Call::Evm(evm_call(TestAccount::Bob, input_data)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event =
-				StakingEvent::DelegationIncreased(TestAccount::Bob, TestAccount::Alice, 500, true)
-					.into();
+			let expected: crate::mock::Event = StakingEvent::DelegationIncreased {
+				delegator: TestAccount::Bob,
+				candidate: TestAccount::Alice,
+				amount: 500,
+				in_top: true,
+			}
+			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -1365,12 +1432,12 @@ fn nominator_bond_less_works() {
 			assert_ok!(Call::Evm(evm_call(TestAccount::Bob, input_data)).dispatch(Origin::root()));
 
 			// Check for the right events.
-			let expected_event: crate::mock::Event = StakingEvent::DelegationDecreaseScheduled(
-				TestAccount::Bob,
-				TestAccount::Alice,
-				500,
-				3,
-			)
+			let expected_event: crate::mock::Event = StakingEvent::DelegationDecreaseScheduled {
+				delegator: TestAccount::Bob,
+				candidate: TestAccount::Alice,
+				amount_to_decrease: 500,
+				execute_round: 3,
+			}
 			.into();
 
 			assert!(events().contains(&expected_event));
@@ -1397,12 +1464,12 @@ fn schedule_delegator_bond_less_works() {
 			assert_ok!(Call::Evm(evm_call(TestAccount::Bob, input_data)).dispatch(Origin::root()));
 
 			// Check for the right events.
-			let expected_event: crate::mock::Event = StakingEvent::DelegationDecreaseScheduled(
-				TestAccount::Bob,
-				TestAccount::Alice,
-				500,
-				3,
-			)
+			let expected_event: crate::mock::Event = StakingEvent::DelegationDecreaseScheduled {
+				delegator: TestAccount::Bob,
+				candidate: TestAccount::Alice,
+				amount_to_decrease: 500,
+				execute_round: 3,
+			}
 			.into();
 
 			assert!(events().contains(&expected_event));
@@ -1433,8 +1500,12 @@ fn execute_revoke_delegation_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Alice, input_data)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event =
-				StakingEvent::DelegationRevoked(TestAccount::Bob, TestAccount::Alice, 1_000).into();
+			let expected: crate::mock::Event = StakingEvent::DelegationRevoked {
+				delegator: TestAccount::Bob,
+				candidate: TestAccount::Alice,
+				unstaked_amount: 1_000,
+			}
+			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -1465,9 +1536,13 @@ fn execute_delegator_bond_less_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Alice, input_data)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event =
-				StakingEvent::DelegationDecreased(TestAccount::Bob, TestAccount::Alice, 500, true)
-					.into();
+			let expected: crate::mock::Event = StakingEvent::DelegationDecreased {
+				delegator: TestAccount::Bob,
+				candidate: TestAccount::Alice,
+				amount: 500,
+				in_top: true,
+			}
+			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -1495,15 +1570,15 @@ fn cancel_revoke_delegation_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Bob, input_data)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event = StakingEvent::CancelledDelegationRequest(
-				TestAccount::Bob,
-				parachain_staking::DelegationRequest {
+			let expected: crate::mock::Event = StakingEvent::CancelledDelegationRequest {
+				delegator: TestAccount::Bob,
+				cancelled_request: parachain_staking::DelegationRequest {
 					collator: TestAccount::Alice,
 					amount: 1_000,
 					when_executable: 3,
 					action: parachain_staking::DelegationChange::Revoke,
 				},
-			)
+			}
 			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
@@ -1533,15 +1608,15 @@ fn cancel_delegator_bonded_less_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Bob, input_data)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event = StakingEvent::CancelledDelegationRequest(
-				TestAccount::Bob,
-				parachain_staking::DelegationRequest {
+			let expected: crate::mock::Event = StakingEvent::CancelledDelegationRequest {
+				delegator: TestAccount::Bob,
+				cancelled_request: parachain_staking::DelegationRequest {
 					collator: TestAccount::Alice,
 					amount: 500,
 					when_executable: 3,
 					action: parachain_staking::DelegationChange::Decrease,
 				},
-			)
+			}
 			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
