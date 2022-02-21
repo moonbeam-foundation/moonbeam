@@ -53,5 +53,6 @@ std = [
 try-runtime = [
 	"frame-support/try-runtime",
 	"pallet-migrations/try-runtime",
+	"pallet-asset-manager/try-runtime",
 ]
 xcm-support = [ "pallet-asset-manager", "xcm", "xcm-transactor" ]

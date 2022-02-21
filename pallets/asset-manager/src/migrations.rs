@@ -505,7 +505,7 @@ impl<T: Config> OnRuntimeUpgrade for PopulateSupportedFeePaymentAssets<T> {
 		)
 		.collect();
 		let mapping_count = stored_data.len();
-		Self::set_temp_storage(mapping_count as u32, "mapping_count");
+		Self::set_temp_storage(mapping_count as u64, "mapping_count");
 
 		// Read an example pair from old storage and set it aside in temp storage
 		if mapping_count > 0 {
@@ -516,7 +516,7 @@ impl<T: Config> OnRuntimeUpgrade for PopulateSupportedFeePaymentAssets<T> {
 				.clone()
 				.0;
 
-			Self::set_temp_storage(example_key, "example_key");
+			Self::set_temp_storage(example_key, "example_pair");
 		}
 
 		Ok(())
