@@ -38,12 +38,12 @@ pub type BlockNumber = u64;
 pub type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
 pub type Block = frame_system::mocking::MockBlock<Runtime>;
 
-/// The asset precompile address prefix. Addresses that match against this prefix will be routed
-/// to Erc20AssetsPrecompileSet
+/// The foreign asset precompile address prefix. Addresses that match against this prefix will
+/// be routed to Erc20AssetsPrecompileSet being marked as foreign
 pub const FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX: &[u8] = &[255u8; 4];
 
-/// The asset precompile address prefix. Addresses that match against this prefix will be routed
-/// to Erc20AssetsPrecompileSet
+/// The local asset precompile address prefix. Addresses that match against this prefix will
+/// be routed to Erc20AssetsPrecompileSet being marked as local
 pub const LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX: &[u8] = &[255u8, 255u8, 255u8, 254u8];
 
 /// A simple account type.
@@ -368,12 +368,12 @@ where
 		is_static: bool,
 	) -> Option<EvmResult<PrecompileOutput>> {
 		match address {
-			// If the address matches asset prefix, the we route through the asset precompile set
+			// If the address matches asset prefix, the we route through the foreign  asset precompile set
 			a if &a.to_fixed_bytes()[0..4] == LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX => {
 				Erc20AssetsPrecompileSet::<R, ConstBool<true>, pallet_assets::Instance2>::new()
 					.execute(address, input, target_gas, context, is_static)
 			}
-			// If the address matches asset prefix, the we route through the asset precompile set
+			// If the address matches asset prefix, the we route through the local asset precompile set
 			a if &a.to_fixed_bytes()[0..4] == FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX => {
 				Erc20AssetsPrecompileSet::<R, ConstBool<false>, pallet_assets::Instance1>::new()
 					.execute(address, input, target_gas, context, is_static)

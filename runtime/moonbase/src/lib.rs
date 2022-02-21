@@ -1044,6 +1044,8 @@ parameter_types! {
 		)
 	};
 
+	// Old reanchor logic location for pallet assets
+	// We need to support both in case we talk to a chain not in 0.9.16
 	pub LocalAssetsPalletLocationOldReanchor: MultiLocation = MultiLocation {
 		parents:1,
 		interior: Junctions::X2(
@@ -1052,6 +1054,8 @@ parameter_types! {
 		)
 	};
 
+	// New reanchor logic location for pallet assets
+	// We need to support both in case we talk to a chain not in 0.9.16
 	pub LocalAssetsPalletLocationNewReanchor: MultiLocation = MultiLocation {
 		parents:0,
 		interior: Junctions::X1(
@@ -1119,7 +1123,8 @@ pub type LocalAssetTransactor = XcmCurrencyAdapter<
 	(),
 >;
 
-/// Means for transacting local assets besides the native currency on this chain.
+/// Means for transacting local assets that are not the native currency
+/// This transactor uses the old reanchor logic
 pub type LocalFungiblesTransactorOldReanchor = FungiblesAdapter<
 	// Use this fungibles implementation:
 	LocalAssets,
@@ -1142,7 +1147,8 @@ pub type LocalFungiblesTransactorOldReanchor = FungiblesAdapter<
 	(),
 >;
 
-/// Means for transacting local assets besides the native currency on this chain.
+/// Means for transacting local assets that are not the native currency
+/// This transactor uses the new reanchor logic
 pub type LocalFungiblesTransactorNewReanchor = FungiblesAdapter<
 	// Use this fungibles implementation:
 	LocalAssets,
@@ -1165,7 +1171,7 @@ pub type LocalFungiblesTransactorNewReanchor = FungiblesAdapter<
 	(),
 >;
 
-// We use both transactors
+// We use all transactors
 pub type AssetTransactors = (
 	LocalAssetTransactor,
 	ForeignFungiblesTransactor,
@@ -1359,6 +1365,7 @@ pub type AssetsForceOrigin = EnsureOneOf<
 	pallet_collective::EnsureProportionMoreThan<_1, _2, AccountId, CouncilInstance>,
 >;
 
+// Foreign assets
 impl pallet_assets::Config<ForeignAssetInstance> for Runtime {
 	type Event = Event;
 	type Balance = Balance;
@@ -1504,16 +1511,21 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		min_balance: Balance,
 		owner: AccountId,
 	) -> DispatchResult {
+		// In this case we use the regular call, since we want the deposit
+		// to be withdrawn from the caller
 		LocalAssets::create(Origin::signed(creator), asset, owner, min_balance)?;
 
+		// No metadata needs to be set, as this can be set through regular calls
+
 		// TODO uncomment when we feel comfortable
-		/*
+
 		// The asset has been created. Let's put the revert code in the precompile address
-		let precompile_address = Runtime::asset_id_to_account(ASSET_PRECOMPILE_ADDRESS_PREFIX, asset);
+		let precompile_address =
+			Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, asset);
 		pallet_evm::AccountCodes::<Runtime>::insert(
 			precompile_address,
 			vec![0x60, 0x00, 0x60, 0x00, 0xfd],
-		);*/
+		);
 		Ok(())
 	}
 }
@@ -1522,7 +1534,7 @@ pub struct LocalAssetIdCreator;
 impl pallet_asset_manager::LocalAssetIdCreator<Runtime> for LocalAssetIdCreator {
 	fn create_asset_id_from_account(account: AccountId) -> AssetId {
 		// Our means of converting a creator to an assetId
-		// We basically hash nonce+account
+		// We basically hash (nonce+account+extrinsic index + parent hash)
 		let mut result: [u8; 16] = [0u8; 16];
 		let account_info = System::account(account);
 		let mut to_hash = account.encode();
@@ -1570,6 +1582,8 @@ impl AccountIdToCurrencyId<AccountId, CurrencyId> for Runtime {
 			// the self-reserve currency is identified by the pallet-balances address
 			a if a == H160::from_low_u64_be(2050).into() => Some(CurrencyId::SelfReserve),
 			// the rest of the currencies, by their corresponding erc20 address
+			// We distinguish by prefix, and depending on it we create either
+			// Foreign or Local
 			_ => Runtime::account_to_asset_id(account).map(|(prefix, asset_id)| {
 				if prefix == FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX.to_vec() {
 					CurrencyId::ForeignAsset(asset_id)
@@ -1732,6 +1746,8 @@ impl Contains<Call> for NormalFilter {
 				pallet_assets::Call::cancel_approval { .. } => true,
 				_ => false,
 			},
+			// We want to disable create, as we dont want users to be choosing the
+			// assetId of their choice
 			Call::LocalAssets(method) => match method {
 				pallet_assets::Call::create { .. } => false,
 				_ => true,

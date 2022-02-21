@@ -134,13 +134,8 @@ where
 		if let Some((_, asset_id)) =
 			Runtime::account_to_asset_id(Runtime::AddressMapping::into_account_id(address))
 		{
-			// If the assetId has non-zero supply
-			// "total_supply" returns both 0 if the assetId does not exist or if the supply is 0
-			// The assumption I am making here is that a 0 supply asset is not interesting from
-			// the perspective of the precompiles. Once pallet-assets has more publicly accesible
-			// storage we can use another function for this, like check_asset_existence.
-			// The other options is to check the asset existence in pallet-asset-manager, but
-			// this makes the precompiles dependent on such a pallet, which is not ideal
+			// We check maybe_total_supply. This function returns Some if the asset exists,
+			// which is all we care about at this point
 			if pallet_assets::Pallet::<Runtime, Instance>::maybe_total_supply(asset_id).is_some() {
 				let result = {
 					let mut gasometer = Gasometer::new(target_gas);
@@ -205,13 +200,8 @@ where
 		if let Some((_, asset_id)) =
 			Runtime::account_to_asset_id(Runtime::AddressMapping::into_account_id(address))
 		{
-			// If the assetId has non-zero supply
-			// "total_supply" returns both 0 if the assetId does not exist or if the supply is 0
-			// The assumption I am making here is that a 0 supply asset is not interesting from
-			// the perspective of the precompiles. Once pallet-assets has more publicly accesible
-			// storage we can use another function for this, like check_asset_existence.
-			// The other options is to check the asset existence in pallet-asset-manager, but
-			// this makes the precompiles dependent on such a pallet, which is not ideal
+			// We check maybe_total_supply. This function returns Some if the asset exists,
+			// which is all we care about at this point
 			pallet_assets::Pallet::<Runtime, Instance>::maybe_total_supply(asset_id).is_some()
 		} else {
 			false

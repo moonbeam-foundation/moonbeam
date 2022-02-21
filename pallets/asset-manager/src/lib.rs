@@ -19,18 +19,22 @@
 //!
 //! This pallet allows to register new assets if certain conditions are met
 //! The main goal of this pallet is to allow moonbeam to register XCM assets
+//! and control the creation of local assets
 //! The assumption is we work with AssetTypes, which can then be comperted to AssetIds
 //!
-//! This pallet has three storage items: AssetIdType, which holds a mapping from AssetId->AssetType
+//! This pallet has four storage items: AssetIdType, which holds a mapping from AssetId->AssetType
 //! AssetTypeUnitsPerSecond: an AssetType->u128 mapping that holds how much each AssetType should be
 //! charged per unit of second, in the case such an Asset is received as a XCM asset. Finally,
-//! AssetTypeId holds a mapping from AssetType -> AssetId.
+//! AssetTypeId holds a mapping from AssetType -> AssetId. Finally LocalAssetCreationauthorization
+//! which holds authorizations for specific accounts to create local assets
 //!
-//! This pallet has three extrinsics: register_asset, which registers an Asset in this pallet and
+//! This pallet has five extrinsics: register_asset, which registers an Asset in this pallet and
 //! creates the asset as dictated by the AssetRegistrar trait. set_asset_units_per_second: which
 //! sets the unit per second that should be charged for a particular asset.
 //! change_existing_asset_type: which allows to update the correspondence between AssetId and
 //! AssetType
+//! register_local_asset: which creates a local asset with a specific owner
+//! authorize_local_asset: which gives authorization to an account to register a local asset
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
@@ -63,7 +67,8 @@ pub mod pallet {
 
 	// The registrar trait. We need to comply with this
 	pub trait AssetRegistrar<T: Config> {
-		// How to create an asset
+		// How to create a foreign asset, meaning an asset whose reserve chain
+		// is not our chain
 		fn create_foreign_asset(
 			asset: T::AssetId,
 			min_balance: T::Balance,
@@ -72,6 +77,8 @@ pub mod pallet {
 			is_sufficient: bool,
 		) -> DispatchResult;
 
+		// Create a local asset, meaning an asset whose reserve chain is our chain
+		// This are created as non-sufficent by default
 		fn create_local_asset(
 			asset: T::AssetId,
 			account: T::AccountId,
@@ -129,12 +136,14 @@ pub mod pallet {
 		/// Origin that is allowed to create and modify asset information for local assets
 		type LocalAssetModifierOrigin: EnsureOrigin<Self::Origin>;
 
+		/// Means of creating local asset Ids
 		type LocalAssetIdCreator: LocalAssetIdCreator<Self>;
 
 		type WeightInfo: WeightInfo;
 	}
 
-	/// Stores info about pending Local Asset to be registered
+	/// Struct containing info about pending Local Asset to be registered
+	/// Includes the owner and the minimum balance
 	#[derive(Default, Clone, Encode, Decode, RuntimeDebug, PartialEq, scale_info::TypeInfo)]
 	#[scale_info(skip_type_params(T))]
 	pub struct LocalAssetInfo<T: Config> {
@@ -187,6 +196,7 @@ pub mod pallet {
 		StorageMap<_, Blake2_128Concat, T::ForeignAssetType, u128>;
 
 	/// Stores the authorization for a particular user to be able to create a local asset
+	/// This authorization needs to be given by root origin
 	#[pallet::storage]
 	#[pallet::getter(fn local_asset_creation_authorization)]
 	pub type LocalAssetCreationauthorization<T: Config> =
@@ -225,7 +235,37 @@ pub mod pallet {
 			Ok(())
 		}
 
-		/// Register new asset with the asset manager
+		/// Register a new local asset
+		/// We need a previously given authorization to be able to create local assets
+		#[pallet::weight(T::WeightInfo::register_local_asset())]
+		pub fn register_local_asset(origin: OriginFor<T>) -> DispatchResult {
+			let who = ensure_signed(origin)?;
+
+			// If no authorization was given, error
+			let asset_info = LocalAssetCreationauthorization::<T>::get(&who)
+				.ok_or(Error::<T>::NotAuthorizedToCreateLocalAssets)?;
+
+			// Create the assetId with LocalAssetIdCreator
+			let asset_id = T::LocalAssetIdCreator::create_asset_id_from_account(who.clone());
+
+			// Create local asset
+			T::AssetRegistrar::create_local_asset(
+				asset_id,
+				who.clone(),
+				asset_info.min_balance,
+				asset_info.owner.clone(),
+			)
+			.map_err(|_| Error::<T>::ErrorCreatingAsset)?;
+
+			// Remove the previous authorization
+			LocalAssetCreationauthorization::<T>::remove(&who);
+
+			Self::deposit_event(Event::LocalAssetRegistered(asset_id, who, asset_info.owner));
+			Ok(())
+		}
+
+		/// Authorize an account to be able to create a local asset
+		/// LocalAssetModifierOrigin needs to dispatch this call
 		#[pallet::weight(T::WeightInfo::authorize_local_assset())]
 		pub fn authorize_local_assset(
 			origin: OriginFor<T>,
@@ -248,30 +288,6 @@ pub mod pallet {
 				min_balance,
 			));
 
-			Ok(())
-		}
-
-		/// Register new asset with the asset manager
-		#[pallet::weight(T::WeightInfo::register_local_asset())]
-		pub fn register_local_asset(origin: OriginFor<T>) -> DispatchResult {
-			let who = ensure_signed(origin)?;
-
-			let asset_info = LocalAssetCreationauthorization::<T>::get(&who)
-				.ok_or(Error::<T>::NotAuthorizedToCreateLocalAssets)?;
-
-			let asset_id = T::LocalAssetIdCreator::create_asset_id_from_account(who.clone());
-			T::AssetRegistrar::create_local_asset(
-				asset_id,
-				who.clone(),
-				asset_info.min_balance,
-				asset_info.owner.clone(),
-			)
-			.map_err(|_| Error::<T>::ErrorCreatingAsset)?;
-
-			// Remove the authorization
-			LocalAssetCreationauthorization::<T>::remove(&who);
-
-			Self::deposit_event(Event::LocalAssetRegistered(asset_id, who, asset_info.owner));
 			Ok(())
 		}
 

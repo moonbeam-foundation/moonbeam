@@ -74,8 +74,10 @@ impl Erc20Metadata for NativeErc20Metadata {
 }
 
 /// The asset precompile address prefix. Addresses that match against this prefix will be routed
-/// to Erc20AssetsPrecompileSet
+/// to Erc20AssetsPrecompileSet being marked as foreign
 pub const FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX: &[u8] = &[255u8; 4];
+/// The asset precompile address prefix. Addresses that match against this prefix will be routed
+/// to Erc20AssetsPrecompileSet being marked as local
 pub const LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX: &[u8] = &[255u8, 255u8, 255u8, 254u8];
 
 /// The PrecompileSet installed in the Moonbase runtime.
