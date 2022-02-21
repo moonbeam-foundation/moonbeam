@@ -225,41 +225,43 @@ export function describeParachain(
                 .signAndSend(from, { nonce: nonce++ }, async (result) => {
                   if (result.isInBlock) {
                     unsubSetCode();
-                    // This is a trick. We set the lastRuntimeUpgrade version to a number lower
-                    // at the block right before it gets applied, otherwise it gets reverted to
-                    // the original version (not sure why).
-                    // This is require when developping and the runtime version hasn't been
-                    // increased. As using the same runtime version prevents the migration
-                    // to happen
-                    await context.waitBlocks(2);
+                    if (runtimeVersion == "local") {
+                      // This is a trick. We set the lastRuntimeUpgrade version to a number lower
+                      // at the block right before it gets applied, otherwise it gets reverted to
+                      // the original version (not sure why).
+                      // This is require when developping and the runtime version hasn't been
+                      // increased. As using the same runtime version prevents the migration
+                      // to happen
+                      await context.waitBlocks(2);
 
-                    const lastRuntimeUpgrade =
-                      (await context.polkadotApiParaone.query.system.lastRuntimeUpgrade()) as any;
-                    process.stdout.write(
-                      `Overriding on-chain current runtime ${lastRuntimeUpgrade
-                        .unwrap()
-                        .specVersion.toNumber()} to ${
-                        lastRuntimeUpgrade.unwrap().specVersion.toNumber() - 1
-                      }`
-                    );
-                    context.polkadotApiParaone.tx.sudo
-                      .sudo(
-                        await context.polkadotApiParaone.tx.system.setStorage([
-                          [
-                            context.polkadotApiParaone.query.system.lastRuntimeUpgrade.key(),
-                            `0x${Buffer.from(
-                              context.polkadotApiParaone.registry
-                                .createType(
-                                  "Compact<u32>",
-                                  lastRuntimeUpgrade.unwrap().specVersion.toNumber() - 2
-                                )
-                                .toU8a()
-                            ).toString("hex")}${lastRuntimeUpgrade.toHex().slice(6)}`,
-                          ],
-                        ])
-                      )
-                      .signAndSend(from, { nonce: nonce++ });
-                    process.stdout.write(`✅\n`);
+                      const lastRuntimeUpgrade =
+                        (await context.polkadotApiParaone.query.system.lastRuntimeUpgrade()) as any;
+                      process.stdout.write(
+                        `Overriding on-chain current runtime ${lastRuntimeUpgrade
+                          .unwrap()
+                          .specVersion.toNumber()} to ${
+                          lastRuntimeUpgrade.unwrap().specVersion.toNumber() - 1
+                        }`
+                      );
+                      context.polkadotApiParaone.tx.sudo
+                        .sudo(
+                          await context.polkadotApiParaone.tx.system.setStorage([
+                            [
+                              context.polkadotApiParaone.query.system.lastRuntimeUpgrade.key(),
+                              `0x${Buffer.from(
+                                context.polkadotApiParaone.registry
+                                  .createType(
+                                    "Compact<u32>",
+                                    lastRuntimeUpgrade.unwrap().specVersion.toNumber() - 2
+                                  )
+                                  .toU8a()
+                              ).toString("hex")}${lastRuntimeUpgrade.toHex().slice(6)}`,
+                            ],
+                          ])
+                        )
+                        .signAndSend(from, { nonce: nonce++ });
+                      process.stdout.write(`✅\n`);
+                    }
                   }
                 });
               process.stdout.write(`✅\n`);
