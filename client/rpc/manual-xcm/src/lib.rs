@@ -45,7 +45,7 @@ pub trait ManualXcmApi {
 	/// The method accepts a sending paraId and a bytearray representing an arbitrary message as
 	/// parameters. If you provide an emtpy byte array, then a default message representing a
 	/// transfer of the sending paraId's native token will be injected.
-	#[method(name = "xcm_injectHrmpMessage")]
+	#[method(name = "injectHrmpMessage")]
 	async fn inject_hrmp_message(&self, sender: ParaId, message: Vec<u8>) -> RpcResult<()>;
 }
 
