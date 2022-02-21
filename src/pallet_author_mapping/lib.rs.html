@@ -258,6 +258,21 @@
 <span id="258">258</span>
 <span id="259">259</span>
 <span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -353,14 +368,23 @@
 	<span class="attribute">#[<span class="ident">pallet::generate_deposit</span>(<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">deposit_event</span>)]</span>
 	<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> {
 		<span class="doccomment">/// A NimbusId has been registered and mapped to an AccountId.</span>
-		<span class="ident">AuthorRegistered</span>(<span class="ident">NimbusId</span>, <span class="ident">T::AccountId</span>),
+		<span class="ident">AuthorRegistered</span> {
+			<span class="ident">author_id</span>: <span class="ident">NimbusId</span>,
+			<span class="ident">account_id</span>: <span class="ident">T::AccountId</span>,
+		},
 		<span class="doccomment">/// An NimbusId has been de-registered, and its AccountId mapping removed.</span>
-		<span class="ident">AuthorDeRegistered</span>(<span class="ident">NimbusId</span>),
+		<span class="ident">AuthorDeRegistered</span> { <span class="ident">author_id</span>: <span class="ident">NimbusId</span> },
 		<span class="doccomment">/// An NimbusId has been registered, replacing a previous registration and its mapping.</span>
-		<span class="ident">AuthorRotated</span>(<span class="ident">NimbusId</span>, <span class="ident">T::AccountId</span>),
+		<span class="ident">AuthorRotated</span> {
+			<span class="ident">new_author_id</span>: <span class="ident">NimbusId</span>,
+			<span class="ident">account_id</span>: <span class="ident">T::AccountId</span>,
+		},
 		<span class="doccomment">/// An NimbusId has been forcibly deregistered after not being rotated or cleaned up.</span>
 		<span class="doccomment">/// The reporteing account has been rewarded accordingly.</span>
-		<span class="ident">DefunctAuthorBusted</span>(<span class="ident">NimbusId</span>, <span class="ident">T::AccountId</span>),
+		<span class="ident">DefunctAuthorBusted</span> {
+			<span class="ident">author_id</span>: <span class="ident">NimbusId</span>,
+			<span class="ident">account_id</span>: <span class="ident">T::AccountId</span>,
+		},
 	}
 
 	<span class="attribute">#[<span class="ident">pallet::call</span>]</span>
@@ -380,7 +404,10 @@
 
 			<span class="ident"><span class="self">Self</span>::enact_registration</span>(<span class="kw-2">&amp;</span><span class="ident">author_id</span>, <span class="kw-2">&amp;</span><span class="ident">account_id</span>)<span class="question-mark">?</span>;
 
-			<span class="op">&lt;</span><span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::deposit_event</span>(<span class="ident">Event::AuthorRegistered</span>(<span class="ident">author_id</span>, <span class="ident">account_id</span>));
+			<span class="op">&lt;</span><span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::deposit_event</span>(<span class="ident">Event::AuthorRegistered</span> {
+				<span class="ident">author_id</span>,
+				<span class="ident">account_id</span>,
+			});
 
 			<span class="prelude-val">Ok</span>(())
 		}
@@ -412,7 +439,10 @@
 			<span class="ident">MappingWithDeposit</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::remove</span>(<span class="kw-2">&amp;</span><span class="ident">old_author_id</span>);
 			<span class="ident">MappingWithDeposit</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="kw-2">&amp;</span><span class="ident">new_author_id</span>, <span class="kw-2">&amp;</span><span class="ident">stored_info</span>);
 
-			<span class="op">&lt;</span><span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::deposit_event</span>(<span class="ident">Event::AuthorRotated</span>(<span class="ident">new_author_id</span>, <span class="ident">stored_info</span>.<span class="ident">account</span>));
+			<span class="op">&lt;</span><span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::deposit_event</span>(<span class="ident">Event::AuthorRotated</span> {
+				<span class="ident">new_author_id</span>: <span class="ident">new_author_id</span>,
+				<span class="ident">account_id</span>: <span class="ident">stored_info</span>.<span class="ident">account</span>,
+			});
 
 			<span class="prelude-val">Ok</span>(())
 		}
@@ -440,7 +470,7 @@
 
 			<span class="ident">T::DepositCurrency::unreserve</span>(<span class="kw-2">&amp;</span><span class="ident">account_id</span>, <span class="ident">stored_info</span>.<span class="ident">deposit</span>);
 
-			<span class="op">&lt;</span><span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::deposit_event</span>(<span class="ident">Event::AuthorDeRegistered</span>(<span class="ident">author_id</span>));
+			<span class="op">&lt;</span><span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::deposit_event</span>(<span class="ident">Event::AuthorDeRegistered</span> { <span class="ident">author_id</span> });
 
 			<span class="prelude-val">Ok</span>(().<span class="ident">into</span>())
 		}

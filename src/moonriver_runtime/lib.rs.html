@@ -1900,12 +1900,6 @@
 <span id="1900">1900</span>
 <span id="1901">1901</span>
 <span id="1902">1902</span>
-<span id="1903">1903</span>
-<span id="1904">1904</span>
-<span id="1905">1905</span>
-<span id="1906">1906</span>
-<span id="1907">1907</span>
-<span id="1908">1908</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -2794,18 +2788,12 @@
 				<span class="ident">c</span>,
 				<span class="ident">Call::ParachainStaking</span>(..) <span class="op">|</span> <span class="ident">Call::Utility</span>(..) <span class="op">|</span> <span class="ident">Call::AuthorMapping</span>(..)
 			),
-			<span class="ident">ProxyType::CancelProxy</span> =&gt; {
-				<span class="macro">matches!</span>(
-					<span class="ident">c</span>,
-					<span class="ident">Call::Proxy</span>(<span class="ident">pallet_proxy::Call::reject_announcement</span> { .. })
-				)
-			}
-			<span class="ident">ProxyType::Balances</span> =&gt; {
-				<span class="macro">matches!</span>(<span class="ident">c</span>, <span class="ident">Call::Balances</span>(..) <span class="op">|</span> <span class="ident">Call::Utility</span>(..))
-			}
-			<span class="ident">ProxyType::AuthorMapping</span> =&gt; {
-				<span class="macro">matches!</span>(<span class="ident">c</span>, <span class="ident">Call::AuthorMapping</span>(..))
-			}
+			<span class="ident">ProxyType::CancelProxy</span> =&gt; <span class="macro">matches!</span>(
+				<span class="ident">c</span>,
+				<span class="ident">Call::Proxy</span>(<span class="ident">pallet_proxy::Call::reject_announcement</span> { .. })
+			),
+			<span class="ident">ProxyType::Balances</span> =&gt; <span class="macro">matches!</span>(<span class="ident">c</span>, <span class="ident">Call::Balances</span>(..) <span class="op">|</span> <span class="ident">Call::Utility</span>(..)),
+			<span class="ident">ProxyType::AuthorMapping</span> =&gt; <span class="macro">matches!</span>(<span class="ident">c</span>, <span class="ident">Call::AuthorMapping</span>(..)),
 		}
 	}
 
