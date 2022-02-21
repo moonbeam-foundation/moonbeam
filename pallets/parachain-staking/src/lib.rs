@@ -683,6 +683,15 @@ pub mod pallet {
 						.expect("Delegation existence => DelegatorState existence");
 				let leaving = delegator_state.delegations.0.len() == 1usize;
 				delegator_state.rm_delegation(candidate);
+				if let Some(request) = delegator_state.requests.requests.remove(&candidate) {
+					delegator_state.requests.less_total = delegator_state
+						.requests
+						.less_total
+						.saturating_sub(request.amount);
+					if matches!(request.action, DelegationChange::Revoke) {
+						delegator_state.requests.revocations_count -= 1u32;
+					}
+				}
 				Pallet::<T>::deposit_event(Event::DelegationKicked {
 					delegator: lowest_bottom_to_be_kicked.owner.clone(),
 					candidate: candidate.clone(),
