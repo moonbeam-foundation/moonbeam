@@ -87,7 +87,9 @@ pub mod pallet {
 
 	impl<T: Config> xcm_primitives::UnitsToWeightRatio<T::AssetType> for Pallet<T> {
 		fn payment_is_supported(asset_type: T::AssetType) -> bool {
-			SupportedFeePaymentAssets::<T>::get().contains(&asset_type)
+			SupportedFeePaymentAssets::<T>::get()
+				.binary_search(&asset_type)
+				.is_ok()
 		}
 		fn get_units_per_second(asset_type: T::AssetType) -> Option<u128> {
 			AssetTypeUnitsPerSecond::<T>::get(asset_type)
@@ -234,9 +236,9 @@ pub mod pallet {
 				Error::<T>::TooLowNumAssetsWeightHint
 			);
 
-			// If not in our supported asset list, then put it
-			if !supported_assets.contains(&asset_type) {
-				supported_assets.push(asset_type.clone());
+			// Only if the asset is not supported we need to push it
+			if let Err(index) = supported_assets.binary_search(&asset_type) {
+				supported_assets.insert(index, asset_type.clone());
 				SupportedFeePaymentAssets::<T>::put(supported_assets);
 			}
 
@@ -281,26 +283,14 @@ pub mod pallet {
 
 			// Change AssetTypeUnitsPerSecond
 			if let Some(units) = AssetTypeUnitsPerSecond::<T>::get(&previous_asset_type) {
-				// If the old exists in supported assts (it should), remove it
-				if let Some(index) =
-					supported_assets
-						.iter()
-						.enumerate()
-						.find_map(|(index, asset)| {
-							if previous_asset_type == asset.clone() {
-								Some(index)
-							} else {
-								None
-							}
-						}) {
-					// Remove
+				// Only if the old asset is supported we need to remove it
+				if let Ok(index) = supported_assets.binary_search(&previous_asset_type) {
 					supported_assets.remove(index);
 				}
 
-				// If new is not in supported assets, push it
-				if !supported_assets.contains(&new_asset_type) {
-					// Push the new one
-					supported_assets.push(new_asset_type.clone());
+				// Only if the new asset is not supported we need to push it
+				if let Err(index) = supported_assets.binary_search(&new_asset_type) {
+					supported_assets.insert(index, new_asset_type.clone());
 				}
 
 				// Insert supported fee payment assets
@@ -334,20 +324,11 @@ pub mod pallet {
 				num_assets_weight_hint >= (supported_assets.len() as u32),
 				Error::<T>::TooLowNumAssetsWeightHint
 			);
-			let index = supported_assets
-				.iter()
-				.enumerate()
-				.find_map(|(index, asset)| {
-					if asset_type == asset.clone() {
-						Some(index)
-					} else {
-						None
-					}
-				})
-				.ok_or(Error::<T>::AssetDoesNotExist)?;
 
-			// Remove
-			supported_assets.remove(index);
+			// Only if the old asset is supported we need to remove it
+			if let Ok(index) = supported_assets.binary_search(&asset_type) {
+				supported_assets.remove(index);
+			}
 
 			// Insert
 			SupportedFeePaymentAssets::<T>::put(supported_assets);

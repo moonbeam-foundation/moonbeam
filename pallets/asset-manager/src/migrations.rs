@@ -474,6 +474,8 @@ impl<T: Config> OnRuntimeUpgrade for PopulateSupportedFeePaymentAssets<T> {
 			supported_assets.push(asset_type);
 		}
 
+		supported_assets.sort();
+
 		// Push value
 		SupportedFeePaymentAssets::<T>::put(&supported_assets);
 

@@ -371,11 +371,6 @@ fn test_asset_id_non_existent_error() {
 			),
 			Error::<Test>::AssetDoesNotExist
 		);
-
-		assert_noop!(
-			AssetManager::remove_supported_asset(Origin::root(), MockAssetType::MockAsset(1), 0),
-			Error::<Test>::AssetDoesNotExist
-		);
 	});
 }
 
