@@ -671,13 +671,11 @@ declare module '@polkadot/rpc-core/types/jsonrpc' {
     };
     grandpa: {
       /**
-       * Prove finality for the range (begin; end] hash.
+       * Prove finality for the given block number, returning the Justification for the last block in the set.
        **/
       proveFinality: AugmentedRpc<
         (
-          begin: BlockHash | string | Uint8Array,
-          end: BlockHash | string | Uint8Array,
-          authoritiesSetId?: u64 | AnyNumber | Uint8Array,
+          blockNumber: BlockNumber | AnyNumber | Uint8Array,
         ) => Observable<Option<EncodedFinalityProofs>>
       >;
       /**
