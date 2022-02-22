@@ -304,6 +304,10 @@ fn test_root_can_change_units_per_second_and_then_remove() {
 			1,
 		));
 
+		assert!(
+			!AssetManager::supported_fee_payment_assets().contains(&MockAssetType::MockAsset(1))
+		);
+
 		expect_events(vec![
 			crate::Event::AssetRegistered {
 				asset_id: 1,

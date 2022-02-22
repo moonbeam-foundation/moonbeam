@@ -437,9 +437,17 @@ where
 pub struct PopulateSupportedFeePaymentAssets<T>(PhantomData<T>);
 impl<T: Config> OnRuntimeUpgrade for PopulateSupportedFeePaymentAssets<T> {
 	fn on_runtime_upgrade() -> Weight {
-		log::info!(target: "PopulateSupportedFeePaymentAssets", "actually running it");
+		log::trace!(
+			target: "PopulateSupportedFeePaymentAssets",
+			"Running PopulateSupportedFeePaymentAssets migration"
+		);
 		let pallet_prefix: &[u8] = b"AssetManager";
 		let storage_item_prefix: &[u8] = b"AssetTypeUnitsPerSecond";
+
+		log::trace!(
+			target: "PopulateSupportedFeePaymentAssets",
+			"grabbing from AssetTypeUnitsPerSecond"
+		);
 
 		// Read all the data into memory.
 		// https://crates.parity.io/frame_support/storage/migration/fn.storage_key_iter.html
@@ -454,9 +462,9 @@ impl<T: Config> OnRuntimeUpgrade for PopulateSupportedFeePaymentAssets<T> {
 			.try_into()
 			.expect("There are between 0 and 2**64 mappings stored.");
 
-		log::info!(
+		log::trace!(
 			target: "PopulateSupportedFeePaymentAssets",
-			"Migrating {:?} elements",
+			"PopulateSupportedFeePaymentAssets pushing {:?} elements to SupportedFeePaymentAssets",
 			migrated_count
 		);
 
@@ -467,11 +475,15 @@ impl<T: Config> OnRuntimeUpgrade for PopulateSupportedFeePaymentAssets<T> {
 		}
 
 		// Push value
-		SupportedFeePaymentAssets::<T>::put(supported_assets);
+		SupportedFeePaymentAssets::<T>::put(&supported_assets);
 
-		log::info!(target: "PopulateSupportedFeePaymentAssets", "almost done");
+		log::trace!(
+			target: "PopulateSupportedFeePaymentAssets",
+			"SupportedFeePaymentAssets populated now having {:?} elements",
+			supported_assets.len()
+		);
 
-		// Return the weight used. For each migrated mapping there is a red to get it into
+		// Return the weight used. For each migrated mapping there is a read to get it into
 		// memory
 		// A final one write makes it push to the new storage item
 		let db_weights = T::DbWeight::get();
