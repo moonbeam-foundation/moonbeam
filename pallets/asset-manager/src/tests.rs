@@ -511,3 +511,37 @@ fn test_root_can_remove_asset_association() {
 		])
 	});
 }
+
+#[test]
+fn test_removing_without_asset_units_per_second_does_not_panic() {
+	new_test_ext().execute_with(|| {
+		assert_ok!(AssetManager::register_asset(
+			Origin::root(),
+			MockAssetType::MockAsset(1),
+			0u32.into(),
+			1u32.into(),
+			true
+		));
+
+		assert_ok!(AssetManager::remove_existing_asset_type(Origin::root(), 1,));
+
+		// Mappings are deleted
+		assert!(AssetManager::asset_type_id(MockAssetType::MockAsset(1)).is_none());
+		assert!(AssetManager::asset_id_type(1).is_none());
+
+		// Units per second removed
+		assert!(AssetManager::asset_type_units_per_second(MockAssetType::MockAsset(1)).is_none());
+
+		expect_events(vec![
+			crate::Event::AssetRegistered {
+				asset_id: 1,
+				asset: MockAssetType::MockAsset(1),
+				metadata: 0,
+			},
+			crate::Event::AssetRemoved {
+				asset_id: 1,
+				asset_type: MockAssetType::MockAsset(1),
+			},
+		])
+	});
+}

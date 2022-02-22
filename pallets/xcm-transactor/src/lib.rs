@@ -261,7 +261,8 @@ pub mod pallet {
 		}
 
 		#[pallet::weight(T::WeightInfo::deregister())]
-		/// De-Register a derivative index.
+		/// De-Register a derivative index. This prevents an account to use a derivative address
+		/// (represented by an index) from our of our sovereign accounts anymore
 		pub fn deregister(origin: OriginFor<T>, index: u16) -> DispatchResult {
 			T::DerivativeAddressRegistrationOrigin::ensure_origin(origin)?;
 
