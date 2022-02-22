@@ -30,7 +30,7 @@ use frame_support::{
 	StorageHasher, Twox128,
 };
 use moonriver_runtime::{
-	BlockWeights, CurrencyId, PolkadotXcm, Precompiles, XTokens, XcmTransactor,
+	BaseFee, BlockWeights, CurrencyId, PolkadotXcm, Precompiles, XTokens, XcmTransactor,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
@@ -41,8 +41,7 @@ use pallet_transaction_payment::Multiplier;
 use parity_scale_codec::Encode;
 use precompile_utils::{Address as EvmAddress, EvmDataWriter, LogsBuilder};
 use sha3::{Digest, Keccak256};
-use sp_core::Pair;
-use sp_core::{Public, H160, U256};
+use sp_core::{ByteArray, Pair, H160, U256};
 use sp_runtime::{
 	traits::{Convert, One},
 	DispatchError,
@@ -182,7 +181,7 @@ fn verify_pallet_prefixes() {
 			storage_name: b"MaintenanceMode".to_vec(),
 			prefix: prefix(b"MaintenanceMode", b"MaintenanceMode"),
 			max_values: Some(1),
-			max_size: Some(1),
+			max_size: None,
 		},]
 	);
 }
@@ -299,11 +298,11 @@ fn join_collator_candidates() {
 			));
 			assert_eq!(
 				last_event(),
-				Event::ParachainStaking(parachain_staking::Event::JoinedCollatorCandidates(
-					AccountId::from(DAVE),
-					1_000 * MOVR,
-					3_100 * MOVR
-				))
+				Event::ParachainStaking(parachain_staking::Event::JoinedCollatorCandidates {
+					account: AccountId::from(DAVE),
+					amount_locked: 1_000 * MOVR,
+					new_total_amt_locked: 3_100 * MOVR
+				})
 			);
 			let candidates = ParachainStaking::candidate_pool();
 			assert_eq!(candidates.0[0].owner, AccountId::from(ALICE));
@@ -389,19 +388,19 @@ fn reward_block_authors() {
 			500 * MOVR,
 		)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.build()
 		.execute_with(|| {
 			set_parachain_inherent_data();
 			for x in 2..1199 {
-				run_to_block(x, Some(NimbusId::from_slice(&ALICE_NIMBUS)));
+				run_to_block(x, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			}
 			// no rewards doled out yet
 			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1_000 * MOVR,);
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * MOVR,);
-			run_to_block(1200, Some(NimbusId::from_slice(&ALICE_NIMBUS)));
+			run_to_block(1200, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
@@ -430,7 +429,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 			500 * MOVR,
 		)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.build()
@@ -441,13 +440,13 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 				AccountId::from(CHARLIE),
 			),);
 			for x in 2..1199 {
-				run_to_block(x, Some(NimbusId::from_slice(&ALICE_NIMBUS)));
+				run_to_block(x, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			}
 			// no rewards doled out yet
 			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1_000 * MOVR,);
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * MOVR,);
 			assert_eq!(Balances::free_balance(AccountId::from(CHARLIE)), MOVR,);
-			run_to_block(1200, Some(NimbusId::from_slice(&ALICE_NIMBUS)));
+			run_to_block(1200, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
@@ -474,7 +473,7 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.with_crowdloan_fund(3_000_000 * MOVR)
@@ -582,7 +581,7 @@ fn initialize_crowdloan_address_and_change_with_relay_key_sig() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.with_crowdloan_fund(3_000_000 * MOVR)
@@ -685,7 +684,7 @@ fn claim_via_precompile() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.with_crowdloan_fund(3_000_000 * MOVR)
@@ -738,7 +737,7 @@ fn claim_via_precompile() {
 
 			// Alice uses the crowdloan precompile to claim through the EVM
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1_000_000_000.into();
+			let gas_price: U256 = 1_000_000_000u64.into();
 
 			// Construct the call data (selector, amount)
 			let mut call_data = Vec::<u8>::from([0u8; 4]);
@@ -778,7 +777,7 @@ fn is_contributor_via_precompile() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.with_crowdloan_fund(3_000_000 * MOVR)
@@ -847,7 +846,7 @@ fn is_contributor_via_precompile() {
 						// This context copied from Sacrifice tests, it's not great.
 						address: Default::default(),
 						caller: Default::default(),
-						apparent_value: From::from(0),
+						apparent_value: U256::zero(),
 					},
 					false,
 				),
@@ -880,7 +879,7 @@ fn is_contributor_via_precompile() {
 						// This context copied from Sacrifice tests, it's not great.
 						address: Default::default(),
 						caller: Default::default(),
-						apparent_value: From::from(0),
+						apparent_value: U256::zero(),
 					},
 					false,
 				),
@@ -898,7 +897,7 @@ fn reward_info_via_precompile() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.with_crowdloan_fund(3_000_000 * MOVR)
@@ -971,7 +970,7 @@ fn reward_info_via_precompile() {
 						// This context copied from Sacrifice tests, it's not great.
 						address: Default::default(),
 						caller: Default::default(),
-						apparent_value: From::from(0),
+						apparent_value: U256::zero(),
 					},
 					false,
 				),
@@ -989,7 +988,7 @@ fn update_reward_address_via_precompile() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.with_crowdloan_fund(3_000_000 * MOVR)
@@ -1034,7 +1033,7 @@ fn update_reward_address_via_precompile() {
 
 			// Charlie uses the crowdloan precompile to update address through the EVM
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1_000_000_000.into();
+			let gas_price: U256 = 1_000_000_000u64.into();
 
 			// Construct the input data to check if Bob is a contributor
 			let mut call_data = Vec::<u8>::from([0u8; 36]);
@@ -1684,7 +1683,7 @@ fn make_sure_movr_cannot_be_transferred_precompile() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.build()
@@ -1720,7 +1719,7 @@ fn make_sure_movr_cannot_be_transferred() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.build()
@@ -1754,7 +1753,7 @@ fn make_sure_polkadot_xcm_cannot_be_called() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.build()
@@ -1966,5 +1965,15 @@ fn precompile_existance() {
 				);
 			}
 		}
+	});
+}
+
+#[test]
+fn base_fee_should_default_to_associate_type_value() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_eq!(
+			BaseFee::base_fee_per_gas(),
+			(1 * GIGAWEI * SUPPLY_FACTOR).into()
+		);
 	});
 }

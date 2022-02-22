@@ -31,7 +31,7 @@ use frame_support::{
 };
 use moonbase_runtime::{
 	currency::UNIT, AccountId, AssetId, AssetManager, AssetRegistrarMetadata, AssetType, Assets,
-	Balances, BlockWeights, Call, CrowdloanRewards, Event, ParachainStaking, PolkadotXcm,
+	Balances, BaseFee, BlockWeights, Call, CrowdloanRewards, Event, ParachainStaking, PolkadotXcm,
 	Precompiles, Runtime, System, XTokens, XcmTransactor,
 };
 use nimbus_primitives::NimbusId;
@@ -45,8 +45,7 @@ use xtokens_precompiles::Action as XtokensAction;
 use pallet_transaction_payment::Multiplier;
 use parity_scale_codec::Encode;
 use sha3::{Digest, Keccak256};
-use sp_core::Pair;
-use sp_core::{crypto::UncheckedFrom, Public, H160, U256};
+use sp_core::{crypto::UncheckedFrom, ByteArray, Pair, H160, U256};
 use sp_runtime::{
 	traits::{Convert, One},
 	DispatchError,
@@ -194,7 +193,7 @@ fn verify_pallet_prefixes() {
 			storage_name: b"MaintenanceMode".to_vec(),
 			prefix: prefix(b"MaintenanceMode", b"MaintenanceMode"),
 			max_values: Some(1),
-			max_size: Some(1),
+			max_size: None,
 		},]
 	);
 }
@@ -302,11 +301,11 @@ fn join_collator_candidates() {
 			));
 			assert_eq!(
 				last_event(),
-				Event::ParachainStaking(parachain_staking::Event::JoinedCollatorCandidates(
-					AccountId::from(DAVE),
-					1_000 * UNIT,
-					3_100 * UNIT
-				))
+				Event::ParachainStaking(parachain_staking::Event::JoinedCollatorCandidates {
+					account: AccountId::from(DAVE),
+					amount_locked: 1_000 * UNIT,
+					new_total_amt_locked: 3_100 * UNIT
+				})
 			);
 			let candidates = ParachainStaking::candidate_pool();
 			assert_eq!(candidates.0[0].owner, AccountId::from(ALICE));
@@ -393,19 +392,19 @@ fn reward_block_authors() {
 			500 * UNIT,
 		)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.build()
 		.execute_with(|| {
 			set_parachain_inherent_data();
 			for x in 2..1199 {
-				run_to_block(x, Some(NimbusId::from_slice(&ALICE_NIMBUS)));
+				run_to_block(x, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			}
 			// no rewards doled out yet
 			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1_000 * UNIT,);
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * UNIT,);
-			run_to_block(1200, Some(NimbusId::from_slice(&ALICE_NIMBUS)));
+			run_to_block(1200, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
@@ -434,7 +433,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 			500 * UNIT,
 		)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.build()
@@ -445,13 +444,13 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 				AccountId::from(CHARLIE),
 			),);
 			for x in 2..1199 {
-				run_to_block(x, Some(NimbusId::from_slice(&ALICE_NIMBUS)));
+				run_to_block(x, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			}
 			// no rewards doled out yet
 			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1_000 * UNIT,);
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * UNIT,);
 			assert_eq!(Balances::free_balance(AccountId::from(CHARLIE)), UNIT,);
-			run_to_block(1200, Some(NimbusId::from_slice(&ALICE_NIMBUS)));
+			run_to_block(1200, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
@@ -478,7 +477,7 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * UNIT)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.with_crowdloan_fund(3_000_000 * UNIT)
@@ -586,7 +585,7 @@ fn initialize_crowdloan_address_and_change_with_relay_key_sig() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * UNIT)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.with_crowdloan_fund(3_000_000 * UNIT)
@@ -690,7 +689,7 @@ fn claim_via_precompile() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * UNIT)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.with_crowdloan_fund(3_000_000 * UNIT)
@@ -740,7 +739,7 @@ fn claim_via_precompile() {
 
 			// Alice uses the crowdloan precompile to claim through the EVM
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1_000_000_000.into();
+			let gas_price: U256 = 1_000_000_000u64.into();
 
 			// Construct the call data (selector, amount)
 			let mut call_data = Vec::<u8>::from([0u8; 4]);
@@ -780,7 +779,7 @@ fn is_contributor_via_precompile() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * UNIT)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.with_crowdloan_fund(3_000_000 * UNIT)
@@ -890,7 +889,7 @@ fn reward_info_via_precompile() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * UNIT)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.with_crowdloan_fund(3_000_000 * UNIT)
@@ -976,7 +975,7 @@ fn update_reward_address_via_precompile() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * UNIT)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.with_crowdloan_fund(3_000_000 * UNIT)
@@ -1021,7 +1020,7 @@ fn update_reward_address_via_precompile() {
 
 			// Charlie uses the crowdloan precompile to update address through the EVM
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1_000_000_000.into();
+			let gas_price: U256 = 1_000_000_000u64.into();
 
 			// Construct the input data to check if Bob is a contributor
 			let mut call_data = Vec::<u8>::from([0u8; 36]);
@@ -1770,10 +1769,10 @@ fn author_mapping_precompile_associate_update_and_clear() {
 			);
 
 			let expected_associate_event =
-				Event::AuthorMapping(pallet_author_mapping::Event::AuthorRegistered(
-					first_nimbus_id.clone(),
-					AccountId::from(ALICE),
-				));
+				Event::AuthorMapping(pallet_author_mapping::Event::AuthorRegistered {
+					author_id: first_nimbus_id.clone(),
+					account_id: AccountId::from(ALICE),
+				});
 			assert_eq!(last_event(), expected_associate_event);
 
 			let update_expected_result = Some(Ok(PrecompileOutput {
@@ -1803,10 +1802,10 @@ fn author_mapping_precompile_associate_update_and_clear() {
 			);
 
 			let expected_update_event =
-				Event::AuthorMapping(pallet_author_mapping::Event::AuthorRotated(
-					second_nimbus_id.clone(),
-					AccountId::from(ALICE),
-				));
+				Event::AuthorMapping(pallet_author_mapping::Event::AuthorRotated {
+					new_author_id: second_nimbus_id.clone(),
+					account_id: AccountId::from(ALICE),
+				});
 			assert_eq!(last_event(), expected_update_event);
 
 			let clear_expected_result = Some(Ok(PrecompileOutput {
@@ -1834,9 +1833,10 @@ fn author_mapping_precompile_associate_update_and_clear() {
 				clear_expected_result
 			);
 
-			let expected_clear_event = Event::AuthorMapping(
-				pallet_author_mapping::Event::AuthorDeRegistered(second_nimbus_id.clone()),
-			);
+			let expected_clear_event =
+				Event::AuthorMapping(pallet_author_mapping::Event::AuthorDeRegistered {
+					author_id: second_nimbus_id.clone(),
+				});
 			assert_eq!(last_event(), expected_clear_event);
 		});
 }
@@ -1906,5 +1906,15 @@ fn precompile_existance() {
 				);
 			}
 		}
+	});
+}
+
+#[test]
+fn base_fee_should_default_to_associate_type_value() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_eq!(
+			BaseFee::base_fee_per_gas(),
+			(1 * GIGAWEI * SUPPLY_FACTOR).into()
+		);
 	});
 }
