@@ -126,10 +126,27 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
-		AssetRegistered(T::AssetId, T::AssetType, T::AssetRegistrarMetadata),
-		UnitsPerSecondChanged(T::AssetType, u128),
-		AssetTypeChanged(T::AssetId, T::AssetType),
-		AssetRemoved(T::AssetId, T::AssetType),
+		/// New asset with the asset manager is registered
+		AssetRegistered {
+			asset_id: T::AssetId,
+			asset: T::AssetType,
+			metadata: T::AssetRegistrarMetadata,
+		},
+		/// Changed the amount of units we are charging per execution second for a given asset
+		UnitsPerSecondChanged {
+			asset_type: T::AssetType,
+			units_per_second: u128,
+		},
+		/// Changed the xcm type mapping for a given asset id
+		AssetTypeChanged {
+			asset_id: T::AssetId,
+			new_asset_type: T::AssetType,
+		},
+		/// Removed all information related to an assetId
+		AssetRemoved {
+			asset_id: T::AssetId,
+			asset_type: T::AssetType,
+		},
 	}
 
 	/// Mapping from an asset id to asset type.
@@ -179,7 +196,11 @@ pub mod pallet {
 			AssetIdType::<T>::insert(&asset_id, &asset);
 			AssetTypeId::<T>::insert(&asset, &asset_id);
 
-			Self::deposit_event(Event::AssetRegistered(asset_id, asset, metadata));
+			Self::deposit_event(Event::AssetRegistered {
+				asset_id,
+				asset,
+				metadata,
+			});
 			Ok(())
 		}
 
@@ -199,7 +220,10 @@ pub mod pallet {
 
 			AssetTypeUnitsPerSecond::<T>::insert(&asset_type, &units_per_second);
 
-			Self::deposit_event(Event::UnitsPerSecondChanged(asset_type, units_per_second));
+			Self::deposit_event(Event::UnitsPerSecondChanged {
+				asset_type,
+				units_per_second,
+			});
 			Ok(())
 		}
 
@@ -230,7 +254,10 @@ pub mod pallet {
 				AssetTypeUnitsPerSecond::<T>::insert(&new_asset_type, units);
 			}
 
-			Self::deposit_event(Event::AssetTypeChanged(asset_id, new_asset_type));
+			Self::deposit_event(Event::AssetTypeChanged {
+				asset_id,
+				new_asset_type,
+			});
 			Ok(())
 		}
 
@@ -252,7 +279,10 @@ pub mod pallet {
 			// Remove previous asset type units per second
 			AssetTypeUnitsPerSecond::<T>::remove(&asset_type);
 
-			Self::deposit_event(Event::AssetRemoved(asset_id, asset_type));
+			Self::deposit_event(Event::AssetRemoved {
+				asset_id,
+				asset_type,
+			});
 			Ok(())
 		}
 	}

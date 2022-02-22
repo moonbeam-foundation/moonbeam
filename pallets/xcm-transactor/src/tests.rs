@@ -41,7 +41,10 @@ fn test_register_address() {
 
 			assert_eq!(XcmTransactor::index_to_account(&1).unwrap(), 1u64);
 
-			let expected = vec![crate::Event::RegisteredDerivative(1u64, 1)];
+			let expected = vec![crate::Event::RegisteredDerivative {
+				account_id: 1u64,
+				index: 1,
+			}];
 			assert_eq!(events(), expected);
 		})
 }
@@ -164,22 +167,25 @@ fn test_transact_through_derivative_multilocation_success() {
 				vec![1u8]
 			));
 			let expected = vec![
-				crate::Event::RegisteredDerivative(1u64, 1),
-				crate::Event::TransactInfoChanged(
-					MultiLocation::parent(),
-					RemoteTransactInfoWithMaxWeight {
+				crate::Event::RegisteredDerivative {
+					account_id: 1u64,
+					index: 1,
+				},
+				crate::Event::TransactInfoChanged {
+					location: MultiLocation::parent(),
+					remote_info: RemoteTransactInfoWithMaxWeight {
 						transact_extra_weight: 0,
 						fee_per_second: 1,
 						max_weight: 10000,
 					},
-				),
-				crate::Event::TransactedDerivative(
-					1u64,
-					MultiLocation::parent(),
-					Transactors::Relay
+				},
+				crate::Event::TransactedDerivative {
+					account_id: 1u64,
+					dest: MultiLocation::parent(),
+					call: Transactors::Relay
 						.encode_call(UtilityAvailableCalls::AsDerivative(1, vec![1u8])),
-					1,
-				),
+					index: 1,
+				},
 			];
 			assert_eq!(events(), expected);
 		})
@@ -213,22 +219,25 @@ fn test_transact_through_derivative_success() {
 				vec![1u8]
 			));
 			let expected = vec![
-				crate::Event::RegisteredDerivative(1u64, 1),
-				crate::Event::TransactInfoChanged(
-					MultiLocation::parent(),
-					RemoteTransactInfoWithMaxWeight {
+				crate::Event::RegisteredDerivative {
+					account_id: 1u64,
+					index: 1,
+				},
+				crate::Event::TransactInfoChanged {
+					location: MultiLocation::parent(),
+					remote_info: RemoteTransactInfoWithMaxWeight {
 						transact_extra_weight: 0,
 						fee_per_second: 1,
 						max_weight: 10000,
 					},
-				),
-				crate::Event::TransactedDerivative(
-					1u64,
-					MultiLocation::parent(),
-					Transactors::Relay
+				},
+				crate::Event::TransactedDerivative {
+					account_id: 1u64,
+					dest: MultiLocation::parent(),
+					call: Transactors::Relay
 						.encode_call(UtilityAvailableCalls::AsDerivative(1, vec![1u8])),
-					1,
-				),
+					index: 1,
+				},
 			];
 			assert_eq!(events(), expected);
 		})
@@ -273,15 +282,19 @@ fn test_root_can_transact_through_sovereign() {
 			));
 
 			let expected = vec![
-				crate::Event::TransactInfoChanged(
-					MultiLocation::parent(),
-					RemoteTransactInfoWithMaxWeight {
+				crate::Event::TransactInfoChanged {
+					location: MultiLocation::parent(),
+					remote_info: RemoteTransactInfoWithMaxWeight {
 						transact_extra_weight: 0,
 						fee_per_second: 1,
 						max_weight: 10000,
 					},
-				),
-				crate::Event::TransactedSovereign(1u64, MultiLocation::parent(), vec![1u8]),
+				},
+				crate::Event::TransactedSovereign {
+					fee_payer: 1u64,
+					dest: MultiLocation::parent(),
+					call: vec![1u8],
+				},
 			];
 			assert_eq!(events(), expected);
 		})
@@ -361,8 +374,11 @@ fn de_registering_works() {
 			assert!(XcmTransactor::index_to_account(&1).is_none());
 
 			let expected = vec![
-				crate::Event::RegisteredDerivative(1u64, 1),
-				crate::Event::DeRegisteredDerivative(1),
+				crate::Event::RegisteredDerivative {
+					account_id: 1u64,
+					index: 1,
+				},
+				crate::Event::DeRegisteredDerivative { index: 1 },
 			];
 			assert_eq!(events(), expected);
 		})
@@ -392,15 +408,17 @@ fn removing_transact_info_works() {
 			assert!(XcmTransactor::transact_info(MultiLocation::parent()).is_none());
 
 			let expected = vec![
-				crate::Event::TransactInfoChanged(
-					MultiLocation::parent(),
-					RemoteTransactInfoWithMaxWeight {
+				crate::Event::TransactInfoChanged {
+					location: MultiLocation::parent(),
+					remote_info: RemoteTransactInfoWithMaxWeight {
 						transact_extra_weight: 0,
 						fee_per_second: 1,
 						max_weight: 10000,
 					},
-				),
-				crate::Event::TransactInfoRemoved(MultiLocation::parent()),
+				},
+				crate::Event::TransactInfoRemoved {
+					location: MultiLocation::parent(),
+				},
 			];
 			assert_eq!(events(), expected);
 		})
