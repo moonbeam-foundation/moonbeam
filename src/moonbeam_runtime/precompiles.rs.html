@@ -145,6 +145,39 @@
 <span id="145">145</span>
 <span id="146">146</span>
 <span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -167,6 +200,7 @@
 <span class="kw">use</span> <span class="ident">pallet_author_mapping_precompiles::AuthorMappingWrapper</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm</span>::{<span class="ident">AddressMapping</span>, <span class="ident">Precompile</span>, <span class="ident">PrecompileResult</span>, <span class="ident">PrecompileSet</span>};
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_assets_erc20::Erc20AssetsPrecompileSet</span>;
+<span class="kw">use</span> <span class="ident">pallet_evm_precompile_balances_erc20</span>::{<span class="ident">Erc20BalancesPrecompile</span>, <span class="ident">Erc20Metadata</span>};
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_blake2::Blake2F</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_bn128</span>::{<span class="ident">Bn128Add</span>, <span class="ident">Bn128Mul</span>, <span class="ident">Bn128Pairing</span>};
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_dispatch::Dispatch</span>;
@@ -180,6 +214,32 @@
 <span class="kw">use</span> <span class="ident">sp_std::marker::PhantomData</span>;
 <span class="kw">use</span> <span class="ident">xcm_transactor_precompiles::XcmTransactorWrapper</span>;
 <span class="kw">use</span> <span class="ident">xtokens_precompiles::XtokensWrapper</span>;
+
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">NativeErc20Metadata</span>;
+
+<span class="doccomment">/// ERC20 metadata for the native token.</span>
+<span class="kw">impl</span> <span class="ident">Erc20Metadata</span> <span class="kw">for</span> <span class="ident">NativeErc20Metadata</span> {
+	<span class="doccomment">/// Returns the name of the token.</span>
+	<span class="kw">fn</span> <span class="ident">name</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
+		<span class="string">&quot;GLMR token&quot;</span>
+	}
+
+	<span class="doccomment">/// Returns the symbol of the token.</span>
+	<span class="kw">fn</span> <span class="ident">symbol</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
+		<span class="string">&quot;GLMR&quot;</span>
+	}
+
+	<span class="doccomment">/// Returns the decimals places of the token.</span>
+	<span class="kw">fn</span> <span class="ident">decimals</span>() -&gt; <span class="ident">u8</span> {
+		<span class="number">18</span>
+	}
+
+	<span class="doccomment">/// Must return `true` only if it represents the main native currency of</span>
+	<span class="doccomment">/// the network. It must be the currency used in `pallet_evm`.</span>
+	<span class="kw">fn</span> <span class="ident">is_native_currency</span>() -&gt; <span class="ident">bool</span> {
+		<span class="bool-val">true</span>
+	}
+}
 
 <span class="doccomment">/// The PrecompileSet installed in the Moonbeam runtime.</span>
 <span class="doccomment">/// We include the nine Istanbul precompiles</span>
@@ -199,7 +259,7 @@
 	<span class="doccomment">/// under the precompile.</span>
 	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">used_addresses</span>() -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">R::AccountId</span><span class="op">&gt;</span> {
 		<span class="macro">sp_std::vec!</span>[
-			<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>, <span class="number">1024</span>, <span class="number">1025</span>, <span class="number">1026</span>, <span class="number">2048</span>, <span class="number">2049</span>, <span class="number">2052</span>, <span class="number">2053</span>, <span class="number">2054</span>, <span class="number">2055</span>
+			<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>, <span class="number">1024</span>, <span class="number">1025</span>, <span class="number">1026</span>, <span class="number">2048</span>, <span class="number">2049</span>, <span class="number">2050</span>, <span class="number">2052</span>, <span class="number">2053</span>, <span class="number">2054</span>, <span class="number">2055</span>
 		]
 		.<span class="ident">into_iter</span>()
 		.<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">R::AddressMapping::into_account_id</span>(<span class="ident">hash</span>(<span class="ident">x</span>)))
@@ -219,6 +279,7 @@
 	<span class="ident">Dispatch</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>: <span class="ident">Precompile</span>,
 	<span class="ident">ParachainStakingWrapper</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>: <span class="ident">Precompile</span>,
 	<span class="ident">CrowdloanRewardsWrapper</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>: <span class="ident">Precompile</span>,
+	<span class="ident">Erc20BalancesPrecompile</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">NativeErc20Metadata</span><span class="op">&gt;</span>: <span class="ident">Precompile</span>,
 	<span class="ident">Erc20AssetsPrecompileSet</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>: <span class="ident">PrecompileSet</span>,
 	<span class="ident">XtokensWrapper</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>: <span class="ident">Precompile</span>,
 	<span class="ident">RelayEncoderWrapper</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">PolkadotEncoder</span><span class="op">&gt;</span>: <span class="ident">Precompile</span>,
@@ -262,6 +323,11 @@
 			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="ident">hash</span>(<span class="number">2049</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">CrowdloanRewardsWrapper</span>::<span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="ident">::execute</span>(
 				<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>, <span class="ident">is_static</span>,
 			)),
+			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="ident">hash</span>(<span class="number">2050</span>) =&gt; {
+				<span class="prelude-val">Some</span>(<span class="ident">Erc20BalancesPrecompile</span>::<span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">NativeErc20Metadata</span><span class="op">&gt;</span><span class="ident">::execute</span>(
+					<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>, <span class="ident">is_static</span>,
+				))
+			}
 			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="ident">hash</span>(<span class="number">2052</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">XtokensWrapper</span>::<span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="ident">::execute</span>(
 				<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>, <span class="ident">is_static</span>,
 			)),
