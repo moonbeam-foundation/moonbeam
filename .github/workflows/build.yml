@@ -208,7 +208,7 @@ jobs:
       - name: Setup Rust toolchain
         run: rustup show
       - name: Clippy
-        run: SKIP_WASM_BUILD=1 env -u RUSTFLAGS cargo clippy --all-targets
+        run: SKIP_WASM_BUILD=1 env -u RUSTFLAGS cargo clippy
 
   build:
     runs-on: self-hosted
