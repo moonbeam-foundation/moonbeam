@@ -44,11 +44,11 @@ fn registering_works() {
 			AssetManager::asset_type_id(MockAssetType::MockAsset(1)).unwrap(),
 			1
 		);
-		expect_events(vec![crate::Event::AssetRegistered(
-			1,
-			MockAssetType::MockAsset(1),
-			0u32,
-		)])
+		expect_events(vec![crate::Event::AssetRegistered {
+			asset_id: 1,
+			asset: MockAssetType::MockAsset(1),
+			metadata: 0u32,
+		}])
 	});
 }
 
@@ -105,8 +105,15 @@ fn test_root_can_change_units_per_second() {
 		assert!(AssetManager::supported_fee_payment_assets().contains(&MockAssetType::MockAsset(1)));
 
 		expect_events(vec![
-			crate::Event::AssetRegistered(1, MockAssetType::MockAsset(1), 0),
-			crate::Event::UnitsPerSecondChanged(MockAssetType::MockAsset(1), 200),
+			crate::Event::AssetRegistered {
+				asset_id: 1,
+				asset: MockAssetType::MockAsset(1),
+				metadata: 0,
+			},
+			crate::Event::UnitsPerSecondChanged {
+				asset_type: MockAssetType::MockAsset(1),
+				units_per_second: 200,
+			},
 		])
 	});
 }
@@ -195,9 +202,19 @@ fn test_root_can_change_asset_id_type() {
 		assert!(AssetManager::asset_type_id(MockAssetType::MockAsset(1)).is_none());
 
 		expect_events(vec![
-			crate::Event::AssetRegistered(1, MockAssetType::MockAsset(1), 0),
-			crate::Event::UnitsPerSecondChanged(MockAssetType::MockAsset(1), 200),
-			crate::Event::AssetTypeChanged(1, MockAssetType::MockAsset(2)),
+			crate::Event::AssetRegistered {
+				asset_id: 1,
+				asset: MockAssetType::MockAsset(1),
+				metadata: 0,
+			},
+			crate::Event::UnitsPerSecondChanged {
+				asset_type: MockAssetType::MockAsset(1),
+				units_per_second: 200,
+			},
+			crate::Event::AssetTypeChanged {
+				asset_id: 1,
+				new_asset_type: MockAssetType::MockAsset(2),
+			},
 		])
 	});
 }
@@ -240,9 +257,19 @@ fn test_change_units_per_second_after_setting_it_once() {
 		assert!(AssetManager::supported_fee_payment_assets().contains(&MockAssetType::MockAsset(1)));
 
 		expect_events(vec![
-			crate::Event::AssetRegistered(1, MockAssetType::MockAsset(1), 0),
-			crate::Event::UnitsPerSecondChanged(MockAssetType::MockAsset(1), 200),
-			crate::Event::UnitsPerSecondChanged(MockAssetType::MockAsset(1), 100),
+			crate::Event::AssetRegistered {
+				asset_id: 1,
+				asset: MockAssetType::MockAsset(1),
+				metadata: 0,
+			},
+			crate::Event::UnitsPerSecondChanged {
+				asset_type: MockAssetType::MockAsset(1),
+				units_per_second: 200,
+			},
+			crate::Event::UnitsPerSecondChanged {
+				asset_type: MockAssetType::MockAsset(1),
+				units_per_second: 100,
+			},
 		]);
 	});
 }
@@ -278,9 +305,18 @@ fn test_root_can_change_units_per_second_and_then_remove() {
 		));
 
 		expect_events(vec![
-			crate::Event::AssetRegistered(1, MockAssetType::MockAsset(1), 0),
-			crate::Event::UnitsPerSecondChanged(MockAssetType::MockAsset(1), 200),
-			crate::Event::SupportedAssetRemoved(MockAssetType::MockAsset(1)),
+			crate::Event::AssetRegistered {
+				asset_id: 1,
+				asset: MockAssetType::MockAsset(1),
+				metadata: 0,
+			},
+			crate::Event::UnitsPerSecondChanged {
+				asset_type: MockAssetType::MockAsset(1),
+				units_per_second: 200,
+			},
+			crate::Event::SupportedAssetRemoved {
+				asset_type: MockAssetType::MockAsset(1),
+			},
 		]);
 	});
 }
