@@ -18,7 +18,7 @@
 
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Everything, Get, Nothing, PalletInfo as PalletInfoTrait},
+	traits::{Everything, Get, Nothing, PalletInfo as PalletInfoTrait, PalletInfoAccess},
 	weights::Weight,
 	PalletId,
 };
@@ -43,7 +43,8 @@ use xcm::latest::{
 };
 use xcm_builder::{
 	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
-	AllowTopLevelPaidExecutionFrom, ConvertedConcreteAssetId, EnsureXcmOrigin, FixedWeightBounds,
+	AllowTopLevelPaidExecutionFrom, ConvertedConcreteAssetId,
+	CurrencyAdapter as XcmCurrencyAdapter, EnsureXcmOrigin, FixedRateOfFungible, FixedWeightBounds,
 	FungiblesAdapter, LocationInverter, ParentAsSuperuser, ParentIsDefault, RelayChainAsNative,
 	SiblingParachainAsNative, SiblingParachainConvertsVia, SignedAccountKey20AsNative,
 	SovereignSignedViaLocation, TakeWeightCredit,
@@ -197,8 +198,22 @@ pub type FungiblesTransactor = FungiblesAdapter<
 	(),
 >;
 
+pub type LocalAssetTransactor = XcmCurrencyAdapter<
+	// Use this currency:
+	Balances,
+	// Use this currency when it is a fungible asset matching any of the locations in
+	// SelfReserveRepresentations
+	xcm_primitives::MultiIsConcrete<SelfReserveRepresentations>,
+	// We can convert the MultiLocations with our converter above:
+	LocationToAccountId,
+	// Our chain's account ID type (we can't get away without mentioning it explicitly):
+	AccountId,
+	// We dont allow teleport
+	(),
+>;
+
 // These will be our transactors
-pub type AssetTransactors = FungiblesTransactor;
+pub type AssetTransactors = (LocalAssetTransactor, FungiblesTransactor);
 pub type XcmRouter = super::ParachainXcmRouter<MsgQueue>;
 
 pub type Barrier = (
@@ -233,20 +248,51 @@ pub type XcmFeesToAccount_ = xcm_primitives::XcmFeesToAccount<
 parameter_types! {
 	// We cannot skip the native trader for some specific tests, so we will have to work with
 	// a native trader that charges same number of units as weight
-	pub ParaTokensPerSecond: (XcmAssetId, u128) = (Concrete(SelfReserve::get()), 1000000000000);
+	// We use both the old and new anchoring logics
+	pub ParaTokensPerSecondOld: (XcmAssetId, u128) = (
+		Concrete(OldAnchoringSelfReserve::get()),
+		1000000000000
+	);
+	pub ParaTokensPerSecondNew: (XcmAssetId, u128) = (
+		Concrete(NewAnchoringSelfReserve::get()),
+		1000000000000
+	);
 }
 
 parameter_types! {
 	pub const RelayNetwork: NetworkId = NetworkId::Polkadot;
 	pub RelayChainOrigin: Origin = cumulus_pallet_xcm::Origin::Relay.into();
 	pub Ancestry: MultiLocation = Parachain(MsgQueue::parachain_id().into()).into();
-		pub SelfReserve: MultiLocation = MultiLocation {
+	// Old Self Reserve location, defines the multilocation identifiying the self-reserve currency
+	// This is used to match it against our Balances pallet when we receive such a MultiLocation
+	// (Parent, Self Para Id, Self Balances pallet index)
+	pub OldAnchoringSelfReserve: MultiLocation = MultiLocation {
 		parents:1,
 		interior: Junctions::X2(
 			Parachain(MsgQueue::parachain_id().into()),
-			PalletInstance(<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8)
+			PalletInstance(
+				<Balances as PalletInfoAccess>::index() as u8
+			)
 		)
 	};
+	// New Self Reserve location, defines the multilocation identifiying the self-reserve currency
+	// This is used to match it also against our Balances pallet when we receive such
+	// a MultiLocation: (Self Balances pallet index)
+	// This is the new anchoring way
+	pub NewAnchoringSelfReserve: MultiLocation = MultiLocation {
+		parents:0,
+		interior: Junctions::X1(
+			PalletInstance(
+				<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8
+			)
+		)
+	};
+	// The Locations we accept to refer to our own currency. We need to support both pre and
+	// post 0.9.16 versions, hence the reason for this being a Vec
+	pub SelfReserveRepresentations: Vec<MultiLocation> = vec![
+		OldAnchoringSelfReserve::get(),
+		NewAnchoringSelfReserve::get()
+	];
 }
 pub struct XcmConfig;
 impl Config for XcmConfig {
@@ -259,7 +305,15 @@ impl Config for XcmConfig {
 	type LocationInverter = LocationInverter<Ancestry>;
 	type Barrier = Barrier;
 	type Weigher = FixedWeightBounds<UnitWeightCost, Call, MaxInstructions>;
-	type Trader = (xcm_primitives::FirstAssetTrader<AssetType, AssetManager, XcmFeesToAccount_>,);
+	// We use three traders
+	// When we receive either representation of the self-reserve asset,
+	// When we receive a non-reserve asset, we use AssetManager to fetch how many
+	// units per second we should charge
+	type Trader = (
+		FixedRateOfFungible<ParaTokensPerSecondOld, ()>,
+		FixedRateOfFungible<ParaTokensPerSecondNew, ()>,
+		xcm_primitives::FirstAssetTrader<AssetType, AssetManager, XcmFeesToAccount_>,
+	);
 
 	type ResponseHandler = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;
@@ -289,7 +343,12 @@ where
 	fn convert(currency: CurrencyId) -> Option<MultiLocation> {
 		match currency {
 			CurrencyId::SelfReserve => {
-				let multi: MultiLocation = SelfReserve::get();
+				// For now and until Xtokens is adapted to handle 0.9.16 version we use
+				// the old anchoring here
+				// This is not a problem in either cases, since the view of the destination
+				// chain does not change
+				// TODO! change this to NewAnchoringSelfReserve once xtokens is adapted for it
+				let multi: MultiLocation = OldAnchoringSelfReserve::get();
 				Some(multi)
 			}
 			CurrencyId::OtherReserve(asset) => AssetXConverter::reverse_ref(asset).ok(),

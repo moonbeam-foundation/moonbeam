@@ -303,11 +303,11 @@ fn join_collator_candidates() {
 			));
 			assert_eq!(
 				last_event(),
-				Event::ParachainStaking(parachain_staking::Event::JoinedCollatorCandidates(
-					AccountId::from(DAVE),
-					100_000 * GLMR,
-					310_000 * GLMR
-				))
+				Event::ParachainStaking(parachain_staking::Event::JoinedCollatorCandidates {
+					account: AccountId::from(DAVE),
+					amount_locked: 100_000 * GLMR,
+					new_total_amt_locked: 310_000 * GLMR
+				})
 			);
 			let candidates = ParachainStaking::candidate_pool();
 			assert_eq!(candidates.0[0].owner, AccountId::from(ALICE));
@@ -1917,7 +1917,7 @@ fn precompile_existance() {
 	ExtBuilder::default().build().execute_with(|| {
 		let precompiles = Precompiles::new();
 		let precompile_addresses: std::collections::BTreeSet<_> = vec![
-			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2052, 2053, 2054, 2055,
+			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2050, 2052, 2053, 2054, 2055,
 		]
 		.into_iter()
 		.map(H160::from_low_u64_be)

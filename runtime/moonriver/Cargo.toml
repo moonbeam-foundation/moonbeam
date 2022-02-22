@@ -13,6 +13,7 @@ log = "0.4"
 rlp = { version = "0.5", optional = true, default-features = false }
 serde = { version = "1.0.101", optional = true, default-features = false, features = [ "derive" ] }
 sha3 = { version = "0.8", optional = true, default-features = false }
+smallvec = "1.8.0"
 
 # Moonbeam
 account = { path = "../../primitives/account/", default-features = false }
@@ -263,7 +264,9 @@ try-runtime = [
 	"pallet-maintenance-mode/try-runtime",
 	#"pallet-crowdloan-rewards/try-runtime",
 	"pallet-migrations/try-runtime",
+	"pallet-scheduler/try-runtime",
 	"pallet-society/try-runtime",
 	"pallet-timestamp/try-runtime",
 	"parachain-staking/try-runtime",
+	"runtime-common/try-runtime",
 ]
