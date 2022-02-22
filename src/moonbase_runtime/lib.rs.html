@@ -2013,8 +2013,6 @@
 <span id="2013">2013</span>
 <span id="2014">2014</span>
 <span id="2015">2015</span>
-<span id="2016">2016</span>
-<span id="2017">2017</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -2057,7 +2055,7 @@
 	<span class="ident">traits</span>::{
 		<span class="ident">Contains</span>, <span class="ident">Currency</span> <span class="kw">as</span> <span class="ident">CurrencyT</span>, <span class="ident">EnsureOneOf</span>, <span class="ident">EqualPrivilegeOnly</span>, <span class="ident">Everything</span>, <span class="ident">FindAuthor</span>,
 		<span class="ident">Get</span>, <span class="ident">Imbalance</span>, <span class="ident">InstanceFilter</span>, <span class="ident">Nothing</span>, <span class="ident">OffchainWorker</span>, <span class="ident">OnFinalize</span>, <span class="ident">OnIdle</span>, <span class="ident">OnInitialize</span>,
-		<span class="ident">OnRuntimeUpgrade</span>, <span class="ident">OnUnbalanced</span>, <span class="ident">PalletInfo</span> <span class="kw">as</span> <span class="ident">PalletInfoTrait</span>,
+		<span class="ident">OnRuntimeUpgrade</span>, <span class="ident">OnUnbalanced</span>, <span class="ident">PalletInfoAccess</span>,
 	},
 	<span class="ident">weights</span>::{
 		<span class="ident">constants</span>::{<span class="ident">RocksDbWeight</span>, <span class="ident">WEIGHT_PER_SECOND</span>},
@@ -3036,19 +3034,17 @@
 		<span class="ident">parents</span>:<span class="number">1</span>,
 		<span class="ident">interior</span>: <span class="ident">Junctions::X2</span>(
 			<span class="ident">Parachain</span>(<span class="ident">ParachainInfo::parachain_id</span>().<span class="ident">into</span>()),
-			<span class="ident">PalletInstance</span>(
-				<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::PalletInfo::index</span>::<span class="op">&lt;</span><span class="ident">Balances</span><span class="op">&gt;</span>().<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">u8</span>
-			)
+			<span class="ident">PalletInstance</span>(<span class="op">&lt;</span><span class="ident">Balances</span> <span class="kw">as</span> <span class="ident">PalletInfoAccess</span><span class="op">&gt;</span><span class="ident">::index</span>() <span class="kw">as</span> <span class="ident">u8</span>)
 		)
 	};
-	<span class="comment">// Bew Self Reserve location, defines the multilocation identifiying the self-reserve currency</span>
+	<span class="comment">// New Self Reserve location, defines the multilocation identifiying the self-reserve currency</span>
 	<span class="comment">// This is used to match it also against our Balances pallet when we receive such</span>
 	<span class="comment">// a MultiLocation: (Self Balances pallet index)</span>
 	<span class="comment">// This is the new anchoring way</span>
 	<span class="kw">pub</span> <span class="ident">NewAnchoringSelfReserve</span>: <span class="ident">MultiLocation</span> <span class="op">=</span> <span class="ident">MultiLocation</span> {
 		<span class="ident">parents</span>:<span class="number">0</span>,
 		<span class="ident">interior</span>: <span class="ident">Junctions::X1</span>(
-			<span class="ident">PalletInstance</span>(<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::PalletInfo::index</span>::<span class="op">&lt;</span><span class="ident">Balances</span><span class="op">&gt;</span>().<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">u8</span>)
+			<span class="ident">PalletInstance</span>(<span class="op">&lt;</span><span class="ident">Balances</span> <span class="kw">as</span> <span class="ident">PalletInfoAccess</span><span class="op">&gt;</span><span class="ident">::index</span>() <span class="kw">as</span> <span class="ident">u8</span>)
 		)
 	};
 
@@ -3464,11 +3460,11 @@
 {
 	<span class="kw">fn</span> <span class="ident">convert</span>(<span class="ident">currency</span>: <span class="ident">CurrencyId</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span> {
 		<span class="kw">match</span> <span class="ident">currency</span> {
-			<span class="comment">// For now (and until we upgrade to 0.9.16 is adapted) we need to use the old anchoring</span>
-			<span class="comment">// here</span>
-			<span class="comment">// This is not a problem in either cases, since the view of the destination chain</span>
-			<span class="comment">// does not change</span>
-			<span class="comment">// TODO! change this to NewAnchoringSelfReserve once we uprade to 0.9.16</span>
+			<span class="comment">// For now and until Xtokens is adapted to handle 0.9.16 version we use</span>
+			<span class="comment">// the old anchoring here</span>
+			<span class="comment">// This is not a problem in either cases, since the view of the destination</span>
+			<span class="comment">// chain does not change</span>
+			<span class="comment">// TODO! change this to NewAnchoringSelfReserve once xtokens is adapted for it</span>
 			<span class="ident">CurrencyId::SelfReserve</span> =&gt; {
 				<span class="kw">let</span> <span class="ident">multi</span>: <span class="ident">MultiLocation</span> <span class="op">=</span> <span class="ident">OldAnchoringSelfReserve::get</span>();
 				<span class="prelude-val">Some</span>(<span class="ident">multi</span>)

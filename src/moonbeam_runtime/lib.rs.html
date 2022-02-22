@@ -1892,8 +1892,6 @@
 <span id="1892">1892</span>
 <span id="1893">1893</span>
 <span id="1894">1894</span>
-<span id="1895">1895</span>
-<span id="1896">1896</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -1932,7 +1930,7 @@
 	<span class="ident">traits</span>::{
 		<span class="ident">Contains</span>, <span class="ident">EnsureOneOf</span>, <span class="ident">EqualPrivilegeOnly</span>, <span class="ident">Everything</span>, <span class="ident">Get</span>, <span class="ident">Imbalance</span>, <span class="ident">InstanceFilter</span>,
 		<span class="ident">Nothing</span>, <span class="ident">OffchainWorker</span>, <span class="ident">OnFinalize</span>, <span class="ident">OnIdle</span>, <span class="ident">OnInitialize</span>, <span class="ident">OnRuntimeUpgrade</span>, <span class="ident">OnUnbalanced</span>,
-		<span class="ident">PalletInfo</span> <span class="kw">as</span> <span class="ident">PalletInfoTrait</span>,
+		<span class="ident">PalletInfoAccess</span>,
 	},
 	<span class="ident">weights</span>::{
 		<span class="ident">constants</span>::{<span class="ident">RocksDbWeight</span>, <span class="ident">WEIGHT_PER_SECOND</span>},
@@ -2839,9 +2837,7 @@
 		<span class="ident">parents</span>:<span class="number">1</span>,
 		<span class="ident">interior</span>: <span class="ident">Junctions::X2</span>(
 			<span class="ident">Parachain</span>(<span class="ident">ParachainInfo::parachain_id</span>().<span class="ident">into</span>()),
-			<span class="ident">PalletInstance</span>(
-				<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::PalletInfo::index</span>::<span class="op">&lt;</span><span class="ident">Balances</span><span class="op">&gt;</span>().<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">u8</span>
-			)
+			<span class="ident">PalletInstance</span>(<span class="op">&lt;</span><span class="ident">Balances</span> <span class="kw">as</span> <span class="ident">PalletInfoAccess</span><span class="op">&gt;</span><span class="ident">::index</span>() <span class="kw">as</span> <span class="ident">u8</span>)
 		)
 	};
 }

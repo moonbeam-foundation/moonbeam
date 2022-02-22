@@ -1900,6 +1900,86 @@
 <span id="1900">1900</span>
 <span id="1901">1901</span>
 <span id="1902">1902</span>
+<span id="1903">1903</span>
+<span id="1904">1904</span>
+<span id="1905">1905</span>
+<span id="1906">1906</span>
+<span id="1907">1907</span>
+<span id="1908">1908</span>
+<span id="1909">1909</span>
+<span id="1910">1910</span>
+<span id="1911">1911</span>
+<span id="1912">1912</span>
+<span id="1913">1913</span>
+<span id="1914">1914</span>
+<span id="1915">1915</span>
+<span id="1916">1916</span>
+<span id="1917">1917</span>
+<span id="1918">1918</span>
+<span id="1919">1919</span>
+<span id="1920">1920</span>
+<span id="1921">1921</span>
+<span id="1922">1922</span>
+<span id="1923">1923</span>
+<span id="1924">1924</span>
+<span id="1925">1925</span>
+<span id="1926">1926</span>
+<span id="1927">1927</span>
+<span id="1928">1928</span>
+<span id="1929">1929</span>
+<span id="1930">1930</span>
+<span id="1931">1931</span>
+<span id="1932">1932</span>
+<span id="1933">1933</span>
+<span id="1934">1934</span>
+<span id="1935">1935</span>
+<span id="1936">1936</span>
+<span id="1937">1937</span>
+<span id="1938">1938</span>
+<span id="1939">1939</span>
+<span id="1940">1940</span>
+<span id="1941">1941</span>
+<span id="1942">1942</span>
+<span id="1943">1943</span>
+<span id="1944">1944</span>
+<span id="1945">1945</span>
+<span id="1946">1946</span>
+<span id="1947">1947</span>
+<span id="1948">1948</span>
+<span id="1949">1949</span>
+<span id="1950">1950</span>
+<span id="1951">1951</span>
+<span id="1952">1952</span>
+<span id="1953">1953</span>
+<span id="1954">1954</span>
+<span id="1955">1955</span>
+<span id="1956">1956</span>
+<span id="1957">1957</span>
+<span id="1958">1958</span>
+<span id="1959">1959</span>
+<span id="1960">1960</span>
+<span id="1961">1961</span>
+<span id="1962">1962</span>
+<span id="1963">1963</span>
+<span id="1964">1964</span>
+<span id="1965">1965</span>
+<span id="1966">1966</span>
+<span id="1967">1967</span>
+<span id="1968">1968</span>
+<span id="1969">1969</span>
+<span id="1970">1970</span>
+<span id="1971">1971</span>
+<span id="1972">1972</span>
+<span id="1973">1973</span>
+<span id="1974">1974</span>
+<span id="1975">1975</span>
+<span id="1976">1976</span>
+<span id="1977">1977</span>
+<span id="1978">1978</span>
+<span id="1979">1979</span>
+<span id="1980">1980</span>
+<span id="1981">1981</span>
+<span id="1982">1982</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -1938,11 +2018,12 @@
 	<span class="ident">traits</span>::{
 		<span class="ident">Contains</span>, <span class="ident">EnsureOneOf</span>, <span class="ident">EqualPrivilegeOnly</span>, <span class="ident">Everything</span>, <span class="ident">Get</span>, <span class="ident">Imbalance</span>, <span class="ident">InstanceFilter</span>,
 		<span class="ident">Nothing</span>, <span class="ident">OffchainWorker</span>, <span class="ident">OnFinalize</span>, <span class="ident">OnIdle</span>, <span class="ident">OnInitialize</span>, <span class="ident">OnRuntimeUpgrade</span>, <span class="ident">OnUnbalanced</span>,
-		<span class="ident">PalletInfo</span> <span class="kw">as</span> <span class="ident">PalletInfoTrait</span>,
+		<span class="ident">PalletInfoAccess</span>,
 	},
 	<span class="ident">weights</span>::{
 		<span class="ident">constants</span>::{<span class="ident">RocksDbWeight</span>, <span class="ident">WEIGHT_PER_SECOND</span>},
-		<span class="ident">DispatchClass</span>, <span class="ident">GetDispatchInfo</span>, <span class="ident">IdentityFee</span>, <span class="ident">Weight</span>,
+		<span class="ident">DispatchClass</span>, <span class="ident">GetDispatchInfo</span>, <span class="ident">IdentityFee</span>, <span class="ident">Weight</span>, <span class="ident">WeightToFeeCoefficient</span>,
+		<span class="ident">WeightToFeeCoefficients</span>, <span class="ident">WeightToFeePolynomial</span>,
 	},
 	<span class="ident">PalletId</span>,
 };
@@ -1984,16 +2065,18 @@
 
 <span class="kw">use</span> <span class="ident">xcm_builder</span>::{
 	<span class="ident">AccountKey20Aliases</span>, <span class="ident">AllowKnownQueryResponses</span>, <span class="ident">AllowSubscriptionsFrom</span>,
-	<span class="ident">AllowTopLevelPaidExecutionFrom</span>, <span class="ident">ConvertedConcreteAssetId</span>, <span class="ident">EnsureXcmOrigin</span>, <span class="ident">FixedWeightBounds</span>,
-	<span class="ident">FungiblesAdapter</span>, <span class="ident">LocationInverter</span>, <span class="ident">ParentIsDefault</span>, <span class="ident">RelayChainAsNative</span>,
-	<span class="ident">SiblingParachainAsNative</span>, <span class="ident">SiblingParachainConvertsVia</span>, <span class="ident">SignedAccountKey20AsNative</span>,
-	<span class="ident">SovereignSignedViaLocation</span>, <span class="ident">TakeWeightCredit</span>,
+	<span class="ident">AllowTopLevelPaidExecutionFrom</span>, <span class="ident">ConvertedConcreteAssetId</span>,
+	<span class="ident">CurrencyAdapter</span> <span class="kw">as</span> <span class="ident">XcmCurrencyAdapter</span>, <span class="ident">EnsureXcmOrigin</span>, <span class="ident">FixedWeightBounds</span>, <span class="ident">FungiblesAdapter</span>,
+	<span class="ident">LocationInverter</span>, <span class="ident">ParentIsDefault</span>, <span class="ident">RelayChainAsNative</span>, <span class="ident">SiblingParachainAsNative</span>,
+	<span class="ident">SiblingParachainConvertsVia</span>, <span class="ident">SignedAccountKey20AsNative</span>, <span class="ident">SovereignSignedViaLocation</span>,
+	<span class="ident">TakeWeightCredit</span>, <span class="ident">UsingComponents</span>,
 };
 
 <span class="kw">use</span> <span class="ident">xcm_executor::traits::JustTry</span>;
 
 <span class="kw">use</span> <span class="ident">xcm::latest::prelude</span>::<span class="kw-2">*</span>;
 
+<span class="kw">use</span> <span class="ident">smallvec::smallvec</span>;
 <span class="kw">use</span> <span class="ident">xcm_primitives</span>::{
 	<span class="ident">AccountIdToCurrencyId</span>, <span class="ident">AccountIdToMultiLocation</span>, <span class="ident">AsAssetType</span>, <span class="ident">FirstAssetTrader</span>,
 	<span class="ident">MultiNativeAsset</span>, <span class="ident">SignedToAccountId20</span>, <span class="ident">UtilityAvailableCalls</span>, <span class="ident">UtilityEncodeCall</span>, <span class="ident">XcmTransact</span>,
@@ -2034,6 +2117,7 @@
 
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TRANSACTION_BYTE_FEE</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">10</span> <span class="op">*</span> <span class="ident">MICROMOVR</span> <span class="op">*</span> <span class="ident">SUPPLY_FACTOR</span>;
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">STORAGE_BYTE_FEE</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">100</span> <span class="op">*</span> <span class="ident">MICROMOVR</span> <span class="op">*</span> <span class="ident">SUPPLY_FACTOR</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">WEIGHT_FEE</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">100</span> <span class="op">*</span> <span class="ident">KILOWEI</span> <span class="op">*</span> <span class="ident">SUPPLY_FACTOR</span>;
 
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">deposit</span>(<span class="ident">items</span>: <span class="ident">u32</span>, <span class="ident">bytes</span>: <span class="ident">u32</span>) -&gt; <span class="ident">Balance</span> {
 		<span class="ident">items</span> <span class="kw">as</span> <span class="ident">Balance</span> <span class="op">*</span> <span class="number">1</span> <span class="op">*</span> <span class="ident">MOVR</span> <span class="op">*</span> <span class="ident">SUPPLY_FACTOR</span> <span class="op">+</span> (<span class="ident">bytes</span> <span class="kw">as</span> <span class="ident">Balance</span>) <span class="op">*</span> <span class="ident">STORAGE_BYTE_FEE</span>
@@ -2216,6 +2300,28 @@
 <span class="macro">parameter_types!</span> {
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TransactionByteFee</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">currency::TRANSACTION_BYTE_FEE</span>;
 	<span class="kw">pub</span> <span class="ident">OperationalFeeMultiplier</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="number">5</span>;
+}
+
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">WeightToFee</span>;
+<span class="kw">impl</span> <span class="ident">WeightToFeePolynomial</span> <span class="kw">for</span> <span class="ident">WeightToFee</span> {
+	<span class="kw">type</span> <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">Balance</span>;
+
+	<span class="doccomment">/// Return a vec of coefficients. Here we just use one coefficient and reduce it to a constant</span>
+	<span class="doccomment">/// modifier in order to closely match Ethereum-based fees.</span>
+	<span class="doccomment">///</span>
+	<span class="doccomment">/// Calculation, per the documentation in `frame_support`:</span>
+	<span class="doccomment">///</span>
+	<span class="doccomment">/// ```ignore</span>
+	<span class="doccomment">/// coeff_integer * x^(degree) + coeff_frac * x^(degree)</span>
+	<span class="doccomment">/// ```</span>
+	<span class="kw">fn</span> <span class="ident">polynomial</span>() -&gt; <span class="ident">WeightToFeeCoefficients</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Balance</span><span class="op">&gt;</span> {
+		<span class="macro">smallvec!</span>[<span class="ident">WeightToFeeCoefficient</span> {
+			<span class="ident">degree</span>: <span class="number">1</span>,
+			<span class="ident">coeff_frac</span>: <span class="ident">Perbill::zero</span>(),
+			<span class="ident">coeff_integer</span>: <span class="ident">currency::WEIGHT_FEE</span>,
+			<span class="ident">negative</span>: <span class="bool-val">false</span>,
+		}]
+	}
 }
 
 <span class="kw">impl</span> <span class="ident">pallet_transaction_payment::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
@@ -2845,18 +2951,34 @@
 	<span class="kw">pub</span> <span class="ident">RelayChainOrigin</span>: <span class="ident">Origin</span> <span class="op">=</span> <span class="ident">cumulus_pallet_xcm::Origin::Relay</span>.<span class="ident">into</span>();
 	<span class="comment">// The ancestry, defines the multilocation describing this consensus system</span>
 	<span class="kw">pub</span> <span class="ident">Ancestry</span>: <span class="ident">MultiLocation</span> <span class="op">=</span> <span class="ident">Parachain</span>(<span class="ident">ParachainInfo::parachain_id</span>().<span class="ident">into</span>()).<span class="ident">into</span>();
-	<span class="comment">// Self Reserve location, defines the multilocation identifiying the self-reserve currency</span>
+	<span class="comment">// Old Self Reserve location, defines the multilocation identifiying the self-reserve currency</span>
 	<span class="comment">// This is used to match it against our Balances pallet when we receive such a MultiLocation</span>
 	<span class="comment">// (Parent, Self Para Id, Self Balances pallet index)</span>
-	<span class="kw">pub</span> <span class="ident">SelfReserve</span>: <span class="ident">MultiLocation</span> <span class="op">=</span> <span class="ident">MultiLocation</span> {
+	<span class="comment">// This is the old anchoring way</span>
+	<span class="kw">pub</span> <span class="ident">OldAnchoringSelfReserve</span>: <span class="ident">MultiLocation</span> <span class="op">=</span> <span class="ident">MultiLocation</span> {
 		<span class="ident">parents</span>:<span class="number">1</span>,
 		<span class="ident">interior</span>: <span class="ident">Junctions::X2</span>(
 			<span class="ident">Parachain</span>(<span class="ident">ParachainInfo::parachain_id</span>().<span class="ident">into</span>()),
-			<span class="ident">PalletInstance</span>(
-				<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::PalletInfo::index</span>::<span class="op">&lt;</span><span class="ident">Balances</span><span class="op">&gt;</span>().<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">u8</span>
-			)
+			<span class="ident">PalletInstance</span>(<span class="op">&lt;</span><span class="ident">Balances</span> <span class="kw">as</span> <span class="ident">PalletInfoAccess</span><span class="op">&gt;</span><span class="ident">::index</span>() <span class="kw">as</span> <span class="ident">u8</span>)
 		)
 	};
+	<span class="comment">// New Self Reserve location, defines the multilocation identifiying the self-reserve currency</span>
+	<span class="comment">// This is used to match it also against our Balances pallet when we receive such</span>
+	<span class="comment">// a MultiLocation: (Self Balances pallet index)</span>
+	<span class="comment">// This is the new anchoring way</span>
+	<span class="kw">pub</span> <span class="ident">NewAnchoringSelfReserve</span>: <span class="ident">MultiLocation</span> <span class="op">=</span> <span class="ident">MultiLocation</span> {
+		<span class="ident">parents</span>:<span class="number">0</span>,
+		<span class="ident">interior</span>: <span class="ident">Junctions::X1</span>(
+			<span class="ident">PalletInstance</span>(<span class="op">&lt;</span><span class="ident">Balances</span> <span class="kw">as</span> <span class="ident">PalletInfoAccess</span><span class="op">&gt;</span><span class="ident">::index</span>() <span class="kw">as</span> <span class="ident">u8</span>)
+		)
+	};
+
+	<span class="comment">// The Locations we accept to refer to our own currency. We need to support both pre and</span>
+	<span class="comment">// post 0.9.16 versions, hence the reason for this being a Vec</span>
+	<span class="kw">pub</span> <span class="ident">SelfReserveRepresentations</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[
+		<span class="ident">OldAnchoringSelfReserve::get</span>(),
+		<span class="ident">NewAnchoringSelfReserve::get</span>()
+	];
 }
 
 <span class="doccomment">/// Type for specifying how a `MultiLocation` can be converted into an `AccountId`. This is used</span>
@@ -2895,10 +3017,24 @@
 	(),
 <span class="op">&gt;</span>;
 
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">LocalAssetTransactor</span> <span class="op">=</span> <span class="ident">XcmCurrencyAdapter</span><span class="op">&lt;</span>
+	<span class="comment">// Use this currency:</span>
+	<span class="ident">Balances</span>,
+	<span class="comment">// Use this currency when it is a fungible asset matching any of the locations in</span>
+	<span class="comment">// SelfReserveRepresentations</span>
+	<span class="ident">xcm_primitives::MultiIsConcrete</span><span class="op">&lt;</span><span class="ident">SelfReserveRepresentations</span><span class="op">&gt;</span>,
+	<span class="comment">// We can convert the MultiLocations with our converter above:</span>
+	<span class="ident">LocationToAccountId</span>,
+	<span class="comment">// Our chain&#39;s account ID type (we can&#39;t get away without mentioning it explicitly):</span>
+	<span class="ident">AccountId</span>,
+	<span class="comment">// We dont allow teleport</span>
+	(),
+<span class="op">&gt;</span>;
+
 <span class="comment">// We use only fungiblesAdapter transactor for now</span>
 <span class="comment">// The idea is that we only accept the relay token, hence no need to handle the local token</span>
 <span class="comment">// As long as this does not contain the local transactor, we are good</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">AssetTransactors</span> <span class="op">=</span> <span class="ident">FungiblesTransactor</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">AssetTransactors</span> <span class="op">=</span> (<span class="ident">LocalAssetTransactor</span>, <span class="ident">FungiblesTransactor</span>);
 
 <span class="doccomment">/// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,</span>
 <span class="doccomment">/// ready for dispatching a transaction with Xcm&#39;s `Transact`. There is an `OriginKind` which can</span>
@@ -2975,9 +3111,28 @@
 	<span class="kw">type</span> <span class="ident">LocationInverter</span> <span class="op">=</span> <span class="ident">LocationInverter</span><span class="op">&lt;</span><span class="ident">Ancestry</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">Barrier</span> <span class="op">=</span> <span class="ident">XcmBarrier</span>;
 	<span class="kw">type</span> <span class="ident">Weigher</span> <span class="op">=</span> <span class="ident">XcmWeigher</span>;
+	<span class="comment">// We use three traders</span>
+	<span class="comment">// When we receive either representation of the self-reserve asset,</span>
+	<span class="comment">// we use UsingComponents and the local way of handling fees</span>
 	<span class="comment">// When we receive a non-reserve asset, we use AssetManager to fetch how many</span>
 	<span class="comment">// units per second we should charge</span>
-	<span class="kw">type</span> <span class="ident">Trader</span> <span class="op">=</span> <span class="ident">FirstAssetTrader</span><span class="op">&lt;</span><span class="ident">AssetType</span>, <span class="ident">AssetManager</span>, <span class="ident">XcmFeesToAccount</span><span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">Trader</span> <span class="op">=</span> (
+		<span class="ident">UsingComponents</span><span class="op">&lt;</span>
+			<span class="ident">WeightToFee</span>,
+			<span class="ident">OldAnchoringSelfReserve</span>,
+			<span class="ident">AccountId</span>,
+			<span class="ident">Balances</span>,
+			<span class="ident">DealWithFees</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
+		<span class="op">&gt;</span>,
+		<span class="ident">UsingComponents</span><span class="op">&lt;</span>
+			<span class="ident">WeightToFee</span>,
+			<span class="ident">NewAnchoringSelfReserve</span>,
+			<span class="ident">AccountId</span>,
+			<span class="ident">Balances</span>,
+			<span class="ident">DealWithFees</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
+		<span class="op">&gt;</span>,
+		<span class="ident">FirstAssetTrader</span><span class="op">&lt;</span><span class="ident">AssetType</span>, <span class="ident">AssetManager</span>, <span class="ident">XcmFeesToAccount</span><span class="op">&gt;</span>,
+	);
 	<span class="kw">type</span> <span class="ident">ResponseHandler</span> <span class="op">=</span> <span class="ident">PolkadotXcm</span>;
 	<span class="kw">type</span> <span class="ident">SubscriptionService</span> <span class="op">=</span> <span class="ident">PolkadotXcm</span>;
 	<span class="kw">type</span> <span class="ident">AssetTrap</span> <span class="op">=</span> <span class="ident">PolkadotXcm</span>;
@@ -3251,8 +3406,13 @@
 {
 	<span class="kw">fn</span> <span class="ident">convert</span>(<span class="ident">currency</span>: <span class="ident">CurrencyId</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span> {
 		<span class="kw">match</span> <span class="ident">currency</span> {
+			<span class="comment">// For now and until Xtokens is adapted to handle 0.9.16 version we use</span>
+			<span class="comment">// the old anchoring here</span>
+			<span class="comment">// This is not a problem in either cases, since the view of the destination</span>
+			<span class="comment">// chain does not change</span>
+			<span class="comment">// TODO! change this to NewAnchoringSelfReserve once xtokens is adapted for it</span>
 			<span class="ident">CurrencyId::SelfReserve</span> =&gt; {
-				<span class="kw">let</span> <span class="ident">multi</span>: <span class="ident">MultiLocation</span> <span class="op">=</span> <span class="ident">SelfReserve::get</span>();
+				<span class="kw">let</span> <span class="ident">multi</span>: <span class="ident">MultiLocation</span> <span class="op">=</span> <span class="ident">OldAnchoringSelfReserve::get</span>();
 				<span class="prelude-val">Some</span>(<span class="ident">multi</span>)
 			}
 			<span class="ident">CurrencyId::OtherReserve</span>(<span class="ident">asset</span>) =&gt; <span class="ident">AssetXConverter::reverse_ref</span>(<span class="ident">asset</span>).<span class="ident">ok</span>(),
