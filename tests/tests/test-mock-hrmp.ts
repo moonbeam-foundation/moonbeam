@@ -781,14 +781,15 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
         },
       ],
     };
+
     const xcmpFormat: XcmpMessageFormat = context.polkadotApi.createType(
       "XcmpMessageFormat",
       "ConcatenatedVersionedXcm"
-    );
+    ) as any;
     const receivedMessage: XcmVersionedXcm = context.polkadotApi.createType(
       "XcmVersionedXcm",
       xcmMessage
-    );
+    ) as any;
 
     const totalMessage = [...xcmpFormat.toU8a(), ...receivedMessage.toU8a()];
     // Send RPC call to inject XCM message
@@ -897,11 +898,11 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     const xcmpFormat: XcmpMessageFormat = context.polkadotApi.createType(
       "XcmpMessageFormat",
       "ConcatenatedVersionedXcm"
-    );
+    ) as any;
     const receivedMessage: XcmVersionedXcm = context.polkadotApi.createType(
       "XcmVersionedXcm",
       xcmMessage
-    );
+    ) as any;
 
     const totalMessage = [...xcmpFormat.toU8a(), ...receivedMessage.toU8a()];
     // Send RPC call to inject XCM message
