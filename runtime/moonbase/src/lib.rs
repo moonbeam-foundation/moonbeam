@@ -40,7 +40,7 @@ use frame_support::{
 	traits::{
 		Contains, Currency as CurrencyT, EnsureOneOf, EqualPrivilegeOnly, Everything, FindAuthor,
 		Get, Imbalance, InstanceFilter, Nothing, OffchainWorker, OnFinalize, OnIdle, OnInitialize,
-		OnRuntimeUpgrade, OnUnbalanced, PalletInfo as PalletInfoTrait,
+		OnRuntimeUpgrade, OnUnbalanced, PalletInfoAccess,
 	},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
@@ -1019,19 +1019,17 @@ parameter_types! {
 		parents:1,
 		interior: Junctions::X2(
 			Parachain(ParachainInfo::parachain_id().into()),
-			PalletInstance(
-				<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8
-			)
+			PalletInstance(<Balances as PalletInfoAccess>::index() as u8)
 		)
 	};
-	// Bew Self Reserve location, defines the multilocation identifiying the self-reserve currency
+	// New Self Reserve location, defines the multilocation identifiying the self-reserve currency
 	// This is used to match it also against our Balances pallet when we receive such
 	// a MultiLocation: (Self Balances pallet index)
 	// This is the new anchoring way
 	pub NewAnchoringSelfReserve: MultiLocation = MultiLocation {
 		parents:0,
 		interior: Junctions::X1(
-			PalletInstance(<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8)
+			PalletInstance(<Balances as PalletInfoAccess>::index() as u8)
 		)
 	};
 
@@ -1447,11 +1445,11 @@ where
 {
 	fn convert(currency: CurrencyId) -> Option<MultiLocation> {
 		match currency {
-			// For now (and until we upgrade to 0.9.16 is adapted) we need to use the old anchoring
-			// here
-			// This is not a problem in either cases, since the view of the destination chain
-			// does not change
-			// TODO! change this to NewAnchoringSelfReserve once we uprade to 0.9.16
+			// For now and until Xtokens is adapted to handle 0.9.16 version we use
+			// the old anchoring here
+			// This is not a problem in either cases, since the view of the destination
+			// chain does not change
+			// TODO! change this to NewAnchoringSelfReserve once xtokens is adapted for it
 			CurrencyId::SelfReserve => {
 				let multi: MultiLocation = OldAnchoringSelfReserve::get();
 				Some(multi)
