@@ -282,7 +282,9 @@ describeDevMoonbeam(
           context.polkadotApi.tx.crowdloanRewards.claim()
         );
       });
-      expect(error).to.eq("Error: -32000: Invalid Transaction: Transaction call is not expected");
+      expect(error).to.eq(
+        "Error: -32000: Invalid transaction validity: Transaction call is not expected"
+      );
     });
   }
 );
@@ -327,7 +329,9 @@ describeDevMoonbeam(
           context.polkadotApi.tx.assets.transfer(assetId, BALTATHAR, 1000)
         );
       });
-      expect(error).to.eq("Error: -32000: Invalid Transaction: Transaction call is not expected");
+      expect(error).to.eq(
+        "Error: -32000: Invalid transaction validity: Transaction call is not expected"
+      );
     });
   }
 );
@@ -372,7 +376,9 @@ describeDevMoonbeam(
           )
         );
       });
-      expect(error).to.eq("Error: -32000: Invalid Transaction: Transaction call is not expected");
+      expect(error).to.eq(
+        "Error: -32000: Invalid transaction validity: Transaction call is not expected"
+      );
     });
   }
 );
@@ -433,7 +439,9 @@ describeDevMoonbeam(
           )
         );
       });
-      expect(error).to.eq("Error: -32000: Invalid Transaction: Transaction call is not expected");
+      expect(error).to.eq(
+        "Error: -32000: Invalid transaction validity: Transaction call is not expected"
+      );
     });
   }
 );

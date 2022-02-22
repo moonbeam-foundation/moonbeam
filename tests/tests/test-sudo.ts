@@ -80,7 +80,7 @@ describeDevMoonbeam("Sudo - fail if no funds in sudo", (context) => {
       );
     } catch (e) {
       expect(e.toString()).to.eq(
-        "Error: -32000: Invalid Transaction: Inability " +
+        "Error: -32000: Invalid transaction validity: Inability " +
           "to pay some fees , e.g. account balance too low"
       );
     }

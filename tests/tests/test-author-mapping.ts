@@ -137,7 +137,7 @@ describeDevMoonbeam("Author Mapping - Fail without deposit", (context) => {
       await context.polkadotApi.tx.authorMapping.addAssociation(bobAuthorId).signAndSend(rando);
     } catch (e) {
       expect(e.message.toString()).to.eq(
-        "-32000: Invalid Transaction: Inability to pay some fees , e.g. account balance too low"
+        "-32000: Invalid transaction validity: Inability to pay some fees , e.g. account balance too low"
       );
     }
     await context.createBlock();
