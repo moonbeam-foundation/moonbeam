@@ -689,7 +689,10 @@ pub mod pallet {
 						.less_total
 						.saturating_sub(request.amount);
 					if matches!(request.action, DelegationChange::Revoke) {
-						delegator_state.requests.revocations_count -= 1u32;
+						delegator_state.requests.revocations_count = delegator_state
+							.requests
+							.revocations_count
+							.saturating_sub(1u32);
 					}
 				}
 				Pallet::<T>::deposit_event(Event::DelegationKicked {
