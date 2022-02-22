@@ -986,7 +986,7 @@ parameter_types! {
 			PalletInstance(<Balances as PalletInfoAccess>::index() as u8)
 		)
 	};
-	// Bew Self Reserve location, defines the multilocation identifiying the self-reserve currency
+	// New Self Reserve location, defines the multilocation identifiying the self-reserve currency
 	// This is used to match it also against our Balances pallet when we receive such
 	// a MultiLocation: (Self Balances pallet index)
 	// This is the new anchoring way
