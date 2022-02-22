@@ -166,7 +166,7 @@ fn take_transact_info() {
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				0,
 				1,
-				10000
+				10000,
 			));
 
 			// Expected result is zero

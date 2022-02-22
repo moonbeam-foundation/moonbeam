@@ -206,11 +206,11 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     const xcmpFormat: XcmpMessageFormat = context.polkadotApi.createType(
       "XcmpMessageFormat",
       "ConcatenatedVersionedXcm"
-    );
+    ) as any;
     const receivedMessage: XcmVersionedXcm = context.polkadotApi.createType(
       "XcmVersionedXcm",
       xcmMessage
-    );
+    ) as any;
 
     const totalMessage = [...xcmpFormat.toU8a(), ...receivedMessage.toU8a()];
     // Send RPC call to inject XCM message
@@ -347,11 +347,11 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     const xcmpFormat: XcmpMessageFormat = context.polkadotApi.createType(
       "XcmpMessageFormat",
       "ConcatenatedVersionedXcm"
-    );
+    ) as any;
     const receivedMessage: XcmVersionedXcm = context.polkadotApi.createType(
       "XcmVersionedXcm",
       xcmMessage
-    );
+    ) as any;
 
     const totalMessage = [...xcmpFormat.toU8a(), ...receivedMessage.toU8a()];
     // Send RPC call to inject XCM message
@@ -387,7 +387,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer of DEV", (context) =
     alith = keyringEth.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
     random = keyringEth.addFromUri(RANDOM_PRIV_KEY, null, "ethereum");
 
-    paraId = context.polkadotApi.createType("ParaId", 2000);
+    paraId = context.polkadotApi.createType("ParaId", 2000) as any;
     sovereignAddress = u8aToHex(
       new Uint8Array([...new TextEncoder().encode("sibl"), ...paraId.toU8a()])
     ).padEnd(42, "0");
@@ -469,11 +469,11 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer of DEV", (context) =
     const xcmpFormat: XcmpMessageFormat = context.polkadotApi.createType(
       "XcmpMessageFormat",
       "ConcatenatedVersionedXcm"
-    );
+    ) as any;
     const receivedMessage: XcmVersionedXcm = context.polkadotApi.createType(
       "XcmVersionedXcm",
       xcmMessage
-    );
+    ) as any;
 
     const totalMessage = [...xcmpFormat.toU8a(), ...receivedMessage.toU8a()];
 
@@ -515,7 +515,7 @@ describeDevMoonbeam(
       alith = keyringEth.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
       random = keyringEth.addFromUri(RANDOM_PRIV_KEY, null, "ethereum");
 
-      paraId = context.polkadotApi.createType("ParaId", 2000);
+      paraId = context.polkadotApi.createType("ParaId", 2000) as any;
       sovereignAddress = u8aToHex(
         new Uint8Array([...new TextEncoder().encode("sibl"), ...paraId.toU8a()])
       ).padEnd(42, "0");
@@ -599,11 +599,11 @@ describeDevMoonbeam(
       const xcmpFormat: XcmpMessageFormat = context.polkadotApi.createType(
         "XcmpMessageFormat",
         "ConcatenatedVersionedXcm"
-      );
+      ) as any;
       const receivedMessage: XcmVersionedXcm = context.polkadotApi.createType(
         "XcmVersionedXcm",
         xcmMessage
-      );
+      ) as any;
 
       const totalMessage = [...xcmpFormat.toU8a(), ...receivedMessage.toU8a()];
 

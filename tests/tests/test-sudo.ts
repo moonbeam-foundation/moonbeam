@@ -35,10 +35,10 @@ describeDevMoonbeam("Sudo - successful setParachainBondAccount", (context) => {
     expect(parachainBondInfo.toHuman()["percent"]).to.equal("30.00%");
     //check events
     expect(events.length).to.eq(5);
-    expect(context.polkadotApi.events.parachainStaking.ParachainBondAccountSet.is(events[1])).to.be
-      .true;
-    expect(context.polkadotApi.events.balances.Deposit.is(events[3])).to.be.true;
-    expect(context.polkadotApi.events.system.ExtrinsicSuccess.is(events[4])).to.be.true;
+    expect(context.polkadotApi.events.parachainStaking.ParachainBondAccountSet.is(events[1] as any))
+      .to.be.true;
+    expect(context.polkadotApi.events.balances.Deposit.is(events[3] as any)).to.be.true;
+    expect(context.polkadotApi.events.system.ExtrinsicSuccess.is(events[4] as any)).to.be.true;
     // check balance diff (diff should be null for sudo - funds are sent back)
     expect(await context.web3.eth.getBalance(GENESIS_ACCOUNT, 1)).to.equal(
       GENESIS_ACCOUNT_BALANCE.toString()
@@ -109,10 +109,10 @@ describeDevMoonbeam("Sudo - Only sudo account", (context) => {
     expect(parachainBondInfo.toHuman()["percent"]).to.equal("30.00%");
     //check events
     expect(events.length === 6).to.be.true;
-    expect(context.polkadotApi.events.system.NewAccount.is(events[2])).to.be.true;
-    expect(context.polkadotApi.events.balances.Endowed.is(events[3])).to.be.true;
-    expect(context.polkadotApi.events.treasury.Deposit.is(events[4])).to.be.true;
-    expect(context.polkadotApi.events.system.ExtrinsicFailed.is(events[5])).to.be.true;
+    expect(context.polkadotApi.events.system.NewAccount.is(events[2] as any)).to.be.true;
+    expect(context.polkadotApi.events.balances.Endowed.is(events[3] as any)).to.be.true;
+    expect(context.polkadotApi.events.treasury.Deposit.is(events[4] as any)).to.be.true;
+    expect(context.polkadotApi.events.system.ExtrinsicFailed.is(events[5] as any)).to.be.true;
     // check balance diff (should not be null for a failed extrinsic)
     expect(
       BigInt(await context.web3.eth.getBalance(GENESIS_ACCOUNT, 1)) - GENESIS_ACCOUNT_BALANCE !== 0n
