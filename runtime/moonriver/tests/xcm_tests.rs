@@ -557,7 +557,8 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a_with_new_reanchoring() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_location,
-			0u128
+			0u128,
+			0
 		));
 	});
 
@@ -729,7 +730,8 @@ fn send_para_a_asset_to_para_b_with_trader() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_location,
-			2500000000000u128
+			2500000000000u128,
+			0
 		));
 	});
 
@@ -803,7 +805,8 @@ fn send_para_a_asset_to_para_b_with_trader_and_fee() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_location,
-			12500000u128
+			12500000u128,
+			0
 		));
 	});
 
@@ -1365,7 +1368,8 @@ fn test_automatic_versioning_on_runtime_upgrade_with_para_b() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_location,
-			0u128
+			0u128,
+			0
 		));
 	});
 
