@@ -116,7 +116,9 @@ jobs:
           tar xvf ec-linux-amd64.tar.gz && \
           chmod +x bin/ec-linux-amd64
       - name: Check files
-        run: /tmp/bin/ec-linux-amd64
+        run: |
+          /tmp/bin/ec-linux-amd64 \
+          --exclude moonbeam-api-augment\/src\/\w+\/interfaces\/lookup\.ts
 
   check-prettier:
     name: "Check with Prettier"
@@ -131,8 +133,11 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: 14.x
+          cache: npm
+      - name: Install Prettier
+        run: npm install -g prettier prettier-plugin-jsdoc
       - name: Check with Prettier
-        run: npx prettier --check --ignore-path .prettierignore '**/*.(yml|js|ts|json)'
+        run: prettier --check --ignore-path .prettierignore '**/*.(yml|js|ts|json)'
 
   check-cargo-toml-format:
     name: "Check Cargo.toml files format"
