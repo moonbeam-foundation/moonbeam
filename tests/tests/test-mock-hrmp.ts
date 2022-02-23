@@ -814,14 +814,15 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     await context.createBlock();
 
     // Make sure the state has ALITH's LOCAL parachain tokens
-    let alith_dot_balance = (
-      (await context.polkadotApi.query.localAssets.account(assetId, alith.address)) as any)
-    
+    let alith_dot_balance = (await context.polkadotApi.query.localAssets.account(
+      assetId,
+      alith.address
+    )) as any;
+
     expect(alith_dot_balance.toString()).to.eq(transferredBalance.toString());
   });
 });
 
-              
 describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
   let assetIdZero: string;
   let assetIdOne: string;
