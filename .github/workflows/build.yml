@@ -130,7 +130,7 @@ jobs:
       - name: Prettify code
         uses: creyD/prettier_action@v4.2
         with:
-          prettier_options: --check --ignore-path .prettierignore '**/*.(yml|js|ts|json)'
+          prettier_options: --check --ignore-path .prettierignore **/*.{yml,js,ts,json}
           prettier_plugins: prettier-plugin-jsdoc
 
   check-cargo-toml-format:
