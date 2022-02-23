@@ -44,11 +44,11 @@ fn registering_foreign_works() {
 			AssetManager::asset_type_id(MockAssetType::MockAsset(1)).unwrap(),
 			1
 		);
-		expect_events(vec![crate::Event::ForeignAssetRegistered(
-			1,
-			MockAssetType::MockAsset(1),
-			0u32,
-		)])
+		expect_events(vec![crate::Event::ForeignAssetRegistered {
+			asset_id: 1,
+			asset: MockAssetType::MockAsset(1),
+			metadata: 0u32,
+		}])
 	});
 }
 
@@ -67,8 +67,16 @@ fn registering_local_works() {
 
 		assert_eq!(AssetManager::local_asset_creation_authorization(1u64), None);
 		expect_events(vec![
-			crate::Event::LocalAssetAuthorizationGiven(1, 1, 0),
-			crate::Event::LocalAssetRegistered(asset_id, 1, 1),
+			crate::Event::LocalAssetAuthorizationGiven {
+				creator: 1,
+				owner: 1,
+				min_balance: 0,
+			},
+			crate::Event::LocalAssetRegistered {
+				asset_id,
+				creator: 1,
+				owner: 1,
+			},
 		])
 	});
 }
@@ -132,17 +140,26 @@ fn test_root_can_change_units_per_second() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			Origin::root(),
 			MockAssetType::MockAsset(1),
-			200u128.into()
+			200u128.into(),
+			0
 		));
 
 		assert_eq!(
 			AssetManager::asset_type_units_per_second(MockAssetType::MockAsset(1)).unwrap(),
 			200
 		);
+		assert!(AssetManager::supported_fee_payment_assets().contains(&MockAssetType::MockAsset(1)));
 
 		expect_events(vec![
-			crate::Event::ForeignAssetRegistered(1, MockAssetType::MockAsset(1), 0),
-			crate::Event::UnitsPerSecondChanged(MockAssetType::MockAsset(1), 200),
+			crate::Event::ForeignAssetRegistered {
+				asset_id: 1,
+				asset: MockAssetType::MockAsset(1),
+				metadata: 0,
+			},
+			crate::Event::UnitsPerSecondChanged {
+				asset_type: MockAssetType::MockAsset(1),
+				units_per_second: 200,
+			},
 		])
 	});
 }
@@ -165,7 +182,8 @@ fn test_regular_user_cannot_call_extrinsics() {
 			AssetManager::set_asset_units_per_second(
 				Origin::signed(1),
 				MockAssetType::MockAsset(1),
-				200u128.into()
+				200u128.into(),
+				0
 			),
 			sp_runtime::DispatchError::BadOrigin
 		);
@@ -175,6 +193,7 @@ fn test_regular_user_cannot_call_extrinsics() {
 				Origin::signed(1),
 				1,
 				MockAssetType::MockAsset(2),
+				1
 			),
 			sp_runtime::DispatchError::BadOrigin
 		);
@@ -195,13 +214,15 @@ fn test_root_can_change_asset_id_type() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			Origin::root(),
 			MockAssetType::MockAsset(1),
-			200u128.into()
+			200u128.into(),
+			0
 		));
 
 		assert_ok!(AssetManager::change_existing_asset_type(
 			Origin::root(),
 			1,
 			MockAssetType::MockAsset(2),
+			1
 		));
 
 		// New one contains the new asset type units per second
@@ -227,10 +248,151 @@ fn test_root_can_change_asset_id_type() {
 		assert!(AssetManager::asset_type_id(MockAssetType::MockAsset(1)).is_none());
 
 		expect_events(vec![
-			crate::Event::ForeignAssetRegistered(1, MockAssetType::MockAsset(1), 0),
-			crate::Event::UnitsPerSecondChanged(MockAssetType::MockAsset(1), 200),
-			crate::Event::ForeignAssetTypeChanged(1, MockAssetType::MockAsset(2)),
+			crate::Event::ForeignAssetRegistered {
+				asset_id: 1,
+				asset: MockAssetType::MockAsset(1),
+				metadata: 0,
+			},
+			crate::Event::UnitsPerSecondChanged {
+				asset_type: MockAssetType::MockAsset(1),
+				units_per_second: 200,
+			},
+			crate::Event::ForeignAssetTypeChanged {
+				asset_id: 1,
+				new_asset_type: MockAssetType::MockAsset(2),
+			},
 		])
+	});
+}
+
+#[test]
+fn test_change_units_per_second_after_setting_it_once() {
+	new_test_ext().execute_with(|| {
+		assert_ok!(AssetManager::register_foreign_asset(
+			Origin::root(),
+			MockAssetType::MockAsset(1),
+			0u32.into(),
+			1u32.into(),
+			true,
+		));
+
+		assert_ok!(AssetManager::set_asset_units_per_second(
+			Origin::root(),
+			MockAssetType::MockAsset(1),
+			200u128.into(),
+			0
+		));
+
+		assert_eq!(
+			AssetManager::asset_type_units_per_second(MockAssetType::MockAsset(1)).unwrap(),
+			200
+		);
+		assert!(AssetManager::supported_fee_payment_assets().contains(&MockAssetType::MockAsset(1)));
+
+		assert_ok!(AssetManager::set_asset_units_per_second(
+			Origin::root(),
+			MockAssetType::MockAsset(1),
+			100u128.into(),
+			1
+		));
+
+		assert_eq!(
+			AssetManager::asset_type_units_per_second(MockAssetType::MockAsset(1)).unwrap(),
+			100
+		);
+		assert!(AssetManager::supported_fee_payment_assets().contains(&MockAssetType::MockAsset(1)));
+
+		expect_events(vec![
+			crate::Event::ForeignAssetRegistered {
+				asset_id: 1,
+				asset: MockAssetType::MockAsset(1),
+				metadata: 0,
+			},
+			crate::Event::UnitsPerSecondChanged {
+				asset_type: MockAssetType::MockAsset(1),
+				units_per_second: 200,
+			},
+			crate::Event::UnitsPerSecondChanged {
+				asset_type: MockAssetType::MockAsset(1),
+				units_per_second: 100,
+			},
+		]);
+	});
+}
+
+#[test]
+fn test_root_can_change_units_per_second_and_then_remove() {
+	new_test_ext().execute_with(|| {
+		assert_ok!(AssetManager::register_foreign_asset(
+			Origin::root(),
+			MockAssetType::MockAsset(1),
+			0u32.into(),
+			1u32.into(),
+			true,
+		));
+
+		assert_ok!(AssetManager::set_asset_units_per_second(
+			Origin::root(),
+			MockAssetType::MockAsset(1),
+			200u128.into(),
+			0
+		));
+
+		assert_eq!(
+			AssetManager::asset_type_units_per_second(MockAssetType::MockAsset(1)).unwrap(),
+			200
+		);
+		assert!(AssetManager::supported_fee_payment_assets().contains(&MockAssetType::MockAsset(1)));
+
+		assert_ok!(AssetManager::remove_supported_asset(
+			Origin::root(),
+			MockAssetType::MockAsset(1),
+			1,
+		));
+
+		assert!(
+			!AssetManager::supported_fee_payment_assets().contains(&MockAssetType::MockAsset(1))
+		);
+
+		expect_events(vec![
+			crate::Event::ForeignAssetRegistered {
+				asset_id: 1,
+				asset: MockAssetType::MockAsset(1),
+				metadata: 0,
+			},
+			crate::Event::UnitsPerSecondChanged {
+				asset_type: MockAssetType::MockAsset(1),
+				units_per_second: 200,
+			},
+			crate::Event::SupportedAssetRemoved {
+				asset_type: MockAssetType::MockAsset(1),
+			},
+		]);
+	});
+}
+
+#[test]
+fn test_weight_hint_error() {
+	new_test_ext().execute_with(|| {
+		assert_ok!(AssetManager::register_foreign_asset(
+			Origin::root(),
+			MockAssetType::MockAsset(1),
+			0u32.into(),
+			1u32.into(),
+			true,
+		));
+
+		assert_ok!(AssetManager::set_asset_units_per_second(
+			Origin::root(),
+			MockAssetType::MockAsset(1),
+			200u128.into(),
+			0
+		));
+
+		assert_noop!(
+			AssetManager::remove_supported_asset(Origin::root(), MockAssetType::MockAsset(1), 0),
+			Error::<Test>::TooLowNumAssetsWeightHint
+		);
 	});
 }
 
@@ -241,7 +403,8 @@ fn test_asset_id_non_existent_error() {
 			AssetManager::set_asset_units_per_second(
 				Origin::root(),
 				MockAssetType::MockAsset(1),
-				200u128.into()
+				200u128.into(),
+				0
 			),
 			Error::<Test>::AssetDoesNotExist
 		);
@@ -250,9 +413,46 @@ fn test_asset_id_non_existent_error() {
 				Origin::root(),
 				1,
 				MockAssetType::MockAsset(2),
+				1
 			),
 			Error::<Test>::AssetDoesNotExist
 		);
+	});
+}
+
+#[test]
+fn test_populate_supported_fee_payment_assets_works() {
+	new_test_ext().execute_with(|| {
+		use frame_support::StorageHasher;
+		let pallet_prefix: &[u8] = b"AssetManager";
+		let storage_item_prefix: &[u8] = b"AssetTypeUnitsPerSecond";
+		use frame_support::traits::OnRuntimeUpgrade;
+		use parity_scale_codec::Encode;
+
+		put_storage_value(
+			pallet_prefix,
+			storage_item_prefix,
+			&Blake2_128Concat::hash(&MockAssetType::MockAsset(1).encode()),
+			10u128,
+		);
+
+		assert_noop!(
+			AssetManager::set_asset_units_per_second(
+				Origin::root(),
+				MockAssetType::MockAsset(1),
+				200u128.into(),
+				0
+			),
+			Error::<Test>::AssetDoesNotExist
+		);
+
+		assert!(AssetManager::supported_fee_payment_assets().len() == 0);
+
+		// We run the migration
+		crate::migrations::PopulateSupportedFeePaymentAssets::<Test>::on_runtime_upgrade();
+
+		assert!(AssetManager::supported_fee_payment_assets().len() == 1);
+		assert!(AssetManager::supported_fee_payment_assets().contains(&MockAssetType::MockAsset(1)));
 	});
 }
 
@@ -402,7 +602,8 @@ fn test_asset_manager_change_statemine_prefixes() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			Origin::root(),
 			statemine_multilocation_3.clone(),
-			1u128
+			1u128,
+			0
 		));
 
 		// We run the migration

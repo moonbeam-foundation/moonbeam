@@ -138,7 +138,7 @@ pub mod currency {
 
 	pub const TRANSACTION_BYTE_FEE: Balance = 10 * MICROMOVR * SUPPLY_FACTOR;
 	pub const STORAGE_BYTE_FEE: Balance = 100 * MICROMOVR * SUPPLY_FACTOR;
-	pub const WEIGHT_FEE: Balance = 50 * KILOWEI * SUPPLY_FACTOR;
+	pub const WEIGHT_FEE: Balance = 100 * KILOWEI * SUPPLY_FACTOR;
 
 	pub const fn deposit(items: u32, bytes: u32) -> Balance {
 		items as Balance * 1 * MOVR * SUPPLY_FACTOR + (bytes as Balance) * STORAGE_BYTE_FEE
@@ -179,7 +179,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonriver"),
 	impl_name: create_runtime_str!("moonriver"),
 	authoring_version: 3,
-	spec_version: 1200,
+	spec_version: 1300,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -915,18 +915,12 @@ impl InstanceFilter<Call> for ProxyType {
 				c,
 				Call::ParachainStaking(..) | Call::Utility(..) | Call::AuthorMapping(..)
 			),
-			ProxyType::CancelProxy => {
-				matches!(
-					c,
-					Call::Proxy(pallet_proxy::Call::reject_announcement { .. })
-				)
-			}
-			ProxyType::Balances => {
-				matches!(c, Call::Balances(..) | Call::Utility(..))
-			}
-			ProxyType::AuthorMapping => {
-				matches!(c, Call::AuthorMapping(..))
-			}
+			ProxyType::CancelProxy => matches!(
+				c,
+				Call::Proxy(pallet_proxy::Call::reject_announcement { .. })
+			),
+			ProxyType::Balances => matches!(c, Call::Balances(..) | Call::Utility(..)),
+			ProxyType::AuthorMapping => matches!(c, Call::AuthorMapping(..)),
 		}
 	}
 
@@ -989,7 +983,7 @@ parameter_types! {
 			PalletInstance(<Balances as PalletInfoAccess>::index() as u8)
 		)
 	};
-	// Bew Self Reserve location, defines the multilocation identifiying the self-reserve currency
+	// New Self Reserve location, defines the multilocation identifiying the self-reserve currency
 	// This is used to match it also against our Balances pallet when we receive such
 	// a MultiLocation: (Self Balances pallet index)
 	// This is the new anchoring way

@@ -2,7 +2,7 @@ import { ApiPromise } from "@polkadot/api";
 import { AddressOrPair, ApiTypes, SubmittableExtrinsic } from "@polkadot/api/types";
 import { GenericExtrinsic } from "@polkadot/types/extrinsic";
 import { AnyTuple } from "@polkadot/types/types";
-import { Event } from "@polkadot/types/interfaces";
+import { Event, EventRecord } from "@polkadot/types/interfaces";
 import { u8aToHex } from "@polkadot/util";
 import { DevTestContext } from "./setup-dev-tests";
 const debug = require("debug")("test:substrateEvents");
@@ -24,7 +24,9 @@ export const createBlockWithExtrinsic = async <
   const blockResult = await context.createBlock();
 
   // We retrieve the events for that block
-  const allRecords = await context.polkadotApi.query.system.events.at(blockResult.block.hash);
+  const allRecords: EventRecord[] = (await (
+    await context.polkadotApi.at(blockResult.block.hash)
+  ).query.system.events()) as any;
 
   // We retrieve the block (including the extrinsics)
   const blockData = await context.polkadotApi.rpc.chain.getBlock(blockResult.block.hash);
@@ -69,7 +71,11 @@ export async function logEvents(api: ApiPromise, name: string) {
     debug(
       `------------- ${name} BLOCK#${header.number}: author ${header.author}, hash ${header.hash}`
     );
-    (await api.query.system.events.at(header.hash)).forEach((e, i) => {
+    const allRecords: EventRecord[] = (await (
+      await api.at(header.hash)
+    ).query.system.events()) as any;
+
+    allRecords.forEach((e, i) => {
       debug(
         `${name} Event :`,
         i,
@@ -86,7 +92,9 @@ async function lookForExtrinsicAndEvents(api: ApiPromise, extrinsicHash: Uint8Ar
   const signedBlock = await api.rpc.chain.getBlock();
 
   // We retrieve the events for that block
-  const allRecords = await api.query.system.events.at(signedBlock.block.header.hash);
+  const allRecords: EventRecord[] = (await (
+    await api.at(signedBlock.block.header.hash)
+  ).query.system.events()) as any;
 
   const extrinsicIndex = signedBlock.block.extrinsics.findIndex((ext) => {
     return ext.hash.toHex() == u8aToHex(extrinsicHash);

@@ -178,7 +178,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbase"),
 	impl_name: create_runtime_str!("moonbase"),
 	authoring_version: 3,
-	spec_version: 1200,
+	spec_version: 1300,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -958,18 +958,12 @@ impl InstanceFilter<Call> for ProxyType {
 				c,
 				Call::ParachainStaking(..) | Call::Utility(..) | Call::AuthorMapping(..)
 			),
-			ProxyType::CancelProxy => {
-				matches!(
-					c,
-					Call::Proxy(pallet_proxy::Call::reject_announcement { .. })
-				)
-			}
-			ProxyType::Balances => {
-				matches!(c, Call::Balances(..) | Call::Utility(..))
-			}
-			ProxyType::AuthorMapping => {
-				matches!(c, Call::AuthorMapping(..))
-			}
+			ProxyType::CancelProxy => matches!(
+				c,
+				Call::Proxy(pallet_proxy::Call::reject_announcement { .. })
+			),
+			ProxyType::Balances => matches!(c, Call::Balances(..) | Call::Utility(..)),
+			ProxyType::AuthorMapping => matches!(c, Call::AuthorMapping(..)),
 		}
 	}
 
@@ -1033,7 +1027,7 @@ parameter_types! {
 			PalletInstance(<Balances as PalletInfoAccess>::index() as u8)
 		)
 	};
-	// Bew Self Reserve location, defines the multilocation identifiying the self-reserve currency
+	// New Self Reserve location, defines the multilocation identifiying the self-reserve currency
 	// This is used to match it also against our Balances pallet when we receive such
 	// a MultiLocation: (Self Balances pallet index)
 	// This is the new anchoring way

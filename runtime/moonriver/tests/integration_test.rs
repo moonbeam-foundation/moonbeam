@@ -299,11 +299,11 @@ fn join_collator_candidates() {
 			));
 			assert_eq!(
 				last_event(),
-				Event::ParachainStaking(parachain_staking::Event::JoinedCollatorCandidates(
-					AccountId::from(DAVE),
-					1_000 * MOVR,
-					3_100 * MOVR
-				))
+				Event::ParachainStaking(parachain_staking::Event::JoinedCollatorCandidates {
+					account: AccountId::from(DAVE),
+					amount_locked: 1_000 * MOVR,
+					new_total_amt_locked: 3_100 * MOVR
+				})
 			);
 			let candidates = ParachainStaking::candidate_pool();
 			assert_eq!(candidates.0[0].owner, AccountId::from(ALICE));

@@ -175,7 +175,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbeam"),
 	impl_name: create_runtime_str!("moonbeam"),
 	authoring_version: 3,
-	spec_version: 1200,
+	spec_version: 1300,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -887,18 +887,12 @@ impl InstanceFilter<Call> for ProxyType {
 				c,
 				Call::ParachainStaking(..) | Call::Utility(..) | Call::AuthorMapping(..)
 			),
-			ProxyType::CancelProxy => {
-				matches!(
-					c,
-					Call::Proxy(pallet_proxy::Call::reject_announcement { .. })
-				)
-			}
-			ProxyType::Balances => {
-				matches!(c, Call::Balances(..) | Call::Utility(..))
-			}
-			ProxyType::AuthorMapping => {
-				matches!(c, Call::AuthorMapping(..))
-			}
+			ProxyType::CancelProxy => matches!(
+				c,
+				Call::Proxy(pallet_proxy::Call::reject_announcement { .. })
+			),
+			ProxyType::Balances => matches!(c, Call::Balances(..) | Call::Utility(..)),
+			ProxyType::AuthorMapping => matches!(c, Call::AuthorMapping(..)),
 		}
 	}
 

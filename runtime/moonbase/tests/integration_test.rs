@@ -301,11 +301,11 @@ fn join_collator_candidates() {
 			));
 			assert_eq!(
 				last_event(),
-				Event::ParachainStaking(parachain_staking::Event::JoinedCollatorCandidates(
-					AccountId::from(DAVE),
-					1_000 * UNIT,
-					3_100 * UNIT
-				))
+				Event::ParachainStaking(parachain_staking::Event::JoinedCollatorCandidates {
+					account: AccountId::from(DAVE),
+					amount_locked: 1_000 * UNIT,
+					new_total_amt_locked: 3_100 * UNIT
+				})
 			);
 			let candidates = ParachainStaking::candidate_pool();
 			assert_eq!(candidates.0[0].owner, AccountId::from(ALICE));
@@ -1776,10 +1776,10 @@ fn author_mapping_precompile_associate_update_and_clear() {
 			);
 
 			let expected_associate_event =
-				Event::AuthorMapping(pallet_author_mapping::Event::AuthorRegistered(
-					first_nimbus_id.clone(),
-					AccountId::from(ALICE),
-				));
+				Event::AuthorMapping(pallet_author_mapping::Event::AuthorRegistered {
+					author_id: first_nimbus_id.clone(),
+					account_id: AccountId::from(ALICE),
+				});
 			assert_eq!(last_event(), expected_associate_event);
 
 			let update_expected_result = Some(Ok(PrecompileOutput {
@@ -1809,10 +1809,10 @@ fn author_mapping_precompile_associate_update_and_clear() {
 			);
 
 			let expected_update_event =
-				Event::AuthorMapping(pallet_author_mapping::Event::AuthorRotated(
-					second_nimbus_id.clone(),
-					AccountId::from(ALICE),
-				));
+				Event::AuthorMapping(pallet_author_mapping::Event::AuthorRotated {
+					new_author_id: second_nimbus_id.clone(),
+					account_id: AccountId::from(ALICE),
+				});
 			assert_eq!(last_event(), expected_update_event);
 
 			let clear_expected_result = Some(Ok(PrecompileOutput {
@@ -1840,9 +1840,10 @@ fn author_mapping_precompile_associate_update_and_clear() {
 				clear_expected_result
 			);
 
-			let expected_clear_event = Event::AuthorMapping(
-				pallet_author_mapping::Event::AuthorDeRegistered(second_nimbus_id.clone()),
-			);
+			let expected_clear_event =
+				Event::AuthorMapping(pallet_author_mapping::Event::AuthorDeRegistered {
+					author_id: second_nimbus_id.clone(),
+				});
 			assert_eq!(last_event(), expected_clear_event);
 		});
 }
