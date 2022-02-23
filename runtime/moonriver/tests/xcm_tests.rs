@@ -55,7 +55,8 @@ fn receive_relay_asset_from_relay() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_location,
-			0u128
+			0u128,
+			0
 		));
 	});
 
@@ -108,7 +109,8 @@ fn send_relay_asset_to_relay() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_location,
-			0u128
+			0u128,
+			0
 		));
 	});
 
@@ -191,7 +193,8 @@ fn send_relay_asset_to_para_b() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_location.clone(),
-			0u128
+			0u128,
+			0
 		));
 	});
 
@@ -206,7 +209,8 @@ fn send_relay_asset_to_para_b() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_location,
-			0u128
+			0u128,
+			0
 		));
 	});
 
@@ -288,7 +292,8 @@ fn send_para_a_asset_to_para_b() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_location,
-			0u128
+			0u128,
+			0
 		));
 	});
 
@@ -352,7 +357,8 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_location.clone(),
-			0u128
+			0u128,
+			0
 		));
 	});
 
@@ -367,7 +373,8 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_location,
-			0u128
+			0u128,
+			0
 		));
 	});
 
@@ -457,7 +464,8 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_location,
-			0u128
+			0u128,
+			0
 		));
 	});
 
@@ -549,7 +557,8 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a_with_new_reanchoring() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_location,
-			0u128
+			0u128,
+			0
 		));
 	});
 
@@ -662,7 +671,8 @@ fn receive_relay_asset_with_trader() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_location,
-			2500000000000u128
+			2500000000000u128,
+			0
 		));
 	});
 
@@ -720,7 +730,8 @@ fn send_para_a_asset_to_para_b_with_trader() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_location,
-			2500000000000u128
+			2500000000000u128,
+			0
 		));
 	});
 
@@ -794,7 +805,8 @@ fn send_para_a_asset_to_para_b_with_trader_and_fee() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_location,
-			12500000u128
+			12500000u128,
+			0
 		));
 	});
 
@@ -867,7 +879,8 @@ fn error_when_not_paying_enough() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_location,
-			2500000000000u128
+			2500000000000u128,
+			0
 		));
 	});
 
@@ -914,7 +927,8 @@ fn transact_through_derivative_multilocation() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_location,
-			1u128
+			1u128,
+			0
 		));
 
 		// Root can set transact info
@@ -1056,7 +1070,8 @@ fn transact_through_sovereign() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_location,
-			1u128
+			1u128,
+			0
 		));
 
 		// Root can set transact info
@@ -1203,7 +1218,8 @@ fn test_automatic_versioning_on_runtime_upgrade_with_relay() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_location,
-			0u128
+			0u128,
+			0
 		));
 	});
 
@@ -1352,7 +1368,8 @@ fn test_automatic_versioning_on_runtime_upgrade_with_para_b() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_location,
-			0u128
+			0u128,
+			0
 		));
 	});
 
@@ -1484,7 +1501,8 @@ fn receive_asset_with_no_sufficients_not_possible_if_non_existent_account() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_location,
-			0u128
+			0u128,
+			0
 		));
 	});
 
@@ -1561,7 +1579,8 @@ fn receive_assets_with_sufficients_true_allows_non_funded_account_to_receive_ass
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_location,
-			0u128
+			0u128,
+			0
 		));
 	});
 
@@ -1620,7 +1639,8 @@ fn evm_account_receiving_assets_should_handle_sufficients_ref_count() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_location,
-			0u128
+			0u128,
+			0
 		));
 	});
 
@@ -1682,7 +1702,8 @@ fn empty_account_should_not_be_reset() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_location,
-			0u128
+			0u128,
+			0
 		));
 	});
 
@@ -1788,7 +1809,8 @@ fn test_statemine_like() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_location,
-			0u128
+			0u128,
+			0
 		));
 	});
 
@@ -1896,7 +1918,8 @@ fn test_statemine_like_prefix_change() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_location,
-			0u128
+			0u128,
+			0
 		));
 	});
 

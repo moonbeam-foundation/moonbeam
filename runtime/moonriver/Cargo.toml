@@ -258,6 +258,7 @@ try-runtime = [
 	"frame-executive/try-runtime",
 	"frame-system/try-runtime",
 	"frame-try-runtime",
+	"pallet-asset-manager/try-runtime",
 	"pallet-author-mapping/try-runtime",
 	"pallet-balances/try-runtime",
 	"pallet-collective/try-runtime",
