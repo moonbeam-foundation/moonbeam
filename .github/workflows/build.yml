@@ -127,11 +127,10 @@ jobs:
         uses: actions/checkout@v2
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
-      - name: Prettify code
-        uses: creyD/prettier_action@v4.2
-        with:
-          prettier_options: --check --ignore-path .prettierignore **/*.{yml,js,ts,json}
-          prettier_plugins: prettier-plugin-jsdoc
+      - name: Install Prettier
+        run: npm i --no-save prettier prettier-plugin-jsdoc
+      - name: Check with Prettier
+        run: ./node_modules/.bin/prettier --check --ignore-path .prettierignore '**/*.(yml|js|ts|json)'
 
   check-cargo-toml-format:
     name: "Check Cargo.toml files format"
