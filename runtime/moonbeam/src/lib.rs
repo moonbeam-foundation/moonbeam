@@ -36,7 +36,7 @@ use frame_support::{
 	traits::{
 		Contains, EnsureOneOf, EqualPrivilegeOnly, Everything, Get, Imbalance, InstanceFilter,
 		Nothing, OffchainWorker, OnFinalize, OnIdle, OnInitialize, OnRuntimeUpgrade, OnUnbalanced,
-		PalletInfo as PalletInfoTrait,
+		PalletInfoAccess,
 	},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
@@ -175,7 +175,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbeam"),
 	impl_name: create_runtime_str!("moonbeam"),
 	authoring_version: 3,
-	spec_version: 1200,
+	spec_version: 1300,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -943,9 +943,7 @@ parameter_types! {
 		parents:1,
 		interior: Junctions::X2(
 			Parachain(ParachainInfo::parachain_id().into()),
-			PalletInstance(
-				<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8
-			)
+			PalletInstance(<Balances as PalletInfoAccess>::index() as u8)
 		)
 	};
 }
