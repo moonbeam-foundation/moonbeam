@@ -1122,7 +1122,6 @@ pub type LocalAssetTransactor = XcmCurrencyAdapter<
 pub type LocalFungiblesTransactorOldReanchor = FungiblesAdapter<
 	// Use this fungibles implementation:
 	LocalAssets,
-	// Use this currency when it is a fungible asset matching the given location or name:
 	(
 		ConvertedConcreteAssetId<
 			AssetId,
@@ -1166,6 +1165,10 @@ pub type LocalFungiblesTransactorNewReanchor = FungiblesAdapter<
 >;
 
 // We use all transactors
+// These correspond to
+// SelfReserve asset, both pre and post 0.9.16
+// Foreign assets
+// Local assets, both pre and post 0.9.16
 pub type AssetTransactors = (
 	LocalAssetTransactor,
 	ForeignFungiblesTransactor,
@@ -1401,7 +1404,7 @@ parameter_types! {
 	// Assets Pallet instance in Statemint alphanet
 	pub StatemintAssetPalletInstance: u8 = 50;
 }
-// Our AssetType. For now we only handle Xcm Assets
+// Our ForeignAssetType. For now we only handle Xcm Assets
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
 pub enum AssetType {
 	Xcm(MultiLocation),
@@ -1565,11 +1568,13 @@ impl pallet_asset_manager::Config for Runtime {
 // Our currencyId. We distinguish for now between SelfReserve, and Others, defined by their Id.
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
 pub enum CurrencyId {
+	// Our native token
 	SelfReserve,
+	// Assets representing other chains native tokens
 	ForeignAsset(AssetId),
+	// Our local assets
 	LocalAssetReserve(AssetId),
 }
-
 impl AccountIdToCurrencyId<AccountId, CurrencyId> for Runtime {
 	fn account_to_currency_id(account: AccountId) -> Option<CurrencyId> {
 		match account {

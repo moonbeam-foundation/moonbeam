@@ -994,6 +994,9 @@ parameter_types! {
 		)
 	};
 
+	// Old reanchor logic location for pallet assets
+	// We need to support both in case we talk to a chain not in 0.9.16
+	// Indentified by thix prefix + generalIndex(assetId)
 	pub LocalAssetsPalletLocationOldReanchor: MultiLocation = MultiLocation {
 		parents:1,
 		interior: Junctions::X2(
@@ -1002,6 +1005,9 @@ parameter_types! {
 		)
 	};
 
+	// New reanchor logic location for pallet assets
+	// We need to support both in case we talk to a chain not in 0.9.16
+	// Indentified by thix prefix + generalIndex(assetId)
 	pub LocalAssetsPalletLocationNewReanchor: MultiLocation = MultiLocation {
 		parents:0,
 		interior: Junctions::X1(
@@ -1068,11 +1074,11 @@ pub type LocalAssetTransactor = XcmCurrencyAdapter<
 	(),
 >;
 
-/// Means for transacting local assets besides the native currency on this chain.
+/// Means for transacting local assets that are not the native currency
+/// This transactor uses the old reanchor logic
 pub type LocalFungiblesTransactorOldReanchor = FungiblesAdapter<
 	// Use this fungibles implementation:
 	LocalAssets,
-	// Use this currency when it is a fungible asset matching the given location or name:
 	(
 		ConvertedConcreteAssetId<
 			AssetId,
@@ -1114,7 +1120,11 @@ pub type LocalFungiblesTransactorNewReanchor = FungiblesAdapter<
 	(),
 >;
 
-// We use both transactors
+// We use all transactors
+// These correspond to
+// SelfReserve asset, both pre and post 0.9.16
+// Foreign assets
+// Local assets, both pre and post 0.9.16
 pub type AssetTransactors = (
 	LocalAssetTransactor,
 	ForeignFungiblesTransactor,
@@ -1284,11 +1294,11 @@ type LocalAssetInstance = pallet_assets::Instance2;
 // These parameters dont matter much as this will only be called by root with the forced arguments
 // No deposit is substracted with those methods
 parameter_types! {
-	pub const AssetDeposit: Balance = 0;
+	pub const AssetDeposit: Balance = currency::UNIT;
 	pub const ApprovalDeposit: Balance = 0;
 	pub const AssetsStringLimit: u32 = 50;
-	pub const MetadataDepositBase: Balance = 0;
-	pub const MetadataDepositPerByte: Balance = 0;
+	pub const MetadataDepositBase: Balance = currency::deposit(1,68);
+	pub const MetadataDepositPerByte: Balance = currency::deposit(0, 1);
 	pub const ExecutiveBody: BodyId = BodyId::Executive;
 	pub const AssetAccountDeposit: Balance = currency::deposit(1, 18);
 }
@@ -1299,6 +1309,7 @@ pub type AssetsForceOrigin = EnsureOneOf<
 	pallet_collective::EnsureProportionMoreThan<_1, _2, AccountId, CouncilInstance>,
 >;
 
+// Foreign assets
 impl pallet_assets::Config<ForeignAssetInstance> for Runtime {
 	type Event = Event;
 	type Balance = Balance;
@@ -1341,7 +1352,7 @@ parameter_types! {
 	pub StatemineAssetPalletInstance: u8 = 50;
 }
 
-// Our AssetType. For now we only handle Xcm Assets
+// Our ForeignAssetType. For now we only handle Xcm Assets
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
 pub enum AssetType {
 	Xcm(MultiLocation),
@@ -1444,7 +1455,21 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		min_balance: Balance,
 		owner: AccountId,
 	) -> DispatchResult {
+		// In this case we use the regular call, since we want the deposit
+		// to be withdrawn from the caller
 		LocalAssets::create(Origin::signed(creator), asset, owner, min_balance)?;
+
+		// No metadata needs to be set, as this can be set through regular calls
+
+		// TODO uncomment when we feel comfortable
+
+		// The asset has been created. Let's put the revert code in the precompile address
+		let precompile_address: H160 =
+			Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, asset).into();
+		pallet_evm::AccountCodes::<Runtime>::insert(
+			precompile_address,
+			vec![0x60, 0x00, 0x60, 0x00, 0xfd],
+		);
 		Ok(())
 	}
 }
@@ -1453,7 +1478,7 @@ pub struct LocalAssetIdCreator;
 impl pallet_asset_manager::LocalAssetIdCreator<Runtime> for LocalAssetIdCreator {
 	fn create_asset_id_from_account(account: AccountId) -> AssetId {
 		// Our means of converting a creator to an assetId
-		// We basically hash nonce+account
+		// We basically hash (nonce+account+extrinsic index + parent hash)
 		let mut result: [u8; 16] = [0u8; 16];
 		let account_info = System::account(account);
 		let mut to_hash = account.encode();
@@ -1519,8 +1544,11 @@ impl AccountIdAssetIdConversion<AccountId, AssetId> for Runtime {
 // Our currencyId. We distinguish for now between SelfReserve, and Others, defined by their Id.
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
 pub enum CurrencyId {
+	// Our native token
 	SelfReserve,
+	// Assets representing other chains native tokens
 	ForeignAsset(AssetId),
+	// Our local assets
 	LocalAssetReserve(AssetId),
 }
 
