@@ -370,6 +370,14 @@
 <span id="370">370</span>
 <span id="371">371</span>
 <span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -523,6 +531,12 @@
 		<span class="kw">match</span> (<span class="ident">first_asset</span>.<span class="ident">id</span>, <span class="ident">first_asset</span>.<span class="ident">fun</span>) {
 			(<span class="ident">xcmAssetId::Concrete</span>(<span class="ident">id</span>), <span class="ident">Fungibility::Fungible</span>(<span class="kw">_</span>)) =&gt; {
 				<span class="kw">let</span> <span class="ident">asset_type</span>: <span class="ident">AssetType</span> <span class="op">=</span> <span class="ident">id</span>.<span class="ident">clone</span>().<span class="ident">into</span>();
+				<span class="comment">// Shortcut if we know the asset is not supported</span>
+				<span class="comment">// This involves the same db read per block, mitigating any attack based on</span>
+				<span class="comment">// non-supported assets</span>
+				<span class="kw">if</span> <span class="op">!</span><span class="ident">AssetIdInfoGetter::payment_is_supported</span>(<span class="ident">asset_type</span>.<span class="ident">clone</span>()) {
+					<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">XcmError::TooExpensive</span>);
+				}
 				<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">units_per_second</span>) <span class="op">=</span> <span class="ident">AssetIdInfoGetter::get_units_per_second</span>(<span class="ident">asset_type</span>)
 				{
 					<span class="kw">let</span> <span class="ident">amount</span> <span class="op">=</span> <span class="ident">units_per_second</span>.<span class="ident">saturating_mul</span>(<span class="ident">weight</span> <span class="kw">as</span> <span class="ident">u128</span>)
@@ -657,9 +671,11 @@
 	<span class="kw">fn</span> <span class="ident">get_asset_id</span>(<span class="ident">asset_type</span>: <span class="ident">AssetType</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AssetId</span><span class="op">&gt;</span>;
 }
 
-<span class="comment">// Defines the trait to obtain the units per second of a give assetId for local execution</span>
-<span class="comment">// This parameter will be used to charge for fees upon assetId deposit</span>
+<span class="comment">// Defines the trait to obtain the units per second of a give asset_type for local execution</span>
+<span class="comment">// This parameter will be used to charge for fees upon asset_type deposit</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">UnitsToWeightRatio</span><span class="op">&lt;</span><span class="ident">AssetType</span><span class="op">&gt;</span> {
+	<span class="comment">// Whether payment in a particular asset_type is suppotrted</span>
+	<span class="kw">fn</span> <span class="ident">payment_is_supported</span>(<span class="ident">asset_type</span>: <span class="ident">AssetType</span>) -&gt; <span class="ident">bool</span>;
 	<span class="comment">// Get units per second from asset type</span>
 	<span class="kw">fn</span> <span class="ident">get_units_per_second</span>(<span class="ident">asset_type</span>: <span class="ident">AssetType</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u128</span><span class="op">&gt;</span>;
 }
