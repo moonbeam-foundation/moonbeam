@@ -127,10 +127,6 @@ jobs:
         uses: actions/checkout@v2
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
-      - name: Use Node.js 14.x
-        uses: actions/setup-node@v2
-        with:
-          node-version: 14.x
       - name: Install Prettier
         run: npm install -g prettier prettier-plugin-jsdoc
       - name: Check with Prettier
