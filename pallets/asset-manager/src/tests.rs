@@ -658,7 +658,8 @@ fn test_root_can_remove_asset_association() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			Origin::root(),
 			MockAssetType::MockAsset(1),
-			200u128.into()
+			200u128.into(),
+			0
 		));
 
 		assert_ok!(AssetManager::remove_existing_asset_type(Origin::root(), 1,));

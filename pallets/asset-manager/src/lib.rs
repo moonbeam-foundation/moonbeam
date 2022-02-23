@@ -313,30 +313,6 @@ pub mod pallet {
 			Ok(())
 		}
 
-		/// Remove a given aassetId -> assetType association
-		#[pallet::weight(T::WeightInfo::remove_existing_asset_type())]
-			origin: OriginFor<T>,
-			asset_id: T::AssetId,
-		) -> DispatchResult {
-			T::AssetModifierOrigin::ensure_origin(origin)?;
-
-			let asset_type =
-				AssetIdType::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
-
-			// Remove from AssetIdType
-			AssetIdType::<T>::remove(&asset_id);
-			// Remove from AssetTypeId
-			AssetTypeId::<T>::remove(&asset_type);
-			// Remove previous asset type units per second
-			AssetTypeUnitsPerSecond::<T>::remove(&asset_type);
-
-			Self::deposit_event(Event::AssetRemoved {
-				asset_id,
-				asset_type,
-			});
-			Ok(())
-		}
-		
 		#[pallet::weight(T::WeightInfo::remove_supported_asset(*num_assets_weight_hint))]
 		pub fn remove_supported_asset(
 			origin: OriginFor<T>,
@@ -365,6 +341,43 @@ pub mod pallet {
 			AssetTypeUnitsPerSecond::<T>::remove(&asset_type);
 
 			Self::deposit_event(Event::SupportedAssetRemoved { asset_type });
+			Ok(())
+		}
+
+		/// Remove a given aassetId -> assetType association
+		#[pallet::weight(T::WeightInfo::remove_existing_asset_type())]
+		pub fn remove_existing_asset_type(
+			origin: OriginFor<T>,
+			asset_id: T::AssetId,
+		) -> DispatchResult {
+			T::AssetModifierOrigin::ensure_origin(origin)?;
+
+			// Grab supported assets
+			let mut supported_assets = SupportedFeePaymentAssets::<T>::get();
+
+			let asset_type =
+				AssetIdType::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
+
+			// Remove from AssetIdType
+			AssetIdType::<T>::remove(&asset_id);
+			// Remove from AssetTypeId
+			AssetTypeId::<T>::remove(&asset_type);
+			// Remove previous asset type units per second
+			AssetTypeUnitsPerSecond::<T>::remove(&asset_type);
+
+			// Only if the old asset is supported we need to remove it
+			if let Ok(index) = supported_assets.binary_search(&asset_type) {
+				supported_assets.remove(index);
+			}
+
+			// Insert
+			SupportedFeePaymentAssets::<T>::put(supported_assets);
+
+			Self::deposit_event(Event::AssetRemoved {
+				asset_id,
+				asset_type,
+			});
+			Ok(())
 		}
 	}
 
