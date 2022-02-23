@@ -22,7 +22,7 @@ use frame_system::RawOrigin;
 use xcm::latest::prelude::*;
 
 benchmarks! {
-	// This where clause allows us to create assetTypes
+	// This where clause allows us to create ForeignAssetTypes
 	where_clause { where T::ForeignAssetType: From<MultiLocation> }
 	register_foreign_asset {
 		// does not really matter what we register
@@ -40,15 +40,15 @@ benchmarks! {
 		// We make it dependent on the number of existing assets already
 		let x in 5..100;
 		for i in 0..x {
-			let asset_type:  T::AssetType = MultiLocation::new(0, X1(GeneralIndex(i as u128))).into();
+			let asset_type:  T::ForeignAssetType = MultiLocation::new(0, X1(GeneralIndex(i as u128))).into();
 			let metadata = T::AssetRegistrarMetadata::default();
 			let amount = 1u32.into();
-			Pallet::<T>::register_asset(RawOrigin::Root.into(), asset_type.clone(), metadata, amount, true)?;
+			Pallet::<T>::register_foreign_asset(RawOrigin::Root.into(), asset_type.clone(), metadata, amount, true)?;
 			Pallet::<T>::set_asset_units_per_second(RawOrigin::Root.into(), asset_type.clone(), 1, i)?;
 		}
 
 		// does not really matter what we register, as long as it is different than the previous
-		let asset_type = T::AssetType::default();
+		let asset_type = T::ForeignAssetType::default();
 		let metadata = T::AssetRegistrarMetadata::default();
 		let amount = 1u32.into();
 		let asset_id: T::AssetId = asset_type.clone().into();
@@ -64,15 +64,15 @@ benchmarks! {
 		// We make it dependent on the number of existing assets already
 		let x in 5..100;
 		for i in 0..x {
-			let asset_type:  T::AssetType = MultiLocation::new(0, X1(GeneralIndex(i as u128))).into();
+			let asset_type:  T::ForeignAssetType = MultiLocation::new(0, X1(GeneralIndex(i as u128))).into();
 			let metadata = T::AssetRegistrarMetadata::default();
 			let amount = 1u32.into();
-			Pallet::<T>::register_asset(RawOrigin::Root.into(), asset_type.clone(), metadata, amount, true)?;
+			Pallet::<T>::register_foreign_asset(RawOrigin::Root.into(), asset_type.clone(), metadata, amount, true)?;
 			Pallet::<T>::set_asset_units_per_second(RawOrigin::Root.into(), asset_type.clone(), 1, i)?;
 		}
 
-		let new_asset_type = T::AssetType::default();
-		let asset_type_to_be_changed: T::AssetType = MultiLocation::new(
+		let new_asset_type = T::ForeignAssetType::default();
+		let asset_type_to_be_changed: T::ForeignAssetType = MultiLocation::new(
 			0,
 			X1(GeneralIndex((x-1) as u128))
 		).into();
@@ -88,13 +88,13 @@ benchmarks! {
 		// We make it dependent on the number of existing assets already
 		let x in 5..100;
 		for i in 0..x {
-			let asset_type:  T::AssetType = MultiLocation::new(0, X1(GeneralIndex(i as u128))).into();
+			let asset_type:  T::ForeignAssetType = MultiLocation::new(0, X1(GeneralIndex(i as u128))).into();
 			let metadata = T::AssetRegistrarMetadata::default();
 			let amount = 1u32.into();
-			Pallet::<T>::register_asset(RawOrigin::Root.into(), asset_type.clone(), metadata, amount, true)?;
+			Pallet::<T>::register_foreign_asset(RawOrigin::Root.into(), asset_type.clone(), metadata, amount, true)?;
 			Pallet::<T>::set_asset_units_per_second(RawOrigin::Root.into(), asset_type.clone(), 1, i)?;
 		}
-		let asset_type_to_be_removed: T::AssetType = MultiLocation::new(
+		let asset_type_to_be_removed: T::ForeignAssetType = MultiLocation::new(
 			0,
 			X1(GeneralIndex((x-1) as u128))
 		).into();
