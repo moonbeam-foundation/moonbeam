@@ -71,7 +71,8 @@ describeParachain(
         specName: "moonbase",
       });
       console.log(
-        `Current runtime: ✅ runtime ${currentVersion.specName.toString()} ${currentVersion.specVersion.toString()}`
+        `Current runtime: ✅ runtime ${currentVersion.specName.toString()} ` +
+          `${currentVersion.specVersion.toString()}`
       );
 
       await context.upgradeRuntime(alith, "moonbase", RUNTIME_VERSION);
