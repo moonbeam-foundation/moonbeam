@@ -86,8 +86,8 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add(T::DbWeight::get().writes(4 as Weight))
 	}
 	fn remove_existing_asset_type(x: u32) -> Weight {
-		(30_409_000 as Weight) // Standard Error: 4_000
-			.saturating_add((1_170_000 as Weight).saturating_mul(x as Weight))
+		(30_428_000 as Weight) // Standard Error: 3_000
+			.saturating_add((1_166_000 as Weight).saturating_mul(x as Weight))
 			.saturating_add(T::DbWeight::get().reads(6 as Weight))
 			.saturating_add(T::DbWeight::get().writes(6 as Weight))
 	}
@@ -119,8 +119,8 @@ impl WeightInfo for () {
 			.saturating_add(RocksDbWeight::get().writes(4 as Weight))
 	}
 	fn remove_existing_asset_type(x: u32) -> Weight {
-		(30_409_000 as Weight) // Standard Error: 4_000
-			.saturating_add((1_170_000 as Weight).saturating_mul(x as Weight))
+		(30_428_000 as Weight) // Standard Error: 3_000
+			.saturating_add((1_166_000 as Weight).saturating_mul(x as Weight))
 			.saturating_add(RocksDbWeight::get().reads(6 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(6 as Weight))
 	}
