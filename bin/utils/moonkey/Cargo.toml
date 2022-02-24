@@ -13,4 +13,4 @@ path = "src/main.rs"
 
 [dependencies]
 cli-opt = { package = "moonbeam-cli-opt", path = "../../../node/cli-opt", default-features = false }
-structopt = "0.3.8"
+clap = { version = "3.1", features = ["derive"] }
