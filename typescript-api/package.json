@@ -33,7 +33,7 @@
     "postbuild": "node ./scripts/postbuild.js",
     "publish": "cd build && npm publish",
     "deploy": "npm run generate && npm run build && npm run publish",
-    "pretty": "prettier --write --ignore-unknown 'src/**/*'"
+    "pretty": "prettier --write --ignore-unknown 'src/**/*' 'scripts/**/*'"
   },
   "main": "./index.js",
   "module": "./index.js",
