@@ -225,7 +225,8 @@ export async function balanceMonitorCheck(web3Api: Web3, workers: WorkerAccount[
  * @param web3Api Instance of the web3 API connected to the chain endpoint
  * @param workers Array of worker accounts that will be used to sign the transfer txs
  * @param pendingQueue Queue of tasks
- * @param discordUserReceivers Map with the timestamp of the last received request of a discord user
+ * @param discordUserReceivers Map with the timestamp of the last received request of
+ * a discord user
  * @param addressReceivers Map with the timestamp of the last received request of an address
  */
 export async function fundRequestsResolver(
@@ -266,7 +267,8 @@ export async function fundRequestsResolver(
  * @param web3Api Instance of the web3 API connected to the chain endpoint
  * @param workers Array of worker accounts that will be used to sign the transfer txs
  * @param pendingQueue Queue of tasks
- * @param discordUserReceivers Map with the timestamp of the last received request of a discord user
+ * @param discordUserReceivers Map with the timestamp of the last received request of
+ * a discord user
  * @param addressReceivers Map with the timestamp of the last received request of an address
  */
 async function resolveFundsRequests(
