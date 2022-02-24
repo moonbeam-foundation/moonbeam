@@ -21,13 +21,6 @@ serde = { version = "1.0", features = [ "derive" ] }
 serde_json = "1.0"
 sha3 = { version = "0.8" }
 
-heim = { git = "https://github.com/heim-rs/heim", rev = "1fb090576629cd2788dff993cc6ef77547f3df18" }
-heim-common = { git = "https://github.com/heim-rs/heim", rev = "1fb090576629cd2788dff993cc6ef77547f3df18" }
-heim-cpu = { git = "https://github.com/heim-rs/heim", rev = "1fb090576629cd2788dff993cc6ef77547f3df18" }
-# TODO: heim-host generates a conflict for crate 'platforms'
-# heim-host = { git = "https://github.com/heim-rs/heim", rev = "1fb090576629cd2788dff993cc6ef77547f3df18" }
-heim-memory = { git = "https://github.com/heim-rs/heim", rev = "1fb090576629cd2788dff993cc6ef77547f3df18" }
-
 # Moonbeam
 
 cli-opt = { package = "moonbeam-cli-opt", path = "../cli-opt", default-features = false }

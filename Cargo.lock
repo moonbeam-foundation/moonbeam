@@ -230,17 +230,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "async-fs"
-version = "1.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8b3ca4f8ff117c37c278a2f7415ce9be55560b846b5bc4412aaa5d29c1c3dae2"
-dependencies = [
- "async-lock",
- "blocking",
- "futures-lite",
-]
-
-[[package]]
 name = "async-global-executor"
 version = "2.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -291,17 +280,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "479db852db25d9dbf6204e6cb6253698f175c15726470f78af0d918e99d6156e"
 dependencies = [
  "event-listener",
-]
-
-[[package]]
-name = "async-net"
-version = "1.6.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5373304df79b9b4395068fb080369ec7178608827306ce4d081cba51cac551df"
-dependencies = [
- "async-io",
- "blocking",
- "futures-lite",
 ]
 
 [[package]]
@@ -3358,76 +3336,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2540771e65fc8cb83cd6e8a237f70c319bd5c29f78ed1084ba5d50eeac86f7f9"
 
 [[package]]
-name = "heim"
-version = "0.1.0-rc.1"
-source = "git+https://github.com/heim-rs/heim?rev=1fb090576629cd2788dff993cc6ef77547f3df18#1fb090576629cd2788dff993cc6ef77547f3df18"
-dependencies = [
- "heim-common",
- "heim-runtime",
-]
-
-[[package]]
-name = "heim-common"
-version = "0.1.0-rc.1"
-source = "git+https://github.com/heim-rs/heim?rev=1fb090576629cd2788dff993cc6ef77547f3df18#1fb090576629cd2788dff993cc6ef77547f3df18"
-dependencies = [
- "cfg-if 1.0.0",
- "core-foundation",
- "futures-core",
- "futures-util",
- "lazy_static",
- "libc",
- "mach",
- "nix 0.20.0",
- "pin-utils",
- "uom",
- "winapi 0.3.9",
-]
-
-[[package]]
-name = "heim-cpu"
-version = "0.1.0-rc.1"
-source = "git+https://github.com/heim-rs/heim?rev=1fb090576629cd2788dff993cc6ef77547f3df18#1fb090576629cd2788dff993cc6ef77547f3df18"
-dependencies = [
- "cfg-if 1.0.0",
- "futures 0.3.21",
- "glob",
- "heim-common",
- "heim-runtime",
- "lazy_static",
- "libc",
- "mach",
- "ntapi",
- "smol",
- "winapi 0.3.9",
-]
-
-[[package]]
-name = "heim-memory"
-version = "0.1.0-rc.1"
-source = "git+https://github.com/heim-rs/heim?rev=1fb090576629cd2788dff993cc6ef77547f3df18#1fb090576629cd2788dff993cc6ef77547f3df18"
-dependencies = [
- "cfg-if 1.0.0",
- "heim-common",
- "heim-runtime",
- "lazy_static",
- "libc",
- "mach",
- "winapi 0.3.9",
-]
-
-[[package]]
-name = "heim-runtime"
-version = "0.1.0-rc.1"
-source = "git+https://github.com/heim-rs/heim?rev=1fb090576629cd2788dff993cc6ef77547f3df18#1fb090576629cd2788dff993cc6ef77547f3df18"
-dependencies = [
- "futures 0.3.21",
- "futures-timer",
- "once_cell",
- "smol",
-]
-
-[[package]]
 name = "hermit-abi"
 version = "0.1.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5434,7 +5342,7 @@ dependencies = [
  "hex",
  "moonbeam-cli",
  "moonbeam-service",
- "nix 0.17.0",
+ "nix",
  "pallet-xcm",
  "serde",
  "serde_json",
@@ -5905,7 +5813,7 @@ dependencies = [
  "moonriver-runtime",
  "nimbus-consensus",
  "nimbus-primitives",
- "nix 0.17.0",
+ "nix",
  "pallet-author-inherent",
  "pallet-ethereum",
  "pallet-sudo",
@@ -6308,18 +6216,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "nix"
-version = "0.20.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fa9b4819da1bc61c0ea48b63b7bc8604064dd43013e7cc325df098d49cd7c18a"
-dependencies = [
- "bitflags",
- "cc",
- "cfg-if 1.0.0",
- "libc",
-]
-
-[[package]]
 name = "nodrop"
 version = "0.1.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6426,17 +6322,6 @@ checksum = "5c000134b5dbf44adc5cb772486d335293351644b801551abe8f75c84cfa4aef"
 dependencies = [
  "autocfg 1.0.1",
  "num-bigint 0.2.6",
- "num-integer",
- "num-traits",
-]
-
-[[package]]
-name = "num-rational"
-version = "0.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "12ac428b1cb17fce6f731001d307d351ec70a6d202fc2e60f7d4c5e42d8f4f07"
-dependencies = [
- "autocfg 1.0.1",
  "num-integer",
  "num-traits",
 ]
@@ -8207,10 +8092,6 @@ dependencies = [
  "fp-evm",
  "fp-rpc",
  "futures 0.3.21",
- "heim",
- "heim-common",
- "heim-cpu",
- "heim-memory",
  "hex",
  "libsecp256k1 0.5.0",
  "log",
@@ -9731,7 +9612,7 @@ dependencies = [
  "derive_more",
  "glob",
  "mach",
- "nix 0.17.0",
+ "nix",
  "num_cpus",
  "once_cell",
  "platforms 0.2.1",
@@ -11960,24 +11841,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f2dd574626839106c320a323308629dcb1acfc96e32a8cba364ddc61ac23ee83"
 
 [[package]]
-name = "smol"
-version = "1.2.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "85cf3b5351f3e783c1d79ab5fc604eeed8b8ae9abd36b166e8b87a089efd85e4"
-dependencies = [
- "async-channel",
- "async-executor",
- "async-fs",
- "async-io",
- "async-lock",
- "async-net",
- "async-process",
- "blocking",
- "futures-lite",
- "once_cell",
-]
-
-[[package]]
 name = "snap"
 version = "1.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -13719,17 +13582,6 @@ name = "untrusted"
 version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a156c684c91ea7d62626509bce3cb4e1d9ed5c4d978f7b4352658f96a4c26b4a"
-
-[[package]]
-name = "uom"
-version = "0.31.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b1ee6bfd0a27bf614353809a035cf6880b74239ec6c5e39a7b2860ca16809137"
-dependencies = [
- "num-rational 0.3.2",
- "num-traits",
- "typenum",
-]
 
 [[package]]
 name = "url"
