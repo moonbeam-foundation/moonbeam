@@ -41,7 +41,7 @@ describeDevMoonbeam("Proxing governance", (context) => {
 
   it("should be able to vote on behalf of the delegate account", async function () {
     // Verify that one referundum is triggered
-    let referendumCount = await context.polkadotApi.query.democracy.referendumCount();
+    let referendumCount = (await context.polkadotApi.query.democracy.referendumCount()) as any;
     expect(referendumCount.toBigInt()).to.equal(1n);
 
     // Dorothy add proxy right to ethan for governance only
@@ -54,26 +54,26 @@ describeDevMoonbeam("Proxing governance", (context) => {
     });
 
     const dorothyPreBalance = (
-      await context.polkadotApi.query.system.account(DOROTHY)
+      (await context.polkadotApi.query.system.account(DOROTHY)) as any
     ).data.free.toBigInt();
     const ext = context.polkadotApi.tx.proxy.proxy(DOROTHY, "Governance", voteCall);
     const { events } = await createBlockWithExtrinsic(context, ethan, ext);
 
     // Check events
-    expect(context.polkadotApi.events.proxy.ProxyExecuted.is(events[2])).to.be.true;
-    expect(context.polkadotApi.events.democracy.Voted.is(events[1])).to.be.true;
+    expect(context.polkadotApi.events.proxy.ProxyExecuted.is(events[2] as any)).to.be.true;
+    expect(context.polkadotApi.events.democracy.Voted.is(events[1] as any)).to.be.true;
     expect(events[2].data[0].toString()).to.equal("Ok");
-    expect(context.polkadotApi.events.treasury.Deposit.is(events[4])).to.be.true;
-    expect(context.polkadotApi.events.system.ExtrinsicSuccess.is(events[5])).to.be.true;
+    expect(context.polkadotApi.events.treasury.Deposit.is(events[4] as any)).to.be.true;
+    expect(context.polkadotApi.events.system.ExtrinsicSuccess.is(events[5] as any)).to.be.true;
 
     // Verify that dorothy hasn't paid for the transaction but the vote locked her tokens
-    let dorothyAccountData = await context.polkadotApi.query.system.account(DOROTHY);
+    let dorothyAccountData = (await context.polkadotApi.query.system.account(DOROTHY)) as any;
     expect(dorothyAccountData.data.free.toBigInt()).to.equal(dorothyPreBalance);
     expect(dorothyAccountData.data.miscFrozen.toBigInt()).to.equal(VOTE_AMOUNT);
 
     // Verify that vote is registered
     const referendumInfoOf = (
-      await context.polkadotApi.query.democracy.referendumInfoOf(0)
+      (await context.polkadotApi.query.democracy.referendumInfoOf(0)) as any
     ).unwrap() as any;
     const onGoing = referendumInfoOf.asOngoing;
 
