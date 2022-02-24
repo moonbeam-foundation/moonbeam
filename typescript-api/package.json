@@ -1,0 +1,85 @@
+{
+  "name": "@moonbeam/api-augment",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Moonbeam types augment for @polkadot/api",
+  "author": "PureStake",
+  "license": "GPL-3.0-only",
+  "repository": {
+    "directory": "typescript-api",
+    "type": "git",
+    "url": "git+https://github.com/PureStake/moonbeam.git"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "scripts": {
+    "generate": "npm run load:meta && npm run generate:defs && npm run generate:meta",
+    "postgenerate": "npm run pretty",
+    "load:meta": "npm run load:meta:moonbase && npm run load:meta:moonriver && npm run load:meta:moonbeam",
+    "load:meta:moonbase": "curl -s -H \"Content-Type: application/json\" -d '{\"id\":\"1\", \"jsonrpc\":\"2.0\", \"method\": \"state_getMetadata\", \"params\":[]}' https://rpc.api.moonbase.moonbeam.network > metadata-moonbase.json",
+    "load:meta:moonriver": "curl -s -H \"Content-Type: application/json\" -d '{\"id\":\"1\", \"jsonrpc\":\"2.0\", \"method\": \"state_getMetadata\", \"params\":[]}' https://rpc.api.moonriver.moonbeam.network > metadata-moonriver.json",
+    "load:meta:moonbeam": "curl -s -H \"Content-Type: application/json\" -d '{\"id\":\"1\", \"jsonrpc\":\"2.0\", \"method\": \"state_getMetadata\", \"params\":[]}' https://rpc.api.moonbeam.network > metadata-moonbeam.json",
+    "generate:defs": "npm run generate:defs:moonbase && npm run generate:defs:moonriver && npm run generate:defs:moonbeam",
+    "generate:defs:moonbase": "ts-node --skip-project node_modules/.bin/polkadot-types-from-defs --package @moonbeam/api-augment/moonbase/interfaces --input ./src/moonbase/interfaces --endpoint ./metadata-moonbase.json",
+    "generate:defs:moonriver": "ts-node --skip-project node_modules/.bin/polkadot-types-from-defs --package @moonbeam/api-augment/moonriver/interfaces --input ./src/moonriver/interfaces --endpoint ./metadata-moonriver.json",
+    "generate:defs:moonbeam": "ts-node --skip-project node_modules/.bin/polkadot-types-from-defs --package @moonbeam/api-augment/moonbeam/interfaces --input ./src/moonbeam/interfaces --endpoint ./metadata-moonbeam.json",
+    "generate:meta": "npm run generate:meta:moonbase && npm run generate:meta:moonriver && npm run generate:meta:moonbeam",
+    "generate:meta:moonbase": "ts-node --skip-project node_modules/.bin/polkadot-types-from-chain --endpoint ./metadata-moonbase.json --output ./src/moonbase/interfaces",
+    "generate:meta:moonriver": "ts-node --skip-project node_modules/.bin/polkadot-types-from-chain --endpoint ./metadata-moonriver.json --output ./src/moonriver/interfaces",
+    "generate:meta:moonbeam": "ts-node --skip-project node_modules/.bin/polkadot-types-from-chain --endpoint ./metadata-moonbeam.json --output ./src/moonbeam/interfaces",
+    "prebuild": "rimraf build",
+    "build": "tsc -b --verbose",
+    "postbuild": "node ./scripts/postbuild.js",
+    "publish": "cd build && npm publish",
+    "deploy": "npm run generate && npm run build && npm run publish",
+    "pretty": "prettier --write --ignore-unknown --plugin prettier-plugin-jsdoc 'src/**/*' 'scripts/**/*'"
+  },
+  "main": "./index.js",
+  "module": "./index.js",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./index.js",
+      "default": "./index.js",
+      "types": "./index.d.ts"
+    },
+    "./moonbeam": {
+      "import": "./index.js",
+      "default": "./index.js",
+      "types": "./index.d.ts"
+    },
+    "./moonriver": {
+      "import": "./moonriver/index.js",
+      "default": "./moonriver/index.js",
+      "types": "./moonriver/index.d.ts"
+    },
+    "./moonbase": {
+      "import": "./moonbase/index.js",
+      "default": "./moonbase/index.js",
+      "types": "./moonbase/index.d.ts"
+    }
+  },
+  "keywords": [
+    "moonbeam",
+    "moonriver",
+    "types",
+    "polkadot",
+    "api"
+  ],
+  "prettier": {
+    "jsdocPrintWidth": 80,
+    "jsdocSingleLineComment": false
+  },
+  "dependencies": {
+    "@polkadot/api": "^7.9.1"
+  },
+  "devDependencies": {
+    "@polkadot/typegen": "^7.9.1",
+    "prettier": "^2.5.1",
+    "prettier-plugin-jsdoc": "^0.3.30",
+    "rimraf": "^3.0.2",
+    "ts-node": "^10.5.0",
+    "typescript": "^4.5.5"
+  }
+}
