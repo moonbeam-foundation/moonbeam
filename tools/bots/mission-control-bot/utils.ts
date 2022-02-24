@@ -5,7 +5,6 @@ import { WorkerAccount } from "./types";
 
 /**
  * Send notification to Slack using a webhook URL.
- *
  * @param webhookUrl Webhook to Slack app
  * @param accountId Account of the bot
  * @param account_balance Balance of the account in DEV
@@ -90,7 +89,6 @@ export async function sendSlackNotification(
 
 /**
  * Returns the approximated remaining time until being able to request tokens again.
- *
  * @param lastTokenRequestMoment Last moment in which the user requested funds
  * @param faucet_interval Interval between allowed fund requests to the bot
  */
@@ -115,7 +113,6 @@ export function nextAvailableToken(lastTokenRequestMoment: number, faucet_interv
 
 /**
  * Sleeps for a defined number of seconds and minutes (latter not required)
- *
  * @param seconds Number of seconds
  * @param minutes Number of minutes (not required)
  */
@@ -127,7 +124,6 @@ export async function sleep(seconds: number, minutes: number = 0) {
 
 /**
  * Returns an array with a range of numbers from 0 to length-1
- *
  * @param length Length of the resultant array
  */
 export function range(length: number) {
@@ -136,7 +132,6 @@ export function range(length: number) {
 
 /**
  * Derive the account of a worker from a mnemonic
- *
  * @param hdkeyGenerator The hdkey used to derive the account
  * @param index The index used for the path of the derivation
  * @returns The account of the worker with its address and private key

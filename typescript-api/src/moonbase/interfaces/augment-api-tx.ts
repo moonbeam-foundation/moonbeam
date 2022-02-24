@@ -836,6 +836,7 @@ declare module "@polkadot/api-base/types/submittable" {
        *   `T::DustRemoval::on_unbalanced`.
        * - `transfer_keep_alive` works the same way as `transfer`, but has an
        *   additional check that the transfer will not kill the origin account.
+       *
        * - Origin account is already in memory, so no DB operations for them.
        *
        * # </weight>

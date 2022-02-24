@@ -6,7 +6,7 @@
   "author": "PureStake",
   "license": "GPL-3.0-only",
   "repository": {
-    "directory": "moonbeam-api-augment",
+    "directory": "typescript-api",
     "type": "git",
     "url": "git+https://github.com/PureStake/moonbeam.git"
   },
@@ -33,7 +33,7 @@
     "postbuild": "node ./scripts/postbuild.js",
     "publish": "cd build && npm publish",
     "deploy": "npm run generate && npm run build && npm run publish",
-    "pretty": "prettier --write --ignore-unknown 'src/**/*' 'scripts/**/*'"
+    "pretty": "prettier --write --ignore-unknown --plugin prettier-plugin-jsdoc 'src/**/*' 'scripts/**/*'"
   },
   "main": "./index.js",
   "module": "./index.js",
@@ -67,6 +67,10 @@
     "polkadot",
     "api"
   ],
+  "prettier": {
+    "jsdocPrintWidth": 80,
+    "jsdocSingleLineComment": false
+  },
   "dependencies": {
     "@polkadot/api": "^7.9.1"
   },
