@@ -164,9 +164,6 @@ pub type XcmOriginToTransactDispatchOrigin = (
 	// Native converter for sibling Parachains; will convert to a `SiblingPara` origin when
 	// recognised.
 	SiblingParachainAsNative<cumulus_pallet_xcm::Origin, Origin>,
-	// Superuser converter for the Relay-chain (Parent) location. This will allow it to issue a
-	// transaction from the Root origin.
-	ParentAsSuperuser<Origin>,
 	// Xcm origins can be represented natively under the Xcm pallet's Xcm origin.
 	pallet_xcm::XcmPassthrough<Origin>,
 	// Xcm Origins defined by a Multilocation of type AccountKey20 can be converted to a 20 byte-
