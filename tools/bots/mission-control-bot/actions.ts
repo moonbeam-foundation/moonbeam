@@ -8,7 +8,8 @@ import { TOKEN_DECIMAL, EMBED_COLOR_CORRECT, EMBED_COLOR_ERROR, params } from ".
 import { sendSlackNotification, nextAvailableToken, sleep } from "./utils";
 
 /**
- * Action for the bot for the pattern "!faucet send <h160_addr>", that sends funds to the indicated account.
+ * Action for the bot for the pattern "!faucet send <h160_addr>",
+ * that sends funds to the indicated account.
  *
  * @param web3Api Instance of the web3 API connected to the chain endpoint
  * @param msg Received discord message object

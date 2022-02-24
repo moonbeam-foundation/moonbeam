@@ -1,0 +1,5 @@
+{
+  "plugins": ["prettier-plugin-jsdoc"],
+  "jsdocPrintWidth": 80,
+  "jsdocSingleLineComment": false
+}
