@@ -186,6 +186,11 @@ pub mod pallet {
 			asset_id: T::AssetId,
 			new_asset_type: T::ForeignAssetType,
 		},
+		/// Removed all information related to an assetId
+		AssetRemoved {
+			asset_id: T::AssetId,
+			asset_type: T::AssetType,
+		},
 		/// Supported asset type for fee payment removed
 		SupportedAssetRemoved { asset_type: T::ForeignAssetType },
 		LocalAssetAuthorizationGiven {
@@ -429,7 +434,6 @@ pub mod pallet {
 			Ok(())
 		}
 
-		/// Remove a given assetType from the supported assets for fee payment
 		#[pallet::weight(T::WeightInfo::remove_supported_asset(*num_assets_weight_hint))]
 		pub fn remove_supported_asset(
 			origin: OriginFor<T>,
@@ -458,6 +462,48 @@ pub mod pallet {
 			AssetTypeUnitsPerSecond::<T>::remove(&asset_type);
 
 			Self::deposit_event(Event::SupportedAssetRemoved { asset_type });
+			Ok(())
+		}
+
+		/// Remove a given assetId -> assetType association
+		#[pallet::weight(T::WeightInfo::remove_existing_asset_type(*num_assets_weight_hint))]
+		pub fn remove_existing_asset_type(
+			origin: OriginFor<T>,
+			asset_id: T::AssetId,
+			num_assets_weight_hint: u32,
+		) -> DispatchResult {
+			T::AssetModifierOrigin::ensure_origin(origin)?;
+
+			// Grab supported assets
+			let mut supported_assets = SupportedFeePaymentAssets::<T>::get();
+
+			ensure!(
+				num_assets_weight_hint >= (supported_assets.len() as u32),
+				Error::<T>::TooLowNumAssetsWeightHint
+			);
+
+			let asset_type =
+				AssetIdType::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
+
+			// Remove from AssetIdType
+			AssetIdType::<T>::remove(&asset_id);
+			// Remove from AssetTypeId
+			AssetTypeId::<T>::remove(&asset_type);
+			// Remove previous asset type units per second
+			AssetTypeUnitsPerSecond::<T>::remove(&asset_type);
+
+			// Only if the old asset is supported we need to remove it
+			if let Ok(index) = supported_assets.binary_search(&asset_type) {
+				supported_assets.remove(index);
+			}
+
+			// Insert
+			SupportedFeePaymentAssets::<T>::put(supported_assets);
+
+			Self::deposit_event(Event::AssetRemoved {
+				asset_id,
+				asset_type,
+			});
 			Ok(())
 		}
 	}

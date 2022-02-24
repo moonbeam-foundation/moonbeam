@@ -56,6 +56,7 @@ pub trait WeightInfo {
 	fn set_asset_units_per_second(x: u32) -> Weight;
 	fn change_existing_asset_type(x: u32) -> Weight;
 	fn remove_supported_asset(x: u32) -> Weight;
+	fn remove_existing_asset_type(x: u32) -> Weight;
 	fn authorize_local_assset() -> Weight;
 	fn register_local_asset() -> Weight;
 }
@@ -85,6 +86,12 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add((1_148_000 as Weight).saturating_mul(x as Weight))
 			.saturating_add(T::DbWeight::get().reads(5 as Weight))
 			.saturating_add(T::DbWeight::get().writes(4 as Weight))
+	}
+	fn remove_existing_asset_type(x: u32) -> Weight {
+		(30_428_000 as Weight) // Standard Error: 3_000
+			.saturating_add((1_166_000 as Weight).saturating_mul(x as Weight))
+			.saturating_add(T::DbWeight::get().reads(6 as Weight))
+			.saturating_add(T::DbWeight::get().writes(6 as Weight))
 	}
 	fn authorize_local_assset() -> Weight {
 		(15_902_000 as Weight)
@@ -123,14 +130,19 @@ impl WeightInfo for () {
 			.saturating_add(RocksDbWeight::get().reads(5 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(4 as Weight))
 	}
-	fn authorize_local_assset() -> Weight {
-		(15_902_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(4 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(3 as Weight))
+	fn remove_existing_asset_type(x: u32) -> Weight {
+		(30_428_000 as Weight) // Standard Error: 3_000
+			.saturating_add((1_166_000 as Weight).saturating_mul(x as Weight))
+			.saturating_add(RocksDbWeight::get().reads(6 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(6 as Weight))
 	}
-	fn register_local_asset() -> Weight {
-		(42_064_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(9 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(4 as Weight))
+	fn authorize_local_assset() -> Weight {
+		(15_902_000 as Weight).saturating_add(RocksDbWeight::get().reads(4 as Weight))
+	}
+	fn remove_existing_asset_type(x: u32) -> Weight {
+		(30_428_000 as Weight) // Standard Error: 3_000
+			.saturating_add((1_166_000 as Weight).saturating_mul(x as Weight))
+			.saturating_add(RocksDbWeight::get().reads(6 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(6 as Weight))
 	}
 }

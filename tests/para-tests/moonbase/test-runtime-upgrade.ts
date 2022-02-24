@@ -11,24 +11,35 @@ const localVersion = child_process
   .execSync(`grep 'spec_version: [0-9]*' ../runtime/moonbase/src/lib.rs | grep -o '[0-9]*'`)
   .toString()
   .trim();
-const alreadyReleased = child_process
-  .execSync(
-    `git tag -l -n 'runtime-[0-9]*' | cut -d' ' -f 1 | cut -d'-' -f 2 | grep "${localVersion}"`
-  )
-  .toString()
-  .trim();
-const previousRelease = child_process
-  .execSync(
-    `git tag -l -n 'runtime-[0-9]*' | cut -d' ' -f 1 | cut -d'-' -f 2 | sort -n -r ` +
-      `| uniq | grep -A1 "${localVersion}" | tail -1`
-  )
-  .toString()
-  .trim();
 
+let alreadyReleased = "";
+try {
+  alreadyReleased = child_process
+    .execSync(
+      `git tag -l -n 'runtime-[0-9]*' | cut -d' ' -f 1 | cut -d'-' -f 2 | grep "${localVersion}"`
+    )
+    .toString()
+    .trim();
+} catch (e) {
+  alreadyReleased = "";
+}
+
+let baseRuntime: string;
 if (localVersion == alreadyReleased) {
   console.log(`${localVersion} already released. Trying to upgrade on top of it`);
+  baseRuntime = localVersion;
+} else {
+  // Retrieves previous version
+  baseRuntime = child_process
+    .execSync(
+      `git tag -l -n 'runtime-[0-9]*' | cut -d' ' -f 1 | cut -d'-' -f 2 ` +
+        `| sed '1 i ${localVersion}' | sort -n -r ` +
+        `| uniq | grep -A1 "${localVersion}" | tail -1`
+    )
+    .toString()
+    .trim();
 }
-const baseRuntime = localVersion == alreadyReleased ? localVersion : previousRelease;
+
 console.log(`Using base runtime ${baseRuntime}`);
 
 const RUNTIME_VERSION = "local";
@@ -52,7 +63,6 @@ describeParachain(
       const keyring = new Keyring({ type: "ethereum" });
       const alith = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
 
-      process.stdout.write("Checking current runtime...");
       const currentVersion = await (
         (await context.polkadotApiParaone.query.system.lastRuntimeUpgrade()) as any
       ).unwrap();
@@ -61,7 +71,8 @@ describeParachain(
         specName: "moonbase",
       });
       console.log(
-        `✅ runtime ${currentVersion.specName.toString()} ${currentVersion.specVersion.toString()}`
+        `Current runtime: ✅ runtime ${currentVersion.specName.toString()} ` +
+          `${currentVersion.specVersion.toString()}`
       );
 
       await context.upgradeRuntime(alith, "moonbase", RUNTIME_VERSION);
