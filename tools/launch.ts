@@ -1,6 +1,5 @@
 /**
- * Script to launch 2 relay and 2 parachain nodes.
- * It contains pre-registered versions to allow easy
+ * Script to launch 2 relay and 2 parachain nodes. It contains pre-registered versions to allow easy
  * run using Docker.
  *
  * Ports can be given using --port-prefix xx (default 34) using the following rule:
