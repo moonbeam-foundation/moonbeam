@@ -514,28 +514,6 @@
 <span id="514">514</span>
 <span id="515">515</span>
 <span id="516">516</span>
-<span id="517">517</span>
-<span id="518">518</span>
-<span id="519">519</span>
-<span id="520">520</span>
-<span id="521">521</span>
-<span id="522">522</span>
-<span id="523">523</span>
-<span id="524">524</span>
-<span id="525">525</span>
-<span id="526">526</span>
-<span id="527">527</span>
-<span id="528">528</span>
-<span id="529">529</span>
-<span id="530">530</span>
-<span id="531">531</span>
-<span id="532">532</span>
-<span id="533">533</span>
-<span id="534">534</span>
-<span id="535">535</span>
-<span id="536">536</span>
-<span id="537">537</span>
-<span id="538">538</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -553,7 +531,6 @@
 <span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-	<span class="ident">sysinfo</span>::{<span class="ident">query_partition_info</span>, <span class="ident">query_system_info</span>, <span class="ident">PartitionInfo</span>, <span class="ident">SystemInfo</span>},
 	<span class="ident">tests</span>::{<span class="ident">BlockCreationPerfTest</span>, <span class="ident">FibonacciPerfTest</span>, <span class="ident">StoragePerfTest</span>, <span class="ident">TestResults</span>, <span class="ident">TestRunner</span>},
 	<span class="ident">txn_signer::UnsignedTransaction</span>,
 	<span class="ident">PerfCmd</span>,
@@ -573,7 +550,7 @@
 <span class="kw">use</span> <span class="ident">sp_api</span>::{<span class="ident">BlockId</span>, <span class="ident">ConstructRuntimeApi</span>, <span class="ident">ProvideRuntimeApi</span>};
 <span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">H160</span>, <span class="ident">H256</span>, <span class="ident">U256</span>};
 <span class="kw">use</span> <span class="ident">sp_runtime::transaction_validity::TransactionSource</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fs::File</span>, <span class="ident">io::prelude</span>::<span class="kw-2">*</span>, <span class="ident">marker::PhantomData</span>, <span class="ident">path::PathBuf</span>, <span class="ident">sync::Arc</span>};
+<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fs::File</span>, <span class="ident">io::prelude</span>::<span class="kw-2">*</span>, <span class="ident">marker::PhantomData</span>, <span class="ident">sync::Arc</span>};
 
 <span class="kw">use</span> <span class="ident">futures</span>::{
 	<span class="ident">channel</span>::{<span class="ident">mpsc</span>, <span class="ident">oneshot</span>},
@@ -989,12 +966,7 @@
 
 <span class="kw">impl</span> <span class="ident">PerfCmd</span> {
 	<span class="comment">// taking a different approach and starting a full dev service</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">run</span><span class="op">&lt;</span><span class="ident">RuntimeApi</span>, <span class="ident">Executor</span><span class="op">&gt;</span>(
-		<span class="kw-2">&amp;</span><span class="self">self</span>,
-		<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">PathBuf</span>,
-		<span class="ident">cmd</span>: <span class="kw-2">&amp;</span><span class="ident">PerfCmd</span>,
-		<span class="ident">config</span>: <span class="ident">Configuration</span>,
-	) -&gt; <span class="ident">CliResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
+	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">run</span><span class="op">&lt;</span><span class="ident">RuntimeApi</span>, <span class="ident">Executor</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">cmd</span>: <span class="kw-2">&amp;</span><span class="ident">PerfCmd</span>, <span class="ident">config</span>: <span class="ident">Configuration</span>) -&gt; <span class="ident">CliResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
 	<span class="kw">where</span>
 		<span class="ident">RuntimeApi</span>:
 			<span class="ident">ConstructRuntimeApi</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">FullClient</span><span class="op">&lt;</span><span class="ident">RuntimeApi</span>, <span class="ident">Executor</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
@@ -1034,29 +1006,13 @@
 			<span class="ident">all_test_results</span>.<span class="ident">append</span>(<span class="kw-2">&amp;mut</span> <span class="ident">results</span>);
 		}
 
-		<span class="kw">let</span> (<span class="ident">system_info</span>, <span class="ident">partition_info</span>) <span class="op">=</span> <span class="kw">if</span> <span class="ident">cmd</span>.<span class="ident">disable_sysinfo</span> {
-			(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>)
-		} <span class="kw">else</span> {
-			<span class="kw">let</span> <span class="ident">sys</span> <span class="op">=</span> <span class="ident">query_system_info</span>()<span class="question-mark">?</span>;
-			<span class="kw">let</span> <span class="ident">part</span> <span class="op">=</span> <span class="ident">query_partition_info</span>(<span class="ident">path</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-				<span class="comment">// TODO: this is inconsistent with behavior of query_system_info...</span>
-				<span class="macro">eprintln!</span>(<span class="string">&quot;query_partition_info() failed, ignoring...&quot;</span>);
-				<span class="ident">Default::default</span>()
-			});
-			(<span class="prelude-val">Some</span>(<span class="ident">sys</span>), <span class="prelude-val">Some</span>(<span class="ident">part</span>))
-		};
-
 		<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Serialize</span>)]</span>
 		<span class="kw">struct</span> <span class="ident">AllResults</span> {
 			<span class="ident">test_results</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TestResults</span><span class="op">&gt;</span>,
-			<span class="ident">system_info</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SystemInfo</span><span class="op">&gt;</span>,
-			<span class="ident">partition_info</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PartitionInfo</span><span class="op">&gt;</span>,
 		}
 
 		<span class="kw">let</span> <span class="ident">all_results</span> <span class="op">=</span> <span class="ident">AllResults</span> {
 			<span class="ident">test_results</span>: <span class="ident">all_test_results</span>.<span class="ident">clone</span>(),
-			<span class="ident">system_info</span>,
-			<span class="ident">partition_info</span>,
 		};
 		<span class="kw">let</span> <span class="ident">results_str</span> <span class="op">=</span> <span class="ident">serde_json::to_string_pretty</span>(<span class="kw-2">&amp;</span><span class="ident">all_results</span>).<span class="ident">unwrap</span>();
 

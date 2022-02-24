@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["sysinfo",""]],"struct":[["PerfCmd",""]]});
+initSidebarItems({"struct":[["PerfCmd",""]]});
