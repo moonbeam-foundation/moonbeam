@@ -44,7 +44,7 @@ use sha3::{Digest, Keccak256};
 use sp_core::{ByteArray, Pair, H160, U256};
 use sp_runtime::{
 	traits::{Convert, One},
-	DispatchError,
+	DispatchError, ModuleError,
 };
 use xcm::latest::prelude::*;
 use xcm::{VersionedMultiAsset, VersionedMultiAssets, VersionedMultiLocation};
@@ -327,11 +327,11 @@ fn transfer_through_evm_to_stake() {
 					1_000 * MOVR,
 					2u32
 				),
-				DispatchError::Module {
+				DispatchError::Module(ModuleError {
 					index: 10,
 					error: 2,
 					message: Some("InsufficientBalance")
-				}
+				})
 			);
 			// Alice transfer from free balance 2000 MOVR to Bob
 			assert_ok!(Balances::transfer(
@@ -342,7 +342,7 @@ fn transfer_through_evm_to_stake() {
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 2_000 * MOVR);
 
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1_000_000_000.into();
+			let gas_price: U256 = 1_000_000_000u64.into();
 			// Bob transfers 1000 MOVR to Charlie via EVM
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
 				source: H160::from(BOB),
@@ -530,11 +530,11 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 			.dispatch(root_origin()));
 			let expected_fail = Event::Utility(pallet_utility::Event::BatchInterrupted {
 				index: 0,
-				error: DispatchError::Module {
+				error: DispatchError::Module(ModuleError {
 					index: 90,
 					error: 8,
 					message: None,
-				},
+				}),
 			});
 			assert_eq!(last_event(), expected_fail);
 			// Claim 1 block.
