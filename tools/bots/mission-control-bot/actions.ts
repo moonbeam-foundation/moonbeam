@@ -8,13 +8,15 @@ import { TOKEN_DECIMAL, EMBED_COLOR_CORRECT, EMBED_COLOR_ERROR, params } from ".
 import { sendSlackNotification, nextAvailableToken, sleep } from "./utils";
 
 /**
- * Action for the bot for the pattern "!faucet send <h160_addr>", that sends funds to the indicated account.
+ * Action for the bot for the pattern "!faucet send <h160_addr>", that sends
+ * funds to the indicated account.
  *
  * @param web3Api Instance of the web3 API connected to the chain endpoint
  * @param msg Received discord message object
  * @param discordUserId Author ID of the message
  * @param messageContent Content of the message
- * @param discordUserReceivers Map with the timestamp of the last received request of a user
+ * @param discordUserReceivers Map with the timestamp of the last received
+ *   request of a user
  * @param pendingQueue Queue of tasks
  */
 export async function botActionFaucetSend(
@@ -104,8 +106,8 @@ export async function botActionFaucetSend(
 }
 
 /**
- * Action for the bot for the pattern "!balance <h160_addr>", that checks the balance of the
- * indicated account.
+ * Action for the bot for the pattern "!balance <h160_addr>", that checks the
+ * balance of the indicated account.
  *
  * @param web3Api Instance of the web3 API connected to the chain endpoint
  * @param msg Received discord message object
@@ -140,7 +142,8 @@ export async function botActionBalance(web3Api: Web3, msg: Message, messageConte
 }
 
 /**
- * Checks the balance of the bot is over a certain threshold, alerting if that's the case on Slack
+ * Checks the balance of the bot is over a certain threshold, alerting if that's
+ * the case on Slack
  *
  * @param web3Api Instance of the web3 API connected to the chain endpoint
  * @param workers List of worker accounts to fund if they're below the min balance
@@ -224,8 +227,10 @@ export async function balanceMonitorCheck(web3Api: Web3, workers: WorkerAccount[
  * @param web3Api Instance of the web3 API connected to the chain endpoint
  * @param workers Array of worker accounts that will be used to sign the transfer txs
  * @param pendingQueue Queue of tasks
- * @param discordUserReceivers Map with the timestamp of the last received request of a discord user
- * @param addressReceivers Map with the timestamp of the last received request of an address
+ * @param discordUserReceivers Map with the timestamp of the last received
+ *   request of a discord user
+ * @param addressReceivers Map with the timestamp of the last received request
+ *   of an address
  */
 export async function fundRequestsResolver(
   web3Api: Web3,
@@ -259,14 +264,16 @@ export async function fundRequestsResolver(
 }
 
 /**
- * Non-exported function that takes fundsRequests from the pendingQueue and resolves them with a
- * series of different worker addresses to avoid a nonce conflict.
+ * Non-exported function that takes fundsRequests from the pendingQueue and
+ * resolves them with a series of different worker addresses to avoid a nonce conflict.
  *
  * @param web3Api Instance of the web3 API connected to the chain endpoint
  * @param workers Array of worker accounts that will be used to sign the transfer txs
  * @param pendingQueue Queue of tasks
- * @param discordUserReceivers Map with the timestamp of the last received request of a discord user
- * @param addressReceivers Map with the timestamp of the last received request of an address
+ * @param discordUserReceivers Map with the timestamp of the last received
+ *   request of a discord user
+ * @param addressReceivers Map with the timestamp of the last received request
+ *   of an address
  */
 async function resolveFundsRequests(
   web3Api: Web3,
