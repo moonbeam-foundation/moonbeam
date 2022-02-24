@@ -29,6 +29,9 @@ xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkad
 xcm-builder = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.16", default-features = false }
 xcm-executor = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.16", default-features = false }
 
+# Benchmarks
+frame-benchmarking = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.16", optional = true, default-features = false }
+
 [dev-dependencies]
 pallet-balances = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.16" }
 pallet-timestamp = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.16" }
@@ -40,6 +43,7 @@ sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-p
 default = [ "std" ]
 std = [
 	"cumulus-primitives-core/std",
+	"frame-benchmarking/std",
 	"frame-support/std",
 	"frame-system/std",
 	"orml-traits/std",
@@ -51,5 +55,8 @@ std = [
 	"xcm-executor/std",
 	"xcm-primitives/std",
 	"xcm/std",
+]
+runtime-benchmarks = [
+	"frame-benchmarking",
 ]
 try-runtime = [ "frame-support/try-runtime" ]
