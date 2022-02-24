@@ -1,9 +1,5 @@
 {
   "plugins": ["prettier-plugin-jsdoc"],
-  "semi": true,
-  "trailingComma": "all",
-  "singleQuote": true,
-  "proseWrap": "always",
   "jsdocPrintWidth": 80,
   "jsdocSingleLineComment": false
 }

@@ -1,7 +1,7 @@
 // Auto-generated via `yarn polkadot-types-from-chain`, do not edit
 /* eslint-disable */
 
-import type { ApiTypes } from '@polkadot/api-base/types';
+import type { ApiTypes } from "@polkadot/api-base/types";
 import type {
   Bytes,
   Null,
@@ -16,8 +16,8 @@ import type {
   u32,
   u64,
   u8,
-} from '@polkadot/types-codec';
-import type { ITuple } from '@polkadot/types-codec/types';
+} from "@polkadot/types-codec";
+import type { ITuple } from "@polkadot/types-codec/types";
 import type {
   AccountId20,
   H160,
@@ -25,7 +25,7 @@ import type {
   Perbill,
   Percent,
   Permill,
-} from '@polkadot/types/interfaces/runtime';
+} from "@polkadot/types/interfaces/runtime";
 import type {
   EthereumLog,
   EvmCoreErrorExitReason,
@@ -50,9 +50,9 @@ import type {
   XcmV2Xcm,
   XcmVersionedMultiAssets,
   XcmVersionedMultiLocation,
-} from '@polkadot/types/lookup';
+} from "@polkadot/types/lookup";
 
-declare module '@polkadot/api-base/types/events' {
+declare module "@polkadot/api-base/types/events" {
   export interface AugmentedEvents<ApiType extends ApiTypes> {
     assetManager: {
       AssetRegistered: AugmentedEvent<

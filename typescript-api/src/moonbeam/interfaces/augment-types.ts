@@ -1,7 +1,7 @@
 // Auto-generated via `yarn polkadot-types-from-defs`, do not edit
 /* eslint-disable */
 
-import type { Data, StorageKey } from '@polkadot/types';
+import type { Data, StorageKey } from "@polkadot/types";
 import type {
   BitVec,
   Bool,
@@ -38,7 +38,7 @@ import type {
   u64,
   u8,
   usize,
-} from '@polkadot/types-codec';
+} from "@polkadot/types-codec";
 import type {
   AssetApproval,
   AssetApprovalKey,
@@ -48,15 +48,15 @@ import type {
   AssetMetadata,
   TAssetBalance,
   TAssetDepositBalance,
-} from '@polkadot/types/interfaces/assets';
+} from "@polkadot/types/interfaces/assets";
 import type {
   BlockAttestations,
   IncludedBlocks,
   MoreAttestations,
-} from '@polkadot/types/interfaces/attestations';
-import type { RawAuraPreDigest } from '@polkadot/types/interfaces/aura';
-import type { ExtrinsicOrHash, ExtrinsicStatus } from '@polkadot/types/interfaces/author';
-import type { UncleEntryItem } from '@polkadot/types/interfaces/authorship';
+} from "@polkadot/types/interfaces/attestations";
+import type { RawAuraPreDigest } from "@polkadot/types/interfaces/aura";
+import type { ExtrinsicOrHash, ExtrinsicStatus } from "@polkadot/types/interfaces/author";
+import type { UncleEntryItem } from "@polkadot/types/interfaces/authorship";
 import type {
   AllowedSlots,
   BabeAuthorityWeight,
@@ -82,7 +82,7 @@ import type {
   VrfData,
   VrfOutput,
   VrfProof,
-} from '@polkadot/types/interfaces/babe';
+} from "@polkadot/types/interfaces/babe";
 import type {
   AccountData,
   BalanceLock,
@@ -93,7 +93,7 @@ import type {
   ReserveIdentifier,
   VestingSchedule,
   WithdrawReasons,
-} from '@polkadot/types/interfaces/balances';
+} from "@polkadot/types/interfaces/balances";
 import type {
   BeefyCommitment,
   BeefyId,
@@ -102,7 +102,7 @@ import type {
   BeefySignedCommitment,
   MmrRootHash,
   ValidatorSetId,
-} from '@polkadot/types/interfaces/beefy';
+} from "@polkadot/types/interfaces/beefy";
 import type {
   BridgeMessageId,
   BridgedBlockHash,
@@ -129,18 +129,18 @@ import type {
   RelayerId,
   UnrewardedRelayer,
   UnrewardedRelayersState,
-} from '@polkadot/types/interfaces/bridges';
-import type { BlockHash } from '@polkadot/types/interfaces/chain';
-import type { PrefixedStorageKey } from '@polkadot/types/interfaces/childstate';
-import type { StatementKind } from '@polkadot/types/interfaces/claims';
+} from "@polkadot/types/interfaces/bridges";
+import type { BlockHash } from "@polkadot/types/interfaces/chain";
+import type { PrefixedStorageKey } from "@polkadot/types/interfaces/childstate";
+import type { StatementKind } from "@polkadot/types/interfaces/claims";
 import type {
   CollectiveOrigin,
   MemberCount,
   ProposalIndex,
   Votes,
   VotesTo230,
-} from '@polkadot/types/interfaces/collective';
-import type { AuthorityId, RawVRFOutput } from '@polkadot/types/interfaces/consensus';
+} from "@polkadot/types/interfaces/collective";
+import type { AuthorityId, RawVRFOutput } from "@polkadot/types/interfaces/consensus";
 import type {
   AliveContractInfo,
   CodeHash,
@@ -190,7 +190,7 @@ import type {
   StorageDeposit,
   TombstoneContractInfo,
   TrieId,
-} from '@polkadot/types/interfaces/contracts';
+} from "@polkadot/types/interfaces/contracts";
 import type {
   ContractConstructorSpecLatest,
   ContractConstructorSpecV0,
@@ -240,20 +240,20 @@ import type {
   ContractSelector,
   ContractStorageLayout,
   ContractTypeSpec,
-} from '@polkadot/types/interfaces/contractsAbi';
+} from "@polkadot/types/interfaces/contractsAbi";
 import type {
   FundIndex,
   FundInfo,
   LastContribution,
   TrieIndex,
-} from '@polkadot/types/interfaces/crowdloan';
+} from "@polkadot/types/interfaces/crowdloan";
 import type {
   ConfigData,
   MessageId,
   OverweightIndex,
   PageCounter,
   PageIndexData,
-} from '@polkadot/types/interfaces/cumulus';
+} from "@polkadot/types/interfaces/cumulus";
 import type {
   AccountVote,
   AccountVoteSplit,
@@ -276,7 +276,7 @@ import type {
   VotingDelegating,
   VotingDirect,
   VotingDirectVote,
-} from '@polkadot/types/interfaces/democracy';
+} from "@polkadot/types/interfaces/democracy";
 import type {
   ApprovalFlag,
   DefunctVoter,
@@ -286,8 +286,8 @@ import type {
   VoteIndex,
   VoteThreshold,
   VoterInfo,
-} from '@polkadot/types/interfaces/elections';
-import type { CreatedBlock, ImportedAux } from '@polkadot/types/interfaces/engine';
+} from "@polkadot/types/interfaces/elections";
+import type { CreatedBlock, ImportedAux } from "@polkadot/types/interfaces/engine";
 import type {
   BlockV0,
   BlockV1,
@@ -333,7 +333,7 @@ import type {
   TransactionV0,
   TransactionV1,
   TransactionV2,
-} from '@polkadot/types/interfaces/eth';
+} from "@polkadot/types/interfaces/eth";
 import type {
   EvmAccount,
   EvmLog,
@@ -343,7 +343,7 @@ import type {
   ExitReason,
   ExitRevert,
   ExitSucceed,
-} from '@polkadot/types/interfaces/evm';
+} from "@polkadot/types/interfaces/evm";
 import type {
   AnySignature,
   EcdsaSignature,
@@ -364,20 +364,20 @@ import type {
   Signature,
   SignerPayload,
   Sr25519Signature,
-} from '@polkadot/types/interfaces/extrinsics';
+} from "@polkadot/types/interfaces/extrinsics";
 import type {
   AssetOptions,
   Owner,
   PermissionLatest,
   PermissionVersions,
   PermissionsV1,
-} from '@polkadot/types/interfaces/genericAsset';
+} from "@polkadot/types/interfaces/genericAsset";
 import type {
   ActiveGilt,
   ActiveGiltsTotal,
   ActiveIndex,
   GiltBid,
-} from '@polkadot/types/interfaces/gilt';
+} from "@polkadot/types/interfaces/gilt";
 import type {
   AuthorityIndex,
   AuthorityList,
@@ -411,7 +411,7 @@ import type {
   SetId,
   StoredPendingChange,
   StoredState,
-} from '@polkadot/types/interfaces/grandpa';
+} from "@polkadot/types/interfaces/grandpa";
 import type {
   IdentityFields,
   IdentityInfo,
@@ -423,7 +423,7 @@ import type {
   Registration,
   RegistrationJudgement,
   RegistrationTo198,
-} from '@polkadot/types/interfaces/identity';
+} from "@polkadot/types/interfaces/identity";
 import type {
   AuthIndex,
   AuthoritySignature,
@@ -432,8 +432,8 @@ import type {
   OpaqueMultiaddr,
   OpaqueNetworkState,
   OpaquePeerId,
-} from '@polkadot/types/interfaces/imOnline';
-import type { CallIndex, LotteryConfig } from '@polkadot/types/interfaces/lottery';
+} from "@polkadot/types/interfaces/imOnline";
+import type { CallIndex, LotteryConfig } from "@polkadot/types/interfaces/lottery";
 import type {
   ErrorMetadataLatest,
   ErrorMetadataV10,
@@ -535,9 +535,9 @@ import type {
   StorageMetadataV12,
   StorageMetadataV13,
   StorageMetadataV9,
-} from '@polkadot/types/interfaces/metadata';
-import type { MmrLeafProof } from '@polkadot/types/interfaces/mmr';
-import type { StorageKind } from '@polkadot/types/interfaces/offchain';
+} from "@polkadot/types/interfaces/metadata";
+import type { MmrLeafProof } from "@polkadot/types/interfaces/mmr";
+import type { StorageKind } from "@polkadot/types/interfaces/offchain";
 import type {
   DeferredOffenceOf,
   Kind,
@@ -546,7 +546,7 @@ import type {
   OpaqueTimeSlot,
   ReportIdOf,
   Reporter,
-} from '@polkadot/types/interfaces/offences';
+} from "@polkadot/types/interfaces/offences";
 import type {
   AbridgedCandidateReceipt,
   AbridgedHostConfiguration,
@@ -662,21 +662,21 @@ import type {
   WinningData,
   WinningData10,
   WinningDataEntry,
-} from '@polkadot/types/interfaces/parachains';
+} from "@polkadot/types/interfaces/parachains";
 import type {
   FeeDetails,
   InclusionFee,
   RuntimeDispatchInfo,
-} from '@polkadot/types/interfaces/payment';
-import type { Approvals } from '@polkadot/types/interfaces/poll';
+} from "@polkadot/types/interfaces/payment";
+import type { Approvals } from "@polkadot/types/interfaces/poll";
 import type {
   ProxyAnnouncement,
   ProxyDefinition,
   ProxyType,
-} from '@polkadot/types/interfaces/proxy';
-import type { AccountStatus, AccountValidity } from '@polkadot/types/interfaces/purchase';
-import type { ActiveRecovery, RecoveryConfig } from '@polkadot/types/interfaces/recovery';
-import type { RpcMethods } from '@polkadot/types/interfaces/rpc';
+} from "@polkadot/types/interfaces/proxy";
+import type { AccountStatus, AccountValidity } from "@polkadot/types/interfaces/purchase";
+import type { ActiveRecovery, RecoveryConfig } from "@polkadot/types/interfaces/recovery";
+import type { RpcMethods } from "@polkadot/types/interfaces/rpc";
 import type {
   AccountId,
   AccountId20,
@@ -768,7 +768,7 @@ import type {
   ValidatorIdOf,
   Weight,
   WeightMultiplier,
-} from '@polkadot/types/interfaces/runtime';
+} from "@polkadot/types/interfaces/runtime";
 import type {
   Si0Field,
   Si0LookupTypeId,
@@ -816,7 +816,7 @@ import type {
   SiTypeDefVariant,
   SiTypeParameter,
   SiVariant,
-} from '@polkadot/types/interfaces/scaleInfo';
+} from "@polkadot/types/interfaces/scaleInfo";
 import type {
   Period,
   Priority,
@@ -825,7 +825,7 @@ import type {
   Scheduled,
   ScheduledTo254,
   TaskAddress,
-} from '@polkadot/types/interfaces/scheduler';
+} from "@polkadot/types/interfaces/scheduler";
 import type {
   BeefyKey,
   FullIdentification,
@@ -849,7 +849,7 @@ import type {
   SessionKeys9,
   SessionKeys9B,
   ValidatorCount,
-} from '@polkadot/types/interfaces/session';
+} from "@polkadot/types/interfaces/session";
 import type {
   Bid,
   BidKind,
@@ -857,7 +857,7 @@ import type {
   SocietyVote,
   StrikeCount,
   VouchingStatus,
-} from '@polkadot/types/interfaces/society';
+} from "@polkadot/types/interfaces/society";
 import type {
   ActiveEraInfo,
   CompactAssignments,
@@ -927,7 +927,7 @@ import type {
   ValidatorPrefsWithCommission,
   VoteWeight,
   Voter,
-} from '@polkadot/types/interfaces/staking';
+} from "@polkadot/types/interfaces/staking";
 import type {
   ApiId,
   BlockTrace,
@@ -943,8 +943,8 @@ import type {
   StorageChangeSet,
   TraceBlockResponse,
   TraceError,
-} from '@polkadot/types/interfaces/state';
-import type { WeightToFeeCoefficient } from '@polkadot/types/interfaces/support';
+} from "@polkadot/types/interfaces/state";
+import type { WeightToFeeCoefficient } from "@polkadot/types/interfaces/support";
 import type {
   AccountInfo,
   AccountInfoWithDualRefCount,
@@ -1002,7 +1002,7 @@ import type {
   TransactionValidityError,
   UnknownTransaction,
   WeightPerClass,
-} from '@polkadot/types/interfaces/system';
+} from "@polkadot/types/interfaces/system";
 import type {
   Bounty,
   BountyIndex,
@@ -1015,8 +1015,8 @@ import type {
   OpenTipTip,
   OpenTipTo225,
   TreasuryProposal,
-} from '@polkadot/types/interfaces/treasury';
-import type { Multiplier } from '@polkadot/types/interfaces/txpayment';
+} from "@polkadot/types/interfaces/treasury";
+import type { Multiplier } from "@polkadot/types/interfaces/txpayment";
 import type {
   ClassDetails,
   ClassId,
@@ -1027,9 +1027,9 @@ import type {
   InstanceDetails,
   InstanceId,
   InstanceMetadata,
-} from '@polkadot/types/interfaces/uniques';
-import type { Multisig, Timepoint } from '@polkadot/types/interfaces/utility';
-import type { VestingInfo } from '@polkadot/types/interfaces/vesting';
+} from "@polkadot/types/interfaces/uniques";
+import type { Multisig, Timepoint } from "@polkadot/types/interfaces/utility";
+import type { VestingInfo } from "@polkadot/types/interfaces/vesting";
 import type {
   AssetInstance,
   AssetInstanceV0,
@@ -1112,9 +1112,9 @@ import type {
   XcmV2,
   XcmVersion,
   XcmpMessageFormat,
-} from '@polkadot/types/interfaces/xcm';
+} from "@polkadot/types/interfaces/xcm";
 
-declare module '@polkadot/types/types/registry' {
+declare module "@polkadot/types/types/registry" {
   export interface InterfaceTypes {
     AbridgedCandidateReceipt: AbridgedCandidateReceipt;
     AbridgedHostConfiguration: AbridgedHostConfiguration;

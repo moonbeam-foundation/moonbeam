@@ -1,8 +1,8 @@
 // Auto-generated via `yarn polkadot-types-from-chain`, do not edit
 /* eslint-disable */
 
-import type { ApiTypes } from '@polkadot/api-base/types';
-import type { Data } from '@polkadot/types';
+import type { ApiTypes } from "@polkadot/api-base/types";
+import type { Data } from "@polkadot/types";
 import type {
   BTreeMap,
   Bytes,
@@ -16,8 +16,8 @@ import type {
   u16,
   u32,
   u64,
-} from '@polkadot/types-codec';
-import type { AnyNumber, ITuple } from '@polkadot/types-codec/types';
+} from "@polkadot/types-codec";
+import type { AnyNumber, ITuple } from "@polkadot/types-codec/types";
 import type {
   AccountId20,
   Call,
@@ -26,7 +26,7 @@ import type {
   Perbill,
   Percent,
   Permill,
-} from '@polkadot/types/interfaces/runtime';
+} from "@polkadot/types/interfaces/runtime";
 import type {
   CumulusPalletDmpQueueConfigData,
   CumulusPalletDmpQueuePageIndexData,
@@ -94,10 +94,10 @@ import type {
   XcmTransactorRemoteTransactInfoWithMaxWeight,
   XcmV1MultiLocation,
   XcmVersionedMultiLocation,
-} from '@polkadot/types/lookup';
-import type { Observable } from '@polkadot/types/types';
+} from "@polkadot/types/lookup";
+import type { Observable } from "@polkadot/types/types";
 
-declare module '@polkadot/api-base/types/storage' {
+declare module "@polkadot/api-base/types/storage" {
   export interface AugmentedQueries<ApiType extends ApiTypes> {
     assetManager: {
       /**
@@ -119,7 +119,7 @@ declare module '@polkadot/api-base/types/storage' {
       assetTypeId: AugmentedQuery<
         ApiType,
         (
-          arg: MoonriverRuntimeAssetType | { Xcm: any } | string | Uint8Array,
+          arg: MoonriverRuntimeAssetType | { Xcm: any } | string | Uint8Array
         ) => Observable<Option<u128>>,
         [MoonriverRuntimeAssetType]
       > &
@@ -132,7 +132,7 @@ declare module '@polkadot/api-base/types/storage' {
       assetTypeUnitsPerSecond: AugmentedQuery<
         ApiType,
         (
-          arg: MoonriverRuntimeAssetType | { Xcm: any } | string | Uint8Array,
+          arg: MoonriverRuntimeAssetType | { Xcm: any } | string | Uint8Array
         ) => Observable<Option<u128>>,
         [MoonriverRuntimeAssetType]
       > &
@@ -150,7 +150,7 @@ declare module '@polkadot/api-base/types/storage' {
         ApiType,
         (
           arg1: u128 | AnyNumber | Uint8Array,
-          arg2: AccountId20 | string | Uint8Array,
+          arg2: AccountId20 | string | Uint8Array
         ) => Observable<PalletAssetsAssetBalance>,
         [u128, AccountId20]
       > &
@@ -166,7 +166,7 @@ declare module '@polkadot/api-base/types/storage' {
         (
           arg1: u128 | AnyNumber | Uint8Array,
           arg2: AccountId20 | string | Uint8Array,
-          arg3: AccountId20 | string | Uint8Array,
+          arg3: AccountId20 | string | Uint8Array
         ) => Observable<Option<PalletAssetsApproval>>,
         [u128, AccountId20, AccountId20]
       > &
@@ -224,7 +224,7 @@ declare module '@polkadot/api-base/types/storage' {
       mappingWithDeposit: AugmentedQuery<
         ApiType,
         (
-          arg: NimbusPrimitivesNimbusCryptoPublic | string | Uint8Array,
+          arg: NimbusPrimitivesNimbusCryptoPublic | string | Uint8Array
         ) => Observable<Option<PalletAuthorMappingRegistrationInfo>>,
         [NimbusPrimitivesNimbusCryptoPublic]
       > &
@@ -343,7 +343,7 @@ declare module '@polkadot/api-base/types/storage' {
       accountsPayable: AugmentedQuery<
         ApiType,
         (
-          arg: AccountId20 | string | Uint8Array,
+          arg: AccountId20 | string | Uint8Array
         ) => Observable<Option<PalletCrowdloanRewardsRewardInfo>>,
         [AccountId20]
       > &
@@ -380,7 +380,7 @@ declare module '@polkadot/api-base/types/storage' {
       unassociatedContributions: AugmentedQuery<
         ApiType,
         (
-          arg: U8aFixed | string | Uint8Array,
+          arg: U8aFixed | string | Uint8Array
         ) => Observable<Option<PalletCrowdloanRewardsRewardInfo>>,
         [U8aFixed]
       > &
@@ -744,7 +744,7 @@ declare module '@polkadot/api-base/types/storage' {
         ApiType,
         (
           arg1: u32 | AnyNumber | Uint8Array,
-          arg2: AccountId20 | string | Uint8Array,
+          arg2: AccountId20 | string | Uint8Array
         ) => Observable<ParachainStakingCollatorSnapshot>,
         [u32, AccountId20]
       > &
@@ -756,7 +756,7 @@ declare module '@polkadot/api-base/types/storage' {
         ApiType,
         (
           arg1: u32 | AnyNumber | Uint8Array,
-          arg2: AccountId20 | string | Uint8Array,
+          arg2: AccountId20 | string | Uint8Array
         ) => Observable<u32>,
         [u32, AccountId20]
       > &
@@ -777,7 +777,7 @@ declare module '@polkadot/api-base/types/storage' {
       candidateInfo: AugmentedQuery<
         ApiType,
         (
-          arg: AccountId20 | string | Uint8Array,
+          arg: AccountId20 | string | Uint8Array
         ) => Observable<Option<ParachainStakingCandidateMetadata>>,
         [AccountId20]
       > &
@@ -794,7 +794,7 @@ declare module '@polkadot/api-base/types/storage' {
       candidateState: AugmentedQuery<
         ApiType,
         (
-          arg: AccountId20 | string | Uint8Array,
+          arg: AccountId20 | string | Uint8Array
         ) => Observable<Option<ParachainStakingCollatorCandidate>>,
         [AccountId20]
       > &
@@ -1133,7 +1133,7 @@ declare module '@polkadot/api-base/types/storage' {
         ApiType,
         (
           arg1: u32 | AnyNumber | Uint8Array,
-          arg2: XcmVersionedMultiLocation | { V0: any } | { V1: any } | string | Uint8Array,
+          arg2: XcmVersionedMultiLocation | { V0: any } | { V1: any } | string | Uint8Array
         ) => Observable<Option<u32>>,
         [u32, XcmVersionedMultiLocation]
       > &
@@ -1156,7 +1156,7 @@ declare module '@polkadot/api-base/types/storage' {
         ApiType,
         (
           arg1: u32 | AnyNumber | Uint8Array,
-          arg2: XcmVersionedMultiLocation | { V0: any } | { V1: any } | string | Uint8Array,
+          arg2: XcmVersionedMultiLocation | { V0: any } | { V1: any } | string | Uint8Array
         ) => Observable<Option<u64>>,
         [u32, XcmVersionedMultiLocation]
       > &
@@ -1169,7 +1169,7 @@ declare module '@polkadot/api-base/types/storage' {
         ApiType,
         (
           arg1: u32 | AnyNumber | Uint8Array,
-          arg2: XcmVersionedMultiLocation | { V0: any } | { V1: any } | string | Uint8Array,
+          arg2: XcmVersionedMultiLocation | { V0: any } | { V1: any } | string | Uint8Array
         ) => Observable<Option<ITuple<[u64, u64, u32]>>>,
         [u32, XcmVersionedMultiLocation]
       > &
@@ -1186,7 +1186,7 @@ declare module '@polkadot/api-base/types/storage' {
       announcements: AugmentedQuery<
         ApiType,
         (
-          arg: AccountId20 | string | Uint8Array,
+          arg: AccountId20 | string | Uint8Array
         ) => Observable<ITuple<[Vec<PalletProxyAnnouncement>, u128]>>,
         [AccountId20]
       > &
@@ -1198,7 +1198,7 @@ declare module '@polkadot/api-base/types/storage' {
       proxies: AugmentedQuery<
         ApiType,
         (
-          arg: AccountId20 | string | Uint8Array,
+          arg: AccountId20 | string | Uint8Array
         ) => Observable<ITuple<[Vec<PalletProxyProxyDefinition>, u128]>>,
         [AccountId20]
       > &
@@ -1486,7 +1486,7 @@ declare module '@polkadot/api-base/types/storage' {
         ApiType,
         (
           arg1: u32 | AnyNumber | Uint8Array,
-          arg2: u32 | AnyNumber | Uint8Array,
+          arg2: u32 | AnyNumber | Uint8Array
         ) => Observable<Bytes>,
         [u32, u32]
       > &
@@ -1502,7 +1502,7 @@ declare module '@polkadot/api-base/types/storage' {
               [
                 u32,
                 CumulusPalletXcmpQueueInboundStatus,
-                Vec<ITuple<[u32, PolkadotParachainPrimitivesXcmpMessageFormat]>>,
+                Vec<ITuple<[u32, PolkadotParachainPrimitivesXcmpMessageFormat]>>
               ]
             >
           >
@@ -1517,7 +1517,7 @@ declare module '@polkadot/api-base/types/storage' {
         ApiType,
         (
           arg1: u32 | AnyNumber | Uint8Array,
-          arg2: u16 | AnyNumber | Uint8Array,
+          arg2: u16 | AnyNumber | Uint8Array
         ) => Observable<Bytes>,
         [u32, u16]
       > &
@@ -1570,7 +1570,7 @@ declare module '@polkadot/api-base/types/storage' {
       transactInfoWithWeightLimit: AugmentedQuery<
         ApiType,
         (
-          arg: XcmV1MultiLocation | { parents?: any; interior?: any } | string | Uint8Array,
+          arg: XcmV1MultiLocation | { parents?: any; interior?: any } | string | Uint8Array
         ) => Observable<Option<XcmTransactorRemoteTransactInfoWithMaxWeight>>,
         [XcmV1MultiLocation]
       > &
