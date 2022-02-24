@@ -656,7 +656,7 @@ impl From<MultiLocation> for AssetType {
 }
 
 impl Into<Option<MultiLocation>> for AssetType {
-	fn into(self: Self) -> Option<MultiLocation> {
+	fn into(self) -> Option<MultiLocation> {
 		match self {
 			Self::Xcm(location) => Some(location),
 		}

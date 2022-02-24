@@ -396,9 +396,9 @@ where
 							.ok_or("Trace result is empty.")
 							.map_err(|e| internal_err(format!("{:?}", e)))
 					}
-					_ => Err(internal_err(format!(
-						"Bug: failed to resolve the tracer format."
-					))),
+					_ => Err(internal_err(
+						"Bug: failed to resolve the tracer format.".to_string(),
+					)),
 				}?;
 
 				Ok(Response::Block(response))
@@ -567,9 +567,9 @@ where
 									.map_err(|e| internal_err(format!("{:?}", e)))?;
 								Ok(res.pop().unwrap())
 							}
-							_ => Err(internal_err(format!(
-								"Bug: failed to resolve the tracer format."
-							))),
+							_ => Err(internal_err(
+								"Bug: failed to resolve the tracer format.".to_string(),
+							)),
 						}?;
 						Ok(Response::Single(response))
 					}
