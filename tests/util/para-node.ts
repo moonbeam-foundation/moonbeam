@@ -56,16 +56,24 @@ export async function findAvailablePorts(parachainCount: number = 1) {
 // at the same time.
 let nodeStarted = false;
 
+export type ParaRuntimeOpt = {
+  // specify the version of the runtime using tag. Ex: "runtime-1103"
+  // "local" uses
+  // target/release/wbuild/<runtime>-runtime/<runtime>_runtime.compact.compressed.wasm
+  runtime?: "local" | string;
+};
+
+export type ParaSpecOpt = {
+  // specify the file to use to start the chain
+  spec: string;
+};
+
 export type ParaTestOptions = {
-  parachain: {
+  parachain: (ParaRuntimeOpt | ParaSpecOpt) & {
     chain: "moonbase-local" | "moonriver-local" | "moonbeam-local";
     // specify the version of the binary using tag. Ex: "v0.18.1"
     // "local" uses target/release/moonbeam binary
     binary?: "local" | string;
-    // specify the version of the runtime using tag. Ex: "runtime-1103"
-    // "local" uses
-    // target/release/wbuild/<runtime>-runtime/<runtime>_runtime.compact.compressed.wasm
-    runtime?: "local" | string;
   };
   relaychain?: {
     chain?: "rococo-local" | "westend-local" | "kusama-local" | "polkadot-local";
@@ -258,7 +266,9 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
       ? BINARY_PATH
       : await getMoonbeamReleaseBinary(options.parachain.binary);
   const paraSpecs =
-    !options.parachain.runtime || options.parachain.runtime == "local"
+    "spec" in options.parachain
+      ? options.parachain.spec
+      : !("runtime" in options.parachain) || options.parachain.runtime == "local"
       ? await generateRawSpecs(paraBinary, paraChain)
       : await getRawSpecsFromTag(paraChain.split("-")[0] as any, options.parachain.runtime);
 
@@ -275,6 +285,28 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
           configuration: {
             config: {
               validation_upgrade_frequency: 2,
+              validation_upgrade_delay: 30,
+            },
+          },
+        },
+      },
+    },
+    "v0.9.16": {
+      runtime: {
+        runtime_genesis_config: {
+          configuration: {
+            config: {
+              validation_upgrade_delay: 30,
+            },
+          },
+        },
+      },
+    },
+    local: {
+      runtime: {
+        runtime_genesis_config: {
+          configuration: {
+            config: {
               validation_upgrade_delay: 30,
             },
           },

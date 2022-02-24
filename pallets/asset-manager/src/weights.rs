@@ -56,6 +56,7 @@ pub trait WeightInfo {
 	fn set_asset_units_per_second(x: u32) -> Weight;
 	fn change_existing_asset_type(x: u32) -> Weight;
 	fn remove_supported_asset(x: u32) -> Weight;
+	fn remove_existing_asset_type(x: u32) -> Weight;
 }
 
 /// Weights for pallet_asset_manager using the Substrate node and recommended hardware.
@@ -84,6 +85,12 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(5 as Weight))
 			.saturating_add(T::DbWeight::get().writes(4 as Weight))
 	}
+	fn remove_existing_asset_type(x: u32) -> Weight {
+		(30_428_000 as Weight) // Standard Error: 3_000
+			.saturating_add((1_166_000 as Weight).saturating_mul(x as Weight))
+			.saturating_add(T::DbWeight::get().reads(6 as Weight))
+			.saturating_add(T::DbWeight::get().writes(6 as Weight))
+	}
 }
 
 // For backwards compatibility and tests
@@ -110,5 +117,11 @@ impl WeightInfo for () {
 			.saturating_add((1_148_000 as Weight).saturating_mul(x as Weight))
 			.saturating_add(RocksDbWeight::get().reads(5 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(4 as Weight))
+	}
+	fn remove_existing_asset_type(x: u32) -> Weight {
+		(30_428_000 as Weight) // Standard Error: 3_000
+			.saturating_add((1_166_000 as Weight).saturating_mul(x as Weight))
+			.saturating_add(RocksDbWeight::get().reads(6 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(6 as Weight))
 	}
 }
