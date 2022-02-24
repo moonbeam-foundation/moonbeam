@@ -23,7 +23,7 @@ use std::{sync::Arc, time::Duration};
 use fp_rpc::EthereumRuntimeRPCApi;
 use sp_block_builder::BlockBuilder;
 
-use crate::{client::RuntimeApiCollection, TransactionConverters};
+use crate::client::RuntimeApiCollection;
 use cli_opt::EthApi as EthApiCmd;
 use cumulus_primitives_core::ParaId;
 use fc_mapping_sync::{MappingSyncWorker, SyncStrategy};
@@ -38,6 +38,7 @@ use futures::StreamExt;
 use jsonrpc_pubsub::manager::SubscriptionManager;
 use manual_xcm_rpc::{ManualXcm, ManualXcmApi};
 use moonbeam_core_primitives::{Block, Hash};
+use moonbeam_finality_rpc::{MoonbeamFinality, MoonbeamFinalityApi};
 use moonbeam_rpc_txpool::{TxPool, TxPoolServer};
 use pallet_ethereum::EthereumStorageSchema;
 use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
@@ -94,8 +95,6 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 	pub fee_history_limit: u64,
 	/// Fee history cache.
 	pub fee_history_cache: FeeHistoryCache,
-	/// Ethereum transaction to Extrinsic converter.
-	pub transaction_converter: TransactionConverters,
 	/// Channels for manual xcm messages (downward, hrmp)
 	pub xcm_senders: Option<(flume::Sender<Vec<u8>>, flume::Sender<(ParaId, Vec<u8>)>)>,
 }
@@ -167,7 +166,6 @@ where
 		max_past_logs,
 		fee_history_limit,
 		fee_history_cache,
-		transaction_converter,
 		xcm_senders,
 	} = deps;
 
@@ -187,11 +185,22 @@ where
 		eth_log_block_cache,
 	));
 
+	enum Never {}
+	impl<T> fp_rpc::ConvertTransaction<T> for Never {
+		fn convert_transaction(&self, _transaction: pallet_ethereum::Transaction) -> T {
+			// The Never type is not instantiable, but this method requires the type to be
+			// instantiated to be called (`&self` parameter), so if the code compiles we have the
+			// guarantee that this function will never be called.
+			unreachable!()
+		}
+	}
+	let convert_transaction: Option<Never> = None;
+
 	io.extend_with(EthApiServer::to_delegate(EthApi::new(
 		client.clone(),
 		pool.clone(),
 		graph.clone(),
-		transaction_converter,
+		convert_transaction,
 		network.clone(),
 		signers,
 		overrides.clone(),
@@ -207,7 +216,7 @@ where
 	if let Some(filter_pool) = filter_pool {
 		io.extend_with(EthFilterApiServer::to_delegate(EthFilterApi::new(
 			client.clone(),
-			frontier_backend,
+			frontier_backend.clone(),
 			filter_pool,
 			500_usize, // max stored filters
 			overrides.clone(),
@@ -238,6 +247,11 @@ where
 			graph,
 		)));
 	}
+
+	io.extend_with(MoonbeamFinalityApi::to_delegate(MoonbeamFinality::new(
+		client.clone(),
+		frontier_backend.clone(),
+	)));
 
 	if let Some(command_sink) = command_sink {
 		io.extend_with(

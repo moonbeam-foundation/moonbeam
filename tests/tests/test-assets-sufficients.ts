@@ -97,7 +97,7 @@ describeDevMoonbeam(
       // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
       // And we need relay tokens for issuing a transaction to be executed in the relay
       const balance = new BN("100000000000000");
-      const assetBalance = context.polkadotApi.createType("PalletAssetsAssetBalance", {
+      const assetBalance = context.polkadotApi.createType("PalletAssetsAssetAccount", {
         balance: balance,
       });
       assetId = context.polkadotApi.createType(
@@ -126,7 +126,7 @@ describeDevMoonbeam(
       ).balance as BN;
       await context.createBlock();
       let alithBalance = (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any;
-      expect(alithBalance.balance.eq(new BN(100000000000000))).to.equal(true);
+      expect(alithBalance.unwrap()["balance"].eq(new BN(100000000000000))).to.equal(true);
     });
 
     it("Send MOVR and assets to an account, then drain assets, then MOVR", async function () {
@@ -149,16 +149,19 @@ describeDevMoonbeam(
         assetId,
         freshAccount.address
       )) as any;
-      expect(freshAccountBalance.balance.eq(new BN(10000000000000))).to.equal(true);
+
+      expect(freshAccountBalance.unwrap()["balance"].eq(new BN(10000000000000))).to.equal(true);
 
       expect(
         (
-          await context.polkadotApi.query.system.account(freshAccount.address)
+          (await context.polkadotApi.query.system.account(freshAccount.address)) as any
         ).sufficients.toBigInt()
       ).to.eq(1n);
       // Providers should still be 0
       expect(
-        (await context.polkadotApi.query.system.account(freshAccount.address)).providers.toBigInt()
+        (
+          (await context.polkadotApi.query.system.account(freshAccount.address)) as any
+        ).providers.toBigInt()
       ).to.eq(0n);
 
       // Lets transfer it the native token. We want to transfer enough to cover for a future fee.
@@ -168,20 +171,22 @@ describeDevMoonbeam(
           .paymentInfo(freshAccount)
       ).partialFee as any;
 
-      // For some reason paymentInfo overestimates by 4358
+      // For some reason paymentInfo overestimates by 4359
       await context.polkadotApi.tx.balances
-        .transfer(freshAccount.address, BigInt(fee) - BigInt(4358))
+        .transfer(freshAccount.address, BigInt(fee) - BigInt(4359))
         .signAndSend(alith);
       await context.createBlock();
 
       expect(
         (
-          await context.polkadotApi.query.system.account(freshAccount.address)
+          (await context.polkadotApi.query.system.account(freshAccount.address)) as any
         ).sufficients.toBigInt()
       ).to.eq(1n);
       // Providers should now be 1
       expect(
-        (await context.polkadotApi.query.system.account(freshAccount.address)).providers.toBigInt()
+        (
+          (await context.polkadotApi.query.system.account(freshAccount.address)) as any
+        ).providers.toBigInt()
       ).to.eq(1n);
 
       // What happens now when we execute such transaction? both MOVR and Assets should be drained.
@@ -195,27 +200,33 @@ describeDevMoonbeam(
         assetId,
         freshAccount.address
       )) as any;
-      expect(freshAccountBalance.balance.eq(new BN(0))).to.equal(true);
+      expect(freshAccountBalance.isNone).to.equal(true);
 
       // Sufficients should go to 0
       expect(
         (
-          await context.polkadotApi.query.system.account(freshAccount.address)
+          (await context.polkadotApi.query.system.account(freshAccount.address)) as any
         ).sufficients.toBigInt()
       ).to.eq(0n);
       // Providers should be 1
       expect(
-        (await context.polkadotApi.query.system.account(freshAccount.address)).providers.toBigInt()
+        (
+          (await context.polkadotApi.query.system.account(freshAccount.address)) as any
+        ).providers.toBigInt()
       ).to.eq(1n);
 
       // Nonce should be 1
       expect(
-        (await context.polkadotApi.query.system.account(freshAccount.address)).providers.toBigInt()
+        (
+          (await context.polkadotApi.query.system.account(freshAccount.address)) as any
+        ).providers.toBigInt()
       ).to.eq(1n);
 
       // But balance of MOVR should be 0
       expect(
-        (await context.polkadotApi.query.system.account(freshAccount.address)).data.free.toBigInt()
+        (
+          (await context.polkadotApi.query.system.account(freshAccount.address)) as any
+        ).data.free.toBigInt()
       ).to.eq(0n);
     });
   },
@@ -233,7 +244,7 @@ describeDevMoonbeam(
       // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
       // And we need relay tokens for issuing a transaction to be executed in the relay
       const balance = new BN("100000000000000");
-      const assetBalance = context.polkadotApi.createType("PalletAssetsAssetBalance", {
+      const assetBalance = context.polkadotApi.createType("PalletAssetsAssetAccount", {
         balance: balance,
       });
       assetId = context.polkadotApi.createType(
@@ -262,7 +273,7 @@ describeDevMoonbeam(
       ).balance as BN;
       await context.createBlock();
       let alithBalance = (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any;
-      expect(alithBalance.balance.eq(new BN(100000000000000))).to.equal(true);
+      expect(alithBalance.unwrap()["balance"].eq(new BN(100000000000000))).to.equal(true);
     });
 
     it("Send MOVR and assets to an account, then drain assets, dont drain MOVR", async function () {
@@ -285,16 +296,18 @@ describeDevMoonbeam(
         assetId,
         freshAccount.address
       )) as any;
-      expect(freshAccountBalance.balance.eq(new BN(10000000000000))).to.equal(true);
+      expect(freshAccountBalance.unwrap()["balance"].eq(new BN(10000000000000))).to.equal(true);
 
       expect(
         (
-          await context.polkadotApi.query.system.account(freshAccount.address)
+          (await context.polkadotApi.query.system.account(freshAccount.address)) as any
         ).sufficients.toBigInt()
       ).to.eq(1n);
       // Providers should still be 0
       expect(
-        (await context.polkadotApi.query.system.account(freshAccount.address)).providers.toBigInt()
+        (
+          (await context.polkadotApi.query.system.account(freshAccount.address)) as any
+        ).providers.toBigInt()
       ).to.eq(0n);
 
       // Lets transfer it the native token. We want to transfer enough to cover for a future fee.
@@ -311,12 +324,14 @@ describeDevMoonbeam(
 
       expect(
         (
-          await context.polkadotApi.query.system.account(freshAccount.address)
+          (await context.polkadotApi.query.system.account(freshAccount.address)) as any
         ).sufficients.toBigInt()
       ).to.eq(1n);
       // Providers should now be 1
       expect(
-        (await context.polkadotApi.query.system.account(freshAccount.address)).providers.toBigInt()
+        (
+          (await context.polkadotApi.query.system.account(freshAccount.address)) as any
+        ).providers.toBigInt()
       ).to.eq(1n);
 
       // What happens now when we execute such transaction? both MOVR and Assets should be drained.
@@ -330,28 +345,32 @@ describeDevMoonbeam(
         assetId,
         freshAccount.address
       )) as any;
-      expect(freshAccountBalance.balance.eq(new BN(0))).to.equal(true);
+      expect(freshAccountBalance.isNone).to.equal(true);
 
       // Sufficients should go to 0
       expect(
         (
-          await context.polkadotApi.query.system.account(freshAccount.address)
+          (await context.polkadotApi.query.system.account(freshAccount.address)) as any
         ).sufficients.toBigInt()
       ).to.eq(0n);
       // Providers should be 1
       expect(
-        (await context.polkadotApi.query.system.account(freshAccount.address)).providers.toBigInt()
+        (
+          (await context.polkadotApi.query.system.account(freshAccount.address)) as any
+        ).providers.toBigInt()
       ).to.eq(1n);
 
       // Nonce should be 1
       expect(
-        (await context.polkadotApi.query.system.account(freshAccount.address)).providers.toBigInt()
+        (
+          (await context.polkadotApi.query.system.account(freshAccount.address)) as any
+        ).providers.toBigInt()
       ).to.eq(1n);
 
       // But balance of MOVR should be 0
       expect(
         (
-          await context.polkadotApi.query.system.account(freshAccount.address)
+          (await context.polkadotApi.query.system.account(freshAccount.address)) as any
         ).data.free.toBigInt() > 0n
       ).to.eq(true);
     });
@@ -370,7 +389,7 @@ describeDevMoonbeam(
       // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
       // And we need relay tokens for issuing a transaction to be executed in the relay
       const balance = new BN("100000000000000");
-      const assetBalance = context.polkadotApi.createType("PalletAssetsAssetBalance", {
+      const assetBalance = context.polkadotApi.createType("PalletAssetsAssetAccount", {
         balance: balance,
       });
       assetId = context.polkadotApi.createType(
@@ -399,7 +418,7 @@ describeDevMoonbeam(
       ).balance as BN;
       await context.createBlock();
       let alithBalance = (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any;
-      expect(alithBalance.balance.eq(new BN(100000000000000))).to.equal(true);
+      expect(alithBalance.unwrap()["balance"].eq(new BN(100000000000000))).to.equal(true);
     });
 
     it("Send MOVR and assets to an account, then drain assets, dont drain MOVR", async function () {
@@ -422,16 +441,18 @@ describeDevMoonbeam(
         assetId,
         freshAccount.address
       )) as any;
-      expect(freshAccountBalance.balance.eq(new BN(0))).to.equal(true);
+      expect(freshAccountBalance.isNone).to.equal(true);
 
       expect(
         (
-          await context.polkadotApi.query.system.account(freshAccount.address)
+          (await context.polkadotApi.query.system.account(freshAccount.address)) as any
         ).sufficients.toBigInt()
       ).to.eq(0n);
       // Providers should still be 0
       expect(
-        (await context.polkadotApi.query.system.account(freshAccount.address)).providers.toBigInt()
+        (
+          (await context.polkadotApi.query.system.account(freshAccount.address)) as any
+        ).providers.toBigInt()
       ).to.eq(0n);
 
       // Lets transfer it the native token. We want to transfer enough to cover for a future fee.
@@ -449,12 +470,14 @@ describeDevMoonbeam(
 
       expect(
         (
-          await context.polkadotApi.query.system.account(freshAccount.address)
+          (await context.polkadotApi.query.system.account(freshAccount.address)) as any
         ).sufficients.toBigInt()
       ).to.eq(0n);
       // Providers should now be 1
       expect(
-        (await context.polkadotApi.query.system.account(freshAccount.address)).providers.toBigInt()
+        (
+          (await context.polkadotApi.query.system.account(freshAccount.address)) as any
+        ).providers.toBigInt()
       ).to.eq(1n);
 
       // We now can transfer assets to freshAccount, since it has a provider
@@ -468,20 +491,24 @@ describeDevMoonbeam(
         assetId,
         freshAccount.address
       )) as any;
-      expect(freshAccountBalance.balance.eq(transferAmount)).to.equal(true);
+      expect(freshAccountBalance.unwrap()["balance"].eq(transferAmount)).to.equal(true);
 
       expect(
         (
-          await context.polkadotApi.query.system.account(freshAccount.address)
+          (await context.polkadotApi.query.system.account(freshAccount.address)) as any
         ).sufficients.toBigInt()
       ).to.eq(0n);
 
       expect(
-        (await context.polkadotApi.query.system.account(freshAccount.address)).providers.toBigInt()
+        (
+          (await context.polkadotApi.query.system.account(freshAccount.address)) as any
+        ).providers.toBigInt()
       ).to.eq(1n);
 
       expect(
-        (await context.polkadotApi.query.system.account(freshAccount.address)).consumers.toBigInt()
+        (
+          (await context.polkadotApi.query.system.account(freshAccount.address)) as any
+        ).consumers.toBigInt()
       ).to.eq(1n);
 
       // What happens now when we execute such transaction? both MOVR and Assets should be drained.
@@ -495,34 +522,40 @@ describeDevMoonbeam(
         assetId,
         freshAccount.address
       )) as any;
-      expect(freshAccountBalance.balance.eq(new BN(0))).to.equal(true);
+      expect(freshAccountBalance.isNone).to.equal(true);
 
       // Sufficients should be 0
       expect(
         (
-          await context.polkadotApi.query.system.account(freshAccount.address)
+          (await context.polkadotApi.query.system.account(freshAccount.address)) as any
         ).sufficients.toBigInt()
       ).to.eq(0n);
 
       // Consumers should be 0
       expect(
-        (await context.polkadotApi.query.system.account(freshAccount.address)).consumers.toBigInt()
+        (
+          (await context.polkadotApi.query.system.account(freshAccount.address)) as any
+        ).consumers.toBigInt()
       ).to.eq(0n);
 
       // Providers should be 1
       expect(
-        (await context.polkadotApi.query.system.account(freshAccount.address)).providers.toBigInt()
+        (
+          (await context.polkadotApi.query.system.account(freshAccount.address)) as any
+        ).providers.toBigInt()
       ).to.eq(1n);
 
       // Nonce should be 1
       expect(
-        (await context.polkadotApi.query.system.account(freshAccount.address)).providers.toBigInt()
+        (
+          (await context.polkadotApi.query.system.account(freshAccount.address)) as any
+        ).providers.toBigInt()
       ).to.eq(1n);
 
       // But balance of MOVR should be 0
       expect(
         (
-          await context.polkadotApi.query.system.account(freshAccount.address)
+          (await context.polkadotApi.query.system.account(freshAccount.address)) as any
         ).data.free.toBigInt() > 0n
       ).to.eq(true);
     });

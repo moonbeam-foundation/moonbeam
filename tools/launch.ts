@@ -113,8 +113,23 @@ const parachains: { [name: string]: ParachainConfig } = {
     chain: "moonbase-local",
     docker: "purestake/moonbeam:v0.17.0",
   },
+  "moonbase-0.18.1": {
+    relay: "rococo-9130",
+    chain: "moonbase-local",
+    docker: "purestake/moonbeam:v0.18.1",
+  },
+  "moonbase-0.19.2": {
+    relay: "rococo-9130",
+    chain: "moonbase-local",
+    docker: "purestake/moonbeam:v0.19.2",
+  },
+  "moonbase-0.20.1": {
+    relay: "rococo-9140",
+    chain: "moonbase-local",
+    docker: "purestake/moonbeam:v0.20.1",
+  },
   local: {
-    relay: "rococo-9111",
+    relay: "rococo-9140",
     chain: "moonbase-local",
     binary: "../target/release/moonbeam",
   },
@@ -166,6 +181,10 @@ const relays: { [name: string]: NetworkConfig } = {
     docker: "purestake/moonbase-relay-testnet:sha-45c0f1f3",
     chain: "rococo-local",
   },
+  "rococo-9140": {
+    docker: "purestake/moonbase-relay-testnet:sha-1a88d697",
+    chain: "rococo-local",
+  },
   "westend-9030": {
     docker: "purestake/moonbase-relay-testnet:sha-aa386760",
     chain: "westend-local",
@@ -184,6 +203,24 @@ const relayNames = Object.keys(relays);
 // We support 3 parachains for now
 const validatorNames = ["Alice", "Bob", "Charlie", "Dave", "Eve", "Ferdie"];
 
+const retrieveBinaryFromDocker = async (binaryPath: string, dockerImage: string) => {
+  if (process.platform != "linux") {
+    console.error(
+      `docker binaries are only supported on linux. Use "local" config for compiled binaries`
+    );
+    process.exit(1);
+  }
+  const parachainPath = path.join(__dirname, binaryPath);
+  if (!fs.existsSync(parachainPath)) {
+    console.log(`     Missing ${binaryPath} locally, downloading it...`);
+    child_process.execSync(`mkdir -p ${path.dirname(parachainPath)} && \
+        docker create --name moonbeam-tmp ${dockerImage} && \
+        docker cp moonbeam-tmp:/moonbeam/moonbeam ${parachainPath} && \
+        docker rm moonbeam-tmp`);
+    console.log(`${binaryPath} downloaded !`);
+  }
+};
+
 async function start() {
   const argv = yargs(process.argv.slice(2))
     .usage("Usage: npm run launch [args]")
@@ -198,6 +235,11 @@ async function start() {
       "parachain-chain": {
         type: "string",
         describe: "overrides parachain chain/runtime",
+      },
+      "parachain-runtime": {
+        type: "string",
+        describe: "<git-tag> to use for runtime specs",
+        conflicts: ["parachain-chain"],
       },
       "parachain-id": { type: "number", default: 1000, describe: "overrides parachain-id" },
       relay: {
@@ -247,6 +289,25 @@ async function start() {
     }
   }
 
+  if (argv["parachain-runtime"]) {
+    const sha = child_process.execSync(`git rev-list -1 ${argv["parachain-runtime"]}`);
+    if (!sha) {
+      console.error(`Invalid runtime tag ${argv["parachain-runtime"]}`);
+      return;
+    }
+    const sha8 = sha.slice(0, 8);
+    console.log(`Using runtime from sha: ${sha8}`);
+
+    const parachainBinary = `build/sha-${sha8}/moonbeam`;
+    const parachainPath = path.join(__dirname, parachainBinary);
+    retrieveBinaryFromDocker(parachainBinary, `purestake/moonbeam:sha-${sha8}`);
+
+    child_process.execSync(
+      `${parachainBinary} build-spec --chain moonbase-local --raw > ` +
+        `moonbase-${argv["parachain-runtime"]}-raw-spec.json`
+    );
+  }
+
   if (Array.isArray(argv.parachain)) {
     for (let i = 0; i < argv.parachain.length; i++) {
       if (i >= paraIds.length) {
@@ -262,8 +323,11 @@ async function start() {
       const parachainName = argv.parachain[i].toString();
       parasNames.push(parachainName);
       paras.push(parachains[parachainName]);
+      if (argv["parachain-runtime"]) {
+        parachainsChains.push(`moonbase-${argv["parachain-runtime"]}-raw-spec.json`);
+      }
       // If it is an array, push the position at which we are
-      if (Array.isArray(argv["parachain-chain"])) {
+      else if (Array.isArray(argv["parachain-chain"])) {
         parachainsChains.push(argv["parachain-chain"] || parachains[parachainName].chain);
       }
       // Else, push the value to the first parachain if it exists, else the default
@@ -282,7 +346,12 @@ async function start() {
     const parachainName = argv.parachain.toString();
     parasNames.push(parachainName);
     paras.push(parachains[parachainName]);
-    parachainsChains.push(argv["parachain-chain"] || parachains[parachainName].chain);
+
+    parachainsChains.push(
+      argv["parachain-runtime"]
+        ? `moonbase-${argv["parachain-runtime"]}-raw-spec.json`
+        : argv["parachain-chain"] || parachains[parachainName].chain
+    );
   }
 
   const relayName = argv.relay || paras[0].relay;
@@ -314,22 +383,10 @@ async function start() {
       }
       parachainPaths.push(parachainPath);
     } else {
-      if (process.platform != "linux") {
-        console.log(
-          `docker binaries are only supported on linux. Use "local" config for compiled binaries`
-        );
-        return;
-      }
       const parachainBinary = `build/${parasNames[i]}/moonbeam`;
       const parachainPath = path.join(__dirname, parachainBinary);
-      if (!fs.existsSync(parachainPath)) {
-        console.log(`     Missing ${parachainBinary} locally, downloading it...`);
-        child_process.execSync(`mkdir -p ${path.dirname(parachainPath)} && \
-            docker create --name moonbeam-tmp ${paras[i].docker} && \
-            docker cp moonbeam-tmp:/moonbeam/moonbeam ${parachainPath} && \
-            docker rm moonbeam-tmp`);
-        console.log(`${parachainBinary} downloaded !`);
-      }
+
+      retrieveBinaryFromDocker(parachainBinary, paras[i].docker);
       parachainBinaries.push(parachainBinary);
       parachainPaths.push(parachainPath);
     }
@@ -395,13 +452,13 @@ async function start() {
     parachainConfig.bin = parachainBinaries[i];
     parachainConfig.chain = parachainsChains[i];
     parachainConfig.id = paraIds[i];
-    parachainConfig.nodes[0].port = startingPort + 100 + i * 100;
-    parachainConfig.nodes[0].rpcPort = startingPort + 101 + i * 100;
-    parachainConfig.nodes[0].wsPort = startingPort + 102 + i * 100;
 
-    parachainConfig.nodes[1].port = startingPort + 110 + i * 100;
-    parachainConfig.nodes[1].rpcPort = startingPort + 111 + i * 100;
-    parachainConfig.nodes[1].wsPort = startingPort + 112 + i * 100;
+    parachainConfig.nodes.forEach((node, index) => {
+      node.port = startingPort + 100 + i * 100 + index * 10;
+      node.rpcPort = startingPort + 101 + i * 100 + index * 10;
+      node.wsPort = startingPort + 102 + i * 100 + index * 10;
+    });
+
     launchConfig.parachains.push(parachainConfig);
 
     // Two relay nodes per para
@@ -462,7 +519,7 @@ const launchTemplate = {
         configuration: {
           config: {
             validation_upgrade_frequency: 1,
-            validation_upgrade_delay: 1,
+            validation_upgrade_delay: 30,
           },
         },
       },

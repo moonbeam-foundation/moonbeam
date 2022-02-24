@@ -80,7 +80,7 @@ The script [tools/launch.ts] contains a list of presets to execute the different
 Ex:
 
 ```
-yarn launch --parachain moonbase-0.17.0
+yarn launch --parachain moonbase-0.20.1
 ```
 
 (More details in [tools/README.md])

@@ -37,7 +37,7 @@ pub mod pallet {
 
 	/// Pallet for configuring proxy at genesis
 	#[pallet::pallet]
-	#[pallet::generate_storage_info]
+	#[pallet::without_storage_info]
 	pub struct Pallet<T>(PhantomData<T>);
 
 	/// This pallet requires

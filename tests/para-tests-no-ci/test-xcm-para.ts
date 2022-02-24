@@ -108,7 +108,7 @@ async function registerAssetToParachain(
   const { events } = await createBlockWithExtrinsicParachain(
     parachainApi,
     sudoKeyring,
-    parachainApi.tx.sudo.sudo(parachainApi.tx.assetManager.setAssetUnitsPerSecond(assetId, 0))
+    parachainApi.tx.sudo.sudo(parachainApi.tx.assetManager.setAssetUnitsPerSecond(assetLocation, 0))
   );
   return { events, assetId };
 }
@@ -200,7 +200,7 @@ describeParachain(
 
       // Alith asset balance should have been increased to 1000*e12
       expect(
-        ((await parachainOne.query.assets.account(assetId, ALITH)).balance as any).toString()
+        ((await parachainOne.query.assets.account(assetId, ALITH)) as any).balance.toString()
       ).to.eq(BigInt(THOUSAND_UNITS).toString());
     });
   }
@@ -276,7 +276,7 @@ describeParachain("XCM - send_relay_asset_to_relay", { chain: "moonbase-local" }
     expect(afterAliceRelayBalance.toString()).to.eq(expectedAfterRelayBalance.toString());
     // // BALTATHAR asset balance should have been increased to 1000*e12
     expect(
-      ((await parachainOne.query.assets.account(assetId, BALTATHAR)).balance as any).toString()
+      ((await parachainOne.query.assets.account(assetId, BALTATHAR)) as any).balance.toString()
     ).to.eq(BigInt(THOUSAND_UNITS).toString());
   });
   it("should be able to receive an asset in relaychain from parachain", async function () {
@@ -316,7 +316,7 @@ describeParachain("XCM - send_relay_asset_to_relay", { chain: "moonbase-local" }
     ).to.eq(expectedAliceBalance.toString());
     // Baltathar should have 100 * 10^12 less
     expect(
-      ((await parachainOne.query.assets.account(assetId, BALTATHAR)).balance as any).toString()
+      ((await parachainOne.query.assets.account(assetId, BALTATHAR)) as any).balance.toString()
     ).to.eq((BigInt(THOUSAND_UNITS) - BigInt(HUNDRED_UNITS)).toString());
   });
 });
@@ -404,7 +404,7 @@ describeParachain(
       expect(afterAliceRelayBalance.toString()).to.eq(expectedAfterRelayBalance.toString());
 
       expect(
-        ((await parachainOne.query.assets.account(assetId, BALTATHAR)).balance as any).toString()
+        ((await parachainOne.query.assets.account(assetId, BALTATHAR)) as any).balance.toString()
       ).to.eq(BigInt(THOUSAND_UNITS).toString());
     });
     it("should be able to receive a non-reserve asset in para b from para a", async function () {
@@ -441,10 +441,10 @@ describeParachain(
       let expectedBaltatharParaTwoBalance = BigInt(HUNDRED_UNITS) - relayFees;
 
       expect(
-        ((await parachainOne.query.assets.account(assetId, BALTATHAR)).balance as any).toString()
+        ((await parachainOne.query.assets.account(assetId, BALTATHAR)) as any).balance.toString()
       ).to.eq((BigInt(THOUSAND_UNITS) - BigInt(HUNDRED_UNITS)).toString());
       expect(
-        ((await parachainTwo.query.assets.account(assetId, BALTATHAR)).balance as any).toString()
+        ((await parachainTwo.query.assets.account(assetId, BALTATHAR)) as any).balance.toString()
       ).to.eq(expectedBaltatharParaTwoBalance.toString());
     });
   }
@@ -480,7 +480,9 @@ describeParachain(
       logEvents(parachainTwo, "PARA B");
       logEvents(relayOne, "RELAY");
 
-      initialBalance = Number((await parachainOne.query.system.account(BALTATHAR)).data.free);
+      initialBalance = Number(
+        ((await parachainOne.query.system.account(BALTATHAR)) as any).data.free
+      );
 
       // Get Pallet balances index
       const metadata = await parachainOne.rpc.state.getMetadata();
@@ -539,13 +541,14 @@ describeParachain(
       // Verify that difference is 100 units plus fees (less than 1% of 10^18)
       const targetBalance: number = Number(BigInt(BigInt(initialBalance) - HUNDRED_UNITS_PARA));
       const diff =
-        Number((await parachainOne.query.system.account(BALTATHAR)).data.free) - targetBalance;
+        Number(((await parachainOne.query.system.account(BALTATHAR)) as any).data.free) -
+        targetBalance;
       expect(diff < 10000000000000000).to.eq(true);
 
       let expectedBaltatharParaTwoBalance = BigInt(HUNDRED_UNITS_PARA);
 
       expect(
-        ((await parachainTwo.query.assets.account(assetId, BALTATHAR)).balance as any).toString()
+        ((await parachainTwo.query.assets.account(assetId, BALTATHAR)) as any).balance.toString()
       ).to.eq(expectedBaltatharParaTwoBalance.toString());
     });
   }
@@ -581,7 +584,9 @@ describeParachain(
       logEvents(parachainTwo, "PARA B");
       logEvents(relayOne, "RELAY");
 
-      initialBalance = Number((await parachainOne.query.system.account(BALTATHAR)).data.free);
+      initialBalance = Number(
+        ((await parachainOne.query.system.account(BALTATHAR)) as any).data.free
+      );
 
       // Get Pallet balances index
       const metadata = await parachainOne.rpc.state.getMetadata();
@@ -663,14 +668,15 @@ describeParachain(
       await waitOneBlock(parachainTwo, 3);
 
       const diff =
-        initialBalance - Number((await parachainOne.query.system.account(BALTATHAR)).data.free);
+        initialBalance -
+        Number(((await parachainOne.query.system.account(BALTATHAR)) as any).data.free);
       // Verify that difference is fees (less than 1% of 10^18)
       expect(diff < 10000000000000000).to.eq(true);
 
       let expectedBaltatharParaTwoBalance = BigInt(0);
 
       expect(
-        ((await parachainTwo.query.assets.account(assetId, BALTATHAR)).balance as any).toString()
+        ((await parachainTwo.query.assets.account(assetId, BALTATHAR)) as any).balance.toString()
       ).to.eq(expectedBaltatharParaTwoBalance.toString());
     });
   }
@@ -709,7 +715,9 @@ describeParachain(
       logEvents(parachainThree, "PARA C");
       logEvents(relayOne, "RELAY");
 
-      initialBalance = Number((await parachainOne.query.system.account(BALTATHAR)).data.free);
+      initialBalance = Number(
+        ((await parachainOne.query.system.account(BALTATHAR)) as any).data.free
+      );
 
       // Get Pallet balances index
       const metadata = await parachainOne.rpc.state.getMetadata();
@@ -798,13 +806,14 @@ describeParachain(
       let expectedBaltatharParaTwoBalance = BigInt(0);
       let paraAXcmFee = BigInt(400000000);
       const diff =
-        Number((await parachainOne.query.system.account(BALTATHAR)).data.free) - targetBalance;
+        Number(((await parachainOne.query.system.account(BALTATHAR)) as any).data.free) -
+        targetBalance;
       expect(diff < 10000000000000000).to.eq(true);
       expect(
-        ((await parachainTwo.query.assets.account(assetId, BALTATHAR)).balance as any).toString()
+        ((await parachainTwo.query.assets.account(assetId, BALTATHAR)) as any).balance.toString()
       ).to.eq(expectedBaltatharParaTwoBalance.toString());
       expect(
-        (await parachainThree.query.assets.account(assetId, BALTATHAR)).balance.toString()
+        ((await parachainThree.query.assets.account(assetId, BALTATHAR)) as any).balance.toString()
       ).to.eq((BigInt(HUNDRED_UNITS_PARA) - paraAXcmFee).toString());
     });
   }
@@ -890,7 +899,7 @@ describeParachain(
 
       // Assert it did not get executed
       expect(
-        ((await parachainOne.query.assets.account(assetId, ALITH)).balance as any).toString()
+        ((await parachainOne.query.assets.account(assetId, ALITH)) as any).balance.toString()
       ).to.eq(BigInt(0).toString());
 
       // PARACHAIN
@@ -912,7 +921,7 @@ describeParachain(
 
       // Alith asset balance should have been increased to 1000*e12 after messages is executed
       expect(
-        ((await parachainOne.query.assets.account(assetId, ALITH)).balance as any).toString()
+        ((await parachainOne.query.assets.account(assetId, ALITH)) as any).balance.toString()
       ).to.eq(BigInt(THOUSAND_UNITS).toString());
     });
   }
@@ -948,7 +957,9 @@ describeParachain(
       logEvents(parachainTwo, "PARA B");
       logEvents(relayOne, "RELAY");
 
-      initialBalance = Number((await parachainOne.query.system.account(BALTATHAR)).data.free);
+      initialBalance = Number(
+        ((await parachainOne.query.system.account(BALTATHAR)) as any).data.free
+      );
 
       // Get Pallet balances index
       const metadata = await parachainOne.rpc.state.getMetadata();
@@ -1028,7 +1039,7 @@ describeParachain(
 
       // Assert it did not get executed
       expect(
-        ((await parachainTwo.query.assets.account(assetId, BALTATHAR)).balance as any).toString()
+        ((await parachainTwo.query.assets.account(assetId, BALTATHAR)) as any).balance.toString()
       ).to.eq(BigInt(0).toString());
 
       // PARACHAIN
@@ -1055,7 +1066,7 @@ describeParachain(
 
       // Assert it did get executed
       expect(
-        ((await parachainTwo.query.assets.account(assetId, BALTATHAR)).balance as any).toString()
+        ((await parachainTwo.query.assets.account(assetId, BALTATHAR)) as any).balance.toString()
       ).to.eq(expectedBaltatharParaTwoBalance.toString());
     });
   }

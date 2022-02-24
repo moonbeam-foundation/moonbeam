@@ -23,7 +23,7 @@ npm install
 ### Usage
 
 ```
-npm run launch -- --parachain moonbase-0.11.2
+npm run launch -- --parachain moonbase-0.18.1
 ```
 
 The launch script accepts a preconfigured network (default is "local", see further).
@@ -66,8 +66,9 @@ local: {
   binary: "../../polkadot/target/release/polkadot",
   chain: "rococo-local",
 },
-
 ```
+
+In addition, you can run a runtime different from the client using `--parachain-runtime <git-tag>`
 
 - "binary" is the path to the binary to execute (related to the tools folder)
 
@@ -91,6 +92,8 @@ Options:
                      [choices: "moonbase", "moonriver", "moonbeam",
                       "moonbase-local", "moonriver-local",
                       "moonbeam-local"]
+
+  --parachain-runtime <git-tag> to use for runtime specs                [string]
 
   --parachain-id     overrides parachain-id             [number] [default: 1000]
 

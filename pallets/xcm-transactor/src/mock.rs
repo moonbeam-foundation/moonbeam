@@ -18,10 +18,7 @@
 use super::*;
 use crate::{self as xcm_transactor};
 use frame_support::{construct_runtime, parameter_types};
-use frame_support::{
-	traits::{EnsureOrigin, Everything, OriginTrait, PalletInfo as PalletInfoTrait},
-	weights::Weight,
-};
+use frame_support::{traits::PalletInfo as PalletInfoTrait, weights::Weight};
 use frame_system::EnsureRoot;
 use parity_scale_codec::{Decode, Encode};
 
@@ -32,17 +29,15 @@ use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 };
 use xcm::latest::{
-	Error as XcmError,
+	Error as XcmError, Instruction,
 	Junction::{AccountKey20, PalletInstance, Parachain},
 	Junctions, MultiAsset, MultiLocation, NetworkId, Result as XcmResult, SendResult, SendXcm, Xcm,
 };
 use xcm_primitives::{UtilityAvailableCalls, UtilityEncodeCall, XcmTransact};
 
-use xcm_builder::{AllowUnpaidExecutionFrom, FixedWeightBounds};
-
 use xcm_executor::{
-	traits::{InvertLocation, TransactAsset, WeightTrader},
-	Assets, XcmExecutor,
+	traits::{InvertLocation, TransactAsset, WeightBounds, WeightTrader},
+	Assets,
 };
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
@@ -59,7 +54,6 @@ construct_runtime!(
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
 		XcmTransactor: xcm_transactor::{Pallet, Call, Event<T>},
-		PolkadotXcm: pallet_xcm::{Pallet, Call, Event<T>, Origin},
 	}
 );
 
@@ -100,6 +94,7 @@ impl frame_system::Config for Test {
 	type OnSetCode = ();
 	type SystemWeightInfo = ();
 	type SS58Prefix = ();
+	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 parameter_types! {
 	pub const ExistentialDeposit: u128 = 0;
@@ -126,28 +121,12 @@ impl pallet_timestamp::Config for Test {
 	type MinimumPeriod = MinimumPeriod;
 	type WeightInfo = ();
 }
-pub struct ConvertOriginToLocal;
-impl<Origin: OriginTrait> EnsureOrigin<Origin> for ConvertOriginToLocal {
-	type Success = MultiLocation;
-
-	fn try_origin(_: Origin) -> Result<MultiLocation, Origin> {
-		Ok(MultiLocation::here())
-	}
-
-	#[cfg(feature = "runtime-benchmarks")]
-	fn successful_origin() -> Origin {
-		Origin::root()
-	}
-}
 pub struct DoNothingRouter;
 impl SendXcm for DoNothingRouter {
 	fn send_xcm(_dest: impl Into<MultiLocation>, _msg: Xcm<()>) -> SendResult {
 		Ok(())
 	}
 }
-
-pub type Barrier = AllowUnpaidExecutionFrom<Everything>;
-
 pub struct DummyAssetTransactor;
 impl TransactAsset for DummyAssetTransactor {
 	fn deposit_asset(_what: &MultiAsset, _who: &MultiLocation) -> XcmResult {
@@ -174,43 +153,22 @@ impl InvertLocation for InvertNothing {
 	fn invert_location(_: &MultiLocation) -> sp_std::result::Result<MultiLocation, ()> {
 		Ok(MultiLocation::here())
 	}
+
+	fn ancestry() -> MultiLocation {
+		MultiLocation::here()
+	}
 }
 
-impl pallet_xcm::Config for Test {
-	// The config types here are entirely configurable, since the only one that is sorely needed
-	// is `XcmExecutor`, which will be used in unit tests located in xcm-executor.
-	type Event = Event;
-	type ExecuteXcmOrigin = ConvertOriginToLocal;
-	type LocationInverter = InvertNothing;
-	type SendXcmOrigin = ConvertOriginToLocal;
-	type Weigher = xcm_builder::FixedWeightBounds<BaseXcmWeight, Call, MaxInstructions>;
-	type XcmRouter = DoNothingRouter;
-	type XcmExecuteFilter = frame_support::traits::Everything;
-	type XcmExecutor = xcm_executor::XcmExecutor<XcmConfig>;
-	type XcmTeleportFilter = frame_support::traits::Everything;
-	type XcmReserveTransferFilter = frame_support::traits::Everything;
-	type Origin = Origin;
-	type Call = Call;
-	const VERSION_DISCOVERY_QUEUE_SIZE: u32 = 100;
-	type AdvertisedXcmVersion = pallet_xcm::CurrentXcmVersion;
-}
+use sp_std::marker::PhantomData;
+pub struct DummyWeigher<C>(PhantomData<C>);
 
-pub struct XcmConfig;
-impl xcm_executor::Config for XcmConfig {
-	type Call = Call;
-	type XcmSender = DoNothingRouter;
-	type AssetTransactor = DummyAssetTransactor;
-	type OriginConverter = pallet_xcm::XcmPassthrough<Origin>;
-	type IsReserve = ();
-	type IsTeleporter = ();
-	type LocationInverter = InvertNothing;
-	type Barrier = Barrier;
-	type Weigher = FixedWeightBounds<BaseXcmWeight, Call, MaxInstructions>;
-	type Trader = DummyWeightTrader;
-	type ResponseHandler = ();
-	type SubscriptionService = ();
-	type AssetTrap = PolkadotXcm;
-	type AssetClaims = PolkadotXcm;
+impl<C: Decode> WeightBounds<C> for DummyWeigher<C> {
+	fn weight(_message: &mut Xcm<C>) -> Result<Weight, ()> {
+		Ok(0)
+	}
+	fn instr_weight(_instruction: &Instruction<C>) -> Result<Weight, ()> {
+		Ok(0)
+	}
 }
 
 pub struct AccountIdToMultiLocation;
@@ -324,12 +282,12 @@ impl Config for Test {
 	type CurrencyId = CurrencyId;
 	type CurrencyIdToMultiLocation = CurrencyIdToMultiLocation;
 	type AccountIdToMultiLocation = AccountIdToMultiLocation;
-	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type SelfLocation = SelfLocation;
-	type Weigher = xcm_builder::FixedWeightBounds<BaseXcmWeight, Call, MaxInstructions>;
+	type Weigher = DummyWeigher<Call>;
 	type LocationInverter = InvertNothing;
 	type BaseXcmWeight = BaseXcmWeight;
 	type XcmSender = DoNothingRouter;
+	type WeightInfo = ();
 }
 
 pub(crate) struct ExtBuilder {
