@@ -123,7 +123,7 @@ benchmarks! {
 			X1(GeneralIndex((x-1) as u128))
 		).into();
 		let asset_id: T::AssetId = asset_type_to_be_removed.clone().into();
-	}: _(RawOrigin::Root, asset_id)
+	}: _(RawOrigin::Root, asset_id, x)
 	verify {
 		assert!(Pallet::<T>::asset_id_type(asset_id).is_none());
 		assert!(Pallet::<T>::asset_type_units_per_second(&asset_type_to_be_removed).is_none());
