@@ -234,7 +234,7 @@ pub mod pallet {
 	/// This authorization needs to be given by root origin
 	#[pallet::storage]
 	#[pallet::getter(fn local_asset_creation_authorization)]
-	pub type LocalAssetCreationauthorization<T: Config> =
+	pub type LocalAssetCreationAuthorization<T: Config> =
 		StorageMap<_, Blake2_128Concat, T::AccountId, LocalAssetInfo<T>>;
 
 	// Supported fee asset payments
@@ -287,7 +287,7 @@ pub mod pallet {
 			let who = ensure_signed(origin)?;
 
 			// If no authorization was given, error
-			let asset_info = LocalAssetCreationauthorization::<T>::get(&who)
+			let asset_info = LocalAssetCreationAuthorization::<T>::get(&who)
 				.ok_or(Error::<T>::NotAuthorizedToCreateLocalAssets)?;
 
 			// Create the assetId with LocalAssetIdCreator
@@ -303,7 +303,7 @@ pub mod pallet {
 			.map_err(|_| Error::<T>::ErrorCreatingAsset)?;
 
 			// Remove the previous authorization
-			LocalAssetCreationauthorization::<T>::remove(&who);
+			LocalAssetCreationAuthorization::<T>::remove(&who);
 
 			Self::deposit_event(Event::LocalAssetRegistered {
 				asset_id,
@@ -329,7 +329,7 @@ pub mod pallet {
 				min_balance: min_balance.clone(),
 			};
 
-			LocalAssetCreationauthorization::insert(&creator, local_asset_info);
+			LocalAssetCreationAuthorization::insert(&creator, local_asset_info);
 
 			Self::deposit_event(Event::LocalAssetAuthorizationGiven {
 				creator,
@@ -344,7 +344,7 @@ pub mod pallet {
 		pub fn set_asset_units_per_second(
 			origin: OriginFor<T>,
 			asset_type: T::ForeignAssetType,
-			units_per_second: u128,
+			units_per_second: LocalAssetCreationAuthorizationu128,
 			num_assets_weight_hint: u32,
 		) -> DispatchResult {
 			T::ForeignAssetModifierOrigin::ensure_origin(origin)?;
