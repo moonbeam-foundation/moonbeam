@@ -295,7 +295,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span>[<span class="ident">u8</span>; <span class="number">20</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">AccountId20</span> {
-	<span class="kw">fn</span> <span class="ident">into</span>(<span class="self">self</span>: <span class="self">Self</span>) -&gt; [<span class="ident">u8</span>; <span class="number">20</span>] {
+	<span class="kw">fn</span> <span class="ident">into</span>(<span class="self">self</span>) -&gt; [<span class="ident">u8</span>; <span class="number">20</span>] {
 		<span class="self">self</span>.<span class="number">0</span>
 	}
 }
@@ -307,7 +307,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">AccountId20</span> {
-	<span class="kw">fn</span> <span class="ident">into</span>(<span class="self">self</span>: <span class="self">Self</span>) -&gt; <span class="ident">H160</span> {
+	<span class="kw">fn</span> <span class="ident">into</span>(<span class="self">self</span>) -&gt; <span class="ident">H160</span> {
 		<span class="ident">H160</span>(<span class="self">self</span>.<span class="number">0</span>)
 	}
 }

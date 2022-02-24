@@ -3268,7 +3268,7 @@
 	}
 }
 <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">AssetType</span> {
-	<span class="kw">fn</span> <span class="ident">into</span>(<span class="self">self</span>: <span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">into</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span> {
 		<span class="kw">match</span> <span class="self">self</span> {
 			<span class="ident"><span class="self">Self</span>::Xcm</span>(<span class="ident">location</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">location</span>),
 		}
