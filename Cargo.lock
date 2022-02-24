@@ -3316,76 +3316,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "heim"
-version = "0.1.0-rc.1"
-source = "git+https://github.com/heim-rs/heim?rev=1fb090576629cd2788dff993cc6ef77547f3df18#1fb090576629cd2788dff993cc6ef77547f3df18"
-dependencies = [
- "heim-common",
- "heim-runtime",
-]
-
-[[package]]
-name = "heim-common"
-version = "0.1.0-rc.1"
-source = "git+https://github.com/heim-rs/heim?rev=1fb090576629cd2788dff993cc6ef77547f3df18#1fb090576629cd2788dff993cc6ef77547f3df18"
-dependencies = [
- "cfg-if 1.0.0",
- "core-foundation",
- "futures-core",
- "futures-util",
- "lazy_static",
- "libc",
- "mach",
- "nix 0.20.0",
- "pin-utils",
- "uom",
- "winapi 0.3.9",
-]
-
-[[package]]
-name = "heim-cpu"
-version = "0.1.0-rc.1"
-source = "git+https://github.com/heim-rs/heim?rev=1fb090576629cd2788dff993cc6ef77547f3df18#1fb090576629cd2788dff993cc6ef77547f3df18"
-dependencies = [
- "cfg-if 1.0.0",
- "futures 0.3.21",
- "glob",
- "heim-common",
- "heim-runtime",
- "lazy_static",
- "libc",
- "mach",
- "ntapi",
- "smol",
- "winapi 0.3.9",
-]
-
-[[package]]
-name = "heim-memory"
-version = "0.1.0-rc.1"
-source = "git+https://github.com/heim-rs/heim?rev=1fb090576629cd2788dff993cc6ef77547f3df18#1fb090576629cd2788dff993cc6ef77547f3df18"
-dependencies = [
- "cfg-if 1.0.0",
- "heim-common",
- "heim-runtime",
- "lazy_static",
- "libc",
- "mach",
- "winapi 0.3.9",
-]
-
-[[package]]
-name = "heim-runtime"
-version = "0.1.0-rc.1"
-source = "git+https://github.com/heim-rs/heim?rev=1fb090576629cd2788dff993cc6ef77547f3df18#1fb090576629cd2788dff993cc6ef77547f3df18"
-dependencies = [
- "futures 0.3.21",
- "futures-timer",
- "once_cell",
- "smol",
-]
-
-[[package]]
 name = "hermit-abi"
 version = "0.1.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8039,10 +7969,6 @@ dependencies = [
  "fp-evm",
  "fp-rpc",
  "futures 0.3.21",
- "heim",
- "heim-common",
- "heim-cpu",
- "heim-memory",
  "hex",
  "libsecp256k1 0.5.0",
  "log",
