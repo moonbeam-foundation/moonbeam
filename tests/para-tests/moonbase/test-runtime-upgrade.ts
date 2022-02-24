@@ -63,7 +63,6 @@ describeParachain(
       const keyring = new Keyring({ type: "ethereum" });
       const alith = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
 
-      process.stdout.write("Checking current runtime...");
       const currentVersion = await (
         (await context.polkadotApiParaone.query.system.lastRuntimeUpgrade()) as any
       ).unwrap();
@@ -72,7 +71,8 @@ describeParachain(
         specName: "moonbase",
       });
       console.log(
-        `✅ runtime ${currentVersion.specName.toString()} ${currentVersion.specVersion.toString()}`
+        `Current runtime: ✅ runtime ${currentVersion.specName.toString()} ` +
+          `${currentVersion.specVersion.toString()}`
       );
 
       await context.upgradeRuntime(alith, "moonbase", RUNTIME_VERSION);

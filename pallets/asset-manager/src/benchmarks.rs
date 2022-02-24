@@ -105,6 +105,31 @@ benchmarks! {
 		assert!(!Pallet::<T>::supported_fee_payment_assets().contains(&asset_type_to_be_removed));
 		assert_eq!(Pallet::<T>::asset_type_units_per_second(asset_type_to_be_removed), None);
 	}
+
+	remove_existing_asset_type {
+		// We make it dependent on the number of existing assets already
+		// Worst case is we need to remove it from SupportedAAssetsFeePayment too
+		let x in 5..100;
+		for i in 0..x {
+			let asset_type:  T::AssetType = MultiLocation::new(0, X1(GeneralIndex(i as u128))).into();
+			let metadata = T::AssetRegistrarMetadata::default();
+			let amount = 1u32.into();
+			Pallet::<T>::register_asset(RawOrigin::Root.into(), asset_type.clone(), metadata, amount, true)?;
+			Pallet::<T>::set_asset_units_per_second(RawOrigin::Root.into(), asset_type.clone(), 1, i)?;
+		}
+
+		let asset_type_to_be_removed: T::AssetType = MultiLocation::new(
+			0,
+			X1(GeneralIndex((x-1) as u128))
+		).into();
+		let asset_id: T::AssetId = asset_type_to_be_removed.clone().into();
+	}: _(RawOrigin::Root, asset_id, x)
+	verify {
+		assert!(Pallet::<T>::asset_id_type(asset_id).is_none());
+		assert!(Pallet::<T>::asset_type_units_per_second(&asset_type_to_be_removed).is_none());
+		assert!(!Pallet::<T>::supported_fee_payment_assets().contains(&asset_type_to_be_removed));
+
+	}
 }
 
 #[cfg(test)]
