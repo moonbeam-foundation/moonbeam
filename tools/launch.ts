@@ -1,13 +1,13 @@
 /**
- *  Script to launch 2 relay and 2 parachain nodes.
- *  It contains pre-registered versions to allow easy run using Docker.
+ * Script to launch 2 relay and 2 parachain nodes. It contains pre-registered versions to allow easy
+ * run using Docker.
  *
- *  ports can be given using --port-prefix xx (default 34) using the following rule:
- *  - relay 1 - p2p (p2p: XX000, rpcPort: XX001, wsPort: XX002)
- *  - relay 2 - p2p (p2p: XX010, rpcPort: XX011, wsPort: XX012)
- *  - para 1 - p2p (p2p: XX100, rpcPort: XX101, wsPort: XX102)
- *  - para 2 - p2p (p2p: XX110, rpcPort: XX111, wsPort: XX112)
+ * Ports can be given using --port-prefix xx (default 34) using the following rule:
  *
+ * - Relay 1 - p2p (p2p: XX000, rpcPort: XX001, wsPort: XX002)
+ * - Relay 2 - p2p (p2p: XX010, rpcPort: XX011, wsPort: XX012)
+ * - Para 1 - p2p (p2p: XX100, rpcPort: XX101, wsPort: XX102)
+ * - Para 2 - p2p (p2p: XX110, rpcPort: XX111, wsPort: XX112)
  */
 
 import yargs from "yargs";
