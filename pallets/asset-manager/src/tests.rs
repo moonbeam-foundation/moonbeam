@@ -662,7 +662,11 @@ fn test_root_can_remove_asset_association() {
 			0
 		));
 
-		assert_ok!(AssetManager::remove_existing_asset_type(Origin::root(), 1,));
+		assert_ok!(AssetManager::remove_existing_asset_type(
+			Origin::root(),
+			1,
+			1
+		));
 
 		// Mappings are deleted
 		assert!(AssetManager::asset_type_id(MockAssetType::MockAsset(1)).is_none());
@@ -700,7 +704,11 @@ fn test_removing_without_asset_units_per_second_does_not_panic() {
 			true
 		));
 
-		assert_ok!(AssetManager::remove_existing_asset_type(Origin::root(), 1,));
+		assert_ok!(AssetManager::remove_existing_asset_type(
+			Origin::root(),
+			1,
+			0
+		));
 
 		// Mappings are deleted
 		assert!(AssetManager::asset_type_id(MockAssetType::MockAsset(1)).is_none());
