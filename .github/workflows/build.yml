@@ -22,6 +22,7 @@ jobs:
   set-tags:
     runs-on: ubuntu-latest
     outputs:
+      git_branch: ${{ steps.check-git-ref.outputs.git_branch }}
       git_ref: ${{ steps.check-git-ref.outputs.git_ref }}
       image_exists: ${{ steps.check-check-docker-image.outputs.image_exists }}
       sha: ${{ steps.get-sha.outputs.sha }}
@@ -36,10 +37,13 @@ jobs:
         # else (push)
         run: |
           if [[ -n "${{ github.event.pull_request.head.sha }}" ]]; then
+            echo ::set-output name=git_branch::$(echo ${GITHUB_HEAD_REF})
             echo ::set-output name=git_ref::${{ github.event.pull_request.head.sha }}
           elif [[ -n "${{ github.event.inputs.pull_request }}" ]]; then
+            echo ::set-output name=git_branch::$(echo ${GITHUB_HEAD_REF})
             echo ::set-output name=git_ref::refs/pull/${{ github.event.inputs.pull_request }}/head
           else 
+            echo ::set-output name=git_branch::$(echo ${GITHUB_REF#refs/heads/})
             echo ::set-output name=git_ref::$GITHUB_REF
           fi
       - uses: actions/checkout@v2
@@ -128,7 +132,7 @@ jobs:
         with:
           node-version: 14.x
       - name: Check with Prettier
-        run: npx prettier --check --ignore-path .gitignore '**/*.(yml|js|ts|json)'
+        run: npx prettier --check --ignore-path .prettierignore '**/*.(yml|js|ts|json)'
 
   check-cargo-toml-format:
     name: "Check Cargo.toml files format"
@@ -192,6 +196,19 @@ jobs:
           fi
 
   ####### Building and Testing binaries #######
+
+  cargo-clippy:
+    runs-on: self-hosted
+    needs: ["set-tags"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
+      - name: Setup Rust toolchain
+        run: rustup show
+      - name: Clippy
+        run: SKIP_WASM_BUILD=1 env -u RUSTFLAGS cargo clippy
 
   build:
     runs-on: self-hosted
@@ -271,10 +288,6 @@ jobs:
             echo $DIFF_INDEX | grep Cargo.lock
             false
           fi
-      - name: Check with Clippy
-        env:
-          RUSTFLAGS: "" # override RUSTFLAGS to disable option -D warnings
-        run: cargo clippy --release --workspace
       - name: Ensure benchmarking compiles
         run: cargo check --release --features=runtime-benchmarks
       - name: Save moonbeam binary
@@ -286,6 +299,15 @@ jobs:
         with:
           name: moonbeam
           path: build
+      - name: Save runtime wasm
+        run: |
+          mkdir -p runtimes
+          cp target/release/wbuild/moon*/moon*_runtime.compact.compressed.wasm runtimes/;
+      - name: Upload runtimes
+        uses: actions/upload-artifact@v2
+        with:
+          name: runtimes
+          path: runtimes
 
   typescript-tests:
     runs-on: self-hosted
@@ -313,7 +335,7 @@ jobs:
           npm run build
           cd ../tests
           npm install
-          node_modules/.bin/mocha --parallel -j 7 -r ts-node/register 'tests/**/test-*.ts'
+          node_modules/.bin/mocha --parallel -j 4 -r ts-node/register 'tests/**/test-*.ts'
 
       # We determine whether there are unmodified package-lock.json files by:
       # 1. Asking git for a list of all modified files
@@ -340,106 +362,10 @@ jobs:
             false
           fi
 
-  ####### Building and Testing tracing binaries #######
-
-  tracing-build:
-    if: contains(github.event.pull_request.labels.*.name, 'A10-evmtracing')
-    runs-on: self-hosted
-    needs: ["set-tags"]
-    env:
-      CARGO_SCCACHE_COMMIT: 90e1dc81
-      RUSTFLAGS: "-C opt-level=3 -D warnings"
-      # MOONBEAM_LOG: info
-      # DEBUG: "test*"
-    outputs:
-      RUSTC: ${{ steps.get-rust-versions.outputs.rustc }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          ref: ${{ needs.set-tags.outputs.git_ref }}
-      - uses: actions/cache@v2
-        with:
-          path: ${{ runner.tool_cache }}/cargo-sccache-${CARGO_SCCACHE_COMMIT}
-          key: ${{ runner.OS }}-sccache-bin-${{ env.CARGO_SCCACHE_COMMIT }}-v1
-
-      # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
-      # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
-      - name: Setup Rust toolchain
-        run: rustup show
-      - name: SCCache
-        run: |
-          # We altered the path to avoid old actions to overwrite it
-          SCCACHE_PATH=${{ runner.tool_cache }}/cargo-sccache-${CARGO_SCCACHE_COMMIT}
-          SCCACHE_BIN=${SCCACHE_PATH}/bin/sccache
-          if [ ! -f $SCCACHE_BIN ]; then
-            cargo install sccache --git https://github.com/purestake/sccache.git --rev $CARGO_SCCACHE_COMMIT --force --no-default-features --features=dist-client --root $SCCACHE_PATH
-          fi
-          ls -la $SCCACHE_BIN
-          ps aux | grep sccache
-          if [[ -z `pgrep sccache` ]]; then
-            chmod +x $SCCACHE_BIN
-            $SCCACHE_BIN --start-server
-          fi
-          $SCCACHE_BIN -s
-          echo "RUSTC_WRAPPER=$SCCACHE_BIN" >> $GITHUB_ENV
-      - id: get-rust-versions
-        run: |
-          echo "::set-output name=rustc::$(rustc --version)"
-      - name: Build Tracing Node
-        run: |
-          env
-          cargo moonbase-tracing
-      - name: Unit tests (tracing)
-        run: cargo test --release -p moonbase-runtime -p moonbeam-runtime -p moonriver-runtime --test evm_tracing --features evm-tracing
-      - name: Save moonbeam tracing binary
-        run: |
-          mkdir -p build
-          cp target/release/moonbeam build/moonbeam-tracing;
-      - name: Upload tracing binary
-        uses: actions/upload-artifact@v2
-        with:
-          name: moonbeam-tracing
-          path: build
-
   typescript-tracing-tests:
-    if: contains(github.event.pull_request.labels.*.name, 'A10-evmtracing')
+    if: github.ref == 'refs/heads/master' || contains(github.event.pull_request.labels.*.name, 'A10-evmtracing')
     runs-on: self-hosted
-    needs: tracing-build
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          ref: ${{ needs.set-tags.outputs.git_ref }}
-      - uses: actions/download-artifact@v2
-        with:
-          name: moonbeam-tracing
-          path: build
-      - name: Use Node.js 14.x
-        uses: actions/setup-node@v2
-        with:
-          node-version: 14.x
-      - name: Typescript integration tests (against dev service)
-        env:
-          BINARY_PATH: ../build/moonbeam-tracing
-        run: |
-          chmod uog+x build/moonbeam-tracing
-          cd moonbeam-types-bundle
-          npm install
-          cd ../tests
-          npm install
-          node_modules/.bin/mocha --parallel -j 7 -r ts-node/register 'tests/**/test-*.ts'
-      - name: Typescript evm-tracing tests (against dev service)
-        env:
-          BINARY_PATH: ../build/moonbeam-tracing
-          ETHAPI_CMD: --ethapi=txpool,debug,trace
-        run: |
-          cd tests
-          node_modules/.bin/mocha --parallel -j 7 -r ts-node/register 'tracing-tests/**/test-*.ts'
-
-  typescript-para-tests:
-    runs-on: self-hosted
-    needs: ["set-tags", "build", "prepare-polkadot"]
+    needs: ["set-tags", "build"]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -449,6 +375,47 @@ jobs:
         with:
           name: moonbeam
           path: build
+      - name: Use Node.js 14.x
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14.x
+      - name: Get tracing runtimes
+        run: |
+          ./scripts/build-last-tracing-runtime.sh ${{ needs.set-tags.outputs.git_branch }}
+          mkdir -p tests/moonbase-overrides/
+          mv build/wasm/moonbase-runtime-local-substitute-tracing.wasm tests/moonbase-overrides/
+      - name: Typescript tracing tests (against dev service)
+        env:
+          BINARY_PATH: ../build/moonbeam
+          ETHAPI_CMD: --ethapi=txpool,debug,trace
+          FORCE_WASM_EXECUTION: true
+          WASM_RUNTIME_OVERRIDES: moonbase-overrides
+        run: |
+          chmod uog+x build/moonbeam
+          cd moonbeam-types-bundle
+          npm install
+          npm run build
+          cd ../tests
+          npm install
+          node_modules/.bin/mocha --parallel -j 2 -r ts-node/register 'tracing-tests/**/test-*.ts'
+
+  typescript-para-tests:
+    runs-on: self-hosted
+    needs: ["set-tags", "build", "prepare-polkadot"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
+          fetch-depth: 0
+      - uses: actions/download-artifact@v2
+        with:
+          name: moonbeam
+          path: build
+      - uses: actions/download-artifact@v2
+        with:
+          name: runtimes
+          path: tests/runtimes
       - name: Retrieve polkadot
         run: |
           POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
@@ -462,7 +429,9 @@ jobs:
           node-version: 14.x
       - name: Typescript integration tests (against dev service)
         env:
+          OVERRIDE_RUNTIME_PATH: ./runtimes
           BINARY_PATH: ../build/moonbeam
+          MOONBEAM_LOG: info
           RELAY_BINARY_PATH: ../build/polkadot
         run: |
           chmod uog+x build/polkadot
@@ -471,7 +440,7 @@ jobs:
           npm install
           cd ../tests
           npm install
-          node_modules/.bin/mocha --parallel -j 7 -r ts-node/register 'para-tests/**/test-*.ts'
+          node_modules/.bin/mocha -r ts-node/register 'para-tests/**/test-*.ts'
 
   docker-parachain:
     runs-on: ubuntu-latest

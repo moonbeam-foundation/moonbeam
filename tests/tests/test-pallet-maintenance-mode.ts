@@ -304,7 +304,7 @@ describeDevMoonbeam(
       // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
       // And we need relay tokens for issuing a transaction to be executed in the relay
       const balance = context.polkadotApi.createType("Balance", 100000000000000);
-      const assetBalance = context.polkadotApi.createType("PalletAssetsAssetBalance", {
+      const assetBalance = context.polkadotApi.createType("PalletAssetsAssetAccount", {
         balance: balance,
       });
 
@@ -481,7 +481,7 @@ describeDevMoonbeam(
         context,
         sudoAccount,
         context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.assetManager.setAssetUnitsPerSecond(assetId, 0)
+          context.polkadotApi.tx.assetManager.setAssetUnitsPerSecond(sourceLocation, 0, 0)
         )
       );
       expect(events[1].method.toString()).to.eq("UnitsPerSecondChanged");
@@ -503,12 +503,10 @@ describeDevMoonbeam(
       await context.createBlock();
 
       // Make sure the state does not have ALITH's DOT tokens
-      let alithBalance = (
-        (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any
-      ).balance.toBigInt();
+      let alithBalance = (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any;
 
       // Alith balance is 0
-      expect(alithBalance).to.eq(BigInt(0));
+      expect(alithBalance.isNone).to.eq(true);
 
       // turn maintenance off
       await execFromAllMembersOfTechCommittee(
@@ -520,9 +518,9 @@ describeDevMoonbeam(
       await context.createBlock();
 
       // Make sure the state has ALITH's to DOT tokens
-      alithBalance = (
-        (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any
-      ).balance.toBigInt();
+      alithBalance = ((await context.polkadotApi.query.assets.account(assetId, ALITH)) as any)
+        .unwrap()
+        ["balance"].toBigInt();
 
       // Alith balance is 10 DOT
       expect(alithBalance).to.eq(BigInt(10000000000000));
@@ -577,7 +575,7 @@ describeDevMoonbeam(
         context,
         sudoAccount,
         context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.assetManager.setAssetUnitsPerSecond(assetId, 0)
+          context.polkadotApi.tx.assetManager.setAssetUnitsPerSecond(sourceLocation, 0, 0)
         )
       );
       expect(events[1].method.toString()).to.eq("UnitsPerSecondChanged");
@@ -599,11 +597,9 @@ describeDevMoonbeam(
       await context.createBlock();
 
       // Make sure the state does not have ALITH's foreign asset tokens
-      let alithBalance = (
-        (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any
-      ).balance.toBigInt();
+      let alithBalance = (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any;
       // Alith balance is 0
-      expect(alithBalance).to.eq(BigInt(0));
+      expect(alithBalance.isNone).to.eq(true);
 
       // turn maintenance off
       await execFromAllMembersOfTechCommittee(
@@ -617,9 +613,9 @@ describeDevMoonbeam(
       // Make sure the state has ALITH's to foreign assets tokens
       alithBalance = (
         (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any
-      ).balance.toBigInt();
+      ).unwrap()["balance"];
 
-      expect(alithBalance).to.eq(BigInt(10000000000000));
+      expect(alithBalance.toBigInt()).to.eq(BigInt(10000000000000));
     });
   }
 );

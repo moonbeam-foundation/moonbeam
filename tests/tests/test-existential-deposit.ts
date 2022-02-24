@@ -46,7 +46,7 @@ describeDevMoonbeamAllEthTxTypes("Existential Deposit", (context) => {
 describeDevMoonbeam("Existential Deposit", (context) => {
   it("checks that existantial deposit is set to zero", async function () {
     // Grab existential deposit
-    let existentialDeposit = await context.polkadotApi.consts.balances.existentialDeposit;
+    let existentialDeposit = (await context.polkadotApi.consts.balances.existentialDeposit) as any;
     expect(existentialDeposit.toBigInt()).to.eq(0n);
   });
 });

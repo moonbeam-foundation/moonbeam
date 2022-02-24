@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -17,19 +17,18 @@
 //! Moonbase Runtime Integration Tests
 
 mod xcm_mock;
-use frame_support::{assert_noop, assert_ok, traits::PalletInfo};
+use frame_support::{
+	assert_ok,
+	traits::{PalletInfo, PalletInfoAccess},
+	weights::constants::WEIGHT_PER_SECOND,
+};
+use xcm::latest::prelude::*;
 use xcm::{VersionedMultiLocation, WrapVersion};
+use xcm_executor::traits::Convert;
 use xcm_mock::parachain;
 use xcm_mock::relay_chain;
 use xcm_mock::*;
 use xcm_primitives::UtilityEncodeCall;
-
-use xcm::latest::prelude::QueryResponse;
-use xcm::latest::{
-	Junction::{self, AccountId32, AccountKey20, PalletInstance, Parachain},
-	Junctions::*,
-	MultiLocation, NetworkId, Response, Xcm,
-};
 use xcm_simulator::TestExt;
 
 // Send a relay asset (like DOT) to a parachain A
@@ -48,15 +47,16 @@ fn receive_relay_asset_from_relay() {
 	ParaA::execute_with(|| {
 		assert_ok!(AssetManager::register_asset(
 			parachain::Origin::root(),
-			source_location,
+			source_location.clone(),
 			asset_metadata,
 			1u128,
 			true
 		));
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
-			source_id,
-			0u128
+			source_location,
+			0u128,
+			0
 		));
 	});
 
@@ -101,15 +101,16 @@ fn send_relay_asset_to_relay() {
 	ParaA::execute_with(|| {
 		assert_ok!(AssetManager::register_asset(
 			parachain::Origin::root(),
-			source_location,
+			source_location.clone(),
 			asset_metadata,
 			1u128,
 			true
 		));
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
-			source_id,
-			0u128
+			source_location,
+			0u128,
+			0
 		));
 	});
 
@@ -191,23 +192,25 @@ fn send_relay_asset_to_para_b() {
 		));
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
-			source_id,
-			0u128
+			source_location.clone(),
+			0u128,
+			0
 		));
 	});
 
 	ParaB::execute_with(|| {
 		assert_ok!(AssetManager::register_asset(
 			parachain::Origin::root(),
-			source_location,
+			source_location.clone(),
 			asset_metadata,
 			1u128,
 			true
 		));
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
-			source_id,
-			0u128
+			source_location,
+			0u128,
+			0
 		));
 	});
 
@@ -281,15 +284,16 @@ fn send_para_a_asset_to_para_b() {
 	ParaB::execute_with(|| {
 		assert_ok!(AssetManager::register_asset(
 			parachain::Origin::root(),
-			source_location,
+			source_location.clone(),
 			asset_metadata,
 			1u128,
 			true
 		));
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
-			source_id,
-			0u128
+			source_location,
+			0u128,
+			0
 		));
 	});
 
@@ -306,28 +310,25 @@ fn send_para_a_asset_to_para_b() {
 
 	ParaA::execute_with(|| {
 		// free execution, full amount received
-		assert_noop!(
-			XTokens::transfer(
-				parachain::Origin::signed(PARAALICE.into()),
-				parachain::CurrencyId::SelfReserve,
-				100,
-				Box::new(VersionedMultiLocation::V1(dest)),
-				800000
-			),
-			orml_xtokens::Error::<parachain::Runtime>::XcmExecutionFailed
-		);
+		assert_ok!(XTokens::transfer(
+			parachain::Origin::signed(PARAALICE.into()),
+			parachain::CurrencyId::SelfReserve,
+			100,
+			Box::new(VersionedMultiLocation::V1(dest)),
+			800000
+		));
 	});
 	ParaA::execute_with(|| {
 		// free execution, full amount received
 		assert_eq!(
 			ParaBalances::free_balance(&PARAALICE.into()),
-			INITIAL_BALANCE
+			INITIAL_BALANCE - 100
 		);
 	});
 
 	ParaB::execute_with(|| {
 		// free execution, full amount received
-		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 0);
+		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 100);
 	});
 }
 
@@ -355,23 +356,25 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 		));
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
-			source_id,
-			0u128
+			source_location.clone(),
+			0u128,
+			0
 		));
 	});
 
 	ParaC::execute_with(|| {
 		assert_ok!(AssetManager::register_asset(
 			parachain::Origin::root(),
-			source_location,
+			source_location.clone(),
 			asset_metadata,
 			1u128,
 			true
 		));
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
-			source_id,
-			0u128
+			source_location,
+			0u128,
+			0
 		));
 	});
 
@@ -386,30 +389,26 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 		),
 	};
 	ParaA::execute_with(|| {
-		// We cannot transfer Self Reserve
-		assert_noop!(
-			XTokens::transfer(
-				parachain::Origin::signed(PARAALICE.into()),
-				parachain::CurrencyId::SelfReserve,
-				100,
-				Box::new(VersionedMultiLocation::V1(dest)),
-				80
-			),
-			orml_xtokens::Error::<parachain::Runtime>::XcmExecutionFailed
-		);
+		assert_ok!(XTokens::transfer(
+			parachain::Origin::signed(PARAALICE.into()),
+			parachain::CurrencyId::SelfReserve,
+			100,
+			Box::new(VersionedMultiLocation::V1(dest)),
+			80
+		));
 	});
 
 	ParaA::execute_with(|| {
-		// Nothing deducted
+		// free execution, full amount received
 		assert_eq!(
 			ParaBalances::free_balance(&PARAALICE.into()),
-			INITIAL_BALANCE
+			INITIAL_BALANCE - 100
 		);
 	});
 
 	ParaB::execute_with(|| {
-		// Nothing transferred
-		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 0);
+		// free execution, full amount received
+		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 100);
 	});
 
 	let dest = MultiLocation {
@@ -424,22 +423,19 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 	};
 
 	ParaB::execute_with(|| {
-		// first transfer did not go through, so this fails
-		assert_noop!(
-			XTokens::transfer(
-				parachain::Origin::signed(PARAALICE.into()),
-				parachain::CurrencyId::OtherReserve(source_id),
-				100,
-				Box::new(VersionedMultiLocation::V1(dest)),
-				80
-			),
-			orml_xtokens::Error::<parachain::Runtime>::XcmExecutionFailed
-		);
+		assert_ok!(XTokens::transfer(
+			parachain::Origin::signed(PARAALICE.into()),
+			parachain::CurrencyId::OtherReserve(source_id),
+			100,
+			Box::new(VersionedMultiLocation::V1(dest)),
+			80
+		));
 	});
 
-	// Para C never receives tokens
+	// The message passed through parachainA so we needed to pay since its the native token
 	ParaC::execute_with(|| {
-		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 0);
+		// free execution, full amount received
+		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 96);
 	});
 }
 
@@ -460,15 +456,16 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 	ParaB::execute_with(|| {
 		assert_ok!(AssetManager::register_asset(
 			parachain::Origin::root(),
-			source_location,
+			source_location.clone(),
 			asset_metadata,
 			1u128,
 			true
 		));
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
-			source_id,
-			0u128
+			source_location,
+			0u128,
+			0
 		));
 	});
 
@@ -483,30 +480,26 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 		),
 	};
 	ParaA::execute_with(|| {
-		// We cannot transfer Self Reserve
-		assert_noop!(
-			XTokens::transfer(
-				parachain::Origin::signed(PARAALICE.into()),
-				parachain::CurrencyId::SelfReserve,
-				100,
-				Box::new(VersionedMultiLocation::V1(dest)),
-				80
-			),
-			orml_xtokens::Error::<parachain::Runtime>::XcmExecutionFailed
-		);
+		assert_ok!(XTokens::transfer(
+			parachain::Origin::signed(PARAALICE.into()),
+			parachain::CurrencyId::SelfReserve,
+			100,
+			Box::new(VersionedMultiLocation::V1(dest)),
+			80
+		));
 	});
 
 	ParaA::execute_with(|| {
-		// Nothing deducted
+		// free execution, full amount received
 		assert_eq!(
 			ParaBalances::free_balance(&PARAALICE.into()),
-			INITIAL_BALANCE
+			INITIAL_BALANCE - 100
 		);
 	});
 
 	ParaB::execute_with(|| {
-		// Nothing received
-		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 0);
+		// free execution, full amount received
+		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 100);
 	});
 
 	let dest = MultiLocation {
@@ -520,24 +513,133 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 		),
 	};
 	ParaB::execute_with(|| {
-		// The token was not received
-		assert_noop!(
-			XTokens::transfer(
-				parachain::Origin::signed(PARAALICE.into()),
-				parachain::CurrencyId::OtherReserve(source_id),
-				100,
-				Box::new(VersionedMultiLocation::V1(dest)),
-				80
-			),
-			orml_xtokens::Error::<parachain::Runtime>::XcmExecutionFailed
-		);
+		assert_ok!(XTokens::transfer(
+			parachain::Origin::signed(PARAALICE.into()),
+			parachain::CurrencyId::OtherReserve(source_id),
+			100,
+			Box::new(VersionedMultiLocation::V1(dest)),
+			80
+		));
 	});
 
 	ParaA::execute_with(|| {
-		// Nothing sent
+		// free execution, full amount received
+		// Weight used is 4
 		assert_eq!(
 			ParaBalances::free_balance(&PARAALICE.into()),
-			INITIAL_BALANCE
+			INITIAL_BALANCE - 4
+		);
+	});
+}
+
+#[test]
+fn send_para_a_asset_to_para_b_and_back_to_para_a_with_new_reanchoring() {
+	MockNet::reset();
+
+	let para_a_balances = MultiLocation::new(1, X2(Parachain(1), PalletInstance(1u8)));
+	let source_location = parachain::AssetType::Xcm(para_a_balances);
+	let source_id: parachain::AssetId = source_location.clone().into();
+
+	let asset_metadata = parachain::AssetMetadata {
+		name: b"ParaAToken".to_vec(),
+		symbol: b"ParaA".to_vec(),
+		decimals: 18,
+	};
+
+	ParaB::execute_with(|| {
+		assert_ok!(AssetManager::register_asset(
+			parachain::Origin::root(),
+			source_location.clone(),
+			asset_metadata,
+			1u128,
+			true
+		));
+		assert_ok!(AssetManager::set_asset_units_per_second(
+			parachain::Origin::root(),
+			source_location,
+			0u128,
+			0
+		));
+	});
+
+	let dest = MultiLocation {
+		parents: 1,
+		interior: X2(
+			Parachain(2),
+			AccountKey20 {
+				network: NetworkId::Any,
+				key: PARAALICE.into(),
+			},
+		),
+	};
+	ParaA::execute_with(|| {
+		// free execution, full amount received
+		assert_ok!(XTokens::transfer(
+			parachain::Origin::signed(PARAALICE.into()),
+			parachain::CurrencyId::SelfReserve,
+			100,
+			Box::new(VersionedMultiLocation::V1(dest)),
+			80
+		));
+	});
+
+	ParaA::execute_with(|| {
+		// free execution, full amount received
+		assert_eq!(
+			ParaBalances::free_balance(&PARAALICE.into()),
+			INITIAL_BALANCE - 100
+		);
+	});
+
+	ParaB::execute_with(|| {
+		// free execution, full amount received
+		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 100);
+	});
+
+	// This time we will force the new reanchoring by manually sending the
+	// Message through polkadotXCM pallet
+
+	let dest = MultiLocation {
+		parents: 1,
+		interior: X1(Parachain(1)),
+	};
+
+	let reanchored_para_a_balances = MultiLocation::new(0, X1(PalletInstance(1u8)));
+
+	let message = xcm::VersionedXcm::<()>::V2(Xcm(vec![
+		WithdrawAsset((reanchored_para_a_balances.clone(), 100).into()),
+		ClearOrigin,
+		BuyExecution {
+			fees: (reanchored_para_a_balances, 100).into(),
+			weight_limit: Limited(80),
+		},
+		DepositAsset {
+			assets: All.into(),
+			max_assets: 1,
+			beneficiary: MultiLocation::new(
+				0,
+				X1(AccountKey20 {
+					network: Any,
+					key: PARAALICE,
+				}),
+			),
+		},
+	]));
+	ParaB::execute_with(|| {
+		// Send a message to the sovereign account in ParaA to withdraw
+		// and deposit asset
+		assert_ok!(ParachainPalletXcm::send(
+			parachain::Origin::root(),
+			Box::new(dest.into()),
+			Box::new(message),
+		));
+	});
+
+	ParaA::execute_with(|| {
+		// Weight used is 4
+		assert_eq!(
+			ParaBalances::free_balance(&PARAALICE.into()),
+			INITIAL_BALANCE - 4
 		);
 	});
 }
@@ -561,15 +663,16 @@ fn receive_relay_asset_with_trader() {
 	ParaA::execute_with(|| {
 		assert_ok!(AssetManager::register_asset(
 			parachain::Origin::root(),
-			source_location,
+			source_location.clone(),
 			asset_metadata,
 			1u128,
 			true
 		));
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
-			source_id,
-			2500000000000u128
+			source_location,
+			2500000000000u128,
+			0
 		));
 	});
 
@@ -603,6 +706,148 @@ fn receive_relay_asset_with_trader() {
 }
 
 #[test]
+fn send_para_a_asset_to_para_b_with_trader() {
+	MockNet::reset();
+
+	let para_a_balances = MultiLocation::new(1, X2(Parachain(1), PalletInstance(1u8)));
+	let source_location = parachain::AssetType::Xcm(para_a_balances);
+	let source_id: parachain::AssetId = source_location.clone().into();
+
+	let asset_metadata = parachain::AssetMetadata {
+		name: b"ParaAToken".to_vec(),
+		symbol: b"ParaA".to_vec(),
+		decimals: 18,
+	};
+
+	ParaB::execute_with(|| {
+		assert_ok!(AssetManager::register_asset(
+			parachain::Origin::root(),
+			source_location.clone(),
+			asset_metadata,
+			1u128,
+			true
+		));
+		assert_ok!(AssetManager::set_asset_units_per_second(
+			parachain::Origin::root(),
+			source_location,
+			2500000000000u128,
+			0
+		));
+	});
+
+	let dest = MultiLocation {
+		parents: 1,
+		interior: X2(
+			Parachain(2),
+			AccountKey20 {
+				network: NetworkId::Any,
+				key: PARAALICE.into(),
+			},
+		),
+	};
+
+	// In destination chain, we only need 4 weight
+	// We put 10 weight, 6 of which should be refunded and 4 of which should go to treasury
+	ParaA::execute_with(|| {
+		assert_ok!(XTokens::transfer(
+			parachain::Origin::signed(PARAALICE.into()),
+			parachain::CurrencyId::SelfReserve,
+			100,
+			Box::new(VersionedMultiLocation::V1(dest)),
+			10
+		));
+	});
+	ParaA::execute_with(|| {
+		// free execution, full amount received
+		assert_eq!(
+			ParaBalances::free_balance(&PARAALICE.into()),
+			INITIAL_BALANCE - 100
+		);
+	});
+
+	// We are sending 100 tokens from para A.
+	// Amount spent in fees is Units per second * weight / 1_000_000_000_000 (weight per second)
+	// weight is 4 since we are executing 4 instructions with a unitweightcost of 1.
+	// Units per second should be 2_500_000_000_000_000
+	// Since we set 10 weight in destination chain, 25 will be charged upfront
+	// 15 of those will be refunded, while 10 will go to treasury as the true weight used
+	// will be 4
+	ParaB::execute_with(|| {
+		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 90);
+		// Fee should have been received by treasury
+		assert_eq!(Assets::balance(source_id, &Treasury::account_id()), 10);
+	});
+}
+
+#[test]
+fn send_para_a_asset_to_para_b_with_trader_and_fee() {
+	MockNet::reset();
+
+	let para_a_balances = MultiLocation::new(1, X2(Parachain(1), PalletInstance(1u8)));
+	let source_location = parachain::AssetType::Xcm(para_a_balances);
+	let source_id: parachain::AssetId = source_location.clone().into();
+
+	let asset_metadata = parachain::AssetMetadata {
+		name: b"ParaAToken".to_vec(),
+		symbol: b"ParaA".to_vec(),
+		decimals: 18,
+	};
+
+	ParaB::execute_with(|| {
+		assert_ok!(AssetManager::register_asset(
+			parachain::Origin::root(),
+			source_location.clone(),
+			asset_metadata,
+			1u128,
+			true
+		));
+		// With these units per second, 80K weight convrets to 1 asset unit
+		assert_ok!(AssetManager::set_asset_units_per_second(
+			parachain::Origin::root(),
+			source_location,
+			12500000u128,
+			0
+		));
+	});
+
+	let dest = MultiLocation {
+		parents: 1,
+		interior: X2(
+			Parachain(2),
+			AccountKey20 {
+				network: NetworkId::Any,
+				key: PARAALICE.into(),
+			},
+		),
+	};
+
+	// we use transfer_with_fee
+	ParaA::execute_with(|| {
+		assert_ok!(XTokens::transfer_with_fee(
+			parachain::Origin::signed(PARAALICE.into()),
+			parachain::CurrencyId::SelfReserve,
+			100,
+			1,
+			Box::new(VersionedMultiLocation::V1(dest)),
+			800000
+		));
+	});
+	ParaA::execute_with(|| {
+		// 100 tokens transferred plus 1 taken from fees
+		assert_eq!(
+			ParaBalances::free_balance(&PARAALICE.into()),
+			INITIAL_BALANCE - 100 - 1
+		);
+	});
+
+	ParaB::execute_with(|| {
+		// free execution, full amount received because trully the xcm instruction does not cost
+		// what it is specified
+		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 101);
+	});
+}
+
+#[test]
 fn error_when_not_paying_enough() {
 	MockNet::reset();
 
@@ -626,15 +871,16 @@ fn error_when_not_paying_enough() {
 	ParaA::execute_with(|| {
 		assert_ok!(AssetManager::register_asset(
 			parachain::Origin::root(),
-			source_location,
+			source_location.clone(),
 			asset_metadata,
 			1u128,
 			true
 		));
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
-			source_id,
-			2500000000000u128
+			source_location,
+			2500000000000u128,
+			0
 		));
 	});
 
@@ -673,15 +919,16 @@ fn transact_through_derivative_multilocation() {
 	ParaA::execute_with(|| {
 		assert_ok!(AssetManager::register_asset(
 			parachain::Origin::root(),
-			source_location,
+			source_location.clone(),
 			asset_metadata,
 			1u128,
 			true
 		));
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
-			source_id,
-			1u128
+			source_location,
+			1u128,
+			0
 		));
 
 		// Root can set transact info
@@ -690,10 +937,8 @@ fn transact_through_derivative_multilocation() {
 			Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 			// Relay charges 1000 for every instruction, and we have 3, so 3000
 			3000,
-			0,
-			0,
-			1,
-			0
+			1 * WEIGHT_PER_SECOND as u128,
+			20000000000
 		));
 	});
 
@@ -817,15 +1062,16 @@ fn transact_through_sovereign() {
 	ParaA::execute_with(|| {
 		assert_ok!(AssetManager::register_asset(
 			parachain::Origin::root(),
-			source_location,
+			source_location.clone(),
 			asset_metadata,
 			1u128,
 			true
 		));
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
-			source_id,
-			1u128
+			source_location,
+			1u128,
+			0
 		));
 
 		// Root can set transact info
@@ -833,10 +1079,8 @@ fn transact_through_sovereign() {
 			parachain::Origin::root(),
 			Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 			3000,
-			0,
-			0,
-			1,
-			0
+			1 * WEIGHT_PER_SECOND as u128,
+			20000000000
 		));
 	});
 
@@ -956,7 +1200,6 @@ fn test_automatic_versioning_on_runtime_upgrade_with_relay() {
 	MockNet::reset();
 
 	let source_location = parachain::AssetType::Xcm(MultiLocation::parent());
-	let source_id: parachain::AssetId = source_location.clone().into();
 	let asset_metadata = parachain::AssetMetadata {
 		name: b"RelayToken".to_vec(),
 		symbol: b"Relay".to_vec(),
@@ -967,15 +1210,16 @@ fn test_automatic_versioning_on_runtime_upgrade_with_relay() {
 		parachain::XcmVersioner::set_version(1);
 		assert_ok!(AssetManager::register_asset(
 			parachain::Origin::root(),
-			source_location,
+			source_location.clone(),
 			asset_metadata,
 			1u128,
 			true
 		));
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
-			source_id,
-			0u128
+			source_location,
+			0u128,
+			0
 		));
 	});
 
@@ -1083,6 +1327,157 @@ fn test_automatic_versioning_on_runtime_upgrade_with_relay() {
 }
 
 #[test]
+fn test_automatic_versioning_on_runtime_upgrade_with_para_b() {
+	MockNet::reset();
+
+	let para_a_balances = MultiLocation::new(1, X2(Parachain(1), PalletInstance(1u8)));
+	let source_location = parachain::AssetType::Xcm(para_a_balances);
+	let source_id: parachain::AssetId = source_location.clone().into();
+
+	let asset_metadata = parachain::AssetMetadata {
+		name: b"ParaAToken".to_vec(),
+		symbol: b"ParaA".to_vec(),
+		decimals: 18,
+	};
+	let response = Response::Version(2);
+
+	// This is irrelevant, nothing will be done with this message,
+	// but we need to pass a message as an argument to trigger the storage change
+	let mock_message: Xcm<()> = Xcm(vec![QueryResponse {
+		query_id: 0,
+		response,
+		max_weight: 0,
+	}]);
+
+	ParaA::execute_with(|| {
+		// advertised version
+		parachain::XcmVersioner::set_version(2);
+	});
+
+	ParaB::execute_with(|| {
+		// Let's try with v0
+		parachain::XcmVersioner::set_version(0);
+
+		assert_ok!(AssetManager::register_asset(
+			parachain::Origin::root(),
+			source_location.clone(),
+			asset_metadata,
+			1u128,
+			true
+		));
+		assert_ok!(AssetManager::set_asset_units_per_second(
+			parachain::Origin::root(),
+			source_location,
+			0u128,
+			0
+		));
+	});
+
+	ParaA::execute_with(|| {
+		// This sets the default version, for not known destinations
+		assert_ok!(ParachainPalletXcm::force_default_xcm_version(
+			parachain::Origin::root(),
+			Some(2)
+		));
+		// Wrap version, which sets VersionedStorage
+		assert_ok!(<ParachainPalletXcm as WrapVersion>::wrap_version(
+			&MultiLocation::new(1, X1(Parachain(2))).into(),
+			mock_message
+		));
+
+		parachain::para_roll_to(2);
+
+		// queries should have been updated
+		assert!(ParachainPalletXcm::query(0).is_some());
+	});
+
+	let expected_supported_version: parachain::Event = pallet_xcm::Event::SupportedVersionChanged(
+		MultiLocation {
+			parents: 1,
+			interior: X1(Parachain(2)),
+		},
+		0,
+	)
+	.into();
+
+	ParaA::execute_with(|| {
+		// Assert that the events vector contains the version change
+		assert!(parachain::para_events().contains(&expected_supported_version));
+	});
+
+	// Let's ensure talking in v0 works
+	let dest = MultiLocation {
+		parents: 1,
+		interior: X2(
+			Parachain(2),
+			AccountKey20 {
+				network: NetworkId::Any,
+				key: PARAALICE.into(),
+			},
+		),
+	};
+	ParaA::execute_with(|| {
+		// free execution, full amount received
+		assert_ok!(XTokens::transfer(
+			parachain::Origin::signed(PARAALICE.into()),
+			parachain::CurrencyId::SelfReserve,
+			100,
+			Box::new(VersionedMultiLocation::V1(dest)),
+			80
+		));
+		// free execution, full amount received
+		assert_eq!(
+			ParaBalances::free_balance(&PARAALICE.into()),
+			INITIAL_BALANCE - 100
+		);
+	});
+
+	ParaB::execute_with(|| {
+		// free execution, full amount received
+		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 100);
+	});
+
+	let expected_version_notified: parachain::Event = pallet_xcm::Event::VersionChangeNotified(
+		MultiLocation {
+			parents: 1,
+			interior: X1(Parachain(1)),
+		},
+		2,
+	)
+	.into();
+
+	// ParaB changes version to 2, and calls on_runtime_upgrade. This should notify the targets
+	// of the new version change
+	ParaB::execute_with(|| {
+		// Set version
+		parachain::XcmVersioner::set_version(2);
+		// Do runtime upgrade
+		parachain::on_runtime_upgrade();
+		// Initialize block, to call on_initialize and notify targets
+		parachain::para_roll_to(2);
+		// Expect the event in the parachain
+		assert!(parachain::para_events().contains(&expected_version_notified));
+	});
+
+	// This event should have been seen in para A
+	let expected_supported_version_2: parachain::Event =
+		pallet_xcm::Event::SupportedVersionChanged(
+			MultiLocation {
+				parents: 1,
+				interior: X1(Parachain(2)),
+			},
+			2,
+		)
+		.into();
+
+	// Para A should have received the version change
+	ParaA::execute_with(|| {
+		// Assert that the events vector contains the new version change
+		assert!(parachain::para_events().contains(&expected_supported_version_2));
+	});
+}
+
+#[test]
 fn receive_asset_with_no_sufficients_not_possible_if_non_existent_account() {
 	MockNet::reset();
 
@@ -1098,15 +1493,16 @@ fn receive_asset_with_no_sufficients_not_possible_if_non_existent_account() {
 	ParaA::execute_with(|| {
 		assert_ok!(AssetManager::register_asset(
 			parachain::Origin::root(),
-			source_location,
+			source_location.clone(),
 			asset_metadata,
 			1u128,
 			false
 		));
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
-			source_id,
-			0u128
+			source_location,
+			0u128,
+			0
 		));
 	});
 
@@ -1175,15 +1571,16 @@ fn receive_assets_with_sufficients_true_allows_non_funded_account_to_receive_ass
 	ParaA::execute_with(|| {
 		assert_ok!(AssetManager::register_asset(
 			parachain::Origin::root(),
-			source_location,
+			source_location.clone(),
 			asset_metadata,
 			1u128,
 			true
 		));
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
-			source_id,
-			0u128
+			source_location,
+			0u128,
+			0
 		));
 	});
 
@@ -1207,6 +1604,406 @@ fn receive_assets_with_sufficients_true_allows_non_funded_account_to_receive_ass
 	ParaA::execute_with(|| {
 		// free execution, full amount received
 		assert_eq!(Assets::balance(source_id, &fresh_account.into()), 123);
+	});
+}
+
+#[test]
+fn evm_account_receiving_assets_should_handle_sufficients_ref_count() {
+	MockNet::reset();
+
+	let mut sufficient_account = [0u8; 20];
+	sufficient_account[0..20].copy_from_slice(&evm_account()[..]);
+
+	let evm_account_id = parachain::AccountId::from(sufficient_account);
+
+	// Evm account is self sufficient
+	ParaA::execute_with(|| {
+		assert_eq!(parachain::System::account(evm_account_id).sufficients, 1);
+	});
+
+	let source_location = parachain::AssetType::Xcm(MultiLocation::parent());
+	let asset_metadata = parachain::AssetMetadata {
+		name: b"RelayToken".to_vec(),
+		symbol: b"Relay".to_vec(),
+		decimals: 12,
+	};
+	// register relay asset in parachain A
+	ParaA::execute_with(|| {
+		assert_ok!(AssetManager::register_asset(
+			parachain::Origin::root(),
+			source_location.clone(),
+			asset_metadata,
+			1u128,
+			true
+		));
+		assert_ok!(AssetManager::set_asset_units_per_second(
+			parachain::Origin::root(),
+			source_location,
+			0u128,
+			0
+		));
+	});
+
+	// Actually send relay asset to parachain
+	let dest: MultiLocation = AccountKey20 {
+		network: NetworkId::Any,
+		key: sufficient_account,
+	}
+	.into();
+	Relay::execute_with(|| {
+		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
+			relay_chain::Origin::signed(RELAYALICE),
+			Box::new(Parachain(1).into().into()),
+			Box::new(VersionedMultiLocation::V1(dest.clone()).clone().into()),
+			Box::new((Here, 123).into()),
+			0,
+		));
+	});
+
+	// Evm account sufficient ref count increased by 1.
+	ParaA::execute_with(|| {
+		assert_eq!(parachain::System::account(evm_account_id).sufficients, 2);
+	});
+
+	ParaA::execute_with(|| {
+		// Remove the account from the evm context.
+		parachain::EVM::remove_account(&evm_account());
+		// Evm account sufficient ref count decreased by 1.
+		assert_eq!(parachain::System::account(evm_account_id).sufficients, 1);
+	});
+}
+
+#[test]
+fn empty_account_should_not_be_reset() {
+	MockNet::reset();
+
+	// Test account has nonce 1 on genesis.
+	let mut sufficient_account = [0u8; 20];
+	sufficient_account[0..20].copy_from_slice(&evm_account()[..]);
+
+	let evm_account_id = parachain::AccountId::from(sufficient_account);
+
+	let source_location = parachain::AssetType::Xcm(MultiLocation::parent());
+	let source_id: parachain::AssetId = source_location.clone().into();
+	let asset_metadata = parachain::AssetMetadata {
+		name: b"RelayToken".to_vec(),
+		symbol: b"Relay".to_vec(),
+		decimals: 12,
+	};
+	// register relay asset in parachain A
+	ParaA::execute_with(|| {
+		assert_ok!(AssetManager::register_asset(
+			parachain::Origin::root(),
+			source_location.clone(),
+			asset_metadata,
+			1u128,
+			false
+		));
+		assert_ok!(AssetManager::set_asset_units_per_second(
+			parachain::Origin::root(),
+			source_location,
+			0u128,
+			0
+		));
+	});
+
+	// Send native token to evm_account
+	ParaA::execute_with(|| {
+		assert_ok!(ParaBalances::transfer(
+			parachain::Origin::signed(PARAALICE.into()),
+			evm_account_id,
+			100
+		));
+	});
+
+	// Actually send relay asset to parachain
+	let dest: MultiLocation = AccountKey20 {
+		network: NetworkId::Any,
+		key: sufficient_account,
+	}
+	.into();
+	Relay::execute_with(|| {
+		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
+			relay_chain::Origin::signed(RELAYALICE),
+			Box::new(Parachain(1).into().into()),
+			Box::new(VersionedMultiLocation::V1(dest.clone()).clone().into()),
+			Box::new((Here, 123).into()),
+			0,
+		));
+	});
+
+	ParaA::execute_with(|| {
+		// Empty the assets from the account.
+		// As this makes the account go below the `min_balance`, the account is considered dead
+		// at eyes of pallet-assets, and the consumer reference is decreased by 1 and is now Zero.
+		assert_ok!(parachain::Assets::transfer(
+			parachain::Origin::signed(evm_account_id),
+			source_id,
+			PARAALICE.into(),
+			123
+		));
+		// Verify account asset balance is Zero.
+		assert_eq!(
+			parachain::Assets::balance(source_id, &evm_account_id.into()),
+			0
+		);
+		// Because we no longer have consumer references, we can set the balance to Zero.
+		// This would reset the account if our ED were to be > than Zero.
+		assert_ok!(ParaBalances::set_balance(
+			parachain::Origin::root(),
+			evm_account_id,
+			0,
+			0,
+		));
+		// Verify account native balance is Zero.
+		assert_eq!(ParaBalances::free_balance(&evm_account_id), 0);
+		// Remove the account from the evm context.
+		// This decreases the sufficients reference by 1 and now is Zero.
+		parachain::EVM::remove_account(&evm_account());
+		// Verify reference count.
+		let account = parachain::System::account(evm_account_id);
+		assert_eq!(account.sufficients, 0);
+		assert_eq!(account.consumers, 0);
+		assert_eq!(account.providers, 1);
+		// We expect the account to be alive in a Zero ED context.
+		assert_eq!(parachain::System::account_nonce(evm_account_id), 1);
+	});
+}
+#[test]
+fn test_statemine_like() {
+	MockNet::reset();
+
+	let dest_para = MultiLocation::new(1, X1(Parachain(1)));
+
+	let sov = xcm_builder::SiblingParachainConvertsVia::<
+		polkadot_parachain::primitives::Sibling,
+		statemine_like::AccountId,
+	>::convert_ref(dest_para)
+	.unwrap();
+
+	let statemine_asset_a_balances = MultiLocation::new(
+		1,
+		X3(
+			Parachain(4),
+			PalletInstance(5),
+			xcm::latest::prelude::GeneralIndex(0u128),
+		),
+	);
+	let source_location = parachain::AssetType::Xcm(statemine_asset_a_balances);
+	let source_id: parachain::AssetId = source_location.clone().into();
+
+	let asset_metadata = parachain::AssetMetadata {
+		name: b"StatemineToken".to_vec(),
+		symbol: b"StatemineToken".to_vec(),
+		decimals: 12,
+	};
+
+	ParaA::execute_with(|| {
+		assert_ok!(AssetManager::register_asset(
+			parachain::Origin::root(),
+			source_location.clone(),
+			asset_metadata.clone(),
+			1u128,
+			true
+		));
+		assert_ok!(AssetManager::set_asset_units_per_second(
+			parachain::Origin::root(),
+			source_location,
+			0u128,
+			0
+		));
+	});
+
+	Statemine::execute_with(|| {
+		assert_ok!(StatemineAssets::create(
+			statemine_like::Origin::signed(RELAYALICE),
+			0,
+			RELAYALICE,
+			1
+		));
+
+		assert_ok!(StatemineAssets::mint(
+			statemine_like::Origin::signed(RELAYALICE),
+			0,
+			RELAYALICE,
+			300000000000000
+		));
+
+		// This is needed, since the asset is created as non-sufficient
+		assert_ok!(StatemineBalances::transfer(
+			statemine_like::Origin::signed(RELAYALICE),
+			sov,
+			100000000000000
+		));
+
+		// Actually send relay asset to parachain
+		let dest: MultiLocation = AccountKey20 {
+			network: NetworkId::Any,
+			key: PARAALICE,
+		}
+		.into();
+
+		assert_ok!(StatemineChainPalletXcm::reserve_transfer_assets(
+			statemine_like::Origin::signed(RELAYALICE),
+			Box::new(MultiLocation::new(1, X1(Parachain(1))).into()),
+			Box::new(VersionedMultiLocation::V1(dest).clone().into()),
+			Box::new((X1(xcm::latest::prelude::GeneralIndex(0)), 123).into()),
+			0,
+		));
+	});
+	let dest = MultiLocation {
+		parents: 1,
+		interior: X2(
+			Parachain(4),
+			AccountId32 {
+				network: NetworkId::Any,
+				id: RELAYALICE.into(),
+			},
+		),
+	};
+
+	// We can transfer back from the parachain perspective
+	// But statemint wont receive them because of the reanchoring logic
+	// and because we are not sending KSM
+	ParaA::execute_with(|| {
+		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 123);
+
+		assert_ok!(XTokens::transfer(
+			parachain::Origin::signed(PARAALICE.into()),
+			parachain::CurrencyId::OtherReserve(source_id),
+			123,
+			Box::new(VersionedMultiLocation::V1(dest)),
+			8000
+		));
+	});
+}
+
+#[test]
+fn test_statemine_like_prefix_change() {
+	MockNet::reset();
+
+	let dest_para = MultiLocation::new(1, X1(Parachain(1)));
+
+	let sov = xcm_builder::SiblingParachainConvertsVia::<
+		polkadot_parachain::primitives::Sibling,
+		statemine_like::AccountId,
+	>::convert_ref(dest_para)
+	.unwrap();
+
+	let statemine_asset_a_balances = MultiLocation::new(
+		1,
+		X3(
+			Parachain(4),
+			PalletInstance(5),
+			xcm::latest::prelude::GeneralIndex(0u128),
+		),
+	);
+	let source_location = parachain::AssetType::Xcm(statemine_asset_a_balances);
+	let source_id: parachain::AssetId = source_location.clone().into();
+
+	let asset_metadata = parachain::AssetMetadata {
+		name: b"StatemineToken".to_vec(),
+		symbol: b"StatemineToken".to_vec(),
+		decimals: 12,
+	};
+
+	ParaA::execute_with(|| {
+		assert_ok!(AssetManager::register_asset(
+			parachain::Origin::root(),
+			source_location.clone(),
+			asset_metadata.clone(),
+			1u128,
+			true
+		));
+		assert_ok!(AssetManager::set_asset_units_per_second(
+			parachain::Origin::root(),
+			source_location,
+			0u128,
+			0
+		));
+	});
+
+	Statemine::execute_with(|| {
+		// Set new prefix
+		statemine_like::PrefixChanger::set_prefix(Here.into());
+		assert_ok!(StatemineAssets::create(
+			statemine_like::Origin::signed(RELAYALICE),
+			0,
+			RELAYALICE,
+			1
+		));
+
+		assert_ok!(StatemineAssets::mint(
+			statemine_like::Origin::signed(RELAYALICE),
+			0,
+			RELAYALICE,
+			300000000000000
+		));
+
+		// This is needed, since the asset is created as non-sufficient
+		assert_ok!(StatemineBalances::transfer(
+			statemine_like::Origin::signed(RELAYALICE),
+			sov,
+			100000000000000
+		));
+
+		// Actually send relay asset to parachain
+		let dest: MultiLocation = AccountKey20 {
+			network: NetworkId::Any,
+			key: PARAALICE,
+		}
+		.into();
+
+		// Send asset with previous prefix
+		assert_ok!(StatemineChainPalletXcm::reserve_transfer_assets(
+			statemine_like::Origin::signed(RELAYALICE),
+			Box::new(MultiLocation::new(1, X1(Parachain(1))).into()),
+			Box::new(VersionedMultiLocation::V1(dest).clone().into()),
+			Box::new((X1(xcm::latest::prelude::GeneralIndex(0)), 123).into()),
+			0,
+		));
+	});
+
+	ParaA::execute_with(|| {
+		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 123);
+	});
+
+	Statemine::execute_with(|| {
+		// Set new prefix
+		statemine_like::PrefixChanger::set_prefix(
+			PalletInstance(<StatemineAssets as PalletInfoAccess>::index() as u8).into(),
+		);
+
+		// Actually send relay asset to parachain
+		let dest: MultiLocation = AccountKey20 {
+			network: NetworkId::Any,
+			key: PARAALICE,
+		}
+		.into();
+		// Send with new prefix
+		assert_ok!(StatemineChainPalletXcm::reserve_transfer_assets(
+			statemine_like::Origin::signed(RELAYALICE),
+			Box::new(MultiLocation::new(1, X1(Parachain(1))).into()),
+			Box::new(VersionedMultiLocation::V1(dest).clone().into()),
+			Box::new(
+				(
+					X2(
+						xcm::latest::prelude::PalletInstance(
+							<StatemineAssets as PalletInfoAccess>::index() as u8
+						),
+						xcm::latest::prelude::GeneralIndex(0),
+					),
+					123
+				)
+					.into()
+			),
+			0,
+		));
+	});
+
+	// Make sure that balance increases, as both prefixes are supported
+	ParaA::execute_with(|| {
+		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 246);
 	});
 }
 

@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -73,7 +73,7 @@ impl From<&str> for Bytes {
 }
 
 impl Into<Vec<u8>> for Bytes {
-	fn into(self: Self) -> Vec<u8> {
+	fn into(self) -> Vec<u8> {
 		self.0
 	}
 }

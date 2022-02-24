@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -60,7 +60,10 @@ fn eligible_account_can_register() {
 
 			assert_eq!(
 				last_event(),
-				MetaEvent::AuthorMapping(Event::AuthorRegistered(TestAuthor::Bob.into(), 2))
+				MetaEvent::AuthorMapping(Event::AuthorRegistered {
+					author_id: TestAuthor::Bob.into(),
+					account_id: 2
+				})
 			);
 		})
 }
@@ -105,7 +108,10 @@ fn double_registration_costs_twice_as_much() {
 
 			assert_eq!(
 				last_event(),
-				MetaEvent::AuthorMapping(Event::AuthorRegistered(TestAuthor::Bob.into(), 2))
+				MetaEvent::AuthorMapping(Event::AuthorRegistered {
+					author_id: TestAuthor::Bob.into(),
+					account_id: 2
+				})
 			);
 
 			// Register again as Alice
@@ -123,7 +129,10 @@ fn double_registration_costs_twice_as_much() {
 
 			assert_eq!(
 				last_event(),
-				MetaEvent::AuthorMapping(Event::AuthorRegistered(TestAuthor::Alice.into(), 2))
+				MetaEvent::AuthorMapping(Event::AuthorRegistered {
+					author_id: TestAuthor::Alice.into(),
+					account_id: 2
+				})
 			);
 
 			// Should still be registered as Bob as well
@@ -155,7 +164,9 @@ fn registered_account_can_clear() {
 
 			assert_eq!(
 				last_event(),
-				MetaEvent::AuthorMapping(Event::AuthorDeRegistered(TestAuthor::Alice.into()))
+				MetaEvent::AuthorMapping(Event::AuthorDeRegistered {
+					author_id: TestAuthor::Alice.into()
+				})
 			);
 		})
 }

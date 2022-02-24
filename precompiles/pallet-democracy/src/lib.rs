@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -26,7 +26,8 @@ use pallet_democracy::{AccountVote, Call as DemocracyCall, Vote};
 use pallet_evm::AddressMapping;
 use pallet_evm::Precompile;
 use precompile_utils::{
-	Address, Bytes, EvmData, EvmDataReader, EvmDataWriter, EvmResult, Gasometer, RuntimeHelper,
+	Address, Bytes, EvmData, EvmDataReader, EvmDataWriter, EvmResult, FunctionModifier, Gasometer,
+	RuntimeHelper,
 };
 use sp_core::{H160, H256, U256};
 use sp_std::{
@@ -86,7 +87,7 @@ where
 		input: &[u8], //Reminder this is big-endian
 		target_gas: Option<u64>,
 		context: &Context,
-		_is_static: bool,
+		is_static: bool,
 	) -> EvmResult<PrecompileOutput> {
 		log::trace!(target: "democracy-precompile", "In democracy wrapper");
 
@@ -95,6 +96,23 @@ where
 
 		let (mut input, selector) = EvmDataReader::new_with_selector(gasometer, input)?;
 		let input = &mut input;
+
+		gasometer.check_function_modifier(
+			context,
+			is_static,
+			match selector {
+				Action::Propose
+				| Action::Second
+				| Action::StandardVote
+				| Action::RemoveVote
+				| Action::Delegate
+				| Action::UnDelegate
+				| Action::Unlock
+				| Action::NotePreimage
+				| Action::NoteImminentPreimage => FunctionModifier::NonPayable,
+				_ => FunctionModifier::View,
+			},
+		)?;
 
 		match selector {
 			// Storage Accessors

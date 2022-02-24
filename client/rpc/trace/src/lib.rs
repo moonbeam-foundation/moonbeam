@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -33,18 +33,17 @@ use tokio::{
 use tracing::{instrument, Instrument};
 
 use jsonrpc_core::Result;
-use sc_client_api::backend::Backend;
+use sc_client_api::backend::{Backend, StateBackend, StorageProvider};
 use sc_utils::mpsc::TracingUnboundedSender;
-use sp_api::{BlockId, Core, HeaderT, ProvideRuntimeApi};
+use sp_api::{ApiExt, BlockId, Core, HeaderT, ProvideRuntimeApi};
 use sp_block_builder::BlockBuilder;
 use sp_blockchain::{
 	Backend as BlockchainBackend, Error as BlockChainError, HeaderBackend, HeaderMetadata,
 };
-use sp_runtime::traits::Block as BlockT;
+use sp_runtime::traits::{BlakeTwo256, Block as BlockT};
 
 use ethereum_types::H256;
-use fc_rpc::internal_err;
-use fc_rpc_core::types::BlockNumber;
+use fc_rpc::{frontier_backend_client, internal_err, OverrideHandle};
 use fp_rpc::EthereumRuntimeRPCApi;
 
 use moonbeam_client_evm_tracing::{
@@ -52,6 +51,7 @@ use moonbeam_client_evm_tracing::{
 	types::block::{self, TransactionTrace},
 };
 pub use moonbeam_rpc_core_trace::{FilterRequest, Trace as TraceT, TraceServer};
+use moonbeam_rpc_core_types::{RequestBlockId, RequestBlockTag};
 use moonbeam_rpc_primitives_debug::DebugRuntimeApi;
 
 /// RPC handler. Will communicate with a `CacheTask` through a `CacheRequester`.
@@ -91,13 +91,17 @@ where
 	}
 
 	/// Convert an optional block ID (number or tag) to a block height.
-	fn block_id(&self, id: Option<BlockNumber>) -> Result<u32> {
+	fn block_id(&self, id: Option<RequestBlockId>) -> Result<u32> {
 		match id {
-			Some(BlockNumber::Num(n)) => Ok(n as u32),
-			None | Some(BlockNumber::Latest) => Ok(self.client.info().best_number),
-			Some(BlockNumber::Earliest) => Ok(0),
-			Some(BlockNumber::Pending) => Err(internal_err("'pending' is not supported")),
-			Some(BlockNumber::Hash { .. }) => Err(internal_err("Block hash not supported")),
+			Some(RequestBlockId::Number(n)) => Ok(n),
+			None | Some(RequestBlockId::Tag(RequestBlockTag::Latest)) => {
+				Ok(self.client.info().best_number)
+			}
+			Some(RequestBlockId::Tag(RequestBlockTag::Earliest)) => Ok(0),
+			Some(RequestBlockId::Tag(RequestBlockTag::Pending)) => {
+				Err(internal_err("'pending' is not supported"))
+			}
+			Some(RequestBlockId::Hash(_)) => Err(internal_err("Block hash not supported")),
 		}
 	}
 
@@ -418,7 +422,9 @@ pub struct CacheTask<B, C, BE> {
 impl<B, C, BE> CacheTask<B, C, BE>
 where
 	BE: Backend<B> + 'static,
+	BE::State: StateBackend<BlakeTwo256>,
 	C: ProvideRuntimeApi<B>,
+	C: StorageProvider<B, BE>,
 	C: HeaderMetadata<B, Error = BlockChainError> + HeaderBackend<B>,
 	C: Send + Sync + 'static,
 	B: BlockT<Hash = H256> + Send + Sync + 'static,
@@ -426,6 +432,7 @@ where
 	C::Api: BlockBuilder<B>,
 	C::Api: DebugRuntimeApi<B>,
 	C::Api: EthereumRuntimeRPCApi<B>,
+	C::Api: ApiExt<B>,
 {
 	/// Create a new cache task.
 	///
@@ -436,6 +443,7 @@ where
 		backend: Arc<BE>,
 		cache_duration: Duration,
 		blocking_permits: Arc<Semaphore>,
+		overrides: Arc<OverrideHandle<B>>,
 	) -> (impl Future<Output = ()>, CacheRequester) {
 		// Communication with the outside world :
 		let (requester_tx, mut requester_rx) =
@@ -470,7 +478,7 @@ where
 						match request {
 							None => break,
 							Some(CacheRequest::StartBatch {sender, blocks})
-								=> inner.request_start_batch(&blocking_tx, sender, blocks),
+								=> inner.request_start_batch(&blocking_tx, sender, blocks, overrides.clone()),
 							Some(CacheRequest::GetTraces {sender, block})
 								=> inner.request_get_traces(sender, block),
 							Some(CacheRequest::StopBatch {batch_id}) => {
@@ -510,12 +518,13 @@ where
 
 	/// Handle the creation of a batch.
 	/// Will start the tracing process for blocks that are not already in the cache.
-	#[instrument(skip(self, blocking_tx, sender, blocks))]
+	#[instrument(skip(self, blocking_tx, sender, blocks, overrides))]
 	fn request_start_batch(
 		&mut self,
 		blocking_tx: &mpsc::Sender<BlockingTaskMessage>,
 		sender: oneshot::Sender<CacheBatchId>,
 		blocks: Vec<H256>,
+		overrides: Arc<OverrideHandle<B>>,
 	) {
 		tracing::trace!("Starting batch {}", self.next_batch_id);
 		self.batches.insert(self.next_batch_id, blocks.clone());
@@ -539,6 +548,7 @@ where
 				let client = Arc::clone(&self.client);
 				let backend = Arc::clone(&self.backend);
 				let blocking_tx = blocking_tx.clone();
+				let overrides = overrides.clone();
 
 				// Spawn all block caching asynchronously.
 				// It will wait to obtain a permit, then spawn a blocking task.
@@ -566,7 +576,7 @@ where
 						// Perform block tracing in a tokio blocking task.
 						let result = async {
 							tokio::task::spawn_blocking(move || {
-								Self::cache_block(client, backend, block)
+								Self::cache_block(client, backend, block, overrides.clone())
 							})
 							.await
 							.map_err(|e| {
@@ -765,11 +775,12 @@ where
 	}
 
 	/// (In blocking task) Use the Runtime API to trace the block.
-	#[instrument(skip(client, backend))]
+	#[instrument(skip(client, backend, overrides))]
 	fn cache_block(
 		client: Arc<C>,
 		backend: Arc<BE>,
 		substrate_hash: H256,
+		overrides: Arc<OverrideHandle<B>>,
 	) -> Result<Vec<TransactionTrace>> {
 		let substrate_block_id = BlockId::Hash(substrate_hash);
 
@@ -790,22 +801,29 @@ where
 		let height = *block_header.number();
 		let substrate_parent_id = BlockId::<B>::Hash(*block_header.parent_hash());
 
-		// Get Ethereum block data.
-		let (eth_block, _, eth_transactions) = api
-			.current_all(&BlockId::Hash(substrate_hash))
-			.map_err(|e| {
-				internal_err(format!(
-					"Failed to get Ethereum block data for Substrate block {} : {:?}",
-					substrate_hash, e
-				))
-			})?;
+		let schema = frontier_backend_client::onchain_storage_schema::<B, C, BE>(
+			client.as_ref(),
+			substrate_block_id,
+		);
 
-		let (eth_block, eth_transactions) = match (eth_block, eth_transactions) {
-			(Some(a), Some(b)) => (a, b),
+		// Get Ethereum block data.
+		let (eth_block, eth_transactions) = match overrides.schemas.get(&schema) {
+			Some(schema) => match (
+				schema.current_block(&substrate_block_id),
+				schema.current_transaction_statuses(&substrate_block_id),
+			) {
+				(Some(a), Some(b)) => (a, b),
+				_ => {
+					return Err(internal_err(format!(
+						"Failed to get Ethereum block data for Substrate block {}",
+						substrate_block_id
+					)))
+				}
+			},
 			_ => {
 				return Err(internal_err(format!(
-					"Failed to get Ethereum block data for Substrate block {}",
-					substrate_hash
+					"No storage override at {:?}",
+					substrate_block_id
 				)))
 			}
 		};

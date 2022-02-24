@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -58,6 +58,7 @@ pub mod pallet {
 	}
 
 	#[pallet::pallet]
+	#[pallet::without_storage_info]
 	pub struct Pallet<T>(PhantomData<T>);
 
 	/// Configuration trait of this pallet. We tightly couple to Parachain Staking in order to
@@ -92,14 +93,23 @@ pub mod pallet {
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
 		/// A NimbusId has been registered and mapped to an AccountId.
-		AuthorRegistered(NimbusId, T::AccountId),
+		AuthorRegistered {
+			author_id: NimbusId,
+			account_id: T::AccountId,
+		},
 		/// An NimbusId has been de-registered, and its AccountId mapping removed.
-		AuthorDeRegistered(NimbusId),
+		AuthorDeRegistered { author_id: NimbusId },
 		/// An NimbusId has been registered, replacing a previous registration and its mapping.
-		AuthorRotated(NimbusId, T::AccountId),
+		AuthorRotated {
+			new_author_id: NimbusId,
+			account_id: T::AccountId,
+		},
 		/// An NimbusId has been forcibly deregistered after not being rotated or cleaned up.
 		/// The reporteing account has been rewarded accordingly.
-		DefunctAuthorBusted(NimbusId, T::AccountId),
+		DefunctAuthorBusted {
+			author_id: NimbusId,
+			account_id: T::AccountId,
+		},
 	}
 
 	#[pallet::call]
@@ -119,7 +129,10 @@ pub mod pallet {
 
 			Self::enact_registration(&author_id, &account_id)?;
 
-			<Pallet<T>>::deposit_event(Event::AuthorRegistered(author_id, account_id));
+			<Pallet<T>>::deposit_event(Event::AuthorRegistered {
+				author_id,
+				account_id,
+			});
 
 			Ok(())
 		}
@@ -151,7 +164,10 @@ pub mod pallet {
 			MappingWithDeposit::<T>::remove(&old_author_id);
 			MappingWithDeposit::<T>::insert(&new_author_id, &stored_info);
 
-			<Pallet<T>>::deposit_event(Event::AuthorRotated(new_author_id, stored_info.account));
+			<Pallet<T>>::deposit_event(Event::AuthorRotated {
+				new_author_id: new_author_id,
+				account_id: stored_info.account,
+			});
 
 			Ok(())
 		}
@@ -179,7 +195,7 @@ pub mod pallet {
 
 			T::DepositCurrency::unreserve(&account_id, stored_info.deposit);
 
-			<Pallet<T>>::deposit_event(Event::AuthorDeRegistered(author_id));
+			<Pallet<T>>::deposit_event(Event::AuthorDeRegistered { author_id });
 
 			Ok(().into())
 		}

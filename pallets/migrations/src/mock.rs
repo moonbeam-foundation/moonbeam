@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -81,6 +81,7 @@ impl frame_system::Config for Test {
 	type BlockLength = ();
 	type SS58Prefix = SS58Prefix;
 	type OnSetCode = ();
+	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 
 /// MockMigrationManager stores the test-side callbacks/closures used in the Migrations list glue.
@@ -235,8 +236,8 @@ impl Migration for MockMigration {
 /// Implementation of Migrations. Generates a Vec of MockMigrations on the fly based on the current
 /// contents of MOCK_MIGRATIONS_LIST.
 pub struct MockMigrations;
-impl Get<Vec<Box<dyn Migration>>> for MockMigrations {
-	fn get() -> Vec<Box<dyn Migration>> {
+impl GetMigrations for MockMigrations {
+	fn get_migrations() -> Vec<Box<dyn Migration>> {
 		let mut migrations: Vec<Box<dyn Migration>> = Vec::new();
 		MOCK_MIGRATIONS_LIST::with(|mgr: &mut MockMigrationManager| {
 			migrations = mgr.generate_migrations_list();

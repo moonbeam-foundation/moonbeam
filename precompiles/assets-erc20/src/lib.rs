@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is 	part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -28,13 +28,17 @@ use frame_support::{
 };
 use pallet_evm::{AddressMapping, PrecompileSet};
 use precompile_utils::{
-	keccak256, Address, Bytes, EvmData, EvmDataReader, EvmDataWriter, EvmResult, Gasometer,
-	LogsBuilder, RuntimeHelper,
+	keccak256, Address, Bytes, EvmData, EvmDataReader, EvmDataWriter, EvmResult, FunctionModifier,
+	Gasometer, LogsBuilder, RuntimeHelper,
 };
-use sp_runtime::traits::Zero;
+use sp_runtime::traits::{Bounded, Zero};
 
 use sp_core::{H160, U256};
-use sp_std::{convert::TryFrom, marker::PhantomData, vec};
+use sp_std::{
+	convert::{TryFrom, TryInto},
+	marker::PhantomData,
+	vec,
+};
 
 #[cfg(test)]
 mod mock;
@@ -112,7 +116,7 @@ where
 		input: &[u8],
 		target_gas: Option<u64>,
 		context: &Context,
-		_is_static: bool,
+		is_static: bool,
 	) -> Option<EvmResult<PrecompileOutput>> {
 		if let Some(asset_id) =
 			Runtime::account_to_asset_id(Runtime::AddressMapping::into_account_id(address))
@@ -135,6 +139,19 @@ where
 							Err(e) => return Some(Err(e)),
 						};
 					let input = &mut input;
+
+					if let Err(err) = gasometer.check_function_modifier(
+						context,
+						is_static,
+						match selector {
+							Action::Approve | Action::Transfer | Action::TransferFrom => {
+								FunctionModifier::NonPayable
+							}
+							_ => FunctionModifier::View,
+						},
+					) {
+						return Some(Err(err));
+					}
 
 					match selector {
 						Action::TotalSupply => Self::total_supply(asset_id, input, gasometer),
@@ -284,11 +301,14 @@ where
 		input.expect_arguments(gasometer, 2)?;
 
 		let spender: H160 = input.read::<Address>(gasometer)?.into();
-		let amount = input.read::<BalanceOf<Runtime, Instance>>(gasometer)?;
+		let amount: U256 = input.read(gasometer)?;
 
 		{
 			let origin = Runtime::AddressMapping::into_account_id(context.caller);
 			let spender: Runtime::AccountId = Runtime::AddressMapping::into_account_id(spender);
+			// Amount saturate if too high.
+			let amount: BalanceOf<Runtime, Instance> =
+				amount.try_into().unwrap_or_else(|_| Bounded::max_value());
 
 			// Allowance read
 			gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;

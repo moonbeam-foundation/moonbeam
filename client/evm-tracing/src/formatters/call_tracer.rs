@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -43,14 +43,14 @@ impl super::ResponseFormatter for Formatter {
 		for entry in listener.entries.iter() {
 			let mut result: Vec<Call> = entry
 				.into_iter()
-				.filter_map(|(_, it)| {
+				.map(|(_, it)| {
 					let from = it.from;
 					let trace_address = it.trace_address.clone();
 					let value = it.value;
 					let gas = it.gas;
 					let gas_used = it.gas_used;
 					let inner = it.inner.clone();
-					Some(Call::CallTracer(CallTracerCall {
+					Call::CallTracer(CallTracerCall {
 						from: from,
 						gas: gas,
 						gas_used: gas_used,
@@ -105,9 +105,8 @@ impl super::ResponseFormatter for Formatter {
 							}
 						},
 						calls: Vec::new(),
-					}))
+					})
 				})
-				.map(|x| x)
 				.collect();
 			// Geth's `callTracer` expects a tree of nested calls and we have a stack.
 			//

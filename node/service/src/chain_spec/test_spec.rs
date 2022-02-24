@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -73,10 +73,17 @@ pub fn staking_spec(para_id: ParaId) -> ChainSpec {
 				1280,
 			)
 		},
+		// Bootnodes
 		vec![],
+		// Telemetry
 		None,
+		// Protocol ID
 		None,
+		// Fork ID
+		None,
+		// Properties
 		Some(serde_json::from_str("{\"tokenDecimals\": 18}").expect("Provided valid json map")),
+		// Extensions
 		Extensions {
 			relay_chain: "westend_local".into(),
 			para_id: para_id.into(),

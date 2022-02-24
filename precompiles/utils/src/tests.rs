@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -993,5 +993,77 @@ fn network_id_decoder_works() {
 	assert_eq!(
 		network_id_from_bytes(gm, network_id_to_bytes(NetworkId::Polkadot)),
 		Ok(NetworkId::Polkadot)
+	);
+}
+
+#[test]
+fn check_function_modifier() {
+	let mut gasometer = Gasometer::new(None);
+	let _ = gasometer.record_cost(500);
+
+	let context = |value: u32| Context {
+		address: H160::zero(),
+		caller: H160::zero(),
+		apparent_value: U256::from(value),
+	};
+
+	let payable_error = || gasometer.revert("function is not payable");
+	let static_error = || gasometer.revert("can't call non-static function in static context");
+
+	// Can't call non-static functions in static context.
+	assert_eq!(
+		gasometer.check_function_modifier(&context(0), true, FunctionModifier::Payable),
+		Err(static_error())
+	);
+	assert_eq!(
+		gasometer.check_function_modifier(&context(0), true, FunctionModifier::NonPayable),
+		Err(static_error())
+	);
+	assert_eq!(
+		gasometer.check_function_modifier(&context(0), true, FunctionModifier::View),
+		Ok(())
+	);
+
+	// Static check is performed before non-payable check.
+	assert_eq!(
+		gasometer.check_function_modifier(&context(1), true, FunctionModifier::Payable),
+		Err(static_error())
+	);
+	assert_eq!(
+		gasometer.check_function_modifier(&context(1), true, FunctionModifier::NonPayable),
+		Err(static_error())
+	);
+	// FunctionModifier::View pass static check but fail for payable.
+	assert_eq!(
+		gasometer.check_function_modifier(&context(1), true, FunctionModifier::View),
+		Err(payable_error())
+	);
+
+	// Can't send funds to non payable function
+	assert_eq!(
+		gasometer.check_function_modifier(&context(1), false, FunctionModifier::Payable),
+		Ok(())
+	);
+	assert_eq!(
+		gasometer.check_function_modifier(&context(1), false, FunctionModifier::NonPayable),
+		Err(payable_error())
+	);
+	assert_eq!(
+		gasometer.check_function_modifier(&context(1), false, FunctionModifier::View),
+		Err(payable_error())
+	);
+
+	// Any function can be called without funds.
+	assert_eq!(
+		gasometer.check_function_modifier(&context(0), false, FunctionModifier::Payable),
+		Ok(())
+	);
+	assert_eq!(
+		gasometer.check_function_modifier(&context(0), false, FunctionModifier::NonPayable),
+		Ok(())
+	);
+	assert_eq!(
+		gasometer.check_function_modifier(&context(0), false, FunctionModifier::View),
+		Ok(())
 	);
 }

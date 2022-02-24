@@ -26,8 +26,8 @@ serde_json = "1.0"
 tempfile = "3.2.0"
 
 # Benchmarking
-pallet-xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.13" }
-xcm-builder = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.13" }
+pallet-xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.16" }
+xcm-builder = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.16" }
 
 [features]
 default = [ "moonbase-native", "moonbeam-native", "moonriver-native" ]
@@ -39,8 +39,6 @@ westend-native = [ "moonbeam-cli/westend-native", "moonbeam-service/westend-nati
 moonbase-native = [ "moonbeam-cli/moonbase-native", "moonbeam-service/moonbase-native" ]
 moonbeam-native = [ "moonbeam-cli/moonbeam-native", "moonbeam-service/moonbeam-native" ]
 moonriver-native = [ "moonbeam-cli/moonriver-native", "moonbeam-service/moonriver-native" ]
-
-moonbase-native-tracing = [ "moonbeam-service/moonbase-native-tracing" ]
 
 test-spec = []
 

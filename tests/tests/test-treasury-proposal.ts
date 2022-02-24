@@ -25,7 +25,7 @@ describeDevMoonbeam("Treasury proposal #1", (context) => {
 
     // Try to approve the proposal directly (must be fail)
     await context.polkadotApi.tx.treasury.approveProposal(0).signAndSend(ethan);
-    let approvals = await context.polkadotApi.query.treasury.approvals();
+    let approvals = (await context.polkadotApi.query.treasury.approvals()) as any;
     expect(approvals.length).to.equal(0, "No proposal must have been approved");
   });
 });
@@ -103,7 +103,7 @@ describeDevMoonbeam("Treasury proposal #4", (context) => {
     await context.createBlock();
 
     // Verify that the proposal is not approved
-    let approvals = await context.polkadotApi.query.treasury.approvals();
+    let approvals = (await context.polkadotApi.query.treasury.approvals()) as any;
     expect(approvals.length).to.equal(0, "No proposal should have been approved");
   });
 });
@@ -129,7 +129,7 @@ describeDevMoonbeam("Treasury proposal #5", (context) => {
     await context.createBlock();
 
     // Verify that the proposal is approved
-    let approvals = await context.polkadotApi.query.treasury.approvals();
+    let approvals = (await context.polkadotApi.query.treasury.approvals()) as any;
     expect(approvals.length).to.equal(1, "One proposal should have been approved");
   });
 });
@@ -178,7 +178,7 @@ describeDevMoonbeam("Treasury proposal #7", (context) => {
     await context.createBlock();
 
     // Verify that the proposal is submitted
-    let proposalCount = await context.polkadotApi.query.treasury.proposalCount();
+    let proposalCount = (await context.polkadotApi.query.treasury.proposalCount()) as any;
     expect(proposalCount.toBigInt()).to.equal(1n, "new proposal should have been added");
 
     // Charleth submit the proposal to the council (and therefore implicitly votes for)
@@ -208,8 +208,7 @@ describeDevMoonbeam("Treasury proposal #7", (context) => {
     await context.createBlock();
 
     // Verify that the proposal is approved
-    let approvals = await context.polkadotApi.query.treasury.approvals();
-    console.log(JSON.stringify(approvals));
+    let approvals = (await context.polkadotApi.query.treasury.approvals()) as any;
     expect(approvals.length).to.equal(1, "one proposal should have been approved");
   });
 });
@@ -226,7 +225,7 @@ describeDevMoonbeam("Treasury proposal #8", (context) => {
     await context.createBlock();
 
     // Verify that the proposal is submitted
-    let proposalCount = await context.polkadotApi.query.treasury.proposalCount();
+    let proposalCount = (await context.polkadotApi.query.treasury.proposalCount()) as any;
     expect(proposalCount.toBigInt()).to.equal(1n, "new proposal should have been added");
 
     // Charleth proposed that the council reject the treasury proposal

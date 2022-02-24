@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -56,6 +56,10 @@ impl sc_service::ChainSpec for FakeSpec {
 		todo!()
 	}
 
+	fn fork_id(&self) -> Option<&str> {
+		todo!()
+	}
+
 	fn properties(&self) -> sc_chain_spec::Properties {
 		todo!()
 	}
@@ -88,7 +92,7 @@ impl sc_service::ChainSpec for FakeSpec {
 		todo!()
 	}
 
-	fn code_substitutes(&self) -> std::collections::HashMap<String, Vec<u8>> {
+	fn code_substitutes(&self) -> std::collections::BTreeMap<String, Vec<u8>> {
 		todo!()
 	}
 }
