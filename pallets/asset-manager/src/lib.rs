@@ -344,7 +344,7 @@ pub mod pallet {
 		pub fn set_asset_units_per_second(
 			origin: OriginFor<T>,
 			asset_type: T::ForeignAssetType,
-			units_per_second: LocalAssetCreationAuthorizationu128,
+			units_per_second: u128,
 			num_assets_weight_hint: u32,
 		) -> DispatchResult {
 			T::ForeignAssetModifierOrigin::ensure_origin(origin)?;
