@@ -112,6 +112,19 @@
 <span id="112">112</span>
 <span id="113">113</span>
 <span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -170,6 +183,7 @@
 	<span class="kw">fn</span> <span class="ident">set_asset_units_per_second</span>(<span class="ident">x</span>: <span class="ident">u32</span>) -&gt; <span class="ident">Weight</span>;
 	<span class="kw">fn</span> <span class="ident">change_existing_asset_type</span>(<span class="ident">x</span>: <span class="ident">u32</span>) -&gt; <span class="ident">Weight</span>;
 	<span class="kw">fn</span> <span class="ident">remove_supported_asset</span>(<span class="ident">x</span>: <span class="ident">u32</span>) -&gt; <span class="ident">Weight</span>;
+	<span class="kw">fn</span> <span class="ident">remove_existing_asset_type</span>(<span class="ident">x</span>: <span class="ident">u32</span>) -&gt; <span class="ident">Weight</span>;
 }
 
 <span class="doccomment">/// Weights for pallet_asset_manager using the Substrate node and recommended hardware.</span>
@@ -198,6 +212,12 @@
 			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">reads</span>(<span class="number">5</span> <span class="kw">as</span> <span class="ident">Weight</span>))
 			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">writes</span>(<span class="number">4</span> <span class="kw">as</span> <span class="ident">Weight</span>))
 	}
+	<span class="kw">fn</span> <span class="ident">remove_existing_asset_type</span>(<span class="ident">x</span>: <span class="ident">u32</span>) -&gt; <span class="ident">Weight</span> {
+		(<span class="number">30_428_000</span> <span class="kw">as</span> <span class="ident">Weight</span>) <span class="comment">// Standard Error: 3_000</span>
+			.<span class="ident">saturating_add</span>((<span class="number">1_166_000</span> <span class="kw">as</span> <span class="ident">Weight</span>).<span class="ident">saturating_mul</span>(<span class="ident">x</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">reads</span>(<span class="number">6</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">writes</span>(<span class="number">6</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+	}
 }
 
 <span class="comment">// For backwards compatibility and tests</span>
@@ -224,6 +244,12 @@
 			.<span class="ident">saturating_add</span>((<span class="number">1_148_000</span> <span class="kw">as</span> <span class="ident">Weight</span>).<span class="ident">saturating_mul</span>(<span class="ident">x</span> <span class="kw">as</span> <span class="ident">Weight</span>))
 			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">reads</span>(<span class="number">5</span> <span class="kw">as</span> <span class="ident">Weight</span>))
 			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">writes</span>(<span class="number">4</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+	}
+	<span class="kw">fn</span> <span class="ident">remove_existing_asset_type</span>(<span class="ident">x</span>: <span class="ident">u32</span>) -&gt; <span class="ident">Weight</span> {
+		(<span class="number">30_428_000</span> <span class="kw">as</span> <span class="ident">Weight</span>) <span class="comment">// Standard Error: 3_000</span>
+			.<span class="ident">saturating_add</span>((<span class="number">1_166_000</span> <span class="kw">as</span> <span class="ident">Weight</span>).<span class="ident">saturating_mul</span>(<span class="ident">x</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">reads</span>(<span class="number">6</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">writes</span>(<span class="number">6</span> <span class="kw">as</span> <span class="ident">Weight</span>))
 	}
 }
 </code></pre></div>

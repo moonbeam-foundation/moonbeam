@@ -44,7 +44,7 @@ sourcesIndex["precompile_utils_macro"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["relay_encoder_precompiles"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["runtime_common"] = {"name":"","files":["apis.rs","impl_self_contained_call.rs","lib.rs","migrations.rs"]};
 sourcesIndex["xcm_primitives"] = {"name":"","files":["lib.rs"]};
-sourcesIndex["xcm_transactor"] = {"name":"","files":["lib.rs","migrations.rs"]};
+sourcesIndex["xcm_transactor"] = {"name":"","files":["lib.rs","migrations.rs","weights.rs"]};
 sourcesIndex["xcm_transactor_precompiles"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["xtokens_precompiles"] = {"name":"","files":["lib.rs"]};
 createSourceSidebar();
