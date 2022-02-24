@@ -189,37 +189,38 @@ impl super::ResponseFormatter for Formatter {
 				});
 				// Stack pop-and-push.
 				while result.len() > 1 {
-					let mut last = result.pop().unwrap();
-					// Find the parent index.
-					if let Some(index) =
-						result
-							.iter()
-							.position(|current| match (last.clone(), current) {
-								(
-									Call::CallTracer(CallTracerCall {
-										trace_address: Some(a),
-										..
-									}),
-									Call::CallTracer(CallTracerCall {
-										trace_address: Some(b),
-										..
-									}),
-								) => &b[..] == &a[0..a.len() - 1],
-								_ => unreachable!(),
-							}) {
-						// Remove `trace_address` from result.
-						if let Call::CallTracer(CallTracerCall {
-							ref mut trace_address,
-							..
-						}) = last
-						{
-							*trace_address = None;
-						}
-						// Push the children to parent.
-						if let Some(Call::CallTracer(CallTracerCall { calls, .. })) =
-							result.get_mut(index)
-						{
-							calls.push(last);
+					if let Some(mut last) = result.pop() {
+						// Find the parent index.
+						if let Some(index) =
+							result
+								.iter()
+								.position(|current| match (last.clone(), current) {
+									(
+										Call::CallTracer(CallTracerCall {
+											trace_address: Some(a),
+											..
+										}),
+										Call::CallTracer(CallTracerCall {
+											trace_address: Some(b),
+											..
+										}),
+									) => &b[..] == &a[0..a.len() - 1],
+									_ => unreachable!(),
+								}) {
+							// Remove `trace_address` from result.
+							if let Call::CallTracer(CallTracerCall {
+								ref mut trace_address,
+								..
+							}) = last
+							{
+								*trace_address = None;
+							}
+							// Push the children to parent.
+							if let Some(Call::CallTracer(CallTracerCall { calls, .. })) =
+								result.get_mut(index)
+							{
+								calls.push(last);
+							}
 						}
 					}
 				}
@@ -230,7 +231,9 @@ impl super::ResponseFormatter for Formatter {
 				*trace_address = None;
 			}
 			if result.len() == 1 {
-				traces.push(TransactionTrace::CallListNested(result.pop().unwrap()));
+				traces.push(TransactionTrace::CallListNested(result.pop().expect(
+					"result.len() == 1, so pop() necessarily returns this element",
+				)));
 			}
 		}
 		if traces.is_empty() {

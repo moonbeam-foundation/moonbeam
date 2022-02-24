@@ -479,24 +479,25 @@ impl Listener {
 					vec![]
 				};
 
-				if self.entries.is_empty() {
+				if let Some(ref mut last) = self.entries.last_mut() {
+					last.insert(
+						self.entries_next_index,
+						Call {
+							from: address, // this contract is self destructing
+							trace_address,
+							subtraces: 0,
+							value: 0.into(),
+							gas: 0.into(),
+							gas_used: 0.into(),
+							inner: CallInner::SelfDestruct {
+								to: target,
+								balance,
+							},
+						},
+					);
+				} else {
 					self.entries.push(BTreeMap::new());
 				}
-				self.entries.last_mut().unwrap().insert(
-					self.entries_next_index,
-					Call {
-						from: address, // this contract is self destructing
-						trace_address,
-						subtraces: 0,
-						value: 0.into(),
-						gas: 0.into(),
-						gas_used: 0.into(),
-						inner: CallInner::SelfDestruct {
-							to: target,
-							balance,
-						},
-					},
-				);
 				self.entries_next_index += 1;
 			}
 			EvmEvent::Exit {
@@ -523,11 +524,11 @@ impl Listener {
 	}
 
 	fn insert_entry(&mut self, key: u32, entry: Call) {
-		if self.entries.is_empty() {
+		if let Some(ref mut last) = self.entries.last_mut() {
+			last.insert(key, entry);
+		} else {
 			self.entries.push(BTreeMap::new());
 		}
-
-		self.entries.last_mut().unwrap().insert(key, entry);
 	}
 
 	fn pop_context_to_entry(

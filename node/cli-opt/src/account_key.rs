@@ -40,7 +40,7 @@ impl GenerateAccountKey {
 	pub fn run(&self) {
 		// Retrieve the mnemonic from the args or generate random ones
 		let mnemonic = if let Some(phrase) = &self.mnemonic {
-			Mnemonic::from_phrase(phrase, Language::English).unwrap()
+			Mnemonic::from_phrase(phrase, Language::English).expect("invalid mnemonic")
 		} else {
 			match self.w12 {
 				true => Mnemonic::new(MnemonicType::Words12, Language::English),
@@ -55,8 +55,10 @@ impl GenerateAccountKey {
 		let derivation_path = format!("m/44'/60'/0'/0/{}", self.account_index.unwrap_or(0));
 
 		// Derives the private key from
-		let ext = ExtendedPrivKey::derive(seed.as_bytes(), derivation_path.as_str()).unwrap();
-		let private_key = SecretKey::parse_slice(&ext.secret()).unwrap();
+		let ext = ExtendedPrivKey::derive(seed.as_bytes(), derivation_path.as_str())
+			.expect("invalid derivation path");
+		let private_key =
+			SecretKey::parse_slice(&ext.secret()).expect("invalid extended private key");
 
 		// Retrieves the public key
 		let public_key = PublicKey::from_secret_key(&private_key);
