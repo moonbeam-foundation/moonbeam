@@ -30,8 +30,9 @@ use frame_support::{
 	StorageHasher, Twox128,
 };
 use moonbeam_runtime::{
-	currency::GLMR, AccountId, Balances, BaseFee, BlockWeights, Call, CrowdloanRewards, CurrencyId,
-	Event, ParachainStaking, PolkadotXcm, Precompiles, Runtime, System, XTokens, XcmTransactor,
+	currency::GLMR, xcm_config::CurrencyId, AccountId, Balances, BaseFee, BlockWeights, Call,
+	CrowdloanRewards, Event, ParachainStaking, PolkadotXcm, Precompiles, Runtime, System, XTokens,
+	XcmTransactor,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
@@ -1711,7 +1712,7 @@ fn make_sure_glmr_cannot_be_transferred_precompile() {
 				XTokens::transfer_multiasset(
 					origin_of(AccountId::from(ALICE)),
 					Box::new(VersionedMultiAsset::V1(MultiAsset {
-						id: Concrete(moonbeam_runtime::SelfLocation::get()),
+						id: Concrete(moonbeam_runtime::xcm_config::SelfLocation::get()),
 						fun: Fungible(1000)
 					})),
 					Box::new(VersionedMultiLocation::V1(dest)),
@@ -1778,7 +1779,7 @@ fn make_sure_polkadot_xcm_cannot_be_called() {
 				}),
 			};
 			let multiassets: MultiAssets = [MultiAsset {
-				id: Concrete(moonbeam_runtime::SelfLocation::get()),
+				id: Concrete(moonbeam_runtime::xcm_config::SelfLocation::get()),
 				fun: Fungible(1000),
 			}]
 			.to_vec()
@@ -1839,7 +1840,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 			assert_noop!(
 				XcmTransactor::transact_through_derivative_multilocation(
 					origin_of(AccountId::from(ALICE)),
-					moonbeam_runtime::Transactors::Relay,
+					moonbeam_runtime::xcm_config::Transactors::Relay,
 					0,
 					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 					// 2000 is the max
@@ -1851,9 +1852,9 @@ fn transactor_cannot_use_more_than_max_weight() {
 			assert_noop!(
 				XcmTransactor::transact_through_derivative(
 					origin_of(AccountId::from(ALICE)),
-					moonbeam_runtime::Transactors::Relay,
+					moonbeam_runtime::xcm_config::Transactors::Relay,
 					0,
-					moonbeam_runtime::CurrencyId::OtherReserve(source_id),
+					CurrencyId::OtherReserve(source_id),
 					// 20000 is the max
 					17000,
 					vec![],
