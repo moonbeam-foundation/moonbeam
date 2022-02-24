@@ -2083,7 +2083,7 @@ fn send_para_a_local_asset_to_para_b() {
 		.unwrap();
 
 		ParaA::execute_with(|| {
-			assert_ok!(AssetManager::authorize_local_assset(
+			assert_ok!(AssetManager::authorize_local_asset(
 				parachain::Origin::root(),
 				PARAALICE.into(),
 				PARAALICE.into(),
@@ -2223,7 +2223,7 @@ fn send_para_a_local_asset_to_para_b_and_send_it_back_together_with_some_dev() {
 		.unwrap();
 
 		ParaA::execute_with(|| {
-			assert_ok!(AssetManager::authorize_local_assset(
+			assert_ok!(AssetManager::authorize_local_asset(
 				parachain::Origin::root(),
 				PARAALICE.into(),
 				PARAALICE.into(),

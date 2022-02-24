@@ -663,7 +663,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
       context,
       alith,
       context.polkadotApi.tx.sudo.sudo(
-        context.polkadotApi.tx.assetManager.authorizeLocalAssset(
+        context.polkadotApi.tx.assetManager.authorizeLocalAsset(
           baltathar.address,
           baltathar.address,
           new BN(1)
@@ -1009,7 +1009,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
       context,
       alith,
       context.polkadotApi.tx.sudo.sudo(
-        context.polkadotApi.tx.assetManager.authorizeLocalAssset(
+        context.polkadotApi.tx.assetManager.authorizeLocalAsset(
           baltathar.address,
           baltathar.address,
           new BN(1)

@@ -56,7 +56,7 @@ fn registering_foreign_works() {
 fn registering_local_works() {
 	new_test_ext().execute_with(|| {
 		let asset_id = MockLocalAssetIdCreator::create_asset_id_from_account(1u64);
-		assert_ok!(AssetManager::authorize_local_assset(
+		assert_ok!(AssetManager::authorize_local_asset(
 			Origin::root(),
 			1u64,
 			1u64,
@@ -84,7 +84,7 @@ fn registering_local_works() {
 #[test]
 fn registering_local_fails_if_not_authorization_given() {
 	new_test_ext().execute_with(|| {
-		assert_ok!(AssetManager::authorize_local_assset(
+		assert_ok!(AssetManager::authorize_local_asset(
 			Origin::root(),
 			1u64,
 			1u64,

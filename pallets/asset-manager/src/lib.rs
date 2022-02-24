@@ -315,8 +315,8 @@ pub mod pallet {
 
 		/// Authorize an account to be able to create a local asset
 		/// LocalAssetModifierOrigin needs to dispatch this call
-		#[pallet::weight(T::WeightInfo::authorize_local_assset())]
-		pub fn authorize_local_assset(
+		#[pallet::weight(T::WeightInfo::authorize_local_asset())]
+		pub fn authorize_local_asset(
 			origin: OriginFor<T>,
 			creator: T::AccountId,
 			owner: T::AccountId,

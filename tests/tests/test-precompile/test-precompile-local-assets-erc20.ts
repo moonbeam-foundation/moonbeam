@@ -53,7 +53,7 @@ describeDevMoonbeamAllEthTxTypes(
         context,
         sudoAccount,
         context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.assetManager.authorizeLocalAssset(
+          context.polkadotApi.tx.assetManager.authorizeLocalAsset(
             baltatharAccount.address,
             baltatharAccount.address,
             new BN(1)
@@ -241,7 +241,7 @@ describeDevMoonbeamAllEthTxTypes(
         context,
         sudoAccount,
         context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.assetManager.authorizeLocalAssset(
+          context.polkadotApi.tx.assetManager.authorizeLocalAsset(
             baltatharAccount.address,
             baltatharAccount.address,
             new BN(1)
@@ -367,7 +367,7 @@ describeDevMoonbeamAllEthTxTypes(
         context,
         sudoAccount,
         context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.assetManager.authorizeLocalAssset(
+          context.polkadotApi.tx.assetManager.authorizeLocalAsset(
             baltatharAccount.address,
             baltatharAccount.address,
             new BN(1)
@@ -507,7 +507,7 @@ describeDevMoonbeamAllEthTxTypes(
         context,
         sudoAccount,
         context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.assetManager.authorizeLocalAssset(
+          context.polkadotApi.tx.assetManager.authorizeLocalAsset(
             baltatharAccount.address,
             baltatharAccount.address,
             new BN(1)
@@ -605,7 +605,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
       context,
       sudoAccount,
       context.polkadotApi.tx.sudo.sudo(
-        context.polkadotApi.tx.assetManager.authorizeLocalAssset(
+        context.polkadotApi.tx.assetManager.authorizeLocalAsset(
           baltatharAccount.address,
           baltatharAccount.address,
           new BN(1)
@@ -773,7 +773,7 @@ describeDevMoonbeamAllEthTxTypes(
         context,
         sudoAccount,
         context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.assetManager.authorizeLocalAssset(
+          context.polkadotApi.tx.assetManager.authorizeLocalAsset(
             baltatharAccount.address,
             baltatharAccount.address,
             new BN(1)
@@ -892,7 +892,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
       context,
       sudoAccount,
       context.polkadotApi.tx.sudo.sudo(
-        context.polkadotApi.tx.assetManager.authorizeLocalAssset(
+        context.polkadotApi.tx.assetManager.authorizeLocalAsset(
           baltatharAccount.address,
           baltatharAccount.address,
           new BN(1)
@@ -1098,7 +1098,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
       context,
       sudoAccount,
       context.polkadotApi.tx.sudo.sudo(
-        context.polkadotApi.tx.assetManager.authorizeLocalAssset(
+        context.polkadotApi.tx.assetManager.authorizeLocalAsset(
           baltatharAccount.address,
           baltatharAccount.address,
           new BN(1)
@@ -1264,7 +1264,7 @@ describeDevMoonbeamAllEthTxTypes(
         context,
         sudoAccount,
         context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.assetManager.authorizeLocalAssset(
+          context.polkadotApi.tx.assetManager.authorizeLocalAsset(
             baltatharAccount.address,
             baltatharAccount.address,
             new BN(1)
@@ -1387,7 +1387,7 @@ describeDevMoonbeamAllEthTxTypes(
         context,
         sudoAccount,
         context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.assetManager.authorizeLocalAssset(
+          context.polkadotApi.tx.assetManager.authorizeLocalAsset(
             baltatharAccount.address,
             baltatharAccount.address,
             new BN(1)
@@ -1491,7 +1491,7 @@ describeDevMoonbeamAllEthTxTypes(
         context,
         sudoAccount,
         context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.assetManager.authorizeLocalAssset(
+          context.polkadotApi.tx.assetManager.authorizeLocalAsset(
             baltatharAccount.address,
             baltatharAccount.address,
             new BN(1)
@@ -1595,7 +1595,7 @@ describeDevMoonbeamAllEthTxTypes(
         context,
         sudoAccount,
         context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.assetManager.authorizeLocalAssset(
+          context.polkadotApi.tx.assetManager.authorizeLocalAsset(
             baltatharAccount.address,
             baltatharAccount.address,
             new BN(1)
@@ -1688,7 +1688,7 @@ describeDevMoonbeamAllEthTxTypes(
         context,
         sudoAccount,
         context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.assetManager.authorizeLocalAssset(
+          context.polkadotApi.tx.assetManager.authorizeLocalAsset(
             baltatharAccount.address,
             baltatharAccount.address,
             new BN(1)
@@ -1787,7 +1787,7 @@ describeDevMoonbeamAllEthTxTypes(
         context,
         sudoAccount,
         context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.assetManager.authorizeLocalAssset(
+          context.polkadotApi.tx.assetManager.authorizeLocalAsset(
             baltatharAccount.address,
             baltatharAccount.address,
             new BN(1)
@@ -1879,7 +1879,7 @@ describeDevMoonbeamAllEthTxTypes(
         context,
         sudoAccount,
         context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.assetManager.authorizeLocalAssset(
+          context.polkadotApi.tx.assetManager.authorizeLocalAsset(
             baltatharAccount.address,
             baltatharAccount.address,
             new BN(1)
@@ -1971,7 +1971,7 @@ describeDevMoonbeamAllEthTxTypes(
         context,
         sudoAccount,
         context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.assetManager.authorizeLocalAssset(
+          context.polkadotApi.tx.assetManager.authorizeLocalAsset(
             baltatharAccount.address,
             baltatharAccount.address,
             new BN(1)
@@ -2051,7 +2051,7 @@ describeDevMoonbeamAllEthTxTypes(
         context,
         sudoAccount,
         context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.assetManager.authorizeLocalAssset(
+          context.polkadotApi.tx.assetManager.authorizeLocalAsset(
             baltatharAccount.address,
             baltatharAccount.address,
             new BN(1)
@@ -2133,7 +2133,7 @@ describeDevMoonbeamAllEthTxTypes(
         context,
         sudoAccount,
         context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.assetManager.authorizeLocalAssset(
+          context.polkadotApi.tx.assetManager.authorizeLocalAsset(
             baltatharAccount.address,
             baltatharAccount.address,
             new BN(1)
@@ -2213,7 +2213,7 @@ describeDevMoonbeamAllEthTxTypes(
         context,
         sudoAccount,
         context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.assetManager.authorizeLocalAssset(
+          context.polkadotApi.tx.assetManager.authorizeLocalAsset(
             baltatharAccount.address,
             baltatharAccount.address,
             new BN(1)

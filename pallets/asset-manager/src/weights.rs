@@ -57,7 +57,7 @@ pub trait WeightInfo {
 	fn change_existing_asset_type(x: u32) -> Weight;
 	fn remove_supported_asset(x: u32) -> Weight;
 	fn remove_existing_asset_type(x: u32) -> Weight;
-	fn authorize_local_assset() -> Weight;
+	fn authorize_local_asset() -> Weight;
 	fn register_local_asset() -> Weight;
 }
 
@@ -93,7 +93,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(6 as Weight))
 			.saturating_add(T::DbWeight::get().writes(6 as Weight))
 	}
-	fn authorize_local_assset() -> Weight {
+	fn authorize_local_asset() -> Weight {
 		(15_902_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(4 as Weight))
 			.saturating_add(T::DbWeight::get().writes(3 as Weight))
@@ -136,7 +136,7 @@ impl WeightInfo for () {
 			.saturating_add(RocksDbWeight::get().reads(6 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(6 as Weight))
 	}
-	fn authorize_local_assset() -> Weight {
+	fn authorize_local_asset() -> Weight {
 		(15_902_000 as Weight).saturating_add(RocksDbWeight::get().reads(4 as Weight))
 	}
 	fn remove_existing_asset_type(x: u32) -> Weight {
