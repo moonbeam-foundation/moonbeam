@@ -27,3 +27,6 @@ tests/util/tracer/blockscout_tracer*
 
 # Dist folders should not be formatted
 */dist/
+
+# Files that can't be formatted
+typescript-api/src/**/interfaces/augment-api-tx.ts
