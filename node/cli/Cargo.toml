@@ -5,9 +5,9 @@ edition = "2018"
 version = "0.20.1"
 
 [dependencies]
+clap = { version = "3.1", features = [ "derive" ] }
 log = "0.4.8"
 parity-scale-codec = "2.2"
-clap = { version = "3.1", features = ["derive"] }
 
 # Moonbeam
 cli-opt = { package = "moonbeam-cli-opt", path = "../cli-opt", default-features = false }

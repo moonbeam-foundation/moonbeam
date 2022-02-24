@@ -7,10 +7,10 @@ license = "GPL-3.0-only"
 version = "0.20.1"
 
 [dependencies]
+clap = { version = "3.1", features = [ "derive" ] }
 libsecp256k1 = "0.6"
 primitive-types = "0.10.0"
 sha3 = "0.9"
-clap = { version = "3.1", features = ["derive"] }
 tiny-bip39 = "0.8"
 tiny-hderive = "0.3.0"
 
