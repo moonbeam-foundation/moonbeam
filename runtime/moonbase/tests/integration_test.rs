@@ -1146,7 +1146,7 @@ fn asset_erc20_precompiles_transfer() {
 			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(true).build(),
-				cost: 25084u64,
+				cost: 23516u64,
 				logs: LogsBuilder::new(asset_precompile_address)
 					.log3(
 						SELECTOR_LOG_TRANSFER,
@@ -1220,7 +1220,7 @@ fn asset_erc20_precompiles_approve() {
 			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(true).build(),
-				cost: 15035u64,
+				cost: 13989u64,
 				logs: LogsBuilder::new(asset_precompile_address)
 					.log3(
 						SELECTOR_LOG_APPROVAL,
@@ -1254,7 +1254,7 @@ fn asset_erc20_precompiles_approve() {
 			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(true).build(),
-				cost: 31042u64,
+				cost: 29006u64,
 				logs: LogsBuilder::new(asset_precompile_address)
 					.log3(
 						SELECTOR_LOG_TRANSFER,
