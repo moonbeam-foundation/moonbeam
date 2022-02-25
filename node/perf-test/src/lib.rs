@@ -19,32 +19,32 @@ mod command;
 mod tests;
 mod txn_signer;
 
+use clap::Parser;
 use std::path::PathBuf;
-use structopt::StructOpt;
 
-#[derive(Debug, Clone, StructOpt)]
+#[derive(Debug, Clone, Parser)]
 pub struct PerfCmd {
 	#[allow(missing_docs)]
-	#[structopt(flatten)]
+	#[clap(flatten)]
 	pub shared_params: sc_cli::SharedParams,
 
-	#[structopt(
+	#[clap(
 		long = "working-dir",
 		help = "Used for temp blockchain data. Should exist on desired test hardware.",
 		required = true
 	)]
 	pub working_dir: PathBuf,
 
-	#[structopt(
+	#[clap(
 		long = "output-file",
 		help = "File where results should be printed (STDOUT if omitted)."
 	)]
 	pub output_file: Option<PathBuf>,
 
-	#[structopt(long, value_name = "CHAIN_SPEC", default_value = "dev")]
+	#[clap(long, value_name = "CHAIN_SPEC", default_value = "dev")]
 	pub chain: String,
 
-	#[structopt(
+	#[clap(
 		long = "tests",
 		help = "Comma-separated list of tests to run (if omitted, runs all tests)"
 	)]

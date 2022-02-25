@@ -34,7 +34,7 @@ use crate::{
 	PendingDelegationRequests, Range, TopDelegations, Total,
 };
 use frame_support::{assert_noop, assert_ok, traits::ReservableCurrency};
-use sp_runtime::{traits::Zero, DispatchError, Perbill, Percent};
+use sp_runtime::{traits::Zero, DispatchError, ModuleError, Perbill, Percent};
 use sp_std::collections::btree_map::BTreeMap;
 
 // ~~ ROOT ~~
@@ -771,11 +771,11 @@ fn cannot_join_candidates_with_more_than_available_balance() {
 		.execute_with(|| {
 			assert_noop!(
 				ParachainStaking::join_candidates(Origin::signed(1), 501u128, 100u32),
-				DispatchError::Module {
+				DispatchError::Module(ModuleError {
 					index: 1,
 					error: 2,
 					message: Some("InsufficientBalance")
-				}
+				})
 			);
 		});
 }

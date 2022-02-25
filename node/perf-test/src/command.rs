@@ -203,6 +203,13 @@ where
 
 		let command_sink_for_deps = command_sink.clone();
 
+		let block_data_cache = Arc::new(fc_rpc::EthBlockDataCache::new(
+			task_manager.spawn_handle(),
+			overrides.clone(),
+			3000,
+			3000,
+		));
+
 		let rpc_extensions_builder = {
 			let client = client.clone();
 			let pool = transaction_pool.clone();
@@ -211,6 +218,7 @@ where
 			let max_past_logs = 1000;
 			let fee_history_cache = fee_history_cache.clone();
 			let overrides = overrides.clone();
+			let block_data_cache = block_data_cache.clone();
 
 			Box::new(move |deny_unsafe, _| {
 				let deps = rpc::FullDeps {
@@ -222,7 +230,6 @@ where
 					network: network.clone(),
 					filter_pool: filter_pool.clone(),
 					ethapi_cmd: Default::default(),
-					eth_log_block_cache: 3000,
 					command_sink: command_sink_for_deps.clone(),
 					frontier_backend: frontier_backend.clone(),
 					backend: backend.clone(),
@@ -230,9 +237,11 @@ where
 					fee_history_limit,
 					fee_history_cache: fee_history_cache.clone(),
 					xcm_senders: None,
+					overrides: overrides.clone(),
+					block_data_cache: block_data_cache.clone(),
 				};
 				#[allow(unused_mut)]
-				let mut io = rpc::create_full(deps, subscription_task_executor.clone(), overrides.clone());
+				let mut io = rpc::create_full(deps, subscription_task_executor.clone());
 				Ok(io)
 			})
 		};

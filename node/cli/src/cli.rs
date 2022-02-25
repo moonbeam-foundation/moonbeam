@@ -14,27 +14,27 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Moonbeam CLI Library. Built with structopt
+//! Moonbeam CLI Library. Built with clap
 //!
 //! This module defines the Moonbeam node's Command Line Interface (CLI)
-//! It is built using structopt and inherits behavior from Substrate's sc_cli crate.
+//! It is built using clap and inherits behavior from Substrate's sc_cli crate.
 
+use clap::Parser;
 use cli_opt::{account_key::GenerateAccountKey, EthApi, Sealing};
 use perf_test::PerfCmd;
 use sc_cli::{Error as CliError, SubstrateCli};
 use service::chain_spec;
 use std::path::PathBuf;
-use structopt::StructOpt;
 
 /// Sub-commands supported by the collator.
-#[derive(Debug, StructOpt)]
+#[derive(Debug, clap::Subcommand)]
 pub enum Subcommand {
 	/// Export the genesis state of the parachain.
-	#[structopt(name = "export-genesis-state")]
+	#[clap(name = "export-genesis-state")]
 	ExportGenesisState(ExportGenesisStateCommand),
 
 	/// Export the genesis wasm of the parachain.
-	#[structopt(name = "export-genesis-wasm")]
+	#[clap(name = "export-genesis-wasm")]
 	ExportGenesisWasm(ExportGenesisWasmCommand),
 
 	/// Build a chain specification.
@@ -62,7 +62,7 @@ pub enum Subcommand {
 	PerfTest(PerfCmd),
 
 	/// The custom benchmark subcommmand benchmarking runtime pallets.
-	#[structopt(name = "benchmark", about = "Benchmark runtime pallets.")]
+	#[clap(name = "benchmark", about = "Benchmark runtime pallets.")]
 	Benchmark(frame_benchmarking_cli::BenchmarkCmd),
 
 	/// Try some command against runtime state.
@@ -74,127 +74,128 @@ pub enum Subcommand {
 	TryRuntime,
 
 	/// Key management cli utilities
+	#[clap(flatten)]
 	Key(KeyCmd),
 }
 
-#[derive(Debug, StructOpt)]
+#[derive(Debug, Parser)]
 pub struct BuildSpecCommand {
-	#[structopt(flatten)]
+	#[clap(flatten)]
 	pub base: sc_cli::BuildSpecCmd,
 
 	/// Number of accounts to be funded in the genesis
 	/// Warning: This flag implies a development spec and overrides any explicitly supplied spec
-	#[structopt(long, conflicts_with = "chain")]
+	#[clap(long, conflicts_with = "chain")]
 	pub accounts: Option<u32>,
 
 	/// Mnemonic from which we can derive funded accounts in the genesis
 	/// Warning: This flag implies a development spec and overrides any explicitly supplied spec
-	#[structopt(long, conflicts_with = "chain")]
+	#[clap(long, conflicts_with = "chain")]
 	pub mnemonic: Option<String>,
 }
 
 /// Command for exporting the genesis state of the parachain
-#[derive(Debug, StructOpt)]
+#[derive(Debug, Parser)]
 pub struct ExportGenesisStateCommand {
 	/// Output file name or stdout if unspecified.
-	#[structopt(parse(from_os_str))]
+	#[clap(parse(from_os_str))]
 	pub output: Option<PathBuf>,
 
 	/// Id of the parachain this state is for.
-	#[structopt(long)]
+	#[clap(long)]
 	pub parachain_id: Option<u32>,
 
 	/// Write output in binary. Default is to write in hex.
-	#[structopt(short, long)]
+	#[clap(short, long)]
 	pub raw: bool,
 
 	/// The name of the chain for that the genesis state should be exported.
-	#[structopt(long)]
+	#[clap(long)]
 	pub chain: Option<String>,
 }
 
 /// Command for exporting the genesis wasm file.
-#[derive(Debug, StructOpt)]
+#[derive(Debug, Parser)]
 pub struct ExportGenesisWasmCommand {
 	/// Output file name or stdout if unspecified.
-	#[structopt(parse(from_os_str))]
+	#[clap(parse(from_os_str))]
 	pub output: Option<PathBuf>,
 
 	/// Write output in binary. Default is to write in hex.
-	#[structopt(short, long)]
+	#[clap(short, long)]
 	pub raw: bool,
 
 	/// The name of the chain for that the genesis wasm file should be exported.
-	#[structopt(long)]
+	#[clap(long)]
 	pub chain: Option<String>,
 }
 
-#[derive(Debug, StructOpt)]
+#[derive(Debug, Parser)]
 pub struct RunCmd {
-	#[structopt(flatten)]
+	#[clap(flatten)]
 	pub base: cumulus_client_cli::RunCmd,
 
 	/// Enable the development service to run without a backing relay chain
-	#[structopt(long)]
+	#[clap(long)]
 	pub dev_service: bool,
 
 	/// When blocks should be sealed in the dev service.
 	///
 	/// Options are "instant", "manual", or timer interval in milliseconds
-	#[structopt(long, default_value = "instant")]
+	#[clap(long, default_value = "instant")]
 	pub sealing: Sealing,
 
 	/// Public authoring identity to be inserted in the author inherent
 	/// This is not currently used, but we may want a way to use it in the dev service.
-	// #[structopt(long)]
+	// #[clap(long)]
 	// pub author_id: Option<NimbusId>,
 
 	/// Enable EVM tracing module on a non-authority node.
-	#[structopt(
+	#[clap(
 		long,
 		conflicts_with = "collator",
 		conflicts_with = "validator",
-		require_delimiter = true
+		require_value_delimiter = true
 	)]
 	pub ethapi: Vec<EthApi>,
 
 	/// Number of concurrent tracing tasks. Meant to be shared by both "debug" and "trace" modules.
-	#[structopt(long, default_value = "10")]
+	#[clap(long, default_value = "10")]
 	pub ethapi_max_permits: u32,
 
 	/// Maximum number of trace entries a single request of `trace_filter` is allowed to return.
 	/// A request asking for more or an unbounded one going over this limit will both return an
 	/// error.
-	#[structopt(long, default_value = "500")]
+	#[clap(long, default_value = "500")]
 	pub ethapi_trace_max_count: u32,
 
 	/// Duration (in seconds) after which the cache of `trace_filter` for a given block will be
 	/// discarded.
-	#[structopt(long, default_value = "300")]
+	#[clap(long, default_value = "300")]
 	pub ethapi_trace_cache_duration: u64,
 
 	/// Size of the LRU cache for block data and their transaction statuses.
-	#[structopt(long, default_value = "3000")]
+	#[clap(long, default_value = "3000")]
 	pub eth_log_block_cache: usize,
 
 	/// Maximum number of logs in a query.
-	#[structopt(long, default_value = "10000")]
+	#[clap(long, default_value = "10000")]
 	pub max_past_logs: u32,
 
 	/// Force using Moonbase native runtime.
-	#[structopt(long = "force-moonbase")]
+	#[clap(long = "force-moonbase")]
 	pub force_moonbase: bool,
 
 	/// Force using Moonriver native runtime.
-	#[structopt(long = "force-moonriver")]
+	#[clap(long = "force-moonriver")]
 	pub force_moonriver: bool,
 
 	/// Id of the parachain this collator collates for.
-	#[structopt(long)]
+	#[clap(long)]
 	pub parachain_id: Option<u32>,
 
 	/// Maximum fee history cache size.
-	#[structopt(long, default_value = "2048")]
+	#[clap(long, default_value = "2048")]
 	pub fee_history_limit: u64,
 }
 
@@ -206,9 +207,9 @@ impl std::ops::Deref for RunCmd {
 	}
 }
 
-#[derive(Debug, StructOpt)]
+#[derive(Debug, clap::Subcommand)]
 pub enum KeyCmd {
-	#[structopt(flatten)]
+	#[clap(flatten)]
 	BaseCli(sc_cli::KeySubcommand),
 	/// Generate an Ethereum account.
 	GenerateAccountKey(GenerateAccountKey),
@@ -227,21 +228,21 @@ impl KeyCmd {
 	}
 }
 
-#[derive(Debug, StructOpt)]
-#[structopt(settings = &[
-	structopt::clap::AppSettings::GlobalVersion,
-	structopt::clap::AppSettings::ArgsNegateSubcommands,
-	structopt::clap::AppSettings::SubcommandsNegateReqs,
-])]
+#[derive(Debug, Parser)]
+#[clap(
+	propagate_version = true,
+	args_conflicts_with_subcommands = true,
+	subcommand_negates_reqs = true
+)]
 pub struct Cli {
-	#[structopt(subcommand)]
+	#[clap(subcommand)]
 	pub subcommand: Option<Subcommand>,
 
-	#[structopt(flatten)]
+	#[clap(flatten)]
 	pub run: RunCmd,
 
 	/// Relaychain arguments
-	#[structopt(raw = true)]
+	#[clap(raw = true)]
 	pub relaychain_args: Vec<String>,
 }
 
@@ -272,7 +273,7 @@ impl RelayChainCli {
 		Self {
 			base_path,
 			chain_id,
-			base: polkadot_cli::RunCmd::from_iter(relay_chain_args),
+			base: polkadot_cli::RunCmd::parse_from(relay_chain_args),
 		}
 	}
 }
