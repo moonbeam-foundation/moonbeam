@@ -462,3 +462,5 @@ impl TryFrom<u8> for Transactors {
 			0u8 => Ok(Transactors::Relay),
 			_ => Err(()),
 		}
+	}
+}
