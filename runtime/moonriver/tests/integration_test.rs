@@ -47,7 +47,7 @@ use sp_runtime::{
 	DispatchError, ModuleError,
 };
 use xcm::latest::prelude::*;
-use xcm::{VersionedMultiAsset, VersionedMultiAssets, VersionedMultiLocation};
+use xcm::{VersionedMultiAssets, VersionedMultiLocation};
 use xtokens_precompiles::Action as XtokensAction;
 
 #[test]
