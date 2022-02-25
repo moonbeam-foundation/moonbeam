@@ -187,9 +187,9 @@ pub mod pallet {
 			new_asset_type: T::ForeignAssetType,
 		},
 		/// Removed all information related to an assetId
-		AssetRemoved {
+		ForeignAssetRemoved {
 			asset_id: T::AssetId,
-			asset_type: T::AssetType,
+			asset_type: T::ForeignAssetType,
 		},
 		/// Supported asset type for fee payment removed
 		SupportedAssetRemoved { asset_type: T::ForeignAssetType },
@@ -472,7 +472,7 @@ pub mod pallet {
 			asset_id: T::AssetId,
 			num_assets_weight_hint: u32,
 		) -> DispatchResult {
-			T::AssetModifierOrigin::ensure_origin(origin)?;
+			T::ForeignAssetModifierOrigin::ensure_origin(origin)?;
 
 			// Grab supported assets
 			let mut supported_assets = SupportedFeePaymentAssets::<T>::get();
@@ -500,7 +500,7 @@ pub mod pallet {
 			// Insert
 			SupportedFeePaymentAssets::<T>::put(supported_assets);
 
-			Self::deposit_event(Event::AssetRemoved {
+			Self::deposit_event(Event::ForeignAssetRemoved {
 				asset_id,
 				asset_type,
 			});

@@ -139,10 +139,9 @@ impl WeightInfo for () {
 	fn authorize_local_asset() -> Weight {
 		(15_902_000 as Weight).saturating_add(RocksDbWeight::get().reads(4 as Weight))
 	}
-	fn remove_existing_asset_type(x: u32) -> Weight {
-		(30_428_000 as Weight) // Standard Error: 3_000
-			.saturating_add((1_166_000 as Weight).saturating_mul(x as Weight))
-			.saturating_add(RocksDbWeight::get().reads(6 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(6 as Weight))
+	fn register_local_asset() -> Weight {
+		(42_064_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(9 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(4 as Weight))
 	}
 }

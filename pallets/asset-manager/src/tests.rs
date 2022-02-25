@@ -693,7 +693,7 @@ fn test_asset_manager_change_statemine_prefixes() {
 #[test]
 fn test_root_can_remove_asset_association() {
 	new_test_ext().execute_with(|| {
-		assert_ok!(AssetManager::register_asset(
+		assert_ok!(AssetManager::register_foreign_asset(
 			Origin::root(),
 			MockAssetType::MockAsset(1),
 			0u32.into(),
@@ -722,7 +722,7 @@ fn test_root_can_remove_asset_association() {
 		assert!(AssetManager::asset_type_units_per_second(MockAssetType::MockAsset(1)).is_none());
 
 		expect_events(vec![
-			crate::Event::AssetRegistered {
+			crate::Event::ForeignAssetRegistered {
 				asset_id: 1,
 				asset: MockAssetType::MockAsset(1),
 				metadata: 0,
@@ -731,7 +731,7 @@ fn test_root_can_remove_asset_association() {
 				asset_type: MockAssetType::MockAsset(1),
 				units_per_second: 200,
 			},
-			crate::Event::AssetRemoved {
+			crate::Event::ForeignAssetRemoved {
 				asset_id: 1,
 				asset_type: MockAssetType::MockAsset(1),
 			},
@@ -742,7 +742,7 @@ fn test_root_can_remove_asset_association() {
 #[test]
 fn test_removing_without_asset_units_per_second_does_not_panic() {
 	new_test_ext().execute_with(|| {
-		assert_ok!(AssetManager::register_asset(
+		assert_ok!(AssetManager::register_foreign_asset(
 			Origin::root(),
 			MockAssetType::MockAsset(1),
 			0u32.into(),
@@ -764,12 +764,12 @@ fn test_removing_without_asset_units_per_second_does_not_panic() {
 		assert!(AssetManager::asset_type_units_per_second(MockAssetType::MockAsset(1)).is_none());
 
 		expect_events(vec![
-			crate::Event::AssetRegistered {
+			crate::Event::ForeignAssetRegistered {
 				asset_id: 1,
 				asset: MockAssetType::MockAsset(1),
 				metadata: 0,
 			},
-			crate::Event::AssetRemoved {
+			crate::Event::ForeignAssetRemoved {
 				asset_id: 1,
 				asset_type: MockAssetType::MockAsset(1),
 			},

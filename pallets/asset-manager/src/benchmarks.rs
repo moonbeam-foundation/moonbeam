@@ -130,14 +130,14 @@ benchmarks! {
 		// Worst case is we need to remove it from SupportedAAssetsFeePayment too
 		let x in 5..100;
 		for i in 0..x {
-			let asset_type:  T::AssetType = MultiLocation::new(0, X1(GeneralIndex(i as u128))).into();
+			let asset_type:  T::ForeignAssetType = MultiLocation::new(0, X1(GeneralIndex(i as u128))).into();
 			let metadata = T::AssetRegistrarMetadata::default();
 			let amount = 1u32.into();
 			Pallet::<T>::register_asset(RawOrigin::Root.into(), asset_type.clone(), metadata, amount, true)?;
 			Pallet::<T>::set_asset_units_per_second(RawOrigin::Root.into(), asset_type.clone(), 1, i)?;
 		}
 
-		let asset_type_to_be_removed: T::AssetType = MultiLocation::new(
+		let asset_type_to_be_removed: T::ForeignAssetType = MultiLocation::new(
 			0,
 			X1(GeneralIndex((x-1) as u128))
 		).into();
