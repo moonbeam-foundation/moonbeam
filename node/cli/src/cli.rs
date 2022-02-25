@@ -74,7 +74,7 @@ pub enum Subcommand {
 	TryRuntime,
 
 	/// Key management cli utilities
-	#[clap(flatten)]
+	#[clap(subcommand)]
 	Key(KeyCmd),
 }
 
@@ -155,7 +155,9 @@ pub struct RunCmd {
 		long,
 		conflicts_with = "collator",
 		conflicts_with = "validator",
-		require_value_delimiter = true
+		use_value_delimiter = true,
+		require_value_delimiter = true,
+		multiple_values = true,
 	)]
 	pub ethapi: Vec<EthApi>,
 
