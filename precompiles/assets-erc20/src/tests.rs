@@ -272,7 +272,7 @@ fn approve() {
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(true).build(),
-					cost: 56999756u64,
+					cost: 30832756u64,
 					logs: LogsBuilder::new(Account::ForeignAssetId(0u128).into())
 						.log3(
 							SELECTOR_LOG_APPROVAL,
@@ -324,7 +324,7 @@ fn approve_saturating() {
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(true).build(),
-					cost: 56999756u64,
+					cost: 30832756u64,
 					logs: LogsBuilder::new(Account::ForeignAssetId(0u128).into())
 						.log3(
 							SELECTOR_LOG_APPROVAL,
@@ -497,7 +497,7 @@ fn transfer() {
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(true).build(),
-					cost: 83206756u64, // 1 weight => 1 gas in mock
+					cost: 44001756u64, // 1 weight => 1 gas in mock
 					logs: LogsBuilder::new(Account::ForeignAssetId(0u128).into())
 						.log3(
 							SELECTOR_LOG_TRANSFER,
@@ -652,7 +652,7 @@ fn transfer_from() {
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(true).build(),
-					cost: 107172756u64, // 1 weight => 1 gas in mock
+					cost: 56268756u64, // 1 weight => 1 gas in mock
 					logs: LogsBuilder::new(Account::ForeignAssetId(0u128).into())
 						.log3(
 							SELECTOR_LOG_TRANSFER,
@@ -771,7 +771,7 @@ fn transfer_from_non_incremental_approval() {
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(true).build(),
-					cost: 56999756u64,
+					cost: 30832756u64,
 					logs: LogsBuilder::new(Account::ForeignAssetId(0u128).into())
 						.log3(
 							SELECTOR_LOG_APPROVAL,
@@ -805,7 +805,7 @@ fn transfer_from_non_incremental_approval() {
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(true).build(),
-					cost: 114357756u64,
+					cost: 62796756u64,
 					logs: LogsBuilder::new(Account::ForeignAssetId(0u128).into())
 						.log3(
 							SELECTOR_LOG_APPROVAL,
@@ -837,7 +837,7 @@ fn transfer_from_non_incremental_approval() {
 				Some(Err(PrecompileFailure::Revert { output, ..}))
 				if output == b"Dispatched call failed with error: DispatchErrorWithPostInfo { \
 					post_info: PostDispatchInfo { actual_weight: None, pays_fee: Pays::Yes }, \
-					error: Module { index: 2, error: 10, message: Some(\"Unapproved\") } }",
+					error: Module(ModuleError { index: 2, error: 10, message: Some(\"Unapproved\") }) }"
 			);
 		});
 }
@@ -896,7 +896,7 @@ fn transfer_from_above_allowance() {
 				Some(Err(PrecompileFailure::Revert { output, ..}))
 				if output == b"Dispatched call failed with error: DispatchErrorWithPostInfo { \
 					post_info: PostDispatchInfo { actual_weight: None, pays_fee: Pays::Yes }, \
-					error: Module { index: 2, error: 10, message: Some(\"Unapproved\") } }"
+					error: Module(ModuleError { index: 2, error: 10, message: Some(\"Unapproved\") }) }"
 			);
 		});
 }
@@ -941,7 +941,7 @@ fn transfer_from_self() {
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(true).build(),
-					cost: 83206756u64, // 1 weight => 1 gas in mock
+					cost: 44001756u64, // 1 weight => 1 gas in mock
 					logs: LogsBuilder::new(Account::ForeignAssetId(0u128).into())
 						.log3(
 							SELECTOR_LOG_TRANSFER,
@@ -1193,7 +1193,7 @@ fn mint_local_assets() {
 					Some(Ok(PrecompileOutput {
 						exit_status: ExitSucceed::Returned,
 						output: EvmDataWriter::new().write(true).build(),
-						cost: 47914756u64, // 1 weight => 1 gas in mock
+						cost: 26633756u64, // 1 weight => 1 gas in mock
 						logs: LogsBuilder::new(Account::LocalAssetId(0u128).into())
 							.log3(
 								SELECTOR_LOG_TRANSFER,
@@ -1276,7 +1276,7 @@ fn burn_local_assets() {
 					Some(Ok(PrecompileOutput {
 						exit_status: ExitSucceed::Returned,
 						output: EvmDataWriter::new().write(true).build(),
-						cost: 55760756u64, // 1 weight => 1 gas in mock
+						cost: 30049756u64, // 1 weight => 1 gas in mock
 						logs: LogsBuilder::new(Account::LocalAssetId(0u128).into())
 							.log3(
 								SELECTOR_LOG_TRANSFER,
@@ -1358,7 +1358,7 @@ fn freeze_local_assets() {
 					Some(Ok(PrecompileOutput {
 						exit_status: ExitSucceed::Returned,
 						output: EvmDataWriter::new().write(true).build(),
-						cost: 32845000u64, // 1 weight => 1 gas in mock
+						cost: 18309000u64, // 1 weight => 1 gas in mock
 						logs: vec![],
 					}))
 				);
@@ -1432,7 +1432,7 @@ fn thaw_local_assets() {
 					Some(Ok(PrecompileOutput {
 						exit_status: ExitSucceed::Returned,
 						output: EvmDataWriter::new().write(true).build(),
-						cost: 32845000u64, // 1 weight => 1 gas in mock
+						cost: 18309000u64, // 1 weight => 1 gas in mock
 						logs: vec![],
 					}))
 				);
@@ -1454,7 +1454,7 @@ fn thaw_local_assets() {
 					Some(Ok(PrecompileOutput {
 						exit_status: ExitSucceed::Returned,
 						output: EvmDataWriter::new().write(true).build(),
-						cost: 33303000u64, // 1 weight => 1 gas in mock
+						cost: 18290000u64, // 1 weight => 1 gas in mock
 						logs: vec![],
 					}))
 				);
@@ -1477,7 +1477,7 @@ fn thaw_local_assets() {
 					Some(Ok(PrecompileOutput {
 						exit_status: ExitSucceed::Returned,
 						output: EvmDataWriter::new().write(true).build(),
-						cost: 83206756u64, // 1 weight => 1 gas in mock
+						cost: 44001756u64, // 1 weight => 1 gas in mock
 						logs: LogsBuilder::new(Account::LocalAssetId(0u128).into())
 							.log3(
 								SELECTOR_LOG_TRANSFER,
@@ -1535,7 +1535,7 @@ fn freeze_asset_local_asset() {
 					Some(Ok(PrecompileOutput {
 						exit_status: ExitSucceed::Returned,
 						output: EvmDataWriter::new().write(true).build(),
-						cost: 23434000u64, // 1 weight => 1 gas in mock
+						cost: 14744000u64, // 1 weight => 1 gas in mock
 						logs: vec![],
 					}))
 				);
@@ -1607,7 +1607,7 @@ fn thaw_asset_local_assets() {
 					Some(Ok(PrecompileOutput {
 						exit_status: ExitSucceed::Returned,
 						output: EvmDataWriter::new().write(true).build(),
-						cost: 23434000u64, // 1 weight => 1 gas in mock
+						cost: 14744000u64, // 1 weight => 1 gas in mock
 						logs: vec![],
 					}))
 				);
@@ -1627,7 +1627,7 @@ fn thaw_asset_local_assets() {
 					Some(Ok(PrecompileOutput {
 						exit_status: ExitSucceed::Returned,
 						output: EvmDataWriter::new().write(true).build(),
-						cost: 24173000u64, // 1 weight => 1 gas in mock
+						cost: 14833000u64, // 1 weight => 1 gas in mock
 						logs: vec![],
 					}))
 				);
@@ -1650,7 +1650,7 @@ fn thaw_asset_local_assets() {
 					Some(Ok(PrecompileOutput {
 						exit_status: ExitSucceed::Returned,
 						output: EvmDataWriter::new().write(true).build(),
-						cost: 83206756u64, // 1 weight => 1 gas in mock
+						cost: 44001756u64, // 1 weight => 1 gas in mock
 						logs: LogsBuilder::new(Account::LocalAssetId(0u128).into())
 							.log3(
 								SELECTOR_LOG_TRANSFER,
@@ -1704,7 +1704,7 @@ fn transfer_ownership_local_assets() {
 					Some(Ok(PrecompileOutput {
 						exit_status: ExitSucceed::Returned,
 						output: EvmDataWriter::new().write(true).build(),
-						cost: 27466000u64, // 1 weight => 1 gas in mock
+						cost: 16654000u64, // 1 weight => 1 gas in mock
 						logs: vec![],
 					}))
 				);
@@ -1747,7 +1747,7 @@ fn transfer_ownership_local_assets() {
 					Some(Ok(PrecompileOutput {
 						exit_status: ExitSucceed::Returned,
 						output: EvmDataWriter::new().write(true).build(),
-						cost: 27466000u64, // 1 weight => 1 gas in mock
+						cost: 16654000u64, // 1 weight => 1 gas in mock
 						logs: vec![],
 					}))
 				);
@@ -1796,7 +1796,7 @@ fn set_team_local_assets() {
 					Some(Ok(PrecompileOutput {
 						exit_status: ExitSucceed::Returned,
 						output: EvmDataWriter::new().write(true).build(),
-						cost: 24608000u64, // 1 weight => 1 gas in mock
+						cost: 15351000u64, // 1 weight => 1 gas in mock
 						logs: vec![],
 					}))
 				);
@@ -1841,7 +1841,7 @@ fn set_team_local_assets() {
 					Some(Ok(PrecompileOutput {
 						exit_status: ExitSucceed::Returned,
 						output: EvmDataWriter::new().write(true).build(),
-						cost: 47914756u64, // 1 weight => 1 gas in mock
+						cost: 26633756u64, // 1 weight => 1 gas in mock
 						logs: LogsBuilder::new(Account::LocalAssetId(0u128).into())
 							.log3(
 								SELECTOR_LOG_TRANSFER,
@@ -1919,7 +1919,7 @@ fn set_metadata() {
 					Some(Ok(PrecompileOutput {
 						exit_status: ExitSucceed::Returned,
 						output: EvmDataWriter::new().write(true).build(),
-						cost: 49548000u64, // 1 weight => 1 gas in mock
+						cost: 27654000u64, // 1 weight => 1 gas in mock
 						logs: vec![],
 					}))
 				);
@@ -2033,7 +2033,7 @@ fn clear_metadata() {
 					Some(Ok(PrecompileOutput {
 						exit_status: ExitSucceed::Returned,
 						output: EvmDataWriter::new().write(true).build(),
-						cost: 49548000u64, // 1 weight => 1 gas in mock
+						cost: 27654000u64, // 1 weight => 1 gas in mock
 						logs: vec![],
 					}))
 				);
@@ -2053,7 +2053,7 @@ fn clear_metadata() {
 					Some(Ok(PrecompileOutput {
 						exit_status: ExitSucceed::Returned,
 						output: EvmDataWriter::new().write(true).build(),
-						cost: 48163000u64, // 1 weight => 1 gas in mock
+						cost: 27710000u64, // 1 weight => 1 gas in mock
 						logs: vec![],
 					}))
 				);

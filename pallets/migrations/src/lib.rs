@@ -127,10 +127,12 @@ pub mod pallet {
 
 			// start by flagging that we are not fully upgraded
 			<FullyUpgraded<T>>::put(false);
-			weight += T::DbWeight::get().writes(1);
+			weight = weight.saturating_add(T::DbWeight::get().writes(1));
 			Self::deposit_event(Event::RuntimeUpgradeStarted());
 
-			weight += perform_runtime_upgrades::<T>(available_weight.saturating_sub(weight));
+			weight = weight.saturating_add(perform_runtime_upgrades::<T>(
+				available_weight.saturating_sub(weight),
+			));
 
 			if !<FullyUpgraded<T>>::get() {
 				log::error!(
@@ -315,7 +317,7 @@ pub mod pallet {
 		}
 
 		<FullyUpgraded<T>>::put(true);
-		weight += T::DbWeight::get().writes(1);
+		weight = weight.saturating_add(T::DbWeight::get().writes(1));
 		<Pallet<T>>::deposit_event(Event::RuntimeUpgradeCompleted { weight });
 
 		weight

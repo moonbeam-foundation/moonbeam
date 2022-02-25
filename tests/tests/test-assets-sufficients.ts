@@ -7,8 +7,6 @@ import Keyring from "@polkadot/keyring";
 
 import { randomAsHex } from "@polkadot/util-crypto";
 
-const sourceLocationRelay = { parents: 1, interior: "Here" };
-
 const sourceLocationRelayAssetType = { XCM: { parents: 1, interior: "Here" } };
 
 interface AssetMetadata {
@@ -90,7 +88,7 @@ async function mockAssetBalance(
 describeDevMoonbeam(
   "Pallet Assets - Sufficient tests: is_sufficient to true",
   (context) => {
-    let sudoAccount, assetId, iFace;
+    let sudoAccount, assetId;
     before("Setup contract and mock balance", async () => {
       const keyring = new Keyring({ type: "ethereum" });
       sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
@@ -121,9 +119,6 @@ describeDevMoonbeam(
         true
       );
 
-      let beforeAssetBalance = (
-        (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any
-      ).balance as BN;
       await context.createBlock();
       let alithBalance = (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any;
       expect(alithBalance.unwrap()["balance"].eq(new BN(100000000000000))).to.equal(true);
@@ -171,9 +166,9 @@ describeDevMoonbeam(
           .paymentInfo(freshAccount)
       ).partialFee as any;
 
-      // For some reason paymentInfo overestimates by 4359
+      // For some reason paymentInfo overestimates by 4067
       await context.polkadotApi.tx.balances
-        .transfer(freshAccount.address, BigInt(fee) - BigInt(4359))
+        .transfer(freshAccount.address, BigInt(fee) - BigInt(4067))
         .signAndSend(alith);
       await context.createBlock();
 
@@ -237,7 +232,7 @@ describeDevMoonbeam(
 describeDevMoonbeam(
   "Pallet Assets - Sufficient tests: is_sufficient to true",
   (context) => {
-    let sudoAccount, assetId, iFace;
+    let sudoAccount, assetId;
     before("Setup contract and mock balance", async () => {
       const keyring = new Keyring({ type: "ethereum" });
       sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
@@ -268,9 +263,6 @@ describeDevMoonbeam(
         true
       );
 
-      let beforeAssetBalance = (
-        (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any
-      ).balance as BN;
       await context.createBlock();
       let alithBalance = (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any;
       expect(alithBalance.unwrap()["balance"].eq(new BN(100000000000000))).to.equal(true);
@@ -382,7 +374,7 @@ describeDevMoonbeam(
 describeDevMoonbeam(
   "Pallet Assets - Sufficient tests: is_sufficient to false",
   (context) => {
-    let sudoAccount, assetId, iFace;
+    let sudoAccount, assetId;
     before("Setup contract and mock balance", async () => {
       const keyring = new Keyring({ type: "ethereum" });
       sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
@@ -413,9 +405,6 @@ describeDevMoonbeam(
         false
       );
 
-      let beforeAssetBalance = (
-        (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any
-      ).balance as BN;
       await context.createBlock();
       let alithBalance = (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any;
       expect(alithBalance.unwrap()["balance"].eq(new BN(100000000000000))).to.equal(true);

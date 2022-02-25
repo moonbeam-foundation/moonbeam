@@ -4,8 +4,15 @@ import { createContract } from "../util/transactions";
 import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY } from "../util/constants";
 import { customWeb3Request } from "../util/providers";
 
-describeDevMoonbeam("", (context) => {
-  it.skip("should fail with OOG", async () => {
+describeDevMoonbeam("Excessive memory allocation", (context) => {
+  it("should fail with OOG", async () => {
+    // this tests a security vulnerability in our EVM which was patched in May 2021 or so.
+    // The vulnerability allowed contract code to request an extremely large amount of memory,
+    // causing a node to crash.
+    //
+    // fixed by:
+    // https://github.com/rust-blockchain/evm/commit/19ade858c430ab13eb562764a870ac9f8506f8dd
+
     /*
     const bytecode = 
       [65, 65, 4, 97, 89, 134, 65, 65,
@@ -32,6 +39,9 @@ describeDevMoonbeam("", (context) => {
     const txResults = await customWeb3Request(context.web3, "eth_sendRawTransaction", [
       tx.rawTransaction,
     ]);
+
+    // before this was patched, attempting to execute this transaction would cause an extremely
+    // large memory allocation and the node would crash.
     await context.createBlock();
 
     const receipt = await context.web3.eth.getTransactionReceipt(txResults.result);
