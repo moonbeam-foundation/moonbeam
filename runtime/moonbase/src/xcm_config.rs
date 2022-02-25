@@ -354,7 +354,7 @@ impl From<MultiLocation> for AssetType {
 }
 
 impl Into<Option<MultiLocation>> for AssetType {
-	fn into(self: Self) -> Option<MultiLocation> {
+	fn into(self) -> Option<MultiLocation> {
 		match self {
 			Self::Xcm(location) => Some(location),
 		}
@@ -462,42 +462,3 @@ impl TryFrom<u8> for Transactors {
 			0u8 => Ok(Transactors::Relay),
 			_ => Err(()),
 		}
-	}
-}
-
-impl UtilityEncodeCall for Transactors {
-	fn encode_call(self, call: UtilityAvailableCalls) -> Vec<u8> {
-		match self {
-			// Shall we use westend for moonbase? The tests are probably based on rococo
-			// but moonbase-alpha is attached to westend-runtime I think
-			Transactors::Relay => moonbeam_relay_encoder::westend::WestendEncoder.encode_call(call),
-		}
-	}
-}
-
-impl XcmTransact for Transactors {
-	fn destination(self) -> MultiLocation {
-		match self {
-			Transactors::Relay => MultiLocation::parent(),
-		}
-	}
-}
-
-impl xcm_transactor::Config for Runtime {
-	type Event = Event;
-	type Balance = Balance;
-	type Transactor = Transactors;
-	type DerivativeAddressRegistrationOrigin = EnsureRoot<AccountId>;
-	type SovereignAccountDispatcherOrigin = EnsureRoot<AccountId>;
-	type CurrencyId = CurrencyId;
-	type AccountIdToMultiLocation = AccountIdToMultiLocation<AccountId>;
-	type CurrencyIdToMultiLocation =
-		CurrencyIdtoMultiLocation<AsAssetType<AssetId, AssetType, AssetManager>>;
-	type XcmSender = XcmRouter;
-	type SelfLocation = SelfLocation;
-	type Weigher = xcm_builder::FixedWeightBounds<UnitWeightCost, Call, MaxInstructions>;
-	type LocationInverter = LocationInverter<Ancestry>;
-	type BaseXcmWeight = BaseXcmWeight;
-	type AssetTransactor = AssetTransactors;
-	type WeightInfo = xcm_transactor::weights::SubstrateWeight<Runtime>;
-}
