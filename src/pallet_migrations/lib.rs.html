@@ -321,6 +321,8 @@
 <span id="321">321</span>
 <span id="322">322</span>
 <span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2020 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -450,10 +452,12 @@
 
 			<span class="comment">// start by flagging that we are not fully upgraded</span>
 			<span class="op">&lt;</span><span class="ident">FullyUpgraded</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::put</span>(<span class="bool-val">false</span>);
-			<span class="ident">weight</span> <span class="op">+</span><span class="op">=</span> <span class="ident">T::DbWeight::get</span>().<span class="ident">writes</span>(<span class="number">1</span>);
+			<span class="ident">weight</span> <span class="op">=</span> <span class="ident">weight</span>.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">writes</span>(<span class="number">1</span>));
 			<span class="ident"><span class="self">Self</span>::deposit_event</span>(<span class="ident">Event::RuntimeUpgradeStarted</span>());
 
-			<span class="ident">weight</span> <span class="op">+</span><span class="op">=</span> <span class="ident">perform_runtime_upgrades</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">available_weight</span>.<span class="ident">saturating_sub</span>(<span class="ident">weight</span>));
+			<span class="ident">weight</span> <span class="op">=</span> <span class="ident">weight</span>.<span class="ident">saturating_add</span>(<span class="ident">perform_runtime_upgrades</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(
+				<span class="ident">available_weight</span>.<span class="ident">saturating_sub</span>(<span class="ident">weight</span>),
+			));
 
 			<span class="kw">if</span> <span class="op">!</span><span class="op">&lt;</span><span class="ident">FullyUpgraded</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>() {
 				<span class="macro">log::error!</span>(
@@ -638,7 +642,7 @@
 		}
 
 		<span class="op">&lt;</span><span class="ident">FullyUpgraded</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::put</span>(<span class="bool-val">true</span>);
-		<span class="ident">weight</span> <span class="op">+</span><span class="op">=</span> <span class="ident">T::DbWeight::get</span>().<span class="ident">writes</span>(<span class="number">1</span>);
+		<span class="ident">weight</span> <span class="op">=</span> <span class="ident">weight</span>.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">writes</span>(<span class="number">1</span>));
 		<span class="op">&lt;</span><span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::deposit_event</span>(<span class="ident">Event::RuntimeUpgradeCompleted</span> { <span class="ident">weight</span> });
 
 		<span class="ident">weight</span>
