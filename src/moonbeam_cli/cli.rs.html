@@ -277,6 +277,8 @@
 <span id="277">277</span>
 <span id="278">278</span>
 <span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -353,7 +355,7 @@
 	<span class="ident">TryRuntime</span>,
 
 	<span class="doccomment">/// Key management cli utilities</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">flatten</span>)]</span>
+	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">subcommand</span>)]</span>
 	<span class="ident">Key</span>(<span class="ident">KeyCmd</span>),
 }
 
@@ -434,7 +436,9 @@
 		<span class="ident">long</span>,
 		<span class="ident">conflicts_with</span> <span class="op">=</span> <span class="string">&quot;collator&quot;</span>,
 		<span class="ident">conflicts_with</span> <span class="op">=</span> <span class="string">&quot;validator&quot;</span>,
-		<span class="ident">require_value_delimiter</span> <span class="op">=</span> <span class="bool-val">true</span>
+		<span class="ident">use_value_delimiter</span> <span class="op">=</span> <span class="bool-val">true</span>,
+		<span class="ident">require_value_delimiter</span> <span class="op">=</span> <span class="bool-val">true</span>,
+		<span class="ident">multiple_values</span> <span class="op">=</span> <span class="bool-val">true</span>
 	)]</span>
 	<span class="kw">pub</span> <span class="ident">ethapi</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">EthApi</span><span class="op">&gt;</span>,
 
