@@ -345,10 +345,6 @@
 <span id="345">345</span>
 <span id="346">346</span>
 <span id="347">347</span>
-<span id="348">348</span>
-<span id="349">349</span>
-<span id="350">350</span>
-<span id="351">351</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -385,13 +381,13 @@
 	<span class="ident">StorageOverride</span>, <span class="ident">Web3Api</span>, <span class="ident">Web3ApiServer</span>,
 };
 <span class="kw">use</span> <span class="ident">fc_rpc_core::types</span>::{<span class="ident">FeeHistoryCache</span>, <span class="ident">FilterPool</span>};
+<span class="kw">use</span> <span class="ident">fp_storage::EthereumStorageSchema</span>;
 <span class="kw">use</span> <span class="ident">futures::StreamExt</span>;
 <span class="kw">use</span> <span class="ident">jsonrpc_pubsub::manager::SubscriptionManager</span>;
 <span class="kw">use</span> <span class="ident">manual_xcm_rpc</span>::{<span class="ident">ManualXcm</span>, <span class="ident">ManualXcmApi</span>};
 <span class="kw">use</span> <span class="ident">moonbeam_core_primitives</span>::{<span class="ident">Block</span>, <span class="ident">Hash</span>};
 <span class="kw">use</span> <span class="ident">moonbeam_finality_rpc</span>::{<span class="ident">MoonbeamFinality</span>, <span class="ident">MoonbeamFinalityApi</span>};
 <span class="kw">use</span> <span class="ident">moonbeam_rpc_txpool</span>::{<span class="ident">TxPool</span>, <span class="ident">TxPoolServer</span>};
-<span class="kw">use</span> <span class="ident">pallet_ethereum::EthereumStorageSchema</span>;
 <span class="kw">use</span> <span class="ident">pallet_transaction_payment_rpc</span>::{<span class="ident">TransactionPayment</span>, <span class="ident">TransactionPaymentApi</span>};
 <span class="kw">use</span> <span class="ident">sc_client_api</span>::{
 	<span class="ident">backend</span>::{<span class="ident">AuxStore</span>, <span class="ident">Backend</span>, <span class="ident">StateBackend</span>, <span class="ident">StorageProvider</span>},
@@ -432,8 +428,6 @@
 	<span class="kw">pub</span> <span class="ident">filter_pool</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">FilterPool</span><span class="op">&gt;</span>,
 	<span class="doccomment">/// The list of optional RPC extensions.</span>
 	<span class="kw">pub</span> <span class="ident">ethapi_cmd</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">EthApiCmd</span><span class="op">&gt;</span>,
-	<span class="doccomment">/// Size of the LRU cache for block data and their transaction statuses.</span>
-	<span class="kw">pub</span> <span class="ident">eth_log_block_cache</span>: <span class="ident">usize</span>,
 	<span class="doccomment">/// Frontier Backend.</span>
 	<span class="kw">pub</span> <span class="ident">frontier_backend</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">fc_db::Backend</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 	<span class="doccomment">/// Backend.</span>
@@ -448,6 +442,10 @@
 	<span class="kw">pub</span> <span class="ident">fee_history_cache</span>: <span class="ident">FeeHistoryCache</span>,
 	<span class="doccomment">/// Channels for manual xcm messages (downward, hrmp)</span>
 	<span class="kw">pub</span> <span class="ident">xcm_senders</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">flume::Sender</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">flume::Sender</span><span class="op">&lt;</span>(<span class="ident">ParaId</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>)<span class="op">&gt;</span>)<span class="op">&gt;</span>,
+	<span class="doccomment">/// Ethereum data access overrides.</span>
+	<span class="kw">pub</span> <span class="ident">overrides</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">OverrideHandle</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+	<span class="doccomment">/// Cache for Ethereum block data.</span>
+	<span class="kw">pub</span> <span class="ident">block_data_cache</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">EthBlockDataCache</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">overrides_handle</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">BE</span><span class="op">&gt;</span>(<span class="ident">client</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>) -&gt; <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">OverrideHandle</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span><span class="op">&gt;</span>
@@ -486,7 +484,6 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_full</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">P</span>, <span class="ident">BE</span>, <span class="ident">A</span><span class="op">&gt;</span>(
 	<span class="ident">deps</span>: <span class="ident">FullDeps</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">P</span>, <span class="ident">A</span>, <span class="ident">BE</span><span class="op">&gt;</span>,
 	<span class="ident">subscription_task_executor</span>: <span class="ident">SubscriptionTaskExecutor</span>,
-	<span class="ident">overrides</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">OverrideHandle</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 ) -&gt; <span class="ident">jsonrpc_core::IoHandler</span><span class="op">&lt;</span><span class="ident">sc_rpc::Metadata</span><span class="op">&gt;</span>
 <span class="kw">where</span>
 	<span class="ident">BE</span>: <span class="ident">Backend</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
@@ -510,7 +507,6 @@
 		<span class="ident">network</span>,
 		<span class="ident">filter_pool</span>,
 		<span class="ident">ethapi_cmd</span>,
-		<span class="ident">eth_log_block_cache</span>,
 		<span class="ident">command_sink</span>,
 		<span class="ident">frontier_backend</span>,
 		<span class="ident">backend</span>: <span class="kw">_</span>,
@@ -518,6 +514,8 @@
 		<span class="ident">fee_history_limit</span>,
 		<span class="ident">fee_history_cache</span>,
 		<span class="ident">xcm_senders</span>,
+		<span class="ident">overrides</span>,
+		<span class="ident">block_data_cache</span>,
 	} <span class="op">=</span> <span class="ident">deps</span>;
 
 	<span class="ident">io</span>.<span class="ident">extend_with</span>(<span class="ident">SystemApi::to_delegate</span>(<span class="ident">FullSystem::new</span>(
@@ -530,11 +528,6 @@
 	)));
 	<span class="comment">// TODO: are we supporting signing?</span>
 	<span class="kw">let</span> <span class="ident">signers</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-
-	<span class="kw">let</span> <span class="ident">block_data_cache</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">EthBlockDataCache::new</span>(
-		<span class="ident">eth_log_block_cache</span>,
-		<span class="ident">eth_log_block_cache</span>,
-	));
 
 	<span class="kw">enum</span> <span class="ident">Never</span> {}
 	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">fp_rpc::ConvertTransaction</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Never</span> {
@@ -570,7 +563,6 @@
 			<span class="ident">frontier_backend</span>.<span class="ident">clone</span>(),
 			<span class="ident">filter_pool</span>,
 			<span class="number">500_usize</span>, <span class="comment">// max stored filters</span>
-			<span class="ident">overrides</span>.<span class="ident">clone</span>(),
 			<span class="ident">max_past_logs</span>,
 			<span class="ident">block_data_cache</span>.<span class="ident">clone</span>(),
 		)));

@@ -514,6 +514,15 @@
 <span id="514">514</span>
 <span id="515">515</span>
 <span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -719,6 +728,13 @@
 
 		<span class="kw">let</span> <span class="ident">command_sink_for_deps</span> <span class="op">=</span> <span class="ident">command_sink</span>.<span class="ident">clone</span>();
 
+		<span class="kw">let</span> <span class="ident">block_data_cache</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">fc_rpc::EthBlockDataCache::new</span>(
+			<span class="ident">task_manager</span>.<span class="ident">spawn_handle</span>(),
+			<span class="ident">overrides</span>.<span class="ident">clone</span>(),
+			<span class="number">3000</span>,
+			<span class="number">3000</span>,
+		));
+
 		<span class="kw">let</span> <span class="ident">rpc_extensions_builder</span> <span class="op">=</span> {
 			<span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="ident">client</span>.<span class="ident">clone</span>();
 			<span class="kw">let</span> <span class="ident">pool</span> <span class="op">=</span> <span class="ident">transaction_pool</span>.<span class="ident">clone</span>();
@@ -727,6 +743,7 @@
 			<span class="kw">let</span> <span class="ident">max_past_logs</span> <span class="op">=</span> <span class="number">1000</span>;
 			<span class="kw">let</span> <span class="ident">fee_history_cache</span> <span class="op">=</span> <span class="ident">fee_history_cache</span>.<span class="ident">clone</span>();
 			<span class="kw">let</span> <span class="ident">overrides</span> <span class="op">=</span> <span class="ident">overrides</span>.<span class="ident">clone</span>();
+			<span class="kw">let</span> <span class="ident">block_data_cache</span> <span class="op">=</span> <span class="ident">block_data_cache</span>.<span class="ident">clone</span>();
 
 			<span class="ident">Box::new</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">deny_unsafe</span>, <span class="kw">_</span><span class="op">|</span> {
 				<span class="kw">let</span> <span class="ident">deps</span> <span class="op">=</span> <span class="ident">rpc::FullDeps</span> {
@@ -738,7 +755,6 @@
 					<span class="ident">network</span>: <span class="ident">network</span>.<span class="ident">clone</span>(),
 					<span class="ident">filter_pool</span>: <span class="ident">filter_pool</span>.<span class="ident">clone</span>(),
 					<span class="ident">ethapi_cmd</span>: <span class="ident">Default::default</span>(),
-					<span class="ident">eth_log_block_cache</span>: <span class="number">3000</span>,
 					<span class="ident">command_sink</span>: <span class="ident">command_sink_for_deps</span>.<span class="ident">clone</span>(),
 					<span class="ident">frontier_backend</span>: <span class="ident">frontier_backend</span>.<span class="ident">clone</span>(),
 					<span class="ident">backend</span>: <span class="ident">backend</span>.<span class="ident">clone</span>(),
@@ -746,9 +762,11 @@
 					<span class="ident">fee_history_limit</span>,
 					<span class="ident">fee_history_cache</span>: <span class="ident">fee_history_cache</span>.<span class="ident">clone</span>(),
 					<span class="ident">xcm_senders</span>: <span class="prelude-val">None</span>,
+					<span class="ident">overrides</span>: <span class="ident">overrides</span>.<span class="ident">clone</span>(),
+					<span class="ident">block_data_cache</span>: <span class="ident">block_data_cache</span>.<span class="ident">clone</span>(),
 				};
 				<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_mut</span>)]</span>
-				<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io</span> <span class="op">=</span> <span class="ident">rpc::create_full</span>(<span class="ident">deps</span>, <span class="ident">subscription_task_executor</span>.<span class="ident">clone</span>(), <span class="ident">overrides</span>.<span class="ident">clone</span>());
+				<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io</span> <span class="op">=</span> <span class="ident">rpc::create_full</span>(<span class="ident">deps</span>, <span class="ident">subscription_task_executor</span>.<span class="ident">clone</span>());
 				<span class="prelude-val">Ok</span>(<span class="ident">io</span>)
 			})
 		};

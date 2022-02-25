@@ -71,32 +71,32 @@
 <span class="kw">mod</span> <span class="ident">tests</span>;
 <span class="kw">mod</span> <span class="ident">txn_signer</span>;
 
+<span class="kw">use</span> <span class="ident">clap::Parser</span>;
 <span class="kw">use</span> <span class="ident">std::path::PathBuf</span>;
-<span class="kw">use</span> <span class="ident">structopt::StructOpt</span>;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">StructOpt</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Parser</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PerfCmd</span> {
 	<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-	<span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">flatten</span>)]</span>
+	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">flatten</span>)]</span>
 	<span class="kw">pub</span> <span class="ident">shared_params</span>: <span class="ident">sc_cli::SharedParams</span>,
 
-	<span class="attribute">#[<span class="ident">structopt</span>(
+	<span class="attribute">#[<span class="ident">clap</span>(
 		<span class="ident">long</span> <span class="op">=</span> <span class="string">&quot;working-dir&quot;</span>,
 		<span class="ident">help</span> <span class="op">=</span> <span class="string">&quot;Used for temp blockchain data. Should exist on desired test hardware.&quot;</span>,
 		<span class="ident">required</span> <span class="op">=</span> <span class="bool-val">true</span>
 	)]</span>
 	<span class="kw">pub</span> <span class="ident">working_dir</span>: <span class="ident">PathBuf</span>,
 
-	<span class="attribute">#[<span class="ident">structopt</span>(
+	<span class="attribute">#[<span class="ident">clap</span>(
 		<span class="ident">long</span> <span class="op">=</span> <span class="string">&quot;output-file&quot;</span>,
 		<span class="ident">help</span> <span class="op">=</span> <span class="string">&quot;File where results should be printed (STDOUT if omitted).&quot;</span>
 	)]</span>
 	<span class="kw">pub</span> <span class="ident">output_file</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span>,
 
-	<span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;CHAIN_SPEC&quot;</span>, <span class="ident">default_value</span> <span class="op">=</span> <span class="string">&quot;dev&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">value_name</span> <span class="op">=</span> <span class="string">&quot;CHAIN_SPEC&quot;</span>, <span class="ident">default_value</span> <span class="op">=</span> <span class="string">&quot;dev&quot;</span>)]</span>
 	<span class="kw">pub</span> <span class="ident">chain</span>: <span class="ident">String</span>,
 
-	<span class="attribute">#[<span class="ident">structopt</span>(
+	<span class="attribute">#[<span class="ident">clap</span>(
 		<span class="ident">long</span> <span class="op">=</span> <span class="string">&quot;tests&quot;</span>,
 		<span class="ident">help</span> <span class="op">=</span> <span class="string">&quot;Comma-separated list of tests to run (if omitted, runs all tests)&quot;</span>
 	)]</span>

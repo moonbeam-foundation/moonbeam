@@ -55,13 +55,13 @@
 
 <span class="doccomment">//! Generate an Ethereum account.</span>
 
+<span class="kw">use</span> <span class="ident">clap::Parser</span>;
 <span class="kw">use</span> <span class="ident">cli_opt::account_key::GenerateAccountKey</span>;
-<span class="kw">use</span> <span class="ident">structopt::StructOpt</span>;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">StructOpt</span>)]</span>
-<span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">author</span> <span class="op">=</span> <span class="string">&quot;PureStake&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Parser</span>)]</span>
+<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">author</span> <span class="op">=</span> <span class="string">&quot;PureStake&quot;</span>)]</span>
 <span class="kw">struct</span> <span class="ident">Opt</span> {
-	<span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">flatten</span>)]</span>
+	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">flatten</span>)]</span>
 	<span class="ident">cmd</span>: <span class="ident">GenerateAccountKey</span>,
 }
 
@@ -73,7 +73,7 @@
 
 <span class="kw">fn</span> <span class="ident">main</span>() {
 	<span class="comment">// Parses the options</span>
-	<span class="kw">let</span> <span class="ident">cmd</span> <span class="op">=</span> <span class="ident">Opt::from_args</span>();
+	<span class="kw">let</span> <span class="ident">cmd</span> <span class="op">=</span> <span class="ident">Opt::parse</span>();
 	<span class="ident">cmd</span>.<span class="ident">run</span>();
 }
 </code></pre></div>

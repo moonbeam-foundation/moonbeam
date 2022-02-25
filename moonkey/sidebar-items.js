@@ -1,1 +1,1 @@
-initSidebarItems({"derive":[["StructOpt","Generates the `StructOpt` impl."]],"fn":[["main",""]],"struct":[["GenerateAccountKey",""],["Opt",""]],"trait":[["StructOpt","A struct that is converted from command line arguments."]]});
+initSidebarItems({"derive":[["Parser","Generates the `Parser` implementation."]],"fn":[["main",""]],"struct":[["GenerateAccountKey",""],["Opt",""]],"trait":[["Parser","Parse command-line arguments into `Self`."]]});

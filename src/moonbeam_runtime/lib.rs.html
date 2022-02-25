@@ -1892,6 +1892,8 @@
 <span id="1892">1892</span>
 <span id="1893">1893</span>
 <span id="1894">1894</span>
+<span id="1895">1895</span>
+<span id="1896">1896</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -1978,7 +1980,7 @@
 <span class="kw">use</span> <span class="ident">xcm_builder</span>::{
 	<span class="ident">AccountKey20Aliases</span>, <span class="ident">AllowKnownQueryResponses</span>, <span class="ident">AllowSubscriptionsFrom</span>,
 	<span class="ident">AllowTopLevelPaidExecutionFrom</span>, <span class="ident">ConvertedConcreteAssetId</span>, <span class="ident">EnsureXcmOrigin</span>, <span class="ident">FixedWeightBounds</span>,
-	<span class="ident">FungiblesAdapter</span>, <span class="ident">LocationInverter</span>, <span class="ident">ParentIsDefault</span>, <span class="ident">RelayChainAsNative</span>,
+	<span class="ident">FungiblesAdapter</span>, <span class="ident">LocationInverter</span>, <span class="ident">ParentIsPreset</span>, <span class="ident">RelayChainAsNative</span>,
 	<span class="ident">SiblingParachainAsNative</span>, <span class="ident">SiblingParachainConvertsVia</span>, <span class="ident">SignedAccountKey20AsNative</span>,
 	<span class="ident">SovereignSignedViaLocation</span>, <span class="ident">TakeWeightCredit</span>,
 };
@@ -2577,7 +2579,7 @@
 
 <span class="kw">impl</span> <span class="ident">pallet_ethereum::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
 	<span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
-	<span class="kw">type</span> <span class="ident">StateRoot</span> <span class="op">=</span> <span class="ident">pallet_ethereum::IntermediateStateRoot</span>;
+	<span class="kw">type</span> <span class="ident">StateRoot</span> <span class="op">=</span> <span class="ident">pallet_ethereum::IntermediateStateRoot</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
 }
 
 <span class="macro">parameter_types!</span> {
@@ -2847,7 +2849,7 @@
 <span class="doccomment">/// `Transact` in order to determine the dispatch Origin.</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">LocationToAccountId</span> <span class="op">=</span> (
 	<span class="comment">// The parent (Relay-chain) origin converts to the default `AccountId`.</span>
-	<span class="ident">ParentIsDefault</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>,
+	<span class="ident">ParentIsPreset</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>,
 	<span class="comment">// Sibling parachain origins convert to AccountId via the `ParaId::into`.</span>
 	<span class="ident">SiblingParachainConvertsVia</span><span class="op">&lt;</span><span class="ident">polkadot_parachain::primitives::Sibling</span>, <span class="ident">AccountId</span><span class="op">&gt;</span>,
 	<span class="comment">// If we receive a MultiLocation of type AccountKey20, just generate a native account</span>
@@ -3013,6 +3015,8 @@
 	<span class="kw">type</span> <span class="ident">ChannelInfo</span> <span class="op">=</span> <span class="ident">ParachainSystem</span>;
 	<span class="kw">type</span> <span class="ident">VersionWrapper</span> <span class="op">=</span> <span class="ident">PolkadotXcm</span>;
 	<span class="kw">type</span> <span class="ident">ExecuteOverweightOrigin</span> <span class="op">=</span> <span class="ident">EnsureRoot</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">ControllerOrigin</span> <span class="op">=</span> <span class="ident">EnsureRoot</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">ControllerOriginConverter</span> <span class="op">=</span> <span class="ident">XcmOriginToTransactDispatchOrigin</span>;
 }
 
 <span class="kw">impl</span> <span class="ident">cumulus_pallet_dmp_queue::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
