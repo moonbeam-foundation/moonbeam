@@ -3,6 +3,8 @@ import { customWeb3Request } from "../util/providers";
 import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes } from "../util/setup-dev-tests";
 import { ALITH, GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY } from "../util/constants";
 import { createContract } from "../util/transactions";
+import { ethers } from "ethers";
+import { getCompiled } from "../util/contracts";
 
 const BS_TRACER = require("../util/tracer/blockscout_tracer.min.json");
 const BS_TRACER_V2 = require("../util/tracer/blockscout_tracer_v2.min.json");
@@ -523,8 +525,12 @@ describeDevMoonbeam("Trace", (context) => {
     );
     await context.createBlock({ transactions: [rawTx2] });
 
-    // console.log(`Proxy : ${contractProxy.options.address}`);
-    // console.log(`Dummy : ${contractDummy.options.address}`);
+    const proxyInterface = new ethers.utils.Interface(
+      (await getCompiled("TestCallList")).contract.abi
+    );
+    const dummyInterface = new ethers.utils.Interface(
+      (await getCompiled("TestContract")).contract.abi
+    );
 
     let callTx = await context.web3.eth.accounts.signTransaction(
       {
@@ -532,19 +538,10 @@ describeDevMoonbeam("Trace", (context) => {
         to: contractProxy.options.address,
         gas: "0x100000",
         value: "0x00",
-        data:
-          // selector for call
-          "0x1b8b921d" +
-          // address of subcall contract
-          contractDummy.options.address.slice(2).padStart(64, "0") +
-          // offset of data
-          (0x40).toString(16).padStart(64, "0") +
-          // length of data
-          (4 + 32).toString(16).padStart(64, "0") +
-          // selector for subcall
-          "c6888fa1" +
-          // argument
-          (42).toString(16).padStart(64, "0"),
+        data: proxyInterface.encodeFunctionData("call", [
+          contractDummy.options.address,
+          dummyInterface.encodeFunctionData("multiply", [42]),
+        ]),
       },
       GENESIS_ACCOUNT_PRIVATE_KEY
     );
@@ -557,8 +554,6 @@ describeDevMoonbeam("Trace", (context) => {
       data.result,
       { tracer: "callTracer" },
     ]);
-
-    // console.log(JSON.stringify(trace));
 
     expect(trace.result.from).to.be.eq(GENESIS_ACCOUNT.toLowerCase());
     expect(trace.result.to).to.be.eq(contractProxy.options.address.toLowerCase());
@@ -580,8 +575,12 @@ describeDevMoonbeam("Trace", (context) => {
     );
     await context.createBlock({ transactions: [rawTx2] });
 
-    // console.log(`Proxy : ${contractProxy.options.address}`);
-    // console.log(`Dummy : ${contractDummy.options.address}`);
+    const proxyInterface = new ethers.utils.Interface(
+      (await getCompiled("TestCallList")).contract.abi
+    );
+    const dummyInterface = new ethers.utils.Interface(
+      (await getCompiled("TestContract")).contract.abi
+    );
 
     let callTx = await context.web3.eth.accounts.signTransaction(
       {
@@ -589,19 +588,10 @@ describeDevMoonbeam("Trace", (context) => {
         to: contractProxy.options.address,
         gas: "0x100000",
         value: "0x00",
-        data:
-          // selector for delegate call
-          "0x56e7b7aa" +
-          // address of subcall contract
-          contractDummy.options.address.slice(2).padStart(64, "0") +
-          // offset of data
-          (0x40).toString(16).padStart(64, "0") +
-          // length of data
-          (4 + 32).toString(16).padStart(64, "0") +
-          // selector for subcall
-          "c6888fa1" +
-          // argument
-          (42).toString(16).padStart(64, "0"),
+        data: proxyInterface.encodeFunctionData("delegateCall", [
+          contractDummy.options.address,
+          dummyInterface.encodeFunctionData("multiply", [42]),
+        ]),
       },
       GENESIS_ACCOUNT_PRIVATE_KEY
     );
@@ -614,8 +604,6 @@ describeDevMoonbeam("Trace", (context) => {
       data.result,
       { tracer: "callTracer" },
     ]);
-
-    // console.log(JSON.stringify(trace));
 
     expect(trace.result.from).to.be.eq(GENESIS_ACCOUNT.toLowerCase());
     expect(trace.result.to).to.be.eq(contractProxy.options.address.toLowerCase());
