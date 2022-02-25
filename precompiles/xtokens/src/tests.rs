@@ -410,9 +410,8 @@ fn transfer_multi_asset_to_reserve_works() {
 					logs: vec![]
 				}))
 			);
-			// Seems in the last refactor one event was removed in xtokens
-			// This should be commented when such event is brought back
-			/* 			let expected: crate::mock::Event = XtokensEvent::TransferredMultiAsset {
+
+			let expected: crate::mock::Event = XtokensEvent::TransferredMultiAsset {
 				sender: Alice,
 				asset: MultiAsset {
 					id: AssetId::Concrete(asset),
@@ -422,7 +421,7 @@ fn transfer_multi_asset_to_reserve_works() {
 			}
 			.into();
 			// Assert that the events vector contains the one expected
-			assert!(events().contains(&expected));*/
+			assert!(events().contains(&expected));
 		});
 }
 
@@ -521,9 +520,8 @@ fn transfer_multi_asset_self_reserve_with_fee_works() {
 					logs: vec![]
 				}))
 			);
-			// Seems in the last refactor one event was removed in xtokens
-			// This should be commented when such event is brought back
-			/*let expected: crate::mock::Event = XtokensEvent::TransferredMultiAssetWithFee {
+
+			let expected: crate::mock::Event = XtokensEvent::TransferredMultiAssetWithFee {
 				sender: Alice,
 				asset: MultiAsset {
 					id: AssetId::Concrete(self_reserve.clone()),
@@ -537,7 +535,7 @@ fn transfer_multi_asset_self_reserve_with_fee_works() {
 			}
 			.into();
 			// Assert that the events vector contains the one expected
-			assert!(events().contains(&expected));*/
+			assert!(events().contains(&expected));
 		});
 }
 
@@ -642,9 +640,8 @@ fn transfer_multi_asset_non_reserve_to_non_reserve_with_fee() {
 					logs: vec![]
 				}))
 			);
-			// Seems in the last refactor one event was removed in xtokens
-			// This should be commented when such event is brought back
-			/* 			let expected: crate::mock::Event = XtokensEvent::TransferredMultiAssetWithFee {
+
+			let expected: crate::mock::Event = XtokensEvent::TransferredMultiAssetWithFee {
 				sender: Alice,
 				asset: MultiAsset {
 					id: AssetId::Concrete(asset_location.clone()),
@@ -658,6 +655,6 @@ fn transfer_multi_asset_non_reserve_to_non_reserve_with_fee() {
 			}
 			.into();
 			// Assert that the events vector contains the one expected
-			assert!(events().contains(&expected));*/
+			assert!(events().contains(&expected));
 		});
 }

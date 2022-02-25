@@ -37,6 +37,116 @@ use frame_support::{
 use sp_runtime::traits::Zero;
 use sp_std::{convert::TryInto, vec::Vec};
 
+/// Migration to patch the incorrect delegations sums for all candidates
+pub struct PatchIncorrectDelegationSums<T>(PhantomData<T>);
+impl<T: Config> OnRuntimeUpgrade for PatchIncorrectDelegationSums<T> {
+	fn on_runtime_upgrade() -> Weight {
+		log::info!(
+			target: "PatchIncorrectDelegationSums",
+			"running migration to patch incorrect delegation sums"
+		);
+		let pallet_prefix: &[u8] = b"ParachainStaking";
+		let top_delegations_prefix: &[u8] = b"TopDelegations";
+		let bottom_delegations_prefix: &[u8] = b"BottomDelegations";
+		// Read all the data into memory.
+		// https://crates.parity.io/frame_support/storage/migration/fn.storage_key_iter.html
+		let stored_top_delegations: Vec<_> = storage_key_iter::<
+			T::AccountId,
+			Delegations<T::AccountId, BalanceOf<T>>,
+			Twox64Concat,
+		>(pallet_prefix, top_delegations_prefix)
+		.collect();
+		let migrated_candidates_top_count: Weight = stored_top_delegations
+			.len()
+			.try_into()
+			.expect("There are between 0 and 2**64 mappings stored.");
+		let stored_bottom_delegations: Vec<_> = storage_key_iter::<
+			T::AccountId,
+			Delegations<T::AccountId, BalanceOf<T>>,
+			Twox64Concat,
+		>(pallet_prefix, bottom_delegations_prefix)
+		.collect();
+		let migrated_candidates_bottom_count: Weight = stored_bottom_delegations
+			.len()
+			.try_into()
+			.expect("There are between 0 and 2**64 mappings stored.");
+		fn fix_delegations<T: Config>(
+			delegations: Delegations<T::AccountId, BalanceOf<T>>,
+		) -> Delegations<T::AccountId, BalanceOf<T>> {
+			let correct_total = delegations
+				.delegations
+				.iter()
+				.fold(BalanceOf::<T>::zero(), |acc, b| acc + b.amount);
+			log::info!(
+				target: "PatchIncorrectDelegationSums",
+				"Correcting total from {:?} to {:?}",
+				delegations.total, correct_total
+			);
+			Delegations {
+				delegations: delegations.delegations,
+				total: correct_total,
+			}
+		}
+		for (account, old_top_delegations) in stored_top_delegations {
+			let new_top_delegations = fix_delegations::<T>(old_top_delegations);
+			let mut candidate_info = <CandidateInfo<T>>::get(&account)
+				.expect("TopDelegations exists => CandidateInfo exists");
+			candidate_info.total_counted = candidate_info.bond + new_top_delegations.total;
+			if candidate_info.is_active() {
+				Pallet::<T>::update_active(account.clone(), candidate_info.total_counted);
+			}
+			<CandidateInfo<T>>::insert(&account, candidate_info);
+			<TopDelegations<T>>::insert(&account, new_top_delegations);
+		}
+		for (account, old_bottom_delegations) in stored_bottom_delegations {
+			let new_bottom_delegations = fix_delegations::<T>(old_bottom_delegations);
+			<BottomDelegations<T>>::insert(&account, new_bottom_delegations);
+		}
+		let weight = T::DbWeight::get();
+		let top = migrated_candidates_top_count.saturating_mul(3 * weight.write + 3 * weight.read);
+		let bottom = migrated_candidates_bottom_count.saturating_mul(weight.write + weight.read);
+		// 20% max block weight as margin for error
+		top + bottom + 100_000_000_000
+	}
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade() -> Result<(), &'static str> {
+		// get total counted for all candidates
+		for (account, state) in <CandidateInfo<T>>::iter() {
+			Self::set_temp_storage(
+				state.total_counted,
+				&format!("Candidate{:?}TotalCounted", account)[..],
+			);
+		}
+		Ok(())
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade() -> Result<(), &'static str> {
+		// ensure new total counted = top_delegations.sum() + collator self bond
+		for (account, state) in <CandidateInfo<T>>::iter() {
+			let old_count =
+				Self::get_temp_storage(&format!("Candidate{:?}TotalCounted", account)[..])
+					.expect("qed");
+			let new_count = state.total_counted;
+			let top_delegations_sum = <TopDelegations<T>>::get(account)
+				.expect("CandidateInfo exists => TopDelegations exists")
+				.delegations
+				.iter()
+				.fold(BalanceOf::<T>::zero(), |acc, b| acc + b.amount);
+			let correct_total_counted = top_delegations_sum + state.bond;
+			assert_eq!(new_count, correct_total_counted);
+			if new_count != old_count {
+				log::info!(
+					target: "PatchIncorrectDelegationSums",
+					"Corrected total from {:?} to {:?}",
+					old_count, new_count
+				);
+			}
+		}
+		Ok(())
+	}
+}
+
 /// Migration to split CandidateState and minimize unnecessary storage reads
 /// for PoV optimization
 /// This assumes Config::MaxTopDelegationsPerCandidate == OldConfig::MaxDelegatorsPerCandidate
@@ -89,17 +199,17 @@ impl<T: Config> OnRuntimeUpgrade for SplitCandidateStateToDecreasePoV<T> {
 								.expect("Delegation existence => DelegatorState existence");
 							let leaving = delegator_state.delegations.0.len() == 1usize;
 							delegator_state.rm_delegation(&account);
-							Pallet::<T>::deposit_event(Event::DelegationKicked(
-								owner.clone(),
-								account.clone(),
-								*amount,
-							));
+							Pallet::<T>::deposit_event(Event::DelegationKicked {
+								delegator: owner.clone(),
+								candidate: account.clone(),
+								unstaked_amount: *amount,
+							});
 							if leaving {
 								<DelegatorState<T>>::remove(&owner);
-								Pallet::<T>::deposit_event(Event::DelegatorLeft(
-									owner.clone(),
-									*amount,
-								));
+								Pallet::<T>::deposit_event(Event::DelegatorLeft {
+									delegator: owner.clone(),
+									unstaked_amount: *amount,
+								});
 							} else {
 								<DelegatorState<T>>::insert(&owner, delegator_state);
 							}
@@ -185,7 +295,7 @@ impl<T: Config> OnRuntimeUpgrade for SplitCandidateStateToDecreasePoV<T> {
 				state.top_delegations.len() as u32 + state.bottom_delegations.len() as u32;
 			Self::set_temp_storage(
 				total_delegation_count,
-				&format!("Candidate{}DelegationCount", account)[..],
+				&format!("Candidate{:?}DelegationCount", account)[..],
 			);
 		}
 		Ok(())
@@ -196,7 +306,7 @@ impl<T: Config> OnRuntimeUpgrade for SplitCandidateStateToDecreasePoV<T> {
 		// check that top + bottom are the same as the expected (stored in temp)
 		for (account, state) in <CandidateInfo<T>>::iter() {
 			let expected_count: u32 =
-				Self::get_temp_storage(&format!("Candidate{}DelegationCount", account)[..])
+				Self::get_temp_storage(&format!("Candidate{:?}DelegationCount", account)[..])
 					.expect("qed");
 			let actual_count = state.delegation_count;
 			assert_eq!(expected_count, actual_count);

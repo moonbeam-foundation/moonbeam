@@ -323,7 +323,11 @@ where
 		// Get Blockchain backend
 		let blockchain = backend.blockchain();
 		// Get the header I want to work with.
-		let header = client.header(reference_id).unwrap().unwrap();
+		let header = match client.header(reference_id) {
+			Ok(Some(h)) => h,
+			_ => return Err(internal_err("Block header not found")),
+		};
+
 		// Get parent blockid.
 		let parent_block_id = BlockId::Hash(*header.parent_hash());
 
@@ -392,9 +396,9 @@ where
 							.ok_or("Trace result is empty.")
 							.map_err(|e| internal_err(format!("{:?}", e)))
 					}
-					_ => Err(internal_err(format!(
-						"Bug: failed to resolve the tracer format."
-					))),
+					_ => Err(internal_err(
+						"Bug: failed to resolve the tracer format.".to_string(),
+					)),
 				}?;
 
 				Ok(Response::Block(response))
@@ -445,7 +449,10 @@ where
 		// Get Blockchain backend
 		let blockchain = backend.blockchain();
 		// Get the header I want to work with.
-		let header = client.header(reference_id).unwrap().unwrap();
+		let header = match client.header(reference_id) {
+			Ok(Some(h)) => h,
+			_ => return Err(internal_err("Block header not found")),
+		};
 		// Get parent blockid.
 		let parent_block_id = BlockId::Hash(*header.parent_hash());
 
@@ -560,9 +567,9 @@ where
 									.map_err(|e| internal_err(format!("{:?}", e)))?;
 								Ok(res.pop().unwrap())
 							}
-							_ => Err(internal_err(format!(
-								"Bug: failed to resolve the tracer format."
-							))),
+							_ => Err(internal_err(
+								"Bug: failed to resolve the tracer format.".to_string(),
+							)),
 						}?;
 						Ok(Response::Single(response))
 					}

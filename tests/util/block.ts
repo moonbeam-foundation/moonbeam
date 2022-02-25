@@ -3,7 +3,6 @@ import {
   BlockHash,
   DispatchError,
   DispatchInfo,
-  EventRecord,
   Extrinsic,
   RuntimeDispatchInfo,
 } from "@polkadot/types/interfaces";
@@ -12,7 +11,9 @@ import type { TxWithEvent } from "@polkadot/api-derive/types";
 import Debug from "debug";
 import { WEIGHT_PER_GAS } from "./constants";
 import { DevTestContext } from "./setup-dev-tests";
+import { FrameSystemEventRecord } from "@polkadot/types/lookup";
 const debug = Debug("blocks");
+import "@polkadot/api-augment";
 
 export async function createAndFinalizeBlock(
   api: ApiPromise,
@@ -50,9 +51,9 @@ export interface BlockDetails {
 }
 
 export function mapExtrinsics(
-  extrinsics: Extrinsic[],
-  records: EventRecord[],
-  fees?: RuntimeDispatchInfo[]
+  extrinsics: Extrinsic[] | any,
+  records: FrameSystemEventRecord[] | any,
+  fees?: RuntimeDispatchInfo[] | any
 ): TxWithEventAndFee[] {
   return extrinsics.map((extrinsic, index): TxWithEventAndFee => {
     let dispatchError: DispatchError | undefined;
@@ -63,26 +64,29 @@ export function mapExtrinsics(
       .map(({ event }) => {
         if (event.section === "system") {
           if (event.method === "ExtrinsicSuccess") {
-            dispatchInfo = event.data[0] as DispatchInfo;
+            dispatchInfo = event.data[0] as any as DispatchInfo;
           } else if (event.method === "ExtrinsicFailed") {
-            dispatchError = event.data[0] as DispatchError;
-            dispatchInfo = event.data[1] as DispatchInfo;
+            dispatchError = event.data[0] as any as DispatchError;
+            dispatchInfo = event.data[1] as any as DispatchInfo;
           }
         }
 
-        return event;
+        return event as any;
       });
 
     return { dispatchError, dispatchInfo, events, extrinsic, fee: fees ? fees[index] : undefined };
   });
 }
 
-const getBlockDetails = async (api: ApiPromise, blockHash: BlockHash): Promise<BlockDetails> => {
+const getBlockDetails = async (
+  api: ApiPromise,
+  blockHash: BlockHash | string | any
+): Promise<BlockDetails> => {
   debug(`Querying ${blockHash}`);
 
   const [{ block }, records] = await Promise.all([
     api.rpc.chain.getBlock(blockHash),
-    api.query.system.events.at(blockHash),
+    await (await api.at(blockHash)).query.system.events(),
   ]);
 
   const fees = await Promise.all(
@@ -94,7 +98,7 @@ const getBlockDetails = async (api: ApiPromise, blockHash: BlockHash): Promise<B
   return {
     block,
     txWithEvents,
-  } as BlockDetails;
+  } as any as BlockDetails;
 };
 
 export interface BlockRangeOption {
@@ -140,12 +144,14 @@ export const verifyBlockFees = async (
 
   // Get from block hash and totalSupply
   const fromPreBlockHash = (await api.rpc.chain.getBlockHash(fromBlockNumber - 1)).toString();
-  const fromPreSupply = await (await api.at(fromPreBlockHash)).query.balances.totalIssuance();
+  const fromPreSupply = (await (
+    await api.at(fromPreBlockHash)
+  ).query.balances.totalIssuance()) as any;
   let previousBlockHash = fromPreBlockHash;
 
   // Get to block hash and totalSupply
   const toBlockHash = (await api.rpc.chain.getBlockHash(toBlockNumber)).toString();
-  const toSupply = await (await api.at(toBlockHash)).query.balances.totalIssuance();
+  const toSupply = (await (await api.at(toBlockHash)).query.balances.totalIssuance()) as any;
 
   // fetch block information for all blocks in the range
   await exploreBlockRange(
@@ -230,18 +236,17 @@ export const verifyBlockFees = async (
                 : extrinsic.signer.toString();
 
               // Get balance of the origin account both before and after extrinsic execution
-              const fromBalance = await (
+              const fromBalance = (await (
                 await api.at(previousBlockHash)
-              ).query.system.account(origin);
-              const toBalance = await (
+              ).query.system.account(origin)) as any;
+              const toBalance = (await (
                 await api.at(blockDetails.block.hash)
-              ).query.system.account(origin);
+              ).query.system.account(origin)) as any;
 
               expect(txFees.toString()).to.eq(
                 (
-                  fromBalance.data.free.toBigInt() -
-                  toBalance.data.free.toBigInt() -
-                  expectedBalanceDiff
+                  (((fromBalance.data.free.toBigInt() as any) -
+                    toBalance.data.free.toBigInt()) as any) - expectedBalanceDiff
                 ).toString()
               );
             }
