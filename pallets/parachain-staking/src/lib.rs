@@ -536,7 +536,7 @@ pub mod pallet {
 			self.lowest_top_delegation_amount = top_delegations.lowest_delegation_amount().into();
 			self.top_capacity = top_delegations.top_capacity::<T>();
 			let old_total_counted = self.total_counted;
-			self.total_counted = self.bond + top_delegations.total.into();
+			self.total_counted = self.bond.saturating_add(top_delegations.total.into());
 			// CandidatePool value for candidate always changes if top delegations total changes
 			// so we moved the update into this function to deduplicate code and patch a bug that
 			// forgot to apply the update when increasing top delegation
@@ -1463,9 +1463,9 @@ pub mod pallet {
 				Error::<T>::DelegationBelowMin
 			);
 			// Net Total is total after pending orders are executed
-			let net_total = self.total - self.requests.less_total;
+			let net_total = self.total.saturating_sub(self.requests.less_total);
 			// Net Total is always >= MinDelegatorStk
-			let max_subtracted_amount = net_total - T::MinDelegatorStk::get().into();
+			let max_subtracted_amount = net_total.saturating_sub(T::MinDelegatorStk::get().into());
 			ensure!(
 				less <= max_subtracted_amount,
 				Error::<T>::DelegatorBondBelowMin
@@ -1546,7 +1546,7 @@ pub mod pallet {
 						true
 					} else {
 						ensure!(
-							self.total - T::MinDelegatorStk::get().into() >= amount,
+							self.total.saturating_sub(T::MinDelegatorStk::get().into()) >= amount,
 							Error::<T>::DelegatorBondBelowMin
 						);
 						false
@@ -3003,7 +3003,7 @@ pub mod pallet {
 				.expect("verified can reserve at top of this extrinsic body");
 			// only is_some if kicked the lowest bottom as a consequence of this new delegation
 			let net_total_increase = if let Some(less) = less_total_staked {
-				amount - less
+				amount.saturating_sub(less)
 			} else {
 				amount
 			};
@@ -3221,7 +3221,7 @@ pub mod pallet {
 			if now <= delay {
 				return;
 			}
-			let round_to_payout = now - delay;
+			let round_to_payout = now.saturating_sub(delay);
 			let total_points = <Points<T>>::get(round_to_payout);
 			if total_points.is_zero() {
 				return;
@@ -3264,7 +3264,7 @@ pub mod pallet {
 				return 0u64.into();
 			}
 
-			let paid_for_round = now - delay;
+			let paid_for_round = now.saturating_sub(delay);
 
 			if let Some(payout_info) = <DelayedPayouts<T>>::get(paid_for_round) {
 				let result = Self::pay_one_collator_reward(paid_for_round, payout_info);
@@ -3330,7 +3330,7 @@ pub mod pallet {
 					let collator_pct = Perbill::from_rational(state.bond, state.total);
 					let commission = pct_due * collator_issuance;
 					amt_due = amt_due.saturating_sub(commission);
-					let collator_reward = (collator_pct * amt_due) + commission;
+					let collator_reward = (collator_pct * amt_due).saturating_add(commission);
 					mint(collator_reward, collator.clone());
 					// pay delegators due portion
 					for Bond { owner, amount } in state.delegations {
@@ -3409,7 +3409,7 @@ pub mod pallet {
 	impl<T: Config> nimbus_primitives::EventHandler<T::AccountId> for Pallet<T> {
 		fn note_author(author: T::AccountId) {
 			let now = <Round<T>>::get().current;
-			let score_plus_20 = <AwardedPts<T>>::get(now, &author) + 20;
+			let score_plus_20 = <AwardedPts<T>>::get(now, &author).saturating_add(20);
 			<AwardedPts<T>>::insert(now, author, score_plus_20);
 			<Points<T>>::mutate(now, |x| *x = x.saturating_add(20));
 		}
