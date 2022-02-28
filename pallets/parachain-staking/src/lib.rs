@@ -3007,7 +3007,7 @@ pub mod pallet {
 			} else {
 				amount
 			};
-			let new_total_locked = <Total<T>>::get() + net_total_increase;
+			let new_total_locked = <Total<T>>::get().saturating_add(net_total_increase);
 			<Total<T>>::put(new_total_locked);
 			<CandidateInfo<T>>::insert(&candidate, state);
 			<DelegatorState<T>>::insert(&delegator, delegator_state);
