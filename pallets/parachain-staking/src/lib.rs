@@ -154,6 +154,31 @@ pub mod pallet {
 		pub total: Balance,
 	}
 
+	impl<A: PartialEq, B: PartialEq> PartialEq for CollatorSnapshot<A, B> {
+		fn eq(&self, other: &Self) -> bool {
+			let must_be_true = self.bond == other.bond && self.total == other.total;
+			if !must_be_true {
+				return false;
+			}
+			for (
+				Bond {
+					owner: o1,
+					amount: a1,
+				},
+				Bond {
+					owner: o2,
+					amount: a2,
+				},
+			) in self.delegations.iter().zip(other.delegations.iter())
+			{
+				if o1 != o2 || a1 != a2 {
+					return false;
+				}
+			}
+			true
+		}
+	}
+
 	impl<A, B: Default> Default for CollatorSnapshot<A, B> {
 		fn default() -> CollatorSnapshot<A, B> {
 			CollatorSnapshot {
@@ -3376,6 +3401,20 @@ pub mod pallet {
 				(0u32, 0u32, BalanceOf::<T>::zero());
 			// choose the top TotalSelected qualified candidates, ordered by stake
 			let collators = Self::compute_top_candidates();
+			if collators.is_empty() {
+				// SELECTION FAILED TO SELECT >=1 COLLATOR => select collators from previous round
+				let last_round = now.saturating_sub(1u32);
+				// set this round AtStake to last round AtStake
+				for (account, snapshot) in <AtStake<T>>::iter_prefix(last_round) {
+					collator_count = collator_count.saturating_add(1u32);
+					delegation_count =
+						delegation_count.saturating_add(snapshot.delegations.len() as u32);
+					total = total.saturating_add(snapshot.total);
+					<AtStake<T>>::insert(now, account, snapshot);
+				}
+				// `SelectedCandidates` remains unchanged from last round
+				return (collator_count, delegation_count, total);
+			}
 			// snapshot exposure for round for weighting reward distribution
 			for account in collators.iter() {
 				let state = <CandidateInfo<T>>::get(account)
