@@ -189,38 +189,39 @@ impl super::ResponseFormatter for Formatter {
 				});
 				// Stack pop-and-push.
 				while result.len() > 1 {
-					if let Some(mut last) = result.pop() {
-						// Find the parent index.
-						if let Some(index) =
-							result
-								.iter()
-								.position(|current| match (last.clone(), current) {
-									(
-										Call::CallTracer(CallTracerCall {
-											trace_address: Some(a),
-											..
-										}),
-										Call::CallTracer(CallTracerCall {
-											trace_address: Some(b),
-											..
-										}),
-									) => &b[..] == &a[0..a.len() - 1],
-									_ => unreachable!(),
-								}) {
-							// Remove `trace_address` from result.
-							if let Call::CallTracer(CallTracerCall {
-								ref mut trace_address,
-								..
-							}) = last
-							{
-								*trace_address = None;
-							}
-							// Push the children to parent.
-							if let Some(Call::CallTracer(CallTracerCall { calls, .. })) =
-								result.get_mut(index)
-							{
-								calls.push(last);
-							}
+					let mut last = result
+						.pop()
+						.expect("result.len() > 1, so pop() necessarily returns an element");
+					// Find the parent index.
+					if let Some(index) =
+						result
+							.iter()
+							.position(|current| match (last.clone(), current) {
+								(
+									Call::CallTracer(CallTracerCall {
+										trace_address: Some(a),
+										..
+									}),
+									Call::CallTracer(CallTracerCall {
+										trace_address: Some(b),
+										..
+									}),
+								) => &b[..] == &a[0..a.len() - 1],
+								_ => unreachable!(),
+							}) {
+						// Remove `trace_address` from result.
+						if let Call::CallTracer(CallTracerCall {
+							ref mut trace_address,
+							..
+						}) = last
+						{
+							*trace_address = None;
+						}
+						// Push the children to parent.
+						if let Some(Call::CallTracer(CallTracerCall { calls, .. })) =
+							result.get_mut(index)
+						{
+							calls.push(last);
 						}
 					}
 				}
