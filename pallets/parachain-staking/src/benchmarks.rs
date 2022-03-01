@@ -709,7 +709,7 @@ benchmarks! {
 			state.requests().get(&collator),
 			Some(&DelegationRequest {
 				collator,
-				amount: 5u32.into(),
+				amount: <<T as Config>::MinDelegatorStk as Get<BalanceOf<T>>>::get(),
 				when_executable: 3,
 				action: DelegationChange::Decrease
 			})
