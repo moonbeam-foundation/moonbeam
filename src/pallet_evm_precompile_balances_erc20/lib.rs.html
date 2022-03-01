@@ -674,35 +674,35 @@
 
 <span class="comment">// We use a macro to implement the trait for () and the 16 substrate Instance.</span>
 <span class="macro">macro_rules!</span> <span class="ident">impl_prefix</span> {
-	(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">instance</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">literal</span>) =&gt; {
-		<span class="comment">// Generate unique UUID to have unique module names.</span>
-		<span class="macro">gensym::gensym!</span> { <span class="macro">_impl_prefix!</span>{ <span class="macro-nonterminal">$</span><span class="macro-nonterminal">instance</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> }}
-	};
-}
+	(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">instance</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">literal</span>) =&gt; {
+		<span class="comment">// Using `paste!` we generate a dedicated module to avoid collisions</span>
+		<span class="comment">// between each instance `Approves` struct.</span>
+		<span class="macro">paste::paste!</span> {
+			<span class="kw">mod</span> [<span class="op">&lt;</span><span class="ident">_impl_prefix_</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">instance</span>:<span class="ident">snake</span><span class="op">&gt;</span>] {
+				<span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
-<span class="macro">macro_rules!</span> <span class="ident">_impl_prefix</span> {
-	(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">module</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">instance</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">literal</span>) =&gt; {
-		<span class="kw">mod</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">module</span> {
-			<span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+				<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Approves</span>;
 
-			<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Approves</span>;
+				<span class="kw">impl</span> <span class="ident">StorageInstance</span> <span class="kw">for</span> <span class="ident">Approves</span> {
+					<span class="kw">const</span> <span class="ident">STORAGE_PREFIX</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Approves&quot;</span>;
 
-			<span class="kw">impl</span> <span class="ident">StorageInstance</span> <span class="kw">for</span> <span class="ident">Approves</span> {
-				<span class="kw">const</span> <span class="ident">STORAGE_PREFIX</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Approves&quot;</span>;
-
-				<span class="kw">fn</span> <span class="ident">pallet_prefix</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
-					<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>
+					<span class="kw">fn</span> <span class="ident">pallet_prefix</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
+						<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>
+					}
 				}
-			}
 
-			<span class="kw">impl</span> <span class="ident">InstanceToPrefix</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">instance</span> {
-				<span class="kw">type</span> <span class="ident">ApprovesPrefix</span> <span class="op">=</span> <span class="ident">Approves</span>;
+				<span class="kw">impl</span> <span class="ident">InstanceToPrefix</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">instance</span> {
+					<span class="kw">type</span> <span class="ident">ApprovesPrefix</span> <span class="op">=</span> <span class="ident">Approves</span>;
+				}
 			}
 		}
 	};
 }
 
-<span class="macro">impl_prefix!</span>((), <span class="string">&quot;Erc20Instance0Balances&quot;</span>);
+<span class="comment">// Since the macro expect a `ident` to be used with `paste!` we cannot provide `()` directly.</span>
+<span class="kw">type</span> <span class="ident">Instance0</span> <span class="op">=</span> ();
+
+<span class="macro">impl_prefix!</span>(<span class="ident">Instance0</span>, <span class="string">&quot;Erc20Instance0Balances&quot;</span>);
 <span class="macro">impl_prefix!</span>(<span class="ident">Instance1</span>, <span class="string">&quot;Erc20Instance1Balances&quot;</span>);
 <span class="macro">impl_prefix!</span>(<span class="ident">Instance2</span>, <span class="string">&quot;Erc20Instance2Balances&quot;</span>);
 <span class="macro">impl_prefix!</span>(<span class="ident">Instance3</span>, <span class="string">&quot;Erc20Instance3Balances&quot;</span>);
