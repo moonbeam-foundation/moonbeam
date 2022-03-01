@@ -858,7 +858,7 @@ benchmarks! {
 
 	round_transition_on_initialize {
 		// TOTAL SELECTED COLLATORS PER ROUND
-		let x in 1..28;
+		let x in 8..40;
 		// DELEGATIONS
 		let y in 0..(<<T as Config>::MaxTopDelegationsPerCandidate as Get<u32>>::get() * 28);
 		let max_delegators_per_collator =
