@@ -1593,7 +1593,8 @@ export const contractSources: { [key: string]: string } = {
     contract LocalAssetExtendedErc20Instance is LocalAssetExtendedErc20 {
 
         /// The ierc20 at the known pre-compile address.
-        LocalAssetExtendedErc20 public localasseterc20 = LocalAssetExtendedErc20(0xffFfFffEDe9001a6f7F4798cCb76ef1E7f664701);
+        LocalAssetExtendedErc20 public localasseterc20 = 
+            LocalAssetExtendedErc20(0xffFfFffEDe9001a6f7F4798cCb76ef1E7f664701);
         address localasseterc20address = 0xffFfFffEDe9001a6f7F4798cCb76ef1E7f664701;
 
             receive() external payable {
@@ -1673,11 +1674,19 @@ export const contractSources: { [key: string]: string } = {
                 return localasseterc20.transfer_ownership(owner);
             }
 
-            function set_team(address issuer, address admin, address freezer) override external returns (bool) {
+            function set_team(
+                address issuer,
+                address admin,
+                address freezer
+            ) override external returns (bool) {
                 return localasseterc20.set_team(issuer, admin, freezer);
             }
 
-            function set_metadata(string calldata name, string calldata symbol, uint8 decimals) override external returns (bool) {
+            function set_metadata(
+                string calldata name,
+                string calldata symbol,
+                uint8 decimals
+            ) override external returns (bool) {
                 return localasseterc20.set_metadata(name, symbol, decimals);
             }
 
