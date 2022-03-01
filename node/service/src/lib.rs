@@ -32,6 +32,7 @@ pub use moonbase_runtime;
 pub use moonbeam_runtime;
 #[cfg(feature = "moonriver-native")]
 pub use moonriver_runtime;
+use std::iter;
 use std::{collections::BTreeMap, sync::Mutex, time::Duration};
 pub mod rpc;
 use cumulus_client_consensus_common::ParachainConsensus;
@@ -281,7 +282,8 @@ where
 // If we're using prometheus, use a registry with a prefix of `moonbeam`.
 fn set_prometheus_registry(config: &mut Configuration) -> Result<(), ServiceError> {
 	if let Some(PrometheusConfig { registry, .. }) = config.prometheus_config.as_mut() {
-		*registry = Registry::new_custom(Some("moonbeam".into()), None)?;
+		let labels = iter::once((String::from("chain"), config.chain_spec.id().into())).collect();
+		*registry = Registry::new_custom(Some("moonbeam".into()), Some(labels))?;
 	}
 
 	Ok(())
@@ -1018,19 +1020,19 @@ where
 
 #[cfg(test)]
 mod tests {
-	use prometheus::Counter;
-	use sc_network::{
-		config::{NetworkConfiguration, TransportConfig},
-		multiaddr,
-	};
+	use moonbase_runtime::{currency::UNIT, AccountId};
+	use prometheus::{proto::LabelPair, Counter};
+	use sc_network::config::NetworkConfiguration;
+	use sc_service::ChainType;
 	use sc_service::{
 		config::{BasePath, DatabaseSource, KeystoreConfig},
 		Configuration, KeepBlocks, Role, TransactionStorageMode,
 	};
-	use std::{iter, net::Ipv4Addr};
-	use tempfile::TempDir;
+	use std::path::Path;
+	use std::str::FromStr;
 
-	use crate::chain_spec::test_spec::staking_spec;
+	use crate::chain_spec::moonbase::{testnet_genesis, ChainSpec};
+	use crate::chain_spec::Extensions;
 
 	use super::*;
 
@@ -1044,7 +1046,7 @@ mod tests {
 				"0.0.0.0:8080".parse().unwrap(),
 				"".into(),
 			)),
-			..test_config()
+			..test_config("test")
 		};
 
 		set_prometheus_registry(&mut config).unwrap();
@@ -1057,54 +1059,87 @@ mod tests {
 		assert_eq!(actual_metric_name.as_str(), expected_metric_name);
 	}
 
-	fn test_config() -> Configuration {
-		let index = 0;
-		let base_port = 9898;
+	#[test]
+	fn test_set_prometheus_registry_adds_chain_id_as_label() {
+		let input_chain_id = "moonriver";
 
-		let root = TempDir::new().unwrap();
-		let root = root.path().join(format!("node-{}", index));
+		let mut expected_label = LabelPair::default();
+		expected_label.set_name("chain".to_owned());
+		expected_label.set_value("moonriver".to_owned());
+		let expected_chain_label = Some(expected_label);
 
-		let mut network_config = NetworkConfiguration::new(
-			format!("Node {}", index),
-			"network/test/0.1",
-			Default::default(),
-			None,
-		);
-
-		network_config.allow_non_globals_in_dht = true;
-
-		network_config.listen_addresses.push(
-			iter::once(multiaddr::Protocol::Ip4(Ipv4Addr::new(127, 0, 0, 1)))
-				.chain(iter::once(multiaddr::Protocol::Tcp(
-					base_port + index as u16,
-				)))
-				.collect(),
-		);
-
-		network_config.transport = TransportConfig::Normal {
-			enable_mdns: false,
-			allow_private_ipv4: true,
+		let counter = Box::new(Counter::new("foo", "foobar").unwrap());
+		let mut config = Configuration {
+			prometheus_config: Some(PrometheusConfig::new_with_default_registry(
+				"0.0.0.0:8080".parse().unwrap(),
+				"".into(),
+			)),
+			..test_config(input_chain_id)
 		};
 
-		let runtime =
-			tokio::runtime::Runtime::new().expect("creating tokio runtime doesn't fail; qed");
-		let tokio_handle = runtime.handle().clone();
-		let spec = staking_spec(ParaId::new(0));
+		set_prometheus_registry(&mut config).unwrap();
+		// generate metric
+		let reg = config.prometheus_registry().unwrap();
+		reg.register(counter.clone()).unwrap();
+		counter.inc();
+
+		let actual_chain_label = reg
+			.gather()
+			.first()
+			.unwrap()
+			.get_metric()
+			.first()
+			.unwrap()
+			.get_label()
+			.into_iter()
+			.find(|x| x.get_name() == "chain")
+			.cloned();
+
+		assert_eq!(actual_chain_label, expected_chain_label);
+	}
+
+	fn test_config(chain_id: &str) -> Configuration {
+		let network_config = NetworkConfiguration::new("", "", Default::default(), None);
+		let runtime = tokio::runtime::Runtime::new().expect("failed creating tokio runtime");
+		let spec = ChainSpec::from_genesis(
+			"test",
+			chain_id,
+			ChainType::Local,
+			move || {
+				testnet_genesis(
+					AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap(),
+					vec![],
+					vec![],
+					vec![],
+					vec![],
+					vec![],
+					1000 * UNIT,
+					ParaId::new(0),
+					0,
+				)
+			},
+			vec![],
+			None,
+			None,
+			None,
+			None,
+			Extensions::default(),
+		);
 
 		Configuration {
-			impl_name: String::from("network-test-impl"),
+			impl_name: String::from("test-impl"),
 			impl_version: String::from("0.1"),
 			role: Role::Full,
-			tokio_handle,
+			tokio_handle: runtime.handle().clone(),
 			transaction_pool: Default::default(),
 			network: network_config,
 			keystore_remote: Default::default(),
 			keystore: KeystoreConfig::Path {
-				path: root.join("key"),
+				path: "key".into(),
 				password: None,
 			},
 			database: DatabaseSource::RocksDb {
-				path: root.join("db"),
+				path: "db".into(),
 				cache_size: 128,
 			},
 			state_cache_size: 16777216,
@@ -1135,7 +1170,7 @@ mod tests {
 			tracing_receiver: Default::default(),
 			max_runtime_instances: 8,
 			announce_block: true,
-			base_path: Some(BasePath::new(root)),
+			base_path: Some(BasePath::new(Path::new(""))),
 			informant_output_format: Default::default(),
 			runtime_cache_size: 2,
 		}

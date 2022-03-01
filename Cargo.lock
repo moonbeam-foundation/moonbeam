@@ -5872,7 +5872,6 @@ dependencies = [
  "substrate-prometheus-endpoint 0.10.0-dev (git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.17)",
  "substrate-test-client",
  "substrate-test-runtime-client",
- "tempfile",
  "tiny-bip39",
  "tiny-hderive",
  "tokio",

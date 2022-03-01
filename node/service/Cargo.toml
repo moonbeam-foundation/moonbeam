@@ -131,7 +131,6 @@ assert_cmd = "0.12"
 nix = "0.17"
 prometheus = { version = "0.13.0", default-features = false }
 rand = "0.7.3"
-tempfile = "3.3.0"
 
 # Polkadot dev-dependencies
 polkadot-runtime-common = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.17" }
