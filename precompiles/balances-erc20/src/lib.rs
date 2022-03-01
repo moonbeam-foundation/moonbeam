@@ -94,7 +94,7 @@ macro_rules! impl_prefix {
 	};
 }
 
-// Since the macro expect a `ident` to be used with `paste!` we cannot provide `()` directtly.
+// Since the macro expect a `ident` to be used with `paste!` we cannot provide `()` directly.
 type Instance0 = ();
 
 impl_prefix!(Instance0, "Erc20Instance0Balances");
