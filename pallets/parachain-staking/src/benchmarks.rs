@@ -709,7 +709,7 @@ benchmarks! {
 			state.requests().get(&collator),
 			Some(&DelegationRequest {
 				collator,
-				amount: 5u32.into(),
+				amount: bond_less,
 				when_executable: 3,
 				action: DelegationChange::Decrease
 			})
