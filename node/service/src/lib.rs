@@ -1017,7 +1017,7 @@ mod tests {
 	use super::*;
 
 	#[test]
-	fn test_prometheus_registry_uses_moonbeam_prefix() {
+	fn test_set_prometheus_registry_uses_moonbeam_prefix() {
 		let counter_name = "my_counter";
 		let expected_metric_name = "moonbeam_my_counter";
 		let counter = Box::new(Counter::new(counter_name, "foobar").unwrap());
