@@ -40,10 +40,19 @@ benchmarks! {
 		// We make it dependent on the number of existing assets already
 		let x in 5..100;
 		for i in 0..x {
-			let asset_type:  T::ForeignAssetType = MultiLocation::new(0, X1(GeneralIndex(i as u128))).into();
+			let asset_type:  T::ForeignAssetType = MultiLocation::new(
+				0,
+				X1(GeneralIndex(i as u128))
+			).into();
 			let metadata = T::AssetRegistrarMetadata::default();
 			let amount = 1u32.into();
-			Pallet::<T>::register_foreign_asset(RawOrigin::Root.into(), asset_type.clone(), metadata, amount, true)?;
+			Pallet::<T>::register_foreign_asset(
+				RawOrigin::Root.into(),
+				asset_type.clone(),
+				metadata,
+				amount,	
+				true
+			)?;
 			Pallet::<T>::set_asset_units_per_second(RawOrigin::Root.into(), asset_type.clone(), 1, i)?;
 		}
 
@@ -52,7 +61,13 @@ benchmarks! {
 		let metadata = T::AssetRegistrarMetadata::default();
 		let amount = 1u32.into();
 		let asset_id: T::AssetId = asset_type.clone().into();
-		Pallet::<T>::register_foreign_asset(RawOrigin::Root.into(), asset_type.clone(), metadata, amount, true)?;
+		Pallet::<T>::register_foreign_asset(
+			RawOrigin::Root.into(),
+			asset_type.clone(),
+			metadata,
+			amount,
+			true
+		)?;
 
 	}: _(RawOrigin::Root, asset_type.clone(), 1, x)
 	verify {
@@ -67,7 +82,13 @@ benchmarks! {
 			let asset_type:  T::ForeignAssetType = MultiLocation::new(0, X1(GeneralIndex(i as u128))).into();
 			let metadata = T::AssetRegistrarMetadata::default();
 			let amount = 1u32.into();
-			Pallet::<T>::register_foreign_asset(RawOrigin::Root.into(), asset_type.clone(), metadata, amount, true)?;
+			Pallet::<T>::register_foreign_asset(
+				RawOrigin::Root.into(),
+				asset_type.clone(),
+				metadata,
+				amount,
+				true
+			)?;
 			Pallet::<T>::set_asset_units_per_second(RawOrigin::Root.into(), asset_type.clone(), 1, i)?;
 		}
 
@@ -91,7 +112,13 @@ benchmarks! {
 			let asset_type:  T::ForeignAssetType = MultiLocation::new(0, X1(GeneralIndex(i as u128))).into();
 			let metadata = T::AssetRegistrarMetadata::default();
 			let amount = 1u32.into();
-			Pallet::<T>::register_foreign_asset(RawOrigin::Root.into(), asset_type.clone(), metadata, amount, true)?;
+			Pallet::<T>::register_foreign_asset(
+				RawOrigin::Root.into(),
+				asset_type.clone(),
+				metadata,
+				amount,
+				true
+			)?;
 			Pallet::<T>::set_asset_units_per_second(RawOrigin::Root.into(), asset_type.clone(), 1, i)?;
 		}
 		let asset_type_to_be_removed: T::ForeignAssetType = MultiLocation::new(
@@ -113,14 +140,22 @@ benchmarks! {
 	}: _(RawOrigin::Root, creator.clone(), owner.clone(), min_balance.clone())
 	verify {
 		assert_eq!(Pallet::<T>::local_asset_creation_authorization(&creator).unwrap().owner, owner);
-		assert_eq!(Pallet::<T>::local_asset_creation_authorization(&creator).unwrap().min_balance, min_balance);
+		assert_eq!(
+			Pallet::<T>::local_asset_creation_authorization(&creator).unwrap().min_balance,
+			min_balance
+		);
 	}
 
 	register_local_asset {
 		let creator: T::AccountId  = account("account id", 0u32, 0u32);
 		let owner: T::AccountId  = account("account id", 1u32, 0u32);
 		let min_balance: T::Balance = 1u32.into();
-		Pallet::<T>::authorize_local_asset(RawOrigin::Root.into(), creator.clone(), owner.clone(), min_balance.clone())?;
+		Pallet::<T>::authorize_local_asset(
+			RawOrigin::Root.into(),
+			creator.clone(),
+			owner.clone(),
+			min_balance.clone()
+		)?;
 	}: _(RawOrigin::Signed(creator.clone()))
 	verify {
 		assert!(Pallet::<T>::local_asset_creation_authorization(&creator).is_none());
@@ -133,7 +168,13 @@ benchmarks! {
 			let asset_type:  T::ForeignAssetType = MultiLocation::new(0, X1(GeneralIndex(i as u128))).into();
 			let metadata = T::AssetRegistrarMetadata::default();
 			let amount = 1u32.into();
-			Pallet::<T>::register_foreign_asset(RawOrigin::Root.into(), asset_type.clone(), metadata, amount, true)?;
+			Pallet::<T>::register_foreign_asset(
+				RawOrigin::Root.into(),
+				asset_type.clone(),
+				metadata,
+				amount,
+				true
+			)?;
 			Pallet::<T>::set_asset_units_per_second(RawOrigin::Root.into(), asset_type.clone(), 1, i)?;
 		}
 
