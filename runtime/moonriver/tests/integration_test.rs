@@ -51,7 +51,7 @@ use sp_runtime::{
 	DispatchError, ModuleError, TokenError,
 };
 use xcm::latest::prelude::*;
-use xcm::{VersionedMultiAsset, VersionedMultiAssets, VersionedMultiLocation};
+use xcm::{VersionedMultiAssets, VersionedMultiLocation};
 use xtokens_precompiles::Action as XtokensAction;
 
 #[test]
@@ -2374,73 +2374,113 @@ fn xtokens_precompiles_transfer_multiasset() {
 }
 
 #[test]
-fn make_sure_movr_cannot_be_transferred_precompile() {
+fn xtokens_precompiles_transfer_native() {
 	ExtBuilder::default()
 		.with_balances(vec![
 			(AccountId::from(ALICE), 2_000 * MOVR),
 			(AccountId::from(BOB), 1_000 * MOVR),
 		])
-		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
-		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
-			AccountId::from(ALICE),
-		)])
+		.with_safe_xcm_version(2)
 		.build()
 		.execute_with(|| {
-			let dest = MultiLocation {
-				parents: 1,
-				interior: X1(AccountId32 {
+			let xtokens_precompile_address = H160::from_low_u64_be(2052);
+
+			// Its address is
+			let asset_precompile_address = H160::from_low_u64_be(2050);
+
+			// Alice has 1000 tokens. She should be able to send through precompile
+			let destination = MultiLocation::new(
+				1,
+				Junctions::X1(Junction::AccountId32 {
 					network: NetworkId::Any,
 					id: [1u8; 32],
 				}),
-			};
-			assert_noop!(
-				XTokens::transfer_multiasset(
-					origin_of(AccountId::from(ALICE)),
-					Box::new(VersionedMultiAsset::V1(MultiAsset {
-						id: Concrete(moonriver_runtime::SelfLocation::get()),
-						fun: Fungible(1000)
-					})),
-					Box::new(VersionedMultiLocation::V1(dest)),
-					40000
-				),
-				orml_xtokens::Error::<Runtime>::XcmExecutionFailed
 			);
-		});
+
+			// We use the address of the asset as an identifier of the asset we want to transferS
+			assert_eq!(
+				Precompiles::new().execute(
+					xtokens_precompile_address,
+					&EvmDataWriter::new_with_selector(XtokensAction::Transfer)
+						.write(EvmAddress(asset_precompile_address))
+						.write(U256::from(500 * MOVR))
+						.write(destination.clone())
+						.write(U256::from(4000000))
+						.build(),
+					None,
+					&Context {
+						address: xtokens_precompile_address,
+						caller: ALICE.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					cost: 20000,
+					output: vec![],
+					logs: vec![]
+				}))
+			);
+		})
 }
 
 #[test]
-fn make_sure_movr_cannot_be_transferred() {
+fn xtokens_precompile_transfer_local_asset() {
 	ExtBuilder::default()
 		.with_balances(vec![
 			(AccountId::from(ALICE), 2_000 * MOVR),
 			(AccountId::from(BOB), 1_000 * MOVR),
 		])
-		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
-		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
+		.with_local_assets(vec![(
+			0u128,
+			vec![(AccountId::from(ALICE), 1_000 * MOVR)],
 			AccountId::from(ALICE),
 		)])
+		.with_safe_xcm_version(2)
 		.build()
 		.execute_with(|| {
-			let dest = MultiLocation {
-				parents: 1,
-				interior: X1(AccountId32 {
+			let xtokens_precompile_address = H160::from_low_u64_be(2052);
+
+			// Its address is
+			let asset_precompile_address =
+				Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, 0u128).into();
+
+			// Alice has 1000 tokens. She should be able to send through precompile
+			let destination = MultiLocation::new(
+				1,
+				Junctions::X1(Junction::AccountId32 {
 					network: NetworkId::Any,
 					id: [1u8; 32],
 				}),
-			};
-			assert_noop!(
-				XTokens::transfer(
-					origin_of(AccountId::from(ALICE)),
-					CurrencyId::SelfReserve,
-					100,
-					Box::new(VersionedMultiLocation::V1(dest)),
-					40000
-				),
-				orml_xtokens::Error::<Runtime>::XcmExecutionFailed
 			);
-		});
+
+			// We use the address of the asset as an identifier of the asset we want to transferS
+			assert_eq!(
+				Precompiles::new().execute(
+					xtokens_precompile_address,
+					&EvmDataWriter::new_with_selector(XtokensAction::Transfer)
+						.write(EvmAddress(asset_precompile_address))
+						.write(U256::from(500 * MOVR))
+						.write(destination.clone())
+						.write(U256::from(4000000))
+						.build(),
+					None,
+					&Context {
+						address: xtokens_precompile_address,
+						caller: ALICE.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					cost: 20000,
+					output: vec![],
+					logs: vec![]
+				}))
+			);
+		})
 }
 
 #[test]
