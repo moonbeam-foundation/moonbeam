@@ -28,7 +28,7 @@ use moonriver_runtime::{
 	CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig,
 	EthereumChainIdConfig, EthereumConfig, GenesisAccount, GenesisConfig, InflationInfo,
 	MaintenanceModeConfig, ParachainInfoConfig, ParachainStakingConfig, PolkadotXcmConfig,
-	Precompiles, Range, SystemConfig, TechCommitteeCollectiveConfig, WASM_BINARY,
+	Precompiles, Range, SudoConfig, SystemConfig, TechCommitteeCollectiveConfig, WASM_BINARY,
 };
 use nimbus_primitives::NimbusId;
 use sc_service::ChainType;
@@ -247,6 +247,9 @@ pub fn testnet_genesis(
 					)
 				})
 				.collect(),
+		},
+		sudo: SudoConfig {
+			key: Some(endowed_accounts[0]),
 		},
 		ethereum: EthereumConfig {},
 		base_fee: Default::default(),
