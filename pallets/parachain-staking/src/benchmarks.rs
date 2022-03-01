@@ -873,6 +873,9 @@ benchmarks! {
 			max: Perbill::one(),
 		};
 		Pallet::<T>::set_inflation(RawOrigin::Root.into(), high_inflation.clone())?;
+		// To set total selected to 28, must first increase round length to at least 28
+		// to avoid hitting RoundLengthMustBeAtLeastTotalSelectedCollators
+		Pallet::<T>::set_blocks_per_round(RawOrigin::Root.into(), 28u32)?;
 		Pallet::<T>::set_total_selected(RawOrigin::Root.into(), 28u32)?;
 		// INITIALIZE COLLATOR STATE
 		let mut collators: Vec<T::AccountId> = Vec::new();
@@ -1002,12 +1005,8 @@ benchmarks! {
 	}
 
 	pay_one_collator_reward {
-		// y controls number of delegators
-		// TODO: mock.rs sets MaxTopDelegationsPerCandidate to 4, which is too low for this test to be
-		// meaningful. we use a higher value here, which works so long as we don't invoke any of
-		// pallet_staking's logic which uses MaxTopDelegationsPerCandidate as a constraint. this is
-		// brittle, to say the least...
-		let y in 0..2000;
+		// y controls number of delegations, its maximum per collator is the max top delegations
+		let y in 0..<<T as Config>::MaxTopDelegationsPerCandidate as Get<u32>>::get();
 
 		// must come after 'let foo in 0..` statements for macro
 		use crate::{
