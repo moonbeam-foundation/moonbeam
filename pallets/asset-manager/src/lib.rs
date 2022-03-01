@@ -53,6 +53,7 @@ pub mod pallet {
 	use frame_system::pallet_prelude::*;
 	use parity_scale_codec::HasCompact;
 	use sp_runtime::traits::{AccountIdConversion, AtLeast32BitUnsigned};
+	use sp_std::vec::Vec;
 
 	#[pallet::pallet]
 	#[pallet::without_storage_info]
@@ -85,6 +86,11 @@ pub mod pallet {
 	}
 
 	impl<T: Config> xcm_primitives::UnitsToWeightRatio<T::AssetType> for Pallet<T> {
+		fn payment_is_supported(asset_type: T::AssetType) -> bool {
+			SupportedFeePaymentAssets::<T>::get()
+				.binary_search(&asset_type)
+				.is_ok()
+		}
 		fn get_units_per_second(asset_type: T::AssetType) -> Option<u128> {
 			AssetTypeUnitsPerSecond::<T>::get(asset_type)
 		}
@@ -121,14 +127,35 @@ pub mod pallet {
 		ErrorCreatingAsset,
 		AssetAlreadyExists,
 		AssetDoesNotExist,
+		TooLowNumAssetsWeightHint,
 	}
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
-		AssetRegistered(T::AssetId, T::AssetType, T::AssetRegistrarMetadata),
-		UnitsPerSecondChanged(T::AssetType, u128),
-		AssetTypeChanged(T::AssetId, T::AssetType),
+		/// New asset with the asset manager is registered
+		AssetRegistered {
+			asset_id: T::AssetId,
+			asset: T::AssetType,
+			metadata: T::AssetRegistrarMetadata,
+		},
+		/// Changed the amount of units we are charging per execution second for a given asset
+		UnitsPerSecondChanged {
+			asset_type: T::AssetType,
+			units_per_second: u128,
+		},
+		/// Changed the xcm type mapping for a given asset id
+		AssetTypeChanged {
+			asset_id: T::AssetId,
+			new_asset_type: T::AssetType,
+		},
+		/// Removed all information related to an assetId
+		AssetRemoved {
+			asset_id: T::AssetId,
+			asset_type: T::AssetType,
+		},
+		/// Supported asset type for fee payment removed
+		SupportedAssetRemoved { asset_type: T::AssetType },
 	}
 
 	/// Mapping from an asset id to asset type.
@@ -154,6 +181,11 @@ pub mod pallet {
 	pub type AssetTypeUnitsPerSecond<T: Config> =
 		StorageMap<_, Blake2_128Concat, T::AssetType, u128>;
 
+	// Supported fee asset payments
+	#[pallet::storage]
+	#[pallet::getter(fn supported_fee_payment_assets)]
+	pub type SupportedFeePaymentAssets<T: Config> = StorageValue<_, Vec<T::AssetType>, ValueQuery>;
+
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		/// Register new asset with the asset manager
@@ -178,16 +210,21 @@ pub mod pallet {
 			AssetIdType::<T>::insert(&asset_id, &asset);
 			AssetTypeId::<T>::insert(&asset, &asset_id);
 
-			Self::deposit_event(Event::AssetRegistered(asset_id, asset, metadata));
+			Self::deposit_event(Event::AssetRegistered {
+				asset_id,
+				asset,
+				metadata,
+			});
 			Ok(())
 		}
 
-		/// Change the amount of units we are charging per execution second for a given AssetId
-		#[pallet::weight(T::WeightInfo::set_asset_units_per_second())]
+		/// Change the amount of units we are charging per execution second for a given AssetType
+		#[pallet::weight(T::WeightInfo::set_asset_units_per_second(*num_assets_weight_hint))]
 		pub fn set_asset_units_per_second(
 			origin: OriginFor<T>,
 			asset_type: T::AssetType,
 			units_per_second: u128,
+			num_assets_weight_hint: u32,
 		) -> DispatchResult {
 			T::AssetModifierOrigin::ensure_origin(origin)?;
 
@@ -196,22 +233,48 @@ pub mod pallet {
 				Error::<T>::AssetDoesNotExist
 			);
 
+			// Grab supported assets
+			let mut supported_assets = SupportedFeePaymentAssets::<T>::get();
+
+			ensure!(
+				num_assets_weight_hint >= (supported_assets.len() as u32),
+				Error::<T>::TooLowNumAssetsWeightHint
+			);
+
+			// Only if the asset is not supported we need to push it
+			if let Err(index) = supported_assets.binary_search(&asset_type) {
+				supported_assets.insert(index, asset_type.clone());
+				SupportedFeePaymentAssets::<T>::put(supported_assets);
+			}
+
 			AssetTypeUnitsPerSecond::<T>::insert(&asset_type, &units_per_second);
 
-			Self::deposit_event(Event::UnitsPerSecondChanged(asset_type, units_per_second));
+			Self::deposit_event(Event::UnitsPerSecondChanged {
+				asset_type,
+				units_per_second,
+			});
 			Ok(())
 		}
 
 		/// Change the xcm type mapping for a given assetId
 		/// We also change this if the previous units per second where pointing at the old
 		/// assetType
-		#[pallet::weight(T::WeightInfo::change_existing_asset_type())]
+		#[pallet::weight(T::WeightInfo::change_existing_asset_type(*num_assets_weight_hint))]
 		pub fn change_existing_asset_type(
 			origin: OriginFor<T>,
 			asset_id: T::AssetId,
 			new_asset_type: T::AssetType,
+			num_assets_weight_hint: u32,
 		) -> DispatchResult {
 			T::AssetModifierOrigin::ensure_origin(origin)?;
+
+			// Grab supported assets
+			let mut supported_assets = SupportedFeePaymentAssets::<T>::get();
+
+			ensure!(
+				num_assets_weight_hint >= (supported_assets.len() as u32),
+				Error::<T>::TooLowNumAssetsWeightHint
+			);
 
 			let previous_asset_type =
 				AssetIdType::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
@@ -223,13 +286,103 @@ pub mod pallet {
 			// Remove previous asset type info
 			AssetTypeId::<T>::remove(&previous_asset_type);
 
+			// Change AssetTypeUnitsPerSecond
 			if let Some(units) = AssetTypeUnitsPerSecond::<T>::get(&previous_asset_type) {
+				// Only if the old asset is supported we need to remove it
+				if let Ok(index) = supported_assets.binary_search(&previous_asset_type) {
+					supported_assets.remove(index);
+				}
+
+				// Only if the new asset is not supported we need to push it
+				if let Err(index) = supported_assets.binary_search(&new_asset_type) {
+					supported_assets.insert(index, new_asset_type.clone());
+				}
+
+				// Insert supported fee payment assets
+				SupportedFeePaymentAssets::<T>::put(supported_assets);
+
 				// Remove previous asset type info
 				AssetTypeUnitsPerSecond::<T>::remove(&previous_asset_type);
 				AssetTypeUnitsPerSecond::<T>::insert(&new_asset_type, units);
 			}
 
-			Self::deposit_event(Event::AssetTypeChanged(asset_id, new_asset_type));
+			Self::deposit_event(Event::AssetTypeChanged {
+				asset_id,
+				new_asset_type,
+			});
+			Ok(())
+		}
+
+		#[pallet::weight(T::WeightInfo::remove_supported_asset(*num_assets_weight_hint))]
+		pub fn remove_supported_asset(
+			origin: OriginFor<T>,
+			asset_type: T::AssetType,
+			num_assets_weight_hint: u32,
+		) -> DispatchResult {
+			T::AssetModifierOrigin::ensure_origin(origin)?;
+
+			// Grab supported assets
+			let mut supported_assets = SupportedFeePaymentAssets::<T>::get();
+
+			ensure!(
+				num_assets_weight_hint >= (supported_assets.len() as u32),
+				Error::<T>::TooLowNumAssetsWeightHint
+			);
+
+			// Only if the old asset is supported we need to remove it
+			if let Ok(index) = supported_assets.binary_search(&asset_type) {
+				supported_assets.remove(index);
+			}
+
+			// Insert
+			SupportedFeePaymentAssets::<T>::put(supported_assets);
+
+			// Remove
+			AssetTypeUnitsPerSecond::<T>::remove(&asset_type);
+
+			Self::deposit_event(Event::SupportedAssetRemoved { asset_type });
+			Ok(())
+		}
+
+		/// Remove a given assetId -> assetType association
+		#[pallet::weight(T::WeightInfo::remove_existing_asset_type(*num_assets_weight_hint))]
+		pub fn remove_existing_asset_type(
+			origin: OriginFor<T>,
+			asset_id: T::AssetId,
+			num_assets_weight_hint: u32,
+		) -> DispatchResult {
+			T::AssetModifierOrigin::ensure_origin(origin)?;
+
+			// Grab supported assets
+			let mut supported_assets = SupportedFeePaymentAssets::<T>::get();
+
+			ensure!(
+				num_assets_weight_hint >= (supported_assets.len() as u32),
+				Error::<T>::TooLowNumAssetsWeightHint
+			);
+
+			let asset_type =
+				AssetIdType::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
+
+			// Remove from AssetIdType
+			AssetIdType::<T>::remove(&asset_id);
+			// Remove from AssetTypeId
+			AssetTypeId::<T>::remove(&asset_type);
+			// Remove previous asset type units per second
+			AssetTypeUnitsPerSecond::<T>::remove(&asset_type);
+
+			// Only if the old asset is supported we need to remove it
+			if let Ok(index) = supported_assets.binary_search(&asset_type) {
+				supported_assets.remove(index);
+			}
+
+			// Insert
+			SupportedFeePaymentAssets::<T>::put(supported_assets);
+
+			Self::deposit_event(Event::AssetRemoved {
+				asset_id,
+				asset_type,
+			});
 			Ok(())
 		}
 	}
