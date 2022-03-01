@@ -1699,6 +1699,7 @@ fn make_sure_glmr_cannot_be_transferred_precompile() {
 			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
+		.with_safe_xcm_version(2)
 		.build()
 		.execute_with(|| {
 			let dest = MultiLocation {
@@ -1735,6 +1736,7 @@ fn make_sure_glmr_cannot_be_transferred() {
 			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
+		.with_safe_xcm_version(2)
 		.build()
 		.execute_with(|| {
 			let dest = MultiLocation {
