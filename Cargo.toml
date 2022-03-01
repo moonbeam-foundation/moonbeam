@@ -23,4 +23,17 @@ evm-gasometer = { git = "https://github.com/purestake/evm", branch = "moonbeam-p
 evm-runtime = { git = "https://github.com/purestake/evm", branch = "moonbeam-polkadot-v0.9.17" }
 
 [profile.release]
+# Moonbeam runtime requires unwinding.
 panic = "unwind"
+opt-level = 3
+
+# make sure dev builds with backtrace do
+# not slow us down
+[profile.dev.package.backtrace]
+inherits = "release"
+
+[profile.production]
+inherits = "release"
+incremental = false
+lto = true
+codegen-units = 1
