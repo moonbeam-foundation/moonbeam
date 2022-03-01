@@ -50,7 +50,7 @@ benchmarks! {
 				RawOrigin::Root.into(),
 				asset_type.clone(),
 				metadata,
-				amount,	
+				amount,
 				true
 			)?;
 			Pallet::<T>::set_asset_units_per_second(RawOrigin::Root.into(), asset_type.clone(), 1, i)?;
