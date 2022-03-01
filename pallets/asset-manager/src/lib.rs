@@ -28,9 +28,10 @@
 //! AssetTypeId holds a mapping from AssetType -> AssetId. Finally LocalAssetCreationauthorization
 //! which holds authorizations for specific accounts to create local assets
 //!
-//! This pallet has five extrinsics: register_asset, which registers an Asset in this pallet and
-//! creates the asset as dictated by the AssetRegistrar trait. set_asset_units_per_second: which
-//! sets the unit per second that should be charged for a particular asset.
+//! This pallet has five extrinsics: register_foreign_asset, which registers a foreign
+//! asset in this pallet and creates the asset as dictated by the AssetRegistrar trait.
+//! set_asset_units_per_second: which sets the unit per second that should be charged for
+//! a particular asset.
 //! change_existing_asset_type: which allows to update the correspondence between AssetId and
 //! AssetType
 //! register_local_asset: which creates a local asset with a specific owner

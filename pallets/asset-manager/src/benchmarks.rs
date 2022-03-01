@@ -133,7 +133,7 @@ benchmarks! {
 			let asset_type:  T::ForeignAssetType = MultiLocation::new(0, X1(GeneralIndex(i as u128))).into();
 			let metadata = T::AssetRegistrarMetadata::default();
 			let amount = 1u32.into();
-			Pallet::<T>::register_asset(RawOrigin::Root.into(), asset_type.clone(), metadata, amount, true)?;
+			Pallet::<T>::register_foreign_asset(RawOrigin::Root.into(), asset_type.clone(), metadata, amount, true)?;
 			Pallet::<T>::set_asset_units_per_second(RawOrigin::Root.into(), asset_type.clone(), 1, i)?;
 		}
 
