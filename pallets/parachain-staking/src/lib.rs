@@ -3404,15 +3404,28 @@ pub mod pallet {
 			if collators.is_empty() {
 				// SELECTION FAILED TO SELECT >=1 COLLATOR => select collators from previous round
 				let last_round = now.saturating_sub(1u32);
+				let mut total_per_candidate: BTreeMap<T::AccountId, BalanceOf<T>> = BTreeMap::new();
 				// set this round AtStake to last round AtStake
 				for (account, snapshot) in <AtStake<T>>::iter_prefix(last_round) {
 					collator_count = collator_count.saturating_add(1u32);
 					delegation_count =
 						delegation_count.saturating_add(snapshot.delegations.len() as u32);
 					total = total.saturating_add(snapshot.total);
+					total_per_candidate.insert(account.clone(), snapshot.total);
 					<AtStake<T>>::insert(now, account, snapshot);
 				}
 				// `SelectedCandidates` remains unchanged from last round
+				// emit CollatorChosen event for tools that use this event
+				for candidate in <SelectedCandidates<T>>::get() {
+					let snapshot_total = total_per_candidate
+						.get(&candidate)
+						.expect("all selected candidates have snapshots");
+					Self::deposit_event(Event::CollatorChosen {
+						round: now,
+						collator_account: candidate,
+						total_exposed_amount: *snapshot_total,
+					})
+				}
 				return (collator_count, delegation_count, total);
 			}
 			// snapshot exposure for round for weighting reward distribution
