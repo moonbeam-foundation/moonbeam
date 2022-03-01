@@ -715,7 +715,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     );
   });
 
-  it("Should receive a 10 Local Asset tokens together with sufficent DEV to pay for fee", async function () {
+  it("Should receive a 10 Local Asset tokens and sufficent DEV to pay for fee", async function () {
     const metadata = await context.polkadotApi.rpc.state.getMetadata();
     const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
       (pallet) => {
@@ -1061,7 +1061,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     );
   });
 
-  it("Should receive a 10 Local Asset tokens together with sufficent DEV to pay for fee old reanchor", async function () {
+  it("Should receive 10 Local Assets and DEV to pay for fee with old reanchor", async function () {
     let ownParaId = (await context.polkadotApi.query.parachainInfo.parachainId()) as any;
     const metadata = await context.polkadotApi.rpc.state.getMetadata();
     const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
