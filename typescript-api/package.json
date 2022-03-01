@@ -1,14 +1,15 @@
 {
-  "name": "@moonbeam/api-augment",
-  "version": "0.0.1",
+  "name": "@moonbeam-network/api-augment",
+  "version": "0.0.1-beta.3",
   "private": true,
   "description": "Moonbeam types augment for @polkadot/api",
   "author": "PureStake",
   "license": "GPL-3.0-only",
+  "homepage": "https://github.com/PureStake/moonbeam/tree/master/typescript-api#readme",
   "repository": {
-    "directory": "typescript-api",
     "type": "git",
-    "url": "git+https://github.com/PureStake/moonbeam.git"
+    "url": "https://github.com/PureStake/moonbeam.git",
+    "directory": "typescript-api"
   },
   "engines": {
     "node": ">=14.0.0"
