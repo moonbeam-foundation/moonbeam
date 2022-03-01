@@ -507,7 +507,8 @@ impl PerfCmd {
 		let all_results = AllResults {
 			test_results: all_test_results.clone(),
 		};
-		let results_str = serde_json::to_string_pretty(&all_results).expect("fail to serialize AllResults");
+		let results_str =
+			serde_json::to_string_pretty(&all_results).expect("fail to serialize AllResults");
 
 		if let Some(target) = &cmd.output_file {
 			let mut file = File::create(target)?;
