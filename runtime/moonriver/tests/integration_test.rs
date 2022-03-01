@@ -25,13 +25,16 @@ use fp_evm::{Context, ExitSucceed, PrecompileOutput};
 use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::Dispatchable,
-	traits::{fungible::Inspect, PalletInfo, StorageInfo, StorageInfoTrait},
+	traits::{
+		fungible::Inspect, fungibles::Inspect as FungiblesInspect, PalletInfo, StorageInfo,
+		StorageInfoTrait,
+	},
 	weights::{DispatchClass, Weight},
 	StorageHasher, Twox128,
 };
 use moonriver_runtime::{
-	BaseFee, BlockWeights, CurrencyId, PolkadotXcm, Precompiles, XTokens, XcmTransactor,
-	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	AssetId, BaseFee, BlockWeights, CurrencyId, LocalAssets, PolkadotXcm, Precompiles, XTokens,
+	XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
@@ -45,7 +48,7 @@ use sha3::{Digest, Keccak256};
 use sp_core::{ByteArray, Pair, H160, U256};
 use sp_runtime::{
 	traits::{Convert, One},
-	DispatchError, ModuleError,
+	DispatchError, ModuleError, TokenError,
 };
 use xcm::latest::prelude::*;
 use xcm::{VersionedMultiAsset, VersionedMultiAssets, VersionedMultiLocation};
@@ -1309,15 +1312,19 @@ fn asset_can_be_registered() {
 #[test]
 fn asset_erc20_precompiles_supply_and_balance() {
 	ExtBuilder::default()
-		.with_assets(vec![(0u128, vec![(AccountId::from(ALICE), 1_000 * MOVR)])])
+		.with_local_assets(vec![(
+			0u128,
+			vec![(AccountId::from(ALICE), 1_000 * MOVR)],
+			AccountId::from(ALICE),
+		)])
 		.build()
 		.execute_with(|| {
 			// Assert the asset has been created with the correct supply
-			assert_eq!(Assets::total_supply(0u128), 1_000 * MOVR);
+			assert_eq!(LocalAssets::total_supply(0u128), 1_000 * MOVR);
 
 			// Convert the assetId to its corresponding precompile address
 			let asset_precompile_address =
-				Runtime::asset_id_to_account(FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, 0u128).into();
+				Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, 0u128).into();
 
 			// The expected result for both total supply and balance of is the same, as only Alice
 			// holds balance
@@ -1367,7 +1374,11 @@ fn asset_erc20_precompiles_supply_and_balance() {
 #[test]
 fn asset_erc20_precompiles_transfer() {
 	ExtBuilder::default()
-		.with_assets(vec![(0u128, vec![(AccountId::from(ALICE), 1_000 * MOVR)])])
+		.with_local_assets(vec![(
+			0u128,
+			vec![(AccountId::from(ALICE), 1_000 * MOVR)],
+			AccountId::from(ALICE),
+		)])
 		.with_balances(vec![
 			(AccountId::from(ALICE), 2_000 * MOVR),
 			(AccountId::from(BOB), 1_000 * MOVR),
@@ -1375,7 +1386,7 @@ fn asset_erc20_precompiles_transfer() {
 		.build()
 		.execute_with(|| {
 			let asset_precompile_address =
-				Runtime::asset_id_to_account(FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, 0u128).into();
+				Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, 0u128).into();
 
 			// Expected result for a transfer
 			let expected_result = Some(Ok(PrecompileOutput {
@@ -1442,7 +1453,11 @@ fn asset_erc20_precompiles_transfer() {
 #[test]
 fn asset_erc20_precompiles_approve() {
 	ExtBuilder::default()
-		.with_assets(vec![(0u128, vec![(AccountId::from(ALICE), 1_000 * MOVR)])])
+		.with_local_assets(vec![(
+			0u128,
+			vec![(AccountId::from(ALICE), 1_000 * MOVR)],
+			AccountId::from(ALICE),
+		)])
 		.with_balances(vec![
 			(AccountId::from(ALICE), 2_000 * MOVR),
 			(AccountId::from(BOB), 1_000 * MOVR),
@@ -1450,7 +1465,683 @@ fn asset_erc20_precompiles_approve() {
 		.build()
 		.execute_with(|| {
 			let asset_precompile_address =
-				Runtime::asset_id_to_account(FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, 0u128).into();
+				Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, 0u128).into();
+
+			// Expected result for approve
+			let expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(true).build(),
+				cost: 13989u64,
+				logs: LogsBuilder::new(asset_precompile_address)
+					.log3(
+						SELECTOR_LOG_APPROVAL,
+						H160::from(ALICE),
+						H160::from(BOB),
+						EvmDataWriter::new().write(U256::from(400 * MOVR)).build(),
+					)
+					.build(),
+			}));
+
+			// Aprove Bob for spending 400 MOVR from Alice
+			assert_eq!(
+				Precompiles::new().execute(
+					asset_precompile_address,
+					&EvmDataWriter::new_with_selector(AssetAction::Approve)
+						.write(EvmAddress(BOB.into()))
+						.write(U256::from(400 * MOVR))
+						.build(),
+					None,
+					&Context {
+						address: asset_precompile_address,
+						caller: ALICE.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				expected_result
+			);
+
+			// Expected result for transfer_from
+			let expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(true).build(),
+				cost: 29006u64,
+				logs: LogsBuilder::new(asset_precompile_address)
+					.log3(
+						SELECTOR_LOG_TRANSFER,
+						H160::from(ALICE),
+						H160::from(CHARLIE),
+						EvmDataWriter::new().write(U256::from(400 * MOVR)).build(),
+					)
+					.build(),
+			}));
+
+			// Transfer tokens from Alice to Charlie by using BOB as origin
+			assert_eq!(
+				Precompiles::new().execute(
+					asset_precompile_address,
+					&EvmDataWriter::new_with_selector(AssetAction::TransferFrom)
+						.write(EvmAddress(ALICE.into()))
+						.write(EvmAddress(CHARLIE.into()))
+						.write(U256::from(400 * MOVR))
+						.build(),
+					None,
+					&Context {
+						address: asset_precompile_address,
+						caller: BOB.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				expected_result
+			);
+
+			// Expected result for balance of CHARLIE
+			let expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(U256::from(400 * MOVR)).build(),
+				cost: 1000,
+				logs: Default::default(),
+			}));
+
+			// Make sure CHARLIE has 400 MOVR
+			assert_eq!(
+				Precompiles::new().execute(
+					asset_precompile_address,
+					&EvmDataWriter::new_with_selector(AssetAction::BalanceOf)
+						.write(EvmAddress(CHARLIE.into()))
+						.build(),
+					None,
+					&Context {
+						address: asset_precompile_address,
+						caller: CHARLIE.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				expected_result
+			);
+		});
+}
+
+#[test]
+fn asset_erc20_precompiles_mint_burn() {
+	ExtBuilder::default()
+		.with_local_assets(vec![(
+			0u128,
+			vec![(AccountId::from(ALICE), 1_000 * MOVR)],
+			AccountId::from(ALICE),
+		)])
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * MOVR),
+			(AccountId::from(BOB), 1_000 * MOVR),
+		])
+		.build()
+		.execute_with(|| {
+			let asset_precompile_address =
+				Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, 0u128).into();
+
+			// Expected result for approve
+			let expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(true).build(),
+				cost: 12821u64,
+				logs: LogsBuilder::new(asset_precompile_address)
+					.log3(
+						SELECTOR_LOG_TRANSFER,
+						H160::default(),
+						H160::from(BOB),
+						EvmDataWriter::new().write(U256::from(1000 * MOVR)).build(),
+					)
+					.build(),
+			}));
+
+			// Mint 1000 MOVRS to BOB
+			assert_eq!(
+				Precompiles::new().execute(
+					asset_precompile_address,
+					&EvmDataWriter::new_with_selector(AssetAction::Mint)
+						.write(EvmAddress(BOB.into()))
+						.write(U256::from(1000 * MOVR))
+						.build(),
+					None,
+					&Context {
+						address: asset_precompile_address,
+						caller: ALICE.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				expected_result
+			);
+
+			// Assert the asset has been minted
+			assert_eq!(LocalAssets::total_supply(0u128), 2_000 * MOVR);
+			assert_eq!(
+				LocalAssets::balance(0u128, AccountId::from(BOB)),
+				1_000 * MOVR
+			);
+
+			// Expected result for burn
+			let expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(true).build(),
+				cost: 12957u64,
+				logs: LogsBuilder::new(asset_precompile_address)
+					.log3(
+						SELECTOR_LOG_TRANSFER,
+						H160::from(BOB),
+						H160::default(),
+						EvmDataWriter::new().write(U256::from(500 * MOVR)).build(),
+					)
+					.build(),
+			}));
+
+			// Transfer tokens from Alice to Charlie by using BOB as origin
+			assert_eq!(
+				Precompiles::new().execute(
+					asset_precompile_address,
+					&EvmDataWriter::new_with_selector(AssetAction::Burn)
+						.write(EvmAddress(BOB.into()))
+						.write(U256::from(500 * MOVR))
+						.build(),
+					None,
+					&Context {
+						address: asset_precompile_address,
+						caller: ALICE.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				expected_result
+			);
+
+			// Assert the asset has been burnt
+			assert_eq!(LocalAssets::total_supply(0u128), 1_500 * MOVR);
+			assert_eq!(
+				LocalAssets::balance(0u128, AccountId::from(BOB)),
+				500 * MOVR
+			);
+		});
+}
+
+#[test]
+fn asset_erc20_precompiles_freeze_thaw_account() {
+	ExtBuilder::default()
+		.with_local_assets(vec![(
+			0u128,
+			vec![(AccountId::from(ALICE), 1_000 * MOVR)],
+			AccountId::from(ALICE),
+		)])
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * MOVR),
+			(AccountId::from(BOB), 1_000 * MOVR),
+		])
+		.build()
+		.execute_with(|| {
+			let asset_precompile_address =
+				Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, 0u128).into();
+
+			// Expected result for approve
+			let expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(true).build(),
+				cost: 6732u64,
+				logs: Default::default(),
+			}));
+
+			// Freeze Account
+			assert_eq!(
+				Precompiles::new().execute(
+					asset_precompile_address,
+					&EvmDataWriter::new_with_selector(AssetAction::Freeze)
+						.write(EvmAddress(ALICE.into()))
+						.build(),
+					None,
+					&Context {
+						address: asset_precompile_address,
+						caller: ALICE.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				expected_result
+			);
+
+			// Assert account is frozen
+			assert_eq!(
+				LocalAssets::can_withdraw(0u128, &AccountId::from(ALICE), 1).into_result(),
+				Err(TokenError::Frozen.into())
+			);
+
+			// Expected result for burn
+			let expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(true).build(),
+				cost: 6731u64,
+				logs: Default::default(),
+			}));
+
+			// Thaw Account
+			assert_eq!(
+				Precompiles::new().execute(
+					asset_precompile_address,
+					&EvmDataWriter::new_with_selector(AssetAction::Thaw)
+						.write(EvmAddress(ALICE.into()))
+						.build(),
+					None,
+					&Context {
+						address: asset_precompile_address,
+						caller: ALICE.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				expected_result
+			);
+
+			// Assert account is not frozen
+			assert!(LocalAssets::can_withdraw(0u128, &AccountId::from(ALICE), 1)
+				.into_result()
+				.is_ok());
+		});
+}
+
+#[test]
+fn asset_erc20_precompiles_freeze_thaw_asset() {
+	ExtBuilder::default()
+		.with_local_assets(vec![(
+			0u128,
+			vec![(AccountId::from(ALICE), 1_000 * MOVR)],
+			AccountId::from(ALICE),
+		)])
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * MOVR),
+			(AccountId::from(BOB), 1_000 * MOVR),
+		])
+		.build()
+		.execute_with(|| {
+			let asset_precompile_address =
+				Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, 0u128).into();
+
+			// Expected result for approve
+			let expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(true).build(),
+				cost: 5589u64,
+				logs: Default::default(),
+			}));
+
+			// Freeze Asset
+			assert_eq!(
+				Precompiles::new().execute(
+					asset_precompile_address,
+					&EvmDataWriter::new_with_selector(AssetAction::FreezeAsset).build(),
+					None,
+					&Context {
+						address: asset_precompile_address,
+						caller: ALICE.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				expected_result
+			);
+
+			// Assert account is frozen
+			assert_eq!(
+				LocalAssets::can_withdraw(0u128, &AccountId::from(ALICE), 1).into_result(),
+				Err(TokenError::Frozen.into())
+			);
+
+			// Expected result for burn
+			let expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(true).build(),
+				cost: 5593u64,
+				logs: Default::default(),
+			}));
+
+			// Thaw Asset
+			assert_eq!(
+				Precompiles::new().execute(
+					asset_precompile_address,
+					&EvmDataWriter::new_with_selector(AssetAction::ThawAsset).build(),
+					None,
+					&Context {
+						address: asset_precompile_address,
+						caller: ALICE.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				expected_result
+			);
+
+			// Assert account is not frozen
+			assert!(LocalAssets::can_withdraw(0u128, &AccountId::from(ALICE), 1)
+				.into_result()
+				.is_ok());
+		});
+}
+
+#[test]
+fn asset_erc20_precompiles_freeze_transfer_ownership() {
+	ExtBuilder::default()
+		.with_local_assets(vec![(
+			0u128,
+			vec![(AccountId::from(ALICE), 1_000 * MOVR)],
+			AccountId::from(ALICE),
+		)])
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * MOVR),
+			(AccountId::from(BOB), 1_000 * MOVR),
+		])
+		.build()
+		.execute_with(|| {
+			let asset_precompile_address =
+				Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, 0u128).into();
+
+			// Expected result for approve
+			let expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(true).build(),
+				cost: 6666u64,
+				logs: Default::default(),
+			}));
+
+			// Transfer ownerhsip of an asset
+			assert_eq!(
+				Precompiles::new().execute(
+					asset_precompile_address,
+					&EvmDataWriter::new_with_selector(AssetAction::TransferOwnership)
+						.write(EvmAddress(BOB.into()))
+						.build(),
+					None,
+					&Context {
+						address: asset_precompile_address,
+						caller: ALICE.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				expected_result
+			);
+
+			// No clear way of testing BOB is new owner, other than doing a priviledged function
+			// e.g., transfer_ownership again
+			assert_ok!(LocalAssets::transfer_ownership(
+				origin_of(AccountId::from(BOB)),
+				0u128,
+				AccountId::from(ALICE)
+			));
+		});
+}
+
+#[test]
+fn asset_erc20_precompiles_freeze_set_team() {
+	ExtBuilder::default()
+		.with_local_assets(vec![(
+			0u128,
+			vec![(AccountId::from(ALICE), 1_000 * MOVR)],
+			AccountId::from(ALICE),
+		)])
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * MOVR),
+			(AccountId::from(BOB), 1_000 * MOVR),
+		])
+		.build()
+		.execute_with(|| {
+			let asset_precompile_address =
+				Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, 0u128).into();
+
+			// Expected result for approve
+			let expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(true).build(),
+				cost: 5614u64,
+				logs: Default::default(),
+			}));
+
+			// Set Bob as issuer, admin and freezer
+			assert_eq!(
+				Precompiles::new().execute(
+					asset_precompile_address,
+					&EvmDataWriter::new_with_selector(AssetAction::SetTeam)
+						.write(EvmAddress(BOB.into()))
+						.write(EvmAddress(BOB.into()))
+						.write(EvmAddress(BOB.into()))
+						.build(),
+					None,
+					&Context {
+						address: asset_precompile_address,
+						caller: ALICE.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				expected_result
+			);
+
+			// Bob should be able to mint, freeze, and thaw
+			assert_ok!(LocalAssets::mint(
+				origin_of(AccountId::from(BOB)),
+				0u128,
+				AccountId::from(BOB),
+				1_000 * MOVR
+			));
+			assert_ok!(LocalAssets::freeze(
+				origin_of(AccountId::from(BOB)),
+				0u128,
+				AccountId::from(ALICE)
+			));
+			assert_ok!(LocalAssets::thaw(
+				origin_of(AccountId::from(BOB)),
+				0u128,
+				AccountId::from(ALICE)
+			));
+		});
+}
+
+#[test]
+fn xcm_asset_erc20_precompiles_supply_and_balance() {
+	ExtBuilder::default()
+		.with_xcm_assets(vec![XcmAssetInitialization {
+			asset_type: AssetType::Xcm(MultiLocation::parent()),
+			metadata: AssetRegistrarMetadata {
+				name: b"RelayToken".to_vec(),
+				symbol: b"Relay".to_vec(),
+				decimals: 12,
+				is_frozen: false,
+			},
+			balances: vec![(AccountId::from(ALICE), 1_000 * MOVR)],
+			is_sufficient: true,
+		}])
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * MOVR),
+			(AccountId::from(BOB), 1_000 * MOVR),
+		])
+		.build()
+		.execute_with(|| {
+			// We have the assetId that corresponds to the relay chain registered
+			let relay_asset_id: AssetId = AssetType::Xcm(MultiLocation::parent()).into();
+
+			// Its address is
+			let asset_precompile_address = Runtime::asset_id_to_account(
+				FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+				relay_asset_id,
+			)
+			.into();
+
+			// Assert the asset has been created with the correct supply
+			assert_eq!(Assets::total_supply(relay_asset_id), 1_000 * MOVR);
+
+			// The expected result for both total supply and balance of is the same, as only Alice
+			// holds balance
+			let expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(U256::from(1000 * MOVR)).build(),
+				cost: 1000,
+				logs: Default::default(),
+			}));
+
+			// Access totalSupply through precompile. Important that the context is correct
+			assert_eq!(
+				Precompiles::new().execute(
+					asset_precompile_address,
+					&EvmDataWriter::new_with_selector(AssetAction::TotalSupply).build(),
+					None,
+					&Context {
+						address: asset_precompile_address,
+						caller: ALICE.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				expected_result
+			);
+
+			// Access balanceOf through precompile
+			assert_eq!(
+				Precompiles::new().execute(
+					asset_precompile_address,
+					&EvmDataWriter::new_with_selector(AssetAction::BalanceOf)
+						.write(EvmAddress(ALICE.into()))
+						.build(),
+					None,
+					&Context {
+						address: asset_precompile_address,
+						caller: ALICE.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				expected_result
+			);
+		});
+}
+
+#[test]
+fn xcm_asset_erc20_precompiles_transfer() {
+	ExtBuilder::default()
+		.with_xcm_assets(vec![XcmAssetInitialization {
+			asset_type: AssetType::Xcm(MultiLocation::parent()),
+			metadata: AssetRegistrarMetadata {
+				name: b"RelayToken".to_vec(),
+				symbol: b"Relay".to_vec(),
+				decimals: 12,
+				is_frozen: false,
+			},
+			balances: vec![(AccountId::from(ALICE), 1_000 * MOVR)],
+			is_sufficient: true,
+		}])
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * MOVR),
+			(AccountId::from(BOB), 1_000 * MOVR),
+		])
+		.build()
+		.execute_with(|| {
+			// We have the assetId that corresponds to the relay chain registered
+			let relay_asset_id: AssetId = AssetType::Xcm(MultiLocation::parent()).into();
+
+			// Its address is
+			let asset_precompile_address = Runtime::asset_id_to_account(
+				FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+				relay_asset_id,
+			)
+			.into();
+
+			// Expected result for a transfer
+			let expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(true).build(),
+				cost: 23516u64,
+				logs: LogsBuilder::new(asset_precompile_address)
+					.log3(
+						SELECTOR_LOG_TRANSFER,
+						H160::from(ALICE),
+						H160::from(BOB),
+						EvmDataWriter::new().write(U256::from(400 * MOVR)).build(),
+					)
+					.build(),
+			}));
+
+			// Transfer tokens from Aice to Bob, 400 MOVR.
+			assert_eq!(
+				Precompiles::new().execute(
+					asset_precompile_address,
+					&EvmDataWriter::new_with_selector(AssetAction::Transfer)
+						.write(EvmAddress(BOB.into()))
+						.write(U256::from(400 * MOVR))
+						.build(),
+					None,
+					&Context {
+						address: asset_precompile_address,
+						caller: ALICE.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				expected_result
+			);
+
+			// Expected result for balanceOf BOB
+			let expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(U256::from(400 * MOVR)).build(),
+				cost: 1000,
+				logs: Default::default(),
+			}));
+
+			// Make sure BOB has 400 MOVR
+			assert_eq!(
+				Precompiles::new().execute(
+					asset_precompile_address,
+					&EvmDataWriter::new_with_selector(AssetAction::BalanceOf)
+						.write(EvmAddress(BOB.into()))
+						.build(),
+					None,
+					&Context {
+						address: asset_precompile_address,
+						caller: BOB.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				expected_result
+			);
+		});
+}
+
+#[test]
+fn xcm_asset_erc20_precompiles_approve() {
+	ExtBuilder::default()
+		.with_xcm_assets(vec![XcmAssetInitialization {
+			asset_type: AssetType::Xcm(MultiLocation::parent()),
+			metadata: AssetRegistrarMetadata {
+				name: b"RelayToken".to_vec(),
+				symbol: b"Relay".to_vec(),
+				decimals: 12,
+				is_frozen: false,
+			},
+			balances: vec![(AccountId::from(ALICE), 1_000 * MOVR)],
+			is_sufficient: true,
+		}])
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * MOVR),
+			(AccountId::from(BOB), 1_000 * MOVR),
+		])
+		.build()
+		.execute_with(|| {
+			// We have the assetId that corresponds to the relay chain registered
+			let relay_asset_id: AssetId = AssetType::Xcm(MultiLocation::parent()).into();
+
+			// Its address is
+			let asset_precompile_address = Runtime::asset_id_to_account(
+				FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+				relay_asset_id,
+			)
+			.into();
 
 			// Expected result for approve
 			let expected_result = Some(Ok(PrecompileOutput {
