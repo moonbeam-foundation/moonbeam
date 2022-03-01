@@ -6,9 +6,9 @@ edition = "2018"
 version = "0.1.0"
 
 [dependencies]
-gensym = "0.1.0"
 log = "0.4"
 num_enum = { version = "0.5.3", default-features = false }
+paste = "1.0.6"
 slices = "0.2.0"
 
 # Moonbeam
