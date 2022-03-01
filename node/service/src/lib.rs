@@ -50,6 +50,7 @@ use nimbus_consensus::{BuildNimbusConsensusParams, NimbusConsensus};
 use nimbus_primitives::NimbusId;
 use sc_executor::{NativeElseWasmExecutor, NativeExecutionDispatch};
 use sc_network::NetworkService;
+use sc_service::config::PrometheusConfig;
 use sc_service::{
 	error::Error as ServiceError, BasePath, ChainSpec, Configuration, PartialComponents, Role,
 	TFullBackend, TFullClient, TaskManager,
@@ -277,13 +278,22 @@ where
 	))
 }
 
+// If we're using prometheus, use a registry with a prefix of `moonbeam`.
+fn set_prometheus_registry(config: &mut Configuration) -> Result<(), ServiceError> {
+	if let Some(PrometheusConfig { registry, .. }) = config.prometheus_config.as_mut() {
+		*registry = Registry::new_custom(Some("moonbeam".into()), None)?;
+	}
+
+	Ok(())
+}
+
 /// Builds the PartialComponents for a parachain or development service
 ///
 /// Use this function if you don't actually need the full service, but just the partial in order to
 /// be able to perform chain operations.
 #[allow(clippy::type_complexity)]
 pub fn new_partial<RuntimeApi, Executor>(
-	config: &Configuration,
+	config: &mut Configuration,
 	dev_service: bool,
 ) -> Result<
 	PartialComponents<
@@ -314,6 +324,8 @@ where
 		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
 	Executor: NativeExecutionDispatch + 'static,
 {
+	set_prometheus_registry(config)?;
+
 	let telemetry = config
 		.telemetry_endpoints
 		.clone()
@@ -443,9 +455,9 @@ where
 		return Err("Light client not supported!".into());
 	}
 
-	let parachain_config = prepare_node_config(parachain_config);
+	let mut parachain_config = prepare_node_config(parachain_config);
 
-	let params = new_partial(&parachain_config, false)?;
+	let params = new_partial(&mut parachain_config, false)?;
 	let (
 		_block_import,
 		filter_pool,
@@ -723,7 +735,7 @@ where
 /// Builds a new development service. This service uses manual seal, and mocks
 /// the parachain inherent.
 pub fn new_dev<RuntimeApi, Executor>(
-	config: Configuration,
+	mut config: Configuration,
 	_author_id: Option<nimbus_primitives::NimbusId>,
 	sealing: cli_opt::Sealing,
 	rpc_config: RpcConfig,
@@ -757,7 +769,7 @@ where
 				frontier_backend,
 				fee_history_cache,
 			),
-	} = new_partial::<RuntimeApi, Executor>(&config, true)?;
+	} = new_partial::<RuntimeApi, Executor>(&mut config, true)?;
 
 	let (network, system_rpc_tx, network_starter) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
@@ -984,4 +996,130 @@ where
 
 	network_starter.start_network();
 	Ok(task_manager)
+}
+
+#[cfg(test)]
+mod tests {
+	use prometheus::Counter;
+	use sc_network::{
+		config::{NetworkConfiguration, TransportConfig},
+		multiaddr,
+	};
+	use sc_service::{
+		config::{BasePath, DatabaseSource, KeystoreConfig},
+		Configuration, KeepBlocks, Role, TransactionStorageMode,
+	};
+	use std::{iter, net::Ipv4Addr};
+	use tempfile::TempDir;
+
+	use crate::chain_spec::test_spec::staking_spec;
+
+	use super::*;
+
+	#[test]
+	fn test_prometheus_registry_uses_moonbeam_prefix() {
+		let counter_name = "my_counter";
+		let expected_metric_name = "moonbeam_my_counter";
+		let counter = Box::new(Counter::new(counter_name, "foobar").unwrap());
+		let mut config = Configuration {
+			prometheus_config: Some(PrometheusConfig::new_with_default_registry(
+				"0.0.0.0:8080".parse().unwrap(),
+				"".into(),
+			)),
+			..test_config()
+		};
+
+		set_prometheus_registry(&mut config).unwrap();
+		// generate metric
+		let reg = config.prometheus_registry().unwrap();
+		reg.register(counter.clone()).unwrap();
+		counter.inc();
+
+		let actual_metric_name = reg.gather().first().unwrap().get_name().to_string();
+		assert_eq!(actual_metric_name.as_str(), expected_metric_name);
+	}
+
+	fn test_config() -> Configuration {
+		let index = 0;
+		let base_port = 9898;
+
+		let root = TempDir::new().unwrap();
+		let root = root.path().join(format!("node-{}", index));
+
+		let mut network_config = NetworkConfiguration::new(
+			format!("Node {}", index),
+			"network/test/0.1",
+			Default::default(),
+			None,
+		);
+
+		network_config.allow_non_globals_in_dht = true;
+
+		network_config.listen_addresses.push(
+			iter::once(multiaddr::Protocol::Ip4(Ipv4Addr::new(127, 0, 0, 1)))
+				.chain(iter::once(multiaddr::Protocol::Tcp(
+					base_port + index as u16,
+				)))
+				.collect(),
+		);
+
+		network_config.transport = TransportConfig::Normal {
+			enable_mdns: false,
+			allow_private_ipv4: true,
+		};
+
+		let runtime =
+			tokio::runtime::Runtime::new().expect("creating tokio runtime doesn't fail; qed");
+		let tokio_handle = runtime.handle().clone();
+		let spec = staking_spec(ParaId::new(0));
+
+		Configuration {
+			impl_name: String::from("network-test-impl"),
+			impl_version: String::from("0.1"),
+			role: Role::Full,
+			tokio_handle,
+			transaction_pool: Default::default(),
+			network: network_config,
+			keystore_remote: Default::default(),
+			keystore: KeystoreConfig::Path {
+				path: root.join("key"),
+				password: None,
+			},
+			database: DatabaseSource::RocksDb {
+				path: root.join("db"),
+				cache_size: 128,
+			},
+			state_cache_size: 16777216,
+			state_cache_child_ratio: None,
+			state_pruning: Default::default(),
+			keep_blocks: KeepBlocks::All,
+			transaction_storage: TransactionStorageMode::BlockBody,
+			chain_spec: Box::new(spec),
+			wasm_method: sc_service::config::WasmExecutionMethod::Interpreted,
+			wasm_runtime_overrides: Default::default(),
+			execution_strategies: Default::default(),
+			rpc_http: None,
+			rpc_ipc: None,
+			rpc_ws: None,
+			rpc_ws_max_connections: None,
+			rpc_cors: None,
+			rpc_methods: Default::default(),
+			rpc_max_payload: None,
+			ws_max_out_buffer_capacity: None,
+			prometheus_config: None,
+			telemetry_endpoints: None,
+			default_heap_pages: None,
+			offchain_worker: Default::default(),
+			force_authoring: false,
+			disable_grandpa: false,
+			dev_key_seed: None,
+			tracing_targets: None,
+			tracing_receiver: Default::default(),
+			max_runtime_instances: 8,
+			announce_block: true,
+			base_path: Some(BasePath::new(root)),
+			informant_output_format: Default::default(),
+			runtime_cache_size: 2,
+		}
+	}
 }
