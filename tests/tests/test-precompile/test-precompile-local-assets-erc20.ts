@@ -662,7 +662,8 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
       [context.web3.utils.toChecksumAddress(assetAddress)]
     );
 
-    // We need this because the asset addres is random, so we need a way to correctly reference it in the contract
+    // We need this because the asset addres is random
+    // so we need a way to correctly reference it in the contract
     let setDataTx = await createTransaction(context, {
       from: ALITH,
       privateKey: ALITH_PRIV_KEY,
@@ -829,7 +830,8 @@ describeDevMoonbeamAllEthTxTypes(
         [context.web3.utils.toChecksumAddress(assetAddress)]
       );
 
-      // We need this because the asset addres is random, so we need a way to correctly reference it in the contract
+      // We need this because the asset addres is random,
+      // so we need a way to correctly reference it in the contract
       let setDataTx = await createTransaction(context, {
         from: ALITH,
         privateKey: ALITH_PRIV_KEY,
@@ -950,7 +952,8 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
       [context.web3.utils.toChecksumAddress(assetAddress)]
     );
 
-    // We need this because the asset addres is random, so we need a way to correctly reference it in the contract
+    // We need this because the asset addres is random,
+    // so we need a way to correctly reference it in the contract
     let setDataTx = await createTransaction(context, {
       from: ALITH,
       privateKey: ALITH_PRIV_KEY,
@@ -1154,7 +1157,8 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
       [context.web3.utils.toChecksumAddress(assetAddress)]
     );
 
-    // We need this because the asset addres is random, so we need a way to correctly reference it in the contract
+    // We need this because the asset addres is random,
+    // so we need a way to correctly reference it in the contract
     let setDataTx = await createTransaction(context, {
       from: ALITH,
       privateKey: ALITH_PRIV_KEY,
@@ -1322,7 +1326,8 @@ describeDevMoonbeamAllEthTxTypes(
         [context.web3.utils.toChecksumAddress(assetAddress)]
       );
 
-      // We need this because the asset addres is random, so we need a way to correctly reference it in the contract
+      // We need this because the asset addres is random,
+      // so we need a way to correctly reference it in the contract
       let setDataTx = await createTransaction(context, {
         from: ALITH,
         privateKey: ALITH_PRIV_KEY,
