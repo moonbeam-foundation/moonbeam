@@ -189,7 +189,9 @@ impl super::ResponseFormatter for Formatter {
 				});
 				// Stack pop-and-push.
 				while result.len() > 1 {
-					let mut last = result.pop().unwrap();
+					let mut last = result
+						.pop()
+						.expect("result.len() > 1, so pop() necessarily returns an element");
 					// Find the parent index.
 					if let Some(index) =
 						result
@@ -230,7 +232,9 @@ impl super::ResponseFormatter for Formatter {
 				*trace_address = None;
 			}
 			if result.len() == 1 {
-				traces.push(TransactionTrace::CallListNested(result.pop().unwrap()));
+				traces.push(TransactionTrace::CallListNested(result.pop().expect(
+					"result.len() == 1, so pop() necessarily returns this element",
+				)));
 			}
 		}
 		if traces.is_empty() {

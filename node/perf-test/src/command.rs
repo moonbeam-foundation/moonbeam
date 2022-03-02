@@ -127,7 +127,7 @@ where
 		let command_sink;
 		let command_stream: Box<dyn Stream<Item = EngineCommand<H256>> + Send + Sync + Unpin> = {
 			let (sink, stream) = mpsc::channel(1000);
-			command_sink = Some(sink);
+			command_sink = sink;
 			Box::new(stream)
 		};
 
@@ -201,7 +201,7 @@ where
 			fee_history_cache: fee_history_cache.clone(),
 		});
 
-		let command_sink_for_deps = command_sink.clone();
+		let command_sink_for_deps = Some(command_sink.clone());
 
 		let block_data_cache = Arc::new(fc_rpc::EthBlockDataCache::new(
 			task_manager.spawn_handle(),
@@ -264,7 +264,7 @@ where
 		Ok(TestContext {
 			_task_manager: task_manager,
 			client: client.clone(),
-			manual_seal_command_sink: command_sink.unwrap(),
+			manual_seal_command_sink: command_sink,
 			pool: transaction_pool,
 			_marker1: Default::default(),
 			_marker2: Default::default(),
@@ -507,7 +507,8 @@ impl PerfCmd {
 		let all_results = AllResults {
 			test_results: all_test_results.clone(),
 		};
-		let results_str = serde_json::to_string_pretty(&all_results).unwrap();
+		let results_str =
+			serde_json::to_string_pretty(&all_results).expect("fail to serialize AllResults");
 
 		if let Some(target) = &cmd.output_file {
 			let mut file = File::create(target)?;
