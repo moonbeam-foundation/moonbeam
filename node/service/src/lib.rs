@@ -26,13 +26,13 @@ use cli_opt::{EthApi as EthApiCmd, RpcConfig};
 use fc_consensus::FrontierBlockImport;
 use fc_rpc_core::types::{FeeHistoryCache, FilterPool};
 use futures::StreamExt;
+use maplit::hashmap;
 #[cfg(feature = "moonbase-native")]
 pub use moonbase_runtime;
 #[cfg(feature = "moonbeam-native")]
 pub use moonbeam_runtime;
 #[cfg(feature = "moonriver-native")]
 pub use moonriver_runtime;
-use std::iter;
 use std::{collections::BTreeMap, sync::Mutex, time::Duration};
 pub mod rpc;
 use cumulus_client_consensus_common::ParachainConsensus;
@@ -282,7 +282,9 @@ where
 // If we're using prometheus, use a registry with a prefix of `moonbeam`.
 fn set_prometheus_registry(config: &mut Configuration) -> Result<(), ServiceError> {
 	if let Some(PrometheusConfig { registry, .. }) = config.prometheus_config.as_mut() {
-		let labels = iter::once((String::from("chain"), config.chain_spec.id().into())).collect();
+		let labels = hashmap! {
+			String::from("chain") => config.chain_spec.id().into(),
+		};
 		*registry = Registry::new_custom(Some("moonbeam".into()), Some(labels))?;
 	}
 

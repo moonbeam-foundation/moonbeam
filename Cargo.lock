@@ -5800,6 +5800,7 @@ dependencies = [
  "libsecp256k1 0.6.0",
  "log",
  "manual-xcm-rpc",
+ "maplit",
  "moonbase-runtime",
  "moonbeam-cli-opt",
  "moonbeam-core-primitives",
