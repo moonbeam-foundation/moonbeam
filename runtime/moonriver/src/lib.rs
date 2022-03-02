@@ -1891,6 +1891,10 @@ mod tests {
 			Balance::from(500 * MOVR)
 		);
 		assert_eq!(
+			get!(parachain_staking, MinDelegation, u128),
+			Balance::from(5 * GLMR)
+		);
+		assert_eq!(
 			get!(parachain_staking, MinDelegatorStk, u128),
 			Balance::from(5 * MOVR)
 		);

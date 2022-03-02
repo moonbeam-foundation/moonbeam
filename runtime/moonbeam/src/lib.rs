@@ -686,9 +686,9 @@ impl parachain_staking::Config for Runtime {
 	/// Minimum stake required to be reserved to be a candidate
 	type MinCandidateStk = ConstU128<{ 1000 * currency::GLMR * currency::SUPPLY_FACTOR }>;
 	/// Minimum stake required to be reserved to be a delegator
-	type MinDelegation = ConstU128<{ 500 * currency::GLMR * currency::SUPPLY_FACTOR }>;
+	type MinDelegation = ConstU128<{ 500 * currency::MILLIGLMR * currency::SUPPLY_FACTOR }>;
 	/// Minimum stake required to be reserved to be a delegator
-	type MinDelegatorStk = ConstU128<{ 500 * currency::GLMR * currency::SUPPLY_FACTOR }>;
+	type MinDelegatorStk = ConstU128<{ 500 * currency::MILLIGLMR * currency::SUPPLY_FACTOR }>;
 	type WeightInfo = parachain_staking::weights::SubstrateWeight<Runtime>;
 }
 
@@ -1797,6 +1797,10 @@ mod tests {
 		assert_eq!(
 			get!(parachain_staking, MinCandidateStk, u128),
 			Balance::from(100 * KILOGLMR)
+		);
+		assert_eq!(
+			get!(parachain_staking, MinDelegation, u128),
+			Balance::from(50 * GLMR)
 		);
 		assert_eq!(
 			get!(parachain_staking, MinDelegatorStk, u128),
