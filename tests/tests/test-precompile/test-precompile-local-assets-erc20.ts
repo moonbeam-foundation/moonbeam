@@ -76,7 +76,7 @@ describeDevMoonbeamAllEthTxTypes(
       });
       assetId = assetId.replace(/,/g, "");
 
-      // registerAsset
+      // Set metadata
       await createBlockWithExtrinsic(
         context,
         baltatharAccount,
@@ -90,11 +90,6 @@ describeDevMoonbeamAllEthTxTypes(
         context.polkadotApi.tx.localAssets.mint(assetId, baltatharAccount.address, 100000000000000)
       );
 
-      let beforeAssetBalance = (
-        (await context.polkadotApi.query.localAssets.account(assetId, BALTATHAR)) as any
-      ).balance as BN;
-      let sup = ((await context.polkadotApi.query.localAssets.account(assetId, BALTATHAR)) as any)
-        .balance as BN;
       assetAddress = u8aToHex(new Uint8Array([...hexToU8a("0xFFFFFFFE"), ...hexToU8a(assetId)]));
 
       const contractData = await getCompiled("LocalAssetExtendedErc20Instance");
@@ -264,7 +259,9 @@ describeDevMoonbeamAllEthTxTypes(
       });
       assetId = assetId.replace(/,/g, "");
 
-      // registerAsset
+      assetAddress = u8aToHex(new Uint8Array([...hexToU8a("0xFFFFFFFE"), ...hexToU8a(assetId)]));
+
+      // Set metadata
       await createBlockWithExtrinsic(
         context,
         baltatharAccount,
@@ -277,13 +274,6 @@ describeDevMoonbeamAllEthTxTypes(
         baltatharAccount,
         context.polkadotApi.tx.localAssets.mint(assetId, sudoAccount.address, 100000000000000)
       );
-
-      let beforeAssetBalance = (
-        (await context.polkadotApi.query.localAssets.account(assetId, BALTATHAR)) as any
-      ).balance as BN;
-      let sup = ((await context.polkadotApi.query.localAssets.account(assetId, BALTATHAR)) as any)
-        .balance as BN;
-      assetAddress = u8aToHex(new Uint8Array([...hexToU8a("0xFFFFFFFE"), ...hexToU8a(assetId)]));
 
       const contractData = await getCompiled("LocalAssetExtendedErc20Instance");
       iFace = new ethers.utils.Interface(contractData.contract.abi);
@@ -390,7 +380,9 @@ describeDevMoonbeamAllEthTxTypes(
       });
       assetId = assetId.replace(/,/g, "");
 
-      // registerAsset
+      assetAddress = u8aToHex(new Uint8Array([...hexToU8a("0xFFFFFFFE"), ...hexToU8a(assetId)]));
+
+      // Set metadata
       await createBlockWithExtrinsic(
         context,
         baltatharAccount,
@@ -403,13 +395,6 @@ describeDevMoonbeamAllEthTxTypes(
         baltatharAccount,
         context.polkadotApi.tx.localAssets.mint(assetId, sudoAccount.address, 100000000000000)
       );
-
-      let beforeAssetBalance = (
-        (await context.polkadotApi.query.localAssets.account(assetId, BALTATHAR)) as any
-      ).balance as BN;
-      let sup = ((await context.polkadotApi.query.localAssets.account(assetId, BALTATHAR)) as any)
-        .balance as BN;
-      assetAddress = u8aToHex(new Uint8Array([...hexToU8a("0xFFFFFFFE"), ...hexToU8a(assetId)]));
 
       const contractData = await getCompiled("LocalAssetExtendedErc20Instance");
       iFace = new ethers.utils.Interface(contractData.contract.abi);
@@ -530,7 +515,9 @@ describeDevMoonbeamAllEthTxTypes(
       });
       assetId = assetId.replace(/,/g, "");
 
-      // registerAsset
+      assetAddress = u8aToHex(new Uint8Array([...hexToU8a("0xFFFFFFFE"), ...hexToU8a(assetId)]));
+
+      // Set metadata
       await createBlockWithExtrinsic(
         context,
         baltatharAccount,
@@ -543,13 +530,6 @@ describeDevMoonbeamAllEthTxTypes(
         baltatharAccount,
         context.polkadotApi.tx.localAssets.mint(assetId, sudoAccount.address, 100000000000000)
       );
-
-      let beforeAssetBalance = (
-        (await context.polkadotApi.query.localAssets.account(assetId, BALTATHAR)) as any
-      ).balance as BN;
-      let sup = ((await context.polkadotApi.query.localAssets.account(assetId, BALTATHAR)) as any)
-        .balance as BN;
-      assetAddress = u8aToHex(new Uint8Array([...hexToU8a("0xFFFFFFFE"), ...hexToU8a(assetId)]));
 
       const contractData = await getCompiled("LocalAssetExtendedErc20Instance");
       iFace = new ethers.utils.Interface(contractData.contract.abi);
@@ -628,7 +608,9 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
     });
     assetId = assetId.replace(/,/g, "");
 
-    // registerAsset
+    assetAddress = u8aToHex(new Uint8Array([...hexToU8a("0xFFFFFFFE"), ...hexToU8a(assetId)]));
+
+    // Set metadata
     await createBlockWithExtrinsic(
       context,
       baltatharAccount,
@@ -641,13 +623,6 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
       baltatharAccount,
       context.polkadotApi.tx.localAssets.mint(assetId, sudoAccount.address, 100000000000000)
     );
-
-    let beforeAssetBalance = (
-      (await context.polkadotApi.query.localAssets.account(assetId, ALITH)) as any
-    ).balance as BN;
-    let sup = ((await context.polkadotApi.query.localAssets.account(assetId, BALTATHAR)) as any)
-      .balance as BN;
-    assetAddress = u8aToHex(new Uint8Array([...hexToU8a("0xFFFFFFFE"), ...hexToU8a(assetId)]));
 
     const contractData = await getCompiled("LocalAssetExtendedErc20Instance");
     iFace = new ethers.utils.Interface(contractData.contract.abi);
@@ -797,7 +772,9 @@ describeDevMoonbeamAllEthTxTypes(
       });
       assetId = assetId.replace(/,/g, "");
 
-      // registerAsset
+      assetAddress = u8aToHex(new Uint8Array([...hexToU8a("0xFFFFFFFE"), ...hexToU8a(assetId)]));
+
+      // Set metadata
       await createBlockWithExtrinsic(
         context,
         baltatharAccount,
@@ -810,13 +787,6 @@ describeDevMoonbeamAllEthTxTypes(
         baltatharAccount,
         context.polkadotApi.tx.localAssets.mint(assetId, sudoAccount.address, 100000000000000)
       );
-
-      let beforeAssetBalance = (
-        (await context.polkadotApi.query.localAssets.account(assetId, ALITH)) as any
-      ).balance as BN;
-      let sup = ((await context.polkadotApi.query.localAssets.account(assetId, BALTATHAR)) as any)
-        .balance as BN;
-      assetAddress = u8aToHex(new Uint8Array([...hexToU8a("0xFFFFFFFE"), ...hexToU8a(assetId)]));
 
       const contractData = await getCompiled("LocalAssetExtendedErc20Instance");
       iFace = new ethers.utils.Interface(contractData.contract.abi);
@@ -917,7 +887,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
     });
     assetId = assetId.replace(/,/g, "");
 
-    // registerAsset
+    // Set metadata
     await createBlockWithExtrinsic(
       context,
       baltatharAccount,
@@ -1124,7 +1094,9 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
     });
     assetId = assetId.replace(/,/g, "");
 
-    // registerAsset
+    assetAddress = u8aToHex(new Uint8Array([...hexToU8a("0xFFFFFFFE"), ...hexToU8a(assetId)]));
+
+    // Set metadata
     await createBlockWithExtrinsic(
       context,
       baltatharAccount,
@@ -1137,13 +1109,6 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
       baltatharAccount,
       context.polkadotApi.tx.localAssets.mint(assetId, sudoAccount.address, 100000000000000)
     );
-
-    let beforeAssetBalance = (
-      (await context.polkadotApi.query.localAssets.account(assetId, ALITH)) as any
-    ).balance as BN;
-    let sup = ((await context.polkadotApi.query.localAssets.account(assetId, BALTATHAR)) as any)
-      .balance as BN;
-    assetAddress = u8aToHex(new Uint8Array([...hexToU8a("0xFFFFFFFE"), ...hexToU8a(assetId)]));
 
     const contractData = await getCompiled("LocalAssetExtendedErc20Instance");
     iFace = new ethers.utils.Interface(contractData.contract.abi);
@@ -1291,7 +1256,7 @@ describeDevMoonbeamAllEthTxTypes(
       });
       assetId = assetId.replace(/,/g, "");
 
-      // registerAsset
+      // Set metadata
       await createBlockWithExtrinsic(
         context,
         baltatharAccount,
@@ -1415,26 +1380,14 @@ describeDevMoonbeamAllEthTxTypes(
       });
       assetId = assetId.replace(/,/g, "");
 
-      // registerAsset
+      assetAddress = u8aToHex(new Uint8Array([...hexToU8a("0xFFFFFFFE"), ...hexToU8a(assetId)]));
+
+      // Set metadata
       await createBlockWithExtrinsic(
         context,
         baltatharAccount,
         context.polkadotApi.tx.localAssets.setMetadata(assetId, "Local", "Local", new BN(12))
       );
-
-      // mint asset
-      await createBlockWithExtrinsic(
-        context,
-        baltatharAccount,
-        context.polkadotApi.tx.localAssets.mint(assetId, sudoAccount.address, 100000000000000)
-      );
-
-      let beforeAssetBalance = (
-        (await context.polkadotApi.query.localAssets.account(assetId, BALTATHAR)) as any
-      ).balance as BN;
-      let sup = ((await context.polkadotApi.query.localAssets.account(assetId, BALTATHAR)) as any)
-        .balance as BN;
-      assetAddress = u8aToHex(new Uint8Array([...hexToU8a("0xFFFFFFFE"), ...hexToU8a(assetId)]));
 
       const contractData = await getCompiled("LocalAssetExtendedErc20Instance");
       iFace = new ethers.utils.Interface(contractData.contract.abi);
@@ -1519,7 +1472,9 @@ describeDevMoonbeamAllEthTxTypes(
       });
       assetId = assetId.replace(/,/g, "");
 
-      // registerAsset
+      assetAddress = u8aToHex(new Uint8Array([...hexToU8a("0xFFFFFFFE"), ...hexToU8a(assetId)]));
+
+      // Set metadata
       await createBlockWithExtrinsic(
         context,
         baltatharAccount,
@@ -1532,13 +1487,6 @@ describeDevMoonbeamAllEthTxTypes(
         baltatharAccount,
         context.polkadotApi.tx.localAssets.mint(assetId, sudoAccount.address, 100000000000000)
       );
-
-      let beforeAssetBalance = (
-        (await context.polkadotApi.query.localAssets.account(assetId, BALTATHAR)) as any
-      ).balance as BN;
-      let sup = ((await context.polkadotApi.query.localAssets.account(assetId, BALTATHAR)) as any)
-        .balance as BN;
-      assetAddress = u8aToHex(new Uint8Array([...hexToU8a("0xFFFFFFFE"), ...hexToU8a(assetId)]));
 
       const contractData = await getCompiled("LocalAssetExtendedErc20Instance");
       iFace = new ethers.utils.Interface(contractData.contract.abi);
@@ -1630,11 +1578,6 @@ describeDevMoonbeamAllEthTxTypes(
         context.polkadotApi.tx.localAssets.mint(assetId, sudoAccount.address, 100000000000000)
       );
 
-      let beforeAssetBalance = (
-        (await context.polkadotApi.query.localAssets.account(assetId, BALTATHAR)) as any
-      ).balance as BN;
-      let sup = ((await context.polkadotApi.query.localAssets.account(assetId, BALTATHAR)) as any)
-        .balance as BN;
       assetAddress = u8aToHex(new Uint8Array([...hexToU8a("0xFFFFFFFE"), ...hexToU8a(assetId)]));
 
       const contractData = await getCompiled("LocalAssetExtendedErc20Instance");
@@ -1716,6 +1659,8 @@ describeDevMoonbeamAllEthTxTypes(
       });
       assetId = assetId.replace(/,/g, "");
 
+      assetAddress = u8aToHex(new Uint8Array([...hexToU8a("0xFFFFFFFE"), ...hexToU8a(assetId)]));
+
       // mint asset
       await createBlockWithExtrinsic(
         context,
@@ -1728,13 +1673,6 @@ describeDevMoonbeamAllEthTxTypes(
         baltatharAccount,
         context.polkadotApi.tx.localAssets.freeze(assetId, sudoAccount.address)
       );
-
-      let beforeAssetBalance = (
-        (await context.polkadotApi.query.localAssets.account(assetId, BALTATHAR)) as any
-      ).balance as BN;
-      let sup = ((await context.polkadotApi.query.localAssets.account(assetId, BALTATHAR)) as any)
-        .balance as BN;
-      assetAddress = u8aToHex(new Uint8Array([...hexToU8a("0xFFFFFFFE"), ...hexToU8a(assetId)]));
 
       const contractData = await getCompiled("LocalAssetExtendedErc20Instance");
       iFace = new ethers.utils.Interface(contractData.contract.abi);
@@ -1815,20 +1753,13 @@ describeDevMoonbeamAllEthTxTypes(
       });
       assetId = assetId.replace(/,/g, "");
 
-      // mint asset
-      await createBlockWithExtrinsic(
-        context,
-        baltatharAccount,
-        context.polkadotApi.tx.localAssets.mint(assetId, sudoAccount.address, 100000000000000)
-      );
+      assetAddress = u8aToHex(new Uint8Array([...hexToU8a("0xFFFFFFFE"), ...hexToU8a(assetId)]));
 
       await createBlockWithExtrinsic(
         context,
         baltatharAccount,
         context.polkadotApi.tx.localAssets.freeze(assetId, sudoAccount.address)
       );
-
-      assetAddress = u8aToHex(new Uint8Array([...hexToU8a("0xFFFFFFFE"), ...hexToU8a(assetId)]));
 
       const contractData = await getCompiled("LocalAssetExtendedErc20Instance");
       iFace = new ethers.utils.Interface(contractData.contract.abi);
@@ -1907,20 +1838,13 @@ describeDevMoonbeamAllEthTxTypes(
       });
       assetId = assetId.replace(/,/g, "");
 
-      // mint asset
-      await createBlockWithExtrinsic(
-        context,
-        baltatharAccount,
-        context.polkadotApi.tx.localAssets.mint(assetId, sudoAccount.address, 100000000000000)
-      );
+      assetAddress = u8aToHex(new Uint8Array([...hexToU8a("0xFFFFFFFE"), ...hexToU8a(assetId)]));
 
       await createBlockWithExtrinsic(
         context,
         baltatharAccount,
         context.polkadotApi.tx.localAssets.freezeAsset(assetId)
       );
-
-      assetAddress = u8aToHex(new Uint8Array([...hexToU8a("0xFFFFFFFE"), ...hexToU8a(assetId)]));
 
       const contractData = await getCompiled("LocalAssetExtendedErc20Instance");
       iFace = new ethers.utils.Interface(contractData.contract.abi);
@@ -2241,14 +2165,14 @@ describeDevMoonbeamAllEthTxTypes(
       });
       assetId = assetId.replace(/,/g, "");
 
-      // registerAsset
+      assetAddress = u8aToHex(new Uint8Array([...hexToU8a("0xFFFFFFFE"), ...hexToU8a(assetId)]));
+
+      // Set metadata
       await createBlockWithExtrinsic(
         context,
         baltatharAccount,
         context.polkadotApi.tx.localAssets.setMetadata(assetId, "Local", "Local", new BN(12))
       );
-
-      assetAddress = u8aToHex(new Uint8Array([...hexToU8a("0xFFFFFFFE"), ...hexToU8a(assetId)]));
 
       const contractData = await getCompiled("LocalAssetExtendedErc20Instance");
       iFace = new ethers.utils.Interface(contractData.contract.abi);
