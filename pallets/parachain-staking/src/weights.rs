@@ -264,9 +264,8 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 		(4_913_000 as Weight).saturating_add(T::DbWeight::get().reads(1 as Weight))
 	}
 	fn pay_one_collator_reward(y: u32) -> Weight {
-		(0 as Weight)
-			// Standard Error: 6_000
-			.saturating_add((23_284_000 as Weight).saturating_mul(y as Weight))
+		(44_854_000 as Weight) // Standard Error: 4_000
+			.saturating_add((16_772_000 as Weight).saturating_mul(y as Weight))
 			.saturating_add(T::DbWeight::get().reads(11 as Weight))
 			.saturating_add(T::DbWeight::get().reads((1 as Weight).saturating_mul(y as Weight)))
 			.saturating_add(T::DbWeight::get().writes(6 as Weight))
@@ -451,9 +450,8 @@ impl WeightInfo for () {
 		(4_913_000 as Weight).saturating_add(RocksDbWeight::get().reads(1 as Weight))
 	}
 	fn pay_one_collator_reward(y: u32) -> Weight {
-		(0 as Weight)
-			// Standard Error: 6_000
-			.saturating_add((23_284_000 as Weight).saturating_mul(y as Weight))
+		(44_854_000 as Weight) // Standard Error: 4_000
+			.saturating_add((16_772_000 as Weight).saturating_mul(y as Weight))
 			.saturating_add(RocksDbWeight::get().reads(11 as Weight))
 			.saturating_add(RocksDbWeight::get().reads((1 as Weight).saturating_mul(y as Weight)))
 			.saturating_add(RocksDbWeight::get().writes(6 as Weight))
