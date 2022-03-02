@@ -14,6 +14,7 @@ derive_more = "0.99"
 exit-future = "0.1.4"
 flume = "0.10.9"
 futures = { version = "0.3.1", features = [ "compat" ] }
+hex-literal = "0.3.4"
 jsonrpc-core = "18.0.0"
 jsonrpc-pubsub = "18.0.0"
 libsecp256k1 = { version = "0.6", features = [ "hmac" ] }
