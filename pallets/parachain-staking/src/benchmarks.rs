@@ -873,10 +873,10 @@ benchmarks! {
 			max: Perbill::one(),
 		};
 		Pallet::<T>::set_inflation(RawOrigin::Root.into(), high_inflation.clone())?;
-		// To set total selected to 28, must first increase round length to at least 28
+		// To set total selected to 40, must first increase round length to at least 40
 		// to avoid hitting RoundLengthMustBeAtLeastTotalSelectedCollators
-		Pallet::<T>::set_blocks_per_round(RawOrigin::Root.into(), 28u32)?;
-		Pallet::<T>::set_total_selected(RawOrigin::Root.into(), 28u32)?;
+		Pallet::<T>::set_blocks_per_round(RawOrigin::Root.into(), 40u32)?;
+		Pallet::<T>::set_total_selected(RawOrigin::Root.into(), 40u32)?;
 		// INITIALIZE COLLATOR STATE
 		let mut collators: Vec<T::AccountId> = Vec::new();
 		let mut collator_count = 1u32;
