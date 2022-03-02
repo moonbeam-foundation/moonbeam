@@ -460,6 +460,8 @@
 <span id="460">460</span>
 <span id="461">461</span>
 <span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -715,20 +717,21 @@
 			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">writes</span>(<span class="number">7</span> <span class="kw">as</span> <span class="ident">Weight</span>))
 	}
 	<span class="kw">fn</span> <span class="ident">round_transition_on_initialize</span>(<span class="ident">x</span>: <span class="ident">u32</span>, <span class="ident">y</span>: <span class="ident">u32</span>) -&gt; <span class="ident">Weight</span> {
-		(<span class="number">0</span> <span class="kw">as</span> <span class="ident">Weight</span>) <span class="comment">// Standard Error: 4_087_000</span>
-			<span class="comment">// Standard Error: 12_000</span>
-			.<span class="ident">saturating_add</span>((<span class="number">100_164_000</span> <span class="kw">as</span> <span class="ident">Weight</span>).<span class="ident">saturating_mul</span>(<span class="ident">x</span> <span class="kw">as</span> <span class="ident">Weight</span>))
-			.<span class="ident">saturating_add</span>((<span class="number">1_202_000</span> <span class="kw">as</span> <span class="ident">Weight</span>).<span class="ident">saturating_mul</span>(<span class="ident">y</span> <span class="kw">as</span> <span class="ident">Weight</span>))
-			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">reads</span>((<span class="number">4</span> <span class="kw">as</span> <span class="ident">Weight</span>).<span class="ident">saturating_mul</span>(<span class="ident">x</span> <span class="kw">as</span> <span class="ident">Weight</span>)))
-			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">writes</span>((<span class="number">3</span> <span class="kw">as</span> <span class="ident">Weight</span>).<span class="ident">saturating_mul</span>(<span class="ident">x</span> <span class="kw">as</span> <span class="ident">Weight</span>)))
+		(<span class="number">0</span> <span class="kw">as</span> <span class="ident">Weight</span>) <span class="comment">// Standard Error: 1_560_000</span>
+			.<span class="ident">saturating_add</span>((<span class="number">62_210_000</span> <span class="kw">as</span> <span class="ident">Weight</span>).<span class="ident">saturating_mul</span>(<span class="ident">x</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+			<span class="comment">// Standard Error: 4_000</span>
+			.<span class="ident">saturating_add</span>((<span class="number">208_000</span> <span class="kw">as</span> <span class="ident">Weight</span>).<span class="ident">saturating_mul</span>(<span class="ident">y</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">reads</span>(<span class="number">168</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">reads</span>((<span class="number">2</span> <span class="kw">as</span> <span class="ident">Weight</span>).<span class="ident">saturating_mul</span>(<span class="ident">x</span> <span class="kw">as</span> <span class="ident">Weight</span>)))
+			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">writes</span>(<span class="number">159</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">writes</span>((<span class="number">1</span> <span class="kw">as</span> <span class="ident">Weight</span>).<span class="ident">saturating_mul</span>(<span class="ident">x</span> <span class="kw">as</span> <span class="ident">Weight</span>)))
 	}
 	<span class="kw">fn</span> <span class="ident">base_on_initialize</span>() -&gt; <span class="ident">Weight</span> {
 		(<span class="number">4_913_000</span> <span class="kw">as</span> <span class="ident">Weight</span>).<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">reads</span>(<span class="number">1</span> <span class="kw">as</span> <span class="ident">Weight</span>))
 	}
 	<span class="kw">fn</span> <span class="ident">pay_one_collator_reward</span>(<span class="ident">y</span>: <span class="ident">u32</span>) -&gt; <span class="ident">Weight</span> {
-		(<span class="number">0</span> <span class="kw">as</span> <span class="ident">Weight</span>)
-			<span class="comment">// Standard Error: 6_000</span>
-			.<span class="ident">saturating_add</span>((<span class="number">23_284_000</span> <span class="kw">as</span> <span class="ident">Weight</span>).<span class="ident">saturating_mul</span>(<span class="ident">y</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+		(<span class="number">44_854_000</span> <span class="kw">as</span> <span class="ident">Weight</span>) <span class="comment">// Standard Error: 4_000</span>
+			.<span class="ident">saturating_add</span>((<span class="number">16_772_000</span> <span class="kw">as</span> <span class="ident">Weight</span>).<span class="ident">saturating_mul</span>(<span class="ident">y</span> <span class="kw">as</span> <span class="ident">Weight</span>))
 			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">reads</span>(<span class="number">11</span> <span class="kw">as</span> <span class="ident">Weight</span>))
 			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">reads</span>((<span class="number">1</span> <span class="kw">as</span> <span class="ident">Weight</span>).<span class="ident">saturating_mul</span>(<span class="ident">y</span> <span class="kw">as</span> <span class="ident">Weight</span>)))
 			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">writes</span>(<span class="number">6</span> <span class="kw">as</span> <span class="ident">Weight</span>))
@@ -902,20 +905,21 @@
 			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">writes</span>(<span class="number">4</span> <span class="kw">as</span> <span class="ident">Weight</span>))
 	}
 	<span class="kw">fn</span> <span class="ident">round_transition_on_initialize</span>(<span class="ident">x</span>: <span class="ident">u32</span>, <span class="ident">y</span>: <span class="ident">u32</span>) -&gt; <span class="ident">Weight</span> {
-		(<span class="number">0</span> <span class="kw">as</span> <span class="ident">Weight</span>) <span class="comment">// Standard Error: 4_087_000</span>
-			<span class="comment">// Standard Error: 12_000</span>
-			.<span class="ident">saturating_add</span>((<span class="number">100_164_000</span> <span class="kw">as</span> <span class="ident">Weight</span>).<span class="ident">saturating_mul</span>(<span class="ident">x</span> <span class="kw">as</span> <span class="ident">Weight</span>))
-			.<span class="ident">saturating_add</span>((<span class="number">1_202_000</span> <span class="kw">as</span> <span class="ident">Weight</span>).<span class="ident">saturating_mul</span>(<span class="ident">y</span> <span class="kw">as</span> <span class="ident">Weight</span>))
-			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">reads</span>((<span class="number">4</span> <span class="kw">as</span> <span class="ident">Weight</span>).<span class="ident">saturating_mul</span>(<span class="ident">x</span> <span class="kw">as</span> <span class="ident">Weight</span>)))
-			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">writes</span>((<span class="number">3</span> <span class="kw">as</span> <span class="ident">Weight</span>).<span class="ident">saturating_mul</span>(<span class="ident">x</span> <span class="kw">as</span> <span class="ident">Weight</span>)))
+		(<span class="number">0</span> <span class="kw">as</span> <span class="ident">Weight</span>) <span class="comment">// Standard Error: 1_560_000</span>
+			.<span class="ident">saturating_add</span>((<span class="number">62_210_000</span> <span class="kw">as</span> <span class="ident">Weight</span>).<span class="ident">saturating_mul</span>(<span class="ident">x</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+			<span class="comment">// Standard Error: 4_000</span>
+			.<span class="ident">saturating_add</span>((<span class="number">208_000</span> <span class="kw">as</span> <span class="ident">Weight</span>).<span class="ident">saturating_mul</span>(<span class="ident">y</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">reads</span>(<span class="number">168</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">reads</span>((<span class="number">2</span> <span class="kw">as</span> <span class="ident">Weight</span>).<span class="ident">saturating_mul</span>(<span class="ident">x</span> <span class="kw">as</span> <span class="ident">Weight</span>)))
+			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">writes</span>(<span class="number">159</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">writes</span>((<span class="number">1</span> <span class="kw">as</span> <span class="ident">Weight</span>).<span class="ident">saturating_mul</span>(<span class="ident">x</span> <span class="kw">as</span> <span class="ident">Weight</span>)))
 	}
 	<span class="kw">fn</span> <span class="ident">base_on_initialize</span>() -&gt; <span class="ident">Weight</span> {
 		(<span class="number">4_913_000</span> <span class="kw">as</span> <span class="ident">Weight</span>).<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">reads</span>(<span class="number">1</span> <span class="kw">as</span> <span class="ident">Weight</span>))
 	}
 	<span class="kw">fn</span> <span class="ident">pay_one_collator_reward</span>(<span class="ident">y</span>: <span class="ident">u32</span>) -&gt; <span class="ident">Weight</span> {
-		(<span class="number">0</span> <span class="kw">as</span> <span class="ident">Weight</span>)
-			<span class="comment">// Standard Error: 6_000</span>
-			.<span class="ident">saturating_add</span>((<span class="number">23_284_000</span> <span class="kw">as</span> <span class="ident">Weight</span>).<span class="ident">saturating_mul</span>(<span class="ident">y</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+		(<span class="number">44_854_000</span> <span class="kw">as</span> <span class="ident">Weight</span>) <span class="comment">// Standard Error: 4_000</span>
+			.<span class="ident">saturating_add</span>((<span class="number">16_772_000</span> <span class="kw">as</span> <span class="ident">Weight</span>).<span class="ident">saturating_mul</span>(<span class="ident">y</span> <span class="kw">as</span> <span class="ident">Weight</span>))
 			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">reads</span>(<span class="number">11</span> <span class="kw">as</span> <span class="ident">Weight</span>))
 			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">reads</span>((<span class="number">1</span> <span class="kw">as</span> <span class="ident">Weight</span>).<span class="ident">saturating_mul</span>(<span class="ident">y</span> <span class="kw">as</span> <span class="ident">Weight</span>)))
 			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">writes</span>(<span class="number">6</span> <span class="kw">as</span> <span class="ident">Weight</span>))
