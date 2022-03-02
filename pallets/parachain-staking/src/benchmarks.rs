@@ -858,9 +858,9 @@ benchmarks! {
 
 	round_transition_on_initialize {
 		// TOTAL SELECTED COLLATORS PER ROUND
-		let x in 8..40;
-		// DELEGATIONS
-		let y in 0..(<<T as Config>::MaxTopDelegationsPerCandidate as Get<u32>>::get() * 28);
+		let x in 8..100;
+		// DELEGATIONS PER CANDIDATE
+		let y in 0..(<<T as Config>::MaxTopDelegationsPerCandidate as Get<u32>>::get() * 100);
 		let max_delegators_per_collator =
 			<<T as Config>::MaxTopDelegationsPerCandidate as Get<u32>>::get();
 		let max_delegations = x * max_delegators_per_collator;
@@ -875,8 +875,8 @@ benchmarks! {
 		Pallet::<T>::set_inflation(RawOrigin::Root.into(), high_inflation.clone())?;
 		// To set total selected to 40, must first increase round length to at least 40
 		// to avoid hitting RoundLengthMustBeAtLeastTotalSelectedCollators
-		Pallet::<T>::set_blocks_per_round(RawOrigin::Root.into(), 40u32)?;
-		Pallet::<T>::set_total_selected(RawOrigin::Root.into(), 40u32)?;
+		Pallet::<T>::set_blocks_per_round(RawOrigin::Root.into(), 100u32)?;
+		Pallet::<T>::set_total_selected(RawOrigin::Root.into(), 100u32)?;
 		// INITIALIZE COLLATOR STATE
 		let mut collators: Vec<T::AccountId> = Vec::new();
 		let mut collator_count = 1u32;
