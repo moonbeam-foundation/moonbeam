@@ -283,7 +283,7 @@ where
 fn set_prometheus_registry(config: &mut Configuration) -> Result<(), ServiceError> {
 	if let Some(PrometheusConfig { registry, .. }) = config.prometheus_config.as_mut() {
 		let labels = hashmap! {
-			String::from("chain") => config.chain_spec.id().into(),
+			"chain".into() => config.chain_spec.id().into(),
 		};
 		*registry = Registry::new_custom(Some("moonbeam".into()), Some(labels))?;
 	}
