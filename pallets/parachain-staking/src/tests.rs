@@ -1859,8 +1859,15 @@ fn can_delegate_if_full_and_new_delegation_greater_than_lowest_bottom() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::delegate(Origin::signed(11), 1, 11, 8, 0));
-			assert_event_emitted!(Event::DelegationKicked(10, 1, 10));
-			assert_event_emitted!(Event::DelegatorLeft(10, 10));
+			assert_event_emitted!(Event::DelegationKicked {
+				delegator: 10,
+				candidate: 1,
+				unstaked_amount: 10
+			});
+			assert_event_emitted!(Event::DelegatorLeft {
+				delegator: 10,
+				unstaked_amount: 10
+			});
 		});
 }
 
