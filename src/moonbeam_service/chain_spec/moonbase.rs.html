@@ -342,6 +342,8 @@
 <span id="342">342</span>
 <span id="343">343</span>
 <span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -367,6 +369,7 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::chain_spec</span>::{<span class="ident">derive_bip44_pairs_from_mnemonic</span>, <span class="ident">get_account_id_from_pair</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::chain_spec</span>::{<span class="ident">generate_accounts</span>, <span class="ident">get_from_seed</span>, <span class="ident">Extensions</span>};
 <span class="kw">use</span> <span class="ident">cumulus_primitives_core::ParaId</span>;
+<span class="kw">use</span> <span class="ident">hex_literal::hex</span>;
 <span class="kw">use</span> <span class="ident">moonbase_runtime</span>::{
 	<span class="ident">currency::UNIT</span>, <span class="ident">AccountId</span>, <span class="ident">AuthorFilterConfig</span>, <span class="ident">AuthorMappingConfig</span>, <span class="ident">Balance</span>, <span class="ident">BalancesConfig</span>,
 	<span class="ident">BaseFeeConfig</span>, <span class="ident">CouncilCollectiveConfig</span>, <span class="ident">CrowdloanRewardsConfig</span>, <span class="ident">DemocracyConfig</span>, <span class="ident">EVMConfig</span>,
@@ -380,7 +383,6 @@
 <span class="kw">use</span> <span class="ident">sp_core::ecdsa</span>;
 <span class="kw">use</span> <span class="ident">sp_core::U256</span>;
 <span class="kw">use</span> <span class="ident">sp_runtime</span>::{<span class="ident">Perbill</span>, <span class="ident">Permill</span>};
-<span class="kw">use</span> <span class="ident">std::str::FromStr</span>;
 
 <span class="doccomment">/// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">ChainSpec</span> <span class="op">=</span> <span class="ident">sc_service::GenericChainSpec</span><span class="op">&lt;</span><span class="ident">GenesisConfig</span>, <span class="ident">Extensions</span><span class="op">&gt;</span>;
@@ -393,7 +395,9 @@
 	});
 	<span class="comment">// We prefund the standard dev accounts plus Gerald</span>
 	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">accounts</span> <span class="op">=</span> <span class="ident">generate_accounts</span>(<span class="ident">parent_mnemonic</span>, <span class="ident">num_accounts</span>.<span class="ident">unwrap_or</span>(<span class="number">10</span>));
-	<span class="ident">accounts</span>.<span class="ident">push</span>(<span class="ident">AccountId::from_str</span>(<span class="string">&quot;6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b&quot;</span>).<span class="ident">unwrap</span>());
+	<span class="ident">accounts</span>.<span class="ident">push</span>(<span class="ident">AccountId::from</span>(<span class="macro">hex!</span>(
+		<span class="string">&quot;6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b&quot;</span>
+	)));
 
 	<span class="ident">ChainSpec::from_genesis</span>(
 		<span class="string">&quot;Moonbase Development Testnet&quot;</span>,
@@ -457,29 +461,29 @@
 		<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
 			<span class="ident">testnet_genesis</span>(
 				<span class="comment">// Alith is Sudo</span>
-				<span class="ident">AccountId::from_str</span>(<span class="string">&quot;f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac&quot;</span>).<span class="ident">unwrap</span>(),
+				<span class="ident">AccountId::from</span>(<span class="macro">hex!</span>(<span class="string">&quot;f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac&quot;</span>)),
 				<span class="comment">// Council members: Baltathar, Charleth and Dorothy</span>
 				<span class="macro">vec!</span>[
-					<span class="ident">AccountId::from_str</span>(<span class="string">&quot;3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0&quot;</span>).<span class="ident">unwrap</span>(),
-					<span class="ident">AccountId::from_str</span>(<span class="string">&quot;798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc&quot;</span>).<span class="ident">unwrap</span>(),
-					<span class="ident">AccountId::from_str</span>(<span class="string">&quot;773539d4Ac0e786233D90A233654ccEE26a613D9&quot;</span>).<span class="ident">unwrap</span>(),
+					<span class="ident">AccountId::from</span>(<span class="macro">hex!</span>(<span class="string">&quot;3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0&quot;</span>)),
+					<span class="ident">AccountId::from</span>(<span class="macro">hex!</span>(<span class="string">&quot;798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc&quot;</span>)),
+					<span class="ident">AccountId::from</span>(<span class="macro">hex!</span>(<span class="string">&quot;773539d4Ac0e786233D90A233654ccEE26a613D9&quot;</span>)),
 				],
 				<span class="comment">// Tech comitee members: Alith and Baltathar</span>
 				<span class="macro">vec!</span>[
-					<span class="ident">AccountId::from_str</span>(<span class="string">&quot;f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac&quot;</span>).<span class="ident">unwrap</span>(),
-					<span class="ident">AccountId::from_str</span>(<span class="string">&quot;3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0&quot;</span>).<span class="ident">unwrap</span>(),
+					<span class="ident">AccountId::from</span>(<span class="macro">hex!</span>(<span class="string">&quot;f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac&quot;</span>)),
+					<span class="ident">AccountId::from</span>(<span class="macro">hex!</span>(<span class="string">&quot;3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0&quot;</span>)),
 				],
 				<span class="comment">// Collator Candidates</span>
 				<span class="macro">vec!</span>[
 					<span class="comment">// Alice -&gt; Alith</span>
 					(
-						<span class="ident">AccountId::from_str</span>(<span class="string">&quot;f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac&quot;</span>).<span class="ident">unwrap</span>(),
+						<span class="ident">AccountId::from</span>(<span class="macro">hex!</span>(<span class="string">&quot;f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac&quot;</span>)),
 						<span class="ident">get_from_seed</span>::<span class="op">&lt;</span><span class="ident">NimbusId</span><span class="op">&gt;</span>(<span class="string">&quot;Alice&quot;</span>),
 						<span class="number">1_000</span> <span class="op">*</span> <span class="ident">UNIT</span>,
 					),
 					<span class="comment">// Bob -&gt; Baltithar</span>
 					(
-						<span class="ident">AccountId::from_str</span>(<span class="string">&quot;3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0&quot;</span>).<span class="ident">unwrap</span>(),
+						<span class="ident">AccountId::from</span>(<span class="macro">hex!</span>(<span class="string">&quot;3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0&quot;</span>)),
 						<span class="ident">get_from_seed</span>::<span class="op">&lt;</span><span class="ident">NimbusId</span><span class="op">&gt;</span>(<span class="string">&quot;Bob&quot;</span>),
 						<span class="number">1_000</span> <span class="op">*</span> <span class="ident">UNIT</span>,
 					),
@@ -487,8 +491,8 @@
 				<span class="comment">// Delegations</span>
 				<span class="macro">vec!</span>[],
 				<span class="macro">vec!</span>[
-					<span class="ident">AccountId::from_str</span>(<span class="string">&quot;f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac&quot;</span>).<span class="ident">unwrap</span>(),
-					<span class="ident">AccountId::from_str</span>(<span class="string">&quot;3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0&quot;</span>).<span class="ident">unwrap</span>(),
+					<span class="ident">AccountId::from</span>(<span class="macro">hex!</span>(<span class="string">&quot;f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac&quot;</span>)),
+					<span class="ident">AccountId::from</span>(<span class="macro">hex!</span>(<span class="string">&quot;3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0&quot;</span>)),
 				],
 				<span class="number">3_000_000</span> <span class="op">*</span> <span class="ident">UNIT</span>,
 				<span class="ident">para_id</span>,
@@ -660,9 +664,9 @@
 		<span class="kw">let</span> <span class="ident">last_account</span> <span class="op">=</span> <span class="ident">get_account_id_from_pair</span>(<span class="ident">pairs</span>.<span class="ident">last</span>().<span class="ident">unwrap</span>().<span class="ident">clone</span>()).<span class="ident">unwrap</span>();
 
 		<span class="kw">let</span> <span class="ident">expected_first_account</span> <span class="op">=</span>
-			<span class="ident">AccountId::from_str</span>(<span class="string">&quot;f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac&quot;</span>).<span class="ident">unwrap</span>();
+			<span class="ident">AccountId::from</span>(<span class="macro">hex!</span>(<span class="string">&quot;f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac&quot;</span>));
 		<span class="kw">let</span> <span class="ident">expected_last_account</span> <span class="op">=</span>
-			<span class="ident">AccountId::from_str</span>(<span class="string">&quot;2898FE7a42Be376C8BC7AF536A940F7Fd5aDd423&quot;</span>).<span class="ident">unwrap</span>();
+			<span class="ident">AccountId::from</span>(<span class="macro">hex!</span>(<span class="string">&quot;2898FE7a42Be376C8BC7AF536A940F7Fd5aDd423&quot;</span>));
 		<span class="macro">assert_eq!</span>(<span class="ident">first_account</span>, <span class="ident">expected_first_account</span>);
 		<span class="macro">assert_eq!</span>(<span class="ident">last_account</span>, <span class="ident">expected_last_account</span>);
 		<span class="macro">assert_eq!</span>(<span class="ident">pairs</span>.<span class="ident">len</span>(), <span class="number">10</span>);
@@ -678,9 +682,9 @@
 		<span class="kw">let</span> <span class="ident">last_account</span> <span class="op">=</span> <span class="ident">get_account_id_from_pair</span>(<span class="ident">pairs</span>.<span class="ident">last</span>().<span class="ident">unwrap</span>().<span class="ident">clone</span>()).<span class="ident">unwrap</span>();
 
 		<span class="kw">let</span> <span class="ident">expected_first_account</span> <span class="op">=</span>
-			<span class="ident">AccountId::from_str</span>(<span class="string">&quot;1e56ca71b596f2b784a27a2fdffef053dbdeff83&quot;</span>).<span class="ident">unwrap</span>();
+			<span class="ident">AccountId::from</span>(<span class="macro">hex!</span>(<span class="string">&quot;1e56ca71b596f2b784a27a2fdffef053dbdeff83&quot;</span>));
 		<span class="kw">let</span> <span class="ident">expected_last_account</span> <span class="op">=</span>
-			<span class="ident">AccountId::from_str</span>(<span class="string">&quot;4148202BF0c0Ad7697Cff87EbB83340C80c947f8&quot;</span>).<span class="ident">unwrap</span>();
+			<span class="ident">AccountId::from</span>(<span class="macro">hex!</span>(<span class="string">&quot;4148202BF0c0Ad7697Cff87EbB83340C80c947f8&quot;</span>));
 		<span class="macro">assert_eq!</span>(<span class="ident">first_account</span>, <span class="ident">expected_first_account</span>);
 		<span class="macro">assert_eq!</span>(<span class="ident">last_account</span>, <span class="ident">expected_last_account</span>);
 		<span class="macro">assert_eq!</span>(<span class="ident">pairs</span>.<span class="ident">len</span>(), <span class="number">20</span>);

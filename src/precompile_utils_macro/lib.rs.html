@@ -138,10 +138,6 @@
 <span id="138">138</span>
 <span id="139">139</span>
 <span id="140">140</span>
-<span id="141">141</span>
-<span id="142">142</span>
-<span id="143">143</span>
-<span id="144">144</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -162,7 +158,6 @@
 <span class="kw">use</span> <span class="ident">proc_macro2::Literal</span>;
 <span class="kw">use</span> <span class="ident">quote</span>::{<span class="ident">quote</span>, <span class="ident">quote_spanned</span>};
 <span class="kw">use</span> <span class="ident">sha3</span>::{<span class="ident">Digest</span>, <span class="ident">Keccak256</span>};
-<span class="kw">use</span> <span class="ident">std::convert::TryInto</span>;
 <span class="kw">use</span> <span class="ident">syn</span>::{<span class="ident">parse_macro_input</span>, <span class="ident">spanned::Spanned</span>, <span class="ident">Expr</span>, <span class="ident">ExprLit</span>, <span class="ident">Ident</span>, <span class="ident">ItemEnum</span>, <span class="ident">Lit</span>, <span class="ident">LitStr</span>};
 
 <span class="kw">struct</span> <span class="ident">Bytes</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>);
@@ -242,11 +237,8 @@
 		<span class="kw">match</span> <span class="ident">variant</span>.<span class="ident">discriminant</span> {
 			<span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">Expr::Lit</span>(<span class="ident">ExprLit</span> { <span class="ident">lit</span>, .. }))) =&gt; {
 				<span class="kw">if</span> <span class="kw">let</span> <span class="ident">Lit::Str</span>(<span class="ident">lit_str</span>) <span class="op">=</span> <span class="ident">lit</span> {
-					<span class="kw">let</span> <span class="ident">selector</span> <span class="op">=</span> <span class="ident">u32::from_be_bytes</span>(
-						<span class="ident">Keccak256::digest</span>(<span class="ident">lit_str</span>.<span class="ident">value</span>().<span class="ident">as_ref</span>())[..<span class="number">4</span>]
-							.<span class="ident">try_into</span>()
-							.<span class="ident">unwrap</span>(),
-					);
+					<span class="kw">let</span> <span class="ident">digest</span> <span class="op">=</span> <span class="ident">Keccak256::digest</span>(<span class="ident">lit_str</span>.<span class="ident">value</span>().<span class="ident">as_ref</span>());
+					<span class="kw">let</span> <span class="ident">selector</span> <span class="op">=</span> <span class="ident">u32::from_be_bytes</span>([<span class="ident">digest</span>[<span class="number">0</span>], <span class="ident">digest</span>[<span class="number">1</span>], <span class="ident">digest</span>[<span class="number">2</span>], <span class="ident">digest</span>[<span class="number">3</span>]]);
 					<span class="ident">ident_expressions</span>.<span class="ident">push</span>(<span class="ident">variant</span>.<span class="ident">ident</span>);
 					<span class="ident">variant_expressions</span>.<span class="ident">push</span>(<span class="ident">Expr::Lit</span>(<span class="ident">ExprLit</span> {
 						<span class="ident">lit</span>: <span class="ident">Lit::Verbatim</span>(<span class="ident">Literal::u32_suffixed</span>(<span class="ident">selector</span>)),

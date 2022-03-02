@@ -911,6 +911,7 @@
 <span id="911">911</span>
 <span id="912">912</span>
 <span id="913">913</span>
+<span id="914">914</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -1794,7 +1795,8 @@
 		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">proxy</span> <span class="op">=</span> <span class="ident">moonbeam_client_evm_tracing::listeners::CallList::default</span>();
 		<span class="ident">proxy</span>.<span class="ident">using</span>(<span class="ident">f</span>)<span class="question-mark">?</span>;
 		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">traces</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span>
-			<span class="ident">moonbeam_client_evm_tracing::formatters::TraceFilter::format</span>(<span class="ident">proxy</span>).<span class="ident">unwrap</span>();
+			<span class="ident">moonbeam_client_evm_tracing::formatters::TraceFilter::format</span>(<span class="ident">proxy</span>)
+				.<span class="ident">ok_or</span>(<span class="ident">internal_err</span>(<span class="string">&quot;Fail to format proxy&quot;</span>))<span class="question-mark">?</span>;
 		<span class="comment">// Fill missing data.</span>
 		<span class="kw">for</span> <span class="ident">trace</span> <span class="kw">in</span> <span class="ident">traces</span>.<span class="ident">iter_mut</span>() {
 			<span class="ident">trace</span>.<span class="ident">block_hash</span> <span class="op">=</span> <span class="ident">eth_block_hash</span>;

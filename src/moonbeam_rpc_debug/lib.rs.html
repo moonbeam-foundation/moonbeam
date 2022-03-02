@@ -583,6 +583,11 @@
 <span id="583">583</span>
 <span id="584">584</span>
 <span id="585">585</span>
+<span id="586">586</span>
+<span id="587">587</span>
+<span id="588">588</span>
+<span id="589">589</span>
+<span id="590">590</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -924,7 +929,9 @@
 		<span class="comment">// Using storage overrides we align with `:ethereum_schema` which will result in proper</span>
 		<span class="comment">// SCALE decoding in case of migration.</span>
 		<span class="kw">let</span> <span class="ident">statuses</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">overrides</span>.<span class="ident">schemas</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">schema</span>) {
-			<span class="prelude-val">Some</span>(<span class="ident">schema</span>) =&gt; <span class="ident">schema</span>.<span class="ident">current_transaction_statuses</span>(<span class="kw-2">&amp;</span><span class="ident">reference_id</span>),
+			<span class="prelude-val">Some</span>(<span class="ident">schema</span>) =&gt; <span class="ident">schema</span>
+				.<span class="ident">current_transaction_statuses</span>(<span class="kw-2">&amp;</span><span class="ident">reference_id</span>)
+				.<span class="ident">unwrap_or_default</span>(),
 			<span class="kw">_</span> =&gt; {
 				<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">internal_err</span>(<span class="macro">format!</span>(
 					<span class="string">&quot;No storage override at {:?}&quot;</span>,
@@ -934,19 +941,18 @@
 		};
 
 		<span class="comment">// Known ethereum transaction hashes.</span>
-		<span class="kw">let</span> <span class="ident">eth_tx_hashes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">statuses</span>
-			.<span class="ident">unwrap</span>()
-			.<span class="ident">iter</span>()
-			.<span class="ident">map</span>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> <span class="ident">t</span>.<span class="ident">transaction_hash</span>)
-			.<span class="ident">collect</span>();
+		<span class="kw">let</span> <span class="ident">eth_tx_hashes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">statuses</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> <span class="ident">t</span>.<span class="ident">transaction_hash</span>).<span class="ident">collect</span>();
 
 		<span class="comment">// If there are no ethereum transactions in the block return empty trace right away.</span>
 		<span class="kw">if</span> <span class="ident">eth_tx_hashes</span>.<span class="ident">is_empty</span>() {
 			<span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Response::Block</span>(<span class="macro">vec!</span>[]));
 		}
 
-		<span class="comment">// Get the extrinsics.</span>
-		<span class="kw">let</span> <span class="ident">ext</span> <span class="op">=</span> <span class="ident">blockchain</span>.<span class="ident">body</span>(<span class="ident">reference_id</span>).<span class="ident">unwrap</span>().<span class="ident">unwrap</span>();
+		<span class="comment">// Get block extrinsics.</span>
+		<span class="kw">let</span> <span class="ident">exts</span> <span class="op">=</span> <span class="ident">blockchain</span>
+			.<span class="ident">body</span>(<span class="ident">reference_id</span>)
+			.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">internal_err</span>(<span class="macro">format!</span>(<span class="string">&quot;Fail to read blockchain db: {:?}&quot;</span>, <span class="ident">e</span>)))<span class="question-mark">?</span>
+			.<span class="ident">unwrap_or_default</span>();
 
 		<span class="comment">// Trace the block.</span>
 		<span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="op">|</span><span class="op">|</span> -&gt; <span class="ident">RpcResult</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> {
@@ -954,7 +960,7 @@
 				.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">internal_err</span>(<span class="macro">format!</span>(<span class="string">&quot;Runtime api access error: {:?}&quot;</span>, <span class="ident">e</span>)))<span class="question-mark">?</span>;
 
 			<span class="kw">let</span> <span class="ident">_result</span> <span class="op">=</span> <span class="ident">api</span>
-				.<span class="ident">trace_block</span>(<span class="kw-2">&amp;</span><span class="ident">parent_block_id</span>, <span class="ident">ext</span>, <span class="ident">eth_tx_hashes</span>)
+				.<span class="ident">trace_block</span>(<span class="kw-2">&amp;</span><span class="ident">parent_block_id</span>, <span class="ident">exts</span>, <span class="ident">eth_tx_hashes</span>)
 				.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
 					<span class="ident">internal_err</span>(<span class="macro">format!</span>(
 						<span class="string">&quot;Blockchain error when replaying block {} : {:?}&quot;</span>,
@@ -1041,8 +1047,11 @@
 		<span class="comment">// Get parent blockid.</span>
 		<span class="kw">let</span> <span class="ident">parent_block_id</span> <span class="op">=</span> <span class="ident">BlockId::Hash</span>(<span class="kw-2">*</span><span class="ident">header</span>.<span class="ident">parent_hash</span>());
 
-		<span class="comment">// Get the extrinsics.</span>
-		<span class="kw">let</span> <span class="ident">ext</span> <span class="op">=</span> <span class="ident">blockchain</span>.<span class="ident">body</span>(<span class="ident">reference_id</span>).<span class="ident">unwrap</span>().<span class="ident">unwrap</span>();
+		<span class="comment">// Get block extrinsics.</span>
+		<span class="kw">let</span> <span class="ident">exts</span> <span class="op">=</span> <span class="ident">blockchain</span>
+			.<span class="ident">body</span>(<span class="ident">reference_id</span>)
+			.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">internal_err</span>(<span class="macro">format!</span>(<span class="string">&quot;Fail to read blockchain db: {:?}&quot;</span>, <span class="ident">e</span>)))<span class="question-mark">?</span>
+			.<span class="ident">unwrap_or_default</span>();
 
 		<span class="comment">// Get DebugRuntimeApi version</span>
 		<span class="kw">let</span> <span class="ident">trace_api_version</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">api_version</span>)) <span class="op">=</span>
@@ -1082,7 +1091,7 @@
 
 					<span class="kw">if</span> <span class="ident">trace_api_version</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">4</span> {
 						<span class="kw">let</span> <span class="ident">_result</span> <span class="op">=</span> <span class="ident">api</span>
-							.<span class="ident">trace_transaction</span>(<span class="kw-2">&amp;</span><span class="ident">parent_block_id</span>, <span class="ident">ext</span>, <span class="kw-2">&amp;</span><span class="ident">transaction</span>)
+							.<span class="ident">trace_transaction</span>(<span class="kw-2">&amp;</span><span class="ident">parent_block_id</span>, <span class="ident">exts</span>, <span class="kw-2">&amp;</span><span class="ident">transaction</span>)
 							.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
 								<span class="ident">internal_err</span>(<span class="macro">format!</span>(
 									<span class="string">&quot;Runtime api access error (version {:?}): {:?}&quot;</span>,
@@ -1096,7 +1105,7 @@
 							<span class="ident">ethereum::TransactionV2::Legacy</span>(<span class="ident">tx</span>) =&gt;
 							{
 								<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-								<span class="ident">api</span>.<span class="ident">trace_transaction_before_version_4</span>(<span class="kw-2">&amp;</span><span class="ident">parent_block_id</span>, <span class="ident">ext</span>, <span class="kw-2">&amp;</span><span class="ident">tx</span>)
+								<span class="ident">api</span>.<span class="ident">trace_transaction_before_version_4</span>(<span class="kw-2">&amp;</span><span class="ident">parent_block_id</span>, <span class="ident">exts</span>, <span class="kw-2">&amp;</span><span class="ident">tx</span>)
 									.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
 										<span class="ident">internal_err</span>(<span class="macro">format!</span>(
 											<span class="string">&quot;Runtime api access error (legacy): {:?}&quot;</span>,
@@ -1130,7 +1139,8 @@
 						);
 						<span class="ident">proxy</span>.<span class="ident">using</span>(<span class="ident">f</span>)<span class="question-mark">?</span>;
 						<span class="prelude-val">Ok</span>(<span class="ident">Response::Single</span>(
-							<span class="ident">moonbeam_client_evm_tracing::formatters::Raw::format</span>(<span class="ident">proxy</span>).<span class="ident">unwrap</span>(),
+							<span class="ident">moonbeam_client_evm_tracing::formatters::Raw::format</span>(<span class="ident">proxy</span>)
+								.<span class="ident">ok_or</span>(<span class="ident">internal_err</span>(<span class="string">&quot;Fail to format proxy&quot;</span>))<span class="question-mark">?</span>,
 						))
 					}
 					<span class="ident">single::TraceType::CallList</span> =&gt; {
@@ -1150,7 +1160,7 @@
 									)
 									.<span class="ident">ok_or</span>(<span class="string">&quot;Trace result is empty.&quot;</span>)
 									.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">internal_err</span>(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">e</span>)))<span class="question-mark">?</span>;
-								<span class="prelude-val">Ok</span>(<span class="ident">res</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>())
+								<span class="prelude-val">Ok</span>(<span class="ident">res</span>.<span class="ident">pop</span>().<span class="ident">expect</span>(<span class="string">&quot;Trace result is empty.&quot;</span>))
 							}
 							<span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">internal_err</span>(
 								<span class="string">&quot;Bug: failed to resolve the tracer format.&quot;</span>.<span class="ident">to_string</span>(),

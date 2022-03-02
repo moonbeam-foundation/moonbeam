@@ -71,6 +71,8 @@
 <span id="71">71</span>
 <span id="72">72</span>
 <span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -113,7 +115,7 @@
 	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
 		<span class="comment">// Retrieve the mnemonic from the args or generate random ones</span>
 		<span class="kw">let</span> <span class="ident">mnemonic</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">phrase</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">mnemonic</span> {
-			<span class="ident">Mnemonic::from_phrase</span>(<span class="ident">phrase</span>, <span class="ident">Language::English</span>).<span class="ident">unwrap</span>()
+			<span class="ident">Mnemonic::from_phrase</span>(<span class="ident">phrase</span>, <span class="ident">Language::English</span>).<span class="ident">expect</span>(<span class="string">&quot;invalid mnemonic&quot;</span>)
 		} <span class="kw">else</span> {
 			<span class="kw">match</span> <span class="self">self</span>.<span class="ident">w12</span> {
 				<span class="bool-val">true</span> =&gt; <span class="ident">Mnemonic::new</span>(<span class="ident">MnemonicType::Words12</span>, <span class="ident">Language::English</span>),
@@ -128,8 +130,10 @@
 		<span class="kw">let</span> <span class="ident">derivation_path</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;m/44&#39;/60&#39;/0&#39;/0/{}&quot;</span>, <span class="self">self</span>.<span class="ident">account_index</span>.<span class="ident">unwrap_or</span>(<span class="number">0</span>));
 
 		<span class="comment">// Derives the private key from</span>
-		<span class="kw">let</span> <span class="ident">ext</span> <span class="op">=</span> <span class="ident">ExtendedPrivKey::derive</span>(<span class="ident">seed</span>.<span class="ident">as_bytes</span>(), <span class="ident">derivation_path</span>.<span class="ident">as_str</span>()).<span class="ident">unwrap</span>();
-		<span class="kw">let</span> <span class="ident">private_key</span> <span class="op">=</span> <span class="ident">SecretKey::parse_slice</span>(<span class="kw-2">&amp;</span><span class="ident">ext</span>.<span class="ident">secret</span>()).<span class="ident">unwrap</span>();
+		<span class="kw">let</span> <span class="ident">ext</span> <span class="op">=</span> <span class="ident">ExtendedPrivKey::derive</span>(<span class="ident">seed</span>.<span class="ident">as_bytes</span>(), <span class="ident">derivation_path</span>.<span class="ident">as_str</span>())
+			.<span class="ident">expect</span>(<span class="string">&quot;invalid derivation path&quot;</span>);
+		<span class="kw">let</span> <span class="ident">private_key</span> <span class="op">=</span>
+			<span class="ident">SecretKey::parse_slice</span>(<span class="kw-2">&amp;</span><span class="ident">ext</span>.<span class="ident">secret</span>()).<span class="ident">expect</span>(<span class="string">&quot;invalid extended private key&quot;</span>);
 
 		<span class="comment">// Retrieves the public key</span>
 		<span class="kw">let</span> <span class="ident">public_key</span> <span class="op">=</span> <span class="ident">PublicKey::from_secret_key</span>(<span class="kw-2">&amp;</span><span class="ident">private_key</span>);
