@@ -21,6 +21,7 @@ ethereum = { git = "https://github.com/purestake/ethereum", branch = "tgm-0.11.1
 evm = { git = "https://github.com/purestake/evm", branch = "moonbeam-polkadot-v0.9.16" }
 evm-gasometer = { git = "https://github.com/purestake/evm", branch = "moonbeam-polkadot-v0.9.16" }
 evm-runtime = { git = "https://github.com/purestake/evm", branch = "moonbeam-polkadot-v0.9.16" }
+jsonrpsee = { git = "https://github.com/purestake/jsonrpsee", branch = "moonbeam-polkadot-v0.9.16" }
 
 [profile.release]
 panic = "unwind"
