@@ -421,6 +421,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					use pallet_crowdloan_rewards::Pallet as PalletCrowdloanRewardsBench;
 					use parachain_staking::Pallet as ParachainStakingBench;
 					use pallet_author_mapping::Pallet as PalletAuthorMappingBench;
+					use pallet_author_slot_filter::Pallet as PalletAuthorSlotFilter;
 					#[cfg(feature = "moonbase-runtime-benchmarks")]
 					use pallet_asset_manager::Pallet as PalletAssetManagerBench;
 					#[cfg(feature = "moonbase-runtime-benchmarks")]
@@ -432,6 +433,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					list_benchmark!(list, extra, parachain_staking, ParachainStakingBench::<Runtime>);
 					list_benchmark!(list, extra, pallet_crowdloan_rewards, PalletCrowdloanRewardsBench::<Runtime>);
 					list_benchmark!(list, extra, pallet_author_mapping, PalletAuthorMappingBench::<Runtime>);
+					list_benchmark!(list, extra, pallet_author_slot_filter, PalletAuthorSlotFilter::<Runtime>);
 					#[cfg(feature = "moonbase-runtime-benchmarks")]
 					list_benchmark!(list, extra, pallet_asset_manager, PalletAssetManagerBench::<Runtime>);
 					#[cfg(feature = "moonbase-runtime-benchmarks")]
@@ -455,6 +457,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					use pallet_crowdloan_rewards::Pallet as PalletCrowdloanRewardsBench;
 					use parachain_staking::Pallet as ParachainStakingBench;
 					use pallet_author_mapping::Pallet as PalletAuthorMappingBench;
+					use pallet_author_slot_filter::Pallet as PalletAuthorSlotFilter;
 					#[cfg(feature = "moonbase-runtime-benchmarks")]
 					use pallet_asset_manager::Pallet as PalletAssetManagerBench;
 					#[cfg(feature = "moonbase-runtime-benchmarks")]
@@ -481,9 +484,15 @@ macro_rules! impl_runtime_apis_plus_common {
 						params,
 						batches,
 						pallet_author_mapping,
-						PalletAuthorMappingBench::<Runtime>
+						PalletAuthorSlotFilter::<Runtime>
 					);
 					add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
+					add_benchmark!(
+						params,
+						batches,
+						pallet_author_slot_filter,
+						PalletAuthorMappingBench::<Runtime>
+					);
 					#[cfg(feature = "moonbase-runtime-benchmarks")]
 					add_benchmark!(
 						params,

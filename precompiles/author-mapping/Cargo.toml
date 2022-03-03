@@ -29,7 +29,7 @@ pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam
 derive_more = "0.99"
 hex-literal = "0.3.4"
 # Nimbus
-nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.17" }
+nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "girazoki-slot-filter-bench-polkadot-v0.9.17" }
 serde = "1.0.100"
 
 # Substrate

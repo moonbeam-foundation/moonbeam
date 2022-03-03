@@ -111,10 +111,10 @@ cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cu
 cumulus-relay-chain-interface = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.17" }
 cumulus-relay-chain-local = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.17" }
 cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.17" }
-nimbus-consensus = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.17" }
+nimbus-consensus = { git = "https://github.com/purestake/nimbus", branch = "girazoki-slot-filter-bench-polkadot-v0.9.17" }
 # TODO we should be able to depend only on the primitives crate once we move the inherent data provider there.
-nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.17" }
-pallet-author-inherent = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.17" }
+nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "girazoki-slot-filter-bench-polkadot-v0.9.17" }
+pallet-author-inherent = { git = "https://github.com/purestake/nimbus", branch = "girazoki-slot-filter-bench-polkadot-v0.9.17" }
 
 # Polkadot
 polkadot-cli = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.17" }

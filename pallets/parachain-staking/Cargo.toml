@@ -20,7 +20,7 @@ sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-po
 substrate-fixed = { git = "https://github.com/encointer/substrate-fixed", default-features = false }
 
 # Nimbus
-nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.17", default-features = false }
+nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "girazoki-slot-filter-bench-polkadot-v0.9.17", default-features = false }
 
 [dev-dependencies]
 similar-asserts = "1.1.0"

@@ -6145,7 +6145,7 @@ dependencies = [
 [[package]]
 name = "nimbus-consensus"
 version = "0.9.0"
-source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.17#5f92d1434491c06d87c03193938ce02bd2bdd7d3"
+source = "git+https://github.com/purestake/nimbus?branch=girazoki-slot-filter-bench-polkadot-v0.9.17#4adf9a965f500ffb651dc8b8ebe2f6cc281be037"
 dependencies = [
  "async-trait",
  "cumulus-client-consensus-common",
@@ -6177,7 +6177,7 @@ dependencies = [
 [[package]]
 name = "nimbus-primitives"
 version = "0.9.0"
-source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.17#5f92d1434491c06d87c03193938ce02bd2bdd7d3"
+source = "git+https://github.com/purestake/nimbus?branch=girazoki-slot-filter-bench-polkadot-v0.9.17#4adf9a965f500ffb651dc8b8ebe2f6cc281be037"
 dependencies = [
  "async-trait",
  "frame-support",
@@ -6557,7 +6557,7 @@ dependencies = [
 [[package]]
 name = "pallet-author-inherent"
 version = "0.9.0"
-source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.17#5f92d1434491c06d87c03193938ce02bd2bdd7d3"
+source = "git+https://github.com/purestake/nimbus?branch=girazoki-slot-filter-bench-polkadot-v0.9.17#4adf9a965f500ffb651dc8b8ebe2f6cc281be037"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -6622,8 +6622,9 @@ dependencies = [
 [[package]]
 name = "pallet-author-slot-filter"
 version = "0.9.0"
-source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.17#5f92d1434491c06d87c03193938ce02bd2bdd7d3"
+source = "git+https://github.com/purestake/nimbus?branch=girazoki-slot-filter-bench-polkadot-v0.9.17#4adf9a965f500ffb651dc8b8ebe2f6cc281be037"
 dependencies = [
+ "frame-benchmarking",
  "frame-support",
  "frame-system",
  "log",

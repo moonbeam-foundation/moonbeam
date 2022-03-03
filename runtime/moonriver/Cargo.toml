@@ -107,9 +107,9 @@ cumulus-pallet-xcmp-queue = { git = "https://github.com/purestake/cumulus", bran
 cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.17", default-features = false }
 cumulus-primitives-timestamp = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.17", default-features = false }
 cumulus-primitives-utility = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.17", default-features = false }
-nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.17", default-features = false }
-pallet-author-inherent = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.17", default-features = false }
-pallet-author-slot-filter = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.17", default-features = false }
+nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "girazoki-slot-filter-bench-polkadot-v0.9.17", default-features = false }
+pallet-author-inherent = { git = "https://github.com/purestake/nimbus", branch = "girazoki-slot-filter-bench-polkadot-v0.9.17", default-features = false }
+pallet-author-slot-filter = { git = "https://github.com/purestake/nimbus", branch = "girazoki-slot-filter-bench-polkadot-v0.9.17", default-features = false }
 parachain-info = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.17", default-features = false }
 
 # Polkadot / XCM
@@ -253,6 +253,7 @@ runtime-benchmarks = [
 	"parachain-staking/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
 	"xcm-builder/runtime-benchmarks",
+	"pallet-author-slot-filter/runtime-benchmarks",
 ]
 try-runtime = [
 	"frame-executive/try-runtime",
