@@ -484,14 +484,14 @@ macro_rules! impl_runtime_apis_plus_common {
 						params,
 						batches,
 						pallet_author_mapping,
-						PalletAuthorSlotFilter::<Runtime>
+						PalletAuthorMappingBench::<Runtime>
 					);
 					add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
 					add_benchmark!(
 						params,
 						batches,
 						pallet_author_slot_filter,
-						PalletAuthorMappingBench::<Runtime>
+						PalletAuthorSlotFilter::<Runtime>
 					);
 					#[cfg(feature = "moonbase-runtime-benchmarks")]
 					add_benchmark!(
