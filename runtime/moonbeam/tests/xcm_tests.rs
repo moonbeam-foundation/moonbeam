@@ -33,6 +33,7 @@ use xcm::latest::{
 	Junction::{self, AccountId32, AccountKey20, PalletInstance, Parachain},
 	Junctions::*,
 	MultiLocation, NetworkId, Response, Xcm,
+	OriginKind
 };
 use xcm_executor::traits::Convert;
 use xcm_simulator::TestExt;
