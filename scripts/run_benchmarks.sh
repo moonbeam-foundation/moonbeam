@@ -11,8 +11,8 @@ export WASMTIME_BACKTRACE_DETAILS=1
     --wasm-execution=compiled \
     --pallet "parachain_staking" \
     --extrinsic "*" \
-    --steps 32 \
-    --repeat 64 \
+    --steps 50 \
+    --repeat 20 \
     --raw \
     --template=./benchmarking/frame-weight-template.hbs \
     --output /tmp/ \
