@@ -9,6 +9,7 @@ license = "GPL-3.0-only"
 version = "0.8.4"
 
 [dependencies]
+hex-literal = { version = "0.3.4", optional = true }
 log = "0.4"
 rlp = { version = "0.5", optional = true, default-features = false }
 serde = { version = "1.0.101", optional = true, default-features = false, features = [ "derive" ] }
@@ -242,6 +243,7 @@ runtime-benchmarks = [
 	"frame-support/runtime-benchmarks",
 	"frame-system-benchmarking",
 	"frame-system/runtime-benchmarks",
+	"hex-literal",
 	"pallet-author-mapping/runtime-benchmarks",
 	"pallet-balances/runtime-benchmarks",
 	"pallet-collective/runtime-benchmarks",
