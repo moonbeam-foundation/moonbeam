@@ -132,33 +132,19 @@ benchmarks! {
 		assert_eq!(Pallet::<T>::asset_type_units_per_second(asset_type_to_be_removed), None);
 	}
 
-	authorize_local_asset {
-		let creator: T::AccountId  = account("account id", 0u32, 0u32);
-		let owner: T::AccountId  = account("account id", 1u32, 0u32);
-		let min_balance: T::Balance = 1u32.into();
-
-	}: _(RawOrigin::Root, creator.clone(), owner.clone(), min_balance.clone())
-	verify {
-		assert_eq!(Pallet::<T>::local_asset_creation_authorization(&creator).unwrap().owner, owner);
-		assert_eq!(
-			Pallet::<T>::local_asset_creation_authorization(&creator).unwrap().min_balance,
-			min_balance
-		);
-	}
-
 	register_local_asset {
 		let creator: T::AccountId  = account("account id", 0u32, 0u32);
 		let owner: T::AccountId  = account("account id", 1u32, 0u32);
+		let current_local_counter: u128 =Pallet::<T>::local_asset_counter();
 		let min_balance: T::Balance = 1u32.into();
-		Pallet::<T>::authorize_local_asset(
-			RawOrigin::Root.into(),
+	}: _(
+			RawOrigin::Root,
 			creator.clone(),
 			owner.clone(),
 			min_balance.clone()
-		)?;
-	}: _(RawOrigin::Signed(creator.clone()))
+	)
 	verify {
-		assert!(Pallet::<T>::local_asset_creation_authorization(&creator).is_none());
+		assert_eq!(Pallet::<T>::local_asset_counter(), current_local_counter+1);
 	}
 	remove_existing_asset_type {
 		// We make it dependent on the number of existing assets already

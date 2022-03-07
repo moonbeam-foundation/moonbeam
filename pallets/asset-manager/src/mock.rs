@@ -170,15 +170,12 @@ impl AssetRegistrar<Test> for MockAssetPalletRegistrar {
 
 pub struct MockLocalAssetIdCreator;
 impl pallet_asset_manager::LocalAssetIdCreator<Test> for MockLocalAssetIdCreator {
-	fn create_asset_id_from_account(account: u64) -> AssetId {
+	fn create_asset_id_from_account(_account: u64, local_asset_counter: u128) -> AssetId {
 		// Our means of converting a creator to an assetId
 		// We basically hash nonce+account
 		let mut result: [u8; 4] = [0u8; 4];
-		let account_info = System::account(account);
-		let mut to_hash = account.encode();
-		to_hash.append(&mut account_info.nonce.encode());
-		let hash: H256 = to_hash.using_encoded(<Test as frame_system::Config>::Hashing::hash);
-		result.copy_from_slice(&hash.as_fixed_bytes()[0..4]);
+		let big_endian = local_asset_counter.to_le_bytes();
+		result.copy_from_slice(&big_endian[0..4]);
 		u32::from_le_bytes(result)
 	}
 }

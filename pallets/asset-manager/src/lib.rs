@@ -93,7 +93,10 @@ pub mod pallet {
 	// because they can look for collisions in the EVM.
 	pub trait LocalAssetIdCreator<T: Config> {
 		// How to create an assetId from an AccountId
-		fn create_asset_id_from_account(creator: T::AccountId) -> T::AssetId;
+		fn create_asset_id_from_account(
+			creator: T::AccountId,
+			local_asset_counter: u128,
+		) -> T::AssetId;
 	}
 
 	// We implement this trait to be able to get the AssetType and units per second registered
@@ -164,7 +167,6 @@ pub mod pallet {
 		ErrorCreatingAsset,
 		AssetAlreadyExists,
 		AssetDoesNotExist,
-		NotAuthorizedToCreateLocalAssets,
 		TooLowNumAssetsWeightHint,
 	}
 
@@ -194,11 +196,6 @@ pub mod pallet {
 		},
 		/// Supported asset type for fee payment removed
 		SupportedAssetRemoved { asset_type: T::ForeignAssetType },
-		LocalAssetAuthorizationGiven {
-			creator: T::AccountId,
-			owner: T::AccountId,
-			min_balance: T::Balance,
-		},
 		LocalAssetRegistered {
 			asset_id: T::AssetId,
 			creator: T::AccountId,
@@ -231,12 +228,11 @@ pub mod pallet {
 	pub type AssetTypeUnitsPerSecond<T: Config> =
 		StorageMap<_, Blake2_128Concat, T::ForeignAssetType, u128>;
 
-	/// Stores the authorization for a particular user to be able to create a local asset
-	/// This authorization needs to be given by root origin
+	/// Stores the counter of the number of assets that have been
+	/// created so far
 	#[pallet::storage]
-	#[pallet::getter(fn local_asset_creation_authorization)]
-	pub type LocalAssetCreationAuthorization<T: Config> =
-		StorageMap<_, Blake2_128Concat, T::AccountId, LocalAssetInfo<T>>;
+	#[pallet::getter(fn local_asset_counter)]
+	pub type LocalAssetCounter<T: Config> = StorageValue<_, u128, ValueQuery>;
 
 	// Supported fee asset payments
 	#[pallet::storage]
@@ -277,65 +273,6 @@ pub mod pallet {
 				asset_id,
 				asset,
 				metadata,
-			});
-			Ok(())
-		}
-
-		/// Register a new local asset
-		/// We need a previously given authorization to be able to create local assets
-		#[pallet::weight(T::WeightInfo::register_local_asset())]
-		pub fn register_local_asset(origin: OriginFor<T>) -> DispatchResult {
-			let who = ensure_signed(origin)?;
-
-			// If no authorization was given, error
-			let asset_info = LocalAssetCreationAuthorization::<T>::get(&who)
-				.ok_or(Error::<T>::NotAuthorizedToCreateLocalAssets)?;
-
-			// Create the assetId with LocalAssetIdCreator
-			let asset_id = T::LocalAssetIdCreator::create_asset_id_from_account(who.clone());
-
-			// Create local asset
-			T::AssetRegistrar::create_local_asset(
-				asset_id,
-				who.clone(),
-				asset_info.min_balance,
-				asset_info.owner.clone(),
-			)
-			.map_err(|_| Error::<T>::ErrorCreatingAsset)?;
-
-			// Remove the previous authorization
-			LocalAssetCreationAuthorization::<T>::remove(&who);
-
-			Self::deposit_event(Event::LocalAssetRegistered {
-				asset_id,
-				creator: who,
-				owner: asset_info.owner,
-			});
-			Ok(())
-		}
-
-		/// Authorize an account to be able to create a local asset
-		/// LocalAssetModifierOrigin needs to dispatch this call
-		#[pallet::weight(T::WeightInfo::authorize_local_asset())]
-		pub fn authorize_local_asset(
-			origin: OriginFor<T>,
-			creator: T::AccountId,
-			owner: T::AccountId,
-			min_balance: T::Balance,
-		) -> DispatchResult {
-			T::LocalAssetModifierOrigin::ensure_origin(origin)?;
-
-			let local_asset_info = LocalAssetInfo::<T> {
-				owner: owner.clone(),
-				min_balance: min_balance.clone(),
-			};
-
-			LocalAssetCreationAuthorization::insert(&creator, local_asset_info);
-
-			Self::deposit_event(Event::LocalAssetAuthorizationGiven {
-				creator,
-				owner,
-				min_balance,
 			});
 			Ok(())
 		}
@@ -504,6 +441,47 @@ pub mod pallet {
 			Self::deposit_event(Event::ForeignAssetRemoved {
 				asset_id,
 				asset_type,
+			});
+			Ok(())
+		}
+
+		/// Register a new local asset
+		/// We need a previously given authorization to be able to create local assets
+		#[pallet::weight(T::WeightInfo::register_local_asset())]
+		pub fn register_local_asset(
+			origin: OriginFor<T>,
+			creator: T::AccountId,
+			owner: T::AccountId,
+			min_balance: T::Balance,
+		) -> DispatchResult {
+			T::LocalAssetModifierOrigin::ensure_origin(origin)?;
+
+			// Read Local Asset Counnter
+			let mut local_asset_counter = LocalAssetCounter::<T>::get();
+
+			// Create the assetId with LocalAssetIdCreator
+			let asset_id = T::LocalAssetIdCreator::create_asset_id_from_account(
+				creator.clone(),
+				local_asset_counter,
+			);
+
+			// Create local asset
+			T::AssetRegistrar::create_local_asset(
+				asset_id,
+				creator.clone(),
+				min_balance,
+				owner.clone(),
+			)
+			.map_err(|_| Error::<T>::ErrorCreatingAsset)?;
+
+			local_asset_counter += 1;
+
+			LocalAssetCounter::<T>::put(local_asset_counter);
+
+			Self::deposit_event(Event::LocalAssetRegistered {
+				asset_id,
+				creator,
+				owner,
 			});
 			Ok(())
 		}
