@@ -170,7 +170,7 @@ impl AssetRegistrar<Test> for MockAssetPalletRegistrar {
 
 pub struct MockLocalAssetIdCreator;
 impl pallet_asset_manager::LocalAssetIdCreator<Test> for MockLocalAssetIdCreator {
-	fn create_asset_id_from_account(_account: u64, local_asset_counter: u128) -> AssetId {
+	fn create_asset_id_from_metadata(_account: u64, local_asset_counter: u128) -> AssetId {
 		// Our means of converting a creator to an assetId
 		// We basically hash nonce+account
 		let mut result: [u8; 4] = [0u8; 4];

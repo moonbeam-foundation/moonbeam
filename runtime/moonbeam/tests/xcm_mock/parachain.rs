@@ -669,15 +669,11 @@ pub struct AssetMetadata {
 
 pub struct LocalAssetIdCreator;
 impl pallet_asset_manager::LocalAssetIdCreator<Runtime> for LocalAssetIdCreator {
-	fn create_asset_id_from_account(account: AccountId) -> AssetId {
+	fn create_asset_id_from_metadata(_account: AccountId, local_asset_counter: u128) -> AssetId {
 		// Our means of converting a creator to an assetId
-		// We basically hash nonce+account
+		// We basically hash (local asset counter)
 		let mut result: [u8; 16] = [0u8; 16];
-		let account_info = System::account(account);
-		let mut to_hash = account.encode();
-		to_hash.append(&mut account_info.nonce.encode());
-		to_hash.append(&mut System::extrinsic_index().encode());
-		to_hash.append(&mut System::parent_hash().encode());
+		let to_hash = local_asset_counter.encode();
 		let hash: H256 = to_hash.using_encoded(<Runtime as frame_system::Config>::Hashing::hash);
 		result.copy_from_slice(&hash.as_fixed_bytes()[0..16]);
 		u128::from_le_bytes(result)

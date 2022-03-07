@@ -93,7 +93,7 @@ pub mod pallet {
 	// because they can look for collisions in the EVM.
 	pub trait LocalAssetIdCreator<T: Config> {
 		// How to create an assetId from an AccountId
-		fn create_asset_id_from_account(
+		fn create_asset_id_from_metadata(
 			creator: T::AccountId,
 			local_asset_counter: u128,
 		) -> T::AssetId;
@@ -460,7 +460,7 @@ pub mod pallet {
 			let mut local_asset_counter = LocalAssetCounter::<T>::get();
 
 			// Create the assetId with LocalAssetIdCreator
-			let asset_id = T::LocalAssetIdCreator::create_asset_id_from_account(
+			let asset_id = T::LocalAssetIdCreator::create_asset_id_from_metadata(
 				creator.clone(),
 				local_asset_counter,
 			);
