@@ -659,23 +659,14 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     baltathar = await keyringEth.addFromUri(BALTATHAR_PRIVATE_KEY, null, "ethereum");
 
     // registerAsset
-    await createBlockWithExtrinsic(
-      context,
-      alith,
-      context.polkadotApi.tx.sudo.sudo(
-        context.polkadotApi.tx.assetManager.authorizeLocalAsset(
-          baltathar.address,
-          baltathar.address,
-          new BN(1)
-        )
-      )
-    );
-
-    // registerAsset
     const { events: eventsRegister } = await createBlockWithExtrinsic(
       context,
-      baltathar,
-      context.polkadotApi.tx.assetManager.registerLocalAsset()
+      alith,
+      context.polkadotApi.tx.assetManager.registerLocalAsset(
+        baltathar.address,
+        baltathar.address,
+        new BN(1)
+      )
     );
 
     // Look for assetId in events
@@ -1006,23 +997,14 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     baltathar = await keyringEth.addFromUri(BALTATHAR_PRIVATE_KEY, null, "ethereum");
 
     // registerAsset
-    await createBlockWithExtrinsic(
-      context,
-      alith,
-      context.polkadotApi.tx.sudo.sudo(
-        context.polkadotApi.tx.assetManager.authorizeLocalAsset(
-          baltathar.address,
-          baltathar.address,
-          new BN(1)
-        )
-      )
-    );
-
-    // registerAsset
     const { events: eventsRegister } = await createBlockWithExtrinsic(
       context,
-      baltathar,
-      context.polkadotApi.tx.assetManager.registerLocalAsset()
+      alith,
+      context.polkadotApi.tx.assetManager.registerLocalAsset(
+        baltathar.address,
+        baltathar.address,
+        new BN(1)
+      )
     );
 
     // Look for assetId in events

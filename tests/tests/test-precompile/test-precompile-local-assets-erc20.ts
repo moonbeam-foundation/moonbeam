@@ -49,23 +49,16 @@ describeDevMoonbeamAllEthTxTypes(
       baltatharAccount = await keyring.addFromUri(BALTATHAR_PRIV_KEY, null, "ethereum");
 
       // registerAsset
-      await createBlockWithExtrinsic(
+      const { events: eventsRegister } = await createBlockWithExtrinsic(
         context,
         sudoAccount,
         context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.assetManager.authorizeLocalAsset(
+          context.polkadotApi.tx.assetManager.registerLocalAsset(
             baltatharAccount.address,
             baltatharAccount.address,
             new BN(1)
           )
         )
-      );
-
-      // registerAsset
-      const { events: eventsRegister } = await createBlockWithExtrinsic(
-        context,
-        baltatharAccount,
-        context.polkadotApi.tx.assetManager.registerLocalAsset()
       );
 
       // Look for assetId in events
@@ -232,23 +225,16 @@ describeDevMoonbeamAllEthTxTypes(
       baltatharAccount = await keyring.addFromUri(BALTATHAR_PRIV_KEY, null, "ethereum");
 
       // registerAsset
-      await createBlockWithExtrinsic(
+      const { events: eventsRegister } = await createBlockWithExtrinsic(
         context,
         sudoAccount,
         context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.assetManager.authorizeLocalAsset(
+          context.polkadotApi.tx.assetManager.registerLocalAsset(
             baltatharAccount.address,
             baltatharAccount.address,
             new BN(1)
           )
         )
-      );
-
-      // registerAsset
-      const { events: eventsRegister } = await createBlockWithExtrinsic(
-        context,
-        baltatharAccount,
-        context.polkadotApi.tx.assetManager.registerLocalAsset()
       );
 
       // Look for assetId in events
@@ -353,23 +339,16 @@ describeDevMoonbeamAllEthTxTypes(
       baltatharAccount = await keyring.addFromUri(BALTATHAR_PRIV_KEY, null, "ethereum");
 
       // registerAsset
-      await createBlockWithExtrinsic(
+      const { events: eventsRegister } = await createBlockWithExtrinsic(
         context,
         sudoAccount,
         context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.assetManager.authorizeLocalAsset(
+          context.polkadotApi.tx.assetManager.registerLocalAsset(
             baltatharAccount.address,
             baltatharAccount.address,
             new BN(1)
           )
         )
-      );
-
-      // registerAsset
-      const { events: eventsRegister } = await createBlockWithExtrinsic(
-        context,
-        baltatharAccount,
-        context.polkadotApi.tx.assetManager.registerLocalAsset()
       );
 
       // Look for assetId in events
@@ -488,23 +467,16 @@ describeDevMoonbeamAllEthTxTypes(
       baltatharAccount = await keyring.addFromUri(BALTATHAR_PRIV_KEY, null, "ethereum");
 
       // registerAsset
-      await createBlockWithExtrinsic(
+      const { events: eventsRegister } = await createBlockWithExtrinsic(
         context,
         sudoAccount,
         context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.assetManager.authorizeLocalAsset(
+          context.polkadotApi.tx.assetManager.registerLocalAsset(
             baltatharAccount.address,
             baltatharAccount.address,
             new BN(1)
           )
         )
-      );
-
-      // registerAsset
-      const { events: eventsRegister } = await createBlockWithExtrinsic(
-        context,
-        baltatharAccount,
-        context.polkadotApi.tx.assetManager.registerLocalAsset()
       );
 
       // Look for assetId in events
@@ -581,23 +553,16 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
     baltatharAccount = await keyring.addFromUri(BALTATHAR_PRIV_KEY, null, "ethereum");
 
     // registerAsset
-    await createBlockWithExtrinsic(
+    const { events: eventsRegister } = await createBlockWithExtrinsic(
       context,
       sudoAccount,
       context.polkadotApi.tx.sudo.sudo(
-        context.polkadotApi.tx.assetManager.authorizeLocalAsset(
+        context.polkadotApi.tx.assetManager.registerLocalAsset(
           baltatharAccount.address,
           baltatharAccount.address,
           new BN(1)
         )
       )
-    );
-
-    // registerAsset
-    const { events: eventsRegister } = await createBlockWithExtrinsic(
-      context,
-      baltatharAccount,
-      context.polkadotApi.tx.assetManager.registerLocalAsset()
     );
 
     // Look for assetId in events
@@ -745,23 +710,16 @@ describeDevMoonbeamAllEthTxTypes(
       baltatharAccount = await keyring.addFromUri(BALTATHAR_PRIV_KEY, null, "ethereum");
 
       // registerAsset
-      await createBlockWithExtrinsic(
+      const { events: eventsRegister } = await createBlockWithExtrinsic(
         context,
         sudoAccount,
         context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.assetManager.authorizeLocalAsset(
+          context.polkadotApi.tx.assetManager.registerLocalAsset(
             baltatharAccount.address,
             baltatharAccount.address,
             new BN(1)
           )
         )
-      );
-
-      // registerAsset
-      const { events: eventsRegister } = await createBlockWithExtrinsic(
-        context,
-        baltatharAccount,
-        context.polkadotApi.tx.assetManager.registerLocalAsset()
       );
 
       // Look for assetId in events
@@ -860,23 +818,16 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
     baltatharAccount = await keyring.addFromUri(BALTATHAR_PRIV_KEY, null, "ethereum");
 
     // registerAsset
-    await createBlockWithExtrinsic(
+    const { events: eventsRegister } = await createBlockWithExtrinsic(
       context,
       sudoAccount,
       context.polkadotApi.tx.sudo.sudo(
-        context.polkadotApi.tx.assetManager.authorizeLocalAsset(
+        context.polkadotApi.tx.assetManager.registerLocalAsset(
           baltatharAccount.address,
           baltatharAccount.address,
           new BN(1)
         )
       )
-    );
-
-    // registerAsset
-    const { events: eventsRegister } = await createBlockWithExtrinsic(
-      context,
-      baltatharAccount,
-      context.polkadotApi.tx.assetManager.registerLocalAsset()
     );
 
     // Look for assetId in events
@@ -1067,23 +1018,16 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
     baltatharAccount = await keyring.addFromUri(BALTATHAR_PRIV_KEY, null, "ethereum");
 
     // registerAsset
-    await createBlockWithExtrinsic(
+    const { events: eventsRegister } = await createBlockWithExtrinsic(
       context,
       sudoAccount,
       context.polkadotApi.tx.sudo.sudo(
-        context.polkadotApi.tx.assetManager.authorizeLocalAsset(
+        context.polkadotApi.tx.assetManager.registerLocalAsset(
           baltatharAccount.address,
           baltatharAccount.address,
           new BN(1)
         )
       )
-    );
-
-    // registerAsset
-    const { events: eventsRegister } = await createBlockWithExtrinsic(
-      context,
-      baltatharAccount,
-      context.polkadotApi.tx.assetManager.registerLocalAsset()
     );
 
     // Look for assetId in events
@@ -1229,23 +1173,16 @@ describeDevMoonbeamAllEthTxTypes(
       baltatharAccount = await keyring.addFromUri(BALTATHAR_PRIV_KEY, null, "ethereum");
 
       // registerAsset
-      await createBlockWithExtrinsic(
+      const { events: eventsRegister } = await createBlockWithExtrinsic(
         context,
         sudoAccount,
         context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.assetManager.authorizeLocalAsset(
+          context.polkadotApi.tx.assetManager.registerLocalAsset(
             baltatharAccount.address,
             baltatharAccount.address,
             new BN(1)
           )
         )
-      );
-
-      // registerAsset
-      const { events: eventsRegister } = await createBlockWithExtrinsic(
-        context,
-        baltatharAccount,
-        context.polkadotApi.tx.assetManager.registerLocalAsset()
       );
 
       // Look for assetId in events
@@ -1353,23 +1290,16 @@ describeDevMoonbeamAllEthTxTypes(
       baltatharAccount = await keyring.addFromUri(BALTATHAR_PRIV_KEY, null, "ethereum");
 
       // registerAsset
-      await createBlockWithExtrinsic(
+      const { events: eventsRegister } = await createBlockWithExtrinsic(
         context,
         sudoAccount,
         context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.assetManager.authorizeLocalAsset(
+          context.polkadotApi.tx.assetManager.registerLocalAsset(
             baltatharAccount.address,
             baltatharAccount.address,
             new BN(1)
           )
         )
-      );
-
-      // registerAsset
-      const { events: eventsRegister } = await createBlockWithExtrinsic(
-        context,
-        baltatharAccount,
-        context.polkadotApi.tx.assetManager.registerLocalAsset()
       );
 
       // Look for assetId in events
@@ -1445,23 +1375,16 @@ describeDevMoonbeamAllEthTxTypes(
       baltatharAccount = await keyring.addFromUri(BALTATHAR_PRIV_KEY, null, "ethereum");
 
       // registerAsset
-      await createBlockWithExtrinsic(
+      const { events: eventsRegister } = await createBlockWithExtrinsic(
         context,
         sudoAccount,
         context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.assetManager.authorizeLocalAsset(
+          context.polkadotApi.tx.assetManager.registerLocalAsset(
             baltatharAccount.address,
             baltatharAccount.address,
             new BN(1)
           )
         )
-      );
-
-      // registerAsset
-      const { events: eventsRegister } = await createBlockWithExtrinsic(
-        context,
-        baltatharAccount,
-        context.polkadotApi.tx.assetManager.registerLocalAsset()
       );
 
       // Look for assetId in events
@@ -1544,23 +1467,16 @@ describeDevMoonbeamAllEthTxTypes(
       baltatharAccount = await keyring.addFromUri(BALTATHAR_PRIV_KEY, null, "ethereum");
 
       // registerAsset
-      await createBlockWithExtrinsic(
+      const { events: eventsRegister } = await createBlockWithExtrinsic(
         context,
         sudoAccount,
         context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.assetManager.authorizeLocalAsset(
+          context.polkadotApi.tx.assetManager.registerLocalAsset(
             baltatharAccount.address,
             baltatharAccount.address,
             new BN(1)
           )
         )
-      );
-
-      // registerAsset
-      const { events: eventsRegister } = await createBlockWithExtrinsic(
-        context,
-        baltatharAccount,
-        context.polkadotApi.tx.assetManager.registerLocalAsset()
       );
 
       // Look for assetId in events
@@ -1632,23 +1548,16 @@ describeDevMoonbeamAllEthTxTypes(
       baltatharAccount = await keyring.addFromUri(BALTATHAR_PRIV_KEY, null, "ethereum");
 
       // registerAsset
-      await createBlockWithExtrinsic(
+      const { events: eventsRegister } = await createBlockWithExtrinsic(
         context,
         sudoAccount,
         context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.assetManager.authorizeLocalAsset(
+          context.polkadotApi.tx.assetManager.registerLocalAsset(
             baltatharAccount.address,
             baltatharAccount.address,
             new BN(1)
           )
         )
-      );
-
-      // registerAsset
-      const { events: eventsRegister } = await createBlockWithExtrinsic(
-        context,
-        baltatharAccount,
-        context.polkadotApi.tx.assetManager.registerLocalAsset()
       );
 
       // Look for assetId in events
@@ -1726,23 +1635,16 @@ describeDevMoonbeamAllEthTxTypes(
       baltatharAccount = await keyring.addFromUri(BALTATHAR_PRIV_KEY, null, "ethereum");
 
       // registerAsset
-      await createBlockWithExtrinsic(
+      const { events: eventsRegister } = await createBlockWithExtrinsic(
         context,
         sudoAccount,
         context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.assetManager.authorizeLocalAsset(
+          context.polkadotApi.tx.assetManager.registerLocalAsset(
             baltatharAccount.address,
             baltatharAccount.address,
             new BN(1)
           )
         )
-      );
-
-      // registerAsset
-      const { events: eventsRegister } = await createBlockWithExtrinsic(
-        context,
-        baltatharAccount,
-        context.polkadotApi.tx.assetManager.registerLocalAsset()
       );
 
       // Look for assetId in events
@@ -1811,23 +1713,16 @@ describeDevMoonbeamAllEthTxTypes(
       baltatharAccount = await keyring.addFromUri(BALTATHAR_PRIV_KEY, null, "ethereum");
 
       // registerAsset
-      await createBlockWithExtrinsic(
+      const { events: eventsRegister } = await createBlockWithExtrinsic(
         context,
         sudoAccount,
         context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.assetManager.authorizeLocalAsset(
+          context.polkadotApi.tx.assetManager.registerLocalAsset(
             baltatharAccount.address,
             baltatharAccount.address,
             new BN(1)
           )
         )
-      );
-
-      // registerAsset
-      const { events: eventsRegister } = await createBlockWithExtrinsic(
-        context,
-        baltatharAccount,
-        context.polkadotApi.tx.assetManager.registerLocalAsset()
       );
 
       // Look for assetId in events
@@ -1896,23 +1791,16 @@ describeDevMoonbeamAllEthTxTypes(
       baltatharAccount = await keyring.addFromUri(BALTATHAR_PRIV_KEY, null, "ethereum");
 
       // registerAsset
-      await createBlockWithExtrinsic(
+      const { events: eventsRegister } = await createBlockWithExtrinsic(
         context,
         sudoAccount,
         context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.assetManager.authorizeLocalAsset(
+          context.polkadotApi.tx.assetManager.registerLocalAsset(
             baltatharAccount.address,
             baltatharAccount.address,
             new BN(1)
           )
         )
-      );
-
-      // registerAsset
-      const { events: eventsRegister } = await createBlockWithExtrinsic(
-        context,
-        baltatharAccount,
-        context.polkadotApi.tx.assetManager.registerLocalAsset()
       );
 
       // Look for assetId in events
@@ -1976,23 +1864,16 @@ describeDevMoonbeamAllEthTxTypes(
       baltatharAccount = await keyring.addFromUri(BALTATHAR_PRIV_KEY, null, "ethereum");
 
       // registerAsset
-      await createBlockWithExtrinsic(
+      const { events: eventsRegister } = await createBlockWithExtrinsic(
         context,
         sudoAccount,
         context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.assetManager.authorizeLocalAsset(
+          context.polkadotApi.tx.assetManager.registerLocalAsset(
             baltatharAccount.address,
             baltatharAccount.address,
             new BN(1)
           )
         )
-      );
-
-      // registerAsset
-      const { events: eventsRegister } = await createBlockWithExtrinsic(
-        context,
-        baltatharAccount,
-        context.polkadotApi.tx.assetManager.registerLocalAsset()
       );
 
       // Look for assetId in events
@@ -2058,23 +1939,16 @@ describeDevMoonbeamAllEthTxTypes(
       baltatharAccount = await keyring.addFromUri(BALTATHAR_PRIV_KEY, null, "ethereum");
 
       // registerAsset
-      await createBlockWithExtrinsic(
+      const { events: eventsRegister } = await createBlockWithExtrinsic(
         context,
         sudoAccount,
         context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.assetManager.authorizeLocalAsset(
+          context.polkadotApi.tx.assetManager.registerLocalAsset(
             baltatharAccount.address,
             baltatharAccount.address,
             new BN(1)
           )
         )
-      );
-
-      // registerAsset
-      const { events: eventsRegister } = await createBlockWithExtrinsic(
-        context,
-        baltatharAccount,
-        context.polkadotApi.tx.assetManager.registerLocalAsset()
       );
 
       // Look for assetId in events
@@ -2138,23 +2012,16 @@ describeDevMoonbeamAllEthTxTypes(
       baltatharAccount = await keyring.addFromUri(BALTATHAR_PRIV_KEY, null, "ethereum");
 
       // registerAsset
-      await createBlockWithExtrinsic(
+      const { events: eventsRegister } = await createBlockWithExtrinsic(
         context,
         sudoAccount,
         context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.assetManager.authorizeLocalAsset(
+          context.polkadotApi.tx.assetManager.registerLocalAsset(
             baltatharAccount.address,
             baltatharAccount.address,
             new BN(1)
           )
         )
-      );
-
-      // registerAsset
-      const { events: eventsRegister } = await createBlockWithExtrinsic(
-        context,
-        baltatharAccount,
-        context.polkadotApi.tx.assetManager.registerLocalAsset()
       );
 
       // Look for assetId in events
