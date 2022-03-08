@@ -9,6 +9,12 @@ set -e
 
 BINARY="./target/release/moonbeam"
 
+if [[ ! -f "${BINARY}" ]]; then
+    echo "binary '${BINARY}' does not exist."
+    echo "ensure that the moonbeam binary is compiled with '--features=runtime-benchmarks' and in release mode."
+    exit 1
+fi
+
 function help {
     echo "USAGE:"
     echo "  ${0} [<pallet> <extrinsic>] [--check]"
@@ -60,10 +66,9 @@ if [[ "${@}" =~ "--help" ]]; then
     help
 else
     CHECK=0
-    args="${@}"
-    if [[ "${args}" =~ "--check" ]]; then
+    if [[ "${@}" =~ "--check" ]]; then
         CHECK=1
-        set -o noglob && set -- ${args/'--check'} && set +o noglob
+        set -o noglob && set -- ${@/'--check'} && set +o noglob
     fi
 
     if [[ $# -ne 2 ]]; then
