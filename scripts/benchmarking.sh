@@ -11,7 +11,13 @@ BINARY="./target/release/moonbeam"
 
 function help {
     echo "USAGE:"
-    echo "  ${0} [<pallet> <extrinsic>]" 
+    echo "  ${0} [<pallet> <extrinsic>] [--check]"
+    echo ""
+    echo "EXAMPLES:"
+    echo "  ${0}                 " "list all benchmarks and provide a selection to choose from" 
+    echo "  ${0} --check         " "list all benchmarks and provide a selection to choose from, runs in 'check' mode (reduced steps and repetitions)" 
+    echo "  ${0} foo bar         " "run a benchmark for pallet 'foo' and benchmark 'bar'" 
+    echo "  ${0} foo bar --check " "run a benchmark for pallet 'foo' and benchmark 'bar' in 'check' mode (reduced steps and repetitions)" 
 }
 
 function choose_and_bench {
