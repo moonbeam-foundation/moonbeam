@@ -19,7 +19,7 @@ fi
 
 function help {
     echo "USAGE:"
-    echo "  ${0} [<pallet> <extrinsic>] [--check]"
+    echo "  ${0} [<pallet> <benchmark>] [--check]"
     echo ""
     echo "EXAMPLES:"
     echo "  ${0}                 " "list all benchmarks and provide a selection to choose from" 
