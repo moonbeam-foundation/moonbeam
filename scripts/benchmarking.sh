@@ -7,7 +7,9 @@
 
 set -e
 
-BINARY="./target/release/moonbeam"
+BINARY="./target/debug/moonbeam"
+STEPS=50
+REPEAT=20
 
 if [[ ! -f "${BINARY}" ]]; then
     echo "binary '${BINARY}' does not exist."
@@ -41,8 +43,6 @@ function choose_and_bench {
 
 function bench {
     echo "benchmarking '${1}::${2}' --check=${3}"
-    STEPS=32
-    REPEAT=64
     if [[ "${check}" -eq 1 ]]; then
         STEPS=16
         REPEAT=1
@@ -54,8 +54,8 @@ function bench {
         --wasm-execution=compiled \
         --pallet "${1}" \
         --extrinsic "${2}" \
-        --steps 32 \
-        --repeat 64 \
+        --steps "${STEPS}" \
+        --repeat "${REPEAT}" \
         --template=./benchmarking/frame-weight-template.hbs \
         --record-proof \
         --json-file raw.json \
