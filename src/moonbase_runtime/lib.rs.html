@@ -2015,6 +2015,7 @@
 <span id="2015">2015</span>
 <span id="2016">2016</span>
 <span id="2017">2017</span>
+<span id="2018">2018</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -2533,6 +2534,7 @@
 	<span class="kw">type</span> <span class="ident">OnChargeTransaction</span> <span class="op">=</span> <span class="ident">OnChargeEVMTransaction</span><span class="op">&lt;</span><span class="ident">DealWithFees</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">BlockGasLimit</span> <span class="op">=</span> <span class="ident">BlockGasLimit</span>;
 	<span class="kw">type</span> <span class="ident">FindAuthor</span> <span class="op">=</span> <span class="ident">FindAuthorAdapter</span><span class="op">&lt;</span><span class="ident">AccountId20</span>, <span class="ident">H160</span>, <span class="ident">AuthorInherent</span><span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">pallet_evm::weights::SubstrateWeight</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
 }
 
 <span class="macro">parameter_types!</span> {

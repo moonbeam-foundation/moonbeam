@@ -1982,6 +1982,7 @@
 <span id="1982">1982</span>
 <span id="1983">1983</span>
 <span id="1984">1984</span>
+<span id="1985">1985</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -2434,6 +2435,7 @@
 	<span class="kw">type</span> <span class="ident">OnChargeTransaction</span> <span class="op">=</span> <span class="ident">pallet_evm::EVMCurrencyAdapter</span><span class="op">&lt;</span><span class="ident">Balances</span>, <span class="ident">DealWithFees</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">BlockGasLimit</span> <span class="op">=</span> <span class="ident">BlockGasLimit</span>;
 	<span class="kw">type</span> <span class="ident">FindAuthor</span> <span class="op">=</span> <span class="ident">FindAuthorAdapter</span><span class="op">&lt;</span><span class="ident">AuthorInherent</span><span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">pallet_evm::weights::SubstrateWeight</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
 }
 
 <span class="macro">parameter_types!</span> {
