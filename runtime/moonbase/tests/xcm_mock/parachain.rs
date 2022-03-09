@@ -774,6 +774,7 @@ impl pallet_evm::Config for Runtime {
 	type OnChargeTransaction = ();
 	type BlockHashMapping = pallet_evm::SubstrateBlockHashMapping<Self>;
 	type FindAuthor = ();
+	type WeightInfo = ();
 }
 
 pub struct NormalFilter;
