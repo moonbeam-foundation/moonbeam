@@ -2,7 +2,7 @@
 name = "moonbeam-cli"
 authors = [ "PureStake" ]
 edition = "2018"
-version = "0.21.0"
+version = "0.21.1"
 
 [dependencies]
 clap = { version = "3.1", features = [ "derive" ] }
