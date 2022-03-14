@@ -7,7 +7,7 @@
 
 set -e
 
-BINARY="./target/debug/moonbeam"
+BINARY="./target/release/moonbeam"
 STEPS=50
 REPEAT=20
 
