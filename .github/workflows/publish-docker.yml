@@ -60,7 +60,6 @@ jobs:
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.licenses=${{ github.event.repository.license.spdx_id }}
 
-
       - run: |
           DOCKER_IMAGE=purestake/moonbeam
           VERSION="${{ github.event.inputs.tag }}"
