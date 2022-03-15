@@ -50,46 +50,79 @@ use sp_std::marker::PhantomData;
 
 /// Weight functions needed for parachain_staking.
 pub trait WeightInfo {
+	#[rustfmt::skip]
 	fn hotfix_remove_delegation_requests(x: u32, ) -> Weight;
+	#[rustfmt::skip]
 	fn hotfix_update_candidate_pool_value(x: u32, ) -> Weight;
+	#[rustfmt::skip]
 	fn set_staking_expectations() -> Weight;
+	#[rustfmt::skip]
 	fn set_inflation() -> Weight;
+	#[rustfmt::skip]
 	fn set_parachain_bond_account() -> Weight;
+	#[rustfmt::skip]
 	fn set_parachain_bond_reserve_percent() -> Weight;
+	#[rustfmt::skip]
 	fn set_total_selected() -> Weight;
+	#[rustfmt::skip]
 	fn set_collator_commission() -> Weight;
+	#[rustfmt::skip]
 	fn set_blocks_per_round() -> Weight;
+	#[rustfmt::skip]
 	fn join_candidates(x: u32, ) -> Weight;
+	#[rustfmt::skip]
 	fn schedule_leave_candidates(x: u32, ) -> Weight;
+	#[rustfmt::skip]
 	fn execute_leave_candidates(x: u32, ) -> Weight;
+	#[rustfmt::skip]
 	fn cancel_leave_candidates(x: u32, ) -> Weight;
+	#[rustfmt::skip]
 	fn go_offline() -> Weight;
+	#[rustfmt::skip]
 	fn go_online() -> Weight;
+	#[rustfmt::skip]
 	fn candidate_bond_more() -> Weight;
+	#[rustfmt::skip]
 	fn schedule_candidate_bond_less() -> Weight;
+	#[rustfmt::skip]
 	fn execute_candidate_bond_less() -> Weight;
+	#[rustfmt::skip]
 	fn cancel_candidate_bond_less() -> Weight;
+	#[rustfmt::skip]
 	fn delegate(x: u32, y: u32, ) -> Weight;
+	#[rustfmt::skip]
 	fn schedule_leave_delegators() -> Weight;
+	#[rustfmt::skip]
 	fn execute_leave_delegators(x: u32, ) -> Weight;
+	#[rustfmt::skip]
 	fn cancel_leave_delegators() -> Weight;
+	#[rustfmt::skip]
 	fn schedule_revoke_delegation() -> Weight;
+	#[rustfmt::skip]
 	fn delegator_bond_more() -> Weight;
+	#[rustfmt::skip]
 	fn schedule_delegator_bond_less() -> Weight;
+	#[rustfmt::skip]
 	fn execute_revoke_delegation() -> Weight;
+	#[rustfmt::skip]
 	fn execute_delegator_bond_less() -> Weight;
+	#[rustfmt::skip]
 	fn cancel_revoke_delegation() -> Weight;
+	#[rustfmt::skip]
 	fn cancel_delegator_bond_less() -> Weight;
+	#[rustfmt::skip]
 	fn round_transition_on_initialize(x: u32, y: u32, ) -> Weight;
+	#[rustfmt::skip]
 	fn pay_one_collator_reward(y: u32, ) -> Weight;
+	#[rustfmt::skip]
 	fn base_on_initialize() -> Weight;
 }
 
 /// Weights for parachain_staking using the Substrate node and recommended hardware.
-#[rustfmt::skip]
 pub struct SubstrateWeight<T>(PhantomData<T>);
 impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: ParachainStaking DelegatorState (r:1 w:1)
+	#[rustfmt::skip]
 	fn hotfix_remove_delegation_requests(x: u32, ) -> Weight {
 		(0 as Weight)
 			// Standard Error: 5_000
@@ -99,6 +132,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	}
 	// Storage: ParachainStaking CandidateInfo (r:4 w:0)
 	// Storage: ParachainStaking CandidatePool (r:1 w:1)
+	#[rustfmt::skip]
 	fn hotfix_update_candidate_pool_value(x: u32, ) -> Weight {
 		(0 as Weight)
 			// Standard Error: 174_000
@@ -107,6 +141,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add(T::DbWeight::get().writes(1 as Weight))
 	}
 	// Storage: ParachainStaking InflationConfig (r:1 w:1)
+	#[rustfmt::skip]
 	fn set_staking_expectations() -> Weight {
 		(19_066_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(1 as Weight))
@@ -114,18 +149,21 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	}
 	// Storage: ParachainStaking InflationConfig (r:1 w:1)
 	// Storage: ParachainStaking Round (r:1 w:0)
+	#[rustfmt::skip]
 	fn set_inflation() -> Weight {
 		(55_185_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
 			.saturating_add(T::DbWeight::get().writes(1 as Weight))
 	}
 	// Storage: ParachainStaking ParachainBondInfo (r:1 w:1)
+	#[rustfmt::skip]
 	fn set_parachain_bond_account() -> Weight {
 		(18_702_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(1 as Weight))
 			.saturating_add(T::DbWeight::get().writes(1 as Weight))
 	}
 	// Storage: ParachainStaking ParachainBondInfo (r:1 w:1)
+	#[rustfmt::skip]
 	fn set_parachain_bond_reserve_percent() -> Weight {
 		(18_068_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(1 as Weight))
@@ -133,12 +171,14 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	}
 	// Storage: ParachainStaking TotalSelected (r:1 w:1)
 	// Storage: ParachainStaking Round (r:1 w:0)
+	#[rustfmt::skip]
 	fn set_total_selected() -> Weight {
 		(20_989_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
 			.saturating_add(T::DbWeight::get().writes(1 as Weight))
 	}
 	// Storage: ParachainStaking CollatorCommission (r:1 w:1)
+	#[rustfmt::skip]
 	fn set_collator_commission() -> Weight {
 		(17_218_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(1 as Weight))
@@ -147,6 +187,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: ParachainStaking Round (r:1 w:1)
 	// Storage: ParachainStaking TotalSelected (r:1 w:0)
 	// Storage: ParachainStaking InflationConfig (r:1 w:1)
+	#[rustfmt::skip]
 	fn set_blocks_per_round() -> Weight {
 		(60_675_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(3 as Weight))
@@ -159,6 +200,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: ParachainStaking Total (r:1 w:1)
 	// Storage: ParachainStaking TopDelegations (r:0 w:1)
 	// Storage: ParachainStaking BottomDelegations (r:0 w:1)
+	#[rustfmt::skip]
 	fn join_candidates(x: u32, ) -> Weight {
 		(65_336_000 as Weight)
 			// Standard Error: 1_000
@@ -169,6 +211,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: ParachainStaking CandidateInfo (r:1 w:1)
 	// Storage: ParachainStaking Round (r:1 w:0)
 	// Storage: ParachainStaking CandidatePool (r:1 w:1)
+	#[rustfmt::skip]
 	fn schedule_leave_candidates(x: u32, ) -> Weight {
 		(53_788_000 as Weight)
 			// Standard Error: 1_000
@@ -183,6 +226,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: ParachainStaking DelegatorState (r:1 w:1)
 	// Storage: ParachainStaking BottomDelegations (r:1 w:1)
 	// Storage: ParachainStaking Total (r:1 w:1)
+	#[rustfmt::skip]
 	fn execute_leave_candidates(x: u32, ) -> Weight {
 		(11_502_000 as Weight)
 			// Standard Error: 10_000
@@ -194,6 +238,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	}
 	// Storage: ParachainStaking CandidateInfo (r:1 w:1)
 	// Storage: ParachainStaking CandidatePool (r:1 w:1)
+	#[rustfmt::skip]
 	fn cancel_leave_candidates(x: u32, ) -> Weight {
 		(60_402_000 as Weight)
 			// Standard Error: 2_000
@@ -203,6 +248,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	}
 	// Storage: ParachainStaking CandidateInfo (r:1 w:1)
 	// Storage: ParachainStaking CandidatePool (r:1 w:1)
+	#[rustfmt::skip]
 	fn go_offline() -> Weight {
 		(28_307_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
@@ -210,6 +256,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	}
 	// Storage: ParachainStaking CandidateInfo (r:1 w:1)
 	// Storage: ParachainStaking CandidatePool (r:1 w:1)
+	#[rustfmt::skip]
 	fn go_online() -> Weight {
 		(28_102_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
@@ -219,6 +266,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: System Account (r:1 w:1)
 	// Storage: ParachainStaking Total (r:1 w:1)
 	// Storage: ParachainStaking CandidatePool (r:1 w:1)
+	#[rustfmt::skip]
 	fn candidate_bond_more() -> Weight {
 		(46_424_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(4 as Weight))
@@ -226,6 +274,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	}
 	// Storage: ParachainStaking CandidateInfo (r:1 w:1)
 	// Storage: ParachainStaking Round (r:1 w:0)
+	#[rustfmt::skip]
 	fn schedule_candidate_bond_less() -> Weight {
 		(26_422_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
@@ -236,12 +285,14 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: System Account (r:1 w:1)
 	// Storage: ParachainStaking Total (r:1 w:1)
 	// Storage: ParachainStaking CandidatePool (r:1 w:1)
+	#[rustfmt::skip]
 	fn execute_candidate_bond_less() -> Weight {
 		(55_036_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(5 as Weight))
 			.saturating_add(T::DbWeight::get().writes(4 as Weight))
 	}
 	// Storage: ParachainStaking CandidateInfo (r:1 w:1)
+	#[rustfmt::skip]
 	fn cancel_candidate_bond_less() -> Weight {
 		(23_130_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(1 as Weight))
@@ -253,6 +304,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: ParachainStaking TopDelegations (r:1 w:1)
 	// Storage: ParachainStaking CandidatePool (r:1 w:1)
 	// Storage: ParachainStaking Total (r:1 w:1)
+	#[rustfmt::skip]
 	fn delegate(x: u32, y: u32, ) -> Weight {
 		(90_567_000 as Weight)
 			// Standard Error: 3_000
@@ -264,6 +316,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	}
 	// Storage: ParachainStaking DelegatorState (r:1 w:1)
 	// Storage: ParachainStaking Round (r:1 w:0)
+	#[rustfmt::skip]
 	fn schedule_leave_delegators() -> Weight {
 		(27_353_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
@@ -276,6 +329,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: ParachainStaking CandidatePool (r:1 w:1)
 	// Storage: System Account (r:1 w:1)
 	// Storage: ParachainStaking Total (r:1 w:1)
+	#[rustfmt::skip]
 	fn execute_leave_delegators(x: u32, ) -> Weight {
 		(0 as Weight)
 			// Standard Error: 76_000
@@ -286,6 +340,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add(T::DbWeight::get().writes((2 as Weight).saturating_mul(x as Weight)))
 	}
 	// Storage: ParachainStaking DelegatorState (r:1 w:1)
+	#[rustfmt::skip]
 	fn cancel_leave_delegators() -> Weight {
 		(24_218_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(1 as Weight))
@@ -293,6 +348,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	}
 	// Storage: ParachainStaking DelegatorState (r:1 w:1)
 	// Storage: ParachainStaking Round (r:1 w:0)
+	#[rustfmt::skip]
 	fn schedule_revoke_delegation() -> Weight {
 		(28_053_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
@@ -304,6 +360,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: ParachainStaking TopDelegations (r:1 w:1)
 	// Storage: ParachainStaking CandidatePool (r:1 w:1)
 	// Storage: ParachainStaking Total (r:1 w:1)
+	#[rustfmt::skip]
 	fn delegator_bond_more() -> Weight {
 		(64_504_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(6 as Weight))
@@ -311,6 +368,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	}
 	// Storage: ParachainStaking DelegatorState (r:1 w:1)
 	// Storage: ParachainStaking Round (r:1 w:0)
+	#[rustfmt::skip]
 	fn schedule_delegator_bond_less() -> Weight {
 		(29_017_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
@@ -323,6 +381,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: ParachainStaking CandidatePool (r:1 w:1)
 	// Storage: System Account (r:1 w:1)
 	// Storage: ParachainStaking Total (r:1 w:1)
+	#[rustfmt::skip]
 	fn execute_revoke_delegation() -> Weight {
 		(78_531_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(7 as Weight))
@@ -335,18 +394,21 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: ParachainStaking TopDelegations (r:1 w:1)
 	// Storage: ParachainStaking CandidatePool (r:1 w:1)
 	// Storage: ParachainStaking Total (r:1 w:1)
+	#[rustfmt::skip]
 	fn execute_delegator_bond_less() -> Weight {
 		(71_044_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(7 as Weight))
 			.saturating_add(T::DbWeight::get().writes(6 as Weight))
 	}
 	// Storage: ParachainStaking DelegatorState (r:1 w:1)
+	#[rustfmt::skip]
 	fn cancel_revoke_delegation() -> Weight {
 		(25_288_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(1 as Weight))
 			.saturating_add(T::DbWeight::get().writes(1 as Weight))
 	}
 	// Storage: ParachainStaking DelegatorState (r:1 w:1)
+	#[rustfmt::skip]
 	fn cancel_delegator_bond_less() -> Weight {
 		(30_562_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(1 as Weight))
@@ -368,6 +430,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: ParachainStaking AtStake (r:1 w:10)
 	// Storage: ParachainStaking SelectedCandidates (r:0 w:1)
 	// Storage: ParachainStaking DelayedPayouts (r:0 w:1)
+	#[rustfmt::skip]
 	fn round_transition_on_initialize(x: u32, y: u32, ) -> Weight {
 		(0 as Weight)
 			// Standard Error: 827_000
@@ -384,6 +447,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: ParachainStaking AwardedPts (r:2 w:1)
 	// Storage: ParachainStaking AtStake (r:1 w:1)
 	// Storage: System Account (r:1 w:1)
+	#[rustfmt::skip]
 	fn pay_one_collator_reward(y: u32, ) -> Weight {
 		(43_761_000 as Weight)
 			// Standard Error: 10_000
@@ -394,6 +458,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add(T::DbWeight::get().writes((1 as Weight).saturating_mul(y as Weight)))
 	}
 	// Storage: ParachainStaking Round (r:1 w:0)
+	#[rustfmt::skip]
 	fn base_on_initialize() -> Weight {
 		(4_892_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(1 as Weight))
@@ -403,6 +468,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 // For backwards compatibility and tests
 impl WeightInfo for () {
 	// Storage: ParachainStaking DelegatorState (r:1 w:1)
+	#[rustfmt::skip]
 	fn hotfix_remove_delegation_requests(x: u32, ) -> Weight {
 		(0 as Weight)
 			// Standard Error: 5_000
@@ -412,6 +478,7 @@ impl WeightInfo for () {
 	}
 	// Storage: ParachainStaking CandidateInfo (r:4 w:0)
 	// Storage: ParachainStaking CandidatePool (r:1 w:1)
+	#[rustfmt::skip]
 	fn hotfix_update_candidate_pool_value(x: u32, ) -> Weight {
 		(0 as Weight)
 			// Standard Error: 174_000
@@ -420,6 +487,7 @@ impl WeightInfo for () {
 			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
 	}
 	// Storage: ParachainStaking InflationConfig (r:1 w:1)
+	#[rustfmt::skip]
 	fn set_staking_expectations() -> Weight {
 		(19_066_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(1 as Weight))
@@ -427,18 +495,21 @@ impl WeightInfo for () {
 	}
 	// Storage: ParachainStaking InflationConfig (r:1 w:1)
 	// Storage: ParachainStaking Round (r:1 w:0)
+	#[rustfmt::skip]
 	fn set_inflation() -> Weight {
 		(55_185_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
 	}
 	// Storage: ParachainStaking ParachainBondInfo (r:1 w:1)
+	#[rustfmt::skip]
 	fn set_parachain_bond_account() -> Weight {
 		(18_702_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(1 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
 	}
 	// Storage: ParachainStaking ParachainBondInfo (r:1 w:1)
+	#[rustfmt::skip]
 	fn set_parachain_bond_reserve_percent() -> Weight {
 		(18_068_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(1 as Weight))
@@ -446,12 +517,14 @@ impl WeightInfo for () {
 	}
 	// Storage: ParachainStaking TotalSelected (r:1 w:1)
 	// Storage: ParachainStaking Round (r:1 w:0)
+	#[rustfmt::skip]
 	fn set_total_selected() -> Weight {
 		(20_989_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
 	}
 	// Storage: ParachainStaking CollatorCommission (r:1 w:1)
+	#[rustfmt::skip]
 	fn set_collator_commission() -> Weight {
 		(17_218_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(1 as Weight))
@@ -460,6 +533,7 @@ impl WeightInfo for () {
 	// Storage: ParachainStaking Round (r:1 w:1)
 	// Storage: ParachainStaking TotalSelected (r:1 w:0)
 	// Storage: ParachainStaking InflationConfig (r:1 w:1)
+	#[rustfmt::skip]
 	fn set_blocks_per_round() -> Weight {
 		(60_675_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(3 as Weight))
@@ -472,6 +546,7 @@ impl WeightInfo for () {
 	// Storage: ParachainStaking Total (r:1 w:1)
 	// Storage: ParachainStaking TopDelegations (r:0 w:1)
 	// Storage: ParachainStaking BottomDelegations (r:0 w:1)
+	#[rustfmt::skip]
 	fn join_candidates(x: u32, ) -> Weight {
 		(65_336_000 as Weight)
 			// Standard Error: 1_000
@@ -482,6 +557,7 @@ impl WeightInfo for () {
 	// Storage: ParachainStaking CandidateInfo (r:1 w:1)
 	// Storage: ParachainStaking Round (r:1 w:0)
 	// Storage: ParachainStaking CandidatePool (r:1 w:1)
+	#[rustfmt::skip]
 	fn schedule_leave_candidates(x: u32, ) -> Weight {
 		(53_788_000 as Weight)
 			// Standard Error: 1_000
@@ -496,6 +572,7 @@ impl WeightInfo for () {
 	// Storage: ParachainStaking DelegatorState (r:1 w:1)
 	// Storage: ParachainStaking BottomDelegations (r:1 w:1)
 	// Storage: ParachainStaking Total (r:1 w:1)
+	#[rustfmt::skip]
 	fn execute_leave_candidates(x: u32, ) -> Weight {
 		(11_502_000 as Weight)
 			// Standard Error: 10_000
@@ -507,6 +584,7 @@ impl WeightInfo for () {
 	}
 	// Storage: ParachainStaking CandidateInfo (r:1 w:1)
 	// Storage: ParachainStaking CandidatePool (r:1 w:1)
+	#[rustfmt::skip]
 	fn cancel_leave_candidates(x: u32, ) -> Weight {
 		(60_402_000 as Weight)
 			// Standard Error: 2_000
@@ -516,6 +594,7 @@ impl WeightInfo for () {
 	}
 	// Storage: ParachainStaking CandidateInfo (r:1 w:1)
 	// Storage: ParachainStaking CandidatePool (r:1 w:1)
+	#[rustfmt::skip]
 	fn go_offline() -> Weight {
 		(28_307_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
@@ -523,6 +602,7 @@ impl WeightInfo for () {
 	}
 	// Storage: ParachainStaking CandidateInfo (r:1 w:1)
 	// Storage: ParachainStaking CandidatePool (r:1 w:1)
+	#[rustfmt::skip]
 	fn go_online() -> Weight {
 		(28_102_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
@@ -532,6 +612,7 @@ impl WeightInfo for () {
 	// Storage: System Account (r:1 w:1)
 	// Storage: ParachainStaking Total (r:1 w:1)
 	// Storage: ParachainStaking CandidatePool (r:1 w:1)
+	#[rustfmt::skip]
 	fn candidate_bond_more() -> Weight {
 		(46_424_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(4 as Weight))
@@ -539,6 +620,7 @@ impl WeightInfo for () {
 	}
 	// Storage: ParachainStaking CandidateInfo (r:1 w:1)
 	// Storage: ParachainStaking Round (r:1 w:0)
+	#[rustfmt::skip]
 	fn schedule_candidate_bond_less() -> Weight {
 		(26_422_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
@@ -549,12 +631,14 @@ impl WeightInfo for () {
 	// Storage: System Account (r:1 w:1)
 	// Storage: ParachainStaking Total (r:1 w:1)
 	// Storage: ParachainStaking CandidatePool (r:1 w:1)
+	#[rustfmt::skip]
 	fn execute_candidate_bond_less() -> Weight {
 		(55_036_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(5 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(4 as Weight))
 	}
 	// Storage: ParachainStaking CandidateInfo (r:1 w:1)
+	#[rustfmt::skip]
 	fn cancel_candidate_bond_less() -> Weight {
 		(23_130_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(1 as Weight))
@@ -566,6 +650,7 @@ impl WeightInfo for () {
 	// Storage: ParachainStaking TopDelegations (r:1 w:1)
 	// Storage: ParachainStaking CandidatePool (r:1 w:1)
 	// Storage: ParachainStaking Total (r:1 w:1)
+	#[rustfmt::skip]
 	fn delegate(x: u32, y: u32, ) -> Weight {
 		(90_567_000 as Weight)
 			// Standard Error: 3_000
@@ -577,6 +662,7 @@ impl WeightInfo for () {
 	}
 	// Storage: ParachainStaking DelegatorState (r:1 w:1)
 	// Storage: ParachainStaking Round (r:1 w:0)
+	#[rustfmt::skip]
 	fn schedule_leave_delegators() -> Weight {
 		(27_353_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
@@ -589,6 +675,7 @@ impl WeightInfo for () {
 	// Storage: ParachainStaking CandidatePool (r:1 w:1)
 	// Storage: System Account (r:1 w:1)
 	// Storage: ParachainStaking Total (r:1 w:1)
+	#[rustfmt::skip]
 	fn execute_leave_delegators(x: u32, ) -> Weight {
 		(0 as Weight)
 			// Standard Error: 76_000
@@ -599,6 +686,7 @@ impl WeightInfo for () {
 			.saturating_add(RocksDbWeight::get().writes((2 as Weight).saturating_mul(x as Weight)))
 	}
 	// Storage: ParachainStaking DelegatorState (r:1 w:1)
+	#[rustfmt::skip]
 	fn cancel_leave_delegators() -> Weight {
 		(24_218_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(1 as Weight))
@@ -606,6 +694,7 @@ impl WeightInfo for () {
 	}
 	// Storage: ParachainStaking DelegatorState (r:1 w:1)
 	// Storage: ParachainStaking Round (r:1 w:0)
+	#[rustfmt::skip]
 	fn schedule_revoke_delegation() -> Weight {
 		(28_053_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
@@ -617,6 +706,7 @@ impl WeightInfo for () {
 	// Storage: ParachainStaking TopDelegations (r:1 w:1)
 	// Storage: ParachainStaking CandidatePool (r:1 w:1)
 	// Storage: ParachainStaking Total (r:1 w:1)
+	#[rustfmt::skip]
 	fn delegator_bond_more() -> Weight {
 		(64_504_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(6 as Weight))
@@ -624,6 +714,7 @@ impl WeightInfo for () {
 	}
 	// Storage: ParachainStaking DelegatorState (r:1 w:1)
 	// Storage: ParachainStaking Round (r:1 w:0)
+	#[rustfmt::skip]
 	fn schedule_delegator_bond_less() -> Weight {
 		(29_017_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
@@ -636,6 +727,7 @@ impl WeightInfo for () {
 	// Storage: ParachainStaking CandidatePool (r:1 w:1)
 	// Storage: System Account (r:1 w:1)
 	// Storage: ParachainStaking Total (r:1 w:1)
+	#[rustfmt::skip]
 	fn execute_revoke_delegation() -> Weight {
 		(78_531_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(7 as Weight))
@@ -648,18 +740,21 @@ impl WeightInfo for () {
 	// Storage: ParachainStaking TopDelegations (r:1 w:1)
 	// Storage: ParachainStaking CandidatePool (r:1 w:1)
 	// Storage: ParachainStaking Total (r:1 w:1)
+	#[rustfmt::skip]
 	fn execute_delegator_bond_less() -> Weight {
 		(71_044_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(7 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(6 as Weight))
 	}
 	// Storage: ParachainStaking DelegatorState (r:1 w:1)
+	#[rustfmt::skip]
 	fn cancel_revoke_delegation() -> Weight {
 		(25_288_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(1 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
 	}
 	// Storage: ParachainStaking DelegatorState (r:1 w:1)
+	#[rustfmt::skip]
 	fn cancel_delegator_bond_less() -> Weight {
 		(30_562_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(1 as Weight))
@@ -681,6 +776,7 @@ impl WeightInfo for () {
 	// Storage: ParachainStaking AtStake (r:1 w:10)
 	// Storage: ParachainStaking SelectedCandidates (r:0 w:1)
 	// Storage: ParachainStaking DelayedPayouts (r:0 w:1)
+	#[rustfmt::skip]
 	fn round_transition_on_initialize(x: u32, y: u32, ) -> Weight {
 		(0 as Weight)
 			// Standard Error: 827_000
@@ -697,6 +793,7 @@ impl WeightInfo for () {
 	// Storage: ParachainStaking AwardedPts (r:2 w:1)
 	// Storage: ParachainStaking AtStake (r:1 w:1)
 	// Storage: System Account (r:1 w:1)
+	#[rustfmt::skip]
 	fn pay_one_collator_reward(y: u32, ) -> Weight {
 		(43_761_000 as Weight)
 			// Standard Error: 10_000
@@ -707,6 +804,7 @@ impl WeightInfo for () {
 			.saturating_add(RocksDbWeight::get().writes((1 as Weight).saturating_mul(y as Weight)))
 	}
 	// Storage: ParachainStaking Round (r:1 w:0)
+	#[rustfmt::skip]
 	fn base_on_initialize() -> Weight {
 		(4_892_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(1 as Weight))

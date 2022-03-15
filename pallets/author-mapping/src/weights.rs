@@ -45,13 +45,18 @@
 #![allow(unused_parens)]
 #![allow(unused_imports)]
 
+#[rustfmt::skip]
 use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
+#[rustfmt::skip]
 use sp_std::marker::PhantomData;
 
 /// Weight functions needed for pallet_author_mapping.
 pub trait WeightInfo {
+	#[rustfmt::skip]
 	fn add_association() -> Weight;
+	#[rustfmt::skip]
 	fn update_association() -> Weight;
+	#[rustfmt::skip]
 	fn clear_association() -> Weight;
 }
 
@@ -61,12 +66,14 @@ pub struct SubstrateWeight<T>(PhantomData<T>);
 impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: AuthorMapping MappingWithDeposit (r:1 w:1)
 	// Storage: System Account (r:1 w:1)
+	#[rustfmt::skip]
 	fn add_association() -> Weight {
 		(34_696_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
 			.saturating_add(T::DbWeight::get().writes(2 as Weight))
 	}
 	// Storage: AuthorMapping MappingWithDeposit (r:2 w:2)
+	#[rustfmt::skip]
 	fn update_association() -> Weight {
 		(26_877_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
@@ -74,6 +81,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	}
 	// Storage: AuthorMapping MappingWithDeposit (r:1 w:1)
 	// Storage: System Account (r:1 w:1)
+	#[rustfmt::skip]
 	fn clear_association() -> Weight {
 		(36_253_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
@@ -85,12 +93,14 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 impl WeightInfo for () {
 	// Storage: AuthorMapping MappingWithDeposit (r:1 w:1)
 	// Storage: System Account (r:1 w:1)
+	#[rustfmt::skip]
 	fn add_association() -> Weight {
 		(34_696_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(2 as Weight))
 	}
 	// Storage: AuthorMapping MappingWithDeposit (r:2 w:2)
+	#[rustfmt::skip]
 	fn update_association() -> Weight {
 		(26_877_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
@@ -98,6 +108,7 @@ impl WeightInfo for () {
 	}
 	// Storage: AuthorMapping MappingWithDeposit (r:1 w:1)
 	// Storage: System Account (r:1 w:1)
+	#[rustfmt::skip]
 	fn clear_association() -> Weight {
 		(36_253_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
