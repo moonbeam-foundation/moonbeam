@@ -50,29 +50,45 @@ export async function getCommitAndLabels(
     page++;
   }
 
-  const prByLabels = {};
-  for (const commit of commits) {
-    const commitMessageFirstLine = commit.commit.message.split("\n")[0];
-    const foundPrsNumbers = commitMessageFirstLine.match(/\(#([0-9]+)\)/);
-    if (
-      !commitMessageFirstLine.startsWith("Revert ") &&
-      foundPrsNumbers &&
-      foundPrsNumbers.length > 1
-    ) {
-      const pr = await octokit.rest.pulls.get({
-        owner,
-        repo,
-        pull_number: parseInt(foundPrsNumbers[1]),
-      });
+  // Determine commits to exclude
+  // - commits reverted in the same range
+  const excludedCommits: number[] = [];
+  const revertedCommits: number[] = [];
+  for (var i = commits.length; i > 0; i--) {
+    const commitMessageFirstLine = commits[i].commit.message.split("\n")[0].trim();
 
-      if (pr.data.labels && pr.data.labels.length > 0) {
-        for (const label of pr.data.labels) {
-          prByLabels[label.name] = prByLabels[label.name] || [];
-          prByLabels[label.name].push(pr.data);
+    if (revertedCommits[commitMessageFirstLine] != null) {
+      excludedCommits.push(i);
+      excludedCommits.push(revertedCommits[commitMessageFirstLine]);
+    } else {
+      const foundRevertedCommitName = commitMessageFirstLine.match(/Revert \"(.*)\"/);
+      if (foundRevertedCommitName.length > 0) {
+        revertedCommits[foundRevertedCommitName[1]] = i;
+      }
+    }
+  }
+
+  const prByLabels = {};
+  for (var i = 0; i < commits.length; i++) {
+    const commitMessageFirstLine = commits[i].commit.message.split("\n")[0].trim();
+    if (!excludedCommits.includes(i)) {
+      const foundPrsNumbers = commitMessageFirstLine.match(/\(#([0-9]+)\)$/);
+      if (foundPrsNumbers && foundPrsNumbers.length > 1) {
+        const pr = await octokit.rest.pulls.get({
+          owner,
+          repo,
+          pull_number: parseInt(foundPrsNumbers[1]),
+        });
+
+        if (pr.data.labels && pr.data.labels.length > 0) {
+          for (const label of pr.data.labels) {
+            prByLabels[label.name] = prByLabels[label.name] || [];
+            prByLabels[label.name].push(pr.data);
+          }
+        } else {
+          prByLabels[""] = prByLabels[""] || [];
+          prByLabels[""].push(pr);
         }
-      } else {
-        prByLabels[""] = prByLabels[""] || [];
-        prByLabels[""].push(pr);
       }
     }
   }
