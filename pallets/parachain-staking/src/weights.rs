@@ -86,6 +86,7 @@ pub trait WeightInfo {
 }
 
 /// Weights for parachain_staking using the Substrate node and recommended hardware.
+#[rustfmt::skip]
 pub struct SubstrateWeight<T>(PhantomData<T>);
 impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: ParachainStaking DelegatorState (r:1 w:1)

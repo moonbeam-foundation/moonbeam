@@ -56,6 +56,7 @@ pub trait WeightInfo {
 }
 
 /// Weights for pallet_author_mapping using the Substrate node and recommended hardware.
+#[rustfmt::skip]
 pub struct SubstrateWeight<T>(PhantomData<T>);
 impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: AuthorMapping MappingWithDeposit (r:1 w:1)

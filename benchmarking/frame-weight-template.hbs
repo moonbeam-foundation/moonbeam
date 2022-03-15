@@ -44,6 +44,7 @@ pub trait WeightInfo {
 
 /// Weights for {{pallet}} using the Substrate node and recommended hardware.
 pub struct SubstrateWeight<T>(PhantomData<T>);
+#[rustfmt::skip]
 impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	{{#each benchmarks as |benchmark|}}
 	{{#each benchmark.comments as |comment|}}
