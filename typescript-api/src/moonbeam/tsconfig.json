@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "../../build",
+    "paths": {
+      "@moonbeam/api-augment/*": ["src/moonbeam/*"],
+      "@polkadot/api/augment": ["src/moonbeam/interfaces/augment-api.ts"],
+      "@polkadot/types/augment": ["src/moonbeam/interfaces/augment-types.ts"],
+      "@polkadot/types/lookup": ["src/moonbeam/interfaces/types-lookup.ts"]
+    }
+  }
+}

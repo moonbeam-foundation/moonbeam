@@ -323,7 +323,11 @@ where
 		// Get Blockchain backend
 		let blockchain = backend.blockchain();
 		// Get the header I want to work with.
-		let header = client.header(reference_id).unwrap().unwrap();
+		let header = match client.header(reference_id) {
+			Ok(Some(h)) => h,
+			_ => return Err(internal_err("Block header not found")),
+		};
+
 		// Get parent blockid.
 		let parent_block_id = BlockId::Hash(*header.parent_hash());
 
@@ -335,7 +339,9 @@ where
 		// Using storage overrides we align with `:ethereum_schema` which will result in proper
 		// SCALE decoding in case of migration.
 		let statuses = match overrides.schemas.get(&schema) {
-			Some(schema) => schema.current_transaction_statuses(&reference_id),
+			Some(schema) => schema
+				.current_transaction_statuses(&reference_id)
+				.unwrap_or_default(),
 			_ => {
 				return Err(internal_err(format!(
 					"No storage override at {:?}",
@@ -345,19 +351,18 @@ where
 		};
 
 		// Known ethereum transaction hashes.
-		let eth_tx_hashes: Vec<_> = statuses
-			.unwrap()
-			.iter()
-			.map(|t| t.transaction_hash)
-			.collect();
+		let eth_tx_hashes: Vec<_> = statuses.iter().map(|t| t.transaction_hash).collect();
 
 		// If there are no ethereum transactions in the block return empty trace right away.
 		if eth_tx_hashes.is_empty() {
 			return Ok(Response::Block(vec![]));
 		}
 
-		// Get the extrinsics.
-		let ext = blockchain.body(reference_id).unwrap().unwrap();
+		// Get block extrinsics.
+		let exts = blockchain
+			.body(reference_id)
+			.map_err(|e| internal_err(format!("Fail to read blockchain db: {:?}", e)))?
+			.unwrap_or_default();
 
 		// Trace the block.
 		let f = || -> RpcResult<_> {
@@ -365,7 +370,7 @@ where
 				.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?;
 
 			let _result = api
-				.trace_block(&parent_block_id, ext, eth_tx_hashes)
+				.trace_block(&parent_block_id, exts, eth_tx_hashes)
 				.map_err(|e| {
 					internal_err(format!(
 						"Blockchain error when replaying block {} : {:?}",
@@ -392,9 +397,9 @@ where
 							.ok_or("Trace result is empty.")
 							.map_err(|e| internal_err(format!("{:?}", e)))
 					}
-					_ => Err(internal_err(format!(
-						"Bug: failed to resolve the tracer format."
-					))),
+					_ => Err(internal_err(
+						"Bug: failed to resolve the tracer format.".to_string(),
+					)),
 				}?;
 
 				Ok(Response::Block(response))
@@ -445,12 +450,18 @@ where
 		// Get Blockchain backend
 		let blockchain = backend.blockchain();
 		// Get the header I want to work with.
-		let header = client.header(reference_id).unwrap().unwrap();
+		let header = match client.header(reference_id) {
+			Ok(Some(h)) => h,
+			_ => return Err(internal_err("Block header not found")),
+		};
 		// Get parent blockid.
 		let parent_block_id = BlockId::Hash(*header.parent_hash());
 
-		// Get the extrinsics.
-		let ext = blockchain.body(reference_id).unwrap().unwrap();
+		// Get block extrinsics.
+		let exts = blockchain
+			.body(reference_id)
+			.map_err(|e| internal_err(format!("Fail to read blockchain db: {:?}", e)))?
+			.unwrap_or_default();
 
 		// Get DebugRuntimeApi version
 		let trace_api_version = if let Ok(Some(api_version)) =
@@ -490,7 +501,7 @@ where
 
 					if trace_api_version >= 4 {
 						let _result = api
-							.trace_transaction(&parent_block_id, ext, &transaction)
+							.trace_transaction(&parent_block_id, exts, &transaction)
 							.map_err(|e| {
 								internal_err(format!(
 									"Runtime api access error (version {:?}): {:?}",
@@ -504,7 +515,7 @@ where
 							ethereum::TransactionV2::Legacy(tx) =>
 							{
 								#[allow(deprecated)]
-								api.trace_transaction_before_version_4(&parent_block_id, ext, &tx)
+								api.trace_transaction_before_version_4(&parent_block_id, exts, &tx)
 									.map_err(|e| {
 										internal_err(format!(
 											"Runtime api access error (legacy): {:?}",
@@ -538,7 +549,8 @@ where
 						);
 						proxy.using(f)?;
 						Ok(Response::Single(
-							moonbeam_client_evm_tracing::formatters::Raw::format(proxy).unwrap(),
+							moonbeam_client_evm_tracing::formatters::Raw::format(proxy)
+								.ok_or(internal_err("Fail to format proxy"))?,
 						))
 					}
 					single::TraceType::CallList => {
@@ -558,11 +570,11 @@ where
 									)
 									.ok_or("Trace result is empty.")
 									.map_err(|e| internal_err(format!("{:?}", e)))?;
-								Ok(res.pop().unwrap())
+								Ok(res.pop().expect("Trace result is empty."))
 							}
-							_ => Err(internal_err(format!(
-								"Bug: failed to resolve the tracer format."
-							))),
+							_ => Err(internal_err(
+								"Bug: failed to resolve the tracer format.".to_string(),
+							)),
 						}?;
 						Ok(Response::Single(response))
 					}

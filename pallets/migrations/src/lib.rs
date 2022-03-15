@@ -100,10 +100,17 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
+		/// Runtime upgrade started
 		RuntimeUpgradeStarted(),
-		RuntimeUpgradeCompleted(Weight),
-		MigrationStarted(Vec<u8>),
-		MigrationCompleted(Vec<u8>, Weight),
+		/// Runtime upgrade completed
+		RuntimeUpgradeCompleted { weight: Weight },
+		/// Migration started
+		MigrationStarted { migration_name: Vec<u8> },
+		/// Migration completed
+		MigrationCompleted {
+			migration_name: Vec<u8>,
+			consumed_weight: Weight,
+		},
 	}
 
 	#[pallet::hooks]
@@ -120,10 +127,12 @@ pub mod pallet {
 
 			// start by flagging that we are not fully upgraded
 			<FullyUpgraded<T>>::put(false);
-			weight += T::DbWeight::get().writes(1);
+			weight = weight.saturating_add(T::DbWeight::get().writes(1));
 			Self::deposit_event(Event::RuntimeUpgradeStarted());
 
-			weight += perform_runtime_upgrades::<T>(available_weight.saturating_sub(weight));
+			weight = weight.saturating_add(perform_runtime_upgrades::<T>(
+				available_weight.saturating_sub(weight),
+			));
 
 			if !<FullyUpgraded<T>>::get() {
 				log::error!(
@@ -264,7 +273,9 @@ pub mod pallet {
 			let migration_done = <MigrationState<T>>::get(migration_name_as_bytes);
 
 			if !migration_done {
-				<Pallet<T>>::deposit_event(Event::MigrationStarted(migration_name_as_bytes.into()));
+				<Pallet<T>>::deposit_event(Event::MigrationStarted {
+					migration_name: migration_name_as_bytes.into(),
+				});
 
 				// when we go overweight, leave a warning... there's nothing we can really do about
 				// this scenario other than hope that the block is actually accepted.
@@ -287,10 +298,10 @@ pub mod pallet {
 				);
 
 				let consumed_weight = migration.migrate(available_for_step);
-				<Pallet<T>>::deposit_event(Event::MigrationCompleted(
-					migration_name_as_bytes.into(),
-					consumed_weight,
-				));
+				<Pallet<T>>::deposit_event(Event::MigrationCompleted {
+					migration_name: migration_name_as_bytes.into(),
+					consumed_weight: consumed_weight,
+				});
 				<MigrationState<T>>::insert(migration_name_as_bytes, true);
 
 				weight = weight.saturating_add(consumed_weight);
@@ -306,8 +317,8 @@ pub mod pallet {
 		}
 
 		<FullyUpgraded<T>>::put(true);
-		weight += T::DbWeight::get().writes(1);
-		<Pallet<T>>::deposit_event(Event::RuntimeUpgradeCompleted(weight));
+		weight = weight.saturating_add(T::DbWeight::get().writes(1));
+		<Pallet<T>>::deposit_event(Event::RuntimeUpgradeCompleted { weight });
 
 		weight
 	}
