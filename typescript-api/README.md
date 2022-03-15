@@ -8,6 +8,8 @@
 npm i @moonbeam-network/api-augment
 ```
 
+> :warning: `@polkadot/api` should be installed in the project!
+
 ## Usage
 
 Add to your codebase entry point before any imports from the API itself.
