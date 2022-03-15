@@ -22,9 +22,8 @@ use frame_support::{
 	dispatch::Dispatchable,
 	traits::{GenesisBuild, OnFinalize, OnInitialize},
 };
-use frame_system::InitKind;
 pub use moonbase_runtime::{
-	currency::{UNIT, WEI},
+	currency::{GIGAWEI, SUPPLY_FACTOR, UNIT, WEI},
 	AccountId, AssetId, AssetManager, Assets, AuthorInherent, Balance, Balances, Call,
 	CrowdloanRewards, Ethereum, Event, Executive, FixedGasPrice, InflationInfo, ParachainStaking,
 	Range, Runtime, System, TransactionConverter, UncheckedExtrinsic, WEEKS,
@@ -65,11 +64,11 @@ pub fn run_to_block(n: u32, author: Option<NimbusId>) {
 				let pre_digest = Digest {
 					logs: vec![DigestItem::PreRuntime(NIMBUS_ENGINE_ID, author.encode())],
 				};
+				System::reset_events();
 				System::initialize(
 					&(System::block_number() + 1),
 					&System::parent_hash(),
 					&pre_digest,
-					InitKind::Full,
 				);
 			}
 			None => {
@@ -280,6 +279,13 @@ impl ExtBuilder {
 			&mut t,
 		)
 		.unwrap();
+
+		<pallet_base_fee::GenesisConfig<Runtime> as GenesisBuild<Runtime>>::assimilate_storage(
+			&pallet_base_fee::GenesisConfig::<Runtime>::default(),
+			&mut t,
+		)
+		.unwrap();
+
 		let mut ext = sp_io::TestExternalities::new(t);
 
 		let assets = self.assets.clone();

@@ -15,7 +15,6 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
-	sysinfo::{query_partition_info, query_system_info, PartitionInfo, SystemInfo},
 	tests::{BlockCreationPerfTest, FibonacciPerfTest, StoragePerfTest, TestResults, TestRunner},
 	txn_signer::UnsignedTransaction,
 	PerfCmd,
@@ -35,7 +34,7 @@ use sc_service::{Configuration, TFullBackend, TFullClient, TaskManager, Transact
 use sp_api::{BlockId, ConstructRuntimeApi, ProvideRuntimeApi};
 use sp_core::{H160, H256, U256};
 use sp_runtime::transaction_validity::TransactionSource;
-use std::{fs::File, io::prelude::*, marker::PhantomData, path::PathBuf, sync::Arc};
+use std::{fs::File, io::prelude::*, marker::PhantomData, sync::Arc};
 
 use futures::{
 	channel::{mpsc, oneshot},
@@ -76,7 +75,7 @@ where
 		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
 	Executor: NativeExecutionDispatch + 'static,
 {
-	pub fn from_cmd(config: Configuration, _cmd: &PerfCmd) -> CliResult<Self> {
+	pub fn from_cmd(mut config: Configuration, _cmd: &PerfCmd) -> CliResult<Self> {
 		println!("perf-test from_cmd");
 		let sc_service::PartialComponents {
 			client,
@@ -95,7 +94,7 @@ where
 					frontier_backend,
 					fee_history_cache,
 				),
-		} = service::new_partial::<RuntimeApi, Executor>(&config, true)?;
+		} = service::new_partial::<RuntimeApi, Executor>(&mut config, true)?;
 
 		// TODO: review -- we don't need any actual networking
 		let (network, system_rpc_tx, network_starter) =
@@ -116,18 +115,19 @@ where
 		// TODO: no need for prometheus here...
 		let prometheus_registry = config.prometheus_registry().cloned();
 
-		let env = sc_basic_authorship::ProposerFactory::new(
+		let mut env = sc_basic_authorship::ProposerFactory::new(
 			task_manager.spawn_handle(),
 			client.clone(),
 			transaction_pool.clone(),
 			prometheus_registry.as_ref(),
 			telemetry.as_ref().map(|x| x.handle()),
 		);
+		env.set_soft_deadline(service::SOFT_DEADLINE_PERCENT);
 
 		let command_sink;
 		let command_stream: Box<dyn Stream<Item = EngineCommand<H256>> + Send + Sync + Unpin> = {
 			let (sink, stream) = mpsc::channel(1000);
-			command_sink = Some(sink);
+			command_sink = sink;
 			Box::new(stream)
 		};
 
@@ -201,7 +201,14 @@ where
 			fee_history_cache: fee_history_cache.clone(),
 		});
 
-		let command_sink_for_deps = command_sink.clone();
+		let command_sink_for_deps = Some(command_sink.clone());
+
+		let block_data_cache = Arc::new(fc_rpc::EthBlockDataCache::new(
+			task_manager.spawn_handle(),
+			overrides.clone(),
+			3000,
+			3000,
+		));
 
 		let rpc_extensions_builder = {
 			let client = client.clone();
@@ -211,6 +218,7 @@ where
 			let max_past_logs = 1000;
 			let fee_history_cache = fee_history_cache.clone();
 			let overrides = overrides.clone();
+			let block_data_cache = block_data_cache.clone();
 
 			Box::new(move |deny_unsafe, _| {
 				let deps = rpc::FullDeps {
@@ -222,7 +230,6 @@ where
 					network: network.clone(),
 					filter_pool: filter_pool.clone(),
 					ethapi_cmd: Default::default(),
-					eth_log_block_cache: 3000,
 					command_sink: command_sink_for_deps.clone(),
 					frontier_backend: frontier_backend.clone(),
 					backend: backend.clone(),
@@ -230,9 +237,11 @@ where
 					fee_history_limit,
 					fee_history_cache: fee_history_cache.clone(),
 					xcm_senders: None,
+					overrides: overrides.clone(),
+					block_data_cache: block_data_cache.clone(),
 				};
 				#[allow(unused_mut)]
-				let mut io = rpc::create_full(deps, subscription_task_executor.clone(), overrides.clone());
+				let mut io = rpc::create_full(deps, subscription_task_executor.clone());
 				Ok(io)
 			})
 		};
@@ -255,7 +264,7 @@ where
 		Ok(TestContext {
 			_task_manager: task_manager,
 			client: client.clone(),
-			manual_seal_command_sink: command_sink.unwrap(),
+			manual_seal_command_sink: command_sink,
 			pool: transaction_pool,
 			_marker1: Default::default(),
 			_marker2: Default::default(),
@@ -450,12 +459,7 @@ impl CliConfiguration for PerfCmd {
 
 impl PerfCmd {
 	// taking a different approach and starting a full dev service
-	pub fn run<RuntimeApi, Executor>(
-		&self,
-		path: &PathBuf,
-		cmd: &PerfCmd,
-		config: Configuration,
-	) -> CliResult<()>
+	pub fn run<RuntimeApi, Executor>(&self, cmd: &PerfCmd, config: Configuration) -> CliResult<()>
 	where
 		RuntimeApi:
 			ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
@@ -495,31 +499,16 @@ impl PerfCmd {
 			all_test_results.append(&mut results);
 		}
 
-		let (system_info, partition_info) = if cmd.disable_sysinfo {
-			(None, None)
-		} else {
-			let sys = query_system_info()?;
-			let part = query_partition_info(path).unwrap_or_else(|_| {
-				// TODO: this is inconsistent with behavior of query_system_info...
-				eprintln!("query_partition_info() failed, ignoring...");
-				Default::default()
-			});
-			(Some(sys), Some(part))
-		};
-
 		#[derive(Serialize)]
 		struct AllResults {
 			test_results: Vec<TestResults>,
-			system_info: Option<SystemInfo>,
-			partition_info: Option<PartitionInfo>,
 		}
 
 		let all_results = AllResults {
 			test_results: all_test_results.clone(),
-			system_info,
-			partition_info,
 		};
-		let results_str = serde_json::to_string_pretty(&all_results).unwrap();
+		let results_str =
+			serde_json::to_string_pretty(&all_results).expect("fail to serialize AllResults");
 
 		if let Some(target) = &cmd.output_file {
 			let mut file = File::create(target)?;
