@@ -48,7 +48,7 @@
 #[rustfmt::skip]
 use frame_support::{
 	traits::Get,
-	weights::{Weight, constants::RocksDbWeight},
+	weights::{constants::RocksDbWeight, Weight},
 };
 #[rustfmt::skip]
 use sp_std::marker::PhantomData;
