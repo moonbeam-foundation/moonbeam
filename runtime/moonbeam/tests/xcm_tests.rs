@@ -32,8 +32,7 @@ use xcm::latest::prelude::QueryResponse;
 use xcm::latest::{
 	Junction::{self, AccountId32, AccountKey20, PalletInstance, Parachain},
 	Junctions::*,
-	MultiLocation, NetworkId, Response, Xcm,
-	OriginKind
+	MultiLocation, NetworkId, OriginKind, Response, Xcm,
 };
 use xcm_executor::traits::Convert;
 use xcm_simulator::TestExt;
