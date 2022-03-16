@@ -18,6 +18,7 @@ use crowdloan_rewards_precompiles::CrowdloanRewardsWrapper;
 use fp_evm::Context;
 use moonbeam_relay_encoder::polkadot::PolkadotEncoder;
 use pallet_author_mapping_precompiles::AuthorMappingWrapper;
+use pallet_democracy_precompiles::DemocracyWrapper;
 use pallet_evm::{AddressMapping, Precompile, PrecompileResult, PrecompileSet};
 use pallet_evm_precompile_assets_erc20::Erc20AssetsPrecompileSet;
 use pallet_evm_precompile_balances_erc20::{Erc20BalancesPrecompile, Erc20Metadata};
@@ -79,7 +80,8 @@ where
 	/// under the precompile.
 	pub fn used_addresses() -> impl Iterator<Item = R::AccountId> {
 		sp_std::vec![
-			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2050, 2052, 2053, 2054, 2055
+			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2050, 2051, 2052, 2053, 2054,
+			2055
 		]
 		.into_iter()
 		.map(|x| R::AddressMapping::into_account_id(hash(x)))
@@ -104,6 +106,7 @@ where
 	XtokensWrapper<R>: Precompile,
 	RelayEncoderWrapper<R, PolkadotEncoder>: Precompile,
 	XcmTransactorWrapper<R>: Precompile,
+	DemocracyWrapper<R>: Precompile,
 	AuthorMappingWrapper<R>: Precompile,
 	R: pallet_evm::Config,
 {
@@ -148,6 +151,9 @@ where
 					input, target_gas, context, is_static,
 				))
 			}
+			a if a == hash(2051) => Some(DemocracyWrapper::<R>::execute(
+				input, target_gas, context, is_static,
+			)),
 			a if a == hash(2052) => Some(XtokensWrapper::<R>::execute(
 				input, target_gas, context, is_static,
 			)),
@@ -176,4 +182,36 @@ where
 
 fn hash(a: u64) -> H160 {
 	H160::from_low_u64_be(a)
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+	use crate::Runtime;
+
+	#[test]
+	fn test_democracy_module_is_enabled() {
+		let democracy_addr = hash(2052);
+
+		let precompiles = MoonbeamPrecompiles::<Runtime>::new();
+		let exec = precompiles.execute(
+			democracy_addr,
+			&[0],
+			None,
+			&Context {
+				address: Default::default(),
+				caller: Default::default(),
+				apparent_value: From::from(0u8),
+			},
+			false,
+		);
+		assert!(
+			precompiles.is_precompile(democracy_addr),
+			"democracy precompile address is not in use"
+		);
+		assert!(
+			exec.is_some(),
+			"democracy precompile execution must not return None"
+		);
+	}
 }
