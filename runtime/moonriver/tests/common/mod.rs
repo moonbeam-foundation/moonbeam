@@ -24,10 +24,10 @@ use frame_support::{
 };
 pub use moonriver_runtime::{
 	currency::{GIGAWEI, MOVR, SUPPLY_FACTOR, WEI},
-	AccountId, AssetId, AssetManager, AssetRegistrarMetadata, AssetType, Assets, AuthorInherent,
-	Balance, Balances, Call, CrowdloanRewards, Ethereum, Event, Executive, FixedGasPrice,
-	InflationInfo, ParachainStaking, Range, Runtime, System, TransactionConverter,
-	UncheckedExtrinsic, WEEKS,
+	xcm_config::AssetType,
+	AccountId, AssetId, AssetManager, AssetRegistrarMetadata, Assets, AuthorInherent, Balance,
+	Balances, Call, CrowdloanRewards, Ethereum, Event, Executive, FixedGasPrice, InflationInfo,
+	ParachainStaking, Range, Runtime, System, TransactionConverter, UncheckedExtrinsic, WEEKS,
 };
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
 use pallet_evm::GenesisAccount;
