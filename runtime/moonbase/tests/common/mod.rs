@@ -28,7 +28,7 @@ pub use moonbase_runtime::{
 	CrowdloanRewards, Ethereum, Event, Executive, FixedGasPrice, InflationInfo, LocalAssets,
 	ParachainStaking, Range, Runtime, System, TransactionConverter, UncheckedExtrinsic, WEEKS,
 };
-use moonbase_runtime::{AssetRegistrarMetadata, AssetType};
+use moonbase_runtime::{xcm_config::AssetType, AssetRegistrarMetadata};
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
 use pallet_evm::GenesisAccount;
 use sp_core::{Encode, H160};

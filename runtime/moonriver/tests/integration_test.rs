@@ -33,8 +33,9 @@ use frame_support::{
 	StorageHasher, Twox128,
 };
 use moonriver_runtime::{
-	AssetId, BaseFee, BlockWeights, CurrencyId, LocalAssets, PolkadotXcm, Precompiles, XTokens,
-	XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	xcm_config::CurrencyId, AssetId, BaseFee, BlockWeights, LocalAssets, PolkadotXcm, Precompiles,
+	XTokens, XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
@@ -2374,116 +2375,6 @@ fn xtokens_precompiles_transfer_multiasset() {
 }
 
 #[test]
-fn xtokens_precompiles_transfer_native() {
-	ExtBuilder::default()
-		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * MOVR),
-			(AccountId::from(BOB), 1_000 * MOVR),
-		])
-		.with_safe_xcm_version(2)
-		.build()
-		.execute_with(|| {
-			let xtokens_precompile_address = H160::from_low_u64_be(2052);
-
-			// Its address is
-			let asset_precompile_address = H160::from_low_u64_be(2050);
-
-			// Alice has 1000 tokens. She should be able to send through precompile
-			let destination = MultiLocation::new(
-				1,
-				Junctions::X1(Junction::AccountId32 {
-					network: NetworkId::Any,
-					id: [1u8; 32],
-				}),
-			);
-
-			// We use the address of the asset as an identifier of the asset we want to transferS
-			assert_eq!(
-				Precompiles::new().execute(
-					xtokens_precompile_address,
-					&EvmDataWriter::new_with_selector(XtokensAction::Transfer)
-						.write(EvmAddress(asset_precompile_address))
-						.write(U256::from(500 * MOVR))
-						.write(destination.clone())
-						.write(U256::from(4000000))
-						.build(),
-					None,
-					&Context {
-						address: xtokens_precompile_address,
-						caller: ALICE.into(),
-						apparent_value: From::from(0),
-					},
-					false,
-				),
-				Some(Ok(PrecompileOutput {
-					exit_status: ExitSucceed::Returned,
-					cost: 20000,
-					output: vec![],
-					logs: vec![]
-				}))
-			);
-		})
-}
-
-#[test]
-fn xtokens_precompile_transfer_local_asset() {
-	ExtBuilder::default()
-		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * MOVR),
-			(AccountId::from(BOB), 1_000 * MOVR),
-		])
-		.with_local_assets(vec![(
-			0u128,
-			vec![(AccountId::from(ALICE), 1_000 * MOVR)],
-			AccountId::from(ALICE),
-		)])
-		.with_safe_xcm_version(2)
-		.build()
-		.execute_with(|| {
-			let xtokens_precompile_address = H160::from_low_u64_be(2052);
-
-			// Its address is
-			let asset_precompile_address =
-				Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, 0u128).into();
-
-			// Alice has 1000 tokens. She should be able to send through precompile
-			let destination = MultiLocation::new(
-				1,
-				Junctions::X1(Junction::AccountId32 {
-					network: NetworkId::Any,
-					id: [1u8; 32],
-				}),
-			);
-
-			// We use the address of the asset as an identifier of the asset we want to transferS
-			assert_eq!(
-				Precompiles::new().execute(
-					xtokens_precompile_address,
-					&EvmDataWriter::new_with_selector(XtokensAction::Transfer)
-						.write(EvmAddress(asset_precompile_address))
-						.write(U256::from(500 * MOVR))
-						.write(destination.clone())
-						.write(U256::from(4000000))
-						.build(),
-					None,
-					&Context {
-						address: xtokens_precompile_address,
-						caller: ALICE.into(),
-						apparent_value: From::from(0),
-					},
-					false,
-				),
-				Some(Ok(PrecompileOutput {
-					exit_status: ExitSucceed::Returned,
-					cost: 20000,
-					output: vec![],
-					logs: vec![]
-				}))
-			);
-		})
-}
-
-#[test]
 fn make_sure_polkadot_xcm_cannot_be_called() {
 	ExtBuilder::default()
 		.with_balances(vec![
@@ -2505,7 +2396,7 @@ fn make_sure_polkadot_xcm_cannot_be_called() {
 				}),
 			};
 			let multiassets: MultiAssets = [MultiAsset {
-				id: Concrete(moonriver_runtime::SelfLocation::get()),
+				id: Concrete(moonriver_runtime::xcm_config::SelfLocation::get()),
 				fun: Fungible(1000),
 			}]
 			.to_vec()
@@ -2566,7 +2457,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 			assert_noop!(
 				XcmTransactor::transact_through_derivative_multilocation(
 					origin_of(AccountId::from(ALICE)),
-					moonriver_runtime::Transactors::Relay,
+					moonriver_runtime::xcm_config::Transactors::Relay,
 					0,
 					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 					// 2000 is the max
@@ -2578,9 +2469,9 @@ fn transactor_cannot_use_more_than_max_weight() {
 			assert_noop!(
 				XcmTransactor::transact_through_derivative(
 					origin_of(AccountId::from(ALICE)),
-					moonriver_runtime::Transactors::Relay,
+					moonriver_runtime::xcm_config::Transactors::Relay,
 					0,
-					moonriver_runtime::CurrencyId::ForeignAsset(source_id),
+					moonriver_runtime::xcm_config::CurrencyId::ForeignAsset(source_id),
 					// 20000 is the max
 					17000,
 					vec![],
