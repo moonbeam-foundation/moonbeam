@@ -662,10 +662,12 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     const { events: eventsRegister } = await createBlockWithExtrinsic(
       context,
       alith,
-      context.polkadotApi.tx.assetManager.registerLocalAsset(
-        baltathar.address,
-        baltathar.address,
-        new BN(1)
+      context.polkadotApi.tx.sudo.sudo(
+        context.polkadotApi.tx.assetManager.registerLocalAsset(
+          baltathar.address,
+          baltathar.address,
+          new BN(1)
+        )
       )
     );
 
@@ -1000,10 +1002,12 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     const { events: eventsRegister } = await createBlockWithExtrinsic(
       context,
       alith,
-      context.polkadotApi.tx.assetManager.registerLocalAsset(
-        baltathar.address,
-        baltathar.address,
-        new BN(1)
+      context.polkadotApi.tx.sudo.sudo(
+        context.polkadotApi.tx.assetManager.registerLocalAsset(
+          baltathar.address,
+          baltathar.address,
+          new BN(1)
+        )
       )
     );
 
