@@ -2,9 +2,12 @@ import { ethers } from "ethers";
 import { expect } from "chai";
 
 import {
-  ALITH, ALITH_PRIV_KEY,
-  BALTATHAR, BALTATHAR_PRIV_KEY,
-  GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY
+  ALITH,
+  ALITH_PRIV_KEY,
+  BALTATHAR,
+  BALTATHAR_PRIV_KEY,
+  GENESIS_ACCOUNT,
+  GENESIS_ACCOUNT_PRIVATE_KEY,
 } from "../util/constants";
 import { customWeb3Request } from "../util/providers";
 import { getCompiled } from "../util/contracts";
@@ -67,15 +70,24 @@ describeDevMoonbeam("Contract can satisfy origin", (context) => {
     });
     await context.createBlock({ transactions: [join_tx] });
 
-    let isContractCandidateResult
-      = await callPrecompile(context, ADDRESS_STAKING, SELECTORS, "is_candidate", [address]);
+    let isContractCandidateResult = await callPrecompile(
+      context,
+      ADDRESS_STAKING,
+      SELECTORS,
+      "is_candidate",
+      [address]
+    );
     expect(Number(isContractCandidateResult.result)).to.equal(1);
 
     // baltathar sent the original transaction but it should be the contract itself that is the new
     // candidate
-    let isBaltatharCandidateResult
-      = await callPrecompile(context, ADDRESS_STAKING, SELECTORS, "is_candidate", [BALTATHAR]);
+    let isBaltatharCandidateResult = await callPrecompile(
+      context,
+      ADDRESS_STAKING,
+      SELECTORS,
+      "is_candidate",
+      [BALTATHAR]
+    );
     expect(Number(isBaltatharCandidateResult.result)).to.equal(0);
-
   });
 });
