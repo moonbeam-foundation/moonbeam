@@ -36,7 +36,7 @@ const SELECTORS = {
   nominator_nomination_count: "dae5659b",
 };
 
-describeDevMoonbeam("Contract can be origin", (context) => {
+describeDevMoonbeam("Contract can satisfy origin", (context) => {
   it("allow contract to be a staker", async function () {
     const contractData = await getCompiled("JoinCandidatesWrapper");
     const iFace = new ethers.utils.Interface(contractData.contract.abi);
@@ -44,11 +44,8 @@ describeDevMoonbeam("Contract can be origin", (context) => {
     const address = contract.options.address;
     await context.createBlock({ transactions: [rawTx] });
 
-    console.log("contract: " + address);
-
     let data = iFace.encodeFunctionData("join");
 
-    console.log("paying contract...");
     const pay_tx = await createTransaction(context, {
       from: BALTATHAR,
       privateKey: BALTATHAR_PRIV_KEY,
@@ -59,7 +56,6 @@ describeDevMoonbeam("Contract can be origin", (context) => {
     });
     await context.createBlock({ transactions: [pay_tx] });
 
-    console.log("attempting to join...");
     const join_tx = await createTransaction(context, {
       from: BALTATHAR,
       privateKey: BALTATHAR_PRIV_KEY,
@@ -71,10 +67,14 @@ describeDevMoonbeam("Contract can be origin", (context) => {
     });
     await context.createBlock({ transactions: [join_tx] });
 
-    let isContractCandidateResult = await callPrecompile(context, ADDRESS_STAKING, SELECTORS, "is_candidate", [address]);
+    let isContractCandidateResult
+      = await callPrecompile(context, ADDRESS_STAKING, SELECTORS, "is_candidate", [address]);
     expect(Number(isContractCandidateResult.result)).to.equal(1);
 
-    let isBaltatharCandidateResult = await callPrecompile(context, ADDRESS_STAKING, SELECTORS, "is_candidate", [BALTATHAR]);
+    // baltathar sent the original transaction but it should be the contract itself that is the new
+    // candidate
+    let isBaltatharCandidateResult
+      = await callPrecompile(context, ADDRESS_STAKING, SELECTORS, "is_candidate", [BALTATHAR]);
     expect(Number(isBaltatharCandidateResult.result)).to.equal(0);
 
   });
