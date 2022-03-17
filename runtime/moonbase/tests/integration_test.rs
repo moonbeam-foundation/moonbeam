@@ -30,10 +30,11 @@ use frame_support::{
 	StorageHasher, Twox128,
 };
 use moonbase_runtime::{
-	currency::UNIT, AccountId, AssetId, AssetManager, AssetRegistrarMetadata, AssetType, Assets,
-	Balances, BaseFee, BlockWeights, Call, CrowdloanRewards, Event, ParachainStaking, PolkadotXcm,
-	Precompiles, Runtime, System, XTokens, XcmTransactor,
+	currency::UNIT, xcm_config::AssetType, AccountId, AssetId, AssetManager,
+	AssetRegistrarMetadata, Assets, Balances, BaseFee, BlockWeights, Call, CrowdloanRewards, Event,
+	ParachainStaking, PolkadotXcm, Precompiles, Runtime, System, XTokens, XcmTransactor,
 };
+
 use nimbus_primitives::NimbusId;
 use pallet_author_mapping_precompiles::Action as AuthorMappingAction;
 use pallet_evm::PrecompileSet;
@@ -48,7 +49,7 @@ use sha3::{Digest, Keccak256};
 use sp_core::{crypto::UncheckedFrom, ByteArray, Pair, H160, U256};
 use sp_runtime::{
 	traits::{Convert, One},
-	DispatchError,
+	DispatchError, ModuleError,
 };
 use xcm::latest::prelude::*;
 
@@ -301,11 +302,11 @@ fn join_collator_candidates() {
 			));
 			assert_eq!(
 				last_event(),
-				Event::ParachainStaking(parachain_staking::Event::JoinedCollatorCandidates(
-					AccountId::from(DAVE),
-					1_000 * UNIT,
-					3_100 * UNIT
-				))
+				Event::ParachainStaking(parachain_staking::Event::JoinedCollatorCandidates {
+					account: AccountId::from(DAVE),
+					amount_locked: 1_000 * UNIT,
+					new_total_amt_locked: 3_100 * UNIT
+				})
 			);
 			let candidates = ParachainStaking::candidate_pool();
 			assert_eq!(candidates.0[0].owner, AccountId::from(ALICE));
@@ -330,11 +331,11 @@ fn transfer_through_evm_to_stake() {
 					1_000 * UNIT,
 					0u32
 				),
-				DispatchError::Module {
+				DispatchError::Module(ModuleError {
 					index: 3,
 					error: 2,
 					message: Some("InsufficientBalance")
-				}
+				})
 			);
 
 			// Alice transfer from free balance 2000 UNIT to Bob
@@ -534,11 +535,11 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 			.dispatch(root_origin()));
 			let expected_fail = Event::Utility(pallet_utility::Event::BatchInterrupted {
 				index: 0,
-				error: DispatchError::Module {
+				error: DispatchError::Module(ModuleError {
 					index: 20,
 					error: 8,
 					message: None,
-				},
+				}),
 			});
 			assert_eq!(last_event(), expected_fail);
 			// Claim 1 block.
@@ -1146,7 +1147,7 @@ fn asset_erc20_precompiles_transfer() {
 			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(true).build(),
-				cost: 25084u64,
+				cost: 23516u64,
 				logs: LogsBuilder::new(asset_precompile_address)
 					.log3(
 						SELECTOR_LOG_TRANSFER,
@@ -1220,7 +1221,7 @@ fn asset_erc20_precompiles_approve() {
 			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(true).build(),
-				cost: 15035u64,
+				cost: 13989u64,
 				logs: LogsBuilder::new(asset_precompile_address)
 					.log3(
 						SELECTOR_LOG_APPROVAL,
@@ -1254,7 +1255,7 @@ fn asset_erc20_precompiles_approve() {
 			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(true).build(),
-				cost: 31042u64,
+				cost: 29006u64,
 				logs: LogsBuilder::new(asset_precompile_address)
 					.log3(
 						SELECTOR_LOG_TRANSFER,
@@ -1634,7 +1635,7 @@ fn root_can_change_default_xcm_vers() {
 			assert_noop!(
 				XTokens::transfer(
 					origin_of(AccountId::from(ALICE)),
-					moonbase_runtime::CurrencyId::OtherReserve(source_id),
+					moonbase_runtime::xcm_config::CurrencyId::OtherReserve(source_id),
 					100_000_000_000_000,
 					Box::new(xcm::VersionedMultiLocation::V1(dest.clone())),
 					4000000000
@@ -1651,7 +1652,7 @@ fn root_can_change_default_xcm_vers() {
 			// Now transferring does not fail
 			assert_ok!(XTokens::transfer(
 				origin_of(AccountId::from(ALICE)),
-				moonbase_runtime::CurrencyId::OtherReserve(source_id),
+				moonbase_runtime::xcm_config::CurrencyId::OtherReserve(source_id),
 				100_000_000_000_000,
 				Box::new(xcm::VersionedMultiLocation::V1(dest)),
 				4000000000
@@ -1699,7 +1700,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 			assert_noop!(
 				XcmTransactor::transact_through_derivative_multilocation(
 					origin_of(AccountId::from(ALICE)),
-					moonbase_runtime::Transactors::Relay,
+					moonbase_runtime::xcm_config::Transactors::Relay,
 					0,
 					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 					// 20000the max
@@ -1711,9 +1712,9 @@ fn transactor_cannot_use_more_than_max_weight() {
 			assert_noop!(
 				XcmTransactor::transact_through_derivative(
 					origin_of(AccountId::from(ALICE)),
-					moonbase_runtime::Transactors::Relay,
+					moonbase_runtime::xcm_config::Transactors::Relay,
 					0,
-					moonbase_runtime::CurrencyId::OtherReserve(source_id),
+					moonbase_runtime::xcm_config::CurrencyId::OtherReserve(source_id),
 					// 20000 is the max
 					17000,
 					vec![],
@@ -1769,10 +1770,10 @@ fn author_mapping_precompile_associate_update_and_clear() {
 			);
 
 			let expected_associate_event =
-				Event::AuthorMapping(pallet_author_mapping::Event::AuthorRegistered(
-					first_nimbus_id.clone(),
-					AccountId::from(ALICE),
-				));
+				Event::AuthorMapping(pallet_author_mapping::Event::AuthorRegistered {
+					author_id: first_nimbus_id.clone(),
+					account_id: AccountId::from(ALICE),
+				});
 			assert_eq!(last_event(), expected_associate_event);
 
 			let update_expected_result = Some(Ok(PrecompileOutput {
@@ -1802,10 +1803,10 @@ fn author_mapping_precompile_associate_update_and_clear() {
 			);
 
 			let expected_update_event =
-				Event::AuthorMapping(pallet_author_mapping::Event::AuthorRotated(
-					second_nimbus_id.clone(),
-					AccountId::from(ALICE),
-				));
+				Event::AuthorMapping(pallet_author_mapping::Event::AuthorRotated {
+					new_author_id: second_nimbus_id.clone(),
+					account_id: AccountId::from(ALICE),
+				});
 			assert_eq!(last_event(), expected_update_event);
 
 			let clear_expected_result = Some(Ok(PrecompileOutput {
@@ -1833,9 +1834,10 @@ fn author_mapping_precompile_associate_update_and_clear() {
 				clear_expected_result
 			);
 
-			let expected_clear_event = Event::AuthorMapping(
-				pallet_author_mapping::Event::AuthorDeRegistered(second_nimbus_id.clone()),
-			);
+			let expected_clear_event =
+				Event::AuthorMapping(pallet_author_mapping::Event::AuthorDeRegistered {
+					author_id: second_nimbus_id.clone(),
+				});
 			assert_eq!(last_event(), expected_clear_event);
 		});
 }

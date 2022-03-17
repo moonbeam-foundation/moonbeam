@@ -449,25 +449,19 @@ pub fn run() -> Result<()> {
 				#[cfg(feature = "moonbeam-native")]
 				spec if spec.is_moonbeam() => runner.sync_run(|config| {
 					cmd.run::<service::moonbeam_runtime::RuntimeApi, service::MoonbeamExecutor>(
-						&working_dir,
-						&cmd,
-						config,
+						&cmd, config,
 					)
 				}),
 				#[cfg(feature = "moonriver-native")]
 				spec if spec.is_moonriver() => runner.sync_run(|config| {
 					cmd.run::<service::moonriver_runtime::RuntimeApi, service::MoonriverExecutor>(
-						&working_dir,
-						&cmd,
-						config,
+						&cmd, config,
 					)
 				}),
 				#[cfg(feature = "moonbase-native")]
 				spec if spec.is_moonbase() => runner.sync_run(|config| {
 					cmd.run::<service::moonbase_runtime::RuntimeApi, service::MoonbaseExecutor>(
-						&working_dir,
-						&cmd,
-						config,
+						&cmd, config,
 					)
 				}),
 				_ => {

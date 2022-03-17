@@ -73,7 +73,7 @@ impl From<&str> for Bytes {
 }
 
 impl Into<Vec<u8>> for Bytes {
-	fn into(self: Self) -> Vec<u8> {
+	fn into(self) -> Vec<u8> {
 		self.0
 	}
 }
