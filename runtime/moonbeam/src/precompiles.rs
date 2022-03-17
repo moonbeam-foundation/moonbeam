@@ -183,35 +183,3 @@ where
 fn hash(a: u64) -> H160 {
 	H160::from_low_u64_be(a)
 }
-
-#[cfg(test)]
-mod tests {
-	use super::*;
-	use crate::Runtime;
-
-	#[test]
-	fn test_democracy_module_is_enabled() {
-		let democracy_addr = hash(2052);
-
-		let precompiles = MoonbeamPrecompiles::<Runtime>::new();
-		let exec = precompiles.execute(
-			democracy_addr,
-			&[0],
-			None,
-			&Context {
-				address: Default::default(),
-				caller: Default::default(),
-				apparent_value: From::from(0u8),
-			},
-			false,
-		);
-		assert!(
-			precompiles.is_precompile(democracy_addr),
-			"democracy precompile address is not in use"
-		);
-		assert!(
-			exec.is_some(),
-			"democracy precompile execution must not return None"
-		);
-	}
-}
