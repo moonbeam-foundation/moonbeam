@@ -30,10 +30,11 @@ use frame_support::{
 	StorageHasher, Twox128,
 };
 use moonbase_runtime::{
-	currency::UNIT, AccountId, AssetId, AssetManager, AssetRegistrarMetadata, AssetType, Assets,
-	Balances, BaseFee, BlockWeights, Call, CrowdloanRewards, Event, ParachainStaking, PolkadotXcm,
-	Precompiles, Runtime, System, XTokens, XcmTransactor,
+	currency::UNIT, xcm_config::AssetType, AccountId, AssetId, AssetManager,
+	AssetRegistrarMetadata, Assets, Balances, BaseFee, BlockWeights, Call, CrowdloanRewards, Event,
+	ParachainStaking, PolkadotXcm, Precompiles, Runtime, System, XTokens, XcmTransactor,
 };
+
 use nimbus_primitives::NimbusId;
 use pallet_author_mapping_precompiles::Action as AuthorMappingAction;
 use pallet_evm::PrecompileSet;
@@ -45,11 +46,10 @@ use xtokens_precompiles::Action as XtokensAction;
 use pallet_transaction_payment::Multiplier;
 use parity_scale_codec::Encode;
 use sha3::{Digest, Keccak256};
-use sp_core::Pair;
-use sp_core::{crypto::UncheckedFrom, Public, H160, U256};
+use sp_core::{crypto::UncheckedFrom, ByteArray, Pair, H160, U256};
 use sp_runtime::{
 	traits::{Convert, One},
-	DispatchError,
+	DispatchError, ModuleError,
 };
 use xcm::latest::prelude::*;
 
@@ -194,7 +194,7 @@ fn verify_pallet_prefixes() {
 			storage_name: b"MaintenanceMode".to_vec(),
 			prefix: prefix(b"MaintenanceMode", b"MaintenanceMode"),
 			max_values: Some(1),
-			max_size: Some(1),
+			max_size: None,
 		},]
 	);
 }
@@ -302,11 +302,11 @@ fn join_collator_candidates() {
 			));
 			assert_eq!(
 				last_event(),
-				Event::ParachainStaking(parachain_staking::Event::JoinedCollatorCandidates(
-					AccountId::from(DAVE),
-					1_000 * UNIT,
-					3_100 * UNIT
-				))
+				Event::ParachainStaking(parachain_staking::Event::JoinedCollatorCandidates {
+					account: AccountId::from(DAVE),
+					amount_locked: 1_000 * UNIT,
+					new_total_amt_locked: 3_100 * UNIT
+				})
 			);
 			let candidates = ParachainStaking::candidate_pool();
 			assert_eq!(candidates.0[0].owner, AccountId::from(ALICE));
@@ -331,11 +331,11 @@ fn transfer_through_evm_to_stake() {
 					1_000 * UNIT,
 					0u32
 				),
-				DispatchError::Module {
+				DispatchError::Module(ModuleError {
 					index: 3,
 					error: 2,
 					message: Some("InsufficientBalance")
-				}
+				})
 			);
 
 			// Alice transfer from free balance 2000 UNIT to Bob
@@ -393,19 +393,19 @@ fn reward_block_authors() {
 			500 * UNIT,
 		)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.build()
 		.execute_with(|| {
 			set_parachain_inherent_data();
 			for x in 2..1199 {
-				run_to_block(x, Some(NimbusId::from_slice(&ALICE_NIMBUS)));
+				run_to_block(x, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			}
 			// no rewards doled out yet
 			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1_000 * UNIT,);
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * UNIT,);
-			run_to_block(1200, Some(NimbusId::from_slice(&ALICE_NIMBUS)));
+			run_to_block(1200, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
@@ -434,7 +434,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 			500 * UNIT,
 		)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.build()
@@ -445,13 +445,13 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 				AccountId::from(CHARLIE),
 			),);
 			for x in 2..1199 {
-				run_to_block(x, Some(NimbusId::from_slice(&ALICE_NIMBUS)));
+				run_to_block(x, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			}
 			// no rewards doled out yet
 			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1_000 * UNIT,);
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * UNIT,);
 			assert_eq!(Balances::free_balance(AccountId::from(CHARLIE)), UNIT,);
-			run_to_block(1200, Some(NimbusId::from_slice(&ALICE_NIMBUS)));
+			run_to_block(1200, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
@@ -478,7 +478,7 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * UNIT)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.with_crowdloan_fund(3_000_000 * UNIT)
@@ -535,11 +535,11 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 			.dispatch(root_origin()));
 			let expected_fail = Event::Utility(pallet_utility::Event::BatchInterrupted {
 				index: 0,
-				error: DispatchError::Module {
+				error: DispatchError::Module(ModuleError {
 					index: 20,
 					error: 8,
 					message: None,
-				},
+				}),
 			});
 			assert_eq!(last_event(), expected_fail);
 			// Claim 1 block.
@@ -586,7 +586,7 @@ fn initialize_crowdloan_address_and_change_with_relay_key_sig() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * UNIT)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.with_crowdloan_fund(3_000_000 * UNIT)
@@ -690,7 +690,7 @@ fn claim_via_precompile() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * UNIT)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.with_crowdloan_fund(3_000_000 * UNIT)
@@ -740,7 +740,7 @@ fn claim_via_precompile() {
 
 			// Alice uses the crowdloan precompile to claim through the EVM
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1_000_000_000.into();
+			let gas_price: U256 = 1_000_000_000u64.into();
 
 			// Construct the call data (selector, amount)
 			let mut call_data = Vec::<u8>::from([0u8; 4]);
@@ -780,7 +780,7 @@ fn is_contributor_via_precompile() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * UNIT)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.with_crowdloan_fund(3_000_000 * UNIT)
@@ -890,7 +890,7 @@ fn reward_info_via_precompile() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * UNIT)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.with_crowdloan_fund(3_000_000 * UNIT)
@@ -976,7 +976,7 @@ fn update_reward_address_via_precompile() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * UNIT)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.with_crowdloan_fund(3_000_000 * UNIT)
@@ -1021,7 +1021,7 @@ fn update_reward_address_via_precompile() {
 
 			// Charlie uses the crowdloan precompile to update address through the EVM
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1_000_000_000.into();
+			let gas_price: U256 = 1_000_000_000u64.into();
 
 			// Construct the input data to check if Bob is a contributor
 			let mut call_data = Vec::<u8>::from([0u8; 36]);
@@ -1147,7 +1147,7 @@ fn asset_erc20_precompiles_transfer() {
 			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(true).build(),
-				cost: 25084u64,
+				cost: 23516u64,
 				logs: LogsBuilder::new(asset_precompile_address)
 					.log3(
 						SELECTOR_LOG_TRANSFER,
@@ -1221,7 +1221,7 @@ fn asset_erc20_precompiles_approve() {
 			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(true).build(),
-				cost: 15035u64,
+				cost: 13989u64,
 				logs: LogsBuilder::new(asset_precompile_address)
 					.log3(
 						SELECTOR_LOG_APPROVAL,
@@ -1255,7 +1255,7 @@ fn asset_erc20_precompiles_approve() {
 			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(true).build(),
-				cost: 31042u64,
+				cost: 29006u64,
 				logs: LogsBuilder::new(asset_precompile_address)
 					.log3(
 						SELECTOR_LOG_TRANSFER,
@@ -1635,7 +1635,7 @@ fn root_can_change_default_xcm_vers() {
 			assert_noop!(
 				XTokens::transfer(
 					origin_of(AccountId::from(ALICE)),
-					moonbase_runtime::CurrencyId::OtherReserve(source_id),
+					moonbase_runtime::xcm_config::CurrencyId::OtherReserve(source_id),
 					100_000_000_000_000,
 					Box::new(xcm::VersionedMultiLocation::V1(dest.clone())),
 					4000000000
@@ -1652,7 +1652,7 @@ fn root_can_change_default_xcm_vers() {
 			// Now transferring does not fail
 			assert_ok!(XTokens::transfer(
 				origin_of(AccountId::from(ALICE)),
-				moonbase_runtime::CurrencyId::OtherReserve(source_id),
+				moonbase_runtime::xcm_config::CurrencyId::OtherReserve(source_id),
 				100_000_000_000_000,
 				Box::new(xcm::VersionedMultiLocation::V1(dest)),
 				4000000000
@@ -1700,7 +1700,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 			assert_noop!(
 				XcmTransactor::transact_through_derivative_multilocation(
 					origin_of(AccountId::from(ALICE)),
-					moonbase_runtime::Transactors::Relay,
+					moonbase_runtime::xcm_config::Transactors::Relay,
 					0,
 					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 					// 20000the max
@@ -1712,9 +1712,9 @@ fn transactor_cannot_use_more_than_max_weight() {
 			assert_noop!(
 				XcmTransactor::transact_through_derivative(
 					origin_of(AccountId::from(ALICE)),
-					moonbase_runtime::Transactors::Relay,
+					moonbase_runtime::xcm_config::Transactors::Relay,
 					0,
-					moonbase_runtime::CurrencyId::OtherReserve(source_id),
+					moonbase_runtime::xcm_config::CurrencyId::OtherReserve(source_id),
 					// 20000 is the max
 					17000,
 					vec![],
@@ -1747,7 +1747,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 			let associate_expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: Default::default(),
-				cost: 23761u64,
+				cost: 11387u64,
 				logs: Default::default(),
 			}));
 
@@ -1770,16 +1770,16 @@ fn author_mapping_precompile_associate_update_and_clear() {
 			);
 
 			let expected_associate_event =
-				Event::AuthorMapping(pallet_author_mapping::Event::AuthorRegistered(
-					first_nimbus_id.clone(),
-					AccountId::from(ALICE),
-				));
+				Event::AuthorMapping(pallet_author_mapping::Event::AuthorRegistered {
+					author_id: first_nimbus_id.clone(),
+					account_id: AccountId::from(ALICE),
+				});
 			assert_eq!(last_event(), expected_associate_event);
 
 			let update_expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: Default::default(),
-				cost: 22098u64,
+				cost: 11075u64,
 				logs: Default::default(),
 			}));
 
@@ -1803,16 +1803,16 @@ fn author_mapping_precompile_associate_update_and_clear() {
 			);
 
 			let expected_update_event =
-				Event::AuthorMapping(pallet_author_mapping::Event::AuthorRotated(
-					second_nimbus_id.clone(),
-					AccountId::from(ALICE),
-				));
+				Event::AuthorMapping(pallet_author_mapping::Event::AuthorRotated {
+					new_author_id: second_nimbus_id.clone(),
+					account_id: AccountId::from(ALICE),
+				});
 			assert_eq!(last_event(), expected_update_event);
 
 			let clear_expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: Default::default(),
-				cost: 23784u64,
+				cost: 11450u64,
 				logs: Default::default(),
 			}));
 
@@ -1834,9 +1834,10 @@ fn author_mapping_precompile_associate_update_and_clear() {
 				clear_expected_result
 			);
 
-			let expected_clear_event = Event::AuthorMapping(
-				pallet_author_mapping::Event::AuthorDeRegistered(second_nimbus_id.clone()),
-			);
+			let expected_clear_event =
+				Event::AuthorMapping(pallet_author_mapping::Event::AuthorDeRegistered {
+					author_id: second_nimbus_id.clone(),
+				});
 			assert_eq!(last_event(), expected_clear_event);
 		});
 }

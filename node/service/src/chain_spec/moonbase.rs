@@ -23,13 +23,13 @@
 use crate::chain_spec::{derive_bip44_pairs_from_mnemonic, get_account_id_from_pair};
 use crate::chain_spec::{generate_accounts, get_from_seed, Extensions};
 use cumulus_primitives_core::ParaId;
+use hex_literal::hex;
 use moonbase_runtime::{
 	currency::UNIT, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
 	BaseFeeConfig, CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig,
 	EthereumChainIdConfig, EthereumConfig, GenesisAccount, GenesisConfig, InflationInfo,
 	MaintenanceModeConfig, ParachainInfoConfig, ParachainStakingConfig, PolkadotXcmConfig,
-	Precompiles, Range, SchedulerConfig, SudoConfig, SystemConfig, TechCommitteeCollectiveConfig,
-	WASM_BINARY,
+	Precompiles, Range, SudoConfig, SystemConfig, TechCommitteeCollectiveConfig, WASM_BINARY,
 };
 use nimbus_primitives::NimbusId;
 use sc_service::ChainType;
@@ -37,7 +37,6 @@ use sc_service::ChainType;
 use sp_core::ecdsa;
 use sp_core::U256;
 use sp_runtime::{Perbill, Permill};
-use std::str::FromStr;
 
 /// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
 pub type ChainSpec = sc_service::GenericChainSpec<GenesisConfig, Extensions>;
@@ -50,7 +49,9 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 	});
 	// We prefund the standard dev accounts plus Gerald
 	let mut accounts = generate_accounts(parent_mnemonic, num_accounts.unwrap_or(10));
-	accounts.push(AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap());
+	accounts.push(AccountId::from(hex!(
+		"6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b"
+	)));
 
 	ChainSpec::from_genesis(
 		"Moonbase Development Testnet",
@@ -78,15 +79,22 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 				1281,               //ChainId
 			)
 		},
+		// Bootnodes
 		vec![],
+		// Telemetry
 		None,
+		// Protocol ID
 		None,
+		// Fork ID
+		None,
+		// Properties
 		Some(
 			serde_json::from_str(
 				"{\"tokenDecimals\": 18, \"tokenSymbol\": \"UNIT\", \"SS58Prefix\": 1287}",
 			)
 			.expect("Provided valid json map"),
 		),
+		// Extensions
 		Extensions {
 			relay_chain: "dev-service".into(),
 			para_id: Default::default(),
@@ -107,29 +115,29 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 		move || {
 			testnet_genesis(
 				// Alith is Sudo
-				AccountId::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap(),
+				AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
 				// Council members: Baltathar, Charleth and Dorothy
 				vec![
-					AccountId::from_str("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0").unwrap(),
-					AccountId::from_str("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc").unwrap(),
-					AccountId::from_str("773539d4Ac0e786233D90A233654ccEE26a613D9").unwrap(),
+					AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
+					AccountId::from(hex!("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc")),
+					AccountId::from(hex!("773539d4Ac0e786233D90A233654ccEE26a613D9")),
 				],
 				// Tech comitee members: Alith and Baltathar
 				vec![
-					AccountId::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap(),
-					AccountId::from_str("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0").unwrap(),
+					AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
+					AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
 				],
 				// Collator Candidates
 				vec![
 					// Alice -> Alith
 					(
-						AccountId::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap(),
+						AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
 						get_from_seed::<NimbusId>("Alice"),
 						1_000 * UNIT,
 					),
 					// Bob -> Baltithar
 					(
-						AccountId::from_str("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0").unwrap(),
+						AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
 						get_from_seed::<NimbusId>("Bob"),
 						1_000 * UNIT,
 					),
@@ -137,23 +145,30 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 				// Delegations
 				vec![],
 				vec![
-					AccountId::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap(),
-					AccountId::from_str("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0").unwrap(),
+					AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
+					AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
 				],
 				3_000_000 * UNIT,
 				para_id,
 				1280, //ChainId
 			)
 		},
+		// Bootnodes
 		vec![],
+		// Telemetry
 		None,
+		// Protocol ID
 		None,
+		// Fork ID
+		None,
+		// Properties
 		Some(
 			serde_json::from_str(
 				"{\"tokenDecimals\": 18, \"tokenSymbol\": \"UNIT\", \"SS58Prefix\": 1287}",
 			)
 			.expect("Provided valid json map"),
 		),
+		// Extensions
 		Extensions {
 			relay_chain: "westend-local".into(),
 			para_id: para_id.into(),
@@ -221,7 +236,9 @@ pub fn testnet_genesis(
 		crowdloan_rewards: CrowdloanRewardsConfig {
 			funded_amount: crowdloan_fund_pot,
 		},
-		sudo: SudoConfig { key: root_key },
+		sudo: SudoConfig {
+			key: Some(root_key),
+		},
 		parachain_info: ParachainInfoConfig {
 			parachain_id: para_id,
 		},
@@ -245,12 +262,11 @@ pub fn testnet_genesis(
 		},
 		ethereum: EthereumConfig {},
 		base_fee: BaseFeeConfig::new(
-			U256::from(1_000_000_000),
+			U256::from(1_000_000_000u64),
 			false,
 			Permill::from_parts(125_000),
 		),
 		democracy: DemocracyConfig::default(),
-		scheduler: SchedulerConfig {},
 		parachain_staking: ParachainStakingConfig {
 			candidates: candidates
 				.iter()
@@ -302,9 +318,9 @@ mod tests {
 		let last_account = get_account_id_from_pair(pairs.last().unwrap().clone()).unwrap();
 
 		let expected_first_account =
-			AccountId::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap();
+			AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"));
 		let expected_last_account =
-			AccountId::from_str("2898FE7a42Be376C8BC7AF536A940F7Fd5aDd423").unwrap();
+			AccountId::from(hex!("2898FE7a42Be376C8BC7AF536A940F7Fd5aDd423"));
 		assert_eq!(first_account, expected_first_account);
 		assert_eq!(last_account, expected_last_account);
 		assert_eq!(pairs.len(), 10);
@@ -320,9 +336,9 @@ mod tests {
 		let last_account = get_account_id_from_pair(pairs.last().unwrap().clone()).unwrap();
 
 		let expected_first_account =
-			AccountId::from_str("1e56ca71b596f2b784a27a2fdffef053dbdeff83").unwrap();
+			AccountId::from(hex!("1e56ca71b596f2b784a27a2fdffef053dbdeff83"));
 		let expected_last_account =
-			AccountId::from_str("4148202BF0c0Ad7697Cff87EbB83340C80c947f8").unwrap();
+			AccountId::from(hex!("4148202BF0c0Ad7697Cff87EbB83340C80c947f8"));
 		assert_eq!(first_account, expected_first_account);
 		assert_eq!(last_account, expected_last_account);
 		assert_eq!(pairs.len(), 20);

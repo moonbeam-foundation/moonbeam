@@ -30,8 +30,9 @@ use frame_support::{
 	StorageHasher, Twox128,
 };
 use moonbeam_runtime::{
-	currency::GLMR, AccountId, Balances, BaseFee, BlockWeights, Call, CrowdloanRewards, CurrencyId,
-	Event, ParachainStaking, PolkadotXcm, Precompiles, Runtime, System, XTokens, XcmTransactor,
+	currency::GLMR, xcm_config::CurrencyId, AccountId, Balances, BaseFee, BlockWeights, Call,
+	CrowdloanRewards, Event, ParachainStaking, PolkadotXcm, Precompiles, Runtime, System, XTokens,
+	XcmTransactor,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
@@ -42,11 +43,10 @@ use pallet_transaction_payment::Multiplier;
 use parity_scale_codec::Encode;
 use precompile_utils::{Address as EvmAddress, EvmDataWriter, LogsBuilder};
 use sha3::{Digest, Keccak256};
-use sp_core::Pair;
-use sp_core::{Public, H160, U256};
+use sp_core::{ByteArray, Pair, H160, U256};
 use sp_runtime::{
 	traits::{Convert, One},
-	DispatchError,
+	DispatchError, ModuleError,
 };
 use xcm::latest::prelude::*;
 use xcm::{VersionedMultiAsset, VersionedMultiAssets, VersionedMultiLocation};
@@ -183,7 +183,7 @@ fn verify_pallet_prefixes() {
 			storage_name: b"MaintenanceMode".to_vec(),
 			prefix: prefix(b"MaintenanceMode", b"MaintenanceMode"),
 			max_values: Some(1),
-			max_size: Some(1),
+			max_size: None,
 		},]
 	);
 }
@@ -304,11 +304,11 @@ fn join_collator_candidates() {
 			));
 			assert_eq!(
 				last_event(),
-				Event::ParachainStaking(parachain_staking::Event::JoinedCollatorCandidates(
-					AccountId::from(DAVE),
-					100_000 * GLMR,
-					310_000 * GLMR
-				))
+				Event::ParachainStaking(parachain_staking::Event::JoinedCollatorCandidates {
+					account: AccountId::from(DAVE),
+					amount_locked: 100_000 * GLMR,
+					new_total_amt_locked: 310_000 * GLMR
+				})
 			);
 			let candidates = ParachainStaking::candidate_pool();
 			assert_eq!(candidates.0[0].owner, AccountId::from(ALICE));
@@ -333,11 +333,11 @@ fn transfer_through_evm_to_stake() {
 					100_000 * GLMR,
 					2u32
 				),
-				DispatchError::Module {
+				DispatchError::Module(ModuleError {
 					index: 10,
 					error: 2,
 					message: Some("InsufficientBalance")
-				}
+				})
 			);
 			// Alice transfer from free balance 200_000 GLMR to Bob
 			assert_ok!(Balances::transfer(
@@ -394,14 +394,14 @@ fn reward_block_authors() {
 			50_000 * GLMR,
 		)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.build()
 		.execute_with(|| {
 			set_parachain_inherent_data();
 			for x in 2..3599 {
-				run_to_block(x, Some(NimbusId::from_slice(&ALICE_NIMBUS)));
+				run_to_block(x, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			}
 			// no rewards doled out yet
 			assert_eq!(
@@ -409,7 +409,7 @@ fn reward_block_authors() {
 				100_000 * GLMR,
 			);
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 50_000 * GLMR,);
-			run_to_block(3600, Some(NimbusId::from_slice(&ALICE_NIMBUS)));
+			run_to_block(3600, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
@@ -438,7 +438,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 			50_000 * GLMR,
 		)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.build()
@@ -449,7 +449,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 				AccountId::from(CHARLIE),
 			),);
 			for x in 2..3599 {
-				run_to_block(x, Some(NimbusId::from_slice(&ALICE_NIMBUS)));
+				run_to_block(x, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			}
 			// no rewards doled out yet
 			assert_eq!(
@@ -458,7 +458,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 			);
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 50_000 * GLMR,);
 			assert_eq!(Balances::free_balance(AccountId::from(CHARLIE)), 100 * GLMR,);
-			run_to_block(3600, Some(NimbusId::from_slice(&ALICE_NIMBUS)));
+			run_to_block(3600, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
@@ -485,7 +485,7 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 100_000 * GLMR)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.with_crowdloan_fund(300_000_000 * GLMR)
@@ -545,11 +545,11 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 			.dispatch(root_origin()));
 			let expected_fail = Event::Utility(pallet_utility::Event::BatchInterrupted {
 				index: 0,
-				error: DispatchError::Module {
+				error: DispatchError::Module(ModuleError {
 					index: 90,
 					error: 8,
 					message: None,
-				},
+				}),
 			});
 			assert_eq!(last_event(), expected_fail);
 			// Claim 1 block.
@@ -596,7 +596,7 @@ fn initialize_crowdloan_address_and_change_with_relay_key_sig() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.with_crowdloan_fund(3_000_000 * GLMR)
@@ -698,7 +698,7 @@ fn claim_via_precompile() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.with_crowdloan_fund(3_000_000 * GLMR)
@@ -791,7 +791,7 @@ fn is_contributor_via_precompile() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 100_000 * GLMR)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.with_crowdloan_fund(3_000_000_000 * GLMR)
@@ -860,7 +860,7 @@ fn is_contributor_via_precompile() {
 						// This context copied from Sacrifice tests, it's not great.
 						address: Default::default(),
 						caller: Default::default(),
-						apparent_value: From::from(0),
+						apparent_value: U256::zero(),
 					},
 					false,
 				),
@@ -893,7 +893,7 @@ fn is_contributor_via_precompile() {
 						// This context copied from Sacrifice tests, it's not great.
 						address: Default::default(),
 						caller: Default::default(),
-						apparent_value: From::from(0),
+						apparent_value: U256::zero(),
 					},
 					false,
 				),
@@ -911,7 +911,7 @@ fn reward_info_via_precompile() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 100_000 * GLMR)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.with_crowdloan_fund(3_000_000 * GLMR)
@@ -984,7 +984,7 @@ fn reward_info_via_precompile() {
 						// This context copied from Sacrifice tests, it's not great.
 						address: Default::default(),
 						caller: Default::default(),
-						apparent_value: From::from(0),
+						apparent_value: U256::zero(),
 					},
 					false,
 				),
@@ -1002,7 +1002,7 @@ fn update_reward_address_via_precompile() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.with_crowdloan_fund(3_000_000 * GLMR)
@@ -1391,7 +1391,7 @@ fn asset_erc20_precompiles_transfer() {
 			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(true).build(),
-				cost: 25084u64,
+				cost: 23516u64,
 				logs: LogsBuilder::new(asset_precompile_address)
 					.log3(
 						SELECTOR_LOG_TRANSFER,
@@ -1465,7 +1465,7 @@ fn asset_erc20_precompiles_approve() {
 			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(true).build(),
-				cost: 15035u64,
+				cost: 13989u64,
 				logs: LogsBuilder::new(asset_precompile_address)
 					.log3(
 						SELECTOR_LOG_APPROVAL,
@@ -1499,7 +1499,7 @@ fn asset_erc20_precompiles_approve() {
 			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(true).build(),
-				cost: 31042u64,
+				cost: 29006u64,
 				logs: LogsBuilder::new(asset_precompile_address)
 					.log3(
 						SELECTOR_LOG_TRANSFER,
@@ -1696,9 +1696,10 @@ fn make_sure_glmr_cannot_be_transferred_precompile() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
+		.with_safe_xcm_version(2)
 		.build()
 		.execute_with(|| {
 			let dest = MultiLocation {
@@ -1712,7 +1713,7 @@ fn make_sure_glmr_cannot_be_transferred_precompile() {
 				XTokens::transfer_multiasset(
 					origin_of(AccountId::from(ALICE)),
 					Box::new(VersionedMultiAsset::V1(MultiAsset {
-						id: Concrete(moonbeam_runtime::SelfLocation::get()),
+						id: Concrete(moonbeam_runtime::xcm_config::SelfLocation::get()),
 						fun: Fungible(1000)
 					})),
 					Box::new(VersionedMultiLocation::V1(dest)),
@@ -1732,9 +1733,10 @@ fn make_sure_glmr_cannot_be_transferred() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
+		.with_safe_xcm_version(2)
 		.build()
 		.execute_with(|| {
 			let dest = MultiLocation {
@@ -1766,7 +1768,7 @@ fn make_sure_polkadot_xcm_cannot_be_called() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.build()
@@ -1779,7 +1781,7 @@ fn make_sure_polkadot_xcm_cannot_be_called() {
 				}),
 			};
 			let multiassets: MultiAssets = [MultiAsset {
-				id: Concrete(moonbeam_runtime::SelfLocation::get()),
+				id: Concrete(moonbeam_runtime::xcm_config::SelfLocation::get()),
 				fun: Fungible(1000),
 			}]
 			.to_vec()
@@ -1840,7 +1842,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 			assert_noop!(
 				XcmTransactor::transact_through_derivative_multilocation(
 					origin_of(AccountId::from(ALICE)),
-					moonbeam_runtime::Transactors::Relay,
+					moonbeam_runtime::xcm_config::Transactors::Relay,
 					0,
 					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 					// 2000 is the max
@@ -1852,9 +1854,9 @@ fn transactor_cannot_use_more_than_max_weight() {
 			assert_noop!(
 				XcmTransactor::transact_through_derivative(
 					origin_of(AccountId::from(ALICE)),
-					moonbeam_runtime::Transactors::Relay,
+					moonbeam_runtime::xcm_config::Transactors::Relay,
 					0,
-					moonbeam_runtime::CurrencyId::OtherReserve(source_id),
+					CurrencyId::OtherReserve(source_id),
 					// 20000 is the max
 					17000,
 					vec![],
@@ -1918,7 +1920,8 @@ fn precompile_existance() {
 	ExtBuilder::default().build().execute_with(|| {
 		let precompiles = Precompiles::new();
 		let precompile_addresses: std::collections::BTreeSet<_> = vec![
-			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2052, 2053, 2054, 2055,
+			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2050, 2051, 2052, 2053, 2054,
+			2055,
 		]
 		.into_iter()
 		.map(H160::from_low_u64_be)

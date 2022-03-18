@@ -30,7 +30,7 @@ use frame_support::{
 	StorageHasher, Twox128,
 };
 use moonriver_runtime::{
-	BaseFee, BlockWeights, CurrencyId, PolkadotXcm, Precompiles, XTokens, XcmTransactor,
+	xcm_config::CurrencyId, BaseFee, BlockWeights, PolkadotXcm, Precompiles, XTokens, XcmTransactor,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
@@ -41,14 +41,13 @@ use pallet_transaction_payment::Multiplier;
 use parity_scale_codec::Encode;
 use precompile_utils::{Address as EvmAddress, EvmDataWriter, LogsBuilder};
 use sha3::{Digest, Keccak256};
-use sp_core::Pair;
-use sp_core::{Public, H160, U256};
+use sp_core::{ByteArray, Pair, H160, U256};
 use sp_runtime::{
 	traits::{Convert, One},
-	DispatchError,
+	DispatchError, ModuleError,
 };
 use xcm::latest::prelude::*;
-use xcm::{VersionedMultiAsset, VersionedMultiAssets, VersionedMultiLocation};
+use xcm::{VersionedMultiAssets, VersionedMultiLocation};
 use xtokens_precompiles::Action as XtokensAction;
 
 #[test]
@@ -182,7 +181,7 @@ fn verify_pallet_prefixes() {
 			storage_name: b"MaintenanceMode".to_vec(),
 			prefix: prefix(b"MaintenanceMode", b"MaintenanceMode"),
 			max_values: Some(1),
-			max_size: Some(1),
+			max_size: None,
 		},]
 	);
 }
@@ -299,11 +298,11 @@ fn join_collator_candidates() {
 			));
 			assert_eq!(
 				last_event(),
-				Event::ParachainStaking(parachain_staking::Event::JoinedCollatorCandidates(
-					AccountId::from(DAVE),
-					1_000 * MOVR,
-					3_100 * MOVR
-				))
+				Event::ParachainStaking(parachain_staking::Event::JoinedCollatorCandidates {
+					account: AccountId::from(DAVE),
+					amount_locked: 1_000 * MOVR,
+					new_total_amt_locked: 3_100 * MOVR
+				})
 			);
 			let candidates = ParachainStaking::candidate_pool();
 			assert_eq!(candidates.0[0].owner, AccountId::from(ALICE));
@@ -328,11 +327,11 @@ fn transfer_through_evm_to_stake() {
 					1_000 * MOVR,
 					2u32
 				),
-				DispatchError::Module {
+				DispatchError::Module(ModuleError {
 					index: 10,
 					error: 2,
 					message: Some("InsufficientBalance")
-				}
+				})
 			);
 			// Alice transfer from free balance 2000 MOVR to Bob
 			assert_ok!(Balances::transfer(
@@ -343,7 +342,7 @@ fn transfer_through_evm_to_stake() {
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 2_000 * MOVR);
 
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1_000_000_000.into();
+			let gas_price: U256 = 1_000_000_000u64.into();
 			// Bob transfers 1000 MOVR to Charlie via EVM
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
 				source: H160::from(BOB),
@@ -389,19 +388,19 @@ fn reward_block_authors() {
 			500 * MOVR,
 		)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.build()
 		.execute_with(|| {
 			set_parachain_inherent_data();
 			for x in 2..1199 {
-				run_to_block(x, Some(NimbusId::from_slice(&ALICE_NIMBUS)));
+				run_to_block(x, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			}
 			// no rewards doled out yet
 			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1_000 * MOVR,);
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * MOVR,);
-			run_to_block(1200, Some(NimbusId::from_slice(&ALICE_NIMBUS)));
+			run_to_block(1200, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
@@ -430,7 +429,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 			500 * MOVR,
 		)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.build()
@@ -441,13 +440,13 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 				AccountId::from(CHARLIE),
 			),);
 			for x in 2..1199 {
-				run_to_block(x, Some(NimbusId::from_slice(&ALICE_NIMBUS)));
+				run_to_block(x, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			}
 			// no rewards doled out yet
 			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1_000 * MOVR,);
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * MOVR,);
 			assert_eq!(Balances::free_balance(AccountId::from(CHARLIE)), MOVR,);
-			run_to_block(1200, Some(NimbusId::from_slice(&ALICE_NIMBUS)));
+			run_to_block(1200, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
@@ -474,7 +473,7 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.with_crowdloan_fund(3_000_000 * MOVR)
@@ -531,11 +530,11 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 			.dispatch(root_origin()));
 			let expected_fail = Event::Utility(pallet_utility::Event::BatchInterrupted {
 				index: 0,
-				error: DispatchError::Module {
+				error: DispatchError::Module(ModuleError {
 					index: 90,
 					error: 8,
 					message: None,
-				},
+				}),
 			});
 			assert_eq!(last_event(), expected_fail);
 			// Claim 1 block.
@@ -582,7 +581,7 @@ fn initialize_crowdloan_address_and_change_with_relay_key_sig() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.with_crowdloan_fund(3_000_000 * MOVR)
@@ -685,7 +684,7 @@ fn claim_via_precompile() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.with_crowdloan_fund(3_000_000 * MOVR)
@@ -738,7 +737,7 @@ fn claim_via_precompile() {
 
 			// Alice uses the crowdloan precompile to claim through the EVM
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1_000_000_000.into();
+			let gas_price: U256 = 1_000_000_000u64.into();
 
 			// Construct the call data (selector, amount)
 			let mut call_data = Vec::<u8>::from([0u8; 4]);
@@ -778,7 +777,7 @@ fn is_contributor_via_precompile() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.with_crowdloan_fund(3_000_000 * MOVR)
@@ -847,7 +846,7 @@ fn is_contributor_via_precompile() {
 						// This context copied from Sacrifice tests, it's not great.
 						address: Default::default(),
 						caller: Default::default(),
-						apparent_value: From::from(0),
+						apparent_value: U256::zero(),
 					},
 					false,
 				),
@@ -880,7 +879,7 @@ fn is_contributor_via_precompile() {
 						// This context copied from Sacrifice tests, it's not great.
 						address: Default::default(),
 						caller: Default::default(),
-						apparent_value: From::from(0),
+						apparent_value: U256::zero(),
 					},
 					false,
 				),
@@ -898,7 +897,7 @@ fn reward_info_via_precompile() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.with_crowdloan_fund(3_000_000 * MOVR)
@@ -971,7 +970,7 @@ fn reward_info_via_precompile() {
 						// This context copied from Sacrifice tests, it's not great.
 						address: Default::default(),
 						caller: Default::default(),
-						apparent_value: From::from(0),
+						apparent_value: U256::zero(),
 					},
 					false,
 				),
@@ -989,7 +988,7 @@ fn update_reward_address_via_precompile() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.with_crowdloan_fund(3_000_000 * MOVR)
@@ -1034,7 +1033,7 @@ fn update_reward_address_via_precompile() {
 
 			// Charlie uses the crowdloan precompile to update address through the EVM
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1_000_000_000.into();
+			let gas_price: U256 = 1_000_000_000u64.into();
 
 			// Construct the input data to check if Bob is a contributor
 			let mut call_data = Vec::<u8>::from([0u8; 36]);
@@ -1379,7 +1378,7 @@ fn asset_erc20_precompiles_transfer() {
 			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(true).build(),
-				cost: 25084u64,
+				cost: 23516u64,
 				logs: LogsBuilder::new(asset_precompile_address)
 					.log3(
 						SELECTOR_LOG_TRANSFER,
@@ -1453,7 +1452,7 @@ fn asset_erc20_precompiles_approve() {
 			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(true).build(),
-				cost: 15035u64,
+				cost: 13989u64,
 				logs: LogsBuilder::new(asset_precompile_address)
 					.log3(
 						SELECTOR_LOG_APPROVAL,
@@ -1487,7 +1486,7 @@ fn asset_erc20_precompiles_approve() {
 			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(true).build(),
-				cost: 31042u64,
+				cost: 29006u64,
 				logs: LogsBuilder::new(asset_precompile_address)
 					.log3(
 						SELECTOR_LOG_TRANSFER,
@@ -1676,76 +1675,6 @@ fn xtokens_precompiles_transfer_multiasset() {
 }
 
 #[test]
-fn make_sure_movr_cannot_be_transferred_precompile() {
-	ExtBuilder::default()
-		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * MOVR),
-			(AccountId::from(BOB), 1_000 * MOVR),
-		])
-		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
-		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
-			AccountId::from(ALICE),
-		)])
-		.build()
-		.execute_with(|| {
-			let dest = MultiLocation {
-				parents: 1,
-				interior: X1(AccountId32 {
-					network: NetworkId::Any,
-					id: [1u8; 32],
-				}),
-			};
-			assert_noop!(
-				XTokens::transfer_multiasset(
-					origin_of(AccountId::from(ALICE)),
-					Box::new(VersionedMultiAsset::V1(MultiAsset {
-						id: Concrete(moonriver_runtime::SelfLocation::get()),
-						fun: Fungible(1000)
-					})),
-					Box::new(VersionedMultiLocation::V1(dest)),
-					40000
-				),
-				orml_xtokens::Error::<Runtime>::XcmExecutionFailed
-			);
-		});
-}
-
-#[test]
-fn make_sure_movr_cannot_be_transferred() {
-	ExtBuilder::default()
-		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * MOVR),
-			(AccountId::from(BOB), 1_000 * MOVR),
-		])
-		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
-		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
-			AccountId::from(ALICE),
-		)])
-		.build()
-		.execute_with(|| {
-			let dest = MultiLocation {
-				parents: 1,
-				interior: X1(AccountId32 {
-					network: NetworkId::Any,
-					id: [1u8; 32],
-				}),
-			};
-			assert_noop!(
-				XTokens::transfer(
-					origin_of(AccountId::from(ALICE)),
-					CurrencyId::SelfReserve,
-					100,
-					Box::new(VersionedMultiLocation::V1(dest)),
-					40000
-				),
-				orml_xtokens::Error::<Runtime>::XcmExecutionFailed
-			);
-		});
-}
-
-#[test]
 fn make_sure_polkadot_xcm_cannot_be_called() {
 	ExtBuilder::default()
 		.with_balances(vec![
@@ -1754,7 +1683,7 @@ fn make_sure_polkadot_xcm_cannot_be_called() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.build()
@@ -1767,7 +1696,7 @@ fn make_sure_polkadot_xcm_cannot_be_called() {
 				}),
 			};
 			let multiassets: MultiAssets = [MultiAsset {
-				id: Concrete(moonriver_runtime::SelfLocation::get()),
+				id: Concrete(moonriver_runtime::xcm_config::SelfLocation::get()),
 				fun: Fungible(1000),
 			}]
 			.to_vec()
@@ -1828,7 +1757,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 			assert_noop!(
 				XcmTransactor::transact_through_derivative_multilocation(
 					origin_of(AccountId::from(ALICE)),
-					moonriver_runtime::Transactors::Relay,
+					moonriver_runtime::xcm_config::Transactors::Relay,
 					0,
 					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 					// 2000 is the max
@@ -1840,9 +1769,9 @@ fn transactor_cannot_use_more_than_max_weight() {
 			assert_noop!(
 				XcmTransactor::transact_through_derivative(
 					origin_of(AccountId::from(ALICE)),
-					moonriver_runtime::Transactors::Relay,
+					moonriver_runtime::xcm_config::Transactors::Relay,
 					0,
-					moonriver_runtime::CurrencyId::OtherReserve(source_id),
+					moonriver_runtime::xcm_config::CurrencyId::OtherReserve(source_id),
 					// 20000 is the max
 					17000,
 					vec![],

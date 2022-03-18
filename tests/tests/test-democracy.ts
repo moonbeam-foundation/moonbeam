@@ -76,11 +76,11 @@ describeDevMoonbeam("Democracy - propose", (context) => {
     await context.createBlock();
 
     // referendumCount
-    const referendumCount = await context.polkadotApi.query.democracy.referendumCount();
+    const referendumCount = (await context.polkadotApi.query.democracy.referendumCount()) as any;
     expect(referendumCount.toBigInt()).to.equal(0n);
 
     // publicPropCount
-    const publicPropCount = await context.polkadotApi.query.democracy.publicPropCount();
+    const publicPropCount = (await context.polkadotApi.query.democracy.publicPropCount()) as any;
     expect(publicPropCount.toBigInt()).to.equal(1n);
 
     // publicProps
@@ -90,7 +90,7 @@ describeDevMoonbeam("Democracy - propose", (context) => {
     // prop author
     expect((publicProps.toJSON() as any)[0][2]).to.equal(GENESIS_ACCOUNT);
     // depositOf
-    const depositOf = await context.polkadotApi.query.democracy.depositOf(0);
+    const depositOf = (await context.polkadotApi.query.democracy.depositOf(0)) as any;
     expect(depositOf.unwrap()[1].toBigInt()).to.equal(1000n * GLMR);
   });
 });
@@ -135,7 +135,7 @@ describeDevMoonbeam("Democracy - second proposal", (context) => {
     expect((publicProps.toJSON() as any)[0][2]).to.equal(GENESIS_ACCOUNT);
 
     // depositOf
-    const depositOf = await context.polkadotApi.query.democracy.depositOf(0);
+    const depositOf = (await context.polkadotApi.query.democracy.depositOf(0)) as any;
     expect(depositOf.unwrap()[1].toBigInt()).to.equal(1000n * GLMR);
     expect((depositOf.toJSON() as any)[0][1]).to.equal(ALITH);
   });
@@ -224,7 +224,7 @@ describeDevMoonbeam("Democracy - vote yes on referendum", (context) => {
 
     // referendumInfoOf
     const referendumInfoOf = (
-      await context.polkadotApi.query.democracy.referendumInfoOf(0)
+      (await context.polkadotApi.query.democracy.referendumInfoOf(0)) as any
     ).unwrap() as any;
     const onGoing = referendumInfoOf.asOngoing;
 
@@ -299,7 +299,7 @@ describeDevMoonbeam("Democracy - vote no on referendum", (context) => {
 
     // referendumInfoOf
     const referendumInfoOf = (
-      await context.polkadotApi.query.democracy.referendumInfoOf(0)
+      (await context.polkadotApi.query.democracy.referendumInfoOf(0)) as any
     ).unwrap() as any;
     const onGoing = referendumInfoOf.asOngoing;
 
@@ -356,7 +356,7 @@ describeDevMoonbeam("Democracy - forget notePreimage", (context) => {
       await context.createBlock();
     }
     // referendumCount
-    let referendumCount = await context.polkadotApi.query.democracy.referendumCount();
+    let referendumCount = (await context.polkadotApi.query.democracy.referendumCount()) as any;
     expect(referendumCount.toBigInt()).to.equal(1n);
 
     // vote
@@ -374,7 +374,7 @@ describeDevMoonbeam("Democracy - forget notePreimage", (context) => {
 
     // referendumInfoOf
     const referendumInfoOf = (
-      await context.polkadotApi.query.democracy.referendumInfoOf(0)
+      (await context.polkadotApi.query.democracy.referendumInfoOf(0)) as any
     ).unwrap() as any;
     const onGoing = referendumInfoOf.asOngoing;
     expect(onGoing.proposalHash.toHex()).to.equal(encodedHash);

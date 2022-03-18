@@ -50,16 +50,21 @@
 use frame_support::pallet;
 
 pub use pallet::*;
+
+#[cfg(any(test, feature = "runtime-benchmarks"))]
+mod benchmarks;
+
 #[cfg(test)]
 pub(crate) mod mock;
 #[cfg(test)]
 mod tests;
 
 pub mod migrations;
-
+pub mod weights;
 #[pallet]
 pub mod pallet {
 
+	use crate::weights::WeightInfo;
 	use frame_support::{pallet_prelude::*, weights::constants::WEIGHT_PER_SECOND};
 	use frame_system::{ensure_signed, pallet_prelude::*};
 	use orml_traits::location::{Parse, Reserve};
@@ -73,6 +78,7 @@ pub mod pallet {
 	use xcm_primitives::{UtilityAvailableCalls, UtilityEncodeCall, XcmTransact};
 
 	#[pallet::pallet]
+	#[pallet::without_storage_info]
 	pub struct Pallet<T>(PhantomData<T>);
 
 	#[pallet::config]
@@ -104,9 +110,6 @@ pub mod pallet {
 		// The origin that is allowed to register derivative address indices
 		type DerivativeAddressRegistrationOrigin: EnsureOrigin<Self::Origin>;
 
-		/// XCM executor.
-		type XcmExecutor: ExecuteXcm<Self::Call>;
-
 		/// Convert `T::AccountId` to `MultiLocation`.
 		type AccountIdToMultiLocation: Convert<Self::AccountId, MultiLocation>;
 
@@ -132,6 +135,8 @@ pub mod pallet {
 		/// T::Weigher::weight(&msg)`.
 		#[pallet::constant]
 		type BaseXcmWeight: Get<Weight>;
+
+		type WeightInfo: WeightInfo;
 	}
 
 	/// Stores the information to be able to issue a transact operation in another chain use an
@@ -189,16 +194,45 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
-		TransactedDerivative(T::AccountId, MultiLocation, Vec<u8>, u16),
-		TransactedSovereign(T::AccountId, MultiLocation, Vec<u8>),
-		RegisterdDerivative(T::AccountId, u16),
-		TransactFailed(XcmError),
-		TransactInfoChanged(MultiLocation, RemoteTransactInfoWithMaxWeight),
+		/// Transacted the inner call through a derivative account in a destination chain.
+		TransactedDerivative {
+			account_id: T::AccountId,
+			dest: MultiLocation,
+			call: Vec<u8>,
+			index: u16,
+		},
+		/// Transacted the call through the sovereign account in a destination chain.
+		TransactedSovereign {
+			fee_payer: T::AccountId,
+			dest: MultiLocation,
+			call: Vec<u8>,
+		},
+		/// Registered a derivative index for an account id.
+		RegisteredDerivative {
+			account_id: T::AccountId,
+			index: u16,
+		},
+		DeRegisteredDerivative {
+			index: u16,
+		},
+		/// Transact failed
+		TransactFailed {
+			error: XcmError,
+		},
+		/// Changed the transact info of a location
+		TransactInfoChanged {
+			location: MultiLocation,
+			remote_info: RemoteTransactInfoWithMaxWeight,
+		},
+		/// Removed the transact info of a location
+		TransactInfoRemoved {
+			location: MultiLocation,
+		},
 	}
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::register())]
 		/// Register a derivative index for an account id. Dispatchable by
 		/// DerivativeAddressRegistrationOrigin
 		///
@@ -218,7 +252,25 @@ pub mod pallet {
 			IndexToAccount::<T>::insert(&index, who.clone());
 
 			// Deposit event
-			Self::deposit_event(Event::<T>::RegisterdDerivative(who, index));
+			Self::deposit_event(Event::<T>::RegisteredDerivative {
+				account_id: who,
+				index: index,
+			});
+
+			Ok(())
+		}
+
+		#[pallet::weight(T::WeightInfo::deregister())]
+		/// De-Register a derivative index. This prevents an account to use a derivative address
+		/// (represented by an index) from our of our sovereign accounts anymore
+		pub fn deregister(origin: OriginFor<T>, index: u16) -> DispatchResult {
+			T::DerivativeAddressRegistrationOrigin::ensure_origin(origin)?;
+
+			// Remove index
+			IndexToAccount::<T>::remove(&index);
+
+			// Deposit event
+			Self::deposit_event(Event::<T>::DeRegisteredDerivative { index });
 
 			Ok(())
 		}
@@ -269,12 +321,16 @@ pub mod pallet {
 				fee_location,
 				dest_weight,
 				call_bytes.clone(),
+				OriginKind::SovereignAccount,
 			)?;
 
 			// Deposit event
-			Self::deposit_event(Event::<T>::TransactedDerivative(
-				who, dest, call_bytes, index,
-			));
+			Self::deposit_event(Event::<T>::TransactedDerivative {
+				account_id: who,
+				dest: dest,
+				call: call_bytes,
+				index: index,
+			});
 
 			Ok(())
 		}
@@ -326,11 +382,15 @@ pub mod pallet {
 				fee_location,
 				dest_weight,
 				call_bytes.clone(),
+				OriginKind::SovereignAccount,
 			)?;
 			// Deposit event
-			Self::deposit_event(Event::<T>::TransactedDerivative(
-				who, dest, call_bytes, index,
-			));
+			Self::deposit_event(Event::<T>::TransactedDerivative {
+				account_id: who,
+				dest: dest,
+				call: call_bytes,
+				index: index,
+			});
 
 			Ok(())
 		}
@@ -344,7 +404,8 @@ pub mod pallet {
 				&fee_location,
 				&dest,
 				dest_weight,
-				call
+				call,
+				*origin_kind
 			)
 		)]
 		pub fn transact_through_sovereign(
@@ -354,6 +415,7 @@ pub mod pallet {
 			fee_location: Box<VersionedMultiLocation>,
 			dest_weight: Weight,
 			call: Vec<u8>,
+			origin_kind: OriginKind,
 		) -> DispatchResult {
 			T::SovereignAccountDispatcherOrigin::ensure_origin(origin)?;
 
@@ -368,16 +430,21 @@ pub mod pallet {
 				fee_location,
 				dest_weight,
 				call.clone(),
+				origin_kind,
 			)?;
 
 			// Deposit event
-			Self::deposit_event(Event::<T>::TransactedSovereign(fee_payer, dest, call));
+			Self::deposit_event(Event::<T>::TransactedSovereign {
+				fee_payer,
+				dest,
+				call,
+			});
 
 			Ok(())
 		}
 
 		/// Change the transact info of a location
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::set_transact_info())]
 		pub fn set_transact_info(
 			origin: OriginFor<T>,
 			location: Box<VersionedMultiLocation>,
@@ -396,7 +463,27 @@ pub mod pallet {
 
 			TransactInfoWithWeightLimit::<T>::insert(&location, &remote_info);
 
-			Self::deposit_event(Event::TransactInfoChanged(location, remote_info));
+			Self::deposit_event(Event::TransactInfoChanged {
+				location,
+				remote_info,
+			});
+			Ok(())
+		}
+
+		/// Remove the transact info of a location
+		#[pallet::weight(T::WeightInfo::remove_transact_info())]
+		pub fn remove_transact_info(
+			origin: OriginFor<T>,
+			location: Box<VersionedMultiLocation>,
+		) -> DispatchResult {
+			T::DerivativeAddressRegistrationOrigin::ensure_origin(origin)?;
+			let location =
+				MultiLocation::try_from(*location).map_err(|()| Error::<T>::BadVersion)?;
+
+			// Remove transact info
+			TransactInfoWithWeightLimit::<T>::remove(&location);
+
+			Self::deposit_event(Event::TransactInfoRemoved { location });
 			Ok(())
 		}
 	}
@@ -408,6 +495,7 @@ pub mod pallet {
 			fee_location: MultiLocation,
 			dest_weight: Weight,
 			call: Vec<u8>,
+			origin_kind: OriginKind,
 		) -> DispatchResult {
 			// Grab transact info for the fee loation provided
 			let transactor_info = TransactInfoWithWeightLimit::<T>::get(&fee_location)
@@ -452,8 +540,14 @@ pub mod pallet {
 			// used to pay fees
 			// BuyExecution: Buys "execution power" in the destination chain
 			// Transact: Issues the transaction
-			let transact_message: Xcm<()> =
-				Self::transact_message(dest.clone(), fee, total_weight, call, dest_weight)?;
+			let transact_message: Xcm<()> = Self::transact_message(
+				dest.clone(),
+				fee,
+				total_weight,
+				call,
+				dest_weight,
+				origin_kind,
+			)?;
 
 			// Send to sovereign
 			T::XcmSender::send_xcm(dest, transact_message).map_err(|_| Error::<T>::ErrorSending)?;
@@ -467,12 +561,13 @@ pub mod pallet {
 			dest_weight: Weight,
 			call: Vec<u8>,
 			dispatch_weight: Weight,
+			origin_kind: OriginKind,
 		) -> Result<Xcm<()>, DispatchError> {
 			Ok(Xcm(vec![
 				Self::sovereign_withdraw(asset.clone(), &dest)?,
 				Self::buy_execution(asset, &dest, dest_weight)?,
 				Transact {
-					origin_type: OriginKind::SovereignAccount,
+					origin_type: origin_kind,
 					require_weight_at_most: dispatch_weight,
 					call: call.into(),
 				},
@@ -485,10 +580,9 @@ pub mod pallet {
 			at: &MultiLocation,
 			weight: u64,
 		) -> Result<Instruction<()>, DispatchError> {
-			let inv_at = T::LocationInverter::invert_location(at)
-				.map_err(|()| Error::<T>::DestinationNotInvertible)?;
+			let ancestry = T::LocationInverter::ancestry();
 			let fees = asset
-				.reanchored(&inv_at)
+				.reanchored(at, &ancestry)
 				.map_err(|_| Error::<T>::CannotReanchor)?;
 
 			Ok(BuyExecution {
@@ -502,10 +596,9 @@ pub mod pallet {
 			asset: MultiAsset,
 			at: &MultiLocation,
 		) -> Result<Instruction<()>, DispatchError> {
-			let inv_at = T::LocationInverter::invert_location(at)
-				.map_err(|()| Error::<T>::DestinationNotInvertible)?;
+			let ancestry = T::LocationInverter::ancestry();
 			let fees = asset
-				.reanchored(&inv_at)
+				.reanchored(at, &ancestry)
 				.map_err(|_| Error::<T>::CannotReanchor)?;
 
 			Ok(WithdrawAsset(fees.into()))
@@ -563,7 +656,13 @@ pub mod pallet {
 						call.to_owned(),
 					));
 
-			Self::weight_of_transact(&asset, &dest.clone().destination(), weight, call_bytes)
+			Self::weight_of_transact(
+				&asset,
+				&dest.clone().destination(),
+				weight,
+				call_bytes,
+				OriginKind::SovereignAccount,
+			)
 		}
 
 		/// Returns weight of `transact_through_derivative` call.
@@ -593,6 +692,7 @@ pub mod pallet {
 			dest: &VersionedMultiLocation,
 			weight: &u64,
 			call: &Vec<u8>,
+			origin_kind: OriginKind,
 		) -> Weight {
 			// If asset or dest give errors, return 0
 			let (asset, dest) = match (
@@ -603,7 +703,7 @@ pub mod pallet {
 				_ => return 0,
 			};
 
-			Self::weight_of_transact(&asset, &dest, weight, call.clone())
+			Self::weight_of_transact(&asset, &dest, weight, call.clone(), origin_kind)
 		}
 
 		/// Returns weight of transact message.
@@ -612,6 +712,7 @@ pub mod pallet {
 			dest: &MultiLocation,
 			weight: &u64,
 			call: Vec<u8>,
+			origin_kind: OriginKind,
 		) -> Weight {
 			// Construct MultiAsset
 			let fee = MultiAsset {
@@ -625,6 +726,7 @@ pub mod pallet {
 				weight.clone(),
 				call.clone(),
 				weight.clone(),
+				origin_kind,
 			) {
 				T::Weigher::weight(&mut msg.into()).map_or(Weight::max_value(), |w| {
 					T::BaseXcmWeight::get().saturating_add(w)

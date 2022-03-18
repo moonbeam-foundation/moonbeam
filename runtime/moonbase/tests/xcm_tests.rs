@@ -23,18 +23,11 @@ use frame_support::{
 	weights::constants::WEIGHT_PER_SECOND,
 };
 use xcm::{VersionedMultiLocation, WrapVersion};
-use xcm_mock::parachain;
-use xcm_mock::relay_chain;
 use xcm_mock::*;
 use xcm_primitives::UtilityEncodeCall;
 
 use sp_std::boxed::Box;
-use xcm::latest::prelude::QueryResponse;
-use xcm::latest::{
-	Junction::{self, AccountId32, AccountKey20, PalletInstance, Parachain},
-	Junctions::*,
-	MultiLocation, NetworkId, Response, Xcm,
-};
+use xcm::latest::prelude::*;
 use xcm_executor::traits::Convert;
 use xcm_simulator::TestExt;
 // Send a relay asset (like DOT) to a parachain A
@@ -61,7 +54,8 @@ fn receive_relay_asset_from_relay() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_location,
-			0u128
+			0u128,
+			0
 		));
 	});
 
@@ -114,7 +108,8 @@ fn send_relay_asset_to_relay() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_location,
-			0u128
+			0u128,
+			0
 		));
 	});
 
@@ -197,7 +192,8 @@ fn send_relay_asset_to_para_b() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_location.clone(),
-			0u128
+			0u128,
+			0
 		));
 	});
 
@@ -212,7 +208,8 @@ fn send_relay_asset_to_para_b() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_location,
-			0u128
+			0u128,
+			0
 		));
 	});
 
@@ -294,7 +291,8 @@ fn send_para_a_asset_to_para_b() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_location,
-			0u128
+			0u128,
+			0
 		));
 	});
 
@@ -358,7 +356,8 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_location.clone(),
-			0u128
+			0u128,
+			0
 		));
 	});
 
@@ -373,7 +372,8 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_location,
-			0u128
+			0u128,
+			0
 		));
 	});
 
@@ -465,7 +465,8 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_location,
-			0u128
+			0u128,
+			0
 		));
 	});
 
@@ -535,6 +536,118 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 }
 
 #[test]
+fn send_para_a_asset_to_para_b_and_back_to_para_a_with_new_reanchoring() {
+	MockNet::reset();
+
+	let para_a_balances = MultiLocation::new(1, X2(Parachain(1), PalletInstance(1u8)));
+	let source_location = parachain::AssetType::Xcm(para_a_balances);
+	let source_id: parachain::AssetId = source_location.clone().into();
+
+	let asset_metadata = parachain::AssetMetadata {
+		name: b"ParaAToken".to_vec(),
+		symbol: b"ParaA".to_vec(),
+		decimals: 18,
+	};
+
+	ParaB::execute_with(|| {
+		assert_ok!(AssetManager::register_asset(
+			parachain::Origin::root(),
+			source_location.clone(),
+			asset_metadata,
+			1u128,
+			true
+		));
+		assert_ok!(AssetManager::set_asset_units_per_second(
+			parachain::Origin::root(),
+			source_location,
+			0u128,
+			0
+		));
+	});
+
+	let dest = MultiLocation {
+		parents: 1,
+		interior: X2(
+			Parachain(2),
+			AccountKey20 {
+				network: NetworkId::Any,
+				key: PARAALICE.into(),
+			},
+		),
+	};
+	ParaA::execute_with(|| {
+		// free execution, full amount received
+		assert_ok!(XTokens::transfer(
+			parachain::Origin::signed(PARAALICE.into()),
+			parachain::CurrencyId::SelfReserve,
+			100,
+			Box::new(VersionedMultiLocation::V1(dest)),
+			80
+		));
+	});
+
+	ParaA::execute_with(|| {
+		// free execution, full amount received
+		assert_eq!(
+			ParaBalances::free_balance(&PARAALICE.into()),
+			INITIAL_BALANCE - 100
+		);
+	});
+
+	ParaB::execute_with(|| {
+		// free execution, full amount received
+		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 100);
+	});
+
+	// This time we will force the new reanchoring by manually sending the
+	// Message through polkadotXCM pallet
+
+	let dest = MultiLocation {
+		parents: 1,
+		interior: X1(Parachain(1)),
+	};
+
+	let reanchored_para_a_balances = MultiLocation::new(0, X1(PalletInstance(1u8)));
+
+	let message = xcm::VersionedXcm::<()>::V2(Xcm(vec![
+		WithdrawAsset((reanchored_para_a_balances.clone(), 100).into()),
+		ClearOrigin,
+		BuyExecution {
+			fees: (reanchored_para_a_balances, 100).into(),
+			weight_limit: Limited(80),
+		},
+		DepositAsset {
+			assets: All.into(),
+			max_assets: 1,
+			beneficiary: MultiLocation::new(
+				0,
+				X1(AccountKey20 {
+					network: Any,
+					key: PARAALICE,
+				}),
+			),
+		},
+	]));
+	ParaB::execute_with(|| {
+		// Send a message to the sovereign account in ParaA to withdraw
+		// and deposit asset
+		assert_ok!(ParachainPalletXcm::send(
+			parachain::Origin::root(),
+			Box::new(dest.into()),
+			Box::new(message),
+		));
+	});
+
+	ParaA::execute_with(|| {
+		// Weight used is 4
+		assert_eq!(
+			ParaBalances::free_balance(&PARAALICE.into()),
+			INITIAL_BALANCE - 4
+		);
+	});
+}
+
+#[test]
 fn receive_relay_asset_with_trader() {
 	MockNet::reset();
 
@@ -561,7 +674,8 @@ fn receive_relay_asset_with_trader() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_location,
-			2500000000000u128
+			2500000000000u128,
+			0
 		));
 	});
 
@@ -619,7 +733,8 @@ fn send_para_a_asset_to_para_b_with_trader() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_location,
-			2500000000000u128
+			2500000000000u128,
+			0
 		));
 	});
 
@@ -693,7 +808,8 @@ fn send_para_a_asset_to_para_b_with_trader_and_fee() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_location,
-			12500000u128
+			12500000u128,
+			0
 		));
 	});
 
@@ -766,7 +882,8 @@ fn error_when_not_paying_enough() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_location,
-			2500000000000u128
+			2500000000000u128,
+			0
 		));
 	});
 
@@ -813,7 +930,8 @@ fn transact_through_derivative_multilocation() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_location,
-			1u128
+			1u128,
+			0
 		));
 
 		// Root can set transact info
@@ -966,7 +1084,8 @@ fn transact_through_sovereign() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_location,
-			1u128
+			1u128,
+			0
 		));
 
 		// Root can set transact info
@@ -1079,6 +1198,7 @@ fn transact_through_sovereign() {
 			Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 			4000000000,
 			utility_bytes,
+			OriginKind::SovereignAccount
 		));
 	});
 
@@ -1113,7 +1233,8 @@ fn test_automatic_versioning_on_runtime_upgrade_with_relay() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_location,
-			0u128
+			0u128,
+			0
 		));
 	});
 
@@ -1262,7 +1383,8 @@ fn test_automatic_versioning_on_runtime_upgrade_with_para_b() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_location,
-			0u128
+			0u128,
+			0
 		));
 	});
 
@@ -1394,7 +1516,8 @@ fn receive_asset_with_no_sufficients_not_possible_if_non_existent_account() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_location,
-			0u128
+			0u128,
+			0
 		));
 	});
 
@@ -1471,7 +1594,8 @@ fn receive_assets_with_sufficients_true_allows_non_funded_account_to_receive_ass
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_location,
-			0u128
+			0u128,
+			0
 		));
 	});
 
@@ -1530,7 +1654,8 @@ fn evm_account_receiving_assets_should_handle_sufficients_ref_count() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_location,
-			0u128
+			0u128,
+			0
 		));
 	});
 
@@ -1592,7 +1717,8 @@ fn empty_account_should_not_be_reset() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_location,
-			0u128
+			0u128,
+			0
 		));
 	});
 
@@ -1699,7 +1825,8 @@ fn test_statemint_like() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_location,
-			0u128
+			0u128,
+			0
 		));
 	});
 
@@ -1807,7 +1934,8 @@ fn test_statemint_like_prefix_change() {
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_location,
-			0u128
+			0u128,
+			0
 		));
 	});
 
@@ -1901,5 +2029,5 @@ use sp_io::hashing::blake2_256;
 // Helper to derive accountIds
 pub fn derivative_account_id(who: sp_runtime::AccountId32, index: u16) -> sp_runtime::AccountId32 {
 	let entropy = (b"modlpy/utilisuba", who, index).using_encoded(blake2_256);
-	sp_runtime::AccountId32::decode(&mut &entropy[..]).unwrap_or_default()
+	sp_runtime::AccountId32::decode(&mut &entropy[..]).expect("valid account id")
 }
