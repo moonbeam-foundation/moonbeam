@@ -32,7 +32,7 @@ use xcm::latest::prelude::QueryResponse;
 use xcm::latest::{
 	Junction::{self, AccountId32, AccountKey20, PalletInstance, Parachain},
 	Junctions::*,
-	MultiLocation, NetworkId, Response, Xcm,
+	MultiLocation, NetworkId, OriginKind, Response, Xcm,
 };
 use xcm_executor::traits::Convert;
 use xcm_simulator::TestExt;
@@ -953,6 +953,7 @@ fn transact_through_sovereign() {
 			Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 			4000000000,
 			utility_bytes,
+			OriginKind::SovereignAccount
 		));
 	});
 

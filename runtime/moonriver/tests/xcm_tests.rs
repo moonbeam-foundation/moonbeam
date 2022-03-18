@@ -1231,6 +1231,7 @@ fn transact_through_sovereign() {
 			Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 			4000000000,
 			utility_bytes,
+			OriginKind::SovereignAccount
 		));
 	});
 
