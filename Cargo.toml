@@ -11,6 +11,7 @@ members = [
 	"pallets/migrations",
 	"pallets/proxy-genesis-companion",
 	"precompiles/utils/macro",
+	"precompiles/batch",
 	"runtime/moonbase",
 	"runtime/moonbeam",
 	"runtime/moonriver",
