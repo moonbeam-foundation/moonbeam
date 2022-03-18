@@ -5,16 +5,18 @@
 ## Installation
 
 ```bash
-npm i @moonbeam/api-augment
+npm i @moonbeam-network/api-augment
 ```
+
+> :warning: `@polkadot/api` should be installed in your project!
 
 ## Usage
 
 Add to your codebase entry point before any imports from the API itself.
 
-- `import '@moonbeam/api-augment'` - applies Moonbeam types and endpoint augmentation
-- `import '@moonbeam/api-augment/moonriver'` - applies Moonriver types and endpoint augmentation
-- `import '@moonbeam/api-augment/moonbase'` - applies Moonbase Alpha types and endpoint augmentation
+- `import '@moonbeam-network/api-augment'` - applies Moonbeam types and endpoint augmentation
+- `import '@moonbeam-network/api-augment/moonriver'` - applies Moonriver types and endpoint augmentation
+- `import '@moonbeam-network/api-augment/moonbase'` - applies Moonbase Alpha types and endpoint augmentation
 
 ## Docs
 

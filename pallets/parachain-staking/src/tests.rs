@@ -27,10 +27,10 @@ use crate::mock::{
 };
 use crate::{
 	assert_eq_events, assert_eq_last_events, assert_event_emitted, assert_event_not_emitted,
-	assert_last_event, assert_tail_eq, pallet::CapacityStatus, set::OrderedSet, BalanceOf, Bond,
+	assert_last_event, assert_tail_eq, set::OrderedSet, AtStake, BalanceOf, Bond,
 	BottomDelegations, CandidateInfo, CandidateMetadata, CandidatePool, CandidateState,
-	CollatorCandidate, CollatorStatus, Config, DelegationChange, DelegationRequest, Delegations,
-	Delegator, DelegatorAdded, DelegatorState, DelegatorStatus, Error, Event,
+	CapacityStatus, CollatorCandidate, CollatorStatus, Config, DelegationChange, DelegationRequest,
+	Delegations, Delegator, DelegatorAdded, DelegatorState, DelegatorStatus, Error, Event,
 	PendingDelegationRequests, Range, TopDelegations, Total,
 };
 use frame_support::{assert_noop, assert_ok, traits::ReservableCurrency};
@@ -8252,5 +8252,52 @@ fn delegation_kicked_from_bottom_removes_pending_request() {
 				.requests()
 				.get(&1)
 				.is_none());
+		});
+}
+
+#[test]
+fn no_selected_candidates_defaults_to_last_round_collators() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 30), (3, 30), (4, 30), (5, 30)])
+		.with_candidates(vec![(1, 30), (2, 30), (3, 30), (4, 30), (5, 30)])
+		.build()
+		.execute_with(|| {
+			roll_to_round_begin(1);
+			// schedule to leave
+			for i in 1..6 {
+				assert_ok!(ParachainStaking::schedule_leave_candidates(
+					Origin::signed(i),
+					5
+				));
+			}
+			let old_round = ParachainStaking::round().current;
+			let old_selected_candidates = ParachainStaking::selected_candidates();
+			let mut old_at_stake_snapshots = Vec::new();
+			for account in old_selected_candidates.clone() {
+				old_at_stake_snapshots.push(<AtStake<Test>>::get(old_round, account));
+			}
+			roll_to_round_begin(3);
+			// execute leave
+			for i in 1..6 {
+				assert_ok!(ParachainStaking::execute_leave_candidates(
+					Origin::signed(i),
+					i,
+					0,
+				));
+			}
+			// next round
+			roll_to_round_begin(4);
+			let new_round = ParachainStaking::round().current;
+			// check AtStake matches previous
+			let new_selected_candidates = ParachainStaking::selected_candidates();
+			assert_eq!(old_selected_candidates, new_selected_candidates);
+			let mut index = 0usize;
+			for account in new_selected_candidates {
+				assert_eq!(
+					old_at_stake_snapshots[index],
+					<AtStake<Test>>::get(new_round, account)
+				);
+				index += 1usize;
+			}
 		});
 }

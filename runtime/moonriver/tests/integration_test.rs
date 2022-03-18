@@ -30,7 +30,7 @@ use frame_support::{
 	StorageHasher, Twox128,
 };
 use moonriver_runtime::{
-	BaseFee, BlockWeights, CurrencyId, PolkadotXcm, Precompiles, XTokens, XcmTransactor,
+	xcm_config::CurrencyId, BaseFee, BlockWeights, PolkadotXcm, Precompiles, XTokens, XcmTransactor,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
@@ -47,7 +47,7 @@ use sp_runtime::{
 	DispatchError, ModuleError,
 };
 use xcm::latest::prelude::*;
-use xcm::{VersionedMultiAsset, VersionedMultiAssets, VersionedMultiLocation};
+use xcm::{VersionedMultiAssets, VersionedMultiLocation};
 use xtokens_precompiles::Action as XtokensAction;
 
 #[test]
@@ -1679,76 +1679,6 @@ fn xtokens_precompiles_transfer_multiasset() {
 }
 
 #[test]
-fn make_sure_movr_cannot_be_transferred_precompile() {
-	ExtBuilder::default()
-		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * MOVR),
-			(AccountId::from(BOB), 1_000 * MOVR),
-		])
-		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
-		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
-			AccountId::from(ALICE),
-		)])
-		.build()
-		.execute_with(|| {
-			let dest = MultiLocation {
-				parents: 1,
-				interior: X1(AccountId32 {
-					network: NetworkId::Any,
-					id: [1u8; 32],
-				}),
-			};
-			assert_noop!(
-				XTokens::transfer_multiasset(
-					origin_of(AccountId::from(ALICE)),
-					Box::new(VersionedMultiAsset::V1(MultiAsset {
-						id: Concrete(moonriver_runtime::SelfLocation::get()),
-						fun: Fungible(1000)
-					})),
-					Box::new(VersionedMultiLocation::V1(dest)),
-					40000
-				),
-				orml_xtokens::Error::<Runtime>::XcmExecutionFailed
-			);
-		});
-}
-
-#[test]
-fn make_sure_movr_cannot_be_transferred() {
-	ExtBuilder::default()
-		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * MOVR),
-			(AccountId::from(BOB), 1_000 * MOVR),
-		])
-		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
-		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
-			AccountId::from(ALICE),
-		)])
-		.build()
-		.execute_with(|| {
-			let dest = MultiLocation {
-				parents: 1,
-				interior: X1(AccountId32 {
-					network: NetworkId::Any,
-					id: [1u8; 32],
-				}),
-			};
-			assert_noop!(
-				XTokens::transfer(
-					origin_of(AccountId::from(ALICE)),
-					CurrencyId::SelfReserve,
-					100,
-					Box::new(VersionedMultiLocation::V1(dest)),
-					40000
-				),
-				orml_xtokens::Error::<Runtime>::XcmExecutionFailed
-			);
-		});
-}
-
-#[test]
 fn make_sure_polkadot_xcm_cannot_be_called() {
 	ExtBuilder::default()
 		.with_balances(vec![
@@ -1770,7 +1700,7 @@ fn make_sure_polkadot_xcm_cannot_be_called() {
 				}),
 			};
 			let multiassets: MultiAssets = [MultiAsset {
-				id: Concrete(moonriver_runtime::SelfLocation::get()),
+				id: Concrete(moonriver_runtime::xcm_config::SelfLocation::get()),
 				fun: Fungible(1000),
 			}]
 			.to_vec()
@@ -1831,7 +1761,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 			assert_noop!(
 				XcmTransactor::transact_through_derivative_multilocation(
 					origin_of(AccountId::from(ALICE)),
-					moonriver_runtime::Transactors::Relay,
+					moonriver_runtime::xcm_config::Transactors::Relay,
 					0,
 					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 					// 2000 is the max
@@ -1843,9 +1773,9 @@ fn transactor_cannot_use_more_than_max_weight() {
 			assert_noop!(
 				XcmTransactor::transact_through_derivative(
 					origin_of(AccountId::from(ALICE)),
-					moonriver_runtime::Transactors::Relay,
+					moonriver_runtime::xcm_config::Transactors::Relay,
 					0,
-					moonriver_runtime::CurrencyId::OtherReserve(source_id),
+					moonriver_runtime::xcm_config::CurrencyId::OtherReserve(source_id),
 					// 20000 is the max
 					17000,
 					vec![],

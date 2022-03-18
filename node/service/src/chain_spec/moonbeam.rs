@@ -23,6 +23,7 @@
 use crate::chain_spec::{derive_bip44_pairs_from_mnemonic, get_account_id_from_pair};
 use crate::chain_spec::{generate_accounts, get_from_seed, Extensions};
 use cumulus_primitives_core::ParaId;
+use hex_literal::hex;
 use moonbeam_runtime::{
 	currency::GLMR, currency::SUPPLY_FACTOR, get, AccountId, AuthorFilterConfig,
 	AuthorMappingConfig, Balance, BalancesConfig, CouncilCollectiveConfig, CrowdloanRewardsConfig,
@@ -36,7 +37,6 @@ use sc_service::ChainType;
 #[cfg(test)]
 use sp_core::ecdsa;
 use sp_runtime::Perbill;
-use std::str::FromStr;
 
 /// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
 pub type ChainSpec = sc_service::GenericChainSpec<GenesisConfig, Extensions>;
@@ -49,7 +49,9 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 	});
 	let mut accounts = generate_accounts(parent_mnemonic, num_accounts.unwrap_or(10));
 	// We add Gerald here
-	accounts.push(AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap());
+	accounts.push(AccountId::from(hex!(
+		"6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b"
+	)));
 	ChainSpec::from_genesis(
 		"Moonbeam Development Testnet",
 		"moonbeam_dev",
@@ -110,25 +112,25 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 		move || {
 			testnet_genesis(
 				vec![
-					AccountId::from_str("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0").unwrap(),
-					AccountId::from_str("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc").unwrap(),
-					AccountId::from_str("773539d4Ac0e786233D90A233654ccEE26a613D9").unwrap(),
+					AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
+					AccountId::from(hex!("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc")),
+					AccountId::from(hex!("773539d4Ac0e786233D90A233654ccEE26a613D9")),
 				],
 				vec![
-					AccountId::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap(),
-					AccountId::from_str("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0").unwrap(),
+					AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
+					AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
 				],
 				// Collator Candidates
 				vec![
 					// Alice -> Alith
 					(
-						AccountId::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap(),
+						AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
 						get_from_seed::<NimbusId>("Alice"),
 						1_000 * GLMR * SUPPLY_FACTOR,
 					),
 					// Bob -> Baltithar
 					(
-						AccountId::from_str("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0").unwrap(),
+						AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
 						get_from_seed::<NimbusId>("Bob"),
 						1_000 * GLMR * SUPPLY_FACTOR,
 					),
@@ -136,8 +138,8 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 				// Delegations
 				vec![],
 				vec![
-					AccountId::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap(),
-					AccountId::from_str("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0").unwrap(),
+					AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
+					AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
 				],
 				1_500_000 * GLMR * SUPPLY_FACTOR,
 				para_id,
@@ -301,9 +303,9 @@ mod tests {
 		let last_account = get_account_id_from_pair(pairs.last().unwrap().clone()).unwrap();
 
 		let expected_first_account =
-			AccountId::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap();
+			AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"));
 		let expected_last_account =
-			AccountId::from_str("2898FE7a42Be376C8BC7AF536A940F7Fd5aDd423").unwrap();
+			AccountId::from(hex!("2898FE7a42Be376C8BC7AF536A940F7Fd5aDd423"));
 		assert_eq!(first_account, expected_first_account);
 		assert_eq!(last_account, expected_last_account);
 		assert_eq!(pairs.len(), 10);
@@ -319,9 +321,9 @@ mod tests {
 		let last_account = get_account_id_from_pair(pairs.last().unwrap().clone()).unwrap();
 
 		let expected_first_account =
-			AccountId::from_str("1e56ca71b596f2b784a27a2fdffef053dbdeff83").unwrap();
+			AccountId::from(hex!("1e56ca71b596f2b784a27a2fdffef053dbdeff83"));
 		let expected_last_account =
-			AccountId::from_str("4148202BF0c0Ad7697Cff87EbB83340C80c947f8").unwrap();
+			AccountId::from(hex!("4148202BF0c0Ad7697Cff87EbB83340C80c947f8"));
 		assert_eq!(first_account, expected_first_account);
 		assert_eq!(last_account, expected_last_account);
 		assert_eq!(pairs.len(), 20);

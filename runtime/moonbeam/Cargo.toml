@@ -9,6 +9,7 @@ license = "GPL-3.0-only"
 version = "0.8.4"
 
 [dependencies]
+hex-literal = { version = "0.3.4", optional = true }
 log = "0.4"
 rlp = { version = "0.5", optional = true, default-features = false }
 serde = { version = "1.0.101", optional = true, default-features = false, features = [ "derive" ] }
@@ -36,6 +37,7 @@ xcm-transactor = { path = "../../pallets/xcm-transactor", default-features = fal
 # Moonbeam precompiles
 crowdloan-rewards-precompiles = { path = "../../precompiles/crowdloan-rewards", default-features = false }
 pallet-author-mapping-precompiles = { path = "../../precompiles/author-mapping", default-features = false }
+pallet-democracy-precompiles = { path = "../../precompiles/pallet-democracy", default-features = false }
 pallet-evm-precompile-assets-erc20 = { path = "../../precompiles/assets-erc20", default-features = false }
 pallet-evm-precompile-balances-erc20 = { path = "../../precompiles/balances-erc20", default-features = false }
 parachain-staking-precompiles = { path = "../../precompiles/parachain-staking", default-features = false }
@@ -236,6 +238,7 @@ runtime-benchmarks = [
 	"frame-support/runtime-benchmarks",
 	"frame-system-benchmarking",
 	"frame-system/runtime-benchmarks",
+	"hex-literal",
 	"pallet-asset-manager/runtime-benchmarks",
 	"pallet-author-mapping/runtime-benchmarks",
 	"pallet-balances/runtime-benchmarks",

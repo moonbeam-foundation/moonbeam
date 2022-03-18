@@ -1,14 +1,15 @@
 {
-  "name": "@moonbeam/api-augment",
-  "version": "0.0.1",
+  "name": "@moonbeam-network/api-augment",
+  "version": "0.0.1-beta.4",
   "private": true,
   "description": "Moonbeam types augment for @polkadot/api",
   "author": "PureStake",
   "license": "GPL-3.0-only",
+  "homepage": "https://github.com/PureStake/moonbeam/tree/master/typescript-api#readme",
   "repository": {
-    "directory": "typescript-api",
     "type": "git",
-    "url": "git+https://github.com/PureStake/moonbeam.git"
+    "url": "https://github.com/PureStake/moonbeam.git",
+    "directory": "typescript-api"
   },
   "engines": {
     "node": ">=14.0.0"
@@ -35,29 +36,42 @@
     "deploy": "npm run generate && npm run build && npm run publish",
     "pretty": "prettier --write --ignore-unknown --plugin prettier-plugin-jsdoc 'src/**/*' 'scripts/**/*'"
   },
-  "main": "./index.js",
+  "main": "./index.cjs",
   "module": "./index.js",
   "types": "./index.d.ts",
   "exports": {
     ".": {
-      "import": "./index.js",
-      "default": "./index.js",
-      "types": "./index.d.ts"
+      "types": "./index.d.ts",
+      "require": "./index.cjs",
+      "default": "./index.js"
     },
     "./moonbeam": {
-      "import": "./index.js",
-      "default": "./index.js",
-      "types": "./index.d.ts"
+      "types": "./index.d.ts",
+      "require": "./index.cjs",
+      "default": "./index.js"
     },
     "./moonriver": {
-      "import": "./moonriver/index.js",
-      "default": "./moonriver/index.js",
-      "types": "./moonriver/index.d.ts"
+      "types": "./moonriver/index.d.ts",
+      "require": "./moonriver/index.cjs",
+      "default": "./moonriver/index.js"
     },
     "./moonbase": {
-      "import": "./moonbase/index.js",
-      "default": "./moonbase/index.js",
-      "types": "./moonbase/index.d.ts"
+      "types": "./moonbase/index.d.ts",
+      "require": "./moonbase/index.cjs",
+      "default": "./moonbase/index.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "moonbeam": [
+        "index.d.ts"
+      ],
+      "moonriver": [
+        "moonriver/index.d.ts"
+      ],
+      "moonbase": [
+        "moonbase/index.d.ts"
+      ]
     }
   },
   "keywords": [
@@ -71,10 +85,8 @@
     "jsdocPrintWidth": 80,
     "jsdocSingleLineComment": false
   },
-  "dependencies": {
-    "@polkadot/api": "^7.9.1"
-  },
   "devDependencies": {
+    "@polkadot/api": "^7.12.1",
     "@polkadot/typegen": "^7.9.1",
     "prettier": "^2.5.1",
     "prettier-plugin-jsdoc": "^0.3.30",

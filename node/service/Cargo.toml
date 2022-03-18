@@ -14,10 +14,12 @@ derive_more = "0.99"
 exit-future = "0.1.4"
 flume = "0.10.9"
 futures = { version = "0.3.1", features = [ "compat" ] }
+hex-literal = "0.3.4"
 jsonrpc-core = "18.0.0"
 jsonrpc-pubsub = "18.0.0"
 libsecp256k1 = { version = "0.6", features = [ "hmac" ] }
 log = "0.4"
+maplit = "1.0.2"
 parking_lot = "0.9.0"
 serde = { version = "1.0.101", features = [ "derive" ] }
 serde_json = "1.0"
@@ -129,6 +131,7 @@ frame-benchmarking-cli = { git = "https://github.com/purestake/substrate", branc
 [dev-dependencies]
 assert_cmd = "0.12"
 nix = "0.17"
+prometheus = { version = "0.13.0", default-features = false }
 rand = "0.7.3"
 
 # Polkadot dev-dependencies
