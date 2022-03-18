@@ -722,6 +722,28 @@
 <span id="722">722</span>
 <span id="723">723</span>
 <span id="724">724</span>
+<span id="725">725</span>
+<span id="726">726</span>
+<span id="727">727</span>
+<span id="728">728</span>
+<span id="729">729</span>
+<span id="730">730</span>
+<span id="731">731</span>
+<span id="732">732</span>
+<span id="733">733</span>
+<span id="734">734</span>
+<span id="735">735</span>
+<span id="736">736</span>
+<span id="737">737</span>
+<span id="738">738</span>
+<span id="739">739</span>
+<span id="740">740</span>
+<span id="741">741</span>
+<span id="742">742</span>
+<span id="743">743</span>
+<span id="744">744</span>
+<span id="745">745</span>
+<span id="746">746</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -1045,6 +1067,7 @@
 				<span class="ident">fee_location</span>,
 				<span class="ident">dest_weight</span>,
 				<span class="ident">call_bytes</span>.<span class="ident">clone</span>(),
+				<span class="ident">OriginKind::SovereignAccount</span>,
 			)<span class="question-mark">?</span>;
 
 			<span class="comment">// Deposit event</span>
@@ -1105,6 +1128,7 @@
 				<span class="ident">fee_location</span>,
 				<span class="ident">dest_weight</span>,
 				<span class="ident">call_bytes</span>.<span class="ident">clone</span>(),
+				<span class="ident">OriginKind::SovereignAccount</span>,
 			)<span class="question-mark">?</span>;
 			<span class="comment">// Deposit event</span>
 			<span class="ident"><span class="self">Self</span>::deposit_event</span>(<span class="ident">Event</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::TransactedDerivative</span> {
@@ -1126,7 +1150,8 @@
 				<span class="kw-2">&amp;</span><span class="ident">fee_location</span>,
 				<span class="kw-2">&amp;</span><span class="ident">dest</span>,
 				<span class="ident">dest_weight</span>,
-				<span class="ident">call</span>
+				<span class="ident">call</span>,
+				<span class="kw-2">*</span><span class="ident">origin_kind</span>
 			)
 		)]</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">transact_through_sovereign</span>(
@@ -1136,6 +1161,7 @@
 			<span class="ident">fee_location</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">VersionedMultiLocation</span><span class="op">&gt;</span>,
 			<span class="ident">dest_weight</span>: <span class="ident">Weight</span>,
 			<span class="ident">call</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
+			<span class="ident">origin_kind</span>: <span class="ident">OriginKind</span>,
 		) -&gt; <span class="ident">DispatchResult</span> {
 			<span class="ident">T::SovereignAccountDispatcherOrigin::ensure_origin</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 
@@ -1150,6 +1176,7 @@
 				<span class="ident">fee_location</span>,
 				<span class="ident">dest_weight</span>,
 				<span class="ident">call</span>.<span class="ident">clone</span>(),
+				<span class="ident">origin_kind</span>,
 			)<span class="question-mark">?</span>;
 
 			<span class="comment">// Deposit event</span>
@@ -1214,6 +1241,7 @@
 			<span class="ident">fee_location</span>: <span class="ident">MultiLocation</span>,
 			<span class="ident">dest_weight</span>: <span class="ident">Weight</span>,
 			<span class="ident">call</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
+			<span class="ident">origin_kind</span>: <span class="ident">OriginKind</span>,
 		) -&gt; <span class="ident">DispatchResult</span> {
 			<span class="comment">// Grab transact info for the fee loation provided</span>
 			<span class="kw">let</span> <span class="ident">transactor_info</span> <span class="op">=</span> <span class="ident">TransactInfoWithWeightLimit</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">fee_location</span>)
@@ -1258,8 +1286,14 @@
 			<span class="comment">// used to pay fees</span>
 			<span class="comment">// BuyExecution: Buys &quot;execution power&quot; in the destination chain</span>
 			<span class="comment">// Transact: Issues the transaction</span>
-			<span class="kw">let</span> <span class="ident">transact_message</span>: <span class="ident">Xcm</span><span class="op">&lt;</span>()<span class="op">&gt;</span> <span class="op">=</span>
-				<span class="ident"><span class="self">Self</span>::transact_message</span>(<span class="ident">dest</span>.<span class="ident">clone</span>(), <span class="ident">fee</span>, <span class="ident">total_weight</span>, <span class="ident">call</span>, <span class="ident">dest_weight</span>)<span class="question-mark">?</span>;
+			<span class="kw">let</span> <span class="ident">transact_message</span>: <span class="ident">Xcm</span><span class="op">&lt;</span>()<span class="op">&gt;</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::transact_message</span>(
+				<span class="ident">dest</span>.<span class="ident">clone</span>(),
+				<span class="ident">fee</span>,
+				<span class="ident">total_weight</span>,
+				<span class="ident">call</span>,
+				<span class="ident">dest_weight</span>,
+				<span class="ident">origin_kind</span>,
+			)<span class="question-mark">?</span>;
 
 			<span class="comment">// Send to sovereign</span>
 			<span class="ident">T::XcmSender::send_xcm</span>(<span class="ident">dest</span>, <span class="ident">transact_message</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::ErrorSending</span>)<span class="question-mark">?</span>;
@@ -1273,12 +1307,13 @@
 			<span class="ident">dest_weight</span>: <span class="ident">Weight</span>,
 			<span class="ident">call</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
 			<span class="ident">dispatch_weight</span>: <span class="ident">Weight</span>,
+			<span class="ident">origin_kind</span>: <span class="ident">OriginKind</span>,
 		) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Xcm</span><span class="op">&lt;</span>()<span class="op">&gt;</span>, <span class="ident">DispatchError</span><span class="op">&gt;</span> {
 			<span class="prelude-val">Ok</span>(<span class="ident">Xcm</span>(<span class="macro">vec!</span>[
 				<span class="ident"><span class="self">Self</span>::sovereign_withdraw</span>(<span class="ident">asset</span>.<span class="ident">clone</span>(), <span class="kw-2">&amp;</span><span class="ident">dest</span>)<span class="question-mark">?</span>,
 				<span class="ident"><span class="self">Self</span>::buy_execution</span>(<span class="ident">asset</span>, <span class="kw-2">&amp;</span><span class="ident">dest</span>, <span class="ident">dest_weight</span>)<span class="question-mark">?</span>,
 				<span class="ident">Transact</span> {
-					<span class="ident">origin_type</span>: <span class="ident">OriginKind::SovereignAccount</span>,
+					<span class="ident">origin_type</span>: <span class="ident">origin_kind</span>,
 					<span class="ident">require_weight_at_most</span>: <span class="ident">dispatch_weight</span>,
 					<span class="ident">call</span>: <span class="ident">call</span>.<span class="ident">into</span>(),
 				},
@@ -1367,7 +1402,13 @@
 						<span class="ident">call</span>.<span class="ident">to_owned</span>(),
 					));
 
-			<span class="ident"><span class="self">Self</span>::weight_of_transact</span>(<span class="kw-2">&amp;</span><span class="ident">asset</span>, <span class="kw-2">&amp;</span><span class="ident">dest</span>.<span class="ident">clone</span>().<span class="ident">destination</span>(), <span class="ident">weight</span>, <span class="ident">call_bytes</span>)
+			<span class="ident"><span class="self">Self</span>::weight_of_transact</span>(
+				<span class="kw-2">&amp;</span><span class="ident">asset</span>,
+				<span class="kw-2">&amp;</span><span class="ident">dest</span>.<span class="ident">clone</span>().<span class="ident">destination</span>(),
+				<span class="ident">weight</span>,
+				<span class="ident">call_bytes</span>,
+				<span class="ident">OriginKind::SovereignAccount</span>,
+			)
 		}
 
 		<span class="doccomment">/// Returns weight of `transact_through_derivative` call.</span>
@@ -1397,6 +1438,7 @@
 			<span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="ident">VersionedMultiLocation</span>,
 			<span class="ident">weight</span>: <span class="kw-2">&amp;</span><span class="ident">u64</span>,
 			<span class="ident">call</span>: <span class="kw-2">&amp;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
+			<span class="ident">origin_kind</span>: <span class="ident">OriginKind</span>,
 		) -&gt; <span class="ident">Weight</span> {
 			<span class="comment">// If asset or dest give errors, return 0</span>
 			<span class="kw">let</span> (<span class="ident">asset</span>, <span class="ident">dest</span>) <span class="op">=</span> <span class="kw">match</span> (
@@ -1407,7 +1449,7 @@
 				<span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="number">0</span>,
 			};
 
-			<span class="ident"><span class="self">Self</span>::weight_of_transact</span>(<span class="kw-2">&amp;</span><span class="ident">asset</span>, <span class="kw-2">&amp;</span><span class="ident">dest</span>, <span class="ident">weight</span>, <span class="ident">call</span>.<span class="ident">clone</span>())
+			<span class="ident"><span class="self">Self</span>::weight_of_transact</span>(<span class="kw-2">&amp;</span><span class="ident">asset</span>, <span class="kw-2">&amp;</span><span class="ident">dest</span>, <span class="ident">weight</span>, <span class="ident">call</span>.<span class="ident">clone</span>(), <span class="ident">origin_kind</span>)
 		}
 
 		<span class="doccomment">/// Returns weight of transact message.</span>
@@ -1416,6 +1458,7 @@
 			<span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="ident">MultiLocation</span>,
 			<span class="ident">weight</span>: <span class="kw-2">&amp;</span><span class="ident">u64</span>,
 			<span class="ident">call</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
+			<span class="ident">origin_kind</span>: <span class="ident">OriginKind</span>,
 		) -&gt; <span class="ident">Weight</span> {
 			<span class="comment">// Construct MultiAsset</span>
 			<span class="kw">let</span> <span class="ident">fee</span> <span class="op">=</span> <span class="ident">MultiAsset</span> {
@@ -1429,6 +1472,7 @@
 				<span class="ident">weight</span>.<span class="ident">clone</span>(),
 				<span class="ident">call</span>.<span class="ident">clone</span>(),
 				<span class="ident">weight</span>.<span class="ident">clone</span>(),
+				<span class="ident">origin_kind</span>,
 			) {
 				<span class="ident">T::Weigher::weight</span>(<span class="kw-2">&amp;mut</span> <span class="ident">msg</span>.<span class="ident">into</span>()).<span class="ident">map_or</span>(<span class="ident">Weight::max_value</span>(), <span class="op">|</span><span class="ident">w</span><span class="op">|</span> {
 					<span class="ident">T::BaseXcmWeight::get</span>().<span class="ident">saturating_add</span>(<span class="ident">w</span>)
