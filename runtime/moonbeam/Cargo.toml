@@ -241,6 +241,7 @@ runtime-benchmarks = [
 	"hex-literal",
 	"pallet-asset-manager/runtime-benchmarks",
 	"pallet-author-mapping/runtime-benchmarks",
+	"pallet-author-slot-filter/runtime-benchmarks",
 	"pallet-balances/runtime-benchmarks",
 	"pallet-collective/runtime-benchmarks",
 	"pallet-crowdloan-rewards/runtime-benchmarks",
@@ -252,7 +253,6 @@ runtime-benchmarks = [
 	"parachain-staking/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
 	"xcm-builder/runtime-benchmarks",
-	"pallet-author-slot-filter/runtime-benchmarks",
 ]
 
 try-runtime = [
