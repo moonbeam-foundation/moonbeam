@@ -9,6 +9,7 @@ members = [
 	"node/service",
 	"pallets/maintenance-mode",
 	"pallets/migrations",
+	"pallets/moonbeam-orbiters",
 	"pallets/proxy-genesis-companion",
 	"precompiles/utils/macro",
 	"runtime/moonbase",
