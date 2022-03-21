@@ -28,7 +28,9 @@ use pallet_evm::{ExitSucceed, PrecompileSet};
 use precompile_utils::{Address, EvmDataWriter};
 use sha3::{Digest, Keccak256};
 use sp_core::U256;
-use xcm::v1::{AssetId, Fungibility, Junction, Junctions, MultiAsset, MultiLocation, NetworkId};
+use xcm::v1::{
+	AssetId, Fungibility, Junction, Junctions, MultiAsset, MultiAssets, MultiLocation, NetworkId,
+};
 
 fn precompiles() -> TestPrecompiles<Runtime> {
 	PrecompilesValue::get()
@@ -652,6 +654,135 @@ fn transfer_multi_asset_non_reserve_to_non_reserve_with_fee() {
 					fun: Fungibility::Fungible(50),
 				},
 				dest: destination,
+			}
+			.into();
+			// Assert that the events vector contains the one expected
+			assert!(events().contains(&expected));
+		});
+}
+
+#[test]
+fn transfer_multi_currencies() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			let destination = MultiLocation::new(
+				1,
+				Junctions::X1(Junction::AccountId32 {
+					network: NetworkId::Any,
+					id: [1u8; 32],
+				}),
+			);
+			let currencies = vec![
+				(Address(AssetId(1u128).into()), U256::from(500)),
+				(Address(AssetId(2u128).into()), U256::from(500)),
+			];
+
+			// We are transferring asset 1, which corresponds to another parachain Id asset
+			assert_eq!(
+				precompiles().execute(
+					Precompile.into(),
+					&EvmDataWriter::new_with_selector(Action::TransferMultiCurrencies)
+						.write(currencies)
+						.write(0u32)
+						.write(destination.clone())
+						.write(U256::from(4000000))
+						.build(),
+					None,
+					&Context {
+						address: Precompile.into(),
+						caller: Alice.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					cost: 3000,
+					output: vec![],
+					logs: vec![]
+				}))
+			);
+			let expected: crate::mock::Event = XtokensEvent::TransferredMultiCurrencies {
+				sender: Alice,
+				currencies: vec![
+					(CurrencyId::OtherReserve(1u128), 500),
+					(CurrencyId::OtherReserve(2u128), 500),
+				],
+				dest: destination,
+			}
+			.into();
+			// Assert that the events vector contains the one expected
+			assert!(events().contains(&expected));
+		});
+}
+
+#[test]
+fn transfer_multi_assets() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			let destination = MultiLocation::new(
+				1,
+				Junctions::X2(
+					Junction::Parachain(2),
+					Junction::AccountId32 {
+						network: NetworkId::Any,
+						id: [1u8; 32],
+					},
+				),
+			);
+
+			let asset_1_location = MultiLocation::new(
+				1,
+				Junctions::X2(Junction::Parachain(2), Junction::GeneralIndex(0u128)),
+			);
+			let asset_2_location = MultiLocation::new(
+				1,
+				Junctions::X2(Junction::Parachain(2), Junction::GeneralIndex(1u128)),
+			);
+
+			let assets = vec![
+				(asset_1_location.clone(), U256::from(500)),
+				(asset_2_location.clone(), U256::from(500)),
+			];
+
+			let multiassets = MultiAssets::from_sorted_and_deduplicated(vec![
+				(asset_1_location, 500).into(),
+				(asset_2_location, 500).into(),
+			])
+			.unwrap();
+
+			assert_eq!(
+				precompiles().execute(
+					Precompile.into(),
+					&EvmDataWriter::new_with_selector(Action::TransferMultiAssets)
+						.write(assets)
+						.write(0u32)
+						.write(destination.clone())
+						.write(U256::from(4000000))
+						.build(),
+					None,
+					&Context {
+						address: Precompile.into(),
+						caller: Alice.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					cost: 3000,
+					output: vec![],
+					logs: vec![]
+				}))
+			);
+			let expected: crate::mock::Event = XtokensEvent::TransferredMultiAssets {
+				sender: Alice,
+				assets: multiassets,
+				dest: MultiLocation::new(1, Junctions::X1(Junction::Parachain(2))),
 			}
 			.into();
 			// Assert that the events vector contains the one expected
