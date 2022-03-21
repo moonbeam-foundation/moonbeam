@@ -404,10 +404,11 @@ where
 
 				Ok(Response::Block(response))
 			}
-			not_supported => Err(internal_err(format!(
-				"Bug: `handle_block_request` does not support {:?}.",
-				not_supported
-			))),
+			_ => Err(internal_err(
+				"debug_traceBlock functions currently only support callList mode (enabled
+				by providing `{{'tracer': 'callTracer'}}` in the request)."
+					.to_string(),
+			)),
 		};
 	}
 
