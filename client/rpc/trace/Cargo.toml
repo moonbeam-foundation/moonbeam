@@ -15,7 +15,7 @@ jsonrpc-core = "18.0.0"
 serde = { version = "1.0", features = [ "derive" ] }
 sha3 = "0.9"
 tokio = { version = "1.10", features = [ "sync", "time" ] }
-tracing = "0.1.25"
+tracing = "0.1.32"
 
 # Moonbeam
 moonbeam-client-evm-tracing = { path = "../../evm-tracing" }
