@@ -31,6 +31,8 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 use account::AccountId20;
 use cumulus_pallet_parachain_system::RelaychainBlockNumberProvider;
 use fp_rpc::TransactionStatus;
+
+// Re-export required by get! macro.
 pub use frame_support::traits::Get;
 use frame_support::{
 	construct_runtime, parameter_types,

@@ -34,6 +34,7 @@ use pallet_evm_precompile_assets_erc20::AccountIdAssetIdConversion;
 
 use account::AccountId20;
 
+// Re-export required by get! macro.
 pub use frame_support::traits::Get;
 use frame_support::{
 	construct_runtime, parameter_types,
