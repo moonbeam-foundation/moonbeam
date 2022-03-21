@@ -15,7 +15,7 @@ slices = "0.2.0"
 precompile-utils = { path = "../utils", default-features = false }
 
 # Substrate
-codec = { package = "parity-scale-codec", version = "2.0.0", default-features = false, features = [ "max-encoded-len" ] }
+codec = { package = "parity-scale-codec", version = "3.0.0", default-features = false, features = [ "max-encoded-len" ] }
 frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17", default-features = false }
 frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17", default-features = false }
 pallet-balances = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17", default-features = false }

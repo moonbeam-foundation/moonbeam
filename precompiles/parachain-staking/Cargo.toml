@@ -15,7 +15,7 @@ parachain-staking = { path = "../../pallets/parachain-staking", default-features
 precompile-utils = { path = "../utils", default-features = false }
 
 # Substrate
-codec = { package = "parity-scale-codec", version = "2.2", default-features = false, features = [ "max-encoded-len" ] }
+codec = { package = "parity-scale-codec", version = "3.0.0", default-features = false, features = [ "max-encoded-len" ] }
 frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17", default-features = false }
 frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17", default-features = false }
 sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17", default-features = false }

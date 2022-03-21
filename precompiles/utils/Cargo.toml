@@ -14,7 +14,7 @@ sha3 = { version = "0.9", default-features = false }
 precompile-utils-macro = { path = "macro" }
 
 # Substrate
-codec = { package = "parity-scale-codec", version = "2.2", default-features = false }
+codec = { package = "parity-scale-codec", version = "3.0.0", default-features = false }
 frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17", default-features = false }
 frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17", default-features = false }
 sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17", default-features = false }

@@ -20,7 +20,7 @@ serde = { version = "1.0.101", optional = true, default-features = false, featur
 sha3 = { version = "0.9", default-features = false }
 
 # Substrate
-parity-scale-codec = { version = "2.2", default-features = false, features = [ "derive" ] }
+parity-scale-codec = { version = "3.0.0", default-features = false, features = [ "derive" ] }
 scale-info = { version = "1.0", default-features = false, features = [ "derive" ] }
 sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17", default-features = false }
 sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17", default-features = false }

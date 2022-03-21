@@ -10,7 +10,7 @@ serde = { version = "1.0.101", optional = true, features = [ "derive" ] }
 # Substrate
 frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17", default-features = false }
 frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17", default-features = false }
-parity-scale-codec = { version = "2.2", default-features = false, features = [ "derive" ] }
+parity-scale-codec = { version = "3.0.0", default-features = false, features = [ "derive" ] }
 scale-info = { version = "1.0", default-features = false, features = [ "derive" ] }
 
 [features]

@@ -21,7 +21,7 @@ dependencies = [
  "impl-serde",
  "libsecp256k1 0.6.0",
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 3.1.2",
  "scale-info",
  "serde",
  "sha3 0.9.1",
@@ -84,9 +84,9 @@ dependencies = [
 
 [[package]]
 name = "ahash"
-version = "0.7.4"
+version = "0.7.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "43bb833f0bf979d8475d38fbf09ed3b8a55e1885fe93ad3f93239fc6a4f17b98"
+checksum = "fcb51a0695d8f838b1ee009b3fbf66bda078cd64590202a864a8f3e8c4315c47"
 dependencies = [
  "getrandom 0.2.3",
  "once_cell",
@@ -498,7 +498,7 @@ dependencies = [
  "fnv",
  "futures 0.3.21",
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "parking_lot 0.11.2",
  "sc-chain-spec",
  "sc-client-api",
@@ -531,7 +531,7 @@ dependencies = [
  "jsonrpc-derive",
  "jsonrpc-pubsub",
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "parking_lot 0.11.2",
  "sc-rpc",
  "sc-utils",
@@ -551,7 +551,7 @@ name = "beefy-primitives"
 version = "4.0.0-dev"
 source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.17#c84f20046004e0c5f158d36bf9c8b2ecfdc41281"
 dependencies = [
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "sp-api",
  "sp-application-crypto",
@@ -606,10 +606,10 @@ version = "0.19.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8942c8d352ae1838c9dda0b0ca2ab657696ef2232a20147cf1b30ae1a9cb4321"
 dependencies = [
- "funty",
+ "funty 1.1.0",
  "radium 0.5.3",
  "tap",
- "wyz",
+ "wyz 0.2.0",
 ]
 
 [[package]]
@@ -618,10 +618,22 @@ version = "0.20.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7774144344a4faa177370406a7ff5f1da24303817368584c6206c8303eb07848"
 dependencies = [
- "funty",
+ "funty 1.1.0",
  "radium 0.6.2",
  "tap",
- "wyz",
+ "wyz 0.2.0",
+]
+
+[[package]]
+name = "bitvec"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1489fcb93a5bb47da0462ca93ad252ad6af2145cce58d10d46a83931ba9f016b"
+dependencies = [
+ "funty 2.0.0",
+ "radium 0.7.0",
+ "tap",
+ "wyz 0.5.0",
 ]
 
 [[package]]
@@ -758,7 +770,7 @@ source = "git+https://github.com/purestake/polkadot?branch=moonbeam-polkadot-v0.
 dependencies = [
  "finality-grandpa",
  "frame-support",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "serde",
  "sp-core",
@@ -774,7 +786,7 @@ source = "git+https://github.com/purestake/polkadot?branch=moonbeam-polkadot-v0.
 dependencies = [
  "bp-runtime",
  "frame-support",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "sp-std",
 ]
@@ -789,7 +801,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "impl-trait-for-tuples",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "serde",
  "sp-std",
@@ -804,7 +816,7 @@ dependencies = [
  "bp-runtime",
  "frame-support",
  "frame-system",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "sp-api",
  "sp-core",
@@ -822,7 +834,7 @@ dependencies = [
  "bp-polkadot-core",
  "bp-runtime",
  "frame-support",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "smallvec 1.8.0",
  "sp-api",
  "sp-runtime",
@@ -838,7 +850,7 @@ dependencies = [
  "frame-support",
  "hash-db",
  "num-traits",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "sp-core",
  "sp-io",
@@ -856,7 +868,7 @@ dependencies = [
  "bp-header-chain",
  "ed25519-dalek",
  "finality-grandpa",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "sp-application-crypto",
  "sp-finality-grandpa",
  "sp-runtime",
@@ -872,7 +884,7 @@ dependencies = [
  "bp-polkadot-core",
  "bp-rococo",
  "bp-runtime",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "sp-api",
  "sp-runtime",
  "sp-std",
@@ -892,7 +904,7 @@ dependencies = [
  "pallet-bridge-grandpa",
  "pallet-bridge-messages",
  "pallet-transaction-payment",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "sp-core",
  "sp-runtime",
@@ -1434,7 +1446,7 @@ dependencies = [
  "pallet-evm",
  "pallet-scheduler",
  "pallet-timestamp",
- "parity-scale-codec",
+ "parity-scale-codec 3.1.2",
  "precompile-utils",
  "rustc-hex",
  "scale-info",
@@ -1573,7 +1585,7 @@ dependencies = [
  "cumulus-primitives-core",
  "cumulus-relay-chain-interface",
  "futures 0.3.21",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "parking_lot 0.10.2",
  "polkadot-node-primitives",
  "polkadot-node-subsystem",
@@ -1596,7 +1608,7 @@ dependencies = [
  "cumulus-relay-chain-interface",
  "dyn-clone",
  "futures 0.3.21",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "polkadot-primitives",
  "sc-client-api",
  "sc-consensus",
@@ -1642,7 +1654,7 @@ dependencies = [
  "derive_more",
  "futures 0.3.21",
  "futures-timer",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "parking_lot 0.12.0",
  "polkadot-node-primitives",
  "polkadot-parachain",
@@ -1666,7 +1678,7 @@ dependencies = [
  "cumulus-relay-chain-interface",
  "futures 0.3.21",
  "futures-timer",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "polkadot-node-primitives",
  "polkadot-node-subsystem",
  "polkadot-overseer",
@@ -1691,7 +1703,7 @@ dependencies = [
  "cumulus-client-pov-recovery",
  "cumulus-primitives-core",
  "cumulus-relay-chain-interface",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "parking_lot 0.12.0",
  "polkadot-overseer",
  "polkadot-primitives",
@@ -1719,7 +1731,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "sp-io",
  "sp-runtime",
@@ -1742,7 +1754,7 @@ dependencies = [
  "impl-trait-for-tuples",
  "log",
  "pallet-balances",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "polkadot-parachain",
  "scale-info",
  "serde",
@@ -1777,7 +1789,7 @@ dependencies = [
  "cumulus-primitives-core",
  "frame-support",
  "frame-system",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "serde",
  "sp-io",
@@ -1795,7 +1807,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "rand_chacha 0.3.1",
  "scale-info",
  "sp-runtime",
@@ -1810,7 +1822,7 @@ version = "0.1.0"
 source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.17#b43fcfff1df6bad837b98e5862e60367b9bc92e0"
 dependencies = [
  "frame-support",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "polkadot-core-primitives",
  "polkadot-parachain",
  "polkadot-primitives",
@@ -1829,7 +1841,7 @@ dependencies = [
  "cumulus-primitives-core",
  "cumulus-relay-chain-interface",
  "cumulus-test-relay-sproof-builder",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "sc-client-api",
  "scale-info",
  "sp-api",
@@ -1861,7 +1873,7 @@ source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9
 dependencies = [
  "cumulus-primitives-core",
  "frame-support",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "polkadot-core-primitives",
  "polkadot-parachain",
  "polkadot-primitives",
@@ -1926,7 +1938,7 @@ version = "0.1.0"
 source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.17#b43fcfff1df6bad837b98e5862e60367b9bc92e0"
 dependencies = [
  "cumulus-primitives-core",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "polkadot-primitives",
  "sp-runtime",
  "sp-state-machine",
@@ -2326,7 +2338,7 @@ dependencies = [
  "ethereum-types",
  "hash-db",
  "hash256-std-hasher",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "rlp",
  "rlp-derive",
  "scale-info",
@@ -2369,7 +2381,7 @@ dependencies = [
  "evm-gasometer",
  "evm-runtime",
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "primitive-types",
  "rlp",
  "scale-info",
@@ -2382,8 +2394,8 @@ name = "evm-core"
 version = "0.33.0"
 source = "git+https://github.com/purestake/evm?branch=moonbeam-polkadot-v0.9.17#7deff4781014e10684253d9c72540ef75f03830f"
 dependencies = [
- "funty",
- "parity-scale-codec",
+ "funty 1.1.0",
+ "parity-scale-codec 2.3.1",
  "primitive-types",
  "scale-info",
  "serde",
@@ -2422,7 +2434,7 @@ dependencies = [
  "evm",
  "evm-gasometer",
  "evm-runtime",
- "parity-scale-codec",
+ "parity-scale-codec 3.1.2",
  "sp-runtime-interface",
 ]
 
@@ -2498,7 +2510,7 @@ source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.
 dependencies = [
  "fp-storage",
  "kvdb-rocksdb",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "parking_lot 0.11.2",
  "sp-core",
  "sp-database",
@@ -2543,7 +2555,7 @@ dependencies = [
  "log",
  "lru 0.6.6",
  "pallet-ethereum",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "rand 0.8.5",
  "rlp",
  "sc-client-api",
@@ -2609,7 +2621,7 @@ dependencies = [
  "futures-timer",
  "log",
  "num-traits",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "parking_lot 0.11.2",
  "scale-info",
 ]
@@ -2669,7 +2681,7 @@ name = "fork-tree"
 version = "3.0.0"
 source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.17#c84f20046004e0c5f158d36bf9c8b2ecfdc41281"
 dependencies = [
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
 ]
 
 [[package]]
@@ -2688,7 +2700,7 @@ version = "2.0.0-dev"
 source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.17#e37f7d97b55bfa22aa055a4d348baeeadb35e348"
 dependencies = [
  "ethereum",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "sp-core",
  "sp-runtime",
  "sp-std",
@@ -2700,7 +2712,7 @@ version = "3.0.0-dev"
 source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.17#e37f7d97b55bfa22aa055a4d348baeeadb35e348"
 dependencies = [
  "evm",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "serde",
  "sp-core",
  "sp-std",
@@ -2714,7 +2726,7 @@ dependencies = [
  "ethereum",
  "ethereum-types",
  "fp-evm",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "sp-api",
  "sp-core",
@@ -2730,7 +2742,7 @@ source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.
 dependencies = [
  "ethereum",
  "frame-support",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "parity-util-mem",
  "scale-info",
  "serde",
@@ -2744,7 +2756,7 @@ name = "fp-storage"
 version = "2.0.0"
 source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.17#e37f7d97b55bfa22aa055a4d348baeeadb35e348"
 dependencies = [
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
 ]
 
 [[package]]
@@ -2756,7 +2768,7 @@ dependencies = [
  "frame-system",
  "linregress",
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "paste",
  "scale-info",
  "serde",
@@ -2782,7 +2794,7 @@ dependencies = [
  "handlebars",
  "linked-hash-map",
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "sc-cli",
  "sc-client-db",
  "sc-executor",
@@ -2803,7 +2815,7 @@ source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0
 dependencies = [
  "frame-support",
  "frame-system",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "sp-arithmetic",
  "sp-npos-elections",
@@ -2817,7 +2829,7 @@ source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0
 dependencies = [
  "frame-support",
  "frame-system",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "sp-core",
  "sp-io",
@@ -2833,7 +2845,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "37ed5e5c346de62ca5c184b4325a6600d1eaca210666e4606fe4e449574978d0"
 dependencies = [
  "cfg-if 1.0.0",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "serde",
 ]
@@ -2849,7 +2861,7 @@ dependencies = [
  "impl-trait-for-tuples",
  "log",
  "once_cell",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "paste",
  "scale-info",
  "serde",
@@ -2908,7 +2920,7 @@ source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0
 dependencies = [
  "frame-support",
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "serde",
  "sp-core",
@@ -2926,7 +2938,7 @@ dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "sp-core",
  "sp-runtime",
@@ -2938,7 +2950,7 @@ name = "frame-system-rpc-runtime-api"
 version = "4.0.0-dev"
 source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.17#c84f20046004e0c5f158d36bf9c8b2ecfdc41281"
 dependencies = [
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "sp-api",
 ]
 
@@ -3008,6 +3020,12 @@ name = "funty"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fed34cd105917e91daa4da6b3728c47b068749d6a62c59811f06ed2ac71d9da7"
+
+[[package]]
+name = "funty"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e6d5a32815ae3f33302d95fdcb2ce17862f8c65363dcfd29360480ba1001fc9c"
 
 [[package]]
 name = "futures"
@@ -3571,7 +3589,7 @@ version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "161ebdfec3c8e3b52bf61c4f3550a1eea4f9579d10dc1b936f3171ebdcd6c443"
 dependencies = [
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
 ]
 
 [[package]]
@@ -3585,9 +3603,9 @@ dependencies = [
 
 [[package]]
 name = "impl-serde"
-version = "0.3.1"
+version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b47ca4d2b6931707a55fce5cf66aff80e2178c8b63bbb4ecb5695cbc870ddf6f"
+checksum = "4551f042f3438e64dbd6226b20527fc84a6e1fe65688b58746a2f53623f25f5c"
 dependencies = [
  "serde",
 ]
@@ -3682,9 +3700,9 @@ checksum = "68f2d64f2edebec4ce84ad108148e67e1064789bee435edc5b60ad398714a3a9"
 
 [[package]]
 name = "itertools"
-version = "0.10.1"
+version = "0.10.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "69ddb889f9d0d08a67338271fa9b62996bc788c7796a5c18cf057420aaed5eaf"
+checksum = "a9a9d19fa1e79b6215ff29b9d6880b706147f16e9b1dbb1e4e5947b5b02bc5e3"
 dependencies = [
  "either",
 ]
@@ -4076,7 +4094,7 @@ dependencies = [
  "pallet-utility",
  "pallet-vesting",
  "pallet-xcm",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "polkadot-primitives",
  "polkadot-runtime-common",
  "polkadot-runtime-parachains",
@@ -4185,9 +4203,9 @@ checksum = "830d08ce1d1d941e6b30645f1a0eb5643013d835ce3779a5fc208261dbe10f55"
 
 [[package]]
 name = "libc"
-version = "0.2.117"
+version = "0.2.121"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e74d72e0f9b65b5b4ca49a346af3976df0f9c61d550727f349ecd559f251a26c"
+checksum = "efaa7b300f3b5fe8eb6bf21ce3895e1751d9665086af2d64b42f19701015ff4f"
 
 [[package]]
 name = "libloading"
@@ -4580,7 +4598,7 @@ dependencies = [
  "libp2p-core",
  "libp2p-swarm",
  "log",
- "lru 0.7.2",
+ "lru 0.7.3",
  "rand 0.7.3",
  "smallvec 1.8.0",
  "unsigned-varint 0.7.0",
@@ -4921,9 +4939,9 @@ dependencies = [
 
 [[package]]
 name = "lru"
-version = "0.7.2"
+version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "274353858935c992b13c0ca408752e2121da852d07dec7ce5f108c77dfa14d1f"
+checksum = "fcb87f3080f6d1d69e8c564c0fcfde1d7aa8cc451ce40cae89479111f03bc0eb"
 dependencies = [
  "hashbrown 0.11.2",
 ]
@@ -4976,7 +4994,7 @@ dependencies = [
  "hex-literal",
  "jsonrpc-core",
  "jsonrpc-derive",
- "parity-scale-codec",
+ "parity-scale-codec 3.1.2",
  "tokio",
  "xcm",
 ]
@@ -5286,7 +5304,7 @@ dependencies = [
  "parachain-info",
  "parachain-staking",
  "parachain-staking-precompiles",
- "parity-scale-codec",
+ "parity-scale-codec 3.1.2",
  "polkadot-core-primitives",
  "polkadot-parachain",
  "polkadot-runtime-parachains",
@@ -5352,7 +5370,7 @@ dependencies = [
  "moonbeam-cli-opt",
  "moonbeam-service",
  "nimbus-primitives",
- "parity-scale-codec",
+ "parity-scale-codec 3.1.2",
  "perf-test",
  "polkadot-cli",
  "polkadot-parachain",
@@ -5391,7 +5409,7 @@ dependencies = [
  "evm-tracing-events",
  "hex",
  "moonbeam-rpc-primitives-debug",
- "parity-scale-codec",
+ "parity-scale-codec 3.1.2",
  "serde",
  "serde_json",
  "sp-std",
@@ -5419,7 +5437,7 @@ dependencies = [
  "fp-evm",
  "moonbeam-primitives-ext",
  "pallet-evm",
- "parity-scale-codec",
+ "parity-scale-codec 3.1.2",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -5435,7 +5453,7 @@ dependencies = [
  "futures 0.3.21",
  "jsonrpc-core",
  "jsonrpc-derive",
- "parity-scale-codec",
+ "parity-scale-codec 3.1.2",
  "sp-api",
  "sp-blockchain",
  "sp-core",
@@ -5449,7 +5467,7 @@ version = "0.1.0"
 dependencies = [
  "ethereum-types",
  "evm-tracing-events",
- "parity-scale-codec",
+ "parity-scale-codec 3.1.2",
  "sp-externalities",
  "sp-runtime-interface",
  "sp-std",
@@ -5466,7 +5484,7 @@ dependencies = [
  "pallet-proxy",
  "pallet-staking",
  "pallet-utility",
- "parity-scale-codec",
+ "parity-scale-codec 3.1.2",
  "polkadot-runtime",
  "relay-encoder-precompiles",
  "rococo-runtime",
@@ -5566,7 +5584,7 @@ dependencies = [
  "ethereum",
  "ethereum-types",
  "hex",
- "parity-scale-codec",
+ "parity-scale-codec 3.1.2",
  "serde",
  "serde_json",
  "sp-api",
@@ -5581,7 +5599,7 @@ name = "moonbeam-rpc-primitives-txpool"
 version = "0.6.0"
 dependencies = [
  "ethereum",
- "parity-scale-codec",
+ "parity-scale-codec 3.1.2",
  "sp-api",
  "sp-io",
  "sp-runtime",
@@ -5718,7 +5736,7 @@ dependencies = [
  "parachain-info",
  "parachain-staking",
  "parachain-staking-precompiles",
- "parity-scale-codec",
+ "parity-scale-codec 3.1.2",
  "polkadot-core-primitives",
  "polkadot-parachain",
  "polkadot-runtime-parachains",
@@ -5814,7 +5832,7 @@ dependencies = [
  "pallet-transaction-payment-rpc",
  "pallet-transaction-payment-rpc-runtime-api",
  "parachain-staking",
- "parity-scale-codec",
+ "parity-scale-codec 3.1.2",
  "parking_lot 0.9.0",
  "polkadot-cli",
  "polkadot-parachain",
@@ -5956,7 +5974,7 @@ dependencies = [
  "parachain-info",
  "parachain-staking",
  "parachain-staking-precompiles",
- "parity-scale-codec",
+ "parity-scale-codec 3.1.2",
  "polkadot-core-primitives",
  "polkadot-parachain",
  "polkadot-runtime-parachains",
@@ -6162,7 +6180,7 @@ dependencies = [
  "futures 0.3.21",
  "log",
  "nimbus-primitives",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "parking_lot 0.9.0",
  "polkadot-client",
  "sc-client-api",
@@ -6189,7 +6207,7 @@ dependencies = [
  "async-trait",
  "frame-support",
  "frame-system",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "sp-api",
  "sp-application-crypto",
@@ -6230,7 +6248,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e7413f999671bd4745a7b624bd370a569fb6bc574b23c83a3c5ed2e453f3d5e2"
 dependencies = [
  "bitvec 0.19.5",
- "funty",
+ "funty 1.1.0",
  "memchr",
  "version_check",
 ]
@@ -6452,7 +6470,7 @@ dependencies = [
  "impl-trait-for-tuples",
  "num-traits",
  "orml-utilities",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "serde",
  "sp-io",
@@ -6467,7 +6485,7 @@ version = "0.4.1-dev"
 source = "git+https://github.com/purestake/open-runtime-module-library?branch=moonbeam-polkadot-v0.9.17#7ba9fad0423294bd0799d45cd7d7cff37da9007b"
 dependencies = [
  "frame-support",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "serde",
  "sp-io",
@@ -6482,7 +6500,7 @@ source = "git+https://github.com/purestake/open-runtime-module-library?branch=mo
 dependencies = [
  "frame-support",
  "orml-traits",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "sp-runtime",
  "sp-std",
  "xcm",
@@ -6499,7 +6517,7 @@ dependencies = [
  "frame-system",
  "orml-traits",
  "orml-xcm-support",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "serde",
  "sp-io",
@@ -6536,7 +6554,7 @@ dependencies = [
  "frame-system",
  "log",
  "pallet-balances",
- "parity-scale-codec",
+ "parity-scale-codec 3.1.2",
  "scale-info",
  "serde",
  "sp-core",
@@ -6555,7 +6573,7 @@ dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "sp-runtime",
  "sp-std",
@@ -6570,7 +6588,7 @@ dependencies = [
  "frame-system",
  "log",
  "nimbus-primitives",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "sp-api",
  "sp-application-crypto",
@@ -6590,7 +6608,7 @@ dependencies = [
  "log",
  "nimbus-primitives",
  "pallet-balances",
- "parity-scale-codec",
+ "parity-scale-codec 3.1.2",
  "scale-info",
  "serde",
  "sp-core",
@@ -6616,7 +6634,7 @@ dependencies = [
  "pallet-evm",
  "pallet-scheduler",
  "pallet-timestamp",
- "parity-scale-codec",
+ "parity-scale-codec 3.1.2",
  "precompile-utils",
  "scale-info",
  "serde",
@@ -6636,7 +6654,7 @@ dependencies = [
  "frame-system",
  "log",
  "nimbus-primitives",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "serde",
  "sp-core",
@@ -6652,7 +6670,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "pallet-session",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "sp-application-crypto",
  "sp-authority-discovery",
@@ -6668,7 +6686,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "impl-trait-for-tuples",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "sp-authorship",
  "sp-runtime",
@@ -6687,7 +6705,7 @@ dependencies = [
  "pallet-authorship",
  "pallet-session",
  "pallet-timestamp",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "sp-application-crypto",
  "sp-consensus-babe",
@@ -6708,7 +6726,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "sp-runtime",
  "sp-std",
@@ -6723,7 +6741,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "sp-runtime",
  "sp-std",
@@ -6737,7 +6755,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "pallet-evm",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "serde",
  "sp-core",
@@ -6753,7 +6771,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "pallet-session",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "serde",
  "sp-runtime",
@@ -6776,7 +6794,7 @@ dependencies = [
  "pallet-mmr",
  "pallet-mmr-primitives",
  "pallet-session",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "serde",
  "sp-core",
@@ -6794,7 +6812,7 @@ dependencies = [
  "frame-system",
  "log",
  "pallet-treasury",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "sp-core",
  "sp-io",
@@ -6812,7 +6830,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "sp-core",
  "sp-runtime",
@@ -6832,7 +6850,7 @@ dependencies = [
  "frame-system",
  "log",
  "num-traits",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "serde",
  "sp-finality-grandpa",
@@ -6854,7 +6872,7 @@ dependencies = [
  "frame-system",
  "log",
  "num-traits",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "serde",
  "sp-core",
@@ -6871,7 +6889,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "sp-core",
  "sp-io",
@@ -6894,7 +6912,7 @@ dependencies = [
  "log",
  "pallet-balances",
  "pallet-utility",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "serde",
  "sp-core",
@@ -6912,7 +6930,7 @@ dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "serde",
  "sp-io",
@@ -6936,7 +6954,7 @@ dependencies = [
  "pallet-evm",
  "pallet-scheduler",
  "pallet-timestamp",
- "parity-scale-codec",
+ "parity-scale-codec 3.1.2",
  "precompile-utils",
  "scale-info",
  "serde",
@@ -6956,7 +6974,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "rand 0.7.3",
  "scale-info",
  "sp-arithmetic",
@@ -6977,7 +6995,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "sp-core",
  "sp-io",
@@ -7005,7 +7023,7 @@ dependencies = [
  "pallet-balances",
  "pallet-evm",
  "pallet-timestamp",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "rlp",
  "scale-info",
  "serde",
@@ -7021,7 +7039,7 @@ version = "1.0.0"
 dependencies = [
  "frame-support",
  "frame-system",
- "parity-scale-codec",
+ "parity-scale-codec 3.1.2",
  "scale-info",
  "serde",
 ]
@@ -7040,7 +7058,7 @@ dependencies = [
  "log",
  "pallet-balances",
  "pallet-timestamp",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "primitive-types",
  "rlp",
  "scale-info",
@@ -7066,7 +7084,7 @@ dependencies = [
  "pallet-balances",
  "pallet-evm",
  "pallet-timestamp",
- "parity-scale-codec",
+ "parity-scale-codec 3.1.2",
  "precompile-utils",
  "scale-info",
  "serde",
@@ -7091,7 +7109,7 @@ dependencies = [
  "pallet-balances",
  "pallet-evm",
  "pallet-timestamp",
- "parity-scale-codec",
+ "parity-scale-codec 3.1.2",
  "paste",
  "precompile-utils",
  "scale-info",
@@ -7168,7 +7186,7 @@ dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "sp-arithmetic",
  "sp-runtime",
@@ -7186,7 +7204,7 @@ dependencies = [
  "log",
  "pallet-authorship",
  "pallet-session",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "sp-application-crypto",
  "sp-core",
@@ -7207,7 +7225,7 @@ dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "sp-io",
  "sp-runtime",
@@ -7223,7 +7241,7 @@ dependencies = [
  "frame-system",
  "log",
  "pallet-authorship",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "sp-application-crypto",
  "sp-core",
@@ -7240,7 +7258,7 @@ source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0
 dependencies = [
  "frame-support",
  "frame-system",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "sp-core",
  "sp-io",
@@ -7257,7 +7275,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 3.1.2",
  "scale-info",
  "sp-core",
  "sp-io",
@@ -7274,7 +7292,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "sp-core",
  "sp-io",
@@ -7291,7 +7309,7 @@ dependencies = [
  "frame-system",
  "impl-trait-for-tuples",
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 3.1.2",
  "scale-info",
  "sp-core",
  "sp-io",
@@ -7309,7 +7327,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "pallet-mmr-primitives",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "sp-core",
  "sp-io",
@@ -7325,7 +7343,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "serde",
  "sp-api",
  "sp-core",
@@ -7342,7 +7360,7 @@ dependencies = [
  "jsonrpc-core-client",
  "jsonrpc-derive",
  "pallet-mmr-primitives",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "serde",
  "sp-api",
  "sp-blockchain",
@@ -7357,7 +7375,7 @@ source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0
 dependencies = [
  "frame-support",
  "frame-system",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "sp-io",
  "sp-runtime",
@@ -7371,7 +7389,7 @@ source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0
 dependencies = [
  "frame-support",
  "frame-system",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "sp-io",
  "sp-runtime",
@@ -7387,7 +7405,7 @@ dependencies = [
  "frame-system",
  "log",
  "pallet-balances",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "serde",
  "sp-runtime",
@@ -7403,7 +7421,7 @@ dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "sp-core",
  "sp-io",
@@ -7418,7 +7436,7 @@ source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0
 dependencies = [
  "frame-support",
  "frame-system",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "sp-io",
  "sp-runtime",
@@ -7433,7 +7451,7 @@ dependencies = [
  "frame-system",
  "pallet-balances",
  "pallet-proxy",
- "parity-scale-codec",
+ "parity-scale-codec 3.1.2",
  "scale-info",
  "serde",
  "sp-core",
@@ -7448,7 +7466,7 @@ source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0
 dependencies = [
  "frame-support",
  "frame-system",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "safe-mix",
  "scale-info",
  "sp-runtime",
@@ -7462,7 +7480,7 @@ source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0
 dependencies = [
  "frame-support",
  "frame-system",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "sp-io",
  "sp-runtime",
@@ -7478,7 +7496,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "sp-io",
  "sp-runtime",
@@ -7495,7 +7513,7 @@ dependencies = [
  "impl-trait-for-tuples",
  "log",
  "pallet-timestamp",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "sp-core",
  "sp-io",
@@ -7513,7 +7531,7 @@ source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0
 dependencies = [
  "frame-support",
  "frame-system",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "rand_chacha 0.2.2",
  "scale-info",
  "sp-runtime",
@@ -7531,7 +7549,7 @@ dependencies = [
  "log",
  "pallet-authorship",
  "pallet-session",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "serde",
  "sp-application-crypto",
@@ -7568,7 +7586,7 @@ source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0
 dependencies = [
  "frame-support",
  "frame-system",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "sp-io",
  "sp-runtime",
@@ -7584,7 +7602,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "sp-inherents",
  "sp-io",
@@ -7602,7 +7620,7 @@ dependencies = [
  "frame-system",
  "log",
  "pallet-treasury",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "serde",
  "sp-core",
@@ -7618,7 +7636,7 @@ source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0
 dependencies = [
  "frame-support",
  "frame-system",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "serde",
  "smallvec 1.8.0",
@@ -7637,7 +7655,7 @@ dependencies = [
  "jsonrpc-core-client",
  "jsonrpc-derive",
  "pallet-transaction-payment-rpc-runtime-api",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "sp-api",
  "sp-blockchain",
  "sp-core",
@@ -7651,7 +7669,7 @@ version = "4.0.0-dev"
 source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.17#c84f20046004e0c5f158d36bf9c8b2ecfdc41281"
 dependencies = [
  "pallet-transaction-payment",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "sp-api",
  "sp-runtime",
 ]
@@ -7665,7 +7683,7 @@ dependencies = [
  "frame-system",
  "impl-trait-for-tuples",
  "pallet-balances",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "serde",
  "sp-runtime",
@@ -7679,7 +7697,7 @@ source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0
 dependencies = [
  "frame-support",
  "frame-system",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "sp-core",
  "sp-io",
@@ -7695,7 +7713,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "sp-runtime",
  "sp-std",
@@ -7709,7 +7727,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "serde",
  "sp-core",
@@ -7727,7 +7745,7 @@ dependencies = [
  "cumulus-primitives-core",
  "frame-support",
  "frame-system",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "serde",
 ]
@@ -7742,7 +7760,7 @@ dependencies = [
  "log",
  "nimbus-primitives",
  "pallet-balances",
- "parity-scale-codec",
+ "parity-scale-codec 3.1.2",
  "scale-info",
  "serde",
  "similar-asserts",
@@ -7767,7 +7785,7 @@ dependencies = [
  "pallet-evm",
  "pallet-timestamp",
  "parachain-staking",
- "parity-scale-codec",
+ "parity-scale-codec 3.1.2",
  "precompile-utils",
  "rustc-hex",
  "scale-info",
@@ -7808,7 +7826,21 @@ dependencies = [
  "bitvec 0.20.4",
  "byte-slice-cast",
  "impl-trait-for-tuples",
- "parity-scale-codec-derive",
+ "parity-scale-codec-derive 2.3.1",
+ "serde",
+]
+
+[[package]]
+name = "parity-scale-codec"
+version = "3.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e8b44461635bbb1a0300f100a841e571e7d919c81c73075ef5d152ffdb521066"
+dependencies = [
+ "arrayvec 0.7.1",
+ "bitvec 1.0.0",
+ "byte-slice-cast",
+ "impl-trait-for-tuples",
+ "parity-scale-codec-derive 3.1.2",
  "serde",
 ]
 
@@ -7817,6 +7849,18 @@ name = "parity-scale-codec-derive"
 version = "2.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1557010476e0595c9b568d16dcfb81b93cdeb157612726f5170d31aa707bed27"
+dependencies = [
+ "proc-macro-crate 1.1.3",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "parity-scale-codec-derive"
+version = "3.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c45ed1f39709f5a89338fab50e59816b2e8815f5bb58276e7ddf9afd495f73f8"
 dependencies = [
  "proc-macro-crate 1.1.3",
  "proc-macro2",
@@ -8285,8 +8329,8 @@ source = "git+https://github.com/purestake/polkadot?branch=moonbeam-polkadot-v0.
 dependencies = [
  "derive_more",
  "futures 0.3.21",
- "lru 0.7.2",
- "parity-scale-codec",
+ "lru 0.7.3",
+ "parity-scale-codec 2.3.1",
  "polkadot-erasure-coding",
  "polkadot-node-network-protocol",
  "polkadot-node-primitives",
@@ -8306,8 +8350,8 @@ version = "0.9.17"
 source = "git+https://github.com/purestake/polkadot?branch=moonbeam-polkadot-v0.9.17#66cb46bb3a7bd7295d1eb39a391559bc6efb2a22"
 dependencies = [
  "futures 0.3.21",
- "lru 0.7.2",
- "parity-scale-codec",
+ "lru 0.7.3",
+ "parity-scale-codec 2.3.1",
  "polkadot-erasure-coding",
  "polkadot-node-network-protocol",
  "polkadot-node-primitives",
@@ -8402,7 +8446,7 @@ name = "polkadot-core-primitives"
 version = "0.9.17"
 source = "git+https://github.com/purestake/polkadot?branch=moonbeam-polkadot-v0.9.17#66cb46bb3a7bd7295d1eb39a391559bc6efb2a22"
 dependencies = [
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "parity-util-mem",
  "scale-info",
  "sp-core",
@@ -8417,8 +8461,8 @@ source = "git+https://github.com/purestake/polkadot?branch=moonbeam-polkadot-v0.
 dependencies = [
  "derive_more",
  "futures 0.3.21",
- "lru 0.7.2",
- "parity-scale-codec",
+ "lru 0.7.3",
+ "parity-scale-codec 2.3.1",
  "polkadot-erasure-coding",
  "polkadot-node-network-protocol",
  "polkadot-node-primitives",
@@ -8437,7 +8481,7 @@ name = "polkadot-erasure-coding"
 version = "0.9.17"
 source = "git+https://github.com/purestake/polkadot?branch=moonbeam-polkadot-v0.9.17#66cb46bb3a7bd7295d1eb39a391559bc6efb2a22"
 dependencies = [
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "polkadot-node-primitives",
  "polkadot-primitives",
  "reed-solomon-novelpoly",
@@ -8473,7 +8517,7 @@ source = "git+https://github.com/purestake/polkadot?branch=moonbeam-polkadot-v0.
 dependencies = [
  "async-trait",
  "futures 0.3.21",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "parking_lot 0.11.2",
  "polkadot-node-network-protocol",
  "polkadot-node-subsystem",
@@ -8491,7 +8535,7 @@ version = "0.9.17"
 source = "git+https://github.com/purestake/polkadot?branch=moonbeam-polkadot-v0.9.17#66cb46bb3a7bd7295d1eb39a391559bc6efb2a22"
 dependencies = [
  "futures 0.3.21",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "polkadot-erasure-coding",
  "polkadot-node-primitives",
  "polkadot-node-subsystem",
@@ -8513,9 +8557,9 @@ dependencies = [
  "futures 0.3.21",
  "futures-timer",
  "kvdb",
- "lru 0.7.2",
+ "lru 0.7.3",
  "merlin",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "polkadot-node-jaeger",
  "polkadot-node-primitives",
  "polkadot-node-subsystem",
@@ -8540,7 +8584,7 @@ dependencies = [
  "futures 0.3.21",
  "futures-timer",
  "kvdb",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "polkadot-erasure-coding",
  "polkadot-node-primitives",
  "polkadot-node-subsystem",
@@ -8591,7 +8635,7 @@ source = "git+https://github.com/purestake/polkadot?branch=moonbeam-polkadot-v0.
 dependencies = [
  "async-trait",
  "futures 0.3.21",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "polkadot-node-core-pvf",
  "polkadot-node-primitives",
  "polkadot-node-subsystem",
@@ -8625,7 +8669,7 @@ dependencies = [
  "futures 0.3.21",
  "futures-timer",
  "kvdb",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "polkadot-node-primitives",
  "polkadot-node-subsystem",
  "polkadot-node-subsystem-util",
@@ -8641,8 +8685,8 @@ source = "git+https://github.com/purestake/polkadot?branch=moonbeam-polkadot-v0.
 dependencies = [
  "futures 0.3.21",
  "kvdb",
- "lru 0.7.2",
- "parity-scale-codec",
+ "lru 0.7.3",
+ "parity-scale-codec 2.3.1",
  "polkadot-node-primitives",
  "polkadot-node-subsystem",
  "polkadot-node-subsystem-util",
@@ -8697,7 +8741,7 @@ dependencies = [
  "async-std",
  "futures 0.3.21",
  "futures-timer",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "pin-project 1.0.10",
  "polkadot-core-primitives",
  "polkadot-node-subsystem-util",
@@ -8759,7 +8803,7 @@ dependencies = [
  "lazy_static",
  "log",
  "mick-jaeger",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "parking_lot 0.11.2",
  "polkadot-node-primitives",
  "polkadot-primitives",
@@ -8778,7 +8822,7 @@ dependencies = [
  "futures-timer",
  "log",
  "metered-channel",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "polkadot-primitives",
  "sc-cli",
  "sc-service",
@@ -8795,7 +8839,7 @@ dependencies = [
  "async-trait",
  "derive_more",
  "futures 0.3.21",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "polkadot-node-jaeger",
  "polkadot-node-primitives",
  "polkadot-primitives",
@@ -8812,7 +8856,7 @@ source = "git+https://github.com/purestake/polkadot?branch=moonbeam-polkadot-v0.
 dependencies = [
  "bounded-vec",
  "futures 0.3.21",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "polkadot-parachain",
  "polkadot-primitives",
  "schnorrkel",
@@ -8865,9 +8909,9 @@ dependencies = [
  "derive_more",
  "futures 0.3.21",
  "itertools",
- "lru 0.7.2",
+ "lru 0.7.3",
  "metered-channel",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "pin-project 1.0.10",
  "polkadot-node-jaeger",
  "polkadot-node-metrics",
@@ -8891,7 +8935,7 @@ source = "git+https://github.com/purestake/polkadot?branch=moonbeam-polkadot-v0.
 dependencies = [
  "futures 0.3.21",
  "futures-timer",
- "lru 0.7.2",
+ "lru 0.7.3",
  "parity-util-mem",
  "parking_lot 0.11.2",
  "polkadot-node-metrics",
@@ -8940,7 +8984,7 @@ source = "git+https://github.com/purestake/polkadot?branch=moonbeam-polkadot-v0.
 dependencies = [
  "derive_more",
  "frame-support",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "parity-util-mem",
  "polkadot-core-primitives",
  "scale-info",
@@ -8973,7 +9017,7 @@ dependencies = [
  "bitvec 0.20.4",
  "frame-system",
  "hex-literal",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "parity-util-mem",
  "polkadot-core-primitives",
  "polkadot-parachain",
@@ -9073,7 +9117,7 @@ dependencies = [
  "pallet-utility",
  "pallet-vesting",
  "pallet-xcm",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "polkadot-primitives",
  "polkadot-runtime-common",
  "polkadot-runtime-constants",
@@ -9129,7 +9173,7 @@ dependencies = [
  "pallet-transaction-payment",
  "pallet-treasury",
  "pallet-vesting",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "polkadot-primitives",
  "polkadot-runtime-parachains",
  "rustc-hex",
@@ -9168,7 +9212,7 @@ version = "0.9.17"
 source = "git+https://github.com/purestake/polkadot?branch=moonbeam-polkadot-v0.9.17#66cb46bb3a7bd7295d1eb39a391559bc6efb2a22"
 dependencies = [
  "bs58",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "polkadot-primitives",
  "sp-std",
  "sp-tracing",
@@ -9193,7 +9237,7 @@ dependencies = [
  "pallet-staking",
  "pallet-timestamp",
  "pallet-vesting",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "polkadot-primitives",
  "polkadot-runtime-metrics",
  "rand 0.8.5",
@@ -9229,7 +9273,7 @@ dependencies = [
  "kusama-runtime-constants",
  "kvdb",
  "kvdb-rocksdb",
- "lru 0.7.2",
+ "lru 0.7.3",
  "pallet-babe",
  "pallet-im-online",
  "pallet-mmr-primitives",
@@ -9326,7 +9370,7 @@ dependencies = [
  "derive_more",
  "futures 0.3.21",
  "indexmap",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "polkadot-node-network-protocol",
  "polkadot-node-primitives",
  "polkadot-node-subsystem",
@@ -9343,7 +9387,7 @@ name = "polkadot-statement-table"
 version = "0.9.17"
 source = "git+https://github.com/purestake/polkadot?branch=moonbeam-polkadot-v0.9.17#66cb46bb3a7bd7295d1eb39a391559bc6efb2a22"
 dependencies = [
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "polkadot-primitives",
  "sp-core",
 ]
@@ -9401,7 +9445,7 @@ dependencies = [
  "log",
  "num_enum",
  "pallet-evm",
- "parity-scale-codec",
+ "parity-scale-codec 3.1.2",
  "precompile-utils-macro",
  "sha3 0.9.1",
  "sp-core",
@@ -9651,6 +9695,12 @@ name = "radium"
 version = "0.6.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "643f8f41a8ebc4c5dc4515c82bb8abd397b527fc20fd681b7c011c2aee5d44fb"
+
+[[package]]
+name = "radium"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dc33ff2d4973d518d823d61aa239014831e521c75da58e3df4840d3f47749d09"
 
 [[package]]
 name = "rand"
@@ -10022,7 +10072,7 @@ dependencies = [
  "pallet-evm",
  "pallet-staking",
  "pallet-timestamp",
- "parity-scale-codec",
+ "parity-scale-codec 3.1.2",
  "precompile-utils",
  "rustc-hex",
  "scale-info",
@@ -10042,7 +10092,7 @@ dependencies = [
  "env_logger 0.9.0",
  "jsonrpsee 0.8.0",
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "serde",
  "serde_json",
  "sp-core",
@@ -10174,7 +10224,7 @@ dependencies = [
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-utility",
  "pallet-xcm",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "polkadot-parachain",
  "polkadot-primitives",
  "polkadot-runtime-common",
@@ -10438,7 +10488,7 @@ dependencies = [
  "ip_network",
  "libp2p",
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "prost",
  "prost-build",
  "rand 0.7.3",
@@ -10462,7 +10512,7 @@ dependencies = [
  "futures 0.3.21",
  "futures-timer",
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "sc-block-builder",
  "sc-client-api",
  "sc-proposer-metrics",
@@ -10482,7 +10532,7 @@ name = "sc-block-builder"
 version = "0.10.0-dev"
 source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.17#c84f20046004e0c5f158d36bf9c8b2ecfdc41281"
 dependencies = [
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "sc-client-api",
  "sp-api",
  "sp-block-builder",
@@ -10500,7 +10550,7 @@ source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0
 dependencies = [
  "impl-trait-for-tuples",
  "memmap2 0.5.0",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "sc-chain-spec-derive",
  "sc-network",
  "sc-telemetry",
@@ -10534,7 +10584,7 @@ dependencies = [
  "libp2p",
  "log",
  "names",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "rand 0.7.3",
  "regex",
  "rpassword",
@@ -10568,7 +10618,7 @@ dependencies = [
  "futures 0.3.21",
  "hash-db",
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "parking_lot 0.11.2",
  "sc-executor",
  "sc-transaction-pool-api",
@@ -10599,7 +10649,7 @@ dependencies = [
  "linked-hash-map",
  "log",
  "parity-db",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "parking_lot 0.11.2",
  "sc-client-api",
  "sc-state-db",
@@ -10644,7 +10694,7 @@ dependencies = [
  "async-trait",
  "futures 0.3.21",
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "sc-block-builder",
  "sc-client-api",
  "sc-consensus",
@@ -10678,7 +10728,7 @@ dependencies = [
  "num-bigint 0.2.6",
  "num-rational 0.2.4",
  "num-traits",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "parking_lot 0.11.2",
  "rand 0.7.3",
  "retain_mut",
@@ -10738,7 +10788,7 @@ version = "0.10.0-dev"
 source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.17#c84f20046004e0c5f158d36bf9c8b2ecfdc41281"
 dependencies = [
  "fork-tree",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "sc-client-api",
  "sc-consensus",
  "sp-blockchain",
@@ -10757,7 +10807,7 @@ dependencies = [
  "jsonrpc-core-client",
  "jsonrpc-derive",
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "sc-client-api",
  "sc-consensus",
  "sc-consensus-aura",
@@ -10790,7 +10840,7 @@ dependencies = [
  "futures 0.3.21",
  "futures-timer",
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "sc-client-api",
  "sc-consensus",
  "sc-telemetry",
@@ -10826,7 +10876,7 @@ dependencies = [
  "libsecp256k1 0.7.0",
  "log",
  "lru 0.6.6",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "parking_lot 0.11.2",
  "sc-executor-common",
  "sc-executor-wasmi",
@@ -10851,7 +10901,7 @@ version = "0.10.0-dev"
 source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.17#c84f20046004e0c5f158d36bf9c8b2ecfdc41281"
 dependencies = [
  "environmental",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "sc-allocator",
  "sp-core",
  "sp-maybe-compressed-blob",
@@ -10868,7 +10918,7 @@ version = "0.10.0-dev"
 source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.17#c84f20046004e0c5f158d36bf9c8b2ecfdc41281"
 dependencies = [
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "sc-allocator",
  "sc-executor-common",
  "scoped-tls",
@@ -10886,7 +10936,7 @@ dependencies = [
  "cfg-if 1.0.0",
  "libc",
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "parity-wasm 0.42.2",
  "sc-allocator",
  "sc-executor-common",
@@ -10908,7 +10958,7 @@ dependencies = [
  "futures 0.3.21",
  "futures-timer",
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "parking_lot 0.11.2",
  "rand 0.8.5",
  "sc-block-builder",
@@ -10946,7 +10996,7 @@ dependencies = [
  "jsonrpc-derive",
  "jsonrpc-pubsub",
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "sc-client-api",
  "sc-finality-grandpa",
  "sc-rpc",
@@ -11012,8 +11062,8 @@ dependencies = [
  "linked-hash-map",
  "linked_hash_set",
  "log",
- "lru 0.7.2",
- "parity-scale-codec",
+ "lru 0.7.3",
+ "parity-scale-codec 2.3.1",
  "parking_lot 0.11.2",
  "pin-project 1.0.10",
  "prost",
@@ -11049,7 +11099,7 @@ dependencies = [
  "futures-timer",
  "libp2p",
  "log",
- "lru 0.7.2",
+ "lru 0.7.3",
  "sc-network",
  "sp-runtime",
  "substrate-prometheus-endpoint 0.10.0-dev (git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.17)",
@@ -11070,7 +11120,7 @@ dependencies = [
  "hyper-rustls",
  "num_cpus",
  "once_cell",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "parking_lot 0.11.2",
  "rand 0.7.3",
  "sc-client-api",
@@ -11116,7 +11166,7 @@ dependencies = [
  "jsonrpc-core",
  "jsonrpc-pubsub",
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "parking_lot 0.11.2",
  "sc-block-builder",
  "sc-chain-spec",
@@ -11148,7 +11198,7 @@ dependencies = [
  "jsonrpc-derive",
  "jsonrpc-pubsub",
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "parking_lot 0.11.2",
  "sc-chain-spec",
  "sc-transaction-pool-api",
@@ -11193,7 +11243,7 @@ dependencies = [
  "jsonrpc-core",
  "jsonrpc-pubsub",
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "parity-util-mem",
  "parking_lot 0.11.2",
  "pin-project 1.0.10",
@@ -11249,7 +11299,7 @@ version = "0.10.0-dev"
 source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.17#c84f20046004e0c5f158d36bf9c8b2ecfdc41281"
 dependencies = [
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "parity-util-mem",
  "parity-util-mem-derive",
  "parking_lot 0.11.2",
@@ -11265,7 +11315,7 @@ dependencies = [
  "jsonrpc-core",
  "jsonrpc-core-client",
  "jsonrpc-derive",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "sc-chain-spec",
  "sc-client-api",
  "sc-consensus-babe",
@@ -11348,7 +11398,7 @@ dependencies = [
  "futures-timer",
  "linked-hash-map",
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "parity-util-mem",
  "parking_lot 0.11.2",
  "retain_mut",
@@ -11400,7 +11450,7 @@ dependencies = [
  "bitvec 0.20.4",
  "cfg-if 1.0.0",
  "derive_more",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info-derive",
  "serde",
 ]
@@ -11789,7 +11839,7 @@ version = "0.9.17"
 source = "git+https://github.com/purestake/polkadot?branch=moonbeam-polkadot-v0.9.17#66cb46bb3a7bd7295d1eb39a391559bc6efb2a22"
 dependencies = [
  "enumn",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "paste",
  "sp-runtime",
  "sp-std",
@@ -11887,7 +11937,7 @@ source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0
 dependencies = [
  "hash-db",
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "sp-api-proc-macro",
  "sp-core",
  "sp-runtime",
@@ -11914,7 +11964,7 @@ name = "sp-application-crypto"
 version = "5.0.0"
 source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.17#c84f20046004e0c5f158d36bf9c8b2ecfdc41281"
 dependencies = [
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "serde",
  "sp-core",
@@ -11929,7 +11979,7 @@ source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0
 dependencies = [
  "integer-sqrt",
  "num-traits",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "serde",
  "sp-debug-derive",
@@ -11942,7 +11992,7 @@ name = "sp-authority-discovery"
 version = "4.0.0-dev"
 source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.17#c84f20046004e0c5f158d36bf9c8b2ecfdc41281"
 dependencies = [
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "sp-api",
  "sp-application-crypto",
@@ -11956,7 +12006,7 @@ version = "4.0.0-dev"
 source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.17#c84f20046004e0c5f158d36bf9c8b2ecfdc41281"
 dependencies = [
  "async-trait",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "sp-inherents",
  "sp-runtime",
  "sp-std",
@@ -11967,7 +12017,7 @@ name = "sp-block-builder"
 version = "4.0.0-dev"
 source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.17#c84f20046004e0c5f158d36bf9c8b2ecfdc41281"
 dependencies = [
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "sp-api",
  "sp-inherents",
  "sp-runtime",
@@ -11981,8 +12031,8 @@ source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0
 dependencies = [
  "futures 0.3.21",
  "log",
- "lru 0.7.2",
- "parity-scale-codec",
+ "lru 0.7.3",
+ "parity-scale-codec 2.3.1",
  "parking_lot 0.11.2",
  "sp-api",
  "sp-consensus",
@@ -12001,7 +12051,7 @@ dependencies = [
  "futures 0.3.21",
  "futures-timer",
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "sp-core",
  "sp-inherents",
  "sp-runtime",
@@ -12017,7 +12067,7 @@ version = "0.10.0-dev"
 source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.17#c84f20046004e0c5f158d36bf9c8b2ecfdc41281"
 dependencies = [
  "async-trait",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "sp-api",
  "sp-application-crypto",
@@ -12036,7 +12086,7 @@ source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0
 dependencies = [
  "async-trait",
  "merlin",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "serde",
  "sp-api",
@@ -12057,7 +12107,7 @@ name = "sp-consensus-slots"
 version = "0.10.0-dev"
 source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.17#c84f20046004e0c5f158d36bf9c8b2ecfdc41281"
 dependencies = [
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "serde",
  "sp-arithmetic",
@@ -12069,7 +12119,7 @@ name = "sp-consensus-vrf"
 version = "0.10.0-dev"
 source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.17#c84f20046004e0c5f158d36bf9c8b2ecfdc41281"
 dependencies = [
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "schnorrkel",
  "sp-core",
  "sp-runtime",
@@ -12097,7 +12147,7 @@ dependencies = [
  "log",
  "merlin",
  "num-traits",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "parity-util-mem",
  "parking_lot 0.11.2",
  "primitive-types",
@@ -12173,7 +12223,7 @@ version = "0.11.0"
 source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.17#c84f20046004e0c5f158d36bf9c8b2ecfdc41281"
 dependencies = [
  "environmental",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "sp-std",
  "sp-storage",
 ]
@@ -12185,7 +12235,7 @@ source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0
 dependencies = [
  "finality-grandpa",
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "serde",
  "sp-api",
@@ -12203,7 +12253,7 @@ source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0
 dependencies = [
  "async-trait",
  "impl-trait-for-tuples",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "sp-core",
  "sp-runtime",
  "sp-std",
@@ -12219,7 +12269,7 @@ dependencies = [
  "hash-db",
  "libsecp256k1 0.7.0",
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "parking_lot 0.11.2",
  "sp-core",
  "sp-externalities",
@@ -12253,7 +12303,7 @@ dependencies = [
  "async-trait",
  "futures 0.3.21",
  "merlin",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "parking_lot 0.11.2",
  "schnorrkel",
  "serde",
@@ -12276,7 +12326,7 @@ name = "sp-npos-elections"
 version = "4.0.0-dev"
 source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.17#c84f20046004e0c5f158d36bf9c8b2ecfdc41281"
 dependencies = [
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "serde",
  "sp-arithmetic",
@@ -12336,7 +12386,7 @@ dependencies = [
  "hash256-std-hasher",
  "impl-trait-for-tuples",
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "parity-util-mem",
  "paste",
  "rand 0.7.3",
@@ -12355,7 +12405,7 @@ version = "5.0.0"
 source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.17#c84f20046004e0c5f158d36bf9c8b2ecfdc41281"
 dependencies = [
  "impl-trait-for-tuples",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "primitive-types",
  "sp-externalities",
  "sp-runtime-interface-proc-macro",
@@ -12392,7 +12442,7 @@ name = "sp-session"
 version = "4.0.0-dev"
 source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.17#c84f20046004e0c5f158d36bf9c8b2ecfdc41281"
 dependencies = [
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "sp-api",
  "sp-core",
@@ -12406,7 +12456,7 @@ name = "sp-staking"
 version = "4.0.0-dev"
 source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.17#c84f20046004e0c5f158d36bf9c8b2ecfdc41281"
 dependencies = [
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "sp-runtime",
  "sp-std",
@@ -12420,7 +12470,7 @@ dependencies = [
  "hash-db",
  "log",
  "num-traits",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "parking_lot 0.11.2",
  "rand 0.7.3",
  "smallvec 1.8.0",
@@ -12446,7 +12496,7 @@ version = "5.0.0"
 source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.17#c84f20046004e0c5f158d36bf9c8b2ecfdc41281"
 dependencies = [
  "impl-serde",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "ref-cast",
  "serde",
  "sp-debug-derive",
@@ -12474,7 +12524,7 @@ dependencies = [
  "async-trait",
  "futures-timer",
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "sp-api",
  "sp-inherents",
  "sp-runtime",
@@ -12487,7 +12537,7 @@ name = "sp-tracing"
 version = "4.0.0"
 source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.17#c84f20046004e0c5f158d36bf9c8b2ecfdc41281"
 dependencies = [
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "sp-std",
  "tracing",
  "tracing-core",
@@ -12510,7 +12560,7 @@ source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0
 dependencies = [
  "async-trait",
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "sp-core",
  "sp-inherents",
@@ -12526,7 +12576,7 @@ source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0
 dependencies = [
  "hash-db",
  "memory-db 0.28.0",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "sp-core",
  "sp-std",
@@ -12540,7 +12590,7 @@ version = "4.0.0-dev"
 source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.17#c84f20046004e0c5f158d36bf9c8b2ecfdc41281"
 dependencies = [
  "impl-serde",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "parity-wasm 0.42.2",
  "scale-info",
  "serde",
@@ -12556,7 +12606,7 @@ name = "sp-version-proc-macro"
 version = "4.0.0-dev"
 source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.17#c84f20046004e0c5f158d36bf9c8b2ecfdc41281"
 dependencies = [
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "proc-macro2",
  "quote",
  "syn",
@@ -12569,7 +12619,7 @@ source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0
 dependencies = [
  "impl-trait-for-tuples",
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "sp-std",
  "wasmi",
  "wasmtime",
@@ -12751,7 +12801,7 @@ name = "substrate-fixed"
 version = "0.5.6"
 source = "git+https://github.com/encointer/substrate-fixed#b33d186888c60f38adafcfc0ec3a21aab263aef1"
 dependencies = [
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "typenum",
 ]
 
@@ -12766,7 +12816,7 @@ dependencies = [
  "jsonrpc-core-client",
  "jsonrpc-derive",
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "sc-client-api",
  "sc-rpc-api",
  "sc-transaction-pool-api",
@@ -12813,7 +12863,7 @@ dependencies = [
  "async-trait",
  "futures 0.3.21",
  "hex",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "sc-client-api",
  "sc-client-db",
  "sc-consensus",
@@ -12844,7 +12894,7 @@ dependencies = [
  "memory-db 0.27.0",
  "pallet-babe",
  "pallet-timestamp",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "parity-util-mem",
  "sc-service",
  "scale-info",
@@ -12879,7 +12929,7 @@ version = "2.0.0"
 source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.17#c84f20046004e0c5f158d36bf9c8b2ecfdc41281"
 dependencies = [
  "futures 0.3.21",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "sc-block-builder",
  "sc-client-api",
  "sc-consensus",
@@ -13404,7 +13454,7 @@ dependencies = [
  "clap 3.1.2",
  "jsonrpsee 0.4.1",
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "remote-externalities",
  "sc-chain-spec",
  "sc-cli",
@@ -14059,7 +14109,7 @@ dependencies = [
  "pallet-utility",
  "pallet-vesting",
  "pallet-xcm",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "polkadot-parachain",
  "polkadot-primitives",
  "polkadot-runtime-common",
@@ -14231,6 +14281,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "85e60b0d1b5f99db2556934e21937020776a5d31520bf169e851ac44e6420214"
 
 [[package]]
+name = "wyz"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "30b31594f29d27036c383b53b59ed3476874d518f0efb151b27a4c275141390e"
+dependencies = [
+ "tap",
+]
+
+[[package]]
 name = "x25519-dalek"
 version = "1.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -14249,7 +14308,7 @@ dependencies = [
  "derivative",
  "impl-trait-for-tuples",
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "scale-info",
  "xcm-procedural",
 ]
@@ -14263,7 +14322,7 @@ dependencies = [
  "frame-system",
  "log",
  "pallet-transaction-payment",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "polkadot-parachain",
  "scale-info",
  "sp-arithmetic",
@@ -14282,7 +14341,7 @@ dependencies = [
  "frame-support",
  "impl-trait-for-tuples",
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "sp-arithmetic",
  "sp-core",
  "sp-io",
@@ -14299,7 +14358,7 @@ dependencies = [
  "frame-system",
  "hex",
  "log",
- "parity-scale-codec",
+ "parity-scale-codec 3.1.2",
  "scale-info",
  "serde",
  "sha3 0.8.2",
@@ -14327,7 +14386,7 @@ version = "0.9.17"
 source = "git+https://github.com/purestake/polkadot?branch=moonbeam-polkadot-v0.9.17#66cb46bb3a7bd7295d1eb39a391559bc6efb2a22"
 dependencies = [
  "frame-support",
- "parity-scale-codec",
+ "parity-scale-codec 2.3.1",
  "paste",
  "polkadot-core-primitives",
  "polkadot-parachain",
@@ -14351,7 +14410,7 @@ dependencies = [
  "pallet-balances",
  "pallet-timestamp",
  "pallet-xcm",
- "parity-scale-codec",
+ "parity-scale-codec 3.1.2",
  "scale-info",
  "serde",
  "sp-core",
@@ -14380,7 +14439,7 @@ dependencies = [
  "pallet-evm",
  "pallet-timestamp",
  "pallet-xcm",
- "parity-scale-codec",
+ "parity-scale-codec 3.1.2",
  "precompile-utils",
  "rustc-hex",
  "scale-info",
@@ -14413,7 +14472,7 @@ dependencies = [
  "pallet-evm",
  "pallet-timestamp",
  "pallet-xcm",
- "parity-scale-codec",
+ "parity-scale-codec 3.1.2",
  "precompile-utils",
  "rustc-hex",
  "scale-info",

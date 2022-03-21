@@ -9,7 +9,7 @@ version = "0.1.0"
 frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17", default-features = false }
 frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17", default-features = false }
 pallet-proxy = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17", default-features = false }
-parity-scale-codec = { version = "2.2", default-features = false }
+parity-scale-codec = { version = "3.0.0", default-features = false }
 scale-info = { version = "1.0", default-features = false, features = [ "derive" ] }
 sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17", default-features = false }
 

@@ -14,7 +14,7 @@ evm-tracing-events = { path = "../../primitives/rpc/evm-tracing-events", default
 moonbeam-primitives-ext = { path = "../../primitives/ext", default-features = false }
 
 # Substrate
-codec = { package = "parity-scale-codec", version = "2.2", default-features = false }
+codec = { package = "parity-scale-codec", version = "3.0.0", default-features = false }
 sp-core = { git = "https://github.com/purestake/substrate.git", branch = "moonbeam-polkadot-v0.9.17", default-features = false }
 sp-io = { git = "https://github.com/purestake/substrate.git", branch = "moonbeam-polkadot-v0.9.17", default-features = false }
 sp-runtime = { git = "https://github.com/purestake/substrate.git", branch = "moonbeam-polkadot-v0.9.17", default-features = false }

@@ -52,7 +52,7 @@ moonriver-runtime = { path = "../../runtime/moonriver", optional = true }
 frame-system-rpc-runtime-api = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17" }
 pallet-transaction-payment-rpc = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17" }
 pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17" }
-parity-scale-codec = "2.2"
+parity-scale-codec = "3.0.0"
 sc-basic-authorship = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17" }
 sc-chain-spec = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17" }
 sc-cli = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17", features = [ "wasmtime" ] }

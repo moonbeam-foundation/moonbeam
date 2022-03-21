@@ -39,7 +39,7 @@ sha3 = "0.9"
 xcm-primitives = { path = "../../primitives/xcm/" }
 
 # Substrate
-codec = { package = "parity-scale-codec", version = "2.2", default-features = false, features = [ "max-encoded-len" ] }
+codec = { package = "parity-scale-codec", version = "3.0.0", default-features = false, features = [ "max-encoded-len" ] }
 pallet-balances = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17" }
 pallet-timestamp = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17" }
 scale-info = { version = "1.0", default-features = false, features = [ "derive" ] }
