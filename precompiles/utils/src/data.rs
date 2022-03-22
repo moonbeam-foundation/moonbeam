@@ -534,3 +534,19 @@ impl EvmData for Bytes {
 		);
 	}
 }
+
+// For tuples
+impl<T: EvmData, S: EvmData> EvmData for (T, S) {
+	fn read(reader: &mut EvmDataReader, gasometer: &mut Gasometer) -> EvmResult<Self> {
+		let mut inner_reader = reader.read_pointer(gasometer)?;
+
+		let first: T = inner_reader.read(gasometer)?;
+		let second: S = inner_reader.read(gasometer)?;
+		Ok((first, second))
+	}
+
+	fn write(writer: &mut EvmDataWriter, value: Self) {
+		let inner_writer = EvmDataWriter::new().write(value.0).write(value.1).build();
+		EvmDataWriter::write_pointer(writer, inner_writer);
+	}
+}
