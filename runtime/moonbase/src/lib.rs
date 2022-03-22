@@ -1142,11 +1142,11 @@ use cumulus_primitives_core::{
 
 pub struct XcmExecutionManager;
 impl pallet_maintenance_mode::PauseXcmExecution for XcmExecutionManager {
-	fn suspend_xcm_execution() {
-		XcmpQueue::suspend_xcm_execution(Origin::root()).expect("ControllerOrigin = EnsureRoot ");
+	fn suspend_xcm_execution() -> DispatchResult {
+		XcmpQueue::suspend_xcm_execution(Origin::root())
 	}
-	fn resume_xcm_execution() {
-		XcmpQueue::resume_xcm_execution(Origin::root()).expect("ControllerOrigin = EnsureRoot");
+	fn resume_xcm_execution() -> DispatchResult {
+		XcmpQueue::resume_xcm_execution(Origin::root())
 	}
 }
 

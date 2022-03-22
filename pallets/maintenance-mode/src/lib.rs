@@ -73,13 +73,17 @@ pub mod pallet {
 
 	/// Pause and resume execution of XCM
 	pub trait PauseXcmExecution {
-		fn suspend_xcm_execution();
-		fn resume_xcm_execution();
+		fn suspend_xcm_execution() -> DispatchResult;
+		fn resume_xcm_execution() -> DispatchResult;
 	}
 
 	impl PauseXcmExecution for () {
-		fn suspend_xcm_execution() {}
-		fn resume_xcm_execution() {}
+		fn suspend_xcm_execution() -> DispatchResult {
+			Ok(())
+		}
+		fn resume_xcm_execution() -> DispatchResult {
+			Ok(())
+		}
 	}
 
 	/// Configuration trait of this pallet.
@@ -139,6 +143,10 @@ pub mod pallet {
 		EnteredMaintenanceMode,
 		/// The chain returned to its normal operating state
 		NormalOperationResumed,
+		/// The call to suspend XCM execution failed with inner error
+		FailedToSuspendXcmExecution { error: DispatchError },
+		/// The call to resume XCM execution failed with inner error
+		FailedToResumeXcmExecution { error: DispatchError },
 	}
 
 	/// An error that can occur while executing this pallet's extrinsics.
@@ -178,7 +186,9 @@ pub mod pallet {
 			// Write to storage
 			MaintenanceMode::<T>::put(true);
 			// Suspend XCM execution
-			T::XcmExecutionManager::suspend_xcm_execution();
+			if let Err(error) = T::XcmExecutionManager::suspend_xcm_execution() {
+				<Pallet<T>>::deposit_event(Event::FailedToSuspendXcmExecution { error });
+			}
 
 			// Event
 			<Pallet<T>>::deposit_event(Event::EnteredMaintenanceMode);
@@ -207,7 +217,9 @@ pub mod pallet {
 			// Write to storage
 			MaintenanceMode::<T>::put(false);
 			// Resume XCM execution
-			T::XcmExecutionManager::resume_xcm_execution();
+			if let Err(error) = T::XcmExecutionManager::resume_xcm_execution() {
+				<Pallet<T>>::deposit_event(Event::FailedToResumeXcmExecution { error });
+			}
 
 			// Event
 			<Pallet<T>>::deposit_event(Event::NormalOperationResumed);
