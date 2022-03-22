@@ -284,6 +284,8 @@ impl Config for Test {
 	type MaintenanceCallFilter = MaintenanceCallFilter;
 	type MaintenanceOrigin = EnsureRoot<AccountId>;
 	#[cfg(feature = "xcm-support")]
+	type XcmExecutionManager = ();
+	#[cfg(feature = "xcm-support")]
 	type NormalDmpHandler = NormalDmpHandler;
 	#[cfg(feature = "xcm-support")]
 	type MaintenanceDmpHandler = MaintenanceDmpHandler;

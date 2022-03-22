@@ -71,6 +71,17 @@ pub mod pallet {
 	#[pallet::without_storage_info]
 	pub struct Pallet<T>(PhantomData<T>);
 
+	/// Pause and resume execution of XCM
+	pub trait PauseXcmExecution {
+		fn suspend_xcm_execution();
+		fn resume_xcm_execution();
+	}
+
+	impl PauseXcmExecution for () {
+		fn suspend_xcm_execution() {}
+		fn resume_xcm_execution() {}
+	}
+
 	/// Configuration trait of this pallet.
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
@@ -88,6 +99,9 @@ pub mod pallet {
 		/// able to return to normal mode. For example, if your MaintenanceOrigin is a council, make
 		/// sure that your councilors can still cast votes.
 		type MaintenanceOrigin: EnsureOrigin<Self::Origin>;
+		/// Handler to suspend and resume XCM execution
+		#[cfg(feature = "xcm-support")]
+		type XcmExecutionManager: PauseXcmExecution;
 		/// The DMP handler to be used in normal operating mode
 		#[cfg(feature = "xcm-support")]
 		type NormalDmpHandler: DmpMessageHandler;
@@ -163,6 +177,8 @@ pub mod pallet {
 
 			// Write to storage
 			MaintenanceMode::<T>::put(true);
+			// Suspend XCM execution
+			T::XcmExecutionManager::suspend_xcm_execution();
 
 			// Event
 			<Pallet<T>>::deposit_event(Event::EnteredMaintenanceMode);
@@ -190,6 +206,8 @@ pub mod pallet {
 
 			// Write to storage
 			MaintenanceMode::<T>::put(false);
+			// Resume XCM execution
+			T::XcmExecutionManager::resume_xcm_execution();
 
 			// Event
 			<Pallet<T>>::deposit_event(Event::NormalOperationResumed);

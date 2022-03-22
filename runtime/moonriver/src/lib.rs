@@ -1116,6 +1116,16 @@ impl Contains<Call> for NormalFilter {
 	}
 }
 
+pub struct XcmExecutionManager;
+impl pallet_maintenance_mode::PauseXcmExecution for XcmExecutionManager {
+	fn suspend_xcm_execution() {
+		XcmpQueue::suspend_xcm_execution(Origin::root());
+	}
+	fn resume_xcm_execution() {
+		XcmpQueue::resume_xcm_execution(Origin::root());
+	}
+}
+
 pub struct MaintenanceDmpHandler;
 impl DmpMessageHandler for MaintenanceDmpHandler {
 	// This implementation makes messages be queued
@@ -1194,6 +1204,7 @@ impl pallet_maintenance_mode::Config for Runtime {
 	type MaintenanceCallFilter = MaintenanceFilter;
 	type MaintenanceOrigin =
 		pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, TechCommitteeInstance>;
+	type XcmExecutionManager = XcmExecutionManager;
 	type NormalDmpHandler = DmpQueue;
 	type MaintenanceDmpHandler = MaintenanceDmpHandler;
 	type NormalXcmpHandler = XcmpQueue;
