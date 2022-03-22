@@ -21,6 +21,8 @@ use crate::{Bytes, EvmData, EvmDataReader, EvmDataWriter, EvmResult, Gasometer};
 use frame_support::ensure;
 use sp_std::vec::Vec;
 use xcm::latest::{Junction, Junctions, MultiLocation, NetworkId};
+use sp_core::U256;
+use crate::Address;
 
 // Function to convert network id to bytes
 // We dont implement EVMData here as these bytes will be appended only
@@ -245,6 +247,37 @@ impl EvmData for MultiLocation {
 			.write(value.interior)
 			.build();
 
+		EvmDataWriter::write_pointer(writer, inner_writer);
+	}
+}
+
+// For Currencies
+impl EvmData for (Address, U256) {
+	fn read(reader: &mut EvmDataReader, gasometer: &mut Gasometer) -> EvmResult<Self> {
+
+		let address: Address = reader.read(gasometer)?;
+		let amount: U256 = reader.read(gasometer)?;
+		Ok((address, amount))
+	}
+
+	fn write(writer: &mut EvmDataWriter, value: Self) {
+		EvmData::write(writer, value.0);
+		EvmData::write(writer, value.1);
+	}
+}
+
+// For MultiAssets
+impl EvmData for (MultiLocation, U256) {
+	fn read(reader: &mut EvmDataReader, gasometer: &mut Gasometer) -> EvmResult<Self> {
+		let mut inner_reader = reader.read_pointer(gasometer)?;
+
+		let first: MultiLocation = inner_reader.read(gasometer)?;
+		let second: U256 = inner_reader.read(gasometer)?;
+		Ok((first, second))
+	}
+
+	fn write(writer: &mut EvmDataWriter, value: Self) {
+		let inner_writer = EvmDataWriter::new().write(value.0).write(value.1).build();
 		EvmDataWriter::write_pointer(writer, inner_writer);
 	}
 }

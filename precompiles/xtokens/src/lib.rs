@@ -36,6 +36,7 @@ use sp_std::{
 	convert::{TryFrom, TryInto},
 	fmt::Debug,
 	marker::PhantomData,
+	vec::Vec,
 };
 use xcm::latest::{AssetId, Fungibility, MultiAsset, MultiAssets, MultiLocation};
 use xcm::{VersionedMultiAsset, VersionedMultiAssets, VersionedMultiLocation};
