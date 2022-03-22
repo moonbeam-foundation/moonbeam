@@ -18,4 +18,4 @@ tiny-hderive = "0.3.0"
 account = { path = "../../primitives/account" }
 
 # Substrate
-sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17" }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "jsonrpsee-moonbeam-polkadot-v0.9.17" }

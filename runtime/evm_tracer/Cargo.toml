@@ -15,18 +15,18 @@ moonbeam-primitives-ext = { path = "../../primitives/ext", default-features = fa
 
 # Substrate
 codec = { package = "parity-scale-codec", version = "2.2", default-features = false }
-sp-core = { git = "https://github.com/purestake/substrate.git", branch = "moonbeam-polkadot-v0.9.17", default-features = false }
-sp-io = { git = "https://github.com/purestake/substrate.git", branch = "moonbeam-polkadot-v0.9.17", default-features = false }
-sp-runtime = { git = "https://github.com/purestake/substrate.git", branch = "moonbeam-polkadot-v0.9.17", default-features = false }
-sp-std = { git = "https://github.com/purestake/substrate.git", branch = "moonbeam-polkadot-v0.9.17", default-features = false }
+sp-core = { git = "https://github.com/purestake/substrate.git", branch = "jsonrpsee-moonbeam-polkadot-v0.9.17", default-features = false }
+sp-io = { git = "https://github.com/purestake/substrate.git", branch = "jsonrpsee-moonbeam-polkadot-v0.9.17", default-features = false }
+sp-runtime = { git = "https://github.com/purestake/substrate.git", branch = "jsonrpsee-moonbeam-polkadot-v0.9.17", default-features = false }
+sp-std = { git = "https://github.com/purestake/substrate.git", branch = "jsonrpsee-moonbeam-polkadot-v0.9.17", default-features = false }
 
 # Frontier
 ethereum-types = { version = "0.12.1", default-features = false }
 evm = { version = "0.33.1", default-features = false, features = [ "with-codec" ] }
 evm-gasometer = { version = "0.33.0", default-features = false }
 evm-runtime = { version = "0.33.0", default-features = false }
-fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.17", default-features = false }
-pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.17", default-features = false }
+fp-evm = { git = "https://github.com/purestake/frontier", branch = "jsonrpsee-moonbeam-polkadot-v0.9.17", default-features = false }
+pallet-evm = { git = "https://github.com/purestake/frontier", branch = "jsonrpsee-moonbeam-polkadot-v0.9.17", default-features = false }
 
 [features]
 default = [ "std" ]
