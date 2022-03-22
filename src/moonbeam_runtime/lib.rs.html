@@ -1457,46 +1457,6 @@
 <span id="1457">1457</span>
 <span id="1458">1458</span>
 <span id="1459">1459</span>
-<span id="1460">1460</span>
-<span id="1461">1461</span>
-<span id="1462">1462</span>
-<span id="1463">1463</span>
-<span id="1464">1464</span>
-<span id="1465">1465</span>
-<span id="1466">1466</span>
-<span id="1467">1467</span>
-<span id="1468">1468</span>
-<span id="1469">1469</span>
-<span id="1470">1470</span>
-<span id="1471">1471</span>
-<span id="1472">1472</span>
-<span id="1473">1473</span>
-<span id="1474">1474</span>
-<span id="1475">1475</span>
-<span id="1476">1476</span>
-<span id="1477">1477</span>
-<span id="1478">1478</span>
-<span id="1479">1479</span>
-<span id="1480">1480</span>
-<span id="1481">1481</span>
-<span id="1482">1482</span>
-<span id="1483">1483</span>
-<span id="1484">1484</span>
-<span id="1485">1485</span>
-<span id="1486">1486</span>
-<span id="1487">1487</span>
-<span id="1488">1488</span>
-<span id="1489">1489</span>
-<span id="1490">1490</span>
-<span id="1491">1491</span>
-<span id="1492">1492</span>
-<span id="1493">1493</span>
-<span id="1494">1494</span>
-<span id="1495">1495</span>
-<span id="1496">1496</span>
-<span id="1497">1497</span>
-<span id="1498">1498</span>
-<span id="1499">1499</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -1530,11 +1490,15 @@
 <span class="kw">use</span> <span class="ident">account::AccountId20</span>;
 <span class="kw">use</span> <span class="ident">cumulus_pallet_parachain_system::RelaychainBlockNumberProvider</span>;
 <span class="kw">use</span> <span class="ident">fp_rpc::TransactionStatus</span>;
+
+<span class="comment">// Re-export required by get! macro.</span>
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">frame_support::traits::Get</span>;
 <span class="kw">use</span> <span class="ident">frame_support</span>::{
 	<span class="ident">construct_runtime</span>, <span class="ident">parameter_types</span>,
 	<span class="ident">traits</span>::{
-		<span class="ident">Contains</span>, <span class="ident">EnsureOneOf</span>, <span class="ident">EqualPrivilegeOnly</span>, <span class="ident">Get</span>, <span class="ident">Imbalance</span>, <span class="ident">InstanceFilter</span>, <span class="ident">OffchainWorker</span>,
-		<span class="ident">OnFinalize</span>, <span class="ident">OnIdle</span>, <span class="ident">OnInitialize</span>, <span class="ident">OnRuntimeUpgrade</span>, <span class="ident">OnUnbalanced</span>,
+		<span class="ident">ConstBool</span>, <span class="ident">ConstU128</span>, <span class="ident">ConstU16</span>, <span class="ident">ConstU32</span>, <span class="ident">ConstU64</span>, <span class="ident">ConstU8</span>, <span class="ident">Contains</span>, <span class="ident">EnsureOneOf</span>,
+		<span class="ident">EqualPrivilegeOnly</span>, <span class="ident">Imbalance</span>, <span class="ident">InstanceFilter</span>, <span class="ident">OffchainWorker</span>, <span class="ident">OnFinalize</span>, <span class="ident">OnIdle</span>,
+		<span class="ident">OnInitialize</span>, <span class="ident">OnRuntimeUpgrade</span>, <span class="ident">OnUnbalanced</span>,
 	},
 	<span class="ident">weights</span>::{
 		<span class="ident">constants</span>::{<span class="ident">RocksDbWeight</span>, <span class="ident">WEIGHT_PER_SECOND</span>},
@@ -1676,7 +1640,6 @@
 <span class="kw">const</span> <span class="ident">NORMAL_DISPATCH_RATIO</span>: <span class="ident">Perbill</span> <span class="op">=</span> <span class="ident">Perbill::from_percent</span>(<span class="number">75</span>);
 
 <span class="macro">parameter_types!</span> {
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BlockHashCount</span>: <span class="ident">BlockNumber</span> <span class="op">=</span> <span class="number">256</span>;
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">Version</span>: <span class="ident">RuntimeVersion</span> <span class="op">=</span> <span class="ident">VERSION</span>;
 	<span class="doccomment">/// We allow for one half second of compute with a 6 second average block time.</span>
 	<span class="doccomment">/// These values are dictated by Polkadot for the parachain.</span>
@@ -1685,7 +1648,6 @@
 	<span class="doccomment">/// We allow for 5 MB blocks.</span>
 	<span class="kw">pub</span> <span class="ident">BlockLength</span>: <span class="ident">frame_system::limits::BlockLength</span> <span class="op">=</span> <span class="ident">frame_system::limits::BlockLength</span>
 		<span class="ident">::max_with_normal_ratio</span>(<span class="number">5</span> <span class="op">*</span> <span class="number">1024</span> <span class="op">*</span> <span class="number">1024</span>, <span class="ident">NORMAL_DISPATCH_RATIO</span>);
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SS58Prefix</span>: <span class="ident">u16</span> <span class="op">=</span> <span class="number">1284</span>;
 }
 
 <span class="kw">impl</span> <span class="ident">frame_system::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
@@ -1710,7 +1672,7 @@
 	<span class="doccomment">/// The ubiquitous origin type.</span>
 	<span class="kw">type</span> <span class="ident">Origin</span> <span class="op">=</span> <span class="ident">Origin</span>;
 	<span class="doccomment">/// Maximum number of block number to block hash mappings to keep (oldest pruned first).</span>
-	<span class="kw">type</span> <span class="ident">BlockHashCount</span> <span class="op">=</span> <span class="ident">BlockHashCount</span>;
+	<span class="kw">type</span> <span class="ident">BlockHashCount</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span><span class="number">256</span><span class="op">&gt;</span>;
 	<span class="doccomment">/// Maximum weight of each block. With a default weight system of 1byte == 1weight, 4mb is ok.</span>
 	<span class="kw">type</span> <span class="ident">BlockWeights</span> <span class="op">=</span> <span class="ident">BlockWeights</span>;
 	<span class="doccomment">/// Maximum size of all encoded transactions (in bytes) that are allowed in one block.</span>
@@ -1725,7 +1687,7 @@
 	<span class="kw">type</span> <span class="ident">BaseCallFilter</span> <span class="op">=</span> <span class="ident">MaintenanceMode</span>;
 	<span class="kw">type</span> <span class="ident">SystemWeightInfo</span> <span class="op">=</span> ();
 	<span class="doccomment">/// This is used as an identifier of the chain. 42 is the generic substrate prefix.</span>
-	<span class="kw">type</span> <span class="ident">SS58Prefix</span> <span class="op">=</span> <span class="ident">SS58Prefix</span>;
+	<span class="kw">type</span> <span class="ident">SS58Prefix</span> <span class="op">=</span> <span class="ident">ConstU16</span><span class="op">&lt;</span><span class="number">1284</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">OnSetCode</span> <span class="op">=</span> <span class="ident">cumulus_pallet_parachain_system::ParachainSetCode</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">MaxConsumers</span> <span class="op">=</span> <span class="ident">frame_support::traits::ConstU32</span><span class="op">&lt;</span><span class="number">16</span><span class="op">&gt;</span>;
 }
@@ -1737,34 +1699,24 @@
 	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">pallet_utility::weights::SubstrateWeight</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
 }
 
-<span class="macro">parameter_types!</span> {
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinimumPeriod</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="number">1</span>;
-}
-
 <span class="kw">impl</span> <span class="ident">pallet_timestamp::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
 	<span class="doccomment">/// A timestamp: milliseconds since the unix epoch.</span>
 	<span class="kw">type</span> <span class="ident">Moment</span> <span class="op">=</span> <span class="ident">u64</span>;
 	<span class="kw">type</span> <span class="ident">OnTimestampSet</span> <span class="op">=</span> ();
-	<span class="kw">type</span> <span class="ident">MinimumPeriod</span> <span class="op">=</span> <span class="ident">MinimumPeriod</span>;
+	<span class="kw">type</span> <span class="ident">MinimumPeriod</span> <span class="op">=</span> <span class="ident">ConstU64</span><span class="op">&lt;</span><span class="number">1</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">pallet_timestamp::weights::SubstrateWeight</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
 }
 
-<span class="macro">parameter_types!</span> {
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxLocks</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">50</span>;
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxReserves</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">50</span>;
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ExistentialDeposit</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="number">0</span>;
-}
-
 <span class="kw">impl</span> <span class="ident">pallet_balances::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
-	<span class="kw">type</span> <span class="ident">MaxReserves</span> <span class="op">=</span> <span class="ident">MaxReserves</span>;
+	<span class="kw">type</span> <span class="ident">MaxReserves</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span><span class="number">50</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">ReserveIdentifier</span> <span class="op">=</span> [<span class="ident">u8</span>; <span class="number">4</span>];
-	<span class="kw">type</span> <span class="ident">MaxLocks</span> <span class="op">=</span> <span class="ident">MaxLocks</span>;
+	<span class="kw">type</span> <span class="ident">MaxLocks</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span><span class="number">50</span><span class="op">&gt;</span>;
 	<span class="doccomment">/// The type for recording an account&#39;s balance.</span>
 	<span class="kw">type</span> <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">Balance</span>;
 	<span class="doccomment">/// The ubiquitous event type.</span>
 	<span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
 	<span class="kw">type</span> <span class="ident">DustRemoval</span> <span class="op">=</span> ();
-	<span class="kw">type</span> <span class="ident">ExistentialDeposit</span> <span class="op">=</span> <span class="ident">ExistentialDeposit</span>;
+	<span class="kw">type</span> <span class="ident">ExistentialDeposit</span> <span class="op">=</span> <span class="ident">ConstU128</span><span class="op">&lt;</span><span class="number">0</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">AccountStore</span> <span class="op">=</span> <span class="ident">System</span>;
 	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">pallet_balances::weights::SubstrateWeight</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
 }
@@ -1796,15 +1748,10 @@
 	}
 }
 
-<span class="macro">parameter_types!</span> {
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TransactionByteFee</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">currency::TRANSACTION_BYTE_FEE</span>;
-	<span class="kw">pub</span> <span class="ident">OperationalFeeMultiplier</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="number">5</span>;
-}
-
 <span class="kw">impl</span> <span class="ident">pallet_transaction_payment::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
 	<span class="kw">type</span> <span class="ident">OnChargeTransaction</span> <span class="op">=</span> <span class="ident">CurrencyAdapter</span><span class="op">&lt;</span><span class="ident">Balances</span>, <span class="ident">DealWithFees</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>;
-	<span class="kw">type</span> <span class="ident">TransactionByteFee</span> <span class="op">=</span> <span class="ident">TransactionByteFee</span>;
-	<span class="kw">type</span> <span class="ident">OperationalFeeMultiplier</span> <span class="op">=</span> <span class="ident">OperationalFeeMultiplier</span>;
+	<span class="kw">type</span> <span class="ident">TransactionByteFee</span> <span class="op">=</span> <span class="ident">ConstU128</span><span class="op">&lt;</span>{ <span class="ident">currency::TRANSACTION_BYTE_FEE</span> }<span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">OperationalFeeMultiplier</span> <span class="op">=</span> <span class="ident">ConstU8</span><span class="op">&lt;</span><span class="number">5</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">WeightToFee</span> <span class="op">=</span> <span class="ident">IdentityFee</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">FeeMultiplierUpdate</span> <span class="op">=</span> <span class="ident">SlowAdjustingFeeUpdate</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
 }
@@ -1913,8 +1860,6 @@
 }
 
 <span class="macro">parameter_types!</span> {
-	<span class="comment">// Tells `pallet_base_fee` whether to calculate a new BaseFee `on_finalize` or not.</span>
-	<span class="kw">pub</span> <span class="ident">IsActive</span>: <span class="ident">bool</span> <span class="op">=</span> <span class="bool-val">false</span>;
 	<span class="kw">pub</span> <span class="ident">DefaultBaseFeePerGas</span>: <span class="ident">U256</span> <span class="op">=</span> (<span class="number">1</span> <span class="op">*</span> <span class="ident">currency::GIGAWEI</span> <span class="op">*</span> <span class="ident">currency::SUPPLY_FACTOR</span>).<span class="ident">into</span>();
 }
 
@@ -1934,13 +1879,13 @@
 <span class="kw">impl</span> <span class="ident">pallet_base_fee::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
 	<span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
 	<span class="kw">type</span> <span class="ident">Threshold</span> <span class="op">=</span> <span class="ident">BaseFeeThreshold</span>;
-	<span class="kw">type</span> <span class="ident">IsActive</span> <span class="op">=</span> <span class="ident">IsActive</span>;
+	<span class="comment">// Tells `pallet_base_fee` whether to calculate a new BaseFee `on_finalize` or not.</span>
+	<span class="kw">type</span> <span class="ident">IsActive</span> <span class="op">=</span> <span class="ident">ConstBool</span><span class="op">&lt;</span><span class="bool-val">false</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">DefaultBaseFeePerGas</span> <span class="op">=</span> <span class="ident">DefaultBaseFeePerGas</span>;
 }
 
 <span class="macro">parameter_types!</span> {
 	<span class="kw">pub</span> <span class="ident">MaximumSchedulerWeight</span>: <span class="ident">Weight</span> <span class="op">=</span> <span class="ident">NORMAL_DISPATCH_RATIO</span> <span class="op">*</span> <span class="ident">BlockWeights::get</span>().<span class="ident">max_block</span>;
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxScheduledPerBlock</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">50</span>;
 }
 
 <span class="kw">impl</span> <span class="ident">pallet_scheduler::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
@@ -1950,29 +1895,11 @@
 	<span class="kw">type</span> <span class="ident">Call</span> <span class="op">=</span> <span class="ident">Call</span>;
 	<span class="kw">type</span> <span class="ident">MaximumWeight</span> <span class="op">=</span> <span class="ident">MaximumSchedulerWeight</span>;
 	<span class="kw">type</span> <span class="ident">ScheduleOrigin</span> <span class="op">=</span> <span class="ident">EnsureRoot</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>;
-	<span class="kw">type</span> <span class="ident">MaxScheduledPerBlock</span> <span class="op">=</span> <span class="ident">MaxScheduledPerBlock</span>;
+	<span class="kw">type</span> <span class="ident">MaxScheduledPerBlock</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span><span class="number">50</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">pallet_scheduler::weights::SubstrateWeight</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">OriginPrivilegeCmp</span> <span class="op">=</span> <span class="ident">EqualPrivilegeOnly</span>;
 	<span class="kw">type</span> <span class="ident">PreimageProvider</span> <span class="op">=</span> ();
 	<span class="kw">type</span> <span class="ident">NoPreimagePostponement</span> <span class="op">=</span> ();
-}
-
-<span class="macro">parameter_types!</span> {
-	<span class="doccomment">/// The maximum amount of time (in blocks) for council members to vote on motions.</span>
-	<span class="doccomment">/// Motions may end in fewer blocks if enough votes are cast to determine the result.</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CouncilMotionDuration</span>: <span class="ident">BlockNumber</span> <span class="op">=</span> <span class="number">3</span> <span class="op">*</span> <span class="ident">DAYS</span>;
-	<span class="doccomment">/// The maximum number of Proposlas that can be open in the council at once.</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CouncilMaxProposals</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">100</span>;
-	<span class="doccomment">/// The maximum number of council members.</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CouncilMaxMembers</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">100</span>;
-
-	<span class="doccomment">/// The maximum amount of time (in blocks) for technical committee members to vote on motions.</span>
-	<span class="doccomment">/// Motions may end in fewer blocks if enough votes are cast to determine the result.</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TechCommitteeMotionDuration</span>: <span class="ident">BlockNumber</span> <span class="op">=</span> <span class="number">3</span> <span class="op">*</span> <span class="ident">DAYS</span>;
-	<span class="doccomment">/// The maximum number of Proposlas that can be open in the technical committee at once.</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TechCommitteeMaxProposals</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">100</span>;
-	<span class="doccomment">/// The maximum number of technical committee members.</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TechCommitteeMaxMembers</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">100</span>;
 }
 
 <span class="kw">type</span> <span class="ident">CouncilInstance</span> <span class="op">=</span> <span class="ident">pallet_collective::Instance1</span>;
@@ -1982,9 +1909,13 @@
 	<span class="kw">type</span> <span class="ident">Origin</span> <span class="op">=</span> <span class="ident">Origin</span>;
 	<span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
 	<span class="kw">type</span> <span class="ident">Proposal</span> <span class="op">=</span> <span class="ident">Call</span>;
-	<span class="kw">type</span> <span class="ident">MotionDuration</span> <span class="op">=</span> <span class="ident">CouncilMotionDuration</span>;
-	<span class="kw">type</span> <span class="ident">MaxProposals</span> <span class="op">=</span> <span class="ident">CouncilMaxProposals</span>;
-	<span class="kw">type</span> <span class="ident">MaxMembers</span> <span class="op">=</span> <span class="ident">CouncilMaxMembers</span>;
+	<span class="doccomment">/// The maximum amount of time (in blocks) for council members to vote on motions.</span>
+	<span class="doccomment">/// Motions may end in fewer blocks if enough votes are cast to determine the result.</span>
+	<span class="kw">type</span> <span class="ident">MotionDuration</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span>{ <span class="number">3</span> <span class="op">*</span> <span class="ident">DAYS</span> }<span class="op">&gt;</span>;
+	<span class="doccomment">/// The maximum number of Proposlas that can be open in the council at once.</span>
+	<span class="kw">type</span> <span class="ident">MaxProposals</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span><span class="number">100</span><span class="op">&gt;</span>;
+	<span class="doccomment">/// The maximum number of council members.</span>
+	<span class="kw">type</span> <span class="ident">MaxMembers</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span><span class="number">100</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">DefaultVote</span> <span class="op">=</span> <span class="ident">pallet_collective::MoreThanMajorityThenPrimeDefaultVote</span>;
 	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">pallet_collective::weights::SubstrateWeight</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
 }
@@ -1993,37 +1924,27 @@
 	<span class="kw">type</span> <span class="ident">Origin</span> <span class="op">=</span> <span class="ident">Origin</span>;
 	<span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
 	<span class="kw">type</span> <span class="ident">Proposal</span> <span class="op">=</span> <span class="ident">Call</span>;
-	<span class="kw">type</span> <span class="ident">MotionDuration</span> <span class="op">=</span> <span class="ident">TechCommitteeMotionDuration</span>;
-	<span class="kw">type</span> <span class="ident">MaxProposals</span> <span class="op">=</span> <span class="ident">TechCommitteeMaxProposals</span>;
-	<span class="kw">type</span> <span class="ident">MaxMembers</span> <span class="op">=</span> <span class="ident">TechCommitteeMaxMembers</span>;
+	<span class="doccomment">/// The maximum amount of time (in blocks) for technical committee members to vote on motions.</span>
+	<span class="doccomment">/// Motions may end in fewer blocks if enough votes are cast to determine the result.</span>
+	<span class="kw">type</span> <span class="ident">MotionDuration</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span>{ <span class="number">3</span> <span class="op">*</span> <span class="ident">DAYS</span> }<span class="op">&gt;</span>;
+	<span class="doccomment">/// The maximum number of Proposlas that can be open in the technical committee at once.</span>
+	<span class="kw">type</span> <span class="ident">MaxProposals</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span><span class="number">100</span><span class="op">&gt;</span>;
+	<span class="doccomment">/// The maximum number of technical committee members.</span>
+	<span class="kw">type</span> <span class="ident">MaxMembers</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span><span class="number">100</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">DefaultVote</span> <span class="op">=</span> <span class="ident">pallet_collective::MoreThanMajorityThenPrimeDefaultVote</span>;
 	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">pallet_collective::weights::SubstrateWeight</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
-}
-
-<span class="macro">parameter_types!</span> {
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LaunchPeriod</span>: <span class="ident">BlockNumber</span> <span class="op">=</span> <span class="number">7</span> <span class="op">*</span> <span class="ident">DAYS</span>;
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">VotingPeriod</span>: <span class="ident">BlockNumber</span> <span class="op">=</span> <span class="number">14</span> <span class="op">*</span> <span class="ident">DAYS</span>;
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">VoteLockingPeriod</span>: <span class="ident">BlockNumber</span> <span class="op">=</span> <span class="number">7</span> <span class="op">*</span> <span class="ident">DAYS</span>;
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FastTrackVotingPeriod</span>: <span class="ident">BlockNumber</span> <span class="op">=</span> <span class="number">1</span> <span class="op">*</span> <span class="ident">DAYS</span>;
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EnactmentPeriod</span>: <span class="ident">BlockNumber</span> <span class="op">=</span> <span class="number">2</span> <span class="op">*</span> <span class="ident">DAYS</span>;
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CooloffPeriod</span>: <span class="ident">BlockNumber</span> <span class="op">=</span> <span class="number">7</span> <span class="op">*</span> <span class="ident">DAYS</span>;
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinimumDeposit</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">4</span> <span class="op">*</span> <span class="ident">currency::GLMR</span> <span class="op">*</span> <span class="ident">currency::SUPPLY_FACTOR</span>;
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxVotes</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">100</span>;
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxProposals</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">100</span>;
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PreimageByteDeposit</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">currency::STORAGE_BYTE_FEE</span>;
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">InstantAllowed</span>: <span class="ident">bool</span> <span class="op">=</span> <span class="bool-val">true</span>;
 }
 
 <span class="kw">impl</span> <span class="ident">pallet_democracy::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
 	<span class="kw">type</span> <span class="ident">Proposal</span> <span class="op">=</span> <span class="ident">Call</span>;
 	<span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
 	<span class="kw">type</span> <span class="ident">Currency</span> <span class="op">=</span> <span class="ident">Balances</span>;
-	<span class="kw">type</span> <span class="ident">EnactmentPeriod</span> <span class="op">=</span> <span class="ident">EnactmentPeriod</span>;
-	<span class="kw">type</span> <span class="ident">LaunchPeriod</span> <span class="op">=</span> <span class="ident">LaunchPeriod</span>;
-	<span class="kw">type</span> <span class="ident">VotingPeriod</span> <span class="op">=</span> <span class="ident">VotingPeriod</span>;
-	<span class="kw">type</span> <span class="ident">VoteLockingPeriod</span> <span class="op">=</span> <span class="ident">VoteLockingPeriod</span>;
-	<span class="kw">type</span> <span class="ident">FastTrackVotingPeriod</span> <span class="op">=</span> <span class="ident">FastTrackVotingPeriod</span>;
-	<span class="kw">type</span> <span class="ident">MinimumDeposit</span> <span class="op">=</span> <span class="ident">MinimumDeposit</span>;
+	<span class="kw">type</span> <span class="ident">EnactmentPeriod</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span>{ <span class="number">2</span> <span class="op">*</span> <span class="ident">DAYS</span> }<span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">LaunchPeriod</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span>{ <span class="number">7</span> <span class="op">*</span> <span class="ident">DAYS</span> }<span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">VotingPeriod</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span>{ <span class="number">14</span> <span class="op">*</span> <span class="ident">DAYS</span> }<span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">VoteLockingPeriod</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span>{ <span class="number">7</span> <span class="op">*</span> <span class="ident">DAYS</span> }<span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">FastTrackVotingPeriod</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span>{ <span class="number">1</span> <span class="op">*</span> <span class="ident">DAYS</span> }<span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">MinimumDeposit</span> <span class="op">=</span> <span class="ident">ConstU128</span><span class="op">&lt;</span>{ <span class="number">4</span> <span class="op">*</span> <span class="ident">currency::GLMR</span> <span class="op">*</span> <span class="ident">currency::SUPPLY_FACTOR</span> }<span class="op">&gt;</span>;
 	<span class="doccomment">/// To decide what their next motion is.</span>
 	<span class="kw">type</span> <span class="ident">ExternalOrigin</span> <span class="op">=</span>
 		<span class="ident">pallet_collective::EnsureProportionAtLeast</span><span class="op">&lt;</span><span class="ident">_1</span>, <span class="ident">_2</span>, <span class="ident">AccountId</span>, <span class="ident">CouncilInstance</span><span class="op">&gt;</span>;
@@ -2053,24 +1974,21 @@
 	<span class="comment">// Any single technical committee member may veto a coming council proposal, however they can</span>
 	<span class="comment">// only do it once and it lasts only for the cooloff period.</span>
 	<span class="kw">type</span> <span class="ident">VetoOrigin</span> <span class="op">=</span> <span class="ident">pallet_collective::EnsureMember</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">TechCommitteeInstance</span><span class="op">&gt;</span>;
-	<span class="kw">type</span> <span class="ident">CooloffPeriod</span> <span class="op">=</span> <span class="ident">CooloffPeriod</span>;
-	<span class="kw">type</span> <span class="ident">PreimageByteDeposit</span> <span class="op">=</span> <span class="ident">PreimageByteDeposit</span>;
+	<span class="kw">type</span> <span class="ident">CooloffPeriod</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span>{ <span class="number">7</span> <span class="op">*</span> <span class="ident">DAYS</span> }<span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">PreimageByteDeposit</span> <span class="op">=</span> <span class="ident">ConstU128</span><span class="op">&lt;</span>{ <span class="ident">currency::STORAGE_BYTE_FEE</span> }<span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">Slash</span> <span class="op">=</span> ();
-	<span class="kw">type</span> <span class="ident">InstantAllowed</span> <span class="op">=</span> <span class="ident">InstantAllowed</span>;
+	<span class="kw">type</span> <span class="ident">InstantAllowed</span> <span class="op">=</span> <span class="ident">ConstBool</span><span class="op">&lt;</span><span class="bool-val">true</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">Scheduler</span> <span class="op">=</span> <span class="ident">Scheduler</span>;
-	<span class="kw">type</span> <span class="ident">MaxVotes</span> <span class="op">=</span> <span class="ident">MaxVotes</span>;
+	<span class="kw">type</span> <span class="ident">MaxVotes</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span><span class="number">100</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">OperationalPreimageOrigin</span> <span class="op">=</span> <span class="ident">pallet_collective::EnsureMember</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">CouncilInstance</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">PalletsOrigin</span> <span class="op">=</span> <span class="ident">OriginCaller</span>;
 	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">pallet_democracy::weights::SubstrateWeight</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
-	<span class="kw">type</span> <span class="ident">MaxProposals</span> <span class="op">=</span> <span class="ident">MaxProposals</span>;
+	<span class="kw">type</span> <span class="ident">MaxProposals</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span><span class="number">100</span><span class="op">&gt;</span>;
 }
 
 <span class="macro">parameter_types!</span> {
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ProposalBond</span>: <span class="ident">Permill</span> <span class="op">=</span> <span class="ident">Permill::from_percent</span>(<span class="number">5</span>);
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ProposalBondMinimum</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">1</span> <span class="op">*</span> <span class="ident">currency::GLMR</span> <span class="op">*</span> <span class="ident">currency::SUPPLY_FACTOR</span>;
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SpendPeriod</span>: <span class="ident">BlockNumber</span> <span class="op">=</span> <span class="number">6</span> <span class="op">*</span> <span class="ident">DAYS</span>;
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TreasuryId</span>: <span class="ident">PalletId</span> <span class="op">=</span> <span class="ident">PalletId</span>(<span class="kw-2">*</span><span class="string">b&quot;py/trsry&quot;</span>);
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxApprovals</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">100</span>;
 }
 
 <span class="kw">type</span> <span class="ident">TreasuryApproveOrigin</span> <span class="op">=</span> <span class="ident">EnsureOneOf</span><span class="op">&lt;</span>
@@ -2094,26 +2012,14 @@
 	<span class="comment">// If spending proposal rejected, transfer proposer bond to treasury</span>
 	<span class="kw">type</span> <span class="ident">OnSlash</span> <span class="op">=</span> <span class="ident">Treasury</span>;
 	<span class="kw">type</span> <span class="ident">ProposalBond</span> <span class="op">=</span> <span class="ident">ProposalBond</span>;
-	<span class="kw">type</span> <span class="ident">ProposalBondMinimum</span> <span class="op">=</span> <span class="ident">ProposalBondMinimum</span>;
-	<span class="kw">type</span> <span class="ident">SpendPeriod</span> <span class="op">=</span> <span class="ident">SpendPeriod</span>;
+	<span class="kw">type</span> <span class="ident">ProposalBondMinimum</span> <span class="op">=</span> <span class="ident">ConstU128</span><span class="op">&lt;</span>{ <span class="number">1</span> <span class="op">*</span> <span class="ident">currency::GLMR</span> <span class="op">*</span> <span class="ident">currency::SUPPLY_FACTOR</span> }<span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">SpendPeriod</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span>{ <span class="number">6</span> <span class="op">*</span> <span class="ident">DAYS</span> }<span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">Burn</span> <span class="op">=</span> ();
 	<span class="kw">type</span> <span class="ident">BurnDestination</span> <span class="op">=</span> ();
-	<span class="kw">type</span> <span class="ident">MaxApprovals</span> <span class="op">=</span> <span class="ident">MaxApprovals</span>;
+	<span class="kw">type</span> <span class="ident">MaxApprovals</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span><span class="number">100</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">pallet_treasury::weights::SubstrateWeight</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">SpendFunds</span> <span class="op">=</span> ();
 	<span class="kw">type</span> <span class="ident">ProposalBondMaximum</span> <span class="op">=</span> ();
-}
-
-<span class="macro">parameter_types!</span> {
-	<span class="comment">// Add one item in storage and take 258 bytes</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BasicDeposit</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">currency::deposit</span>(<span class="number">1</span>, <span class="number">258</span>);
-	<span class="comment">// Not add any item to the storage but takes 66 bytes</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FieldDeposit</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">currency::deposit</span>(<span class="number">0</span>, <span class="number">66</span>);
-	<span class="comment">// Add one item in storage and take 53 bytes</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SubAccountDeposit</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">currency::deposit</span>(<span class="number">1</span>, <span class="number">53</span>);
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxSubAccounts</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">100</span>;
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxAdditionalFields</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">100</span>;
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxRegistrars</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">20</span>;
 }
 
 <span class="kw">type</span> <span class="ident">IdentityForceOrigin</span> <span class="op">=</span> <span class="ident">EnsureOneOf</span><span class="op">&lt;</span>
@@ -2128,12 +2034,15 @@
 <span class="kw">impl</span> <span class="ident">pallet_identity::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
 	<span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
 	<span class="kw">type</span> <span class="ident">Currency</span> <span class="op">=</span> <span class="ident">Balances</span>;
-	<span class="kw">type</span> <span class="ident">BasicDeposit</span> <span class="op">=</span> <span class="ident">BasicDeposit</span>;
-	<span class="kw">type</span> <span class="ident">FieldDeposit</span> <span class="op">=</span> <span class="ident">FieldDeposit</span>;
-	<span class="kw">type</span> <span class="ident">SubAccountDeposit</span> <span class="op">=</span> <span class="ident">SubAccountDeposit</span>;
-	<span class="kw">type</span> <span class="ident">MaxSubAccounts</span> <span class="op">=</span> <span class="ident">MaxSubAccounts</span>;
-	<span class="kw">type</span> <span class="ident">MaxAdditionalFields</span> <span class="op">=</span> <span class="ident">MaxAdditionalFields</span>;
-	<span class="kw">type</span> <span class="ident">MaxRegistrars</span> <span class="op">=</span> <span class="ident">MaxRegistrars</span>;
+	<span class="comment">// Add one item in storage and take 258 bytes</span>
+	<span class="kw">type</span> <span class="ident">BasicDeposit</span> <span class="op">=</span> <span class="ident">ConstU128</span><span class="op">&lt;</span>{ <span class="ident">currency::deposit</span>(<span class="number">1</span>, <span class="number">258</span>) }<span class="op">&gt;</span>;
+	<span class="comment">// Not add any item to the storage but takes 66 bytes</span>
+	<span class="kw">type</span> <span class="ident">FieldDeposit</span> <span class="op">=</span> <span class="ident">ConstU128</span><span class="op">&lt;</span>{ <span class="ident">currency::deposit</span>(<span class="number">0</span>, <span class="number">66</span>) }<span class="op">&gt;</span>;
+	<span class="comment">// Add one item in storage and take 53 bytes</span>
+	<span class="kw">type</span> <span class="ident">SubAccountDeposit</span> <span class="op">=</span> <span class="ident">ConstU128</span><span class="op">&lt;</span>{ <span class="ident">currency::deposit</span>(<span class="number">1</span>, <span class="number">53</span>) }<span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">MaxSubAccounts</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span><span class="number">100</span><span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">MaxAdditionalFields</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span><span class="number">100</span><span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">MaxRegistrars</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span><span class="number">20</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">Slashed</span> <span class="op">=</span> <span class="ident">Treasury</span>;
 	<span class="kw">type</span> <span class="ident">ForceOrigin</span> <span class="op">=</span> <span class="ident">IdentityForceOrigin</span>;
 	<span class="kw">type</span> <span class="ident">RegistrarOrigin</span> <span class="op">=</span> <span class="ident">IdentityRegistrarOrigin</span>;
@@ -2169,82 +2078,63 @@
 	<span class="kw">type</span> <span class="ident">StateRoot</span> <span class="op">=</span> <span class="ident">pallet_ethereum::IntermediateStateRoot</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
 }
 
-<span class="macro">parameter_types!</span> {
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ReservedXcmpWeight</span>: <span class="ident">Weight</span> <span class="op">=</span> <span class="ident">MAXIMUM_BLOCK_WEIGHT</span> <span class="op">/</span> <span class="number">4</span>;
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ReservedDmpWeight</span>: <span class="ident">Weight</span> <span class="op">=</span> <span class="ident">MAXIMUM_BLOCK_WEIGHT</span> <span class="op">/</span> <span class="number">4</span>;
-}
-
 <span class="kw">impl</span> <span class="ident">cumulus_pallet_parachain_system::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
 	<span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
 	<span class="kw">type</span> <span class="ident">OnSystemEvent</span> <span class="op">=</span> ();
 	<span class="kw">type</span> <span class="ident">SelfParaId</span> <span class="op">=</span> <span class="ident">ParachainInfo</span>;
 	<span class="kw">type</span> <span class="ident">DmpMessageHandler</span> <span class="op">=</span> <span class="ident">MaintenanceMode</span>;
-	<span class="kw">type</span> <span class="ident">ReservedDmpWeight</span> <span class="op">=</span> <span class="ident">ReservedDmpWeight</span>;
+	<span class="kw">type</span> <span class="ident">ReservedDmpWeight</span> <span class="op">=</span> <span class="ident">ConstU64</span><span class="op">&lt;</span>{ <span class="ident">MAXIMUM_BLOCK_WEIGHT</span> <span class="op">/</span> <span class="number">4</span> }<span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">OutboundXcmpMessageSource</span> <span class="op">=</span> <span class="ident">XcmpQueue</span>;
 	<span class="kw">type</span> <span class="ident">XcmpMessageHandler</span> <span class="op">=</span> <span class="ident">MaintenanceMode</span>;
-	<span class="kw">type</span> <span class="ident">ReservedXcmpWeight</span> <span class="op">=</span> <span class="ident">ReservedXcmpWeight</span>;
+	<span class="kw">type</span> <span class="ident">ReservedXcmpWeight</span> <span class="op">=</span> <span class="ident">ConstU64</span><span class="op">&lt;</span>{ <span class="ident">MAXIMUM_BLOCK_WEIGHT</span> <span class="op">/</span> <span class="number">4</span> }<span class="op">&gt;</span>;
 }
 <span class="kw">impl</span> <span class="ident">parachain_info::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {}
 
 <span class="macro">parameter_types!</span> {
-	<span class="doccomment">/// Minimum round length is 2 minutes (10 * 12 second block times)</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinBlocksPerRound</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">10</span>;
-	<span class="doccomment">/// Blocks per round</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DefaultBlocksPerRound</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">6</span> <span class="op">*</span> <span class="ident">HOURS</span>;
-	<span class="doccomment">/// Rounds before the collator leaving the candidates request can be executed</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LeaveCandidatesDelay</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">4</span> <span class="op">*</span> <span class="number">7</span>;
-	<span class="doccomment">/// Rounds before the candidate bond increase/decrease can be executed</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CandidateBondLessDelay</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">4</span> <span class="op">*</span> <span class="number">7</span>;
-	<span class="doccomment">/// Rounds before the delegator exit can be executed</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LeaveDelegatorsDelay</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">4</span> <span class="op">*</span> <span class="number">7</span>;
-	<span class="doccomment">/// Rounds before the delegator revocation can be executed</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RevokeDelegationDelay</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">4</span> <span class="op">*</span> <span class="number">7</span>;
-	<span class="doccomment">/// Rounds before the delegator bond increase/decrease can be executed</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DelegationBondLessDelay</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">4</span> <span class="op">*</span> <span class="number">7</span>;
-	<span class="doccomment">/// Rounds before the reward is paid</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RewardPaymentDelay</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">2</span>;
-	<span class="doccomment">/// Minimum collators selected per round, default at genesis and minimum forever after</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinSelectedCandidates</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">8</span>;
-	<span class="doccomment">/// Maximum top delegations per candidate</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxTopDelegationsPerCandidate</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">300</span>;
-	<span class="doccomment">/// Maximum bottom delegations per candidate</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxBottomDelegationsPerCandidate</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">50</span>;
-	<span class="doccomment">/// Maximum delegations per delegator</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxDelegationsPerDelegator</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">100</span>;
 	<span class="doccomment">/// Default fixed percent a collator takes off the top of due rewards</span>
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DefaultCollatorCommission</span>: <span class="ident">Perbill</span> <span class="op">=</span> <span class="ident">Perbill::from_percent</span>(<span class="number">20</span>);
 	<span class="doccomment">/// Default percent of inflation set aside for parachain bond every round</span>
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DefaultParachainBondReservePercent</span>: <span class="ident">Percent</span> <span class="op">=</span> <span class="ident">Percent::from_percent</span>(<span class="number">30</span>);
-	<span class="doccomment">/// Minimum stake required to become a collator</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinCollatorStk</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="number">1000</span> <span class="op">*</span> <span class="ident">currency::GLMR</span> <span class="op">*</span> <span class="ident">currency::SUPPLY_FACTOR</span>;
-	<span class="doccomment">/// Minimum stake required to be reserved to be a candidate</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinCandidateStk</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="number">1000</span> <span class="op">*</span> <span class="ident">currency::GLMR</span> <span class="op">*</span> <span class="ident">currency::SUPPLY_FACTOR</span>;
-	<span class="doccomment">/// Minimum stake required to be reserved to be a delegator</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinDelegatorStk</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="number">500</span> <span class="op">*</span> <span class="ident">currency::MILLIGLMR</span> <span class="op">*</span> <span class="ident">currency::SUPPLY_FACTOR</span>;
 }
 
 <span class="kw">impl</span> <span class="ident">parachain_staking::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
 	<span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
 	<span class="kw">type</span> <span class="ident">Currency</span> <span class="op">=</span> <span class="ident">Balances</span>;
 	<span class="kw">type</span> <span class="ident">MonetaryGovernanceOrigin</span> <span class="op">=</span> <span class="ident">EnsureRoot</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>;
-	<span class="kw">type</span> <span class="ident">MinBlocksPerRound</span> <span class="op">=</span> <span class="ident">MinBlocksPerRound</span>;
-	<span class="kw">type</span> <span class="ident">DefaultBlocksPerRound</span> <span class="op">=</span> <span class="ident">DefaultBlocksPerRound</span>;
-	<span class="kw">type</span> <span class="ident">LeaveCandidatesDelay</span> <span class="op">=</span> <span class="ident">LeaveCandidatesDelay</span>;
-	<span class="kw">type</span> <span class="ident">CandidateBondLessDelay</span> <span class="op">=</span> <span class="ident">CandidateBondLessDelay</span>;
-	<span class="kw">type</span> <span class="ident">LeaveDelegatorsDelay</span> <span class="op">=</span> <span class="ident">LeaveDelegatorsDelay</span>;
-	<span class="kw">type</span> <span class="ident">RevokeDelegationDelay</span> <span class="op">=</span> <span class="ident">RevokeDelegationDelay</span>;
-	<span class="kw">type</span> <span class="ident">DelegationBondLessDelay</span> <span class="op">=</span> <span class="ident">DelegationBondLessDelay</span>;
-	<span class="kw">type</span> <span class="ident">RewardPaymentDelay</span> <span class="op">=</span> <span class="ident">RewardPaymentDelay</span>;
-	<span class="kw">type</span> <span class="ident">MinSelectedCandidates</span> <span class="op">=</span> <span class="ident">MinSelectedCandidates</span>;
-	<span class="kw">type</span> <span class="ident">MaxTopDelegationsPerCandidate</span> <span class="op">=</span> <span class="ident">MaxTopDelegationsPerCandidate</span>;
-	<span class="kw">type</span> <span class="ident">MaxBottomDelegationsPerCandidate</span> <span class="op">=</span> <span class="ident">MaxBottomDelegationsPerCandidate</span>;
-	<span class="kw">type</span> <span class="ident">MaxDelegationsPerDelegator</span> <span class="op">=</span> <span class="ident">MaxDelegationsPerDelegator</span>;
+	<span class="doccomment">/// Minimum round length is 2 minutes (10 * 12 second block times)</span>
+	<span class="kw">type</span> <span class="ident">MinBlocksPerRound</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span><span class="number">10</span><span class="op">&gt;</span>;
+	<span class="doccomment">/// Blocks per round</span>
+	<span class="kw">type</span> <span class="ident">DefaultBlocksPerRound</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span>{ <span class="number">6</span> <span class="op">*</span> <span class="ident">HOURS</span> }<span class="op">&gt;</span>;
+	<span class="doccomment">/// Rounds before the collator leaving the candidates request can be executed</span>
+	<span class="kw">type</span> <span class="ident">LeaveCandidatesDelay</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span>{ <span class="number">4</span> <span class="op">*</span> <span class="number">7</span> }<span class="op">&gt;</span>;
+	<span class="doccomment">/// Rounds before the candidate bond increase/decrease can be executed</span>
+	<span class="kw">type</span> <span class="ident">CandidateBondLessDelay</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span>{ <span class="number">4</span> <span class="op">*</span> <span class="number">7</span> }<span class="op">&gt;</span>;
+	<span class="doccomment">/// Rounds before the delegator exit can be executed</span>
+	<span class="kw">type</span> <span class="ident">LeaveDelegatorsDelay</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span>{ <span class="number">4</span> <span class="op">*</span> <span class="number">7</span> }<span class="op">&gt;</span>;
+	<span class="doccomment">/// Rounds before the delegator revocation can be executed</span>
+	<span class="kw">type</span> <span class="ident">RevokeDelegationDelay</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span>{ <span class="number">4</span> <span class="op">*</span> <span class="number">7</span> }<span class="op">&gt;</span>;
+	<span class="doccomment">/// Rounds before the delegator bond increase/decrease can be executed</span>
+	<span class="kw">type</span> <span class="ident">DelegationBondLessDelay</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span>{ <span class="number">4</span> <span class="op">*</span> <span class="number">7</span> }<span class="op">&gt;</span>;
+	<span class="doccomment">/// Rounds before the reward is paid</span>
+	<span class="kw">type</span> <span class="ident">RewardPaymentDelay</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span><span class="number">2</span><span class="op">&gt;</span>;
+	<span class="doccomment">/// Minimum collators selected per round, default at genesis and minimum forever after</span>
+	<span class="kw">type</span> <span class="ident">MinSelectedCandidates</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span><span class="number">8</span><span class="op">&gt;</span>;
+	<span class="doccomment">/// Maximum top delegations per candidate</span>
+	<span class="kw">type</span> <span class="ident">MaxTopDelegationsPerCandidate</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span><span class="number">300</span><span class="op">&gt;</span>;
+	<span class="doccomment">/// Maximum bottom delegations per candidate</span>
+	<span class="kw">type</span> <span class="ident">MaxBottomDelegationsPerCandidate</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span><span class="number">50</span><span class="op">&gt;</span>;
+	<span class="doccomment">/// Maximum delegations per delegator</span>
+	<span class="kw">type</span> <span class="ident">MaxDelegationsPerDelegator</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span><span class="number">100</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">DefaultCollatorCommission</span> <span class="op">=</span> <span class="ident">DefaultCollatorCommission</span>;
 	<span class="kw">type</span> <span class="ident">DefaultParachainBondReservePercent</span> <span class="op">=</span> <span class="ident">DefaultParachainBondReservePercent</span>;
-	<span class="kw">type</span> <span class="ident">MinCollatorStk</span> <span class="op">=</span> <span class="ident">MinCollatorStk</span>;
-	<span class="kw">type</span> <span class="ident">MinCandidateStk</span> <span class="op">=</span> <span class="ident">MinCandidateStk</span>;
-	<span class="kw">type</span> <span class="ident">MinDelegation</span> <span class="op">=</span> <span class="ident">MinDelegatorStk</span>;
-	<span class="kw">type</span> <span class="ident">MinDelegatorStk</span> <span class="op">=</span> <span class="ident">MinDelegatorStk</span>;
+	<span class="doccomment">/// Minimum stake required to become a collator</span>
+	<span class="kw">type</span> <span class="ident">MinCollatorStk</span> <span class="op">=</span> <span class="ident">ConstU128</span><span class="op">&lt;</span>{ <span class="number">1000</span> <span class="op">*</span> <span class="ident">currency::GLMR</span> <span class="op">*</span> <span class="ident">currency::SUPPLY_FACTOR</span> }<span class="op">&gt;</span>;
+	<span class="doccomment">/// Minimum stake required to be reserved to be a candidate</span>
+	<span class="kw">type</span> <span class="ident">MinCandidateStk</span> <span class="op">=</span> <span class="ident">ConstU128</span><span class="op">&lt;</span>{ <span class="number">1000</span> <span class="op">*</span> <span class="ident">currency::GLMR</span> <span class="op">*</span> <span class="ident">currency::SUPPLY_FACTOR</span> }<span class="op">&gt;</span>;
+	<span class="doccomment">/// Minimum stake required to be reserved to be a delegator</span>
+	<span class="kw">type</span> <span class="ident">MinDelegation</span> <span class="op">=</span> <span class="ident">ConstU128</span><span class="op">&lt;</span>{ <span class="number">500</span> <span class="op">*</span> <span class="ident">currency::MILLIGLMR</span> <span class="op">*</span> <span class="ident">currency::SUPPLY_FACTOR</span> }<span class="op">&gt;</span>;
+	<span class="doccomment">/// Minimum stake required to be reserved to be a delegator</span>
+	<span class="kw">type</span> <span class="ident">MinDelegatorStk</span> <span class="op">=</span> <span class="ident">ConstU128</span><span class="op">&lt;</span>{ <span class="number">500</span> <span class="op">*</span> <span class="ident">currency::MILLIGLMR</span> <span class="op">*</span> <span class="ident">currency::SUPPLY_FACTOR</span> }<span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">parachain_staking::weights::SubstrateWeight</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
 }
 
@@ -2263,20 +2153,17 @@
 }
 
 <span class="macro">parameter_types!</span> {
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinimumReward</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">0</span>;
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">Initialized</span>: <span class="ident">bool</span> <span class="op">=</span> <span class="bool-val">false</span>;
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">InitializationPayment</span>: <span class="ident">Perbill</span> <span class="op">=</span> <span class="ident">Perbill::from_percent</span>(<span class="number">30</span>);
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxInitContributorsBatchSizes</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">500</span>;
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RelaySignaturesThreshold</span>: <span class="ident">Perbill</span> <span class="op">=</span> <span class="ident">Perbill::from_percent</span>(<span class="number">100</span>);
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SignatureNetworkIdentifier</span>:  <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;moonbeam-&quot;</span>;
 }
 
 <span class="kw">impl</span> <span class="ident">pallet_crowdloan_rewards::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
 	<span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
-	<span class="kw">type</span> <span class="ident">Initialized</span> <span class="op">=</span> <span class="ident">Initialized</span>;
+	<span class="kw">type</span> <span class="ident">Initialized</span> <span class="op">=</span> <span class="ident">ConstBool</span><span class="op">&lt;</span><span class="bool-val">false</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">InitializationPayment</span> <span class="op">=</span> <span class="ident">InitializationPayment</span>;
-	<span class="kw">type</span> <span class="ident">MaxInitContributors</span> <span class="op">=</span> <span class="ident">MaxInitContributorsBatchSizes</span>;
-	<span class="kw">type</span> <span class="ident">MinimumReward</span> <span class="op">=</span> <span class="ident">MinimumReward</span>;
+	<span class="kw">type</span> <span class="ident">MaxInitContributors</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span><span class="number">500</span><span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">MinimumReward</span> <span class="op">=</span> <span class="ident">ConstU128</span><span class="op">&lt;</span><span class="number">0</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">RewardCurrency</span> <span class="op">=</span> <span class="ident">Balances</span>;
 	<span class="kw">type</span> <span class="ident">RelayChainAccountId</span> <span class="op">=</span> [<span class="ident">u8</span>; <span class="number">32</span>];
 	<span class="kw">type</span> <span class="ident">RewardAddressAssociateOrigin</span> <span class="op">=</span> <span class="ident">EnsureSigned</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::AccountId</span><span class="op">&gt;</span>;
@@ -2289,31 +2176,13 @@
 	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">pallet_crowdloan_rewards::weights::SubstrateWeight</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
 }
 
-<span class="macro">parameter_types!</span> {
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DepositAmount</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">100</span> <span class="op">*</span> <span class="ident">currency::GLMR</span> <span class="op">*</span> <span class="ident">currency::SUPPLY_FACTOR</span>;
-}
 <span class="comment">// This is a simple session key manager. It should probably either work with, or be replaced</span>
 <span class="comment">// entirely by pallet sessions</span>
 <span class="kw">impl</span> <span class="ident">pallet_author_mapping::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
 	<span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
 	<span class="kw">type</span> <span class="ident">DepositCurrency</span> <span class="op">=</span> <span class="ident">Balances</span>;
-	<span class="kw">type</span> <span class="ident">DepositAmount</span> <span class="op">=</span> <span class="ident">DepositAmount</span>;
+	<span class="kw">type</span> <span class="ident">DepositAmount</span> <span class="op">=</span> <span class="ident">ConstU128</span><span class="op">&lt;</span>{ <span class="number">100</span> <span class="op">*</span> <span class="ident">currency::GLMR</span> <span class="op">*</span> <span class="ident">currency::SUPPLY_FACTOR</span> }<span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">pallet_author_mapping::weights::SubstrateWeight</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
-}
-
-<span class="macro">parameter_types!</span> {
-	<span class="comment">// One storage item; key size 32, value size 8; .</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ProxyDepositBase</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">currency::deposit</span>(<span class="number">1</span>, <span class="number">8</span>);
-	<span class="comment">// Additional storage item size of 21 bytes (20 bytes AccountId + 1 byte sizeof(ProxyType)).</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ProxyDepositFactor</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">currency::deposit</span>(<span class="number">0</span>, <span class="number">21</span>);
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxProxies</span>: <span class="ident">u16</span> <span class="op">=</span> <span class="number">32</span>;
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">AnnouncementDepositBase</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">currency::deposit</span>(<span class="number">1</span>, <span class="number">8</span>);
-	<span class="comment">// Additional storage item size of 56 bytes:</span>
-	<span class="comment">// - 20 bytes AccountId</span>
-	<span class="comment">// - 32 bytes Hasher (Blake2256)</span>
-	<span class="comment">// - 4 bytes BlockNumber (u32)</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">AnnouncementDepositFactor</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">currency::deposit</span>(<span class="number">0</span>, <span class="number">56</span>);
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxPending</span>: <span class="ident">u16</span> <span class="op">=</span> <span class="number">32</span>;
 }
 
 <span class="doccomment">/// The type used to represent the kinds of proxying allowed.</span>
@@ -2395,14 +2264,20 @@
 	<span class="kw">type</span> <span class="ident">Call</span> <span class="op">=</span> <span class="ident">Call</span>;
 	<span class="kw">type</span> <span class="ident">Currency</span> <span class="op">=</span> <span class="ident">Balances</span>;
 	<span class="kw">type</span> <span class="ident">ProxyType</span> <span class="op">=</span> <span class="ident">ProxyType</span>;
-	<span class="kw">type</span> <span class="ident">ProxyDepositBase</span> <span class="op">=</span> <span class="ident">ProxyDepositBase</span>;
-	<span class="kw">type</span> <span class="ident">ProxyDepositFactor</span> <span class="op">=</span> <span class="ident">ProxyDepositFactor</span>;
-	<span class="kw">type</span> <span class="ident">MaxProxies</span> <span class="op">=</span> <span class="ident">MaxProxies</span>;
+	<span class="comment">// One storage item; key size 32, value size 8</span>
+	<span class="kw">type</span> <span class="ident">ProxyDepositBase</span> <span class="op">=</span> <span class="ident">ConstU128</span><span class="op">&lt;</span>{ <span class="ident">currency::deposit</span>(<span class="number">1</span>, <span class="number">8</span>) }<span class="op">&gt;</span>;
+	<span class="comment">// Additional storage item size of 21 bytes (20 bytes AccountId + 1 byte sizeof(ProxyType)).</span>
+	<span class="kw">type</span> <span class="ident">ProxyDepositFactor</span> <span class="op">=</span> <span class="ident">ConstU128</span><span class="op">&lt;</span>{ <span class="ident">currency::deposit</span>(<span class="number">0</span>, <span class="number">21</span>) }<span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">MaxProxies</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span><span class="number">32</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">pallet_proxy::weights::SubstrateWeight</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
-	<span class="kw">type</span> <span class="ident">MaxPending</span> <span class="op">=</span> <span class="ident">MaxPending</span>;
+	<span class="kw">type</span> <span class="ident">MaxPending</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span><span class="number">32</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">CallHasher</span> <span class="op">=</span> <span class="ident">BlakeTwo256</span>;
-	<span class="kw">type</span> <span class="ident">AnnouncementDepositBase</span> <span class="op">=</span> <span class="ident">AnnouncementDepositBase</span>;
-	<span class="kw">type</span> <span class="ident">AnnouncementDepositFactor</span> <span class="op">=</span> <span class="ident">AnnouncementDepositFactor</span>;
+	<span class="kw">type</span> <span class="ident">AnnouncementDepositBase</span> <span class="op">=</span> <span class="ident">ConstU128</span><span class="op">&lt;</span>{ <span class="ident">currency::deposit</span>(<span class="number">1</span>, <span class="number">8</span>) }<span class="op">&gt;</span>;
+	<span class="comment">// Additional storage item size of 56 bytes:</span>
+	<span class="comment">// - 20 bytes AccountId</span>
+	<span class="comment">// - 32 bytes Hasher (Blake2256)</span>
+	<span class="comment">// - 4 bytes BlockNumber (u32)</span>
+	<span class="kw">type</span> <span class="ident">AnnouncementDepositFactor</span> <span class="op">=</span> <span class="ident">ConstU128</span><span class="op">&lt;</span>{ <span class="ident">currency::deposit</span>(<span class="number">0</span>, <span class="number">56</span>) }<span class="op">&gt;</span>;
 }
 
 <span class="kw">impl</span> <span class="ident">pallet_migrations::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
@@ -2417,13 +2292,7 @@
 <span class="comment">// These parameters dont matter much as this will only be called by root with the forced arguments</span>
 <span class="comment">// No deposit is substracted with those methods</span>
 <span class="macro">parameter_types!</span> {
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">AssetDeposit</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">0</span>;
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ApprovalDeposit</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">0</span>;
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">AssetsStringLimit</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">50</span>;
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MetadataDepositBase</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">0</span>;
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MetadataDepositPerByte</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">0</span>;
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ExecutiveBody</span>: <span class="ident">BodyId</span> <span class="op">=</span> <span class="ident">BodyId::Executive</span>;
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">AssetAccountDeposit</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">currency::deposit</span>(<span class="number">1</span>, <span class="number">18</span>);
 }
 
 <span class="doccomment">/// We allow root and Chain council to execute privileged asset operations.</span>
@@ -2438,14 +2307,14 @@
 	<span class="kw">type</span> <span class="ident">AssetId</span> <span class="op">=</span> <span class="ident">AssetId</span>;
 	<span class="kw">type</span> <span class="ident">Currency</span> <span class="op">=</span> <span class="ident">Balances</span>;
 	<span class="kw">type</span> <span class="ident">ForceOrigin</span> <span class="op">=</span> <span class="ident">AssetsForceOrigin</span>;
-	<span class="kw">type</span> <span class="ident">AssetDeposit</span> <span class="op">=</span> <span class="ident">AssetDeposit</span>;
-	<span class="kw">type</span> <span class="ident">MetadataDepositBase</span> <span class="op">=</span> <span class="ident">MetadataDepositBase</span>;
-	<span class="kw">type</span> <span class="ident">MetadataDepositPerByte</span> <span class="op">=</span> <span class="ident">MetadataDepositPerByte</span>;
-	<span class="kw">type</span> <span class="ident">ApprovalDeposit</span> <span class="op">=</span> <span class="ident">ApprovalDeposit</span>;
-	<span class="kw">type</span> <span class="ident">StringLimit</span> <span class="op">=</span> <span class="ident">AssetsStringLimit</span>;
+	<span class="kw">type</span> <span class="ident">AssetDeposit</span> <span class="op">=</span> <span class="ident">ConstU128</span><span class="op">&lt;</span><span class="number">0</span><span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">MetadataDepositBase</span> <span class="op">=</span> <span class="ident">ConstU128</span><span class="op">&lt;</span><span class="number">0</span><span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">MetadataDepositPerByte</span> <span class="op">=</span> <span class="ident">ConstU128</span><span class="op">&lt;</span><span class="number">0</span><span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">ApprovalDeposit</span> <span class="op">=</span> <span class="ident">ConstU128</span><span class="op">&lt;</span><span class="number">0</span><span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">StringLimit</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span><span class="number">50</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">Freezer</span> <span class="op">=</span> ();
 	<span class="kw">type</span> <span class="ident">Extra</span> <span class="op">=</span> ();
-	<span class="kw">type</span> <span class="ident">AssetAccountDeposit</span> <span class="op">=</span> <span class="ident">AssetAccountDeposit</span>;
+	<span class="kw">type</span> <span class="ident">AssetAccountDeposit</span> <span class="op">=</span> <span class="ident">ConstU128</span><span class="op">&lt;</span>{ <span class="ident">currency::deposit</span>(<span class="number">1</span>, <span class="number">18</span>) }<span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">pallet_assets::weights::SubstrateWeight</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
 }
 
@@ -2899,6 +2768,14 @@
 
 <span class="macro">runtime_common::impl_self_contained_call!</span>();
 
+<span class="comment">// Shorthand for a Get field of a pallet Config.</span>
+<span class="attribute">#[<span class="ident">macro_export</span>]</span>
+<span class="macro">macro_rules!</span> <span class="ident">get</span> {
+	(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">pallet</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="kw">type</span>:<span class="macro-nonterminal">ty</span>) =&gt; {
+		<span class="op">&lt;</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::Runtime</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">pallet::Config</span><span class="op">&gt;</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::Get</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="kw">type</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="macro-nonterminal">::get</span>()
+	};
+}
+
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
 	<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">currency</span>::<span class="kw-2">*</span>, <span class="kw-2">*</span>};
@@ -2941,49 +2818,86 @@
 
 		<span class="comment">// txn fees</span>
 		<span class="macro">assert_eq!</span>(<span class="ident">TRANSACTION_BYTE_FEE</span>, <span class="ident">Balance::from</span>(<span class="number">1</span> <span class="op">*</span> <span class="ident">MILLIGLMR</span>));
-		<span class="macro">assert_eq!</span>(<span class="ident">OperationalFeeMultiplier::get</span>(), <span class="number">5_u8</span>);
+		<span class="macro">assert_eq!</span>(
+			<span class="macro">get!</span>(<span class="ident">pallet_transaction_payment</span>, <span class="ident">OperationalFeeMultiplier</span>, <span class="ident">u8</span>),
+			<span class="number">5_u8</span>
+		);
 		<span class="macro">assert_eq!</span>(<span class="ident">STORAGE_BYTE_FEE</span>, <span class="ident">Balance::from</span>(<span class="number">10</span> <span class="op">*</span> <span class="ident">MILLIGLMR</span>));
 		<span class="macro">assert_eq!</span>(<span class="ident">FixedGasPrice::min_gas_price</span>(), (<span class="number">100</span> <span class="op">*</span> <span class="ident">GIGAWEI</span>).<span class="ident">into</span>());
 
 		<span class="comment">// democracy minimums</span>
-		<span class="macro">assert_eq!</span>(<span class="ident">MinimumDeposit::get</span>(), <span class="ident">Balance::from</span>(<span class="number">400</span> <span class="op">*</span> <span class="ident">GLMR</span>));
-		<span class="macro">assert_eq!</span>(<span class="ident">PreimageByteDeposit::get</span>(), <span class="ident">Balance::from</span>(<span class="number">10</span> <span class="op">*</span> <span class="ident">MILLIGLMR</span>));
-		<span class="macro">assert_eq!</span>(<span class="ident">ProposalBondMinimum::get</span>(), <span class="ident">Balance::from</span>(<span class="number">100</span> <span class="op">*</span> <span class="ident">GLMR</span>));
+		<span class="macro">assert_eq!</span>(
+			<span class="macro">get!</span>(<span class="ident">pallet_democracy</span>, <span class="ident">MinimumDeposit</span>, <span class="ident">u128</span>),
+			<span class="ident">Balance::from</span>(<span class="number">400</span> <span class="op">*</span> <span class="ident">GLMR</span>)
+		);
+		<span class="macro">assert_eq!</span>(
+			<span class="macro">get!</span>(<span class="ident">pallet_democracy</span>, <span class="ident">PreimageByteDeposit</span>, <span class="ident">u128</span>),
+			<span class="ident">Balance::from</span>(<span class="number">10</span> <span class="op">*</span> <span class="ident">MILLIGLMR</span>)
+		);
+		<span class="macro">assert_eq!</span>(
+			<span class="macro">get!</span>(<span class="ident">pallet_treasury</span>, <span class="ident">ProposalBondMinimum</span>, <span class="ident">u128</span>),
+			<span class="ident">Balance::from</span>(<span class="number">100</span> <span class="op">*</span> <span class="ident">GLMR</span>)
+		);
 
 		<span class="comment">// pallet_identity deposits</span>
 		<span class="macro">assert_eq!</span>(
-			<span class="ident">BasicDeposit::get</span>(),
+			<span class="macro">get!</span>(<span class="ident">pallet_identity</span>, <span class="ident">BasicDeposit</span>, <span class="ident">u128</span>),
 			<span class="ident">Balance::from</span>(<span class="number">10</span> <span class="op">*</span> <span class="ident">GLMR</span> <span class="op">+</span> <span class="number">2580</span> <span class="op">*</span> <span class="ident">MILLIGLMR</span>)
 		);
-		<span class="macro">assert_eq!</span>(<span class="ident">FieldDeposit::get</span>(), <span class="ident">Balance::from</span>(<span class="number">660</span> <span class="op">*</span> <span class="ident">MILLIGLMR</span>));
 		<span class="macro">assert_eq!</span>(
-			<span class="ident">SubAccountDeposit::get</span>(),
+			<span class="macro">get!</span>(<span class="ident">pallet_identity</span>, <span class="ident">FieldDeposit</span>, <span class="ident">u128</span>),
+			<span class="ident">Balance::from</span>(<span class="number">660</span> <span class="op">*</span> <span class="ident">MILLIGLMR</span>)
+		);
+		<span class="macro">assert_eq!</span>(
+			<span class="macro">get!</span>(<span class="ident">pallet_identity</span>, <span class="ident">SubAccountDeposit</span>, <span class="ident">u128</span>),
 			<span class="ident">Balance::from</span>(<span class="number">10</span> <span class="op">*</span> <span class="ident">GLMR</span> <span class="op">+</span> <span class="number">530</span> <span class="op">*</span> <span class="ident">MILLIGLMR</span>)
 		);
 
 		<span class="comment">// staking minimums</span>
-		<span class="macro">assert_eq!</span>(<span class="ident">MinCollatorStk::get</span>(), <span class="ident">Balance::from</span>(<span class="number">100</span> <span class="op">*</span> <span class="ident">KILOGLMR</span>));
-		<span class="macro">assert_eq!</span>(<span class="ident">MinCandidateStk::get</span>(), <span class="ident">Balance::from</span>(<span class="number">100</span> <span class="op">*</span> <span class="ident">KILOGLMR</span>));
-		<span class="macro">assert_eq!</span>(<span class="ident">MinDelegatorStk::get</span>(), <span class="ident">Balance::from</span>(<span class="number">50</span> <span class="op">*</span> <span class="ident">GLMR</span>));
+		<span class="macro">assert_eq!</span>(
+			<span class="macro">get!</span>(<span class="ident">parachain_staking</span>, <span class="ident">MinCollatorStk</span>, <span class="ident">u128</span>),
+			<span class="ident">Balance::from</span>(<span class="number">100</span> <span class="op">*</span> <span class="ident">KILOGLMR</span>)
+		);
+		<span class="macro">assert_eq!</span>(
+			<span class="macro">get!</span>(<span class="ident">parachain_staking</span>, <span class="ident">MinCandidateStk</span>, <span class="ident">u128</span>),
+			<span class="ident">Balance::from</span>(<span class="number">100</span> <span class="op">*</span> <span class="ident">KILOGLMR</span>)
+		);
+		<span class="macro">assert_eq!</span>(
+			<span class="macro">get!</span>(<span class="ident">parachain_staking</span>, <span class="ident">MinDelegation</span>, <span class="ident">u128</span>),
+			<span class="ident">Balance::from</span>(<span class="number">50</span> <span class="op">*</span> <span class="ident">GLMR</span>)
+		);
+		<span class="macro">assert_eq!</span>(
+			<span class="macro">get!</span>(<span class="ident">parachain_staking</span>, <span class="ident">MinDelegatorStk</span>, <span class="ident">u128</span>),
+			<span class="ident">Balance::from</span>(<span class="number">50</span> <span class="op">*</span> <span class="ident">GLMR</span>)
+		);
 
 		<span class="comment">// crowdloan min reward</span>
-		<span class="macro">assert_eq!</span>(<span class="ident">MinimumReward::get</span>(), <span class="ident">Balance::from</span>(<span class="number">0u128</span>));
+		<span class="macro">assert_eq!</span>(
+			<span class="macro">get!</span>(<span class="ident">pallet_crowdloan_rewards</span>, <span class="ident">MinimumReward</span>, <span class="ident">u128</span>),
+			<span class="ident">Balance::from</span>(<span class="number">0u128</span>)
+		);
 
 		<span class="comment">// deposit for AuthorMapping</span>
-		<span class="macro">assert_eq!</span>(<span class="ident">DepositAmount::get</span>(), <span class="ident">Balance::from</span>(<span class="number">10</span> <span class="op">*</span> <span class="ident">KILOGLMR</span>));
+		<span class="macro">assert_eq!</span>(
+			<span class="macro">get!</span>(<span class="ident">pallet_author_mapping</span>, <span class="ident">DepositAmount</span>, <span class="ident">u128</span>),
+			<span class="ident">Balance::from</span>(<span class="number">10</span> <span class="op">*</span> <span class="ident">KILOGLMR</span>)
+		);
 
 		<span class="comment">// proxy deposits</span>
 		<span class="macro">assert_eq!</span>(
-			<span class="ident">ProxyDepositBase::get</span>(),
-			<span class="ident">Balance::from</span>(<span class="number">10</span> <span class="op">*</span> <span class="ident">GLMR</span> <span class="op">+</span> <span class="number">80</span> <span class="op">*</span> <span class="ident">MILLIGLMR</span>)
-		);
-		<span class="macro">assert_eq!</span>(<span class="ident">ProxyDepositFactor::get</span>(), <span class="ident">Balance::from</span>(<span class="number">210</span> <span class="op">*</span> <span class="ident">MILLIGLMR</span>));
-		<span class="macro">assert_eq!</span>(
-			<span class="ident">AnnouncementDepositBase::get</span>(),
+			<span class="macro">get!</span>(<span class="ident">pallet_proxy</span>, <span class="ident">ProxyDepositBase</span>, <span class="ident">u128</span>),
 			<span class="ident">Balance::from</span>(<span class="number">10</span> <span class="op">*</span> <span class="ident">GLMR</span> <span class="op">+</span> <span class="number">80</span> <span class="op">*</span> <span class="ident">MILLIGLMR</span>)
 		);
 		<span class="macro">assert_eq!</span>(
-			<span class="ident">AnnouncementDepositFactor::get</span>(),
+			<span class="macro">get!</span>(<span class="ident">pallet_proxy</span>, <span class="ident">ProxyDepositFactor</span>, <span class="ident">u128</span>),
+			<span class="ident">Balance::from</span>(<span class="number">210</span> <span class="op">*</span> <span class="ident">MILLIGLMR</span>)
+		);
+		<span class="macro">assert_eq!</span>(
+			<span class="macro">get!</span>(<span class="ident">pallet_proxy</span>, <span class="ident">AnnouncementDepositBase</span>, <span class="ident">u128</span>),
+			<span class="ident">Balance::from</span>(<span class="number">10</span> <span class="op">*</span> <span class="ident">GLMR</span> <span class="op">+</span> <span class="number">80</span> <span class="op">*</span> <span class="ident">MILLIGLMR</span>)
+		);
+		<span class="macro">assert_eq!</span>(
+			<span class="macro">get!</span>(<span class="ident">pallet_proxy</span>, <span class="ident">AnnouncementDepositFactor</span>, <span class="ident">u128</span>),
 			<span class="ident">Balance::from</span>(<span class="number">560</span> <span class="op">*</span> <span class="ident">MILLIGLMR</span>)
 		);
 	}
@@ -2992,8 +2906,14 @@
 	<span class="comment">// Required migration is parachain_staking::migrations::IncreaseMaxTopDelegationsPerCandidate</span>
 	<span class="comment">// Purpose of this test is to remind of required migration if constant is ever changed</span>
 	<span class="kw">fn</span> <span class="ident">updating_maximum_delegators_per_candidate_requires_configuring_required_migration</span>() {
-		<span class="macro">assert_eq!</span>(<span class="ident">MaxTopDelegationsPerCandidate::get</span>(), <span class="number">300</span>);
-		<span class="macro">assert_eq!</span>(<span class="ident">MaxBottomDelegationsPerCandidate::get</span>(), <span class="number">50</span>);
+		<span class="macro">assert_eq!</span>(
+			<span class="macro">get!</span>(<span class="ident">parachain_staking</span>, <span class="ident">MaxTopDelegationsPerCandidate</span>, <span class="ident">u32</span>),
+			<span class="number">300</span>
+		);
+		<span class="macro">assert_eq!</span>(
+			<span class="macro">get!</span>(<span class="ident">parachain_staking</span>, <span class="ident">MaxBottomDelegationsPerCandidate</span>, <span class="ident">u32</span>),
+			<span class="number">50</span>
+		);
 	}
 }
 </code></pre></div>

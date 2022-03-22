@@ -328,6 +328,7 @@
 <span id="328">328</span>
 <span id="329">329</span>
 <span id="330">330</span>
+<span id="331">331</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -355,11 +356,12 @@
 <span class="kw">use</span> <span class="ident">cumulus_primitives_core::ParaId</span>;
 <span class="kw">use</span> <span class="ident">hex_literal::hex</span>;
 <span class="kw">use</span> <span class="ident">moonbeam_runtime</span>::{
-	<span class="ident">currency::GLMR</span>, <span class="ident">currency::SUPPLY_FACTOR</span>, <span class="ident">AccountId</span>, <span class="ident">AuthorFilterConfig</span>, <span class="ident">AuthorMappingConfig</span>,
-	<span class="ident">Balance</span>, <span class="ident">BalancesConfig</span>, <span class="ident">CouncilCollectiveConfig</span>, <span class="ident">CrowdloanRewardsConfig</span>, <span class="ident">DemocracyConfig</span>,
-	<span class="ident">EVMConfig</span>, <span class="ident">EthereumChainIdConfig</span>, <span class="ident">EthereumConfig</span>, <span class="ident">GenesisAccount</span>, <span class="ident">GenesisConfig</span>, <span class="ident">InflationInfo</span>,
-	<span class="ident">MaintenanceModeConfig</span>, <span class="ident">ParachainInfoConfig</span>, <span class="ident">ParachainStakingConfig</span>, <span class="ident">PolkadotXcmConfig</span>,
-	<span class="ident">Precompiles</span>, <span class="ident">Range</span>, <span class="ident">SystemConfig</span>, <span class="ident">TechCommitteeCollectiveConfig</span>, <span class="ident">WASM_BINARY</span>,
+	<span class="ident">currency::GLMR</span>, <span class="ident">currency::SUPPLY_FACTOR</span>, <span class="ident">get</span>, <span class="ident">AccountId</span>, <span class="ident">AuthorFilterConfig</span>,
+	<span class="ident">AuthorMappingConfig</span>, <span class="ident">Balance</span>, <span class="ident">BalancesConfig</span>, <span class="ident">CouncilCollectiveConfig</span>, <span class="ident">CrowdloanRewardsConfig</span>,
+	<span class="ident">DemocracyConfig</span>, <span class="ident">EVMConfig</span>, <span class="ident">EthereumChainIdConfig</span>, <span class="ident">EthereumConfig</span>, <span class="ident">GenesisAccount</span>,
+	<span class="ident">GenesisConfig</span>, <span class="ident">InflationInfo</span>, <span class="ident">MaintenanceModeConfig</span>, <span class="ident">ParachainInfoConfig</span>,
+	<span class="ident">ParachainStakingConfig</span>, <span class="ident">PolkadotXcmConfig</span>, <span class="ident">Precompiles</span>, <span class="ident">Range</span>, <span class="ident">SystemConfig</span>,
+	<span class="ident">TechCommitteeCollectiveConfig</span>, <span class="ident">WASM_BINARY</span>,
 };
 <span class="kw">use</span> <span class="ident">nimbus_primitives::NimbusId</span>;
 <span class="kw">use</span> <span class="ident">sc_service::ChainType</span>;
@@ -504,7 +506,7 @@
 		<span class="ident">perbill_annual_to_perbill_round</span>(
 			<span class="ident">annual</span>,
 			<span class="comment">// rounds per year</span>
-			<span class="ident">BLOCKS_PER_YEAR</span> <span class="op">/</span> <span class="ident">moonbeam_runtime::DefaultBlocksPerRound::get</span>(),
+			<span class="ident">BLOCKS_PER_YEAR</span> <span class="op">/</span> <span class="macro">get!</span>(<span class="ident">parachain_staking</span>, <span class="ident">DefaultBlocksPerRound</span>, <span class="ident">u32</span>),
 		)
 	}
 	<span class="kw">let</span> <span class="ident">annual</span> <span class="op">=</span> <span class="ident">Range</span> {
