@@ -679,7 +679,7 @@ fn transfer_multi_currencies() {
 				(Address(AssetId(2u128).into()), U256::from(500)),
 			];
 
-			// We are transferring asset 1, which corresponds to another parachain Id asset
+			// We are transferring 2 assets
 			assert_eq!(
 				precompiles().execute(
 					Precompile.into(),
@@ -755,6 +755,7 @@ fn transfer_multi_assets() {
 			])
 			.unwrap();
 
+			// We are transferring 2 assets
 			assert_eq!(
 				precompiles().execute(
 					Precompile.into(),
@@ -787,5 +788,109 @@ fn transfer_multi_assets() {
 			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
+		});
+}
+
+#[test]
+fn transfer_multi_currencies_cannot_insert_more_than_max() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			let destination = MultiLocation::new(
+				1,
+				Junctions::X1(Junction::AccountId32 {
+					network: NetworkId::Any,
+					id: [1u8; 32],
+				}),
+			);
+			let currencies = vec![
+				(Address(AssetId(1u128).into()), U256::from(500)),
+				(Address(AssetId(2u128).into()), U256::from(500)),
+				(Address(AssetId(3u128).into()), U256::from(500)),
+			];
+
+			// We are transferring 3 assets, when max is 2
+			assert_matches!(
+				precompiles().execute(
+					Precompile.into(),
+					&EvmDataWriter::new_with_selector(Action::TransferMultiCurrencies)
+						.write(currencies)
+						.write(0u32)
+						.write(destination.clone())
+						.write(U256::from(4000000))
+						.build(),
+					None,
+					&Context {
+						address: Precompile.into(),
+						caller: Alice.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Err(PrecompileFailure::Revert { output, ..}))
+				if output == b"More than max number of assets given",
+			);
+		});
+}
+
+#[test]
+fn transfer_multi_assets_cannot_insert_more_than_max() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			let destination = MultiLocation::new(
+				1,
+				Junctions::X2(
+					Junction::Parachain(2),
+					Junction::AccountId32 {
+						network: NetworkId::Any,
+						id: [1u8; 32],
+					},
+				),
+			);
+
+			let asset_1_location = MultiLocation::new(
+				1,
+				Junctions::X2(Junction::Parachain(2), Junction::GeneralIndex(0u128)),
+			);
+			let asset_2_location = MultiLocation::new(
+				1,
+				Junctions::X2(Junction::Parachain(2), Junction::GeneralIndex(1u128)),
+			);
+
+			let asset_3_location = MultiLocation::new(
+				1,
+				Junctions::X2(Junction::Parachain(2), Junction::GeneralIndex(2u128)),
+			);
+
+			let assets = vec![
+				(asset_1_location.clone(), U256::from(500)),
+				(asset_2_location.clone(), U256::from(500)),
+				(asset_3_location.clone(), U256::from(500)),
+			];
+
+			// We are transferring 3 assets, when max is 2
+			assert_matches!(
+				precompiles().execute(
+					Precompile.into(),
+					&EvmDataWriter::new_with_selector(Action::TransferMultiAssets)
+						.write(assets)
+						.write(0u32)
+						.write(destination.clone())
+						.write(U256::from(4000000))
+						.build(),
+					None,
+					&Context {
+						address: Precompile.into(),
+						caller: Alice.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Err(PrecompileFailure::Revert { output, ..}))
+				if output == b"More than max number of assets given",
+			);
 		});
 }

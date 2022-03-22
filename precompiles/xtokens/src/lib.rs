@@ -320,7 +320,7 @@ where
 		// We check this here so that we avoid iterating over the vec if the len is more than the max permitted
 		ensure!(
 			max_assets >= non_mapped_currencies.len(),
-			gasometer.revert("Max number of assets given")
+			gasometer.revert("More than max number of assets given")
 		);
 
 		let fee_item: u32 = input.read::<u32>(gasometer)?;
@@ -388,7 +388,7 @@ where
 		// We check this here so that we avoid iterating over the vec if the len is more than the max permitted
 		ensure!(
 			max_assets >= assets.len(),
-			gasometer.revert("Max number of assets given")
+			gasometer.revert("More than max number of assets given")
 		);
 
 		let fee_item: u32 = input.read::<u32>(gasometer)?;
