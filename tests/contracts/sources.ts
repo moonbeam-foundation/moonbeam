@@ -740,7 +740,7 @@ export const contractSources: { [key: string]: string } = {
         /** Transfer several tokens at once through XCM based on its address specifying fee
          *
          * @dev The token transfer burns/transfers the corresponding amount before sending
-         * @param currencies The currencies we want to transfer, defined by their address and amount. 
+         * @param currencies The currencies we want to transfer, defined by address and amount.
          * @param fee_item Which of the currencies to be used as fee
          * @param destination The Multilocation to which we want to send the tokens
          * @param weight The weight we want to buy in the destination chain

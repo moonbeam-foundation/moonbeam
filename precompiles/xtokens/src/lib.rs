@@ -318,7 +318,8 @@ where
 			input.read::<Vec<(Address, U256)>>(gasometer)?;
 		let max_assets = MaxAssetsForTransfer::<Runtime>::get();
 
-		// We check this here so that we avoid iterating over the vec if the len is more than the max permitted
+		// We check this here so that we avoid iterating over the vec
+		// if the len is more than the max permitted
 		ensure!(
 			max_assets >= non_mapped_currencies.len(),
 			gasometer.revert("More than max number of assets given")
@@ -386,7 +387,8 @@ where
 			input.read::<Vec<(MultiLocation, U256)>>(gasometer)?;
 		let max_assets = MaxAssetsForTransfer::<Runtime>::get();
 
-		// We check this here so that we avoid iterating over the vec if the len is more than the max permitted
+		// We check this here so that we avoid iterating over the vec
+		// if the len is more than the max permitted
 		ensure!(
 			max_assets >= assets.len(),
 			gasometer.revert("More than max number of assets given")
@@ -411,8 +413,8 @@ where
 			})
 			.collect();
 
-		// Since multiassets sorts them, we need to check whether the index is still correct, and error otherwise
-		// there is not much we can do other than that
+		// Since multiassets sorts them, we need to check whether the index is still correct,
+		// and error otherwise as there is not much we can do other than that
 		let multiassets = MultiAssets::from_sorted_and_deduplicated(multiasset_vec?)
 			.map_err(|_| gasometer.revert("Provided vector either not sorted nor deduplicated"))?;
 
