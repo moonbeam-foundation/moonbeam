@@ -18,11 +18,11 @@
 
 use crate::{Bytes, EvmData, EvmDataReader, EvmDataWriter, EvmResult, Gasometer};
 
+use crate::Address;
 use frame_support::ensure;
+use sp_core::U256;
 use sp_std::vec::Vec;
 use xcm::latest::{Junction, Junctions, MultiLocation, NetworkId};
-use sp_core::U256;
-use crate::Address;
 
 // Function to convert network id to bytes
 // We dont implement EVMData here as these bytes will be appended only
@@ -254,7 +254,6 @@ impl EvmData for MultiLocation {
 // For Currencies
 impl EvmData for (Address, U256) {
 	fn read(reader: &mut EvmDataReader, gasometer: &mut Gasometer) -> EvmResult<Self> {
-
 		let address: Address = reader.read(gasometer)?;
 		let amount: U256 = reader.read(gasometer)?;
 		Ok((address, amount))
