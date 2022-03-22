@@ -894,3 +894,59 @@ fn transfer_multi_assets_cannot_insert_more_than_max() {
 			);
 		});
 }
+
+#[test]
+fn transfer_multi_assets_is_not_sorted_error() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			let destination = MultiLocation::new(
+				1,
+				Junctions::X2(
+					Junction::Parachain(2),
+					Junction::AccountId32 {
+						network: NetworkId::Any,
+						id: [1u8; 32],
+					},
+				),
+			);
+
+			// Disordered vec creation
+			let asset_1_location = MultiLocation::new(
+				1,
+				Junctions::X2(Junction::Parachain(2), Junction::GeneralIndex(1u128)),
+			);
+			let asset_2_location = MultiLocation::new(
+				1,
+				Junctions::X2(Junction::Parachain(2), Junction::GeneralIndex(0u128)),
+			);
+
+			let assets = vec![
+				(asset_1_location.clone(), U256::from(500)),
+				(asset_2_location.clone(), U256::from(500)),
+			];
+
+			// We are transferring 3 assets, when max is 2
+			assert_matches!(
+				precompiles().execute(
+					Precompile.into(),
+					&EvmDataWriter::new_with_selector(Action::TransferMultiAssets)
+						.write(assets)
+						.write(0u32)
+						.write(destination.clone())
+						.write(U256::from(4000000))
+						.build(),
+					None,
+					&Context {
+						address: Precompile.into(),
+						caller: Alice.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Err(PrecompileFailure::Revert { output, ..}))
+				if output == b"Provided vector either not sorted nor deduplicated",
+			);
+		});
+}
