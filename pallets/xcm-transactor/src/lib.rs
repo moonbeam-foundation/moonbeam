@@ -321,6 +321,7 @@ pub mod pallet {
 				fee_location,
 				dest_weight,
 				call_bytes.clone(),
+				OriginKind::SovereignAccount,
 			)?;
 
 			// Deposit event
@@ -381,6 +382,7 @@ pub mod pallet {
 				fee_location,
 				dest_weight,
 				call_bytes.clone(),
+				OriginKind::SovereignAccount,
 			)?;
 			// Deposit event
 			Self::deposit_event(Event::<T>::TransactedDerivative {
@@ -402,7 +404,8 @@ pub mod pallet {
 				&fee_location,
 				&dest,
 				dest_weight,
-				call
+				call,
+				*origin_kind
 			)
 		)]
 		pub fn transact_through_sovereign(
@@ -412,6 +415,7 @@ pub mod pallet {
 			fee_location: Box<VersionedMultiLocation>,
 			dest_weight: Weight,
 			call: Vec<u8>,
+			origin_kind: OriginKind,
 		) -> DispatchResult {
 			T::SovereignAccountDispatcherOrigin::ensure_origin(origin)?;
 
@@ -426,6 +430,7 @@ pub mod pallet {
 				fee_location,
 				dest_weight,
 				call.clone(),
+				origin_kind,
 			)?;
 
 			// Deposit event
@@ -490,6 +495,7 @@ pub mod pallet {
 			fee_location: MultiLocation,
 			dest_weight: Weight,
 			call: Vec<u8>,
+			origin_kind: OriginKind,
 		) -> DispatchResult {
 			// Grab transact info for the fee loation provided
 			let transactor_info = TransactInfoWithWeightLimit::<T>::get(&fee_location)
@@ -534,8 +540,14 @@ pub mod pallet {
 			// used to pay fees
 			// BuyExecution: Buys "execution power" in the destination chain
 			// Transact: Issues the transaction
-			let transact_message: Xcm<()> =
-				Self::transact_message(dest.clone(), fee, total_weight, call, dest_weight)?;
+			let transact_message: Xcm<()> = Self::transact_message(
+				dest.clone(),
+				fee,
+				total_weight,
+				call,
+				dest_weight,
+				origin_kind,
+			)?;
 
 			// Send to sovereign
 			T::XcmSender::send_xcm(dest, transact_message).map_err(|_| Error::<T>::ErrorSending)?;
@@ -549,12 +561,13 @@ pub mod pallet {
 			dest_weight: Weight,
 			call: Vec<u8>,
 			dispatch_weight: Weight,
+			origin_kind: OriginKind,
 		) -> Result<Xcm<()>, DispatchError> {
 			Ok(Xcm(vec![
 				Self::sovereign_withdraw(asset.clone(), &dest)?,
 				Self::buy_execution(asset, &dest, dest_weight)?,
 				Transact {
-					origin_type: OriginKind::SovereignAccount,
+					origin_type: origin_kind,
 					require_weight_at_most: dispatch_weight,
 					call: call.into(),
 				},
@@ -643,7 +656,13 @@ pub mod pallet {
 						call.to_owned(),
 					));
 
-			Self::weight_of_transact(&asset, &dest.clone().destination(), weight, call_bytes)
+			Self::weight_of_transact(
+				&asset,
+				&dest.clone().destination(),
+				weight,
+				call_bytes,
+				OriginKind::SovereignAccount,
+			)
 		}
 
 		/// Returns weight of `transact_through_derivative` call.
@@ -673,6 +692,7 @@ pub mod pallet {
 			dest: &VersionedMultiLocation,
 			weight: &u64,
 			call: &Vec<u8>,
+			origin_kind: OriginKind,
 		) -> Weight {
 			// If asset or dest give errors, return 0
 			let (asset, dest) = match (
@@ -683,7 +703,7 @@ pub mod pallet {
 				_ => return 0,
 			};
 
-			Self::weight_of_transact(&asset, &dest, weight, call.clone())
+			Self::weight_of_transact(&asset, &dest, weight, call.clone(), origin_kind)
 		}
 
 		/// Returns weight of transact message.
@@ -692,6 +712,7 @@ pub mod pallet {
 			dest: &MultiLocation,
 			weight: &u64,
 			call: Vec<u8>,
+			origin_kind: OriginKind,
 		) -> Weight {
 			// Construct MultiAsset
 			let fee = MultiAsset {
@@ -705,6 +726,7 @@ pub mod pallet {
 				weight.clone(),
 				call.clone(),
 				weight.clone(),
+				origin_kind,
 			) {
 				T::Weigher::weight(&mut msg.into()).map_or(Weight::max_value(), |w| {
 					T::BaseXcmWeight::get().saturating_add(w)
