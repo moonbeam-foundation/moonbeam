@@ -52,7 +52,11 @@ use xtokens_precompiles::Action as XtokensAction;
 
 #[test]
 fn fast_track_available() {
-	assert!(<moonriver_runtime::Runtime as pallet_democracy::Config>::InstantAllowed::get());
+	assert!(moonriver_runtime::get!(
+		pallet_democracy,
+		InstantAllowed,
+		bool
+	));
 }
 
 #[test]
