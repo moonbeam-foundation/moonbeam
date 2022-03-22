@@ -332,6 +332,7 @@ where
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
 
+		// Build all currencies
 		let currencies: EvmResult<
 			Vec<(
 				<Runtime as orml_xtokens::Config>::CurrencyId,
@@ -409,6 +410,8 @@ where
 			})
 			.collect();
 
+		// Since multiassets sorts them, we need to check whether the index is still correct, and error otherwise
+		// there is not much we can do other than that
 		let multiassets = MultiAssets::from_sorted_and_deduplicated(multiasset_vec?)
 			.map_err(|_| gasometer.revert("Provided vector either not sorted nor deduplicated"))?;
 
@@ -421,8 +424,6 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
 
-		// Since multiassets sorts them, we need to check whether the index is still correct, and error otherwise
-		// there is not much we can do other than that
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
