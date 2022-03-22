@@ -9,7 +9,7 @@ version = "0.6.0"
 
 [dependencies]
 ethereum = { version = "0.11.1", features = [ "with-codec" ] }
-ethereum-types = "0.12.1"
+ethereum-types = "0.13.1"
 futures = { version = "0.3" }
 jsonrpc-core = "18.0.0"
 serde = { version = "1.0", features = [ "derive" ] }
@@ -36,7 +36,7 @@ sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-po
 sp-transaction-pool = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17" }
 
 # Frontier
-fc-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.17" }
-fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.17", features = [ "rpc_binary_search_estimate" ] }
-fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.17" }
-fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.17" }
+fc-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.18" }
+fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.18", features = [ "rpc_binary_search_estimate" ] }
+fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.18" }
+fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.18" }

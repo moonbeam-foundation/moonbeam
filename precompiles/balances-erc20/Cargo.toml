@@ -24,8 +24,8 @@ sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-pol
 sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17", default-features = false }
 
 # Frontier
-fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.17", default-features = false }
-pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.17", default-features = false }
+fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
+pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
 
 [dev-dependencies]
 derive_more = { version = "0.99" }
@@ -33,7 +33,7 @@ serde = { version = "1.0.100" }
 sha3 = "0.8"
 
 pallet-timestamp = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17" }
-scale-info = { version = "1.0", default-features = false, features = [ "derive" ] }
+scale-info = { version = "2.0", default-features = false, features = [ "derive" ] }
 sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17" }
 
 [features]

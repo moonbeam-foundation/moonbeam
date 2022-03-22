@@ -16,7 +16,7 @@ sp-runtime-interface = { git = "https://github.com/purestake/substrate", branch 
 
 # Ethereum
 ethereum = { version = "0.11.1", default-features = false, features = [ "with-codec" ] }
-ethereum-types = { version = "0.12.1", default-features = false }
+ethereum-types = { version = "0.13.1", default-features = false }
 evm = { version = "0.33.1", default-features = false, features = [ "with-codec" ] }
 evm-gasometer = { version = "0.33.0", default-features = false }
 evm-runtime = { version = "0.33.0", default-features = false }

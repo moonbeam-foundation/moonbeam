@@ -8,7 +8,7 @@ repository = "https://github.com/PureStake/moonbeam/"
 version = "0.1.0"
 
 [dependencies]
-ethereum-types = "0.12.1"
+ethereum-types = "0.13.1"
 futures = { version = "0.3", features = [ "compat" ] }
 jsonrpc-core = "18.0.0"
 jsonrpc-core-client = "18.0.0"

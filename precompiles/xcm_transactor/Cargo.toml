@@ -24,8 +24,8 @@ sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-po
 
 # Frontier
 evm = { version = "0.33.1", default-features = false, features = [ "with-codec" ] }
-fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.17", default-features = false }
-pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.17", default-features = false }
+fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
+pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
 
 # Polkadot
 xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.17", default-features = false }
@@ -42,7 +42,7 @@ xcm-primitives = { path = "../../primitives/xcm/" }
 codec = { package = "parity-scale-codec", version = "3.0.0", default-features = false, features = [ "max-encoded-len" ] }
 pallet-balances = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17" }
 pallet-timestamp = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17" }
-scale-info = { version = "1.0", default-features = false, features = [ "derive" ] }
+scale-info = { version = "2.0", default-features = false, features = [ "derive" ] }
 sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17" }
 
 # Cumulus
