@@ -549,7 +549,7 @@ impl<
 					if matches!(self.bottom_capacity, CapacityStatus::Full) {
 						ensure!(
 							delegation.amount.into() > self.lowest_bottom_delegation_amount,
-							Error::<T>::CannotDelegateLessThanLowestBottomWhenBottomIsFull
+							Error::<T>::CannotDelegateLessThanOrEqualToLowestBottomWhenFull
 						);
 						// need to subtract from total staked
 						less_total_staked = Some(self.lowest_bottom_delegation_amount);
