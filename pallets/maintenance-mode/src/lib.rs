@@ -58,14 +58,14 @@ pub mod pallet {
 	use cumulus_primitives_core::{
 		relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler, ParaId, XcmpMessageHandler,
 	};
-	#[cfg(feature = "xcm-support")]
-	use sp_std::vec::Vec;
-
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{
 		Contains, EnsureOrigin, OffchainWorker, OnFinalize, OnIdle, OnInitialize, OnRuntimeUpgrade,
 	};
 	use frame_system::pallet_prelude::*;
+	use sp_runtime::DispatchResult;
+	#[cfg(feature = "xcm-support")]
+	use sp_std::vec::Vec;
 	/// Pallet for migrations
 	#[pallet::pallet]
 	#[pallet::without_storage_info]
@@ -143,10 +143,10 @@ pub mod pallet {
 		EnteredMaintenanceMode,
 		/// The chain returned to its normal operating state
 		NormalOperationResumed,
-		/// The call to suspend XCM execution failed with inner error
-		FailedToSuspendXcmExecution { error: DispatchError },
-		/// The call to resume XCM execution failed with inner error
-		FailedToResumeXcmExecution { error: DispatchError },
+		/// The call to suspend on_idle XCM execution failed with inner error
+		FailedToSuspendIdleXcmExecution { error: DispatchError },
+		/// The call to resume on_idle XCM execution failed with inner error
+		FailedToResumeIdleXcmExecution { error: DispatchError },
 	}
 
 	/// An error that can occur while executing this pallet's extrinsics.
@@ -187,7 +187,7 @@ pub mod pallet {
 			MaintenanceMode::<T>::put(true);
 			// Suspend XCM execution
 			if let Err(error) = T::XcmExecutionManager::suspend_xcm_execution() {
-				<Pallet<T>>::deposit_event(Event::FailedToSuspendXcmExecution { error });
+				<Pallet<T>>::deposit_event(Event::FailedToSuspendIdleXcmExecution { error });
 			}
 
 			// Event
@@ -218,7 +218,7 @@ pub mod pallet {
 			MaintenanceMode::<T>::put(false);
 			// Resume XCM execution
 			if let Err(error) = T::XcmExecutionManager::resume_xcm_execution() {
-				<Pallet<T>>::deposit_event(Event::FailedToResumeXcmExecution { error });
+				<Pallet<T>>::deposit_event(Event::FailedToResumeIdleXcmExecution { error });
 			}
 
 			// Event
