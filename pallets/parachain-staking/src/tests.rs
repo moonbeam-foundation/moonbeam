@@ -27,10 +27,10 @@ use crate::mock::{
 };
 use crate::{
 	assert_eq_events, assert_eq_last_events, assert_event_emitted, assert_event_not_emitted,
-	assert_last_event, assert_tail_eq, pallet::CapacityStatus, set::OrderedSet, AtStake, BalanceOf,
-	Bond, BottomDelegations, CandidateInfo, CandidateMetadata, CandidatePool, CandidateState,
-	CollatorCandidate, CollatorStatus, Config, DelegationChange, DelegationRequest, Delegations,
-	Delegator, DelegatorAdded, DelegatorState, DelegatorStatus, Error, Event,
+	assert_last_event, assert_tail_eq, set::OrderedSet, AtStake, BalanceOf, Bond,
+	BottomDelegations, CandidateInfo, CandidateMetadata, CandidatePool, CandidateState,
+	CapacityStatus, CollatorCandidate, CollatorStatus, Config, DelegationChange, DelegationRequest,
+	Delegations, Delegator, DelegatorAdded, DelegatorState, DelegatorStatus, Error, Event,
 	PendingDelegationRequests, Range, TopDelegations, Total,
 };
 use frame_support::{assert_noop, assert_ok, traits::ReservableCurrency};

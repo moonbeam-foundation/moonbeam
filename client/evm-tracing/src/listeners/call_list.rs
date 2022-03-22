@@ -479,10 +479,7 @@ impl Listener {
 					vec![]
 				};
 
-				if self.entries.is_empty() {
-					self.entries.push(BTreeMap::new());
-				}
-				self.entries.last_mut().unwrap().insert(
+				self.insert_entry(
 					self.entries_next_index,
 					Call {
 						from: address, // this contract is self destructing
@@ -523,11 +520,13 @@ impl Listener {
 	}
 
 	fn insert_entry(&mut self, key: u32, entry: Call) {
-		if self.entries.is_empty() {
-			self.entries.push(BTreeMap::new());
+		if let Some(ref mut last) = self.entries.last_mut() {
+			last.insert(key, entry);
+		} else {
+			let mut btree_map = BTreeMap::new();
+			btree_map.insert(key, entry);
+			self.entries.push(btree_map);
 		}
-
-		self.entries.last_mut().unwrap().insert(key, entry);
 	}
 
 	fn pop_context_to_entry(

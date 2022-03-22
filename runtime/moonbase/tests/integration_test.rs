@@ -30,10 +30,11 @@ use frame_support::{
 	StorageHasher, Twox128,
 };
 use moonbase_runtime::{
-	currency::UNIT, AccountId, AssetId, AssetManager, AssetRegistrarMetadata, AssetType, Assets,
-	Balances, BaseFee, BlockWeights, Call, CrowdloanRewards, Event, ParachainStaking, PolkadotXcm,
-	Precompiles, Runtime, System, XTokens, XcmTransactor,
+	currency::UNIT, xcm_config::AssetType, AccountId, AssetId, AssetManager,
+	AssetRegistrarMetadata, Assets, Balances, BaseFee, BlockWeights, Call, CrowdloanRewards, Event,
+	ParachainStaking, PolkadotXcm, Precompiles, Runtime, System, XTokens, XcmTransactor,
 };
+
 use nimbus_primitives::NimbusId;
 use pallet_author_mapping_precompiles::Action as AuthorMappingAction;
 use pallet_evm::PrecompileSet;
@@ -1634,7 +1635,7 @@ fn root_can_change_default_xcm_vers() {
 			assert_noop!(
 				XTokens::transfer(
 					origin_of(AccountId::from(ALICE)),
-					moonbase_runtime::CurrencyId::OtherReserve(source_id),
+					moonbase_runtime::xcm_config::CurrencyId::OtherReserve(source_id),
 					100_000_000_000_000,
 					Box::new(xcm::VersionedMultiLocation::V1(dest.clone())),
 					4000000000
@@ -1651,7 +1652,7 @@ fn root_can_change_default_xcm_vers() {
 			// Now transferring does not fail
 			assert_ok!(XTokens::transfer(
 				origin_of(AccountId::from(ALICE)),
-				moonbase_runtime::CurrencyId::OtherReserve(source_id),
+				moonbase_runtime::xcm_config::CurrencyId::OtherReserve(source_id),
 				100_000_000_000_000,
 				Box::new(xcm::VersionedMultiLocation::V1(dest)),
 				4000000000
@@ -1699,7 +1700,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 			assert_noop!(
 				XcmTransactor::transact_through_derivative_multilocation(
 					origin_of(AccountId::from(ALICE)),
-					moonbase_runtime::Transactors::Relay,
+					moonbase_runtime::xcm_config::Transactors::Relay,
 					0,
 					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 					// 20000the max
@@ -1711,9 +1712,9 @@ fn transactor_cannot_use_more_than_max_weight() {
 			assert_noop!(
 				XcmTransactor::transact_through_derivative(
 					origin_of(AccountId::from(ALICE)),
-					moonbase_runtime::Transactors::Relay,
+					moonbase_runtime::xcm_config::Transactors::Relay,
 					0,
-					moonbase_runtime::CurrencyId::OtherReserve(source_id),
+					moonbase_runtime::xcm_config::CurrencyId::OtherReserve(source_id),
 					// 20000 is the max
 					17000,
 					vec![],
@@ -1746,7 +1747,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 			let associate_expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: Default::default(),
-				cost: 23761u64,
+				cost: 11387u64,
 				logs: Default::default(),
 			}));
 
@@ -1778,7 +1779,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 			let update_expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: Default::default(),
-				cost: 22098u64,
+				cost: 11075u64,
 				logs: Default::default(),
 			}));
 
@@ -1811,7 +1812,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 			let clear_expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: Default::default(),
-				cost: 23784u64,
+				cost: 11450u64,
 				logs: Default::default(),
 			}));
 
