@@ -406,7 +406,9 @@ pub mod pallet {
 
 		/// Destroy a given assetId
 		#[pallet::weight({
-			let dispatch_info_weight = T::AssetRegistrar::destroy_asset_dispatch_info_weight(*asset_id, destroy_asset_witness.clone());
+			let dispatch_info_weight = T::AssetRegistrar::destroy_asset_dispatch_info_weight(
+				*asset_id, destroy_asset_witness.clone()
+			);
 			T::WeightInfo::remove_supported_asset(*num_assets_weight_hint)
 			.saturating_add(dispatch_info_weight)
 		})]
