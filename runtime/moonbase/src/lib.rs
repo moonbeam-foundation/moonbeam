@@ -43,7 +43,7 @@ use frame_support::{
 	},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
-		DispatchClass, DispatchInfo, GetDispatchInfo, IdentityFee, Weight, WeightToFeeCoefficient,
+		DispatchClass, GetDispatchInfo, IdentityFee, Weight, WeightToFeeCoefficient,
 		WeightToFeeCoefficients, WeightToFeePolynomial,
 	},
 	PalletId,
@@ -1030,10 +1030,7 @@ impl pallet_assets::Config for Runtime {
 // We instruct how to register the Assets
 // In this case, we tell it to Create an Asset in pallet-assets
 pub struct AssetRegistrar;
-use frame_support::{
-	pallet_prelude::{DispatchResult, DispatchResultWithPostInfo},
-	transactional,
-};
+use frame_support::{pallet_prelude::DispatchResult, transactional};
 
 impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 	#[transactional]
@@ -1071,30 +1068,31 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		)
 	}
 
+	#[transactional]
 	fn destroy_asset(
 		asset: AssetId,
 		asset_destroy_witness: pallet_assets::DestroyWitness,
-	) -> DispatchResultWithPostInfo {
-		Assets::destroy(Origin::root(), asset, asset_destroy_witness)
+	) -> DispatchResult {
+		// First destroy the asset
+		Assets::destroy(Origin::root(), asset, asset_destroy_witness).map_err(|info| info.error)?;
 
-		// TODO uncomment when we feel comfortable
-		/*
-		// Shall we indeed remove it here?
-		let precompile_address = Runtime::asset_id_to_account(asset);
-		pallet_evm::AccountCodes::<Runtime>::remove(
-			precompile_address,
-		);*/
+		// We remove the EVM revert code
+		let precompile_address: H160 = Runtime::asset_id_to_account(asset).into();
+		pallet_evm::AccountCodes::<Runtime>::remove(precompile_address);
+		Ok(())
 	}
 
-	fn destroy_asset_dispatch_info(
+	fn destroy_asset_dispatch_info_weight(
 		asset: AssetId,
 		asset_destroy_witness: pallet_assets::DestroyWitness,
-	) -> DispatchInfo {
+	) -> Weight {
 		let call = Call::Assets(pallet_assets::Call::<Runtime>::destroy {
 			id: asset,
 			witness: asset_destroy_witness,
 		});
 		call.get_dispatch_info()
+			.weight
+			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
 	}
 }
 

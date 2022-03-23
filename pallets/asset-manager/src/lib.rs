@@ -49,7 +49,7 @@ pub mod weights;
 pub mod pallet {
 
 	use crate::weights::WeightInfo;
-	use frame_support::{pallet_prelude::*, weights::DispatchInfo, PalletId};
+	use frame_support::{pallet_prelude::*, PalletId};
 	use frame_system::pallet_prelude::*;
 	use parity_scale_codec::HasCompact;
 	use sp_runtime::traits::{AccountIdConversion, AtLeast32BitUnsigned};
@@ -74,16 +74,13 @@ pub mod pallet {
 		) -> DispatchResult;
 
 		// How to destroy an asset
-		fn destroy_asset(
-			asset: T::AssetId,
-			witness: T::AssetDestroyWitness,
-		) -> DispatchResultWithPostInfo;
+		fn destroy_asset(asset: T::AssetId, witness: T::AssetDestroyWitness) -> DispatchResult;
 
 		// Get destroy asset dispatch info
-		fn destroy_asset_dispatch_info(
+		fn destroy_asset_dispatch_info_weight(
 			asset: T::AssetId,
 			witness: T::AssetDestroyWitness,
-		) -> DispatchInfo;
+		) -> Weight;
 	}
 
 	// We implement this trait to be able to get the AssetType and units per second registered
@@ -404,9 +401,9 @@ pub mod pallet {
 
 		/// Destroy a given assetId
 		#[pallet::weight({
-			let dispatch_info = T::AssetRegistrar::destroy_asset_dispatch_info(*asset_id, destroy_asset_witness.clone());
+			let dispatch_info_weight = T::AssetRegistrar::destroy_asset_dispatch_info_weight(*asset_id, destroy_asset_witness.clone());
 			T::WeightInfo::remove_supported_asset(*num_assets_weight_hint)
-			.saturating_add(dispatch_info.weight)
+			.saturating_add(dispatch_info_weight)
 		})]
 		pub fn destroy_asset(
 			origin: OriginFor<T>,
