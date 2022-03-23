@@ -56,6 +56,7 @@ enum Action {
 	NominatorNominationCount = "nominator_nomination_count(address)",
 	CandidateDelegationCount = "candidate_delegation_count(address)",
 	DelegatorDelegationCount = "delegator_delegation_count(address)",
+	SelectedCandidates = "selected_candidates()",
 	// DEPRECATED
 	IsNominator = "is_nominator(address)",
 	IsDelegator = "is_delegator(address)",
@@ -109,6 +110,7 @@ impl<Runtime> Precompile for ParachainStakingWrapper<Runtime>
 where
 	Runtime: parachain_staking::Config + pallet_evm::Config,
 	BalanceOf<Runtime>: EvmData,
+	Runtime::AccountId: EvmData,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	Runtime::Call: From<parachain_staking::Call<Runtime>>,
@@ -140,7 +142,8 @@ where
 				| Action::CollatorNominationCount
 				| Action::CandidateDelegationCount
 				| Action::NominatorNominationCount
-				| Action::DelegatorDelegationCount => FunctionModifier::View,
+				| Action::DelegatorDelegationCount
+				| Action::SelectedCandidates => FunctionModifier::View,
 				_ => FunctionModifier::NonPayable,
 			},
 		)?;
@@ -166,6 +169,7 @@ where
 			Action::DelegatorDelegationCount => {
 				return Self::delegator_delegation_count(input, gasometer)
 			}
+			Action::SelectedCandidates => return Self::selected_candidates(gasometer),
 			// DEPRECATED
 			Action::IsNominator => return Self::is_delegator(input, gasometer),
 			Action::IsDelegator => return Self::is_delegator(input, gasometer),
@@ -249,6 +253,7 @@ impl<Runtime> ParachainStakingWrapper<Runtime>
 where
 	Runtime: parachain_staking::Config + pallet_evm::Config,
 	BalanceOf<Runtime>: EvmData,
+	Runtime::AccountId: EvmData,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	Runtime::Call: From<parachain_staking::Call<Runtime>>,
@@ -384,6 +389,20 @@ where
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new().write(result).build(),
+			logs: vec![],
+		})
+	}
+
+	fn selected_candidates(gasometer: &mut Gasometer) -> EvmResult<PrecompileOutput> {
+		// Fetch info.
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let selected_candidates = parachain_staking::Pallet::<Runtime>::selected_candidates();
+
+		// Build output.
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gasometer.used_gas(),
+			output: EvmDataWriter::new().write(selected_candidates).build(),
 			logs: vec![],
 		})
 	}
