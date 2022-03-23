@@ -283,8 +283,13 @@ describeDevMoonbeam("XCM - asset manager - register asset", (context) => {
     let supportedAssets =
       (await context.polkadotApi.query.assetManager.supportedFeePaymentAssets()) as any;
 
+    // assetDetails should have dissapeared
+    let assetDetails =
+        (await context.polkadotApi.query.assets.asset(assetId)) as any;
+
     expect(assetUnitsPerSecond.isNone).to.eq(true);
     expect(id.isNone).to.eq(true);
+    expect(assetDetails.isNone).to.eq(true);
     // the asset should not be supported
     expect(supportedAssets.length).to.eq(0);
   });
