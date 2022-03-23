@@ -19,7 +19,7 @@
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{Everything, Get, Nothing, PalletInfo as PalletInfoTrait, PalletInfoAccess},
-	weights::{Weight, GetDispatchInfo},
+	weights::{GetDispatchInfo, Weight},
 	PalletId,
 };
 
@@ -727,8 +727,7 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 			id: asset,
 			witness: asset_destroy_witness,
 		});
-		call.get_dispatch_info()
-			.weight
+		call.get_dispatch_info().weight
 	}
 }
 
