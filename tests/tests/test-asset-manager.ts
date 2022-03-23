@@ -258,7 +258,7 @@ describeDevMoonbeam("XCM - asset manager - register asset", (context) => {
     const assetDestroyWitness = context.polkadotApi.createType("PalletAssetsDestroyWitness", {
       accounts: 0,
       sufficients: 0,
-      approvals: 0
+      approvals: 0,
     });
 
     // ChangeAssetType
@@ -271,8 +271,7 @@ describeDevMoonbeam("XCM - asset manager - register asset", (context) => {
     );
 
     // assetId
-    let id = 
-      (await context.polkadotApi.query.assetManager.assetTypeId(sourceLocation)) as any;
+    let id = (await context.polkadotApi.query.assetManager.assetTypeId(sourceLocation)) as any;
 
     // asset units per second removed
     let assetUnitsPerSecond = (await context.polkadotApi.query.assetManager.assetTypeUnitsPerSecond(
@@ -284,8 +283,7 @@ describeDevMoonbeam("XCM - asset manager - register asset", (context) => {
       (await context.polkadotApi.query.assetManager.supportedFeePaymentAssets()) as any;
 
     // assetDetails should have dissapeared
-    let assetDetails =
-        (await context.polkadotApi.query.assets.asset(assetId)) as any;
+    let assetDetails = (await context.polkadotApi.query.assets.asset(assetId)) as any;
 
     expect(assetUnitsPerSecond.isNone).to.eq(true);
     expect(id.isNone).to.eq(true);
