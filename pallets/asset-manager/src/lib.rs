@@ -169,6 +169,11 @@ pub mod pallet {
 		},
 		/// Supported asset type for fee payment removed
 		SupportedAssetRemoved { asset_type: T::AssetType },
+		/// Removed all information related to an assetId and destroyed asset
+		AssetDestroyed {
+			asset_id: T::AssetId,
+			asset_type: T::AssetType,
+		},
 	}
 
 	/// Mapping from an asset id to asset type.
@@ -442,7 +447,7 @@ pub mod pallet {
 			// Insert
 			SupportedFeePaymentAssets::<T>::put(supported_assets);
 
-			Self::deposit_event(Event::AssetRemoved {
+			Self::deposit_event(Event::AssetDestroyed {
 				asset_id,
 				asset_type,
 			});

@@ -18,7 +18,9 @@ use super::*;
 use crate as pallet_asset_manager;
 use parity_scale_codec::{Decode, Encode};
 
-use frame_support::{construct_runtime, parameter_types, traits::Everything, RuntimeDebug};
+use frame_support::{
+	construct_runtime, parameter_types, traits::Everything, weights::Weight, RuntimeDebug,
+};
 use frame_system::EnsureRoot;
 use scale_info::TypeInfo;
 use sp_core::H256;
@@ -157,6 +159,14 @@ impl AssetRegistrar<Test> for MockAssetPalletRegistrar {
 	) -> Result<(), DispatchError> {
 		Ok(())
 	}
+
+	fn destroy_asset(_asset: u32, _witness: u32) -> Result<(), DispatchError> {
+		Ok(())
+	}
+
+	fn destroy_asset_dispatch_info_weight(_asset: u32, _witness: u32) -> Weight {
+		0
+	}
 }
 
 impl Config for Test {
@@ -167,6 +177,7 @@ impl Config for Test {
 	type AssetType = MockAssetType;
 	type AssetRegistrar = MockAssetPalletRegistrar;
 	type AssetModifierOrigin = EnsureRoot<u64>;
+	type AssetDestroyWitness = u32;
 	type WeightInfo = ();
 }
 
