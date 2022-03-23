@@ -33,8 +33,8 @@ describeDevMoonbeam(
   (context) => {
     it("should calculate effective gas price", async function () {
       const preBalance = BigInt(await context.web3.eth.getBalance(ALITH));
-      // With this configuration only half of the priority fee will be used, as the max_fee_per_gas is
-      // 2GWEI and the base fee is 1GWEI.
+      // With this configuration only half of the priority fee will be used, as the max_fee_per_gas
+      // is 2GWEI and the base fee is 1GWEI.
       const maxFeePerGas = 1_000_000_000 * 2;
       const tx = await createTransaction(context, {
         from: ALITH,
