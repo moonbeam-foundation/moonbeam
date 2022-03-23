@@ -49,7 +49,7 @@ pub mod weights;
 pub mod pallet {
 
 	use crate::weights::WeightInfo;
-	use frame_support::{pallet_prelude::*, PalletId};
+	use frame_support::{pallet_prelude::*, weights::DispatchInfo, PalletId};
 	use frame_system::pallet_prelude::*;
 	use parity_scale_codec::HasCompact;
 	use sp_runtime::traits::{AccountIdConversion, AtLeast32BitUnsigned};
@@ -72,6 +72,18 @@ pub mod pallet {
 			// Wether or not an asset-receiving account increments the sufficient counter
 			is_sufficient: bool,
 		) -> DispatchResult;
+
+		// How to destroy an asset
+		fn destroy_asset(
+			asset: T::AssetId,
+			witness: T::AssetDestroyWitness,
+		) -> DispatchResultWithPostInfo;
+
+		// Get destroy asset dispatch info
+		fn destroy_asset_dispatch_info(
+			asset: T::AssetId,
+			witness: T::AssetDestroyWitness,
+		) -> DispatchInfo;
 	}
 
 	// We implement this trait to be able to get the AssetType and units per second registered
@@ -118,6 +130,9 @@ pub mod pallet {
 		/// Origin that is allowed to create and modify asset information
 		type AssetModifierOrigin: EnsureOrigin<Self::Origin>;
 
+		/// The asset destroy Witness
+		type AssetDestroyWitness: Member + Parameter;
+
 		type WeightInfo: WeightInfo;
 	}
 
@@ -128,6 +143,7 @@ pub mod pallet {
 		AssetAlreadyExists,
 		AssetDoesNotExist,
 		TooLowNumAssetsWeightHint,
+		ErrorDestroyingAsset,
 	}
 
 	#[pallet::event]
@@ -352,6 +368,56 @@ pub mod pallet {
 			num_assets_weight_hint: u32,
 		) -> DispatchResult {
 			T::AssetModifierOrigin::ensure_origin(origin)?;
+
+			// Grab supported assets
+			let mut supported_assets = SupportedFeePaymentAssets::<T>::get();
+
+			ensure!(
+				num_assets_weight_hint >= (supported_assets.len() as u32),
+				Error::<T>::TooLowNumAssetsWeightHint
+			);
+
+			let asset_type =
+				AssetIdType::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
+
+			// Remove from AssetIdType
+			AssetIdType::<T>::remove(&asset_id);
+			// Remove from AssetTypeId
+			AssetTypeId::<T>::remove(&asset_type);
+			// Remove previous asset type units per second
+			AssetTypeUnitsPerSecond::<T>::remove(&asset_type);
+
+			// Only if the old asset is supported we need to remove it
+			if let Ok(index) = supported_assets.binary_search(&asset_type) {
+				supported_assets.remove(index);
+			}
+
+			// Insert
+			SupportedFeePaymentAssets::<T>::put(supported_assets);
+
+			Self::deposit_event(Event::AssetRemoved {
+				asset_id,
+				asset_type,
+			});
+			Ok(())
+		}
+
+		/// Destroy a given assetId
+		#[pallet::weight({
+			let dispatch_info = T::AssetRegistrar::destroy_asset_dispatch_info(*asset_id, destroy_asset_witness.clone());
+			T::WeightInfo::remove_supported_asset(*num_assets_weight_hint)
+			.saturating_add(dispatch_info.weight)
+		})]
+		pub fn destroy_asset(
+			origin: OriginFor<T>,
+			asset_id: T::AssetId,
+			destroy_asset_witness: T::AssetDestroyWitness,
+			num_assets_weight_hint: u32,
+		) -> DispatchResult {
+			T::AssetModifierOrigin::ensure_origin(origin)?;
+
+			T::AssetRegistrar::destroy_asset(asset_id, destroy_asset_witness)
+				.map_err(|_| Error::<T>::ErrorDestroyingAsset)?;
 
 			// Grab supported assets
 			let mut supported_assets = SupportedFeePaymentAssets::<T>::get();
