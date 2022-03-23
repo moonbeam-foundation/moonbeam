@@ -17,9 +17,7 @@
 //! A minimal runtime including the maintenance-mode pallet
 use super::*;
 use crate as pallet_maintenance_mode;
-use cumulus_primitives_core::{
-	relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler, ParaId, XcmpMessageHandler,
-};
+use cumulus_primitives_core::relay_chain::BlockNumber as RelayBlockNumber;
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{
@@ -95,58 +93,6 @@ pub struct MaintenanceCallFilter;
 impl Contains<Call> for MaintenanceCallFilter {
 	fn contains(_: &Call) -> bool {
 		false
-	}
-}
-
-pub struct MaintenanceXcmpHandler;
-#[cfg(feature = "xcm-support")]
-impl XcmpMessageHandler for MaintenanceXcmpHandler {
-	// This implementation makes messages be queued
-	// Since the limit is 0, messages are queued for next iteration
-	fn handle_xcmp_messages<'a, I: Iterator<Item = (ParaId, RelayBlockNumber, &'a [u8])>>(
-		_iter: I,
-		_limit: Weight,
-	) -> Weight {
-		return 1;
-	}
-}
-
-pub struct NormalXcmpHandler;
-#[cfg(feature = "xcm-support")]
-impl XcmpMessageHandler for NormalXcmpHandler {
-	// This implementation makes messages be queued
-	// Since the limit is 0, messages are queued for next iteration
-	fn handle_xcmp_messages<'a, I: Iterator<Item = (ParaId, RelayBlockNumber, &'a [u8])>>(
-		_iter: I,
-		_limit: Weight,
-	) -> Weight {
-		return 0;
-	}
-}
-
-pub struct MaintenanceDmpHandler;
-#[cfg(feature = "xcm-support")]
-impl DmpMessageHandler for MaintenanceDmpHandler {
-	// This implementation makes messages be queued
-	// Since the limit is 0, messages are queued for next iteration
-	fn handle_dmp_messages(
-		_iter: impl Iterator<Item = (RelayBlockNumber, Vec<u8>)>,
-		_limit: Weight,
-	) -> Weight {
-		return 1;
-	}
-}
-
-pub struct NormalDmpHandler;
-#[cfg(feature = "xcm-support")]
-impl DmpMessageHandler for NormalDmpHandler {
-	// This implementation makes messages be queued
-	// Since the limit is 0, messages are queued for next iteration
-	fn handle_dmp_messages(
-		_iter: impl Iterator<Item = (RelayBlockNumber, Vec<u8>)>,
-		_limit: Weight,
-	) -> Weight {
-		return 0;
 	}
 }
 
@@ -285,14 +231,6 @@ impl Config for Test {
 	type MaintenanceOrigin = EnsureRoot<AccountId>;
 	#[cfg(feature = "xcm-support")]
 	type XcmExecutionManager = ();
-	#[cfg(feature = "xcm-support")]
-	type NormalDmpHandler = NormalDmpHandler;
-	#[cfg(feature = "xcm-support")]
-	type MaintenanceDmpHandler = MaintenanceDmpHandler;
-	#[cfg(feature = "xcm-support")]
-	type NormalXcmpHandler = NormalXcmpHandler;
-	#[cfg(feature = "xcm-support")]
-	type MaintenanceXcmpHandler = MaintenanceXcmpHandler;
 	type NormalExecutiveHooks = NormalHooks;
 	type MaitenanceExecutiveHooks = MaintenanceHooks;
 }

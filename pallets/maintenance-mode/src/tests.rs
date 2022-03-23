@@ -19,7 +19,6 @@ use crate::mock::{
 	events, mock_events, Call as OuterCall, ExtBuilder, MaintenanceMode, Origin, Test,
 };
 use crate::{Call, Error, Event, ExecutiveHooks};
-use cumulus_primitives_core::{DmpMessageHandler, XcmpMessageHandler};
 use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::Dispatchable,
@@ -122,42 +121,6 @@ fn cannot_resume_normal_operation_while_already_operating_normally() {
 			Error::<Test>::NotInMaintenanceMode
 		);
 	})
-}
-
-#[cfg(feature = "xcm-support")]
-#[test]
-fn normal_dmp_and_xcmp_in_non_maintenance() {
-	ExtBuilder::default()
-		.with_maintenance_mode(false)
-		.build()
-		.execute_with(|| {
-			assert_eq!(
-				MaintenanceMode::handle_dmp_messages(vec![].into_iter(), 1),
-				0
-			);
-			assert_eq!(
-				MaintenanceMode::handle_xcmp_messages(vec![].into_iter(), 1),
-				0
-			);
-		})
-}
-
-#[cfg(feature = "xcm-support")]
-#[test]
-fn maintenance_dmp_and_xcmp_in_maintenance() {
-	ExtBuilder::default()
-		.with_maintenance_mode(true)
-		.build()
-		.execute_with(|| {
-			assert_eq!(
-				MaintenanceMode::handle_dmp_messages(vec![].into_iter(), 1),
-				1
-			);
-			assert_eq!(
-				MaintenanceMode::handle_xcmp_messages(vec![].into_iter(), 1),
-				1
-			);
-		})
 }
 
 #[test]

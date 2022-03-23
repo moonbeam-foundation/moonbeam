@@ -701,10 +701,10 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type Event = Event;
 	type OnSystemEvent = ();
 	type SelfParaId = ParachainInfo;
-	type DmpMessageHandler = MaintenanceMode;
+	type DmpMessageHandler = DmpQueue;
 	type ReservedDmpWeight = ReservedDmpWeight;
 	type OutboundXcmpMessageSource = XcmpQueue;
-	type XcmpMessageHandler = MaintenanceMode;
+	type XcmpMessageHandler = XcmpQueue;
 	type ReservedXcmpWeight = ReservedXcmpWeight;
 }
 
@@ -1126,30 +1126,6 @@ impl pallet_maintenance_mode::PauseXcmExecution for XcmExecutionManager {
 	}
 }
 
-pub struct MaintenanceDmpHandler;
-impl DmpMessageHandler for MaintenanceDmpHandler {
-	// This implementation makes messages be queued
-	// Since the limit is 0, messages are queued for next iteration
-	fn handle_dmp_messages(
-		iter: impl Iterator<Item = (RelayBlockNumber, Vec<u8>)>,
-		_limit: Weight,
-	) -> Weight {
-		DmpQueue::handle_dmp_messages(iter, 0)
-	}
-}
-
-pub struct MaintenanceXcmpHandler;
-impl XcmpMessageHandler for MaintenanceXcmpHandler {
-	// This implementation makes messages be queued
-	// Since the limit is 0, messages are queued for next iteration
-	fn handle_xcmp_messages<'a, I: Iterator<Item = (ParaId, RelayBlockNumber, &'a [u8])>>(
-		iter: I,
-		_limit: Weight,
-	) -> Weight {
-		XcmpQueue::handle_xcmp_messages(iter, 0)
-	}
-}
-
 /// The hooks we wantt to run in Maintenance Mode
 pub struct MaintenanceHooks;
 
@@ -1205,10 +1181,6 @@ impl pallet_maintenance_mode::Config for Runtime {
 	type MaintenanceOrigin =
 		pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, TechCommitteeInstance>;
 	type XcmExecutionManager = XcmExecutionManager;
-	type NormalDmpHandler = DmpQueue;
-	type MaintenanceDmpHandler = MaintenanceDmpHandler;
-	type NormalXcmpHandler = XcmpQueue;
-	type MaintenanceXcmpHandler = MaintenanceXcmpHandler;
 	// We use AllPalletsReversedWithSystemFirst because we dont want to change the hooks in normal
 	// operation
 	type NormalExecutiveHooks = AllPalletsReversedWithSystemFirst;
