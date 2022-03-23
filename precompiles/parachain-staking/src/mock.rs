@@ -178,10 +178,9 @@ pub fn precompile_address() -> H160 {
 #[derive(Debug, Clone, Copy)]
 pub struct TestPrecompiles<R>(PhantomData<R>);
 
-impl<R: frame_system::Config> PrecompileSet for TestPrecompiles<R>
+impl<R> PrecompileSet for TestPrecompiles<R>
 where
 	ParachainStakingWrapper<R>: Precompile,
-	<R as frame_system::Config>::AccountId: Into<Address>,
 {
 	fn execute(
 		&self,
