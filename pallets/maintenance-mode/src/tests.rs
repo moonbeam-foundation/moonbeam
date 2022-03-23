@@ -15,9 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Unit testing
-use crate::mock::{
-	events, mock_events, Call as OuterCall, ExtBuilder, MaintenanceMode, Origin, Test,
-};
+use crate::mock::{events, mock_events, Call as OuterCall, ExtBuilder, Origin, Test};
 use crate::{Call, Error, Event, ExecutiveHooks};
 use frame_support::{
 	assert_noop, assert_ok,

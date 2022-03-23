@@ -17,7 +17,6 @@
 //! A minimal runtime including the maintenance-mode pallet
 use super::*;
 use crate as pallet_maintenance_mode;
-use cumulus_primitives_core::relay_chain::BlockNumber as RelayBlockNumber;
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{
