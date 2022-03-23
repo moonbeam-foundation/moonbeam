@@ -396,13 +396,14 @@ where
 	fn selected_candidates(gasometer: &mut Gasometer) -> EvmResult<PrecompileOutput> {
 		// Fetch info.
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let mut selected_candidates = Vec::new();
-		parachain_staking::Pallet::<Runtime>::selected_candidates()
-			.into_iter()
-			.for_each(|candidate| {
-				let address: Address = candidate.into();
-				selected_candidates.push(address);
-			});
+		let selected_candidates: Vec<Address> =
+			parachain_staking::Pallet::<Runtime>::selected_candidates()
+				.into_iter()
+				.map(|candidate| {
+					let address: Address = candidate.into();
+					address.into()
+				})
+				.collect();
 		// Build output.
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
