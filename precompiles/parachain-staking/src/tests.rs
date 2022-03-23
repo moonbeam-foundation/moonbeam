@@ -62,6 +62,7 @@ fn selectors() {
 	assert_eq!(Action::CandidateDelegationCount as u32, 0x815b796c);
 	assert_eq!(Action::NominatorNominationCount as u32, 0xdae5659b);
 	assert_eq!(Action::DelegatorDelegationCount as u32, 0xfbc51bca);
+	assert_eq!(Action::SelectedCandidates as u32, 0x89f47a21);
 	assert_eq!(Action::JoinCandidates as u32, 0x0a1bff60);
 	// DEPRECATED
 	assert_eq!(Action::LeaveCandidates as u32, 0x72b02a31);

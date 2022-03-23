@@ -83,6 +83,17 @@ impl Default for TestAccount {
 	}
 }
 
+impl Into<Address> for TestAccount {
+	fn into(self) -> Address {
+		match self {
+			TestAccount::Alice => Address(H160::repeat_byte(0xAA)),
+			TestAccount::Bob => Address(H160::repeat_byte(0xBB)),
+			TestAccount::Charlie => Address(H160::repeat_byte(0xCC)),
+			TestAccount::Bogus => Address(H160::repeat_byte(0xDD)),
+		}
+	}
+}
+
 impl AddressMapping<TestAccount> for TestAccount {
 	fn into_account_id(h160_account: H160) -> TestAccount {
 		match h160_account {
@@ -167,9 +178,10 @@ pub fn precompile_address() -> H160 {
 #[derive(Debug, Clone, Copy)]
 pub struct TestPrecompiles<R>(PhantomData<R>);
 
-impl<R> PrecompileSet for TestPrecompiles<R>
+impl<R: frame_system::Config> PrecompileSet for TestPrecompiles<R>
 where
 	ParachainStakingWrapper<R>: Precompile,
+	<R as frame_system::Config>::AccountId: Into<Address>,
 {
 	fn execute(
 		&self,

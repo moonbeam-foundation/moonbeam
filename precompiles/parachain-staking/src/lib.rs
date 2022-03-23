@@ -110,7 +110,7 @@ impl<Runtime> Precompile for ParachainStakingWrapper<Runtime>
 where
 	Runtime: parachain_staking::Config + pallet_evm::Config,
 	BalanceOf<Runtime>: EvmData,
-	Runtime::AccountId: EvmData,
+	Runtime::AccountId: Into<Address>,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	Runtime::Call: From<parachain_staking::Call<Runtime>>,
@@ -253,7 +253,7 @@ impl<Runtime> ParachainStakingWrapper<Runtime>
 where
 	Runtime: parachain_staking::Config + pallet_evm::Config,
 	BalanceOf<Runtime>: EvmData,
-	Runtime::AccountId: EvmData,
+	Runtime::AccountId: Into<Address>,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	Runtime::Call: From<parachain_staking::Call<Runtime>>,
@@ -396,8 +396,13 @@ where
 	fn selected_candidates(gasometer: &mut Gasometer) -> EvmResult<PrecompileOutput> {
 		// Fetch info.
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let selected_candidates = parachain_staking::Pallet::<Runtime>::selected_candidates();
-
+		let mut selected_candidates = Vec::new();
+		parachain_staking::Pallet::<Runtime>::selected_candidates()
+			.into_iter()
+			.for_each(|candidate| {
+				let address: Address = candidate.into();
+				selected_candidates.push(address);
+			});
 		// Build output.
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
