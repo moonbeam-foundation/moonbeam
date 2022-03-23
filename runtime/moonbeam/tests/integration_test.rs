@@ -64,7 +64,11 @@ fn xcmp_queue_controller_origin_is_root() {
 
 #[test]
 fn fast_track_available() {
-	assert!(<moonbeam_runtime::Runtime as pallet_democracy::Config>::InstantAllowed::get());
+	assert!(moonbeam_runtime::get!(
+		pallet_democracy,
+		InstantAllowed,
+		bool
+	));
 }
 
 #[test]
