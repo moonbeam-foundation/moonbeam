@@ -23,7 +23,7 @@ use fp_evm::PrecompileFailure;
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_evm::{Call as EvmCall, ExitSucceed, PrecompileSet};
 use parachain_staking::Event as StakingEvent;
-use precompile_utils::EvmDataWriter;
+use precompile_utils::{Address, EvmDataWriter};
 use sha3::{Digest, Keccak256};
 use sp_core::U256;
 use std::assert_matches::assert_matches;
@@ -723,6 +723,48 @@ fn is_selected_candidate_true() {
 					false
 				),
 				expected_one_result
+			);
+		});
+}
+
+#[test]
+fn selected_candidates_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(TestAccount::Alice, 1_000)])
+		.with_candidates(vec![(TestAccount::Alice, 1_000)])
+		.build()
+		.execute_with(|| {
+			let selector = &Keccak256::digest(b"selected_candidates()")[0..4];
+
+			// Construct data to read is_selected_candidate
+			let mut input_data = Vec::<u8>::from([0u8; 4]);
+			input_data[0..4].copy_from_slice(&selector);
+			// Alice is only selected candidates
+			let expected_selected_candidate = vec![TestAccount::Alice];
+			let evm_expected_selected_candidate: Vec<Address> = expected_selected_candidate
+				.into_iter()
+				.map(|x| x.into())
+				.collect();
+			// Expected result is bogus selected repeated candidates
+			let expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new()
+					.write(evm_expected_selected_candidate)
+					.build(),
+				cost: Default::default(),
+				logs: Default::default(),
+			}));
+
+			// Assert that Alice is a selected candidate
+			assert_eq!(
+				precompiles().execute(
+					precompile_address(),
+					&input_data,
+					None,
+					&evm_test_context(),
+					false
+				),
+				expected_result
 			);
 		});
 }
