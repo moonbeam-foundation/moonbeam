@@ -81,9 +81,6 @@ use sp_runtime::{
 };
 use sp_std::{convert::TryFrom, prelude::*};
 
-use cumulus_primitives_core::{
-	relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler, ParaId, XcmpMessageHandler,
-};
 use smallvec::smallvec;
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
