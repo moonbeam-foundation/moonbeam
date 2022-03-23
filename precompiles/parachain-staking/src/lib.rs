@@ -399,10 +399,7 @@ where
 		let selected_candidates: Vec<Address> =
 			parachain_staking::Pallet::<Runtime>::selected_candidates()
 				.into_iter()
-				.map(|candidate| {
-					let address: Address = candidate.into();
-					address.into()
-				})
+				.map(|address| address.into())
 				.collect();
 		// Build output.
 		Ok(PrecompileOutput {
