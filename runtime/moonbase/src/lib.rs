@@ -1051,9 +1051,7 @@ impl Contains<Call> for NormalFilter {
 	}
 }
 
-use cumulus_primitives_core::{
-	relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler, ParaId, XcmpMessageHandler,
-};
+use cumulus_primitives_core::{relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler};
 
 pub struct XcmExecutionManager;
 impl pallet_maintenance_mode::PauseXcmExecution for XcmExecutionManager {
