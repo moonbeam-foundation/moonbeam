@@ -1051,6 +1051,10 @@ impl Contains<Call> for NormalFilter {
 	}
 }
 
+use cumulus_primitives_core::{
+	relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler, ParaId, XcmpMessageHandler,
+};
+
 pub struct XcmExecutionManager;
 impl pallet_maintenance_mode::PauseXcmExecution for XcmExecutionManager {
 	fn suspend_xcm_execution() -> DispatchResult {
@@ -1058,6 +1062,18 @@ impl pallet_maintenance_mode::PauseXcmExecution for XcmExecutionManager {
 	}
 	fn resume_xcm_execution() -> DispatchResult {
 		XcmpQueue::resume_xcm_execution(Origin::root())
+	}
+}
+
+pub struct MaintenanceDmpHandler;
+impl DmpMessageHandler for MaintenanceDmpHandler {
+	// This implementation makes messages be queued
+	// Since the limit is 0, messages are queued for next iteration
+	fn handle_dmp_messages(
+		iter: impl Iterator<Item = (RelayBlockNumber, Vec<u8>)>,
+		_limit: Weight,
+	) -> Weight {
+		DmpQueue::handle_dmp_messages(iter, 0)
 	}
 }
 
@@ -1116,6 +1132,7 @@ impl pallet_maintenance_mode::Config for Runtime {
 	type MaintenanceOrigin =
 		pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, TechCommitteeInstance>;
 	type XcmExecutionManager = XcmExecutionManager;
+	type DmpMessageHandler = MaintenanceDmpHandler;
 	// We use AllPalletsReversedWithSystemFirst because we dont want to change the hooks in normal
 	// operation
 	type NormalExecutiveHooks = AllPalletsReversedWithSystemFirst;

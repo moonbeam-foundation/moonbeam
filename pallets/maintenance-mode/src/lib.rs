@@ -54,12 +54,18 @@ pub use pallet::*;
 
 #[pallet]
 pub mod pallet {
+	#[cfg(feature = "xcm-support")]
+	use cumulus_primitives_core::{
+		relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler,
+	};
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{
 		Contains, EnsureOrigin, OffchainWorker, OnFinalize, OnIdle, OnInitialize, OnRuntimeUpgrade,
 	};
 	use frame_system::pallet_prelude::*;
 	use sp_runtime::DispatchResult;
+	#[cfg(feature = "xcm-support")]
+	use sp_std::vec::Vec;
 	/// Pallet for migrations
 	#[pallet::pallet]
 	#[pallet::without_storage_info]
@@ -100,6 +106,12 @@ pub mod pallet {
 		/// Handler to suspend and resume XCM execution
 		#[cfg(feature = "xcm-support")]
 		type XcmExecutionManager: PauseXcmExecution;
+		/// The DMP handler to be used in normal operating mode
+		#[cfg(feature = "xcm-support")]
+		type NormalDmpHandler: DmpMessageHandler;
+		/// The DMP handler to be used in maintenance mode
+		#[cfg(feature = "xcm-support")]
+		type MaintenanceDmpHandler: DmpMessageHandler;
 		/// The executive hooks that will be used in normal operating mode
 		/// Important: Use AllPalletsReversedWithSystemFirst here if you dont want to modify the
 		/// hooks behaviour
@@ -233,6 +245,19 @@ pub mod pallet {
 				T::MaintenanceCallFilter::contains(call)
 			} else {
 				T::NormalCallFilter::contains(call)
+			}
+		}
+	}
+	#[cfg(feature = "xcm-support")]
+	impl<T: Config> DmpMessageHandler for Pallet<T> {
+		fn handle_dmp_messages(
+			iter: impl Iterator<Item = (RelayBlockNumber, Vec<u8>)>,
+			limit: Weight,
+		) -> Weight {
+			if MaintenanceMode::<T>::get() {
+				T::MaintenanceDmpHandler::handle_dmp_messages(iter, limit)
+			} else {
+				T::NormalDmpHandler::handle_dmp_messages(iter, limit)
 			}
 		}
 	}

@@ -15,8 +15,11 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Unit testing
-use crate::mock::{events, mock_events, Call as OuterCall, ExtBuilder, Origin, Test};
+use crate::mock::{
+	events, mock_events, Call as OuterCall, ExtBuilder, MaintenanceMode, Origin, Test,
+};
 use crate::{Call, Error, Event, ExecutiveHooks};
+use cumulus_primitives_core::DmpMessageHandler;
 use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::Dispatchable,
@@ -119,6 +122,34 @@ fn cannot_resume_normal_operation_while_already_operating_normally() {
 			Error::<Test>::NotInMaintenanceMode
 		);
 	})
+}
+
+#[cfg(feature = "xcm-support")]
+#[test]
+fn normal_dmp_in_non_maintenance() {
+	ExtBuilder::default()
+		.with_maintenance_mode(false)
+		.build()
+		.execute_with(|| {
+			assert_eq!(
+				MaintenanceMode::handle_dmp_messages(vec![].into_iter(), 1),
+				0
+			);
+		})
+}
+
+#[cfg(feature = "xcm-support")]
+#[test]
+fn maintenance_dmp_in_maintenance() {
+	ExtBuilder::default()
+		.with_maintenance_mode(true)
+		.build()
+		.execute_with(|| {
+			assert_eq!(
+				MaintenanceMode::handle_dmp_messages(vec![].into_iter(), 1),
+				1
+			);
+		})
 }
 
 #[test]
