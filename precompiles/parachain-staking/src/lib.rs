@@ -33,10 +33,8 @@ use precompile_utils::{
 	Address, EvmData, EvmDataReader, EvmDataWriter, EvmResult, FunctionModifier, Gasometer,
 	RuntimeHelper,
 };
-use sp_std::convert::TryInto;
-use sp_std::fmt::Debug;
-use sp_std::marker::PhantomData;
-use sp_std::vec;
+use sp_core::H160;
+use sp_std::{convert::TryInto, fmt::Debug, marker::PhantomData, vec, vec::Vec};
 
 type BalanceOf<Runtime> = <<Runtime as parachain_staking::Config>::Currency as Currency<
 	<Runtime as frame_system::Config>::AccountId,
@@ -110,7 +108,7 @@ impl<Runtime> Precompile for ParachainStakingWrapper<Runtime>
 where
 	Runtime: parachain_staking::Config + pallet_evm::Config,
 	BalanceOf<Runtime>: EvmData,
-	Runtime::AccountId: Into<Address>,
+	Runtime::AccountId: Into<H160>,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	Runtime::Call: From<parachain_staking::Call<Runtime>>,
@@ -253,7 +251,7 @@ impl<Runtime> ParachainStakingWrapper<Runtime>
 where
 	Runtime: parachain_staking::Config + pallet_evm::Config,
 	BalanceOf<Runtime>: EvmData,
-	Runtime::AccountId: Into<Address>,
+	Runtime::AccountId: Into<H160>,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	Runtime::Call: From<parachain_staking::Call<Runtime>>,
@@ -399,7 +397,7 @@ where
 		let selected_candidates: Vec<Address> =
 			parachain_staking::Pallet::<Runtime>::selected_candidates()
 				.into_iter()
-				.map(|address| address.into())
+				.map(|address| Address(address.into()))
 				.collect();
 		// Build output.
 		Ok(PrecompileOutput {
