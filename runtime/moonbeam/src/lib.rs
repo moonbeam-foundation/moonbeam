@@ -83,9 +83,7 @@ use pallet_evm_precompile_assets_erc20::AccountIdAssetIdConversion;
 
 use xcm::latest::prelude::*;
 
-use cumulus_primitives_core::{
-	relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler, ParaId, XcmpMessageHandler,
-};
+use cumulus_primitives_core::{relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler};
 
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
