@@ -107,9 +107,11 @@ pub mod pallet {
 		#[cfg(feature = "xcm-support")]
 		type XcmExecutionManager: PauseXcmExecution;
 		/// The DMP handler to be used in normal operating mode
+		/// TODO: remove once https://github.com/paritytech/polkadot/pull/5035 is merged
 		#[cfg(feature = "xcm-support")]
 		type NormalDmpHandler: DmpMessageHandler;
 		/// The DMP handler to be used in maintenance mode
+		/// TODO: remove once https://github.com/paritytech/polkadot/pull/5035 is merged
 		#[cfg(feature = "xcm-support")]
 		type MaintenanceDmpHandler: DmpMessageHandler;
 		/// The executive hooks that will be used in normal operating mode
