@@ -1132,7 +1132,8 @@ impl pallet_maintenance_mode::Config for Runtime {
 	type MaintenanceOrigin =
 		pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, TechCommitteeInstance>;
 	type XcmExecutionManager = XcmExecutionManager;
-	type DmpMessageHandler = MaintenanceDmpHandler;
+	type NormalDmpHandler = DmpQueue;
+	type MaintenanceDmpHandler = MaintenanceDmpHandler;
 	// We use AllPalletsReversedWithSystemFirst because we dont want to change the hooks in normal
 	// operation
 	type NormalExecutiveHooks = AllPalletsReversedWithSystemFirst;
