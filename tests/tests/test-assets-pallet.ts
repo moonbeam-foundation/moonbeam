@@ -49,7 +49,6 @@ describeDevMoonbeam("Pallet Assets Pallet - assets transfer", (context) => {
   });
 });
 
-
 describeDevMoonbeam("Pallet Assets Pallet - asset destruction", (context) => {
   let sudoAccount, assetId;
   before("Test querying asset", async () => {
@@ -81,17 +80,14 @@ describeDevMoonbeam("Pallet Assets Pallet - asset destruction", (context) => {
   });
 
   it("should make sure everything related to the asset is destroyed", async function () {
-
     // We first create the witness
     const assetDestroyWitness = context.polkadotApi.createType("PalletAssetsDestroyWitness", {
       accounts: 1,
       sufficients: 1,
-      approvals: 0
+      approvals: 0,
     });
 
-    let metadataBefore = (await context.polkadotApi.query.assets.metadata(
-      assetId,
-    )) as any;
+    let metadataBefore = (await context.polkadotApi.query.assets.metadata(assetId)) as any;
 
     // Name is equal to "DOT" in hex
     expect(metadataBefore.name.toString()).to.eq("0x444f54");
@@ -104,9 +100,7 @@ describeDevMoonbeam("Pallet Assets Pallet - asset destruction", (context) => {
     expect(baltatharBalanceBefore.unwrap()["balance"].eq(new BN(1000))).to.equal(true);
 
     // assetDetails before in non-empty
-    let assetDetailsBefore = (await context.polkadotApi.query.assets.asset(
-      assetId,
-    )) as any;
+    let assetDetailsBefore = (await context.polkadotApi.query.assets.asset(assetId)) as any;
     expect(assetDetailsBefore.isNone).to.eq(false);
 
     // Destroy asset
@@ -126,15 +120,11 @@ describeDevMoonbeam("Pallet Assets Pallet - asset destruction", (context) => {
     expect(baltatharBalance.isNone).to.eq(true);
 
     // metadata is default
-    let metadata = (await context.polkadotApi.query.assets.metadata(
-      assetId,
-    )) as any;
+    let metadata = (await context.polkadotApi.query.assets.metadata(assetId)) as any;
     expect(metadata.name.toString()).to.eq("0x");
 
     // assetDetails is None
-    let assetDetails = (await context.polkadotApi.query.assets.asset(
-      assetId,
-    )) as any;
+    let assetDetails = (await context.polkadotApi.query.assets.asset(assetId)) as any;
     expect(assetDetails.isNone).to.eq(true);
   });
 });
