@@ -743,7 +743,7 @@ fn selected_candidates_works() {
 			let expected_selected_candidate = vec![TestAccount::Alice];
 			let evm_expected_selected_candidate: Vec<Address> = expected_selected_candidate
 				.into_iter()
-				.map(|x| x.into())
+				.map(|x| Address(x.into()))
 				.collect();
 			// Expected result is bogus selected repeated candidates
 			let expected_result = Some(Ok(PrecompileOutput {

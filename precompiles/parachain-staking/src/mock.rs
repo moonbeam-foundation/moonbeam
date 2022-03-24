@@ -83,13 +83,13 @@ impl Default for TestAccount {
 	}
 }
 
-impl Into<Address> for TestAccount {
-	fn into(self) -> Address {
+impl Into<H160> for TestAccount {
+	fn into(self) -> H160 {
 		match self {
-			TestAccount::Alice => Address(H160::repeat_byte(0xAA)),
-			TestAccount::Bob => Address(H160::repeat_byte(0xBB)),
-			TestAccount::Charlie => Address(H160::repeat_byte(0xCC)),
-			TestAccount::Bogus => Address(H160::repeat_byte(0xDD)),
+			TestAccount::Alice => H160::repeat_byte(0xAA),
+			TestAccount::Bob => H160::repeat_byte(0xBB),
+			TestAccount::Charlie => H160::repeat_byte(0xCC),
+			TestAccount::Bogus => H160::repeat_byte(0xDD),
 		}
 	}
 }
