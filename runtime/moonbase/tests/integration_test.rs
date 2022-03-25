@@ -30,7 +30,7 @@ use frame_support::{
 	StorageHasher, Twox128,
 };
 use moonbase_runtime::{
-	currency::UNIT, xcm_config::AssetType, AccountId, AssetId, AssetManager,
+	currency::UNIT, get, xcm_config::AssetType, AccountId, AssetId, AssetManager,
 	AssetRegistrarMetadata, Assets, Balances, BaseFee, BlockWeights, Call, CrowdloanRewards, Event,
 	ParachainStaking, PolkadotXcm, Precompiles, Runtime, System, XTokens, XcmTransactor,
 };
@@ -55,7 +55,7 @@ use xcm::latest::prelude::*;
 
 #[test]
 fn fast_track_available() {
-	assert!(<moonbase_runtime::Runtime as pallet_democracy::Config>::InstantAllowed::get());
+	assert!(get!(pallet_democracy, InstantAllowed, bool));
 }
 
 #[test]
