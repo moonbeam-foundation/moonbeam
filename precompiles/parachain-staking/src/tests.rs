@@ -23,7 +23,7 @@ use fp_evm::PrecompileFailure;
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_evm::{Call as EvmCall, ExitSucceed, PrecompileSet};
 use parachain_staking::Event as StakingEvent;
-use precompile_utils::EvmDataWriter;
+use precompile_utils::{Address, EvmDataWriter};
 use sha3::{Digest, Keccak256};
 use sp_core::U256;
 use std::assert_matches::assert_matches;
@@ -62,6 +62,7 @@ fn selectors() {
 	assert_eq!(Action::CandidateDelegationCount as u32, 0x815b796c);
 	assert_eq!(Action::NominatorNominationCount as u32, 0xdae5659b);
 	assert_eq!(Action::DelegatorDelegationCount as u32, 0xfbc51bca);
+	assert_eq!(Action::SelectedCandidates as u32, 0x89f47a21);
 	assert_eq!(Action::JoinCandidates as u32, 0x0a1bff60);
 	// DEPRECATED
 	assert_eq!(Action::LeaveCandidates as u32, 0x72b02a31);
@@ -722,6 +723,44 @@ fn is_selected_candidate_true() {
 					false
 				),
 				expected_one_result
+			);
+		});
+}
+
+#[test]
+fn selected_candidates_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(TestAccount::Alice, 1_000)])
+		.with_candidates(vec![(TestAccount::Alice, 1_000)])
+		.build()
+		.execute_with(|| {
+			let input_data = EvmDataWriter::new_with_selector(Action::SelectedCandidates).build();
+			// Alice is only selected candidates
+			let expected_selected_candidate = vec![TestAccount::Alice];
+			let evm_expected_selected_candidate: Vec<Address> = expected_selected_candidate
+				.into_iter()
+				.map(|x| Address(x.into()))
+				.collect();
+			// Expected result is bogus selected repeated candidates
+			let expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new()
+					.write(evm_expected_selected_candidate)
+					.build(),
+				cost: Default::default(),
+				logs: Default::default(),
+			}));
+
+			// Assert that Alice is a selected candidate
+			assert_eq!(
+				precompiles().execute(
+					precompile_address(),
+					&input_data,
+					None,
+					&evm_test_context(),
+					false
+				),
+				expected_result
 			);
 		});
 }

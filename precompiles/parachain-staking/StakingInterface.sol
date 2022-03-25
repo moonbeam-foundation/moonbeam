@@ -98,6 +98,11 @@ interface ParachainStaking {
         view
         returns (uint256);
 
+    /// @dev Get the selected candidates for the current round
+    /// Selector: 0x89f47a21
+    /// @return The selected candidate accounts
+    function selected_candidates() external view returns (address[] memory);
+
     /// @dev Join the set of collator candidates
     /// Selector: 0a1bff60
     /// @param amount The amount self-bonded by the caller to become a collator candidate
