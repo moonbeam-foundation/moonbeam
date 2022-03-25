@@ -1518,10 +1518,6 @@
 <span id="1518">1518</span>
 <span id="1519">1519</span>
 <span id="1520">1520</span>
-<span id="1521">1521</span>
-<span id="1522">1522</span>
-<span id="1523">1523</span>
-<span id="1524">1524</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -2221,7 +2217,7 @@
 	<span class="kw">type</span> <span class="ident">DmpMessageHandler</span> <span class="op">=</span> <span class="ident">MaintenanceMode</span>;
 	<span class="kw">type</span> <span class="ident">ReservedDmpWeight</span> <span class="op">=</span> <span class="ident">ReservedDmpWeight</span>;
 	<span class="kw">type</span> <span class="ident">OutboundXcmpMessageSource</span> <span class="op">=</span> <span class="ident">XcmpQueue</span>;
-	<span class="kw">type</span> <span class="ident">XcmpMessageHandler</span> <span class="op">=</span> <span class="ident">MaintenanceMode</span>;
+	<span class="kw">type</span> <span class="ident">XcmpMessageHandler</span> <span class="op">=</span> <span class="ident">XcmpQueue</span>;
 	<span class="kw">type</span> <span class="ident">ReservedXcmpWeight</span> <span class="op">=</span> <span class="ident">ReservedXcmpWeight</span>;
 }
 
@@ -2575,9 +2571,18 @@
 	}
 }
 
-<span class="kw">use</span> <span class="ident">cumulus_primitives_core</span>::{
-	<span class="ident">relay_chain::BlockNumber</span> <span class="kw">as</span> <span class="ident">RelayBlockNumber</span>, <span class="ident">DmpMessageHandler</span>, <span class="ident">ParaId</span>, <span class="ident">XcmpMessageHandler</span>,
-};
+<span class="kw">use</span> <span class="ident">cumulus_primitives_core</span>::{<span class="ident">relay_chain::BlockNumber</span> <span class="kw">as</span> <span class="ident">RelayBlockNumber</span>, <span class="ident">DmpMessageHandler</span>};
+
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">XcmExecutionManager</span>;
+<span class="kw">impl</span> <span class="ident">pallet_maintenance_mode::PauseXcmExecution</span> <span class="kw">for</span> <span class="ident">XcmExecutionManager</span> {
+	<span class="kw">fn</span> <span class="ident">suspend_xcm_execution</span>() -&gt; <span class="ident">DispatchResult</span> {
+		<span class="ident">XcmpQueue::suspend_xcm_execution</span>(<span class="ident">Origin::root</span>())
+	}
+	<span class="kw">fn</span> <span class="ident">resume_xcm_execution</span>() -&gt; <span class="ident">DispatchResult</span> {
+		<span class="ident">XcmpQueue::resume_xcm_execution</span>(<span class="ident">Origin::root</span>())
+	}
+}
+
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MaintenanceDmpHandler</span>;
 <span class="kw">impl</span> <span class="ident">DmpMessageHandler</span> <span class="kw">for</span> <span class="ident">MaintenanceDmpHandler</span> {
 	<span class="comment">// This implementation makes messages be queued</span>
@@ -2587,18 +2592,6 @@
 		<span class="ident">_limit</span>: <span class="ident">Weight</span>,
 	) -&gt; <span class="ident">Weight</span> {
 		<span class="ident">DmpQueue::handle_dmp_messages</span>(<span class="ident">iter</span>, <span class="number">0</span>)
-	}
-}
-
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MaintenanceXcmpHandler</span>;
-<span class="kw">impl</span> <span class="ident">XcmpMessageHandler</span> <span class="kw">for</span> <span class="ident">MaintenanceXcmpHandler</span> {
-	<span class="comment">// This implementation makes messages be queued</span>
-	<span class="comment">// Since the limit is 0, messages are queued for next iteration</span>
-	<span class="kw">fn</span> <span class="ident">handle_xcmp_messages</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="ident">ParaId</span>, <span class="ident">RelayBlockNumber</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>])<span class="op">&gt;</span><span class="op">&gt;</span>(
-		<span class="ident">iter</span>: <span class="ident">I</span>,
-		<span class="ident">_limit</span>: <span class="ident">Weight</span>,
-	) -&gt; <span class="ident">Weight</span> {
-		<span class="ident">XcmpQueue::handle_xcmp_messages</span>(<span class="ident">iter</span>, <span class="number">0</span>)
 	}
 }
 
@@ -2656,10 +2649,9 @@
 	<span class="kw">type</span> <span class="ident">MaintenanceCallFilter</span> <span class="op">=</span> <span class="ident">MaintenanceFilter</span>;
 	<span class="kw">type</span> <span class="ident">MaintenanceOrigin</span> <span class="op">=</span>
 		<span class="ident">pallet_collective::EnsureProportionAtLeast</span><span class="op">&lt;</span><span class="ident">_2</span>, <span class="ident">_3</span>, <span class="ident">AccountId</span>, <span class="ident">TechCommitteeInstance</span><span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">XcmExecutionManager</span> <span class="op">=</span> <span class="ident">XcmExecutionManager</span>;
 	<span class="kw">type</span> <span class="ident">NormalDmpHandler</span> <span class="op">=</span> <span class="ident">DmpQueue</span>;
 	<span class="kw">type</span> <span class="ident">MaintenanceDmpHandler</span> <span class="op">=</span> <span class="ident">MaintenanceDmpHandler</span>;
-	<span class="kw">type</span> <span class="ident">NormalXcmpHandler</span> <span class="op">=</span> <span class="ident">XcmpQueue</span>;
-	<span class="kw">type</span> <span class="ident">MaintenanceXcmpHandler</span> <span class="op">=</span> <span class="ident">MaintenanceXcmpHandler</span>;
 	<span class="comment">// We use AllPalletsReversedWithSystemFirst because we dont want to change the hooks in normal</span>
 	<span class="comment">// operation</span>
 	<span class="kw">type</span> <span class="ident">NormalExecutiveHooks</span> <span class="op">=</span> <span class="ident">AllPalletsReversedWithSystemFirst</span>;
