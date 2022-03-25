@@ -734,8 +734,7 @@ fn selected_candidates_works() {
 		.with_candidates(vec![(TestAccount::Alice, 1_000)])
 		.build()
 		.execute_with(|| {
-			let input_data = EvmDataWriter::new_with_selector(Action::SelectedCandidates)
-				.build();
+			let input_data = EvmDataWriter::new_with_selector(Action::SelectedCandidates).build();
 			// Alice is only selected candidates
 			let expected_selected_candidate = vec![TestAccount::Alice];
 			let evm_expected_selected_candidate: Vec<Address> = expected_selected_candidate
