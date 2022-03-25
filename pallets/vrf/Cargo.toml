@@ -1,0 +1,34 @@
+[package]
+name = "vrf"
+authors = [ "PureStake" ]
+description = "A pallet for storing VRF outputs by block authors"
+edition = "2018"
+version = "0.1.0"
+
+[dependencies]
+frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17", default-features = false }
+frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17", default-features = false }
+parity-scale-codec = { version = "2.2", default-features = false }
+scale-info = { version = "1.0", default-features = false, features = [ "derive" ] }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17", default-features = false }
+sp-consensus-babe = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17", default-features = false }
+sp-consensus-vrf = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17", default-features = false }
+sp-application-crypto = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17", default-features = false }
+
+[dev-dependencies]
+
+pallet-balances = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17" }
+sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17" }
+sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17" }
+
+[features]
+default = [ "std" ]
+std = [
+	"frame-support/std",
+	"frame-system/std",
+	"scale-info/std",
+	"sp-runtime/std",
+    "sp-consensus-babe/std",
+    "sp-consensus-vrf/std",
+	"sp-application-crypto/std",
+]

@@ -7,6 +7,7 @@ members = [
 	"node",
 	"node/cli",
 	"node/service",
+	"pallets/vrf",
 	"pallets/maintenance-mode",
 	"pallets/migrations",
 	"pallets/proxy-genesis-companion",
