@@ -43,8 +43,7 @@ use frame_support::{
 	},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
-		DispatchClass, GetDispatchInfo, IdentityFee, Weight, WeightToFeeCoefficient,
-		WeightToFeeCoefficients, WeightToFeePolynomial,
+		DispatchClass, GetDispatchInfo, IdentityFee, Weight,
 	},
 	PalletId,
 };
@@ -82,7 +81,6 @@ use sp_runtime::{
 use sp_std::{convert::TryFrom, prelude::*};
 
 use cumulus_primitives_core::{relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler};
-use smallvec::smallvec;
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
@@ -283,28 +281,6 @@ where
 		// total_supply accordingly
 		let (_, to_treasury) = amount.ration(80, 20);
 		<pallet_treasury::Pallet<R> as OnUnbalanced<_>>::on_unbalanced(to_treasury);
-	}
-}
-
-pub struct WeightToFee;
-impl WeightToFeePolynomial for WeightToFee {
-	type Balance = Balance;
-
-	/// Return a vec of coefficients. Here we just use one coefficient and reduce it to a constant
-	/// modifier in order to closely match Ethereum-based fees.
-	///
-	/// Calculation, per the documentation in `frame_support`:
-	///
-	/// ```ignore
-	/// coeff_integer * x^(degree) + coeff_frac * x^(degree)
-	/// ```
-	fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
-		smallvec![WeightToFeeCoefficient {
-			degree: 1,
-			coeff_frac: Perbill::zero(),
-			coeff_integer: currency::WEIGHT_FEE,
-			negative: false,
-		}]
 	}
 }
 
