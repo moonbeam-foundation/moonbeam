@@ -16,7 +16,7 @@
 
 use {
 	super::*,
-	frame_support::ensure,
+	frame_support::{ensure, traits::Get},
 	sp_runtime::traits::{CheckedAdd, CheckedDiv, CheckedMul, CheckedSub, Zero},
 };
 
@@ -28,7 +28,6 @@ pub mod candidates {
 		stake: BalanceOf<T>,
 	) -> Result<(), Error<T>> {
 		ensure!(!Zero::is_zero(&stake), Error::StakeMustBeNonZero);
-
 
 		let new_stake = CandidatesStake::<T>::get(&candidate)
 			.checked_add(&stake)
@@ -96,35 +95,21 @@ pub mod manual_claim {
 			.ok_or(Error::NoOneIsStaking)
 	}
 
-	/// Create new shares for that candidate and staker.
-	/// Since provided stake might not be a multiple of the value of
-	/// a share, the stake will be rounded down to the closest value, which
-	/// is returned by the function.
 	pub fn add_shares<T: Config>(
 		candidate: T::AccountId,
 		staker: T::AccountId,
-		stake: BalanceOf<T>,
+		shares: BalanceOf<T>,
 	) -> Result<BalanceOf<T>, Error<T>> {
-		ensure!(!Zero::is_zero(&stake), Error::StakeMustBeNonZero);
+		ensure!(!Zero::is_zero(&shares), Error::StakeMustBeNonZero);
 
 		let shares_supply = ManualClaimSharesSupply::<T>::get(&candidate);
-		
-		let (stake, shares) = if Zero::is_zero(&shares_supply) {
-			let value_per_share = T::InitialManualClaimShareValue::get();
-			let shares = stake
-				.checked_div(&value_per_share)
-				.ok_or(Error::InvalidPalletSetting)?;
 
-			let stake = shares
-				.checked_mul(&value_per_share)
-				.ok_or(Error::MathOverflow)?;
-
-			(stake, shares)
+		let stake = if Zero::is_zero(&shares_supply) {
+			shares
+				.checked_mul(&T::InitialManualClaimShareValue::get())
+				.ok_or(Error::MathOverflow)?
 		} else {
-			let shares = stake_to_shares::<T>(&candidate, &stake)?;
-			let stake = shares_to_stake::<T>(&candidate, &shares)?;
-
-			(stake, shares)
+			shares_to_stake(&candidate, &shares)?
 		};
 
 		let new_shares_supply = shares_supply
@@ -153,23 +138,18 @@ pub mod manual_claim {
 		Ok(stake)
 	}
 
-	/// Remove shares for that candidate and staker.
-	/// Since provided stake might not be a multiple of the value of
-	/// a share, the stake will be rounded down to the closest value, which
-	/// is returned by the function.
 	pub fn sub_shares<T: Config>(
 		candidate: T::AccountId,
 		staker: T::AccountId,
-		stake: BalanceOf<T>,
+		shares: BalanceOf<T>,
 	) -> Result<BalanceOf<T>, Error<T>> {
-		ensure!(!Zero::is_zero(&stake), Error::StakeMustBeNonZero);
+		ensure!(!Zero::is_zero(&shares), Error::StakeMustBeNonZero);
 
-		let shares = stake_to_shares::<T>(&candidate, &stake)?;
-		let stake = shares_to_stake::<T>(&candidate, &shares)?;
+		let stake = shares_to_stake(&candidate, &shares)?;
 
 		let new_shares_supply = ManualClaimSharesSupply::<T>::get(&candidate)
 			.checked_sub(&shares)
-			.ok_or(Error::NotEnoughShares)?;
+			.ok_or(Error::MathUnderflow)?;
 
 		let new_shares = ManualClaimShares::<T>::get(&candidate, &staker)
 			.checked_sub(&shares)
@@ -190,7 +170,7 @@ pub mod manual_claim {
 			stake,
 		});
 
-		Ok(shares)
+		Ok(stake)
 	}
 }
 
@@ -232,18 +212,18 @@ pub mod auto_compounding {
 	pub fn add_shares<T: Config>(
 		candidate: T::AccountId,
 		staker: T::AccountId,
-		stake: BalanceOf<T>,
+		shares: BalanceOf<T>,
 	) -> Result<BalanceOf<T>, Error<T>> {
-		ensure!(!Zero::is_zero(&stake), Error::StakeMustBeNonZero);
+		ensure!(!Zero::is_zero(&shares), Error::StakeMustBeNonZero);
 
 		let shares_supply = AutoCompoundingSharesSupply::<T>::get(&candidate);
-		let shares = if Zero::is_zero(&shares_supply) {
-			// TODO : Better choice of value ?
-			// Value is only relevant to reduce rounding errors when converting between stake
-			// and shares, or when computing rewards.
-			10_000_000_u32.into()
+
+		let stake = if Zero::is_zero(&shares_supply) {
+			shares
+				.checked_mul(&T::InitialAutoCompoundingShareValue::get())
+				.ok_or(Error::MathOverflow)?
 		} else {
-			stake_to_shares::<T>(&candidate, &stake)?
+			shares_to_stake(&candidate, &shares)?
 		};
 
 		let new_shares_supply = shares_supply
@@ -264,21 +244,21 @@ pub mod auto_compounding {
 			stake,
 		});
 
-		Ok(shares)
+		Ok(stake)
 	}
 
 	pub fn sub_shares<T: Config>(
 		candidate: T::AccountId,
 		staker: T::AccountId,
-		stake: BalanceOf<T>,
+		shares: BalanceOf<T>,
 	) -> Result<BalanceOf<T>, Error<T>> {
-		ensure!(!Zero::is_zero(&stake), Error::StakeMustBeNonZero);
+		ensure!(!Zero::is_zero(&shares), Error::StakeMustBeNonZero);
 
-		let shares = stake_to_shares::<T>(&candidate, &stake)?;
+		let stake = shares_to_stake(&candidate, &shares)?;
 
 		let new_shares_supply = AutoCompoundingSharesSupply::<T>::get(&candidate)
 			.checked_sub(&shares)
-			.ok_or(Error::NotEnoughShares)?;
+			.ok_or(Error::MathUnderflow)?;
 
 		let new_shares = AutoCompoundingShares::<T>::get(&candidate, &staker)
 			.checked_sub(&shares)
@@ -294,6 +274,6 @@ pub mod auto_compounding {
 			stake,
 		});
 
-		Ok(shares)
+		Ok(stake)
 	}
 }

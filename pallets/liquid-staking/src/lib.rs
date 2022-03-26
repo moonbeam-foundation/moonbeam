@@ -33,12 +33,26 @@ pub mod pallet {
 			transactional,
 		},
 		frame_system::pallet_prelude::*,
-		sp_runtime::traits::{CheckedAdd, Zero},
+		sp_runtime::traits::{CheckedAdd, CheckedDiv, Zero},
 	};
+
+	#[cfg(feature = "std")]
+	use serde::{Deserialize, Serialize};
 
 	/// Type of balances of the staked Currency and shares.
 	pub type BalanceOf<T> =
 		<<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
+
+	/// Allow calls to be performed using either share amounts or stake.
+	/// When providing stake, calls will convert them into share amounts that are
+	/// worth up to the provided stake. The amount of stake thus will be at most the provided
+	/// amount.
+	#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
+	#[derive(RuntimeDebug, PartialEq, Eq, Encode, Decode, Clone, TypeInfo)]
+	pub enum SharesOrStake<T> {
+		Shares(T),
+		Stake(T),
+	}
 
 	/// Liquid Staking pallet.
 	#[pallet::pallet]
@@ -224,9 +238,33 @@ pub mod pallet {
 		pub fn stake_manual_claim(
 			origin: OriginFor<T>,
 			candidate: T::AccountId,
-			stake: BalanceOf<T>,
+			quantity: SharesOrStake<BalanceOf<T>>,
 		) -> DispatchResultWithPostInfo {
 			let staker = ensure_signed(origin)?;
+
+			let shares = match quantity {
+				SharesOrStake::Shares(shares) => shares,
+				SharesOrStake::Stake(stake) => {
+					let shares_supply = ManualClaimSharesSupply::<T>::get(&candidate);
+
+					if Zero::is_zero(&shares_supply) {
+						stake
+							.checked_div(&T::InitialManualClaimShareValue::get())
+							.ok_or(Error::<T>::InvalidPalletSetting)?
+					} else {
+						shares::manual_claim::stake_to_shares::<T>(&candidate, &stake)?
+					}
+				}
+			};
+
+			ensure!(!Zero::is_zero(&shares), Error::<T>::StakeMustBeNonZero);
+
+			// It is important to automatically claim rewards before updating
+			// the amount of shares since pending rewards are stored per share.
+			let rewards = rewards::claim_rewards::<T>(candidate.clone(), staker.clone())?;
+			let stake =
+				shares::manual_claim::add_shares::<T>(candidate.clone(), staker.clone(), shares)?;
+			shares::candidates::add_stake::<T>(candidate.clone(), stake)?;
 
 			T::Currency::transfer(
 				&staker,
@@ -234,12 +272,6 @@ pub mod pallet {
 				stake,
 				ExistenceRequirement::KeepAlive,
 			)?;
-
-			// It is important to automatically claim rewards before updating
-			// the amount of shares since pending rewards are stored per share.
-			let rewards = rewards::claim_rewards::<T>(candidate.clone(), staker.clone())?;
-			shares::manual_claim::add_shares::<T>(candidate.clone(), staker.clone(), stake)?;
-			shares::candidates::add_stake::<T>(candidate.clone(), stake)?;
 
 			if !Zero::is_zero(&rewards) {
 				T::Currency::transfer(
@@ -261,14 +293,24 @@ pub mod pallet {
 		pub fn unstake_manual_claim(
 			origin: OriginFor<T>,
 			candidate: T::AccountId,
-			stake: BalanceOf<T>,
+			quantity: SharesOrStake<BalanceOf<T>>,
 		) -> DispatchResultWithPostInfo {
 			let staker = ensure_signed(origin)?;
+
+			let shares = match quantity {
+				SharesOrStake::Shares(shares) => shares,
+				SharesOrStake::Stake(stake) => {
+					shares::manual_claim::stake_to_shares::<T>(&candidate, &stake)?
+				}
+			};
+
+			ensure!(!Zero::is_zero(&shares), Error::<T>::StakeMustBeNonZero);
 
 			// It is important to automatically claim rewards before updating
 			// the amount of shares since pending rewards are stored per share.
 			let rewards = rewards::claim_rewards::<T>(candidate.clone(), staker.clone())?;
-			shares::manual_claim::sub_shares::<T>(candidate.clone(), staker.clone(), stake)?;
+			let stake =
+				shares::manual_claim::sub_shares::<T>(candidate.clone(), staker.clone(), shares)?;
 			shares::candidates::sub_stake::<T>(candidate.clone(), stake)?;
 
 			T::Currency::transfer(
@@ -283,19 +325,6 @@ pub mod pallet {
 			Ok(().into())
 		}
 
-		/// Unstake towards candidate the provided amount of "Manual Claim" shares.
-		/// Remove those "Manual Claim" shares of this candidate from the origin.
-		/// Automatically claims pending rewards.
-		#[pallet::weight(0)]
-		pub fn unstake_manual_claim_in_shares(
-			origin: OriginFor<T>,
-			candidate: T::AccountId,
-			shares: BalanceOf<T>,
-		) -> DispatchResultWithPostInfo {
-			let stake = shares::manual_claim::shares_to_stake::<T>(&candidate, &shares)?;
-			Self::unstake_manual_claim(origin, candidate, stake)
-		}
-
 		/// Stake towards candidate the provided amount of stake (Currency) in "Auto Compounding"
 		/// mode. Add "Auto Compounding" shares of this candidate to the origin.
 		#[pallet::weight(0)]
@@ -303,9 +332,33 @@ pub mod pallet {
 		pub fn stake_auto_compounding(
 			origin: OriginFor<T>,
 			candidate: T::AccountId,
-			stake: BalanceOf<T>,
+			quantity: SharesOrStake<BalanceOf<T>>,
 		) -> DispatchResultWithPostInfo {
 			let staker = ensure_signed(origin)?;
+
+			let shares = match quantity {
+				SharesOrStake::Shares(shares) => shares,
+				SharesOrStake::Stake(stake) => {
+					let shares_supply = AutoCompoundingSharesSupply::<T>::get(&candidate);
+
+					if Zero::is_zero(&shares_supply) {
+						stake
+							.checked_div(&T::InitialAutoCompoundingShareValue::get())
+							.ok_or(Error::<T>::InvalidPalletSetting)?
+					} else {
+						shares::auto_compounding::stake_to_shares::<T>(&candidate, &stake)?
+					}
+				}
+			};
+
+			ensure!(!Zero::is_zero(&shares), Error::<T>::StakeMustBeNonZero);
+
+			let stake = shares::auto_compounding::add_shares::<T>(
+				candidate.clone(),
+				staker.clone(),
+				shares,
+			)?;
+			shares::candidates::add_stake::<T>(candidate.clone(), stake)?;
 
 			T::Currency::transfer(
 				&staker,
@@ -313,9 +366,6 @@ pub mod pallet {
 				stake,
 				ExistenceRequirement::KeepAlive,
 			)?;
-
-			shares::auto_compounding::add_shares::<T>(candidate.clone(), staker.clone(), stake)?;
-			shares::candidates::add_stake::<T>(candidate.clone(), stake)?;
 
 			Ok(().into())
 		}
@@ -327,11 +377,24 @@ pub mod pallet {
 		pub fn unstake_auto_compounding(
 			origin: OriginFor<T>,
 			candidate: T::AccountId,
-			stake: BalanceOf<T>,
+			quantity: SharesOrStake<BalanceOf<T>>,
 		) -> DispatchResultWithPostInfo {
 			let staker = ensure_signed(origin)?;
 
-			shares::auto_compounding::sub_shares::<T>(candidate.clone(), staker.clone(), stake)?;
+			let shares = match quantity {
+				SharesOrStake::Shares(shares) => shares,
+				SharesOrStake::Stake(stake) => {
+					shares::auto_compounding::stake_to_shares::<T>(&candidate, &stake)?
+				}
+			};
+
+			ensure!(!Zero::is_zero(&shares), Error::<T>::StakeMustBeNonZero);
+
+			let stake = shares::auto_compounding::sub_shares::<T>(
+				candidate.clone(),
+				staker.clone(),
+				shares,
+			)?;
 			shares::candidates::sub_stake::<T>(candidate.clone(), stake)?;
 
 			T::Currency::transfer(
@@ -342,18 +405,6 @@ pub mod pallet {
 			)?;
 
 			Ok(().into())
-		}
-
-		/// Unstake towards candidate the provided amount of "Auto Compounding" shares.
-		/// Remove those "Auto Compounding" shares of this candidate from the origin.
-		#[pallet::weight(0)]
-		pub fn unstake_auto_compounding_in_shares(
-			origin: OriginFor<T>,
-			candidate: T::AccountId,
-			shares: BalanceOf<T>,
-		) -> DispatchResultWithPostInfo {
-			let stake = shares::auto_compounding::shares_to_stake::<T>(&candidate, &shares)?;
-			Self::unstake_auto_compounding(origin, candidate, stake)
 		}
 
 		/// Claim pending manual rewards for this candidate.
