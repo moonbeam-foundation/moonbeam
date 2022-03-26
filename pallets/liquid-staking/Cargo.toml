@@ -1,0 +1,45 @@
+[package]
+name = "liquid-staking"
+authors = [ "PureStake" ]
+description = "Reimplementation of parachain staking using multi-level shares strategy"
+edition = "2018"
+version = "3.0.0"
+
+[dependencies]
+log = "0.4"
+serde = { version = "1.0.101", optional = true }
+
+# Substrate
+frame-benchmarking = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17", optional = true, default-features = false }
+frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17", default-features = false }
+frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17", default-features = false }
+parity-scale-codec = { version = "2.2", default-features = false, features = [ "derive" ] }
+scale-info = { version = "1.0", default-features = false, features = [ "derive" ] }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17", default-features = false }
+sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17", default-features = false }
+
+# Nimbus
+nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.17", default-features = false }
+
+[dev-dependencies]
+similar-asserts = "1.1.0"
+
+pallet-balances = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17" }
+sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17" }
+sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17" }
+
+[features]
+default = [ "std" ]
+std = [
+	"frame-benchmarking/std",
+	"frame-support/std",
+	"frame-system/std",
+	"nimbus-primitives/std",
+	"parity-scale-codec/std",
+	"scale-info/std",
+	"serde",
+	"sp-runtime/std",
+	"sp-std/std",
+]
+runtime-benchmarks = [ "frame-benchmarking" ]
+try-runtime = [ "frame-support/try-runtime" ]

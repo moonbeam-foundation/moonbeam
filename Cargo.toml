@@ -10,6 +10,7 @@ members = [
 	"pallets/maintenance-mode",
 	"pallets/migrations",
 	"pallets/proxy-genesis-companion",
+	"pallets/liquid-staking",
 	"precompiles/utils/macro",
 	"runtime/moonbase",
 	"runtime/moonbeam",
