@@ -1147,6 +1147,7 @@ impl Contains<Call> for NormalFilter {
 			// assetId of their choice
 			Call::LocalAssets(method) => match method {
 				pallet_assets::Call::create { .. } => false,
+				pallet_assets::Call::destroy { .. } => false,
 				_ => true,
 			},
 			// We just want to enable this in case of live chains, since the default version
