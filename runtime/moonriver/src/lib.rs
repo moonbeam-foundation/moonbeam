@@ -1036,7 +1036,7 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		);
 		call.get_dispatch_info()
 			.weight
-			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
+			.saturating_add(<Runtime as frame_system::Config>::DbWeight::get().writes(1 as Weight))
 	}
 }
 
