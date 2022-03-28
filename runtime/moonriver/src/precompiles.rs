@@ -16,7 +16,7 @@
 
 use crowdloan_rewards_precompiles::CrowdloanRewardsWrapper;
 use fp_evm::Context;
-use frame_support::traits::Get;
+use frame_support::traits::ConstBool;
 use moonbeam_relay_encoder::kusama::KusamaEncoder;
 use pallet_author_mapping_precompiles::AuthorMappingWrapper;
 use pallet_democracy_precompiles::DemocracyWrapper;
@@ -91,16 +91,6 @@ where
 		]
 		.into_iter()
 		.map(|x| R::AddressMapping::into_account_id(hash(x)))
-	}
-}
-
-/// Implement `Get<bool>` using the given const.
-/// to be replaced by frame_support::traits::ConstBool
-pub struct ConstBool<const T: bool>;
-
-impl<const T: bool> Get<bool> for ConstBool<T> {
-	fn get() -> bool {
-		T
 	}
 }
 

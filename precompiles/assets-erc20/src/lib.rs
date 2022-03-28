@@ -88,7 +88,7 @@ pub trait AccountIdAssetIdConversion<Account, AssetId> {
 	// Get assetId and prefix from account
 	fn account_to_asset_id(account: Account) -> Option<(Vec<u8>, AssetId)>;
 
-	// Get AccountId from AssetId
+	// Get AccountId from AssetId and prefix
 	fn asset_id_to_account(prefix: &[u8], asset_id: AssetId) -> Account;
 }
 
@@ -174,6 +174,7 @@ where
 						Action::Name => Self::name(asset_id, gasometer),
 						Action::Symbol => Self::symbol(asset_id, gasometer),
 						Action::Decimals => Self::decimals(asset_id, gasometer),
+						// Only local
 						Action::Mint => Self::mint(asset_id, input, gasometer, context),
 						Action::Burn => Self::burn(asset_id, input, gasometer, context),
 						Action::Freeze => Self::freeze(asset_id, input, gasometer, context),

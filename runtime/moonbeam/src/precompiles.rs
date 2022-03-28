@@ -16,6 +16,7 @@
 
 use crowdloan_rewards_precompiles::CrowdloanRewardsWrapper;
 use fp_evm::Context;
+use frame_support::traits::ConstBool;
 use moonbeam_relay_encoder::polkadot::PolkadotEncoder;
 use pallet_author_mapping_precompiles::AuthorMappingWrapper;
 use pallet_democracy_precompiles::DemocracyWrapper;
@@ -101,7 +102,7 @@ where
 	Dispatch<R>: Precompile,
 	ParachainStakingWrapper<R>: Precompile,
 	CrowdloanRewardsWrapper<R>: Precompile,
-	Erc20AssetsPrecompileSet<R, frame_support::traits::ConstBool<false>>: PrecompileSet,
+	Erc20AssetsPrecompileSet<R, ConstBool<false>>: PrecompileSet,
 	Erc20BalancesPrecompile<R, NativeErc20Metadata>: Precompile,
 	XtokensWrapper<R>: Precompile,
 	RelayEncoderWrapper<R, PolkadotEncoder>: Precompile,
@@ -168,7 +169,7 @@ where
 			)),
 			// If the address matches asset prefix, the we route through the asset precompile set
 			a if &a.to_fixed_bytes()[0..4] == ASSET_PRECOMPILE_ADDRESS_PREFIX => {
-				Erc20AssetsPrecompileSet::<R, frame_support::traits::ConstBool<false>>::new()
+				Erc20AssetsPrecompileSet::<R, ConstBool<false>>::new()
 					.execute(address, input, target_gas, context, is_static)
 			}
 			_ => None,
@@ -176,8 +177,7 @@ where
 	}
 	fn is_precompile(&self, address: H160) -> bool {
 		Self::used_addresses().any(|x| x == R::AddressMapping::into_account_id(address))
-			|| Erc20AssetsPrecompileSet::<R, frame_support::traits::ConstBool<false>>::new()
-				.is_precompile(address)
+			|| Erc20AssetsPrecompileSet::<R, ConstBool<false>>::new().is_precompile(address)
 	}
 }
 

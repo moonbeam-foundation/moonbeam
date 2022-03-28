@@ -19,7 +19,10 @@
 use super::*;
 
 use codec::{Decode, Encode, MaxEncodedLen};
-use frame_support::{construct_runtime, parameter_types, traits::Everything};
+use frame_support::{
+	construct_runtime, parameter_types,
+	traits::{ConstBool, Everything},
+};
 
 use frame_system::EnsureRoot;
 use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot};
@@ -339,16 +342,6 @@ impl ExtBuilder {
 		let mut ext = sp_io::TestExternalities::new(t);
 		ext.execute_with(|| System::set_block_number(1));
 		ext
-	}
-}
-
-/// Implement `Get<bool>` using the given const.
-/// to be replaced by frame_support::traits::ConstBool
-pub struct ConstBool<const T: bool>;
-
-impl<const T: bool> Get<bool> for ConstBool<T> {
-	fn get() -> bool {
-		T
 	}
 }
 
