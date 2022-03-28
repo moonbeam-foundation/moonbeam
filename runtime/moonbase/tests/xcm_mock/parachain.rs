@@ -845,10 +845,12 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		asset: AssetId,
 		asset_destroy_witness: pallet_assets::DestroyWitness,
 	) -> Weight {
-		let call = Call::Assets(pallet_assets::Call::<Runtime, ForeignAssetInstance>::destroy {
-			id: asset,
-			witness: asset_destroy_witness,
-		});
+		let call = Call::Assets(
+			pallet_assets::Call::<Runtime, ForeignAssetInstance>::destroy {
+				id: asset,
+				witness: asset_destroy_witness,
+			},
+		);
 		call.get_dispatch_info().weight
 	}
 }

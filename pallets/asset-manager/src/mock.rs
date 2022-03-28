@@ -168,7 +168,7 @@ impl AssetRegistrar<Test> for MockAssetPalletRegistrar {
 	) -> sp_runtime::DispatchResult {
 		Ok(())
 	}
-	
+
 	fn destroy_foreign_asset(_asset: u32, _witness: u32) -> Result<(), DispatchError> {
 		Ok(())
 	}

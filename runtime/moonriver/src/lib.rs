@@ -1002,7 +1002,8 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		Assets::destroy(Origin::root(), asset, asset_destroy_witness).map_err(|info| info.error)?;
 
 		// We remove the EVM revert code
-		let precompile_address: H160 = Runtime::asset_id_to_account(FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, asset).into();
+		let precompile_address: H160 =
+			Runtime::asset_id_to_account(FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, asset).into();
 		pallet_evm::AccountCodes::<Runtime>::remove(precompile_address);
 		Ok(())
 	}
@@ -1013,10 +1014,12 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		asset_destroy_witness: pallet_assets::DestroyWitness,
 	) -> DispatchResult {
 		// First destroy the asset
-		LocalAssets::destroy(Origin::root(), asset, asset_destroy_witness).map_err(|info| info.error)?;
+		LocalAssets::destroy(Origin::root(), asset, asset_destroy_witness)
+			.map_err(|info| info.error)?;
 
 		// We remove the EVM revert code
-		let precompile_address: H160 = Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, asset).into();
+		let precompile_address: H160 =
+			Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, asset).into();
 		pallet_evm::AccountCodes::<Runtime>::remove(precompile_address);
 		Ok(())
 	}
@@ -1025,10 +1028,12 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		asset: AssetId,
 		asset_destroy_witness: pallet_assets::DestroyWitness,
 	) -> Weight {
-		let call = Call::Assets(pallet_assets::Call::<Runtime, ForeignAssetInstance>::destroy {
-			id: asset,
-			witness: asset_destroy_witness,
-		});
+		let call = Call::Assets(
+			pallet_assets::Call::<Runtime, ForeignAssetInstance>::destroy {
+				id: asset,
+				witness: asset_destroy_witness,
+			},
+		);
 		call.get_dispatch_info()
 			.weight
 			.saturating_add(RocksDbWeight::get().writes(1 as Weight))

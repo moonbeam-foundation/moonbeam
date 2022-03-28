@@ -90,15 +90,21 @@ pub mod pallet {
 		) -> DispatchResult;
 
 		// How to destroy a foreign asset
-		fn destroy_foreign_asset(asset: T::AssetId, witness: T::AssetDestroyWitness) -> DispatchResult;
+		fn destroy_foreign_asset(
+			asset: T::AssetId,
+			witness: T::AssetDestroyWitness,
+		) -> DispatchResult;
 
 		// How to destroy a local asset
-		fn destroy_local_asset(asset: T::AssetId, witness: T::AssetDestroyWitness) -> DispatchResult;
+		fn destroy_local_asset(
+			asset: T::AssetId,
+			witness: T::AssetDestroyWitness,
+		) -> DispatchResult;
 
 		// Get destroy asset dispatch info
 		fn destroy_asset_dispatch_info_weight(
 			asset: T::AssetId,
-			witness: T::AssetDestroyWitness
+			witness: T::AssetDestroyWitness,
 		) -> Weight;
 	}
 
@@ -216,9 +222,7 @@ pub mod pallet {
 			asset_type: T::ForeignAssetType,
 		},
 		/// Removed all information related to an assetId and destroyed asset
-		LocalAssetDestroyed {
-			asset_id: T::AssetId,
-		},
+		LocalAssetDestroyed { asset_id: T::AssetId },
 	}
 
 	/// Mapping from an asset id to asset type.
@@ -576,9 +580,7 @@ pub mod pallet {
 			T::AssetRegistrar::destroy_local_asset(asset_id, destroy_asset_witness)
 				.map_err(|_| Error::<T>::ErrorDestroyingAsset)?;
 
-			Self::deposit_event(Event::LocalAssetDestroyed {
-				asset_id,
-			});
+			Self::deposit_event(Event::LocalAssetDestroyed { asset_id });
 			Ok(())
 		}
 	}

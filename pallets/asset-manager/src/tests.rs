@@ -755,7 +755,7 @@ fn test_removing_without_asset_units_per_second_does_not_panic() {
 #[test]
 fn test_destroy_asset_also_removes_everything() {
 	new_test_ext().execute_with(|| {
-		assert_ok!(AssetManager::register_asset(
+		assert_ok!(AssetManager::register_foreign_asset(
 			Origin::root(),
 			MockAssetType::MockAsset(1),
 			0u32.into(),
@@ -763,7 +763,7 @@ fn test_destroy_asset_also_removes_everything() {
 			true
 		));
 
-		assert_ok!(AssetManager::destroy_asset(Origin::root(), 1, 0, 1));
+		assert_ok!(AssetManager::destroy_foreign_asset(Origin::root(), 1, 0, 1));
 
 		// Mappings are deleted
 		assert!(AssetManager::asset_type_id(MockAssetType::MockAsset(1)).is_none());
@@ -773,12 +773,12 @@ fn test_destroy_asset_also_removes_everything() {
 		assert!(AssetManager::asset_type_units_per_second(MockAssetType::MockAsset(1)).is_none());
 
 		expect_events(vec![
-			crate::Event::AssetRegistered {
+			crate::Event::ForeignAssetRegistered {
 				asset_id: 1,
 				asset: MockAssetType::MockAsset(1),
 				metadata: 0,
 			},
-			crate::Event::AssetDestroyed {
+			crate::Event::ForeignAssetDestroyed {
 				asset_id: 1,
 				asset_type: MockAssetType::MockAsset(1),
 			},
