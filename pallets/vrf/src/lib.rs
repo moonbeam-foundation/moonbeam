@@ -54,13 +54,10 @@ pub mod pallet {
 	use sp_runtime::traits::AtLeast32BitUnsigned;
 
 	/// Make VRF transcript
-	pub fn make_transcript<T: Config>(
-		block_number: <T as frame_system::Config>::BlockNumber,
-		slot: Slot,
-	) -> Transcript {
+	pub fn make_transcript<T: Config>(relay_slot: Slot, relay_hash: &[u8]) -> Transcript {
 		let mut transcript = Transcript::new(&BABE_ENGINE_ID);
-		transcript.append_u64(b"relay block number", block_number.into());
-		transcript.append_u64(b"relay slot number", *slot);
+		transcript.append_u64(b"relay slot number", *relay_slot);
+		transcript.append_message(b"chain randomness", &relay_hash[..]);
 		transcript
 	}
 
@@ -79,11 +76,14 @@ pub mod pallet {
 	#[pallet::getter(fn author_vrf_randomness)]
 	pub(super) type AuthorVrfRandomness<T> = StorageValue<_, MaybeRandomness, ValueQuery>;
 
+	/// Current set of authorities by AuthorityId
 	#[pallet::storage]
 	#[pallet::getter(fn authorities)]
 	pub type Authorities<T> = StorageValue<_, Vec<AuthorityId>, ValueQuery>;
 
-	// TODO: storage items
+	// TODO:
+	// Store last relay block hash
+	// Store last relay slot number
 
 	impl<T: Config> Pallet<T> {
 		fn do_initialize(now: T::BlockNumber) {
@@ -112,21 +112,18 @@ pub mod pallet {
 							schnorrkel::PublicKey::from_bytes(author.as_slice()).ok()
 						})
 						.and_then(|pubkey| {
-							// what is this transcript? It is necessarily the input to the VRF?
-							// might need a special function for this
 							let transcript = make_transcript::<T>(
-								<T as frame_system::Config>::BlockNumber::default(),
 								Slot::default(),
+								// TODO: use the relay block hash,
+								&Vec::default(),
 							);
 
 							vrf_output.0.attach_input_hash(&pubkey, transcript).ok()
 						})
 						.map(|inout| inout.make_bytes(&sp_consensus_babe::BABE_VRF_INOUT_CONTEXT))
 				})
-				// TODO: do we need this?
 			});
-			// Place either the primary or secondary VRF output into the
-			// `AuthorVrfRandomness` storage item.
+			// Place the VRF output into the `AuthorVrfRandomness` storage item.
 			AuthorVrfRandomness::<T>::put(maybe_randomness);
 		}
 	}
