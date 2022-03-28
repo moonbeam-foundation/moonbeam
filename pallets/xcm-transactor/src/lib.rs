@@ -67,7 +67,7 @@ pub mod pallet {
 	use crate::weights::WeightInfo;
 	use frame_support::{pallet_prelude::*, weights::constants::WEIGHT_PER_SECOND};
 	use frame_system::{ensure_signed, pallet_prelude::*};
-	use orml_traits::location::{Parse, Reserve};
+	use orml_traits::location::Parse;
 	use sp_runtime::traits::{AtLeast32BitUnsigned, Convert};
 	use sp_std::borrow::ToOwned;
 	use sp_std::boxed::Box;
@@ -75,7 +75,7 @@ pub mod pallet {
 	use sp_std::prelude::*;
 	use xcm::{latest::prelude::*, VersionedMultiLocation};
 	use xcm_executor::traits::{InvertLocation, TransactAsset, WeightBounds};
-	use xcm_primitives::{UtilityAvailableCalls, UtilityEncodeCall, XcmTransact};
+	use xcm_primitives::{Reserve, UtilityAvailableCalls, UtilityEncodeCall, XcmTransact};
 
 	#[pallet::pallet]
 	#[pallet::without_storage_info]
