@@ -30,6 +30,7 @@ impl Snapshot {
 	}
 }
 
+#[cfg(feature = "evm-tracing")]
 impl From<Option<evm_gasometer::Snapshot>> for Snapshot {
 	fn from(i: Option<evm_gasometer::Snapshot>) -> Self {
 		if let Some(i) = i {
