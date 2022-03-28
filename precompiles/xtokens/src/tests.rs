@@ -20,7 +20,7 @@ use crate::mock::{
 	events, evm_test_context, precompile_address, CurrencyId, ExtBuilder, PrecompilesValue,
 	Runtime, TestAccount::*, TestPrecompiles,
 };
-use crate::{Action, PrecompileOutput};
+use crate::{Action, Currency, EvmMultiAsset, PrecompileOutput};
 use fp_evm::{Context, PrecompileFailure};
 use num_enum::TryFromPrimitive;
 use orml_xtokens::Event as XtokensEvent;
@@ -28,7 +28,7 @@ use pallet_evm::{ExitSucceed, PrecompileSet};
 use precompile_utils::{Address, EvmDataWriter};
 use sha3::{Digest, Keccak256};
 use sp_core::U256;
-use xcm::v1::{
+use xcm::latest::{
 	AssetId, Fungibility, Junction, Junctions, MultiAsset, MultiAssets, MultiLocation, NetworkId,
 };
 
@@ -674,9 +674,9 @@ fn transfer_multi_currencies() {
 					id: [1u8; 32],
 				}),
 			);
-			let currencies = vec![
-				(Address(AssetId(1u128).into()), U256::from(500)),
-				(Address(AssetId(2u128).into()), U256::from(500)),
+			let currencies: Vec<Currency> = vec![
+				(Address(AssetId(1u128).into()), U256::from(500)).into(),
+				(Address(AssetId(2u128).into()), U256::from(500)).into(),
 			];
 
 			// We are transferring 2 assets
@@ -744,9 +744,9 @@ fn transfer_multi_assets() {
 				Junctions::X2(Junction::Parachain(2), Junction::GeneralIndex(1u128)),
 			);
 
-			let assets = vec![
-				(asset_1_location.clone(), U256::from(500)),
-				(asset_2_location.clone(), U256::from(500)),
+			let assets: Vec<EvmMultiAsset> = vec![
+				(asset_1_location.clone(), U256::from(500)).into(),
+				(asset_2_location.clone(), U256::from(500)).into(),
 			];
 
 			let multiassets = MultiAssets::from_sorted_and_deduplicated(vec![
@@ -804,10 +804,10 @@ fn transfer_multi_currencies_cannot_insert_more_than_max() {
 					id: [1u8; 32],
 				}),
 			);
-			let currencies = vec![
-				(Address(AssetId(1u128).into()), U256::from(500)),
-				(Address(AssetId(2u128).into()), U256::from(500)),
-				(Address(AssetId(3u128).into()), U256::from(500)),
+			let currencies: Vec<Currency> = vec![
+				(Address(AssetId(1u128).into()), U256::from(500)).into(),
+				(Address(AssetId(2u128).into()), U256::from(500)).into(),
+				(Address(AssetId(3u128).into()), U256::from(500)).into(),
 			];
 
 			// We are transferring 3 assets, when max is 2
@@ -865,10 +865,10 @@ fn transfer_multi_assets_cannot_insert_more_than_max() {
 				Junctions::X2(Junction::Parachain(2), Junction::GeneralIndex(2u128)),
 			);
 
-			let assets = vec![
-				(asset_1_location.clone(), U256::from(500)),
-				(asset_2_location.clone(), U256::from(500)),
-				(asset_3_location.clone(), U256::from(500)),
+			let assets: Vec<EvmMultiAsset> = vec![
+				(asset_1_location.clone(), U256::from(500)).into(),
+				(asset_2_location.clone(), U256::from(500)).into(),
+				(asset_3_location.clone(), U256::from(500)).into(),
 			];
 
 			// We are transferring 3 assets, when max is 2
@@ -922,9 +922,9 @@ fn transfer_multi_assets_is_not_sorted_error() {
 				Junctions::X2(Junction::Parachain(2), Junction::GeneralIndex(0u128)),
 			);
 
-			let assets = vec![
-				(asset_1_location.clone(), U256::from(500)),
-				(asset_2_location.clone(), U256::from(500)),
+			let assets: Vec<EvmMultiAsset> = vec![
+				(asset_1_location.clone(), U256::from(500)).into(),
+				(asset_2_location.clone(), U256::from(500)).into(),
 			];
 
 			// We are transferring 3 assets, when max is 2

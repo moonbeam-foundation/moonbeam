@@ -27,7 +27,8 @@ use frame_support::{
 };
 use pallet_evm::{AddressMapping, Precompile};
 use precompile_utils::{
-	Address, EvmData, EvmDataReader, EvmResult, FunctionModifier, Gasometer, RuntimeHelper,
+	Address, EvmData, EvmDataReader, EvmDataWriter, EvmResult, FunctionModifier, Gasometer,
+	RuntimeHelper,
 };
 
 use sp_core::{H160, U256};
@@ -314,8 +315,7 @@ where
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
 		input.expect_arguments(gasometer, 4)?;
-		let non_mapped_currencies: Vec<(Address, U256)> =
-			input.read::<Vec<(Address, U256)>>(gasometer)?;
+		let non_mapped_currencies: Vec<Currency> = input.read::<Vec<Currency>>(gasometer)?;
 		let max_assets = MaxAssetsForTransfer::<Runtime>::get();
 
 		// We check this here so that we avoid iterating over the vec
@@ -342,9 +342,9 @@ where
 			)>,
 		> = non_mapped_currencies
 			.iter()
-			.map(|(address, amount)| {
-				let address_as_h160: H160 = address.clone().into();
-				let amount = amount.clone().try_into().map_err(|_| {
+			.map(|currency| {
+				let address_as_h160: H160 = currency.address.clone().into();
+				let amount = currency.amount.clone().try_into().map_err(|_| {
 					gasometer.revert("Amount is too large for provided balance type")
 				})?;
 
@@ -383,8 +383,7 @@ where
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
 		input.expect_arguments(gasometer, 4)?;
-		let assets: Vec<(MultiLocation, U256)> =
-			input.read::<Vec<(MultiLocation, U256)>>(gasometer)?;
+		let assets: Vec<EvmMultiAsset> = input.read::<Vec<EvmMultiAsset>>(gasometer)?;
 		let max_assets = MaxAssetsForTransfer::<Runtime>::get();
 
 		// We check this here so that we avoid iterating over the vec
@@ -405,11 +404,11 @@ where
 
 		let multiasset_vec: EvmResult<Vec<MultiAsset>> = assets
 			.iter()
-			.map(|(asset_location, amount)| {
-				let to_balance: u128 = amount.clone().try_into().map_err(|_| {
+			.map(|evm_multiasset| {
+				let to_balance: u128 = evm_multiasset.amount.clone().try_into().map_err(|_| {
 					gasometer.revert("Amount is too large for provided balance type")
 				})?;
-				Ok((asset_location.clone(), to_balance).into())
+				Ok((evm_multiasset.location.clone(), to_balance).into())
 			})
 			.collect();
 
@@ -433,5 +432,61 @@ where
 			output: Default::default(),
 			logs: Default::default(),
 		})
+	}
+}
+
+// Currency
+pub struct Currency {
+	address: Address,
+	amount: U256,
+}
+// For Currencies
+impl EvmData for Currency {
+	fn read(reader: &mut EvmDataReader, gasometer: &mut Gasometer) -> EvmResult<Self> {
+		let address: Address = reader.read(gasometer)?;
+		let amount: U256 = reader.read(gasometer)?;
+		Ok(Currency { address, amount })
+	}
+
+	fn write(writer: &mut EvmDataWriter, value: Self) {
+		EvmData::write(writer, value.address);
+		EvmData::write(writer, value.amount);
+	}
+}
+
+impl From<(Address, U256)> for Currency {
+	fn from(tuple: (Address, U256)) -> Self {
+		Currency {
+			address: tuple.0,
+			amount: tuple.1,
+		}
+	}
+}
+
+// EvmMultiAsset
+pub struct EvmMultiAsset {
+	location: MultiLocation,
+	amount: U256,
+}
+
+impl EvmData for EvmMultiAsset {
+	fn read(reader: &mut EvmDataReader, gasometer: &mut Gasometer) -> EvmResult<Self> {
+		let location: MultiLocation = reader.read(gasometer)?;
+		let amount: U256 = reader.read(gasometer)?;
+		Ok(EvmMultiAsset { location, amount })
+	}
+
+	fn write(writer: &mut EvmDataWriter, value: Self) {
+		EvmData::write(writer, value.location);
+		EvmData::write(writer, value.amount);
+	}
+}
+
+impl From<(MultiLocation, U256)> for EvmMultiAsset {
+	fn from(tuple: (MultiLocation, U256)) -> Self {
+		EvmMultiAsset {
+			location: tuple.0,
+			amount: tuple.1,
+		}
 	}
 }
