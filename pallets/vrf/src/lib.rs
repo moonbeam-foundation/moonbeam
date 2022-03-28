@@ -41,6 +41,12 @@ use sp_consensus_vrf::schnorrkel;
 // #[cfg(test)]
 // mod tests;
 
+// TODO
+// 1. get and set relay_block_hash
+// 2. get and set relay_slot_number
+// --> maybe in CheckInherents impl for runtime?
+// 3. client verification code like substrate/client/consensus/babe/verification
+
 use frame_support::pallet;
 
 pub use pallet::*;
@@ -51,13 +57,16 @@ type MaybeRandomness = Option<schnorrkel::Randomness>;
 pub mod pallet {
 	use super::*;
 	use frame_support::pallet_prelude::*;
-	use sp_runtime::traits::AtLeast32BitUnsigned;
+	use frame_system::pallet_prelude::*;
 
 	/// Make VRF transcript
-	pub fn make_transcript<T: Config>(relay_slot: Slot, relay_hash: &[u8]) -> Transcript {
+	pub fn make_transcript<Hash: AsRef<[u8]>>(
+		relay_slot_number: Slot,
+		relay_block_hash: Hash,
+	) -> Transcript {
 		let mut transcript = Transcript::new(&BABE_ENGINE_ID);
-		transcript.append_u64(b"relay slot number", *relay_slot);
-		transcript.append_message(b"chain randomness", &relay_hash[..]);
+		transcript.append_u64(b"relay slot number", *relay_slot_number);
+		transcript.append_message(b"relay block hash", relay_block_hash.as_ref());
 		transcript
 	}
 
@@ -67,32 +76,54 @@ pub mod pallet {
 	pub struct Pallet<T>(PhantomData<T>);
 
 	#[pallet::config]
-	pub trait Config: frame_system::Config {}
+	pub trait Config: frame_system::Config {
+		type RelayBlockHash: Parameter
+			+ Member
+			+ MaybeSerializeDeserialize
+			+ Default
+			+ Copy
+			+ AsRef<[u8]>;
+	}
 
 	/// This field should always be populated during block processing.
 	///
 	/// It is set in `on_initialize`, before it will contain the value from the last block.
+	/// TODO: don't we also want to store the proof on-chain?
 	#[pallet::storage]
-	#[pallet::getter(fn author_vrf_randomness)]
-	pub(super) type AuthorVrfRandomness<T> = StorageValue<_, MaybeRandomness, ValueQuery>;
+	#[pallet::getter(fn current_randomness)]
+	pub(super) type CurrentRandomness<T> = StorageValue<_, MaybeRandomness, ValueQuery>;
 
 	/// Current set of authorities by AuthorityId
 	#[pallet::storage]
 	#[pallet::getter(fn authorities)]
 	pub type Authorities<T> = StorageValue<_, Vec<AuthorityId>, ValueQuery>;
 
-	// TODO:
-	// Store last relay block hash
-	// Store last relay slot number
+	/// Most recent relay chain block hash
+	#[pallet::storage]
+	#[pallet::getter(fn last_relay_block_hash)]
+	pub type LastRelayBlockHash<T: Config> = StorageValue<_, T::RelayBlockHash, ValueQuery>;
+
+	/// Most recent relay chain slot number
+	#[pallet::storage]
+	#[pallet::getter(fn last_relay_slot_number)]
+	pub type LastRelaySlotNumber<T> = StorageValue<_, Slot, ValueQuery>;
+
+	#[pallet::hooks]
+	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
+		/// Initialization
+		fn on_initialize(_now: BlockNumberFor<T>) -> Weight {
+			Self::set_randomness()
+		}
+	}
 
 	impl<T: Config> Pallet<T> {
-		fn do_initialize(now: T::BlockNumber) {
+		// TODO: return weight consumed
+		fn set_randomness() -> Weight {
 			let maybe_pre_digest: Option<PreDigest> = <frame_system::Pallet<T>>::digest()
 				.logs
 				.iter()
 				.filter_map(|s| s.as_pre_runtime())
 				.filter_map(|(id, mut data)| {
-					// TODO: change to our own ID
 					if id == BABE_ENGINE_ID {
 						PreDigest::decode(&mut data).ok()
 					} else {
@@ -112,19 +143,18 @@ pub mod pallet {
 							schnorrkel::PublicKey::from_bytes(author.as_slice()).ok()
 						})
 						.and_then(|pubkey| {
-							let transcript = make_transcript::<T>(
-								Slot::default(),
-								// TODO: use the relay block hash,
-								&Vec::default(),
+							let transcript = make_transcript::<T::RelayBlockHash>(
+								LastRelaySlotNumber::<T>::get(),
+								LastRelayBlockHash::<T>::get(),
 							);
-
 							vrf_output.0.attach_input_hash(&pubkey, transcript).ok()
 						})
 						.map(|inout| inout.make_bytes(&sp_consensus_babe::BABE_VRF_INOUT_CONTEXT))
 				})
 			});
 			// Place the VRF output into the `AuthorVrfRandomness` storage item.
-			AuthorVrfRandomness::<T>::put(maybe_randomness);
+			CurrentRandomness::<T>::put(maybe_randomness);
+			0
 		}
 	}
 }
