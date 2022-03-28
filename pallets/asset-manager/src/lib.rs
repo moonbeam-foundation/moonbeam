@@ -25,17 +25,18 @@
 //! This pallet has four storage items: AssetIdType, which holds a mapping from AssetId->AssetType
 //! AssetTypeUnitsPerSecond: an AssetType->u128 mapping that holds how much each AssetType should be
 //! charged per unit of second, in the case such an Asset is received as a XCM asset. Finally,
-//! AssetTypeId holds a mapping from AssetType -> AssetId. Finally LocalAssetCreationauthorization
-//! which holds authorizations for specific accounts to create local assets
+//! AssetTypeId holds a mapping from AssetType -> AssetId. Finally LocalAssetCounter
+//! which holds the counter of local assets that have been created so far
 //!
-//! This pallet has five extrinsics: register_foreign_asset, which registers a foreign
+//! This pallet has six extrinsics: register_foreign_asset, which registers a foreign
 //! asset in this pallet and creates the asset as dictated by the AssetRegistrar trait.
 //! set_asset_units_per_second: which sets the unit per second that should be charged for
 //! a particular asset.
 //! change_existing_asset_type: which allows to update the correspondence between AssetId and
 //! AssetType
+//! remove_supported_asset: which removes an asset from the supported assets for fee payment
+//! remove_existing_asset_type: which removes a mapping from a foreign asset to an assetId
 //! register_local_asset: which creates a local asset with a specific owner
-//! authorize_local_asset: which gives authorization to an account to register a local asset
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
@@ -152,15 +153,6 @@ pub mod pallet {
 		type WeightInfo: WeightInfo;
 	}
 
-	/// Struct containing info about pending Local Asset to be registered
-	/// Includes the owner and the minimum balance
-	#[derive(Default, Clone, Encode, Decode, RuntimeDebug, PartialEq, scale_info::TypeInfo)]
-	#[scale_info(skip_type_params(T))]
-	pub struct LocalAssetInfo<T: Config> {
-		pub owner: T::AccountId,
-		pub min_balance: T::Balance,
-	}
-
 	/// An error that can occur while executing the mapping pallet's logic.
 	#[pallet::error]
 	pub enum Error<T> {
@@ -168,6 +160,7 @@ pub mod pallet {
 		AssetAlreadyExists,
 		AssetDoesNotExist,
 		TooLowNumAssetsWeightHint,
+		LocalAssetLimitReached
 	}
 
 	#[pallet::event]
@@ -456,7 +449,7 @@ pub mod pallet {
 		) -> DispatchResult {
 			T::LocalAssetModifierOrigin::ensure_origin(origin)?;
 
-			// Read Local Asset Counnter
+			// Read Local Asset Connter
 			let mut local_asset_counter = LocalAssetCounter::<T>::get();
 
 			// Create the assetId with LocalAssetIdCreator
@@ -464,6 +457,9 @@ pub mod pallet {
 				creator.clone(),
 				local_asset_counter,
 			);
+
+			// Increment the counter
+			local_asset_counter = local_asset_counter.checked_add(1).ok_or(Error::<T>::LocalAssetLimitReached)?;
 
 			// Create local asset
 			T::AssetRegistrar::create_local_asset(
@@ -474,7 +470,6 @@ pub mod pallet {
 			)
 			.map_err(|_| Error::<T>::ErrorCreatingAsset)?;
 
-			local_asset_counter += 1;
 
 			LocalAssetCounter::<T>::put(local_asset_counter);
 
