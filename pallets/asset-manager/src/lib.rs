@@ -23,8 +23,8 @@
 //! The assumption is we work with AssetTypes, which can then be comperted to AssetIds
 //!
 //! This pallet has four storage items: AssetIdType, which holds a mapping from AssetId->AssetType
-//! AssetTypeUnitsPerSecond: an AssetType->u128 mapping that holds how much each AssetType should be
-//! charged per unit of second, in the case such an Asset is received as a XCM asset. Finally,
+//! AssetTypeUnitsPerSecond: an AssetType->u128 mapping that holds how much each AssetType should
+//! be charged per unit of second, in the case such an Asset is received as a XCM asset. Finally,
 //! AssetTypeId holds a mapping from AssetType -> AssetId. Finally LocalAssetCounter
 //! which holds the counter of local assets that have been created so far
 //!
@@ -160,7 +160,7 @@ pub mod pallet {
 		AssetAlreadyExists,
 		AssetDoesNotExist,
 		TooLowNumAssetsWeightHint,
-		LocalAssetLimitReached
+		LocalAssetLimitReached,
 	}
 
 	#[pallet::event]
@@ -270,7 +270,8 @@ pub mod pallet {
 			Ok(())
 		}
 
-		/// Change the amount of units we are charging per execution second for a given AssetType
+		/// Change the amount of units we are charging per execution second
+		/// for a given ForeignAssetType
 		#[pallet::weight(T::WeightInfo::set_asset_units_per_second(*num_assets_weight_hint))]
 		pub fn set_asset_units_per_second(
 			origin: OriginFor<T>,
@@ -459,7 +460,9 @@ pub mod pallet {
 			);
 
 			// Increment the counter
-			local_asset_counter = local_asset_counter.checked_add(1).ok_or(Error::<T>::LocalAssetLimitReached)?;
+			local_asset_counter = local_asset_counter
+				.checked_add(1)
+				.ok_or(Error::<T>::LocalAssetLimitReached)?;
 
 			// Create local asset
 			T::AssetRegistrar::create_local_asset(
@@ -469,7 +472,6 @@ pub mod pallet {
 				owner.clone(),
 			)
 			.map_err(|_| Error::<T>::ErrorCreatingAsset)?;
-
 
 			LocalAssetCounter::<T>::put(local_asset_counter);
 
