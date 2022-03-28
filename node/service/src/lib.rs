@@ -541,11 +541,12 @@ where
 			}
 		};
 
-	let block_data_cache = Arc::new(fc_rpc::EthBlockDataCache::new(
+	let block_data_cache = Arc::new(fc_rpc::EthBlockDataCacheTask::new(
 		task_manager.spawn_handle(),
 		overrides.clone(),
-		rpc_config.eth_log_block_cache,
-		rpc_config.eth_log_block_cache,
+		rpc_config.eth_log_block_cache as u64,
+		rpc_config.eth_log_block_cache as u64,
+		prometheus_registry.clone(),
 	));
 
 	let rpc_extensions_builder = {
@@ -949,11 +950,12 @@ where
 			}
 		};
 
-	let block_data_cache = Arc::new(fc_rpc::EthBlockDataCache::new(
+	let block_data_cache = Arc::new(fc_rpc::EthBlockDataCacheTask::new(
 		task_manager.spawn_handle(),
 		overrides.clone(),
-		rpc_config.eth_log_block_cache,
-		rpc_config.eth_log_block_cache,
+		rpc_config.eth_log_block_cache as u64,
+		rpc_config.eth_log_block_cache as u64,
+		prometheus_registry,
 	));
 
 	let rpc_extensions_builder = {

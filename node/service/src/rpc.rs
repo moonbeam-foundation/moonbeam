@@ -28,7 +28,7 @@ use cli_opt::EthApi as EthApiCmd;
 use cumulus_primitives_core::ParaId;
 use fc_mapping_sync::{MappingSyncWorker, SyncStrategy};
 use fc_rpc::{
-	EthApi, EthApiServer, EthBlockDataCache, EthFilterApi, EthFilterApiServer, EthPubSubApi,
+	EthApi, EthApiServer, EthBlockDataCacheTask, EthFilterApi, EthFilterApiServer, EthPubSubApi,
 	EthPubSubApiServer, EthTask, HexEncodedIdProvider, NetApi, NetApiServer, OverrideHandle,
 	RuntimeApiStorageOverride, SchemaV1Override, SchemaV2Override, SchemaV3Override,
 	StorageOverride, Web3Api, Web3ApiServer,
@@ -98,7 +98,7 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 	/// Ethereum data access overrides.
 	pub overrides: Arc<OverrideHandle<Block>>,
 	/// Cache for Ethereum block data.
-	pub block_data_cache: Arc<EthBlockDataCache<Block>>,
+	pub block_data_cache: Arc<EthBlockDataCacheTask<Block>>,
 }
 
 pub fn overrides_handle<C, BE>(client: Arc<C>) -> Arc<OverrideHandle<Block>>
