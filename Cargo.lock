@@ -6835,7 +6835,7 @@ dependencies = [
 [[package]]
 name = "nimbus-consensus"
 version = "0.9.0"
-source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.18#51fbc86a909df0b9cf262b8e1d29213d8bb70abe"
+source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.18#96ea783752ff14ddcc85af95e1f9a6f2361d2fed"
 dependencies = [
  "async-trait",
  "cumulus-client-consensus-common 0.1.0 (git+https://github.com/paritytech/cumulus?branch=master)",
@@ -6866,7 +6866,7 @@ dependencies = [
 [[package]]
 name = "nimbus-primitives"
 version = "0.9.0"
-source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.18#51fbc86a909df0b9cf262b8e1d29213d8bb70abe"
+source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.18#96ea783752ff14ddcc85af95e1f9a6f2361d2fed"
 dependencies = [
  "async-trait",
  "frame-support 4.0.0-dev (git+https://github.com/paritytech/substrate?branch=master)",
@@ -7265,7 +7265,7 @@ dependencies = [
 [[package]]
 name = "pallet-author-inherent"
 version = "0.9.0"
-source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.18#51fbc86a909df0b9cf262b8e1d29213d8bb70abe"
+source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.18#96ea783752ff14ddcc85af95e1f9a6f2361d2fed"
 dependencies = [
  "frame-support 4.0.0-dev (git+https://github.com/paritytech/substrate?branch=master)",
  "frame-system 4.0.0-dev (git+https://github.com/paritytech/substrate?branch=master)",
@@ -7330,7 +7330,7 @@ dependencies = [
 [[package]]
 name = "pallet-author-slot-filter"
 version = "0.9.0"
-source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.18#51fbc86a909df0b9cf262b8e1d29213d8bb70abe"
+source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.18#96ea783752ff14ddcc85af95e1f9a6f2361d2fed"
 dependencies = [
  "frame-benchmarking 4.0.0-dev (git+https://github.com/paritytech/substrate?branch=master)",
  "frame-support 4.0.0-dev (git+https://github.com/paritytech/substrate?branch=master)",
