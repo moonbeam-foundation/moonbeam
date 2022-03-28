@@ -19,7 +19,7 @@
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{Everything, Get, Nothing, PalletInfoAccess},
-	weights::Weight,
+	weights::{GetDispatchInfo, Weight},
 	PalletId,
 };
 
@@ -658,6 +658,34 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 	) -> DispatchResult {
 		Err(sp_runtime::DispatchError::BadOrigin)
 	}
+
+	fn destroy_foreign_asset(
+		asset: AssetId,
+		asset_destroy_witness: pallet_assets::DestroyWitness,
+	) -> DispatchResult {
+		// First destroy the asset
+		Assets::destroy(Origin::root(), asset, asset_destroy_witness).map_err(|info| info.error)?;
+
+		Ok(())
+	}
+
+	fn destroy_local_asset(
+		_asset: AssetId,
+		_asset_destroy_witness: pallet_assets::DestroyWitness,
+	) -> DispatchResult {
+		Err(sp_runtime::DispatchError::BadOrigin)
+	}
+
+	fn destroy_asset_dispatch_info_weight(
+		asset: AssetId,
+		asset_destroy_witness: pallet_assets::DestroyWitness,
+	) -> Weight {
+		let call = Call::Assets(pallet_assets::Call::<Runtime>::destroy {
+			id: asset,
+			witness: asset_destroy_witness,
+		});
+		call.get_dispatch_info().weight
+	}
 }
 
 #[derive(Clone, Default, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
@@ -690,6 +718,7 @@ impl pallet_asset_manager::Config for Runtime {
 	type ForeignAssetModifierOrigin = EnsureRoot<AccountId>;
 	type LocalAssetModifierOrigin = EnsureRoot<AccountId>;
 	type LocalAssetIdCreator = LocalAssetIdCreator;
+	type AssetDestroyWitness = pallet_assets::DestroyWitness;
 	type WeightInfo = ();
 }
 
@@ -810,7 +839,7 @@ construct_runtime!(
 		XcmVersioner: mock_version_changer::{Pallet, Storage, Event<T>},
 
 		PolkadotXcm: pallet_xcm::{Pallet, Call, Event<T>, Origin},
-		Assets: pallet_assets::{Pallet, Storage, Event<T>},
+		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>},
 		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin},
 		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>},
 		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>},

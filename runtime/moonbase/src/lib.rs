@@ -1043,6 +1043,48 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		);
 		Ok(())
 	}
+
+	#[transactional]
+	fn destroy_foreign_asset(
+		asset: AssetId,
+		asset_destroy_witness: pallet_assets::DestroyWitness,
+	) -> DispatchResult {
+		// First destroy the asset
+		Assets::destroy(Origin::root(), asset, asset_destroy_witness).map_err(|info| info.error)?;
+
+		// We remove the EVM revert code
+		let precompile_address: H160 = Runtime::asset_id_to_account(FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, asset).into();
+		pallet_evm::AccountCodes::<Runtime>::remove(precompile_address);
+		Ok(())
+	}
+
+	#[transactional]
+	fn destroy_local_asset(
+		asset: AssetId,
+		asset_destroy_witness: pallet_assets::DestroyWitness,
+	) -> DispatchResult {
+		// First destroy the asset
+		LocalAssets::destroy(Origin::root(), asset, asset_destroy_witness).map_err(|info| info.error)?;
+
+		// We remove the EVM revert code
+		let precompile_address: H160 = Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, asset).into();
+		pallet_evm::AccountCodes::<Runtime>::remove(precompile_address);
+		Ok(())
+	}
+
+	fn destroy_asset_dispatch_info_weight(
+		asset: AssetId,
+		asset_destroy_witness: pallet_assets::DestroyWitness,
+	) -> Weight {
+		// For us both of them (Foreign and Local) have the same annotated weight for a given witness
+		let call = Call::Assets(pallet_assets::Call::<Runtime, ForeignAssetInstance>::destroy {
+			id: asset,
+			witness: asset_destroy_witness,
+		});
+		call.get_dispatch_info()
+			.weight
+			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
+	}
 }
 
 pub struct LocalAssetIdCreator;
@@ -1076,6 +1118,7 @@ impl pallet_asset_manager::Config for Runtime {
 	type ForeignAssetModifierOrigin = EnsureRoot<AccountId>;
 	type LocalAssetModifierOrigin = EnsureRoot<AccountId>;
 	type LocalAssetIdCreator = LocalAssetIdCreator;
+	type AssetDestroyWitness = pallet_assets::DestroyWitness;
 	type WeightInfo = pallet_asset_manager::weights::SubstrateWeight<Runtime>;
 }
 

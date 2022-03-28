@@ -88,6 +88,18 @@ pub mod pallet {
 			min_balance: T::Balance,
 			owner: T::AccountId,
 		) -> DispatchResult;
+
+		// How to destroy a foreign asset
+		fn destroy_foreign_asset(asset: T::AssetId, witness: T::AssetDestroyWitness) -> DispatchResult;
+
+		// How to destroy a local asset
+		fn destroy_local_asset(asset: T::AssetId, witness: T::AssetDestroyWitness) -> DispatchResult;
+
+		// Get destroy asset dispatch info
+		fn destroy_asset_dispatch_info_weight(
+			asset: T::AssetId,
+			witness: T::AssetDestroyWitness
+		) -> Weight;
 	}
 
 	// The local asset id creator. We cannot let users choose assetIds for their assets
@@ -150,6 +162,9 @@ pub mod pallet {
 		/// Means of creating local asset Ids
 		type LocalAssetIdCreator: LocalAssetIdCreator<Self>;
 
+		/// The asset destroy Witness
+		type AssetDestroyWitness: Member + Parameter;
+
 		type WeightInfo: WeightInfo;
 	}
 
@@ -161,6 +176,7 @@ pub mod pallet {
 		AssetDoesNotExist,
 		TooLowNumAssetsWeightHint,
 		LocalAssetLimitReached,
+		ErrorDestroyingAsset,
 	}
 
 	#[pallet::event]
@@ -193,6 +209,15 @@ pub mod pallet {
 			asset_id: T::AssetId,
 			creator: T::AccountId,
 			owner: T::AccountId,
+		},
+		/// Removed all information related to an assetId and destroyed asset
+		ForeignAssetDestroyed {
+			asset_id: T::AssetId,
+			asset_type: T::ForeignAssetType,
+		},
+		/// Removed all information related to an assetId and destroyed asset
+		LocalAssetDestroyed {
+			asset_id: T::AssetId,
 		},
 	}
 
@@ -479,6 +504,80 @@ pub mod pallet {
 				asset_id,
 				creator,
 				owner,
+			});
+			Ok(())
+		}
+
+		/// Destroy a given foreign assetId
+		#[pallet::weight({
+			let dispatch_info_weight = T::AssetRegistrar::destroy_asset_dispatch_info_weight(
+				*asset_id, destroy_asset_witness.clone()
+			);
+			T::WeightInfo::remove_existing_asset_type(*num_assets_weight_hint)
+			.saturating_add(dispatch_info_weight)
+		})]
+		pub fn destroy_foreign_asset(
+			origin: OriginFor<T>,
+			asset_id: T::AssetId,
+			destroy_asset_witness: T::AssetDestroyWitness,
+			num_assets_weight_hint: u32,
+		) -> DispatchResult {
+			T::ForeignAssetModifierOrigin::ensure_origin(origin)?;
+
+			T::AssetRegistrar::destroy_foreign_asset(asset_id, destroy_asset_witness)
+				.map_err(|_| Error::<T>::ErrorDestroyingAsset)?;
+
+			// Grab supported assets
+			let mut supported_assets = SupportedFeePaymentAssets::<T>::get();
+
+			ensure!(
+				num_assets_weight_hint >= (supported_assets.len() as u32),
+				Error::<T>::TooLowNumAssetsWeightHint
+			);
+
+			let asset_type =
+				AssetIdType::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
+
+			// Remove from AssetIdType
+			AssetIdType::<T>::remove(&asset_id);
+			// Remove from AssetTypeId
+			AssetTypeId::<T>::remove(&asset_type);
+			// Remove previous asset type units per second
+			AssetTypeUnitsPerSecond::<T>::remove(&asset_type);
+
+			// Only if the old asset is supported we need to remove it
+			if let Ok(index) = supported_assets.binary_search(&asset_type) {
+				supported_assets.remove(index);
+			}
+
+			// Insert
+			SupportedFeePaymentAssets::<T>::put(supported_assets);
+
+			Self::deposit_event(Event::ForeignAssetDestroyed {
+				asset_id,
+				asset_type,
+			});
+			Ok(())
+		}
+
+		/// Destroy a given local assetId
+		#[pallet::weight({
+			T::AssetRegistrar::destroy_asset_dispatch_info_weight(
+				*asset_id, destroy_asset_witness.clone()
+			)
+		})]
+		pub fn destroy_local_asset(
+			origin: OriginFor<T>,
+			asset_id: T::AssetId,
+			destroy_asset_witness: T::AssetDestroyWitness,
+		) -> DispatchResult {
+			T::LocalAssetModifierOrigin::ensure_origin(origin)?;
+
+			T::AssetRegistrar::destroy_local_asset(asset_id, destroy_asset_witness)
+				.map_err(|_| Error::<T>::ErrorDestroyingAsset)?;
+
+			Self::deposit_event(Event::LocalAssetDestroyed {
+				asset_id,
 			});
 			Ok(())
 		}
