@@ -650,15 +650,6 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 			false,
 		)
 	}
-	fn create_local_asset(
-		_asset: AssetId,
-		_creator: AccountId,
-		_min_balance: Balance,
-		_owner: AccountId,
-	) -> DispatchResult {
-		Err(sp_runtime::DispatchError::BadOrigin)
-	}
-
 	fn destroy_foreign_asset(
 		asset: AssetId,
 		asset_destroy_witness: pallet_assets::DestroyWitness,
@@ -667,13 +658,6 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		Assets::destroy(Origin::root(), asset, asset_destroy_witness).map_err(|info| info.error)?;
 
 		Ok(())
-	}
-
-	fn destroy_local_asset(
-		_asset: AssetId,
-		_asset_destroy_witness: pallet_assets::DestroyWitness,
-	) -> DispatchResult {
-		Err(sp_runtime::DispatchError::BadOrigin)
 	}
 
 	fn destroy_asset_dispatch_info_weight(

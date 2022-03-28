@@ -28,7 +28,7 @@
 //! AssetTypeId holds a mapping from AssetType -> AssetId. Finally LocalAssetCounter
 //! which holds the counter of local assets that have been created so far
 //!
-//! This pallet has six extrinsics: register_foreign_asset, which registers a foreign
+//! This pallet has eight extrinsics: register_foreign_asset, which registers a foreign
 //! asset in this pallet and creates the asset as dictated by the AssetRegistrar trait.
 //! set_asset_units_per_second: which sets the unit per second that should be charged for
 //! a particular asset.
@@ -37,6 +37,8 @@
 //! remove_supported_asset: which removes an asset from the supported assets for fee payment
 //! remove_existing_asset_type: which removes a mapping from a foreign asset to an assetId
 //! register_local_asset: which creates a local asset with a specific owner
+//! destroy_foreign_asset: which destroys a foreign asset and all its associated data
+//! destroy_local_asset: which destroys a local asset and all its associated data
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
@@ -73,38 +75,46 @@ pub mod pallet {
 		// How to create a foreign asset, meaning an asset whose reserve chain
 		// is not our chain
 		fn create_foreign_asset(
-			asset: T::AssetId,
-			min_balance: T::Balance,
-			metadata: T::AssetRegistrarMetadata,
+			_asset: T::AssetId,
+			_min_balance: T::Balance,
+			_metadata: T::AssetRegistrarMetadata,
 			// Wether or not an asset-receiving account increments the sufficient counter
-			is_sufficient: bool,
-		) -> DispatchResult;
+			_is_sufficient: bool,
+		) -> DispatchResult {
+			unimplemented!()
+		}
 
 		// Create a local asset, meaning an asset whose reserve chain is our chain
 		// This are created as non-sufficent by default
 		fn create_local_asset(
-			asset: T::AssetId,
-			account: T::AccountId,
-			min_balance: T::Balance,
-			owner: T::AccountId,
-		) -> DispatchResult;
+			_asset: T::AssetId,
+			_account: T::AccountId,
+			_min_balance: T::Balance,
+			_owner: T::AccountId,
+		) -> DispatchResult {
+			unimplemented!()
+		}
 
 		// How to destroy a foreign asset
 		fn destroy_foreign_asset(
-			asset: T::AssetId,
-			witness: T::AssetDestroyWitness,
-		) -> DispatchResult;
+			_asset: T::AssetId,
+			_witness: T::AssetDestroyWitness,
+		) -> DispatchResult {
+			unimplemented!()
+		}
 
 		// How to destroy a local asset
 		fn destroy_local_asset(
-			asset: T::AssetId,
-			witness: T::AssetDestroyWitness,
-		) -> DispatchResult;
+			_asset: T::AssetId,
+			_witness: T::AssetDestroyWitness,
+		) -> DispatchResult {
+			unimplemented!()
+		}
 
 		// Get destroy asset dispatch info
 		fn destroy_asset_dispatch_info_weight(
-			asset: T::AssetId,
-			witness: T::AssetDestroyWitness,
+			_asset: T::AssetId,
+			_witness: T::AssetDestroyWitness,
 		) -> Weight;
 	}
 
@@ -513,6 +523,9 @@ pub mod pallet {
 		}
 
 		/// Destroy a given foreign assetId
+		/// The weight in this case is the one returned by the trait
+		/// plus the db writes and reads from removing all the associated
+		/// data
 		#[pallet::weight({
 			let dispatch_info_weight = T::AssetRegistrar::destroy_asset_dispatch_info_weight(
 				*asset_id, destroy_asset_witness.clone()
@@ -565,6 +578,7 @@ pub mod pallet {
 		}
 
 		/// Destroy a given local assetId
+
 		#[pallet::weight({
 			T::AssetRegistrar::destroy_asset_dispatch_info_weight(
 				*asset_id, destroy_asset_witness.clone()

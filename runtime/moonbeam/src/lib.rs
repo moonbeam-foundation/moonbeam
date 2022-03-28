@@ -902,17 +902,6 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 	}
 
 	#[transactional]
-	fn create_local_asset(
-		_asset: AssetId,
-		_creator: AccountId,
-		_min_balance: Balance,
-		_owner: AccountId,
-	) -> DispatchResult {
-		// Do not support it for now
-		Err(sp_runtime::DispatchError::BadOrigin)
-	}
-
-	#[transactional]
 	fn destroy_foreign_asset(
 		asset: AssetId,
 		asset_destroy_witness: pallet_assets::DestroyWitness,
@@ -925,15 +914,6 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 			Runtime::asset_id_to_account(ASSET_PRECOMPILE_ADDRESS_PREFIX, asset).into();
 		pallet_evm::AccountCodes::<Runtime>::remove(precompile_address);
 		Ok(())
-	}
-
-	#[transactional]
-	fn destroy_local_asset(
-		_asset: AssetId,
-		_asset_destroy_witness: pallet_assets::DestroyWitness,
-	) -> DispatchResult {
-		// Do not support it for now
-		Err(sp_runtime::DispatchError::BadOrigin)
 	}
 
 	fn destroy_asset_dispatch_info_weight(
