@@ -28,12 +28,16 @@
 #![allow(unused_parens)]
 #![allow(unused_imports)]
 
-use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
+use frame_support::{
+	traits::Get,
+	weights::{constants::RocksDbWeight, Weight},
+};
 use sp_std::marker::PhantomData;
 
 /// Weight functions needed for {{pallet}}.
 pub trait WeightInfo {
 	{{#each benchmarks as |benchmark|}}
+	#[rustfmt::skip]
 	fn {{benchmark.name~}}
 	(
 		{{~#each benchmark.components as |c| ~}}
@@ -49,6 +53,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	{{#each benchmark.comments as |comment|}}
 	// {{comment}}
 	{{/each}}
+	#[rustfmt::skip]
 	fn {{benchmark.name~}}
 	(
 		{{~#each benchmark.components as |c| ~}}
@@ -81,6 +86,7 @@ impl WeightInfo for () {
 	{{#each benchmark.comments as |comment|}}
 	// {{comment}}
 	{{/each}}
+	#[rustfmt::skip]
 	fn {{benchmark.name~}}
 	(
 		{{~#each benchmark.components as |c| ~}}

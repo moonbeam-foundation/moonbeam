@@ -26,14 +26,14 @@ use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::Dispatchable,
 	traits::{
-		fungible::Inspect, fungibles::Inspect as FungiblesInspect, PalletInfo, StorageInfo,
+		fungible::Inspect, fungibles::Inspect as FungiblesInspect, EnsureOrigin, PalletInfo, StorageInfo,
 		StorageInfoTrait,
 	},
 	weights::{DispatchClass, Weight},
 	StorageHasher, Twox128,
 };
 use moonbase_runtime::{
-	currency::UNIT, xcm_config::AssetType, AccountId, AssetId, AssetManager,
+	currency::UNIT, get, xcm_config::AssetType, AccountId, AssetId, AssetManager,
 	AssetRegistrarMetadata, Assets, Balances, BaseFee, BlockWeights, Call, CrowdloanRewards, Event,
 	LocalAssets, ParachainStaking, PolkadotXcm, Precompiles, Runtime, System, XTokens,
 	XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
@@ -58,8 +58,18 @@ use sp_runtime::{
 use xcm::latest::prelude::*;
 
 #[test]
+fn xcmp_queue_controller_origin_is_root() {
+	// important for the XcmExecutionManager impl of PauseExecution which uses root origin
+	// to suspend/resume XCM execution in xcmp_queue::on_idle
+	assert_ok!(
+		<moonbase_runtime::Runtime as cumulus_pallet_xcmp_queue::Config
+		>::ControllerOrigin::ensure_origin(root_origin())
+	);
+}
+
+#[test]
 fn fast_track_available() {
-	assert!(<moonbase_runtime::Runtime as pallet_democracy::Config>::InstantAllowed::get());
+	assert!(get!(pallet_democracy, InstantAllowed, bool));
 }
 
 #[test]
@@ -2556,7 +2566,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 			let associate_expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: Default::default(),
-				cost: 23761u64,
+				cost: 11387u64,
 				logs: Default::default(),
 			}));
 
@@ -2588,7 +2598,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 			let update_expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: Default::default(),
-				cost: 22098u64,
+				cost: 11075u64,
 				logs: Default::default(),
 			}));
 
@@ -2621,7 +2631,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 			let clear_expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: Default::default(),
-				cost: 23784u64,
+				cost: 11450u64,
 				logs: Default::default(),
 			}));
 
