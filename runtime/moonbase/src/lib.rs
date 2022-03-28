@@ -957,8 +957,8 @@ impl pallet_assets::Config<ForeignAssetInstance> for Runtime {
 	type StringLimit = AssetsStringLimit;
 	type Freezer = ();
 	type Extra = ();
+	type AssetAccountDeposit = ConstU128<{ currency::deposit(1, 18) }>;
 	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
-	type AssetAccountDeposit = AssetAccountDeposit;
 }
 
 // Local assets
@@ -975,7 +975,7 @@ impl pallet_assets::Config<LocalAssetInstance> for Runtime {
 	type StringLimit = AssetsStringLimit;
 	type Freezer = ();
 	type Extra = ();
-	type AssetAccountDeposit = AssetAccountDeposit;
+	type AssetAccountDeposit = ConstU128<{ currency::deposit(1, 18) }>;
 	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
 }
 
