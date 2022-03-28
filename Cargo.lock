@@ -5817,7 +5817,7 @@ dependencies = [
  "pallet-transaction-payment-rpc-runtime-api",
  "parachain-staking",
  "parity-scale-codec",
- "parking_lot 0.9.0",
+ "parking_lot 0.12.0",
  "polkadot-cli",
  "polkadot-parachain",
  "polkadot-primitives",
@@ -6154,7 +6154,7 @@ dependencies = [
 [[package]]
 name = "nimbus-consensus"
 version = "0.9.0"
-source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.17#7dcc2821b860722b524819dc558837016da66c70"
+source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.17#8c7008666d0407b4536c7cf21c835e9ecc426774"
 dependencies = [
  "async-trait",
  "cumulus-client-consensus-common",
@@ -6165,7 +6165,7 @@ dependencies = [
  "log",
  "nimbus-primitives",
  "parity-scale-codec",
- "parking_lot 0.9.0",
+ "parking_lot 0.12.0",
  "polkadot-client",
  "sc-client-api",
  "sc-consensus",
@@ -6186,7 +6186,7 @@ dependencies = [
 [[package]]
 name = "nimbus-primitives"
 version = "0.9.0"
-source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.17#7dcc2821b860722b524819dc558837016da66c70"
+source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.17#8c7008666d0407b4536c7cf21c835e9ecc426774"
 dependencies = [
  "async-trait",
  "frame-support",
@@ -6566,7 +6566,7 @@ dependencies = [
 [[package]]
 name = "pallet-author-inherent"
 version = "0.9.0"
-source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.17#7dcc2821b860722b524819dc558837016da66c70"
+source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.17#8c7008666d0407b4536c7cf21c835e9ecc426774"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -6631,7 +6631,7 @@ dependencies = [
 [[package]]
 name = "pallet-author-slot-filter"
 version = "0.9.0"
-source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.17#7dcc2821b860722b524819dc558837016da66c70"
+source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.17#8c7008666d0407b4536c7cf21c835e9ecc426774"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -7926,17 +7926,6 @@ dependencies = [
 
 [[package]]
 name = "parking_lot"
-version = "0.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f842b1982eb6c2fe34036a4fbfb06dd185a3f5c8edfaacdf7d1ea10b07de6252"
-dependencies = [
- "lock_api 0.3.4",
- "parking_lot_core 0.6.2",
- "rustc_version 0.2.3",
-]
-
-[[package]]
-name = "parking_lot"
 version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d3a704eb390aafdc107b0e392f56a82b668e3a71366993b5340f5833fd62505e"
@@ -7974,21 +7963,6 @@ checksum = "94c8c7923936b28d546dfd14d4472eaf34c99b14e1c973a32b3e6d4eb04298c9"
 dependencies = [
  "libc",
  "rand 0.6.5",
- "rustc_version 0.2.3",
- "smallvec 0.6.14",
- "winapi 0.3.9",
-]
-
-[[package]]
-name = "parking_lot_core"
-version = "0.6.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b876b1b9e7ac6e1a74a6da34d25c42e17e8862aa409cbbbdcfc8d86c6f3bc62b"
-dependencies = [
- "cfg-if 0.1.10",
- "cloudabi",
- "libc",
- "redox_syscall 0.1.57",
  "rustc_version 0.2.3",
  "smallvec 0.6.14",
  "winapi 0.3.9",
@@ -13289,7 +13263,7 @@ dependencies = [
  "chrono",
  "lazy_static",
  "matchers",
- "parking_lot 0.7.1",
+ "parking_lot 0.10.2",
  "regex",
  "serde",
  "serde_json",
@@ -13436,7 +13410,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4ee73e6e4924fe940354b8d4d98cad5231175d615cd855b758adc658c0aac6a0"
 dependencies = [
  "cfg-if 1.0.0",
- "rand 0.6.5",
+ "rand 0.8.5",
  "static_assertions",
 ]
 
