@@ -37,7 +37,7 @@ pub mod pallet {
 			transactional,
 		},
 		frame_system::pallet_prelude::*,
-		sp_runtime::traits::{CheckedAdd, CheckedDiv, Zero},
+		sp_runtime::traits::{CheckedAdd, CheckedSub, Zero},
 	};
 
 	#[cfg(feature = "std")]
@@ -276,6 +276,22 @@ pub mod pallet {
 			staker: T::AccountId,
 			rewards: BalanceOf<T>,
 		},
+		/// Registered delayed leaving from staking towards this candidate.
+		RegisteredLeaving {
+			candidate: T::AccountId,
+			staker: T::AccountId,
+			stake: BalanceOf<T>,
+			leaving_shares: BalanceOf<T>,
+			total_leaving_shares: BalanceOf<T>,
+		},
+		/// Executed delayed leaving from staking towards this candidate.
+		ExecutedLeaving {
+			candidate: T::AccountId,
+			staker: T::AccountId,
+			stake: BalanceOf<T>,
+			leaving_shares: BalanceOf<T>,
+			requested_at: T::BlockNumber,
+		},
 	}
 
 	#[pallet::error]
@@ -306,15 +322,7 @@ pub mod pallet {
 			let shares = match quantity {
 				SharesOrStake::Shares(shares) => shares,
 				SharesOrStake::Stake(stake) => {
-					let shares_supply = ManualClaimSharesSupply::<T>::get(&candidate);
-
-					if Zero::is_zero(&shares_supply) {
-						stake
-							.checked_div(&T::InitialManualClaimShareValue::get())
-							.ok_or(Error::<T>::InvalidPalletSetting)?
-					} else {
-						shares::manual_claim::stake_to_shares::<T>(&candidate, &stake)?
-					}
+					shares::manual_claim::stake_to_shares_or_init::<T>(&candidate, &stake)?
 				}
 			};
 
@@ -401,15 +409,7 @@ pub mod pallet {
 			let shares = match quantity {
 				SharesOrStake::Shares(shares) => shares,
 				SharesOrStake::Stake(stake) => {
-					let shares_supply = AutoCompoundingSharesSupply::<T>::get(&candidate);
-
-					if Zero::is_zero(&shares_supply) {
-						stake
-							.checked_div(&T::InitialAutoCompoundingShareValue::get())
-							.ok_or(Error::<T>::InvalidPalletSetting)?
-					} else {
-						shares::auto_compounding::stake_to_shares::<T>(&candidate, &stake)?
-					}
+					shares::auto_compounding::stake_to_shares_or_init::<T>(&candidate, &stake)?
 				}
 			};
 
@@ -459,6 +459,122 @@ pub mod pallet {
 			)?;
 			shares::candidates::sub_stake::<T>(candidate.clone(), stake)?;
 			shares::leaving::register_leaving::<T>(candidate, staker, stake)?;
+
+			Ok(().into())
+		}
+
+		/// Convert ManualClaim shares to AutoCompounding shares.
+		/// Due to rounding while converting back and forth between stake and shares, some "dust"
+		/// stake will not be converted, and will be unstaked instead.
+		#[pallet::weight(0)]
+		#[transactional]
+		pub fn convert_manual_claim_to_auto_compounding(
+			origin: OriginFor<T>,
+			candidate: T::AccountId,
+			quantity: SharesOrStake<BalanceOf<T>>,
+		) -> DispatchResultWithPostInfo {
+			let staker = ensure_signed(origin)?;
+
+			let mc_shares = match quantity {
+				SharesOrStake::Shares(shares) => shares,
+				SharesOrStake::Stake(stake) => {
+					shares::manual_claim::stake_to_shares::<T>(&candidate, &stake)?
+				}
+			};
+
+			ensure!(!Zero::is_zero(&mc_shares), Error::<T>::StakeMustBeNonZero);
+
+			// It is important to automatically claim rewards before updating
+			// the amount of shares since pending rewards are stored per share.
+			let rewards = rewards::claim_rewards::<T>(candidate.clone(), staker.clone())?;
+			if !Zero::is_zero(&rewards) {
+				T::Currency::transfer(
+					&T::StakingAccount::get(),
+					&staker,
+					rewards,
+					ExistenceRequirement::KeepAlive,
+				)?;
+			}
+
+			// Shares convertion.
+			let mc_stake = shares::manual_claim::sub_shares::<T>(
+				candidate.clone(),
+				staker.clone(),
+				mc_shares,
+			)?;
+
+			let ac_shares =
+				shares::auto_compounding::stake_to_shares_or_init::<T>(&candidate, &mc_stake)?;
+			let ac_stake = shares::auto_compounding::add_shares::<T>(
+				candidate.clone(),
+				staker.clone(),
+				ac_shares,
+			)?;
+
+			// Deal with dust.
+			let diff_stake = mc_stake
+				.checked_sub(&ac_stake)
+				.ok_or(Error::<T>::MathUnderflow)?;
+			shares::candidates::sub_stake::<T>(candidate.clone(), diff_stake)?;
+			shares::leaving::register_leaving::<T>(candidate, staker, diff_stake)?;
+
+			Ok(().into())
+		}
+
+		/// Convert AutoCompounding shares to ManualClaim shares.
+		/// Due to rounding while converting back and forth between stake and shares, some "dust"
+		/// stake will not be converted, and will be unstaked instead.
+		#[pallet::weight(0)]
+		#[transactional]
+		pub fn convert_auto_compounding_to_manual_claim(
+			origin: OriginFor<T>,
+			candidate: T::AccountId,
+			quantity: SharesOrStake<BalanceOf<T>>,
+		) -> DispatchResultWithPostInfo {
+			let staker = ensure_signed(origin)?;
+
+			let ac_shares = match quantity {
+				SharesOrStake::Shares(shares) => shares,
+				SharesOrStake::Stake(stake) => {
+					shares::auto_compounding::stake_to_shares::<T>(&candidate, &stake)?
+				}
+			};
+
+			ensure!(!Zero::is_zero(&ac_shares), Error::<T>::StakeMustBeNonZero);
+
+			// It is important to automatically claim rewards before updating
+			// the amount of shares since pending rewards are stored per share.
+			let rewards = rewards::claim_rewards::<T>(candidate.clone(), staker.clone())?;
+			if !Zero::is_zero(&rewards) {
+				T::Currency::transfer(
+					&T::StakingAccount::get(),
+					&staker,
+					rewards,
+					ExistenceRequirement::KeepAlive,
+				)?;
+			}
+
+			// Shares convertion.
+			let ac_stake = shares::manual_claim::sub_shares::<T>(
+				candidate.clone(),
+				staker.clone(),
+				ac_shares,
+			)?;
+
+			let mc_shares =
+				shares::auto_compounding::stake_to_shares_or_init::<T>(&candidate, &ac_stake)?;
+			let mc_stake = shares::auto_compounding::add_shares::<T>(
+				candidate.clone(),
+				staker.clone(),
+				mc_shares,
+			)?;
+
+			// Deal with dust.
+			let diff_stake = ac_stake
+				.checked_sub(&mc_stake)
+				.ok_or(Error::<T>::MathUnderflow)?;
+			shares::candidates::sub_stake::<T>(candidate.clone(), diff_stake)?;
+			shares::leaving::register_leaving::<T>(candidate, staker, diff_stake)?;
 
 			Ok(().into())
 		}

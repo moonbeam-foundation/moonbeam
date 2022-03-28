@@ -22,7 +22,7 @@ use {
 		traits::{ConstU128, ConstU16, ConstU32, ConstU64, Everything},
 		weights::Weight,
 	},
-	sp_core::{H256, U256},
+	sp_core::H256,
 	sp_runtime::{
 		testing::Header,
 		traits::{BlakeTwo256, IdentityLookup},

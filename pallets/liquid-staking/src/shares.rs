@@ -84,6 +84,19 @@ pub mod manual_claim {
 			.ok_or(Error::NoOneIsStaking)
 	}
 
+	pub fn shares_to_stake_or_init<T: Config>(
+		candidate: &T::AccountId,
+		shares: &BalanceOf<T>,
+	) -> Result<BalanceOf<T>, Error<T>> {
+		if Zero::is_zero(&ManualClaimSharesSupply::<T>::get(&candidate)) {
+			shares
+				.checked_mul(&T::InitialManualClaimShareValue::get())
+				.ok_or(Error::MathOverflow)
+		} else {
+			shares_to_stake(candidate, shares)
+		}
+	}
+
 	pub fn stake_to_shares<T: Config>(
 		candidate: &T::AccountId,
 		stake: &BalanceOf<T>,
@@ -95,6 +108,19 @@ pub mod manual_claim {
 			.ok_or(Error::NoOneIsStaking)
 	}
 
+	pub fn stake_to_shares_or_init<T: Config>(
+		candidate: &T::AccountId,
+		stake: &BalanceOf<T>,
+	) -> Result<BalanceOf<T>, Error<T>> {
+		if Zero::is_zero(&ManualClaimSharesSupply::<T>::get(&candidate)) {
+			stake
+				.checked_div(&T::InitialManualClaimShareValue::get())
+				.ok_or(Error::<T>::InvalidPalletSetting)
+		} else {
+			stake_to_shares(candidate, stake)
+		}
+	}
+
 	pub fn add_shares<T: Config>(
 		candidate: T::AccountId,
 		staker: T::AccountId,
@@ -102,17 +128,9 @@ pub mod manual_claim {
 	) -> Result<BalanceOf<T>, Error<T>> {
 		ensure!(!Zero::is_zero(&shares), Error::StakeMustBeNonZero);
 
-		let shares_supply = ManualClaimSharesSupply::<T>::get(&candidate);
+		let stake = shares_to_stake_or_init(&candidate, &shares)?;
 
-		let stake = if Zero::is_zero(&shares_supply) {
-			shares
-				.checked_mul(&T::InitialManualClaimShareValue::get())
-				.ok_or(Error::MathOverflow)?
-		} else {
-			shares_to_stake(&candidate, &shares)?
-		};
-
-		let new_shares_supply = shares_supply
+		let new_shares_supply = ManualClaimSharesSupply::<T>::get(&candidate)
 			.checked_add(&shares)
 			.ok_or(Error::MathOverflow)?;
 
@@ -193,6 +211,19 @@ pub mod auto_compounding {
 			.ok_or(Error::NoOneIsStaking)
 	}
 
+	pub fn shares_to_stake_or_init<T: Config>(
+		candidate: &T::AccountId,
+		shares: &BalanceOf<T>,
+	) -> Result<BalanceOf<T>, Error<T>> {
+		if Zero::is_zero(&AutoCompoundingSharesSupply::<T>::get(&candidate)) {
+			shares
+				.checked_mul(&T::InitialAutoCompoundingShareValue::get())
+				.ok_or(Error::MathOverflow)
+		} else {
+			shares_to_stake(candidate, shares)
+		}
+	}
+
 	pub fn stake_to_shares<T: Config>(
 		candidate: &T::AccountId,
 		stake: &BalanceOf<T>,
@@ -209,6 +240,19 @@ pub mod auto_compounding {
 			.ok_or(Error::NoOneIsStaking)
 	}
 
+	pub fn stake_to_shares_or_init<T: Config>(
+		candidate: &T::AccountId,
+		stake: &BalanceOf<T>,
+	) -> Result<BalanceOf<T>, Error<T>> {
+		if Zero::is_zero(&AutoCompoundingSharesSupply::<T>::get(&candidate)) {
+			stake
+				.checked_div(&T::InitialAutoCompoundingShareValue::get())
+				.ok_or(Error::<T>::InvalidPalletSetting)
+		} else {
+			stake_to_shares(candidate, stake)
+		}
+	}
+
 	pub fn add_shares<T: Config>(
 		candidate: T::AccountId,
 		staker: T::AccountId,
@@ -216,17 +260,9 @@ pub mod auto_compounding {
 	) -> Result<BalanceOf<T>, Error<T>> {
 		ensure!(!Zero::is_zero(&shares), Error::StakeMustBeNonZero);
 
-		let shares_supply = AutoCompoundingSharesSupply::<T>::get(&candidate);
+		let stake = shares_to_stake_or_init(&candidate, &shares)?;
 
-		let stake = if Zero::is_zero(&shares_supply) {
-			shares
-				.checked_mul(&T::InitialAutoCompoundingShareValue::get())
-				.ok_or(Error::MathOverflow)?
-		} else {
-			shares_to_stake(&candidate, &shares)?
-		};
-
-		let new_shares_supply = shares_supply
+		let new_shares_supply = AutoCompoundingSharesSupply::<T>::get(&candidate)
 			.checked_add(&shares)
 			.ok_or(Error::MathOverflow)?;
 
@@ -306,7 +342,7 @@ pub mod leaving {
 	/// Add stake in the leaving pool of this Candidate.
 	/// Accept stake instead of shares since we want to deal with rounding.
 	/// Returns the amount of shares created.
-	pub fn add_stake<T: Config>(
+	fn add_stake<T: Config>(
 		candidate: T::AccountId,
 		staker: T::AccountId,
 		stake: BalanceOf<T>,
@@ -340,22 +376,13 @@ pub mod leaving {
 		LeavingShares::<T>::insert(&candidate, &staker, new_shares);
 		LeavingSharesTotalStaked::<T>::insert(&candidate, new_total_stake);
 
-		// Pallet::<T>::deposit_event(Event::<T>::StakedManualClaim {
-		// 	candidate,
-		// 	staker,
-		// 	shares,
-		// 	stake,
-		// });
-
-		// TODO: Event?
-
 		Ok(shares)
 	}
 
 	/// Remove shares from the leaving pool of this Candidate.
 	/// Accept shares since the leaving queue deal with shares to support slashing.
 	/// Returns value of removed shares.
-	pub fn sub_shares<T: Config>(
+	fn sub_shares<T: Config>(
 		candidate: T::AccountId,
 		staker: T::AccountId,
 		shares: BalanceOf<T>,
@@ -409,6 +436,14 @@ pub mod leaving {
 
 		LeavingRequests::<T>::insert((&candidate, &staker, block_number), new_leaving_shares);
 
+		Pallet::<T>::deposit_event(Event::<T>::RegisteredLeaving {
+			candidate,
+			staker,
+			stake,
+			leaving_shares,
+			total_leaving_shares: new_leaving_shares,
+		});
+
 		Ok(())
 	}
 
@@ -432,6 +467,14 @@ pub mod leaving {
 		let stake = sub_shares(candidate.clone(), staker.clone(), shares)?;
 
 		LeavingRequests::<T>::remove((&candidate, &staker, at_block));
+
+		Pallet::<T>::deposit_event(Event::<T>::ExecutedLeaving {
+			candidate,
+			staker,
+			stake,
+			leaving_shares: shares,
+			requested_at: at_block,
+		});
 
 		Ok(stake)
 	}
