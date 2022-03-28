@@ -410,7 +410,6 @@ impl pallet_evm::Config for Runtime {
 	type OnChargeTransaction = pallet_evm::EVMCurrencyAdapter<Balances, DealWithFees<Runtime>>;
 	type BlockGasLimit = BlockGasLimit;
 	type FindAuthor = FindAuthorAdapter<AuthorInherent>;
-	type WeightInfo = pallet_evm::weights::SubstrateWeight<Self>;
 }
 
 parameter_types! {

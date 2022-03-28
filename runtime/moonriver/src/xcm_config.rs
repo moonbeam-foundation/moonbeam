@@ -60,6 +60,8 @@ use sp_std::{
 	prelude::*,
 };
 
+use orml_traits::{location::AbsoluteReserveProvider, parameter_type_with_key};
+
 parameter_types! {
 	// The network Id of the relay
 	pub const RelayNetwork: NetworkId = NetworkId::Kusama;
@@ -303,6 +305,7 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type ExecuteOverweightOrigin = EnsureRoot<AccountId>;
 	type ControllerOrigin = EnsureRoot<AccountId>;
 	type ControllerOriginConverter = XcmOriginToTransactDispatchOrigin;
+	type WeightInfo = ();
 }
 
 impl cumulus_pallet_dmp_queue::Config for Runtime {
@@ -429,6 +432,12 @@ parameter_types! {
 	};
 }
 
+parameter_type_with_key! {
+	pub ParachainMinFee: |_location: MultiLocation| -> u128 {
+		u128::MAX
+	};
+}
+
 impl orml_xtokens::Config for Runtime {
 	type Event = Event;
 	type Balance = Balance;
@@ -442,6 +451,9 @@ impl orml_xtokens::Config for Runtime {
 	type BaseXcmWeight = BaseXcmWeight;
 	type LocationInverter = LocationInverter<Ancestry>;
 	type MaxAssetsForTransfer = MaxAssetsForTransfer;
+	type MinXcmFee = ParachainMinFee;
+	type MultiLocationsFilter = Everything;
+	type ReserveProvider = AbsoluteReserveProvider;
 }
 
 // For now we only allow to transact in the relay, although this might change in the future

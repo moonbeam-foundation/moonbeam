@@ -115,6 +115,7 @@ parachain-info = { git = "https://github.com/purestake/cumulus", branch = "moonb
 
 # Polkadot / XCM
 orml-xtokens = { git = "https://github.com/purestake/open-runtime-module-library", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
+orml-traits = { git = "https://github.com/purestake/open-runtime-module-library", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
 pallet-xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
 polkadot-core-primitives = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
 polkadot-parachain = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
