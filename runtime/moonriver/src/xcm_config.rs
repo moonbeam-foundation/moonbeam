@@ -178,6 +178,8 @@ pub type LocalFungiblesTransactorOldReanchor = FungiblesAdapter<
 		ConvertedConcreteAssetId<
 			AssetId,
 			Balance,
+			// This just tells to convert an assetId into a GeneralIndex junction prepended
+			// by LocalAssetsPalletLocationOldReanchor
 			AsPrefixedGeneralIndex<LocalAssetsPalletLocationOldReanchor, AssetId, JustTry>,
 			JustTry,
 		>,
@@ -201,6 +203,8 @@ pub type LocalFungiblesTransactorNewReanchor = FungiblesAdapter<
 		ConvertedConcreteAssetId<
 			AssetId,
 			Balance,
+			// This just tells to convert an assetId into a GeneralIndex junction prepended
+			// by LocalAssetsPalletLocationNewReanchor
 			AsPrefixedGeneralIndex<LocalAssetsPalletLocationNewReanchor, AssetId, JustTry>,
 			JustTry,
 		>,

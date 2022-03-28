@@ -872,8 +872,11 @@ impl pallet_migrations::Config for Runtime {
 type ForeignAssetInstance = pallet_assets::Instance1;
 type LocalAssetInstance = pallet_assets::Instance2;
 
-// These parameters dont matter much as this will only be called by root with the forced arguments
+// For foreign assets, these parameters dont matter much
+// as this will only be called by root with the forced arguments
 // No deposit is substracted with those methods
+// For local assets, they do matter. We use similar parameters
+// to those in statemine (except for approval)
 parameter_types! {
 	pub const AssetDeposit: Balance = currency::MOVR;
 	pub const ApprovalDeposit: Balance = 0;
@@ -914,14 +917,14 @@ impl pallet_assets::Config<LocalAssetInstance> for Runtime {
 	type AssetId = AssetId;
 	type Currency = Balances;
 	type ForceOrigin = AssetsForceOrigin;
-	type AssetDeposit = ConstU128<0>;
-	type MetadataDepositBase = ConstU128<0>;
-	type MetadataDepositPerByte = ConstU128<0>;
-	type ApprovalDeposit = ConstU128<0>;
-	type StringLimit = ConstU32<50>;
+	type AssetDeposit = AssetDeposit;
+	type MetadataDepositBase = MetadataDepositBase;
+	type MetadataDepositPerByte = MetadataDepositPerByte;
+	type ApprovalDeposit = ApprovalDeposit;
+	type StringLimit = AssetsStringLimit;
 	type Freezer = ();
 	type Extra = ();
-	type AssetAccountDeposit = ConstU128<{ currency::deposit(1, 18) }>;
+	type AssetAccountDeposit = AssetAccountDeposit;
 	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
 }
 
@@ -979,8 +982,7 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 
 		// No metadata needs to be set, as this can be set through regular calls
 
-		// TODO uncomment when we feel comfortable
-
+		// TODO: should we put the revert code?
 		// The asset has been created. Let's put the revert code in the precompile address
 		let precompile_address: H160 =
 			Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, asset).into();

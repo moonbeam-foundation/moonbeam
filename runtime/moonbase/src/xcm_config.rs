@@ -96,7 +96,7 @@ parameter_types! {
 		NewAnchoringSelfReserve::get()
 	];
 
-	// Old reanchor logic location for pallet assets
+	// Old reanchor logic location for local assets
 	// We need to support both in case we talk to a chain not in 0.9.16
 	pub LocalAssetsPalletLocationOldReanchor: MultiLocation = MultiLocation {
 		parents:1,
@@ -106,7 +106,7 @@ parameter_types! {
 		)
 	};
 
-	// New reanchor logic location for pallet assets
+	// New reanchor logic location for local assets
 	// We need to support both in case we talk to a chain not in 0.9.16
 	pub LocalAssetsPalletLocationNewReanchor: MultiLocation = MultiLocation {
 		parents:0,
@@ -177,6 +177,8 @@ pub type LocalFungiblesTransactorOldReanchor = FungiblesAdapter<
 		ConvertedConcreteAssetId<
 			AssetId,
 			Balance,
+			// This just tells to convert an assetId into a GeneralIndex junction prepended
+			// by LocalAssetsPalletLocationOldReanchor
 			AsPrefixedGeneralIndex<LocalAssetsPalletLocationOldReanchor, AssetId, JustTry>,
 			JustTry,
 		>,
@@ -201,6 +203,8 @@ pub type LocalFungiblesTransactorNewReanchor = FungiblesAdapter<
 		ConvertedConcreteAssetId<
 			AssetId,
 			Balance,
+			// This just tells to convert an assetId into a GeneralIndex junction prepended
+			// by LocalAssetsPalletLocationNewReanchor
 			AsPrefixedGeneralIndex<LocalAssetsPalletLocationNewReanchor, AssetId, JustTry>,
 			JustTry,
 		>,
