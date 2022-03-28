@@ -753,7 +753,7 @@ fn test_removing_without_asset_units_per_second_does_not_panic() {
 }
 
 #[test]
-fn test_destroy_asset_also_removes_everything() {
+fn test_destroy_foreign_asset_also_removes_everything() {
 	new_test_ext().execute_with(|| {
 		assert_ok!(AssetManager::register_foreign_asset(
 			Origin::root(),
@@ -783,5 +783,31 @@ fn test_destroy_asset_also_removes_everything() {
 				asset_type: MockAssetType::MockAsset(1),
 			},
 		])
+	});
+}
+
+#[test]
+fn test_destroy_local_asset_works() {
+	new_test_ext().execute_with(|| {
+		let asset_id = MockLocalAssetIdCreator::create_asset_id_from_metadata(1u64, 0);
+
+		assert_ok!(AssetManager::register_local_asset(
+			Origin::root(),
+			1u64,
+			1u64,
+			0u32.into(),
+		));
+
+		assert_ok!(AssetManager::destroy_local_asset(Origin::root(), 0, 0));
+
+		assert_eq!(AssetManager::local_asset_counter(), 1);
+		expect_events(vec![
+			crate::Event::LocalAssetRegistered {
+				asset_id,
+				creator: 1,
+				owner: 1,
+			},
+			crate::Event::LocalAssetDestroyed { asset_id },
+		]);
 	});
 }
