@@ -54,7 +54,7 @@ use sp_std::marker::PhantomData;
 /// Weight functions needed for pallet_asset_manager.
 pub trait WeightInfo {
 	#[rustfmt::skip]
-	fn register_asset() -> Weight;
+	fn register_foreign_asset() -> Weight;
 	#[rustfmt::skip]
 	fn set_asset_units_per_second(x: u32, ) -> Weight;
 	#[rustfmt::skip]
@@ -64,7 +64,7 @@ pub trait WeightInfo {
 	#[rustfmt::skip]
 	fn remove_existing_asset_type(x: u32, ) -> Weight;
 	#[rustfmt::skip]
-	fn register_local_asset(x: u32, ) -> Weight;
+	fn register_local_asset() -> Weight;
 }
 
 /// Weights for pallet_asset_manager using the Substrate node and recommended hardware.

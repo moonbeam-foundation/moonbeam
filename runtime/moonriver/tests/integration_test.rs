@@ -26,8 +26,8 @@ use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::Dispatchable,
 	traits::{
-		fungible::Inspect, fungibles::Inspect as FungiblesInspect, PalletInfo, StorageInfo,
-		StorageInfoTrait, EnsureOrigin
+		fungible::Inspect, fungibles::Inspect as FungiblesInspect, EnsureOrigin, PalletInfo,
+		StorageInfo, StorageInfoTrait,
 	},
 	weights::{DispatchClass, Weight},
 	StorageHasher, Twox128,
