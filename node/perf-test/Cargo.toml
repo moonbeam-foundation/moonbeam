@@ -47,7 +47,7 @@ sp-state-machine = { git = "https://github.com/purestake/substrate", branch = "m
 sp-timestamp = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18" }
 
 # Frontier
-ethereum = { version = "0.11.1" }
+ethereum = { version = "0.12.0" }
 fc-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.18" }
 fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.18" }
 fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.18" }
