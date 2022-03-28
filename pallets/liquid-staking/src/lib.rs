@@ -19,6 +19,9 @@
 mod rewards;
 mod shares;
 
+#[cfg(test)]
+mod mock;
+
 pub use pallet::*;
 
 use frame_support::pallet;
@@ -29,6 +32,7 @@ pub mod pallet {
 		super::{rewards, shares},
 		frame_support::{
 			pallet_prelude::*,
+			storage::types::Key,
 			traits::{tokens::ExistenceRequirement, Currency, ReservableCurrency},
 			transactional,
 		},
@@ -52,6 +56,14 @@ pub mod pallet {
 	pub enum SharesOrStake<T> {
 		Shares(T),
 		Stake(T),
+	}
+
+	/// Identifier used when executing a pending leaving request.
+	#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
+	#[derive(RuntimeDebug, PartialEq, Eq, Encode, Decode, Clone, TypeInfo)]
+	pub struct LeavingQuery<C, B> {
+		candidate: C,
+		at_block: B,
 	}
 
 	/// Liquid Staking pallet.
@@ -78,6 +90,12 @@ pub mod pallet {
 		/// Picking a value too high is a barrier of entry for staking, which will increase overtime
 		/// as the value of each share will increase due to auto compounding.
 		type InitialAutoCompoundingShareValue: Get<BalanceOf<Self>>;
+		/// When leaving staking the stake is put into leaving pools, and the share of this pool
+		/// is stored alongside the current BlockNumber. The user will be able to withdraw the stake
+		/// represented by those shares once LeavingDelay has passed.
+		/// Shares are used here to allow slashing, as while leaving stake is no longer used for
+		/// elections and rewards they must still be at stake in case the candidate misbehave.
+		type LeavingDelay: Get<Self::BlockNumber>;
 	}
 
 	/// Stake of each candidate.
@@ -130,7 +148,7 @@ pub mod pallet {
 	pub type ManualClaimSharesSupply<T: Config> =
 		StorageMap<_, Twox64Concat, T::AccountId, BalanceOf<T>, ValueQuery>;
 
-	/// Amount of stake that represents all Shares of a Candidate.
+	/// Amount of stake that represents all ManualClaim Shares of a Candidate.
 	#[pallet::storage]
 	pub type ManualClaimSharesTotalStaked<T: Config> =
 		StorageMap<_, Twox64Concat, T::AccountId, BalanceOf<T>, ValueQuery>;
@@ -153,6 +171,48 @@ pub mod pallet {
 		Twox64Concat,
 		T::AccountId,
 		// Value: Reward checkpoint for that Staker with this Candidate.
+		BalanceOf<T>,
+		ValueQuery,
+	>;
+
+	/// Shares among stakers leaving that Candidate.
+	#[pallet::storage]
+	pub type LeavingShares<T: Config> = StorageDoubleMap<
+		_,
+		// Key1: Candidate ID
+		Twox64Concat,
+		T::AccountId,
+		// Key2: Staker ID
+		Twox64Concat,
+		T::AccountId,
+		// Value: Amount of shares among stakers leaving that Candidate.
+		BalanceOf<T>,
+		ValueQuery,
+	>;
+
+	/// Total amount of Leaving Shares for each Candidate.
+	#[pallet::storage]
+	pub type LeavingSharesSupply<T: Config> =
+		StorageMap<_, Twox64Concat, T::AccountId, BalanceOf<T>, ValueQuery>;
+
+	/// Amount of stake that represents all Leaving Shares of a Candidate.
+	#[pallet::storage]
+	pub type LeavingSharesTotalStaked<T: Config> =
+		StorageMap<_, Twox64Concat, T::AccountId, BalanceOf<T>, ValueQuery>;
+
+	/// Requests for leaving.
+	#[pallet::storage]
+	pub type LeavingRequests<T: Config> = StorageNMap<
+		_,
+		(
+			// Candidate
+			Key<Twox64Concat, T::AccountId>,
+			// Staker
+			Key<Twox64Concat, T::AccountId>,
+			// Block at which the request was emited
+			Key<Twox64Concat, T::BlockNumber>,
+		),
+		// Number of shares requested for leaving at that block.
 		BalanceOf<T>,
 		ValueQuery,
 	>;
@@ -226,6 +286,7 @@ pub mod pallet {
 		MathUnderflow,
 		MathOverflow,
 		NotEnoughShares,
+		TryingToLeaveTooSoon,
 	}
 
 	#[pallet::call]
@@ -262,6 +323,15 @@ pub mod pallet {
 			// It is important to automatically claim rewards before updating
 			// the amount of shares since pending rewards are stored per share.
 			let rewards = rewards::claim_rewards::<T>(candidate.clone(), staker.clone())?;
+			if !Zero::is_zero(&rewards) {
+				T::Currency::transfer(
+					&T::StakingAccount::get(),
+					&staker,
+					rewards,
+					ExistenceRequirement::KeepAlive,
+				)?;
+			}
+
 			let stake =
 				shares::manual_claim::add_shares::<T>(candidate.clone(), staker.clone(), shares)?;
 			shares::candidates::add_stake::<T>(candidate.clone(), stake)?;
@@ -272,15 +342,6 @@ pub mod pallet {
 				stake,
 				ExistenceRequirement::KeepAlive,
 			)?;
-
-			if !Zero::is_zero(&rewards) {
-				T::Currency::transfer(
-					&T::StakingAccount::get(),
-					&staker,
-					rewards,
-					ExistenceRequirement::KeepAlive,
-				)?;
-			}
 
 			Ok(().into())
 		}
@@ -309,18 +370,19 @@ pub mod pallet {
 			// It is important to automatically claim rewards before updating
 			// the amount of shares since pending rewards are stored per share.
 			let rewards = rewards::claim_rewards::<T>(candidate.clone(), staker.clone())?;
+			if !Zero::is_zero(&rewards) {
+				T::Currency::transfer(
+					&T::StakingAccount::get(),
+					&staker,
+					rewards,
+					ExistenceRequirement::KeepAlive,
+				)?;
+			}
+
 			let stake =
 				shares::manual_claim::sub_shares::<T>(candidate.clone(), staker.clone(), shares)?;
 			shares::candidates::sub_stake::<T>(candidate.clone(), stake)?;
-
-			T::Currency::transfer(
-				&T::StakingAccount::get(),
-				&staker,
-				stake
-					.checked_add(&rewards)
-					.ok_or(Error::<T>::MathOverflow)?,
-				ExistenceRequirement::KeepAlive,
-			)?;
+			shares::leaving::register_leaving::<T>(candidate, staker, stake)?;
 
 			Ok(().into())
 		}
@@ -396,13 +458,7 @@ pub mod pallet {
 				shares,
 			)?;
 			shares::candidates::sub_stake::<T>(candidate.clone(), stake)?;
-
-			T::Currency::transfer(
-				&T::StakingAccount::get(),
-				&staker,
-				stake,
-				ExistenceRequirement::KeepAlive,
-			)?;
+			shares::leaving::register_leaving::<T>(candidate, staker, stake)?;
 
 			Ok(().into())
 		}
@@ -440,6 +496,38 @@ pub mod pallet {
 				// some claims succeed then another one fails.
 				Self::claim_manual_rewards(origin.clone(), candidate)?;
 			}
+
+			Ok(().into())
+		}
+
+		/// Execute leaving requests if the Leaving delay have elapsed.
+		#[pallet::weight(0)]
+		#[transactional]
+		pub fn execute_leaving(
+			origin: OriginFor<T>,
+			requests: Vec<LeavingQuery<T::AccountId, T::BlockNumber>>,
+		) -> DispatchResultWithPostInfo {
+			let staker = ensure_signed(origin)?;
+			let mut stake_sum: BalanceOf<T> = Zero::zero();
+
+			for request in requests {
+				let released = shares::leaving::execute_leaving::<T>(
+					request.candidate,
+					staker.clone(),
+					request.at_block,
+				)?;
+
+				stake_sum = stake_sum
+					.checked_add(&released)
+					.ok_or(Error::<T>::MathOverflow)?;
+			}
+
+			T::Currency::transfer(
+				&T::StakingAccount::get(),
+				&staker,
+				stake_sum,
+				ExistenceRequirement::KeepAlive,
+			)?;
 
 			Ok(().into())
 		}
