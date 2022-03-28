@@ -85,7 +85,7 @@ pub mod pallet {
 		}
 
 		// Create a local asset, meaning an asset whose reserve chain is our chain
-		// This are created as non-sufficent by default
+		// These are created as non-sufficent by default
 		fn create_local_asset(
 			_asset: T::AssetId,
 			_account: T::AccountId,
@@ -111,7 +111,7 @@ pub mod pallet {
 			unimplemented!()
 		}
 
-		// Get destroy asset dispatch info
+		// Get destroy asset weight dispatch info
 		fn destroy_asset_dispatch_info_weight(
 			_asset: T::AssetId,
 			_witness: T::AssetDestroyWitness,
@@ -121,7 +121,7 @@ pub mod pallet {
 	// The local asset id creator. We cannot let users choose assetIds for their assets
 	// because they can look for collisions in the EVM.
 	pub trait LocalAssetIdCreator<T: Config> {
-		// How to create an assetId from an AccountId
+		// How to create an assetId from an AccountId and local asset counter
 		fn create_asset_id_from_metadata(
 			creator: T::AccountId,
 			local_asset_counter: u128,
@@ -175,7 +175,7 @@ pub mod pallet {
 		/// Origin that is allowed to create and modify asset information for local assets
 		type LocalAssetModifierOrigin: EnsureOrigin<Self::Origin>;
 
-		/// Means of creating local asset Ids
+		/// Ways of creating local asset Ids
 		type LocalAssetIdCreator: LocalAssetIdCreator<Self>;
 
 		/// The asset destroy Witness
@@ -221,6 +221,7 @@ pub mod pallet {
 		},
 		/// Supported asset type for fee payment removed
 		SupportedAssetRemoved { asset_type: T::ForeignAssetType },
+		/// Local asset was created
 		LocalAssetRegistered {
 			asset_id: T::AssetId,
 			creator: T::AccountId,
@@ -260,7 +261,7 @@ pub mod pallet {
 	pub type AssetTypeUnitsPerSecond<T: Config> =
 		StorageMap<_, Blake2_128Concat, T::ForeignAssetType, u128>;
 
-	/// Stores the counter of the number of assets that have been
+	/// Stores the counter of the number of local assets that have been
 	/// created so far
 	#[pallet::storage]
 	#[pallet::getter(fn local_asset_counter)]
@@ -479,7 +480,6 @@ pub mod pallet {
 		}
 
 		/// Register a new local asset
-		/// We need a previously given authorization to be able to create local assets
 		#[pallet::weight(T::WeightInfo::register_local_asset())]
 		pub fn register_local_asset(
 			origin: OriginFor<T>,
@@ -512,6 +512,7 @@ pub mod pallet {
 			)
 			.map_err(|_| Error::<T>::ErrorCreatingAsset)?;
 
+			// Update local asset counter
 			LocalAssetCounter::<T>::put(local_asset_counter);
 
 			Self::deposit_event(Event::LocalAssetRegistered {
@@ -578,7 +579,6 @@ pub mod pallet {
 		}
 
 		/// Destroy a given local assetId
-
 		#[pallet::weight({
 			T::AssetRegistrar::destroy_asset_dispatch_info_weight(
 				*asset_id, destroy_asset_witness.clone()
