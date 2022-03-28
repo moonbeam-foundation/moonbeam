@@ -3,7 +3,7 @@ import { expect } from "chai";
 import { BN, bnToHex } from "@polkadot/util";
 import { KeyringPair } from "@polkadot/keyring/types";
 
-import { ALITH_PRIV_KEY } from "../util/constants";
+import { ALITH, ALITH_PRIV_KEY } from "../util/constants";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 import { createBlockWithExtrinsic } from "../util/substrate-rpc";
 import { verifyLatestBlockFees } from "../util/block";
@@ -20,7 +20,7 @@ const sourceLocation = { XCM: { parents: 1, interior: "Here" } };
 const newSourceLocation = { XCM: { parents: 1, interior: { X1: { Parachain: 1000 } } } };
 
 describeDevMoonbeam("XCM - asset manager - register asset", (context) => {
-  it("should be able to register an asset and set unit per sec", async function () {
+  it("should be able to register a foreign asset and set unit per sec", async function () {
     const keyringEth = new Keyring({ type: "ethereum" });
     const alith = keyringEth.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
 
@@ -61,6 +61,41 @@ describeDevMoonbeam("XCM - asset manager - register asset", (context) => {
     // check asset in storage
     const registeredAsset = ((await parachainOne.query.assets.asset(assetId)) as any).unwrap();
     expect(registeredAsset.owner.toString()).to.eq(palletId);
+
+    await verifyLatestBlockFees(context, expect);
+  });
+});
+
+describeDevMoonbeam("XCM - asset manager - register asset", (context) => {
+  it("should be able to register a local asset", async function () {
+    const keyringEth = new Keyring({ type: "ethereum" });
+    const alith = keyringEth.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
+
+    const parachainOne = context.polkadotApi;
+    // registerForeignAsset
+    const { events: eventsRegister } = await createBlockWithExtrinsic(
+      context,
+      alith,
+      parachainOne.tx.sudo.sudo(
+        parachainOne.tx.assetManager.registerLocalAsset(
+          ALITH,
+          ALITH,
+          new BN(1)
+        )
+      )
+    );
+    // Look for assetId in events
+    let assetId: string;
+    eventsRegister.forEach((e) => {
+      if (e.section.toString() === "assetManager") {
+        assetId = e.data[0].toHex();
+      }
+    });
+    assetId = assetId.replace(/,/g, "");
+
+    // check asset in storage
+    const registeredAsset = ((await parachainOne.query.localAssets.asset(assetId)) as any).unwrap();
+    expect(registeredAsset.owner.toString()).to.eq(ALITH);
 
     await verifyLatestBlockFees(context, expect);
   });
@@ -240,7 +275,7 @@ describeDevMoonbeam("XCM - asset manager - register asset", (context) => {
       context,
       alith,
       parachainOne.tx.sudo.sudo(
-        parachainOne.tx.assetManager.registerAsset(sourceLocation, assetMetadata, new BN(1), true)
+        parachainOne.tx.assetManager.registerForeignAsset(sourceLocation, assetMetadata, new BN(1), true)
       )
     );
 
@@ -269,7 +304,7 @@ describeDevMoonbeam("XCM - asset manager - register asset", (context) => {
     await verifyLatestBlockFees(context, expect);
   });
 
-  it("should be able to destroy an asset through pallet-asset-manager", async function () {
+  it("should be able to destroy a foreign asset through pallet-asset-manager", async function () {
     const assetDestroyWitness = context.polkadotApi.createType("PalletAssetsDestroyWitness", {
       accounts: 0,
       sufficients: 0,
@@ -281,7 +316,7 @@ describeDevMoonbeam("XCM - asset manager - register asset", (context) => {
       context,
       alith,
       context.polkadotApi.tx.sudo.sudo(
-        context.polkadotApi.tx.assetManager.destroyAsset(assetId, assetDestroyWitness, 1)
+        context.polkadotApi.tx.assetManager.destroyForeignAsset(assetId, assetDestroyWitness, 1)
       )
     );
 
