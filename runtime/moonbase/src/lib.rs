@@ -1177,6 +1177,9 @@ impl Contains<Call> for NormalFilter {
 			},
 			// We want to disable create, as we dont want users to be choosing the
 			// assetId of their choice
+			// We also disable destroy, as we want to route destroy through the
+			// asset-manager, which guarantees the removal both at the EVM and
+			// substrate side of things
 			Call::LocalAssets(method) => match method {
 				pallet_assets::Call::create { .. } => false,
 				pallet_assets::Call::destroy { .. } => false,
