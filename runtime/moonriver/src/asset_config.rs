@@ -35,8 +35,6 @@ use frame_support::{
 use frame_system::EnsureRoot;
 use sp_core::{H160, H256};
 
-use xcm::latest::prelude::*;
-
 use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
 
