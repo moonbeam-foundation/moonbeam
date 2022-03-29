@@ -30,14 +30,15 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use cumulus_pallet_parachain_system::RelaychainBlockNumberProvider;
 use fp_rpc::TransactionStatus;
-use pallet_evm_precompile_assets_erc20::AccountIdAssetIdConversion;
 
 use account::AccountId20;
 
 // Re-export required by get! macro.
 pub use frame_support::traits::Get;
 use frame_support::{
-	construct_runtime, parameter_types,
+	construct_runtime,
+	pallet_prelude::DispatchResult,
+	parameter_types,
 	traits::{
 		ConstBool, ConstU128, ConstU16, ConstU32, ConstU64, ConstU8, Contains,
 		Currency as CurrencyT, EnsureOneOf, EqualPrivilegeOnly, FindAuthor, Imbalance,
@@ -75,10 +76,7 @@ use sp_api::impl_runtime_apis;
 use sp_core::{u32_trait::*, OpaqueMetadata, H160, H256, U256};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
-	traits::{
-		BlakeTwo256, Block as BlockT, Dispatchable, Hash as Thash, IdentityLookup,
-		PostDispatchInfoOf,
-	},
+	traits::{BlakeTwo256, Block as BlockT, Dispatchable, IdentityLookup, PostDispatchInfoOf},
 	transaction_validity::{
 		InvalidTransaction, TransactionSource, TransactionValidity, TransactionValidityError,
 	},
@@ -92,7 +90,6 @@ use sp_std::{
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
-use xcm::latest::prelude::*;
 
 use nimbus_primitives::{CanAuthor, NimbusId};
 
@@ -109,6 +106,7 @@ pub use sp_runtime::BuildStorage;
 
 pub type Precompiles = MoonbasePrecompiles<Runtime>;
 
+pub mod asset_config;
 pub mod xcm_config;
 
 /// UNIT, the native token, uses 18 decimals of precision.
@@ -395,35 +393,6 @@ impl FeeCalculator for FixedGasPrice {
 ///            min is MinimumMultiplier
 pub type SlowAdjustingFeeUpdate<R> =
 	TargetedFeeAdjustment<R, TargetBlockFullness, AdjustmentVariable, MinimumMultiplier>;
-
-// Instruct how to go from an H160 to an AssetID
-// We just take the lowest 128 bits
-impl AccountIdAssetIdConversion<AccountId, AssetId> for Runtime {
-	/// The way to convert an account to assetId is by ensuring that the prefix is 0XFFFFFFFF
-	/// and by taking the lowest 128 bits as the assetId
-	fn account_to_asset_id(account: AccountId) -> Option<(Vec<u8>, AssetId)> {
-		let h160_account: H160 = account.into();
-		let mut data = [0u8; 16];
-		let (prefix_part, id_part) = h160_account.as_fixed_bytes().split_at(4);
-		if prefix_part == FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX
-			|| prefix_part == LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX
-		{
-			data.copy_from_slice(id_part);
-			let asset_id: AssetId = u128::from_be_bytes(data).into();
-			Some((prefix_part.to_vec(), asset_id))
-		} else {
-			None
-		}
-	}
-
-	// The opposite conversion
-	fn asset_id_to_account(prefix: &[u8], asset_id: AssetId) -> AccountId {
-		let mut data = [0u8; 20];
-		data[0..4].copy_from_slice(prefix);
-		data[4..20].copy_from_slice(&asset_id.to_be_bytes());
-		AccountId::from(data)
-	}
-}
 
 /// The author inherent provides an AccountId, but pallet evm needs an H160.
 /// This simple adapter makes the conversion for any types T, U such that T: Into<U>
@@ -918,222 +887,6 @@ impl pallet_migrations::Config for Runtime {
 			xcm_config::StatemintAssetPalletInstance,
 		>,
 	);
-}
-
-type ForeignAssetInstance = pallet_assets::Instance1;
-type LocalAssetInstance = pallet_assets::Instance2;
-
-// For foreign assets, these parameters dont matter much
-// as this will only be called by root with the forced arguments
-// No deposit is substracted with those methods
-// For local assets, they do matter. We use similar parameters
-// to those in statemine (except for approval)
-parameter_types! {
-	pub const AssetDeposit: Balance = currency::UNIT;
-	pub const ApprovalDeposit: Balance = 0;
-	pub const AssetsStringLimit: u32 = 50;
-	pub const MetadataDepositBase: Balance = currency::deposit(1,68);
-	pub const MetadataDepositPerByte: Balance = currency::deposit(0, 1);
-	pub const ExecutiveBody: BodyId = BodyId::Executive;
-}
-
-/// We allow root and Chain council to execute privileged asset operations.
-pub type AssetsForceOrigin = EnsureOneOf<
-	EnsureRoot<AccountId>,
-	pallet_collective::EnsureProportionMoreThan<_1, _2, AccountId, CouncilInstance>,
->;
-
-// Foreign assets
-impl pallet_assets::Config<ForeignAssetInstance> for Runtime {
-	type Event = Event;
-	type Balance = Balance;
-	type AssetId = AssetId;
-	type Currency = Balances;
-	type ForceOrigin = AssetsForceOrigin;
-	type AssetDeposit = AssetDeposit;
-	type MetadataDepositBase = MetadataDepositBase;
-	type MetadataDepositPerByte = MetadataDepositPerByte;
-	type ApprovalDeposit = ApprovalDeposit;
-	type StringLimit = AssetsStringLimit;
-	type Freezer = ();
-	type Extra = ();
-	type AssetAccountDeposit = ConstU128<{ currency::deposit(1, 18) }>;
-	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
-}
-
-// Local assets
-impl pallet_assets::Config<LocalAssetInstance> for Runtime {
-	type Event = Event;
-	type Balance = Balance;
-	type AssetId = AssetId;
-	type Currency = Balances;
-	type ForceOrigin = AssetsForceOrigin;
-	type AssetDeposit = AssetDeposit;
-	type MetadataDepositBase = MetadataDepositBase;
-	type MetadataDepositPerByte = MetadataDepositPerByte;
-	type ApprovalDeposit = ApprovalDeposit;
-	type StringLimit = AssetsStringLimit;
-	type Freezer = ();
-	type Extra = ();
-	type AssetAccountDeposit = ConstU128<{ currency::deposit(1, 18) }>;
-	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
-}
-
-// We instruct how to register the Assets
-// In this case, we tell it to Create an Asset in pallet-assets
-pub struct AssetRegistrar;
-use frame_support::{pallet_prelude::DispatchResult, transactional};
-
-impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
-	#[transactional]
-	fn create_foreign_asset(
-		asset: AssetId,
-		min_balance: Balance,
-		metadata: AssetRegistrarMetadata,
-		is_sufficient: bool,
-	) -> DispatchResult {
-		Assets::force_create(
-			Origin::root(),
-			asset,
-			AssetManager::account_id(),
-			is_sufficient,
-			min_balance,
-		)?;
-
-		// TODO uncomment when we feel comfortable
-		/*
-		// The asset has been created. Let's put the revert code in the precompile address
-		let precompile_address = Runtime::asset_id_to_account(ASSET_PRECOMPILE_ADDRESS_PREFIX, asset);
-		pallet_evm::AccountCodes::<Runtime>::insert(
-			precompile_address,
-			vec![0x60, 0x00, 0x60, 0x00, 0xfd],
-		);*/
-
-		// Lastly, the metadata
-		Assets::force_set_metadata(
-			Origin::root(),
-			asset,
-			metadata.name,
-			metadata.symbol,
-			metadata.decimals,
-			metadata.is_frozen,
-		)
-	}
-
-	#[transactional]
-	fn create_local_asset(
-		asset: AssetId,
-		creator: AccountId,
-		min_balance: Balance,
-		owner: AccountId,
-	) -> DispatchResult {
-		// In this case we use the regular call, since we want the deposit
-		// to be withdrawn from the caller
-		LocalAssets::create(Origin::signed(creator), asset, owner, min_balance)?;
-
-		// No metadata needs to be set, as this can be set through regular calls
-
-		// TODO: should we put the revert code?
-		// The asset has been created. Let's put the revert code in the precompile address
-		let precompile_address: H160 =
-			Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, asset).into();
-		pallet_evm::AccountCodes::<Runtime>::insert(
-			precompile_address,
-			vec![0x60, 0x00, 0x60, 0x00, 0xfd],
-		);
-		Ok(())
-	}
-
-	#[transactional]
-	fn destroy_foreign_asset(
-		asset: AssetId,
-		asset_destroy_witness: pallet_assets::DestroyWitness,
-	) -> DispatchResult {
-		// First destroy the asset
-		Assets::destroy(Origin::root(), asset, asset_destroy_witness).map_err(|info| info.error)?;
-
-		// We remove the EVM revert code
-		let precompile_address: H160 =
-			Runtime::asset_id_to_account(FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, asset).into();
-		pallet_evm::AccountCodes::<Runtime>::remove(precompile_address);
-		Ok(())
-	}
-
-	#[transactional]
-	fn destroy_local_asset(
-		asset: AssetId,
-		asset_destroy_witness: pallet_assets::DestroyWitness,
-	) -> DispatchResult {
-		// First destroy the asset
-		LocalAssets::destroy(Origin::root(), asset, asset_destroy_witness)
-			.map_err(|info| info.error)?;
-
-		// We remove the EVM revert code
-		let precompile_address: H160 =
-			Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, asset).into();
-		pallet_evm::AccountCodes::<Runtime>::remove(precompile_address);
-		Ok(())
-	}
-
-	fn destroy_asset_dispatch_info_weight(
-		asset: AssetId,
-		asset_destroy_witness: pallet_assets::DestroyWitness,
-	) -> Weight {
-		// For us both of them (Foreign and Local) have the same annotated weight for a given
-		// witness
-		// We need to take the dispatch info from the destroy call, which is already annotated in
-		// the assets pallet
-		// Additionally, we need to add a DB write for removing the precompile revert code in the
-		// EVM
-
-		// This is the dispatch info of destroy
-		let call = Call::Assets(
-			pallet_assets::Call::<Runtime, ForeignAssetInstance>::destroy {
-				id: asset,
-				witness: asset_destroy_witness,
-			},
-		);
-
-		// This is the db write
-		call.get_dispatch_info()
-			.weight
-			.saturating_add(<Runtime as frame_system::Config>::DbWeight::get().writes(1 as Weight))
-	}
-}
-
-pub struct LocalAssetIdCreator;
-impl pallet_asset_manager::LocalAssetIdCreator<Runtime> for LocalAssetIdCreator {
-	fn create_asset_id_from_metadata(local_asset_counter: u128) -> AssetId {
-		// Our means of converting a local asset counter to an assetId
-		// We basically hash (local asset counter)
-		let mut result: [u8; 16] = [0u8; 16];
-		let to_hash = local_asset_counter.encode();
-		let hash: H256 = to_hash.using_encoded(<Runtime as frame_system::Config>::Hashing::hash);
-		result.copy_from_slice(&hash.as_fixed_bytes()[0..16]);
-		u128::from_le_bytes(result)
-	}
-}
-
-#[derive(Clone, Default, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
-pub struct AssetRegistrarMetadata {
-	pub name: Vec<u8>,
-	pub symbol: Vec<u8>,
-	pub decimals: u8,
-	pub is_frozen: bool,
-}
-
-impl pallet_asset_manager::Config for Runtime {
-	type Event = Event;
-	type Balance = Balance;
-	type AssetId = AssetId;
-	type AssetRegistrarMetadata = AssetRegistrarMetadata;
-	type ForeignAssetType = xcm_config::AssetType;
-	type AssetRegistrar = AssetRegistrar;
-	type ForeignAssetModifierOrigin = EnsureRoot<AccountId>;
-	type LocalAssetModifierOrigin = EnsureRoot<AccountId>;
-	type LocalAssetIdCreator = LocalAssetIdCreator;
-	type AssetDestroyWitness = pallet_assets::DestroyWitness;
-	type WeightInfo = pallet_asset_manager::weights::SubstrateWeight<Runtime>;
 }
 
 /// Maintenance mode Call filter
