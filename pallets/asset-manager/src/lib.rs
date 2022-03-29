@@ -176,7 +176,7 @@ pub mod pallet {
 		type LocalAssetIdCreator: LocalAssetIdCreator<Self>;
 
 		/// The asset destroy Witness
-		type AssetDestroyWitness: Member + Parameter;
+		type AssetDestroyWitness: Member + Parameter + Copy;
 
 		type WeightInfo: WeightInfo;
 	}
@@ -528,7 +528,7 @@ pub mod pallet {
 		/// data
 		#[pallet::weight({
 			let dispatch_info_weight = T::AssetRegistrar::destroy_asset_dispatch_info_weight(
-				*asset_id, destroy_asset_witness.clone()
+				*asset_id, *destroy_asset_witness
 			);
 			T::WeightInfo::remove_existing_asset_type(*num_assets_weight_hint)
 			.saturating_add(dispatch_info_weight)
@@ -583,7 +583,7 @@ pub mod pallet {
 		/// to be counter here
 		#[pallet::weight({
 			T::AssetRegistrar::destroy_asset_dispatch_info_weight(
-				*asset_id, destroy_asset_witness.clone()
+				*asset_id, *destroy_asset_witness
 			)
 		})]
 		pub fn destroy_local_asset(
