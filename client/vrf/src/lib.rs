@@ -1,1 +1,1 @@
-/// VRF client primitives for client-side verification
+// VRF client primitives for client-side verification

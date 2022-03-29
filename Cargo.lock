@@ -5873,6 +5873,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "moonbeam-vrf"
+version = "0.1.0"
+dependencies = [
+ "futures 0.3.21",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "moonkey"
 version = "0.1.1"
 dependencies = [
