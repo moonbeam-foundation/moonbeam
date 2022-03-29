@@ -477,6 +477,10 @@ pub mod pallet {
 		}
 
 		/// Register a new local asset
+		/// No information is stored in this pallet about the local asset
+		/// The reason is that we dont need to hold a mapping between the multilocation
+		/// and the local asset, as this conversion is deterministic
+		/// Further, we dont allow xcm fee payment in local assets
 		#[pallet::weight(T::WeightInfo::register_local_asset())]
 		pub fn register_local_asset(
 			origin: OriginFor<T>,
@@ -574,6 +578,9 @@ pub mod pallet {
 		}
 
 		/// Destroy a given local assetId
+		/// We do not store anything related to local assets in this pallet other than the counter
+		/// and the counter is not used for destroying the asset, so no additional db reads/writes
+		/// to be counter here
 		#[pallet::weight({
 			T::AssetRegistrar::destroy_asset_dispatch_info_weight(
 				*asset_id, destroy_asset_witness.clone()
