@@ -95,4 +95,5 @@ impl liquid_staking::Config for Runtime {
 	type InitialManualClaimShareValue = ConstU128<1_000_000_000>;
 	type InitialAutoCompoundingShareValue = ConstU128<1_000_000_000>;
 	type LeavingDelay = ConstU64<5>;
+	type MinimumSelfDelegation = ConstU128<10_000_000_000>;
 }
