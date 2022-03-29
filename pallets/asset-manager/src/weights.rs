@@ -171,8 +171,8 @@ impl WeightInfo for () {
 	#[rustfmt::skip]
 	fn register_local_asset() -> Weight {
 		(42_064_000 as Weight)
-			.saturating_add(RocksDbWeight::DbWeight::get().reads(2 as Weight))
-			.saturating_add(RocksDbWeight::DbWeight::get().writes(3 as Weight))
+			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(3 as Weight))
 	}
 	// Storage: AssetManager SupportedFeePaymentAssets (r:1 w:1)
 	// Storage: AssetManager AssetTypeUnitsPerSecond (r:0 w:1)
