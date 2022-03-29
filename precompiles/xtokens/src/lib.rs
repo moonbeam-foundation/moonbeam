@@ -479,7 +479,10 @@ impl EvmData for EvmMultiAsset {
 	}
 
 	fn write(writer: &mut EvmDataWriter, value: Self) {
-		let inner_writer = EvmDataWriter::new().write(value.location).write(value.amount).build();
+		let inner_writer = EvmDataWriter::new()
+			.write(value.location)
+			.write(value.amount)
+			.build();
 		EvmDataWriter::write_pointer(writer, inner_writer);
 	}
 }
