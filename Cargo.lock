@@ -2460,7 +2460,7 @@ dependencies = [
  "impl-codec 0.6.0",
  "impl-rlp",
  "impl-serde",
- "scale-info 1.0.0",
+ "scale-info 2.0.1",
  "tiny-keccak",
 ]
 
@@ -2530,7 +2530,7 @@ dependencies = [
  "impl-rlp",
  "impl-serde",
  "primitive-types 0.11.1",
- "scale-info 1.0.0",
+ "scale-info 2.0.1",
  "uint",
 ]
 
@@ -9912,7 +9912,7 @@ dependencies = [
  "impl-codec 0.6.0",
  "impl-rlp",
  "impl-serde",
- "scale-info 1.0.0",
+ "scale-info 2.0.1",
  "uint",
 ]
 
