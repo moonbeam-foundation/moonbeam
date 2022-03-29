@@ -16,9 +16,123 @@
 
 use {
 	super::*,
-	frame_support::{ensure, traits::Get},
+	frame_support::{ensure, traits::Get, StorageDoubleMap, StorageMap},
 	sp_runtime::traits::{CheckedAdd, CheckedDiv, CheckedMul, CheckedSub, Zero},
 };
+
+mod common {
+	use super::*;
+
+	pub fn add<T, Supply, Shares>(
+		candidate: &T::AccountId,
+		staker: &T::AccountId,
+		shares: BalanceOf<T>,
+	) -> Result<(), Error<T>>
+	where
+		T: Config,
+		Supply: StorageMap<T::AccountId, BalanceOf<T>, Query = BalanceOf<T>>,
+		Shares: StorageDoubleMap<T::AccountId, T::AccountId, BalanceOf<T>, Query = BalanceOf<T>>,
+	{
+		let new_shares_supply = Supply::get(&candidate)
+			.checked_add(&shares)
+			.ok_or(Error::MathOverflow)?;
+
+		let new_shares = Shares::get(&candidate, &staker)
+			.checked_add(&shares)
+			.ok_or(Error::MathOverflow)?;
+
+		Supply::insert(&candidate, new_shares_supply);
+		Shares::insert(&candidate, &staker, new_shares);
+
+		Ok(())
+	}
+
+	pub fn sub<T, Supply, Shares>(
+		candidate: &T::AccountId,
+		staker: &T::AccountId,
+		shares: BalanceOf<T>,
+	) -> Result<(), Error<T>>
+	where
+		T: Config,
+		Supply: StorageMap<T::AccountId, BalanceOf<T>, Query = BalanceOf<T>>,
+		Shares: StorageDoubleMap<T::AccountId, T::AccountId, BalanceOf<T>, Query = BalanceOf<T>>,
+	{
+		let new_shares_supply = Supply::get(&candidate)
+			.checked_sub(&shares)
+			.ok_or(Error::MathUnderflow)?;
+
+		let new_shares = Shares::get(&candidate, &staker)
+			.checked_sub(&shares)
+			.ok_or(Error::MathUnderflow)?;
+
+		Supply::insert(&candidate, new_shares_supply);
+		Shares::insert(&candidate, &staker, new_shares);
+
+		Ok(())
+	}
+
+	pub fn add_staked<T, Supply, Shares, Staked>(
+		candidate: &T::AccountId,
+		staker: &T::AccountId,
+		shares: BalanceOf<T>,
+		stake: BalanceOf<T>,
+	) -> Result<(), Error<T>>
+	where
+		T: Config,
+		Supply: StorageMap<T::AccountId, BalanceOf<T>, Query = BalanceOf<T>>,
+		Shares: StorageDoubleMap<T::AccountId, T::AccountId, BalanceOf<T>, Query = BalanceOf<T>>,
+		Staked: StorageMap<T::AccountId, BalanceOf<T>, Query = BalanceOf<T>>,
+	{
+		let new_shares_supply = Supply::get(&candidate)
+			.checked_add(&shares)
+			.ok_or(Error::MathOverflow)?;
+
+		let new_shares = Shares::get(&candidate, &staker)
+			.checked_add(&shares)
+			.ok_or(Error::MathOverflow)?;
+
+		let new_total_stake = Staked::get(&candidate)
+			.checked_add(&stake)
+			.ok_or(Error::MathOverflow)?;
+
+		Supply::insert(&candidate, new_shares_supply);
+		Shares::insert(&candidate, &staker, new_shares);
+		Staked::insert(&candidate, new_total_stake);
+
+		Ok(())
+	}
+
+	pub fn sub_staked<T, Supply, Shares, Staked>(
+		candidate: &T::AccountId,
+		staker: &T::AccountId,
+		shares: BalanceOf<T>,
+		stake: BalanceOf<T>,
+	) -> Result<(), Error<T>>
+	where
+		T: Config,
+		Supply: StorageMap<T::AccountId, BalanceOf<T>, Query = BalanceOf<T>>,
+		Shares: StorageDoubleMap<T::AccountId, T::AccountId, BalanceOf<T>, Query = BalanceOf<T>>,
+		Staked: StorageMap<T::AccountId, BalanceOf<T>, Query = BalanceOf<T>>,
+	{
+		let new_shares_supply = Supply::get(&candidate)
+			.checked_sub(&shares)
+			.ok_or(Error::MathUnderflow)?;
+
+		let new_shares = Shares::get(&candidate, &staker)
+			.checked_sub(&shares)
+			.ok_or(Error::MathUnderflow)?;
+
+		let new_total_stake = Staked::get(&candidate)
+			.checked_sub(&stake)
+			.ok_or(Error::MathUnderflow)?;
+
+		Supply::insert(&candidate, new_shares_supply);
+		Shares::insert(&candidate, &staker, new_shares);
+		Staked::insert(&candidate, new_total_stake);
+
+		Ok(())
+	}
+}
 
 pub mod candidates {
 	use super::*;
@@ -130,21 +244,12 @@ pub mod manual_claim {
 
 		let stake = shares_to_stake_or_init(&candidate, &shares)?;
 
-		let new_shares_supply = ManualClaimSharesSupply::<T>::get(&candidate)
-			.checked_add(&shares)
-			.ok_or(Error::MathOverflow)?;
-
-		let new_shares = ManualClaimShares::<T>::get(&candidate, &staker)
-			.checked_add(&shares)
-			.ok_or(Error::MathOverflow)?;
-
-		let new_total_staked = ManualClaimSharesTotalStaked::<T>::get(&candidate)
-			.checked_add(&stake)
-			.ok_or(Error::MathOverflow)?;
-
-		ManualClaimSharesSupply::<T>::insert(&candidate, new_shares_supply);
-		ManualClaimShares::<T>::insert(&candidate, &staker, new_shares);
-		ManualClaimSharesTotalStaked::<T>::insert(&candidate, new_total_staked);
+		common::add_staked::<
+			T,
+			ManualClaimSharesSupply<T>,
+			ManualClaimShares<T>,
+			ManualClaimSharesTotalStaked<T>,
+		>(&candidate, &staker, shares, stake)?;
 
 		Pallet::<T>::deposit_event(Event::<T>::StakedManualClaim {
 			candidate,
@@ -165,21 +270,12 @@ pub mod manual_claim {
 
 		let stake = shares_to_stake(&candidate, &shares)?;
 
-		let new_shares_supply = ManualClaimSharesSupply::<T>::get(&candidate)
-			.checked_sub(&shares)
-			.ok_or(Error::MathUnderflow)?;
-
-		let new_shares = ManualClaimShares::<T>::get(&candidate, &staker)
-			.checked_sub(&shares)
-			.ok_or(Error::MathUnderflow)?;
-
-		let new_total_staked = ManualClaimSharesTotalStaked::<T>::get(&candidate)
-			.checked_sub(&stake)
-			.ok_or(Error::MathUnderflow)?;
-
-		ManualClaimSharesSupply::<T>::insert(&candidate, new_shares_supply);
-		ManualClaimShares::<T>::insert(&candidate, &staker, new_shares);
-		ManualClaimSharesTotalStaked::<T>::insert(&candidate, new_total_staked);
+		common::sub_staked::<
+			T,
+			ManualClaimSharesSupply<T>,
+			ManualClaimShares<T>,
+			ManualClaimSharesTotalStaked<T>,
+		>(&candidate, &staker, shares, stake)?;
 
 		Pallet::<T>::deposit_event(Event::<T>::UnstakedManualClaim {
 			candidate,
@@ -262,16 +358,9 @@ pub mod auto_compounding {
 
 		let stake = shares_to_stake_or_init(&candidate, &shares)?;
 
-		let new_shares_supply = AutoCompoundingSharesSupply::<T>::get(&candidate)
-			.checked_add(&shares)
-			.ok_or(Error::MathOverflow)?;
-
-		let new_shares = AutoCompoundingShares::<T>::get(&candidate, &staker)
-			.checked_add(&shares)
-			.ok_or(Error::MathOverflow)?;
-
-		AutoCompoundingSharesSupply::<T>::insert(&candidate, new_shares_supply);
-		AutoCompoundingShares::<T>::insert(&candidate, &staker, new_shares);
+		common::add::<T, AutoCompoundingSharesSupply<T>, AutoCompoundingShares<T>>(
+			&candidate, &staker, shares,
+		)?;
 
 		Pallet::<T>::deposit_event(Event::<T>::StakedAutoCompounding {
 			candidate,
@@ -292,16 +381,9 @@ pub mod auto_compounding {
 
 		let stake = shares_to_stake(&candidate, &shares)?;
 
-		let new_shares_supply = AutoCompoundingSharesSupply::<T>::get(&candidate)
-			.checked_sub(&shares)
-			.ok_or(Error::MathUnderflow)?;
-
-		let new_shares = AutoCompoundingShares::<T>::get(&candidate, &staker)
-			.checked_sub(&shares)
-			.ok_or(Error::MathUnderflow)?;
-
-		AutoCompoundingSharesSupply::<T>::insert(&candidate, new_shares_supply);
-		AutoCompoundingShares::<T>::insert(&candidate, &staker, new_shares);
+		common::sub::<T, AutoCompoundingSharesSupply<T>, AutoCompoundingShares<T>>(
+			&candidate, &staker, shares,
+		)?;
 
 		Pallet::<T>::deposit_event(Event::<T>::UnstakedAutoCompounding {
 			candidate,
@@ -360,21 +442,12 @@ pub mod leaving {
 			stake_to_shares(&candidate, &stake)?
 		};
 
-		let new_shares_supply = shares_supply
-			.checked_add(&shares)
-			.ok_or(Error::MathOverflow)?;
-
-		let new_shares = LeavingShares::<T>::get(&candidate, &staker)
-			.checked_add(&shares)
-			.ok_or(Error::MathOverflow)?;
-
-		let new_total_stake = LeavingSharesTotalStaked::<T>::get(&candidate)
-			.checked_add(&stake)
-			.ok_or(Error::MathOverflow)?;
-
-		LeavingSharesSupply::<T>::insert(&candidate, new_shares_supply);
-		LeavingShares::<T>::insert(&candidate, &staker, new_shares);
-		LeavingSharesTotalStaked::<T>::insert(&candidate, new_total_stake);
+		common::add_staked::<
+			T,
+			LeavingSharesSupply<T>,
+			LeavingShares<T>,
+			LeavingSharesTotalStaked<T>,
+		>(&candidate, &staker, shares, stake)?;
 
 		Ok(shares)
 	}
@@ -391,30 +464,12 @@ pub mod leaving {
 
 		let stake = shares_to_stake(&candidate, &shares)?;
 
-		let new_shares_supply = LeavingSharesSupply::<T>::get(&candidate)
-			.checked_sub(&shares)
-			.ok_or(Error::MathUnderflow)?;
-
-		let new_shares = LeavingShares::<T>::get(&candidate, &staker)
-			.checked_sub(&shares)
-			.ok_or(Error::MathUnderflow)?;
-
-		let new_total_staked = LeavingSharesTotalStaked::<T>::get(&candidate)
-			.checked_sub(&stake)
-			.ok_or(Error::MathUnderflow)?;
-
-		LeavingSharesSupply::<T>::insert(&candidate, new_shares_supply);
-		LeavingShares::<T>::insert(&candidate, &staker, new_shares);
-		LeavingSharesTotalStaked::<T>::insert(&candidate, new_total_staked);
-
-		// Pallet::<T>::deposit_event(Event::<T>::UnstakedManualClaim {
-		// 	candidate,
-		// 	staker,
-		// 	shares,
-		// 	stake,
-		// });
-
-		// TODO: Event?
+		common::sub_staked::<
+			T,
+			LeavingSharesSupply<T>,
+			LeavingShares<T>,
+			LeavingSharesTotalStaked<T>,
+		>(&candidate, &staker, shares, stake)?;
 
 		Ok(stake)
 	}
