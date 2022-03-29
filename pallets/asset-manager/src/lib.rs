@@ -121,11 +121,8 @@ pub mod pallet {
 	// The local asset id creator. We cannot let users choose assetIds for their assets
 	// because they can look for collisions in the EVM.
 	pub trait LocalAssetIdCreator<T: Config> {
-		// How to create an assetId from an AccountId and local asset counter
-		fn create_asset_id_from_metadata(
-			creator: T::AccountId,
-			local_asset_counter: u128,
-		) -> T::AssetId;
+		// How to create an assetId from the local asset counter
+		fn create_asset_id_from_metadata(local_asset_counter: u128) -> T::AssetId;
 	}
 
 	// We implement this trait to be able to get the AssetType and units per second registered
@@ -493,10 +490,8 @@ pub mod pallet {
 			let mut local_asset_counter = LocalAssetCounter::<T>::get();
 
 			// Create the assetId with LocalAssetIdCreator
-			let asset_id = T::LocalAssetIdCreator::create_asset_id_from_metadata(
-				creator.clone(),
-				local_asset_counter,
-			);
+			let asset_id =
+				T::LocalAssetIdCreator::create_asset_id_from_metadata(local_asset_counter);
 
 			// Increment the counter
 			local_asset_counter = local_asset_counter

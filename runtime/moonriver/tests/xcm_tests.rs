@@ -2061,7 +2061,7 @@ fn send_para_a_local_asset_to_para_b() {
 		MockNet::reset();
 
 		let asset_id =
-			parachain::LocalAssetIdCreator::create_asset_id_from_metadata(PARAALICE.into(), 0);
+			parachain::LocalAssetIdCreator::create_asset_id_from_metadata(0);
 		let para_a_local_asset = MultiLocation::new(
 			1,
 			X3(Parachain(1), PalletInstance(11u8), GeneralIndex(asset_id)),
@@ -2157,7 +2157,7 @@ fn send_para_a_local_asset_to_para_b_and_send_it_back_together_with_some_dev() {
 		MockNet::reset();
 
 		let asset_id =
-			parachain::LocalAssetIdCreator::create_asset_id_from_metadata(PARAALICE.into(), 0);
+			parachain::LocalAssetIdCreator::create_asset_id_from_metadata(0);
 		let para_a_local_asset = MultiLocation::new(
 			1,
 			X3(Parachain(1), PalletInstance(11u8), GeneralIndex(asset_id)),

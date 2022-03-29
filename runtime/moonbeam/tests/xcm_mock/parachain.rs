@@ -681,8 +681,8 @@ pub struct AssetMetadata {
 
 pub struct LocalAssetIdCreator;
 impl pallet_asset_manager::LocalAssetIdCreator<Runtime> for LocalAssetIdCreator {
-	fn create_asset_id_from_metadata(_account: AccountId, local_asset_counter: u128) -> AssetId {
-		// Our means of converting a creator to an assetId
+	fn create_asset_id_from_metadata(local_asset_counter: u128) -> AssetId {
+		// Our means of converting a local asset counter to an assetId
 		// We basically hash (local asset counter)
 		let mut result: [u8; 16] = [0u8; 16];
 		let to_hash = local_asset_counter.encode();

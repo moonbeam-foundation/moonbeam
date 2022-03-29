@@ -55,7 +55,7 @@ fn registering_foreign_works() {
 #[test]
 fn registering_local_works() {
 	new_test_ext().execute_with(|| {
-		let asset_id = MockLocalAssetIdCreator::create_asset_id_from_metadata(1u64, 0);
+		let asset_id = MockLocalAssetIdCreator::create_asset_id_from_metadata(0);
 
 		assert_ok!(AssetManager::register_local_asset(
 			Origin::root(),
@@ -789,7 +789,7 @@ fn test_destroy_foreign_asset_also_removes_everything() {
 #[test]
 fn test_destroy_local_asset_works() {
 	new_test_ext().execute_with(|| {
-		let asset_id = MockLocalAssetIdCreator::create_asset_id_from_metadata(1u64, 0);
+		let asset_id = MockLocalAssetIdCreator::create_asset_id_from_metadata(0);
 
 		assert_ok!(AssetManager::register_local_asset(
 			Origin::root(),
