@@ -645,7 +645,7 @@ where
 			spawner,
 			parachain_consensus,
 			import_queue,
-			collator_key.expect("Expected collator key"), // TODO: be more graceful / better error
+			collator_key: collator_key.expect("Expected collator key"), // TODO: be more graceful / better error
 			relay_chain_slot_duration,
 		};
 
