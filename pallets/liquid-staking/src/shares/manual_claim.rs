@@ -143,6 +143,7 @@ pub fn pending_rewards<T: Config>(
 		return Ok(0_u32.into());
 	}
 
+	// TODO: Should be safe to wrap around.
 	let checkpoint = ManualClaimSharesRewardCheckpoint::<T>::get(candidate, delegator);
 	let diff = ManualClaimSharesRewardCounter::<T>::get(candidate)
 		.checked_sub(&checkpoint)
@@ -163,6 +164,7 @@ pub fn claim_rewards<T: Config>(
 		return Ok(0_u32.into());
 	}
 
+	// TODO: Should be safe to wrap around.
 	let checkpoint = ManualClaimSharesRewardCheckpoint::<T>::get(&candidate, &delegator);
 	let diff = ManualClaimSharesRewardCounter::<T>::get(&candidate)
 		.checked_sub(&checkpoint)
@@ -184,5 +186,3 @@ pub fn claim_rewards<T: Config>(
 
 	Ok(rewards)
 }
-
-// TODO : Reward distribution

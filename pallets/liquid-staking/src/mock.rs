@@ -92,6 +92,7 @@ impl liquid_staking::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
 	type StakingAccount = ConstU64<{ u64::MAX }>;
+	type ReserveAccount = ConstU64<{ u64::MAX - 1 }>;
 	type InitialManualClaimShareValue = ConstU128<1_000_000_000>;
 	type InitialAutoCompoundingShareValue = ConstU128<1_000_000_000>;
 	type LeavingDelay = ConstU64<5>;

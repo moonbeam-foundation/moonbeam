@@ -16,6 +16,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+mod rewards;
 mod shares;
 
 #[cfg(test)]
@@ -36,7 +37,10 @@ pub mod pallet {
 			transactional,
 		},
 		frame_system::pallet_prelude::*,
-		sp_runtime::traits::{CheckedAdd, CheckedSub, Zero},
+		sp_runtime::{
+			traits::{CheckedAdd, CheckedSub, Zero},
+			Perbill,
+		},
 	};
 
 	#[cfg(feature = "std")]
@@ -80,6 +84,8 @@ pub mod pallet {
 		type Currency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
 		/// Account holding Currency of all delegators.
 		type StakingAccount: Get<Self::AccountId>;
+		/// Account of the reserve.
+		type ReserveAccount: Get<Self::AccountId>;
 		/// When creating the first Shares for a candidate the supply can be arbitrary.
 		/// Picking a value too low will make an higher supply, which means each share will get
 		/// less rewards, and rewards calculations will have more impactful rounding errors.
@@ -99,6 +105,14 @@ pub mod pallet {
 		/// this minimum prevents from being elected.
 		type MinimumSelfDelegation: Get<BalanceOf<Self>>;
 	}
+
+	/// Part of the rewards that will be sent to the reserve.
+	#[pallet::storage]
+	pub type RewardsReserveCommission<T: Config> = StorageValue<_, Perbill, ValueQuery>;
+
+	/// Part of the rewards that will be sent exclusively to the collator.
+	#[pallet::storage]
+	pub type RewardsCollatorCommission<T: Config> = StorageValue<_, Perbill, ValueQuery>;
 
 	/// Sorted list of eligible candidates.
 	#[pallet::storage]
@@ -273,15 +287,15 @@ pub mod pallet {
 			shares: BalanceOf<T>,
 			stake: BalanceOf<T>,
 		},
-		/// Candidate has been rewarded.
-		RewardedCandidate {
-			candidate: T::AccountId,
+		/// Collator has been rewarded.
+		RewardedCollator {
+			collator: T::AccountId,
 			auto_compounding_rewards: BalanceOf<T>,
 			manual_claim_rewards: BalanceOf<T>,
 		},
-		/// Stakers have been rewarded.
-		RewardedStakers {
-			candidate: T::AccountId,
+		/// Delegators have been rewarded.
+		RewardedDelegators {
+			collator: T::AccountId,
 			auto_compounding_rewards: BalanceOf<T>,
 			manual_claim_rewards: BalanceOf<T>,
 		},
@@ -314,6 +328,7 @@ pub mod pallet {
 		InvalidPalletSetting,
 		NoOneIsStaking,
 		StakeMustBeNonZero,
+		RewardsMustBeNonZero,
 		MathUnderflow,
 		MathOverflow,
 		NotEnoughShares,
