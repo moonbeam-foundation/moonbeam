@@ -471,14 +471,16 @@ pub struct EvmMultiAsset {
 
 impl EvmData for EvmMultiAsset {
 	fn read(reader: &mut EvmDataReader, gasometer: &mut Gasometer) -> EvmResult<Self> {
-		let location: MultiLocation = reader.read(gasometer)?;
-		let amount: U256 = reader.read(gasometer)?;
+		let mut inner_reader = reader.read_pointer(gasometer)?;
+
+		let location: MultiLocation = inner_reader.read(gasometer)?;
+		let amount: U256 = inner_reader.read(gasometer)?;
 		Ok(EvmMultiAsset { location, amount })
 	}
 
 	fn write(writer: &mut EvmDataWriter, value: Self) {
-		EvmData::write(writer, value.location);
-		EvmData::write(writer, value.amount);
+		let inner_writer = EvmDataWriter::new().write(value.location).write(value.amount).build();
+		EvmDataWriter::write_pointer(writer, inner_writer);
 	}
 }
 
