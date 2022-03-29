@@ -545,7 +545,7 @@ where
 		task_manager.spawn_handle(),
 		overrides.clone(),
 		rpc_config.eth_log_block_cache as u64,
-		rpc_config.eth_log_block_cache as u64,
+		rpc_config.eth_statuses_cache as u64,
 		prometheus_registry.clone(),
 	));
 
@@ -954,7 +954,7 @@ where
 		task_manager.spawn_handle(),
 		overrides.clone(),
 		rpc_config.eth_log_block_cache as u64,
-		rpc_config.eth_log_block_cache as u64,
+		rpc_config.eth_statuses_cache as u64,
 		prometheus_registry,
 	));
 

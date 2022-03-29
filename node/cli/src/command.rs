@@ -596,6 +596,7 @@ pub fn run() -> Result<()> {
 					ethapi_trace_max_count: cli.run.ethapi_trace_max_count,
 					ethapi_trace_cache_duration: cli.run.ethapi_trace_cache_duration,
 					eth_log_block_cache: cli.run.eth_log_block_cache,
+					eth_statuses_cache: cli.run.eth_statuses_cache,
 					max_past_logs: cli.run.max_past_logs,
 					fee_history_limit: cli.run.fee_history_limit,
 				};
