@@ -375,7 +375,7 @@
 <span class="kw">use</span> <span class="ident">cumulus_primitives_core::ParaId</span>;
 <span class="kw">use</span> <span class="ident">fc_mapping_sync</span>::{<span class="ident">MappingSyncWorker</span>, <span class="ident">SyncStrategy</span>};
 <span class="kw">use</span> <span class="ident">fc_rpc</span>::{
-	<span class="ident">EthApi</span>, <span class="ident">EthApiServer</span>, <span class="ident">EthBlockDataCache</span>, <span class="ident">EthFilterApi</span>, <span class="ident">EthFilterApiServer</span>, <span class="ident">EthPubSubApi</span>,
+	<span class="ident">EthApi</span>, <span class="ident">EthApiServer</span>, <span class="ident">EthBlockDataCacheTask</span>, <span class="ident">EthFilterApi</span>, <span class="ident">EthFilterApiServer</span>, <span class="ident">EthPubSubApi</span>,
 	<span class="ident">EthPubSubApiServer</span>, <span class="ident">EthTask</span>, <span class="ident">HexEncodedIdProvider</span>, <span class="ident">NetApi</span>, <span class="ident">NetApiServer</span>, <span class="ident">OverrideHandle</span>,
 	<span class="ident">RuntimeApiStorageOverride</span>, <span class="ident">SchemaV1Override</span>, <span class="ident">SchemaV2Override</span>, <span class="ident">SchemaV3Override</span>,
 	<span class="ident">StorageOverride</span>, <span class="ident">Web3Api</span>, <span class="ident">Web3ApiServer</span>,
@@ -445,7 +445,7 @@
 	<span class="doccomment">/// Ethereum data access overrides.</span>
 	<span class="kw">pub</span> <span class="ident">overrides</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">OverrideHandle</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 	<span class="doccomment">/// Cache for Ethereum block data.</span>
-	<span class="kw">pub</span> <span class="ident">block_data_cache</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">EthBlockDataCache</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+	<span class="kw">pub</span> <span class="ident">block_data_cache</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">EthBlockDataCacheTask</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">overrides_handle</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">BE</span><span class="op">&gt;</span>(<span class="ident">client</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>) -&gt; <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">OverrideHandle</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span><span class="op">&gt;</span>
