@@ -40,6 +40,20 @@ use sp_std::{
 	convert::{From, Into},
 	prelude::*,
 };
+
+// For foreign assets, these parameters dont matter much
+// as this will only be called by root with the forced arguments
+// No deposit is substracted with those methods
+// For local assets, they do matter. We use similar parameters
+// to those in statemine (except for approval)
+parameter_types! {
+	pub const AssetDeposit: Balance = 100 * currency::GLMR * currency::SUPPLY_FACTOR;
+	pub const ApprovalDeposit: Balance = 0;
+	pub const AssetsStringLimit: u32 = 50;
+	pub const MetadataDepositBase: Balance = currency::deposit(1,68);
+	pub const MetadataDepositPerByte: Balance = currency::deposit(0, 1);
+}
+
 /// We allow root and Chain council to execute privileged asset operations.
 pub type AssetsForceOrigin = EnsureOneOf<
 	EnsureRoot<AccountId>,
@@ -52,11 +66,11 @@ impl pallet_assets::Config for Runtime {
 	type AssetId = AssetId;
 	type Currency = Balances;
 	type ForceOrigin = AssetsForceOrigin;
-	type AssetDeposit = ConstU128<0>;
-	type MetadataDepositBase = ConstU128<0>;
-	type MetadataDepositPerByte = ConstU128<0>;
-	type ApprovalDeposit = ConstU128<0>;
-	type StringLimit = ConstU32<50>;
+	type AssetDeposit = AssetDeposit;
+	type MetadataDepositBase = MetadataDepositBase;
+	type MetadataDepositPerByte = MetadataDepositPerByte;
+	type ApprovalDeposit = ApprovalDeposit;
+	type StringLimit = AssetsStringLimit;
 	type Freezer = ();
 	type Extra = ();
 	type AssetAccountDeposit = ConstU128<{ currency::deposit(1, 18) }>;

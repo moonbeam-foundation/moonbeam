@@ -58,7 +58,6 @@ parameter_types! {
 	pub const AssetsStringLimit: u32 = 50;
 	pub const MetadataDepositBase: Balance = currency::deposit(1,68);
 	pub const MetadataDepositPerByte: Balance = currency::deposit(0, 1);
-	pub const ExecutiveBody: BodyId = BodyId::Executive;
 }
 
 /// We allow root and Chain council to execute privileged asset operations.
