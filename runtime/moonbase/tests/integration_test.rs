@@ -33,8 +33,8 @@ use frame_support::{
 	StorageHasher, Twox128,
 };
 use moonbase_runtime::{
-	currency::UNIT, get, xcm_config::AssetType, AccountId, AssetId, AssetManager,
-	AssetRegistrarMetadata, Assets, Balances, BaseFee, BlockWeights, Call, CrowdloanRewards, Event,
+	asset_config::AssetRegistrarMetadata, currency::UNIT, get, xcm_config::AssetType, AccountId,
+	AssetId, AssetManager, Assets, Balances, BaseFee, BlockWeights, Call, CrowdloanRewards, Event,
 	LocalAssets, ParachainStaking, PolkadotXcm, Precompiles, Runtime, System, XTokens,
 	XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
@@ -1071,7 +1071,7 @@ fn asset_can_be_registered() {
 	ExtBuilder::default().build().execute_with(|| {
 		let source_location = AssetType::Xcm(MultiLocation::parent());
 		let source_id: moonbase_runtime::AssetId = source_location.clone().into();
-		let asset_metadata = moonbase_runtime::AssetRegistrarMetadata {
+		let asset_metadata = AssetRegistrarMetadata {
 			name: b"RelayToken".to_vec(),
 			symbol: b"Relay".to_vec(),
 			decimals: 12,

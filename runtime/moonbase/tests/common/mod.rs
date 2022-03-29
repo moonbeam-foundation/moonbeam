@@ -22,13 +22,13 @@ use frame_support::{
 	dispatch::Dispatchable,
 	traits::{GenesisBuild, OnFinalize, OnInitialize},
 };
+use moonbase_runtime::{asset_config::AssetRegistrarMetadata, xcm_config::AssetType};
 pub use moonbase_runtime::{
 	currency::{GIGAWEI, SUPPLY_FACTOR, UNIT, WEI},
 	AccountId, AssetId, AssetManager, Assets, AuthorInherent, Balance, Balances, Call,
 	CrowdloanRewards, Ethereum, Event, Executive, FixedGasPrice, InflationInfo, LocalAssets,
 	ParachainStaking, Range, Runtime, System, TransactionConverter, UncheckedExtrinsic, WEEKS,
 };
-use moonbase_runtime::{xcm_config::AssetType, AssetRegistrarMetadata};
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
 use pallet_evm::GenesisAccount;
 use sp_core::{Encode, H160};
