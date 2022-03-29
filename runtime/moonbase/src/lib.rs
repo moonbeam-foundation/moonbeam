@@ -1081,7 +1081,7 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 	) -> Weight {
 		// For us both of them (Foreign and Local) have the same annotated weight for a given
 		// witness
-		// We need to take the dispatch info from the destroy call, which is already annotated in 
+		// We need to take the dispatch info from the destroy call, which is already annotated in
 		// the assets pallet
 		// Additionally, we need to add a DB write for removing the precompile revert code in the
 		// EVM
