@@ -430,6 +430,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d468802bab17cbc0cc575e9b053f41e72aa36bfa6b7f55e3529ffa43161b97fa"
 
 [[package]]
+name = "backoff"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b62ddb9cb1ec0a098ad4bbf9344d0713fa193ae1a80af55febcff2627b6a00c1"
+dependencies = [
+ "futures-core",
+ "getrandom 0.2.6",
+ "instant",
+ "pin-project-lite 0.2.8",
+ "rand 0.8.5",
+ "tokio",
+]
+
+[[package]]
 name = "backtrace"
 version = "0.3.64"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1987,6 +2001,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "cumulus-relay-chain-rpc-interface"
+version = "0.1.0"
+source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.18#76cf464eeee1c276277d4dc53ed9ea77673165f7"
+dependencies = [
+ "async-trait",
+ "backoff",
+ "cumulus-primitives-core",
+ "cumulus-relay-chain-interface",
+ "futures 0.3.21",
+ "futures-timer",
+ "jsonrpsee 0.9.0",
+ "parity-scale-codec 3.1.2",
+ "parking_lot 0.12.0",
+ "polkadot-service",
+ "sc-client-api",
+ "sc-rpc-api",
+ "sp-api",
+ "sp-core",
+ "sp-runtime",
+ "sp-state-machine",
+ "sp-storage",
+ "tracing",
+ "url 2.2.2",
+]
+
+[[package]]
 name = "cumulus-test-relay-sproof-builder"
 version = "0.1.0"
 source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.18#76cf464eeee1c276277d4dc53ed9ea77673165f7"
@@ -2420,7 +2460,7 @@ dependencies = [
  "impl-codec 0.6.0",
  "impl-rlp",
  "impl-serde",
- "scale-info 2.0.1",
+ "scale-info 1.0.0",
  "tiny-keccak",
 ]
 
@@ -2490,7 +2530,7 @@ dependencies = [
  "impl-rlp",
  "impl-serde",
  "primitive-types 0.11.1",
- "scale-info 2.0.1",
+ "scale-info 1.0.0",
  "uint",
 ]
 
@@ -3732,6 +3772,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "hyper-rustls"
+version = "0.23.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d87c48c02e0dc5e3b849a2041db3029fd066650f8f717c07bf8ed78ccb895cac"
+dependencies = [
+ "http",
+ "hyper",
+ "log",
+ "rustls 0.20.4",
+ "rustls-native-certs 0.6.1",
+ "tokio",
+ "tokio-rustls 0.23.3",
+ "webpki-roots 0.22.2",
+]
+
+[[package]]
 name = "idna"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4109,6 +4165,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "jsonrpsee"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f0d0b8cc1959f8c05256ace093b2317482da9127f1d9227564f47e7e6bf9bda8"
+dependencies = [
+ "jsonrpsee-core 0.9.0",
+ "jsonrpsee-http-client",
+ "jsonrpsee-types 0.9.0",
+ "jsonrpsee-ws-client 0.9.0",
+]
+
+[[package]]
 name = "jsonrpsee-client-transport"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4118,6 +4186,27 @@ dependencies = [
  "http",
  "jsonrpsee-core 0.8.0",
  "jsonrpsee-types 0.8.0",
+ "pin-project 1.0.10",
+ "rustls-native-certs 0.6.1",
+ "soketto",
+ "thiserror",
+ "tokio",
+ "tokio-rustls 0.23.3",
+ "tokio-util",
+ "tracing",
+ "webpki-roots 0.22.2",
+]
+
+[[package]]
+name = "jsonrpsee-client-transport"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fa370c2c717d798c3c0a315ae3f0a707a388c6963c11f9da7dbbe1d3f7392f5f"
+dependencies = [
+ "futures 0.3.21",
+ "http",
+ "jsonrpsee-core 0.9.0",
+ "jsonrpsee-types 0.9.0",
  "pin-project 1.0.10",
  "rustls-native-certs 0.6.1",
  "soketto",
@@ -4163,12 +4252,35 @@ dependencies = [
  "async-trait",
  "beef",
  "futures-channel",
+ "futures-util",
  "hyper",
  "jsonrpsee-types 0.9.0",
+ "rustc-hash",
  "serde",
  "serde_json",
  "soketto",
  "thiserror",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "jsonrpsee-http-client"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d31b837273d09dd80051eefa57d337769dff6c3266108c43a3544ac7ffed9d68"
+dependencies = [
+ "async-trait",
+ "hyper",
+ "hyper-rustls 0.23.0",
+ "jsonrpsee-core 0.9.0",
+ "jsonrpsee-types 0.9.0",
+ "rustc-hash",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]
@@ -4271,9 +4383,20 @@ version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "aff425cee7c779e33920913bc695447416078ee6d119f443f3060feffa4e86b5"
 dependencies = [
- "jsonrpsee-client-transport",
+ "jsonrpsee-client-transport 0.8.0",
  "jsonrpsee-core 0.8.0",
  "jsonrpsee-types 0.8.0",
+]
+
+[[package]]
+name = "jsonrpsee-ws-client"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "31b58983485b2b626c276f1eb367d62dae82132451b281072a7bfa536a33ddf3"
+dependencies = [
+ "jsonrpsee-client-transport 0.9.0",
+ "jsonrpsee-core 0.9.0",
+ "jsonrpsee-types 0.9.0",
 ]
 
 [[package]]
@@ -6051,6 +6174,7 @@ dependencies = [
  "cumulus-primitives-parachain-inherent",
  "cumulus-relay-chain-inprocess-interface",
  "cumulus-relay-chain-interface",
+ "cumulus-relay-chain-rpc-interface",
  "cumulus-test-relay-sproof-builder",
  "derive_more",
  "exit-future 0.1.4",
@@ -9788,7 +9912,7 @@ dependencies = [
  "impl-codec 0.6.0",
  "impl-rlp",
  "impl-serde",
- "scale-info 2.0.1",
+ "scale-info 1.0.0",
  "uint",
 ]
 
@@ -11400,7 +11524,7 @@ dependencies = [
  "futures-timer",
  "hex",
  "hyper",
- "hyper-rustls",
+ "hyper-rustls 0.22.1",
  "num_cpus",
  "once_cell",
  "parity-scale-codec 3.1.2",
@@ -13743,7 +13867,7 @@ dependencies = [
  "chrono",
  "lazy_static",
  "matchers",
- "parking_lot 0.11.2",
+ "parking_lot 0.9.0",
  "regex",
  "serde",
  "serde_json",
@@ -13885,7 +14009,7 @@ checksum = "4ee73e6e4924fe940354b8d4d98cad5231175d615cd855b758adc658c0aac6a0"
 dependencies = [
  "cfg-if 0.1.10",
  "digest 0.10.3",
- "rand 0.8.5",
+ "rand 0.7.3",
  "static_assertions",
 ]
 
