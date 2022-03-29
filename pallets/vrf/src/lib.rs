@@ -59,6 +59,19 @@ pub mod pallet {
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
 
+	/// For the runtime to implement to expose cumulus data to this pallet
+	pub trait GetMostRecentVrfInputs<RelayHash, SlotNumber> {
+		fn get_most_recent_relay_block_hash() -> RelayHash;
+		fn get_most_recent_relay_slot_number() -> SlotNumber;
+	}
+
+	/// Exposes randomness in this pallet
+	pub trait GetRandomness {
+		type Randomness;
+		fn get_last_randomness() -> Self::Randomness;
+		fn get_current_randomness() -> Self::Randomness;
+	}
+
 	/// Make VRF transcript
 	pub fn make_transcript<Hash: AsRef<[u8]>>(
 		relay_slot_number: Slot,
@@ -77,46 +90,68 @@ pub mod pallet {
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
+		/// The relay block hash type (probably H256)
 		type RelayBlockHash: Parameter
 			+ Member
 			+ MaybeSerializeDeserialize
 			+ Default
 			+ Copy
 			+ AsRef<[u8]>;
+		/// Sets the most recent relay block hash and relay slot number in `on_initialize`
+		type MostRecentVrfInputGetter: GetMostRecentVrfInputs<Self::RelayBlockHash, Slot>;
 	}
 
-	/// This field should always be populated during block processing.
-	///
-	/// It is set in `on_initialize`, before it will contain the value from the last block.
-	/// TODO: don't we also want to store the proof on-chain?
+	/// Current block randomness
+	/// Set in `on_initialize`, before it will contain the randomness from the last block
 	#[pallet::storage]
 	#[pallet::getter(fn current_randomness)]
-	pub(super) type CurrentRandomness<T> = StorageValue<_, MaybeRandomness, ValueQuery>;
+	pub type CurrentRandomness<T> = StorageValue<_, MaybeRandomness, ValueQuery>;
+
+	/// Last block randomness
+	/// Set in `on_initialize`, before it will contain the randomness from the last last block
+	#[pallet::storage]
+	#[pallet::getter(fn last_randomness)]
+	pub type LastRandomness<T> = StorageValue<_, MaybeRandomness, ValueQuery>;
 
 	/// Current set of authorities by AuthorityId
+	/// TODO: how to populate, also what about the AuthorMapping for the keys?
 	#[pallet::storage]
 	#[pallet::getter(fn authorities)]
-	pub type Authorities<T> = StorageValue<_, Vec<AuthorityId>, ValueQuery>;
+	pub(crate) type Authorities<T> = StorageValue<_, Vec<AuthorityId>, ValueQuery>;
 
 	/// Most recent relay chain block hash
+	/// Set in the runtime every block
 	#[pallet::storage]
-	#[pallet::getter(fn last_relay_block_hash)]
-	pub type LastRelayBlockHash<T: Config> = StorageValue<_, T::RelayBlockHash, ValueQuery>;
+	#[pallet::getter(fn most_recent_relay_block_hash)]
+	pub(crate) type MostRecentRelayBlockHash<T: Config> =
+		StorageValue<_, T::RelayBlockHash, ValueQuery>;
 
 	/// Most recent relay chain slot number
+	/// Set in the runtime every block
 	#[pallet::storage]
-	#[pallet::getter(fn last_relay_slot_number)]
-	pub type LastRelaySlotNumber<T> = StorageValue<_, Slot, ValueQuery>;
+	#[pallet::getter(fn most_recent_relay_slot_number)]
+	pub(crate) type MostRecentSlotNumber<T> = StorageValue<_, Slot, ValueQuery>;
 
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
-		/// Initialization
 		fn on_initialize(_now: BlockNumberFor<T>) -> Weight {
-			Self::set_randomness()
+			let set_inputs_weight = Self::set_most_recent_vrf_inputs();
+			set_inputs_weight + Self::set_randomness()
 		}
 	}
 
 	impl<T: Config> Pallet<T> {
+		// TODO: return weight consumed
+		fn set_most_recent_vrf_inputs() -> Weight {
+			// TODO: would this be better if we logged if they were different or the same?
+			<MostRecentRelayBlockHash<T>>::put(
+				T::MostRecentVrfInputGetter::get_most_recent_relay_block_hash(),
+			);
+			<MostRecentSlotNumber<T>>::put(
+				T::MostRecentVrfInputGetter::get_most_recent_relay_slot_number(),
+			);
+			0
+		}
 		// TODO: return weight consumed
 		fn set_randomness() -> Weight {
 			let maybe_pre_digest: Option<PreDigest> = <frame_system::Pallet<T>>::digest()
@@ -144,17 +179,29 @@ pub mod pallet {
 						})
 						.and_then(|pubkey| {
 							let transcript = make_transcript::<T::RelayBlockHash>(
-								LastRelaySlotNumber::<T>::get(),
-								LastRelayBlockHash::<T>::get(),
+								MostRecentSlotNumber::<T>::get(),
+								MostRecentRelayBlockHash::<T>::get(),
 							);
 							vrf_output.0.attach_input_hash(&pubkey, transcript).ok()
 						})
 						.map(|inout| inout.make_bytes(&sp_consensus_babe::BABE_VRF_INOUT_CONTEXT))
 				})
 			});
-			// Place the VRF output into the `AuthorVrfRandomness` storage item.
+			// Place last VRF output into the `LastRandomness` storage item
+			LastRandomness::<T>::put(CurrentRandomness::<T>::take());
+			// Place the current VRF output into the `CurrentRandomness` storage item.
 			CurrentRandomness::<T>::put(maybe_randomness);
 			0
+		}
+	}
+
+	impl<T: Config> GetRandomness for Pallet<T> {
+		type Randomness = MaybeRandomness;
+		fn get_last_randomness() -> Self::Randomness {
+			LastRandomness::<T>::get()
+		}
+		fn get_current_randomness() -> Self::Randomness {
+			CurrentRandomness::<T>::get()
 		}
 	}
 }
