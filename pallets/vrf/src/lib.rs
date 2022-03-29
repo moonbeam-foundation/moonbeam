@@ -41,12 +41,6 @@ use sp_consensus_vrf::schnorrkel;
 // #[cfg(test)]
 // mod tests;
 
-// TODO
-// 1. get and set relay_block_hash
-// 2. get and set relay_slot_number
-// --> maybe in CheckInherents impl for runtime?
-// 3. client verification code like substrate/client/consensus/babe/verification
-
 use frame_support::pallet;
 
 pub use pallet::*;
@@ -120,14 +114,14 @@ pub mod pallet {
 	pub(crate) type Authorities<T> = StorageValue<_, Vec<AuthorityId>, ValueQuery>;
 
 	/// Most recent relay chain block hash
-	/// Set in the runtime every block
+	/// Set in `on_initialize` before setting randomness
 	#[pallet::storage]
 	#[pallet::getter(fn most_recent_relay_block_hash)]
 	pub(crate) type MostRecentRelayBlockHash<T: Config> =
 		StorageValue<_, T::RelayBlockHash, ValueQuery>;
 
 	/// Most recent relay chain slot number
-	/// Set in the runtime every block
+	/// Set in `on_initialize` before setting randomness
 	#[pallet::storage]
 	#[pallet::getter(fn most_recent_relay_slot_number)]
 	pub(crate) type MostRecentSlotNumber<T> = StorageValue<_, Slot, ValueQuery>;
@@ -135,25 +129,34 @@ pub mod pallet {
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
 		fn on_initialize(_now: BlockNumberFor<T>) -> Weight {
-			let set_inputs_weight = Self::set_most_recent_vrf_inputs();
-			set_inputs_weight + Self::set_randomness()
+			let (used_weight, relay_block_hash, relay_slot_number) =
+				Self::set_most_recent_vrf_inputs();
+			Self::set_randomness(used_weight, relay_block_hash, relay_slot_number)
 		}
 	}
 
 	impl<T: Config> Pallet<T> {
-		// TODO: return weight consumed
-		fn set_most_recent_vrf_inputs() -> Weight {
-			// TODO: would this be better if we logged if they were different or the same?
-			<MostRecentRelayBlockHash<T>>::put(
-				T::MostRecentVrfInputGetter::get_most_recent_relay_block_hash(),
-			);
-			<MostRecentSlotNumber<T>>::put(
-				T::MostRecentVrfInputGetter::get_most_recent_relay_slot_number(),
-			);
-			0
+		/// Returns args for set_randomness
+		fn set_most_recent_vrf_inputs() -> (Weight, Slot, T::RelayBlockHash) {
+			// TODO: log if different/equal to current value?
+			let most_recent_relay_block_hash =
+				T::MostRecentVrfInputGetter::get_most_recent_relay_block_hash();
+			<MostRecentRelayBlockHash<T>>::put(most_recent_relay_block_hash);
+			let most_recent_relay_slot_number =
+				T::MostRecentVrfInputGetter::get_most_recent_relay_slot_number();
+			<MostRecentSlotNumber<T>>::put(most_recent_relay_slot_number);
+			(
+				2 * T::DbWeight::get().write,
+				most_recent_relay_slot_number,
+				most_recent_relay_block_hash,
+			)
 		}
-		// TODO: return weight consumed
-		fn set_randomness() -> Weight {
+		/// Returns weight consumed in `on_initialize`
+		fn set_randomness(
+			used_weight: Weight,
+			most_recent_relay_slot_number: Slot,
+			most_recent_relay_block_hash: T::RelayBlockHash,
+		) -> Weight {
 			let maybe_pre_digest: Option<PreDigest> = <frame_system::Pallet<T>>::digest()
 				.logs
 				.iter()
@@ -179,8 +182,8 @@ pub mod pallet {
 						})
 						.and_then(|pubkey| {
 							let transcript = make_transcript::<T::RelayBlockHash>(
-								MostRecentSlotNumber::<T>::get(),
-								MostRecentRelayBlockHash::<T>::get(),
+								most_recent_relay_slot_number,
+								most_recent_relay_block_hash,
 							);
 							vrf_output.0.attach_input_hash(&pubkey, transcript).ok()
 						})
@@ -191,7 +194,7 @@ pub mod pallet {
 			LastRandomness::<T>::put(CurrentRandomness::<T>::take());
 			// Place the current VRF output into the `CurrentRandomness` storage item.
 			CurrentRandomness::<T>::put(maybe_randomness);
-			0
+			used_weight + T::DbWeight::get().read + 2 * T::DbWeight::get().write
 		}
 	}
 
