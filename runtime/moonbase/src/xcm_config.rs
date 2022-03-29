@@ -96,8 +96,11 @@ parameter_types! {
 		NewAnchoringSelfReserve::get()
 	];
 
-	// Old reanchor logic location for local assets
+	// Old reanchor logic location for pallet assets
 	// We need to support both in case we talk to a chain not in 0.9.16
+	// Or until we import https://github.com/open-web3-stack/open-runtime-module-library/pull/708
+	// We will be able to remove this once we import the aforementioned change
+	// Indentified by thix prefix + generalIndex(assetId)
 	pub LocalAssetsPalletLocationOldReanchor: MultiLocation = MultiLocation {
 		parents:1,
 		interior: Junctions::X2(
@@ -106,8 +109,11 @@ parameter_types! {
 		)
 	};
 
-	// New reanchor logic location for local assets
-	// We need to support both in case we talk to a chain not in 0.9.16
+	// New reanchor logic location for pallet assets
+	// This is the relative view of our local assets. This is the representation that will
+	// be considered canonical after we import
+	// https://github.com/open-web3-stack/open-runtime-module-library/pull/708
+	// Indentified by thix prefix + generalIndex(assetId)
 	pub LocalAssetsPalletLocationNewReanchor: MultiLocation = MultiLocation {
 		parents:0,
 		interior: Junctions::X1(
@@ -170,6 +176,7 @@ pub type LocalAssetTransactor = XcmCurrencyAdapter<
 
 /// Means for transacting local assets that are not the native currency
 /// This transactor uses the old reanchor logic
+/// Remove once we import https://github.com/open-web3-stack/open-runtime-module-library/pull/708
 pub type LocalFungiblesTransactorOldReanchor = FungiblesAdapter<
 	// Use this fungibles implementation:
 	LocalAssets,
@@ -224,6 +231,8 @@ pub type LocalFungiblesTransactorNewReanchor = FungiblesAdapter<
 // SelfReserve asset, both pre and post 0.9.16
 // Foreign assets
 // Local assets, both pre and post 0.9.16
+// We can remove the Old reanchor once
+// we import https://github.com/open-web3-stack/open-runtime-module-library/pull/708
 pub type AssetTransactors = (
 	LocalAssetTransactor,
 	ForeignFungiblesTransactor,
