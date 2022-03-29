@@ -26,7 +26,8 @@ use pallet_evm_precompile_assets_erc20::AccountIdAssetIdConversion;
 use sp_runtime::traits::Hash as THash;
 
 use frame_support::{
-	traits::{ConstU128, ConstU32, EnsureOneOf},
+	parameter_types,
+	traits::{ConstU128, EnsureOneOf},
 	weights::{GetDispatchInfo, Weight},
 };
 
