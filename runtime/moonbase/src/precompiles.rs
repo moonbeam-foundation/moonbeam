@@ -16,12 +16,11 @@
 
 use crowdloan_rewards_precompiles::CrowdloanRewardsWrapper;
 use fp_evm::Context;
-use frame_support::traits::ConstBool;
 use moonbeam_relay_encoder::westend::WestendEncoder;
 use pallet_author_mapping_precompiles::AuthorMappingWrapper;
 use pallet_democracy_precompiles::DemocracyWrapper;
 use pallet_evm::{AddressMapping, Precompile, PrecompileResult, PrecompileSet};
-use pallet_evm_precompile_assets_erc20::Erc20AssetsPrecompileSet;
+use pallet_evm_precompile_assets_erc20::{Erc20AssetsPrecompileSet, IsForeign, IsLocal};
 use pallet_evm_precompile_balances_erc20::{Erc20BalancesPrecompile, Erc20Metadata};
 use pallet_evm_precompile_blake2::Blake2F;
 use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
@@ -104,8 +103,8 @@ where
 	Erc20BalancesPrecompile<R, NativeErc20Metadata>: Precompile,
 	// We require PrecompileSet here because indeed we are dealing with a set of precompiles
 	// This precompile set does additional checks, e.g., total supply not being 0
-	Erc20AssetsPrecompileSet<R, ConstBool<false>, pallet_assets::Instance1>: PrecompileSet,
-	Erc20AssetsPrecompileSet<R, ConstBool<true>, pallet_assets::Instance2>: PrecompileSet,
+	Erc20AssetsPrecompileSet<R, IsForeign, pallet_assets::Instance1>: PrecompileSet,
+	Erc20AssetsPrecompileSet<R, IsLocal, pallet_assets::Instance2>: PrecompileSet,
 	DemocracyWrapper<R>: Precompile,
 	XtokensWrapper<R>: Precompile,
 	RelayEncoderWrapper<R, WestendEncoder>: Precompile,
@@ -171,12 +170,12 @@ where
 			)),
 			// If the address matches asset prefix, the we route through the asset precompile set
 			a if &a.to_fixed_bytes()[0..4] == FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX => {
-				Erc20AssetsPrecompileSet::<R, ConstBool<false>, pallet_assets::Instance1>::new()
+				Erc20AssetsPrecompileSet::<R, IsForeign, pallet_assets::Instance1>::new()
 					.execute(address, input, target_gas, context, is_static)
 			}
 			// If the address matches asset prefix, the we route through the asset precompile set
 			a if &a.to_fixed_bytes()[0..4] == LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX => {
-				Erc20AssetsPrecompileSet::<R, ConstBool<true>, pallet_assets::Instance2>::new()
+				Erc20AssetsPrecompileSet::<R, IsLocal, pallet_assets::Instance2>::new()
 					.execute(address, input, target_gas, context, is_static)
 			}
 			_ => None,
@@ -184,9 +183,9 @@ where
 	}
 	fn is_precompile(&self, address: H160) -> bool {
 		Self::used_addresses().any(|x| x == R::AddressMapping::into_account_id(address))
-			|| Erc20AssetsPrecompileSet::<R, ConstBool<false>, pallet_assets::Instance1>::new()
+			|| Erc20AssetsPrecompileSet::<R, IsForeign, pallet_assets::Instance1>::new()
 				.is_precompile(address)
-			|| Erc20AssetsPrecompileSet::<R, ConstBool<true>, pallet_assets::Instance2>::new()
+			|| Erc20AssetsPrecompileSet::<R, IsLocal, pallet_assets::Instance2>::new()
 				.is_precompile(address)
 	}
 }

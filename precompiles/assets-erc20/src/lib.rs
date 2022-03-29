@@ -21,7 +21,7 @@ use fp_evm::{Context, ExitSucceed, PrecompileOutput};
 use frame_support::traits::fungibles::approvals::Inspect as ApprovalInspect;
 use frame_support::traits::fungibles::metadata::Inspect as MetadataInspect;
 use frame_support::traits::fungibles::Inspect;
-use frame_support::traits::{Get, OriginTrait};
+use frame_support::traits::{ConstBool, Get, OriginTrait};
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
 	sp_runtime::traits::StaticLookup,
@@ -57,6 +57,10 @@ pub type BalanceOf<Runtime, Instance = ()> = <Runtime as pallet_assets::Config<I
 
 /// Alias for the Asset Id type for the provided Runtime and Instance.
 pub type AssetIdOf<Runtime, Instance = ()> = <Runtime as pallet_assets::Config<Instance>>::AssetId;
+
+/// Public types to use with the PrecompileSet
+pub type IsLocal = ConstBool<true>;
+pub type IsForeign = ConstBool<false>;
 
 #[precompile_utils::generate_function_selector]
 #[derive(Debug, PartialEq)]

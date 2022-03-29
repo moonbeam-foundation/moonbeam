@@ -19,10 +19,7 @@
 use super::*;
 
 use codec::{Decode, Encode, MaxEncodedLen};
-use frame_support::{
-	construct_runtime, parameter_types,
-	traits::{ConstBool, Everything},
-};
+use frame_support::{construct_runtime, parameter_types, traits::Everything};
 
 use frame_system::EnsureRoot;
 use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot};
@@ -350,8 +347,8 @@ pub struct Precompiles<R>(PhantomData<R>);
 
 impl<R> PrecompileSet for Precompiles<R>
 where
-	Erc20AssetsPrecompileSet<R, ConstBool<false>, pallet_assets::Instance1>: PrecompileSet,
-	Erc20AssetsPrecompileSet<R, ConstBool<true>, pallet_assets::Instance2>: PrecompileSet,
+	Erc20AssetsPrecompileSet<R, IsForeign, pallet_assets::Instance1>: PrecompileSet,
+	Erc20AssetsPrecompileSet<R, IsLocal, pallet_assets::Instance2>: PrecompileSet,
 {
 	fn execute(
 		&self,
@@ -364,12 +361,12 @@ where
 		match address {
 			// If the address matches asset prefix, the we route through the foreign  asset precompile set
 			a if &a.to_fixed_bytes()[0..4] == LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX => {
-				Erc20AssetsPrecompileSet::<R, ConstBool<true>, pallet_assets::Instance2>::new()
+				Erc20AssetsPrecompileSet::<R, IsLocal, pallet_assets::Instance2>::new()
 					.execute(address, input, target_gas, context, is_static)
 			}
 			// If the address matches asset prefix, the we route through the local asset precompile set
 			a if &a.to_fixed_bytes()[0..4] == FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX => {
-				Erc20AssetsPrecompileSet::<R, ConstBool<false>, pallet_assets::Instance1>::new()
+				Erc20AssetsPrecompileSet::<R, IsForeign, pallet_assets::Instance1>::new()
 					.execute(address, input, target_gas, context, is_static)
 			}
 			_ => None,
@@ -377,7 +374,7 @@ where
 	}
 
 	fn is_precompile(&self, address: H160) -> bool {
-		Erc20AssetsPrecompileSet::<R, ConstBool<false>, pallet_assets::Instance1>::new()
+		Erc20AssetsPrecompileSet::<R, IsForeign, pallet_assets::Instance1>::new()
 			.is_precompile(address)
 	}
 }
