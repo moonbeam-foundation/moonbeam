@@ -52,7 +52,7 @@ type LocalAssetInstance = pallet_assets::Instance2;
 // For local assets, they do matter. We use similar parameters
 // to those in statemine (except for approval)
 parameter_types! {
-	pub const AssetDeposit: Balance = currency::UNIT;
+	pub const AssetDeposit: Balance = 100 * currency::UNIT * currency::SUPPLY_FACTOR;
 	pub const ApprovalDeposit: Balance = 0;
 	pub const AssetsStringLimit: u32 = 50;
 	pub const MetadataDepositBase: Balance = currency::deposit(1,68);

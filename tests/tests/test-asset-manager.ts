@@ -379,7 +379,7 @@ describeDevMoonbeam("XCM - asset manager - register asset", (context) => {
     // Check ALITH has amount reserved
     const accountDetails = (await parachainOne.query.system.account(ALITH)) as any;
     expect(accountDetails.data.reserved.toString()).to.eq(
-      (accountDetailsBefore.data.reserved.toBigInt() + 1n * GLMR).toString()
+      (accountDetailsBefore.data.reserved.toBigInt() + 100n * GLMR).toString()
     );
     await verifyLatestBlockFees(context, expect);
   });
@@ -411,7 +411,7 @@ describeDevMoonbeam("XCM - asset manager - register asset", (context) => {
 
     // Amount should have decreased in one GLMR
     expect(accountDetailsAfter.data.reserved.toString()).to.eq(
-      (accountDetailsBefore.data.reserved.toBigInt() - 1n * GLMR).toString()
+      (accountDetailsBefore.data.reserved.toBigInt() - 100n * GLMR).toString()
     );
   });
 });
