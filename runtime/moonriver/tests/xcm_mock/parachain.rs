@@ -36,6 +36,7 @@ use xcm::{latest::prelude::*, Version as XcmVersion, VersionedXcm};
 
 use polkadot_core_primitives::BlockNumber as RelayBlockNumber;
 use polkadot_parachain::primitives::{Id as ParaId, Sibling};
+use orml_traits::{location::AbsoluteReserveProvider, parameter_type_with_key};
 use xcm::latest::{
 	AssetId as XcmAssetId, Error as XcmError, ExecuteXcm,
 	Junction::{PalletInstance, Parachain},
@@ -367,6 +368,12 @@ parameter_types! {
 	};
 }
 
+parameter_type_with_key! {
+	pub ParachainMinFee: |_location: MultiLocation| -> u128 {
+		u128::MAX
+	};
+}
+
 // The XCM message wrapper wrapper
 impl orml_xtokens::Config for Runtime {
 	type Event = Event;
@@ -381,6 +388,9 @@ impl orml_xtokens::Config for Runtime {
 	type BaseXcmWeight = BaseXcmWeight;
 	type LocationInverter = LocationInverter<Ancestry>;
 	type MaxAssetsForTransfer = MaxAssetsForTransfer;
+	type MinXcmFee = ParachainMinFee;
+	type MultiLocationsFilter = Everything;
+	type ReserveProvider = AbsoluteReserveProvider;
 }
 
 parameter_types! {
