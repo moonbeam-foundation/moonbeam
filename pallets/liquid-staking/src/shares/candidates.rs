@@ -81,7 +81,7 @@ pub fn update_candidate_stake<T: Config>(
 			Err(_) => None,
 		};
 
-		let new_position = if self_delegation < T::MinimumSelfDelegation::get() {
+		let new_position = if self_delegation >= T::MinimumSelfDelegation::get() {
 			// Insert candidate in the sorted list.
 			let entry = Candidate {
 				candidate: candidate.clone(),
