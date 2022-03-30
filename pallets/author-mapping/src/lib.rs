@@ -47,7 +47,7 @@ pub mod pallet {
 	use frame_system::pallet_prelude::*;
 	use nimbus_primitives::{AccountLookup, NimbusId};
 
-	pub type BalanceOf<T> = <<T as Config>::DepositCurrency as Currency<
+	pub type BalanceOf<T, I> = <<T as Config<I>>::DepositCurrency as Currency<
 		<T as frame_system::Config>::AccountId,
 	>>::Balance;
 
@@ -59,15 +59,15 @@ pub mod pallet {
 
 	#[pallet::pallet]
 	#[pallet::without_storage_info]
-	pub struct Pallet<T>(PhantomData<T>);
+	pub struct Pallet<T, I = ()>(PhantomData<(T, I)>);
 
 	/// Configuration trait of this pallet. We tightly couple to Parachain Staking in order to
 	/// ensure that only staked accounts can create registrations in the first place. This could be
 	/// generalized.
 	#[pallet::config]
-	pub trait Config: frame_system::Config {
+	pub trait Config<I: 'static = ()>: frame_system::Config {
 		/// Overarching event type
-		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
+		type Event: From<Event<Self, I>> + IsType<<Self as frame_system::Config>::Event>;
 		/// Currency in which the security deposit will be taken.
 		type DepositCurrency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
 		/// The amount that should be taken as a security deposit when registering a NimbusId.
@@ -78,7 +78,7 @@ pub mod pallet {
 
 	/// An error that can occur while executing the mapping pallet's logic.
 	#[pallet::error]
-	pub enum Error<T> {
+	pub enum Error<T, I = ()> {
 		/// The association can't be cleared because it is not found.
 		AssociationNotFound,
 		/// The association can't be cleared because it belongs to another account.
@@ -91,7 +91,7 @@ pub mod pallet {
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
-	pub enum Event<T: Config> {
+	pub enum Event<T: Config<I>, I: 'static = ()> {
 		/// A NimbusId has been registered and mapped to an AccountId.
 		AuthorRegistered {
 			author_id: NimbusId,
@@ -113,23 +113,23 @@ pub mod pallet {
 	}
 
 	#[pallet::call]
-	impl<T: Config> Pallet<T> {
+	impl<T: Config<I>, I: 'static> Pallet<T, I> {
 		/// Register your NimbusId onchain so blocks you author are associated with your account.
 		///
 		/// Users who have been (or will soon be) elected active collators in staking,
 		/// should submit this extrinsic to have their blocks accepted and earn rewards.
-		#[pallet::weight(<T as Config>::WeightInfo::add_association())]
+		#[pallet::weight(T::WeightInfo::add_association())]
 		pub fn add_association(origin: OriginFor<T>, author_id: NimbusId) -> DispatchResult {
 			let account_id = ensure_signed(origin)?;
 
 			ensure!(
-				MappingWithDeposit::<T>::get(&author_id).is_none(),
-				Error::<T>::AlreadyAssociated
+				MappingWithDeposit::<T, I>::get(&author_id).is_none(),
+				Error::<T, I>::AlreadyAssociated
 			);
 
 			Self::enact_registration(&author_id, &account_id)?;
 
-			<Pallet<T>>::deposit_event(Event::AuthorRegistered {
+			<Pallet<T, I>>::deposit_event(Event::AuthorRegistered {
 				author_id,
 				account_id,
 			});
@@ -141,7 +141,7 @@ pub mod pallet {
 		///
 		/// This is useful for normal key rotation or for when switching from one physical collator
 		/// machine to another. No new security deposit is required.
-		#[pallet::weight(<T as Config>::WeightInfo::update_association())]
+		#[pallet::weight(T::WeightInfo::update_association())]
 		pub fn update_association(
 			origin: OriginFor<T>,
 			old_author_id: NimbusId,
@@ -149,22 +149,22 @@ pub mod pallet {
 		) -> DispatchResult {
 			let account_id = ensure_signed(origin)?;
 
-			let stored_info = MappingWithDeposit::<T>::try_get(&old_author_id)
-				.map_err(|_| Error::<T>::AssociationNotFound)?;
+			let stored_info = MappingWithDeposit::<T, I>::try_get(&old_author_id)
+				.map_err(|_| Error::<T, I>::AssociationNotFound)?;
 
 			ensure!(
 				account_id == stored_info.account,
-				Error::<T>::NotYourAssociation
+				Error::<T, I>::NotYourAssociation
 			);
 			ensure!(
-				MappingWithDeposit::<T>::get(&new_author_id).is_none(),
-				Error::<T>::AlreadyAssociated
+				MappingWithDeposit::<T, I>::get(&new_author_id).is_none(),
+				Error::<T, I>::AlreadyAssociated
 			);
 
-			MappingWithDeposit::<T>::remove(&old_author_id);
-			MappingWithDeposit::<T>::insert(&new_author_id, &stored_info);
+			MappingWithDeposit::<T, I>::remove(&old_author_id);
+			MappingWithDeposit::<T, I>::insert(&new_author_id, &stored_info);
 
-			<Pallet<T>>::deposit_event(Event::AuthorRotated {
+			<Pallet<T, I>>::deposit_event(Event::AuthorRotated {
 				new_author_id: new_author_id,
 				account_id: stored_info.account,
 			});
@@ -176,32 +176,32 @@ pub mod pallet {
 		///
 		/// This is useful when you are no longer an author and would like to re-claim your security
 		/// deposit.
-		#[pallet::weight(<T as Config>::WeightInfo::clear_association())]
+		#[pallet::weight(T::WeightInfo::clear_association())]
 		pub fn clear_association(
 			origin: OriginFor<T>,
 			author_id: NimbusId,
 		) -> DispatchResultWithPostInfo {
 			let account_id = ensure_signed(origin)?;
 
-			let stored_info = MappingWithDeposit::<T>::try_get(&author_id)
-				.map_err(|_| Error::<T>::AssociationNotFound)?;
+			let stored_info = MappingWithDeposit::<T, I>::try_get(&author_id)
+				.map_err(|_| Error::<T, I>::AssociationNotFound)?;
 
 			ensure!(
 				account_id == stored_info.account,
-				Error::<T>::NotYourAssociation
+				Error::<T, I>::NotYourAssociation
 			);
 
-			MappingWithDeposit::<T>::remove(&author_id);
+			MappingWithDeposit::<T, I>::remove(&author_id);
 
 			T::DepositCurrency::unreserve(&account_id, stored_info.deposit);
 
-			<Pallet<T>>::deposit_event(Event::AuthorDeRegistered { author_id });
+			<Pallet<T, I>>::deposit_event(Event::AuthorDeRegistered { author_id });
 
 			Ok(().into())
 		}
 	}
 
-	impl<T: Config> Pallet<T> {
+	impl<T: Config<I>, I: 'static> Pallet<T, I> {
 		pub fn enact_registration(
 			author_id: &NimbusId,
 			account_id: &T::AccountId,
@@ -209,14 +209,14 @@ pub mod pallet {
 			let deposit = T::DepositAmount::get();
 
 			T::DepositCurrency::reserve(&account_id, deposit)
-				.map_err(|_| Error::<T>::CannotAffordSecurityDeposit)?;
+				.map_err(|_| Error::<T, I>::CannotAffordSecurityDeposit)?;
 
 			let info = RegistrationInfo {
 				account: account_id.clone(),
 				deposit,
 			};
 
-			MappingWithDeposit::<T>::insert(&author_id, &info);
+			MappingWithDeposit::<T, I>::insert(&author_id, &info);
 
 			Ok(())
 		}
@@ -226,46 +226,52 @@ pub mod pallet {
 	#[pallet::getter(fn account_and_deposit_of)]
 	/// We maintain a mapping from the NimbusIds used in the consensus layer
 	/// to the AccountIds runtime (including this staking pallet).
-	pub type MappingWithDeposit<T: Config> = StorageMap<
+	pub type MappingWithDeposit<T: Config<I>, I: 'static = ()> = StorageMap<
 		_,
 		Blake2_128Concat,
 		NimbusId,
-		RegistrationInfo<T::AccountId, BalanceOf<T>>,
+		RegistrationInfo<T::AccountId, BalanceOf<T, I>>,
 		OptionQuery,
 	>;
 
 	#[pallet::genesis_config]
 	/// Genesis config for author mapping pallet
-	pub struct GenesisConfig<T: Config> {
+	pub struct GenesisConfig<T: Config<I>, I: 'static = ()> {
 		/// The associations that should exist at chain genesis
 		pub mappings: Vec<(NimbusId, T::AccountId)>,
+		// TODO: remove if possible, without it compiler emits:
+		// `error[E0392]: parameter `I` is never used`
+		pub phantom: PhantomData<I>,
 	}
 
 	#[cfg(feature = "std")]
-	impl<T: Config> Default for GenesisConfig<T> {
+	impl<T: Config<I>, I: 'static> Default for GenesisConfig<T, I> {
 		fn default() -> Self {
-			Self { mappings: vec![] }
+			Self {
+				mappings: vec![],
+				..Default::default()
+			}
 		}
 	}
 
 	#[pallet::genesis_build]
-	impl<T: Config> GenesisBuild<T> for GenesisConfig<T> {
+	impl<T: Config<I>, I: 'static> GenesisBuild<T, I> for GenesisConfig<T, I> {
 		fn build(&self) {
 			for (author_id, account_id) in &self.mappings {
-				if let Err(e) = Pallet::<T>::enact_registration(&author_id, &account_id) {
+				if let Err(e) = Pallet::<T, I>::enact_registration(&author_id, &account_id) {
 					log::warn!("Error with genesis author mapping registration: {:?}", e);
 				}
 			}
 		}
 	}
 
-	impl<T: Config> AccountLookup<T::AccountId> for Pallet<T> {
+	impl<T: Config<I>, I: 'static> AccountLookup<T::AccountId> for Pallet<T, I> {
 		fn lookup_account(author: &NimbusId) -> Option<T::AccountId> {
 			Self::account_id_of(author)
 		}
 	}
 
-	impl<T: Config> Pallet<T> {
+	impl<T: Config<I>, I: 'static> Pallet<T, I> {
 		/// A helper function to lookup the account id associated with the given author id. This is
 		/// the primary lookup that this pallet is responsible for.
 		pub fn account_id_of(author_id: &NimbusId) -> Option<T::AccountId> {

@@ -30,8 +30,8 @@ use sp_std::vec::Vec;
 
 /// Migrates the AuthorMapping's storage map fro mthe insecure Twox64 hasher to the secure
 /// BlakeTwo hasher.
-pub struct TwoXToBlake<T>(PhantomData<T>);
-impl<T: Config> OnRuntimeUpgrade for TwoXToBlake<T> {
+pub struct TwoXToBlake<T, I: 'static>(PhantomData<(T, I)>);
+impl<T: Config<I>, I: 'static> OnRuntimeUpgrade for TwoXToBlake<T, I> {
 	fn on_runtime_upgrade() -> Weight {
 		log::info!(target: "TwoXToBlake", "actually running it");
 		let pallet_prefix: &[u8] = b"AuthorMapping";
@@ -41,7 +41,7 @@ impl<T: Config> OnRuntimeUpgrade for TwoXToBlake<T> {
 		// https://crates.parity.io/frame_support/storage/migration/fn.storage_key_iter.html
 		let stored_data: Vec<_> = storage_key_iter::<
 			NimbusId,
-			RegistrationInfo<T::AccountId, BalanceOf<T>>,
+			RegistrationInfo<T::AccountId, BalanceOf<T, I>>,
 			Twox64Concat,
 		>(pallet_prefix, storage_item_prefix)
 		.collect();
@@ -58,7 +58,7 @@ impl<T: Config> OnRuntimeUpgrade for TwoXToBlake<T> {
 		// Assert that old storage is empty
 		assert!(storage_key_iter::<
 			NimbusId,
-			RegistrationInfo<T::AccountId, BalanceOf<T>>,
+			RegistrationInfo<T::AccountId, BalanceOf<T, I>>,
 			Twox64Concat,
 		>(pallet_prefix, storage_item_prefix)
 		.next()
@@ -66,7 +66,7 @@ impl<T: Config> OnRuntimeUpgrade for TwoXToBlake<T> {
 
 		// Write the mappings back to storage with the new secure hasher
 		for (author_id, account_id) in stored_data {
-			MappingWithDeposit::<T>::insert(author_id, account_id);
+			MappingWithDeposit::<T, I>::insert(author_id, account_id);
 		}
 
 		log::info!(target: "TwoXToBlake", "almost done");
@@ -94,10 +94,10 @@ impl<T: Config> OnRuntimeUpgrade for TwoXToBlake<T> {
 		// Assert new storage is empty
 		// Because the pallet and item prefixes are the same, the old storage is still at this
 		// key. However, the values can't be decoded so the assertion passes.
-		assert!(MappingWithDeposit::<T>::iter().next().is_none());
+		assert!(MappingWithDeposit::<T, I>::iter().next().is_none());
 
 		// Check number of entries, and set it aside in temp storage
-		let mapping_count = storage_iter::<RegistrationInfo<T::AccountId, BalanceOf<T>>>(
+		let mapping_count = storage_iter::<RegistrationInfo<T::AccountId, BalanceOf<T, I>>>(
 			pallet_prefix,
 			storage_item_prefix,
 		)
@@ -108,7 +108,7 @@ impl<T: Config> OnRuntimeUpgrade for TwoXToBlake<T> {
 		if mapping_count > 0 {
 			let example_pair = storage_key_iter::<
 				NimbusId,
-				RegistrationInfo<T::AccountId, BalanceOf<T>>,
+				RegistrationInfo<T::AccountId, BalanceOf<T, I>>,
 				Twox64Concat,
 			>(pallet_prefix, storage_item_prefix)
 			.next()
@@ -127,14 +127,16 @@ impl<T: Config> OnRuntimeUpgrade for TwoXToBlake<T> {
 		// Check number of entries matches what was set aside in pre_upgrade
 		let old_mapping_count: u64 = Self::get_temp_storage("mapping_count")
 			.expect("We stored a mapping count; it should be there; qed");
-		let new_mapping_count = MappingWithDeposit::<T>::iter().count() as u64;
+		let new_mapping_count = MappingWithDeposit::<T, I>::iter().count() as u64;
 		assert_eq!(old_mapping_count, new_mapping_count);
 
 		// Check that our example pair is still well-mapped after the migration
 		if new_mapping_count > 0 {
-			let (account, original_info): (NimbusId, RegistrationInfo<T::AccountId, BalanceOf<T>>) =
-				Self::get_temp_storage("example_pair").expect("qed");
-			let migrated_info = MappingWithDeposit::<T>::get(account).expect("qed");
+			let (account, original_info): (
+				NimbusId,
+				RegistrationInfo<T::AccountId, BalanceOf<T, I>>,
+			) = Self::get_temp_storage("example_pair").expect("qed");
+			let migrated_info = MappingWithDeposit::<T, I>::get(account).expect("qed");
 			assert_eq!(original_info, migrated_info);
 		}
 

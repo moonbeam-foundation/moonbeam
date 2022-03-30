@@ -18,7 +18,7 @@
 
 //! Benchmarking
 use crate::{BalanceOf, Call, Config, Pallet};
-use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
+use frame_benchmarking::{account, benchmarks_instance_pallet, impl_benchmark_test_suite};
 use frame_support::{
 	assert_ok,
 	traits::{Currency, Get},
@@ -28,13 +28,13 @@ use nimbus_primitives::NimbusId;
 use parity_scale_codec::Decode;
 
 /// Create a funded user.
-fn create_funded_user<T: Config>() -> T::AccountId {
+fn create_funded_user<T: Config<I>, I: 'static>() -> T::AccountId {
 	let user = account("account id", 0u32, 0u32);
 	T::DepositCurrency::make_free_balance_be(
 		&user,
-		<<T as Config>::DepositAmount as Get<BalanceOf<T>>>::get(),
+		<<T as Config<I>>::DepositAmount as Get<BalanceOf<T, I>>>::get(),
 	);
-	T::DepositCurrency::issue(<<T as Config>::DepositAmount as Get<BalanceOf<T>>>::get());
+	T::DepositCurrency::issue(<<T as Config<I>>::DepositAmount as Get<BalanceOf<T, I>>>::get());
 	user
 }
 
@@ -44,52 +44,52 @@ pub fn nimbus_id(seed: u8) -> NimbusId {
 	NimbusId::decode(&mut &id[..]).expect("valid input")
 }
 
-benchmarks! {
+benchmarks_instance_pallet! {
 	add_association {
-		let caller = create_funded_user::<T>();
+		let caller = create_funded_user::<T, I>();
 		let id = nimbus_id(1u8);
 	}: _(RawOrigin::Signed(caller.clone()), id.clone())
 	verify {
-		assert_eq!(Pallet::<T>::account_id_of(&id), Some(caller));
+		assert_eq!(Pallet::<T, I>::account_id_of(&id), Some(caller));
 	}
 
 	update_association {
-		let caller = create_funded_user::<T>();
+		let caller = create_funded_user::<T, I>();
 		let first_id = nimbus_id(1u8);
 		let second_id = nimbus_id(2u8);
-		assert_ok!(Pallet::<T>::add_association(
+		assert_ok!(Pallet::<T, I>::add_association(
 			RawOrigin::Signed(caller.clone()).into(),
 			first_id.clone())
 		);
 	}: _(RawOrigin::Signed(caller.clone()), first_id.clone(), second_id.clone())
 	verify {
-		assert_eq!(Pallet::<T>::account_id_of(&first_id), None);
-		assert_eq!(Pallet::<T>::account_id_of(&second_id), Some(caller));
+		assert_eq!(Pallet::<T, I>::account_id_of(&first_id), None);
+		assert_eq!(Pallet::<T, I>::account_id_of(&second_id), Some(caller));
 	}
 
 	clear_association {
-		let caller = create_funded_user::<T>();
+		let caller = create_funded_user::<T, I>();
 		let first_id = nimbus_id(1u8);
-		assert_ok!(Pallet::<T>::add_association(
+		assert_ok!(Pallet::<T, I>::add_association(
 			RawOrigin::Signed(caller.clone()).into(),
 			first_id.clone())
 		);
 	}: _(RawOrigin::Signed(caller.clone()), first_id.clone())
 	verify {
-		assert_eq!(Pallet::<T>::account_id_of(&first_id), None);
+		assert_eq!(Pallet::<T, I>::account_id_of(&first_id), None);
 	}
 }
 
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use crate::mock::Test;
+	use crate::mock::Runtime;
 	use frame_support::assert_ok;
 	use sp_io::TestExternalities;
 
 	pub fn new_test_ext() -> TestExternalities {
 		let t = frame_system::GenesisConfig::default()
-			.build_storage::<Test>()
+			.build_storage::<Runtime>()
 			.unwrap();
 		TestExternalities::new(t)
 	}
@@ -97,21 +97,21 @@ mod tests {
 	#[test]
 	fn bench_add_association() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(test_benchmark_add_association::<Test>());
+			assert_ok!(test_benchmark_add_association::<Runtime>());
 		});
 	}
 
 	#[test]
 	fn bench_update_association() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(test_benchmark_update_association::<Test>());
+			assert_ok!(test_benchmark_update_association::<Runtime>());
 		});
 	}
 
 	#[test]
 	fn bench_clear_association() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(test_benchmark_clear_association::<Test>());
+			assert_ok!(test_benchmark_clear_association::<Runtime>());
 		});
 	}
 }
@@ -119,5 +119,5 @@ mod tests {
 impl_benchmark_test_suite!(
 	Pallet,
 	crate::benchmarks::tests::new_test_ext(),
-	crate::mock::Test
+	crate::mock::Runtime
 );
