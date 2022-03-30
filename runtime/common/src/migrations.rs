@@ -175,26 +175,26 @@ impl<T: ParachainStakingConfig> Migration for ParachainStakingPurgeStaleStorage<
 }
 
 /// A moonbeam migration wrapping the similarly named migration in pallet-author-mapping
-pub struct AuthorMappingTwoXToBlake<T>(PhantomData<T>);
-impl<T: AuthorMappingConfig> Migration for AuthorMappingTwoXToBlake<T> {
+pub struct AuthorMappingTwoXToBlake<T, I: 'static>(PhantomData<(T, I)>);
+impl<T: AuthorMappingConfig, I: 'static> Migration for AuthorMappingTwoXToBlake<T, I> {
 	fn friendly_name(&self) -> &str {
 		"MM_Author_Mapping_TwoXToBlake"
 	}
 
 	fn migrate(&self, _available_weight: Weight) -> Weight {
-		TwoXToBlake::<T>::on_runtime_upgrade()
+		TwoXToBlake::<T, I>::on_runtime_upgrade()
 	}
 
 	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade(&self) -> Result<(), &'static str> {
-		TwoXToBlake::<T>::pre_upgrade()
+		TwoXToBlake::<T, I>::pre_upgrade()
 	}
 
 	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade(&self) -> Result<(), &'static str> {
-		TwoXToBlake::<T>::post_upgrade()
+		TwoXToBlake::<T, I>::post_upgrade()
 	}
 }
 
