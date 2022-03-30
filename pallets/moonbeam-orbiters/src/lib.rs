@@ -131,6 +131,8 @@ pub mod pallet {
 		CollatorPoolTooLarge,
 		/// This orbiter is already associated with this collator.
 		OrbiterAlreadyInPool,
+		/// This orbiter is not found
+		OrbiterNotFound,
 	}
 
 	#[pallet::event]
@@ -142,7 +144,6 @@ pub mod pallet {
 			rewards: BalanceOf<T>,
 		},
 	}
-
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		/// Add a collator to orbiters program.
@@ -177,10 +178,6 @@ pub mod pallet {
 				}
 			}
 
-			if orbiters.is_empty() {
-				// Forbidding the collator to write blocks, it is now up to its orbiters to do it.
-				AccountLookupOverride::<T>::insert(collator.clone(), Option::<T::AccountId>::None);
-			}
 			collator_pool.add_orbiter(orbiter);
 			CollatorsPool::<T>::insert(collator, collator_pool);
 
@@ -205,6 +202,20 @@ pub mod pallet {
 
 			Ok(())
 		}
+		/// Add an orbiter in a collator pool
+		#[pallet::weight(0)]
+		pub fn remove_orbiter(origin: OriginFor<T>, orbiter: T::AccountId) -> DispatchResult {
+			let collator = ensure_signed(origin)?;
+
+			let mut collator_pool =
+				CollatorsPool::<T>::get(&collator).ok_or(Error::<T>::CollatorNotFound)?;
+
+			if !collator_pool.remove_orbiter(&orbiter) {
+				Err(Error::<T>::OrbiterNotFound.into())
+			} else {
+				Ok(())
+			}
+		}
 	}
 
 	impl<T: Config> Pallet<T> {
@@ -223,6 +234,11 @@ pub mod pallet {
 						AccountLookupOverride::<T>::remove(current_orbiter);
 					}
 					if let Some(next_orbiter) = pool.next_orbiter() {
+						// Forbidding the collator to write blocks, it is now up to its orbiters to do it.
+						AccountLookupOverride::<T>::insert(
+							collator.clone(),
+							Option::<T::AccountId>::None,
+						);
 						// Insert new current orbiter
 						AccountLookupOverride::<T>::insert(
 							next_orbiter.clone(),

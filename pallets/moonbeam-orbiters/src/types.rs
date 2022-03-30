@@ -38,10 +38,19 @@ impl<AccountId> Default for CollatorPoolInfo<AccountId> {
 	}
 }
 
-impl<AccountId: Clone> CollatorPoolInfo<AccountId> {
+impl<AccountId: Clone + PartialEq> CollatorPoolInfo<AccountId> {
 	pub fn add_orbiter(&mut self, orbiter: AccountId) {
 		self.orbiters.insert(self.next_orbiter as usize, orbiter);
 		self.next_orbiter += 1;
+	}
+	pub fn remove_orbiter(&mut self, orbiter: &AccountId) -> bool {
+		for (index, orbiter_) in self.orbiters.iter().enumerate() {
+			if orbiter_ == orbiter {
+				self.orbiters.remove(index);
+				return true;
+			}
+		}
+		false
 	}
 	pub fn next_orbiter(&mut self) -> Option<AccountId> {
 		if self.next_orbiter >= self.orbiters.len() as u32 {
