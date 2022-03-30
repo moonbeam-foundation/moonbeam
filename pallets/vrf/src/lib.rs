@@ -44,10 +44,23 @@ pub mod pallet {
 	use frame_system::pallet_prelude::*;
 	use sp_runtime::traits::Convert;
 
-	/// For the runtime to implement to expose cumulus data to this pallet
+	/// VRF inputs from the relay chain
+	/// TODO: needs custom Default implementation?
+	#[derive(Default, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
+	pub struct RelayInput<RelayHash, SlotNumber> {
+		/// TODO: rename to storage_root if parentStorageRoot always changes, even if block is empty
+		pub block_hash: RelayHash,
+		/// Relay slot number
+		/// received via `well_known_keys::CURRENT_SLOT` on parachain_system::RelayStateProof
+		pub slot_number: SlotNumber,
+	}
+
+	/// For the runtime to implement to expose cumulus data to this pallet and cost of getting data
 	pub trait GetMostRecentVrfInputs<RelayHash, SlotNumber> {
-		fn get_most_recent_relay_block_hash() -> RelayHash;
-		fn get_most_recent_relay_slot_number() -> SlotNumber;
+		/// Returns most recent relay block hash and weight consumed by get
+		fn get_most_recent_relay_block_hash() -> (RelayHash, Weight);
+		/// Returns most recent relay slot number and weight consumed by get
+		fn get_most_recent_relay_slot_number() -> (SlotNumber, Weight);
 	}
 
 	/// This trait tells us if the round changed in the current block
@@ -64,13 +77,10 @@ pub mod pallet {
 	}
 
 	/// Make VRF transcript
-	pub fn make_transcript<Hash: AsRef<[u8]>>(
-		relay_slot_number: Slot,
-		relay_block_hash: Hash,
-	) -> Transcript {
+	pub fn make_transcript<Hash: AsRef<[u8]>>(input: RelayInput<Hash, Slot>) -> Transcript {
 		let mut transcript = Transcript::new(&BABE_ENGINE_ID);
-		transcript.append_u64(b"relay slot number", *relay_slot_number);
-		transcript.append_message(b"relay block hash", relay_block_hash.as_ref());
+		transcript.append_u64(b"relay slot number", *input.slot_number);
+		transcript.append_message(b"relay block hash", input.block_hash.as_ref());
 		transcript
 	}
 
@@ -117,70 +127,41 @@ pub mod pallet {
 	#[pallet::getter(fn authorities)]
 	pub type Authorities<T> = StorageValue<_, Vec<AuthorityId>, ValueQuery>;
 
-	/// Most recent relay chain block hash
+	/// Most recent VRF input from relay chain data
 	/// Set in `on_initialize` before setting randomness
 	#[pallet::storage]
-	#[pallet::getter(fn most_recent_relay_block_hash)]
-	pub(crate) type MostRecentRelayBlockHash<T: Config> =
-		StorageValue<_, T::RelayBlockHash, ValueQuery>;
-
-	/// Most recent relay chain slot number
-	/// Set in `on_initialize` before setting randomness
-	#[pallet::storage]
-	#[pallet::getter(fn most_recent_relay_slot_number)]
-	pub(crate) type MostRecentSlotNumber<T> = StorageValue<_, Slot, ValueQuery>;
+	#[pallet::getter(fn most_recent_vrf_input)]
+	pub(crate) type MostRecentVrfInput<T: Config> =
+		StorageValue<_, RelayInput<T::RelayBlockHash, Slot>, ValueQuery>;
 
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
 		fn on_initialize(_now: BlockNumberFor<T>) -> Weight {
-			let initial_weight = Self::set_authorities_if_round_changed();
-			let (used_weight, relay_block_hash, relay_slot_number) =
-				Self::set_most_recent_vrf_inputs(initial_weight);
-			Self::set_randomness(used_weight, relay_block_hash, relay_slot_number)
+			let (set_inputs_weight, relay_based_vrf_input) = Self::set_most_recent_vrf_inputs();
+			set_inputs_weight + Self::set_randomness(relay_based_vrf_input)
 		}
 	}
 
 	impl<T: Config> Pallet<T> {
-		/// Set authorities if the round has changed
-		fn set_authorities_if_round_changed() -> Weight {
-			if T::RoundChanged::round_changed_this_block() {
-				let selected_candidates = T::SelectedCandidates::get();
-				let returned_weight: Weight = selected_candidates.len() as u64
-					* T::DbWeight::get().read
-					+ T::DbWeight::get().write;
-				Authorities::<T>::put(
-					selected_candidates
-						.into_iter()
-						.map(|x| T::AccountToVrfId::convert(x))
-						.collect::<Vec<AuthorityId>>(),
-				);
-				returned_weight
-			} else {
-				// 1 read to check if round had changed
-				T::DbWeight::get().read
-			}
-		}
-		/// Returns args for set_randomness
-		fn set_most_recent_vrf_inputs(weight: Weight) -> (Weight, Slot, T::RelayBlockHash) {
+		/// Returns weight consumed and arguments for setting randomness
+		fn set_most_recent_vrf_inputs() -> (Weight, RelayInput<T::RelayBlockHash, Slot>) {
 			// TODO: log if different/equal to current value? as in new or not
-			let most_recent_relay_block_hash =
+			let (most_recent_relay_block_hash, recent_rbh_wt) =
 				T::MostRecentVrfInputGetter::get_most_recent_relay_block_hash();
-			<MostRecentRelayBlockHash<T>>::put(most_recent_relay_block_hash);
-			let most_recent_relay_slot_number =
+			let (most_recent_relay_slot_number, recent_rsn_wt) =
 				T::MostRecentVrfInputGetter::get_most_recent_relay_slot_number();
-			<MostRecentSlotNumber<T>>::put(most_recent_relay_slot_number);
+			let most_recent_vrf_input = RelayInput {
+				block_hash: most_recent_relay_block_hash,
+				slot_number: most_recent_relay_slot_number,
+			};
+			<MostRecentVrfInput<T>>::put(most_recent_vrf_input.clone());
 			(
-				weight + 2 * T::DbWeight::get().write,
-				most_recent_relay_slot_number,
-				most_recent_relay_block_hash,
+				recent_rbh_wt + recent_rsn_wt + T::DbWeight::get().write,
+				most_recent_vrf_input,
 			)
 		}
 		/// Returns weight consumed in `on_initialize`
-		fn set_randomness(
-			used_weight: Weight,
-			most_recent_relay_slot_number: Slot,
-			most_recent_relay_block_hash: T::RelayBlockHash,
-		) -> Weight {
+		fn set_randomness(input: RelayInput<T::RelayBlockHash, Slot>) -> Weight {
 			let maybe_pre_digest: Option<PreDigest> = <frame_system::Pallet<T>>::digest()
 				.logs
 				.iter()
@@ -205,10 +186,7 @@ pub mod pallet {
 							schnorrkel::PublicKey::from_bytes(author.as_slice()).ok()
 						})
 						.and_then(|pubkey| {
-							let transcript = make_transcript::<T::RelayBlockHash>(
-								most_recent_relay_slot_number,
-								most_recent_relay_block_hash,
-							);
+							let transcript = make_transcript::<T::RelayBlockHash>(input);
 							vrf_output.0.attach_input_hash(&pubkey, transcript).ok()
 						})
 						.map(|inout| inout.make_bytes(&sp_consensus_babe::BABE_VRF_INOUT_CONTEXT))
@@ -218,7 +196,23 @@ pub mod pallet {
 			LastRandomness::<T>::put(CurrentRandomness::<T>::take());
 			// Place the current VRF output into the `CurrentRandomness` storage item.
 			CurrentRandomness::<T>::put(maybe_randomness);
-			used_weight + T::DbWeight::get().read + 2 * T::DbWeight::get().write
+			T::DbWeight::get().read + 2 * T::DbWeight::get().write
+		}
+		/// Set authorities in storage if round changes
+		pub fn on_new_round() -> Weight {
+			let selected_candidates = T::SelectedCandidates::get();
+			// one read per selected candidate to convert to AuthorityId used in VRF
+			let returned_weight: Weight = selected_candidates.len() as u64
+				* T::DbWeight::get().read
+				+ T::DbWeight::get().write;
+			Authorities::<T>::put(
+				selected_candidates
+					.into_iter()
+					// 1 read
+					.map(|x| T::AccountToVrfId::convert(x))
+					.collect::<Vec<AuthorityId>>(),
+			);
+			returned_weight
 		}
 	}
 
