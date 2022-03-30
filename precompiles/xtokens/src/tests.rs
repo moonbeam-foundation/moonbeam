@@ -132,15 +132,15 @@ fn transfer_self_reserve_works() {
 					Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::Transfer)
 						.write(Address(SelfReserve.into()))
-						.write(U256::from(500))
+						.write(U256::from(500u32))
 						.write(destination.clone())
-						.write(U256::from(4000000))
+						.write(U256::from(4000000u32))
 						.build(),
 					None,
 					&Context {
 						address: Precompile.into(),
 						caller: Alice.into(),
-						apparent_value: From::from(0),
+						apparent_value: From::from(0u32),
 					},
 					false,
 				),
@@ -182,15 +182,15 @@ fn transfer_to_reserve_works() {
 					Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::Transfer)
 						.write(Address(AssetId(0u128).into()))
-						.write(U256::from(500))
+						.write(U256::from(500u32))
 						.write(destination.clone())
-						.write(U256::from(4000000))
+						.write(U256::from(4000000u32))
 						.build(),
 					None,
 					&Context {
 						address: Precompile.into(),
 						caller: Alice.into(),
-						apparent_value: From::from(0),
+						apparent_value: From::from(0u32),
 					},
 					false,
 				),
@@ -242,7 +242,7 @@ fn transfer_to_reserve_with_fee_works() {
 					&Context {
 						address: Precompile.into(),
 						caller: Alice.into(),
-						apparent_value: From::from(0),
+						apparent_value: From::from(0u32),
 					},
 					false,
 				),
@@ -286,15 +286,15 @@ fn transfer_non_reserve_to_non_reserve_works() {
 					Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::Transfer)
 						.write(Address(AssetId(1u128).into()))
-						.write(U256::from(500))
+						.write(U256::from(500u32))
 						.write(destination.clone())
-						.write(U256::from(4000000))
+						.write(U256::from(4000000u32))
 						.build(),
 					None,
 					&Context {
 						address: Precompile.into(),
 						caller: Alice.into(),
-						apparent_value: From::from(0),
+						apparent_value: From::from(0u32),
 					},
 					false,
 				),
@@ -337,16 +337,16 @@ fn transfer_non_reserve_to_non_reserve_with_fee_works() {
 					Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::TransferWithFee)
 						.write(Address(AssetId(1u128).into()))
-						.write(U256::from(500))
-						.write(U256::from(50))
+						.write(U256::from(500u32))
+						.write(U256::from(50u32))
 						.write(destination.clone())
-						.write(U256::from(4000000))
+						.write(U256::from(4000000u32))
 						.build(),
 					None,
 					&Context {
 						address: Precompile.into(),
 						caller: Alice.into(),
-						apparent_value: From::from(0),
+						apparent_value: From::from(0u32),
 					},
 					false
 				),
@@ -391,15 +391,15 @@ fn transfer_multi_asset_to_reserve_works() {
 					Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::TransferMultiAsset)
 						.write(asset.clone())
-						.write(U256::from(500))
+						.write(U256::from(500u32))
 						.write(destination.clone())
-						.write(U256::from(4000000))
+						.write(U256::from(4000000u32))
 						.build(),
 					None,
 					&Context {
 						address: Precompile.into(),
 						caller: Alice.into(),
-						apparent_value: From::from(0),
+						apparent_value: From::from(0u32),
 					},
 					false,
 				),
@@ -469,7 +469,7 @@ fn transfer_multi_asset_self_reserve_works() {
 				sender: Alice,
 				asset: MultiAsset {
 					id: AssetId::Concrete(self_reserve),
-					fun: Fungibility::Fungible(500),
+					fun: Fungibility::Fungible(500u128),
 				},
 				dest: destination,
 			}
@@ -500,16 +500,16 @@ fn transfer_multi_asset_self_reserve_with_fee_works() {
 					Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::TransferMultiAssetWithFee)
 						.write(self_reserve.clone())
-						.write(U256::from(500))
-						.write(U256::from(50))
+						.write(U256::from(500u32))
+						.write(U256::from(50u32))
 						.write(destination.clone())
-						.write(U256::from(4000000))
+						.write(U256::from(4000000u32))
 						.build(),
 					None,
 					&Context {
 						address: Precompile.into(),
 						caller: Alice.into(),
-						apparent_value: From::from(0),
+						apparent_value: From::from(0u32),
 					},
 					false,
 				),
@@ -620,16 +620,16 @@ fn transfer_multi_asset_non_reserve_to_non_reserve_with_fee() {
 					Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::TransferMultiAssetWithFee)
 						.write(asset_location.clone())
-						.write(U256::from(500))
-						.write(U256::from(50))
+						.write(U256::from(500u32))
+						.write(U256::from(50u32))
 						.write(destination.clone())
-						.write(U256::from(4000000))
+						.write(U256::from(4000000u32))
 						.build(),
 					None,
 					&Context {
 						address: Precompile.into(),
 						caller: Alice.into(),
-						apparent_value: From::from(0),
+						apparent_value: From::from(0u32),
 					},
 					false
 				),
