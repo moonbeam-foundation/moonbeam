@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Maps Author Ids as used in nimbus consensus layer to account ids as used i nthe runtime.
+//! Maps Author Ids as used in nimbus consensus layer to account ids as used in the runtime.
 //! This should likely be moved to nimbus eventually.
 //!
 //! This pallet maps NimbusId => AccountId which is most useful when using propositional style
 //! queries. This mapping will likely need to go the other way if using exhaustive authority sets.
-//! That could either be a seperate pallet, or this pallet could implement a two-way mapping. But
+//! That could either be a separate pallet, or this pallet could implement a two-way mapping. But
 //! for now it it one-way
 
 #![cfg_attr(not(feature = "std"), no_std)]
@@ -61,9 +61,7 @@ pub mod pallet {
 	#[pallet::without_storage_info]
 	pub struct Pallet<T, I = ()>(PhantomData<(T, I)>);
 
-	/// Configuration trait of this pallet. We tightly couple to Parachain Staking in order to
-	/// ensure that only staked accounts can create registrations in the first place. This could be
-	/// generalized.
+	/// Configuration trait of this pallet.
 	#[pallet::config]
 	pub trait Config<I: 'static = ()>: frame_system::Config {
 		/// Overarching event type
