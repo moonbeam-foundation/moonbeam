@@ -293,6 +293,7 @@ pub fn testnet_genesis(
 				.cloned()
 				.map(|(account_id, author_id, _)| (author_id, account_id))
 				.collect(),
+			phantom: Default::default(),
 		},
 		proxy_genesis_companion: Default::default(),
 		treasury: Default::default(),
