@@ -1036,7 +1036,7 @@ mod tests {
 	use sc_service::ChainType;
 	use sc_service::{
 		config::{BasePath, DatabaseSource, KeystoreConfig},
-		Configuration, KeepBlocks, Role, TransactionStorageMode,
+		Configuration, KeepBlocks, Role,
 	};
 	use std::path::Path;
 	use std::str::FromStr;
@@ -1156,7 +1156,6 @@ mod tests {
 			state_cache_child_ratio: None,
 			state_pruning: Default::default(),
 			keep_blocks: KeepBlocks::All,
-			transaction_storage: TransactionStorageMode::BlockBody,
 			chain_spec: Box::new(spec),
 			wasm_method: sc_service::config::WasmExecutionMethod::Interpreted,
 			wasm_runtime_overrides: Default::default(),
