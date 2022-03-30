@@ -246,6 +246,7 @@ impl ExtBuilder {
 
 		pallet_author_mapping::GenesisConfig::<Runtime> {
 			mappings: self.mappings,
+			phantom: Default::default(),
 		}
 		.assimilate_storage(&mut t)
 		.unwrap();
