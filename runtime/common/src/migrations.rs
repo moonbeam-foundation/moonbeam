@@ -176,7 +176,7 @@ impl<T: ParachainStakingConfig> Migration for ParachainStakingPurgeStaleStorage<
 
 /// A moonbeam migration wrapping the similarly named migration in pallet-author-mapping
 pub struct AuthorMappingTwoXToBlake<T, I: 'static>(PhantomData<(T, I)>);
-impl<T: AuthorMappingConfig, I: 'static> Migration for AuthorMappingTwoXToBlake<T, I> {
+impl<T: AuthorMappingConfig<I>, I: 'static> Migration for AuthorMappingTwoXToBlake<T, I> {
 	fn friendly_name(&self) -> &str {
 		"MM_Author_Mapping_TwoXToBlake"
 	}
