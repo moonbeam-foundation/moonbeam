@@ -1877,6 +1877,13 @@ fn test_statemine_like() {
 			300000000000000
 		));
 
+		// This is needed, since the asset is created as non-sufficient
+		assert_ok!(StatemineBalances::transfer(
+			statemine_like::Origin::signed(RELAYALICE),
+			sov,
+			100000000000000
+		));
+
 		// Actually send relay asset to parachain
 		let dest: MultiLocation = AccountKey20 {
 			network: NetworkId::Any,
@@ -1979,6 +1986,13 @@ fn test_statemine_like_prefix_change() {
 			0,
 			RELAYALICE,
 			300000000000000
+		));
+
+		// This is needed, since the asset is created as non-sufficient
+		assert_ok!(StatemineBalances::transfer(
+			statemine_like::Origin::signed(RELAYALICE),
+			sov,
+			100000000000000
 		));
 
 		// Actually send relay asset to parachain
