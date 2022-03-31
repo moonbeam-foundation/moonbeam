@@ -20,8 +20,9 @@ use serde::{Deserialize, Serialize};
 use {
 	super::*,
 	core::cmp::Ordering,
-	frame_support::{pallet_prelude::*, RuntimeDebug},
+	frame_support::RuntimeDebug,
 	sp_runtime::traits::CheckedAdd,
+	sp_std::collections::btree_set::BTreeSet,
 };
 
 /// Candidate info stored in a sorted list.
@@ -68,7 +69,7 @@ pub fn update_candidate_stake<T: Config>(
 		.checked_add(&mc_self_delegation)
 		.ok_or(Error::MathOverflow)?;
 
-	EligibleCandidatesList::<T>::mutate(|list| {
+	SortedEligibleCandidates::<T>::mutate(|list| {
 		// Remove old data if it existed.
 		let old_position = match list.binary_search(&Candidate {
 			candidate: candidate.clone(),
@@ -96,6 +97,21 @@ pub fn update_candidate_stake<T: Config>(
 		} else {
 			None
 		};
+
+		// If candidate was or is now in the top we need to update
+		// the collator set.
+		let set_size = MaxCollatorSetSize::<T>::get();
+		match (old_position, new_position) {
+			(Some(pos), _) | (_, Some(pos)) if pos < set_size => {
+				let set: BTreeSet<_> = list
+					.iter()
+					.take(set_size as usize)
+					.map(|c| c.candidate.clone())
+					.collect();
+				CollatorSet::<T>::put(set);
+			}
+			_ => (),
+		}
 
 		Pallet::<T>::deposit_event(Event::<T>::UpdatedCandidatePosition {
 			candidate,

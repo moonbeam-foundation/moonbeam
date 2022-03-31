@@ -17,7 +17,7 @@
 use {
 	super::*,
 	frame_support::pallet_prelude::*,
-	frame_support::{ensure, pallet_prelude::*, traits::Get, StorageDoubleMap, StorageMap},
+	frame_support::{ensure, traits::Get, StorageDoubleMap, StorageMap},
 	sp_runtime::traits::{CheckedAdd, CheckedDiv, CheckedMul, CheckedSub, Zero},
 };
 

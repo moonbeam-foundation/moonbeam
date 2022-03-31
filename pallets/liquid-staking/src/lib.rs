@@ -29,7 +29,7 @@ use frame_support::pallet;
 #[pallet]
 pub mod pallet {
 	use {
-		super::shares,
+		super::{rewards, shares},
 		frame_support::{
 			pallet_prelude::*,
 			storage::types::Key,
@@ -41,6 +41,7 @@ pub mod pallet {
 			traits::{CheckedAdd, CheckedSub, Zero},
 			Perbill,
 		},
+		sp_std::collections::btree_set::BTreeSet,
 	};
 
 	#[cfg(feature = "std")]
@@ -82,10 +83,12 @@ pub mod pallet {
 		/// The currency type.
 		/// Shares will use the same Balance type.
 		type Currency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
+
 		/// Account holding Currency of all delegators.
 		type StakingAccount: Get<Self::AccountId>;
 		/// Account of the reserve.
 		type ReserveAccount: Get<Self::AccountId>;
+
 		/// When creating the first Shares for a candidate the supply can be arbitrary.
 		/// Picking a value too low will make an higher supply, which means each share will get
 		/// less rewards, and rewards calculations will have more impactful rounding errors.
@@ -95,15 +98,19 @@ pub mod pallet {
 		/// Picking a value too high is a barrier of entry for staking, which will increase overtime
 		/// as the value of each share will increase due to auto compounding.
 		type InitialAutoCompoundingShareValue: Get<BalanceOf<Self>>;
+		/// Minimum amount of stake a Candidate must delegate (stake) towards itself. Not reaching
+		/// this minimum prevents from being elected.
+		type MinimumSelfDelegation: Get<BalanceOf<Self>>;
+
 		/// When leaving staking the stake is put into leaving pools, and the share of this pool
 		/// is stored alongside the current BlockNumber. The user will be able to withdraw the stake
 		/// represented by those shares once LeavingDelay has passed.
 		/// Shares are used here to allow slashing, as while leaving stake is no longer used for
 		/// elections and rewards they must still be at stake in case the candidate misbehave.
 		type LeavingDelay: Get<Self::BlockNumber>;
-		/// Minimum amount of stake a Candidate must delegate (stake) towards itself. Not reaching
-		/// this minimum prevents from being elected.
-		type MinimumSelfDelegation: Get<BalanceOf<Self>>;
+
+		/// Inflation determines how much is minted as rewards every block.
+		type BlockInflation: Get<Perbill>;
 	}
 
 	/// Part of the rewards that will be sent to the reserve.
@@ -114,9 +121,17 @@ pub mod pallet {
 	#[pallet::storage]
 	pub type RewardsCollatorCommission<T: Config> = StorageValue<_, Perbill, ValueQuery>;
 
+	/// Collator set.
+	#[pallet::storage]
+	pub type CollatorSet<T: Config> = StorageValue<_, BTreeSet<T::AccountId>, ValueQuery>;
+
+	/// Max collator set size.
+	#[pallet::storage]
+	pub type MaxCollatorSetSize<T: Config> = StorageValue<_, u32, ValueQuery>;
+
 	/// Sorted list of eligible candidates.
 	#[pallet::storage]
-	pub type EligibleCandidatesList<T: Config> =
+	pub type SortedEligibleCandidates<T: Config> =
 		StorageValue<_, Vec<shares::candidates::Candidate<T::AccountId, BalanceOf<T>>>, ValueQuery>;
 
 	/// Stake of each candidate.
@@ -228,7 +243,7 @@ pub mod pallet {
 		(
 			// Candidate
 			Key<Twox64Concat, T::AccountId>,
-			// Staker
+			// Delegator
 			Key<Twox64Concat, T::AccountId>,
 			// Block at which the request was emited
 			Key<Twox64Concat, T::BlockNumber>,
@@ -687,6 +702,29 @@ pub mod pallet {
 			)?;
 
 			Ok(().into())
+		}
+	}
+
+	impl<T: Config> nimbus_primitives::EventHandler<T::AccountId> for Pallet<T> {
+		fn note_author(author: T::AccountId) {
+			let circulating = T::Currency::total_issuance();
+			let rewards = T::BlockInflation::get() * circulating;
+
+			if let Err(err) = rewards::distribute_rewards::<T>(author, rewards) {
+				log::error!("Failed to distribute rewards: {:?}", err);
+			}
+		}
+	}
+
+	impl<T: Config> nimbus_primitives::CanAuthor<T::AccountId> for Pallet<T> {
+		fn can_author(account: &T::AccountId, _slot: &u32) -> bool {
+			CollatorSet::<T>::get().contains(account)
+		}
+	}
+
+	impl<T: Config> Get<Vec<T::AccountId>> for Pallet<T> {
+		fn get() -> Vec<T::AccountId> {
+			CollatorSet::<T>::get().iter().cloned().collect()
 		}
 	}
 }

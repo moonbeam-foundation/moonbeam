@@ -20,7 +20,14 @@ use {
 		traits::{tokens::currency::Currency, Get},
 		transactional,
 	},
-	sp_runtime::traits::{CheckedAdd, CheckedDiv, CheckedMul, CheckedSub, Zero},
+	sp_runtime::{
+		traits::{CheckedAdd, CheckedDiv, CheckedMul, CheckedSub, Zero},
+		PerThing, Perbill,
+	},
+	substrate_fixed::{
+		transcendental::pow as floatpow,
+		types::{I32F32, I64F64},
+	},
 };
 
 #[transactional]
@@ -79,7 +86,7 @@ fn reward_delegators<T: Config>(
 		let counter = counter
 			.checked_add(&rewards_per_share)
 			.ok_or(Error::MathOverflow)?;
-		ManualClaimSharesRewardCounter::<T>::insert(&collator, mc_rewards);
+		ManualClaimSharesRewardCounter::<T>::insert(&collator, counter);
 	}
 
 	// AutoCompounnding rewards.
@@ -156,4 +163,22 @@ fn reward_collator<T: Config>(collator: T::AccountId, value: BalanceOf<T>) -> Re
 	});
 
 	Ok(())
+}
+
+/// Convert an annual inflation to a block inflation
+/// round = (1+annual)^(1/blocks_per_year) - 1
+pub fn annual_to_block_inflation(annual_inflation: Perbill, sec_per_block: u32) -> Perbill {
+	const SECONDS_PER_YEAR: u32 = 31557600;
+	let blocks_per_year = SECONDS_PER_YEAR / sec_per_block;
+
+	let exponent = I32F32::from_num(1) / I32F32::from_num(blocks_per_year);
+
+	let x = I32F32::from_num(annual_inflation.deconstruct()) / I32F32::from_num(Perbill::ACCURACY);
+	let y: I64F64 = floatpow(I32F32::from_num(1) + x, exponent)
+		.expect("Cannot overflow since blocks_per_year is u32 so worst case 0; QED");
+	Perbill::from_parts(
+		((y - I64F64::from_num(1)) * I64F64::from_num(Perbill::ACCURACY))
+			.ceil()
+			.to_num::<u32>(),
+	)
 }
