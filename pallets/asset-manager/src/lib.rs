@@ -641,7 +641,7 @@ pub mod pallet {
 			T::AssetRegistrar::destroy_asset_dispatch_info_weight(
 				*asset_id, *destroy_asset_witness
 			)
-            .saturating_add(T::DbWeight::get().reads_writes(2, 2))
+			.saturating_add(T::DbWeight::get().reads_writes(2, 2))
 		})]
 		pub fn destroy_local_asset(
 			origin: OriginFor<T>,
