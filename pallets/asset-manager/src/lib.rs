@@ -22,11 +22,13 @@
 //! and control the creation of local assets
 //! The assumption is we work with AssetTypes, which can then be comperted to AssetIds
 //!
-//! This pallet has four storage items: AssetIdType, which holds a mapping from AssetId->AssetType
+//! This pallet has five storage items: AssetIdType, which holds a mapping from AssetId->AssetType
 //! AssetTypeUnitsPerSecond: an AssetType->u128 mapping that holds how much each AssetType should
 //! be charged per unit of second, in the case such an Asset is received as a XCM asset. Finally,
-//! AssetTypeId holds a mapping from AssetType -> AssetId. Finally LocalAssetCounter
-//! which holds the counter of local assets that have been created so far
+//! AssetTypeId holds a mapping from AssetType -> AssetId. LocalAssetCounter
+//! which holds the counter of local assets that have been created so far. And LocalAssetDeposit,
+//! which holds a mapping between assetId and assetInfo, i.e., the asset creator (from which
+//! we take the deposit) and the deposit amount itself.
 //!
 //! This pallet has eight extrinsics: register_foreign_asset, which registers a foreign
 //! asset in this pallet and creates the asset as dictated by the AssetRegistrar trait.
@@ -74,7 +76,7 @@ pub mod pallet {
 	/// The AssetManagers's pallet id
 	pub const PALLET_ID: PalletId = PalletId(*b"asstmngr");
 
-	type DepositBalanceOf<T> =
+	pub(crate) type DepositBalanceOf<T> =
 		<<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
 
 	#[derive(Default, Clone, Encode, Decode, RuntimeDebug, PartialEq, scale_info::TypeInfo)]
@@ -193,10 +195,10 @@ pub mod pallet {
 		/// The asset destroy Witness
 		type AssetDestroyWitness: Member + Parameter + Copy;
 
-		/// The currency mechanism.
+		/// The currency mechanism in which we reserve deposits for local assets.
 		type Currency: ReservableCurrency<Self::AccountId>;
 
-		/// The basic amount of funds that must be reserved for an asset.
+		/// The basic amount of funds that must be reserved for a local asset.
 		#[pallet::constant]
 		type LocalAssetDeposit: Get<DepositBalanceOf<Self>>;
 
@@ -288,7 +290,9 @@ pub mod pallet {
 	#[pallet::getter(fn local_asset_counter)]
 	pub type LocalAssetCounter<T: Config> = StorageValue<_, u128, ValueQuery>;
 
-	/// Local asset deposit
+	/// Local asset deposits, a mapping from assetId to a struct
+	/// holding the creator (from which the deposit was reserved) and
+	/// the deposit amount
 	#[pallet::storage]
 	#[pallet::getter(fn local_asset_deposit)]
 	pub type LocalAssetDeposit<T: Config> =
@@ -521,6 +525,7 @@ pub mod pallet {
 		) -> DispatchResult {
 			T::LocalAssetModifierOrigin::ensure_origin(origin)?;
 
+			// Get the deposit amount
 			let deposit = T::LocalAssetDeposit::get();
 
 			// Verify we can reserve
@@ -550,7 +555,7 @@ pub mod pallet {
 			)
 			.map_err(|_| Error::<T>::ErrorCreatingAsset)?;
 
-			// Reserve
+			// Reserve the deposit, we verified we can do this
 			T::Currency::reserve(&creator, deposit)?;
 
 			// Update assetInfo
@@ -645,6 +650,7 @@ pub mod pallet {
 		) -> DispatchResult {
 			T::LocalAssetModifierOrigin::ensure_origin(origin)?;
 
+			// Get asset creator and deposit amount
 			let asset_info =
 				LocalAssetDeposit::<T>::get(asset_id).ok_or(Error::<T>::NonExistentLocalAsset)?;
 
@@ -655,6 +661,7 @@ pub mod pallet {
 			// Unreserve deposit
 			T::Currency::unreserve(&asset_info.creator, asset_info.deposit);
 
+			// Remove asset info
 			LocalAssetDeposit::<T>::remove(asset_id);
 
 			Self::deposit_event(Event::LocalAssetDestroyed { asset_id });

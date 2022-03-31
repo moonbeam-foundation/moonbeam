@@ -16,10 +16,32 @@
 
 #![cfg(feature = "runtime-benchmarks")]
 
-use crate::{Call, Config, Pallet};
+use crate::{Call, Config, DepositBalanceOf, Pallet};
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
+use frame_support::traits::{Currency, Get};
 use frame_system::RawOrigin;
 use xcm::latest::prelude::*;
+
+///RLocal asset deposit amount
+fn min_candidate_stk<T: Config>() -> DepositBalanceOf<T> {
+	<<T as Config>::LocalAssetDeposit as Get<DepositBalanceOf<T>>>::get()
+}
+
+/// Create a funded user.
+/// Used for generating the necessary amount for local assets
+fn create_funded_user<T: Config>(
+	string: &'static str,
+	n: u32,
+	extra: DepositBalanceOf<T>,
+) -> (T::AccountId, DepositBalanceOf<T>) {
+	const SEED: u32 = 0;
+	let user = account(string, n, SEED);
+	let min_reserve_amount = min_candidate_stk::<T>();
+	let total = min_reserve_amount + extra;
+	T::Currency::make_free_balance_be(&user, total);
+	T::Currency::issue(total);
+	(user, total)
+}
 
 benchmarks! {
 	// This where clause allows us to create ForeignAssetTypes
@@ -133,14 +155,17 @@ benchmarks! {
 	}
 
 	register_local_asset {
-		let creator: T::AccountId  = account("account id", 0u32, 0u32);
+		const USER_SEED: u32 = 999666;
+		let (caller, deposit_amount) = create_funded_user::<T>("caller", USER_SEED, 0u32.into());
 		let owner: T::AccountId  = account("account id", 1u32, 0u32);
 		let current_local_counter: u128 =Pallet::<T>::local_asset_counter();
 		let min_balance: T::Balance = 1u32.into();
+
 	}: _(
 			RawOrigin::Root,
-			creator.clone(),
+			caller.clone(),
 			owner.clone(),
+			true,
 			min_balance.clone()
 	)
 	verify {
