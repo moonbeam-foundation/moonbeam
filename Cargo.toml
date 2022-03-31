@@ -16,7 +16,7 @@ members = [
 	"runtime/moonriver",
 ]
 
-# [patch.crates-io]
+[patch.crates-io]
 evm = { git = "https://github.com/purestake/evm", branch = "moonbeam-polkadot-v0.9.18" }
 evm-gasometer = { git = "https://github.com/purestake/evm", branch = "moonbeam-polkadot-v0.9.18" }
 evm-runtime = { git = "https://github.com/purestake/evm", branch = "moonbeam-polkadot-v0.9.18" }
