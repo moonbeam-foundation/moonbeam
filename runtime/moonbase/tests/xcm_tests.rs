@@ -2039,19 +2039,11 @@ fn send_para_a_local_asset_to_para_b() {
 		let source_location = parachain::AssetType::Xcm(para_a_local_asset);
 		let source_id: parachain::AssetId = source_location.clone().into();
 
-		let dest_para = MultiLocation::new(1, X1(Parachain(2)));
-
 		let asset_metadata = parachain::AssetMetadata {
 			name: b"ParaALocalAsset".to_vec(),
 			symbol: b"ParaALocalAsset".to_vec(),
 			decimals: 12,
 		};
-
-		let sov = xcm_builder::SiblingParachainConvertsVia::<
-			polkadot_parachain::primitives::Sibling,
-			parachain::AccountId,
-		>::convert_ref(dest_para)
-		.unwrap();
 
 		ParaA::execute_with(|| {
 			assert_ok!(AssetManager::register_local_asset(
@@ -2067,13 +2059,6 @@ fn send_para_a_local_asset_to_para_b() {
 				asset_id,
 				PARAALICE.into(),
 				300000000000000
-			));
-
-			// This is needed, since the asset is created as non-sufficient
-			assert_ok!(Balances::transfer(
-				parachain::Origin::signed(PARAALICE.into()),
-				sov,
-				100000000000000
 			));
 		});
 
@@ -2151,8 +2136,6 @@ fn send_para_a_local_asset_to_para_b_and_send_it_back_together_with_some_dev() {
 			decimals: 18,
 		};
 
-		let dest_para = MultiLocation::new(1, X1(Parachain(2)));
-
 		ParaB::execute_with(|| {
 			assert_ok!(AssetManager::register_foreign_asset(
 				parachain::Origin::root(),
@@ -2183,12 +2166,6 @@ fn send_para_a_local_asset_to_para_b_and_send_it_back_together_with_some_dev() {
 			));
 		});
 
-		let sov = xcm_builder::SiblingParachainConvertsVia::<
-			polkadot_parachain::primitives::Sibling,
-			parachain::AccountId,
-		>::convert_ref(dest_para)
-		.unwrap();
-
 		ParaA::execute_with(|| {
 			assert_ok!(AssetManager::register_local_asset(
 				parachain::Origin::root(),
@@ -2203,13 +2180,6 @@ fn send_para_a_local_asset_to_para_b_and_send_it_back_together_with_some_dev() {
 				asset_id,
 				PARAALICE.into(),
 				300000000000000
-			));
-
-			// This is needed, since the asset is created as non-sufficient
-			assert_ok!(Balances::transfer(
-				parachain::Origin::signed(PARAALICE.into()),
-				sov,
-				100000000000000
 			));
 		});
 

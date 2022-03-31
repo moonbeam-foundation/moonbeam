@@ -804,7 +804,7 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 
 	fn create_local_asset(
 		asset: AssetId,
-		creator: AccountId,
+		_creator: AccountId,
 		min_balance: Balance,
 		is_sufficient: bool,
 		owner: AccountId,

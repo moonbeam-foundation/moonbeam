@@ -190,6 +190,8 @@ impl pallet_asset_manager::Config for Runtime {
 	type LocalAssetModifierOrigin = EnsureRoot<AccountId>;
 	type LocalAssetIdCreator = LocalAssetIdCreator;
 	type AssetDestroyWitness = pallet_assets::DestroyWitness;
+	type Currency = Balances;
+	type LocalAssetDeposit = AssetDeposit;
 	type WeightInfo = pallet_asset_manager::weights::SubstrateWeight<Runtime>;
 }
 
