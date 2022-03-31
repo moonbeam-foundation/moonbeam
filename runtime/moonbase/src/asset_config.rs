@@ -150,8 +150,9 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		is_sufficient: bool,
 		owner: AccountId,
 	) -> DispatchResult {
-		// In this case we use the regular call, since we want the deposit
-		// to be withdrawn from the caller
+		// We create with root, because we need to decide whether we want to create the asset
+		// as sufficient. Take into account this does not hold any reserved amount
+		// in pallet-assets
 		LocalAssets::force_create(Origin::root(), asset, owner, is_sufficient, min_balance)?;
 
 		// No metadata needs to be set, as this can be set through regular calls
