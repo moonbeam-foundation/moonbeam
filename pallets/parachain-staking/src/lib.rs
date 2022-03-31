@@ -80,6 +80,15 @@ pub mod pallet {
 	};
 	use sp_std::{collections::btree_map::BTreeMap, prelude::*};
 
+	pub trait OnNewRound {
+		fn on_new_round(round: RoundIndex) -> Weight;
+	}
+	impl OnNewRound for () {
+		fn on_new_round(_round: RoundIndex) -> Weight {
+			0
+		}
+	}
+
 	/// Pallet for parachain staking
 	#[pallet::pallet]
 	#[pallet::without_storage_info]
@@ -153,6 +162,9 @@ pub mod pallet {
 		/// Minimum stake for any registered on-chain account to be a delegator
 		#[pallet::constant]
 		type MinDelegatorStk: Get<BalanceOf<Self>>;
+		/// Handler to notify the runtime when a new round begin.
+		/// If you don't need it, specify the default impl: `()`
+		type OnNewRound: OnNewRound;
 		/// Weight information for extrinsics in this pallet.
 		type WeightInfo: WeightInfo;
 	}
@@ -395,6 +407,8 @@ pub mod pallet {
 			if round.should_update(n) {
 				// mutate round
 				round.update(n);
+				// notify that new round begin
+				weight = weight.saturating_add(T::OnNewRound::on_new_round(round.current));
 				// pay all stakers for T::RewardPaymentDelay rounds ago
 				Self::prepare_staking_payouts(round.current);
 				// select top collator candidates for next round
