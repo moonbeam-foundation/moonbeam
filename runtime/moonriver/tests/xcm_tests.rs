@@ -2076,12 +2076,6 @@ fn send_para_a_local_asset_to_para_b() {
 				300000000000000
 			));
 
-			// This is needed, since the asset is created as non-sufficient
-			assert_ok!(Balances::transfer(
-				parachain::Origin::signed(PARAALICE.into()),
-				sov,
-				100000000000000
-			));
 		});
 
 		ParaB::execute_with(|| {
@@ -2202,13 +2196,6 @@ fn send_para_a_local_asset_to_para_b_and_send_it_back_together_with_some_dev() {
 				asset_id,
 				PARAALICE.into(),
 				300000000000000
-			));
-
-			// This is needed, since the asset is created as non-sufficient
-			assert_ok!(Balances::transfer(
-				parachain::Origin::signed(PARAALICE.into()),
-				sov,
-				100000000000000
 			));
 		});
 
