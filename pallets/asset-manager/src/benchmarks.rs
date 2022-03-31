@@ -16,7 +16,7 @@
 
 #![cfg(feature = "runtime-benchmarks")]
 
-use crate::{Call, Config, DepositBalanceOf, Pallet};
+use crate::{Call, Config, DepositBalanceOf, Pallet, pallet::LocalAssetIdCreator};
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
 use frame_support::traits::{Currency, Get};
 use frame_system::RawOrigin;
@@ -155,8 +155,9 @@ benchmarks! {
 	}
 
 	register_local_asset {
-		const USER_SEED: u32 = 999666;
+		const USER_SEED: u32 = 1;
 		let (caller, deposit_amount) = create_funded_user::<T>("caller", USER_SEED, 0u32.into());
+		let asset_id = T::LocalAssetIdCreator::create_asset_id_from_metadata(0);
 		let owner: T::AccountId  = account("account id", 1u32, 0u32);
 		let current_local_counter: u128 =Pallet::<T>::local_asset_counter();
 		let min_balance: T::Balance = 1u32.into();
@@ -170,6 +171,8 @@ benchmarks! {
 	)
 	verify {
 		assert_eq!(Pallet::<T>::local_asset_counter(), current_local_counter+1);
+		assert!(Pallet::<T>::local_asset_deposit(asset_id).is_some());
+
 	}
 	remove_existing_asset_type {
 		// We make it dependent on the number of existing assets already
