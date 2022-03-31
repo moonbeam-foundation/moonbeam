@@ -57,7 +57,11 @@ pub mod weights;
 pub mod pallet {
 
 	use crate::weights::WeightInfo;
-	use frame_support::{pallet_prelude::*, PalletId};
+	use frame_support::{
+		pallet_prelude::*,
+		traits::{Currency, ReservableCurrency},
+		PalletId,
+	};
 	use frame_system::pallet_prelude::*;
 	use parity_scale_codec::HasCompact;
 	use sp_runtime::traits::{AccountIdConversion, AtLeast32BitUnsigned};
@@ -69,6 +73,16 @@ pub mod pallet {
 
 	/// The AssetManagers's pallet id
 	pub const PALLET_ID: PalletId = PalletId(*b"asstmngr");
+
+	type DepositBalanceOf<T> =
+		<<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
+
+	#[derive(Default, Clone, Encode, Decode, RuntimeDebug, PartialEq, scale_info::TypeInfo)]
+	#[scale_info(skip_type_params(T))]
+	pub struct AssetInfo<T: Config> {
+		pub creator: T::AccountId,
+		pub deposit: DepositBalanceOf<T>,
+	}
 
 	// The registrar trait. We need to comply with this
 	pub trait AssetRegistrar<T: Config> {
@@ -178,6 +192,13 @@ pub mod pallet {
 		/// The asset destroy Witness
 		type AssetDestroyWitness: Member + Parameter + Copy;
 
+		/// The currency mechanism.
+		type Currency: ReservableCurrency<Self::AccountId>;
+
+		/// The basic amount of funds that must be reserved for an asset.
+		#[pallet::constant]
+		type LocalAssetDeposit: Get<DepositBalanceOf<Self>>;
+
 		type WeightInfo: WeightInfo;
 	}
 
@@ -190,6 +211,8 @@ pub mod pallet {
 		TooLowNumAssetsWeightHint,
 		LocalAssetLimitReached,
 		ErrorDestroyingAsset,
+		NotSufficientDeposit,
+		NonExistentLocalAsset,
 	}
 
 	#[pallet::event]
@@ -263,6 +286,12 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn local_asset_counter)]
 	pub type LocalAssetCounter<T: Config> = StorageValue<_, u128, ValueQuery>;
+
+	/// Local asset deposit
+	#[pallet::storage]
+	#[pallet::getter(fn local_asset_deposit)]
+	pub type LocalAssetDeposit<T: Config> =
+		StorageMap<_, Blake2_128Concat, T::AssetId, AssetInfo<T>>;
 
 	// Supported fee asset payments
 	#[pallet::storage]
@@ -490,7 +519,14 @@ pub mod pallet {
 		) -> DispatchResult {
 			T::LocalAssetModifierOrigin::ensure_origin(origin)?;
 
-			// Read Local Asset Connter
+			let deposit = T::LocalAssetDeposit::get();
+
+			// Verify we can reserve
+			T::Currency::can_reserve(&creator, deposit)
+				.then(|| true)
+				.ok_or(Error::<T>::NotSufficientDeposit)?;
+
+			// Read Local Asset Counter
 			let mut local_asset_counter = LocalAssetCounter::<T>::get();
 
 			// Create the assetId with LocalAssetIdCreator
@@ -510,6 +546,18 @@ pub mod pallet {
 				owner.clone(),
 			)
 			.map_err(|_| Error::<T>::ErrorCreatingAsset)?;
+
+			// Reserve
+			T::Currency::reserve(&creator, deposit)?;
+
+			// Update assetInfo
+			LocalAssetDeposit::<T>::insert(
+				asset_id,
+				AssetInfo {
+					creator: creator.clone(),
+					deposit,
+				},
+			);
 
 			// Update local asset counter
 			LocalAssetCounter::<T>::put(local_asset_counter);
@@ -585,6 +633,7 @@ pub mod pallet {
 			T::AssetRegistrar::destroy_asset_dispatch_info_weight(
 				*asset_id, *destroy_asset_witness
 			)
+            .saturating_add(T::DbWeight::get().reads_writes(2, 2))
 		})]
 		pub fn destroy_local_asset(
 			origin: OriginFor<T>,
@@ -593,8 +642,17 @@ pub mod pallet {
 		) -> DispatchResult {
 			T::LocalAssetModifierOrigin::ensure_origin(origin)?;
 
+			let asset_info =
+				LocalAssetDeposit::<T>::get(asset_id).ok_or(Error::<T>::NonExistentLocalAsset)?;
+
+			// Destroy local asset
 			T::AssetRegistrar::destroy_local_asset(asset_id, destroy_asset_witness)
 				.map_err(|_| Error::<T>::ErrorDestroyingAsset)?;
+
+			// Unreserve deposit
+			T::Currency::unreserve(&asset_info.creator, asset_info.deposit);
+
+			LocalAssetDeposit::<T>::remove(asset_id);
 
 			Self::deposit_event(Event::LocalAssetDestroyed { asset_id });
 			Ok(())

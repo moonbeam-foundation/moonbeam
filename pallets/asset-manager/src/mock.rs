@@ -35,6 +35,9 @@ use xcm::latest::prelude::*;
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
 
+pub type AccountId = u64;
+pub type Balance = u64;
+
 construct_runtime!(
 	pub enum Test where
 		Block = Block,
@@ -60,7 +63,7 @@ impl frame_system::Config for Test {
 	type BlockNumber = u64;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
-	type AccountId = u64;
+	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
 	type Header = Header;
 	type Event = Event;
@@ -82,7 +85,7 @@ parameter_types! {
 }
 
 impl pallet_balances::Config for Test {
-	type Balance = u64;
+	type Balance = Balance;
 	type DustRemoval = ();
 	type Event = Event;
 	type ExistentialDeposit = ExistentialDeposit;
@@ -194,6 +197,10 @@ impl pallet_asset_manager::LocalAssetIdCreator<Test> for MockLocalAssetIdCreator
 	}
 }
 
+parameter_types! {
+	pub const LocalAssetDeposit: u64 = 1;
+}
+
 impl Config for Test {
 	type Event = Event;
 	type Balance = u64;
@@ -205,17 +212,41 @@ impl Config for Test {
 	type LocalAssetModifierOrigin = EnsureRoot<u64>;
 	type LocalAssetIdCreator = MockLocalAssetIdCreator;
 	type AssetDestroyWitness = u32;
+	type Currency = Balances;
+	type LocalAssetDeposit = LocalAssetDeposit;
 	type WeightInfo = ();
 }
 
-pub(crate) fn new_test_ext() -> sp_io::TestExternalities {
-	let t = frame_system::GenesisConfig::default()
-		.build_storage::<Test>()
-		.unwrap();
+pub(crate) struct ExtBuilder {
+	// endowed accounts with balances
+	balances: Vec<(AccountId, Balance)>,
+}
 
-	let mut ext = sp_io::TestExternalities::new(t);
-	ext.execute_with(|| System::set_block_number(1));
-	ext
+impl Default for ExtBuilder {
+	fn default() -> ExtBuilder {
+		ExtBuilder { balances: vec![] }
+	}
+}
+
+impl ExtBuilder {
+	pub(crate) fn with_balances(mut self, balances: Vec<(AccountId, Balance)>) -> Self {
+		self.balances = balances;
+		self
+	}
+	pub(crate) fn build(self) -> sp_io::TestExternalities {
+		let mut t = frame_system::GenesisConfig::default()
+			.build_storage::<Test>()
+			.expect("Frame system builds valid default genesis config");
+
+		pallet_balances::GenesisConfig::<Test> {
+			balances: self.balances,
+		}
+		.assimilate_storage(&mut t)
+		.expect("Pallet balances storage can be assimilated");
+		let mut ext = sp_io::TestExternalities::new(t);
+		ext.execute_with(|| System::set_block_number(1));
+		ext
+	}
 }
 
 pub(crate) fn events() -> Vec<super::Event<Test>> {
