@@ -56,6 +56,7 @@ describeDevMoonbeamAllEthTxTypes(
           context.polkadotApi.tx.assetManager.registerLocalAsset(
             baltatharAccount.address,
             baltatharAccount.address,
+            true,
             new BN(1)
           )
         )
@@ -232,6 +233,7 @@ describeDevMoonbeamAllEthTxTypes(
           context.polkadotApi.tx.assetManager.registerLocalAsset(
             baltatharAccount.address,
             baltatharAccount.address,
+            true,
             new BN(1)
           )
         )
@@ -346,6 +348,7 @@ describeDevMoonbeamAllEthTxTypes(
           context.polkadotApi.tx.assetManager.registerLocalAsset(
             baltatharAccount.address,
             baltatharAccount.address,
+            true,
             new BN(1)
           )
         )
@@ -474,6 +477,7 @@ describeDevMoonbeamAllEthTxTypes(
           context.polkadotApi.tx.assetManager.registerLocalAsset(
             baltatharAccount.address,
             baltatharAccount.address,
+            true,
             new BN(1)
           )
         )
@@ -560,6 +564,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
         context.polkadotApi.tx.assetManager.registerLocalAsset(
           baltatharAccount.address,
           baltatharAccount.address,
+          true,
           new BN(1)
         )
       )
@@ -717,6 +722,7 @@ describeDevMoonbeamAllEthTxTypes(
           context.polkadotApi.tx.assetManager.registerLocalAsset(
             baltatharAccount.address,
             baltatharAccount.address,
+            true,
             new BN(1)
           )
         )
@@ -825,6 +831,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
         context.polkadotApi.tx.assetManager.registerLocalAsset(
           baltatharAccount.address,
           baltatharAccount.address,
+          true,
           new BN(1)
         )
       )
@@ -1025,6 +1032,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
         context.polkadotApi.tx.assetManager.registerLocalAsset(
           baltatharAccount.address,
           baltatharAccount.address,
+          true,
           new BN(1)
         )
       )
@@ -1180,6 +1188,7 @@ describeDevMoonbeamAllEthTxTypes(
           context.polkadotApi.tx.assetManager.registerLocalAsset(
             baltatharAccount.address,
             baltatharAccount.address,
+            true,
             new BN(1)
           )
         )
@@ -1297,6 +1306,7 @@ describeDevMoonbeamAllEthTxTypes(
           context.polkadotApi.tx.assetManager.registerLocalAsset(
             baltatharAccount.address,
             baltatharAccount.address,
+            true,
             new BN(1)
           )
         )
@@ -1382,6 +1392,7 @@ describeDevMoonbeamAllEthTxTypes(
           context.polkadotApi.tx.assetManager.registerLocalAsset(
             baltatharAccount.address,
             baltatharAccount.address,
+            true,
             new BN(1)
           )
         )
@@ -1474,6 +1485,7 @@ describeDevMoonbeamAllEthTxTypes(
           context.polkadotApi.tx.assetManager.registerLocalAsset(
             baltatharAccount.address,
             baltatharAccount.address,
+            true,
             new BN(1)
           )
         )
@@ -1555,6 +1567,7 @@ describeDevMoonbeamAllEthTxTypes(
           context.polkadotApi.tx.assetManager.registerLocalAsset(
             baltatharAccount.address,
             baltatharAccount.address,
+            true,
             new BN(1)
           )
         )
@@ -1642,6 +1655,7 @@ describeDevMoonbeamAllEthTxTypes(
           context.polkadotApi.tx.assetManager.registerLocalAsset(
             baltatharAccount.address,
             baltatharAccount.address,
+            true,
             new BN(1)
           )
         )
@@ -1720,6 +1734,7 @@ describeDevMoonbeamAllEthTxTypes(
           context.polkadotApi.tx.assetManager.registerLocalAsset(
             baltatharAccount.address,
             baltatharAccount.address,
+            true,
             new BN(1)
           )
         )
@@ -1798,6 +1813,7 @@ describeDevMoonbeamAllEthTxTypes(
           context.polkadotApi.tx.assetManager.registerLocalAsset(
             baltatharAccount.address,
             baltatharAccount.address,
+            true,
             new BN(1)
           )
         )
@@ -1871,6 +1887,7 @@ describeDevMoonbeamAllEthTxTypes(
           context.polkadotApi.tx.assetManager.registerLocalAsset(
             baltatharAccount.address,
             baltatharAccount.address,
+            true,
             new BN(1)
           )
         )
@@ -1946,6 +1963,7 @@ describeDevMoonbeamAllEthTxTypes(
           context.polkadotApi.tx.assetManager.registerLocalAsset(
             baltatharAccount.address,
             baltatharAccount.address,
+            true,
             new BN(1)
           )
         )
@@ -2019,6 +2037,7 @@ describeDevMoonbeamAllEthTxTypes(
           context.polkadotApi.tx.assetManager.registerLocalAsset(
             baltatharAccount.address,
             baltatharAccount.address,
+            true,
             new BN(1)
           )
         )

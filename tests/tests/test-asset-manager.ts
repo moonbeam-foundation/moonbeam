@@ -77,7 +77,7 @@ describeDevMoonbeam("XCM - asset manager - register asset", (context) => {
       context,
       alith,
       parachainOne.tx.sudo.sudo(
-        parachainOne.tx.assetManager.registerLocalAsset(ALITH, ALITH, new BN(1))
+        parachainOne.tx.assetManager.registerLocalAsset(ALITH, ALITH, true, new BN(1))
       )
     );
     // Look for assetId in events
@@ -361,7 +361,7 @@ describeDevMoonbeam("XCM - asset manager - register asset", (context) => {
       context,
       alith,
       parachainOne.tx.sudo.sudo(
-        parachainOne.tx.assetManager.registerLocalAsset(ALITH, ALITH, new BN(1))
+        parachainOne.tx.assetManager.registerLocalAsset(ALITH, ALITH, true, new BN(1))
       )
     );
 
