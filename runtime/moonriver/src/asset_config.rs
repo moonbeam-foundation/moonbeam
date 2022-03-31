@@ -144,13 +144,12 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 	#[transactional]
 	fn create_local_asset(
 		asset: AssetId,
-		creator: AccountId,
+		_creator: AccountId,
 		min_balance: Balance,
+		is_sufficient: bool,
 		owner: AccountId,
 	) -> DispatchResult {
-		// In this case we use the regular call, since we want the deposit
-		// to be withdrawn from the caller
-		LocalAssets::create(Origin::signed(creator), asset, owner, min_balance)?;
+		LocalAssets::force_create(Origin::root(), asset, owner, is_sufficient, min_balance)?;
 
 		// No metadata needs to be set, as this can be set through regular calls
 
@@ -254,6 +253,8 @@ impl pallet_asset_manager::Config for Runtime {
 	type LocalAssetModifierOrigin = EnsureRoot<AccountId>;
 	type LocalAssetIdCreator = LocalAssetIdCreator;
 	type AssetDestroyWitness = pallet_assets::DestroyWitness;
+	type Currency = Balances;
+	type LocalAssetDeposit = AssetDeposit;
 	type WeightInfo = pallet_asset_manager::weights::SubstrateWeight<Runtime>;
 }
 
