@@ -167,6 +167,7 @@ impl AssetRegistrar<Test> for MockAssetPalletRegistrar {
 		_asset: u32,
 		_account: u64,
 		_min_balance: u64,
+		_is_sufficient: bool,
 		_owner: u64,
 	) -> sp_runtime::DispatchResult {
 		Ok(())

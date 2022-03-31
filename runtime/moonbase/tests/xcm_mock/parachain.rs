@@ -114,7 +114,7 @@ pub type ForeignAssetInstance = pallet_assets::Instance1;
 pub type LocalAssetInstance = pallet_assets::Instance2;
 
 parameter_types! {
-	pub const AssetDeposit: Balance = 0; // Does not really matter as this will be only called by root
+	pub const AssetDeposit: Balance = 10; // Does not really matter as this will be only called by root
 	pub const ApprovalDeposit: Balance = 0;
 	pub const AssetsStringLimit: u32 = 50;
 	pub const MetadataDepositBase: Balance = 0;
@@ -806,9 +806,10 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		asset: AssetId,
 		creator: AccountId,
 		min_balance: Balance,
+		is_sufficient: bool,
 		owner: AccountId,
 	) -> DispatchResult {
-		LocalAssets::create(Origin::signed(creator), asset, owner, min_balance)?;
+		LocalAssets::force_create(Origin::root(), asset, owner, is_sufficient, min_balance)?;
 
 		// TODO uncomment when we feel comfortable
 		/*
@@ -886,6 +887,8 @@ impl pallet_asset_manager::Config for Runtime {
 	type LocalAssetModifierOrigin = EnsureRoot<AccountId>;
 	type LocalAssetIdCreator = LocalAssetIdCreator;
 	type AssetDestroyWitness = pallet_assets::DestroyWitness;
+	type Currency = Balances;
+	type LocalAssetDeposit = AssetDeposit;
 	type WeightInfo = ();
 }
 

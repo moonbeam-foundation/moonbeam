@@ -64,6 +64,7 @@ fn registering_local_works() {
 				Origin::root(),
 				1u64,
 				1u64,
+				true,
 				0u32.into(),
 			));
 
@@ -801,6 +802,7 @@ fn test_destroy_local_asset_works() {
 				Origin::root(),
 				1u64,
 				1u64,
+				true,
 				0u32.into(),
 			));
 

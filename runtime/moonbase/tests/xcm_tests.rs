@@ -2058,6 +2058,7 @@ fn send_para_a_local_asset_to_para_b() {
 				parachain::Origin::root(),
 				PARAALICE.into(),
 				PARAALICE.into(),
+				true,
 				1
 			));
 
@@ -2193,6 +2194,7 @@ fn send_para_a_local_asset_to_para_b_and_send_it_back_together_with_some_dev() {
 				parachain::Origin::root(),
 				PARAALICE.into(),
 				PARAALICE.into(),
+				true,
 				1
 			));
 

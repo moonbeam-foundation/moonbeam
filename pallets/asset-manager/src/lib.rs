@@ -104,6 +104,7 @@ pub mod pallet {
 			_asset: T::AssetId,
 			_account: T::AccountId,
 			_min_balance: T::Balance,
+			_is_sufficient: bool,
 			_owner: T::AccountId,
 		) -> DispatchResult {
 			unimplemented!()
@@ -515,6 +516,7 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			creator: T::AccountId,
 			owner: T::AccountId,
+			is_sufficient: bool,
 			min_balance: T::Balance,
 		) -> DispatchResult {
 			T::LocalAssetModifierOrigin::ensure_origin(origin)?;
@@ -543,6 +545,7 @@ pub mod pallet {
 				asset_id,
 				creator.clone(),
 				min_balance,
+				is_sufficient,
 				owner.clone(),
 			)
 			.map_err(|_| Error::<T>::ErrorCreatingAsset)?;
