@@ -69,10 +69,13 @@ fn registering_local_works() {
 			));
 
 			assert_eq!(AssetManager::local_asset_counter(), 1);
-			assert_eq!(AssetManager::local_asset_deposit(asset_id), Some(AssetInfo {
-				creator: 1,
-				deposit: 1
-			}));
+			assert_eq!(
+				AssetManager::local_asset_deposit(asset_id),
+				Some(AssetInfo {
+					creator: 1,
+					deposit: 1
+				})
+			);
 
 			expect_events(vec![crate::Event::LocalAssetRegistered {
 				asset_id,
@@ -810,10 +813,13 @@ fn test_destroy_local_asset_works() {
 				true,
 				0u32.into(),
 			));
-			assert_eq!(AssetManager::local_asset_deposit(asset_id), Some(AssetInfo {
-				creator: 1,
-				deposit: 1
-			}));
+			assert_eq!(
+				AssetManager::local_asset_deposit(asset_id),
+				Some(AssetInfo {
+					creator: 1,
+					deposit: 1
+				})
+			);
 
 			assert_ok!(AssetManager::destroy_local_asset(Origin::root(), 0, 0));
 

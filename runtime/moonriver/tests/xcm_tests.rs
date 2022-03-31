@@ -2075,7 +2075,6 @@ fn send_para_a_local_asset_to_para_b() {
 				PARAALICE.into(),
 				300000000000000
 			));
-
 		});
 
 		ParaB::execute_with(|| {

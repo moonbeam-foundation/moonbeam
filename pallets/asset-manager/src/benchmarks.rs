@@ -16,7 +16,7 @@
 
 #![cfg(feature = "runtime-benchmarks")]
 
-use crate::{Call, Config, DepositBalanceOf, Pallet, pallet::LocalAssetIdCreator};
+use crate::{pallet::LocalAssetIdCreator, Call, Config, DepositBalanceOf, Pallet};
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
 use frame_support::traits::{Currency, Get};
 use frame_system::RawOrigin;
