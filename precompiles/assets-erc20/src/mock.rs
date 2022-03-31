@@ -209,6 +209,7 @@ impl pallet_evm::Config for Runtime {
 	type BlockGasLimit = ();
 	type BlockHashMapping = pallet_evm::SubstrateBlockHashMapping<Self>;
 	type FindAuthor = ();
+	type WeightInfo = ();
 }
 
 // These parameters dont matter much as this will only be called by root with the forced arguments
