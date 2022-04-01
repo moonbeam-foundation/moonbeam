@@ -83,6 +83,17 @@ impl Default for TestAccount {
 	}
 }
 
+impl Into<H160> for TestAccount {
+	fn into(self) -> H160 {
+		match self {
+			TestAccount::Alice => H160::repeat_byte(0xAA),
+			TestAccount::Bob => H160::repeat_byte(0xBB),
+			TestAccount::Charlie => H160::repeat_byte(0xCC),
+			TestAccount::Bogus => H160::repeat_byte(0xDD),
+		}
+	}
+}
+
 impl AddressMapping<TestAccount> for TestAccount {
 	fn into_account_id(h160_account: H160) -> TestAccount {
 		match h160_account {

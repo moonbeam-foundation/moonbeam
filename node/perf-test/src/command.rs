@@ -208,7 +208,7 @@ where
 			overrides.clone(),
 			3000,
 			3000,
-			None,
+			prometheus_registry,
 		));
 
 		let rpc_extensions_builder = {

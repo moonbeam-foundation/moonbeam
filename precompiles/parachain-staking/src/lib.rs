@@ -33,10 +33,8 @@ use precompile_utils::{
 	Address, EvmData, EvmDataReader, EvmDataWriter, EvmResult, FunctionModifier, Gasometer,
 	RuntimeHelper,
 };
-use sp_std::convert::TryInto;
-use sp_std::fmt::Debug;
-use sp_std::marker::PhantomData;
-use sp_std::vec;
+use sp_core::H160;
+use sp_std::{convert::TryInto, fmt::Debug, marker::PhantomData, vec, vec::Vec};
 
 type BalanceOf<Runtime> = <<Runtime as parachain_staking::Config>::Currency as Currency<
 	<Runtime as frame_system::Config>::AccountId,
@@ -56,6 +54,7 @@ enum Action {
 	NominatorNominationCount = "nominator_nomination_count(address)",
 	CandidateDelegationCount = "candidate_delegation_count(address)",
 	DelegatorDelegationCount = "delegator_delegation_count(address)",
+	SelectedCandidates = "selected_candidates()",
 	// DEPRECATED
 	IsNominator = "is_nominator(address)",
 	IsDelegator = "is_delegator(address)",
@@ -109,6 +108,7 @@ impl<Runtime> Precompile for ParachainStakingWrapper<Runtime>
 where
 	Runtime: parachain_staking::Config + pallet_evm::Config,
 	BalanceOf<Runtime>: EvmData,
+	Runtime::AccountId: Into<H160>,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	Runtime::Call: From<parachain_staking::Call<Runtime>>,
@@ -140,7 +140,8 @@ where
 				| Action::CollatorNominationCount
 				| Action::CandidateDelegationCount
 				| Action::NominatorNominationCount
-				| Action::DelegatorDelegationCount => FunctionModifier::View,
+				| Action::DelegatorDelegationCount
+				| Action::SelectedCandidates => FunctionModifier::View,
 				_ => FunctionModifier::NonPayable,
 			},
 		)?;
@@ -166,6 +167,7 @@ where
 			Action::DelegatorDelegationCount => {
 				return Self::delegator_delegation_count(input, gasometer)
 			}
+			Action::SelectedCandidates => return Self::selected_candidates(gasometer),
 			// DEPRECATED
 			Action::IsNominator => return Self::is_delegator(input, gasometer),
 			Action::IsDelegator => return Self::is_delegator(input, gasometer),
@@ -249,6 +251,7 @@ impl<Runtime> ParachainStakingWrapper<Runtime>
 where
 	Runtime: parachain_staking::Config + pallet_evm::Config,
 	BalanceOf<Runtime>: EvmData,
+	Runtime::AccountId: Into<H160>,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	Runtime::Call: From<parachain_staking::Call<Runtime>>,
@@ -384,6 +387,23 @@ where
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new().write(result).build(),
+			logs: vec![],
+		})
+	}
+
+	fn selected_candidates(gasometer: &mut Gasometer) -> EvmResult<PrecompileOutput> {
+		// Fetch info.
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let selected_candidates: Vec<Address> =
+			parachain_staking::Pallet::<Runtime>::selected_candidates()
+				.into_iter()
+				.map(|address| Address(address.into()))
+				.collect();
+		// Build output.
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gasometer.used_gas(),
+			output: EvmDataWriter::new().write(selected_candidates).build(),
 			logs: vec![],
 		})
 	}
