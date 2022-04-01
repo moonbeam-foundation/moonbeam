@@ -303,6 +303,8 @@ where
 			params.client.clone(),
 			params.substrate_backend.clone(),
 			params.frontier_backend.clone(),
+			3,
+			0,
 			SyncStrategy::Parachain,
 		)
 		.for_each(|()| futures::future::ready(())),

@@ -17,8 +17,8 @@
 use std::assert_matches::assert_matches;
 
 use crate::mock::{
-	events, evm_test_context, precompile_address, CurrencyId, ExtBuilder, PrecompilesValue,
-	Runtime, TestAccount::*, TestPrecompiles,
+	events, evm_test_context, precompile_address, CurrencyId, CurrencyIdToMultiLocation,
+	ExtBuilder, PrecompilesValue, Runtime, TestAccount::*, TestPrecompiles,
 };
 use crate::{Action, PrecompileOutput};
 use fp_evm::{Context, PrecompileFailure};
@@ -28,6 +28,7 @@ use pallet_evm::{ExitSucceed, PrecompileSet};
 use precompile_utils::{Address, EvmDataWriter};
 use sha3::{Digest, Keccak256};
 use sp_core::U256;
+use sp_runtime::traits::Convert;
 use xcm::v1::{AssetId, Fungibility, Junction, Junctions, MultiAsset, MultiLocation, NetworkId};
 
 fn precompiles() -> TestPrecompiles<Runtime> {
@@ -132,15 +133,15 @@ fn transfer_self_reserve_works() {
 					Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::Transfer)
 						.write(Address(SelfReserve.into()))
-						.write(U256::from(500))
+						.write(U256::from(500u32))
 						.write(destination.clone())
-						.write(U256::from(4000000))
+						.write(U256::from(4000000u32))
 						.build(),
 					None,
 					&Context {
 						address: Precompile.into(),
 						caller: Alice.into(),
-						apparent_value: From::from(0),
+						apparent_value: From::from(0u32),
 					},
 					false,
 				),
@@ -151,10 +152,16 @@ fn transfer_self_reserve_works() {
 					logs: vec![]
 				}))
 			);
-			let expected: crate::mock::Event = XtokensEvent::Transferred {
+			let expected_asset: MultiAsset = MultiAsset {
+				id: AssetId::Concrete(
+					CurrencyIdToMultiLocation::convert(CurrencyId::SelfReserve).unwrap(),
+				),
+				fun: Fungibility::Fungible(500),
+			};
+			let expected: crate::mock::Event = XtokensEvent::TransferredMultiAssets {
 				sender: Alice,
-				currency_id: CurrencyId::SelfReserve,
-				amount: 500,
+				assets: vec![expected_asset.clone()].into(),
+				fee: expected_asset,
 				dest: destination,
 			}
 			.into();
@@ -182,15 +189,15 @@ fn transfer_to_reserve_works() {
 					Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::Transfer)
 						.write(Address(AssetId(0u128).into()))
-						.write(U256::from(500))
+						.write(U256::from(500u32))
 						.write(destination.clone())
-						.write(U256::from(4000000))
+						.write(U256::from(4000000u32))
 						.build(),
 					None,
 					&Context {
 						address: Precompile.into(),
 						caller: Alice.into(),
-						apparent_value: From::from(0),
+						apparent_value: From::from(0u32),
 					},
 					false,
 				),
@@ -201,10 +208,16 @@ fn transfer_to_reserve_works() {
 					logs: vec![]
 				}))
 			);
-			let expected: crate::mock::Event = XtokensEvent::Transferred {
+			let expected_asset: MultiAsset = MultiAsset {
+				id: AssetId::Concrete(
+					CurrencyIdToMultiLocation::convert(CurrencyId::OtherReserve(0u128)).unwrap(),
+				),
+				fun: Fungibility::Fungible(500),
+			};
+			let expected: crate::mock::Event = XtokensEvent::TransferredMultiAssets {
 				sender: Alice,
-				currency_id: CurrencyId::OtherReserve(0u128),
-				amount: 500,
+				assets: vec![expected_asset.clone()].into(),
+				fee: expected_asset,
 				dest: destination,
 			}
 			.into();
@@ -242,7 +255,7 @@ fn transfer_to_reserve_with_fee_works() {
 					&Context {
 						address: Precompile.into(),
 						caller: Alice.into(),
-						apparent_value: From::from(0),
+						apparent_value: From::from(0u32),
 					},
 					false,
 				),
@@ -253,14 +266,27 @@ fn transfer_to_reserve_with_fee_works() {
 					logs: vec![]
 				}))
 			);
-			let expected: crate::mock::Event = XtokensEvent::TransferredWithFee {
+
+			let expected_asset: MultiAsset = MultiAsset {
+				id: AssetId::Concrete(
+					CurrencyIdToMultiLocation::convert(CurrencyId::OtherReserve(0u128)).unwrap(),
+				),
+				fun: Fungibility::Fungible(500),
+			};
+			let expected_fee: MultiAsset = MultiAsset {
+				id: AssetId::Concrete(
+					CurrencyIdToMultiLocation::convert(CurrencyId::OtherReserve(0u128)).unwrap(),
+				),
+				fun: Fungibility::Fungible(50),
+			};
+			let expected: crate::mock::Event = XtokensEvent::TransferredMultiAssets {
 				sender: Alice,
-				currency_id: CurrencyId::OtherReserve(0u128),
-				amount: 500,
-				fee: 50,
+				assets: vec![expected_asset.clone(), expected_fee.clone()].into(),
+				fee: expected_fee,
 				dest: destination,
 			}
 			.into();
+
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -286,15 +312,15 @@ fn transfer_non_reserve_to_non_reserve_works() {
 					Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::Transfer)
 						.write(Address(AssetId(1u128).into()))
-						.write(U256::from(500))
+						.write(U256::from(500u32))
 						.write(destination.clone())
-						.write(U256::from(4000000))
+						.write(U256::from(4000000u32))
 						.build(),
 					None,
 					&Context {
 						address: Precompile.into(),
 						caller: Alice.into(),
-						apparent_value: From::from(0),
+						apparent_value: From::from(0u32),
 					},
 					false,
 				),
@@ -305,10 +331,17 @@ fn transfer_non_reserve_to_non_reserve_works() {
 					logs: vec![]
 				}))
 			);
-			let expected: crate::mock::Event = XtokensEvent::Transferred {
+
+			let expected_asset: MultiAsset = MultiAsset {
+				id: AssetId::Concrete(
+					CurrencyIdToMultiLocation::convert(CurrencyId::OtherReserve(1u128)).unwrap(),
+				),
+				fun: Fungibility::Fungible(500),
+			};
+			let expected: crate::mock::Event = XtokensEvent::TransferredMultiAssets {
 				sender: Alice,
-				currency_id: CurrencyId::OtherReserve(1u128),
-				amount: 500,
+				assets: vec![expected_asset.clone()].into(),
+				fee: expected_asset,
 				dest: destination,
 			}
 			.into();
@@ -337,16 +370,16 @@ fn transfer_non_reserve_to_non_reserve_with_fee_works() {
 					Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::TransferWithFee)
 						.write(Address(AssetId(1u128).into()))
-						.write(U256::from(500))
-						.write(U256::from(50))
+						.write(U256::from(500u32))
+						.write(U256::from(50u32))
 						.write(destination.clone())
-						.write(U256::from(4000000))
+						.write(U256::from(4000000u32))
 						.build(),
 					None,
 					&Context {
 						address: Precompile.into(),
 						caller: Alice.into(),
-						apparent_value: From::from(0),
+						apparent_value: From::from(0u32),
 					},
 					false
 				),
@@ -357,11 +390,22 @@ fn transfer_non_reserve_to_non_reserve_with_fee_works() {
 					logs: vec![]
 				}))
 			);
-			let expected: crate::mock::Event = XtokensEvent::TransferredWithFee {
+			let expected_asset: MultiAsset = MultiAsset {
+				id: AssetId::Concrete(
+					CurrencyIdToMultiLocation::convert(CurrencyId::OtherReserve(1u128)).unwrap(),
+				),
+				fun: Fungibility::Fungible(500),
+			};
+			let expected_fee: MultiAsset = MultiAsset {
+				id: AssetId::Concrete(
+					CurrencyIdToMultiLocation::convert(CurrencyId::OtherReserve(1u128)).unwrap(),
+				),
+				fun: Fungibility::Fungible(50),
+			};
+			let expected: crate::mock::Event = XtokensEvent::TransferredMultiAssets {
 				sender: Alice,
-				currency_id: CurrencyId::OtherReserve(1u128),
-				amount: 500,
-				fee: 50,
+				assets: vec![expected_asset.clone(), expected_fee.clone()].into(),
+				fee: expected_fee,
 				dest: destination,
 			}
 			.into();
@@ -391,15 +435,15 @@ fn transfer_multi_asset_to_reserve_works() {
 					Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::TransferMultiAsset)
 						.write(asset.clone())
-						.write(U256::from(500))
+						.write(U256::from(500u32))
 						.write(destination.clone())
-						.write(U256::from(4000000))
+						.write(U256::from(4000000u32))
 						.build(),
 					None,
 					&Context {
 						address: Precompile.into(),
 						caller: Alice.into(),
-						apparent_value: From::from(0),
+						apparent_value: From::from(0u32),
 					},
 					false,
 				),
@@ -411,15 +455,18 @@ fn transfer_multi_asset_to_reserve_works() {
 				}))
 			);
 
-			let expected: crate::mock::Event = XtokensEvent::TransferredMultiAsset {
+			let expected_asset: MultiAsset = MultiAsset {
+				id: AssetId::Concrete(asset),
+				fun: Fungibility::Fungible(500),
+			};
+			let expected: crate::mock::Event = XtokensEvent::TransferredMultiAssets {
 				sender: Alice,
-				asset: MultiAsset {
-					id: AssetId::Concrete(asset),
-					fun: Fungibility::Fungible(500),
-				},
+				assets: vec![expected_asset.clone()].into(),
+				fee: expected_asset,
 				dest: destination,
 			}
 			.into();
+
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -465,12 +512,15 @@ fn transfer_multi_asset_self_reserve_works() {
 					logs: vec![]
 				}))
 			);
-			let expected: crate::mock::Event = XtokensEvent::TransferredMultiAsset {
+
+			let expected_asset: MultiAsset = MultiAsset {
+				id: AssetId::Concrete(self_reserve),
+				fun: Fungibility::Fungible(500),
+			};
+			let expected: crate::mock::Event = XtokensEvent::TransferredMultiAssets {
 				sender: Alice,
-				asset: MultiAsset {
-					id: AssetId::Concrete(self_reserve),
-					fun: Fungibility::Fungible(500),
-				},
+				assets: vec![expected_asset.clone()].into(),
+				fee: expected_asset,
 				dest: destination,
 			}
 			.into();
@@ -500,16 +550,16 @@ fn transfer_multi_asset_self_reserve_with_fee_works() {
 					Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::TransferMultiAssetWithFee)
 						.write(self_reserve.clone())
-						.write(U256::from(500))
-						.write(U256::from(50))
+						.write(U256::from(500u32))
+						.write(U256::from(50u32))
 						.write(destination.clone())
-						.write(U256::from(4000000))
+						.write(U256::from(4000000u32))
 						.build(),
 					None,
 					&Context {
 						address: Precompile.into(),
 						caller: Alice.into(),
-						apparent_value: From::from(0),
+						apparent_value: From::from(0u32),
 					},
 					false,
 				),
@@ -521,16 +571,18 @@ fn transfer_multi_asset_self_reserve_with_fee_works() {
 				}))
 			);
 
-			let expected: crate::mock::Event = XtokensEvent::TransferredMultiAssetWithFee {
+			let expected_asset: MultiAsset = MultiAsset {
+				id: AssetId::Concrete(self_reserve.clone()),
+				fun: Fungibility::Fungible(500),
+			};
+			let expected_fee: MultiAsset = MultiAsset {
+				id: AssetId::Concrete(self_reserve),
+				fun: Fungibility::Fungible(50),
+			};
+			let expected: crate::mock::Event = XtokensEvent::TransferredMultiAssets {
 				sender: Alice,
-				asset: MultiAsset {
-					id: AssetId::Concrete(self_reserve.clone()),
-					fun: Fungibility::Fungible(500),
-				},
-				fee: MultiAsset {
-					id: AssetId::Concrete(self_reserve),
-					fun: Fungibility::Fungible(50),
-				},
+				assets: vec![expected_asset.clone(), expected_fee.clone()].into(),
+				fee: expected_fee,
 				dest: destination,
 			}
 			.into();
@@ -582,12 +634,15 @@ fn transfer_multi_asset_non_reserve_to_non_reserve() {
 					logs: vec![]
 				}))
 			);
-			let expected: crate::mock::Event = XtokensEvent::TransferredMultiAsset {
+
+			let expected_asset: MultiAsset = MultiAsset {
+				id: AssetId::Concrete(asset_location),
+				fun: Fungibility::Fungible(500),
+			};
+			let expected: crate::mock::Event = XtokensEvent::TransferredMultiAssets {
 				sender: Alice,
-				asset: MultiAsset {
-					id: AssetId::Concrete(asset_location),
-					fun: Fungibility::Fungible(500),
-				},
+				assets: vec![expected_asset.clone()].into(),
+				fee: expected_asset,
 				dest: destination,
 			}
 			.into();
@@ -620,16 +675,16 @@ fn transfer_multi_asset_non_reserve_to_non_reserve_with_fee() {
 					Precompile.into(),
 					&EvmDataWriter::new_with_selector(Action::TransferMultiAssetWithFee)
 						.write(asset_location.clone())
-						.write(U256::from(500))
-						.write(U256::from(50))
+						.write(U256::from(500u32))
+						.write(U256::from(50u32))
 						.write(destination.clone())
-						.write(U256::from(4000000))
+						.write(U256::from(4000000u32))
 						.build(),
 					None,
 					&Context {
 						address: Precompile.into(),
 						caller: Alice.into(),
-						apparent_value: From::from(0),
+						apparent_value: From::from(0u32),
 					},
 					false
 				),
@@ -641,16 +696,18 @@ fn transfer_multi_asset_non_reserve_to_non_reserve_with_fee() {
 				}))
 			);
 
-			let expected: crate::mock::Event = XtokensEvent::TransferredMultiAssetWithFee {
+			let expected_asset: MultiAsset = MultiAsset {
+				id: AssetId::Concrete(asset_location.clone()),
+				fun: Fungibility::Fungible(500),
+			};
+			let expected_fee: MultiAsset = MultiAsset {
+				id: AssetId::Concrete(asset_location),
+				fun: Fungibility::Fungible(50),
+			};
+			let expected: crate::mock::Event = XtokensEvent::TransferredMultiAssets {
 				sender: Alice,
-				asset: MultiAsset {
-					id: AssetId::Concrete(asset_location.clone()),
-					fun: Fungibility::Fungible(500),
-				},
-				fee: MultiAsset {
-					id: AssetId::Concrete(asset_location),
-					fun: Fungibility::Fungible(50),
-				},
+				assets: vec![expected_asset.clone(), expected_fee.clone()].into(),
+				fee: expected_fee,
 				dest: destination,
 			}
 			.into();
