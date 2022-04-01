@@ -25,12 +25,12 @@ use fp_evm::{Context, ExitSucceed, PrecompileOutput};
 use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::Dispatchable,
-	traits::{fungible::Inspect, PalletInfo, StorageInfo, StorageInfoTrait},
+	traits::{fungible::Inspect, EnsureOrigin, PalletInfo, StorageInfo, StorageInfoTrait},
 	weights::{DispatchClass, Weight},
 	StorageHasher, Twox128,
 };
 use moonbase_runtime::{
-	currency::UNIT, xcm_config::AssetType, AccountId, AssetId, AssetManager,
+	currency::UNIT, get, xcm_config::AssetType, AccountId, AssetId, AssetManager,
 	AssetRegistrarMetadata, Assets, Balances, BaseFee, BlockWeights, Call, CrowdloanRewards, Event,
 	ParachainStaking, PolkadotXcm, Precompiles, Runtime, System, XTokens, XcmTransactor,
 };
@@ -54,8 +54,18 @@ use sp_runtime::{
 use xcm::latest::prelude::*;
 
 #[test]
+fn xcmp_queue_controller_origin_is_root() {
+	// important for the XcmExecutionManager impl of PauseExecution which uses root origin
+	// to suspend/resume XCM execution in xcmp_queue::on_idle
+	assert_ok!(
+		<moonbase_runtime::Runtime as cumulus_pallet_xcmp_queue::Config
+		>::ControllerOrigin::ensure_origin(root_origin())
+	);
+}
+
+#[test]
 fn fast_track_available() {
-	assert!(<moonbase_runtime::Runtime as pallet_democracy::Config>::InstantAllowed::get());
+	assert!(get!(pallet_democracy, InstantAllowed, bool));
 }
 
 #[test]

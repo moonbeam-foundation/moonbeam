@@ -97,8 +97,7 @@ pub fn derive_bip44_pairs_from_mnemonic<TPublic: Public>(
 		if let Some(child_pair) =
 			ExtendedPrivKey::derive(seed.as_bytes(), format!("m/44'/60'/0'/0/{}", i).as_ref())
 				.ok()
-				.map(|account| TPublic::Pair::from_seed_slice(&account.secret()).ok())
-				.flatten()
+				.and_then(|account| TPublic::Pair::from_seed_slice(&account.secret()).ok())
 		{
 			childs.push(child_pair);
 		} else {
@@ -130,7 +129,7 @@ pub fn generate_accounts(mnemonic: String, num_accounts: u32) -> Vec<AccountId> 
 	debug!("Account Generation");
 	childs
 		.iter()
-		.map(|par| {
+		.filter_map(|par| {
 			let account = get_account_id_from_pair(par.clone());
 			debug!(
 				"private_key {} --------> Account {:x?}",
@@ -139,7 +138,6 @@ pub fn generate_accounts(mnemonic: String, num_accounts: u32) -> Vec<AccountId> 
 			);
 			account
 		})
-		.flatten()
 		.collect()
 }
 
