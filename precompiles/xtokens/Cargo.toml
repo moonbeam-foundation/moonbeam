@@ -45,7 +45,6 @@ sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-pol
 cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.18" }
 
 # Polkadot
-orml-traits = { git = "https://github.com/purestake/open-runtime-module-library", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
 pallet-xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.18" }
 xcm-builder = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.18" }
 xcm-executor = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.18" }
@@ -56,7 +55,6 @@ std = [
 	"fp-evm/std",
 	"frame-support/std",
 	"frame-system/std",
-	"orml-traits/std",
 	"orml-xtokens/std",
 	"pallet-evm/std",
 	"precompile-utils/std",
