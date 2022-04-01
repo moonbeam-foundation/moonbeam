@@ -31,9 +31,6 @@ pub use pallet::*;
 // #[cfg(test)]
 // mod tests;
 
-// need to also store the CURRENT_EPOCH
-// could just get the next one if
-
 #[pallet]
 pub mod pallet {
 	// use crate::WeightInfo;
@@ -104,15 +101,23 @@ pub mod pallet {
 	}
 
 	impl<T: Config> RequestState<T> {
-		fn new(request: Request<T>, deposit: BalanceOf<T>) -> RequestState<T> {
-			RequestState {
+		fn new(
+			request: Request<T>,
+			deposit: BalanceOf<T>,
+		) -> Result<RequestState<T>, DispatchError> {
+			let expires =
+				frame_system::Pallet::<T>::block_number().saturating_add(T::ExpirationDelay::get());
+			ensure!(
+				request.info.when() < expires,
+				Error::<T>::CannotBeFulfilledBeforeExpiry
+			);
+			Ok(RequestState {
 				request,
 				deposit,
-				expires: frame_system::Pallet::<T>::block_number()
-					.saturating_add(T::ExpirationDelay::get()),
-			}
+				expires,
+			})
 		}
-		fn fulfill(&self) -> DispatchResult {
+		fn fulfill(&self, caller: &T::AccountId) -> DispatchResult {
 			ensure!(
 				self.request.can_be_fulfilled(),
 				Error::<T>::RequestCannotYetBeFulfilled
@@ -125,8 +130,19 @@ pub mod pallet {
 			};
 			let randomness = Pallet::<T>::concat_and_hash(raw_randomness, self.request.salt);
 			T::RandomnessSender::send_randomness(self.request.contract_address.clone(), randomness);
-			// return deposit to contract_address (TODO: also return execution_cost - fee)
-			T::Currency::unreserve(&self.request.contract_address, self.deposit);
+			// return deposit + fee_excess to contract_address
+			// refund cost_of_execution to caller?
+			T::Currency::unreserve(
+				&self.request.contract_address,
+				self.deposit + self.request.fee,
+			);
+			T::Currency::transfer(
+				&self.request.contract_address,
+				caller,
+				self.request.fee,
+				KeepAlive,
+			)
+			.expect("just unreserved deposit + fee => fee must be transferrable");
 			Ok(())
 		}
 		fn increase_fee(&mut self, caller: &T::AccountId, new_fee: BalanceOf<T>) -> DispatchResult {
@@ -213,6 +229,7 @@ pub mod pallet {
 		RequestCounterOverflowed,
 		NotSufficientDeposit,
 		CannotRequestPastRandomness,
+		CannotBeFulfilledBeforeExpiry,
 		RequestDNE,
 		RequestCannotYetBeFulfilled,
 		OnlyRequesterCanIncreaseFee,
@@ -360,17 +377,17 @@ pub mod pallet {
 				.checked_add(1u64)
 				.ok_or(Error::<T>::RequestCounterOverflowed)?;
 			T::Currency::reserve(&request.contract_address, deposit)?;
+			let request: RequestState<T> = RequestState::new(request, deposit)?;
 			// insert request
 			<RequestCount<T>>::put(next_id);
 			Self::deposit_event(Event::RandomnessRequested {
 				id: request_id,
-				refund_address: request.refund_address.clone(),
-				contract_address: request.contract_address.clone(),
-				fee: request.fee,
-				salt: request.salt,
-				info: request.info,
+				refund_address: request.request.refund_address.clone(),
+				contract_address: request.request.contract_address.clone(),
+				fee: request.request.fee,
+				salt: request.request.salt,
+				info: request.request.info,
 			});
-			let request: RequestState<T> = RequestState::new(request, deposit);
 			<Requests<T>>::insert(request_id, request);
 			Ok(())
 		}
@@ -381,7 +398,7 @@ pub mod pallet {
 		pub fn execute_fulfillment(caller: T::AccountId, id: RequestId) -> DispatchResult {
 			let request = <Requests<T>>::get(id).ok_or(Error::<T>::RequestDNE)?;
 			// fulfill randomness request
-			request.fulfill()?;
+			request.fulfill(&caller)?;
 			<Requests<T>>::remove(id);
 			Self::deposit_event(Event::RequestFulfilled { id });
 			Ok(())
