@@ -775,10 +775,7 @@ fn transfer_multi_currencies() {
 			};
 			let expected: crate::mock::Event = XtokensEvent::TransferredMultiAssets {
 				sender: Alice,
-				assets: vec![
-					expected_asset_1.clone(),
-					expected_asset_2,
-				].into(),
+				assets: vec![expected_asset_1.clone(), expected_asset_2].into(),
 				fee: expected_asset_1,
 				dest: destination,
 			}
@@ -854,7 +851,7 @@ fn transfer_multi_assets() {
 				sender: Alice,
 				assets: multiassets,
 				fee: (asset_1_location, 500).into(),
-				dest:destination,
+				dest: destination,
 			}
 			.into();
 			println!("Events are {:?}", events());
