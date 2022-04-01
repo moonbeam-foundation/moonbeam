@@ -9,6 +9,7 @@ members = [
 	"node/service",
 	"pallets/maintenance-mode",
 	"pallets/migrations",
+	"pallets/randomness", # remove once runtime configured
 	"pallets/proxy-genesis-companion",
 	"precompiles/utils/macro",
 	"runtime/moonbase",
