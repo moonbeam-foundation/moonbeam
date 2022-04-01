@@ -81,8 +81,7 @@ fn load_spec(
 
 			let starts_with = |prefix: &str| {
 				path.file_name()
-					.map(|f| f.to_str().map(|s| s.starts_with(&prefix)))
-					.flatten()
+					.and_then(|f| f.to_str().map(|s| s.starts_with(&prefix)))
 					.unwrap_or(false)
 			};
 
