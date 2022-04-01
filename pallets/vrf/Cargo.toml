@@ -15,6 +15,9 @@ sp-consensus-babe = { git = "https://github.com/purestake/substrate", branch = "
 sp-consensus-vrf = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17", default-features = false }
 sp-application-crypto = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17", default-features = false }
 
+# Nimbus
+nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.17", default-features = false }
+
 [dev-dependencies]
 
 pallet-balances = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.17" }
@@ -31,4 +34,5 @@ std = [
     "sp-consensus-babe/std",
     "sp-consensus-vrf/std",
 	"sp-application-crypto/std",
+	"nimbus-primitives/std",
 ]

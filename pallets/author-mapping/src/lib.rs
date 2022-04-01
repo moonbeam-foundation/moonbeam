@@ -52,18 +52,17 @@ pub mod pallet {
 	>>::Balance;
 
 	#[derive(Encode, Decode, PartialEq, Eq, Debug, scale_info::TypeInfo)]
-	pub struct RegistrationInfo<AccountId, Balance> {
+	pub struct RegistrationInfo<AccountId, Balance, Keys> {
 		account: AccountId,
 		deposit: Balance,
+		keys: Keys,
 	}
 
 	#[pallet::pallet]
 	#[pallet::without_storage_info]
 	pub struct Pallet<T>(PhantomData<T>);
 
-	/// Configuration trait of this pallet. We tightly couple to Parachain Staking in order to
-	/// ensure that only staked accounts can create registrations in the first place. This could be
-	/// generalized.
+	/// Configuration trait of this pallet
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
 		/// Overarching event type
@@ -72,6 +71,8 @@ pub mod pallet {
 		type DepositCurrency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
 		/// The amount that should be taken as a security deposit when registering a NimbusId.
 		type DepositAmount: Get<<Self::DepositCurrency as Currency<Self::AccountId>>::Balance>;
+		/// Additional keys TODO: add description and better trait bound
+		type Keys: Clone;
 		/// Weight information for extrinsics in this pallet.
 		type WeightInfo: WeightInfo;
 	}
@@ -96,19 +97,22 @@ pub mod pallet {
 		AuthorRegistered {
 			author_id: NimbusId,
 			account_id: T::AccountId,
+			keys: T::Keys,
 		},
 		/// An NimbusId has been de-registered, and its AccountId mapping removed.
-		AuthorDeRegistered { author_id: NimbusId },
+		AuthorDeRegistered { author_id: NimbusId, keys: T::Keys },
 		/// An NimbusId has been registered, replacing a previous registration and its mapping.
 		AuthorRotated {
 			new_author_id: NimbusId,
 			account_id: T::AccountId,
+			new_keys: T::Keys,
 		},
 		/// An NimbusId has been forcibly deregistered after not being rotated or cleaned up.
 		/// The reporteing account has been rewarded accordingly.
 		DefunctAuthorBusted {
 			author_id: NimbusId,
 			account_id: T::AccountId,
+			keys: T::Keys,
 		},
 	}
 
@@ -119,7 +123,11 @@ pub mod pallet {
 		/// Users who have been (or will soon be) elected active collators in staking,
 		/// should submit this extrinsic to have their blocks accepted and earn rewards.
 		#[pallet::weight(<T as Config>::WeightInfo::add_association())]
-		pub fn add_association(origin: OriginFor<T>, author_id: NimbusId) -> DispatchResult {
+		pub fn add_association(
+			origin: OriginFor<T>,
+			author_id: NimbusId,
+			keys: T::Keys,
+		) -> DispatchResult {
 			let account_id = ensure_signed(origin)?;
 
 			ensure!(
@@ -127,11 +135,12 @@ pub mod pallet {
 				Error::<T>::AlreadyAssociated
 			);
 
-			Self::enact_registration(&author_id, &account_id)?;
+			Self::enact_registration(&author_id, &account_id, &keys)?;
 
 			<Pallet<T>>::deposit_event(Event::AuthorRegistered {
 				author_id,
 				account_id,
+				keys,
 			});
 
 			Ok(())
@@ -145,7 +154,9 @@ pub mod pallet {
 		pub fn update_association(
 			origin: OriginFor<T>,
 			old_author_id: NimbusId,
+			old_keys: T::Keys,
 			new_author_id: NimbusId,
+			new_keys: T::Keys,
 		) -> DispatchResult {
 			let account_id = ensure_signed(origin)?;
 
@@ -156,13 +167,17 @@ pub mod pallet {
 				account_id == stored_info.account,
 				Error::<T>::NotYourAssociation
 			);
+			// do we need to ensure only 1 VRF ID
 			ensure!(
 				MappingWithDeposit::<T>::get(&new_author_id).is_none(),
 				Error::<T>::AlreadyAssociated
 			);
 
 			MappingWithDeposit::<T>::remove(&old_author_id);
-			MappingWithDeposit::<T>::insert(&new_author_id, &stored_info);
+			MappingWithDeposit::<T>::insert(
+				&new_author_id,
+				&RegistrationInfo { owner: stored_info },
+			);
 
 			<Pallet<T>>::deposit_event(Event::AuthorRotated {
 				new_author_id: new_author_id,
@@ -230,7 +245,7 @@ pub mod pallet {
 		_,
 		Blake2_128Concat,
 		NimbusId,
-		RegistrationInfo<T::AccountId, BalanceOf<T>>,
+		RegistrationInfo<T::AccountId, BalanceOf<T>, T::AdditionalKeys>,
 		OptionQuery,
 	>;
 

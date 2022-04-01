@@ -22,6 +22,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+use nimbus_primitives::{AccountLookup, NimbusId, NIMBUS_ENGINE_ID};
 use sp_application_crypto::ByteArray;
 use sp_consensus_babe::{digests::PreDigest, AuthorityId, Slot, Transcript, BABE_ENGINE_ID};
 use sp_consensus_vrf::schnorrkel;
@@ -42,7 +43,6 @@ pub mod pallet {
 	use super::*;
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
-	use sp_runtime::traits::Convert;
 
 	/// VRF inputs from the relay chain
 	/// TODO: needs custom Default implementation?
@@ -61,12 +61,6 @@ pub mod pallet {
 		fn get_most_recent_relay_block_hash() -> (RelayHash, Weight);
 		/// Returns most recent relay slot number and weight consumed by get
 		fn get_most_recent_relay_slot_number() -> (SlotNumber, Weight);
-	}
-
-	/// This trait tells us if the round changed in the current block
-	/// => new set of authorities to be put in storage
-	pub trait RoundChangedThisBlock {
-		fn round_changed_this_block() -> bool;
 	}
 
 	/// Exposes randomness in this pallet to the runtime
@@ -91,7 +85,7 @@ pub mod pallet {
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
-		/// The relay block hash type (probably H256)
+		/// The relay block hash type
 		type RelayBlockHash: Parameter
 			+ Member
 			+ MaybeSerializeDeserialize
@@ -101,13 +95,8 @@ pub mod pallet {
 		/// Gets the most recent relay block hash and relay slot number in `on_initialize`
 		/// and returns weight consumed for getting these values
 		type MostRecentVrfInputGetter: GetMostRecentVrfInputs<Self::RelayBlockHash, Slot>;
-		/// Convert account to VRF key, presumably via AuthorMapping instance
-		/// TODO: maybe TryConvert and map to error because fallible conversion
-		type AccountToVrfId: Convert<Self::AccountId, AuthorityId>;
-		/// Whether or not the round changed this block
-		type RoundChanged: RoundChangedThisBlock;
-		/// Get the selected candidate accounts from staking
-		type SelectedCandidates: Get<Vec<Self::AccountId>>;
+		/// Takes input NimbusId and gets back AuthorityId
+		type VrfKeyLookup: AccountLookup<AuthorityId>;
 	}
 
 	/// Current block randomness
@@ -121,12 +110,6 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn last_randomness)]
 	pub type LastRandomness<T> = StorageValue<_, MaybeRandomness, ValueQuery>;
-
-	/// Current set of authorities by AuthorityId
-	/// Set in `on_initialize` upon round changes
-	#[pallet::storage]
-	#[pallet::getter(fn authorities)]
-	pub type Authorities<T> = StorageValue<_, Vec<AuthorityId>, ValueQuery>;
 
 	/// Most recent VRF input from relay chain data
 	/// Set in `on_initialize` before setting randomness
@@ -163,6 +146,7 @@ pub mod pallet {
 		}
 		/// Returns weight consumed in `on_initialize`
 		fn set_randomness(input: VrfInput<T::RelayBlockHash, Slot>) -> Weight {
+			let mut block_author_vrf_id: Option<AuthorityId> = None;
 			let maybe_pre_digest: Option<PreDigest> = <frame_system::Pallet<T>>::digest()
 				.logs
 				.iter()
@@ -171,49 +155,35 @@ pub mod pallet {
 					if id == BABE_ENGINE_ID {
 						PreDigest::decode(&mut data).ok()
 					} else {
+						if id == NIMBUS_ENGINE_ID {
+							let nimbus_id = NimbusId::decode(&mut data)
+								.expect("NimbusId encoded in preruntime digest must be valid");
+
+							block_author_vrf_id = Some(
+								T::VrfKeyLookup::lookup_account(&nimbus_id)
+									.expect("No VRF Key Mapped to this NimbusId"),
+							);
+						}
 						None
 					}
 				})
 				.next();
+			let block_author_vrf_id =
+				block_author_vrf_id.expect("NimbusId encoded in preruntime digest must be valid");
+			let pubkey = schnorrkel::PublicKey::from_bytes(block_author_vrf_id.as_slice())
+				.expect("Expect valid schnorrkel public key");
+			let transcript = make_transcript::<T::RelayBlockHash>(input);
 			let maybe_randomness: MaybeRandomness = maybe_pre_digest.and_then(|digest| {
-				// Get the authority index of the current block author
-				let authority_index = digest.authority_index();
-				// Extract out the VRF output if we have it
-				digest.vrf_output().and_then(|vrf_output| {
-					// Reconstruct the bytes of VRFInOut using the authority id.
-					Authorities::<T>::get()
-						.get(authority_index as usize)
-						.and_then(|author| {
-							schnorrkel::PublicKey::from_bytes(author.as_slice()).ok()
-						})
-						.and_then(|pubkey| {
-							let transcript = make_transcript::<T::RelayBlockHash>(input);
-							vrf_output.0.attach_input_hash(&pubkey, transcript).ok()
-						})
-						.map(|inout| inout.make_bytes(&sp_consensus_babe::BABE_VRF_INOUT_CONTEXT))
-				})
+				digest
+					.vrf_output()
+					.and_then(|vrf_output| vrf_output.0.attach_input_hash(&pubkey, transcript).ok())
+					.map(|inout| inout.make_bytes(&sp_consensus_babe::BABE_VRF_INOUT_CONTEXT))
 			});
 			// Place last VRF output into the `LastRandomness` storage item
 			LastRandomness::<T>::put(CurrentRandomness::<T>::take());
 			// Place the current VRF output into the `CurrentRandomness` storage item.
 			CurrentRandomness::<T>::put(maybe_randomness);
 			T::DbWeight::get().read + 2 * T::DbWeight::get().write
-		}
-		/// Set authorities in storage if round changes
-		pub fn on_new_round() -> Weight {
-			let selected_candidates = T::SelectedCandidates::get();
-			// one read per selected candidate to convert to AuthorityId used in VRF
-			let returned_weight: Weight = selected_candidates.len() as u64
-				* T::DbWeight::get().read
-				+ T::DbWeight::get().write;
-			Authorities::<T>::put(
-				selected_candidates
-					.into_iter()
-					// 1 read
-					.map(|x| T::AccountToVrfId::convert(x))
-					.collect::<Vec<AuthorityId>>(),
-			);
-			returned_weight
 		}
 	}
 
