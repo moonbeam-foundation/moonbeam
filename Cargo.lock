@@ -14852,6 +14852,7 @@ dependencies = [
  "frame-system",
  "log",
  "num_enum",
+ "orml-traits",
  "orml-xtokens",
  "pallet-balances",
  "pallet-evm",
