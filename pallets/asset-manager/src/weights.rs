@@ -103,6 +103,11 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(3 as Weight))
 			.saturating_add(T::DbWeight::get().writes(6 as Weight))
 	}
+	// Storage: System Account (r:1 w:1)
+	// Storage: AssetManager LocalAssetCounter (r:1 w:1)
+	// Storage: LocalAssets Asset (r:1 w:1)
+	// Storage: EVM AccountCodes (r:0 w:1)
+	// Storage: AssetManager LocalAssetDeposit (r:0 w:1)
 	#[rustfmt::skip]
 	fn register_local_asset() -> Weight {
 		(51_689_000 as Weight)
@@ -168,6 +173,11 @@ impl WeightInfo for () {
 			.saturating_add(RocksDbWeight::get().reads(3 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(6 as Weight))
 	}
+	// Storage: System Account (r:1 w:1)
+	// Storage: AssetManager LocalAssetCounter (r:1 w:1)
+	// Storage: LocalAssets Asset (r:1 w:1)
+	// Storage: EVM AccountCodes (r:0 w:1)
+	// Storage: AssetManager LocalAssetDeposit (r:0 w:1)
 	#[rustfmt::skip]
 	fn register_local_asset() -> Weight {
 		(51_689_000 as Weight)
