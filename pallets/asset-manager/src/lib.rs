@@ -286,6 +286,10 @@ pub mod pallet {
 
 	/// Stores the counter of the number of local assets that have been
 	/// created so far
+	/// This value can be used to salt the creation of an assetId, e.g.,
+	/// by hashing it. This is particularly useful for cases like moonbeam
+	/// where letting users choose their assetId would result in collision
+	/// in the evm side.
 	#[pallet::storage]
 	#[pallet::getter(fn local_asset_counter)]
 	pub type LocalAssetCounter<T: Config> = StorageValue<_, u128, ValueQuery>;
