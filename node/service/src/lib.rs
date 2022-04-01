@@ -45,9 +45,8 @@ use cumulus_primitives_core::ParaId;
 use cumulus_primitives_parachain_inherent::{
 	MockValidationDataInherentDataProvider, MockXcmConfig,
 };
-use cumulus_relay_chain_interface::{RelayChainInterface, RelayChainError, RelayChainResult};
-use cumulus_relay_chain_rpc_interface::RelayChainRPCInterface;
 use cumulus_relay_chain_inprocess_interface::build_inprocess_relay_chain;
+use cumulus_relay_chain_interface::{RelayChainError, RelayChainInterface};
 use nimbus_consensus::NimbusManualSealConsensusDataProvider;
 use nimbus_consensus::{BuildNimbusConsensusParams, NimbusConsensus};
 use nimbus_primitives::NimbusId;
@@ -647,7 +646,7 @@ where
 			spawner,
 			parachain_consensus,
 			import_queue,
-			collator_key: collator_key.expect("Expected collator key"), // TODO: be more graceful / better error
+			collator_key: collator_key.ok_or(sc_service::error::Error::Other("Collator Key is None".to_string()))?,
 			relay_chain_slot_duration,
 		};
 
@@ -662,7 +661,9 @@ where
 			relay_chain_slot_duration,
 			import_queue,
 			// TODO: plumb this through CLI properly
-			collator_options: CollatorOptions { relay_chain_rpc_url: Default::default() },
+			collator_options: CollatorOptions {
+				relay_chain_rpc_url: Default::default(),
+			},
 		};
 
 		start_full_node(params)?;
