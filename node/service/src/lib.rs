@@ -646,7 +646,8 @@ where
 			spawner,
 			parachain_consensus,
 			import_queue,
-			collator_key: collator_key.ok_or(sc_service::error::Error::Other("Collator Key is None".to_string()))?,
+			collator_key: collator_key
+				.ok_or(sc_service::error::Error::Other("Collator Key is None".to_string()))?,
 			relay_chain_slot_duration,
 		};
 
