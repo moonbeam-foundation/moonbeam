@@ -1,3 +1,0 @@
-(function() {var implementors = {};
-implementors["moonkey"] = [{"text":"impl <a class=\"trait\" href=\"moonkey/trait.Parser.html\" title=\"trait moonkey::Parser\">Parser</a> for <a class=\"struct\" href=\"moonkey/struct.Opt.html\" title=\"struct moonkey::Opt\">Opt</a>","synthetic":false,"types":["moonkey::Opt"]}];
-if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
