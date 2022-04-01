@@ -93,6 +93,12 @@ describeDevMoonbeam("XCM - asset manager - register asset", (context) => {
     const registeredAsset = ((await parachainOne.query.localAssets.asset(assetId)) as any).unwrap();
     expect(registeredAsset.owner.toString()).to.eq(ALITH);
 
+    // check deposit in storage
+    const deposit = (
+      (await parachainOne.query.assetManager.localAssetDeposit(assetId)) as any
+    ).unwrap();
+    expect(deposit.creator.toString()).to.eq(ALITH);
+
     await verifyLatestBlockFees(context, expect);
   });
 });
@@ -413,5 +419,11 @@ describeDevMoonbeam("XCM - asset manager - register asset", (context) => {
     expect(accountDetailsAfter.data.reserved.toString()).to.eq(
       (accountDetailsBefore.data.reserved.toBigInt() - 100n * GLMR).toString()
     );
+
+    // check deposit not in storage
+    const deposit = (await context.polkadotApi.query.assetManager.localAssetDeposit(
+      assetId
+    )) as any;
+    expect(deposit.isNone).to.eq(true);
   });
 });
