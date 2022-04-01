@@ -498,10 +498,9 @@ pub mod pallet {
 			// Only if the old asset is supported we need to remove it
 			if let Ok(index) = supported_assets.binary_search(&asset_type) {
 				supported_assets.remove(index);
+				// Insert
+				SupportedFeePaymentAssets::<T>::put(supported_assets);
 			}
-
-			// Insert
-			SupportedFeePaymentAssets::<T>::put(supported_assets);
 
 			Self::deposit_event(Event::ForeignAssetRemoved {
 				asset_id,
