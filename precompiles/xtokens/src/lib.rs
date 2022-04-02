@@ -20,10 +20,15 @@
 #![feature(assert_matches)]
 
 use fp_evm::{Context, ExitSucceed, PrecompileOutput};
-use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
+use frame_support::{
+	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
+	ensure,
+	traits::Get,
+};
 use pallet_evm::{AddressMapping, Precompile};
 use precompile_utils::{
-	Address, EvmData, EvmDataReader, EvmResult, FunctionModifier, Gasometer, RuntimeHelper,
+	Address, EvmData, EvmDataReader, EvmDataWriter, EvmResult, FunctionModifier, Gasometer,
+	RuntimeHelper,
 };
 
 use sp_core::{H160, U256};
@@ -32,9 +37,10 @@ use sp_std::{
 	convert::{TryFrom, TryInto},
 	fmt::Debug,
 	marker::PhantomData,
+	vec::Vec,
 };
-use xcm::latest::{AssetId, Fungibility, MultiAsset, MultiLocation};
-use xcm::{VersionedMultiAsset, VersionedMultiLocation};
+use xcm::latest::{AssetId, Fungibility, MultiAsset, MultiAssets, MultiLocation};
+use xcm::{VersionedMultiAsset, VersionedMultiAssets, VersionedMultiLocation};
 use xcm_primitives::AccountIdToCurrencyId;
 
 #[cfg(test)]
@@ -43,6 +49,7 @@ mod mock;
 mod tests;
 
 pub type XBalanceOf<Runtime> = <Runtime as orml_xtokens::Config>::Balance;
+pub type MaxAssetsForTransfer<Runtime> = <Runtime as orml_xtokens::Config>::MaxAssetsForTransfer;
 
 pub type CurrencyIdOf<Runtime> = <Runtime as orml_xtokens::Config>::CurrencyId;
 
@@ -54,6 +61,10 @@ pub enum Action {
 	TransferMultiAsset = "transfer_multiasset((uint8,bytes[]),uint256,(uint8,bytes[]),uint64)",
 	TransferMultiAssetWithFee =
 		"transfer_multiasset_with_fee((uint8,bytes[]),uint256,uint256,(uint8,bytes[]),uint64)",
+	TransferMultiCurrencies =
+		"transfer_multi_currencies((address,uint256)[],uint32,(uint8,bytes[]),uint64)",
+	TransferMultiAssets =
+		"transfer_multi_assets(((uint8,bytes[]),uint256)[],uint32,(uint8,bytes[]),uint64)",
 }
 
 /// A precompile to wrap the functionality from xtokens
@@ -90,6 +101,10 @@ where
 			Action::TransferMultiAssetWithFee => {
 				Self::transfer_multiasset_with_fee(input, gasometer, context)
 			}
+			Action::TransferMultiCurrencies => {
+				Self::transfer_multi_currencies(input, gasometer, context)
+			}
+			Action::TransferMultiAssets => Self::transfer_multi_assets(input, gasometer, context),
 		}
 	}
 }
@@ -292,5 +307,191 @@ where
 			output: Default::default(),
 			logs: Default::default(),
 		})
+	}
+
+	fn transfer_multi_currencies(
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
+		context: &Context,
+	) -> EvmResult<PrecompileOutput> {
+		input.expect_arguments(gasometer, 4)?;
+		let non_mapped_currencies: Vec<Currency> = input.read::<Vec<Currency>>(gasometer)?;
+		let max_assets = MaxAssetsForTransfer::<Runtime>::get();
+
+		// We check this here so that we avoid iterating over the vec
+		// if the len is more than the max permitted
+		ensure!(
+			max_assets >= non_mapped_currencies.len(),
+			gasometer.revert("More than max number of assets given")
+		);
+
+		let fee_item: u32 = input.read::<u32>(gasometer)?;
+
+		// read destination
+		let destination: MultiLocation = input.read::<MultiLocation>(gasometer)?;
+
+		let dest_weight: u64 = input.read::<u64>(gasometer)?;
+
+		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+
+		// Build all currencies
+		let currencies: EvmResult<
+			Vec<(
+				<Runtime as orml_xtokens::Config>::CurrencyId,
+				XBalanceOf<Runtime>,
+			)>,
+		> = non_mapped_currencies
+			.iter()
+			.map(|currency| {
+				let address_as_h160: H160 = currency.address.clone().into();
+				let amount = currency.amount.clone().try_into().map_err(|_| {
+					gasometer.revert("Amount is too large for provided balance type")
+				})?;
+
+				Ok((
+					Runtime::account_to_currency_id(Runtime::AddressMapping::into_account_id(
+						address_as_h160,
+					))
+					.ok_or(gasometer.revert("cannot convert into currency id"))?,
+					amount,
+				))
+			})
+			.collect();
+
+		let currencies_non_result = currencies?;
+
+		let call = orml_xtokens::Call::<Runtime>::transfer_multicurrencies {
+			currencies: currencies_non_result,
+			fee_item,
+			dest: Box::new(VersionedMultiLocation::V1(destination)),
+			dest_weight,
+		};
+
+		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
+
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gasometer.used_gas(),
+			output: Default::default(),
+			logs: Default::default(),
+		})
+	}
+
+	fn transfer_multi_assets(
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
+		context: &Context,
+	) -> EvmResult<PrecompileOutput> {
+		input.expect_arguments(gasometer, 4)?;
+		let assets: Vec<EvmMultiAsset> = input.read::<Vec<EvmMultiAsset>>(gasometer)?;
+		let max_assets = MaxAssetsForTransfer::<Runtime>::get();
+
+		// We check this here so that we avoid iterating over the vec
+		// if the len is more than the max permitted
+		ensure!(
+			max_assets >= assets.len(),
+			gasometer.revert("More than max number of assets given")
+		);
+
+		let fee_item: u32 = input.read::<u32>(gasometer)?;
+
+		// read destination
+		let destination: MultiLocation = input.read::<MultiLocation>(gasometer)?;
+
+		let dest_weight: u64 = input.read::<u64>(gasometer)?;
+
+		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+
+		let multiasset_vec: EvmResult<Vec<MultiAsset>> = assets
+			.iter()
+			.map(|evm_multiasset| {
+				let to_balance: u128 = evm_multiasset.amount.clone().try_into().map_err(|_| {
+					gasometer.revert("Amount is too large for provided balance type")
+				})?;
+				Ok((evm_multiasset.location.clone(), to_balance).into())
+			})
+			.collect();
+
+		// Since multiassets sorts them, we need to check whether the index is still correct,
+		// and error otherwise as there is not much we can do other than that
+		let multiassets = MultiAssets::from_sorted_and_deduplicated(multiasset_vec?)
+			.map_err(|_| gasometer.revert("Provided vector either not sorted nor deduplicated"))?;
+
+		let call = orml_xtokens::Call::<Runtime>::transfer_multiassets {
+			assets: Box::new(VersionedMultiAssets::V1(multiassets)),
+			fee_item,
+			dest: Box::new(VersionedMultiLocation::V1(destination)),
+			dest_weight,
+		};
+
+		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
+
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gasometer.used_gas(),
+			output: Default::default(),
+			logs: Default::default(),
+		})
+	}
+}
+
+// Currency
+pub struct Currency {
+	address: Address,
+	amount: U256,
+}
+// For Currencies
+impl EvmData for Currency {
+	fn read(reader: &mut EvmDataReader, gasometer: &mut Gasometer) -> EvmResult<Self> {
+		let address: Address = reader.read(gasometer)?;
+		let amount: U256 = reader.read(gasometer)?;
+		Ok(Currency { address, amount })
+	}
+
+	fn write(writer: &mut EvmDataWriter, value: Self) {
+		EvmData::write(writer, value.address);
+		EvmData::write(writer, value.amount);
+	}
+}
+
+impl From<(Address, U256)> for Currency {
+	fn from(tuple: (Address, U256)) -> Self {
+		Currency {
+			address: tuple.0,
+			amount: tuple.1,
+		}
+	}
+}
+
+// EvmMultiAsset
+pub struct EvmMultiAsset {
+	location: MultiLocation,
+	amount: U256,
+}
+
+impl EvmData for EvmMultiAsset {
+	fn read(reader: &mut EvmDataReader, gasometer: &mut Gasometer) -> EvmResult<Self> {
+		let mut inner_reader = reader.read_pointer(gasometer)?;
+
+		let location: MultiLocation = inner_reader.read(gasometer)?;
+		let amount: U256 = inner_reader.read(gasometer)?;
+		Ok(EvmMultiAsset { location, amount })
+	}
+
+	fn write(writer: &mut EvmDataWriter, value: Self) {
+		let inner_writer = EvmDataWriter::new()
+			.write(value.location)
+			.write(value.amount)
+			.build();
+		EvmDataWriter::write_pointer(writer, inner_writer);
+	}
+}
+
+impl From<(MultiLocation, U256)> for EvmMultiAsset {
+	fn from(tuple: (MultiLocation, U256)) -> Self {
+		EvmMultiAsset {
+			location: tuple.0,
+			amount: tuple.1,
+		}
 	}
 }
