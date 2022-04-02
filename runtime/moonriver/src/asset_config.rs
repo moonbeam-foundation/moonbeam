@@ -176,6 +176,7 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		Assets::destroy(Origin::root(), asset, asset_destroy_witness).map_err(|info| info.error)?;
 
 		// We remove the EVM revert code
+		// This does not panick even if there is no code in the address
 		let precompile_address: H160 =
 			Runtime::asset_id_to_account(FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, asset).into();
 		pallet_evm::AccountCodes::<Runtime>::remove(precompile_address);
@@ -192,6 +193,7 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 			.map_err(|info| info.error)?;
 
 		// We remove the EVM revert code
+		// This does not panick even if there is no code in the address
 		let precompile_address: H160 =
 			Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, asset).into();
 		pallet_evm::AccountCodes::<Runtime>::remove(precompile_address);
