@@ -5598,6 +5598,7 @@ dependencies = [
  "pallet-migrations",
  "pallet-proxy",
  "pallet-proxy-genesis-companion",
+ "pallet-randomness",
  "pallet-randomness-collective-flip",
  "pallet-scheduler",
  "pallet-society",
