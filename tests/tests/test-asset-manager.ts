@@ -19,7 +19,7 @@ const assetMetadata = {
 const sourceLocation = { XCM: { parents: 1, interior: "Here" } };
 const newSourceLocation = { XCM: { parents: 1, interior: { X1: { Parachain: 1000 } } } };
 
-describeDevMoonbeam("XCM - asset manager - register asset", (context) => {
+describeDevMoonbeam("XCM - asset manager - register foreign asset", (context) => {
   it("should be able to register a foreign asset and set unit per sec", async function () {
     const keyringEth = new Keyring({ type: "ethereum" });
     const alith = keyringEth.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
@@ -66,7 +66,7 @@ describeDevMoonbeam("XCM - asset manager - register asset", (context) => {
   });
 });
 
-describeDevMoonbeam("XCM - asset manager - register asset", (context) => {
+describeDevMoonbeam("XCM - asset manager - register local asset", (context) => {
   it("should be able to register a local asset", async function () {
     const keyringEth = new Keyring({ type: "ethereum" });
     const alith = keyringEth.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
@@ -84,7 +84,7 @@ describeDevMoonbeam("XCM - asset manager - register asset", (context) => {
     let assetId: string;
     eventsRegister.forEach((e) => {
       if (e.section.toString() === "assetManager") {
-        assetId = e.data[0].toHex();
+        assetId = e.data[0].toHex();  
       }
     });
     assetId = assetId.replace(/,/g, "");
@@ -103,7 +103,7 @@ describeDevMoonbeam("XCM - asset manager - register asset", (context) => {
   });
 });
 
-describeDevMoonbeam("XCM - asset manager - register asset", (context) => {
+describeDevMoonbeam("XCM - asset manager - Change existing asset", (context) => {
   let assetId: string;
   let alith: KeyringPair;
   before("should be able to change existing asset type", async function () {
@@ -186,7 +186,7 @@ describeDevMoonbeam("XCM - asset manager - register asset", (context) => {
   });
 });
 
-describeDevMoonbeam("XCM - asset manager - register asset", (context) => {
+describeDevMoonbeam("XCM - asset manager - Remove asset from supported", (context) => {
   let assetId: string;
   let alith: KeyringPair;
   before("should be able to change existing asset type", async function () {
@@ -264,7 +264,7 @@ describeDevMoonbeam("XCM - asset manager - register asset", (context) => {
   });
 });
 
-describeDevMoonbeam("XCM - asset manager - register asset", (context) => {
+describeDevMoonbeam("XCM - asset manager - destroy foreign asset", (context) => {
   let assetId: string;
   let alith: KeyringPair;
   before("should be able to change existing asset type", async function () {
@@ -350,7 +350,7 @@ describeDevMoonbeam("XCM - asset manager - register asset", (context) => {
   });
 });
 
-describeDevMoonbeam("XCM - asset manager - register asset", (context) => {
+describeDevMoonbeam("XCM - asset manager - destroy local asset", (context) => {
   let assetId: string;
   let alith: KeyringPair;
   before("should be able to change existing asset type", async function () {
