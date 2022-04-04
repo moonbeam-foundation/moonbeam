@@ -45,6 +45,7 @@ pub mod pallet {
 	use frame_support::weights::WeightToFeePolynomial;
 	use frame_system::pallet_prelude::*;
 	use sp_runtime::traits::Saturating;
+	use sp_std::vec::Vec;
 
 	/// Request identifier, unique per request for randomness
 	pub type RequestId = u64;
