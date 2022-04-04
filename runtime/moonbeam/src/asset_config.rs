@@ -19,7 +19,8 @@
 
 use super::{
 	currency, xcm_config, AccountId, AssetId, AssetManager, Assets, Balance, Balances, Call,
-	CouncilInstance, Event, Origin, Runtime, ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	CouncilInstance, Event, LocalAssets, Origin, Runtime, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 
 use pallet_evm_precompile_assets_erc20::AccountIdAssetIdConversion;
@@ -42,6 +43,10 @@ use sp_std::{
 	prelude::*,
 };
 
+// Not to disrupt the previous asset instance, we assign () to Foreign
+pub type ForeignAssetInstance = ();
+pub type LocalAssetInstance = pallet_assets::Instance1;
+
 // For foreign assets, these parameters dont matter much
 // as this will only be called by root with the forced arguments
 // No deposit is substracted with those methods
@@ -61,7 +66,26 @@ pub type AssetsForceOrigin = EnsureOneOf<
 	pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
 >;
 
-impl pallet_assets::Config for Runtime {
+// Foreign assets
+impl pallet_assets::Config<ForeignAssetInstance> for Runtime {
+	type Event = Event;
+	type Balance = Balance;
+	type AssetId = AssetId;
+	type Currency = Balances;
+	type ForceOrigin = AssetsForceOrigin;
+	type AssetDeposit = AssetDeposit;
+	type MetadataDepositBase = MetadataDepositBase;
+	type MetadataDepositPerByte = MetadataDepositPerByte;
+	type ApprovalDeposit = ApprovalDeposit;
+	type StringLimit = AssetsStringLimit;
+	type Freezer = ();
+	type Extra = ();
+	type AssetAccountDeposit = ConstU128<{ currency::deposit(1, 18) }>;
+	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
+}
+
+// Local assets
+impl pallet_assets::Config<LocalAssetInstance> for Runtime {
 	type Event = Event;
 	type Balance = Balance;
 	type AssetId = AssetId;
@@ -102,7 +126,7 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		// TODO uncomment when we feel comfortable
 		/*
 		// The asset has been created. Let's put the revert code in the precompile address
-		let precompile_address = Runtime::asset_id_to_account(asset);
+		let precompile_address = Runtime::asset_id_to_account(ASSET_PRECOMPILE_ADDRESS_PREFIX, asset);
 		pallet_evm::AccountCodes::<Runtime>::insert(
 			precompile_address,
 			vec![0x60, 0x00, 0x60, 0x00, 0xfd],
@@ -120,6 +144,31 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 	}
 
 	#[transactional]
+	fn create_local_asset(
+		asset: AssetId,
+		_creator: AccountId,
+		min_balance: Balance,
+		is_sufficient: bool,
+		owner: AccountId,
+	) -> DispatchResult {
+		// We create with root, because we need to decide whether we want to create the asset
+		// as sufficient. Take into account this does not hold any reserved amount
+		// in pallet-assets
+		LocalAssets::force_create(Origin::root(), asset, owner, is_sufficient, min_balance)?;
+
+		// No metadata needs to be set, as this can be set through regular calls
+
+		// The asset has been created. Let's put the revert code in the precompile address
+		let precompile_address: H160 =
+			Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, asset).into();
+		pallet_evm::AccountCodes::<Runtime>::insert(
+			precompile_address,
+			vec![0x60, 0x00, 0x60, 0x00, 0xfd],
+		);
+		Ok(())
+	}
+
+	#[transactional]
 	fn destroy_foreign_asset(
 		asset: AssetId,
 		asset_destroy_witness: pallet_assets::DestroyWitness,
@@ -130,7 +179,24 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		// We remove the EVM revert code
 		// This does not panick even if there is no code in the address
 		let precompile_address: H160 =
-			Runtime::asset_id_to_account(ASSET_PRECOMPILE_ADDRESS_PREFIX, asset).into();
+			Runtime::asset_id_to_account(FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, asset).into();
+		pallet_evm::AccountCodes::<Runtime>::remove(precompile_address);
+		Ok(())
+	}
+
+	#[transactional]
+	fn destroy_local_asset(
+		asset: AssetId,
+		asset_destroy_witness: pallet_assets::DestroyWitness,
+	) -> DispatchResult {
+		// First destroy the asset
+		LocalAssets::destroy(Origin::root(), asset, asset_destroy_witness)
+			.map_err(|info| info.error)?;
+
+		// We remove the EVM revert code
+		// This does not panick even if there is no code in the address
+		let precompile_address: H160 =
+			Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, asset).into();
 		pallet_evm::AccountCodes::<Runtime>::remove(precompile_address);
 		Ok(())
 	}
@@ -147,10 +213,12 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		// EVM
 
 		// This is the dispatch info of destroy
-		let call = Call::Assets(pallet_assets::Call::<Runtime>::destroy {
-			id: asset,
-			witness: asset_destroy_witness,
-		});
+		let call = Call::Assets(
+			pallet_assets::Call::<Runtime, ForeignAssetInstance>::destroy {
+				id: asset,
+				witness: asset_destroy_witness,
+			},
+		);
 
 		// This is the db write
 		call.get_dispatch_info()
@@ -205,7 +273,9 @@ impl AccountIdAssetIdConversion<AccountId, AssetId> for Runtime {
 		let h160_account: H160 = account.into();
 		let mut data = [0u8; 16];
 		let (prefix_part, id_part) = h160_account.as_fixed_bytes().split_at(4);
-		if prefix_part == ASSET_PRECOMPILE_ADDRESS_PREFIX {
+		if prefix_part == FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX
+			|| prefix_part == LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX
+		{
 			data.copy_from_slice(id_part);
 			let asset_id: AssetId = u128::from_be_bytes(data).into();
 			Some((prefix_part.to_vec(), asset_id))

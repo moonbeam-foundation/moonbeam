@@ -43,8 +43,9 @@ use sp_std::{
 	prelude::*,
 };
 
-type ForeignAssetInstance = pallet_assets::Instance1;
-type LocalAssetInstance = pallet_assets::Instance2;
+// Not to disrupt the previous asset instance, we assign () to Foreign
+pub type ForeignAssetInstance = ();
+pub type LocalAssetInstance = pallet_assets::Instance1;
 
 // For foreign assets, these parameters dont matter much
 // as this will only be called by root with the forced arguments

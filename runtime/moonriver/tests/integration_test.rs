@@ -33,9 +33,9 @@ use frame_support::{
 	StorageHasher, Twox128,
 };
 use moonriver_runtime::{
-	xcm_config::CurrencyId, AssetId, BaseFee, BlockWeights, LocalAssets, PolkadotXcm, Precompiles,
-	XTokens, XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
-	LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	asset_config::LocalAssetInstance, xcm_config::CurrencyId, AssetId, BaseFee, BlockWeights,
+	LocalAssets, PolkadotXcm, Precompiles, XTokens, XcmTransactor,
+	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
@@ -1322,6 +1322,29 @@ fn asset_can_be_registered() {
 		));
 		assert!(AssetManager::asset_id_type(source_id).is_some());
 	});
+}
+
+#[test]
+fn local_assets_cannot_be_create_by_signed_origins() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * MOVR * SUPPLY_FACTOR),
+			(AccountId::from(BOB), 1_000 * MOVR * SUPPLY_FACTOR),
+		])
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				Call::LocalAssets(pallet_assets::Call::<Runtime, LocalAssetInstance>::create {
+					id: 11u128,
+					admin: AccountId::from(ALICE),
+					min_balance: 1u128
+				})
+				.dispatch(<Runtime as frame_system::Config>::Origin::signed(
+					AccountId::from(ALICE)
+				)),
+				frame_system::Error::<Runtime>::CallFiltered
+			);
+		});
 }
 
 #[test]
