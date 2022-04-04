@@ -751,6 +751,42 @@ impl parachain_staking::Config for Runtime {
 	type WeightInfo = parachain_staking::weights::SubstrateWeight<Runtime>;
 }
 
+pub struct RelayRandomness;
+impl GetRelayRandomness<Hash> for RelayRandomness {
+	fn get_current_block_randomness() -> (Hash, Weight) {
+		// get randomness using cumulus_parachain_system::relay_state_proof().read_entry()
+		(Hash::zero(), 0)
+	}
+	fn get_one_epoch_ago_randomness() -> (Hash, Weight) {
+		(Hash::zero(), 0)
+	}
+	fn get_two_epochs_ago_randomness() -> (Hash, Weight) {
+		(Hash::zero(), 0)
+	}
+}
+
+pub struct RandomnessSender;
+impl SendRandomness<AccountId, [u8; 32]> for RandomnessSender {
+	fn send_randomness(_contract: AccountId, _randomness: [u8; 32]) {}
+}
+
+parameter_types! {
+	// TODO set to sensible value
+	pub const Deposit: Balance = 10;
+	// TODO set to sensible value
+	pub const ExpirationDelay: BlockNumber = 5;
+}
+impl pallet_randomness::Config for Runtime {
+	type Event = Event;
+	type Currency = Balances;
+	type RelayRandomness = RelayRandomness;
+	type RandomnessSender = RandomnessSender;
+	// TODO: define new type to share for transaction and pallet_randomness to not keep in sync
+	type WeightToFee = IdentityFee<Balance>;
+	type Deposit = Deposit;
+	type ExpirationDelay = ExpirationDelay;
+}
+
 impl pallet_author_inherent::Config for Runtime {
 	type SlotBeacon = RelaychainBlockNumberProvider<Self>;
 	type AccountLookup = AuthorMapping;

@@ -31,10 +31,10 @@ pub use types::*;
 // use weights::WeightInfo;
 // #[cfg(any(test, feature = "runtime-benchmarks"))]
 // mod benchmarks;
-// #[cfg(test)]
-// mod mock;
-// #[cfg(test)]
-// mod tests;
+#[cfg(test)]
+mod mock;
+#[cfg(test)]
+mod tests;
 
 #[pallet]
 pub mod pallet {
@@ -74,7 +74,7 @@ pub mod pallet {
 		/// The amount that should be taken as a security deposit when requesting randomness.
 		type Deposit: Get<BalanceOf<Self>>;
 		#[pallet::constant]
-		/// Number of blocks after a request is made when it can be purged from storage
+		/// Requests expire and can be purged from storage after this many blocks
 		type ExpirationDelay: Get<Self::BlockNumber>;
 		// /// Weight information for extrinsics in this pallet.
 		// type WeightInfo: WeightInfo;
@@ -167,7 +167,7 @@ pub mod pallet {
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
 		// Get randomness from runtime and set it locally
 		fn on_initialize(_now: BlockNumberFor<T>) -> Weight {
-			// TODO: use `GetEpochNumber` trait associated type to only update some epoch values
+			// TODO: use `GetEpochNumber` trait associated type to only update epoch values
 			// upon epoch changes (this will also enable storing epoch index and using it in
 			// `BabeRequestType` when requesting randomness)
 			let (
@@ -250,9 +250,6 @@ pub mod pallet {
 			Ok(())
 		}
 		/// Execute fulfillment for randomness if it is due
-		// TODO: fee management
-		// execution costs - `request.fee` is refunded to `refund_address`
-		// cost of execution refunded to the caller?
 		pub fn execute_fulfillment(caller: T::AccountId, id: RequestId) -> DispatchResult {
 			let request = <Requests<T>>::get(id).ok_or(Error::<T>::RequestDNE)?;
 			// fulfill randomness request
