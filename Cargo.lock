@@ -5706,6 +5706,7 @@ dependencies = [
  "sp-runtime",
  "tiny-bip39",
  "tiny-hderive",
+ "url 2.2.2",
 ]
 
 [[package]]
