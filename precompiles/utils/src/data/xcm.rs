@@ -204,6 +204,10 @@ impl EvmData for Junction {
 		};
 		EvmData::write(writer, encoded_bytes);
 	}
+
+	fn has_static_size() -> bool {
+		false
+	}
 }
 
 impl EvmData for Junctions {
@@ -222,6 +226,10 @@ impl EvmData for Junctions {
 	fn write(writer: &mut EvmDataWriter, value: Self) {
 		let encoded: Vec<Junction> = value.iter().map(|junction| junction.clone()).collect();
 		EvmData::write(writer, encoded);
+	}
+
+	fn has_static_size() -> bool {
+		false
 	}
 }
 
@@ -246,5 +254,9 @@ impl EvmData for MultiLocation {
 			.build();
 
 		EvmDataWriter::write_pointer(writer, inner_writer);
+	}
+
+	fn has_static_size() -> bool {
+		false
 	}
 }

@@ -443,14 +443,16 @@ pub struct Currency {
 // For Currencies
 impl EvmData for Currency {
 	fn read(reader: &mut EvmDataReader, gasometer: &mut Gasometer) -> EvmResult<Self> {
-		let address: Address = reader.read(gasometer)?;
-		let amount: U256 = reader.read(gasometer)?;
+		let (address, amount) = reader.read(gasometer)?;
 		Ok(Currency { address, amount })
 	}
 
 	fn write(writer: &mut EvmDataWriter, value: Self) {
-		EvmData::write(writer, value.address);
-		EvmData::write(writer, value.amount);
+		EvmData::write(writer, (value.address, value.amount));
+	}
+
+	fn has_static_size() -> bool {
+		<(Address, U256)>::has_static_size()
 	}
 }
 
@@ -471,19 +473,16 @@ pub struct EvmMultiAsset {
 
 impl EvmData for EvmMultiAsset {
 	fn read(reader: &mut EvmDataReader, gasometer: &mut Gasometer) -> EvmResult<Self> {
-		let mut inner_reader = reader.read_pointer(gasometer)?;
-
-		let location: MultiLocation = inner_reader.read(gasometer)?;
-		let amount: U256 = inner_reader.read(gasometer)?;
+		let (location, amount) = reader.read(gasometer)?;
 		Ok(EvmMultiAsset { location, amount })
 	}
 
 	fn write(writer: &mut EvmDataWriter, value: Self) {
-		let inner_writer = EvmDataWriter::new()
-			.write(value.location)
-			.write(value.amount)
-			.build();
-		EvmDataWriter::write_pointer(writer, inner_writer);
+		EvmData::write(writer, (value.location, value.amount));
+	}
+
+	fn has_static_size() -> bool {
+		<(MultiLocation, U256)>::has_static_size()
 	}
 }
 
