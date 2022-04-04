@@ -84,7 +84,7 @@ describeDevMoonbeam("XCM - asset manager - register local asset", (context) => {
     let assetId: string;
     eventsRegister.forEach((e) => {
       if (e.section.toString() === "assetManager") {
-        assetId = e.data[0].toHex();  
+        assetId = e.data[0].toHex();
       }
     });
     assetId = assetId.replace(/,/g, "");
