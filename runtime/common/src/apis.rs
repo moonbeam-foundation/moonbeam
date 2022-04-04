@@ -491,6 +491,9 @@ macro_rules! impl_runtime_apis_plus_common {
 						// Treasury Account (pc/trsry)
 						hex_literal::hex!("26aa394eea5630e07c48ae0c9558cef7b99d880ec681799c0cf30e8886371da97be2919ac397ba499ea5e57132180ec66d6f646c70632f7472737279000000000000000")
 							.to_vec().into(),
+						// ParachainStaking Round
+						hex_literal::hex!("a686a3043d0adcf2fa655e57bc595a7813792e785168f725b60e2969c7fc2552")
+							.to_vec().into(),
 
 					];
 
