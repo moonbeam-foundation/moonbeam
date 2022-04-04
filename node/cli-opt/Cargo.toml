@@ -13,6 +13,7 @@ primitive-types = "0.11.0"
 sha3 = "0.9"
 tiny-bip39 = "0.8"
 tiny-hderive = "0.3.0"
+url = "2.2.2"
 
 # Moonbeam
 account = { path = "../../primitives/account" }
