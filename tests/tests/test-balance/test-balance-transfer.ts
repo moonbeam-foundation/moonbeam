@@ -97,9 +97,9 @@ describeDevMoonbeam(
       });
       const postBalance = BigInt(await context.web3.eth.getBalance(ALITH));
       const fee = BigInt(21_000 * maxFeePerGas);
-      const actualPostBalance = preBalance - fee;
+      const expectedPostBalance = preBalance - fee;
 
-      expect(postBalance).to.be.eq(actualPostBalance);
+      expect(postBalance).to.be.eq(expectedPostBalance);
     });
   },
   "EIP1559"
@@ -129,9 +129,9 @@ describeDevMoonbeam(
       });
       const postBalance = BigInt(await context.web3.eth.getBalance(ALITH));
       const fee = BigInt(21_000 * maxFeePerGas);
-      const actualPostBalance = preBalance - fee;
+      const expectedPostBalance = preBalance - fee;
 
-      expect(postBalance).to.be.eq(actualPostBalance);
+      expect(postBalance).to.be.eq(expectedPostBalance);
     });
   },
   "EIP1559"
