@@ -237,10 +237,7 @@ impl EvmData for MultiLocation {
 	fn read(reader: &mut EvmDataReader, gasometer: &mut Gasometer) -> EvmResult<Self> {
 		let (parents, interior) = reader.read(gasometer)?;
 
-		Ok(MultiLocation {
-			parents,
-			interior,
-		})
+		Ok(MultiLocation { parents, interior })
 	}
 
 	fn write(writer: &mut EvmDataWriter, value: Self) {
