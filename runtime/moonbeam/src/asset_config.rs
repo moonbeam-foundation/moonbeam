@@ -42,6 +42,8 @@ use sp_std::{
 	convert::{From, Into},
 	prelude::*,
 };
+
+// Not to disrupt the previous asset instance, we assign () to Foreign
 pub type ForeignAssetInstance = ();
 pub type LocalAssetInstance = pallet_assets::Instance1;
 

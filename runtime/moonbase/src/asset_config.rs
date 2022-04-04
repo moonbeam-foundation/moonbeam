@@ -43,6 +43,7 @@ use sp_std::{
 	prelude::*,
 };
 
+// Not to disrupt the previous asset instance, we assign () to Foreign
 pub type ForeignAssetInstance = ();
 pub type LocalAssetInstance = pallet_assets::Instance1;
 
