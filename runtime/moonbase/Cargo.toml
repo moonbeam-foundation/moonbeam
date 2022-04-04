@@ -32,8 +32,8 @@ pallet-ethereum-chain-id = { path = "../../pallets/ethereum-chain-id", default-f
 pallet-maintenance-mode = { path = "../../pallets/maintenance-mode", default-features = false, features = [ "xcm-support" ] }
 pallet-migrations = { path = "../../pallets/migrations", default-features = false }
 pallet-proxy-genesis-companion = { path = "../../pallets/proxy-genesis-companion", default-features = false }
-parachain-staking = { path = "../../pallets/parachain-staking", default-features = false }
 pallet-randomness = { path = "../../pallets/randomness", default-features = false }
+parachain-staking = { path = "../../pallets/parachain-staking", default-features = false }
 xcm-transactor = { path = "../../pallets/xcm-transactor", default-features = false }
 
 # Moonbeam precompiles
@@ -192,6 +192,7 @@ std = [
 	"pallet-proxy-genesis-companion/std",
 	"pallet-proxy/std",
 	"pallet-randomness-collective-flip/std",
+	"pallet-randomness/std",
 	"pallet-scheduler/std",
 	"pallet-society/std",
 	"pallet-sudo/std",
@@ -227,7 +228,6 @@ std = [
 	"xcm-transactor/std",
 	"xcm/std",
 	"xtokens-precompiles/std",
-	"pallet-randomness/std",
  ]
 
 # Must be enabled for tracing runtimes only

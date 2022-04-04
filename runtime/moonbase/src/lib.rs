@@ -754,7 +754,14 @@ impl parachain_staking::Config for Runtime {
 pub struct RelayRandomness;
 impl GetRelayRandomness<Hash> for RelayRandomness {
 	fn get_current_block_randomness() -> (Hash, Weight) {
-		// get randomness using cumulus_parachain_system::relay_state_proof().read_entry()
+		// let relay_state_proof = ParachainSystem::relay_state_proof();
+		// ugh `read_entry` is not a public function
+		// let current_block_randomness: Hash = relay_state_proof.read_entry(
+		// 	&relay_state_proof.trie_backend,
+		// 	relay_chain::well_known_keys::CURRENT_BLOCK_RANDOMNESS,
+		// 	Some(Default::default())
+		// ).expect("expect to decode CURRENT_BLOCK_RANDOMNESS correctly");
+		// TODO: maybe do not panic in line above, just log some error like this isn't working
 		(Hash::zero(), 0)
 	}
 	fn get_one_epoch_ago_randomness() -> (Hash, Weight) {
@@ -821,7 +828,7 @@ impl pallet_crowdloan_rewards::Config for Runtime {
 	type RewardAddressChangeOrigin = EnsureSigned<Self::AccountId>;
 	type RewardAddressRelayVoteThreshold = RelaySignaturesThreshold;
 	type SignatureNetworkIdentifier = SignatureNetworkIdentifier;
-	type VestingBlockNumber = cumulus_primitives_core::relay_chain::BlockNumber;
+	type VestingBlockNumber = RelayBlockNumber;
 	type VestingBlockProvider =
 		cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Self>;
 	type WeightInfo = pallet_crowdloan_rewards::weights::SubstrateWeight<Runtime>;
@@ -1087,7 +1094,9 @@ impl Contains<Call> for NormalFilter {
 	}
 }
 
-use cumulus_primitives_core::{relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler};
+use cumulus_primitives_core::{
+	relay_chain, relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler,
+};
 
 pub struct XcmExecutionManager;
 impl pallet_maintenance_mode::PauseXcmExecution for XcmExecutionManager {
