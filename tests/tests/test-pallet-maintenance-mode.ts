@@ -455,12 +455,12 @@ describeDevMoonbeam(
       const keyring = new Keyring({ type: "ethereum" });
       sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
 
-      // registerAsset
+      // registerForeignAsset
       const { events: eventsRegister } = await createBlockWithExtrinsic(
         context,
         sudoAccount,
         context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.assetManager.registerAsset(
+          context.polkadotApi.tx.assetManager.registerForeignAsset(
             sourceLocation,
             assetMetadata,
             new BN(1),
@@ -549,12 +549,12 @@ describeDevMoonbeam(
       const keyring = new Keyring({ type: "ethereum" });
       sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
 
-      // registerAsset
+      // registerForeignAsset
       const { events: eventsRegister } = await createBlockWithExtrinsic(
         context,
         sudoAccount,
         context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.assetManager.registerAsset(
+          context.polkadotApi.tx.assetManager.registerForeignAsset(
             sourceLocation,
             assetMetadata,
             new BN(1),
