@@ -28,7 +28,7 @@ pub trait GetEpochIndex<Index> {
 
 /// Get babe randomness to insert into runtime
 pub trait GetRelayRandomness<R> {
-	fn get_current_block_randomness() -> (R, Weight);
-	fn get_one_epoch_ago_randomness() -> (R, Weight);
-	fn get_two_epochs_ago_randomness() -> (R, Weight);
+	fn get_current_block_randomness() -> (Option<R>, Weight);
+	fn get_one_epoch_ago_randomness() -> (Option<R>, Weight);
+	fn get_two_epochs_ago_randomness() -> (Option<R>, Weight);
 }

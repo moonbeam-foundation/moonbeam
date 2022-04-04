@@ -760,7 +760,7 @@ impl pallet_randomness::GetEpochIndex<u64> for RelayEpochIndex {
 
 pub struct RelayRandomness;
 impl pallet_randomness::GetRelayRandomness<Hash> for RelayRandomness {
-	fn get_current_block_randomness() -> (Hash, Weight) {
+	fn get_current_block_randomness() -> (Option<Hash>, Weight) {
 		// let relay_state_proof = ParachainSystem::relay_state_proof();
 		// ugh `read_entry` is not a public function
 		// let current_block_randomness: Hash = relay_state_proof.read_entry(
@@ -768,13 +768,13 @@ impl pallet_randomness::GetRelayRandomness<Hash> for RelayRandomness {
 		// 	Some(Hash::zero())
 		// ).expect("expect to decode CURRENT_BLOCK_RANDOMNESS correctly");
 		// TODO: maybe do not panic in line above, just log some error like this isn't working
-		(Hash::zero(), 0)
+		(None, 0)
 	}
-	fn get_one_epoch_ago_randomness() -> (Hash, Weight) {
-		(Hash::zero(), 0)
+	fn get_one_epoch_ago_randomness() -> (Option<Hash>, Weight) {
+		(None, 0)
 	}
-	fn get_two_epochs_ago_randomness() -> (Hash, Weight) {
-		(Hash::zero(), 0)
+	fn get_two_epochs_ago_randomness() -> (Option<Hash>, Weight) {
+		(None, 0)
 	}
 }
 
@@ -792,6 +792,7 @@ parameter_types! {
 impl pallet_randomness::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
+	type RelayEpochIndex = RelayEpochIndex;
 	type RelayRandomness = RelayRandomness;
 	type RandomnessSender = RandomnessSender;
 	// TODO: define new type to share for transaction and pallet_randomness to not keep in sync
@@ -1100,9 +1101,7 @@ impl Contains<Call> for NormalFilter {
 	}
 }
 
-use cumulus_primitives_core::{
-	relay_chain, relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler,
-};
+use cumulus_primitives_core::{relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler};
 
 pub struct XcmExecutionManager;
 impl pallet_maintenance_mode::PauseXcmExecution for XcmExecutionManager {
@@ -1262,6 +1261,7 @@ construct_runtime! {
 		XcmTransactor: xcm_transactor::{Pallet, Call, Storage, Event<T>} = 33,
 		ProxyGenesisCompanion: pallet_proxy_genesis_companion::{Pallet, Config<T>} = 34,
 		BaseFee: pallet_base_fee::{Pallet, Call, Storage, Config<T>, Event} = 35,
+		Randomness: pallet_randomness::{Pallet, Storage, Event<T>} = 36,
 	}
 }
 

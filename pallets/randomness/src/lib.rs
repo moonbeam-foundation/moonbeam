@@ -95,6 +95,7 @@ pub mod pallet {
 		OnlyRequesterCanIncreaseFee,
 		NewFeeMustBeGreaterThanOldFee,
 		RequestHasNotExpired,
+		RequestedRandomnessNotCorrectlyUpdated,
 	}
 
 	#[pallet::event]
@@ -140,36 +141,42 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn current_block_randomness)]
 	/// Relay chain current block randomness
+	/// Some(randomness) or None if not updated
 	/// TODO: replace with ParentBlockRandomness once
 	/// https://github.com/paritytech/substrate/pull/11113 is merged
-	pub type CurrentBlockRandomness<T: Config> = StorageValue<_, T::Hash, ValueQuery>;
+	pub type CurrentBlockRandomness<T: Config> = StorageValue<_, Option<T::Hash>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn last_current_block_randomness)]
 	/// Last relay chain current block randomness
+	/// Some(randomness) or None if not updated
 	/// TODO: replace with LastParentBlockRandomness once
 	/// https://github.com/paritytech/substrate/pull/11113 is merged
-	pub type LastCurrentBlockRandomness<T: Config> = StorageValue<_, T::Hash, ValueQuery>;
+	pub type LastCurrentBlockRandomness<T: Config> = StorageValue<_, Option<T::Hash>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn one_epoch_ago_randomness)]
 	/// Relay chain one epoch ago randomness
-	pub type OneEpochAgoRandomness<T: Config> = StorageValue<_, T::Hash, ValueQuery>;
+	/// Some(randomness) or None if not updated
+	pub type OneEpochAgoRandomness<T: Config> = StorageValue<_, Option<T::Hash>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn last_one_epoch_ago_randomness)]
 	/// Last relay chain one epoch ago randomness
-	pub type LastOneEpochAgoRandomness<T: Config> = StorageValue<_, T::Hash, ValueQuery>;
+	/// Some(randomness) or None if not updated
+	pub type LastOneEpochAgoRandomness<T: Config> = StorageValue<_, Option<T::Hash>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn two_epochs_ago_randomness)]
 	/// Relay chain two epochs ago randomness
-	pub type TwoEpochsAgoRandomness<T: Config> = StorageValue<_, T::Hash, ValueQuery>;
+	/// Some(randomness) or None if not updated
+	pub type TwoEpochsAgoRandomness<T: Config> = StorageValue<_, Option<T::Hash>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn last_two_epochs_ago_randomness)]
 	/// Last relay chain two epochs ago randomness
-	pub type LastTwoEpochsAgoRandomness<T: Config> = StorageValue<_, T::Hash, ValueQuery>;
+	/// Some(randomness) or None if not updated
+	pub type LastTwoEpochsAgoRandomness<T: Config> = StorageValue<_, Option<T::Hash>, ValueQuery>;
 
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
@@ -217,7 +224,7 @@ pub mod pallet {
 
 	// Utility functions
 	impl<T: Config> Pallet<T> {
-		pub(crate) fn get_most_recent_babe_randomness(b: BabeRandomness) -> T::Hash {
+		pub(crate) fn get_most_recent_babe_randomness(b: BabeRandomness) -> Option<T::Hash> {
 			match b {
 				BabeRandomness::OneEpochAgo => <OneEpochAgoRandomness<T>>::get(),
 				BabeRandomness::TwoEpochsAgo => <TwoEpochsAgoRandomness<T>>::get(),
@@ -301,7 +308,8 @@ pub mod pallet {
 			babe_randomness: BabeRandomness,
 			salt: T::Hash,
 		) -> DispatchResult {
-			let raw_randomness = Self::get_most_recent_babe_randomness(babe_randomness);
+			let raw_randomness = Self::get_most_recent_babe_randomness(babe_randomness)
+				.ok_or(Error::<T>::RequestedRandomnessNotCorrectlyUpdated)?;
 			let randomness = Self::concat_and_hash(raw_randomness, salt);
 			T::RandomnessSender::send_randomness(contract_address, randomness);
 			Ok(())

@@ -106,7 +106,8 @@ impl<T: Config> RequestState<T> {
 		let raw_randomness: T::Hash = match self.request.info {
 			RequestType::Local { .. } => return Err(Error::<T>::NotYetImplemented.into()),
 			RequestType::Babe { info, .. } => Pallet::<T>::get_most_recent_babe_randomness(info),
-		};
+		}
+		.ok_or(Error::<T>::RequestedRandomnessNotCorrectlyUpdated)?;
 		let randomness = Pallet::<T>::concat_and_hash(raw_randomness, self.request.salt);
 		T::RandomnessSender::send_randomness(self.request.contract_address.clone(), randomness);
 		// return deposit + fee_excess to contract_address
