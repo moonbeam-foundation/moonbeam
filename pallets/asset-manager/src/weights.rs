@@ -54,7 +54,7 @@ use sp_std::marker::PhantomData;
 /// Weight functions needed for pallet_asset_manager.
 pub trait WeightInfo {
 	#[rustfmt::skip]
-	fn register_asset() -> Weight;
+	fn register_foreign_asset() -> Weight;
 	#[rustfmt::skip]
 	fn set_asset_units_per_second(x: u32, ) -> Weight;
 	#[rustfmt::skip]
@@ -63,6 +63,8 @@ pub trait WeightInfo {
 	fn remove_supported_asset(x: u32, ) -> Weight;
 	#[rustfmt::skip]
 	fn remove_existing_asset_type(x: u32, ) -> Weight;
+	#[rustfmt::skip]
+	fn register_local_asset() -> Weight;
 }
 
 /// Weights for pallet_asset_manager using the Substrate node and recommended hardware.
@@ -73,7 +75,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: Assets Metadata (r:1 w:1)
 	// Storage: AssetManager AssetTypeId (r:0 w:1)
 	#[rustfmt::skip]
-	fn register_asset() -> Weight {
+	fn register_foreign_asset() -> Weight {
 		(47_597_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(3 as Weight))
 			.saturating_add(T::DbWeight::get().writes(4 as Weight))
@@ -100,6 +102,17 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add((1_266_000 as Weight).saturating_mul(x as Weight))
 			.saturating_add(T::DbWeight::get().reads(3 as Weight))
 			.saturating_add(T::DbWeight::get().writes(6 as Weight))
+	}
+	// Storage: System Account (r:1 w:1)
+	// Storage: AssetManager LocalAssetCounter (r:1 w:1)
+	// Storage: LocalAssets Asset (r:1 w:1)
+	// Storage: EVM AccountCodes (r:0 w:1)
+	// Storage: AssetManager LocalAssetDeposit (r:0 w:1)
+	#[rustfmt::skip]
+	fn register_local_asset() -> Weight {
+		(51_689_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(3 as Weight))
+			.saturating_add(T::DbWeight::get().writes(5 as Weight))
 	}
 	// Storage: AssetManager SupportedFeePaymentAssets (r:1 w:1)
 	// Storage: AssetManager AssetTypeUnitsPerSecond (r:0 w:1)
@@ -132,7 +145,7 @@ impl WeightInfo for () {
 	// Storage: Assets Metadata (r:1 w:1)
 	// Storage: AssetManager AssetTypeId (r:0 w:1)
 	#[rustfmt::skip]
-	fn register_asset() -> Weight {
+	fn register_foreign_asset() -> Weight {
 		(47_597_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(3 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(4 as Weight))
@@ -159,6 +172,17 @@ impl WeightInfo for () {
 			.saturating_add((1_266_000 as Weight).saturating_mul(x as Weight))
 			.saturating_add(RocksDbWeight::get().reads(3 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(6 as Weight))
+	}
+	// Storage: System Account (r:1 w:1)
+	// Storage: AssetManager LocalAssetCounter (r:1 w:1)
+	// Storage: LocalAssets Asset (r:1 w:1)
+	// Storage: EVM AccountCodes (r:0 w:1)
+	// Storage: AssetManager LocalAssetDeposit (r:0 w:1)
+	#[rustfmt::skip]
+	fn register_local_asset() -> Weight {
+		(51_689_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(3 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(5 as Weight))
 	}
 	// Storage: AssetManager SupportedFeePaymentAssets (r:1 w:1)
 	// Storage: AssetManager AssetTypeUnitsPerSecond (r:0 w:1)

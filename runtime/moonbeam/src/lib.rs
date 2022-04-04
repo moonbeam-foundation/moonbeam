@@ -35,7 +35,9 @@ use fp_rpc::TransactionStatus;
 // Re-export required by get! macro.
 pub use frame_support::traits::Get;
 use frame_support::{
-	construct_runtime, parameter_types,
+	construct_runtime,
+	pallet_prelude::DispatchResult,
+	parameter_types,
 	traits::{
 		ConstBool, ConstU128, ConstU16, ConstU32, ConstU64, ConstU8, Contains, EnsureOneOf,
 		EqualPrivilegeOnly, Imbalance, InstanceFilter, OffchainWorker, OnFinalize, OnIdle,
@@ -79,10 +81,6 @@ use sp_runtime::{
 };
 use sp_std::{convert::TryFrom, prelude::*};
 
-use pallet_evm_precompile_assets_erc20::AccountIdAssetIdConversion;
-
-use xcm::latest::prelude::*;
-
 use cumulus_primitives_core::{relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler};
 
 #[cfg(feature = "std")]
@@ -92,13 +90,14 @@ use sp_version::RuntimeVersion;
 use nimbus_primitives::{CanAuthor, NimbusId};
 
 mod precompiles;
-use precompiles::{MoonbeamPrecompiles, ASSET_PRECOMPILE_ADDRESS_PREFIX};
+pub use precompiles::{MoonbeamPrecompiles, ASSET_PRECOMPILE_ADDRESS_PREFIX};
 
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 
 pub type Precompiles = MoonbeamPrecompiles<Runtime>;
 
+pub mod asset_config;
 pub mod xcm_config;
 
 /// GLMR, the native token, uses 18 decimals of precision.
@@ -826,123 +825,6 @@ impl pallet_migrations::Config for Runtime {
 		CouncilCollective,
 		TechCommitteeCollective,
 	>;
-}
-
-// These parameters dont matter much as this will only be called by root with the forced arguments
-// No deposit is substracted with those methods
-parameter_types! {
-	pub const ExecutiveBody: BodyId = BodyId::Executive;
-}
-
-/// We allow root and Chain council to execute privileged asset operations.
-pub type AssetsForceOrigin = EnsureOneOf<
-	EnsureRoot<AccountId>,
-	pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
->;
-
-impl pallet_assets::Config for Runtime {
-	type Event = Event;
-	type Balance = Balance;
-	type AssetId = AssetId;
-	type Currency = Balances;
-	type ForceOrigin = AssetsForceOrigin;
-	type AssetDeposit = ConstU128<0>;
-	type MetadataDepositBase = ConstU128<0>;
-	type MetadataDepositPerByte = ConstU128<0>;
-	type ApprovalDeposit = ConstU128<0>;
-	type StringLimit = ConstU32<50>;
-	type Freezer = ();
-	type Extra = ();
-	type AssetAccountDeposit = ConstU128<{ currency::deposit(1, 18) }>;
-	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
-}
-
-// We instruct how to register the Assets
-// In this case, we tell it to Create an Asset in pallet-assets
-pub struct AssetRegistrar;
-use frame_support::{pallet_prelude::DispatchResult, transactional};
-
-impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
-	#[transactional]
-	fn create_asset(
-		asset: AssetId,
-		min_balance: Balance,
-		metadata: AssetRegistrarMetadata,
-		is_sufficient: bool,
-	) -> DispatchResult {
-		Assets::force_create(
-			Origin::root(),
-			asset,
-			AssetManager::account_id(),
-			is_sufficient,
-			min_balance,
-		)?;
-
-		// TODO uncomment when we feel comfortable
-		/*
-		// The asset has been created. Let's put the revert code in the precompile address
-		let precompile_address = Runtime::asset_id_to_account(asset);
-		pallet_evm::AccountCodes::<Runtime>::insert(
-			precompile_address,
-			vec![0x60, 0x00, 0x60, 0x00, 0xfd],
-		);*/
-
-		// Lastly, the metadata
-		Assets::force_set_metadata(
-			Origin::root(),
-			asset,
-			metadata.name,
-			metadata.symbol,
-			metadata.decimals,
-			metadata.is_frozen,
-		)
-	}
-}
-
-#[derive(Clone, Default, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
-pub struct AssetRegistrarMetadata {
-	pub name: Vec<u8>,
-	pub symbol: Vec<u8>,
-	pub decimals: u8,
-	pub is_frozen: bool,
-}
-
-impl pallet_asset_manager::Config for Runtime {
-	type Event = Event;
-	type Balance = Balance;
-	type AssetId = AssetId;
-	type AssetRegistrarMetadata = AssetRegistrarMetadata;
-	type AssetType = xcm_config::AssetType;
-	type AssetRegistrar = AssetRegistrar;
-	type AssetModifierOrigin = EnsureRoot<AccountId>;
-	type WeightInfo = pallet_asset_manager::weights::SubstrateWeight<Runtime>;
-}
-
-// Instruct how to go from an H160 to an AssetID
-// We just take the lowest 128 bits
-impl AccountIdAssetIdConversion<AccountId, AssetId> for Runtime {
-	/// The way to convert an account to assetId is by ensuring that the prefix is 0XFFFFFFFF
-	/// and by taking the lowest 128 bits as the assetId
-	fn account_to_asset_id(account: AccountId) -> Option<AssetId> {
-		let h160_account: H160 = account.into();
-		let mut data = [0u8; 16];
-		let (prefix_part, id_part) = h160_account.as_fixed_bytes().split_at(4);
-		if prefix_part == ASSET_PRECOMPILE_ADDRESS_PREFIX {
-			data.copy_from_slice(id_part);
-			let asset_id: AssetId = u128::from_be_bytes(data).into();
-			Some(asset_id)
-		} else {
-			None
-		}
-	}
-
-	// The opposite conversion
-	fn asset_id_to_account(asset_id: AssetId) -> AccountId {
-		let mut data = [0u8; 20];
-		data[0..4].copy_from_slice(ASSET_PRECOMPILE_ADDRESS_PREFIX);
-		data[4..20].copy_from_slice(&asset_id.to_be_bytes());
-		AccountId::from(data)
-	}
 }
 
 /// Maintenance mode Call filter
