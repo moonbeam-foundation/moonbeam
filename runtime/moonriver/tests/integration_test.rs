@@ -25,7 +25,7 @@ use fp_evm::{Context, ExitSucceed, PrecompileOutput};
 use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::Dispatchable,
-	traits::{fungible::Inspect, PalletInfo, StorageInfo, StorageInfoTrait},
+	traits::{fungible::Inspect, EnsureOrigin, PalletInfo, StorageInfo, StorageInfoTrait},
 	weights::{DispatchClass, Weight},
 	StorageHasher, Twox128,
 };
@@ -49,6 +49,16 @@ use sp_runtime::{
 use xcm::latest::prelude::*;
 use xcm::{VersionedMultiAssets, VersionedMultiLocation};
 use xtokens_precompiles::Action as XtokensAction;
+
+#[test]
+fn xcmp_queue_controller_origin_is_root() {
+	// important for the XcmExecutionManager impl of PauseExecution which uses root origin
+	// to suspend/resume XCM execution in xcmp_queue::on_idle
+	assert_ok!(
+		<moonriver_runtime::Runtime as cumulus_pallet_xcmp_queue::Config
+		>::ControllerOrigin::ensure_origin(root_origin())
+	);
+}
 
 #[test]
 fn fast_track_available() {

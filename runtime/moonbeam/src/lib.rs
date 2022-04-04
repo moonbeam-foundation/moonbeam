@@ -67,7 +67,7 @@ pub use parachain_staking::{InflationInfo, Range};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 use sp_api::impl_runtime_apis;
-use sp_core::{u32_trait::*, OpaqueMetadata, H160, H256, U256};
+use sp_core::{OpaqueMetadata, H160, H256, U256};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{BlakeTwo256, Block as BlockT, Dispatchable, IdentityLookup, PostDispatchInfoOf},
@@ -83,9 +83,7 @@ use pallet_evm_precompile_assets_erc20::AccountIdAssetIdConversion;
 
 use xcm::latest::prelude::*;
 
-use cumulus_primitives_core::{
-	relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler, ParaId, XcmpMessageHandler,
-};
+use cumulus_primitives_core::{relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler};
 
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
@@ -488,28 +486,28 @@ impl pallet_democracy::Config for Runtime {
 	type MinimumDeposit = ConstU128<{ 4 * currency::GLMR * currency::SUPPLY_FACTOR }>;
 	/// To decide what their next motion is.
 	type ExternalOrigin =
-		pallet_collective::EnsureProportionAtLeast<_1, _2, AccountId, CouncilInstance>;
+		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilInstance, 1, 2>;
 	/// To have the next scheduled referendum be a straight majority-carries vote.
 	type ExternalMajorityOrigin =
-		pallet_collective::EnsureProportionAtLeast<_3, _5, AccountId, CouncilInstance>;
+		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilInstance, 3, 5>;
 	/// To have the next scheduled referendum be a straight default-carries (NTB) vote.
 	type ExternalDefaultOrigin =
-		pallet_collective::EnsureProportionAtLeast<_3, _5, AccountId, CouncilInstance>;
+		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilInstance, 3, 5>;
 	/// To allow a shorter voting/enactment period for external proposals.
 	type FastTrackOrigin =
-		pallet_collective::EnsureProportionAtLeast<_1, _2, AccountId, TechCommitteeInstance>;
+		pallet_collective::EnsureProportionAtLeast<AccountId, TechCommitteeInstance, 1, 2>;
 	/// To instant fast track.
 	type InstantOrigin =
-		pallet_collective::EnsureProportionAtLeast<_3, _5, AccountId, TechCommitteeInstance>;
+		pallet_collective::EnsureProportionAtLeast<AccountId, TechCommitteeInstance, 3, 5>;
 	// To cancel a proposal which has been passed.
 	type CancellationOrigin = EnsureOneOf<
 		EnsureRoot<AccountId>,
-		pallet_collective::EnsureProportionAtLeast<_3, _5, AccountId, CouncilInstance>,
+		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilInstance, 3, 5>,
 	>;
 	// To cancel a proposal before it has been passed.
 	type CancelProposalOrigin = EnsureOneOf<
 		EnsureRoot<AccountId>,
-		pallet_collective::EnsureProportionAtLeast<_3, _5, AccountId, TechCommitteeInstance>,
+		pallet_collective::EnsureProportionAtLeast<AccountId, TechCommitteeInstance, 3, 5>,
 	>;
 	type BlacklistOrigin = EnsureRoot<AccountId>;
 	// Any single technical committee member may veto a coming council proposal, however they can
@@ -534,12 +532,12 @@ parameter_types! {
 
 type TreasuryApproveOrigin = EnsureOneOf<
 	EnsureRoot<AccountId>,
-	pallet_collective::EnsureProportionAtLeast<_3, _5, AccountId, CouncilInstance>,
+	pallet_collective::EnsureProportionAtLeast<AccountId, CouncilInstance, 3, 5>,
 >;
 
 type TreasuryRejectOrigin = EnsureOneOf<
 	EnsureRoot<AccountId>,
-	pallet_collective::EnsureProportionMoreThan<_1, _2, AccountId, CouncilInstance>,
+	pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
 >;
 
 impl pallet_treasury::Config for Runtime {
@@ -565,11 +563,11 @@ impl pallet_treasury::Config for Runtime {
 
 type IdentityForceOrigin = EnsureOneOf<
 	EnsureRoot<AccountId>,
-	pallet_collective::EnsureProportionMoreThan<_1, _2, AccountId, CouncilInstance>,
+	pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
 >;
 type IdentityRegistrarOrigin = EnsureOneOf<
 	EnsureRoot<AccountId>,
-	pallet_collective::EnsureProportionMoreThan<_1, _2, AccountId, CouncilInstance>,
+	pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
 >;
 
 impl pallet_identity::Config for Runtime {
@@ -626,7 +624,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type DmpMessageHandler = MaintenanceMode;
 	type ReservedDmpWeight = ConstU64<{ MAXIMUM_BLOCK_WEIGHT / 4 }>;
 	type OutboundXcmpMessageSource = XcmpQueue;
-	type XcmpMessageHandler = MaintenanceMode;
+	type XcmpMessageHandler = XcmpQueue;
 	type ReservedXcmpWeight = ConstU64<{ MAXIMUM_BLOCK_WEIGHT / 4 }>;
 }
 impl parachain_info::Config for Runtime {}
@@ -839,7 +837,7 @@ parameter_types! {
 /// We allow root and Chain council to execute privileged asset operations.
 pub type AssetsForceOrigin = EnsureOneOf<
 	EnsureRoot<AccountId>,
-	pallet_collective::EnsureProportionMoreThan<_1, _2, AccountId, CouncilInstance>,
+	pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
 >;
 
 impl pallet_assets::Config for Runtime {
@@ -996,6 +994,16 @@ impl Contains<Call> for NormalFilter {
 	}
 }
 
+pub struct XcmExecutionManager;
+impl pallet_maintenance_mode::PauseXcmExecution for XcmExecutionManager {
+	fn suspend_xcm_execution() -> DispatchResult {
+		XcmpQueue::suspend_xcm_execution(Origin::root())
+	}
+	fn resume_xcm_execution() -> DispatchResult {
+		XcmpQueue::resume_xcm_execution(Origin::root())
+	}
+}
+
 pub struct MaintenanceDmpHandler;
 impl DmpMessageHandler for MaintenanceDmpHandler {
 	// This implementation makes messages be queued
@@ -1005,18 +1013,6 @@ impl DmpMessageHandler for MaintenanceDmpHandler {
 		_limit: Weight,
 	) -> Weight {
 		DmpQueue::handle_dmp_messages(iter, 0)
-	}
-}
-
-pub struct MaintenanceXcmpHandler;
-impl XcmpMessageHandler for MaintenanceXcmpHandler {
-	// This implementation makes messages be queued
-	// Since the limit is 0, messages are queued for next iteration
-	fn handle_xcmp_messages<'a, I: Iterator<Item = (ParaId, RelayBlockNumber, &'a [u8])>>(
-		iter: I,
-		_limit: Weight,
-	) -> Weight {
-		XcmpQueue::handle_xcmp_messages(iter, 0)
 	}
 }
 
@@ -1073,11 +1069,10 @@ impl pallet_maintenance_mode::Config for Runtime {
 	type NormalCallFilter = NormalFilter;
 	type MaintenanceCallFilter = MaintenanceFilter;
 	type MaintenanceOrigin =
-		pallet_collective::EnsureProportionAtLeast<_2, _3, AccountId, TechCommitteeInstance>;
+		pallet_collective::EnsureProportionAtLeast<AccountId, TechCommitteeInstance, 2, 3>;
+	type XcmExecutionManager = XcmExecutionManager;
 	type NormalDmpHandler = DmpQueue;
 	type MaintenanceDmpHandler = MaintenanceDmpHandler;
-	type NormalXcmpHandler = XcmpQueue;
-	type MaintenanceXcmpHandler = MaintenanceXcmpHandler;
 	// We use AllPalletsReversedWithSystemFirst because we dont want to change the hooks in normal
 	// operation
 	type NormalExecutiveHooks = AllPalletsReversedWithSystemFirst;
