@@ -555,6 +555,38 @@
 <span id="550">550</span>
 <span id="551">551</span>
 <span id="552">552</span>
+<span id="553">553</span>
+<span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
+<span id="557">557</span>
+<span id="558">558</span>
+<span id="559">559</span>
+<span id="560">560</span>
+<span id="561">561</span>
+<span id="562">562</span>
+<span id="563">563</span>
+<span id="564">564</span>
+<span id="565">565</span>
+<span id="566">566</span>
+<span id="567">567</span>
+<span id="568">568</span>
+<span id="569">569</span>
+<span id="570">570</span>
+<span id="571">571</span>
+<span id="572">572</span>
+<span id="573">573</span>
+<span id="574">574</span>
+<span id="575">575</span>
+<span id="576">576</span>
+<span id="577">577</span>
+<span id="578">578</span>
+<span id="579">579</span>
+<span id="580">580</span>
+<span id="581">581</span>
+<span id="582">582</span>
+<span id="583">583</span>
+<span id="584">584</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -1022,20 +1054,52 @@
 
 					<span class="kw">let</span> <span class="ident">whitelist</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TrackedStorageKey</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[
 						<span class="comment">// Block Number</span>
-						<span class="macro">hex_literal::hex!</span>(<span class="string">&quot;26aa394eea5630e07c48ae0c9558cef702a5c1b19ab7a04f536c519aca4983ac&quot;</span>)
+						<span class="macro">hex_literal::hex!</span>(  <span class="string">&quot;26aa394eea5630e07c48ae0c9558cef7&quot;</span>
+											<span class="string">&quot;02a5c1b19ab7a04f536c519aca4983ac&quot;</span>)
 							.<span class="ident">to_vec</span>().<span class="ident">into</span>(),
 						<span class="comment">// Total Issuance</span>
-						<span class="macro">hex_literal::hex!</span>(<span class="string">&quot;c2261276cc9d1f8598ea4b6a74b15c2f57c875e4cff74148e4628f264b974c80&quot;</span>)
+						<span class="macro">hex_literal::hex!</span>(  <span class="string">&quot;c2261276cc9d1f8598ea4b6a74b15c2f&quot;</span>
+											<span class="string">&quot;57c875e4cff74148e4628f264b974c80&quot;</span>)
 							.<span class="ident">to_vec</span>().<span class="ident">into</span>(),
 						<span class="comment">// Execution Phase</span>
-						<span class="macro">hex_literal::hex!</span>(<span class="string">&quot;26aa394eea5630e07c48ae0c9558cef7ff553b5a9862a516939d82b3d3d8661a&quot;</span>)
+						<span class="macro">hex_literal::hex!</span>(  <span class="string">&quot;26aa394eea5630e07c48ae0c9558cef7&quot;</span>
+											<span class="string">&quot;ff553b5a9862a516939d82b3d3d8661a&quot;</span>)
 							.<span class="ident">to_vec</span>().<span class="ident">into</span>(),
 						<span class="comment">// Event Count</span>
-						<span class="macro">hex_literal::hex!</span>(<span class="string">&quot;26aa394eea5630e07c48ae0c9558cef70a98fdbe9ce6c55837576c60c7af3850&quot;</span>)
+						<span class="macro">hex_literal::hex!</span>(  <span class="string">&quot;26aa394eea5630e07c48ae0c9558cef7&quot;</span>
+											<span class="string">&quot;0a98fdbe9ce6c55837576c60c7af3850&quot;</span>)
 							.<span class="ident">to_vec</span>().<span class="ident">into</span>(),
 						<span class="comment">// System Events</span>
-						<span class="macro">hex_literal::hex!</span>(<span class="string">&quot;26aa394eea5630e07c48ae0c9558cef780d41e5e16056765bc8461851072c9d7&quot;</span>)
+						<span class="macro">hex_literal::hex!</span>(  <span class="string">&quot;26aa394eea5630e07c48ae0c9558cef7&quot;</span>
+											<span class="string">&quot;80d41e5e16056765bc8461851072c9d7&quot;</span>)
 							.<span class="ident">to_vec</span>().<span class="ident">into</span>(),
+						<span class="comment">// System BlockWeight</span>
+						<span class="macro">hex_literal::hex!</span>(  <span class="string">&quot;26aa394eea5630e07c48ae0c9558cef7&quot;</span>
+											<span class="string">&quot;34abf5cb34d6244378cddbf18e849d96&quot;</span>)
+							.<span class="ident">to_vec</span>().<span class="ident">into</span>(),
+						<span class="comment">// ParachainStaking Round</span>
+						<span class="macro">hex_literal::hex!</span>(  <span class="string">&quot;a686a3043d0adcf2fa655e57bc595a78&quot;</span>
+											<span class="string">&quot;13792e785168f725b60e2969c7fc2552&quot;</span>)
+							.<span class="ident">to_vec</span>().<span class="ident">into</span>(),
+						<span class="comment">// Treasury Account (py/trsry)</span>
+						<span class="macro">hex_literal::hex!</span>(  <span class="string">&quot;26aa394eea5630e07c48ae0c9558cef7&quot;</span>
+											<span class="string">&quot;b99d880ec681799c0cf30e8886371da9&quot;</span>
+											<span class="string">&quot;7be2919ac397ba499ea5e57132180ec6&quot;</span>
+											<span class="string">&quot;6d6f646c70792f747273727900000000&quot;</span>
+											<span class="string">&quot;00000000&quot;</span>
+						).<span class="ident">to_vec</span>().<span class="ident">into</span>(),
+						<span class="comment">// Treasury Account (pc/trsry)</span>
+						<span class="macro">hex_literal::hex!</span>(  <span class="string">&quot;26aa394eea5630e07c48ae0c9558cef7&quot;</span>
+											<span class="string">&quot;b99d880ec681799c0cf30e8886371da9&quot;</span>
+											<span class="string">&quot;7be2919ac397ba499ea5e57132180ec6&quot;</span>
+											<span class="string">&quot;6d6f646c70632f747273727900000000&quot;</span>
+											<span class="string">&quot;00000000&quot;</span>
+						).<span class="ident">to_vec</span>().<span class="ident">into</span>(),
+						<span class="comment">// ParachainStaking Round</span>
+						<span class="macro">hex_literal::hex!</span>(  <span class="string">&quot;a686a3043d0adcf2fa655e57bc595a78&quot;</span>
+											<span class="string">&quot;13792e785168f725b60e2969c7fc2552&quot;</span>)
+							.<span class="ident">to_vec</span>().<span class="ident">into</span>(),
+
 					];
 
 					<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">batches</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="op">&lt;</span><span class="ident">BenchmarkBatch</span><span class="op">&gt;</span><span class="ident">::new</span>();
