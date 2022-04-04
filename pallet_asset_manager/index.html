@@ -4,20 +4,30 @@
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../pallet_asset_manager/index.html"><div class="logo-container"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"><a href="#">Crate pallet_asset_manager</a></h2><div class="sidebar-elems"><div class="block"><ul><li class="version">Version 0.1.0</li><li><a id="all-types" href="all.html">All Items</a></li></div></ul><section><div class="block"><ul><li><a href="#modules">Modules</a></li></ul></div></section><div id="sidebar-vars" data-name="pallet_asset_manager" data-ty="mod" data-relpath=""></div><script defer src="sidebar-items.js"></script></div></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../pallet_asset_manager/index.html"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="main-heading">
-    <h1 class="fqn"><span class="in-band">Crate <a class="mod" href="#">pallet_asset_manager</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span></h1><span class="out-of-band"><a class="srclink" href="../src/pallet_asset_manager/lib.rs.html#17-396">source</a> · <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>TODO Doc comments for the pallet</p>
+    <h1 class="fqn"><span class="in-band">Crate <a class="mod" href="#">pallet_asset_manager</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span></h1><span class="out-of-band"><a class="srclink" href="../src/pallet_asset_manager/lib.rs.html#17-680">source</a> · <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>TODO Doc comments for the pallet</p>
 <h2 id="asset-manager-pallet"><a href="#asset-manager-pallet">Asset Manager Pallet</a></h2>
 <p>This pallet allows to register new assets if certain conditions are met
 The main goal of this pallet is to allow moonbeam to register XCM assets
+and control the creation of local assets
 The assumption is we work with AssetTypes, which can then be comperted to AssetIds</p>
-<p>This pallet has three storage items: AssetIdType, which holds a mapping from AssetId-&gt;AssetType
-AssetTypeUnitsPerSecond: an AssetType-&gt;u128 mapping that holds how much each AssetType should be
-charged per unit of second, in the case such an Asset is received as a XCM asset. Finally,
-AssetTypeId holds a mapping from AssetType -&gt; AssetId.</p>
-<p>This pallet has three extrinsics: register_asset, which registers an Asset in this pallet and
-creates the asset as dictated by the AssetRegistrar trait. set_asset_units_per_second: which
-sets the unit per second that should be charged for a particular asset.
+<p>This pallet has five storage items: AssetIdType, which holds a mapping from AssetId-&gt;AssetType
+AssetTypeUnitsPerSecond: an AssetType-&gt;u128 mapping that holds how much each AssetType should
+be charged per unit of second, in the case such an Asset is received as a XCM asset. Finally,
+AssetTypeId holds a mapping from AssetType -&gt; AssetId. LocalAssetCounter
+which holds the counter of local assets that have been created so far. And LocalAssetDeposit,
+which holds a mapping between assetId and assetInfo, i.e., the asset creator (from which
+we take the deposit) and the deposit amount itself.</p>
+<p>This pallet has eight extrinsics: register_foreign_asset, which registers a foreign
+asset in this pallet and creates the asset as dictated by the AssetRegistrar trait.
+set_asset_units_per_second: which sets the unit per second that should be charged for
+a particular asset.
 change_existing_asset_type: which allows to update the correspondence between AssetId and
-AssetType</p>
+AssetType
+remove_supported_asset: which removes an asset from the supported assets for fee payment
+remove_existing_asset_type: which removes a mapping from a foreign asset to an assetId
+register_local_asset: which creates a local asset with a specific owner
+destroy_foreign_asset: which destroys a foreign asset and all its associated data
+destroy_local_asset: which destroys a local asset and all its associated data</p>
 </div></details><h2 id="reexports" class="small-section-header"><a href="#reexports">Re-exports</a></h2>
 <div class="item-table"><div class="item-row"><div class="item-left import-item"><code>pub use <a class="mod" href="pallet/index.html" title="mod pallet_asset_manager::pallet">pallet</a>::*;</code></div><div class="item-right docblock-short"></div></div></div><h2 id="modules" class="small-section-header"><a href="#modules">Modules</a></h2>
 <div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="mod" href="migrations/index.html" title="pallet_asset_manager::migrations mod">migrations</a></div><div class="item-right docblock-short"></div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="pallet/index.html" title="pallet_asset_manager::pallet mod">pallet</a></div><div class="item-right docblock-short"><p>The module that hosts all the

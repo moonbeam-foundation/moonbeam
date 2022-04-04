@@ -562,6 +562,10 @@
 <span id="557">557</span>
 <span id="558">558</span>
 <span id="559">559</span>
+<span id="560">560</span>
+<span id="561">561</span>
+<span id="562">562</span>
+<span id="563">563</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -592,9 +596,9 @@
 <span class="kw">use</span> <span class="ident">xcm::latest::prelude</span>::<span class="kw-2">*</span>;
 
 <span class="doccomment">/// Migration that changes the mapping AssetId -&gt; units_per_second to</span>
-<span class="doccomment">/// a mapping of the form AssetType -&gt; units_per_second</span>
-<span class="doccomment">/// It does so by removing the AssetTypeUnitsPerSecond storage and</span>
-<span class="doccomment">/// populating the new AssetTypeUnitsPerSecond</span>
+<span class="doccomment">/// a mapping of the form ForeignAssetType -&gt; units_per_second</span>
+<span class="doccomment">/// It does so by removing the ForeignAssetTypeUnitsPerSecond storage and</span>
+<span class="doccomment">/// populating the new ForeignAssetTypeUnitsPerSecond</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">UnitsWithAssetType</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">OnRuntimeUpgrade</span> <span class="kw">for</span> <span class="ident">UnitsWithAssetType</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
 	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
@@ -637,7 +641,7 @@
 	}
 
 	<span class="kw">fn</span> <span class="ident">on_runtime_upgrade</span>() -&gt; <span class="ident">Weight</span> {
-		<span class="macro">log::info!</span>(<span class="ident">target</span>: <span class="string">&quot;UnitsWithAssetType&quot;</span>, <span class="string">&quot;actually running it&quot;</span>);
+		<span class="macro">log::info!</span>(<span class="ident">target</span>: <span class="string">&quot;UnitsWithForeignAssetType&quot;</span>, <span class="string">&quot;actually running it&quot;</span>);
 		<span class="kw">let</span> <span class="ident">pallet_prefix</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;AssetManager&quot;</span>;
 		<span class="kw">let</span> <span class="ident">storage_item_prefix</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;AssetIdUnitsPerSecond&quot;</span>;
 
@@ -655,21 +659,21 @@
 			.<span class="ident">try_into</span>()
 			.<span class="ident">expect</span>(<span class="string">&quot;There are between 0 and 2**64 mappings stored.&quot;</span>);
 
-		<span class="macro">log::info!</span>(<span class="ident">target</span>: <span class="string">&quot;UnitsWithAssetType&quot;</span>, <span class="string">&quot;Migrating {:?} elements&quot;</span>, <span class="ident">migrated_count</span>);
+		<span class="macro">log::info!</span>(<span class="ident">target</span>: <span class="string">&quot;UnitsWithForeignAssetType&quot;</span>, <span class="string">&quot;Migrating {:?} elements&quot;</span>, <span class="ident">migrated_count</span>);
 
 		<span class="comment">// Write to the new storage with removed and added fields</span>
 		<span class="kw">for</span> (<span class="ident">asset_id</span>, <span class="ident">units</span>) <span class="kw">in</span> <span class="ident">stored_data</span> {
-			<span class="comment">// Read the assetType for the assetId</span>
+			<span class="comment">// Read the ForeignAssetType for the assetId</span>
 			<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">asset_type</span>) <span class="op">=</span> <span class="ident">AssetIdType</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">asset_id</span>) {
-				<span class="comment">// Populate with assetType as key</span>
+				<span class="comment">// Populate with ForeignAssetType as key</span>
 				<span class="ident">AssetTypeUnitsPerSecond</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="kw-2">&amp;</span><span class="ident">asset_type</span>, <span class="ident">units</span>)
 			}
 		}
 
-		<span class="macro">log::info!</span>(<span class="ident">target</span>: <span class="string">&quot;UnitsWithAssetType&quot;</span>, <span class="string">&quot;almost done&quot;</span>);
+		<span class="macro">log::info!</span>(<span class="ident">target</span>: <span class="string">&quot;UnitsWithForeignAssetType&quot;</span>, <span class="string">&quot;almost done&quot;</span>);
 
 		<span class="comment">// Return the weight used. For each migrated mapping there is a read to get it into</span>
-		<span class="comment">// memory, a read to get assetType and</span>
+		<span class="comment">// memory, a read to get ForeignAssetType and</span>
 		<span class="comment">// a write to clear the old stored value, and a write to re-store it.</span>
 		<span class="kw">let</span> <span class="ident">db_weights</span> <span class="op">=</span> <span class="ident">T::DbWeight::get</span>();
 		<span class="ident">migrated_count</span>.<span class="ident">saturating_mul</span>(<span class="number">2</span> <span class="op">*</span> <span class="ident">db_weights</span>.<span class="ident">write</span> <span class="op">+</span> <span class="number">2</span> <span class="op">*</span> <span class="ident">db_weights</span>.<span class="ident">read</span>)
@@ -692,7 +696,7 @@
 		<span class="comment">// Check number of entries matches what was set aside in pre_upgrade</span>
 		<span class="kw">let</span> <span class="ident">old_mapping_count</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::get_temp_storage</span>(<span class="string">&quot;mapping_count&quot;</span>)
 			.<span class="ident">expect</span>(<span class="string">&quot;We stored a mapping count; it should be there; qed&quot;</span>);
-		<span class="kw">let</span> <span class="ident">new_mapping_count</span> <span class="op">=</span> <span class="ident">AssetTypeUnitsPerSecond</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::iter</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">u64</span>;
+		<span class="kw">let</span> <span class="ident">new_mapping_count</span> <span class="op">=</span> <span class="ident">ForeignAssetTypeUnitsPerSecond</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::iter</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">u64</span>;
 		<span class="macro">assert_eq!</span>(<span class="ident">old_mapping_count</span>, <span class="ident">new_mapping_count</span>);
 
 		<span class="comment">// Check that our example pair is still well-mapped after the migration</span>
@@ -700,10 +704,10 @@
 			<span class="kw">let</span> (<span class="ident">asset_id</span>, <span class="ident">units</span>): (<span class="ident">T::AssetId</span>, <span class="ident">u128</span>) <span class="op">=</span>
 				<span class="ident"><span class="self">Self</span>::get_temp_storage</span>(<span class="string">&quot;example_pair&quot;</span>).<span class="ident">expect</span>(<span class="string">&quot;qed&quot;</span>);
 
-			<span class="kw">let</span> <span class="ident">asset_type</span> <span class="op">=</span>
-				<span class="ident">AssetIdType</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="ident">asset_id</span>).<span class="ident">expect</span>(<span class="string">&quot;AssetIdType should have the assetType&quot;</span>);
+			<span class="kw">let</span> <span class="ident">asset_type</span> <span class="op">=</span> <span class="ident">AssetIdType</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="ident">asset_id</span>)
+				.<span class="ident">expect</span>(<span class="string">&quot;AssetIdType should have the ForeignAssetType&quot;</span>);
 
-			<span class="kw">let</span> <span class="ident">migrated_units</span> <span class="op">=</span> <span class="ident">AssetTypeUnitsPerSecond</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="ident">asset_type</span>).<span class="ident">expect</span>(<span class="string">&quot;qed&quot;</span>);
+			<span class="kw">let</span> <span class="ident">migrated_units</span> <span class="op">=</span> <span class="ident">ForeignAssetTypeUnitsPerSecond</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="ident">asset_type</span>).<span class="ident">expect</span>(<span class="string">&quot;qed&quot;</span>);
 			<span class="comment">// Check units are identical</span>
 			<span class="macro">assert_eq!</span>(<span class="ident">migrated_units</span>, <span class="ident">units</span>);
 		}
@@ -712,8 +716,8 @@
 	}
 }
 
-<span class="doccomment">/// Migration that reads data from the AssetIdType mapping (AssetId -&gt; AssetType)</span>
-<span class="doccomment">/// and populates the reverse mapping AssetTypeId (AssetType -&gt; AssetId)</span>
+<span class="doccomment">/// Migration that reads data from the AssetIdType mapping (AssetId -&gt; ForeignAssetType)</span>
+<span class="doccomment">/// and populates the reverse mapping ForeignAssetTypeId (ForeignAssetType -&gt; AssetId)</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PopulateAssetTypeIdStorage</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">OnRuntimeUpgrade</span> <span class="kw">for</span> <span class="ident">PopulateAssetTypeIdStorage</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
 	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
@@ -730,13 +734,14 @@
 		<span class="comment">// there will exist the reserve mapping in the new storage</span>
 
 		<span class="comment">// Assert new storage is empty</span>
-		<span class="macro">assert!</span>(<span class="ident">AssetTypeId</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::iter</span>().<span class="ident">next</span>().<span class="ident">is_none</span>());
+		<span class="macro">assert!</span>(<span class="ident">ForeignAssetTypeId</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::iter</span>().<span class="ident">next</span>().<span class="ident">is_none</span>());
 
 		<span class="comment">// Check number of entries, and set it aside in temp storage</span>
-		<span class="kw">let</span> <span class="ident">stored_data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">storage_key_iter</span>::<span class="op">&lt;</span><span class="ident">T::AssetId</span>, <span class="ident">T::AssetType</span>, <span class="ident">Blake2_128Concat</span><span class="op">&gt;</span>(
-			<span class="ident">pallet_prefix</span>,
-			<span class="ident">storage_item_prefix</span>,
-		)
+		<span class="kw">let</span> <span class="ident">stored_data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">storage_key_iter</span>::<span class="op">&lt;</span>
+			<span class="ident">T::AssetId</span>,
+			<span class="ident">T::ForeignAssetType</span>,
+			<span class="ident">Blake2_128Concat</span>,
+		<span class="op">&gt;</span>(<span class="ident">pallet_prefix</span>, <span class="ident">storage_item_prefix</span>)
 		.<span class="ident">collect</span>();
 		<span class="kw">let</span> <span class="ident">mapping_count</span> <span class="op">=</span> <span class="ident">stored_data</span>.<span class="ident">len</span>();
 		<span class="ident"><span class="self">Self</span>::set_temp_storage</span>(<span class="ident">mapping_count</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="string">&quot;mapping_count&quot;</span>);
@@ -755,16 +760,17 @@
 	}
 
 	<span class="kw">fn</span> <span class="ident">on_runtime_upgrade</span>() -&gt; <span class="ident">Weight</span> {
-		<span class="macro">log::info!</span>(<span class="ident">target</span>: <span class="string">&quot;PopulateAssetTypeIdStorage&quot;</span>, <span class="string">&quot;actually running it&quot;</span>);
+		<span class="macro">log::info!</span>(<span class="ident">target</span>: <span class="string">&quot;PopulateForeignAssetTypeIdStorage&quot;</span>, <span class="string">&quot;actually running it&quot;</span>);
 		<span class="kw">let</span> <span class="ident">pallet_prefix</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;AssetManager&quot;</span>;
 		<span class="kw">let</span> <span class="ident">storage_item_prefix</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;AssetIdType&quot;</span>;
 
 		<span class="comment">// Read all the data into memory.</span>
 		<span class="comment">// https://crates.parity.io/frame_support/storage/migration/fn.storage_key_iter.html</span>
-		<span class="kw">let</span> <span class="ident">stored_data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">storage_key_iter</span>::<span class="op">&lt;</span><span class="ident">T::AssetId</span>, <span class="ident">T::AssetType</span>, <span class="ident">Blake2_128Concat</span><span class="op">&gt;</span>(
-			<span class="ident">pallet_prefix</span>,
-			<span class="ident">storage_item_prefix</span>,
-		)
+		<span class="kw">let</span> <span class="ident">stored_data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">storage_key_iter</span>::<span class="op">&lt;</span>
+			<span class="ident">T::AssetId</span>,
+			<span class="ident">T::ForeignAssetType</span>,
+			<span class="ident">Blake2_128Concat</span>,
+		<span class="op">&gt;</span>(<span class="ident">pallet_prefix</span>, <span class="ident">storage_item_prefix</span>)
 		.<span class="ident">collect</span>();
 
 		<span class="kw">let</span> <span class="ident">migrated_count</span>: <span class="ident">Weight</span> <span class="op">=</span> <span class="ident">stored_data</span>
@@ -773,18 +779,18 @@
 			.<span class="ident">expect</span>(<span class="string">&quot;There are between 0 and 2**64 mappings stored.&quot;</span>);
 
 		<span class="macro">log::info!</span>(
-			<span class="ident">target</span>: <span class="string">&quot;PopulateAssetTypeIdStorage&quot;</span>,
+			<span class="ident">target</span>: <span class="string">&quot;PopulateForeignAssetTypeIdStorage&quot;</span>,
 			<span class="string">&quot;Migrating {:?} elements&quot;</span>,
 			<span class="ident">migrated_count</span>
 		);
 
 		<span class="comment">// Write to the new storage</span>
 		<span class="kw">for</span> (<span class="ident">asset_id</span>, <span class="ident">asset_type</span>) <span class="kw">in</span> <span class="ident">stored_data</span> {
-			<span class="comment">// Populate with assetType as key</span>
+			<span class="comment">// Populate with ForeignAssetType as key</span>
 			<span class="ident">AssetTypeId</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="kw-2">&amp;</span><span class="ident">asset_type</span>, <span class="ident">asset_id</span>)
 		}
 
-		<span class="macro">log::info!</span>(<span class="ident">target</span>: <span class="string">&quot;PopulateAssetTypeIdStorage&quot;</span>, <span class="string">&quot;almost done&quot;</span>);
+		<span class="macro">log::info!</span>(<span class="ident">target</span>: <span class="string">&quot;PopulateForeignAssetTypeIdStorage&quot;</span>, <span class="string">&quot;almost done&quot;</span>);
 
 		<span class="comment">// Return the weight used. For each migrated mapping there is a read to get it into</span>
 		<span class="comment">// memory,  and a write to populate the new storage.</span>
@@ -799,16 +805,16 @@
 		<span class="comment">// Check number of entries matches what was set aside in pre_upgrade</span>
 		<span class="kw">let</span> <span class="ident">mapping_count</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::get_temp_storage</span>(<span class="string">&quot;mapping_count&quot;</span>)
 			.<span class="ident">expect</span>(<span class="string">&quot;We stored a mapping count; it should be there; qed&quot;</span>);
-		<span class="kw">let</span> <span class="ident">new_mapping_count</span> <span class="op">=</span> <span class="ident">AssetTypeId</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::iter</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">u64</span>;
+		<span class="kw">let</span> <span class="ident">new_mapping_count</span> <span class="op">=</span> <span class="ident">ForeignAssetTypeId</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::iter</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">u64</span>;
 		<span class="macro">assert_eq!</span>(<span class="ident">mapping_count</span>, <span class="ident">new_mapping_count</span>);
 
 		<span class="comment">// Check that our example pair is still well-mapped after the migration</span>
 		<span class="kw">if</span> <span class="ident">new_mapping_count</span> <span class="op">&gt;</span> <span class="number">0</span> {
-			<span class="kw">let</span> (<span class="ident">asset_id</span>, <span class="ident">asset_type</span>): (<span class="ident">T::AssetId</span>, <span class="ident">T::AssetType</span>) <span class="op">=</span>
+			<span class="kw">let</span> (<span class="ident">asset_id</span>, <span class="ident">asset_type</span>): (<span class="ident">T::AssetId</span>, <span class="ident">T::ForeignAssetType</span>) <span class="op">=</span>
 				<span class="ident"><span class="self">Self</span>::get_temp_storage</span>(<span class="string">&quot;example_pair&quot;</span>).<span class="ident">expect</span>(<span class="string">&quot;qed&quot;</span>);
 
-			<span class="kw">let</span> <span class="ident">stored_asset_id</span> <span class="op">=</span>
-				<span class="ident">AssetTypeId</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="ident">asset_type</span>).<span class="ident">expect</span>(<span class="string">&quot;AssetTypeId should have the assetId&quot;</span>);
+			<span class="kw">let</span> <span class="ident">stored_asset_id</span> <span class="op">=</span> <span class="ident">ForeignAssetTypeId</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="ident">asset_type</span>)
+				.<span class="ident">expect</span>(<span class="string">&quot;ForeignAssetTypeId should have the assetId&quot;</span>);
 
 			<span class="comment">// Check assetIds are identical</span>
 			<span class="macro">assert_eq!</span>(<span class="ident">asset_id</span>, <span class="ident">stored_asset_id</span>);
@@ -818,7 +824,7 @@
 	}
 }
 
-<span class="doccomment">/// Migration that reads the existing AssetTypes looking for old Statemine prefixes of</span>
+<span class="doccomment">/// Migration that reads the existing ForeignAssetTypes looking for old Statemine prefixes of</span>
 <span class="doccomment">/// the form (Parachain, GeneralIndex) and changes them for the new prefix</span>
 <span class="doccomment">/// (Parachain, PalletInstance, GeneralIndex)</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ChangeStateminePrefixes</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">StatemineParaIdInfo</span>, <span class="ident">StatemineAssetsInstanceInfo</span><span class="op">&gt;</span>(
@@ -830,7 +836,7 @@
 	<span class="ident">T</span>: <span class="ident">Config</span>,
 	<span class="ident">StatemineParaIdInfo</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
 	<span class="ident">StatemineAssetsInstanceInfo</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-	<span class="ident">T::AssetType</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span>,
+	<span class="ident">T::ForeignAssetType</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span>,
 {
 	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
 	<span class="kw">fn</span> <span class="ident">pre_upgrade</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
@@ -840,13 +846,14 @@
 		<span class="kw">let</span> <span class="ident">storage_item_prefix</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;AssetIdType&quot;</span>;
 
 		<span class="comment">// We want to test that:</span>
-		<span class="comment">// If there exists an assetType matching the Statemine, it gets overwritten</span>
+		<span class="comment">// If there exists an ForeignAssetType matching the Statemine, it gets overwritten</span>
 
 		<span class="comment">// Check number of entries, and set it aside in temp storage</span>
-		<span class="kw">let</span> <span class="ident">stored_data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">storage_key_iter</span>::<span class="op">&lt;</span><span class="ident">T::AssetId</span>, <span class="ident">T::AssetType</span>, <span class="ident">Blake2_128Concat</span><span class="op">&gt;</span>(
-			<span class="ident">pallet_prefix</span>,
-			<span class="ident">storage_item_prefix</span>,
-		)
+		<span class="kw">let</span> <span class="ident">stored_data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">storage_key_iter</span>::<span class="op">&lt;</span>
+			<span class="ident">T::AssetId</span>,
+			<span class="ident">T::ForeignAssetType</span>,
+			<span class="ident">Blake2_128Concat</span>,
+		<span class="op">&gt;</span>(<span class="ident">pallet_prefix</span>, <span class="ident">storage_item_prefix</span>)
 		.<span class="ident">collect</span>();
 
 		<span class="kw">let</span> <span class="ident">statemine_para_id</span> <span class="op">=</span> <span class="ident">StatemineParaIdInfo::get</span>();
@@ -881,10 +888,11 @@
 
 		<span class="comment">// Read all the data into memory.</span>
 		<span class="comment">// https://crates.parity.io/frame_support/storage/migration/fn.storage_key_iter.html</span>
-		<span class="kw">let</span> <span class="ident">stored_data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">storage_key_iter</span>::<span class="op">&lt;</span><span class="ident">T::AssetId</span>, <span class="ident">T::AssetType</span>, <span class="ident">Blake2_128Concat</span><span class="op">&gt;</span>(
-			<span class="ident">pallet_prefix</span>,
-			<span class="ident">storage_item_prefix</span>,
-		)
+		<span class="kw">let</span> <span class="ident">stored_data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">storage_key_iter</span>::<span class="op">&lt;</span>
+			<span class="ident">T::AssetId</span>,
+			<span class="ident">T::ForeignAssetType</span>,
+			<span class="ident">Blake2_128Concat</span>,
+		<span class="op">&gt;</span>(<span class="ident">pallet_prefix</span>, <span class="ident">storage_item_prefix</span>)
 		.<span class="ident">collect</span>();
 
 		<span class="kw">let</span> <span class="ident">read_count</span>: <span class="ident">Weight</span> <span class="op">=</span> <span class="ident">stored_data</span>
@@ -915,13 +923,13 @@
 							<span class="ident">GeneralIndex</span>(<span class="ident">index</span>),
 						),
 					};
-					<span class="kw">let</span> <span class="ident">new_asset_type</span>: <span class="ident">T::AssetType</span> <span class="op">=</span> <span class="ident">new_location</span>.<span class="ident">into</span>();
+					<span class="kw">let</span> <span class="ident">new_asset_type</span>: <span class="ident">T::ForeignAssetType</span> <span class="op">=</span> <span class="ident">new_location</span>.<span class="ident">into</span>();
 					<span class="comment">// Insert new asset type previous asset type</span>
 					<span class="ident">AssetIdType</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="kw-2">&amp;</span><span class="ident">asset_id</span>, <span class="kw-2">&amp;</span><span class="ident">new_asset_type</span>);
 
-					<span class="comment">// This is checked in case AssetManagerPopulateAssetTypeIdStorage runs first</span>
+					<span class="comment">// This is checked in case AssetManagerPopulateForeignAssetTypeIdStorage runs first</span>
 					<span class="kw">if</span> <span class="ident">AssetTypeId</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">asset_type</span>) <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="ident">asset_id</span>) {
-						<span class="comment">// We need to update AssetTypeId too</span>
+						<span class="comment">// We need to update ForeignAssetTypeId too</span>
 						<span class="ident">AssetTypeId</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::remove</span>(<span class="kw-2">&amp;</span><span class="ident">asset_type</span>);
 						<span class="ident">AssetTypeId</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="kw-2">&amp;</span><span class="ident">new_asset_type</span>, <span class="ident">asset_id</span>);
 
@@ -929,9 +937,9 @@
 						<span class="ident">used_weight</span> <span class="op">=</span> <span class="ident">used_weight</span>.<span class="ident">saturating_add</span>(<span class="number">2</span> <span class="op">*</span> <span class="ident">db_weights</span>.<span class="ident">write</span>);
 					}
 
-					<span class="comment">// This is checked in case UnitsWithAssetType runs first</span>
+					<span class="comment">// This is checked in case UnitsWithForeignAssetType runs first</span>
 					<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">units</span>) <span class="op">=</span> <span class="ident">AssetTypeUnitsPerSecond</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::take</span>(<span class="kw-2">&amp;</span><span class="ident">asset_type</span>) {
-						<span class="comment">// We need to update AssetTypeUnitsPerSecond too</span>
+						<span class="comment">// We need to update ForeignAssetTypeUnitsPerSecond too</span>
 						<span class="ident">AssetTypeUnitsPerSecond</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="kw-2">&amp;</span><span class="ident">new_asset_type</span>, <span class="ident">units</span>);
 
 						<span class="comment">// Update weight due to this branch</span>
@@ -965,7 +973,7 @@
 
 		<span class="comment">// Check that our example pair suffered the correct migration</span>
 		<span class="kw">if</span> <span class="ident">found</span> {
-			<span class="kw">let</span> (<span class="ident">asset_id</span>, <span class="ident">asset_type</span>): (<span class="ident">T::AssetId</span>, <span class="ident">T::AssetType</span>) <span class="op">=</span>
+			<span class="kw">let</span> (<span class="ident">asset_id</span>, <span class="ident">asset_type</span>): (<span class="ident">T::AssetId</span>, <span class="ident">T::ForeignAssetType</span>) <span class="op">=</span>
 				<span class="ident"><span class="self">Self</span>::get_temp_storage</span>(<span class="string">&quot;example_pair&quot;</span>).<span class="ident">expect</span>(<span class="string">&quot;qed&quot;</span>);
 			<span class="kw">let</span> <span class="ident">location</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">asset_type</span>.<span class="ident">into</span>();
 
@@ -977,7 +985,7 @@
 					<span class="kw">let</span> <span class="ident">stored_asset_type</span> <span class="op">=</span>
 						<span class="ident">AssetIdType</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="ident">asset_id</span>).<span class="ident">expect</span>(<span class="string">&quot;This entry should be updated&quot;</span>);
 
-					<span class="kw">let</span> <span class="ident">expected_new_asset_type</span>: <span class="ident">T::AssetType</span> <span class="op">=</span> <span class="ident">MultiLocation</span> {
+					<span class="kw">let</span> <span class="ident">expected_new_asset_type</span>: <span class="ident">T::ForeignAssetType</span> <span class="op">=</span> <span class="ident">MultiLocation</span> {
 						<span class="ident">parents</span>: <span class="number">1</span>,
 						<span class="ident">interior</span>: <span class="ident">X3</span>(
 							<span class="ident">Parachain</span>(<span class="ident">para_id</span>),
@@ -987,7 +995,7 @@
 					}
 					.<span class="ident">into</span>();
 
-					<span class="comment">// Check assetTypes are identical</span>
+					<span class="comment">// Check ForeignAssetTypes are identical</span>
 					<span class="macro">assert_eq!</span>(<span class="ident">stored_asset_type</span>, <span class="ident">expected_new_asset_type</span>);
 				}
 				<span class="kw">_</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;This should never have entered this path&quot;</span>),
@@ -1015,7 +1023,7 @@
 
 		<span class="comment">// Read all the data into memory.</span>
 		<span class="comment">// https://crates.parity.io/frame_support/storage/migration/fn.storage_key_iter.html</span>
-		<span class="kw">let</span> <span class="ident">stored_data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">storage_key_iter</span>::<span class="op">&lt;</span><span class="ident">T::AssetType</span>, <span class="ident">u128</span>, <span class="ident">Blake2_128Concat</span><span class="op">&gt;</span>(
+		<span class="kw">let</span> <span class="ident">stored_data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">storage_key_iter</span>::<span class="op">&lt;</span><span class="ident">T::ForeignAssetType</span>, <span class="ident">u128</span>, <span class="ident">Blake2_128Concat</span><span class="op">&gt;</span>(
 			<span class="ident">pallet_prefix</span>,
 			<span class="ident">storage_item_prefix</span>,
 		)
@@ -1033,7 +1041,7 @@
 		);
 
 		<span class="comment">// Collect in a vec</span>
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">supported_assets</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T::AssetType</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">supported_assets</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T::ForeignAssetType</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
 		<span class="kw">for</span> (<span class="ident">asset_type</span>, <span class="kw">_</span>) <span class="kw">in</span> <span class="ident">stored_data</span> {
 			<span class="ident">supported_assets</span>.<span class="ident">push</span>(<span class="ident">asset_type</span>);
 		}

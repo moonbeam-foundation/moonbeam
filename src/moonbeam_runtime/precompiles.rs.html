@@ -210,7 +210,7 @@
 <span class="kw">use</span> <span class="ident">pallet_author_mapping_precompiles::AuthorMappingWrapper</span>;
 <span class="kw">use</span> <span class="ident">pallet_democracy_precompiles::DemocracyWrapper</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm</span>::{<span class="ident">AddressMapping</span>, <span class="ident">Precompile</span>, <span class="ident">PrecompileResult</span>, <span class="ident">PrecompileSet</span>};
-<span class="kw">use</span> <span class="ident">pallet_evm_precompile_assets_erc20::Erc20AssetsPrecompileSet</span>;
+<span class="kw">use</span> <span class="ident">pallet_evm_precompile_assets_erc20</span>::{<span class="ident">Erc20AssetsPrecompileSet</span>, <span class="ident">IsForeign</span>};
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_balances_erc20</span>::{<span class="ident">Erc20BalancesPrecompile</span>, <span class="ident">Erc20Metadata</span>};
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_blake2::Blake2F</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_bn128</span>::{<span class="ident">Bn128Add</span>, <span class="ident">Bn128Mul</span>, <span class="ident">Bn128Pairing</span>};
@@ -291,8 +291,8 @@
 	<span class="ident">Dispatch</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>: <span class="ident">Precompile</span>,
 	<span class="ident">ParachainStakingWrapper</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>: <span class="ident">Precompile</span>,
 	<span class="ident">CrowdloanRewardsWrapper</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>: <span class="ident">Precompile</span>,
+	<span class="ident">Erc20AssetsPrecompileSet</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">IsForeign</span><span class="op">&gt;</span>: <span class="ident">PrecompileSet</span>,
 	<span class="ident">Erc20BalancesPrecompile</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">NativeErc20Metadata</span><span class="op">&gt;</span>: <span class="ident">Precompile</span>,
-	<span class="ident">Erc20AssetsPrecompileSet</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>: <span class="ident">PrecompileSet</span>,
 	<span class="ident">XtokensWrapper</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>: <span class="ident">Precompile</span>,
 	<span class="ident">RelayEncoderWrapper</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">PolkadotEncoder</span><span class="op">&gt;</span>: <span class="ident">Precompile</span>,
 	<span class="ident">XcmTransactorWrapper</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>: <span class="ident">Precompile</span>,
@@ -358,7 +358,7 @@
 			)),
 			<span class="comment">// If the address matches asset prefix, the we route through the asset precompile set</span>
 			<span class="ident">a</span> <span class="kw">if</span> <span class="kw-2">&amp;</span><span class="ident">a</span>.<span class="ident">to_fixed_bytes</span>()[<span class="number">0</span>..<span class="number">4</span>] <span class="op">==</span> <span class="ident">ASSET_PRECOMPILE_ADDRESS_PREFIX</span> =&gt; {
-				<span class="ident">Erc20AssetsPrecompileSet</span>::<span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="ident">::new</span>()
+				<span class="ident">Erc20AssetsPrecompileSet</span>::<span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">IsForeign</span><span class="op">&gt;</span><span class="ident">::new</span>()
 					.<span class="ident">execute</span>(<span class="ident">address</span>, <span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>, <span class="ident">is_static</span>)
 			}
 			<span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
@@ -366,7 +366,7 @@
 	}
 	<span class="kw">fn</span> <span class="ident">is_precompile</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">address</span>: <span class="ident">H160</span>) -&gt; <span class="ident">bool</span> {
 		<span class="ident"><span class="self">Self</span>::used_addresses</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span> <span class="op">==</span> <span class="ident">R::AddressMapping::into_account_id</span>(<span class="ident">address</span>))
-			<span class="op">|</span><span class="op">|</span> <span class="ident">Erc20AssetsPrecompileSet</span>::<span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="ident">::new</span>().<span class="ident">is_precompile</span>(<span class="ident">address</span>)
+			<span class="op">|</span><span class="op">|</span> <span class="ident">Erc20AssetsPrecompileSet</span>::<span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">IsForeign</span><span class="op">&gt;</span><span class="ident">::new</span>().<span class="ident">is_precompile</span>(<span class="ident">address</span>)
 	}
 }
 

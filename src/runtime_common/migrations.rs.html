@@ -1032,7 +1032,7 @@
 	<span class="ident">T</span>: <span class="ident">AssetManagerConfig</span>,
 	<span class="ident">StatemineParaIdInfo</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
 	<span class="ident">StatemineAssetsPalletInfo</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-	<span class="ident">T::AssetType</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span>,
+	<span class="ident">T::ForeignAssetType</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span>,
 {
 	<span class="kw">fn</span> <span class="ident">friendly_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
 		<span class="string">&quot;MM_Asset_Manager_ChangeStateminePrefixes&quot;</span>
@@ -1170,7 +1170,7 @@
 	<span class="kw">for</span> <span class="ident">XcmMigrations</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">StatemineParaIdInfo</span>, <span class="ident">StatemineAssetsInstanceInfo</span><span class="op">&gt;</span>
 <span class="kw">where</span>
 	<span class="ident">Runtime</span>: <span class="ident">xcm_transactor::Config</span> <span class="op">+</span> <span class="ident">pallet_migrations::Config</span> <span class="op">+</span> <span class="ident">pallet_asset_manager::Config</span>,
-	<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_asset_manager::Config</span><span class="op">&gt;</span><span class="ident">::AssetType</span>:
+	<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_asset_manager::Config</span><span class="op">&gt;</span><span class="ident">::ForeignAssetType</span>:
 		<span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span>,
 {
 	<span class="kw">fn</span> <span class="ident">get_migrations</span>() -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Migration</span><span class="op">&gt;</span><span class="op">&gt;</span> {

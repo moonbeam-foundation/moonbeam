@@ -793,7 +793,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Ord</span>, <span class="ident">PartialOrd</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">TypeInfo</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">CurrencyId</span> {
 	<span class="ident">SelfReserve</span>,
-	<span class="ident">OtherReserve</span>(<span class="ident">AssetId</span>),
+	<span class="ident">ForeignAsset</span>(<span class="ident">AssetId</span>),
 }
 
 <span class="kw">impl</span> <span class="ident">AccountIdToCurrencyId</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">CurrencyId</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
@@ -803,7 +803,7 @@
 			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="ident">H160::from_low_u64_be</span>(<span class="number">2050</span>).<span class="ident">into</span>() =&gt; <span class="prelude-val">Some</span>(<span class="ident">CurrencyId::SelfReserve</span>),
 			<span class="comment">// the rest of the currencies, by their corresponding erc20 address</span>
 			<span class="kw">_</span> =&gt; <span class="ident">Runtime::account_to_asset_id</span>(<span class="ident">account</span>)
-				.<span class="ident">map</span>(<span class="op">|</span><span class="ident">asset_id</span><span class="op">|</span> <span class="ident">CurrencyId::OtherReserve</span>(<span class="ident">asset_id</span>)),
+				.<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">asset_id</span>)<span class="op">|</span> <span class="ident">CurrencyId::ForeignAsset</span>(<span class="ident">asset_id</span>)),
 		}
 	}
 }
@@ -821,7 +821,7 @@
 				<span class="kw">let</span> <span class="ident">multi</span>: <span class="ident">MultiLocation</span> <span class="op">=</span> <span class="ident">SelfReserve::get</span>();
 				<span class="prelude-val">Some</span>(<span class="ident">multi</span>)
 			}
-			<span class="ident">CurrencyId::OtherReserve</span>(<span class="ident">asset</span>) =&gt; <span class="ident">AssetXConverter::reverse_ref</span>(<span class="ident">asset</span>).<span class="ident">ok</span>(),
+			<span class="ident">CurrencyId::ForeignAsset</span>(<span class="ident">asset</span>) =&gt; <span class="ident">AssetXConverter::reverse_ref</span>(<span class="ident">asset</span>).<span class="ident">ok</span>(),
 		}
 	}
 }

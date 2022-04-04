@@ -1390,107 +1390,6 @@
 <span id="1385">1385</span>
 <span id="1386">1386</span>
 <span id="1387">1387</span>
-<span id="1388">1388</span>
-<span id="1389">1389</span>
-<span id="1390">1390</span>
-<span id="1391">1391</span>
-<span id="1392">1392</span>
-<span id="1393">1393</span>
-<span id="1394">1394</span>
-<span id="1395">1395</span>
-<span id="1396">1396</span>
-<span id="1397">1397</span>
-<span id="1398">1398</span>
-<span id="1399">1399</span>
-<span id="1400">1400</span>
-<span id="1401">1401</span>
-<span id="1402">1402</span>
-<span id="1403">1403</span>
-<span id="1404">1404</span>
-<span id="1405">1405</span>
-<span id="1406">1406</span>
-<span id="1407">1407</span>
-<span id="1408">1408</span>
-<span id="1409">1409</span>
-<span id="1410">1410</span>
-<span id="1411">1411</span>
-<span id="1412">1412</span>
-<span id="1413">1413</span>
-<span id="1414">1414</span>
-<span id="1415">1415</span>
-<span id="1416">1416</span>
-<span id="1417">1417</span>
-<span id="1418">1418</span>
-<span id="1419">1419</span>
-<span id="1420">1420</span>
-<span id="1421">1421</span>
-<span id="1422">1422</span>
-<span id="1423">1423</span>
-<span id="1424">1424</span>
-<span id="1425">1425</span>
-<span id="1426">1426</span>
-<span id="1427">1427</span>
-<span id="1428">1428</span>
-<span id="1429">1429</span>
-<span id="1430">1430</span>
-<span id="1431">1431</span>
-<span id="1432">1432</span>
-<span id="1433">1433</span>
-<span id="1434">1434</span>
-<span id="1435">1435</span>
-<span id="1436">1436</span>
-<span id="1437">1437</span>
-<span id="1438">1438</span>
-<span id="1439">1439</span>
-<span id="1440">1440</span>
-<span id="1441">1441</span>
-<span id="1442">1442</span>
-<span id="1443">1443</span>
-<span id="1444">1444</span>
-<span id="1445">1445</span>
-<span id="1446">1446</span>
-<span id="1447">1447</span>
-<span id="1448">1448</span>
-<span id="1449">1449</span>
-<span id="1450">1450</span>
-<span id="1451">1451</span>
-<span id="1452">1452</span>
-<span id="1453">1453</span>
-<span id="1454">1454</span>
-<span id="1455">1455</span>
-<span id="1456">1456</span>
-<span id="1457">1457</span>
-<span id="1458">1458</span>
-<span id="1459">1459</span>
-<span id="1460">1460</span>
-<span id="1461">1461</span>
-<span id="1462">1462</span>
-<span id="1463">1463</span>
-<span id="1464">1464</span>
-<span id="1465">1465</span>
-<span id="1466">1466</span>
-<span id="1467">1467</span>
-<span id="1468">1468</span>
-<span id="1469">1469</span>
-<span id="1470">1470</span>
-<span id="1471">1471</span>
-<span id="1472">1472</span>
-<span id="1473">1473</span>
-<span id="1474">1474</span>
-<span id="1475">1475</span>
-<span id="1476">1476</span>
-<span id="1477">1477</span>
-<span id="1478">1478</span>
-<span id="1479">1479</span>
-<span id="1480">1480</span>
-<span id="1481">1481</span>
-<span id="1482">1482</span>
-<span id="1483">1483</span>
-<span id="1484">1484</span>
-<span id="1485">1485</span>
-<span id="1486">1486</span>
-<span id="1487">1487</span>
-<span id="1488">1488</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -1528,7 +1427,9 @@
 <span class="comment">// Re-export required by get! macro.</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">frame_support::traits::Get</span>;
 <span class="kw">use</span> <span class="ident">frame_support</span>::{
-	<span class="ident">construct_runtime</span>, <span class="ident">parameter_types</span>,
+	<span class="ident">construct_runtime</span>,
+	<span class="ident">pallet_prelude::DispatchResult</span>,
+	<span class="ident">parameter_types</span>,
 	<span class="ident">traits</span>::{
 		<span class="ident">ConstBool</span>, <span class="ident">ConstU128</span>, <span class="ident">ConstU16</span>, <span class="ident">ConstU32</span>, <span class="ident">ConstU64</span>, <span class="ident">ConstU8</span>, <span class="ident">Contains</span>, <span class="ident">EnsureOneOf</span>,
 		<span class="ident">EqualPrivilegeOnly</span>, <span class="ident">Imbalance</span>, <span class="ident">InstanceFilter</span>, <span class="ident">OffchainWorker</span>, <span class="ident">OnFinalize</span>, <span class="ident">OnIdle</span>,
@@ -1556,7 +1457,6 @@
 	<span class="ident">Account</span> <span class="kw">as</span> <span class="ident">EVMAccount</span>, <span class="ident">EnsureAddressNever</span>, <span class="ident">EnsureAddressRoot</span>, <span class="ident">FeeCalculator</span>, <span class="ident">GasWeightMapping</span>,
 	<span class="ident">Runner</span>,
 };
-<span class="kw">use</span> <span class="ident">pallet_evm_precompile_assets_erc20::AccountIdAssetIdConversion</span>;
 <span class="kw">use</span> <span class="ident">pallet_transaction_payment</span>::{<span class="ident">CurrencyAdapter</span>, <span class="ident">Multiplier</span>, <span class="ident">TargetedFeeAdjustment</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">parachain_staking</span>::{<span class="ident">InflationInfo</span>, <span class="ident">Range</span>};
 <span class="kw">use</span> <span class="ident">parity_scale_codec</span>::{<span class="ident">Decode</span>, <span class="ident">Encode</span>, <span class="ident">MaxEncodedLen</span>};
@@ -1579,18 +1479,21 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">sp_version::NativeVersion</span>;
 <span class="kw">use</span> <span class="ident">sp_version::RuntimeVersion</span>;
-<span class="kw">use</span> <span class="ident">xcm::latest::prelude</span>::<span class="kw-2">*</span>;
 
 <span class="kw">use</span> <span class="ident">nimbus_primitives</span>::{<span class="ident">CanAuthor</span>, <span class="ident">NimbusId</span>};
 
 <span class="kw">mod</span> <span class="ident">precompiles</span>;
-<span class="kw">use</span> <span class="ident">precompiles</span>::{<span class="ident">MoonriverPrecompiles</span>, <span class="ident">ASSET_PRECOMPILE_ADDRESS_PREFIX</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">precompiles</span>::{
+	<span class="ident">MoonriverPrecompiles</span>, <span class="ident">FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX</span>,
+	<span class="ident">LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX</span>,
+};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">test</span>))]</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">sp_runtime::BuildStorage</span>;
 
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Precompiles</span> <span class="op">=</span> <span class="ident">MoonriverPrecompiles</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
 
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">asset_config</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">xcm_config</span>;
 
 <span class="doccomment">/// MOVR, the native token, uses 18 decimals of precision.</span>
@@ -2356,129 +2259,13 @@
 	);
 }
 
-<span class="comment">// These parameters dont matter much as this will only be called by root with the forced arguments</span>
-<span class="comment">// No deposit is substracted with those methods</span>
-<span class="macro">parameter_types!</span> {
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ExecutiveBody</span>: <span class="ident">BodyId</span> <span class="op">=</span> <span class="ident">BodyId::Executive</span>;
-}
-
-<span class="doccomment">/// We allow root and Chain council to execute privileged asset operations.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">AssetsForceOrigin</span> <span class="op">=</span> <span class="ident">EnsureOneOf</span><span class="op">&lt;</span>
-	<span class="ident">EnsureRoot</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>,
-	<span class="ident">pallet_collective::EnsureProportionMoreThan</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">CouncilInstance</span>, <span class="number">1</span>, <span class="number">2</span><span class="op">&gt;</span>,
-<span class="op">&gt;</span>;
-
-<span class="kw">impl</span> <span class="ident">pallet_assets::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
-	<span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
-	<span class="kw">type</span> <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">Balance</span>;
-	<span class="kw">type</span> <span class="ident">AssetId</span> <span class="op">=</span> <span class="ident">AssetId</span>;
-	<span class="kw">type</span> <span class="ident">Currency</span> <span class="op">=</span> <span class="ident">Balances</span>;
-	<span class="kw">type</span> <span class="ident">ForceOrigin</span> <span class="op">=</span> <span class="ident">AssetsForceOrigin</span>;
-	<span class="kw">type</span> <span class="ident">AssetDeposit</span> <span class="op">=</span> <span class="ident">ConstU128</span><span class="op">&lt;</span><span class="number">0</span><span class="op">&gt;</span>;
-	<span class="kw">type</span> <span class="ident">MetadataDepositBase</span> <span class="op">=</span> <span class="ident">ConstU128</span><span class="op">&lt;</span><span class="number">0</span><span class="op">&gt;</span>;
-	<span class="kw">type</span> <span class="ident">MetadataDepositPerByte</span> <span class="op">=</span> <span class="ident">ConstU128</span><span class="op">&lt;</span><span class="number">0</span><span class="op">&gt;</span>;
-	<span class="kw">type</span> <span class="ident">ApprovalDeposit</span> <span class="op">=</span> <span class="ident">ConstU128</span><span class="op">&lt;</span><span class="number">0</span><span class="op">&gt;</span>;
-	<span class="kw">type</span> <span class="ident">StringLimit</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span><span class="number">50</span><span class="op">&gt;</span>;
-	<span class="kw">type</span> <span class="ident">Freezer</span> <span class="op">=</span> ();
-	<span class="kw">type</span> <span class="ident">Extra</span> <span class="op">=</span> ();
-	<span class="kw">type</span> <span class="ident">AssetAccountDeposit</span> <span class="op">=</span> <span class="ident">ConstU128</span><span class="op">&lt;</span>{ <span class="ident">currency::deposit</span>(<span class="number">1</span>, <span class="number">18</span>) }<span class="op">&gt;</span>;
-	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">pallet_assets::weights::SubstrateWeight</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
-}
-
-<span class="comment">// We instruct how to register the Assets</span>
-<span class="comment">// In this case, we tell it to Create an Asset in pallet-assets</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AssetRegistrar</span>;
-<span class="kw">use</span> <span class="ident">frame_support</span>::{<span class="ident">pallet_prelude::DispatchResult</span>, <span class="ident">transactional</span>};
-
-<span class="kw">impl</span> <span class="ident">pallet_asset_manager::AssetRegistrar</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">AssetRegistrar</span> {
-	<span class="attribute">#[<span class="ident">transactional</span>]</span>
-	<span class="kw">fn</span> <span class="ident">create_asset</span>(
-		<span class="ident">asset</span>: <span class="ident">AssetId</span>,
-		<span class="ident">min_balance</span>: <span class="ident">Balance</span>,
-		<span class="ident">metadata</span>: <span class="ident">AssetRegistrarMetadata</span>,
-		<span class="ident">is_sufficient</span>: <span class="ident">bool</span>,
-	) -&gt; <span class="ident">DispatchResult</span> {
-		<span class="ident">Assets::force_create</span>(
-			<span class="ident">Origin::root</span>(),
-			<span class="ident">asset</span>,
-			<span class="ident">AssetManager::account_id</span>(),
-			<span class="ident">is_sufficient</span>,
-			<span class="ident">min_balance</span>,
-		)<span class="question-mark">?</span>;
-
-		<span class="comment">// TODO uncomment when we feel comfortable</span>
-		<span class="comment">/*
-		// The asset has been created. Let&#39;s put the revert code in the precompile address
-		let precompile_address = Runtime::asset_id_to_account(asset);
-		pallet_evm::AccountCodes::&lt;Runtime&gt;::insert(
-			precompile_address,
-			vec![0x60, 0x00, 0x60, 0x00, 0xfd],
-		);*/</span>
-
-		<span class="comment">// Lastly, the metadata</span>
-		<span class="ident">Assets::force_set_metadata</span>(
-			<span class="ident">Origin::root</span>(),
-			<span class="ident">asset</span>,
-			<span class="ident">metadata</span>.<span class="ident">name</span>,
-			<span class="ident">metadata</span>.<span class="ident">symbol</span>,
-			<span class="ident">metadata</span>.<span class="ident">decimals</span>,
-			<span class="ident">metadata</span>.<span class="ident">is_frozen</span>,
-		)
-	}
-}
-
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Default</span>, <span class="ident">Eq</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Ord</span>, <span class="ident">PartialOrd</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">TypeInfo</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AssetRegistrarMetadata</span> {
-	<span class="kw">pub</span> <span class="ident">name</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-	<span class="kw">pub</span> <span class="ident">symbol</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-	<span class="kw">pub</span> <span class="ident">decimals</span>: <span class="ident">u8</span>,
-	<span class="kw">pub</span> <span class="ident">is_frozen</span>: <span class="ident">bool</span>,
-}
-
-<span class="kw">impl</span> <span class="ident">pallet_asset_manager::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
-	<span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
-	<span class="kw">type</span> <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">Balance</span>;
-	<span class="kw">type</span> <span class="ident">AssetId</span> <span class="op">=</span> <span class="ident">AssetId</span>;
-	<span class="kw">type</span> <span class="ident">AssetRegistrarMetadata</span> <span class="op">=</span> <span class="ident">AssetRegistrarMetadata</span>;
-	<span class="kw">type</span> <span class="ident">AssetType</span> <span class="op">=</span> <span class="ident">xcm_config::AssetType</span>;
-	<span class="kw">type</span> <span class="ident">AssetRegistrar</span> <span class="op">=</span> <span class="ident">AssetRegistrar</span>;
-	<span class="kw">type</span> <span class="ident">AssetModifierOrigin</span> <span class="op">=</span> <span class="ident">EnsureRoot</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>;
-	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">pallet_asset_manager::weights::SubstrateWeight</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
-}
-
-<span class="comment">// Instruct how to go from an H160 to an AssetID</span>
-<span class="comment">// We just take the lowest 128 bits</span>
-<span class="kw">impl</span> <span class="ident">AccountIdAssetIdConversion</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">AssetId</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
-	<span class="doccomment">/// The way to convert an account to assetId is by ensuring that the prefix is 0XFFFFFFFF</span>
-	<span class="doccomment">/// and by taking the lowest 128 bits as the assetId</span>
-	<span class="kw">fn</span> <span class="ident">account_to_asset_id</span>(<span class="ident">account</span>: <span class="ident">AccountId</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AssetId</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">h160_account</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">account</span>.<span class="ident">into</span>();
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">16</span>];
-		<span class="kw">let</span> (<span class="ident">prefix_part</span>, <span class="ident">id_part</span>) <span class="op">=</span> <span class="ident">h160_account</span>.<span class="ident">as_fixed_bytes</span>().<span class="ident">split_at</span>(<span class="number">4</span>);
-		<span class="kw">if</span> <span class="ident">prefix_part</span> <span class="op">==</span> <span class="ident">ASSET_PRECOMPILE_ADDRESS_PREFIX</span> {
-			<span class="ident">data</span>.<span class="ident">copy_from_slice</span>(<span class="ident">id_part</span>);
-			<span class="kw">let</span> <span class="ident">asset_id</span>: <span class="ident">AssetId</span> <span class="op">=</span> <span class="ident">u128::from_be_bytes</span>(<span class="ident">data</span>).<span class="ident">into</span>();
-			<span class="prelude-val">Some</span>(<span class="ident">asset_id</span>)
-		} <span class="kw">else</span> {
-			<span class="prelude-val">None</span>
-		}
-	}
-
-	<span class="comment">// The opposite conversion</span>
-	<span class="kw">fn</span> <span class="ident">asset_id_to_account</span>(<span class="ident">asset_id</span>: <span class="ident">AssetId</span>) -&gt; <span class="ident">AccountId</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">20</span>];
-		<span class="ident">data</span>[<span class="number">0</span>..<span class="number">4</span>].<span class="ident">copy_from_slice</span>(<span class="ident">ASSET_PRECOMPILE_ADDRESS_PREFIX</span>);
-		<span class="ident">data</span>[<span class="number">4</span>..<span class="number">20</span>].<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">asset_id</span>.<span class="ident">to_be_bytes</span>());
-		<span class="ident">AccountId::from</span>(<span class="ident">data</span>)
-	}
-}
-
 <span class="doccomment">/// Maintenance mode Call filter</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MaintenanceFilter</span>;
 <span class="kw">impl</span> <span class="ident">Contains</span><span class="op">&lt;</span><span class="ident">Call</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">MaintenanceFilter</span> {
 	<span class="kw">fn</span> <span class="ident">contains</span>(<span class="ident">c</span>: <span class="kw-2">&amp;</span><span class="ident">Call</span>) -&gt; <span class="ident">bool</span> {
 		<span class="kw">match</span> <span class="ident">c</span> {
 			<span class="ident">Call::Assets</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+			<span class="ident">Call::LocalAssets</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
 			<span class="ident">Call::Balances</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
 			<span class="ident">Call::CrowdloanRewards</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
 			<span class="ident">Call::Ethereum</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
@@ -2510,6 +2297,16 @@
 				<span class="ident">pallet_assets::Call::transfer_approved</span> { .. } =&gt; <span class="bool-val">true</span>,
 				<span class="ident">pallet_assets::Call::cancel_approval</span> { .. } =&gt; <span class="bool-val">true</span>,
 				<span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
+			},
+			<span class="comment">// We want to disable create, as we dont want users to be choosing the</span>
+			<span class="comment">// assetId of their choice</span>
+			<span class="comment">// We also disable destroy, as we want to route destroy through the</span>
+			<span class="comment">// asset-manager, which guarantees the removal both at the EVM and</span>
+			<span class="comment">// substrate side of things</span>
+			<span class="ident">Call::LocalAssets</span>(<span class="ident">method</span>) =&gt; <span class="kw">match</span> <span class="ident">method</span> {
+				<span class="ident">pallet_assets::Call::create</span> { .. } =&gt; <span class="bool-val">false</span>,
+				<span class="ident">pallet_assets::Call::destroy</span> { .. } =&gt; <span class="bool-val">false</span>,
+				<span class="kw">_</span> =&gt; <span class="bool-val">true</span>,
 			},
 			<span class="comment">// We just want to enable this in case of live chains, since the default version</span>
 			<span class="comment">// is populated at genesis</span>
@@ -2671,10 +2468,11 @@
 		<span class="ident">CumulusXcm</span>: <span class="ident">cumulus_pallet_xcm</span>::{<span class="ident">Pallet</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Origin</span>} <span class="op">=</span> <span class="number">101</span>,
 		<span class="ident">DmpQueue</span>: <span class="ident">cumulus_pallet_dmp_queue</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>} <span class="op">=</span> <span class="number">102</span>,
 		<span class="ident">PolkadotXcm</span>: <span class="ident">pallet_xcm</span>::{<span class="ident">Pallet</span>, <span class="ident">Storage</span>, <span class="ident">Call</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Origin</span>, <span class="ident">Config</span>} <span class="op">=</span> <span class="number">103</span>,
-		<span class="ident">Assets</span>: <span class="ident">pallet_assets</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>} <span class="op">=</span> <span class="number">104</span>,
+		<span class="ident">Assets</span>: <span class="ident">pallet_assets</span>::<span class="op">&lt;</span><span class="ident">Instance1</span><span class="op">&gt;</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>} <span class="op">=</span> <span class="number">104</span>,
 		<span class="ident">AssetManager</span>: <span class="ident">pallet_asset_manager</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>} <span class="op">=</span> <span class="number">105</span>,
 		<span class="ident">XTokens</span>: <span class="ident">orml_xtokens</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>} <span class="op">=</span> <span class="number">106</span>,
 		<span class="ident">XcmTransactor</span>: <span class="ident">xcm_transactor</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>} <span class="op">=</span> <span class="number">107</span>,
+		<span class="ident">LocalAssets</span>: <span class="ident">pallet_assets</span>::<span class="op">&lt;</span><span class="ident">Instance2</span><span class="op">&gt;</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>} <span class="op">=</span> <span class="number">108</span>,
 	}
 }
 
