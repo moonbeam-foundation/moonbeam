@@ -20,7 +20,7 @@ use moonbeam_relay_encoder::polkadot::PolkadotEncoder;
 use pallet_author_mapping_precompiles::AuthorMappingWrapper;
 use pallet_democracy_precompiles::DemocracyWrapper;
 use pallet_evm::{AddressMapping, Precompile, PrecompileResult, PrecompileSet};
-use pallet_evm_precompile_assets_erc20::Erc20AssetsPrecompileSet;
+use pallet_evm_precompile_assets_erc20::{Erc20AssetsPrecompileSet, IsForeign};
 use pallet_evm_precompile_balances_erc20::{Erc20BalancesPrecompile, Erc20Metadata};
 use pallet_evm_precompile_blake2::Blake2F;
 use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
@@ -101,8 +101,8 @@ where
 	Dispatch<R>: Precompile,
 	ParachainStakingWrapper<R>: Precompile,
 	CrowdloanRewardsWrapper<R>: Precompile,
+	Erc20AssetsPrecompileSet<R, IsForeign>: PrecompileSet,
 	Erc20BalancesPrecompile<R, NativeErc20Metadata>: Precompile,
-	Erc20AssetsPrecompileSet<R>: PrecompileSet,
 	XtokensWrapper<R>: Precompile,
 	RelayEncoderWrapper<R, PolkadotEncoder>: Precompile,
 	XcmTransactorWrapper<R>: Precompile,
@@ -168,7 +168,7 @@ where
 			)),
 			// If the address matches asset prefix, the we route through the asset precompile set
 			a if &a.to_fixed_bytes()[0..4] == ASSET_PRECOMPILE_ADDRESS_PREFIX => {
-				Erc20AssetsPrecompileSet::<R>::new()
+				Erc20AssetsPrecompileSet::<R, IsForeign>::new()
 					.execute(address, input, target_gas, context, is_static)
 			}
 			_ => None,
@@ -176,7 +176,7 @@ where
 	}
 	fn is_precompile(&self, address: H160) -> bool {
 		Self::used_addresses().any(|x| x == R::AddressMapping::into_account_id(address))
-			|| Erc20AssetsPrecompileSet::<R>::new().is_precompile(address)
+			|| Erc20AssetsPrecompileSet::<R, IsForeign>::new().is_precompile(address)
 	}
 }
 

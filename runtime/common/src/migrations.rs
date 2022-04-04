@@ -425,7 +425,7 @@ where
 	T: AssetManagerConfig,
 	StatemineParaIdInfo: Get<u32>,
 	StatemineAssetsPalletInfo: Get<u8>,
-	T::AssetType: Into<Option<MultiLocation>> + From<MultiLocation>,
+	T::ForeignAssetType: Into<Option<MultiLocation>> + From<MultiLocation>,
 {
 	fn friendly_name(&self) -> &str {
 		"MM_Asset_Manager_ChangeStateminePrefixes"
@@ -524,12 +524,12 @@ where
 		// 	ParachainStakingIncreaseMaxDelegationsPerCandidate::<Runtime>(Default::default());
 		// let migration_parachain_staking_split_candidate_state =
 		// 	ParachainStakingSplitCandidateState::<Runtime>(Default::default());
-		let migration_parachain_staking_patch_incorrect_delegation_sums =
-			ParachainStakingPatchIncorrectDelegationSums::<Runtime>(Default::default());
+		// let migration_parachain_staking_patch_incorrect_delegation_sums =
+		//	ParachainStakingPatchIncorrectDelegationSums::<Runtime>(Default::default());
 
-		let migration_scheduler_v3 = SchedulerMigrationV3::<Runtime>(Default::default());
+		// let migration_scheduler_v3 = SchedulerMigrationV3::<Runtime>(Default::default());
 
-		let migration_base_fee = MigrateBaseFeePerGas::<Runtime>(Default::default());
+		// let migration_base_fee = MigrateBaseFeePerGas::<Runtime>(Default::default());
 
 		// TODO: this is a lot of allocation to do upon every get() call. this *should* be avoided
 		// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review
@@ -546,9 +546,12 @@ where
 			// Box::new(migration_parachain_staking_increase_max_delegations_per_candidate),
 			// completed in runtime 1201
 			// Box::new(migration_parachain_staking_split_candidate_state),
-			Box::new(migration_scheduler_v3),
-			Box::new(migration_parachain_staking_patch_incorrect_delegation_sums),
-			Box::new(migration_base_fee),
+			// completed in runtime 1300
+			// Box::new(migration_scheduler_v3),
+			// completed in runtime 1300
+			// Box::new(migration_parachain_staking_patch_incorrect_delegation_sums),
+			// completed in runtime 1300
+			// Box::new(migration_base_fee),
 		]
 	}
 }
@@ -563,7 +566,7 @@ impl<Runtime, StatemineParaIdInfo, StatemineAssetsInstanceInfo> GetMigrations
 	for XcmMigrations<Runtime, StatemineParaIdInfo, StatemineAssetsInstanceInfo>
 where
 	Runtime: xcm_transactor::Config + pallet_migrations::Config + pallet_asset_manager::Config,
-	<Runtime as pallet_asset_manager::Config>::AssetType:
+	<Runtime as pallet_asset_manager::Config>::ForeignAssetType:
 		Into<Option<MultiLocation>> + From<MultiLocation>,
 {
 	fn get_migrations() -> Vec<Box<dyn Migration>> {
@@ -582,7 +585,7 @@ where
 		// 	StatemineAssetsInstanceInfo,
 		// >(Default::default());
 
-		let xcm_supported_assets = XcmPaymentSupportedAssets::<Runtime>(Default::default());
+		// let xcm_supported_assets = XcmPaymentSupportedAssets::<Runtime>(Default::default());
 
 		// TODO: this is a lot of allocation to do upon every get() call. this *should* be avoided
 		// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review
@@ -596,7 +599,8 @@ where
 			// Box::new(asset_manager_change_statemine_prefixes),
 			// completed in runtime 1201
 			// Box::new(asset_manager_populate_asset_type_id_storage),
-			Box::new(xcm_supported_assets),
+			// completed in runtime 1300
+			// Box::new(xcm_supported_assets),
 		]
 	}
 }

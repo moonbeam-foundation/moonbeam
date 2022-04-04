@@ -30,12 +30,12 @@ describeDevMoonbeam("Mock XCM - receive downward transfer", (context) => {
     const keyringEth = new Keyring({ type: "ethereum" });
     alith = keyringEth.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
 
-    // registerAsset
+    // registerForeignAsset
     const { events: eventsRegister } = await createBlockWithExtrinsic(
       context,
       alith,
       context.polkadotApi.tx.sudo.sudo(
-        context.polkadotApi.tx.assetManager.registerAsset(
+        context.polkadotApi.tx.assetManager.registerForeignAsset(
           sourceLocation,
           assetMetadata,
           new BN(1),

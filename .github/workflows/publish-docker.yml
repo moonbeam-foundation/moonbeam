@@ -29,6 +29,8 @@ jobs:
 
           mkdir -p build 
           wget https://github.com/PureStake/moonbeam/releases/download/$VERSION/moonbeam -O build/moonbeam
+          wget https://github.com/PureStake/moonbeam/releases/download/$VERSION/moonbeam-skylake -O build/moonbeam-skylake
+          wget https://github.com/PureStake/moonbeam/releases/download/$VERSION/moonbeam-znver3 -O build/moonbeam-znver3
 
           echo building "${DOCKER_IMAGE}:${VERSION}"
           docker build \
