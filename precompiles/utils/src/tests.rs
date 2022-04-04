@@ -751,22 +751,16 @@ struct MultiLocation {
 
 impl EvmData for MultiLocation {
 	fn read(reader: &mut EvmDataReader, gasometer: &mut Gasometer) -> EvmResult<Self> {
-		// A struct is a pointer to another area of the input that contains the content.
-		let mut inner_reader = reader.read_pointer(gasometer)?;
-
-		let parents = inner_reader.read(gasometer)?;
-		let interior = inner_reader.read(gasometer)?;
-
+		let (parents, interior) = reader.read(gasometer)?;
 		Ok(MultiLocation { parents, interior })
 	}
 
 	fn write(writer: &mut EvmDataWriter, value: Self) {
-		writer.write_pointer(
-			EvmDataWriter::new()
-				.write(value.parents)
-				.write(value.interior)
-				.build(),
-		);
+		EvmData::write(writer, (value.parents, value.interior));
+	}
+
+	fn has_static_size() -> bool {
+		<(u8, Vec<Bytes>)>::has_static_size()
 	}
 }
 

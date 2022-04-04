@@ -235,28 +235,19 @@ impl EvmData for Junctions {
 
 impl EvmData for MultiLocation {
 	fn read(reader: &mut EvmDataReader, gasometer: &mut Gasometer) -> EvmResult<Self> {
-		let mut inner_reader = reader.read_pointer(gasometer)?;
-
-		let num_parents = inner_reader.read(gasometer)?;
-
-		let junctions: Junctions = inner_reader.read(gasometer)?;
+		let (parents, interior) = reader.read(gasometer)?;
 
 		Ok(MultiLocation {
-			parents: num_parents,
-			interior: junctions,
+			parents,
+			interior,
 		})
 	}
 
 	fn write(writer: &mut EvmDataWriter, value: Self) {
-		let inner_writer = EvmDataWriter::new()
-			.write(value.parents)
-			.write(value.interior)
-			.build();
-
-		EvmDataWriter::write_pointer(writer, inner_writer);
+		EvmData::write(writer, (value.parents, value.interior));
 	}
 
 	fn has_static_size() -> bool {
-		false
+		<(u8, Junctions)>::has_static_size()
 	}
 }
