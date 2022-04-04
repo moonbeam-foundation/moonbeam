@@ -110,8 +110,11 @@ impl pallet_balances::Config for Runtime {
 	type ReserveIdentifier = [u8; 8];
 }
 
+pub type ForeignAssetInstance = pallet_assets::Instance1;
+pub type LocalAssetInstance = pallet_assets::Instance2;
+
 parameter_types! {
-	pub const AssetDeposit: Balance = 0; // Does not really matter as this will be only called by root
+	pub const AssetDeposit: Balance = 1; // Does not really matter as this will be only called by root
 	pub const ApprovalDeposit: Balance = 0;
 	pub const AssetsStringLimit: u32 = 50;
 	pub const MetadataDepositBase: Balance = 0;
@@ -120,7 +123,7 @@ parameter_types! {
 	pub const AssetAccountDeposit: Balance = 0;
 }
 
-impl pallet_assets::Config for Runtime {
+impl pallet_assets::Config<ForeignAssetInstance> for Runtime {
 	type Event = Event;
 	type Balance = Balance;
 	type AssetId = AssetId;
@@ -133,8 +136,25 @@ impl pallet_assets::Config for Runtime {
 	type StringLimit = AssetsStringLimit;
 	type Freezer = ();
 	type Extra = ();
-	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
 	type AssetAccountDeposit = AssetAccountDeposit;
+	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
+}
+
+impl pallet_assets::Config<LocalAssetInstance> for Runtime {
+	type Event = Event;
+	type Balance = Balance;
+	type AssetId = AssetId;
+	type Currency = Balances;
+	type ForceOrigin = EnsureRoot<AccountId>;
+	type AssetDeposit = AssetDeposit;
+	type MetadataDepositBase = MetadataDepositBase;
+	type MetadataDepositPerByte = MetadataDepositPerByte;
+	type ApprovalDeposit = ApprovalDeposit;
+	type StringLimit = AssetsStringLimit;
+	type Freezer = ();
+	type Extra = ();
+	type AssetAccountDeposit = AssetAccountDeposit;
+	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
 }
 
 /// Type for specifying how a `MultiLocation` can be converted into an `AccountId`. This is used
@@ -199,6 +219,8 @@ pub type FungiblesTransactor = FungiblesAdapter<
 >;
 
 // These will be our transactors
+// Local assets not enabled
+// GLMR not enabled
 pub type AssetTransactors = FungiblesTransactor;
 pub type XcmRouter = super::ParachainXcmRouter<MsgQueue>;
 
@@ -248,6 +270,21 @@ parameter_types! {
 			PalletInstance(<Balances as PalletInfoAccess>::index() as u8)
 		)
 	};
+	pub LocalAssetsPalletLocationOldReanchor: MultiLocation = MultiLocation {
+		parents:1,
+		interior: Junctions::X2(
+			Parachain(MsgQueue::parachain_id().into()),
+			PalletInstance(<LocalAssets as PalletInfoAccess>::index() as u8)
+		)
+	};
+
+	pub LocalAssetsPalletLocationNewReanchor: MultiLocation = MultiLocation {
+		parents:0,
+		interior: Junctions::X1(
+			PalletInstance(<LocalAssets as PalletInfoAccess>::index() as u8)
+		)
+	};
+
 }
 pub struct XcmConfig;
 impl Config for XcmConfig {
@@ -278,6 +315,7 @@ impl cumulus_pallet_xcm::Config for Runtime {
 pub enum CurrencyId {
 	SelfReserve,
 	ForeignAsset(AssetId),
+	LocalAssetReserve(AssetId),
 }
 
 // How to convert from CurrencyId to MultiLocation
@@ -290,10 +328,21 @@ where
 	fn convert(currency: CurrencyId) -> Option<MultiLocation> {
 		match currency {
 			CurrencyId::SelfReserve => {
+				// For now and until Xtokens is adapted to handle 0.9.16 version we use
+				// the old anchoring here
+				// This is not a problem in either cases, since the view of the destination
+				// chain does not change
+				// TODO! change this to NewAnchoringSelfReserve once xtokens is adapted for it
 				let multi: MultiLocation = SelfReserve::get();
 				Some(multi)
 			}
 			CurrencyId::ForeignAsset(asset) => AssetXConverter::reverse_ref(asset).ok(),
+			// Even if we instruct how to convert, the transactor is not enabled
+			CurrencyId::LocalAssetReserve(asset) => {
+				let mut location = LocalAssetsPalletLocationOldReanchor::get();
+				location.push_interior(Junction::GeneralIndex(asset)).ok();
+				Some(location)
+			}
 		}
 	}
 }
@@ -660,6 +709,27 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 			false,
 		)
 	}
+
+	fn create_local_asset(
+		asset: AssetId,
+		_creator: AccountId,
+		min_balance: Balance,
+		is_sufficient: bool,
+		owner: AccountId,
+	) -> DispatchResult {
+		LocalAssets::force_create(Origin::root(), asset, owner, is_sufficient, min_balance)?;
+
+		// TODO uncomment when we feel comfortable
+		/*
+		// The asset has been created. Let's put the revert code in the precompile address
+		let precompile_address = Runtime::asset_id_to_account(ASSET_PRECOMPILE_ADDRESS_PREFIX, asset);
+		pallet_evm::AccountCodes::<Runtime>::insert(
+			precompile_address,
+			vec![0x60, 0x00, 0x60, 0x00, 0xfd],
+		);*/
+		Ok(())
+	}
+
 	fn destroy_foreign_asset(
 		asset: AssetId,
 		asset_destroy_witness: pallet_assets::DestroyWitness,
@@ -670,14 +740,27 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		Ok(())
 	}
 
+	fn destroy_local_asset(
+		asset: AssetId,
+		asset_destroy_witness: pallet_assets::DestroyWitness,
+	) -> DispatchResult {
+		// First destroy the asset
+		LocalAssets::destroy(Origin::root(), asset, asset_destroy_witness)
+			.map_err(|info| info.error)?;
+
+		Ok(())
+	}
+
 	fn destroy_asset_dispatch_info_weight(
 		asset: AssetId,
 		asset_destroy_witness: pallet_assets::DestroyWitness,
 	) -> Weight {
-		let call = Call::Assets(pallet_assets::Call::<Runtime>::destroy {
-			id: asset,
-			witness: asset_destroy_witness,
-		});
+		let call = Call::Assets(
+			pallet_assets::Call::<Runtime, ForeignAssetInstance>::destroy {
+				id: asset,
+				witness: asset_destroy_witness,
+			},
+		);
 		call.get_dispatch_info().weight
 	}
 }
@@ -835,12 +918,13 @@ construct_runtime!(
 		XcmVersioner: mock_version_changer::{Pallet, Storage, Event<T>},
 
 		PolkadotXcm: pallet_xcm::{Pallet, Call, Event<T>, Origin},
-		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>},
+		Assets: pallet_assets::<Instance1>::{Pallet, Call, Storage, Event<T>},
 		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin},
 		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>},
 		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>},
 		XcmTransactor: xcm_transactor::{Pallet, Call, Storage, Event<T>},
 		Treasury: pallet_treasury::{Pallet, Storage, Config, Event<T>, Call},
+		LocalAssets: pallet_assets::<Instance2>::{Pallet, Call, Storage, Event<T>},
 
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage},
 		EVM: pallet_evm::{Pallet, Call, Storage, Config, Event<T>},

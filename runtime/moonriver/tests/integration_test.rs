@@ -1325,6 +1325,31 @@ fn asset_can_be_registered() {
 }
 
 #[test]
+fn local_assets_cannot_be_create_by_signed_origins() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * MOVR * SUPPLY_FACTOR),
+			(AccountId::from(BOB), 1_000 * MOVR * SUPPLY_FACTOR),
+		])
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				Call::LocalAssets(
+					pallet_assets::Call::<Runtime, pallet_assets::Instance2>::create {
+						id: 11u128,
+						admin: AccountId::from(ALICE),
+						min_balance: 1u128
+					}
+				)
+				.dispatch(<Runtime as frame_system::Config>::Origin::signed(
+					AccountId::from(ALICE)
+				)),
+				frame_system::Error::<Runtime>::CallFiltered
+			);
+		});
+}
+
+#[test]
 fn asset_erc20_precompiles_supply_and_balance() {
 	ExtBuilder::default()
 		.with_local_assets(vec![(

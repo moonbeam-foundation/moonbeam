@@ -441,6 +441,7 @@ where
 				Some(multi)
 			}
 			CurrencyId::ForeignAsset(asset) => AssetXConverter::reverse_ref(asset).ok(),
+			// Even if we instruct how to convert, the transactor is not enabled
 			CurrencyId::LocalAssetReserve(asset) => {
 				let mut location = LocalAssetsPalletLocationOldReanchor::get();
 				location.push_interior(Junction::GeneralIndex(asset)).ok();
