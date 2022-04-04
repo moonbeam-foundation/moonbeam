@@ -84,6 +84,7 @@
 <span id="79">79</span>
 <span id="80">80</span>
 <span id="81">81</span>
+<span id="82">82</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -162,8 +163,9 @@
 	<span class="kw">pub</span> <span class="ident">ethapi_trace_cache_duration</span>: <span class="ident">u64</span>,
 	<span class="kw">pub</span> <span class="ident">eth_log_block_cache</span>: <span class="ident">usize</span>,
 	<span class="kw">pub</span> <span class="ident">eth_statuses_cache</span>: <span class="ident">usize</span>,
-	<span class="kw">pub</span> <span class="ident">max_past_logs</span>: <span class="ident">u32</span>,
 	<span class="kw">pub</span> <span class="ident">fee_history_limit</span>: <span class="ident">u64</span>,
+	<span class="kw">pub</span> <span class="ident">max_past_logs</span>: <span class="ident">u32</span>,
+	<span class="kw">pub</span> <span class="ident">relay_chain_rpc_url</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">url::Url</span><span class="op">&gt;</span>,
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="moonbeam_cli_opt" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (3b348d932 2022-02-19)" ></div>

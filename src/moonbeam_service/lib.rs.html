@@ -1195,6 +1195,9 @@
 <span id="1190">1190</span>
 <span id="1191">1191</span>
 <span id="1192">1192</span>
+<span id="1193">1193</span>
+<span id="1194">1194</span>
+<span id="1195">1195</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -1751,6 +1754,10 @@
 		<span class="ident">prometheus_registry</span>.<span class="ident">clone</span>(),
 	));
 
+	<span class="comment">// variable `rpc_config` will be moved in next code block, we need to</span>
+	<span class="comment">// save param `relay_chain_rpc_url` to be able to use it later.</span>
+	<span class="kw">let</span> <span class="ident">relay_chain_rpc_url</span> <span class="op">=</span> <span class="ident">rpc_config</span>.<span class="ident">relay_chain_rpc_url</span>.<span class="ident">clone</span>();
+
 	<span class="kw">let</span> <span class="ident">rpc_extensions_builder</span> <span class="op">=</span> {
 		<span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="ident">client</span>.<span class="ident">clone</span>();
 		<span class="kw">let</span> <span class="ident">pool</span> <span class="op">=</span> <span class="ident">transaction_pool</span>.<span class="ident">clone</span>();
@@ -1859,9 +1866,8 @@
 			<span class="ident">relay_chain_interface</span>,
 			<span class="ident">relay_chain_slot_duration</span>,
 			<span class="ident">import_queue</span>,
-			<span class="comment">// TODO: plumb this through CLI properly</span>
 			<span class="ident">collator_options</span>: <span class="ident">CollatorOptions</span> {
-				<span class="ident">relay_chain_rpc_url</span>: <span class="ident">Default::default</span>(),
+				<span class="ident">relay_chain_rpc_url</span>,
 			},
 		};
 
