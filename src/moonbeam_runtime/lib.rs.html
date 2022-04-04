@@ -1339,6 +1339,21 @@
 <span id="1334">1334</span>
 <span id="1335">1335</span>
 <span id="1336">1336</span>
+<span id="1337">1337</span>
+<span id="1338">1338</span>
+<span id="1339">1339</span>
+<span id="1340">1340</span>
+<span id="1341">1341</span>
+<span id="1342">1342</span>
+<span id="1343">1343</span>
+<span id="1344">1344</span>
+<span id="1345">1345</span>
+<span id="1346">1346</span>
+<span id="1347">1347</span>
+<span id="1348">1348</span>
+<span id="1349">1349</span>
+<span id="1350">1350</span>
+<span id="1351">1351</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -1431,7 +1446,10 @@
 <span class="kw">use</span> <span class="ident">nimbus_primitives</span>::{<span class="ident">CanAuthor</span>, <span class="ident">NimbusId</span>};
 
 <span class="kw">mod</span> <span class="ident">precompiles</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">precompiles</span>::{<span class="ident">MoonbeamPrecompiles</span>, <span class="ident">ASSET_PRECOMPILE_ADDRESS_PREFIX</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">precompiles</span>::{
+	<span class="ident">MoonbeamPrecompiles</span>, <span class="ident">FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX</span>,
+	<span class="ident">LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX</span>,
+};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">test</span>))]</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">sp_runtime::BuildStorage</span>;
@@ -2174,6 +2192,7 @@
 	<span class="kw">fn</span> <span class="ident">contains</span>(<span class="ident">c</span>: <span class="kw-2">&amp;</span><span class="ident">Call</span>) -&gt; <span class="ident">bool</span> {
 		<span class="kw">match</span> <span class="ident">c</span> {
 			<span class="ident">Call::Assets</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+			<span class="ident">Call::LocalAssets</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
 			<span class="ident">Call::Balances</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
 			<span class="ident">Call::CrowdloanRewards</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
 			<span class="ident">Call::Ethereum</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
@@ -2205,6 +2224,16 @@
 				<span class="ident">pallet_assets::Call::transfer_approved</span> { .. } =&gt; <span class="bool-val">true</span>,
 				<span class="ident">pallet_assets::Call::cancel_approval</span> { .. } =&gt; <span class="bool-val">true</span>,
 				<span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
+			},
+			<span class="comment">// We want to disable create, as we dont want users to be choosing the</span>
+			<span class="comment">// assetId of their choice</span>
+			<span class="comment">// We also disable destroy, as we want to route destroy through the</span>
+			<span class="comment">// asset-manager, which guarantees the removal both at the EVM and</span>
+			<span class="comment">// substrate side of things</span>
+			<span class="ident">Call::LocalAssets</span>(<span class="ident">method</span>) =&gt; <span class="kw">match</span> <span class="ident">method</span> {
+				<span class="ident">pallet_assets::Call::create</span> { .. } =&gt; <span class="bool-val">false</span>,
+				<span class="ident">pallet_assets::Call::destroy</span> { .. } =&gt; <span class="bool-val">false</span>,
+				<span class="kw">_</span> =&gt; <span class="bool-val">true</span>,
 			},
 			<span class="comment">// We just want to enable this in case of live chains, since the default version</span>
 			<span class="comment">// is populated at genesis</span>
@@ -2371,6 +2400,7 @@
 		<span class="ident">AssetManager</span>: <span class="ident">pallet_asset_manager</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>} <span class="op">=</span> <span class="number">105</span>,
 		<span class="ident">XTokens</span>: <span class="ident">orml_xtokens</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>} <span class="op">=</span> <span class="number">106</span>,
 		<span class="ident">XcmTransactor</span>: <span class="ident">xcm_transactor</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>} <span class="op">=</span> <span class="number">107</span>,
+		<span class="ident">LocalAssets</span>: <span class="ident">pallet_assets</span>::<span class="op">&lt;</span><span class="ident">Instance1</span><span class="op">&gt;</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>} <span class="op">=</span> <span class="number">108</span>,
 	}
 }
 

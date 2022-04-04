@@ -188,6 +188,17 @@
 <span id="183">183</span>
 <span id="184">184</span>
 <span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -204,13 +215,14 @@
 <span class="comment">// You should have received a copy of the GNU General Public License</span>
 <span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::asset_config</span>::{<span class="ident">ForeignAssetInstance</span>, <span class="ident">LocalAssetInstance</span>};
 <span class="kw">use</span> <span class="ident">crowdloan_rewards_precompiles::CrowdloanRewardsWrapper</span>;
 <span class="kw">use</span> <span class="ident">fp_evm::Context</span>;
 <span class="kw">use</span> <span class="ident">moonbeam_relay_encoder::polkadot::PolkadotEncoder</span>;
 <span class="kw">use</span> <span class="ident">pallet_author_mapping_precompiles::AuthorMappingWrapper</span>;
 <span class="kw">use</span> <span class="ident">pallet_democracy_precompiles::DemocracyWrapper</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm</span>::{<span class="ident">AddressMapping</span>, <span class="ident">Precompile</span>, <span class="ident">PrecompileResult</span>, <span class="ident">PrecompileSet</span>};
-<span class="kw">use</span> <span class="ident">pallet_evm_precompile_assets_erc20</span>::{<span class="ident">Erc20AssetsPrecompileSet</span>, <span class="ident">IsForeign</span>};
+<span class="kw">use</span> <span class="ident">pallet_evm_precompile_assets_erc20</span>::{<span class="ident">Erc20AssetsPrecompileSet</span>, <span class="ident">IsForeign</span>, <span class="ident">IsLocal</span>};
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_balances_erc20</span>::{<span class="ident">Erc20BalancesPrecompile</span>, <span class="ident">Erc20Metadata</span>};
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_blake2::Blake2F</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_bn128</span>::{<span class="ident">Bn128Add</span>, <span class="ident">Bn128Mul</span>, <span class="ident">Bn128Pairing</span>};
@@ -280,7 +292,8 @@
 
 <span class="doccomment">/// The asset precompile address prefix. Addresses that match against this prefix will be routed</span>
 <span class="doccomment">/// to Erc20AssetsPrecompileSet</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ASSET_PRECOMPILE_ADDRESS_PREFIX</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="kw-2">&amp;</span>[<span class="number">255u8</span>; <span class="number">4</span>];
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="kw-2">&amp;</span>[<span class="number">255u8</span>; <span class="number">4</span>];
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="kw-2">&amp;</span>[<span class="number">255u8</span>, <span class="number">255u8</span>, <span class="number">255u8</span>, <span class="number">254u8</span>];
 
 <span class="doccomment">/// The following distribution has been decided for the precompiles</span>
 <span class="doccomment">/// 0-1023: Ethereum Mainnet Precompiles</span>
@@ -291,8 +304,9 @@
 	<span class="ident">Dispatch</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>: <span class="ident">Precompile</span>,
 	<span class="ident">ParachainStakingWrapper</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>: <span class="ident">Precompile</span>,
 	<span class="ident">CrowdloanRewardsWrapper</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>: <span class="ident">Precompile</span>,
-	<span class="ident">Erc20AssetsPrecompileSet</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">IsForeign</span><span class="op">&gt;</span>: <span class="ident">PrecompileSet</span>,
 	<span class="ident">Erc20BalancesPrecompile</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">NativeErc20Metadata</span><span class="op">&gt;</span>: <span class="ident">Precompile</span>,
+	<span class="ident">Erc20AssetsPrecompileSet</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">IsForeign</span>, <span class="ident">ForeignAssetInstance</span><span class="op">&gt;</span>: <span class="ident">PrecompileSet</span>,
+	<span class="ident">Erc20AssetsPrecompileSet</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">IsLocal</span>, <span class="ident">LocalAssetInstance</span><span class="op">&gt;</span>: <span class="ident">PrecompileSet</span>,
 	<span class="ident">XtokensWrapper</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>: <span class="ident">Precompile</span>,
 	<span class="ident">RelayEncoderWrapper</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">PolkadotEncoder</span><span class="op">&gt;</span>: <span class="ident">Precompile</span>,
 	<span class="ident">XcmTransactorWrapper</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>: <span class="ident">Precompile</span>,
@@ -329,8 +343,8 @@
 			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="ident">hash</span>(<span class="number">1026</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">ECRecoverPublicKey::execute</span>(
 				<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>, <span class="ident">is_static</span>,
 			)),
-			<span class="comment">// Moonbeam specific precompiles :</span>
 			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="ident">hash</span>(<span class="number">2048</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">ParachainStakingWrapper</span>::<span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="ident">::execute</span>(
+				<span class="comment">// Moonbeam specific precompiles :</span>
 				<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>, <span class="ident">is_static</span>,
 			)),
 			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="ident">hash</span>(<span class="number">2049</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">CrowdloanRewardsWrapper</span>::<span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="ident">::execute</span>(
@@ -357,8 +371,13 @@
 				<span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>, <span class="ident">is_static</span>,
 			)),
 			<span class="comment">// If the address matches asset prefix, the we route through the asset precompile set</span>
-			<span class="ident">a</span> <span class="kw">if</span> <span class="kw-2">&amp;</span><span class="ident">a</span>.<span class="ident">to_fixed_bytes</span>()[<span class="number">0</span>..<span class="number">4</span>] <span class="op">==</span> <span class="ident">ASSET_PRECOMPILE_ADDRESS_PREFIX</span> =&gt; {
-				<span class="ident">Erc20AssetsPrecompileSet</span>::<span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">IsForeign</span><span class="op">&gt;</span><span class="ident">::new</span>()
+			<span class="ident">a</span> <span class="kw">if</span> <span class="kw-2">&amp;</span><span class="ident">a</span>.<span class="ident">to_fixed_bytes</span>()[<span class="number">0</span>..<span class="number">4</span>] <span class="op">==</span> <span class="ident">FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX</span> =&gt; {
+				<span class="ident">Erc20AssetsPrecompileSet</span>::<span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">IsForeign</span>, <span class="ident">ForeignAssetInstance</span><span class="op">&gt;</span><span class="ident">::new</span>()
+					.<span class="ident">execute</span>(<span class="ident">address</span>, <span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>, <span class="ident">is_static</span>)
+			}
+			<span class="comment">// If the address matches asset prefix, the we route through the asset precompile set</span>
+			<span class="ident">a</span> <span class="kw">if</span> <span class="kw-2">&amp;</span><span class="ident">a</span>.<span class="ident">to_fixed_bytes</span>()[<span class="number">0</span>..<span class="number">4</span>] <span class="op">==</span> <span class="ident">LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX</span> =&gt; {
+				<span class="ident">Erc20AssetsPrecompileSet</span>::<span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">IsLocal</span>, <span class="ident">LocalAssetInstance</span><span class="op">&gt;</span><span class="ident">::new</span>()
 					.<span class="ident">execute</span>(<span class="ident">address</span>, <span class="ident">input</span>, <span class="ident">target_gas</span>, <span class="ident">context</span>, <span class="ident">is_static</span>)
 			}
 			<span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
@@ -366,7 +385,10 @@
 	}
 	<span class="kw">fn</span> <span class="ident">is_precompile</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">address</span>: <span class="ident">H160</span>) -&gt; <span class="ident">bool</span> {
 		<span class="ident"><span class="self">Self</span>::used_addresses</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span> <span class="op">==</span> <span class="ident">R::AddressMapping::into_account_id</span>(<span class="ident">address</span>))
-			<span class="op">|</span><span class="op">|</span> <span class="ident">Erc20AssetsPrecompileSet</span>::<span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">IsForeign</span><span class="op">&gt;</span><span class="ident">::new</span>().<span class="ident">is_precompile</span>(<span class="ident">address</span>)
+			<span class="op">|</span><span class="op">|</span> <span class="ident">Erc20AssetsPrecompileSet</span>::<span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">IsForeign</span>, <span class="ident">ForeignAssetInstance</span><span class="op">&gt;</span><span class="ident">::new</span>()
+				.<span class="ident">is_precompile</span>(<span class="ident">address</span>)
+			<span class="op">|</span><span class="op">|</span> <span class="ident">Erc20AssetsPrecompileSet</span>::<span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">IsLocal</span>, <span class="ident">LocalAssetInstance</span><span class="op">&gt;</span><span class="ident">::new</span>()
+				.<span class="ident">is_precompile</span>(<span class="ident">address</span>)
 	}
 }
 
