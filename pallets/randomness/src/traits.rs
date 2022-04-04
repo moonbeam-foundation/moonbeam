@@ -26,11 +26,6 @@ pub trait GetEpochIndex<Index> {
 	fn get_epoch_index() -> (Index, Weight);
 }
 
-/// Tell whether epoch just changed => epoch randomness values should be updated
-pub trait EpochJustChanged {
-	fn epoch_just_changed() -> bool;
-}
-
 /// Get babe randomness to insert into runtime
 pub trait GetRelayRandomness<R> {
 	fn get_current_block_randomness() -> (R, Weight);
