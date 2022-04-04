@@ -554,7 +554,7 @@ where
 		prometheus_registry.clone(),
 	));
 
-	// variable `rpc_config` will be moved in next code block, to we need to
+	// variable `rpc_config` will be moved in next code block, we need to
 	// save param `relay_chain_rpc_url` to be able to use it later.
 	let relay_chain_rpc_url = rpc_config.relay_chain_rpc_url.clone();
 
