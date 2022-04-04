@@ -156,7 +156,6 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 
 		// No metadata needs to be set, as this can be set through regular calls
 
-		// TODO: should we put the revert code?
 		// The asset has been created. Let's put the revert code in the precompile address
 		let precompile_address: H160 =
 			Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, asset).into();
