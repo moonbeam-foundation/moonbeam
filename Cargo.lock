@@ -5666,7 +5666,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-cli"
-version = "0.21.0"
+version = "0.22.0"
 dependencies = [
  "clap 3.1.6",
  "cumulus-client-cli",
@@ -5696,7 +5696,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-cli-opt"
-version = "0.21.0"
+version = "0.22.0"
 dependencies = [
  "account",
  "clap 3.1.6",
@@ -5706,6 +5706,7 @@ dependencies = [
  "sp-runtime",
  "tiny-bip39",
  "tiny-hderive",
+ "url 2.2.2",
 ]
 
 [[package]]
@@ -6080,7 +6081,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-service"
-version = "0.21.0"
+version = "0.22.0"
 dependencies = [
  "ansi_term",
  "assert_cmd",
