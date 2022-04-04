@@ -21,12 +21,13 @@ pub trait SendRandomness<AccountId, R> {
 	fn send_randomness(contract: AccountId, randomness: R);
 }
 
-/// Get the epoch number
-/// Optimize design to only update storage values when they change
-pub trait GetEpochNumber<Index> {
-	// get the last epoch number
-	fn get_epoch_number() -> Index;
-	// epoch changed in this relay chain block
+/// Get the epoch index
+pub trait GetEpochIndex<Index> {
+	fn get_epoch_index() -> (Index, Weight);
+}
+
+/// Tell whether epoch just changed => epoch randomness values should be updated
+pub trait EpochJustChanged {
 	fn epoch_just_changed() -> bool;
 }
 

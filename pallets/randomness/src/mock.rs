@@ -98,6 +98,13 @@ impl pallet_balances::Config for Test {
 	type WeightInfo = ();
 }
 
+pub struct RelayEpochIndex;
+impl GetEpochIndex<u64> for RelayEpochIndex {
+	fn get_epoch_index() -> (u64, Weight) {
+		(1u64, 0)
+	}
+}
+
 pub struct RelayRandomness;
 impl GetRelayRandomness<H256> for RelayRandomness {
 	fn get_current_block_randomness() -> (H256, Weight) {
@@ -123,6 +130,7 @@ parameter_types! {
 impl Config for Test {
 	type Event = Event;
 	type Currency = Balances;
+	type RelayEpochIndex = RelayEpochIndex;
 	type RelayRandomness = RelayRandomness;
 	type RandomnessSender = RandomnessSender;
 	type WeightToFee = IdentityFee<u128>;

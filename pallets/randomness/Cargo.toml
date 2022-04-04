@@ -6,7 +6,7 @@ edition = "2018"
 version = "0.1.0"
 
 [dependencies]
-frame-benchmarking = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18", optional = true, default-features = false }
+#frame-benchmarking = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18", optional = true, default-features = false }
 frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
 frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
 parity-scale-codec = { version = "3.0.0", default-features = false, features = [ "derive" ] }
@@ -22,7 +22,7 @@ sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-p
 [features]
 default = [ "std" ]
 std = [
-	"frame-benchmarking/std",
+	#"frame-benchmarking/std",
 	"frame-support/std",
 	"frame-system/std",
 	"parity-scale-codec/std",

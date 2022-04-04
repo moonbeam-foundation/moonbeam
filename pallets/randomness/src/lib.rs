@@ -63,6 +63,8 @@ pub mod pallet {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		/// Currency in which the security deposit will be taken.
 		type Currency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
+		/// Get relay chain epoch index to insert into this pallet
+		type RelayEpochIndex: GetEpochIndex<u64>;
 		/// Get relay chain randomness to insert into this pallet
 		type RelayRandomness: GetRelayRandomness<Self::Hash>;
 		/// Send randomness to smart contract
@@ -130,6 +132,11 @@ pub mod pallet {
 	pub type RequestCount<T: Config> = StorageValue<_, RequestId, ValueQuery>;
 
 	#[pallet::storage]
+	#[pallet::getter(fn current_epoch_index)]
+	/// Most recent epoch index, when it changes => update the epoch randomness
+	pub type CurrentEpochIndex<T: Config> = StorageValue<_, u64, ValueQuery>;
+
+	#[pallet::storage]
 	#[pallet::getter(fn current_block_randomness)]
 	/// Relay chain current block randomness
 	/// TODO: replace with ParentBlockRandomness once
@@ -166,36 +173,44 @@ pub mod pallet {
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
 		// Get randomness from runtime and set it locally
+		// TODO: check if relay block number changed and if so, then do this
+		// only necessary constraint once asynchronous backing us implemented
 		fn on_initialize(_now: BlockNumberFor<T>) -> Weight {
-			// TODO: use `GetEpochNumber` trait associated type to only update epoch values
-			// upon epoch changes (this will also enable storing epoch index and using it in
-			// `BabeRequestType` when requesting randomness)
-			let (
-				last_current_block_randomness,
-				last_one_epoch_ago_randomness,
-				last_two_epochs_ago_randomness,
-			) = (
-				<CurrentBlockRandomness<T>>::get(),
-				<OneEpochAgoRandomness<T>>::get(),
-				<TwoEpochsAgoRandomness<T>>::get(),
-			);
+			let last_epoch_index = <CurrentEpochIndex<T>>::get();
+			let (maybe_new_epoch_index, get_epoch_index_wt) = T::RelayEpochIndex::get_epoch_index();
+			let epoch_changed = maybe_new_epoch_index > last_epoch_index;
+			let mut weight_consumed: Weight =
+				T::DbWeight::get().read + T::DbWeight::get().write + get_epoch_index_wt;
+			if epoch_changed {
+				// insert new epoch information
+				<CurrentEpochIndex<T>>::put(maybe_new_epoch_index);
+				// update epoch randomness values
+				let (last_one_epoch_ago_randomness, last_two_epochs_ago_randomness) = (
+					<OneEpochAgoRandomness<T>>::get(),
+					<TwoEpochsAgoRandomness<T>>::get(),
+				);
+				<LastOneEpochAgoRandomness<T>>::put(last_one_epoch_ago_randomness);
+				<LastTwoEpochsAgoRandomness<T>>::put(last_two_epochs_ago_randomness);
+				let (one_epoch_ago_randomness, one_epoch_ago_randomness_wt) =
+					T::RelayRandomness::get_one_epoch_ago_randomness();
+				let (two_epochs_ago_randomness, two_epochs_ago_randomness_wt) =
+					T::RelayRandomness::get_two_epochs_ago_randomness();
+				<OneEpochAgoRandomness<T>>::put(one_epoch_ago_randomness);
+				<TwoEpochsAgoRandomness<T>>::put(two_epochs_ago_randomness);
+				weight_consumed += 2 * T::DbWeight::get().read
+					+ 2 * T::DbWeight::get().write
+					+ one_epoch_ago_randomness_wt
+					+ two_epochs_ago_randomness_wt;
+			}
+			let last_current_block_randomness = <CurrentBlockRandomness<T>>::get();
 			<LastCurrentBlockRandomness<T>>::put(last_current_block_randomness);
-			<LastOneEpochAgoRandomness<T>>::put(last_one_epoch_ago_randomness);
-			<LastTwoEpochsAgoRandomness<T>>::put(last_two_epochs_ago_randomness);
 			let (current_block_randomness, current_block_randomness_wt) =
 				T::RelayRandomness::get_current_block_randomness();
-			let (one_epoch_ago_randomness, one_epoch_ago_randomness_wt) =
-				T::RelayRandomness::get_one_epoch_ago_randomness();
-			let (two_epochs_ago_randomness, two_epochs_ago_randomness_wt) =
-				T::RelayRandomness::get_two_epochs_ago_randomness();
 			<CurrentBlockRandomness<T>>::put(current_block_randomness);
-			<OneEpochAgoRandomness<T>>::put(one_epoch_ago_randomness);
-			<TwoEpochsAgoRandomness<T>>::put(two_epochs_ago_randomness);
-			3 * T::DbWeight::get().read
-				+ 3 * T::DbWeight::get().write
+			weight_consumed
+				+ T::DbWeight::get().read
+				+ T::DbWeight::get().write
 				+ current_block_randomness_wt
-				+ one_epoch_ago_randomness_wt
-				+ two_epochs_ago_randomness_wt
 		}
 	}
 

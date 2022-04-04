@@ -751,15 +751,21 @@ impl parachain_staking::Config for Runtime {
 	type WeightInfo = parachain_staking::weights::SubstrateWeight<Runtime>;
 }
 
+pub struct RelayEpochIndex;
+impl pallet_randomness::GetRelayRandomness<u64> for RelayEpochIndex {
+	fn get_epoch_index() -> (u64, Weight) {
+		(1u64, 0)
+	}
+}
+
 pub struct RelayRandomness;
-impl GetRelayRandomness<Hash> for RelayRandomness {
+impl pallet_randomness::GetRelayRandomness<Hash> for RelayRandomness {
 	fn get_current_block_randomness() -> (Hash, Weight) {
 		// let relay_state_proof = ParachainSystem::relay_state_proof();
 		// ugh `read_entry` is not a public function
 		// let current_block_randomness: Hash = relay_state_proof.read_entry(
-		// 	&relay_state_proof.trie_backend,
 		// 	relay_chain::well_known_keys::CURRENT_BLOCK_RANDOMNESS,
-		// 	Some(Default::default())
+		// 	Some(Hash::zero())
 		// ).expect("expect to decode CURRENT_BLOCK_RANDOMNESS correctly");
 		// TODO: maybe do not panic in line above, just log some error like this isn't working
 		(Hash::zero(), 0)
@@ -773,7 +779,7 @@ impl GetRelayRandomness<Hash> for RelayRandomness {
 }
 
 pub struct RandomnessSender;
-impl SendRandomness<AccountId, [u8; 32]> for RandomnessSender {
+impl pallet_randomness::SendRandomness<AccountId, [u8; 32]> for RandomnessSender {
 	fn send_randomness(_contract: AccountId, _randomness: [u8; 32]) {}
 }
 

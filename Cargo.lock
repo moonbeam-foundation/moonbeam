@@ -7793,7 +7793,6 @@ dependencies = [
 name = "pallet-randomness"
 version = "0.1.0"
 dependencies = [
- "frame-benchmarking",
  "frame-support",
  "frame-system",
  "pallet-balances",
