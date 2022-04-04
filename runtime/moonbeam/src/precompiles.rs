@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+use crate::asset_config::{ForeignAssetInstance, LocalAssetInstance};
 use crowdloan_rewards_precompiles::CrowdloanRewardsWrapper;
 use fp_evm::Context;
 use moonbeam_relay_encoder::polkadot::PolkadotEncoder;
@@ -103,8 +104,8 @@ where
 	ParachainStakingWrapper<R>: Precompile,
 	CrowdloanRewardsWrapper<R>: Precompile,
 	Erc20BalancesPrecompile<R, NativeErc20Metadata>: Precompile,
-	Erc20AssetsPrecompileSet<R, IsForeign, pallet_assets::Instance1>: PrecompileSet,
-	Erc20AssetsPrecompileSet<R, IsLocal, pallet_assets::Instance2>: PrecompileSet,
+	Erc20AssetsPrecompileSet<R, IsForeign, ForeignAssetInstance>: PrecompileSet,
+	Erc20AssetsPrecompileSet<R, IsLocal, LocalAssetInstance>: PrecompileSet,
 	XtokensWrapper<R>: Precompile,
 	RelayEncoderWrapper<R, PolkadotEncoder>: Precompile,
 	XcmTransactorWrapper<R>: Precompile,
@@ -170,12 +171,12 @@ where
 			)),
 			// If the address matches asset prefix, the we route through the asset precompile set
 			a if &a.to_fixed_bytes()[0..4] == FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX => {
-				Erc20AssetsPrecompileSet::<R, IsForeign, pallet_assets::Instance1>::new()
+				Erc20AssetsPrecompileSet::<R, IsForeign, ForeignAssetInstance>::new()
 					.execute(address, input, target_gas, context, is_static)
 			}
 			// If the address matches asset prefix, the we route through the asset precompile set
 			a if &a.to_fixed_bytes()[0..4] == LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX => {
-				Erc20AssetsPrecompileSet::<R, IsLocal, pallet_assets::Instance2>::new()
+				Erc20AssetsPrecompileSet::<R, IsLocal, LocalAssetInstance>::new()
 					.execute(address, input, target_gas, context, is_static)
 			}
 			_ => None,
@@ -183,9 +184,9 @@ where
 	}
 	fn is_precompile(&self, address: H160) -> bool {
 		Self::used_addresses().any(|x| x == R::AddressMapping::into_account_id(address))
-			|| Erc20AssetsPrecompileSet::<R, IsForeign, pallet_assets::Instance1>::new()
+			|| Erc20AssetsPrecompileSet::<R, IsForeign, ForeignAssetInstance>::new()
 				.is_precompile(address)
-			|| Erc20AssetsPrecompileSet::<R, IsLocal, pallet_assets::Instance2>::new()
+			|| Erc20AssetsPrecompileSet::<R, IsLocal, LocalAssetInstance>::new()
 				.is_precompile(address)
 	}
 }

@@ -1076,11 +1076,11 @@ construct_runtime! {
 		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin} = 101,
 		DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>} = 102,
 		PolkadotXcm: pallet_xcm::{Pallet, Storage, Call, Event<T>, Origin, Config} = 103,
-		Assets: pallet_assets::<Instance1>::{Pallet, Call, Storage, Event<T>} = 104,
+		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>} = 104,
 		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>} = 105,
 		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>} = 106,
 		XcmTransactor: xcm_transactor::{Pallet, Call, Storage, Event<T>} = 107,
-		LocalAssets: pallet_assets::<Instance2>::{Pallet, Call, Storage, Event<T>} = 108,
+		LocalAssets: pallet_assets::<Instance1>::{Pallet, Call, Storage, Event<T>} = 108,
 	}
 }
 

@@ -33,9 +33,10 @@ use frame_support::{
 	StorageHasher, Twox128,
 };
 use moonbeam_runtime::{
-	currency::GLMR, xcm_config::CurrencyId, AccountId, Balances, BaseFee, BlockWeights, Call,
-	CrowdloanRewards, Event, ParachainStaking, PolkadotXcm, Precompiles, Runtime, System, XTokens,
-	XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	asset_config::LocalAssetInstance, currency::GLMR, xcm_config::CurrencyId, AccountId, Balances,
+	BaseFee, BlockWeights, Call, CrowdloanRewards, Event, ParachainStaking, PolkadotXcm,
+	Precompiles, Runtime, System, XTokens, XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
@@ -1345,13 +1346,11 @@ fn local_assets_cannot_be_create_by_signed_origins() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				Call::LocalAssets(
-					pallet_assets::Call::<Runtime, pallet_assets::Instance2>::create {
-						id: 11u128,
-						admin: AccountId::from(ALICE),
-						min_balance: 1u128
-					}
-				)
+				Call::LocalAssets(pallet_assets::Call::<Runtime, LocalAssetInstance>::create {
+					id: 11u128,
+					admin: AccountId::from(ALICE),
+					min_balance: 1u128
+				})
 				.dispatch(<Runtime as frame_system::Config>::Origin::signed(
 					AccountId::from(ALICE)
 				)),

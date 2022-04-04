@@ -33,9 +33,9 @@ use frame_support::{
 	StorageHasher, Twox128,
 };
 use moonriver_runtime::{
-	xcm_config::CurrencyId, AssetId, BaseFee, BlockWeights, LocalAssets, PolkadotXcm, Precompiles,
-	XTokens, XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
-	LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	asset_config::LocalAssetInstance, xcm_config::CurrencyId, AssetId, BaseFee, BlockWeights,
+	LocalAssets, PolkadotXcm, Precompiles, XTokens, XcmTransactor,
+	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
@@ -1334,13 +1334,11 @@ fn local_assets_cannot_be_create_by_signed_origins() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				Call::LocalAssets(
-					pallet_assets::Call::<Runtime, pallet_assets::Instance2>::create {
-						id: 11u128,
-						admin: AccountId::from(ALICE),
-						min_balance: 1u128
-					}
-				)
+				Call::LocalAssets(pallet_assets::Call::<Runtime, LocalAssetInstance>::create {
+					id: 11u128,
+					admin: AccountId::from(ALICE),
+					min_balance: 1u128
+				})
 				.dispatch(<Runtime as frame_system::Config>::Origin::signed(
 					AccountId::from(ALICE)
 				)),
