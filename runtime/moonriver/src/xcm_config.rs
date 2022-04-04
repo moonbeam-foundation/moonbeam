@@ -402,13 +402,6 @@ impl cumulus_pallet_dmp_queue::Config for Runtime {
 	type ExecuteOverweightOrigin = EnsureRoot<AccountId>;
 }
 
-parameter_types! {
-	// Statemine ParaId in kusama
-	pub StatemineParaId: u32 = 1000;
-	// Assets Pallet instance in Statemine kusama
-	pub StatemineAssetPalletInstance: u8 = 50;
-}
-
 // Our AssetType. For now we only handle Xcm Assets
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
 pub enum AssetType {
@@ -422,23 +415,7 @@ impl Default for AssetType {
 
 impl From<MultiLocation> for AssetType {
 	fn from(location: MultiLocation) -> Self {
-		match location {
-			// Change https://github.com/paritytech/cumulus/pull/831
-			// This avoids interrumption once they upgrade
-			// We map the previous location to the new one so that the assetId is well retrieved
-			MultiLocation {
-				parents: 1,
-				interior: X2(Parachain(id), GeneralIndex(index)),
-			} if id == StatemineParaId::get() => Self::Xcm(MultiLocation {
-				parents: 1,
-				interior: X3(
-					Parachain(id),
-					PalletInstance(StatemineAssetPalletInstance::get()),
-					GeneralIndex(index),
-				),
-			}),
-			_ => Self::Xcm(location),
-		}
+		Self::Xcm(location)
 	}
 }
 impl Into<Option<MultiLocation>> for AssetType {
