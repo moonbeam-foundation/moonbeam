@@ -752,7 +752,7 @@ impl parachain_staking::Config for Runtime {
 }
 
 pub struct RelayEpochIndex;
-impl pallet_randomness::GetRelayRandomness<u64> for RelayEpochIndex {
+impl pallet_randomness::GetEpochIndex<u64> for RelayEpochIndex {
 	fn get_epoch_index() -> (u64, Weight) {
 		(1u64, 0)
 	}
