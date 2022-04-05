@@ -593,6 +593,7 @@
 <span id="588">588</span>
 <span id="589">589</span>
 <span id="590">590</span>
+<span id="591">591</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -999,10 +1000,11 @@
 
 				<span class="prelude-val">Ok</span>(<span class="ident">Response::Block</span>(<span class="ident">response</span>))
 			}
-			<span class="ident">not_supported</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">internal_err</span>(<span class="macro">format!</span>(
-				<span class="string">&quot;Bug: `handle_block_request` does not support {:?}.&quot;</span>,
-				<span class="ident">not_supported</span>
-			))),
+			<span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">internal_err</span>(
+				<span class="string">&quot;debug_traceBlock functions currently only support callList mode (enabled
+				by providing `{{&#39;tracer&#39;: &#39;callTracer&#39;}}` in the request).&quot;</span>
+					.<span class="ident">to_string</span>(),
+			)),
 		};
 	}
 
