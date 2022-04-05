@@ -195,6 +195,10 @@ const relays: { [name: string]: NetworkConfig } = {
     docker: "purestake/moonbase-relay-testnet:sha-1a88d697",
     chain: "rococo-local",
   },
+  "rococo-9180": {
+    docker: "purestake/moonbase-relay-testnet:sha-f0dc95a6",
+    chain: "rococo-local",
+  },
   "westend-9030": {
     docker: "purestake/moonbase-relay-testnet:sha-aa386760",
     chain: "westend-local",
