@@ -33,6 +33,8 @@ use fp_rpc::TransactionStatus;
 
 use account::AccountId20;
 
+pub use pallet_author_slot_filter::DEFAULT_TOTAL_ELIGIBLE_AUTHORS;
+
 // Re-export required by get! macro.
 pub use frame_support::traits::Get;
 use frame_support::{
