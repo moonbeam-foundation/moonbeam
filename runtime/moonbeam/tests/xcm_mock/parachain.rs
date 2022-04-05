@@ -269,14 +269,6 @@ parameter_types! {
 			PalletInstance(<Balances as PalletInfoAccess>::index() as u8)
 		)
 	};
-	pub LocalAssetsPalletLocationOldReanchor: MultiLocation = MultiLocation {
-		parents:1,
-		interior: Junctions::X2(
-			Parachain(MsgQueue::parachain_id().into()),
-			PalletInstance(<LocalAssets as PalletInfoAccess>::index() as u8)
-		)
-	};
-
 	pub LocalAssetsPalletLocationNewReanchor: MultiLocation = MultiLocation {
 		parents:0,
 		interior: Junctions::X1(
