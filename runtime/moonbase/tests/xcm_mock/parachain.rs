@@ -229,7 +229,7 @@ pub type LocalAssetTransactor = XcmCurrencyAdapter<
 	Balances,
 	// Use this currency when it is a fungible asset matching any of the locations in
 	// SelfReserveRepresentations
-	xcm_primitives::MultiIsConcrete<SelfReserveRepresentations>,
+	xcm_builder::IsConcrete<SelfReserve>,
 	// We can convert the MultiLocations with our converter above:
 	LocationToAccountId,
 	// Our chain's account ID type (we can't get away without mentioning it explicitly):
@@ -239,7 +239,7 @@ pub type LocalAssetTransactor = XcmCurrencyAdapter<
 >;
 
 /// Means for transacting local assets besides the native currency on this chain.
-pub type LocalFungiblesTransactorOldReanchor = FungiblesAdapter<
+pub type LocalFungiblesTransactor = FungiblesAdapter<
 	// Use this fungibles implementation:
 	LocalAssets,
 	// Use this currency when it is a fungible asset matching the given location or name:
@@ -247,30 +247,7 @@ pub type LocalFungiblesTransactorOldReanchor = FungiblesAdapter<
 		ConvertedConcreteAssetId<
 			AssetId,
 			Balance,
-			AsPrefixedGeneralIndex<LocalAssetsPalletLocationOldReanchor, AssetId, JustTry>,
-			JustTry,
-		>,
-	),
-	// Convert an XCM MultiLocation into a local account id:
-	LocationToAccountId,
-	// Our chain's account ID type (we can't get away without mentioning it explicitly):
-	AccountId,
-	// We dont want to allow teleporting assets
-	Nothing,
-	// The account to use for tracking teleports.
-	(),
->;
-
-/// Means for transacting local assets besides the native currency on this chain.
-pub type LocalFungiblesTransactorNewReanchor = FungiblesAdapter<
-	// Use this fungibles implementation:
-	LocalAssets,
-	// Use this currency when it is a fungible asset matching the given location or name:
-	(
-		ConvertedConcreteAssetId<
-			AssetId,
-			Balance,
-			AsPrefixedGeneralIndex<LocalAssetsPalletLocationNewReanchor, AssetId, JustTry>,
+			AsPrefixedGeneralIndex<LocalAssetsPalletLocation, AssetId, JustTry>,
 			JustTry,
 		>,
 	),
@@ -289,8 +266,7 @@ pub type LocalFungiblesTransactorNewReanchor = FungiblesAdapter<
 pub type AssetTransactors = (
 	LocalAssetTransactor,
 	ForeignFungiblesTransactor,
-	LocalFungiblesTransactorNewReanchor,
-	LocalFungiblesTransactorOldReanchor,
+	LocalFungiblesTransactor,
 );
 pub type XcmRouter = super::ParachainXcmRouter<MsgQueue>;
 
@@ -327,12 +303,8 @@ parameter_types! {
 	// We cannot skip the native trader for some specific tests, so we will have to work with
 	// a native trader that charges same number of units as weight
 	// We use both the old and new anchoring logics
-	pub ParaTokensPerSecondOld: (XcmAssetId, u128) = (
-		Concrete(OldAnchoringSelfReserve::get()),
-		1000000000000
-	);
-	pub ParaTokensPerSecondNew: (XcmAssetId, u128) = (
-		Concrete(NewAnchoringSelfReserve::get()),
+	pub ParaTokensPerSecond: (XcmAssetId, u128) = (
+		Concrete(SelfReserve::get()),
 		1000000000000
 	);
 }
@@ -341,42 +313,18 @@ parameter_types! {
 	pub const RelayNetwork: NetworkId = NetworkId::Polkadot;
 	pub RelayChainOrigin: Origin = cumulus_pallet_xcm::Origin::Relay.into();
 	pub Ancestry: MultiLocation = Parachain(MsgQueue::parachain_id().into()).into();
-	// Old Self Reserve location, defines the multilocation identifiying the self-reserve currency
-	// This is used to match it against our Balances pallet when we receive such a MultiLocation
-	// (Parent, Self Para Id, Self Balances pallet index)
-	pub OldAnchoringSelfReserve: MultiLocation = MultiLocation {
-		parents:1,
-		interior: Junctions::X2(
-			Parachain(MsgQueue::parachain_id().into()),
-			PalletInstance(<Balances as PalletInfoAccess>::index() as u8)
-		)
-	};
+
 	// New Self Reserve location, defines the multilocation identifiying the self-reserve currency
 	// This is used to match it also against our Balances pallet when we receive such
 	// a MultiLocation: (Self Balances pallet index)
-	// This is the new anchoring way
-	pub NewAnchoringSelfReserve: MultiLocation = MultiLocation {
+	pub SelfReserve: MultiLocation = MultiLocation {
 		parents:0,
 		interior: Junctions::X1(
 			PalletInstance(<Balances as PalletInfoAccess>::index() as u8)
 		)
 	};
-	// The Locations we accept to refer to our own currency. We need to support both pre and
-	// post 0.9.16 versions, hence the reason for this being a Vec
-	pub SelfReserveRepresentations: Vec<MultiLocation> = vec![
-		OldAnchoringSelfReserve::get(),
-		NewAnchoringSelfReserve::get()
-	];
 
-	pub LocalAssetsPalletLocationOldReanchor: MultiLocation = MultiLocation {
-		parents:1,
-		interior: Junctions::X2(
-			Parachain(MsgQueue::parachain_id().into()),
-			PalletInstance(<LocalAssets as PalletInfoAccess>::index() as u8)
-		)
-	};
-
-	pub LocalAssetsPalletLocationNewReanchor: MultiLocation = MultiLocation {
+	pub LocalAssetsPalletLocation: MultiLocation = MultiLocation {
 		parents:0,
 		interior: Junctions::X1(
 			PalletInstance(<LocalAssets as PalletInfoAccess>::index() as u8)
@@ -399,8 +347,7 @@ impl Config for XcmConfig {
 	// When we receive a non-reserve asset, we use AssetManager to fetch how many
 	// units per second we should charge
 	type Trader = (
-		FixedRateOfFungible<ParaTokensPerSecondOld, ()>,
-		FixedRateOfFungible<ParaTokensPerSecondNew, ()>,
+		FixedRateOfFungible<ParaTokensPerSecond, ()>,
 		xcm_primitives::FirstAssetTrader<AssetType, AssetManager, XcmFeesToAccount_>,
 	);
 
@@ -438,12 +385,12 @@ where
 				// This is not a problem in either cases, since the view of the destination
 				// chain does not change
 				// TODO! change this to NewAnchoringSelfReserve once xtokens is adapted for it
-				let multi: MultiLocation = NewAnchoringSelfReserve::get();
+				let multi: MultiLocation = SelfReserve::get();
 				Some(multi)
 			}
 			CurrencyId::ForeignAsset(asset) => AssetXConverter::reverse_ref(asset).ok(),
 			CurrencyId::LocalAssetReserve(asset) => {
-				let mut location = LocalAssetsPalletLocationNewReanchor::get();
+				let mut location = LocalAssetsPalletLocation::get();
 				location.push_interior(Junction::GeneralIndex(asset)).ok();
 				Some(location)
 			}

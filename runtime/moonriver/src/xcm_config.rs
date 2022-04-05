@@ -262,13 +262,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	// When we receive a non-reserve asset, we use AssetManager to fetch how many
 	// units per second we should charge
 	type Trader = (
-		UsingComponents<
-			WeightToFee,
-			SelfReserve,
-			AccountId,
-			Balances,
-			DealWithFees<Runtime>,
-		>,
+		UsingComponents<WeightToFee, SelfReserve, AccountId, Balances, DealWithFees<Runtime>>,
 		FirstAssetTrader<AssetType, AssetManager, XcmFeesToAccount>,
 	);
 	type ResponseHandler = PolkadotXcm;
