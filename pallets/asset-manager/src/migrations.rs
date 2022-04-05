@@ -245,8 +245,8 @@ impl<T: Config> OnRuntimeUpgrade for PopulateAssetTypeIdStorage<T> {
 			let (asset_id, asset_type): (T::AssetId, T::ForeignAssetType) =
 				Self::get_temp_storage("example_pair").expect("qed");
 
-			let stored_asset_id = AssetTypeId::<T>::get(asset_type)
-				.expect("AssetTypeId should have the assetId");
+			let stored_asset_id =
+				AssetTypeId::<T>::get(asset_type).expect("AssetTypeId should have the assetId");
 
 			// Check assetIds are identical
 			assert_eq!(asset_id, stored_asset_id);
@@ -552,7 +552,8 @@ impl<T: Config> OnRuntimeUpgrade for PopulateSupportedFeePaymentAssets<T> {
 
 		// Check that our example pair is still well-mapped after the migration
 		if new_mapping_count > 0 {
-			let asset_type: T::ForeignAssetType = Self::get_temp_storage("example_pair").expect("qed");
+			let asset_type: T::ForeignAssetType =
+				Self::get_temp_storage("example_pair").expect("qed");
 			let migrated_info = SupportedFeePaymentAssets::<T>::get();
 			// Check that the asset_id exists in migrated_info
 			assert!(migrated_info.contains(&asset_type));
