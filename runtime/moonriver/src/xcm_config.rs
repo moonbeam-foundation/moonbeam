@@ -60,7 +60,7 @@ use sp_std::{
 	prelude::*,
 };
 
-use orml_traits::{location::AbsoluteReserveProvider, parameter_type_with_key};
+use orml_traits::{location::RelativeReserveProvider, parameter_type_with_key};
 
 parameter_types! {
 	// The network Id of the relay
@@ -484,12 +484,12 @@ where
 			// chain does not change
 			// TODO! change this to NewAnchoringSelfReserve once xtokens is adapted for it
 			CurrencyId::SelfReserve => {
-				let multi: MultiLocation = OldAnchoringSelfReserve::get();
+				let multi: MultiLocation = NewAnchoringSelfReserve::get();
 				Some(multi)
 			}
 			CurrencyId::ForeignAsset(asset) => AssetXConverter::reverse_ref(asset).ok(),
 			CurrencyId::LocalAssetReserve(asset) => {
-				let mut location = LocalAssetsPalletLocationOldReanchor::get();
+				let mut location = LocalAssetsPalletLocationNewReanchor::get();
 				location.push_interior(Junction::GeneralIndex(asset)).ok();
 				Some(location)
 			}
@@ -503,12 +503,7 @@ parameter_types! {
 
 	// This is how we are going to detect whether the asset is a Reserve asset
 	// This however is the chain part only
-	pub SelfLocation: MultiLocation = MultiLocation {
-		parents:1,
-		interior: Junctions::X1(
-			Parachain(ParachainInfo::parachain_id().into())
-		)
-	};
+	pub SelfLocation: MultiLocation = MultiLocation::here();
 }
 
 parameter_type_with_key! {
@@ -532,7 +527,7 @@ impl orml_xtokens::Config for Runtime {
 	type MaxAssetsForTransfer = MaxAssetsForTransfer;
 	type MinXcmFee = ParachainMinFee;
 	type MultiLocationsFilter = Everything;
-	type ReserveProvider = AbsoluteReserveProvider;
+	type ReserveProvider = RelativeReserveProvider;
 }
 
 // For now we only allow to transact in the relay, although this might change in the future

@@ -34,7 +34,7 @@ use sp_runtime::{
 use sp_std::{convert::TryFrom, prelude::*};
 use xcm::{latest::prelude::*, Version as XcmVersion, VersionedXcm};
 
-use orml_traits::{location::AbsoluteReserveProvider, parameter_type_with_key};
+use orml_traits::{location::RelativeReserveProvider, parameter_type_with_key};
 use polkadot_core_primitives::BlockNumber as RelayBlockNumber;
 use polkadot_parachain::primitives::{Id as ParaId, Sibling};
 use xcm::latest::{
@@ -437,12 +437,12 @@ where
 				// This is not a problem in either cases, since the view of the destination
 				// chain does not change
 				// TODO! change this to NewAnchoringSelfReserve once xtokens is adapted for it
-				let multi: MultiLocation = OldAnchoringSelfReserve::get();
+				let multi: MultiLocation = NewAnchoringSelfReserve::get();
 				Some(multi)
 			}
 			CurrencyId::ForeignAsset(asset) => AssetXConverter::reverse_ref(asset).ok(),
 			CurrencyId::LocalAssetReserve(asset) => {
-				let mut location = LocalAssetsPalletLocationOldReanchor::get();
+				let mut location = LocalAssetsPalletLocationNewReanchor::get();
 				location.push_interior(Junction::GeneralIndex(asset)).ok();
 				Some(location)
 			}
@@ -453,12 +453,7 @@ where
 parameter_types! {
 	pub const BaseXcmWeight: Weight = 100;
 	pub const MaxAssetsForTransfer: usize = 2;
-	pub SelfLocation: MultiLocation = MultiLocation {
-		parents:1,
-		interior: Junctions::X1(
-			Parachain(MsgQueue::parachain_id().into())
-		)
-	};
+	pub SelfLocation: MultiLocation = MultiLocation::here();
 }
 
 parameter_type_with_key! {
@@ -483,7 +478,7 @@ impl orml_xtokens::Config for Runtime {
 	type MaxAssetsForTransfer = MaxAssetsForTransfer;
 	type MinXcmFee = ParachainMinFee;
 	type MultiLocationsFilter = Everything;
-	type ReserveProvider = AbsoluteReserveProvider;
+	type ReserveProvider = RelativeReserveProvider;
 }
 
 parameter_types! {
