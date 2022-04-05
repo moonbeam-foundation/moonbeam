@@ -29,8 +29,8 @@ use xcm::latest::prelude::*;
 
 /// Migration that changes the mapping AssetId -> units_per_second to
 /// a mapping of the form ForeignAssetType -> units_per_second
-/// It does so by removing the ForeignAssetTypeUnitsPerSecond storage and
-/// populating the new ForeignAssetTypeUnitsPerSecond
+/// It does so by removing the AssetTypeUnitsPerSecond storage and
+/// populating the new AssetTypeUnitsPerSecond
 pub struct UnitsWithAssetType<T>(PhantomData<T>);
 impl<T: Config> OnRuntimeUpgrade for UnitsWithAssetType<T> {
 	#[cfg(feature = "try-runtime")]
@@ -128,7 +128,7 @@ impl<T: Config> OnRuntimeUpgrade for UnitsWithAssetType<T> {
 		// Check number of entries matches what was set aside in pre_upgrade
 		let old_mapping_count: u64 = Self::get_temp_storage("mapping_count")
 			.expect("We stored a mapping count; it should be there; qed");
-		let new_mapping_count = ForeignAssetTypeUnitsPerSecond::<T>::iter().count() as u64;
+		let new_mapping_count = AssetTypeUnitsPerSecond::<T>::iter().count() as u64;
 		assert_eq!(old_mapping_count, new_mapping_count);
 
 		// Check that our example pair is still well-mapped after the migration
@@ -139,7 +139,7 @@ impl<T: Config> OnRuntimeUpgrade for UnitsWithAssetType<T> {
 			let asset_type = AssetIdType::<T>::get(asset_id)
 				.expect("AssetIdType should have the ForeignAssetType");
 
-			let migrated_units = ForeignAssetTypeUnitsPerSecond::<T>::get(asset_type).expect("qed");
+			let migrated_units = AssetTypeUnitsPerSecond::<T>::get(asset_type).expect("qed");
 			// Check units are identical
 			assert_eq!(migrated_units, units);
 		}
@@ -149,7 +149,7 @@ impl<T: Config> OnRuntimeUpgrade for UnitsWithAssetType<T> {
 }
 
 /// Migration that reads data from the AssetIdType mapping (AssetId -> ForeignAssetType)
-/// and populates the reverse mapping ForeignAssetTypeId (ForeignAssetType -> AssetId)
+/// and populates the reverse mapping AssetTypeId (ForeignAssetType -> AssetId)
 pub struct PopulateAssetTypeIdStorage<T>(PhantomData<T>);
 impl<T: Config> OnRuntimeUpgrade for PopulateAssetTypeIdStorage<T> {
 	#[cfg(feature = "try-runtime")]
@@ -166,7 +166,7 @@ impl<T: Config> OnRuntimeUpgrade for PopulateAssetTypeIdStorage<T> {
 		// there will exist the reserve mapping in the new storage
 
 		// Assert new storage is empty
-		assert!(ForeignAssetTypeId::<T>::iter().next().is_none());
+		assert!(AssetTypeId::<T>::iter().next().is_none());
 
 		// Check number of entries, and set it aside in temp storage
 		let stored_data: Vec<_> = storage_key_iter::<
@@ -192,7 +192,7 @@ impl<T: Config> OnRuntimeUpgrade for PopulateAssetTypeIdStorage<T> {
 	}
 
 	fn on_runtime_upgrade() -> Weight {
-		log::info!(target: "PopulateForeignAssetTypeIdStorage", "actually running it");
+		log::info!(target: "PopulateAssetTypeIdStorage", "actually running it");
 		let pallet_prefix: &[u8] = b"AssetManager";
 		let storage_item_prefix: &[u8] = b"AssetIdType";
 
@@ -211,7 +211,7 @@ impl<T: Config> OnRuntimeUpgrade for PopulateAssetTypeIdStorage<T> {
 			.expect("There are between 0 and 2**64 mappings stored.");
 
 		log::info!(
-			target: "PopulateForeignAssetTypeIdStorage",
+			target: "PopulateAssetTypeIdStorage",
 			"Migrating {:?} elements",
 			migrated_count
 		);
@@ -222,7 +222,7 @@ impl<T: Config> OnRuntimeUpgrade for PopulateAssetTypeIdStorage<T> {
 			AssetTypeId::<T>::insert(&asset_type, asset_id)
 		}
 
-		log::info!(target: "PopulateForeignAssetTypeIdStorage", "almost done");
+		log::info!(target: "PopulateAssetTypeIdStorage", "almost done");
 
 		// Return the weight used. For each migrated mapping there is a read to get it into
 		// memory,  and a write to populate the new storage.
@@ -237,7 +237,7 @@ impl<T: Config> OnRuntimeUpgrade for PopulateAssetTypeIdStorage<T> {
 		// Check number of entries matches what was set aside in pre_upgrade
 		let mapping_count: u64 = Self::get_temp_storage("mapping_count")
 			.expect("We stored a mapping count; it should be there; qed");
-		let new_mapping_count = ForeignAssetTypeId::<T>::iter().count() as u64;
+		let new_mapping_count = AssetTypeId::<T>::iter().count() as u64;
 		assert_eq!(mapping_count, new_mapping_count);
 
 		// Check that our example pair is still well-mapped after the migration
@@ -245,8 +245,8 @@ impl<T: Config> OnRuntimeUpgrade for PopulateAssetTypeIdStorage<T> {
 			let (asset_id, asset_type): (T::AssetId, T::ForeignAssetType) =
 				Self::get_temp_storage("example_pair").expect("qed");
 
-			let stored_asset_id = ForeignAssetTypeId::<T>::get(asset_type)
-				.expect("ForeignAssetTypeId should have the assetId");
+			let stored_asset_id =
+				AssetTypeId::<T>::get(asset_type).expect("AssetTypeId should have the assetId");
 
 			// Check assetIds are identical
 			assert_eq!(asset_id, stored_asset_id);
@@ -371,7 +371,7 @@ where
 
 					// This is checked in case UnitsWithForeignAssetType runs first
 					if let Some(units) = AssetTypeUnitsPerSecond::<T>::take(&asset_type) {
-						// We need to update ForeignAssetTypeUnitsPerSecond too
+						// We need to update AssetTypeUnitsPerSecond too
 						AssetTypeUnitsPerSecond::<T>::insert(&new_asset_type, units);
 
 						// Update weight due to this branch
@@ -517,7 +517,7 @@ impl<T: Config> OnRuntimeUpgrade for PopulateSupportedFeePaymentAssets<T> {
 		assert!(SupportedFeePaymentAssets::<T>::get().len() == 0);
 
 		// Check number of entries, and set it aside in temp storage
-		let stored_data: Vec<_> = storage_key_iter::<T::AssetType, u128, Blake2_128Concat>(
+		let stored_data: Vec<_> = storage_key_iter::<T::ForeignAssetType, u128, Blake2_128Concat>(
 			pallet_prefix,
 			storage_item_prefix,
 		)
@@ -552,7 +552,8 @@ impl<T: Config> OnRuntimeUpgrade for PopulateSupportedFeePaymentAssets<T> {
 
 		// Check that our example pair is still well-mapped after the migration
 		if new_mapping_count > 0 {
-			let asset_type: T::AssetType = Self::get_temp_storage("example_pair").expect("qed");
+			let asset_type: T::ForeignAssetType =
+				Self::get_temp_storage("example_pair").expect("qed");
 			let migrated_info = SupportedFeePaymentAssets::<T>::get();
 			// Check that the asset_id exists in migrated_info
 			assert!(migrated_info.contains(&asset_type));
