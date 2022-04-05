@@ -28,12 +28,8 @@ use xcm_mock::relay_chain;
 use xcm_mock::*;
 use xcm_primitives::UtilityEncodeCall;
 
-use xcm::latest::prelude::QueryResponse;
-use xcm::latest::{
-	Junction::{self, AccountId32, AccountKey20, PalletInstance, Parachain},
-	Junctions::*,
-	MultiLocation, NetworkId, OriginKind, Response, Xcm,
-};
+use pallet_asset_manager::LocalAssetIdCreator;
+use xcm::latest::prelude::*;
 use xcm_executor::traits::Convert;
 use xcm_simulator::TestExt;
 
@@ -1491,6 +1487,82 @@ fn test_statemint_like() {
 
 	ParaA::execute_with(|| {
 		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 123);
+	});
+}
+
+#[test]
+fn send_para_a_local_asset_to_para_b() {
+	MockNet::reset();
+
+	let asset_id = parachain::LocalAssetIdCreator::create_asset_id_from_metadata(0);
+	let para_a_local_asset = MultiLocation::new(
+		1,
+		X3(Parachain(1), PalletInstance(11u8), GeneralIndex(asset_id)),
+	);
+	let source_location = parachain::AssetType::Xcm(para_a_local_asset);
+
+	let asset_metadata = parachain::AssetMetadata {
+		name: b"ParaALocalAsset".to_vec(),
+		symbol: b"ParaALocalAsset".to_vec(),
+		decimals: 12,
+	};
+
+	ParaA::execute_with(|| {
+		assert_ok!(AssetManager::register_local_asset(
+			parachain::Origin::root(),
+			PARAALICE.into(),
+			PARAALICE.into(),
+			true,
+			1
+		));
+
+		assert_ok!(LocalAssets::mint(
+			parachain::Origin::signed(PARAALICE.into()),
+			asset_id,
+			PARAALICE.into(),
+			300000000000000
+		));
+	});
+
+	ParaB::execute_with(|| {
+		assert_ok!(AssetManager::register_foreign_asset(
+			parachain::Origin::root(),
+			source_location.clone(),
+			asset_metadata,
+			1u128,
+			true
+		));
+		assert_ok!(AssetManager::set_asset_units_per_second(
+			parachain::Origin::root(),
+			source_location,
+			0u128,
+			0
+		));
+	});
+
+	let dest = MultiLocation {
+		parents: 1,
+		interior: X2(
+			Parachain(2),
+			AccountKey20 {
+				network: NetworkId::Any,
+				key: PARAALICE.into(),
+			},
+		),
+	};
+
+	ParaA::execute_with(|| {
+		// Transactor not installed, fails
+		assert_noop!(
+			XTokens::transfer(
+				parachain::Origin::signed(PARAALICE.into()),
+				parachain::CurrencyId::LocalAssetReserve(asset_id),
+				100,
+				Box::new(VersionedMultiLocation::V1(dest)),
+				800000
+			),
+			orml_xtokens::Error::<parachain::Runtime>::XcmExecutionFailed
+		);
 	});
 }
 
