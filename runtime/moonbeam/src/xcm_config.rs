@@ -59,7 +59,7 @@ use sp_std::{
 	prelude::*,
 };
 
-use orml_traits::{location::AbsoluteReserveProvider, parameter_type_with_key};
+use orml_traits::{location::RelativeReserveProvider, parameter_type_with_key};
 
 parameter_types! {
 	// The network Id of the relay
@@ -70,11 +70,10 @@ parameter_types! {
 	pub Ancestry: MultiLocation = Parachain(ParachainInfo::parachain_id().into()).into();
 	// Self Reserve location, defines the multilocation identifiying the self-reserve currency
 	// This is used to match it against our Balances pallet when we receive such a MultiLocation
-	// (Parent, Self Para Id, Self Balances pallet index)
+	// (Self Balances pallet index)
 	pub SelfReserve: MultiLocation = MultiLocation {
-		parents:1,
-		interior: Junctions::X2(
-			Parachain(ParachainInfo::parachain_id().into()),
+		parents:0,
+		interior: Junctions::X1(
 			PalletInstance(<Balances as PalletInfoAccess>::index() as u8)
 		)
 	};
@@ -371,7 +370,7 @@ where
 			CurrencyId::ForeignAsset(asset) => AssetXConverter::reverse_ref(asset).ok(),
 			// No transactor matches this yet, so even if we have this enum variant the transfer will fail
 			CurrencyId::LocalAssetReserve(asset) => {
-				let mut location = LocalAssetsPalletLocationOldReanchor::get();
+				let mut location = LocalAssetsPalletLocationNewReanchor::get();
 				location.push_interior(Junction::GeneralIndex(asset)).ok();
 				Some(location)
 			}
@@ -385,12 +384,7 @@ parameter_types! {
 
 	// This is how we are going to detect whether the asset is a Reserve asset
 	// This however is the chain part only
-	pub SelfLocation: MultiLocation = MultiLocation {
-		parents:1,
-		interior: Junctions::X1(
-			Parachain(ParachainInfo::parachain_id().into())
-		)
-	};
+	pub SelfLocation: MultiLocation = MultiLocation::here();
 }
 
 parameter_type_with_key! {
@@ -414,7 +408,7 @@ impl orml_xtokens::Config for Runtime {
 	type MaxAssetsForTransfer = MaxAssetsForTransfer;
 	type MinXcmFee = ParachainMinFee;
 	type MultiLocationsFilter = Everything;
-	type ReserveProvider = AbsoluteReserveProvider;
+	type ReserveProvider = RelativeReserveProvider;
 }
 
 // For now we only allow to transact in the relay, although this might change in the future
