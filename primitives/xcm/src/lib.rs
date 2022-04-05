@@ -360,21 +360,3 @@ impl<
 		}
 	}
 }
-
-// Multi IsConcrete Implementation. Allows us to route both pre and post 0.9.16 anchoring versions
-// of our native token to the same currency
-// The incoming MultiAsset is matched against a Vec of multilocations and returned Some
-// if matches
-pub struct MultiIsConcrete<T>(PhantomData<T>);
-impl<T: Get<Vec<MultiLocation>>, B: TryFrom<u128>> MatchesFungible<B> for MultiIsConcrete<T> {
-	fn matches_fungible(a: &MultiAsset) -> Option<B> {
-		match (&a.id, &a.fun) {
-			(xcmAssetId::Concrete(ref id), Fungibility::Fungible(ref amount))
-				if T::get().contains(id) =>
-			{
-				CheckedConversion::checked_from(*amount)
-			}
-			_ => None,
-		}
-	}
-}
