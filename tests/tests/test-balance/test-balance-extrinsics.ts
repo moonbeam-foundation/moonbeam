@@ -13,9 +13,9 @@ describeDevMoonbeamAllEthTxTypes("Balance extrinsics", (context) => {
 
     const blockHash = await context.polkadotApi.rpc.chain.getBlockHash(1);
     const signedBlock = await context.polkadotApi.rpc.chain.getBlock(blockHash);
-    const allRecords = await context.polkadotApi.query.system.events.at(
+    const allRecords = (await context.polkadotApi.query.system.events.at(
       signedBlock.block.header.hash
-    );
+    )) as any;
 
     // map between the extrinsics and events
     signedBlock.block.extrinsics.forEach(({ method: { method, section } }, index) => {

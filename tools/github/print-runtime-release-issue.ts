@@ -21,7 +21,7 @@ async function main() {
         required: true,
       },
     })
-    .demandOption(["from", "to"])
+    .demandOption(["from", "to", "client"])
     .help().argv;
 
   const previousVersion = argv.from;

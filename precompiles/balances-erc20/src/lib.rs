@@ -69,35 +69,35 @@ pub trait InstanceToPrefix {
 
 // We use a macro to implement the trait for () and the 16 substrate Instance.
 macro_rules! impl_prefix {
-	($instance:ty, $name:literal) => {
-		// Generate unique UUID to have unique module names.
-		gensym::gensym! { _impl_prefix!{ $instance, $name }}
-	};
-}
+	($instance:ident, $name:literal) => {
+		// Using `paste!` we generate a dedicated module to avoid collisions
+		// between each instance `Approves` struct.
+		paste::paste! {
+			mod [<_impl_prefix_ $instance:snake>] {
+				use super::*;
 
-macro_rules! _impl_prefix {
-	($module:ident, $instance:ty, $name:literal) => {
-		mod $module {
-			use super::*;
+				pub struct Approves;
 
-			pub struct Approves;
+				impl StorageInstance for Approves {
+					const STORAGE_PREFIX: &'static str = "Approves";
 
-			impl StorageInstance for Approves {
-				const STORAGE_PREFIX: &'static str = "Approves";
-
-				fn pallet_prefix() -> &'static str {
-					$name
+					fn pallet_prefix() -> &'static str {
+						$name
+					}
 				}
-			}
 
-			impl InstanceToPrefix for $instance {
-				type ApprovesPrefix = Approves;
+				impl InstanceToPrefix for $instance {
+					type ApprovesPrefix = Approves;
+				}
 			}
 		}
 	};
 }
 
-impl_prefix!((), "Erc20Instance0Balances");
+// Since the macro expect a `ident` to be used with `paste!` we cannot provide `()` directly.
+type Instance0 = ();
+
+impl_prefix!(Instance0, "Erc20Instance0Balances");
 impl_prefix!(Instance1, "Erc20Instance1Balances");
 impl_prefix!(Instance2, "Erc20Instance2Balances");
 impl_prefix!(Instance3, "Erc20Instance3Balances");

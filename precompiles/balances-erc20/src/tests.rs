@@ -351,7 +351,7 @@ fn transfer() {
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(true).build(),
-					cost: 195953756u64, // 1 weight => 1 gas in mock
+					cost: 159201756u64, // 1 weight => 1 gas in mock
 					logs: LogsBuilder::new(Account::Precompile.into())
 						.log3(
 							SELECTOR_LOG_TRANSFER,
@@ -478,7 +478,7 @@ fn transfer_from() {
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(true).build(),
-					cost: 195953756u64, // 1 weight => 1 gas in mock
+					cost: 159201756u64, // 1 weight => 1 gas in mock
 					logs: LogsBuilder::new(Account::Precompile.into())
 						.log3(
 							SELECTOR_LOG_TRANSFER,
@@ -628,7 +628,7 @@ fn transfer_from_self() {
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(true).build(),
-					cost: 195953756u64, // 1 weight => 1 gas in mock
+					cost: 159201756u64, // 1 weight => 1 gas in mock
 					logs: LogsBuilder::new(Account::Precompile.into())
 						.log3(
 							SELECTOR_LOG_TRANSFER,
@@ -820,7 +820,9 @@ fn deposit(data: Vec<u8>) {
 			assert_eq!(
 				events(),
 				vec![
-					Event::System(frame_system::Event::NewAccount(Account::Precompile)),
+					Event::System(frame_system::Event::NewAccount {
+						account: Account::Precompile
+					}),
 					Event::Balances(pallet_balances::Event::Endowed {
 						account: Account::Precompile,
 						free_balance: 500

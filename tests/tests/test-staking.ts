@@ -15,7 +15,7 @@ import { describeDevMoonbeam } from "../util/setup-dev-tests";
 
 describeDevMoonbeam("Staking - Genesis", (context) => {
   it("should match collator reserved bond reserved", async function () {
-    const account = await context.polkadotApi.query.system.account(COLLATOR_ACCOUNT);
+    const account = (await context.polkadotApi.query.system.account(COLLATOR_ACCOUNT)) as any;
     const expectedReserved = DEFAULT_GENESIS_STAKING + DEFAULT_GENESIS_MAPPING;
     expect(account.data.reserved.toString()).to.equal(expectedReserved.toString());
   });

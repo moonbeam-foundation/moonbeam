@@ -78,9 +78,9 @@ describeDevMoonbeam("Polkadot API - Transfers", (context) => {
 
   it("should appear in events", async function () {
     const signedBlock = await context.polkadotApi.rpc.chain.getBlock();
-    const allRecords = await context.polkadotApi.query.system.events.at(
+    const allRecords = (await context.polkadotApi.query.system.events.at(
       signedBlock.block.header.hash
-    );
+    )) as any;
 
     // map between the extrinsics and events
     signedBlock.block.extrinsics.forEach(({ method: { method, section } }, index) => {

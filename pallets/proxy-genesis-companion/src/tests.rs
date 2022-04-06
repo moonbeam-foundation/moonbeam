@@ -54,8 +54,8 @@ fn non_empty_genesis_works() {
 }
 
 #[test]
-#[should_panic(expected = "Genesis proxy could not be added: Module \
-	{ index: 1, error: 2, message: Some(\"InsufficientBalance\") }")]
+#[should_panic(expected = "Genesis proxy could not be added: Module(ModuleError \
+	{ index: 1, error: 2, message: Some(\"InsufficientBalance\") })")]
 fn genesis_fails_if_balance_insufficient() {
 	ExtBuilder::default()
 		.with_proxies(vec![(1, 2)])

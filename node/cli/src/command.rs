@@ -81,8 +81,7 @@ fn load_spec(
 
 			let starts_with = |prefix: &str| {
 				path.file_name()
-					.map(|f| f.to_str().map(|s| s.starts_with(&prefix)))
-					.flatten()
+					.and_then(|f| f.to_str().map(|s| s.starts_with(&prefix)))
 					.unwrap_or(false)
 			};
 
@@ -356,11 +355,13 @@ pub fn run() -> Result<()> {
 				params.parachain_id.unwrap_or(1000).into(),
 				&cli.run,
 			)?;
+			let state_version = Cli::native_runtime_version(&chain_spec).state_version();
+
 			let output_buf = match chain_spec {
 				#[cfg(feature = "moonriver-native")]
 				chain_spec if chain_spec.is_moonriver() => {
 					let block: service::moonriver_runtime::Block =
-						generate_genesis_block(&chain_spec)?;
+						generate_genesis_block(&chain_spec, state_version)?;
 					let raw_header = block.header().encode();
 					let output_buf = if params.raw {
 						raw_header
@@ -372,7 +373,7 @@ pub fn run() -> Result<()> {
 				#[cfg(feature = "moonbeam-native")]
 				chain_spec if chain_spec.is_moonbeam() => {
 					let block: service::moonbeam_runtime::Block =
-						generate_genesis_block(&chain_spec)?;
+						generate_genesis_block(&chain_spec, state_version)?;
 					let raw_header = block.header().encode();
 					let output_buf = if params.raw {
 						raw_header
@@ -384,7 +385,7 @@ pub fn run() -> Result<()> {
 				#[cfg(feature = "moonbase-native")]
 				_ => {
 					let block: service::moonbase_runtime::Block =
-						generate_genesis_block(&chain_spec)?;
+						generate_genesis_block(&chain_spec, state_version)?;
 					let raw_header = block.header().encode();
 					let output_buf = if params.raw {
 						raw_header
@@ -447,25 +448,19 @@ pub fn run() -> Result<()> {
 				#[cfg(feature = "moonbeam-native")]
 				spec if spec.is_moonbeam() => runner.sync_run(|config| {
 					cmd.run::<service::moonbeam_runtime::RuntimeApi, service::MoonbeamExecutor>(
-						&working_dir,
-						&cmd,
-						config,
+						&cmd, config,
 					)
 				}),
 				#[cfg(feature = "moonriver-native")]
 				spec if spec.is_moonriver() => runner.sync_run(|config| {
 					cmd.run::<service::moonriver_runtime::RuntimeApi, service::MoonriverExecutor>(
-						&working_dir,
-						&cmd,
-						config,
+						&cmd, config,
 					)
 				}),
 				#[cfg(feature = "moonbase-native")]
 				spec if spec.is_moonbase() => runner.sync_run(|config| {
 					cmd.run::<service::moonbase_runtime::RuntimeApi, service::MoonbaseExecutor>(
-						&working_dir,
-						&cmd,
-						config,
+						&cmd, config,
 					)
 				}),
 				_ => {
@@ -600,8 +595,10 @@ pub fn run() -> Result<()> {
 					ethapi_trace_max_count: cli.run.ethapi_trace_max_count,
 					ethapi_trace_cache_duration: cli.run.ethapi_trace_cache_duration,
 					eth_log_block_cache: cli.run.eth_log_block_cache,
-					max_past_logs: cli.run.max_past_logs,
+					eth_statuses_cache: cli.run.eth_statuses_cache,
 					fee_history_limit: cli.run.fee_history_limit,
+					max_past_logs: cli.run.max_past_logs,
+					relay_chain_rpc_url: cli.run.base.relay_chain_rpc_url,
 				};
 
 				// If dev service was requested, start up manual or instant seal.
@@ -657,23 +654,26 @@ pub fn run() -> Result<()> {
 				let parachain_account =
 					AccountIdConversion::<polkadot_primitives::v0::AccountId>::into_account(&id);
 
+				let state_version =
+					RelayChainCli::native_runtime_version(&config.chain_spec).state_version();
+
 				let genesis_state = match &config.chain_spec {
 					#[cfg(feature = "moonriver-native")]
 					spec if spec.is_moonriver() => {
 						let block: service::moonriver_runtime::Block =
-							generate_genesis_block(&spec)?;
+							generate_genesis_block(&spec, state_version)?;
 						format!("0x{:?}", HexDisplay::from(&block.header().encode()))
 					}
 					#[cfg(feature = "moonbeam-native")]
 					spec if spec.is_moonbeam() => {
 						let block: service::moonbeam_runtime::Block =
-							generate_genesis_block(&spec)?;
+							generate_genesis_block(&spec, state_version)?;
 						format!("0x{:?}", HexDisplay::from(&block.header().encode()))
 					}
 					#[cfg(feature = "moonbase-native")]
 					_ => {
 						let block: service::moonbase_runtime::Block =
-							generate_genesis_block(&config.chain_spec)?;
+							generate_genesis_block(&config.chain_spec, state_version)?;
 						format!("0x{:?}", HexDisplay::from(&block.header().encode()))
 					}
 					#[cfg(not(feature = "moonbase-native"))]
@@ -776,11 +776,26 @@ impl CliConfiguration<Self> for RelayChainCli {
 		self.base.base.rpc_ws(default_listen_port)
 	}
 
-	fn prometheus_config(&self, default_listen_port: u16) -> Result<Option<PrometheusConfig>> {
-		self.base.base.prometheus_config(default_listen_port)
+	fn prometheus_config(
+		&self,
+		default_listen_port: u16,
+		chain_spec: &Box<dyn ChainSpec>,
+	) -> Result<Option<PrometheusConfig>> {
+		self.base
+			.base
+			.prometheus_config(default_listen_port, chain_spec)
 	}
 
-	fn init<C: SubstrateCli>(&self) -> Result<()> {
+	fn init<F>(
+		&self,
+		_support_url: &String,
+		_impl_version: &String,
+		_logger_hook: F,
+		_config: &sc_service::Configuration,
+	) -> Result<()>
+	where
+		F: FnOnce(&mut sc_cli::LoggerBuilder, &sc_service::Configuration),
+	{
 		unreachable!("PolkadotCli is never initialized; qed");
 	}
 

@@ -17,7 +17,6 @@
 pub mod parachain;
 pub mod relay_chain;
 pub mod statemint_like;
-
 use cumulus_primitives_core::ParaId;
 use polkadot_parachain::primitives::AccountIdConversion;
 use sp_runtime::AccountId32;
@@ -187,7 +186,10 @@ pub type StatemintChainPalletXcm = pallet_xcm::Pallet<statemint_like::Runtime>;
 pub type StatemintAssets = pallet_assets::Pallet<statemint_like::Runtime>;
 
 pub type ParachainPalletXcm = pallet_xcm::Pallet<parachain::Runtime>;
-pub type Assets = pallet_assets::Pallet<parachain::Runtime>;
+pub type Assets = pallet_assets::Pallet<parachain::Runtime, parachain::ForeignAssetInstance>;
+pub type LocalAssets = pallet_assets::Pallet<parachain::Runtime, parachain::LocalAssetInstance>;
+
+pub type Balances = pallet_balances::Pallet<parachain::Runtime>;
 pub type Treasury = pallet_treasury::Pallet<parachain::Runtime>;
 pub type AssetManager = pallet_asset_manager::Pallet<parachain::Runtime>;
 pub type XTokens = orml_xtokens::Pallet<parachain::Runtime>;
