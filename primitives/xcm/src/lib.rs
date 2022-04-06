@@ -34,6 +34,7 @@ use xcm::latest::{
 	Junctions::*,
 	MultiAsset, MultiLocation, NetworkId,
 };
+use orml_traits::location::{Reserve, Parse, RelativeReserveProvider};
 use xcm_builder::TakeRevenue;
 use xcm_executor::traits::{FilterAssetLocation, MatchesFungible, MatchesFungibles, WeightTrader};
 
@@ -245,40 +246,24 @@ impl<
 	}
 }
 
-pub trait Reserve {
-	/// Returns assets reserve location.
-	fn reserve(&self) -> Option<MultiLocation>;
-}
-
-// Takes the chain part of a MultiAsset
-impl Reserve for MultiAsset {
-	fn reserve(&self) -> Option<MultiLocation> {
-		if let xcmAssetId::Concrete(location) = self.id.clone() {
-			let first_interior = location.first_interior();
-			let parents = location.parent_count();
-			match (parents, first_interior.clone()) {
-				(0, Some(Parachain(id))) => Some(MultiLocation::new(0, X1(Parachain(id.clone())))),
-				(1, Some(Parachain(id))) => Some(MultiLocation::new(1, X1(Parachain(id.clone())))),
-				(1, _) => Some(MultiLocation::parent()),
-				_ => None,
+pub struct AbsoluteAndRelativeReserve<AbsoluteMultiLocation>(PhantomData<AbsoluteMultiLocation>);
+impl<AbsoluteMultiLocation> Reserve
+	for AbsoluteAndRelativeReserve<AbsoluteMultiLocation>
+where
+	AbsoluteMultiLocation: Get<MultiLocation>,
+{
+	fn reserve(asset: &MultiAsset) -> Option<MultiLocation> {
+		if let Some(relative_reserve) = RelativeReserveProvider::reserve(asset) {
+			if relative_reserve == AbsoluteMultiLocation::get() {
+				Some(MultiLocation::here())
 			}
-		} else {
+			else {
+				Some(relative_reserve)
+			}
+		}
+		else {
 			None
 		}
-	}
-}
-
-/// A `FilterAssetLocation` implementation. Filters multi native assets whose
-/// reserve is same with `origin`.
-pub struct MultiNativeAsset;
-impl FilterAssetLocation for MultiNativeAsset {
-	fn filter_asset_location(asset: &MultiAsset, origin: &MultiLocation) -> bool {
-		if let Some(ref reserve) = asset.reserve() {
-			if reserve == origin {
-				return true;
-			}
-		}
-		false
 	}
 }
 
