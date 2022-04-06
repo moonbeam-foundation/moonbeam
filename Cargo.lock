@@ -9706,6 +9706,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "hex-literal",
+ "impl-trait-for-tuples",
  "log",
  "num_enum",
  "pallet-evm",
