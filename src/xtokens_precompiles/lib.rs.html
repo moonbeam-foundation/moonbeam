@@ -499,7 +499,6 @@
 <span id="494">494</span>
 <span id="495">495</span>
 <span id="496">496</span>
-<span id="497">497</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -945,14 +944,16 @@
 <span class="comment">// For Currencies</span>
 <span class="kw">impl</span> <span class="ident">EvmData</span> <span class="kw">for</span> <span class="ident">Currency</span> {
 	<span class="kw">fn</span> <span class="ident">read</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>, <span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">address</span>: <span class="ident">Address</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">amount</span>: <span class="ident">U256</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> (<span class="ident">address</span>, <span class="ident">amount</span>) <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>;
 		<span class="prelude-val">Ok</span>(<span class="ident">Currency</span> { <span class="ident">address</span>, <span class="ident">amount</span> })
 	}
 
 	<span class="kw">fn</span> <span class="ident">write</span>(<span class="ident">writer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataWriter</span>, <span class="ident">value</span>: <span class="self">Self</span>) {
-		<span class="ident">EvmData::write</span>(<span class="ident">writer</span>, <span class="ident">value</span>.<span class="ident">address</span>);
-		<span class="ident">EvmData::write</span>(<span class="ident">writer</span>, <span class="ident">value</span>.<span class="ident">amount</span>);
+		<span class="ident">EvmData::write</span>(<span class="ident">writer</span>, (<span class="ident">value</span>.<span class="ident">address</span>, <span class="ident">value</span>.<span class="ident">amount</span>));
+	}
+
+	<span class="kw">fn</span> <span class="ident">has_static_size</span>() -&gt; <span class="ident">bool</span> {
+		<span class="op">&lt;</span>(<span class="ident">Address</span>, <span class="ident">U256</span>)<span class="op">&gt;</span><span class="ident">::has_static_size</span>()
 	}
 }
 
@@ -973,19 +974,16 @@
 
 <span class="kw">impl</span> <span class="ident">EvmData</span> <span class="kw">for</span> <span class="ident">EvmMultiAsset</span> {
 	<span class="kw">fn</span> <span class="ident">read</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>, <span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner_reader</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_pointer</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>;
-
-		<span class="kw">let</span> <span class="ident">location</span>: <span class="ident">MultiLocation</span> <span class="op">=</span> <span class="ident">inner_reader</span>.<span class="ident">read</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">amount</span>: <span class="ident">U256</span> <span class="op">=</span> <span class="ident">inner_reader</span>.<span class="ident">read</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> (<span class="ident">location</span>, <span class="ident">amount</span>) <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>;
 		<span class="prelude-val">Ok</span>(<span class="ident">EvmMultiAsset</span> { <span class="ident">location</span>, <span class="ident">amount</span> })
 	}
 
 	<span class="kw">fn</span> <span class="ident">write</span>(<span class="ident">writer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataWriter</span>, <span class="ident">value</span>: <span class="self">Self</span>) {
-		<span class="kw">let</span> <span class="ident">inner_writer</span> <span class="op">=</span> <span class="ident">EvmDataWriter::new</span>()
-			.<span class="ident">write</span>(<span class="ident">value</span>.<span class="ident">location</span>)
-			.<span class="ident">write</span>(<span class="ident">value</span>.<span class="ident">amount</span>)
-			.<span class="ident">build</span>();
-		<span class="ident">EvmDataWriter::write_pointer</span>(<span class="ident">writer</span>, <span class="ident">inner_writer</span>);
+		<span class="ident">EvmData::write</span>(<span class="ident">writer</span>, (<span class="ident">value</span>.<span class="ident">location</span>, <span class="ident">value</span>.<span class="ident">amount</span>));
+	}
+
+	<span class="kw">fn</span> <span class="ident">has_static_size</span>() -&gt; <span class="ident">bool</span> {
+		<span class="op">&lt;</span>(<span class="ident">MultiLocation</span>, <span class="ident">U256</span>)<span class="op">&gt;</span><span class="ident">::has_static_size</span>()
 	}
 }
 
