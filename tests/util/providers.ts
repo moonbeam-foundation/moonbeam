@@ -1,6 +1,6 @@
 import Web3 from "web3";
 import { ApiPromise, WsProvider } from "@polkadot/api";
-import { typesBundle } from "../../moonbeam-types-bundle";
+import { typesBundlePre900 } from "../../moonbeam-types-bundle";
 import { JsonRpcResponse } from "web3-core-helpers";
 import { ethers } from "ethers";
 import { GENESIS_ACCOUNT_PRIVATE_KEY } from "./constants";
@@ -68,12 +68,16 @@ export const provideWeb3Api = async (port: number, protocol: "ws" | "http" = "ht
   return web3 as EnhancedWeb3;
 };
 
-export const providePolkadotApi = async (port: number) => {
-  return await ApiPromise.create({
-    initWasm: false,
-    provider: new WsProvider(`ws://localhost:${port}`),
-    typesBundle: typesBundle as any,
-  });
+export const providePolkadotApi = async (port: number, isNotMoonbeam?: boolean) => {
+  return isNotMoonbeam
+    ? await ApiPromise.create({
+        initWasm: false,
+        provider: new WsProvider(`ws://localhost:${port}`),
+      })
+    : await ApiPromise.create({
+        provider: new WsProvider(`ws://localhost:${port}`),
+        typesBundle: typesBundlePre900 as any,
+      });
 };
 
 export const provideEthersApi = async (port: number) => {

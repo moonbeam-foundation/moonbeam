@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -23,7 +23,7 @@ use sp_runtime::{
 	traits::{BlakeTwo256, Block as BlockT},
 	Justifications,
 };
-use sp_storage::{ChildInfo, PrefixedStorageKey, StorageData, StorageKey};
+use sp_storage::{ChildInfo, StorageData, StorageKey};
 use std::sync::Arc;
 
 /// A set of APIs that polkadot-like runtimes must implement.
@@ -39,9 +39,11 @@ pub trait RuntimeApiCollection:
 	+ sp_api::Metadata<Block>
 	+ sp_offchain::OffchainWorkerApi<Block>
 	+ sp_session::SessionKeys<Block>
+	+ fp_rpc::ConvertTransactionRuntimeApi<Block>
 	+ fp_rpc::EthereumRuntimeRPCApi<Block>
 	+ moonbeam_rpc_primitives_debug::DebugRuntimeApi<Block>
 	+ moonbeam_rpc_primitives_txpool::TxPoolRuntimeApi<Block>
+	+ nimbus_primitives::NimbusApi<Block>
 	+ nimbus_primitives::AuthorFilterAPI<Block, nimbus_primitives::NimbusId>
 	+ cumulus_primitives_core::CollectCollationInfo<Block>
 where
@@ -59,9 +61,11 @@ where
 		+ sp_api::Metadata<Block>
 		+ sp_offchain::OffchainWorkerApi<Block>
 		+ sp_session::SessionKeys<Block>
+		+ fp_rpc::ConvertTransactionRuntimeApi<Block>
 		+ fp_rpc::EthereumRuntimeRPCApi<Block>
 		+ moonbeam_rpc_primitives_debug::DebugRuntimeApi<Block>
 		+ moonbeam_rpc_primitives_txpool::TxPoolRuntimeApi<Block>
+		+ nimbus_primitives::NimbusApi<Block>
 		+ nimbus_primitives::AuthorFilterAPI<Block, nimbus_primitives::NimbusId>
 		+ cumulus_primitives_core::CollectCollationInfo<Block>,
 	<Self as sp_api::ApiExt<Block>>::StateBackend: sp_api::StateBackend<BlakeTwo256>,
@@ -145,39 +149,76 @@ pub trait ClientHandle {
 /// A client instance of Moonbeam.
 #[derive(Clone)]
 pub enum Client {
+	#[cfg(feature = "moonbeam-native")]
 	Moonbeam(Arc<crate::FullClient<moonbeam_runtime::RuntimeApi, crate::MoonbeamExecutor>>),
+	#[cfg(feature = "moonriver-native")]
 	Moonriver(Arc<crate::FullClient<moonriver_runtime::RuntimeApi, crate::MoonriverExecutor>>),
-	Moonshadow(Arc<crate::FullClient<moonshadow_runtime::RuntimeApi, crate::MoonshadowExecutor>>),
+	#[cfg(feature = "moonbase-native")]
 	Moonbase(Arc<crate::FullClient<moonbase_runtime::RuntimeApi, crate::MoonbaseExecutor>>),
+}
+
+#[cfg(feature = "moonbeam-native")]
+impl From<Arc<crate::FullClient<moonbeam_runtime::RuntimeApi, crate::MoonbeamExecutor>>>
+	for Client
+{
+	fn from(
+		client: Arc<crate::FullClient<moonbeam_runtime::RuntimeApi, crate::MoonbeamExecutor>>,
+	) -> Self {
+		Self::Moonbeam(client)
+	}
+}
+
+#[cfg(feature = "moonriver-native")]
+impl From<Arc<crate::FullClient<moonriver_runtime::RuntimeApi, crate::MoonriverExecutor>>>
+	for Client
+{
+	fn from(
+		client: Arc<crate::FullClient<moonriver_runtime::RuntimeApi, crate::MoonriverExecutor>>,
+	) -> Self {
+		Self::Moonriver(client)
+	}
+}
+
+#[cfg(feature = "moonbase-native")]
+impl From<Arc<crate::FullClient<moonbase_runtime::RuntimeApi, crate::MoonbaseExecutor>>>
+	for Client
+{
+	fn from(
+		client: Arc<crate::FullClient<moonbase_runtime::RuntimeApi, crate::MoonbaseExecutor>>,
+	) -> Self {
+		Self::Moonbase(client)
+	}
 }
 
 impl ClientHandle for Client {
 	fn execute_with<T: ExecuteWithClient>(&self, t: T) -> T::Output {
 		match self {
-			Self::Moonbeam(client) => {
-				T::execute_with_client::<_, _, crate::FullBackend>(t, client.clone())
-			}
-			Self::Moonriver(client) => {
-				T::execute_with_client::<_, _, crate::FullBackend>(t, client.clone())
-			}
-			Self::Moonshadow(client) => {
-				T::execute_with_client::<_, _, crate::FullBackend>(t, client.clone())
-			}
-			Self::Moonbase(client) => {
-				T::execute_with_client::<_, _, crate::FullBackend>(t, client.clone())
-			}
+			#[cfg(feature = "moonbeam-native")]
+			Self::Moonbeam(client) => T::execute_with_client::<_, _, crate::FullBackend>(t, client.clone()),
+			#[cfg(feature = "moonriver-native")]
+			Self::Moonriver(client) => T::execute_with_client::<_, _, crate::FullBackend>(t, client.clone()),
+			#[cfg(feature = "moonbase-native")]
+			Self::Moonbase(client) => T::execute_with_client::<_, _, crate::FullBackend>(t, client.clone()),
 		}
 	}
 }
 
+macro_rules! match_client {
+	($self:ident, $method:ident($($param:ident),*)) => {
+		match $self {
+			#[cfg(feature = "moonbeam-native")]
+			Self::Moonbeam(client) => client.$method($($param),*),
+			#[cfg(feature = "moonriver-native")]
+			Self::Moonriver(client) => client.$method($($param),*),
+			#[cfg(feature = "moonbase-native")]
+			Self::Moonbase(client) => client.$method($($param),*),
+		}
+	};
+}
+
 impl sc_client_api::UsageProvider<Block> for Client {
 	fn usage_info(&self) -> sc_client_api::ClientInfo<Block> {
-		match self {
-			Self::Moonbeam(client) => client.usage_info(),
-			Self::Moonriver(client) => client.usage_info(),
-			Self::Moonshadow(client) => client.usage_info(),
-			Self::Moonbase(client) => client.usage_info(),
-		}
+		match_client!(self, usage_info())
 	}
 }
 
@@ -186,87 +227,47 @@ impl sc_client_api::BlockBackend<Block> for Client {
 		&self,
 		id: &BlockId<Block>,
 	) -> sp_blockchain::Result<Option<Vec<<Block as BlockT>::Extrinsic>>> {
-		match self {
-			Self::Moonbeam(client) => client.block_body(id),
-			Self::Moonriver(client) => client.block_body(id),
-			Self::Moonshadow(client) => client.block_body(id),
-			Self::Moonbase(client) => client.block_body(id),
-		}
+		match_client!(self, block_body(id))
 	}
 
 	fn block_indexed_body(
 		&self,
 		id: &BlockId<Block>,
 	) -> sp_blockchain::Result<Option<Vec<Vec<u8>>>> {
-		match self {
-			Self::Moonbeam(client) => client.block_indexed_body(id),
-			Self::Moonriver(client) => client.block_indexed_body(id),
-			Self::Moonshadow(client) => client.block_indexed_body(id),
-			Self::Moonbase(client) => client.block_indexed_body(id),
-		}
+		match_client!(self, block_indexed_body(id))
 	}
 
 	fn block(&self, id: &BlockId<Block>) -> sp_blockchain::Result<Option<SignedBlock<Block>>> {
-		match self {
-			Self::Moonbeam(client) => client.block(id),
-			Self::Moonriver(client) => client.block(id),
-			Self::Moonshadow(client) => client.block(id),
-			Self::Moonbase(client) => client.block(id),
-		}
+		match_client!(self, block(id))
 	}
 
 	fn block_status(&self, id: &BlockId<Block>) -> sp_blockchain::Result<BlockStatus> {
-		match self {
-			Self::Moonbeam(client) => client.block_status(id),
-			Self::Moonriver(client) => client.block_status(id),
-			Self::Moonshadow(client) => client.block_status(id),
-			Self::Moonbase(client) => client.block_status(id),
-		}
+		match_client!(self, block_status(id))
 	}
 
 	fn justifications(&self, id: &BlockId<Block>) -> sp_blockchain::Result<Option<Justifications>> {
-		match self {
-			Self::Moonbeam(client) => client.justifications(id),
-			Self::Moonriver(client) => client.justifications(id),
-			Self::Moonshadow(client) => client.justifications(id),
-			Self::Moonbase(client) => client.justifications(id),
-		}
+		match_client!(self, justifications(id))
 	}
 
 	fn block_hash(
 		&self,
 		number: NumberFor<Block>,
 	) -> sp_blockchain::Result<Option<<Block as BlockT>::Hash>> {
-		match self {
-			Self::Moonbeam(client) => client.block_hash(number),
-			Self::Moonriver(client) => client.block_hash(number),
-			Self::Moonshadow(client) => client.block_hash(number),
-			Self::Moonbase(client) => client.block_hash(number),
-		}
+		match_client!(self, block_hash(number))
 	}
 
 	fn indexed_transaction(
 		&self,
 		hash: &<Block as BlockT>::Hash,
 	) -> sp_blockchain::Result<Option<Vec<u8>>> {
-		match self {
-			Self::Moonbeam(client) => client.indexed_transaction(hash),
-			Self::Moonriver(client) => client.indexed_transaction(hash),
-			Self::Moonshadow(client) => client.indexed_transaction(hash),
-			Self::Moonbase(client) => client.indexed_transaction(hash),
-		}
+		match_client!(self, indexed_transaction(hash))
 	}
 
 	fn has_indexed_transaction(
 		&self,
 		hash: &<Block as BlockT>::Hash,
 	) -> sp_blockchain::Result<bool> {
-		match self {
-			Self::Moonbeam(client) => client.has_indexed_transaction(hash),
-			Self::Moonriver(client) => client.has_indexed_transaction(hash),
-			Self::Moonshadow(client) => client.has_indexed_transaction(hash),
-			Self::Moonbase(client) => client.has_indexed_transaction(hash),
-		}
+		match_client!(self, has_indexed_transaction(hash))
 	}
 }
 
@@ -276,12 +277,7 @@ impl sc_client_api::StorageProvider<Block, crate::FullBackend> for Client {
 		id: &BlockId<Block>,
 		key: &StorageKey,
 	) -> sp_blockchain::Result<Option<StorageData>> {
-		match self {
-			Self::Moonbeam(client) => client.storage(id, key),
-			Self::Moonriver(client) => client.storage(id, key),
-			Self::Moonshadow(client) => client.storage(id, key),
-			Self::Moonbase(client) => client.storage(id, key),
-		}
+		match_client!(self, storage(id, key))
 	}
 
 	fn storage_keys(
@@ -289,12 +285,7 @@ impl sc_client_api::StorageProvider<Block, crate::FullBackend> for Client {
 		id: &BlockId<Block>,
 		key_prefix: &StorageKey,
 	) -> sp_blockchain::Result<Vec<StorageKey>> {
-		match self {
-			Self::Moonbeam(client) => client.storage_keys(id, key_prefix),
-			Self::Moonriver(client) => client.storage_keys(id, key_prefix),
-			Self::Moonshadow(client) => client.storage_keys(id, key_prefix),
-			Self::Moonbase(client) => client.storage_keys(id, key_prefix),
-		}
+		match_client!(self, storage_keys(id, key_prefix))
 	}
 
 	fn storage_hash(
@@ -302,12 +293,7 @@ impl sc_client_api::StorageProvider<Block, crate::FullBackend> for Client {
 		id: &BlockId<Block>,
 		key: &StorageKey,
 	) -> sp_blockchain::Result<Option<<Block as BlockT>::Hash>> {
-		match self {
-			Self::Moonbeam(client) => client.storage_hash(id, key),
-			Self::Moonriver(client) => client.storage_hash(id, key),
-			Self::Moonshadow(client) => client.storage_hash(id, key),
-			Self::Moonbase(client) => client.storage_hash(id, key),
-		}
+		match_client!(self, storage_hash(id, key))
 	}
 
 	fn storage_pairs(
@@ -315,12 +301,7 @@ impl sc_client_api::StorageProvider<Block, crate::FullBackend> for Client {
 		id: &BlockId<Block>,
 		key_prefix: &StorageKey,
 	) -> sp_blockchain::Result<Vec<(StorageKey, StorageData)>> {
-		match self {
-			Self::Moonbeam(client) => client.storage_pairs(id, key_prefix),
-			Self::Moonriver(client) => client.storage_pairs(id, key_prefix),
-			Self::Moonshadow(client) => client.storage_pairs(id, key_prefix),
-			Self::Moonbase(client) => client.storage_pairs(id, key_prefix),
-		}
+		match_client!(self, storage_pairs(id, key_prefix))
 	}
 
 	fn storage_keys_iter<'a>(
@@ -331,12 +312,7 @@ impl sc_client_api::StorageProvider<Block, crate::FullBackend> for Client {
 	) -> sp_blockchain::Result<
 		KeyIterator<'a, <crate::FullBackend as sc_client_api::Backend<Block>>::State, Block>,
 	> {
-		match self {
-			Self::Moonbeam(client) => client.storage_keys_iter(id, prefix, start_key),
-			Self::Moonriver(client) => client.storage_keys_iter(id, prefix, start_key),
-			Self::Moonshadow(client) => client.storage_keys_iter(id, prefix, start_key),
-			Self::Moonbase(client) => client.storage_keys_iter(id, prefix, start_key),
-		}
+		match_client!(self, storage_keys_iter(id, prefix, start_key))
 	}
 
 	fn child_storage(
@@ -345,12 +321,7 @@ impl sc_client_api::StorageProvider<Block, crate::FullBackend> for Client {
 		child_info: &ChildInfo,
 		key: &StorageKey,
 	) -> sp_blockchain::Result<Option<StorageData>> {
-		match self {
-			Self::Moonbeam(client) => client.child_storage(id, child_info, key),
-			Self::Moonriver(client) => client.child_storage(id, child_info, key),
-			Self::Moonshadow(client) => client.child_storage(id, child_info, key),
-			Self::Moonbase(client) => client.child_storage(id, child_info, key),
-		}
+		match_client!(self, child_storage(id, child_info, key))
 	}
 
 	fn child_storage_keys(
@@ -359,12 +330,22 @@ impl sc_client_api::StorageProvider<Block, crate::FullBackend> for Client {
 		child_info: &ChildInfo,
 		key_prefix: &StorageKey,
 	) -> sp_blockchain::Result<Vec<StorageKey>> {
-		match self {
-			Self::Moonbeam(client) => client.child_storage_keys(id, child_info, key_prefix),
-			Self::Moonriver(client) => client.child_storage_keys(id, child_info, key_prefix),
-			Self::Moonshadow(client) => client.child_storage_keys(id, child_info, key_prefix),
-			Self::Moonbase(client) => client.child_storage_keys(id, child_info, key_prefix),
-		}
+		match_client!(self, child_storage_keys(id, child_info, key_prefix))
+	}
+
+	fn child_storage_keys_iter<'a>(
+		&self,
+		id: &BlockId<Block>,
+		child_info: ChildInfo,
+		prefix: Option<&'a StorageKey>,
+		start_key: Option<&StorageKey>,
+	) -> sp_blockchain::Result<
+		KeyIterator<'a, <crate::FullBackend as sc_client_api::Backend<Block>>::State, Block>,
+	> {
+		match_client!(
+			self,
+			child_storage_keys_iter(id, child_info, prefix, start_key)
+		)
 	}
 
 	fn child_storage_hash(
@@ -373,86 +354,29 @@ impl sc_client_api::StorageProvider<Block, crate::FullBackend> for Client {
 		child_info: &ChildInfo,
 		key: &StorageKey,
 	) -> sp_blockchain::Result<Option<<Block as BlockT>::Hash>> {
-		match self {
-			Self::Moonbeam(client) => client.child_storage_hash(id, child_info, key),
-			Self::Moonriver(client) => client.child_storage_hash(id, child_info, key),
-			Self::Moonshadow(client) => client.child_storage_hash(id, child_info, key),
-			Self::Moonbase(client) => client.child_storage_hash(id, child_info, key),
-		}
-	}
-
-	fn max_key_changes_range(
-		&self,
-		first: NumberFor<Block>,
-		last: BlockId<Block>,
-	) -> sp_blockchain::Result<Option<(NumberFor<Block>, BlockId<Block>)>> {
-		match self {
-			Self::Moonbeam(client) => client.max_key_changes_range(first, last),
-			Self::Moonriver(client) => client.max_key_changes_range(first, last),
-			Self::Moonshadow(client) => client.max_key_changes_range(first, last),
-			Self::Moonbase(client) => client.max_key_changes_range(first, last),
-		}
-	}
-
-	fn key_changes(
-		&self,
-		first: NumberFor<Block>,
-		last: BlockId<Block>,
-		storage_key: Option<&PrefixedStorageKey>,
-		key: &StorageKey,
-	) -> sp_blockchain::Result<Vec<(NumberFor<Block>, u32)>> {
-		match self {
-			Self::Moonbeam(client) => client.key_changes(first, last, storage_key, key),
-			Self::Moonriver(client) => client.key_changes(first, last, storage_key, key),
-			Self::Moonshadow(client) => client.key_changes(first, last, storage_key, key),
-			Self::Moonbase(client) => client.key_changes(first, last, storage_key, key),
-		}
+		match_client!(self, child_storage_hash(id, child_info, key))
 	}
 }
 
 impl sp_blockchain::HeaderBackend<Block> for Client {
 	fn header(&self, id: BlockId<Block>) -> sp_blockchain::Result<Option<Header>> {
-		match self {
-			Self::Moonbeam(client) => client.header(&id),
-			Self::Moonriver(client) => client.header(&id),
-			Self::Moonshadow(client) => client.header(&id),
-			Self::Moonbase(client) => client.header(&id),
-		}
+		let id = &id;
+		match_client!(self, header(id))
 	}
 
 	fn info(&self) -> sp_blockchain::Info<Block> {
-		match self {
-			Self::Moonbeam(client) => client.info(),
-			Self::Moonriver(client) => client.info(),
-			Self::Moonshadow(client) => client.info(),
-			Self::Moonbase(client) => client.info(),
-		}
+		match_client!(self, info())
 	}
 
 	fn status(&self, id: BlockId<Block>) -> sp_blockchain::Result<sp_blockchain::BlockStatus> {
-		match self {
-			Self::Moonbeam(client) => client.status(id),
-			Self::Moonriver(client) => client.status(id),
-			Self::Moonshadow(client) => client.status(id),
-			Self::Moonbase(client) => client.status(id),
-		}
+		match_client!(self, status(id))
 	}
 
 	fn number(&self, hash: Hash) -> sp_blockchain::Result<Option<BlockNumber>> {
-		match self {
-			Self::Moonbeam(client) => client.number(hash),
-			Self::Moonriver(client) => client.number(hash),
-			Self::Moonshadow(client) => client.number(hash),
-			Self::Moonbase(client) => client.number(hash),
-		}
+		match_client!(self, number(hash))
 	}
 
 	fn hash(&self, number: BlockNumber) -> sp_blockchain::Result<Option<Hash>> {
-		match self {
-			Self::Moonbeam(client) => client.hash(number),
-			Self::Moonriver(client) => client.hash(number),
-			Self::Moonshadow(client) => client.hash(number),
-			Self::Moonbase(client) => client.hash(number),
-		}
+		match_client!(self, hash(number))
 	}
 }

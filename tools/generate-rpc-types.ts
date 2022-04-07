@@ -1,4 +1,3 @@
-//import { DefinitionRpc, DefinitionRpcParam } from "@polkadot/types/types";
 export declare type DefinitionTypeType = string;
 export declare type DefinitionTypeEnum =
   | {

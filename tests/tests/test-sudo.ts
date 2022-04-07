@@ -1,64 +1,140 @@
 import { expect } from "chai";
 import { Keyring } from "@polkadot/api";
 import { KeyringPair } from "@polkadot/keyring/types";
-import { Event } from "@polkadot/types/interfaces";
 import {
   GENESIS_ACCOUNT,
   ALITH_PRIV_KEY,
   GENESIS_ACCOUNT_PRIVATE_KEY,
   ZERO_ADDRESS,
+  GENESIS_ACCOUNT_BALANCE,
+  TEST_ACCOUNT,
+  ALITH,
 } from "../util/constants";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
+import { createBlockWithExtrinsic } from "../util/substrate-rpc";
+import { verifyLatestBlockFees } from "../util/block";
+import { createTransfer } from "../util/transactions";
 
+describeDevMoonbeam("Sudo - successful setParachainBondAccount", (context) => {
+  let alith: KeyringPair;
+  before("Setup genesis account for substrate", async () => {
+    const keyring = new Keyring({ type: "ethereum" });
+    alith = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
+  });
+  it("should be able to call sudo with the right account", async function () {
+    const { events } = await createBlockWithExtrinsic(
+      context,
+      alith,
+      context.polkadotApi.tx.sudo.sudo(
+        context.polkadotApi.tx.parachainStaking.setParachainBondAccount(GENESIS_ACCOUNT)
+      )
+    );
+    //check parachainBondInfo
+    const parachainBondInfo = await context.polkadotApi.query.parachainStaking.parachainBondInfo();
+    expect(parachainBondInfo.toHuman()["account"]).to.equal(GENESIS_ACCOUNT);
+    expect(parachainBondInfo.toHuman()["percent"]).to.equal("30.00%");
+    //check events
+    expect(events.length).to.eq(5);
+    expect(context.polkadotApi.events.parachainStaking.ParachainBondAccountSet.is(events[1] as any))
+      .to.be.true;
+    expect(context.polkadotApi.events.balances.Deposit.is(events[3] as any)).to.be.true;
+    expect(context.polkadotApi.events.system.ExtrinsicSuccess.is(events[4] as any)).to.be.true;
+    // check balance diff (diff should be null for sudo - funds are sent back)
+    expect(await context.web3.eth.getBalance(GENESIS_ACCOUNT, 1)).to.equal(
+      GENESIS_ACCOUNT_BALANCE.toString()
+    );
+  });
+});
+describeDevMoonbeam("Sudo - fail if no funds in sudo", (context) => {
+  let alith: KeyringPair;
+  before("Setup genesis account for substrate", async () => {
+    const keyring = new Keyring({ type: "ethereum" });
+    alith = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
+    const initBalance = await context.web3.eth.getBalance(ALITH);
+    await context.createBlock({
+      transactions: [
+        await createTransfer(
+          context,
+          TEST_ACCOUNT,
+          BigInt(initBalance) - 1n - 21000n * 1_000_000_000n,
+          {
+            from: ALITH,
+            privateKey: ALITH_PRIV_KEY,
+            gas: 21000,
+            gasPrice: 1_000_000_000,
+          }
+        ),
+      ],
+    });
+    console.log("aft", await context.web3.eth.getBalance(ALITH));
+    expect(await context.web3.eth.getBalance(ALITH)).to.eq("1");
+  });
+  it("should not be able to call sudo with no funds", async function () {
+    try {
+      await createBlockWithExtrinsic(
+        context,
+        alith,
+        context.polkadotApi.tx.sudo.sudo(
+          context.polkadotApi.tx.parachainStaking.setParachainBondAccount(GENESIS_ACCOUNT)
+        )
+      );
+    } catch (e) {
+      expect(e.toString()).to.eq(
+        "RpcError: 1010: Invalid Transaction: Inability " +
+          "to pay some fees , e.g. account balance too low"
+      );
+    }
+    //check parachainBondInfo
+    const parachainBondInfo = await context.polkadotApi.query.parachainStaking.parachainBondInfo();
+    expect(parachainBondInfo.toHuman()["account"]).to.equal(ZERO_ADDRESS);
+  });
+});
 describeDevMoonbeam("Sudo - Only sudo account", (context) => {
-  let genesisAccount: KeyringPair, sudoAccount: KeyringPair;
+  let genesisAccount: KeyringPair;
   before("Setup genesis account for substrate", async () => {
     const keyring = new Keyring({ type: "ethereum" });
     genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
-    sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
   });
   it("should NOT be able to call sudo with another account than sudo account", async function () {
-    await context.polkadotApi.tx.sudo
-      .sudo(context.polkadotApi.tx.parachainStaking.setParachainBondAccount(GENESIS_ACCOUNT))
-      .signAndSend(genesisAccount);
-    await context.createBlock();
+    const { events } = await createBlockWithExtrinsic(
+      context,
+      genesisAccount,
+      context.polkadotApi.tx.sudo.sudo(
+        context.polkadotApi.tx.parachainStaking.setParachainBondAccount(GENESIS_ACCOUNT)
+      )
+    );
+    //check parachainBondInfo
     const parachainBondInfo = await context.polkadotApi.query.parachainStaking.parachainBondInfo();
     expect(parachainBondInfo.toHuman()["account"]).to.equal(ZERO_ADDRESS);
     expect(parachainBondInfo.toHuman()["percent"]).to.equal("30.00%");
+    //check events
+    expect(events.length === 6).to.be.true;
+    expect(context.polkadotApi.events.system.NewAccount.is(events[2] as any)).to.be.true;
+    expect(context.polkadotApi.events.balances.Endowed.is(events[3] as any)).to.be.true;
+    expect(context.polkadotApi.events.treasury.Deposit.is(events[4] as any)).to.be.true;
+    expect(context.polkadotApi.events.system.ExtrinsicFailed.is(events[5] as any)).to.be.true;
+    // check balance diff (should not be null for a failed extrinsic)
+    expect(
+      BigInt(await context.web3.eth.getBalance(GENESIS_ACCOUNT, 1)) - GENESIS_ACCOUNT_BALANCE !== 0n
+    ).to.equal(true);
   });
-  it("should check events", async function () {
-    const blockHash = await context.polkadotApi.rpc.chain.getBlockHash(1);
-    const signedBlock = await context.polkadotApi.rpc.chain.getBlock(blockHash);
-    const allRecords = await context.polkadotApi.query.system.events.at(
-      signedBlock.block.header.hash
+});
+
+describeDevMoonbeam("Sudo - Only sudo account - test gas", (context) => {
+  let alith: KeyringPair;
+  before("Setup genesis account for substrate", async () => {
+    const keyring = new Keyring({ type: "ethereum" });
+    alith = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
+  });
+  it("should NOT be able to call sudo with another account than sudo account", async function () {
+    await createBlockWithExtrinsic(
+      context,
+      alith,
+      context.polkadotApi.tx.sudo.sudo(
+        context.polkadotApi.tx.parachainStaking.setParachainBondAccount(GENESIS_ACCOUNT)
+      )
     );
 
-    // map between the extrinsics and events
-    signedBlock.block.extrinsics.forEach(({ method: { method, section } }, index) => {
-      // filter the specific events based on the phase and then the
-      // index of our extrinsic in the block
-      const events: Event[] = allRecords
-        .filter(({ phase }) => phase.isApplyExtrinsic && phase.asApplyExtrinsic.eq(index))
-        .map(({ event }) => event);
-
-      switch (index) {
-        // First 3 events are not interesting here
-        case 0:
-        case 1:
-        case 2:
-          break;
-        // Fourth event
-        case 3:
-          expect(section === "sudo" && method === "sudo").to.be.true;
-          expect(events.length === 4);
-          expect(context.polkadotApi.events.system.NewAccount.is(events[0])).to.be.true;
-          expect(context.polkadotApi.events.balances.Endowed.is(events[1])).to.be.true;
-          expect(context.polkadotApi.events.treasury.Deposit.is(events[2])).to.be.true;
-          expect(context.polkadotApi.events.system.ExtrinsicFailed.is(events[3])).to.be.true;
-          break;
-        default:
-          throw new Error(`Unexpected extrinsic`);
-      }
-    });
+    await verifyLatestBlockFees(context, expect);
   });
 });

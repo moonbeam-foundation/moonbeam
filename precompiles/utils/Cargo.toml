@@ -1,0 +1,46 @@
+[package]
+name = "precompile-utils"
+authors = [ "PureStake" ]
+description = "Utils to write EVM precompiles."
+edition = "2018"
+version = "0.1.0"
+
+[dependencies]
+impl-trait-for-tuples = "0.2.2"
+log = "0.4"
+num_enum = { version = "0.5.3", default-features = false }
+sha3 = { version = "0.9", default-features = false }
+
+# Moonbeam
+precompile-utils-macro = { path = "macro" }
+
+# Substrate
+codec = { package = "parity-scale-codec", version = "3.0.0", default-features = false }
+frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
+frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
+sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
+sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
+sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
+
+# Frontier
+fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
+pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
+
+# Polkadot / XCM
+xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
+
+[dev-dependencies]
+hex-literal = "0.3.1"
+
+[features]
+default = [ "std" ]
+std = [
+	"codec/std",
+	"fp-evm/std",
+	"frame-support/std",
+	"frame-system/std",
+	"pallet-evm/std",
+	"sp-core/std",
+	"sp-io/std",
+	"sp-std/std",
+]

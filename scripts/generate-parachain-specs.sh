@@ -5,7 +5,7 @@ source scripts/_init_var.sh
 echo "=================== Alphanet ==================="
 $MOONBEAM_BINARY build-spec \
   --disable-default-bootnode \
-  --chain 'moonbeam-local' \
+  --chain 'moonbase-local' \
   | grep '\"code\"' \
   | head -n1 > $ALPHANET_PARACHAIN_SPEC_TMP
 echo $ALPHANET_PARACHAIN_SPEC_TMP generated	
@@ -28,7 +28,7 @@ $MOONBEAM_BINARY export-genesis-wasm \
 echo $ALPHANET_WASM generated
 
 $MOONBEAM_BINARY export-genesis-state \
-  --parachain-id $PARACHAIN_ID \
+  --parachain-id $ALPHANET_PARACHAIN_ID \
   --chain $ALPHANET_PARACHAIN_SPEC_RAW \
   > $ALPHANET_GENESIS;
 echo $ALPHANET_GENESIS generated

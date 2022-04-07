@@ -18,7 +18,7 @@ describeDevMoonbeam("Nonce - Initial", (context) => {
 
   it("should stay at 0 before block is created", async function () {
     await customWeb3Request(context.web3, "eth_sendRawTransaction", [
-      await createTransfer(context.web3, GENESIS_ACCOUNT, 512),
+      await createTransfer(context, GENESIS_ACCOUNT, 512),
     ]);
     expect(await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT)).to.eq(0);
   });
@@ -28,7 +28,7 @@ describeDevMoonbeam("Nonce - Previous block", (context) => {
   before("Setup: Create block with transfer", async () => {
     await context.createBlock({
       transactions: [
-        await createTransfer(context.web3, "0x1111111111111111111111111111111111111111", 512),
+        await createTransfer(context, "0x1111111111111111111111111111111111111111", 512),
       ],
     });
   });
@@ -40,7 +40,7 @@ describeDevMoonbeam("Nonce - Previous block", (context) => {
 describeDevMoonbeam("Nonce - Pending transaction", (context) => {
   before("Setup: Create block with transfer", async () => {
     await customWeb3Request(context.web3, "eth_sendRawTransaction", [
-      await createTransfer(context.web3, "0x1111111111111111111111111111111111111111", 512),
+      await createTransfer(context, "0x1111111111111111111111111111111111111111", 512),
     ]);
   });
   it("should not increase transaction count", async function () {
@@ -55,10 +55,10 @@ describeDevMoonbeam("Nonce - Pending transaction", (context) => {
 });
 
 describeDevMoonbeam("Nonce - Transferring", (context) => {
-  it("Setup: Sending token", async function () {
+  before("Setup: Sending token", async function () {
     await context.createBlock({
       transactions: [
-        await createTransfer(context.web3, "0x1111111111111111111111111111111111111111", 512),
+        await createTransfer(context, "0x1111111111111111111111111111111111111111", 512),
       ],
     });
   });

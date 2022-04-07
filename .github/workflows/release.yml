@@ -158,7 +158,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        chain: ["moonbase", "moonshadow", "moonriver", "moonbeam"]
+        chain: ["moonbase", "moonriver", "moonbeam"]
     steps:
       - name: Get Timestamp
         run: echo "TMSP=$(date '+%Y%m%d_%H%M%S')" >> $GITHUB_ENV
@@ -207,11 +207,6 @@ jobs:
         with:
           name: moonbase-runtime
           path: build
-      - name: Download moonshadow runtime
-        uses: actions/download-artifact@v2
-        with:
-          name: moonshadow-runtime
-          path: build
       - name: Download moonriver runtime
         uses: actions/download-artifact@v2
         with:
@@ -240,11 +235,6 @@ jobs:
           echo "::set-output name=runtime_moonbase_ver::$runtime_moonbase_ver"
           mv build/moonbase-runtime.compact.wasm moonbase-runtime-${runtime_moonbase_ver}.wasm
           mv build/moonbase-srtool-digest.json moonbase-runtime-${runtime_moonbase_ver}-srtool-digest.json
-          runtime_moonshadow_ver="$(cat ./runtime/moonshadow/src/lib.rs | grep -o 'spec_version: [0-9]*' | tail -1 | grep -o '[0-9]*')"
-
-          echo "::set-output name=runtime_moonshadow_ver::$runtime_moonshadow_ver"
-          mv build/moonshadow-runtime.compact.wasm moonshadow-runtime-${runtime_moonshadow_ver}.wasm
-          mv build/moonshadow-srtool-digest.json moonshadow-runtime-${runtime_moonshadow_ver}-srtool-digest.json
           runtime_moonriver_ver="$(cat ./runtime/moonriver/src/lib.rs | grep -o 'spec_version: [0-9]*' | tail -1 | grep -o '[0-9]*')"
 
           echo "::set-output name=runtime_moonriver_ver::$runtime_moonriver_ver"
@@ -283,24 +273,6 @@ jobs:
           upload_url: ${{ steps.create-release.outputs.upload_url }}
           asset_path: moonbase-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonbase_ver }}-srtool-digest.json
           asset_name: moonbase-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonbase_ver }}.srtool-digest.json
-          asset_content_type: application/json
-      - name: Upload moonshadow wasm
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create-release.outputs.upload_url }}
-          asset_path: moonshadow-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonshadow_ver }}.wasm
-          asset_name: moonshadow-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonshadow_ver }}.wasm
-          asset_content_type: application/octet-stream
-      - name: Upload moonshadow srtool digest
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create-release.outputs.upload_url }}
-          asset_path: moonshadow-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonshadow_ver }}-srtool-digest.json
-          asset_name: moonshadow-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonshadow_ver }}.srtool-digest.json
           asset_content_type: application/json
       - name: Upload moonriver wasm
         uses: actions/upload-release-asset@v1

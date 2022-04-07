@@ -1,9 +1,9 @@
 #!/bin/bash
-# Generates the runtime wasm for moonbase, moonshadow, moonriver and moonbeam
+# Generates the runtime wasm for moonbase, moonriver and moonbeam
 set -e
 source scripts/_init_var.sh
 
-for runtime in moonbase moonshadow moonriver moonbeam; do
+for runtime in moonbase moonriver moonbeam; do
   echo "=================== $runtime ==================="
   RUNTIME_BUILD_FOLDER=$BUILD_FOLDER/runtimes
   mkdir -p $RUNTIME_BUILD_FOLDER

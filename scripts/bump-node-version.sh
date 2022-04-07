@@ -15,7 +15,6 @@ sed -i "s/^version = '$FROM'$/version = '$TO'/" node/cli-opt/Cargo.toml
 sed -i "s/^version = '$FROM'$/version = '$TO'/" node/service/Cargo.toml
 
 sed -i "s/^version = '$FROM'$/version = '$TO'/" runtime/moonbase/Cargo.toml
-sed -i "s/^version = '$FROM'$/version = '$TO'/" runtime/moonshadow/Cargo.toml
 sed -i "s/^version = '$FROM'$/version = '$TO'/" runtime/moonriver/Cargo.toml
 sed -i "s/^version = '$FROM'$/version = '$TO'/" runtime/moonbeam/Cargo.toml
 

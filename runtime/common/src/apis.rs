@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -36,7 +36,7 @@ macro_rules! impl_runtime_apis_plus_common {
 
 			impl sp_api::Metadata<Block> for Runtime {
 				fn metadata() -> OpaqueMetadata {
-					Runtime::metadata().into()
+					OpaqueMetadata::new(Runtime::metadata().into())
 				}
 			}
 
@@ -89,92 +89,79 @@ macro_rules! impl_runtime_apis_plus_common {
 
 			impl moonbeam_rpc_primitives_debug::DebugRuntimeApi<Block> for Runtime {
 				fn trace_transaction(
-					header: &<Block as BlockT>::Header,
 					extrinsics: Vec<<Block as BlockT>::Extrinsic>,
-					transaction: &EthereumTransaction,
-					trace_type: moonbeam_rpc_primitives_debug::single::TraceType,
+					traced_transaction: &EthereumTransaction,
 				) -> Result<
 					(),
 					sp_runtime::DispatchError,
 				> {
-					use moonbeam_evm_tracer::{CallListTracer, RawTracer};
-					use moonbeam_rpc_primitives_debug::single::TraceType;
-
-					// Explicit initialize.
-					// Needed because https://github.com/paritytech/substrate/pull/8953
-					Executive::initialize_block(header);
-
-					// Apply the a subset of extrinsics: all the substrate-specific or ethereum
-					// transactions that preceded the requested transaction.
-					for ext in extrinsics.into_iter() {
-						let _ = match &ext.function {
-							Call::Ethereum(transact(t)) => {
-								if t == transaction {
-									match trace_type {
-										TraceType::Raw {
-											disable_storage,
-											disable_memory,
-											disable_stack,
-										} => {
-											RawTracer::new(
-												disable_storage,
-												disable_memory,
-												disable_stack,
-											).trace(|| Executive::apply_extrinsic(ext));
-										},
-										TraceType::CallList => {
-											CallListTracer::default()
-												.trace(|| Executive::apply_extrinsic(ext));
-										},
-									};
-									return Ok(());
-								} else {
-									Executive::apply_extrinsic(ext)
+					#[cfg(feature = "evm-tracing")]
+					{
+						use moonbeam_evm_tracer::tracer::EvmTracer;
+						// Apply the a subset of extrinsics: all the substrate-specific or ethereum
+						// transactions that preceded the requested transaction.
+						for ext in extrinsics.into_iter() {
+							let _ = match &ext.0.function {
+								Call::Ethereum(transact { transaction }) => {
+									if transaction == traced_transaction {
+										EvmTracer::new().trace(|| Executive::apply_extrinsic(ext));
+										return Ok(());
+									} else {
+										Executive::apply_extrinsic(ext)
+									}
 								}
-							}
-							_ => Executive::apply_extrinsic(ext),
-						};
-					}
+								_ => Executive::apply_extrinsic(ext),
+							};
+						}
 
+						Err(sp_runtime::DispatchError::Other(
+							"Failed to find Ethereum transaction among the extrinsics.",
+						))
+					}
+					#[cfg(not(feature = "evm-tracing"))]
 					Err(sp_runtime::DispatchError::Other(
-						"Failed to find Ethereum transaction among the extrinsics.",
+						"Missing `evm-tracing` compile time feature flag.",
 					))
 				}
 
 				fn trace_block(
-					header: &<Block as BlockT>::Header,
 					extrinsics: Vec<<Block as BlockT>::Extrinsic>,
+					known_transactions: Vec<H256>,
 				) -> Result<
 					(),
 					sp_runtime::DispatchError,
 				> {
-					use moonbeam_evm_tracer::CallListTracer;
-					use moonbeam_rpc_primitives_debug::{
-						block, single, CallResult, CreateResult, CreateType,
-					};
+					#[cfg(feature = "evm-tracing")]
+					{
+						use moonbeam_evm_tracer::tracer::EvmTracer;
 
-					// Explicit initialize.
-					// Needed because https://github.com/paritytech/substrate/pull/8953
-					Executive::initialize_block(header);
+						let mut config = <Runtime as pallet_evm::Config>::config().clone();
+						config.estimate = true;
 
-					let mut config = <Runtime as pallet_evm::Config>::config().clone();
-					config.estimate = true;
+						// Apply all extrinsics. Ethereum extrinsics are traced.
+						for ext in extrinsics.into_iter() {
+							match &ext.0.function {
+								Call::Ethereum(transact { transaction }) => {
+									if known_transactions.contains(&transaction.hash()) {
+										// Each known extrinsic is a new call stack.
+										EvmTracer::emit_new();
+										EvmTracer::new().trace(|| Executive::apply_extrinsic(ext));
+									} else {
+										let _ = Executive::apply_extrinsic(ext);
+									}
+								}
+								_ => {
+									let _ = Executive::apply_extrinsic(ext);
+								}
+							};
+						}
 
-					// Apply all extrinsics. Ethereum extrinsics are traced.
-					for ext in extrinsics.into_iter() {
-						match &ext.function {
-							Call::Ethereum(transact(_transaction)) => {
-								// Each extrinsic is a new call stack.
-								CallListTracer::emit_new();
-								CallListTracer::default().trace(|| Executive::apply_extrinsic(ext));
-							}
-							_ => {
-								let _ = Executive::apply_extrinsic(ext);
-							}
-						};
+						Ok(())
 					}
-
-					Ok(())
+					#[cfg(not(feature = "evm-tracing"))]
+					Err(sp_runtime::DispatchError::Other(
+						"Missing `evm-tracing` compile time feature flag.",
+					))
 				}
 			}
 
@@ -186,15 +173,15 @@ macro_rules! impl_runtime_apis_plus_common {
 					TxPoolResponse {
 						ready: xts_ready
 							.into_iter()
-							.filter_map(|xt| match xt.function {
-								Call::Ethereum(transact(t)) => Some(t),
+							.filter_map(|xt| match xt.0.function {
+								Call::Ethereum(transact { transaction }) => Some(transaction),
 								_ => None,
 							})
 							.collect(),
 						future: xts_future
 							.into_iter()
-							.filter_map(|xt| match xt.function {
-								Call::Ethereum(transact(t)) => Some(t),
+							.filter_map(|xt| match xt.0.function {
+								Call::Ethereum(transact { transaction }) => Some(transaction),
 								_ => None,
 							})
 							.collect(),
@@ -220,7 +207,7 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 
 				fn author() -> H160 {
-					Ethereum::find_author()
+					<pallet_evm::Pallet<Runtime>>::find_author()
 				}
 
 				fn storage_at(address: H160, index: U256) -> H256 {
@@ -235,9 +222,11 @@ macro_rules! impl_runtime_apis_plus_common {
 					data: Vec<u8>,
 					value: U256,
 					gas_limit: U256,
-					gas_price: Option<U256>,
+					max_fee_per_gas: Option<U256>,
+					max_priority_fee_per_gas: Option<U256>,
 					nonce: Option<U256>,
 					estimate: bool,
+					access_list: Option<Vec<(H160, Vec<H256>)>>,
 				) -> Result<pallet_evm::CallInfo, sp_runtime::DispatchError> {
 					let config = if estimate {
 						let mut config = <Runtime as pallet_evm::Config>::config().clone();
@@ -253,13 +242,12 @@ macro_rules! impl_runtime_apis_plus_common {
 						data,
 						value,
 						gas_limit.low_u64(),
-						gas_price,
+						max_fee_per_gas,
+						max_priority_fee_per_gas,
 						nonce,
-						config
-							.as_ref()
-							.unwrap_or_else(|| <Runtime as pallet_evm::Config>::config()),
-					)
-					.map_err(|err| err.into())
+						Vec::new(),
+						config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
+					).map_err(|err| err.into())
 				}
 
 				fn create(
@@ -267,9 +255,11 @@ macro_rules! impl_runtime_apis_plus_common {
 					data: Vec<u8>,
 					value: U256,
 					gas_limit: U256,
-					gas_price: Option<U256>,
+					max_fee_per_gas: Option<U256>,
+					max_priority_fee_per_gas: Option<U256>,
 					nonce: Option<U256>,
 					estimate: bool,
+					access_list: Option<Vec<(H160, Vec<H256>)>>,
 				) -> Result<pallet_evm::CreateInfo, sp_runtime::DispatchError> {
 					let config = if estimate {
 						let mut config = <Runtime as pallet_evm::Config>::config().clone();
@@ -285,13 +275,12 @@ macro_rules! impl_runtime_apis_plus_common {
 						data,
 						value,
 						gas_limit.low_u64(),
-						gas_price,
+						max_fee_per_gas,
+						max_priority_fee_per_gas,
 						nonce,
-						config
-							.as_ref()
-							.unwrap_or(<Runtime as pallet_evm::Config>::config()),
-					)
-					.map_err(|err| err.into())
+						Vec::new(),
+						config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
+					).map_err(|err| err.into())
 				}
 
 				fn current_transaction_statuses() -> Option<Vec<TransactionStatus>> {
@@ -317,6 +306,29 @@ macro_rules! impl_runtime_apis_plus_common {
 						Ethereum::current_transaction_statuses(),
 					)
 				}
+
+				fn extrinsic_filter(
+					xts: Vec<<Block as BlockT>::Extrinsic>,
+				) -> Vec<EthereumTransaction> {
+					xts.into_iter().filter_map(|xt| match xt.0.function {
+						Call::Ethereum(transact { transaction }) => Some(transaction),
+						_ => None
+					}).collect::<Vec<EthereumTransaction>>()
+				}
+
+				fn elasticity() -> Option<Permill> {
+					Some(BaseFee::elasticity())
+				}
+			}
+
+			impl fp_rpc::ConvertTransactionRuntimeApi<Block> for Runtime {
+				fn convert_transaction(
+					transaction: pallet_ethereum::Transaction
+				) -> <Block as BlockT>::Extrinsic {
+					UncheckedExtrinsic::new_unsigned(
+						pallet_ethereum::Call::<Runtime>::transact { transaction }.into(),
+					)
+				}
 			}
 
 			impl pallet_transaction_payment_rpc_runtime_api::TransactionPaymentApi<Block, Balance>
@@ -336,37 +348,102 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 			}
 
-			impl nimbus_primitives::AuthorFilterAPI<Block, nimbus_primitives::NimbusId> for Runtime {
+			impl nimbus_primitives::NimbusApi<Block> for Runtime {
 				fn can_author(
 					author: nimbus_primitives::NimbusId,
 					slot: u32,
 					parent_header: &<Block as BlockT>::Header
 				) -> bool {
+					let block_number = parent_header.number + 1;
+
 					// The Moonbeam runtimes use an entropy source that needs to do some accounting
 					// work during block initialization. Therefore we initialize it here to match
 					// the state it will be in when the next block is being executed.
 					use frame_support::traits::OnInitialize;
 					System::initialize(
-						&(parent_header.number + 1),
+						&block_number,
 						&parent_header.hash(),
 						&parent_header.digest,
-						frame_system::InitKind::Inspection
 					);
-					RandomnessCollectiveFlip::on_initialize(System::block_number());
+					RandomnessCollectiveFlip::on_initialize(block_number);
 
-					// And now the actual prediction call
-					AuthorInherent::can_author(&author, &slot)
+					// Because the staking solution calculates the next staking set at the beginning
+					// of the first block in the new round, the only way to accurately predict the
+					// authors is to compute the selection during prediction.
+					if parachain_staking::Pallet::<Self>::round().should_update(block_number) {
+						// get author account id
+						use nimbus_primitives::AccountLookup;
+						let author_account_id = if let Some(account) =
+							pallet_author_mapping::Pallet::<Self>::lookup_account(&author) {
+							account
+						} else {
+							// return false if author mapping not registered like in can_author impl
+							return false
+						};
+						// predict eligibility post-selection by computing selection results now
+						let (eligible, _) =
+							pallet_author_slot_filter::compute_pseudo_random_subset::<Self>(
+								parachain_staking::Pallet::<Self>::compute_top_candidates(),
+								&slot
+							);
+						eligible.contains(&author_account_id)
+					} else {
+						AuthorInherent::can_author(&author, &slot)
+					}
+				}
+			}
+
+			// We also implement the old AuthorFilterAPI to meet the trait bounds on the client side.
+			impl nimbus_primitives::AuthorFilterAPI<Block, NimbusId> for Runtime {
+				fn can_author(_: NimbusId, _: u32, _: &<Block as BlockT>::Header) -> bool {
+					panic!("AuthorFilterAPI is no longer supported. Please update your client.")
 				}
 			}
 
 			impl cumulus_primitives_core::CollectCollationInfo<Block> for Runtime {
-				fn collect_collation_info() -> cumulus_primitives_core::CollationInfo {
-					ParachainSystem::collect_collation_info()
+				fn collect_collation_info(
+					header: &<Block as BlockT>::Header
+				) -> cumulus_primitives_core::CollationInfo {
+					ParachainSystem::collect_collation_info(header)
 				}
 			}
 
 			#[cfg(feature = "runtime-benchmarks")]
 			impl frame_benchmarking::Benchmark<Block> for Runtime {
+
+				fn benchmark_metadata(extra: bool) -> (
+					Vec<frame_benchmarking::BenchmarkList>,
+					Vec<frame_support::traits::StorageInfo>,
+				) {
+					use frame_benchmarking::{list_benchmark, Benchmarking, BenchmarkList};
+					use frame_support::traits::StorageInfoTrait;
+					use frame_system_benchmarking::Pallet as SystemBench;
+					use pallet_crowdloan_rewards::Pallet as PalletCrowdloanRewardsBench;
+					use parachain_staking::Pallet as ParachainStakingBench;
+					use pallet_author_mapping::Pallet as PalletAuthorMappingBench;
+					use pallet_author_slot_filter::Pallet as PalletAuthorSlotFilter;
+					#[cfg(feature = "moonbase-runtime-benchmarks")]
+					use pallet_asset_manager::Pallet as PalletAssetManagerBench;
+					#[cfg(feature = "moonbase-runtime-benchmarks")]
+					use xcm_transactor::Pallet as XcmTransactorBench;
+
+					let mut list = Vec::<BenchmarkList>::new();
+
+					list_benchmark!(list, extra, frame_system, SystemBench::<Runtime>);
+					list_benchmark!(list, extra, parachain_staking, ParachainStakingBench::<Runtime>);
+					list_benchmark!(list, extra, pallet_crowdloan_rewards, PalletCrowdloanRewardsBench::<Runtime>);
+					list_benchmark!(list, extra, pallet_author_mapping, PalletAuthorMappingBench::<Runtime>);
+					list_benchmark!(list, extra, pallet_author_slot_filter, PalletAuthorSlotFilter::<Runtime>);
+					#[cfg(feature = "moonbase-runtime-benchmarks")]
+					list_benchmark!(list, extra, pallet_asset_manager, PalletAssetManagerBench::<Runtime>);
+					#[cfg(feature = "moonbase-runtime-benchmarks")]
+					list_benchmark!(list, extra, xcm_transactor, XcmTransactorBench::<Runtime>);
+
+					let storage_info = AllPalletsWithSystem::storage_info();
+
+					return (list, storage_info)
+				}
+
 				fn dispatch_benchmark(
 					config: frame_benchmarking::BenchmarkConfig,
 				) -> Result<Vec<frame_benchmarking::BenchmarkBatch>, sp_runtime::RuntimeString> {
@@ -380,7 +457,61 @@ macro_rules! impl_runtime_apis_plus_common {
 					use pallet_crowdloan_rewards::Pallet as PalletCrowdloanRewardsBench;
 					use parachain_staking::Pallet as ParachainStakingBench;
 					use pallet_author_mapping::Pallet as PalletAuthorMappingBench;
-					let whitelist: Vec<TrackedStorageKey> = vec![];
+					use pallet_author_slot_filter::Pallet as PalletAuthorSlotFilter;
+					#[cfg(feature = "moonbase-runtime-benchmarks")]
+					use pallet_asset_manager::Pallet as PalletAssetManagerBench;
+					#[cfg(feature = "moonbase-runtime-benchmarks")]
+					use xcm_transactor::Pallet as XcmTransactorBench;
+
+					let whitelist: Vec<TrackedStorageKey> = vec![
+						// Block Number
+						hex_literal::hex!(  "26aa394eea5630e07c48ae0c9558cef7"
+											"02a5c1b19ab7a04f536c519aca4983ac")
+							.to_vec().into(),
+						// Total Issuance
+						hex_literal::hex!(  "c2261276cc9d1f8598ea4b6a74b15c2f"
+											"57c875e4cff74148e4628f264b974c80")
+							.to_vec().into(),
+						// Execution Phase
+						hex_literal::hex!(  "26aa394eea5630e07c48ae0c9558cef7"
+											"ff553b5a9862a516939d82b3d3d8661a")
+							.to_vec().into(),
+						// Event Count
+						hex_literal::hex!(  "26aa394eea5630e07c48ae0c9558cef7"
+											"0a98fdbe9ce6c55837576c60c7af3850")
+							.to_vec().into(),
+						// System Events
+						hex_literal::hex!(  "26aa394eea5630e07c48ae0c9558cef7"
+											"80d41e5e16056765bc8461851072c9d7")
+							.to_vec().into(),
+						// System BlockWeight
+						hex_literal::hex!(  "26aa394eea5630e07c48ae0c9558cef7"
+											"34abf5cb34d6244378cddbf18e849d96")
+							.to_vec().into(),
+						// ParachainStaking Round
+						hex_literal::hex!(  "a686a3043d0adcf2fa655e57bc595a78"
+											"13792e785168f725b60e2969c7fc2552")
+							.to_vec().into(),
+						// Treasury Account (py/trsry)
+						hex_literal::hex!(  "26aa394eea5630e07c48ae0c9558cef7"
+											"b99d880ec681799c0cf30e8886371da9"
+											"7be2919ac397ba499ea5e57132180ec6"
+											"6d6f646c70792f747273727900000000"
+											"00000000"
+						).to_vec().into(),
+						// Treasury Account (pc/trsry)
+						hex_literal::hex!(  "26aa394eea5630e07c48ae0c9558cef7"
+											"b99d880ec681799c0cf30e8886371da9"
+											"7be2919ac397ba499ea5e57132180ec6"
+											"6d6f646c70632f747273727900000000"
+											"00000000"
+						).to_vec().into(),
+						// ParachainStaking Round
+						hex_literal::hex!(  "a686a3043d0adcf2fa655e57bc595a78"
+											"13792e785168f725b60e2969c7fc2552")
+							.to_vec().into(),
+
+					];
 
 					let mut batches = Vec::<BenchmarkBatch>::new();
 					let params = (&config, &whitelist);
@@ -391,12 +522,12 @@ macro_rules! impl_runtime_apis_plus_common {
 						parachain_staking,
 						ParachainStakingBench::<Runtime>
 					);
-					// add_benchmark!(
-					// 	params,
-					// 	batches,
-					// 	pallet_crowdloan_rewards,
-					// 	PalletCrowdloanRewardsBench::<Runtime>
-					// );
+					add_benchmark!(
+					params,
+						batches,
+						pallet_crowdloan_rewards,
+						PalletCrowdloanRewardsBench::<Runtime>
+					);
 					add_benchmark!(
 						params,
 						batches,
@@ -404,11 +535,48 @@ macro_rules! impl_runtime_apis_plus_common {
 						PalletAuthorMappingBench::<Runtime>
 					);
 					add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
+					add_benchmark!(
+						params,
+						batches,
+						pallet_author_slot_filter,
+						PalletAuthorSlotFilter::<Runtime>
+					);
+					#[cfg(feature = "moonbase-runtime-benchmarks")]
+					add_benchmark!(
+						params,
+						batches,
+						pallet_asset_manager,
+						PalletAssetManagerBench::<Runtime>
+					);
+					#[cfg(feature = "moonbase-runtime-benchmarks")]
+					add_benchmark!(
+						params,
+						batches,
+						xcm_transactor,
+						XcmTransactorBench::<Runtime>
+					);
 
 					if batches.is_empty() {
 						return Err("Benchmark not found for this pallet.".into());
 					}
 					Ok(batches)
+				}
+			}
+
+			#[cfg(feature = "try-runtime")]
+			impl frame_try_runtime::TryRuntime<Block> for Runtime {
+				fn on_runtime_upgrade() -> (Weight, Weight) {
+					log::info!("try-runtime::on_runtime_upgrade()");
+					// NOTE: intentional expect: we don't want to propagate the error backwards,
+					// and want to have a backtrace here. If any of the pre/post migration checks
+					// fail, we shall stop right here and right now.
+					let weight = Executive::try_runtime_upgrade()
+						.expect("runtime upgrade logic *must* be infallible");
+					(weight, BlockWeights::get().max_block)
+				}
+
+				fn execute_block_no_check(block: Block) -> Weight {
+					Executive::execute_block_no_check(block)
 				}
 			}
 		}

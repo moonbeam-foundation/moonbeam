@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::GetT;
-use ethereum::{Transaction as EthereumTransaction, TransactionAction};
+use ethereum::{TransactionAction, TransactionV2 as EthereumTransaction};
 use ethereum_types::{H160, H256, U256};
 use fc_rpc_core::types::Bytes;
 use serde::{Serialize, Serializer};
@@ -65,20 +65,46 @@ where
 
 impl GetT for Transaction {
 	fn get(hash: H256, from_address: H160, txn: &EthereumTransaction) -> Self {
+		let (nonce, action, value, gas_price, gas_limit, input) = match txn {
+			EthereumTransaction::Legacy(t) => (
+				t.nonce,
+				t.action,
+				t.value,
+				t.gas_price,
+				t.gas_limit,
+				t.input.clone(),
+			),
+			EthereumTransaction::EIP2930(t) => (
+				t.nonce,
+				t.action,
+				t.value,
+				t.gas_price,
+				t.gas_limit,
+				t.input.clone(),
+			),
+			EthereumTransaction::EIP1559(t) => (
+				t.nonce,
+				t.action,
+				t.value,
+				t.max_fee_per_gas,
+				t.gas_limit,
+				t.input.clone(),
+			),
+		};
 		Self {
 			hash,
-			nonce: txn.nonce,
+			nonce,
 			block_hash: None,
 			block_number: None,
 			from: from_address,
-			to: match txn.action {
+			to: match action {
 				TransactionAction::Call(to) => Some(to),
 				_ => None,
 			},
-			value: txn.value,
-			gas_price: txn.gas_price,
-			gas: txn.gas_limit,
-			input: Bytes(txn.input.clone()),
+			value,
+			gas_price,
+			gas: gas_limit,
+			input: Bytes(input),
 			transaction_index: None,
 		}
 	}

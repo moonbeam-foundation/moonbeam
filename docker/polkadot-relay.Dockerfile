@@ -1,10 +1,9 @@
 # Inspired by Polkadot Dockerfile
 
-FROM paritytech/ci-linux:production as builder
+FROM docker.io/paritytech/ci-linux:production as builder
 LABEL maintainer "alan@purestake.com"
 LABEL description="This is the build stage for Polkadot. Here we create the binary."
 
-ARG PROFILE=release
 ARG POLKADOT_COMMIT=master
 ARG POLKADOT_REPO=https://github.com/paritytech/polkadot
 RUN echo "Using polkadot ${POLKADOT_COMMIT}"
@@ -18,15 +17,14 @@ RUN git checkout ${POLKADOT_COMMIT}
 
 # RUN sed -i 's/pub const EPOCH_DURATION_IN_SLOTS: BlockNumber = 1 \* HOURS/pub const EPOCH_DURATION_IN_SLOTS: BlockNumber = 2 \* MINUTES/' runtime/*/src/constants.rs
 # Download rust dependencies and build the rust binary
-RUN cargo build --$PROFILE
+RUN cargo build --profile production --locked
 
 # ===== SECOND STAGE ======
 
 FROM debian:buster-slim
 LABEL maintainer "alan@purestake.com"
 LABEL description="Polkadot for Moonbeam Relay Chains"
-ARG PROFILE=release
-COPY --from=builder /polkadot/target/$PROFILE/polkadot /usr/local/bin
+COPY --from=builder /polkadot/target/production/polkadot /usr/local/bin
 
 RUN useradd -m -u 1000 -U -s /bin/sh -d /moonbase-alphanet moonbeam && \
 	mkdir -p /moonbase-alphanet/.local/share/moonbase-alphanet && \
@@ -36,7 +34,7 @@ RUN useradd -m -u 1000 -U -s /bin/sh -d /moonbase-alphanet moonbeam && \
 
 USER moonbeam
 
-COPY --chown=moonbeam specs/alphanet/rococo-embedded-specs-v8.json /moonbase-alphanet/alphanet-relay-raw-specs.json
+COPY --chown=moonbeam specs/alphanet/westend-embedded-specs-v8.json /moonbase-alphanet/alphanet-relay-raw-specs.json
 RUN grep -v '/p2p/' /moonbase-alphanet/alphanet-relay-raw-specs.json > \
     /moonbase-alphanet/alphanet-relay-raw-specs-no-bootnodes.json
 

@@ -32,13 +32,16 @@ init(
     ? "http://127.0.0.1:56053"
     : argv["net"] == "alan-standalone"
     ? "http://127.0.0.1:55543"
-    : undefined
+    : argv["net"]
 );
 
 const contractCompiled = compileSolidity(contractSource, "Loop");
 const contractBytecode = contractCompiled.bytecode;
 const contractAbi = contractCompiled.contract.abi;
-const deployer = importAccount("79b78465e13f3bf8472492c0b6068bfab0a24de8ddd76346f7b09d779f435b9b");
+// Alice
+const deployer = importAccount(
+  "0x5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133"
+);
 const contractAddress = "0x" + web3.utils.sha3(rlp.encode([deployer.address, 0]) as any).substr(26);
 
 const printAddressInfo = async (address: string) => {
@@ -47,8 +50,12 @@ const printAddressInfo = async (address: string) => {
   console.log(`Account: ${address} (nonce: ${nonce}) => ${balance}`);
 };
 
+let nonce = 0;
 const deployContract = async () => {
   // 1M gas contract call (big_loop)
+  const tokens = (await customRequest("eth_getBalance", [deployer.address])).result;
+  nonce = (await customRequest("eth_getTransactionCount", [deployer.address])).result;
+  console.log(`Using account ${deployer.address} [nonce: ${nonce}]: ${tokens} DEVs`);
 
   const code = await customRequest("eth_getCode", [contractAddress]);
   if (code.result != "0x") {
@@ -61,9 +68,9 @@ const deployContract = async () => {
       from: deployer.address,
       data: contractBytecode,
       value: "0x00",
-      gasPrice: "0x00",
+      gasPrice: web3.utils.toWei("1", "Gwei"),
       gas: 172663,
-      nonce: 0,
+      nonce: nonce++,
     },
     deployer.privateKey
   );
@@ -93,17 +100,16 @@ const callContract = async (loopCount: number) => {
 
   const encoded = await contract.methods.big_loop(loopCount).encodeABI();
 
-  const freshAccount = web3.eth.accounts.create();
   const tx = await web3.eth.accounts.signTransaction(
     {
-      from: freshAccount.address,
+      from: deployer.address,
       to: contractAddress,
       data: encoded,
-      gasPrice: 0,
+      gasPrice: web3.utils.toWei("1", "Gwei"),
       gas: 21829 + 381 * loopCount,
-      nonce: 0,
+      nonce: nonce++,
     },
-    freshAccount.privateKey
+    deployer.privateKey
   );
 
   const result = await customRequest("eth_sendRawTransaction", [tx.rawTransaction]);
@@ -127,12 +133,23 @@ const callContract = async (loopCount: number) => {
   throw new Error("Failed to verify contract call (timeout)");
 };
 
+const keypress = async () => {
+  process.stdin.setRawMode(true);
+  return new Promise((resolve) =>
+    process.stdin.once("data", (key) => {
+      process.stdin.setRawMode(false);
+      resolve(null);
+    })
+  );
+};
+
 const main = async () => {
   await deployContract();
-  let loopCount = 2;
+  let loopCount = 32768;
   while (loopCount > 0) {
+    console.log("Press key to call contract");
+    await keypress();
     await callContract(loopCount);
-    loopCount *= 2;
   }
 };
 

@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -65,7 +65,7 @@ fn purge_chain_purges_relay_and_para() {
 			.unwrap();
 
 		// Let it produce some blocks.
-		thread::sleep(Duration::from_secs(20));
+		thread::sleep(Duration::from_secs(30));
 		assert!(
 			cmd.try_wait().unwrap().is_none(),
 			"the process should still be running"
@@ -100,7 +100,10 @@ fn purge_chain_purges_relay_and_para() {
 		// Make sure the parachain data directory exists
 		assert!(base_path.path().join("chains/moonbase_dev").exists());
 		// Make sure its database is deleted
-		assert!(!base_path.path().join("chains/moonbase_dev/db").exists());
+		assert!(!base_path
+			.path()
+			.join("chains/moonbase_dev/db/full")
+			.exists());
 	}
 }
 
@@ -156,15 +159,15 @@ fn export_genesis_state() {
 	let output = Command::new(cargo_bin("moonbeam"))
 		.arg("export-genesis-state")
 		.arg("--chain")
-		.arg("moonshadow")
+		.arg("moonriver")
 		.output()
 		.unwrap();
 
 	let expected = "3078303030303030303030303030303030303030303030303030303030303030303030303\
-	03030303030303030303030303030303030303030303030303030303030303064346536663262393966636565343132\
-	39366330333734346265393032393631306466643661653539613233356565376666393332636138336332613436323\
-	23033313730613265373539376237623765336438346330353339316431333961363262313537653738373836643863\
-	30383266323964636634633131313331343030";
+	0303030303030303030303030303030303030303030303030303030303030306136333435616666313632643465366\
+	3363633336439316164663962323161336638346461356539306535383736363866313635333964346365343936643\
+	0383033313730613265373539376237623765336438346330353339316431333961363262313537653738373836643\
+	86330383266323964636634633131313331343030";
 
 	assert_eq!(expected, hex::encode(output.stdout.as_slice()))
 }

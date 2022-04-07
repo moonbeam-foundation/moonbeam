@@ -8,7 +8,7 @@ import {
   ETHAN_PRIVKEY,
 } from "../util/constants";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
-import { sendSubstrateTxAndListenInBlockEvents } from "../util/substrate-rpc";
+import { createBlockWithExtrinsic } from "../util/substrate-rpc";
 
 describeDevMoonbeam("Treasury proposal #1", (context) => {
   it("should not be able to be approved by a non-council member", async function () {
@@ -25,7 +25,7 @@ describeDevMoonbeam("Treasury proposal #1", (context) => {
 
     // Try to approve the proposal directly (must be fail)
     await context.polkadotApi.tx.treasury.approveProposal(0).signAndSend(ethan);
-    let approvals = await context.polkadotApi.query.treasury.approvals();
+    let approvals = (await context.polkadotApi.query.treasury.approvals()) as any;
     expect(approvals.length).to.equal(0, "No proposal must have been approved");
   });
 });
@@ -103,7 +103,7 @@ describeDevMoonbeam("Treasury proposal #4", (context) => {
     await context.createBlock();
 
     // Verify that the proposal is not approved
-    let approvals = await context.polkadotApi.query.treasury.approvals();
+    let approvals = (await context.polkadotApi.query.treasury.approvals()) as any;
     expect(approvals.length).to.equal(0, "No proposal should have been approved");
   });
 });
@@ -129,7 +129,7 @@ describeDevMoonbeam("Treasury proposal #5", (context) => {
     await context.createBlock();
 
     // Verify that the proposal is approved
-    let approvals = await context.polkadotApi.query.treasury.approvals();
+    let approvals = (await context.polkadotApi.query.treasury.approvals()) as any;
     expect(approvals.length).to.equal(1, "One proposal should have been approved");
   });
 });
@@ -178,25 +178,27 @@ describeDevMoonbeam("Treasury proposal #7", (context) => {
     await context.createBlock();
 
     // Verify that the proposal is submitted
-    let proposalCount = await context.polkadotApi.query.treasury.proposalCount();
-    expect(proposalCount.toHuman()).to.equal("1", "new proposal should have been added");
+    let proposalCount = (await context.polkadotApi.query.treasury.proposalCount()) as any;
+    expect(proposalCount.toBigInt()).to.equal(1n, "new proposal should have been added");
 
     // Charleth submit the proposal to the council (and therefore implicitly votes for)
-    let proposalHash = null;
-    await sendSubstrateTxAndListenInBlockEvents(
+    const { events: proposalEvents } = await createBlockWithExtrinsic(
       context,
       charleth,
       context.polkadotApi.tx.councilCollective.propose(
         2,
         context.polkadotApi.tx.treasury.approveProposal(0),
         1_000
-      ),
-      (events) => {
-        proposalHash = events[0].event.data[2].toHuman();
-      }
+      )
     );
+    const proposalHash = proposalEvents
+      .find((e) => e.method.toString() == "Proposed")
+      .data[2].toHex() as string;
 
-    // Dorothy vote for this proposal and close it
+    // Charleth & Dorothy vote for this proposal and close it
+    await context.polkadotApi.tx.councilCollective
+      .vote(proposalHash, 0, true)
+      .signAndSend(charleth);
     await context.polkadotApi.tx.councilCollective.vote(proposalHash, 0, true).signAndSend(dorothy);
     await context.createBlock();
     await context.createBlock();
@@ -206,8 +208,7 @@ describeDevMoonbeam("Treasury proposal #7", (context) => {
     await context.createBlock();
 
     // Verify that the proposal is approved
-    let approvals = await context.polkadotApi.query.treasury.approvals();
-    console.log(JSON.stringify(approvals));
+    let approvals = (await context.polkadotApi.query.treasury.approvals()) as any;
     expect(approvals.length).to.equal(1, "one proposal should have been approved");
   });
 });
@@ -224,40 +225,42 @@ describeDevMoonbeam("Treasury proposal #8", (context) => {
     await context.createBlock();
 
     // Verify that the proposal is submitted
-    let proposalCount = await context.polkadotApi.query.treasury.proposalCount();
-    expect(proposalCount.toHuman()).to.equal("1", "new proposal should have been added");
+    let proposalCount = (await context.polkadotApi.query.treasury.proposalCount()) as any;
+    expect(proposalCount.toBigInt()).to.equal(1n, "new proposal should have been added");
 
     // Charleth proposed that the council reject the treasury proposal
     // (and therefore implicitly votes for)
-    let councilProposalHash = null;
-    await sendSubstrateTxAndListenInBlockEvents(
+    const { events: rejectEvents } = await createBlockWithExtrinsic(
       context,
       charleth,
       context.polkadotApi.tx.councilCollective.propose(
         2,
         context.polkadotApi.tx.treasury.rejectProposal(0),
         1_000
-      ),
-      (events) => {
-        councilProposalHash = events[0].event.data[2].toHuman();
-      }
+      )
     );
+    const councilProposalHash = rejectEvents
+      .find((e) => e.method.toString() == "Proposed")
+      .data[2].toHex() as string;
 
-    // Dorothy vote for against proposal and close it
-    await context.polkadotApi.tx.councilCollective
-      .vote(councilProposalHash, 0, true)
-      .signAndSend(dorothy);
+    // Charleth & Dorothy vote for against proposal and close it
+    await Promise.all([
+      context.polkadotApi.tx.councilCollective
+        .vote(councilProposalHash, 0, true)
+        .signAndSend(charleth),
+      context.polkadotApi.tx.councilCollective
+        .vote(councilProposalHash, 0, true)
+        .signAndSend(dorothy),
+    ]);
+
     await context.createBlock();
-    await context.createBlock();
-    await sendSubstrateTxAndListenInBlockEvents(
+    const { events: closeEvents } = await createBlockWithExtrinsic(
       context,
       dorothy,
-      context.polkadotApi.tx.councilCollective.close(councilProposalHash, 0, 800_000_000, 1_000),
-      (events) => {
-        // Verify that the proposal is rejected (0x11 = Treasury index, 0x03 = event Rejected)
-        expect(events[3].event.index.toHuman()).to.equal("0x1103");
-      }
+      context.polkadotApi.tx.councilCollective.close(councilProposalHash, 0, 800_000_000, 1_000)
     );
+    // method: 'Rejected', section: 'treasury', index: '0x1103',
+    expect(closeEvents.map((e) => e.index.toHuman())).to.contain("0x1103");
 
     // Verify that the proposal is deleted
     expect((await context.polkadotApi.query.treasury.proposals(0)).toHuman()).to.equal(

@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "../../build/moonriver",
+    "paths": {
+      "@moonbeam/api-augment/moonriver/*": ["src/moonriver/*"],
+      "@polkadot/api/augment": ["src/moonriver/interfaces/augment-api.ts"],
+      "@polkadot/types/augment": ["src/moonriver/interfaces/augment-types.ts"],
+      "@polkadot/types/lookup": ["src/moonriver/interfaces/types-lookup.ts"]
+    }
+  }
+}
