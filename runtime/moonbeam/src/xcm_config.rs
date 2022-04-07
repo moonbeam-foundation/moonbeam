@@ -359,7 +359,7 @@ where
 			CurrencyId::ForeignAsset(asset) => AssetXConverter::reverse_ref(asset).ok(),
 			// No transactor matches this yet, so even if we have this enum variant the transfer will fail
 			CurrencyId::LocalAssetReserve(asset) => {
-				let mut location = LocalAssetsPalletLocationNewReanchor::get();
+				let mut location = LocalAssetsPalletLocation::get();
 				location.push_interior(Junction::GeneralIndex(asset)).ok();
 				Some(location)
 			}
