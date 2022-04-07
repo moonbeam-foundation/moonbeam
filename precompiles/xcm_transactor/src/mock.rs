@@ -393,6 +393,7 @@ impl xcm_transactor::Config for Runtime {
 	type BaseXcmWeight = BaseXcmWeight;
 	type XcmSender = DoNothingRouter;
 	type AssetTransactor = DummyAssetTransactor;
+	type ReserveProvider = orml_traits::location::RelativeReserveProvider;
 	type WeightInfo = ();
 }
 

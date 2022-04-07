@@ -14825,6 +14825,7 @@ dependencies = [
  "frame-system",
  "log",
  "num_enum",
+ "orml-traits",
  "pallet-balances",
  "pallet-evm",
  "pallet-timestamp",
