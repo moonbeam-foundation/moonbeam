@@ -189,10 +189,6 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
     // NetworkId::Any
     const destination_network_id = "00";
 
-    // Junction::Parachain(0)
-    const x2_parachain_asset_enum_selector = "0x00";
-    const x2_parachain_id = "00000000";
-
     // Junction::PalletInstance(3)
     const x2_pallet_instance_enum_selector = "0x04";
     const x2_instance = "03";
@@ -202,12 +198,10 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
     // This multilocation represents our native token
     let asset = [
       // one parent
-      1,
-      // X2(Parachain, PalletInstance)
-      // Parachain: Parachain selector (00) + parachain id (0) in 4 bytes (00000000)
+      0,
+      // X1(PalletInstance)
       // PalletInstance: Selector (04) + pallet instance 1 byte (03)
       [
-        x2_parachain_asset_enum_selector + x2_parachain_id,
         x2_pallet_instance_enum_selector + x2_instance,
       ],
     ];
@@ -287,25 +281,19 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
     // NetworkId::Any
     const destination_network_id = "00";
 
-    // Junction::Parachain(0)
-    const x2_parachain_asset_enum_selector = "0x00";
-    const x2_parachain_id = "00000000";
-
     // Junction::PalletInstance(3)
     const x2_pallet_instance_enum_selector = "0x04";
     const x2_instance = "03";
 
-    // This represents X3(Parent, Parachain(1000), PalletInstance(3)))
+    // This represents X1(PalletInstance(3)))
 
     // This multilocation represents our native token
     let asset = [
       // one parent
-      1,
-      // X2(Parachain, PalletInstance)
-      // Parachain: Parachain selector (00) + parachain id (0) in 4 bytes (00000000)
+      0,
+      // X1(PalletInstance)
       // PalletInstance: Selector (04) + pallet instance 1 byte (03)
       [
-        x2_parachain_asset_enum_selector + x2_parachain_id,
         x2_pallet_instance_enum_selector + x2_instance,
       ],
     ];
@@ -473,10 +461,6 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
     // 1000 units
     let amountTransferred = 1000;
 
-    // Junction::Parachain(0)
-    const x2_parachain_asset_enum_selector = "0x00";
-    const x2_parachain_id = "00000000";
-
     // Junction::PalletInstance(3)
     const x2_pallet_instance_enum_selector = "0x04";
     const x2_instance = "03";
@@ -484,12 +468,10 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
     // This multilocation represents our native token
     let asset = [
       // one parent
-      1,
-      // X2(Parachain, PalletInstance)
-      // Parachain: Parachain selector (00) + parachain id (0) in 4 bytes (00000000)
+      0,
+      // X1(PalletInstance)
       // PalletInstance: Selector (04) + pallet instance 1 byte (03)
       [
-        x2_parachain_asset_enum_selector + x2_parachain_id,
         x2_pallet_instance_enum_selector + x2_instance,
       ],
     ];

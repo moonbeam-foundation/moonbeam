@@ -1066,7 +1066,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     );
   });
 
-  it("Should NOT receive 10 Local Assets and DEV to pay for fee with old reanchor", async function () {
+  it("Should NOT receive 10 Local Assets and DEV for fee with old reanchor", async function () {
     let ownParaId = (await context.polkadotApi.query.parachainInfo.parachainId()) as any;
     const metadata = await context.polkadotApi.rpc.state.getMetadata();
     const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
