@@ -33,8 +33,6 @@ use fp_rpc::TransactionStatus;
 
 use account::AccountId20;
 
-pub use pallet_author_slot_filter::DEFAULT_TOTAL_ELIGIBLE_AUTHORS;
-
 // Re-export required by get! macro.
 pub use frame_support::traits::Get;
 use frame_support::{
@@ -61,6 +59,7 @@ pub use moonbeam_core_primitives::{
 	Index, Signature,
 };
 use moonbeam_rpc_primitives_txpool::TxPoolResponse;
+pub use pallet_author_slot_filter::EligibilityValue;
 use pallet_balances::NegativeImbalance;
 use pallet_ethereum::Call::transact;
 use pallet_ethereum::Transaction as EthereumTransaction;
