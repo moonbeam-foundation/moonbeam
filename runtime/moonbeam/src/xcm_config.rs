@@ -46,9 +46,10 @@ use xcm_builder::{
 use xcm::latest::prelude::*;
 use xcm_executor::traits::JustTry;
 
+use orml_xcm_support::MultiNativeAsset;
 use xcm_primitives::{
-	AccountIdToCurrencyId, AccountIdToMultiLocation, AsAssetType, FirstAssetTrader,
-	MultiNativeAsset, SignedToAccountId20, UtilityAvailableCalls, UtilityEncodeCall, XcmTransact,
+	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToMultiLocation, AsAssetType,
+	FirstAssetTrader, SignedToAccountId20, UtilityAvailableCalls, UtilityEncodeCall, XcmTransact,
 };
 
 use parity_scale_codec::{Decode, Encode};
@@ -218,7 +219,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type AssetTransactor = AssetTransactors;
 	type OriginConverter = XcmOriginToTransactDispatchOrigin;
 	// Filter to the reserve withdraw operations
-	type IsReserve = MultiNativeAsset;
+	type IsReserve = MultiNativeAsset<AbsoluteAndRelativeReserve<SelfLocationAbsolute>>;
 	type IsTeleporter = (); // No teleport
 	type LocationInverter = LocationInverter<Ancestry>;
 	type Barrier = XcmBarrier;
@@ -385,6 +386,12 @@ parameter_types! {
 	// This is how we are going to detect whether the asset is a Reserve asset
 	// This however is the chain part only
 	pub SelfLocation: MultiLocation = MultiLocation::here();
+	pub SelfLocationAbsolute: MultiLocation = MultiLocation {
+		parents:1,
+		interior: Junctions::X1(
+			Parachain(ParachainInfo::parachain_id().into())
+		)
+	};
 }
 
 parameter_type_with_key! {
@@ -408,7 +415,7 @@ impl orml_xtokens::Config for Runtime {
 	type MaxAssetsForTransfer = MaxAssetsForTransfer;
 	type MinXcmFee = ParachainMinFee;
 	type MultiLocationsFilter = Everything;
-	type ReserveProvider = RelativeReserveProvider;
+	type ReserveProvider = AbsoluteAndRelativeReserve<SelfLocationAbsolute>;
 }
 
 // For now we only allow to transact in the relay, although this might change in the future
@@ -464,5 +471,6 @@ impl xcm_transactor::Config for Runtime {
 	type LocationInverter = LocationInverter<Ancestry>;
 	type BaseXcmWeight = BaseXcmWeight;
 	type AssetTransactor = AssetTransactors;
+	type ReserveProvider = AbsoluteAndRelativeReserve<SelfLocationAbsolute>;
 	type WeightInfo = xcm_transactor::weights::SubstrateWeight<Runtime>;
 }

@@ -283,7 +283,9 @@ impl Config for XcmConfig {
 	type XcmSender = XcmRouter;
 	type AssetTransactor = AssetTransactors;
 	type OriginConverter = XcmOriginToTransactDispatchOrigin;
-	type IsReserve = xcm_primitives::MultiNativeAsset;
+	type IsReserve = orml_xcm_support::MultiNativeAsset<
+		xcm_primitives::AbsoluteAndRelativeReserve<SelfLocationAbsolute>,
+	>;
 	type IsTeleporter = ();
 	type LocationInverter = LocationInverter<Ancestry>;
 	type Barrier = Barrier;
@@ -337,6 +339,12 @@ parameter_types! {
 	pub const BaseXcmWeight: Weight = 100;
 	pub const MaxAssetsForTransfer: usize = 2;
 	pub SelfLocation: MultiLocation = MultiLocation::here();
+	pub SelfLocationAbsolute: MultiLocation = MultiLocation {
+		parents:1,
+		interior: Junctions::X1(
+			Parachain(MsgQueue::parachain_id().into())
+		)
+	};
 }
 
 parameter_type_with_key! {
@@ -361,7 +369,7 @@ impl orml_xtokens::Config for Runtime {
 	type MaxAssetsForTransfer = MaxAssetsForTransfer;
 	type MinXcmFee = ParachainMinFee;
 	type MultiLocationsFilter = Everything;
-	type ReserveProvider = RelativeReserveProvider;
+	type ReserveProvider = xcm_primitives::AbsoluteAndRelativeReserve<SelfLocationAbsolute>;
 }
 
 parameter_types! {
@@ -777,6 +785,7 @@ impl xcm_transactor::Config for Runtime {
 	type XcmSender = XcmRouter;
 	type BaseXcmWeight = BaseXcmWeight;
 	type AssetTransactor = AssetTransactors;
+	type ReserveProvider = xcm_primitives::AbsoluteAndRelativeReserve<SelfLocationAbsolute>;
 	type WeightInfo = ();
 }
 
