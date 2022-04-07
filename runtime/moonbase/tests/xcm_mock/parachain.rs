@@ -337,7 +337,9 @@ impl Config for XcmConfig {
 	type XcmSender = XcmRouter;
 	type AssetTransactor = AssetTransactors;
 	type OriginConverter = XcmOriginToTransactDispatchOrigin;
-	type IsReserve = orml_xcm_support::MultiNativeAsset<xcm_primitives::AbsoluteAndRelativeReserve<SelfLocationAbsolute>>;
+	type IsReserve = orml_xcm_support::MultiNativeAsset<
+		xcm_primitives::AbsoluteAndRelativeReserve<SelfLocationAbsolute>,
+	>;
 	type IsTeleporter = ();
 	type LocationInverter = LocationInverter<Ancestry>;
 	type Barrier = Barrier;

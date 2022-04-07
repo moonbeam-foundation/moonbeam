@@ -6245,6 +6245,7 @@ dependencies = [
  "moonbeam-rpc-primitives-txpool",
  "nimbus-primitives",
  "orml-traits",
+ "orml-xcm-support",
  "orml-xtokens",
  "pallet-asset-manager",
  "pallet-assets",

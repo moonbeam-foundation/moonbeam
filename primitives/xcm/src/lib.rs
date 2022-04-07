@@ -22,6 +22,7 @@ use frame_support::{
 	traits::{tokens::fungibles::Mutate, Get, OriginTrait},
 	weights::{constants::WEIGHT_PER_SECOND, Weight},
 };
+use orml_traits::location::{Parse, RelativeReserveProvider, Reserve};
 use sp_runtime::traits::{CheckedConversion, Zero};
 use sp_std::{borrow::Borrow, vec::Vec};
 use sp_std::{
@@ -34,7 +35,6 @@ use xcm::latest::{
 	Junctions::*,
 	MultiAsset, MultiLocation, NetworkId,
 };
-use orml_traits::location::{Reserve, Parse, RelativeReserveProvider};
 use xcm_builder::TakeRevenue;
 use xcm_executor::traits::{FilterAssetLocation, MatchesFungible, MatchesFungibles, WeightTrader};
 
@@ -247,8 +247,7 @@ impl<
 }
 
 pub struct AbsoluteAndRelativeReserve<AbsoluteMultiLocation>(PhantomData<AbsoluteMultiLocation>);
-impl<AbsoluteMultiLocation> Reserve
-	for AbsoluteAndRelativeReserve<AbsoluteMultiLocation>
+impl<AbsoluteMultiLocation> Reserve for AbsoluteAndRelativeReserve<AbsoluteMultiLocation>
 where
 	AbsoluteMultiLocation: Get<MultiLocation>,
 {
@@ -256,12 +255,10 @@ where
 		if let Some(relative_reserve) = RelativeReserveProvider::reserve(asset) {
 			if relative_reserve == AbsoluteMultiLocation::get() {
 				Some(MultiLocation::here())
-			}
-			else {
+			} else {
 				Some(relative_reserve)
 			}
-		}
-		else {
+		} else {
 			None
 		}
 	}
