@@ -74,6 +74,7 @@ parameter_types! {
 	// Self Reserve location, defines the multilocation identifiying the self-reserve currency
 	// This is used to match it also against our Balances pallet when we receive such
 	// a MultiLocation: (Self Balances pallet index)
+	// We use the RELATIVE multilocation
 	pub SelfReserve: MultiLocation = MultiLocation {
 		parents:0,
 		interior: Junctions::X1(
@@ -81,10 +82,9 @@ parameter_types! {
 		)
 	};
 
-	// New reanchor logic location for pallet assets
-	// This is the relative view of our local assets. This is the representation that will
-	// be considered canonical after we import
+	// This is the relative view of our local assets.
 	// Indentified by thix prefix + generalIndex(assetId)
+	// We use the RELATIVE multilocation
 	pub LocalAssetsPalletLocation: MultiLocation = MultiLocation {
 		parents:0,
 		interior: Junctions::X1(
@@ -259,13 +259,15 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type AssetTransactor = AssetTransactors;
 	type OriginConverter = XcmOriginToTransactDispatchOrigin;
 	// Filter to the reserve withdraw operations
+	// Whenever the reserve matches the relative or absolute value
+	// of our chain, we always return the relative reserve
 	type IsReserve = MultiNativeAsset<AbsoluteAndRelativeReserve<SelfLocationAbsolute>>;
 	type IsTeleporter = (); // No teleport
 	type LocationInverter = LocationInverter<Ancestry>;
 	type Barrier = XcmBarrier;
 	type Weigher = XcmWeigher;
-	// We use three traders
-	// When we receive either representation of the self-reserve asset,
+	// We use two traders
+	// When we receive the relative representation of the self-reserve asset,
 	// we use UsingComponents and the local way of handling fees
 	// When we receive a non-reserve asset, we use AssetManager to fetch how many
 	// units per second we should charge
@@ -414,11 +416,6 @@ where
 {
 	fn convert(currency: CurrencyId) -> Option<MultiLocation> {
 		match currency {
-			// For now and until Xtokens is adapted to handle 0.9.16 version we use
-			// the old anchoring here
-			// This is not a problem in either cases, since the view of the destination
-			// chain does not change
-			// TODO! change this to NewAnchoringSelfReserve once xtokens is adapted for it
 			CurrencyId::SelfReserve => {
 				let multi: MultiLocation = SelfReserve::get();
 				Some(multi)
@@ -439,6 +436,8 @@ parameter_types! {
 	// This is how we are going to detect whether the asset is a Reserve asset
 	// This however is the chain part only
 	pub SelfLocation: MultiLocation = MultiLocation::here();
+	// We need this to be able to catch when someone is trying to execute a non-
+	// cross-chain transfer in xtokens through the absolute path way
 	pub SelfLocationAbsolute: MultiLocation = MultiLocation {
 		parents:1,
 		interior: Junctions::X1(

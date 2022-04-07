@@ -1978,6 +1978,7 @@ fn send_para_a_local_asset_to_para_b_and_send_it_back_together_with_some_dev() {
 	ExtBuilder::default().build().execute_with(|| {
 		MockNet::reset();
 
+		println!("ancestry is {:?}", parachain::Ancestry::get());
 		let asset_id = parachain::LocalAssetIdCreator::create_asset_id_from_metadata(0);
 		let para_a_local_asset = MultiLocation::new(
 			1,
