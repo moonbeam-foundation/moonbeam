@@ -46,17 +46,37 @@ pub mod pallet {
 	use frame_support::traits::{Currency, ReservableCurrency};
 	use frame_system::pallet_prelude::*;
 	use nimbus_primitives::{AccountLookup, NimbusId};
+	use vrf_primitives::KeysLookup;
 
 	pub type BalanceOf<T> = <<T as Config>::DepositCurrency as Currency<
 		<T as frame_system::Config>::AccountId,
 	>>::Balance;
 
 	#[derive(Encode, Decode, PartialEq, Eq, Debug, scale_info::TypeInfo)]
-	pub struct RegistrationInfo<AccountId, Balance, Keys> {
+	pub struct RegistrationInfo<AccountId, Balance> {
 		account: AccountId,
 		deposit: Balance,
-		keys: Keys,
 	}
+
+	#[derive(Encode, Decode, PartialEq, Eq, Debug, scale_info::TypeInfo)]
+	#[scale_info(skip_type_params(T))]
+	pub struct RegistrationInformation<T: Config> {
+		account: T::AccountId,
+		deposit: BalanceOf<T>,
+		keys: T::Keys,
+	}
+
+	/// need a function to convert from existing AuthorMapping to current AuthorMapping
+	// TODO? Use default
+	// impl<T: Config> From<RegistrationInfo<T::AccountId, BalanceOf<T>>> for RegistrationInformation<T> {
+	// 	fn from(other: RegistrationInfo<T::AccountId, BalanceOf<T>>) -> RegistrationInformation<T> {
+	// 		RegistrationInformation {
+	// 			account: other.account,
+	// 			deposit: other.deposit,
+	// 			keys: other.keys,
+	// 		}
+	// 	}
+	// }
 
 	#[pallet::pallet]
 	#[pallet::without_storage_info]
@@ -72,7 +92,7 @@ pub mod pallet {
 		/// The amount that should be taken as a security deposit when registering a NimbusId.
 		type DepositAmount: Get<<Self::DepositCurrency as Currency<Self::AccountId>>::Balance>;
 		/// Additional keys TODO: add description and better trait bound
-		type Keys: Clone;
+		type Keys: Parameter + Member + MaybeSerializeDeserialize;
 		/// Weight information for extrinsics in this pallet.
 		type WeightInfo: WeightInfo;
 	}
@@ -102,17 +122,16 @@ pub mod pallet {
 		/// An NimbusId has been de-registered, and its AccountId mapping removed.
 		AuthorDeRegistered { author_id: NimbusId, keys: T::Keys },
 		/// An NimbusId has been registered, replacing a previous registration and its mapping.
-		AuthorRotated {
+		KeysRotated {
 			new_author_id: NimbusId,
-			account_id: T::AccountId,
 			new_keys: T::Keys,
+			account_id: T::AccountId,
 		},
 		/// An NimbusId has been forcibly deregistered after not being rotated or cleaned up.
-		/// The reporteing account has been rewarded accordingly.
+		/// The reporting account has been rewarded accordingly.
 		DefunctAuthorBusted {
 			author_id: NimbusId,
 			account_id: T::AccountId,
-			keys: T::Keys,
 		},
 	}
 
@@ -131,7 +150,7 @@ pub mod pallet {
 			let account_id = ensure_signed(origin)?;
 
 			ensure!(
-				MappingWithDeposit::<T>::get(&author_id).is_none(),
+				MappingWithDepositAndKeys::<T>::get(&author_id).is_none(),
 				Error::<T>::AlreadyAssociated
 			);
 
@@ -146,6 +165,49 @@ pub mod pallet {
 			Ok(())
 		}
 
+		/// Change your keys
+		///
+		/// This is useful for key rotation to update Nimbus and VRF keys in one call
+		/// Will replace `update_association`
+		#[pallet::weight(0)] // TODO: update weights
+		pub fn set_keys(
+			origin: OriginFor<T>,
+			old_author_id: NimbusId,
+			new_author_id: NimbusId,
+			new_keys: T::Keys,
+		) -> DispatchResult {
+			let account_id = ensure_signed(origin)?;
+
+			let stored_info = MappingWithDepositAndKeys::<T>::try_get(&old_author_id)
+				.map_err(|_| Error::<T>::AssociationNotFound)?;
+
+			ensure!(
+				account_id == stored_info.account,
+				Error::<T>::NotYourAssociation
+			);
+			ensure!(
+				MappingWithDepositAndKeys::<T>::get(&new_author_id).is_none(),
+				Error::<T>::AlreadyAssociated
+			);
+
+			MappingWithDepositAndKeys::<T>::remove(&old_author_id);
+			MappingWithDepositAndKeys::<T>::insert(
+				&new_author_id,
+				&RegistrationInformation {
+					keys: new_keys.clone(),
+					..stored_info
+				},
+			);
+
+			<Pallet<T>>::deposit_event(Event::KeysRotated {
+				new_author_id: new_author_id,
+				new_keys,
+				account_id,
+			});
+
+			Ok(())
+		}
+
 		/// Change your Mapping.
 		///
 		/// This is useful for normal key rotation or for when switching from one physical collator
@@ -154,33 +216,28 @@ pub mod pallet {
 		pub fn update_association(
 			origin: OriginFor<T>,
 			old_author_id: NimbusId,
-			old_keys: T::Keys,
 			new_author_id: NimbusId,
-			new_keys: T::Keys,
 		) -> DispatchResult {
 			let account_id = ensure_signed(origin)?;
 
-			let stored_info = MappingWithDeposit::<T>::try_get(&old_author_id)
+			let stored_info = MappingWithDepositAndKeys::<T>::try_get(&old_author_id)
 				.map_err(|_| Error::<T>::AssociationNotFound)?;
 
 			ensure!(
 				account_id == stored_info.account,
 				Error::<T>::NotYourAssociation
 			);
-			// do we need to ensure only 1 VRF ID
 			ensure!(
 				MappingWithDeposit::<T>::get(&new_author_id).is_none(),
 				Error::<T>::AlreadyAssociated
 			);
 
-			MappingWithDeposit::<T>::remove(&old_author_id);
-			MappingWithDeposit::<T>::insert(
-				&new_author_id,
-				&RegistrationInfo { owner: stored_info },
-			);
+			MappingWithDepositAndKeys::<T>::remove(&old_author_id);
+			MappingWithDepositAndKeys::<T>::insert(&new_author_id, &stored_info);
 
-			<Pallet<T>>::deposit_event(Event::AuthorRotated {
+			<Pallet<T>>::deposit_event(Event::KeysRotated {
 				new_author_id: new_author_id,
+				new_keys: stored_info.keys,
 				account_id: stored_info.account,
 			});
 
@@ -198,7 +255,7 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let account_id = ensure_signed(origin)?;
 
-			let stored_info = MappingWithDeposit::<T>::try_get(&author_id)
+			let stored_info = MappingWithDepositAndKeys::<T>::try_get(&author_id)
 				.map_err(|_| Error::<T>::AssociationNotFound)?;
 
 			ensure!(
@@ -206,11 +263,14 @@ pub mod pallet {
 				Error::<T>::NotYourAssociation
 			);
 
-			MappingWithDeposit::<T>::remove(&author_id);
+			MappingWithDepositAndKeys::<T>::remove(&author_id);
 
 			T::DepositCurrency::unreserve(&account_id, stored_info.deposit);
 
-			<Pallet<T>>::deposit_event(Event::AuthorDeRegistered { author_id });
+			<Pallet<T>>::deposit_event(Event::AuthorDeRegistered {
+				author_id,
+				keys: stored_info.keys,
+			});
 
 			Ok(().into())
 		}
@@ -220,18 +280,20 @@ pub mod pallet {
 		pub fn enact_registration(
 			author_id: &NimbusId,
 			account_id: &T::AccountId,
+			keys: &T::Keys,
 		) -> DispatchResult {
 			let deposit = T::DepositAmount::get();
 
 			T::DepositCurrency::reserve(&account_id, deposit)
 				.map_err(|_| Error::<T>::CannotAffordSecurityDeposit)?;
 
-			let info = RegistrationInfo {
+			let info = RegistrationInformation {
 				account: account_id.clone(),
 				deposit,
+				keys: keys.clone(),
 			};
 
-			MappingWithDeposit::<T>::insert(&author_id, &info);
+			MappingWithDepositAndKeys::<T>::insert(&author_id, &info);
 
 			Ok(())
 		}
@@ -240,20 +302,25 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn account_and_deposit_of)]
 	/// We maintain a mapping from the NimbusIds used in the consensus layer
-	/// to the AccountIds runtime (including this staking pallet).
+	/// to the AccountIds runtime.
 	pub type MappingWithDeposit<T: Config> = StorageMap<
 		_,
 		Blake2_128Concat,
 		NimbusId,
-		RegistrationInfo<T::AccountId, BalanceOf<T>, T::AdditionalKeys>,
+		RegistrationInfo<T::AccountId, BalanceOf<T>>,
 		OptionQuery,
 	>;
+
+	#[pallet::storage]
+	#[pallet::getter(fn account_deposit_keys_of)]
+	pub type MappingWithDepositAndKeys<T: Config> =
+		StorageMap<_, Blake2_128Concat, NimbusId, RegistrationInformation<T>, OptionQuery>;
 
 	#[pallet::genesis_config]
 	/// Genesis config for author mapping pallet
 	pub struct GenesisConfig<T: Config> {
 		/// The associations that should exist at chain genesis
-		pub mappings: Vec<(NimbusId, T::AccountId)>,
+		pub mappings: Vec<(NimbusId, T::AccountId, T::Keys)>,
 	}
 
 	#[cfg(feature = "std")]
@@ -266,8 +333,8 @@ pub mod pallet {
 	#[pallet::genesis_build]
 	impl<T: Config> GenesisBuild<T> for GenesisConfig<T> {
 		fn build(&self) {
-			for (author_id, account_id) in &self.mappings {
-				if let Err(e) = Pallet::<T>::enact_registration(&author_id, &account_id) {
+			for (author_id, account_id, keys) in &self.mappings {
+				if let Err(e) = Pallet::<T>::enact_registration(&author_id, &account_id, keys) {
 					log::warn!("Error with genesis author mapping registration: {:?}", e);
 				}
 			}
@@ -280,11 +347,21 @@ pub mod pallet {
 		}
 	}
 
+	impl<T: Config> KeysLookup<T::Keys> for Pallet<T> {
+		fn lookup_keys(author: &NimbusId) -> Option<T::Keys> {
+			Self::keys_of(author)
+		}
+	}
+
 	impl<T: Config> Pallet<T> {
 		/// A helper function to lookup the account id associated with the given author id. This is
 		/// the primary lookup that this pallet is responsible for.
 		pub fn account_id_of(author_id: &NimbusId) -> Option<T::AccountId> {
-			Self::account_and_deposit_of(author_id).map(|info| info.account)
+			Self::account_deposit_keys_of(author_id).map(|info| info.account)
+		}
+		/// A helper function to lookup the keys associated with the given author id.
+		pub fn keys_of(author_id: &NimbusId) -> Option<T::Keys> {
+			Self::account_deposit_keys_of(author_id).map(|info| info.keys)
 		}
 	}
 }

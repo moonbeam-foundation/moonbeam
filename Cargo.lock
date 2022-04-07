@@ -6925,6 +6925,7 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
+ "vrf-primitives",
 ]
 
 [[package]]
@@ -14017,6 +14018,14 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
+ "vrf-primitives",
+]
+
+[[package]]
+name = "vrf-primitives"
+version = "0.1.0"
+dependencies = [
+ "nimbus-primitives",
 ]
 
 [[package]]

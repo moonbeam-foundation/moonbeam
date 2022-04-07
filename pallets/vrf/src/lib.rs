@@ -21,11 +21,11 @@
 //!
 
 #![cfg_attr(not(feature = "std"), no_std)]
-
-use nimbus_primitives::{AccountLookup, NimbusId, NIMBUS_ENGINE_ID};
+use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
 use sp_application_crypto::ByteArray;
 use sp_consensus_babe::{digests::PreDigest, AuthorityId, Slot, Transcript, BABE_ENGINE_ID};
 use sp_consensus_vrf::schnorrkel;
+use vrf_primitives::KeysLookup;
 
 #[cfg(test)]
 mod mock;
@@ -96,7 +96,7 @@ pub mod pallet {
 		/// and returns weight consumed for getting these values
 		type MostRecentVrfInputGetter: GetMostRecentVrfInputs<Self::RelayBlockHash, Slot>;
 		/// Takes input NimbusId and gets back AuthorityId
-		type VrfKeyLookup: AccountLookup<AuthorityId>;
+		type VrfKeyLookup: KeysLookup<AuthorityId>;
 	}
 
 	/// Current block randomness
@@ -160,7 +160,7 @@ pub mod pallet {
 								.expect("NimbusId encoded in preruntime digest must be valid");
 
 							block_author_vrf_id = Some(
-								T::VrfKeyLookup::lookup_account(&nimbus_id)
+								T::VrfKeyLookup::lookup_keys(&nimbus_id)
 									.expect("No VRF Key Mapped to this NimbusId"),
 							);
 						}
