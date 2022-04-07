@@ -286,7 +286,7 @@ pub fn testnet_genesis(
 			members: tech_comittee_members,
 		},
 		author_filter: AuthorFilterConfig {
-			eligible_count: EligibilityValue::default(),
+			eligible_count: EligibilityValue::new_unchecked(50),
 		},
 		author_mapping: AuthorMappingConfig {
 			mappings: candidates
