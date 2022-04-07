@@ -43,6 +43,15 @@ sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbea
 sp-state-machine = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18" }
 sp-timestamp = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18" }
 
+# Parity
+sp-application-crypto = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18" }
+nimbus-consensus = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.18" }
+# sc-consensus-manual-seal-parity = { git = "https://github.com/paritytech/substrate", branch = "master", package = "sc-consensus-manual-seal" }
+sp-inherents = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18" }
+sc-consensus = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18" }
+# sp-api-parity = { git = "https://github.com/paritytech/substrate", branch = "master", package = "sp-api" }
+# sp-runtime-parity = { git = "https://github.com/paritytech/substrate", branch = "master", package = "sp-runtime" }
+
 # Frontier
 ethereum = { version = "0.12.0" }
 fc-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.18" }

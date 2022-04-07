@@ -32,6 +32,7 @@ use sc_consensus_manual_seal::{run_manual_seal, CreatedBlock, EngineCommand, Man
 use sc_executor::{NativeElseWasmExecutor, NativeExecutionDispatch};
 use sc_service::{Configuration, TFullBackend, TFullClient, TaskManager, TransactionPool};
 use sp_api::{BlockId, ConstructRuntimeApi, ProvideRuntimeApi};
+use sp_core::ByteArray;
 use sp_core::{H160, H256, U256};
 use sp_runtime::transaction_validity::TransactionSource;
 use std::{fs::File, io::prelude::*, marker::PhantomData, sync::Arc};
@@ -139,6 +140,17 @@ where
 
 		let client_set_aside_for_cidp = client.clone();
 
+		// Insert Alice in keystore, for nimbus to pickup
+		let keystore = keystore_container.sync_keystore();
+		let key_type = sp_core::crypto::KeyTypeId(*b"nmbs");
+		sp_keystore::SyncCryptoStore::insert_unknown(
+			&*keystore,
+			key_type,
+			"Alice",
+			author_id.as_slice(),
+		)
+		.expect("failed inserting key");
+
 		log::debug!("spawning authorship task...");
 		task_manager.spawn_essential_handle().spawn_blocking(
 			"authorship_task",
@@ -150,7 +162,16 @@ where
 				pool: transaction_pool.clone(),
 				commands_stream: command_stream,
 				select_chain,
-				consensus_data_provider: None,
+				// consensus_data_provider: Some(Box::new(crate::mocks::MockConsensusDataProvider {
+				// 	author_id: author_id.clone(),
+				// 	client: client.clone(),
+				// })),
+				consensus_data_provider: Some(Box::new(
+					nimbus_consensus::NimbusManualSealConsensusDataProvider {
+						keystore: keystore,
+						client: client.clone(),
+					},
+				)),
 				create_inherent_data_providers: move |block: H256, ()| {
 					let current_para_block = client_set_aside_for_cidp
 						.number(block)

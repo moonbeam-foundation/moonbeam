@@ -435,8 +435,9 @@ pub fn run() -> Result<()> {
 			let mut working_dir = cmd.working_dir.clone();
 			working_dir.push("perf_test");
 			if working_dir.exists() {
-				eprintln!("test subdir {:?} exists, please remove", working_dir);
-				std::process::exit(1);
+				// eprintln!("test subdir {:?} exists, please remove", working_dir);
+				std::fs::remove_dir_all(&working_dir).unwrap();
+				// std::process::exit(1);
 			}
 
 			let mut cmd: perf_test::PerfCmd = cmd.clone();

@@ -16,6 +16,7 @@
 // limitations under the License.
 
 mod command;
+mod mocks;
 mod tests;
 mod txn_signer;
 
@@ -42,7 +43,7 @@ pub struct PerfCmd {
 	pub output_file: Option<PathBuf>,
 
 	#[clap(long, value_name = "CHAIN_SPEC", default_value = "dev")]
-	pub chain: String,
+	pub chain_spec: String,
 
 	#[clap(
 		long = "tests",

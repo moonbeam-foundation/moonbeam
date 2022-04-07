@@ -21,7 +21,9 @@
         "--tmp"
       ],
       "cwd": "${workspaceFolder}",
-      "sourceLanguages": ["rust"],
+      "sourceLanguages": [
+        "rust"
+      ],
       "sourceMap": {
         "/rustc/*": "${dbgconfig:rustc_path}"
       }
@@ -45,7 +47,9 @@
         "--tmp"
       ],
       "cwd": "${workspaceFolder}",
-      "sourceLanguages": ["rust"],
+      "sourceLanguages": [
+        "rust"
+      ],
       "sourceMap": {
         "/rustc/*": "${dbgconfig:rustc_path}"
       }
@@ -65,9 +69,28 @@
       "name": "Mocha Current Opened Test",
       "program": "${workspaceFolder}/tests/node_modules/mocha/bin/_mocha",
       "request": "launch",
-      "skipFiles": ["<node_internals>/**"],
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
       "type": "pwa-node",
       "port": 9229
-    }
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "perf-test",
+      "program": "${workspaceFolder}/target/debug/moonbeam",
+      "args": [
+        "perf-test",
+        "--working-dir=tmp"
+      ],
+      "cwd": "${workspaceFolder}",
+      "sourceLanguages": [
+        "rust"
+      ],
+      "sourceMap": {
+        "/rustc/*": "${dbgconfig:rustc_path}"
+      }
+    },
   ]
 }
