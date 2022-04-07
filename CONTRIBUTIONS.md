@@ -57,4 +57,5 @@ If the changes are not to be listed in any changelog, associate the label `B0-si
 
 # Git branch conventions
 
-See [Git branch conventions](docs/git-branches-conventions.md)
+For branch conventions related to this git repository,
+see [Git branch conventions](docs/git-branches-conventions.md).
