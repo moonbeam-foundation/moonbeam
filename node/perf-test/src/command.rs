@@ -27,7 +27,7 @@ use ethereum::TransactionAction;
 use fp_rpc::{ConvertTransactionRuntimeApi, EthereumRuntimeRPCApi};
 use nimbus_primitives::NimbusId;
 use sc_cli::{CliConfiguration, Result as CliResult, SharedParams};
-use sc_client_api::HeaderBackend;
+use sc_client_api::{HeaderBackend, UsageProvider};
 use sc_consensus_manual_seal::{run_manual_seal, CreatedBlock, EngineCommand, ManualSealParams};
 use sc_executor::{NativeElseWasmExecutor, NativeExecutionDispatch};
 use sc_service::{Configuration, TFullBackend, TFullClient, TaskManager, TransactionPool};
@@ -141,15 +141,12 @@ where
 		let client_set_aside_for_cidp = client.clone();
 
 		// Insert Alice in keystore, for nimbus to pickup
-		let keystore = keystore_container.sync_keystore();
-		let key_type = sp_core::crypto::KeyTypeId(*b"nmbs");
-		sp_keystore::SyncCryptoStore::insert_unknown(
-			&*keystore,
-			key_type,
-			"Alice",
-			author_id.as_slice(),
+		sp_session::generate_initial_session_keys(
+			client.clone(),
+			&BlockId::Hash(client.usage_info().chain.best_hash),
+			vec!["//Alice".into()],
 		)
-		.expect("failed inserting key");
+		.expect("generate_initial_session_keys() failed");
 
 		log::debug!("spawning authorship task...");
 		task_manager.spawn_essential_handle().spawn_blocking(
@@ -168,7 +165,7 @@ where
 				// })),
 				consensus_data_provider: Some(Box::new(
 					nimbus_consensus::NimbusManualSealConsensusDataProvider {
-						keystore: keystore,
+						keystore: keystore_container.sync_keystore(),
 						client: client.clone(),
 					},
 				)),
