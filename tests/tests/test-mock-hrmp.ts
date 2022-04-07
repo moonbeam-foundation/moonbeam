@@ -127,6 +127,135 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     alith = keyringEth.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
 
     // registerForeignAsset
+    // We register statemine with the new prefix
+    const { events: eventsRegister } = await createBlockWithExtrinsic(
+      context,
+      alith,
+      context.polkadotApi.tx.sudo.sudo(
+        context.polkadotApi.tx.assetManager.registerForeignAsset(
+          statemintLocation,
+          assetMetadata,
+          new BN(1),
+          true
+        )
+      )
+    );
+    // Look for assetId in events
+    eventsRegister.forEach((e) => {
+      if (e.section.toString() === "assetManager") {
+        assetId = e.data[0].toHex();
+      }
+    });
+    assetId = assetId.replace(/,/g, "");
+
+    // setAssetUnitsPerSecond
+    const { events } = await createBlockWithExtrinsic(
+      context,
+      alith,
+      context.polkadotApi.tx.sudo.sudo(
+        context.polkadotApi.tx.assetManager.setAssetUnitsPerSecond(statemintLocation, 0, 0)
+      )
+    );
+    expect(events[1].method.toString()).to.eq("UnitsPerSecondChanged");
+    expect(events[4].method.toString()).to.eq("ExtrinsicSuccess");
+
+    // check asset in storage
+    const registeredAsset = (
+      (await context.polkadotApi.query.assets.asset(assetId)) as any
+    ).unwrap();
+    expect(registeredAsset.owner.toHex()).to.eq(palletId.toLowerCase());
+  });
+
+  it("Should NOT receive a 10 Statemine tokens to Alith with old prefix", async function () {
+    // We are going to test that, using the prefix prior to
+    // https://github.com/paritytech/cumulus/pull/831
+    // we cannot receive the tokens on the assetId registed with the old prefix
+
+    // Old prefix:
+    // Parachain(Statemint parachain)
+    // GeneralIndex(assetId being transferred)
+    let xcmMessage = {
+      V2: [
+        {
+          ReserveAssetDeposited: [
+            {
+              id: {
+                Concrete: {
+                  parents: 1,
+                  interior: { X2: [{ Parachain: statemint_para_id }, { GeneralIndex: 0 }] },
+                },
+              },
+              fun: { Fungible: new BN(10000000000000) },
+            },
+          ],
+        },
+        { ClearOrigin: null },
+        {
+          BuyExecution: {
+            fees: {
+              id: {
+                Concrete: {
+                  parents: new BN(1),
+                  interior: { X2: [{ Parachain: statemint_para_id }, { GeneralIndex: 0 }] },
+                },
+              },
+              fun: { Fungible: new BN(10000000000000) },
+            },
+            weightLimit: { Limited: new BN(4000000000) },
+          },
+        },
+        {
+          DepositAsset: {
+            assets: { Wild: "All" },
+            maxAssets: new BN(1),
+            beneficiary: {
+              parents: 0,
+              interior: { X1: { AccountKey20: { network: "Any", key: alith.address } } },
+            },
+          },
+        },
+      ],
+    };
+    const xcmpFormat: XcmpMessageFormat = context.polkadotApi.createType(
+      "XcmpMessageFormat",
+      "ConcatenatedVersionedXcm"
+    ) as any;
+    const receivedMessage: XcmVersionedXcm = context.polkadotApi.createType(
+      "XcmVersionedXcm",
+      xcmMessage
+    ) as any;
+
+    const totalMessage = [...xcmpFormat.toU8a(), ...receivedMessage.toU8a()];
+    // Send RPC call to inject XCM message
+    // We will set a specific message knowing that it should mint the statemint asset
+    await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [
+      statemint_para_id,
+      totalMessage,
+    ]);
+
+    // Create a block in which the XCM will be executed
+    await context.createBlock();
+
+    // Make sure the state has ALITH's foreign parachain tokens
+    let alith_dot_balance = (await context.polkadotApi.query.assets.account(
+      assetId,
+      alith.address
+    )) as any;
+
+    // The message execution failed
+    expect(alith_dot_balance.isNone).to.eq(true);
+  });
+});
+
+describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
+  let assetId: string;
+  let alith: KeyringPair;
+
+  before("Should Register an asset and set unit per sec", async function () {
+    const keyringEth = new Keyring({ type: "ethereum" });
+    alith = keyringEth.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
+
+    // registerForeignAsset
     const { events: eventsRegister } = await createBlockWithExtrinsic(
       context,
       alith,
@@ -256,6 +385,130 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
       ["balance"].toBigInt();
 
     expect(alith_dot_balance).to.eq(10n * FOREIGN_TOKEN);
+  });
+});
+
+describeDevMoonbeam("Mock XCM - receive horizontal transfer of DEV", (context) => {
+  let alith: KeyringPair;
+  let random: KeyringPair;
+  let paraId: ParaId;
+  let transferredBalance;
+  let sovereignAddress;
+
+  before("Should send DEV to the parachain sovereign", async function () {
+    const keyringEth = new Keyring({ type: "ethereum" });
+    alith = keyringEth.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
+    random = keyringEth.addFromUri(RANDOM_PRIV_KEY, null, "ethereum");
+
+    paraId = context.polkadotApi.createType("ParaId", 2000) as any;
+    sovereignAddress = u8aToHex(
+      new Uint8Array([...new TextEncoder().encode("sibl"), ...paraId.toU8a()])
+    ).padEnd(42, "0");
+
+    transferredBalance = new BN(100000000000000);
+
+    // We first fund parachain 2000 sovreign account
+    await createBlockWithExtrinsic(
+      context,
+      alith,
+      context.polkadotApi.tx.balances.transfer(sovereignAddress, transferredBalance)
+    );
+    let balance = (
+      (await context.polkadotApi.query.system.account(sovereignAddress)) as any
+    ).data.free.toBigInt();
+    expect(balance.toString()).to.eq(transferredBalance.toString());
+  });
+
+  it("Should NOT receive MOVR from para Id 2000 with old reanchor", async function () {
+    let ownParaId = (await context.polkadotApi.query.parachainInfo.parachainId()) as any;
+    // Get Pallet balances index
+    const metadata = await context.polkadotApi.rpc.state.getMetadata();
+    const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
+      (pallet) => {
+        return pallet.name === "Balances";
+      }
+    ).index;
+    // We are charging 100_000_000 weight for every XCM instruction
+    // We are executing 4 instructions
+    // 100_000_000 * 4 * 50000 = 20000000000000
+    // We are charging 20 micro DEV for this operation
+    // The rest should be going to the deposit account
+    let xcmMessage = {
+      V2: [
+        {
+          WithdrawAsset: [
+            {
+              id: {
+                Concrete: {
+                  parents: 1,
+                  interior: {
+                    X2: [{ Parachain: ownParaId }, { PalletInstance: balancesPalletIndex }],
+                  },
+                },
+              },
+              fun: { Fungible: transferredBalance },
+            },
+          ],
+        },
+        { ClearOrigin: null },
+        {
+          BuyExecution: {
+            fees: {
+              id: {
+                Concrete: {
+                  parents: 1,
+                  interior: {
+                    X2: [{ Parachain: ownParaId }, { PalletInstance: balancesPalletIndex }],
+                  },
+                },
+              },
+              fun: { Fungible: transferredBalance },
+            },
+            weightLimit: { Limited: new BN(4000000000) },
+          },
+        },
+        {
+          DepositAsset: {
+            assets: { Wild: "All" },
+            maxAssets: new BN(1),
+            beneficiary: {
+              parents: 0,
+              interior: { X1: { AccountKey20: { network: "Any", key: random.address } } },
+            },
+          },
+        },
+      ],
+    };
+    const xcmpFormat: XcmpMessageFormat = context.polkadotApi.createType(
+      "XcmpMessageFormat",
+      "ConcatenatedVersionedXcm"
+    ) as any;
+    const receivedMessage: XcmVersionedXcm = context.polkadotApi.createType(
+      "XcmVersionedXcm",
+      xcmMessage
+    ) as any;
+
+    const totalMessage = [...xcmpFormat.toU8a(), ...receivedMessage.toU8a()];
+
+    // Send RPC call to inject XCM message
+    // We will set a specific message knowing that it should mint the statemint asset
+    await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [2000, totalMessage]);
+
+    // Create a block in which the XCM will be executed
+    await context.createBlock();
+
+    // The message should not have been succesfully executed, since old prefix is not supported
+    // anymore
+    let balance = (
+      (await context.polkadotApi.query.system.account(sovereignAddress)) as any
+    ).data.free.toBigInt();
+    expect(balance.toString()).to.eq(transferredBalance.toString());
+
+    // the random address does not receive anything
+    let randomBalance = (
+      (await context.polkadotApi.query.system.account(random.address)) as any
+    ).data.free.toBigInt();
+    expect(randomBalance.toString()).to.eq(0n.toString());
   });
 });
 
@@ -450,7 +703,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     await createBlockWithExtrinsic(
       context,
       alith,
-      context.polkadotApi.tx.localAssets.transfer(assetId, alith.address, transferredBalance)
+      context.polkadotApi.tx.localAssets.transfer(assetId, sovereignAddress, transferredBalance)
     );
   });
 
@@ -656,7 +909,13 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
               id: {
                 Concrete: {
                   parents: 1,
-                  interior: { X2: [{ Parachain: statemint_para_id }, { GeneralIndex: 0 }] },
+                  interior: {
+                    X3: [
+                      { Parachain: statemint_para_id },
+                      { PalletInstance: statemint_assets_pallet_instance },
+                      { GeneralIndex: 0 },
+                    ],
+                  },
                 },
               },
               fun: { Fungible: new BN(10000000000000) },
@@ -665,7 +924,13 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
               id: {
                 Concrete: {
                   parents: 1,
-                  interior: { X2: [{ Parachain: statemint_para_id }, { GeneralIndex: 1 }] },
+                  interior: {
+                    X3: [
+                      { Parachain: statemint_para_id },
+                      { PalletInstance: statemint_assets_pallet_instance },
+                      { GeneralIndex: 1 },
+                    ],
+                  },
                 },
               },
               fun: { Fungible: new BN(10000000000000) },
@@ -679,7 +944,13 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
               id: {
                 Concrete: {
                   parents: new BN(1),
-                  interior: { X2: [{ Parachain: statemint_para_id }, { GeneralIndex: 1 }] },
+                  interior: {
+                    X3: [
+                      { Parachain: statemint_para_id },
+                      { PalletInstance: statemint_assets_pallet_instance },
+                      { GeneralIndex: 1 },
+                    ],
+                  },
                 },
               },
               fun: { Fungible: new BN(10000000000000) },
@@ -728,6 +999,182 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
       ["balance"].toBigInt();
 
     expect(alithAssetZeroBalance).to.eq(10n * FOREIGN_TOKEN);
+  });
+});
+
+describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
+  let assetId: string;
+  let alith: KeyringPair;
+  let baltathar: KeyringPair;
+  let paraId: ParaId;
+  let transferredBalance;
+  let sovereignAddress;
+
+  before("Should Register an asset and set unit per sec", async function () {
+    const keyringEth = new Keyring({ type: "ethereum" });
+    alith = keyringEth.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
+    baltathar = await keyringEth.addFromUri(BALTATHAR_PRIVATE_KEY, null, "ethereum");
+
+    // registerAsset
+    const { events: eventsRegister } = await createBlockWithExtrinsic(
+      context,
+      alith,
+      context.polkadotApi.tx.sudo.sudo(
+        context.polkadotApi.tx.assetManager.registerLocalAsset(
+          baltathar.address,
+          baltathar.address,
+          true,
+          new BN(1)
+        )
+      )
+    );
+
+    // Look for assetId in events
+    eventsRegister.forEach((e) => {
+      if (e.section.toString() === "assetManager") {
+        assetId = e.data[0].toHex();
+      }
+    });
+    assetId = assetId.replace(/,/g, "");
+
+    transferredBalance = new BN(100000000000000);
+
+    // mint asset
+    await createBlockWithExtrinsic(
+      context,
+      baltathar,
+      context.polkadotApi.tx.localAssets.mint(assetId, alith.address, transferredBalance)
+    );
+
+    paraId = context.polkadotApi.createType("ParaId", 2000) as any;
+    sovereignAddress = u8aToHex(
+      new Uint8Array([...new TextEncoder().encode("sibl"), ...paraId.toU8a()])
+    ).padEnd(42, "0");
+
+    // We first fund parachain 2000 sovreign account
+    await createBlockWithExtrinsic(
+      context,
+      alith,
+      context.polkadotApi.tx.balances.transfer(sovereignAddress, transferredBalance)
+    );
+
+    // transfer to para Id sovereign to emulate having sent the tokens
+    await createBlockWithExtrinsic(
+      context,
+      alith,
+      context.polkadotApi.tx.localAssets.transfer(assetId, sovereignAddress, transferredBalance)
+    );
+  });
+
+  it("Should NOT receive 10 Local Assets and DEV to pay for fee with old reanchor", async function () {
+    let ownParaId = (await context.polkadotApi.query.parachainInfo.parachainId()) as any;
+    const metadata = await context.polkadotApi.rpc.state.getMetadata();
+    const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
+      (pallet) => {
+        return pallet.name === "Balances";
+      }
+    ).index;
+
+    const localAssetsPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
+      (pallet) => {
+        return pallet.name === "LocalAssets";
+      }
+    ).index;
+
+    // We are charging 100_000_000 weight for every XCM instruction
+    // We are executing 4 instructions
+    // 100_000_000 * 4 * 50000 = 20000000000000
+    // We are charging 20 micro DEV for this operation
+    // The rest should be going to the deposit account
+    let xcmMessage = {
+      V2: [
+        {
+          WithdrawAsset: [
+            {
+              // This is the new reanchored logic
+              id: {
+                Concrete: {
+                  parents: 1,
+                  interior: {
+                    X2: [{ Parachain: ownParaId }, { PalletInstance: balancesPalletIndex }],
+                  },
+                },
+              },
+              fun: { Fungible: transferredBalance },
+            },
+            {
+              // This is the new reanchored logic
+              id: {
+                Concrete: {
+                  parents: 1,
+                  interior: {
+                    X3: [
+                      { Parachain: ownParaId },
+                      { PalletInstance: localAssetsPalletIndex },
+                      { GeneralIndex: assetId },
+                    ],
+                  },
+                },
+              },
+              fun: { Fungible: transferredBalance },
+            },
+          ],
+        },
+        { ClearOrigin: null },
+        {
+          BuyExecution: {
+            fees: {
+              id: {
+                // This is the new reanchored logic
+                Concrete: {
+                  parents: 1,
+                  interior: {
+                    X2: [{ Parachain: ownParaId }, { PalletInstance: balancesPalletIndex }],
+                  },
+                },
+              },
+              fun: { Fungible: transferredBalance },
+            },
+            weightLimit: { Limited: new BN(4000000000) },
+          },
+        },
+        {
+          DepositAsset: {
+            assets: { Wild: "All" },
+            maxAssets: new BN(2),
+            beneficiary: {
+              parents: 0,
+              interior: { X1: { AccountKey20: { network: "Any", key: baltathar.address } } },
+            },
+          },
+        },
+      ],
+    };
+
+    const xcmpFormat: XcmpMessageFormat = context.polkadotApi.createType(
+      "XcmpMessageFormat",
+      "ConcatenatedVersionedXcm"
+    ) as any;
+    const receivedMessage: XcmVersionedXcm = context.polkadotApi.createType(
+      "XcmVersionedXcm",
+      xcmMessage
+    ) as any;
+
+    const totalMessage = [...xcmpFormat.toU8a(), ...receivedMessage.toU8a()];
+    // Send RPC call to inject XCM message
+    // We will set a specific message knowing that it should mint the statemint asset
+    await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [foreign_para_id, totalMessage]);
+
+    // Create a block in which the XCM will be executed
+    await context.createBlock();
+
+    // Old reanchor does not work anymore so no reception of tokens
+    let baltatharLocalTokBalance = (await context.polkadotApi.query.localAssets.account(
+      assetId,
+      baltathar.address
+    )) as any;
+
+    expect(baltatharLocalTokBalance.isNone).to.eq(true);
   });
 });
 
