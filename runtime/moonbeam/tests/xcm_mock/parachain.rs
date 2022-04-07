@@ -24,7 +24,7 @@ use frame_support::{
 };
 
 use frame_system::EnsureRoot;
-use orml_traits::{location::RelativeReserveProvider, parameter_type_with_key};
+use orml_traits::parameter_type_with_key;
 use parity_scale_codec::{Decode, Encode};
 use sp_core::H256;
 use sp_runtime::{

@@ -61,10 +61,7 @@ use sp_std::{
 	prelude::*,
 };
 
-use orml_traits::{
-	location::{AbsoluteReserveProvider, RelativeReserveProvider},
-	parameter_type_with_key,
-};
+use orml_traits::parameter_type_with_key;
 
 parameter_types! {
 	// The network Id of the relay

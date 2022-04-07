@@ -22,21 +22,16 @@ use frame_support::{
 	traits::{tokens::fungibles::Mutate, Get, OriginTrait},
 	weights::{constants::WEIGHT_PER_SECOND, Weight},
 };
-use orml_traits::location::{Parse, RelativeReserveProvider, Reserve};
-use sp_runtime::traits::{CheckedConversion, Zero};
+use orml_traits::location::{RelativeReserveProvider, Reserve};
+use sp_runtime::traits::Zero;
 use sp_std::{borrow::Borrow, vec::Vec};
-use sp_std::{
-	convert::{TryFrom, TryInto},
-	marker::PhantomData,
-};
+use sp_std::{convert::TryInto, marker::PhantomData};
 use xcm::latest::{
-	AssetId as xcmAssetId, Error as XcmError, Fungibility,
-	Junction::{AccountKey20, Parachain},
-	Junctions::*,
+	AssetId as xcmAssetId, Error as XcmError, Fungibility, Junction::AccountKey20, Junctions::*,
 	MultiAsset, MultiLocation, NetworkId,
 };
 use xcm_builder::TakeRevenue;
-use xcm_executor::traits::{FilterAssetLocation, MatchesFungible, MatchesFungibles, WeightTrader};
+use xcm_executor::traits::{MatchesFungibles, WeightTrader};
 
 /// Converter struct implementing `AssetIdConversion` converting a numeric asset ID
 /// (must be `TryFrom/TryInto<u128>`) into a MultiLocation Value and Viceversa through
