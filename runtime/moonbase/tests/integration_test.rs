@@ -2175,7 +2175,6 @@ fn xtokens_precompiles_transfer_multiasset() {
 		})
 }
 
-#[ignore]
 #[test]
 fn xtokens_precompiles_transfer_native() {
 	ExtBuilder::default()
@@ -2228,7 +2227,6 @@ fn xtokens_precompiles_transfer_native() {
 		})
 }
 
-#[ignore]
 #[test]
 fn xtokens_precompile_transfer_local_asset() {
 	ExtBuilder::default()
