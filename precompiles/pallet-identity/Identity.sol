@@ -25,29 +25,119 @@ interface Identity {
      * Payment: Any aggregate balance reserved by previous setSubs calls will be returned and
      * an amount will be reserved for each item in "subs".
      * The sender must have a registered identity.
+     *
+     * @param subs The identity (new) sub-accounts.
      */
     function setSubs(Sub[] calldata subs) external;
 
+    /**
+     * Clear an account's identity info and all sub-accounts, and return all deposits.
+     * Payment: All reserved balances on the account are returned.
+     * The sender must have a registered identity.
+     */
     function clearIdentity() external;
 
+    /**
+     * Request a judgement from a registar.
+     * Payment: At most maxFee will be reserved for payment to the registar if
+     * judgement given.
+     * The sender must have a registered identity.
+     * @param registarIndex The index of the registar whose judgement is requested.
+     * @param maxFee The maximum fee that may be paid.
+     */
     function requestJudgement(uint256 registarIndex, uint256 maxFee) external;
 
+    /**
+     * Cancel a previous request.
+     * Payment: A previously reserved deposit is returned on success.
+     * The sender must have a registered identity.
+     * @param registarIndex The index of the registar whose judgement is
+     * no longer requested.    
+     */
     function cancelRequest(uint256 registarIndex) external;
 
+    /**
+     * Set the fee requiored for a judgement to be requested from a registar.
+     * The sender must be the account of the registar whose index is
+     * registarIndex.
+     * @param registarIndex Index of the registar whose fee is to be set.
+     * @param fee The new fee.
+     */
     function setFee(uint256 registarIndex, uint256 fee) external;
 
+    /**
+     * Change the account associated with a registar.
+     * The sender must be the account of the registar whose index is     
+     * registarIndex.
+     * @param registarIndex Index of the registar whose account is to be set.
+     * @param newAddress New account address.
+     */
     function setAccountId(uint256 registarIndex, address newAddress) external;
 
+    /**
+     * Set the field information for a registar.
+     * The sender must be the account of the registar whose index is registarIndex.
+     * @param registarIndex Index of the registar whose fee is to be set.
+     * @param fields Fields that the registar concerns themselves with.
+     * Is a bitmask that can be computed using the IDENTITY_ constants.
+     */
     function setFields(uint256 registarIndex, uint256 fields) external;
 
+    /**
+     * Provide a judgement for an account's identity.
+     * The sender must be the account of the reigstar whose index is registarIndex.
+     * @param registarIndex The index of the registar whose judgement is being made.
+     * @param target The account whose identity the judgement is upon. This must be
+     * an account with a registered identity.
+     * @param judgement The judgement of the registar of registarIndex about target.
+     * Any value not starting with 0xff is interpreted as the FeePaid variant with
+     * numeric value provided. Other values are:
+     * - 0xff00... = Unknown
+     * - 0xff01... = Reasonable
+     * - 0xff02... = KnownGood
+     * - 0xff03... = OutOfDate
+     * - 0xff04... = LowQuality
+     * - 0xff05... = Erroneous 
+     * See Rust docs for more information :
+     * https://paritytech.github.io/substrate/master/pallet_identity/enum.Judgement.html
+     */
     function provideJudgement(uint256 registarIndex, address target, uint256 judgement) external;
 
+    /**
+     * Add the given account to the sender's subs.
+     * Payment: Balance reserved by a previous setSubs call for one sub will be repatriated
+     * to the sender.
+     * The sender must have a registered sub identity of sub.
+     * @param sub Sub-account.
+     * @param data Data for this sub-account.
+     */
     function addSub(address sub, bytes calldata data) external;
 
+    /**
+     * Alter the associated data of the given sub-account.
+     * The sender must have a registered sub identity of sub.
+     * @param sub Sub-account.
+     * @param data Data for this sub-account.
+     */
     function renameSub(address sub, bytes calldata data) external;
 
+    /**
+     * Remove the given account from the sender's subs.
+     * Payment: Balance reserved by a previous setSubs call for one sub will be
+     * repatriated to the sender.
+     * The sender must have a registered sub identity of sub.
+     * @param sub Sub-account.
+     */
     function removeSub(address sub) external;
 
+    /**
+     * Remove the sender as a sub-account.
+     * Payment: Balance reserved by a previous setSubs call for one sub will be
+     * repatriated to the sender (not the original depositor).
+     * The sender must have a registered super-identity.
+     * NOTE: This should not normally be used, but is provided in the case that the non-controller
+     * of an account is maliciously registered as a sub-account. 
+     */
     function quitSub() external;
 }
 

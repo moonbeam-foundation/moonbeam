@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use codec::{Decode, Encode, MaxEncodedLen};
 use frame_support::{traits::Get, BoundedVec};
+use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use precompile_utils::{
 	Address, Bytes, EvmData, EvmDataReader, EvmDataWriter, EvmResult, Gasometer,
 };
@@ -55,6 +55,10 @@ impl<T: RawEvmData> EvmData for Wrapped<T> {
 		let raw_data = Bytes(inner_writer.build());
 
 		Bytes::write(writer, raw_data);
+	}
+
+	fn has_static_size() -> bool {
+		false
 	}
 }
 
@@ -224,7 +228,7 @@ impl<FieldLimit: Get<u32>> RawEvmData for IdentityInfo<FieldLimit> {
 	}
 }
 
-pub struct Judgement<B>(pallet_identity::Judgement<B>)
+pub struct Judgement<B>(pub pallet_identity::Judgement<B>)
 where
 	B: Encode + Decode + MaxEncodedLen + Copy + Clone + Debug + Eq + PartialEq;
 
@@ -281,6 +285,10 @@ where
 
 		U256::write(writer, value);
 	}
+
+	fn has_static_size() -> bool {
+		true
+	}
 }
 
 pub struct Sub {
@@ -290,24 +298,21 @@ pub struct Sub {
 
 impl EvmData for Sub {
 	fn read(reader: &mut EvmDataReader, gasometer: &mut Gasometer) -> EvmResult<Self> {
-		let mut inner_reader = reader.read_pointer(gasometer)?;
-
-		let sub_account: Address = inner_reader.read(gasometer)?;
-		let sub_account: H160 = sub_account.0;
-		let identity_data: Wrapped<IdentityData> = inner_reader.read(gasometer)?;
-		let identity_data = identity_data.0 .0;
-
+		let (Address(sub_account), identity_data): (Address, Wrapped<IdentityData>) =
+			reader.read(gasometer)?;
 		Ok(Sub {
 			sub_account,
-			identity_data,
+			identity_data: identity_data.0 .0,
 		})
 	}
 
 	fn write(writer: &mut EvmDataWriter, value: Self) {
 		let sub_account = value.sub_account;
-
-		EvmData::write(writer, Address(sub_account));
 		let identity_data = Wrapped(IdentityData(value.identity_data));
-		EvmData::write(writer, identity_data);
+		EvmData::write(writer, (Address(sub_account), identity_data));
+	}
+
+	fn has_static_size() -> bool {
+		<(Address, Wrapped<IdentityData>)>::has_static_size()
 	}
 }
