@@ -70,8 +70,9 @@ parameter_types! {
 	// The ancestry, defines the multilocation describing this consensus system
 	pub Ancestry: MultiLocation = Parachain(ParachainInfo::parachain_id().into()).into();
 	// Self Reserve location, defines the multilocation identifiying the self-reserve currency
-	// This is used to match it against our Balances pallet when we receive such a MultiLocation
-	// (Self Balances pallet index)
+	// This is used to match it also against our Balances pallet when we receive such
+	// a MultiLocation: (Self Balances pallet index)
+	// We use the RELATIVE multilocation
 	pub SelfReserve: MultiLocation = MultiLocation {
 		parents:0,
 		interior: Junctions::X1(
@@ -79,25 +80,10 @@ parameter_types! {
 		)
 	};
 
-	// Old reanchor logic location for pallet assets
-	// We need to support both in case we talk to a chain not in 0.9.16
-	// Or until we import https://github.com/open-web3-stack/open-runtime-module-library/pull/708
-	// We will be able to remove this once we import the aforementioned change
+	// This is the relative view of our local assets.
 	// Indentified by thix prefix + generalIndex(assetId)
-	pub LocalAssetsPalletLocationOldReanchor: MultiLocation = MultiLocation {
-		parents:1,
-		interior: Junctions::X2(
-			Parachain(ParachainInfo::parachain_id().into()),
-			PalletInstance(<LocalAssets as PalletInfoAccess>::index() as u8)
-		)
-	};
-
-	// New reanchor logic location for pallet assets
-	// This is the relative view of our local assets. This is the representation that will
-	// be considered canonical after we import
-	// https://github.com/open-web3-stack/open-runtime-module-library/pull/708
-	// Indentified by thix prefix + generalIndex(assetId)
-	pub LocalAssetsPalletLocationNewReanchor: MultiLocation = MultiLocation {
+	// We use the RELATIVE multilocation
+	pub LocalAssetsPalletLocation: MultiLocation = MultiLocation {
 		parents:0,
 		interior: Junctions::X1(
 			PalletInstance(<LocalAssets as PalletInfoAccess>::index() as u8)
@@ -219,6 +205,8 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type AssetTransactor = AssetTransactors;
 	type OriginConverter = XcmOriginToTransactDispatchOrigin;
 	// Filter to the reserve withdraw operations
+	// Whenever the reserve matches the relative or absolute value
+	// of our chain, we always return the relative reserve
 	type IsReserve = MultiNativeAsset<AbsoluteAndRelativeReserve<SelfLocationAbsolute>>;
 	type IsTeleporter = (); // No teleport
 	type LocationInverter = LocationInverter<Ancestry>;
@@ -386,6 +374,8 @@ parameter_types! {
 	// This is how we are going to detect whether the asset is a Reserve asset
 	// This however is the chain part only
 	pub SelfLocation: MultiLocation = MultiLocation::here();
+	// We need this to be able to catch when someone is trying to execute a non-
+	// cross-chain transfer in xtokens through the absolute path way
 	pub SelfLocationAbsolute: MultiLocation = MultiLocation {
 		parents:1,
 		interior: Junctions::X1(
