@@ -405,7 +405,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer of DEV", (context) =
       new Uint8Array([...new TextEncoder().encode("sibl"), ...paraId.toU8a()])
     ).padEnd(42, "0");
 
-    transferredBalance = new BN(100000000000000);
+    transferredBalance = 100000000000000n;
 
     // We first fund parachain 2000 sovreign account
     await createBlockWithExtrinsic(
@@ -416,7 +416,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer of DEV", (context) =
     let balance = (
       (await context.polkadotApi.query.system.account(sovereignAddress)) as any
     ).data.free.toBigInt();
-    expect(balance.toString()).to.eq(transferredBalance.toString());
+    expect(balance).to.eq(transferredBalance);
   });
 
   it("Should NOT receive MOVR from para Id 2000 with old reanchor", async function () {
@@ -531,7 +531,7 @@ describeDevMoonbeam(
         new Uint8Array([...new TextEncoder().encode("sibl"), ...paraId.toU8a()])
       ).padEnd(42, "0");
 
-      transferredBalance = new BN(100000000000000);
+      transferredBalance = 100000000000000n;
 
       // We first fund parachain 2000 sovreign account
       await createBlockWithExtrinsic(
@@ -638,7 +638,7 @@ describeDevMoonbeam(
         (await context.polkadotApi.query.system.account(random.address)) as any
       ).data.free.toBigInt();
       let expectedRandomBalance = 80000000000000n;
-      expect(randomBalance.toString()).to.eq(expectedRandomBalance.toString());
+      expect(randomBalance).to.eq(expectedRandomBalance);
     });
   }
 );
