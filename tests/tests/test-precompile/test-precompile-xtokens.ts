@@ -193,11 +193,11 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
     const x2_pallet_instance_enum_selector = "0x04";
     const x2_instance = "03";
 
-    // This represents X3(Parent, Parachain(1000), PalletInstance(3)))
+    // This represents X1(PalletInstance(3)))
 
     // This multilocation represents our native token
     let asset = [
-      // one parent
+      // zero parents
       0,
       // X1(PalletInstance)
       // PalletInstance: Selector (04) + pallet instance 1 byte (03)

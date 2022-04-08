@@ -243,7 +243,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     )) as any;
 
     // The message execution failed
-    expect(alith_dot_balance.isNone).to.eq(true);
+    expect(alith_dot_balance.isNone).to.be.true;
   });
 });
 
@@ -508,7 +508,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer of DEV", (context) =
     let randomBalance = (
       (await context.polkadotApi.query.system.account(random.address)) as any
     ).data.free.toBigInt();
-    expect(randomBalance.toString()).to.eq(0n.toString());
+    expect(randomBalance).to.eq(0n);
   });
 });
 
@@ -542,7 +542,7 @@ describeDevMoonbeam(
       let balance = (
         (await context.polkadotApi.query.system.account(sovereignAddress)) as any
       ).data.free.toBigInt();
-      expect(balance.toString()).to.eq(transferredBalance.toString());
+      expect(balance).to.eq(transferredBalance);
     });
 
     it("Should receive MOVR from para Id 2000 with new reanchor logic", async function () {

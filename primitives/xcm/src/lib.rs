@@ -244,7 +244,7 @@ impl<
 /// This struct offers uses RelativeReserveProvider to output relative views of multilocations
 /// However, additionally accepts a MultiLocation that aims at representing the chain part
 /// (parent: 1, Parachain(paraId)) of the absolute representation of our chain.
-/// If a tokens reserve matches against this absolute view, we return  Some(MultiLocation::here())
+/// If a token reserve matches against this absolute view, we return  Some(MultiLocation::here())
 /// This helps users by preventing errors when they try to transfer a token through xtokens
 /// to our chain (either inserting the relative or the absolute value).
 pub struct AbsoluteAndRelativeReserve<AbsoluteMultiLocation>(PhantomData<AbsoluteMultiLocation>);
@@ -253,19 +253,13 @@ where
 	AbsoluteMultiLocation: Get<MultiLocation>,
 {
 	fn reserve(asset: &MultiAsset) -> Option<MultiLocation> {
-		if let Some(relative_reserve) = RelativeReserveProvider::reserve(asset) {
-			// If it matches the absolute value of our chain, then return the relative value
-			// of our chain
-			// This avoids inconsistencies when users insert the absolute value of the reserve
-			// of our chain
+		RelativeReserveProvider::reserve(asset).map(|relative_reserve| {
 			if relative_reserve == AbsoluteMultiLocation::get() {
-				Some(MultiLocation::here())
+				MultiLocation::here()
 			} else {
-				Some(relative_reserve)
+				relative_reserve
 			}
-		} else {
-			None
-		}
+		})
 	}
 }
 

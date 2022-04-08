@@ -136,7 +136,7 @@ pub mod pallet {
 		#[pallet::constant]
 		type BaseXcmWeight: Get<Weight>;
 
-		/// The way to retreave the reserve of a MultiAsset. This can be
+		/// The way to retrieve the reserve of a MultiAsset. This can be
 		/// configured to accept absolute or relative paths for self tokens
 		type ReserveProvider: Reserve;
 
