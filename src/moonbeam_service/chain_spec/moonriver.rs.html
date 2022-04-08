@@ -336,6 +336,7 @@
 <span id="331">331</span>
 <span id="332">332</span>
 <span id="333">333</span>
+<span id="334">334</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -362,6 +363,7 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::chain_spec</span>::{<span class="ident">generate_accounts</span>, <span class="ident">get_from_seed</span>, <span class="ident">Extensions</span>};
 <span class="kw">use</span> <span class="ident">cumulus_primitives_core::ParaId</span>;
 <span class="kw">use</span> <span class="ident">hex_literal::hex</span>;
+<span class="kw">use</span> <span class="ident">moonbase_runtime::EligibilityValue</span>;
 <span class="kw">use</span> <span class="ident">moonriver_runtime</span>::{
 	<span class="ident">currency::MOVR</span>, <span class="ident">AccountId</span>, <span class="ident">AuthorFilterConfig</span>, <span class="ident">AuthorMappingConfig</span>, <span class="ident">Balance</span>, <span class="ident">BalancesConfig</span>,
 	<span class="ident">CouncilCollectiveConfig</span>, <span class="ident">CrowdloanRewardsConfig</span>, <span class="ident">DemocracyConfig</span>, <span class="ident">EVMConfig</span>,
@@ -610,7 +612,7 @@
 			<span class="ident">members</span>: <span class="ident">tech_comittee_members</span>,
 		},
 		<span class="ident">author_filter</span>: <span class="ident">AuthorFilterConfig</span> {
-			<span class="ident">eligible_ratio</span>: <span class="ident">sp_runtime::Percent::from_percent</span>(<span class="number">50</span>),
+			<span class="ident">eligible_count</span>: <span class="ident">EligibilityValue::new_unchecked</span>(<span class="number">50</span>),
 		},
 		<span class="ident">author_mapping</span>: <span class="ident">AuthorMappingConfig</span> {
 			<span class="ident">mappings</span>: <span class="ident">candidates</span>
