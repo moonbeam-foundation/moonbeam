@@ -16,7 +16,7 @@ log = "0.4.8"
 rlp = { version = "0.5" }
 serde = { version = "1.0", features = [ "derive" ] }
 serde_json = "1.0"
-sha3 = { version = "0.8" }
+sha3 = { version = "0.10" }
 
 # Moonbeam
 
@@ -60,6 +60,7 @@ fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-pol
 fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.18" }
 fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.18" }
 pallet-ethereum = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.18" }
+frame-support = { version = "4.0.0-dev",  git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
 
 # Cumulus / Nimbus
 cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.18" }

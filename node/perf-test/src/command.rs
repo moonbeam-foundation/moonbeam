@@ -393,8 +393,16 @@ where
 			None => TransactionAction::Create,
 		};
 
-		let unsigned = UnsignedTransaction {
-			chain_id: CHAIN_ID,
+		// let unsigned = UnsignedTransaction {
+		// 	chain_id: CHAIN_ID,
+		// 	nonce,
+		// 	gas_price,
+		// 	gas_limit,
+		// 	action,
+		// 	value,
+		// 	input: data,
+		// };
+		let unsigned = crate::mocks::LegacyUnsignedTransaction {
 			nonce,
 			gas_price,
 			gas_limit,
@@ -402,7 +410,8 @@ where
 			value,
 			input: data,
 		};
-		let signed = unsigned.sign(signing_key);
+		let signed = unsigned.sign_with_chain_id(signing_key, CHAIN_ID);
+		// let signed = unsigned.sign(signing_key);
 
 		let transaction_hash =
 			H256::from_slice(Keccak256::digest(&rlp::encode(&signed)).as_slice());
@@ -414,7 +423,8 @@ where
 		let extrinsic = self
 			.client
 			.runtime_api()
-			.convert_transaction_before_version_2(&block_hash, signed)
+			.convert_transaction(&block_hash, signed)
+			// .convert_transaction_before_version_2(&block_hash, signed)
 			.map_err(|_| "ConvertTransactionRuntimeApi not found")?;
 
 		let future = self

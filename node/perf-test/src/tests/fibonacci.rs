@@ -104,7 +104,7 @@ where
 			fibonacci_address
 		);
 
-		log::trace!("Issuing EVM create txn...");
+		log::info!("Issuing EVM create txn...");
 		let _txn_hash = context
 			.eth_sign_and_send_transaction(
 				&alice.privkey,
@@ -121,7 +121,6 @@ where
 		context.create_block(true);
 
 		// TODO: verify txn results
-
 		alice_nonce = alice_nonce.saturating_add(1.into());
 		let calldata_hex =
 			"3a9bbfcd0000000000000000000000000000000000000000000000000000000000000172";
@@ -130,7 +129,7 @@ where
 		const NUM_FIB_370_CALLS: u32 = 4096;
 		println!("Calling fib[370] {} times...", NUM_FIB_370_CALLS);
 		let now = Instant::now();
-		for _ in 0..NUM_FIB_370_CALLS {
+		for i in 0..NUM_FIB_370_CALLS {
 			let call_results = context
 				.evm_call(
 					alice.address,
@@ -143,7 +142,6 @@ where
 					Some(alice_nonce),
 				)
 				.expect("EVM call failed while trying to invoke Fibonacci contract");
-
 			log::debug!("EVM call returned {:?}", call_results);
 		}
 		results.push(TestResults::new(

@@ -82,6 +82,8 @@
       "program": "${workspaceFolder}/target/debug/moonbeam",
       "args": [
         "perf-test",
+        "--alice",
+        // "--log=debug",
         "--working-dir=tmp"
       ],
       "cwd": "${workspaceFolder}",
