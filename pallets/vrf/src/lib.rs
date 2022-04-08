@@ -22,10 +22,10 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
+use session_keys_primitives::KeysLookup;
 use sp_application_crypto::ByteArray;
 use sp_consensus_babe::{digests::PreDigest, AuthorityId, Slot, Transcript, BABE_ENGINE_ID};
 use sp_consensus_vrf::schnorrkel;
-use vrf_primitives::KeysLookup;
 
 #[cfg(test)]
 mod mock;

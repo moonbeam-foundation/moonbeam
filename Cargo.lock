@@ -6921,11 +6921,11 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "serde",
+ "session-keys-primitives",
  "sp-core",
  "sp-io",
  "sp-runtime",
  "sp-std",
- "vrf-primitives",
 ]
 
 [[package]]
@@ -11925,6 +11925,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "session-keys-primitives"
+version = "0.1.0"
+dependencies = [
+ "nimbus-primitives",
+]
+
+[[package]]
 name = "sha-1"
 version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -14012,20 +14019,13 @@ dependencies = [
  "pallet-balances",
  "parity-scale-codec",
  "scale-info",
+ "session-keys-primitives",
  "sp-application-crypto",
  "sp-consensus-babe",
  "sp-consensus-vrf",
  "sp-core",
  "sp-io",
  "sp-runtime",
- "vrf-primitives",
-]
-
-[[package]]
-name = "vrf-primitives"
-version = "0.1.0"
-dependencies = [
- "nimbus-primitives",
 ]
 
 [[package]]

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Primitives for VRFs
+//! Primitives for session keys
 use nimbus_primitives::NimbusId;
 
 /// A Trait to lookup keys from AuthorIds

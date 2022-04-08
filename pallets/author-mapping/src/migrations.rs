@@ -14,19 +14,72 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::{BalanceOf, Config, MappingWithDeposit, RegistrationInfo};
+use crate::{
+	BalanceOf, Config, MappingWithDeposit, MappingWithDepositAndKeys, RegistrationInfo,
+	RegistrationInformation,
+};
 use frame_support::{
 	pallet_prelude::PhantomData,
 	storage::migration::{remove_storage_prefix, storage_key_iter},
 	traits::{Get, OnRuntimeUpgrade},
 	weights::Weight,
-	Twox64Concat,
+	Blake2_128Concat, Twox64Concat,
 };
 use nimbus_primitives::NimbusId;
 
 use sp_std::convert::TryInto;
 //TODO sometimes this is unused, sometimes its necessary
 use sp_std::vec::Vec;
+
+// TODO: configure in runtime migrations
+/// Migrates MappingWithDeposit map value from RegistrationInfo to RegistrationInformation,
+/// thereby adding a keys: T::Keys field to the value to support VRF keys that can be looked up
+/// via NimbusId.
+pub struct AddKeysToRegistrationInfo<T>(PhantomData<T>);
+impl<T: Config> OnRuntimeUpgrade for AddKeysToRegistrationInfo<T> {
+	fn on_runtime_upgrade() -> Weight {
+		log::info!(target: "AddKeysToRegistrationInfo", "actually running it");
+		let pallet_prefix: &[u8] = b"AuthorMapping";
+		let old_storage_item_prefix: &[u8] = b"MappingWithDeposit";
+
+		// Read all the data into memory.
+		// https://crates.parity.io/frame_support/storage/migration/fn.storage_key_iter.html
+		let stored_data: Vec<_> = storage_key_iter::<
+			NimbusId,
+			RegistrationInfo<T::AccountId, BalanceOf<T>>,
+			Blake2_128Concat,
+		>(pallet_prefix, old_storage_item_prefix)
+		.collect();
+
+		let migrated_count: Weight = stored_data
+			.len()
+			.try_into()
+			.expect("There are between 0 and 2**64 mappings stored.");
+
+		// Now remove the old storage
+		// https://crates.parity.io/frame_support/storage/migration/fn.remove_storage_prefix.html
+		remove_storage_prefix(pallet_prefix, old_storage_item_prefix, &[]);
+
+		stored_data.into_iter().for_each(|(nimbus_id, info)| {
+			<MappingWithDepositAndKeys<T>>::insert(
+				&nimbus_id,
+				RegistrationInformation::<T>::from_registration_info(nimbus_id.clone(), info),
+			);
+		});
+		// return weight
+		migrated_count.saturating_mul(T::DbWeight::get().read + T::DbWeight::get().write)
+	}
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade() -> Result<(), &'static str> {
+		// TODO
+		Ok(())
+	}
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade() -> Result<(), &'static str> {
+		// TODO
+		Ok(())
+	}
+}
 
 /// Migrates the AuthorMapping's storage map fro mthe insecure Twox64 hasher to the secure
 /// BlakeTwo hasher.
