@@ -201,9 +201,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
       0,
       // X1(PalletInstance)
       // PalletInstance: Selector (04) + pallet instance 1 byte (03)
-      [
-        x2_pallet_instance_enum_selector + x2_instance,
-      ],
+      [x2_pallet_instance_enum_selector + x2_instance],
     ];
     // This represents X2(Parent, AccountId32([0x01; 32]))
     // We will transfer the tokens the former account in the relay chain
@@ -293,9 +291,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
       0,
       // X1(PalletInstance)
       // PalletInstance: Selector (04) + pallet instance 1 byte (03)
-      [
-        x2_pallet_instance_enum_selector + x2_instance,
-      ],
+      [x2_pallet_instance_enum_selector + x2_instance],
     ];
     // This represents X2(Parent, AccountId32([0x01; 32]))
     // We will transfer the tokens the former account in the relay chain
@@ -471,9 +467,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
       0,
       // X1(PalletInstance)
       // PalletInstance: Selector (04) + pallet instance 1 byte (03)
-      [
-        x2_pallet_instance_enum_selector + x2_instance,
-      ],
+      [x2_pallet_instance_enum_selector + x2_instance],
     ];
 
     let multiassets = [[asset, amountTransferred]];
