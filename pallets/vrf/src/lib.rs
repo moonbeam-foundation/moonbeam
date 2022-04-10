@@ -96,7 +96,7 @@ pub mod pallet {
 		/// and returns weight consumed for getting these values
 		type MostRecentVrfInputGetter: GetMostRecentVrfInputs<Self::RelayBlockHash, Slot>;
 		/// Takes input NimbusId and gets back AuthorityId
-		type VrfKeyLookup: KeysLookup<AuthorityId>;
+		type VrfKeyLookup: KeysLookup<NimbusId, AuthorityId>;
 	}
 
 	/// Current block randomness

@@ -688,14 +688,6 @@ parameter_types! {
 	pub const DefaultParachainBondReservePercent: Percent = Percent::from_percent(30);
 }
 
-pub struct OnNewRound;
-impl parachain_staking::OnNewRound for OnNewRound {
-	fn on_new_round() -> Weight {
-		0
-		//Vrf::on_new_round()
-	}
-}
-
 impl parachain_staking::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
@@ -734,7 +726,6 @@ impl parachain_staking::Config for Runtime {
 	type MinDelegation = ConstU128<{ 5 * currency::UNIT * currency::SUPPLY_FACTOR }>;
 	/// Minimum stake required to be reserved to be a delegator
 	type MinDelegatorStk = ConstU128<{ 5 * currency::UNIT * currency::SUPPLY_FACTOR }>;
-	type OnNewRound = OnNewRound;
 	type WeightInfo = parachain_staking::weights::SubstrateWeight<Runtime>;
 }
 

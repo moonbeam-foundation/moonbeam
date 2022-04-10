@@ -18,13 +18,13 @@
 use nimbus_primitives::NimbusId;
 
 /// A Trait to lookup keys from AuthorIds
-pub trait KeysLookup<Keys> {
-	fn lookup_keys(author: &NimbusId) -> Option<Keys>;
+pub trait KeysLookup<AuthorId, Keys> {
+	fn lookup_keys(author: &AuthorId) -> Option<Keys>;
 }
 
 // A dummy impl used in simple tests
-impl<Keys> KeysLookup<Keys> for () {
-	fn lookup_keys(_: &NimbusId) -> Option<Keys> {
+impl<AuthorId, Keys> KeysLookup<AuthorId, Keys> for () {
+	fn lookup_keys(_: &AuthorId) -> Option<Keys> {
 		None
 	}
 }

@@ -138,7 +138,6 @@ impl Config for Test {
 	type MinCandidateStk = MinCollatorStk;
 	type MinDelegatorStk = MinDelegatorStk;
 	type MinDelegation = MinDelegation;
-	type OnNewRound = ();
 	type WeightInfo = ();
 }
 
