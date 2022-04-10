@@ -61,9 +61,9 @@ pub mod pallet {
 	#[derive(Encode, Decode, PartialEq, Eq, Debug, scale_info::TypeInfo)]
 	#[scale_info(skip_type_params(T))]
 	pub struct RegistrationInformation<T: Config> {
-		account: T::AccountId,
-		deposit: BalanceOf<T>,
-		keys: T::Keys,
+		pub(crate) account: T::AccountId,
+		pub(crate) deposit: BalanceOf<T>,
+		pub(crate) keys: T::Keys,
 	}
 
 	impl<T: Config> RegistrationInformation<T> {
@@ -147,7 +147,7 @@ pub mod pallet {
 			let account_id = ensure_signed(origin)?;
 
 			ensure!(
-				MappingWithDepositAndKeys::<T>::get(&author_id).is_none(),
+				MappingWithDeposit::<T>::get(&author_id).is_none(),
 				Error::<T>::AlreadyAssociated
 			);
 
@@ -171,7 +171,7 @@ pub mod pallet {
 			let account_id = ensure_signed(origin)?;
 
 			ensure!(
-				MappingWithDepositAndKeys::<T>::get(&author_id).is_none(),
+				MappingWithDeposit::<T>::get(&author_id).is_none(),
 				Error::<T>::AlreadyAssociated
 			);
 
@@ -200,7 +200,7 @@ pub mod pallet {
 		) -> DispatchResult {
 			let account_id = ensure_signed(origin)?;
 
-			let stored_info = MappingWithDepositAndKeys::<T>::try_get(&old_author_id)
+			let stored_info = MappingWithDeposit::<T>::try_get(&old_author_id)
 				.map_err(|_| Error::<T>::AssociationNotFound)?;
 
 			ensure!(
@@ -208,12 +208,12 @@ pub mod pallet {
 				Error::<T>::NotYourAssociation
 			);
 			ensure!(
-				MappingWithDepositAndKeys::<T>::get(&new_author_id).is_none(),
+				MappingWithDeposit::<T>::get(&new_author_id).is_none(),
 				Error::<T>::AlreadyAssociated
 			);
 
-			MappingWithDepositAndKeys::<T>::remove(&old_author_id);
-			MappingWithDepositAndKeys::<T>::insert(
+			MappingWithDeposit::<T>::remove(&old_author_id);
+			MappingWithDeposit::<T>::insert(
 				&new_author_id,
 				&RegistrationInformation {
 					keys: new_keys.clone(),
@@ -243,7 +243,7 @@ pub mod pallet {
 		) -> DispatchResult {
 			let account_id = ensure_signed(origin)?;
 
-			let stored_info = MappingWithDepositAndKeys::<T>::try_get(&old_author_id)
+			let stored_info = MappingWithDeposit::<T>::try_get(&old_author_id)
 				.map_err(|_| Error::<T>::AssociationNotFound)?;
 
 			ensure!(
@@ -251,12 +251,12 @@ pub mod pallet {
 				Error::<T>::NotYourAssociation
 			);
 			ensure!(
-				MappingWithDepositAndKeys::<T>::get(&new_author_id).is_none(),
+				MappingWithDeposit::<T>::get(&new_author_id).is_none(),
 				Error::<T>::AlreadyAssociated
 			);
 
-			MappingWithDepositAndKeys::<T>::remove(&old_author_id);
-			MappingWithDepositAndKeys::<T>::insert(&new_author_id, &stored_info);
+			MappingWithDeposit::<T>::remove(&old_author_id);
+			MappingWithDeposit::<T>::insert(&new_author_id, &stored_info);
 
 			<Pallet<T>>::deposit_event(Event::KeysRotated {
 				new_author_id: new_author_id,
@@ -278,7 +278,7 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let account_id = ensure_signed(origin)?;
 
-			let stored_info = MappingWithDepositAndKeys::<T>::try_get(&author_id)
+			let stored_info = MappingWithDeposit::<T>::try_get(&author_id)
 				.map_err(|_| Error::<T>::AssociationNotFound)?;
 
 			ensure!(
@@ -286,7 +286,7 @@ pub mod pallet {
 				Error::<T>::NotYourAssociation
 			);
 
-			MappingWithDepositAndKeys::<T>::remove(&author_id);
+			MappingWithDeposit::<T>::remove(&author_id);
 
 			T::DepositCurrency::unreserve(&account_id, stored_info.deposit);
 
@@ -317,7 +317,7 @@ pub mod pallet {
 				keys,
 			};
 
-			MappingWithDepositAndKeys::<T>::insert(&author_id, &info);
+			MappingWithDeposit::<T>::insert(&author_id, &info);
 
 			Ok(())
 		}
@@ -327,19 +327,7 @@ pub mod pallet {
 	#[pallet::getter(fn account_and_deposit_of)]
 	/// We maintain a mapping from the NimbusIds used in the consensus layer
 	/// to the AccountIds runtime.
-	pub type MappingWithDeposit<T: Config> = StorageMap<
-		_,
-		Blake2_128Concat,
-		NimbusId,
-		RegistrationInfo<T::AccountId, BalanceOf<T>>,
-		OptionQuery,
-	>;
-
-	#[pallet::storage]
-	#[pallet::getter(fn account_deposit_keys_of)]
-	/// We maintain a mapping from the NimbusIds used in the consensus layer
-	/// to the AccountIds runtime.
-	pub type MappingWithDepositAndKeys<T: Config> =
+	pub type MappingWithDeposit<T: Config> =
 		StorageMap<_, Blake2_128Concat, NimbusId, RegistrationInformation<T>, OptionQuery>;
 
 	#[pallet::genesis_config]
@@ -387,11 +375,11 @@ pub mod pallet {
 		/// A helper function to lookup the account id associated with the given author id. This is
 		/// the primary lookup that this pallet is responsible for.
 		pub fn account_id_of(author_id: &NimbusId) -> Option<T::AccountId> {
-			Self::account_deposit_keys_of(author_id).map(|info| info.account)
+			Self::account_and_deposit_of(author_id).map(|info| info.account)
 		}
 		/// A helper function to lookup the keys associated with the given author id.
 		pub fn keys_of(author_id: &NimbusId) -> Option<T::Keys> {
-			Self::account_deposit_keys_of(author_id).map(|info| info.keys)
+			Self::account_and_deposit_of(author_id).map(|info| info.keys)
 		}
 	}
 }

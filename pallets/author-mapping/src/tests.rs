@@ -62,7 +62,8 @@ fn eligible_account_can_register() {
 				last_event(),
 				MetaEvent::AuthorMapping(Event::AuthorRegistered {
 					author_id: TestAuthor::Bob.into(),
-					account_id: 2
+					account_id: 2,
+					keys: TestAuthor::Bob.into(),
 				})
 			);
 		})
@@ -110,7 +111,8 @@ fn double_registration_costs_twice_as_much() {
 				last_event(),
 				MetaEvent::AuthorMapping(Event::AuthorRegistered {
 					author_id: TestAuthor::Bob.into(),
-					account_id: 2
+					account_id: 2,
+					keys: TestAuthor::Bob.into(),
 				})
 			);
 
@@ -131,7 +133,8 @@ fn double_registration_costs_twice_as_much() {
 				last_event(),
 				MetaEvent::AuthorMapping(Event::AuthorRegistered {
 					author_id: TestAuthor::Alice.into(),
-					account_id: 2
+					account_id: 2,
+					keys: TestAuthor::Alice.into(),
 				})
 			);
 
@@ -165,7 +168,9 @@ fn registered_account_can_clear() {
 			assert_eq!(
 				last_event(),
 				MetaEvent::AuthorMapping(Event::AuthorDeRegistered {
-					author_id: TestAuthor::Alice.into()
+					author_id: TestAuthor::Alice.into(),
+					account_id: 1,
+					keys: TestAuthor::Alice.into(),
 				})
 			);
 		})
