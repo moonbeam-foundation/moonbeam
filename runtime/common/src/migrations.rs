@@ -32,7 +32,7 @@ use pallet_asset_manager::{
 	},
 	Config as AssetManagerConfig,
 };
-use pallet_author_mapping::{migrations::TwoXToBlake, Config as AuthorMappingConfig};
+use pallet_author_mapping::{migrations::AddKeysToRegistrationInfo, Config as AuthorMappingConfig};
 use pallet_base_fee::Config as BaseFeeConfig;
 use pallet_migrations::{GetMigrations, Migration};
 use parachain_staking::{
@@ -51,6 +51,30 @@ use xcm_transactor::{migrations::MaxTransactWeight, Config as XcmTransactorConfi
 
 /// This module acts as a registry where each migration is defined. Each migration should implement
 /// the "Migration" trait declared in the pallet-migrations crate.
+
+/// A moonbeam migration wrapping the similarly named migration in pallet-author-mapping
+pub struct AuthorMappingAddKeysToRegistrationInfo<T>(PhantomData<T>);
+impl<T: AuthorMappingConfig> Migration for AuthorMappingAddKeysToRegistrationInfo<T> {
+	fn friendly_name(&self) -> &str {
+		"MM_Author_Mapping_AddKeysToRegistrationInfo"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		AddKeysToRegistrationInfo::<T>::on_runtime_upgrade()
+	}
+
+	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<(), &'static str> {
+		AddKeysToRegistrationInfo::<T>::pre_upgrade()
+	}
+
+	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self) -> Result<(), &'static str> {
+		AddKeysToRegistrationInfo::<T>::post_upgrade()
+	}
+}
 
 /// Patch delegations total mismatch
 pub struct ParachainStakingPatchIncorrectDelegationSums<T>(PhantomData<T>);
@@ -174,29 +198,29 @@ impl<T: ParachainStakingConfig> Migration for ParachainStakingPurgeStaleStorage<
 	}
 }
 
-/// A moonbeam migration wrapping the similarly named migration in pallet-author-mapping
-pub struct AuthorMappingTwoXToBlake<T>(PhantomData<T>);
-impl<T: AuthorMappingConfig> Migration for AuthorMappingTwoXToBlake<T> {
-	fn friendly_name(&self) -> &str {
-		"MM_Author_Mapping_TwoXToBlake"
-	}
+// /// A moonbeam migration wrapping the similarly named migration in pallet-author-mapping
+// pub struct AuthorMappingTwoXToBlake<T>(PhantomData<T>);
+// impl<T: AuthorMappingConfig> Migration for AuthorMappingTwoXToBlake<T> {
+// 	fn friendly_name(&self) -> &str {
+// 		"MM_Author_Mapping_TwoXToBlake"
+// 	}
 
-	fn migrate(&self, _available_weight: Weight) -> Weight {
-		TwoXToBlake::<T>::on_runtime_upgrade()
-	}
+// 	fn migrate(&self, _available_weight: Weight) -> Weight {
+// 		TwoXToBlake::<T>::on_runtime_upgrade()
+// 	}
 
-	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
-	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade(&self) -> Result<(), &'static str> {
-		TwoXToBlake::<T>::pre_upgrade()
-	}
+// 	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+// 	#[cfg(feature = "try-runtime")]
+// 	fn pre_upgrade(&self) -> Result<(), &'static str> {
+// 		TwoXToBlake::<T>::pre_upgrade()
+// 	}
 
-	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
-	#[cfg(feature = "try-runtime")]
-	fn post_upgrade(&self) -> Result<(), &'static str> {
-		TwoXToBlake::<T>::post_upgrade()
-	}
-}
+// 	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+// 	#[cfg(feature = "try-runtime")]
+// 	fn post_upgrade(&self) -> Result<(), &'static str> {
+// 		TwoXToBlake::<T>::post_upgrade()
+// 	}
+// }
 
 const COUNCIL_OLD_PREFIX: &str = "Instance1Collective";
 const TECH_OLD_PREFIX: &str = "Instance2Collective";
@@ -531,6 +555,9 @@ where
 
 		// let migration_base_fee = MigrateBaseFeePerGas::<Runtime>(Default::default());
 
+		let migration_author_mapping_add_keys_to_registration_info =
+			AuthorMappingAddKeysToRegistrationInfo::<Runtime>(Default::default());
+
 		// TODO: this is a lot of allocation to do upon every get() call. this *should* be avoided
 		// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review
 
@@ -552,6 +579,7 @@ where
 			// Box::new(migration_parachain_staking_patch_incorrect_delegation_sums),
 			// completed in runtime 1300
 			// Box::new(migration_base_fee),
+			Box::new(migration_author_mapping_add_keys_to_registration_info),
 		]
 	}
 }
