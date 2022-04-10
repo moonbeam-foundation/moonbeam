@@ -59,6 +59,7 @@ pub use moonbeam_core_primitives::{
 	Index, Signature,
 };
 use moonbeam_rpc_primitives_txpool::TxPoolResponse;
+pub use pallet_author_slot_filter::EligibilityValue;
 use pallet_balances::NegativeImbalance;
 use pallet_ethereum::Call::transact;
 use pallet_ethereum::Transaction as EthereumTransaction;

@@ -24,6 +24,7 @@ use crate::chain_spec::{derive_bip44_pairs_from_mnemonic, get_account_id_from_pa
 use crate::chain_spec::{generate_accounts, get_from_seed, Extensions};
 use cumulus_primitives_core::ParaId;
 use hex_literal::hex;
+use moonbase_runtime::EligibilityValue;
 use moonriver_runtime::{
 	currency::MOVR, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
 	CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig,
@@ -272,7 +273,7 @@ pub fn testnet_genesis(
 			members: tech_comittee_members,
 		},
 		author_filter: AuthorFilterConfig {
-			eligible_ratio: sp_runtime::Percent::from_percent(50),
+			eligible_count: EligibilityValue::new_unchecked(50),
 		},
 		author_mapping: AuthorMappingConfig {
 			mappings: candidates

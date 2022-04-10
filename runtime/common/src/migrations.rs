@@ -33,6 +33,8 @@ use pallet_asset_manager::{
 	Config as AssetManagerConfig,
 };
 use pallet_author_mapping::{migrations::AddKeysToRegistrationInfo, Config as AuthorMappingConfig};
+use pallet_author_slot_filter::migration::EligibleRatioToEligiblityCount;
+use pallet_author_slot_filter::Config as AuthorSlotFilterConfig;
 use pallet_base_fee::Config as BaseFeeConfig;
 use pallet_migrations::{GetMigrations, Migration};
 use parachain_staking::{
@@ -501,6 +503,30 @@ impl<T: AssetManagerConfig> Migration for XcmPaymentSupportedAssets<T> {
 	}
 }
 
+pub struct AuthorSlotFilterEligibleRatioToEligiblityCount<T>(PhantomData<T>);
+impl<T> Migration for AuthorSlotFilterEligibleRatioToEligiblityCount<T>
+where
+	T: AuthorSlotFilterConfig,
+{
+	fn friendly_name(&self) -> &str {
+		"MM_AuthorSlotFilter_EligibleRatioToEligiblityCount"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		EligibleRatioToEligiblityCount::<T>::on_runtime_upgrade()
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<(), &'static str> {
+		EligibleRatioToEligiblityCount::<T>::pre_upgrade()
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self) -> Result<(), &'static str> {
+		EligibleRatioToEligiblityCount::<T>::post_upgrade()
+	}
+}
+
 pub struct SchedulerMigrationV3<T>(PhantomData<T>);
 impl<T: pallet_scheduler::Config> Migration for SchedulerMigrationV3<T> {
 	fn friendly_name(&self) -> &str {
@@ -532,6 +558,7 @@ where
 	Runtime: parachain_staking::Config,
 	Runtime: pallet_scheduler::Config,
 	Runtime: pallet_base_fee::Config,
+	Runtime: AuthorSlotFilterConfig,
 	Council: GetStorageVersion + PalletInfoAccess + 'static,
 	Tech: GetStorageVersion + PalletInfoAccess + 'static,
 {
@@ -558,9 +585,11 @@ where
 		let migration_author_mapping_add_keys_to_registration_info =
 			AuthorMappingAddKeysToRegistrationInfo::<Runtime>(Default::default());
 
+		let migration_author_slot_filter_eligible_ratio_to_eligibility_count =
+			AuthorSlotFilterEligibleRatioToEligiblityCount::<Runtime>(Default::default());
+
 		// TODO: this is a lot of allocation to do upon every get() call. this *should* be avoided
 		// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review
-
 		vec![
 			// completed in runtime 800
 			// Box::new(migration_author_mapping_twox_to_blake),
@@ -580,6 +609,7 @@ where
 			// completed in runtime 1300
 			// Box::new(migration_base_fee),
 			Box::new(migration_author_mapping_add_keys_to_registration_info),
+			Box::new(migration_author_slot_filter_eligible_ratio_to_eligibility_count),
 		]
 	}
 }
