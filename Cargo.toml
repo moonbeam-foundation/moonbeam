@@ -2,16 +2,16 @@
 exclude = [ "bin/utils/moonkey" ]
 members = [
 	"bin/utils/moonkey",
-	"client/vrf",
 	"client/rpc/finality",
 	"client/rpc/manual-xcm",
+	"client/vrf",
 	"node",
 	"node/cli",
 	"node/service",
-	"pallets/vrf",
 	"pallets/maintenance-mode",
 	"pallets/migrations",
 	"pallets/proxy-genesis-companion",
+	"pallets/vrf",
 	"precompiles/utils/macro",
 	"runtime/moonbase",
 	"runtime/moonbeam",
