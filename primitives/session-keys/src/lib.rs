@@ -15,7 +15,6 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Primitives for session keys
-use nimbus_primitives::NimbusId;
 
 /// A Trait to lookup keys from AuthorIds
 pub trait KeysLookup<AuthorId, Keys> {
