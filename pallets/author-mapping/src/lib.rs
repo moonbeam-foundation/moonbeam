@@ -53,30 +53,11 @@ pub mod pallet {
 	>>::Balance;
 
 	#[derive(Encode, Decode, PartialEq, Eq, Debug, scale_info::TypeInfo)]
-	pub struct RegistrationInfo<AccountId, Balance> {
-		account: AccountId,
-		deposit: Balance,
-	}
-
-	#[derive(Encode, Decode, PartialEq, Eq, Debug, scale_info::TypeInfo)]
 	#[scale_info(skip_type_params(T))]
-	pub struct RegistrationInformation<T: Config> {
+	pub struct RegistrationInfo<T: Config> {
 		pub(crate) account: T::AccountId,
 		pub(crate) deposit: BalanceOf<T>,
 		pub(crate) keys: T::Keys,
-	}
-
-	impl<T: Config> RegistrationInformation<T> {
-		pub(crate) fn from_registration_info(
-			nimbus_id: NimbusId,
-			old: RegistrationInfo<T::AccountId, BalanceOf<T>>,
-		) -> Self {
-			RegistrationInformation {
-				account: old.account,
-				deposit: old.deposit,
-				keys: nimbus_id.into(),
-			}
-		}
 	}
 
 	#[pallet::pallet]
@@ -215,7 +196,7 @@ pub mod pallet {
 			MappingWithDeposit::<T>::remove(&old_author_id);
 			MappingWithDeposit::<T>::insert(
 				&new_author_id,
-				&RegistrationInformation {
+				&RegistrationInfo {
 					keys: new_keys.clone(),
 					..stored_info
 				},
@@ -311,7 +292,7 @@ pub mod pallet {
 			T::DepositCurrency::reserve(&account_id, deposit)
 				.map_err(|_| Error::<T>::CannotAffordSecurityDeposit)?;
 
-			let info = RegistrationInformation {
+			let info = RegistrationInfo {
 				account: account_id.clone(),
 				deposit,
 				keys,
@@ -328,7 +309,7 @@ pub mod pallet {
 	/// We maintain a mapping from the NimbusIds used in the consensus layer
 	/// to the AccountIds runtime.
 	pub type MappingWithDeposit<T: Config> =
-		StorageMap<_, Blake2_128Concat, NimbusId, RegistrationInformation<T>, OptionQuery>;
+		StorageMap<_, Blake2_128Concat, NimbusId, RegistrationInfo<T>, OptionQuery>;
 
 	#[pallet::genesis_config]
 	/// Genesis config for author mapping pallet

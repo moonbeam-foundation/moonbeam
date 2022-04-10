@@ -14,32 +14,45 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::{Config, MappingWithDeposit, RegistrationInformation};
+use crate::{BalanceOf, Config, MappingWithDeposit, RegistrationInfo};
 use frame_support::{
 	pallet_prelude::PhantomData,
 	traits::{Get, OnRuntimeUpgrade},
 	weights::Weight,
 };
-//TODO sometimes this is unused, sometimes its necessary
-//use sp_std::vec::Vec;
+use nimbus_primitives::NimbusId;
+use parity_scale_codec::{Decode, Encode};
 
-// TODO: configure in runtime migrations
 /// Migrates MappingWithDeposit map value from RegistrationInfo to RegistrationInformation,
 /// thereby adding a keys: T::Keys field to the value to support VRF keys that can be looked up
 /// via NimbusId.
 pub struct AddKeysToRegistrationInfo<T>(PhantomData<T>);
+#[derive(Encode, Decode, PartialEq, Eq, Debug, scale_info::TypeInfo)]
+struct OldRegistrationInfo<AccountId, Balance> {
+	account: AccountId,
+	deposit: Balance,
+}
+fn migrate_registration_info<T: Config>(
+	nimbus_id: NimbusId,
+	old: OldRegistrationInfo<T::AccountId, BalanceOf<T>>,
+) -> RegistrationInfo<T> {
+	RegistrationInfo {
+		account: old.account,
+		deposit: old.deposit,
+		keys: nimbus_id.into(),
+	}
+}
 impl<T: Config> OnRuntimeUpgrade for AddKeysToRegistrationInfo<T> {
 	fn on_runtime_upgrade() -> Weight {
 		log::info!(target: "AddKeysToRegistrationInfo", "running migration");
 
 		let mut read_write_count = 0u64;
-		<MappingWithDeposit<T>>::translate(|nimbus_id, old_registration_info| {
-			read_write_count = read_write_count.saturating_add(1u64);
-			Some(RegistrationInformation::from_registration_info(
-				nimbus_id,
-				old_registration_info,
-			))
-		});
+		<MappingWithDeposit<T>>::translate(
+			|nimbus_id, old_registration_info: OldRegistrationInfo<T::AccountId, BalanceOf<T>>| {
+				read_write_count = read_write_count.saturating_add(1u64);
+				Some(migrate_registration_info(nimbus_id, old_registration_info))
+			},
+		);
 		// return weight
 		read_write_count.saturating_mul(T::DbWeight::get().read + T::DbWeight::get().write)
 	}

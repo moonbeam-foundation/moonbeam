@@ -11887,9 +11887,6 @@ dependencies = [
 [[package]]
 name = "session-keys-primitives"
 version = "0.1.0"
-dependencies = [
- "nimbus-primitives",
-]
 
 [[package]]
 name = "sha-1"

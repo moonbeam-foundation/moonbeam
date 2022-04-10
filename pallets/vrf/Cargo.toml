@@ -37,5 +37,4 @@ std = [
     "sp-consensus-vrf/std",
 	"sp-application-crypto/std",
 	"nimbus-primitives/std",
-	"session-keys-primitives/std",
 ]
