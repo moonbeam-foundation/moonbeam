@@ -70,7 +70,7 @@ fn eligible_account_can_register() {
 }
 
 #[test]
-fn cannot_register_without_deposit() {
+fn cannot_add_association_without_deposit() {
 	ExtBuilder::default()
 		.with_balances(vec![(2, 10)])
 		.build()
@@ -233,7 +233,7 @@ fn registered_can_rotate() {
 				Some(2)
 			);
 
-			// Should still only ahve paid a single security deposit
+			// Should still only have paid a single security deposit
 			assert_eq!(Balances::free_balance(&2), 900);
 			assert_eq!(Balances::reserved_balance(&2), 100);
 		})
@@ -283,6 +283,219 @@ fn rotating_to_the_same_author_id_leaves_registration_in_tact() {
 					Origin::signed(1),
 					TestAuthor::Alice.into(),
 					TestAuthor::Alice.into()
+				),
+				Error::<Runtime>::AlreadyAssociated
+			);
+		})
+}
+
+#[test]
+fn eligible_account_can_full_register() {
+	ExtBuilder::default()
+		.with_balances(vec![(2, 1000)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(AuthorMapping::add_full_association(
+				Origin::signed(2),
+				TestAuthor::Bob.into(),
+				TestAuthor::Alice.into(),
+			));
+
+			assert_eq!(Balances::free_balance(&2), 900);
+			assert_eq!(Balances::reserved_balance(&2), 100);
+			assert_eq!(
+				AuthorMapping::account_id_of(&TestAuthor::Bob.into()),
+				Some(2)
+			);
+
+			assert_eq!(
+				last_event(),
+				MetaEvent::AuthorMapping(Event::AuthorRegistered {
+					author_id: TestAuthor::Bob.into(),
+					account_id: 2,
+					keys: TestAuthor::Alice.into(),
+				})
+			);
+		})
+}
+
+#[test]
+fn cannot_add_full_association_without_deposit() {
+	ExtBuilder::default()
+		.with_balances(vec![(2, 10)])
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				AuthorMapping::add_full_association(
+					Origin::signed(2),
+					TestAuthor::Alice.into(),
+					TestAuthor::Bob.into(),
+				),
+				Error::<Runtime>::CannotAffordSecurityDeposit
+			);
+
+			assert_eq!(Balances::free_balance(&2), 10);
+			assert_eq!(AuthorMapping::keys_of(&TestAuthor::Alice.into()), None);
+		})
+}
+
+#[test]
+fn double_full_registration_counts_twice_as_much() {
+	ExtBuilder::default()
+		.with_balances(vec![(2, 1000)])
+		.build()
+		.execute_with(|| {
+			// Register once as Bob
+			assert_ok!(AuthorMapping::add_full_association(
+				Origin::signed(2),
+				TestAuthor::Bob.into(),
+				TestAuthor::Charlie.into(),
+			));
+
+			assert_eq!(Balances::free_balance(&2), 900);
+			assert_eq!(Balances::reserved_balance(&2), 100);
+			assert_eq!(
+				AuthorMapping::account_id_of(&TestAuthor::Bob.into()),
+				Some(2)
+			);
+
+			assert_eq!(
+				last_event(),
+				MetaEvent::AuthorMapping(Event::AuthorRegistered {
+					author_id: TestAuthor::Bob.into(),
+					account_id: 2,
+					keys: TestAuthor::Charlie.into(),
+				})
+			);
+
+			// Register again as Alice
+			assert_ok!(AuthorMapping::add_full_association(
+				Origin::signed(2),
+				TestAuthor::Alice.into(),
+				TestAuthor::Bob.into(),
+			));
+
+			assert_eq!(Balances::free_balance(&2), 800);
+			assert_eq!(Balances::reserved_balance(&2), 200);
+			assert_eq!(
+				AuthorMapping::account_id_of(&TestAuthor::Alice.into()),
+				Some(2)
+			);
+
+			assert_eq!(
+				last_event(),
+				MetaEvent::AuthorMapping(Event::AuthorRegistered {
+					author_id: TestAuthor::Alice.into(),
+					account_id: 2,
+					keys: TestAuthor::Bob.into(),
+				})
+			);
+
+			// Should still be registered as Bob as well
+			assert_eq!(
+				AuthorMapping::account_id_of(&TestAuthor::Bob.into()),
+				Some(2)
+			);
+		})
+}
+
+#[test]
+fn full_registered_author_cannot_be_overwritten() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 1000)])
+		.with_mappings(vec![(TestAuthor::Alice.into(), 1)])
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				AuthorMapping::add_full_association(
+					Origin::signed(2),
+					TestAuthor::Alice.into(),
+					TestAuthor::Bob.into()
+				),
+				Error::<Runtime>::AlreadyAssociated
+			);
+		})
+}
+
+// TODO: all the rotated ones but for set_keys instead
+
+#[test]
+fn registered_can_full_rotate() {
+	ExtBuilder::default()
+		.with_balances(vec![(2, 1000)])
+		.with_mappings(vec![(TestAuthor::Bob.into(), 2)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(AuthorMapping::set_keys(
+				Origin::signed(2),
+				TestAuthor::Bob.into(),
+				TestAuthor::Charlie.into(),
+				TestAuthor::Charlie.into(),
+			));
+
+			assert_eq!(AuthorMapping::account_id_of(&TestAuthor::Bob.into()), None);
+			assert_eq!(
+				AuthorMapping::account_id_of(&TestAuthor::Charlie.into()),
+				Some(2)
+			);
+			assert_eq!(
+				AuthorMapping::keys_of(&TestAuthor::Charlie.into()),
+				Some(TestAuthor::Charlie.into())
+			);
+
+			// Should still only have paid a single security deposit
+			assert_eq!(Balances::free_balance(&2), 900);
+			assert_eq!(Balances::reserved_balance(&2), 100);
+		})
+}
+
+#[test]
+fn unregistered_author_cannot_be_full_rotated() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_noop!(
+			AuthorMapping::set_keys(
+				Origin::signed(2),
+				TestAuthor::Alice.into(),
+				TestAuthor::Bob.into(),
+				TestAuthor::Bob.into(),
+			),
+			Error::<Runtime>::AssociationNotFound
+		);
+	})
+}
+
+#[test]
+fn registered_author_cannot_be_full_rotated_by_non_owner() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 1000)])
+		.with_mappings(vec![(TestAuthor::Alice.into(), 1)])
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				AuthorMapping::set_keys(
+					Origin::signed(2),
+					TestAuthor::Alice.into(),
+					TestAuthor::Bob.into(),
+					TestAuthor::Bob.into(),
+				),
+				Error::<Runtime>::NotYourAssociation
+			);
+		})
+}
+
+#[test]
+fn full_rotating_to_the_same_author_id_leaves_registration_in_tact() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 1000)])
+		.with_mappings(vec![(TestAuthor::Alice.into(), 1)])
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				AuthorMapping::set_keys(
+					Origin::signed(1),
+					TestAuthor::Alice.into(),
+					TestAuthor::Alice.into(),
+					TestAuthor::Alice.into(),
 				),
 				Error::<Runtime>::AlreadyAssociated
 			);
