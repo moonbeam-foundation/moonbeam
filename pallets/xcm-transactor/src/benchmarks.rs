@@ -49,13 +49,15 @@ benchmarks! {
 		Box::new(xcm::VersionedMultiLocation::V1(location.clone())),
 		extra_weight,
 		fee_per_second,
-		max_weight
+		max_weight,
+		None
 	)
 	verify {
 		assert_eq!(Pallet::<T>::transact_info(&location), Some(crate::RemoteTransactInfoWithMaxWeight {
 			transact_extra_weight: extra_weight,
 			fee_per_second,
-			max_weight
+			max_weight,
+			transact_extra_weight_signed: None
 		}));
 	}
 
@@ -69,7 +71,8 @@ benchmarks! {
 			Box::new(xcm::VersionedMultiLocation::V1(location.clone())),
 			extra_weight,
 			fee_per_second,
-			max_weight
+			max_weight,
+			None
 		).unwrap();
 	}: _(RawOrigin::Root, Box::new(xcm::VersionedMultiLocation::V1(location.clone())))
 	verify {

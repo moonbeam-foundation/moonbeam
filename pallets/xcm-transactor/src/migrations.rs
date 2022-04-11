@@ -44,7 +44,7 @@ pub struct OldRemoteTransactInfo {
 	pub fee_per_weight: u128,
 }
 
-pub struct MaxTransactWeight<T>(PhantomData<T>);
+/*pub struct MaxTransactWeight<T>(PhantomData<T>);
 impl<T: Config> OnRuntimeUpgrade for MaxTransactWeight<T> {
 	fn on_runtime_upgrade() -> Weight {
 		log::info!(target: "MaxTransactWeight", "actually running it");
@@ -93,6 +93,7 @@ impl<T: Config> OnRuntimeUpgrade for MaxTransactWeight<T> {
 						.saturating_mul(WEIGHT_PER_SECOND as u128),
 					/// Max destination weight
 					max_weight: 20000000000,
+					transact_extra_weight_signed: None,
 				}
 			});
 		}
@@ -176,4 +177,4 @@ impl<T: Config> OnRuntimeUpgrade for MaxTransactWeight<T> {
 
 		Ok(())
 	}
-}
+}*/
