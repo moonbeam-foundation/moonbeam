@@ -15,12 +15,14 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! A minimal runtime including the vrf pallet
-use crate::{AuthorityId, GetMostRecentVrfInputs, RoundChangedThisBlock, Slot};
+use crate::{AuthorityId, GetMostRecentVrfInputs, Slot};
 use frame_support::{
 	construct_runtime, pallet_prelude::*, parameter_types, traits::Everything, weights::Weight,
 };
+use nimbus_primitives::NimbusId;
 use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
+use session_keys_primitives::KeysLookup;
 use sp_core::{ByteArray, H256};
 use sp_io;
 use sp_runtime::{
@@ -29,6 +31,7 @@ use sp_runtime::{
 	Perbill, RuntimeDebug,
 };
 
+// use TestAccount because and also how will we mock the pre-runtime digest
 pub type AccountId = u64;
 pub type Balance = u128;
 pub type BlockNumber = u64;
@@ -96,34 +99,20 @@ impl pallet_balances::Config for Runtime {
 	type WeightInfo = ();
 }
 
-pub struct RoundNeverChanges;
-impl RoundChangedThisBlock for RoundNeverChanges {
-	fn round_changed_this_block() -> bool {
-		false
-	}
-}
-
-pub struct HardcodedSelectedCandidates;
-impl Get<Vec<AccountId>> for HardcodedSelectedCandidates {
-	fn get() -> Vec<AccountId> {
-		vec![1, 2, 3]
-	}
-}
-
 pub struct MostRecentVrfInputGetter;
 impl GetMostRecentVrfInputs<H256, Slot> for MostRecentVrfInputGetter {
-	fn get_most_recent_relay_block_hash() -> H256 {
-		H256::default()
+	fn get_most_recent_relay_block_hash() -> (H256, Weight) {
+		(H256::default(), 0u64)
 	}
-	fn get_most_recent_relay_slot_number() -> Slot {
-		Slot::default()
+	fn get_most_recent_relay_slot_number() -> (Slot, Weight) {
+		(Slot::default(), 0u64)
 	}
 }
 
-pub struct AccountToVrfIdConverter;
-impl Convert<AccountId, AuthorityId> for AccountToVrfIdConverter {
-	fn convert(from: AccountId) -> AuthorityId {
-		todo!()
+pub struct NimbusToVrfKey;
+impl KeysLookup<NimbusId, AuthorityId> for NimbusToVrfKey {
+	fn lookup_keys(authority_id: &NimbusId) -> Option<AuthorityId> {
+		None
 	}
 }
 
@@ -135,12 +124,8 @@ impl crate::Config for Runtime {
 	type RelayBlockHash = H256;
 	/// Gets the most recent relay block hash and relay slot number in `on_initialize`
 	type MostRecentVrfInputGetter = MostRecentVrfInputGetter;
-	/// Convert account to VRF key, presumably by a AuthorMapping pallet instance
-	type AccountToVrfId = AccountToVrfIdConverter;
-	/// Round never changes
-	type RoundChanged = RoundNeverChanges;
-	/// Get the selected candidate accounts from staking
-	type SelectedCandidates = HardcodedSelectedCandidates;
+	/// Lookup VRF key using NimbusID
+	type VrfKeyLookup = NimbusToVrfKey;
 }
 
 /// Externality builder for pallet author mapping's mock runtime
