@@ -39,7 +39,6 @@ std = [
 	"parity-scale-codec/std",
 	"scale-info/std",
 	"serde",
-	"session-keys-primitives/std",
 	"sp-runtime/std",
 	"sp-std/std",
 ]

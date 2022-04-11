@@ -21,7 +21,6 @@ nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "moo
 session-keys-primitives = { path = "../../primitives/session-keys" }
 
 [dev-dependencies]
-
 pallet-balances = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18" }
 sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18" }
 sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18" }
@@ -32,8 +31,8 @@ std = [
 	"frame-support/std",
 	"frame-system/std",
 	"nimbus-primitives/std",
+	"parity-scale-codec/std",
 	"scale-info/std",
-	"session-keys-primitives/std",
 	"sp-application-crypto/std",
 	"sp-consensus-babe/std",
 	"sp-consensus-vrf/std",
