@@ -15,6 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Primitives for session keys
+#![cfg_attr(not(feature = "std"), no_std)]
 
 /// A Trait to lookup keys from AuthorIds
 pub trait KeysLookup<AuthorId, Keys> {
