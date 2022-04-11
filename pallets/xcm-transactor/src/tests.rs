@@ -22,7 +22,7 @@ use frame_support::{
 	weights::constants::WEIGHT_PER_SECOND, Blake2_128Concat,
 };
 use sp_std::boxed::Box;
-use xcm::latest::{Junction, Junctions, MultiLocation};
+use xcm::latest::{Junction, Junctions, MultiLocation, OriginKind};
 use xcm_primitives::{UtilityAvailableCalls, UtilityEncodeCall};
 #[test]
 fn test_register_address() {
@@ -258,6 +258,7 @@ fn test_root_can_transact_through_sovereign() {
 					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 					100u64,
 					vec![1u8],
+					OriginKind::SovereignAccount
 				),
 				DispatchError::BadOrigin
 			);
@@ -278,7 +279,8 @@ fn test_root_can_transact_through_sovereign() {
 				1u64,
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				100u64,
-				vec![1u8]
+				vec![1u8],
+				OriginKind::SovereignAccount
 			));
 
 			let expected = vec![

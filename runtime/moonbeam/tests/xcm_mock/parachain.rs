@@ -19,11 +19,12 @@
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{Everything, Get, Nothing, PalletInfoAccess},
-	weights::Weight,
+	weights::{GetDispatchInfo, Weight},
 	PalletId,
 };
 
 use frame_system::EnsureRoot;
+use orml_traits::{location::AbsoluteReserveProvider, parameter_type_with_key};
 use parity_scale_codec::{Decode, Encode};
 use sp_core::H256;
 use sp_runtime::{
@@ -109,8 +110,11 @@ impl pallet_balances::Config for Runtime {
 	type ReserveIdentifier = [u8; 8];
 }
 
+pub type ForeignAssetInstance = ();
+pub type LocalAssetInstance = pallet_assets::Instance1;
+
 parameter_types! {
-	pub const AssetDeposit: Balance = 0; // Does not really matter as this will be only called by root
+	pub const AssetDeposit: Balance = 1; // Does not really matter as this will be only called by root
 	pub const ApprovalDeposit: Balance = 0;
 	pub const AssetsStringLimit: u32 = 50;
 	pub const MetadataDepositBase: Balance = 0;
@@ -119,7 +123,7 @@ parameter_types! {
 	pub const AssetAccountDeposit: Balance = 0;
 }
 
-impl pallet_assets::Config for Runtime {
+impl pallet_assets::Config<ForeignAssetInstance> for Runtime {
 	type Event = Event;
 	type Balance = Balance;
 	type AssetId = AssetId;
@@ -132,8 +136,25 @@ impl pallet_assets::Config for Runtime {
 	type StringLimit = AssetsStringLimit;
 	type Freezer = ();
 	type Extra = ();
-	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
 	type AssetAccountDeposit = AssetAccountDeposit;
+	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
+}
+
+impl pallet_assets::Config<LocalAssetInstance> for Runtime {
+	type Event = Event;
+	type Balance = Balance;
+	type AssetId = AssetId;
+	type Currency = Balances;
+	type ForceOrigin = EnsureRoot<AccountId>;
+	type AssetDeposit = AssetDeposit;
+	type MetadataDepositBase = MetadataDepositBase;
+	type MetadataDepositPerByte = MetadataDepositPerByte;
+	type ApprovalDeposit = ApprovalDeposit;
+	type StringLimit = AssetsStringLimit;
+	type Freezer = ();
+	type Extra = ();
+	type AssetAccountDeposit = AssetAccountDeposit;
+	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
 }
 
 /// Type for specifying how a `MultiLocation` can be converted into an `AccountId`. This is used
@@ -198,6 +219,8 @@ pub type FungiblesTransactor = FungiblesAdapter<
 >;
 
 // These will be our transactors
+// Local assets not enabled
+// GLMR not enabled
 pub type AssetTransactors = FungiblesTransactor;
 pub type XcmRouter = super::ParachainXcmRouter<MsgQueue>;
 
@@ -247,6 +270,21 @@ parameter_types! {
 			PalletInstance(<Balances as PalletInfoAccess>::index() as u8)
 		)
 	};
+	pub LocalAssetsPalletLocationOldReanchor: MultiLocation = MultiLocation {
+		parents:1,
+		interior: Junctions::X2(
+			Parachain(MsgQueue::parachain_id().into()),
+			PalletInstance(<LocalAssets as PalletInfoAccess>::index() as u8)
+		)
+	};
+
+	pub LocalAssetsPalletLocationNewReanchor: MultiLocation = MultiLocation {
+		parents:0,
+		interior: Junctions::X1(
+			PalletInstance(<LocalAssets as PalletInfoAccess>::index() as u8)
+		)
+	};
+
 }
 pub struct XcmConfig;
 impl Config for XcmConfig {
@@ -276,7 +314,8 @@ impl cumulus_pallet_xcm::Config for Runtime {
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
 pub enum CurrencyId {
 	SelfReserve,
-	OtherReserve(AssetId),
+	ForeignAsset(AssetId),
+	LocalAssetReserve(AssetId),
 }
 
 // How to convert from CurrencyId to MultiLocation
@@ -292,7 +331,13 @@ where
 				let multi: MultiLocation = SelfReserve::get();
 				Some(multi)
 			}
-			CurrencyId::OtherReserve(asset) => AssetXConverter::reverse_ref(asset).ok(),
+			CurrencyId::ForeignAsset(asset) => AssetXConverter::reverse_ref(asset).ok(),
+			// Even if we instruct how to convert, the transactor is not enabled
+			CurrencyId::LocalAssetReserve(asset) => {
+				let mut location = LocalAssetsPalletLocationOldReanchor::get();
+				location.push_interior(Junction::GeneralIndex(asset)).ok();
+				Some(location)
+			}
 		}
 	}
 }
@@ -305,6 +350,12 @@ parameter_types! {
 		interior: Junctions::X1(
 			Parachain(MsgQueue::parachain_id().into())
 		)
+	};
+}
+
+parameter_type_with_key! {
+	pub ParachainMinFee: |_location: MultiLocation| -> u128 {
+		u128::MAX
 	};
 }
 
@@ -322,6 +373,9 @@ impl orml_xtokens::Config for Runtime {
 	type BaseXcmWeight = BaseXcmWeight;
 	type LocationInverter = LocationInverter<Ancestry>;
 	type MaxAssetsForTransfer = MaxAssetsForTransfer;
+	type MinXcmFee = ParachainMinFee;
+	type MultiLocationsFilter = Everything;
+	type ReserveProvider = AbsoluteReserveProvider;
 }
 
 parameter_types! {
@@ -627,7 +681,7 @@ impl From<AssetType> for AssetId {
 pub struct AssetRegistrar;
 use frame_support::pallet_prelude::DispatchResult;
 impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
-	fn create_asset(
+	fn create_foreign_asset(
 		asset: AssetId,
 		min_balance: Balance,
 		metadata: AssetMetadata,
@@ -650,6 +704,60 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 			false,
 		)
 	}
+
+	fn create_local_asset(
+		asset: AssetId,
+		_creator: AccountId,
+		min_balance: Balance,
+		is_sufficient: bool,
+		owner: AccountId,
+	) -> DispatchResult {
+		LocalAssets::force_create(Origin::root(), asset, owner, is_sufficient, min_balance)?;
+
+		// TODO uncomment when we feel comfortable
+		/*
+		// The asset has been created. Let's put the revert code in the precompile address
+		let precompile_address = Runtime::asset_id_to_account(ASSET_PRECOMPILE_ADDRESS_PREFIX, asset);
+		pallet_evm::AccountCodes::<Runtime>::insert(
+			precompile_address,
+			vec![0x60, 0x00, 0x60, 0x00, 0xfd],
+		);*/
+		Ok(())
+	}
+
+	fn destroy_foreign_asset(
+		asset: AssetId,
+		asset_destroy_witness: pallet_assets::DestroyWitness,
+	) -> DispatchResult {
+		// First destroy the asset
+		Assets::destroy(Origin::root(), asset, asset_destroy_witness).map_err(|info| info.error)?;
+
+		Ok(())
+	}
+
+	fn destroy_local_asset(
+		asset: AssetId,
+		asset_destroy_witness: pallet_assets::DestroyWitness,
+	) -> DispatchResult {
+		// First destroy the asset
+		LocalAssets::destroy(Origin::root(), asset, asset_destroy_witness)
+			.map_err(|info| info.error)?;
+
+		Ok(())
+	}
+
+	fn destroy_asset_dispatch_info_weight(
+		asset: AssetId,
+		asset_destroy_witness: pallet_assets::DestroyWitness,
+	) -> Weight {
+		let call = Call::Assets(
+			pallet_assets::Call::<Runtime, ForeignAssetInstance>::destroy {
+				id: asset,
+				witness: asset_destroy_witness,
+			},
+		);
+		call.get_dispatch_info().weight
+	}
 }
 
 #[derive(Clone, Default, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
@@ -659,14 +767,32 @@ pub struct AssetMetadata {
 	pub decimals: u8,
 }
 
+pub struct LocalAssetIdCreator;
+impl pallet_asset_manager::LocalAssetIdCreator<Runtime> for LocalAssetIdCreator {
+	fn create_asset_id_from_metadata(local_asset_counter: u128) -> AssetId {
+		// Our means of converting a local asset counter to an assetId
+		// We basically hash (local asset counter)
+		let mut result: [u8; 16] = [0u8; 16];
+		let to_hash = local_asset_counter.encode();
+		let hash: H256 = to_hash.using_encoded(<Runtime as frame_system::Config>::Hashing::hash);
+		result.copy_from_slice(&hash.as_fixed_bytes()[0..16]);
+		u128::from_le_bytes(result)
+	}
+}
+
 impl pallet_asset_manager::Config for Runtime {
 	type Event = Event;
 	type Balance = Balance;
 	type AssetId = AssetId;
 	type AssetRegistrarMetadata = AssetMetadata;
-	type AssetType = AssetType;
+	type ForeignAssetType = AssetType;
 	type AssetRegistrar = AssetRegistrar;
-	type AssetModifierOrigin = EnsureRoot<AccountId>;
+	type ForeignAssetModifierOrigin = EnsureRoot<AccountId>;
+	type LocalAssetModifierOrigin = EnsureRoot<AccountId>;
+	type LocalAssetIdCreator = LocalAssetIdCreator;
+	type AssetDestroyWitness = pallet_assets::DestroyWitness;
+	type Currency = Balances;
+	type LocalAssetDeposit = AssetDeposit;
 	type WeightInfo = ();
 }
 
@@ -718,6 +844,7 @@ impl pallet_evm::Config for Runtime {
 	type OnChargeTransaction = ();
 	type BlockHashMapping = pallet_evm::SubstrateBlockHashMapping<Self>;
 	type FindAuthor = ();
+	type WeightInfo = ();
 }
 
 pub struct NormalFilter;
@@ -786,12 +913,13 @@ construct_runtime!(
 		XcmVersioner: mock_version_changer::{Pallet, Storage, Event<T>},
 
 		PolkadotXcm: pallet_xcm::{Pallet, Call, Event<T>, Origin},
-		Assets: pallet_assets::{Pallet, Storage, Event<T>},
+		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>},
 		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin},
 		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>},
 		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>},
 		XcmTransactor: xcm_transactor::{Pallet, Call, Storage, Event<T>},
 		Treasury: pallet_treasury::{Pallet, Storage, Config, Event<T>, Call},
+		LocalAssets: pallet_assets::<Instance1>::{Pallet, Call, Storage, Event<T>},
 
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage},
 		EVM: pallet_evm::{Pallet, Call, Storage, Config, Event<T>},

@@ -26,6 +26,7 @@ use cli_opt::{EthApi as EthApiCmd, RpcConfig};
 use fc_consensus::FrontierBlockImport;
 use fc_rpc_core::types::{FeeHistoryCache, FilterPool};
 use futures::StreamExt;
+use maplit::hashmap;
 #[cfg(feature = "moonbase-native")]
 pub use moonbase_runtime;
 #[cfg(feature = "moonbeam-native")]
@@ -34,6 +35,7 @@ pub use moonbeam_runtime;
 pub use moonriver_runtime;
 use std::{collections::BTreeMap, sync::Mutex, time::Duration};
 pub mod rpc;
+use cumulus_client_cli::CollatorOptions;
 use cumulus_client_consensus_common::ParachainConsensus;
 use cumulus_client_network::BlockAnnounceValidator;
 use cumulus_client_service::{
@@ -43,13 +45,14 @@ use cumulus_primitives_core::ParaId;
 use cumulus_primitives_parachain_inherent::{
 	MockValidationDataInherentDataProvider, MockXcmConfig,
 };
-use cumulus_relay_chain_interface::RelayChainInterface;
-use cumulus_relay_chain_local::build_relay_chain_interface;
+use cumulus_relay_chain_inprocess_interface::build_inprocess_relay_chain;
+use cumulus_relay_chain_interface::{RelayChainError, RelayChainInterface};
 use nimbus_consensus::NimbusManualSealConsensusDataProvider;
 use nimbus_consensus::{BuildNimbusConsensusParams, NimbusConsensus};
 use nimbus_primitives::NimbusId;
 use sc_executor::{NativeElseWasmExecutor, NativeExecutionDispatch};
 use sc_network::NetworkService;
+use sc_service::config::PrometheusConfig;
 use sc_service::{
 	error::Error as ServiceError, BasePath, ChainSpec, Configuration, PartialComponents, Role,
 	TFullBackend, TFullClient, TaskManager,
@@ -277,13 +280,25 @@ where
 	))
 }
 
+// If we're using prometheus, use a registry with a prefix of `moonbeam`.
+fn set_prometheus_registry(config: &mut Configuration) -> Result<(), ServiceError> {
+	if let Some(PrometheusConfig { registry, .. }) = config.prometheus_config.as_mut() {
+		let labels = hashmap! {
+			"chain".into() => config.chain_spec.id().into(),
+		};
+		*registry = Registry::new_custom(Some("moonbeam".into()), Some(labels))?;
+	}
+
+	Ok(())
+}
+
 /// Builds the PartialComponents for a parachain or development service
 ///
 /// Use this function if you don't actually need the full service, but just the partial in order to
 /// be able to perform chain operations.
 #[allow(clippy::type_complexity)]
 pub fn new_partial<RuntimeApi, Executor>(
-	config: &Configuration,
+	config: &mut Configuration,
 	dev_service: bool,
 ) -> Result<
 	PartialComponents<
@@ -314,6 +329,8 @@ where
 		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
 	Executor: NativeExecutionDispatch + 'static,
 {
+	set_prometheus_registry(config)?;
+
 	let telemetry = config
 		.telemetry_endpoints
 		.clone()
@@ -443,9 +460,9 @@ where
 		return Err("Light client not supported!".into());
 	}
 
-	let parachain_config = prepare_node_config(parachain_config);
+	let mut parachain_config = prepare_node_config(parachain_config);
 
-	let params = new_partial(&parachain_config, false)?;
+	let params = new_partial(&mut parachain_config, false)?;
 	let (
 		_block_import,
 		filter_pool,
@@ -459,12 +476,16 @@ where
 	let backend = params.backend.clone();
 	let mut task_manager = params.task_manager;
 
-	let (relay_chain_interface, collator_key) =
-		build_relay_chain_interface(polkadot_config, telemetry_worker_handle, &mut task_manager)
-			.map_err(|e| match e {
-				polkadot_service::Error::Sub(x) => x,
-				s => format!("{}", s).into(),
-			})?;
+	let (relay_chain_interface, collator_key) = build_inprocess_relay_chain(
+		polkadot_config,
+		&parachain_config,
+		telemetry_worker_handle,
+		&mut task_manager,
+	)
+	.map_err(|e| match e {
+		RelayChainError::ServiceError(polkadot_service::Error::Sub(x)) => x,
+		s => s.to_string().into(),
+	})?;
 
 	let block_announce_validator = BlockAnnounceValidator::new(relay_chain_interface.clone(), id);
 
@@ -525,12 +546,17 @@ where
 			}
 		};
 
-	let block_data_cache = Arc::new(fc_rpc::EthBlockDataCache::new(
+	let block_data_cache = Arc::new(fc_rpc::EthBlockDataCacheTask::new(
 		task_manager.spawn_handle(),
 		overrides.clone(),
-		rpc_config.eth_log_block_cache,
-		rpc_config.eth_log_block_cache,
+		rpc_config.eth_log_block_cache as u64,
+		rpc_config.eth_statuses_cache as u64,
+		prometheus_registry.clone(),
 	));
+
+	// variable `rpc_config` will be moved in next code block, we need to
+	// save param `relay_chain_rpc_url` to be able to use it later.
+	let relay_chain_rpc_url = rpc_config.relay_chain_rpc_url.clone();
 
 	let rpc_extensions_builder = {
 		let client = client.clone();
@@ -624,7 +650,9 @@ where
 			spawner,
 			parachain_consensus,
 			import_queue,
-			collator_key,
+			collator_key: collator_key.ok_or(sc_service::error::Error::Other(
+				"Collator Key is None".to_string(),
+			))?,
 			relay_chain_slot_duration,
 		};
 
@@ -638,6 +666,9 @@ where
 			relay_chain_interface,
 			relay_chain_slot_duration,
 			import_queue,
+			collator_options: CollatorOptions {
+				relay_chain_rpc_url,
+			},
 		};
 
 		start_full_node(params)?;
@@ -732,7 +763,7 @@ where
 /// Builds a new development service. This service uses manual seal, and mocks
 /// the parachain inherent.
 pub fn new_dev<RuntimeApi, Executor>(
-	config: Configuration,
+	mut config: Configuration,
 	_author_id: Option<nimbus_primitives::NimbusId>,
 	sealing: cli_opt::Sealing,
 	rpc_config: RpcConfig,
@@ -766,7 +797,7 @@ where
 				frontier_backend,
 				fee_history_cache,
 			),
-	} = new_partial::<RuntimeApi, Executor>(&config, true)?;
+	} = new_partial::<RuntimeApi, Executor>(&mut config, true)?;
 
 	let (network, system_rpc_tx, network_starter) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
@@ -933,11 +964,12 @@ where
 			}
 		};
 
-	let block_data_cache = Arc::new(fc_rpc::EthBlockDataCache::new(
+	let block_data_cache = Arc::new(fc_rpc::EthBlockDataCacheTask::new(
 		task_manager.spawn_handle(),
 		overrides.clone(),
-		rpc_config.eth_log_block_cache,
-		rpc_config.eth_log_block_cache,
+		rpc_config.eth_log_block_cache as u64,
+		rpc_config.eth_statuses_cache as u64,
+		prometheus_registry,
 	));
 
 	let rpc_extensions_builder = {
@@ -1002,4 +1034,162 @@ where
 
 	network_starter.start_network();
 	Ok(task_manager)
+}
+
+#[cfg(test)]
+mod tests {
+	use moonbase_runtime::{currency::UNIT, AccountId};
+	use prometheus::{proto::LabelPair, Counter};
+	use sc_network::config::NetworkConfiguration;
+	use sc_service::ChainType;
+	use sc_service::{
+		config::{BasePath, DatabaseSource, KeystoreConfig},
+		Configuration, KeepBlocks, Role,
+	};
+	use std::path::Path;
+	use std::str::FromStr;
+
+	use crate::chain_spec::moonbase::{testnet_genesis, ChainSpec};
+	use crate::chain_spec::Extensions;
+
+	use super::*;
+
+	#[test]
+	fn test_set_prometheus_registry_uses_moonbeam_prefix() {
+		let counter_name = "my_counter";
+		let expected_metric_name = "moonbeam_my_counter";
+		let counter = Box::new(Counter::new(counter_name, "foobar").unwrap());
+		let mut config = Configuration {
+			prometheus_config: Some(PrometheusConfig::new_with_default_registry(
+				"0.0.0.0:8080".parse().unwrap(),
+				"".into(),
+			)),
+			..test_config("test")
+		};
+
+		set_prometheus_registry(&mut config).unwrap();
+		// generate metric
+		let reg = config.prometheus_registry().unwrap();
+		reg.register(counter.clone()).unwrap();
+		counter.inc();
+
+		let actual_metric_name = reg.gather().first().unwrap().get_name().to_string();
+		assert_eq!(actual_metric_name.as_str(), expected_metric_name);
+	}
+
+	#[test]
+	fn test_set_prometheus_registry_adds_chain_id_as_label() {
+		let input_chain_id = "moonriver";
+
+		let mut expected_label = LabelPair::default();
+		expected_label.set_name("chain".to_owned());
+		expected_label.set_value("moonriver".to_owned());
+		let expected_chain_label = Some(expected_label);
+
+		let counter = Box::new(Counter::new("foo", "foobar").unwrap());
+		let mut config = Configuration {
+			prometheus_config: Some(PrometheusConfig::new_with_default_registry(
+				"0.0.0.0:8080".parse().unwrap(),
+				"".into(),
+			)),
+			..test_config(input_chain_id)
+		};
+
+		set_prometheus_registry(&mut config).unwrap();
+		// generate metric
+		let reg = config.prometheus_registry().unwrap();
+		reg.register(counter.clone()).unwrap();
+		counter.inc();
+
+		let actual_chain_label = reg
+			.gather()
+			.first()
+			.unwrap()
+			.get_metric()
+			.first()
+			.unwrap()
+			.get_label()
+			.into_iter()
+			.find(|x| x.get_name() == "chain")
+			.cloned();
+
+		assert_eq!(actual_chain_label, expected_chain_label);
+	}
+
+	fn test_config(chain_id: &str) -> Configuration {
+		let network_config = NetworkConfiguration::new("", "", Default::default(), None);
+		let runtime = tokio::runtime::Runtime::new().expect("failed creating tokio runtime");
+		let spec = ChainSpec::from_genesis(
+			"test",
+			chain_id,
+			ChainType::Local,
+			move || {
+				testnet_genesis(
+					AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap(),
+					vec![],
+					vec![],
+					vec![],
+					vec![],
+					vec![],
+					1000 * UNIT,
+					ParaId::new(0),
+					0,
+				)
+			},
+			vec![],
+			None,
+			None,
+			None,
+			None,
+			Extensions::default(),
+		);
+
+		Configuration {
+			impl_name: String::from("test-impl"),
+			impl_version: String::from("0.1"),
+			role: Role::Full,
+			tokio_handle: runtime.handle().clone(),
+			transaction_pool: Default::default(),
+			network: network_config,
+			keystore_remote: Default::default(),
+			keystore: KeystoreConfig::Path {
+				path: "key".into(),
+				password: None,
+			},
+			database: DatabaseSource::RocksDb {
+				path: "db".into(),
+				cache_size: 128,
+			},
+			state_cache_size: 16777216,
+			state_cache_child_ratio: None,
+			state_pruning: Default::default(),
+			keep_blocks: KeepBlocks::All,
+			chain_spec: Box::new(spec),
+			wasm_method: sc_service::config::WasmExecutionMethod::Interpreted,
+			wasm_runtime_overrides: Default::default(),
+			execution_strategies: Default::default(),
+			rpc_http: None,
+			rpc_ipc: None,
+			rpc_ws: None,
+			rpc_ws_max_connections: None,
+			rpc_cors: None,
+			rpc_methods: Default::default(),
+			rpc_max_payload: None,
+			ws_max_out_buffer_capacity: None,
+			prometheus_config: None,
+			telemetry_endpoints: None,
+			default_heap_pages: None,
+			offchain_worker: Default::default(),
+			force_authoring: false,
+			disable_grandpa: false,
+			dev_key_seed: None,
+			tracing_targets: None,
+			tracing_receiver: Default::default(),
+			max_runtime_instances: 8,
+			announce_block: true,
+			base_path: Some(BasePath::new(Path::new(""))),
+			informant_output_format: Default::default(),
+			runtime_cache_size: 2,
+		}
+	}
 }

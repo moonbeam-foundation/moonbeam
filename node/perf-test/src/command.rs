@@ -75,7 +75,7 @@ where
 		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
 	Executor: NativeExecutionDispatch + 'static,
 {
-	pub fn from_cmd(config: Configuration, _cmd: &PerfCmd) -> CliResult<Self> {
+	pub fn from_cmd(mut config: Configuration, _cmd: &PerfCmd) -> CliResult<Self> {
 		println!("perf-test from_cmd");
 		let sc_service::PartialComponents {
 			client,
@@ -94,7 +94,7 @@ where
 					frontier_backend,
 					fee_history_cache,
 				),
-		} = service::new_partial::<RuntimeApi, Executor>(&config, true)?;
+		} = service::new_partial::<RuntimeApi, Executor>(&mut config, true)?;
 
 		// TODO: review -- we don't need any actual networking
 		let (network, system_rpc_tx, network_starter) =
@@ -203,11 +203,12 @@ where
 
 		let command_sink_for_deps = Some(command_sink.clone());
 
-		let block_data_cache = Arc::new(fc_rpc::EthBlockDataCache::new(
+		let block_data_cache = Arc::new(fc_rpc::EthBlockDataCacheTask::new(
 			task_manager.spawn_handle(),
 			overrides.clone(),
 			3000,
 			3000,
+			prometheus_registry,
 		));
 
 		let rpc_extensions_builder = {

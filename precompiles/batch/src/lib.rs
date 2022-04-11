@@ -51,19 +51,20 @@ where
 		context: &Context,
 		is_static: bool,
 	) -> EvmResult<PrecompileOutput> {
-		let mut gasometer = Gasometer::new(target_gas);
-		let (mut input, selector) = EvmDataReader::new_with_selector(&mut gasometer, input)?;
+		todo!()
+		
+		// let mut gasometer = Gasometer::new(target_gas);
+		// let (mut input, selector) = EvmDataReader::new_with_selector(&mut gasometer, input)?;
 
-		gasometer.check_function_modifier(
-			context,
-			is_static,
-			FunctionModifier::Payable,
-		)?;
+		// gasometer.check_function_modifier(
+		// 	context,
+		// 	is_static,
+		// 	FunctionModifier::Payable,
+		// )?;
 
-
-		match selector {
-			Action::BatchSome => Self::batch(&mut input, &mut gasometer, context, BatchMode::StopOnFailure),
-		}
+		// match selector {
+		// 	Action::BatchSome => Self::batch(&mut input, &mut gasometer, context, BatchMode::StopOnFailure),
+		// }
 	}
 }
 

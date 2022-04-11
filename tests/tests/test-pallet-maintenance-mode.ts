@@ -282,7 +282,7 @@ describeDevMoonbeam(
           context.polkadotApi.tx.crowdloanRewards.claim()
         );
       });
-      expect(error).to.eq("Error: 1010: Invalid Transaction: Transaction call is not expected");
+      expect(error).to.eq("RpcError: 1010: Invalid Transaction: Transaction call is not expected");
     });
   }
 );
@@ -327,7 +327,7 @@ describeDevMoonbeam(
           context.polkadotApi.tx.assets.transfer(assetId, BALTATHAR, 1000)
         );
       });
-      expect(error).to.eq("Error: 1010: Invalid Transaction: Transaction call is not expected");
+      expect(error).to.eq("RpcError: 1010: Invalid Transaction: Transaction call is not expected");
     });
   }
 );
@@ -372,7 +372,7 @@ describeDevMoonbeam(
           )
         );
       });
-      expect(error).to.eq("Error: 1010: Invalid Transaction: Transaction call is not expected");
+      expect(error).to.eq("RpcError: 1010: Invalid Transaction: Transaction call is not expected");
     });
   }
 );
@@ -433,7 +433,7 @@ describeDevMoonbeam(
           )
         );
       });
-      expect(error).to.eq("Error: 1010: Invalid Transaction: Transaction call is not expected");
+      expect(error).to.eq("RpcError: 1010: Invalid Transaction: Transaction call is not expected");
     });
   }
 );
@@ -455,12 +455,12 @@ describeDevMoonbeam(
       const keyring = new Keyring({ type: "ethereum" });
       sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
 
-      // registerAsset
+      // registerForeignAsset
       const { events: eventsRegister } = await createBlockWithExtrinsic(
         context,
         sudoAccount,
         context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.assetManager.registerAsset(
+          context.polkadotApi.tx.assetManager.registerForeignAsset(
             sourceLocation,
             assetMetadata,
             new BN(1),
@@ -549,12 +549,12 @@ describeDevMoonbeam(
       const keyring = new Keyring({ type: "ethereum" });
       sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
 
-      // registerAsset
+      // registerForeignAsset
       const { events: eventsRegister } = await createBlockWithExtrinsic(
         context,
         sudoAccount,
         context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.assetManager.registerAsset(
+          context.polkadotApi.tx.assetManager.registerForeignAsset(
             sourceLocation,
             assetMetadata,
             new BN(1),
