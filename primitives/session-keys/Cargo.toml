@@ -1,0 +1,10 @@
+[package]
+name = "session-keys-primitives"
+authors = [ "PureStake" ]
+description = "Primitives for session keys"
+edition = "2018"
+version = "0.1.0"
+
+[features]
+default = [ "std" ]
+std = []

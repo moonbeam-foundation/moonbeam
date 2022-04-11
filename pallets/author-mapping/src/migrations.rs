@@ -23,10 +23,94 @@ use frame_support::{
 	Twox64Concat,
 };
 use nimbus_primitives::NimbusId;
-
+use parity_scale_codec::{Decode, Encode};
 use sp_std::convert::TryInto;
 //TODO sometimes this is unused, sometimes its necessary
 use sp_std::vec::Vec;
+
+/// Migrates MappingWithDeposit map value from RegistrationInfo to RegistrationInformation,
+/// thereby adding a keys: T::Keys field to the value to support VRF keys that can be looked up
+/// via NimbusId.
+pub struct AddKeysToRegistrationInfo<T>(PhantomData<T>);
+#[derive(Encode, Decode, PartialEq, Eq, Debug, scale_info::TypeInfo)]
+struct OldRegistrationInfo<AccountId, Balance> {
+	account: AccountId,
+	deposit: Balance,
+}
+fn migrate_registration_info<T: Config>(
+	nimbus_id: NimbusId,
+	old: OldRegistrationInfo<T::AccountId, BalanceOf<T>>,
+) -> RegistrationInfo<T> {
+	RegistrationInfo {
+		account: old.account,
+		deposit: old.deposit,
+		keys: nimbus_id.into(),
+	}
+}
+impl<T: Config> OnRuntimeUpgrade for AddKeysToRegistrationInfo<T> {
+	fn on_runtime_upgrade() -> Weight {
+		log::info!(target: "AddKeysToRegistrationInfo", "running migration");
+
+		let mut read_write_count = 0u64;
+		<MappingWithDeposit<T>>::translate(
+			|nimbus_id, old_registration_info: OldRegistrationInfo<T::AccountId, BalanceOf<T>>| {
+				read_write_count = read_write_count.saturating_add(1u64);
+				Some(migrate_registration_info(nimbus_id, old_registration_info))
+			},
+		);
+		// return weight
+		read_write_count.saturating_mul(T::DbWeight::get().read + T::DbWeight::get().write)
+	}
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade() -> Result<(), &'static str> {
+		use frame_support::traits::OnRuntimeUpgradeHelpersExt;
+		// get total deposited and account for all nimbus_keys
+		for (nimbus_id, info) in <MappingWithDeposit<T>>::iter() {
+			Self::set_temp_storage(
+				info.account,
+				&format!("MappingWithDeposit{:?}Account", nimbus_id)[..],
+			);
+			Self::set_temp_storage(
+				info.deposit,
+				&format!("MappingWithDeposit{:?}Deposit", nimbus_id)[..],
+			);
+		}
+		Ok(())
+	}
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade() -> Result<(), &'static str> {
+		use frame_support::traits::OnRuntimeUpgradeHelpersExt;
+		// ensure new deposit and account are the same as the old ones
+		// ensure new keys are equal to nimbus_id
+		for (nimbus_id, info) in <MappingWithDeposit<T>>::iter() {
+			let old_account: T::AccountId =
+				Self::get_temp_storage(&format!("MappingWithDeposit{:?}Account", nimbus_id)[..])
+					.expect("qed");
+			let new_account = info.account;
+			assert_eq!(
+				old_account, new_account,
+				"Old Account {:?} dne New Account {:?} for NimbusID {:?}",
+				old_account, new_account, nimbus_id
+			);
+			let old_deposit: BalanceOf<T> =
+				Self::get_temp_storage(&format!("MappingWithDeposit{:?}Deposit", nimbus_id)[..])
+					.expect("qed");
+			let new_deposit = info.deposit;
+			assert_eq!(
+				old_deposit, new_deposit,
+				"Old Deposit {:?} dne New Deposit {:?} for NimbusID {:?}",
+				old_deposit, new_deposit, nimbus_id
+			);
+			let nimbus_id_as_keys: T::Keys = nimbus_id.into();
+			assert_eq!(
+				nimbus_id_as_keys, info.keys,
+				"Old NimbusID {:?} dne New Keys {:?}",
+				nimbus_id_as_keys, info.keys,
+			);
+		}
+		Ok(())
+	}
+}
 
 /// Migrates the AuthorMapping's storage map fro mthe insecure Twox64 hasher to the secure
 /// BlakeTwo hasher.
@@ -39,11 +123,10 @@ impl<T: Config> OnRuntimeUpgrade for TwoXToBlake<T> {
 
 		// Read all the data into memory.
 		// https://crates.parity.io/frame_support/storage/migration/fn.storage_key_iter.html
-		let stored_data: Vec<_> = storage_key_iter::<
-			NimbusId,
-			RegistrationInfo<T::AccountId, BalanceOf<T>>,
-			Twox64Concat,
-		>(pallet_prefix, storage_item_prefix)
+		let stored_data: Vec<_> = storage_key_iter::<NimbusId, RegistrationInfo<T>, Twox64Concat>(
+			pallet_prefix,
+			storage_item_prefix,
+		)
 		.collect();
 
 		let migrated_count: Weight = stored_data
@@ -56,13 +139,14 @@ impl<T: Config> OnRuntimeUpgrade for TwoXToBlake<T> {
 		remove_storage_prefix(pallet_prefix, storage_item_prefix, &[]);
 
 		// Assert that old storage is empty
-		assert!(storage_key_iter::<
-			NimbusId,
-			RegistrationInfo<T::AccountId, BalanceOf<T>>,
-			Twox64Concat,
-		>(pallet_prefix, storage_item_prefix)
-		.next()
-		.is_none());
+		assert!(
+			storage_key_iter::<NimbusId, RegistrationInfo<T>, Twox64Concat>(
+				pallet_prefix,
+				storage_item_prefix
+			)
+			.next()
+			.is_none()
+		);
 
 		// Write the mappings back to storage with the new secure hasher
 		for (author_id, account_id) in stored_data {
@@ -97,20 +181,16 @@ impl<T: Config> OnRuntimeUpgrade for TwoXToBlake<T> {
 		assert!(MappingWithDeposit::<T>::iter().next().is_none());
 
 		// Check number of entries, and set it aside in temp storage
-		let mapping_count = storage_iter::<RegistrationInfo<T::AccountId, BalanceOf<T>>>(
-			pallet_prefix,
-			storage_item_prefix,
-		)
-		.count() as u64;
+		let mapping_count =
+			storage_iter::<RegistrationInfo<T>>(pallet_prefix, storage_item_prefix).count() as u64;
 		Self::set_temp_storage(mapping_count, "mapping_count");
 
 		// Read an example pair from old storage and set it aside in temp storage
 		if mapping_count > 0 {
-			let example_pair = storage_key_iter::<
-				NimbusId,
-				RegistrationInfo<T::AccountId, BalanceOf<T>>,
-				Twox64Concat,
-			>(pallet_prefix, storage_item_prefix)
+			let example_pair = storage_key_iter::<NimbusId, RegistrationInfo<T>, Twox64Concat>(
+				pallet_prefix,
+				storage_item_prefix,
+			)
 			.next()
 			.expect("We already confirmed that there was at least one item stored");
 
@@ -132,7 +212,7 @@ impl<T: Config> OnRuntimeUpgrade for TwoXToBlake<T> {
 
 		// Check that our example pair is still well-mapped after the migration
 		if new_mapping_count > 0 {
-			let (account, original_info): (NimbusId, RegistrationInfo<T::AccountId, BalanceOf<T>>) =
+			let (account, original_info): (NimbusId, RegistrationInfo<T>) =
 				Self::get_temp_storage("example_pair").expect("qed");
 			let migrated_info = MappingWithDeposit::<T>::get(account).expect("qed");
 			assert_eq!(original_info, migrated_info);
