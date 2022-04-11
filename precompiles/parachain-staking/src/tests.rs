@@ -153,7 +153,7 @@ fn min_nomination_works() {
 		input_data[0..4].copy_from_slice(&selector);
 
 		// Expected result is 3
-		let expected_result = Some(Ok(PrecompileOutput {
+		let expected_result = Some(Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			output: EvmDataWriter::new().write(3u32).build(),
 			cost: Default::default(),
@@ -183,7 +183,7 @@ fn min_delegation_works() {
 		input_data[0..4].copy_from_slice(&selector);
 
 		// Expected result is 3
-		let expected_result = Some(Ok(PrecompileOutput {
+		let expected_result = Some(Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			output: EvmDataWriter::new().write(3u32).build(),
 			cost: Default::default(),
@@ -218,7 +218,7 @@ fn points_zero() {
 			U256::one().to_big_endian(&mut input_data[4..36]);
 
 			// Expected result is 0 points
-			let expected_one_result = Some(Ok(PrecompileOutput {
+			let expected_one_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(0u32).build(),
 				cost: Default::default(),
@@ -254,7 +254,7 @@ fn points_non_zero() {
 			U256::one().to_big_endian(&mut input_data[4..36]);
 
 			// Expected result is 100 points
-			let expected_one_result = Some(Ok(PrecompileOutput {
+			let expected_one_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(100u32).build(),
 				cost: Default::default(),
@@ -303,7 +303,7 @@ fn collator_nomination_count_works() {
 			input_data[16..36].copy_from_slice(&TestAccount::Alice.to_h160().0);
 
 			// Expected result 3
-			let expected_one_result = Some(Ok(PrecompileOutput {
+			let expected_one_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(3u32).build(),
 				cost: Default::default(),
@@ -349,7 +349,7 @@ fn candidate_delegation_count_works() {
 			input_data[16..36].copy_from_slice(&TestAccount::Alice.to_h160().0);
 
 			// Expected result 3
-			let expected_result = Some(Ok(PrecompileOutput {
+			let expected_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(3u32).build(),
 				cost: Default::default(),
@@ -394,7 +394,7 @@ fn nominator_nomination_count_works() {
 			input_data[16..36].copy_from_slice(&TestAccount::Charlie.to_h160().0);
 
 			// Expected result is 2
-			let expected_one_result = Some(Ok(PrecompileOutput {
+			let expected_one_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(2u32).build(),
 				cost: Default::default(),
@@ -438,7 +438,7 @@ fn delegator_delegation_count_works() {
 			input_data[16..36].copy_from_slice(&TestAccount::Charlie.to_h160().0);
 
 			// Expected result is 2
-			let expected_result = Some(Ok(PrecompileOutput {
+			let expected_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(2u32).build(),
 				cost: Default::default(),
@@ -476,7 +476,7 @@ fn is_nominator_true_false() {
 			charlie_input_data[16..36].copy_from_slice(&TestAccount::Charlie.to_h160().0);
 
 			// Expected result is false
-			let expected_false_result = Some(Ok(PrecompileOutput {
+			let expected_false_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(false).build(),
 				cost: Default::default(),
@@ -501,7 +501,7 @@ fn is_nominator_true_false() {
 			bob_input_data[16..36].copy_from_slice(&TestAccount::Bob.to_h160().0);
 
 			// Expected result is true
-			let expected_true_result = Some(Ok(PrecompileOutput {
+			let expected_true_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(true).build(),
 				cost: Default::default(),
@@ -533,7 +533,7 @@ fn is_delegator_false() {
 		input_data[16..36].copy_from_slice(&TestAccount::Charlie.to_h160().0);
 
 		// Expected result is false
-		let expected_one_result = Some(Ok(PrecompileOutput {
+		let expected_one_result = Some(Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			output: EvmDataWriter::new().write(false).build(),
 			cost: Default::default(),
@@ -570,7 +570,7 @@ fn is_delegator_true() {
 			input_data[16..36].copy_from_slice(&TestAccount::Bob.to_h160().0);
 
 			// Expected result is true
-			let expected_one_result = Some(Ok(PrecompileOutput {
+			let expected_one_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(true).build(),
 				cost: Default::default(),
@@ -602,7 +602,7 @@ fn is_candidate_false() {
 		input_data[16..36].copy_from_slice(&TestAccount::Alice.to_h160().0);
 
 		// Expected result is false
-		let expected_one_result = Some(Ok(PrecompileOutput {
+		let expected_one_result = Some(Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			output: EvmDataWriter::new().write(false).build(),
 			cost: Default::default(),
@@ -638,7 +638,7 @@ fn is_candidate_true() {
 			input_data[16..36].copy_from_slice(&TestAccount::Alice.to_h160().0);
 
 			// Expected result is true
-			let expected_one_result = Some(Ok(PrecompileOutput {
+			let expected_one_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(true).build(),
 				cost: Default::default(),
@@ -670,7 +670,7 @@ fn is_selected_candidate_false() {
 		input_data[16..36].copy_from_slice(&TestAccount::Alice.to_h160().0);
 
 		// Expected result is false
-		let expected_one_result = Some(Ok(PrecompileOutput {
+		let expected_one_result = Some(Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			output: EvmDataWriter::new().write(false).build(),
 			cost: Default::default(),
@@ -706,7 +706,7 @@ fn is_selected_candidate_true() {
 			input_data[16..36].copy_from_slice(&TestAccount::Alice.to_h160().0);
 
 			// Expected result is true
-			let expected_one_result = Some(Ok(PrecompileOutput {
+			let expected_one_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(true).build(),
 				cost: Default::default(),
@@ -742,7 +742,7 @@ fn selected_candidates_works() {
 				.map(|x| Address(x.into()))
 				.collect();
 			// Expected result is bogus selected repeated candidates
-			let expected_result = Some(Ok(PrecompileOutput {
+			let expected_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new()
 					.write(evm_expected_selected_candidate)

@@ -116,7 +116,7 @@ fn prop_count_zero() {
 		let input = EvmDataWriter::new_with_selector(Action::PublicPropCount).build();
 
 		// Expected result is zero. because no props are open yet.
-		let expected_zero_result = Some(Ok(PrecompileOutput {
+		let expected_zero_result = Some(Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			output: Vec::from([0u8; 32]),
 			cost: Default::default(),
@@ -148,7 +148,7 @@ fn prop_count_non_zero() {
 			let input = EvmDataWriter::new_with_selector(Action::PublicPropCount).build();
 
 			// Expected result is one
-			let expected_one_result = Some(Ok(PrecompileOutput {
+			let expected_one_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(1u32).build(),
 				cost: Default::default(),
@@ -184,7 +184,7 @@ fn deposit_of_non_zero() {
 				.build();
 
 			// Expected result is Alice's deposit of 1000
-			let expected_result = Some(Ok(PrecompileOutput {
+			let expected_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(1000u32).build(),
 				cost: Default::default(),
@@ -221,7 +221,7 @@ fn lowest_unbaked_zero() {
 		let input = EvmDataWriter::new_with_selector(Action::LowestUnbaked).build();
 
 		// Expected result is zero
-		let expected_zero_result = Some(Ok(PrecompileOutput {
+		let expected_zero_result = Some(Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			output: EvmDataWriter::new().write(0u32).build(),
 			cost: Default::default(),
@@ -291,7 +291,7 @@ fn lowest_unbaked_non_zero() {
 			let input = EvmDataWriter::new_with_selector(Action::LowestUnbaked).build();
 
 			// Expected result is one
-			let expected_one_result = Some(Ok(PrecompileOutput {
+			let expected_one_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(1u32).build(),
 				cost: Default::default(),

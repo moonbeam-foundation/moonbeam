@@ -129,7 +129,7 @@ where
 			.ok_or(gasometer.revert("No index assigned"))?
 			.into();
 
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new().write(Address(account)).build(),
@@ -150,7 +150,7 @@ where
 			xcm_transactor::Pallet::<Runtime>::transact_info(multilocation)
 				.ok_or(gasometer.revert("Transact Info not set"))?;
 
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new()
@@ -200,7 +200,7 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
 
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: Default::default(),
@@ -252,7 +252,7 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
 
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: Default::default(),

@@ -17,15 +17,14 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![feature(assert_matches)]
 
-
 use fp_evm::{Context, ExitSucceed, PrecompileOutput};
 use pallet_evm::{AddressMapping, Precompile};
 use precompile_utils::{
-	Bytes,
-	Address, EvmDataReader, EvmDataWriter, EvmResult, FunctionModifier, Gasometer, RuntimeHelper,
+	Address, Bytes, EvmDataReader, EvmDataWriter, EvmResult, FunctionModifier, Gasometer,
+	RuntimeHelper,
 };
-use sp_std::marker::PhantomData;
 use sp_core::U256;
+use sp_std::marker::PhantomData;
 
 #[precompile_utils::generate_function_selector]
 #[derive(Debug, PartialEq)]
@@ -52,7 +51,7 @@ where
 		is_static: bool,
 	) -> EvmResult<PrecompileOutput> {
 		todo!()
-		
+
 		// let mut gasometer = Gasometer::new(target_gas);
 		// let (mut input, selector) = EvmDataReader::new_with_selector(&mut gasometer, input)?;
 
@@ -81,7 +80,6 @@ where
 		let to_list: Vec<Address> = input.read(gasometer)?;
 		let value_list: Vec<U256> = input.read(gasometer)?;
 		let data_list: Vec<Bytes> = input.read(gasometer)?;
-
 
 		todo!()
 	}

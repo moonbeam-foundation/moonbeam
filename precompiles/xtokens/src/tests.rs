@@ -147,7 +147,7 @@ fn transfer_self_reserve_works() {
 					},
 					false,
 				),
-				Some(Ok(PrecompileOutput {
+				Some(Ok(PrecompileOutput::Exit {
 					exit_status: ExitSucceed::Returned,
 					cost: 3000,
 					output: vec![],
@@ -203,7 +203,7 @@ fn transfer_to_reserve_works() {
 					},
 					false,
 				),
-				Some(Ok(PrecompileOutput {
+				Some(Ok(PrecompileOutput::Exit {
 					exit_status: ExitSucceed::Returned,
 					cost: 3000,
 					output: vec![],
@@ -261,7 +261,7 @@ fn transfer_to_reserve_with_fee_works() {
 					},
 					false,
 				),
-				Some(Ok(PrecompileOutput {
+				Some(Ok(PrecompileOutput::Exit {
 					exit_status: ExitSucceed::Returned,
 					cost: 3000,
 					output: vec![],
@@ -326,7 +326,7 @@ fn transfer_non_reserve_to_non_reserve_works() {
 					},
 					false,
 				),
-				Some(Ok(PrecompileOutput {
+				Some(Ok(PrecompileOutput::Exit {
 					exit_status: ExitSucceed::Returned,
 					cost: 3000,
 					output: vec![],
@@ -385,7 +385,7 @@ fn transfer_non_reserve_to_non_reserve_with_fee_works() {
 					},
 					false
 				),
-				Some(Ok(PrecompileOutput {
+				Some(Ok(PrecompileOutput::Exit {
 					exit_status: ExitSucceed::Returned,
 					cost: 3000,
 					output: vec![],
@@ -449,7 +449,7 @@ fn transfer_multi_asset_to_reserve_works() {
 					},
 					false,
 				),
-				Some(Ok(PrecompileOutput {
+				Some(Ok(PrecompileOutput::Exit {
 					exit_status: ExitSucceed::Returned,
 					cost: 3000,
 					output: vec![],
@@ -507,7 +507,7 @@ fn transfer_multi_asset_self_reserve_works() {
 					},
 					false,
 				),
-				Some(Ok(PrecompileOutput {
+				Some(Ok(PrecompileOutput::Exit {
 					exit_status: ExitSucceed::Returned,
 					cost: 3000,
 					output: vec![],
@@ -565,7 +565,7 @@ fn transfer_multi_asset_self_reserve_with_fee_works() {
 					},
 					false,
 				),
-				Some(Ok(PrecompileOutput {
+				Some(Ok(PrecompileOutput::Exit {
 					exit_status: ExitSucceed::Returned,
 					cost: 3000,
 					output: vec![],
@@ -629,7 +629,7 @@ fn transfer_multi_asset_non_reserve_to_non_reserve() {
 					},
 					false,
 				),
-				Some(Ok(PrecompileOutput {
+				Some(Ok(PrecompileOutput::Exit {
 					exit_status: ExitSucceed::Returned,
 					cost: 3000,
 					output: vec![],
@@ -690,7 +690,7 @@ fn transfer_multi_asset_non_reserve_to_non_reserve_with_fee() {
 					},
 					false
 				),
-				Some(Ok(PrecompileOutput {
+				Some(Ok(PrecompileOutput::Exit {
 					exit_status: ExitSucceed::Returned,
 					cost: 3000,
 					output: vec![],
@@ -754,7 +754,7 @@ fn transfer_multi_currencies() {
 					},
 					false,
 				),
-				Some(Ok(PrecompileOutput {
+				Some(Ok(PrecompileOutput::Exit {
 					exit_status: ExitSucceed::Returned,
 					cost: 3000,
 					output: vec![],
@@ -840,7 +840,7 @@ fn transfer_multi_assets() {
 					},
 					false,
 				),
-				Some(Ok(PrecompileOutput {
+				Some(Ok(PrecompileOutput::Exit {
 					exit_status: ExitSucceed::Returned,
 					cost: 3000,
 					output: vec![],

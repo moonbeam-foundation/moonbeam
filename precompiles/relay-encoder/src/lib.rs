@@ -150,7 +150,7 @@ where
 		.as_slice()
 		.into();
 
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new().write(encoded).build(),
@@ -172,7 +172,7 @@ where
 				.as_slice()
 				.into();
 
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new().write(encoded).build(),
@@ -195,7 +195,7 @@ where
 			.as_slice()
 			.into();
 
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new().write(encoded).build(),
@@ -217,7 +217,7 @@ where
 				.as_slice()
 				.into();
 
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new().write(encoded).build(),
@@ -245,7 +245,7 @@ where
 		.as_slice()
 		.into();
 
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new().write(encoded).build(),
@@ -272,7 +272,7 @@ where
 			.as_slice()
 			.into();
 
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new().write(encoded).build(),
@@ -292,7 +292,7 @@ where
 			.as_slice()
 			.into();
 
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new().write(encoded).build(),
@@ -315,7 +315,7 @@ where
 				.as_slice()
 				.into();
 
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new().write(encoded).build(),
@@ -336,7 +336,7 @@ where
 				.as_slice()
 				.into();
 
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new().write(encoded).build(),
@@ -358,7 +358,7 @@ where
 			.as_slice()
 			.into();
 
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new().write(encoded).build(),

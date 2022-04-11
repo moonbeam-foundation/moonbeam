@@ -131,7 +131,7 @@ where
 
 		log::trace!(target: "crowldoan-rewards-precompile", "Result from pallet is {:?}", is_contributor);
 
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new().write(is_contributor).build(),
@@ -181,7 +181,7 @@ where
 			total, claimed
 		);
 
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new().write(total).write(claimed).build(),
@@ -195,7 +195,7 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
 
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Stopped,
 			cost: gasometer.used_gas(),
 			output: Default::default(),
@@ -229,7 +229,7 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
 
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Stopped,
 			cost: gasometer.used_gas(),
 			output: Default::default(),

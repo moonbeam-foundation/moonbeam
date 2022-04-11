@@ -848,7 +848,7 @@ fn is_contributor_via_precompile() {
 			// Expected result is an EVM boolean false which is 256 bits long.
 			let mut expected_bytes = Vec::from([0u8; 32]);
 			expected_bytes[31] = 0;
-			let expected_false_result = Some(Ok(PrecompileOutput {
+			let expected_false_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: expected_bytes,
 				cost: 1000,
@@ -881,7 +881,7 @@ fn is_contributor_via_precompile() {
 			// Expected result is an EVM boolean true which is 256 bits long.
 			let mut expected_bytes = Vec::from([0u8; 32]);
 			expected_bytes[31] = 1;
-			let expected_true_result = Some(Ok(PrecompileOutput {
+			let expected_true_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: expected_bytes,
 				cost: 1000,
@@ -972,7 +972,7 @@ fn reward_info_via_precompile() {
 			let mut expected_bytes = Vec::from([0u8; 64]);
 			expected_total.to_big_endian(&mut expected_bytes[0..32]);
 			expected_claimed.to_big_endian(&mut expected_bytes[32..64]);
-			let expected_result = Some(Ok(PrecompileOutput {
+			let expected_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: expected_bytes,
 				cost: 1000,
@@ -1366,7 +1366,7 @@ fn asset_erc20_precompiles_supply_and_balance() {
 
 			// The expected result for both total supply and balance of is the same, as only Alice
 			// holds balance
-			let expected_result = Some(Ok(PrecompileOutput {
+			let expected_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(U256::from(1000 * MOVR)).build(),
 				cost: 1000,
@@ -1427,7 +1427,7 @@ fn asset_erc20_precompiles_transfer() {
 				Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, 0u128).into();
 
 			// Expected result for a transfer
-			let expected_result = Some(Ok(PrecompileOutput {
+			let expected_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(true).build(),
 				cost: 23516u64,
@@ -1461,7 +1461,7 @@ fn asset_erc20_precompiles_transfer() {
 			);
 
 			// Expected result for balanceOf BOB
-			let expected_result = Some(Ok(PrecompileOutput {
+			let expected_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(U256::from(400 * MOVR)).build(),
 				cost: 1000,
@@ -1506,7 +1506,7 @@ fn asset_erc20_precompiles_approve() {
 				Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, 0u128).into();
 
 			// Expected result for approve
-			let expected_result = Some(Ok(PrecompileOutput {
+			let expected_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(true).build(),
 				cost: 13989u64,
@@ -1540,7 +1540,7 @@ fn asset_erc20_precompiles_approve() {
 			);
 
 			// Expected result for transfer_from
-			let expected_result = Some(Ok(PrecompileOutput {
+			let expected_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(true).build(),
 				cost: 29006u64,
@@ -1575,7 +1575,7 @@ fn asset_erc20_precompiles_approve() {
 			);
 
 			// Expected result for balance of CHARLIE
-			let expected_result = Some(Ok(PrecompileOutput {
+			let expected_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(U256::from(400 * MOVR)).build(),
 				cost: 1000,
@@ -1620,7 +1620,7 @@ fn asset_erc20_precompiles_mint_burn() {
 				Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, 0u128).into();
 
 			// Expected result for approve
-			let expected_result = Some(Ok(PrecompileOutput {
+			let expected_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(true).build(),
 				cost: 12821u64,
@@ -1661,7 +1661,7 @@ fn asset_erc20_precompiles_mint_burn() {
 			);
 
 			// Expected result for burn
-			let expected_result = Some(Ok(PrecompileOutput {
+			let expected_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(true).build(),
 				cost: 12957u64,
@@ -1721,7 +1721,7 @@ fn asset_erc20_precompiles_freeze_thaw_account() {
 				Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, 0u128).into();
 
 			// Expected result for approve
-			let expected_result = Some(Ok(PrecompileOutput {
+			let expected_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(true).build(),
 				cost: 6732u64,
@@ -1753,7 +1753,7 @@ fn asset_erc20_precompiles_freeze_thaw_account() {
 			);
 
 			// Expected result for burn
-			let expected_result = Some(Ok(PrecompileOutput {
+			let expected_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(true).build(),
 				cost: 6731u64,
@@ -1803,7 +1803,7 @@ fn asset_erc20_precompiles_freeze_thaw_asset() {
 				Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, 0u128).into();
 
 			// Expected result for approve
-			let expected_result = Some(Ok(PrecompileOutput {
+			let expected_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(true).build(),
 				cost: 5589u64,
@@ -1833,7 +1833,7 @@ fn asset_erc20_precompiles_freeze_thaw_asset() {
 			);
 
 			// Expected result for burn
-			let expected_result = Some(Ok(PrecompileOutput {
+			let expected_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(true).build(),
 				cost: 5593u64,
@@ -1881,7 +1881,7 @@ fn asset_erc20_precompiles_freeze_transfer_ownership() {
 				Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, 0u128).into();
 
 			// Expected result for approve
-			let expected_result = Some(Ok(PrecompileOutput {
+			let expected_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(true).build(),
 				cost: 6666u64,
@@ -1934,7 +1934,7 @@ fn asset_erc20_precompiles_freeze_set_team() {
 				Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, 0u128).into();
 
 			// Expected result for approve
-			let expected_result = Some(Ok(PrecompileOutput {
+			let expected_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(true).build(),
 				cost: 5614u64,
@@ -2016,7 +2016,7 @@ fn xcm_asset_erc20_precompiles_supply_and_balance() {
 
 			// The expected result for both total supply and balance of is the same, as only Alice
 			// holds balance
-			let expected_result = Some(Ok(PrecompileOutput {
+			let expected_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(U256::from(1000 * MOVR)).build(),
 				cost: 1000,
@@ -2090,7 +2090,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 			.into();
 
 			// Expected result for a transfer
-			let expected_result = Some(Ok(PrecompileOutput {
+			let expected_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(true).build(),
 				cost: 23516u64,
@@ -2124,7 +2124,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 			);
 
 			// Expected result for balanceOf BOB
-			let expected_result = Some(Ok(PrecompileOutput {
+			let expected_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(U256::from(400 * MOVR)).build(),
 				cost: 1000,
@@ -2182,7 +2182,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 			.into();
 
 			// Expected result for approve
-			let expected_result = Some(Ok(PrecompileOutput {
+			let expected_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(true).build(),
 				cost: 13989u64,
@@ -2216,7 +2216,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 			);
 
 			// Expected result for transfer_from
-			let expected_result = Some(Ok(PrecompileOutput {
+			let expected_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(true).build(),
 				cost: 29006u64,
@@ -2251,7 +2251,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 			);
 
 			// Expected result for balance of CHARLIE
-			let expected_result = Some(Ok(PrecompileOutput {
+			let expected_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(U256::from(400 * MOVR)).build(),
 				cost: 1000,
@@ -2339,7 +2339,7 @@ fn xtokens_precompiles_transfer() {
 					},
 					false,
 				),
-				Some(Ok(PrecompileOutput {
+				Some(Ok(PrecompileOutput::Exit {
 					exit_status: ExitSucceed::Returned,
 					cost: 20000,
 					output: vec![],
@@ -2401,7 +2401,7 @@ fn xtokens_precompiles_transfer_multiasset() {
 					},
 					false,
 				),
-				Some(Ok(PrecompileOutput {
+				Some(Ok(PrecompileOutput::Exit {
 					exit_status: ExitSucceed::Returned,
 					cost: 20000,
 					output: vec![],

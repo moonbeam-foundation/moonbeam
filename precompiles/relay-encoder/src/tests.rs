@@ -173,7 +173,7 @@ fn test_encode_bond() {
 			.as_slice()
 			.into();
 
-			let expected_result = Some(Ok(PrecompileOutput {
+			let expected_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(expected_bytes).build(),
 				cost: Default::default(),
@@ -209,7 +209,7 @@ fn test_encode_bond_more() {
 					.as_slice()
 					.into();
 
-			let expected_result = Some(Ok(PrecompileOutput {
+			let expected_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(expected_bytes).build(),
 				cost: Default::default(),
@@ -241,7 +241,7 @@ fn test_encode_chill() {
 				.as_slice()
 				.into();
 
-			let expected_result = Some(Ok(PrecompileOutput {
+			let expected_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(expected_bytes).build(),
 				cost: Default::default(),
@@ -281,7 +281,7 @@ fn test_encode_nominate() {
 				.as_slice()
 				.into();
 
-			let expected_result = Some(Ok(PrecompileOutput {
+			let expected_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(expected_bytes).build(),
 				cost: Default::default(),
@@ -318,7 +318,7 @@ fn test_encode_rebond() {
 					.as_slice()
 					.into();
 
-			let expected_result = Some(Ok(PrecompileOutput {
+			let expected_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(expected_bytes).build(),
 				cost: Default::default(),
@@ -355,7 +355,7 @@ fn test_encode_set_controller() {
 					.as_slice()
 					.into();
 
-			let expected_result = Some(Ok(PrecompileOutput {
+			let expected_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(expected_bytes).build(),
 				cost: Default::default(),
@@ -391,7 +391,7 @@ fn test_encode_set_payee() {
 			.as_slice()
 			.into();
 
-			let expected_result = Some(Ok(PrecompileOutput {
+			let expected_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(expected_bytes).build(),
 				cost: Default::default(),
@@ -429,7 +429,7 @@ fn test_encode_unbond() {
 					.into();
 
 			// Expected result is one
-			let expected_result = Some(Ok(PrecompileOutput {
+			let expected_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(expected_bytes).build(),
 				cost: Default::default(),
@@ -473,7 +473,7 @@ fn test_encode_validate() {
 				.into();
 
 			// Expected result is one
-			let expected_result = Some(Ok(PrecompileOutput {
+			let expected_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(expected_bytes).build(),
 				cost: Default::default(),
@@ -512,7 +512,7 @@ fn test_encode_withdraw_unbonded() {
 					.as_slice()
 					.into();
 
-			let expected_result = Some(Ok(PrecompileOutput {
+			let expected_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(expected_bytes).build(),
 				cost: Default::default(),

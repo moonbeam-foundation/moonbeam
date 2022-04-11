@@ -81,7 +81,7 @@ fn get_total_supply() {
 					},
 					false,
 				),
-				Some(Ok(PrecompileOutput {
+				Some(Ok(PrecompileOutput::Exit {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(U256::from(3500u64)).build(),
 					cost: Default::default(),
@@ -111,7 +111,7 @@ fn get_balances_known_user() {
 					},
 					false,
 				),
-				Some(Ok(PrecompileOutput {
+				Some(Ok(PrecompileOutput::Exit {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(U256::from(1000u64)).build(),
 					cost: Default::default(),
@@ -141,7 +141,7 @@ fn get_balances_unknown_user() {
 					},
 					false,
 				),
-				Some(Ok(PrecompileOutput {
+				Some(Ok(PrecompileOutput::Exit {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(U256::from(0u64)).build(),
 					cost: Default::default(),
@@ -172,7 +172,7 @@ fn approve() {
 					},
 					false,
 				),
-				Some(Ok(PrecompileOutput {
+				Some(Ok(PrecompileOutput::Exit {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(true).build(),
 					cost: 1756u64,
@@ -210,7 +210,7 @@ fn approve_saturating() {
 					},
 					false,
 				),
-				Some(Ok(PrecompileOutput {
+				Some(Ok(PrecompileOutput::Exit {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(true).build(),
 					cost: 1756u64,
@@ -240,7 +240,7 @@ fn approve_saturating() {
 					},
 					false,
 				),
-				Some(Ok(PrecompileOutput {
+				Some(Ok(PrecompileOutput::Exit {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(U256::from(u128::MAX)).build(),
 					cost: 0u64,
@@ -286,7 +286,7 @@ fn check_allowance_existing() {
 					},
 					false,
 				),
-				Some(Ok(PrecompileOutput {
+				Some(Ok(PrecompileOutput::Exit {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(U256::from(500u64)).build(),
 					cost: 0u64,
@@ -317,7 +317,7 @@ fn check_allowance_not_existing() {
 					},
 					false,
 				),
-				Some(Ok(PrecompileOutput {
+				Some(Ok(PrecompileOutput::Exit {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(U256::from(0u64)).build(),
 					cost: 0u64,
@@ -348,7 +348,7 @@ fn transfer() {
 					},
 					false,
 				),
-				Some(Ok(PrecompileOutput {
+				Some(Ok(PrecompileOutput::Exit {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(true).build(),
 					cost: 159201756u64, // 1 weight => 1 gas in mock
@@ -377,7 +377,7 @@ fn transfer() {
 					},
 					false,
 				),
-				Some(Ok(PrecompileOutput {
+				Some(Ok(PrecompileOutput::Exit {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(U256::from(600)).build(),
 					cost: Default::default(),
@@ -399,7 +399,7 @@ fn transfer() {
 					},
 					false,
 				),
-				Some(Ok(PrecompileOutput {
+				Some(Ok(PrecompileOutput::Exit {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(U256::from(400)).build(),
 					cost: Default::default(),
@@ -475,7 +475,7 @@ fn transfer_from() {
 					},
 					false,
 				),
-				Some(Ok(PrecompileOutput {
+				Some(Ok(PrecompileOutput::Exit {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(true).build(),
 					cost: 159201756u64, // 1 weight => 1 gas in mock
@@ -504,7 +504,7 @@ fn transfer_from() {
 					},
 					false,
 				),
-				Some(Ok(PrecompileOutput {
+				Some(Ok(PrecompileOutput::Exit {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(U256::from(600)).build(),
 					cost: Default::default(),
@@ -526,7 +526,7 @@ fn transfer_from() {
 					},
 					false,
 				),
-				Some(Ok(PrecompileOutput {
+				Some(Ok(PrecompileOutput::Exit {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(U256::from(400)).build(),
 					cost: Default::default(),
@@ -549,7 +549,7 @@ fn transfer_from() {
 					},
 					false,
 				),
-				Some(Ok(PrecompileOutput {
+				Some(Ok(PrecompileOutput::Exit {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(U256::from(100u64)).build(),
 					cost: 0u64,
@@ -625,7 +625,7 @@ fn transfer_from_self() {
 					},
 					false,
 				),
-				Some(Ok(PrecompileOutput {
+				Some(Ok(PrecompileOutput::Exit {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(true).build(),
 					cost: 159201756u64, // 1 weight => 1 gas in mock
@@ -654,7 +654,7 @@ fn transfer_from_self() {
 					},
 					false,
 				),
-				Some(Ok(PrecompileOutput {
+				Some(Ok(PrecompileOutput::Exit {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(U256::from(600)).build(),
 					cost: Default::default(),
@@ -676,7 +676,7 @@ fn transfer_from_self() {
 					},
 					false,
 				),
-				Some(Ok(PrecompileOutput {
+				Some(Ok(PrecompileOutput::Exit {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(U256::from(400)).build(),
 					cost: Default::default(),
@@ -704,7 +704,7 @@ fn get_metadata_name() {
 					},
 					false,
 				),
-				Some(Ok(PrecompileOutput {
+				Some(Ok(PrecompileOutput::Exit {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new()
 						.write::<Bytes>("Mock token".into())
@@ -734,7 +734,7 @@ fn get_metadata_symbol() {
 					},
 					false,
 				),
-				Some(Ok(PrecompileOutput {
+				Some(Ok(PrecompileOutput::Exit {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write::<Bytes>("MOCK".into()).build(),
 					cost: Default::default(),
@@ -762,7 +762,7 @@ fn get_metadata_decimals() {
 					},
 					false,
 				),
-				Some(Ok(PrecompileOutput {
+				Some(Ok(PrecompileOutput::Exit {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(18u8).build(),
 					cost: Default::default(),
@@ -792,7 +792,7 @@ fn deposit(data: Vec<u8>) {
 					},
 					false,
 				),
-				Some(Ok(PrecompileOutput {
+				Some(Ok(PrecompileOutput::Exit {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(U256::from(0)).build(),
 					cost: Default::default(),
@@ -869,7 +869,7 @@ fn deposit(data: Vec<u8>) {
 					},
 					false,
 				),
-				Some(Ok(PrecompileOutput {
+				Some(Ok(PrecompileOutput::Exit {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(U256::from(0)).build(),
 					cost: Default::default(),
@@ -892,7 +892,7 @@ fn deposit(data: Vec<u8>) {
 					},
 					false,
 				),
-				Some(Ok(PrecompileOutput {
+				Some(Ok(PrecompileOutput::Exit {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(U256::from(1000)).build(),
 					cost: Default::default(),
@@ -938,7 +938,7 @@ fn deposit_zero() {
 					},
 					false,
 				),
-				Some(Ok(PrecompileOutput {
+				Some(Ok(PrecompileOutput::Exit {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(U256::from(0)).build(),
 					cost: Default::default(),
@@ -985,7 +985,7 @@ fn deposit_zero() {
 					},
 					false,
 				),
-				Some(Ok(PrecompileOutput {
+				Some(Ok(PrecompileOutput::Exit {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(U256::from(0)).build(),
 					cost: Default::default(),
@@ -1008,7 +1008,7 @@ fn deposit_zero() {
 					},
 					false,
 				),
-				Some(Ok(PrecompileOutput {
+				Some(Ok(PrecompileOutput::Exit {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(U256::from(1000)).build(),
 					cost: Default::default(),
@@ -1039,7 +1039,7 @@ fn withdraw() {
 					},
 					false,
 				),
-				Some(Ok(PrecompileOutput {
+				Some(Ok(PrecompileOutput::Exit {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(U256::from(0)).build(),
 					cost: Default::default(),
@@ -1062,7 +1062,7 @@ fn withdraw() {
 					},
 					false,
 				),
-				Some(Ok(PrecompileOutput {
+				Some(Ok(PrecompileOutput::Exit {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().build(),
 					cost: 1381,
@@ -1091,7 +1091,7 @@ fn withdraw() {
 					},
 					false,
 				),
-				Some(Ok(PrecompileOutput {
+				Some(Ok(PrecompileOutput::Exit {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(U256::from(1000)).build(),
 					cost: Default::default(),
@@ -1122,7 +1122,7 @@ fn withdraw_more_than_owned() {
 					},
 					false,
 				),
-				Some(Ok(PrecompileOutput {
+				Some(Ok(PrecompileOutput::Exit {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(U256::from(0)).build(),
 					cost: Default::default(),
@@ -1164,7 +1164,7 @@ fn withdraw_more_than_owned() {
 					},
 					false,
 				),
-				Some(Ok(PrecompileOutput {
+				Some(Ok(PrecompileOutput::Exit {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(U256::from(1000)).build(),
 					cost: Default::default(),

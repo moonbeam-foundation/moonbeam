@@ -156,7 +156,7 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
 
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: Default::default(),
@@ -209,7 +209,7 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
 
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: Default::default(),
@@ -252,7 +252,7 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
 
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: Default::default(),
@@ -301,7 +301,7 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
 
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: Default::default(),
@@ -369,7 +369,7 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
 
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: Default::default(),
@@ -426,7 +426,7 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
 
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: Default::default(),

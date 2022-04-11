@@ -127,7 +127,7 @@ fn take_index_for_account() {
 			assert_ok!(XcmTransactor::register(Origin::root(), Alice.into(), 0));
 
 			// Expected result is zero
-			let expected_result = Some(Ok(PrecompileOutput {
+			let expected_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new()
 					.write(Address(H160::from(Alice)))
@@ -170,7 +170,7 @@ fn take_transact_info() {
 			));
 
 			// Expected result is zero
-			let expected_result = Some(Ok(PrecompileOutput {
+			let expected_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new()
 					.write(0u64)
@@ -232,7 +232,7 @@ fn test_transactor_multilocation() {
 					},
 					false,
 				),
-				Some(Ok(PrecompileOutput {
+				Some(Ok(PrecompileOutput::Exit {
 					exit_status: ExitSucceed::Returned,
 					cost: 4004000,
 					output: vec![],
@@ -281,7 +281,7 @@ fn test_transactor() {
 					},
 					false,
 				),
-				Some(Ok(PrecompileOutput {
+				Some(Ok(PrecompileOutput::Exit {
 					exit_status: ExitSucceed::Returned,
 					cost: 4004001,
 					output: vec![],

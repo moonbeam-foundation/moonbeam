@@ -238,7 +238,7 @@ where
 		// Dispatch call (if enough gas).
 		RuntimeHelper::<Runtime>::try_dispatch(origin, call, gasometer)?;
 
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: vec![],
@@ -268,7 +268,7 @@ where
 		.map_err(|_| gasometer.revert("Amount is too large for provided balance type"))?;
 
 		// Build output.
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new().write(min_nomination).build(),
@@ -288,7 +288,7 @@ where
 		let points: u32 = parachain_staking::Pallet::<Runtime>::points(round);
 
 		// Build output.
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new().write(points).build(),
@@ -304,7 +304,7 @@ where
 			.len() as u32;
 
 		// Build output.
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new().write(candidate_count).build(),
@@ -343,7 +343,7 @@ where
 			};
 
 		// Build output.
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new().write(result).build(),
@@ -383,7 +383,7 @@ where
 			};
 
 		// Build output.
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new().write(result).build(),
@@ -400,7 +400,7 @@ where
 				.map(|address| Address(address.into()))
 				.collect();
 		// Build output.
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new().write(selected_candidates).build(),
@@ -424,7 +424,7 @@ where
 		let is_delegator = parachain_staking::Pallet::<Runtime>::is_delegator(&address);
 
 		// Build output.
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new().write(is_delegator).build(),
@@ -446,7 +446,7 @@ where
 		let is_candidate = parachain_staking::Pallet::<Runtime>::is_candidate(&address);
 
 		// Build output.
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new().write(is_candidate).build(),
@@ -468,7 +468,7 @@ where
 		let is_selected = parachain_staking::Pallet::<Runtime>::is_selected_candidate(&address);
 
 		// Build output.
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new().write(is_selected).build(),

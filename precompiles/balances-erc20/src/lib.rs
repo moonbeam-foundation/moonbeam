@@ -245,7 +245,7 @@ where
 		let amount: U256 = pallet_balances::Pallet::<Runtime, Instance>::total_issuance().into();
 
 		// Build output.
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new().write(amount).build(),
@@ -271,7 +271,7 @@ where
 		};
 
 		// Build output.
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new().write(amount).build(),
@@ -302,7 +302,7 @@ where
 		};
 
 		// Build output.
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new().write(amount).build(),
@@ -337,7 +337,7 @@ where
 		}
 
 		// Build output.
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new().write(true).build(),
@@ -383,7 +383,7 @@ where
 		}
 
 		// Build output.
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new().write(true).build(),
@@ -451,7 +451,7 @@ where
 		}
 
 		// Build output.
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new().write(true).build(),
@@ -472,7 +472,7 @@ where
 		_: &Context,
 	) -> EvmResult<PrecompileOutput> {
 		// Build output.
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new()
@@ -488,7 +488,7 @@ where
 		_: &Context,
 	) -> EvmResult<PrecompileOutput> {
 		// Build output.
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new()
@@ -504,7 +504,7 @@ where
 		_: &Context,
 	) -> EvmResult<PrecompileOutput> {
 		// Build output.
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new().write(Metadata::decimals()).build(),
@@ -542,7 +542,7 @@ where
 			gasometer,
 		)?;
 
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: Default::default(),
@@ -580,7 +580,7 @@ where
 			return Err(gasometer.revert("trying to withdraw more than owned"));
 		}
 
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: Default::default(),

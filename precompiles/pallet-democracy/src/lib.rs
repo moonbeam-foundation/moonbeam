@@ -153,7 +153,7 @@ where
 		let prop_count = DemocracyOf::<Runtime>::public_prop_count();
 		log::trace!(target: "democracy-precompile", "Prop count from pallet is {:?}", prop_count);
 
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new().write(prop_count).build(),
@@ -180,7 +180,7 @@ where
 			"Deposit of proposal {:?} is {:?}", prop_index, deposit
 		);
 
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new().write(deposit).build(),
@@ -197,7 +197,7 @@ where
 			"lowest unbaked referendum is {:?}", lowest_unbaked
 		);
 
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new().write(lowest_unbaked).build(),
@@ -249,7 +249,7 @@ where
 		// 	.write(ref_status.tally.nays)
 		// 	.write(ref_status.tally.turnout);
 
-		// Ok(PrecompileOutput {
+		// Ok(PrecompileOutput::Exit {
 		// 	exit_status: ExitSucceed::Returned,
 		// 	cost: gasometer.used_gas(),
 		// 	output: output.build(),
@@ -293,7 +293,7 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
 
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Stopped,
 			cost: gasometer.used_gas(),
 			output: Default::default(),
@@ -325,7 +325,7 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
 
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Stopped,
 			cost: gasometer.used_gas(),
 			output: Default::default(),
@@ -363,7 +363,7 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
 
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Stopped,
 			cost: gasometer.used_gas(),
 			output: Default::default(),
@@ -394,7 +394,7 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
 
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Stopped,
 			cost: gasometer.used_gas(),
 			output: Default::default(),
@@ -432,7 +432,7 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
 
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Stopped,
 			cost: gasometer.used_gas(),
 			output: Default::default(),
@@ -446,7 +446,7 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
 
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Stopped,
 			cost: gasometer.used_gas(),
 			output: Default::default(),
@@ -475,7 +475,7 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
 
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Stopped,
 			cost: gasometer.used_gas(),
 			output: Default::default(),
@@ -500,7 +500,7 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
 
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Stopped,
 			cost: gasometer.used_gas(),
 			output: Default::default(),
@@ -525,7 +525,7 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
 
-		Ok(PrecompileOutput {
+		Ok(PrecompileOutput::Exit {
 			exit_status: ExitSucceed::Stopped,
 			cost: gasometer.used_gas(),
 			output: Default::default(),

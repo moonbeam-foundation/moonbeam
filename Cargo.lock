@@ -2484,8 +2484,7 @@ checksum = "77f3309417938f28bf8228fcff79a4a37103981e3e186d2ccd19c74b38f4eb71"
 [[package]]
 name = "evm"
 version = "0.35.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "be8ff320c1e25e7f6d676858f16ffd9b0493d2cc67c3d900c6f2ed027b747f43"
+source = "git+https://github.com/purestake/evm?branch=jeremy-precompile-code-35#f621c5a3cef6b08bf16f274750559a458ede3dca"
 dependencies = [
  "auto_impl",
  "environmental",
@@ -2505,8 +2504,7 @@ dependencies = [
 [[package]]
 name = "evm-core"
 version = "0.35.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9d4537041d3a3438d59b2d01bd950ce89fb1ccb3cf21d9331193c10be12e849f"
+source = "git+https://github.com/purestake/evm?branch=jeremy-precompile-code-35#f621c5a3cef6b08bf16f274750559a458ede3dca"
 dependencies = [
  "parity-scale-codec 3.1.2",
  "primitive-types",
@@ -2517,8 +2515,7 @@ dependencies = [
 [[package]]
 name = "evm-gasometer"
 version = "0.35.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6181da8734c86873ac9b3f9886d4e00105361039dcfb9f621be9a0ddb8f43961"
+source = "git+https://github.com/purestake/evm?branch=jeremy-precompile-code-35#f621c5a3cef6b08bf16f274750559a458ede3dca"
 dependencies = [
  "environmental",
  "evm-core",
@@ -2529,8 +2526,7 @@ dependencies = [
 [[package]]
 name = "evm-runtime"
 version = "0.35.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f6157af91ca70fcf3581afaea1fa25974a71b9ef63d454c08dfba93ab0c7715d"
+source = "git+https://github.com/purestake/evm?branch=jeremy-precompile-code-35#f621c5a3cef6b08bf16f274750559a458ede3dca"
 dependencies = [
  "auto_impl",
  "environmental",

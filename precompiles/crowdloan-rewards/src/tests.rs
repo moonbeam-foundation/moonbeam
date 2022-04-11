@@ -124,7 +124,7 @@ fn is_contributor_returns_false() {
 				.build();
 
 			// Expected result is one
-			let expected_one_result = Some(Ok(PrecompileOutput {
+			let expected_one_result = Some(Ok(PrecompileOutput::Exit {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(false).build(),
 				cost: Default::default(),
@@ -183,7 +183,7 @@ fn is_contributor_returns_true() {
 					&evm_test_context(),
 					false
 				),
-				Some(Ok(PrecompileOutput {
+				Some(Ok(PrecompileOutput::Exit {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(true).build(),
 					cost: Default::default(),
@@ -271,7 +271,7 @@ fn reward_info_works() {
 					&evm_test_context(),
 					false
 				),
-				Some(Ok(PrecompileOutput {
+				Some(Ok(PrecompileOutput::Exit {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new()
 						.write(U256::from(50u64))
