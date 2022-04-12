@@ -35,7 +35,7 @@ pub mod pallet {
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{Currency, Imbalance};
 	use frame_system::pallet_prelude::*;
-	use sp_runtime::traits::{One, Saturating};
+	use sp_runtime::traits::{One, Saturating, StaticLookup};
 
 	#[pallet::pallet]
 	#[pallet::without_storage_info]
@@ -144,12 +144,17 @@ pub mod pallet {
 			rewards: BalanceOf<T>,
 		},
 	}
+
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		/// Add a collator to orbiters program.
 		#[pallet::weight(0)]
-		pub fn add_collator(origin: OriginFor<T>, collator: T::AccountId) -> DispatchResult {
+		pub fn add_collator(
+			origin: OriginFor<T>,
+			collator: <T::Lookup as StaticLookup>::Source,
+		) -> DispatchResult {
 			T::AddCollatorOrigin::ensure_origin(origin)?;
+			let collator = T::Lookup::lookup(collator)?;
 
 			ensure!(
 				CollatorsPool::<T>::get(&collator).is_none(),
@@ -162,8 +167,12 @@ pub mod pallet {
 		}
 		/// Add an orbiter in a collator pool
 		#[pallet::weight(0)]
-		pub fn add_orbiter(origin: OriginFor<T>, orbiter: T::AccountId) -> DispatchResult {
+		pub fn add_orbiter(
+			origin: OriginFor<T>,
+			orbiter: <T::Lookup as StaticLookup>::Source,
+		) -> DispatchResult {
 			let collator = ensure_signed(origin)?;
+			let orbiter = T::Lookup::lookup(orbiter)?;
 
 			let mut collator_pool =
 				CollatorsPool::<T>::get(&collator).ok_or(Error::<T>::CollatorNotFound)?;
@@ -185,8 +194,12 @@ pub mod pallet {
 		}
 		/// Remove a collator from orbiters program.
 		#[pallet::weight(0)]
-		pub fn remove_collator(origin: OriginFor<T>, collator: T::AccountId) -> DispatchResult {
+		pub fn remove_collator(
+			origin: OriginFor<T>,
+			collator: <T::Lookup as StaticLookup>::Source,
+		) -> DispatchResult {
 			T::DelCollatorOrigin::ensure_origin(origin)?;
+			let collator = T::Lookup::lookup(collator)?;
 
 			let collator_pool =
 				CollatorsPool::<T>::get(&collator).ok_or(Error::<T>::CollatorNotFound)?;
@@ -204,8 +217,12 @@ pub mod pallet {
 		}
 		/// Add an orbiter in a collator pool
 		#[pallet::weight(0)]
-		pub fn remove_orbiter(origin: OriginFor<T>, orbiter: T::AccountId) -> DispatchResult {
+		pub fn remove_orbiter(
+			origin: OriginFor<T>,
+			orbiter: <T::Lookup as StaticLookup>::Source,
+		) -> DispatchResult {
 			let collator = ensure_signed(origin)?;
+			let orbiter = T::Lookup::lookup(orbiter)?;
 
 			let mut collator_pool =
 				CollatorsPool::<T>::get(&collator).ok_or(Error::<T>::CollatorNotFound)?;
