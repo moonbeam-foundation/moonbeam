@@ -1085,6 +1085,10 @@ impl pallet_base_fee::Config for Runtime {
 	type DefaultBaseFeePerGas = DefaultBaseFeePerGas;
 }
 
+parameter_types! {
+	pub OrbiterReserveIdentifier: [u8; 4] = [b'o', b'r', b'b', b'i'];
+}
+
 impl pallet_moonbeam_orbiters::Config for Runtime {
 	type Event = Event;
 	type AccountLookup = AuthorMapping;
@@ -1095,6 +1099,7 @@ impl pallet_moonbeam_orbiters::Config for Runtime {
 	type MaxPoolSize = ConstU32<8>;
 	/// Maximum number of round to keep on storage
 	type MaxRoundArchive = ConstU32<4>;
+	type OrbiterReserveIdentifier = OrbiterReserveIdentifier;
 	/// Round index type.
 	type RoundIndex = parachain_staking::RoundIndex;
 }

@@ -33,9 +33,9 @@ use nimbus_primitives::{AccountLookup, NimbusId};
 pub mod pallet {
 	use super::*;
 	use frame_support::pallet_prelude::*;
-	use frame_support::traits::{Currency, Imbalance};
+	use frame_support::traits::{Currency, Imbalance, NamedReservableCurrency};
 	use frame_system::pallet_prelude::*;
-	use sp_runtime::traits::{One, Saturating, StaticLookup};
+	use sp_runtime::traits::{One, Saturating, StaticLookup, Zero};
 
 	#[pallet::pallet]
 	#[pallet::without_storage_info]
@@ -43,6 +43,10 @@ pub mod pallet {
 
 	pub type BalanceOf<T> =
 		<<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
+
+	pub type ReserveIdentifierOf<T> = <<T as Config>::Currency as NamedReservableCurrency<
+		<T as frame_system::Config>::AccountId,
+	>>::ReserveIdentifier;
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
@@ -56,7 +60,7 @@ pub mod pallet {
 		type AddCollatorOrigin: EnsureOrigin<Self::Origin>;
 
 		/// The currency type
-		type Currency: Currency<Self::AccountId>;
+		type Currency: NamedReservableCurrency<Self::AccountId>;
 
 		/// Origin that is allowed to remove a collator from orbiters program
 		type DelCollatorOrigin: EnsureOrigin<Self::Origin>;
@@ -76,7 +80,16 @@ pub mod pallet {
 			+ sp_runtime::traits::MaybeDisplay
 			+ sp_runtime::traits::AtLeast32Bit
 			+ Copy;
+
+		/// Reserve identifier for this pallet instance
+		type OrbiterReserveIdentifier: Get<ReserveIdentifierOf<Self>>;
 	}
+
+	#[pallet::storage]
+	#[pallet::getter(fn account_lookup_override)]
+	/// Account lookup override
+	pub type AccountLookupOverride<T: Config> =
+		StorageMap<_, Blake2_128Concat, T::AccountId, Option<T::AccountId>>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn collators_pool)]
@@ -85,10 +98,12 @@ pub mod pallet {
 		StorageMap<_, Blake2_128Concat, T::AccountId, CollatorPoolInfo<T::AccountId>>;
 
 	#[pallet::storage]
-	#[pallet::getter(fn account_lookup_override)]
-	/// Account lookup override
-	pub type AccountLookupOverride<T: Config> =
-		StorageMap<_, Blake2_128Concat, T::AccountId, Option<T::AccountId>>;
+	/// Current round index
+	pub(crate) type CurrentRound<T: Config> = StorageValue<_, T::RoundIndex, ValueQuery>;
+
+	#[pallet::storage]
+	/// Minimum deposit required to be registered as an orbiter
+	pub type MinOrbiterDeposit<T: Config> = StorageValue<_, BalanceOf<T>, ValueQuery>;
 
 	#[pallet::storage]
 	/// Store active orbiter per round and per parent collator
@@ -101,10 +116,6 @@ pub mod pallet {
 		T::AccountId,
 		OptionQuery,
 	>;
-
-	#[pallet::storage]
-	/// Current round index
-	pub(crate) type CurrentRound<T: Config> = StorageValue<_, T::RoundIndex, ValueQuery>;
 
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
@@ -131,6 +142,8 @@ pub mod pallet {
 		CollatorPoolTooLarge,
 		/// This orbiter is already associated with this collator.
 		OrbiterAlreadyInPool,
+		/// This orbiter has not made a deposit
+		OrbiterDepositNotFound,
 		/// This orbiter is not found
 		OrbiterNotFound,
 	}
@@ -147,27 +160,9 @@ pub mod pallet {
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
-		/// Add a collator to orbiters program.
-		#[pallet::weight(0)]
-		pub fn add_collator(
-			origin: OriginFor<T>,
-			collator: <T::Lookup as StaticLookup>::Source,
-		) -> DispatchResult {
-			T::AddCollatorOrigin::ensure_origin(origin)?;
-			let collator = T::Lookup::lookup(collator)?;
-
-			ensure!(
-				CollatorsPool::<T>::get(&collator).is_none(),
-				Error::<T>::CollatorAlreadyAdded
-			);
-
-			CollatorsPool::<T>::insert(collator, CollatorPoolInfo::default());
-
-			Ok(())
-		}
 		/// Add an orbiter in a collator pool
-		#[pallet::weight(0)]
-		pub fn add_orbiter(
+		#[pallet::weight(500_000_000)]
+		pub fn collator_add_orbiter(
 			origin: OriginFor<T>,
 			orbiter: <T::Lookup as StaticLookup>::Source,
 		) -> DispatchResult {
@@ -187,14 +182,92 @@ pub mod pallet {
 				}
 			}
 
+			let orbiter_deposit =
+				T::Currency::reserved_balance_named(&T::OrbiterReserveIdentifier::get(), &orbiter);
+			ensure!(
+				orbiter_deposit >= BalanceOf::<T>::zero(),
+				Error::<T>::OrbiterDepositNotFound
+			);
+
 			collator_pool.add_orbiter(orbiter);
 			CollatorsPool::<T>::insert(collator, collator_pool);
 
 			Ok(())
 		}
+
+		/// Remove an orbiter from a collator pool
+		#[pallet::weight(500_000_000)]
+		pub fn collator_remove_orbiter(
+			origin: OriginFor<T>,
+			orbiter: <T::Lookup as StaticLookup>::Source,
+		) -> DispatchResult {
+			let collator = ensure_signed(origin)?;
+			let orbiter = T::Lookup::lookup(orbiter)?;
+
+			let mut collator_pool =
+				CollatorsPool::<T>::get(&collator).ok_or(Error::<T>::CollatorNotFound)?;
+
+			if !collator_pool.remove_orbiter(&orbiter) {
+				Err(Error::<T>::OrbiterNotFound.into())
+			} else {
+				Ok(())
+			}
+		}
+
+		/// Registering as an orbiter
+		#[pallet::weight(500_000_000)]
+		pub fn orbiter_register(origin: OriginFor<T>) -> DispatchResult {
+			let orbiter = ensure_signed(origin)?;
+
+			T::Currency::ensure_reserved_named(
+				&T::OrbiterReserveIdentifier::get(),
+				&orbiter,
+				MinOrbiterDeposit::<T>::get(),
+			)
+		}
+
+		/// Deregistering from orbiters
+		#[pallet::weight(500_000_000)]
+		pub fn orbiter_unregister(origin: OriginFor<T>) -> DispatchResult {
+			let orbiter = ensure_signed(origin)?;
+
+			CollatorsPool::<T>::translate_values(
+				|mut collator_pool: CollatorPoolInfo<T::AccountId>| {
+					if collator_pool.remove_orbiter(&orbiter) {
+						Some(collator_pool)
+					} else {
+						None
+					}
+				},
+			);
+
+			T::Currency::unreserve_all_named(&T::OrbiterReserveIdentifier::get(), &orbiter);
+
+			Ok(())
+		}
+
+		/// Add a collator to orbiters program.
+		#[pallet::weight(500_000_000)]
+		pub fn root_add_collator(
+			origin: OriginFor<T>,
+			collator: <T::Lookup as StaticLookup>::Source,
+		) -> DispatchResult {
+			T::AddCollatorOrigin::ensure_origin(origin)?;
+			let collator = T::Lookup::lookup(collator)?;
+
+			ensure!(
+				CollatorsPool::<T>::get(&collator).is_none(),
+				Error::<T>::CollatorAlreadyAdded
+			);
+
+			CollatorsPool::<T>::insert(collator, CollatorPoolInfo::default());
+
+			Ok(())
+		}
+
 		/// Remove a collator from orbiters program.
-		#[pallet::weight(0)]
-		pub fn remove_collator(
+		#[pallet::weight(500_000_000)]
+		pub fn root_remove_collator(
 			origin: OriginFor<T>,
 			collator: <T::Lookup as StaticLookup>::Source,
 		) -> DispatchResult {
@@ -215,23 +288,17 @@ pub mod pallet {
 
 			Ok(())
 		}
-		/// Add an orbiter in a collator pool
-		#[pallet::weight(0)]
-		pub fn remove_orbiter(
+
+		/// Update minimum orbiter deposit
+		#[pallet::weight(500_000_000)]
+		pub fn root_update_min_orbiter_deposit(
 			origin: OriginFor<T>,
-			orbiter: <T::Lookup as StaticLookup>::Source,
+			new_min_orbiter_deposit: BalanceOf<T>,
 		) -> DispatchResult {
-			let collator = ensure_signed(origin)?;
-			let orbiter = T::Lookup::lookup(orbiter)?;
+			ensure_root(origin)?;
 
-			let mut collator_pool =
-				CollatorsPool::<T>::get(&collator).ok_or(Error::<T>::CollatorNotFound)?;
-
-			if !collator_pool.remove_orbiter(&orbiter) {
-				Err(Error::<T>::OrbiterNotFound.into())
-			} else {
-				Ok(())
-			}
+			MinOrbiterDeposit::<T>::put(new_min_orbiter_deposit);
+			Ok(())
 		}
 	}
 
