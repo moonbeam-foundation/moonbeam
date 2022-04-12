@@ -75,7 +75,6 @@ pub mod pallet {
 		type DepositAmount: Get<<Self::DepositCurrency as Currency<Self::AccountId>>::Balance>;
 		/// Additional keys
 		/// Convertible From<NimbusId> to get default keys for each mapping (for the migration)
-		/// TODO: add lookup trait bound to find key in keys, see sp_runtime::traits::OpaqueKeys
 		type Keys: Parameter + Member + MaybeSerializeDeserialize + From<NimbusId>;
 		/// Weight information for extrinsics in this pallet.
 		type WeightInfo: WeightInfo;

@@ -417,8 +417,6 @@ fn full_registered_author_cannot_be_overwritten() {
 		})
 }
 
-// TODO: all the rotated ones but for set_keys instead
-
 #[test]
 fn registered_can_full_rotate() {
 	ExtBuilder::default()

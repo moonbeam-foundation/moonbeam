@@ -238,7 +238,8 @@ where
 
 		log::trace!(
 			target: "author-mapping-precompile",
-			"Setting keys old author id {:?} new author id {:?} new keys {:?}", old_author_id, new_author_id, new_keys
+			"Setting keys old author id {:?} new author id {:?} new keys {:?}",
+			old_author_id, new_author_id, new_keys
 		);
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
