@@ -142,6 +142,8 @@ pub mod pallet {
 		CollatorPoolTooLarge,
 		/// This orbiter is already associated with this collator.
 		OrbiterAlreadyInPool,
+		/// Orbiter cant leave this round
+		OrbiterCantLeaveThisRound,
 		/// This orbiter has not made a deposit
 		OrbiterDepositNotFound,
 		/// This orbiter is not found
@@ -230,6 +232,11 @@ pub mod pallet {
 		#[pallet::weight(500_000_000)]
 		pub fn orbiter_unregister(origin: OriginFor<T>) -> DispatchResult {
 			let orbiter = ensure_signed(origin)?;
+
+			ensure!(
+				AccountLookupOverride::<T>::get(&orbiter).is_none(),
+				Error::<T>::OrbiterCantLeaveThisRound
+			);
 
 			CollatorsPool::<T>::translate_values(
 				|mut collator_pool: CollatorPoolInfo<T::AccountId>| {
