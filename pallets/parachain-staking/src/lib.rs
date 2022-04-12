@@ -1624,19 +1624,40 @@ pub mod pallet {
 				}
 				return (collator_count, delegation_count, total);
 			}
+
 			// snapshot exposure for round for weighting reward distribution
 			for account in collators.iter() {
 				let state = <CandidateInfo<T>>::get(account)
 					.expect("all members of CandidateQ must be candidates");
-				let top_delegations = <TopDelegations<T>>::get(account)
-					.expect("all members of CandidateQ must be candidates");
+
 				collator_count = collator_count.saturating_add(1u32);
 				delegation_count = delegation_count.saturating_add(state.delegation_count);
 				total = total.saturating_add(state.total_counted);
 				let snapshot_total = state.total_counted;
+				let top_rewardable_delegations = Self::get_rewardable_delegators(&account);
+
 				let snapshot = CollatorSnapshot {
 					bond: state.bond,
-					delegations: top_delegations.delegations,
+					// TODO: This list is also used to re-use the stakers from previous round
+					// in case the current round does not yield enough delegators. Currently, due
+					// to our filtering, this will return the wrong delegator_count.
+					// Migration is necessary, in this case.
+					//
+					// Alternatively, we can store this info as [AtStakeRewardable] like `[AtStake]` storage item,
+					// indexed by RoundId and CollatorId and use this to compute rewards.
+					//
+					// 		pub type AtStakeRewardable<T: Config> = StorageDoubleMap<
+					// 			_,
+					// 			Twox64Concat,
+					// 			RoundIndex,
+					// 			Twox64Concat,
+					// 			T::AccountId,
+					// 			Vec<(T::AccountId, BalanceOf<T>)>,
+					// 			OptionQuery,
+					// 		>;
+					//
+					// This will however waste storage.
+					delegations: top_rewardable_delegations,
 					total: state.total_counted,
 				};
 				<AtStake<T>>::insert(now, account, snapshot);
@@ -1649,6 +1670,47 @@ pub mod pallet {
 			// insert canonical collator set
 			<SelectedCandidates<T>>::put(collators);
 			(collator_count, delegation_count, total)
+		}
+
+		/// Apply the delegator intent for revoke and decrease, to build the
+		/// effective list of delegator, with their intended bond amount.
+		/// This is used later to compute the rewards.
+		fn get_rewardable_delegators(
+			collator: &T::AccountId,
+		) -> Vec<Bond<T::AccountId, BalanceOf<T>>>
+		where
+			T: Config,
+		{
+			<TopDelegations<T>>::get(collator)
+				.expect("all members of CandidateQ must be candidates")
+				.delegations
+				.into_iter()
+				.filter_map(|bond| {
+					let delegator = <DelegatorState<T>>::get(&bond.owner)
+						.expect("delegator state must be present for a bonded delegation");
+
+					match delegator.requests.requests.get(collator) {
+						// no revoke request, do nothing
+						None => Some(bond),
+
+						// Revoke request, filter the delegator out
+						Some(DelegationRequest {
+							action: DelegationChange::Revoke,
+							..
+						}) => None,
+
+						// Decrease request, reduce the bond amount
+						Some(DelegationRequest {
+							action: DelegationChange::Decrease,
+							amount,
+							..
+						}) => {
+							bond.amount.saturating_sub(*amount);
+							Some(bond)
+						}
+					}
+				})
+				.collect()
 		}
 	}
 
