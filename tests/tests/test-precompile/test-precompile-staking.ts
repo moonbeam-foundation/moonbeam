@@ -69,8 +69,8 @@ async function candidateCount(context: DevTestContext) {
 
 async function delegationRequestIsPending(
   context: DevTestContext,
-  collatorAddress: string,
-  delegatorAddress: string
+  delegatorAddress: string,
+  collatorAddress: string
 ) {
   return await callPrecompile(
     context,
@@ -165,7 +165,7 @@ describeDevMoonbeamAllEthTxTypes("Staking - Join Delegators", (context) => {
   });
 
   it("should return false for pending requests", async function () {
-    expect(Number((await delegationRequestIsPending(context, ALITH, ETHAN)).result)).to.equal(0);
+    expect(Number((await delegationRequestIsPending(context, ETHAN, ALITH)).result)).to.equal(0);
 
     // Schedule Revoke
     await context.polkadotApi.tx.parachainStaking
@@ -174,6 +174,6 @@ describeDevMoonbeamAllEthTxTypes("Staking - Join Delegators", (context) => {
     await context.createBlock();
 
     // Check that there exists a pending request
-    expect(Number((await delegationRequestIsPending(context, ALITH, ETHAN)).result)).to.equal(1);
+    expect(Number((await delegationRequestIsPending(context, ETHAN, ALITH)).result)).to.equal(1);
   });
 });

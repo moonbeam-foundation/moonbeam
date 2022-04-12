@@ -105,10 +105,10 @@ interface ParachainStaking {
 
     /// @dev Whether there exists a pending request for a delegation made by a delegator
     /// Selector: 192e1db3
-    /// @param candidate the candidate for which the delegation was made
     /// @param delegator the delegator that made the delegation
+    /// @param candidate the candidate for which the delegation was made
     /// @return Whether a pending request exist for such delegation
-    function delegation_request_is_pending(address candidate, address delegator)
+    function delegation_request_is_pending(address delegator, address candidate)
         external
         view
         returns (bool);

@@ -790,8 +790,8 @@ fn delegation_request_is_pending_works() {
 				precompiles().execute(
 					precompile_address(),
 					&EvmDataWriter::new_with_selector(Action::DelegationRequestIsPending)
-						.write(Address(TestAccount::Alice.into()))
 						.write(Address(TestAccount::Charlie.into()))
+						.write(Address(TestAccount::Alice.into()))
 						.build(),
 					None,
 					&evm_test_context(),
@@ -835,8 +835,8 @@ fn delegation_request_is_pending_works() {
 				precompiles().execute(
 					precompile_address(),
 					&EvmDataWriter::new_with_selector(Action::DelegationRequestIsPending)
-						.write(Address(TestAccount::Alice.into()))
 						.write(Address(TestAccount::Charlie.into()))
+						.write(Address(TestAccount::Alice.into()))
 						.build(),
 					None,
 					&evm_test_context(),
@@ -871,8 +871,8 @@ fn delegation_request_is_pending_returns_false_for_non_existing_del() {
 				precompiles().execute(
 					precompile_address(),
 					&EvmDataWriter::new_with_selector(Action::DelegationRequestIsPending)
-						.write(Address(TestAccount::Alice.into()))
 						.write(Address(TestAccount::Bob.into()))
+						.write(Address(TestAccount::Alice.into()))
 						.build(),
 					None,
 					&evm_test_context(),

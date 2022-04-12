@@ -487,12 +487,12 @@ where
 		// Read input.
 		input.expect_arguments(gasometer, 2)?;
 
-		// First argument is candidate
-		let candidate =
+		// First argument is delegator
+		let delegator =
 			Runtime::AddressMapping::into_account_id(input.read::<Address>(gasometer)?.0);
 
-		// Second argument is delegator
-		let delegator =
+		// Second argument is candidate
+		let candidate =
 			Runtime::AddressMapping::into_account_id(input.read::<Address>(gasometer)?.0);
 
 		// Fetch info.
