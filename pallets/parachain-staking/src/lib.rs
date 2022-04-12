@@ -1685,7 +1685,7 @@ pub mod pallet {
 				.expect("all members of CandidateQ must be candidates")
 				.delegations
 				.into_iter()
-				.filter_map(|bond| {
+				.filter_map(|mut bond| {
 					let delegator = <DelegatorState<T>>::get(&bond.owner)
 						.expect("delegator state must be present for a bonded delegation");
 
@@ -1705,7 +1705,7 @@ pub mod pallet {
 							amount,
 							..
 						}) => {
-							bond.amount.saturating_sub(*amount);
+							bond.amount = bond.amount.saturating_sub(*amount);
 							Some(bond)
 						}
 					}
