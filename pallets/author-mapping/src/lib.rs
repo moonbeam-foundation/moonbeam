@@ -145,8 +145,8 @@ pub mod pallet {
 		/// Change your Mapping.
 		///
 		/// This is useful for normal key rotation or for when switching from one physical collator
-		/// machine to another. No new security deposit is required. This will not change the
-		/// additional keys associated.
+		/// machine to another. No new security deposit is required.
+		/// This sets keys to new_author_id.into() by default.
 		#[pallet::weight(<T as Config>::WeightInfo::update_association())]
 		pub fn update_association(
 			origin: OriginFor<T>,
@@ -215,6 +215,7 @@ pub mod pallet {
 			Ok(().into())
 		}
 
+		/// Add association and set session keys
 		#[pallet::weight(<T as Config>::WeightInfo::register_keys())]
 		pub fn register_keys(
 			origin: OriginFor<T>,
@@ -239,7 +240,7 @@ pub mod pallet {
 			Ok(())
 		}
 
-		/// Change your keys
+		/// Set association and session keys at once.
 		///
 		/// This is useful for key rotation to update Nimbus and VRF keys in one call.
 		/// No new security deposit is required. Will replace `update_association` which is kept
