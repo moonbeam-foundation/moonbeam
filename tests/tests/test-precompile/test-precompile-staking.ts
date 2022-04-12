@@ -77,7 +77,7 @@ async function delegationRequestIsPending(
     ADDRESS_STAKING,
     SELECTORS,
     "delegation_request_is_pending",
-    [collatorAddress, delegatorAddress]
+    [delegatorAddress, collatorAddress]
   );
 }
 
