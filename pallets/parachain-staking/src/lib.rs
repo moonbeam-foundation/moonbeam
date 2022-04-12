@@ -1638,25 +1638,6 @@ pub mod pallet {
 
 				let snapshot = CollatorSnapshot {
 					bond: state.bond,
-					// TODO: This list is also used to re-use the stakers from previous round
-					// in case the current round does not yield enough delegators. Currently, due
-					// to our filtering, this will return the wrong delegator_count.
-					// Migration is necessary, in this case.
-					//
-					// Alternatively, we can store this info as [AtStakeRewardable] like `[AtStake]` storage item,
-					// indexed by RoundId and CollatorId and use this to compute rewards.
-					//
-					// 		pub type AtStakeRewardable<T: Config> = StorageDoubleMap<
-					// 			_,
-					// 			Twox64Concat,
-					// 			RoundIndex,
-					// 			Twox64Concat,
-					// 			T::AccountId,
-					// 			Vec<(T::AccountId, BalanceOf<T>)>,
-					// 			OptionQuery,
-					// 		>;
-					//
-					// This will however waste storage.
 					delegations: top_rewardable_delegations,
 					total: state.total_counted,
 				};
@@ -1672,43 +1653,46 @@ pub mod pallet {
 			(collator_count, delegation_count, total)
 		}
 
-		/// Apply the delegator intent for revoke and decrease, to build the
-		/// effective list of delegator, with their intended bond amount.
-		/// This is used later to compute the rewards.
+		/// Apply the delegator intent for revoke and decrease in order to build the
+		/// effective list of delegators with their intended bond amount.
+		///
+		/// This is will:
+		///  	- if [DelegationChange::Revoke] is outstanding, set the bond amount to 0.
+		/// 	- if [DelegationChange::Decrease] is outstaning, subtract the bond by the specified amount.
+		/// 	- else, do nothing
+		///
+		/// The intended bond amounts will be used while calculating rewards.
 		fn get_rewardable_delegators(
 			collator: &T::AccountId,
 		) -> Vec<Bond<T::AccountId, BalanceOf<T>>>
 		where
 			T: Config,
+			T::Currency: Currency<T::AccountId>,
 		{
 			<TopDelegations<T>>::get(collator)
 				.expect("all members of CandidateQ must be candidates")
 				.delegations
 				.into_iter()
-				.filter_map(|mut bond| {
+				.map(|mut bond| {
 					let delegator = <DelegatorState<T>>::get(&bond.owner)
 						.expect("delegator state must be present for a bonded delegation");
 
-					match delegator.requests.requests.get(collator) {
-						// no revoke request, do nothing
-						None => Some(bond),
+					bond.amount = match delegator.requests.requests.get(collator) {
+						None => bond.amount,
 
-						// Revoke request, filter the delegator out
 						Some(DelegationRequest {
 							action: DelegationChange::Revoke,
 							..
-						}) => None,
+						}) => BalanceOf::<T>::zero(),
 
-						// Decrease request, reduce the bond amount
 						Some(DelegationRequest {
 							action: DelegationChange::Decrease,
 							amount,
 							..
-						}) => {
-							bond.amount = bond.amount.saturating_sub(*amount);
-							Some(bond)
-						}
-					}
+						}) => bond.amount.saturating_sub(*amount),
+					};
+
+					bond
 				})
 				.collect()
 		}
