@@ -52,7 +52,7 @@ pub mod pallet {
 		<T as frame_system::Config>::AccountId,
 	>>::Balance;
 
-	#[derive(Encode, Decode, PartialEq, Eq, Debug, scale_info::TypeInfo)]
+	#[derive(Clone, Encode, Decode, PartialEq, Eq, Debug, scale_info::TypeInfo)]
 	#[scale_info(skip_type_params(T))]
 	pub struct RegistrationInfo<T: Config> {
 		pub(crate) account: T::AccountId,
@@ -110,7 +110,7 @@ pub mod pallet {
 			keys: T::Keys,
 		},
 		/// An NimbusId has been registered, replacing a previous registration and its mapping.
-		KeysRotated {
+		AuthorRotated {
 			new_author_id: NimbusId,
 			account_id: T::AccountId,
 			new_keys: T::Keys,
@@ -141,6 +141,79 @@ pub mod pallet {
 			});
 
 			Ok(())
+		}
+
+		/// Change your Mapping.
+		///
+		/// This is useful for normal key rotation or for when switching from one physical collator
+		/// machine to another. No new security deposit is required. This will not change the
+		/// additional keys associated.
+		#[pallet::weight(<T as Config>::WeightInfo::update_association())]
+		pub fn update_association(
+			origin: OriginFor<T>,
+			old_author_id: NimbusId,
+			new_author_id: NimbusId,
+		) -> DispatchResult {
+			let account_id = ensure_signed(origin)?;
+
+			let stored_info = MappingWithDeposit::<T>::try_get(&old_author_id)
+				.map_err(|_| Error::<T>::AssociationNotFound)?;
+
+			ensure!(
+				account_id == stored_info.account,
+				Error::<T>::NotYourAssociation
+			);
+			ensure!(
+				MappingWithDeposit::<T>::get(&new_author_id).is_none(),
+				Error::<T>::AlreadyAssociated
+			);
+
+			MappingWithDeposit::<T>::remove(&old_author_id);
+			let new_stored_info = RegistrationInfo {
+				keys: new_author_id.clone().into(),
+				..stored_info
+			};
+			MappingWithDeposit::<T>::insert(&new_author_id, &new_stored_info);
+
+			<Pallet<T>>::deposit_event(Event::AuthorRotated {
+				new_author_id: new_author_id,
+				account_id,
+				new_keys: new_stored_info.keys,
+			});
+
+			Ok(())
+		}
+
+		/// Clear your Mapping.
+		///
+		/// This is useful when you are no longer an author and would like to re-claim your security
+		/// deposit.
+		#[pallet::weight(<T as Config>::WeightInfo::clear_association())]
+		pub fn clear_association(
+			origin: OriginFor<T>,
+			author_id: NimbusId,
+		) -> DispatchResultWithPostInfo {
+			let account_id = ensure_signed(origin)?;
+
+			let stored_info = MappingWithDeposit::<T>::try_get(&author_id)
+				.map_err(|_| Error::<T>::AssociationNotFound)?;
+
+			ensure!(
+				account_id == stored_info.account,
+				Error::<T>::NotYourAssociation
+			);
+
+			MappingWithDeposit::<T>::remove(&author_id);
+
+			T::DepositCurrency::unreserve(&account_id, stored_info.deposit);
+
+			<Pallet<T>>::deposit_event(Event::AuthorDeRegistered {
+				author_id,
+				account_id,
+				keys: stored_info.keys,
+			});
+
+			Ok(().into())
 		}
 
 		#[pallet::weight(<T as Config>::WeightInfo::add_association())] // TODO update weight
@@ -202,82 +275,13 @@ pub mod pallet {
 				},
 			);
 
-			<Pallet<T>>::deposit_event(Event::KeysRotated {
+			<Pallet<T>>::deposit_event(Event::AuthorRotated {
 				new_author_id,
 				account_id,
 				new_keys,
 			});
 
 			Ok(())
-		}
-
-		/// Change your Mapping.
-		///
-		/// This is useful for normal key rotation or for when switching from one physical collator
-		/// machine to another. No new security deposit is required. This will not change the
-		/// additional keys associated.
-		#[pallet::weight(<T as Config>::WeightInfo::update_association())]
-		pub fn update_association(
-			origin: OriginFor<T>,
-			old_author_id: NimbusId,
-			new_author_id: NimbusId,
-		) -> DispatchResult {
-			let account_id = ensure_signed(origin)?;
-
-			let stored_info = MappingWithDeposit::<T>::try_get(&old_author_id)
-				.map_err(|_| Error::<T>::AssociationNotFound)?;
-
-			ensure!(
-				account_id == stored_info.account,
-				Error::<T>::NotYourAssociation
-			);
-			ensure!(
-				MappingWithDeposit::<T>::get(&new_author_id).is_none(),
-				Error::<T>::AlreadyAssociated
-			);
-
-			MappingWithDeposit::<T>::remove(&old_author_id);
-			MappingWithDeposit::<T>::insert(&new_author_id, &stored_info);
-
-			<Pallet<T>>::deposit_event(Event::KeysRotated {
-				new_author_id: new_author_id,
-				account_id: stored_info.account,
-				new_keys: stored_info.keys,
-			});
-
-			Ok(())
-		}
-
-		/// Clear your Mapping.
-		///
-		/// This is useful when you are no longer an author and would like to re-claim your security
-		/// deposit.
-		#[pallet::weight(<T as Config>::WeightInfo::clear_association())]
-		pub fn clear_association(
-			origin: OriginFor<T>,
-			author_id: NimbusId,
-		) -> DispatchResultWithPostInfo {
-			let account_id = ensure_signed(origin)?;
-
-			let stored_info = MappingWithDeposit::<T>::try_get(&author_id)
-				.map_err(|_| Error::<T>::AssociationNotFound)?;
-
-			ensure!(
-				account_id == stored_info.account,
-				Error::<T>::NotYourAssociation
-			);
-
-			MappingWithDeposit::<T>::remove(&author_id);
-
-			T::DepositCurrency::unreserve(&account_id, stored_info.deposit);
-
-			<Pallet<T>>::deposit_event(Event::AuthorDeRegistered {
-				author_id,
-				account_id,
-				keys: stored_info.keys,
-			});
-
-			Ok(().into())
 		}
 	}
 
