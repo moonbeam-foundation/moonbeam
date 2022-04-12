@@ -46,6 +46,7 @@ const SELECTORS = {
   candidate_count: "4b1c4c29",
   collator_nomination_count: "0ad6a7be",
   nominator_nomination_count: "dae5659b",
+  delegation_request_is_pending: "192e1db3",
 };
 
 async function isSelectedCandidate(context: DevTestContext, address: string) {
@@ -64,6 +65,20 @@ async function isCandidate(context: DevTestContext, address: string) {
 
 async function candidateCount(context: DevTestContext) {
   return await callPrecompile(context, ADDRESS_STAKING, SELECTORS, "candidate_count", []);
+}
+
+async function delegationRequestIsPending(
+  context: DevTestContext,
+  collatorAddress: string,
+  delegatorAddress: string
+) {
+  return await callPrecompile(
+    context,
+    ADDRESS_STAKING,
+    SELECTORS,
+    "delegation_request_is_pending",
+    [collatorAddress, delegatorAddress]
+  );
 }
 
 describeDevMoonbeam("Staking - Genesis", (context) => {
@@ -131,5 +146,34 @@ describeDevMoonbeamAllEthTxTypes("Staking - Join Delegators", (context) => {
       ).delegations[0].owner
     ).to.equal(ALITH, "delegation didn't go through");
     expect(delegatorsAfter.status.toString()).equal("Active");
+  });
+});
+
+describeDevMoonbeamAllEthTxTypes("Staking - Join Delegators", (context) => {
+  let ethan;
+  before("should successfully call delegate for ETHAN to ALITH", async function () {
+    const keyring = new Keyring({ type: "ethereum" });
+    ethan = await keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
+
+    // Delegate ETHAN->ALITH
+    await sendPrecompileTx(context, ADDRESS_STAKING, SELECTORS, ETHAN, ETHAN_PRIVKEY, "nominate", [
+      ALITH,
+      numberToHex(Number(MIN_GLMR_STAKING)),
+      "0x0",
+      "0x0",
+    ]);
+  });
+
+  it("should return false for pending requests", async function () {
+    expect(Number((await delegationRequestIsPending(context, ALITH, ETHAN)).result)).to.equal(0);
+
+    // Schedule Revoke
+    await context.polkadotApi.tx.parachainStaking
+      .scheduleRevokeDelegation(ALITH)
+      .signAndSend(ethan);
+    await context.createBlock();
+
+    // Check that there exists a pending request
+    expect(Number((await delegationRequestIsPending(context, ALITH, ETHAN)).result)).to.equal(1);
   });
 });
