@@ -76,15 +76,15 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	#[rustfmt::skip]
 	fn add_association() -> Weight {
 		(33_145_000 as Weight)
-        	.saturating_add(T::DbWeight::get().reads(2 as Weight))
-        	.saturating_add(T::DbWeight::get().writes(2 as Weight))
+			.saturating_add(T::DbWeight::get().reads(2 as Weight))
+			.saturating_add(T::DbWeight::get().writes(2 as Weight))
 	}
 	// Storage: AuthorMapping MappingWithDeposit (r:2 w:2)
 	#[rustfmt::skip]
 	fn update_association() -> Weight {
 		(25_754_000 as Weight)
-        	.saturating_add(T::DbWeight::get().reads(2 as Weight))
-        	.saturating_add(T::DbWeight::get().writes(2 as Weight))
+			.saturating_add(T::DbWeight::get().reads(2 as Weight))
+			.saturating_add(T::DbWeight::get().writes(2 as Weight))
 	}
 	// Storage: AuthorMapping MappingWithDeposit (r:1 w:1)
 	// Storage: System Account (r:1 w:1)
@@ -98,16 +98,16 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: System Account (r:1 w:1)
     #[rustfmt::skip]
 	fn register_keys() -> Weight {
-    	(33_600_000 as Weight)
-        	.saturating_add(T::DbWeight::get().reads(2 as Weight))
-        	.saturating_add(T::DbWeight::get().writes(2 as Weight))
+		(33_600_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(2 as Weight))
+			.saturating_add(T::DbWeight::get().writes(2 as Weight))
     }
 	// Storage: AuthorMapping MappingWithDeposit (r:2 w:2)
     #[rustfmt::skip]
 	fn set_keys() -> Weight {
-    	(25_578_000 as Weight)
-        	.saturating_add(T::DbWeight::get().reads(2 as Weight))
-        	.saturating_add(T::DbWeight::get().writes(2 as Weight))
+		(25_578_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(2 as Weight))
+			.saturating_add(T::DbWeight::get().writes(2 as Weight))
     }
 }
 
@@ -118,15 +118,15 @@ impl WeightInfo for () {
 	#[rustfmt::skip]
 	fn add_association() -> Weight {
 		(33_145_000 as Weight)
-        	.saturating_add(RocksDbWeight::get().reads(2 as Weight))
-        	.saturating_add(RocksDbWeight::get().writes(2 as Weight))
+			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(2 as Weight))
 	}
 	// Storage: AuthorMapping MappingWithDeposit (r:2 w:2)
 	#[rustfmt::skip]
 	fn update_association() -> Weight {
 		(25_754_000 as Weight)
-        	.saturating_add(RocksDbWeight::get().reads(2 as Weight))
-        	.saturating_add(RocksDbWeight::get().writes(2 as Weight))
+			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(2 as Weight))
 	}
 	// Storage: AuthorMapping MappingWithDeposit (r:1 w:1)
 	// Storage: System Account (r:1 w:1)
@@ -140,15 +140,15 @@ impl WeightInfo for () {
 	// Storage: System Account (r:1 w:1)
     #[rustfmt::skip]
 	fn register_keys() -> Weight {
-    	(33_600_000 as Weight)
-        	.saturating_add(RocksDbWeight::get().reads(2 as Weight))
-        	.saturating_add(RocksDbWeight::get().writes(2 as Weight))
+		(33_600_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(2 as Weight))
     }
 	// Storage: AuthorMapping MappingWithDeposit (r:2 w:2)
     #[rustfmt::skip]
 	fn set_keys() -> Weight {
-    	(25_578_000 as Weight)
-        	.saturating_add(RocksDbWeight::get().reads(2 as Weight))
-        	.saturating_add(RocksDbWeight::get().writes(2 as Weight))
+		(25_578_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(2 as Weight))
     }
 }
