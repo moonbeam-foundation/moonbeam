@@ -19,7 +19,7 @@ use crate::mock::{
 	ParachainStaking, PrecompilesValue, Runtime, TestAccount, TestPrecompiles,
 };
 use crate::{Action, PrecompileOutput};
-use fp_evm::PrecompileFailure;
+use fp_evm::{Context, PrecompileFailure};
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_evm::{Call as EvmCall, ExitSucceed, PrecompileSet};
 use parachain_staking::Event as StakingEvent;
@@ -763,6 +763,87 @@ fn selected_candidates_works() {
 				expected_result
 			);
 		});
+}
+
+#[test]
+fn delegation_request_is_pending_works() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(TestAccount::Alice, 1_000),
+			(TestAccount::Charlie, 50),
+			(TestAccount::Bogus, 50),
+		])
+		.with_candidates(vec![(TestAccount::Alice, 1_000)])
+		.with_delegations(vec![(TestAccount::Charlie, TestAccount::Alice, 50)])
+		.build()
+		.execute_with(|| {
+			// Expected false because we dont have pending requests yet
+			let mut expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(false).build(),
+				cost: Default::default(),
+				logs: Default::default(),
+			}));
+			// Assert that we dont have pending requests
+			assert_eq!(
+				precompiles().execute(
+					precompile_address(),
+					&EvmDataWriter::new_with_selector(Action::DelegationRequestIsPending)
+						.write(Address(TestAccount::Alice.into()))
+						.write(Address(TestAccount::Charlie.into()))
+						.build(),
+					None,
+					&evm_test_context(),
+					false
+				),
+				expected_result
+			);
+
+			// Schedule Revoke request
+			assert_eq!(
+				precompiles().execute(
+					precompile_address(),
+					&EvmDataWriter::new_with_selector(Action::ScheduleRevokeDelegation)
+						.write(Address(TestAccount::Alice.into()))
+						.build(),
+					None,
+					&Context {
+						address: precompile_address(),
+						caller: TestAccount::Charlie.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: Default::default(),
+					cost: 178053000,
+					logs: Default::default(),
+				}))
+			);
+
+			// Expected true because we scheduled a revoke request
+			expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(true).build(),
+				cost: Default::default(),
+				logs: Default::default(),
+			}));
+			// Assert that we have pending requests
+			assert_eq!(
+				precompiles().execute(
+					precompile_address(),
+					&EvmDataWriter::new_with_selector(Action::DelegationRequestIsPending)
+						.write(Address(TestAccount::Alice.into()))
+						.write(Address(TestAccount::Charlie.into()))
+						.build(),
+					None,
+					&evm_test_context(),
+					false
+				),
+				expected_result
+			);
+		})
 }
 
 #[test]
