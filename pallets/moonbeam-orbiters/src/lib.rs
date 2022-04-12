@@ -184,10 +184,14 @@ pub mod pallet {
 				}
 			}
 
+			// Make sure the orbiter has made a deposit. It can be an old orbiter whose deposit
+			// is lower than the current minimum (if the minimum was lower in the past), so we just
+			// have to check that a deposit exists (which means checking that the deposit amount
+			// is not zero).
 			let orbiter_deposit =
 				T::Currency::reserved_balance_named(&T::OrbiterReserveIdentifier::get(), &orbiter);
 			ensure!(
-				orbiter_deposit >= BalanceOf::<T>::zero(),
+				orbiter_deposit > BalanceOf::<T>::zero(),
 				Error::<T>::OrbiterDepositNotFound
 			);
 
