@@ -41,7 +41,7 @@ pub enum Action {
 	AddAssociation = "add_association(bytes32)",
 	UpdateAssociation = "update_association(bytes32,bytes32)",
 	ClearAssociation = "clear_association(bytes32)",
-	AddFullAssociation = "add_full_association(bytes32, bytes32)",
+	RegisterKeys = "register_keys(bytes32,bytes32)",
 	SetKeys = "set_keys(bytes32,bytes32,bytes32)",
 }
 
@@ -77,7 +77,7 @@ where
 			Action::AddAssociation => Self::add_association(input, gasometer, context),
 			Action::UpdateAssociation => Self::update_association(input, gasometer, context),
 			Action::ClearAssociation => Self::clear_association(input, gasometer, context),
-			Action::AddFullAssociation => Self::add_full_association(input, gasometer, context),
+			Action::RegisterKeys => Self::register_keys(input, gasometer, context),
 			Action::SetKeys => Self::set_keys(input, gasometer, context),
 		}
 	}
@@ -187,7 +187,7 @@ where
 		})
 	}
 
-	fn add_full_association(
+	fn register_keys(
 		input: &mut EvmDataReader,
 		gasometer: &mut Gasometer,
 		context: &Context,
@@ -206,7 +206,7 @@ where
 		);
 
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = AuthorMappingCall::<Runtime>::add_full_association {
+		let call = AuthorMappingCall::<Runtime>::register_keys {
 			author_id: nimbus_id,
 			keys,
 		};

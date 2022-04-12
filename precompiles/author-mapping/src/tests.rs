@@ -94,7 +94,7 @@ fn selectors() {
 	assert_eq!(Action::AddAssociation as u32, 0xaa5ac585);
 	assert_eq!(Action::UpdateAssociation as u32, 0xd9cef879);
 	assert_eq!(Action::ClearAssociation as u32, 0x7354c91d);
-	assert_eq!(Action::AddFullAssociation as u32, 0xe9bf9e98);
+	assert_eq!(Action::RegisterKeys as u32, 0x4f50accf);
 	assert_eq!(Action::SetKeys as u32, 0xa8259c85);
 }
 
@@ -239,7 +239,7 @@ fn clear_association_works() {
 }
 
 #[test]
-fn add_full_association_works() {
+fn register_keys_works() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice, 1000)])
 		.build()
@@ -249,7 +249,7 @@ fn add_full_association_works() {
 			let first_vrf_key: NimbusId =
 				sp_core::sr25519::Public::unchecked_from([3u8; 32]).into();
 
-			let input = EvmDataWriter::new_with_selector(Action::AddFullAssociation)
+			let input = EvmDataWriter::new_with_selector(Action::RegisterKeys)
 				.write(sp_core::H256::from([1u8; 32]))
 				.write(sp_core::H256::from([3u8; 32]))
 				.build();
@@ -293,13 +293,11 @@ fn set_keys_works() {
 			let second_vrf_key: NimbusId =
 				sp_core::sr25519::Public::unchecked_from([4u8; 32]).into();
 
-			assert_ok!(
-				Call::AuthorMapping(AuthorMappingCall::add_full_association {
-					author_id: first_nimbus_id.clone(),
-					keys: first_vrf_key.clone(),
-				})
-				.dispatch(Origin::signed(Alice))
-			);
+			assert_ok!(Call::AuthorMapping(AuthorMappingCall::register_keys {
+				author_id: first_nimbus_id.clone(),
+				keys: first_vrf_key.clone(),
+			})
+			.dispatch(Origin::signed(Alice)));
 
 			let input = EvmDataWriter::new_with_selector(Action::SetKeys)
 				.write(sp_core::H256::from([1u8; 32]))

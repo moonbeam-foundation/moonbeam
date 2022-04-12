@@ -216,8 +216,8 @@ pub mod pallet {
 			Ok(().into())
 		}
 
-		#[pallet::weight(<T as Config>::WeightInfo::add_association())] // TODO update weight
-		pub fn add_full_association(
+		#[pallet::weight(<T as Config>::WeightInfo::add_association())]
+		pub fn register_keys(
 			origin: OriginFor<T>,
 			author_id: NimbusId,
 			keys: T::Keys,
@@ -245,7 +245,7 @@ pub mod pallet {
 		/// This is useful for key rotation to update Nimbus and VRF keys in one call.
 		/// No new security deposit is required. Will replace `update_association` which is kept
 		/// now for backwards compatibility reasons.
-		#[pallet::weight(0)] // TODO: update weights
+		#[pallet::weight(<T as Config>::WeightInfo::update_association())]
 		pub fn set_keys(
 			origin: OriginFor<T>,
 			old_author_id: NimbusId,
