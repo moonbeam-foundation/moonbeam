@@ -847,6 +847,42 @@ fn delegation_request_is_pending_works() {
 }
 
 #[test]
+fn delegation_request_is_pending_returns_false_for_non_existing_del() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(TestAccount::Alice, 1_000),
+			(TestAccount::Charlie, 50),
+			(TestAccount::Bogus, 50),
+		])
+		.with_candidates(vec![(TestAccount::Alice, 1_000)])
+		.with_delegations(vec![(TestAccount::Charlie, TestAccount::Alice, 50)])
+		.build()
+		.execute_with(|| {
+			// Expected false because delegator Bob does not exist
+			let expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(false).build(),
+				cost: Default::default(),
+				logs: Default::default(),
+			}));
+			// Assert that we return false
+			assert_eq!(
+				precompiles().execute(
+					precompile_address(),
+					&EvmDataWriter::new_with_selector(Action::DelegationRequestIsPending)
+						.write(Address(TestAccount::Alice.into()))
+						.write(Address(TestAccount::Bob.into()))
+						.build(),
+					None,
+					&evm_test_context(),
+					false
+				),
+				expected_result
+			);
+		})
+}
+
+#[test]
 fn join_candidates_works() {
 	ExtBuilder::default()
 		.with_balances(vec![(TestAccount::Alice, 1_000)])
