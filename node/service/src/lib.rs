@@ -35,6 +35,7 @@ pub use moonbeam_runtime;
 pub use moonriver_runtime;
 use std::{collections::BTreeMap, sync::Mutex, time::Duration};
 pub mod rpc;
+use cumulus_client_cli::CollatorOptions;
 use cumulus_client_consensus_common::ParachainConsensus;
 use cumulus_client_network::BlockAnnounceValidator;
 use cumulus_client_service::{
@@ -44,8 +45,8 @@ use cumulus_primitives_core::ParaId;
 use cumulus_primitives_parachain_inherent::{
 	MockValidationDataInherentDataProvider, MockXcmConfig,
 };
-use cumulus_relay_chain_interface::RelayChainInterface;
-use cumulus_relay_chain_local::build_relay_chain_interface;
+use cumulus_relay_chain_inprocess_interface::build_inprocess_relay_chain;
+use cumulus_relay_chain_interface::{RelayChainError, RelayChainInterface};
 use nimbus_consensus::NimbusManualSealConsensusDataProvider;
 use nimbus_consensus::{BuildNimbusConsensusParams, NimbusConsensus};
 use nimbus_primitives::NimbusId;
@@ -475,12 +476,16 @@ where
 	let backend = params.backend.clone();
 	let mut task_manager = params.task_manager;
 
-	let (relay_chain_interface, collator_key) =
-		build_relay_chain_interface(polkadot_config, telemetry_worker_handle, &mut task_manager)
-			.map_err(|e| match e {
-				polkadot_service::Error::Sub(x) => x,
-				s => format!("{}", s).into(),
-			})?;
+	let (relay_chain_interface, collator_key) = build_inprocess_relay_chain(
+		polkadot_config,
+		&parachain_config,
+		telemetry_worker_handle,
+		&mut task_manager,
+	)
+	.map_err(|e| match e {
+		RelayChainError::ServiceError(polkadot_service::Error::Sub(x)) => x,
+		s => s.to_string().into(),
+	})?;
 
 	let block_announce_validator = BlockAnnounceValidator::new(relay_chain_interface.clone(), id);
 
@@ -541,12 +546,17 @@ where
 			}
 		};
 
-	let block_data_cache = Arc::new(fc_rpc::EthBlockDataCache::new(
+	let block_data_cache = Arc::new(fc_rpc::EthBlockDataCacheTask::new(
 		task_manager.spawn_handle(),
 		overrides.clone(),
-		rpc_config.eth_log_block_cache,
-		rpc_config.eth_log_block_cache,
+		rpc_config.eth_log_block_cache as u64,
+		rpc_config.eth_statuses_cache as u64,
+		prometheus_registry.clone(),
 	));
+
+	// variable `rpc_config` will be moved in next code block, we need to
+	// save param `relay_chain_rpc_url` to be able to use it later.
+	let relay_chain_rpc_url = rpc_config.relay_chain_rpc_url.clone();
 
 	let rpc_extensions_builder = {
 		let client = client.clone();
@@ -640,7 +650,9 @@ where
 			spawner,
 			parachain_consensus,
 			import_queue,
-			collator_key,
+			collator_key: collator_key.ok_or(sc_service::error::Error::Other(
+				"Collator Key is None".to_string(),
+			))?,
 			relay_chain_slot_duration,
 		};
 
@@ -654,6 +666,9 @@ where
 			relay_chain_interface,
 			relay_chain_slot_duration,
 			import_queue,
+			collator_options: CollatorOptions {
+				relay_chain_rpc_url,
+			},
 		};
 
 		start_full_node(params)?;
@@ -949,11 +964,12 @@ where
 			}
 		};
 
-	let block_data_cache = Arc::new(fc_rpc::EthBlockDataCache::new(
+	let block_data_cache = Arc::new(fc_rpc::EthBlockDataCacheTask::new(
 		task_manager.spawn_handle(),
 		overrides.clone(),
-		rpc_config.eth_log_block_cache,
-		rpc_config.eth_log_block_cache,
+		rpc_config.eth_log_block_cache as u64,
+		rpc_config.eth_statuses_cache as u64,
+		prometheus_registry,
 	));
 
 	let rpc_extensions_builder = {
@@ -1028,7 +1044,7 @@ mod tests {
 	use sc_service::ChainType;
 	use sc_service::{
 		config::{BasePath, DatabaseSource, KeystoreConfig},
-		Configuration, KeepBlocks, Role, TransactionStorageMode,
+		Configuration, KeepBlocks, Role,
 	};
 	use std::path::Path;
 	use std::str::FromStr;
@@ -1148,7 +1164,6 @@ mod tests {
 			state_cache_child_ratio: None,
 			state_pruning: Default::default(),
 			keep_blocks: KeepBlocks::All,
-			transaction_storage: TransactionStorageMode::BlockBody,
 			chain_spec: Box::new(spec),
 			wasm_method: sc_service::config::WasmExecutionMethod::Interpreted,
 			wasm_runtime_overrides: Default::default(),

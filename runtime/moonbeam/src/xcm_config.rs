@@ -18,9 +18,9 @@
 //!
 
 use super::{
-	AccountId, AssetId, AssetManager, Assets, Balance, Balances, Call, Event, Origin,
+	AccountId, AssetId, AssetManager, Assets, Balance, Balances, Call, Event, LocalAssets, Origin,
 	ParachainInfo, ParachainSystem, PolkadotXcm, Runtime, Treasury, XcmpQueue,
-	MAXIMUM_BLOCK_WEIGHT,
+	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, MAXIMUM_BLOCK_WEIGHT,
 };
 
 use pallet_evm_precompile_assets_erc20::AccountIdAssetIdConversion;
@@ -59,6 +59,8 @@ use sp_std::{
 	prelude::*,
 };
 
+use orml_traits::{location::AbsoluteReserveProvider, parameter_type_with_key};
+
 parameter_types! {
 	// The network Id of the relay
 	pub const RelayNetwork: NetworkId = NetworkId::Polkadot;
@@ -74,6 +76,31 @@ parameter_types! {
 		interior: Junctions::X2(
 			Parachain(ParachainInfo::parachain_id().into()),
 			PalletInstance(<Balances as PalletInfoAccess>::index() as u8)
+		)
+	};
+
+	// Old reanchor logic location for pallet assets
+	// We need to support both in case we talk to a chain not in 0.9.16
+	// Or until we import https://github.com/open-web3-stack/open-runtime-module-library/pull/708
+	// We will be able to remove this once we import the aforementioned change
+	// Indentified by thix prefix + generalIndex(assetId)
+	pub LocalAssetsPalletLocationOldReanchor: MultiLocation = MultiLocation {
+		parents:1,
+		interior: Junctions::X2(
+			Parachain(ParachainInfo::parachain_id().into()),
+			PalletInstance(<LocalAssets as PalletInfoAccess>::index() as u8)
+		)
+	};
+
+	// New reanchor logic location for pallet assets
+	// This is the relative view of our local assets. This is the representation that will
+	// be considered canonical after we import
+	// https://github.com/open-web3-stack/open-runtime-module-library/pull/708
+	// Indentified by thix prefix + generalIndex(assetId)
+	pub LocalAssetsPalletLocationNewReanchor: MultiLocation = MultiLocation {
+		parents:0,
+		interior: Junctions::X1(
+			PalletInstance(<LocalAssets as PalletInfoAccess>::index() as u8)
 		)
 	};
 }
@@ -117,6 +144,7 @@ pub type FungiblesTransactor = FungiblesAdapter<
 // We use only fungiblesAdapter transactor for now
 // The idea is that we only accept the relay token, hence no need to handle the local token
 // As long as this does not contain the local transactor, we are good
+// LocalAssets are also not enabled
 pub type AssetTransactors = FungiblesTransactor;
 
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
@@ -253,6 +281,7 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type ExecuteOverweightOrigin = EnsureRoot<AccountId>;
 	type ControllerOrigin = EnsureRoot<AccountId>;
 	type ControllerOriginConverter = XcmOriginToTransactDispatchOrigin;
+	type WeightInfo = cumulus_pallet_xcmp_queue::weights::SubstrateWeight<Self>;
 }
 
 impl cumulus_pallet_dmp_queue::Config for Runtime {
@@ -327,7 +356,9 @@ impl From<AssetType> for AssetId {
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
 pub enum CurrencyId {
 	SelfReserve,
-	OtherReserve(AssetId),
+	ForeignAsset(AssetId),
+	// Our local assets
+	LocalAssetReserve(AssetId),
 }
 
 impl AccountIdToCurrencyId<AccountId, CurrencyId> for Runtime {
@@ -336,8 +367,13 @@ impl AccountIdToCurrencyId<AccountId, CurrencyId> for Runtime {
 			// the self-reserve currency is identified by the pallet-balances address
 			a if a == H160::from_low_u64_be(2050).into() => Some(CurrencyId::SelfReserve),
 			// the rest of the currencies, by their corresponding erc20 address
-			_ => Runtime::account_to_asset_id(account)
-				.map(|asset_id| CurrencyId::OtherReserve(asset_id)),
+			_ => Runtime::account_to_asset_id(account).map(|(prefix, asset_id)| {
+				if prefix == FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX.to_vec() {
+					CurrencyId::ForeignAsset(asset_id)
+				} else {
+					CurrencyId::LocalAssetReserve(asset_id)
+				}
+			}),
 		}
 	}
 }
@@ -355,7 +391,13 @@ where
 				let multi: MultiLocation = SelfReserve::get();
 				Some(multi)
 			}
-			CurrencyId::OtherReserve(asset) => AssetXConverter::reverse_ref(asset).ok(),
+			CurrencyId::ForeignAsset(asset) => AssetXConverter::reverse_ref(asset).ok(),
+			// No transactor matches this yet, so even if we have this enum variant the transfer will fail
+			CurrencyId::LocalAssetReserve(asset) => {
+				let mut location = LocalAssetsPalletLocationOldReanchor::get();
+				location.push_interior(Junction::GeneralIndex(asset)).ok();
+				Some(location)
+			}
 		}
 	}
 }
@@ -374,6 +416,12 @@ parameter_types! {
 	};
 }
 
+parameter_type_with_key! {
+	pub ParachainMinFee: |_location: MultiLocation| -> u128 {
+		u128::MAX
+	};
+}
+
 impl orml_xtokens::Config for Runtime {
 	type Event = Event;
 	type Balance = Balance;
@@ -387,6 +435,9 @@ impl orml_xtokens::Config for Runtime {
 	type BaseXcmWeight = BaseXcmWeight;
 	type LocationInverter = LocationInverter<Ancestry>;
 	type MaxAssetsForTransfer = MaxAssetsForTransfer;
+	type MinXcmFee = ParachainMinFee;
+	type MultiLocationsFilter = Everything;
+	type ReserveProvider = AbsoluteReserveProvider;
 }
 
 // For now we only allow to transact in the relay, although this might change in the future

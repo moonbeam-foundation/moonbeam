@@ -21,7 +21,7 @@ use fp_evm::{Context, ExitSucceed, PrecompileOutput};
 use frame_support::traits::fungibles::approvals::Inspect as ApprovalInspect;
 use frame_support::traits::fungibles::metadata::Inspect as MetadataInspect;
 use frame_support::traits::fungibles::Inspect;
-use frame_support::traits::OriginTrait;
+use frame_support::traits::{ConstBool, Get, OriginTrait};
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
 	sp_runtime::traits::StaticLookup,
@@ -31,7 +31,8 @@ use precompile_utils::{
 	keccak256, Address, Bytes, EvmData, EvmDataReader, EvmDataWriter, EvmResult, FunctionModifier,
 	Gasometer, LogsBuilder, RuntimeHelper,
 };
-use sp_runtime::traits::{Bounded, Zero};
+use sp_runtime::traits::Bounded;
+use sp_std::vec::Vec;
 
 use sp_core::{H160, U256};
 use sp_std::{
@@ -57,6 +58,10 @@ pub type BalanceOf<Runtime, Instance = ()> = <Runtime as pallet_assets::Config<I
 /// Alias for the Asset Id type for the provided Runtime and Instance.
 pub type AssetIdOf<Runtime, Instance = ()> = <Runtime as pallet_assets::Config<Instance>>::AssetId;
 
+/// Public types to use with the PrecompileSet
+pub type IsLocal = ConstBool<true>;
+pub type IsForeign = ConstBool<false>;
+
 #[precompile_utils::generate_function_selector]
 #[derive(Debug, PartialEq)]
 pub enum Action {
@@ -69,16 +74,26 @@ pub enum Action {
 	Name = "name()",
 	Symbol = "symbol()",
 	Decimals = "decimals()",
+	Mint = "mint(address,uint256)",
+	Burn = "burn(address,uint256)",
+	Freeze = "freeze(address)",
+	Thaw = "thaw(address)",
+	FreezeAsset = "freeze_asset()",
+	ThawAsset = "thaw_asset()",
+	TransferOwnership = "transfer_ownership(address)",
+	SetTeam = "set_team(address,address,address)",
+	SetMetadata = "set_metadata(string,string,uint8)",
+	ClearMetadata = "clear_metadata()",
 }
 
 /// This trait ensure we can convert AccountIds to AssetIds
 /// We will require Runtime to have this trait implemented
 pub trait AccountIdAssetIdConversion<Account, AssetId> {
-	// Get assetId from account
-	fn account_to_asset_id(account: Account) -> Option<AssetId>;
+	// Get assetId and prefix from account
+	fn account_to_asset_id(account: Account) -> Option<(Vec<u8>, AssetId)>;
 
-	// Get AccountId from AssetId
-	fn asset_id_to_account(asset_id: AssetId) -> Account;
+	// Get AccountId from AssetId and prefix
+	fn asset_id_to_account(prefix: &[u8], asset_id: AssetId) -> Account;
 }
 
 /// The following distribution has been decided for the precompiles
@@ -95,11 +110,12 @@ pub trait AccountIdAssetIdConversion<Account, AssetId> {
 
 /// This means that every address that starts with 0xFFFFFFFF will go through an additional db read,
 /// but the probability for this to happen is 2^-32 for random addresses
-pub struct Erc20AssetsPrecompileSet<Runtime, Instance: 'static = ()>(
-	PhantomData<(Runtime, Instance)>,
+pub struct Erc20AssetsPrecompileSet<Runtime, IsLocal, Instance: 'static = ()>(
+	PhantomData<(Runtime, IsLocal, Instance)>,
 );
 
-impl<Runtime, Instance> PrecompileSet for Erc20AssetsPrecompileSet<Runtime, Instance>
+impl<Runtime, IsLocal, Instance> PrecompileSet
+	for Erc20AssetsPrecompileSet<Runtime, IsLocal, Instance>
 where
 	Instance: 'static,
 	Runtime: pallet_assets::Config<Instance> + pallet_evm::Config + frame_system::Config,
@@ -109,6 +125,7 @@ where
 	BalanceOf<Runtime, Instance>: TryFrom<U256> + Into<U256> + EvmData,
 	Runtime: AccountIdAssetIdConversion<Runtime::AccountId, AssetIdOf<Runtime, Instance>>,
 	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin: OriginTrait,
+	IsLocal: Get<bool>,
 {
 	fn execute(
 		&self,
@@ -118,17 +135,12 @@ where
 		context: &Context,
 		is_static: bool,
 	) -> Option<EvmResult<PrecompileOutput>> {
-		if let Some(asset_id) =
+		if let Some((_, asset_id)) =
 			Runtime::account_to_asset_id(Runtime::AddressMapping::into_account_id(address))
 		{
-			// If the assetId has non-zero supply
-			// "total_supply" returns both 0 if the assetId does not exist or if the supply is 0
-			// The assumption I am making here is that a 0 supply asset is not interesting from
-			// the perspective of the precompiles. Once pallet-assets has more publicly accesible
-			// storage we can use another function for this, like check_asset_existence.
-			// The other options is to check the asset existence in pallet-asset-manager, but
-			// this makes the precompiles dependent on such a pallet, which is not ideal
-			if !pallet_assets::Pallet::<Runtime, Instance>::total_supply(asset_id).is_zero() {
+			// We check maybe_total_supply. This function returns Some if the asset exists,
+			// which is all we care about at this point
+			if pallet_assets::Pallet::<Runtime, Instance>::maybe_total_supply(asset_id).is_some() {
 				let result = {
 					let mut gasometer = Gasometer::new(target_gas);
 					let gasometer = &mut gasometer;
@@ -154,6 +166,7 @@ where
 					}
 
 					match selector {
+						// Local and Foreign common
 						Action::TotalSupply => Self::total_supply(asset_id, input, gasometer),
 						Action::BalanceOf => Self::balance_of(asset_id, input, gasometer),
 						Action::Allowance => Self::allowance(asset_id, input, gasometer),
@@ -165,6 +178,21 @@ where
 						Action::Name => Self::name(asset_id, gasometer),
 						Action::Symbol => Self::symbol(asset_id, gasometer),
 						Action::Decimals => Self::decimals(asset_id, gasometer),
+						// Only local
+						Action::Mint => Self::mint(asset_id, input, gasometer, context),
+						Action::Burn => Self::burn(asset_id, input, gasometer, context),
+						Action::Freeze => Self::freeze(asset_id, input, gasometer, context),
+						Action::Thaw => Self::thaw(asset_id, input, gasometer, context),
+						Action::FreezeAsset => Self::freeze_asset(asset_id, gasometer, context),
+						Action::ThawAsset => Self::thaw_asset(asset_id, gasometer, context),
+						Action::TransferOwnership => {
+							Self::transfer_ownership(asset_id, input, gasometer, context)
+						}
+						Action::SetTeam => Self::set_team(asset_id, input, gasometer, context),
+						Action::SetMetadata => {
+							Self::set_metadata(asset_id, input, gasometer, context)
+						}
+						Action::ClearMetadata => Self::clear_metadata(asset_id, gasometer, context),
 					}
 				};
 				return Some(result);
@@ -174,30 +202,25 @@ where
 	}
 
 	fn is_precompile(&self, address: H160) -> bool {
-		if let Some(asset_id) =
+		if let Some((_, asset_id)) =
 			Runtime::account_to_asset_id(Runtime::AddressMapping::into_account_id(address))
 		{
-			// If the assetId has non-zero supply
-			// "total_supply" returns both 0 if the assetId does not exist or if the supply is 0
-			// The assumption I am making here is that a 0 supply asset is not interesting from
-			// the perspective of the precompiles. Once pallet-assets has more publicly accesible
-			// storage we can use another function for this, like check_asset_existence.
-			// The other options is to check the asset existence in pallet-asset-manager, but
-			// this makes the precompiles dependent on such a pallet, which is not ideal
-			!pallet_assets::Pallet::<Runtime, Instance>::total_supply(asset_id).is_zero()
+			// We check maybe_total_supply. This function returns Some if the asset exists,
+			// which is all we care about at this point
+			pallet_assets::Pallet::<Runtime, Instance>::maybe_total_supply(asset_id).is_some()
 		} else {
 			false
 		}
 	}
 }
 
-impl<Runtime, Instance> Erc20AssetsPrecompileSet<Runtime, Instance> {
+impl<Runtime, IsLocal, Instance> Erc20AssetsPrecompileSet<Runtime, IsLocal, Instance> {
 	pub fn new() -> Self {
 		Self(PhantomData)
 	}
 }
 
-impl<Runtime, Instance> Erc20AssetsPrecompileSet<Runtime, Instance>
+impl<Runtime, IsLocal, Instance> Erc20AssetsPrecompileSet<Runtime, IsLocal, Instance>
 where
 	Instance: 'static,
 	Runtime: pallet_assets::Config<Instance> + pallet_evm::Config + frame_system::Config,
@@ -207,6 +230,7 @@ where
 	BalanceOf<Runtime, Instance>: TryFrom<U256> + Into<U256> + EvmData,
 	Runtime: AccountIdAssetIdConversion<Runtime::AccountId, AssetIdOf<Runtime, Instance>>,
 	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin: OriginTrait,
+	IsLocal: Get<bool>,
 {
 	fn total_supply(
 		asset_id: AssetIdOf<Runtime, Instance>,
@@ -519,6 +543,408 @@ where
 					asset_id,
 				))
 				.build(),
+			logs: Default::default(),
+		})
+	}
+
+	// From here: only for locals, we need to check whether we are in local assets otherwise fail
+	fn mint(
+		asset_id: AssetIdOf<Runtime, Instance>,
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
+		context: &Context,
+	) -> EvmResult<PrecompileOutput> {
+		if !IsLocal::get() {
+			return Err(gasometer.revert("unknown selector"));
+		}
+
+		gasometer.record_log_costs_manual(3, 32)?;
+
+		// Parse input.
+		input.expect_arguments(gasometer, 2)?;
+
+		let to: H160 = input.read::<Address>(gasometer)?.into();
+		let amount = input.read::<BalanceOf<Runtime, Instance>>(gasometer)?;
+
+		// Build call with origin.
+		{
+			let origin = Runtime::AddressMapping::into_account_id(context.caller);
+			let to = Runtime::AddressMapping::into_account_id(to);
+
+			// Dispatch call (if enough gas).
+			RuntimeHelper::<Runtime>::try_dispatch(
+				Some(origin).into(),
+				pallet_assets::Call::<Runtime, Instance>::mint {
+					id: asset_id,
+					beneficiary: Runtime::Lookup::unlookup(to),
+					amount,
+				},
+				gasometer,
+			)?;
+		}
+
+		// Build output.
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gasometer.used_gas(),
+			output: EvmDataWriter::new().write(true).build(),
+			logs: LogsBuilder::new(context.address)
+				.log3(
+					SELECTOR_LOG_TRANSFER,
+					H160::default(),
+					to,
+					EvmDataWriter::new().write(amount).build(),
+				)
+				.build(),
+		})
+	}
+
+	fn burn(
+		asset_id: AssetIdOf<Runtime, Instance>,
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
+		context: &Context,
+	) -> EvmResult<PrecompileOutput> {
+		if !IsLocal::get() {
+			return Err(gasometer.revert("unknown selector"));
+		}
+
+		gasometer.record_log_costs_manual(3, 32)?;
+
+		// Parse input.
+		input.expect_arguments(gasometer, 2)?;
+
+		let to: H160 = input.read::<Address>(gasometer)?.into();
+		let amount = input.read::<BalanceOf<Runtime, Instance>>(gasometer)?;
+
+		// Build call with origin.
+		{
+			let origin = Runtime::AddressMapping::into_account_id(context.caller);
+			let to = Runtime::AddressMapping::into_account_id(to);
+
+			// Dispatch call (if enough gas).
+			RuntimeHelper::<Runtime>::try_dispatch(
+				Some(origin).into(),
+				pallet_assets::Call::<Runtime, Instance>::burn {
+					id: asset_id,
+					who: Runtime::Lookup::unlookup(to),
+					amount,
+				},
+				gasometer,
+			)?;
+		}
+
+		// Build output.
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gasometer.used_gas(),
+			output: EvmDataWriter::new().write(true).build(),
+			logs: LogsBuilder::new(context.address)
+				.log3(
+					SELECTOR_LOG_TRANSFER,
+					to,
+					H160::default(),
+					EvmDataWriter::new().write(amount).build(),
+				)
+				.build(),
+		})
+	}
+
+	fn freeze(
+		asset_id: AssetIdOf<Runtime, Instance>,
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
+		context: &Context,
+	) -> EvmResult<PrecompileOutput> {
+		if !IsLocal::get() {
+			return Err(gasometer.revert("unknown selector"));
+		}
+
+		// Parse input.
+		input.expect_arguments(gasometer, 1)?;
+
+		let to: H160 = input.read::<Address>(gasometer)?.into();
+
+		// Build call with origin.
+		{
+			let origin = Runtime::AddressMapping::into_account_id(context.caller);
+			let to = Runtime::AddressMapping::into_account_id(to);
+
+			// Dispatch call (if enough gas).
+			RuntimeHelper::<Runtime>::try_dispatch(
+				Some(origin).into(),
+				pallet_assets::Call::<Runtime, Instance>::freeze {
+					id: asset_id,
+					who: Runtime::Lookup::unlookup(to),
+				},
+				gasometer,
+			)?;
+		}
+
+		// Build output.
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gasometer.used_gas(),
+			output: EvmDataWriter::new().write(true).build(),
+			logs: Default::default(),
+		})
+	}
+
+	fn thaw(
+		asset_id: AssetIdOf<Runtime, Instance>,
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
+		context: &Context,
+	) -> EvmResult<PrecompileOutput> {
+		if !IsLocal::get() {
+			return Err(gasometer.revert("unknown selector"));
+		}
+
+		// Parse input.
+		input.expect_arguments(gasometer, 1)?;
+
+		let to: H160 = input.read::<Address>(gasometer)?.into();
+
+		// Build call with origin.
+		{
+			let origin = Runtime::AddressMapping::into_account_id(context.caller);
+			let to = Runtime::AddressMapping::into_account_id(to);
+
+			// Dispatch call (if enough gas).
+			RuntimeHelper::<Runtime>::try_dispatch(
+				Some(origin).into(),
+				pallet_assets::Call::<Runtime, Instance>::thaw {
+					id: asset_id,
+					who: Runtime::Lookup::unlookup(to),
+				},
+				gasometer,
+			)?;
+		}
+
+		// Build output.
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gasometer.used_gas(),
+			output: EvmDataWriter::new().write(true).build(),
+			logs: Default::default(),
+		})
+	}
+
+	fn freeze_asset(
+		asset_id: AssetIdOf<Runtime, Instance>,
+		gasometer: &mut Gasometer,
+		context: &Context,
+	) -> EvmResult<PrecompileOutput> {
+		if !IsLocal::get() {
+			return Err(gasometer.revert("unknown selector"));
+		}
+
+		// Build call with origin.
+		{
+			let origin = Runtime::AddressMapping::into_account_id(context.caller);
+
+			// Dispatch call (if enough gas).
+			RuntimeHelper::<Runtime>::try_dispatch(
+				Some(origin).into(),
+				pallet_assets::Call::<Runtime, Instance>::freeze_asset { id: asset_id },
+				gasometer,
+			)?;
+		}
+
+		// Build output.
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gasometer.used_gas(),
+			output: EvmDataWriter::new().write(true).build(),
+			logs: Default::default(),
+		})
+	}
+
+	fn thaw_asset(
+		asset_id: AssetIdOf<Runtime, Instance>,
+		gasometer: &mut Gasometer,
+		context: &Context,
+	) -> EvmResult<PrecompileOutput> {
+		if !IsLocal::get() {
+			return Err(gasometer.revert("unknown selector"));
+		}
+
+		// Build call with origin.
+		{
+			let origin = Runtime::AddressMapping::into_account_id(context.caller);
+
+			// Dispatch call (if enough gas).
+			RuntimeHelper::<Runtime>::try_dispatch(
+				Some(origin).into(),
+				pallet_assets::Call::<Runtime, Instance>::thaw_asset { id: asset_id },
+				gasometer,
+			)?;
+		}
+
+		// Build output.
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gasometer.used_gas(),
+			output: EvmDataWriter::new().write(true).build(),
+			logs: Default::default(),
+		})
+	}
+
+	fn transfer_ownership(
+		asset_id: AssetIdOf<Runtime, Instance>,
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
+		context: &Context,
+	) -> EvmResult<PrecompileOutput> {
+		if !IsLocal::get() {
+			return Err(gasometer.revert("unknown selector"));
+		}
+
+		// Parse input.
+		input.expect_arguments(gasometer, 1)?;
+
+		let owner: H160 = input.read::<Address>(gasometer)?.into();
+
+		// Build call with origin.
+		{
+			let origin = Runtime::AddressMapping::into_account_id(context.caller);
+			let owner = Runtime::AddressMapping::into_account_id(owner);
+
+			// Dispatch call (if enough gas).
+			RuntimeHelper::<Runtime>::try_dispatch(
+				Some(origin).into(),
+				pallet_assets::Call::<Runtime, Instance>::transfer_ownership {
+					id: asset_id,
+					owner: Runtime::Lookup::unlookup(owner),
+				},
+				gasometer,
+			)?;
+		}
+
+		// Build output.
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gasometer.used_gas(),
+			output: EvmDataWriter::new().write(true).build(),
+			logs: Default::default(),
+		})
+	}
+
+	fn set_team(
+		asset_id: AssetIdOf<Runtime, Instance>,
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
+		context: &Context,
+	) -> EvmResult<PrecompileOutput> {
+		if !IsLocal::get() {
+			return Err(gasometer.revert("unknown selector"));
+		}
+
+		// Parse input.
+		input.expect_arguments(gasometer, 3)?;
+
+		let issuer: H160 = input.read::<Address>(gasometer)?.into();
+		let admin: H160 = input.read::<Address>(gasometer)?.into();
+		let freezer: H160 = input.read::<Address>(gasometer)?.into();
+
+		// Build call with origin.
+		{
+			let origin = Runtime::AddressMapping::into_account_id(context.caller);
+			let issuer = Runtime::AddressMapping::into_account_id(issuer);
+			let admin = Runtime::AddressMapping::into_account_id(admin);
+			let freezer = Runtime::AddressMapping::into_account_id(freezer);
+
+			// Dispatch call (if enough gas).
+			RuntimeHelper::<Runtime>::try_dispatch(
+				Some(origin).into(),
+				pallet_assets::Call::<Runtime, Instance>::set_team {
+					id: asset_id,
+					issuer: Runtime::Lookup::unlookup(issuer),
+					admin: Runtime::Lookup::unlookup(admin),
+					freezer: Runtime::Lookup::unlookup(freezer),
+				},
+				gasometer,
+			)?;
+		}
+
+		// Build output.
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gasometer.used_gas(),
+			output: EvmDataWriter::new().write(true).build(),
+			logs: Default::default(),
+		})
+	}
+
+	fn set_metadata(
+		asset_id: AssetIdOf<Runtime, Instance>,
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
+		context: &Context,
+	) -> EvmResult<PrecompileOutput> {
+		if !IsLocal::get() {
+			return Err(gasometer.revert("unknown selector"));
+		}
+
+		// Parse input.
+		input.expect_arguments(gasometer, 3)?;
+
+		let name: Bytes = input.read::<Bytes>(gasometer)?.into();
+		let symbol: Bytes = input.read::<Bytes>(gasometer)?.into();
+		let decimals: u8 = input.read::<u8>(gasometer)?.into();
+
+		// Build call with origin.
+		{
+			let origin = Runtime::AddressMapping::into_account_id(context.caller);
+
+			// Dispatch call (if enough gas).
+			RuntimeHelper::<Runtime>::try_dispatch(
+				Some(origin).into(),
+				pallet_assets::Call::<Runtime, Instance>::set_metadata {
+					id: asset_id,
+					name: name.into(),
+					symbol: symbol.into(),
+					decimals,
+				},
+				gasometer,
+			)?;
+		}
+
+		// Build output.
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gasometer.used_gas(),
+			output: EvmDataWriter::new().write(true).build(),
+			logs: Default::default(),
+		})
+	}
+
+	fn clear_metadata(
+		asset_id: AssetIdOf<Runtime, Instance>,
+		gasometer: &mut Gasometer,
+		context: &Context,
+	) -> EvmResult<PrecompileOutput> {
+		if !IsLocal::get() {
+			return Err(gasometer.revert("unknown selector"));
+		}
+
+		// Build call with origin.
+		{
+			let origin = Runtime::AddressMapping::into_account_id(context.caller);
+
+			// Dispatch call (if enough gas).
+			RuntimeHelper::<Runtime>::try_dispatch(
+				Some(origin).into(),
+				pallet_assets::Call::<Runtime, Instance>::clear_metadata { id: asset_id },
+				gasometer,
+			)?;
+		}
+
+		// Build output.
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gasometer.used_gas(),
+			output: EvmDataWriter::new().write(true).build(),
 			logs: Default::default(),
 		})
 	}
