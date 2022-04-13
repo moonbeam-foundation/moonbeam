@@ -78,6 +78,38 @@ benchmarks! {
 	verify {
 		assert_eq!(Pallet::<T>::account_id_of(&first_id), None);
 	}
+
+	register_keys {
+		let caller = create_funded_user::<T>();
+		let id = nimbus_id(1u8);
+		let key: T::Keys = nimbus_id(2u8).into();
+	}: _(RawOrigin::Signed(caller.clone()), id.clone(), key.clone())
+	verify {
+		assert_eq!(Pallet::<T>::account_id_of(&id), Some(caller));
+		assert_eq!(Pallet::<T>::keys_of(&id), Some(key));
+	}
+
+	set_keys {
+		let caller = create_funded_user::<T>();
+		let first_id = nimbus_id(1u8);
+		let first_keys: T::Keys = nimbus_id(3u8).into();
+		let second_id = nimbus_id(2u8);
+		let second_keys: T::Keys = nimbus_id(3u8).into();
+		assert_ok!(Pallet::<T>::register_keys(
+				RawOrigin::Signed(caller.clone()).into(),
+				first_id.clone(),
+				first_keys.clone(),
+			)
+		);
+	}: _(RawOrigin::Signed(caller.clone()),
+		first_id.clone(),
+		second_id.clone(),
+		second_keys.clone()) verify {
+		assert_eq!(Pallet::<T>::account_id_of(&first_id), None);
+		assert_eq!(Pallet::<T>::keys_of(&first_id), None);
+		assert_eq!(Pallet::<T>::account_id_of(&second_id), Some(caller));
+		assert_eq!(Pallet::<T>::keys_of(&second_id), Some(second_keys));
+	}
 }
 
 #[cfg(test)]

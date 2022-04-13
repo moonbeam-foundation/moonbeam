@@ -6903,6 +6903,7 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "serde",
+ "session-keys-primitives",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -11873,6 +11874,10 @@ checksum = "e44969a61f5d316be20a42ff97816efb3b407a924d06824c3d8a49fa8450de0e"
 dependencies = [
  "serde",
 ]
+
+[[package]]
+name = "session-keys-primitives"
+version = "0.1.0"
 
 [[package]]
 name = "sha-1"
