@@ -101,7 +101,7 @@ pub struct CollatorSnapshot<AccountId, Balance> {
 	/// [DelegationChange::Revoke] or [DelegationChange::Decrease] action.
 	pub delegations: Vec<Bond<AccountId, Balance>>,
 
-	/// The total value locked for the collator, including the staked amount from delegators.
+	/// The total counted value locked for the collator, including the self bond + total staked by top delegators.
 	pub total: Balance,
 }
 
