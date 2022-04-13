@@ -8332,7 +8332,7 @@ fn test_delegator_scheduled_for_revoke_is_rewarded_for_previous_rounds_but_not_f
 			);
 			assert_eq!(
 				30, collator.total_counted,
-				"collator total was reduced unexpectedly"
+				"collator's total was reduced unexpectedly"
 			);
 
 			roll_to_round_begin(3);
@@ -8408,7 +8408,7 @@ fn test_delegator_scheduled_for_revoke_is_rewarded_when_request_cancelled() {
 			);
 			assert_eq!(
 				30, collator.total_counted,
-				"collator total was reduced unexpectedly"
+				"collator's total was reduced unexpectedly"
 			);
 
 			roll_to_round_begin(2);
@@ -8492,7 +8492,7 @@ fn test_delegator_scheduled_for_bond_decrease_is_rewarded_for_previous_rounds_bu
 			);
 			assert_eq!(
 				40, collator.total_counted,
-				"collator total was reduced unexpectedly"
+				"collator's total was reduced unexpectedly"
 			);
 
 			roll_to_round_begin(3);
@@ -8569,7 +8569,7 @@ fn test_delegator_scheduled_for_bond_decrease_is_rewarded_when_request_cancelled
 			);
 			assert_eq!(
 				40, collator.total_counted,
-				"collator total was reduced unexpectedly"
+				"collator's total was reduced unexpectedly"
 			);
 
 			roll_to_round_begin(2);
