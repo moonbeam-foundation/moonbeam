@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Maps Author Ids as used in nimbus consensus layer to account ids as used i nthe runtime.
+//! Maps Author Ids as used in nimbus consensus layer to account ids as used in the runtime.
 //! This should likely be moved to nimbus eventually.
 //!
 //! This pallet maps NimbusId => AccountId which is most useful when using propositional style
 //! queries. This mapping will likely need to go the other way if using exhaustive authority sets.
-//! That could either be a seperate pallet, or this pallet could implement a two-way mapping. But
+//! That could either be a separate pallet, or this pallet could implement a two-way mapping. But
 //! for now it it one-way
 
 #![cfg_attr(not(feature = "std"), no_std)]
@@ -52,7 +52,7 @@ pub mod pallet {
 		<T as frame_system::Config>::AccountId,
 	>>::Balance;
 
-	#[derive(Encode, Decode, PartialEq, Eq, Debug, scale_info::TypeInfo)]
+	#[derive(Clone, Encode, Decode, PartialEq, Eq, Debug, scale_info::TypeInfo)]
 	#[scale_info(skip_type_params(T))]
 	pub struct RegistrationInfo<T: Config> {
 		pub(crate) account: T::AccountId,
@@ -75,7 +75,6 @@ pub mod pallet {
 		type DepositAmount: Get<<Self::DepositCurrency as Currency<Self::AccountId>>::Balance>;
 		/// Additional keys
 		/// Convertible From<NimbusId> to get default keys for each mapping (for the migration)
-		/// TODO: add lookup trait bound to find key in keys, see sp_runtime::traits::OpaqueKeys
 		type Keys: Parameter + Member + MaybeSerializeDeserialize + From<NimbusId>;
 		/// Weight information for extrinsics in this pallet.
 		type WeightInfo: WeightInfo;
@@ -110,7 +109,7 @@ pub mod pallet {
 			keys: T::Keys,
 		},
 		/// An NimbusId has been registered, replacing a previous registration and its mapping.
-		KeysRotated {
+		AuthorRotated {
 			new_author_id: NimbusId,
 			account_id: T::AccountId,
 			new_keys: T::Keys,
@@ -143,79 +142,11 @@ pub mod pallet {
 			Ok(())
 		}
 
-		#[pallet::weight(<T as Config>::WeightInfo::add_association())] // TODO update weight
-		pub fn add_full_association(
-			origin: OriginFor<T>,
-			author_id: NimbusId,
-			keys: T::Keys,
-		) -> DispatchResult {
-			let account_id = ensure_signed(origin)?;
-
-			ensure!(
-				MappingWithDeposit::<T>::get(&author_id).is_none(),
-				Error::<T>::AlreadyAssociated
-			);
-
-			Self::enact_registration(&author_id, &account_id, keys.clone())?;
-
-			<Pallet<T>>::deposit_event(Event::AuthorRegistered {
-				author_id,
-				account_id,
-				keys,
-			});
-
-			Ok(())
-		}
-
-		/// Change your keys
-		///
-		/// This is useful for key rotation to update Nimbus and VRF keys in one call.
-		/// No new security deposit is required. Will replace `update_association` which is kept
-		/// now for backwards compatibility reasons.
-		#[pallet::weight(0)] // TODO: update weights
-		pub fn set_keys(
-			origin: OriginFor<T>,
-			old_author_id: NimbusId,
-			new_author_id: NimbusId,
-			new_keys: T::Keys,
-		) -> DispatchResult {
-			let account_id = ensure_signed(origin)?;
-
-			let stored_info = MappingWithDeposit::<T>::try_get(&old_author_id)
-				.map_err(|_| Error::<T>::AssociationNotFound)?;
-
-			ensure!(
-				account_id == stored_info.account,
-				Error::<T>::NotYourAssociation
-			);
-			ensure!(
-				MappingWithDeposit::<T>::get(&new_author_id).is_none(),
-				Error::<T>::AlreadyAssociated
-			);
-
-			MappingWithDeposit::<T>::remove(&old_author_id);
-			MappingWithDeposit::<T>::insert(
-				&new_author_id,
-				&RegistrationInfo {
-					keys: new_keys.clone(),
-					..stored_info
-				},
-			);
-
-			<Pallet<T>>::deposit_event(Event::KeysRotated {
-				new_author_id,
-				account_id,
-				new_keys,
-			});
-
-			Ok(())
-		}
-
 		/// Change your Mapping.
 		///
 		/// This is useful for normal key rotation or for when switching from one physical collator
-		/// machine to another. No new security deposit is required. This will not change the
-		/// additional keys associated.
+		/// machine to another. No new security deposit is required.
+		/// This sets keys to new_author_id.into() by default.
 		#[pallet::weight(<T as Config>::WeightInfo::update_association())]
 		pub fn update_association(
 			origin: OriginFor<T>,
@@ -237,12 +168,16 @@ pub mod pallet {
 			);
 
 			MappingWithDeposit::<T>::remove(&old_author_id);
-			MappingWithDeposit::<T>::insert(&new_author_id, &stored_info);
+			let new_stored_info = RegistrationInfo {
+				keys: new_author_id.clone().into(),
+				..stored_info
+			};
+			MappingWithDeposit::<T>::insert(&new_author_id, &new_stored_info);
 
-			<Pallet<T>>::deposit_event(Event::KeysRotated {
+			<Pallet<T>>::deposit_event(Event::AuthorRotated {
 				new_author_id: new_author_id,
-				account_id: stored_info.account,
-				new_keys: stored_info.keys,
+				account_id,
+				new_keys: new_stored_info.keys,
 			});
 
 			Ok(())
@@ -278,6 +213,75 @@ pub mod pallet {
 			});
 
 			Ok(().into())
+		}
+
+		/// Add association and set session keys
+		#[pallet::weight(<T as Config>::WeightInfo::register_keys())]
+		pub fn register_keys(
+			origin: OriginFor<T>,
+			author_id: NimbusId,
+			keys: T::Keys,
+		) -> DispatchResult {
+			let account_id = ensure_signed(origin)?;
+
+			ensure!(
+				MappingWithDeposit::<T>::get(&author_id).is_none(),
+				Error::<T>::AlreadyAssociated
+			);
+
+			Self::enact_registration(&author_id, &account_id, keys.clone())?;
+
+			<Pallet<T>>::deposit_event(Event::AuthorRegistered {
+				author_id,
+				account_id,
+				keys,
+			});
+
+			Ok(())
+		}
+
+		/// Set association and session keys at once.
+		///
+		/// This is useful for key rotation to update Nimbus and VRF keys in one call.
+		/// No new security deposit is required. Will replace `update_association` which is kept
+		/// now for backwards compatibility reasons.
+		#[pallet::weight(<T as Config>::WeightInfo::set_keys())]
+		pub fn set_keys(
+			origin: OriginFor<T>,
+			old_author_id: NimbusId,
+			new_author_id: NimbusId,
+			new_keys: T::Keys,
+		) -> DispatchResult {
+			let account_id = ensure_signed(origin)?;
+
+			let stored_info = MappingWithDeposit::<T>::try_get(&old_author_id)
+				.map_err(|_| Error::<T>::AssociationNotFound)?;
+
+			ensure!(
+				account_id == stored_info.account,
+				Error::<T>::NotYourAssociation
+			);
+			ensure!(
+				MappingWithDeposit::<T>::get(&new_author_id).is_none(),
+				Error::<T>::AlreadyAssociated
+			);
+
+			MappingWithDeposit::<T>::remove(&old_author_id);
+			MappingWithDeposit::<T>::insert(
+				&new_author_id,
+				&RegistrationInfo {
+					keys: new_keys.clone(),
+					..stored_info
+				},
+			);
+
+			<Pallet<T>>::deposit_event(Event::AuthorRotated {
+				new_author_id,
+				account_id,
+				new_keys,
+			});
+
+			Ok(())
 		}
 	}
 

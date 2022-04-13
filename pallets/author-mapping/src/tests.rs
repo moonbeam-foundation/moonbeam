@@ -295,7 +295,7 @@ fn eligible_account_can_full_register() {
 		.with_balances(vec![(2, 1000)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(AuthorMapping::add_full_association(
+			assert_ok!(AuthorMapping::register_keys(
 				Origin::signed(2),
 				TestAuthor::Bob.into(),
 				TestAuthor::Alice.into(),
@@ -320,13 +320,13 @@ fn eligible_account_can_full_register() {
 }
 
 #[test]
-fn cannot_add_full_association_without_deposit() {
+fn cannot_register_keys_without_deposit() {
 	ExtBuilder::default()
 		.with_balances(vec![(2, 10)])
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				AuthorMapping::add_full_association(
+				AuthorMapping::register_keys(
 					Origin::signed(2),
 					TestAuthor::Alice.into(),
 					TestAuthor::Bob.into(),
@@ -346,7 +346,7 @@ fn double_full_registration_counts_twice_as_much() {
 		.build()
 		.execute_with(|| {
 			// Register once as Bob
-			assert_ok!(AuthorMapping::add_full_association(
+			assert_ok!(AuthorMapping::register_keys(
 				Origin::signed(2),
 				TestAuthor::Bob.into(),
 				TestAuthor::Charlie.into(),
@@ -369,7 +369,7 @@ fn double_full_registration_counts_twice_as_much() {
 			);
 
 			// Register again as Alice
-			assert_ok!(AuthorMapping::add_full_association(
+			assert_ok!(AuthorMapping::register_keys(
 				Origin::signed(2),
 				TestAuthor::Alice.into(),
 				TestAuthor::Bob.into(),
@@ -407,7 +407,7 @@ fn full_registered_author_cannot_be_overwritten() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				AuthorMapping::add_full_association(
+				AuthorMapping::register_keys(
 					Origin::signed(2),
 					TestAuthor::Alice.into(),
 					TestAuthor::Bob.into()
@@ -416,8 +416,6 @@ fn full_registered_author_cannot_be_overwritten() {
 			);
 		})
 }
-
-// TODO: all the rotated ones but for set_keys instead
 
 #[test]
 fn registered_can_full_rotate() {

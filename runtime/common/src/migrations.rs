@@ -32,7 +32,10 @@ use pallet_asset_manager::{
 	},
 	Config as AssetManagerConfig,
 };
-use pallet_author_mapping::{migrations::AddKeysToRegistrationInfo, Config as AuthorMappingConfig};
+use pallet_author_mapping::{
+	migrations::{AddKeysToRegistrationInfo, TwoXToBlake},
+	Config as AuthorMappingConfig,
+};
 use pallet_author_slot_filter::migration::EligibleRatioToEligiblityCount;
 use pallet_author_slot_filter::Config as AuthorSlotFilterConfig;
 use pallet_base_fee::Config as BaseFeeConfig;
@@ -582,11 +585,11 @@ where
 
 		// let migration_base_fee = MigrateBaseFeePerGas::<Runtime>(Default::default());
 
-		let migration_author_mapping_add_keys_to_registration_info =
-			AuthorMappingAddKeysToRegistrationInfo::<Runtime>(Default::default());
-
 		let migration_author_slot_filter_eligible_ratio_to_eligibility_count =
 			AuthorSlotFilterEligibleRatioToEligiblityCount::<Runtime>(Default::default());
+
+		let migration_author_mapping_add_keys_to_registration_info =
+			AuthorMappingAddKeysToRegistrationInfo::<Runtime>(Default::default());
 
 		// TODO: this is a lot of allocation to do upon every get() call. this *should* be avoided
 		// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review
@@ -608,8 +611,8 @@ where
 			// Box::new(migration_parachain_staking_patch_incorrect_delegation_sums),
 			// completed in runtime 1300
 			// Box::new(migration_base_fee),
-			Box::new(migration_author_mapping_add_keys_to_registration_info),
 			Box::new(migration_author_slot_filter_eligible_ratio_to_eligibility_count),
+			Box::new(migration_author_mapping_add_keys_to_registration_info),
 		]
 	}
 }
