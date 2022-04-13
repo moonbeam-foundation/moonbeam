@@ -93,13 +93,15 @@ impl Default for CollatorStatus {
 #[derive(Encode, Decode, RuntimeDebug, TypeInfo)]
 /// Snapshot of collator state at the start of the round for which they are selected
 pub struct CollatorSnapshot<AccountId, Balance> {
+	/// The total value locked by the collator.
 	pub bond: Balance,
 
 	/// The rewardable delegations. This list is a subset of total delegators, where certain
-	/// delegators are either removed or adjusted based on their scheduled
+	/// delegators are adjusted based on their scheduled
 	/// [DelegationChange::Revoke] or [DelegationChange::Decrease] action.
 	pub delegations: Vec<Bond<AccountId, Balance>>,
 
+	/// The total value locked for the collator, including the staked amount from delegators.
 	pub total: Balance,
 }
 
