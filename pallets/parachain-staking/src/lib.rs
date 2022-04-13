@@ -1657,9 +1657,9 @@ pub mod pallet {
 		/// effective list of delegators with their intended bond amount.
 		///
 		/// This is will:
-		///  	- if [DelegationChange::Revoke] is outstanding, set the bond amount to 0.
-		/// 	- if [DelegationChange::Decrease] is outstanding, subtract the bond by the specified amount.
-		/// 	- else, do nothing
+		/// - if [DelegationChange::Revoke] is outstanding, set the bond amount to 0.
+		/// - if [DelegationChange::Decrease] is outstanding, subtract the bond by specified amount.
+		/// - else, do nothing
 		///
 		/// The intended bond amounts will be used while calculating rewards.
 		fn get_rewardable_delegators(
@@ -1673,27 +1673,34 @@ pub mod pallet {
 					let delegator = <DelegatorState<T>>::get(&bond.owner)
 						.expect("delegator state must be present for a bonded delegation");
 
-					bond.amount =
-						match delegator.requests.requests.get(collator) {
-							None => bond.amount,
+					bond.amount = match delegator.requests.requests.get(collator) {
+						None => bond.amount,
 
-							Some(DelegationRequest {
-								action: DelegationChange::Revoke,
-								..
-							}) => {
-								log::warn!("reward for delegator '{:?}' set to zero due to pending revoke request", bond.owner);
-								BalanceOf::<T>::zero()
-							}
+						Some(DelegationRequest {
+							action: DelegationChange::Revoke,
+							..
+						}) => {
+							log::warn!(
+								"reward for delegator '{:?}' set to zero due to pending \
+								revoke request",
+								bond.owner
+							);
+							BalanceOf::<T>::zero()
+						}
 
-							Some(DelegationRequest {
-								action: DelegationChange::Decrease,
-								amount,
-								..
-							}) => {
-								log::warn!("reward for delegator '{:?}' reduced by set amount due to pending decrease request", bond.owner);
-								bond.amount.saturating_sub(*amount)
-							}
-						};
+						Some(DelegationRequest {
+							action: DelegationChange::Decrease,
+							amount,
+							..
+						}) => {
+							log::warn!(
+								"reward for delegator '{:?}' reduced by set amount due to pending \
+								decrease request",
+								bond.owner
+							);
+							bond.amount.saturating_sub(*amount)
+						}
+					};
 
 					bond
 				})

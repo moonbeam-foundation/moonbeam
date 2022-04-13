@@ -8303,8 +8303,7 @@ fn no_selected_candidates_defaults_to_last_round_collators() {
 }
 
 #[test]
-fn test_delegator_scheduled_for_revoke_is_rewarded_for_previous_rounds_but_not_for_future_and_counts_towards_collator(
-) {
+fn test_delegator_scheduled_for_revoke_is_rewarded_for_previous_rounds_but_not_for_future() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20), (2, 40), (3, 20), (4, 20)])
 		.with_candidates(vec![(1, 20), (3, 20), (4, 20)])
@@ -8380,8 +8379,7 @@ fn test_delegator_scheduled_for_revoke_is_rewarded_for_previous_rounds_but_not_f
 }
 
 #[test]
-fn test_delegator_scheduled_for_revoke_is_rewarded_when_request_cancelled_and_counts_towards_collator(
-) {
+fn test_delegator_scheduled_for_revoke_is_rewarded_when_request_cancelled() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20), (2, 40), (3, 20), (4, 20)])
 		.with_candidates(vec![(1, 20), (3, 20), (4, 20)])
@@ -8463,8 +8461,8 @@ fn test_delegator_scheduled_for_revoke_is_rewarded_when_request_cancelled_and_co
 }
 
 #[test]
-fn test_delegator_scheduled_for_bond_decrease_is_rewarded_for_previous_rounds_but_less_for_future_and_counts_towards_collator(
-) {
+fn test_delegator_scheduled_for_bond_decrease_is_rewarded_for_previous_rounds_but_less_for_future()
+{
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20), (2, 40), (3, 20), (4, 20)])
 		.with_candidates(vec![(1, 20), (3, 20), (4, 20)])
@@ -8541,8 +8539,7 @@ fn test_delegator_scheduled_for_bond_decrease_is_rewarded_for_previous_rounds_bu
 }
 
 #[test]
-fn test_delegator_scheduled_for_bond_decrease_is_rewarded_when_request_cancelled_and_counts_towards_collator(
-) {
+fn test_delegator_scheduled_for_bond_decrease_is_rewarded_when_request_cancelled() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20), (2, 40), (3, 20), (4, 20)])
 		.with_candidates(vec![(1, 20), (3, 20), (4, 20)])
