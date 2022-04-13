@@ -26,6 +26,11 @@ export function describeSmokeSuite(
     // Making sure the Moonbeam node has started
     before("Starting Moonbeam Smoke Suite", async function () {
       this.timeout(10000);
+
+      if (!options.wssUrl) {
+        throw Error(`Missing wssUrl parameter (use WSS_URL=... npm run smoke-test)`);
+      }
+
       context.polkadotApi = await ApiPromise.create({
         initWasm: false,
         provider: new WsProvider(options.wssUrl),

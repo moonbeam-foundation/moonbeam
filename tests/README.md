@@ -11,9 +11,9 @@ Each group will start a dev service with the
 
 ## Test categories
 
-- `test`: Tests expected to run by spawning a new dev node
-- `para-test`: Tests spawning a complete relay+para network
-- `smoke-test`: Tests veryfing the data (consistency) on an existing chain
+- `test`: Tests expected to run by spawning a new dev node (~1-2 minutes)
+- `para-test`: Tests spawning a complete relay+para network (~5-20 minutes)
+- `smoke-test`: Tests veryfing the data (consistency) on an existing chain (~5-20 minutes)
 
 ## Installation
 
@@ -31,6 +31,20 @@ and to print more information:
 
 ```
 npm run test-with-logs
+```
+
+# Running smoke tests
+
+In order to use smoke tests, you need to provide a blockchain:
+
+```
+WSS_URL=wss://localhost:9944 npm run smoke-test
+```
+
+You can debug specific smoke test with `debug` library using prefix `smoke:*`:
+
+```
+DEBUG=smoke:* WSS_URL=wss://localhost:9944 npm run smoke-test
 ```
 
 # Running a parachain test
