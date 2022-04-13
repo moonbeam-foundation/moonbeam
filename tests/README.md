@@ -9,6 +9,12 @@ It is written in typescript, using Mocha/Chai as Test framework.
 Each group will start a dev service with the
 [development spec](../node/service/src/chain_spec) before executing the tests.
 
+## Test categories
+
+- `test`: Tests expected to run by spawning a new dev node
+- `para-test`: Tests spawning a complete relay+para network
+- `smoke-test`: Tests veryfing the data (consistency) on an existing chain
+
 ## Installation
 
 ```
