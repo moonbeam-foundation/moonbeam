@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["TwoXToBlake","Migrates the AuthorMapping’s storage map fro mthe insecure Twox64 hasher to the secure BlakeTwo hasher."]]});
+initSidebarItems({"struct":[["AddKeysToRegistrationInfo","Migrates MappingWithDeposit map value from RegistrationInfo to RegistrationInformation, thereby adding a keys: T::Keys field to the value to support VRF keys that can be looked up via NimbusId."],["TwoXToBlake","Migrates the AuthorMapping’s storage map fro mthe insecure Twox64 hasher to the secure BlakeTwo hasher."]]});

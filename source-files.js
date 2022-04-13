@@ -43,6 +43,7 @@ sourcesIndex["precompile_utils"] = {"name":"","dirs":[{"name":"data","files":["x
 sourcesIndex["precompile_utils_macro"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["relay_encoder_precompiles"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["runtime_common"] = {"name":"","files":["apis.rs","impl_self_contained_call.rs","lib.rs","migrations.rs"]};
+sourcesIndex["session_keys_primitives"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["xcm_primitives"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["xcm_transactor"] = {"name":"","files":["lib.rs","migrations.rs","weights.rs"]};
 sourcesIndex["xcm_transactor_precompiles"] = {"name":"","files":["lib.rs"]};
