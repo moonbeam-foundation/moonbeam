@@ -33,7 +33,25 @@ and to print more information:
 npm run test-with-logs
 ```
 
-# Running smoke tests
+# Smoke tests
+
+## Adding smoke tests
+
+Smoke test should only contains consistency/state checks.
+
+Testing the consistency is usually simple:
+
+- When you have redundant information: Verify they match:  
+  `totalIssuance == sum(accounts.map(acc => acc.free + acc.reserved))`
+- When you have conditional state: Verify the condition is valid:  
+  `parachainStaking.topDelegations.each(top => top.length <= parachainStaking.maxTopDelegationsPerCandidate)`
+- When you expect specific state: Verify it exists:  
+  `assets.assets.length > 0` or `maintenanceMode.maintenanceMode == false`)
+
+Smoke tests should **never** send an extrinsic to modify the state.  
+They should be split by pallet and only need 1 `describeSmokeSuite` per file.
+
+## Running smoke tests
 
 In order to use smoke tests, you need to provide a blockchain:
 
@@ -47,7 +65,7 @@ You can debug specific smoke test with `debug` library using prefix `smoke:*`:
 DEBUG=smoke:* WSS_URL=wss://localhost:9944 npm run smoke-test
 ```
 
-# Running a parachain test
+# Parachain test
 
 Either use script or use parachain testing framework.
 
