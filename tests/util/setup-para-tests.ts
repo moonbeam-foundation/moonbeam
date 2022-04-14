@@ -236,7 +236,8 @@ export function describeParachain(
                     //   await context.waitBlocks(2);
 
                     //   const lastRuntimeUpgrade =
-                    //     (await context.polkadotApiParaone.query.system.lastRuntimeUpgrade()) as any;
+                    //     (await context.polkadotApiParaone.query.system.lastRuntimeUpgrade())
+                    //     as any;
                     //   process.stdout.write(
                     //     `Overriding on-chain current runtime ${lastRuntimeUpgrade
                     //       .unwrap()
