@@ -52,6 +52,7 @@ pub mod pallet {
 	pub trait Config: frame_system::Config {
 		/// Overarching event type
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
+
 		/// A type to convert between AuthorId and AccountId. This pallet wrap the lookup to allow
 		/// orbiters authoring.
 		type AccountLookup: AccountLookup<Self::AccountId>;
@@ -140,6 +141,9 @@ pub mod pallet {
 		CollatorNotFound,
 		/// There are already too many orbiters associated with this collator.
 		CollatorPoolTooLarge,
+		/// The minimum deposit required to register as an orbiter has not yet been included in the
+		/// onchain storage
+		MinOrbiterDepositNotSet,
 		/// This orbiter is already associated with this collator.
 		OrbiterAlreadyInPool,
 		/// Orbiter cant leave this round
@@ -225,10 +229,16 @@ pub mod pallet {
 		pub fn orbiter_register(origin: OriginFor<T>) -> DispatchResult {
 			let orbiter = ensure_signed(origin)?;
 
+			let min_orbiter_deposit = MinOrbiterDeposit::<T>::get();
+			ensure!(
+				min_orbiter_deposit > Zero::zero(),
+				Error::<T>::MinOrbiterDepositNotSet
+			);
+
 			T::Currency::ensure_reserved_named(
 				&T::OrbiterReserveIdentifier::get(),
 				&orbiter,
-				MinOrbiterDeposit::<T>::get(),
+				min_orbiter_deposit,
 			)
 		}
 
