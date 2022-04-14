@@ -235,6 +235,8 @@ pub mod pallet {
 				Error::<T>::MinOrbiterDepositNotSet
 			);
 
+			// The use of `ensure_reserved_named` allows to update the deposit amount in case a
+			// deposit has already been made.
 			T::Currency::ensure_reserved_named(
 				&T::OrbiterReserveIdentifier::get(),
 				&orbiter,
@@ -247,16 +249,22 @@ pub mod pallet {
 		pub fn orbiter_unregister(origin: OriginFor<T>) -> DispatchResult {
 			let orbiter = ensure_signed(origin)?;
 
+			// If the orbiter is currently active in this round, it cannot unregister, this would
+			// create annoying side effects. So we force the orbiter to redo is call later (or to
+			// schedule his call).
 			ensure!(
 				AccountLookupOverride::<T>::get(&orbiter).is_none(),
 				Error::<T>::OrbiterCantLeaveThisRound
 			);
 
+			// We remove the orbiter from all the collator pools in which it is located.
 			CollatorsPool::<T>::translate_values(
 				|mut collator_pool: CollatorPoolInfo<T::AccountId>| {
 					if collator_pool.remove_orbiter(&orbiter) {
 						Some(collator_pool)
 					} else {
+						// Optimization: if the orbiter is not in this pool, we return None to
+						// avoid adding an unnecessary write
 						None
 					}
 				},
@@ -295,17 +303,15 @@ pub mod pallet {
 			T::DelCollatorOrigin::ensure_origin(origin)?;
 			let collator = T::Lookup::lookup(collator)?;
 
+			// Remove the pool associated to this collator
 			let collator_pool =
-				CollatorsPool::<T>::get(&collator).ok_or(Error::<T>::CollatorNotFound)?;
+				CollatorsPool::<T>::take(&collator).ok_or(Error::<T>::CollatorNotFound)?;
 
 			// Remove all AccountLookupOverride entries related to this collator
 			for orbiter in collator_pool.get_orbiters() {
 				AccountLookupOverride::<T>::remove(&orbiter);
 			}
 			AccountLookupOverride::<T>::remove(&collator);
-
-			// Remove the pool associated to this collator
-			CollatorsPool::<T>::remove(collator);
 
 			Ok(())
 		}
