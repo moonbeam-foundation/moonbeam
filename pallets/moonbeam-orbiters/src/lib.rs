@@ -277,7 +277,7 @@ pub mod pallet {
 
 		/// Add a collator to orbiters program.
 		#[pallet::weight(500_000_000)]
-		pub fn root_add_collator(
+		pub fn force_add_collator(
 			origin: OriginFor<T>,
 			collator: <T::Lookup as StaticLookup>::Source,
 		) -> DispatchResult {
@@ -296,7 +296,7 @@ pub mod pallet {
 
 		/// Remove a collator from orbiters program.
 		#[pallet::weight(500_000_000)]
-		pub fn root_remove_collator(
+		pub fn force_remove_collator(
 			origin: OriginFor<T>,
 			collator: <T::Lookup as StaticLookup>::Source,
 		) -> DispatchResult {
@@ -318,7 +318,7 @@ pub mod pallet {
 
 		/// Update minimum orbiter deposit
 		#[pallet::weight(500_000_000)]
-		pub fn root_update_min_orbiter_deposit(
+		pub fn force_update_min_orbiter_deposit(
 			origin: OriginFor<T>,
 			new_min_orbiter_deposit: BalanceOf<T>,
 		) -> DispatchResult {
