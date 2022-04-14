@@ -534,6 +534,7 @@ const launchTemplate = {
           config: {
             validation_upgrade_frequency: 1,
             validation_upgrade_delay: 30,
+            validation_upgrade_cooldown: 30,
           },
         },
       },
