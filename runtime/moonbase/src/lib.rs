@@ -1103,6 +1103,7 @@ impl pallet_moonbeam_orbiters::Config for Runtime {
 	type OrbiterReserveIdentifier = OrbiterReserveIdentifier;
 	/// Round index type.
 	type RoundIndex = parachain_staking::RoundIndex;
+	type UpdateMinOrbiterDepositOrigin = EnsureRoot<AccountId>;
 }
 
 construct_runtime! {

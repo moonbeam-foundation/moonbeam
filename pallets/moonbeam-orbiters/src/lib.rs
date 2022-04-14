@@ -50,27 +50,30 @@ pub mod pallet {
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
-		/// Overarching event type
+		/// Overarching event type.
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 
 		/// A type to convert between AuthorId and AccountId. This pallet wrap the lookup to allow
 		/// orbiters authoring.
 		type AccountLookup: AccountLookup<Self::AccountId>;
 
-		/// Origin that is allowed to add a collator in orbiters program
+		/// Origin that is allowed to add a collator in orbiters program.
 		type AddCollatorOrigin: EnsureOrigin<Self::Origin>;
 
-		/// The currency type
+		/// The currency type.
 		type Currency: NamedReservableCurrency<Self::AccountId>;
 
-		/// Origin that is allowed to remove a collator from orbiters program
+		/// Origin that is allowed to remove a collator from orbiters program.
 		type DelCollatorOrigin: EnsureOrigin<Self::Origin>;
 
-		/// Maximum number of orbiters per collator
+		/// Maximum number of orbiters per collator.
 		type MaxPoolSize: Get<u32>;
 
-		/// Maximum number of round to keep on storage
+		/// Maximum number of round to keep on storage.
 		type MaxRoundArchive: Get<Self::RoundIndex>;
+
+		/// Reserve identifier for this pallet instance.
+		type OrbiterReserveIdentifier: Get<ReserveIdentifierOf<Self>>;
 
 		/// Round index type.
 		type RoundIndex: Parameter
@@ -82,8 +85,8 @@ pub mod pallet {
 			+ sp_runtime::traits::AtLeast32Bit
 			+ Copy;
 
-		/// Reserve identifier for this pallet instance
-		type OrbiterReserveIdentifier: Get<ReserveIdentifierOf<Self>>;
+		/// Origin that is allowed to update the minimal orbiter deposit amount.
+		type UpdateMinOrbiterDepositOrigin: EnsureOrigin<Self::Origin>;
 	}
 
 	#[pallet::storage]
@@ -322,7 +325,7 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			new_min_orbiter_deposit: BalanceOf<T>,
 		) -> DispatchResult {
-			ensure_root(origin)?;
+			T::UpdateMinOrbiterDepositOrigin::ensure_origin(origin)?;
 
 			MinOrbiterDeposit::<T>::put(new_min_orbiter_deposit);
 			Ok(())
