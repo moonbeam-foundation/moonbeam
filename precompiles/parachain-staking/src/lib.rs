@@ -60,6 +60,7 @@ enum Action {
 	IsDelegator = "is_delegator(address)",
 	IsCandidate = "is_candidate(address)",
 	IsSelectedCandidate = "is_selected_candidate(address)",
+	DelegationRequestIsPending = "delegation_request_is_pending(address,address)",
 	JoinCandidates = "join_candidates(uint256,uint256)",
 	// DEPRECATED
 	LeaveCandidates = "leave_candidates(uint256)",
@@ -173,6 +174,9 @@ where
 			Action::IsDelegator => return Self::is_delegator(input, gasometer),
 			Action::IsCandidate => return Self::is_candidate(input, gasometer),
 			Action::IsSelectedCandidate => return Self::is_selected_candidate(input, gasometer),
+			Action::DelegationRequestIsPending => {
+				return Self::delegation_request_is_pending(input, gasometer)
+			}
 			// runtime methods (dispatchables)
 			Action::JoinCandidates => Self::join_candidates(input, gasometer, context)?,
 			// DEPRECATED
@@ -472,6 +476,48 @@ where
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new().write(is_selected).build(),
+			logs: vec![],
+		})
+	}
+
+	fn delegation_request_is_pending(
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
+	) -> EvmResult<PrecompileOutput> {
+		// Read input.
+		input.expect_arguments(gasometer, 2)?;
+
+		// First argument is delegator
+		let delegator =
+			Runtime::AddressMapping::into_account_id(input.read::<Address>(gasometer)?.0);
+
+		// Second argument is candidate
+		let candidate =
+			Runtime::AddressMapping::into_account_id(input.read::<Address>(gasometer)?.0);
+
+		// Fetch info.
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		// If we are not able to get delegator state, we return false
+		// TODO: evaluate whether we should early-return instead of returning false
+		let pending = if let Some(state) =
+			<parachain_staking::Pallet<Runtime>>::delegator_state(&delegator)
+		{
+			state.requests.requests.contains_key(&candidate)
+		} else {
+			log::trace!(
+				target: "staking-precompile",
+				"Delegation for {:?} not found, so pending requests is false",
+				candidate
+			);
+			false
+		};
+
+		// Build output.
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gasometer.used_gas(),
+			output: EvmDataWriter::new().write(pending).build(),
 			logs: vec![],
 		})
 	}

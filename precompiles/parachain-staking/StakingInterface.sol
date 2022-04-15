@@ -103,6 +103,16 @@ interface ParachainStaking {
     /// @return The selected candidate accounts
     function selected_candidates() external view returns (address[] memory);
 
+    /// @dev Whether there exists a pending request for a delegation made by a delegator
+    /// Selector: 192e1db3
+    /// @param delegator the delegator that made the delegation
+    /// @param candidate the candidate for which the delegation was made
+    /// @return Whether a pending request exist for such delegation
+    function delegation_request_is_pending(address delegator, address candidate)
+        external
+        view
+        returns (bool);
+
     /// @dev Join the set of collator candidates
     /// Selector: 0a1bff60
     /// @param amount The amount self-bonded by the caller to become a collator candidate
