@@ -158,6 +158,18 @@ where
 		res
 	}
 
+	/// `trace_block` endpoint (wrapped in the trait implementation with futures compatibilty)
+	async fn block(self, number: RequestBlockId) -> Result<Vec<TransactionTrace>> {
+		self.filter(FilterRequest {
+			from_block: Some(number),
+			to_block: Some(number),
+			after: None,
+			count: None,
+			from_address: None,
+			to_address: None
+		}).await
+	}
+
 	async fn fetch_traces(
 		&self,
 		req: FilterRequest,
@@ -242,6 +254,13 @@ where
 		filter: FilterRequest,
 	) -> BoxFuture<'static, jsonrpc_core::Result<Vec<TransactionTrace>>> {
 		self.clone().filter(filter).boxed()
+	}
+
+	fn block(
+		&self, 
+		number: RequestBlockId
+	) -> BoxFuture<'static, jsonrpc_core::Result<Vec<TransactionTrace>>> {
+		self.clone().block(number).boxed()
 	}
 }
 

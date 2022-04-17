@@ -30,6 +30,12 @@ pub trait Trace {
 		&self,
 		filter: FilterRequest,
 	) -> BoxFuture<'static, jsonrpc_core::Result<Vec<TransactionTrace>>>;
+
+	#[rpc(name = "trace_block")]
+	fn block(
+		&self,
+		number: RequestBlockId,
+	) -> BoxFuture<'static, jsonrpc_core::Result<Vec<TransactionTrace>>>;
 }
 
 #[derive(Clone, Eq, PartialEq, Debug, Deserialize)]
