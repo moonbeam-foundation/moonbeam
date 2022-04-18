@@ -132,9 +132,11 @@ pub mod pallet {
 			if current_round > T::MaxRoundArchive::get() {
 				let round_to_prune = current_round - T::MaxRoundArchive::get();
 				OrbiterPerRound::<T>::remove_prefix(round_to_prune, None);
+				T::DbWeight::get().reads_writes(1, 1)
+			} else {
+				T::DbWeight::get().reads(1)
 			}
 
-			0
 		}
 	}
 
@@ -350,6 +352,7 @@ pub mod pallet {
 	impl<T: Config> Pallet<T> {
 		/// Notify this pallet that a new round begin
 		pub fn on_new_round() -> Weight {
+			let mut writes = 1;
 			let current_round = CurrentRound::<T>::mutate(|current_round| {
 				*current_round = current_round.saturating_add(One::one());
 				*current_round
@@ -357,7 +360,6 @@ pub mod pallet {
 
 			if current_round % T::RotatePeriod::get() == Zero::zero() {
 				// Update current orbiter for each pool and edit AccountLookupOverride accordingly.
-				let mut writes = 0;
 				CollatorsPool::<T>::translate::<CollatorPoolInfo<T::AccountId>, _>(
 					|collator, mut pool| {
 						// remove current orbiter, if any.
@@ -387,10 +389,8 @@ pub mod pallet {
 						Some(pool)
 					},
 				);
-				T::DbWeight::get().writes(writes)
-			} else {
-				0
 			}
+			T::DbWeight::get().reads_writes(1, writes)
 		}
 		/// Notify this pallet that a collator received rewards
 		pub fn distribute_rewards(
@@ -411,11 +411,23 @@ pub mod pallet {
 							account: orbiter,
 							rewards: real_reward,
 						});
+						// reads: withdraw + resolve_into_existing
+						// writes: take + withdraw + resolve_into_existing
+						T::DbWeight::get().reads_writes(2, 3)
+					} else {
+						// reads: withdraw + resolve_into_existing
+						// writes: take + withdraw
+						T::DbWeight::get().reads_writes(2, 2)
 					}
+				} else {
+					// reads: withdraw
+					// writes: take
+					T::DbWeight::get().reads_writes(1, 1)
 				}
+			} else {
+				// writes: take
+				T::DbWeight::get().writes(1)
 			}
-
-			0
 		}
 	}
 }
