@@ -851,7 +851,9 @@ impl InstanceFilter<Call> for ProxyType {
 			),
 			ProxyType::Staking => matches!(
 				c,
-				Call::ParachainStaking(..) | Call::Utility(..) | Call::AuthorMapping(..)
+				Call::ParachainStaking(..)
+					| Call::Utility(..) | Call::AuthorMapping(..)
+					| Call::MoonbeamOrbiters(..)
 			),
 			ProxyType::CancelProxy => matches!(
 				c,
