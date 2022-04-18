@@ -113,6 +113,24 @@ interface ParachainStaking {
         view
         returns (bool);
 
+    /// @dev Whether there exists a pending exit for delegator
+    /// Selector: dc3ec64b
+    /// @param delegator the delegator that made the delegation
+    /// @return Whether a pending request exist for such delegation
+    function delegator_exit_is_pending(address delegator)
+        external
+        view
+        returns (bool);
+
+    /// @dev Whether there exists a pending exit for candidate
+    /// Selector: eb613b8a
+    /// @param candidate the candidate for which the delegation was made
+    /// @return Whether a pending request exist for such delegation
+    function candidate_exit_is_pending(address candidate)
+        external
+        view
+        returns (bool);
+
     /// @dev Whether there exists a pending bond less request for a candidate made by a candidate
     /// Selector: 26ab05fb
     /// @param candidate the candidate for which the request was made
