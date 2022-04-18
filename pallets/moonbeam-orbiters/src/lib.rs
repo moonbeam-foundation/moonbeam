@@ -75,6 +75,9 @@ pub mod pallet {
 		/// Reserve identifier for this pallet instance.
 		type OrbiterReserveIdentifier: Get<ReserveIdentifierOf<Self>>;
 
+		/// Number of rounds before changing the selected orbiter.
+		type RotatePeriod: Get<Self::RoundIndex>;
+
 		/// Round index type.
 		type RoundIndex: Parameter
 			+ Member
@@ -340,34 +343,42 @@ pub mod pallet {
 				*current_round
 			});
 
-			// Update current orbiter for each pool and edit AccountLookupOverride accordingly.
-			CollatorsPool::<T>::translate::<CollatorPoolInfo<T::AccountId>, _>(
-				|collator, mut pool| {
-					// remove current orbiter, if any.
-					if let Some(current_orbiter) = pool.get_current_orbiter() {
-						AccountLookupOverride::<T>::remove(current_orbiter);
-					}
-					if let Some(next_orbiter) = pool.next_orbiter() {
-						// Forbidding the collator to write blocks, it is now up to its orbiters to do it.
-						AccountLookupOverride::<T>::insert(
-							collator.clone(),
-							Option::<T::AccountId>::None,
-						);
-						// Insert new current orbiter
-						AccountLookupOverride::<T>::insert(
-							next_orbiter.clone(),
-							Some(collator.clone()),
-						);
-						OrbiterPerRound::<T>::insert(current_round, collator, next_orbiter);
-					} else {
-						// If there is no more active orbiter, you have to remove the collator override.
-						AccountLookupOverride::<T>::remove(collator);
-					}
-					Some(pool)
-				},
-			);
-
-			0
+			if current_round % T::RotatePeriod::get() == Zero::zero() {
+				// Update current orbiter for each pool and edit AccountLookupOverride accordingly.
+				let mut writes = 0;
+				CollatorsPool::<T>::translate::<CollatorPoolInfo<T::AccountId>, _>(
+					|collator, mut pool| {
+						// remove current orbiter, if any.
+						if let Some(current_orbiter) = pool.get_current_orbiter() {
+							AccountLookupOverride::<T>::remove(current_orbiter);
+							writes += 1;
+						}
+						if let Some(next_orbiter) = pool.next_orbiter() {
+							// Forbidding the collator to write blocks, it is now up to its orbiters to do it.
+							AccountLookupOverride::<T>::insert(
+								collator.clone(),
+								Option::<T::AccountId>::None,
+							);
+							// Insert new current orbiter
+							AccountLookupOverride::<T>::insert(
+								next_orbiter.clone(),
+								Some(collator.clone()),
+							);
+							OrbiterPerRound::<T>::insert(current_round, collator, next_orbiter);
+							writes += 3;
+						} else {
+							// If there is no more active orbiter, you have to remove the collator override.
+							AccountLookupOverride::<T>::remove(collator);
+							writes += 1;
+						}
+						writes += 1;
+						Some(pool)
+					},
+				);
+				T::DbWeight::get().writes(writes)
+			} else {
+				0
+			}
 		}
 		/// Notify this pallet that a collator received rewards
 		pub fn distribute_rewards(

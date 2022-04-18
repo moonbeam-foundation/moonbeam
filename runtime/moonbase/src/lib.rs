@@ -1103,6 +1103,7 @@ impl pallet_moonbeam_orbiters::Config for Runtime {
 	/// Maximum number of round to keep on storage
 	type MaxRoundArchive = ConstU32<4>;
 	type OrbiterReserveIdentifier = OrbiterReserveIdentifier;
+	type RotatePeriod = ConstU32<2>;
 	/// Round index type.
 	type RoundIndex = parachain_staking::RoundIndex;
 	type UpdateMinOrbiterDepositOrigin = EnsureRoot<AccountId>;
