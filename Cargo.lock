@@ -6456,7 +6456,7 @@ dependencies = [
 [[package]]
 name = "nimbus-consensus"
 version = "0.9.0"
-source = "git+https://github.com/purestake/nimbus?branch=girazoki-benchmark-kick-off-moonbeam-polkadot-v0.9.18#8534034ff1499d4adbb5d324450fe36ae599a0e9"
+source = "git+https://github.com/purestake/nimbus?branch=girazoki-benchmark-kick-off-moonbeam-polkadot-v0.9.18#0ae0b84bd46279691b3fab93687294557dc84c98"
 dependencies = [
  "async-trait",
  "cumulus-client-consensus-common",
@@ -6487,7 +6487,7 @@ dependencies = [
 [[package]]
 name = "nimbus-primitives"
 version = "0.9.0"
-source = "git+https://github.com/purestake/nimbus?branch=girazoki-benchmark-kick-off-moonbeam-polkadot-v0.9.18#8534034ff1499d4adbb5d324450fe36ae599a0e9"
+source = "git+https://github.com/purestake/nimbus?branch=girazoki-benchmark-kick-off-moonbeam-polkadot-v0.9.18#0ae0b84bd46279691b3fab93687294557dc84c98"
 dependencies = [
  "async-trait",
  "frame-support",
@@ -6874,7 +6874,7 @@ dependencies = [
 [[package]]
 name = "pallet-author-inherent"
 version = "0.9.0"
-source = "git+https://github.com/purestake/nimbus?branch=girazoki-benchmark-kick-off-moonbeam-polkadot-v0.9.18#8534034ff1499d4adbb5d324450fe36ae599a0e9"
+source = "git+https://github.com/purestake/nimbus?branch=girazoki-benchmark-kick-off-moonbeam-polkadot-v0.9.18#0ae0b84bd46279691b3fab93687294557dc84c98"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6940,7 +6940,7 @@ dependencies = [
 [[package]]
 name = "pallet-author-slot-filter"
 version = "0.9.0"
-source = "git+https://github.com/purestake/nimbus?branch=girazoki-benchmark-kick-off-moonbeam-polkadot-v0.9.18#8534034ff1499d4adbb5d324450fe36ae599a0e9"
+source = "git+https://github.com/purestake/nimbus?branch=girazoki-benchmark-kick-off-moonbeam-polkadot-v0.9.18#0ae0b84bd46279691b3fab93687294557dc84c98"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
