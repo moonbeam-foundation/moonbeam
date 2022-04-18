@@ -18,10 +18,10 @@
 
 pub mod types;
 
-/*#[cfg(test)]
+#[cfg(test)]
 mod mock;
 #[cfg(test)]
-mod tests;*/
+mod tests;
 
 pub use pallet::*;
 pub use types::*;

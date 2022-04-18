@@ -7670,6 +7670,7 @@ dependencies = [
  "frame-system",
  "log",
  "nimbus-primitives",
+ "pallet-balances",
  "parity-scale-codec",
  "scale-info",
  "sp-core",
