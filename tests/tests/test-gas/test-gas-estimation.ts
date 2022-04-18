@@ -82,16 +82,16 @@ describeDevMoonbeamAllEthTxTypes("Estimate Gas - Supplied estimate is sufficient
 describeDevMoonbeamAllEthTxTypes("Estimate Gas - Handle Gas price", (context) => {
   it("eth_estimateGas 0x0 gasPrice is equivalent to not setting one", async function () {
     const contract = await getCompiled("Incrementer");
-    let result = (await context.web3.eth.estimateGas({
+    let result = await context.web3.eth.estimateGas({
       from: GENESIS_ACCOUNT,
       data: contract.byteCode,
       gasPrice: "0x0",
-    }));
+    });
     expect(result).to.equal(152884);
-    result = (await context.web3.eth.estimateGas({
+    result = await context.web3.eth.estimateGas({
       from: GENESIS_ACCOUNT,
       data: contract.byteCode,
-    }));
+    });
     expect(result).to.equal(152884);
   });
 });
