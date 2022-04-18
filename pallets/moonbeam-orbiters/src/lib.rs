@@ -102,7 +102,7 @@ pub mod pallet {
 	#[pallet::getter(fn collators_pool)]
 	/// Current orbiters, with their "parent" collator
 	pub type CollatorsPool<T: Config> =
-		StorageMap<_, Blake2_128Concat, T::AccountId, CollatorPoolInfo<T::AccountId>>;
+		CountedStorageMap<_, Blake2_128Concat, T::AccountId, CollatorPoolInfo<T::AccountId>>;
 
 	#[pallet::storage]
 	/// Current round index
@@ -147,6 +147,8 @@ pub mod pallet {
 		CollatorNotFound,
 		/// There are already too many orbiters associated with this collator.
 		CollatorPoolTooLarge,
+		/// There are more collator pools than the number specified in the parameter.
+		CollatorsPoolCountTooLow,
 		/// The minimum deposit required to register as an orbiter has not yet been included in the
 		/// onchain storage
 		MinOrbiterDepositNotSet,
@@ -252,7 +254,10 @@ pub mod pallet {
 
 		/// Deregistering from orbiters
 		#[pallet::weight(500_000_000)]
-		pub fn orbiter_unregister(origin: OriginFor<T>) -> DispatchResult {
+		pub fn orbiter_unregister(
+			origin: OriginFor<T>,
+			collators_pool_count: u32,
+		) -> DispatchResult {
 			let orbiter = ensure_signed(origin)?;
 
 			// If the orbiter is currently active in this round, it cannot unregister, this would
@@ -261,6 +266,13 @@ pub mod pallet {
 			ensure!(
 				AccountLookupOverride::<T>::get(&orbiter).is_none(),
 				Error::<T>::OrbiterCantLeaveThisRound
+			);
+
+			// We have to make sure that the `collators_pool_count` parameter is large enough,
+			// because its value is used to calculate the weight of this extrinsic
+			ensure!(
+				collators_pool_count >= CollatorsPool::<T>::count(),
+				Error::<T>::CollatorsPoolCountTooLow
 			);
 
 			// We remove the orbiter from all the collator pools in which it is located.

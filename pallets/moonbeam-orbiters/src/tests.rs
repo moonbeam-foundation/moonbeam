@@ -49,3 +49,45 @@ fn test_orbiter_register_ok() {
 			)
 		});
 }
+
+#[test]
+fn test_add_collator() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_ok!(MoonbeamOrbiters::force_add_collator(Origin::root(), 1),);
+		/*assert_eq!(
+			last_event(),
+			Event::Balances(pallet_balances::Event::<Test>::Reserved {
+				who: 1,
+				amount: 10_000
+			})
+		);*/
+		assert_noop!(
+			MoonbeamOrbiters::force_add_collator(Origin::root(), 1),
+			crate::Error::<Test>::CollatorAlreadyAdded
+		);
+	});
+}
+
+#[test]
+fn test_orbiter_unregister() {
+	ExtBuilder::default()
+		.with_balances(vec![(2, 20_000)])
+		.with_min_orbiter_deposit(10_000)
+		.build()
+		.execute_with(|| {
+			// Add a collator
+			assert_ok!(MoonbeamOrbiters::force_add_collator(Origin::root(), 1),);
+			// Register an orbiter
+			assert_ok!(MoonbeamOrbiters::orbiter_register(Origin::signed(2)),);
+
+			// Try to unregister an orbiter with wrong hint
+			// Should fail because there is 1 collator pool and we provide 0
+			assert_noop!(
+				MoonbeamOrbiters::orbiter_unregister(Origin::signed(2), 0),
+				crate::Error::<Test>::CollatorsPoolCountTooLow
+			);
+
+			// Try to unregister an orbiter with right hint, should success
+			assert_ok!(MoonbeamOrbiters::orbiter_unregister(Origin::signed(2), 1),);
+		});
+}
