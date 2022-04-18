@@ -45,7 +45,7 @@ construct_runtime!(
 	{
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
-		MoonbeamOrbiters: pallet_moonbeam_orbiters::{Pallet, Call, Storage, Event<T>},
+		MoonbeamOrbiters: pallet_moonbeam_orbiters::{Pallet, Call, Storage, Config<T>, Event<T>},
 	}
 );
 
@@ -175,12 +175,11 @@ impl ExtBuilder {
 		.assimilate_storage(&mut t)
 		.expect("Pallet balances storage can be assimilated");
 
-		let min_orbiter_deposit_prefix =
-			frame_support::storage::storage_prefix(b"MoonbeamOrbiters", b"MinOrbiterDeposit");
-		t.top.insert(
-			min_orbiter_deposit_prefix.to_vec(),
-			self.min_orbiter_deposit.encode(),
-		);
+		pallet_moonbeam_orbiters::GenesisConfig::<Test> {
+			min_orbiter_deposit: self.min_orbiter_deposit,
+		}
+		.assimilate_storage(&mut t)
+		.expect("Pallet moonbeam-orbiters storage can be assimilated");
 
 		let mut ext = sp_io::TestExternalities::new(t);
 		ext.execute_with(|| System::set_block_number(1));

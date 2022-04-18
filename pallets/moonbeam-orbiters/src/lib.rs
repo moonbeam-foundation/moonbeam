@@ -127,6 +127,31 @@ pub mod pallet {
 		OptionQuery,
 	>;
 
+	#[pallet::genesis_config]
+	pub struct GenesisConfig<T: Config> {
+		pub min_orbiter_deposit: BalanceOf<T>,
+	}
+
+	#[cfg(feature = "std")]
+	impl<T: Config> Default for GenesisConfig<T> {
+		fn default() -> Self {
+			Self {
+				min_orbiter_deposit: One::one(),
+			}
+		}
+	}
+
+	#[pallet::genesis_build]
+	impl<T: Config> GenesisBuild<T> for GenesisConfig<T> {
+		fn build(&self) {
+			assert!(
+				self.min_orbiter_deposit > Zero::zero(),
+				"Minumal orbiter deposit should be greater tham zero"
+			);
+			MinOrbiterDeposit::<T>::put(self.min_orbiter_deposit)
+		}
+	}
+
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
 		fn on_initialize(_: T::BlockNumber) -> Weight {
