@@ -18,6 +18,8 @@
 
 pub mod types;
 
+#[cfg(any(test, feature = "runtime-benchmarks"))]
+mod benchmarks;
 #[cfg(test)]
 mod mock;
 #[cfg(test)]
@@ -109,6 +111,7 @@ pub mod pallet {
 	pub(crate) type CurrentRound<T: Config> = StorageValue<_, T::RoundIndex, ValueQuery>;
 
 	#[pallet::storage]
+	#[pallet::getter(fn min_orbiter_deposit)]
 	/// Minimum deposit required to be registered as an orbiter
 	pub type MinOrbiterDeposit<T: Config> = StorageValue<_, BalanceOf<T>, ValueQuery>;
 
@@ -136,7 +139,6 @@ pub mod pallet {
 			} else {
 				T::DbWeight::get().reads(1)
 			}
-
 		}
 	}
 
