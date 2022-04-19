@@ -256,7 +256,7 @@ pub mod pallet {
 			Ok(())
 		}
 
-		/// Remove an orbiter from a collator pool
+		/// Remove an orbiter from the caller collator pool
 		#[pallet::weight(500_000_000)]
 		pub fn collator_remove_orbiter(
 			origin: OriginFor<T>,
@@ -264,6 +264,25 @@ pub mod pallet {
 		) -> DispatchResult {
 			let collator = ensure_signed(origin)?;
 			let orbiter = T::Lookup::lookup(orbiter)?;
+
+			let mut collator_pool =
+				CollatorsPool::<T>::get(&collator).ok_or(Error::<T>::CollatorNotFound)?;
+
+			if !collator_pool.remove_orbiter(&orbiter) {
+				Err(Error::<T>::OrbiterNotFound.into())
+			} else {
+				Ok(())
+			}
+		}
+
+		/// Remove the caller from the specified collator pool
+		#[pallet::weight(500_000_000)]
+		pub fn orbiter_leave_collator_pool(
+			origin: OriginFor<T>,
+			collator: <T::Lookup as StaticLookup>::Source,
+		) -> DispatchResult {
+			let orbiter = ensure_signed(origin)?;
+			let collator = T::Lookup::lookup(collator)?;
 
 			let mut collator_pool =
 				CollatorsPool::<T>::get(&collator).ok_or(Error::<T>::CollatorNotFound)?;
