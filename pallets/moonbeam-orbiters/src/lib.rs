@@ -126,7 +126,7 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn min_orbiter_deposit)]
 	/// Minimum deposit required to be registered as an orbiter
-	pub type MinOrbiterDeposit<T: Config> = StorageValue<_, BalanceOf<T>, ValueQuery>;
+	pub type MinOrbiterDeposit<T: Config> = StorageValue<_, BalanceOf<T>, OptionQuery>;
 
 	#[pallet::storage]
 	/// Store active orbiter per round and per parent collator
@@ -280,19 +280,17 @@ pub mod pallet {
 		pub fn orbiter_register(origin: OriginFor<T>) -> DispatchResult {
 			let orbiter = ensure_signed(origin)?;
 
-			let min_orbiter_deposit = MinOrbiterDeposit::<T>::get();
-			ensure!(
-				min_orbiter_deposit > Zero::zero(),
-				Error::<T>::MinOrbiterDepositNotSet
-			);
-
-			// The use of `ensure_reserved_named` allows to update the deposit amount in case a
-			// deposit has already been made.
-			T::Currency::ensure_reserved_named(
-				&T::OrbiterReserveIdentifier::get(),
-				&orbiter,
-				min_orbiter_deposit,
-			)
+			if let Some(min_orbiter_deposit) = MinOrbiterDeposit::<T>::get() {
+				// The use of `ensure_reserved_named` allows to update the deposit amount in case a
+				// deposit has already been made.
+				T::Currency::ensure_reserved_named(
+					&T::OrbiterReserveIdentifier::get(),
+					&orbiter,
+					min_orbiter_deposit,
+				)
+			} else {
+				Err(Error::<T>::MinOrbiterDepositNotSet.into())
+			}
 		}
 
 		/// Deregistering from orbiters
