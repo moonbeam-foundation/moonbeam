@@ -617,13 +617,10 @@ where
 }
 
 #[cfg(feature = "xcm-support")]
-pub struct XcmMigrations<Runtime, StatemineParaIdInfo, StatemineAssetsInstanceInfo>(
-	PhantomData<(Runtime, StatemineParaIdInfo, StatemineAssetsInstanceInfo)>,
-);
+pub struct XcmMigrations<Runtime>(PhantomData<Runtime>);
 
 #[cfg(feature = "xcm-support")]
-impl<Runtime, StatemineParaIdInfo, StatemineAssetsInstanceInfo> GetMigrations
-	for XcmMigrations<Runtime, StatemineParaIdInfo, StatemineAssetsInstanceInfo>
+impl<Runtime> GetMigrations for XcmMigrations<Runtime>
 where
 	Runtime: xcm_transactor::Config + pallet_migrations::Config + pallet_asset_manager::Config,
 	<Runtime as pallet_asset_manager::Config>::ForeignAssetType:

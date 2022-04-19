@@ -287,6 +287,7 @@ impl Config for Test {
 	type LocationInverter = InvertNothing;
 	type BaseXcmWeight = BaseXcmWeight;
 	type XcmSender = DoNothingRouter;
+	type ReserveProvider = orml_traits::location::RelativeReserveProvider;
 	type WeightInfo = ();
 }
 

@@ -883,11 +883,7 @@ impl pallet_migrations::Config for Runtime {
 			CouncilCollective,
 			TechCommitteeCollective,
 		>,
-		runtime_common::migrations::XcmMigrations<
-			Runtime,
-			xcm_config::StatemintParaId,
-			xcm_config::StatemintAssetPalletInstance,
-		>,
+		runtime_common::migrations::XcmMigrations<Runtime>,
 	);
 }
 
