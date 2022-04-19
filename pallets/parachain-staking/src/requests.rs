@@ -56,7 +56,7 @@ where
 		let now = <Round<T>>::get().current;
 		let when = now + T::RevokeDelegationDelay::get();
 
-		Self::scheduled_requests_state_add(
+		Self::delegator_scheduled_requests_state_add(
 			delegator.clone(),
 			collator.clone(),
 			ScheduledRequest {
@@ -114,7 +114,7 @@ where
 		let now = <Round<T>>::get().current;
 		let when = now + T::RevokeDelegationDelay::get();
 
-		Self::scheduled_requests_state_add(
+		Self::delegator_scheduled_requests_state_add(
 			delegator.clone(),
 			collator.clone(),
 			ScheduledRequest {
@@ -139,7 +139,7 @@ where
 		let request = <DelegatorScheduledRequests<T>>::get(&delegator, &collator)
 			.ok_or(<Error<T>>::PendingDelegationRequestDNE)?;
 
-		Self::scheduled_requests_state_remove(&delegator, &collator);
+		Self::delegator_scheduled_requests_state_remove(&delegator, &collator);
 		Self::deposit_event(Event::CancelledDelegationRequest {
 			delegator,
 			collator,
@@ -148,13 +148,20 @@ where
 		Ok(().into())
 	}
 
-	pub(crate) fn execute_scheduled_requests(
+	pub(crate) fn delegator_execute_scheduled_request(
 		delegator: DelegatorId<T>,
 		collator: CollatorId<T>,
 	) -> DispatchResultWithPostInfo {
 		let mut state = <DelegatorState<T>>::get(&delegator).ok_or(<Error<T>>::DelegatorDNE)?;
 		let request = <DelegatorScheduledRequests<T>>::get(&delegator, &collator)
 			.ok_or(<Error<T>>::PendingDelegationRequestDNE)?;
+
+		let now = <Round<T>>::get().current;
+		ensure!(
+			request.when_executable <= now,
+			<Error<T>>::PendingDelegationRequestNotDueYet
+		);
+
 		match request.action {
 			DelegationAction::Revoke(amount) => {
 				// revoking last delegation => leaving set of delegators
@@ -169,7 +176,7 @@ where
 				};
 
 				// remove from pending requests
-				Self::scheduled_requests_state_remove(&delegator, &collator);
+				Self::delegator_scheduled_requests_state_remove(&delegator, &collator);
 				// remove delegation from delegator state
 				state.rm_delegation(&collator);
 
@@ -193,7 +200,7 @@ where
 			}
 			DelegationAction::Decrease(amount) => {
 				// remove from pending requests
-				Self::scheduled_requests_state_remove(&delegator, &collator);
+				Self::delegator_scheduled_requests_state_remove(&delegator, &collator);
 
 				// decrease delegation
 				for x in &mut state.delegations.0 {
@@ -244,7 +251,7 @@ where
 		}
 	}
 
-	pub(crate) fn scheduled_requests_state_add(
+	pub(crate) fn delegator_scheduled_requests_state_add(
 		delegator: DelegatorId<T>,
 		collator: CollatorId<T>,
 		request: ScheduledRequest<BalanceOf<T>>,
@@ -264,7 +271,7 @@ where
 	}
 
 	/// The request MUST exist
-	pub(crate) fn scheduled_requests_state_remove(
+	pub(crate) fn delegator_scheduled_requests_state_remove(
 		delegator: &DelegatorId<T>,
 		collator: &CollatorId<T>,
 	) {
