@@ -18,8 +18,8 @@
 
 //! Benchmarking
 use crate::{
-	BalanceOf, Call, CandidateBondLessRequest, Config, DelegationChange, DelegationRequest, Pallet,
-	Range,
+	BalanceOf, Call, CandidateBondLessRequest, Config, DelegationAction, Pallet, Range,
+	ScheduledRequest,
 };
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
 use frame_support::traits::{Currency, Get, OnFinalize, OnInitialize, ReservableCurrency};
@@ -651,12 +651,10 @@ benchmarks! {
 	}: _(RawOrigin::Signed(caller.clone()), collator.clone())
 	verify {
 		assert_eq!(
-			Pallet::<T>::delegator_state(&caller).unwrap().requests().get(&collator),
-			Some(&DelegationRequest {
-				collator,
-				amount: bond,
+			Pallet::<T>::delegator_scheduled_requests(&caller, &collator),
+			Some(ScheduledRequest {
 				when_executable: 3,
-				action: DelegationChange::Revoke
+				action: DelegationAction::Revoke(bond),
 			})
 		);
 	}
@@ -706,12 +704,10 @@ benchmarks! {
 		let state = Pallet::<T>::delegator_state(&caller)
 			.expect("just request bonded less so exists");
 		assert_eq!(
-			state.requests().get(&collator),
-			Some(&DelegationRequest {
-				collator,
-				amount: bond_less,
+			Pallet::<T>::delegator_scheduled_requests(&caller, &collator),
+			Some(ScheduledRequest {
 				when_executable: 3,
-				action: DelegationChange::Decrease
+				action: DelegationAction::Decrease(bond_less),
 			})
 		);
 	}
