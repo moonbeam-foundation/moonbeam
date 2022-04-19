@@ -269,11 +269,13 @@ pub mod pallet {
 			let mut collator_pool =
 				CollatorsPool::<T>::get(&collator).ok_or(Error::<T>::CollatorNotFound)?;
 
-			if !collator_pool.remove_orbiter(&orbiter) {
-				Err(Error::<T>::OrbiterNotFound.into())
-			} else {
-				Ok(())
-			}
+			ensure!(
+				collator_pool.remove_orbiter(&orbiter),
+				Error::<T>::OrbiterNotFound
+			);
+
+			CollatorsPool::<T>::insert(collator, collator_pool);
+			Ok(())
 		}
 
 		/// Remove the caller from the specified collator pool
@@ -288,11 +290,13 @@ pub mod pallet {
 			let mut collator_pool =
 				CollatorsPool::<T>::get(&collator).ok_or(Error::<T>::CollatorNotFound)?;
 
-			if !collator_pool.remove_orbiter(&orbiter) {
-				Err(Error::<T>::OrbiterNotFound.into())
-			} else {
-				Ok(())
-			}
+			ensure!(
+				collator_pool.remove_orbiter(&orbiter),
+				Error::<T>::OrbiterNotFound
+			);
+
+			CollatorsPool::<T>::insert(collator, collator_pool);
+			Ok(())
 		}
 
 		/// Registering as an orbiter
