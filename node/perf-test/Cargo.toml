@@ -45,11 +45,11 @@ sp-timestamp = { git = "https://github.com/purestake/substrate", branch = "moonb
 
 # Frontier
 ethereum = { version = "0.12.0" }
-fc-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.18" }
-fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.18" }
-fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.18" }
-fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.18" }
-pallet-ethereum = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.18" }
+fc-consensus = { git = "https://github.com/purestake/frontier", branch = "jeremy-9-18-precompile-output-enum" }
+fc-rpc = { git = "https://github.com/purestake/frontier", branch = "jeremy-9-18-precompile-output-enum" }
+fp-evm = { git = "https://github.com/purestake/frontier", branch = "jeremy-9-18-precompile-output-enum" }
+fp-rpc = { git = "https://github.com/purestake/frontier", branch = "jeremy-9-18-precompile-output-enum" }
+pallet-ethereum = { git = "https://github.com/purestake/frontier", branch = "jeremy-9-18-precompile-output-enum" }
 
 # Cumulus / Nimbus
 cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.18" }

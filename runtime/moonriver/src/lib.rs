@@ -360,7 +360,6 @@ parameter_types! {
 	/// This value is currently only used by pallet-transaction-payment as an assertion that the
 	/// next multiplier is always > min value.
 	pub MinimumMultiplier: Multiplier = Multiplier::saturating_from_rational(1, 1_000_000u128);
-	pub PrecompilesValue: MoonriverPrecompiles<Runtime> = MoonriverPrecompiles::<_>::new();
 }
 
 pub struct FixedGasPrice;
@@ -414,8 +413,7 @@ impl pallet_evm::Config for Runtime {
 	type Currency = Balances;
 	type Event = Event;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
-	type PrecompilesType = MoonriverPrecompiles<Self>;
-	type PrecompilesValue = PrecompilesValue;
+	type Precompiles = MoonriverPrecompiles<Self>;
 	type ChainId = EthereumChainId;
 	type OnChargeTransaction = pallet_evm::EVMCurrencyAdapter<Balances, DealWithFees<Runtime>>;
 	type BlockGasLimit = BlockGasLimit;

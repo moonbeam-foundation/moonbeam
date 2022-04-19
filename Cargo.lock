@@ -2484,7 +2484,7 @@ checksum = "77f3309417938f28bf8228fcff79a4a37103981e3e186d2ccd19c74b38f4eb71"
 [[package]]
 name = "evm"
 version = "0.35.0"
-source = "git+https://github.com/purestake/evm?branch=jeremy-precompile-code-35#f621c5a3cef6b08bf16f274750559a458ede3dca"
+source = "git+https://github.com/purestake/evm?branch=jeremy-tmp-subcalls-and-delegatecall#dbd2f6b5152a10303039651e2cf75d3c022cb742"
 dependencies = [
  "auto_impl",
  "environmental",
@@ -2504,7 +2504,7 @@ dependencies = [
 [[package]]
 name = "evm-core"
 version = "0.35.0"
-source = "git+https://github.com/purestake/evm?branch=jeremy-precompile-code-35#f621c5a3cef6b08bf16f274750559a458ede3dca"
+source = "git+https://github.com/purestake/evm?branch=jeremy-tmp-subcalls-and-delegatecall#dbd2f6b5152a10303039651e2cf75d3c022cb742"
 dependencies = [
  "parity-scale-codec 3.1.2",
  "primitive-types",
@@ -2515,7 +2515,7 @@ dependencies = [
 [[package]]
 name = "evm-gasometer"
 version = "0.35.0"
-source = "git+https://github.com/purestake/evm?branch=jeremy-precompile-code-35#f621c5a3cef6b08bf16f274750559a458ede3dca"
+source = "git+https://github.com/purestake/evm?branch=jeremy-tmp-subcalls-and-delegatecall#dbd2f6b5152a10303039651e2cf75d3c022cb742"
 dependencies = [
  "environmental",
  "evm-core",
@@ -2526,7 +2526,7 @@ dependencies = [
 [[package]]
 name = "evm-runtime"
 version = "0.35.0"
-source = "git+https://github.com/purestake/evm?branch=jeremy-precompile-code-35#f621c5a3cef6b08bf16f274750559a458ede3dca"
+source = "git+https://github.com/purestake/evm?branch=jeremy-tmp-subcalls-and-delegatecall#dbd2f6b5152a10303039651e2cf75d3c022cb742"
 dependencies = [
  "auto_impl",
  "environmental",
@@ -2647,7 +2647,7 @@ dependencies = [
 [[package]]
 name = "fc-consensus"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#04af2a3aab37dec556f7ece4af1cc3818979119e"
+source = "git+https://github.com/purestake/frontier?branch=jeremy-9-18-precompile-output-enum#1a7ddcd3977c0ac21e0c30cdd3f10cc5142f79c7"
 dependencies = [
  "async-trait",
  "fc-db",
@@ -2666,7 +2666,7 @@ dependencies = [
 [[package]]
 name = "fc-db"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#04af2a3aab37dec556f7ece4af1cc3818979119e"
+source = "git+https://github.com/purestake/frontier?branch=jeremy-9-18-precompile-output-enum#1a7ddcd3977c0ac21e0c30cdd3f10cc5142f79c7"
 dependencies = [
  "fp-storage",
  "kvdb-rocksdb",
@@ -2680,7 +2680,7 @@ dependencies = [
 [[package]]
 name = "fc-mapping-sync"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#04af2a3aab37dec556f7ece4af1cc3818979119e"
+source = "git+https://github.com/purestake/frontier?branch=jeremy-9-18-precompile-output-enum#1a7ddcd3977c0ac21e0c30cdd3f10cc5142f79c7"
 dependencies = [
  "fc-db",
  "fp-consensus",
@@ -2697,7 +2697,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#04af2a3aab37dec556f7ece4af1cc3818979119e"
+source = "git+https://github.com/purestake/frontier?branch=jeremy-9-18-precompile-output-enum#1a7ddcd3977c0ac21e0c30cdd3f10cc5142f79c7"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -2739,7 +2739,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc-core"
 version = "1.1.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#04af2a3aab37dec556f7ece4af1cc3818979119e"
+source = "git+https://github.com/purestake/frontier?branch=jeremy-9-18-precompile-output-enum#1a7ddcd3977c0ac21e0c30cdd3f10cc5142f79c7"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -2869,7 +2869,7 @@ dependencies = [
 [[package]]
 name = "fp-consensus"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#04af2a3aab37dec556f7ece4af1cc3818979119e"
+source = "git+https://github.com/purestake/frontier?branch=jeremy-9-18-precompile-output-enum#1a7ddcd3977c0ac21e0c30cdd3f10cc5142f79c7"
 dependencies = [
  "ethereum",
  "parity-scale-codec 3.1.2",
@@ -2881,10 +2881,11 @@ dependencies = [
 [[package]]
 name = "fp-evm"
 version = "3.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#04af2a3aab37dec556f7ece4af1cc3818979119e"
+source = "git+https://github.com/purestake/frontier?branch=jeremy-9-18-precompile-output-enum#1a7ddcd3977c0ac21e0c30cdd3f10cc5142f79c7"
 dependencies = [
  "evm",
  "parity-scale-codec 3.1.2",
+ "primitive-types",
  "serde",
  "sp-core",
  "sp-std",
@@ -2893,7 +2894,7 @@ dependencies = [
 [[package]]
 name = "fp-rpc"
 version = "3.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#04af2a3aab37dec556f7ece4af1cc3818979119e"
+source = "git+https://github.com/purestake/frontier?branch=jeremy-9-18-precompile-output-enum#1a7ddcd3977c0ac21e0c30cdd3f10cc5142f79c7"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -2910,7 +2911,7 @@ dependencies = [
 [[package]]
 name = "fp-self-contained"
 version = "1.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#04af2a3aab37dec556f7ece4af1cc3818979119e"
+source = "git+https://github.com/purestake/frontier?branch=jeremy-9-18-precompile-output-enum#1a7ddcd3977c0ac21e0c30cdd3f10cc5142f79c7"
 dependencies = [
  "ethereum",
  "frame-support",
@@ -2926,7 +2927,7 @@ dependencies = [
 [[package]]
 name = "fp-storage"
 version = "2.0.0"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#04af2a3aab37dec556f7ece4af1cc3818979119e"
+source = "git+https://github.com/purestake/frontier?branch=jeremy-9-18-precompile-output-enum#1a7ddcd3977c0ac21e0c30cdd3f10cc5142f79c7"
 dependencies = [
  "parity-scale-codec 3.1.2",
 ]
@@ -7061,7 +7062,7 @@ dependencies = [
 [[package]]
 name = "pallet-base-fee"
 version = "1.0.0"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#04af2a3aab37dec556f7ece4af1cc3818979119e"
+source = "git+https://github.com/purestake/frontier?branch=jeremy-9-18-precompile-output-enum#1a7ddcd3977c0ac21e0c30cdd3f10cc5142f79c7"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -7318,7 +7319,7 @@ dependencies = [
 [[package]]
 name = "pallet-ethereum"
 version = "4.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#04af2a3aab37dec556f7ece4af1cc3818979119e"
+source = "git+https://github.com/purestake/frontier?branch=jeremy-9-18-precompile-output-enum#1a7ddcd3977c0ac21e0c30cdd3f10cc5142f79c7"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -7358,7 +7359,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm"
 version = "6.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#04af2a3aab37dec556f7ece4af1cc3818979119e"
+source = "git+https://github.com/purestake/frontier?branch=jeremy-9-18-precompile-output-enum#1a7ddcd3977c0ac21e0c30cdd3f10cc5142f79c7"
 dependencies = [
  "evm",
  "fp-evm",
@@ -7436,7 +7437,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-blake2"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#04af2a3aab37dec556f7ece4af1cc3818979119e"
+source = "git+https://github.com/purestake/frontier?branch=jeremy-9-18-precompile-output-enum#1a7ddcd3977c0ac21e0c30cdd3f10cc5142f79c7"
 dependencies = [
  "fp-evm",
 ]
@@ -7444,7 +7445,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-bn128"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#04af2a3aab37dec556f7ece4af1cc3818979119e"
+source = "git+https://github.com/purestake/frontier?branch=jeremy-9-18-precompile-output-enum#1a7ddcd3977c0ac21e0c30cdd3f10cc5142f79c7"
 dependencies = [
  "fp-evm",
  "sp-core",
@@ -7454,7 +7455,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-dispatch"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#04af2a3aab37dec556f7ece4af1cc3818979119e"
+source = "git+https://github.com/purestake/frontier?branch=jeremy-9-18-precompile-output-enum#1a7ddcd3977c0ac21e0c30cdd3f10cc5142f79c7"
 dependencies = [
  "fp-evm",
  "frame-support",
@@ -7464,7 +7465,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-modexp"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#04af2a3aab37dec556f7ece4af1cc3818979119e"
+source = "git+https://github.com/purestake/frontier?branch=jeremy-9-18-precompile-output-enum#1a7ddcd3977c0ac21e0c30cdd3f10cc5142f79c7"
 dependencies = [
  "fp-evm",
  "num",
@@ -7473,7 +7474,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-sha3fips"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#04af2a3aab37dec556f7ece4af1cc3818979119e"
+source = "git+https://github.com/purestake/frontier?branch=jeremy-9-18-precompile-output-enum#1a7ddcd3977c0ac21e0c30cdd3f10cc5142f79c7"
 dependencies = [
  "fp-evm",
  "tiny-keccak",
@@ -7482,7 +7483,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-simple"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#04af2a3aab37dec556f7ece4af1cc3818979119e"
+source = "git+https://github.com/purestake/frontier?branch=jeremy-9-18-precompile-output-enum#1a7ddcd3977c0ac21e0c30cdd3f10cc5142f79c7"
 dependencies = [
  "fp-evm",
  "ripemd",

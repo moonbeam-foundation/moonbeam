@@ -20,7 +20,9 @@ use fp_evm::Context;
 use moonbeam_relay_encoder::polkadot::PolkadotEncoder;
 use pallet_author_mapping_precompiles::AuthorMappingWrapper;
 use pallet_democracy_precompiles::DemocracyWrapper;
-use pallet_evm::{AddressMapping, Precompile, PrecompileResult, PrecompileSet};
+use pallet_evm::{
+	AddressMapping, DelegatablePrecompileSet, Precompile, PrecompileResult, PrecompileSet,
+};
 use pallet_evm_precompile_assets_erc20::{Erc20AssetsPrecompileSet, IsForeign, IsLocal};
 use pallet_evm_precompile_balances_erc20::{Erc20BalancesPrecompile, Erc20Metadata};
 use pallet_evm_precompile_blake2::Blake2F;
@@ -70,6 +72,12 @@ impl Erc20Metadata for NativeErc20Metadata {
 #[derive(Debug, Clone, Copy)]
 pub struct MoonbeamPrecompiles<R>(PhantomData<R>);
 
+impl<R> Default for MoonbeamPrecompiles<R> {
+	fn default() -> Self {
+		Self(Default::default())
+	}
+}
+
 impl<R> MoonbeamPrecompiles<R>
 where
 	R: pallet_evm::Config,
@@ -77,6 +85,7 @@ where
 	pub fn new() -> Self {
 		Self(Default::default())
 	}
+
 	/// Return all addresses that contain precompiles. This can be used to populate dummy code
 	/// under the precompile.
 	pub fn used_addresses() -> impl Iterator<Item = R::AccountId> {
@@ -86,6 +95,15 @@ where
 		]
 		.into_iter()
 		.map(|x| R::AddressMapping::into_account_id(hash(x)))
+	}
+}
+
+impl<R> DelegatablePrecompileSet for MoonbeamPrecompiles<R>
+where
+	Self: PrecompileSet,
+{
+	fn is_delegatable_precompile(&self, address: H160) -> bool {
+		false
 	}
 }
 

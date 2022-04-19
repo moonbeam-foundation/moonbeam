@@ -20,7 +20,9 @@ use fp_evm::Context;
 use moonbeam_relay_encoder::kusama::KusamaEncoder;
 use pallet_author_mapping_precompiles::AuthorMappingWrapper;
 use pallet_democracy_precompiles::DemocracyWrapper;
-use pallet_evm::{AddressMapping, Precompile, PrecompileResult, PrecompileSet};
+use pallet_evm::{
+	AddressMapping, DelegatablePrecompileSet, Precompile, PrecompileResult, PrecompileSet,
+};
 use pallet_evm_precompile_assets_erc20::{Erc20AssetsPrecompileSet, IsForeign, IsLocal};
 use pallet_evm_precompile_balances_erc20::{Erc20BalancesPrecompile, Erc20Metadata};
 use pallet_evm_precompile_blake2::Blake2F;
@@ -75,6 +77,12 @@ pub const LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX: &[u8] = &[255u8, 255u8, 255u8, 
 #[derive(Debug, Clone, Copy)]
 pub struct MoonriverPrecompiles<R>(PhantomData<R>);
 
+impl<R> Default for MoonriverPrecompiles<R> {
+	fn default() -> Self {
+		Self(Default::default())
+	}
+}
+
 impl<R> MoonriverPrecompiles<R>
 where
 	R: pallet_evm::Config,
@@ -91,6 +99,15 @@ where
 		]
 		.into_iter()
 		.map(|x| R::AddressMapping::into_account_id(hash(x)))
+	}
+}
+
+impl<R> DelegatablePrecompileSet for MoonriverPrecompiles<R>
+where
+	Self: PrecompileSet,
+{
+	fn is_delegatable_precompile(&self, address: H160) -> bool {
+		false
 	}
 }
 
