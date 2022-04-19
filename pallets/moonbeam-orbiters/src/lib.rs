@@ -50,7 +50,7 @@ pub mod pallet {
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{Currency, Imbalance, NamedReservableCurrency};
 	use frame_system::pallet_prelude::*;
-	use sp_runtime::traits::{One, Saturating, StaticLookup, Zero};
+	use sp_runtime::traits::{One, StaticLookup, Zero};
 
 	#[pallet::pallet]
 	#[pallet::without_storage_info]
@@ -391,14 +391,11 @@ pub mod pallet {
 
 	impl<T: Config> Pallet<T> {
 		/// Notify this pallet that a new round begin
-		pub fn on_new_round() -> Weight {
+		pub fn on_new_round(round_index: T::RoundIndex) -> Weight {
 			let mut writes = 1;
-			let current_round = CurrentRound::<T>::mutate(|current_round| {
-				*current_round = current_round.saturating_add(One::one());
-				*current_round
-			});
+			CurrentRound::<T>::put(round_index);
 
-			if current_round % T::RotatePeriod::get() == Zero::zero() {
+			if round_index % T::RotatePeriod::get() == Zero::zero() {
 				// Update current orbiter for each pool and edit AccountLookupOverride accordingly.
 				CollatorsPool::<T>::translate::<CollatorPoolInfo<T::AccountId>, _>(
 					|collator, mut pool| {
@@ -418,7 +415,7 @@ pub mod pallet {
 								next_orbiter.clone(),
 								Some(collator.clone()),
 							);
-							OrbiterPerRound::<T>::insert(current_round, collator, next_orbiter);
+							OrbiterPerRound::<T>::insert(round_index, collator, next_orbiter);
 							writes += 3;
 						} else {
 							// If there is no more active orbiter, you have to remove the collator override.

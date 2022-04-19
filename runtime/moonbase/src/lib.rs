@@ -702,8 +702,8 @@ impl parachain_staking::OnCollatorPayout<AccountId, Balance> for OnCollatorPayou
 }
 pub struct OnNewRound;
 impl parachain_staking::OnNewRound for OnNewRound {
-	fn on_new_round(_round_index: parachain_staking::RoundIndex) -> Weight {
-		MoonbeamOrbiters::on_new_round()
+	fn on_new_round(round_index: parachain_staking::RoundIndex) -> Weight {
+		MoonbeamOrbiters::on_new_round(round_index)
 	}
 }
 
