@@ -46,6 +46,7 @@
 //! To revoke a delegation, call `revoke_delegation` with the collator candidate's account.
 //! To leave the set of delegators and revoke all delegations, call `leave_delegators`.
 
+// #![allow(deprecated)]
 #![cfg_attr(not(feature = "std"), no_std)]
 
 #[cfg(any(test, feature = "runtime-benchmarks"))]
@@ -54,6 +55,7 @@ pub mod inflation;
 pub mod migrations;
 #[cfg(test)]
 mod mock;
+pub mod requests;
 mod set;
 #[cfg(test)]
 mod tests;
@@ -69,6 +71,7 @@ pub use types::*;
 
 #[pallet]
 pub mod pallet {
+	use crate::requests::{DelegationAction, ScheduledRequest};
 	use crate::{set::OrderedSet, types::*, InflationInfo, Range, WeightInfo};
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{Currency, Get, Imbalance, ReservableCurrency};
@@ -89,6 +92,9 @@ pub mod pallet {
 	type RewardPoint = u32;
 	pub type BalanceOf<T> =
 		<<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
+
+	pub(crate) type CollatorId<T> = <T as frame_system::Config>::AccountId;
+	pub(crate) type DelegatorId<T> = <T as frame_system::Config>::AccountId;
 
 	/// Configuration trait of this pallet.
 	#[pallet::config]
@@ -321,8 +327,9 @@ pub mod pallet {
 		DelegatorExitCancelled { delegator: T::AccountId },
 		/// Cancelled request to change an existing delegation.
 		CancelledDelegationRequest {
-			delegator: T::AccountId,
-			cancelled_request: DelegationRequest<T::AccountId, BalanceOf<T>>,
+			delegator: DelegatorId<T>,
+			collator: CollatorId<T>,
+			cancelled_request: ScheduledRequest<BalanceOf<T>>,
 		},
 		/// New delegation (increase of the existing one).
 		Delegation {
@@ -483,6 +490,33 @@ pub mod pallet {
 	/// Get collator candidate info associated with an account if account is candidate else None
 	pub(crate) type CandidateInfo<T: Config> =
 		StorageMap<_, Twox64Concat, T::AccountId, CandidateMetadata<BalanceOf<T>>, OptionQuery>;
+
+	#[pallet::storage]
+	#[pallet::getter(fn delegator_scheduled_requests)]
+	pub(crate) type DelegatorScheduledRequests<T: Config> = StorageDoubleMap<
+		_,
+		Blake2_128Concat,
+		DelegatorId<T>,
+		Blake2_128Concat,
+		CollatorId<T>,
+		ScheduledRequest<BalanceOf<T>>,
+		OptionQuery,
+	>;
+
+	/// The number of scheduled requests per delegator.
+	/// This is used to evaluate if a delegator should be scheduled for exit
+	/// once it has scheduled revokes on all existing collators.
+	#[pallet::storage]
+	#[pallet::getter(fn delegator_scheduled_request_count)]
+	pub(crate) type DelegatorScheduledRevokeRequestCount<T: Config> =
+		StorageMap<_, Blake2_128Concat, DelegatorId<T>, u64, ValueQuery>;
+
+	/// The total amount of funds set to decrease once all scheduled actions for the delegator
+	/// are undertaken.
+	#[pallet::storage]
+	#[pallet::getter(fn delegator_scheduled_request_decrease_amount)]
+	pub(crate) type DelegatorScheduledRequestDecreaseAmount<T: Config> =
+		StorageMap<_, Blake2_128Concat, DelegatorId<T>, BalanceOf<T>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn top_delegations)]
@@ -958,10 +992,11 @@ pub mod pallet {
 			});
 			Ok(().into())
 		}
+
+		/// Execute leave candidates request
 		#[pallet::weight(
 			<T as Config>::WeightInfo::execute_leave_candidates(*candidate_delegation_count)
 		)]
-		/// Execute leave candidates request
 		pub fn execute_leave_candidates(
 			origin: OriginFor<T>,
 			candidate: T::AccountId,
@@ -986,13 +1021,9 @@ pub mod pallet {
 					if remaining.is_zero() {
 						<DelegatorState<T>>::remove(&bond.owner);
 					} else {
-						if let Some(request) = delegator.requests.requests.remove(&candidate) {
-							delegator.requests.less_total =
-								delegator.requests.less_total.saturating_sub(request.amount);
-							if matches!(request.action, DelegationChange::Revoke) {
-								delegator.requests.revocations_count =
-									delegator.requests.revocations_count.saturating_sub(1u32);
-							}
+						if let Some(_) = Self::delegator_scheduled_requests(&bond.owner, &candidate)
+						{
+							Self::scheduled_requests_state_remove(&bond.owner, &candidate);
 						}
 						<DelegatorState<T>>::insert(&bond.owner, delegator);
 					}
@@ -1301,27 +1332,20 @@ pub mod pallet {
 			Self::deposit_event(Event::DelegatorExitCancelled { delegator });
 			Ok(().into())
 		}
-		#[pallet::weight(<T as Config>::WeightInfo::schedule_revoke_delegation())]
+
 		/// Request to revoke an existing delegation. If successful, the delegation is scheduled
 		/// to be allowed to be revoked via the `execute_delegation_request` extrinsic.
+		#[pallet::weight(<T as Config>::WeightInfo::schedule_revoke_delegation())]
 		pub fn schedule_revoke_delegation(
 			origin: OriginFor<T>,
 			collator: T::AccountId,
 		) -> DispatchResultWithPostInfo {
 			let delegator = ensure_signed(origin)?;
-			let mut state = <DelegatorState<T>>::get(&delegator).ok_or(Error::<T>::DelegatorDNE)?;
-			let (now, when) = state.schedule_revoke::<T>(collator.clone())?;
-			<DelegatorState<T>>::insert(&delegator, state);
-			Self::deposit_event(Event::DelegationRevocationScheduled {
-				round: now,
-				delegator: delegator,
-				candidate: collator,
-				scheduled_exit: when,
-			});
-			Ok(().into())
+			Self::delegator_schedule_revoke(delegator, collator)
 		}
-		#[pallet::weight(<T as Config>::WeightInfo::delegator_bond_more())]
+
 		/// Bond more for delegators wrt a specific collator candidate.
+		#[pallet::weight(<T as Config>::WeightInfo::delegator_bond_more())]
 		pub fn delegator_bond_more(
 			origin: OriginFor<T>,
 			candidate: T::AccountId,
@@ -1332,52 +1356,37 @@ pub mod pallet {
 			state.increase_delegation::<T>(candidate.clone(), more)?;
 			Ok(().into())
 		}
-		#[pallet::weight(<T as Config>::WeightInfo::schedule_delegator_bond_less())]
+
 		/// Request bond less for delegators wrt a specific collator candidate.
+		#[pallet::weight(<T as Config>::WeightInfo::schedule_delegator_bond_less())]
 		pub fn schedule_delegator_bond_less(
 			origin: OriginFor<T>,
-			candidate: T::AccountId,
+			collator: T::AccountId,
 			less: BalanceOf<T>,
 		) -> DispatchResultWithPostInfo {
-			let caller = ensure_signed(origin)?;
-			let mut state = <DelegatorState<T>>::get(&caller).ok_or(Error::<T>::DelegatorDNE)?;
-			let when = state.schedule_decrease_delegation::<T>(candidate.clone(), less)?;
-			<DelegatorState<T>>::insert(&caller, state);
-			Self::deposit_event(Event::DelegationDecreaseScheduled {
-				delegator: caller,
-				candidate: candidate,
-				amount_to_decrease: less,
-				execute_round: when,
-			});
-			Ok(().into())
+			let delegator = ensure_signed(origin)?;
+			Self::delegator_schedule_bond_decrease(delegator, collator, less)
 		}
-		#[pallet::weight(<T as Config>::WeightInfo::execute_delegator_bond_less())]
+
 		/// Execute pending request to change an existing delegation
+		#[pallet::weight(<T as Config>::WeightInfo::execute_delegator_bond_less())]
 		pub fn execute_delegation_request(
 			origin: OriginFor<T>,
 			delegator: T::AccountId,
 			candidate: T::AccountId,
 		) -> DispatchResultWithPostInfo {
 			ensure_signed(origin)?; // we may want to reward caller if caller != delegator
-			let mut state = <DelegatorState<T>>::get(&delegator).ok_or(Error::<T>::DelegatorDNE)?;
-			state.execute_pending_request::<T>(candidate)?;
-			Ok(().into())
+			Self::execute_scheduled_requests(delegator, candidate)
 		}
-		#[pallet::weight(<T as Config>::WeightInfo::cancel_delegator_bond_less())]
+
 		/// Cancel request to change an existing delegation.
+		#[pallet::weight(<T as Config>::WeightInfo::cancel_delegator_bond_less())]
 		pub fn cancel_delegation_request(
 			origin: OriginFor<T>,
 			candidate: T::AccountId,
 		) -> DispatchResultWithPostInfo {
 			let delegator = ensure_signed(origin)?;
-			let mut state = <DelegatorState<T>>::get(&delegator).ok_or(Error::<T>::DelegatorDNE)?;
-			let request = state.cancel_pending_request::<T>(candidate)?;
-			<DelegatorState<T>>::insert(&delegator, state);
-			Self::deposit_event(Event::CancelledDelegationRequest {
-				delegator: delegator,
-				cancelled_request: request,
-			});
-			Ok(().into())
+			Self::delegator_cancel_request(delegator, candidate)
 		}
 	}
 
@@ -1670,14 +1679,11 @@ pub mod pallet {
 				.delegations
 				.into_iter()
 				.map(|mut bond| {
-					let delegator = <DelegatorState<T>>::get(&bond.owner)
-						.expect("delegator state must be present for a bonded delegation");
-
-					bond.amount = match delegator.requests.requests.get(collator) {
+					bond.amount = match Self::delegator_scheduled_requests(&bond.owner, &collator) {
 						None => bond.amount,
 
-						Some(DelegationRequest {
-							action: DelegationChange::Revoke,
+						Some(ScheduledRequest {
+							action: DelegationAction::Revoke(_),
 							..
 						}) => {
 							log::warn!(
@@ -1688,9 +1694,8 @@ pub mod pallet {
 							BalanceOf::<T>::zero()
 						}
 
-						Some(DelegationRequest {
-							action: DelegationChange::Decrease,
-							amount,
+						Some(ScheduledRequest {
+							action: DelegationAction::Decrease(amount),
 							..
 						}) => {
 							log::warn!(
@@ -1698,7 +1703,7 @@ pub mod pallet {
 								decrease request",
 								bond.owner
 							);
-							bond.amount.saturating_sub(*amount)
+							bond.amount.saturating_sub(amount)
 						}
 					};
 

@@ -1221,6 +1221,7 @@ pub struct Delegator<AccountId, Balance> {
 	/// Total balance locked for this delegator
 	pub total: Balance,
 	/// Requests to change delegations, relevant iff active
+	#[deprecated(note = "use ScheduledRequests storage item instead")]
 	pub requests: PendingDelegationRequests<AccountId, Balance>,
 	/// Status for this delegator
 	pub status: DelegatorStatus,
@@ -1405,6 +1406,7 @@ impl<
 		}
 		Err(Error::<T>::DelegationDNE.into())
 	}
+
 	/// Schedule decrease delegation
 	pub fn schedule_decrease_delegation<T: Config>(
 		&mut self,
@@ -1452,6 +1454,8 @@ impl<
 			log::warn!("Migrate revocation request failed because delegation DNE");
 		}
 	}
+
+	#[deprecated(note = "use T::Config::delegator_schedule_revoke")]
 	/// Schedule revocation for the given collator
 	pub fn schedule_revoke<T: Config>(
 		&mut self,
@@ -1473,6 +1477,17 @@ impl<
 		self.requests.revoke::<T>(collator, *amount, when)?;
 		Ok((now, when))
 	}
+
+	/// Retrieves the bond amount that a delegator has provided towards a collator.
+	/// Returns `None` if missing.
+	pub fn get_bond_amount(&self, collator: &AccountId) -> Option<Balance> {
+		self.delegations
+			.0
+			.iter()
+			.find(|b| &b.owner == collator)
+			.map(|b| b.amount)
+	}
+
 	/// Execute pending delegation change request
 	pub fn execute_pending_request<T: Config>(&mut self, candidate: AccountId) -> DispatchResult
 	where
@@ -1616,6 +1631,7 @@ impl<
 	}
 }
 
+#[deprecated(note = "use DelegationAction")]
 #[derive(Clone, Eq, PartialEq, Encode, Decode, RuntimeDebug, TypeInfo)]
 /// Changes requested by the delegator
 /// - limit of 1 ongoing change per delegation
@@ -1624,6 +1640,7 @@ pub enum DelegationChange {
 	Decrease,
 }
 
+#[deprecated(note = "use ScheduledRequest")]
 #[derive(Clone, Eq, PartialEq, Encode, Decode, RuntimeDebug, TypeInfo)]
 pub struct DelegationRequest<AccountId, Balance> {
 	pub collator: AccountId,
@@ -1632,6 +1649,7 @@ pub struct DelegationRequest<AccountId, Balance> {
 	pub action: DelegationChange,
 }
 
+#[deprecated(note = "use DelegatorScheduledRequests storage item")]
 #[derive(Clone, Encode, PartialEq, Decode, RuntimeDebug, TypeInfo)]
 /// Pending requests to mutate delegations for each delegator
 pub struct PendingDelegationRequests<AccountId, Balance> {
