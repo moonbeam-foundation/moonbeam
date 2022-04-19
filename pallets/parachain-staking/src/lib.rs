@@ -55,7 +55,7 @@ pub mod inflation;
 pub mod migrations;
 #[cfg(test)]
 mod mock;
-mod requests;
+mod delegation_requests;
 mod set;
 #[cfg(test)]
 mod tests;
@@ -71,7 +71,7 @@ pub use types::*;
 
 #[pallet]
 pub mod pallet {
-	use crate::requests::{DelegationAction, ScheduledRequest};
+	use crate::delegation_requests::{DelegationAction, ScheduledRequest};
 	use crate::{set::OrderedSet, types::*, InflationInfo, Range, WeightInfo};
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{Currency, Get, Imbalance, ReservableCurrency};
