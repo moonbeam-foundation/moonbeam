@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! # Pallet moonbeam-orbiters
-//! 
+//!
 //! This pallet allows authorized collators to share their block creation rights and rewards with
 //! multiple entities named "orbiters".
 //! Each authorized collator will define a group of orbiters, and each orbiter will replace the
