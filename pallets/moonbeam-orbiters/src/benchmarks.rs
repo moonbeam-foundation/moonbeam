@@ -43,7 +43,7 @@ benchmarks! {
 	verify {
 		assert_eq!(T::Currency::reserved_balance(&orbiter_account), MIN_ORBITER_DEPOSIT.into());
 	}
-	force_update_min_orbiter_deposit {
+	update_min_orbiter_deposit {
 	}: _(RawOrigin::Root, One::one())
 	verify {
 		assert_eq!(Pallet::<T>::min_orbiter_deposit(), One::one());
@@ -79,9 +79,9 @@ mod tests {
 	}
 
 	#[test]
-	fn bench_force_update_min_orbiter_deposit() {
+	fn bench_update_min_orbiter_deposit() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_force_update_min_orbiter_deposit());
+			assert_ok!(Pallet::<Test>::test_benchmark_update_min_orbiter_deposit());
 		});
 	}
 }

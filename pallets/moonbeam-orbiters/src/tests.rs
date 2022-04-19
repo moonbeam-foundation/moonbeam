@@ -53,7 +53,7 @@ fn test_orbiter_register_ok() {
 #[test]
 fn test_add_collator() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_ok!(MoonbeamOrbiters::force_add_collator(Origin::root(), 1),);
+		assert_ok!(MoonbeamOrbiters::add_collator(Origin::root(), 1),);
 		/*assert_eq!(
 			last_event(),
 			Event::Balances(pallet_balances::Event::<Test>::Reserved {
@@ -62,7 +62,7 @@ fn test_add_collator() {
 			})
 		);*/
 		assert_noop!(
-			MoonbeamOrbiters::force_add_collator(Origin::root(), 1),
+			MoonbeamOrbiters::add_collator(Origin::root(), 1),
 			crate::Error::<Test>::CollatorAlreadyAdded
 		);
 	});
@@ -76,7 +76,7 @@ fn test_orbiter_unregister() {
 		.build()
 		.execute_with(|| {
 			// Add a collator
-			assert_ok!(MoonbeamOrbiters::force_add_collator(Origin::root(), 1),);
+			assert_ok!(MoonbeamOrbiters::add_collator(Origin::root(), 1),);
 			// Register an orbiter
 			assert_ok!(MoonbeamOrbiters::orbiter_register(Origin::signed(2)),);
 
