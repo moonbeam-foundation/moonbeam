@@ -66,6 +66,7 @@ use frame_support::pallet;
 pub use inflation::{InflationInfo, Range};
 use weights::WeightInfo;
 
+pub use delegation_requests::{DelegationAction, ScheduledRequest};
 pub use pallet::*;
 pub use types::*;
 
