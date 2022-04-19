@@ -46,7 +46,7 @@ benchmarks! {
 	update_min_orbiter_deposit {
 	}: _(RawOrigin::Root, One::one())
 	verify {
-		assert_eq!(Pallet::<T>::min_orbiter_deposit(), One::one());
+		assert_eq!(Pallet::<T>::min_orbiter_deposit(), Some(One::one()));
 	}
 }
 
