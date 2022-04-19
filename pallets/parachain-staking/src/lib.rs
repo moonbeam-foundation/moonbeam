@@ -46,7 +46,6 @@
 //! To revoke a delegation, call `revoke_delegation` with the collator candidate's account.
 //! To leave the set of delegators and revoke all delegations, call `leave_delegators`.
 
-// #![allow(deprecated)]
 #![cfg_attr(not(feature = "std"), no_std)]
 
 #[cfg(any(test, feature = "runtime-benchmarks"))]
@@ -55,7 +54,7 @@ pub mod inflation;
 pub mod migrations;
 #[cfg(test)]
 mod mock;
-pub mod requests;
+mod requests;
 mod set;
 #[cfg(test)]
 mod tests;
@@ -491,6 +490,7 @@ pub mod pallet {
 	pub(crate) type CandidateInfo<T: Config> =
 		StorageMap<_, Twox64Concat, T::AccountId, CandidateMetadata<BalanceOf<T>>, OptionQuery>;
 
+	/// Stores outstanding delegation requests per delegator per collator.
 	#[pallet::storage]
 	#[pallet::getter(fn delegator_scheduled_requests)]
 	pub(crate) type DelegatorScheduledRequests<T: Config> = StorageDoubleMap<
@@ -503,9 +503,10 @@ pub mod pallet {
 		OptionQuery,
 	>;
 
-	/// The number of scheduled requests per delegator.
+	/// The number of scheduled [DelegationAction::Revoke] requests per delegator.
 	/// This is used to evaluate if a delegator should be scheduled for exit
 	/// once it has scheduled revokes on all existing collators.
+	/// TODO! Seems we are not using it anywhere, only maintaing (can be removed?).
 	#[pallet::storage]
 	#[pallet::getter(fn delegator_scheduled_request_count)]
 	pub(crate) type DelegatorScheduledRevokeRequestCount<T: Config> =
@@ -513,6 +514,7 @@ pub mod pallet {
 
 	/// The total amount of funds set to decrease once all scheduled actions for the delegator
 	/// are undertaken.
+	/// TODO! Seems we are not using it anywhere, only maintaing (can be removed?).
 	#[pallet::storage]
 	#[pallet::getter(fn delegator_scheduled_request_decrease_amount)]
 	pub(crate) type DelegatorScheduledRequestDecreaseAmount<T: Config> =
