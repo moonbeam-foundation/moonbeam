@@ -1357,11 +1357,11 @@ pub mod pallet {
 		#[pallet::weight(<T as Config>::WeightInfo::schedule_delegator_bond_less())]
 		pub fn schedule_delegator_bond_less(
 			origin: OriginFor<T>,
-			collator: T::AccountId,
+			candidate: T::AccountId,
 			less: BalanceOf<T>,
 		) -> DispatchResultWithPostInfo {
 			let delegator = ensure_signed(origin)?;
-			Self::delegator_schedule_bond_decrease(delegator, collator, less)
+			Self::delegator_schedule_bond_decrease(delegator, candidate, less)
 		}
 
 		/// Execute pending request to change an existing delegation
