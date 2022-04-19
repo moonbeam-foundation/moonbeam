@@ -12,6 +12,7 @@ use crate::pallet::{
 	Total,
 };
 
+/// An action that can be performed upon a delegation
 #[derive(Clone, Eq, PartialEq, Encode, Decode, RuntimeDebug, TypeInfo)]
 pub enum DelegationAction<Balance> {
 	Revoke(Balance),
@@ -22,6 +23,7 @@ impl<Balance> DelegationAction<Balance>
 where
 	Balance: Copy,
 {
+	/// Returns the wrapped amount value.
 	pub fn amount(&self) -> Balance {
 		match self {
 			DelegationAction::Revoke(amount) => *amount,
@@ -30,6 +32,8 @@ where
 	}
 }
 
+/// Represents a scheduled request that define a [DelegationAction]. The request is executable
+/// iff the provided [RoundIndex] is achieved.
 #[derive(Clone, Eq, PartialEq, Encode, Decode, RuntimeDebug, TypeInfo)]
 pub struct ScheduledRequest<Balance> {
 	pub when_executable: RoundIndex,
@@ -40,6 +44,7 @@ impl<T> Pallet<T>
 where
 	T: Config,
 {
+	/// Schedules a [DelegationAction::Revoke] for the delegator, towards a given collator.
 	pub(crate) fn delegator_schedule_revoke(
 		delegator: DelegatorId<T>,
 		collator: CollatorId<T>,
@@ -74,6 +79,7 @@ where
 		Ok(().into())
 	}
 
+	/// Schedules a [DelegationAction::Decrease] for the delegator, towards a given collator.
 	pub(crate) fn delegator_schedule_bond_decrease(
 		delegator: DelegatorId<T>,
 		collator: CollatorId<T>,
@@ -132,6 +138,7 @@ where
 		Ok(().into())
 	}
 
+	/// Cancels the delegator's existing [ScheduledRequest] towards a given collator.
 	pub(crate) fn delegator_cancel_request(
 		delegator: DelegatorId<T>,
 		collator: CollatorId<T>,
@@ -148,6 +155,7 @@ where
 		Ok(().into())
 	}
 
+	/// Executes the delegator's existing [ScheduledRequest] towards a given collator.
 	pub(crate) fn delegator_execute_scheduled_request(
 		delegator: DelegatorId<T>,
 		collator: CollatorId<T>,
@@ -251,6 +259,7 @@ where
 		}
 	}
 
+	/// Adds a [ScheduledRequest] to the delegator's storage state, towards a given collator.
 	pub(crate) fn delegator_scheduled_requests_state_add(
 		delegator: DelegatorId<T>,
 		collator: CollatorId<T>,
@@ -270,6 +279,8 @@ where
 		});
 	}
 
+	/// Removes any [ScheduledRequest] from the delegator's storage state, towards a given collator.
+	/// The function is a NOOP if a request does not exist.
 	pub(crate) fn delegator_scheduled_requests_state_remove(
 		delegator: &DelegatorId<T>,
 		collator: &CollatorId<T>,
