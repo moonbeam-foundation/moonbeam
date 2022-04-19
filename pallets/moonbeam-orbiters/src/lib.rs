@@ -220,10 +220,8 @@ pub mod pallet {
 				(orbiters.len() as u32) < T::MaxPoolSize::get(),
 				Error::<T>::CollatorPoolTooLarge
 			);
-			for orbiter_ in orbiters {
-				if orbiter_ == &orbiter {
-					return Err(Error::<T>::OrbiterAlreadyInPool.into());
-				}
+			if orbiters.iter().any(|orbiter_| orbiter_ == &orbiter) {
+				return Err(Error::<T>::OrbiterAlreadyInPool.into());
 			}
 
 			// Make sure the orbiter has made a deposit. It can be an old orbiter whose deposit
