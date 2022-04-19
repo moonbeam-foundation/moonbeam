@@ -587,7 +587,7 @@ where
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		// If we are not able to get delegator state, we return false
-		// Users can call `is_delegator` to determine when this happens
+		// Users can call `is_candidate` to determine when this happens
 		let pending =
 			if let Some(state) = <parachain_staking::Pallet<Runtime>>::candidate_info(&candidate) {
 				state.is_leaving()

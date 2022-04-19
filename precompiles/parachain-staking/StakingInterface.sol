@@ -131,10 +131,10 @@ interface ParachainStaking {
         view
         returns (bool);
 
-    /// @dev Whether there exists a pending bond less request for a candidate made by a candidate
+    /// @dev Whether there exists a pending bond less request made by a candidate
     /// Selector: 26ab05fb
-    /// @param candidate the candidate for which the request was made
-    /// @return Whether a pending request exist for such candidate
+    /// @param candidate the candidate which made the request
+    /// @return Whether a pending bond less request was made by the candidate
     function candidate_request_is_pending(address candidate)
         external
         view
