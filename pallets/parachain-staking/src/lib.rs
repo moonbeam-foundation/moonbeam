@@ -735,17 +735,13 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			frame_system::ensure_root(origin)?;
 			for delegator in delegators {
-				if let Some(mut state) = <DelegatorState<T>>::get(&delegator) {
+				if let Some(state) = <DelegatorState<T>>::get(&delegator) {
 					// go through all requests and remove ones without corresponding delegation
-					for (candidate, request) in state.requests.requests.clone().into_iter() {
+					for (candidate, _) in
+						<DelegatorScheduledRequests<T>>::iter_prefix(&delegator).into_iter()
+					{
 						if !state.delegations.0.iter().any(|x| x.owner == candidate) {
-							state.requests.requests.remove(&candidate);
-							state.requests.less_total =
-								state.requests.less_total.saturating_sub(request.amount);
-							if matches!(request.action, DelegationChange::Revoke) {
-								state.requests.revocations_count =
-									state.requests.revocations_count.saturating_sub(1u32);
-							}
+							Self::delegator_scheduled_requests_state_remove(&delegator, &candidate);
 						}
 					}
 					<DelegatorState<T>>::insert(&delegator, state);
@@ -1023,7 +1019,7 @@ pub mod pallet {
 					} else {
 						if let Some(_) = Self::delegator_scheduled_requests(&bond.owner, &candidate)
 						{
-							Self::scheduled_requests_state_remove(&bond.owner, &candidate);
+							Self::delegator_scheduled_requests_state_remove(&bond.owner, &candidate);
 						}
 						<DelegatorState<T>>::insert(&bond.owner, delegator);
 					}
@@ -1376,7 +1372,7 @@ pub mod pallet {
 			candidate: T::AccountId,
 		) -> DispatchResultWithPostInfo {
 			ensure_signed(origin)?; // we may want to reward caller if caller != delegator
-			Self::execute_scheduled_requests(delegator, candidate)
+			Self::delegator_execute_scheduled_request(delegator, candidate)
 		}
 
 		/// Cancel request to change an existing delegation.
