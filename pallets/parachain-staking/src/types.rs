@@ -655,18 +655,11 @@ impl<
 				.expect("Delegation existence => DelegatorState existence");
 			let leaving = delegator_state.delegations.0.len() == 1usize;
 			delegator_state.rm_delegation(candidate);
-			if let Some(request) = delegator_state.requests.requests.remove(&candidate) {
-				delegator_state.requests.less_total = delegator_state
-					.requests
-					.less_total
-					.saturating_sub(request.amount);
-				if matches!(request.action, DelegationChange::Revoke) {
-					delegator_state.requests.revocations_count = delegator_state
-						.requests
-						.revocations_count
-						.saturating_sub(1u32);
-				}
-			}
+			<Pallet<T>>::delegator_scheduled_requests_state_remove(
+				&lowest_bottom_to_be_kicked.owner,
+				&candidate,
+			);
+
 			Pallet::<T>::deposit_event(Event::DelegationKicked {
 				delegator: lowest_bottom_to_be_kicked.owner.clone(),
 				candidate: candidate.clone(),
@@ -1222,7 +1215,7 @@ pub struct Delegator<AccountId, Balance> {
 	pub total: Balance,
 	/// Requests to change delegations, relevant iff active
 	#[deprecated(note = "use ScheduledRequests storage item instead")]
-	pub requests: PendingDelegationRequests<AccountId, Balance>,
+	pub requests: deprecated::PendingDelegationRequests<AccountId, Balance>,
 	/// Status for this delegator
 	pub status: DelegatorStatus,
 }
@@ -1277,11 +1270,14 @@ impl<
 				amount,
 			}]),
 			total: amount,
-			requests: PendingDelegationRequests::new(),
+			requests: deprecated::PendingDelegationRequests::new(),
 			status: DelegatorStatus::Active,
 		}
 	}
-	pub fn requests(&self) -> BTreeMap<AccountId, DelegationRequest<AccountId, Balance>> {
+	#[deprecated(note = "use DelegatorScheduledRequests storage item instead")]
+	pub fn requests(
+		&self,
+	) -> BTreeMap<AccountId, deprecated::DelegationRequest<AccountId, Balance>> {
 		self.requests.requests.clone()
 	}
 	pub fn is_active(&self) -> bool {
@@ -1407,20 +1403,6 @@ impl<
 		Err(Error::<T>::DelegationDNE.into())
 	}
 
-	/// Temporary function to migrate revocations
-	pub fn hotfix_set_revoke<T: Config>(&mut self, collator: AccountId, when: RoundIndex) {
-		// get delegation amount
-		let maybe_bond = self.delegations.0.iter().find(|b| b.owner == collator);
-		if let Some(Bond { amount, .. }) = maybe_bond {
-			// add revocation to pending requests
-			if let Err(e) = self.requests.revoke::<T>(collator, *amount, when) {
-				log::warn!("Migrate revocation request failed with error: {:?}", e);
-			}
-		} else {
-			log::warn!("Migrate revocation request failed because delegation DNE");
-		}
-	}
-
 	/// Retrieves the bond amount that a delegator has provided towards a collator.
 	/// Returns `None` if missing.
 	pub fn get_bond_amount(&self, collator: &AccountId) -> Option<Balance> {
@@ -1432,113 +1414,66 @@ impl<
 	}
 }
 
-#[deprecated(note = "use DelegationAction")]
-#[derive(Clone, Eq, PartialEq, Encode, Decode, RuntimeDebug, TypeInfo)]
-/// Changes requested by the delegator
-/// - limit of 1 ongoing change per delegation
-pub enum DelegationChange {
-	Revoke,
-	Decrease,
-}
+mod deprecated {
+	use super::*;
 
-#[deprecated(note = "use ScheduledRequest")]
-#[derive(Clone, Eq, PartialEq, Encode, Decode, RuntimeDebug, TypeInfo)]
-pub struct DelegationRequest<AccountId, Balance> {
-	pub collator: AccountId,
-	pub amount: Balance,
-	pub when_executable: RoundIndex,
-	pub action: DelegationChange,
-}
+	#[deprecated(note = "use DelegationAction")]
+	#[derive(Clone, Eq, PartialEq, Encode, Decode, RuntimeDebug, TypeInfo)]
+	/// Changes requested by the delegator
+	/// - limit of 1 ongoing change per delegation
+	pub enum DelegationChange {
+		Revoke,
+		Decrease,
+	}
 
-#[deprecated(note = "use DelegatorScheduledRequests storage item")]
-#[derive(Clone, Encode, PartialEq, Decode, RuntimeDebug, TypeInfo)]
-/// Pending requests to mutate delegations for each delegator
-pub struct PendingDelegationRequests<AccountId, Balance> {
-	/// Number of pending revocations (necessary for determining whether revoke is exit)
-	pub revocations_count: u32,
-	/// Map from collator -> Request (enforces at most 1 pending request per delegation)
-	pub requests: BTreeMap<AccountId, DelegationRequest<AccountId, Balance>>,
-	/// Sum of pending revocation amounts + bond less amounts
-	pub less_total: Balance,
-}
+	#[deprecated(note = "use ScheduledRequest")]
+	#[derive(Clone, Eq, PartialEq, Encode, Decode, RuntimeDebug, TypeInfo)]
+	pub struct DelegationRequest<AccountId, Balance> {
+		pub collator: AccountId,
+		pub amount: Balance,
+		pub when_executable: RoundIndex,
+		pub action: DelegationChange,
+	}
 
-impl<A: Ord, B: Zero> Default for PendingDelegationRequests<A, B> {
-	fn default() -> PendingDelegationRequests<A, B> {
-		PendingDelegationRequests {
-			revocations_count: 0u32,
-			requests: BTreeMap::new(),
-			less_total: B::zero(),
+	#[deprecated(note = "use DelegatorScheduledRequests storage item")]
+	#[derive(Clone, Encode, PartialEq, Decode, RuntimeDebug, TypeInfo)]
+	/// Pending requests to mutate delegations for each delegator
+	pub struct PendingDelegationRequests<AccountId, Balance> {
+		/// Number of pending revocations (necessary for determining whether revoke is exit)
+		pub revocations_count: u32,
+		/// Map from collator -> Request (enforces at most 1 pending request per delegation)
+		pub requests: BTreeMap<AccountId, DelegationRequest<AccountId, Balance>>,
+		/// Sum of pending revocation amounts + bond less amounts
+		pub less_total: Balance,
+	}
+
+	impl<A: Ord, B: Zero> Default for PendingDelegationRequests<A, B> {
+		fn default() -> PendingDelegationRequests<A, B> {
+			PendingDelegationRequests {
+				revocations_count: 0u32,
+				requests: BTreeMap::new(),
+				less_total: B::zero(),
+			}
 		}
 	}
-}
 
-impl<
-		A: Ord + Clone,
-		B: Zero
-			+ Ord
-			+ Copy
-			+ Clone
-			+ sp_std::ops::AddAssign
-			+ sp_std::ops::Add<Output = B>
-			+ sp_std::ops::SubAssign
-			+ sp_std::ops::Sub<Output = B>
-			+ Saturating,
-	> PendingDelegationRequests<A, B>
-{
-	/// New default (empty) pending requests
-	pub fn new() -> PendingDelegationRequests<A, B> {
-		PendingDelegationRequests::default()
-	}
-	/// Add bond less order to pending requests, only succeeds if returns true
-	/// - limit is the maximum amount allowed that can be subtracted from the delegation
-	/// before it would be below the minimum delegation amount
-	pub fn bond_less<T: Config>(
-		&mut self,
-		collator: A,
-		amount: B,
-		when_executable: RoundIndex,
-	) -> DispatchResult {
-		ensure!(
-			self.requests.get(&collator).is_none(),
-			Error::<T>::PendingDelegationRequestAlreadyExists
-		);
-		self.requests.insert(
-			collator.clone(),
-			DelegationRequest {
-				collator,
-				amount,
-				when_executable,
-				action: DelegationChange::Decrease,
-			},
-		);
-		self.less_total = self.less_total.saturating_add(amount);
-		Ok(())
-	}
-	/// Add revoke order to pending requests
-	/// - limit is the maximum amount allowed that can be subtracted from the delegation
-	/// before it would be below the minimum delegation amount
-	pub fn revoke<T: Config>(
-		&mut self,
-		collator: A,
-		amount: B,
-		when_executable: RoundIndex,
-	) -> DispatchResult {
-		ensure!(
-			self.requests.get(&collator).is_none(),
-			Error::<T>::PendingDelegationRequestAlreadyExists
-		);
-		self.requests.insert(
-			collator.clone(),
-			DelegationRequest {
-				collator,
-				amount,
-				when_executable,
-				action: DelegationChange::Revoke,
-			},
-		);
-		self.revocations_count = self.revocations_count.saturating_add(1u32);
-		self.less_total = self.less_total.saturating_add(amount);
-		Ok(())
+	impl<
+			A: Ord + Clone,
+			B: Zero
+				+ Ord
+				+ Copy
+				+ Clone
+				+ sp_std::ops::AddAssign
+				+ sp_std::ops::Add<Output = B>
+				+ sp_std::ops::SubAssign
+				+ sp_std::ops::Sub<Output = B>
+				+ Saturating,
+		> PendingDelegationRequests<A, B>
+	{
+		/// New default (empty) pending requests
+		pub fn new() -> Self {
+			Self::default()
+		}
 	}
 }
 

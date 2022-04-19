@@ -270,20 +270,19 @@ where
 		});
 	}
 
-	/// The request MUST exist
 	pub(crate) fn delegator_scheduled_requests_state_remove(
 		delegator: &DelegatorId<T>,
 		collator: &CollatorId<T>,
 	) {
-		let request =
-			<DelegatorScheduledRequests<T>>::take(delegator, collator).expect("must exist");
-		if matches!(request.action, DelegationAction::Revoke(_)) {
-			<DelegatorScheduledRevokeRequestCount<T>>::mutate(&delegator, |x| {
-				*x = x.saturating_sub(1)
+		if let Some(request) = <DelegatorScheduledRequests<T>>::take(delegator, collator) {
+			if matches!(request.action, DelegationAction::Revoke(_)) {
+				<DelegatorScheduledRevokeRequestCount<T>>::mutate(&delegator, |x| {
+					*x = x.saturating_sub(1)
+				});
+			}
+			<DelegatorScheduledRequestDecreaseAmount<T>>::mutate(&delegator, |x| {
+				*x = x.saturating_sub(request.action.amount())
 			});
 		}
-		<DelegatorScheduledRequestDecreaseAmount<T>>::mutate(&delegator, |x| {
-			*x = x.saturating_sub(request.action.amount())
-		});
 	}
 }

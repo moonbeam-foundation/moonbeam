@@ -1017,10 +1017,7 @@ pub mod pallet {
 					if remaining.is_zero() {
 						<DelegatorState<T>>::remove(&bond.owner);
 					} else {
-						if let Some(_) = Self::delegator_scheduled_requests(&bond.owner, &candidate)
-						{
-							Self::delegator_scheduled_requests_state_remove(&bond.owner, &candidate);
-						}
+						Self::delegator_scheduled_requests_state_remove(&bond.owner, &candidate);
 						<DelegatorState<T>>::insert(&bond.owner, delegator);
 					}
 				}
