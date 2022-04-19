@@ -1658,7 +1658,7 @@ pub mod pallet {
 		/// Apply the delegator intent for revoke and decrease in order to build the
 		/// effective list of delegators with their intended bond amount.
 		///
-		/// This is will:
+		/// This will:
 		/// - if [DelegationChange::Revoke] is outstanding, set the bond amount to 0.
 		/// - if [DelegationChange::Decrease] is outstanding, subtract the bond by specified amount.
 		/// - else, do nothing
