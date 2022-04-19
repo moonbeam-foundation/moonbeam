@@ -69,7 +69,7 @@ use pallet_evm::{
 	Account as EVMAccount, EVMCurrencyAdapter, EnsureAddressNever, EnsureAddressRoot,
 	FeeCalculator, GasWeightMapping, OnChargeEVMTransaction as OnChargeEVMTransactionT, Runner,
 };
-use pallet_transaction_payment::{CurrencyAdapter, Multiplier, TargetedFeeAdjustment};
+use pallet_transaction_payment::{CurrencyAdapter, Multiplier, MultiplierUpdate};
 pub use parachain_staking::{InflationInfo, Range};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
@@ -77,7 +77,7 @@ use sp_api::impl_runtime_apis;
 use sp_core::{OpaqueMetadata, H160, H256, U256};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
-	traits::{BlakeTwo256, Block as BlockT, Dispatchable, IdentityLookup, PostDispatchInfoOf},
+	traits::{BlakeTwo256, Block as BlockT, Convert, Dispatchable, IdentityLookup, PostDispatchInfoOf},
 	transaction_validity::{
 		InvalidTransaction, TransactionSource, TransactionValidity, TransactionValidityError,
 	},
@@ -323,7 +323,7 @@ impl pallet_transaction_payment::Config for Runtime {
 	type TransactionByteFee = ConstU128<{ currency::TRANSACTION_BYTE_FEE }>;
 	type OperationalFeeMultiplier = ConstU8<5>;
 	type WeightToFee = IdentityFee<Balance>;
-	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Runtime>;
+	type FeeMultiplierUpdate = FixedGasPrice;
 }
 
 impl pallet_sudo::Config for Runtime {
@@ -359,41 +359,56 @@ impl pallet_evm::GasWeightMapping for MoonbeamGasWeightMapping {
 parameter_types! {
 	pub BlockGasLimit: U256
 		= U256::from(NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT / WEIGHT_PER_GAS);
-	/// The portion of the `NORMAL_DISPATCH_RATIO` that we adjust the fees with. Blocks filled less
-	/// than this will decrease the weight and more will increase.
-	pub const TargetBlockFullness: Perquintill = Perquintill::from_percent(25);
-	/// The adjustment variable of the runtime. Higher values will cause `TargetBlockFullness` to
-	/// change the fees more rapidly. This low value causes changes to occur slowly over time.
-	pub AdjustmentVariable: Multiplier = Multiplier::saturating_from_rational(3, 100_000);
-	/// Minimum amount of the multiplier. This value cannot be too low. A test case should ensure
-	/// that combined with `AdjustmentVariable`, we can recover from the minimum.
-	/// See `multiplier_can_grow_from_zero` in integration_tests.rs.
-	/// This value is currently only used by pallet-transaction-payment as an assertion that the
-	/// next multiplier is always > min value.
-	pub MinimumMultiplier: Multiplier = Multiplier::saturating_from_rational(1, 1_000_000u128);
 	pub PrecompilesValue: MoonbasePrecompiles<Runtime> = MoonbasePrecompiles::<_>::new();
 }
 
+/// Implementation of both Ethereum and Substrate congestion-based fee modifiers (EIP-1559 and
+/// pallet-transaction-payment) which returns a fixed fee.
 pub struct FixedGasPrice;
-impl FeeCalculator for FixedGasPrice {
-	fn min_gas_price() -> U256 {
+impl FixedGasPrice {
+	fn gas_price() -> U256 {
 		(1 * currency::GIGAWEI * currency::SUPPLY_FACTOR).into()
 	}
 }
 
-/// Parameterized slow adjusting fee updated based on
-/// https://w3f-research.readthedocs.io/en/latest/polkadot/overview/2-token-economics.html#-2.-slow-adjusting-mechanism // editorconfig-checker-disable-line
+impl FeeCalculator for FixedGasPrice {
+	fn min_gas_price() -> U256 {
+		Self::gas_price()
+	}
+}
+
+/// Implementation of MultiplierUpdate which uses FixedGasPrice to update
+/// pallet-transaction-payment's fee modifier.
 ///
-/// The adjustment algorithm boils down to:
+/// Note that the MultiplierUpdate trait itself is currently only used in transaction-payment's
+/// integrity_test() hook. The important conversion occurs in its on_finalize() hook and uses the
+/// Convert trait.
 ///
-/// diff = (previous_block_weight - target) / maximum_block_weight
-/// next_multiplier = prev_multiplier * (1 + (v * diff) + ((v * diff)^2 / 2))
-/// assert(next_multiplier > min)
-///     where: v is AdjustmentVariable
-///            target is TargetBlockFullness
-///            min is MinimumMultiplier
-pub type SlowAdjustingFeeUpdate<R> =
-	TargetedFeeAdjustment<R, TargetBlockFullness, AdjustmentVariable, MinimumMultiplier>;
+/// Reminder: FixedU128 is a fixed point unsigned in the range
+/// [0.000000000000000000, 340282366920938463463.374607431768211455]
+impl MultiplierUpdate for FixedGasPrice {
+	fn min() -> Multiplier {
+		Self::gas_price()
+			.saturating_mul(WEIGHT_PER_GAS.into())
+			.as_u128() // TODO: this panics. we should enforce the upper bound from FixedU128
+			.into()
+	}
+	fn target() -> Perquintill {
+		Perquintill::from_percent(0)
+	}
+	fn variability() -> Multiplier {
+		0.into()
+	}
+}
+
+impl Convert<Multiplier, Multiplier> for FixedGasPrice {
+	fn convert(_previous: Multiplier) -> Multiplier {
+		Self::gas_price()
+			.saturating_mul(WEIGHT_PER_GAS.into())
+			.as_u128() // TODO: this panics. we should enforce the upper bound from FixedU128
+			.into()
+	}
+}
 
 /// The author inherent provides an AccountId, but pallet evm needs an H160.
 /// This simple adapter makes the conversion for any types T, U such that T: Into<U>
