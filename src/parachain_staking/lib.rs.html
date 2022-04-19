@@ -1906,19 +1906,19 @@
 			<span class="ident">collator_account</span>: <span class="ident">T::AccountId</span>,
 			<span class="ident">total_exposed_amount</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 		},
-		<span class="doccomment">/// Сandidate requested to decrease a self bond.</span>
+		<span class="doccomment">/// Candidate requested to decrease a self bond.</span>
 		<span class="ident">CandidateBondLessRequested</span> {
 			<span class="ident">candidate</span>: <span class="ident">T::AccountId</span>,
 			<span class="ident">amount_to_decrease</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 			<span class="ident">execute_round</span>: <span class="ident">RoundIndex</span>,
 		},
-		<span class="doccomment">/// Сandidate has increased a self bond.</span>
+		<span class="doccomment">/// Candidate has increased a self bond.</span>
 		<span class="ident">CandidateBondedMore</span> {
 			<span class="ident">candidate</span>: <span class="ident">T::AccountId</span>,
 			<span class="ident">amount</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 			<span class="ident">new_total_bond</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 		},
-		<span class="doccomment">/// Сandidate has decreased a self bond.</span>
+		<span class="doccomment">/// Candidate has decreased a self bond.</span>
 		<span class="ident">CandidateBondedLess</span> {
 			<span class="ident">candidate</span>: <span class="ident">T::AccountId</span>,
 			<span class="ident">amount</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
@@ -1928,7 +1928,7 @@
 		<span class="ident">CandidateWentOffline</span> { <span class="ident">candidate</span>: <span class="ident">T::AccountId</span> },
 		<span class="doccomment">/// Candidate rejoins the set of collator candidates.</span>
 		<span class="ident">CandidateBackOnline</span> { <span class="ident">candidate</span>: <span class="ident">T::AccountId</span> },
-		<span class="doccomment">/// Сandidate has requested to leave the set of candidates.</span>
+		<span class="doccomment">/// Candidate has requested to leave the set of candidates.</span>
 		<span class="ident">CandidateScheduledExit</span> {
 			<span class="ident">exit_allowed_round</span>: <span class="ident">RoundIndex</span>,
 			<span class="ident">candidate</span>: <span class="ident">T::AccountId</span>,
