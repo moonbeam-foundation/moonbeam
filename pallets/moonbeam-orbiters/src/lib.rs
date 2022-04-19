@@ -170,8 +170,9 @@ pub mod pallet {
 		fn on_initialize(_: T::BlockNumber) -> Weight {
 			// Prune old OrbiterPerRound entries
 			let current_round = CurrentRound::<T>::get();
-			if current_round > T::MaxRoundArchive::get() {
-				let round_to_prune = current_round - T::MaxRoundArchive::get();
+			let max_round_archive = T::MaxRoundArchive::get();
+			if current_round > max_round_archive {
+				let round_to_prune = current_round - max_round_archive;
 				OrbiterPerRound::<T>::remove_prefix(round_to_prune, None);
 				T::DbWeight::get().reads_writes(1, 1)
 			} else {
