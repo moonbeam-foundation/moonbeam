@@ -1414,7 +1414,7 @@ impl<
 	}
 }
 
-mod deprecated {
+pub mod deprecated {
 	use super::*;
 
 	#[deprecated(note = "use DelegationAction")]

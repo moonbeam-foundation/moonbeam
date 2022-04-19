@@ -47,6 +47,7 @@
 //! To leave the set of delegators and revoke all delegations, call `leave_delegators`.
 
 #![cfg_attr(not(feature = "std"), no_std)]
+#![allow(deprecated)]
 
 #[cfg(any(test, feature = "runtime-benchmarks"))]
 mod benchmarks;
@@ -508,7 +509,7 @@ pub mod pallet {
 	/// once it has scheduled revokes on all existing collators.
 	/// TODO! Seems we are not using it anywhere, only maintaing (can be removed?).
 	#[pallet::storage]
-	#[pallet::getter(fn delegator_scheduled_request_count)]
+	#[pallet::getter(fn delegator_scheduled_revoke_request_count)]
 	pub(crate) type DelegatorScheduledRevokeRequestCount<T: Config> =
 		StorageMap<_, Blake2_128Concat, DelegatorId<T>, u64, ValueQuery>;
 

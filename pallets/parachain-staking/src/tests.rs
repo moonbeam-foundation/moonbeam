@@ -25,17 +25,16 @@ use crate::mock::{
 	roll_one_block, roll_to, roll_to_round_begin, roll_to_round_end, set_author, Balances,
 	Event as MetaEvent, ExtBuilder, Origin, ParachainStaking, Test,
 };
+use crate::requests::{DelegationAction, ScheduledRequest};
 use crate::{
 	assert_eq_events, assert_eq_last_events, assert_event_emitted, assert_event_not_emitted,
-	assert_last_event, assert_tail_eq, set::OrderedSet, AtStake, BalanceOf, Bond,
-	BottomDelegations, CandidateInfo, CandidateMetadata, CandidatePool, CandidateState,
-	CapacityStatus, CollatorCandidate, CollatorStatus, Config, DelegationChange, DelegationRequest,
-	Delegations, Delegator, DelegatorAdded, DelegatorState, DelegatorStatus, Error, Event,
-	PendingDelegationRequests, Range, TopDelegations, Total,
+	assert_last_event, assert_tail_eq, set::OrderedSet, AtStake, Bond, BottomDelegations,
+	CandidateInfo, CandidateMetadata, CandidatePool, CandidateState, CapacityStatus,
+	CollatorCandidate, CollatorStatus, Config, Delegations, Delegator, DelegatorAdded,
+	DelegatorState, DelegatorStatus, Error, Event, Range, TopDelegations, Total,
 };
 use frame_support::{assert_noop, assert_ok, traits::ReservableCurrency};
 use sp_runtime::{traits::Zero, DispatchError, ModuleError, Perbill, Percent};
-use sp_std::collections::btree_map::BTreeMap;
 
 // ~~ ROOT ~~
 
@@ -2601,15 +2600,12 @@ fn delegator_bond_less_updates_delegator_state() {
 				1,
 				5
 			));
-			let state =
-				ParachainStaking::delegator_state(&2).expect("just request bonded less so exists");
+			let state = ParachainStaking::delegator_scheduled_requests(&2, &1);
 			assert_eq!(
-				state.requests().get(&1),
-				Some(&DelegationRequest {
-					collator: 1,
-					amount: 5,
+				state,
+				Some(ScheduledRequest {
 					when_executable: 3,
-					action: DelegationChange::Decrease
+					action: DelegationAction::Decrease(5),
 				})
 			);
 		});
@@ -2900,22 +2896,12 @@ fn execute_revoke_delegation_adds_revocation_to_delegator_state() {
 		.with_delegations(vec![(2, 1, 10), (2, 3, 10)])
 		.build()
 		.execute_with(|| {
-			assert!(ParachainStaking::delegator_state(2)
-				.expect("exists")
-				.requests
-				.requests
-				.get(&1)
-				.is_none());
+			assert!(ParachainStaking::delegator_scheduled_requests(&2, &1).is_none());
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
 				Origin::signed(2),
 				1
 			));
-			assert!(ParachainStaking::delegator_state(2)
-				.expect("exists")
-				.requests
-				.requests
-				.get(&1)
-				.is_some());
+			assert!(ParachainStaking::delegator_scheduled_requests(&2, &1).is_some());
 		});
 }
 
@@ -3506,11 +3492,10 @@ fn cancel_revoke_delegation_emits_correct_event() {
 			assert_last_event!(MetaEvent::ParachainStaking(
 				Event::CancelledDelegationRequest {
 					delegator: 2,
-					cancelled_request: DelegationRequest {
-						collator: 1,
-						amount: 10,
+					collator: 1,
+					cancelled_request: ScheduledRequest {
 						when_executable: 3,
-						action: DelegationChange::Revoke,
+						action: DelegationAction::Revoke(10),
 					},
 				}
 			));
@@ -3529,24 +3514,28 @@ fn cancel_revoke_delegation_updates_delegator_state() {
 				Origin::signed(2),
 				1
 			));
-			let state = ParachainStaking::delegator_state(&2).unwrap();
+			let state = ParachainStaking::delegator_scheduled_requests(&2, &1);
 			assert_eq!(
-				state.requests().get(&1),
-				Some(&DelegationRequest {
-					collator: 1,
-					amount: 10,
+				state,
+				Some(ScheduledRequest {
 					when_executable: 3,
-					action: DelegationChange::Revoke,
+					action: DelegationAction::Revoke(10),
 				})
 			);
-			assert_eq!(state.requests.less_total, 10);
+			assert_eq!(
+				ParachainStaking::delegator_scheduled_request_decrease_amount(&2),
+				10
+			);
 			assert_ok!(ParachainStaking::cancel_delegation_request(
 				Origin::signed(2),
 				1
 			));
-			let state = ParachainStaking::delegator_state(&2).unwrap();
-			assert!(state.requests().get(&1).is_none());
-			assert_eq!(state.requests.less_total, 0);
+			let state = ParachainStaking::delegator_scheduled_requests(&2, &1);
+			assert!(state.is_none());
+			assert_eq!(
+				ParachainStaking::delegator_scheduled_request_decrease_amount(&2),
+				0
+			);
 		});
 }
 
@@ -3572,11 +3561,10 @@ fn cancel_delegator_bond_less_correct_event() {
 			assert_last_event!(MetaEvent::ParachainStaking(
 				Event::CancelledDelegationRequest {
 					delegator: 2,
-					cancelled_request: DelegationRequest {
-						collator: 1,
-						amount: 5,
+					collator: 1,
+					cancelled_request: ScheduledRequest {
 						when_executable: 3,
-						action: DelegationChange::Decrease,
+						action: DelegationAction::Decrease(5),
 					},
 				}
 			));
@@ -3596,24 +3584,28 @@ fn cancel_delegator_bond_less_updates_delegator_state() {
 				1,
 				5
 			));
-			let state = ParachainStaking::delegator_state(&2).unwrap();
+			let state = ParachainStaking::delegator_scheduled_requests(&2, &1);
 			assert_eq!(
-				state.requests().get(&1),
-				Some(&DelegationRequest {
-					collator: 1,
-					amount: 5,
+				state,
+				Some(ScheduledRequest {
 					when_executable: 3,
-					action: DelegationChange::Decrease,
+					action: DelegationAction::Decrease(5),
 				})
 			);
-			assert_eq!(state.requests.less_total, 5);
+			assert_eq!(
+				ParachainStaking::delegator_scheduled_request_decrease_amount(&2),
+				5
+			);
 			assert_ok!(ParachainStaking::cancel_delegation_request(
 				Origin::signed(2),
 				1
 			));
-			let state = ParachainStaking::delegator_state(&2).unwrap();
-			assert!(state.requests().get(&1).is_none());
-			assert_eq!(state.requests.less_total, 0);
+			let state = ParachainStaking::delegator_scheduled_requests(&2, &1);
+			assert!(state.is_none());
+			assert_eq!(
+				ParachainStaking::delegator_scheduled_request_decrease_amount(&2),
+				0
+			);
 		});
 }
 
@@ -3632,10 +3624,7 @@ fn delegator_schedule_revocation_total() {
 				1
 			));
 			assert_eq!(
-				ParachainStaking::delegator_state(2)
-					.expect("exists")
-					.requests
-					.less_total,
+				ParachainStaking::delegator_scheduled_request_decrease_amount(&2),
 				10
 			);
 			roll_to(10);
@@ -3645,10 +3634,7 @@ fn delegator_schedule_revocation_total() {
 				1
 			));
 			assert_eq!(
-				ParachainStaking::delegator_state(2)
-					.expect("exists")
-					.requests
-					.less_total,
+				ParachainStaking::delegator_scheduled_request_decrease_amount(&2),
 				0
 			);
 			assert_ok!(ParachainStaking::delegate(Origin::signed(2), 5, 10, 0, 2));
@@ -3661,10 +3647,7 @@ fn delegator_schedule_revocation_total() {
 				4
 			));
 			assert_eq!(
-				ParachainStaking::delegator_state(2)
-					.expect("exists")
-					.requests
-					.less_total,
+				ParachainStaking::delegator_scheduled_request_decrease_amount(&2),
 				20
 			);
 			roll_to(20);
@@ -3674,10 +3657,7 @@ fn delegator_schedule_revocation_total() {
 				3
 			));
 			assert_eq!(
-				ParachainStaking::delegator_state(2)
-					.expect("exists")
-					.requests
-					.less_total,
+				ParachainStaking::delegator_scheduled_request_decrease_amount(&2),
 				10
 			);
 			assert_ok!(ParachainStaking::execute_delegation_request(
@@ -3686,10 +3666,7 @@ fn delegator_schedule_revocation_total() {
 				4
 			));
 			assert_eq!(
-				ParachainStaking::delegator_state(2)
-					.expect("exists")
-					.requests
-					.less_total,
+				ParachainStaking::delegator_scheduled_request_decrease_amount(&2),
 				0
 			);
 		});
@@ -5515,10 +5492,7 @@ fn execute_leave_candidate_removes_delegations() {
 		.execute_with(|| {
 			// Verifies the revocation count is originally at 0
 			assert_eq!(
-				ParachainStaking::delegator_state(3)
-					.unwrap()
-					.requests
-					.revocations_count,
+				ParachainStaking::delegator_scheduled_revoke_request_count(&3),
 				0
 			);
 
@@ -5532,10 +5506,7 @@ fn execute_leave_candidate_removes_delegations() {
 			));
 			// Verifies the revocation count has been updated to 1
 			assert_eq!(
-				ParachainStaking::delegator_state(3)
-					.unwrap()
-					.requests
-					.revocations_count,
+				ParachainStaking::delegator_scheduled_revoke_request_count(&3),
 				1
 			);
 
@@ -5547,10 +5518,7 @@ fn execute_leave_candidate_removes_delegations() {
 			));
 			// Verifies the revocation count has been reduced to 0
 			assert_eq!(
-				ParachainStaking::delegator_state(3)
-					.unwrap()
-					.requests
-					.revocations_count,
+				ParachainStaking::delegator_scheduled_revoke_request_count(&3),
 				0
 			);
 		});
@@ -7004,62 +6972,61 @@ fn deferred_payment_steady_state_event_flow() {
 
 // HOTFIX UNIT TESTs
 
-#[test]
-fn hotfix_remove_delegation_requests_works() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 20), (2, 20)])
-		.with_candidates(vec![(1, 20)])
-		.build()
-		.execute_with(|| {
-			let mut requests: BTreeMap<
-				<Test as frame_system::Config>::AccountId,
-				DelegationRequest<<Test as frame_system::Config>::AccountId, BalanceOf<Test>>,
-			> = BTreeMap::new();
-			requests.insert(
-				3,
-				DelegationRequest {
-					collator: 3,
-					amount: 5,
-					when_executable: 0,
-					action: DelegationChange::Decrease,
-				},
-			);
-			requests.insert(
-				4,
-				DelegationRequest {
-					collator: 4,
-					amount: 20,
-					when_executable: 0,
-					action: DelegationChange::Revoke,
-				},
-			);
-			let corrupted_delegator_state = Delegator {
-				id: 2,
-				delegations: OrderedSet::from(vec![Bond {
-					owner: 1,
-					amount: 20,
-				}]),
-				total: 20,
-				requests: PendingDelegationRequests {
-					revocations_count: 1,
-					requests,
-					less_total: 25,
-				},
-				status: DelegatorStatus::Active,
-			};
-			<DelegatorState<Test>>::insert(2, corrupted_delegator_state);
-			assert_ok!(ParachainStaking::hotfix_remove_delegation_requests(
-				Origin::root(),
-				vec![2, 5]
-			));
-			assert!(ParachainStaking::delegator_state(&5).is_none());
-			let fixed_delegator_state =
-				ParachainStaking::delegator_state(&2).expect("inserted => exists");
-			assert_eq!(fixed_delegator_state.requests.revocations_count, 0);
-			assert_eq!(fixed_delegator_state.requests.less_total, 0);
-		});
-}
-
+// #[test]
+// fn hotfix_remove_delegation_requests_works() {
+// 	ExtBuilder::default()
+// 		.with_balances(vec![(1, 20), (2, 20)])
+// 		.with_candidates(vec![(1, 20)])
+// 		.build()
+// 		.execute_with(|| {
+// 			let mut requests: BTreeMap<
+// 				<Test as frame_system::Config>::AccountId,
+// 				DelegationRequest<<Test as frame_system::Config>::AccountId, BalanceOf<Test>>,
+// 			> = BTreeMap::new();
+// 			requests.insert(
+// 				3,
+// 				DelegationRequest {
+// 					collator: 3,
+// 					amount: 5,
+// 					when_executable: 0,
+// 					action: DelegationChange::Decrease,
+// 				},
+// 			);
+// 			requests.insert(
+// 				4,
+// 				DelegationRequest {
+// 					collator: 4,
+// 					amount: 20,
+// 					when_executable: 0,
+// 					action: DelegationChange::Revoke,
+// 				},
+// 			);
+// 			let corrupted_delegator_state = Delegator {
+// 				id: 2,
+// 				delegations: OrderedSet::from(vec![Bond {
+// 					owner: 1,
+// 					amount: 20,
+// 				}]),
+// 				total: 20,
+// 				requests: PendingDelegationRequests {
+// 					revocations_count: 1,
+// 					requests,
+// 					less_total: 25,
+// 				},
+// 				status: DelegatorStatus::Active,
+// 			};
+// 			<DelegatorState<Test>>::insert(2, corrupted_delegator_state);
+// 			assert_ok!(ParachainStaking::hotfix_remove_delegation_requests(
+// 				Origin::root(),
+// 				vec![2, 5]
+// 			));
+// 			assert!(ParachainStaking::delegator_state(&5).is_none());
+// 			let fixed_delegator_state =
+// 				ParachainStaking::delegator_state(&2).expect("inserted => exists");
+// 			assert_eq!(fixed_delegator_state.requests.revocations_count, 0);
+// 			assert_eq!(fixed_delegator_state.requests.less_total, 0);
+// 		});
+// }
 #[test]
 fn hotfix_update_candidate_pool_value_updates_candidate_pool() {
 	ExtBuilder::default()
@@ -7216,7 +7183,7 @@ fn split_candidate_state_kicks_extra_bottom_delegators_to_exit() {
 						},
 					]),
 					total: 20,
-					requests: PendingDelegationRequests::new(),
+					requests: crate::deprecated::PendingDelegationRequests::new(),
 					status: DelegatorStatus::Active,
 				};
 				<DelegatorState<Test>>::insert(&i, old_delegator_state);
@@ -7401,7 +7368,7 @@ fn split_candidate_state_kicks_extra_bottom_delegations_without_exit() {
 						},
 					]),
 					total: 30,
-					requests: PendingDelegationRequests::new(),
+					requests: crate::deprecated::PendingDelegationRequests::new(),
 					status: DelegatorStatus::Active,
 				};
 				<DelegatorState<Test>>::insert(&i, old_delegator_state);
