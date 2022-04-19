@@ -51,11 +51,11 @@
 
 #[cfg(any(test, feature = "runtime-benchmarks"))]
 mod benchmarks;
+mod delegation_requests;
 pub mod inflation;
 pub mod migrations;
 #[cfg(test)]
 mod mock;
-mod delegation_requests;
 mod set;
 #[cfg(test)]
 mod tests;
