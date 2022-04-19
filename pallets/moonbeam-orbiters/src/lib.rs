@@ -14,6 +14,18 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+//! # Pallet moonbeam-orbiters
+//! 
+//! This pallet allows authorized collators to share their block creation rights and rewards with
+//! multiple entities named "orbiters".
+//! Each authorized collator will define a group of orbiters, and each orbiter will replace the
+//! collator in turn with the other orbiters (rotation every `RotatePeriod` rounds).
+//!
+//! This pallet is designed to work with the nimbus consensus.
+//! In order not to impact the other pallets (notably nimbus and parachain-staking) this pallet
+//! simply redefines the lookup NimbusId-> AccountId, in order to replace the collator by its
+//! currently selected orbiter.
+
 #![cfg_attr(not(feature = "std"), no_std)]
 
 pub mod migrations;
