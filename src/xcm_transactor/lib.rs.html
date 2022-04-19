@@ -749,6 +749,11 @@
 <span id="744">744</span>
 <span id="745">745</span>
 <span id="746">746</span>
+<span id="747">747</span>
+<span id="748">748</span>
+<span id="749">749</span>
+<span id="750">750</span>
+<span id="751">751</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -818,7 +823,7 @@
 	<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::weights::WeightInfo</span>;
 	<span class="kw">use</span> <span class="ident">frame_support</span>::{<span class="ident">pallet_prelude</span>::<span class="kw-2">*</span>, <span class="ident">weights::constants::WEIGHT_PER_SECOND</span>};
 	<span class="kw">use</span> <span class="ident">frame_system</span>::{<span class="ident">ensure_signed</span>, <span class="ident">pallet_prelude</span>::<span class="kw-2">*</span>};
-	<span class="kw">use</span> <span class="ident">orml_traits::location::Parse</span>;
+	<span class="kw">use</span> <span class="ident">orml_traits::location</span>::{<span class="ident">Parse</span>, <span class="ident">Reserve</span>};
 	<span class="kw">use</span> <span class="ident">sp_runtime::traits</span>::{<span class="ident">AtLeast32BitUnsigned</span>, <span class="ident">Convert</span>};
 	<span class="kw">use</span> <span class="ident">sp_std::borrow::ToOwned</span>;
 	<span class="kw">use</span> <span class="ident">sp_std::boxed::Box</span>;
@@ -826,7 +831,7 @@
 	<span class="kw">use</span> <span class="ident">sp_std::prelude</span>::<span class="kw-2">*</span>;
 	<span class="kw">use</span> <span class="ident">xcm</span>::{<span class="ident">latest::prelude</span>::<span class="kw-2">*</span>, <span class="ident">VersionedMultiLocation</span>};
 	<span class="kw">use</span> <span class="ident">xcm_executor::traits</span>::{<span class="ident">InvertLocation</span>, <span class="ident">TransactAsset</span>, <span class="ident">WeightBounds</span>};
-	<span class="kw">use</span> <span class="ident">xcm_primitives</span>::{<span class="ident">Reserve</span>, <span class="ident">UtilityAvailableCalls</span>, <span class="ident">UtilityEncodeCall</span>, <span class="ident">XcmTransact</span>};
+	<span class="kw">use</span> <span class="ident">xcm_primitives</span>::{<span class="ident">UtilityAvailableCalls</span>, <span class="ident">UtilityEncodeCall</span>, <span class="ident">XcmTransact</span>};
 
 	<span class="attribute">#[<span class="ident">pallet::pallet</span>]</span>
 	<span class="attribute">#[<span class="ident">pallet::without_storage_info</span>]</span>
@@ -886,6 +891,10 @@
 		<span class="doccomment">/// T::Weigher::weight(&amp;msg)`.</span>
 		<span class="attribute">#[<span class="ident">pallet::constant</span>]</span>
 		<span class="kw">type</span> <span class="ident">BaseXcmWeight</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">Weight</span><span class="op">&gt;</span>;
+
+		<span class="doccomment">/// The way to retrieve the reserve of a MultiAsset. This can be</span>
+		<span class="doccomment">/// configured to accept absolute or relative paths for self tokens</span>
+		<span class="kw">type</span> <span class="ident">ReserveProvider</span>: <span class="ident">Reserve</span>;
 
 		<span class="kw">type</span> <span class="ident">WeightInfo</span>: <span class="ident">WeightInfo</span>;
 	}
@@ -1377,7 +1386,8 @@
 			<span class="kw">let</span> <span class="ident">self_location</span> <span class="op">=</span> <span class="ident">T::SelfLocation::get</span>();
 			<span class="macro">ensure!</span>(<span class="ident">dest</span> <span class="op">!</span><span class="op">=</span> <span class="ident">self_location</span>, <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::NotCrossChainTransfer</span>);
 
-			<span class="kw">let</span> <span class="ident">reserve</span> <span class="op">=</span> <span class="ident">asset</span>.<span class="ident">reserve</span>().<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::AssetHasNoReserve</span>)<span class="question-mark">?</span>;
+			<span class="kw">let</span> <span class="ident">reserve</span> <span class="op">=</span>
+				<span class="ident">T::ReserveProvider::reserve</span>(<span class="ident">asset</span>).<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::AssetHasNoReserve</span>)<span class="question-mark">?</span>;
 
 			<span class="comment">// We only allow to transact using a reserve asset as fee</span>
 			<span class="macro">ensure!</span>(<span class="ident">reserve</span> <span class="op">==</span> <span class="ident">dest</span>, <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::AssetIsNotReserveInDestination</span>);

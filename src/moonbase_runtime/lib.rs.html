@@ -1421,10 +1421,6 @@
 <span id="1416">1416</span>
 <span id="1417">1417</span>
 <span id="1418">1418</span>
-<span id="1419">1419</span>
-<span id="1420">1420</span>
-<span id="1421">1421</span>
-<span id="1422">1422</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -2310,11 +2306,7 @@
 			<span class="ident">CouncilCollective</span>,
 			<span class="ident">TechCommitteeCollective</span>,
 		<span class="op">&gt;</span>,
-		<span class="ident">runtime_common::migrations::XcmMigrations</span><span class="op">&lt;</span>
-			<span class="ident">Runtime</span>,
-			<span class="ident">xcm_config::StatemintParaId</span>,
-			<span class="ident">xcm_config::StatemintAssetPalletInstance</span>,
-		<span class="op">&gt;</span>,
+		<span class="ident">runtime_common::migrations::XcmMigrations</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
 	);
 }
 

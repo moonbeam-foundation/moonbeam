@@ -1387,10 +1387,6 @@
 <span id="1382">1382</span>
 <span id="1383">1383</span>
 <span id="1384">1384</span>
-<span id="1385">1385</span>
-<span id="1386">1386</span>
-<span id="1387">1387</span>
-<span id="1388">1388</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -2253,11 +2249,7 @@
 			<span class="ident">CouncilCollective</span>,
 			<span class="ident">TechCommitteeCollective</span>,
 		<span class="op">&gt;</span>,
-		<span class="ident">runtime_common::migrations::XcmMigrations</span><span class="op">&lt;</span>
-			<span class="ident">Runtime</span>,
-			<span class="ident">xcm_config::StatemineParaId</span>,
-			<span class="ident">xcm_config::StatemineAssetPalletInstance</span>,
-		<span class="op">&gt;</span>,
+		<span class="ident">runtime_common::migrations::XcmMigrations</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
 	);
 }
 

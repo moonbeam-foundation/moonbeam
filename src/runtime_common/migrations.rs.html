@@ -666,9 +666,6 @@
 <span id="661">661</span>
 <span id="662">662</span>
 <span id="663">663</span>
-<span id="664">664</span>
-<span id="665">665</span>
-<span id="666">666</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2020 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -1288,13 +1285,10 @@
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;xcm-support&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">XcmMigrations</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">StatemineParaIdInfo</span>, <span class="ident">StatemineAssetsInstanceInfo</span><span class="op">&gt;</span>(
-	<span class="ident">PhantomData</span><span class="op">&lt;</span>(<span class="ident">Runtime</span>, <span class="ident">StatemineParaIdInfo</span>, <span class="ident">StatemineAssetsInstanceInfo</span>)<span class="op">&gt;</span>,
-);
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">XcmMigrations</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>);
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;xcm-support&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">StatemineParaIdInfo</span>, <span class="ident">StatemineAssetsInstanceInfo</span><span class="op">&gt;</span> <span class="ident">GetMigrations</span>
-	<span class="kw">for</span> <span class="ident">XcmMigrations</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">StatemineParaIdInfo</span>, <span class="ident">StatemineAssetsInstanceInfo</span><span class="op">&gt;</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="ident">GetMigrations</span> <span class="kw">for</span> <span class="ident">XcmMigrations</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>
 <span class="kw">where</span>
 	<span class="ident">Runtime</span>: <span class="ident">xcm_transactor::Config</span> <span class="op">+</span> <span class="ident">pallet_migrations::Config</span> <span class="op">+</span> <span class="ident">pallet_asset_manager::Config</span>,
 	<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_asset_manager::Config</span><span class="op">&gt;</span><span class="ident">::ForeignAssetType</span>:

@@ -529,94 +529,6 @@
 <span id="524">524</span>
 <span id="525">525</span>
 <span id="526">526</span>
-<span id="527">527</span>
-<span id="528">528</span>
-<span id="529">529</span>
-<span id="530">530</span>
-<span id="531">531</span>
-<span id="532">532</span>
-<span id="533">533</span>
-<span id="534">534</span>
-<span id="535">535</span>
-<span id="536">536</span>
-<span id="537">537</span>
-<span id="538">538</span>
-<span id="539">539</span>
-<span id="540">540</span>
-<span id="541">541</span>
-<span id="542">542</span>
-<span id="543">543</span>
-<span id="544">544</span>
-<span id="545">545</span>
-<span id="546">546</span>
-<span id="547">547</span>
-<span id="548">548</span>
-<span id="549">549</span>
-<span id="550">550</span>
-<span id="551">551</span>
-<span id="552">552</span>
-<span id="553">553</span>
-<span id="554">554</span>
-<span id="555">555</span>
-<span id="556">556</span>
-<span id="557">557</span>
-<span id="558">558</span>
-<span id="559">559</span>
-<span id="560">560</span>
-<span id="561">561</span>
-<span id="562">562</span>
-<span id="563">563</span>
-<span id="564">564</span>
-<span id="565">565</span>
-<span id="566">566</span>
-<span id="567">567</span>
-<span id="568">568</span>
-<span id="569">569</span>
-<span id="570">570</span>
-<span id="571">571</span>
-<span id="572">572</span>
-<span id="573">573</span>
-<span id="574">574</span>
-<span id="575">575</span>
-<span id="576">576</span>
-<span id="577">577</span>
-<span id="578">578</span>
-<span id="579">579</span>
-<span id="580">580</span>
-<span id="581">581</span>
-<span id="582">582</span>
-<span id="583">583</span>
-<span id="584">584</span>
-<span id="585">585</span>
-<span id="586">586</span>
-<span id="587">587</span>
-<span id="588">588</span>
-<span id="589">589</span>
-<span id="590">590</span>
-<span id="591">591</span>
-<span id="592">592</span>
-<span id="593">593</span>
-<span id="594">594</span>
-<span id="595">595</span>
-<span id="596">596</span>
-<span id="597">597</span>
-<span id="598">598</span>
-<span id="599">599</span>
-<span id="600">600</span>
-<span id="601">601</span>
-<span id="602">602</span>
-<span id="603">603</span>
-<span id="604">604</span>
-<span id="605">605</span>
-<span id="606">606</span>
-<span id="607">607</span>
-<span id="608">608</span>
-<span id="609">609</span>
-<span id="610">610</span>
-<span id="611">611</span>
-<span id="612">612</span>
-<span id="613">613</span>
-<span id="614">614</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -666,9 +578,10 @@
 <span class="kw">use</span> <span class="ident">xcm::latest::prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">xcm_executor::traits::JustTry</span>;
 
+<span class="kw">use</span> <span class="ident">orml_xcm_support::MultiNativeAsset</span>;
 <span class="kw">use</span> <span class="ident">xcm_primitives</span>::{
-	<span class="ident">AccountIdToCurrencyId</span>, <span class="ident">AccountIdToMultiLocation</span>, <span class="ident">AsAssetType</span>, <span class="ident">FirstAssetTrader</span>,
-	<span class="ident">MultiNativeAsset</span>, <span class="ident">SignedToAccountId20</span>, <span class="ident">UtilityAvailableCalls</span>, <span class="ident">UtilityEncodeCall</span>, <span class="ident">XcmTransact</span>,
+	<span class="ident">AbsoluteAndRelativeReserve</span>, <span class="ident">AccountIdToCurrencyId</span>, <span class="ident">AccountIdToMultiLocation</span>, <span class="ident">AsAssetType</span>,
+	<span class="ident">FirstAssetTrader</span>, <span class="ident">SignedToAccountId20</span>, <span class="ident">UtilityAvailableCalls</span>, <span class="ident">UtilityEncodeCall</span>, <span class="ident">XcmTransact</span>,
 };
 
 <span class="kw">use</span> <span class="ident">parity_scale_codec</span>::{<span class="ident">Decode</span>, <span class="ident">Encode</span>};
@@ -679,7 +592,7 @@
 	<span class="ident">prelude</span>::<span class="kw-2">*</span>,
 };
 
-<span class="kw">use</span> <span class="ident">orml_traits</span>::{<span class="ident">location::AbsoluteReserveProvider</span>, <span class="ident">parameter_type_with_key</span>};
+<span class="kw">use</span> <span class="ident">orml_traits::parameter_type_with_key</span>;
 
 <span class="macro">parameter_types!</span> {
 	<span class="comment">// The network Id of the relay</span>
@@ -688,54 +601,22 @@
 	<span class="kw">pub</span> <span class="ident">RelayChainOrigin</span>: <span class="ident">Origin</span> <span class="op">=</span> <span class="ident">cumulus_pallet_xcm::Origin::Relay</span>.<span class="ident">into</span>();
 	<span class="comment">// The ancestry, defines the multilocation describing this consensus system</span>
 	<span class="kw">pub</span> <span class="ident">Ancestry</span>: <span class="ident">MultiLocation</span> <span class="op">=</span> <span class="ident">Parachain</span>(<span class="ident">ParachainInfo::parachain_id</span>().<span class="ident">into</span>()).<span class="ident">into</span>();
-	<span class="comment">// Old Self Reserve location, defines the multilocation identifiying the self-reserve currency</span>
-	<span class="comment">// This is used to match it against our Balances pallet when we receive such a MultiLocation</span>
-	<span class="comment">// (Parent, Self Para Id, Self Balances pallet index)</span>
-	<span class="comment">// This is the old anchoring way</span>
-	<span class="kw">pub</span> <span class="ident">OldAnchoringSelfReserve</span>: <span class="ident">MultiLocation</span> <span class="op">=</span> <span class="ident">MultiLocation</span> {
-		<span class="ident">parents</span>:<span class="number">1</span>,
-		<span class="ident">interior</span>: <span class="ident">Junctions::X2</span>(
-			<span class="ident">Parachain</span>(<span class="ident">ParachainInfo::parachain_id</span>().<span class="ident">into</span>()),
-			<span class="ident">PalletInstance</span>(<span class="op">&lt;</span><span class="ident">Balances</span> <span class="kw">as</span> <span class="ident">PalletInfoAccess</span><span class="op">&gt;</span><span class="ident">::index</span>() <span class="kw">as</span> <span class="ident">u8</span>)
-		)
-	};
-	<span class="comment">// New Self Reserve location, defines the multilocation identifiying the self-reserve currency</span>
+
+	<span class="comment">// Self Reserve location, defines the multilocation identifiying the self-reserve currency</span>
 	<span class="comment">// This is used to match it also against our Balances pallet when we receive such</span>
 	<span class="comment">// a MultiLocation: (Self Balances pallet index)</span>
-	<span class="comment">// This is the new anchoring way</span>
-	<span class="kw">pub</span> <span class="ident">NewAnchoringSelfReserve</span>: <span class="ident">MultiLocation</span> <span class="op">=</span> <span class="ident">MultiLocation</span> {
+	<span class="comment">// We use the RELATIVE multilocation</span>
+	<span class="kw">pub</span> <span class="ident">SelfReserve</span>: <span class="ident">MultiLocation</span> <span class="op">=</span> <span class="ident">MultiLocation</span> {
 		<span class="ident">parents</span>:<span class="number">0</span>,
 		<span class="ident">interior</span>: <span class="ident">Junctions::X1</span>(
 			<span class="ident">PalletInstance</span>(<span class="op">&lt;</span><span class="ident">Balances</span> <span class="kw">as</span> <span class="ident">PalletInfoAccess</span><span class="op">&gt;</span><span class="ident">::index</span>() <span class="kw">as</span> <span class="ident">u8</span>)
 		)
 	};
 
-	<span class="comment">// The Locations we accept to refer to our own currency. We need to support both pre and</span>
-	<span class="comment">// post 0.9.16 versions, hence the reason for this being a Vec</span>
-	<span class="kw">pub</span> <span class="ident">SelfReserveRepresentations</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[
-		<span class="ident">OldAnchoringSelfReserve::get</span>(),
-		<span class="ident">NewAnchoringSelfReserve::get</span>()
-	];
-
-	<span class="comment">// Old reanchor logic location for pallet assets</span>
-	<span class="comment">// We need to support both in case we talk to a chain not in 0.9.16</span>
-	<span class="comment">// Or until we import https://github.com/open-web3-stack/open-runtime-module-library/pull/708</span>
-	<span class="comment">// We will be able to remove this once we import the aforementioned change</span>
+	<span class="comment">// This is the relative view of our local assets.</span>
 	<span class="comment">// Indentified by thix prefix + generalIndex(assetId)</span>
-	<span class="kw">pub</span> <span class="ident">LocalAssetsPalletLocationOldReanchor</span>: <span class="ident">MultiLocation</span> <span class="op">=</span> <span class="ident">MultiLocation</span> {
-		<span class="ident">parents</span>:<span class="number">1</span>,
-		<span class="ident">interior</span>: <span class="ident">Junctions::X2</span>(
-			<span class="ident">Parachain</span>(<span class="ident">ParachainInfo::parachain_id</span>().<span class="ident">into</span>()),
-			<span class="ident">PalletInstance</span>(<span class="op">&lt;</span><span class="ident">LocalAssets</span> <span class="kw">as</span> <span class="ident">PalletInfoAccess</span><span class="op">&gt;</span><span class="ident">::index</span>() <span class="kw">as</span> <span class="ident">u8</span>)
-		)
-	};
-
-	<span class="comment">// New reanchor logic location for pallet assets</span>
-	<span class="comment">// This is the relative view of our local assets. This is the representation that will</span>
-	<span class="comment">// be considered canonical after we import</span>
-	<span class="comment">// https://github.com/open-web3-stack/open-runtime-module-library/pull/708</span>
-	<span class="comment">// Indentified by thix prefix + generalIndex(assetId)</span>
-	<span class="kw">pub</span> <span class="ident">LocalAssetsPalletLocationNewReanchor</span>: <span class="ident">MultiLocation</span> <span class="op">=</span> <span class="ident">MultiLocation</span> {
+	<span class="comment">// We use the RELATIVE multilocation</span>
+	<span class="kw">pub</span> <span class="ident">LocalAssetsPalletLocation</span>: <span class="ident">MultiLocation</span> <span class="op">=</span> <span class="ident">MultiLocation</span> {
 		<span class="ident">parents</span>:<span class="number">0</span>,
 		<span class="ident">interior</span>: <span class="ident">Junctions::X1</span>(
 			<span class="ident">PalletInstance</span>(<span class="op">&lt;</span><span class="ident">LocalAssets</span> <span class="kw">as</span> <span class="ident">PalletInfoAccess</span><span class="op">&gt;</span><span class="ident">::index</span>() <span class="kw">as</span> <span class="ident">u8</span>)
@@ -785,7 +666,7 @@
 	<span class="ident">Balances</span>,
 	<span class="comment">// Use this currency when it is a fungible asset matching any of the locations in</span>
 	<span class="comment">// SelfReserveRepresentations</span>
-	<span class="ident">xcm_primitives::MultiIsConcrete</span><span class="op">&lt;</span><span class="ident">SelfReserveRepresentations</span><span class="op">&gt;</span>,
+	<span class="ident">xcm_builder::IsConcrete</span><span class="op">&lt;</span><span class="ident">SelfReserve</span><span class="op">&gt;</span>,
 	<span class="comment">// We can convert the MultiLocations with our converter above:</span>
 	<span class="ident">LocationToAccountId</span>,
 	<span class="comment">// Our chain&#39;s account ID type (we can&#39;t get away without mentioning it explicitly):</span>
@@ -794,34 +675,8 @@
 	(),
 <span class="op">&gt;</span>;
 
-<span class="doccomment">/// Means for transacting local assets that are not the native currency</span>
-<span class="doccomment">/// This transactor uses the old reanchor logic</span>
-<span class="doccomment">/// Remove once we import https://github.com/open-web3-stack/open-runtime-module-library/pull/708</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">LocalFungiblesTransactorOldReanchor</span> <span class="op">=</span> <span class="ident">FungiblesAdapter</span><span class="op">&lt;</span>
-	<span class="comment">// Use this fungibles implementation:</span>
-	<span class="ident">LocalAssets</span>,
-	(
-		<span class="ident">ConvertedConcreteAssetId</span><span class="op">&lt;</span>
-			<span class="ident">AssetId</span>,
-			<span class="ident">Balance</span>,
-			<span class="comment">// This just tells to convert an assetId into a GeneralIndex junction prepended</span>
-			<span class="comment">// by LocalAssetsPalletLocationOldReanchor</span>
-			<span class="ident">AsPrefixedGeneralIndex</span><span class="op">&lt;</span><span class="ident">LocalAssetsPalletLocationOldReanchor</span>, <span class="ident">AssetId</span>, <span class="ident">JustTry</span><span class="op">&gt;</span>,
-			<span class="ident">JustTry</span>,
-		<span class="op">&gt;</span>,
-	),
-	<span class="comment">// Convert an XCM MultiLocation into a local account id:</span>
-	<span class="ident">LocationToAccountId</span>,
-	<span class="comment">// Our chain&#39;s account ID type (we can&#39;t get away without mentioning it explicitly):</span>
-	<span class="ident">AccountId</span>,
-	<span class="comment">// We dont want to allow teleporting assets</span>
-	<span class="ident">Nothing</span>,
-	<span class="comment">// The account to use for tracking teleports.</span>
-	(),
-<span class="op">&gt;</span>;
-
 <span class="doccomment">/// Means for transacting local assets besides the native currency on this chain.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">LocalFungiblesTransactorNewReanchor</span> <span class="op">=</span> <span class="ident">FungiblesAdapter</span><span class="op">&lt;</span>
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">LocalFungiblesTransactor</span> <span class="op">=</span> <span class="ident">FungiblesAdapter</span><span class="op">&lt;</span>
 	<span class="comment">// Use this fungibles implementation:</span>
 	<span class="ident">LocalAssets</span>,
 	<span class="comment">// Use this currency when it is a fungible asset matching the given location or name:</span>
@@ -831,7 +686,7 @@
 			<span class="ident">Balance</span>,
 			<span class="comment">// This just tells to convert an assetId into a GeneralIndex junction prepended</span>
 			<span class="comment">// by LocalAssetsPalletLocationNewReanchor</span>
-			<span class="ident">AsPrefixedGeneralIndex</span><span class="op">&lt;</span><span class="ident">LocalAssetsPalletLocationNewReanchor</span>, <span class="ident">AssetId</span>, <span class="ident">JustTry</span><span class="op">&gt;</span>,
+			<span class="ident">AsPrefixedGeneralIndex</span><span class="op">&lt;</span><span class="ident">LocalAssetsPalletLocation</span>, <span class="ident">AssetId</span>, <span class="ident">JustTry</span><span class="op">&gt;</span>,
 			<span class="ident">JustTry</span>,
 		<span class="op">&gt;</span>,
 	),
@@ -855,8 +710,7 @@
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">AssetTransactors</span> <span class="op">=</span> (
 	<span class="ident">LocalAssetTransactor</span>,
 	<span class="ident">ForeignFungiblesTransactor</span>,
-	<span class="ident">LocalFungiblesTransactorOldReanchor</span>,
-	<span class="ident">LocalFungiblesTransactorNewReanchor</span>,
+	<span class="ident">LocalFungiblesTransactor</span>,
 );
 
 <span class="doccomment">/// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,</span>
@@ -931,31 +785,20 @@
 	<span class="kw">type</span> <span class="ident">AssetTransactor</span> <span class="op">=</span> <span class="ident">AssetTransactors</span>;
 	<span class="kw">type</span> <span class="ident">OriginConverter</span> <span class="op">=</span> <span class="ident">XcmOriginToTransactDispatchOrigin</span>;
 	<span class="comment">// Filter to the reserve withdraw operations</span>
-	<span class="kw">type</span> <span class="ident">IsReserve</span> <span class="op">=</span> <span class="ident">MultiNativeAsset</span>;
+	<span class="comment">// Whenever the reserve matches the relative or absolute value</span>
+	<span class="comment">// of our chain, we always return the relative reserve</span>
+	<span class="kw">type</span> <span class="ident">IsReserve</span> <span class="op">=</span> <span class="ident">MultiNativeAsset</span><span class="op">&lt;</span><span class="ident">AbsoluteAndRelativeReserve</span><span class="op">&lt;</span><span class="ident">SelfLocationAbsolute</span><span class="op">&gt;</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">IsTeleporter</span> <span class="op">=</span> (); <span class="comment">// No teleport</span>
 	<span class="kw">type</span> <span class="ident">LocationInverter</span> <span class="op">=</span> <span class="ident">LocationInverter</span><span class="op">&lt;</span><span class="ident">Ancestry</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">Barrier</span> <span class="op">=</span> <span class="ident">XcmBarrier</span>;
 	<span class="kw">type</span> <span class="ident">Weigher</span> <span class="op">=</span> <span class="ident">XcmWeigher</span>;
-	<span class="comment">// We use three traders</span>
-	<span class="comment">// When we receive either representation of the self-reserve asset,</span>
+	<span class="comment">// We use two traders</span>
+	<span class="comment">// When we receive the relative representation of the self-reserve asset,</span>
 	<span class="comment">// we use UsingComponents and the local way of handling fees</span>
 	<span class="comment">// When we receive a non-reserve asset, we use AssetManager to fetch how many</span>
 	<span class="comment">// units per second we should charge</span>
 	<span class="kw">type</span> <span class="ident">Trader</span> <span class="op">=</span> (
-		<span class="ident">UsingComponents</span><span class="op">&lt;</span>
-			<span class="ident">WeightToFee</span>,
-			<span class="ident">OldAnchoringSelfReserve</span>,
-			<span class="ident">AccountId</span>,
-			<span class="ident">Balances</span>,
-			<span class="ident">DealWithFees</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
-		<span class="op">&gt;</span>,
-		<span class="ident">UsingComponents</span><span class="op">&lt;</span>
-			<span class="ident">WeightToFee</span>,
-			<span class="ident">NewAnchoringSelfReserve</span>,
-			<span class="ident">AccountId</span>,
-			<span class="ident">Balances</span>,
-			<span class="ident">DealWithFees</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
-		<span class="op">&gt;</span>,
+		<span class="ident">UsingComponents</span><span class="op">&lt;</span><span class="ident">WeightToFee</span>, <span class="ident">SelfReserve</span>, <span class="ident">AccountId</span>, <span class="ident">Balances</span>, <span class="ident">DealWithFees</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 		<span class="ident">FirstAssetTrader</span><span class="op">&lt;</span><span class="ident">AssetType</span>, <span class="ident">AssetManager</span>, <span class="ident">XcmFeesToAccount</span><span class="op">&gt;</span>,
 	);
 	<span class="kw">type</span> <span class="ident">ResponseHandler</span> <span class="op">=</span> <span class="ident">PolkadotXcm</span>;
@@ -1021,13 +864,6 @@
 	<span class="kw">type</span> <span class="ident">ExecuteOverweightOrigin</span> <span class="op">=</span> <span class="ident">EnsureRoot</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>;
 }
 
-<span class="macro">parameter_types!</span> {
-	<span class="comment">// Statemine ParaId in kusama</span>
-	<span class="kw">pub</span> <span class="ident">StatemineParaId</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1000</span>;
-	<span class="comment">// Assets Pallet instance in Statemine kusama</span>
-	<span class="kw">pub</span> <span class="ident">StatemineAssetPalletInstance</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="number">50</span>;
-}
-
 <span class="comment">// Our AssetType. For now we only handle Xcm Assets</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Ord</span>, <span class="ident">PartialOrd</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">TypeInfo</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">AssetType</span> {
@@ -1041,23 +877,7 @@
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">AssetType</span> {
 	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">location</span>: <span class="ident">MultiLocation</span>) -&gt; <span class="self">Self</span> {
-		<span class="kw">match</span> <span class="ident">location</span> {
-			<span class="comment">// Change https://github.com/paritytech/cumulus/pull/831</span>
-			<span class="comment">// This avoids interrumption once they upgrade</span>
-			<span class="comment">// We map the previous location to the new one so that the assetId is well retrieved</span>
-			<span class="ident">MultiLocation</span> {
-				<span class="ident">parents</span>: <span class="number">1</span>,
-				<span class="ident">interior</span>: <span class="ident">X2</span>(<span class="ident">Parachain</span>(<span class="ident">id</span>), <span class="ident">GeneralIndex</span>(<span class="ident">index</span>)),
-			} <span class="kw">if</span> <span class="ident">id</span> <span class="op">==</span> <span class="ident">StatemineParaId::get</span>() =&gt; <span class="ident"><span class="self">Self</span>::Xcm</span>(<span class="ident">MultiLocation</span> {
-				<span class="ident">parents</span>: <span class="number">1</span>,
-				<span class="ident">interior</span>: <span class="ident">X3</span>(
-					<span class="ident">Parachain</span>(<span class="ident">id</span>),
-					<span class="ident">PalletInstance</span>(<span class="ident">StatemineAssetPalletInstance::get</span>()),
-					<span class="ident">GeneralIndex</span>(<span class="ident">index</span>),
-				),
-			}),
-			<span class="kw">_</span> =&gt; <span class="ident"><span class="self">Self</span>::Xcm</span>(<span class="ident">location</span>),
-		}
+		<span class="ident"><span class="self">Self</span>::Xcm</span>(<span class="ident">location</span>)
 	}
 }
 <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">AssetType</span> {
@@ -1126,12 +946,12 @@
 			<span class="comment">// chain does not change</span>
 			<span class="comment">// TODO! change this to NewAnchoringSelfReserve once xtokens is adapted for it</span>
 			<span class="ident">CurrencyId::SelfReserve</span> =&gt; {
-				<span class="kw">let</span> <span class="ident">multi</span>: <span class="ident">MultiLocation</span> <span class="op">=</span> <span class="ident">OldAnchoringSelfReserve::get</span>();
+				<span class="kw">let</span> <span class="ident">multi</span>: <span class="ident">MultiLocation</span> <span class="op">=</span> <span class="ident">SelfReserve::get</span>();
 				<span class="prelude-val">Some</span>(<span class="ident">multi</span>)
 			}
 			<span class="ident">CurrencyId::ForeignAsset</span>(<span class="ident">asset</span>) =&gt; <span class="ident">AssetXConverter::reverse_ref</span>(<span class="ident">asset</span>).<span class="ident">ok</span>(),
 			<span class="ident">CurrencyId::LocalAssetReserve</span>(<span class="ident">asset</span>) =&gt; {
-				<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">LocalAssetsPalletLocationOldReanchor::get</span>();
+				<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">LocalAssetsPalletLocation::get</span>();
 				<span class="ident">location</span>.<span class="ident">push_interior</span>(<span class="ident">Junction::GeneralIndex</span>(<span class="ident">asset</span>)).<span class="ident">ok</span>();
 				<span class="prelude-val">Some</span>(<span class="ident">location</span>)
 			}
@@ -1145,7 +965,10 @@
 
 	<span class="comment">// This is how we are going to detect whether the asset is a Reserve asset</span>
 	<span class="comment">// This however is the chain part only</span>
-	<span class="kw">pub</span> <span class="ident">SelfLocation</span>: <span class="ident">MultiLocation</span> <span class="op">=</span> <span class="ident">MultiLocation</span> {
+	<span class="kw">pub</span> <span class="ident">SelfLocation</span>: <span class="ident">MultiLocation</span> <span class="op">=</span> <span class="ident">MultiLocation::here</span>();
+	<span class="comment">// We need this to be able to catch when someone is trying to execute a non-</span>
+	<span class="comment">// cross-chain transfer in xtokens through the absolute path way</span>
+	<span class="kw">pub</span> <span class="ident">SelfLocationAbsolute</span>: <span class="ident">MultiLocation</span> <span class="op">=</span> <span class="ident">MultiLocation</span> {
 		<span class="ident">parents</span>:<span class="number">1</span>,
 		<span class="ident">interior</span>: <span class="ident">Junctions::X1</span>(
 			<span class="ident">Parachain</span>(<span class="ident">ParachainInfo::parachain_id</span>().<span class="ident">into</span>())
@@ -1174,7 +997,7 @@
 	<span class="kw">type</span> <span class="ident">MaxAssetsForTransfer</span> <span class="op">=</span> <span class="ident">MaxAssetsForTransfer</span>;
 	<span class="kw">type</span> <span class="ident">MinXcmFee</span> <span class="op">=</span> <span class="ident">ParachainMinFee</span>;
 	<span class="kw">type</span> <span class="ident">MultiLocationsFilter</span> <span class="op">=</span> <span class="ident">Everything</span>;
-	<span class="kw">type</span> <span class="ident">ReserveProvider</span> <span class="op">=</span> <span class="ident">AbsoluteReserveProvider</span>;
+	<span class="kw">type</span> <span class="ident">ReserveProvider</span> <span class="op">=</span> <span class="ident">AbsoluteAndRelativeReserve</span><span class="op">&lt;</span><span class="ident">SelfLocationAbsolute</span><span class="op">&gt;</span>;
 }
 
 <span class="comment">// For now we only allow to transact in the relay, although this might change in the future</span>
@@ -1229,6 +1052,7 @@
 	<span class="kw">type</span> <span class="ident">LocationInverter</span> <span class="op">=</span> <span class="ident">LocationInverter</span><span class="op">&lt;</span><span class="ident">Ancestry</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">BaseXcmWeight</span> <span class="op">=</span> <span class="ident">BaseXcmWeight</span>;
 	<span class="kw">type</span> <span class="ident">AssetTransactor</span> <span class="op">=</span> <span class="ident">AssetTransactors</span>;
+	<span class="kw">type</span> <span class="ident">ReserveProvider</span> <span class="op">=</span> <span class="ident">AbsoluteAndRelativeReserve</span><span class="op">&lt;</span><span class="ident">SelfLocationAbsolute</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">xcm_transactor::weights::SubstrateWeight</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
 }
 </code></pre></div>

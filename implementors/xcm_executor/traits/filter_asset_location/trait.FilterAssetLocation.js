@@ -1,3 +1,0 @@
-(function() {var implementors = {};
-implementors["xcm_primitives"] = [{"text":"impl FilterAssetLocation for <a class=\"struct\" href=\"xcm_primitives/struct.MultiNativeAsset.html\" title=\"struct xcm_primitives::MultiNativeAsset\">MultiNativeAsset</a>","synthetic":false,"types":["xcm_primitives::MultiNativeAsset"]}];
-if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
