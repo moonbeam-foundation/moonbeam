@@ -28,6 +28,8 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
+mod migrations;
+
 use cumulus_pallet_parachain_system::RelaychainBlockNumberProvider;
 use fp_rpc::TransactionStatus;
 
@@ -909,6 +911,7 @@ impl pallet_migrations::Config for Runtime {
 			xcm_config::StatemintParaId,
 			xcm_config::StatemintAssetPalletInstance,
 		>,
+		self::migrations::MoonbaseMigrations,
 	);
 }
 
