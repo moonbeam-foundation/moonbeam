@@ -76,6 +76,9 @@ pub enum Subcommand {
 	/// Key management cli utilities
 	#[clap(subcommand)]
 	Key(KeyCmd),
+
+	/// Output db meta columns information.
+	ChainInfo(crate::commands::ChainInfoCmd),
 }
 
 #[derive(Debug, Parser)]

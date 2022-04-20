@@ -582,6 +582,13 @@ pub fn run() -> Result<()> {
 				You can enable it at build time with `--features try-runtime`."
 			.into()),
 		Some(Subcommand::Key(cmd)) => Ok(cmd.run(&cli)?),
+		Some(Subcommand::ChainInfo(cmd)) => {
+			let runner = cli.create_runner(cmd)?;
+			runner.async_run(|mut config| {
+				let (_, backend, _, task_manager) = service::new_chain_ops(&mut config)?;
+				Ok((cmd.run(backend.clone()), task_manager))
+			})
+		}
 		None => {
 			let runner = cli.create_runner(&(*cli.run).normalize())?;
 			runner.run_node_until_exit(|config| async move {

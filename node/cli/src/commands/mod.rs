@@ -13,9 +13,7 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
-mod cli;
-mod command;
-mod commands;
-pub use cli::*;
-pub use command::*;
-pub use sc_cli::{Error, Result};
+
+mod chain_info_cmd;
+
+pub use chain_info_cmd::ChainInfoCmd;
