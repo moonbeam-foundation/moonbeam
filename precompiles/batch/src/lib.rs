@@ -17,27 +17,13 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![feature(assert_matches)]
 
-use fp_evm::{Context, ExitSucceed, PrecompileOutput};
-use pallet_evm::{AddressMapping, Precompile};
-use precompile_utils::{
-	Address, Bytes, EvmDataReader, EvmDataWriter, EvmResult, FunctionModifier, Gasometer,
-	RuntimeHelper,
-};
-use sp_core::U256;
+use fp_evm::{Context, PrecompileOutput};
+use pallet_evm::Precompile;
+use precompile_utils::EvmResult;
 use sp_std::marker::PhantomData;
 
-#[precompile_utils::generate_function_selector]
-#[derive(Debug, PartialEq)]
-enum Action {
-	BatchSome = "batch_some(address[],uint256[],bytes[])",
-	BatchAll = "batch_all(address[],uint256[],bytes[])",
-}
-
-enum BatchMode {
-	RevertOnFailure,
-	StopOnFailure,
-}
-
+/// Batch precompile. Should be registered as a "delegatable precompile" as it
+/// must execute on the behalf of the user.
 pub struct BatchPrecompile<Runtime>(PhantomData<Runtime>);
 
 impl<Runtime> Precompile for BatchPrecompile<Runtime>
@@ -46,41 +32,16 @@ where
 {
 	fn execute(
 		input: &[u8],
-		target_gas: Option<u64>,
-		context: &Context,
-		is_static: bool,
+		_target_gas: Option<u64>,
+		_context: &Context,
+		_is_static: bool,
 	) -> EvmResult<PrecompileOutput> {
-		todo!()
+		let bytecode = include_bytes!("../bytecode.bin");
 
-		// let mut gasometer = Gasometer::new(target_gas);
-		// let (mut input, selector) = EvmDataReader::new_with_selector(&mut gasometer, input)?;
-
-		// gasometer.check_function_modifier(
-		// 	context,
-		// 	is_static,
-		// 	FunctionModifier::Payable,
-		// )?;
-
-		// match selector {
-		// 	Action::BatchSome => Self::batch(&mut input, &mut gasometer, context, BatchMode::StopOnFailure),
-		// }
-	}
-}
-
-impl<Runtime> BatchPrecompile<Runtime>
-where
-	Runtime: pallet_evm::Config,
-{
-	fn batch(
-		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
-		context: &Context,
-		mode: BatchMode,
-	) -> EvmResult<PrecompileOutput> {
-		let to_list: Vec<Address> = input.read(gasometer)?;
-		let value_list: Vec<U256> = input.read(gasometer)?;
-		let data_list: Vec<Bytes> = input.read(gasometer)?;
-
-		todo!()
+		Ok(PrecompileOutput::Execute {
+			code: bytecode.to_vec(),
+			input: input.to_vec(),
+			cost: 0,
+		})
 	}
 }
