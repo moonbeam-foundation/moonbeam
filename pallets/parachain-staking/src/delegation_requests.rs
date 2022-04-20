@@ -58,9 +58,7 @@ pub struct ScheduledRequest<Balance> {
 	pub action: DelegationAction<Balance>,
 }
 
-impl<T> Pallet<T>
-where
-	T: Config,
+impl<T: Config> Pallet<T>
 {
 	/// Schedules a [DelegationAction::Revoke] for the delegator, towards a given collator.
 	pub(crate) fn delegator_schedule_revoke(
@@ -77,7 +75,7 @@ where
 			.get_bond_amount(&collator)
 			.ok_or(<Error<T>>::DelegationDNE)?;
 		let now = <Round<T>>::get().current;
-		let when = now + T::RevokeDelegationDelay::get();
+		let when = now.saturating_add(T::RevokeDelegationDelay::get());
 
 		Self::delegator_scheduled_requests_state_add(
 			delegator.clone(),
@@ -136,7 +134,7 @@ where
 		);
 
 		let now = <Round<T>>::get().current;
-		let when = now + T::RevokeDelegationDelay::get();
+		let when = now.saturating_add(T::RevokeDelegationDelay::get());
 
 		Self::delegator_scheduled_requests_state_add(
 			delegator.clone(),
