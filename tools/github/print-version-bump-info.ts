@@ -18,6 +18,7 @@ async function printInfo(octokit: Octokit, previousVersion: string, nextVersion:
   console.log(`# Description\n`);
   console.log(`This ticket is automatically generated using\n`);
   console.log("```");
+  // this needs to be kept in sync with the command invoked in .github/workflows/version-bump.yml
   console.log(`$ yarn --silent run print-version-bump-info -- --from ${previousVersion} --to ${nextVersion}`);
   console.log("```");
 
