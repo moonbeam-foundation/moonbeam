@@ -31,7 +31,9 @@ use crate::{
 	assert_last_event, assert_tail_eq, set::OrderedSet, AtStake, Bond, BottomDelegations,
 	CandidateInfo, CandidateMetadata, CandidatePool, CandidateState, CapacityStatus,
 	CollatorCandidate, CollatorStatus, Config, Delegations, Delegator, DelegatorAdded,
-	DelegatorState, DelegatorStatus, Error, Event, Range, TopDelegations, Total,
+	DelegatorScheduledRequestDecreaseAmount, DelegatorScheduledRequests,
+	DelegatorScheduledRevokeRequestCount, DelegatorState, DelegatorStatus, Error, Event, Range,
+	TopDelegations, Total,
 };
 use frame_support::{assert_noop, assert_ok, traits::ReservableCurrency};
 use sp_runtime::{traits::Zero, DispatchError, ModuleError, Perbill, Percent};
@@ -6972,61 +6974,60 @@ fn deferred_payment_steady_state_event_flow() {
 
 // HOTFIX UNIT TESTs
 
-// #[test]
-// fn hotfix_remove_delegation_requests_works() {
-// 	ExtBuilder::default()
-// 		.with_balances(vec![(1, 20), (2, 20)])
-// 		.with_candidates(vec![(1, 20)])
-// 		.build()
-// 		.execute_with(|| {
-// 			let mut requests: BTreeMap<
-// 				<Test as frame_system::Config>::AccountId,
-// 				DelegationRequest<<Test as frame_system::Config>::AccountId, BalanceOf<Test>>,
-// 			> = BTreeMap::new();
-// 			requests.insert(
-// 				3,
-// 				DelegationRequest {
-// 					collator: 3,
-// 					amount: 5,
-// 					when_executable: 0,
-// 					action: DelegationChange::Decrease,
-// 				},
-// 			);
-// 			requests.insert(
-// 				4,
-// 				DelegationRequest {
-// 					collator: 4,
-// 					amount: 20,
-// 					when_executable: 0,
-// 					action: DelegationChange::Revoke,
-// 				},
-// 			);
-// 			let corrupted_delegator_state = Delegator {
-// 				id: 2,
-// 				delegations: OrderedSet::from(vec![Bond {
-// 					owner: 1,
-// 					amount: 20,
-// 				}]),
-// 				total: 20,
-// 				requests: PendingDelegationRequests {
-// 					revocations_count: 1,
-// 					requests,
-// 					less_total: 25,
-// 				},
-// 				status: DelegatorStatus::Active,
-// 			};
-// 			<DelegatorState<Test>>::insert(2, corrupted_delegator_state);
-// 			assert_ok!(ParachainStaking::hotfix_remove_delegation_requests(
-// 				Origin::root(),
-// 				vec![2, 5]
-// 			));
-// 			assert!(ParachainStaking::delegator_state(&5).is_none());
-// 			let fixed_delegator_state =
-// 				ParachainStaking::delegator_state(&2).expect("inserted => exists");
-// 			assert_eq!(fixed_delegator_state.requests.revocations_count, 0);
-// 			assert_eq!(fixed_delegator_state.requests.less_total, 0);
-// 		});
-// }
+#[test]
+fn hotfix_remove_delegation_requests_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 20)])
+		.with_candidates(vec![(1, 20)])
+		.build()
+		.execute_with(|| {
+			// let mut requests: BTreeMap<
+			// 	<Test as frame_system::Config>::AccountId,
+			// 	DelegationRequest<<Test as frame_system::Config>::AccountId, BalanceOf<Test>>,
+			// > = BTreeMap::new();
+
+			<DelegatorScheduledRequests<Test>>::insert(
+				&2,
+				&3,
+				ScheduledRequest {
+					when_executable: 0,
+					action: DelegationAction::Decrease(5),
+				},
+			);
+			<DelegatorScheduledRequests<Test>>::insert(
+				&2,
+				&4,
+				ScheduledRequest {
+					when_executable: 0,
+					action: DelegationAction::Revoke(20),
+				},
+			);
+
+			<DelegatorScheduledRevokeRequestCount<Test>>::insert(&2, 1);
+			<DelegatorScheduledRequestDecreaseAmount<Test>>::insert(&2, 25);
+
+			let corrupted_delegator_state = Delegator {
+				id: 2,
+				delegations: OrderedSet::from(vec![Bond {
+					owner: 1,
+					amount: 20,
+				}]),
+				total: 20,
+				requests: crate::deprecated::PendingDelegationRequests::default(),
+				status: DelegatorStatus::Active,
+			};
+			<DelegatorState<Test>>::insert(2, corrupted_delegator_state);
+			assert_ok!(ParachainStaking::hotfix_remove_delegation_requests(
+				Origin::root(),
+				vec![2, 5]
+			));
+			assert!(ParachainStaking::delegator_state(&5).is_none());
+			assert!(ParachainStaking::delegator_state(&2).is_some());
+			assert_eq!(<DelegatorScheduledRevokeRequestCount<Test>>::get(&2), 0);
+			assert_eq!(<DelegatorScheduledRequestDecreaseAmount<Test>>::get(&2), 0);
+		});
+}
+
 #[test]
 fn hotfix_update_candidate_pool_value_updates_candidate_pool() {
 	ExtBuilder::default()
