@@ -19,8 +19,8 @@ service = { package = "moonbeam-service", path = "../service", default-features 
 # Substrate
 frame-benchmarking-cli = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18" }
 sc-cli = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18" }
-sc-client-db = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18" }
 sc-client-api = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18" }
+sc-client-db = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18" }
 sc-service = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18" }
 sc-telemetry = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18" }
 sc-tracing = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18" }
