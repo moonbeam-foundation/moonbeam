@@ -47,7 +47,6 @@
 //! To leave the set of delegators and revoke all delegations, call `leave_delegators`.
 
 #![cfg_attr(not(feature = "std"), no_std)]
-#![allow(deprecated)]
 
 #[cfg(any(test, feature = "runtime-benchmarks"))]
 mod benchmarks;
@@ -516,7 +515,6 @@ pub mod pallet {
 
 	/// The total amount of funds set to decrease once all scheduled actions for the delegator
 	/// are undertaken.
-	/// TODO! Seems we are not using it anywhere, only maintaing (can be removed?).
 	#[pallet::storage]
 	#[pallet::getter(fn delegator_scheduled_request_decrease_amount)]
 	pub(crate) type DelegatorScheduledRequestDecreaseAmount<T: Config> =
