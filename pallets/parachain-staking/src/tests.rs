@@ -6971,6 +6971,7 @@ fn deferred_payment_steady_state_event_flow() {
 
 #[test]
 fn hotfix_remove_delegation_requests_works() {
+	#[allow(deprecated)]
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20), (2, 20)])
 		.with_candidates(vec![(1, 20)])
@@ -7161,6 +7162,7 @@ fn patch_incorrect_delegations_sums() {
 #[test]
 /// Kicks extra bottom delegations to force leave delegators if last delegation
 fn split_candidate_state_kicks_extra_bottom_delegators_to_exit() {
+	#[allow(deprecated)]
 	ExtBuilder::default()
 		.with_balances(vec![(11, 22), (12, 20)])
 		.build()
@@ -7342,6 +7344,7 @@ fn split_candidate_state_kicks_extra_bottom_delegators_to_exit() {
 #[test]
 /// Force revokes candidate state
 fn split_candidate_state_kicks_extra_bottom_delegations_without_exit() {
+	#[allow(deprecated)]
 	ExtBuilder::default()
 		.with_balances(vec![(11, 32), (12, 30)])
 		.build()
