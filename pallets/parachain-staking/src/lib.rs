@@ -988,10 +988,10 @@ pub mod pallet {
 			Ok(().into())
 		}
 
-		/// Execute leave candidates request
 		#[pallet::weight(
 			<T as Config>::WeightInfo::execute_leave_candidates(*candidate_delegation_count)
 		)]
+		/// Execute leave candidates request
 		pub fn execute_leave_candidates(
 			origin: OriginFor<T>,
 			candidate: T::AccountId,
@@ -1325,9 +1325,9 @@ pub mod pallet {
 			Ok(().into())
 		}
 
+		#[pallet::weight(<T as Config>::WeightInfo::schedule_revoke_delegation())]
 		/// Request to revoke an existing delegation. If successful, the delegation is scheduled
 		/// to be allowed to be revoked via the `execute_delegation_request` extrinsic.
-		#[pallet::weight(<T as Config>::WeightInfo::schedule_revoke_delegation())]
 		pub fn schedule_revoke_delegation(
 			origin: OriginFor<T>,
 			collator: T::AccountId,
@@ -1336,8 +1336,8 @@ pub mod pallet {
 			Self::delegator_schedule_revoke(delegator, collator)
 		}
 
-		/// Bond more for delegators wrt a specific collator candidate.
 		#[pallet::weight(<T as Config>::WeightInfo::delegator_bond_more())]
+		/// Bond more for delegators wrt a specific collator candidate.
 		pub fn delegator_bond_more(
 			origin: OriginFor<T>,
 			candidate: T::AccountId,
@@ -1349,8 +1349,8 @@ pub mod pallet {
 			Ok(().into())
 		}
 
-		/// Request bond less for delegators wrt a specific collator candidate.
 		#[pallet::weight(<T as Config>::WeightInfo::schedule_delegator_bond_less())]
+		/// Request bond less for delegators wrt a specific collator candidate.
 		pub fn schedule_delegator_bond_less(
 			origin: OriginFor<T>,
 			candidate: T::AccountId,
@@ -1360,8 +1360,8 @@ pub mod pallet {
 			Self::delegator_schedule_bond_decrease(delegator, candidate, less)
 		}
 
-		/// Execute pending request to change an existing delegation
 		#[pallet::weight(<T as Config>::WeightInfo::execute_delegator_bond_less())]
+		/// Execute pending request to change an existing delegation
 		pub fn execute_delegation_request(
 			origin: OriginFor<T>,
 			delegator: T::AccountId,
@@ -1371,8 +1371,8 @@ pub mod pallet {
 			Self::delegator_execute_scheduled_request(delegator, candidate)
 		}
 
-		/// Cancel request to change an existing delegation.
 		#[pallet::weight(<T as Config>::WeightInfo::cancel_delegator_bond_less())]
+		/// Cancel request to change an existing delegation.
 		pub fn cancel_delegation_request(
 			origin: OriginFor<T>,
 			candidate: T::AccountId,
