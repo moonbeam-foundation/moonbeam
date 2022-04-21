@@ -102,9 +102,6 @@ pub mod pallet {
 			+ sp_runtime::traits::MaybeDisplay
 			+ sp_runtime::traits::AtLeast32Bit
 			+ Copy;
-
-		/// Origin that is allowed to update the minimal orbiter deposit amount.
-		type UpdateMinOrbiterDepositOrigin: EnsureOrigin<Self::Origin>;
 	}
 
 	#[pallet::storage]
@@ -397,18 +394,6 @@ pub mod pallet {
 			}
 			AccountLookupOverride::<T>::remove(&collator);
 
-			Ok(())
-		}
-
-		/// Update minimum orbiter deposit
-		#[pallet::weight(500_000_000)]
-		pub fn update_min_orbiter_deposit(
-			origin: OriginFor<T>,
-			new_min_orbiter_deposit: BalanceOf<T>,
-		) -> DispatchResult {
-			T::UpdateMinOrbiterDepositOrigin::ensure_origin(origin)?;
-
-			MinOrbiterDeposit::<T>::put(new_min_orbiter_deposit);
 			Ok(())
 		}
 	}

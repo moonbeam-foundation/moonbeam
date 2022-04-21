@@ -1105,7 +1105,6 @@ impl pallet_moonbeam_orbiters::Config for Runtime {
 	type RotatePeriod = ConstU32<2>;
 	/// Round index type.
 	type RoundIndex = parachain_staking::RoundIndex;
-	type UpdateMinOrbiterDepositOrigin = EnsureRoot<AccountId>;
 }
 
 construct_runtime! {
