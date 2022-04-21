@@ -37,6 +37,8 @@ use frame_support::{
 	traits::{Get, OnRuntimeUpgrade, ReservableCurrency},
 	weights::Weight,
 };
+#[cfg(feature = "try-runtime")]
+use scale_info::prelude::string::String;
 use sp_runtime::traits::{Saturating, Zero};
 use sp_std::{convert::TryInto, vec::Vec};
 
@@ -135,14 +137,14 @@ impl<T: Config> OnRuntimeUpgrade for SplitDelegatorStateIntoDelegatorScheduledRe
 		for (delegator, state) in <DelegatorState<T>>::iter() {
 			Self::set_temp_storage(
 				state.requests.less_total,
-				&*format!("expected_delegator_{}_decrease_amount", delegator),
+				&*format!("expected_delegator_{:?}_decrease_amount", delegator),
 			);
 
 			for (collator, request) in state.requests.requests.iter() {
 				Self::set_temp_storage(
 					Self::delegation_request_to_string(&request),
 					&*format!(
-						"expected_delegator_{}_candidate_{}_request",
+						"expected_delegator_{:?}_candidate_{:?}_request",
 						delegator, collator,
 					),
 				);
@@ -183,12 +185,12 @@ impl<T: Config> OnRuntimeUpgrade for SplitDelegatorStateIntoDelegatorScheduledRe
 			<DelegatorScheduledRequestDecreaseAmount<T>>::iter()
 		{
 			let expected_delegator_decrease_amount: BalanceOf<T> = Self::get_temp_storage(
-				&*format!("expected_delegator_{}_decrease_amount", delegator),
+				&*format!("expected_delegator_{:?}_decrease_amount", delegator),
 			)
 			.expect("must exist");
 			assert_eq!(
 				expected_delegator_decrease_amount, actual_decrease_amount,
-				"decrease amount did not match for delegator {}",
+				"decrease amount did not match for delegator {:?}",
 				delegator,
 			);
 
@@ -205,14 +207,14 @@ impl<T: Config> OnRuntimeUpgrade for SplitDelegatorStateIntoDelegatorScheduledRe
 		let mut actual_requests = 0u64;
 		for (delegator, collator, request) in <DelegatorScheduledRequests<T>>::iter() {
 			let expected_delegator_request: String = Self::get_temp_storage(&*format!(
-				"expected_delegator_{}_candidate_{}_request",
+				"expected_delegator_{:?}_candidate_{:?}_request",
 				delegator, collator,
 			))
 			.expect("must exist");
 			let actual_delegator_request = Self::scheduled_request_to_string(&request);
 			assert_eq!(
 				expected_delegator_request, actual_delegator_request,
-				"scheduled request did not match for delegator {}, collator {}",
+				"scheduled request did not match for delegator {:?}, collator {:?}",
 				delegator, collator,
 			);
 
