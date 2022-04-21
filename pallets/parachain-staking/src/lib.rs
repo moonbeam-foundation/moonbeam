@@ -93,9 +93,6 @@ pub mod pallet {
 	pub type BalanceOf<T> =
 		<<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
 
-	pub(crate) type CollatorId<T> = <T as frame_system::Config>::AccountId;
-	pub(crate) type DelegatorId<T> = <T as frame_system::Config>::AccountId;
-
 	/// Configuration trait of this pallet.
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
@@ -327,8 +324,8 @@ pub mod pallet {
 		DelegatorExitCancelled { delegator: T::AccountId },
 		/// Cancelled request to change an existing delegation.
 		CancelledDelegationRequest {
-			delegator: DelegatorId<T>,
-			collator: CollatorId<T>,
+			delegator: T::AccountId,
+			collator: T::AccountId,
 			cancelled_request: ScheduledRequest<BalanceOf<T>>,
 		},
 		/// New delegation (increase of the existing one).
@@ -497,9 +494,9 @@ pub mod pallet {
 	pub(crate) type DelegatorScheduledRequests<T: Config> = StorageDoubleMap<
 		_,
 		Blake2_128Concat,
-		DelegatorId<T>,
+		T::AccountId,
 		Blake2_128Concat,
-		CollatorId<T>,
+		T::AccountId,
 		ScheduledRequest<BalanceOf<T>>,
 		OptionQuery,
 	>;
@@ -511,14 +508,14 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn delegator_scheduled_revoke_request_count)]
 	pub(crate) type DelegatorScheduledRevokeRequestCount<T: Config> =
-		StorageMap<_, Blake2_128Concat, DelegatorId<T>, u64, ValueQuery>;
+		StorageMap<_, Blake2_128Concat, T::AccountId, u64, ValueQuery>;
 
 	/// The total amount of funds set to decrease once all scheduled actions for the delegator
 	/// are undertaken.
 	#[pallet::storage]
 	#[pallet::getter(fn delegator_scheduled_request_decrease_amount)]
 	pub(crate) type DelegatorScheduledRequestDecreaseAmount<T: Config> =
-		StorageMap<_, Blake2_128Concat, DelegatorId<T>, BalanceOf<T>, ValueQuery>;
+		StorageMap<_, Blake2_128Concat, T::AccountId, BalanceOf<T>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn top_delegations)]
