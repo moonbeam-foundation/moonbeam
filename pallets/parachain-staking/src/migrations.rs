@@ -15,13 +15,16 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! # Migrations
+
+use crate::delegation_requests::{DelegationAction, ScheduledRequest};
+use crate::pallet::{DelegatorScheduledRequests, DelegatorState, Total};
+#[allow(deprecated)]
+use crate::types::deprecated::DelegationChange;
 use crate::{
-	pallet::Total, BalanceOf, Bond, BottomDelegations, CandidateInfo, CandidateMetadata,
-	CandidateState, CapacityStatus, CollatorCandidate, Config, Delegations, DelegatorState, Event,
-	Pallet, Points, Round, Staked, TopDelegations,
+	BalanceOf, Bond, BottomDelegations, CandidateInfo, CandidateMetadata, CandidateState,
+	CapacityStatus, CollatorCandidate, Config, Delegations,
+	DelegatorScheduledRequestDecreaseAmount, Event, Pallet, Points, Round, Staked, TopDelegations,
 };
-#[cfg(feature = "try-runtime")]
-use crate::{Collator2, Delegator, Nominator2};
 #[cfg(feature = "try-runtime")]
 use frame_support::traits::OnRuntimeUpgradeHelpersExt;
 use frame_support::Twox64Concat;
@@ -37,112 +40,189 @@ use frame_support::{
 use sp_runtime::traits::{Saturating, Zero};
 use sp_std::{convert::TryInto, vec::Vec};
 
-/// Migration to patch the incorrect delegations sums for all candidates
-pub struct PatchIncorrectDelegationSums<T>(PhantomData<T>);
-impl<T: Config> OnRuntimeUpgrade for PatchIncorrectDelegationSums<T> {
+/// Migration to split [DelegatorState] into [DelegatorScheduledRequests] and [DelegatorScheduledRequestDecreaseAmount].
+pub struct SplitDelegatorStateIntoDelegatorScheduledRequests<T>(PhantomData<T>);
+
+impl<T: Config> SplitDelegatorStateIntoDelegatorScheduledRequests<T> {
+	#[allow(deprecated)]
+	#[cfg(feature = "try-runtime")]
+	fn delegation_request_to_string(
+		request: &crate::deprecated::DelegationRequest<T::AccountId, BalanceOf<T>>,
+	) -> String {
+		match request.action {
+			DelegationChange::Revoke => {
+				format!(
+					"when({})_Revoke({:?})",
+					request.when_executable, request.amount
+				)
+			}
+			DelegationChange::Decrease => {
+				format!(
+					"when({})_Decrease({:?})",
+					request.when_executable, request.amount
+				)
+			}
+		}
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn scheduled_request_to_string(request: &ScheduledRequest<BalanceOf<T>>) -> String {
+		match request.action {
+			DelegationAction::Revoke(v) => {
+				format!("when({})_Revoke({:?})", request.when_executable, v)
+			}
+			DelegationAction::Decrease(v) => {
+				format!("when({})_Decrease({:?})", request.when_executable, v)
+			}
+		}
+	}
+}
+
+#[allow(deprecated)]
+impl<T: Config> OnRuntimeUpgrade for SplitDelegatorStateIntoDelegatorScheduledRequests<T> {
 	fn on_runtime_upgrade() -> Weight {
 		log::info!(
-			target: "PatchIncorrectDelegationSums",
-			"running migration to patch incorrect delegation sums"
+			target: "SplitDelegatorStateIntoDelegatorScheduledRequests",
+			"running migration to split DelegatorState into DelegatorScheduledRequests and DelegatorScheduledRequestDecreaseAmount"
 		);
-		let pallet_prefix: &[u8] = b"ParachainStaking";
-		let top_delegations_prefix: &[u8] = b"TopDelegations";
-		let bottom_delegations_prefix: &[u8] = b"BottomDelegations";
+
 		// Read all the data into memory.
-		// https://crates.parity.io/frame_support/storage/migration/fn.storage_key_iter.html
-		let stored_top_delegations: Vec<_> = storage_key_iter::<
-			T::AccountId,
-			Delegations<T::AccountId, BalanceOf<T>>,
-			Twox64Concat,
-		>(pallet_prefix, top_delegations_prefix)
-		.collect();
-		let migrated_candidates_top_count: Weight = stored_top_delegations
+		let delegator_states = <DelegatorState<T>>::iter().collect::<Vec<_>>();
+		let reads: Weight = delegator_states
 			.len()
 			.try_into()
-			.expect("There are between 0 and 2**64 mappings stored.");
-		let stored_bottom_delegations: Vec<_> = storage_key_iter::<
-			T::AccountId,
-			Delegations<T::AccountId, BalanceOf<T>>,
-			Twox64Concat,
-		>(pallet_prefix, bottom_delegations_prefix)
-		.collect();
-		let migrated_candidates_bottom_count: Weight = stored_bottom_delegations
-			.len()
-			.try_into()
-			.expect("There are between 0 and 2**64 mappings stored.");
-		fn fix_delegations<T: Config>(
-			delegations: Delegations<T::AccountId, BalanceOf<T>>,
-		) -> Delegations<T::AccountId, BalanceOf<T>> {
-			let correct_total = delegations
-				.delegations
-				.iter()
-				.fold(BalanceOf::<T>::zero(), |acc, b| acc + b.amount);
-			log::info!(
-				target: "PatchIncorrectDelegationSums",
-				"Correcting total from {:?} to {:?}",
-				delegations.total, correct_total
+			.expect("failed computing weight for reading delegator states");
+
+		// minimum 1 write per delegator will be performed
+		let mut writes = reads;
+
+		for (delegator, state) in delegator_states.into_iter() {
+			// 1 write per delegator request
+			writes = writes.saturating_add(state.requests.requests.len() as u64);
+			for (collator, request) in state.requests.requests.into_iter() {
+				let action = match request.action {
+					DelegationChange::Revoke => DelegationAction::Revoke(request.amount),
+					DelegationChange::Decrease => DelegationAction::Decrease(request.amount),
+				};
+				<DelegatorScheduledRequests<T>>::insert(
+					delegator.clone(),
+					collator,
+					ScheduledRequest {
+						when_executable: request.when_executable,
+						action,
+					},
+				);
+			}
+
+			<DelegatorScheduledRequestDecreaseAmount<T>>::insert(
+				delegator,
+				state.requests.less_total,
 			);
-			Delegations {
-				delegations: delegations.delegations,
-				total: correct_total,
-			}
-		}
-		for (account, old_top_delegations) in stored_top_delegations {
-			let new_top_delegations = fix_delegations::<T>(old_top_delegations);
-			let mut candidate_info = <CandidateInfo<T>>::get(&account)
-				.expect("TopDelegations exists => CandidateInfo exists");
-			candidate_info.total_counted = candidate_info.bond + new_top_delegations.total;
-			if candidate_info.is_active() {
-				Pallet::<T>::update_active(account.clone(), candidate_info.total_counted);
-			}
-			<CandidateInfo<T>>::insert(&account, candidate_info);
-			<TopDelegations<T>>::insert(&account, new_top_delegations);
-		}
-		for (account, old_bottom_delegations) in stored_bottom_delegations {
-			let new_bottom_delegations = fix_delegations::<T>(old_bottom_delegations);
-			<BottomDelegations<T>>::insert(&account, new_bottom_delegations);
 		}
 		let weight = T::DbWeight::get();
-		let top = migrated_candidates_top_count.saturating_mul(3 * weight.write + 3 * weight.read);
-		let bottom = migrated_candidates_bottom_count.saturating_mul(weight.write + weight.read);
-		// 20% max block weight as margin for error
-		top + bottom + 100_000_000_000
+		reads
+			.saturating_mul(weight.read)
+			.saturating_add(writes.saturating_mul(weight.write))
 	}
+
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade() -> Result<(), &'static str> {
-		// get total counted for all candidates
-		for (account, state) in <CandidateInfo<T>>::iter() {
+		let mut expected_delegator_state_entries = 0u64;
+		let mut expected_decrease_amount_entries = 0u64;
+		let mut expected_requests = 0u64;
+		for (delegator, state) in <DelegatorState<T>>::iter() {
 			Self::set_temp_storage(
-				state.total_counted,
-				&format!("Candidate{:?}TotalCounted", account)[..],
+				state.requests.less_total,
+				&*format!("expected_delegator_{}_decrease_amount", delegator),
 			);
+
+			for (collator, request) in state.requests.requests.iter() {
+				Self::set_temp_storage(
+					Self::delegation_request_to_string(&request),
+					&*format!(
+						"expected_delegator_{}_candidate_{}_request",
+						delegator, collator,
+					),
+				);
+			}
+			expected_delegator_state_entries = expected_delegator_state_entries.saturating_add(1);
+			expected_decrease_amount_entries = expected_decrease_amount_entries.saturating_add(1);
+			expected_requests =
+				expected_requests.saturating_add(state.requests.requests.len() as u64);
 		}
+
+		Self::set_temp_storage(
+			expected_delegator_state_entries,
+			"expected_delegator_state_entries",
+		);
+		Self::set_temp_storage(
+			expected_decrease_amount_entries,
+			"expected_decrease_amount_entries",
+		);
+		Self::set_temp_storage(expected_requests, "expected_requests");
+
 		Ok(())
 	}
 
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade() -> Result<(), &'static str> {
-		// ensure new total counted = top_delegations.sum() + collator self bond
-		for (account, state) in <CandidateInfo<T>>::iter() {
-			let old_count =
-				Self::get_temp_storage(&format!("Candidate{:?}TotalCounted", account)[..])
-					.expect("qed");
-			let new_count = state.total_counted;
-			let top_delegations_sum = <TopDelegations<T>>::get(account)
-				.expect("CandidateInfo exists => TopDelegations exists")
-				.delegations
-				.iter()
-				.fold(BalanceOf::<T>::zero(), |acc, b| acc + b.amount);
-			let correct_total_counted = top_delegations_sum + state.bond;
-			assert_eq!(new_count, correct_total_counted);
-			if new_count != old_count {
-				log::info!(
-					target: "PatchIncorrectDelegationSums",
-					"Corrected total from {:?} to {:?}",
-					old_count, new_count
-				);
-			}
+		// Delegator state entries are not removed
+		let expected_delegator_state_entries: u64 =
+			Self::get_temp_storage("expected_delegator_state_entries").expect("must exist");
+		let actual_delegator_state_entries = <DelegatorState<T>>::iter().count() as u64;
+		assert_eq!(
+			expected_delegator_state_entries, actual_delegator_state_entries,
+			"unexpected change in the number of DelegatorState entries"
+		);
+
+		// Scheduled decrease amount (bond_less) is correctly migrated
+		let mut actual_decrease_amount_entries = 0u64;
+		for (delegator, actual_decrease_amount) in
+			<DelegatorScheduledRequestDecreaseAmount<T>>::iter()
+		{
+			let expected_delegator_decrease_amount: BalanceOf<T> = Self::get_temp_storage(
+				&*format!("expected_delegator_{}_decrease_amount", delegator),
+			)
+			.expect("must exist");
+			assert_eq!(
+				expected_delegator_decrease_amount, actual_decrease_amount,
+				"decrease amount did not match for delegator {}",
+				delegator,
+			);
+
+			actual_decrease_amount_entries = actual_decrease_amount_entries.saturating_add(1);
 		}
+		let expected_decrease_amount_entries: u64 =
+			Self::get_temp_storage("expected_decrease_amount_entries").expect("must exist");
+		assert_eq!(
+			expected_decrease_amount_entries, actual_decrease_amount_entries,
+			"number of decrease_amount entries did not match",
+		);
+
+		// Scheduled requests are correctly migrated
+		let mut actual_requests = 0u64;
+		for (delegator, collator, request) in <DelegatorScheduledRequests<T>>::iter() {
+			let expected_delegator_request: String = Self::get_temp_storage(&*format!(
+				"expected_delegator_{}_candidate_{}_request",
+				delegator, collator,
+			))
+			.expect("must exist");
+			let actual_delegator_request = Self::scheduled_request_to_string(&request);
+			assert_eq!(
+				expected_delegator_request, actual_delegator_request,
+				"scheduled request did not match for delegator {}, collator {}",
+				delegator, collator,
+			);
+
+			actual_requests = actual_requests.saturating_add(1);
+		}
+		let expected_requests: u64 =
+			Self::get_temp_storage("expected_requests").expect("must exist");
+		assert_eq!(
+			expected_requests, actual_requests,
+			"number of scheduled request entries did not match",
+		);
+
 		Ok(())
 	}
 }
