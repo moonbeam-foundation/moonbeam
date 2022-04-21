@@ -40,7 +40,8 @@ use frame_support::{
 use sp_runtime::traits::{Saturating, Zero};
 use sp_std::{convert::TryInto, vec::Vec};
 
-/// Migration to split [DelegatorState] into [DelegatorScheduledRequests] and [DelegatorScheduledRequestDecreaseAmount].
+/// Migration to split [DelegatorState] into [DelegatorScheduledRequests] and
+/// [DelegatorScheduledRequestDecreaseAmount].
 pub struct SplitDelegatorStateIntoDelegatorScheduledRequests<T>(PhantomData<T>);
 
 impl<T: Config> SplitDelegatorStateIntoDelegatorScheduledRequests<T> {
@@ -83,7 +84,8 @@ impl<T: Config> OnRuntimeUpgrade for SplitDelegatorStateIntoDelegatorScheduledRe
 	fn on_runtime_upgrade() -> Weight {
 		log::info!(
 			target: "SplitDelegatorStateIntoDelegatorScheduledRequests",
-			"running migration to split DelegatorState into DelegatorScheduledRequests and DelegatorScheduledRequestDecreaseAmount"
+			"running migration to split DelegatorState into DelegatorScheduledRequests and \
+			DelegatorScheduledRequestDecreaseAmount"
 		);
 
 		// Read all the data into memory.
