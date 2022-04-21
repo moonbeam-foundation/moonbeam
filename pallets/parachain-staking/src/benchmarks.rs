@@ -808,7 +808,7 @@ benchmarks! {
 		)?;
 	} verify {
 		assert!(
-			Pallet::<T>::delegator_state(&caller).unwrap().requests().get(&collator).is_none()
+			Pallet::<T>::delegator_scheduled_requests(&caller, &collator).is_none()
 		);
 	}
 
@@ -842,11 +842,7 @@ benchmarks! {
 		)?;
 	} verify {
 		assert!(
-			Pallet::<T>::delegator_state(&caller)
-				.unwrap()
-				.requests()
-				.get(&collator)
-				.is_none()
+			Pallet::<T>::delegator_scheduled_requests(&caller, &collator).is_none()
 		);
 	}
 
