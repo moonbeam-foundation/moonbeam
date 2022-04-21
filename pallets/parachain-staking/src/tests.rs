@@ -2925,12 +2925,7 @@ fn execute_revoke_delegation_removes_revocation_from_delegator_state_upon_execut
 				2,
 				1
 			));
-			assert!(ParachainStaking::delegator_state(2)
-				.expect("exists")
-				.requests
-				.requests
-				.get(&1)
-				.is_none());
+			assert!(ParachainStaking::delegator_scheduled_requests(&2, &1).is_none());
 		});
 }
 
@@ -8215,11 +8210,7 @@ fn delegation_kicked_from_bottom_removes_pending_request() {
 				unstaked_amount: 19,
 			});
 			// ensure request DNE
-			assert!(ParachainStaking::delegator_state(&2)
-				.unwrap()
-				.requests()
-				.get(&1)
-				.is_none());
+			assert!(ParachainStaking::delegator_scheduled_requests(&2, &1).is_none());
 		});
 }
 

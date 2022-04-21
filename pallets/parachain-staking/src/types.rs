@@ -1204,23 +1204,31 @@ pub enum DelegatorStatus {
 	Leaving(RoundIndex),
 }
 
-#[derive(Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
-/// Delegator state
-pub struct Delegator<AccountId, Balance> {
-	/// Delegator account
-	pub id: AccountId,
-	/// All current delegations
-	pub delegations: OrderedSet<Bond<AccountId, Balance>>,
-	/// Total balance locked for this delegator
-	pub total: Balance,
-	/// Requests to change delegations, relevant iff active
-	#[deprecated(note = "use ScheduledRequests storage item instead")]
-	pub requests: deprecated::PendingDelegationRequests<AccountId, Balance>,
-	/// Status for this delegator
-	pub status: DelegatorStatus,
+// Needed to apply `#![allow(deprecated)]` for generated code.
+mod allow_deprecated {
+	#![allow(deprecated)]
+	use super::*;
+
+	#[derive(Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
+	/// Delegator state
+	pub struct Delegator<AccountId, Balance> {
+		/// Delegator account
+		pub id: AccountId,
+		/// All current delegations
+		pub delegations: OrderedSet<Bond<AccountId, Balance>>,
+		/// Total balance locked for this delegator
+		pub total: Balance,
+		/// Requests to change delegations, relevant iff active
+		#[deprecated(note = "use ScheduledRequests storage item instead")]
+		pub requests: deprecated::PendingDelegationRequests<AccountId, Balance>,
+		/// Status for this delegator
+		pub status: DelegatorStatus,
+	}
 }
+pub use allow_deprecated::Delegator;
 
 // Temporary manual implementation for migration testing purposes
+#[allow(deprecated)]
 impl<A: PartialEq, B: PartialEq> PartialEq for Delegator<A, B> {
 	fn eq(&self, other: &Self) -> bool {
 		let must_be_true = self.id == other.id
@@ -1262,6 +1270,7 @@ impl<
 			+ Saturating,
 	> Delegator<AccountId, Balance>
 {
+	#[allow(deprecated)]
 	pub fn new(id: AccountId, collator: AccountId, amount: Balance) -> Self {
 		Delegator {
 			id,
@@ -1274,6 +1283,8 @@ impl<
 			status: DelegatorStatus::Active,
 		}
 	}
+
+	#[allow(deprecated)]
 	#[deprecated(note = "use DelegatorScheduledRequests storage item instead")]
 	pub fn requests(
 		&self,
@@ -1414,6 +1425,7 @@ impl<
 	}
 }
 
+#[allow(deprecated)]
 pub mod deprecated {
 	use super::*;
 

@@ -37,10 +37,7 @@ pub enum DelegationAction<Balance> {
 	Decrease(Balance),
 }
 
-impl<Balance> DelegationAction<Balance>
-where
-	Balance: Copy,
-{
+impl<Balance: Copy> DelegationAction<Balance> {
 	/// Returns the wrapped amount value.
 	pub fn amount(&self) -> Balance {
 		match self {
