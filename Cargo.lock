@@ -1469,9 +1469,9 @@ name = "crowdloan-rewards-precompiles"
 version = "0.6.0"
 dependencies = [
  "cumulus-pallet-parachain-system",
- "cumulus-primitives-core",
- "cumulus-primitives-parachain-inherent",
- "cumulus-test-relay-sproof-builder",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18)",
+ "cumulus-primitives-parachain-inherent 0.1.0 (git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18)",
+ "cumulus-test-relay-sproof-builder 0.1.0 (git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18)",
  "derive_more",
  "fp-evm",
  "frame-support",
@@ -1617,7 +1617,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-cli"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.18#76cf464eeee1c276277d4dc53ed9ea77673165f7"
+source = "git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18#5e7f9ee816c4be9fa453018c9e80169039081918"
 dependencies = [
  "clap 3.1.6",
  "sc-cli",
@@ -1628,11 +1628,11 @@ dependencies = [
 [[package]]
 name = "cumulus-client-collator"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.18#76cf464eeee1c276277d4dc53ed9ea77673165f7"
+source = "git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18#5e7f9ee816c4be9fa453018c9e80169039081918"
 dependencies = [
  "cumulus-client-consensus-common",
  "cumulus-client-network",
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18)",
  "cumulus-relay-chain-interface",
  "futures 0.3.21",
  "parity-scale-codec",
@@ -1652,7 +1652,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-consensus-common"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.18#76cf464eeee1c276277d4dc53ed9ea77673165f7"
+source = "git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18#5e7f9ee816c4be9fa453018c9e80169039081918"
 dependencies = [
  "async-trait",
  "cumulus-relay-chain-interface",
@@ -1673,11 +1673,11 @@ dependencies = [
 [[package]]
 name = "cumulus-client-consensus-relay-chain"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.18#76cf464eeee1c276277d4dc53ed9ea77673165f7"
+source = "git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18#5e7f9ee816c4be9fa453018c9e80169039081918"
 dependencies = [
  "async-trait",
  "cumulus-client-consensus-common",
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18)",
  "cumulus-relay-chain-interface",
  "futures 0.3.21",
  "parking_lot 0.12.0",
@@ -1697,7 +1697,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-network"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.18#76cf464eeee1c276277d4dc53ed9ea77673165f7"
+source = "git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18#5e7f9ee816c4be9fa453018c9e80169039081918"
 dependencies = [
  "async-trait",
  "cumulus-relay-chain-interface",
@@ -1722,9 +1722,9 @@ dependencies = [
 [[package]]
 name = "cumulus-client-pov-recovery"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.18#76cf464eeee1c276277d4dc53ed9ea77673165f7"
+source = "git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18#5e7f9ee816c4be9fa453018c9e80169039081918"
 dependencies = [
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18)",
  "cumulus-relay-chain-interface",
  "futures 0.3.21",
  "futures-timer",
@@ -1746,13 +1746,13 @@ dependencies = [
 [[package]]
 name = "cumulus-client-service"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.18#76cf464eeee1c276277d4dc53ed9ea77673165f7"
+source = "git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18#5e7f9ee816c4be9fa453018c9e80169039081918"
 dependencies = [
  "cumulus-client-cli",
  "cumulus-client-collator",
  "cumulus-client-consensus-common",
  "cumulus-client-pov-recovery",
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18)",
  "cumulus-relay-chain-interface",
  "parity-scale-codec",
  "parking_lot 0.12.0",
@@ -1776,9 +1776,9 @@ dependencies = [
 [[package]]
 name = "cumulus-pallet-dmp-queue"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.18#76cf464eeee1c276277d4dc53ed9ea77673165f7"
+source = "git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18#5e7f9ee816c4be9fa453018c9e80169039081918"
 dependencies = [
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18)",
  "frame-support",
  "frame-system",
  "log",
@@ -1794,11 +1794,11 @@ dependencies = [
 [[package]]
 name = "cumulus-pallet-parachain-system"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.18#76cf464eeee1c276277d4dc53ed9ea77673165f7"
+source = "git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18#5e7f9ee816c4be9fa453018c9e80169039081918"
 dependencies = [
  "cumulus-pallet-parachain-system-proc-macro",
- "cumulus-primitives-core",
- "cumulus-primitives-parachain-inherent",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18)",
+ "cumulus-primitives-parachain-inherent 0.1.0 (git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18)",
  "environmental",
  "frame-support",
  "frame-system",
@@ -1824,7 +1824,7 @@ dependencies = [
 [[package]]
 name = "cumulus-pallet-parachain-system-proc-macro"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.18#76cf464eeee1c276277d4dc53ed9ea77673165f7"
+source = "git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18#5e7f9ee816c4be9fa453018c9e80169039081918"
 dependencies = [
  "proc-macro-crate 1.1.3",
  "proc-macro2",
@@ -1835,9 +1835,9 @@ dependencies = [
 [[package]]
 name = "cumulus-pallet-xcm"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.18#76cf464eeee1c276277d4dc53ed9ea77673165f7"
+source = "git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18#5e7f9ee816c4be9fa453018c9e80169039081918"
 dependencies = [
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18)",
  "frame-support",
  "frame-system",
  "parity-scale-codec",
@@ -1852,9 +1852,9 @@ dependencies = [
 [[package]]
 name = "cumulus-pallet-xcmp-queue"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.18#76cf464eeee1c276277d4dc53ed9ea77673165f7"
+source = "git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18#5e7f9ee816c4be9fa453018c9e80169039081918"
 dependencies = [
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18)",
  "frame-support",
  "frame-system",
  "log",
@@ -1865,6 +1865,22 @@ dependencies = [
  "sp-std",
  "xcm",
  "xcm-executor",
+]
+
+[[package]]
+name = "cumulus-primitives-core"
+version = "0.1.0"
+source = "git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18#5e7f9ee816c4be9fa453018c9e80169039081918"
+dependencies = [
+ "frame-support",
+ "parity-scale-codec",
+ "polkadot-core-primitives",
+ "polkadot-parachain",
+ "polkadot-primitives",
+ "sp-api",
+ "sp-runtime",
+ "sp-std",
+ "sp-trie",
 ]
 
 [[package]]
@@ -1886,12 +1902,12 @@ dependencies = [
 [[package]]
 name = "cumulus-primitives-parachain-inherent"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.18#76cf464eeee1c276277d4dc53ed9ea77673165f7"
+source = "git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18#5e7f9ee816c4be9fa453018c9e80169039081918"
 dependencies = [
  "async-trait",
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18)",
  "cumulus-relay-chain-interface",
- "cumulus-test-relay-sproof-builder",
+ "cumulus-test-relay-sproof-builder 0.1.0 (git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18)",
  "parity-scale-codec",
  "sc-client-api",
  "scale-info",
@@ -1907,11 +1923,25 @@ dependencies = [
 ]
 
 [[package]]
-name = "cumulus-primitives-timestamp"
+name = "cumulus-primitives-parachain-inherent"
 version = "0.1.0"
 source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.18#76cf464eeee1c276277d4dc53ed9ea77673165f7"
 dependencies = [
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.18)",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-inherents",
+ "sp-std",
+ "sp-trie",
+]
+
+[[package]]
+name = "cumulus-primitives-timestamp"
+version = "0.1.0"
+source = "git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18#5e7f9ee816c4be9fa453018c9e80169039081918"
+dependencies = [
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18)",
  "futures 0.3.21",
  "parity-scale-codec",
  "sp-inherents",
@@ -1922,9 +1952,9 @@ dependencies = [
 [[package]]
 name = "cumulus-primitives-utility"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.18#76cf464eeee1c276277d4dc53ed9ea77673165f7"
+source = "git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18#5e7f9ee816c4be9fa453018c9e80169039081918"
 dependencies = [
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18)",
  "frame-support",
  "parity-scale-codec",
  "polkadot-core-primitives",
@@ -1939,10 +1969,10 @@ dependencies = [
 [[package]]
 name = "cumulus-relay-chain-inprocess-interface"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.18#76cf464eeee1c276277d4dc53ed9ea77673165f7"
+source = "git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18#5e7f9ee816c4be9fa453018c9e80169039081918"
 dependencies = [
  "async-trait",
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18)",
  "cumulus-relay-chain-interface",
  "futures 0.3.21",
  "futures-timer",
@@ -1967,10 +1997,10 @@ dependencies = [
 [[package]]
 name = "cumulus-relay-chain-interface"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.18#76cf464eeee1c276277d4dc53ed9ea77673165f7"
+source = "git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18#5e7f9ee816c4be9fa453018c9e80169039081918"
 dependencies = [
  "async-trait",
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18)",
  "derive_more",
  "futures 0.3.21",
  "jsonrpsee-core 0.9.0",
@@ -1991,11 +2021,11 @@ dependencies = [
 [[package]]
 name = "cumulus-relay-chain-rpc-interface"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.18#76cf464eeee1c276277d4dc53ed9ea77673165f7"
+source = "git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18#5e7f9ee816c4be9fa453018c9e80169039081918"
 dependencies = [
  "async-trait",
  "backoff",
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18)",
  "cumulus-relay-chain-interface",
  "futures 0.3.21",
  "futures-timer",
@@ -2017,9 +2047,22 @@ dependencies = [
 [[package]]
 name = "cumulus-test-relay-sproof-builder"
 version = "0.1.0"
+source = "git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18#5e7f9ee816c4be9fa453018c9e80169039081918"
+dependencies = [
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18)",
+ "parity-scale-codec",
+ "polkadot-primitives",
+ "sp-runtime",
+ "sp-state-machine",
+ "sp-std",
+]
+
+[[package]]
+name = "cumulus-test-relay-sproof-builder"
+version = "0.1.0"
 source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.18#76cf464eeee1c276277d4dc53ed9ea77673165f7"
 dependencies = [
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.18)",
  "parity-scale-codec",
  "polkadot-primitives",
  "sp-runtime",
@@ -5273,7 +5316,7 @@ dependencies = [
 name = "manual-xcm-rpc"
 version = "0.1.0"
 dependencies = [
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18)",
  "flume",
  "futures 0.3.21",
  "hex-literal",
@@ -5518,11 +5561,11 @@ dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-pallet-xcm",
  "cumulus-pallet-xcmp-queue",
- "cumulus-primitives-core",
- "cumulus-primitives-parachain-inherent",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18)",
+ "cumulus-primitives-parachain-inherent 0.1.0 (git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.18)",
  "cumulus-primitives-timestamp",
  "cumulus-primitives-utility",
- "cumulus-test-relay-sproof-builder",
+ "cumulus-test-relay-sproof-builder 0.1.0 (git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.18)",
  "evm-tracing-events",
  "fp-evm",
  "fp-rpc",
@@ -5646,7 +5689,7 @@ dependencies = [
  "clap 3.1.6",
  "cumulus-client-cli",
  "cumulus-client-service",
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18)",
  "frame-benchmarking-cli",
  "log",
  "moonbeam-cli-opt",
@@ -5760,7 +5803,7 @@ dependencies = [
 name = "moonbeam-relay-encoder"
 version = "0.1.0"
 dependencies = [
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18)",
  "frame-support",
  "frame-system",
  "kusama-runtime",
@@ -5953,11 +5996,11 @@ dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-pallet-xcm",
  "cumulus-pallet-xcmp-queue",
- "cumulus-primitives-core",
- "cumulus-primitives-parachain-inherent",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18)",
+ "cumulus-primitives-parachain-inherent 0.1.0 (git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.18)",
  "cumulus-primitives-timestamp",
  "cumulus-primitives-utility",
- "cumulus-test-relay-sproof-builder",
+ "cumulus-test-relay-sproof-builder 0.1.0 (git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.18)",
  "evm-tracing-events",
  "fp-evm",
  "fp-rpc",
@@ -6068,12 +6111,12 @@ dependencies = [
  "cumulus-client-consensus-relay-chain",
  "cumulus-client-network",
  "cumulus-client-service",
- "cumulus-primitives-core",
- "cumulus-primitives-parachain-inherent",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18)",
+ "cumulus-primitives-parachain-inherent 0.1.0 (git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18)",
  "cumulus-relay-chain-inprocess-interface",
  "cumulus-relay-chain-interface",
  "cumulus-relay-chain-rpc-interface",
- "cumulus-test-relay-sproof-builder",
+ "cumulus-test-relay-sproof-builder 0.1.0 (git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18)",
  "derive_more",
  "exit-future 0.1.4",
  "fc-consensus",
@@ -6193,11 +6236,11 @@ dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-pallet-xcm",
  "cumulus-pallet-xcmp-queue",
- "cumulus-primitives-core",
- "cumulus-primitives-parachain-inherent",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18)",
+ "cumulus-primitives-parachain-inherent 0.1.0 (git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.18)",
  "cumulus-primitives-timestamp",
  "cumulus-primitives-utility",
- "cumulus-test-relay-sproof-builder",
+ "cumulus-test-relay-sproof-builder 0.1.0 (git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.18)",
  "evm-tracing-events",
  "fp-evm",
  "fp-rpc",
@@ -6456,12 +6499,12 @@ dependencies = [
 [[package]]
 name = "nimbus-consensus"
 version = "0.9.0"
-source = "git+https://github.com/purestake/nimbus?branch=girazoki-benchmark-kick-off-moonbeam-polkadot-v0.9.18#51febe1afb1a0e236be696904523a71bae15aae9"
+source = "git+https://github.com/purestake/nimbus?branch=girazoki-benchmark-kick-off-moonbeam-polkadot-v0.9.18#ab00eac415eacdaeac86a075d99bba8bdc4b03fc"
 dependencies = [
  "async-trait",
  "cumulus-client-consensus-common",
- "cumulus-primitives-core",
- "cumulus-primitives-parachain-inherent",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18)",
+ "cumulus-primitives-parachain-inherent 0.1.0 (git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18)",
  "futures 0.3.21",
  "log",
  "nimbus-primitives",
@@ -6487,7 +6530,7 @@ dependencies = [
 [[package]]
 name = "nimbus-primitives"
 version = "0.9.0"
-source = "git+https://github.com/purestake/nimbus?branch=girazoki-benchmark-kick-off-moonbeam-polkadot-v0.9.18#51febe1afb1a0e236be696904523a71bae15aae9"
+source = "git+https://github.com/purestake/nimbus?branch=girazoki-benchmark-kick-off-moonbeam-polkadot-v0.9.18#ab00eac415eacdaeac86a075d99bba8bdc4b03fc"
 dependencies = [
  "async-trait",
  "frame-benchmarking",
@@ -6805,7 +6848,7 @@ name = "orml-xtokens"
 version = "0.4.1-dev"
 source = "git+https://github.com/purestake/open-runtime-module-library?branch=moonbeam-polkadot-v0.9.18#5aa90d413d358140ed93b0772a4bd4e21efbaa52"
 dependencies = [
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.18)",
  "frame-support",
  "frame-system",
  "orml-traits",
@@ -6875,7 +6918,7 @@ dependencies = [
 [[package]]
 name = "pallet-author-inherent"
 version = "0.9.0"
-source = "git+https://github.com/purestake/nimbus?branch=girazoki-benchmark-kick-off-moonbeam-polkadot-v0.9.18#51febe1afb1a0e236be696904523a71bae15aae9"
+source = "git+https://github.com/purestake/nimbus?branch=girazoki-benchmark-kick-off-moonbeam-polkadot-v0.9.18#ab00eac415eacdaeac86a075d99bba8bdc4b03fc"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6941,7 +6984,7 @@ dependencies = [
 [[package]]
 name = "pallet-author-slot-filter"
 version = "0.9.0"
-source = "git+https://github.com/purestake/nimbus?branch=girazoki-benchmark-kick-off-moonbeam-polkadot-v0.9.18#51febe1afb1a0e236be696904523a71bae15aae9"
+source = "git+https://github.com/purestake/nimbus?branch=girazoki-benchmark-kick-off-moonbeam-polkadot-v0.9.18#ab00eac415eacdaeac86a075d99bba8bdc4b03fc"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -7194,11 +7237,11 @@ dependencies = [
 [[package]]
 name = "pallet-crowdloan-rewards"
 version = "0.6.0"
-source = "git+https://github.com/purestake/crowdloan-rewards?branch=moonbeam-polkadot-v0.9.18#700216058c2cdbcdc55f69b530391303bae2fe23"
+source = "git+https://github.com/purestake/crowdloan-rewards?branch=girazoki-benchmark-kick-off-moonbeam-polkadot-v0.9.18#e4c4cf7674008c5c178c307819d8aa60e755c727"
 dependencies = [
  "cumulus-pallet-parachain-system",
- "cumulus-primitives-core",
- "cumulus-primitives-parachain-inherent",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18)",
+ "cumulus-primitives-parachain-inherent 0.1.0 (git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18)",
  "ed25519-dalek",
  "frame-benchmarking",
  "frame-support",
@@ -7565,7 +7608,7 @@ dependencies = [
 name = "pallet-maintenance-mode"
 version = "0.1.0"
 dependencies = [
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18)",
  "frame-support",
  "frame-system",
  "log",
@@ -8034,9 +8077,9 @@ dependencies = [
 [[package]]
 name = "parachain-info"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.18#76cf464eeee1c276277d4dc53ed9ea77673165f7"
+source = "git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18#5e7f9ee816c4be9fa453018c9e80169039081918"
 dependencies = [
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18)",
  "frame-support",
  "frame-system",
  "parity-scale-codec",
@@ -8344,7 +8387,7 @@ dependencies = [
  "async-io",
  "clap 3.1.6",
  "cli-table",
- "cumulus-primitives-parachain-inherent",
+ "cumulus-primitives-parachain-inherent 0.1.0 (git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18)",
  "ethereum",
  "fc-consensus",
  "fc-rpc",
@@ -10247,7 +10290,7 @@ name = "relay-encoder-precompiles"
 version = "0.1.0"
 dependencies = [
  "cumulus-pallet-parachain-system",
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18)",
  "derive_more",
  "fp-evm",
  "frame-support",
@@ -14685,7 +14728,7 @@ dependencies = [
 name = "xcm-transactor"
 version = "0.1.0"
 dependencies = [
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18)",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
@@ -14711,7 +14754,7 @@ dependencies = [
 name = "xcm-transactor-precompiles"
 version = "0.1.0"
 dependencies = [
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18)",
  "derive_more",
  "evm",
  "fp-evm",
@@ -14744,7 +14787,7 @@ dependencies = [
 name = "xtokens-precompiles"
 version = "0.1.0"
 dependencies = [
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18)",
  "derive_more",
  "fp-evm",
  "frame-support",

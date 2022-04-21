@@ -28,7 +28,7 @@ fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-pol
 pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
 
 # Cumulus
-cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "gorka-kick-off-polkadot-v0.9.18", default-features = false }
 
 [dev-dependencies]
 derive_more = "0.99"
@@ -43,7 +43,7 @@ scale-info = { version = "2.0", default-features = false, features = [ "derive" 
 sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
 
 # Cumulus
-cumulus-pallet-parachain-system = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.18" }
+cumulus-pallet-parachain-system = { git = "https://github.com/purestake/cumulus", branch = "gorka-kick-off-polkadot-v0.9.18" }
 
 [features]
 default = [ "std" ]
