@@ -137,7 +137,6 @@ impl pallet_moonbeam_orbiters::Config for Test {
 	type RotatePeriod = ConstU32<2>;
 	/// Round index type.
 	type RoundIndex = u32;
-	type UpdateMinOrbiterDepositOrigin = EnsureRoot<AccountId>;
 }
 
 pub(crate) struct ExtBuilder {

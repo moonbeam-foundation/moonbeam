@@ -22,7 +22,6 @@ use crate::{Call, Config, Pallet};
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
 use frame_support::traits::{Currency, ReservableCurrency};
 use frame_system::RawOrigin;
-use sp_runtime::traits::One;
 
 /// Create a funded user.
 fn create_funded_user<T: Config>(string: &'static str, n: u32, balance: u32) -> T::AccountId {
@@ -42,11 +41,6 @@ benchmarks! {
 	}: _(RawOrigin::Signed(orbiter_account.clone()))
 	verify {
 		assert_eq!(T::Currency::reserved_balance(&orbiter_account), MIN_ORBITER_DEPOSIT.into());
-	}
-	update_min_orbiter_deposit {
-	}: _(RawOrigin::Root, One::one())
-	verify {
-		assert_eq!(Pallet::<T>::min_orbiter_deposit(), Some(One::one()));
 	}
 }
 
@@ -78,12 +72,12 @@ mod tests {
 		});
 	}
 
-	#[test]
+	/*#[test]
 	fn bench_update_min_orbiter_deposit() {
 		new_test_ext().execute_with(|| {
 			assert_ok!(Pallet::<Test>::test_benchmark_update_min_orbiter_deposit());
 		});
-	}
+	}*/
 }
 
 impl_benchmark_test_suite!(
