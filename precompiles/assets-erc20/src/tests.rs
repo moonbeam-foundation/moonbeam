@@ -17,8 +17,7 @@
 use frame_support::assert_ok;
 use std::{assert_matches::assert_matches, str::from_utf8};
 
-use crate::mock::*;
-use crate::*;
+use crate::{eip2612::Eip2612, mock::*, *};
 
 use fp_evm::{Context, PrecompileFailure};
 use libsecp256k1::{sign, Message, SecretKey};
@@ -2148,7 +2147,7 @@ fn permit_valid() {
 			let value: U256 = 500u16.into();
 			let deadline: U256 = 0u8.into(); // todo: proper timestamp
 
-			let permit = crate::eip2612::Eip2612::<Runtime, IsLocal, pallet_assets::Instance2>::generate_permit(
+			let permit = Eip2612::<Runtime, IsLocal, pallet_assets::Instance2>::generate_permit(
 				Account::ForeignAssetId(0u128).into(),
 				0u128,
 				owner,
@@ -2291,7 +2290,7 @@ fn permit_invalid_nonce() {
 			let value: U256 = 500u16.into();
 			let deadline: U256 = 0u8.into();
 
-			let permit = crate::eip2612::Eip2612::<Runtime, IsLocal, pallet_assets::Instance2>::generate_permit(
+			let permit = Eip2612::<Runtime, IsLocal, pallet_assets::Instance2>::generate_permit(
 				Account::ForeignAssetId(0u128).into(),
 				0u128,
 				owner,
@@ -2543,7 +2542,7 @@ fn permit_invalid_deadline() {
 			let value: U256 = 500u16.into();
 			let deadline: U256 = 5u8.into(); // deadline < timestamp => expired
 
-			let permit = crate::eip2612::Eip2612::<Runtime, IsLocal, pallet_assets::Instance2>::generate_permit(
+			let permit = Eip2612::<Runtime, IsLocal, pallet_assets::Instance2>::generate_permit(
 				Account::ForeignAssetId(0u128).into(),
 				0u128,
 				owner,
