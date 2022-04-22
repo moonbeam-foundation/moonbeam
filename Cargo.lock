@@ -6920,6 +6920,8 @@ name = "pallet-author-inherent"
 version = "0.9.0"
 source = "git+https://github.com/purestake/nimbus?branch=girazoki-benchmark-kick-off-moonbeam-polkadot-v0.9.18#b1d8e05c20c5ef24e1510ff76b5c78412f772e21"
 dependencies = [
+ "cumulus-pallet-parachain-system",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=gorka-kick-off-polkadot-v0.9.18)",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
