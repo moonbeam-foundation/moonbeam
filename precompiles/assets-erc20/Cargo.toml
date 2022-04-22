@@ -8,8 +8,8 @@ version = "0.1.0"
 [dependencies]
 log = "0.4"
 num_enum = { version = "0.5.3", default-features = false }
-slices = "0.2.0"
 paste = "1.0.6"
+slices = "0.2.0"
 
 # Moonbeam
 precompile-utils = { path = "../utils", default-features = false }
@@ -32,10 +32,10 @@ pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam
 
 [dev-dependencies]
 derive_more = { version = "0.99" }
-serde = { version = "1.0.100" }
-sha3 = "0.8"
 hex-literal = "0.3.4"
 libsecp256k1 = "0.7"
+serde = { version = "1.0.100" }
+sha3 = "0.8"
 
 codec = { package = "parity-scale-codec", version = "3.0.0", features = [ "max-encoded-len" ] }
 pallet-timestamp = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18" }
@@ -50,9 +50,9 @@ std = [
 	"frame-support/std",
 	"frame-system/std",
 	"pallet-assets/std",
+	"pallet-balances/std",
 	"pallet-evm/std",
 	"pallet-timestamp/std",
-	"pallet-balances/std",
 	"precompile-utils/std",
 	"sp-core/std",
 	"sp-io/std",
