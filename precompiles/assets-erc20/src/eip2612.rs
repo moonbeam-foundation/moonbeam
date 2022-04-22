@@ -1,0 +1,255 @@
+// Copyright 2019-2022 PureStake Inc.
+// This file is 	part of Moonbeam.
+
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+
+use super::*;
+use frame_support::{
+	ensure,
+	storage::types::{StorageDoubleMap, ValueQuery},
+	traits::StorageInstance,
+	Blake2_128Concat,
+};
+use pallet_assets::pallet::{
+	Instance1, Instance10, Instance11, Instance12, Instance13, Instance14, Instance15, Instance16,
+	Instance2, Instance3, Instance4, Instance5, Instance6, Instance7, Instance8, Instance9,
+};
+use sp_core::H256;
+use sp_io::hashing::keccak_256;
+
+/// EIP2612 permit typehash.
+pub const PERMIT_TYPEHASH: [u8; 32] = keccak256!(
+	"Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)"
+);
+
+/// EIP2612 permit domain used to compute an individualized domain separator.
+const PERMIT_DOMAIN: [u8; 32] = keccak256!(
+	"EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
+);
+
+/// Associates pallet Instance to a prefix used for the Nonces storage.
+/// This trait is implemented for () and the 16 substrate Instance.
+pub trait InstanceToPrefix {
+	/// Prefix used for the Approves storage.
+	type NoncesPrefix: StorageInstance;
+}
+
+// We use a macro to implement the trait for () and the 16 substrate Instance.
+macro_rules! impl_prefix {
+	($instance:ident, $name:literal) => {
+		// Using `paste!` we generate a dedicated module to avoid collisions
+		// between each instance `Nonces` struct.
+		paste::paste! {
+			mod [<_impl_prefix_ $instance:snake>] {
+				use super::*;
+
+				pub struct Nonces;
+
+				impl StorageInstance for Nonces {
+					const STORAGE_PREFIX: &'static str = "Nonces";
+
+					fn pallet_prefix() -> &'static str {
+						$name
+					}
+				}
+
+				impl InstanceToPrefix for $instance {
+					type NoncesPrefix = Nonces;
+				}
+			}
+		}
+	};
+}
+
+// Since the macro expect a `ident` to be used with `paste!` we cannot provide `()` directly.
+type Instance0 = ();
+
+impl_prefix!(Instance0, "Erc20Instance0Nonces");
+impl_prefix!(Instance1, "Erc20Instance1Nonces");
+impl_prefix!(Instance2, "Erc20Instance2Nonces");
+impl_prefix!(Instance3, "Erc20Instance3Nonces");
+impl_prefix!(Instance4, "Erc20Instance4Nonces");
+impl_prefix!(Instance5, "Erc20Instance5Nonces");
+impl_prefix!(Instance6, "Erc20Instance6Nonces");
+impl_prefix!(Instance7, "Erc20Instance7Nonces");
+impl_prefix!(Instance8, "Erc20Instance8Nonces");
+impl_prefix!(Instance9, "Erc20Instance9Nonces");
+impl_prefix!(Instance10, "Erc20Instance10Nonces");
+impl_prefix!(Instance11, "Erc20Instance11Nonces");
+impl_prefix!(Instance12, "Erc20Instance12Nonces");
+impl_prefix!(Instance13, "Erc20Instance13Nonces");
+impl_prefix!(Instance14, "Erc20Instance14Nonces");
+impl_prefix!(Instance15, "Erc20Instance15Nonces");
+impl_prefix!(Instance16, "Erc20Instance16Nonces");
+
+/// Storage type used to store EIP2612 nonces.
+pub type NoncesStorage<Instance> = StorageDoubleMap<
+	<Instance as InstanceToPrefix>::NoncesPrefix,
+	Blake2_128Concat,
+	// Asset contract address
+	H160,
+	Blake2_128Concat,
+	// Owner
+	H160,
+	// Nonce
+	U256,
+	ValueQuery,
+>;
+
+pub struct Eip2612<Runtime, IsLocal, Instance: 'static = ()>(
+	PhantomData<(Runtime, IsLocal, Instance)>,
+);
+
+impl<Runtime, IsLocal, Instance> Eip2612<Runtime, IsLocal, Instance>
+where
+	Instance: InstanceToPrefix + 'static,
+	Runtime: pallet_assets::Config<Instance>
+		+ pallet_evm::Config
+		+ frame_system::Config
+		+ pallet_timestamp::Config,
+	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
+	Runtime::Call: From<pallet_assets::Call<Runtime, Instance>>,
+	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
+	BalanceOf<Runtime, Instance>: TryFrom<U256> + Into<U256> + EvmData,
+	Runtime: AccountIdAssetIdConversion<Runtime::AccountId, AssetIdOf<Runtime, Instance>>,
+	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin: OriginTrait,
+	IsLocal: Get<bool>,
+	<Runtime as pallet_timestamp::Config>::Moment: Into<U256>,
+{
+	fn compute_domain_separator(address: H160, asset_id: AssetIdOf<Runtime, Instance>) -> [u8; 32] {
+		let name: H256 =
+			keccak_256(pallet_assets::Pallet::<Runtime, Instance>::name(asset_id).as_slice())
+				.into();
+
+		let version: H256 = keccak256!("1").into();
+
+		let chain_id: U256 = Runtime::ChainId::get().into();
+
+		let domain_separator_inner = EvmDataWriter::new()
+			.write(H256::from(PERMIT_DOMAIN))
+			.write(name)
+			.write(version)
+			.write(chain_id)
+			.write(Address(address))
+			.build();
+
+		keccak_256(&domain_separator_inner).into()
+	}
+
+	// Translated from
+	// https://github.com/Uniswap/v2-core/blob/master/contracts/UniswapV2ERC20.sol#L81
+	pub(crate) fn permit(
+		address: H160,
+		asset_id: AssetIdOf<Runtime, Instance>,
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
+	) -> EvmResult<PrecompileOutput> {
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		let owner: H160 = input.read::<Address>(gasometer)?.into();
+		let spender: H160 = input.read::<Address>(gasometer)?.into();
+		let value: U256 = input.read(gasometer)?;
+		let deadline: U256 = input.read(gasometer)?;
+		let v: u8 = input.read(gasometer)?;
+		let r: H256 = input.read(gasometer)?;
+		let s: H256 = input.read(gasometer)?;
+
+		let timestamp: U256 = pallet_timestamp::Pallet::<Runtime>::get().into();
+
+		ensure!(deadline >= timestamp, gasometer.revert("permit expired"));
+
+		let domain_separator = Self::compute_domain_separator(address, asset_id);
+		let nonce = NoncesStorage::<Instance>::get(address, owner);
+
+		let permit_content = EvmDataWriter::new()
+			.write(H256::from(PERMIT_TYPEHASH))
+			.write(Address(owner))
+			.write(Address(spender))
+			.write(value)
+			.write(nonce)
+			.write(deadline)
+			.build();
+		let permit_content = keccak_256(&permit_content);
+
+		let mut pre_digest = Vec::with_capacity(2 + 32 + 32);
+		pre_digest.extend_from_slice(b"\x19\x01");
+		pre_digest.extend_from_slice(&domain_separator);
+		pre_digest.extend_from_slice(&permit_content);
+
+		let digest = keccak_256(&pre_digest);
+
+		let mut sig = [0u8; 65];
+		sig[0..32].copy_from_slice(&r.as_bytes());
+		sig[32..64].copy_from_slice(&s.as_bytes());
+		sig[64] = v;
+
+		let signer = sp_io::crypto::secp256k1_ecdsa_recover(&sig, &digest)
+			.map_err(|_| gasometer.revert("invalid permit signature"))?;
+		let signer = H160::from(H256::from_slice(keccak_256(&signer).as_slice()));
+
+		ensure!(
+			signer != H160::zero() && signer == owner,
+			gasometer.revert("invalid permit signature")
+		);
+
+		NoncesStorage::<Instance>::insert(address, owner, nonce + U256::one());
+
+		Erc20AssetsPrecompileSet::<Runtime, IsLocal, Instance>::approve_inner(
+			asset_id, gasometer, owner, spender, value,
+		)?;
+
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gasometer.used_gas(),
+			output: vec![],
+			logs: vec![],
+		})
+	}
+
+	pub(crate) fn nonces(
+		address: H160,
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
+	) -> EvmResult<PrecompileOutput> {
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		let owner: H160 = input.read::<Address>(gasometer)?.into();
+
+		let nonce = NoncesStorage::<Instance>::get(address, owner);
+
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gasometer.used_gas(),
+			output: EvmDataWriter::new().write(nonce).build(),
+			logs: vec![],
+		})
+	}
+
+	pub(crate) fn domain_separator(
+		address: H160,
+		asset_id: AssetIdOf<Runtime, Instance>,
+		gasometer: &mut Gasometer,
+	) -> EvmResult<PrecompileOutput> {
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		let domain_separator: H256 = Self::compute_domain_separator(address, asset_id).into();
+
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gasometer.used_gas(),
+			output: EvmDataWriter::new().write(domain_separator).build(),
+			logs: vec![],
+		})
+	}
+}

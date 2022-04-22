@@ -9,6 +9,7 @@ version = "0.1.0"
 log = "0.4"
 num_enum = { version = "0.5.3", default-features = false }
 slices = "0.2.0"
+paste = "1.0.6"
 
 # Moonbeam
 precompile-utils = { path = "../utils", default-features = false }
@@ -19,6 +20,7 @@ frame-support = { git = "https://github.com/purestake/substrate", branch = "moon
 frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
 pallet-assets = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
 pallet-balances = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
+pallet-timestamp = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
 sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
 sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
 sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
@@ -47,6 +49,8 @@ std = [
 	"frame-system/std",
 	"pallet-assets/std",
 	"pallet-evm/std",
+	"pallet-timestamp/std",
+	"pallet-balances/std",
 	"precompile-utils/std",
 	"sp-core/std",
 	"sp-io/std",
