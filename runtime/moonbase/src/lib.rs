@@ -1084,8 +1084,8 @@ impl pallet_randomness::GetRelayRandomness<H256> for RelayRandomness {
 }
 
 pub struct RandomnessSender;
-impl pallet_randomness::SendRandomness<u64, [u8; 32]> for RandomnessSender {
-	fn send_randomness(_contract: u64, _randomness: [u8; 32]) {
+impl pallet_randomness::SendRandomness<AccountId, [u8; 32]> for RandomnessSender {
+	fn send_randomness(_contract: AccountId, _randomness: [u8; 32]) {
 		// TODO: how will this be done
 		// the contract must implement a callback that we can call?
 	}
@@ -1112,11 +1112,11 @@ impl GetMostRecentVrfInputs<Hash, Slot> for MostRecentVrfInputGetter {
 	fn get_most_recent_relay_storage_root() -> (Hash, Weight) {
 		let most_recent_relay_storage_root =
 			ParachainSystem::validation_data().relay_parent_storage_root;
-		(most_recent_relay_storage_root, 0u64) // TODO update weight
+		(most_recent_relay_storage_root, DbWeight::get().read)
 	}
 	fn get_most_recent_relay_slot_number() -> (Slot, Weight) {
 		let most_recent_relay_slot_number = ParachainSystem::relay_state_proof().read_slot();
-		(most_recent_relay_slot_number, 0u64) // TODO update weight
+		(most_recent_relay_slot_number, DbWeight::get().read)
 	}
 }
 

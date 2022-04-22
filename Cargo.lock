@@ -11927,6 +11927,11 @@ dependencies = [
 [[package]]
 name = "session-keys-primitives"
 version = "0.1.0"
+dependencies = [
+ "parity-scale-codec",
+ "scale-info",
+ "sp-application-crypto",
+]
 
 [[package]]
 name = "sha-1"

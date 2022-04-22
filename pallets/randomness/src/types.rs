@@ -102,6 +102,14 @@ impl<T: Config> RequestState<T> {
 			_ => return Err(Error::<T>::NotYetImplemented.into()),
 		};
 		let randomness = Pallet::<T>::concat_and_hash(raw_randomness, self.request.salt);
+		// add self.request.fee as input to send_randomness as gas_limit and if fails, do not delete request
+		// convert it into gas
+		// fulfillment benchmarking must exclude send_randomness callback
+		// if send_randomness fails oog, then revert it and keep the request in storage
+		// might need some special event when execution fails oog
+		// responsibility of requester that callback succeeds => if it fails,
+		// pass gas_limit and fees
+		// check fees match gas_limit
 		T::RandomnessSender::send_randomness(self.request.contract_address.clone(), randomness);
 		// return deposit + fee_excess to contract_address
 		// refund cost_of_execution to caller?
@@ -109,6 +117,7 @@ impl<T: Config> RequestState<T> {
 			&self.request.contract_address,
 			self.deposit + self.request.fee,
 		);
+		// get cost of execution from EVM
 		let execution_weight_estimate: Weight = 0; // TODO accurate estimate of execution weight
 		let execution_fee_estimate = T::WeightToFee::calc(&execution_weight_estimate);
 		let refund_fee = self.request.fee.saturating_sub(execution_fee_estimate);

@@ -297,6 +297,7 @@ pub mod pallet {
 			Self::deposit_event(Event::RequestExpirationExecuted { id });
 			Ok(())
 		}
+		/// TODO: add comment for all precompile user functions, called by ETH tx through precompile
 		pub fn instant_babe_one_epoch_ago_randomness(
 			contract_address: T::AccountId,
 			salt: T::Hash,

@@ -5,6 +5,15 @@ description = "Primitives for session keys"
 edition = "2018"
 version = "0.1.0"
 
+[dependencies]
+parity-scale-codec = { version = "3.0.0", default-features = false, features = [ "derive" ] }
+scale-info = { version = "2.0", default-features = false, features = [ "derive" ] }
+sp-application-crypto = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
+
 [features]
 default = [ "std" ]
-std = []
+std = [
+    "parity-scale-codec/std",
+    "scale-info/std",
+    "sp-application-crypto/std",
+]
