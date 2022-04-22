@@ -75,23 +75,23 @@ macro_rules! impl_prefix {
 // Since the macro expect a `ident` to be used with `paste!` we cannot provide `()` directly.
 type Instance0 = ();
 
-impl_prefix!(Instance0, "Erc20Instance0Nonces");
-impl_prefix!(Instance1, "Erc20Instance1Nonces");
-impl_prefix!(Instance2, "Erc20Instance2Nonces");
-impl_prefix!(Instance3, "Erc20Instance3Nonces");
-impl_prefix!(Instance4, "Erc20Instance4Nonces");
-impl_prefix!(Instance5, "Erc20Instance5Nonces");
-impl_prefix!(Instance6, "Erc20Instance6Nonces");
-impl_prefix!(Instance7, "Erc20Instance7Nonces");
-impl_prefix!(Instance8, "Erc20Instance8Nonces");
-impl_prefix!(Instance9, "Erc20Instance9Nonces");
-impl_prefix!(Instance10, "Erc20Instance10Nonces");
-impl_prefix!(Instance11, "Erc20Instance11Nonces");
-impl_prefix!(Instance12, "Erc20Instance12Nonces");
-impl_prefix!(Instance13, "Erc20Instance13Nonces");
-impl_prefix!(Instance14, "Erc20Instance14Nonces");
-impl_prefix!(Instance15, "Erc20Instance15Nonces");
-impl_prefix!(Instance16, "Erc20Instance16Nonces");
+impl_prefix!(Instance0, "Erc20Instance0Assets");
+impl_prefix!(Instance1, "Erc20Instance1Assets");
+impl_prefix!(Instance2, "Erc20Instance2Assets");
+impl_prefix!(Instance3, "Erc20Instance3Assets");
+impl_prefix!(Instance4, "Erc20Instance4Assets");
+impl_prefix!(Instance5, "Erc20Instance5Assets");
+impl_prefix!(Instance6, "Erc20Instance6Assets");
+impl_prefix!(Instance7, "Erc20Instance7Assets");
+impl_prefix!(Instance8, "Erc20Instance8Assets");
+impl_prefix!(Instance9, "Erc20Instance9Assets");
+impl_prefix!(Instance10, "Erc20Instance10Assets");
+impl_prefix!(Instance11, "Erc20Instance11Assets");
+impl_prefix!(Instance12, "Erc20Instance12Assets");
+impl_prefix!(Instance13, "Erc20Instance13Assets");
+impl_prefix!(Instance14, "Erc20Instance14Assets");
+impl_prefix!(Instance15, "Erc20Instance15Assets");
+impl_prefix!(Instance16, "Erc20Instance16Assets");
 
 /// Storage type used to store EIP2612 nonces.
 pub type NoncesStorage<Instance> = StorageDoubleMap<
