@@ -5574,6 +5574,7 @@ dependencies = [
  "pallet-migrations",
  "pallet-proxy",
  "pallet-proxy-genesis-companion",
+ "pallet-randomness",
  "pallet-randomness-collective-flip",
  "pallet-scheduler",
  "pallet-society",
@@ -5583,6 +5584,7 @@ dependencies = [
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-treasury",
  "pallet-utility",
+ "pallet-vrf",
  "pallet-xcm",
  "parachain-info",
  "parachain-staking",
@@ -7765,6 +7767,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-randomness"
+version = "0.1.0"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "pallet-balances",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-randomness-collective-flip"
 version = "4.0.0-dev"
 source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.18#fc3fd073d3a0acf9933c3994b660ebd7b5833f65"
@@ -8022,6 +8039,26 @@ dependencies = [
  "scale-info",
  "sp-runtime",
  "sp-std",
+]
+
+[[package]]
+name = "pallet-vrf"
+version = "0.1.0"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "log",
+ "nimbus-primitives",
+ "pallet-balances",
+ "parity-scale-codec",
+ "scale-info",
+ "session-keys-primitives",
+ "sp-application-crypto",
+ "sp-consensus-babe",
+ "sp-consensus-vrf",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -13968,25 +14005,6 @@ name = "void"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6a02e4885ed3bc0f2de90ea6dd45ebcbb66dacffe03547fadbb0eeae2770887d"
-
-[[package]]
-name = "vrf"
-version = "0.1.0"
-dependencies = [
- "frame-support",
- "frame-system",
- "nimbus-primitives",
- "pallet-balances",
- "parity-scale-codec",
- "scale-info",
- "session-keys-primitives",
- "sp-application-crypto",
- "sp-consensus-babe",
- "sp-consensus-vrf",
- "sp-core",
- "sp-io",
- "sp-runtime",
-]
 
 [[package]]
 name = "wait-timeout"

@@ -1,0 +1,35 @@
+[package]
+name = "pallet-randomness"
+authors = [ "PureStake" ]
+description = "Provides randomness"
+edition = "2018"
+version = "0.1.0"
+
+[dependencies]
+#frame-benchmarking = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18", optional = true, default-features = false }
+frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
+frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
+parity-scale-codec = { version = "3.0.0", default-features = false, features = [ "derive" ] }
+scale-info = { version = "2.0", default-features = false, features = [ "derive" ] }
+sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
+sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
+
+[dev-dependencies]
+pallet-balances = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18" }
+sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18" }
+
+[features]
+default = [ "std" ]
+std = [
+	#"frame-benchmarking/std",
+	"frame-support/std",
+	"frame-system/std",
+	"parity-scale-codec/std",
+	"scale-info/std",
+	"sp-io/std",
+	"sp-runtime/std",
+	"sp-std/std",
+]
+# runtime-benchmarks = [ "frame-benchmarking" ]
+# try-runtime = [ "frame-support/try-runtime" ]

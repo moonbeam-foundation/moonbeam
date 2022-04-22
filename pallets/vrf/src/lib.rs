@@ -17,7 +17,7 @@
 //! VRF Pallet
 //!
 //! Stores VRF output per block by the block author as well as the VRF inputs:
-//! `most_recent_relay_block_hash + most_recent_relay_slot_number`
+//! `most_recent_relay_storage_root + most_recent_relay_slot_number`
 //!
 
 #![cfg_attr(not(feature = "std"), no_std)]
@@ -36,7 +36,7 @@ use frame_support::pallet;
 
 pub use pallet::*;
 
-type MaybeRandomness = Option<schnorrkel::Randomness>;
+type Randomness = schnorrkel::Randomness;
 
 #[pallet]
 pub mod pallet {
@@ -45,11 +45,10 @@ pub mod pallet {
 	use frame_system::pallet_prelude::*;
 
 	/// VRF inputs from the relay chain
-	/// TODO: needs custom Default implementation?
 	#[derive(Default, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
 	pub struct VrfInput<RelayHash, SlotNumber> {
-		/// TODO: rename to storage_root if parentStorageRoot always changes, even if block is empty
-		pub relay_block_hash: RelayHash,
+		/// Expect this to change every block
+		pub relay_storage_root: RelayHash,
 		/// Relay slot number
 		/// received via `well_known_keys::CURRENT_SLOT` on parachain_system::RelayStateProof
 		pub relay_slot_number: SlotNumber,
@@ -57,24 +56,24 @@ pub mod pallet {
 
 	/// For the runtime to implement to expose cumulus data to this pallet and cost of getting data
 	pub trait GetMostRecentVrfInputs<RelayHash, SlotNumber> {
-		/// Returns most recent relay block hash and weight consumed by get
-		fn get_most_recent_relay_block_hash() -> (RelayHash, Weight);
+		/// Returns most recent relay storage root and weight consumed by get
+		fn get_most_recent_relay_storage_root() -> (RelayHash, Weight);
 		/// Returns most recent relay slot number and weight consumed by get
 		fn get_most_recent_relay_slot_number() -> (SlotNumber, Weight);
 	}
 
 	/// Exposes randomness in this pallet to the runtime
-	pub trait GetRandomness {
+	pub trait GetMaybeRandomness {
 		type Randomness;
-		fn get_last_randomness() -> Self::Randomness;
-		fn get_current_randomness() -> Self::Randomness;
+		fn get_last_randomness() -> Option<Self::Randomness>;
+		fn get_current_randomness() -> Option<Self::Randomness>;
 	}
 
 	/// Make VRF transcript
 	pub fn make_transcript<Hash: AsRef<[u8]>>(input: VrfInput<Hash, Slot>) -> Transcript {
 		let mut transcript = Transcript::new(&BABE_ENGINE_ID);
 		transcript.append_u64(b"relay slot number", *input.relay_slot_number);
-		transcript.append_message(b"relay block hash", input.relay_block_hash.as_ref());
+		transcript.append_message(b"relay block hash", input.relay_storage_root.as_ref());
 		transcript
 	}
 
@@ -103,13 +102,13 @@ pub mod pallet {
 	/// Set in `on_initialize`, before it will contain the randomness from the last block
 	#[pallet::storage]
 	#[pallet::getter(fn current_randomness)]
-	pub type CurrentRandomness<T> = StorageValue<_, MaybeRandomness, ValueQuery>;
+	pub type CurrentRandomness<T> = StorageValue<_, Randomness, OptionQuery>;
 
 	/// Last block randomness
 	/// Set in `on_initialize`, before it will contain the randomness from the last last block
 	#[pallet::storage]
 	#[pallet::getter(fn last_randomness)]
-	pub type LastRandomness<T> = StorageValue<_, MaybeRandomness, ValueQuery>;
+	pub type LastRandomness<T> = StorageValue<_, Randomness, OptionQuery>;
 
 	/// Most recent VRF input from relay chain data
 	/// Set in `on_initialize` before setting randomness
@@ -129,18 +128,28 @@ pub mod pallet {
 	impl<T: Config> Pallet<T> {
 		/// Returns weight consumed and arguments for setting randomness
 		fn set_most_recent_vrf_inputs() -> (Weight, VrfInput<T::RelayBlockHash, Slot>) {
-			// TODO: log if different/equal to current value? as in new or not
-			let (most_recent_relay_block_hash, recent_rbh_wt) =
-				T::MostRecentVrfInputGetter::get_most_recent_relay_block_hash();
+			let (most_recent_relay_storage_root, recent_rsr_wt) =
+				T::MostRecentVrfInputGetter::get_most_recent_relay_storage_root();
 			let (most_recent_relay_slot_number, recent_rsn_wt) =
 				T::MostRecentVrfInputGetter::get_most_recent_relay_slot_number();
+			let last_vrf_inputs = <MostRecentVrfInput<T>>::take();
+			// AT LEAST print if input uniqueness assumptions are violated (no reuse)
+			if last_vrf_inputs.relay_storage_root == most_recent_relay_storage_root
+				|| last_vrf_inputs.relay_slot_number == most_recent_relay_slot_number
+			{
+				log::warn!(
+					"VRF on_initialize: Relay storage root or slot number did not change between \
+				current and last block. Nimbus would have panicked if slot number didn't change \
+				so expect storage root did not change.t"
+				);
+			}
 			let most_recent_vrf_input = VrfInput {
-				relay_block_hash: most_recent_relay_block_hash,
+				relay_storage_root: most_recent_relay_storage_root,
 				relay_slot_number: most_recent_relay_slot_number,
 			};
 			<MostRecentVrfInput<T>>::put(most_recent_vrf_input.clone());
 			(
-				recent_rbh_wt + recent_rsn_wt + T::DbWeight::get().write,
+				recent_rsr_wt + recent_rsn_wt + T::DbWeight::get().write,
 				most_recent_vrf_input,
 			)
 		}
@@ -173,26 +182,32 @@ pub mod pallet {
 			let pubkey = schnorrkel::PublicKey::from_bytes(block_author_vrf_id.as_slice())
 				.expect("Expect valid schnorrkel public key");
 			let transcript = make_transcript::<T::RelayBlockHash>(input);
-			let maybe_randomness: MaybeRandomness = maybe_pre_digest.and_then(|digest| {
-				digest
-					.vrf_output()
-					.and_then(|vrf_output| vrf_output.0.attach_input_hash(&pubkey, transcript).ok())
-					.map(|inout| inout.make_bytes(&sp_consensus_babe::BABE_VRF_INOUT_CONTEXT))
-			});
+			let randomness: Randomness = maybe_pre_digest
+				.and_then(|digest| {
+					digest
+						.vrf_output()
+						.and_then(|vrf_output| {
+							vrf_output.0.attach_input_hash(&pubkey, transcript).ok()
+						})
+						.map(|inout| inout.make_bytes(&sp_consensus_babe::BABE_VRF_INOUT_CONTEXT))
+				})
+				// TODO: verify that this can only fail do to block author error and not chance
+				.expect("VRF Output must be included by block author for block to be valid");
 			// Place last VRF output into the `LastRandomness` storage item
-			LastRandomness::<T>::put(CurrentRandomness::<T>::take());
-			// Place the current VRF output into the `CurrentRandomness` storage item.
-			CurrentRandomness::<T>::put(maybe_randomness);
+			if let Some(current_randomness) = CurrentRandomness::<T>::take() {
+				LastRandomness::<T>::put(current_randomness);
+			}
+			CurrentRandomness::<T>::put(randomness);
 			T::DbWeight::get().read + 2 * T::DbWeight::get().write
 		}
 	}
 
-	impl<T: Config> GetRandomness for Pallet<T> {
-		type Randomness = MaybeRandomness;
-		fn get_last_randomness() -> Self::Randomness {
+	impl<T: Config> GetMaybeRandomness for Pallet<T> {
+		type Randomness = Randomness;
+		fn get_last_randomness() -> Option<Self::Randomness> {
 			LastRandomness::<T>::get()
 		}
-		fn get_current_randomness() -> Self::Randomness {
+		fn get_current_randomness() -> Option<Self::Randomness> {
 			CurrentRandomness::<T>::get()
 		}
 	}

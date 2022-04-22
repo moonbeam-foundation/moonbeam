@@ -34,6 +34,8 @@ pallet-migrations = { path = "../../pallets/migrations", default-features = fals
 pallet-proxy-genesis-companion = { path = "../../pallets/proxy-genesis-companion", default-features = false }
 parachain-staking = { path = "../../pallets/parachain-staking", default-features = false }
 xcm-transactor = { path = "../../pallets/xcm-transactor", default-features = false }
+pallet-vrf = { path = "../../pallets/vrf", default-features = false }
+pallet-randomness = { path = "../../pallets/randomness", default-features = false }
 
 # Moonbeam precompiles
 crowdloan-rewards-precompiles = { path = "../../precompiles/crowdloan-rewards", default-features = false }
@@ -200,6 +202,8 @@ std = [
 	"pallet-transaction-payment/std",
 	"pallet-treasury/std",
 	"pallet-utility/std",
+	"pallet-randomness/std",
+	"pallet-vrf/std",
 	"pallet-xcm/std",
 	"parachain-info/std",
 	"parachain-staking-precompiles/std",

@@ -1063,6 +1063,80 @@ impl pallet_base_fee::Config for Runtime {
 	type DefaultBaseFeePerGas = DefaultBaseFeePerGas;
 }
 
+pub struct RelayEpochIndex;
+impl pallet_randomness::GetEpochIndex<u64> for RelayEpochIndex {
+	fn get_epoch_index() -> (u64, Weight) {
+		(1u64, 0)
+	}
+}
+
+pub struct RelayRandomness;
+impl pallet_randomness::GetRelayRandomness<H256> for RelayRandomness {
+	fn get_current_block_randomness() -> (Option<H256>, Weight) {
+		(None, 0)
+	}
+	fn get_one_epoch_ago_randomness() -> (Option<H256>, Weight) {
+		(None, 0)
+	}
+	fn get_two_epochs_ago_randomness() -> (Option<H256>, Weight) {
+		(None, 0)
+	}
+}
+
+pub struct RandomnessSender;
+impl pallet_randomness::SendRandomness<u64, [u8; 32]> for RandomnessSender {
+	fn send_randomness(_contract: u64, _randomness: [u8; 32]) {
+		// TODO: how will this be done
+		// the contract must implement a callback that we can call?
+	}
+}
+
+// TODO: set reasonable params
+parameter_types! {
+	pub const RandomnessRequestDeposit: u128 = 10;
+	pub const ExpirationDelay: BlockNumber = 100;
+}
+impl pallet_randomness::Config for Test {
+	type Event = Event;
+	type Currency = Balances;
+	type RelayEpochIndex = RelayEpochIndex;
+	type RelayRandomness = RelayRandomness;
+	type RandomnessSender = RandomnessSender;
+	type WeightToFee = Weight;
+	type Deposit = RandomnessRequestDeposit;
+	type ExpirationDelay = ExpirationDelay;
+}
+
+pub struct MostRecentVrfInputGetter;
+impl GetMostRecentVrfInputs<Hash, Slot> for MostRecentVrfInputGetter {
+	fn get_most_recent_relay_storage_root() -> (Hash, Weight) {
+		let most_recent_relay_storage_root =
+			ParachainSystem::validation_data().relay_parent_storage_root;
+		(most_recent_relay_storage_root, 0u64) // TODO update weight
+	}
+	fn get_most_recent_relay_slot_number() -> (Slot, Weight) {
+		let most_recent_relay_slot_number = ParachainSystem::relay_state_proof().read_slot();
+		(most_recent_relay_slot_number, 0u64) // TODO update weight
+	}
+}
+
+pub struct NimbusToVrfKey;
+impl session_key_primitives::KeysLookup<NimbusId, AuthorityId> for NimbusToVrfKey {
+	fn lookup_keys(authority_id: &NimbusId) -> Option<AuthorityId> {
+		None
+		//AuthorMapping::keys_of(authority_id)
+	}
+}
+
+impl pallet_vrf::Config for Runtime {
+	/// The relay block hash type (probably H256)
+	type RelayBlockHash = Hash;
+	/// Gets the most recent relay block hash and relay slot number in `on_initialize`
+	type MostRecentVrfInputGetter = MostRecentVrfInputGetter;
+	/// Lookup VRF key using NimbusID
+	type VrfKeyLookup = NimbusToVrfKey;
+}
+
 construct_runtime! {
 	pub enum Runtime where
 		Block = Block,
@@ -1108,7 +1182,8 @@ construct_runtime! {
 		ProxyGenesisCompanion: pallet_proxy_genesis_companion::{Pallet, Config<T>} = 34,
 		BaseFee: pallet_base_fee::{Pallet, Call, Storage, Config<T>, Event} = 35,
 		LocalAssets: pallet_assets::<Instance1>::{Pallet, Call, Storage, Event<T>} = 36,
-
+		Vrf: pallet_vrf::{Pallet, Storage} = 37,
+		Randomness: pallet_randomness::{Pallet, Storage, Event<T>} = 38,
 	}
 }
 
