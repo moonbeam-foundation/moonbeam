@@ -404,50 +404,55 @@ pub mod pallet {
 	}
 
 	impl<T: Config> Pallet<T> {
+		fn on_rotate(round_index: T::RoundIndex) -> Weight {
+			let mut writes = 1;
+			// Update current orbiter for each pool and edit AccountLookupOverride accordingly.
+			CollatorsPool::<T>::translate::<CollatorPoolInfo<T::AccountId>, _>(
+				|collator, mut pool| {
+					// remove current orbiter, if any.
+					if let Some((current_orbiter, removed)) = pool.get_current_orbiter() {
+						if *removed {
+							Self::deposit_event(Event::OrbiterRemovedFromCollatorPool {
+								collator: collator.clone(),
+								orbiter: current_orbiter.clone(),
+							});
+						}
+						AccountLookupOverride::<T>::remove(current_orbiter);
+						writes += 1;
+					}
+					if let Some(next_orbiter) = pool.next_orbiter() {
+						// Forbidding the collator to write blocks, it is now up to its orbiters to do it.
+						AccountLookupOverride::<T>::insert(
+							collator.clone(),
+							Option::<T::AccountId>::None,
+						);
+						// Insert new current orbiter
+						AccountLookupOverride::<T>::insert(
+							next_orbiter.clone(),
+							Some(collator.clone()),
+						);
+						OrbiterPerRound::<T>::insert(round_index, collator, next_orbiter);
+						writes += 3;
+					} else {
+						// If there is no more active orbiter, you have to remove the collator override.
+						AccountLookupOverride::<T>::remove(collator);
+						writes += 1;
+					}
+					writes += 1;
+					Some(pool)
+				},
+			);
+			T::DbWeight::get().reads_writes(1, writes)
+		}
 		/// Notify this pallet that a new round begin
 		pub fn on_new_round(round_index: T::RoundIndex) -> Weight {
-			let mut writes = 1;
 			CurrentRound::<T>::put(round_index);
 
 			if round_index % T::RotatePeriod::get() == Zero::zero() {
-				// Update current orbiter for each pool and edit AccountLookupOverride accordingly.
-				CollatorsPool::<T>::translate::<CollatorPoolInfo<T::AccountId>, _>(
-					|collator, mut pool| {
-						// remove current orbiter, if any.
-						if let Some((current_orbiter, removed)) = pool.get_current_orbiter() {
-							if *removed {
-								Self::deposit_event(Event::OrbiterRemovedFromCollatorPool {
-									collator: collator.clone(),
-									orbiter: current_orbiter.clone(),
-								});
-							}
-							AccountLookupOverride::<T>::remove(current_orbiter);
-							writes += 1;
-						}
-						if let Some(next_orbiter) = pool.next_orbiter() {
-							// Forbidding the collator to write blocks, it is now up to its orbiters to do it.
-							AccountLookupOverride::<T>::insert(
-								collator.clone(),
-								Option::<T::AccountId>::None,
-							);
-							// Insert new current orbiter
-							AccountLookupOverride::<T>::insert(
-								next_orbiter.clone(),
-								Some(collator.clone()),
-							);
-							OrbiterPerRound::<T>::insert(round_index, collator, next_orbiter);
-							writes += 3;
-						} else {
-							// If there is no more active orbiter, you have to remove the collator override.
-							AccountLookupOverride::<T>::remove(collator);
-							writes += 1;
-						}
-						writes += 1;
-						Some(pool)
-					},
-				);
+				Self::on_rotate(round_index) + T::DbWeight::get().write
+			} else {
+				T::DbWeight::get().write
 			}
-			T::DbWeight::get().reads_writes(1, writes)
 		}
 		/// Notify this pallet that a collator received rewards
 		pub fn distribute_rewards(
