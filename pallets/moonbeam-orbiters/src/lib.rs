@@ -214,9 +214,11 @@ pub mod pallet {
 			account: T::AccountId,
 			rewards: BalanceOf<T>,
 		},
-		/*SelectedOrbiters {
-			orbiters:
-		}*/
+		OrbiterRotation {
+			collator: T::AccountId,
+			old_orbiter: Option<T::AccountId>,
+			new_orbiter: Option<T::AccountId>,
+		},
 	}
 
 	#[pallet::call]
@@ -410,6 +412,7 @@ pub mod pallet {
 			CollatorsPool::<T>::translate::<CollatorPoolInfo<T::AccountId>, _>(
 				|collator, mut pool| {
 					// remove current orbiter, if any.
+					let mut old_orbiter = None;
 					if let Some(CurrentOrbiter {
 						account_id: current_orbiter,
 						removed,
@@ -421,8 +424,9 @@ pub mod pallet {
 								orbiter: current_orbiter.clone(),
 							});
 						}
-						AccountLookupOverride::<T>::remove(current_orbiter);
+						AccountLookupOverride::<T>::remove(current_orbiter.clone());
 						writes += 1;
+						old_orbiter = Some(current_orbiter.clone());
 					}
 					if let Some(next_orbiter) = pool.rotate_orbiter() {
 						// Forbidding the collator to write blocks, it is now up to its orbiters to do it.
@@ -435,12 +439,26 @@ pub mod pallet {
 							next_orbiter.clone(),
 							Some(collator.clone()),
 						);
-						OrbiterPerRound::<T>::insert(round_index, collator, next_orbiter);
+						OrbiterPerRound::<T>::insert(
+							round_index,
+							collator.clone(),
+							next_orbiter.clone(),
+						);
+						Self::deposit_event(Event::OrbiterRotation {
+							collator,
+							old_orbiter,
+							new_orbiter: Some(next_orbiter),
+						});
 						writes += 3;
 					} else {
 						// If there is no more active orbiter, you have to remove the collator override.
-						AccountLookupOverride::<T>::remove(collator);
+						AccountLookupOverride::<T>::remove(collator.clone());
 						writes += 1;
+						Self::deposit_event(Event::OrbiterRotation {
+							collator: collator,
+							old_orbiter,
+							new_orbiter: None,
+						});
 					}
 					writes += 1;
 					Some(pool)
