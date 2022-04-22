@@ -410,7 +410,11 @@ pub mod pallet {
 			CollatorsPool::<T>::translate::<CollatorPoolInfo<T::AccountId>, _>(
 				|collator, mut pool| {
 					// remove current orbiter, if any.
-					if let Some((current_orbiter, removed)) = pool.get_current_orbiter() {
+					if let Some(CurrentOrbiter {
+						account_id: current_orbiter,
+						removed,
+					}) = pool.get_current_orbiter()
+					{
 						if *removed {
 							Self::deposit_event(Event::OrbiterRemovedFromCollatorPool {
 								collator: collator.clone(),
@@ -420,7 +424,7 @@ pub mod pallet {
 						AccountLookupOverride::<T>::remove(current_orbiter);
 						writes += 1;
 					}
-					if let Some(next_orbiter) = pool.next_orbiter() {
+					if let Some(next_orbiter) = pool.rotate_orbiter() {
 						// Forbidding the collator to write blocks, it is now up to its orbiters to do it.
 						AccountLookupOverride::<T>::insert(
 							collator.clone(),

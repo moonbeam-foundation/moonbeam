@@ -22,9 +22,21 @@ use sp_runtime::{
 use sp_std::vec::Vec;
 
 #[derive(Decode, Encode, RuntimeDebug, TypeInfo)]
+pub(super) struct CurrentOrbiter<AccountId> {
+	pub account_id: AccountId,
+	pub removed: bool,
+}
+
+pub(super) enum RemoveOrbiterResult {
+	OrbiterNotFound,
+	OrbiterRemoved,
+	OrbiterRemoveScheduled,
+}
+
+#[derive(Decode, Encode, RuntimeDebug, TypeInfo)]
 pub struct CollatorPoolInfo<AccountId> {
 	orbiters: Vec<AccountId>,
-	maybe_current_orbiter: Option<(AccountId, bool)>,
+	maybe_current_orbiter: Option<CurrentOrbiter<AccountId>>,
 	next_orbiter: u32,
 }
 
@@ -38,20 +50,14 @@ impl<AccountId> Default for CollatorPoolInfo<AccountId> {
 	}
 }
 
-pub(super) enum RemoveOrbiterResult {
-	OrbiterNotFound,
-	OrbiterRemoved,
-	OrbiterRemoveScheduled,
-}
-
 impl<AccountId: Clone + PartialEq> CollatorPoolInfo<AccountId> {
 	pub(super) fn add_orbiter(&mut self, orbiter: AccountId) {
 		self.orbiters.insert(self.next_orbiter as usize, orbiter);
 		self.next_orbiter += 1;
 	}
 	pub(super) fn contains_orbiter(&self, orbiter: &AccountId) -> bool {
-		if let Some((ref current_orbiter, _)) = self.maybe_current_orbiter {
-			if current_orbiter == orbiter {
+		if let Some(CurrentOrbiter { ref account_id, .. }) = self.maybe_current_orbiter {
+			if account_id == orbiter {
 				return true;
 			}
 		}
@@ -61,6 +67,12 @@ impl<AccountId: Clone + PartialEq> CollatorPoolInfo<AccountId> {
 			}
 		}
 		false
+	}
+	pub(super) fn get_current_orbiter(&self) -> &Option<CurrentOrbiter<AccountId>> {
+		&self.maybe_current_orbiter
+	}
+	pub(super) fn get_orbiters(&self) -> &[AccountId] {
+		&self.orbiters
 	}
 	pub(super) fn remove_orbiter(&mut self, orbiter: &AccountId) -> RemoveOrbiterResult {
 		let mut found = false;
@@ -73,7 +85,11 @@ impl<AccountId: Clone + PartialEq> CollatorPoolInfo<AccountId> {
 		}
 
 		if found {
-			if let Some((ref current_orbiter, ref mut removed)) = self.maybe_current_orbiter {
+			if let Some(CurrentOrbiter {
+				account_id: ref current_orbiter,
+				ref mut removed,
+			}) = self.maybe_current_orbiter
+			{
 				if current_orbiter == orbiter {
 					*removed = true;
 					return RemoveOrbiterResult::OrbiterRemoveScheduled;
@@ -84,23 +100,20 @@ impl<AccountId: Clone + PartialEq> CollatorPoolInfo<AccountId> {
 			RemoveOrbiterResult::OrbiterNotFound
 		}
 	}
-	pub(super) fn next_orbiter(&mut self) -> Option<AccountId> {
+	pub(super) fn rotate_orbiter(&mut self) -> Option<AccountId> {
 		if self.next_orbiter >= self.orbiters.len() as u32 {
 			self.next_orbiter = 0;
 		}
 		if let Some(next_orbiter) = self.orbiters.get(self.next_orbiter as usize) {
-			self.maybe_current_orbiter = Some((next_orbiter.clone(), false));
+			self.maybe_current_orbiter = Some(CurrentOrbiter {
+				account_id: next_orbiter.clone(),
+				removed: false,
+			});
 			self.next_orbiter += 1;
 			Some(next_orbiter.clone())
 		} else {
 			None
 		}
-	}
-	pub(super) fn get_current_orbiter(&self) -> &Option<(AccountId, bool)> {
-		&self.maybe_current_orbiter
-	}
-	pub(super) fn get_orbiters(&self) -> &[AccountId] {
-		&self.orbiters
 	}
 }
 
