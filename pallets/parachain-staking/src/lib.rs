@@ -76,7 +76,7 @@ pub mod pallet {
 	use parity_scale_codec::Decode;
 	use sp_runtime::{
 		traits::{Saturating, Zero},
-		Perbill, Percent,
+		Perbill, Percent, Permill,
 	};
 	use sp_std::{collections::btree_map::BTreeMap, prelude::*};
 
@@ -1652,26 +1652,87 @@ pub mod pallet {
 		}
 	}
 
-	/// Add reward points to block authors:
-	/// * 20 points to the block producer for producing a block in the chain
-	impl<T: Config> nimbus_primitives::EventHandler<T::AccountId> for Pallet<T> {
+	impl<T: Config> Get<Vec<T::AccountId>> for Pallet<T> {
+		fn get() -> Vec<T::AccountId> {
+			Self::selected_candidates()
+		}
+	}
+
+	impl<T: Config> pallet_authorship::EventHandler<T::AccountId, T::BlockNumber> for Pallet<T> {
+		// Add reward points to block authors:
+		// * 20 points to the block producer for producing a block in the chain
 		fn note_author(author: T::AccountId) {
 			let now = <Round<T>>::get().current;
 			let score_plus_20 = <AwardedPts<T>>::get(now, &author).saturating_add(20);
 			<AwardedPts<T>>::insert(now, author, score_plus_20);
 			<Points<T>>::mutate(now, |x| *x = x.saturating_add(20));
 		}
+
+		fn note_uncle(_author: T::AccountId, _age: T::BlockNumber) {}
 	}
 
-	impl<T: Config> nimbus_primitives::CanAuthor<T::AccountId> for Pallet<T> {
-		fn can_author(account: &T::AccountId, _slot: &u32) -> bool {
-			Self::is_selected_candidate(account)
+	impl<T: Config> pallet_session::SessionManager<T::AccountId> for Pallet<T> {
+		fn new_session(new_index: sp_staking::SessionIndex) -> Option<Vec<T::AccountId>> {
+			log::debug!(
+				"assembling new collators for new session {} at #{:?}",
+				new_index,
+				<frame_system::Pallet<T>>::block_number(),
+			);
+
+			let collators = Pallet::<T>::selected_candidates().to_vec();
+			if collators.is_empty() {
+				// We never want to pass an empty set of collators. This would brick the chain.
+				// Sessions 0, 1 are configured on genesis and use SessionConfig keys
+				if new_index > 1 {
+					log::error!("💥 keeping old session because of empty collator set!");
+				}
+				None
+			} else {
+				Some(collators)
+			}
+		}
+
+		fn end_session(_end_index: sp_staking::SessionIndex) {}
+
+		fn start_session(_start_index: sp_staking::SessionIndex) {}
+	}
+
+	impl<T: Config> pallet_session::ShouldEndSession<T::BlockNumber> for Pallet<T> {
+		fn should_end_session(now: T::BlockNumber) -> bool {
+			let round = <Round<T>>::get();
+			return round.should_update(now);
 		}
 	}
 
-	impl<T: Config> Get<Vec<T::AccountId>> for Pallet<T> {
-		fn get() -> Vec<T::AccountId> {
-			Self::selected_candidates()
+	impl<T: Config> frame_support::traits::EstimateNextSessionRotation<T::BlockNumber> for Pallet<T> {
+		fn average_session_length() -> T::BlockNumber {
+			T::BlockNumber::from(<Round<T>>::get().length)
+		}
+
+		fn estimate_current_session_progress(now: T::BlockNumber) -> (Option<Permill>, Weight) {
+			let round = <Round<T>>::get();
+			let passed_blocks = now.saturating_sub(round.first);
+
+			(
+				Some(Permill::from_rational(
+					passed_blocks,
+					T::BlockNumber::from(round.length),
+				)),
+				// One read for the round info, blocknumber is read free
+				T::DbWeight::get().reads(1),
+			)
+		}
+
+		fn estimate_next_session_rotation(
+			_now: T::BlockNumber,
+		) -> (Option<T::BlockNumber>, Weight) {
+			let round = <Round<T>>::get();
+
+			(
+				Some(round.first + round.length.into()),
+				// One read for the round info, blocknumber is read free
+				T::DbWeight::get().reads(1),
+			)
 		}
 	}
 }
