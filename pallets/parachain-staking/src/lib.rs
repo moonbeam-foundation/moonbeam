@@ -224,19 +224,19 @@ pub mod pallet {
 			collator_account: T::AccountId,
 			total_exposed_amount: BalanceOf<T>,
 		},
-		/// Сandidate requested to decrease a self bond.
+		/// Candidate requested to decrease a self bond.
 		CandidateBondLessRequested {
 			candidate: T::AccountId,
 			amount_to_decrease: BalanceOf<T>,
 			execute_round: RoundIndex,
 		},
-		/// Сandidate has increased a self bond.
+		/// Candidate has increased a self bond.
 		CandidateBondedMore {
 			candidate: T::AccountId,
 			amount: BalanceOf<T>,
 			new_total_bond: BalanceOf<T>,
 		},
-		/// Сandidate has decreased a self bond.
+		/// Candidate has decreased a self bond.
 		CandidateBondedLess {
 			candidate: T::AccountId,
 			amount: BalanceOf<T>,
@@ -246,7 +246,7 @@ pub mod pallet {
 		CandidateWentOffline { candidate: T::AccountId },
 		/// Candidate rejoins the set of collator candidates.
 		CandidateBackOnline { candidate: T::AccountId },
-		/// Сandidate has requested to leave the set of candidates.
+		/// Candidate has requested to leave the set of candidates.
 		CandidateScheduledExit {
 			exit_allowed_round: RoundIndex,
 			candidate: T::AccountId,
