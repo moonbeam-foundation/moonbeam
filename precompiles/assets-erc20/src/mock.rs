@@ -46,6 +46,14 @@ pub const FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX: &[u8] = &[255u8; 4];
 /// be routed to Erc20AssetsPrecompileSet being marked as local
 pub const LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX: &[u8] = &[255u8, 255u8, 255u8, 254u8];
 
+/// To test EIP2612 permits we need to have cryptographic accounts.
+pub const ALICE_PUBLIC_KEY: [u8; 20] =
+	hex_literal::hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac");
+
+/// To test EIP2612 permits we need to have cryptographic accounts.
+pub const ALICE_SECRET_KEY: [u8; 32] =
+	hex_literal::hex!("5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133");
+
 /// A simple account type.
 #[derive(
 	Eq,
@@ -81,7 +89,7 @@ impl Default for Account {
 impl AddressMapping<Account> for Account {
 	fn into_account_id(h160_account: H160) -> Account {
 		match h160_account {
-			a if a == H160::repeat_byte(0xAA) => Self::Alice,
+			a if a == H160::from(&ALICE_PUBLIC_KEY) => Self::Alice,
 			a if a == H160::repeat_byte(0xBB) => Self::Bob,
 			a if a == H160::repeat_byte(0xCC) => Self::Charlie,
 			a if a == H160::repeat_byte(0x00) => Self::Zero,
@@ -132,7 +140,7 @@ impl AccountIdAssetIdConversion<AccountId, AssetId> for Runtime {
 impl From<Account> for H160 {
 	fn from(x: Account) -> H160 {
 		match x {
-			Account::Alice => H160::repeat_byte(0xAA),
+			Account::Alice => H160::from(&ALICE_PUBLIC_KEY),
 			Account::Bob => H160::repeat_byte(0xBB),
 			Account::Charlie => H160::repeat_byte(0xCC),
 			Account::Zero => H160::repeat_byte(0x00),

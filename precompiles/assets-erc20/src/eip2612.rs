@@ -147,6 +147,34 @@ where
 		keccak_256(&domain_separator_inner).into()
 	}
 
+	pub fn generate_permit(
+		address: H160,
+		asset_id: AssetIdOf<Runtime, Instance>,
+		owner: H160,
+		spender: H160,
+		value: U256,
+		nonce: U256,
+		deadline: U256,
+	) -> [u8; 32] {
+		let domain_separator = Self::compute_domain_separator(address, asset_id);
+
+		let permit_content = EvmDataWriter::new()
+			.write(H256::from(PERMIT_TYPEHASH))
+			.write(Address(owner))
+			.write(Address(spender))
+			.write(value)
+			.write(nonce)
+			.write(deadline)
+			.build();
+		let permit_content = keccak_256(&permit_content);
+
+		let mut pre_digest = Vec::with_capacity(2 + 32 + 32);
+		pre_digest.extend_from_slice(b"\x19\x01");
+		pre_digest.extend_from_slice(&domain_separator);
+		pre_digest.extend_from_slice(&permit_content);
+		keccak_256(&pre_digest)
+	}
+
 	// Translated from
 	// https://github.com/Uniswap/v2-core/blob/master/contracts/UniswapV2ERC20.sol#L81
 	pub(crate) fn permit(
@@ -169,38 +197,23 @@ where
 
 		ensure!(deadline >= timestamp, gasometer.revert("permit expired"));
 
-		let domain_separator = Self::compute_domain_separator(address, asset_id);
 		let nonce = NoncesStorage::<Instance>::get(address, owner);
 
-		let permit_content = EvmDataWriter::new()
-			.write(H256::from(PERMIT_TYPEHASH))
-			.write(Address(owner))
-			.write(Address(spender))
-			.write(value)
-			.write(nonce)
-			.write(deadline)
-			.build();
-		let permit_content = keccak_256(&permit_content);
-
-		let mut pre_digest = Vec::with_capacity(2 + 32 + 32);
-		pre_digest.extend_from_slice(b"\x19\x01");
-		pre_digest.extend_from_slice(&domain_separator);
-		pre_digest.extend_from_slice(&permit_content);
-
-		let digest = keccak_256(&pre_digest);
+		let permit =
+			Self::generate_permit(address, asset_id, owner, spender, value, nonce, deadline);
 
 		let mut sig = [0u8; 65];
 		sig[0..32].copy_from_slice(&r.as_bytes());
 		sig[32..64].copy_from_slice(&s.as_bytes());
 		sig[64] = v;
 
-		let signer = sp_io::crypto::secp256k1_ecdsa_recover(&sig, &digest)
-			.map_err(|_| gasometer.revert("invalid permit signature"))?;
+		let signer = sp_io::crypto::secp256k1_ecdsa_recover(&sig, &permit)
+			.map_err(|_| gasometer.revert("invalid permit"))?;
 		let signer = H160::from(H256::from_slice(keccak_256(&signer).as_slice()));
 
 		ensure!(
 			signer != H160::zero() && signer == owner,
-			gasometer.revert("invalid permit signature")
+			gasometer.revert("invalid permit")
 		);
 
 		NoncesStorage::<Instance>::insert(address, owner, nonce + U256::one());
@@ -213,7 +226,14 @@ where
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: vec![],
-			logs: vec![],
+			logs: LogsBuilder::new(address)
+				.log3(
+					SELECTOR_LOG_APPROVAL,
+					owner,
+					spender,
+					EvmDataWriter::new().write(value).build(),
+				)
+				.build(),
 		})
 	}
 
