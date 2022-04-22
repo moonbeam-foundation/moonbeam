@@ -194,18 +194,22 @@ pub mod pallet {
 		MinOrbiterDepositNotSet,
 		/// This orbiter is already associated with this collator.
 		OrbiterAlreadyInPool,
-		/// Orbiter cant leave this round
-		OrbiterCantLeaveThisRound,
 		/// This orbiter has not made a deposit
 		OrbiterDepositNotFound,
 		/// This orbiter is not found
 		OrbiterNotFound,
+		/// The orbiter is still at least in one pool
+		OrbiterStillInAPool,
 	}
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
 		/// Paid the orbiter account the balance as liquid rewards.
+		OrbiterRemovedFromCollatorPool {
+			collator: T::AccountId,
+			orbiter: T::AccountId,
+		},
 		OrbiterRewarded {
 			account: T::AccountId,
 			rewards: BalanceOf<T>,
@@ -266,10 +270,18 @@ pub mod pallet {
 			let mut collator_pool =
 				CollatorsPool::<T>::get(&collator).ok_or(Error::<T>::CollatorNotFound)?;
 
-			ensure!(
-				collator_pool.remove_orbiter(&orbiter),
-				Error::<T>::OrbiterNotFound
-			);
+			match collator_pool.remove_orbiter(&orbiter) {
+				RemoveOrbiterResult::OrbiterNotFound => {
+					return Err(Error::<T>::OrbiterNotFound.into())
+				}
+				RemoveOrbiterResult::OrbiterRemoved => {
+					Self::deposit_event(Event::OrbiterRemovedFromCollatorPool {
+						collator: collator.clone(),
+						orbiter,
+					});
+				}
+				RemoveOrbiterResult::OrbiterRemoveScheduled => (),
+			}
 
 			CollatorsPool::<T>::insert(collator, collator_pool);
 			Ok(())
@@ -287,10 +299,18 @@ pub mod pallet {
 			let mut collator_pool =
 				CollatorsPool::<T>::get(&collator).ok_or(Error::<T>::CollatorNotFound)?;
 
-			ensure!(
-				collator_pool.remove_orbiter(&orbiter),
-				Error::<T>::OrbiterNotFound
-			);
+			match collator_pool.remove_orbiter(&orbiter) {
+				RemoveOrbiterResult::OrbiterNotFound => {
+					return Err(Error::<T>::OrbiterNotFound.into())
+				}
+				RemoveOrbiterResult::OrbiterRemoved => {
+					Self::deposit_event(Event::OrbiterRemovedFromCollatorPool {
+						collator: collator.clone(),
+						orbiter,
+					});
+				}
+				RemoveOrbiterResult::OrbiterRemoveScheduled => (),
+			}
 
 			CollatorsPool::<T>::insert(collator, collator_pool);
 			Ok(())
@@ -322,14 +342,6 @@ pub mod pallet {
 		) -> DispatchResult {
 			let orbiter = ensure_signed(origin)?;
 
-			// If the orbiter is currently active in this round, it cannot unregister, this would
-			// create annoying side effects. So we force the orbiter to redo is call later (or to
-			// schedule his call).
-			ensure!(
-				AccountLookupOverride::<T>::get(&orbiter).is_none(),
-				Error::<T>::OrbiterCantLeaveThisRound
-			);
-
 			// We have to make sure that the `collators_pool_count` parameter is large enough,
 			// because its value is used to calculate the weight of this extrinsic
 			ensure!(
@@ -337,17 +349,11 @@ pub mod pallet {
 				Error::<T>::CollatorsPoolCountTooLow
 			);
 
-			// We remove the orbiter from all the collator pools in which it is located.
-			CollatorsPool::<T>::translate_values(
-				|mut collator_pool: CollatorPoolInfo<T::AccountId>| {
-					if collator_pool.remove_orbiter(&orbiter) {
-						Some(collator_pool)
-					} else {
-						// Optimization: if the orbiter is not in this pool, we return None to
-						// avoid adding an unnecessary write
-						None
-					}
-				},
+			// Ensure that the orbiter is not in any pool
+			ensure!(
+				!CollatorsPool::<T>::iter_values()
+					.any(|collator_pool| collator_pool.contains_orbiter(&orbiter)),
+				Error::<T>::OrbiterStillInAPool,
 			);
 
 			T::Currency::unreserve_all_named(&T::OrbiterReserveIdentifier::get(), &orbiter);
@@ -356,7 +362,6 @@ pub mod pallet {
 		}
 
 		/// Add a collator to orbiters program.
-		///
 		#[pallet::weight(500_000_000)]
 		pub fn add_collator(
 			origin: OriginFor<T>,
@@ -409,7 +414,13 @@ pub mod pallet {
 				CollatorsPool::<T>::translate::<CollatorPoolInfo<T::AccountId>, _>(
 					|collator, mut pool| {
 						// remove current orbiter, if any.
-						if let Some(current_orbiter) = pool.get_current_orbiter() {
+						if let Some((current_orbiter, removed)) = pool.get_current_orbiter() {
+							if *removed {
+								Self::deposit_event(Event::OrbiterRemovedFromCollatorPool {
+									collator: collator.clone(),
+									orbiter: current_orbiter.clone(),
+								});
+							}
 							AccountLookupOverride::<T>::remove(current_orbiter);
 							writes += 1;
 						}

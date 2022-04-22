@@ -24,7 +24,7 @@ use sp_std::vec::Vec;
 #[derive(Decode, Encode, RuntimeDebug, TypeInfo)]
 pub struct CollatorPoolInfo<AccountId> {
 	orbiters: Vec<AccountId>,
-	maybe_current_orbiter: Option<AccountId>,
+	maybe_current_orbiter: Option<(AccountId, bool)>,
 	next_orbiter: u32,
 }
 
@@ -38,36 +38,68 @@ impl<AccountId> Default for CollatorPoolInfo<AccountId> {
 	}
 }
 
+pub(super) enum RemoveOrbiterResult {
+	OrbiterNotFound,
+	OrbiterRemoved,
+	OrbiterRemoveScheduled,
+}
+
 impl<AccountId: Clone + PartialEq> CollatorPoolInfo<AccountId> {
-	pub fn add_orbiter(&mut self, orbiter: AccountId) {
+	pub(super) fn add_orbiter(&mut self, orbiter: AccountId) {
 		self.orbiters.insert(self.next_orbiter as usize, orbiter);
 		self.next_orbiter += 1;
 	}
-	pub fn remove_orbiter(&mut self, orbiter: &AccountId) -> bool {
-		for (index, orbiter_) in self.orbiters.iter().enumerate() {
+	pub(super) fn contains_orbiter(&self, orbiter: &AccountId) -> bool {
+		if let Some((ref current_orbiter, _)) = self.maybe_current_orbiter {
+			if current_orbiter == orbiter {
+				return true;
+			}
+		}
+		for orbiter_ in self.orbiters.iter() {
 			if orbiter_ == orbiter {
-				self.orbiters.remove(index);
 				return true;
 			}
 		}
 		false
 	}
-	pub fn next_orbiter(&mut self) -> Option<AccountId> {
+	pub(super) fn remove_orbiter(&mut self, orbiter: &AccountId) -> RemoveOrbiterResult {
+		let mut found = false;
+		for (index, orbiter_) in self.orbiters.iter().enumerate() {
+			if orbiter_ == orbiter {
+				self.orbiters.remove(index);
+				found = true;
+				break;
+			}
+		}
+
+		if found {
+			if let Some((ref current_orbiter, ref mut removed)) = self.maybe_current_orbiter {
+				if current_orbiter == orbiter {
+					*removed = true;
+					return RemoveOrbiterResult::OrbiterRemoveScheduled;
+				}
+			}
+			RemoveOrbiterResult::OrbiterRemoved
+		} else {
+			RemoveOrbiterResult::OrbiterNotFound
+		}
+	}
+	pub(super) fn next_orbiter(&mut self) -> Option<AccountId> {
 		if self.next_orbiter >= self.orbiters.len() as u32 {
 			self.next_orbiter = 0;
 		}
 		if let Some(next_orbiter) = self.orbiters.get(self.next_orbiter as usize) {
-			self.maybe_current_orbiter = Some(next_orbiter.clone());
+			self.maybe_current_orbiter = Some((next_orbiter.clone(), false));
 			self.next_orbiter += 1;
 			Some(next_orbiter.clone())
 		} else {
 			None
 		}
 	}
-	pub fn get_current_orbiter(&self) -> &Option<AccountId> {
+	pub(super) fn get_current_orbiter(&self) -> &Option<(AccountId, bool)> {
 		&self.maybe_current_orbiter
 	}
-	pub fn get_orbiters(&self) -> &[AccountId] {
+	pub(super) fn get_orbiters(&self) -> &[AccountId] {
 		&self.orbiters
 	}
 }
