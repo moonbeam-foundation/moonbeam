@@ -31,13 +31,29 @@ describeSmokeSuite(`Verify XCM relay weight fees`, { wssUrl, relayWssUrl }, (con
   it("should have value matching relay", async function () {
     // Load data
     const transactInfo = await apiAt.query.xcmTransactor.transactInfoWithWeightLimit.entries();
-    const relayWeights =
+
+    const relayBaseWeight =
       relayApiAt.consts.system.blockWeights.perClass.normal.baseExtrinsic.toBigInt();
-    const expectedFeePerSecond = relayWeights; // TODO: Gorka to provide computation
+    const seconds = 1_000_000_000_000n;
+    const cent = seconds / 30_000n;
+    const coef = cent / 10n;
+    const expectedFeePerSecond = (coef * seconds) / relayBaseWeight;
 
-    expect(transactInfo.length).to.be.equal(1);
-    expect(transactInfo[0][1].unwrap().feePerSecond.toBigInt()).to.be.equal(expectedFeePerSecond);
-
-    debug(`Verified transactInfoWithWeightLimit with relay baseExtrinsic weight`);
+    expect(transactInfo.length, "Missing transactInfoWithWeightLimit data").to.be.equal(1);
+    const feePerSecond = transactInfo[0][1].unwrap().feePerSecond.toBigInt();
+    // We do approximation check
+    expect(
+      (feePerSecond * 99n) / 100n < expectedFeePerSecond,
+      `failed check: feePerSecond (99%): ${
+        (feePerSecond * 99n) / 100n
+      } < expected ${expectedFeePerSecond}`
+    ).to.be.true;
+    expect(
+      (feePerSecond * 101n) / 100n > expectedFeePerSecond,
+      `failed check: feePerSecond (101%): ${
+        (feePerSecond * 101n) / 100n
+      } > expected ${expectedFeePerSecond}`
+    ).to.be.true;
+    debug(`Verified feePerSecond within relay base weight range`);
   });
 });
