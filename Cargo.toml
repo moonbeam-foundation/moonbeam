@@ -10,6 +10,7 @@ members = [
 	"pallets/maintenance-mode",
 	"pallets/migrations",
 	"pallets/proxy-genesis-companion",
+	"precompiles/balances-erc20",
 	"precompiles/utils/macro",
 	"runtime/moonbase",
 	"runtime/moonbeam",

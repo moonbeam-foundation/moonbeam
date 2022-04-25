@@ -16,13 +16,14 @@
 
 use std::{assert_matches::assert_matches, str::from_utf8};
 
-use crate::mock::*;
-use crate::*;
+use crate::{eip2612::Eip2612, mock::*, *};
 
 use fp_evm::{Context, PrecompileFailure};
+use libsecp256k1::{sign, Message, SecretKey};
 use pallet_evm::PrecompileSet;
 use precompile_utils::{Bytes, EvmDataWriter, LogsBuilder};
 use sha3::{Digest, Keccak256};
+use sp_core::{H256, U256};
 
 // No test of invalid selectors since we have a fallback behavior (deposit).
 fn precompiles() -> Precompiles<Runtime> {
@@ -1169,6 +1170,474 @@ fn withdraw_more_than_owned() {
 					output: EvmDataWriter::new().write(U256::from(1000)).build(),
 					cost: Default::default(),
 					logs: Default::default(),
+				}))
+			);
+		});
+}
+
+#[test]
+fn permit_valid() {
+	ExtBuilder::default()
+		.with_balances(vec![(Account::Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			let owner: H160 = Account::Alice.into();
+			let spender: H160 = Account::Bob.into();
+			let value: U256 = 500u16.into();
+			let deadline: U256 = 0u8.into(); // todo: proper timestamp
+
+			let permit = Eip2612::<Runtime, NativeErc20Metadata>::generate_permit(
+				Account::Precompile.into(),
+				owner,
+				spender,
+				value,
+				0u8.into(), // nonce
+				deadline,
+			);
+
+			let secret_key = SecretKey::parse(&ALICE_SECRET_KEY).unwrap();
+			let message = Message::parse(&permit);
+			let (rs, v) = sign(&message, &secret_key);
+
+			assert_eq!(
+				precompiles().execute(
+					Account::Precompile.into(),
+					&EvmDataWriter::new_with_selector(Action::Eip2612Nonces)
+						.write(Address(Account::Alice.into()))
+						.build(),
+					None,
+					&Context {
+						address: Account::Precompile.into(),
+						caller: Account::Alice.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: EvmDataWriter::new().write(U256::from(0u8)).build(),
+					cost: 0u64,
+					logs: vec![],
+				}))
+			);
+
+			assert_eq!(
+				precompiles().execute(
+					Account::Precompile.into(),
+					&EvmDataWriter::new_with_selector(Action::Eip2612Permit)
+						.write(Address(owner))
+						.write(Address(spender))
+						.write(value)
+						.write(deadline)
+						.write(v.serialize())
+						.write(H256::from(rs.r.b32()))
+						.write(H256::from(rs.s.b32()))
+						.build(),
+					None,
+					&Context {
+						address: Account::Precompile.into(),
+						caller: Account::Charlie.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: vec![],
+					cost: 0u64,
+					logs: LogsBuilder::new(Account::Precompile.into())
+						.log3(
+							SELECTOR_LOG_APPROVAL,
+							Account::Alice,
+							Account::Bob,
+							EvmDataWriter::new().write(U256::from(500)).build(),
+						)
+						.build(),
+				}))
+			);
+
+			assert_eq!(
+				precompiles().execute(
+					Account::Precompile.into(),
+					&EvmDataWriter::new_with_selector(Action::Allowance)
+						.write(Address(Account::Alice.into()))
+						.write(Address(Account::Bob.into()))
+						.build(),
+					None,
+					&Context {
+						address: Account::Precompile.into(),
+						caller: Account::Alice.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: EvmDataWriter::new().write(U256::from(500u16)).build(),
+					cost: 0u64,
+					logs: vec![],
+				}))
+			);
+
+			assert_eq!(
+				precompiles().execute(
+					Account::Precompile.into(),
+					&EvmDataWriter::new_with_selector(Action::Eip2612Nonces)
+						.write(Address(Account::Alice.into()))
+						.build(),
+					None,
+					&Context {
+						address: Account::Precompile.into(),
+						caller: Account::Alice.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: EvmDataWriter::new().write(U256::from(1u8)).build(),
+					cost: 0u64,
+					logs: vec![],
+				}))
+			);
+		});
+}
+
+#[test]
+fn permit_invalid_nonce() {
+	ExtBuilder::default()
+		.with_balances(vec![(Account::Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			let owner: H160 = Account::Alice.into();
+			let spender: H160 = Account::Bob.into();
+			let value: U256 = 500u16.into();
+			let deadline: U256 = 0u8.into();
+
+			let permit = Eip2612::<Runtime, NativeErc20Metadata>::generate_permit(
+				Account::Precompile.into(),
+				owner,
+				spender,
+				value,
+				1u8.into(), // nonce
+				deadline,
+			);
+
+			let secret_key = SecretKey::parse(&ALICE_SECRET_KEY).unwrap();
+			let message = Message::parse(&permit);
+			let (rs, v) = sign(&message, &secret_key);
+
+			assert_eq!(
+				precompiles().execute(
+					Account::Precompile.into(),
+					&EvmDataWriter::new_with_selector(Action::Eip2612Nonces)
+						.write(Address(Account::Alice.into()))
+						.build(),
+					None,
+					&Context {
+						address: Account::Precompile.into(),
+						caller: Account::Alice.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: EvmDataWriter::new().write(U256::from(0u8)).build(),
+					cost: 0u64,
+					logs: vec![],
+				}))
+			);
+
+			assert_matches!(
+				precompiles().execute(
+					Account::Precompile.into(),
+					&EvmDataWriter::new_with_selector(Action::Eip2612Permit)
+						.write(Address(owner))
+						.write(Address(spender))
+						.write(value)
+						.write(deadline)
+						.write(v.serialize())
+						.write(H256::from(rs.r.b32()))
+						.write(H256::from(rs.s.b32()))
+						.build(),
+					None,
+					&Context {
+						address: Account::Precompile.into(),
+						caller: Account::Charlie.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Err(PrecompileFailure::Revert { output, ..}))
+				if output == b"invalid permit"
+			);
+
+			assert_eq!(
+				precompiles().execute(
+					Account::Precompile.into(),
+					&EvmDataWriter::new_with_selector(Action::Allowance)
+						.write(Address(Account::Alice.into()))
+						.write(Address(Account::Bob.into()))
+						.build(),
+					None,
+					&Context {
+						address: Account::Precompile.into(),
+						caller: Account::Alice.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: EvmDataWriter::new().write(U256::from(0u16)).build(),
+					cost: 0u64,
+					logs: vec![],
+				}))
+			);
+
+			assert_eq!(
+				precompiles().execute(
+					Account::Precompile.into(),
+					&EvmDataWriter::new_with_selector(Action::Eip2612Nonces)
+						.write(Address(Account::Alice.into()))
+						.build(),
+					None,
+					&Context {
+						address: Account::Precompile.into(),
+						caller: Account::Alice.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: EvmDataWriter::new().write(U256::from(0u8)).build(),
+					cost: 0u64,
+					logs: vec![],
+				}))
+			);
+		});
+}
+
+#[test]
+fn permit_invalid_signature() {
+	ExtBuilder::default()
+		.with_balances(vec![(Account::Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			let owner: H160 = Account::Alice.into();
+			let spender: H160 = Account::Bob.into();
+			let value: U256 = 500u16.into();
+			let deadline: U256 = 0u8.into();
+
+			assert_eq!(
+				precompiles().execute(
+					Account::Precompile.into(),
+					&EvmDataWriter::new_with_selector(Action::Eip2612Nonces)
+						.write(Address(Account::Alice.into()))
+						.build(),
+					None,
+					&Context {
+						address: Account::Precompile.into(),
+						caller: Account::Alice.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: EvmDataWriter::new().write(U256::from(0u8)).build(),
+					cost: 0u64,
+					logs: vec![],
+				}))
+			);
+
+			assert_matches!(
+				precompiles().execute(
+					Account::Precompile.into(),
+					&EvmDataWriter::new_with_selector(Action::Eip2612Permit)
+						.write(Address(owner))
+						.write(Address(spender))
+						.write(value)
+						.write(deadline)
+						.write(0u8)
+						.write(H256::random())
+						.write(H256::random())
+						.build(),
+					None,
+					&Context {
+						address: Account::Precompile.into(),
+						caller: Account::Charlie.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Err(PrecompileFailure::Revert { output, ..}))
+				if output == b"invalid permit"
+			);
+
+			assert_eq!(
+				precompiles().execute(
+					Account::Precompile.into(),
+					&EvmDataWriter::new_with_selector(Action::Allowance)
+						.write(Address(Account::Alice.into()))
+						.write(Address(Account::Bob.into()))
+						.build(),
+					None,
+					&Context {
+						address: Account::Precompile.into(),
+						caller: Account::Alice.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: EvmDataWriter::new().write(U256::from(0u16)).build(),
+					cost: 0u64,
+					logs: vec![],
+				}))
+			);
+
+			assert_eq!(
+				precompiles().execute(
+					Account::Precompile.into(),
+					&EvmDataWriter::new_with_selector(Action::Eip2612Nonces)
+						.write(Address(Account::Alice.into()))
+						.build(),
+					None,
+					&Context {
+						address: Account::Precompile.into(),
+						caller: Account::Alice.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: EvmDataWriter::new().write(U256::from(0u8)).build(),
+					cost: 0u64,
+					logs: vec![],
+				}))
+			);
+		});
+}
+
+#[test]
+fn permit_invalid_deadline() {
+	ExtBuilder::default()
+		.with_balances(vec![(Account::Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			pallet_timestamp::Pallet::<Runtime>::set_timestamp(10);
+
+			let owner: H160 = Account::Alice.into();
+			let spender: H160 = Account::Bob.into();
+			let value: U256 = 500u16.into();
+			let deadline: U256 = 5u8.into(); // deadline < timestamp => expired
+
+			let permit = Eip2612::<Runtime, NativeErc20Metadata>::generate_permit(
+				Account::Precompile.into(),
+				owner,
+				spender,
+				value,
+				0u8.into(), // nonce
+				deadline,
+			);
+
+			let secret_key = SecretKey::parse(&ALICE_SECRET_KEY).unwrap();
+			let message = Message::parse(&permit);
+			let (rs, v) = sign(&message, &secret_key);
+
+			assert_eq!(
+				precompiles().execute(
+					Account::Precompile.into(),
+					&EvmDataWriter::new_with_selector(Action::Eip2612Nonces)
+						.write(Address(Account::Alice.into()))
+						.build(),
+					None,
+					&Context {
+						address: Account::Precompile.into(),
+						caller: Account::Alice.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: EvmDataWriter::new().write(U256::from(0u8)).build(),
+					cost: 0u64,
+					logs: vec![],
+				}))
+			);
+
+			assert_matches!(
+				precompiles().execute(
+					Account::Precompile.into(),
+					&EvmDataWriter::new_with_selector(Action::Eip2612Permit)
+						.write(Address(owner))
+						.write(Address(spender))
+						.write(value)
+						.write(deadline)
+						.write(v.serialize())
+						.write(H256::from(rs.r.b32()))
+						.write(H256::from(rs.s.b32()))
+						.build(),
+					None,
+					&Context {
+						address: Account::Precompile.into(),
+						caller: Account::Charlie.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Err(PrecompileFailure::Revert { output, ..}))
+				if output == b"permit expired"
+			);
+
+			assert_eq!(
+				precompiles().execute(
+					Account::Precompile.into(),
+					&EvmDataWriter::new_with_selector(Action::Allowance)
+						.write(Address(Account::Alice.into()))
+						.write(Address(Account::Bob.into()))
+						.build(),
+					None,
+					&Context {
+						address: Account::Precompile.into(),
+						caller: Account::Alice.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: EvmDataWriter::new().write(U256::from(0u16)).build(),
+					cost: 0u64,
+					logs: vec![],
+				}))
+			);
+
+			assert_eq!(
+				precompiles().execute(
+					Account::Precompile.into(),
+					&EvmDataWriter::new_with_selector(Action::Eip2612Nonces)
+						.write(Address(Account::Alice.into()))
+						.build(),
+					None,
+					&Context {
+						address: Account::Precompile.into(),
+						caller: Account::Alice.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: EvmDataWriter::new().write(U256::from(0u8)).build(),
+					cost: 0u64,
+					logs: vec![],
 				}))
 			);
 		});
