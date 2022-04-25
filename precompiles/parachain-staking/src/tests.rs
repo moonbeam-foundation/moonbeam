@@ -58,6 +58,7 @@ fn selectors() {
 	assert_eq!(Action::MinNomination as u32, 0xc9f593b2);
 	assert_eq!(Action::MinDelegation as u32, 0x72ce8933);
 	assert_eq!(Action::CandidateCount as u32, 0x4b1c4c29);
+	assert_eq!(Action::Round as u32, 0x146ca531);
 	assert_eq!(Action::CollatorNominationCount as u32, 0x0ad6a7be);
 	assert_eq!(Action::CandidateDelegationCount as u32, 0x815b796c);
 	assert_eq!(Action::NominatorNominationCount as u32, 0xdae5659b);
@@ -279,6 +280,58 @@ fn points_non_zero() {
 				expected_one_result
 			);
 		});
+}
+
+#[test]
+fn round_works() {
+	ExtBuilder::default().build().execute_with(|| {
+		// Expected starts at round 1
+		let mut expected_result = Some(Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			output: EvmDataWriter::new().write(1u32).build(),
+			cost: Default::default(),
+			logs: Default::default(),
+		}));
+		// Assert that round is 1
+		assert_eq!(
+			precompiles().execute(
+				precompile_address(),
+				&EvmDataWriter::new_with_selector(Action::Round).build(),
+				None,
+				&evm_test_context(),
+				false
+			),
+			expected_result
+		);
+		// Default round length is 5 so test next few round transitions
+		const ROUND_TRANSITIONS_TO_TEST: u64 = 10;
+		let mut current_block: u64 = 1;
+		let mut current_round: u32 = 1;
+		while current_block
+			< (ROUND_TRANSITIONS_TO_TEST * crate::mock::DefaultBlocksPerRound::get() as u64)
+		{
+			current_block += crate::mock::DefaultBlocksPerRound::get() as u64;
+			current_round += 1;
+			roll_to(current_block);
+			expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(current_round).build(),
+				cost: Default::default(),
+				logs: Default::default(),
+			}));
+			// Assert that round is equal to expectation
+			assert_eq!(
+				precompiles().execute(
+					precompile_address(),
+					&EvmDataWriter::new_with_selector(Action::Round).build(),
+					None,
+					&evm_test_context(),
+					false
+				),
+				expected_result
+			);
+		}
+	});
 }
 
 // DEPRECATED
