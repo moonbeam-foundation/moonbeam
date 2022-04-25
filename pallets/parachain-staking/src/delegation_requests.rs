@@ -307,6 +307,7 @@ impl<T: Config> Pallet<T> {
 	}
 
 	/// Removes the delegator's existing [ScheduledRequest] towards a given collator.
+	/// The state needs to be persisted by the caller of this function.
 	/// Returns [Error::PendingDelegationRequestDNE] if request does not exist.
 	pub(crate) fn delegation_remove_request_with_state(
 		collator: &T::AccountId,
