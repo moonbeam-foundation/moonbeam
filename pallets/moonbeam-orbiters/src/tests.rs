@@ -16,8 +16,73 @@
 
 //! Unit testing
 
-use crate::mock::{last_event, Event, ExtBuilder, MoonbeamOrbiters, Origin, Test};
+use crate::mock::{last_event, ExtBuilder, MoonbeamOrbiters, Origin, Test};
+use crate::{Error, Event};
 use frame_support::{assert_noop, assert_ok};
+
+#[test]
+fn test_collator_add_orbiter() {
+	ExtBuilder::default()
+		.with_balances(vec![(2, 20_000), (3, 20_000), (4, 20_000)])
+		.with_min_orbiter_deposit(10_000)
+		.build()
+		.execute_with(|| {
+			// Add a collator to the orbiter program
+			assert_ok!(MoonbeamOrbiters::add_collator(Origin::root(), 1),);
+			// Register some orbiters
+			assert_ok!(MoonbeamOrbiters::orbiter_register(Origin::signed(2)),);
+			assert_ok!(MoonbeamOrbiters::orbiter_register(Origin::signed(3)),);
+			assert_ok!(MoonbeamOrbiters::orbiter_register(Origin::signed(4)),);
+
+			// Try to add an orbiter to a collator pool
+			// Should fail because collator not exist
+			assert_noop!(
+				MoonbeamOrbiters::collator_add_orbiter(Origin::signed(99), 2),
+				Error::<Test>::CollatorNotFound
+			);
+
+			// Try to add an orbiter to a collator pool
+			// Should fail because orbiter not exist
+			assert_noop!(
+				MoonbeamOrbiters::collator_add_orbiter(Origin::signed(1), 99),
+				Error::<Test>::OrbiterDepositNotFound
+			);
+
+			// Try to add an orbiter to a collator pool, should success
+			assert_ok!(MoonbeamOrbiters::collator_add_orbiter(Origin::signed(1), 2),);
+			assert_eq!(
+				last_event(),
+				Event::<Test>::OrbiterJoinCollatorPool {
+					collator: 1,
+					orbiter: 2,
+				}
+				.into()
+			);
+
+			// Try to add the same orbiter again, should fail
+			assert_noop!(
+				MoonbeamOrbiters::collator_add_orbiter(Origin::signed(1), 2),
+				Error::<Test>::OrbiterAlreadyInPool
+			);
+
+			// Try to add a second orbiter to the collator pool, should success
+			assert_ok!(MoonbeamOrbiters::collator_add_orbiter(Origin::signed(1), 3),);
+			assert_eq!(
+				last_event(),
+				Event::<Test>::OrbiterJoinCollatorPool {
+					collator: 1,
+					orbiter: 3,
+				}
+				.into()
+			);
+
+			// Try to add a third orbiter to the collator pool, should fail
+			assert_noop!(
+				MoonbeamOrbiters::collator_add_orbiter(Origin::signed(1), 4),
+				Error::<Test>::CollatorPoolTooLarge
+			);
+		});
+}
 
 #[test]
 fn test_orbiter_register_fail_if_insufficient_balance() {
@@ -42,10 +107,11 @@ fn test_orbiter_register_ok() {
 			assert_ok!(MoonbeamOrbiters::orbiter_register(Origin::signed(1)),);
 			assert_eq!(
 				last_event(),
-				Event::Balances(pallet_balances::Event::<Test>::Reserved {
+				pallet_balances::Event::<Test>::Reserved {
 					who: 1,
 					amount: 10_000
-				})
+				}
+				.into()
 			)
 		});
 }
@@ -54,16 +120,9 @@ fn test_orbiter_register_ok() {
 fn test_add_collator() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(MoonbeamOrbiters::add_collator(Origin::root(), 1),);
-		/*assert_eq!(
-			last_event(),
-			Event::Balances(pallet_balances::Event::<Test>::Reserved {
-				who: 1,
-				amount: 10_000
-			})
-		);*/
 		assert_noop!(
 			MoonbeamOrbiters::add_collator(Origin::root(), 1),
-			crate::Error::<Test>::CollatorAlreadyAdded
+			Error::<Test>::CollatorAlreadyAdded
 		);
 	});
 }
@@ -84,7 +143,7 @@ fn test_orbiter_unregister() {
 			// Should fail because there is 1 collator pool and we provide 0
 			assert_noop!(
 				MoonbeamOrbiters::orbiter_unregister(Origin::signed(2), 0),
-				crate::Error::<Test>::CollatorsPoolCountTooLow
+				Error::<Test>::CollatorsPoolCountTooLow
 			);
 
 			// Try to unregister an orbiter with right hint, should success

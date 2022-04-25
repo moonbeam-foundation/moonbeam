@@ -130,7 +130,7 @@ impl pallet_moonbeam_orbiters::Config for Test {
 	type Currency = Balances;
 	type DelCollatorOrigin = EnsureRoot<AccountId>;
 	/// Maximum number of orbiters per collator
-	type MaxPoolSize = ConstU32<8>;
+	type MaxPoolSize = ConstU32<2>;
 	/// Maximum number of round to keep on storage
 	type MaxRoundArchive = ConstU32<4>;
 	type OrbiterReserveIdentifier = OrbiterReserveIdentifier;
