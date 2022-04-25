@@ -18,10 +18,7 @@
 use serde::{Deserialize, Serialize};
 
 use {
-	super::*,
-	core::cmp::Ordering,
-	frame_support::RuntimeDebug,
-	sp_runtime::traits::CheckedAdd,
+	super::*, core::cmp::Ordering, frame_support::RuntimeDebug, sp_runtime::traits::CheckedAdd,
 	sp_std::collections::btree_set::BTreeSet,
 };
 
@@ -55,12 +52,12 @@ pub fn update_candidate_stake<T: Config>(
 	let before_stake = CandidatesStake::<T>::get(&candidate);
 	CandidatesStake::<T>::insert(&candidate, new_stake);
 
-	let ac_self_delegation = shares::auto_compounding::shares_to_stake(
+	let ac_self_delegation = pools::auto_compounding::shares_to_stake(
 		&candidate,
 		&AutoCompoundingShares::<T>::get(&candidate, &candidate),
 	)?;
 
-	let mc_self_delegation = shares::manual_claim::shares_to_stake(
+	let mc_self_delegation = pools::manual_claim::shares_to_stake(
 		&candidate,
 		&ManualClaimShares::<T>::get(&candidate, &candidate),
 	)?;

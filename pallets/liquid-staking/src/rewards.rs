@@ -64,7 +64,7 @@ fn reward_delegators<T: Config>(
 
 	// Rewards must be split according to repartition between
 	// AutoCompounding and ManualClaim shares.
-	let total_stake = shares::candidates::stake::<T>(&collator);
+	let total_stake = pools::candidates::stake::<T>(&collator);
 	let mc_stake = ManualClaimSharesTotalStaked::<T>::get(&collator);
 
 	// ManualClaim rewards
@@ -92,7 +92,7 @@ fn reward_delegators<T: Config>(
 	// AutoCompounnding rewards.
 	// This is done simply by increasing the stake of the collator.
 	let ac_rewards = value.checked_sub(&mc_rewards).ok_or(Error::MathUnderflow)?;
-	shares::candidates::add_stake(collator.clone(), ac_rewards)?;
+	pools::candidates::add_stake(collator.clone(), ac_rewards)?;
 
 	Pallet::<T>::deposit_event(Event::<T>::RewardedDelegators {
 		collator,
@@ -108,13 +108,13 @@ fn reward_collator<T: Config>(collator: T::AccountId, value: BalanceOf<T>) -> Re
 	// AutoCompounding and ManualClaim shares.
 
 	let mc_stake = if !ManualClaimSharesSupply::<T>::get(&collator).is_zero() {
-		shares::manual_claim::stake(&collator, &collator)?
+		pools::manual_claim::stake(&collator, &collator)?
 	} else {
 		Zero::zero()
 	};
 
 	let ac_stake = if !AutoCompoundingSharesSupply::<T>::get(&collator).is_zero() {
-		shares::auto_compounding::stake(&collator, &collator)?
+		pools::auto_compounding::stake(&collator, &collator)?
 	} else {
 		Zero::zero()
 	};
@@ -130,15 +130,15 @@ fn reward_collator<T: Config>(collator: T::AccountId, value: BalanceOf<T>) -> Re
 	let ac_rewards = if !ac_rewards.is_zero() {
 		// Rewards are staked automatically.
 		// Not staked dust is moved to manual rewards distribution.
-		let shares = shares::auto_compounding::stake_to_shares::<T>(&collator, &ac_rewards)?;
+		let shares = pools::auto_compounding::stake_to_shares::<T>(&collator, &ac_rewards)?;
 
 		if !shares.is_zero() {
-			let stake = shares::auto_compounding::add_shares::<T>(
+			let stake = pools::auto_compounding::add_shares::<T>(
 				collator.clone(),
 				collator.clone(),
 				shares,
 			)?;
-			shares::candidates::add_stake::<T>(collator.clone(), stake)?;
+			pools::candidates::add_stake::<T>(collator.clone(), stake)?;
 			T::Currency::deposit_creating(&T::StakingAccount::get(), stake);
 
 			stake

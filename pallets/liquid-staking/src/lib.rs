@@ -14,10 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+// TODOs :
+// - Leaving cancelation, user can choose which kind of shares they want back.
+// - Shares convertion should not make leaving requests.
+
 #![cfg_attr(not(feature = "std"), no_std)]
 
+mod pools;
 mod rewards;
-mod shares;
 
 #[cfg(test)]
 mod mock;
@@ -29,7 +33,7 @@ use frame_support::pallet;
 #[pallet]
 pub mod pallet {
 	use {
-		super::{rewards, shares},
+		super::{pools, rewards},
 		frame_support::{
 			pallet_prelude::*,
 			storage::types::Key,
@@ -38,7 +42,7 @@ pub mod pallet {
 		},
 		frame_system::pallet_prelude::*,
 		sp_runtime::{
-			traits::{CheckedAdd, CheckedSub, Zero},
+			traits::{CheckedSub, Zero},
 			Perbill,
 		},
 		sp_std::collections::btree_set::BTreeSet,
@@ -67,6 +71,7 @@ pub mod pallet {
 	#[derive(RuntimeDebug, PartialEq, Eq, Encode, Decode, Clone, TypeInfo)]
 	pub struct LeavingQuery<C, B> {
 		candidate: C,
+		delegator: C,
 		at_block: B,
 	}
 
@@ -132,7 +137,7 @@ pub mod pallet {
 	/// Sorted list of eligible candidates.
 	#[pallet::storage]
 	pub type SortedEligibleCandidates<T: Config> =
-		StorageValue<_, Vec<shares::candidates::Candidate<T::AccountId, BalanceOf<T>>>, ValueQuery>;
+		StorageValue<_, Vec<pools::candidates::Candidate<T::AccountId, BalanceOf<T>>>, ValueQuery>;
 
 	/// Stake of each candidate.
 	/// Updated by (un)staking either in AutoCompounding or ManualClaim Shares.
@@ -151,7 +156,7 @@ pub mod pallet {
 		// Key1: Candidate ID
 		Twox64Concat,
 		T::AccountId,
-		// Key2: Staker ID
+		// Key2: Delegator ID
 		Twox64Concat,
 		T::AccountId,
 		// Value: Amount of shares of that Staker towards that Candidate.
@@ -164,6 +169,11 @@ pub mod pallet {
 	pub type AutoCompoundingSharesSupply<T: Config> =
 		StorageMap<_, Twox64Concat, T::AccountId, BalanceOf<T>, ValueQuery>;
 
+	/// Amount of stake that represents all AutoCompounding Shares of a Candidate.
+	#[pallet::storage]
+	pub type AutoCompoundingSharesTotalStaked<T: Config> =
+		StorageMap<_, Twox64Concat, T::AccountId, BalanceOf<T>, ValueQuery>;
+
 	/// ManualClaim Shares.
 	#[pallet::storage]
 	pub type ManualClaimShares<T: Config> = StorageDoubleMap<
@@ -171,7 +181,7 @@ pub mod pallet {
 		// Key1: Candidate ID
 		Twox64Concat,
 		T::AccountId,
-		// Key2: Staker ID
+		// Key2: Delegator ID
 		Twox64Concat,
 		T::AccountId,
 		// Value: Amount of shares of that Staker towards that Candidate.
@@ -203,7 +213,7 @@ pub mod pallet {
 		// Key1: Candidate ID
 		Twox64Concat,
 		T::AccountId,
-		// Key2: Staker ID
+		// Key2: Delegator ID
 		Twox64Concat,
 		T::AccountId,
 		// Value: Reward checkpoint for that Staker with this Candidate.
@@ -348,6 +358,7 @@ pub mod pallet {
 		MathOverflow,
 		NotEnoughShares,
 		TryingToLeaveTooSoon,
+		InconsistentState,
 	}
 
 	#[pallet::call]
@@ -367,7 +378,7 @@ pub mod pallet {
 			let shares = match quantity {
 				SharesOrStake::Shares(shares) => shares,
 				SharesOrStake::Stake(stake) => {
-					shares::manual_claim::stake_to_shares_or_init::<T>(&candidate, &stake)?
+					pools::manual_claim::stake_to_shares_or_init::<T>(&candidate, &stake)?
 				}
 			};
 
@@ -376,7 +387,7 @@ pub mod pallet {
 			// It is important to automatically claim rewards before updating
 			// the amount of shares since pending rewards are stored per share.
 			let rewards =
-				shares::manual_claim::claim_rewards::<T>(candidate.clone(), delegator.clone())?;
+				pools::manual_claim::claim_rewards::<T>(candidate.clone(), delegator.clone())?;
 			if !Zero::is_zero(&rewards) {
 				T::Currency::transfer(
 					&T::StakingAccount::get(),
@@ -386,12 +397,11 @@ pub mod pallet {
 				)?;
 			}
 
-			let stake = shares::manual_claim::add_shares::<T>(
-				candidate.clone(),
-				delegator.clone(),
-				shares,
-			)?;
-			shares::candidates::add_stake::<T>(candidate.clone(), stake)?;
+			let stake =
+				pools::manual_claim::add_shares::<T>(candidate.clone(), delegator.clone(), shares)?;
+			pools::candidates::add_stake::<T>(candidate.clone(), stake)?;
+
+			pools::check_candidate_consistency(&candidate)?;
 
 			T::Currency::transfer(
 				&delegator,
@@ -418,7 +428,7 @@ pub mod pallet {
 			let shares = match quantity {
 				SharesOrStake::Shares(shares) => shares,
 				SharesOrStake::Stake(stake) => {
-					shares::manual_claim::stake_to_shares::<T>(&candidate, &stake)?
+					pools::manual_claim::stake_to_shares::<T>(&candidate, &stake)?
 				}
 			};
 
@@ -427,7 +437,7 @@ pub mod pallet {
 			// It is important to automatically claim rewards before updating
 			// the amount of shares since pending rewards are stored per share.
 			let rewards =
-				shares::manual_claim::claim_rewards::<T>(candidate.clone(), delegator.clone())?;
+				pools::manual_claim::claim_rewards::<T>(candidate.clone(), delegator.clone())?;
 			if !Zero::is_zero(&rewards) {
 				T::Currency::transfer(
 					&T::StakingAccount::get(),
@@ -437,13 +447,13 @@ pub mod pallet {
 				)?;
 			}
 
-			let stake = shares::manual_claim::sub_shares::<T>(
-				candidate.clone(),
-				delegator.clone(),
-				shares,
-			)?;
-			shares::candidates::sub_stake::<T>(candidate.clone(), stake)?;
-			shares::leaving::register_leaving::<T>(candidate, delegator, stake)?;
+			let stake =
+				pools::manual_claim::sub_shares::<T>(candidate.clone(), delegator.clone(), shares)?;
+			// Leaving still count as staked.
+			// pools::candidates::sub_stake::<T>(candidate.clone(), stake)?;
+			pools::leaving::register_leaving::<T>(candidate, delegator, stake)?;
+
+			pools::check_candidate_consistency(&candidate)?;
 
 			Ok(().into())
 		}
@@ -462,18 +472,20 @@ pub mod pallet {
 			let shares = match quantity {
 				SharesOrStake::Shares(shares) => shares,
 				SharesOrStake::Stake(stake) => {
-					shares::auto_compounding::stake_to_shares_or_init::<T>(&candidate, &stake)?
+					pools::auto_compounding::stake_to_shares_or_init::<T>(&candidate, &stake)?
 				}
 			};
 
 			ensure!(!Zero::is_zero(&shares), Error::<T>::StakeMustBeNonZero);
 
-			let stake = shares::auto_compounding::add_shares::<T>(
+			let stake = pools::auto_compounding::add_shares::<T>(
 				candidate.clone(),
 				delegator.clone(),
 				shares,
 			)?;
-			shares::candidates::add_stake::<T>(candidate.clone(), stake)?;
+			pools::candidates::add_stake::<T>(candidate.clone(), stake)?;
+
+			pools::check_candidate_consistency(&candidate)?;
 
 			T::Currency::transfer(
 				&delegator,
@@ -499,19 +511,20 @@ pub mod pallet {
 			let shares = match quantity {
 				SharesOrStake::Shares(shares) => shares,
 				SharesOrStake::Stake(stake) => {
-					shares::auto_compounding::stake_to_shares::<T>(&candidate, &stake)?
+					pools::auto_compounding::stake_to_shares::<T>(&candidate, &stake)?
 				}
 			};
 
 			ensure!(!Zero::is_zero(&shares), Error::<T>::StakeMustBeNonZero);
 
-			let stake = shares::auto_compounding::sub_shares::<T>(
+			let stake = pools::auto_compounding::sub_shares::<T>(
 				candidate.clone(),
 				delegator.clone(),
 				shares,
 			)?;
-			shares::candidates::sub_stake::<T>(candidate.clone(), stake)?;
-			shares::leaving::register_leaving::<T>(candidate, delegator, stake)?;
+			// Leaving still count as staked.
+			// pools::candidates::sub_stake::<T>(candidate.clone(), stake)?;
+			pools::leaving::register_leaving::<T>(candidate, delegator, stake)?;
 
 			Ok(().into())
 		}
@@ -531,7 +544,7 @@ pub mod pallet {
 			let mc_shares = match quantity {
 				SharesOrStake::Shares(shares) => shares,
 				SharesOrStake::Stake(stake) => {
-					shares::manual_claim::stake_to_shares::<T>(&candidate, &stake)?
+					pools::manual_claim::stake_to_shares::<T>(&candidate, &stake)?
 				}
 			};
 
@@ -540,7 +553,7 @@ pub mod pallet {
 			// It is important to automatically claim rewards before updating
 			// the amount of shares since pending rewards are stored per share.
 			let rewards =
-				shares::manual_claim::claim_rewards::<T>(candidate.clone(), delegator.clone())?;
+				pools::manual_claim::claim_rewards::<T>(candidate.clone(), delegator.clone())?;
 			if !Zero::is_zero(&rewards) {
 				T::Currency::transfer(
 					&T::StakingAccount::get(),
@@ -551,15 +564,15 @@ pub mod pallet {
 			}
 
 			// Shares convertion.
-			let mc_stake = shares::manual_claim::sub_shares::<T>(
+			let mc_stake = pools::manual_claim::sub_shares::<T>(
 				candidate.clone(),
 				delegator.clone(),
 				mc_shares,
 			)?;
 
 			let ac_shares =
-				shares::auto_compounding::stake_to_shares_or_init::<T>(&candidate, &mc_stake)?;
-			let ac_stake = shares::auto_compounding::add_shares::<T>(
+				pools::auto_compounding::stake_to_shares_or_init::<T>(&candidate, &mc_stake)?;
+			let ac_stake = pools::auto_compounding::add_shares::<T>(
 				candidate.clone(),
 				delegator.clone(),
 				ac_shares,
@@ -569,8 +582,11 @@ pub mod pallet {
 			let diff_stake = mc_stake
 				.checked_sub(&ac_stake)
 				.ok_or(Error::<T>::MathUnderflow)?;
-			shares::candidates::sub_stake::<T>(candidate.clone(), diff_stake)?;
-			shares::leaving::register_leaving::<T>(candidate, delegator, diff_stake)?;
+			// Leaving still count as staked.
+			// pools::candidates::sub_stake::<T>(candidate.clone(), diff_stake)?;
+			pools::leaving::register_leaving::<T>(candidate, delegator, diff_stake)?;
+
+			pools::check_candidate_consistency(&candidate)?;
 
 			Ok(().into())
 		}
@@ -590,7 +606,7 @@ pub mod pallet {
 			let ac_shares = match quantity {
 				SharesOrStake::Shares(shares) => shares,
 				SharesOrStake::Stake(stake) => {
-					shares::auto_compounding::stake_to_shares::<T>(&candidate, &stake)?
+					pools::auto_compounding::stake_to_shares::<T>(&candidate, &stake)?
 				}
 			};
 
@@ -599,7 +615,7 @@ pub mod pallet {
 			// It is important to automatically claim rewards before updating
 			// the amount of shares since pending rewards are stored per share.
 			let rewards =
-				shares::manual_claim::claim_rewards::<T>(candidate.clone(), delegator.clone())?;
+				pools::manual_claim::claim_rewards::<T>(candidate.clone(), delegator.clone())?;
 			if !Zero::is_zero(&rewards) {
 				T::Currency::transfer(
 					&T::StakingAccount::get(),
@@ -610,15 +626,15 @@ pub mod pallet {
 			}
 
 			// Shares convertion.
-			let ac_stake = shares::manual_claim::sub_shares::<T>(
+			let ac_stake = pools::manual_claim::sub_shares::<T>(
 				candidate.clone(),
 				delegator.clone(),
 				ac_shares,
 			)?;
 
 			let mc_shares =
-				shares::auto_compounding::stake_to_shares_or_init::<T>(&candidate, &ac_stake)?;
-			let mc_stake = shares::auto_compounding::add_shares::<T>(
+				pools::auto_compounding::stake_to_shares_or_init::<T>(&candidate, &ac_stake)?;
+			let mc_stake = pools::auto_compounding::add_shares::<T>(
 				candidate.clone(),
 				delegator.clone(),
 				mc_shares,
@@ -628,8 +644,11 @@ pub mod pallet {
 			let diff_stake = ac_stake
 				.checked_sub(&mc_stake)
 				.ok_or(Error::<T>::MathUnderflow)?;
-			shares::candidates::sub_stake::<T>(candidate.clone(), diff_stake)?;
-			shares::leaving::register_leaving::<T>(candidate, delegator, diff_stake)?;
+			// Leaving still count as staked.
+			// pools::candidates::sub_stake::<T>(candidate.clone(), diff_stake)?;
+			pools::leaving::register_leaving::<T>(candidate, delegator, diff_stake)?;
+
+			pools::check_candidate_consistency(&candidate)?;
 
 			Ok(().into())
 		}
@@ -643,7 +662,7 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let delegator = ensure_signed(origin)?;
 			let rewards =
-				shares::manual_claim::claim_rewards::<T>(candidate.clone(), delegator.clone())?;
+				pools::manual_claim::claim_rewards::<T>(candidate.clone(), delegator.clone())?;
 
 			if !Zero::is_zero(&rewards) {
 				T::Currency::transfer(
@@ -673,33 +692,31 @@ pub mod pallet {
 		}
 
 		/// Execute leaving requests if the Leaving delay have elapsed.
+		/// Anyone can execute anyones
 		#[pallet::weight(0)]
 		#[transactional]
 		pub fn execute_leaving(
-			origin: OriginFor<T>,
+			_origin: OriginFor<T>,
 			requests: Vec<LeavingQuery<T::AccountId, T::BlockNumber>>,
 		) -> DispatchResultWithPostInfo {
-			let delegator = ensure_signed(origin)?;
-			let mut stake_sum: BalanceOf<T> = Zero::zero();
-
 			for request in requests {
-				let released = shares::leaving::execute_leaving::<T>(
-					request.candidate,
-					delegator.clone(),
+				let released = pools::leaving::execute_leaving::<T>(
+					request.candidate.clone(),
+					request.delegator.clone(),
 					request.at_block,
 				)?;
 
-				stake_sum = stake_sum
-					.checked_add(&released)
-					.ok_or(Error::<T>::MathOverflow)?;
-			}
+				pools::candidates::sub_stake::<T>(request.candidate, released)?;
 
-			T::Currency::transfer(
-				&T::StakingAccount::get(),
-				&delegator,
-				stake_sum,
-				ExistenceRequirement::KeepAlive,
-			)?;
+				T::Currency::transfer(
+					&T::StakingAccount::get(),
+					&request.delegator,
+					released,
+					ExistenceRequirement::KeepAlive,
+				)?;
+
+				pools::check_candidate_consistency(&candidate)?;
+			}
 
 			Ok(().into())
 		}

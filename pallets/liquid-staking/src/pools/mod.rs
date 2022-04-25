@@ -14,55 +14,20 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use super::*;
+use {
+	super::*,
+	frame_support::pallet_prelude::*,
+	frame_support::{ensure, traits::Get, StorageDoubleMap, StorageMap},
+	sp_runtime::traits::{CheckedAdd, CheckedDiv, CheckedMul, CheckedSub, Zero},
+};
 
-pub fn add<T, Supply, Shares>(
-	candidate: &T::AccountId,
-	delegator: &T::AccountId,
-	shares: BalanceOf<T>,
-) -> Result<(), Error<T>>
-where
-	T: Config,
-	Supply: StorageMap<T::AccountId, BalanceOf<T>, Query = BalanceOf<T>>,
-	Shares: StorageDoubleMap<T::AccountId, T::AccountId, BalanceOf<T>, Query = BalanceOf<T>>,
-{
-	let new_shares_supply = Supply::get(&candidate)
-		.checked_add(&shares)
-		.ok_or(Error::MathOverflow)?;
+pub mod auto_compounding;
+pub mod candidates;
+pub mod leaving;
 
-	let new_shares = Shares::get(&candidate, &delegator)
-		.checked_add(&shares)
-		.ok_or(Error::MathOverflow)?;
-
-	Supply::insert(&candidate, new_shares_supply);
-	Shares::insert(&candidate, &delegator, new_shares);
-
-	Ok(())
-}
-
-pub fn sub<T, Supply, Shares>(
-	candidate: &T::AccountId,
-	delegator: &T::AccountId,
-	shares: BalanceOf<T>,
-) -> Result<(), Error<T>>
-where
-	T: Config,
-	Supply: StorageMap<T::AccountId, BalanceOf<T>, Query = BalanceOf<T>>,
-	Shares: StorageDoubleMap<T::AccountId, T::AccountId, BalanceOf<T>, Query = BalanceOf<T>>,
-{
-	let new_shares_supply = Supply::get(&candidate)
-		.checked_sub(&shares)
-		.ok_or(Error::MathUnderflow)?;
-
-	let new_shares = Shares::get(&candidate, &delegator)
-		.checked_sub(&shares)
-		.ok_or(Error::MathUnderflow)?;
-
-	Supply::insert(&candidate, new_shares_supply);
-	Shares::insert(&candidate, &delegator, new_shares);
-
-	Ok(())
-}
+// It is important to automatically claim rewards before updating
+// the amount of shares since pending rewards are stored per share.
+pub mod manual_claim;
 
 pub fn add_staked<T, Supply, Shares, Staked>(
 	candidate: &T::AccountId,
@@ -122,6 +87,26 @@ where
 	Supply::insert(&candidate, new_shares_supply);
 	Shares::insert(&candidate, &delegator, new_shares);
 	Staked::insert(&candidate, new_total_stake);
+
+	Ok(())
+}
+
+pub fn check_candidate_consistency(
+	candidate: &T::AccountId,
+) -> Result<(), Error<T>> {
+	let total0 = CandidatesStake::<T>::get(&candidate);
+
+	let auto = AutoCompoundingSharesTotalStaked::<T>::get(&candidate);
+	let manual = ManualCompoundingSharesTotalStaked::<T>::get(&candidate);
+	let leaving = LeavingSharesTotalStaked::<T>::get(&candidate);
+
+	let total1 = auto
+		.checked_add(manual)
+		.ok_or(Error::InconsistentState)?
+		.checked_add(leaving)
+		.ok_or(Error::InconsistentState)?;
+
+	ensure!(total0 == total1, Error::InconsistentState);
 
 	Ok(())
 }

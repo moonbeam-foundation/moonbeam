@@ -20,15 +20,10 @@ pub fn shares_to_stake<T: Config>(
 	candidate: &T::AccountId,
 	shares: &BalanceOf<T>,
 ) -> Result<BalanceOf<T>, Error<T>> {
-	let candidate_stake = CandidatesStake::<T>::get(candidate);
-	let auto_compounded_stake = candidate_stake
-		.checked_sub(&ManualClaimSharesTotalStaked::<T>::get(candidate))
-		.ok_or(Error::MathUnderflow)?;
-
 	shares
-		.checked_mul(&auto_compounded_stake)
+		.checked_mul(&ManualClaimSharesTotalStaked::<T>::get(candidate))
 		.ok_or(Error::MathOverflow)?
-		.checked_div(&AutoCompoundingSharesSupply::<T>::get(candidate))
+		.checked_div(&ManualClaimSharesSupply::<T>::get(candidate))
 		.ok_or(Error::NoOneIsStaking)
 }
 
@@ -36,9 +31,9 @@ pub fn shares_to_stake_or_init<T: Config>(
 	candidate: &T::AccountId,
 	shares: &BalanceOf<T>,
 ) -> Result<BalanceOf<T>, Error<T>> {
-	if Zero::is_zero(&AutoCompoundingSharesSupply::<T>::get(&candidate)) {
+	if Zero::is_zero(&ManualClaimSharesSupply::<T>::get(&candidate)) {
 		shares
-			.checked_mul(&T::InitialAutoCompoundingShareValue::get())
+			.checked_mul(&T::InitialManualClaimShareValue::get())
 			.ok_or(Error::MathOverflow)
 	} else {
 		shares_to_stake(candidate, shares)
@@ -49,15 +44,10 @@ pub fn stake_to_shares<T: Config>(
 	candidate: &T::AccountId,
 	stake: &BalanceOf<T>,
 ) -> Result<BalanceOf<T>, Error<T>> {
-	let candidate_stake = CandidatesStake::<T>::get(candidate);
-	let auto_compounded_stake = candidate_stake
-		.checked_sub(&ManualClaimSharesTotalStaked::<T>::get(candidate))
-		.ok_or(Error::MathUnderflow)?;
-
 	stake
-		.checked_mul(&AutoCompoundingSharesSupply::<T>::get(candidate))
+		.checked_mul(&ManualClaimSharesSupply::<T>::get(candidate))
 		.ok_or(Error::MathOverflow)?
-		.checked_div(&auto_compounded_stake)
+		.checked_div(&ManualClaimSharesTotalStaked::<T>::get(candidate))
 		.ok_or(Error::NoOneIsStaking)
 }
 
@@ -65,9 +55,9 @@ pub fn stake_to_shares_or_init<T: Config>(
 	candidate: &T::AccountId,
 	stake: &BalanceOf<T>,
 ) -> Result<BalanceOf<T>, Error<T>> {
-	if Zero::is_zero(&AutoCompoundingSharesSupply::<T>::get(&candidate)) {
+	if Zero::is_zero(&ManualClaimSharesSupply::<T>::get(&candidate)) {
 		stake
-			.checked_div(&T::InitialAutoCompoundingShareValue::get())
+			.checked_div(&T::InitialManualClaimShareValue::get())
 			.ok_or(Error::<T>::InvalidPalletSetting)
 	} else {
 		stake_to_shares(candidate, stake)
@@ -83,11 +73,14 @@ pub fn add_shares<T: Config>(
 
 	let stake = shares_to_stake_or_init(&candidate, &shares)?;
 
-	common::add::<T, AutoCompoundingSharesSupply<T>, AutoCompoundingShares<T>>(
-		&candidate, &delegator, shares,
-	)?;
+	super::add_staked::<
+		T,
+		ManualClaimSharesSupply<T>,
+		ManualClaimShares<T>,
+		ManualClaimSharesTotalStaked<T>,
+	>(&candidate, &delegator, shares, stake)?;
 
-	Pallet::<T>::deposit_event(Event::<T>::StakedAutoCompounding {
+	Pallet::<T>::deposit_event(Event::<T>::StakedManualClaim {
 		candidate,
 		delegator,
 		shares,
@@ -106,11 +99,14 @@ pub fn sub_shares<T: Config>(
 
 	let stake = shares_to_stake(&candidate, &shares)?;
 
-	common::sub::<T, AutoCompoundingSharesSupply<T>, AutoCompoundingShares<T>>(
-		&candidate, &delegator, shares,
-	)?;
+	super::sub_staked::<
+		T,
+		ManualClaimSharesSupply<T>,
+		ManualClaimShares<T>,
+		ManualClaimSharesTotalStaked<T>,
+	>(&candidate, &delegator, shares, stake)?;
 
-	Pallet::<T>::deposit_event(Event::<T>::UnstakedAutoCompounding {
+	Pallet::<T>::deposit_event(Event::<T>::UnstakedManualClaim {
 		candidate,
 		delegator,
 		shares,
@@ -121,7 +117,7 @@ pub fn sub_shares<T: Config>(
 }
 
 pub fn shares<T: Config>(candidate: &T::AccountId, delegator: &T::AccountId) -> BalanceOf<T> {
-	AutoCompoundingShares::<T>::get(candidate, delegator)
+	ManualClaimShares::<T>::get(candidate, delegator)
 }
 
 pub fn stake<T: Config>(
@@ -135,4 +131,58 @@ pub fn stake<T: Config>(
 	}
 
 	shares_to_stake(candidate, &shares)
+}
+
+pub fn pending_rewards<T: Config>(
+	candidate: &T::AccountId,
+	delegator: &T::AccountId,
+) -> Result<BalanceOf<T>, Error<T>> {
+	let shares = ManualClaimShares::<T>::get(candidate, delegator);
+
+	if Zero::is_zero(&shares) {
+		return Ok(0_u32.into());
+	}
+
+	// TODO: Should be safe to wrap around.
+	let checkpoint = ManualClaimSharesRewardCheckpoint::<T>::get(candidate, delegator);
+	let diff = ManualClaimSharesRewardCounter::<T>::get(candidate)
+		.checked_sub(&checkpoint)
+		.ok_or(Error::MathUnderflow)?;
+
+	diff.checked_mul(&shares).ok_or(Error::MathOverflow)
+}
+
+pub fn claim_rewards<T: Config>(
+	candidate: T::AccountId,
+	delegator: T::AccountId,
+) -> Result<BalanceOf<T>, Error<T>> {
+	let shares = ManualClaimShares::<T>::get(&candidate, &delegator);
+	let rewards_counter = ManualClaimSharesRewardCounter::<T>::get(&candidate);
+
+	if Zero::is_zero(&shares) {
+		ManualClaimSharesRewardCheckpoint::<T>::insert(&candidate, &delegator, rewards_counter);
+		return Ok(0_u32.into());
+	}
+
+	// TODO: Should be safe to wrap around.
+	let checkpoint = ManualClaimSharesRewardCheckpoint::<T>::get(&candidate, &delegator);
+	let diff = ManualClaimSharesRewardCounter::<T>::get(&candidate)
+		.checked_sub(&checkpoint)
+		.ok_or(Error::MathUnderflow)?;
+
+	if Zero::is_zero(&diff) {
+		return Ok(0_u32.into());
+	}
+
+	let rewards = diff.checked_mul(&shares).ok_or(Error::MathOverflow)?;
+
+	ManualClaimSharesRewardCheckpoint::<T>::insert(&candidate, &delegator, rewards_counter);
+
+	Pallet::<T>::deposit_event(Event::<T>::ClaimedManualRewards {
+		candidate,
+		delegator,
+		rewards,
+	});
+
+	Ok(rewards)
 }

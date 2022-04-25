@@ -59,7 +59,7 @@ fn add_stake<T: Config>(
 		stake_to_shares(&candidate, &stake)?
 	};
 
-	common::add_staked::<T, LeavingSharesSupply<T>, LeavingShares<T>, LeavingSharesTotalStaked<T>>(
+	super::add_staked::<T, LeavingSharesSupply<T>, LeavingShares<T>, LeavingSharesTotalStaked<T>>(
 		&candidate, &delegator, shares, stake,
 	)?;
 
@@ -78,7 +78,7 @@ fn sub_shares<T: Config>(
 
 	let stake = shares_to_stake(&candidate, &shares)?;
 
-	common::sub_staked::<T, LeavingSharesSupply<T>, LeavingShares<T>, LeavingSharesTotalStaked<T>>(
+	super::sub_staked::<T, LeavingSharesSupply<T>, LeavingShares<T>, LeavingSharesTotalStaked<T>>(
 		&candidate, &delegator, shares, stake,
 	)?;
 
