@@ -1433,7 +1433,7 @@ pub mod deprecated {
 		pub action: DelegationChange,
 	}
 
-	#[deprecated(note = "use DelegatorScheduledRequests storage item")]
+	#[deprecated(note = "use DelegationScheduledRequests storage item")]
 	#[derive(Clone, Encode, PartialEq, Decode, RuntimeDebug, TypeInfo)]
 	/// Pending requests to mutate delegations for each delegator
 	pub struct PendingDelegationRequests<AccountId, Balance> {

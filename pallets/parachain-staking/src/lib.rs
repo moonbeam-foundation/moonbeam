@@ -492,23 +492,14 @@ pub mod pallet {
 
 	/// Stores outstanding delegation requests per collator.
 	#[pallet::storage]
-	#[pallet::getter(fn delegator_scheduled_requests)]
-	pub(crate) type DelegatorScheduledRequests<T: Config> = StorageMap<
+	#[pallet::getter(fn delegation_scheduled_requests)]
+	pub(crate) type DelegationScheduledRequests<T: Config> = StorageMap<
 		_,
 		Blake2_128Concat,
 		T::AccountId,
 		Vec<ScheduledRequest<T::AccountId, BalanceOf<T>>>,
 		ValueQuery,
 	>;
-
-	/// The number of scheduled [DelegationAction::Revoke] requests per delegator.
-	/// This is used to evaluate if a delegator should be scheduled for exit
-	/// once it has scheduled revokes on all existing collators.
-	/// TODO! Seems we are not using it anywhere, only maintaing (can be removed?).
-	#[pallet::storage]
-	#[pallet::getter(fn delegator_scheduled_revoke_request_count)]
-	pub(crate) type DelegatorScheduledRevokeRequestCount<T: Config> =
-		StorageMap<_, Blake2_128Concat, T::AccountId, u64, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn top_delegations)]
@@ -1640,7 +1631,7 @@ pub mod pallet {
 		fn get_rewardable_delegators(
 			collator: &T::AccountId,
 		) -> Vec<Bond<T::AccountId, BalanceOf<T>>> {
-			let requests = <DelegatorScheduledRequests<T>>::get(collator)
+			let requests = <DelegationScheduledRequests<T>>::get(collator)
 				.into_iter()
 				.map(|x| (x.delegator, x.action))
 				.collect::<BTreeMap<_, _>>();

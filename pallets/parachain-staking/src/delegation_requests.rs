@@ -24,7 +24,7 @@ use scale_info::TypeInfo;
 use sp_runtime::traits::Saturating;
 
 use crate::pallet::{
-	BalanceOf, CandidateInfo, Config, DelegatorScheduledRequests, DelegatorState, Error, Event,
+	BalanceOf, CandidateInfo, Config, DelegationScheduledRequests, DelegatorState, Error, Event,
 	Pallet, Round, RoundIndex, Total,
 };
 use crate::Delegator;
@@ -78,7 +78,7 @@ impl<T: Config> Pallet<T> {
 		delegator: T::AccountId,
 	) -> DispatchResultWithPostInfo {
 		let mut state = <DelegatorState<T>>::get(&delegator).ok_or(<Error<T>>::DelegatorDNE)?;
-		let mut scheduled_requests = <DelegatorScheduledRequests<T>>::get(&collator);
+		let mut scheduled_requests = <DelegationScheduledRequests<T>>::get(&collator);
 
 		ensure!(
 			!scheduled_requests.iter().any(|x| x.delegator == delegator),
@@ -96,7 +96,7 @@ impl<T: Config> Pallet<T> {
 			when_executable: when,
 		});
 		state.less_total = state.less_total.saturating_add(bonded_amount);
-		<DelegatorScheduledRequests<T>>::insert(collator.clone(), scheduled_requests);
+		<DelegationScheduledRequests<T>>::insert(collator.clone(), scheduled_requests);
 		<DelegatorState<T>>::insert(delegator.clone(), state);
 
 		Self::deposit_event(Event::DelegationRevocationScheduled {
@@ -115,7 +115,7 @@ impl<T: Config> Pallet<T> {
 		decrease_amount: BalanceOf<T>,
 	) -> DispatchResultWithPostInfo {
 		let mut state = <DelegatorState<T>>::get(&delegator).ok_or(<Error<T>>::DelegatorDNE)?;
-		let mut scheduled_requests = <DelegatorScheduledRequests<T>>::get(&collator);
+		let mut scheduled_requests = <DelegationScheduledRequests<T>>::get(&collator);
 
 		ensure!(
 			!scheduled_requests.iter().any(|x| x.delegator == delegator),
@@ -152,7 +152,7 @@ impl<T: Config> Pallet<T> {
 			when_executable: when,
 		});
 		state.less_total = state.less_total.saturating_add(decrease_amount);
-		<DelegatorScheduledRequests<T>>::insert(collator.clone(), scheduled_requests);
+		<DelegationScheduledRequests<T>>::insert(collator.clone(), scheduled_requests);
 		<DelegatorState<T>>::insert(delegator.clone(), state);
 
 		Self::deposit_event(Event::DelegationDecreaseScheduled {
@@ -170,7 +170,7 @@ impl<T: Config> Pallet<T> {
 		delegator: T::AccountId,
 	) -> DispatchResultWithPostInfo {
 		let mut state = <DelegatorState<T>>::get(&delegator).ok_or(<Error<T>>::DelegatorDNE)?;
-		let mut scheduled_requests = <DelegatorScheduledRequests<T>>::get(&collator);
+		let mut scheduled_requests = <DelegationScheduledRequests<T>>::get(&collator);
 		let request_idx = scheduled_requests
 			.iter()
 			.position(|x| x.delegator == delegator)
@@ -179,7 +179,7 @@ impl<T: Config> Pallet<T> {
 		let request = scheduled_requests.remove(request_idx);
 		let amount = request.action.amount();
 		state.less_total = state.less_total.saturating_sub(amount);
-		<DelegatorScheduledRequests<T>>::insert(collator.clone(), scheduled_requests);
+		<DelegationScheduledRequests<T>>::insert(collator.clone(), scheduled_requests);
 		<DelegatorState<T>>::insert(delegator.clone(), state);
 
 		Self::deposit_event(Event::CancelledDelegationRequest {
@@ -196,7 +196,7 @@ impl<T: Config> Pallet<T> {
 		delegator: T::AccountId,
 	) -> DispatchResultWithPostInfo {
 		let mut state = <DelegatorState<T>>::get(&delegator).ok_or(<Error<T>>::DelegatorDNE)?;
-		let mut scheduled_requests = <DelegatorScheduledRequests<T>>::get(&collator);
+		let mut scheduled_requests = <DelegationScheduledRequests<T>>::get(&collator);
 		let request_idx = scheduled_requests
 			.iter()
 			.position(|x| x.delegator == delegator)
@@ -243,7 +243,7 @@ impl<T: Config> Pallet<T> {
 						unstaked_amount: amount,
 					});
 				} else {
-					<DelegatorScheduledRequests<T>>::insert(collator, scheduled_requests);
+					<DelegationScheduledRequests<T>>::insert(collator, scheduled_requests);
 					<DelegatorState<T>>::insert(&delegator, state);
 				}
 				Ok(().into())
@@ -283,7 +283,7 @@ impl<T: Config> Pallet<T> {
 							let new_total_staked = <Total<T>>::get().saturating_sub(amount);
 							<Total<T>>::put(new_total_staked);
 
-							<DelegatorScheduledRequests<T>>::insert(
+							<DelegationScheduledRequests<T>>::insert(
 								collator.clone(),
 								scheduled_requests,
 							);
@@ -313,7 +313,7 @@ impl<T: Config> Pallet<T> {
 		delegator: &T::AccountId,
 		state: &mut Delegator<T::AccountId, BalanceOf<T>>,
 	) -> DispatchResultWithPostInfo {
-		let mut scheduled_requests = <DelegatorScheduledRequests<T>>::get(collator);
+		let mut scheduled_requests = <DelegationScheduledRequests<T>>::get(collator);
 
 		let request_idx = scheduled_requests
 			.iter()
@@ -323,7 +323,7 @@ impl<T: Config> Pallet<T> {
 		let request = scheduled_requests.remove(request_idx);
 		let amount = request.action.amount();
 		state.less_total = state.less_total.saturating_sub(amount);
-		<DelegatorScheduledRequests<T>>::insert(collator, scheduled_requests);
+		<DelegationScheduledRequests<T>>::insert(collator, scheduled_requests);
 
 		Ok(().into())
 	}

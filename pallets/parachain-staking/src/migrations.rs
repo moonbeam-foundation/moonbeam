@@ -19,7 +19,7 @@
 #![allow(unused)]
 
 use crate::delegation_requests::{DelegationAction, ScheduledRequest};
-use crate::pallet::{DelegatorScheduledRequests, DelegatorState, Total};
+use crate::pallet::{DelegationScheduledRequests, DelegatorState, Total};
 #[allow(deprecated)]
 use crate::types::deprecated::{DelegationChange, Delegator as OldDelegator};
 use crate::types::Delegator;
@@ -46,11 +46,11 @@ use sp_runtime::traits::{Saturating, Zero};
 use sp_std::{convert::TryInto, vec::Vec};
 
 /// Migration to move delegator requests towards a delegation, from [DelegatorState] into
-/// [DelegatorScheduledRequests] storage item.
+/// [DelegationScheduledRequests] storage item.
 /// Additionally [DelegatorState] is migrated from [OldDelegator] to [Delegator].
-pub struct SplitDelegatorStateIntoDelegatorScheduledRequests<T>(PhantomData<T>);
+pub struct SplitDelegatorStateIntoDelegationScheduledRequests<T>(PhantomData<T>);
 
-impl<T: Config> SplitDelegatorStateIntoDelegatorScheduledRequests<T> {
+impl<T: Config> SplitDelegatorStateIntoDelegationScheduledRequests<T> {
 	const PALLET_PREFIX: &'static [u8] = b"ParachainStaking";
 	const DELEGATOR_STATE_PREFIX: &'static [u8] = b"DelegatorState";
 
@@ -96,13 +96,13 @@ impl<T: Config> SplitDelegatorStateIntoDelegatorScheduledRequests<T> {
 }
 
 #[allow(deprecated)]
-impl<T: Config> OnRuntimeUpgrade for SplitDelegatorStateIntoDelegatorScheduledRequests<T> {
+impl<T: Config> OnRuntimeUpgrade for SplitDelegatorStateIntoDelegationScheduledRequests<T> {
 	fn on_runtime_upgrade() -> Weight {
 		use sp_std::collections::btree_map::BTreeMap;
 
 		log::info!(
-			target: "SplitDelegatorStateIntoDelegatorScheduledRequests",
-			"running migration for DelegatorState to new version and DelegatorScheduledRequests \
+			target: "SplitDelegatorStateIntoDelegationScheduledRequests",
+			"running migration for DelegatorState to new version and DelegationScheduledRequests \
 			storage item"
 		);
 
@@ -144,7 +144,7 @@ impl<T: Config> OnRuntimeUpgrade for SplitDelegatorStateIntoDelegatorScheduledRe
 
 		writes = writes.saturating_add(scheduled_requests.len() as Weight);
 		for (collator, requests) in scheduled_requests {
-			<DelegatorScheduledRequests<T>>::insert(collator, requests);
+			<DelegationScheduledRequests<T>>::insert(collator, requests);
 		}
 
 		T::DbWeight::get().reads_writes(reads, writes)
@@ -215,7 +215,7 @@ impl<T: Config> OnRuntimeUpgrade for SplitDelegatorStateIntoDelegatorScheduledRe
 
 		// Scheduled requests are correctly migrated
 		let mut actual_requests = 0u64;
-		for (collator, scheduled_requests) in <DelegatorScheduledRequests<T>>::iter() {
+		for (collator, scheduled_requests) in <DelegationScheduledRequests<T>>::iter() {
 			for request in scheduled_requests {
 				let expected_delegator_request: String = Self::get_temp_storage(&*format!(
 					"expected_collator-{:?}_delegator-{:?}_request",

@@ -624,7 +624,7 @@ benchmarks! {
 	}: _(RawOrigin::Signed(caller.clone()), collator.clone())
 	verify {
 		assert_eq!(
-			Pallet::<T>::delegator_scheduled_requests(&collator),
+			Pallet::<T>::delegation_scheduled_requests(&collator),
 			vec![ScheduledRequest {
 				delegator: caller,
 				when_executable: 3,
@@ -678,7 +678,7 @@ benchmarks! {
 		let state = Pallet::<T>::delegator_state(&caller)
 			.expect("just request bonded less so exists");
 		assert_eq!(
-			Pallet::<T>::delegator_scheduled_requests(&collator),
+			Pallet::<T>::delegation_scheduled_requests(&collator),
 			vec![ScheduledRequest {
 				delegator: caller,
 				when_executable: 3,
@@ -783,7 +783,7 @@ benchmarks! {
 		)?;
 	} verify {
 		assert!(
-			Pallet::<T>::delegator_scheduled_requests(&collator)
+			Pallet::<T>::delegation_scheduled_requests(&collator)
 			.iter()
 			.find(|x| &x.delegator == &caller)
 			.is_none()
@@ -820,7 +820,7 @@ benchmarks! {
 		)?;
 	} verify {
 		assert!(
-			Pallet::<T>::delegator_scheduled_requests(&collator)
+			Pallet::<T>::delegation_scheduled_requests(&collator)
 				.iter()
 				.find(|x| &x.delegator == &caller)
 				.is_none()
