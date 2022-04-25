@@ -205,11 +205,17 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
-		/// Paid the orbiter account the balance as liquid rewards.
-		OrbiterRemovedFromCollatorPool {
+		/// An orbiter join a collator pool
+		OrbiterJoinCollatorPool {
 			collator: T::AccountId,
 			orbiter: T::AccountId,
 		},
+		/// An orbiter leave a collator pool
+		OrbiterLeaveCollatorPool {
+			collator: T::AccountId,
+			orbiter: T::AccountId,
+		},
+		/// Paid the orbiter account the balance as liquid rewards.
 		OrbiterRewarded {
 			account: T::AccountId,
 			rewards: BalanceOf<T>,
@@ -254,8 +260,13 @@ pub mod pallet {
 				Error::<T>::OrbiterDepositNotFound
 			);
 
-			collator_pool.add_orbiter(orbiter);
-			CollatorsPool::<T>::insert(collator, collator_pool);
+			collator_pool.add_orbiter(orbiter.clone());
+			CollatorsPool::<T>::insert(collator.clone(), collator_pool);
+
+			Self::deposit_event(Event::OrbiterJoinCollatorPool {
+				collator: collator,
+				orbiter,
+			});
 
 			Ok(())
 		}
@@ -277,7 +288,7 @@ pub mod pallet {
 					return Err(Error::<T>::OrbiterNotFound.into())
 				}
 				RemoveOrbiterResult::OrbiterRemoved => {
-					Self::deposit_event(Event::OrbiterRemovedFromCollatorPool {
+					Self::deposit_event(Event::OrbiterLeaveCollatorPool {
 						collator: collator.clone(),
 						orbiter,
 					});
@@ -306,7 +317,7 @@ pub mod pallet {
 					return Err(Error::<T>::OrbiterNotFound.into())
 				}
 				RemoveOrbiterResult::OrbiterRemoved => {
-					Self::deposit_event(Event::OrbiterRemovedFromCollatorPool {
+					Self::deposit_event(Event::OrbiterLeaveCollatorPool {
 						collator: collator.clone(),
 						orbiter,
 					});
@@ -419,7 +430,7 @@ pub mod pallet {
 					}) = pool.get_current_orbiter()
 					{
 						if *removed {
-							Self::deposit_event(Event::OrbiterRemovedFromCollatorPool {
+							Self::deposit_event(Event::OrbiterLeaveCollatorPool {
 								collator: collator.clone(),
 								orbiter: current_orbiter.clone(),
 							});
