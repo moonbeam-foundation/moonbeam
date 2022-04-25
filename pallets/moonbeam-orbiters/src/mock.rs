@@ -186,6 +186,31 @@ impl ExtBuilder {
 	}
 }
 
-pub(crate) fn last_event() -> Event {
-	System::events().pop().expect("Event expected").event
+/// Rolls to the desired block. Returns the number of blocks played.
+pub(crate) fn roll_to(n: u64) -> u64 {
+	let mut num_blocks = 0;
+	let mut block = System::block_number();
+	while block < n {
+		block = roll_one_block();
+		num_blocks += 1;
+	}
+	num_blocks
+}
+
+// Rolls forward one block. Returns the new block number.
+fn roll_one_block() -> u64 {
+	MoonbeamOrbiters::on_finalize(System::block_number());
+	Balances::on_finalize(System::block_number());
+	System::on_finalize(System::block_number());
+	System::set_block_number(System::block_number() + 1);
+	System::reset_events();
+	System::on_initialize(System::block_number());
+	Balances::on_initialize(System::block_number());
+	MoonbeamOrbiters::on_initialize(System::block_number());
+	// Trigger a new round each two blocks
+	let block_number = System::block_number();
+	if block_number % 2 == 0 {
+		MoonbeamOrbiters::on_new_round(block_number as u32 / 2);
+	}
+	System::block_number()
 }

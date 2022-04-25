@@ -16,9 +16,60 @@
 
 //! Unit testing
 
-use crate::mock::{last_event, ExtBuilder, MoonbeamOrbiters, Origin, Test};
+use crate::mock::{roll_to, ExtBuilder, MoonbeamOrbiters, Origin, System, Test};
 use crate::{Error, Event};
 use frame_support::{assert_noop, assert_ok};
+
+#[test]
+fn test_orbiter_rotation() {
+	ExtBuilder::default()
+		.with_balances(vec![(2, 20_000), (3, 20_000)])
+		.with_min_orbiter_deposit(10_000)
+		.build()
+		.execute_with(|| {
+			// Add a collator to the orbiter program
+			assert_ok!(MoonbeamOrbiters::add_collator(Origin::root(), 1),);
+			// Register two orbiters
+			assert_ok!(MoonbeamOrbiters::orbiter_register(Origin::signed(2)),);
+			assert_ok!(MoonbeamOrbiters::collator_add_orbiter(Origin::signed(1), 2),);
+			assert_ok!(MoonbeamOrbiters::orbiter_register(Origin::signed(3)),);
+			assert_ok!(MoonbeamOrbiters::collator_add_orbiter(Origin::signed(1), 3),);
+
+			// Roll to second round
+			roll_to(4);
+			System::assert_last_event(
+				Event::<Test>::OrbiterRotation {
+					collator: 1,
+					old_orbiter: None,
+					new_orbiter: Some(2),
+				}
+				.into(),
+			);
+
+			// Roll to fourth round
+			roll_to(8);
+			System::assert_last_event(
+				Event::<Test>::OrbiterRotation {
+					collator: 1,
+					old_orbiter: Some(2),
+					new_orbiter: Some(3),
+				}
+				.into(),
+			);
+
+			/*// Roll to sixth round, we should come back to the first orbiter
+			roll_to(10);
+			System::assert_last_event(
+				Event::<Test>::OrbiterRotation {
+					collator: 1,
+					old_orbiter: Some(3),
+					new_orbiter: Some(2),
+				}
+				.into(),
+			);*/
+			// TODO
+		});
+}
 
 #[test]
 fn test_collator_add_orbiter() {
@@ -50,13 +101,12 @@ fn test_collator_add_orbiter() {
 
 			// Try to add an orbiter to a collator pool, should success
 			assert_ok!(MoonbeamOrbiters::collator_add_orbiter(Origin::signed(1), 2),);
-			assert_eq!(
-				last_event(),
+			System::assert_last_event(
 				Event::<Test>::OrbiterJoinCollatorPool {
 					collator: 1,
 					orbiter: 2,
 				}
-				.into()
+				.into(),
 			);
 
 			// Try to add the same orbiter again, should fail
@@ -67,19 +117,66 @@ fn test_collator_add_orbiter() {
 
 			// Try to add a second orbiter to the collator pool, should success
 			assert_ok!(MoonbeamOrbiters::collator_add_orbiter(Origin::signed(1), 3),);
-			assert_eq!(
-				last_event(),
+			System::assert_last_event(
 				Event::<Test>::OrbiterJoinCollatorPool {
 					collator: 1,
 					orbiter: 3,
 				}
-				.into()
+				.into(),
 			);
 
 			// Try to add a third orbiter to the collator pool, should fail
 			assert_noop!(
 				MoonbeamOrbiters::collator_add_orbiter(Origin::signed(1), 4),
 				Error::<Test>::CollatorPoolTooLarge
+			);
+		});
+}
+
+#[test]
+fn test_collator_remove_orbiter() {
+	ExtBuilder::default()
+		.with_balances(vec![(2, 20_000)])
+		.with_min_orbiter_deposit(10_000)
+		.build()
+		.execute_with(|| {
+			// Add a collator to the orbiter program
+			assert_ok!(MoonbeamOrbiters::add_collator(Origin::root(), 1),);
+			// Register an orbiter
+			assert_ok!(MoonbeamOrbiters::orbiter_register(Origin::signed(2)),);
+			assert_ok!(MoonbeamOrbiters::collator_add_orbiter(Origin::signed(1), 2),);
+
+			// Try to remove an orbiter to a collator pool
+			// Should fail because collator not exist
+			assert_noop!(
+				MoonbeamOrbiters::collator_remove_orbiter(Origin::signed(99), 2),
+				Error::<Test>::CollatorNotFound
+			);
+
+			// Try to remove an orbiter to a collator pool
+			// Should fail because orbiter not exist
+			assert_noop!(
+				MoonbeamOrbiters::collator_remove_orbiter(Origin::signed(1), 99),
+				Error::<Test>::OrbiterNotFound
+			);
+
+			// Try to remove an orbiter to a collator pool, should success
+			assert_ok!(MoonbeamOrbiters::collator_remove_orbiter(
+				Origin::signed(1),
+				2
+			),);
+			System::assert_last_event(
+				Event::<Test>::OrbiterLeaveCollatorPool {
+					collator: 1,
+					orbiter: 2,
+				}
+				.into(),
+			);
+
+			// Try to remove the same orbiter again, should fail
+			assert_noop!(
+				MoonbeamOrbiters::collator_remove_orbiter(Origin::signed(1), 2),
+				Error::<Test>::OrbiterNotFound
 			);
 		});
 }
@@ -105,14 +202,13 @@ fn test_orbiter_register_ok() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(MoonbeamOrbiters::orbiter_register(Origin::signed(1)),);
-			assert_eq!(
-				last_event(),
+			System::assert_last_event(
 				pallet_balances::Event::<Test>::Reserved {
 					who: 1,
-					amount: 10_000
+					amount: 10_000,
 				}
-				.into()
-			)
+				.into(),
+			);
 		});
 }
 
