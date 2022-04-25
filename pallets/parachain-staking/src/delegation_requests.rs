@@ -81,10 +81,7 @@ impl<T: Config> Pallet<T> {
 		let mut scheduled_requests = <DelegatorScheduledRequests<T>>::get(&collator);
 
 		ensure!(
-			scheduled_requests
-				.iter()
-				.find(|x| x.delegator == delegator)
-				.is_none(),
+			!scheduled_requests.iter().any(|x| x.delegator == delegator),
 			<Error<T>>::PendingDelegationRequestAlreadyExists,
 		);
 
@@ -121,10 +118,7 @@ impl<T: Config> Pallet<T> {
 		let mut scheduled_requests = <DelegatorScheduledRequests<T>>::get(&collator);
 
 		ensure!(
-			scheduled_requests
-				.iter()
-				.find(|x| x.delegator == delegator)
-				.is_none(),
+			!scheduled_requests.iter().any(|x| x.delegator == delegator),
 			<Error<T>>::PendingDelegationRequestAlreadyExists,
 		);
 

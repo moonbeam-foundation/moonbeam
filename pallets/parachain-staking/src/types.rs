@@ -1474,6 +1474,7 @@ pub mod deprecated {
 		}
 	}
 
+	#[deprecated(note = "use new crate::types::Delegator struct")]
 	#[derive(Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
 	/// Delegator state
 	pub struct Delegator<AccountId, Balance> {
@@ -1484,7 +1485,6 @@ pub mod deprecated {
 		/// Total balance locked for this delegator
 		pub total: Balance,
 		/// Requests to change delegations, relevant iff active
-		#[deprecated(note = "use ScheduledRequests storage item instead")]
 		pub requests: PendingDelegationRequests<AccountId, Balance>,
 		/// Status for this delegator
 		pub status: DelegatorStatus,

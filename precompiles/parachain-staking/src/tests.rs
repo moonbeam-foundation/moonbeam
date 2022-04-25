@@ -1612,8 +1612,7 @@ fn cancel_revoke_delegation_works() {
 			let expected: crate::mock::Event = StakingEvent::CancelledDelegationRequest {
 				delegator: TestAccount::Bob,
 				collator: TestAccount::Alice,
-				cancelled_request: parachain_staking::ScheduledRequest {
-					delegator: TestAccount::Bob,
+				cancelled_request: parachain_staking::CancelledScheduledRequest {
 					when_executable: 3,
 					action: parachain_staking::DelegationAction::Revoke(1_000),
 				},
@@ -1650,8 +1649,7 @@ fn cancel_delegator_bonded_less_works() {
 			let expected: crate::mock::Event = StakingEvent::CancelledDelegationRequest {
 				delegator: TestAccount::Bob,
 				collator: TestAccount::Alice,
-				cancelled_request: parachain_staking::ScheduledRequest {
-					delegator: TestAccount::Bob,
+				cancelled_request: parachain_staking::CancelledScheduledRequest {
 					when_executable: 3,
 					action: parachain_staking::DelegationAction::Decrease(500),
 				},

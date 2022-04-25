@@ -31,8 +31,7 @@ use crate::{
 	assert_last_event, assert_tail_eq, set::OrderedSet, AtStake, Bond, BottomDelegations,
 	CandidateInfo, CandidateMetadata, CandidatePool, CandidateState, CapacityStatus,
 	CollatorCandidate, CollatorStatus, Config, Delegations, Delegator, DelegatorAdded,
-	DelegatorScheduledRequests, DelegatorState, DelegatorStatus, Error, Event, Range,
-	TopDelegations, Total,
+	DelegatorState, DelegatorStatus, Error, Event, Range, TopDelegations, Total,
 };
 use frame_support::{assert_noop, assert_ok, traits::ReservableCurrency};
 use sp_runtime::{traits::Zero, DispatchError, ModuleError, Perbill, Percent};
@@ -2898,18 +2897,16 @@ fn execute_revoke_delegation_adds_revocation_to_delegator_state() {
 		.with_delegations(vec![(2, 1, 10), (2, 3, 10)])
 		.build()
 		.execute_with(|| {
-			assert!(ParachainStaking::delegator_scheduled_requests(&1)
+			assert!(!ParachainStaking::delegator_scheduled_requests(&1)
 				.iter()
-				.find(|x| x.delegator == 2)
-				.is_none());
+				.any(|x| x.delegator == 2));
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
 				Origin::signed(2),
 				1
 			));
 			assert!(ParachainStaking::delegator_scheduled_requests(&1)
 				.iter()
-				.find(|x| x.delegator == 2)
-				.is_some());
+				.any(|x| x.delegator == 2));
 		});
 }
 
@@ -2931,10 +2928,9 @@ fn execute_revoke_delegation_removes_revocation_from_delegator_state_upon_execut
 				2,
 				1
 			));
-			assert!(ParachainStaking::delegator_scheduled_requests(&1)
+			assert!(!ParachainStaking::delegator_scheduled_requests(&1)
 				.iter()
-				.find(|x| x.delegator == 2)
-				.is_none());
+				.any(|x| x.delegator == 2));
 		});
 }
 
@@ -3539,10 +3535,9 @@ fn cancel_revoke_delegation_updates_delegator_state() {
 				Origin::signed(2),
 				1
 			));
-			assert!(ParachainStaking::delegator_scheduled_requests(&1)
+			assert!(!ParachainStaking::delegator_scheduled_requests(&1)
 				.iter()
-				.find(|x| x.delegator == 2)
-				.is_none());
+				.any(|x| x.delegator == 2));
 			assert_eq!(
 				ParachainStaking::delegator_state(&2)
 					.map(|x| x.less_total)
@@ -3616,10 +3611,9 @@ fn cancel_delegator_bond_less_updates_delegator_state() {
 				Origin::signed(2),
 				1
 			));
-			assert!(ParachainStaking::delegator_scheduled_requests(&1)
+			assert!(!ParachainStaking::delegator_scheduled_requests(&1)
 				.iter()
-				.find(|x| x.delegator == 2)
-				.is_none());
+				.any(|x| x.delegator == 2));
 			assert_eq!(
 				ParachainStaking::delegator_state(&2)
 					.map(|x| x.less_total)
@@ -5521,10 +5515,9 @@ fn execute_leave_candidate_removes_delegations() {
 		.build()
 		.execute_with(|| {
 			// Verifies the revocation request is initially empty
-			assert!(ParachainStaking::delegator_scheduled_requests(&2)
+			assert!(!ParachainStaking::delegator_scheduled_requests(&2)
 				.iter()
-				.find(|x| x.delegator == 3)
-				.is_none());
+				.any(|x| x.delegator == 3));
 
 			assert_ok!(ParachainStaking::schedule_leave_candidates(
 				Origin::signed(2),
@@ -5537,8 +5530,7 @@ fn execute_leave_candidate_removes_delegations() {
 			// Verifies the revocation request is present
 			assert!(ParachainStaking::delegator_scheduled_requests(&2)
 				.iter()
-				.find(|x| x.delegator == 3)
-				.is_some());
+				.any(|x| x.delegator == 3));
 
 			roll_to(16);
 			assert_ok!(ParachainStaking::execute_leave_candidates(
@@ -5547,10 +5539,9 @@ fn execute_leave_candidate_removes_delegations() {
 				2
 			));
 			// Verifies the revocation request is again empty
-			assert!(ParachainStaking::delegator_scheduled_requests(&2)
+			assert!(!ParachainStaking::delegator_scheduled_requests(&2)
 				.iter()
-				.find(|x| x.delegator == 3)
-				.is_none());
+				.any(|x| x.delegator == 3));
 		});
 }
 
@@ -8191,10 +8182,9 @@ fn delegation_kicked_from_bottom_removes_pending_request() {
 				unstaked_amount: 19,
 			});
 			// ensure request DNE
-			assert!(ParachainStaking::delegator_scheduled_requests(&1)
+			assert!(!ParachainStaking::delegator_scheduled_requests(&1)
 				.iter()
-				.find(|x| x.delegator == 2)
-				.is_none());
+				.any(|x| x.delegator == 2));
 		});
 }
 
