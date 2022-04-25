@@ -24,13 +24,13 @@ use scale_info::TypeInfo;
 use sp_runtime::traits::Saturating;
 
 use crate::pallet::{
-	BalanceOf, CandidateInfo, Config, DelegatorScheduledRequestDecreaseAmount,
-	DelegatorScheduledRequests, DelegatorScheduledRevokeRequestCount, DelegatorState, Error, Event,
+	BalanceOf, CandidateInfo, Config, DelegatorScheduledRequests, DelegatorState, Error, Event,
 	Pallet, Round, RoundIndex, Total,
 };
+use crate::Delegator;
 
 /// An action that can be performed upon a delegation
-#[derive(Clone, Eq, PartialEq, Encode, Decode, RuntimeDebug, TypeInfo)]
+#[derive(Clone, Eq, PartialEq, Encode, Decode, RuntimeDebug, TypeInfo, PartialOrd, Ord)]
 pub enum DelegationAction<Balance> {
 	Revoke(Balance),
 	Decrease(Balance),
@@ -48,21 +48,27 @@ impl<Balance: Copy> DelegationAction<Balance> {
 
 /// Represents a scheduled request that define a [DelegationAction]. The request is executable
 /// iff the provided [RoundIndex] is achieved.
-#[derive(Clone, Eq, PartialEq, Encode, Decode, RuntimeDebug, TypeInfo)]
-pub struct ScheduledRequest<Balance> {
+#[derive(Clone, Eq, PartialEq, Encode, Decode, RuntimeDebug, TypeInfo, PartialOrd, Ord)]
+pub struct ScheduledRequest<AccountId, Balance> {
+	pub delegator: AccountId,
 	pub when_executable: RoundIndex,
 	pub action: DelegationAction<Balance>,
 }
 
 impl<T: Config> Pallet<T> {
 	/// Schedules a [DelegationAction::Revoke] for the delegator, towards a given collator.
-	pub(crate) fn delegator_schedule_revoke(
-		delegator: T::AccountId,
+	pub(crate) fn delegation_schedule_revoke(
 		collator: T::AccountId,
+		delegator: T::AccountId,
 	) -> DispatchResultWithPostInfo {
-		let state = <DelegatorState<T>>::get(&delegator).ok_or(<Error<T>>::DelegatorDNE)?;
+		let mut state = <DelegatorState<T>>::get(&delegator).ok_or(<Error<T>>::DelegatorDNE)?;
+		let mut scheduled_requests = <DelegatorScheduledRequests<T>>::get(&collator);
+
 		ensure!(
-			<DelegatorScheduledRequests<T>>::get(&delegator, &collator).is_none(),
+			scheduled_requests
+				.iter()
+				.find(|x| x.delegator == delegator)
+				.is_none(),
 			<Error<T>>::PendingDelegationRequestAlreadyExists,
 		);
 
@@ -71,15 +77,14 @@ impl<T: Config> Pallet<T> {
 			.ok_or(<Error<T>>::DelegationDNE)?;
 		let now = <Round<T>>::get().current;
 		let when = now.saturating_add(T::RevokeDelegationDelay::get());
-
-		Self::delegator_scheduled_requests_state_add(
-			delegator.clone(),
-			collator.clone(),
-			ScheduledRequest {
-				action: DelegationAction::Revoke(bonded_amount),
-				when_executable: when,
-			},
-		);
+		scheduled_requests.push(ScheduledRequest {
+			delegator: delegator.clone(),
+			action: DelegationAction::Revoke(bonded_amount),
+			when_executable: when,
+		});
+		state.less_total = state.less_total.saturating_add(bonded_amount);
+		<DelegatorScheduledRequests<T>>::insert(collator.clone(), scheduled_requests);
+		<DelegatorState<T>>::insert(delegator.clone(), state);
 
 		Self::deposit_event(Event::DelegationRevocationScheduled {
 			round: now,
@@ -91,21 +96,25 @@ impl<T: Config> Pallet<T> {
 	}
 
 	/// Schedules a [DelegationAction::Decrease] for the delegator, towards a given collator.
-	pub(crate) fn delegator_schedule_bond_decrease(
-		delegator: T::AccountId,
+	pub(crate) fn delegation_schedule_bond_decrease(
 		collator: T::AccountId,
+		delegator: T::AccountId,
 		decrease_amount: BalanceOf<T>,
 	) -> DispatchResultWithPostInfo {
-		let state = <DelegatorState<T>>::get(&delegator).ok_or(<Error<T>>::DelegatorDNE)?;
+		let mut state = <DelegatorState<T>>::get(&delegator).ok_or(<Error<T>>::DelegatorDNE)?;
+		let mut scheduled_requests = <DelegatorScheduledRequests<T>>::get(&collator);
+
 		ensure!(
-			<DelegatorScheduledRequests<T>>::get(&delegator, &collator).is_none(),
+			scheduled_requests
+				.iter()
+				.find(|x| x.delegator == delegator)
+				.is_none(),
 			<Error<T>>::PendingDelegationRequestAlreadyExists,
 		);
 
 		let bonded_amount = state
 			.get_bond_amount(&collator)
 			.ok_or(<Error<T>>::DelegationDNE)?;
-
 		ensure!(
 			bonded_amount > decrease_amount,
 			<Error<T>>::DelegatorBondBelowMin
@@ -117,10 +126,7 @@ impl<T: Config> Pallet<T> {
 		);
 
 		// Net Total is total after pending orders are executed
-		let total_scheduled_decrease_amount =
-			<DelegatorScheduledRequestDecreaseAmount<T>>::get(&delegator);
-		let net_total = state.total.saturating_sub(total_scheduled_decrease_amount);
-
+		let net_total = state.total.saturating_sub(state.less_total);
 		// Net Total is always >= MinDelegatorStk
 		let max_subtracted_amount = net_total.saturating_sub(T::MinDelegatorStk::get().into());
 		ensure!(
@@ -130,15 +136,14 @@ impl<T: Config> Pallet<T> {
 
 		let now = <Round<T>>::get().current;
 		let when = now.saturating_add(T::RevokeDelegationDelay::get());
-
-		Self::delegator_scheduled_requests_state_add(
-			delegator.clone(),
-			collator.clone(),
-			ScheduledRequest {
-				action: DelegationAction::Decrease(decrease_amount),
-				when_executable: when,
-			},
-		);
+		scheduled_requests.push(ScheduledRequest {
+			delegator: delegator.clone(),
+			action: DelegationAction::Decrease(decrease_amount),
+			when_executable: when,
+		});
+		state.less_total = state.less_total.saturating_add(decrease_amount);
+		<DelegatorScheduledRequests<T>>::insert(collator.clone(), scheduled_requests);
+		<DelegatorState<T>>::insert(delegator.clone(), state);
 
 		Self::deposit_event(Event::DelegationDecreaseScheduled {
 			delegator,
@@ -150,14 +155,23 @@ impl<T: Config> Pallet<T> {
 	}
 
 	/// Cancels the delegator's existing [ScheduledRequest] towards a given collator.
-	pub(crate) fn delegator_cancel_request(
-		delegator: T::AccountId,
+	pub(crate) fn delegation_cancel_request(
 		collator: T::AccountId,
+		delegator: T::AccountId,
 	) -> DispatchResultWithPostInfo {
-		let request = <DelegatorScheduledRequests<T>>::get(&delegator, &collator)
+		let mut state = <DelegatorState<T>>::get(&delegator).ok_or(<Error<T>>::DelegatorDNE)?;
+		let mut scheduled_requests = <DelegatorScheduledRequests<T>>::get(&collator);
+		let request_idx = scheduled_requests
+			.iter()
+			.position(|x| x.delegator == delegator)
 			.ok_or(<Error<T>>::PendingDelegationRequestDNE)?;
 
-		Self::delegator_scheduled_requests_state_remove(&delegator, &collator);
+		let request = scheduled_requests.remove(request_idx);
+		let amount = request.action.amount();
+		state.less_total = state.less_total.saturating_sub(amount);
+		<DelegatorScheduledRequests<T>>::insert(collator.clone(), scheduled_requests);
+		<DelegatorState<T>>::insert(delegator.clone(), state);
+
 		Self::deposit_event(Event::CancelledDelegationRequest {
 			delegator,
 			collator,
@@ -167,13 +181,17 @@ impl<T: Config> Pallet<T> {
 	}
 
 	/// Executes the delegator's existing [ScheduledRequest] towards a given collator.
-	pub(crate) fn delegator_execute_scheduled_request(
-		delegator: T::AccountId,
+	pub(crate) fn delegation_execute_scheduled_request(
 		collator: T::AccountId,
+		delegator: T::AccountId,
 	) -> DispatchResultWithPostInfo {
 		let mut state = <DelegatorState<T>>::get(&delegator).ok_or(<Error<T>>::DelegatorDNE)?;
-		let request = <DelegatorScheduledRequests<T>>::get(&delegator, &collator)
+		let mut scheduled_requests = <DelegatorScheduledRequests<T>>::get(&collator);
+		let request_idx = scheduled_requests
+			.iter()
+			.position(|x| x.delegator == delegator)
 			.ok_or(<Error<T>>::PendingDelegationRequestDNE)?;
+		let request = &scheduled_requests[request_idx];
 
 		let now = <Round<T>>::get().current;
 		ensure!(
@@ -195,7 +213,9 @@ impl<T: Config> Pallet<T> {
 				};
 
 				// remove from pending requests
-				Self::delegator_scheduled_requests_state_remove(&delegator, &collator);
+				let amount = scheduled_requests.remove(request_idx).action.amount();
+				state.less_total = state.less_total.saturating_sub(amount);
+
 				// remove delegation from delegator state
 				state.rm_delegation(&collator);
 
@@ -203,23 +223,25 @@ impl<T: Config> Pallet<T> {
 				Self::delegator_leaves_candidate(collator.clone(), delegator.clone(), amount)?;
 				Self::deposit_event(Event::DelegationRevoked {
 					delegator: delegator.clone(),
-					candidate: collator,
+					candidate: collator.clone(),
 					unstaked_amount: amount,
 				});
 				if leaving {
 					<DelegatorState<T>>::remove(&delegator);
 					Self::deposit_event(Event::DelegatorLeft {
-						delegator: delegator,
+						delegator,
 						unstaked_amount: amount,
 					});
 				} else {
+					<DelegatorScheduledRequests<T>>::insert(collator, scheduled_requests);
 					<DelegatorState<T>>::insert(&delegator, state);
 				}
 				Ok(().into())
 			}
-			DelegationAction::Decrease(amount) => {
+			DelegationAction::Decrease(_) => {
 				// remove from pending requests
-				Self::delegator_scheduled_requests_state_remove(&delegator, &collator);
+				let amount = scheduled_requests.remove(request_idx).action.amount();
+				state.less_total = state.less_total.saturating_sub(amount);
 
 				// decrease delegation
 				for x in &mut state.delegations.0 {
@@ -251,10 +273,14 @@ impl<T: Config> Pallet<T> {
 							let new_total_staked = <Total<T>>::get().saturating_sub(amount);
 							<Total<T>>::put(new_total_staked);
 
-							<DelegatorState<T>>::insert(&delegator, state);
+							<DelegatorScheduledRequests<T>>::insert(
+								collator.clone(),
+								scheduled_requests,
+							);
+							<DelegatorState<T>>::insert(delegator.clone(), state);
 							Self::deposit_event(Event::DelegationDecreased {
 								delegator,
-								candidate: collator,
+								candidate: collator.clone(),
 								amount,
 								in_top,
 							});
@@ -270,41 +296,25 @@ impl<T: Config> Pallet<T> {
 		}
 	}
 
-	/// Adds a [ScheduledRequest] to the delegator's storage state, towards a given collator.
-	pub(crate) fn delegator_scheduled_requests_state_add(
-		delegator: T::AccountId,
-		collator: T::AccountId,
-		request: ScheduledRequest<BalanceOf<T>>,
-	) {
-		let amount = request.action.amount();
-		let is_revoke = matches!(&request.action, &DelegationAction::Revoke(_));
-
-		<DelegatorScheduledRequests<T>>::insert(delegator.clone(), collator, request);
-		if is_revoke {
-			<DelegatorScheduledRevokeRequestCount<T>>::mutate(&delegator, |x| {
-				*x = x.saturating_add(1)
-			});
-		}
-		<DelegatorScheduledRequestDecreaseAmount<T>>::mutate(&delegator, |x| {
-			*x = x.saturating_add(amount)
-		});
-	}
-
-	/// Removes any [ScheduledRequest] from the delegator's storage state, towards a given collator.
-	/// The function is a NOOP if a request does not exist.
-	pub(crate) fn delegator_scheduled_requests_state_remove(
-		delegator: &T::AccountId,
+	/// Removes the delegator's existing [ScheduledRequest] towards a given collator.
+	/// Returns [Error::PendingDelegationRequestDNE] if request does not exist.
+	pub(crate) fn delegation_remove_request_with_state(
 		collator: &T::AccountId,
-	) {
-		if let Some(request) = <DelegatorScheduledRequests<T>>::take(delegator, collator) {
-			if matches!(request.action, DelegationAction::Revoke(_)) {
-				<DelegatorScheduledRevokeRequestCount<T>>::mutate(&delegator, |x| {
-					*x = x.saturating_sub(1)
-				});
-			}
-			<DelegatorScheduledRequestDecreaseAmount<T>>::mutate(&delegator, |x| {
-				*x = x.saturating_sub(request.action.amount())
-			});
-		}
+		delegator: &T::AccountId,
+		state: &mut Delegator<T::AccountId, BalanceOf<T>>,
+	) -> DispatchResultWithPostInfo {
+		let mut scheduled_requests = <DelegatorScheduledRequests<T>>::get(collator);
+
+		let request_idx = scheduled_requests
+			.iter()
+			.position(|x| &x.delegator == delegator)
+			.ok_or(<Error<T>>::PendingDelegationRequestDNE)?;
+
+		let request = scheduled_requests.remove(request_idx);
+		let amount = request.action.amount();
+		state.less_total = state.less_total.saturating_sub(amount);
+		<DelegatorScheduledRequests<T>>::insert(collator, scheduled_requests);
+
+		Ok(().into())
 	}
 }

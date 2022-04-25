@@ -326,7 +326,7 @@ pub mod pallet {
 		CancelledDelegationRequest {
 			delegator: T::AccountId,
 			collator: T::AccountId,
-			cancelled_request: ScheduledRequest<BalanceOf<T>>,
+			cancelled_request: ScheduledRequest<T::AccountId, BalanceOf<T>>,
 		},
 		/// New delegation (increase of the existing one).
 		Delegation {
@@ -488,17 +488,15 @@ pub mod pallet {
 	pub(crate) type CandidateInfo<T: Config> =
 		StorageMap<_, Twox64Concat, T::AccountId, CandidateMetadata<BalanceOf<T>>, OptionQuery>;
 
-	/// Stores outstanding delegation requests per delegator per collator.
+	/// Stores outstanding delegation requests per collator.
 	#[pallet::storage]
 	#[pallet::getter(fn delegator_scheduled_requests)]
-	pub(crate) type DelegatorScheduledRequests<T: Config> = StorageDoubleMap<
+	pub(crate) type DelegatorScheduledRequests<T: Config> = StorageMap<
 		_,
 		Blake2_128Concat,
 		T::AccountId,
-		Blake2_128Concat,
-		T::AccountId,
-		ScheduledRequest<BalanceOf<T>>,
-		OptionQuery,
+		Vec<ScheduledRequest<T::AccountId, BalanceOf<T>>>,
+		ValueQuery,
 	>;
 
 	/// The number of scheduled [DelegationAction::Revoke] requests per delegator.
@@ -509,13 +507,6 @@ pub mod pallet {
 	#[pallet::getter(fn delegator_scheduled_revoke_request_count)]
 	pub(crate) type DelegatorScheduledRevokeRequestCount<T: Config> =
 		StorageMap<_, Blake2_128Concat, T::AccountId, u64, ValueQuery>;
-
-	/// The total amount of funds set to decrease once all scheduled actions for the delegator
-	/// are undertaken.
-	#[pallet::storage]
-	#[pallet::getter(fn delegator_scheduled_request_decrease_amount)]
-	pub(crate) type DelegatorScheduledRequestDecreaseAmount<T: Config> =
-		StorageMap<_, Blake2_128Concat, T::AccountId, BalanceOf<T>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn top_delegations)]
@@ -724,30 +715,6 @@ pub mod pallet {
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
-		#[pallet::weight(
-			<T as Config>::WeightInfo::hotfix_remove_delegation_requests(delegators.len() as u32)
-		)]
-		/// Hotfix patch to remove all delegation requests not removed during a candidate exit
-		pub fn hotfix_remove_delegation_requests(
-			origin: OriginFor<T>,
-			delegators: Vec<T::AccountId>,
-		) -> DispatchResultWithPostInfo {
-			frame_system::ensure_root(origin)?;
-			for delegator in delegators {
-				if let Some(state) = <DelegatorState<T>>::get(&delegator) {
-					// go through all requests and remove ones without corresponding delegation
-					for (candidate, _) in
-						<DelegatorScheduledRequests<T>>::iter_prefix(&delegator).into_iter()
-					{
-						if !state.delegations.0.iter().any(|x| x.owner == candidate) {
-							Self::delegator_scheduled_requests_state_remove(&delegator, &candidate);
-						}
-					}
-					<DelegatorState<T>>::insert(&delegator, state);
-				} // else delegator is not a delegator so no update needed
-			}
-			Ok(().into())
-		}
 		#[pallet::weight(
 			<T as Config>::WeightInfo::hotfix_update_candidate_pool_value(candidates.len() as u32)
 		)]
@@ -1016,7 +983,12 @@ pub mod pallet {
 					if remaining.is_zero() {
 						<DelegatorState<T>>::remove(&bond.owner);
 					} else {
-						Self::delegator_scheduled_requests_state_remove(&bond.owner, &candidate);
+						Self::delegation_remove_request_with_state(
+							&candidate,
+							&bond.owner,
+							&mut delegator,
+						)
+						.ok(); // ignore DNE error
 						<DelegatorState<T>>::insert(&bond.owner, delegator);
 					}
 				}
@@ -1333,7 +1305,7 @@ pub mod pallet {
 			collator: T::AccountId,
 		) -> DispatchResultWithPostInfo {
 			let delegator = ensure_signed(origin)?;
-			Self::delegator_schedule_revoke(delegator, collator)
+			Self::delegation_schedule_revoke(collator, delegator)
 		}
 
 		#[pallet::weight(<T as Config>::WeightInfo::delegator_bond_more())]
@@ -1357,7 +1329,7 @@ pub mod pallet {
 			less: BalanceOf<T>,
 		) -> DispatchResultWithPostInfo {
 			let delegator = ensure_signed(origin)?;
-			Self::delegator_schedule_bond_decrease(delegator, candidate, less)
+			Self::delegation_schedule_bond_decrease(candidate, delegator, less)
 		}
 
 		#[pallet::weight(<T as Config>::WeightInfo::execute_delegator_bond_less())]
@@ -1368,7 +1340,7 @@ pub mod pallet {
 			candidate: T::AccountId,
 		) -> DispatchResultWithPostInfo {
 			ensure_signed(origin)?; // we may want to reward caller if caller != delegator
-			Self::delegator_execute_scheduled_request(delegator, candidate)
+			Self::delegation_execute_scheduled_request(candidate, delegator)
 		}
 
 		#[pallet::weight(<T as Config>::WeightInfo::cancel_delegator_bond_less())]
@@ -1378,7 +1350,7 @@ pub mod pallet {
 			candidate: T::AccountId,
 		) -> DispatchResultWithPostInfo {
 			let delegator = ensure_signed(origin)?;
-			Self::delegator_cancel_request(delegator, candidate)
+			Self::delegation_cancel_request(candidate, delegator)
 		}
 	}
 
@@ -1666,18 +1638,19 @@ pub mod pallet {
 		fn get_rewardable_delegators(
 			collator: &T::AccountId,
 		) -> Vec<Bond<T::AccountId, BalanceOf<T>>> {
+			let requests = <DelegatorScheduledRequests<T>>::get(collator)
+				.into_iter()
+				.map(|x| (x.delegator, x.action))
+				.collect::<BTreeMap<_, _>>();
+
 			<TopDelegations<T>>::get(collator)
 				.expect("all members of CandidateQ must be candidates")
 				.delegations
 				.into_iter()
 				.map(|mut bond| {
-					bond.amount = match Self::delegator_scheduled_requests(&bond.owner, &collator) {
+					bond.amount = match requests.get(&bond.owner) {
 						None => bond.amount,
-
-						Some(ScheduledRequest {
-							action: DelegationAction::Revoke(_),
-							..
-						}) => {
+						Some(DelegationAction::Revoke(_)) => {
 							log::warn!(
 								"reward for delegator '{:?}' set to zero due to pending \
 								revoke request",
@@ -1685,17 +1658,13 @@ pub mod pallet {
 							);
 							BalanceOf::<T>::zero()
 						}
-
-						Some(ScheduledRequest {
-							action: DelegationAction::Decrease(amount),
-							..
-						}) => {
+						Some(DelegationAction::Decrease(amount)) => {
 							log::warn!(
 								"reward for delegator '{:?}' reduced by set amount due to pending \
 								decrease request",
 								bond.owner
 							);
-							bond.amount.saturating_sub(amount)
+							bond.amount.saturating_sub(*amount)
 						}
 					};
 

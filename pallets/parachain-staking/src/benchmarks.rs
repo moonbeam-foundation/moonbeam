@@ -21,7 +21,7 @@ use crate::{
 	BalanceOf, Call, CandidateBondLessRequest, Config, DelegationAction, Pallet, Range,
 	ScheduledRequest,
 };
-use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
+use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite, vec};
 use frame_support::traits::{Currency, Get, OnFinalize, OnInitialize, ReservableCurrency};
 use frame_system::RawOrigin;
 use nimbus_primitives::EventHandler;
@@ -124,33 +124,6 @@ const USER_SEED: u32 = 999666;
 
 benchmarks! {
 	// HOTFIX BENCHMARK
-	hotfix_remove_delegation_requests {
-		let x in 2..<<T as Config>::MaxTopDelegationsPerCandidate as Get<u32>>::get()
-		+ <<T as Config>::MaxBottomDelegationsPerCandidate as Get<u32>>::get();
-		let mut delegators: Vec<T::AccountId> = Vec::new();
-		let collator = create_funded_collator::<T>(
-			"candidate",
-			100,
-			0u32.into(),
-			true,
-			1u32
-		)?;
-		let mut col_del_count = 0u32;
-		for i in 1..x {
-			let seed = USER_SEED + i;
-			let delegator = create_funded_delegator::<T>(
-				"delegator",
-				seed,
-				0u32.into(),
-				collator.clone(),
-				true,
-				col_del_count,
-			)?;
-			delegators.push(delegator);
-			col_del_count += 1u32;
-		}
-	}: _(RawOrigin::Root, delegators)
-	verify { }
 
 	hotfix_update_candidate_pool_value {
 		let x in 5..200;
@@ -651,11 +624,12 @@ benchmarks! {
 	}: _(RawOrigin::Signed(caller.clone()), collator.clone())
 	verify {
 		assert_eq!(
-			Pallet::<T>::delegator_scheduled_requests(&caller, &collator),
-			Some(ScheduledRequest {
+			Pallet::<T>::delegator_scheduled_requests(&collator),
+			vec![ScheduledRequest {
+				delegator: caller,
 				when_executable: 3,
 				action: DelegationAction::Revoke(bond),
-			})
+			}],
 		);
 	}
 
@@ -704,11 +678,12 @@ benchmarks! {
 		let state = Pallet::<T>::delegator_state(&caller)
 			.expect("just request bonded less so exists");
 		assert_eq!(
-			Pallet::<T>::delegator_scheduled_requests(&caller, &collator),
-			Some(ScheduledRequest {
+			Pallet::<T>::delegator_scheduled_requests(&collator),
+			vec![ScheduledRequest {
+				delegator: caller,
 				when_executable: 3,
 				action: DelegationAction::Decrease(bond_less),
-			})
+			}],
 		);
 	}
 
@@ -808,7 +783,10 @@ benchmarks! {
 		)?;
 	} verify {
 		assert!(
-			Pallet::<T>::delegator_scheduled_requests(&caller, &collator).is_none()
+			Pallet::<T>::delegator_scheduled_requests(&collator)
+			.iter()
+			.find(|x| &x.delegator == &caller)
+			.is_none()
 		);
 	}
 
@@ -842,7 +820,10 @@ benchmarks! {
 		)?;
 	} verify {
 		assert!(
-			Pallet::<T>::delegator_scheduled_requests(&caller, &collator).is_none()
+			Pallet::<T>::delegator_scheduled_requests(&collator)
+				.iter()
+				.find(|x| &x.delegator == &caller)
+				.is_none()
 		);
 	}
 
