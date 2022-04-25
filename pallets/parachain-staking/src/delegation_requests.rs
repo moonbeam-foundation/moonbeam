@@ -55,6 +55,22 @@ pub struct ScheduledRequest<AccountId, Balance> {
 	pub action: DelegationAction<Balance>,
 }
 
+/// Represents a cancelled scheduled request for emitting an event.
+#[derive(Clone, Eq, PartialEq, Encode, Decode, RuntimeDebug, TypeInfo)]
+pub struct CancelledScheduledRequest<Balance> {
+	pub when_executable: RoundIndex,
+	pub action: DelegationAction<Balance>,
+}
+
+impl<A, B> From<ScheduledRequest<A, B>> for CancelledScheduledRequest<B> {
+	fn from(request: ScheduledRequest<A, B>) -> Self {
+		CancelledScheduledRequest {
+			when_executable: request.when_executable,
+			action: request.action,
+		}
+	}
+}
+
 impl<T: Config> Pallet<T> {
 	/// Schedules a [DelegationAction::Revoke] for the delegator, towards a given collator.
 	pub(crate) fn delegation_schedule_revoke(
@@ -175,7 +191,7 @@ impl<T: Config> Pallet<T> {
 		Self::deposit_event(Event::CancelledDelegationRequest {
 			delegator,
 			collator,
-			cancelled_request: request,
+			cancelled_request: request.into(),
 		});
 		Ok(().into())
 	}

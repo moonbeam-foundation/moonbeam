@@ -17,7 +17,6 @@
 //! # Migrations
 
 #![allow(unused)]
-use std::collections::BTreeMap;
 
 use crate::delegation_requests::{DelegationAction, ScheduledRequest};
 use crate::pallet::{DelegatorScheduledRequests, DelegatorState, Total};
@@ -99,6 +98,8 @@ impl<T: Config> SplitDelegatorStateIntoDelegatorScheduledRequests<T> {
 #[allow(deprecated)]
 impl<T: Config> OnRuntimeUpgrade for SplitDelegatorStateIntoDelegatorScheduledRequests<T> {
 	fn on_runtime_upgrade() -> Weight {
+		use sp_std::collections::btree_map::BTreeMap;
+
 		log::info!(
 			target: "SplitDelegatorStateIntoDelegatorScheduledRequests",
 			"running migration for DelegatorState to new version and DelegatorScheduledRequests \

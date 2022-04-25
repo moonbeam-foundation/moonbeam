@@ -21,7 +21,7 @@
 //! 2. Monetary Governance
 //! 3. Public (Collator, Nominator)
 //! 4. Miscellaneous Property-Based Tests
-use crate::delegation_requests::{DelegationAction, ScheduledRequest};
+use crate::delegation_requests::{CancelledScheduledRequest, DelegationAction, ScheduledRequest};
 use crate::mock::{
 	roll_one_block, roll_to, roll_to_round_begin, roll_to_round_end, set_author, Balances,
 	Event as MetaEvent, ExtBuilder, Origin, ParachainStaking, Test,
@@ -3499,8 +3499,7 @@ fn cancel_revoke_delegation_emits_correct_event() {
 				Event::CancelledDelegationRequest {
 					delegator: 2,
 					collator: 1,
-					cancelled_request: ScheduledRequest {
-						delegator: 2,
+					cancelled_request: CancelledScheduledRequest {
 						when_executable: 3,
 						action: DelegationAction::Revoke(10),
 					},
@@ -3576,8 +3575,7 @@ fn cancel_delegator_bond_less_correct_event() {
 				Event::CancelledDelegationRequest {
 					delegator: 2,
 					collator: 1,
-					cancelled_request: ScheduledRequest {
-						delegator: 2,
+					cancelled_request: CancelledScheduledRequest {
 						when_executable: 3,
 						action: DelegationAction::Decrease(5),
 					},

@@ -65,13 +65,15 @@ use frame_support::pallet;
 pub use inflation::{InflationInfo, Range};
 use weights::WeightInfo;
 
-pub use delegation_requests::{DelegationAction, ScheduledRequest};
+pub use delegation_requests::{CancelledScheduledRequest, DelegationAction, ScheduledRequest};
 pub use pallet::*;
 pub use types::*;
 
 #[pallet]
 pub mod pallet {
-	use crate::delegation_requests::{DelegationAction, ScheduledRequest};
+	use crate::delegation_requests::{
+		CancelledScheduledRequest, DelegationAction, ScheduledRequest,
+	};
 	use crate::{set::OrderedSet, types::*, InflationInfo, Range, WeightInfo};
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{Currency, Get, Imbalance, ReservableCurrency};
@@ -326,7 +328,7 @@ pub mod pallet {
 		CancelledDelegationRequest {
 			delegator: T::AccountId,
 			collator: T::AccountId,
-			cancelled_request: ScheduledRequest<T::AccountId, BalanceOf<T>>,
+			cancelled_request: CancelledScheduledRequest<BalanceOf<T>>,
 		},
 		/// New delegation (increase of the existing one).
 		Delegation {
