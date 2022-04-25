@@ -422,14 +422,17 @@ pub mod pallet {
 			// Update current orbiter for each pool and edit AccountLookupOverride accordingly.
 			CollatorsPool::<T>::translate::<CollatorPoolInfo<T::AccountId>, _>(
 				|collator, mut pool| {
-					// remove current orbiter, if any.
-					let mut old_orbiter = None;
+					let RotateOrbiterResult {
+						maybe_old_orbiter,
+						maybe_next_orbiter,
+					} = pool.rotate_orbiter();
+					// remove old orbiter, if any.
 					if let Some(CurrentOrbiter {
-						account_id: current_orbiter,
+						account_id: ref current_orbiter,
 						removed,
-					}) = pool.get_current_orbiter()
+					}) = maybe_old_orbiter
 					{
-						if *removed {
+						if removed {
 							Self::deposit_event(Event::OrbiterLeaveCollatorPool {
 								collator: collator.clone(),
 								orbiter: current_orbiter.clone(),
@@ -437,9 +440,8 @@ pub mod pallet {
 						}
 						AccountLookupOverride::<T>::remove(current_orbiter.clone());
 						writes += 1;
-						old_orbiter = Some(current_orbiter.clone());
 					}
-					if let Some(next_orbiter) = pool.rotate_orbiter() {
+					if let Some(next_orbiter) = maybe_next_orbiter {
 						// Forbidding the collator to write blocks, it is now up to its orbiters to do it.
 						AccountLookupOverride::<T>::insert(
 							collator.clone(),
@@ -457,7 +459,7 @@ pub mod pallet {
 						);
 						Self::deposit_event(Event::OrbiterRotation {
 							collator,
-							old_orbiter,
+							old_orbiter: maybe_old_orbiter.map(|orbiter| orbiter.account_id),
 							new_orbiter: Some(next_orbiter),
 						});
 						writes += 3;
@@ -467,7 +469,7 @@ pub mod pallet {
 						writes += 1;
 						Self::deposit_event(Event::OrbiterRotation {
 							collator: collator,
-							old_orbiter,
+							old_orbiter: maybe_old_orbiter.map(|orbiter| orbiter.account_id),
 							new_orbiter: None,
 						});
 					}

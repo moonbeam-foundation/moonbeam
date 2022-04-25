@@ -26,11 +26,25 @@ pub(super) struct CurrentOrbiter<AccountId> {
 	pub account_id: AccountId,
 	pub removed: bool,
 }
+impl<AccountId: Clone> Clone for CurrentOrbiter<AccountId> {
+	fn clone(&self) -> Self {
+		Self {
+			account_id: self.account_id.clone(),
+			removed: self.removed,
+		}
+	}
+}
 
 pub(super) enum RemoveOrbiterResult {
 	OrbiterNotFound,
 	OrbiterRemoved,
 	OrbiterRemoveScheduled,
+}
+
+#[derive(Decode, Encode, RuntimeDebug, TypeInfo)]
+pub(super) struct RotateOrbiterResult<AccountId> {
+	pub maybe_old_orbiter: Option<CurrentOrbiter<AccountId>>,
+	pub maybe_next_orbiter: Option<AccountId>,
 }
 
 #[derive(Decode, Encode, RuntimeDebug, TypeInfo)]
@@ -68,9 +82,6 @@ impl<AccountId: Clone + PartialEq> CollatorPoolInfo<AccountId> {
 		}
 		false
 	}
-	pub(super) fn get_current_orbiter(&self) -> &Option<CurrentOrbiter<AccountId>> {
-		&self.maybe_current_orbiter
-	}
 	pub(super) fn get_orbiters(&self) -> &[AccountId] {
 		&self.orbiters
 	}
@@ -100,19 +111,26 @@ impl<AccountId: Clone + PartialEq> CollatorPoolInfo<AccountId> {
 			RemoveOrbiterResult::OrbiterNotFound
 		}
 	}
-	pub(super) fn rotate_orbiter(&mut self) -> Option<AccountId> {
+	pub(super) fn rotate_orbiter(&mut self) -> RotateOrbiterResult<AccountId> {
+		let maybe_old_orbiter = self.maybe_current_orbiter.clone();
 		if self.next_orbiter >= self.orbiters.len() as u32 {
 			self.next_orbiter = 0;
 		}
-		if let Some(next_orbiter) = self.orbiters.get(self.next_orbiter as usize) {
-			self.maybe_current_orbiter = Some(CurrentOrbiter {
-				account_id: next_orbiter.clone(),
-				removed: false,
-			});
-			self.next_orbiter += 1;
-			Some(next_orbiter.clone())
-		} else {
-			None
+		let maybe_next_orbiter =
+			if let Some(next_orbiter) = self.orbiters.get(self.next_orbiter as usize) {
+				self.maybe_current_orbiter = Some(CurrentOrbiter {
+					account_id: next_orbiter.clone(),
+					removed: false,
+				});
+				self.next_orbiter += 1;
+				Some(next_orbiter.clone())
+			} else {
+				None
+			};
+
+		RotateOrbiterResult {
+			maybe_old_orbiter,
+			maybe_next_orbiter,
 		}
 	}
 }
