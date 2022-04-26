@@ -28,8 +28,6 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
-mod migrations;
-
 use cumulus_pallet_parachain_system::RelaychainBlockNumberProvider;
 use fp_rpc::TransactionStatus;
 
@@ -907,7 +905,6 @@ impl pallet_migrations::Config for Runtime {
 			TechCommitteeCollective,
 		>,
 		runtime_common::migrations::XcmMigrations<Runtime>,
-		self::migrations::MoonbaseMigrations,
 	);
 }
 
@@ -1102,7 +1099,7 @@ impl pallet_moonbeam_orbiters::Config for Runtime {
 	/// Maximum number of round to keep on storage
 	type MaxRoundArchive = ConstU32<4>;
 	type OrbiterReserveIdentifier = OrbiterReserveIdentifier;
-	type RotatePeriod = ConstU32<2>;
+	type RotatePeriod = ConstU32<3>;
 	/// Round index type.
 	type RoundIndex = parachain_staking::RoundIndex;
 }

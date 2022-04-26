@@ -28,7 +28,6 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-pub mod migrations;
 pub mod types;
 
 #[cfg(any(test, feature = "runtime-benchmarks"))]
