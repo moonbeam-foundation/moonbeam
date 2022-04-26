@@ -57,8 +57,8 @@ fn test_orbiter_rotation() {
 				.into(),
 			);
 
-			/*// Roll to sixth round, we should come back to the first orbiter
-			roll_to(10);
+			// Roll to sixth round, we should come back to the first orbiter
+			roll_to(12);
 			System::assert_last_event(
 				Event::<Test>::OrbiterRotation {
 					collator: 1,
@@ -66,8 +66,7 @@ fn test_orbiter_rotation() {
 					new_orbiter: Some(2),
 				}
 				.into(),
-			);*/
-			// TODO
+			);
 		});
 }
 
