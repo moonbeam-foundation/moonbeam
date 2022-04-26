@@ -1041,6 +1041,22 @@
 <span id="1036">1036</span>
 <span id="1037">1037</span>
 <span id="1038">1038</span>
+<span id="1039">1039</span>
+<span id="1040">1040</span>
+<span id="1041">1041</span>
+<span id="1042">1042</span>
+<span id="1043">1043</span>
+<span id="1044">1044</span>
+<span id="1045">1045</span>
+<span id="1046">1046</span>
+<span id="1047">1047</span>
+<span id="1048">1048</span>
+<span id="1049">1049</span>
+<span id="1050">1050</span>
+<span id="1051">1051</span>
+<span id="1052">1052</span>
+<span id="1053">1053</span>
+<span id="1054">1054</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -1091,6 +1107,7 @@
 	<span class="ident">MinDelegation</span> <span class="op">=</span> <span class="string">&quot;min_delegation()&quot;</span>,
 	<span class="ident">Points</span> <span class="op">=</span> <span class="string">&quot;points(uint256)&quot;</span>,
 	<span class="ident">CandidateCount</span> <span class="op">=</span> <span class="string">&quot;candidate_count()&quot;</span>,
+	<span class="ident">Round</span> <span class="op">=</span> <span class="string">&quot;round()&quot;</span>,
 	<span class="comment">// DEPRECATED</span>
 	<span class="ident">CollatorNominationCount</span> <span class="op">=</span> <span class="string">&quot;collator_nomination_count(address)&quot;</span>,
 	<span class="comment">// DEPRECATED</span>
@@ -1200,6 +1217,7 @@
 			<span class="ident">Action::MinDelegation</span> =&gt; <span class="kw">return</span> <span class="ident"><span class="self">Self</span>::min_delegation</span>(<span class="ident">gasometer</span>),
 			<span class="ident">Action::Points</span> =&gt; <span class="kw">return</span> <span class="ident"><span class="self">Self</span>::points</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>),
 			<span class="ident">Action::CandidateCount</span> =&gt; <span class="kw">return</span> <span class="ident"><span class="self">Self</span>::candidate_count</span>(<span class="ident">gasometer</span>),
+			<span class="ident">Action::Round</span> =&gt; <span class="kw">return</span> <span class="ident"><span class="self">Self</span>::round</span>(<span class="ident">gasometer</span>),
 			<span class="comment">// DEPRECATED</span>
 			<span class="ident">Action::CollatorNominationCount</span> =&gt; {
 				<span class="kw">return</span> <span class="ident"><span class="self">Self</span>::candidate_delegation_count</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>)
@@ -1367,6 +1385,20 @@
 			<span class="ident">exit_status</span>: <span class="ident">ExitSucceed::Returned</span>,
 			<span class="ident">cost</span>: <span class="ident">gasometer</span>.<span class="ident">used_gas</span>(),
 			<span class="ident">output</span>: <span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">candidate_count</span>).<span class="ident">build</span>(),
+			<span class="ident">logs</span>: <span class="macro">vec!</span>[],
+		})
+	}
+
+	<span class="kw">fn</span> <span class="ident">round</span>(<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+		<span class="comment">// Fetch info.</span>
+		<span class="ident">gasometer</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">round</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">parachain_staking::Pallet</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::round</span>().<span class="ident">current</span>;
+
+		<span class="comment">// Build output.</span>
+		<span class="prelude-val">Ok</span>(<span class="ident">PrecompileOutput</span> {
+			<span class="ident">exit_status</span>: <span class="ident">ExitSucceed::Returned</span>,
+			<span class="ident">cost</span>: <span class="ident">gasometer</span>.<span class="ident">used_gas</span>(),
+			<span class="ident">output</span>: <span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">round</span>).<span class="ident">build</span>(),
 			<span class="ident">logs</span>: <span class="macro">vec!</span>[],
 		})
 	}
