@@ -18,26 +18,18 @@
 
 //! Benchmarking
 
-use crate::{BalanceOf, Call, Config, Pallet};
+use crate::{BalanceOf, Call, Config, MinOrbiterDeposit, Pallet};
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
 use frame_support::traits::{Currency, Get, ReservableCurrency};
 use frame_system::RawOrigin;
-use parity_scale_codec::Encode;
 use sp_runtime::traits::StaticLookup;
 
 const MIN_ORBITER_DEPOSIT: u32 = 10_000;
 const USER_SEED: u32 = 999666;
 
 fn init<T: Config>() {
-	let min_orbiter_deposit_prefix =
-		frame_support::storage::storage_prefix(b"MoonbeamOrbiters", b"MinOrbiterDeposit");
 	let min_orbiter_deposit: BalanceOf<T> = MIN_ORBITER_DEPOSIT.into();
-	min_orbiter_deposit.using_encoded(|min_orbiter_deposit_bytes| {
-		frame_support::storage::unhashed::put(
-			&min_orbiter_deposit_prefix,
-			min_orbiter_deposit_bytes,
-		)
-	});
+	MinOrbiterDeposit::<T>::put(min_orbiter_deposit);
 }
 
 /// Create a funded user.
