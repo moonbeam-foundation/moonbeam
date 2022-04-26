@@ -1019,6 +1019,7 @@ impl pallet_moonbeam_orbiters::Config for Runtime {
 	type RotatePeriod = ConstU32<1>;
 	/// Round index type.
 	type RoundIndex = parachain_staking::RoundIndex;
+	type WeightInfo = pallet_moonbeam_orbiters::weights::SubstrateWeight<Runtime>;
 }
 
 construct_runtime! {

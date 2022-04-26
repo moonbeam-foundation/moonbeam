@@ -29,6 +29,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 pub mod types;
+pub mod weights;
 
 #[cfg(any(test, feature = "runtime-benchmarks"))]
 mod benchmarks;
@@ -39,6 +40,7 @@ mod tests;
 
 pub use pallet::*;
 pub use types::*;
+pub use weights::WeightInfo;
 
 use frame_support::pallet;
 use nimbus_primitives::{AccountLookup, NimbusId};
@@ -101,6 +103,9 @@ pub mod pallet {
 			+ sp_runtime::traits::MaybeDisplay
 			+ sp_runtime::traits::AtLeast32Bit
 			+ Copy;
+
+		/// Weight information for extrinsics in this pallet.
+		type WeightInfo: WeightInfo;
 	}
 
 	#[pallet::storage]
@@ -229,7 +234,7 @@ pub mod pallet {
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		/// Add an orbiter in a collator pool
-		#[pallet::weight(500_000_000)]
+		#[pallet::weight(T::WeightInfo::collator_add_orbiter())]
 		pub fn collator_add_orbiter(
 			origin: OriginFor<T>,
 			orbiter: <T::Lookup as StaticLookup>::Source,
@@ -271,7 +276,7 @@ pub mod pallet {
 		}
 
 		/// Remove an orbiter from the caller collator pool
-		#[pallet::weight(500_000_000)]
+		#[pallet::weight(T::WeightInfo::collator_remove_orbiter())]
 		pub fn collator_remove_orbiter(
 			origin: OriginFor<T>,
 			orbiter: <T::Lookup as StaticLookup>::Source,
@@ -300,7 +305,7 @@ pub mod pallet {
 		}
 
 		/// Remove the caller from the specified collator pool
-		#[pallet::weight(500_000_000)]
+		#[pallet::weight(T::WeightInfo::orbiter_leave_collator_pool())]
 		pub fn orbiter_leave_collator_pool(
 			origin: OriginFor<T>,
 			collator: <T::Lookup as StaticLookup>::Source,
@@ -329,7 +334,7 @@ pub mod pallet {
 		}
 
 		/// Registering as an orbiter
-		#[pallet::weight(500_000_000)]
+		#[pallet::weight(T::WeightInfo::orbiter_register())]
 		pub fn orbiter_register(origin: OriginFor<T>) -> DispatchResult {
 			let orbiter = ensure_signed(origin)?;
 
@@ -347,7 +352,7 @@ pub mod pallet {
 		}
 
 		/// Deregistering from orbiters
-		#[pallet::weight(500_000_000)]
+		#[pallet::weight(T::WeightInfo::orbiter_unregister(*collators_pool_count))]
 		pub fn orbiter_unregister(
 			origin: OriginFor<T>,
 			collators_pool_count: u32,
@@ -374,7 +379,7 @@ pub mod pallet {
 		}
 
 		/// Add a collator to orbiters program.
-		#[pallet::weight(500_000_000)]
+		#[pallet::weight(T::WeightInfo::add_collator())]
 		pub fn add_collator(
 			origin: OriginFor<T>,
 			collator: <T::Lookup as StaticLookup>::Source,
@@ -393,7 +398,7 @@ pub mod pallet {
 		}
 
 		/// Remove a collator from orbiters program.
-		#[pallet::weight(500_000_000)]
+		#[pallet::weight(T::WeightInfo::remove_collator())]
 		pub fn remove_collator(
 			origin: OriginFor<T>,
 			collator: <T::Lookup as StaticLookup>::Source,
