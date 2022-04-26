@@ -15,8 +15,8 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::mock::{
-	events, evm_test_context, precompile_address, roll_to, set_points, Call, ExtBuilder, Origin,
-	ParachainStaking, PrecompilesValue, Runtime, TestAccount, TestPrecompiles,
+	events, evm_test_context, precompile_address, roll_to, roll_to_round_begin, set_points, Call,
+	ExtBuilder, Origin, ParachainStaking, PrecompilesValue, Runtime, TestAccount, TestPrecompiles,
 };
 use crate::{Action, PrecompileOutput};
 use fp_evm::{Context, PrecompileFailure};
@@ -58,6 +58,7 @@ fn selectors() {
 	assert_eq!(Action::MinNomination as u32, 0xc9f593b2);
 	assert_eq!(Action::MinDelegation as u32, 0x72ce8933);
 	assert_eq!(Action::CandidateCount as u32, 0x4b1c4c29);
+	assert_eq!(Action::Round as u32, 0x146ca531);
 	assert_eq!(Action::CollatorNominationCount as u32, 0x0ad6a7be);
 	assert_eq!(Action::CandidateDelegationCount as u32, 0x815b796c);
 	assert_eq!(Action::NominatorNominationCount as u32, 0xdae5659b);
@@ -279,6 +280,54 @@ fn points_non_zero() {
 				expected_one_result
 			);
 		});
+}
+
+#[test]
+fn round_works() {
+	ExtBuilder::default().build().execute_with(|| {
+		// Expected starts at round 1
+		let mut expected_result = Some(Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			output: EvmDataWriter::new().write(1u32).build(),
+			cost: Default::default(),
+			logs: Default::default(),
+		}));
+		// Assert that round is 1
+		assert_eq!(
+			precompiles().execute(
+				precompile_address(),
+				&EvmDataWriter::new_with_selector(Action::Round).build(),
+				None,
+				&evm_test_context(),
+				false
+			),
+			expected_result
+		);
+		// test next `ROUNDS_TO_TEST` rounds
+		const ROUNDS_TO_TEST: u64 = 10;
+		let mut current_round: u64 = 1;
+		while current_round < ROUNDS_TO_TEST {
+			current_round += 1;
+			roll_to_round_begin(current_round);
+			expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(current_round).build(),
+				cost: Default::default(),
+				logs: Default::default(),
+			}));
+			// Assert that round is equal to expectation
+			assert_eq!(
+				precompiles().execute(
+					precompile_address(),
+					&EvmDataWriter::new_with_selector(Action::Round).build(),
+					None,
+					&evm_test_context(),
+					false
+				),
+				expected_result
+			);
+		}
+	});
 }
 
 // DEPRECATED
