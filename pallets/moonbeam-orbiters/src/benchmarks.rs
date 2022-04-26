@@ -60,14 +60,19 @@ benchmarks! {
 
 		// To test the worst case, we pre-fill the collator pool to the maximum size minus one
 		for i in 1..T::MaxPoolSize::get() {
-			let orbiter_account: T::AccountId = create_orbiter::<T>("ORBITER", USER_SEED + i, 20_000);
-			let orbiter_lookup: <T::Lookup as StaticLookup>::Source = T::Lookup::unlookup(orbiter_account.clone());
-			Pallet::<T>::collator_add_orbiter(RawOrigin::Signed(collator_account.clone()).into(), orbiter_lookup.clone())
-				.expect("fail to add orbiter");
+			let orbiter_account: T::AccountId =
+				create_orbiter::<T>("ORBITER", USER_SEED + i, 20_000);
+			let orbiter_lookup: <T::Lookup as StaticLookup>::Source =
+				T::Lookup::unlookup(orbiter_account.clone());
+			Pallet::<T>::collator_add_orbiter(
+				RawOrigin::Signed(collator_account.clone()).into(),
+				orbiter_lookup.clone()
+			).expect("fail to add orbiter");
 		}
 
 		let orbiter_account: T::AccountId = create_orbiter::<T>("ORBITER", USER_SEED, 20_000);
-		let orbiter_lookup: <T::Lookup as StaticLookup>::Source = T::Lookup::unlookup(orbiter_account.clone());
+		let orbiter_lookup: <T::Lookup as StaticLookup>::Source =
+			T::Lookup::unlookup(orbiter_account.clone());
 	}: _(RawOrigin::Signed(collator_account), orbiter_lookup)
 	verify {
 
@@ -76,14 +81,18 @@ benchmarks! {
 		let collator_account: T::AccountId = create_collator::<T>("COLLATOR", USER_SEED, 10_000);
 
 		// orbiter_lookup must be initialized with an account id
-		let mut orbiter_lookup: <T::Lookup as StaticLookup>::Source = T::Lookup::unlookup(collator_account.clone());
+		let mut orbiter_lookup: <T::Lookup as StaticLookup>::Source =
+			T::Lookup::unlookup(collator_account.clone());
 
 		// To test the worst case, we pre-fill the collator pool to the maximum size
 		for i in 0..T::MaxPoolSize::get() {
-			let orbiter_account: T::AccountId = create_orbiter::<T>("ORBITER", USER_SEED + i, 20_000);
+			let orbiter_account: T::AccountId =
+				create_orbiter::<T>("ORBITER", USER_SEED + i, 20_000);
 			orbiter_lookup = T::Lookup::unlookup(orbiter_account.clone());
-			Pallet::<T>::collator_add_orbiter(RawOrigin::Signed(collator_account.clone()).into(), orbiter_lookup.clone())
-				.expect("fail to add orbiter");
+			Pallet::<T>::collator_add_orbiter(
+				RawOrigin::Signed(collator_account.clone()).into(),
+				orbiter_lookup.clone()
+			).expect("fail to add orbiter");
 		}
 
 	}: _(RawOrigin::Signed(collator_account), orbiter_lookup)
@@ -99,9 +108,12 @@ benchmarks! {
 		// To test the worst case, we pre-fill the collator pool to the maximum size
 		for i in 0..T::MaxPoolSize::get() {
 			orbiter_account = create_orbiter::<T>("ORBITER", USER_SEED + i, 20_000);
-			let orbiter_lookup: <T::Lookup as StaticLookup>::Source = T::Lookup::unlookup(orbiter_account.clone());
-			Pallet::<T>::collator_add_orbiter(RawOrigin::Signed(collator_account.clone()).into(), orbiter_lookup.clone())
-				.expect("fail to add orbiter");
+			let orbiter_lookup: <T::Lookup as StaticLookup>::Source =
+				T::Lookup::unlookup(orbiter_account.clone());
+			Pallet::<T>::collator_add_orbiter(
+				RawOrigin::Signed(collator_account.clone()).into(),
+				orbiter_lookup.clone()
+			).expect("fail to add orbiter");
 		}
 
 		let collator_lookup: <T::Lookup as StaticLookup>::Source = T::Lookup::unlookup(collator_account.clone());
@@ -128,7 +140,8 @@ benchmarks! {
 	}
 	add_collator {
 		let collator_account: T::AccountId = create_funded_user::<T>("COLLATOR", USER_SEED, 10_000);
-		let collator_lookup: <T::Lookup as StaticLookup>::Source = T::Lookup::unlookup(collator_account.clone());
+		let collator_lookup: <T::Lookup as StaticLookup>::Source =
+			T::Lookup::unlookup(collator_account.clone());
 
 	}: _(RawOrigin::Root, collator_lookup.clone())
 	verify {
@@ -138,13 +151,18 @@ benchmarks! {
 		let collator_account: T::AccountId = create_collator::<T>("COLLATOR", USER_SEED, 10_000);
 
 		for i in 0..T::MaxPoolSize::get() {
-			let orbiter_account: T::AccountId = create_orbiter::<T>("ORBITER", USER_SEED + i, 20_000);
-			let orbiter_lookup: <T::Lookup as StaticLookup>::Source = T::Lookup::unlookup(orbiter_account.clone());
-			Pallet::<T>::collator_add_orbiter(RawOrigin::Signed(collator_account.clone()).into(), orbiter_lookup.clone())
-				.expect("fail to add orbiter");
+			let orbiter_account: T::AccountId =
+				create_orbiter::<T>("ORBITER", USER_SEED + i, 20_000);
+			let orbiter_lookup: <T::Lookup as StaticLookup>::Source =
+				T::Lookup::unlookup(orbiter_account.clone());
+			Pallet::<T>::collator_add_orbiter(
+				RawOrigin::Signed(collator_account.clone()).into(),
+				orbiter_lookup.clone()
+			).expect("fail to add orbiter");
 		}
 
-		let collator_lookup: <T::Lookup as StaticLookup>::Source = T::Lookup::unlookup(collator_account.clone());
+		let collator_lookup: <T::Lookup as StaticLookup>::Source =
+			T::Lookup::unlookup(collator_account.clone());
 	}: _(RawOrigin::Root, collator_lookup.clone())
 	verify {
 
