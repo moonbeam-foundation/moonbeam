@@ -20,12 +20,12 @@ use std::{assert_matches::assert_matches, str::from_utf8};
 use crate::{eip2612::Eip2612, mock::*, *};
 
 use fp_evm::{Context, PrecompileFailure};
+use hex_literal::hex;
 use libsecp256k1::{sign, Message, SecretKey};
 use pallet_evm::PrecompileSet;
 use precompile_utils::{EvmDataWriter, LogsBuilder};
 use sha3::{Digest, Keccak256};
 use sp_core::H256;
-use hex_literal::hex;
 
 fn precompiles() -> Precompiles<Runtime> {
 	PrecompilesValue::get()
@@ -2740,34 +2740,34 @@ const params = [from, messageData.typedData];
 
 web3.currentProvider.sendAsync(
 	{
-	  method,
-	  params,
-	  from,
+		method,
+		params,
+		from,
 	},
 	function (err, result) {
-	  if (err) return console.dir(err);
-	  if (result.error) {
-		alert(result.error.message);
-	  }
-	  if (result.error) return console.error('ERROR', result);
-	  console.log('TYPED SIGNED:' + JSON.stringify(result.result));
+		if (err) return console.dir(err);
+		if (result.error) {
+			alert(result.error.message);
+		}
+		if (result.error) return console.error('ERROR', result);
+		console.log('TYPED SIGNED:' + JSON.stringify(result.result));
 
-	  const recovered = sigUtil.recoverTypedSignature_v4({
-		data: JSON.parse(msgParams),
-		sig: result.result,
-	  });
+		const recovered = sigUtil.recoverTypedSignature_v4({
+			data: JSON.parse(msgParams),
+			sig: result.result,
+		  });
 
-	  if (
-		ethUtil.toChecksumAddress(recovered) === ethUtil.toChecksumAddress(from)
-	  ) {
-		alert('Successfully recovered signer as ' + from);
-	  } else {
-		alert(
-		  'Failed to verify signer when comparing ' + result + ' to ' + from
-		);
-	  }
+		if (
+			ethUtil.toChecksumAddress(recovered) === ethUtil.toChecksumAddress(from)
+		  ) {
+			alert('Successfully recovered signer as ' + from);
+		  } else {
+			alert(
+			  'Failed to verify signer when comparing ' + result + ' to ' + from
+			);
+		  }
 	}
-  );
+);
   */
 
 #[test]
