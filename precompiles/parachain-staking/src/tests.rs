@@ -15,8 +15,8 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::mock::{
-	events, evm_test_context, precompile_address, roll_to, set_points, Call, ExtBuilder, Origin,
-	ParachainStaking, PrecompilesValue, Runtime, TestAccount, TestPrecompiles,
+	events, evm_test_context, precompile_address, roll_to, roll_to_round_begin, set_points, Call,
+	ExtBuilder, Origin, ParachainStaking, PrecompilesValue, Runtime, TestAccount, TestPrecompiles,
 };
 use crate::{Action, PrecompileOutput};
 use fp_evm::{Context, PrecompileFailure};
@@ -304,15 +304,11 @@ fn round_works() {
 			expected_result
 		);
 		// Default round length is 5 so test next few round transitions
-		const ROUND_TRANSITIONS_TO_TEST: u64 = 10;
-		let mut current_block: u64 = 1;
-		let mut current_round: u32 = 1;
-		while current_block
-			< (ROUND_TRANSITIONS_TO_TEST * crate::mock::DefaultBlocksPerRound::get() as u64)
-		{
-			current_block += crate::mock::DefaultBlocksPerRound::get() as u64;
+		const ROUNDS_TO_TEST: u64 = 10;
+		let mut current_round: u64 = 1;
+		while current_round < ROUNDS_TO_TEST {
 			current_round += 1;
-			roll_to(current_block);
+			roll_to_round_begin(current_round);
 			expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(current_round).build(),
