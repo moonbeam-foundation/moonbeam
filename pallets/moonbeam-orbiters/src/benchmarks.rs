@@ -22,6 +22,7 @@ use crate::{Call, Config, Pallet};
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
 use frame_support::traits::{Currency, ReservableCurrency};
 use frame_system::RawOrigin;
+use sp_runtime::traits::StaticLookup;
 
 /// Create a funded user.
 fn create_funded_user<T: Config>(string: &'static str, n: u32, balance: u32) -> T::AccountId {
@@ -32,12 +33,38 @@ fn create_funded_user<T: Config>(string: &'static str, n: u32, balance: u32) -> 
 	user
 }
 
+/// Create a funded user and register it as a collator in orbiter program
+fn create_collator<T: Config>(string: &'static str, n: u32, balance: u32) -> T::AccountId {
+	let collator_account: T::AccountId = create_funded_user::<T>(string, n, balance);
+	let collator_lookup: <T::Lookup as StaticLookup>::Source =
+		T::Lookup::unlookup(collator_account.clone());
+	Pallet::<T>::add_collator(RawOrigin::Root.into(), collator_lookup)
+		.expect("fail to register collator");
+	collator_account
+}
+
+/// Create a funded user ard register it as an orbiter
+fn create_orbiter<T: Config>(string: &'static str, n: u32, balance: u32) -> T::AccountId {
+	let orbiter_account: T::AccountId = create_funded_user::<T>(string, n, balance);
+	Pallet::<T>::orbiter_register(RawOrigin::Signed(orbiter_account.clone()).into())
+		.expect("fail to register orbiter");
+	orbiter_account
+}
+
 const MIN_ORBITER_DEPOSIT: u32 = 10_000;
 const USER_SEED: u32 = 999666;
 
 benchmarks! {
+	collator_add_orbiter {
+		let collator_account: T::AccountId = create_collator::<T>("COLLATOR1", USER_SEED, 10_000);
+		let orbiter_account: T::AccountId = create_orbiter::<T>("ORBITER1", USER_SEED, 20_000);
+		let orbiter_lookup: <T::Lookup as StaticLookup>::Source = T::Lookup::unlookup(orbiter_account.clone());
+	}: _(RawOrigin::Signed(collator_account.clone()), orbiter_lookup)
+	verify {
+
+	}
 	orbiter_register {
-		let orbiter_account: T::AccountId = create_funded_user::<T>("TEST", 20_000, USER_SEED);
+		let orbiter_account: T::AccountId = create_funded_user::<T>("ORBITER1", USER_SEED, 20_000);
 	}: _(RawOrigin::Signed(orbiter_account.clone()))
 	verify {
 		assert_eq!(T::Currency::reserved_balance(&orbiter_account), MIN_ORBITER_DEPOSIT.into());
@@ -63,6 +90,13 @@ mod tests {
 			(MIN_ORBITER_DEPOSIT as crate::mock::Balance).encode(),
 		);
 		TestExternalities::new(t)
+	}
+
+	#[test]
+	fn bench_collator_add_orbiter() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(Pallet::<Test>::test_benchmark_collator_add_orbiter());
+		});
 	}
 
 	#[test]
