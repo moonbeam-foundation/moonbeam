@@ -116,7 +116,8 @@ benchmarks! {
 			).expect("fail to add orbiter");
 		}
 
-		let collator_lookup: <T::Lookup as StaticLookup>::Source = T::Lookup::unlookup(collator_account.clone());
+		let collator_lookup: <T::Lookup as StaticLookup>::Source =
+			T::Lookup::unlookup(collator_account.clone());
 	}: _(RawOrigin::Signed(orbiter_account), collator_lookup)
 	verify {
 
