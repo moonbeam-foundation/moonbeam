@@ -18,11 +18,27 @@
 
 //! Benchmarking
 
-use crate::{Call, Config, Pallet};
+use crate::{BalanceOf, Call, Config, Pallet};
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
 use frame_support::traits::{Currency, Get, ReservableCurrency};
 use frame_system::RawOrigin;
+use parity_scale_codec::Encode;
 use sp_runtime::traits::StaticLookup;
+
+const MIN_ORBITER_DEPOSIT: u32 = 10_000;
+const USER_SEED: u32 = 999666;
+
+fn init<T: Config>() {
+	let min_orbiter_deposit_prefix =
+		frame_support::storage::storage_prefix(b"MoonbeamOrbiters", b"MinOrbiterDeposit");
+	let min_orbiter_deposit: BalanceOf<T> = MIN_ORBITER_DEPOSIT.into();
+	min_orbiter_deposit.using_encoded(|min_orbiter_deposit_bytes| {
+		frame_support::storage::unhashed::put(
+			&min_orbiter_deposit_prefix,
+			min_orbiter_deposit_bytes,
+		)
+	});
+}
 
 /// Create a funded user.
 fn create_funded_user<T: Config>(string: &'static str, n: u32, balance: u32) -> T::AccountId {
@@ -51,11 +67,9 @@ fn create_orbiter<T: Config>(string: &'static str, n: u32, balance: u32) -> T::A
 	orbiter_account
 }
 
-const MIN_ORBITER_DEPOSIT: u32 = 10_000;
-const USER_SEED: u32 = 999666;
-
 benchmarks! {
 	collator_add_orbiter {
+		init::<T>();
 		let collator_account: T::AccountId = create_collator::<T>("COLLATOR", USER_SEED, 10_000);
 
 		// To test the worst case, we pre-fill the collator pool to the maximum size minus one
@@ -78,6 +92,7 @@ benchmarks! {
 
 	}
 	collator_remove_orbiter {
+		init::<T>();
 		let collator_account: T::AccountId = create_collator::<T>("COLLATOR", USER_SEED, 10_000);
 
 		// orbiter_lookup must be initialized with an account id
@@ -100,6 +115,7 @@ benchmarks! {
 
 	}
 	orbiter_leave_collator_pool {
+		init::<T>();
 		let collator_account: T::AccountId = create_collator::<T>("COLLATOR", USER_SEED, 10_000);
 
 		// orbiter_account must be initialized with an account id
@@ -123,6 +139,7 @@ benchmarks! {
 
 	}
 	orbiter_register {
+		init::<T>();
 		let orbiter_account: T::AccountId = create_funded_user::<T>("ORBITER", USER_SEED, 20_000);
 	}: _(RawOrigin::Signed(orbiter_account.clone()))
 	verify {
@@ -131,6 +148,9 @@ benchmarks! {
 	orbiter_unregister {
 		// We make it dependent on the number of collator in the orbiter program
 		let n in 0..100;
+
+		init::<T>();
+
 		for i in 0..n {
 			let _: T::AccountId = create_collator::<T>("COLLATOR", USER_SEED + i, 10_000);
 		}
@@ -140,6 +160,7 @@ benchmarks! {
 
 	}
 	add_collator {
+		init::<T>();
 		let collator_account: T::AccountId = create_funded_user::<T>("COLLATOR", USER_SEED, 10_000);
 		let collator_lookup: <T::Lookup as StaticLookup>::Source =
 			T::Lookup::unlookup(collator_account.clone());
@@ -149,6 +170,7 @@ benchmarks! {
 
 	}
 	remove_collator {
+		init::<T>();
 		let collator_account: T::AccountId = create_collator::<T>("COLLATOR", USER_SEED, 10_000);
 
 		for i in 0..T::MaxPoolSize::get() {
@@ -175,7 +197,6 @@ mod tests {
 	use crate::benchmarks::*;
 	use crate::mock::Test;
 	use frame_support::assert_ok;
-	use parity_scale_codec::Encode;
 	use sp_io::TestExternalities;
 
 	pub fn new_test_ext() -> TestExternalities {
