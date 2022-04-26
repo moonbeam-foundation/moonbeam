@@ -667,6 +667,24 @@ parameter_types! {
 	/// Default percent of inflation set aside for parachain bond every round
 	pub const DefaultParachainBondReservePercent: Percent = Percent::from_percent(30);
 }
+
+pub struct OnCollatorPayout;
+impl parachain_staking::OnCollatorPayout<AccountId, Balance> for OnCollatorPayout {
+	fn on_collator_payout(
+		for_round: parachain_staking::RoundIndex,
+		collator_id: AccountId,
+		amount: Balance,
+	) -> Weight {
+		MoonbeamOrbiters::distribute_rewards(for_round, collator_id, amount)
+	}
+}
+pub struct OnNewRound;
+impl parachain_staking::OnNewRound for OnNewRound {
+	fn on_new_round(round_index: parachain_staking::RoundIndex) -> Weight {
+		MoonbeamOrbiters::on_new_round(round_index)
+	}
+}
+
 impl parachain_staking::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
@@ -705,8 +723,8 @@ impl parachain_staking::Config for Runtime {
 	type MinDelegation = ConstU128<{ 5 * currency::MOVR * currency::SUPPLY_FACTOR }>;
 	/// Minimum stake required to be reserved to be a delegator
 	type MinDelegatorStk = ConstU128<{ 5 * currency::MOVR * currency::SUPPLY_FACTOR }>;
-	type OnCollatorPayout = ();
-	type OnNewRound = ();
+	type OnCollatorPayout = OnCollatorPayout;
+	type OnNewRound = OnNewRound;
 	type WeightInfo = parachain_staking::weights::SubstrateWeight<Runtime>;
 }
 
@@ -812,7 +830,9 @@ impl InstanceFilter<Call> for ProxyType {
 			),
 			ProxyType::Staking => matches!(
 				c,
-				Call::ParachainStaking(..) | Call::Utility(..) | Call::AuthorMapping(..)
+				Call::ParachainStaking(..)
+					| Call::Utility(..) | Call::AuthorMapping(..)
+					| Call::MoonbeamOrbiters(..)
 			),
 			ProxyType::CancelProxy => matches!(
 				c,
@@ -1015,6 +1035,26 @@ impl pallet_proxy_genesis_companion::Config for Runtime {
 	type ProxyType = ProxyType;
 }
 
+parameter_types! {
+	pub OrbiterReserveIdentifier: [u8; 4] = [b'o', b'r', b'b', b'i'];
+}
+
+impl pallet_moonbeam_orbiters::Config for Runtime {
+	type Event = Event;
+	type AccountLookup = AuthorMapping;
+	type AddCollatorOrigin = EnsureRoot<AccountId>;
+	type Currency = Balances;
+	type DelCollatorOrigin = EnsureRoot<AccountId>;
+	/// Maximum number of orbiters per collator
+	type MaxPoolSize = ConstU32<8>;
+	/// Maximum number of round to keep on storage
+	type MaxRoundArchive = ConstU32<4>;
+	type OrbiterReserveIdentifier = OrbiterReserveIdentifier;
+	type RotatePeriod = ConstU32<3>;
+	/// Round index type.
+	type RoundIndex = parachain_staking::RoundIndex;
+}
+
 construct_runtime! {
 	pub enum Runtime where
 		Block = Block,
@@ -1037,6 +1077,7 @@ construct_runtime! {
 		AuthorInherent: pallet_author_inherent::{Pallet, Call, Storage, Inherent} = 21,
 		AuthorFilter: pallet_author_slot_filter::{Pallet, Call, Storage, Event, Config} = 22,
 		AuthorMapping: pallet_author_mapping::{Pallet, Call, Config<T>, Storage, Event<T>} = 23,
+		MoonbeamOrbiters: pallet_moonbeam_orbiters::{Pallet, Call, Storage, Event<T>} = 24,
 
 		// Handy utilities.
 		Utility: pallet_utility::{Pallet, Call, Event} = 30,

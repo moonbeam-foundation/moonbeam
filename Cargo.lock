@@ -6250,6 +6250,7 @@ dependencies = [
  "pallet-identity",
  "pallet-maintenance-mode",
  "pallet-migrations",
+ "pallet-moonbeam-orbiters",
  "pallet-proxy",
  "pallet-proxy-genesis-companion",
  "pallet-randomness-collective-flip",
