@@ -42,7 +42,43 @@ macro_rules! impl_runtime_apis_plus_common {
 
 			impl sp_block_builder::BlockBuilder<Block> for Runtime {
 				fn apply_extrinsic(extrinsic: <Block as BlockT>::Extrinsic) -> ApplyExtrinsicResult {
-					Executive::apply_extrinsic(extrinsic)
+					use $crate::ethereum::Log;
+					use $crate::precompile_utils::keccak256;
+					use pallet_evm::{ExitReason, ExitSucceed, ExitRevert};
+
+					match &extrinsic.0.function {
+						&Call::Ethereum(_) => {
+							// Simply apply the extrinsic, which already handles
+							// inclusion in Frontier block.
+							Executive::apply_extrinsic(extrinsic)
+						},
+						_ => {
+							let extrinsic_clone = extrinsic.clone();
+							// TODO : Extract extrinsic data.
+
+							let logs = vec![
+								Log {
+									address: H160::zero(),
+									topics: vec![
+										H256::from(keccak256!("SubstrateTransaction"))
+									],
+									data: vec![]
+								}
+							];
+
+							let outcome = Executive::apply_extrinsic(extrinsic)?;
+							let reason = if outcome.is_ok() {
+								ExitReason::Succeed(ExitSucceed::Returned)
+							} else {
+								ExitReason::Revert(ExitRevert::Reverted)
+							};
+
+							Ethereum::insert_dummy_transaction_receipt(reason, 0u8.into(), logs);
+
+							Ok(outcome)
+						}
+					}
+
 				}
 
 				fn finalize_block() -> <Block as BlockT>::Header {

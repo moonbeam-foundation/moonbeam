@@ -16,6 +16,8 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+pub use ethereum;
+pub use precompile_utils;
 use sp_core::H160;
 
 mod apis;

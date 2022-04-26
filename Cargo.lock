@@ -10469,6 +10469,7 @@ dependencies = [
 name = "runtime-common"
 version = "0.8.0-dev"
 dependencies = [
+ "ethereum",
  "frame-support",
  "frame-system",
  "impl-trait-for-tuples",
@@ -10482,6 +10483,7 @@ dependencies = [
  "pallet-migrations",
  "pallet-scheduler",
  "parachain-staking",
+ "precompile-utils",
  "sp-core",
  "sp-runtime",
  "sp-std",
