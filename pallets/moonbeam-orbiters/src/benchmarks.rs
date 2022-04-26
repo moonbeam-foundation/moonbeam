@@ -59,7 +59,17 @@ benchmarks! {
 		let collator_account: T::AccountId = create_collator::<T>("COLLATOR1", USER_SEED, 10_000);
 		let orbiter_account: T::AccountId = create_orbiter::<T>("ORBITER1", USER_SEED, 20_000);
 		let orbiter_lookup: <T::Lookup as StaticLookup>::Source = T::Lookup::unlookup(orbiter_account.clone());
-	}: _(RawOrigin::Signed(collator_account.clone()), orbiter_lookup)
+	}: _(RawOrigin::Signed(collator_account), orbiter_lookup)
+	verify {
+
+	}
+	collator_remove_orbiter {
+		let collator_account: T::AccountId = create_collator::<T>("COLLATOR1", USER_SEED, 10_000);
+		let orbiter_account: T::AccountId = create_orbiter::<T>("ORBITER1", USER_SEED, 20_000);
+		let orbiter_lookup: <T::Lookup as StaticLookup>::Source = T::Lookup::unlookup(orbiter_account.clone());
+		Pallet::<T>::collator_add_orbiter(RawOrigin::Signed(collator_account.clone()).into(), orbiter_lookup.clone())
+			.expect("fail to add orbiter");
+	}: _(RawOrigin::Signed(collator_account), orbiter_lookup)
 	verify {
 
 	}
@@ -96,6 +106,13 @@ mod tests {
 	fn bench_collator_add_orbiter() {
 		new_test_ext().execute_with(|| {
 			assert_ok!(Pallet::<Test>::test_benchmark_collator_add_orbiter());
+		});
+	}
+
+	#[test]
+	fn bench_collator_remove_orbiter() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(Pallet::<Test>::test_benchmark_collator_remove_orbiter());
 		});
 	}
 
