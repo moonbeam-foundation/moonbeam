@@ -303,7 +303,7 @@ fn round_works() {
 			),
 			expected_result
 		);
-		// Default round length is 5 so test next few round transitions
+		// test next `ROUNDS_TO_TEST` rounds
 		const ROUNDS_TO_TEST: u64 = 10;
 		let mut current_round: u64 = 1;
 		while current_round < ROUNDS_TO_TEST {
