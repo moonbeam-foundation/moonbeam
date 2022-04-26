@@ -8,7 +8,7 @@ const debug = require("debug")("smoke:treasury");
 const wssUrl = process.env.WSS_URL || null;
 const relayWssUrl = process.env.RELAY_WSS_URL || null;
 
-describeSmokeSuite(`Verify XCM relay weight fees`, { wssUrl, relayWssUrl }, (context) => {
+describeSmokeSuite(`Verify XCM weight fees for relay`, { wssUrl, relayWssUrl }, (context) => {
   const accounts: { [account: string]: FrameSystemAccountInfo } = {};
 
   let atBlockNumber: number = 0;
@@ -28,7 +28,7 @@ describeSmokeSuite(`Verify XCM relay weight fees`, { wssUrl, relayWssUrl }, (con
     );
   });
 
-  it("should have value matching relay", async function () {
+  it("should have value over relay expected fees", async function () {
     // Load data
     const transactInfo = await apiAt.query.xcmTransactor.transactInfoWithWeightLimit.entries();
 
@@ -41,18 +41,9 @@ describeSmokeSuite(`Verify XCM relay weight fees`, { wssUrl, relayWssUrl }, (con
 
     expect(transactInfo.length, "Missing transactInfoWithWeightLimit data").to.be.equal(1);
     const feePerSecond = transactInfo[0][1].unwrap().feePerSecond.toBigInt();
-    // We do approximation check
     expect(
-      (feePerSecond * 99n) / 100n < expectedFeePerSecond,
-      `failed check: feePerSecond (99%): ${
-        (feePerSecond * 99n) / 100n
-      } < expected ${expectedFeePerSecond}`
-    ).to.be.true;
-    expect(
-      (feePerSecond * 101n) / 100n > expectedFeePerSecond,
-      `failed check: feePerSecond (101%): ${
-        (feePerSecond * 101n) / 100n
-      } > expected ${expectedFeePerSecond}`
+      feePerSecond > expectedFeePerSecond,
+      `failed check: feePerSecond: ${feePerSecond} > expected ${expectedFeePerSecond}`
     ).to.be.true;
     debug(`Verified feePerSecond within relay base weight range`);
   });
