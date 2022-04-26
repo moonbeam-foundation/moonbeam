@@ -2755,20 +2755,20 @@ web3.currentProvider.sendAsync(
 		const recovered = sigUtil.recoverTypedSignature_v4({
 			data: JSON.parse(msgParams),
 			sig: result.result,
-		  });
+		});
 
 		if (
 			ethUtil.toChecksumAddress(recovered) === ethUtil.toChecksumAddress(from)
-		  ) {
+		) {
 			alert('Successfully recovered signer as ' + from);
-		  } else {
+		} else {
 			alert(
-			  'Failed to verify signer when comparing ' + result + ' to ' + from
+				'Failed to verify signer when comparing ' + result + ' to ' + from
 			);
-		  }
+		}
 	}
 );
-  */
+*/
 
 #[test]
 fn permit_valid_with_metamask_signed_data() {
