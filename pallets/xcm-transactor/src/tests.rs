@@ -180,7 +180,7 @@ fn test_transact_through_derivative_multilocation_success() {
 						transact_extra_weight: 0,
 						fee_per_second: 1,
 						max_weight: 10000,
-						transact_extra_weight_signed: None
+						transact_extra_weight_signed: None,
 					},
 				},
 				crate::Event::TransactedDerivative {
@@ -234,7 +234,7 @@ fn test_transact_through_derivative_success() {
 						transact_extra_weight: 0,
 						fee_per_second: 1,
 						max_weight: 10000,
-						transact_extra_weight_signed: None
+						transact_extra_weight_signed: None,
 					},
 				},
 				crate::Event::TransactedDerivative {
@@ -297,7 +297,7 @@ fn test_root_can_transact_through_sovereign() {
 						transact_extra_weight: 0,
 						fee_per_second: 1,
 						max_weight: 10000,
-						transact_extra_weight_signed: None
+						transact_extra_weight_signed: None,
 					},
 				},
 				crate::Event::TransactedSovereign {
@@ -348,7 +348,7 @@ fn test_max_transact_weight_migration_works() {
 				transact_extra_weight: 0,
 				fee_per_second: 1 * WEIGHT_PER_SECOND as u128,
 				max_weight: 20000000000,
-				transact_extra_weight_signed: None
+				transact_extra_weight_signed: None,
 			};
 
 			// We populate the previous key with the previous struct
@@ -426,7 +426,7 @@ fn removing_transact_info_works() {
 						transact_extra_weight: 0,
 						fee_per_second: 1,
 						max_weight: 10000,
-						transact_extra_weight_signed: None
+						transact_extra_weight_signed: None,
 					},
 				},
 				crate::Event::TransactInfoRemoved {
