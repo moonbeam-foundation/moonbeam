@@ -691,51 +691,6 @@ pub mod pallet {
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
-		#[pallet::weight(
-			<T as Config>::WeightInfo::hotfix_remove_delegation_requests(delegators.len() as u32)
-		)]
-		/// Hotfix patch to remove all delegation requests not removed during a candidate exit
-		pub fn hotfix_remove_delegation_requests(
-			origin: OriginFor<T>,
-			delegators: Vec<T::AccountId>,
-		) -> DispatchResultWithPostInfo {
-			frame_system::ensure_root(origin)?;
-			for delegator in delegators {
-				if let Some(mut state) = <DelegatorState<T>>::get(&delegator) {
-					// go through all requests and remove ones without corresponding delegation
-					for (candidate, request) in state.requests.requests.clone().into_iter() {
-						if !state.delegations.0.iter().any(|x| x.owner == candidate) {
-							state.requests.requests.remove(&candidate);
-							state.requests.less_total =
-								state.requests.less_total.saturating_sub(request.amount);
-							if matches!(request.action, DelegationChange::Revoke) {
-								state.requests.revocations_count =
-									state.requests.revocations_count.saturating_sub(1u32);
-							}
-						}
-					}
-					<DelegatorState<T>>::insert(&delegator, state);
-				} // else delegator is not a delegator so no update needed
-			}
-			Ok(().into())
-		}
-		#[pallet::weight(
-			<T as Config>::WeightInfo::hotfix_update_candidate_pool_value(candidates.len() as u32)
-		)]
-		/// Hotfix patch to correct and update CandidatePool value for candidates that have
-		/// called candidate_bond_more when it did not update the CandidatePool value
-		pub fn hotfix_update_candidate_pool_value(
-			origin: OriginFor<T>,
-			candidates: Vec<T::AccountId>,
-		) -> DispatchResultWithPostInfo {
-			frame_system::ensure_root(origin)?;
-			for candidate in candidates {
-				if let Some(state) = <CandidateInfo<T>>::get(&candidate) {
-					Self::update_active(candidate, state.total_counted);
-				} // else candidate is not a candidate so no update needed
-			}
-			Ok(().into())
-		}
 		#[pallet::weight(<T as Config>::WeightInfo::set_staking_expectations())]
 		/// Set the expectations for total staked. These expectations determine the issuance for
 		/// the round according to logic in `fn compute_issuance`

@@ -123,51 +123,6 @@ fn roll_to_and_author<T: Config>(round_delay: u32, author: T::AccountId) {
 const USER_SEED: u32 = 999666;
 
 benchmarks! {
-	// HOTFIX BENCHMARK
-	hotfix_remove_delegation_requests {
-		let x in 2..<<T as Config>::MaxTopDelegationsPerCandidate as Get<u32>>::get()
-		+ <<T as Config>::MaxBottomDelegationsPerCandidate as Get<u32>>::get();
-		let mut delegators: Vec<T::AccountId> = Vec::new();
-		let collator = create_funded_collator::<T>(
-			"candidate",
-			100,
-			0u32.into(),
-			true,
-			1u32
-		)?;
-		let mut col_del_count = 0u32;
-		for i in 1..x {
-			let seed = USER_SEED + i;
-			let delegator = create_funded_delegator::<T>(
-				"delegator",
-				seed,
-				0u32.into(),
-				collator.clone(),
-				true,
-				col_del_count,
-			)?;
-			delegators.push(delegator);
-			col_del_count += 1u32;
-		}
-	}: _(RawOrigin::Root, delegators)
-	verify { }
-
-	hotfix_update_candidate_pool_value {
-		let x in 5..200;
-		let mut candidates: Vec<T::AccountId> = Vec::new();
-		for i in 1..x {
-			let account = create_funded_collator::<T>(
-				"candidate",
-				i + 100,
-				0u32.into(),
-				true,
-				i
-			)?;
-			candidates.push(account);
-		}
-	}: _(RawOrigin::Root, candidates)
-	verify { }
-
 	// MONETARY ORIGIN DISPATCHABLES
 
 	set_staking_expectations {
