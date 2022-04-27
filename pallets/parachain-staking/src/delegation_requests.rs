@@ -328,4 +328,11 @@ impl<T: Config> Pallet<T> {
 
 		Ok(().into())
 	}
+
+	/// Returns true if a [ScheduledRequest] exists for a given delegation
+	pub fn delegation_request_exists(collator: &T::AccountId, delegator: &T::AccountId) -> bool {
+		<DelegationScheduledRequests<T>>::get(collator)
+			.iter()
+			.any(|x| &x.delegator == delegator)
+	}
 }
