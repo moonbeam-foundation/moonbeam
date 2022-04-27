@@ -1,7 +1,7 @@
 [package]
 name = "pallet-ethereum-chain-id"
 authors = [ "PureStake" ]
-edition = "2018"
+edition = "2021"
 version = "1.0.0"
 
 [dependencies]

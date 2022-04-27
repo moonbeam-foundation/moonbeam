@@ -2,7 +2,7 @@
 name = "pallet-maintenance-mode"
 authors = [ "PureStake" ]
 description = "Puts a FRAME-based runtime into maintenance mode where restricted interactions are allowed."
-edition = "2018"
+edition = "2021"
 version = "0.1.0"
 
 [dependencies]

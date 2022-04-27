@@ -2,7 +2,7 @@
 name = "pallet-proxy-genesis-companion"
 authors = [ "PureStake" ]
 description = "A simple pallet that expands pallet-proxy with a genesis configuration"
-edition = "2018"
+edition = "2021"
 version = "0.1.0"
 
 [dependencies]

@@ -2,7 +2,7 @@
 name = "perf-test"
 authors = [ "PureStake" ]
 description = "Moonbeam Performance Tests"
-edition = "2018"
+edition = "2021"
 version = "0.1.0"
 
 [dependencies]

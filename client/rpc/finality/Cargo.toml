@@ -2,7 +2,7 @@
 name = "moonbeam-finality-rpc"
 authors = [ "PureStake" ]
 description = "An experimental RPC to check for block and transaction finality in the moonbeam parachain"
-edition = "2018"
+edition = "2021"
 homepage = "https://moonbeam.network"
 license = "GPL-3.0-only"
 repository = "https://github.com/PureStake/moonbeam/"

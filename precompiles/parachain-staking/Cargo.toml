@@ -2,7 +2,7 @@
 name = "parachain-staking-precompiles"
 authors = [ "PureStake" ]
 description = "A Precompile to make parachain staking accessible to pallet-evm"
-edition = "2018"
+edition = "2021"
 version = "1.0.0"
 
 [dependencies]

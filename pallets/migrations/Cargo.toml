@@ -2,7 +2,7 @@
 name = "pallet-migrations"
 authors = [ "PureStake" ]
 description = "migrations management pallet"
-edition = "2018"
+edition = "2021"
 version = "0.1.0"
 
 [dependencies]

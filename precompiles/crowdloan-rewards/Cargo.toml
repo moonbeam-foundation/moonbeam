@@ -2,7 +2,7 @@
 name = "crowdloan-rewards-precompiles"
 authors = [ "PureStake" ]
 description = "A Precompile to make crowdloan rewards accessible to pallet-evm"
-edition = "2018"
+edition = "2021"
 version = "0.6.0"
 
 [dependencies]

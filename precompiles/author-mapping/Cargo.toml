@@ -2,7 +2,7 @@
 name = "pallet-author-mapping-precompiles"
 authors = [ "PureStake" ]
 description = "A Precompile to make pallet-author-mapping accessible to pallet-evm"
-edition = "2018"
+edition = "2021"
 version = "0.2.0"
 
 [dependencies]

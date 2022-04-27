@@ -2,7 +2,7 @@
 name = "precompile-utils"
 authors = [ "PureStake" ]
 description = "Utils to write EVM precompiles."
-edition = "2018"
+edition = "2021"
 version = "0.1.0"
 
 [dependencies]
