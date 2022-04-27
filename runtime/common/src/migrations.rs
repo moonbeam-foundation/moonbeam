@@ -650,9 +650,7 @@ pub struct XcmMigrations<Runtime>(PhantomData<Runtime>);
 #[cfg(feature = "xcm-support")]
 impl<Runtime> GetMigrations for XcmMigrations<Runtime>
 where
-	Runtime: xcm_transactor::Config
-		+ pallet_migrations::Config
-		+ pallet_asset_manager::Config
+	Runtime: xcm_transactor::Config + pallet_migrations::Config + pallet_asset_manager::Config,
 	<Runtime as pallet_asset_manager::Config>::ForeignAssetType:
 		Into<Option<MultiLocation>> + From<MultiLocation>,
 {
