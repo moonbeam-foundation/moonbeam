@@ -620,8 +620,6 @@ where
 			ParachainStakingSplitDelegatorStateIntoDelegationScheduledRequests::<Runtime>(
 				Default::default(),
 			);
-		let migration_author_mapping_add_keys_to_registration_info =
-			AuthorMappingAddKeysToRegistrationInfo::<Runtime>(Default::default());
 		vec![
 			// completed in runtime 800
 			// Box::new(migration_author_mapping_twox_to_blake),
