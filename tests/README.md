@@ -161,3 +161,15 @@ are the ports used by the debug node.
 A VSCode test allow to quickly run the `test-single` test in debug mode. To run another test,
 change the command in the `package.json`. Note that you should restart the node after running
 one test file.
+
+## Fork Tests
+
+Those tests are intended to run using an exported state from an existing network.  
+They require to specify the exported state, the runtime name and the parachain id.  
+Also the exported state needs to be modified using fos2 file (TODO: add link).
+
+Here is an exemple of the command to run:
+
+```
+RUNTIME_NAME=moonbeam SPEC_FILE=~/projects/moonbeam-states/moonbeam-export-state-0.21.1-bd3048299-2022-04-01-1-56-09.mod.json PARA_ID=2004 PORT_PREFIX=51 npm run fork-test
+```

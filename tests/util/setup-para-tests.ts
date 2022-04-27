@@ -4,6 +4,7 @@ import { ethers } from "ethers";
 import { provideWeb3Api, provideEthersApi, providePolkadotApi, EnhancedWeb3 } from "./providers";
 import { DEBUG_MODE } from "./constants";
 import { HttpProvider } from "web3-core";
+import { blake2AsHex } from "@polkadot/util-crypto";
 import fs from "fs";
 import chalk from "chalk";
 import {
@@ -29,7 +30,7 @@ export interface ParaTestContext {
     from: KeyringPair,
     runtimeName: "moonbase" | "moonriver" | "moonbeam",
     runtimeVersion: string,
-    waitMigration?: boolean
+    options?: { waitMigration?: boolean; useGovernance?: boolean }
   ) => Promise<number>;
   blockNumber: number;
 
@@ -57,7 +58,7 @@ export function describeParachain(
 ) {
   describe(title, function () {
     // Set timeout to 5000 for all tests.
-    this.timeout(300000);
+    this.timeout("spec" in options.parachain ? 3600000 : 300000);
 
     // The context is initialized empty to allow passing a reference
     // and to be filled once the node information is retrieved
@@ -65,7 +66,6 @@ export function describeParachain(
 
     // Making sure the Moonbeam node has started
     before("Starting Moonbeam Test Node", async function () {
-      this.timeout(300000);
       try {
         const init = !DEBUG_MODE
           ? await startParachainNodes(options)
@@ -190,16 +190,20 @@ export function describeParachain(
         context.upgradeRuntime = async (
           from: KeyringPair,
           runtimeName: "moonbase" | "moonriver" | "moonbeam",
-          runtimeVersion: string,
-          waitMigration: boolean = true
+          runtimeVersion: "local" | string,
+          { waitMigration = true, useGovernance = false } = {
+            waitMigration: true,
+            useGovernance: false,
+          }
         ) => {
+          const api = context.polkadotApiParaone;
           return new Promise<number>(async (resolve, reject) => {
             try {
               const code = fs
                 .readFileSync(await getRuntimeWasm(runtimeName, runtimeVersion))
                 .toString();
 
-              const existingCode = await context.polkadotApiParaone.rpc.state.getStorage(":code");
+              const existingCode = await api.rpc.state.getStorage(":code");
               if (existingCode.toString() == code) {
                 reject(
                   `Runtime upgrade with same code: ${existingCode.toString().slice(0, 20)} vs ${code
@@ -208,21 +212,108 @@ export function describeParachain(
                 );
               }
 
-              let nonce = (
-                await context.polkadotApiParaone.rpc.system.accountNextIndex(from.address)
-              ).toNumber();
+              let nonce = (await api.rpc.system.accountNextIndex(from.address)).toNumber();
 
-              process.stdout.write(
-                `Sending sudo.setCode (${sha256(Buffer.from(code))} [~${Math.floor(
-                  code.length / 1024
-                )} kb])...`
-              );
-              const unsubSetCode = await context.polkadotApiParaone.tx.sudo
-                .sudoUncheckedWeight(
-                  await context.polkadotApiParaone.tx.system.setCodeWithoutChecks(code),
+              let tx;
+              if (useGovernance) {
+                process.stdout.write(
+                  `Sending council parachainSystem.authorizeUpgrade (${sha256(
+                    Buffer.from(code)
+                  )} [~${Math.floor(code.length / 1024)} kb])...`
+                );
+                // We just prepare the proposals
+                let proposal = api.tx.parachainSystem.authorizeUpgrade(blake2AsHex(code));
+                let encodedProposal = proposal.method.toHex();
+                let encodedHash = blake2AsHex(encodedProposal);
+                // console.log("Encoded proposal hash for complete is %s", encodedHash);
+                // console.log("Encoded length %d", encodedProposal.length);
+
+                await api.tx.democracy
+                  .notePreimage(encodedProposal)
+                  .signAndSend(from, { nonce: nonce++ });
+
+                let external = api.tx.democracy.externalProposeMajority(encodedHash);
+
+                await api.tx.councilCollective
+                  .propose(1, external, external.length)
+                  .signAndSend(from, { nonce: nonce++ });
+                process.stdout.write(`✅\n`);
+                process.stdout.write(`Sending fast track (${encodedHash}, 3, 0)...`);
+                let fastTrack = api.tx.democracy.fastTrack(encodedHash, 3, 0);
+
+                await api.tx.techCommitteeCollective
+                  .propose(1, fastTrack, fastTrack.length)
+                  .signAndSend(from, { nonce: nonce++ });
+                process.stdout.write(`✅\n`);
+
+                let referendumIndex: number = null;
+
+                process.stdout.write(`Waiting for referendum (${encodedHash}, 3, 1)...`);
+                while (referendumIndex === null || referendumIndex === undefined) {
+                  const referendum = await api.query.democracy.referendumInfoOf.entries();
+                  referendumIndex = referendum
+                    .filter(
+                      (ref) =>
+                        ref[1].unwrap().isOngoing &&
+                        ref[1].unwrap().asOngoing.proposalHash.toHex() == encodedHash
+                    )
+                    .map((ref) =>
+                      api.registry.createType("u32", ref[0].toU8a().slice(-4)).toNumber()
+                    )?.[0];
+                  await new Promise((resolve) => setTimeout(resolve, 1000));
+                }
+
+                const voteAmount = 1n * 10n ** BigInt(api.registry.chainDecimals[0]);
+                process.stdout.write(`: ${referendumIndex} ✅\n`);
+                process.stdout.write(
+                  `Voting aye for [${referendumIndex}] ${encodedHash}: ${voteAmount} UNITS`
+                );
+                await api.tx.democracy
+                  .vote(referendumIndex, {
+                    Standard: {
+                      balance: voteAmount,
+                      vote: { aye: true, conviction: 1 },
+                    },
+                  })
+                  .signAndSend(from, { nonce: nonce++ });
+                process.stdout.write(`✅\n`);
+
+                let hasExecuted = false;
+
+                process.stdout.write(
+                  `Waiting for referendum [${referendumIndex}] to be executed...`
+                );
+                while (!hasExecuted) {
+                  const referendum = await api.query.democracy.referendumInfoOf.entries();
+                  hasExecuted = !!referendum.find(
+                    (ref) =>
+                      ref[1].unwrap().isFinished &&
+                      api.registry.createType("u32", ref[0].toU8a().slice(-4)).toNumber() ==
+                        referendumIndex
+                  );
+                  await new Promise((resolve) => setTimeout(resolve, 1000));
+                }
+                process.stdout.write(`✅\n`);
+
+                process.stdout.write(`Enacting authorized upgrade...`);
+                tx = await api.tx.parachainSystem.enactAuthorizedUpgrade(code);
+                process.stdout.write(`✅\n`);
+              } else {
+                process.stdout.write(
+                  `Sending sudo.setCode (${sha256(Buffer.from(code))} [~${Math.floor(
+                    code.length / 1024
+                  )} kb])...`
+                );
+                tx = api.tx.sudo.sudoUncheckedWeight(
+                  await api.tx.system.setCodeWithoutChecks(code),
                   1
-                )
-                .signAndSend(from, { nonce: nonce++ }, async (result) => {
+                );
+              }
+
+              const unsubSetCode = await tx.signAndSend(
+                from,
+                { nonce: nonce++ },
+                async (result) => {
                   if (result.isInBlock) {
                     unsubSetCode();
                     // ==== This is not supported anymore :/ ===
@@ -265,38 +356,37 @@ export function describeParachain(
                     //   process.stdout.write(`✅\n`);
                     // }
                   }
-                });
+                }
+              );
               process.stdout.write(`✅\n`);
 
               process.stdout.write(`Waiting to apply new runtime (${chalk.red(`~4min`)})...`);
               let isInitialVersion = true;
-              const unsub = await context.polkadotApiParaone.rpc.state.subscribeRuntimeVersion(
-                async (version) => {
-                  if (!isInitialVersion) {
-                    const blockNumber = context.blockNumber;
-                    console.log(
-                      `✅ [${version.implName}-${version.specVersion} ${existingCode
+              const unsub = await api.rpc.state.subscribeRuntimeVersion(async (version) => {
+                if (!isInitialVersion) {
+                  const blockNumber = context.blockNumber;
+                  console.log(
+                    `✅ [${version.implName}-${version.specVersion} ${existingCode
+                      .toString()
+                      .slice(0, 6)}...] [#${blockNumber}]`
+                  );
+                  unsub();
+                  const newCode = await api.rpc.state.getStorage(":code");
+                  if (newCode.toString() != code) {
+                    reject(
+                      `Unexpected new code: ${newCode.toString().slice(0, 20)} vs ${code
                         .toString()
-                        .slice(0, 6)}...] [#${blockNumber}]`
+                        .slice(0, 20)}`
                     );
-                    unsub();
-                    const newCode = await context.polkadotApiParaone.rpc.state.getStorage(":code");
-                    if (newCode.toString() != code) {
-                      reject(
-                        `Unexpected new code: ${newCode.toString().slice(0, 20)} vs ${code
-                          .toString()
-                          .slice(0, 20)}`
-                      );
-                    }
-                    if (waitMigration) {
-                      // Wait for next block to have the new runtime applied
-                      await context.waitBlocks(1);
-                    }
-                    resolve(blockNumber);
                   }
-                  isInitialVersion = false;
+                  if (waitMigration) {
+                    // Wait for next block to have the new runtime applied
+                    await context.waitBlocks(1);
+                  }
+                  resolve(blockNumber);
                 }
-              );
+                isInitialVersion = false;
+              });
             } catch (e) {
               console.error(`Failed to setCode`);
               reject(e);
