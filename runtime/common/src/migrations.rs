@@ -642,7 +642,6 @@ where
 			// Box::new(migration_base_fee),
 			Box::new(migration_author_slot_filter_eligible_ratio_to_eligibility_count),
 			Box::new(staking_delegator_state_requests),
-			Box::new(migration_author_mapping_add_keys_to_registration_info),
 		]
 	}
 }
