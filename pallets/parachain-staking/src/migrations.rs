@@ -142,7 +142,7 @@ impl<T: Config> OnRuntimeUpgrade for SplitDelegatorStateIntoDelegationScheduledR
 			},
 		);
 
-		writes = writes.saturating_add(scheduled_requests.len() as Weight);
+		writes = writes.saturating_add(scheduled_requests.len() as Weight); // 1 write per request
 		for (collator, requests) in scheduled_requests {
 			<DelegationScheduledRequests<T>>::insert(collator, requests);
 		}
