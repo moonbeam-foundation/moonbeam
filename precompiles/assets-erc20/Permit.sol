@@ -37,7 +37,8 @@ interface Permit {
     function nonces(address owner) external view returns (uint256);
 
     /**
-     * @dev Returns the EIP712 domain separator.
+     * @dev Returns the EIP712 domain separator. It is used to avoid replay
+     * attacks accross assets or other similar EIP712 message structures.
      * Selector: 0x3644e515
      */
     function DOMAIN_SEPARATOR() external view returns (bytes32);
