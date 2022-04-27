@@ -201,6 +201,8 @@ pub mod pallet {
 		BadVersion,
 		MaxWeightTransactReached,
 		UnableToWithdrawAsset,
+		FeePerSecondNotSet,
+		SignedTransactNotAllowedForDestination,
 	}
 
 	#[pallet::event]
@@ -593,17 +595,8 @@ pub mod pallet {
 				Error::<T>::MaxWeightTransactReached
 			);
 
-			let fee_per_second = DestinationFeePerSecond::<T>::get(&fee_location)
-				.ok_or(Error::<T>::TransactorInfoNotSet)?;
-			// Multiply weight*destination_units_per_second to see how much we should charge for
-			// this weight execution
-			let amount = Self::calculate_fee_per_second(total_weight, fee_per_second);
-
-			// Construct MultiAsset
-			let fee = MultiAsset {
-				id: Concrete(fee_location),
-				fun: Fungible(amount),
-			};
+			// Calculate fee based on FeePerSecond and total_weight
+			let fee = Self::calculate_fee(fee_location, total_weight)?;
 
 			// Ensure the asset is a reserve
 			Self::transfer_allowed(&fee, &dest)?;
@@ -649,9 +642,12 @@ pub mod pallet {
 			let transactor_info = TransactInfoWithWeightLimit::<T>::get(&dest)
 				.ok_or(Error::<T>::TransactorInfoNotSet)?;
 
+			// If this storage item is not set, it means that the destination chain
+			// does not support this kind of transact message
 			let transact_in_dest_as_signed_weight = transactor_info
 				.transact_extra_weight_signed
-				.ok_or(Error::<T>::TransactorInfoNotSet)?;
+				.ok_or(Error::<T>::SignedTransactNotAllowedForDestination)?;
+			
 			// Calculate the total weight that the xcm message is going to spend in the
 			// destination chain
 			let total_weight = dest_weight
@@ -663,20 +659,8 @@ pub mod pallet {
 				Error::<T>::MaxWeightTransactReached
 			);
 
-			let fee_per_second = DestinationFeePerSecond::<T>::get(&fee_location)
-				.ok_or(Error::<T>::TransactorInfoNotSet)?;
-			// Multiply weight*destination_units_per_second to see how much we should charge for
-			// this weight execution
-			let amount = Self::calculate_fee_per_second(total_weight, fee_per_second);
-
-			// Construct MultiAsset
-			let fee = MultiAsset {
-				id: Concrete(fee_location),
-				fun: Fungible(amount),
-			};
-
-			// Ensure the asset is a reserve
-			Self::transfer_allowed(&fee, &dest)?;
+			// Calculate fee based on FeePerSecond and total_weight
+			let fee = Self::calculate_fee(fee_location, total_weight)?;
 
 			// Convert origin to multilocation
 			let origin_as_mult = T::AccountIdToMultiLocation::convert(fee_payer);
@@ -709,6 +693,29 @@ pub mod pallet {
 			T::XcmSender::send_xcm(dest, transact_message).map_err(|_| Error::<T>::ErrorSending)?;
 
 			Ok(())
+		}
+
+		/// Calculate the amount of fee based on the multilocation of the fee asset and
+		/// the total weight to be spent
+		fn calculate_fee(
+			fee_location: MultiLocation,
+			total_weight: Weight,
+		) -> Result<MultiAsset, DispatchError> {
+
+			// Grab how much fee per second the destination chain charges in the fee asset
+			// location
+			let fee_per_second = DestinationFeePerSecond::<T>::get(&fee_location)
+			.ok_or(Error::<T>::FeePerSecondNotSet)?;
+
+			// Multiply weight*destination_units_per_second to see how much we should charge for
+			// this weight execution
+			let amount = Self::calculate_fee_per_second(total_weight, fee_per_second);
+
+			// Construct MultiAsset
+			Ok(MultiAsset {
+				id: Concrete(fee_location),
+				fun: Fungible(amount),
+			})
 		}
 
 		/// Construct the transact xcm message with the provided parameters
