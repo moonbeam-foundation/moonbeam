@@ -32,7 +32,10 @@ use pallet_asset_manager::{
 	},
 	Config as AssetManagerConfig,
 };
-use pallet_author_mapping::{migrations::TwoXToBlake, Config as AuthorMappingConfig};
+use pallet_author_mapping::{
+	migrations::{AddKeysToRegistrationInfo, TwoXToBlake},
+	Config as AuthorMappingConfig,
+};
 use pallet_author_slot_filter::migration::EligibleRatioToEligiblityCount;
 use pallet_author_slot_filter::Config as AuthorSlotFilterConfig;
 use pallet_base_fee::Config as BaseFeeConfig;
@@ -53,6 +56,30 @@ use xcm_transactor::{migrations::MaxTransactWeight, Config as XcmTransactorConfi
 
 /// This module acts as a registry where each migration is defined. Each migration should implement
 /// the "Migration" trait declared in the pallet-migrations crate.
+
+/// A moonbeam migration wrapping the similarly named migration in pallet-author-mapping
+pub struct AuthorMappingAddKeysToRegistrationInfo<T>(PhantomData<T>);
+impl<T: AuthorMappingConfig> Migration for AuthorMappingAddKeysToRegistrationInfo<T> {
+	fn friendly_name(&self) -> &str {
+		"MM_Author_Mapping_AddKeysToRegistrationInfo"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		AddKeysToRegistrationInfo::<T>::on_runtime_upgrade()
+	}
+
+	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<(), &'static str> {
+		AddKeysToRegistrationInfo::<T>::pre_upgrade()
+	}
+
+	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self) -> Result<(), &'static str> {
+		AddKeysToRegistrationInfo::<T>::post_upgrade()
+	}
+}
 
 /// Patch delegations total mismatch
 pub struct ParachainStakingPatchIncorrectDelegationSums<T>(PhantomData<T>);
@@ -563,6 +590,8 @@ where
 
 		let migration_author_slot_filter_eligible_ratio_to_eligibility_count =
 			AuthorSlotFilterEligibleRatioToEligiblityCount::<Runtime>(Default::default());
+		let migration_author_mapping_add_keys_to_registration_info =
+			AuthorMappingAddKeysToRegistrationInfo::<Runtime>(Default::default());
 		vec![
 			// completed in runtime 800
 			// Box::new(migration_author_mapping_twox_to_blake),
@@ -582,18 +611,16 @@ where
 			// completed in runtime 1300
 			// Box::new(migration_base_fee),
 			Box::new(migration_author_slot_filter_eligible_ratio_to_eligibility_count),
+			Box::new(migration_author_mapping_add_keys_to_registration_info),
 		]
 	}
 }
 
 #[cfg(feature = "xcm-support")]
-pub struct XcmMigrations<Runtime, StatemineParaIdInfo, StatemineAssetsInstanceInfo>(
-	PhantomData<(Runtime, StatemineParaIdInfo, StatemineAssetsInstanceInfo)>,
-);
+pub struct XcmMigrations<Runtime>(PhantomData<Runtime>);
 
 #[cfg(feature = "xcm-support")]
-impl<Runtime, StatemineParaIdInfo, StatemineAssetsInstanceInfo> GetMigrations
-	for XcmMigrations<Runtime, StatemineParaIdInfo, StatemineAssetsInstanceInfo>
+impl<Runtime> GetMigrations for XcmMigrations<Runtime>
 where
 	Runtime: xcm_transactor::Config + pallet_migrations::Config + pallet_asset_manager::Config,
 	<Runtime as pallet_asset_manager::Config>::ForeignAssetType:

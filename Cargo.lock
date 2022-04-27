@@ -2628,7 +2628,7 @@ dependencies = [
 [[package]]
 name = "fc-consensus"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#04af2a3aab37dec556f7ece4af1cc3818979119e"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#79ed3f29475bfdfdd4dfbf6a0643dceeff66f355"
 dependencies = [
  "async-trait",
  "fc-db",
@@ -2647,7 +2647,7 @@ dependencies = [
 [[package]]
 name = "fc-db"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#04af2a3aab37dec556f7ece4af1cc3818979119e"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#79ed3f29475bfdfdd4dfbf6a0643dceeff66f355"
 dependencies = [
  "fp-storage",
  "kvdb-rocksdb",
@@ -2661,7 +2661,7 @@ dependencies = [
 [[package]]
 name = "fc-mapping-sync"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#04af2a3aab37dec556f7ece4af1cc3818979119e"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#79ed3f29475bfdfdd4dfbf6a0643dceeff66f355"
 dependencies = [
  "fc-db",
  "fp-consensus",
@@ -2678,7 +2678,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#04af2a3aab37dec556f7ece4af1cc3818979119e"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#79ed3f29475bfdfdd4dfbf6a0643dceeff66f355"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -2720,7 +2720,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc-core"
 version = "1.1.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#04af2a3aab37dec556f7ece4af1cc3818979119e"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#79ed3f29475bfdfdd4dfbf6a0643dceeff66f355"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -2850,7 +2850,7 @@ dependencies = [
 [[package]]
 name = "fp-consensus"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#04af2a3aab37dec556f7ece4af1cc3818979119e"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#79ed3f29475bfdfdd4dfbf6a0643dceeff66f355"
 dependencies = [
  "ethereum",
  "parity-scale-codec",
@@ -2862,7 +2862,7 @@ dependencies = [
 [[package]]
 name = "fp-evm"
 version = "3.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#04af2a3aab37dec556f7ece4af1cc3818979119e"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#79ed3f29475bfdfdd4dfbf6a0643dceeff66f355"
 dependencies = [
  "evm",
  "parity-scale-codec",
@@ -2874,7 +2874,7 @@ dependencies = [
 [[package]]
 name = "fp-rpc"
 version = "3.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#04af2a3aab37dec556f7ece4af1cc3818979119e"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#79ed3f29475bfdfdd4dfbf6a0643dceeff66f355"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -2891,7 +2891,7 @@ dependencies = [
 [[package]]
 name = "fp-self-contained"
 version = "1.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#04af2a3aab37dec556f7ece4af1cc3818979119e"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#79ed3f29475bfdfdd4dfbf6a0643dceeff66f355"
 dependencies = [
  "ethereum",
  "frame-support",
@@ -2907,7 +2907,7 @@ dependencies = [
 [[package]]
 name = "fp-storage"
 version = "2.0.0"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#04af2a3aab37dec556f7ece4af1cc3818979119e"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#79ed3f29475bfdfdd4dfbf6a0643dceeff66f355"
 dependencies = [
  "parity-scale-codec",
 ]
@@ -5544,6 +5544,7 @@ dependencies = [
  "moonbeam-rpc-primitives-txpool",
  "nimbus-primitives",
  "orml-traits",
+ "orml-xcm-support",
  "orml-xtokens",
  "pallet-asset-manager",
  "pallet-assets",
@@ -5979,6 +5980,7 @@ dependencies = [
  "moonbeam-rpc-primitives-txpool",
  "nimbus-primitives",
  "orml-traits",
+ "orml-xcm-support",
  "orml-xtokens",
  "pallet-asset-manager",
  "pallet-assets",
@@ -6219,6 +6221,7 @@ dependencies = [
  "moonbeam-rpc-primitives-txpool",
  "nimbus-primitives",
  "orml-traits",
+ "orml-xcm-support",
  "orml-xtokens",
  "pallet-asset-manager",
  "pallet-assets",
@@ -6903,6 +6906,7 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "serde",
+ "session-keys-primitives",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -7042,7 +7046,7 @@ dependencies = [
 [[package]]
 name = "pallet-base-fee"
 version = "1.0.0"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#04af2a3aab37dec556f7ece4af1cc3818979119e"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#79ed3f29475bfdfdd4dfbf6a0643dceeff66f355"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -7299,7 +7303,7 @@ dependencies = [
 [[package]]
 name = "pallet-ethereum"
 version = "4.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#04af2a3aab37dec556f7ece4af1cc3818979119e"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#79ed3f29475bfdfdd4dfbf6a0643dceeff66f355"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -7339,7 +7343,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm"
 version = "6.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#04af2a3aab37dec556f7ece4af1cc3818979119e"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#79ed3f29475bfdfdd4dfbf6a0643dceeff66f355"
 dependencies = [
  "evm",
  "fp-evm",
@@ -7417,7 +7421,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-blake2"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#04af2a3aab37dec556f7ece4af1cc3818979119e"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#79ed3f29475bfdfdd4dfbf6a0643dceeff66f355"
 dependencies = [
  "fp-evm",
 ]
@@ -7425,7 +7429,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-bn128"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#04af2a3aab37dec556f7ece4af1cc3818979119e"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#79ed3f29475bfdfdd4dfbf6a0643dceeff66f355"
 dependencies = [
  "fp-evm",
  "sp-core",
@@ -7435,7 +7439,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-dispatch"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#04af2a3aab37dec556f7ece4af1cc3818979119e"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#79ed3f29475bfdfdd4dfbf6a0643dceeff66f355"
 dependencies = [
  "fp-evm",
  "frame-support",
@@ -7445,7 +7449,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-modexp"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#04af2a3aab37dec556f7ece4af1cc3818979119e"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#79ed3f29475bfdfdd4dfbf6a0643dceeff66f355"
 dependencies = [
  "fp-evm",
  "num",
@@ -7454,7 +7458,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-sha3fips"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#04af2a3aab37dec556f7ece4af1cc3818979119e"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#79ed3f29475bfdfdd4dfbf6a0643dceeff66f355"
 dependencies = [
  "fp-evm",
  "tiny-keccak",
@@ -7463,7 +7467,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-simple"
 version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#04af2a3aab37dec556f7ece4af1cc3818979119e"
+source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.18#79ed3f29475bfdfdd4dfbf6a0643dceeff66f355"
 dependencies = [
  "fp-evm",
  "ripemd",
@@ -11875,6 +11879,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "session-keys-primitives"
+version = "0.1.0"
+
+[[package]]
 name = "sha-1"
 version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -14639,6 +14647,7 @@ dependencies = [
  "frame-system",
  "hex",
  "log",
+ "orml-traits",
  "parity-scale-codec",
  "scale-info",
  "serde",
@@ -14716,6 +14725,7 @@ dependencies = [
  "frame-system",
  "log",
  "num_enum",
+ "orml-traits",
  "pallet-balances",
  "pallet-evm",
  "pallet-timestamp",

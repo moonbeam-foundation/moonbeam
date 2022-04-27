@@ -131,6 +131,7 @@ impl pallet_author_mapping::Config for Runtime {
 	type Event = Event;
 	type DepositCurrency = Balances;
 	type DepositAmount = DepositAmount;
+	type Keys = NimbusId;
 	type WeightInfo = ();
 }
 
