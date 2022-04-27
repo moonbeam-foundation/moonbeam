@@ -866,6 +866,7 @@ impl Contains<Call> for MaintenanceFilter {
 			Call::Identity(_) => false,
 			Call::XTokens(_) => false,
 			Call::ParachainStaking(_) => false,
+			Call::MoonbeamOrbiters(_) => false,
 			Call::PolkadotXcm(_) => false,
 			Call::Treasury(_) => false,
 			Call::XcmTransactor(_) => false,
