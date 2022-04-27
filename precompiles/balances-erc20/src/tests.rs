@@ -42,6 +42,9 @@ fn selectors() {
 	assert_eq!(Action::Symbol as u32, 0x95d89b41);
 	assert_eq!(Action::Deposit as u32, 0xd0e30db0);
 	assert_eq!(Action::Withdraw as u32, 0x2e1a7d4d);
+	assert_eq!(Action::Eip2612Nonces as u32, 0x7ecebe00);
+	assert_eq!(Action::Eip2612Permit as u32, 0xd505accf);
+	assert_eq!(Action::Eip2612DomainSeparator as u32, 0x3644e515);
 
 	assert_eq!(
 		crate::SELECTOR_LOG_TRANSFER,
@@ -1638,6 +1641,185 @@ fn permit_invalid_deadline() {
 					output: EvmDataWriter::new().write(U256::from(0u8)).build(),
 					cost: 0u64,
 					logs: vec![],
+				}))
+			);
+		});
+}
+
+// This test checks the validity of a metamask signed message against the permit precompile
+// The code used to generate the signature is the following.
+// You will need to import ALICE_PRIV_KEY in metamask.
+// If you put this code in the developer tools console, it will log the signature
+/*
+await window.ethereum.enable();
+const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+
+const value = 1000;
+
+const fromAddress = "0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac";
+const deadline = 1;
+const nonce = 0;
+const spender = "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+const from = accounts[0];
+
+const createPermitMessageData = function () {
+	const message = {
+	owner: from,
+	spender: spender,
+	value: value,
+	nonce: nonce,
+	deadline: deadline,
+	};
+
+	const typedData = JSON.stringify({
+	types: {
+		EIP712Domain: [
+		{
+			name: "name",
+			type: "string",
+		},
+		{
+			name: "version",
+			type: "string",
+		},
+		{
+			name: "chainId",
+			type: "uint256",
+		},
+		{
+			name: "verifyingContract",
+			type: "address",
+		},
+		],
+		Permit: [
+		{
+			name: "owner",
+			type: "address",
+		},
+		{
+			name: "spender",
+			type: "address",
+		},
+		{
+			name: "value",
+			type: "uint256",
+		},
+		{
+			name: "nonce",
+			type: "uint256",
+		},
+		{
+			name: "deadline",
+			type: "uint256",
+		},
+		],
+	},
+	primaryType: "Permit",
+	domain: {
+		name: "Mock token",
+		version: "1",
+		chainId: 0,
+		verifyingContract: "0x0000000000000000000000000000000000000001",
+	},
+	message: message,
+	});
+
+	return {
+		typedData,
+		message,
+	};
+};
+
+const method = "eth_signTypedData_v4"
+const messageData = createPermitMessageData();
+const params = [from, messageData.typedData];
+
+web3.currentProvider.sendAsync(
+	{
+		method,
+		params,
+		from,
+	},
+	function (err, result) {
+		if (err) return console.dir(err);
+		if (result.error) {
+			alert(result.error.message);
+		}
+		if (result.error) return console.error('ERROR', result);
+		console.log('TYPED SIGNED:' + JSON.stringify(result.result));
+
+		const recovered = sigUtil.recoverTypedSignature_v4({
+			data: JSON.parse(msgParams),
+			sig: result.result,
+		});
+
+		if (
+			ethUtil.toChecksumAddress(recovered) === ethUtil.toChecksumAddress(from)
+		) {
+			alert('Successfully recovered signer as ' + from);
+		} else {
+			alert(
+				'Failed to verify signer when comparing ' + result + ' to ' + from
+			);
+		}
+	}
+);
+*/
+
+#[test]
+fn permit_valid_with_metamask_signed_data() {
+	ExtBuilder::default()
+		.with_balances(vec![(Account::Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			let owner: H160 = H160::from_slice(ALICE_PUBLIC_KEY.as_slice());
+			let spender: H160 = Account::Bob.into();
+			let value: U256 = 1000u16.into();
+			let deadline: U256 = 1u16.into(); // todo: proper timestamp
+
+			let rsv = hex_literal::hex!(
+				"612960858951e133d05483804be5456a030be4ce6c000a855d865c0be75a8fc11d89ca96d5a153e8c
+				7155ab1147f0f6d3326388b8d866c2406ce34567b7501a01b"
+			)
+			.as_slice();
+			let (r, sv) = rsv.split_at(32);
+			let (s, v) = sv.split_at(32);
+			let v_real = v[0];
+			let r_real: [u8; 32] = r.try_into().unwrap();
+			let s_real: [u8; 32] = s.try_into().unwrap();
+
+			assert_eq!(
+				precompiles().execute(
+					Account::Precompile.into(),
+					&EvmDataWriter::new_with_selector(Action::Eip2612Permit)
+						.write(Address(owner))
+						.write(Address(spender))
+						.write(value)
+						.write(deadline)
+						.write(v_real)
+						.write(H256::from(r_real))
+						.write(H256::from(s_real))
+						.build(),
+					None,
+					&Context {
+						address: Account::Precompile.into(),
+						caller: Account::Charlie.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: vec![],
+					cost: 0u64,
+					logs: LogsBuilder::new(Account::Precompile.into(),)
+						.log3(
+							SELECTOR_LOG_APPROVAL,
+							Account::Alice,
+							Account::Bob,
+							EvmDataWriter::new().write(U256::from(1000)).build(),
+						)
+						.build(),
 				}))
 			);
 		});
