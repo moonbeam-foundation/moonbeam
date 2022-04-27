@@ -128,12 +128,18 @@ where
 	<Runtime as pallet_timestamp::Config>::Moment: Into<U256>,
 {
 	fn compute_domain_separator(address: H160, asset_id: AssetIdOf<Runtime, Instance>) -> [u8; 32] {
-		let name: H256 =
-			keccak_256(pallet_assets::Pallet::<Runtime, Instance>::name(asset_id).as_slice())
-				.into();
+		let asset_name = pallet_assets::Pallet::<Runtime, Instance>::name(asset_id);
 
+		let name = if asset_name.is_empty() {
+			b"XC20: No name".to_vec()
+		} else {
+			let mut name = b"XC20: ".to_vec();
+			name.extend_from_slice(&asset_name);
+			name
+		};
+
+		let name: H256 = keccak_256(&name).into();
 		let version: H256 = keccak256!("1").into();
-
 		let chain_id: U256 = Runtime::ChainId::get().into();
 
 		let domain_separator_inner = EvmDataWriter::new()
