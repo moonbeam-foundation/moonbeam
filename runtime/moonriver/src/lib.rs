@@ -753,6 +753,7 @@ impl pallet_author_mapping::Config for Runtime {
 	type Event = Event;
 	type DepositCurrency = Balances;
 	type DepositAmount = ConstU128<{ 100 * currency::MOVR * currency::SUPPLY_FACTOR }>;
+	type Keys = NimbusId; // TODO: consider making custom type?
 	type WeightInfo = pallet_author_mapping::weights::SubstrateWeight<Runtime>;
 }
 
@@ -859,11 +860,7 @@ impl pallet_migrations::Config for Runtime {
 			CouncilCollective,
 			TechCommitteeCollective,
 		>,
-		runtime_common::migrations::XcmMigrations<
-			Runtime,
-			xcm_config::StatemineParaId,
-			xcm_config::StatemineAssetPalletInstance,
-		>,
+		runtime_common::migrations::XcmMigrations<Runtime>,
 	);
 }
 

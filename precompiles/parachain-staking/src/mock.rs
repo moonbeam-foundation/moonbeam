@@ -387,6 +387,13 @@ pub(crate) fn roll_to(n: u64) {
 	}
 }
 
+/// Rolls block-by-block to the beginning of the specified round.
+/// This will complete the block in which the round change occurs.
+pub(crate) fn roll_to_round_begin(round: u64) {
+	let block = (round - 1) * DefaultBlocksPerRound::get() as u64;
+	roll_to(block)
+}
+
 pub(crate) fn events() -> Vec<Event> {
 	System::events()
 		.into_iter()
