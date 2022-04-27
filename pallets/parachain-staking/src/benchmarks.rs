@@ -783,10 +783,9 @@ benchmarks! {
 		)?;
 	} verify {
 		assert!(
-			Pallet::<T>::delegation_scheduled_requests(&collator)
+			!Pallet::<T>::delegation_scheduled_requests(&collator)
 			.iter()
-			.find(|x| &x.delegator == &caller)
-			.is_none()
+			.any(|x| &x.delegator == &caller)
 		);
 	}
 
@@ -820,10 +819,9 @@ benchmarks! {
 		)?;
 	} verify {
 		assert!(
-			Pallet::<T>::delegation_scheduled_requests(&collator)
+			!Pallet::<T>::delegation_scheduled_requests(&collator)
 				.iter()
-				.find(|x| &x.delegator == &caller)
-				.is_none()
+				.any(|x| &x.delegator == &caller)
 		);
 	}
 

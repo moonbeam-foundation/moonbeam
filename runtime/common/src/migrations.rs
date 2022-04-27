@@ -40,7 +40,7 @@ use pallet_migrations::{GetMigrations, Migration};
 use parachain_staking::{
 	migrations::{
 		IncreaseMaxDelegationsPerCandidate, PatchIncorrectDelegationSums, PurgeStaleStorage,
-		SplitCandidateStateToDecreasePoV,
+		SplitCandidateStateToDecreasePoV, SplitDelegatorStateIntoDelegationScheduledRequests,
 	},
 	Config as ParachainStakingConfig,
 };
@@ -75,6 +75,32 @@ impl<T: ParachainStakingConfig> Migration for ParachainStakingPatchIncorrectDele
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade(&self) -> Result<(), &'static str> {
 		PatchIncorrectDelegationSums::<T>::post_upgrade()
+	}
+}
+
+/// Staking split candidate state
+pub struct ParachainStakingSplitDelegatorStateIntoDelegationScheduledRequests<T>(PhantomData<T>);
+impl<T: ParachainStakingConfig> Migration
+	for ParachainStakingSplitDelegatorStateIntoDelegationScheduledRequests<T>
+{
+	fn friendly_name(&self) -> &str {
+		"MM_Parachain_Staking_Split_Delegator_State_Into_Delgation_Scheduled_Requests"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		SplitDelegatorStateIntoDelegationScheduledRequests::<T>::on_runtime_upgrade()
+	}
+
+	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<(), &'static str> {
+		SplitDelegatorStateIntoDelegationScheduledRequests::<T>::pre_upgrade()
+	}
+
+	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self) -> Result<(), &'static str> {
+		SplitDelegatorStateIntoDelegationScheduledRequests::<T>::post_upgrade()
 	}
 }
 
@@ -595,7 +621,10 @@ pub struct XcmMigrations<Runtime, StatemineParaIdInfo, StatemineAssetsInstanceIn
 impl<Runtime, StatemineParaIdInfo, StatemineAssetsInstanceInfo> GetMigrations
 	for XcmMigrations<Runtime, StatemineParaIdInfo, StatemineAssetsInstanceInfo>
 where
-	Runtime: xcm_transactor::Config + pallet_migrations::Config + pallet_asset_manager::Config,
+	Runtime: xcm_transactor::Config
+		+ pallet_migrations::Config
+		+ pallet_asset_manager::Config
+		+ parachain_staking::Config,
 	<Runtime as pallet_asset_manager::Config>::ForeignAssetType:
 		Into<Option<MultiLocation>> + From<MultiLocation>,
 {
@@ -620,6 +649,10 @@ where
 		// TODO: this is a lot of allocation to do upon every get() call. this *should* be avoided
 		// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review
 
+		let staking_delegator_state_requests =
+			ParachainStakingSplitDelegatorStateIntoDelegationScheduledRequests::<Runtime>(
+				Default::default(),
+			);
 		vec![
 			// completed in runtime 1201
 			// Box::new(xcm_transactor_max_weight),
@@ -631,6 +664,7 @@ where
 			// Box::new(asset_manager_populate_asset_type_id_storage),
 			// completed in runtime 1300
 			// Box::new(xcm_supported_assets),
+			Box::new(staking_delegator_state_requests),
 		]
 	}
 }

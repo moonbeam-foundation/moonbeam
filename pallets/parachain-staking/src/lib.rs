@@ -327,8 +327,8 @@ pub mod pallet {
 		/// Cancelled request to change an existing delegation.
 		CancelledDelegationRequest {
 			delegator: T::AccountId,
-			collator: T::AccountId,
 			cancelled_request: CancelledScheduledRequest<BalanceOf<T>>,
+			collator: T::AccountId,
 		},
 		/// New delegation (increase of the existing one).
 		Delegation {
