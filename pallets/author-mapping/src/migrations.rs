@@ -17,16 +17,11 @@
 use crate::{BalanceOf, Config, MappingWithDeposit, RegistrationInfo};
 use frame_support::{
 	pallet_prelude::PhantomData,
-	storage::migration::{remove_storage_prefix, storage_key_iter},
 	traits::{Get, OnRuntimeUpgrade},
 	weights::Weight,
-	Twox64Concat,
 };
 use nimbus_primitives::NimbusId;
 use parity_scale_codec::{Decode, Encode};
-use sp_std::convert::TryInto;
-//TODO sometimes this is unused, sometimes its necessary
-use sp_std::vec::Vec;
 
 /// Migrates MappingWithDeposit map value from RegistrationInfo to RegistrationInformation,
 /// thereby adding a keys: T::Keys field to the value to support VRF keys that can be looked up
