@@ -84,7 +84,7 @@ impl<T: ParachainStakingConfig> Migration
 	for ParachainStakingSplitDelegatorStateIntoDelegationScheduledRequests<T>
 {
 	fn friendly_name(&self) -> &str {
-		"MM_Parachain_Staking_Split_Delegator_State_Into_Delgation_Scheduled_Requests"
+		"MM_Parachain_Staking_Split_Delegator_State_Into_Delegation_Scheduled_Requests"
 	}
 
 	fn migrate(&self, _available_weight: Weight) -> Weight {
