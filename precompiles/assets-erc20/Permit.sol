@@ -6,17 +6,39 @@ pragma solidity ^0.8.0;
  * make a first approve transaction.
  */
 interface Permit {
+    /**
+     * @dev Consumes an approval permit.
+     * Anyone can call this function for a permit.
+     * Selector: 0xd505accf
+     * @param owner Owner of the tokens issuing the permit
+     * @param spender Address whose allowance will be increased.
+     * @param value Allowed value.
+     * @param deadline Timestamp after which the permit will no longer be valid.
+     * @param v V component of the signature.
+     * @param r R component of the signature.
+     * @param s S component of the signature.
+     */
     function permit(
         address owner,
         address spender,
-        uint value,
-        uint deadline,
+        uint256 value,
+        uint256 deadline,
         uint8 v,
         bytes32 r,
         bytes32 s
     ) external;
 
-    function nonces(address owner) external view returns (uint);
+    /**
+     * @dev Returns the current nonce for given owner.
+     * A permit must have this nonce to be consumed, which will
+     * increase the nonce by one.
+     * Selector: 0x7ecebe00
+     */
+    function nonces(address owner) external view returns (uint256);
 
+    /**
+     * @dev Returns the EIP712 domain separator.
+     * Selector: 0x3644e515
+     */
     function DOMAIN_SEPARATOR() external view returns (bytes32);
 }

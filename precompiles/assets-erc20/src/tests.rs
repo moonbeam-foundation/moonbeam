@@ -94,15 +94,18 @@ fn no_selector_exists_but_length_is_right() {
 
 #[test]
 fn selectors() {
-	assert_eq!(u32::from(Action::BalanceOf), 0x70a08231);
-	assert_eq!(u32::from(Action::TotalSupply), 0x18160ddd);
-	assert_eq!(u32::from(Action::Approve), 0x095ea7b3);
-	assert_eq!(u32::from(Action::Allowance), 0xdd62ed3e);
-	assert_eq!(u32::from(Action::Transfer), 0xa9059cbb);
-	assert_eq!(u32::from(Action::TransferFrom), 0x23b872dd);
+	assert_eq!(Action::BalanceOf as u32, 0x70a08231);
+	assert_eq!(Action::TotalSupply as u32, 0x18160ddd);
+	assert_eq!(Action::Approve as u32, 0x095ea7b3);
+	assert_eq!(Action::Allowance as u32, 0xdd62ed3e);
+	assert_eq!(Action::Transfer as u32, 0xa9059cbb);
+	assert_eq!(Action::TransferFrom as u32, 0x23b872dd);
 	assert_eq!(Action::Name as u32, 0x06fdde03);
 	assert_eq!(Action::Symbol as u32, 0x95d89b41);
 	assert_eq!(Action::Decimals as u32, 0x313ce567);
+	assert_eq!(Action::Eip2612Nonces as u32, 0x7ecebe00);
+	assert_eq!(Action::Eip2612Permit as u32, 0xd505accf);
+	assert_eq!(Action::Eip2612DomainSeparator as u32, 0x3644e515);
 
 	assert_eq!(
 		crate::SELECTOR_LOG_TRANSFER,
