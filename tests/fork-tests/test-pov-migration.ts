@@ -46,7 +46,8 @@ describeParachain(
         (await context.polkadotApiParaone.query.system.lastRuntimeUpgrade()) as any
       ).unwrap();
       console.log(
-        `Current runtime: ✅ runtime ${currentVersion.specName.toString()} ${currentVersion.specVersion.toString()}`
+        `Current runtime: ✅ runtime ${currentVersion.specName.toString()} ` +
+          `${currentVersion.specVersion.toString()}`
       );
 
       // await context.waitBlocks(400); // Make sure the new runtime is producing blocks

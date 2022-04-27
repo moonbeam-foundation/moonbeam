@@ -388,7 +388,9 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
           rpcPort: ports[i].rpcPort,
           wsPort: ports[i].wsPort,
           flags: [
-            "--log=parachain::candidate-backing=trace,parachain::candidate-selection=trace,parachain::pvf=trace,parachain::collator-protocol=trace,parachain::provisioner=trace",
+            "--log=parachain::candidate-backing=trace,parachain::candidate-selection=trace," +
+              "parachain::pvf=trace,parachain::collator-protocol=trace," +
+              "parachain::provisioner=trace",
           ],
         };
       }),
@@ -407,7 +409,9 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
             nodeKey: NODE_KEYS[i * 2 + numberOfParachains + 1].key,
             name: "alice",
             flags: [
-              "--log=info,evm=trace,ethereum=trace,sc_basic_authorship=trace,cumulus-consensus=trace,cumulus-collator=trace,collator_protocol=trace,collation_generation=trace",
+              "--log=info,evm=trace,ethereum=trace,sc_basic_authorship=trace," +
+                "cumulus-consensus=trace,cumulus-collator=trace,collator_protocol=trace," +
+                "collation_generation=trace",
               "--unsafe-rpc-external",
               "--execution=wasm",
               "--no-prometheus",
@@ -430,7 +434,9 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
             nodeKey: NODE_KEYS[i * 2 + numberOfParachains + 2].key,
             name: "bob",
             flags: [
-              "--log=info,evm=trace,ethereum=trace,sc_basic_authorship=trace,cumulus-consensus=trace,cumulus-collator=trace,collator_protocol=trace,collation_generation=trace",
+              "--log=info,evm=trace,ethereum=trace,sc_basic_authorship=trace," +
+                "cumulus-consensus=trace,cumulus-collator=trace,collator_protocol=trace," +
+                "collation_generation=trace",
               "--unsafe-rpc-external",
               "--execution=wasm",
               "--no-prometheus",
