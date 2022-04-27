@@ -2733,6 +2733,7 @@ dependencies = [
  "libsecp256k1 0.7.0",
  "log",
  "lru 0.6.6",
+ "pallet-ethereum",
  "parity-scale-codec",
  "rand 0.8.5",
  "rlp",
@@ -2749,6 +2750,7 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-storage",
+ "substrate-prometheus-endpoint",
  "tokio",
 ]
 
@@ -6593,6 +6595,7 @@ version = "0.5.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3b0498641e53dd6ac1a4f22547548caa6864cc4933784319cd1775271c5a46ce"
 dependencies = [
+ "proc-macro-crate 1.1.3",
  "proc-macro2",
  "quote",
  "syn",
@@ -7129,7 +7132,7 @@ dependencies = [
 [[package]]
 name = "pallet-crowdloan-rewards"
 version = "0.6.0"
-source = "git+https://github.com/purestake/crowdloan-rewards?branch=moonbeam-polkadot-v0.9.19#30882f12317a409326d5e0cc538e341fb245dec4"
+source = "git+https://github.com/purestake/crowdloan-rewards?branch=moonbeam-polkadot-v0.9.19#d6024c8dc51662ddffdbb828aa0d796104023722"
 dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
@@ -7248,6 +7251,7 @@ dependencies = [
  "fp-storage",
  "frame-support",
  "frame-system",
+ "num_enum",
  "pallet-balances",
  "pallet-evm",
  "pallet-timestamp",
