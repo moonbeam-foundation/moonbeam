@@ -589,6 +589,11 @@ where
 
 		let migration_author_slot_filter_eligible_ratio_to_eligibility_count =
 			AuthorSlotFilterEligibleRatioToEligiblityCount::<Runtime>(Default::default());
+		let staking_delegator_state_requests =
+			ParachainStakingSplitDelegatorStateIntoDelegationScheduledRequests::<Runtime>(
+				Default::default(),
+			);
+
 		vec![
 			// completed in runtime 800
 			// Box::new(migration_author_mapping_twox_to_blake),
@@ -608,6 +613,7 @@ where
 			// completed in runtime 1300
 			// Box::new(migration_base_fee),
 			Box::new(migration_author_slot_filter_eligible_ratio_to_eligibility_count),
+			Box::new(staking_delegator_state_requests),
 		]
 	}
 }
@@ -624,7 +630,6 @@ where
 	Runtime: xcm_transactor::Config
 		+ pallet_migrations::Config
 		+ pallet_asset_manager::Config
-		+ parachain_staking::Config,
 	<Runtime as pallet_asset_manager::Config>::ForeignAssetType:
 		Into<Option<MultiLocation>> + From<MultiLocation>,
 {
@@ -649,10 +654,6 @@ where
 		// TODO: this is a lot of allocation to do upon every get() call. this *should* be avoided
 		// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review
 
-		let staking_delegator_state_requests =
-			ParachainStakingSplitDelegatorStateIntoDelegationScheduledRequests::<Runtime>(
-				Default::default(),
-			);
 		vec![
 			// completed in runtime 1201
 			// Box::new(xcm_transactor_max_weight),
@@ -664,7 +665,6 @@ where
 			// Box::new(asset_manager_populate_asset_type_id_storage),
 			// completed in runtime 1300
 			// Box::new(xcm_supported_assets),
-			Box::new(staking_delegator_state_requests),
 		]
 	}
 }
