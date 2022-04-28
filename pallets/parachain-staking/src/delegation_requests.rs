@@ -236,6 +236,8 @@ impl<T: Config> Pallet<T> {
 					candidate: collator.clone(),
 					unstaked_amount: amount,
 				});
+
+				<DelegationScheduledRequests<T>>::insert(collator, scheduled_requests);
 				if leaving {
 					<DelegatorState<T>>::remove(&delegator);
 					Self::deposit_event(Event::DelegatorLeft {
@@ -243,7 +245,6 @@ impl<T: Config> Pallet<T> {
 						unstaked_amount: amount,
 					});
 				} else {
-					<DelegationScheduledRequests<T>>::insert(collator, scheduled_requests);
 					<DelegatorState<T>>::insert(&delegator, state);
 				}
 				Ok(().into())
