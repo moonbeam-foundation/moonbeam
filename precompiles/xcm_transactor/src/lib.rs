@@ -186,7 +186,7 @@ where
 		input: &mut EvmDataReader,
 		gasometer: &mut Gasometer,
 	) -> EvmResult<PrecompileOutput> {
-		gasometer.record_cost(2 * RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		gasometer.record_cost(1 * RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		let multilocation: MultiLocation = input.read::<MultiLocation>(gasometer)?;
 

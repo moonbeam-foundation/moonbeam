@@ -196,6 +196,97 @@ fn take_transact_info() {
 }
 
 #[test]
+fn take_transact_info_with_signed() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			let input = EvmDataWriter::new_with_selector(Action::TransactInfoWithSigned)
+				.write(MultiLocation::parent())
+				.build();
+
+			// Assert that errors since no index is assigned
+			assert_matches!(
+				precompiles().execute(Precompile.into(), &input, None, &evm_test_context(), false),
+				Some(Err(PrecompileFailure::Revert { output, ..}))
+				if output == b"Transact Info not set"
+			);
+
+			// Root can set transact info
+			assert_ok!(XcmTransactor::set_transact_info(
+				Origin::root(),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				0,
+				10000u64,
+				Some(1)
+			));
+
+			// Root can set transact info
+			assert_ok!(XcmTransactor::set_fee_per_second(
+				Origin::root(),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				1
+			));
+
+			// Expected result is zero
+			let expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new()
+					.write(0u64)
+					.write(1u64)
+					.write(10000u64)
+					.build(),
+				cost: 1,
+				logs: Default::default(),
+			}));
+
+			assert_eq!(
+				precompiles().execute(Precompile.into(), &input, None, &evm_test_context(), false),
+				expected_result
+			);
+		});
+}
+
+#[test]
+fn take_fee_per_second() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			let input = EvmDataWriter::new_with_selector(Action::FeePerSecond)
+				.write(MultiLocation::parent())
+				.build();
+
+			// Assert that errors
+			assert_matches!(
+				precompiles().execute(Precompile.into(), &input, None, &evm_test_context(), false),
+				Some(Err(PrecompileFailure::Revert { output, ..}))
+				if output == b"Fee Per Second not set"
+			);
+
+			// Root can set transact info
+			assert_ok!(XcmTransactor::set_fee_per_second(
+				Origin::root(),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				1
+			));
+
+			// Expected result is zero
+			let expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(1u64).build(),
+				cost: 1,
+				logs: Default::default(),
+			}));
+
+			assert_eq!(
+				precompiles().execute(Precompile.into(), &input, None, &evm_test_context(), false),
+				expected_result
+			);
+		});
+}
+
+#[test]
 fn test_transactor_multilocation() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice, 1000)])
