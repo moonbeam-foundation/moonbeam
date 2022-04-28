@@ -340,10 +340,56 @@ pub fn run() -> Result<()> {
 		}
 		Some(Subcommand::Revert(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
-			runner.async_run(|mut config| {
-				let (client, backend, _, task_manager) = service::new_chain_ops(&mut config)?;
-				Ok((cmd.run(client, backend, None), task_manager))
-			})
+			let chain_spec = &runner.config().chain_spec;
+			match chain_spec {
+				#[cfg(feature = "moonriver-native")]
+				spec if spec.is_moonriver() => {
+					runner.async_run(|mut config| {
+						let params = service::new_partial::<
+							service::moonriver_runtime::RuntimeApi,
+							service::MoonriverExecutor
+						>(&mut config, false)?;
+
+						let aux_revert = Box::new(move |client, _, blocks| {
+							sc_finality_grandpa::revert(client, blocks)?;
+							Ok(())
+						});
+						Ok((cmd.run(params.client, params.backend, Some(aux_revert)), params.task_manager))
+					})
+				}
+				#[cfg(feature = "moonbeam-native")]
+				spec if spec.is_moonbeam() => {
+					runner.async_run(|mut config| {
+						let params = service::new_partial::<
+							service::moonbeam_runtime::RuntimeApi,
+							service::MoonbeamExecutor
+						>(&mut config, false)?;
+
+						let aux_revert = Box::new(move |client, _, blocks| {
+							sc_finality_grandpa::revert(client, blocks)?;
+							Ok(())
+						});
+						Ok((cmd.run(params.client, params.backend, Some(aux_revert)), params.task_manager))
+					})
+				}
+				#[cfg(feature = "moonbase-native")]
+				_ => {
+					runner.async_run(|mut config| {
+						let params = service::new_partial::<
+							service::moonbase_runtime::RuntimeApi,
+							service::MoonbaseExecutor
+						>(&mut config, false)?;
+
+						let aux_revert = Box::new(move |client, _, blocks| {
+							sc_finality_grandpa::revert(client, blocks)?;
+							Ok(())
+						});
+						Ok((cmd.run(params.client, params.backend, Some(aux_revert)), params.task_manager))
+					})
+				}
+				#[cfg(not(feature = "moonbase-native"))]
+				_ => panic!("invalid chain spec"),
+			}
 		}
 		Some(Subcommand::ExportGenesisState(params)) => {
 			let mut builder = sc_cli::LoggerBuilder::new("");
