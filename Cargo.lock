@@ -5572,6 +5572,7 @@ dependencies = [
  "pallet-identity",
  "pallet-maintenance-mode",
  "pallet-migrations",
+ "pallet-moonbeam-orbiters",
  "pallet-proxy",
  "pallet-proxy-genesis-companion",
  "pallet-randomness-collective-flip",
@@ -6008,6 +6009,7 @@ dependencies = [
  "pallet-identity",
  "pallet-maintenance-mode",
  "pallet-migrations",
+ "pallet-moonbeam-orbiters",
  "pallet-proxy",
  "pallet-proxy-genesis-companion",
  "pallet-randomness-collective-flip",
@@ -6249,6 +6251,7 @@ dependencies = [
  "pallet-identity",
  "pallet-maintenance-mode",
  "pallet-migrations",
+ "pallet-moonbeam-orbiters",
  "pallet-proxy",
  "pallet-proxy-genesis-companion",
  "pallet-randomness-collective-flip",
@@ -7667,6 +7670,24 @@ dependencies = [
  "sp-blockchain",
  "sp-core",
  "sp-runtime",
+]
+
+[[package]]
+name = "pallet-moonbeam-orbiters"
+version = "0.1.0"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "nimbus-primitives",
+ "pallet-balances",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
