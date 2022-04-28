@@ -176,7 +176,7 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn dest_fee_per_second)]
 	pub type DestinationFeePerSecond<T: Config> =
-		StorageMap<_, Blake2_128Concat, MultiLocation, u128>;
+		StorageMap<_, Twox64Concat, MultiLocation, u128>;
 
 	/// An error that can occur while executing the mapping pallet's logic.
 	#[pallet::error]
@@ -473,6 +473,7 @@ pub mod pallet {
 		/// that should be converted to a transaction dispatch account in the destination chain
 		/// by any method implemented in the destination chains runtime
 		///
+		/// This time we are giving the currency as a currencyId instead of multilocation
 		#[pallet::weight(0)]
 		pub fn transact_through_signed(
 			origin: OriginFor<T>,
@@ -488,6 +489,44 @@ pub mod pallet {
 			let fee_location: MultiLocation =
 				T::CurrencyIdToMultiLocation::convert(fee_currency_id)
 					.ok_or(Error::<T>::NotCrossChainTransferableCurrency)?;
+
+			// Grab the destination
+			Self::transact_in_dest_chain_asset_signed(
+				dest.clone(),
+				who.clone(),
+				fee_location,
+				dest_weight,
+				call.clone(),
+				OriginKind::SovereignAccount,
+			)?;
+
+			// Deposit event
+			Self::deposit_event(Event::<T>::TransactedSigned {
+				fee_payer: who,
+				dest,
+				call,
+			});
+
+			Ok(())
+		}
+
+		/// Transact the call through the a signed origin in this chain
+		/// that should be converted to a transaction dispatch account in the destination chain
+		/// by any method implemented in the destination chains runtime
+		///
+		/// This time we are giving the currency as a multilocation instead of currencyId
+		#[pallet::weight(0)]
+		pub fn transact_through_signed_multilocation(
+			origin: OriginFor<T>,
+			dest: Box<VersionedMultiLocation>,
+			fee_location: Box<VersionedMultiLocation>,
+			dest_weight: Weight,
+			call: Vec<u8>,
+		) -> DispatchResult {
+			let who = ensure_signed(origin)?;
+
+			let dest = MultiLocation::try_from(*dest).map_err(|()| Error::<T>::BadVersion)?;
+			let fee_location = MultiLocation::try_from(*fee_location).map_err(|()| Error::<T>::BadVersion)?;
 
 			// Grab the destination
 			Self::transact_in_dest_chain_asset_signed(

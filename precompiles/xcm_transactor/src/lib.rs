@@ -155,7 +155,7 @@ where
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new()
 				.write(remote_transact_info.transact_extra_weight)
-				.write(remote_transact_info.fee_per_second)
+//				.write(remote_transact_info.fee_per_second)
 				.write(remote_transact_info.max_weight)
 				.build(),
 			logs: Default::default(),

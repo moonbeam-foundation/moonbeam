@@ -52,7 +52,7 @@ use sp_std::{marker::PhantomData, prelude::*};
 #[cfg(feature = "xcm-support")]
 use xcm::latest::MultiLocation;
 #[cfg(feature = "xcm-support")]
-use xcm_transactor::{migrations::MaxTransactWeight, Config as XcmTransactorConfig};
+use xcm_transactor::{Config as XcmTransactorConfig};
 
 /// This module acts as a registry where each migration is defined. Each migration should implement
 /// the "Migration" trait declared in the pallet-migrations crate.
@@ -368,30 +368,30 @@ impl<T: BaseFeeConfig> Migration for MigrateBaseFeePerGas<T> {
 	}
 }
 
-#[cfg(feature = "xcm-support")]
-pub struct XcmTransactorMaxTransactWeight<T>(PhantomData<T>);
-#[cfg(feature = "xcm-support")]
-impl<T: XcmTransactorConfig> Migration for XcmTransactorMaxTransactWeight<T> {
-	fn friendly_name(&self) -> &str {
-		"MM_Xcm_Transactor_MaxTransactWeight"
-	}
+// #[cfg(feature = "xcm-support")]
+// pub struct XcmTransactorMaxTransactWeight<T>(PhantomData<T>);
+// #[cfg(feature = "xcm-support")]
+// impl<T: XcmTransactorConfig> Migration for XcmTransactorMaxTransactWeight<T> {
+// 	fn friendly_name(&self) -> &str {
+// 		"MM_Xcm_Transactor_MaxTransactWeight"
+// 	}
 
-	fn migrate(&self, _available_weight: Weight) -> Weight {
-		MaxTransactWeight::<T>::on_runtime_upgrade()
-	}
+// 	fn migrate(&self, _available_weight: Weight) -> Weight {
+// 		MaxTransactWeight::<T>::on_runtime_upgrade()
+// 	}
 
-	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
-	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade(&self) -> Result<(), &'static str> {
-		MaxTransactWeight::<T>::pre_upgrade()
-	}
+// 	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+// 	#[cfg(feature = "try-runtime")]
+// 	fn pre_upgrade(&self) -> Result<(), &'static str> {
+// 		MaxTransactWeight::<T>::pre_upgrade()
+// 	}
 
-	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
-	#[cfg(feature = "try-runtime")]
-	fn post_upgrade(&self) -> Result<(), &'static str> {
-		MaxTransactWeight::<T>::post_upgrade()
-	}
-}
+// 	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+// 	#[cfg(feature = "try-runtime")]
+// 	fn post_upgrade(&self) -> Result<(), &'static str> {
+// 		MaxTransactWeight::<T>::post_upgrade()
+// 	}
+// }
 
 #[cfg(feature = "xcm-support")]
 pub struct AssetManagerUnitsWithAssetType<T>(PhantomData<T>);
