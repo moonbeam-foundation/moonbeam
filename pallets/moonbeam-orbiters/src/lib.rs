@@ -160,7 +160,7 @@ pub mod pallet {
 		fn build(&self) {
 			assert!(
 				self.min_orbiter_deposit > Zero::zero(),
-				"Minumal orbiter deposit should be greater tham zero"
+				"Minimal orbiter deposit should be greater than zero"
 			);
 			MinOrbiterDeposit::<T>::put(self.min_orbiter_deposit)
 		}
@@ -267,10 +267,7 @@ pub mod pallet {
 			collator_pool.add_orbiter(orbiter.clone());
 			CollatorsPool::<T>::insert(collator.clone(), collator_pool);
 
-			Self::deposit_event(Event::OrbiterJoinCollatorPool {
-				collator: collator,
-				orbiter,
-			});
+			Self::deposit_event(Event::OrbiterJoinCollatorPool { collator, orbiter });
 
 			Ok(())
 		}
@@ -472,7 +469,7 @@ pub mod pallet {
 						AccountLookupOverride::<T>::remove(collator.clone());
 						writes += 1;
 						Self::deposit_event(Event::OrbiterRotation {
-							collator: collator,
+							collator,
 							old_orbiter: maybe_old_orbiter.map(|orbiter| orbiter.account_id),
 							new_orbiter: None,
 						});
