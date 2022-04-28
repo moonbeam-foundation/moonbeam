@@ -14,12 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::{Config, RemoteTransactInfoWithMaxWeight, TransactInfoWithWeightLimit, DestinationFeePerSecond};
+use crate::{
+	Config, DestinationFeePerSecond, RemoteTransactInfoWithMaxWeight, TransactInfoWithWeightLimit,
+};
 use frame_support::{
 	pallet_prelude::PhantomData,
-	storage::migration::{remove_storage_prefix, storage_key_iter},
+	storage::migration::storage_key_iter,
 	traits::{Get, OnRuntimeUpgrade},
-	weights::{constants::WEIGHT_PER_SECOND, Weight},
+	weights::Weight,
 	Blake2_128Concat,
 };
 use parity_scale_codec::{Decode, Encode};
@@ -213,7 +215,6 @@ impl<T: Config> OnRuntimeUpgrade for TransactSignedWeightAndFeePerSecond<T> {
 
 		log::info!(target: "TransactSignedWeightAndFeePerSecond", "Migrating {:?} elements", migrated_count);
 
-
 		// Write to storage with removed and added fields
 		for (location, info) in stored_data {
 			TransactInfoWithWeightLimit::<T>::insert(&location, {
@@ -282,7 +283,8 @@ impl<T: Config> OnRuntimeUpgrade for TransactSignedWeightAndFeePerSecond<T> {
 		// Check number of entries matches what was set aside in pre_upgrade
 		let old_mapping_count: u64 = Self::get_temp_storage("mapping_count")
 			.expect("We stored a mapping count; it should be there; qed");
-		let new_mapping_count_transact_info = TransactInfoWithWeightLimit::<T>::iter().count() as u64;
+		let new_mapping_count_transact_info =
+			TransactInfoWithWeightLimit::<T>::iter().count() as u64;
 		let new_mapping_count_fee_per_second = DestinationFeePerSecond::<T>::iter().count() as u64;
 
 		assert_eq!(old_mapping_count, new_mapping_count_transact_info);
@@ -292,8 +294,10 @@ impl<T: Config> OnRuntimeUpgrade for TransactSignedWeightAndFeePerSecond<T> {
 		if new_mapping_count_transact_info > 0 {
 			let (location, original_info): (MultiLocation, OldRemoteTransactInfoWithFeePerSecond) =
 				Self::get_temp_storage("example_pair").expect("qed");
-			let migrated_info_transact_info = TransactInfoWithWeightLimit::<T>::get(location).expect("qed");
-			let migrated_info_fee_per_second = DestinationFeePerSecond::<T>::get(location).expect("qed");
+			let migrated_info_transact_info =
+				TransactInfoWithWeightLimit::<T>::get(location).expect("qed");
+			let migrated_info_fee_per_second =
+				DestinationFeePerSecond::<T>::get(location).expect("qed");
 			// Check all the other params are equal
 			assert_eq!(
 				original_info.transact_extra_weight,

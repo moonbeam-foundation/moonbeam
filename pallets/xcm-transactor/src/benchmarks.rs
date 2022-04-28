@@ -18,8 +18,8 @@ use crate::{Call, Config, Pallet};
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
 use frame_system::RawOrigin;
 use sp_std::boxed::Box;
-use xcm::latest::prelude::*;
 use sp_std::vec;
+use xcm::latest::prelude::*;
 
 benchmarks! {
 	register {
@@ -113,7 +113,7 @@ benchmarks! {
 		Box::new(xcm::VersionedMultiLocation::V1(location.clone())),
 		Box::new(xcm::VersionedMultiLocation::V1(location.clone())),
 		dest_weight,
-		call		
+		call
 	)
 }
 

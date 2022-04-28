@@ -175,8 +175,7 @@ pub mod pallet {
 
 	#[pallet::storage]
 	#[pallet::getter(fn dest_fee_per_second)]
-	pub type DestinationFeePerSecond<T: Config> =
-		StorageMap<_, Twox64Concat, MultiLocation, u128>;
+	pub type DestinationFeePerSecond<T: Config> = StorageMap<_, Twox64Concat, MultiLocation, u128>;
 
 	/// An error that can occur while executing the mapping pallet's logic.
 	#[pallet::error]
@@ -515,7 +514,7 @@ pub mod pallet {
 		/// by any method implemented in the destination chains runtime
 		///
 		/// This time we are giving the currency as a multilocation instead of currencyId
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::transact_through_signed_multilocation())]
 		pub fn transact_through_signed_multilocation(
 			origin: OriginFor<T>,
 			dest: Box<VersionedMultiLocation>,
@@ -526,7 +525,8 @@ pub mod pallet {
 			let who = ensure_signed(origin)?;
 
 			let dest = MultiLocation::try_from(*dest).map_err(|()| Error::<T>::BadVersion)?;
-			let fee_location = MultiLocation::try_from(*fee_location).map_err(|()| Error::<T>::BadVersion)?;
+			let fee_location =
+				MultiLocation::try_from(*fee_location).map_err(|()| Error::<T>::BadVersion)?;
 
 			// Grab the destination
 			Self::transact_in_dest_chain_asset_signed(
@@ -593,7 +593,7 @@ pub mod pallet {
 		}
 
 		/// Change the transact info of a location
-		#[pallet::weight(0)]
+		#[pallet::weight(T::WeightInfo::set_fee_per_second())]
 		pub fn set_fee_per_second(
 			origin: OriginFor<T>,
 			asset_location: Box<VersionedMultiLocation>,

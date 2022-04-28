@@ -639,16 +639,17 @@ fn test_signed_weight_and_fee_per_second_migration_works() {
 			use parity_scale_codec::Encode;
 
 			// This is the previous struct, which we have moved to migrations
-			let old_transact_info_with_fee_per_sec = migrations::OldRemoteTransactInfoWithFeePerSecond {
-				transact_extra_weight: 1,
-				fee_per_second: 2,
-				max_weight: 3
-			};
+			let old_transact_info_with_fee_per_sec =
+				migrations::OldRemoteTransactInfoWithFeePerSecond {
+					transact_extra_weight: 1,
+					fee_per_second: 2,
+					max_weight: 3,
+				};
 			// This is the new struct
 			let expected_transacted_info = RemoteTransactInfoWithMaxWeight {
 				transact_extra_weight: 1,
 				max_weight: 3,
-				transact_extra_weight_signed: None
+				transact_extra_weight_signed: None,
 			};
 			// This is the new struct
 			let expected_destination_fee_per_second = 2u128;
