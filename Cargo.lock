@@ -2735,6 +2735,7 @@ dependencies = [
  "lru 0.6.6",
  "pallet-ethereum",
  "parity-scale-codec",
+ "prometheus",
  "rand 0.8.5",
  "rlp",
  "sc-client-api",
