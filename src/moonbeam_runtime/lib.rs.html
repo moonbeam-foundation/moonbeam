@@ -1355,6 +1355,50 @@
 <span id="1350">1350</span>
 <span id="1351">1351</span>
 <span id="1352">1352</span>
+<span id="1353">1353</span>
+<span id="1354">1354</span>
+<span id="1355">1355</span>
+<span id="1356">1356</span>
+<span id="1357">1357</span>
+<span id="1358">1358</span>
+<span id="1359">1359</span>
+<span id="1360">1360</span>
+<span id="1361">1361</span>
+<span id="1362">1362</span>
+<span id="1363">1363</span>
+<span id="1364">1364</span>
+<span id="1365">1365</span>
+<span id="1366">1366</span>
+<span id="1367">1367</span>
+<span id="1368">1368</span>
+<span id="1369">1369</span>
+<span id="1370">1370</span>
+<span id="1371">1371</span>
+<span id="1372">1372</span>
+<span id="1373">1373</span>
+<span id="1374">1374</span>
+<span id="1375">1375</span>
+<span id="1376">1376</span>
+<span id="1377">1377</span>
+<span id="1378">1378</span>
+<span id="1379">1379</span>
+<span id="1380">1380</span>
+<span id="1381">1381</span>
+<span id="1382">1382</span>
+<span id="1383">1383</span>
+<span id="1384">1384</span>
+<span id="1385">1385</span>
+<span id="1386">1386</span>
+<span id="1387">1387</span>
+<span id="1388">1388</span>
+<span id="1389">1389</span>
+<span id="1390">1390</span>
+<span id="1391">1391</span>
+<span id="1392">1392</span>
+<span id="1393">1393</span>
+<span id="1394">1394</span>
+<span id="1395">1395</span>
+<span id="1396">1396</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -1995,6 +2039,23 @@
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DefaultParachainBondReservePercent</span>: <span class="ident">Percent</span> <span class="op">=</span> <span class="ident">Percent::from_percent</span>(<span class="number">30</span>);
 }
 
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">OnCollatorPayout</span>;
+<span class="kw">impl</span> <span class="ident">parachain_staking::OnCollatorPayout</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">Balance</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">OnCollatorPayout</span> {
+	<span class="kw">fn</span> <span class="ident">on_collator_payout</span>(
+		<span class="ident">for_round</span>: <span class="ident">parachain_staking::RoundIndex</span>,
+		<span class="ident">collator_id</span>: <span class="ident">AccountId</span>,
+		<span class="ident">amount</span>: <span class="ident">Balance</span>,
+	) -&gt; <span class="ident">Weight</span> {
+		<span class="ident">MoonbeamOrbiters::distribute_rewards</span>(<span class="ident">for_round</span>, <span class="ident">collator_id</span>, <span class="ident">amount</span>)
+	}
+}
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">OnNewRound</span>;
+<span class="kw">impl</span> <span class="ident">parachain_staking::OnNewRound</span> <span class="kw">for</span> <span class="ident">OnNewRound</span> {
+	<span class="kw">fn</span> <span class="ident">on_new_round</span>(<span class="ident">round_index</span>: <span class="ident">parachain_staking::RoundIndex</span>) -&gt; <span class="ident">Weight</span> {
+		<span class="ident">MoonbeamOrbiters::on_new_round</span>(<span class="ident">round_index</span>)
+	}
+}
+
 <span class="kw">impl</span> <span class="ident">parachain_staking::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
 	<span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
 	<span class="kw">type</span> <span class="ident">Currency</span> <span class="op">=</span> <span class="ident">Balances</span>;
@@ -2033,6 +2094,8 @@
 	<span class="kw">type</span> <span class="ident">MinDelegation</span> <span class="op">=</span> <span class="ident">ConstU128</span><span class="op">&lt;</span>{ <span class="number">500</span> <span class="op">*</span> <span class="ident">currency::MILLIGLMR</span> <span class="op">*</span> <span class="ident">currency::SUPPLY_FACTOR</span> }<span class="op">&gt;</span>;
 	<span class="doccomment">/// Minimum stake required to be reserved to be a delegator</span>
 	<span class="kw">type</span> <span class="ident">MinDelegatorStk</span> <span class="op">=</span> <span class="ident">ConstU128</span><span class="op">&lt;</span>{ <span class="number">500</span> <span class="op">*</span> <span class="ident">currency::MILLIGLMR</span> <span class="op">*</span> <span class="ident">currency::SUPPLY_FACTOR</span> }<span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">OnCollatorPayout</span> <span class="op">=</span> <span class="ident">OnCollatorPayout</span>;
+	<span class="kw">type</span> <span class="ident">OnNewRound</span> <span class="op">=</span> <span class="ident">OnNewRound</span>;
 	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">parachain_staking::weights::SubstrateWeight</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
 }
 
@@ -2137,7 +2200,9 @@
 			),
 			<span class="ident">ProxyType::Staking</span> =&gt; <span class="macro">matches!</span>(
 				<span class="ident">c</span>,
-				<span class="ident">Call::ParachainStaking</span>(..) <span class="op">|</span> <span class="ident">Call::Utility</span>(..) <span class="op">|</span> <span class="ident">Call::AuthorMapping</span>(..)
+				<span class="ident">Call::ParachainStaking</span>(..)
+					<span class="op">|</span> <span class="ident">Call::Utility</span>(..) <span class="op">|</span> <span class="ident">Call::AuthorMapping</span>(..)
+					<span class="op">|</span> <span class="ident">Call::MoonbeamOrbiters</span>(..)
 			),
 			<span class="ident">ProxyType::CancelProxy</span> =&gt; <span class="macro">matches!</span>(
 				<span class="ident">c</span>,
@@ -2202,6 +2267,7 @@
 			<span class="ident">Call::Identity</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
 			<span class="ident">Call::XTokens</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
 			<span class="ident">Call::ParachainStaking</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+			<span class="ident">Call::MoonbeamOrbiters</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
 			<span class="ident">Call::PolkadotXcm</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
 			<span class="ident">Call::Treasury</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
 			<span class="ident">Call::XcmTransactor</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
@@ -2337,6 +2403,27 @@
 	<span class="kw">type</span> <span class="ident">ProxyType</span> <span class="op">=</span> <span class="ident">ProxyType</span>;
 }
 
+<span class="macro">parameter_types!</span> {
+	<span class="kw">pub</span> <span class="ident">OrbiterReserveIdentifier</span>: [<span class="ident">u8</span>; <span class="number">4</span>] <span class="op">=</span> [<span class="string">b&#39;o&#39;</span>, <span class="string">b&#39;r&#39;</span>, <span class="string">b&#39;b&#39;</span>, <span class="string">b&#39;i&#39;</span>];
+}
+
+<span class="kw">impl</span> <span class="ident">pallet_moonbeam_orbiters::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
+	<span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
+	<span class="kw">type</span> <span class="ident">AccountLookup</span> <span class="op">=</span> <span class="ident">AuthorMapping</span>;
+	<span class="kw">type</span> <span class="ident">AddCollatorOrigin</span> <span class="op">=</span> <span class="ident">EnsureRoot</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">Currency</span> <span class="op">=</span> <span class="ident">Balances</span>;
+	<span class="kw">type</span> <span class="ident">DelCollatorOrigin</span> <span class="op">=</span> <span class="ident">EnsureRoot</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>;
+	<span class="doccomment">/// Maximum number of orbiters per collator</span>
+	<span class="kw">type</span> <span class="ident">MaxPoolSize</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span><span class="number">8</span><span class="op">&gt;</span>;
+	<span class="doccomment">/// Maximum number of round to keep on storage</span>
+	<span class="kw">type</span> <span class="ident">MaxRoundArchive</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span><span class="number">4</span><span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">OrbiterReserveIdentifier</span> <span class="op">=</span> <span class="ident">OrbiterReserveIdentifier</span>;
+	<span class="kw">type</span> <span class="ident">RotatePeriod</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span><span class="number">1</span><span class="op">&gt;</span>;
+	<span class="doccomment">/// Round index type.</span>
+	<span class="kw">type</span> <span class="ident">RoundIndex</span> <span class="op">=</span> <span class="ident">parachain_staking::RoundIndex</span>;
+	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">pallet_moonbeam_orbiters::weights::SubstrateWeight</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
+}
+
 <span class="macro">construct_runtime!</span> {
 	<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Runtime</span> <span class="kw">where</span>
 		<span class="ident">Block</span> <span class="op">=</span> <span class="ident">Block</span>,
@@ -2359,6 +2446,7 @@
 		<span class="ident">AuthorInherent</span>: <span class="ident">pallet_author_inherent</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Inherent</span>} <span class="op">=</span> <span class="number">21</span>,
 		<span class="ident">AuthorFilter</span>: <span class="ident">pallet_author_slot_filter</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span>, <span class="ident">Config</span>} <span class="op">=</span> <span class="number">22</span>,
 		<span class="ident">AuthorMapping</span>: <span class="ident">pallet_author_mapping</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Config</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>} <span class="op">=</span> <span class="number">23</span>,
+		<span class="ident">MoonbeamOrbiters</span>: <span class="ident">pallet_moonbeam_orbiters</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>} <span class="op">=</span> <span class="number">24</span>,
 
 		<span class="comment">// Handy utilities.</span>
 		<span class="ident">Utility</span>: <span class="ident">pallet_utility</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Event</span>} <span class="op">=</span> <span class="number">30</span>,

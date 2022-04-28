@@ -589,6 +589,15 @@
 <span id="584">584</span>
 <span id="585">585</span>
 <span id="586">586</span>
+<span id="587">587</span>
+<span id="588">588</span>
+<span id="589">589</span>
+<span id="590">590</span>
+<span id="591">591</span>
+<span id="592">592</span>
+<span id="593">593</span>
+<span id="594">594</span>
+<span id="595">595</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -1015,6 +1024,7 @@
 					<span class="kw">use</span> <span class="ident">parachain_staking::Pallet</span> <span class="kw">as</span> <span class="ident">ParachainStakingBench</span>;
 					<span class="kw">use</span> <span class="ident">pallet_author_mapping::Pallet</span> <span class="kw">as</span> <span class="ident">PalletAuthorMappingBench</span>;
 					<span class="kw">use</span> <span class="ident">pallet_author_slot_filter::Pallet</span> <span class="kw">as</span> <span class="ident">PalletAuthorSlotFilter</span>;
+					<span class="kw">use</span> <span class="ident">pallet_moonbeam_orbiters::Pallet</span> <span class="kw">as</span> <span class="ident">PalletMoonbeamOrbiters</span>;
 					<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;moonbase-runtime-benchmarks&quot;</span>)]</span>
 					<span class="kw">use</span> <span class="ident">pallet_asset_manager::Pallet</span> <span class="kw">as</span> <span class="ident">PalletAssetManagerBench</span>;
 					<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;moonbase-runtime-benchmarks&quot;</span>)]</span>
@@ -1027,6 +1037,7 @@
 					<span class="macro">list_benchmark!</span>(<span class="ident">list</span>, <span class="ident">extra</span>, <span class="ident">pallet_crowdloan_rewards</span>, <span class="ident">PalletCrowdloanRewardsBench</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>);
 					<span class="macro">list_benchmark!</span>(<span class="ident">list</span>, <span class="ident">extra</span>, <span class="ident">pallet_author_mapping</span>, <span class="ident">PalletAuthorMappingBench</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>);
 					<span class="macro">list_benchmark!</span>(<span class="ident">list</span>, <span class="ident">extra</span>, <span class="ident">pallet_author_slot_filter</span>, <span class="ident">PalletAuthorSlotFilter</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>);
+					<span class="macro">list_benchmark!</span>(<span class="ident">list</span>, <span class="ident">extra</span>, <span class="ident">pallet_moonbeam_orbiters</span>, <span class="ident">PalletMoonbeamOrbiters</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>);
 					<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;moonbase-runtime-benchmarks&quot;</span>)]</span>
 					<span class="macro">list_benchmark!</span>(<span class="ident">list</span>, <span class="ident">extra</span>, <span class="ident">pallet_asset_manager</span>, <span class="ident">PalletAssetManagerBench</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>);
 					<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;moonbase-runtime-benchmarks&quot;</span>)]</span>
@@ -1051,6 +1062,7 @@
 					<span class="kw">use</span> <span class="ident">parachain_staking::Pallet</span> <span class="kw">as</span> <span class="ident">ParachainStakingBench</span>;
 					<span class="kw">use</span> <span class="ident">pallet_author_mapping::Pallet</span> <span class="kw">as</span> <span class="ident">PalletAuthorMappingBench</span>;
 					<span class="kw">use</span> <span class="ident">pallet_author_slot_filter::Pallet</span> <span class="kw">as</span> <span class="ident">PalletAuthorSlotFilter</span>;
+					<span class="kw">use</span> <span class="ident">pallet_moonbeam_orbiters::Pallet</span> <span class="kw">as</span> <span class="ident">PalletMoonbeamOrbiters</span>;
 					<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;moonbase-runtime-benchmarks&quot;</span>)]</span>
 					<span class="kw">use</span> <span class="ident">pallet_asset_manager::Pallet</span> <span class="kw">as</span> <span class="ident">PalletAssetManagerBench</span>;
 					<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;moonbase-runtime-benchmarks&quot;</span>)]</span>
@@ -1133,6 +1145,12 @@
 						<span class="ident">batches</span>,
 						<span class="ident">pallet_author_slot_filter</span>,
 						<span class="ident">PalletAuthorSlotFilter</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>
+					);
+					<span class="macro">add_benchmark!</span>(
+						<span class="ident">params</span>,
+						<span class="ident">batches</span>,
+						<span class="ident">pallet_moonbeam_orbiters</span>,
+						<span class="ident">PalletMoonbeamOrbiters</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>
 					);
 					<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;moonbase-runtime-benchmarks&quot;</span>)]</span>
 					<span class="macro">add_benchmark!</span>(

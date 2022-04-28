@@ -1680,6 +1680,29 @@
 <span id="1675">1675</span>
 <span id="1676">1676</span>
 <span id="1677">1677</span>
+<span id="1678">1678</span>
+<span id="1679">1679</span>
+<span id="1680">1680</span>
+<span id="1681">1681</span>
+<span id="1682">1682</span>
+<span id="1683">1683</span>
+<span id="1684">1684</span>
+<span id="1685">1685</span>
+<span id="1686">1686</span>
+<span id="1687">1687</span>
+<span id="1688">1688</span>
+<span id="1689">1689</span>
+<span id="1690">1690</span>
+<span id="1691">1691</span>
+<span id="1692">1692</span>
+<span id="1693">1693</span>
+<span id="1694">1694</span>
+<span id="1695">1695</span>
+<span id="1696">1696</span>
+<span id="1697">1697</span>
+<span id="1698">1698</span>
+<span id="1699">1699</span>
+<span id="1700">1700</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -1730,28 +1753,32 @@
 
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>), <span class="ident">no_std</span>)]</span>
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">test</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime-benchmarks&quot;</span>))]</span>
-<span class="kw">mod</span> <span class="ident">benchmarks</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">inflation</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">migrations</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">traits</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">types</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">weights</span>;
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">test</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime-benchmarks&quot;</span>))]</span>
+<span class="kw">mod</span> <span class="ident">benchmarks</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">mock</span>;
 <span class="kw">mod</span> <span class="ident">set</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">types</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">weights</span>;
 
 <span class="kw">use</span> <span class="ident">frame_support::pallet</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">inflation</span>::{<span class="ident">InflationInfo</span>, <span class="ident">Range</span>};
 <span class="kw">use</span> <span class="ident">weights::WeightInfo</span>;
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">pallet</span>::<span class="kw-2">*</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">traits</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">types</span>::<span class="kw-2">*</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">RoundIndex</span>;
 
 <span class="attribute">#[<span class="ident">pallet</span>]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">pallet</span> {
-	<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">set::OrderedSet</span>, <span class="ident">types</span>::<span class="kw-2">*</span>, <span class="ident">InflationInfo</span>, <span class="ident">Range</span>, <span class="ident">WeightInfo</span>};
+	<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">set::OrderedSet</span>, <span class="ident">traits</span>::<span class="kw-2">*</span>, <span class="ident">types</span>::<span class="kw-2">*</span>, <span class="ident">InflationInfo</span>, <span class="ident">Range</span>, <span class="ident">WeightInfo</span>};
 	<span class="kw">use</span> <span class="ident">frame_support::pallet_prelude</span>::<span class="kw-2">*</span>;
 	<span class="kw">use</span> <span class="ident">frame_support::traits</span>::{<span class="ident">Currency</span>, <span class="ident">Get</span>, <span class="ident">Imbalance</span>, <span class="ident">ReservableCurrency</span>};
 	<span class="kw">use</span> <span class="ident">frame_system::pallet_prelude</span>::<span class="kw-2">*</span>;
@@ -1767,7 +1794,7 @@
 	<span class="attribute">#[<span class="ident">pallet::without_storage_info</span>]</span>
 	<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">RoundIndex</span> <span class="op">=</span> <span class="ident">u32</span>;
+	<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">RoundIndex</span> <span class="op">=</span> <span class="ident">u32</span>;
 	<span class="kw">type</span> <span class="ident">RewardPoint</span> <span class="op">=</span> <span class="ident">u32</span>;
 	<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span>
 		<span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span><span class="ident">::Currency</span> <span class="kw">as</span> <span class="ident">Currency</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::AccountId</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::Balance</span>;
@@ -1835,6 +1862,12 @@
 		<span class="doccomment">/// Minimum stake for any registered on-chain account to be a delegator</span>
 		<span class="attribute">#[<span class="ident">pallet::constant</span>]</span>
 		<span class="kw">type</span> <span class="ident">MinDelegatorStk</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+		<span class="doccomment">/// Handler to notify the runtime when a collator is paid.</span>
+		<span class="doccomment">/// If you don&#39;t need it, you can specify the type `()`.</span>
+		<span class="kw">type</span> <span class="ident">OnCollatorPayout</span>: <span class="ident">OnCollatorPayout</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+		<span class="doccomment">/// Handler to notify the runtime when a new round begin.</span>
+		<span class="doccomment">/// If you don&#39;t need it, you can specify the type `()`.</span>
+		<span class="kw">type</span> <span class="ident">OnNewRound</span>: <span class="ident">OnNewRound</span>;
 		<span class="doccomment">/// Weight information for extrinsics in this pallet.</span>
 		<span class="kw">type</span> <span class="ident">WeightInfo</span>: <span class="ident">WeightInfo</span>;
 	}
@@ -2077,6 +2110,8 @@
 			<span class="kw">if</span> <span class="ident">round</span>.<span class="ident">should_update</span>(<span class="ident">n</span>) {
 				<span class="comment">// mutate round</span>
 				<span class="ident">round</span>.<span class="ident">update</span>(<span class="ident">n</span>);
+				<span class="comment">// notify that new round begin</span>
+				<span class="ident">weight</span> <span class="op">=</span> <span class="ident">weight</span>.<span class="ident">saturating_add</span>(<span class="ident">T::OnNewRound::on_new_round</span>(<span class="ident">round</span>.<span class="ident">current</span>));
 				<span class="comment">// pay all stakers for T::RewardPaymentDelay rounds ago</span>
 				<span class="ident"><span class="self">Self</span>::prepare_staking_payouts</span>(<span class="ident">round</span>.<span class="ident">current</span>);
 				<span class="comment">// select top collator candidates for next round</span>
@@ -3219,6 +3254,7 @@
 			<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">collator</span>, <span class="ident">pts</span>)) <span class="op">=</span>
 				<span class="op">&lt;</span><span class="ident">AwardedPts</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::iter_prefix</span>(<span class="ident">paid_for_round</span>).<span class="ident">drain</span>().<span class="ident">next</span>()
 			{
+				<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">extra_weight</span> <span class="op">=</span> <span class="number">0</span>;
 				<span class="kw">let</span> <span class="ident">pct_due</span> <span class="op">=</span> <span class="ident">Perbill::from_rational</span>(<span class="ident">pts</span>, <span class="ident">total_points</span>);
 				<span class="kw">let</span> <span class="ident">total_paid</span> <span class="op">=</span> <span class="ident">pct_due</span> <span class="op">*</span> <span class="ident">payout_info</span>.<span class="ident">total_staking_reward</span>;
 				<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">amt_due</span> <span class="op">=</span> <span class="ident">total_paid</span>;
@@ -3228,6 +3264,11 @@
 				<span class="kw">if</span> <span class="ident">state</span>.<span class="ident">delegations</span>.<span class="ident">is_empty</span>() {
 					<span class="comment">// solo collator with no delegators</span>
 					<span class="ident">mint</span>(<span class="ident">amt_due</span>, <span class="ident">collator</span>.<span class="ident">clone</span>());
+					<span class="ident">extra_weight</span> <span class="op">+</span><span class="op">=</span> <span class="ident">T::OnCollatorPayout::on_collator_payout</span>(
+						<span class="ident">paid_for_round</span>,
+						<span class="ident">collator</span>.<span class="ident">clone</span>(),
+						<span class="ident">amt_due</span>,
+					);
 				} <span class="kw">else</span> {
 					<span class="comment">// pay collator first; commission + due_portion</span>
 					<span class="kw">let</span> <span class="ident">collator_pct</span> <span class="op">=</span> <span class="ident">Perbill::from_rational</span>(<span class="ident">state</span>.<span class="ident">bond</span>, <span class="ident">state</span>.<span class="ident">total</span>);
@@ -3235,6 +3276,11 @@
 					<span class="ident">amt_due</span> <span class="op">=</span> <span class="ident">amt_due</span>.<span class="ident">saturating_sub</span>(<span class="ident">commission</span>);
 					<span class="kw">let</span> <span class="ident">collator_reward</span> <span class="op">=</span> (<span class="ident">collator_pct</span> <span class="op">*</span> <span class="ident">amt_due</span>).<span class="ident">saturating_add</span>(<span class="ident">commission</span>);
 					<span class="ident">mint</span>(<span class="ident">collator_reward</span>, <span class="ident">collator</span>.<span class="ident">clone</span>());
+					<span class="ident">extra_weight</span> <span class="op">+</span><span class="op">=</span> <span class="ident">T::OnCollatorPayout::on_collator_payout</span>(
+						<span class="ident">paid_for_round</span>,
+						<span class="ident">collator</span>.<span class="ident">clone</span>(),
+						<span class="ident">collator_reward</span>,
+					);
 					<span class="comment">// pay delegators due portion</span>
 					<span class="kw">for</span> <span class="ident">Bond</span> { <span class="ident">owner</span>, <span class="ident">amount</span> } <span class="kw">in</span> <span class="ident">state</span>.<span class="ident">delegations</span> {
 						<span class="kw">let</span> <span class="ident">percent</span> <span class="op">=</span> <span class="ident">Perbill::from_rational</span>(<span class="ident">amount</span>, <span class="ident">state</span>.<span class="ident">total</span>);
@@ -3245,7 +3291,7 @@
 
 				(
 					<span class="prelude-val">Some</span>((<span class="ident">collator</span>, <span class="ident">total_paid</span>)),
-					<span class="ident">T::WeightInfo::pay_one_collator_reward</span>(<span class="ident">num_delegators</span> <span class="kw">as</span> <span class="ident">u32</span>),
+					<span class="ident">T::WeightInfo::pay_one_collator_reward</span>(<span class="ident">num_delegators</span> <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">+</span> <span class="ident">extra_weight</span>,
 				)
 			} <span class="kw">else</span> {
 				<span class="comment">// Note that we don&#39;t clean up storage here; it is cleaned up in</span>
