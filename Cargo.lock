@@ -5573,6 +5573,7 @@ dependencies = [
  "polkadot-primitives",
  "polkadot-service",
  "sc-cli",
+ "sc-finality-grandpa",
  "sc-service",
  "sc-telemetry",
  "sc-tracing",
