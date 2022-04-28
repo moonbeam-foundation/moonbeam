@@ -558,25 +558,57 @@ pub fn run() -> Result<()> {
 						_ => panic!("invalid chain spec"),
 					}
 				},
-				BenchmarkCmd::Storage(cmd) => runner.sync_run(|config| {
-					panic!("fixme");
-					/*
-					let partials = new_partial::<RuntimeApi, TemplateRuntimeExecutor, _>(
-						&config,
-						service::parachain_build_import_queue,
-					)?;
-					let db = partials.backend.expose_db();
-					let storage = partials.backend.expose_storage();
+				BenchmarkCmd::Storage(cmd) => {
+					let chain_spec = &runner.config().chain_spec;
+					match chain_spec {
+						#[cfg(feature = "moonriver-native")]
+						spec if spec.is_moonriver() => {
+							return runner.sync_run(|mut config| {
+								let params = service::new_partial::<
+									service::moonriver_runtime::RuntimeApi,
+									service::MoonriverExecutor
+								>(&mut config, false)?;
 
-					cmd.run(config, partials.client.clone(), db, storage)
-					*/
-				}),
+								let db = params.backend.expose_db();
+								let storage = params.backend.expose_storage();
+
+								cmd.run(config, params.client, db, storage)
+							})
+						}
+						#[cfg(feature = "moonbeam-native")]
+						spec if spec.is_moonbeam() => {
+							return runner.sync_run(|mut config| {
+								let params = service::new_partial::<
+									service::moonbeam_runtime::RuntimeApi,
+									service::MoonbeamExecutor
+								>(&mut config, false)?;
+
+								let db = params.backend.expose_db();
+								let storage = params.backend.expose_storage();
+
+								cmd.run(config, params.client, db, storage)
+							})
+						}
+						#[cfg(feature = "moonbase-native")]
+						_ => {
+							return runner.sync_run(|mut config| {
+								let params = service::new_partial::<
+									service::moonbase_runtime::RuntimeApi,
+									service::MoonbaseExecutor
+								>(&mut config, false)?;
+
+								let db = params.backend.expose_db();
+								let storage = params.backend.expose_storage();
+
+								cmd.run(config, params.client, db, storage)
+							})
+						}
+						#[cfg(not(feature = "moonbase-native"))]
+						_ => panic!("invalid chain spec"),
+					}
+				},
 				BenchmarkCmd::Overhead(_) => Err("Unsupported benchmarking command".into()),
 			}
-
-
-
-
 		}
 		#[cfg(feature = "try-runtime")]
 		Some(Subcommand::TryRuntime(cmd)) => {
