@@ -264,7 +264,7 @@ pub mod pallet {
 			);
 
 			collator_pool.add_orbiter(orbiter.clone());
-			CollatorsPool::<T>::insert(collator.clone(), collator_pool);
+			CollatorsPool::<T>::insert(&collator, collator_pool);
 
 			Self::deposit_event(Event::OrbiterJoinCollatorPool { collator, orbiter });
 
