@@ -59,7 +59,7 @@ use pallet_balances::NegativeImbalance;
 use pallet_ethereum::Call::transact;
 use pallet_ethereum::Transaction as EthereumTransaction;
 #[cfg(feature = "std")]
-pub use pallet_evm::GenesisAccount;
+pub use fp_evm::GenesisAccount;
 use pallet_evm::{
 	Account as EVMAccount, EnsureAddressNever, EnsureAddressRoot, FeeCalculator, GasWeightMapping,
 	Runner,

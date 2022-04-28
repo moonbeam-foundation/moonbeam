@@ -31,7 +31,7 @@ pub use moonbeam_runtime::{
 	ParachainStaking, Range, Runtime, System, TransactionConverter, UncheckedExtrinsic, WEEKS,
 };
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
-use pallet_evm::GenesisAccount;
+use fp_evm::GenesisAccount;
 use sp_core::{Encode, H160};
 use sp_runtime::{Digest, DigestItem, Perbill};
 
