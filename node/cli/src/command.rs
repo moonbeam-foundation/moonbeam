@@ -480,8 +480,40 @@ pub fn run() -> Result<()> {
 			match cmd {
 				BenchmarkCmd::Pallet(cmd) =>
 					if cfg!(feature = "runtime-benchmarks") {
-						panic!("fixme");
-						// TODO: run benchmark
+						let chain_spec = &runner.config().chain_spec;
+						match chain_spec {
+							#[cfg(feature = "moonriver-native")]
+							spec if spec.is_moonriver() => {
+								return runner.sync_run(|config| {
+									cmd.run::<service::moonriver_runtime::Block, service::MoonriverExecutor>(
+										config,
+									)
+								})
+							}
+							#[cfg(feature = "moonbeam-native")]
+							spec if spec.is_moonbeam() => {
+								return runner.sync_run(|config| {
+									cmd.run::<service::moonbeam_runtime::Block, service::MoonbeamExecutor>(
+										config,
+									)
+								})
+							}
+							#[cfg(feature = "moonbase-native")]
+							_ => {
+								return runner.sync_run(|config| {
+									cmd.run::<service::moonbase_runtime::Block, service::MoonbaseExecutor>(
+										config,
+									)
+								})
+							}
+							#[cfg(not(feature = "moonbase-native"))]
+							_ => panic!("invalid chain spec"),
+						}
+					} else if cfg!(feature = "moonbase-runtime-benchmarks") {
+						let runner = cli.create_runner(cmd)?;
+						return runner.sync_run(|config| {
+							cmd.run::<service::moonbase_runtime::Block, service::MoonbaseExecutor>(config)
+						});
 					} else {
 						Err("Benchmarking wasn't enabled when building the node. \
 					You can enable it with `--features runtime-benchmarks`."
@@ -516,48 +548,6 @@ pub fn run() -> Result<()> {
 
 
 
-			/*
-			if cfg!(feature = "runtime-benchmarks") {
-				let chain_spec = &runner.config().chain_spec;
-				match chain_spec {
-					#[cfg(feature = "moonriver-native")]
-					spec if spec.is_moonriver() => {
-						return runner.sync_run(|config| {
-							cmd.run::<service::moonriver_runtime::Block, service::MoonriverExecutor>(
-								config,
-							)
-						})
-					}
-					#[cfg(feature = "moonbeam-native")]
-					spec if spec.is_moonbeam() => {
-						return runner.sync_run(|config| {
-							cmd.run::<service::moonbeam_runtime::Block, service::MoonbeamExecutor>(
-								config,
-							)
-						})
-					}
-					#[cfg(feature = "moonbase-native")]
-					_ => {
-						return runner.sync_run(|config| {
-							cmd.run::<service::moonbase_runtime::Block, service::MoonbaseExecutor>(
-								config,
-							)
-						})
-					}
-					#[cfg(not(feature = "moonbase-native"))]
-					_ => panic!("invalid chain spec"),
-				}
-			} else if cfg!(feature = "moonbase-runtime-benchmarks") {
-				let runner = cli.create_runner(cmd)?;
-				return runner.sync_run(|config| {
-					cmd.run::<service::moonbase_runtime::Block, service::MoonbaseExecutor>(config)
-				});
-			} else {
-				Err("Benchmarking wasn't enabled when building the node. \
-				You can enable it with `--features runtime-benchmarks`."
-					.into())
-			}
-			*/
 		}
 		#[cfg(feature = "try-runtime")]
 		Some(Subcommand::TryRuntime(cmd)) => {
