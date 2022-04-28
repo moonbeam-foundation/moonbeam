@@ -341,7 +341,7 @@ pub fn run() -> Result<()> {
 			let runner = cli.create_runner(cmd)?;
 			runner.async_run(|mut config| {
 				let (client, backend, _, task_manager) = service::new_chain_ops(&mut config)?;
-				Ok((cmd.run(client, backend), task_manager))
+				Ok((cmd.run(client, backend, None), task_manager))
 			})
 		}
 		Some(Subcommand::ExportGenesisState(params)) => {
