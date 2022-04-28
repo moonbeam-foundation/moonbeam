@@ -52,7 +52,7 @@ use sp_std::{marker::PhantomData, prelude::*};
 #[cfg(feature = "xcm-support")]
 use xcm::latest::MultiLocation;
 #[cfg(feature = "xcm-support")]
-use xcm_transactor::{Config as XcmTransactorConfig};
+use xcm_transactor::Config as XcmTransactorConfig;
 
 /// This module acts as a registry where each migration is defined. Each migration should implement
 /// the "Migration" trait declared in the pallet-migrations crate.

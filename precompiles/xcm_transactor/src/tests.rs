@@ -165,8 +165,15 @@ fn take_transact_info() {
 				Origin::root(),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				0,
-				1,
-				10000,
+				10000u64,
+				None
+			));
+
+			// Root can set transact info
+			assert_ok!(XcmTransactor::set_fee_per_second(
+				Origin::root(),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				1
 			));
 
 			// Expected result is zero
@@ -177,7 +184,7 @@ fn take_transact_info() {
 					.write(1u128)
 					.write(10000u64)
 					.build(),
-				cost: 1,
+				cost: 2,
 				logs: Default::default(),
 			}));
 
@@ -202,8 +209,15 @@ fn test_transactor_multilocation() {
 				Origin::root(),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				0,
-				1,
-				10000000
+				10000000,
+				None
+			));
+
+			// Root can set transact info
+			assert_ok!(XcmTransactor::set_fee_per_second(
+				Origin::root(),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				1
 			));
 
 			// we pay with our current self reserve.
@@ -256,8 +270,15 @@ fn test_transactor() {
 				Origin::root(),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				0,
-				1,
-				10000000
+				10000000,
+				None
+			));
+
+			// Root can set transact info
+			assert_ok!(XcmTransactor::set_fee_per_second(
+				Origin::root(),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				1
 			));
 
 			let bytes: Bytes = vec![1u8, 2u8, 3u8].as_slice().into();
