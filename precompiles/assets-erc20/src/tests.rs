@@ -2151,7 +2151,157 @@ fn permit_valid() {
 			let value: U256 = 500u16.into();
 			let deadline: U256 = 0u8.into(); // todo: proper timestamp
 
-			let permit = Eip2612::<Runtime, IsLocal, pallet_assets::Instance2>::generate_permit(
+			let permit = Eip2612::<Runtime, IsLocal, pallet_assets::Instance1>::generate_permit(
+				Account::ForeignAssetId(0u128).into(),
+				0u128,
+				owner,
+				spender,
+				value,
+				0u8.into(), // nonce
+				deadline,
+			);
+
+			let secret_key = SecretKey::parse(&ALICE_SECRET_KEY).unwrap();
+			let message = Message::parse(&permit);
+			let (rs, v) = sign(&message, &secret_key);
+
+			assert_eq!(
+				precompiles().execute(
+					Account::ForeignAssetId(0u128).into(),
+					&EvmDataWriter::new_with_selector(Action::Eip2612Nonces)
+						.write(Address(Account::Alice.into()))
+						.build(),
+					None,
+					&Context {
+						address: Account::ForeignAssetId(0u128).into(),
+						caller: Account::Alice.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: EvmDataWriter::new().write(U256::from(0u8)).build(),
+					cost: 0u64,
+					logs: vec![],
+				}))
+			);
+
+			assert_eq!(
+				precompiles().execute(
+					Account::ForeignAssetId(0u128).into(),
+					&EvmDataWriter::new_with_selector(Action::Eip2612Permit)
+						.write(Address(owner))
+						.write(Address(spender))
+						.write(value)
+						.write(deadline)
+						.write(v.serialize())
+						.write(H256::from(rs.r.b32()))
+						.write(H256::from(rs.s.b32()))
+						.build(),
+					None,
+					&Context {
+						address: Account::ForeignAssetId(0u128).into(),
+						caller: Account::Charlie.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: vec![],
+					cost: 30831000u64,
+					logs: LogsBuilder::new(Account::ForeignAssetId(0u128).into())
+						.log3(
+							SELECTOR_LOG_APPROVAL,
+							Account::Alice,
+							Account::Bob,
+							EvmDataWriter::new().write(U256::from(500)).build(),
+						)
+						.build(),
+				}))
+			);
+
+			assert_eq!(
+				precompiles().execute(
+					Account::ForeignAssetId(0u128).into(),
+					&EvmDataWriter::new_with_selector(Action::Allowance)
+						.write(Address(Account::Alice.into()))
+						.write(Address(Account::Bob.into()))
+						.build(),
+					None,
+					&Context {
+						address: Account::ForeignAssetId(0u128).into(),
+						caller: Account::Alice.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: EvmDataWriter::new().write(U256::from(500u16)).build(),
+					cost: 0u64,
+					logs: vec![],
+				}))
+			);
+
+			assert_eq!(
+				precompiles().execute(
+					Account::ForeignAssetId(0u128).into(),
+					&EvmDataWriter::new_with_selector(Action::Eip2612Nonces)
+						.write(Address(Account::Alice.into()))
+						.build(),
+					None,
+					&Context {
+						address: Account::ForeignAssetId(0u128).into(),
+						caller: Account::Alice.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: EvmDataWriter::new().write(U256::from(1u8)).build(),
+					cost: 0u64,
+					logs: vec![],
+				}))
+			);
+		});
+}
+
+#[test]
+fn permit_valid_named_asset() {
+	ExtBuilder::default()
+		.with_balances(vec![(Account::Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(ForeignAssets::force_create(
+				Origin::root(),
+				0u128,
+				Account::Alice.into(),
+				true,
+				1
+			));
+			assert_ok!(ForeignAssets::mint(
+				Origin::signed(Account::Alice),
+				0u128,
+				Account::Alice.into(),
+				1000
+			));
+			assert_ok!(ForeignAssets::set_metadata(
+				Origin::signed(Account::Alice),
+				0u128,
+				b"Test token".to_vec(),
+				b"TEST".to_vec(),
+				18
+			));
+
+			let owner: H160 = Account::Alice.into();
+			let spender: H160 = Account::Bob.into();
+			let value: U256 = 500u16.into();
+			let deadline: U256 = 0u8.into(); // todo: proper timestamp
+
+			let permit = Eip2612::<Runtime, IsLocal, pallet_assets::Instance1>::generate_permit(
 				Account::ForeignAssetId(0u128).into(),
 				0u128,
 				owner,
@@ -2294,7 +2444,7 @@ fn permit_invalid_nonce() {
 			let value: U256 = 500u16.into();
 			let deadline: U256 = 0u8.into();
 
-			let permit = Eip2612::<Runtime, IsLocal, pallet_assets::Instance2>::generate_permit(
+			let permit = Eip2612::<Runtime, IsLocal, pallet_assets::Instance1>::generate_permit(
 				Account::ForeignAssetId(0u128).into(),
 				0u128,
 				owner,
@@ -2546,7 +2696,7 @@ fn permit_invalid_deadline() {
 			let value: U256 = 500u16.into();
 			let deadline: U256 = 5u8.into(); // deadline < timestamp => expired
 
-			let permit = Eip2612::<Runtime, IsLocal, pallet_assets::Instance2>::generate_permit(
+			let permit = Eip2612::<Runtime, IsLocal, pallet_assets::Instance1>::generate_permit(
 				Account::ForeignAssetId(0u128).into(),
 				0u128,
 				owner,
