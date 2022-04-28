@@ -51,7 +51,7 @@ pub mod pallet {
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{Currency, Imbalance, NamedReservableCurrency};
 	use frame_system::pallet_prelude::*;
-	use sp_runtime::traits::{One, StaticLookup, Zero};
+	use sp_runtime::traits::{CheckedSub, One, StaticLookup, Zero};
 
 	#[pallet::pallet]
 	#[pallet::without_storage_info]
@@ -170,10 +170,9 @@ pub mod pallet {
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
 		fn on_initialize(_: T::BlockNumber) -> Weight {
 			// Prune old OrbiterPerRound entries
-			let current_round = CurrentRound::<T>::get();
-			let max_round_archive = T::MaxRoundArchive::get();
-			if current_round > max_round_archive {
-				let round_to_prune = current_round - max_round_archive;
+			if let Some(round_to_prune) =
+				CurrentRound::<T>::get().checked_sub(&T::MaxRoundArchive::get())
+			{
 				OrbiterPerRound::<T>::remove_prefix(round_to_prune, None);
 				T::DbWeight::get().reads_writes(1, 1)
 			} else {
