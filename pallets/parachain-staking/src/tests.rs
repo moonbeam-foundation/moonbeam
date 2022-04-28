@@ -2935,6 +2935,33 @@ fn execute_revoke_delegation_removes_revocation_from_delegator_state_upon_execut
 }
 
 #[test]
+fn execute_revoke_delegation_removes_revocation_from_state_for_single_delegation_leave() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 20), (3, 20)])
+		.with_candidates(vec![(1, 30), (3, 20)])
+		.with_delegations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(ParachainStaking::schedule_revoke_delegation(
+				Origin::signed(2),
+				1
+			));
+			roll_to(10);
+			assert_ok!(ParachainStaking::execute_delegation_request(
+				Origin::signed(2),
+				2,
+				1
+			));
+			assert!(
+				!ParachainStaking::delegation_scheduled_requests(&1)
+					.iter()
+					.any(|x| x.delegator == 2),
+				"delegation was not removed"
+			);
+		});
+}
+
+#[test]
 fn execute_revoke_delegation_decreases_total_staked() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 10)])
