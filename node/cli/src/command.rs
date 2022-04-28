@@ -510,7 +510,6 @@ pub fn run() -> Result<()> {
 							_ => panic!("invalid chain spec"),
 						}
 					} else if cfg!(feature = "moonbase-runtime-benchmarks") {
-						let runner = cli.create_runner(cmd)?;
 						return runner.sync_run(|config| {
 							cmd.run::<service::moonbase_runtime::Block, service::MoonbaseExecutor>(config)
 						});
