@@ -163,7 +163,7 @@ describeDevMoonbeam("Staking - Delegation Requests", (context) => {
   });
 
   it("should successfully execute revoke", async function () {
-    this.timeout(10000);
+    this.timeout(20000);
 
     // schedule revoke
     await context.polkadotApi.tx.parachainStaking
@@ -235,7 +235,7 @@ describeDevMoonbeam("Staking - Delegation Requests", (context) => {
   });
 
   it("should successfully execute bond less", async function () {
-    this.timeout(10000);
+    this.timeout(20000);
 
     const LESS_AMOUNT = 10n;
 
