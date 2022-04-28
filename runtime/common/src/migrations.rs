@@ -102,7 +102,7 @@ impl<T: ParachainStakingConfig> Migration for ParachainStakingPatchIncorrectDele
 	}
 }
 
-/// Staking split candidate state
+/// Staking split delegator state into [parachain_staking::DelegatorScheduledRequests]
 pub struct ParachainStakingSplitDelegatorStateIntoDelegationScheduledRequests<T>(PhantomData<T>);
 impl<T: ParachainStakingConfig> Migration
 	for ParachainStakingSplitDelegatorStateIntoDelegationScheduledRequests<T>
