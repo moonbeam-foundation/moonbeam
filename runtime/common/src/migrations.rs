@@ -613,6 +613,8 @@ where
 
 		let migration_author_slot_filter_eligible_ratio_to_eligibility_count =
 			AuthorSlotFilterEligibleRatioToEligiblityCount::<Runtime>(Default::default());
+		let migration_author_mapping_add_keys_to_registration_info =
+			AuthorMappingAddKeysToRegistrationInfo::<Runtime>(Default::default());
 		let staking_delegator_state_requests =
 			ParachainStakingSplitDelegatorStateIntoDelegationScheduledRequests::<Runtime>(
 				Default::default(),
@@ -636,6 +638,7 @@ where
 			// completed in runtime 1300
 			// Box::new(migration_base_fee),
 			Box::new(migration_author_slot_filter_eligible_ratio_to_eligibility_count),
+			Box::new(migration_author_mapping_add_keys_to_registration_info),
 			Box::new(staking_delegator_state_requests),
 		]
 	}
