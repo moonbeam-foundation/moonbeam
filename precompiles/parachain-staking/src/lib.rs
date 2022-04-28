@@ -48,6 +48,7 @@ enum Action {
 	MinDelegation = "min_delegation()",
 	Points = "points(uint256)",
 	CandidateCount = "candidate_count()",
+	Round = "round()",
 	// DEPRECATED
 	CollatorNominationCount = "collator_nomination_count(address)",
 	// DEPRECATED
@@ -157,6 +158,7 @@ where
 			Action::MinDelegation => return Self::min_delegation(gasometer),
 			Action::Points => return Self::points(input, gasometer),
 			Action::CandidateCount => return Self::candidate_count(gasometer),
+			Action::Round => return Self::round(gasometer),
 			// DEPRECATED
 			Action::CollatorNominationCount => {
 				return Self::candidate_delegation_count(input, gasometer)
@@ -324,6 +326,20 @@ where
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new().write(candidate_count).build(),
+			logs: vec![],
+		})
+	}
+
+	fn round(gasometer: &mut Gasometer) -> EvmResult<PrecompileOutput> {
+		// Fetch info.
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let round: u32 = <parachain_staking::Pallet<Runtime>>::round().current;
+
+		// Build output.
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gasometer.used_gas(),
+			output: EvmDataWriter::new().write(round).build(),
 			logs: vec![],
 		})
 	}

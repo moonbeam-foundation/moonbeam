@@ -19,6 +19,7 @@ codec = { package = "parity-scale-codec", version = "3.0.0", default-features = 
 frame-support = { git = "https://github.com/purestake/substrate", default-features = false , branch = "moonbeam-polkadot-v0.9.19" }
 frame-system = { git = "https://github.com/purestake/substrate", default-features = false , branch = "moonbeam-polkadot-v0.9.19" }
 pallet-balances = { git = "https://github.com/purestake/substrate", default-features = false , branch = "moonbeam-polkadot-v0.9.19" }
+pallet-timestamp = { git = "https://github.com/purestake/substrate", default-features = false , branch = "moonbeam-polkadot-v0.9.19" }
 sp-core = { git = "https://github.com/purestake/substrate", default-features = false , branch = "moonbeam-polkadot-v0.9.19" }
 sp-io = { git = "https://github.com/purestake/substrate", default-features = false , branch = "moonbeam-polkadot-v0.9.19" }
 sp-std = { git = "https://github.com/purestake/substrate", default-features = false , branch = "moonbeam-polkadot-v0.9.19" }
@@ -29,6 +30,8 @@ pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam
 
 [dev-dependencies]
 derive_more = { version = "0.99" }
+hex-literal = "0.3.4"
+libsecp256k1 = "0.7"
 serde = { version = "1.0.100" }
 sha3 = "0.8"
 
