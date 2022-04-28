@@ -22,7 +22,7 @@ use frame_support::{
 };
 use nimbus_primitives::NimbusId;
 use parity_scale_codec::{Decode, Encode};
-//TODO sometimes this is unused, sometimes its necessary
+#[cfg(feature = "try-runtime")]
 use scale_info::prelude::format;
 
 /// Migrates MappingWithDeposit map value from RegistrationInfo to RegistrationInformation,
