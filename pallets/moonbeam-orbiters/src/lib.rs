@@ -280,24 +280,7 @@ pub mod pallet {
 			let collator = ensure_signed(origin)?;
 			let orbiter = T::Lookup::lookup(orbiter)?;
 
-			let mut collator_pool =
-				CollatorsPool::<T>::get(&collator).ok_or(Error::<T>::CollatorNotFound)?;
-
-			match collator_pool.remove_orbiter(&orbiter) {
-				RemoveOrbiterResult::OrbiterNotFound => {
-					return Err(Error::<T>::OrbiterNotFound.into())
-				}
-				RemoveOrbiterResult::OrbiterRemoved => {
-					Self::deposit_event(Event::OrbiterLeaveCollatorPool {
-						collator: collator.clone(),
-						orbiter,
-					});
-				}
-				RemoveOrbiterResult::OrbiterRemoveScheduled => (),
-			}
-
-			CollatorsPool::<T>::insert(collator, collator_pool);
-			Ok(())
+			Self::do_remove_orbiter_from_pool(collator, orbiter)
 		}
 
 		/// Remove the caller from the specified collator pool
@@ -309,24 +292,7 @@ pub mod pallet {
 			let orbiter = ensure_signed(origin)?;
 			let collator = T::Lookup::lookup(collator)?;
 
-			let mut collator_pool =
-				CollatorsPool::<T>::get(&collator).ok_or(Error::<T>::CollatorNotFound)?;
-
-			match collator_pool.remove_orbiter(&orbiter) {
-				RemoveOrbiterResult::OrbiterNotFound => {
-					return Err(Error::<T>::OrbiterNotFound.into())
-				}
-				RemoveOrbiterResult::OrbiterRemoved => {
-					Self::deposit_event(Event::OrbiterLeaveCollatorPool {
-						collator: collator.clone(),
-						orbiter,
-					});
-				}
-				RemoveOrbiterResult::OrbiterRemoveScheduled => (),
-			}
-
-			CollatorsPool::<T>::insert(collator, collator_pool);
-			Ok(())
+			Self::do_remove_orbiter_from_pool(collator, orbiter)
 		}
 
 		/// Registering as an orbiter
@@ -417,6 +383,29 @@ pub mod pallet {
 	}
 
 	impl<T: Config> Pallet<T> {
+		fn do_remove_orbiter_from_pool(
+			collator: T::AccountId,
+			orbiter: T::AccountId,
+		) -> DispatchResult {
+			let mut collator_pool =
+				CollatorsPool::<T>::get(&collator).ok_or(Error::<T>::CollatorNotFound)?;
+
+			match collator_pool.remove_orbiter(&orbiter) {
+				RemoveOrbiterResult::OrbiterNotFound => {
+					return Err(Error::<T>::OrbiterNotFound.into())
+				}
+				RemoveOrbiterResult::OrbiterRemoved => {
+					Self::deposit_event(Event::OrbiterLeaveCollatorPool {
+						collator: collator.clone(),
+						orbiter,
+					});
+				}
+				RemoveOrbiterResult::OrbiterRemoveScheduled => (),
+			}
+
+			CollatorsPool::<T>::insert(collator, collator_pool);
+			Ok(())
+		}
 		fn on_rotate(round_index: T::RoundIndex) -> Weight {
 			let mut writes = 1;
 			// Update current orbiter for each pool and edit AccountLookupOverride accordingly.
