@@ -33,6 +33,8 @@ use cumulus_pallet_parachain_system::RelaychainBlockNumberProvider;
 use fp_rpc::TransactionStatus;
 
 // Re-export required by get! macro.
+#[cfg(feature = "std")]
+pub use fp_evm::GenesisAccount;
 pub use frame_support::traits::Get;
 use frame_support::{
 	construct_runtime,
@@ -58,8 +60,6 @@ use moonbeam_rpc_primitives_txpool::TxPoolResponse;
 use pallet_balances::NegativeImbalance;
 use pallet_ethereum::Call::transact;
 use pallet_ethereum::Transaction as EthereumTransaction;
-#[cfg(feature = "std")]
-pub use fp_evm::GenesisAccount;
 use pallet_evm::{
 	Account as EVMAccount, EnsureAddressNever, EnsureAddressRoot, FeeCalculator, GasWeightMapping,
 	Runner,

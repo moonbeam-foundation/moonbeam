@@ -53,6 +53,8 @@ use frame_support::{
 	PalletId,
 };
 
+#[cfg(feature = "std")]
+pub use fp_evm::GenesisAccount;
 use frame_system::{EnsureRoot, EnsureSigned};
 pub use moonbeam_core_primitives::{
 	AccountId, AccountIndex, Address, AssetId, Balance, BlockNumber, DigestItem, Hash, Header,
@@ -63,8 +65,6 @@ pub use pallet_author_slot_filter::EligibilityValue;
 use pallet_balances::NegativeImbalance;
 use pallet_ethereum::Call::transact;
 use pallet_ethereum::Transaction as EthereumTransaction;
-#[cfg(feature = "std")]
-pub use fp_evm::GenesisAccount;
 use pallet_evm::{
 	Account as EVMAccount, EVMCurrencyAdapter, EnsureAddressNever, EnsureAddressRoot,
 	FeeCalculator, GasWeightMapping, OnChargeEVMTransaction as OnChargeEVMTransactionT, Runner,

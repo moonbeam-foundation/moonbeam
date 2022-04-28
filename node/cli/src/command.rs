@@ -343,50 +343,53 @@ pub fn run() -> Result<()> {
 			let chain_spec = &runner.config().chain_spec;
 			match chain_spec {
 				#[cfg(feature = "moonriver-native")]
-				spec if spec.is_moonriver() => {
-					runner.async_run(|mut config| {
-						let params = service::new_partial::<
-							service::moonriver_runtime::RuntimeApi,
-							service::MoonriverExecutor
-						>(&mut config, false)?;
+				spec if spec.is_moonriver() => runner.async_run(|mut config| {
+					let params = service::new_partial::<
+						service::moonriver_runtime::RuntimeApi,
+						service::MoonriverExecutor,
+					>(&mut config, false)?;
 
-						let aux_revert = Box::new(move |client, _, blocks| {
-							sc_finality_grandpa::revert(client, blocks)?;
-							Ok(())
-						});
-						Ok((cmd.run(params.client, params.backend, Some(aux_revert)), params.task_manager))
-					})
-				}
+					let aux_revert = Box::new(move |client, _, blocks| {
+						sc_finality_grandpa::revert(client, blocks)?;
+						Ok(())
+					});
+					Ok((
+						cmd.run(params.client, params.backend, Some(aux_revert)),
+						params.task_manager,
+					))
+				}),
 				#[cfg(feature = "moonbeam-native")]
-				spec if spec.is_moonbeam() => {
-					runner.async_run(|mut config| {
-						let params = service::new_partial::<
-							service::moonbeam_runtime::RuntimeApi,
-							service::MoonbeamExecutor
-						>(&mut config, false)?;
+				spec if spec.is_moonbeam() => runner.async_run(|mut config| {
+					let params = service::new_partial::<
+						service::moonbeam_runtime::RuntimeApi,
+						service::MoonbeamExecutor,
+					>(&mut config, false)?;
 
-						let aux_revert = Box::new(move |client, _, blocks| {
-							sc_finality_grandpa::revert(client, blocks)?;
-							Ok(())
-						});
-						Ok((cmd.run(params.client, params.backend, Some(aux_revert)), params.task_manager))
-					})
-				}
+					let aux_revert = Box::new(move |client, _, blocks| {
+						sc_finality_grandpa::revert(client, blocks)?;
+						Ok(())
+					});
+					Ok((
+						cmd.run(params.client, params.backend, Some(aux_revert)),
+						params.task_manager,
+					))
+				}),
 				#[cfg(feature = "moonbase-native")]
-				_ => {
-					runner.async_run(|mut config| {
-						let params = service::new_partial::<
-							service::moonbase_runtime::RuntimeApi,
-							service::MoonbaseExecutor
-						>(&mut config, false)?;
+				_ => runner.async_run(|mut config| {
+					let params = service::new_partial::<
+						service::moonbase_runtime::RuntimeApi,
+						service::MoonbaseExecutor,
+					>(&mut config, false)?;
 
-						let aux_revert = Box::new(move |client, _, blocks| {
-							sc_finality_grandpa::revert(client, blocks)?;
-							Ok(())
-						});
-						Ok((cmd.run(params.client, params.backend, Some(aux_revert)), params.task_manager))
-					})
-				}
+					let aux_revert = Box::new(move |client, _, blocks| {
+						sc_finality_grandpa::revert(client, blocks)?;
+						Ok(())
+					});
+					Ok((
+						cmd.run(params.client, params.backend, Some(aux_revert)),
+						params.task_manager,
+					))
+				}),
 				#[cfg(not(feature = "moonbase-native"))]
 				_ => panic!("invalid chain spec"),
 			}
@@ -524,7 +527,7 @@ pub fn run() -> Result<()> {
 			let runner = cli.create_runner(cmd)?;
 			// Switch on the concrete benchmark sub-command
 			match cmd {
-				BenchmarkCmd::Pallet(cmd) =>
+				BenchmarkCmd::Pallet(cmd) => {
 					if cfg!(feature = "runtime-benchmarks") {
 						let chain_spec = &runner.config().chain_spec;
 						match chain_spec {
@@ -557,13 +560,16 @@ pub fn run() -> Result<()> {
 						}
 					} else if cfg!(feature = "moonbase-runtime-benchmarks") {
 						return runner.sync_run(|config| {
-							cmd.run::<service::moonbase_runtime::Block, service::MoonbaseExecutor>(config)
+							cmd.run::<service::moonbase_runtime::Block, service::MoonbaseExecutor>(
+								config,
+							)
 						});
 					} else {
 						Err("Benchmarking wasn't enabled when building the node. \
 					You can enable it with `--features runtime-benchmarks`."
 							.into())
-					},
+					}
+				}
 				BenchmarkCmd::Block(cmd) => {
 					let chain_spec = &runner.config().chain_spec;
 					match chain_spec {
@@ -572,7 +578,7 @@ pub fn run() -> Result<()> {
 							return runner.sync_run(|mut config| {
 								let params = service::new_partial::<
 									service::moonriver_runtime::RuntimeApi,
-									service::MoonriverExecutor
+									service::MoonriverExecutor,
 								>(&mut config, false)?;
 
 								cmd.run(params.client)
@@ -583,7 +589,7 @@ pub fn run() -> Result<()> {
 							return runner.sync_run(|mut config| {
 								let params = service::new_partial::<
 									service::moonbeam_runtime::RuntimeApi,
-									service::MoonbeamExecutor
+									service::MoonbeamExecutor,
 								>(&mut config, false)?;
 
 								cmd.run(params.client)
@@ -594,7 +600,7 @@ pub fn run() -> Result<()> {
 							return runner.sync_run(|mut config| {
 								let params = service::new_partial::<
 									service::moonbase_runtime::RuntimeApi,
-									service::MoonbaseExecutor
+									service::MoonbaseExecutor,
 								>(&mut config, false)?;
 
 								cmd.run(params.client)
@@ -603,7 +609,7 @@ pub fn run() -> Result<()> {
 						#[cfg(not(feature = "moonbase-native"))]
 						_ => panic!("invalid chain spec"),
 					}
-				},
+				}
 				BenchmarkCmd::Storage(cmd) => {
 					let chain_spec = &runner.config().chain_spec;
 					match chain_spec {
@@ -612,7 +618,7 @@ pub fn run() -> Result<()> {
 							return runner.sync_run(|mut config| {
 								let params = service::new_partial::<
 									service::moonriver_runtime::RuntimeApi,
-									service::MoonriverExecutor
+									service::MoonriverExecutor,
 								>(&mut config, false)?;
 
 								let db = params.backend.expose_db();
@@ -626,7 +632,7 @@ pub fn run() -> Result<()> {
 							return runner.sync_run(|mut config| {
 								let params = service::new_partial::<
 									service::moonbeam_runtime::RuntimeApi,
-									service::MoonbeamExecutor
+									service::MoonbeamExecutor,
 								>(&mut config, false)?;
 
 								let db = params.backend.expose_db();
@@ -640,7 +646,7 @@ pub fn run() -> Result<()> {
 							return runner.sync_run(|mut config| {
 								let params = service::new_partial::<
 									service::moonbase_runtime::RuntimeApi,
-									service::MoonbaseExecutor
+									service::MoonbaseExecutor,
 								>(&mut config, false)?;
 
 								let db = params.backend.expose_db();
@@ -652,7 +658,7 @@ pub fn run() -> Result<()> {
 						#[cfg(not(feature = "moonbase-native"))]
 						_ => panic!("invalid chain spec"),
 					}
-				},
+				}
 				BenchmarkCmd::Overhead(_) => Err("Unsupported benchmarking command".into()),
 			}
 		}

@@ -17,6 +17,7 @@
 #![allow(dead_code)]
 
 use cumulus_primitives_parachain_inherent::ParachainInherentData;
+use fp_evm::GenesisAccount;
 use frame_support::{
 	assert_ok,
 	dispatch::Dispatchable,
@@ -31,7 +32,6 @@ pub use moonbeam_runtime::{
 	ParachainStaking, Range, Runtime, System, TransactionConverter, UncheckedExtrinsic, WEEKS,
 };
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
-use fp_evm::GenesisAccount;
 use sp_core::{Encode, H160};
 use sp_runtime::{Digest, DigestItem, Perbill};
 
