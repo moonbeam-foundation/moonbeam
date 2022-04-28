@@ -20,6 +20,7 @@ use crate::cli::{Cli, RelayChainCli, RunCmd, Subcommand};
 use cli_opt::{EthApi, RpcConfig};
 use cumulus_client_service::genesis::generate_genesis_block;
 use cumulus_primitives_core::ParaId;
+use frame_benchmarking_cli::BenchmarkCmd;
 use log::info;
 use parity_scale_codec::Encode;
 use polkadot_parachain::primitives::AccountIdConversion;
@@ -474,8 +475,49 @@ pub fn run() -> Result<()> {
 			Ok(())
 		}
 		Some(Subcommand::Benchmark(cmd)) => {
+			let runner = cli.create_runner(cmd)?;
+			// Switch on the concrete benchmark sub-command
+			match cmd {
+				BenchmarkCmd::Pallet(cmd) =>
+					if cfg!(feature = "runtime-benchmarks") {
+						panic!("fixme");
+						// TODO: run benchmark
+					} else {
+						Err("Benchmarking wasn't enabled when building the node. \
+					You can enable it with `--features runtime-benchmarks`."
+							.into())
+					},
+				BenchmarkCmd::Block(cmd) => runner.sync_run(|config| {
+					panic!("fixme");
+					/*
+					let partials = new_partial::<RuntimeApi, TemplateRuntimeExecutor, _>(
+						&config,
+						service::parachain_build_import_queue,
+					)?;
+					cmd.run(partials.client)
+					*/
+				}),
+				BenchmarkCmd::Storage(cmd) => runner.sync_run(|config| {
+					panic!("fixme");
+					/*
+					let partials = new_partial::<RuntimeApi, TemplateRuntimeExecutor, _>(
+						&config,
+						service::parachain_build_import_queue,
+					)?;
+					let db = partials.backend.expose_db();
+					let storage = partials.backend.expose_storage();
+
+					cmd.run(config, partials.client.clone(), db, storage)
+					*/
+				}),
+				BenchmarkCmd::Overhead(_) => Err("Unsupported benchmarking command".into()),
+			}
+
+
+
+
+			/*
 			if cfg!(feature = "runtime-benchmarks") {
-				let runner = cli.create_runner(cmd)?;
 				let chain_spec = &runner.config().chain_spec;
 				match chain_spec {
 					#[cfg(feature = "moonriver-native")]
@@ -515,6 +557,7 @@ pub fn run() -> Result<()> {
 				You can enable it with `--features runtime-benchmarks`."
 					.into())
 			}
+			*/
 		}
 		#[cfg(feature = "try-runtime")]
 		Some(Subcommand::TryRuntime(cmd)) => {
