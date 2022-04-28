@@ -14,14 +14,14 @@ relay-encoder-precompiles = { path = "../../precompiles/relay-encoder/", default
 xcm-primitives = { path = "../../primitives/xcm", default-features = false }
 
 # Substrate
-frame-system = { git = "https://github.com/purestake/substrate", default-features = false , branch = "moonbeam-polkadot-v0.9.19" }
-pallet-staking = { git = "https://github.com/purestake/substrate", default-features = false , branch = "moonbeam-polkadot-v0.9.19" }
+frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.19", default-features = false }
+pallet-staking = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.19", default-features = false }
 parity-scale-codec = { version = "3.0.0", default-features = false, features = [ "derive" ] }
-sp-runtime = { git = "https://github.com/purestake/substrate", default-features = false , branch = "moonbeam-polkadot-v0.9.19" }
-sp-std = { git = "https://github.com/purestake/substrate", default-features = false , branch = "moonbeam-polkadot-v0.9.19" }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.19", default-features = false }
+sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.19", default-features = false }
 
 # Cumulus
-cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", default-features = false , branch = "moonbeam-polkadot-v0.9.19" }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.19", default-features = false }
 
 [dev-dependencies]
 frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.19" }

@@ -16,11 +16,11 @@ xcm-primitives = { path = "../../primitives/xcm/", default-features = false }
 xcm-transactor = { path = "../../pallets/xcm-transactor", default-features = false }
 
 # Substrate
-frame-support = { git = "https://github.com/purestake/substrate", default-features = false , branch = "moonbeam-polkadot-v0.9.19" }
-frame-system = { git = "https://github.com/purestake/substrate", default-features = false , branch = "moonbeam-polkadot-v0.9.19" }
-sp-core = { git = "https://github.com/purestake/substrate", default-features = false , branch = "moonbeam-polkadot-v0.9.19" }
-sp-runtime = { git = "https://github.com/purestake/substrate", default-features = false , branch = "moonbeam-polkadot-v0.9.19" }
-sp-std = { git = "https://github.com/purestake/substrate", default-features = false , branch = "moonbeam-polkadot-v0.9.19" }
+frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.19", default-features = false }
+frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.19", default-features = false }
+sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.19", default-features = false }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.19", default-features = false }
+sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.19", default-features = false }
 
 # Frontier
 evm = { version = "0.35.0", default-features = false, features = [ "with-codec" ] }
@@ -28,7 +28,7 @@ fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-pol
 pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.19", default-features = false }
 
 # Polkadot
-xcm = { git = "https://github.com/purestake/polkadot", default-features = false , branch = "moonbeam-polkadot-v0.9.19" }
+xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.19", default-features = false }
 
 [dev-dependencies]
 derive_more = "0.99"
