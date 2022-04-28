@@ -8,6 +8,7 @@ version = "0.1.0"
 [dependencies]
 log = "0.4"
 num_enum = { version = "0.5.3", default-features = false }
+paste = "1.0.6"
 slices = "0.2.0"
 
 # Moonbeam
@@ -19,6 +20,7 @@ frame-support = { git = "https://github.com/purestake/substrate", branch = "moon
 frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
 pallet-assets = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
 pallet-balances = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
+pallet-timestamp = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
 sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
 sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
 sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
@@ -30,6 +32,8 @@ pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam
 
 [dev-dependencies]
 derive_more = { version = "0.99" }
+hex-literal = "0.3.4"
+libsecp256k1 = "0.7"
 serde = { version = "1.0.100" }
 sha3 = "0.8"
 
@@ -46,7 +50,9 @@ std = [
 	"frame-support/std",
 	"frame-system/std",
 	"pallet-assets/std",
+	"pallet-balances/std",
 	"pallet-evm/std",
+	"pallet-timestamp/std",
 	"precompile-utils/std",
 	"sp-core/std",
 	"sp-io/std",
