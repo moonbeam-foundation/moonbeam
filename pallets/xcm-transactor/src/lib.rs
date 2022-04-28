@@ -203,6 +203,7 @@ pub mod pallet {
 		UnableToWithdrawAsset,
 		FeePerSecondNotSet,
 		SignedTransactNotAllowedForDestination,
+		FailedMultiLocationToJunction,
 	}
 
 	#[pallet::event]
@@ -475,12 +476,14 @@ pub mod pallet {
 		#[pallet::weight(0)]
 		pub fn transact_through_signed(
 			origin: OriginFor<T>,
-			dest: MultiLocation,
+			dest: Box<VersionedMultiLocation>,
 			fee_currency_id: T::CurrencyId,
 			dest_weight: Weight,
 			call: Vec<u8>,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
+
+			let dest = MultiLocation::try_from(*dest).map_err(|()| Error::<T>::BadVersion)?;
 
 			let fee_location: MultiLocation =
 				T::CurrencyIdToMultiLocation::convert(fee_currency_id)
@@ -647,7 +650,7 @@ pub mod pallet {
 			let transact_in_dest_as_signed_weight = transactor_info
 				.transact_extra_weight_signed
 				.ok_or(Error::<T>::SignedTransactNotAllowedForDestination)?;
-			
+
 			// Calculate the total weight that the xcm message is going to spend in the
 			// destination chain
 			let total_weight = dest_weight
@@ -686,7 +689,7 @@ pub mod pallet {
 			let interior: Junctions = origin_as_mult
 				.clone()
 				.try_into()
-				.map_err(|_| Error::<T>::ErrorSending)?;
+				.map_err(|_| Error::<T>::FailedMultiLocationToJunction)?;
 			transact_message.0.insert(0, DescendOrigin(interior));
 
 			// Send to sovereign
@@ -701,11 +704,10 @@ pub mod pallet {
 			fee_location: MultiLocation,
 			total_weight: Weight,
 		) -> Result<MultiAsset, DispatchError> {
-
 			// Grab how much fee per second the destination chain charges in the fee asset
 			// location
 			let fee_per_second = DestinationFeePerSecond::<T>::get(&fee_location)
-			.ok_or(Error::<T>::FeePerSecondNotSet)?;
+				.ok_or(Error::<T>::FeePerSecondNotSet)?;
 
 			// Multiply weight*destination_units_per_second to see how much we should charge for
 			// this weight execution
