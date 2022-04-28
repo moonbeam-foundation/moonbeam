@@ -518,16 +518,46 @@ pub fn run() -> Result<()> {
 					You can enable it with `--features runtime-benchmarks`."
 							.into())
 					},
-				BenchmarkCmd::Block(cmd) => runner.sync_run(|config| {
-					panic!("fixme");
-					/*
-					let partials = new_partial::<RuntimeApi, TemplateRuntimeExecutor, _>(
-						&config,
-						service::parachain_build_import_queue,
-					)?;
-					cmd.run(partials.client)
-					*/
-				}),
+				BenchmarkCmd::Block(cmd) => {
+					let chain_spec = &runner.config().chain_spec;
+					match chain_spec {
+						#[cfg(feature = "moonriver-native")]
+						spec if spec.is_moonriver() => {
+							return runner.sync_run(|mut config| {
+								let params = service::new_partial::<
+									service::moonriver_runtime::RuntimeApi,
+									service::MoonriverExecutor
+								>(&mut config, false)?;
+
+								cmd.run(params.client)
+							})
+						}
+						#[cfg(feature = "moonbeam-native")]
+						spec if spec.is_moonbeam() => {
+							return runner.sync_run(|mut config| {
+								let params = service::new_partial::<
+									service::moonbeam_runtime::RuntimeApi,
+									service::MoonbeamExecutor
+								>(&mut config, false)?;
+
+								cmd.run(params.client)
+							})
+						}
+						#[cfg(feature = "moonbase-native")]
+						_ => {
+							return runner.sync_run(|mut config| {
+								let params = service::new_partial::<
+									service::moonbase_runtime::RuntimeApi,
+									service::MoonbaseExecutor
+								>(&mut config, false)?;
+
+								cmd.run(params.client)
+							})
+						}
+						#[cfg(not(feature = "moonbase-native"))]
+						_ => panic!("invalid chain spec"),
+					}
+				},
 				BenchmarkCmd::Storage(cmd) => runner.sync_run(|config| {
 					panic!("fixme");
 					/*
