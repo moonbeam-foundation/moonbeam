@@ -2574,8 +2574,15 @@ fn transactor_cannot_use_more_than_max_weight() {
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				// Relay charges 1000 for every instruction, and we have 3, so 3000
 				3000,
+				20000,
+				None
+			));
+
+			// Root can set transact info
+			assert_ok!(XcmTransactor::set_fee_per_second(
+				root_origin(),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				1,
-				20000
 			));
 
 			assert_noop!(
