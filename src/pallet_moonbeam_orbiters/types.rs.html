@@ -195,7 +195,7 @@
 <span class="kw">use</span> <span class="ident">sp_std::vec::Vec</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Decode</span>, <span class="ident">Encode</span>, <span class="ident">RuntimeDebug</span>, <span class="ident">TypeInfo</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">CurrentOrbiter</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CurrentOrbiter</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span> {
 	<span class="kw">pub</span> <span class="ident">account_id</span>: <span class="ident">AccountId</span>,
 	<span class="kw">pub</span> <span class="ident">removed</span>: <span class="ident">bool</span>,
 }

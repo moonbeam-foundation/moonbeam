@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["CollatorPoolInfo",""],["RoundAuthors",""]]});
+initSidebarItems({"struct":[["CollatorPoolInfo",""],["CurrentOrbiter",""],["RoundAuthors",""]]});
