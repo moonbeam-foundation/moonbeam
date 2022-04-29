@@ -1674,4 +1674,29 @@ pub mod pallet {
 			Self::selected_candidates()
 		}
 	}
+
+	pub struct InitGenesisOnRuntimeUpgrade<T>(PhantomData<T>);
+	impl<T: Config> frame_support::traits::OnRuntimeUpgrade for InitGenesisOnRuntimeUpgrade<T> {
+		fn on_runtime_upgrade() -> frame_support::weights::Weight {
+			log::info!(target: "InitGenesisOnRuntimeUpgrade", "Initializing parachain-staking");
+
+			// Set collator commission to default config
+			<CollatorCommission<T>>::put(T::DefaultCollatorCommission::get());
+			// Set parachain bond config to default config
+			<ParachainBondInfo<T>>::put(ParachainBondConfig {
+				// must be set soon; if not => due inflation will be sent to collators/delegators
+				account: T::AccountId::decode(&mut sp_runtime::traits::TrailingZeroInput::zeroes())
+					.expect("infinite length input; no invalid inputs for type; qed"),
+				percent: T::DefaultParachainBondReservePercent::get(),
+			});
+			// Set total selected candidates to minimum config
+			<TotalSelected<T>>::put(T::MinSelectedCandidates::get());
+			// Start Round 1
+			let round: RoundInfo<T::BlockNumber> =
+				RoundInfo::new(1u32, 0u32.into(), T::DefaultBlocksPerRound::get());
+			<Round<T>>::put(round);
+
+			T::DbWeight::get().writes(4)
+		}
+	}
 }
