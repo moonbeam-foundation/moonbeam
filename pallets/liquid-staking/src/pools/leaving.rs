@@ -18,8 +18,8 @@ use super::*;
 
 pub fn shares_to_stake<T: Config>(
 	candidate: &T::AccountId,
-	shares: &BalanceOf<T>,
-) -> Result<BalanceOf<T>, Error<T>> {
+	shares: &T::Balance,
+) -> Result<T::Balance, Error<T>> {
 	let total_staked = LeavingSharesTotalStaked::<T>::get(candidate);
 	let supply = LeavingSharesSupply::<T>::get(candidate);
 	ensure!(!supply.is_zero(), Error::NoOneIsStaking);
@@ -31,8 +31,8 @@ pub fn shares_to_stake<T: Config>(
 
 pub fn stake_to_shares<T: Config>(
 	candidate: &T::AccountId,
-	stake: &BalanceOf<T>,
-) -> Result<BalanceOf<T>, Error<T>> {
+	stake: &T::Balance,
+) -> Result<T::Balance, Error<T>> {
 	let total_staked = LeavingSharesTotalStaked::<T>::get(candidate);
 	let supply = LeavingSharesSupply::<T>::get(candidate);
 	ensure!(!total_staked.is_zero(), Error::NoOneIsStaking);
@@ -48,8 +48,8 @@ pub fn stake_to_shares<T: Config>(
 fn add_stake<T: Config>(
 	candidate: T::AccountId,
 	delegator: T::AccountId,
-	stake: BalanceOf<T>,
-) -> Result<BalanceOf<T>, Error<T>> {
+	stake: T::Balance,
+) -> Result<T::Balance, Error<T>> {
 	ensure!(!Zero::is_zero(&stake), Error::StakeMustBeNonZero);
 
 	let shares_supply = LeavingSharesSupply::<T>::get(&candidate);
@@ -76,8 +76,8 @@ fn add_stake<T: Config>(
 fn sub_shares<T: Config>(
 	candidate: T::AccountId,
 	delegator: T::AccountId,
-	shares: BalanceOf<T>,
-) -> Result<BalanceOf<T>, Error<T>> {
+	shares: T::Balance,
+) -> Result<T::Balance, Error<T>> {
 	ensure!(!Zero::is_zero(&shares), Error::StakeMustBeNonZero);
 
 	let stake = shares_to_stake(&candidate, &shares)?;
@@ -92,7 +92,7 @@ fn sub_shares<T: Config>(
 pub fn register_leaving<T: Config>(
 	candidate: T::AccountId,
 	delegator: T::AccountId,
-	stake: BalanceOf<T>,
+	stake: T::Balance,
 ) -> Result<(), Error<T>> {
 	let leaving_shares = add_stake::<T>(candidate.clone(), delegator.clone(), stake)?;
 
@@ -121,7 +121,7 @@ pub fn execute_leaving<T: Config>(
 	candidate: T::AccountId,
 	delegator: T::AccountId,
 	at_block: T::BlockNumber,
-) -> Result<BalanceOf<T>, Error<T>> {
+) -> Result<T::Balance, Error<T>> {
 	let block_number = frame_system::Pallet::<T>::block_number();
 
 	let release_block_number = at_block
@@ -149,14 +149,35 @@ pub fn execute_leaving<T: Config>(
 	Ok(stake)
 }
 
-pub fn shares<T: Config>(candidate: &T::AccountId, delegator: &T::AccountId) -> BalanceOf<T> {
+pub fn cancel_leaving<T: Config>(
+	candidate: T::AccountId,
+	delegator: T::AccountId,
+	at_block: T::BlockNumber,
+) -> Result<T::Balance, Error<T>> {
+	let shares = LeavingRequests::<T>::get((&candidate, &delegator, at_block));
+	let stake = sub_shares(candidate.clone(), delegator.clone(), shares)?;
+
+	LeavingRequests::<T>::remove((&candidate, &delegator, at_block));
+
+	Pallet::<T>::deposit_event(Event::<T>::CanceledLeaving {
+		candidate,
+		delegator,
+		stake,
+		leaving_shares: shares,
+		requested_at: at_block,
+	});
+
+	Ok(stake)
+}
+
+pub fn shares<T: Config>(candidate: &T::AccountId, delegator: &T::AccountId) -> T::Balance {
 	LeavingShares::<T>::get(candidate, delegator)
 }
 
 pub fn stake<T: Config>(
 	candidate: &T::AccountId,
 	delegator: &T::AccountId,
-) -> Result<BalanceOf<T>, Error<T>> {
+) -> Result<T::Balance, Error<T>> {
 	let shares = shares::<T>(candidate, delegator);
 
 	if shares.is_zero() {

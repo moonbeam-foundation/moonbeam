@@ -33,7 +33,7 @@ use {
 #[transactional]
 pub fn distribute_rewards<T: Config>(
 	collator: T::AccountId,
-	value: BalanceOf<T>,
+	value: T::Balance,
 ) -> Result<(), Error<T>> {
 	// Compute rewards distribution.
 	let reserve_rewards = RewardsReserveCommission::<T>::get() * value;
@@ -55,10 +55,7 @@ pub fn distribute_rewards<T: Config>(
 	Ok(())
 }
 
-fn reward_delegators<T: Config>(
-	collator: T::AccountId,
-	value: BalanceOf<T>,
-) -> Result<(), Error<T>> {
+fn reward_delegators<T: Config>(collator: T::AccountId, value: T::Balance) -> Result<(), Error<T>> {
 	// All rewards are part of staking design.
 	T::Currency::deposit_creating(&T::StakingAccount::get(), value);
 
@@ -103,7 +100,7 @@ fn reward_delegators<T: Config>(
 	Ok(())
 }
 
-fn reward_collator<T: Config>(collator: T::AccountId, value: BalanceOf<T>) -> Result<(), Error<T>> {
+fn reward_collator<T: Config>(collator: T::AccountId, value: T::Balance) -> Result<(), Error<T>> {
 	// Rewards must be split according to repartition between
 	// AutoCompounding and ManualClaim shares.
 

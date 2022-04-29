@@ -18,8 +18,8 @@ use super::*;
 
 pub fn shares_to_stake<T: Config>(
 	candidate: &T::AccountId,
-	shares: &BalanceOf<T>,
-) -> Result<BalanceOf<T>, Error<T>> {
+	shares: &T::Balance,
+) -> Result<T::Balance, Error<T>> {
 	let total_staked = ManualClaimSharesTotalStaked::<T>::get(candidate);
 	let supply = ManualClaimSharesSupply::<T>::get(candidate);
 	ensure!(!supply.is_zero(), Error::NoOneIsStaking);
@@ -31,8 +31,8 @@ pub fn shares_to_stake<T: Config>(
 
 pub fn shares_to_stake_or_init<T: Config>(
 	candidate: &T::AccountId,
-	shares: &BalanceOf<T>,
-) -> Result<BalanceOf<T>, Error<T>> {
+	shares: &T::Balance,
+) -> Result<T::Balance, Error<T>> {
 	if Zero::is_zero(&ManualClaimSharesSupply::<T>::get(&candidate)) {
 		shares
 			.checked_mul(&T::InitialManualClaimShareValue::get())
@@ -44,8 +44,8 @@ pub fn shares_to_stake_or_init<T: Config>(
 
 pub fn stake_to_shares<T: Config>(
 	candidate: &T::AccountId,
-	stake: &BalanceOf<T>,
-) -> Result<BalanceOf<T>, Error<T>> {
+	stake: &T::Balance,
+) -> Result<T::Balance, Error<T>> {
 	let total_staked = ManualClaimSharesTotalStaked::<T>::get(candidate);
 	let supply = ManualClaimSharesSupply::<T>::get(candidate);
 	ensure!(!total_staked.is_zero(), Error::NoOneIsStaking);
@@ -57,8 +57,8 @@ pub fn stake_to_shares<T: Config>(
 
 pub fn stake_to_shares_or_init<T: Config>(
 	candidate: &T::AccountId,
-	stake: &BalanceOf<T>,
-) -> Result<BalanceOf<T>, Error<T>> {
+	stake: &T::Balance,
+) -> Result<T::Balance, Error<T>> {
 	if Zero::is_zero(&ManualClaimSharesSupply::<T>::get(&candidate)) {
 		stake
 			.checked_div(&T::InitialManualClaimShareValue::get())
@@ -71,8 +71,8 @@ pub fn stake_to_shares_or_init<T: Config>(
 pub fn add_shares<T: Config>(
 	candidate: T::AccountId,
 	delegator: T::AccountId,
-	shares: BalanceOf<T>,
-) -> Result<BalanceOf<T>, Error<T>> {
+	shares: T::Balance,
+) -> Result<T::Balance, Error<T>> {
 	ensure!(!Zero::is_zero(&shares), Error::StakeMustBeNonZero);
 
 	let stake = shares_to_stake_or_init(&candidate, &shares)?;
@@ -97,8 +97,8 @@ pub fn add_shares<T: Config>(
 pub fn sub_shares<T: Config>(
 	candidate: T::AccountId,
 	delegator: T::AccountId,
-	shares: BalanceOf<T>,
-) -> Result<BalanceOf<T>, Error<T>> {
+	shares: T::Balance,
+) -> Result<T::Balance, Error<T>> {
 	ensure!(!Zero::is_zero(&shares), Error::StakeMustBeNonZero);
 
 	let stake = shares_to_stake(&candidate, &shares)?;
@@ -120,14 +120,14 @@ pub fn sub_shares<T: Config>(
 	Ok(stake)
 }
 
-pub fn shares<T: Config>(candidate: &T::AccountId, delegator: &T::AccountId) -> BalanceOf<T> {
+pub fn shares<T: Config>(candidate: &T::AccountId, delegator: &T::AccountId) -> T::Balance {
 	ManualClaimShares::<T>::get(candidate, delegator)
 }
 
 pub fn stake<T: Config>(
 	candidate: &T::AccountId,
 	delegator: &T::AccountId,
-) -> Result<BalanceOf<T>, Error<T>> {
+) -> Result<T::Balance, Error<T>> {
 	let shares = shares::<T>(candidate, delegator);
 
 	if shares.is_zero() {
@@ -140,7 +140,7 @@ pub fn stake<T: Config>(
 pub fn pending_rewards<T: Config>(
 	candidate: &T::AccountId,
 	delegator: &T::AccountId,
-) -> Result<BalanceOf<T>, Error<T>> {
+) -> Result<T::Balance, Error<T>> {
 	let shares = ManualClaimShares::<T>::get(candidate, delegator);
 
 	if Zero::is_zero(&shares) {
@@ -159,7 +159,7 @@ pub fn pending_rewards<T: Config>(
 pub fn claim_rewards<T: Config>(
 	candidate: T::AccountId,
 	delegator: T::AccountId,
-) -> Result<BalanceOf<T>, Error<T>> {
+) -> Result<T::Balance, Error<T>> {
 	let shares = ManualClaimShares::<T>::get(&candidate, &delegator);
 	let rewards_counter = ManualClaimSharesRewardCounter::<T>::get(&candidate);
 

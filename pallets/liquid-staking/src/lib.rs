@@ -14,10 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-// TODOs :
-// - Leaving cancelation, user can choose which kind of shares they want back.
-// - Shares convertion should not make leaving requests.
-
 #![cfg_attr(not(feature = "std"), no_std)]
 
 mod mul_div;
@@ -46,7 +42,7 @@ pub mod pallet {
 		},
 		frame_system::pallet_prelude::*,
 		sp_runtime::{
-			traits::{CheckedSub, Zero},
+			traits::{CheckedAdd, CheckedSub, Zero},
 			Perbill,
 		},
 		sp_std::collections::btree_set::BTreeSet,
@@ -54,10 +50,6 @@ pub mod pallet {
 
 	#[cfg(feature = "std")]
 	use serde::{Deserialize, Serialize};
-
-	/// Type of balances of the staked Currency and shares.
-	pub type BalanceOf<T> =
-		<<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
 
 	/// Allow calls to be performed using either share amounts or stake.
 	/// When providing stake, calls will convert them into share amounts that are
@@ -73,9 +65,17 @@ pub mod pallet {
 	/// Identifier used when executing a pending leaving request.
 	#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 	#[derive(RuntimeDebug, PartialEq, Eq, Encode, Decode, Clone, TypeInfo)]
-	pub struct LeavingQuery<C, B> {
+	pub struct ExecuteLeavingQuery<C, B> {
 		candidate: C,
 		delegator: C,
+		at_block: B,
+	}
+
+	/// Identifier used when canceling a pending leaving request.
+	#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
+	#[derive(RuntimeDebug, PartialEq, Eq, Encode, Decode, Clone, TypeInfo)]
+	pub struct CancelLeavingQuery<C, B> {
+		candidate: C,
 		at_block: B,
 	}
 
@@ -108,14 +108,14 @@ pub mod pallet {
 		/// Picking a value too low will make an higher supply, which means each share will get
 		/// less rewards, and rewards calculations will have more impactful rounding errors.
 		/// Picking a value too high is a barrier of entry for staking.
-		type InitialManualClaimShareValue: Get<BalanceOf<Self>>;
+		type InitialManualClaimShareValue: Get<Self::Balance>;
 		/// When creating the first Shares for a candidate the supply can arbitrary.
 		/// Picking a value too high is a barrier of entry for staking, which will increase overtime
 		/// as the value of each share will increase due to auto compounding.
-		type InitialAutoCompoundingShareValue: Get<BalanceOf<Self>>;
+		type InitialAutoCompoundingShareValue: Get<Self::Balance>;
 		/// Minimum amount of stake a Candidate must delegate (stake) towards itself. Not reaching
 		/// this minimum prevents from being elected.
-		type MinimumSelfDelegation: Get<BalanceOf<Self>>;
+		type MinimumSelfDelegation: Get<Self::Balance>;
 
 		/// When leaving staking the stake is put into leaving pools, and the share of this pool
 		/// is stored alongside the current BlockNumber. The user will be able to withdraw the stake
@@ -147,17 +147,17 @@ pub mod pallet {
 	/// Sorted list of eligible candidates.
 	#[pallet::storage]
 	pub type SortedEligibleCandidates<T: Config> =
-		StorageValue<_, Vec<pools::candidates::Candidate<T::AccountId, BalanceOf<T>>>, ValueQuery>;
+		StorageValue<_, Vec<pools::candidates::Candidate<T::AccountId, T::Balance>>, ValueQuery>;
 
 	/// Stake of each candidate.
 	/// Updated by (un)staking either in AutoCompounding or ManualClaim Shares.
 	#[pallet::storage]
 	pub type CandidatesStake<T: Config> =
-		StorageMap<_, Twox64Concat, T::AccountId, BalanceOf<T>, ValueQuery>;
+		StorageMap<_, Twox64Concat, T::AccountId, T::Balance, ValueQuery>;
 
 	/// Total amount of Currency staked.
 	#[pallet::storage]
-	pub type CandidatesTotalStaked<T: Config> = StorageValue<_, BalanceOf<T>, ValueQuery>;
+	pub type CandidatesTotalStaked<T: Config> = StorageValue<_, T::Balance, ValueQuery>;
 
 	/// AutoCompounding Shares.
 	#[pallet::storage]
@@ -170,19 +170,19 @@ pub mod pallet {
 		Twox64Concat,
 		T::AccountId,
 		// Value: Amount of shares of that Staker towards that Candidate.
-		BalanceOf<T>,
+		T::Balance,
 		ValueQuery,
 	>;
 
 	/// Total amount of AutoCompounding Shares for each Candidate.
 	#[pallet::storage]
 	pub type AutoCompoundingSharesSupply<T: Config> =
-		StorageMap<_, Twox64Concat, T::AccountId, BalanceOf<T>, ValueQuery>;
+		StorageMap<_, Twox64Concat, T::AccountId, T::Balance, ValueQuery>;
 
 	/// Amount of stake that represents all AutoCompounding Shares of a Candidate.
 	#[pallet::storage]
 	pub type AutoCompoundingSharesTotalStaked<T: Config> =
-		StorageMap<_, Twox64Concat, T::AccountId, BalanceOf<T>, ValueQuery>;
+		StorageMap<_, Twox64Concat, T::AccountId, T::Balance, ValueQuery>;
 
 	/// ManualClaim Shares.
 	#[pallet::storage]
@@ -195,24 +195,24 @@ pub mod pallet {
 		Twox64Concat,
 		T::AccountId,
 		// Value: Amount of shares of that Staker towards that Candidate.
-		BalanceOf<T>,
+		T::Balance,
 		ValueQuery,
 	>;
 
 	/// Total amount of ManualClaim Shares for each Candidate.
 	#[pallet::storage]
 	pub type ManualClaimSharesSupply<T: Config> =
-		StorageMap<_, Twox64Concat, T::AccountId, BalanceOf<T>, ValueQuery>;
+		StorageMap<_, Twox64Concat, T::AccountId, T::Balance, ValueQuery>;
 
 	/// Amount of stake that represents all ManualClaim Shares of a Candidate.
 	#[pallet::storage]
 	pub type ManualClaimSharesTotalStaked<T: Config> =
-		StorageMap<_, Twox64Concat, T::AccountId, BalanceOf<T>, ValueQuery>;
+		StorageMap<_, Twox64Concat, T::AccountId, T::Balance, ValueQuery>;
 
 	/// Counter that represents to cumulated rewards per share generated by a Candidate since genesis.
 	#[pallet::storage]
 	pub type ManualClaimSharesRewardCounter<T: Config> =
-		StorageMap<_, Twox64Concat, T::AccountId, BalanceOf<T>, ValueQuery>;
+		StorageMap<_, Twox64Concat, T::AccountId, T::Balance, ValueQuery>;
 
 	/// Value of the counter the last time the Staker claimed its rewards for a Candidate.
 	/// The difference between the checkpoint and the counter is the amount of claimable reward per
@@ -227,7 +227,7 @@ pub mod pallet {
 		Twox64Concat,
 		T::AccountId,
 		// Value: Reward checkpoint for that Staker with this Candidate.
-		BalanceOf<T>,
+		T::Balance,
 		ValueQuery,
 	>;
 
@@ -242,19 +242,19 @@ pub mod pallet {
 		Twox64Concat,
 		T::AccountId,
 		// Value: Amount of shares among delegators leaving that Candidate.
-		BalanceOf<T>,
+		T::Balance,
 		ValueQuery,
 	>;
 
 	/// Total amount of Leaving Shares for each Candidate.
 	#[pallet::storage]
 	pub type LeavingSharesSupply<T: Config> =
-		StorageMap<_, Twox64Concat, T::AccountId, BalanceOf<T>, ValueQuery>;
+		StorageMap<_, Twox64Concat, T::AccountId, T::Balance, ValueQuery>;
 
 	/// Amount of stake that represents all Leaving Shares of a Candidate.
 	#[pallet::storage]
 	pub type LeavingSharesTotalStaked<T: Config> =
-		StorageMap<_, Twox64Concat, T::AccountId, BalanceOf<T>, ValueQuery>;
+		StorageMap<_, Twox64Concat, T::AccountId, T::Balance, ValueQuery>;
 
 	/// Requests for leaving.
 	#[pallet::storage]
@@ -269,7 +269,7 @@ pub mod pallet {
 			Key<Twox64Concat, T::BlockNumber>,
 		),
 		// Number of shares requested for leaving at that block.
-		BalanceOf<T>,
+		T::Balance,
 		ValueQuery,
 	>;
 
@@ -279,81 +279,89 @@ pub mod pallet {
 		/// Stake of that Candidate increased.
 		UpdatedCandidatePosition {
 			candidate: T::AccountId,
-			stake: BalanceOf<T>,
-			self_delegation: BalanceOf<T>,
+			stake: T::Balance,
+			self_delegation: T::Balance,
 			before: Option<u32>,
 			after: Option<u32>,
 		},
 		/// Stake of that Candidate increased.
 		IncreasedStake {
 			candidate: T::AccountId,
-			stake: BalanceOf<T>,
+			stake: T::Balance,
 		},
 		/// Stake of that Candidate decreased.
 		DecreasedStake {
 			candidate: T::AccountId,
-			stake: BalanceOf<T>,
+			stake: T::Balance,
 		},
 		/// Staker staked towards a Candidate for AutoCompounding Shares.
 		StakedAutoCompounding {
 			candidate: T::AccountId,
 			delegator: T::AccountId,
-			shares: BalanceOf<T>,
-			stake: BalanceOf<T>,
+			shares: T::Balance,
+			stake: T::Balance,
 		},
 		/// Staker unstaked towards a candidate with AutoCompounding Shares.
 		UnstakedAutoCompounding {
 			candidate: T::AccountId,
 			delegator: T::AccountId,
-			shares: BalanceOf<T>,
-			stake: BalanceOf<T>,
+			shares: T::Balance,
+			stake: T::Balance,
 		},
 		/// Staker staked towards a candidate for ManualClaim Shares.
 		StakedManualClaim {
 			candidate: T::AccountId,
 			delegator: T::AccountId,
-			shares: BalanceOf<T>,
-			stake: BalanceOf<T>,
+			shares: T::Balance,
+			stake: T::Balance,
 		},
 		/// Staker unstaked towards a candidate with ManualClaim Shares.
 		UnstakedManualClaim {
 			candidate: T::AccountId,
 			delegator: T::AccountId,
-			shares: BalanceOf<T>,
-			stake: BalanceOf<T>,
+			shares: T::Balance,
+			stake: T::Balance,
 		},
 		/// Collator has been rewarded.
 		RewardedCollator {
 			collator: T::AccountId,
-			auto_compounding_rewards: BalanceOf<T>,
-			manual_claim_rewards: BalanceOf<T>,
+			auto_compounding_rewards: T::Balance,
+			manual_claim_rewards: T::Balance,
 		},
 		/// Delegators have been rewarded.
 		RewardedDelegators {
 			collator: T::AccountId,
-			auto_compounding_rewards: BalanceOf<T>,
-			manual_claim_rewards: BalanceOf<T>,
+			auto_compounding_rewards: T::Balance,
+			manual_claim_rewards: T::Balance,
 		},
 		/// Rewards manually claimed.
 		ClaimedManualRewards {
 			candidate: T::AccountId,
 			delegator: T::AccountId,
-			rewards: BalanceOf<T>,
+			rewards: T::Balance,
 		},
 		/// Registered delayed leaving from staking towards this candidate.
 		RegisteredLeaving {
 			candidate: T::AccountId,
 			delegator: T::AccountId,
-			stake: BalanceOf<T>,
-			leaving_shares: BalanceOf<T>,
-			total_leaving_shares: BalanceOf<T>,
+			stake: T::Balance,
+			leaving_shares: T::Balance,
+			total_leaving_shares: T::Balance,
 		},
 		/// Executed delayed leaving from staking towards this candidate.
 		ExecutedLeaving {
 			candidate: T::AccountId,
 			delegator: T::AccountId,
-			stake: BalanceOf<T>,
-			leaving_shares: BalanceOf<T>,
+			stake: T::Balance,
+			leaving_shares: T::Balance,
+			requested_at: T::BlockNumber,
+		},
+		/// Canceled delayed leaving from staking towards this candidate.
+		CanceledLeaving {
+			candidate: T::AccountId,
+			delegator: T::AccountId,
+			stake: T::Balance,
+			leaving_shares: T::Balance,
 			requested_at: T::BlockNumber,
 		},
 	}
@@ -381,7 +389,7 @@ pub mod pallet {
 		pub fn stake_manual_claim(
 			origin: OriginFor<T>,
 			candidate: T::AccountId,
-			quantity: SharesOrStake<BalanceOf<T>>,
+			quantity: SharesOrStake<T::Balance>,
 		) -> DispatchResultWithPostInfo {
 			let delegator = ensure_signed(origin)?;
 
@@ -431,7 +439,7 @@ pub mod pallet {
 		pub fn unstake_manual_claim(
 			origin: OriginFor<T>,
 			candidate: T::AccountId,
-			quantity: SharesOrStake<BalanceOf<T>>,
+			quantity: SharesOrStake<T::Balance>,
 		) -> DispatchResultWithPostInfo {
 			let delegator = ensure_signed(origin)?;
 
@@ -473,7 +481,7 @@ pub mod pallet {
 		pub fn stake_auto_compounding(
 			origin: OriginFor<T>,
 			candidate: T::AccountId,
-			quantity: SharesOrStake<BalanceOf<T>>,
+			quantity: SharesOrStake<T::Balance>,
 		) -> DispatchResultWithPostInfo {
 			let delegator = ensure_signed(origin)?;
 
@@ -512,7 +520,7 @@ pub mod pallet {
 		pub fn unstake_auto_compounding(
 			origin: OriginFor<T>,
 			candidate: T::AccountId,
-			quantity: SharesOrStake<BalanceOf<T>>,
+			quantity: SharesOrStake<T::Balance>,
 		) -> DispatchResultWithPostInfo {
 			let delegator = ensure_signed(origin)?;
 
@@ -539,13 +547,13 @@ pub mod pallet {
 
 		/// Convert ManualClaim shares to AutoCompounding shares.
 		/// Due to rounding while converting back and forth between stake and shares, some "dust"
-		/// stake will not be converted, and will be unstaked instead.
+		/// stake will not be converted, and will be distributed among all AutoCompound share holders.
 		#[pallet::weight(0)]
 		#[transactional]
 		pub fn convert_manual_claim_to_auto_compounding(
 			origin: OriginFor<T>,
 			candidate: T::AccountId,
-			quantity: SharesOrStake<BalanceOf<T>>,
+			quantity: SharesOrStake<T::Balance>,
 		) -> DispatchResultWithPostInfo {
 			let delegator = ensure_signed(origin)?;
 
@@ -586,11 +594,11 @@ pub mod pallet {
 				ac_shares,
 			)?;
 
-			// Deal with dust.
+			// Deal with dust, which is shared among all AutoCompound share holders.
 			let diff_stake = mc_stake
 				.checked_sub(&ac_stake)
 				.ok_or(Error::<T>::MathUnderflow)?;
-			pools::leaving::register_leaving::<T>(candidate.clone(), delegator, diff_stake)?;
+			pools::auto_compounding::share_stake_among_holders::<T>(&candidate, diff_stake)?;
 
 			pools::check_candidate_consistency::<T>(&candidate)?;
 
@@ -599,13 +607,13 @@ pub mod pallet {
 
 		/// Convert AutoCompounding shares to ManualClaim shares.
 		/// Due to rounding while converting back and forth between stake and shares, some "dust"
-		/// stake will not be converted, and will be unstaked instead.
+		/// stake will not be converted, and will be distributed among all AutoCompound share holders.
 		#[pallet::weight(0)]
 		#[transactional]
 		pub fn convert_auto_compounding_to_manual_claim(
 			origin: OriginFor<T>,
 			candidate: T::AccountId,
-			quantity: SharesOrStake<BalanceOf<T>>,
+			quantity: SharesOrStake<T::Balance>,
 		) -> DispatchResultWithPostInfo {
 			let delegator = ensure_signed(origin)?;
 
@@ -646,11 +654,12 @@ pub mod pallet {
 				mc_shares,
 			)?;
 
-			// Deal with dust.
-			let diff_stake = ac_stake
-				.checked_sub(&mc_stake)
+			// Deal with dust, which is shared among all AutoCompound share holders.
+			let diff_stake = mc_stake
+				.checked_sub(&ac_stake)
 				.ok_or(Error::<T>::MathUnderflow)?;
-			pools::leaving::register_leaving::<T>(candidate.clone(), delegator, diff_stake)?;
+
+			pools::auto_compounding::share_stake_among_holders::<T>(&candidate, diff_stake)?;
 
 			pools::check_candidate_consistency::<T>(&candidate)?;
 
@@ -701,7 +710,7 @@ pub mod pallet {
 		#[transactional]
 		pub fn execute_leaving(
 			_origin: OriginFor<T>,
-			requests: Vec<LeavingQuery<T::AccountId, T::BlockNumber>>,
+			requests: Vec<ExecuteLeavingQuery<T::AccountId, T::BlockNumber>>,
 		) -> DispatchResultWithPostInfo {
 			for request in requests {
 				let released = pools::leaving::execute_leaving::<T>(
@@ -717,6 +726,76 @@ pub mod pallet {
 					&request.delegator,
 					released,
 					ExistenceRequirement::KeepAlive,
+				)?;
+
+				pools::check_candidate_consistency::<T>(&request.candidate)?;
+			}
+
+			Ok(().into())
+		}
+
+		/// Cancel leaving requests that have not been executed yet.
+		/// `put_in_auto_compound` specifies if the funds are put back in AutoCompound or
+		/// ManualClaim pools. Dust is shared among AutoCompound share holders.
+		#[pallet::weight(0)]
+		#[transactional]
+		pub fn cancel_leaving(
+			origin: OriginFor<T>,
+			requests: Vec<CancelLeavingQuery<T::AccountId, T::BlockNumber>>,
+			put_in_auto_compound: bool,
+		) -> DispatchResultWithPostInfo {
+			let delegator = ensure_signed(origin)?;
+
+			for request in requests {
+				let canceled_stake = pools::leaving::cancel_leaving::<T>(
+					request.candidate.clone(),
+					delegator.clone(),
+					request.at_block,
+				)?;
+
+				if canceled_stake.is_zero() {
+					continue;
+				}
+
+				let inserted_stake = if put_in_auto_compound {
+					let shares = pools::auto_compounding::stake_to_shares_or_init::<T>(
+						&request.candidate.clone(),
+						canceled_stake,
+					)?;
+
+					if !Zero::is_zero(&shares) {
+						pools::auto_compounding::add_shares::<T>(
+							request.candidate.clone(),
+							delegator.clone(),
+							shares,
+						)?
+					} else {
+						Zero::zero()
+					}
+				} else {
+					let shares = pools::manual_claim::stake_to_shares_or_init::<T>(
+						&request.candidate.clone(),
+						&canceled_stake,
+					)?;
+
+					if !Zero::is_zero(&shares) {
+						pools::manual_claim::add_shares::<T>(
+							request.candidate.clone(),
+							delegator.clone(),
+							shares,
+						)?
+					} else {
+						Zero::zero()
+					}
+				};
+
+				let dust_stake = canceled_stake
+					.checked_sub(&inserted_stake)
+					.ok_or(Error::<T>::MathUnderflow)?;
+
+				pools::auto_compounding::share_stake_among_holders::<T>(
+					&request.candidate.clone(),
+					dust_stake,
 				)?;
 
 				pools::check_candidate_consistency::<T>(&request.candidate)?;

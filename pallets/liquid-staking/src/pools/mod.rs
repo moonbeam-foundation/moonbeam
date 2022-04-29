@@ -32,14 +32,14 @@ pub mod manual_claim;
 pub fn add_staked<T, Supply, Shares, Staked>(
 	candidate: &T::AccountId,
 	delegator: &T::AccountId,
-	shares: BalanceOf<T>,
-	stake: BalanceOf<T>,
+	shares: T::Balance,
+	stake: T::Balance,
 ) -> Result<(), Error<T>>
 where
 	T: Config,
-	Supply: StorageMap<T::AccountId, BalanceOf<T>, Query = BalanceOf<T>>,
-	Shares: StorageDoubleMap<T::AccountId, T::AccountId, BalanceOf<T>, Query = BalanceOf<T>>,
-	Staked: StorageMap<T::AccountId, BalanceOf<T>, Query = BalanceOf<T>>,
+	Supply: StorageMap<T::AccountId, T::Balance, Query = T::Balance>,
+	Shares: StorageDoubleMap<T::AccountId, T::AccountId, T::Balance, Query = T::Balance>,
+	Staked: StorageMap<T::AccountId, T::Balance, Query = T::Balance>,
 {
 	let new_shares_supply = Supply::get(&candidate)
 		.checked_add(&shares)
@@ -63,14 +63,14 @@ where
 pub fn sub_staked<T, Supply, Shares, Staked>(
 	candidate: &T::AccountId,
 	delegator: &T::AccountId,
-	shares: BalanceOf<T>,
-	stake: BalanceOf<T>,
+	shares: T::Balance,
+	stake: T::Balance,
 ) -> Result<(), Error<T>>
 where
 	T: Config,
-	Supply: StorageMap<T::AccountId, BalanceOf<T>, Query = BalanceOf<T>>,
-	Shares: StorageDoubleMap<T::AccountId, T::AccountId, BalanceOf<T>, Query = BalanceOf<T>>,
-	Staked: StorageMap<T::AccountId, BalanceOf<T>, Query = BalanceOf<T>>,
+	Supply: StorageMap<T::AccountId, T::Balance, Query = T::Balance>,
+	Shares: StorageDoubleMap<T::AccountId, T::AccountId, T::Balance, Query = T::Balance>,
+	Staked: StorageMap<T::AccountId, T::Balance, Query = T::Balance>,
 {
 	let new_shares_supply = Supply::get(&candidate)
 		.checked_sub(&shares)

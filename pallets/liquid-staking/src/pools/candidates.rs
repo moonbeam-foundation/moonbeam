@@ -47,7 +47,7 @@ impl<C: Ord, S: Ord> PartialOrd for Candidate<C, S> {
 
 pub fn update_candidate_stake<T: Config>(
 	candidate: T::AccountId,
-	new_stake: BalanceOf<T>,
+	new_stake: T::Balance,
 ) -> Result<(), Error<T>> {
 	let before_stake = CandidatesStake::<T>::get(&candidate);
 	CandidatesStake::<T>::insert(&candidate, new_stake);
@@ -122,7 +122,7 @@ pub fn update_candidate_stake<T: Config>(
 	Ok(())
 }
 
-pub fn add_stake<T: Config>(candidate: T::AccountId, stake: BalanceOf<T>) -> Result<(), Error<T>> {
+pub fn add_stake<T: Config>(candidate: T::AccountId, stake: T::Balance) -> Result<(), Error<T>> {
 	ensure!(!Zero::is_zero(&stake), Error::StakeMustBeNonZero);
 
 	let new_stake = CandidatesStake::<T>::get(&candidate)
@@ -141,7 +141,7 @@ pub fn add_stake<T: Config>(candidate: T::AccountId, stake: BalanceOf<T>) -> Res
 	Ok(())
 }
 
-pub fn sub_stake<T: Config>(candidate: T::AccountId, stake: BalanceOf<T>) -> Result<(), Error<T>> {
+pub fn sub_stake<T: Config>(candidate: T::AccountId, stake: T::Balance) -> Result<(), Error<T>> {
 	ensure!(!Zero::is_zero(&stake), Error::StakeMustBeNonZero);
 
 	let new_stake = CandidatesStake::<T>::get(&candidate)
@@ -160,6 +160,6 @@ pub fn sub_stake<T: Config>(candidate: T::AccountId, stake: BalanceOf<T>) -> Res
 	Ok(())
 }
 
-pub fn stake<T: Config>(candidate: &T::AccountId) -> BalanceOf<T> {
+pub fn stake<T: Config>(candidate: &T::AccountId) -> T::Balance {
 	CandidatesStake::<T>::get(candidate)
 }
