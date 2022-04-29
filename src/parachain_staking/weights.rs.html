@@ -760,28 +760,6 @@
 <span id="755">755</span>
 <span id="756">756</span>
 <span id="757">757</span>
-<span id="758">758</span>
-<span id="759">759</span>
-<span id="760">760</span>
-<span id="761">761</span>
-<span id="762">762</span>
-<span id="763">763</span>
-<span id="764">764</span>
-<span id="765">765</span>
-<span id="766">766</span>
-<span id="767">767</span>
-<span id="768">768</span>
-<span id="769">769</span>
-<span id="770">770</span>
-<span id="771">771</span>
-<span id="772">772</span>
-<span id="773">773</span>
-<span id="774">774</span>
-<span id="775">775</span>
-<span id="776">776</span>
-<span id="777">777</span>
-<span id="778">778</span>
-<span id="779">779</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -837,8 +815,6 @@
 
 <span class="doccomment">/// Weight functions needed for parachain_staking.</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">WeightInfo</span> {
-	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-	<span class="kw">fn</span> <span class="ident">hotfix_update_candidate_pool_value</span>(<span class="ident">x</span>: <span class="ident">u32</span>, ) -&gt; <span class="ident">Weight</span>;
 	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
 	<span class="kw">fn</span> <span class="ident">set_staking_expectations</span>() -&gt; <span class="ident">Weight</span>;
 	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
@@ -906,16 +882,6 @@
 <span class="doccomment">/// Weights for parachain_staking using the Substrate node and recommended hardware.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SubstrateWeight</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">frame_system::Config</span><span class="op">&gt;</span> <span class="ident">WeightInfo</span> <span class="kw">for</span> <span class="ident">SubstrateWeight</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-	<span class="comment">// Storage: ParachainStaking CandidateInfo (r:4 w:0)</span>
-	<span class="comment">// Storage: ParachainStaking CandidatePool (r:1 w:1)</span>
-	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-	<span class="kw">fn</span> <span class="ident">hotfix_update_candidate_pool_value</span>(<span class="ident">x</span>: <span class="ident">u32</span>, ) -&gt; <span class="ident">Weight</span> {
-		(<span class="number">0</span> <span class="kw">as</span> <span class="ident">Weight</span>)
-			<span class="comment">// Standard Error: 72_000</span>
-			.<span class="ident">saturating_add</span>((<span class="number">14_273_000</span> <span class="kw">as</span> <span class="ident">Weight</span>).<span class="ident">saturating_mul</span>(<span class="ident">x</span> <span class="kw">as</span> <span class="ident">Weight</span>))
-			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">reads</span>((<span class="number">1</span> <span class="kw">as</span> <span class="ident">Weight</span>).<span class="ident">saturating_mul</span>(<span class="ident">x</span> <span class="kw">as</span> <span class="ident">Weight</span>)))
-			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">writes</span>(<span class="number">1</span> <span class="kw">as</span> <span class="ident">Weight</span>))
-	}
 	<span class="comment">// Storage: ParachainStaking InflationConfig (r:1 w:1)</span>
 	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
 	<span class="kw">fn</span> <span class="ident">set_staking_expectations</span>() -&gt; <span class="ident">Weight</span> {
@@ -1235,16 +1201,6 @@
 
 <span class="comment">// For backwards compatibility and tests</span>
 <span class="kw">impl</span> <span class="ident">WeightInfo</span> <span class="kw">for</span> () {
-	<span class="comment">// Storage: ParachainStaking CandidateInfo (r:4 w:0)</span>
-	<span class="comment">// Storage: ParachainStaking CandidatePool (r:1 w:1)</span>
-	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-	<span class="kw">fn</span> <span class="ident">hotfix_update_candidate_pool_value</span>(<span class="ident">x</span>: <span class="ident">u32</span>, ) -&gt; <span class="ident">Weight</span> {
-		(<span class="number">0</span> <span class="kw">as</span> <span class="ident">Weight</span>)
-			<span class="comment">// Standard Error: 72_000</span>
-			.<span class="ident">saturating_add</span>((<span class="number">14_273_000</span> <span class="kw">as</span> <span class="ident">Weight</span>).<span class="ident">saturating_mul</span>(<span class="ident">x</span> <span class="kw">as</span> <span class="ident">Weight</span>))
-			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">reads</span>((<span class="number">1</span> <span class="kw">as</span> <span class="ident">Weight</span>).<span class="ident">saturating_mul</span>(<span class="ident">x</span> <span class="kw">as</span> <span class="ident">Weight</span>)))
-			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">writes</span>(<span class="number">1</span> <span class="kw">as</span> <span class="ident">Weight</span>))
-	}
 	<span class="comment">// Storage: ParachainStaking InflationConfig (r:1 w:1)</span>
 	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
 	<span class="kw">fn</span> <span class="ident">set_staking_expectations</span>() -&gt; <span class="ident">Weight</span> {
