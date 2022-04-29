@@ -1047,16 +1047,6 @@
 <span id="1042">1042</span>
 <span id="1043">1043</span>
 <span id="1044">1044</span>
-<span id="1045">1045</span>
-<span id="1046">1046</span>
-<span id="1047">1047</span>
-<span id="1048">1048</span>
-<span id="1049">1049</span>
-<span id="1050">1050</span>
-<span id="1051">1051</span>
-<span id="1052">1052</span>
-<span id="1053">1053</span>
-<span id="1054">1054</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -1587,18 +1577,8 @@
 
 		<span class="comment">// If we are not able to get delegator state, we return false</span>
 		<span class="comment">// Users can call `is_delegator` to determine when this happens</span>
-		<span class="kw">let</span> <span class="ident">pending</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">state</span>) <span class="op">=</span>
-			<span class="op">&lt;</span><span class="ident">parachain_staking::Pallet</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::delegator_state</span>(<span class="kw-2">&amp;</span><span class="ident">delegator</span>)
-		{
-			<span class="ident">state</span>.<span class="ident">requests</span>.<span class="ident">requests</span>.<span class="ident">contains_key</span>(<span class="kw-2">&amp;</span><span class="ident">candidate</span>)
-		} <span class="kw">else</span> {
-			<span class="macro">log::trace!</span>(
-				<span class="ident">target</span>: <span class="string">&quot;staking-precompile&quot;</span>,
-				<span class="string">&quot;Delegation for {:?} not found, so pending requests is false&quot;</span>,
-				<span class="ident">candidate</span>
-			);
-			<span class="bool-val">false</span>
-		};
+		<span class="kw">let</span> <span class="ident">pending</span> <span class="op">=</span>
+			<span class="op">&lt;</span><span class="ident">parachain_staking::Pallet</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::delegation_request_exists</span>(<span class="kw-2">&amp;</span><span class="ident">candidate</span>, <span class="kw-2">&amp;</span><span class="ident">delegator</span>);
 
 		<span class="comment">// Build output.</span>
 		<span class="prelude-val">Ok</span>(<span class="ident">PrecompileOutput</span> {

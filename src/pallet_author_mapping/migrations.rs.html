@@ -223,9 +223,6 @@
 <span id="218">218</span>
 <span id="219">219</span>
 <span id="220">220</span>
-<span id="221">221</span>
-<span id="222">222</span>
-<span id="223">223</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -245,16 +242,13 @@
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">BalanceOf</span>, <span class="ident">Config</span>, <span class="ident">MappingWithDeposit</span>, <span class="ident">RegistrationInfo</span>};
 <span class="kw">use</span> <span class="ident">frame_support</span>::{
 	<span class="ident">pallet_prelude::PhantomData</span>,
-	<span class="ident">storage::migration</span>::{<span class="ident">remove_storage_prefix</span>, <span class="ident">storage_key_iter</span>},
 	<span class="ident">traits</span>::{<span class="ident">Get</span>, <span class="ident">OnRuntimeUpgrade</span>},
 	<span class="ident">weights::Weight</span>,
-	<span class="ident">Twox64Concat</span>,
 };
 <span class="kw">use</span> <span class="ident">nimbus_primitives::NimbusId</span>;
 <span class="kw">use</span> <span class="ident">parity_scale_codec</span>::{<span class="ident">Decode</span>, <span class="ident">Encode</span>};
-<span class="kw">use</span> <span class="ident">sp_std::convert::TryInto</span>;
-<span class="comment">//TODO sometimes this is unused, sometimes its necessary</span>
-<span class="kw">use</span> <span class="ident">sp_std::vec::Vec</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
+<span class="kw">use</span> <span class="ident">scale_info::prelude::format</span>;
 
 <span class="doccomment">/// Migrates MappingWithDeposit map value from RegistrationInfo to RegistrationInformation,</span>
 <span class="doccomment">/// thereby adding a keys: T::Keys field to the value to support VRF keys that can be looked up</span>
@@ -340,115 +334,115 @@
 	}
 }
 
-<span class="doccomment">/// Migrates the AuthorMapping&#39;s storage map fro mthe insecure Twox64 hasher to the secure</span>
-<span class="doccomment">/// BlakeTwo hasher.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TwoXToBlake</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">OnRuntimeUpgrade</span> <span class="kw">for</span> <span class="ident">TwoXToBlake</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-	<span class="kw">fn</span> <span class="ident">on_runtime_upgrade</span>() -&gt; <span class="ident">Weight</span> {
-		<span class="macro">log::info!</span>(<span class="ident">target</span>: <span class="string">&quot;TwoXToBlake&quot;</span>, <span class="string">&quot;actually running it&quot;</span>);
-		<span class="kw">let</span> <span class="ident">pallet_prefix</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;AuthorMapping&quot;</span>;
-		<span class="kw">let</span> <span class="ident">storage_item_prefix</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;MappingWithDeposit&quot;</span>;
+<span class="comment">///// Migrates the AuthorMapping&#39;s storage map fro mthe insecure Twox64 hasher to the secure</span>
+<span class="comment">///// BlakeTwo hasher.</span>
+<span class="comment">// pub struct TwoXToBlake&lt;T&gt;(PhantomData&lt;T&gt;);</span>
+<span class="comment">// impl&lt;T: Config&gt; OnRuntimeUpgrade for TwoXToBlake&lt;T&gt; {</span>
+<span class="comment">// 	fn on_runtime_upgrade() -&gt; Weight {</span>
+<span class="comment">// 		log::info!(target: &quot;TwoXToBlake&quot;, &quot;actually running it&quot;);</span>
+<span class="comment">// 		let pallet_prefix: &amp;[u8] = b&quot;AuthorMapping&quot;;</span>
+<span class="comment">// 		let storage_item_prefix: &amp;[u8] = b&quot;MappingWithDeposit&quot;;</span>
 
-		<span class="comment">// Read all the data into memory.</span>
-		<span class="comment">// https://crates.parity.io/frame_support/storage/migration/fn.storage_key_iter.html</span>
-		<span class="kw">let</span> <span class="ident">stored_data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">storage_key_iter</span>::<span class="op">&lt;</span><span class="ident">NimbusId</span>, <span class="ident">RegistrationInfo</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Twox64Concat</span><span class="op">&gt;</span>(
-			<span class="ident">pallet_prefix</span>,
-			<span class="ident">storage_item_prefix</span>,
-		)
-		.<span class="ident">collect</span>();
+<span class="comment">// 		// Read all the data into memory.</span>
+<span class="comment">// 		// https://crates.parity.io/frame_support/storage/migration/fn.storage_key_iter.html</span>
+<span class="comment">// 		let stored_data: Vec&lt;_&gt; = storage_key_iter::&lt;NimbusId, RegistrationInfo&lt;T&gt;, Twox64Concat&gt;(</span>
+<span class="comment">// 			pallet_prefix,</span>
+<span class="comment">// 			storage_item_prefix,</span>
+<span class="comment">// 		)</span>
+<span class="comment">// 		.collect();</span>
 
-		<span class="kw">let</span> <span class="ident">migrated_count</span>: <span class="ident">Weight</span> <span class="op">=</span> <span class="ident">stored_data</span>
-			.<span class="ident">len</span>()
-			.<span class="ident">try_into</span>()
-			.<span class="ident">expect</span>(<span class="string">&quot;There are between 0 and 2**64 mappings stored.&quot;</span>);
+<span class="comment">// 		let migrated_count: Weight = stored_data</span>
+<span class="comment">// 			.len()</span>
+<span class="comment">// 			.try_into()</span>
+<span class="comment">// 			.expect(&quot;There are between 0 and 2**64 mappings stored.&quot;);</span>
 
-		<span class="comment">// Now remove the old storage</span>
-		<span class="comment">// https://crates.parity.io/frame_support/storage/migration/fn.remove_storage_prefix.html</span>
-		<span class="ident">remove_storage_prefix</span>(<span class="ident">pallet_prefix</span>, <span class="ident">storage_item_prefix</span>, <span class="kw-2">&amp;</span>[]);
+<span class="comment">// 		// Now remove the old storage</span>
+<span class="comment">// 		// https://crates.parity.io/frame_support/storage/migration/fn.remove_storage_prefix.html</span>
+<span class="comment">// 		remove_storage_prefix(pallet_prefix, storage_item_prefix, &amp;[]);</span>
 
-		<span class="comment">// Assert that old storage is empty</span>
-		<span class="macro">assert!</span>(
-			<span class="ident">storage_key_iter</span>::<span class="op">&lt;</span><span class="ident">NimbusId</span>, <span class="ident">RegistrationInfo</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Twox64Concat</span><span class="op">&gt;</span>(
-				<span class="ident">pallet_prefix</span>,
-				<span class="ident">storage_item_prefix</span>
-			)
-			.<span class="ident">next</span>()
-			.<span class="ident">is_none</span>()
-		);
+<span class="comment">// 		// Assert that old storage is empty</span>
+<span class="comment">// 		assert!(</span>
+<span class="comment">// 			storage_key_iter::&lt;NimbusId, RegistrationInfo&lt;T&gt;, Twox64Concat&gt;(</span>
+<span class="comment">// 				pallet_prefix,</span>
+<span class="comment">// 				storage_item_prefix</span>
+<span class="comment">// 			)</span>
+<span class="comment">// 			.next()</span>
+<span class="comment">// 			.is_none()</span>
+<span class="comment">// 		);</span>
 
-		<span class="comment">// Write the mappings back to storage with the new secure hasher</span>
-		<span class="kw">for</span> (<span class="ident">author_id</span>, <span class="ident">account_id</span>) <span class="kw">in</span> <span class="ident">stored_data</span> {
-			<span class="ident">MappingWithDeposit</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="ident">author_id</span>, <span class="ident">account_id</span>);
-		}
+<span class="comment">// 		// Write the mappings back to storage with the new secure hasher</span>
+<span class="comment">// 		for (author_id, account_id) in stored_data {</span>
+<span class="comment">// 			MappingWithDeposit::&lt;T&gt;::insert(author_id, account_id);</span>
+<span class="comment">// 		}</span>
 
-		<span class="macro">log::info!</span>(<span class="ident">target</span>: <span class="string">&quot;TwoXToBlake&quot;</span>, <span class="string">&quot;almost done&quot;</span>);
+<span class="comment">// 		log::info!(target: &quot;TwoXToBlake&quot;, &quot;almost done&quot;);</span>
 
-		<span class="comment">// Return the weight used. For each migrated mapping there is a red to get it into</span>
-		<span class="comment">// memory, a write to clear the old stored value, and a write to re-store it.</span>
-		<span class="kw">let</span> <span class="ident">db_weights</span> <span class="op">=</span> <span class="ident">T::DbWeight::get</span>();
-		<span class="ident">migrated_count</span>.<span class="ident">saturating_mul</span>(<span class="number">2</span> <span class="op">*</span> <span class="ident">db_weights</span>.<span class="ident">write</span> <span class="op">+</span> <span class="ident">db_weights</span>.<span class="ident">read</span>)
-	}
+<span class="comment">// 		// Return the weight used. For each migrated mapping there is a red to get it into</span>
+<span class="comment">// 		// memory, a write to clear the old stored value, and a write to re-store it.</span>
+<span class="comment">// 		let db_weights = T::DbWeight::get();</span>
+<span class="comment">// 		migrated_count.saturating_mul(2 * db_weights.write + db_weights.read)</span>
+<span class="comment">// 	}</span>
 
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">pre_upgrade</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-		<span class="kw">use</span> <span class="ident">frame_support</span>::{<span class="ident">storage::migration::storage_iter</span>, <span class="ident">traits::OnRuntimeUpgradeHelpersExt</span>};
+<span class="comment">// 	#[cfg(feature = &quot;try-runtime&quot;)]</span>
+<span class="comment">// 	fn pre_upgrade() -&gt; Result&lt;(), &amp;&#39;static str&gt; {</span>
+<span class="comment">// 		use frame_support::{storage::migration::storage_iter, traits::OnRuntimeUpgradeHelpersExt};</span>
 
-		<span class="kw">let</span> <span class="ident">pallet_prefix</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;AuthorMapping&quot;</span>;
-		<span class="kw">let</span> <span class="ident">storage_item_prefix</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;MappingWithDeposit&quot;</span>;
+<span class="comment">// 		let pallet_prefix: &amp;[u8] = b&quot;AuthorMapping&quot;;</span>
+<span class="comment">// 		let storage_item_prefix: &amp;[u8] = b&quot;MappingWithDeposit&quot;;</span>
 
-		<span class="comment">// We want to test that:</span>
-		<span class="comment">// There are no entries in the new storage beforehand</span>
-		<span class="comment">// The same number of mappings exist before and after</span>
-		<span class="comment">// As long as there are some mappings stored, one representative key maps to the</span>
-		<span class="comment">// same value after the migration.</span>
-		<span class="comment">// There are no entries in the old storage afterward</span>
+<span class="comment">// 		// We want to test that:</span>
+<span class="comment">// 		// There are no entries in the new storage beforehand</span>
+<span class="comment">// 		// The same number of mappings exist before and after</span>
+<span class="comment">// 		// As long as there are some mappings stored, one representative key maps to the</span>
+<span class="comment">// 		// same value after the migration.</span>
+<span class="comment">// 		// There are no entries in the old storage afterward</span>
 
-		<span class="comment">// Assert new storage is empty</span>
-		<span class="comment">// Because the pallet and item prefixes are the same, the old storage is still at this</span>
-		<span class="comment">// key. However, the values can&#39;t be decoded so the assertion passes.</span>
-		<span class="macro">assert!</span>(<span class="ident">MappingWithDeposit</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::iter</span>().<span class="ident">next</span>().<span class="ident">is_none</span>());
+<span class="comment">// 		// Assert new storage is empty</span>
+<span class="comment">// 		// Because the pallet and item prefixes are the same, the old storage is still at this</span>
+<span class="comment">// 		// key. However, the values can&#39;t be decoded so the assertion passes.</span>
+<span class="comment">// 		assert!(MappingWithDeposit::&lt;T&gt;::iter().next().is_none());</span>
 
-		<span class="comment">// Check number of entries, and set it aside in temp storage</span>
-		<span class="kw">let</span> <span class="ident">mapping_count</span> <span class="op">=</span>
-			<span class="ident">storage_iter</span>::<span class="op">&lt;</span><span class="ident">RegistrationInfo</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">pallet_prefix</span>, <span class="ident">storage_item_prefix</span>).<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">u64</span>;
-		<span class="ident"><span class="self">Self</span>::set_temp_storage</span>(<span class="ident">mapping_count</span>, <span class="string">&quot;mapping_count&quot;</span>);
+<span class="comment">// 		// Check number of entries, and set it aside in temp storage</span>
+<span class="comment">// 		let mapping_count =</span>
+<span class="comment">// 			storage_iter::&lt;RegistrationInfo&lt;T&gt;&gt;(pallet_prefix, storage_item_prefix).count() as u64;</span>
+<span class="comment">// 		Self::set_temp_storage(mapping_count, &quot;mapping_count&quot;);</span>
 
-		<span class="comment">// Read an example pair from old storage and set it aside in temp storage</span>
-		<span class="kw">if</span> <span class="ident">mapping_count</span> <span class="op">&gt;</span> <span class="number">0</span> {
-			<span class="kw">let</span> <span class="ident">example_pair</span> <span class="op">=</span> <span class="ident">storage_key_iter</span>::<span class="op">&lt;</span><span class="ident">NimbusId</span>, <span class="ident">RegistrationInfo</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Twox64Concat</span><span class="op">&gt;</span>(
-				<span class="ident">pallet_prefix</span>,
-				<span class="ident">storage_item_prefix</span>,
-			)
-			.<span class="ident">next</span>()
-			.<span class="ident">expect</span>(<span class="string">&quot;We already confirmed that there was at least one item stored&quot;</span>);
+<span class="comment">// 		// Read an example pair from old storage and set it aside in temp storage</span>
+<span class="comment">// 		if mapping_count &gt; 0 {</span>
+<span class="comment">// 			let example_pair = storage_key_iter::&lt;NimbusId, RegistrationInfo&lt;T&gt;, Twox64Concat&gt;(</span>
+<span class="comment">// 				pallet_prefix,</span>
+<span class="comment">// 				storage_item_prefix,</span>
+<span class="comment">// 			)</span>
+<span class="comment">// 			.next()</span>
+<span class="comment">// 			.expect(&quot;We already confirmed that there was at least one item stored&quot;);</span>
 
-			<span class="ident"><span class="self">Self</span>::set_temp_storage</span>(<span class="ident">example_pair</span>, <span class="string">&quot;example_pair&quot;</span>);
-		}
+<span class="comment">// 			Self::set_temp_storage(example_pair, &quot;example_pair&quot;);</span>
+<span class="comment">// 		}</span>
 
-		<span class="prelude-val">Ok</span>(())
-	}
+<span class="comment">// 		Ok(())</span>
+<span class="comment">// 	}</span>
 
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">post_upgrade</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-		<span class="kw">use</span> <span class="ident">frame_support::traits::OnRuntimeUpgradeHelpersExt</span>;
+<span class="comment">// 	#[cfg(feature = &quot;try-runtime&quot;)]</span>
+<span class="comment">// 	fn post_upgrade() -&gt; Result&lt;(), &amp;&#39;static str&gt; {</span>
+<span class="comment">// 		use frame_support::traits::OnRuntimeUpgradeHelpersExt;</span>
 
-		<span class="comment">// Check number of entries matches what was set aside in pre_upgrade</span>
-		<span class="kw">let</span> <span class="ident">old_mapping_count</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::get_temp_storage</span>(<span class="string">&quot;mapping_count&quot;</span>)
-			.<span class="ident">expect</span>(<span class="string">&quot;We stored a mapping count; it should be there; qed&quot;</span>);
-		<span class="kw">let</span> <span class="ident">new_mapping_count</span> <span class="op">=</span> <span class="ident">MappingWithDeposit</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::iter</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">u64</span>;
-		<span class="macro">assert_eq!</span>(<span class="ident">old_mapping_count</span>, <span class="ident">new_mapping_count</span>);
+<span class="comment">// 		// Check number of entries matches what was set aside in pre_upgrade</span>
+<span class="comment">// 		let old_mapping_count: u64 = Self::get_temp_storage(&quot;mapping_count&quot;)</span>
+<span class="comment">// 			.expect(&quot;We stored a mapping count; it should be there; qed&quot;);</span>
+<span class="comment">// 		let new_mapping_count = MappingWithDeposit::&lt;T&gt;::iter().count() as u64;</span>
+<span class="comment">// 		assert_eq!(old_mapping_count, new_mapping_count);</span>
 
-		<span class="comment">// Check that our example pair is still well-mapped after the migration</span>
-		<span class="kw">if</span> <span class="ident">new_mapping_count</span> <span class="op">&gt;</span> <span class="number">0</span> {
-			<span class="kw">let</span> (<span class="ident">account</span>, <span class="ident">original_info</span>): (<span class="ident">NimbusId</span>, <span class="ident">RegistrationInfo</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">=</span>
-				<span class="ident"><span class="self">Self</span>::get_temp_storage</span>(<span class="string">&quot;example_pair&quot;</span>).<span class="ident">expect</span>(<span class="string">&quot;qed&quot;</span>);
-			<span class="kw">let</span> <span class="ident">migrated_info</span> <span class="op">=</span> <span class="ident">MappingWithDeposit</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="ident">account</span>).<span class="ident">expect</span>(<span class="string">&quot;qed&quot;</span>);
-			<span class="macro">assert_eq!</span>(<span class="ident">original_info</span>, <span class="ident">migrated_info</span>);
-		}
+<span class="comment">// 		// Check that our example pair is still well-mapped after the migration</span>
+<span class="comment">// 		if new_mapping_count &gt; 0 {</span>
+<span class="comment">// 			let (account, original_info): (NimbusId, RegistrationInfo&lt;T&gt;) =</span>
+<span class="comment">// 				Self::get_temp_storage(&quot;example_pair&quot;).expect(&quot;qed&quot;);</span>
+<span class="comment">// 			let migrated_info = MappingWithDeposit::&lt;T&gt;::get(account).expect(&quot;qed&quot;);</span>
+<span class="comment">// 			assert_eq!(original_info, migrated_info);</span>
+<span class="comment">// 		}</span>
 
-		<span class="prelude-val">Ok</span>(())
-	}
-}
+<span class="comment">// 		Ok(())</span>
+<span class="comment">// 	}</span>
+<span class="comment">// }</span>
 </code></pre></div>
 </section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pallet_author_mapping" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (3b348d932 2022-02-19)" ></div>
 </body></html>

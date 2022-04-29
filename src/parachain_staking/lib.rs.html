@@ -1703,6 +1703,21 @@
 <span id="1698">1698</span>
 <span id="1699">1699</span>
 <span id="1700">1700</span>
+<span id="1701">1701</span>
+<span id="1702">1702</span>
+<span id="1703">1703</span>
+<span id="1704">1704</span>
+<span id="1705">1705</span>
+<span id="1706">1706</span>
+<span id="1707">1707</span>
+<span id="1708">1708</span>
+<span id="1709">1709</span>
+<span id="1710">1710</span>
+<span id="1711">1711</span>
+<span id="1712">1712</span>
+<span id="1713">1713</span>
+<span id="1714">1714</span>
+<span id="1715">1715</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -1753,6 +1768,7 @@
 
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>), <span class="ident">no_std</span>)]</span>
 
+<span class="kw">mod</span> <span class="ident">delegation_requests</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">inflation</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">migrations</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">traits</span>;
@@ -1771,6 +1787,7 @@
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">inflation</span>::{<span class="ident">InflationInfo</span>, <span class="ident">Range</span>};
 <span class="kw">use</span> <span class="ident">weights::WeightInfo</span>;
 
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">delegation_requests</span>::{<span class="ident">CancelledScheduledRequest</span>, <span class="ident">DelegationAction</span>, <span class="ident">ScheduledRequest</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">pallet</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">traits</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">types</span>::<span class="kw-2">*</span>;
@@ -1778,6 +1795,9 @@
 
 <span class="attribute">#[<span class="ident">pallet</span>]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">pallet</span> {
+	<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::delegation_requests</span>::{
+		<span class="ident">CancelledScheduledRequest</span>, <span class="ident">DelegationAction</span>, <span class="ident">ScheduledRequest</span>,
+	};
 	<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">set::OrderedSet</span>, <span class="ident">traits</span>::<span class="kw-2">*</span>, <span class="ident">types</span>::<span class="kw-2">*</span>, <span class="ident">InflationInfo</span>, <span class="ident">Range</span>, <span class="ident">WeightInfo</span>};
 	<span class="kw">use</span> <span class="ident">frame_support::pallet_prelude</span>::<span class="kw-2">*</span>;
 	<span class="kw">use</span> <span class="ident">frame_support::traits</span>::{<span class="ident">Currency</span>, <span class="ident">Get</span>, <span class="ident">Imbalance</span>, <span class="ident">ReservableCurrency</span>};
@@ -2037,7 +2057,8 @@
 		<span class="doccomment">/// Cancelled request to change an existing delegation.</span>
 		<span class="ident">CancelledDelegationRequest</span> {
 			<span class="ident">delegator</span>: <span class="ident">T::AccountId</span>,
-			<span class="ident">cancelled_request</span>: <span class="ident">DelegationRequest</span><span class="op">&lt;</span><span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+			<span class="ident">cancelled_request</span>: <span class="ident">CancelledScheduledRequest</span><span class="op">&lt;</span><span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+			<span class="ident">collator</span>: <span class="ident">T::AccountId</span>,
 		},
 		<span class="doccomment">/// New delegation (increase of the existing one).</span>
 		<span class="ident">Delegation</span> {
@@ -2200,6 +2221,17 @@
 	<span class="doccomment">/// Get collator candidate info associated with an account if account is candidate else None</span>
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">CandidateInfo</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span>
 		<span class="ident">StorageMap</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Twox64Concat</span>, <span class="ident">T::AccountId</span>, <span class="ident">CandidateMetadata</span><span class="op">&lt;</span><span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">OptionQuery</span><span class="op">&gt;</span>;
+
+	<span class="doccomment">/// Stores outstanding delegation requests per collator.</span>
+	<span class="attribute">#[<span class="ident">pallet::storage</span>]</span>
+	<span class="attribute">#[<span class="ident">pallet::getter</span>(<span class="kw">fn</span> <span class="ident">delegation_scheduled_requests</span>)]</span>
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">DelegationScheduledRequests</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">StorageMap</span><span class="op">&lt;</span>
+		<span class="kw">_</span>,
+		<span class="ident">Blake2_128Concat</span>,
+		<span class="ident">T::AccountId</span>,
+		<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ScheduledRequest</span><span class="op">&lt;</span><span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+		<span class="ident">ValueQuery</span>,
+	<span class="op">&gt;</span>;
 
 	<span class="attribute">#[<span class="ident">pallet::storage</span>]</span>
 	<span class="attribute">#[<span class="ident">pallet::getter</span>(<span class="kw">fn</span> <span class="ident">top_delegations</span>)]</span>
@@ -2408,34 +2440,6 @@
 
 	<span class="attribute">#[<span class="ident">pallet::call</span>]</span>
 	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-		<span class="attribute">#[<span class="ident">pallet::weight</span>(
-			<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span><span class="ident">::WeightInfo::hotfix_remove_delegation_requests</span>(<span class="ident">delegators</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>)
-		)]</span>
-		<span class="doccomment">/// Hotfix patch to remove all delegation requests not removed during a candidate exit</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hotfix_remove_delegation_requests</span>(
-			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-			<span class="ident">delegators</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T::AccountId</span><span class="op">&gt;</span>,
-		) -&gt; <span class="ident">DispatchResultWithPostInfo</span> {
-			<span class="ident">frame_system::ensure_root</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
-			<span class="kw">for</span> <span class="ident">delegator</span> <span class="kw">in</span> <span class="ident">delegators</span> {
-				<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">state</span>) <span class="op">=</span> <span class="op">&lt;</span><span class="ident">DelegatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">delegator</span>) {
-					<span class="comment">// go through all requests and remove ones without corresponding delegation</span>
-					<span class="kw">for</span> (<span class="ident">candidate</span>, <span class="ident">request</span>) <span class="kw">in</span> <span class="ident">state</span>.<span class="ident">requests</span>.<span class="ident">requests</span>.<span class="ident">clone</span>().<span class="ident">into_iter</span>() {
-						<span class="kw">if</span> <span class="op">!</span><span class="ident">state</span>.<span class="ident">delegations</span>.<span class="number">0</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">owner</span> <span class="op">==</span> <span class="ident">candidate</span>) {
-							<span class="ident">state</span>.<span class="ident">requests</span>.<span class="ident">requests</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">candidate</span>);
-							<span class="ident">state</span>.<span class="ident">requests</span>.<span class="ident">less_total</span> <span class="op">=</span>
-								<span class="ident">state</span>.<span class="ident">requests</span>.<span class="ident">less_total</span>.<span class="ident">saturating_sub</span>(<span class="ident">request</span>.<span class="ident">amount</span>);
-							<span class="kw">if</span> <span class="macro">matches!</span>(<span class="ident">request</span>.<span class="ident">action</span>, <span class="ident">DelegationChange::Revoke</span>) {
-								<span class="ident">state</span>.<span class="ident">requests</span>.<span class="ident">revocations_count</span> <span class="op">=</span>
-									<span class="ident">state</span>.<span class="ident">requests</span>.<span class="ident">revocations_count</span>.<span class="ident">saturating_sub</span>(<span class="number">1u32</span>);
-							}
-						}
-					}
-					<span class="op">&lt;</span><span class="ident">DelegatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="kw-2">&amp;</span><span class="ident">delegator</span>, <span class="ident">state</span>);
-				} <span class="comment">// else delegator is not a delegator so no update needed</span>
-			}
-			<span class="prelude-val">Ok</span>(().<span class="ident">into</span>())
-		}
 		<span class="attribute">#[<span class="ident">pallet::weight</span>(
 			<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span><span class="ident">::WeightInfo::hotfix_update_candidate_pool_value</span>(<span class="ident">candidates</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>)
 		)]</span>
@@ -2675,6 +2679,7 @@
 			});
 			<span class="prelude-val">Ok</span>(().<span class="ident">into</span>())
 		}
+
 		<span class="attribute">#[<span class="ident">pallet::weight</span>(
 			<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span><span class="ident">::WeightInfo::execute_leave_candidates</span>(<span class="kw-2">*</span><span class="ident">candidate_delegation_count</span>)
 		)]</span>
@@ -2703,14 +2708,12 @@
 					<span class="kw">if</span> <span class="ident">remaining</span>.<span class="ident">is_zero</span>() {
 						<span class="op">&lt;</span><span class="ident">DelegatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::remove</span>(<span class="kw-2">&amp;</span><span class="ident">bond</span>.<span class="ident">owner</span>);
 					} <span class="kw">else</span> {
-						<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">request</span>) <span class="op">=</span> <span class="ident">delegator</span>.<span class="ident">requests</span>.<span class="ident">requests</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">candidate</span>) {
-							<span class="ident">delegator</span>.<span class="ident">requests</span>.<span class="ident">less_total</span> <span class="op">=</span>
-								<span class="ident">delegator</span>.<span class="ident">requests</span>.<span class="ident">less_total</span>.<span class="ident">saturating_sub</span>(<span class="ident">request</span>.<span class="ident">amount</span>);
-							<span class="kw">if</span> <span class="macro">matches!</span>(<span class="ident">request</span>.<span class="ident">action</span>, <span class="ident">DelegationChange::Revoke</span>) {
-								<span class="ident">delegator</span>.<span class="ident">requests</span>.<span class="ident">revocations_count</span> <span class="op">=</span>
-									<span class="ident">delegator</span>.<span class="ident">requests</span>.<span class="ident">revocations_count</span>.<span class="ident">saturating_sub</span>(<span class="number">1u32</span>);
-							}
-						}
+						<span class="ident"><span class="self">Self</span>::delegation_remove_request_with_state</span>(
+							<span class="kw-2">&amp;</span><span class="ident">candidate</span>,
+							<span class="kw-2">&amp;</span><span class="ident">bond</span>.<span class="ident">owner</span>,
+							<span class="kw-2">&amp;mut</span> <span class="ident">delegator</span>,
+						)
+						.<span class="ident">ok</span>(); <span class="comment">// ignore DNE error</span>
 						<span class="op">&lt;</span><span class="ident">DelegatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="kw-2">&amp;</span><span class="ident">bond</span>.<span class="ident">owner</span>, <span class="ident">delegator</span>);
 					}
 				}
@@ -3018,6 +3021,7 @@
 			<span class="ident"><span class="self">Self</span>::deposit_event</span>(<span class="ident">Event::DelegatorExitCancelled</span> { <span class="ident">delegator</span> });
 			<span class="prelude-val">Ok</span>(().<span class="ident">into</span>())
 		}
+
 		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span><span class="ident">::WeightInfo::schedule_revoke_delegation</span>())]</span>
 		<span class="doccomment">/// Request to revoke an existing delegation. If successful, the delegation is scheduled</span>
 		<span class="doccomment">/// to be allowed to be revoked via the `execute_delegation_request` extrinsic.</span>
@@ -3026,17 +3030,9 @@
 			<span class="ident">collator</span>: <span class="ident">T::AccountId</span>,
 		) -&gt; <span class="ident">DispatchResultWithPostInfo</span> {
 			<span class="kw">let</span> <span class="ident">delegator</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
-			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">DelegatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">delegator</span>).<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::DelegatorDNE</span>)<span class="question-mark">?</span>;
-			<span class="kw">let</span> (<span class="ident">now</span>, <span class="ident">when</span>) <span class="op">=</span> <span class="ident">state</span>.<span class="ident">schedule_revoke</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">collator</span>.<span class="ident">clone</span>())<span class="question-mark">?</span>;
-			<span class="op">&lt;</span><span class="ident">DelegatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="kw-2">&amp;</span><span class="ident">delegator</span>, <span class="ident">state</span>);
-			<span class="ident"><span class="self">Self</span>::deposit_event</span>(<span class="ident">Event::DelegationRevocationScheduled</span> {
-				<span class="ident">round</span>: <span class="ident">now</span>,
-				<span class="ident">delegator</span>: <span class="ident">delegator</span>,
-				<span class="ident">candidate</span>: <span class="ident">collator</span>,
-				<span class="ident">scheduled_exit</span>: <span class="ident">when</span>,
-			});
-			<span class="prelude-val">Ok</span>(().<span class="ident">into</span>())
+			<span class="ident"><span class="self">Self</span>::delegation_schedule_revoke</span>(<span class="ident">collator</span>, <span class="ident">delegator</span>)
 		}
+
 		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span><span class="ident">::WeightInfo::delegator_bond_more</span>())]</span>
 		<span class="doccomment">/// Bond more for delegators wrt a specific collator candidate.</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">delegator_bond_more</span>(
@@ -3049,6 +3045,7 @@
 			<span class="ident">state</span>.<span class="ident">increase_delegation</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">candidate</span>.<span class="ident">clone</span>(), <span class="ident">more</span>)<span class="question-mark">?</span>;
 			<span class="prelude-val">Ok</span>(().<span class="ident">into</span>())
 		}
+
 		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span><span class="ident">::WeightInfo::schedule_delegator_bond_less</span>())]</span>
 		<span class="doccomment">/// Request bond less for delegators wrt a specific collator candidate.</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">schedule_delegator_bond_less</span>(
@@ -3056,18 +3053,10 @@
 			<span class="ident">candidate</span>: <span class="ident">T::AccountId</span>,
 			<span class="ident">less</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 		) -&gt; <span class="ident">DispatchResultWithPostInfo</span> {
-			<span class="kw">let</span> <span class="ident">caller</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
-			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">DelegatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">caller</span>).<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::DelegatorDNE</span>)<span class="question-mark">?</span>;
-			<span class="kw">let</span> <span class="ident">when</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">schedule_decrease_delegation</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">candidate</span>.<span class="ident">clone</span>(), <span class="ident">less</span>)<span class="question-mark">?</span>;
-			<span class="op">&lt;</span><span class="ident">DelegatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="kw-2">&amp;</span><span class="ident">caller</span>, <span class="ident">state</span>);
-			<span class="ident"><span class="self">Self</span>::deposit_event</span>(<span class="ident">Event::DelegationDecreaseScheduled</span> {
-				<span class="ident">delegator</span>: <span class="ident">caller</span>,
-				<span class="ident">candidate</span>: <span class="ident">candidate</span>,
-				<span class="ident">amount_to_decrease</span>: <span class="ident">less</span>,
-				<span class="ident">execute_round</span>: <span class="ident">when</span>,
-			});
-			<span class="prelude-val">Ok</span>(().<span class="ident">into</span>())
+			<span class="kw">let</span> <span class="ident">delegator</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
+			<span class="ident"><span class="self">Self</span>::delegation_schedule_bond_decrease</span>(<span class="ident">candidate</span>, <span class="ident">delegator</span>, <span class="ident">less</span>)
 		}
+
 		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span><span class="ident">::WeightInfo::execute_delegator_bond_less</span>())]</span>
 		<span class="doccomment">/// Execute pending request to change an existing delegation</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">execute_delegation_request</span>(
@@ -3076,10 +3065,9 @@
 			<span class="ident">candidate</span>: <span class="ident">T::AccountId</span>,
 		) -&gt; <span class="ident">DispatchResultWithPostInfo</span> {
 			<span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>; <span class="comment">// we may want to reward caller if caller != delegator</span>
-			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">DelegatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">delegator</span>).<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::DelegatorDNE</span>)<span class="question-mark">?</span>;
-			<span class="ident">state</span>.<span class="ident">execute_pending_request</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">candidate</span>)<span class="question-mark">?</span>;
-			<span class="prelude-val">Ok</span>(().<span class="ident">into</span>())
+			<span class="ident"><span class="self">Self</span>::delegation_execute_scheduled_request</span>(<span class="ident">candidate</span>, <span class="ident">delegator</span>)
 		}
+
 		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span><span class="ident">::WeightInfo::cancel_delegator_bond_less</span>())]</span>
 		<span class="doccomment">/// Cancel request to change an existing delegation.</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cancel_delegation_request</span>(
@@ -3087,14 +3075,7 @@
 			<span class="ident">candidate</span>: <span class="ident">T::AccountId</span>,
 		) -&gt; <span class="ident">DispatchResultWithPostInfo</span> {
 			<span class="kw">let</span> <span class="ident">delegator</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
-			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">DelegatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">delegator</span>).<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::DelegatorDNE</span>)<span class="question-mark">?</span>;
-			<span class="kw">let</span> <span class="ident">request</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">cancel_pending_request</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">candidate</span>)<span class="question-mark">?</span>;
-			<span class="op">&lt;</span><span class="ident">DelegatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="kw-2">&amp;</span><span class="ident">delegator</span>, <span class="ident">state</span>);
-			<span class="ident"><span class="self">Self</span>::deposit_event</span>(<span class="ident">Event::CancelledDelegationRequest</span> {
-				<span class="ident">delegator</span>: <span class="ident">delegator</span>,
-				<span class="ident">cancelled_request</span>: <span class="ident">request</span>,
-			});
-			<span class="prelude-val">Ok</span>(().<span class="ident">into</span>())
+			<span class="ident"><span class="self">Self</span>::delegation_cancel_request</span>(<span class="ident">candidate</span>, <span class="ident">delegator</span>)
 		}
 	}
 
@@ -3352,19 +3333,21 @@
 				}
 				<span class="kw">return</span> (<span class="ident">collator_count</span>, <span class="ident">delegation_count</span>, <span class="ident">total</span>);
 			}
+
 			<span class="comment">// snapshot exposure for round for weighting reward distribution</span>
 			<span class="kw">for</span> <span class="ident">account</span> <span class="kw">in</span> <span class="ident">collators</span>.<span class="ident">iter</span>() {
 				<span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">CandidateInfo</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="ident">account</span>)
 					.<span class="ident">expect</span>(<span class="string">&quot;all members of CandidateQ must be candidates&quot;</span>);
-				<span class="kw">let</span> <span class="ident">top_delegations</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">TopDelegations</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="ident">account</span>)
-					.<span class="ident">expect</span>(<span class="string">&quot;all members of CandidateQ must be candidates&quot;</span>);
+
 				<span class="ident">collator_count</span> <span class="op">=</span> <span class="ident">collator_count</span>.<span class="ident">saturating_add</span>(<span class="number">1u32</span>);
 				<span class="ident">delegation_count</span> <span class="op">=</span> <span class="ident">delegation_count</span>.<span class="ident">saturating_add</span>(<span class="ident">state</span>.<span class="ident">delegation_count</span>);
 				<span class="ident">total</span> <span class="op">=</span> <span class="ident">total</span>.<span class="ident">saturating_add</span>(<span class="ident">state</span>.<span class="ident">total_counted</span>);
 				<span class="kw">let</span> <span class="ident">snapshot_total</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">total_counted</span>;
+				<span class="kw">let</span> <span class="ident">top_rewardable_delegations</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::get_rewardable_delegators</span>(<span class="kw-2">&amp;</span><span class="ident">account</span>);
+
 				<span class="kw">let</span> <span class="ident">snapshot</span> <span class="op">=</span> <span class="ident">CollatorSnapshot</span> {
 					<span class="ident">bond</span>: <span class="ident">state</span>.<span class="ident">bond</span>,
-					<span class="ident">delegations</span>: <span class="ident">top_delegations</span>.<span class="ident">delegations</span>,
+					<span class="ident">delegations</span>: <span class="ident">top_rewardable_delegations</span>,
 					<span class="ident">total</span>: <span class="ident">state</span>.<span class="ident">total_counted</span>,
 				};
 				<span class="op">&lt;</span><span class="ident">AtStake</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="ident">now</span>, <span class="ident">account</span>, <span class="ident">snapshot</span>);
@@ -3377,6 +3360,53 @@
 			<span class="comment">// insert canonical collator set</span>
 			<span class="op">&lt;</span><span class="ident">SelectedCandidates</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::put</span>(<span class="ident">collators</span>);
 			(<span class="ident">collator_count</span>, <span class="ident">delegation_count</span>, <span class="ident">total</span>)
+		}
+
+		<span class="doccomment">/// Apply the delegator intent for revoke and decrease in order to build the</span>
+		<span class="doccomment">/// effective list of delegators with their intended bond amount.</span>
+		<span class="doccomment">///</span>
+		<span class="doccomment">/// This will:</span>
+		<span class="doccomment">/// - if [DelegationChange::Revoke] is outstanding, set the bond amount to 0.</span>
+		<span class="doccomment">/// - if [DelegationChange::Decrease] is outstanding, subtract the bond by specified amount.</span>
+		<span class="doccomment">/// - else, do nothing</span>
+		<span class="doccomment">///</span>
+		<span class="doccomment">/// The intended bond amounts will be used while calculating rewards.</span>
+		<span class="kw">fn</span> <span class="ident">get_rewardable_delegators</span>(
+			<span class="ident">collator</span>: <span class="kw-2">&amp;</span><span class="ident">T::AccountId</span>,
+		) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Bond</span><span class="op">&lt;</span><span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+			<span class="kw">let</span> <span class="ident">requests</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">DelegationScheduledRequests</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="ident">collator</span>)
+				.<span class="ident">into_iter</span>()
+				.<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> (<span class="ident">x</span>.<span class="ident">delegator</span>, <span class="ident">x</span>.<span class="ident">action</span>))
+				.<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">BTreeMap</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+
+			<span class="op">&lt;</span><span class="ident">TopDelegations</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="ident">collator</span>)
+				.<span class="ident">expect</span>(<span class="string">&quot;all members of CandidateQ must be candidates&quot;</span>)
+				.<span class="ident">delegations</span>
+				.<span class="ident">into_iter</span>()
+				.<span class="ident">map</span>(<span class="op">|</span><span class="kw-2">mut</span> <span class="ident">bond</span><span class="op">|</span> {
+					<span class="ident">bond</span>.<span class="ident">amount</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">requests</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">bond</span>.<span class="ident">owner</span>) {
+						<span class="prelude-val">None</span> =&gt; <span class="ident">bond</span>.<span class="ident">amount</span>,
+						<span class="prelude-val">Some</span>(<span class="ident">DelegationAction::Revoke</span>(<span class="kw">_</span>)) =&gt; {
+							<span class="macro">log::warn!</span>(
+								<span class="string">&quot;reward for delegator &#39;{:?}&#39; set to zero due to pending \
+								revoke request&quot;</span>,
+								<span class="ident">bond</span>.<span class="ident">owner</span>
+							);
+							<span class="ident">BalanceOf</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::zero</span>()
+						}
+						<span class="prelude-val">Some</span>(<span class="ident">DelegationAction::Decrease</span>(<span class="ident">amount</span>)) =&gt; {
+							<span class="macro">log::warn!</span>(
+								<span class="string">&quot;reward for delegator &#39;{:?}&#39; reduced by set amount due to pending \
+								decrease request&quot;</span>,
+								<span class="ident">bond</span>.<span class="ident">owner</span>
+							);
+							<span class="ident">bond</span>.<span class="ident">amount</span>.<span class="ident">saturating_sub</span>(<span class="kw-2">*</span><span class="ident">amount</span>)
+						}
+					};
+
+					<span class="ident">bond</span>
+				})
+				.<span class="ident">collect</span>()
 		}
 	}
 
