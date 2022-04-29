@@ -164,7 +164,7 @@ describeDevMoonbeamAllEthTxTypes("Staking - Join Delegators", (context) => {
     ]);
   });
 
-  it("should return false for pending requests", async function () {
+  it("should verify delegation pending requests", async function () {
     expect(Number((await delegationRequestIsPending(context, ETHAN, ALITH)).result)).to.equal(0);
 
     // Schedule Revoke

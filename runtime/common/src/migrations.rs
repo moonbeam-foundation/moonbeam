@@ -40,7 +40,7 @@ use pallet_migrations::{GetMigrations, Migration};
 use parachain_staking::{
 	migrations::{
 		IncreaseMaxDelegationsPerCandidate, PatchIncorrectDelegationSums, PurgeStaleStorage,
-		SplitCandidateStateToDecreasePoV,
+		SplitCandidateStateToDecreasePoV, SplitDelegatorStateIntoDelegationScheduledRequests,
 	},
 	Config as ParachainStakingConfig,
 };
@@ -99,6 +99,32 @@ impl<T: ParachainStakingConfig> Migration for ParachainStakingPatchIncorrectDele
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade(&self) -> Result<(), &'static str> {
 		PatchIncorrectDelegationSums::<T>::post_upgrade()
+	}
+}
+
+/// Staking split delegator state into [parachain_staking::DelegatorScheduledRequests]
+pub struct ParachainStakingSplitDelegatorStateIntoDelegationScheduledRequests<T>(PhantomData<T>);
+impl<T: ParachainStakingConfig> Migration
+	for ParachainStakingSplitDelegatorStateIntoDelegationScheduledRequests<T>
+{
+	fn friendly_name(&self) -> &str {
+		"MM_Parachain_Staking_Split_Delegator_State_Into_Delegation_Scheduled_Requests"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		SplitDelegatorStateIntoDelegationScheduledRequests::<T>::on_runtime_upgrade()
+	}
+
+	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<(), &'static str> {
+		SplitDelegatorStateIntoDelegationScheduledRequests::<T>::pre_upgrade()
+	}
+
+	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self) -> Result<(), &'static str> {
+		SplitDelegatorStateIntoDelegationScheduledRequests::<T>::post_upgrade()
 	}
 }
 
@@ -200,7 +226,7 @@ impl<T: ParachainStakingConfig> Migration for ParachainStakingPurgeStaleStorage<
 	}
 }
 
-// /// A moonbeam migration wrapping the similarly named migration in pallet-author-mapping
+/// A moonbeam migration wrapping the similarly named migration in pallet-author-mapping
 // pub struct AuthorMappingTwoXToBlake<T>(PhantomData<T>);
 // impl<T: AuthorMappingConfig> Migration for AuthorMappingTwoXToBlake<T> {
 // 	fn friendly_name(&self) -> &str {
@@ -589,6 +615,10 @@ where
 			AuthorSlotFilterEligibleRatioToEligiblityCount::<Runtime>(Default::default());
 		let migration_author_mapping_add_keys_to_registration_info =
 			AuthorMappingAddKeysToRegistrationInfo::<Runtime>(Default::default());
+		let staking_delegator_state_requests =
+			ParachainStakingSplitDelegatorStateIntoDelegationScheduledRequests::<Runtime>(
+				Default::default(),
+			);
 		vec![
 			// completed in runtime 800
 			// Box::new(migration_author_mapping_twox_to_blake),
@@ -609,6 +639,7 @@ where
 			// Box::new(migration_base_fee),
 			Box::new(migration_author_slot_filter_eligible_ratio_to_eligibility_count),
 			Box::new(migration_author_mapping_add_keys_to_registration_info),
+			Box::new(staking_delegator_state_requests),
 		]
 	}
 }

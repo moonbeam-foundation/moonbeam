@@ -18,10 +18,10 @@
 
 //! Benchmarking
 use crate::{
-	BalanceOf, Call, CandidateBondLessRequest, Config, DelegationChange, DelegationRequest, Pallet,
-	Range,
+	BalanceOf, Call, CandidateBondLessRequest, Config, DelegationAction, Pallet, Range,
+	ScheduledRequest,
 };
-use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
+use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite, vec};
 use frame_support::traits::{Currency, Get, OnFinalize, OnInitialize, ReservableCurrency};
 use frame_system::RawOrigin;
 use nimbus_primitives::EventHandler;
@@ -124,7 +124,6 @@ const USER_SEED: u32 = 999666;
 
 benchmarks! {
 	// MONETARY ORIGIN DISPATCHABLES
-
 	set_staking_expectations {
 		let stake_range: Range<BalanceOf<T>> = Range {
 			min: 100u32.into(),
@@ -606,13 +605,12 @@ benchmarks! {
 	}: _(RawOrigin::Signed(caller.clone()), collator.clone())
 	verify {
 		assert_eq!(
-			Pallet::<T>::delegator_state(&caller).unwrap().requests().get(&collator),
-			Some(&DelegationRequest {
-				collator,
-				amount: bond,
+			Pallet::<T>::delegation_scheduled_requests(&collator),
+			vec![ScheduledRequest {
+				delegator: caller,
 				when_executable: 3,
-				action: DelegationChange::Revoke
-			})
+				action: DelegationAction::Revoke(bond),
+			}],
 		);
 	}
 
@@ -661,13 +659,12 @@ benchmarks! {
 		let state = Pallet::<T>::delegator_state(&caller)
 			.expect("just request bonded less so exists");
 		assert_eq!(
-			state.requests().get(&collator),
-			Some(&DelegationRequest {
-				collator,
-				amount: bond_less,
+			Pallet::<T>::delegation_scheduled_requests(&collator),
+			vec![ScheduledRequest {
+				delegator: caller,
 				when_executable: 3,
-				action: DelegationChange::Decrease
-			})
+				action: DelegationAction::Decrease(bond_less),
+			}],
 		);
 	}
 
@@ -767,7 +764,9 @@ benchmarks! {
 		)?;
 	} verify {
 		assert!(
-			Pallet::<T>::delegator_state(&caller).unwrap().requests().get(&collator).is_none()
+			!Pallet::<T>::delegation_scheduled_requests(&collator)
+			.iter()
+			.any(|x| &x.delegator == &caller)
 		);
 	}
 
@@ -801,11 +800,9 @@ benchmarks! {
 		)?;
 	} verify {
 		assert!(
-			Pallet::<T>::delegator_state(&caller)
-				.unwrap()
-				.requests()
-				.get(&collator)
-				.is_none()
+			!Pallet::<T>::delegation_scheduled_requests(&collator)
+				.iter()
+				.any(|x| &x.delegator == &caller)
 		);
 	}
 
