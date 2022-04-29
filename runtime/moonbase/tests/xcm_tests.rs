@@ -2145,6 +2145,106 @@ fn send_para_a_local_asset_to_para_b_and_send_it_back_together_with_some_dev() {
 	});
 }
 
+#[test]
+fn transact_through_signed_multilocation() {
+	MockNet::reset();
+	let mut ancestry = MultiLocation::parent();
+
+	ParaA::execute_with(|| {
+		// Root can set transact info
+		assert_ok!(XcmTransactor::set_transact_info(
+			parachain::Origin::root(),
+			Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+			// Relay charges 1000 for every instruction, and we have 3, so 3000
+			3000,
+			20000000000,
+			Some(4000)
+		));
+		// Root can set transact info
+		assert_ok!(XcmTransactor::set_fee_per_second(
+			parachain::Origin::root(),
+			Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+			1 * WEIGHT_PER_SECOND as u128,
+		));
+		ancestry = parachain::Ancestry::get();
+	});
+
+	// Let's construct the Junction that we will append with DescendOrigin
+	let signed_origin: Junctions = X1(AccountKey20 {
+		network: NetworkId::Any,
+		key: PARAALICE,
+	});
+
+	let mut descend_origin_multilocation = parachain::SelfLocation::get();
+	descend_origin_multilocation
+		.append_with(signed_origin)
+		.unwrap();
+	descend_origin_multilocation.reanchor(&MultiLocation::parent(), &ancestry);
+	let derived = xcm_builder::Account32Hash::<
+		relay_chain::KusamaNetwork,
+		relay_chain::AccountId,
+	>::convert_ref(descend_origin_multilocation)
+	.unwrap();
+
+	Relay::execute_with(|| {
+		// free execution, full amount received
+		assert_ok!(RelayBalances::transfer(
+			relay_chain::Origin::signed(RELAYALICE),
+			derived.clone(),
+			4000004100u128,
+		));
+		assert!(RelayBalances::free_balance(&derived) == 4000004100);
+		assert!(RelayBalances::free_balance(&para_a_account()) == 0);
+	});
+
+	// Encode the call. Balances transact to para_a_account
+	// First index
+	let mut encoded: Vec<u8> = Vec::new();
+	let index = <relay_chain::Runtime as frame_system::Config>::PalletInfo::index::<
+		relay_chain::Balances,
+	>()
+	.unwrap() as u8;
+
+	encoded.push(index);
+
+	// Then call bytes
+	let mut call_bytes = pallet_balances::Call::<relay_chain::Runtime>::transfer {
+		dest: para_a_account(),
+		value: 100u32.into(),
+	}
+	.encode();
+	encoded.append(&mut call_bytes);
+
+	ParaA::execute_with(|| {
+		assert_ok!(XcmTransactor::transact_through_signed_multilocation(
+			parachain::Origin::signed(PARAALICE.into()),
+			Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+			Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+			// 4000000000 + 3000 we should have taken out 4000003000 tokens from the caller
+			4000000000,
+			encoded,
+		));
+		let event_found: Option<parachain::Event> =
+			parachain::para_events()
+				.iter()
+				.find_map(|event| match event.clone() {
+					parachain::Event::PolkadotXcm(pallet_xcm::Event::AssetsTrapped(_, _, _)) => {
+						Some(event.clone())
+					}
+					_ => None,
+				});
+		// Assert that the events do not contain the assets being trapped
+		assert!(event_found.is_none());
+	});
+
+	Relay::execute_with(|| {
+		// free execution,x	 full amount received
+		assert!(RelayBalances::free_balance(&para_a_account()) == 100);
+
+		assert!(RelayBalances::free_balance(&derived) == 0);
+	});
+}
+
 use parity_scale_codec::{Decode, Encode};
 use sp_io::hashing::blake2_256;
 
