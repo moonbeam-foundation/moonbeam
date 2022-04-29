@@ -19,9 +19,9 @@
 mod common;
 use common::*;
 
+use fp_evm::GenesisAccount;
 use nimbus_primitives::NimbusId;
 use pallet_evm::{Account as EVMAccount, AddressMapping, FeeCalculator};
-use fp_evm::GenesisAccount;
 use sp_core::{ByteArray, H160, H256, U256};
 
 use fp_rpc::runtime_decl_for_EthereumRuntimeRPCApi::EthereumRuntimeRPCApi;

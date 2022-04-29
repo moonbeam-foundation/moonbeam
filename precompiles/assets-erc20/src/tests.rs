@@ -842,7 +842,8 @@ fn transfer_from_non_incremental_approval() {
 				Some(Err(PrecompileFailure::Revert { output, ..}))
 				if output == b"Dispatched call failed with error: DispatchErrorWithPostInfo { \
 					post_info: PostDispatchInfo { actual_weight: None, pays_fee: Pays::Yes }, \
-					error: Module(ModuleError { index: 2, error: 10, message: Some(\"Unapproved\") }) }"
+					error: Module(ModuleError { index: 2, error: [10, 0, 0, 0], \
+					message: Some(\"Unapproved\") }) }"
 			);
 		});
 }
@@ -901,7 +902,8 @@ fn transfer_from_above_allowance() {
 				Some(Err(PrecompileFailure::Revert { output, ..}))
 				if output == b"Dispatched call failed with error: DispatchErrorWithPostInfo { \
 					post_info: PostDispatchInfo { actual_weight: None, pays_fee: Pays::Yes }, \
-					error: Module(ModuleError { index: 2, error: 10, message: Some(\"Unapproved\") }) }"
+					error: Module(ModuleError { index: 2, error: [10, 0, 0, 0], \
+					message: Some(\"Unapproved\") }) }"
 			);
 		});
 }
