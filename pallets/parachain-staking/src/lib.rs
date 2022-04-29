@@ -720,23 +720,6 @@ pub mod pallet {
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
-		#[pallet::weight(
-			<T as Config>::WeightInfo::hotfix_update_candidate_pool_value(candidates.len() as u32)
-		)]
-		/// Hotfix patch to correct and update CandidatePool value for candidates that have
-		/// called candidate_bond_more when it did not update the CandidatePool value
-		pub fn hotfix_update_candidate_pool_value(
-			origin: OriginFor<T>,
-			candidates: Vec<T::AccountId>,
-		) -> DispatchResultWithPostInfo {
-			frame_system::ensure_root(origin)?;
-			for candidate in candidates {
-				if let Some(state) = <CandidateInfo<T>>::get(&candidate) {
-					Self::update_active(candidate, state.total_counted);
-				} // else candidate is not a candidate so no update needed
-			}
-			Ok(().into())
-		}
 		#[pallet::weight(<T as Config>::WeightInfo::set_staking_expectations())]
 		/// Set the expectations for total staked. These expectations determine the issuance for
 		/// the round according to logic in `fn compute_issuance`
