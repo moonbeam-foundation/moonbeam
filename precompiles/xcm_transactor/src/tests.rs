@@ -485,7 +485,6 @@ fn test_transact_signed_multilocation() {
 			// Destination
 			let dest = MultiLocation::parent();
 
-			// we pay with our current self reserve.
 			let fee_payer_asset = MultiLocation::parent();
 
 			let bytes: Bytes = vec![1u8, 2u8, 3u8].as_slice().into();
@@ -507,7 +506,6 @@ fn test_transact_signed_multilocation() {
 				false,
 			);
 
-			// We are transferring asset 0, which we have instructed to be the relay asset
 			assert_eq!(
 				output,
 				Some(Ok(PrecompileOutput {
