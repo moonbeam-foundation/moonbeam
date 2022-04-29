@@ -151,7 +151,7 @@ impl sp_runtime::traits::Convert<TestAccount, MultiLocation> for AccountIdToMult
 	fn convert(account: TestAccount) -> MultiLocation {
 		let as_h160: H160 = account.into();
 		MultiLocation::new(
-			1,
+			0,
 			Junctions::X1(AccountKey20 {
 				network: NetworkId::Any,
 				key: as_h160.as_fixed_bytes().clone(),
