@@ -528,18 +528,8 @@ where
 
 		// If we are not able to get delegator state, we return false
 		// Users can call `is_delegator` to determine when this happens
-		let pending = if let Some(state) =
-			<parachain_staking::Pallet<Runtime>>::delegator_state(&delegator)
-		{
-			state.requests.requests.contains_key(&candidate)
-		} else {
-			log::trace!(
-				target: "staking-precompile",
-				"Delegation for {:?} not found, so pending requests is false",
-				candidate
-			);
-			false
-		};
+		let pending =
+			<parachain_staking::Pallet<Runtime>>::delegation_request_exists(&candidate, &delegator);
 
 		// Build output.
 		Ok(PrecompileOutput {
