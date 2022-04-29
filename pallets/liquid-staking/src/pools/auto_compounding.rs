@@ -18,18 +18,20 @@ use super::*;
 
 pub fn shares_to_stake<T: Config>(
 	candidate: &T::AccountId,
-	shares: &BalanceOf<T>,
+	shares: BalanceOf<T>,
 ) -> Result<BalanceOf<T>, Error<T>> {
+	let total_staked = AutoCompoundingSharesTotalStaked::<T>::get(candidate);
+	let supply = AutoCompoundingSharesSupply::<T>::get(candidate);
+	ensure!(!supply.is_zero(), Error::NoOneIsStaking);
+
 	shares
-		.checked_mul(&AutoCompoundingSharesTotalStaked::<T>::get(candidate))
-		.ok_or(Error::MathOverflow)?
-		.checked_div(&AutoCompoundingSharesSupply::<T>::get(candidate))
-		.ok_or(Error::NoOneIsStaking)
+		.mul_div(total_staked, supply)
+		.ok_or(Error::MathOverflow)
 }
 
 pub fn shares_to_stake_or_init<T: Config>(
 	candidate: &T::AccountId,
-	shares: &BalanceOf<T>,
+	shares: BalanceOf<T>,
 ) -> Result<BalanceOf<T>, Error<T>> {
 	if Zero::is_zero(&AutoCompoundingSharesSupply::<T>::get(&candidate)) {
 		shares
@@ -42,18 +44,20 @@ pub fn shares_to_stake_or_init<T: Config>(
 
 pub fn stake_to_shares<T: Config>(
 	candidate: &T::AccountId,
-	stake: &BalanceOf<T>,
+	stake: BalanceOf<T>,
 ) -> Result<BalanceOf<T>, Error<T>> {
+	let total_staked = AutoCompoundingSharesTotalStaked::<T>::get(candidate);
+	let supply = AutoCompoundingSharesSupply::<T>::get(candidate);
+	ensure!(!total_staked.is_zero(), Error::NoOneIsStaking);
+
 	stake
-		.checked_mul(&AutoCompoundingSharesSupply::<T>::get(candidate))
-		.ok_or(Error::MathOverflow)?
-		.checked_div(&AutoCompoundingSharesTotalStaked::<T>::get(candidate))
-		.ok_or(Error::NoOneIsStaking)
+		.mul_div(supply, total_staked)
+		.ok_or(Error::MathOverflow)
 }
 
 pub fn stake_to_shares_or_init<T: Config>(
 	candidate: &T::AccountId,
-	stake: &BalanceOf<T>,
+	stake: BalanceOf<T>,
 ) -> Result<BalanceOf<T>, Error<T>> {
 	if Zero::is_zero(&AutoCompoundingSharesSupply::<T>::get(&candidate)) {
 		stake
@@ -71,7 +75,7 @@ pub fn add_shares<T: Config>(
 ) -> Result<BalanceOf<T>, Error<T>> {
 	ensure!(!Zero::is_zero(&shares), Error::StakeMustBeNonZero);
 
-	let stake = shares_to_stake_or_init(&candidate, &shares)?;
+	let stake = shares_to_stake_or_init(&candidate, shares)?;
 
 	super::add_staked::<
 		T,
@@ -97,7 +101,7 @@ pub fn sub_shares<T: Config>(
 ) -> Result<BalanceOf<T>, Error<T>> {
 	ensure!(!Zero::is_zero(&shares), Error::StakeMustBeNonZero);
 
-	let stake = shares_to_stake(&candidate, &shares)?;
+	let stake = shares_to_stake(&candidate, shares)?;
 
 	super::sub_staked::<
 		T,
@@ -130,5 +134,5 @@ pub fn stake<T: Config>(
 		return Ok(Zero::zero());
 	}
 
-	shares_to_stake(candidate, &shares)
+	shares_to_stake(candidate, shares)
 }

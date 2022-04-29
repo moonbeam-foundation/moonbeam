@@ -20,6 +20,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+mod mul_div;
 mod pools;
 mod rewards;
 
@@ -33,11 +34,14 @@ use frame_support::pallet;
 #[pallet]
 pub mod pallet {
 	use {
-		super::{pools, rewards},
+		super::{mul_div, pools, rewards},
 		frame_support::{
 			pallet_prelude::*,
 			storage::types::Key,
-			traits::{tokens::ExistenceRequirement, Currency, ReservableCurrency},
+			traits::{
+				tokens::{Balance, ExistenceRequirement},
+				Currency, ReservableCurrency,
+			},
 			transactional,
 		},
 		frame_system::pallet_prelude::*,
@@ -87,7 +91,13 @@ pub mod pallet {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		/// The currency type.
 		/// Shares will use the same Balance type.
-		type Currency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
+		type Currency: Currency<Self::AccountId, Balance = Self::Balance>
+			+ ReservableCurrency<Self::AccountId, Balance = Self::Balance>;
+
+		/// Same as Currency::Balance. Must impl `MulDiv` which perform
+		/// multiplication followed by division using a bigger type to avoid
+		/// overflows.
+		type Balance: Balance + mul_div::MulDiv;
 
 		/// Account holding Currency of all delegators.
 		type StakingAccount: Get<Self::AccountId>;
@@ -401,7 +411,7 @@ pub mod pallet {
 				pools::manual_claim::add_shares::<T>(candidate.clone(), delegator.clone(), shares)?;
 			pools::candidates::add_stake::<T>(candidate.clone(), stake)?;
 
-			pools::check_candidate_consistency(&candidate)?;
+			pools::check_candidate_consistency::<T>(&candidate)?;
 
 			T::Currency::transfer(
 				&delegator,
@@ -449,11 +459,9 @@ pub mod pallet {
 
 			let stake =
 				pools::manual_claim::sub_shares::<T>(candidate.clone(), delegator.clone(), shares)?;
-			// Leaving still count as staked.
-			// pools::candidates::sub_stake::<T>(candidate.clone(), stake)?;
-			pools::leaving::register_leaving::<T>(candidate, delegator, stake)?;
+			pools::leaving::register_leaving::<T>(candidate.clone(), delegator, stake)?;
 
-			pools::check_candidate_consistency(&candidate)?;
+			pools::check_candidate_consistency::<T>(&candidate)?;
 
 			Ok(().into())
 		}
@@ -472,7 +480,7 @@ pub mod pallet {
 			let shares = match quantity {
 				SharesOrStake::Shares(shares) => shares,
 				SharesOrStake::Stake(stake) => {
-					pools::auto_compounding::stake_to_shares_or_init::<T>(&candidate, &stake)?
+					pools::auto_compounding::stake_to_shares_or_init::<T>(&candidate, stake)?
 				}
 			};
 
@@ -485,7 +493,7 @@ pub mod pallet {
 			)?;
 			pools::candidates::add_stake::<T>(candidate.clone(), stake)?;
 
-			pools::check_candidate_consistency(&candidate)?;
+			pools::check_candidate_consistency::<T>(&candidate)?;
 
 			T::Currency::transfer(
 				&delegator,
@@ -511,7 +519,7 @@ pub mod pallet {
 			let shares = match quantity {
 				SharesOrStake::Shares(shares) => shares,
 				SharesOrStake::Stake(stake) => {
-					pools::auto_compounding::stake_to_shares::<T>(&candidate, &stake)?
+					pools::auto_compounding::stake_to_shares::<T>(&candidate, stake)?
 				}
 			};
 
@@ -571,7 +579,7 @@ pub mod pallet {
 			)?;
 
 			let ac_shares =
-				pools::auto_compounding::stake_to_shares_or_init::<T>(&candidate, &mc_stake)?;
+				pools::auto_compounding::stake_to_shares_or_init::<T>(&candidate, mc_stake)?;
 			let ac_stake = pools::auto_compounding::add_shares::<T>(
 				candidate.clone(),
 				delegator.clone(),
@@ -582,11 +590,9 @@ pub mod pallet {
 			let diff_stake = mc_stake
 				.checked_sub(&ac_stake)
 				.ok_or(Error::<T>::MathUnderflow)?;
-			// Leaving still count as staked.
-			// pools::candidates::sub_stake::<T>(candidate.clone(), diff_stake)?;
-			pools::leaving::register_leaving::<T>(candidate, delegator, diff_stake)?;
+			pools::leaving::register_leaving::<T>(candidate.clone(), delegator, diff_stake)?;
 
-			pools::check_candidate_consistency(&candidate)?;
+			pools::check_candidate_consistency::<T>(&candidate)?;
 
 			Ok(().into())
 		}
@@ -606,7 +612,7 @@ pub mod pallet {
 			let ac_shares = match quantity {
 				SharesOrStake::Shares(shares) => shares,
 				SharesOrStake::Stake(stake) => {
-					pools::auto_compounding::stake_to_shares::<T>(&candidate, &stake)?
+					pools::auto_compounding::stake_to_shares::<T>(&candidate, stake)?
 				}
 			};
 
@@ -633,7 +639,7 @@ pub mod pallet {
 			)?;
 
 			let mc_shares =
-				pools::auto_compounding::stake_to_shares_or_init::<T>(&candidate, &ac_stake)?;
+				pools::auto_compounding::stake_to_shares_or_init::<T>(&candidate, ac_stake)?;
 			let mc_stake = pools::auto_compounding::add_shares::<T>(
 				candidate.clone(),
 				delegator.clone(),
@@ -644,11 +650,9 @@ pub mod pallet {
 			let diff_stake = ac_stake
 				.checked_sub(&mc_stake)
 				.ok_or(Error::<T>::MathUnderflow)?;
-			// Leaving still count as staked.
-			// pools::candidates::sub_stake::<T>(candidate.clone(), diff_stake)?;
-			pools::leaving::register_leaving::<T>(candidate, delegator, diff_stake)?;
+			pools::leaving::register_leaving::<T>(candidate.clone(), delegator, diff_stake)?;
 
-			pools::check_candidate_consistency(&candidate)?;
+			pools::check_candidate_consistency::<T>(&candidate)?;
 
 			Ok(().into())
 		}
@@ -706,7 +710,7 @@ pub mod pallet {
 					request.at_block,
 				)?;
 
-				pools::candidates::sub_stake::<T>(request.candidate, released)?;
+				pools::candidates::sub_stake::<T>(request.candidate.clone(), released)?;
 
 				T::Currency::transfer(
 					&T::StakingAccount::get(),
@@ -715,7 +719,7 @@ pub mod pallet {
 					ExistenceRequirement::KeepAlive,
 				)?;
 
-				pools::check_candidate_consistency(&candidate)?;
+				pools::check_candidate_consistency::<T>(&request.candidate)?;
 			}
 
 			Ok(().into())

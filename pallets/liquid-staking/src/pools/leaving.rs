@@ -20,22 +20,26 @@ pub fn shares_to_stake<T: Config>(
 	candidate: &T::AccountId,
 	shares: &BalanceOf<T>,
 ) -> Result<BalanceOf<T>, Error<T>> {
+	let total_staked = LeavingSharesTotalStaked::<T>::get(candidate);
+	let supply = LeavingSharesSupply::<T>::get(candidate);
+	ensure!(!supply.is_zero(), Error::NoOneIsStaking);
+
 	shares
-		.checked_mul(&LeavingSharesTotalStaked::<T>::get(candidate))
-		.ok_or(Error::MathOverflow)?
-		.checked_div(&LeavingSharesSupply::<T>::get(candidate))
-		.ok_or(Error::NoOneIsStaking)
+		.mul_div(total_staked, supply)
+		.ok_or(Error::MathOverflow)
 }
 
 pub fn stake_to_shares<T: Config>(
 	candidate: &T::AccountId,
 	stake: &BalanceOf<T>,
 ) -> Result<BalanceOf<T>, Error<T>> {
+	let total_staked = LeavingSharesTotalStaked::<T>::get(candidate);
+	let supply = LeavingSharesSupply::<T>::get(candidate);
+	ensure!(!total_staked.is_zero(), Error::NoOneIsStaking);
+
 	stake
-		.checked_mul(&LeavingSharesSupply::<T>::get(candidate))
-		.ok_or(Error::MathOverflow)?
-		.checked_div(&LeavingSharesTotalStaked::<T>::get(candidate))
-		.ok_or(Error::NoOneIsStaking)
+		.mul_div(supply, total_staked)
+		.ok_or(Error::MathOverflow)
 }
 
 /// Add stake in the leaving pool of this Candidate.

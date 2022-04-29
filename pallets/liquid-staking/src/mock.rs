@@ -18,14 +18,14 @@ use crate as liquid_staking;
 
 use {
 	frame_support::{
-		construct_runtime,
+		construct_runtime, parameter_types,
 		traits::{ConstU128, ConstU16, ConstU32, ConstU64, Everything},
-		weights::Weight,
 	},
 	sp_core::H256,
 	sp_runtime::{
 		testing::Header,
 		traits::{BlakeTwo256, IdentityLookup},
+		Perbill,
 	},
 };
 
@@ -88,13 +88,19 @@ impl pallet_balances::Config for Runtime {
 	type WeightInfo = ();
 }
 
+parameter_types! {
+	pub BlockInflation: Perbill = Perbill::from_percent(1); // 1% each block.
+}
+
 impl liquid_staking::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
+	type Balance = Balance;
 	type StakingAccount = ConstU64<{ u64::MAX }>;
 	type ReserveAccount = ConstU64<{ u64::MAX - 1 }>;
 	type InitialManualClaimShareValue = ConstU128<1_000_000_000>;
 	type InitialAutoCompoundingShareValue = ConstU128<1_000_000_000>;
 	type LeavingDelay = ConstU64<5>;
 	type MinimumSelfDelegation = ConstU128<10_000_000_000>;
+	type BlockInflation = BlockInflation;
 }

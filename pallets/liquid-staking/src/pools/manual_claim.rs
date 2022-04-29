@@ -20,11 +20,13 @@ pub fn shares_to_stake<T: Config>(
 	candidate: &T::AccountId,
 	shares: &BalanceOf<T>,
 ) -> Result<BalanceOf<T>, Error<T>> {
+	let total_staked = ManualClaimSharesTotalStaked::<T>::get(candidate);
+	let supply = ManualClaimSharesSupply::<T>::get(candidate);
+	ensure!(!supply.is_zero(), Error::NoOneIsStaking);
+
 	shares
-		.checked_mul(&ManualClaimSharesTotalStaked::<T>::get(candidate))
-		.ok_or(Error::MathOverflow)?
-		.checked_div(&ManualClaimSharesSupply::<T>::get(candidate))
-		.ok_or(Error::NoOneIsStaking)
+		.mul_div(total_staked, supply)
+		.ok_or(Error::MathOverflow)
 }
 
 pub fn shares_to_stake_or_init<T: Config>(
@@ -44,11 +46,13 @@ pub fn stake_to_shares<T: Config>(
 	candidate: &T::AccountId,
 	stake: &BalanceOf<T>,
 ) -> Result<BalanceOf<T>, Error<T>> {
+	let total_staked = ManualClaimSharesTotalStaked::<T>::get(candidate);
+	let supply = ManualClaimSharesSupply::<T>::get(candidate);
+	ensure!(!total_staked.is_zero(), Error::NoOneIsStaking);
+
 	stake
-		.checked_mul(&ManualClaimSharesSupply::<T>::get(candidate))
-		.ok_or(Error::MathOverflow)?
-		.checked_div(&ManualClaimSharesTotalStaked::<T>::get(candidate))
-		.ok_or(Error::NoOneIsStaking)
+		.mul_div(supply, total_staked)
+		.ok_or(Error::MathOverflow)
 }
 
 pub fn stake_to_shares_or_init<T: Config>(

@@ -130,7 +130,7 @@ fn reward_collator<T: Config>(collator: T::AccountId, value: BalanceOf<T>) -> Re
 	let ac_rewards = if !ac_rewards.is_zero() {
 		// Rewards are staked automatically.
 		// Not staked dust is moved to manual rewards distribution.
-		let shares = pools::auto_compounding::stake_to_shares::<T>(&collator, &ac_rewards)?;
+		let shares = pools::auto_compounding::stake_to_shares::<T>(&collator, ac_rewards)?;
 
 		if !shares.is_zero() {
 			let stake = pools::auto_compounding::add_shares::<T>(

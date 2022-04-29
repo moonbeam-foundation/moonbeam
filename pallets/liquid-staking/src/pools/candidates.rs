@@ -54,7 +54,7 @@ pub fn update_candidate_stake<T: Config>(
 
 	let ac_self_delegation = pools::auto_compounding::shares_to_stake(
 		&candidate,
-		&AutoCompoundingShares::<T>::get(&candidate, &candidate),
+		AutoCompoundingShares::<T>::get(&candidate, &candidate),
 	)?;
 
 	let mc_self_delegation = pools::manual_claim::shares_to_stake(

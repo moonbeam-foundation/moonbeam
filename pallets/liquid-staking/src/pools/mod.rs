@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use {
-	super::*,
+	super::{mul_div::MulDiv, *},
 	frame_support::pallet_prelude::*,
 	frame_support::{ensure, traits::Get, StorageDoubleMap, StorageMap},
 	sp_runtime::traits::{CheckedAdd, CheckedDiv, CheckedMul, CheckedSub, Zero},
@@ -91,19 +91,17 @@ where
 	Ok(())
 }
 
-pub fn check_candidate_consistency(
-	candidate: &T::AccountId,
-) -> Result<(), Error<T>> {
+pub fn check_candidate_consistency<T: Config>(candidate: &T::AccountId) -> Result<(), Error<T>> {
 	let total0 = CandidatesStake::<T>::get(&candidate);
 
 	let auto = AutoCompoundingSharesTotalStaked::<T>::get(&candidate);
-	let manual = ManualCompoundingSharesTotalStaked::<T>::get(&candidate);
+	let manual = ManualClaimSharesTotalStaked::<T>::get(&candidate);
 	let leaving = LeavingSharesTotalStaked::<T>::get(&candidate);
 
 	let total1 = auto
-		.checked_add(manual)
+		.checked_add(&manual)
 		.ok_or(Error::InconsistentState)?
-		.checked_add(leaving)
+		.checked_add(&leaving)
 		.ok_or(Error::InconsistentState)?;
 
 	ensure!(total0 == total1, Error::InconsistentState);
