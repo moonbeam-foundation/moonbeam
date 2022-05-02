@@ -2210,9 +2210,11 @@ fn transact_through_signed_multilocation() {
 	descend_origin_multilocation
 		.append_with(signed_origin)
 		.unwrap();
-	
+
 	// To convert it to what the relay will see instead of us
-	descend_origin_multilocation.reanchor(&MultiLocation::parent(), &ancestry).unwrap();
+	descend_origin_multilocation
+		.reanchor(&MultiLocation::parent(), &ancestry)
+		.unwrap();
 
 	let derived = xcm_builder::Account32Hash::<
 		relay_chain::KusamaNetwork,
