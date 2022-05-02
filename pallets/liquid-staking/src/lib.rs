@@ -22,6 +22,8 @@ mod rewards;
 
 #[cfg(test)]
 mod mock;
+#[cfg(test)]
+mod tests;
 
 pub use pallet::*;
 
@@ -42,7 +44,7 @@ pub mod pallet {
 		},
 		frame_system::pallet_prelude::*,
 		sp_runtime::{
-			traits::{CheckedAdd, CheckedSub, Zero},
+			traits::{CheckedSub, Zero},
 			Perbill,
 		},
 		sp_std::collections::btree_set::BTreeSet,

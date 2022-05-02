@@ -52,15 +52,23 @@ pub fn update_candidate_stake<T: Config>(
 	let before_stake = CandidatesStake::<T>::get(&candidate);
 	CandidatesStake::<T>::insert(&candidate, new_stake);
 
-	let ac_self_delegation = pools::auto_compounding::shares_to_stake(
-		&candidate,
-		AutoCompoundingShares::<T>::get(&candidate, &candidate),
-	)?;
+	let ac_self_delegation = if AutoCompoundingSharesSupply::<T>::get(&candidate).is_zero() {
+		Zero::zero()
+	} else {
+		pools::auto_compounding::shares_to_stake(
+			&candidate,
+			AutoCompoundingShares::<T>::get(&candidate, &candidate),
+		)?
+	};
 
-	let mc_self_delegation = pools::manual_claim::shares_to_stake(
-		&candidate,
-		&ManualClaimShares::<T>::get(&candidate, &candidate),
-	)?;
+	let mc_self_delegation = if ManualClaimSharesSupply::<T>::get(&candidate).is_zero() {
+		Zero::zero()
+	} else {
+		pools::manual_claim::shares_to_stake(
+			&candidate,
+			&ManualClaimShares::<T>::get(&candidate, &candidate),
+		)?
+	};
 
 	let self_delegation = ac_self_delegation
 		.checked_add(&mc_self_delegation)
