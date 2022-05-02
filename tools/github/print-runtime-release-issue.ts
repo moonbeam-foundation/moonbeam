@@ -46,10 +46,11 @@ async function main() {
   (see https://github.com/PureStake/moonbeam-runtime-overrides/blob/master/README.md)
   - [ ] Add new substitute in stagenet configuration 
   - [ ] Upgrade stagenet
-  - [ ] Add new substitute in alphanet configuration 
-  - [ ] Upgrade alphanet
   - [ ] Create new tracing image for partners: start the github action Publish Docker
   with ${lastClientVersion} and master
+  - [ ] Add new substitute in alphanet configuration 
+  - [ ] Upgrade alphanet
+
   - [ ] When everything is ok, publish the draft release
 
   ## Post Release
