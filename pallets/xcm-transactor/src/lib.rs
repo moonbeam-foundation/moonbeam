@@ -756,7 +756,7 @@ pub mod pallet {
 				.map_err(|_| Error::<T>::FailedMultiLocationToJunction)?;
 			transact_message.0.insert(0, DescendOrigin(interior));
 
-			// Send to sovereign
+			// Send to destination chain
 			T::XcmSender::send_xcm(dest, transact_message).map_err(|_| Error::<T>::ErrorSending)?;
 
 			Ok(())
