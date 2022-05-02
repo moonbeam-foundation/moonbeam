@@ -68,6 +68,7 @@ describeSmokeSuite(`Verify balances consistency`, { wssUrl }, (context) => {
       preimages,
       assets,
       assetsMetadata,
+      namedReserves,
     ] = await Promise.all([
       apiAt.query.proxy.proxies.entries(),
       apiAt.query.proxy.announcements.entries(),
@@ -81,6 +82,7 @@ describeSmokeSuite(`Verify balances consistency`, { wssUrl }, (context) => {
       apiAt.query.democracy.preimages.entries(),
       apiAt.query.assets.asset.entries(),
       apiAt.query.assets.metadata.entries(),
+      apiAt.query.balances.reserves.entries(),
     ]);
 
     const expectedReserveByAccount: {
@@ -184,6 +186,14 @@ describeSmokeSuite(`Verify balances consistency`, { wssUrl }, (context) => {
           .slice(-40)}`,
         reserved: {
           metadata: metadata[1].deposit.toBigInt(),
+        },
+      })),
+      namedReserves.map((namedReservesOf) => ({
+        accountId: `0x${namedReservesOf[0].toHex().slice(-40)}`,
+        reserved: {
+          named: namedReservesOf[1]
+            .map((namedDeposit) => namedDeposit.amount.toBigInt())
+            .reduce((accumulator, curr) => accumulator + curr),
         },
       })),
     ]

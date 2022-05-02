@@ -23,8 +23,9 @@ describeSmokeSuite(`Verify treasury consistency`, { wssUrl }, (context) => {
 
   it("should have value > 0", async function () {
     // Load data
+    const treasuryPalletId = await context.polkadotApi.consts.treasury.palletId;
     const treasuryAccount = await apiAt.query.system.account(
-      "0x6d6f646C70792f74727372790000000000000000"
+      `0x6d6f646C${treasuryPalletId.toString().slice(2)}0000000000000000`
     );
 
     expect(treasuryAccount.data.free.toBigInt() > 0n).to.be.true;

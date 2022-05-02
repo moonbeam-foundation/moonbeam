@@ -5572,6 +5572,7 @@ dependencies = [
  "pallet-identity",
  "pallet-maintenance-mode",
  "pallet-migrations",
+ "pallet-moonbeam-orbiters",
  "pallet-proxy",
  "pallet-proxy-genesis-companion",
  "pallet-randomness-collective-flip",
@@ -6008,6 +6009,7 @@ dependencies = [
  "pallet-identity",
  "pallet-maintenance-mode",
  "pallet-migrations",
+ "pallet-moonbeam-orbiters",
  "pallet-proxy",
  "pallet-proxy-genesis-companion",
  "pallet-randomness-collective-flip",
@@ -6249,6 +6251,7 @@ dependencies = [
  "pallet-identity",
  "pallet-maintenance-mode",
  "pallet-migrations",
+ "pallet-moonbeam-orbiters",
  "pallet-proxy",
  "pallet-proxy-genesis-companion",
  "pallet-randomness-collective-flip",
@@ -6459,7 +6462,7 @@ dependencies = [
 [[package]]
 name = "nimbus-consensus"
 version = "0.9.0"
-source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.18#f65fafba3ece36a24588709bdbef4ffce7f74a01"
+source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.18#3a7e7fc50e9146ef02b15b97514fcbc34613037a"
 dependencies = [
  "async-trait",
  "cumulus-client-consensus-common",
@@ -6490,7 +6493,7 @@ dependencies = [
 [[package]]
 name = "nimbus-primitives"
 version = "0.9.0"
-source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.18#f65fafba3ece36a24588709bdbef4ffce7f74a01"
+source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.18#3a7e7fc50e9146ef02b15b97514fcbc34613037a"
 dependencies = [
  "async-trait",
  "frame-support",
@@ -6877,7 +6880,7 @@ dependencies = [
 [[package]]
 name = "pallet-author-inherent"
 version = "0.9.0"
-source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.18#f65fafba3ece36a24588709bdbef4ffce7f74a01"
+source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.18#3a7e7fc50e9146ef02b15b97514fcbc34613037a"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -6943,7 +6946,7 @@ dependencies = [
 [[package]]
 name = "pallet-author-slot-filter"
 version = "0.9.0"
-source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.18#f65fafba3ece36a24588709bdbef4ffce7f74a01"
+source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.18#3a7e7fc50e9146ef02b15b97514fcbc34613037a"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -7374,6 +7377,8 @@ dependencies = [
  "fp-evm",
  "frame-support",
  "frame-system",
+ "hex-literal",
+ "libsecp256k1 0.7.0",
  "log",
  "num_enum",
  "pallet-assets",
@@ -7381,6 +7386,7 @@ dependencies = [
  "pallet-evm",
  "pallet-timestamp",
  "parity-scale-codec",
+ "paste",
  "precompile-utils",
  "scale-info",
  "serde",
@@ -7400,6 +7406,8 @@ dependencies = [
  "fp-evm",
  "frame-support",
  "frame-system",
+ "hex-literal",
+ "libsecp256k1 0.7.0",
  "log",
  "num_enum",
  "pallet-balances",
@@ -7662,6 +7670,24 @@ dependencies = [
  "sp-blockchain",
  "sp-core",
  "sp-runtime",
+]
+
+[[package]]
+name = "pallet-moonbeam-orbiters"
+version = "0.1.0"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "nimbus-primitives",
+ "pallet-balances",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
