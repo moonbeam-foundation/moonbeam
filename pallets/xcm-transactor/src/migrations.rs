@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
-	Config, AssetFeePerSecond, RemoteTransactInfoWithMaxWeight, TransactInfoWithWeightLimit,
+	Config, DestinationAssetFeePerSecond, RemoteTransactInfoWithMaxWeight, TransactInfoWithWeightLimit,
 };
 use frame_support::{
 	pallet_prelude::PhantomData,
@@ -226,7 +226,7 @@ impl<T: Config> OnRuntimeUpgrade for TransactSignedWeightAndFeePerSecond<T> {
 				}
 			});
 
-			AssetFeePerSecond::<T>::insert(&location, info.fee_per_second);
+			DestinationAssetFeePerSecond::<T>::insert(&location, info.fee_per_second);
 		}
 
 		log::info!(target: "MaxTransactWeight", "almost done");
@@ -248,10 +248,10 @@ impl<T: Config> OnRuntimeUpgrade for TransactSignedWeightAndFeePerSecond<T> {
 		// The same number of mappings exist before and after
 		// As long as there are some mappings stored, one representative key maps to the
 		// same value after the migration.
-		// There are no entries in the new AssetFeePerSecond beforehand
+		// There are no entries in the new DestinationAssetFeePerSecond beforehand
 
-		// Assert AssetFeePerSecond storage is empty
-		assert!(AssetFeePerSecond::<T>::iter().next().is_none());
+		// Assert DestinationAssetFeePerSecond storage is empty
+		assert!(DestinationAssetFeePerSecond::<T>::iter().next().is_none());
 
 		// Check number of entries, and set it aside in temp storage
 		let stored_data: Vec<_> = storage_key_iter::<
@@ -285,7 +285,7 @@ impl<T: Config> OnRuntimeUpgrade for TransactSignedWeightAndFeePerSecond<T> {
 			.expect("We stored a mapping count; it should be there; qed");
 		let new_mapping_count_transact_info =
 			TransactInfoWithWeightLimit::<T>::iter().count() as u64;
-		let new_mapping_count_fee_per_second = AssetFeePerSecond::<T>::iter().count() as u64;
+		let new_mapping_count_fee_per_second = DestinationAssetFeePerSecond::<T>::iter().count() as u64;
 
 		assert_eq!(old_mapping_count, new_mapping_count_transact_info);
 		assert_eq!(old_mapping_count, new_mapping_count_fee_per_second);
@@ -297,7 +297,7 @@ impl<T: Config> OnRuntimeUpgrade for TransactSignedWeightAndFeePerSecond<T> {
 			let migrated_info_transact_info =
 				TransactInfoWithWeightLimit::<T>::get(location).expect("qed");
 			let migrated_info_fee_per_second =
-				AssetFeePerSecond::<T>::get(location).expect("qed");
+				DestinationAssetFeePerSecond::<T>::get(location).expect("qed");
 			// Check all the other params are equal
 			assert_eq!(
 				original_info.transact_extra_weight,

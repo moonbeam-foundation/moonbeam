@@ -85,7 +85,7 @@ benchmarks! {
 		fee_per_second
 	)
 	verify {
-		assert_eq!(Pallet::<T>::dest_fee_per_second(&location), Some(fee_per_second));
+		assert_eq!(Pallet::<T>::dest_asset_fee_per_second(&location), Some(fee_per_second));
 	}
 
 	transact_through_signed_multilocation {

@@ -671,7 +671,7 @@ fn test_signed_weight_and_fee_per_second_migration_works() {
 			);
 			// We make sure that the new storage key is populated
 			assert_eq!(
-				XcmTransactor::asset_fee_per_second(MultiLocation::parent()).unwrap(),
+				XcmTransactor::dest_asset_fee_per_second(MultiLocation::parent()).unwrap(),
 				expected_destination_fee_per_second,
 			);
 		})

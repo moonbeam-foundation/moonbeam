@@ -158,24 +158,26 @@ pub mod pallet {
 		pub transact_extra_weight_signed: Option<Weight>,
 	}
 
-	// Since we are using pallet-utility for account derivation (through AsDerivative),
-	// we need to provide an index for the account derivation. This storage item stores the index
-	// assigned for a given local account. These indices are usable as derivative in the relay chain
+	/// Since we are using pallet-utility for account derivation (through AsDerivative),
+	/// we need to provide an index for the account derivation. This storage item stores the index
+	/// assigned for a given local account. These indices are usable as derivative in the relay chain
 	#[pallet::storage]
 	#[pallet::getter(fn index_to_account)]
 	pub type IndexToAccount<T: Config> = StorageMap<_, Blake2_128Concat, u16, T::AccountId>;
 
-	// Stores the transact info of a MultiLocation. This defines how much extra weight we need to
-	// add when we want to transact in the destination chain and how we convert weight to units
-	// in the destination chain
+	/// Stores the transact info of a MultiLocation. This defines how much extra weight we need to
+	/// add when we want to transact in the destination chain and maximum amount of weight allowed
+	/// by the destination chain
 	#[pallet::storage]
 	#[pallet::getter(fn transact_info)]
 	pub type TransactInfoWithWeightLimit<T: Config> =
 		StorageMap<_, Blake2_128Concat, MultiLocation, RemoteTransactInfoWithMaxWeight>;
 
+	/// Stores the fee per second for an asset in its reserve chain. This allows us to convert
+	/// from weight to fee
 	#[pallet::storage]
-	#[pallet::getter(fn asset_fee_per_second)]
-	pub type AssetFeePerSecond<T: Config> = StorageMap<_, Twox64Concat, MultiLocation, u128>;
+	#[pallet::getter(fn dest_asset_fee_per_second)]
+	pub type DestinationAssetFeePerSecond<T: Config> = StorageMap<_, Twox64Concat, MultiLocation, u128>;
 
 	/// An error that can occur while executing the mapping pallet's logic.
 	#[pallet::error]
@@ -603,7 +605,7 @@ pub mod pallet {
 			let asset_location =
 				MultiLocation::try_from(*asset_location).map_err(|()| Error::<T>::BadVersion)?;
 
-			AssetFeePerSecond::<T>::insert(&asset_location, &fee_per_second);
+			DestinationAssetFeePerSecond::<T>::insert(&asset_location, &fee_per_second);
 
 			Self::deposit_event(Event::DestFeePerSecondChanged {
 				location: asset_location,
@@ -745,7 +747,7 @@ pub mod pallet {
 		) -> Result<MultiAsset, DispatchError> {
 			// Grab how much fee per second the destination chain charges in the fee asset
 			// location
-			let fee_per_second = AssetFeePerSecond::<T>::get(&fee_location)
+			let fee_per_second = DestinationAssetFeePerSecond::<T>::get(&fee_location)
 				.ok_or(Error::<T>::FeePerSecondNotSet)?;
 
 			// Multiply weight*destination_units_per_second to see how much we should charge for

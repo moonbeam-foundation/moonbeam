@@ -167,7 +167,7 @@ where
 
 		// fetch data from pallet
 		let fee_per_second: u128 =
-			xcm_transactor::Pallet::<Runtime>::asset_fee_per_second(&multilocation)
+			xcm_transactor::Pallet::<Runtime>::dest_asset_fee_per_second(&multilocation)
 				.ok_or(gasometer.revert("Fee Per Second not set"))?;
 
 		Ok(PrecompileOutput {
@@ -220,7 +220,7 @@ where
 
 		// fetch data from pallet
 		let fee_per_second: u128 =
-			xcm_transactor::Pallet::<Runtime>::asset_fee_per_second(multilocation)
+			xcm_transactor::Pallet::<Runtime>::dest_asset_fee_per_second(multilocation)
 				.ok_or(gasometer.revert("Fee Per Second not set"))?;
 
 		Ok(PrecompileOutput {
