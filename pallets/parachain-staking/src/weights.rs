@@ -54,8 +54,6 @@ use sp_std::marker::PhantomData;
 /// Weight functions needed for parachain_staking.
 pub trait WeightInfo {
 	#[rustfmt::skip]
-	fn hotfix_update_candidate_pool_value(x: u32, ) -> Weight;
-	#[rustfmt::skip]
 	fn set_staking_expectations() -> Weight;
 	#[rustfmt::skip]
 	fn set_inflation() -> Weight;
@@ -122,16 +120,6 @@ pub trait WeightInfo {
 /// Weights for parachain_staking using the Substrate node and recommended hardware.
 pub struct SubstrateWeight<T>(PhantomData<T>);
 impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
-	// Storage: ParachainStaking CandidateInfo (r:4 w:0)
-	// Storage: ParachainStaking CandidatePool (r:1 w:1)
-	#[rustfmt::skip]
-	fn hotfix_update_candidate_pool_value(x: u32, ) -> Weight {
-		(0 as Weight)
-			// Standard Error: 72_000
-			.saturating_add((14_273_000 as Weight).saturating_mul(x as Weight))
-			.saturating_add(T::DbWeight::get().reads((1 as Weight).saturating_mul(x as Weight)))
-			.saturating_add(T::DbWeight::get().writes(1 as Weight))
-	}
 	// Storage: ParachainStaking InflationConfig (r:1 w:1)
 	#[rustfmt::skip]
 	fn set_staking_expectations() -> Weight {
@@ -451,16 +439,6 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 
 // For backwards compatibility and tests
 impl WeightInfo for () {
-	// Storage: ParachainStaking CandidateInfo (r:4 w:0)
-	// Storage: ParachainStaking CandidatePool (r:1 w:1)
-	#[rustfmt::skip]
-	fn hotfix_update_candidate_pool_value(x: u32, ) -> Weight {
-		(0 as Weight)
-			// Standard Error: 72_000
-			.saturating_add((14_273_000 as Weight).saturating_mul(x as Weight))
-			.saturating_add(RocksDbWeight::get().reads((1 as Weight).saturating_mul(x as Weight)))
-			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
-	}
 	// Storage: ParachainStaking InflationConfig (r:1 w:1)
 	#[rustfmt::skip]
 	fn set_staking_expectations() -> Weight {

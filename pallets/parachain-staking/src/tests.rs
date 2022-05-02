@@ -7018,54 +7018,6 @@ fn deferred_payment_steady_state_event_flow() {
 		});
 }
 
-// HOTFIX UNIT TESTs
-
-#[test]
-fn hotfix_update_candidate_pool_value_updates_candidate_pool() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20), (6, 20)])
-		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
-		.build()
-		.execute_with(|| {
-			// corrupt CandidatePool
-			<CandidatePool<Test>>::put(OrderedSet::from(vec![
-				Bond {
-					owner: 1,
-					amount: 15,
-				},
-				Bond {
-					owner: 2,
-					amount: 16,
-				},
-				Bond {
-					owner: 3,
-					amount: 17,
-				},
-				Bond {
-					owner: 4,
-					amount: 18,
-				},
-				Bond {
-					owner: 5,
-					amount: 19,
-				},
-			]));
-			// run migration and pass in 6 even though not a candidate
-			assert_ok!(ParachainStaking::hotfix_update_candidate_pool_value(
-				Origin::root(),
-				vec![1, 2, 3, 4, 5, 6]
-			));
-			// CandidatePool is now fixed for all input accounts
-			let pool = <CandidatePool<Test>>::get();
-			for Bond { owner, amount } in pool.0 {
-				// 6 is not in the candidate pool despite being passed in
-				assert!(owner <= 5 && owner >= 1);
-				// all amounts are fixed
-				assert_eq!(amount, 20);
-			}
-		});
-}
-
 // MIGRATION UNIT TESTS
 use frame_support::traits::OnRuntimeUpgrade;
 
