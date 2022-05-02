@@ -195,6 +195,7 @@
 <span id="190">190</span>
 <span id="191">191</span>
 <span id="192">192</span>
+<span id="193">193</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is 	part of Moonbeam.</span>
 
@@ -302,7 +303,8 @@
 		<span class="kw">let</span> <span class="ident">r</span>: <span class="ident">H256</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>;
 		<span class="kw">let</span> <span class="ident">s</span>: <span class="ident">H256</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">timestamp</span>: <span class="ident">U256</span> <span class="op">=</span> <span class="ident">pallet_timestamp::Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::get</span>().<span class="ident">into</span>();
+		<span class="comment">// pallet_timestamp is in ms while Ethereum use second timestamps.</span>
+		<span class="kw">let</span> <span class="ident">timestamp</span>: <span class="ident">U256</span> <span class="op">=</span> (<span class="ident">pallet_timestamp::Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::get</span>()).<span class="ident">into</span>() <span class="op">/</span> <span class="number">1000</span>;
 
 		<span class="macro">ensure!</span>(<span class="ident">deadline</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">timestamp</span>, <span class="ident">gasometer</span>.<span class="ident">revert</span>(<span class="string">&quot;permit expired&quot;</span>));
 
