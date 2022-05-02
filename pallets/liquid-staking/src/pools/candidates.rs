@@ -141,10 +141,13 @@ pub fn add_stake<T: Config>(candidate: T::AccountId, stake: T::Balance) -> Resul
 		.checked_add(&stake)
 		.ok_or(Error::MathOverflow)?;
 
-	update_candidate_stake::<T>(candidate.clone(), new_stake)?;
-	CandidatesTotalStaked::<T>::set(new_total_staked);
+	Pallet::<T>::deposit_event(Event::<T>::IncreasedStake {
+		candidate: candidate.clone(),
+		stake,
+	});
 
-	Pallet::<T>::deposit_event(Event::<T>::IncreasedStake { candidate, stake });
+	update_candidate_stake::<T>(candidate, new_stake)?;
+	CandidatesTotalStaked::<T>::set(new_total_staked);
 
 	Ok(())
 }
@@ -160,10 +163,13 @@ pub fn sub_stake<T: Config>(candidate: T::AccountId, stake: T::Balance) -> Resul
 		.checked_sub(&stake)
 		.ok_or(Error::MathUnderflow)?;
 
-	update_candidate_stake::<T>(candidate.clone(), new_stake)?;
-	CandidatesTotalStaked::<T>::set(new_total_staked);
+	Pallet::<T>::deposit_event(Event::<T>::DecreasedStake {
+		candidate: candidate.clone(),
+		stake,
+	});
 
-	Pallet::<T>::deposit_event(Event::<T>::DecreasedStake { candidate, stake });
+	update_candidate_stake::<T>(candidate, new_stake)?;
+	CandidatesTotalStaked::<T>::set(new_total_staked);
 
 	Ok(())
 }
