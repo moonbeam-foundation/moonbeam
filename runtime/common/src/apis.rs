@@ -356,6 +356,10 @@ macro_rules! impl_runtime_apis_plus_common {
 					slot: u32,
 					parent_header: &<Block as BlockT>::Header
 				) -> bool {
+					if pallet_migrations::Pallet::<Self>::pending_migration() {
+						// force author if there is a pending migration
+						return true;
+					}
 					let block_number = parent_header.number + 1;
 
 					// The Moonbeam runtimes use an entropy source that needs to do some accounting

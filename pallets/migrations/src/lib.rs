@@ -322,4 +322,16 @@ pub mod pallet {
 
 		weight
 	}
+
+	impl<T: Config> Pallet<T> {
+		pub fn pending_migration() -> bool {
+			for migration in &T::MigrationsList::get_migrations() {
+				if !<MigrationState<T>>::get(migration.friendly_name().as_bytes()) {
+					// at least 1 migration is pending execution
+					return true;
+				}
+			}
+			false
+		}
+	}
 }
