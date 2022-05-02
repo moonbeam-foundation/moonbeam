@@ -67,7 +67,7 @@ pub mod pallet {
 	use crate::weights::WeightInfo;
 	use frame_support::{pallet_prelude::*, weights::constants::WEIGHT_PER_SECOND};
 	use frame_system::{ensure_signed, pallet_prelude::*};
-	use orml_traits::location::Parse;
+	use orml_traits::location::{Parse, Reserve};
 	use sp_runtime::traits::{AtLeast32BitUnsigned, Convert};
 	use sp_std::borrow::ToOwned;
 	use sp_std::boxed::Box;
@@ -75,7 +75,7 @@ pub mod pallet {
 	use sp_std::prelude::*;
 	use xcm::{latest::prelude::*, VersionedMultiLocation};
 	use xcm_executor::traits::{InvertLocation, TransactAsset, WeightBounds};
-	use xcm_primitives::{Reserve, UtilityAvailableCalls, UtilityEncodeCall, XcmTransact};
+	use xcm_primitives::{UtilityAvailableCalls, UtilityEncodeCall, XcmTransact};
 
 	#[pallet::pallet]
 	#[pallet::without_storage_info]
@@ -135,6 +135,10 @@ pub mod pallet {
 		/// T::Weigher::weight(&msg)`.
 		#[pallet::constant]
 		type BaseXcmWeight: Get<Weight>;
+
+		/// The way to retrieve the reserve of a MultiAsset. This can be
+		/// configured to accept absolute or relative paths for self tokens
+		type ReserveProvider: Reserve;
 
 		type WeightInfo: WeightInfo;
 	}
@@ -626,7 +630,8 @@ pub mod pallet {
 			let self_location = T::SelfLocation::get();
 			ensure!(dest != self_location, Error::<T>::NotCrossChainTransfer);
 
-			let reserve = asset.reserve().ok_or(Error::<T>::AssetHasNoReserve)?;
+			let reserve =
+				T::ReserveProvider::reserve(asset).ok_or(Error::<T>::AssetHasNoReserve)?;
 
 			// We only allow to transact using a reserve asset as fee
 			ensure!(reserve == dest, Error::<T>::AssetIsNotReserveInDestination);

@@ -1817,6 +1817,7 @@ fn empty_account_should_not_be_reset() {
 		assert_eq!(parachain::System::account_nonce(evm_account_id), 1);
 	});
 }
+
 #[test]
 fn test_statemine_like() {
 	MockNet::reset();
@@ -1863,164 +1864,30 @@ fn test_statemine_like() {
 	});
 
 	Statemine::execute_with(|| {
-		assert_ok!(StatemineAssets::create(
-			statemine_like::Origin::signed(RELAYALICE),
-			0,
-			RELAYALICE,
-			1
-		));
-
-		assert_ok!(StatemineAssets::mint(
-			statemine_like::Origin::signed(RELAYALICE),
-			0,
-			RELAYALICE,
-			300000000000000
-		));
-
-		// This is needed, since the asset is created as non-sufficient
-		assert_ok!(StatemineBalances::transfer(
-			statemine_like::Origin::signed(RELAYALICE),
-			sov,
-			100000000000000
-		));
-
-		// Actually send relay asset to parachain
-		let dest: MultiLocation = AccountKey20 {
-			network: NetworkId::Any,
-			key: PARAALICE,
-		}
-		.into();
-
-		assert_ok!(StatemineChainPalletXcm::reserve_transfer_assets(
-			statemine_like::Origin::signed(RELAYALICE),
-			Box::new(MultiLocation::new(1, X1(Parachain(1))).into()),
-			Box::new(VersionedMultiLocation::V1(dest).clone().into()),
-			Box::new((X1(xcm::latest::prelude::GeneralIndex(0)), 123).into()),
-			0,
-		));
-	});
-	let dest = MultiLocation {
-		parents: 1,
-		interior: X2(
-			Parachain(4),
-			AccountId32 {
-				network: NetworkId::Any,
-				id: RELAYALICE.into(),
-			},
-		),
-	};
-
-	// We can transfer back from the parachain perspective
-	// But statemint wont receive them because of the reanchoring logic
-	// and because we are not sending KSM
-	ParaA::execute_with(|| {
-		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 123);
-
-		assert_ok!(XTokens::transfer(
-			parachain::Origin::signed(PARAALICE.into()),
-			parachain::CurrencyId::ForeignAsset(source_id),
-			123,
-			Box::new(VersionedMultiLocation::V1(dest)),
-			8000
-		));
-	});
-}
-
-#[test]
-fn test_statemine_like_prefix_change() {
-	MockNet::reset();
-
-	let dest_para = MultiLocation::new(1, X1(Parachain(1)));
-
-	let sov = xcm_builder::SiblingParachainConvertsVia::<
-		polkadot_parachain::primitives::Sibling,
-		statemine_like::AccountId,
-	>::convert_ref(dest_para)
-	.unwrap();
-
-	let statemine_asset_a_balances = MultiLocation::new(
-		1,
-		X3(
-			Parachain(4),
-			PalletInstance(5),
-			xcm::latest::prelude::GeneralIndex(0u128),
-		),
-	);
-	let source_location = parachain::AssetType::Xcm(statemine_asset_a_balances);
-	let source_id: parachain::AssetId = source_location.clone().into();
-
-	let asset_metadata = parachain::AssetMetadata {
-		name: b"StatemineToken".to_vec(),
-		symbol: b"StatemineToken".to_vec(),
-		decimals: 12,
-	};
-
-	ParaA::execute_with(|| {
-		assert_ok!(AssetManager::register_foreign_asset(
-			parachain::Origin::root(),
-			source_location.clone(),
-			asset_metadata.clone(),
-			1u128,
-			true
-		));
-		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::Origin::root(),
-			source_location,
-			0u128,
-			0
-		));
-	});
-
-	Statemine::execute_with(|| {
-		// Set new prefix
-		statemine_like::PrefixChanger::set_prefix(Here.into());
-		assert_ok!(StatemineAssets::create(
-			statemine_like::Origin::signed(RELAYALICE),
-			0,
-			RELAYALICE,
-			1
-		));
-
-		assert_ok!(StatemineAssets::mint(
-			statemine_like::Origin::signed(RELAYALICE),
-			0,
-			RELAYALICE,
-			300000000000000
-		));
-
-		// This is needed, since the asset is created as non-sufficient
-		assert_ok!(StatemineBalances::transfer(
-			statemine_like::Origin::signed(RELAYALICE),
-			sov,
-			100000000000000
-		));
-
-		// Actually send relay asset to parachain
-		let dest: MultiLocation = AccountKey20 {
-			network: NetworkId::Any,
-			key: PARAALICE,
-		}
-		.into();
-
-		// Send asset with previous prefix
-		assert_ok!(StatemineChainPalletXcm::reserve_transfer_assets(
-			statemine_like::Origin::signed(RELAYALICE),
-			Box::new(MultiLocation::new(1, X1(Parachain(1))).into()),
-			Box::new(VersionedMultiLocation::V1(dest).clone().into()),
-			Box::new((X1(xcm::latest::prelude::GeneralIndex(0)), 123).into()),
-			0,
-		));
-	});
-
-	ParaA::execute_with(|| {
-		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 123);
-	});
-
-	Statemine::execute_with(|| {
 		// Set new prefix
 		statemine_like::PrefixChanger::set_prefix(
 			PalletInstance(<StatemineAssets as PalletInfoAccess>::index() as u8).into(),
 		);
+		assert_ok!(StatemineAssets::create(
+			statemine_like::Origin::signed(RELAYALICE),
+			0,
+			RELAYALICE,
+			1
+		));
+
+		assert_ok!(StatemineAssets::mint(
+			statemine_like::Origin::signed(RELAYALICE),
+			0,
+			RELAYALICE,
+			300000000000000
+		));
+
+		// This is needed, since the asset is created as non-sufficient
+		assert_ok!(StatemineBalances::transfer(
+			statemine_like::Origin::signed(RELAYALICE),
+			sov,
+			100000000000000
+		));
 
 		// Actually send relay asset to parachain
 		let dest: MultiLocation = AccountKey20 {
@@ -2028,6 +1895,7 @@ fn test_statemine_like_prefix_change() {
 			key: PARAALICE,
 		}
 		.into();
+
 		// Send with new prefix
 		assert_ok!(StatemineChainPalletXcm::reserve_transfer_assets(
 			statemine_like::Origin::signed(RELAYALICE),
@@ -2049,9 +1917,8 @@ fn test_statemine_like_prefix_change() {
 		));
 	});
 
-	// Make sure that balance increases, as both prefixes are supported
 	ParaA::execute_with(|| {
-		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 246);
+		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 123);
 	});
 }
 

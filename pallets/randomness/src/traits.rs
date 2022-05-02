@@ -14,20 +14,21 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Primitives for session keys
-#![cfg_attr(not(feature = "std"), no_std)]
+use frame_support::pallet_prelude::*;
 
-pub mod vrf;
-pub use vrf::*;
-
-/// A Trait to lookup keys from AuthorIds
-pub trait KeysLookup<AuthorId, Keys> {
-	fn lookup_keys(author: &AuthorId) -> Option<Keys>;
+/// Send randomness to a smart contract, triggered by this pallet
+pub trait SendRandomness<AccountId, R> {
+	fn send_randomness(contract: AccountId, randomness: R);
 }
 
-// A dummy impl used in simple tests
-impl<AuthorId, Keys> KeysLookup<AuthorId, Keys> for () {
-	fn lookup_keys(_: &AuthorId) -> Option<Keys> {
-		None
-	}
+/// Get the epoch index
+pub trait GetEpochIndex<Index> {
+	fn get_epoch_index() -> (Index, Weight);
+}
+
+/// Get babe randomness to insert into runtime
+pub trait GetRelayRandomness<R> {
+	fn get_current_block_randomness() -> (Option<R>, Weight);
+	fn get_one_epoch_ago_randomness() -> (Option<R>, Weight);
+	fn get_two_epochs_ago_randomness() -> (Option<R>, Weight);
 }

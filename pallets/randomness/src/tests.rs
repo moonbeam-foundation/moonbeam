@@ -14,20 +14,22 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Primitives for session keys
-#![cfg_attr(not(feature = "std"), no_std)]
+//! # Randomness Pallet Unit Tests
 
-pub mod vrf;
-pub use vrf::*;
+// use crate::mock::*;
+// use crate::*;
 
-/// A Trait to lookup keys from AuthorIds
-pub trait KeysLookup<AuthorId, Keys> {
-	fn lookup_keys(author: &AuthorId) -> Option<Keys>;
-}
+// "calls":
+// request_randomness
+// execute_fulfillment
+// increase_request_fee
+// execute_request_expiration
+// instant_babe_randomness
+// instant_local_randomness
 
-// A dummy impl used in simple tests
-impl<AuthorId, Keys> KeysLookup<AuthorId, Keys> for () {
-	fn lookup_keys(_: &AuthorId) -> Option<Keys> {
-		None
-	}
+// on_initialize hooks (consider special impl)
+
+#[test]
+fn test_tests() {
+	assert!(true);
 }
