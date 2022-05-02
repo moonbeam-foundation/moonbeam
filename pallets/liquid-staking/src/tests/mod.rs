@@ -14,4 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-mod stake_exact;
+use {
+	crate::{
+		assert_eq_events,
+		mock::*,
+		pallet::{Error, Event, SharesOrStake},
+	},
+	frame_support::{assert_noop, assert_ok},
+};
+
+mod auto_compounding;

@@ -36,6 +36,13 @@ pub type BlockNumber = u64;
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
 type Block = frame_system::mocking::MockBlock<Runtime>;
 
+pub const ACCOUNT_STAKING: u64 = 0;
+pub const ACCOUNT_RESERVE: u64 = 1;
+pub const ACCOUNT_CANDIDATE_1: u64 = 2;
+pub const ACCOUNT_CANDIDATE_2: u64 = 3;
+pub const ACCOUNT_DELEGATOR_1: u64 = 4;
+pub const ACCOUNT_DELEGATOR_2: u64 = 5;
+
 // Configure a mock runtime to test the pallet.
 construct_runtime!(
 	pub enum Runtime where
@@ -96,13 +103,17 @@ impl pallet::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
 	type Balance = Balance;
-	type StakingAccount = ConstU64<{ u64::MAX }>;
-	type ReserveAccount = ConstU64<{ u64::MAX - 1 }>;
+	type StakingAccount = ConstU64<{ ACCOUNT_STAKING }>;
+	type ReserveAccount = ConstU64<{ ACCOUNT_RESERVE }>;
 	type InitialManualClaimShareValue = ConstU128<1_000_000_000>;
 	type InitialAutoCompoundingShareValue = ConstU128<1_000_000_000>;
 	type LeavingDelay = ConstU64<5>;
 	type MinimumSelfDelegation = ConstU128<10_000_000_000>;
 	type BlockInflation = BlockInflation;
+}
+
+pub fn balance(who: &AccountId) -> Balance {
+	Balances::usable_balance(who)
 }
 
 pub(crate) struct ExtBuilder {
@@ -114,21 +125,17 @@ impl Default for ExtBuilder {
 	fn default() -> ExtBuilder {
 		ExtBuilder {
 			balances: vec![
-				(1, 1_000_000_000_000),
-				(2, 1_000_000_000_000),
-				(3, 1_000_000_000_000),
-				(4, 1_000_000_000_000),
-				(5, 1_000_000_000_000),
-				(6, 1_000_000_000_000),
-				(7, 1_000_000_000_000),
-				(8, 1_000_000_000_000),
-				(9, 1_000_000_000_000),
+				(ACCOUNT_CANDIDATE_1, 1_000_000_000_000),
+				(ACCOUNT_CANDIDATE_2, 1_000_000_000_000),
+				(ACCOUNT_DELEGATOR_1, 1_000_000_000_000),
+				(ACCOUNT_DELEGATOR_2, 1_000_000_000_000),
 			],
 		}
 	}
 }
 
 impl ExtBuilder {
+	#[allow(dead_code)]
 	pub(crate) fn with_balances(mut self, balances: Vec<(AccountId, Balance)>) -> Self {
 		self.balances = balances;
 		self
@@ -152,6 +159,7 @@ impl ExtBuilder {
 }
 
 /// Rolls forward one block. Returns the new block number.
+#[allow(dead_code)]
 pub(crate) fn roll_one_block() -> u64 {
 	LiquidStaking::on_finalize(System::block_number());
 	Balances::on_finalize(System::block_number());
@@ -164,6 +172,7 @@ pub(crate) fn roll_one_block() -> u64 {
 }
 
 /// Rolls to the desired block. Returns the number of blocks played.
+#[allow(dead_code)]
 pub(crate) fn roll_to(n: u64) -> u64 {
 	let mut num_blocks = 0;
 	let mut block = System::block_number();
@@ -174,10 +183,12 @@ pub(crate) fn roll_to(n: u64) -> u64 {
 	num_blocks
 }
 
+#[allow(dead_code)]
 pub(crate) fn last_event() -> Event {
 	System::events().pop().expect("Event expected").event
 }
 
+#[allow(dead_code)]
 pub(crate) fn events() -> Vec<pallet::Event<Runtime>> {
 	System::events()
 		.into_iter()
