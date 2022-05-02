@@ -174,8 +174,8 @@ pub mod pallet {
 		StorageMap<_, Blake2_128Concat, MultiLocation, RemoteTransactInfoWithMaxWeight>;
 
 	#[pallet::storage]
-	#[pallet::getter(fn dest_fee_per_second)]
-	pub type DestinationFeePerSecond<T: Config> = StorageMap<_, Twox64Concat, MultiLocation, u128>;
+	#[pallet::getter(fn asset_fee_per_second)]
+	pub type AssetFeePerSecond<T: Config> = StorageMap<_, Twox64Concat, MultiLocation, u128>;
 
 	/// An error that can occur while executing the mapping pallet's logic.
 	#[pallet::error]
@@ -603,7 +603,7 @@ pub mod pallet {
 			let asset_location =
 				MultiLocation::try_from(*asset_location).map_err(|()| Error::<T>::BadVersion)?;
 
-			DestinationFeePerSecond::<T>::insert(&asset_location, &fee_per_second);
+			AssetFeePerSecond::<T>::insert(&asset_location, &fee_per_second);
 
 			Self::deposit_event(Event::DestFeePerSecondChanged {
 				location: asset_location,
@@ -745,7 +745,7 @@ pub mod pallet {
 		) -> Result<MultiAsset, DispatchError> {
 			// Grab how much fee per second the destination chain charges in the fee asset
 			// location
-			let fee_per_second = DestinationFeePerSecond::<T>::get(&fee_location)
+			let fee_per_second = AssetFeePerSecond::<T>::get(&fee_location)
 				.ok_or(Error::<T>::FeePerSecondNotSet)?;
 
 			// Multiply weight*destination_units_per_second to see how much we should charge for

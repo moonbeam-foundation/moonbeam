@@ -137,7 +137,7 @@ where
 
 		// Bound check
 		input.expect_arguments(gasometer, 1)?;
-		let index: u16 = input.read::<u16>(gasometer)?;
+			let index: u16 = input.read::<u16>(gasometer)?;
 
 		// fetch data from pallet
 		let account: H160 = xcm_transactor::Pallet::<Runtime>::index_to_account(index)
@@ -167,7 +167,7 @@ where
 
 		// fetch data from pallet
 		let fee_per_second: u128 =
-			xcm_transactor::Pallet::<Runtime>::dest_fee_per_second(&multilocation)
+			xcm_transactor::Pallet::<Runtime>::asset_fee_per_second(&multilocation)
 				.ok_or(gasometer.revert("Fee Per Second not set"))?;
 
 		Ok(PrecompileOutput {
@@ -220,7 +220,7 @@ where
 
 		// fetch data from pallet
 		let fee_per_second: u128 =
-			xcm_transactor::Pallet::<Runtime>::dest_fee_per_second(multilocation)
+			xcm_transactor::Pallet::<Runtime>::asset_fee_per_second(multilocation)
 				.ok_or(gasometer.revert("Fee Per Second not set"))?;
 
 		Ok(PrecompileOutput {
