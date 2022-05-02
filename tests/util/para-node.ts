@@ -118,7 +118,7 @@ export type ParaTestOptions = {
     // "local" uses target/release/moonbeam binary
     binary?: "local" | string;
   };
-  paraId: number;
+  paraId?: number;
   relaychain?: {
     chain?: "rococo-local" | "westend-local" | "kusama-local" | "polkadot-local";
     // specify the version of the binary using tag. Ex: "v0.9.13"
@@ -350,29 +350,6 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
         },
       },
     },
-    "v0.9.18": {
-      runtime: {
-        runtime_genesis_config: {
-          configuration: {
-            config: {
-              validation_upgrade_cooldown: 30,
-            },
-          },
-        },
-      },
-    },
-    local: {
-      runtime: {
-        runtime_genesis_config: {
-          configuration: {
-            config: {
-              validation_upgrade_delay: 30,
-              validation_upgrade_cooldown: 30,
-            },
-          },
-        },
-      },
-    },
   };
   const genesis = RELAY_GENESIS_PER_VERSION[options?.relaychain?.binary] || {};
   // Build launchConfig
@@ -398,7 +375,7 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
     },
     parachains: parachainArray.map((_, i) => {
       return {
-        id: options.paraId,
+        id: options.paraId || 1000,
         bin: paraBinary,
         chain: paraSpecs,
         nodes: [
@@ -409,7 +386,7 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
             nodeKey: NODE_KEYS[i * 2 + numberOfParachains + 1].key,
             name: "alice",
             flags: [
-              "--log=info,evm=trace,ethereum=trace,sc_basic_authorship=trace," +
+              "--log=info,rpc=debug,evm=trace,ethereum=trace,sc_basic_authorship=trace," +
                 "cumulus-consensus=trace,cumulus-collator=trace,collator_protocol=trace," +
                 "collation_generation=trace",
               "--unsafe-rpc-external",
@@ -434,7 +411,7 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
             nodeKey: NODE_KEYS[i * 2 + numberOfParachains + 2].key,
             name: "bob",
             flags: [
-              "--log=info,evm=trace,ethereum=trace,sc_basic_authorship=trace," +
+              "--log=info,rpc=debug,evm=trace,ethereum=trace,sc_basic_authorship=trace," +
                 "cumulus-consensus=trace,cumulus-collator=trace,collator_protocol=trace," +
                 "collation_generation=trace",
               "--unsafe-rpc-external",
@@ -489,7 +466,7 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
     parachainArray.forEach(async (_, i) => {
       const filenameNode1 = `${ports[i * 4 + numberOfParachains + 1].wsPort}.log`;
       listenTo(filenameNode1, `para-${i}-0`);
-      const filenameNode2 = `${ports[i * 4 + numberOfParachains + 1].wsPort}.log`;
+      const filenameNode2 = `${ports[i * 4 + numberOfParachains + 3].wsPort}.log`;
       listenTo(filenameNode2, `para-${i}-1`);
     });
   }

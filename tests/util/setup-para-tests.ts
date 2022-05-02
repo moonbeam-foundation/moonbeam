@@ -17,6 +17,7 @@ import {
 } from "./para-node";
 import { KeyringPair } from "@substrate/txwrapper-core";
 import { sha256 } from "ethers/lib/utils";
+import { cancelReferendaWithCouncil, executeProposalWithCouncil } from "./governance";
 const debug = require("debug")("test:setup");
 
 export interface ParaTestContext {
@@ -90,6 +91,7 @@ export function describeParachain(
         context._polkadotApiParachains = [];
         context._polkadotApiRelaychains = [];
         context._web3Providers = [];
+        context.blockNumber = 0;
 
         context.createWeb3 = async (protocol: "ws" | "http" = "http") => {
           const provider =
@@ -181,7 +183,7 @@ export function describeParachain(
         context.waitBlocks = async (count: number) => {
           return new Promise<number>((resolve) => {
             pendingPromises.push({
-              blockNumber: context.blockNumber + count,
+              blockNumber: (context.blockNumber || 0) + count,
               resolve,
             });
           });
@@ -216,85 +218,46 @@ export function describeParachain(
 
               let tx;
               if (useGovernance) {
-                process.stdout.write(
-                  `Sending council parachainSystem.authorizeUpgrade (${sha256(
-                    Buffer.from(code)
-                  )} [~${Math.floor(code.length / 1024)} kb])...`
-                );
                 // We just prepare the proposals
                 let proposal = api.tx.parachainSystem.authorizeUpgrade(blake2AsHex(code));
                 let encodedProposal = proposal.method.toHex();
                 let encodedHash = blake2AsHex(encodedProposal);
-                // console.log("Encoded proposal hash for complete is %s", encodedHash);
-                // console.log("Encoded length %d", encodedProposal.length);
 
-                await api.tx.democracy
-                  .notePreimage(encodedProposal)
-                  .signAndSend(from, { nonce: nonce++ });
-
-                let external = api.tx.democracy.externalProposeMajority(encodedHash);
-
-                await api.tx.councilCollective
-                  .propose(1, external, external.length)
-                  .signAndSend(from, { nonce: nonce++ });
-                process.stdout.write(`✅\n`);
-                process.stdout.write(`Sending fast track (${encodedHash}, 3, 0)...`);
-                let fastTrack = api.tx.democracy.fastTrack(encodedHash, 3, 0);
-
-                await api.tx.techCommitteeCollective
-                  .propose(1, fastTrack, fastTrack.length)
-                  .signAndSend(from, { nonce: nonce++ });
-                process.stdout.write(`✅\n`);
-
-                let referendumIndex: number = null;
-
-                process.stdout.write(`Waiting for referendum (${encodedHash}, 3, 1)...`);
-                while (referendumIndex === null || referendumIndex === undefined) {
-                  const referendum = await api.query.democracy.referendumInfoOf.entries();
-                  referendumIndex = referendum
-                    .filter(
-                      (ref) =>
-                        ref[1].unwrap().isOngoing &&
-                        ref[1].unwrap().asOngoing.proposalHash.toHex() == encodedHash
-                    )
-                    .map((ref) =>
-                      api.registry.createType("u32", ref[0].toU8a().slice(-4)).toNumber()
-                    )?.[0];
-                  await new Promise((resolve) => setTimeout(resolve, 1000));
-                }
-
-                const voteAmount = 1n * 10n ** BigInt(api.registry.chainDecimals[0]);
-                process.stdout.write(`: ${referendumIndex} ✅\n`);
-                process.stdout.write(
-                  `Voting aye for [${referendumIndex}] ${encodedHash}: ${voteAmount} UNITS`
-                );
-                await api.tx.democracy
-                  .vote(referendumIndex, {
-                    Standard: {
-                      balance: voteAmount,
-                      vote: { aye: true, conviction: 1 },
-                    },
-                  })
-                  .signAndSend(from, { nonce: nonce++ });
-                process.stdout.write(`✅\n`);
-
-                let hasExecuted = false;
-
-                process.stdout.write(
-                  `Waiting for referendum [${referendumIndex}] to be executed...`
-                );
-                while (!hasExecuted) {
-                  const referendum = await api.query.democracy.referendumInfoOf.entries();
-                  hasExecuted = !!referendum.find(
-                    (ref) =>
-                      ref[1].unwrap().isFinished &&
-                      api.registry.createType("u32", ref[0].toU8a().slice(-4)).toNumber() ==
-                        referendumIndex
+                // Check if already in governance
+                const preImageExists = await api.query.democracy.preimages(encodedHash);
+                if (preImageExists.isSome && preImageExists.unwrap().isAvailable) {
+                  process.stdout.write(`Preimage ${encodedHash} already exists !\n`);
+                } else {
+                  process.stdout.write(
+                    `Registering preimage (${sha256(Buffer.from(code))} [~${Math.floor(
+                      code.length / 1024
+                    )} kb])...`
                   );
-                  await new Promise((resolve) => setTimeout(resolve, 1000));
+                  await api.tx.democracy
+                    .notePreimage(encodedProposal)
+                    .signAndSend(from, { nonce: nonce++ });
+                  process.stdout.write(`✅\n`);
                 }
-                process.stdout.write(`✅\n`);
 
+                // Check if already in referendum
+                const referendum = await api.query.democracy.referendumInfoOf.entries();
+                const referendaIndex = referendum
+                  .filter(
+                    (ref) =>
+                      ref[1].unwrap().isOngoing &&
+                      ref[1].unwrap().asOngoing.proposalHash.toHex() == encodedHash
+                  )
+                  .map((ref) =>
+                    api.registry.createType("u32", ref[0].toU8a().slice(-4)).toNumber()
+                  )?.[0];
+                if (referendaIndex !== null && referendaIndex !== undefined) {
+                  process.stdout.write(`Vote for upgrade already in referendum, cancelling it.\n`);
+                  await cancelReferendaWithCouncil(api, referendaIndex);
+                }
+                await executeProposalWithCouncil(api, encodedHash);
+
+                // Needs to retrieve nonce after those governance calls
+                nonce = (await api.rpc.system.accountNextIndex(from.address)).toNumber();
                 process.stdout.write(`Enacting authorized upgrade...`);
                 tx = await api.tx.parachainSystem.enactAuthorizedUpgrade(code);
                 process.stdout.write(`✅\n`);
