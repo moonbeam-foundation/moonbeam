@@ -250,10 +250,14 @@ pub mod pallet {
 		TransactInfoRemoved {
 			location: MultiLocation,
 		},
-		/// Removed the transact info of a location
+		/// Set dest fee per second
 		DestFeePerSecondChanged {
 			location: MultiLocation,
 			fee_per_second: u128,
+		},
+		/// Remove dest fee per second
+		DestFeePerSecondRemoved {
+			location: MultiLocation
 		},
 	}
 
@@ -470,6 +474,51 @@ pub mod pallet {
 			Ok(())
 		}
 
+		/// Change the transact info of a location
+		#[pallet::weight(T::WeightInfo::set_transact_info())]
+		pub fn set_transact_info(
+			origin: OriginFor<T>,
+			location: Box<VersionedMultiLocation>,
+			transact_extra_weight: Weight,
+			max_weight: u64,
+			transact_extra_weight_signed: Option<Weight>,
+		) -> DispatchResult {
+			T::DerivativeAddressRegistrationOrigin::ensure_origin(origin)?;
+			let location =
+				MultiLocation::try_from(*location).map_err(|()| Error::<T>::BadVersion)?;
+			let remote_info = RemoteTransactInfoWithMaxWeight {
+				transact_extra_weight,
+				max_weight,
+				transact_extra_weight_signed,
+			};
+
+			TransactInfoWithWeightLimit::<T>::insert(&location, &remote_info);
+
+			Self::deposit_event(Event::TransactInfoChanged {
+				location,
+				remote_info,
+			});
+			Ok(())
+		}
+
+		/// Remove the transact info of a location
+		#[pallet::weight(T::WeightInfo::remove_transact_info())]
+		pub fn remove_transact_info(
+			origin: OriginFor<T>,
+			location: Box<VersionedMultiLocation>,
+		) -> DispatchResult {
+			T::DerivativeAddressRegistrationOrigin::ensure_origin(origin)?;
+			let location =
+				MultiLocation::try_from(*location).map_err(|()| Error::<T>::BadVersion)?;
+
+			// Remove transact info
+			TransactInfoWithWeightLimit::<T>::remove(&location);
+
+			Self::deposit_event(Event::TransactInfoRemoved { location });
+			Ok(())
+		}
+
+
 		/// Transact the call through the a signed origin in this chain
 		/// that should be converted to a transaction dispatch account in the destination chain
 		/// by any method implemented in the destination chains runtime
@@ -550,51 +599,7 @@ pub mod pallet {
 			Ok(())
 		}
 
-		/// Change the transact info of a location
-		#[pallet::weight(T::WeightInfo::set_transact_info())]
-		pub fn set_transact_info(
-			origin: OriginFor<T>,
-			location: Box<VersionedMultiLocation>,
-			transact_extra_weight: Weight,
-			max_weight: u64,
-			transact_extra_weight_signed: Option<Weight>,
-		) -> DispatchResult {
-			T::DerivativeAddressRegistrationOrigin::ensure_origin(origin)?;
-			let location =
-				MultiLocation::try_from(*location).map_err(|()| Error::<T>::BadVersion)?;
-			let remote_info = RemoteTransactInfoWithMaxWeight {
-				transact_extra_weight,
-				max_weight,
-				transact_extra_weight_signed,
-			};
-
-			TransactInfoWithWeightLimit::<T>::insert(&location, &remote_info);
-
-			Self::deposit_event(Event::TransactInfoChanged {
-				location,
-				remote_info,
-			});
-			Ok(())
-		}
-
-		/// Remove the transact info of a location
-		#[pallet::weight(T::WeightInfo::remove_transact_info())]
-		pub fn remove_transact_info(
-			origin: OriginFor<T>,
-			location: Box<VersionedMultiLocation>,
-		) -> DispatchResult {
-			T::DerivativeAddressRegistrationOrigin::ensure_origin(origin)?;
-			let location =
-				MultiLocation::try_from(*location).map_err(|()| Error::<T>::BadVersion)?;
-
-			// Remove transact info
-			TransactInfoWithWeightLimit::<T>::remove(&location);
-
-			Self::deposit_event(Event::TransactInfoRemoved { location });
-			Ok(())
-		}
-
-		/// Change the transact info of a location
+		/// Set the fee per second of an asset on its reserve chain
 		#[pallet::weight(T::WeightInfo::set_fee_per_second())]
 		pub fn set_fee_per_second(
 			origin: OriginFor<T>,
@@ -610,6 +615,24 @@ pub mod pallet {
 			Self::deposit_event(Event::DestFeePerSecondChanged {
 				location: asset_location,
 				fee_per_second,
+			});
+			Ok(())
+		}
+
+		/// Remove the fee per second of an asset on its reserve chain
+		#[pallet::weight(T::WeightInfo::set_fee_per_second())]
+		pub fn remove_fee_per_second(
+			origin: OriginFor<T>,
+			asset_location: Box<VersionedMultiLocation>
+		) -> DispatchResult {
+			T::DerivativeAddressRegistrationOrigin::ensure_origin(origin)?;
+			let asset_location =
+				MultiLocation::try_from(*asset_location).map_err(|()| Error::<T>::BadVersion)?;
+
+			DestinationAssetFeePerSecond::<T>::remove(&asset_location);
+
+			Self::deposit_event(Event::DestFeePerSecondRemoved {
+				location: asset_location
 			});
 			Ok(())
 		}
