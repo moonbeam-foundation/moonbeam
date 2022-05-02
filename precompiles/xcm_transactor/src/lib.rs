@@ -137,7 +137,7 @@ where
 
 		// Bound check
 		input.expect_arguments(gasometer, 1)?;
-			let index: u16 = input.read::<u16>(gasometer)?;
+		let index: u16 = input.read::<u16>(gasometer)?;
 
 		// fetch data from pallet
 		let account: H160 = xcm_transactor::Pallet::<Runtime>::index_to_account(index)

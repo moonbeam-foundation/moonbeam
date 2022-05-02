@@ -15,7 +15,8 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
-	Config, DestinationAssetFeePerSecond, RemoteTransactInfoWithMaxWeight, TransactInfoWithWeightLimit,
+	Config, DestinationAssetFeePerSecond, RemoteTransactInfoWithMaxWeight,
+	TransactInfoWithWeightLimit,
 };
 use frame_support::{
 	pallet_prelude::PhantomData,
@@ -285,7 +286,8 @@ impl<T: Config> OnRuntimeUpgrade for TransactSignedWeightAndFeePerSecond<T> {
 			.expect("We stored a mapping count; it should be there; qed");
 		let new_mapping_count_transact_info =
 			TransactInfoWithWeightLimit::<T>::iter().count() as u64;
-		let new_mapping_count_fee_per_second = DestinationAssetFeePerSecond::<T>::iter().count() as u64;
+		let new_mapping_count_fee_per_second =
+			DestinationAssetFeePerSecond::<T>::iter().count() as u64;
 
 		assert_eq!(old_mapping_count, new_mapping_count_transact_info);
 		assert_eq!(old_mapping_count, new_mapping_count_fee_per_second);

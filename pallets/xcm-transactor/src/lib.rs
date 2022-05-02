@@ -177,7 +177,8 @@ pub mod pallet {
 	/// from weight to fee
 	#[pallet::storage]
 	#[pallet::getter(fn dest_asset_fee_per_second)]
-	pub type DestinationAssetFeePerSecond<T: Config> = StorageMap<_, Twox64Concat, MultiLocation, u128>;
+	pub type DestinationAssetFeePerSecond<T: Config> =
+		StorageMap<_, Twox64Concat, MultiLocation, u128>;
 
 	/// An error that can occur while executing the mapping pallet's logic.
 	#[pallet::error]
@@ -257,7 +258,7 @@ pub mod pallet {
 		},
 		/// Remove dest fee per second
 		DestFeePerSecondRemoved {
-			location: MultiLocation
+			location: MultiLocation,
 		},
 	}
 
@@ -518,7 +519,6 @@ pub mod pallet {
 			Ok(())
 		}
 
-
 		/// Transact the call through the a signed origin in this chain
 		/// that should be converted to a transaction dispatch account in the destination chain
 		/// by any method implemented in the destination chains runtime
@@ -623,7 +623,7 @@ pub mod pallet {
 		#[pallet::weight(T::WeightInfo::set_fee_per_second())]
 		pub fn remove_fee_per_second(
 			origin: OriginFor<T>,
-			asset_location: Box<VersionedMultiLocation>
+			asset_location: Box<VersionedMultiLocation>,
 		) -> DispatchResult {
 			T::DerivativeAddressRegistrationOrigin::ensure_origin(origin)?;
 			let asset_location =
@@ -632,7 +632,7 @@ pub mod pallet {
 			DestinationAssetFeePerSecond::<T>::remove(&asset_location);
 
 			Self::deposit_event(Event::DestFeePerSecondRemoved {
-				location: asset_location
+				location: asset_location,
 			});
 			Ok(())
 		}
