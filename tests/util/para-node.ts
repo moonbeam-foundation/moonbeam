@@ -386,13 +386,14 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
             nodeKey: NODE_KEYS[i * 2 + numberOfParachains + 1].key,
             name: "alice",
             flags: [
-              "--log=info,rpc=debug,evm=trace,ethereum=trace,sc_basic_authorship=trace," +
+              "--log=info,evm=trace,ethereum=trace,sc_basic_authorship=trace," +
                 "cumulus-consensus=trace,cumulus-collator=trace,collator_protocol=trace," +
                 "collation_generation=trace",
               "--unsafe-rpc-external",
               "--execution=wasm",
               "--no-prometheus",
               "--no-telemetry",
+              "--force-authoring",
               "--rpc-cors=all",
               "--",
               "--execution=wasm",

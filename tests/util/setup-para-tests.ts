@@ -216,7 +216,6 @@ export function describeParachain(
 
               let nonce = (await api.rpc.system.accountNextIndex(from.address)).toNumber();
 
-              let tx;
               if (useGovernance) {
                 // We just prepare the proposals
                 let proposal = api.tx.parachainSystem.authorizeUpgrade(blake2AsHex(code));
@@ -259,7 +258,9 @@ export function describeParachain(
                 // Needs to retrieve nonce after those governance calls
                 nonce = (await api.rpc.system.accountNextIndex(from.address)).toNumber();
                 process.stdout.write(`Enacting authorized upgrade...`);
-                tx = await api.tx.parachainSystem.enactAuthorizedUpgrade(code);
+                await api.tx.parachainSystem
+                  .enactAuthorizedUpgrade(code)
+                  .signAndSend(from, { nonce: nonce++ });
                 process.stdout.write(`✅\n`);
               } else {
                 process.stdout.write(
@@ -267,61 +268,11 @@ export function describeParachain(
                     code.length / 1024
                   )} kb])...`
                 );
-                tx = api.tx.sudo.sudoUncheckedWeight(
-                  await api.tx.system.setCodeWithoutChecks(code),
-                  1
-                );
+                await api.tx.sudo
+                  .sudoUncheckedWeight(await api.tx.system.setCodeWithoutChecks(code), 1)
+                  .signAndSend(from, { nonce: nonce++ });
+                process.stdout.write(`✅\n`);
               }
-
-              const unsubSetCode = await tx.signAndSend(
-                from,
-                { nonce: nonce++ },
-                async (result) => {
-                  if (result.isInBlock) {
-                    unsubSetCode();
-                    // ==== This is not supported anymore :/ ===
-                    // if (runtimeVersion == "local") {
-                    //   // This is a trick. We set the lastRuntimeUpgrade version to a number lower
-                    //   // at the block right before it gets applied, otherwise it gets reverted to
-                    //   // the original version (not sure why).
-                    //   // This is require when developping and the runtime version hasn't been
-                    //   // increased. As using the same runtime version prevents the migration
-                    //   // to happen
-                    //   await context.waitBlocks(2);
-
-                    //   const lastRuntimeUpgrade =
-                    //     (await context.polkadotApiParaone.query.system.lastRuntimeUpgrade())
-                    //     as any;
-                    //   process.stdout.write(
-                    //     `Overriding on-chain current runtime ${lastRuntimeUpgrade
-                    //       .unwrap()
-                    //       .specVersion.toNumber()} to ${
-                    //       lastRuntimeUpgrade.unwrap().specVersion.toNumber() - 1
-                    //     }`
-                    //   );
-                    //   context.polkadotApiParaone.tx.sudo
-                    //     .sudo(
-                    //       await context.polkadotApiParaone.tx.system.setStorage([
-                    //         [
-                    //           context.polkadotApiParaone.query.system.lastRuntimeUpgrade.key(),
-                    //           `0x${Buffer.from(
-                    //             context.polkadotApiParaone.registry
-                    //               .createType(
-                    //                 "Compact<u32>",
-                    //                 lastRuntimeUpgrade.unwrap().specVersion.toNumber() - 2
-                    //               )
-                    //               .toU8a()
-                    //           ).toString("hex")}${lastRuntimeUpgrade.toHex().slice(6)}`,
-                    //         ],
-                    //       ])
-                    //     )
-                    //     .signAndSend(from, { nonce: nonce++ });
-                    //   process.stdout.write(`✅\n`);
-                    // }
-                  }
-                }
-              );
-              process.stdout.write(`✅\n`);
 
               process.stdout.write(`Waiting to apply new runtime (${chalk.red(`~4min`)})...`);
               let isInitialVersion = true;
