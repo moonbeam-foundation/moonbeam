@@ -409,7 +409,7 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
             port: ports[i * 4 + numberOfParachains + 3].p2pPort,
             rpcPort: ports[i * 4 + numberOfParachains + 3].rpcPort,
             wsPort: ports[i * 4 + numberOfParachains + 3].wsPort,
-            nodeKey: NODE_KEYS[i * 2 + numberOfParachains + 2].key,
+            nodeKey: NODE_KEYS[i * 2 + numberOfParachains + 3].key,
             name: "bob",
             flags: [
               "--log=info,rpc=debug,evm=trace,ethereum=trace,sc_basic_authorship=trace," +
