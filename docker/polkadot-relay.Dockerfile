@@ -9,14 +9,17 @@ ARG POLKADOT_REPO=https://github.com/paritytech/polkadot
 RUN echo "Using polkadot ${POLKADOT_COMMIT}"
 WORKDIR /
 
+
+# Force rustup update
+RUN rustup uninstall nightly && \
+    rustup toolchain remove nightly && \
+    rustup update nightly
+
 # Grab the Polkadot Code
 # TODO how to grab the correct commit from the lock file?
 RUN git clone ${POLKADOT_REPO}
 WORKDIR /polkadot
 RUN git checkout ${POLKADOT_COMMIT}
-
-# Force rustup update
-RUN rustup update nightly
 
 # RUN sed -i 's/pub const EPOCH_DURATION_IN_SLOTS: BlockNumber = 1 \* HOURS/pub const EPOCH_DURATION_IN_SLOTS: BlockNumber = 2 \* MINUTES/' runtime/*/src/constants.rs
 # Download rust dependencies and build the rust binary
