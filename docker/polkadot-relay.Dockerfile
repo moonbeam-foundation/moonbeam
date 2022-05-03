@@ -15,17 +15,6 @@ RUN echo CARGO_HOME: $CARGO_HOME
 RUN echo RUSTUP_HOME: $RUSTUP_HOME
 
 RUN rustup show
-# Force rustup update
-RUN rustup uninstall nightly && \
-    rustup toolchain remove nightly && \
-	rustup default nightly && \
-	rustup update && \
-	rustup update nightly && \
-	rustup target add wasm32-unknown-unknown --toolchain nightly && \
-	rustup target add x86_64-unknown-linux-gnu --toolchain nightly && \
-	rustup component add rustfmt
-
-RUN rustup show
 
 # Grab the Polkadot Code
 # TODO how to grab the correct commit from the lock file?
