@@ -214,7 +214,8 @@ impl<T: Config> OnRuntimeUpgrade for TransactSignedWeightAndFeePerSecond<T> {
 			.try_into()
 			.expect("There are between 0 and 2**64 mappings stored.");
 
-		log::info!(target: "TransactSignedWeightAndFeePerSecond", "Migrating {:?} elements", migrated_count);
+		log::info!(
+			target: "TransactSignedWeightAndFeePerSecond", "Migrating {:?} elements", migrated_count);
 
 		// Write to storage with removed and added fields
 		for (location, info) in stored_data {
