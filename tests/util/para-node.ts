@@ -176,7 +176,7 @@ export async function getMoonbeamDockerBinary(binaryTag: string): Promise<string
 
     console.log(`     Missing ${binaryPath} locally, downloading it...`);
     child_process.execSync(`mkdir -p ${path.dirname(binaryPath)} && \
-        docker create --name moonbeam-tmp ${dockerImage} && \
+        docker create --pull always --name moonbeam-tmp ${dockerImage} && \
         docker cp moonbeam-tmp:/moonbeam/moonbeam ${binaryPath} && \
         docker rm moonbeam-tmp`);
     console.log(`${binaryPath} downloaded !`);
