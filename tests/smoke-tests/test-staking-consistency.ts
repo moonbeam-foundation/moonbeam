@@ -77,12 +77,10 @@ describeSmokeSuite(`Verify staking consistency`, { wssUrl }, (context) => {
           .sort((a, b) => (a < b ? 1 : a > b ? -1 : 0))
           .filter((_, i) => i < maxTopDelegationsPerCandidate)
           .reduce((p, amount) => p + amount, 0n) + candidate[1].unwrap().bond.toBigInt();
-      // debug(
-      //   accountId,
-      //   printTokens(context.polkadotApi, candidate[1].unwrap().totalCounted.toBigInt(), 3, 9),
-      //   printTokens(context.polkadotApi, expectedTotalCounted, 3, 9)
-      // );
-      expect(candidate[1].unwrap().totalCounted.toBigInt()).to.equal(expectedTotalCounted);
+
+      expect(candidate[1].unwrap().totalCounted.toBigInt(), `Candidate: ${accountId}`).to.equal(
+        expectedTotalCounted
+      );
     }
 
     debug(
@@ -94,7 +92,10 @@ describeSmokeSuite(`Verify staking consistency`, { wssUrl }, (context) => {
 
   it("candidate topDelegator total matches the sum", async function () {
     for (const topDelegation of allTopDelegations) {
-      expect(topDelegation[1].unwrap().total.toBigInt()).to.equal(
+      expect(
+        topDelegation[1].unwrap().total.toBigInt(),
+        `topDelegations of 0x${topDelegation[0].toHex().slice(-40)}`
+      ).to.equal(
         topDelegation[1]
           .unwrap()
           .delegations.reduce((p, delegation) => p + delegation.amount.toBigInt(), 0n)
@@ -148,9 +149,10 @@ describeSmokeSuite(`Verify staking consistency`, { wssUrl }, (context) => {
       // It is not possible to verify the account as there is no deterministic
       // way to differenciate the order of 2 delegators with same amount
       for (const index in topDelegators) {
-        expect(topDelegators[index].delegation.amount.toBigInt()).to.equal(
-          topDelegations.delegations[index].amount.toBigInt()
-        );
+        expect(
+          topDelegators[index].delegation.amount.toBigInt(),
+          `topDelegators[${index}] - ${topDelegators[index].delegator}`
+        ).to.equal(topDelegations.delegations[index].amount.toBigInt());
       }
     }
 
@@ -179,7 +181,6 @@ describeSmokeSuite(`Verify staking consistency`, { wssUrl }, (context) => {
 
       for (const state of allDelegatorState) {
         const delegator = `0x${state[0].toHex().slice(-40)}`;
-        debug(delegator);
         const totalRequestAmount = (delegatorRequests[delegator] || []).reduce(
           (p, v) =>
             p +
@@ -187,20 +188,24 @@ describeSmokeSuite(`Verify staking consistency`, { wssUrl }, (context) => {
           0n
         );
 
-        expect((state[1].unwrap() as any).lessTotal.toBigInt()).to.equal(totalRequestAmount);
+        expect((state[1].unwrap() as any).lessTotal.toBigInt(), `delegator: ${delegator}`).to.equal(
+          totalRequestAmount
+        );
         checks++;
       }
     }
 
     if (specVersion < 1500) {
       for (const state of allDelegatorState) {
-        debug(`0x${state[0].toHex().slice(-40)}`);
+        const delegator = `0x${state[0].toHex().slice(-40)}`;
         const totalRequestAmount = Array.from(state[1].unwrap().requests.requests.values()).reduce(
           (p, v) => p + v.amount.toBigInt(),
           0n
         );
 
-        expect(state[1].unwrap().requests.lessTotal.toBigInt()).to.equal(totalRequestAmount);
+        expect(state[1].unwrap().requests.lessTotal.toBigInt(), `delegator: ${delegator}`).to.equal(
+          totalRequestAmount
+        );
         checks++;
       }
     }
