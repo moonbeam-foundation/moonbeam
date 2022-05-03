@@ -55,6 +55,7 @@ export function describeSmokeSuite(
 
     after(async function () {
       await context.polkadotApi.disconnect();
+      await context.relayApi.disconnect();
     });
 
     cb(context);
