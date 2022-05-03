@@ -2,7 +2,7 @@
 /* eslint-disable */
 
 import type { ApiTypes } from "@polkadot/api-base/types";
-import type { Bytes, Vec, bool, u128, u16, u32, u64, u8 } from "@polkadot/types-codec";
+import type { Bytes, Option, Vec, bool, u128, u16, u32, u64, u8 } from "@polkadot/types-codec";
 import type { Codec } from "@polkadot/types-codec/types";
 import type { Perbill, Percent, Permill } from "@polkadot/types/interfaces/runtime";
 import type {
@@ -17,11 +17,26 @@ import type {
 
 declare module "@polkadot/api-base/types/consts" {
   export interface AugmentedConsts<ApiType extends ApiTypes> {
+    assetManager: {
+      /**
+       * The basic amount of funds that must be reserved for a local asset.
+       */
+      localAssetDeposit: u128 & AugmentedConst<ApiType>;
+      /**
+       * Generic const
+       */
+      [key: string]: Codec;
+    };
     assets: {
       /**
        * The amount of funds that must be reserved when creating a new approval.
        */
       approvalDeposit: u128 & AugmentedConst<ApiType>;
+      /**
+       * The amount of funds that must be reserved for a non-provider asset
+       * account to be maintained.
+       */
+      assetAccountDeposit: u128 & AugmentedConst<ApiType>;
       /**
        * The basic amount of funds that must be reserved for an asset.
        */
@@ -179,6 +194,39 @@ declare module "@polkadot/api-base/types/consts" {
        * is the size of an account ID plus 32 bytes.
        */
       subAccountDeposit: u128 & AugmentedConst<ApiType>;
+      /**
+       * Generic const
+       */
+      [key: string]: Codec;
+    };
+    localAssets: {
+      /**
+       * The amount of funds that must be reserved when creating a new approval.
+       */
+      approvalDeposit: u128 & AugmentedConst<ApiType>;
+      /**
+       * The amount of funds that must be reserved for a non-provider asset
+       * account to be maintained.
+       */
+      assetAccountDeposit: u128 & AugmentedConst<ApiType>;
+      /**
+       * The basic amount of funds that must be reserved for an asset.
+       */
+      assetDeposit: u128 & AugmentedConst<ApiType>;
+      /**
+       * The basic amount of funds that must be reserved when adding metadata to
+       * your asset.
+       */
+      metadataDepositBase: u128 & AugmentedConst<ApiType>;
+      /**
+       * The additional funds that must be reserved for the number of bytes you
+       * store in your metadata.
+       */
+      metadataDepositPerByte: u128 & AugmentedConst<ApiType>;
+      /**
+       * The maximum length of a name or symbol stored on-chain.
+       */
+      stringLimit: u32 & AugmentedConst<ApiType>;
       /**
        * Generic const
        */
@@ -364,7 +412,7 @@ declare module "@polkadot/api-base/types/consts" {
     timestamp: {
       /**
        * The minimum period between blocks. Beware that this is different to the
-       * *expected* period that the block production apparatus provides. Your
+       * _expected_ period that the block production apparatus provides. Your
        * chosen consensus system will generally work with this to determine a
        * sensible block time. e.g. For Aura, it will be double this period on
        * default settings.
@@ -421,6 +469,9 @@ declare module "@polkadot/api-base/types/consts" {
       burn: Permill & AugmentedConst<ApiType>;
       /**
        * The maximum number of approvals that can wait in the spending queue.
+       *
+       * NOTE: This parameter is also used within the Bounties Pallet extension
+       * if enabled.
        */
       maxApprovals: u32 & AugmentedConst<ApiType>;
       /**
@@ -433,6 +484,10 @@ declare module "@polkadot/api-base/types/consts" {
        * does not.
        */
       proposalBond: Permill & AugmentedConst<ApiType>;
+      /**
+       * Maximum amount of funds that should be placed in a deposit for making a proposal.
+       */
+      proposalBondMaximum: Option<u128> & AugmentedConst<ApiType>;
       /**
        * Minimum amount of funds that should be placed in a deposit for making a proposal.
        */
