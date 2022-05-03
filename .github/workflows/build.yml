@@ -339,7 +339,7 @@ jobs:
           npm run build
           cd ../tests
           npm install
-          node_modules/.bin/mocha --parallel -j 4 -r ts-node/register 'tests/**/test-*.ts'
+          node_modules/.bin/mocha --exit --parallel -j 4 -r ts-node/register 'tests/**/test-*.ts'
 
       # We determine whether there are unmodified package-lock.json files by:
       # 1. Asking git for a list of all modified files
@@ -401,7 +401,7 @@ jobs:
           npm run build
           cd ../tests
           npm install
-          node_modules/.bin/mocha --parallel -j 2 -r ts-node/register 'tracing-tests/**/test-*.ts'
+          node_modules/.bin/mocha --exit --parallel -j 2 -r ts-node/register 'tracing-tests/**/test-*.ts'
 
   typescript-para-tests:
     runs-on: self-hosted
@@ -424,7 +424,7 @@ jobs:
         run: |
           POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
           DOCKER_TAG="purestake/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
-          docker create -ti --name dummy $DOCKER_TAG bash
+          docker create --pull always -ti --name dummy $DOCKER_TAG bash
           docker cp dummy:/usr/local/bin/polkadot build/polkadot
           docker rm -f dummy
       - name: Use Node.js 14.x
@@ -444,7 +444,7 @@ jobs:
           npm install
           cd ../tests
           npm install
-          node_modules/.bin/mocha -r ts-node/register 'para-tests/**/test-*.ts'
+          node_modules/.bin/mocha --exit -r ts-node/register 'para-tests/**/test-*.ts'
 
   docker-parachain:
     runs-on: ubuntu-latest
