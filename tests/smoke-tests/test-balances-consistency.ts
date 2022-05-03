@@ -54,7 +54,7 @@ describeSmokeSuite(`Verify balances consistency`, { wssUrl, relayWssUrl }, (cont
   });
 
   it("should have matching deposit/reserved", async function () {
-    this.timeout(120000);
+    this.timeout(240000);
     // Load data
     const [
       proxies,
