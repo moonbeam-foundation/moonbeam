@@ -13,7 +13,7 @@ WORKDIR /
 # Force rustup update
 RUN rustup uninstall nightly && \
     rustup toolchain remove nightly && \
-	rustup default stable && \
+	rustup default nightly && \
 	rustup update && \
 	rustup update nightly && \
 	rustup target add wasm32-unknown-unknown --toolchain nightly
