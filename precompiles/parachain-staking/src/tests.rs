@@ -15,15 +15,15 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::mock::{
-	events, evm_test_context, precompile_address, roll_to, set_points, Call, ExtBuilder, Origin,
-	ParachainStaking, PrecompilesValue, Runtime, TestAccount, TestPrecompiles,
+	events, evm_test_context, precompile_address, roll_to, roll_to_round_begin, set_points, Call,
+	ExtBuilder, Origin, ParachainStaking, PrecompilesValue, Runtime, TestAccount, TestPrecompiles,
 };
 use crate::{Action, PrecompileOutput};
-use fp_evm::PrecompileFailure;
+use fp_evm::{Context, PrecompileFailure};
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_evm::{Call as EvmCall, ExitSucceed, PrecompileSet};
 use parachain_staking::Event as StakingEvent;
-use precompile_utils::EvmDataWriter;
+use precompile_utils::{Address, EvmDataWriter};
 use sha3::{Digest, Keccak256};
 use sp_core::U256;
 use std::assert_matches::assert_matches;
@@ -58,10 +58,16 @@ fn selectors() {
 	assert_eq!(Action::MinNomination as u32, 0xc9f593b2);
 	assert_eq!(Action::MinDelegation as u32, 0x72ce8933);
 	assert_eq!(Action::CandidateCount as u32, 0x4b1c4c29);
+	assert_eq!(Action::Round as u32, 0x146ca531);
 	assert_eq!(Action::CollatorNominationCount as u32, 0x0ad6a7be);
 	assert_eq!(Action::CandidateDelegationCount as u32, 0x815b796c);
 	assert_eq!(Action::NominatorNominationCount as u32, 0xdae5659b);
 	assert_eq!(Action::DelegatorDelegationCount as u32, 0xfbc51bca);
+	assert_eq!(Action::SelectedCandidates as u32, 0x89f47a21);
+	assert_eq!(Action::DelegationRequestIsPending as u32, 0x192e1db3);
+	assert_eq!(Action::DelegatorExitIsPending as u32, 0xdc3ec64b);
+	assert_eq!(Action::CandidateExitIsPending as u32, 0xeb613b8a);
+	assert_eq!(Action::CandidateRequestIsPending as u32, 0x26ab05fb);
 	assert_eq!(Action::JoinCandidates as u32, 0x0a1bff60);
 	// DEPRECATED
 	assert_eq!(Action::LeaveCandidates as u32, 0x72b02a31);
@@ -274,6 +280,54 @@ fn points_non_zero() {
 				expected_one_result
 			);
 		});
+}
+
+#[test]
+fn round_works() {
+	ExtBuilder::default().build().execute_with(|| {
+		// Expected starts at round 1
+		let mut expected_result = Some(Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			output: EvmDataWriter::new().write(1u32).build(),
+			cost: Default::default(),
+			logs: Default::default(),
+		}));
+		// Assert that round is 1
+		assert_eq!(
+			precompiles().execute(
+				precompile_address(),
+				&EvmDataWriter::new_with_selector(Action::Round).build(),
+				None,
+				&evm_test_context(),
+				false
+			),
+			expected_result
+		);
+		// test next `ROUNDS_TO_TEST` rounds
+		const ROUNDS_TO_TEST: u64 = 10;
+		let mut current_round: u64 = 1;
+		while current_round < ROUNDS_TO_TEST {
+			current_round += 1;
+			roll_to_round_begin(current_round);
+			expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(current_round).build(),
+				cost: Default::default(),
+				logs: Default::default(),
+			}));
+			// Assert that round is equal to expectation
+			assert_eq!(
+				precompiles().execute(
+					precompile_address(),
+					&EvmDataWriter::new_with_selector(Action::Round).build(),
+					None,
+					&evm_test_context(),
+					false
+				),
+				expected_result
+			);
+		}
+	});
 }
 
 // DEPRECATED
@@ -724,6 +778,455 @@ fn is_selected_candidate_true() {
 				expected_one_result
 			);
 		});
+}
+
+#[test]
+fn selected_candidates_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(TestAccount::Alice, 1_000)])
+		.with_candidates(vec![(TestAccount::Alice, 1_000)])
+		.build()
+		.execute_with(|| {
+			let input_data = EvmDataWriter::new_with_selector(Action::SelectedCandidates).build();
+			// Alice is only selected candidates
+			let expected_selected_candidate = vec![TestAccount::Alice];
+			let evm_expected_selected_candidate: Vec<Address> = expected_selected_candidate
+				.into_iter()
+				.map(|x| Address(x.into()))
+				.collect();
+			// Expected result is bogus selected repeated candidates
+			let expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new()
+					.write(evm_expected_selected_candidate)
+					.build(),
+				cost: Default::default(),
+				logs: Default::default(),
+			}));
+
+			// Assert that Alice is a selected candidate
+			assert_eq!(
+				precompiles().execute(
+					precompile_address(),
+					&input_data,
+					None,
+					&evm_test_context(),
+					false
+				),
+				expected_result
+			);
+		});
+}
+
+#[test]
+fn delegation_request_is_pending_works() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(TestAccount::Alice, 1_000),
+			(TestAccount::Charlie, 50),
+			(TestAccount::Bogus, 50),
+		])
+		.with_candidates(vec![(TestAccount::Alice, 1_000)])
+		.with_delegations(vec![(TestAccount::Charlie, TestAccount::Alice, 50)])
+		.build()
+		.execute_with(|| {
+			// Expected false because we dont have pending requests yet
+			let mut expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(false).build(),
+				cost: Default::default(),
+				logs: Default::default(),
+			}));
+			// Assert that we dont have pending requests
+			assert_eq!(
+				precompiles().execute(
+					precompile_address(),
+					&EvmDataWriter::new_with_selector(Action::DelegationRequestIsPending)
+						.write(Address(TestAccount::Charlie.into()))
+						.write(Address(TestAccount::Alice.into()))
+						.build(),
+					None,
+					&evm_test_context(),
+					false
+				),
+				expected_result
+			);
+
+			// Schedule Revoke request
+			assert_eq!(
+				precompiles().execute(
+					precompile_address(),
+					&EvmDataWriter::new_with_selector(Action::ScheduleRevokeDelegation)
+						.write(Address(TestAccount::Alice.into()))
+						.build(),
+					None,
+					&Context {
+						address: precompile_address(),
+						caller: TestAccount::Charlie.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: Default::default(),
+					cost: 282552000,
+					logs: Default::default(),
+				}))
+			);
+
+			// Expected true because we scheduled a revoke request
+			expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(true).build(),
+				cost: Default::default(),
+				logs: Default::default(),
+			}));
+			// Assert that we have pending requests
+			assert_eq!(
+				precompiles().execute(
+					precompile_address(),
+					&EvmDataWriter::new_with_selector(Action::DelegationRequestIsPending)
+						.write(Address(TestAccount::Charlie.into()))
+						.write(Address(TestAccount::Alice.into()))
+						.build(),
+					None,
+					&evm_test_context(),
+					false
+				),
+				expected_result
+			);
+		})
+}
+
+#[test]
+fn delegation_request_is_pending_returns_false_for_non_existing_delegator() {
+	ExtBuilder::default().build().execute_with(|| {
+		// Expected false because delegator Bob does not exist
+		let expected_result = Some(Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			output: EvmDataWriter::new().write(false).build(),
+			cost: Default::default(),
+			logs: Default::default(),
+		}));
+		// Assert that we return false
+		assert_eq!(
+			precompiles().execute(
+				precompile_address(),
+				&EvmDataWriter::new_with_selector(Action::DelegationRequestIsPending)
+					.write(Address(TestAccount::Bob.into()))
+					.write(Address(TestAccount::Alice.into()))
+					.build(),
+				None,
+				&evm_test_context(),
+				false
+			),
+			expected_result
+		);
+	})
+}
+
+#[test]
+fn delegation_exit_is_pending_works() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(TestAccount::Alice, 1_000),
+			(TestAccount::Charlie, 50),
+			(TestAccount::Bogus, 50),
+		])
+		.with_candidates(vec![(TestAccount::Alice, 1_000)])
+		.with_delegations(vec![(TestAccount::Charlie, TestAccount::Alice, 50)])
+		.build()
+		.execute_with(|| {
+			// Expected false because we dont have pending requests yet
+			let mut expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(false).build(),
+				cost: Default::default(),
+				logs: Default::default(),
+			}));
+			// Assert that we don't have pending requests
+			assert_eq!(
+				precompiles().execute(
+					precompile_address(),
+					&EvmDataWriter::new_with_selector(Action::DelegatorExitIsPending)
+						.write(Address(TestAccount::Charlie.into()))
+						.build(),
+					None,
+					&evm_test_context(),
+					false
+				),
+				expected_result
+			);
+
+			// Schedule exit request
+			assert_eq!(
+				precompiles().execute(
+					precompile_address(),
+					&EvmDataWriter::new_with_selector(Action::ScheduleLeaveDelegators).build(),
+					None,
+					&Context {
+						address: precompile_address(),
+						caller: TestAccount::Charlie.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: Default::default(),
+					cost: 152072000,
+					logs: Default::default(),
+				}))
+			);
+
+			// Expected true because we scheduled exit
+			expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(true).build(),
+				cost: Default::default(),
+				logs: Default::default(),
+			}));
+			// Assert that we have pending exit
+			assert_eq!(
+				precompiles().execute(
+					precompile_address(),
+					&EvmDataWriter::new_with_selector(Action::DelegatorExitIsPending)
+						.write(Address(TestAccount::Charlie.into()))
+						.build(),
+					None,
+					&evm_test_context(),
+					false
+				),
+				expected_result
+			);
+		})
+}
+
+#[test]
+fn delegation_exit_is_pending_returns_false_for_non_existing_delegator() {
+	ExtBuilder::default().build().execute_with(|| {
+		// Expected false because delegator Bob does not exist
+		let expected_result = Some(Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			output: EvmDataWriter::new().write(false).build(),
+			cost: Default::default(),
+			logs: Default::default(),
+		}));
+		// Assert that we return false
+		assert_eq!(
+			precompiles().execute(
+				precompile_address(),
+				&EvmDataWriter::new_with_selector(Action::DelegatorExitIsPending)
+					.write(Address(TestAccount::Bob.into()))
+					.build(),
+				None,
+				&evm_test_context(),
+				false
+			),
+			expected_result
+		);
+	})
+}
+
+#[test]
+fn candidate_exit_is_pending_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(TestAccount::Alice, 1_000)])
+		.with_candidates(vec![(TestAccount::Alice, 1_000)])
+		.build()
+		.execute_with(|| {
+			// Expected false because we dont have pending requests yet
+			let mut expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(false).build(),
+				cost: Default::default(),
+				logs: Default::default(),
+			}));
+			// Assert that we don't have pending requests
+			assert_eq!(
+				precompiles().execute(
+					precompile_address(),
+					&EvmDataWriter::new_with_selector(Action::CandidateExitIsPending)
+						.write(Address(TestAccount::Alice.into()))
+						.build(),
+					None,
+					&evm_test_context(),
+					false
+				),
+				expected_result
+			);
+
+			// Schedule exit request
+			assert_eq!(
+				precompiles().execute(
+					precompile_address(),
+					&EvmDataWriter::new_with_selector(Action::ScheduleLeaveCandidates)
+						.write(U256::one())
+						.build(),
+					None,
+					&Context {
+						address: precompile_address(),
+						caller: TestAccount::Alice.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: Default::default(),
+					cost: 313608000,
+					logs: Default::default(),
+				}))
+			);
+
+			// Expected true because we scheduled exit
+			expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(true).build(),
+				cost: Default::default(),
+				logs: Default::default(),
+			}));
+			// Assert that we have pending exit
+			assert_eq!(
+				precompiles().execute(
+					precompile_address(),
+					&EvmDataWriter::new_with_selector(Action::CandidateExitIsPending)
+						.write(Address(TestAccount::Alice.into()))
+						.build(),
+					None,
+					&evm_test_context(),
+					false
+				),
+				expected_result
+			);
+		})
+}
+
+#[test]
+fn candidate_exit_is_pending_returns_false_for_non_existing_delegator() {
+	ExtBuilder::default().build().execute_with(|| {
+		// Expected false because candidate Bob does not exist
+		let expected_result = Some(Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			output: EvmDataWriter::new().write(false).build(),
+			cost: Default::default(),
+			logs: Default::default(),
+		}));
+		// Assert that we return false
+		assert_eq!(
+			precompiles().execute(
+				precompile_address(),
+				&EvmDataWriter::new_with_selector(Action::CandidateExitIsPending)
+					.write(Address(TestAccount::Bob.into()))
+					.build(),
+				None,
+				&evm_test_context(),
+				false
+			),
+			expected_result
+		);
+	})
+}
+
+#[test]
+fn candidate_request_is_pending_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(TestAccount::Alice, 1_050)])
+		.with_candidates(vec![(TestAccount::Alice, 1_050)])
+		.build()
+		.execute_with(|| {
+			// Expected false because we dont have pending requests yet
+			let mut expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(false).build(),
+				cost: Default::default(),
+				logs: Default::default(),
+			}));
+			// Assert that we dont have pending requests
+			assert_eq!(
+				precompiles().execute(
+					precompile_address(),
+					&EvmDataWriter::new_with_selector(Action::CandidateRequestIsPending)
+						.write(Address(TestAccount::Alice.into()))
+						.build(),
+					None,
+					&evm_test_context(),
+					false
+				),
+				expected_result
+			);
+
+			// Schedule bond less request
+			assert_eq!(
+				precompiles().execute(
+					precompile_address(),
+					&EvmDataWriter::new_with_selector(Action::ScheduleCandidateBondLess)
+						.write(U256::zero())
+						.build(),
+					None,
+					&Context {
+						address: precompile_address(),
+						caller: TestAccount::Alice.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: Default::default(),
+					cost: 151339000,
+					logs: Default::default(),
+				}))
+			);
+
+			// Expected true because we scheduled a bond less request
+			expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(true).build(),
+				cost: Default::default(),
+				logs: Default::default(),
+			}));
+			// Assert that we have pending requests
+			assert_eq!(
+				precompiles().execute(
+					precompile_address(),
+					&EvmDataWriter::new_with_selector(Action::CandidateRequestIsPending)
+						.write(Address(TestAccount::Alice.into()))
+						.build(),
+					None,
+					&evm_test_context(),
+					false
+				),
+				expected_result
+			);
+		})
+}
+
+#[test]
+fn candidate_request_is_pending_returns_false_for_non_existing_candidate() {
+	ExtBuilder::default().build().execute_with(|| {
+		// Expected false because candidate Bob does not exist
+		let expected_result = Some(Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			output: EvmDataWriter::new().write(false).build(),
+			cost: Default::default(),
+			logs: Default::default(),
+		}));
+		// Assert that we return false
+		assert_eq!(
+			precompiles().execute(
+				precompile_address(),
+				&EvmDataWriter::new_with_selector(Action::CandidateRequestIsPending)
+					.write(Address(TestAccount::Bob.into()))
+					.build(),
+				None,
+				&evm_test_context(),
+				false
+			),
+			expected_result
+		);
+	})
 }
 
 #[test]
@@ -1572,11 +2075,10 @@ fn cancel_revoke_delegation_works() {
 
 			let expected: crate::mock::Event = StakingEvent::CancelledDelegationRequest {
 				delegator: TestAccount::Bob,
-				cancelled_request: parachain_staking::DelegationRequest {
-					collator: TestAccount::Alice,
-					amount: 1_000,
+				collator: TestAccount::Alice,
+				cancelled_request: parachain_staking::CancelledScheduledRequest {
 					when_executable: 3,
-					action: parachain_staking::DelegationChange::Revoke,
+					action: parachain_staking::DelegationAction::Revoke(1_000),
 				},
 			}
 			.into();
@@ -1610,11 +2112,10 @@ fn cancel_delegator_bonded_less_works() {
 
 			let expected: crate::mock::Event = StakingEvent::CancelledDelegationRequest {
 				delegator: TestAccount::Bob,
-				cancelled_request: parachain_staking::DelegationRequest {
-					collator: TestAccount::Alice,
-					amount: 500,
+				collator: TestAccount::Alice,
+				cancelled_request: parachain_staking::CancelledScheduledRequest {
 					when_executable: 3,
-					action: parachain_staking::DelegationChange::Decrease,
+					action: parachain_staking::DelegationAction::Decrease(500),
 				},
 			}
 			.into();

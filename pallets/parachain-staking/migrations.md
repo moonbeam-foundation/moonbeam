@@ -1,5 +1,13 @@
 # Migration History
 
+## Patch delegations total mismatch
+
+- [Migration PR `#1291`](https://github.com/PureStake/moonbeam/pull/1291)
+
+## Split candidate state for PoV optimization
+
+- [Migration PR `#1117`](https://github.com/PureStake/moonbeam/pull/1117)
+
 ## Increase max delegations per candidate
 
 - [Migration PR `#1096`](https://github.com/PureStake/moonbeam/pull/1096)

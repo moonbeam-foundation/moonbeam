@@ -27,9 +27,10 @@ use hex_literal::hex;
 use moonbase_runtime::{
 	currency::UNIT, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
 	BaseFeeConfig, CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig,
-	EthereumChainIdConfig, EthereumConfig, GenesisAccount, GenesisConfig, InflationInfo,
-	MaintenanceModeConfig, ParachainInfoConfig, ParachainStakingConfig, PolkadotXcmConfig,
-	Precompiles, Range, SudoConfig, SystemConfig, TechCommitteeCollectiveConfig, WASM_BINARY,
+	EligibilityValue, EthereumChainIdConfig, EthereumConfig, GenesisAccount, GenesisConfig,
+	InflationInfo, MaintenanceModeConfig, ParachainInfoConfig, ParachainStakingConfig,
+	PolkadotXcmConfig, Precompiles, Range, SudoConfig, SystemConfig, TechCommitteeCollectiveConfig,
+	WASM_BINARY,
 };
 use nimbus_primitives::NimbusId;
 use sc_service::ChainType;
@@ -285,7 +286,7 @@ pub fn testnet_genesis(
 			members: tech_comittee_members,
 		},
 		author_filter: AuthorFilterConfig {
-			eligible_ratio: sp_runtime::Percent::from_percent(50),
+			eligible_count: EligibilityValue::new_unchecked(50),
 		},
 		author_mapping: AuthorMappingConfig {
 			mappings: candidates
