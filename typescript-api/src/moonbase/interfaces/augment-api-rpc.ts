@@ -32,6 +32,7 @@ import type {
   ContractInstantiateResult,
   InstantiateRequest,
 } from "@polkadot/types/interfaces/contracts";
+import type { BlockStats } from "@polkadot/types/interfaces/dev";
 import type { CreatedBlock } from "@polkadot/types/interfaces/engine";
 import type {
   EthAccount,
@@ -73,6 +74,7 @@ import type {
   StorageData,
 } from "@polkadot/types/interfaces/runtime";
 import type {
+  MigrationStatusResult,
   ReadProof,
   RuntimeVersion,
   TraceBlockResponse,
@@ -330,6 +332,14 @@ declare module "@polkadot/rpc-core/types/jsonrpc" {
             | Uint8Array,
           at?: BlockHash | string | Uint8Array
         ) => Observable<CodeUploadResult>
+      >;
+    };
+    dev: {
+      /**
+       * Reexecute the specified `block_hash` and gather statistics while doing so
+       */
+      getBlockStats: AugmentedRpc<
+        (at: Hash | string | Uint8Array) => Observable<Option<BlockStats>>
       >;
     };
     engine: {
@@ -958,6 +968,12 @@ declare module "@polkadot/rpc-core/types/jsonrpc" {
           storageKeys: Option<Text> | null | object | string | Uint8Array,
           methods: Option<Text> | null | object | string | Uint8Array
         ) => Observable<TraceBlockResponse>
+      >;
+      /**
+       * Check current migration state
+       */
+      trieMigrationStatus: AugmentedRpc<
+        (at?: BlockHash | string | Uint8Array) => Observable<MigrationStatusResult>
       >;
     };
     syncstate: {
