@@ -13,9 +13,10 @@ WORKDIR /
 # Force rustup update
 RUN rustup uninstall nightly && \
     rustup toolchain remove nightly && \
-    rustup update nightly && \
-	rustup default nightly && \
-	rustup update
+	rustup default stable && \
+	rustup update && \
+	rustup update nightly && \
+	rustup target add wasm32-unknown-unknown --toolchain nightly
 
 # Grab the Polkadot Code
 # TODO how to grab the correct commit from the lock file?
