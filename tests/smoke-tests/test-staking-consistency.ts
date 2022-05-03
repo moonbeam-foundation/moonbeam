@@ -135,8 +135,6 @@ describeSmokeSuite(`Verify staking consistency`, { wssUrl }, (context) => {
         .find((t) => `0x${t[0].toHex().slice(-40)}` == accountId)[1]
         .unwrap();
 
-      expect(topDelegations.delegations.length).to.equal(topDelegators.length);
-
       expect(topDelegations.total.toBigInt()).to.equal(
         topDelegators
           .map((d) => d.delegation.amount.toBigInt())
@@ -161,5 +159,52 @@ describeSmokeSuite(`Verify staking consistency`, { wssUrl }, (context) => {
         allDelegatorState.length
       } delegators`
     );
+  });
+
+  it("all delegators lessTotal matches revoke/decrease requests", async function () {
+    let checks = 0;
+    if (specVersion >= 1500) {
+      const delegationScheduledRequests =
+        await apiAt.query.parachainStaking.delegationScheduledRequests.entries();
+      const delegatorRequests = delegationScheduledRequests.reduce((p, requests: any) => {
+        for (const request of requests[1]) {
+          const delegator = request.delegator.toHex();
+          if (!p[delegator]) {
+            p[delegator] = [];
+          }
+          p[delegator].push(request);
+        }
+        return p;
+      }, {} as { [delegator: string]: { delegator: any; whenExecutable: any; action: any }[] });
+
+      for (const state of allDelegatorState) {
+        const delegator = `0x${state[0].toHex().slice(-40)}`;
+        debug(delegator);
+        const totalRequestAmount = (delegatorRequests[delegator] || []).reduce(
+          (p, v) =>
+            p +
+            (v.action.isDecrease ? v.action.asDecrease.toBigInt() : v.action.asRevoke.toBigInt()),
+          0n
+        );
+
+        expect((state[1].unwrap() as any).lessTotal.toBigInt()).to.equal(totalRequestAmount);
+        checks++;
+      }
+    }
+
+    if (specVersion < 1500) {
+      for (const state of allDelegatorState) {
+        debug(`0x${state[0].toHex().slice(-40)}`);
+        const totalRequestAmount = Array.from(state[1].unwrap().requests.requests.values()).reduce(
+          (p, v) => p + v.amount.toBigInt(),
+          0n
+        );
+
+        expect(state[1].unwrap().requests.lessTotal.toBigInt()).to.equal(totalRequestAmount);
+        checks++;
+      }
+    }
+
+    debug(`Verified ${checks} lessTotal (runtime: ${specVersion})`);
   });
 });
