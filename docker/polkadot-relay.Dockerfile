@@ -13,7 +13,9 @@ WORKDIR /
 # Force rustup update
 RUN rustup uninstall nightly && \
     rustup toolchain remove nightly && \
-    rustup update nightly
+    rustup update nightly && \
+	rustup default nightly && \
+	rustup update
 
 # Grab the Polkadot Code
 # TODO how to grab the correct commit from the lock file?
