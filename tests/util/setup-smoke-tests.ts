@@ -4,10 +4,12 @@ const debug = require("debug")("test:setup");
 export interface SmokeTestContext {
   // We also provided singleton providers for simplicity
   polkadotApi: ApiPromise;
+  relayApi: ApiPromise;
 }
 
 export type SmokeTestOptions = {
   wssUrl: string;
+  relayWssUrl: string;
 };
 
 export function describeSmokeSuite(
@@ -36,6 +38,12 @@ export function describeSmokeSuite(
         provider: new WsProvider(options.wssUrl),
       });
       await context.polkadotApi.isReady;
+
+      context.relayApi = await ApiPromise.create({
+        initWasm: false,
+        provider: new WsProvider(options.relayWssUrl),
+      });
+      await context.relayApi.isReady;
       // Necessary hack to allow polkadotApi to finish its internal metadata loading
       // apiPromise.isReady unfortunately doesn't wait for those properly
       await new Promise((resolve) => {
