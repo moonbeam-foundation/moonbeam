@@ -903,7 +903,7 @@ fn junction_decoder_works() {
 
 	let writer_output = EvmDataWriter::new()
 		.write(Junction::AccountId32 {
-			network: NetworkId::Any,
+			network: None,
 			id: [1u8; 32],
 		})
 		.build();
@@ -916,14 +916,14 @@ fn junction_decoder_works() {
 	assert_eq!(
 		parsed,
 		Junction::AccountId32 {
-			network: NetworkId::Any,
+			network: None,
 			id: [1u8; 32],
 		}
 	);
 
 	let writer_output = EvmDataWriter::new()
 		.write(Junction::AccountIndex64 {
-			network: NetworkId::Any,
+			network: None,
 			index: u64::from_be_bytes([1u8; 8]),
 		})
 		.build();
@@ -936,14 +936,14 @@ fn junction_decoder_works() {
 	assert_eq!(
 		parsed,
 		Junction::AccountIndex64 {
-			network: NetworkId::Any,
+			network: None,
 			index: u64::from_be_bytes([1u8; 8]),
 		}
 	);
 
 	let writer_output = EvmDataWriter::new()
 		.write(Junction::AccountKey20 {
-			network: NetworkId::Any,
+			network: None,
 			key: H160::repeat_byte(0xAA).as_bytes().try_into().unwrap(),
 		})
 		.build();
@@ -956,7 +956,7 @@ fn junction_decoder_works() {
 	assert_eq!(
 		parsed,
 		Junction::AccountKey20 {
-			network: NetworkId::Any,
+			network: None,
 			key: H160::repeat_byte(0xAA).as_bytes().try_into().unwrap(),
 		}
 	);
@@ -967,26 +967,18 @@ fn network_id_decoder_works() {
 	let mut gm = Gasometer::new(None);
 	let gm = &mut gm;
 	assert_eq!(
-		network_id_from_bytes(gm, network_id_to_bytes(NetworkId::Any)),
-		Ok(NetworkId::Any)
+		network_id_from_bytes(gm, network_id_to_bytes(None)),
+		Ok(None)
 	);
 
 	assert_eq!(
-		network_id_from_bytes(
-			gm,
-			network_id_to_bytes(NetworkId::Named(b"myname".to_vec()))
-		),
-		Ok(NetworkId::Named(b"myname".to_vec()))
+		network_id_from_bytes(gm, network_id_to_bytes(Some(NetworkId::Kusama))),
+		Ok(Some(NetworkId::Kusama))
 	);
 
 	assert_eq!(
-		network_id_from_bytes(gm, network_id_to_bytes(NetworkId::Kusama)),
-		Ok(NetworkId::Kusama)
-	);
-
-	assert_eq!(
-		network_id_from_bytes(gm, network_id_to_bytes(NetworkId::Polkadot)),
-		Ok(NetworkId::Polkadot)
+		network_id_from_bytes(gm, network_id_to_bytes(Some(NetworkId::Polkadot))),
+		Ok(Some(NetworkId::Polkadot))
 	);
 }
 

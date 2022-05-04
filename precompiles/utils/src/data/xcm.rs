@@ -31,26 +31,22 @@ use xcm::latest::{Junction, Junctions, MultiLocation, NetworkId};
 // In this case, only Named requies additional non-bounded data.
 // In such a case, since NetworkIds will be appended at the end, we will read the buffer until the
 // end to recover the name
-pub(crate) fn network_id_to_bytes(network_id: NetworkId) -> Vec<u8> {
+pub(crate) fn network_id_to_bytes(network_id: Option<NetworkId>) -> Vec<u8> {
 	let mut encoded: Vec<u8> = Vec::new();
 	match network_id.clone() {
-		NetworkId::Any => {
+		None => {
 			encoded.push(0u8);
 			encoded
 		}
-		NetworkId::Named(mut name) => {
-			encoded.push(1u8);
-			encoded.append(&mut name);
-			encoded
-		}
-		NetworkId::Polkadot => {
+		Some(NetworkId::Polkadot) => {
 			encoded.push(2u8);
 			encoded
 		}
-		NetworkId::Kusama => {
+		Some(NetworkId::Kusama) => {
 			encoded.push(3u8);
 			encoded
 		}
+		_ => unreachable!("Not supported yet"),
 	}
 }
 
@@ -58,7 +54,7 @@ pub(crate) fn network_id_to_bytes(network_id: NetworkId) -> Vec<u8> {
 pub(crate) fn network_id_from_bytes(
 	gasometer: &mut Gasometer,
 	encoded_bytes: Vec<u8>,
-) -> EvmResult<NetworkId> {
+) -> EvmResult<Option<NetworkId>> {
 	ensure!(
 		encoded_bytes.len() > 0,
 		gasometer.revert("Junctions cannot be empty")
@@ -68,12 +64,9 @@ pub(crate) fn network_id_from_bytes(
 	let network_selector = encoded_network_id.read_raw_bytes(gasometer, 1)?;
 
 	match network_selector[0] {
-		0 => Ok(NetworkId::Any),
-		1 => Ok(NetworkId::Named(
-			encoded_network_id.read_till_end(gasometer)?.to_vec(),
-		)),
-		2 => Ok(NetworkId::Polkadot),
-		3 => Ok(NetworkId::Kusama),
+		0 => Ok(None),
+		2 => Ok(Some(NetworkId::Polkadot)),
+		3 => Ok(Some(NetworkId::Kusama)),
 		_ => Err(gasometer.revert("Non-valid Network Id")),
 	}
 }
@@ -145,9 +138,12 @@ impl EvmData for Junction {
 				general_index.copy_from_slice(&encoded_junction.read_raw_bytes(gasometer, 16)?);
 				Ok(Junction::GeneralIndex(u128::from_be_bytes(general_index)))
 			}
-			6 => Ok(Junction::GeneralKey(
-				encoded_junction.read_till_end(gasometer)?.to_vec(),
-			)),
+			6 => {
+				// In the case of Junction::AccountId32, we need 32 additional bytes plus NetworkId
+				let mut key: [u8; 32] = Default::default();
+				key.copy_from_slice(&encoded_junction.read_raw_bytes(gasometer, 32)?);
+				Ok(Junction::GeneralKey(key))
+			}
 			7 => Ok(Junction::OnlyChild),
 			_ => Err(gasometer.revert("No selector for this")),
 		}
@@ -189,9 +185,9 @@ impl EvmData for Junction {
 				encoded.append(&mut id.to_be_bytes().to_vec());
 				encoded.as_slice().into()
 			}
-			Junction::GeneralKey(mut key) => {
+			Junction::GeneralKey(key) => {
 				encoded.push(6u8);
-				encoded.append(&mut key);
+				encoded.append(&mut key.to_vec());
 				encoded.as_slice().into()
 			}
 			Junction::OnlyChild => {
