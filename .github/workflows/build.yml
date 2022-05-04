@@ -440,7 +440,11 @@ jobs:
           npm install
           cd ../tests
           npm install
-          node_modules/.bin/mocha --exit -r ts-node/register 'para-tests/**/test-*.ts'
+          docker run \
+            -v $(pwd):/moonbeam \
+            -w /moonbeam/tests \
+            node node_modules/.bin/mocha \
+              --exit -r ts-node/register 'para-tests/**/test-*.ts'
 
   docker-parachain:
     runs-on: ubuntu-latest
