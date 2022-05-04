@@ -150,7 +150,7 @@ where
 		let call = orml_xtokens::Call::<Runtime>::transfer {
 			currency_id,
 			amount,
-			dest: Box::new(VersionedMultiLocation::V1(destination)),
+			dest: Box::new(VersionedMultiLocation::V3(destination)),
 			dest_weight,
 		};
 
@@ -203,7 +203,7 @@ where
 			currency_id,
 			amount,
 			fee,
-			dest: Box::new(VersionedMultiLocation::V1(destination)),
+			dest: Box::new(VersionedMultiLocation::V3(destination)),
 			dest_weight,
 		};
 
@@ -242,11 +242,11 @@ where
 			.map_err(|_| gasometer.revert("Amount is too large for provided balance type"))?;
 
 		let call = orml_xtokens::Call::<Runtime>::transfer_multiasset {
-			asset: Box::new(VersionedMultiAsset::V1(MultiAsset {
+			asset: Box::new(VersionedMultiAsset::V3(MultiAsset {
 				id: AssetId::Concrete(asset_multilocation),
 				fun: Fungibility::Fungible(to_balance),
 			})),
-			dest: Box::new(VersionedMultiLocation::V1(destination)),
+			dest: Box::new(VersionedMultiLocation::V3(destination)),
 			dest_weight,
 		};
 
@@ -287,15 +287,15 @@ where
 			.map_err(|_| gasometer.revert("Amount is too large for provided balance type"))?;
 
 		let call = orml_xtokens::Call::<Runtime>::transfer_multiasset_with_fee {
-			asset: Box::new(VersionedMultiAsset::V1(MultiAsset {
+			asset: Box::new(VersionedMultiAsset::V3(MultiAsset {
 				id: AssetId::Concrete(asset_multilocation.clone()),
 				fun: Fungibility::Fungible(amount),
 			})),
-			fee: Box::new(VersionedMultiAsset::V1(MultiAsset {
+			fee: Box::new(VersionedMultiAsset::V3(MultiAsset {
 				id: AssetId::Concrete(asset_multilocation),
 				fun: Fungibility::Fungible(fee),
 			})),
-			dest: Box::new(VersionedMultiLocation::V1(destination)),
+			dest: Box::new(VersionedMultiLocation::V3(destination)),
 			dest_weight,
 		};
 
@@ -363,7 +363,7 @@ where
 		let call = orml_xtokens::Call::<Runtime>::transfer_multicurrencies {
 			currencies: currencies_non_result,
 			fee_item,
-			dest: Box::new(VersionedMultiLocation::V1(destination)),
+			dest: Box::new(VersionedMultiLocation::V3(destination)),
 			dest_weight,
 		};
 
@@ -418,9 +418,9 @@ where
 			.map_err(|_| gasometer.revert("Provided vector either not sorted nor deduplicated"))?;
 
 		let call = orml_xtokens::Call::<Runtime>::transfer_multiassets {
-			assets: Box::new(VersionedMultiAssets::V1(multiassets)),
+			assets: Box::new(VersionedMultiAssets::V3(multiassets)),
 			fee_item,
-			dest: Box::new(VersionedMultiLocation::V1(destination)),
+			dest: Box::new(VersionedMultiLocation::V3(destination)),
 			dest_weight,
 		};
 

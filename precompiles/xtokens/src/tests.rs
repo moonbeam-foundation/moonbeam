@@ -125,7 +125,7 @@ fn transfer_self_reserve_works() {
 			let destination = MultiLocation::new(
 				1,
 				Junctions::X1(Junction::AccountId32 {
-					network: NetworkId::Any,
+					network: None,
 					id: [1u8; 32],
 				}),
 			);
@@ -181,7 +181,7 @@ fn transfer_to_reserve_works() {
 			let destination = MultiLocation::new(
 				1,
 				Junctions::X1(Junction::AccountId32 {
-					network: NetworkId::Any,
+					network: None,
 					id: [1u8; 32],
 				}),
 			);
@@ -237,7 +237,7 @@ fn transfer_to_reserve_with_fee_works() {
 			let destination = MultiLocation::new(
 				1,
 				Junctions::X1(Junction::AccountId32 {
-					network: NetworkId::Any,
+					network: None,
 					id: [1u8; 32],
 				}),
 			);
@@ -303,7 +303,7 @@ fn transfer_non_reserve_to_non_reserve_works() {
 			let destination = MultiLocation::new(
 				1,
 				Junctions::X1(Junction::AccountId32 {
-					network: NetworkId::Any,
+					network: None,
 					id: [1u8; 32],
 				}),
 			);
@@ -361,7 +361,7 @@ fn transfer_non_reserve_to_non_reserve_with_fee_works() {
 			let destination = MultiLocation::new(
 				1,
 				Junctions::X1(Junction::AccountId32 {
-					network: NetworkId::Any,
+					network: None,
 					id: [1u8; 32],
 				}),
 			);
@@ -425,7 +425,7 @@ fn transfer_multi_asset_to_reserve_works() {
 			let destination = MultiLocation::new(
 				1,
 				Junctions::X1(Junction::AccountId32 {
-					network: NetworkId::Any,
+					network: None,
 					id: [1u8; 32],
 				}),
 			);
@@ -483,7 +483,7 @@ fn transfer_multi_asset_self_reserve_works() {
 			let destination = MultiLocation::new(
 				1,
 				Junctions::X1(Junction::AccountId32 {
-					network: NetworkId::Any,
+					network: None,
 					id: [1u8; 32],
 				}),
 			);
@@ -540,7 +540,7 @@ fn transfer_multi_asset_self_reserve_with_fee_works() {
 			let destination = MultiLocation::new(
 				1,
 				Junctions::X1(Junction::AccountId32 {
-					network: NetworkId::Any,
+					network: None,
 					id: [1u8; 32],
 				}),
 			);
@@ -602,7 +602,7 @@ fn transfer_multi_asset_non_reserve_to_non_reserve() {
 			let destination = MultiLocation::new(
 				1,
 				Junctions::X1(Junction::AccountId32 {
-					network: NetworkId::Any,
+					network: None,
 					id: [1u8; 32],
 				}),
 			);
@@ -662,7 +662,7 @@ fn transfer_multi_asset_non_reserve_to_non_reserve_with_fee() {
 			let destination = MultiLocation::new(
 				1,
 				Junctions::X1(Junction::AccountId32 {
-					network: NetworkId::Any,
+					network: None,
 					id: [1u8; 32],
 				}),
 			);
@@ -727,7 +727,7 @@ fn transfer_multi_currencies() {
 			let destination = MultiLocation::new(
 				1,
 				Junctions::X1(Junction::AccountId32 {
-					network: NetworkId::Any,
+					network: None,
 					id: [1u8; 32],
 				}),
 			);
@@ -796,7 +796,7 @@ fn transfer_multi_assets() {
 				Junctions::X2(
 					Junction::Parachain(2),
 					Junction::AccountId32 {
-						network: NetworkId::Any,
+						network: None,
 						id: [1u8; 32],
 					},
 				),
@@ -870,7 +870,7 @@ fn transfer_multi_currencies_cannot_insert_more_than_max() {
 			let destination = MultiLocation::new(
 				1,
 				Junctions::X1(Junction::AccountId32 {
-					network: NetworkId::Any,
+					network: None,
 					id: [1u8; 32],
 				}),
 			);
@@ -915,7 +915,7 @@ fn transfer_multi_assets_cannot_insert_more_than_max() {
 				Junctions::X2(
 					Junction::Parachain(2),
 					Junction::AccountId32 {
-						network: NetworkId::Any,
+						network: None,
 						id: [1u8; 32],
 					},
 				),
@@ -976,7 +976,7 @@ fn transfer_multi_assets_is_not_sorted_error() {
 				Junctions::X2(
 					Junction::Parachain(2),
 					Junction::AccountId32 {
-						network: NetworkId::Any,
+						network: None,
 						id: [1u8; 32],
 					},
 				),
