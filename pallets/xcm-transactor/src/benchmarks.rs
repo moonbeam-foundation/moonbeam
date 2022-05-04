@@ -46,7 +46,7 @@ benchmarks! {
 		let location = MultiLocation::parent();
 	}: _(
 		RawOrigin::Root,
-		Box::new(xcm::VersionedMultiLocation::V1(location.clone())),
+		Box::new(xcm::VersionedMultiLocation::V3(location.clone())),
 		extra_weight,
 		fee_per_second,
 		max_weight
@@ -66,12 +66,12 @@ benchmarks! {
 		let location = MultiLocation::parent();
 		Pallet::<T>::set_transact_info(
 			RawOrigin::Root.into(),
-			Box::new(xcm::VersionedMultiLocation::V1(location.clone())),
+			Box::new(xcm::VersionedMultiLocation::V3(location.clone())),
 			extra_weight,
 			fee_per_second,
 			max_weight
 		).unwrap();
-	}: _(RawOrigin::Root, Box::new(xcm::VersionedMultiLocation::V1(location.clone())))
+	}: _(RawOrigin::Root, Box::new(xcm::VersionedMultiLocation::V3(location.clone())))
 	verify {
 		assert!(Pallet::<T>::transact_info(&location).is_none());
 	}

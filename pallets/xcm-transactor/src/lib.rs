@@ -20,7 +20,7 @@
 //!
 //! Module to provide transact capabilities on other chains
 //!
-//! For the transaction to successfuly be dispatched in the destination chain, pallet-utility
+//! For the transaction to successfuly be dispatched in the destination chain, pallet-utilityMultiLO
 //! needs to be installed and at least paid xcm message execution should be allowed (and
 //! WithdrawAsset,BuyExecution and Transact messages allowed) in the destination chain
 //!
@@ -74,7 +74,7 @@ pub mod pallet {
 	use sp_std::convert::TryFrom;
 	use sp_std::prelude::*;
 	use xcm::{latest::prelude::*, VersionedMultiLocation};
-	use xcm_executor::traits::{InvertLocation, TransactAsset, WeightBounds};
+	use xcm_executor::traits::{TransactAsset, WeightBounds};
 	use xcm_primitives::{UtilityAvailableCalls, UtilityEncodeCall, XcmTransact};
 
 	#[pallet::pallet]
@@ -117,7 +117,7 @@ pub mod pallet {
 		type Weigher: WeightBounds<Self::Call>;
 
 		/// Means of inverting a location.
-		type LocationInverter: InvertLocation;
+		type UniversalLocation: Get<InteriorMultiLocation>;
 
 		/// Self chain location.
 		#[pallet::constant]
@@ -535,7 +535,7 @@ pub mod pallet {
 
 			// Construct the local withdraw message with the previous calculated amount
 			// This message deducts and burns "amount" from the caller when executed
-			T::AssetTransactor::withdraw_asset(&fee.clone().into(), &origin_as_mult)
+			T::AssetTransactor::withdraw_asset(&fee.clone().into(), &origin_as_mult, None)
 				.map_err(|_| Error::<T>::UnableToWithdrawAsset)?;
 
 			// Construct the transact message. This is composed of WithdrawAsset||BuyExecution||
@@ -553,8 +553,15 @@ pub mod pallet {
 				origin_kind,
 			)?;
 
+			let (ticket, price) = validate_send::<T::XcmSender>(dest, transact_message)
+				.map_err(|_| Error::<T>::ErrorSending)?;
+			// TODO: revisit this
+			/*if let Some(fee_payer) = maybe_fee_payer {
+				Self::charge_fees(fee_payer, price).map_err(|_| SendError::Fees)?;
+			}*/
+
 			// Send to sovereign
-			T::XcmSender::send_xcm(dest, transact_message).map_err(|_| Error::<T>::ErrorSending)?;
+			T::XcmSender::deliver(ticket).map_err(|_| Error::<T>::ErrorSending)?;
 
 			Ok(())
 		}
@@ -571,7 +578,7 @@ pub mod pallet {
 				Self::sovereign_withdraw(asset.clone(), &dest)?,
 				Self::buy_execution(asset, &dest, dest_weight)?,
 				Transact {
-					origin_type: origin_kind,
+					origin_kind,
 					require_weight_at_most: dispatch_weight,
 					call: call.into(),
 				},
@@ -584,9 +591,9 @@ pub mod pallet {
 			at: &MultiLocation,
 			weight: u64,
 		) -> Result<Instruction<()>, DispatchError> {
-			let ancestry = T::LocationInverter::ancestry();
+			let ancestry = T::UniversalLocation::get();
 			let fees = asset
-				.reanchored(at, &ancestry)
+				.reanchored(at, ancestry)
 				.map_err(|_| Error::<T>::CannotReanchor)?;
 
 			Ok(BuyExecution {
@@ -600,9 +607,9 @@ pub mod pallet {
 			asset: MultiAsset,
 			at: &MultiLocation,
 		) -> Result<Instruction<()>, DispatchError> {
-			let ancestry = T::LocationInverter::ancestry();
+			let ancestry = T::UniversalLocation::get();
 			let fees = asset
-				.reanchored(at, &ancestry)
+				.reanchored(at, ancestry)
 				.map_err(|_| Error::<T>::CannotReanchor)?;
 
 			Ok(WithdrawAsset(fees.into()))
@@ -680,7 +687,7 @@ pub mod pallet {
 		) -> Weight {
 			if let Some(id) = T::CurrencyIdToMultiLocation::convert(currency_id.clone()) {
 				Self::weight_of_transact_through_derivative_multilocation(
-					&VersionedMultiLocation::V1(id),
+					&VersionedMultiLocation::V3(id),
 					&index,
 					&dest,
 					&weight,

@@ -36,8 +36,8 @@ use sp_runtime::{
 use xcm::latest::{
 	Error as XcmError,
 	Junction::{AccountKey20, GeneralIndex, PalletInstance, Parachain},
-	Junctions, MultiAsset, MultiLocation, NetworkId, Result as XcmResult, SendResult, SendXcm, Xcm,
-	XcmHash, SendError, XcmContext
+	Junctions, MultiAsset, MultiLocation, NetworkId, Result as XcmResult, SendError, SendResult,
+	SendXcm, Xcm, XcmContext, XcmHash,
 };
 
 use scale_info::TypeInfo;
@@ -316,7 +316,7 @@ impl TransactAsset for DummyAssetTransactor {
 		_who: &MultiLocation,
 		_maybe_context: Option<&XcmContext>,
 	) -> Result<Assets, XcmError> {
-			Ok(Assets::default())
+		Ok(Assets::default())
 	}
 }
 

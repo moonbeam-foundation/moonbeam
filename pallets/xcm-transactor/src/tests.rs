@@ -61,7 +61,7 @@ fn test_transact_through_derivative_errors() {
 					Origin::signed(1u64),
 					Transactors::Relay,
 					1,
-					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+					Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
 					100u64,
 					vec![0u8]
 				),
@@ -74,7 +74,7 @@ fn test_transact_through_derivative_errors() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				Origin::root(),
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::new(
+				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::new(
 					1,
 					Junctions::X1(Junction::Parachain(1000))
 				))),
@@ -89,7 +89,7 @@ fn test_transact_through_derivative_errors() {
 					Origin::signed(1u64),
 					Transactors::Relay,
 					1,
-					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::new(
+					Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::new(
 						1,
 						Junctions::X1(Junction::Parachain(1000))
 					))),
@@ -105,7 +105,7 @@ fn test_transact_through_derivative_errors() {
 					Origin::signed(1u64),
 					Transactors::Relay,
 					1,
-					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::new(
+					Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::new(
 						1,
 						Junctions::X1(Junction::PalletInstance(1))
 					))),
@@ -118,7 +118,7 @@ fn test_transact_through_derivative_errors() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				Origin::root(),
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
 				0,
 				1,
 				10000
@@ -130,7 +130,7 @@ fn test_transact_through_derivative_errors() {
 					Origin::signed(1u64),
 					Transactors::Relay,
 					1,
-					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+					Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
 					10001u64,
 					vec![0u8]
 				),
@@ -151,7 +151,7 @@ fn test_transact_through_derivative_multilocation_success() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				Origin::root(),
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
 				0,
 				1,
 				10000
@@ -162,7 +162,7 @@ fn test_transact_through_derivative_multilocation_success() {
 				Origin::signed(1u64),
 				Transactors::Relay,
 				1,
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
 				100u64,
 				vec![1u8]
 			));
@@ -203,7 +203,7 @@ fn test_transact_through_derivative_success() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				Origin::root(),
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
 				0,
 				1,
 				10000
@@ -253,9 +253,9 @@ fn test_root_can_transact_through_sovereign() {
 			assert_noop!(
 				XcmTransactor::transact_through_sovereign(
 					Origin::signed(1),
-					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+					Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
 					1u64,
-					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+					Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
 					100u64,
 					vec![1u8],
 					OriginKind::SovereignAccount
@@ -266,7 +266,7 @@ fn test_root_can_transact_through_sovereign() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				Origin::root(),
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
 				0,
 				1,
 				10000
@@ -275,9 +275,9 @@ fn test_root_can_transact_through_sovereign() {
 			// fee as destination are the same, this time it should work
 			assert_ok!(XcmTransactor::transact_through_sovereign(
 				Origin::root(),
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
 				1u64,
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
 				100u64,
 				vec![1u8],
 				OriginKind::SovereignAccount
@@ -395,7 +395,7 @@ fn removing_transact_info_works() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				Origin::root(),
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
 				0,
 				1,
 				10000
@@ -404,7 +404,7 @@ fn removing_transact_info_works() {
 			// Root can remove transact info
 			assert_ok!(XcmTransactor::remove_transact_info(
 				Origin::root(),
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				Box::new(xcm::VersionedMultiLocation::V3(MultiLocation::parent())),
 			));
 
 			assert!(XcmTransactor::transact_info(MultiLocation::parent()).is_none());
