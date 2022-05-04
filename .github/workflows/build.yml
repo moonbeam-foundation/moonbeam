@@ -440,6 +440,7 @@ jobs:
           npm install
           cd ../tests
           npm install
+          cd ..
           docker run \
             -v $(pwd):/moonbeam \
             -w /moonbeam/tests \
