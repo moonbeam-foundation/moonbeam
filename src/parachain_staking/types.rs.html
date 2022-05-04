@@ -1584,7 +1584,6 @@
 <span id="1579">1579</span>
 <span id="1580">1580</span>
 <span id="1581">1581</span>
-<span id="1582">1582</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -2246,8 +2245,7 @@
 				<span class="kw-2">&amp;</span><span class="ident">candidate</span>,
 				<span class="kw-2">&amp;</span><span class="ident">lowest_bottom_to_be_kicked</span>.<span class="ident">owner</span>,
 				<span class="kw-2">&amp;mut</span> <span class="ident">delegator_state</span>,
-			)
-			.<span class="ident">ok</span>(); <span class="comment">// ignore DNE error</span>
+			);
 
 			<span class="ident">Pallet</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::deposit_event</span>(<span class="ident">Event::DelegationKicked</span> {
 				<span class="ident">delegator</span>: <span class="ident">lowest_bottom_to_be_kicked</span>.<span class="ident">owner</span>.<span class="ident">clone</span>(),
