@@ -30,7 +30,7 @@ describeSmokeSuite(`Verify XCM weight fees for relay`, { wssUrl, relayWssUrl }, 
 
   it("should have value over relay expected fees", async function () {
     // Load data
-    const transactInfo = await apiAt.query.xcmTransactor.transactInfoWithWeightLimit.entries();
+    const transactInfos = await apiAt.query.xcmTransactor.transactInfoWithWeightLimit.entries();
 
     const relayBaseWeight =
       relayApiAt.consts.system.blockWeights.perClass.normal.baseExtrinsic.toBigInt();
@@ -39,18 +39,23 @@ describeSmokeSuite(`Verify XCM weight fees for relay`, { wssUrl, relayWssUrl }, 
     const coef = cent / 10n;
     const expectedFeePerSecond = (coef * seconds) / relayBaseWeight;
 
-    expect(transactInfo.length, "Missing transactInfoWithWeightLimit data").to.be.equal(1);
-    const feePerSecond = transactInfo[0][1].unwrap().feePerSecond.toBigInt();
-    expect(
-      feePerSecond > expectedFeePerSecond,
-      `failed check: feePerSecond: ${feePerSecond} > expected ${expectedFeePerSecond}`
-    ).to.be.true;
-    expect(
-      feePerSecond < (expectedFeePerSecond * 101n) / 100n,
-      `failed check: feePerSecond: ${feePerSecond} < expected ${
-        (expectedFeePerSecond * 101n) / 100n
-      }`
-    ).to.be.true;
-    debug(`Verified feePerSecond within relay base weight range`);
+    expect(transactInfos.length, "Missing transactInfoWithWeightLimit data").to.be.at.least(1);
+    for (const transactInfo of transactInfos) {
+      const feePerSecond = transactInfo[1].unwrap().feePerSecond.toBigInt();
+      expect(
+        feePerSecond > expectedFeePerSecond,
+        `failed check: feePerSecond: ${feePerSecond} > expected ${expectedFeePerSecond}`
+      ).to.be.true;
+      expect(
+        feePerSecond < (expectedFeePerSecond * 101n) / 100n,
+        `failed check: feePerSecond: ${feePerSecond} < expected ${
+          (expectedFeePerSecond * 101n) / 100n
+        }`
+      ).to.be.true;
+    }
+    debug(
+      `Verified feePerSecond for ${transactInfos.length} transactInfos ` +
+        `within relay base weight range`
+    );
   });
 });
