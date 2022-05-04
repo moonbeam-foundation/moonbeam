@@ -191,10 +191,6 @@ jobs:
             echo "true" || echo "false")
           if [[ "$POLKADOT_EXISTS" == "false" ]]; then
             # $POLKADOT_COMMIT and $POLKADOT_REPO is used to build the relay image
-            env
-            cargo --version
-            rustc --version
-            rustup show
             ./scripts/build-alphanet-relay-image.sh
             docker push $DOCKER_TAG
           fi

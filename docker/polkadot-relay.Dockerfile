@@ -9,13 +9,6 @@ ARG POLKADOT_REPO=https://github.com/paritytech/polkadot
 RUN echo "Using polkadot ${POLKADOT_COMMIT}"
 WORKDIR /
 
-
-RUN env
-RUN echo CARGO_HOME: $CARGO_HOME
-RUN echo RUSTUP_HOME: $RUSTUP_HOME
-
-RUN rustup show
-
 # Grab the Polkadot Code
 # TODO how to grab the correct commit from the lock file?
 RUN git clone ${POLKADOT_REPO}
