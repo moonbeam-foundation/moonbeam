@@ -34,6 +34,7 @@ pub use moonbeam_runtime;
 #[cfg(feature = "moonriver-native")]
 pub use moonriver_runtime;
 use std::{collections::BTreeMap, sync::Mutex, time::Duration};
+pub mod command_helper;
 pub mod rpc;
 use cumulus_client_cli::CollatorOptions;
 use cumulus_client_consensus_common::ParachainConsensus;

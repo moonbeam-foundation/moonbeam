@@ -31,7 +31,7 @@ use sp_inherents::{InherentData, InherentDataProvider};
 use sp_keyring::Sr25519Keyring;
 use sp_runtime::{generic::Era, AccountId32, OpaqueExtrinsic, SaturatedConversion};
 
-use crate::command::FullClient;
+use crate::FullClient;
 
 /// Generates extrinsics for the `benchmark overhead` command.
 ///

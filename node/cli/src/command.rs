@@ -16,10 +16,7 @@
 
 //! This module constructs and executes the appropriate service components for the given subcommand
 
-use crate::{
-	cli::{Cli, RelayChainCli, RunCmd, Subcommand},
-	command_helper::{inherent_benchmark_data, BenchmarkExtrinsicBuilder},
-};
+use crate::cli::{Cli, RelayChainCli, RunCmd, Subcommand};
 use cli_opt::{EthApi, RpcConfig};
 use cumulus_client_service::genesis::generate_genesis_block;
 use cumulus_primitives_core::ParaId;
@@ -34,7 +31,10 @@ use sc_cli::{
 	NetworkParams, Result, RuntimeVersion, SharedParams, SubstrateCli,
 };
 use sc_service::config::{BasePath, PrometheusConfig};
-use service::{chain_spec, frontier_database_dir, IdentifyVariant};
+use service::{
+	chain_spec, frontier_database_dir, IdentifyVariant,
+	command_helper::{inherent_benchmark_data, BenchmarkExtrinsicBuilder},
+};
 use sp_core::hexdisplay::HexDisplay;
 use sp_runtime::traits::Block as _;
 use std::{io::Write, net::SocketAddr, sync::Arc};
