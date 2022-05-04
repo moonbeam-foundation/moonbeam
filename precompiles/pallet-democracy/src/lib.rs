@@ -19,15 +19,15 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![feature(assert_matches)]
 
-use fp_evm::{Context, ExitSucceed, PrecompileOutput};
+use fp_evm::{Context, ExitSucceed, PrecompileHandle, PrecompileOutput};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use frame_support::traits::Currency;
 use pallet_democracy::{AccountVote, Call as DemocracyCall, Vote};
 use pallet_evm::AddressMapping;
 use pallet_evm::Precompile;
 use precompile_utils::{
-	Address, Bytes, EvmData, EvmDataReader, EvmDataWriter, EvmResult, FunctionModifier, Gasometer,
-	RuntimeHelper,
+	check_function_modifier, revert, Address, Bytes, EvmData, EvmDataReader, EvmDataWriter,
+	EvmResult, FunctionModifier, RuntimeHelper,
 };
 use sp_core::{H160, H256, U256};
 use sp_std::{
@@ -84,20 +84,18 @@ where
 	Runtime::Hash: From<H256>,
 {
 	fn execute(
+		handle: &mut impl PrecompileHandle,
 		input: &[u8], //Reminder this is big-endian
-		target_gas: Option<u64>,
+		_target_gas: Option<u64>,
 		context: &Context,
 		is_static: bool,
 	) -> EvmResult<PrecompileOutput> {
 		log::trace!(target: "democracy-precompile", "In democracy wrapper");
 
-		let mut gasometer = Gasometer::new(target_gas);
-		let gasometer = &mut gasometer;
-
-		let (mut input, selector) = EvmDataReader::new_with_selector(gasometer, input)?;
+		let (mut input, selector) = EvmDataReader::new_with_selector(input)?;
 		let input = &mut input;
 
-		gasometer.check_function_modifier(
+		check_function_modifier(
 			context,
 			is_static,
 			match selector {
@@ -116,22 +114,22 @@ where
 
 		match selector {
 			// Storage Accessors
-			Action::PublicPropCount => Self::public_prop_count(gasometer),
-			Action::DepositOf => Self::deposit_of(input, gasometer),
-			Action::LowestUnbaked => Self::lowest_unbaked(gasometer),
-			Action::OngoingReferendumInfo => Self::ongoing_referendum_info(input, gasometer),
-			Action::FinishedReferendumInfo => Self::finished_referendum_info(input, gasometer),
+			Action::PublicPropCount => Self::public_prop_count(handle),
+			Action::DepositOf => Self::deposit_of(handle, input),
+			Action::LowestUnbaked => Self::lowest_unbaked(handle),
+			Action::OngoingReferendumInfo => Self::ongoing_referendum_info(handle, input),
+			Action::FinishedReferendumInfo => Self::finished_referendum_info(handle, input),
 
 			// Dispatchables
-			Action::Propose => Self::propose(input, gasometer, context),
-			Action::Second => Self::second(input, gasometer, context),
-			Action::StandardVote => Self::standard_vote(input, gasometer, context),
-			Action::RemoveVote => Self::remove_vote(input, gasometer, context),
-			Action::Delegate => Self::delegate(input, gasometer, context),
-			Action::UnDelegate => Self::un_delegate(gasometer, context),
-			Action::Unlock => Self::unlock(input, gasometer, context),
-			Action::NotePreimage => Self::note_preimage(input, gasometer, context),
-			Action::NoteImminentPreimage => Self::note_imminent_preimage(input, gasometer, context),
+			Action::Propose => Self::propose(handle, input, context),
+			Action::Second => Self::second(handle, input, context),
+			Action::StandardVote => Self::standard_vote(handle, input, context),
+			Action::RemoveVote => Self::remove_vote(handle, input, context),
+			Action::Delegate => Self::delegate(handle, input, context),
+			Action::UnDelegate => Self::un_delegate(handle, context),
+			Action::Unlock => Self::unlock(handle, input, context),
+			Action::NotePreimage => Self::note_preimage(handle, input, context),
+			Action::NoteImminentPreimage => Self::note_imminent_preimage(handle, input, context),
 		}
 	}
 }
@@ -146,33 +144,30 @@ where
 	Runtime::Hash: From<H256>,
 {
 	// The accessors are first. They directly return their result.
-
-	fn public_prop_count(gasometer: &mut Gasometer) -> EvmResult<PrecompileOutput> {
+	fn public_prop_count(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		// Fetch data from pallet
-		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let prop_count = DemocracyOf::<Runtime>::public_prop_count();
 		log::trace!(target: "democracy-precompile", "Prop count from pallet is {:?}", prop_count);
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
-			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new().write(prop_count).build(),
-			logs: Default::default(),
 		})
 	}
 
 	fn deposit_of(
+		handle: &mut impl PrecompileHandle,
 		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
 	) -> EvmResult<PrecompileOutput> {
 		// Bound check
-		input.expect_arguments(gasometer, 1)?;
-		let prop_index: u32 = input.read(gasometer)?;
+		input.expect_arguments(1)?;
+		let prop_index: u32 = input.read()?;
 
 		// Fetch data from pallet
-		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let deposit = DemocracyOf::<Runtime>::deposit_of(prop_index)
-			.ok_or_else(|| gasometer.revert("No such proposal in pallet democracy"))?
+			.ok_or_else(|| revert("No such proposal in pallet democracy"))?
 			.1;
 
 		log::trace!(
@@ -182,15 +177,13 @@ where
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
-			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new().write(deposit).build(),
-			logs: Default::default(),
 		})
 	}
 
-	fn lowest_unbaked(gasometer: &mut Gasometer) -> EvmResult<PrecompileOutput> {
+	fn lowest_unbaked(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		// Fetch data from pallet
-		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let lowest_unbaked = DemocracyOf::<Runtime>::lowest_unbaked();
 		log::trace!(
 			target: "democracy-precompile",
@@ -199,9 +192,7 @@ where
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
-			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new().write(lowest_unbaked).build(),
-			logs: Default::default(),
 		})
 	}
 
@@ -209,11 +200,12 @@ where
 	// https://github.com/paritytech/substrate/pull/9565 which has been merged into Substrate
 	// master, but is not on the release branches that we are following
 	fn ongoing_referendum_info(
+		_handle: &mut impl PrecompileHandle,
 		_input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
 	) -> EvmResult<PrecompileOutput> {
-		Err(gasometer
-			.revert("This method depends on https://github.com/paritytech/substrate/pull/9565"))
+		Err(revert(
+			"This method depends on https://github.com/paritytech/substrate/pull/9565",
+		))
 		// let mut gasometer = Gasometer::new(target_gas);
 
 		// // Bound check
@@ -261,24 +253,25 @@ where
 	// https://github.com/paritytech/substrate/pull/9565 which has been merged into Substrate
 	// master, but is not on the release branches that we are following
 	fn finished_referendum_info(
+		_handle: &mut impl PrecompileHandle,
 		_input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
 	) -> EvmResult<PrecompileOutput> {
-		Err(gasometer
-			.revert("This method depends on https://github.com/paritytech/substrate/pull/9565"))
+		Err(revert(
+			"This method depends on https://github.com/paritytech/substrate/pull/9565",
+		))
 	}
 
 	// The dispatchable wrappers are next. They dispatch a Substrate inner Call.
 	fn propose(
+		handle: &mut impl PrecompileHandle,
 		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
 		// Bound check
-		input.expect_arguments(gasometer, 2)?;
+		input.expect_arguments(2)?;
 
-		let proposal_hash = input.read::<H256>(gasometer)?.into();
-		let amount = input.read::<BalanceOf<Runtime>>(gasometer)?;
+		let proposal_hash = input.read::<H256>()?.into();
+		let amount = input.read::<BalanceOf<Runtime>>()?;
 
 		log::trace!(
 			target: "democracy-precompile",
@@ -291,26 +284,24 @@ where
 			value: amount,
 		};
 
-		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Stopped,
-			cost: gasometer.used_gas(),
 			output: Default::default(),
-			logs: Default::default(),
 		})
 	}
 
 	fn second(
+		handle: &mut impl PrecompileHandle,
 		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
 		// Bound check
-		input.expect_arguments(gasometer, 2)?;
+		input.expect_arguments(2)?;
 
-		let proposal = input.read(gasometer)?;
-		let seconds_upper_bound = input.read(gasometer)?;
+		let proposal = input.read()?;
+		let seconds_upper_bound = input.read()?;
 
 		log::trace!(
 			target: "democracy-precompile",
@@ -323,31 +314,29 @@ where
 			seconds_upper_bound,
 		};
 
-		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Stopped,
-			cost: gasometer.used_gas(),
 			output: Default::default(),
-			logs: Default::default(),
 		})
 	}
 
 	fn standard_vote(
+		handle: &mut impl PrecompileHandle,
 		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
 		// Bound check
-		input.expect_arguments(gasometer, 4)?;
+		input.expect_arguments(4)?;
 
-		let ref_index = input.read(gasometer)?;
-		let aye = input.read(gasometer)?;
-		let balance = input.read(gasometer)?;
+		let ref_index = input.read()?;
+		let aye = input.read()?;
+		let balance = input.read()?;
 		let conviction = input
-			.read::<u8>(gasometer)?
+			.read::<u8>()?
 			.try_into()
-			.map_err(|_| gasometer.revert("Conviction must be an integer in the range 0-6"))?;
+			.map_err(|_| revert("Conviction must be an integer in the range 0-6"))?;
 		let vote = AccountVote::Standard {
 			vote: Vote { aye, conviction },
 			balance,
@@ -361,25 +350,23 @@ where
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
 		let call = DemocracyCall::<Runtime>::vote { ref_index, vote };
 
-		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Stopped,
-			cost: gasometer.used_gas(),
 			output: Default::default(),
-			logs: Default::default(),
 		})
 	}
 
 	fn remove_vote(
+		handle: &mut impl PrecompileHandle,
 		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
 		// Bound check
-		input.expect_arguments(gasometer, 1)?;
+		input.expect_arguments(1)?;
 
-		let referendum_index = input.read(gasometer)?;
+		let referendum_index = input.read()?;
 
 		log::trace!(
 			target: "democracy-precompile",
@@ -392,31 +379,29 @@ where
 			index: referendum_index,
 		};
 
-		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Stopped,
-			cost: gasometer.used_gas(),
 			output: Default::default(),
-			logs: Default::default(),
 		})
 	}
 
 	fn delegate(
+		handle: &mut impl PrecompileHandle,
 		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
 		// Bound check
-		input.expect_arguments(gasometer, 3)?;
+		input.expect_arguments(3)?;
 
-		let to: H160 = input.read::<Address>(gasometer)?.into();
+		let to: H160 = input.read::<Address>()?.into();
 		let to = Runtime::AddressMapping::into_account_id(to);
 		let conviction = input
-			.read::<u8>(gasometer)?
+			.read::<u8>()?
 			.try_into()
-			.map_err(|_| gasometer.revert("Conviction must be an integer in the range 0-6"))?;
-		let balance = input.read(gasometer)?;
+			.map_err(|_| revert("Conviction must be an integer in the range 0-6"))?;
+		let balance = input.read()?;
 
 		log::trace!(target: "democracy-precompile",
 			"Delegating vote to {:?} with balance {:?} and {:?}",
@@ -430,39 +415,38 @@ where
 			balance,
 		};
 
-		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Stopped,
-			cost: gasometer.used_gas(),
 			output: Default::default(),
-			logs: Default::default(),
 		})
 	}
 
-	fn un_delegate(gasometer: &mut Gasometer, context: &Context) -> EvmResult<PrecompileOutput> {
+	fn un_delegate(
+		handle: &mut impl PrecompileHandle,
+		context: &Context,
+	) -> EvmResult<PrecompileOutput> {
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
 		let call = DemocracyCall::<Runtime>::undelegate {};
 
-		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Stopped,
-			cost: gasometer.used_gas(),
 			output: Default::default(),
-			logs: Default::default(),
 		})
 	}
 
 	fn unlock(
+		handle: &mut impl PrecompileHandle,
 		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
 		// Bound check
-		input.expect_arguments(gasometer, 1)?;
+		input.expect_arguments(1)?;
 
-		let target: H160 = input.read::<Address>(gasometer)?.into();
+		let target: H160 = input.read::<Address>()?.into();
 		let target = Runtime::AddressMapping::into_account_id(target);
 
 		log::trace!(
@@ -473,22 +457,20 @@ where
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
 		let call = DemocracyCall::<Runtime>::unlock { target };
 
-		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Stopped,
-			cost: gasometer.used_gas(),
 			output: Default::default(),
-			logs: Default::default(),
 		})
 	}
 
 	fn note_preimage(
+		handle: &mut impl PrecompileHandle,
 		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
-		let encoded_proposal: Vec<u8> = input.read::<Bytes>(gasometer)?.into();
+		let encoded_proposal: Vec<u8> = input.read::<Bytes>()?.into();
 
 		log::trace!(
 			target: "democracy-precompile",
@@ -498,22 +480,20 @@ where
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
 		let call = DemocracyCall::<Runtime>::note_preimage { encoded_proposal };
 
-		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Stopped,
-			cost: gasometer.used_gas(),
 			output: Default::default(),
-			logs: Default::default(),
 		})
 	}
 
 	fn note_imminent_preimage(
+		handle: &mut impl PrecompileHandle,
 		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
 		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
-		let encoded_proposal: Vec<u8> = input.read::<Bytes>(gasometer)?.into();
+		let encoded_proposal: Vec<u8> = input.read::<Bytes>()?.into();
 
 		log::trace!(
 			target: "democracy-precompile",
@@ -523,13 +503,11 @@ where
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
 		let call = DemocracyCall::<Runtime>::note_imminent_preimage { encoded_proposal };
 
-		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Stopped,
-			cost: gasometer.used_gas(),
 			output: Default::default(),
-			logs: Default::default(),
 		})
 	}
 }

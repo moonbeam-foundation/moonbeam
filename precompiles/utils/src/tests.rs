@@ -750,8 +750,8 @@ struct MultiLocation {
 }
 
 impl EvmData for MultiLocation {
-	fn read(reader: &mut EvmDataReader, gasometer: &mut Gasometer) -> EvmResult<Self> {
-		let (parents, interior) = reader.read(gasometer)?;
+	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
+		let (parents, interior) = reader.read()?;
 		Ok(MultiLocation { parents, interior })
 	}
 
@@ -797,16 +797,13 @@ fn read_complex_solidity_function() {
 		0100000000000000000000000000000000000000000000000000000000000000"
 	);
 
-	let mut gm = Gasometer::new(None);
-	let gm = &mut gm;
-
 	let (mut reader, selector) =
-		EvmDataReader::new_with_selector::<Action>(gm, &data).expect("to read selector");
+		EvmDataReader::new_with_selector::<Action>(&data).expect("to read selector");
 
 	assert_eq!(selector, Action::TransferMultiAsset);
 	// asset
 	assert_eq!(
-		reader.read::<MultiLocation>(gm).unwrap(),
+		reader.read::<MultiLocation>().unwrap(),
 		MultiLocation {
 			parents: 1,
 			interior: vec![
@@ -817,11 +814,11 @@ fn read_complex_solidity_function() {
 	);
 
 	// amount
-	assert_eq!(reader.read::<U256>(gm).unwrap(), 100u32.into());
+	assert_eq!(reader.read::<U256>().unwrap(), 100u32.into());
 
 	// destination
 	assert_eq!(
-		reader.read::<MultiLocation>(gm).unwrap(),
+		reader.read::<MultiLocation>().unwrap(),
 		MultiLocation {
 			parents: 1,
 			interior: vec![Bytes::from(
@@ -831,21 +828,18 @@ fn read_complex_solidity_function() {
 	);
 
 	// weight
-	assert_eq!(reader.read::<U256>(gm).unwrap(), 100u32.into());
+	assert_eq!(reader.read::<U256>().unwrap(), 100u32.into());
 }
 
 #[test]
 fn junctions_decoder_works() {
-	let mut gm = Gasometer::new(None);
-	let gm = &mut gm;
-
 	let writer_output = EvmDataWriter::new()
 		.write(Junctions::X1(Junction::OnlyChild))
 		.build();
 
 	let mut reader = EvmDataReader::new(&writer_output);
 	let parsed: Junctions = reader
-		.read::<Junctions>(gm)
+		.read::<Junctions>()
 		.expect("to correctly parse Junctions");
 
 	assert_eq!(parsed, Junctions::X1(Junction::OnlyChild));
@@ -856,7 +850,7 @@ fn junctions_decoder_works() {
 
 	let mut reader = EvmDataReader::new(&writer_output);
 	let parsed: Junctions = reader
-		.read::<Junctions>(gm)
+		.read::<Junctions>()
 		.expect("to correctly parse Junctions");
 
 	assert_eq!(
@@ -874,7 +868,7 @@ fn junctions_decoder_works() {
 
 	let mut reader = EvmDataReader::new(&writer_output);
 	let parsed: Junctions = reader
-		.read::<Junctions>(gm)
+		.read::<Junctions>()
 		.expect("to correctly parse Junctions");
 
 	assert_eq!(
@@ -889,14 +883,11 @@ fn junctions_decoder_works() {
 
 #[test]
 fn junction_decoder_works() {
-	let mut gm = Gasometer::new(None);
-	let gm = &mut gm;
-
 	let writer_output = EvmDataWriter::new().write(Junction::Parachain(0)).build();
 
 	let mut reader = EvmDataReader::new(&writer_output);
 	let parsed: Junction = reader
-		.read::<Junction>(gm)
+		.read::<Junction>()
 		.expect("to correctly parse Junctions");
 
 	assert_eq!(parsed, Junction::Parachain(0));
