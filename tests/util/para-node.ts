@@ -94,9 +94,9 @@ export interface NodePorts {
   wsPort: number;
 }
 
-const RUNTIME_DIRECTORY = "runtimes";
-const BINARY_DIRECTORY = "binaries";
-const SPECS_DIRECTORY = "specs";
+const RUNTIME_DIRECTORY = process.env.RUNTIME_DIRECTORY || "runtimes";
+const BINARY_DIRECTORY = process.env.BINARY_DIRECTORY || "binaries";
+const SPECS_DIRECTORY = process.env.SPECS_DIRECTORY || "specs";
 
 // Downloads the runtime and return the filepath
 export async function getRuntimeWasm(
