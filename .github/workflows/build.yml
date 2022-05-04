@@ -442,7 +442,12 @@ jobs:
           npm install
           cd ..
           docker run \
+            -e OVERRIDE_RUNTIME_PATH='./runtimes' \
+            -e BINARY_PATH='../build/moonbeam' \
+            -e MOONBEAM_LOG='info' \
+            -e RELAY_BINARY_PATH='../build/polkadot' \
             -v $(pwd):/moonbeam \
+            -u `id -u $USER` \
             -w /moonbeam/tests \
             node node_modules/.bin/mocha \
               --exit -r ts-node/register 'para-tests/**/test-*.ts'
