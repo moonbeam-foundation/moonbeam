@@ -1652,7 +1652,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-consensus-common"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.18#76cf464eeee1c276277d4dc53ed9ea77673165f7"
+source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.18#7b64a321ac086976cf9db94e382bd38f513fb549"
 dependencies = [
  "async-trait",
  "cumulus-relay-chain-interface",
@@ -1870,7 +1870,7 @@ dependencies = [
 [[package]]
 name = "cumulus-primitives-core"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.18#76cf464eeee1c276277d4dc53ed9ea77673165f7"
+source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.18#7b64a321ac086976cf9db94e382bd38f513fb549"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -1886,7 +1886,7 @@ dependencies = [
 [[package]]
 name = "cumulus-primitives-parachain-inherent"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.18#76cf464eeee1c276277d4dc53ed9ea77673165f7"
+source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.18#7b64a321ac086976cf9db94e382bd38f513fb549"
 dependencies = [
  "async-trait",
  "cumulus-primitives-core",
@@ -1967,7 +1967,7 @@ dependencies = [
 [[package]]
 name = "cumulus-relay-chain-interface"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.18#76cf464eeee1c276277d4dc53ed9ea77673165f7"
+source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.18#7b64a321ac086976cf9db94e382bd38f513fb549"
 dependencies = [
  "async-trait",
  "cumulus-primitives-core",
@@ -2017,7 +2017,7 @@ dependencies = [
 [[package]]
 name = "cumulus-test-relay-sproof-builder"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.18#76cf464eeee1c276277d4dc53ed9ea77673165f7"
+source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.18#7b64a321ac086976cf9db94e382bd38f513fb549"
 dependencies = [
  "cumulus-primitives-core",
  "parity-scale-codec",
@@ -6462,7 +6462,7 @@ dependencies = [
 [[package]]
 name = "nimbus-consensus"
 version = "0.9.0"
-source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.18#3a7e7fc50e9146ef02b15b97514fcbc34613037a"
+source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.18#a35755930e1dde3456e95d981cf7cbe5779c1795"
 dependencies = [
  "async-trait",
  "cumulus-client-consensus-common",
@@ -6493,7 +6493,7 @@ dependencies = [
 [[package]]
 name = "nimbus-primitives"
 version = "0.9.0"
-source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.18#3a7e7fc50e9146ef02b15b97514fcbc34613037a"
+source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.18#a35755930e1dde3456e95d981cf7cbe5779c1795"
 dependencies = [
  "async-trait",
  "frame-support",
@@ -6880,7 +6880,7 @@ dependencies = [
 [[package]]
 name = "pallet-author-inherent"
 version = "0.9.0"
-source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.18#3a7e7fc50e9146ef02b15b97514fcbc34613037a"
+source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.18#a35755930e1dde3456e95d981cf7cbe5779c1795"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -6946,7 +6946,7 @@ dependencies = [
 [[package]]
 name = "pallet-author-slot-filter"
 version = "0.9.0"
-source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.18#3a7e7fc50e9146ef02b15b97514fcbc34613037a"
+source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.18#a35755930e1dde3456e95d981cf7cbe5779c1795"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
