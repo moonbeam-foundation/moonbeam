@@ -441,6 +441,26 @@ jobs:
           cd ../tests
           npm install
           cd ..
+
+          # Retrieve binary to avoid para-node script to rely on docker
+          mkdir -p build
+          localVersion=$(grep 'spec_version: [0-9]*' runtime/moonbase/src/lib.rs | grep -o '[0-9]*')
+          baseRuntime=$(git tag -l -n 'runtime-[0-9]*' | \
+            cut -d' ' -f 1 | cut -d'-' -f 2 | \
+            sed "1 i ${localVersion}" | \
+            sort -n -r | \
+            uniq | \
+            grep -A1 "${localVersion}" | \
+            tail -1)
+          rev=$(git rev-list -1 runtime-$baseRuntime)
+          sha8=${rev:0:8}
+          dockerImage=$(purestake/moonbeam:sha-${sha8})
+          binaryPath=build/moonbeam-${sha8}
+
+          docker create --pull always --name moonbeam-tmp ${dockerImage} && \
+          docker cp moonbeam-tmp:/moonbeam/moonbeam ${binaryPath} && \
+          docker rm moonbeam-tmp
+
           docker run \
             -e OVERRIDE_RUNTIME_PATH='./runtimes' \
             -e BINARY_PATH='../build/moonbeam' \
