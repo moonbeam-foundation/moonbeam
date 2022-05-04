@@ -454,7 +454,7 @@ jobs:
             tail -1)
           rev=$(git rev-list -1 runtime-$baseRuntime)
           sha8=${rev:0:8}
-          dockerImage=$(purestake/moonbeam:sha-${sha8})
+          dockerImage=purestake/moonbeam:sha-${sha8}
           binaryPath=build/moonbeam-${sha8}
 
           docker create --pull always --name moonbeam-tmp ${dockerImage} && \
