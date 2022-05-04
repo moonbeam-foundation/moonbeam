@@ -461,6 +461,8 @@ jobs:
           docker cp moonbeam-tmp:/moonbeam/moonbeam ${binaryPath} && \
           docker rm moonbeam-tmp
 
+          tmpFolder=$(mktemp)
+
           docker run \
             -e OVERRIDE_RUNTIME_PATH='./runtimes' \
             -e BINARY_PATH='../build/moonbeam' \
@@ -470,10 +472,13 @@ jobs:
             -e BINARY_DIRECTORY='/tmp/binaries' \
             -e SPECS_DIRECTORY='/tmp/specs' \
             -v $(pwd):/moonbeam \
+            -v $tmpFolder:/tmp \
             -u `id -u $USER` \
             -w /moonbeam/tests \
             node node_modules/.bin/mocha \
               --exit -r ts-node/register 'para-tests/**/test-*.ts'
+
+          rm -rf $tmpFolder
 
   docker-parachain:
     runs-on: ubuntu-latest
