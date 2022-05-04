@@ -38,13 +38,14 @@ use xcm::latest::{
 	Error as XcmError,
 	Junction::{AccountKey20, GeneralIndex, PalletInstance, Parachain},
 	Junctions, MultiAsset, MultiLocation, NetworkId, Result as XcmResult, SendResult, SendXcm, Xcm,
+	MultiAssets, XcmContext, XcmHash, SendError
 };
 
 use xcm_builder::FixedWeightBounds;
 
 use scale_info::TypeInfo;
 use xcm_executor::{
-	traits::{InvertLocation, TransactAsset, WeightTrader},
+	traits::{TransactAsset, WeightTrader},
 	Assets,
 };
 
@@ -153,7 +154,7 @@ impl sp_runtime::traits::Convert<TestAccount, MultiLocation> for AccountIdToMult
 		MultiLocation::new(
 			1,
 			Junctions::X1(AccountKey20 {
-				network: NetworkId::Any,
+				network: None,
 				key: as_h160.as_fixed_bytes().clone(),
 			}),
 		)
@@ -314,21 +315,28 @@ impl<Origin: OriginTrait> EnsureOrigin<Origin> for ConvertOriginToLocal {
 		Origin::root()
 	}
 }
-
 pub struct DoNothingRouter;
 impl SendXcm for DoNothingRouter {
-	fn send_xcm(_dest: impl Into<MultiLocation>, _msg: Xcm<()>) -> SendResult {
-		Ok(())
+	type Ticket = ();
+	fn validate(_dest: &mut Option<MultiLocation>, _msg: &mut Option<Xcm<()>>) -> SendResult<()> {
+		Ok(((), MultiAssets::new()))
+	}
+	fn deliver(_: ()) -> Result<XcmHash, SendError> {
+		Ok([0; 32])
 	}
 }
 
 pub struct DummyAssetTransactor;
 impl TransactAsset for DummyAssetTransactor {
-	fn deposit_asset(_what: &MultiAsset, _who: &MultiLocation) -> XcmResult {
+	fn deposit_asset(_what: &MultiAsset, _who: &MultiLocation, _context: &XcmContext) -> XcmResult {
 		Ok(())
 	}
 
-	fn withdraw_asset(_what: &MultiAsset, _who: &MultiLocation) -> Result<Assets, XcmError> {
+	fn withdraw_asset(
+		_what: &MultiAsset,
+		_who: &MultiLocation,
+		_maybe_context: Option<&XcmContext>,
+	) -> Result<Assets, XcmError> {
 		Ok(Assets::default())
 	}
 }
@@ -344,17 +352,6 @@ impl WeightTrader for DummyWeightTrader {
 	}
 }
 
-pub struct InvertNothing;
-impl InvertLocation for InvertNothing {
-	fn invert_location(_: &MultiLocation) -> sp_std::result::Result<MultiLocation, ()> {
-		Ok(MultiLocation::here())
-	}
-
-	fn ancestry() -> MultiLocation {
-		MultiLocation::here()
-	}
-}
-
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, scale_info::TypeInfo)]
 pub enum CurrencyId {
 	SelfReserve,
@@ -367,15 +364,16 @@ parameter_types! {
 	pub const BaseXcmWeight: Weight = 1000;
 	pub const RelayNetwork: NetworkId = NetworkId::Polkadot;
 
-	pub SelfLocation: MultiLocation = (1, Junctions::X1(Parachain(ParachainId::get().into()))).into();
+	pub SelfLocation: MultiLocation = MultiLocation::new(1, Junctions::X1(Parachain(ParachainId::get().into())));
 
-	pub SelfReserve: MultiLocation = (
+	pub SelfReserve: MultiLocation = MultiLocation::new(
 		1,
 		Junctions::X2(
 			Parachain(ParachainId::get().into()),
 			PalletInstance(<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8)
-		)).into();
+		));
 	pub MaxInstructions: u32 = 100;
+	pub const UniversalLocation: xcm::latest::InteriorMultiLocation = xcm::latest::Junctions::Here;
 }
 
 impl xcm_transactor::Config for Runtime {
@@ -389,7 +387,7 @@ impl xcm_transactor::Config for Runtime {
 	type CurrencyIdToMultiLocation = CurrencyIdToMultiLocation;
 	type SelfLocation = SelfLocation;
 	type Weigher = FixedWeightBounds<BaseXcmWeight, Call, MaxInstructions>;
-	type LocationInverter = InvertNothing;
+	type UniversalLocation = UniversalLocation;
 	type BaseXcmWeight = BaseXcmWeight;
 	type XcmSender = DoNothingRouter;
 	type AssetTransactor = DummyAssetTransactor;

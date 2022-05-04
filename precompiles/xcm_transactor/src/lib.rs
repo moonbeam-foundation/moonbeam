@@ -193,7 +193,7 @@ where
 		let call = xcm_transactor::Call::<Runtime>::transact_through_derivative_multilocation {
 			dest: transactor,
 			index,
-			fee_location: Box::new(xcm::VersionedMultiLocation::V1(fee_multilocation)),
+			fee_location: Box::new(xcm::VersionedMultiLocation::V3(fee_multilocation)),
 			dest_weight: weight,
 			inner_call: inner_call.0,
 		};
