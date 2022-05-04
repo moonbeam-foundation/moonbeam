@@ -54,7 +54,8 @@ describeSmokeSuite(`Verify XCM weight fees for relay`, { wssUrl, relayWssUrl }, 
       ).to.be.true;
     }
     debug(
-      `Verified feePerSecond for ${transactInfos.length} transactInfos within relay base weight range`
+      `Verified feePerSecond for ${transactInfos.length} transactInfos ` +
+        `within relay base weight range`
     );
   });
 });
