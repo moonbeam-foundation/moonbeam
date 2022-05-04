@@ -1069,6 +1069,52 @@ fn execute_leave_candidates_removes_candidate_state() {
 }
 
 #[test]
+fn execute_leave_candidates_removes_pending_delegation_requests() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 10), (2, 15)])
+		.with_candidates(vec![(1, 10)])
+		.with_delegations(vec![(2, 1, 15)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
+				Origin::signed(2),
+				1,
+				5
+			));
+			let state = ParachainStaking::delegation_scheduled_requests(&1);
+			assert_eq!(
+				state,
+				vec![ScheduledRequest {
+					delegator: 2,
+					when_executable: 3,
+					action: DelegationAction::Decrease(5),
+				}],
+			);
+			assert_ok!(ParachainStaking::schedule_leave_candidates(
+				Origin::signed(1),
+				1u32
+			));
+			// candidate state is not immediately removed
+			let candidate_state =
+				ParachainStaking::candidate_info(1).expect("just left => still exists");
+			assert_eq!(candidate_state.bond, 10u128);
+			roll_to(10);
+			assert_ok!(ParachainStaking::execute_leave_candidates(
+				Origin::signed(1),
+				1,
+				1
+			));
+			assert!(ParachainStaking::candidate_state(1).is_none());
+			assert!(
+				!ParachainStaking::delegation_scheduled_requests(&1)
+					.iter()
+					.any(|x| x.delegator == 2),
+				"delegation request not removed"
+			)
+		});
+}
+
+#[test]
 fn cannot_execute_leave_candidates_before_delay() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 10)])
@@ -2091,6 +2137,47 @@ fn execute_leave_delegators_removes_delegator_state() {
 				1
 			));
 			assert!(ParachainStaking::delegator_state(2).is_none());
+		});
+}
+
+#[test]
+fn execute_leave_delegators_removes_pending_delegation_requests() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 10), (2, 15)])
+		.with_candidates(vec![(1, 10)])
+		.with_delegations(vec![(2, 1, 15)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
+				Origin::signed(2),
+				1,
+				5
+			));
+			let state = ParachainStaking::delegation_scheduled_requests(&1);
+			assert_eq!(
+				state,
+				vec![ScheduledRequest {
+					delegator: 2,
+					when_executable: 3,
+					action: DelegationAction::Decrease(5),
+				}],
+			);
+			assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(
+				2
+			)));
+			roll_to(10);
+			assert_ok!(ParachainStaking::execute_leave_delegators(
+				Origin::signed(2),
+				2,
+				1
+			));
+			assert!(ParachainStaking::delegator_state(2).is_none());
+			assert!(
+				!ParachainStaking::delegation_scheduled_requests(&1)
+					.iter()
+					.any(|x| x.delegator == 2),
+				"delegation request not removed"
+			)
 		});
 }
 
