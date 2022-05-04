@@ -972,8 +972,7 @@ pub mod pallet {
 						&candidate,
 						&bond.owner,
 						&mut delegator,
-					)
-					.ok(); // ignore DNE error
+					);
 
 					if remaining.is_zero() {
 						<DelegatorState<T>>::remove(&bond.owner);
@@ -1263,8 +1262,7 @@ pub mod pallet {
 					);
 				}
 
-				Self::delegation_remove_request_with_state(&bond.owner, &delegator, &mut state)
-					.ok(); // ignore DNE error
+				Self::delegation_remove_request_with_state(&bond.owner, &delegator, &mut state);
 			}
 			<DelegatorState<T>>::remove(&delegator);
 			Self::deposit_event(Event::DelegatorLeft {
