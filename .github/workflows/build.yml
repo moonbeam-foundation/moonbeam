@@ -462,17 +462,18 @@ jobs:
           docker rm moonbeam-tmp
 
           tmpFolder=$(mktemp)
+          chmod uog+rwX $tmpFolder
 
           docker run \
             -e OVERRIDE_RUNTIME_PATH='./runtimes' \
             -e BINARY_PATH='../build/moonbeam' \
             -e MOONBEAM_LOG='info' \
             -e RELAY_BINARY_PATH='../build/polkadot' \
-            -e RUNTIME_DIRECTORY='/tmp/runtimes' \
-            -e BINARY_DIRECTORY='/tmp/binaries' \
-            -e SPECS_DIRECTORY='/tmp/specs' \
+            -e RUNTIME_DIRECTORY='/moontmp/runtimes' \
+            -e BINARY_DIRECTORY='/moontmp/binaries' \
+            -e SPECS_DIRECTORY='/moontmp/specs' \
             -v $(pwd):/moonbeam \
-            -v $tmpFolder:/tmp \
+            -v $tmpFolder:/moontmp \
             -u `id -u $USER` \
             -w /moonbeam/tests \
             node node_modules/.bin/mocha \
