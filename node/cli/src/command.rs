@@ -16,7 +16,10 @@
 
 //! This module constructs and executes the appropriate service components for the given subcommand
 
-use crate::cli::{Cli, RelayChainCli, RunCmd, Subcommand};
+use crate::{
+	cli::{Cli, RelayChainCli, RunCmd, Subcommand},
+	command_helper::{inherent_benchmark_data, BenchmarkExtrinsicBuilder},
+};
 use cli_opt::{EthApi, RpcConfig};
 use cumulus_client_service::genesis::generate_genesis_block;
 use cumulus_primitives_core::ParaId;
@@ -34,7 +37,7 @@ use sc_service::config::{BasePath, PrometheusConfig};
 use service::{chain_spec, frontier_database_dir, IdentifyVariant};
 use sp_core::hexdisplay::HexDisplay;
 use sp_runtime::traits::Block as _;
-use std::{io::Write, net::SocketAddr};
+use std::{io::Write, net::SocketAddr, sync::Arc};
 
 fn load_spec(
 	id: &str,
@@ -659,7 +662,39 @@ pub fn run() -> Result<()> {
 						_ => panic!("invalid chain spec"),
 					}
 				}
-				BenchmarkCmd::Overhead(_) => Err("Unsupported benchmarking command".into()),
+				BenchmarkCmd::Overhead(cmd) => {
+					let chain_spec = &runner.config().chain_spec;
+					match chain_spec {
+						#[cfg(feature = "moonriver-native")]
+						spec if spec.is_moonriver() => {
+							return runner.sync_run(|mut config| {
+								let params = service::new_partial::<
+									service::moonriver_runtime::RuntimeApi,
+									service::MoonriverExecutor,
+								>(&mut config, false)?;
+								let ext_builder = BenchmarkExtrinsicBuilder::new(
+									params.client.clone());
+
+								cmd.run(
+									config,
+									params.client,
+									inherent_benchmark_data()?,
+									Arc::new(ext_builder),
+								)
+							})
+						}
+						#[cfg(feature = "moonbeam-native")]
+						spec if spec.is_moonbeam() => {
+							panic!("fixme");
+						}
+						#[cfg(feature = "moonbase-native")]
+						_ => {
+							panic!("fixme");
+						}
+						#[cfg(not(feature = "moonbase-native"))]
+						_ => panic!("invalid chain spec"),
+					}
+				}
 			}
 		}
 		#[cfg(feature = "try-runtime")]

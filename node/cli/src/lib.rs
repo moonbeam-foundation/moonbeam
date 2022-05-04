@@ -15,6 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 mod cli;
 mod command;
+mod command_helper;
 pub use cli::*;
 pub use command::*;
 pub use sc_cli::{Error, Result};

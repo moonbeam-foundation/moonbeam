@@ -16,13 +16,19 @@ service = { package = "moonbeam-service", path = "../service", default-features 
 
 # Substrate
 frame-benchmarking-cli = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.19" }
+frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.19" }
+pallet-transaction-payment = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.19" }
 sc-cli = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.19" }
+sc-client-api = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.19" }
 sc-finality-grandpa = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.19" }
 sc-service = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.19" }
 sc-telemetry = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.19" }
 sc-tracing = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.19" }
 sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.19" }
+sp-inherents = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.19" }
+sp-keyring = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.19" }
 sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.19" }
+sp-timestamp = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.19" }
 substrate-prometheus-endpoint = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.19" }
 try-runtime-cli = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.19", optional = true }
 
