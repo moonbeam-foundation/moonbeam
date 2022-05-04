@@ -22,8 +22,10 @@ use frame_support::pallet;
 
 pub use pallet::*;
 
+pub mod instant;
 pub mod traits;
 pub mod types;
+pub use instant::*;
 pub use traits::*;
 pub use types::*;
 
@@ -296,48 +298,6 @@ pub mod pallet {
 			<Requests<T>>::remove(id);
 			Self::deposit_event(Event::RequestExpirationExecuted { id });
 			Ok(())
-		}
-		/// TODO: add comment for all precompile user functions, called by ETH tx through precompile
-		pub fn instant_babe_one_epoch_ago_randomness(
-			contract_address: T::AccountId,
-			salt: T::Hash,
-		) -> DispatchResult {
-			let raw_randomness = <OneEpochAgoRandomness<T>>::get()
-				.ok_or(Error::<T>::RequestedRandomnessNotCorrectlyUpdated)?;
-			let randomness = Self::concat_and_hash(raw_randomness, salt);
-			T::RandomnessSender::send_randomness(contract_address, randomness);
-			Ok(())
-		}
-		pub fn instant_babe_two_epochs_ago_randomness(
-			contract_address: T::AccountId,
-			salt: T::Hash,
-		) -> DispatchResult {
-			let raw_randomness = <TwoEpochsAgoRandomness<T>>::get()
-				.ok_or(Error::<T>::RequestedRandomnessNotCorrectlyUpdated)?;
-			let randomness = Self::concat_and_hash(raw_randomness, salt);
-			T::RandomnessSender::send_randomness(contract_address, randomness);
-			Ok(())
-		}
-		pub fn instant_babe_current_block_randomness(
-			contract_address: T::AccountId,
-			salt: T::Hash,
-		) -> DispatchResult {
-			let raw_randomness = <CurrentBlockRandomness<T>>::get()
-				.ok_or(Error::<T>::RequestedRandomnessNotCorrectlyUpdated)?;
-			let randomness = Self::concat_and_hash(raw_randomness, salt);
-			T::RandomnessSender::send_randomness(contract_address, randomness);
-			Ok(())
-		}
-		pub fn instant_local_randomness(
-			contract_address: T::AccountId,
-			salt: T::Hash,
-		) -> DispatchResult {
-			// TODO: make this
-			let raw_randomness = <CurrentBlockRandomness<T>>::get()
-				.ok_or(Error::<T>::RequestedRandomnessNotCorrectlyUpdated)?;
-			let randomness = Self::concat_and_hash(raw_randomness, salt);
-			T::RandomnessSender::send_randomness(contract_address, randomness);
-			Err(Error::<T>::NotYetImplemented.into())
 		}
 	}
 }
