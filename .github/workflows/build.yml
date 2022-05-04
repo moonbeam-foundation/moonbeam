@@ -461,7 +461,7 @@ jobs:
           docker cp moonbeam-tmp:/moonbeam/moonbeam ${binaryPath} && \
           docker rm moonbeam-tmp
 
-          tmpFolder=$(mktemp)
+          tmpFolder=$(mktemp -d)
           chmod uog+rwX $tmpFolder
 
           docker run \
