@@ -18,10 +18,10 @@
 //!
 
 use super::{
-	AccountId, AssetId, AssetManager, Assets, Balance, Balances, Call, DealWithFees, Event,
-	LocalAssets, Origin, ParachainInfo, ParachainSystem, PolkadotXcm, Runtime, Treasury,
-	WeightToFee, XcmpQueue, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, MAXIMUM_BLOCK_WEIGHT,
-	AllPalletsWithSystem
+	AccountId, AllPalletsWithSystem, AssetId, AssetManager, Assets, Balance, Balances, Call,
+	DealWithFees, Event, LocalAssets, Origin, ParachainInfo, ParachainSystem, PolkadotXcm, Runtime,
+	Treasury, WeightToFee, XcmpQueue, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	MAXIMUM_BLOCK_WEIGHT,
 };
 
 use pallet_evm_precompile_assets_erc20::AccountIdAssetIdConversion;
@@ -29,7 +29,7 @@ use sp_runtime::traits::Hash as THash;
 
 use frame_support::{
 	parameter_types,
-	traits::{Everything, Nothing, PalletInfoAccess, ConstU32},
+	traits::{ConstU32, Everything, Nothing, PalletInfoAccess},
 	weights::Weight,
 };
 
@@ -40,9 +40,8 @@ use xcm_builder::{
 	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
 	AllowTopLevelPaidExecutionFrom, AsPrefixedGeneralIndex, ConvertedConcreteId,
 	CurrencyAdapter as XcmCurrencyAdapter, EnsureXcmOrigin, FixedWeightBounds, FungiblesAdapter,
-	ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
-	SiblingParachainConvertsVia, SignedAccountKey20AsNative, SovereignSignedViaLocation,
-	TakeWeightCredit, UsingComponents,
+	ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
+	SignedAccountKey20AsNative, SovereignSignedViaLocation, TakeWeightCredit, UsingComponents,
 };
 
 use xcm::latest::prelude::*;
@@ -290,7 +289,6 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type FeeManager = ();
 	type MessageExporter = ();
 	type UniversalAliases = Nothing;
-
 }
 
 type XcmExecutor = xcm_executor::XcmExecutor<XcmExecutorConfig>;

@@ -18,7 +18,7 @@
 
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Everything, Nothing, ConstU32},
+	traits::{ConstU32, Everything, Nothing},
 	weights::Weight,
 };
 use sp_core::H256;
@@ -31,8 +31,8 @@ use xcm_builder::{
 	AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
 	AllowTopLevelPaidExecutionFrom, ChildParachainAsNative, ChildParachainConvertsVia,
 	ChildSystemParachainAsSuperuser, CurrencyAdapter as XcmCurrencyAdapter, FixedRateOfFungible,
-	FixedWeightBounds, IsConcrete, SignedAccountId32AsNative,
-	SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit,
+	FixedWeightBounds, IsConcrete, SignedAccountId32AsNative, SignedToAccountId32,
+	SovereignSignedViaLocation, TakeWeightCredit,
 };
 use xcm_executor::{Config, XcmExecutor};
 pub type AccountId = AccountId32;
@@ -101,7 +101,7 @@ impl configuration::Config for Runtime {
 }
 
 parameter_types! {
-	pub const KsmLocation: MultiLocation = Here.into();
+	pub const KsmLocation: MultiLocation = MultiLocation::here();
 	pub const KusamaNetwork: NetworkId = NetworkId::Kusama;
 	/// Since Kusama is a top-level relay-chain with its own consensus, it's just our network ID.
 	pub UniversalLocation: InteriorMultiLocation = KusamaNetwork::get().into();

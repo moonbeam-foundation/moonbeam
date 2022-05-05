@@ -37,8 +37,8 @@ use sp_runtime::{
 use xcm::latest::{
 	Error as XcmError,
 	Junction::{AccountKey20, GeneralIndex, PalletInstance, Parachain},
-	Junctions, MultiAsset, MultiLocation, NetworkId, Result as XcmResult, SendResult, SendXcm, Xcm,
-	MultiAssets, XcmContext, XcmHash, SendError
+	Junctions, MultiAsset, MultiAssets, MultiLocation, NetworkId, Result as XcmResult, SendError,
+	SendResult, SendXcm, Xcm, XcmContext, XcmHash,
 };
 
 use xcm_builder::FixedWeightBounds;

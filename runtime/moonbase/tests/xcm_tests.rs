@@ -118,7 +118,6 @@ fn send_relay_asset_to_relay() {
 		));
 	});
 
-	
 	let beneficiary: MultiLocation = Junction::AccountKey20 {
 		network: None,
 		key: PARAALICE,
@@ -688,11 +687,13 @@ fn receive_relay_asset_with_trader() {
 		));
 	});
 
-	let dest: MultiLocation = Junction::AccountKey20 {
+	let beneficiary: MultiLocation = Junction::AccountKey20 {
 		network: None,
 		key: PARAALICE,
 	}
 	.into();
+
+	let dest: MultiLocation = X1(Parachain(1)).into();
 	// We are sending 100 tokens from relay.
 	// Amount spent in fees is Units per second * weight / 1_000_000_000_000 (weight per second)
 	// weight is 4 since we are executing 4 instructions with a unitweightcost of 1.
@@ -702,8 +703,8 @@ fn receive_relay_asset_with_trader() {
 	Relay::execute_with(|| {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::Origin::signed(RELAYALICE),
-			Box::new(Parachain(1).into().into()),
 			Box::new(VersionedMultiLocation::V3(dest).clone().into()),
+			Box::new(VersionedMultiLocation::V3(beneficiary).clone().into()),
 			Box::new((Here, 100).into()),
 			0,
 		));
@@ -872,11 +873,13 @@ fn error_when_not_paying_enough() {
 		decimals: 12,
 	};
 
-	let dest: MultiLocation = Junction::AccountKey20 {
+	let beneficiary: MultiLocation = Junction::AccountKey20 {
 		network: None,
 		key: PARAALICE,
 	}
 	.into();
+
+	let dest: MultiLocation = X1(Parachain(1)).into();
 	// This time we are gonna put a rather high number of units per second
 	// we know later we will divide by 1e12
 	// Lets put 1e6 as units per second
@@ -902,8 +905,8 @@ fn error_when_not_paying_enough() {
 	Relay::execute_with(|| {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::Origin::signed(RELAYALICE),
-			Box::new(Parachain(1).into().into()),
 			Box::new(VersionedMultiLocation::V3(dest).clone().into()),
+			Box::new(VersionedMultiLocation::V3(beneficiary).clone().into()),
 			Box::new((Here, 5).into()),
 			0,
 		));
@@ -956,18 +959,20 @@ fn transact_through_derivative_multilocation() {
 
 	// Let's construct the call to know how much weight it is going to require
 
-	let dest: MultiLocation = AccountKey20 {
+	let beneficiary: MultiLocation = Junction::AccountKey20 {
 		network: None,
 		key: PARAALICE,
 	}
 	.into();
+
+	let dest: MultiLocation = X1(Parachain(1)).into();
 	Relay::execute_with(|| {
 		// 4000000000 transact + 3000 correspond to 4000003000 tokens. 100 more for the transfer call
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::Origin::signed(RELAYALICE),
-			Box::new(Parachain(1).into().into()),
 			Box::new(VersionedMultiLocation::V3(dest).clone().into()),
-			Box::new((Here, 4000003100).into()),
+			Box::new(VersionedMultiLocation::V3(beneficiary).clone().into()),
+			Box::new((Here, 4000003100u128).into()),
 			0,
 		));
 	});
@@ -1107,17 +1112,19 @@ fn transact_through_sovereign() {
 		));
 	});
 
-	let dest: MultiLocation = AccountKey20 {
+	let beneficiary: MultiLocation = Junction::AccountKey20 {
 		network: None,
 		key: PARAALICE,
 	}
 	.into();
+
+	let dest: MultiLocation = X1(Parachain(1)).into();
 	Relay::execute_with(|| {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::Origin::signed(RELAYALICE),
-			Box::new(Parachain(1).into().into()),
 			Box::new(VersionedMultiLocation::V3(dest).clone().into()),
-			Box::new((Here, 4000003100).into()),
+			Box::new(VersionedMultiLocation::V3(beneficiary).clone().into()),
+			Box::new((Here, 4000003100u128).into()),
 			0,
 		));
 	});
@@ -1252,6 +1259,7 @@ fn test_automatic_versioning_on_runtime_upgrade_with_relay() {
 	// This is irrelevant, nothing will be done with this message,
 	// but we need to pass a message as an argument to trigger the storage change
 	let mock_message: Xcm<()> = Xcm(vec![QueryResponse {
+		querier: None,
 		query_id: 0,
 		response,
 		max_weight: 0,
@@ -1259,11 +1267,13 @@ fn test_automatic_versioning_on_runtime_upgrade_with_relay() {
 	// The router is mocked, and we cannot use WrapVersion in ChildParachainRouter. So we will force
 	// it directly here
 	// Actually send relay asset to parachain
-	let dest: MultiLocation = AccountKey20 {
+	let beneficiary: MultiLocation = Junction::AccountKey20 {
 		network: None,
 		key: PARAALICE,
 	}
 	.into();
+
+	let dest: MultiLocation = X1(Parachain(1)).into();
 
 	Relay::execute_with(|| {
 		// This sets the default version, for not known destinations
@@ -1283,9 +1293,9 @@ fn test_automatic_versioning_on_runtime_upgrade_with_relay() {
 		// Transfer assets. Since it is an unknown destination, it will query for version
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::Origin::signed(RELAYALICE),
-			Box::new(Parachain(1).into().into()),
 			Box::new(VersionedMultiLocation::V3(dest).clone().into()),
-			Box::new((Here, 123).into()),
+			Box::new(VersionedMultiLocation::V3(beneficiary).clone().into()),
+			Box::new((Here, 123u128).into()),
 			0,
 		));
 
@@ -1317,6 +1327,7 @@ fn test_automatic_versioning_on_runtime_upgrade_with_relay() {
 			interior: Here,
 		},
 		2,
+		MultiAssets::default(),
 	)
 	.into();
 
@@ -1368,6 +1379,7 @@ fn test_automatic_versioning_on_runtime_upgrade_with_para_b() {
 	// This is irrelevant, nothing will be done with this message,
 	// but we need to pass a message as an argument to trigger the storage change
 	let mock_message: Xcm<()> = Xcm(vec![QueryResponse {
+		querier: None,
 		query_id: 0,
 		response,
 		max_weight: 0,
@@ -1467,6 +1479,7 @@ fn test_automatic_versioning_on_runtime_upgrade_with_para_b() {
 			interior: X1(Parachain(1)),
 		},
 		2,
+		MultiAssets::default(),
 	)
 	.into();
 
@@ -1531,16 +1544,22 @@ fn receive_asset_with_no_sufficients_not_possible_if_non_existent_account() {
 	});
 
 	// Actually send relay asset to parachain
-	let dest: MultiLocation = AccountKey20 {
+	let beneficiary: MultiLocation = Junction::AccountKey20 {
 		network: None,
 		key: fresh_account,
 	}
 	.into();
+
+	let dest: MultiLocation = X1(Parachain(1)).into();
 	Relay::execute_with(|| {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::Origin::signed(RELAYALICE),
-			Box::new(Parachain(1).into().into()),
 			Box::new(VersionedMultiLocation::V3(dest.clone()).clone().into()),
+			Box::new(
+				VersionedMultiLocation::V3(beneficiary.clone())
+					.clone()
+					.into()
+			),
 			Box::new((Here, 123).into()),
 			0,
 		));
@@ -1565,8 +1584,12 @@ fn receive_asset_with_no_sufficients_not_possible_if_non_existent_account() {
 	Relay::execute_with(|| {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::Origin::signed(RELAYALICE),
-			Box::new(Parachain(1).into().into()),
 			Box::new(VersionedMultiLocation::V3(dest).clone().into()),
+			Box::new(
+				VersionedMultiLocation::V3(beneficiary.clone())
+					.clone()
+					.into()
+			),
 			Box::new((Here, 123).into()),
 			0,
 		));
@@ -1609,16 +1632,22 @@ fn receive_assets_with_sufficients_true_allows_non_funded_account_to_receive_ass
 	});
 
 	// Actually send relay asset to parachain
-	let dest: MultiLocation = AccountKey20 {
+	let beneficiary: MultiLocation = Junction::AccountKey20 {
 		network: None,
 		key: fresh_account,
 	}
 	.into();
+
+	let dest: MultiLocation = X1(Parachain(1)).into();
 	Relay::execute_with(|| {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::Origin::signed(RELAYALICE),
-			Box::new(Parachain(1).into().into()),
 			Box::new(VersionedMultiLocation::V3(dest.clone()).clone().into()),
+			Box::new(
+				VersionedMultiLocation::V3(beneficiary.clone())
+					.clone()
+					.into()
+			),
 			Box::new((Here, 123).into()),
 			0,
 		));
@@ -1669,16 +1698,22 @@ fn evm_account_receiving_assets_should_handle_sufficients_ref_count() {
 	});
 
 	// Actually send relay asset to parachain
-	let dest: MultiLocation = AccountKey20 {
+	let beneficiary: MultiLocation = Junction::AccountKey20 {
 		network: None,
 		key: sufficient_account,
 	}
 	.into();
+
+	let dest: MultiLocation = X1(Parachain(1)).into();
 	Relay::execute_with(|| {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::Origin::signed(RELAYALICE),
-			Box::new(Parachain(1).into().into()),
 			Box::new(VersionedMultiLocation::V3(dest.clone()).clone().into()),
+			Box::new(
+				VersionedMultiLocation::V3(beneficiary.clone())
+					.clone()
+					.into()
+			),
 			Box::new((Here, 123).into()),
 			0,
 		));
@@ -1741,16 +1776,22 @@ fn empty_account_should_not_be_reset() {
 	});
 
 	// Actually send relay asset to parachain
-	let dest: MultiLocation = AccountKey20 {
+	let beneficiary: MultiLocation = Junction::AccountKey20 {
 		network: None,
 		key: sufficient_account,
 	}
 	.into();
+
+	let dest: MultiLocation = X1(Parachain(1)).into();
 	Relay::execute_with(|| {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
 			relay_chain::Origin::signed(RELAYALICE),
-			Box::new(Parachain(1).into().into()),
 			Box::new(VersionedMultiLocation::V3(dest.clone()).clone().into()),
+			Box::new(
+				VersionedMultiLocation::V3(beneficiary.clone())
+					.clone()
+					.into()
+			),
 			Box::new((Here, 123).into()),
 			0,
 		));
@@ -1866,17 +1907,19 @@ fn test_statemint_like() {
 		));
 
 		// Actually send relay asset to parachain
-		let dest: MultiLocation = AccountKey20 {
+		let beneficiary: MultiLocation = Junction::AccountKey20 {
 			network: None,
 			key: PARAALICE,
 		}
 		.into();
 
+		let dest: MultiLocation = MultiLocation::new(1, X1(Parachain(1)));
+
 		// Send asset with previous prefix
 		assert_ok!(StatemintChainPalletXcm::reserve_transfer_assets(
 			statemint_like::Origin::signed(RELAYALICE),
-			Box::new(MultiLocation::new(1, X1(Parachain(1))).into()),
 			Box::new(VersionedMultiLocation::V3(dest).clone().into()),
+			Box::new(VersionedMultiLocation::V3(beneficiary).clone().into()),
 			Box::new(
 				(
 					X2(
@@ -1891,6 +1934,9 @@ fn test_statemint_like() {
 			),
 			0,
 		));
+
+		//events
+		println!("Statemine events {:?}", statemint_like::statemine_events());
 	});
 
 	ParaA::execute_with(|| {

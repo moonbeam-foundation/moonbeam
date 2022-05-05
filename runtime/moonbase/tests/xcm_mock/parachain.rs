@@ -18,7 +18,7 @@
 
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Everything, Get, Nothing, PalletInfoAccess, ConstU32},
+	traits::{ConstU32, Everything, Get, Nothing, PalletInfoAccess},
 	weights::{GetDispatchInfo, Weight},
 	PalletId,
 };

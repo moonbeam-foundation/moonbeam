@@ -18,7 +18,7 @@
 
 use frame_support::{
 	construct_runtime, match_types, parameter_types,
-	traits::{Everything, Nothing, ConstU32},
+	traits::{ConstU32, Everything, Nothing},
 	weights::Weight,
 };
 use frame_system::EnsureRoot;
@@ -41,8 +41,8 @@ use xcm_builder::{
 	AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
 	AllowTopLevelPaidExecutionFrom, AllowUnpaidExecutionFrom, AsPrefixedGeneralIndex,
 	ConvertedConcreteAssetId, CurrencyAdapter, EnsureXcmOrigin, FixedRateOfFungible,
-	FixedWeightBounds, FungiblesAdapter, IsConcrete, ParentAsSuperuser,
-	ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
+	FixedWeightBounds, FungiblesAdapter, IsConcrete, ParentAsSuperuser, ParentIsPreset,
+	RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
 	SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit,
 };
 use xcm_executor::{traits::JustTry, Config, XcmExecutor};
@@ -137,7 +137,7 @@ parameter_types! {
 	pub const RelayNetwork: NetworkId = NetworkId::Kusama;
 	pub RelayChainOrigin: Origin = cumulus_pallet_xcm::Origin::Relay.into();
 	pub UniversalLocation: InteriorMultiLocation = X1(Parachain(MsgQueue::parachain_id().into()).into());
-	pub const Local: MultiLocation = Here.into();
+	pub const Local: MultiLocation = MultiLocation::here();
 	pub CheckingAccount: AccountId = PolkadotXcm::check_account();
 	pub KsmPerSecond: (xcm::latest::prelude::AssetId, u128) = (Concrete(KsmLocation::get()), 1);
 }
@@ -512,3 +512,11 @@ construct_runtime!(
 
 	}
 );
+
+pub(crate) fn statemine_events() -> Vec<Event> {
+	System::events()
+		.into_iter()
+		.map(|r| r.event)
+		.filter_map(|e| Some(e))
+		.collect::<Vec<_>>()
+}
