@@ -478,7 +478,7 @@ jobs:
             -e RUNTIME_DIRECTORY='/tmp/runtimes' \
             -e BINARY_DIRECTORY='../build' \
             -e SPECS_DIRECTORY='/tmp/specs' \
-            -v $(pwd):/moonbeam \
+            -v $(pwd):/moonbeam:z \
             -u $UID \
             -w /moonbeam/tests \
             node node_modules/.bin/mocha \
