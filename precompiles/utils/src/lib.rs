@@ -15,11 +15,14 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 #![cfg_attr(not(feature = "std"), no_std)]
+#![feature(assert_matches)]
 
 extern crate alloc;
 
 use crate::alloc::borrow::ToOwned;
-use fp_evm::{Context, ExitError, ExitRevert, PrecompileFailure, PrecompileHandle};
+use fp_evm::{
+	Context, ExitError, ExitReason, ExitRevert, PrecompileFailure, PrecompileHandle, Transfer,
+};
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
 	traits::Get,
@@ -32,6 +35,8 @@ mod data;
 
 pub use data::{Address, Bytes, EvmData, EvmDataReader, EvmDataWriter};
 pub use precompile_utils_macro::{generate_function_selector, keccak256};
+
+pub mod testing;
 
 #[cfg(test)]
 mod tests;
@@ -63,66 +68,82 @@ impl LogsBuilder {
 	}
 
 	/// Create a 0-topic log.
-	pub fn log0(&self, handle: &mut impl PrecompileHandle, data: impl Into<Vec<u8>>) {
-		handle.log(self.address, vec![], data.into())
+	#[must_use]
+	pub fn log0(&self, data: impl Into<Vec<u8>>) -> Log {
+		Log {
+			address: self.address,
+			topics: vec![],
+			data: data.into(),
+		}
 	}
 
 	/// Create a 1-topic log.
-	pub fn log1(
-		&self,
-		handle: &mut impl PrecompileHandle,
-		topic0: impl Into<H256>,
-		data: impl Into<Vec<u8>>,
-	) {
-		handle.log(self.address, vec![topic0.into()], data.into())
+	#[must_use]
+	pub fn log1(&self, topic0: impl Into<H256>, data: impl Into<Vec<u8>>) -> Log {
+		Log {
+			address: self.address,
+			topics: vec![topic0.into()],
+			data: data.into(),
+		}
 	}
 
 	/// Create a 2-topics log.
+	#[must_use]
 	pub fn log2(
 		&self,
-		handle: &mut impl PrecompileHandle,
 		topic0: impl Into<H256>,
 		topic1: impl Into<H256>,
 		data: impl Into<Vec<u8>>,
-	) {
-		handle.log(
-			self.address,
-			vec![topic0.into(), topic1.into()],
-			data.into(),
-		)
+	) -> Log {
+		Log {
+			address: self.address,
+			topics: vec![topic0.into(), topic1.into()],
+			data: data.into(),
+		}
 	}
 
 	/// Create a 3-topics log.
+	#[must_use]
 	pub fn log3(
 		&self,
-		handle: &mut impl PrecompileHandle,
 		topic0: impl Into<H256>,
 		topic1: impl Into<H256>,
 		topic2: impl Into<H256>,
 		data: impl Into<Vec<u8>>,
-	) {
-		handle.log(
-			self.address,
-			vec![topic0.into(), topic1.into(), topic2.into()],
-			data.into(),
-		)
+	) -> Log {
+		Log {
+			address: self.address,
+			topics: vec![topic0.into(), topic1.into(), topic2.into()],
+			data: data.into(),
+		}
 	}
 
 	/// Create a 4-topics log.
+	#[must_use]
 	pub fn log4(
 		&self,
-		handle: &mut impl PrecompileHandle,
 		topic0: impl Into<H256>,
 		topic1: impl Into<H256>,
 		topic2: impl Into<H256>,
 		topic3: impl Into<H256>,
 		data: impl Into<Vec<u8>>,
-	) {
-		handle.log(
-			self.address,
-			vec![topic0.into(), topic1.into(), topic2.into(), topic3.into()],
-			data.into(),
-		)
+	) -> Log {
+		Log {
+			address: self.address,
+			topics: vec![topic0.into(), topic1.into(), topic2.into(), topic3.into()],
+			data: data.into(),
+		}
+	}
+}
+
+/// Extension trait allowing to record logs into a PrecompileHandle.
+pub trait LogExt {
+	fn record(self, handle: &mut impl PrecompileHandle);
+}
+
+impl LogExt for Log {
+	fn record(self, handle: &mut impl PrecompileHandle) {
+		handle.log(self.address, self.topics, self.data);
 	}
 }
 

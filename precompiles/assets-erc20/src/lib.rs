@@ -29,7 +29,8 @@ use frame_support::{
 use pallet_evm::{AddressMapping, PrecompileSet};
 use precompile_utils::{
 	check_function_modifier, keccak256, revert, Address, Bytes, EvmData, EvmDataReader,
-	EvmDataWriter, EvmResult, FunctionModifier, LogsBuilder, PrecompileHandleExt, RuntimeHelper,
+	EvmDataWriter, EvmResult, FunctionModifier, LogExt, LogsBuilder, PrecompileHandleExt,
+	RuntimeHelper,
 };
 use sp_runtime::traits::Bounded;
 use sp_std::vec::Vec;
@@ -347,13 +348,14 @@ where
 
 		Self::approve_inner(asset_id, handle, context.caller, spender, amount)?;
 
-		LogsBuilder::new(context.address).log3(
-			handle,
-			SELECTOR_LOG_APPROVAL,
-			context.caller,
-			spender,
-			EvmDataWriter::new().write(amount).build(),
-		);
+		LogsBuilder::new(context.address)
+			.log3(
+				SELECTOR_LOG_APPROVAL,
+				context.caller,
+				spender,
+				EvmDataWriter::new().write(amount).build(),
+			)
+			.record(handle);
 
 		// Build output.
 		Ok(PrecompileOutput {
@@ -434,13 +436,14 @@ where
 			)?;
 		}
 
-		LogsBuilder::new(context.address).log3(
-			handle,
-			SELECTOR_LOG_TRANSFER,
-			context.caller,
-			to,
-			EvmDataWriter::new().write(amount).build(),
-		);
+		LogsBuilder::new(context.address)
+			.log3(
+				SELECTOR_LOG_TRANSFER,
+				context.caller,
+				to,
+				EvmDataWriter::new().write(amount).build(),
+			)
+			.record(handle);
 
 		// Build output.
 		Ok(PrecompileOutput {
@@ -496,13 +499,14 @@ where
 			}
 		}
 
-		LogsBuilder::new(context.address).log3(
-			handle,
-			SELECTOR_LOG_TRANSFER,
-			from,
-			to,
-			EvmDataWriter::new().write(amount).build(),
-		);
+		LogsBuilder::new(context.address)
+			.log3(
+				SELECTOR_LOG_TRANSFER,
+				from,
+				to,
+				EvmDataWriter::new().write(amount).build(),
+			)
+			.record(handle);
 
 		// Build output.
 		Ok(PrecompileOutput {
@@ -602,13 +606,14 @@ where
 			)?;
 		}
 
-		LogsBuilder::new(context.address).log3(
-			handle,
-			SELECTOR_LOG_TRANSFER,
-			H160::default(),
-			to,
-			EvmDataWriter::new().write(amount).build(),
-		);
+		LogsBuilder::new(context.address)
+			.log3(
+				SELECTOR_LOG_TRANSFER,
+				H160::default(),
+				to,
+				EvmDataWriter::new().write(amount).build(),
+			)
+			.record(handle);
 
 		// Build output.
 		Ok(PrecompileOutput {
@@ -652,13 +657,14 @@ where
 			)?;
 		}
 
-		LogsBuilder::new(context.address).log3(
-			handle,
-			SELECTOR_LOG_TRANSFER,
-			to,
-			H160::default(),
-			EvmDataWriter::new().write(amount).build(),
-		);
+		LogsBuilder::new(context.address)
+			.log3(
+				SELECTOR_LOG_TRANSFER,
+				to,
+				H160::default(),
+				EvmDataWriter::new().write(amount).build(),
+			)
+			.record(handle);
 
 		// Build output.
 		Ok(PrecompileOutput {

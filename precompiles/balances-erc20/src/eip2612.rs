@@ -140,13 +140,14 @@ where
 			ApprovesStorage::<Runtime, Instance>::insert(owner, spender, amount);
 		}
 
-		LogsBuilder::new(context.address).log3(
-			handle,
-			SELECTOR_LOG_APPROVAL,
-			owner,
-			spender,
-			EvmDataWriter::new().write(value).build(),
-		);
+		LogsBuilder::new(context.address)
+			.log3(
+				SELECTOR_LOG_APPROVAL,
+				owner,
+				spender,
+				EvmDataWriter::new().write(value).build(),
+			)
+			.record(handle);
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,

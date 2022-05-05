@@ -230,13 +230,14 @@ where
 		)?;
 
 		let log_builder = LogsBuilder::new(address);
-		log_builder.log3(
-			handle,
-			SELECTOR_LOG_APPROVAL,
-			owner,
-			spender,
-			EvmDataWriter::new().write(value).build(),
-		);
+		log_builder
+			.log3(
+				SELECTOR_LOG_APPROVAL,
+				owner,
+				spender,
+				EvmDataWriter::new().write(value).build(),
+			)
+			.record(handle);
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
