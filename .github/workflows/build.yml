@@ -465,7 +465,8 @@ jobs:
 
           echo "Testing moonbeam"
           cd tests
-          ../build/moonbeam build-spec --chain moonbase-local --raw
+          ../build/moonbeam build-spec --chain moonbase-local --raw > /dev/null
+          cd ..
 
           echo "Running para-tests inside docker"
           docker run \
