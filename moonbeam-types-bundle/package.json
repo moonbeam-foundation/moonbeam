@@ -2,7 +2,7 @@
   "name": "moonbeam-types-bundle",
   "version": "2.0.4",
   "description": "Bundled types to instantiate the Polkadot JS api with a Moonbeam network",
-  "main": "dist/index.js",
+  "main": "index.js",
   "types": "dist/index.d.ts",
   "prepublish": "tsc",
   "scripts": {

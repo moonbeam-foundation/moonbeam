@@ -462,7 +462,9 @@ jobs:
           docker rm moonbeam-tmp
 
           echo "Running docker with user $UID"
+          docker run -u $UID node mkdir /tmp/test
 
+          echo "Running para-tests inside docker"
           docker run \
             -e OVERRIDE_RUNTIME_PATH='./runtimes' \
             -e BINARY_PATH='../build/moonbeam' \
