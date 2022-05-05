@@ -330,7 +330,7 @@ impl Config for XcmConfig {
 	type LocationInverter = LocationInverter<Ancestry>;
 	type Barrier = Barrier;
 	type Weigher = FixedWeightBounds<UnitWeightCost, Call, MaxInstructions>;
-	// We use tro traders
+	// We use two traders
 	// When we receive the self-reserve asset,
 	// When we receive a non-reserve asset, we use AssetManager to fetch how many
 	// units per second we should charge
