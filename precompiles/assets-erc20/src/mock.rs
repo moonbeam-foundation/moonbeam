@@ -360,6 +360,7 @@ where
 {
 	fn execute(
 		&self,
+		handle: &mut impl PrecompileHandle,
 		address: H160,
 		input: &[u8],
 		target_gas: Option<u64>,
@@ -370,12 +371,12 @@ where
 			// If the address matches asset prefix, the we route through the foreign  asset precompile set
 			a if &a.to_fixed_bytes()[0..4] == LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX => {
 				Erc20AssetsPrecompileSet::<R, IsLocal, pallet_assets::Instance2>::new()
-					.execute(address, input, target_gas, context, is_static)
+					.execute(handle, address, input, target_gas, context, is_static)
 			}
 			// If the address matches asset prefix, the we route through the local asset precompile set
 			a if &a.to_fixed_bytes()[0..4] == FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX => {
 				Erc20AssetsPrecompileSet::<R, IsForeign, pallet_assets::Instance1>::new()
-					.execute(address, input, target_gas, context, is_static)
+					.execute(handle, address, input, target_gas, context, is_static)
 			}
 			_ => None,
 		}
