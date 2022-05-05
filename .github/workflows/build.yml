@@ -481,8 +481,9 @@ jobs:
             -v $(pwd):/moonbeam:z \
             -u $UID \
             -w /moonbeam/tests \
-            node node_modules/.bin/mocha \
-              --exit -r ts-node/register 'para-tests/**/test-*.ts'
+            ../build/moonbeam build-spec --chain moonbase-local --raw > /dev/null
+            
+          echo "Done"
 
           rm -rf $tmpFolder
 
