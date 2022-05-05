@@ -469,7 +469,7 @@ jobs:
             -e MOONBEAM_LOG='info' \
             -e RELAY_BINARY_PATH='../build/polkadot' \
             -e RUNTIME_DIRECTORY='/tmp/runtimes' \
-            -e BINARY_DIRECTORY='/tmp/binaries' \
+            -e BINARY_DIRECTORY='../build' \
             -e SPECS_DIRECTORY='/tmp/specs' \
             -v $(pwd):/moonbeam \
             -u $UID \
