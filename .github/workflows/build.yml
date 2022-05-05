@@ -462,6 +462,11 @@ jobs:
           chmod uog+x build/*
           ls -la build/
 
+
+          echo "Testing moonbeam"
+          cd tests
+          ../build/moonbeam build-spec --chain moonbase-local --raw
+
           echo "Running para-tests inside docker"
           docker run \
             --network=host \
