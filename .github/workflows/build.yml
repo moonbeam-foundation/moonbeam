@@ -460,6 +460,7 @@ jobs:
           docker rm moonbeam-tmp
 
           chmod uog+x build/*
+          ls -la build/
 
           echo "Running para-tests inside docker"
           docker run \
