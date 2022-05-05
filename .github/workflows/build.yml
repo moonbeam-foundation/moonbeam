@@ -481,7 +481,7 @@ jobs:
             -v $(pwd):/moonbeam:z \
             -u $UID \
             -w /moonbeam/tests \
-            node ../build/moonbeam build-spec --chain moonbase-local --raw > /dev/null
+            ls -l ../build && node ../build/moonbeam build-spec --chain moonbase-local --raw > /dev/null
             
           echo "Done"
 
