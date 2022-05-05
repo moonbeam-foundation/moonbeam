@@ -193,7 +193,8 @@ export async function getRawSpecsFromTag(
     const binaryPath = await getMoonbeamDockerBinary(tag);
 
     child_process.execSync(`mkdir -p ${path.dirname(specPath)}`);
-    child_process.execSync(`ls -la ${binaryPath}`);
+    console.log(child_process.execSync(`ls -la ${path.dirname(binaryPath)}`).toString());
+    console.log(child_process.execSync(`ls -la ${binaryPath}`).toString());
     child_process.execSync(`${binaryPath} build-spec --chain moonbase-local --raw`);
     child_process.execSync(`${binaryPath} build-spec --chain moonbase-local --raw > ${specPath}`);
   }
@@ -207,7 +208,8 @@ export async function generateRawSpecs(
   const specPath = path.join(SPECS_DIRECTORY, `${runtimeName}-raw-specs.json`);
   if (!fs.existsSync(specPath)) {
     child_process.execSync(`mkdir -p ${path.dirname(specPath)}`);
-    child_process.execSync(`ls -la ${binaryPath}`);
+    console.log(child_process.execSync(`ls -la ${path.dirname(binaryPath)}`).toString());
+    console.log(child_process.execSync(`ls -la ${binaryPath}`).toString());
     child_process.execSync(`${binaryPath} build-spec --chain moonbase-local --raw`);
     child_process.execSync(`${binaryPath} build-spec --chain moonbase-local --raw > ${specPath}`);
   }
