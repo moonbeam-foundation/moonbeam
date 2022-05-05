@@ -7,8 +7,9 @@ import { describeSmokeSuite } from "../util/setup-smoke-tests";
 const debug = require("debug")("smoke:treasury");
 
 const wssUrl = process.env.WSS_URL || null;
+const relayWssUrl = process.env.RELAY_WSS_URL || null;
 
-describeSmokeSuite(`Verify treasury consistency`, { wssUrl }, (context) => {
+describeSmokeSuite(`Verify treasury consistency`, { wssUrl, relayWssUrl }, (context) => {
   const accounts: { [account: string]: FrameSystemAccountInfo } = {};
 
   let atBlockNumber: number = 0;
@@ -23,8 +24,9 @@ describeSmokeSuite(`Verify treasury consistency`, { wssUrl }, (context) => {
 
   it("should have value > 0", async function () {
     // Load data
+    const treasuryPalletId = await context.polkadotApi.consts.treasury.palletId;
     const treasuryAccount = await apiAt.query.system.account(
-      "0x6d6f646C70792f74727372790000000000000000"
+      `0x6d6f646C${treasuryPalletId.toString().slice(2)}0000000000000000`
     );
 
     expect(treasuryAccount.data.free.toBigInt() > 0n).to.be.true;

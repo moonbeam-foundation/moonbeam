@@ -10,8 +10,13 @@ import {
   ALITH,
   MIN_GLMR_NOMINATOR,
   GLMR,
+  ALITH_PRIV_KEY,
+  BALTATHAR_PRIV_KEY,
+  BALTATHAR,
 } from "../util/constants";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
+import { KeyringPair } from "@substrate/txwrapper-core";
+import { Option } from "@polkadot/types-codec";
 
 describeDevMoonbeam("Staking - Genesis", (context) => {
   it("should match collator reserved bond reserved", async function () {
@@ -107,4 +112,249 @@ describeDevMoonbeam("Staking - Join Delegators", (context) => {
       "delegation amount to alith should be 5"
     );
   });
+});
+
+describeDevMoonbeam("Staking - Delegation Requests", (context) => {
+  const numberToHex = (n: BigInt): string => `0x${n.toString(16).padStart(32, "0")}`;
+
+  const BOND_AMOUNT = MIN_GLMR_NOMINATOR + 100n;
+  const BOND_AMOUNT_HEX = numberToHex(BOND_AMOUNT);
+
+  let alith: KeyringPair;
+  let ethan: KeyringPair;
+  let balathar: KeyringPair;
+  beforeEach("should successfully call delegate on ALITH", async () => {
+    const keyring = new Keyring({ type: "ethereum" });
+    ethan = keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
+    alith = keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
+    balathar = keyring.addFromUri(BALTATHAR_PRIV_KEY, null, "ethereum");
+
+    await context.polkadotApi.tx.parachainStaking
+      .delegate(ALITH, BOND_AMOUNT, 0, 0)
+      .signAndSend(ethan);
+    await context.createBlock();
+  });
+
+  afterEach("should clean up delegation requests", async () => {
+    await context.polkadotApi.tx.parachainStaking.cancelDelegationRequest(ALITH).signAndSend(ethan);
+    await context.createBlock();
+  });
+
+  it("should successfully schedule revoke", async function () {
+    const delegationRequestsBefore = (
+      await context.polkadotApi.query.parachainStaking.delegationScheduledRequests(ALITH)
+    ).toJSON();
+    expect(delegationRequestsBefore).to.be.empty;
+
+    const currentRound = (
+      (await context.polkadotApi.query.parachainStaking.round()).toJSON() as any
+    ).current;
+
+    // schedule revoke
+    await context.polkadotApi.tx.parachainStaking
+      .scheduleRevokeDelegation(ALITH)
+      .signAndSend(ethan);
+    await context.createBlock();
+
+    const delegationRequestsAfter = (
+      await context.polkadotApi.query.parachainStaking.delegationScheduledRequests(ALITH)
+    ).toJSON();
+    expect(delegationRequestsAfter).to.deep.equal([
+      {
+        delegator: ETHAN,
+        whenExecutable: currentRound + 2,
+        action: {
+          revoke: BOND_AMOUNT_HEX,
+        },
+      },
+    ]);
+  });
+
+  it("should successfully execute revoke", async function () {
+    this.timeout(20000);
+
+    // schedule revoke
+    await context.polkadotApi.tx.parachainStaking
+      .scheduleRevokeDelegation(ALITH)
+      .signAndSend(ethan);
+    await context.createBlock();
+    const delegationRequest = (
+      await context.polkadotApi.query.parachainStaking.delegationScheduledRequests(ALITH)
+    ).toJSON();
+    expect(delegationRequest).to.not.be.empty;
+
+    // jump to executable Round
+    await jumpToRound(delegationRequest[0].whenExecutable);
+
+    // execute revoke
+    await context.polkadotApi.tx.parachainStaking
+      .executeDelegationRequest(ETHAN, ALITH)
+      .signAndSend(ethan);
+    await context.createBlock();
+
+    const delegationsAfter = (await context.polkadotApi.query.parachainStaking.delegatorState(
+      ETHAN
+    )) as Option<any>;
+    const delegationRequestsAfter = (
+      await context.polkadotApi.query.parachainStaking.delegationScheduledRequests(ALITH)
+    ).toJSON();
+    // last delegation revoked, so delegator marked as leaving
+    expect(delegationsAfter.isNone).to.be.true;
+    expect(delegationRequestsAfter).to.be.empty;
+  });
+
+  it("should successfully schedule bond less", async function () {
+    const delegationRequestsBefore = (
+      await context.polkadotApi.query.parachainStaking.delegationScheduledRequests(ALITH)
+    ).toJSON();
+    expect(delegationRequestsBefore).to.be.empty;
+
+    const currentRound = (
+      (await context.polkadotApi.query.parachainStaking.round()).toJSON() as any
+    ).current;
+
+    // schedule bond less
+    await context.polkadotApi.tx.parachainStaking
+      .scheduleDelegatorBondLess(ALITH, 10n)
+      .signAndSend(ethan);
+    await context.createBlock();
+
+    const delegationRequestsAfter = (
+      await context.polkadotApi.query.parachainStaking.delegationScheduledRequests(ALITH)
+    ).toJSON();
+    expect(delegationRequestsAfter).to.deep.equal([
+      {
+        delegator: ETHAN,
+        whenExecutable: currentRound + 2,
+        action: {
+          decrease: 10,
+        },
+      },
+    ]);
+  });
+
+  it("should successfully execute bond less", async function () {
+    this.timeout(20000);
+
+    const LESS_AMOUNT = 10n;
+
+    // schedule bond less
+    await context.polkadotApi.tx.parachainStaking
+      .scheduleDelegatorBondLess(ALITH, LESS_AMOUNT)
+      .signAndSend(ethan);
+    await context.createBlock();
+    const delegationRequest = (
+      await context.polkadotApi.query.parachainStaking.delegationScheduledRequests(ALITH)
+    ).toJSON();
+    expect(delegationRequest).to.not.be.empty;
+
+    // jump to executable Round
+    await jumpToRound(delegationRequest[0].whenExecutable);
+
+    // execute bond less
+    await context.polkadotApi.tx.parachainStaking
+      .executeDelegationRequest(ETHAN, ALITH)
+      .signAndSend(ethan);
+    await context.createBlock();
+
+    const delegationsAfter = (
+      (await context.polkadotApi.query.parachainStaking.delegatorState(ETHAN)) as any
+    )
+      .unwrap()
+      .delegations.toJSON();
+    const delegationRequestsAfter = (
+      await context.polkadotApi.query.parachainStaking.delegationScheduledRequests(ALITH)
+    ).toJSON();
+    expect(delegationsAfter[0]).to.deep.equal({
+      owner: ALITH,
+      amount: numberToHex(BOND_AMOUNT - LESS_AMOUNT),
+    });
+    expect(delegationRequestsAfter).to.be.empty;
+  });
+
+  it("should successfully remove scheduled requests on collator leave", async function () {
+    this.timeout(20000);
+
+    await context.polkadotApi.tx.parachainStaking
+      .joinCandidates(100n * BOND_AMOUNT, 1)
+      .signAndSend(balathar);
+    await context.createBlock();
+
+    await context.polkadotApi.tx.parachainStaking
+      .delegate(BALTATHAR, BOND_AMOUNT, 0, 1)
+      .signAndSend(ethan);
+    await context.createBlock();
+
+    const delegationRequestsBefore = (
+      await context.polkadotApi.query.parachainStaking.delegationScheduledRequests(BALTATHAR)
+    ).toJSON();
+    expect(delegationRequestsBefore).to.be.empty;
+
+    // schedule bond less
+    await context.polkadotApi.tx.parachainStaking
+      .scheduleDelegatorBondLess(BALTATHAR, 10n)
+      .signAndSend(ethan);
+    await context.createBlock();
+    await context.polkadotApi.tx.parachainStaking.scheduleLeaveCandidates(2).signAndSend(balathar);
+    await context.createBlock();
+
+    const collatorState = (
+      await context.polkadotApi.query.parachainStaking.candidateInfo(BALTATHAR)
+    ).toJSON() as any;
+
+    await jumpToRound(collatorState.status.leaving);
+
+    await context.polkadotApi.tx.parachainStaking
+      .executeLeaveCandidates(BALTATHAR, 1)
+      .signAndSend(ethan);
+    await context.createBlock();
+    const delegationRequestsAfter = (
+      await context.polkadotApi.query.parachainStaking.delegationScheduledRequests(BALTATHAR)
+    ).toJSON();
+    expect(delegationRequestsAfter).to.be.empty;
+  });
+
+  it("should successfully remove scheduled requests on delegator leave", async function () {
+    this.timeout(20000);
+
+    const delegationRequestsBefore = (
+      await context.polkadotApi.query.parachainStaking.delegationScheduledRequests(ALITH)
+    ).toJSON();
+    expect(delegationRequestsBefore).to.be.empty;
+
+    // schedule bond less
+    await context.polkadotApi.tx.parachainStaking
+      .scheduleDelegatorBondLess(ALITH, 10n)
+      .signAndSend(ethan);
+    await context.createBlock();
+    await context.polkadotApi.tx.parachainStaking.scheduleLeaveDelegators().signAndSend(ethan);
+    await context.createBlock();
+
+    const delegatorState = (
+      await context.polkadotApi.query.parachainStaking.delegatorState(ETHAN)
+    ).toJSON() as any;
+
+    await jumpToRound(delegatorState.status.leaving);
+
+    await context.polkadotApi.tx.parachainStaking
+      .executeLeaveDelegators(ETHAN, 1)
+      .signAndSend(ethan);
+    await context.createBlock();
+    const delegationRequestsAfter = (
+      await context.polkadotApi.query.parachainStaking.delegationScheduledRequests(ALITH)
+    ).toJSON();
+    expect(delegationRequestsAfter).to.be.empty;
+  });
+
+  async function jumpToRound(round: Number) {
+    while (true) {
+      const currentRound = (
+        (await context.polkadotApi.query.parachainStaking.round()).toJSON() as any
+      ).current;
+      if (currentRound > round) {
+        break;
+      }
+      await context.createBlock();
+    }
+  }
 });
