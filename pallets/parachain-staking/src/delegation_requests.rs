@@ -307,27 +307,25 @@ impl<T: Config> Pallet<T> {
 		}
 	}
 
-	/// Removes the delegator's existing [ScheduledRequest] towards a given collator.
+	/// Removes the delegator's existing [ScheduledRequest] towards a given collator, if exists.
 	/// The state needs to be persisted by the caller of this function.
-	/// Returns [Error::PendingDelegationRequestDNE] if request does not exist.
 	pub(crate) fn delegation_remove_request_with_state(
 		collator: &T::AccountId,
 		delegator: &T::AccountId,
 		state: &mut Delegator<T::AccountId, BalanceOf<T>>,
-	) -> DispatchResultWithPostInfo {
+	) {
 		let mut scheduled_requests = <DelegationScheduledRequests<T>>::get(collator);
 
-		let request_idx = scheduled_requests
+		let maybe_request_idx = scheduled_requests
 			.iter()
-			.position(|x| &x.delegator == delegator)
-			.ok_or(<Error<T>>::PendingDelegationRequestDNE)?;
+			.position(|x| &x.delegator == delegator);
 
-		let request = scheduled_requests.remove(request_idx);
-		let amount = request.action.amount();
-		state.less_total = state.less_total.saturating_sub(amount);
-		<DelegationScheduledRequests<T>>::insert(collator, scheduled_requests);
-
-		Ok(().into())
+		if let Some(request_idx) = maybe_request_idx {
+			let request = scheduled_requests.remove(request_idx);
+			let amount = request.action.amount();
+			state.less_total = state.less_total.saturating_sub(amount);
+			<DelegationScheduledRequests<T>>::insert(collator, scheduled_requests);
+		}
 	}
 
 	/// Returns true if a [ScheduledRequest] exists for a given delegation

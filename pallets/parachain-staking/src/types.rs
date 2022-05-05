@@ -659,8 +659,7 @@ impl<
 				&candidate,
 				&lowest_bottom_to_be_kicked.owner,
 				&mut delegator_state,
-			)
-			.ok(); // ignore DNE error
+			);
 
 			Pallet::<T>::deposit_event(Event::DelegationKicked {
 				delegator: lowest_bottom_to_be_kicked.owner.clone(),
