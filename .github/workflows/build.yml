@@ -434,8 +434,6 @@ jobs:
           MOONBEAM_LOG: info
           RELAY_BINARY_PATH: ../build/polkadot
         run: |
-          chmod uog+x build/polkadot
-          chmod uog+x build/moonbeam
           cd moonbeam-types-bundle
           npm install
           cd ../tests
@@ -461,11 +459,11 @@ jobs:
           docker cp moonbeam-tmp:/moonbeam/moonbeam ${binaryPath} && \
           docker rm moonbeam-tmp
 
-          echo "Running docker with user $UID"
-          docker run -u $UID node mkdir /tmp/test
+          chmod uog+x build/*
 
           echo "Running para-tests inside docker"
           docker run \
+            --network=host \
             -e OVERRIDE_RUNTIME_PATH='./runtimes' \
             -e BINARY_PATH='../build/moonbeam' \
             -e MOONBEAM_LOG='info' \
