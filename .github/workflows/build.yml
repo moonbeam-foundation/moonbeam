@@ -427,11 +427,6 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: 14.x
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
-        with:
-          sudo: false
-          limit-access-to-actor: true
       - name: Typescript integration tests (against dev service)
         env:
           OVERRIDE_RUNTIME_PATH: ./runtimes
@@ -485,6 +480,7 @@ jobs:
             -e SPECS_DIRECTORY='/tmp/specs' \
             -v $(pwd):/moonbeam:z \
             -u $UID \
+            --privileged \
             -w /moonbeam/tests \
             node ls -l ../build && whoami && ../build/moonbeam build-spec --chain moonbase-local --raw > /dev/null
             
