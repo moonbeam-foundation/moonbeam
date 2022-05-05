@@ -420,6 +420,28 @@ pub mod pallet {
 
 			weight
 		}
+
+		fn on_runtime_upgrade() -> Weight {
+			log::info!(target: "parachain-staking", "Initializing parachain-staking storage with config defaults");
+
+			// Set collator commission to default config
+			<CollatorCommission<T>>::put(T::DefaultCollatorCommission::get());
+			// Set parachain bond config to default config
+			<ParachainBondInfo<T>>::put(ParachainBondConfig {
+				// must be set soon; if not => due inflation will be sent to collators/delegators
+				account: T::AccountId::decode(&mut sp_runtime::traits::TrailingZeroInput::zeroes())
+					.expect("infinite length input; no invalid inputs for type; qed"),
+				percent: T::DefaultParachainBondReservePercent::get(),
+			});
+			// Set total selected candidates to minimum config
+			<TotalSelected<T>>::put(T::MinSelectedCandidates::get());
+			// Start Round 1
+			let round: RoundInfo<T::BlockNumber> =
+				RoundInfo::new(1u32, 0u32.into(), T::DefaultBlocksPerRound::get());
+			<Round<T>>::put(round);
+
+			T::DbWeight::get().writes(4)
+		}
 	}
 
 	#[pallet::storage]
