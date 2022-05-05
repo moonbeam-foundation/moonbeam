@@ -18,7 +18,7 @@
 
 mod xcm_mock;
 use frame_support::{
-	assert_noop, assert_ok,
+	assert_ok,
 	traits::{PalletInfo, PalletInfoAccess},
 	weights::constants::WEIGHT_PER_SECOND,
 };
