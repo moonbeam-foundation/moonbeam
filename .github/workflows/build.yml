@@ -480,8 +480,9 @@ jobs:
             -e SPECS_DIRECTORY='/tmp/specs' \
             -v $(pwd):/moonbeam:z \
             -u $UID \
-            -w /moonbeam/tests \
-            node ../build/moonbeam build-spec --chain moonbase-local --raw > /dev/null
+            -w /moonbeam \
+              build/moonbeam build-spec --chain moonbase-local --raw \
+              > /dev/null
             
           echo "Done"
 
