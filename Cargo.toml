@@ -13,6 +13,7 @@ members = [
 	"pallets/proxy-genesis-companion",
 	"precompiles/author-mapping",
 	"precompiles/balances-erc20",
+	"precompiles/crowdloan-rewards",
 	"precompiles/pallet-democracy",
 	"precompiles/utils/macro",
 	"runtime/moonbase",
