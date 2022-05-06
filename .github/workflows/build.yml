@@ -434,6 +434,8 @@ jobs:
           MOONBEAM_LOG: info
           RELAY_BINARY_PATH: ../build/polkadot
         run: |
+          chmod uog+x build/polkadot
+          chmod uog+x build/moonbeam
           cd moonbeam-types-bundle
           npm install
           cd ../tests
