@@ -159,10 +159,11 @@ describeDevMoonbeam("Staking - Delegation Requests", (context) => {
 
     const delegationRequestsAfter =
       await context.polkadotApi.query.parachainStaking.delegationScheduledRequests(ALITH);
+    const roundDelay = context.polkadotApi.consts.parachainStaking.revokeDelegationDelay.toNumber();
     expect(delegationRequestsAfter.toJSON()).to.deep.equal([
       {
         delegator: ETHAN,
-        whenExecutable: currentRound + 2,
+        whenExecutable: currentRound + roundDelay,
         action: {
           revoke: BOND_AMOUNT_HEX,
         },
@@ -185,10 +186,11 @@ describeDevMoonbeam("Staking - Delegation Requests", (context) => {
     await context.createBlock();
     const delegationRequestsAfterSchedule =
       await context.polkadotApi.query.parachainStaking.delegationScheduledRequests(ALITH);
+    const roundDelay = context.polkadotApi.consts.parachainStaking.revokeDelegationDelay.toNumber();
     expect(delegationRequestsAfterSchedule.toJSON()).to.deep.equal([
       {
         delegator: ETHAN,
-        whenExecutable: currentRound + 2,
+        whenExecutable: currentRound + roundDelay,
         action: {
           revoke: BOND_AMOUNT_HEX,
         },
@@ -246,10 +248,11 @@ describeDevMoonbeam("Staking - Delegation Requests", (context) => {
         amount: BOND_AMOUNT_HEX,
       },
     ]);
+    const roundDelay = context.polkadotApi.consts.parachainStaking.revokeDelegationDelay.toNumber();
     expect(delegationRequestsAfter.toJSON()).to.deep.equal([
       {
         delegator: ETHAN,
-        whenExecutable: currentRound + 2,
+        whenExecutable: currentRound + roundDelay,
         action: {
           revoke: BOND_AMOUNT_HEX,
         },
@@ -303,10 +306,12 @@ describeDevMoonbeam("Staking - Delegation Requests", (context) => {
 
     const delegationRequestsAfter =
       await context.polkadotApi.query.parachainStaking.delegationScheduledRequests(ALITH);
+    const roundDelay =
+      context.polkadotApi.consts.parachainStaking.delegationBondLessDelay.toNumber();
     expect(delegationRequestsAfter.toJSON()).to.deep.equal([
       {
         delegator: ETHAN,
-        whenExecutable: currentRound + 2,
+        whenExecutable: currentRound + roundDelay,
         action: {
           decrease: 10,
         },
@@ -330,10 +335,12 @@ describeDevMoonbeam("Staking - Delegation Requests", (context) => {
     await context.createBlock();
     const delegationRequestsAfterSchedule =
       await context.polkadotApi.query.parachainStaking.delegationScheduledRequests(ALITH);
+    const roundDelay =
+      context.polkadotApi.consts.parachainStaking.delegationBondLessDelay.toNumber();
     expect(delegationRequestsAfterSchedule.toJSON()).to.deep.equal([
       {
         delegator: ETHAN,
-        whenExecutable: currentRound + 2,
+        whenExecutable: currentRound + roundDelay,
         action: {
           decrease: LESS_AMOUNT,
         },
@@ -392,10 +399,13 @@ describeDevMoonbeam("Staking - Delegation Requests", (context) => {
         amount: BOND_AMOUNT_HEX,
       },
     ]);
+
+    const roundDelay =
+      context.polkadotApi.consts.parachainStaking.delegationBondLessDelay.toNumber();
     expect(delegationRequestsAfter.toJSON()).to.deep.equal([
       {
         delegator: ETHAN,
-        whenExecutable: currentRound + 2,
+        whenExecutable: currentRound + roundDelay,
         action: {
           decrease: LESS_AMOUNT,
         },
