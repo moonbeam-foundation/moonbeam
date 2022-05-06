@@ -475,6 +475,7 @@ jobs:
             -v $(pwd):/moonbeam:z \
             -u $UID \
             -w /moonbeam/tests \
+            node \
               node_modules/.bin/mocha --exit -r ts-node/register 'para-tests/**/test-*.ts'
 
   docker-parachain:
