@@ -302,12 +302,24 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
         },
       },
     },
+    "v0.9.18": {
+      runtime: {
+        runtime_genesis_config: {
+          configuration: {
+            config: {
+              validation_upgrade_cooldown: 30,
+            },
+          },
+        },
+      },
+    },
     local: {
       runtime: {
         runtime_genesis_config: {
           configuration: {
             config: {
               validation_upgrade_delay: 30,
+              validation_upgrade_cooldown: 30,
             },
           },
         },

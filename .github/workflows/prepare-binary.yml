@@ -31,12 +31,12 @@ jobs:
         if: ${{ matrix.cpu == '' }}
         run: |
           mkdir -p build
-          cp target/release/moonbeam build/moonbeam
+          cp target/production/moonbeam build/moonbeam
       - name: Save parachain custom binary
         if: ${{ matrix.cpu != '' }}
         run: |
           mkdir -p build
-          cp target/release/moonbeam build/moonbeam-${{matrix.cpu}}
+          cp target/production/moonbeam build/moonbeam-${{matrix.cpu}}
       - name: Upload binary
         uses: actions/upload-artifact@v2
         with:

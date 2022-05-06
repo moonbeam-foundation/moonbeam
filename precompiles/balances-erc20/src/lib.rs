@@ -23,7 +23,7 @@ use fp_evm::{Context, ExitSucceed, PrecompileOutput};
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
 	sp_runtime::traits::{Bounded, CheckedSub, StaticLookup},
-	storage::types::StorageDoubleMap,
+	storage::types::{StorageDoubleMap, StorageMap, ValueQuery},
 	traits::StorageInstance,
 	Blake2_128Concat,
 };
@@ -42,6 +42,8 @@ use sp_std::{
 	marker::PhantomData,
 	vec,
 };
+
+mod eip2612;
 
 #[cfg(test)]
 mod mock;
@@ -65,6 +67,9 @@ pub const SELECTOR_LOG_WITHDRAWAL: [u8; 32] = keccak256!("Withdrawal(address,uin
 pub trait InstanceToPrefix {
 	/// Prefix used for the Approves storage.
 	type ApprovesPrefix: StorageInstance;
+
+	/// Prefix used for the Approves storage.
+	type NoncesPrefix: StorageInstance;
 }
 
 // We use a macro to implement the trait for () and the 16 substrate Instance.
@@ -86,8 +91,19 @@ macro_rules! impl_prefix {
 					}
 				}
 
+				pub struct Nonces;
+
+				impl StorageInstance for Nonces {
+					const STORAGE_PREFIX: &'static str = "Nonces";
+
+					fn pallet_prefix() -> &'static str {
+						$name
+					}
+				}
+
 				impl InstanceToPrefix for $instance {
 					type ApprovesPrefix = Approves;
+					type NoncesPrefix = Nonces;
 				}
 			}
 		}
@@ -131,6 +147,17 @@ pub type ApprovesStorage<Runtime, Instance> = StorageDoubleMap<
 	BalanceOf<Runtime, Instance>,
 >;
 
+/// Storage type used to store EIP2612 nonces.
+pub type NoncesStorage<Instance> = StorageMap<
+	<Instance as InstanceToPrefix>::NoncesPrefix,
+	// Owner
+	Blake2_128Concat,
+	H160,
+	// Nonce
+	U256,
+	ValueQuery,
+>;
+
 #[precompile_utils::generate_function_selector]
 #[derive(Debug, PartialEq)]
 pub enum Action {
@@ -145,6 +172,10 @@ pub enum Action {
 	Decimals = "decimals()",
 	Deposit = "deposit()",
 	Withdraw = "withdraw(uint256)",
+	// EIP 2612
+	Eip2612Permit = "permit(address,address,uint256,uint256,uint8,bytes32,bytes32)",
+	Eip2612Nonces = "nonces(address)",
+	Eip2612DomainSeparator = "DOMAIN_SEPARATOR()",
 }
 
 /// Metadata of an ERC20 token.
@@ -175,11 +206,12 @@ impl<Runtime, Metadata, Instance> Precompile
 where
 	Metadata: Erc20Metadata,
 	Instance: InstanceToPrefix + 'static,
-	Runtime: pallet_balances::Config<Instance> + pallet_evm::Config,
+	Runtime: pallet_balances::Config<Instance> + pallet_evm::Config + pallet_timestamp::Config,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	Runtime::Call: From<pallet_balances::Call<Runtime, Instance>>,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	BalanceOf<Runtime, Instance>: TryFrom<U256> + Into<U256>,
+	<Runtime as pallet_timestamp::Config>::Moment: Into<U256>,
 {
 	fn execute(
 		input: &[u8], //Reminder this is big-endian
@@ -218,6 +250,17 @@ where
 			Action::Decimals => Self::decimals(input, gasometer, context),
 			Action::Deposit => Self::deposit(input, gasometer, context),
 			Action::Withdraw => Self::withdraw(input, gasometer, context),
+			Action::Eip2612Permit => {
+				eip2612::Eip2612::<Runtime, Metadata, Instance>::permit(input, gasometer, context)
+			}
+			Action::Eip2612Nonces => {
+				eip2612::Eip2612::<Runtime, Metadata, Instance>::nonces(input, gasometer)
+			}
+			Action::Eip2612DomainSeparator => {
+				eip2612::Eip2612::<Runtime, Metadata, Instance>::domain_separator(
+					gasometer, context,
+				)
+			}
 		}
 	}
 }
@@ -226,11 +269,12 @@ impl<Runtime, Metadata, Instance> Erc20BalancesPrecompile<Runtime, Metadata, Ins
 where
 	Metadata: Erc20Metadata,
 	Instance: InstanceToPrefix + 'static,
-	Runtime: pallet_balances::Config<Instance> + pallet_evm::Config,
+	Runtime: pallet_balances::Config<Instance> + pallet_evm::Config + pallet_timestamp::Config,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	Runtime::Call: From<pallet_balances::Call<Runtime, Instance>>,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	BalanceOf<Runtime, Instance>: TryFrom<U256> + Into<U256>,
+	<Runtime as pallet_timestamp::Config>::Moment: Into<U256>,
 {
 	fn total_supply(
 		input: &EvmDataReader,

@@ -93,8 +93,16 @@ impl Default for CollatorStatus {
 #[derive(Encode, Decode, RuntimeDebug, TypeInfo)]
 /// Snapshot of collator state at the start of the round for which they are selected
 pub struct CollatorSnapshot<AccountId, Balance> {
+	/// The total value locked by the collator.
 	pub bond: Balance,
+
+	/// The rewardable delegations. This list is a subset of total delegators, where certain
+	/// delegators are adjusted based on their scheduled
+	/// [DelegationChange::Revoke] or [DelegationChange::Decrease] action.
 	pub delegations: Vec<Bond<AccountId, Balance>>,
+
+	/// The total counted value locked for the collator, including the self bond + total staked by
+	/// top delegators.
 	pub total: Balance,
 }
 
@@ -647,18 +655,12 @@ impl<
 				.expect("Delegation existence => DelegatorState existence");
 			let leaving = delegator_state.delegations.0.len() == 1usize;
 			delegator_state.rm_delegation(candidate);
-			if let Some(request) = delegator_state.requests.requests.remove(&candidate) {
-				delegator_state.requests.less_total = delegator_state
-					.requests
-					.less_total
-					.saturating_sub(request.amount);
-				if matches!(request.action, DelegationChange::Revoke) {
-					delegator_state.requests.revocations_count = delegator_state
-						.requests
-						.revocations_count
-						.saturating_sub(1u32);
-				}
-			}
+			<Pallet<T>>::delegation_remove_request_with_state(
+				&candidate,
+				&lowest_bottom_to_be_kicked.owner,
+				&mut delegator_state,
+			);
+
 			Pallet::<T>::deposit_event(Event::DelegationKicked {
 				delegator: lowest_bottom_to_be_kicked.owner.clone(),
 				candidate: candidate.clone(),
@@ -1212,8 +1214,8 @@ pub struct Delegator<AccountId, Balance> {
 	pub delegations: OrderedSet<Bond<AccountId, Balance>>,
 	/// Total balance locked for this delegator
 	pub total: Balance,
-	/// Requests to change delegations, relevant iff active
-	pub requests: PendingDelegationRequests<AccountId, Balance>,
+	/// Sum of pending revocation amounts + bond less amounts
+	pub less_total: Balance,
 	/// Status for this delegator
 	pub status: DelegatorStatus,
 }
@@ -1223,7 +1225,7 @@ impl<A: PartialEq, B: PartialEq> PartialEq for Delegator<A, B> {
 	fn eq(&self, other: &Self) -> bool {
 		let must_be_true = self.id == other.id
 			&& self.total == other.total
-			&& self.requests == other.requests
+			&& self.less_total == other.less_total
 			&& self.status == other.status;
 		if !must_be_true {
 			return false;
@@ -1268,13 +1270,11 @@ impl<
 				amount,
 			}]),
 			total: amount,
-			requests: PendingDelegationRequests::new(),
+			less_total: Balance::zero(),
 			status: DelegatorStatus::Active,
 		}
 	}
-	pub fn requests(&self) -> BTreeMap<AccountId, DelegationRequest<AccountId, Balance>> {
-		self.requests.requests.clone()
-	}
+
 	pub fn is_active(&self) -> bool {
 		matches!(self.status, DelegatorStatus::Active)
 	}
@@ -1397,321 +1397,96 @@ impl<
 		}
 		Err(Error::<T>::DelegationDNE.into())
 	}
-	/// Schedule decrease delegation
-	pub fn schedule_decrease_delegation<T: Config>(
-		&mut self,
-		collator: AccountId,
-		less: Balance,
-	) -> Result<RoundIndex, DispatchError>
-	where
-		BalanceOf<T>: Into<Balance> + From<Balance>,
-	{
-		// get delegation amount
-		let Bond { amount, .. } = self
-			.delegations
+
+	/// Retrieves the bond amount that a delegator has provided towards a collator.
+	/// Returns `None` if missing.
+	pub fn get_bond_amount(&self, collator: &AccountId) -> Option<Balance> {
+		self.delegations
 			.0
 			.iter()
-			.find(|b| b.owner == collator)
-			.ok_or(Error::<T>::DelegationDNE)?;
-		ensure!(*amount > less, Error::<T>::DelegatorBondBelowMin);
-		let expected_amt: BalanceOf<T> = (*amount - less).into();
-		ensure!(
-			expected_amt >= T::MinDelegation::get(),
-			Error::<T>::DelegationBelowMin
-		);
-		// Net Total is total after pending orders are executed
-		let net_total = self.total.saturating_sub(self.requests.less_total);
-		// Net Total is always >= MinDelegatorStk
-		let max_subtracted_amount = net_total.saturating_sub(T::MinDelegatorStk::get().into());
-		ensure!(
-			less <= max_subtracted_amount,
-			Error::<T>::DelegatorBondBelowMin
-		);
-		let when = <Round<T>>::get().current + T::DelegationBondLessDelay::get();
-		self.requests.bond_less::<T>(collator, less, when)?;
-		Ok(when)
+			.find(|b| &b.owner == collator)
+			.map(|b| b.amount)
 	}
-	/// Temporary function to migrate revocations
-	pub fn hotfix_set_revoke<T: Config>(&mut self, collator: AccountId, when: RoundIndex) {
-		// get delegation amount
-		let maybe_bond = self.delegations.0.iter().find(|b| b.owner == collator);
-		if let Some(Bond { amount, .. }) = maybe_bond {
-			// add revocation to pending requests
-			if let Err(e) = self.requests.revoke::<T>(collator, *amount, when) {
-				log::warn!("Migrate revocation request failed with error: {:?}", e);
+}
+
+pub mod deprecated {
+	#![allow(deprecated)]
+
+	use super::*;
+
+	#[deprecated(note = "use DelegationAction")]
+	#[derive(Clone, Eq, PartialEq, Encode, Decode, RuntimeDebug, TypeInfo)]
+	/// Changes requested by the delegator
+	/// - limit of 1 ongoing change per delegation
+	pub enum DelegationChange {
+		Revoke,
+		Decrease,
+	}
+
+	#[deprecated(note = "use ScheduledRequest")]
+	#[derive(Clone, Eq, PartialEq, Encode, Decode, RuntimeDebug, TypeInfo)]
+	pub struct DelegationRequest<AccountId, Balance> {
+		pub collator: AccountId,
+		pub amount: Balance,
+		pub when_executable: RoundIndex,
+		pub action: DelegationChange,
+	}
+
+	#[deprecated(note = "use DelegationScheduledRequests storage item")]
+	#[derive(Clone, Encode, PartialEq, Decode, RuntimeDebug, TypeInfo)]
+	/// Pending requests to mutate delegations for each delegator
+	pub struct PendingDelegationRequests<AccountId, Balance> {
+		/// Number of pending revocations (necessary for determining whether revoke is exit)
+		pub revocations_count: u32,
+		/// Map from collator -> Request (enforces at most 1 pending request per delegation)
+		pub requests: BTreeMap<AccountId, DelegationRequest<AccountId, Balance>>,
+		/// Sum of pending revocation amounts + bond less amounts
+		pub less_total: Balance,
+	}
+
+	impl<A: Ord, B: Zero> Default for PendingDelegationRequests<A, B> {
+		fn default() -> PendingDelegationRequests<A, B> {
+			PendingDelegationRequests {
+				revocations_count: 0u32,
+				requests: BTreeMap::new(),
+				less_total: B::zero(),
 			}
-		} else {
-			log::warn!("Migrate revocation request failed because delegation DNE");
 		}
 	}
-	/// Schedule revocation for the given collator
-	pub fn schedule_revoke<T: Config>(
-		&mut self,
-		collator: AccountId,
-	) -> Result<(RoundIndex, RoundIndex), DispatchError>
-	where
-		BalanceOf<T>: Into<Balance>,
+
+	impl<
+			A: Ord + Clone,
+			B: Zero
+				+ Ord
+				+ Copy
+				+ Clone
+				+ sp_std::ops::AddAssign
+				+ sp_std::ops::Add<Output = B>
+				+ sp_std::ops::SubAssign
+				+ sp_std::ops::Sub<Output = B>
+				+ Saturating,
+		> PendingDelegationRequests<A, B>
 	{
-		// get delegation amount
-		let Bond { amount, .. } = self
-			.delegations
-			.0
-			.iter()
-			.find(|b| b.owner == collator)
-			.ok_or(Error::<T>::DelegationDNE)?;
-		let now = <Round<T>>::get().current;
-		let when = now + T::RevokeDelegationDelay::get();
-		// add revocation to pending requests
-		self.requests.revoke::<T>(collator, *amount, when)?;
-		Ok((now, when))
-	}
-	/// Execute pending delegation change request
-	pub fn execute_pending_request<T: Config>(&mut self, candidate: AccountId) -> DispatchResult
-	where
-		BalanceOf<T>: From<Balance> + Into<Balance>,
-		T::AccountId: From<AccountId>,
-		Delegator<T::AccountId, BalanceOf<T>>: From<Delegator<AccountId, Balance>>,
-	{
-		let now = <Round<T>>::get().current;
-		let DelegationRequest {
-			amount,
-			action,
-			when_executable,
-			..
-		} = self
-			.requests
-			.requests
-			.remove(&candidate)
-			.ok_or(Error::<T>::PendingDelegationRequestDNE)?;
-		ensure!(
-			when_executable <= now,
-			Error::<T>::PendingDelegationRequestNotDueYet
-		);
-		let (balance_amt, candidate_id, delegator_id): (BalanceOf<T>, T::AccountId, T::AccountId) = (
-			amount.into(),
-			candidate.clone().into(),
-			self.id.clone().into(),
-		);
-		match action {
-			DelegationChange::Revoke => {
-				// revoking last delegation => leaving set of delegators
-				let leaving = if self.delegations.0.len() == 1usize {
-					true
-				} else {
-					ensure!(
-						self.total.saturating_sub(T::MinDelegatorStk::get().into()) >= amount,
-						Error::<T>::DelegatorBondBelowMin
-					);
-					false
-				};
-				// remove from pending requests
-				self.requests.less_total = self.requests.less_total.saturating_sub(amount);
-				self.requests.revocations_count =
-					self.requests.revocations_count.saturating_sub(1u32);
-				// remove delegation from delegator state
-				self.rm_delegation(&candidate);
-				// remove delegation from collator state delegations
-				Pallet::<T>::delegator_leaves_candidate(
-					candidate_id.clone(),
-					delegator_id.clone(),
-					balance_amt,
-				)?;
-				Pallet::<T>::deposit_event(Event::DelegationRevoked {
-					delegator: delegator_id.clone(),
-					candidate: candidate_id,
-					unstaked_amount: balance_amt,
-				});
-				if leaving {
-					<DelegatorState<T>>::remove(&delegator_id);
-					Pallet::<T>::deposit_event(Event::DelegatorLeft {
-						delegator: delegator_id,
-						unstaked_amount: balance_amt,
-					});
-				} else {
-					let nom_st: Delegator<T::AccountId, BalanceOf<T>> = self.clone().into();
-					<DelegatorState<T>>::insert(&delegator_id, nom_st);
-				}
-				Ok(())
-			}
-			DelegationChange::Decrease => {
-				// remove from pending requests
-				self.requests.less_total = self.requests.less_total.saturating_sub(amount);
-				// decrease delegation
-				for x in &mut self.delegations.0 {
-					if x.owner == candidate {
-						if x.amount > amount {
-							let amount_before: BalanceOf<T> = x.amount.into();
-							x.amount = x.amount.saturating_sub(amount);
-							self.total = self.total.saturating_sub(amount);
-							let new_total: BalanceOf<T> = self.total.into();
-							ensure!(
-								new_total >= T::MinDelegation::get(),
-								Error::<T>::DelegationBelowMin
-							);
-							ensure!(
-								new_total >= T::MinDelegatorStk::get(),
-								Error::<T>::DelegatorBondBelowMin
-							);
-							let mut collator = <CandidateInfo<T>>::get(&candidate_id)
-								.ok_or(Error::<T>::CandidateDNE)?;
-							T::Currency::unreserve(&delegator_id, balance_amt);
-							// need to go into decrease_delegation
-							let in_top = collator.decrease_delegation::<T>(
-								&candidate_id,
-								delegator_id.clone(),
-								amount_before,
-								balance_amt,
-							)?;
-							<CandidateInfo<T>>::insert(&candidate_id, collator);
-							let new_total_staked = <Total<T>>::get().saturating_sub(balance_amt);
-							<Total<T>>::put(new_total_staked);
-							let nom_st: Delegator<T::AccountId, BalanceOf<T>> = self.clone().into();
-							<DelegatorState<T>>::insert(&delegator_id, nom_st);
-							Pallet::<T>::deposit_event(Event::DelegationDecreased {
-								delegator: delegator_id,
-								candidate: candidate_id,
-								amount: balance_amt,
-								in_top: in_top,
-							});
-							return Ok(());
-						} else {
-							// must rm entire delegation if x.amount <= less or cancel request
-							return Err(Error::<T>::DelegationBelowMin.into());
-						}
-					}
-				}
-				Err(Error::<T>::DelegationDNE.into())
-			}
+		/// New default (empty) pending requests
+		pub fn new() -> Self {
+			Self::default()
 		}
 	}
-	/// Cancel pending delegation change request
-	pub fn cancel_pending_request<T: Config>(
-		&mut self,
-		candidate: AccountId,
-	) -> Result<DelegationRequest<AccountId, Balance>, DispatchError> {
-		let order = self
-			.requests
-			.requests
-			.remove(&candidate)
-			.ok_or(Error::<T>::PendingDelegationRequestDNE)?;
-		match order.action {
-			DelegationChange::Revoke => {
-				self.requests.revocations_count =
-					self.requests.revocations_count.saturating_sub(1u32);
-				self.requests.less_total = self.requests.less_total.saturating_sub(order.amount);
-			}
-			DelegationChange::Decrease => {
-				self.requests.less_total = self.requests.less_total.saturating_sub(order.amount);
-			}
-		}
-		Ok(order)
-	}
-}
 
-#[derive(Clone, Eq, PartialEq, Encode, Decode, RuntimeDebug, TypeInfo)]
-/// Changes requested by the delegator
-/// - limit of 1 ongoing change per delegation
-pub enum DelegationChange {
-	Revoke,
-	Decrease,
-}
-
-#[derive(Clone, Eq, PartialEq, Encode, Decode, RuntimeDebug, TypeInfo)]
-pub struct DelegationRequest<AccountId, Balance> {
-	pub collator: AccountId,
-	pub amount: Balance,
-	pub when_executable: RoundIndex,
-	pub action: DelegationChange,
-}
-
-#[derive(Clone, Encode, PartialEq, Decode, RuntimeDebug, TypeInfo)]
-/// Pending requests to mutate delegations for each delegator
-pub struct PendingDelegationRequests<AccountId, Balance> {
-	/// Number of pending revocations (necessary for determining whether revoke is exit)
-	pub revocations_count: u32,
-	/// Map from collator -> Request (enforces at most 1 pending request per delegation)
-	pub requests: BTreeMap<AccountId, DelegationRequest<AccountId, Balance>>,
-	/// Sum of pending revocation amounts + bond less amounts
-	pub less_total: Balance,
-}
-
-impl<A: Ord, B: Zero> Default for PendingDelegationRequests<A, B> {
-	fn default() -> PendingDelegationRequests<A, B> {
-		PendingDelegationRequests {
-			revocations_count: 0u32,
-			requests: BTreeMap::new(),
-			less_total: B::zero(),
-		}
-	}
-}
-
-impl<
-		A: Ord + Clone,
-		B: Zero
-			+ Ord
-			+ Copy
-			+ Clone
-			+ sp_std::ops::AddAssign
-			+ sp_std::ops::Add<Output = B>
-			+ sp_std::ops::SubAssign
-			+ sp_std::ops::Sub<Output = B>
-			+ Saturating,
-	> PendingDelegationRequests<A, B>
-{
-	/// New default (empty) pending requests
-	pub fn new() -> PendingDelegationRequests<A, B> {
-		PendingDelegationRequests::default()
-	}
-	/// Add bond less order to pending requests, only succeeds if returns true
-	/// - limit is the maximum amount allowed that can be subtracted from the delegation
-	/// before it would be below the minimum delegation amount
-	pub fn bond_less<T: Config>(
-		&mut self,
-		collator: A,
-		amount: B,
-		when_executable: RoundIndex,
-	) -> DispatchResult {
-		ensure!(
-			self.requests.get(&collator).is_none(),
-			Error::<T>::PendingDelegationRequestAlreadyExists
-		);
-		self.requests.insert(
-			collator.clone(),
-			DelegationRequest {
-				collator,
-				amount,
-				when_executable,
-				action: DelegationChange::Decrease,
-			},
-		);
-		self.less_total = self.less_total.saturating_add(amount);
-		Ok(())
-	}
-	/// Add revoke order to pending requests
-	/// - limit is the maximum amount allowed that can be subtracted from the delegation
-	/// before it would be below the minimum delegation amount
-	pub fn revoke<T: Config>(
-		&mut self,
-		collator: A,
-		amount: B,
-		when_executable: RoundIndex,
-	) -> DispatchResult {
-		ensure!(
-			self.requests.get(&collator).is_none(),
-			Error::<T>::PendingDelegationRequestAlreadyExists
-		);
-		self.requests.insert(
-			collator.clone(),
-			DelegationRequest {
-				collator,
-				amount,
-				when_executable,
-				action: DelegationChange::Revoke,
-			},
-		);
-		self.revocations_count = self.revocations_count.saturating_add(1u32);
-		self.less_total = self.less_total.saturating_add(amount);
-		Ok(())
+	#[deprecated(note = "use new crate::types::Delegator struct")]
+	#[derive(Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
+	/// Delegator state
+	pub struct Delegator<AccountId, Balance> {
+		/// Delegator account
+		pub id: AccountId,
+		/// All current delegations
+		pub delegations: OrderedSet<Bond<AccountId, Balance>>,
+		/// Total balance locked for this delegator
+		pub total: Balance,
+		/// Requests to change delegations, relevant iff active
+		pub requests: PendingDelegationRequests<AccountId, Balance>,
+		/// Status for this delegator
+		pub status: DelegatorStatus,
 	}
 }
 

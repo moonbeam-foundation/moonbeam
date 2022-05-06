@@ -136,6 +136,10 @@ pub mod pallet {
 		#[pallet::constant]
 		type BaseXcmWeight: Get<Weight>;
 
+		/// The way to retrieve the reserve of a MultiAsset. This can be
+		/// configured to accept absolute or relative paths for self tokens
+		type ReserveProvider: Reserve;
+
 		type WeightInfo: WeightInfo;
 	}
 
@@ -626,7 +630,8 @@ pub mod pallet {
 			let self_location = T::SelfLocation::get();
 			ensure!(dest != self_location, Error::<T>::NotCrossChainTransfer);
 
-			let reserve = asset.reserve().ok_or(Error::<T>::AssetHasNoReserve)?;
+			let reserve =
+				T::ReserveProvider::reserve(asset).ok_or(Error::<T>::AssetHasNoReserve)?;
 
 			// We only allow to transact using a reserve asset as fee
 			ensure!(reserve == dest, Error::<T>::AssetIsNotReserveInDestination);

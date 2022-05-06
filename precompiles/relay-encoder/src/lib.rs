@@ -449,4 +449,8 @@ impl EvmData for RewardDestinationWrapper {
 		};
 		EvmData::write(writer, encoded_bytes);
 	}
+
+	fn has_static_size() -> bool {
+		false
+	}
 }
