@@ -62,20 +62,19 @@ impl ManualXcmApi for ManualXcm {
 		async move {
 			// If no message is supplied, inject a default one.
 			let msg = if msg.is_empty() {
-				xcm::VersionedXcm::<()>::V2(Xcm(vec![
-					ReserveAssetDeposited((Parent, 10000000000000).into()),
+				xcm::VersionedXcm::<()>::V3(Xcm(vec![
+					ReserveAssetDeposited((Parent, 10000000000000u128).into()),
 					ClearOrigin,
 					BuyExecution {
-						fees: (Parent, 10000000000000).into(),
+						fees: (Parent, 10000000000000u128).into(),
 						weight_limit: Limited(4_000_000_000),
 					},
 					DepositAsset {
-						assets: All.into(),
-						max_assets: 1,
+						assets: Wild(AllCounted(1)),
 						beneficiary: MultiLocation::new(
 							0,
 							X1(AccountKey20 {
-								network: Any,
+								network: None,
 								key: hex_literal::hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"),
 							}),
 						),
@@ -110,22 +109,21 @@ impl ManualXcmApi for ManualXcm {
 			let msg = if msg.is_empty() {
 				let mut mes = XcmpMessageFormat::ConcatenatedVersionedXcm.encode();
 				mes.append(
-					&mut (xcm::VersionedXcm::<()>::V2(Xcm(vec![
+					&mut (xcm::VersionedXcm::<()>::V3(Xcm(vec![
 						ReserveAssetDeposited(
-							((Parent, Parachain(sender.into())), 10000000000000).into(),
+							((Parent, Parachain(sender.into())), 10000000000000u128).into(),
 						),
 						ClearOrigin,
 						BuyExecution {
-							fees: ((Parent, Parachain(sender.into())), 10000000000000).into(),
+							fees: ((Parent, Parachain(sender.into())), 10000000000000u128).into(),
 							weight_limit: Limited(4_000_000_000),
 						},
 						DepositAsset {
-							assets: All.into(),
-							max_assets: 1,
+							assets:  Wild(AllCounted(1)),
 							beneficiary: MultiLocation::new(
 								0,
 								X1(AccountKey20 {
-									network: Any,
+									network: None,
 									key: hex_literal::hex!(
 										"f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"
 									),
