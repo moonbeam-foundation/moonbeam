@@ -461,7 +461,7 @@ jobs:
           docker cp moonbeam-tmp:/moonbeam/moonbeam ${binaryPath} && \
           docker rm moonbeam-tmp
 
-          chmod -R uog+rwX *
+          chmod -R uog+rwX .
 
           echo "Running para-tests inside docker"
           docker run \
