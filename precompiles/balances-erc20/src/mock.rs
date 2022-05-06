@@ -243,6 +243,7 @@ where
 {
 	fn execute(
 		&self,
+		handle: &mut impl PrecompileHandle,
 		address: H160,
 		input: &[u8],
 		target_gas: Option<u64>,
@@ -252,7 +253,7 @@ where
 		match address {
 			a if a == hash(PRECOMPILE_ADDRESS) => {
 				Some(Erc20BalancesPrecompile::<R, NativeErc20Metadata>::execute(
-					input, target_gas, context, is_static,
+					handle, input, target_gas, context, is_static,
 				))
 			}
 			_ => None,
