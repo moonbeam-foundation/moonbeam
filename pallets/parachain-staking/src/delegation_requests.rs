@@ -81,7 +81,9 @@ impl<T: Config> Pallet<T> {
 		let mut scheduled_requests = <DelegationScheduledRequests<T>>::get(&collator);
 
 		ensure!(
-			!scheduled_requests.iter().any(|x| x.delegator == delegator),
+			!scheduled_requests
+				.iter()
+				.any(|req| req.delegator == delegator),
 			<Error<T>>::PendingDelegationRequestAlreadyExists,
 		);
 
@@ -118,7 +120,9 @@ impl<T: Config> Pallet<T> {
 		let mut scheduled_requests = <DelegationScheduledRequests<T>>::get(&collator);
 
 		ensure!(
-			!scheduled_requests.iter().any(|x| x.delegator == delegator),
+			!scheduled_requests
+				.iter()
+				.any(|req| req.delegator == delegator),
 			<Error<T>>::PendingDelegationRequestAlreadyExists,
 		);
 
@@ -173,7 +177,7 @@ impl<T: Config> Pallet<T> {
 		let mut scheduled_requests = <DelegationScheduledRequests<T>>::get(&collator);
 		let request_idx = scheduled_requests
 			.iter()
-			.position(|x| x.delegator == delegator)
+			.position(|req| req.delegator == delegator)
 			.ok_or(<Error<T>>::PendingDelegationRequestDNE)?;
 
 		let request = scheduled_requests.remove(request_idx);
@@ -199,7 +203,7 @@ impl<T: Config> Pallet<T> {
 		let mut scheduled_requests = <DelegationScheduledRequests<T>>::get(&collator);
 		let request_idx = scheduled_requests
 			.iter()
-			.position(|x| x.delegator == delegator)
+			.position(|req| req.delegator == delegator)
 			.ok_or(<Error<T>>::PendingDelegationRequestDNE)?;
 		let request = &scheduled_requests[request_idx];
 
@@ -318,7 +322,7 @@ impl<T: Config> Pallet<T> {
 
 		let maybe_request_idx = scheduled_requests
 			.iter()
-			.position(|x| &x.delegator == delegator);
+			.position(|req| &req.delegator == delegator);
 
 		if let Some(request_idx) = maybe_request_idx {
 			let request = scheduled_requests.remove(request_idx);
@@ -332,6 +336,6 @@ impl<T: Config> Pallet<T> {
 	pub fn delegation_request_exists(collator: &T::AccountId, delegator: &T::AccountId) -> bool {
 		<DelegationScheduledRequests<T>>::get(collator)
 			.iter()
-			.any(|x| &x.delegator == delegator)
+			.any(|req| &req.delegator == delegator)
 	}
 }
