@@ -29,4 +29,6 @@ USER $HOST_UID
 
 WORKDIR /polkadot
 
+ENTRYPOINT ["docker-entrypoint.sh"]
+CMD [ "node" ]
 
