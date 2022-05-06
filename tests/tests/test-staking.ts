@@ -123,6 +123,8 @@ describeDevMoonbeam("Staking - Join Candidates", (context) => {
   });
 
   it("should successfully execute schedule leave candidates at correct round", async function () {
+    this.timeout(20000);
+
     let candidatesAfter = await context.polkadotApi.query.parachainStaking.candidatePool();
     expect(candidatesAfter.length).to.equal(2, "new candidate should have been added");
 
@@ -209,6 +211,8 @@ describeDevMoonbeam("Staking - Join Delegators", (context) => {
   });
 
   it("should successfully execute schedule leave delegators at correct round", async function () {
+    this.timeout(20000);
+
     await context.polkadotApi.tx.parachainStaking.scheduleLeaveDelegators().signAndSend(ethan);
     await context.createBlock();
 
