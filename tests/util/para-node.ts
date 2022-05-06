@@ -196,7 +196,7 @@ export async function getRawSpecsFromTag(
     console.log(`getRawSpecsFromTag build-spec --chain moonbase-local --raw`);
     console.log(child_process.execSync(`ls -la ${path.dirname(binaryPath)}`).toString());
     console.log(child_process.execSync(`ls -la ${binaryPath}`).toString());
-    child_process.execSync(`${binaryPath} build-spec --chain moonbase-local --raw`);
+    console.log(child_process.execSync(`${binaryPath} --version`).toString());
     child_process.execSync(`${binaryPath} build-spec --chain moonbase-local --raw > ${specPath}`);
   }
   return specPath;
@@ -212,7 +212,7 @@ export async function generateRawSpecs(
     console.log(`generateRawSpecs build-spec --chain moonbase-local --raw`);
     console.log(child_process.execSync(`ls -la ${path.dirname(binaryPath)}`).toString());
     console.log(child_process.execSync(`ls -la ${binaryPath}`).toString());
-    child_process.execSync(`${binaryPath} build-spec --chain moonbase-local --raw`);
+    console.log(child_process.execSync(`${binaryPath} --version`).toString());
     child_process.execSync(`${binaryPath} build-spec --chain moonbase-local --raw > ${specPath}`);
   }
   return specPath;
