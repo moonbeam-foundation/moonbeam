@@ -462,12 +462,6 @@ jobs:
           chmod uog+x build/*
           ls -la build/
 
-
-          echo "Testing moonbeam"
-          cd tests
-          ../build/moonbeam build-spec --chain moonbase-local --raw > /dev/null
-          cd ..
-
           echo "Running para-tests inside docker"
           docker run \
             --network=host \
@@ -480,13 +474,8 @@ jobs:
             -e SPECS_DIRECTORY='/tmp/specs' \
             -v $(pwd):/moonbeam:z \
             -u $UID \
-            -w /moonbeam \
-              node build/moonbeam build-spec --chain moonbase-local --raw \
-              > /dev/null
-            
-          echo "Done"
-
-          rm -rf $tmpFolder
+            -w /moonbeam/tests \
+              node_modules/.bin/mocha --exit -r ts-node/register 'para-tests/**/test-*.ts'
 
   docker-parachain:
     runs-on: ubuntu-latest
