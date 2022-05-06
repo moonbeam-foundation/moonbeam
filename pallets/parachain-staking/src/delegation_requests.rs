@@ -255,11 +255,11 @@ impl<T: Config> Pallet<T> {
 				state.less_total = state.less_total.saturating_sub(amount);
 
 				// decrease delegation
-				for x in &mut state.delegations.0 {
-					if x.owner == collator {
-						return if x.amount > amount {
-							let amount_before: BalanceOf<T> = x.amount.into();
-							x.amount = x.amount.saturating_sub(amount);
+				for bond in &mut state.delegations.0 {
+					if bond.owner == collator {
+						return if bond.amount > amount {
+							let amount_before: BalanceOf<T> = bond.amount.into();
+							bond.amount = bond.amount.saturating_sub(amount);
 							state.total = state.total.saturating_sub(amount);
 							let new_total: BalanceOf<T> = state.total.into();
 							ensure!(
@@ -297,7 +297,7 @@ impl<T: Config> Pallet<T> {
 							});
 							Ok(().into())
 						} else {
-							// must rm entire delegation if x.amount <= less or cancel request
+							// must rm entire delegation if bond.amount <= less or cancel request
 							Err(<Error<T>>::DelegationBelowMin.into())
 						};
 					}
