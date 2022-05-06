@@ -1,4 +1,5 @@
 (function() {var implementors = {};
 implementors["moonbase_runtime"] = [{"text":"impl WeightToFeePolynomial for <a class=\"struct\" href=\"moonbase_runtime/struct.WeightToFee.html\" title=\"struct moonbase_runtime::WeightToFee\">WeightToFee</a>","synthetic":false,"types":["moonbase_runtime::WeightToFee"]}];
+implementors["moonbeam_runtime"] = [{"text":"impl WeightToFeePolynomial for <a class=\"struct\" href=\"moonbeam_runtime/struct.WeightToFee.html\" title=\"struct moonbeam_runtime::WeightToFee\">WeightToFee</a>","synthetic":false,"types":["moonbeam_runtime::WeightToFee"]}];
 implementors["moonriver_runtime"] = [{"text":"impl WeightToFeePolynomial for <a class=\"struct\" href=\"moonriver_runtime/struct.WeightToFee.html\" title=\"struct moonriver_runtime::WeightToFee\">WeightToFee</a>","synthetic":false,"types":["moonriver_runtime::WeightToFee"]}];
 if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

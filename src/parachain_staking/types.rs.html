@@ -2143,7 +2143,7 @@
 					<span class="kw">if</span> <span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">bottom_capacity</span>, <span class="ident">CapacityStatus::Full</span>) {
 						<span class="macro">ensure!</span>(
 							<span class="ident">delegation</span>.<span class="ident">amount</span>.<span class="ident">into</span>() <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">lowest_bottom_delegation_amount</span>,
-							<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::CannotDelegateLessThanLowestBottomWhenBottomIsFull</span>
+							<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::CannotDelegateLessThanOrEqualToLowestBottomWhenFull</span>
 						);
 						<span class="comment">// need to subtract from total staked</span>
 						<span class="ident">less_total_staked</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">lowest_bottom_delegation_amount</span>);

@@ -469,6 +469,54 @@
 <span id="464">464</span>
 <span id="465">465</span>
 <span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -489,9 +537,9 @@
 <span class="doccomment">//!</span>
 
 <span class="kw">use</span> <span class="kw">super</span>::{
-	<span class="ident">AccountId</span>, <span class="ident">AssetId</span>, <span class="ident">AssetManager</span>, <span class="ident">Assets</span>, <span class="ident">Balance</span>, <span class="ident">Balances</span>, <span class="ident">Call</span>, <span class="ident">Event</span>, <span class="ident">LocalAssets</span>, <span class="ident">Origin</span>,
-	<span class="ident">ParachainInfo</span>, <span class="ident">ParachainSystem</span>, <span class="ident">PolkadotXcm</span>, <span class="ident">Runtime</span>, <span class="ident">Treasury</span>, <span class="ident">XcmpQueue</span>,
-	<span class="ident">FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX</span>, <span class="ident">MAXIMUM_BLOCK_WEIGHT</span>,
+	<span class="ident">AccountId</span>, <span class="ident">AssetId</span>, <span class="ident">AssetManager</span>, <span class="ident">Assets</span>, <span class="ident">Balance</span>, <span class="ident">Balances</span>, <span class="ident">Call</span>, <span class="ident">DealWithFees</span>, <span class="ident">Event</span>,
+	<span class="ident">LocalAssets</span>, <span class="ident">Origin</span>, <span class="ident">ParachainInfo</span>, <span class="ident">ParachainSystem</span>, <span class="ident">PolkadotXcm</span>, <span class="ident">Runtime</span>, <span class="ident">Treasury</span>,
+	<span class="ident">WeightToFee</span>, <span class="ident">XcmpQueue</span>, <span class="ident">FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX</span>, <span class="ident">MAXIMUM_BLOCK_WEIGHT</span>,
 };
 
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_assets_erc20::AccountIdAssetIdConversion</span>;
@@ -508,10 +556,11 @@
 
 <span class="kw">use</span> <span class="ident">xcm_builder</span>::{
 	<span class="ident">AccountKey20Aliases</span>, <span class="ident">AllowKnownQueryResponses</span>, <span class="ident">AllowSubscriptionsFrom</span>,
-	<span class="ident">AllowTopLevelPaidExecutionFrom</span>, <span class="ident">ConvertedConcreteAssetId</span>, <span class="ident">EnsureXcmOrigin</span>, <span class="ident">FixedWeightBounds</span>,
-	<span class="ident">FungiblesAdapter</span>, <span class="ident">LocationInverter</span>, <span class="ident">ParentIsPreset</span>, <span class="ident">RelayChainAsNative</span>,
-	<span class="ident">SiblingParachainAsNative</span>, <span class="ident">SiblingParachainConvertsVia</span>, <span class="ident">SignedAccountKey20AsNative</span>,
-	<span class="ident">SovereignSignedViaLocation</span>, <span class="ident">TakeWeightCredit</span>,
+	<span class="ident">AllowTopLevelPaidExecutionFrom</span>, <span class="ident">AsPrefixedGeneralIndex</span>, <span class="ident">ConvertedConcreteAssetId</span>,
+	<span class="ident">CurrencyAdapter</span> <span class="kw">as</span> <span class="ident">XcmCurrencyAdapter</span>, <span class="ident">EnsureXcmOrigin</span>, <span class="ident">FixedWeightBounds</span>, <span class="ident">FungiblesAdapter</span>,
+	<span class="ident">LocationInverter</span>, <span class="ident">ParentIsPreset</span>, <span class="ident">RelayChainAsNative</span>, <span class="ident">SiblingParachainAsNative</span>,
+	<span class="ident">SiblingParachainConvertsVia</span>, <span class="ident">SignedAccountKey20AsNative</span>, <span class="ident">SovereignSignedViaLocation</span>,
+	<span class="ident">TakeWeightCredit</span>, <span class="ident">UsingComponents</span>,
 };
 
 <span class="kw">use</span> <span class="ident">xcm::latest::prelude</span>::<span class="kw-2">*</span>;
@@ -576,7 +625,7 @@
 
 <span class="comment">// The non-reserve fungible transactor type</span>
 <span class="comment">// It will use pallet-assets, and the Id will be matched against AsAssetType</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">FungiblesTransactor</span> <span class="op">=</span> <span class="ident">FungiblesAdapter</span><span class="op">&lt;</span>
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">ForeignFungiblesTransactor</span> <span class="op">=</span> <span class="ident">FungiblesAdapter</span><span class="op">&lt;</span>
 	<span class="comment">// Use this fungibles implementation:</span>
 	<span class="ident">Assets</span>,
 	<span class="comment">// Use this currency when it is a fungible asset matching the given location or name:</span>
@@ -598,11 +647,52 @@
 	(),
 <span class="op">&gt;</span>;
 
-<span class="comment">// We use only fungiblesAdapter transactor for now</span>
-<span class="comment">// The idea is that we only accept the relay token, hence no need to handle the local token</span>
-<span class="comment">// As long as this does not contain the local transactor, we are good</span>
-<span class="comment">// LocalAssets are also not enabled</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">AssetTransactors</span> <span class="op">=</span> <span class="ident">FungiblesTransactor</span>;
+<span class="doccomment">/// The transactor for our own chain currency.</span>
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">LocalAssetTransactor</span> <span class="op">=</span> <span class="ident">XcmCurrencyAdapter</span><span class="op">&lt;</span>
+	<span class="comment">// Use this currency:</span>
+	<span class="ident">Balances</span>,
+	<span class="comment">// Use this currency when it is a fungible asset matching any of the locations in</span>
+	<span class="comment">// SelfReserveRepresentations</span>
+	<span class="ident">xcm_builder::IsConcrete</span><span class="op">&lt;</span><span class="ident">SelfReserve</span><span class="op">&gt;</span>,
+	<span class="comment">// We can convert the MultiLocations with our converter above:</span>
+	<span class="ident">LocationToAccountId</span>,
+	<span class="comment">// Our chain&#39;s account ID type (we can&#39;t get away without mentioning it explicitly):</span>
+	<span class="ident">AccountId</span>,
+	<span class="comment">// We dont allow teleport</span>
+	(),
+<span class="op">&gt;</span>;
+
+<span class="doccomment">/// Means for transacting local assets besides the native currency on this chain.</span>
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">LocalFungiblesTransactor</span> <span class="op">=</span> <span class="ident">FungiblesAdapter</span><span class="op">&lt;</span>
+	<span class="comment">// Use this fungibles implementation:</span>
+	<span class="ident">LocalAssets</span>,
+	<span class="comment">// Use this currency when it is a fungible asset matching the given location or name:</span>
+	(
+		<span class="ident">ConvertedConcreteAssetId</span><span class="op">&lt;</span>
+			<span class="ident">AssetId</span>,
+			<span class="ident">Balance</span>,
+			<span class="comment">// This just tells to convert an assetId into a GeneralIndex junction prepended</span>
+			<span class="comment">// by LocalAssetsPalletLocationNewReanchor</span>
+			<span class="ident">AsPrefixedGeneralIndex</span><span class="op">&lt;</span><span class="ident">LocalAssetsPalletLocation</span>, <span class="ident">AssetId</span>, <span class="ident">JustTry</span><span class="op">&gt;</span>,
+			<span class="ident">JustTry</span>,
+		<span class="op">&gt;</span>,
+	),
+	<span class="comment">// Convert an XCM MultiLocation into a local account id:</span>
+	<span class="ident">LocationToAccountId</span>,
+	<span class="comment">// Our chain&#39;s account ID type (we can&#39;t get away without mentioning it explicitly):</span>
+	<span class="ident">AccountId</span>,
+	<span class="comment">// We dont want to allow teleporting assets</span>
+	<span class="ident">Nothing</span>,
+	<span class="comment">// The account to use for tracking teleports.</span>
+	(),
+<span class="op">&gt;</span>;
+
+<span class="comment">// We use all transactors</span>
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">AssetTransactors</span> <span class="op">=</span> (
+	<span class="ident">LocalAssetTransactor</span>,
+	<span class="ident">ForeignFungiblesTransactor</span>,
+	<span class="ident">LocalFungiblesTransactor</span>,
+);
 
 <span class="doccomment">/// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,</span>
 <span class="doccomment">/// ready for dispatching a transaction with Xcm&#39;s `Transact`. There is an `OriginKind` which can</span>
@@ -683,9 +773,15 @@
 	<span class="kw">type</span> <span class="ident">LocationInverter</span> <span class="op">=</span> <span class="ident">LocationInverter</span><span class="op">&lt;</span><span class="ident">Ancestry</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">Barrier</span> <span class="op">=</span> <span class="ident">XcmBarrier</span>;
 	<span class="kw">type</span> <span class="ident">Weigher</span> <span class="op">=</span> <span class="ident">XcmWeigher</span>;
+	<span class="comment">// We use two traders</span>
+	<span class="comment">// When we receive the relative representation of the self-reserve asset,</span>
+	<span class="comment">// we use UsingComponents and the local way of handling fees</span>
 	<span class="comment">// When we receive a non-reserve asset, we use AssetManager to fetch how many</span>
 	<span class="comment">// units per second we should charge</span>
-	<span class="kw">type</span> <span class="ident">Trader</span> <span class="op">=</span> <span class="ident">FirstAssetTrader</span><span class="op">&lt;</span><span class="ident">AssetType</span>, <span class="ident">AssetManager</span>, <span class="ident">XcmFeesToAccount</span><span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">Trader</span> <span class="op">=</span> (
+		<span class="ident">UsingComponents</span><span class="op">&lt;</span><span class="ident">WeightToFee</span>, <span class="ident">SelfReserve</span>, <span class="ident">AccountId</span>, <span class="ident">Balances</span>, <span class="ident">DealWithFees</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+		<span class="ident">FirstAssetTrader</span><span class="op">&lt;</span><span class="ident">AssetType</span>, <span class="ident">AssetManager</span>, <span class="ident">XcmFeesToAccount</span><span class="op">&gt;</span>,
+	);
 	<span class="kw">type</span> <span class="ident">ResponseHandler</span> <span class="op">=</span> <span class="ident">PolkadotXcm</span>;
 	<span class="kw">type</span> <span class="ident">SubscriptionService</span> <span class="op">=</span> <span class="ident">PolkadotXcm</span>;
 	<span class="kw">type</span> <span class="ident">AssetTrap</span> <span class="op">=</span> <span class="ident">PolkadotXcm</span>;
