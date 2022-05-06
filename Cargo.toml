@@ -15,6 +15,7 @@ members = [
 	"precompiles/balances-erc20",
 	"precompiles/crowdloan-rewards",
 	"precompiles/pallet-democracy",
+	"precompiles/parachain-staking",
 	"precompiles/utils/macro",
 	"runtime/moonbase",
 	"runtime/moonbeam",
