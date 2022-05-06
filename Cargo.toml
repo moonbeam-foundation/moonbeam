@@ -16,6 +16,7 @@ members = [
 	"precompiles/crowdloan-rewards",
 	"precompiles/pallet-democracy",
 	"precompiles/parachain-staking",
+	"precompiles/relay-encoder",
 	"precompiles/utils/macro",
 	"runtime/moonbase",
 	"runtime/moonbeam",
