@@ -12,17 +12,20 @@ RUN mv /usr/share/ca* /tmp && \
 	rm -rf /usr/share/*  && \
 	mv /tmp/ca-certificates /usr/share/ && \
 	rm -rf /usr/lib/python* && \
-	useradd -m -u $HOST_UID -U -s /bin/sh -d /polkadot polkadot && \
+	((getent passwd $HOST_UID > /dev/null)  && \
+	  useradd -m -u $HOST_UID -U -s /bin/sh -d /polkadot polkadot || \
+	  echo "known user") && \
 	mkdir -p /polkadot/.local/share/polkadot && \
-	chown -R polkadot:polkadot /polkadot && \
+	chown -R $HOST_UID /polkadot && \
 	ln -s /polkadot/.local/share/polkadot /data && \
 	rm -rf /usr/bin /usr/sbin
 
-USER polkadot
 
 RUN mkdir -p /binaries
 COPY --chown=polkadot build/polkadot /binaries/
-RUN chmod -R uog+owX /binaries
+RUN chmod -R uog+rwX /binaries
+
+USER $HOST_UID
 
 WORKDIR /polkadot
 
