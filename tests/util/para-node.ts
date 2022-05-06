@@ -193,6 +193,10 @@ export async function getRawSpecsFromTag(
     const binaryPath = await getMoonbeamDockerBinary(tag);
 
     child_process.execSync(`mkdir -p ${path.dirname(specPath)}`);
+    console.log(`getRawSpecsFromTag build-spec --chain moonbase-local --raw`);
+    console.log(child_process.execSync(`ls -la ${path.dirname(binaryPath)}`).toString());
+    console.log(child_process.execSync(`ls -la ${binaryPath}`).toString());
+    console.log(child_process.execSync(`${binaryPath} --version`).toString());
     child_process.execSync(
       `${binaryPath} build-spec --chain moonbase-local ` +
         `--raw --disable-default-bootnode > ${specPath}`
@@ -208,6 +212,10 @@ export async function generateRawSpecs(
   const specPath = path.join(SPECS_DIRECTORY, `${runtimeName}-raw-specs.json`);
   if (!fs.existsSync(specPath)) {
     child_process.execSync(`mkdir -p ${path.dirname(specPath)}`);
+    console.log(`generateRawSpecs build-spec --chain moonbase-local --raw`);
+    console.log(child_process.execSync(`ls -la ${path.dirname(binaryPath)}`).toString());
+    console.log(child_process.execSync(`ls -la ${path.dirname(specPath)}`).toString());
+    console.log(child_process.execSync(`${binaryPath} --version`).toString());
     child_process.execSync(
       `${binaryPath} build-spec --chain moonbase-local ` +
         `--raw --disable-default-bootnode > ${specPath}`
