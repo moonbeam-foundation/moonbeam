@@ -416,17 +416,29 @@ jobs:
         with:
           name: runtimes
           path: tests/runtimes
-      - name: Retrieve polkadot
-        run: |
-          POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
-          DOCKER_TAG="purestake/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
-          docker create --pull always -ti --name dummy $DOCKER_TAG bash
-          docker cp dummy:/usr/local/bin/polkadot build/polkadot
-          docker rm -f dummy
       - name: Use Node.js 14.x
         uses: actions/setup-node@v2
         with:
           node-version: 14.x
+      - name: Check & prepare polkadot docker image
+        run: |
+          POLKADOT_REPO=${{ needs.set-tags.outputs.polkadot_repo }}
+          POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
+          DOCKER_TAG="purestake/polkadot-para-tests:sha-$POLKADOT_COMMIT"
+          POLKADOT_EXISTS=$(docker manifest inspect $DOCKER_TAG > /dev/null && \
+            echo "true" || echo "false")
+
+          if [[ "$POLKADOT_EXISTS" == "false" ]]; then
+            docker create --pull always -ti --name dummy $DOCKER_TAG bash
+            docker cp dummy:/usr/local/bin/polkadot build/polkadot
+            docker rm -f dummy
+
+            docker build . --pull --no-cache -f docker/polkadot-para-tests.Dockerfile \
+              --network=host \
+              --build-arg HOST_UID="$UID" \
+              -t $DOCKER_TAG
+            docker push $DOCKER_TAG
+          fi
       - name: Typescript integration tests (against dev service)
         env:
           OVERRIDE_RUNTIME_PATH: ./runtimes
@@ -434,13 +446,16 @@ jobs:
           MOONBEAM_LOG: info
           RELAY_BINARY_PATH: ../build/polkadot
         run: |
-          chmod uog+x build/polkadot
           chmod uog+x build/moonbeam
           cd moonbeam-types-bundle
           npm install
           cd ../tests
           npm install
           cd ..
+
+          POLKADOT_REPO=${{ needs.set-tags.outputs.polkadot_repo }}
+          POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
+          DOCKER_TAG="purestake/polkadot-para-tests:sha-$POLKADOT_COMMIT"
 
           # Retrieve binary to avoid para-node script to rely on docker
           mkdir -p build
@@ -456,12 +471,9 @@ jobs:
           sha8=${rev:0:8}
           dockerImage=purestake/moonbeam:sha-${sha8}
           binaryPath=build/moonbeam-${sha8}
-
           docker create --pull always --name moonbeam-tmp ${dockerImage} && \
           docker cp moonbeam-tmp:/moonbeam/moonbeam ${binaryPath} && \
           docker rm moonbeam-tmp
-
-          chmod -R uog+rwX .
 
           echo "Running para-tests inside docker"
           docker run \
@@ -469,14 +481,15 @@ jobs:
             -e OVERRIDE_RUNTIME_PATH='./runtimes' \
             -e BINARY_PATH='../build/moonbeam' \
             -e MOONBEAM_LOG='info' \
-            -e RELAY_BINARY_PATH='../build/polkadot' \
+            -e RELAY_BINARY_PATH='/binaries/polkadot' \
             -e RUNTIME_DIRECTORY='/tmp/runtimes' \
-            -e BINARY_DIRECTORY='../build' \
+            -e BINARY_DIRECTORY='/binaries' \
             -e SPECS_DIRECTORY='/tmp/specs' \
             -v $(pwd):/moonbeam:z \
+            -v $(pwd)/${binaryPath}:/binaries/moonbeam:z \
             -u $UID \
             -w /moonbeam/tests \
-            node \
+            $DOCKER_TAG \
               node_modules/.bin/mocha --exit -r ts-node/register 'para-tests/**/test-*.ts'
 
   docker-parachain:
