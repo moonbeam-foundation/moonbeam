@@ -22,7 +22,7 @@ RUN mv /usr/share/ca* /tmp && \
 
 
 RUN mkdir -p /binaries
-COPY --chown=polkadot build/polkadot /binaries/
+COPY build/polkadot /binaries/
 RUN chmod -R uog+rwX /binaries
 
 USER $HOST_UID
