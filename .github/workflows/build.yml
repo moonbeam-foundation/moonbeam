@@ -496,7 +496,7 @@ jobs:
             -u $UID \
             -w /moonbeam/tests \
             $DOCKER_TAG \
-              node_modules/.bin/mocha --exit -r ts-node/register 'para-tests/**/test-*.ts'
+              node node_modules/.bin/mocha --exit -r ts-node/register 'para-tests/**/test-*.ts'
 
   docker-parachain:
     runs-on: ubuntu-latest
