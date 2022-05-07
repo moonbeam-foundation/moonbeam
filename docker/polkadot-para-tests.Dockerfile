@@ -8,18 +8,11 @@ LABEL description="Node image use to run Moonbeam para-tests"
 
 ARG HOST_UID=1001
 
-RUN mv /usr/share/ca* /tmp && \
-	rm -rf /usr/share/*  && \
-	mv /tmp/ca-certificates /usr/share/ && \
-	rm -rf /usr/lib/python* && \
-	((getent passwd $HOST_UID > /dev/null)  && \
-	  useradd -m -u $HOST_UID -U -s /bin/sh -d /polkadot polkadot || \
-	  echo "known user") && \
+RUN ((getent passwd $HOST_UID > /dev/null) || \
+	  useradd -m -u $HOST_UID -U -s /bin/sh -d /polkadot polkadot) && \
 	mkdir -p /polkadot/.local/share/polkadot && \
 	chown -R $HOST_UID /polkadot && \
-	ln -s /polkadot/.local/share/polkadot /data && \
-	rm -rf /usr/bin /usr/sbin
-
+	ln -s /polkadot/.local/share/polkadot /data
 
 RUN mkdir -p /binaries
 COPY build/polkadot /binaries/

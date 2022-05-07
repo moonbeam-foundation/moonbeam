@@ -430,6 +430,7 @@ jobs:
           POLKADOT_REPO=${{ needs.set-tags.outputs.polkadot_repo }}
           POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
           DOCKER_TAG="purestake/polkadot-para-tests:sha-$POLKADOT_COMMIT"
+          docker rmi --force $DOCKER_TAG
           POLKADOT_EXISTS=$(docker manifest inspect $DOCKER_TAG > /dev/null && \
             echo "true" || echo "false")
 
@@ -496,7 +497,7 @@ jobs:
             -u $UID \
             -w /moonbeam/tests \
             $DOCKER_TAG \
-              node node_modules/.bin/mocha --exit -r ts-node/register 'para-tests/**/test-*.ts'
+              node_modules/.bin/mocha --exit -r ts-node/register 'para-tests/**/test-*.ts'
 
   docker-parachain:
     runs-on: ubuntu-latest
