@@ -370,6 +370,7 @@ jobs:
           npm run build
           cd ../tests
           npm install
+          cd ..
 
           POLKADOT_REPO=${{ needs.set-tags.outputs.polkadot_repo }}
           POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
