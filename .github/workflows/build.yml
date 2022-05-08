@@ -204,6 +204,7 @@ jobs:
             echo "true" || echo "false")
 
           if [[ "$POLKADOT_EXISTS" == "false" ]]; then
+            mkdir -p build
             MOONBEAM_DOCKER_TAG="purestake/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
             docker create --pull always -ti --name dummy $MOONBEAM_DOCKER_TAG bash
             docker cp dummy:/usr/local/bin/polkadot build/polkadot
