@@ -384,7 +384,7 @@ jobs:
             -u $UID \
             -w /moonbeam/tests \
             $DOCKER_TAG \
-              node node node_modules/.bin/mocha --exit -r ts-node/register 'tests/**/test-*.ts'
+              node node_modules/.bin/mocha --exit -r ts-node/register 'tests/**/test-*.ts'
 
       # We determine whether there are unmodified package-lock.json files by:
       # 1. Asking git for a list of all modified files
