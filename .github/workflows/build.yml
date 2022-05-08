@@ -377,8 +377,15 @@ jobs:
           POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
           DOCKER_TAG="purestake/polkadot-para-tests:sha-$POLKADOT_COMMIT"
 
-          echo "Running para-tests inside docker"
-          docker run \
+          echo "Running tests inside docker"
+          launch_as() {
+            local cmd_name=$1
+            shift
+            (time $@ || echo $cmd_name >> fail.txt) 2>&1 > $cmd_name.txt
+          }
+
+          launch_as docker1 docker run \
+            --cpus 4 \
             --network=host \
             -e BINARY_PATH='../build/moonbeam' \
             -e MOONBEAM_LOG='info' \
@@ -386,7 +393,63 @@ jobs:
             -u $UID \
             -w /moonbeam/tests \
             $DOCKER_TAG \
-              node node_modules/.bin/mocha --exit -r ts-node/register 'tests/**/test-*.ts'
+              node node_modules/.bin/mocha --exit -r ts-node/register 'tests/**/test-[abc]*.ts' &
+
+          launch_as docker2 docker run \
+            --cpus 4 \
+            --network=host \
+            -e BINARY_PATH='../build/moonbeam' \
+            -e MOONBEAM_LOG='info' \
+            -v $(pwd):/moonbeam:z \
+            -u $UID \
+            -w /moonbeam/tests \
+            $DOCKER_TAG \
+              node node_modules/.bin/mocha --exit -r ts-node/register 'tests/**/test-[defgh]*.ts' &
+
+          launch_as docker3 docker run \
+            --cpus 4 \
+            --network=host \
+            -e BINARY_PATH='../build/moonbeam' \
+            -e MOONBEAM_LOG='info' \
+            -v $(pwd):/moonbeam:z \
+            -u $UID \
+            -w /moonbeam/tests \
+            $DOCKER_TAG \
+              node node_modules/.bin/mocha --exit -r ts-node/register 'tests/**/test-[ijklmn]*.ts' &
+
+          launch_as docker4 docker run \
+            --cpus 4 \
+            --network=host \
+            -e BINARY_PATH='../build/moonbeam' \
+            -e MOONBEAM_LOG='info' \
+            -v $(pwd):/moonbeam:z \
+            -u $UID \
+            -w /moonbeam/tests \
+            $DOCKER_TAG \
+              node node_modules/.bin/mocha --exit -r ts-node/register 'tests/**/test-[opqrs]*.ts' &
+
+          launch_as docker5 docker run \
+            --cpus 4 \
+            --network=host \
+            -e BINARY_PATH='../build/moonbeam' \
+            -e MOONBEAM_LOG='info' \
+            -v $(pwd):/moonbeam:z \
+            -u $UID \
+            -w /moonbeam/tests \
+            $DOCKER_TAG \
+              node node_modules/.bin/mocha --exit -r ts-node/register 'tests/**/test-[tuvwxyz]*.ts' &
+
+          wait
+          cat lint.txt
+          cat docker1.txt
+          cat docker2.txt
+          cat docker3.txt
+          cat docker4.txt
+          cat docker5.txt
+          if [ -f fail.txt ]; then
+            cat fail.txt
+            exit 1
+          fi
 
       # We determine whether there are unmodified package-lock.json files by:
       # 1. Asking git for a list of all modified files
