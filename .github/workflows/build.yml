@@ -238,8 +238,6 @@ jobs:
       RUSTFLAGS: "-C opt-level=3 -D warnings"
       # MOONBEAM_LOG: info
       # DEBUG: "test*"
-    outputs:
-      RUSTC: ${{ steps.get-rust-versions.outputs.rustc }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -270,21 +268,37 @@ jobs:
           fi
           $SCCACHE_BIN -s
           echo "RUSTC_WRAPPER=$SCCACHE_BIN" >> $GITHUB_ENV
-      - id: get-rust-versions
-        run: |
-          echo "::set-output name=rustc::$(rustc --version)"
-      - name: Build Node
-        run: |
-          env
-          cargo build --release --all
-      - name: Verify node version
-        run: |
-          GIT_COMMIT=`git log -1 --format="%H" | cut -c1-7`
-          MB_VERSION=`./target/release/moonbeam --version`
-          echo "Checking $MB_VERSION contains $GIT_COMMIT"
-          echo "$MB_VERSION" | grep $GIT_COMMIT
-      - name: Unit tests
-        run: cargo test --release --all
+      # - name: Build Node
+      #   run: |
+      #     env
+      #     cargo build --release --all
+      - name: TODO remove - Download artifact moonbeam
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          github_token: ${{secrets.GITHUB_TOKEN}}
+          # Required, workflow file name or ID
+          workflow: build.yml
+          name: moonbeam
+          run_id: 2285114383
+          path: build
+      - name: TODO remove - Download artifact runtime
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          github_token: ${{secrets.GITHUB_TOKEN}}
+          # Required, workflow file name or ID
+          workflow: build.yml
+          name: runtimes
+          run_id: 2285114383
+          path: runtimes
+
+      # - name: Verify node version
+      #   run: |
+      #     GIT_COMMIT=`git log -1 --format="%H" | cut -c1-7`
+      #     MB_VERSION=`./target/release/moonbeam --version`
+      #     echo "Checking $MB_VERSION contains $GIT_COMMIT"
+      #     echo "$MB_VERSION" | grep $GIT_COMMIT
+      # - name: Unit tests
+      #   run: cargo test --release --all
 
       # We determine whether there are unmodified Cargo.lock files by:
       # 1. Asking git for a list of all modified files
@@ -308,21 +322,21 @@ jobs:
             echo $DIFF_INDEX | grep Cargo.lock
             false
           fi
-      - name: Ensure benchmarking compiles
-        run: cargo check --release --features=runtime-benchmarks
-      - name: Save moonbeam binary
-        run: |
-          mkdir -p build
-          cp target/release/moonbeam build/moonbeam;
+      # - name: Ensure benchmarking compiles
+      #   run: cargo check --release --features=runtime-benchmarks
+      # - name: Save moonbeam binary
+      #   run: |
+      #     mkdir -p build
+      #     cp target/release/moonbeam build/moonbeam;
       - name: Upload binary
         uses: actions/upload-artifact@v2
         with:
           name: moonbeam
           path: build
-      - name: Save runtime wasm
-        run: |
-          mkdir -p runtimes
-          cp target/release/wbuild/moon*/moon*_runtime.compact.compressed.wasm runtimes/;
+      # - name: Save runtime wasm
+      #   run: |
+      #     mkdir -p runtimes
+      #     cp target/release/wbuild/moon*/moon*_runtime.compact.compressed.wasm runtimes/;
       - name: Upload runtimes
         uses: actions/upload-artifact@v2
         with:
