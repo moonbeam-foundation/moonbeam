@@ -1047,7 +1047,8 @@ describeDevMoonbeam("Crowdloan", (context) => {
       )
     );
     expect(events[1].toHuman().method).to.eq("ProxyExecuted");
-    expect(events[1].data[0].toString()).to.be.eq(`{"err":{"module":{"index":0,"error":"0x05000000"}}}`);
+    expect(events[1].data[0].toString())
+      .to.be.eq(`{"err":{"module":{"index":0,"error":"0x05000000"}}}`);
 
     // Genesis account still has the money
     rewardInfo = await getAccountPayable(context, GENESIS_ACCOUNT);
