@@ -282,7 +282,7 @@ jobs:
           # Required, workflow file name or ID
           workflow: build.yml
           name: moonbeam
-          run_id: 2296405535
+          run_id: 2296555362
           path: build
       - name: TODO remove - Download artifact runtime
         uses: dawidd6/action-download-artifact@v2
@@ -291,7 +291,7 @@ jobs:
           # Required, workflow file name or ID
           workflow: build.yml
           name: runtimes
-          run_id: 2296405535
+          run_id: 2296555362
           path: runtimes
 
       # - name: Verify node version
