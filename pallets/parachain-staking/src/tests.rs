@@ -21,21 +21,20 @@
 //! 2. Monetary Governance
 //! 3. Public (Collator, Nominator)
 //! 4. Miscellaneous Property-Based Tests
+use crate::delegation_requests::{CancelledScheduledRequest, DelegationAction, ScheduledRequest};
 use crate::mock::{
 	roll_one_block, roll_to, roll_to_round_begin, roll_to_round_end, set_author, Balances,
 	Event as MetaEvent, ExtBuilder, Origin, ParachainStaking, Test,
 };
 use crate::{
 	assert_eq_events, assert_eq_last_events, assert_event_emitted, assert_event_not_emitted,
-	assert_last_event, assert_tail_eq, set::OrderedSet, AtStake, BalanceOf, Bond,
-	BottomDelegations, CandidateInfo, CandidateMetadata, CandidatePool, CandidateState,
-	CapacityStatus, CollatorCandidate, CollatorStatus, Config, DelegationChange, DelegationRequest,
-	Delegations, Delegator, DelegatorAdded, DelegatorState, DelegatorStatus, Error, Event,
-	PendingDelegationRequests, Range, TopDelegations, Total,
+	assert_last_event, assert_tail_eq, set::OrderedSet, AtStake, Bond, BottomDelegations,
+	CandidateInfo, CandidateMetadata, CandidatePool, CandidateState, CapacityStatus,
+	CollatorCandidate, CollatorStatus, Config, Delegations, Delegator, DelegatorAdded,
+	DelegatorState, DelegatorStatus, Error, Event, Range, TopDelegations, Total,
 };
 use frame_support::{assert_noop, assert_ok, traits::ReservableCurrency};
 use sp_runtime::{traits::Zero, DispatchError, ModuleError, Perbill, Percent};
-use sp_std::collections::btree_map::BTreeMap;
 
 // ~~ ROOT ~~
 
@@ -1070,6 +1069,52 @@ fn execute_leave_candidates_removes_candidate_state() {
 }
 
 #[test]
+fn execute_leave_candidates_removes_pending_delegation_requests() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 10), (2, 15)])
+		.with_candidates(vec![(1, 10)])
+		.with_delegations(vec![(2, 1, 15)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
+				Origin::signed(2),
+				1,
+				5
+			));
+			let state = ParachainStaking::delegation_scheduled_requests(&1);
+			assert_eq!(
+				state,
+				vec![ScheduledRequest {
+					delegator: 2,
+					when_executable: 3,
+					action: DelegationAction::Decrease(5),
+				}],
+			);
+			assert_ok!(ParachainStaking::schedule_leave_candidates(
+				Origin::signed(1),
+				1u32
+			));
+			// candidate state is not immediately removed
+			let candidate_state =
+				ParachainStaking::candidate_info(1).expect("just left => still exists");
+			assert_eq!(candidate_state.bond, 10u128);
+			roll_to(10);
+			assert_ok!(ParachainStaking::execute_leave_candidates(
+				Origin::signed(1),
+				1,
+				1
+			));
+			assert!(ParachainStaking::candidate_state(1).is_none());
+			assert!(
+				!ParachainStaking::delegation_scheduled_requests(&1)
+					.iter()
+					.any(|x| x.delegator == 2),
+				"delegation request not removed"
+			)
+		});
+}
+
+#[test]
 fn cannot_execute_leave_candidates_before_delay() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 10)])
@@ -1689,7 +1734,7 @@ fn only_candidate_can_cancel_candidate_bond_less_request() {
 		});
 }
 
-// NOMINATE
+// DELEGATE
 
 #[test]
 fn delegate_event_emits_correctly() {
@@ -1790,6 +1835,84 @@ fn can_delegate_if_revoking() {
 				1
 			));
 			assert_ok!(ParachainStaking::delegate(Origin::signed(2), 4, 10, 0, 2));
+		});
+}
+
+#[test]
+fn cannot_delegate_if_full_and_new_delegation_less_than_or_equal_lowest_bottom() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(1, 20),
+			(2, 10),
+			(3, 10),
+			(4, 10),
+			(5, 10),
+			(6, 10),
+			(7, 10),
+			(8, 10),
+			(9, 10),
+			(10, 10),
+			(11, 10),
+		])
+		.with_candidates(vec![(1, 20)])
+		.with_delegations(vec![
+			(2, 1, 10),
+			(3, 1, 10),
+			(4, 1, 10),
+			(5, 1, 10),
+			(6, 1, 10),
+			(8, 1, 10),
+			(9, 1, 10),
+			(10, 1, 10),
+		])
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				ParachainStaking::delegate(Origin::signed(11), 1, 10, 8, 0),
+				Error::<Test>::CannotDelegateLessThanOrEqualToLowestBottomWhenFull
+			);
+		});
+}
+
+#[test]
+fn can_delegate_if_full_and_new_delegation_greater_than_lowest_bottom() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(1, 20),
+			(2, 10),
+			(3, 10),
+			(4, 10),
+			(5, 10),
+			(6, 10),
+			(7, 10),
+			(8, 10),
+			(9, 10),
+			(10, 10),
+			(11, 11),
+		])
+		.with_candidates(vec![(1, 20)])
+		.with_delegations(vec![
+			(2, 1, 10),
+			(3, 1, 10),
+			(4, 1, 10),
+			(5, 1, 10),
+			(6, 1, 10),
+			(8, 1, 10),
+			(9, 1, 10),
+			(10, 1, 10),
+		])
+		.build()
+		.execute_with(|| {
+			assert_ok!(ParachainStaking::delegate(Origin::signed(11), 1, 11, 8, 0));
+			assert_event_emitted!(Event::DelegationKicked {
+				delegator: 10,
+				candidate: 1,
+				unstaked_amount: 10
+			});
+			assert_event_emitted!(Event::DelegatorLeft {
+				delegator: 10,
+				unstaked_amount: 10
+			});
 		});
 }
 
@@ -2092,6 +2215,47 @@ fn execute_leave_delegators_removes_delegator_state() {
 				1
 			));
 			assert!(ParachainStaking::delegator_state(2).is_none());
+		});
+}
+
+#[test]
+fn execute_leave_delegators_removes_pending_delegation_requests() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 10), (2, 15)])
+		.with_candidates(vec![(1, 10)])
+		.with_delegations(vec![(2, 1, 15)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
+				Origin::signed(2),
+				1,
+				5
+			));
+			let state = ParachainStaking::delegation_scheduled_requests(&1);
+			assert_eq!(
+				state,
+				vec![ScheduledRequest {
+					delegator: 2,
+					when_executable: 3,
+					action: DelegationAction::Decrease(5),
+				}],
+			);
+			assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(
+				2
+			)));
+			roll_to(10);
+			assert_ok!(ParachainStaking::execute_leave_delegators(
+				Origin::signed(2),
+				2,
+				1
+			));
+			assert!(ParachainStaking::delegator_state(2).is_none());
+			assert!(
+				!ParachainStaking::delegation_scheduled_requests(&1)
+					.iter()
+					.any(|x| x.delegator == 2),
+				"delegation request not removed"
+			)
 		});
 }
 
@@ -2601,16 +2765,14 @@ fn delegator_bond_less_updates_delegator_state() {
 				1,
 				5
 			));
-			let state =
-				ParachainStaking::delegator_state(&2).expect("just request bonded less so exists");
+			let state = ParachainStaking::delegation_scheduled_requests(&1);
 			assert_eq!(
-				state.requests().get(&1),
-				Some(&DelegationRequest {
-					collator: 1,
-					amount: 5,
+				state,
+				vec![ScheduledRequest {
+					delegator: 2,
 					when_executable: 3,
-					action: DelegationChange::Decrease
-				})
+					action: DelegationAction::Decrease(5),
+				}],
 			);
 		});
 }
@@ -2900,22 +3062,16 @@ fn execute_revoke_delegation_adds_revocation_to_delegator_state() {
 		.with_delegations(vec![(2, 1, 10), (2, 3, 10)])
 		.build()
 		.execute_with(|| {
-			assert!(ParachainStaking::delegator_state(2)
-				.expect("exists")
-				.requests
-				.requests
-				.get(&1)
-				.is_none());
+			assert!(!ParachainStaking::delegation_scheduled_requests(&1)
+				.iter()
+				.any(|x| x.delegator == 2));
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
 				Origin::signed(2),
 				1
 			));
-			assert!(ParachainStaking::delegator_state(2)
-				.expect("exists")
-				.requests
-				.requests
-				.get(&1)
-				.is_some());
+			assert!(ParachainStaking::delegation_scheduled_requests(&1)
+				.iter()
+				.any(|x| x.delegator == 2));
 		});
 }
 
@@ -2937,12 +3093,36 @@ fn execute_revoke_delegation_removes_revocation_from_delegator_state_upon_execut
 				2,
 				1
 			));
-			assert!(ParachainStaking::delegator_state(2)
-				.expect("exists")
-				.requests
-				.requests
-				.get(&1)
-				.is_none());
+			assert!(!ParachainStaking::delegation_scheduled_requests(&1)
+				.iter()
+				.any(|x| x.delegator == 2));
+		});
+}
+
+#[test]
+fn execute_revoke_delegation_removes_revocation_from_state_for_single_delegation_leave() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 20), (3, 20)])
+		.with_candidates(vec![(1, 30), (3, 20)])
+		.with_delegations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(ParachainStaking::schedule_revoke_delegation(
+				Origin::signed(2),
+				1
+			));
+			roll_to(10);
+			assert_ok!(ParachainStaking::execute_delegation_request(
+				Origin::signed(2),
+				2,
+				1
+			));
+			assert!(
+				!ParachainStaking::delegation_scheduled_requests(&1)
+					.iter()
+					.any(|x| x.delegator == 2),
+				"delegation was not removed"
+			);
 		});
 }
 
@@ -3506,11 +3686,10 @@ fn cancel_revoke_delegation_emits_correct_event() {
 			assert_last_event!(MetaEvent::ParachainStaking(
 				Event::CancelledDelegationRequest {
 					delegator: 2,
-					cancelled_request: DelegationRequest {
-						collator: 1,
-						amount: 10,
+					collator: 1,
+					cancelled_request: CancelledScheduledRequest {
 						when_executable: 3,
-						action: DelegationChange::Revoke,
+						action: DelegationAction::Revoke(10),
 					},
 				}
 			));
@@ -3529,24 +3708,34 @@ fn cancel_revoke_delegation_updates_delegator_state() {
 				Origin::signed(2),
 				1
 			));
-			let state = ParachainStaking::delegator_state(&2).unwrap();
+			let state = ParachainStaking::delegation_scheduled_requests(&1);
 			assert_eq!(
-				state.requests().get(&1),
-				Some(&DelegationRequest {
-					collator: 1,
-					amount: 10,
+				state,
+				vec![ScheduledRequest {
+					delegator: 2,
 					when_executable: 3,
-					action: DelegationChange::Revoke,
-				})
+					action: DelegationAction::Revoke(10),
+				}],
 			);
-			assert_eq!(state.requests.less_total, 10);
+			assert_eq!(
+				ParachainStaking::delegator_state(&2)
+					.map(|x| x.less_total)
+					.expect("delegator state must exist"),
+				10
+			);
 			assert_ok!(ParachainStaking::cancel_delegation_request(
 				Origin::signed(2),
 				1
 			));
-			let state = ParachainStaking::delegator_state(&2).unwrap();
-			assert!(state.requests().get(&1).is_none());
-			assert_eq!(state.requests.less_total, 0);
+			assert!(!ParachainStaking::delegation_scheduled_requests(&1)
+				.iter()
+				.any(|x| x.delegator == 2));
+			assert_eq!(
+				ParachainStaking::delegator_state(&2)
+					.map(|x| x.less_total)
+					.expect("delegator state must exist"),
+				0
+			);
 		});
 }
 
@@ -3572,11 +3761,10 @@ fn cancel_delegator_bond_less_correct_event() {
 			assert_last_event!(MetaEvent::ParachainStaking(
 				Event::CancelledDelegationRequest {
 					delegator: 2,
-					cancelled_request: DelegationRequest {
-						collator: 1,
-						amount: 5,
+					collator: 1,
+					cancelled_request: CancelledScheduledRequest {
 						when_executable: 3,
-						action: DelegationChange::Decrease,
+						action: DelegationAction::Decrease(5),
 					},
 				}
 			));
@@ -3596,24 +3784,34 @@ fn cancel_delegator_bond_less_updates_delegator_state() {
 				1,
 				5
 			));
-			let state = ParachainStaking::delegator_state(&2).unwrap();
+			let state = ParachainStaking::delegation_scheduled_requests(&1);
 			assert_eq!(
-				state.requests().get(&1),
-				Some(&DelegationRequest {
-					collator: 1,
-					amount: 5,
+				state,
+				vec![ScheduledRequest {
+					delegator: 2,
 					when_executable: 3,
-					action: DelegationChange::Decrease,
-				})
+					action: DelegationAction::Decrease(5),
+				}],
 			);
-			assert_eq!(state.requests.less_total, 5);
+			assert_eq!(
+				ParachainStaking::delegator_state(&2)
+					.map(|x| x.less_total)
+					.expect("delegator state must exist"),
+				5
+			);
 			assert_ok!(ParachainStaking::cancel_delegation_request(
 				Origin::signed(2),
 				1
 			));
-			let state = ParachainStaking::delegator_state(&2).unwrap();
-			assert!(state.requests().get(&1).is_none());
-			assert_eq!(state.requests.less_total, 0);
+			assert!(!ParachainStaking::delegation_scheduled_requests(&1)
+				.iter()
+				.any(|x| x.delegator == 2));
+			assert_eq!(
+				ParachainStaking::delegator_state(&2)
+					.map(|x| x.less_total)
+					.expect("delegator state must exist"),
+				0
+			);
 		});
 }
 
@@ -3632,10 +3830,9 @@ fn delegator_schedule_revocation_total() {
 				1
 			));
 			assert_eq!(
-				ParachainStaking::delegator_state(2)
-					.expect("exists")
-					.requests
-					.less_total,
+				ParachainStaking::delegator_state(&2)
+					.map(|x| x.less_total)
+					.expect("delegator state must exist"),
 				10
 			);
 			roll_to(10);
@@ -3645,10 +3842,9 @@ fn delegator_schedule_revocation_total() {
 				1
 			));
 			assert_eq!(
-				ParachainStaking::delegator_state(2)
-					.expect("exists")
-					.requests
-					.less_total,
+				ParachainStaking::delegator_state(&2)
+					.map(|x| x.less_total)
+					.expect("delegator state must exist"),
 				0
 			);
 			assert_ok!(ParachainStaking::delegate(Origin::signed(2), 5, 10, 0, 2));
@@ -3661,11 +3857,10 @@ fn delegator_schedule_revocation_total() {
 				4
 			));
 			assert_eq!(
-				ParachainStaking::delegator_state(2)
-					.expect("exists")
-					.requests
-					.less_total,
-				20
+				ParachainStaking::delegator_state(&2)
+					.map(|x| x.less_total)
+					.expect("delegator state must exist"),
+				20,
 			);
 			roll_to(20);
 			assert_ok!(ParachainStaking::execute_delegation_request(
@@ -3674,11 +3869,10 @@ fn delegator_schedule_revocation_total() {
 				3
 			));
 			assert_eq!(
-				ParachainStaking::delegator_state(2)
-					.expect("exists")
-					.requests
-					.less_total,
-				10
+				ParachainStaking::delegator_state(&2)
+					.map(|x| x.less_total)
+					.expect("delegator state must exist"),
+				10,
 			);
 			assert_ok!(ParachainStaking::execute_delegation_request(
 				Origin::signed(2),
@@ -3686,10 +3880,9 @@ fn delegator_schedule_revocation_total() {
 				4
 			));
 			assert_eq!(
-				ParachainStaking::delegator_state(2)
-					.expect("exists")
-					.requests
-					.less_total,
+				ParachainStaking::delegator_state(&2)
+					.map(|x| x.less_total)
+					.expect("delegator state must exist"),
 				0
 			);
 		});
@@ -5513,14 +5706,10 @@ fn execute_leave_candidate_removes_delegations() {
 		.with_delegations(vec![(3, 1, 10), (3, 2, 10), (4, 1, 10), (4, 2, 10)])
 		.build()
 		.execute_with(|| {
-			// Verifies the revocation count is originally at 0
-			assert_eq!(
-				ParachainStaking::delegator_state(3)
-					.unwrap()
-					.requests
-					.revocations_count,
-				0
-			);
+			// Verifies the revocation request is initially empty
+			assert!(!ParachainStaking::delegation_scheduled_requests(&2)
+				.iter()
+				.any(|x| x.delegator == 3));
 
 			assert_ok!(ParachainStaking::schedule_leave_candidates(
 				Origin::signed(2),
@@ -5530,14 +5719,10 @@ fn execute_leave_candidate_removes_delegations() {
 				Origin::signed(3),
 				2
 			));
-			// Verifies the revocation count has been updated to 1
-			assert_eq!(
-				ParachainStaking::delegator_state(3)
-					.unwrap()
-					.requests
-					.revocations_count,
-				1
-			);
+			// Verifies the revocation request is present
+			assert!(ParachainStaking::delegation_scheduled_requests(&2)
+				.iter()
+				.any(|x| x.delegator == 3));
 
 			roll_to(16);
 			assert_ok!(ParachainStaking::execute_leave_candidates(
@@ -5545,14 +5730,10 @@ fn execute_leave_candidate_removes_delegations() {
 				2,
 				2
 			));
-			// Verifies the revocation count has been reduced to 0
-			assert_eq!(
-				ParachainStaking::delegator_state(3)
-					.unwrap()
-					.requests
-					.revocations_count,
-				0
-			);
+			// Verifies the revocation request is again empty
+			assert!(!ParachainStaking::delegation_scheduled_requests(&2)
+				.iter()
+				.any(|x| x.delegator == 3));
 		});
 }
 
@@ -7002,110 +7183,6 @@ fn deferred_payment_steady_state_event_flow() {
 		});
 }
 
-// HOTFIX UNIT TESTs
-
-#[test]
-fn hotfix_remove_delegation_requests_works() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 20), (2, 20)])
-		.with_candidates(vec![(1, 20)])
-		.build()
-		.execute_with(|| {
-			let mut requests: BTreeMap<
-				<Test as frame_system::Config>::AccountId,
-				DelegationRequest<<Test as frame_system::Config>::AccountId, BalanceOf<Test>>,
-			> = BTreeMap::new();
-			requests.insert(
-				3,
-				DelegationRequest {
-					collator: 3,
-					amount: 5,
-					when_executable: 0,
-					action: DelegationChange::Decrease,
-				},
-			);
-			requests.insert(
-				4,
-				DelegationRequest {
-					collator: 4,
-					amount: 20,
-					when_executable: 0,
-					action: DelegationChange::Revoke,
-				},
-			);
-			let corrupted_delegator_state = Delegator {
-				id: 2,
-				delegations: OrderedSet::from(vec![Bond {
-					owner: 1,
-					amount: 20,
-				}]),
-				total: 20,
-				requests: PendingDelegationRequests {
-					revocations_count: 1,
-					requests,
-					less_total: 25,
-				},
-				status: DelegatorStatus::Active,
-			};
-			<DelegatorState<Test>>::insert(2, corrupted_delegator_state);
-			assert_ok!(ParachainStaking::hotfix_remove_delegation_requests(
-				Origin::root(),
-				vec![2, 5]
-			));
-			assert!(ParachainStaking::delegator_state(&5).is_none());
-			let fixed_delegator_state =
-				ParachainStaking::delegator_state(&2).expect("inserted => exists");
-			assert_eq!(fixed_delegator_state.requests.revocations_count, 0);
-			assert_eq!(fixed_delegator_state.requests.less_total, 0);
-		});
-}
-
-#[test]
-fn hotfix_update_candidate_pool_value_updates_candidate_pool() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20), (6, 20)])
-		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
-		.build()
-		.execute_with(|| {
-			// corrupt CandidatePool
-			<CandidatePool<Test>>::put(OrderedSet::from(vec![
-				Bond {
-					owner: 1,
-					amount: 15,
-				},
-				Bond {
-					owner: 2,
-					amount: 16,
-				},
-				Bond {
-					owner: 3,
-					amount: 17,
-				},
-				Bond {
-					owner: 4,
-					amount: 18,
-				},
-				Bond {
-					owner: 5,
-					amount: 19,
-				},
-			]));
-			// run migration and pass in 6 even though not a candidate
-			assert_ok!(ParachainStaking::hotfix_update_candidate_pool_value(
-				Origin::root(),
-				vec![1, 2, 3, 4, 5, 6]
-			));
-			// CandidatePool is now fixed for all input accounts
-			let pool = <CandidatePool<Test>>::get();
-			for Bond { owner, amount } in pool.0 {
-				// 6 is not in the candidate pool despite being passed in
-				assert!(owner <= 5 && owner >= 1);
-				// all amounts are fixed
-				assert_eq!(amount, 20);
-			}
-		});
-}
-
 // MIGRATION UNIT TESTS
 use frame_support::traits::OnRuntimeUpgrade;
 
@@ -7198,6 +7275,7 @@ fn patch_incorrect_delegations_sums() {
 #[test]
 /// Kicks extra bottom delegations to force leave delegators if last delegation
 fn split_candidate_state_kicks_extra_bottom_delegators_to_exit() {
+	#[allow(deprecated)]
 	ExtBuilder::default()
 		.with_balances(vec![(11, 22), (12, 20)])
 		.build()
@@ -7216,7 +7294,7 @@ fn split_candidate_state_kicks_extra_bottom_delegators_to_exit() {
 						},
 					]),
 					total: 20,
-					requests: PendingDelegationRequests::new(),
+					less_total: 0,
 					status: DelegatorStatus::Active,
 				};
 				<DelegatorState<Test>>::insert(&i, old_delegator_state);
@@ -7379,6 +7457,7 @@ fn split_candidate_state_kicks_extra_bottom_delegators_to_exit() {
 #[test]
 /// Force revokes candidate state
 fn split_candidate_state_kicks_extra_bottom_delegations_without_exit() {
+	#[allow(deprecated)]
 	ExtBuilder::default()
 		.with_balances(vec![(11, 32), (12, 30)])
 		.build()
@@ -7401,7 +7480,7 @@ fn split_candidate_state_kicks_extra_bottom_delegations_without_exit() {
 						},
 					]),
 					total: 30,
-					requests: PendingDelegationRequests::new(),
+					less_total: 0,
 					status: DelegatorStatus::Active,
 				};
 				<DelegatorState<Test>>::insert(&i, old_delegator_state);
@@ -8247,11 +8326,9 @@ fn delegation_kicked_from_bottom_removes_pending_request() {
 				unstaked_amount: 19,
 			});
 			// ensure request DNE
-			assert!(ParachainStaking::delegator_state(&2)
-				.unwrap()
-				.requests()
-				.get(&1)
-				.is_none());
+			assert!(!ParachainStaking::delegation_scheduled_requests(&1)
+				.iter()
+				.any(|x| x.delegator == 2));
 		});
 }
 
@@ -8299,5 +8376,324 @@ fn no_selected_candidates_defaults_to_last_round_collators() {
 				);
 				index += 1usize;
 			}
+		});
+}
+
+#[test]
+fn test_delegator_scheduled_for_revoke_is_rewarded_for_previous_rounds_but_not_for_future() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 40), (3, 20), (4, 20)])
+		.with_candidates(vec![(1, 20), (3, 20), (4, 20)])
+		.with_delegations(vec![(2, 1, 10), (2, 3, 10)])
+		.build()
+		.execute_with(|| {
+			// preset rewards for rounds 1, 2 and 3
+			(1..=3).for_each(|round| set_author(round, 1, 1));
+
+			assert_ok!(ParachainStaking::schedule_revoke_delegation(
+				Origin::signed(2),
+				1
+			));
+			assert_last_event!(MetaEvent::ParachainStaking(
+				Event::DelegationRevocationScheduled {
+					round: 1,
+					delegator: 2,
+					candidate: 1,
+					scheduled_exit: 3,
+				}
+			));
+			let collator = ParachainStaking::candidate_info(1).expect("candidate must exist");
+			assert_eq!(
+				1, collator.delegation_count,
+				"collator's delegator count was reduced unexpectedly"
+			);
+			assert_eq!(
+				30, collator.total_counted,
+				"collator's total was reduced unexpectedly"
+			);
+
+			roll_to_round_begin(3);
+			assert_eq_last_events!(
+				vec![
+					Event::<Test>::Rewarded {
+						account: 1,
+						rewards: 4,
+					},
+					Event::<Test>::Rewarded {
+						account: 2,
+						rewards: 1,
+					},
+				],
+				"delegator was not rewarded as intended"
+			);
+
+			roll_to_round_begin(4);
+			assert_eq_last_events!(
+				vec![
+					Event::<Test>::Rewarded {
+						account: 1,
+						rewards: 4,
+					},
+					Event::<Test>::Rewarded {
+						account: 2,
+						rewards: 0,
+					},
+				],
+				"delegator was rewarded unexpectedly"
+			);
+			let collator_snapshot =
+				ParachainStaking::at_stake(ParachainStaking::round().current, 1);
+			assert_eq!(
+				1,
+				collator_snapshot.delegations.len(),
+				"collator snapshot's delegator count was reduced unexpectedly"
+			);
+			assert_eq!(
+				30, collator_snapshot.total,
+				"collator snapshot's total was reduced unexpectedly",
+			);
+		});
+}
+
+#[test]
+fn test_delegator_scheduled_for_revoke_is_rewarded_when_request_cancelled() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 40), (3, 20), (4, 20)])
+		.with_candidates(vec![(1, 20), (3, 20), (4, 20)])
+		.with_delegations(vec![(2, 1, 10), (2, 3, 10)])
+		.build()
+		.execute_with(|| {
+			// preset rewards for rounds 2, 3 and 4
+			(2..=4).for_each(|round| set_author(round, 1, 1));
+
+			assert_ok!(ParachainStaking::schedule_revoke_delegation(
+				Origin::signed(2),
+				1
+			));
+			assert_last_event!(MetaEvent::ParachainStaking(
+				Event::DelegationRevocationScheduled {
+					round: 1,
+					delegator: 2,
+					candidate: 1,
+					scheduled_exit: 3,
+				}
+			));
+			let collator = ParachainStaking::candidate_info(1).expect("candidate must exist");
+			assert_eq!(
+				1, collator.delegation_count,
+				"collator's delegator count was reduced unexpectedly"
+			);
+			assert_eq!(
+				30, collator.total_counted,
+				"collator's total was reduced unexpectedly"
+			);
+
+			roll_to_round_begin(2);
+			assert_ok!(ParachainStaking::cancel_delegation_request(
+				Origin::signed(2),
+				1
+			));
+
+			roll_to_round_begin(4);
+			assert_eq_last_events!(
+				vec![
+					Event::<Test>::Rewarded {
+						account: 1,
+						rewards: 4,
+					},
+					Event::<Test>::Rewarded {
+						account: 2,
+						rewards: 0,
+					},
+				],
+				"delegator was rewarded unexpectedly",
+			);
+			let collator_snapshot =
+				ParachainStaking::at_stake(ParachainStaking::round().current, 1);
+			assert_eq!(
+				1,
+				collator_snapshot.delegations.len(),
+				"collator snapshot's delegator count was reduced unexpectedly"
+			);
+			assert_eq!(
+				30, collator_snapshot.total,
+				"collator snapshot's total was reduced unexpectedly",
+			);
+
+			roll_to_round_begin(5);
+			assert_eq_last_events!(
+				vec![
+					Event::<Test>::Rewarded {
+						account: 1,
+						rewards: 4,
+					},
+					Event::<Test>::Rewarded {
+						account: 2,
+						rewards: 1,
+					},
+				],
+				"delegator was not rewarded as intended",
+			);
+		});
+}
+
+#[test]
+fn test_delegator_scheduled_for_bond_decrease_is_rewarded_for_previous_rounds_but_less_for_future()
+{
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 40), (3, 20), (4, 20)])
+		.with_candidates(vec![(1, 20), (3, 20), (4, 20)])
+		.with_delegations(vec![(2, 1, 20), (2, 3, 10)])
+		.build()
+		.execute_with(|| {
+			// preset rewards for rounds 1, 2 and 3
+			(1..=3).for_each(|round| set_author(round, 1, 1));
+
+			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
+				Origin::signed(2),
+				1,
+				10,
+			));
+			assert_last_event!(MetaEvent::ParachainStaking(
+				Event::DelegationDecreaseScheduled {
+					execute_round: 3,
+					delegator: 2,
+					candidate: 1,
+					amount_to_decrease: 10,
+				}
+			));
+			let collator = ParachainStaking::candidate_info(1).expect("candidate must exist");
+			assert_eq!(
+				1, collator.delegation_count,
+				"collator's delegator count was reduced unexpectedly"
+			);
+			assert_eq!(
+				40, collator.total_counted,
+				"collator's total was reduced unexpectedly"
+			);
+
+			roll_to_round_begin(3);
+			assert_eq_last_events!(
+				vec![
+					Event::<Test>::Rewarded {
+						account: 1,
+						rewards: 3,
+					},
+					Event::<Test>::Rewarded {
+						account: 2,
+						rewards: 2,
+					},
+				],
+				"delegator was not rewarded as intended"
+			);
+
+			roll_to_round_begin(4);
+			assert_eq_last_events!(
+				vec![
+					Event::<Test>::Rewarded {
+						account: 1,
+						rewards: 3,
+					},
+					Event::<Test>::Rewarded {
+						account: 2,
+						rewards: 1,
+					},
+				],
+				"delegator was rewarded unexpectedly"
+			);
+			let collator_snapshot =
+				ParachainStaking::at_stake(ParachainStaking::round().current, 1);
+			assert_eq!(
+				1,
+				collator_snapshot.delegations.len(),
+				"collator snapshot's delegator count was reduced unexpectedly"
+			);
+			assert_eq!(
+				40, collator_snapshot.total,
+				"collator snapshot's total was reduced unexpectedly",
+			);
+		});
+}
+
+#[test]
+fn test_delegator_scheduled_for_bond_decrease_is_rewarded_when_request_cancelled() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 40), (3, 20), (4, 20)])
+		.with_candidates(vec![(1, 20), (3, 20), (4, 20)])
+		.with_delegations(vec![(2, 1, 20), (2, 3, 10)])
+		.build()
+		.execute_with(|| {
+			// preset rewards for rounds 2, 3 and 4
+			(2..=4).for_each(|round| set_author(round, 1, 1));
+
+			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
+				Origin::signed(2),
+				1,
+				10,
+			));
+			assert_last_event!(MetaEvent::ParachainStaking(
+				Event::DelegationDecreaseScheduled {
+					execute_round: 3,
+					delegator: 2,
+					candidate: 1,
+					amount_to_decrease: 10,
+				}
+			));
+			let collator = ParachainStaking::candidate_info(1).expect("candidate must exist");
+			assert_eq!(
+				1, collator.delegation_count,
+				"collator's delegator count was reduced unexpectedly"
+			);
+			assert_eq!(
+				40, collator.total_counted,
+				"collator's total was reduced unexpectedly"
+			);
+
+			roll_to_round_begin(2);
+			assert_ok!(ParachainStaking::cancel_delegation_request(
+				Origin::signed(2),
+				1
+			));
+
+			roll_to_round_begin(4);
+			assert_eq_last_events!(
+				vec![
+					Event::<Test>::Rewarded {
+						account: 1,
+						rewards: 3,
+					},
+					Event::<Test>::Rewarded {
+						account: 2,
+						rewards: 1,
+					},
+				],
+				"delegator was rewarded unexpectedly",
+			);
+			let collator_snapshot =
+				ParachainStaking::at_stake(ParachainStaking::round().current, 1);
+			assert_eq!(
+				1,
+				collator_snapshot.delegations.len(),
+				"collator snapshot's delegator count was reduced unexpectedly"
+			);
+			assert_eq!(
+				40, collator_snapshot.total,
+				"collator snapshot's total was reduced unexpectedly",
+			);
+
+			roll_to_round_begin(5);
+			assert_eq_last_events!(
+				vec![
+					Event::<Test>::Rewarded {
+						account: 1,
+						rewards: 3,
+					},
+					Event::<Test>::Rewarded {
+						account: 2,
+						rewards: 2,
+					},
+				],
+				"delegator was not rewarded as intended",
+			);
 		});
 }

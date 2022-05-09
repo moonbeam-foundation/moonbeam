@@ -105,7 +105,8 @@ where
 		let r: H256 = input.read(gasometer)?;
 		let s: H256 = input.read(gasometer)?;
 
-		let timestamp: U256 = pallet_timestamp::Pallet::<Runtime>::get().into();
+		// pallet_timestamp is in ms while Ethereum use second timestamps.
+		let timestamp: U256 = (pallet_timestamp::Pallet::<Runtime>::get()).into() / 1000;
 
 		ensure!(deadline >= timestamp, gasometer.revert("permit expired"));
 

@@ -2691,7 +2691,7 @@ fn permit_invalid_deadline() {
 				1000
 			));
 
-			pallet_timestamp::Pallet::<Runtime>::set_timestamp(10);
+			pallet_timestamp::Pallet::<Runtime>::set_timestamp(10_000);
 
 			let owner: H160 = Account::Alice.into();
 			let spender: H160 = Account::Bob.into();
