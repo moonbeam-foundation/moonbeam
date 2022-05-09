@@ -386,7 +386,7 @@ jobs:
               L[$((COUNT%CONCURRENCY))]+="$file "; \
               echo ${L[$((COUNT%CONCURRENCY))]}; \
               COUNT=$(($COUNT + 1)); \
-            done | tail -6)
+            done | tail -$CONCURRENCY)
 
           cd ..
 
