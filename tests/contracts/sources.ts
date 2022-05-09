@@ -853,7 +853,7 @@ export const contractSources: { [key: string]: string } = {
       /** Get transact info of a multilocation
        * Selector f87f493f
        * @param multilocation The location for which we want to know the transact info
-       * @return transact_extra_weight The extra weight involved in the XCM message of using derivative
+       * @return transact_extra_weight extra weight involved in using transact through derivative
        * @return fee_per_second The amount of fee charged for a second of execution in the dest
        * @return max_weight Maximum allowed weight for a single message in dest
        */
@@ -863,12 +863,16 @@ export const contractSources: { [key: string]: string } = {
       /** Get transact info of a multilocation
        * Selector f87f493f
        * @param multilocation The location for which we want to know the transact info
-       * @return transact_extra_weight The extra weight involved in the XCM message of using derivative
-       * @return transact_extra_weight_signed The extra weight involved in the XCM message of using signed
+       * @return transact_extra_weight xcm extra weight when in using transact through derivative
+       * @return transact_extra_weight_signed extra weight when using transact through signed
        * @return max_weight Maximum allowed weight for a single message in dest
        */
       function transact_info_with_signed(Multilocation memory multilocation) external view 
-          returns(uint64 transact_extra_weight, uint64 transact_extra_weight_signed, uint64 max_weight);
+          returns(
+              uint64 transact_extra_weight,
+              uint64 transact_extra_weight_signed,
+              uint64 max_weight
+            );
   
       /** Get fee per second charged in its reserve chain for an asset
        * Selector f87f493f
@@ -954,7 +958,9 @@ export const contractSources: { [key: string]: string } = {
   contract XcmTransactorInstance is XcmTransactor {
   
       /// The Xcm Transactor wrapper at the known pre-compile address.
-      XcmTransactor public xcmtransactor = XcmTransactor(0x0000000000000000000000000000000000000806);
+      XcmTransactor public xcmtransactor = XcmTransactor(
+          0x0000000000000000000000000000000000000806
+      );
   
       function index_to_account(uint16 index) external view override returns(address) {
           // We nominate our target collator with all the tokens provided
