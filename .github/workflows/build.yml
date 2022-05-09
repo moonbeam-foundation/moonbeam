@@ -411,7 +411,7 @@ jobs:
           wait
 
           for i in $(eval echo "{0..$((CONCURRENCY - 1))}"); do \
-            cat docker$i.txt \
+            cat docker$i.txt
           done
           egrep "[0-9][0-9]* (passing|pending|failing)" docker*.txt
           if [ -f fail.txt ]; then
