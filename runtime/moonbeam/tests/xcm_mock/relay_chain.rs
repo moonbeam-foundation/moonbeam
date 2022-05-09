@@ -150,7 +150,8 @@ impl<T: Contains<MultiLocation>> ShouldExecute for AllowDescendOriginFromLocal<T
 	) -> Result<(), ()> {
 		log::trace!(
 			target: "xcm::barriers",
-			"AllowTopLevelPaidExecutionFromLocal origin: {:?}, message: {:?}, max_weight: {:?}, weight_credit: {:?}",
+			"AllowTopLevelPaidExecutionFromLocal origin:
+			{:?}, message: {:?}, max_weight: {:?}, weight_credit: {:?}",
 			origin, message, max_weight, _weight_credit,
 		);
 		ensure!(T::contains(origin), ());
