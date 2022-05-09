@@ -48,7 +48,6 @@ use frame_support::{
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
 		ConstantMultiplier, DispatchClass, GetDispatchInfo, IdentityFee, Weight,
-		WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
 	},
 	PalletId,
 };
@@ -95,7 +94,6 @@ pub use precompiles::{
 	MoonbeamPrecompiles, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 	LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
-use smallvec::smallvec;
 
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
