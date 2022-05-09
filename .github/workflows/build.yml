@@ -394,7 +394,7 @@ jobs:
 
           CPUS=$(lscpu  | grep '^CPU(s):' | grep -o '[0-9]*')
 
-          for i in $(eval echo "{0..$((CONCURRENCY - 1))}"); do \
+          for i in $(eval echo "{0..$((CONCURRENCY - 1))}"); do
             launch_as docker$i docker run \
               --cpus $((CPUS / $CONCURRENCY)) \
               --network=host \
@@ -405,7 +405,7 @@ jobs:
               -u $UID \
               -w /moonbeam/tests \
               $DOCKER_TAG \
-                node node_modules/.bin/mocha --exit -r ts-node/register "${SPLIT[$i]}" & \
+                node node_modules/.bin/mocha --exit -r ts-node/register "${SPLIT[$i]}" &
           done
 
           wait
