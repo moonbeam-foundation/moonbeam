@@ -22,7 +22,7 @@ use sp_runtime::{
 use sp_std::vec::Vec;
 
 #[derive(Decode, Encode, RuntimeDebug, TypeInfo)]
-pub(super) struct CurrentOrbiter<AccountId> {
+pub struct CurrentOrbiter<AccountId> {
 	pub account_id: AccountId,
 	pub removed: bool,
 }

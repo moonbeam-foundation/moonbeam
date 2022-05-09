@@ -18,9 +18,9 @@
 //!
 
 use super::{
-	AccountId, AssetId, AssetManager, Assets, Balance, Balances, Call, Event, LocalAssets, Origin,
-	ParachainInfo, ParachainSystem, PolkadotXcm, Runtime, Treasury, XcmpQueue,
-	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, MAXIMUM_BLOCK_WEIGHT,
+	AccountId, AssetId, AssetManager, Assets, Balance, Balances, Call, DealWithFees, Event,
+	LocalAssets, Origin, ParachainInfo, ParachainSystem, PolkadotXcm, Runtime, Treasury,
+	XcmpQueue, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 
 use pallet_evm_precompile_assets_erc20::AccountIdAssetIdConversion;
@@ -29,7 +29,7 @@ use sp_runtime::traits::Hash as THash;
 use frame_support::{
 	parameter_types,
 	traits::{Everything, Nothing, PalletInfoAccess},
-	weights::Weight,
+	weights::{Weight, IdentityFee},
 };
 
 use frame_system::EnsureRoot;
@@ -37,10 +37,11 @@ use sp_core::{H160, H256};
 
 use xcm_builder::{
 	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
-	AllowTopLevelPaidExecutionFrom, ConvertedConcreteAssetId, EnsureXcmOrigin, FixedWeightBounds,
-	FungiblesAdapter, LocationInverter, ParentIsPreset, RelayChainAsNative,
-	SiblingParachainAsNative, SiblingParachainConvertsVia, SignedAccountKey20AsNative,
-	SovereignSignedViaLocation, TakeWeightCredit,
+	AllowTopLevelPaidExecutionFrom, AsPrefixedGeneralIndex, ConvertedConcreteAssetId,
+	CurrencyAdapter as XcmCurrencyAdapter, EnsureXcmOrigin, FixedWeightBounds, FungiblesAdapter,
+	LocationInverter, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
+	SiblingParachainConvertsVia, SignedAccountKey20AsNative, SovereignSignedViaLocation,
+	TakeWeightCredit, UsingComponents,
 };
 
 use xcm::latest::prelude::*;
@@ -105,7 +106,7 @@ pub type LocationToAccountId = (
 
 // The non-reserve fungible transactor type
 // It will use pallet-assets, and the Id will be matched against AsAssetType
-pub type FungiblesTransactor = FungiblesAdapter<
+pub type ForeignFungiblesTransactor = FungiblesAdapter<
 	// Use this fungibles implementation:
 	Assets,
 	// Use this currency when it is a fungible asset matching the given location or name:
@@ -127,11 +128,52 @@ pub type FungiblesTransactor = FungiblesAdapter<
 	(),
 >;
 
-// We use only fungiblesAdapter transactor for now
-// The idea is that we only accept the relay token, hence no need to handle the local token
-// As long as this does not contain the local transactor, we are good
-// LocalAssets are also not enabled
-pub type AssetTransactors = FungiblesTransactor;
+/// The transactor for our own chain currency.
+pub type LocalAssetTransactor = XcmCurrencyAdapter<
+	// Use this currency:
+	Balances,
+	// Use this currency when it is a fungible asset matching any of the locations in
+	// SelfReserveRepresentations
+	xcm_builder::IsConcrete<SelfReserve>,
+	// We can convert the MultiLocations with our converter above:
+	LocationToAccountId,
+	// Our chain's account ID type (we can't get away without mentioning it explicitly):
+	AccountId,
+	// We dont allow teleport
+	(),
+>;
+
+/// Means for transacting local assets besides the native currency on this chain.
+pub type LocalFungiblesTransactor = FungiblesAdapter<
+	// Use this fungibles implementation:
+	LocalAssets,
+	// Use this currency when it is a fungible asset matching the given location or name:
+	(
+		ConvertedConcreteAssetId<
+			AssetId,
+			Balance,
+			// This just tells to convert an assetId into a GeneralIndex junction prepended
+			// by LocalAssetsPalletLocationNewReanchor
+			AsPrefixedGeneralIndex<LocalAssetsPalletLocation, AssetId, JustTry>,
+			JustTry,
+		>,
+	),
+	// Convert an XCM MultiLocation into a local account id:
+	LocationToAccountId,
+	// Our chain's account ID type (we can't get away without mentioning it explicitly):
+	AccountId,
+	// We dont want to allow teleporting assets
+	Nothing,
+	// The account to use for tracking teleports.
+	(),
+>;
+
+// We use all transactors
+pub type AssetTransactors = (
+	LocalAssetTransactor,
+	ForeignFungiblesTransactor,
+	LocalFungiblesTransactor,
+);
 
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
 /// ready for dispatching a transaction with Xcm's `Transact`. There is an `OriginKind` which can
@@ -212,9 +254,15 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type LocationInverter = LocationInverter<Ancestry>;
 	type Barrier = XcmBarrier;
 	type Weigher = XcmWeigher;
+	// We use two traders
+	// When we receive the relative representation of the self-reserve asset,
+	// we use UsingComponents and the local way of handling fees
 	// When we receive a non-reserve asset, we use AssetManager to fetch how many
 	// units per second we should charge
-	type Trader = FirstAssetTrader<AssetType, AssetManager, XcmFeesToAccount>;
+	type Trader = (
+		UsingComponents<IdentityFee<Balance>, SelfReserve, AccountId, Balances, DealWithFees<Runtime>>,
+		FirstAssetTrader<AssetType, AssetManager, XcmFeesToAccount>,
+	);
 	type ResponseHandler = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;
 	type AssetTrap = PolkadotXcm;
@@ -222,10 +270,6 @@ impl xcm_executor::Config for XcmExecutorConfig {
 }
 
 type XcmExecutor = xcm_executor::XcmExecutor<XcmExecutorConfig>;
-
-parameter_types! {
-	pub const MaxDownwardMessageWeight: Weight = MAXIMUM_BLOCK_WEIGHT / 10;
-}
 
 // Converts a Signed Local Origin into a MultiLocation
 pub type LocalOriginToLocation = SignedToAccountId20<Origin, AccountId, RelayNetwork>;
