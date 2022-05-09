@@ -365,7 +365,6 @@ jobs:
       - name: Typescript integration tests (against dev service)
         env:
           BINARY_PATH: ../build/moonbeam
-          CONCURRENCY: 6
         run: |
           #### Compute CPUS & CONCURRENCY
           CPU_PER_TEST=4;
