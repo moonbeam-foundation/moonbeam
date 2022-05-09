@@ -278,10 +278,6 @@ impl xcm_executor::Config for XcmExecutorConfig {
 
 type XcmExecutor = xcm_executor::XcmExecutor<XcmExecutorConfig>;
 
-parameter_types! {
-	pub const MaxDownwardMessageWeight: Weight = MAXIMUM_BLOCK_WEIGHT / 10;
-}
-
 // Converts a Signed Local Origin into a MultiLocation
 pub type LocalOriginToLocation = SignedToAccountId20<Origin, AccountId, RelayNetwork>;
 
