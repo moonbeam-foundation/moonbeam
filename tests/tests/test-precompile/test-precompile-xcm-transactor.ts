@@ -102,8 +102,19 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
         context.polkadotApi.tx.xcmTransactor.setTransactInfo(
           sourceLocationRelayVersioned,
           new BN(0),
-          new BN(1000000000000),
-          new BN(20000000000)
+          new BN(20000000000),
+          new BN(0)
+        )
+      )
+      .signAndSend(sudoAccount);
+
+    await context.createBlock();
+
+    await context.polkadotApi.tx.sudo
+      .sudo(
+        context.polkadotApi.tx.xcmTransactor.setFeePerSecond(
+          sourceLocationRelayVersioned,
+          new BN(1000000000000)
         )
       )
       .signAndSend(sudoAccount);
@@ -117,7 +128,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
     alith = keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
   });
 
-  it("allows to retrieve index through precompiles", async function () {
+  it("allows to retrieve index through precompiles old-interface", async function () {
     let data = iFace.encodeFunctionData(
       // action
       "index_to_account",
@@ -263,8 +274,19 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
         context.polkadotApi.tx.xcmTransactor.setTransactInfo(
           sourceLocationRelayVersioned,
           new BN(0),
-          new BN(1000000000000),
-          new BN(20000000000)
+          new BN(20000000000),
+          new BN(0)
+        )
+      )
+      .signAndSend(sudoAccount);
+
+    await context.createBlock();
+
+    await context.polkadotApi.tx.sudo
+      .sudo(
+        context.polkadotApi.tx.xcmTransactor.setFeePerSecond(
+          sourceLocationRelayVersioned,
+          new BN(1000000000000)
         )
       )
       .signAndSend(sudoAccount);
@@ -347,6 +369,276 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
     let AfterAssetDetails = (await context.polkadotApi.query.assets.asset(assetId)) as any;
 
     expect(AfterAssetDetails.unwrap()["supply"].eq(expectedBalance)).to.equal(true);
+
+    // 1000 fee for the relay is paid with relay assets
+    await verifyLatestBlockFees(context, expect);
+  });
+});
+
+describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
+  let sudoAccount, iFace, alith;
+  before("Setup genesis account and relay accounts", async () => {
+    const keyring = new Keyring({ type: "ethereum" });
+    sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
+    // register index 0 for Alith
+    await context.polkadotApi.tx.sudo
+      .sudo(context.polkadotApi.tx.xcmTransactor.register(ALITH, 0))
+      .signAndSend(sudoAccount);
+    await context.createBlock();
+
+    await context.polkadotApi.tx.sudo
+      .sudo(
+        context.polkadotApi.tx.xcmTransactor.setTransactInfo(
+          sourceLocationRelayVersioned,
+          new BN(0),
+          new BN(20000000000),
+          new BN(0)
+        )
+      )
+      .signAndSend(sudoAccount);
+
+    await context.createBlock();
+
+    await context.polkadotApi.tx.sudo
+      .sudo(
+        context.polkadotApi.tx.xcmTransactor.setFeePerSecond(
+          sourceLocationRelayVersioned,
+          new BN(1000000000000)
+        )
+      )
+      .signAndSend(sudoAccount);
+    await context.createBlock();
+
+    const contractData = await getCompiled("XcmTransactorInstance");
+    iFace = new ethers.utils.Interface(contractData.contract.abi);
+    const { contract, rawTx } = await createContract(context, "XcmTransactorInstance");
+    const address = contract.options.address;
+    await context.createBlock({ transactions: [rawTx] });
+    alith = keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
+  });
+
+  it("allows to retrieve index through precompiles old-interface", async function () {
+    let data = iFace.encodeFunctionData(
+      // action
+      "index_to_account",
+      [0]
+    );
+    let tx_call = await customWeb3Request(context.web3, "eth_call", [
+      {
+        from: ALITH,
+        value: "0x0",
+        gas: "0x10000",
+        gasPrice: GAS_PRICE,
+        to: ADDRESS_XCM_TRANSACTOR,
+        data: data,
+      },
+    ]);
+
+    expect(tx_call.result).to.equal(
+      "0x000000000000000000000000f24ff3a9cf04c71dbc94d0b566f7a27b94566cac"
+    );
+  });
+
+  it("allows to retrieve transactor info through precompiles", async function () {
+    let asset =
+      // Destination as multilocation
+      [
+        // one parent
+        1,
+        [],
+      ];
+    let data = iFace.encodeFunctionData(
+      // action
+      "transact_info_with_signed",
+      [asset]
+    );
+    let tx_call = await customWeb3Request(context.web3, "eth_call", [
+      {
+        from: ALITH,
+        value: "0x0",
+        gas: "0x10000",
+        gasPrice: GAS_PRICE,
+        to: ADDRESS_XCM_TRANSACTOR,
+        data: data,
+      },
+    ]);
+
+    expect(tx_call.result).to.equal(
+      "0x0000000000000000000000000000000000000000000000000000000000000000" +
+        "0000000000000000000000000000000000000000000000000000000000000000" +
+        "00000000000000000000000000000000000000000000000000000004a817c800"
+    );
+  });
+});
+
+describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
+  let sudoAccount, iFace, alith;
+  before("Setup genesis account and relay accounts", async () => {
+    const keyring = new Keyring({ type: "ethereum" });
+    sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
+    // register index 0 for Alith
+    await context.polkadotApi.tx.sudo
+      .sudo(context.polkadotApi.tx.xcmTransactor.register(ALITH, 0))
+      .signAndSend(sudoAccount);
+    await context.createBlock();
+
+    await context.polkadotApi.tx.sudo
+      .sudo(
+        context.polkadotApi.tx.xcmTransactor.setTransactInfo(
+          sourceLocationRelayVersioned,
+          new BN(0),
+          new BN(20000000000),
+          new BN(0)
+        )
+      )
+      .signAndSend(sudoAccount);
+
+    await context.createBlock();
+
+    await context.polkadotApi.tx.sudo
+      .sudo(
+        context.polkadotApi.tx.xcmTransactor.setFeePerSecond(
+          sourceLocationRelayVersioned,
+          new BN(1000000000000)
+        )
+      )
+      .signAndSend(sudoAccount);
+    await context.createBlock();
+
+    const contractData = await getCompiled("XcmTransactorInstance");
+    iFace = new ethers.utils.Interface(contractData.contract.abi);
+    const { contract, rawTx } = await createContract(context, "XcmTransactorInstance");
+    const address = contract.options.address;
+    await context.createBlock({ transactions: [rawTx] });
+    alith = keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
+  });
+
+  it("allows to issue transfer signed xcm transactor with currency Id", async function () {
+    // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
+    // And we need relay tokens for issuing a transaction to be executed in the relay
+    let dest =
+      // Destination as multilocation
+      [
+        // one parent
+        1,
+        [],
+      ];
+    // Destination as currency Id address
+    let asset = ADDRESS_RELAY_ASSETS;
+    // we dont care, the call wont be executed
+    let transact_call = new Uint8Array([0x01]);
+    // weight
+    let weight = 1000;
+    // Call the precompile
+    let data = iFace.encodeFunctionData(
+      // action
+      "transact_through_signed",
+      [dest, asset, weight, transact_call]
+    );
+
+    const tx = await createTransaction(context, {
+      from: ALITH,
+      privateKey: ALITH_PRIV_KEY,
+      value: "0x0",
+      gas: "0x200000",
+      gasPrice: GAS_PRICE,
+      to: ADDRESS_XCM_TRANSACTOR,
+      data,
+    });
+
+    const block = await context.createBlock({
+      transactions: [tx],
+    });
+
+    // 1000 fee for the relay is paid with relay assets
+    await verifyLatestBlockFees(context, expect);
+  });
+});
+
+describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
+  let sudoAccount, iFace, alith;
+  before("Setup genesis account and relay accounts", async () => {
+    const keyring = new Keyring({ type: "ethereum" });
+    sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
+    // register index 0 for Alith
+    await context.polkadotApi.tx.sudo
+      .sudo(context.polkadotApi.tx.xcmTransactor.register(ALITH, 0))
+      .signAndSend(sudoAccount);
+    await context.createBlock();
+
+    await context.polkadotApi.tx.sudo
+      .sudo(
+        context.polkadotApi.tx.xcmTransactor.setTransactInfo(
+          sourceLocationRelayVersioned,
+          new BN(0),
+          new BN(20000000000),
+          new BN(0)
+        )
+      )
+      .signAndSend(sudoAccount);
+
+    await context.createBlock();
+
+    await context.polkadotApi.tx.sudo
+      .sudo(
+        context.polkadotApi.tx.xcmTransactor.setFeePerSecond(
+          sourceLocationRelayVersioned,
+          new BN(1000000000000)
+        )
+      )
+      .signAndSend(sudoAccount);
+    await context.createBlock();
+
+    const contractData = await getCompiled("XcmTransactorInstance");
+    iFace = new ethers.utils.Interface(contractData.contract.abi);
+    const { contract, rawTx } = await createContract(context, "XcmTransactorInstance");
+    const address = contract.options.address;
+    await context.createBlock({ transactions: [rawTx] });
+    alith = keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
+  });
+
+  it("allows to issue transfer signed xcm transactor with multilocation", async function () {
+    // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
+    // And we need relay tokens for issuing a transaction to be executed in the relay
+    let dest =
+      // Destination as multilocation
+      [
+        // one parent
+        1,
+        [],
+      ];
+    // asset as multilocation
+    let asset =
+      // Destination as multilocation
+      [
+        // one parent
+        1,
+        [],
+      ];
+    // we dont care, the call wont be executed
+    let transact_call = new Uint8Array([0x01]);
+    // weight
+    let weight = 1000;
+    // Call the precompile
+    let data = iFace.encodeFunctionData(
+      // action
+      "transact_through_signed_multilocation",
+      [dest, asset, weight, transact_call]
+    );
+
+    const tx = await createTransaction(context, {
+      from: ALITH,
+      privateKey: ALITH_PRIV_KEY,
+      value: "0x0",
+      gas: "0x200000",
+      gasPrice: GAS_PRICE,
+      to: ADDRESS_XCM_TRANSACTOR,
+      data,
+    });
+
+    const block = await context.createBlock({
+      transactions: [tx],
+    });
 
     // 1000 fee for the relay is paid with relay assets
     await verifyLatestBlockFees(context, expect);
