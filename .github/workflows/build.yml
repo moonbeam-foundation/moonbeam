@@ -391,6 +391,7 @@ jobs:
             --cpus $((CPUS / 6)) \
             --network=host \
             -e BINARY_PATH='../build/moonbeam' \
+            -e DEBUG='test:*' \
             -e MOONBEAM_LOG='info' \
             -v $(pwd):/moonbeam:z \
             -u $UID \
@@ -402,6 +403,7 @@ jobs:
             --cpus $((CPUS / 6)) \
             --network=host \
             -e BINARY_PATH='../build/moonbeam' \
+            -e DEBUG='test:*' \
             -e MOONBEAM_LOG='info' \
             -v $(pwd):/moonbeam:z \
             -u $UID \
@@ -413,6 +415,7 @@ jobs:
             --cpus $((CPUS / 6)) \
             --network=host \
             -e BINARY_PATH='../build/moonbeam' \
+            -e DEBUG='test:*' \
             -e MOONBEAM_LOG='info' \
             -v $(pwd):/moonbeam:z \
             -u $UID \
@@ -424,6 +427,7 @@ jobs:
             --cpus $((CPUS / 6)) \
             --network=host \
             -e BINARY_PATH='../build/moonbeam' \
+            -e DEBUG='test:*' \
             -e MOONBEAM_LOG='info' \
             -v $(pwd):/moonbeam:z \
             -u $UID \
@@ -435,6 +439,7 @@ jobs:
             --cpus $((CPUS / 6)) \
             --network=host \
             -e BINARY_PATH='../build/moonbeam' \
+            -e DEBUG='test:*' \
             -e MOONBEAM_LOG='info' \
             -v $(pwd):/moonbeam:z \
             -u $UID \
@@ -446,6 +451,7 @@ jobs:
             --cpus $((CPUS / 6)) \
             --network=host \
             -e BINARY_PATH='../build/moonbeam' \
+            -e DEBUG='test:*' \
             -e MOONBEAM_LOG='info' \
             -v $(pwd):/moonbeam:z \
             -u $UID \
