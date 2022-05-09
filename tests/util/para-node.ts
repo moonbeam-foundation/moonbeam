@@ -103,6 +103,9 @@ export async function getRuntimeWasm(
   runtimeName: "moonbase" | "moonriver" | "moonbeam",
   runtimeTag: string
 ): Promise<string> {
+  if (!fs.existsSync(RUNTIME_DIRECTORY)) {
+    fs.mkdirSync(RUNTIME_DIRECTORY, { recursive: true });
+  }
   const runtimePath = path.join(RUNTIME_DIRECTORY, `${runtimeName}-${runtimeTag}.wasm`);
 
   if (runtimeTag == "local") {

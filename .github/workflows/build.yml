@@ -524,11 +524,6 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Typescript integration tests (against dev service)
-        env:
-          OVERRIDE_RUNTIME_PATH: ./runtimes
-          BINARY_PATH: ../build/moonbeam
-          MOONBEAM_LOG: info
-          RELAY_BINARY_PATH: ../build/polkadot
         run: |
           ####  Preparing the repository
           chmod uog+x build/moonbeam
