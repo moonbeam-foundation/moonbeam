@@ -367,7 +367,7 @@ jobs:
           BINARY_PATH: ../build/moonbeam
         run: |
           #### Compute CPUS & CONCURRENCY
-          CPU_PER_TEST=4;
+          CPU_PER_TEST=3;
           CPUS=$(lscpu  | grep '^CPU(s):' | grep -o '[0-9]*')
           CONCURRENCY=$((CPUS/CPU_PER_TEST))
           echo "Preparing $CONCURRENCY groups (CPUs/test: $CPU_PER_TEST, Total: $CPUS)"
@@ -412,7 +412,6 @@ jobs:
               --cpus $((CPUS / $CONCURRENCY)) \
               -e BINARY_PATH='../build/moonbeam' \
               -e DEBUG='test:*' \
-              -e MOONBEAM_LOG='info' \
               -v $(pwd):/moonbeam:z \
               -u $UID \
               -w /moonbeam/tests \
@@ -568,7 +567,7 @@ jobs:
             -e MOONBEAM_LOG='info' \
             -e RELAY_BINARY_PATH='/binaries/polkadot' \
             -e RUNTIME_DIRECTORY='/tmp/runtimes' \
-            -e BINARY_DIRECTORY='/binaries' \
+            -e BINARY_DIRECTORY='../build/' \
             -e SPECS_DIRECTORY='/tmp/specs' \
             -v $(pwd):/moonbeam:z \
             -v $(pwd)/${binaryPath}:/binaries/moonbeam:z \
