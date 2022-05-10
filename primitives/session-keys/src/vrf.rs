@@ -15,7 +15,9 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! VRF Key type, which is sr25519
+use nimbus_primitives::NimbusId;
 use sp_application_crypto::KeyTypeId;
+use sp_core::crypto::UncheckedFrom;
 use sp_runtime::{BoundToRuntimeAppPublic, ConsensusEngineId};
 
 /// Struct to implement `BoundToRuntimeAppPublic` by assigning Public = VrfId
@@ -25,9 +27,11 @@ impl BoundToRuntimeAppPublic for VrfSessionKey {
 	type Public = VrfId;
 }
 
-impl From<nimbus_primitives::NimbusId> for VrfId {
-	fn from(nimbus_id: nimbus_primitives::NimbusId) -> VrfId {
-		nimbus_id.into()
+impl From<NimbusId> for VrfId {
+	fn from(nimbus_id: NimbusId) -> VrfId {
+		let nimbus_as_sr25519: sp_application_crypto::sr25519::Public = nimbus_id.into();
+		let sr25519_as_bytes: [u8; 32] = nimbus_as_sr25519.into();
+		sp_core::sr25519::Public::unchecked_from(sr25519_as_bytes).into()
 	}
 }
 
@@ -52,4 +56,12 @@ pub type VrfSignature = vrf_crypto::Signature;
 sp_application_crypto::with_pair! {
 	/// A vrf key pair
 	pub type VrfPair = vrf_crypto::Pair;
+}
+
+#[test]
+fn nimbus_to_vrf_id() {
+	let nimbus_id: NimbusId = sp_core::sr25519::Public::unchecked_from([1u8; 32]).into();
+	let expected_vrf_id: VrfId = sp_core::sr25519::Public::unchecked_from([1u8; 32]).into();
+	let nimbus_to_vrf_id: VrfId = nimbus_id.into();
+	assert_eq!(expected_vrf_id, nimbus_to_vrf_id);
 }
