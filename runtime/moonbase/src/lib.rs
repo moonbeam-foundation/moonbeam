@@ -196,6 +196,7 @@ parameter_types! {
 	/// We allow for 5 MB blocks.
 	pub BlockLength: frame_system::limits::BlockLength = frame_system::limits::BlockLength
 		::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
+	pub BlockHashCount: BlockNumber = 256;
 }
 
 impl frame_system::Config for Runtime {
@@ -220,7 +221,7 @@ impl frame_system::Config for Runtime {
 	/// The ubiquitous origin type.
 	type Origin = Origin;
 	/// Maximum number of block number to block hash mappings to keep (oldest pruned first).
-	type BlockHashCount = ConstU32<256>;
+	type BlockHashCount = BlockHashCount;
 	/// Maximum weight of each block. With a default weight system of 1byte == 1weight, 4mb is ok.
 	type BlockWeights = BlockWeights;
 	/// Maximum size of all encoded transactions (in bytes) that are allowed in one block.

@@ -23,13 +23,13 @@ use std::{sync::Arc, time::Duration};
 
 use parity_scale_codec::Encode;
 use frame_system::Call as SystemCall;
-use frontier_template_runtime as runtime;
+use moonbase_runtime as runtime;
+use account::{AccountId20, EthereumSigner};
 use sc_cli::Result;
 use sc_client_api::BlockBackend;
-use sp_core::{sr25519, Pair};
+use sp_core::{ecdsa, Pair};
 use sp_inherents::{InherentData, InherentDataProvider};
-use sp_keyring::Sr25519Keyring;
-use sp_runtime::{generic::Era, AccountId32, OpaqueExtrinsic, SaturatedConversion};
+use sp_runtime::{generic::{Era, SignedPayload}, OpaqueExtrinsic, SaturatedConversion};
 
 use crate::FullClient;
 
@@ -37,22 +37,23 @@ use crate::FullClient;
 ///
 /// Note: Should only be used for benchmarking.
 pub struct BenchmarkExtrinsicBuilder {
-	client: Arc<FullClient>,
+	client: Arc<FullClient<moonbase_runtime::RuntimeApi, crate::MoonbaseExecutor>>,
 }
 
 impl BenchmarkExtrinsicBuilder {
 	/// Creates a new [`Self`] from the given client.
-	pub fn new(client: Arc<FullClient>) -> Self {
+	pub fn new(client: Arc<FullClient<moonbase_runtime::RuntimeApi, crate::MoonbaseExecutor>>) -> Self {
 		Self { client }
 	}
 }
 
 impl frame_benchmarking_cli::ExtrinsicBuilder for BenchmarkExtrinsicBuilder {
 	fn remark(&self, nonce: u32) -> std::result::Result<OpaqueExtrinsic, &'static str> {
-		let acc = Sr25519Keyring::Bob.pair();
+		// TODO: use well-known testing keypairs
+		let keypair = sp_core::ecdsa::Pair::generate().0;
 		let extrinsic: OpaqueExtrinsic = create_benchmark_extrinsic(
 			self.client.as_ref(),
-			acc,
+			keypair,
 			SystemCall::remark { remark: vec![] }.into(),
 			nonce,
 		)
@@ -66,11 +67,13 @@ impl frame_benchmarking_cli::ExtrinsicBuilder for BenchmarkExtrinsicBuilder {
 ///
 /// Note: Should only be used for benchmarking.
 pub fn create_benchmark_extrinsic(
-	client: &FullClient,
-	sender: sr25519::Pair,
+	client: &FullClient<moonbase_runtime::RuntimeApi, crate::MoonbaseExecutor>,
+	sender: ecdsa::Pair,
 	call: runtime::Call,
 	nonce: u32,
 ) -> runtime::UncheckedExtrinsic {
+	use sp_runtime::traits::IdentifyAccount;
+
 	let genesis_hash = client
 		.block_hash(0)
 		.ok()
@@ -84,7 +87,6 @@ pub fn create_benchmark_extrinsic(
 		.map(|c| c / 2)
 		.unwrap_or(2) as u64;
 	let extra: runtime::SignedExtra = (
-		frame_system::CheckNonZeroSender::<runtime::Runtime>::new(),
 		frame_system::CheckSpecVersion::<runtime::Runtime>::new(),
 		frame_system::CheckTxVersion::<runtime::Runtime>::new(),
 		frame_system::CheckGenesis::<runtime::Runtime>::new(),
@@ -97,11 +99,10 @@ pub fn create_benchmark_extrinsic(
 		pallet_transaction_payment::ChargeTransactionPayment::<runtime::Runtime>::from(0),
 	);
 
-	let raw_payload = runtime::SignedPayload::from_raw(
+	let raw_payload = SignedPayload::from_raw(
 		call.clone(),
 		extra.clone(),
 		(
-			(),
 			runtime::VERSION.spec_version,
 			runtime::VERSION.transaction_version,
 			genesis_hash,
@@ -112,11 +113,12 @@ pub fn create_benchmark_extrinsic(
 		),
 	);
 	let signature = raw_payload.using_encoded(|e| sender.sign(e));
+	let signer: EthereumSigner = sender.public().into();
 
 	runtime::UncheckedExtrinsic::new_signed(
 		call.clone(),
-		AccountId32::from(sender.public()).into(),
-		runtime::Signature::Sr25519(signature.clone()),
+		signer.into_account(),
+		signature.into(),
 		extra.clone(),
 	)
 }

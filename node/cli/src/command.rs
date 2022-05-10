@@ -663,37 +663,24 @@ pub fn run() -> Result<()> {
 					}
 				}
 				BenchmarkCmd::Overhead(cmd) => {
-					let chain_spec = &runner.config().chain_spec;
-					match chain_spec {
-						#[cfg(feature = "moonriver-native")]
-						spec if spec.is_moonriver() => {
-							return runner.sync_run(|mut config| {
-								let params = service::new_partial::<
-									service::moonriver_runtime::RuntimeApi,
-									service::MoonriverExecutor,
-								>(&mut config, false)?;
-								let ext_builder = BenchmarkExtrinsicBuilder::new(
-									params.client.clone());
+					#[cfg(feature = "moonbase-native")]
+					return runner.sync_run(|mut config| {
+						let params = service::new_partial::<
+							service::moonbase_runtime::RuntimeApi,
+							service::MoonbaseExecutor,
+						>(&mut config, false)?;
+						let ext_builder = BenchmarkExtrinsicBuilder::new(
+							params.client.clone());
 
-								cmd.run(
-									config,
-									params.client,
-									inherent_benchmark_data()?,
-									Arc::new(ext_builder),
-								)
-							})
-						}
-						#[cfg(feature = "moonbeam-native")]
-						spec if spec.is_moonbeam() => {
-							panic!("fixme");
-						}
-						#[cfg(feature = "moonbase-native")]
-						_ => {
-							panic!("fixme");
-						}
-						#[cfg(not(feature = "moonbase-native"))]
-						_ => panic!("invalid chain spec"),
-					}
+						cmd.run(
+							config,
+							params.client,
+							inherent_benchmark_data()?,
+							Arc::new(ext_builder),
+						)
+					});
+					#[cfg(not(feature = "moonbase-native"))]
+					panic!("benchmark overhead only implemented for moonbase");
 				}
 			}
 		}
