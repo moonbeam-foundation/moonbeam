@@ -22,7 +22,7 @@ mod common;
 use common::*;
 
 use crowdloan_rewards_precompiles::Action as CrowdloanAction;
-use fp_evm::{Context, ExitSucceed, PrecompileOutput};
+use fp_evm::Context;
 use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::Dispatchable,
@@ -46,7 +46,7 @@ use pallet_evm_precompile_assets_erc20::{
 };
 use pallet_transaction_payment::Multiplier;
 use parity_scale_codec::Encode;
-use precompile_utils::{Address as EvmAddress, EvmDataWriter, LogsBuilder, testing::*};
+use precompile_utils::{testing::*, Address as EvmAddress, EvmDataWriter, LogsBuilder};
 use sha3::{Digest, Keccak256};
 use sp_core::{ByteArray, Pair, H160, U256};
 use sp_runtime::{
@@ -1557,7 +1557,8 @@ fn asset_erc20_precompiles_freeze_thaw_account() {
 			let asset_precompile_address =
 				Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, 0u128);
 
-				Precompiles::new()
+			// Freeze account
+			Precompiles::new()
 				.prepare_test(
 					ALICE,
 					asset_precompile_address,

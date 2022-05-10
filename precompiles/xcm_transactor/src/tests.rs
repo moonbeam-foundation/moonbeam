@@ -14,20 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 use crate::mock::{
-	evm_test_context, ExtBuilder, Origin, PrecompilesValue, Runtime, TestAccount::*,
-	TestPrecompiles, XcmTransactor,
+	ExtBuilder, Origin, PrecompilesValue, Runtime, TestAccount::*, TestPrecompiles, XcmTransactor,
 };
-use crate::{Action, PrecompileOutput};
+use crate::Action;
 
-use fp_evm::PrecompileFailure;
 use frame_support::assert_ok;
-use num_enum::TryFromPrimitive;
-use pallet_evm::{ExitSucceed, PrecompileSet};
 use precompile_utils::{testing::*, Address, Bytes, EvmDataWriter};
-use sha3::{Digest, Keccak256};
 use sp_core::{H160, U256};
 use sp_std::boxed::Box;
-use std::assert_matches::assert_matches;
 use xcm::v1::MultiLocation;
 
 fn precompiles() -> TestPrecompiles<Runtime> {
