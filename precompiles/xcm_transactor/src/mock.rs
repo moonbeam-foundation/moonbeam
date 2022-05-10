@@ -234,6 +234,7 @@ where
 {
 	fn execute(
 		&self,
+		handle: &mut impl PrecompileHandle,
 		address: H160,
 		input: &[u8],
 		target_gas: Option<u64>,
@@ -242,7 +243,7 @@ where
 	) -> Option<EvmResult<PrecompileOutput>> {
 		match address {
 			a if a == precompile_address() => Some(XcmTransactorWrapper::<R>::execute(
-				input, target_gas, context, is_static,
+				handle, input, target_gas, context, is_static,
 			)),
 			_ => None,
 		}
