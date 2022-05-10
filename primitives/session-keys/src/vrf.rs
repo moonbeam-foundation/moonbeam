@@ -18,6 +18,12 @@
 use sp_application_crypto::KeyTypeId;
 use sp_runtime::ConsensusEngineId;
 
+pub struct VrfSessionKey;
+
+impl sp_runtime::BoundToRuntimeAppPublic for VrfSessionKey {
+	type Public = VrfId;
+}
+
 impl From<nimbus_primitives::NimbusId> for VrfId {
 	fn from(nimbus_id: nimbus_primitives::NimbusId) -> VrfId {
 		nimbus_id.into()
