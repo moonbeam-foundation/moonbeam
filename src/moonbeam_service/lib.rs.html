@@ -1629,7 +1629,7 @@
 <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">start_node_impl</span><span class="op">&lt;</span><span class="ident">RuntimeApi</span>, <span class="ident">Executor</span>, <span class="ident">BIC</span><span class="op">&gt;</span>(
 	<span class="ident">parachain_config</span>: <span class="ident">Configuration</span>,
 	<span class="ident">polkadot_config</span>: <span class="ident">Configuration</span>,
-	<span class="ident">id</span>: <span class="ident">polkadot_primitives::v0::Id</span>,
+	<span class="ident">id</span>: <span class="ident">polkadot_primitives::v2::Id</span>,
 	<span class="ident">rpc_config</span>: <span class="ident">RpcConfig</span>,
 	<span class="ident">build_consensus</span>: <span class="ident">BIC</span>,
 ) -&gt; <span class="ident">sc_service::error::Result</span><span class="op">&lt;</span>(<span class="ident">TaskManager</span>, <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">FullClient</span><span class="op">&lt;</span><span class="ident">RuntimeApi</span>, <span class="ident">Executor</span><span class="op">&gt;</span><span class="op">&gt;</span>)<span class="op">&gt;</span>
@@ -1885,7 +1885,7 @@
 <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">start_node</span><span class="op">&lt;</span><span class="ident">RuntimeApi</span>, <span class="ident">Executor</span><span class="op">&gt;</span>(
 	<span class="ident">parachain_config</span>: <span class="ident">Configuration</span>,
 	<span class="ident">polkadot_config</span>: <span class="ident">Configuration</span>,
-	<span class="ident">id</span>: <span class="ident">polkadot_primitives::v0::Id</span>,
+	<span class="ident">id</span>: <span class="ident">polkadot_primitives::v2::Id</span>,
 	<span class="ident">rpc_config</span>: <span class="ident">RpcConfig</span>,
 ) -&gt; <span class="ident">sc_service::error::Result</span><span class="op">&lt;</span>(<span class="ident">TaskManager</span>, <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">FullClient</span><span class="op">&lt;</span><span class="ident">RuntimeApi</span>, <span class="ident">Executor</span><span class="op">&gt;</span><span class="op">&gt;</span>)<span class="op">&gt;</span>
 <span class="kw">where</span>

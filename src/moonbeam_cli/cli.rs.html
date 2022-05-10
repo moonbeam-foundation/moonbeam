@@ -288,6 +288,7 @@
 <span id="283">283</span>
 <span id="284">284</span>
 <span id="285">285</span>
+<span id="286">286</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -351,8 +352,9 @@
 	<span class="doccomment">/// Run hardware performance tests.</span>
 	<span class="ident">PerfTest</span>(<span class="ident">PerfCmd</span>),
 
-	<span class="doccomment">/// The custom benchmark subcommmand benchmarking runtime pallets.</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;benchmark&quot;</span>, <span class="ident">about</span> <span class="op">=</span> <span class="string">&quot;Benchmark runtime pallets.&quot;</span>)]</span>
+	<span class="doccomment">/// Sub-commands concerned with benchmarking.</span>
+	<span class="doccomment">/// The pallet benchmarking moved to the `pallet` sub-command.</span>
+	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">subcommand</span>)]</span>
 	<span class="ident">Benchmark</span>(<span class="ident">frame_benchmarking_cli::BenchmarkCmd</span>),
 
 	<span class="doccomment">/// Try some command against runtime state.</span>
