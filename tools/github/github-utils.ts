@@ -54,7 +54,7 @@ export async function getCommitAndLabels(
   // - commits reverted in the same range
   const excludedCommits: number[] = [];
   const revertedCommits: number[] = [];
-  for (var i = commits.length; i > 0; i--) {
+  for (let i = commits.length - 1; i >= 0; i--) {
     const commitMessageFirstLine = commits[i].commit.message.split("\n")[0].trim();
 
     if (revertedCommits[commitMessageFirstLine] != null) {
@@ -69,7 +69,7 @@ export async function getCommitAndLabels(
   }
 
   const prByLabels = {};
-  for (var i = 0; i < commits.length; i++) {
+  for (let i = 0; i < commits.length; i++) {
     const commitMessageFirstLine = commits[i].commit.message.split("\n")[0].trim();
     if (!excludedCommits.includes(i)) {
       const foundPrsNumbers = commitMessageFirstLine.match(/\(#([0-9]+)\)$/);
