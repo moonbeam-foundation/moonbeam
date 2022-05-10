@@ -49,7 +49,7 @@ pub type BalanceOf<Runtime> =
 
 #[precompile_utils::generate_function_selector]
 #[derive(Debug, PartialEq)]
-enum Action {
+pub enum Action {
 	IsContributor = "is_contributor(address)",
 	RewardInfo = "reward_info(address)",
 	Claim = "claim()",

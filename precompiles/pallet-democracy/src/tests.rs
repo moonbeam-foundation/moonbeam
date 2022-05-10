@@ -56,8 +56,8 @@ fn selector_less_than_four_bytes() {
 	ExtBuilder::default().build().execute_with(|| {
 		// This selector is only three bytes long when four are required.
 		precompiles()
-			.test_call(Alice, Precompile, vec![1u8, 2u8, 3u8])
-			.assert_reverts(|output| output == b"tried to parse selector out of bounds");
+			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8])
+			.execute_reverts(|output| output == b"tried to parse selector out of bounds");
 	});
 }
 
@@ -65,8 +65,8 @@ fn selector_less_than_four_bytes() {
 fn no_selector_exists_but_length_is_right() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()
-			.test_call(Alice, Precompile, vec![1u8, 2u8, 3u8, 4u8])
-			.assert_reverts(|output| output == b"unknown selector");
+			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8, 4u8])
+			.execute_reverts(|output| output == b"unknown selector");
 	});
 }
 
@@ -93,14 +93,14 @@ fn prop_count_zero() {
 	ExtBuilder::default().build().execute_with(|| {
 		// Assert that no props have been opened.
 		precompiles()
-			.test_call(
+			.prepare_test(
 				Alice,
 				Precompile,
 				EvmDataWriter::new_with_selector(Action::PublicPropCount).build(),
 			)
 			.expect_cost(0) // TODO: Test db read/write costs
 			.expect_no_logs()
-			.assert_returns([0u8; 32].into())
+			.execute_returns([0u8; 32].into())
 	});
 }
 
@@ -118,14 +118,14 @@ fn prop_count_non_zero() {
 			.dispatch(Origin::signed(Alice)));
 
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::PublicPropCount).build(),
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(1u32).build());
+				.execute_returns(EvmDataWriter::new().write(1u32).build());
 		});
 }
 
@@ -145,7 +145,7 @@ fn deposit_of_non_zero() {
 			.dispatch(Origin::signed(Alice)));
 
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::DepositOf)
@@ -154,7 +154,7 @@ fn deposit_of_non_zero() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(1000u32).build());
+				.execute_returns(EvmDataWriter::new().write(1000u32).build());
 		});
 }
 
@@ -162,14 +162,14 @@ fn deposit_of_non_zero() {
 fn deposit_of_bad_index() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()
-			.test_call(
+			.prepare_test(
 				Alice,
 				Precompile,
 				EvmDataWriter::new_with_selector(Action::DepositOf)
 					.write(10u32)
 					.build(),
 			)
-			.assert_reverts(|output| output == b"No such proposal in pallet democracy");
+			.execute_reverts(|output| output == b"No such proposal in pallet democracy");
 	});
 }
 
@@ -177,14 +177,14 @@ fn deposit_of_bad_index() {
 fn lowest_unbaked_zero() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()
-			.test_call(
+			.prepare_test(
 				Alice,
 				Precompile,
 				EvmDataWriter::new_with_selector(Action::LowestUnbaked).build(),
 			)
 			.expect_cost(0) // TODO: Test db read/write costs
 			.expect_no_logs()
-			.assert_returns(EvmDataWriter::new().write(0u32).build());
+			.execute_returns(EvmDataWriter::new().write(0u32).build());
 	});
 }
 
@@ -241,14 +241,14 @@ fn lowest_unbaked_non_zero() {
 			);
 
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::LowestUnbaked).build(),
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(1u32).build());
+				.execute_returns(EvmDataWriter::new().write(1u32).build());
 		});
 }
 
@@ -623,14 +623,14 @@ fn remove_vote_dne() {
 			roll_to(<Runtime as DemocracyConfig>::LaunchPeriod::get());
 
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::RemoveVote)
 						.write(0u32) // Referendum index 0
 						.build(),
 				)
-				.assert_reverts(|output| from_utf8(&output).unwrap().contains("NotVoter"));
+				.execute_reverts(|output| from_utf8(&output).unwrap().contains("NotVoter"));
 		})
 }
 
@@ -742,12 +742,12 @@ fn undelegate_works() {
 fn undelegate_dne() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()
-			.test_call(
+			.prepare_test(
 				Alice,
 				Precompile,
 				EvmDataWriter::new_with_selector(Action::UnDelegate).build(),
 			)
-			.assert_reverts(|output| from_utf8(&output).unwrap().contains("NotDelegating"));
+			.execute_reverts(|output| from_utf8(&output).unwrap().contains("NotDelegating"));
 	})
 }
 

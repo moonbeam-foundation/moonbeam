@@ -49,8 +49,8 @@ fn test_selector_enum() {
 fn selector_less_than_four_bytes() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()
-			.test_call(Alice, Precompile, vec![1u8, 2u8, 3u8])
-			.assert_reverts(|output| output == b"tried to parse selector out of bounds");
+			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8])
+			.execute_reverts(|output| output == b"tried to parse selector out of bounds");
 	});
 }
 
@@ -58,8 +58,8 @@ fn selector_less_than_four_bytes() {
 fn no_selector_exists_but_length_is_right() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()
-			.test_call(Alice, Precompile, vec![1u8, 2u8, 3u8, 4u8])
-			.assert_reverts(|output| output == b"unknown selector");
+			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8, 4u8])
+			.execute_reverts(|output| output == b"unknown selector");
 	});
 }
 
@@ -75,18 +75,18 @@ fn take_index_for_account() {
 
 			// Assert that errors since no index is assigned
 			precompiles()
-				.test_call(Alice, Precompile, input.clone())
-				.assert_reverts(|output| output == b"No index assigned");
+				.prepare_test(Alice, Precompile, input.clone())
+				.execute_reverts(|output| output == b"No index assigned");
 
 			// register index
 			assert_ok!(XcmTransactor::register(Origin::root(), Alice.into(), 0));
 
 			// Expected result is zero
 			precompiles()
-				.test_call(Alice, Precompile, input)
+				.prepare_test(Alice, Precompile, input)
 				.expect_cost(1)
 				.expect_no_logs()
-				.assert_returns(
+				.execute_returns(
 					EvmDataWriter::new()
 						.write(Address(H160::from(Alice)))
 						.build(),
@@ -106,8 +106,8 @@ fn take_transact_info() {
 
 			// Assert that errors since no index is assigned
 			precompiles()
-				.test_call(Alice, Precompile, input.clone())
-				.assert_reverts(|output| output == b"Transact Info not set");
+				.prepare_test(Alice, Precompile, input.clone())
+				.execute_reverts(|output| output == b"Transact Info not set");
 
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
@@ -119,10 +119,10 @@ fn take_transact_info() {
 			));
 
 			precompiles()
-				.test_call(Alice, Precompile, input)
+				.prepare_test(Alice, Precompile, input)
 				.expect_cost(1)
 				.expect_no_logs()
-				.assert_returns(
+				.execute_returns(
 					EvmDataWriter::new()
 						.write(0u64)
 						.write(1u128)
@@ -157,7 +157,7 @@ fn test_transactor_multilocation() {
 
 			// We are transferring asset 0, which we have instructed to be the relay asset
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(
@@ -172,7 +172,7 @@ fn test_transactor_multilocation() {
 				)
 				.expect_cost(4004000)
 				.expect_no_logs()
-				.assert_returns(vec![]);
+				.execute_returns(vec![]);
 		});
 }
 
@@ -198,7 +198,7 @@ fn test_transactor() {
 
 			// We are transferring asset 0, which we have instructed to be the relay asset
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::TransactThroughDerivative)
@@ -211,6 +211,6 @@ fn test_transactor() {
 				)
 				.expect_cost(4004001)
 				.expect_no_logs()
-				.assert_returns(vec![]);
+				.execute_returns(vec![]);
 		});
 }

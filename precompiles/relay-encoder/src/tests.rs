@@ -49,8 +49,8 @@ fn test_selector_enum() {
 fn selector_less_than_four_bytes() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()
-			.test_call(Alice, Precompile, vec![1u8, 2u8, 3u8])
-			.assert_reverts(|output| output == b"tried to parse selector out of bounds");
+			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8])
+			.execute_reverts(|output| output == b"tried to parse selector out of bounds");
 	});
 }
 
@@ -58,8 +58,8 @@ fn selector_less_than_four_bytes() {
 fn no_selector_exists_but_length_is_right() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()
-			.test_call(Alice, Precompile, vec![1u8, 2u8, 3u8, 4u8])
-			.assert_reverts(|output| output == b"unknown selector");
+			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8, 4u8])
+			.execute_reverts(|output| output == b"unknown selector");
 	});
 }
 
@@ -70,7 +70,7 @@ fn test_encode_bond() {
 		.build()
 		.execute_with(|| {
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::EncodeBond)
@@ -81,7 +81,7 @@ fn test_encode_bond() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(
+				.execute_returns(
 					EvmDataWriter::new()
 						.write(Bytes::from(
 							TestEncoder::encode_call(AvailableStakeCalls::Bond(
@@ -103,7 +103,7 @@ fn test_encode_bond_more() {
 		.build()
 		.execute_with(|| {
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::EncodeBondExtra)
@@ -112,7 +112,7 @@ fn test_encode_bond_more() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(
+				.execute_returns(
 					EvmDataWriter::new()
 						.write(Bytes::from(
 							TestEncoder::encode_call(AvailableStakeCalls::BondExtra(100u32.into()))
@@ -130,14 +130,14 @@ fn test_encode_chill() {
 		.build()
 		.execute_with(|| {
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::EncodeChill).build(),
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(
+				.execute_returns(
 					EvmDataWriter::new()
 						.write(Bytes::from(
 							TestEncoder::encode_call(AvailableStakeCalls::Chill).as_slice(),
@@ -154,7 +154,7 @@ fn test_encode_nominate() {
 		.build()
 		.execute_with(|| {
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::EncodeNominate)
@@ -163,7 +163,7 @@ fn test_encode_nominate() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(
+				.execute_returns(
 					EvmDataWriter::new()
 						.write(Bytes::from(
 							TestEncoder::encode_call(AvailableStakeCalls::Nominate(vec![
@@ -184,7 +184,7 @@ fn test_encode_rebond() {
 		.build()
 		.execute_with(|| {
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::EncodeRebond)
@@ -193,7 +193,7 @@ fn test_encode_rebond() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(
+				.execute_returns(
 					EvmDataWriter::new()
 						.write(Bytes::from(
 							TestEncoder::encode_call(AvailableStakeCalls::Rebond(100u128))
@@ -211,7 +211,7 @@ fn test_encode_set_controller() {
 		.build()
 		.execute_with(|| {
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::EncodeSetController)
@@ -220,7 +220,7 @@ fn test_encode_set_controller() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(
+				.execute_returns(
 					EvmDataWriter::new()
 						.write(Bytes::from(
 							TestEncoder::encode_call(AvailableStakeCalls::SetController(
@@ -240,7 +240,7 @@ fn test_encode_set_payee() {
 		.build()
 		.execute_with(|| {
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::EncodeSetPayee)
@@ -249,7 +249,7 @@ fn test_encode_set_payee() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(
+				.execute_returns(
 					EvmDataWriter::new()
 						.write(Bytes::from(
 							TestEncoder::encode_call(AvailableStakeCalls::SetPayee(
@@ -269,7 +269,7 @@ fn test_encode_unbond() {
 		.build()
 		.execute_with(|| {
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::EncodeUnbond)
@@ -278,7 +278,7 @@ fn test_encode_unbond() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(
+				.execute_returns(
 					EvmDataWriter::new()
 						.write(Bytes::from(
 							TestEncoder::encode_call(AvailableStakeCalls::Unbond(100u32.into()))
@@ -296,7 +296,7 @@ fn test_encode_validate() {
 		.build()
 		.execute_with(|| {
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::EncodeValidate)
@@ -306,7 +306,7 @@ fn test_encode_validate() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(
+				.execute_returns(
 					EvmDataWriter::new()
 						.write(Bytes::from(
 							TestEncoder::encode_call(AvailableStakeCalls::Validate(
@@ -329,7 +329,7 @@ fn test_encode_withdraw_unbonded() {
 		.build()
 		.execute_with(|| {
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::EncodeWithdrawUnbonded)
@@ -338,7 +338,7 @@ fn test_encode_withdraw_unbonded() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(
+				.execute_returns(
 					EvmDataWriter::new()
 						.write(Bytes::from(
 							TestEncoder::encode_call(AvailableStakeCalls::WithdrawUnbonded(

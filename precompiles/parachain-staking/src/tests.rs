@@ -110,8 +110,8 @@ fn selectors() {
 fn selector_less_than_four_bytes() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()
-			.test_call(Alice, Precompile, vec![1u8, 2u8, 3u8])
-			.assert_reverts(|output| output == b"tried to parse selector out of bounds");
+			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8])
+			.execute_reverts(|output| output == b"tried to parse selector out of bounds");
 	});
 }
 
@@ -119,8 +119,8 @@ fn selector_less_than_four_bytes() {
 fn no_selector_exists_but_length_is_right() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()
-			.test_call(Alice, Precompile, vec![1u8, 2u8, 3u8, 4u8])
-			.assert_reverts(|output| output == b"unknown selector");
+			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8, 4u8])
+			.execute_reverts(|output| output == b"unknown selector");
 	});
 }
 
@@ -129,14 +129,14 @@ fn no_selector_exists_but_length_is_right() {
 fn min_nomination_works() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()
-			.test_call(
+			.prepare_test(
 				Alice,
 				Precompile,
 				EvmDataWriter::new_with_selector(Action::MinNomination).build(),
 			)
 			.expect_cost(0) // TODO: Test db read/write costs
 			.expect_no_logs()
-			.assert_returns(EvmDataWriter::new().write(3u32).build())
+			.execute_returns(EvmDataWriter::new().write(3u32).build())
 	});
 }
 
@@ -144,14 +144,14 @@ fn min_nomination_works() {
 fn min_delegation_works() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()
-			.test_call(
+			.prepare_test(
 				Alice,
 				Precompile,
 				EvmDataWriter::new_with_selector(Action::MinDelegation).build(),
 			)
 			.expect_cost(0) // TODO: Test db read/write costs
 			.expect_no_logs()
-			.assert_returns(EvmDataWriter::new().write(3u32).build())
+			.execute_returns(EvmDataWriter::new().write(3u32).build())
 	});
 }
 
@@ -164,7 +164,7 @@ fn points_zero() {
 		.execute_with(|| {
 			precompiles()
 				// Assert that there are total 0 points in round 1
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::Points)
@@ -173,7 +173,7 @@ fn points_zero() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(0u32).build());
+				.execute_returns(EvmDataWriter::new().write(0u32).build());
 		});
 }
 
@@ -188,7 +188,7 @@ fn points_non_zero() {
 
 			// Assert that there are total 100 points in round 1
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::Points)
@@ -197,7 +197,7 @@ fn points_non_zero() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(100u32).build());
+				.execute_returns(EvmDataWriter::new().write(100u32).build());
 		});
 }
 
@@ -205,14 +205,14 @@ fn points_non_zero() {
 fn round_works() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()
-			.test_call(
+			.prepare_test(
 				Alice,
 				Precompile,
 				EvmDataWriter::new_with_selector(Action::Round).build(),
 			)
 			.expect_cost(0) // TODO: Test db read/write costs
 			.expect_no_logs()
-			.assert_returns(EvmDataWriter::new().write(1u32).build());
+			.execute_returns(EvmDataWriter::new().write(1u32).build());
 
 		// test next `ROUNDS_TO_TEST` rounds
 		const ROUNDS_TO_TEST: u64 = 10;
@@ -223,14 +223,14 @@ fn round_works() {
 
 			// Assert that round is equal to expectation
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::Round).build(),
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(current_round).build());
+				.execute_returns(EvmDataWriter::new().write(current_round).build());
 		}
 	});
 }
@@ -250,7 +250,7 @@ fn collator_nomination_count_works() {
 		.execute_with(|| {
 			// Assert that there 3 nominations for Alice
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::CollatorNominationCount)
@@ -259,7 +259,7 @@ fn collator_nomination_count_works() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(3u32).build());
+				.execute_returns(EvmDataWriter::new().write(3u32).build());
 		});
 }
 
@@ -277,7 +277,7 @@ fn candidate_delegation_count_works() {
 		.execute_with(|| {
 			// Assert that there 3 delegations to Alice
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::CandidateDelegationCount)
@@ -286,7 +286,7 @@ fn candidate_delegation_count_works() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(3u32).build());
+				.execute_returns(EvmDataWriter::new().write(3u32).build());
 		});
 }
 
@@ -301,7 +301,7 @@ fn nominator_nomination_count_works() {
 		.execute_with(|| {
 			// Assert that Charlie has 2 outstanding delegations
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::NominatorNominationCount)
@@ -310,7 +310,7 @@ fn nominator_nomination_count_works() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(2u32).build());
+				.execute_returns(EvmDataWriter::new().write(2u32).build());
 		});
 }
 
@@ -324,7 +324,7 @@ fn delegator_delegation_count_works() {
 		.execute_with(|| {
 			// Assert that Charlie has 2 outstanding nominations
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::DelegatorDelegationCount)
@@ -333,7 +333,7 @@ fn delegator_delegation_count_works() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(2u32).build());
+				.execute_returns(EvmDataWriter::new().write(2u32).build());
 		});
 }
 
@@ -348,7 +348,7 @@ fn is_nominator_true_false() {
 		.execute_with(|| {
 			// Assert that Charlie is not a delegator
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::IsNominator)
@@ -357,11 +357,11 @@ fn is_nominator_true_false() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(false).build());
+				.execute_returns(EvmDataWriter::new().write(false).build());
 
 			// Assert that Bob is a delegator
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::IsNominator)
@@ -370,7 +370,7 @@ fn is_nominator_true_false() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns(EvmDataWriter::new().write(true).build());
 		});
 }
 
@@ -379,7 +379,7 @@ fn is_delegator_false() {
 	ExtBuilder::default().build().execute_with(|| {
 		// Assert that Charlie is not a delegator
 		precompiles()
-			.test_call(
+			.prepare_test(
 				Alice,
 				Precompile,
 				EvmDataWriter::new_with_selector(Action::IsDelegator)
@@ -388,7 +388,7 @@ fn is_delegator_false() {
 			)
 			.expect_cost(0) // TODO: Test db read/write costs
 			.expect_no_logs()
-			.assert_returns(EvmDataWriter::new().write(false).build());
+			.execute_returns(EvmDataWriter::new().write(false).build());
 	});
 }
 
@@ -402,7 +402,7 @@ fn is_delegator_true() {
 		.execute_with(|| {
 			// Assert that Bob is a delegator
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::IsDelegator)
@@ -411,7 +411,7 @@ fn is_delegator_true() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns(EvmDataWriter::new().write(true).build());
 		});
 }
 
@@ -420,7 +420,7 @@ fn is_candidate_false() {
 	ExtBuilder::default().build().execute_with(|| {
 		// Assert that Alice is not a candidate
 		precompiles()
-			.test_call(
+			.prepare_test(
 				Alice,
 				Precompile,
 				EvmDataWriter::new_with_selector(Action::IsCandidate)
@@ -429,7 +429,7 @@ fn is_candidate_false() {
 			)
 			.expect_cost(0) // TODO: Test db read/write costs
 			.expect_no_logs()
-			.assert_returns(EvmDataWriter::new().write(false).build());
+			.execute_returns(EvmDataWriter::new().write(false).build());
 	});
 }
 
@@ -442,7 +442,7 @@ fn is_candidate_true() {
 		.execute_with(|| {
 			// Assert that Alice is a candidate
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::IsCandidate)
@@ -451,7 +451,7 @@ fn is_candidate_true() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns(EvmDataWriter::new().write(true).build());
 		});
 }
 
@@ -460,7 +460,7 @@ fn is_selected_candidate_false() {
 	ExtBuilder::default().build().execute_with(|| {
 		// Assert that Alice is not a selected candidate
 		precompiles()
-			.test_call(
+			.prepare_test(
 				Alice,
 				Precompile,
 				EvmDataWriter::new_with_selector(Action::IsSelectedCandidate)
@@ -469,7 +469,7 @@ fn is_selected_candidate_false() {
 			)
 			.expect_cost(0) // TODO: Test db read/write costs
 			.expect_no_logs()
-			.assert_returns(EvmDataWriter::new().write(false).build());
+			.execute_returns(EvmDataWriter::new().write(false).build());
 	});
 }
 
@@ -482,7 +482,7 @@ fn is_selected_candidate_true() {
 		.execute_with(|| {
 			// Assert that Alice is not a selected candidate
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::IsSelectedCandidate)
@@ -491,7 +491,7 @@ fn is_selected_candidate_true() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns(EvmDataWriter::new().write(true).build());
 		});
 }
 
@@ -503,14 +503,14 @@ fn selected_candidates_works() {
 		.build()
 		.execute_with(|| {
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::SelectedCandidates).build(),
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(
+				.execute_returns(
 					EvmDataWriter::new()
 						.write(vec![Address(Alice.into())])
 						.build(),
@@ -528,7 +528,7 @@ fn delegation_request_is_pending_works() {
 		.execute_with(|| {
 			// Assert that we dont have pending requests
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::DelegationRequestIsPending)
@@ -538,11 +538,11 @@ fn delegation_request_is_pending_works() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(false).build());
+				.execute_returns(EvmDataWriter::new().write(false).build());
 
 			// Schedule Revoke request
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Charlie,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::ScheduleRevokeDelegation)
@@ -551,11 +551,11 @@ fn delegation_request_is_pending_works() {
 				)
 				.expect_cost(282552000)
 				.expect_no_logs()
-				.assert_returns(vec![]);
+				.execute_returns(vec![]);
 
 			// Assert that we have pending requests
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::DelegationRequestIsPending)
@@ -565,7 +565,7 @@ fn delegation_request_is_pending_works() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns(EvmDataWriter::new().write(true).build());
 		})
 }
 
@@ -574,7 +574,7 @@ fn delegation_request_is_pending_returns_false_for_non_existing_delegator() {
 	ExtBuilder::default().build().execute_with(|| {
 		// Expected false because delegator Bob does not exist
 		precompiles()
-			.test_call(
+			.prepare_test(
 				Alice,
 				Precompile,
 				EvmDataWriter::new_with_selector(Action::DelegationRequestIsPending)
@@ -584,7 +584,7 @@ fn delegation_request_is_pending_returns_false_for_non_existing_delegator() {
 			)
 			.expect_cost(0) // TODO: Test db read/write costs
 			.expect_no_logs()
-			.assert_returns(EvmDataWriter::new().write(false).build());
+			.execute_returns(EvmDataWriter::new().write(false).build());
 	})
 }
 
@@ -598,7 +598,7 @@ fn delegation_exit_is_pending_works() {
 		.execute_with(|| {
 			// Assert that we don't have pending requests
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::DelegatorExitIsPending)
@@ -607,22 +607,22 @@ fn delegation_exit_is_pending_works() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(false).build());
+				.execute_returns(EvmDataWriter::new().write(false).build());
 
 			// Schedule exit request
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Charlie,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::ScheduleLeaveDelegators).build(),
 				)
 				.expect_cost(152072000)
 				.expect_no_logs()
-				.assert_returns(vec![]);
+				.execute_returns(vec![]);
 
 			// Assert that we have pending exit
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::DelegatorExitIsPending)
@@ -631,7 +631,7 @@ fn delegation_exit_is_pending_works() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns(EvmDataWriter::new().write(true).build());
 		})
 }
 
@@ -640,7 +640,7 @@ fn delegation_exit_is_pending_returns_false_for_non_existing_delegator() {
 	ExtBuilder::default().build().execute_with(|| {
 		// Expected false because delegator Bob does not exist
 		precompiles()
-			.test_call(
+			.prepare_test(
 				Alice,
 				Precompile,
 				EvmDataWriter::new_with_selector(Action::DelegatorExitIsPending)
@@ -649,7 +649,7 @@ fn delegation_exit_is_pending_returns_false_for_non_existing_delegator() {
 			)
 			.expect_cost(0) // TODO: Test db read/write costs
 			.expect_no_logs()
-			.assert_returns(EvmDataWriter::new().write(false).build());
+			.execute_returns(EvmDataWriter::new().write(false).build());
 	})
 }
 
@@ -662,7 +662,7 @@ fn candidate_exit_is_pending_works() {
 		.execute_with(|| {
 			// Assert that we don't have pending requests
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::CandidateExitIsPending)
@@ -671,11 +671,11 @@ fn candidate_exit_is_pending_works() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(false).build());
+				.execute_returns(EvmDataWriter::new().write(false).build());
 
 			// Schedule exit request
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::ScheduleLeaveCandidates)
@@ -684,11 +684,11 @@ fn candidate_exit_is_pending_works() {
 				)
 				.expect_cost(313608000)
 				.expect_no_logs()
-				.assert_returns(vec![]);
+				.execute_returns(vec![]);
 
 			// Assert that we have pending exit
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::CandidateExitIsPending)
@@ -697,7 +697,7 @@ fn candidate_exit_is_pending_works() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns(EvmDataWriter::new().write(true).build());
 		})
 }
 
@@ -706,7 +706,7 @@ fn candidate_exit_is_pending_returns_false_for_non_existing_delegator() {
 	ExtBuilder::default().build().execute_with(|| {
 		// Expected false because candidate Bob does not exist
 		precompiles()
-			.test_call(
+			.prepare_test(
 				Alice,
 				Precompile,
 				EvmDataWriter::new_with_selector(Action::CandidateExitIsPending)
@@ -715,7 +715,7 @@ fn candidate_exit_is_pending_returns_false_for_non_existing_delegator() {
 			)
 			.expect_cost(0) // TODO: Test db read/write costs
 			.expect_no_logs()
-			.assert_returns(EvmDataWriter::new().write(false).build());
+			.execute_returns(EvmDataWriter::new().write(false).build());
 	})
 }
 
@@ -728,7 +728,7 @@ fn candidate_request_is_pending_works() {
 		.execute_with(|| {
 			// Assert that we dont have pending requests
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::CandidateRequestIsPending)
@@ -737,11 +737,11 @@ fn candidate_request_is_pending_works() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(false).build());
+				.execute_returns(EvmDataWriter::new().write(false).build());
 
 			// Schedule bond less request
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::ScheduleCandidateBondLess)
@@ -750,11 +750,11 @@ fn candidate_request_is_pending_works() {
 				)
 				.expect_cost(151339000)
 				.expect_no_logs()
-				.assert_returns(vec![]);
+				.execute_returns(vec![]);
 
 			// Assert that we have pending requests
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::CandidateRequestIsPending)
@@ -763,7 +763,7 @@ fn candidate_request_is_pending_works() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns(EvmDataWriter::new().write(true).build());
 		})
 }
 
@@ -772,7 +772,7 @@ fn candidate_request_is_pending_returns_false_for_non_existing_candidate() {
 	ExtBuilder::default().build().execute_with(|| {
 		// Expected false because candidate Bob does not exist
 		precompiles()
-			.test_call(
+			.prepare_test(
 				Alice,
 				Precompile,
 				EvmDataWriter::new_with_selector(Action::CandidateRequestIsPending)
@@ -781,7 +781,7 @@ fn candidate_request_is_pending_returns_false_for_non_existing_candidate() {
 			)
 			.expect_cost(0) // TODO: Test db read/write costs
 			.expect_no_logs()
-			.assert_returns(EvmDataWriter::new().write(false).build());
+			.execute_returns(EvmDataWriter::new().write(false).build());
 	})
 }
 

@@ -54,8 +54,8 @@ fn selector_less_than_four_bytes() {
 	ExtBuilder::default().build().execute_with(|| {
 		// This selector is only three bytes long when four are required.
 		precompiles()
-			.test_call(Alice, Precompile, vec![1u8, 2u8, 3u8])
-			.assert_reverts(|output| output == b"tried to parse selector out of bounds");
+			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8])
+			.execute_reverts(|output| output == b"tried to parse selector out of bounds");
 	});
 }
 
@@ -63,8 +63,8 @@ fn selector_less_than_four_bytes() {
 fn no_selector_exists_but_length_is_right() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()
-			.test_call(Alice, Precompile, vec![1u8, 2u8, 3u8, 4u8])
-			.assert_reverts(|output| output == b"unknown selector");
+			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8, 4u8])
+			.execute_reverts(|output| output == b"unknown selector");
 	});
 }
 

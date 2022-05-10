@@ -72,14 +72,14 @@ fn get_total_supply() {
 		.build()
 		.execute_with(|| {
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::TotalSupply).build(),
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(U256::from(3500u64)).build());
+				.execute_returns(EvmDataWriter::new().write(U256::from(3500u64)).build());
 		});
 }
 
@@ -90,7 +90,7 @@ fn get_balances_known_user() {
 		.build()
 		.execute_with(|| {
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::BalanceOf)
@@ -99,7 +99,7 @@ fn get_balances_known_user() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(U256::from(1000u64)).build());
+				.execute_returns(EvmDataWriter::new().write(U256::from(1000u64)).build());
 		});
 }
 
@@ -110,7 +110,7 @@ fn get_balances_unknown_user() {
 		.build()
 		.execute_with(|| {
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::BalanceOf)
@@ -119,7 +119,7 @@ fn get_balances_unknown_user() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(U256::from(0u64)).build());
+				.execute_returns(EvmDataWriter::new().write(U256::from(0u64)).build());
 		});
 }
 
@@ -130,7 +130,7 @@ fn approve() {
 		.build()
 		.execute_with(|| {
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::Approve)
@@ -145,7 +145,7 @@ fn approve() {
 					Account::Bob,
 					EvmDataWriter::new().write(U256::from(500)).build(),
 				))
-				.assert_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns(EvmDataWriter::new().write(true).build());
 		});
 }
 
@@ -156,7 +156,7 @@ fn approve_saturating() {
 		.build()
 		.execute_with(|| {
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::Approve)
@@ -171,10 +171,10 @@ fn approve_saturating() {
 					Account::Bob,
 					EvmDataWriter::new().write(U256::MAX).build(),
 				))
-				.assert_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns(EvmDataWriter::new().write(true).build());
 
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::Allowance)
@@ -184,7 +184,7 @@ fn approve_saturating() {
 				)
 				.expect_cost(0)
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(U256::from(u128::MAX)).build());
+				.execute_returns(EvmDataWriter::new().write(U256::from(u128::MAX)).build());
 		});
 }
 
@@ -195,7 +195,7 @@ fn check_allowance_existing() {
 		.build()
 		.execute_with(|| {
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::Approve)
@@ -203,10 +203,10 @@ fn check_allowance_existing() {
 						.write(U256::from(500))
 						.build(),
 				)
-				.execute();
+				.execute_some();
 
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::Allowance)
@@ -216,7 +216,7 @@ fn check_allowance_existing() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(U256::from(500u64)).build());
+				.execute_returns(EvmDataWriter::new().write(U256::from(500u64)).build());
 		});
 }
 
@@ -227,7 +227,7 @@ fn check_allowance_not_existing() {
 		.build()
 		.execute_with(|| {
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::Allowance)
@@ -237,7 +237,7 @@ fn check_allowance_not_existing() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(U256::from(0u64)).build());
+				.execute_returns(EvmDataWriter::new().write(U256::from(0u64)).build());
 		});
 }
 
@@ -248,7 +248,7 @@ fn transfer() {
 		.build()
 		.execute_with(|| {
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::Transfer)
@@ -263,10 +263,10 @@ fn transfer() {
 					Account::Bob,
 					EvmDataWriter::new().write(U256::from(400)).build(),
 				))
-				.assert_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns(EvmDataWriter::new().write(true).build());
 
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::BalanceOf)
@@ -275,10 +275,10 @@ fn transfer() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(U256::from(600)).build());
+				.execute_returns(EvmDataWriter::new().write(U256::from(600)).build());
 
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::BalanceOf)
@@ -287,7 +287,7 @@ fn transfer() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(U256::from(400)).build());
+				.execute_returns(EvmDataWriter::new().write(U256::from(400)).build());
 		});
 }
 
@@ -298,7 +298,7 @@ fn transfer_not_enough_funds() {
 		.build()
 		.execute_with(|| {
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::Transfer)
@@ -306,7 +306,7 @@ fn transfer_not_enough_funds() {
 						.write(U256::from(1400))
 						.build(),
 				)
-				.assert_reverts(|output| {
+				.execute_reverts(|output| {
 					from_utf8(&output)
 						.unwrap()
 						.contains("Dispatched call failed with error: DispatchErrorWithPostInfo")
@@ -322,7 +322,7 @@ fn transfer_from() {
 		.build()
 		.execute_with(|| {
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::Approve)
@@ -330,10 +330,10 @@ fn transfer_from() {
 						.write(U256::from(500))
 						.build(),
 				)
-				.execute();
+				.execute_some();
 
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Bob,
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::TransferFrom)
@@ -349,10 +349,10 @@ fn transfer_from() {
 					Account::Bob,
 					EvmDataWriter::new().write(U256::from(400)).build(),
 				))
-				.assert_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns(EvmDataWriter::new().write(true).build());
 
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::BalanceOf)
@@ -361,10 +361,10 @@ fn transfer_from() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(U256::from(600)).build());
+				.execute_returns(EvmDataWriter::new().write(U256::from(600)).build());
 
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::BalanceOf)
@@ -373,10 +373,10 @@ fn transfer_from() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(U256::from(400)).build());
+				.execute_returns(EvmDataWriter::new().write(U256::from(400)).build());
 
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::Allowance)
@@ -386,7 +386,7 @@ fn transfer_from() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(U256::from(100u64)).build());
+				.execute_returns(EvmDataWriter::new().write(U256::from(100u64)).build());
 		});
 }
 
@@ -397,7 +397,7 @@ fn transfer_from_above_allowance() {
 		.build()
 		.execute_with(|| {
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::Approve)
@@ -405,10 +405,10 @@ fn transfer_from_above_allowance() {
 						.write(U256::from(300))
 						.build(),
 				)
-				.execute();
+				.execute_some();
 
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Bob, // Bob is the one sending transferFrom!
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::TransferFrom)
@@ -417,7 +417,7 @@ fn transfer_from_above_allowance() {
 						.write(U256::from(400))
 						.build(),
 				)
-				.assert_reverts(|output| output == b"trying to spend more than allowed");
+				.execute_reverts(|output| output == b"trying to spend more than allowed");
 		});
 }
 
@@ -428,7 +428,7 @@ fn transfer_from_self() {
 		.build()
 		.execute_with(|| {
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Alice, // Alice sending transferFrom herself, no need for allowance.
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::TransferFrom)
@@ -444,10 +444,10 @@ fn transfer_from_self() {
 					Account::Bob,
 					EvmDataWriter::new().write(U256::from(400)).build(),
 				))
-				.assert_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns(EvmDataWriter::new().write(true).build());
 
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::BalanceOf)
@@ -456,10 +456,10 @@ fn transfer_from_self() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(U256::from(600)).build());
+				.execute_returns(EvmDataWriter::new().write(U256::from(600)).build());
 
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::BalanceOf)
@@ -468,7 +468,7 @@ fn transfer_from_self() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(U256::from(400)).build());
+				.execute_returns(EvmDataWriter::new().write(U256::from(400)).build());
 		});
 }
 
@@ -479,14 +479,14 @@ fn get_metadata_name() {
 		.build()
 		.execute_with(|| {
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::Name).build(),
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(
+				.execute_returns(
 					EvmDataWriter::new()
 						.write::<Bytes>("Mock token".into())
 						.build(),
@@ -501,14 +501,14 @@ fn get_metadata_symbol() {
 		.build()
 		.execute_with(|| {
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::Symbol).build(),
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write::<Bytes>("MOCK".into()).build());
+				.execute_returns(EvmDataWriter::new().write::<Bytes>("MOCK".into()).build());
 		});
 }
 
@@ -519,14 +519,14 @@ fn get_metadata_decimals() {
 		.build()
 		.execute_with(|| {
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::Decimals).build(),
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(18u8).build());
+				.execute_returns(EvmDataWriter::new().write(18u8).build());
 		});
 }
 
@@ -537,7 +537,7 @@ fn deposit(data: Vec<u8>) {
 		.execute_with(|| {
 			// Check precompile balance is 0.
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::BalanceOf)
@@ -546,7 +546,7 @@ fn deposit(data: Vec<u8>) {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(U256::from(0)).build());
+				.execute_returns(EvmDataWriter::new().write(U256::from(0)).build());
 
 			// Deposit
 			// We need to call using EVM pallet so we can check the EVM correctly sends the amount
@@ -601,7 +601,7 @@ fn deposit(data: Vec<u8>) {
 
 			// Check precompile balance is still 0.
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::BalanceOf)
@@ -610,11 +610,11 @@ fn deposit(data: Vec<u8>) {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(U256::from(0)).build());
+				.execute_returns(EvmDataWriter::new().write(U256::from(0)).build());
 
 			// Check Alice balance is still 1000.
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::BalanceOf)
@@ -623,7 +623,7 @@ fn deposit(data: Vec<u8>) {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(U256::from(1000)).build());
+				.execute_returns(EvmDataWriter::new().write(U256::from(1000)).build());
 		});
 }
 
@@ -650,7 +650,7 @@ fn deposit_zero() {
 		.execute_with(|| {
 			// Check precompile balance is 0.
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::BalanceOf)
@@ -659,7 +659,7 @@ fn deposit_zero() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(U256::from(0)).build());
+				.execute_returns(EvmDataWriter::new().write(U256::from(0)).build());
 
 			// Deposit
 			// We need to call using EVM pallet so we can check the EVM correctly sends the amount
@@ -687,7 +687,7 @@ fn deposit_zero() {
 
 			// Check precompile balance is still 0.
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::BalanceOf)
@@ -696,11 +696,11 @@ fn deposit_zero() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(U256::from(0)).build());
+				.execute_returns(EvmDataWriter::new().write(U256::from(0)).build());
 
 			// Check Alice balance is still 1000.
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::BalanceOf)
@@ -709,7 +709,7 @@ fn deposit_zero() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(U256::from(1000)).build());
+				.execute_returns(EvmDataWriter::new().write(U256::from(1000)).build());
 		});
 }
 
@@ -721,7 +721,7 @@ fn withdraw() {
 		.execute_with(|| {
 			// Check precompile balance is 0.
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::BalanceOf)
@@ -730,11 +730,11 @@ fn withdraw() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(U256::from(0)).build());
+				.execute_returns(EvmDataWriter::new().write(U256::from(0)).build());
 
 			// Withdraw
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::Withdraw)
@@ -747,11 +747,11 @@ fn withdraw() {
 					Account::Alice,
 					EvmDataWriter::new().write(U256::from(500)).build(),
 				))
-				.assert_returns(vec![]);
+				.execute_returns(vec![]);
 
 			// Check Alice balance is still 1000.
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::BalanceOf)
@@ -760,7 +760,7 @@ fn withdraw() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(U256::from(1000)).build());
+				.execute_returns(EvmDataWriter::new().write(U256::from(1000)).build());
 		});
 }
 
@@ -772,7 +772,7 @@ fn withdraw_more_than_owned() {
 		.execute_with(|| {
 			// Check precompile balance is 0.
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::BalanceOf)
@@ -781,22 +781,22 @@ fn withdraw_more_than_owned() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(U256::from(0)).build());
+				.execute_returns(EvmDataWriter::new().write(U256::from(0)).build());
 
 			// Withdraw
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::Withdraw)
 						.write(U256::from(1001))
 						.build(),
 				)
-				.assert_reverts(|output| output == b"trying to withdraw more than owned");
+				.execute_reverts(|output| output == b"trying to withdraw more than owned");
 
 			// Check Alice balance is still 1000.
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::BalanceOf)
@@ -805,7 +805,7 @@ fn withdraw_more_than_owned() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(U256::from(1000)).build());
+				.execute_returns(EvmDataWriter::new().write(U256::from(1000)).build());
 		});
 }
 
@@ -834,7 +834,7 @@ fn permit_valid() {
 			let (rs, v) = sign(&message, &secret_key);
 
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::Eip2612Nonces)
@@ -843,10 +843,10 @@ fn permit_valid() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(U256::from(0u8)).build());
+				.execute_returns(EvmDataWriter::new().write(U256::from(0u8)).build());
 
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Charlie, // can be anyone
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::Eip2612Permit)
@@ -866,10 +866,10 @@ fn permit_valid() {
 					Account::Bob,
 					EvmDataWriter::new().write(U256::from(value)).build(),
 				))
-				.assert_returns(vec![]);
+				.execute_returns(vec![]);
 
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::Allowance)
@@ -879,10 +879,10 @@ fn permit_valid() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(U256::from(500u16)).build());
+				.execute_returns(EvmDataWriter::new().write(U256::from(500u16)).build());
 
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::Eip2612Nonces)
@@ -891,7 +891,7 @@ fn permit_valid() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(U256::from(1u8)).build());
+				.execute_returns(EvmDataWriter::new().write(U256::from(1u8)).build());
 		});
 }
 
@@ -920,7 +920,7 @@ fn permit_invalid_nonce() {
 			let (rs, v) = sign(&message, &secret_key);
 
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::Eip2612Nonces)
@@ -929,10 +929,10 @@ fn permit_invalid_nonce() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(U256::from(0u8)).build());
+				.execute_returns(EvmDataWriter::new().write(U256::from(0u8)).build());
 
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Charlie, // can be anyone
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::Eip2612Permit)
@@ -945,10 +945,10 @@ fn permit_invalid_nonce() {
 						.write(H256::from(rs.s.b32()))
 						.build(),
 				)
-				.assert_reverts(|output| output == b"invalid permit");
+				.execute_reverts(|output| output == b"invalid permit");
 
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::Allowance)
@@ -958,10 +958,10 @@ fn permit_invalid_nonce() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(U256::from(0u16)).build());
+				.execute_returns(EvmDataWriter::new().write(U256::from(0u16)).build());
 
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::Eip2612Nonces)
@@ -970,7 +970,7 @@ fn permit_invalid_nonce() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(U256::from(0u8)).build());
+				.execute_returns(EvmDataWriter::new().write(U256::from(0u8)).build());
 		});
 }
 
@@ -986,7 +986,7 @@ fn permit_invalid_signature() {
 			let deadline: U256 = 0u8.into();
 
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::Eip2612Nonces)
@@ -995,10 +995,10 @@ fn permit_invalid_signature() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(U256::from(0u8)).build());
+				.execute_returns(EvmDataWriter::new().write(U256::from(0u8)).build());
 
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Charlie, // can be anyone
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::Eip2612Permit)
@@ -1011,10 +1011,10 @@ fn permit_invalid_signature() {
 						.write(H256::repeat_byte(0x11))
 						.build(),
 				)
-				.assert_reverts(|output| output == b"invalid permit");
+				.execute_reverts(|output| output == b"invalid permit");
 
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::Allowance)
@@ -1024,10 +1024,10 @@ fn permit_invalid_signature() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(U256::from(0u16)).build());
+				.execute_returns(EvmDataWriter::new().write(U256::from(0u16)).build());
 
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::Eip2612Nonces)
@@ -1036,7 +1036,7 @@ fn permit_invalid_signature() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(U256::from(0u8)).build());
+				.execute_returns(EvmDataWriter::new().write(U256::from(0u8)).build());
 		});
 }
 
@@ -1067,7 +1067,7 @@ fn permit_invalid_deadline() {
 			let (rs, v) = sign(&message, &secret_key);
 
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::Eip2612Nonces)
@@ -1076,10 +1076,10 @@ fn permit_invalid_deadline() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(U256::from(0u8)).build());
+				.execute_returns(EvmDataWriter::new().write(U256::from(0u8)).build());
 
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Charlie, // can be anyone
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::Eip2612Permit)
@@ -1092,10 +1092,10 @@ fn permit_invalid_deadline() {
 						.write(H256::from(rs.s.b32()))
 						.build(),
 				)
-				.assert_reverts(|output| output == b"permit expired");
+				.execute_reverts(|output| output == b"permit expired");
 
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::Allowance)
@@ -1105,10 +1105,10 @@ fn permit_invalid_deadline() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(U256::from(0u16)).build());
+				.execute_returns(EvmDataWriter::new().write(U256::from(0u16)).build());
 
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::Eip2612Nonces)
@@ -1117,7 +1117,7 @@ fn permit_invalid_deadline() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(U256::from(0u8)).build());
+				.execute_returns(EvmDataWriter::new().write(U256::from(0u8)).build());
 		});
 }
 
@@ -1264,7 +1264,7 @@ fn permit_valid_with_metamask_signed_data() {
 			let s_real: [u8; 32] = s.try_into().unwrap();
 
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Account::Charlie, // can be anyone,
 					Account::Precompile,
 					EvmDataWriter::new_with_selector(Action::Eip2612Permit)
@@ -1284,6 +1284,6 @@ fn permit_valid_with_metamask_signed_data() {
 					Account::Bob,
 					EvmDataWriter::new().write(U256::from(1000)).build(),
 				))
-				.assert_returns(vec![]);
+				.execute_returns(vec![]);
 		});
 }

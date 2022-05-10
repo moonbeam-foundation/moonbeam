@@ -58,8 +58,8 @@ fn selector_less_than_four_bytes() {
 	ExtBuilder::default().build().execute_with(|| {
 		// This selector is only three bytes long when four are required.
 		precompiles()
-			.test_call(Alice, Precompile, vec![1u8, 2u8, 3u8])
-			.assert_reverts(|output| output == b"tried to parse selector out of bounds");
+			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8])
+			.execute_reverts(|output| output == b"tried to parse selector out of bounds");
 	});
 }
 
@@ -67,8 +67,8 @@ fn selector_less_than_four_bytes() {
 fn no_selector_exists_but_length_is_right() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()
-			.test_call(Alice, Precompile, vec![1u8, 2u8, 3u8, 4u8])
-			.assert_reverts(|output| output == b"unknown selector");
+			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8, 4u8])
+			.execute_reverts(|output| output == b"unknown selector");
 	});
 }
 
@@ -79,7 +79,7 @@ fn is_contributor_returns_false() {
 		.build()
 		.execute_with(|| {
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::IsContributor)
@@ -88,7 +88,7 @@ fn is_contributor_returns_false() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(false).build());
+				.execute_returns(EvmDataWriter::new().write(false).build());
 		});
 }
 
@@ -119,7 +119,7 @@ fn is_contributor_returns_true() {
 
 			// Assert that no props have been opened.
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::IsContributor)
@@ -128,7 +128,7 @@ fn is_contributor_returns_true() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns(EvmDataWriter::new().write(true).build());
 		});
 }
 
@@ -199,7 +199,7 @@ fn reward_info_works() {
 
 			// Assert that no props have been opened.
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::RewardInfo)
@@ -208,7 +208,7 @@ fn reward_info_works() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.assert_returns(
+				.execute_returns(
 					EvmDataWriter::new()
 						.write(U256::from(50u64))
 						.write(U256::from(10u64))
@@ -272,7 +272,7 @@ fn test_bound_checks_for_address_parsing() {
 			input.extend_from_slice(&[1u8; 4]); // incomplete data
 
 			precompiles()
-				.test_call(Alice, Precompile, input)
-				.assert_reverts(|output| output == b"input doesn't match expected length")
+				.prepare_test(Alice, Precompile, input)
+				.execute_reverts(|output| output == b"input doesn't match expected length")
 		})
 }

@@ -146,7 +146,17 @@ impl<'p, P: PrecompileSet> PrecompilesTester<'p, P> {
 		self
 	}
 
-	pub fn execute(&self) -> (Option<PrecompileResult>, MockHandle) {
+	fn assert_optionals(&self, handle: &MockHandle) {
+		if let Some(cost) = &self.expected_cost {
+			assert_eq!(&handle.gas_used, cost);
+		}
+
+		if let Some(logs) = &self.expected_logs {
+			assert_eq!(&handle.logs, logs);
+		}
+	}
+
+	fn execute(&self) -> (Option<PrecompileResult>, MockHandle) {
 		let mut handle = MockHandle::new();
 		let res = self.precompiles.execute(
 			&mut handle,
@@ -159,17 +169,23 @@ impl<'p, P: PrecompileSet> PrecompilesTester<'p, P> {
 		(res, handle)
 	}
 
-	fn assert_optionals(&self, handle: &MockHandle) {
-		if let Some(cost) = &self.expected_cost {
-			assert_eq!(&handle.gas_used, cost);
-		}
-
-		if let Some(logs) = &self.expected_logs {
-			assert_eq!(&handle.logs, logs);
-		}
+	/// Execute the precompile set and expect some precompile to have been executed, regardless of the
+	/// result.
+	pub fn execute_some(self) {
+		let (res, handle) = self.execute();
+		assert!(res.is_some());
+		self.assert_optionals(&handle);
 	}
 
-	pub fn assert_returns(self, output: Vec<u8>) {
+	/// Execute the precompile set and expect no precompile to have been executed.
+	pub fn execute_none(self) {
+		let (res, handle) = self.execute();
+		assert!(res.is_some());
+		self.assert_optionals(&handle);
+	}
+
+	/// Execute the precompile set and check it returns provided output.
+	pub fn execute_returns(self, output: Vec<u8>) {
 		let (res, handle) = self.execute();
 		assert_eq!(
 			res,
@@ -181,7 +197,9 @@ impl<'p, P: PrecompileSet> PrecompilesTester<'p, P> {
 		self.assert_optionals(&handle);
 	}
 
-	pub fn assert_reverts(self, check: impl Fn(&[u8]) -> bool) {
+	/// Execute the precompile set and check if it reverts.
+	/// Take a closure allowing to perform custom matching on the output.
+	pub fn execute_reverts(self, check: impl Fn(&[u8]) -> bool) {
 		let (res, handle) = self.execute();
 		assert_matches!(
 			res,
@@ -193,7 +211,7 @@ impl<'p, P: PrecompileSet> PrecompilesTester<'p, P> {
 }
 
 pub trait PrecompileTesterExt: PrecompileSet + Sized {
-	fn test_call(
+	fn prepare_test(
 		&self,
 		from: impl Into<H160>,
 		to: impl Into<H160>,
@@ -202,7 +220,7 @@ pub trait PrecompileTesterExt: PrecompileSet + Sized {
 }
 
 impl<T: PrecompileSet> PrecompileTesterExt for T {
-	fn test_call(
+	fn prepare_test(
 		&self,
 		from: impl Into<H160>,
 		to: impl Into<H160>,

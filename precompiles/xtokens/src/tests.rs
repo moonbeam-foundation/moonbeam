@@ -44,8 +44,8 @@ fn test_selector_enum() {
 fn selector_less_than_four_bytes() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()
-			.test_call(Alice, Precompile, vec![1u8, 2u8, 3u8])
-			.assert_reverts(|output| output == b"tried to parse selector out of bounds");
+			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8])
+			.execute_reverts(|output| output == b"tried to parse selector out of bounds");
 	});
 }
 
@@ -53,8 +53,8 @@ fn selector_less_than_four_bytes() {
 fn no_selector_exists_but_length_is_right() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()
-			.test_call(Alice, Precompile, vec![1u8, 2u8, 3u8, 4u8])
-			.assert_reverts(|output| output == b"unknown selector");
+			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8, 4u8])
+			.execute_reverts(|output| output == b"unknown selector");
 	});
 }
 
@@ -73,7 +73,7 @@ fn transfer_self_reserve_works() {
 			);
 
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::Transfer)
@@ -85,7 +85,7 @@ fn transfer_self_reserve_works() {
 				)
 				.expect_cost(3000)
 				.expect_no_logs()
-				.assert_returns(vec![]);
+				.execute_returns(vec![]);
 
 			let expected_asset: MultiAsset = MultiAsset {
 				id: AssetId::Concrete(
@@ -120,7 +120,7 @@ fn transfer_to_reserve_works() {
 			);
 			// We are transferring asset 0, which we have instructed to be the relay asset
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::Transfer)
@@ -132,7 +132,7 @@ fn transfer_to_reserve_works() {
 				)
 				.expect_cost(3000)
 				.expect_no_logs()
-				.assert_returns(vec![]);
+				.execute_returns(vec![]);
 
 			let expected_asset: MultiAsset = MultiAsset {
 				id: AssetId::Concrete(
@@ -168,7 +168,7 @@ fn transfer_to_reserve_with_fee_works() {
 			// We are transferring asset 0, which we have instructed to be the relay asset
 			// Fees are not trully charged, so no worries
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::TransferWithFee)
@@ -181,7 +181,7 @@ fn transfer_to_reserve_with_fee_works() {
 				)
 				.expect_cost(3000)
 				.expect_no_logs()
-				.assert_returns(vec![]);
+				.execute_returns(vec![]);
 
 			let expected_asset: MultiAsset = MultiAsset {
 				id: AssetId::Concrete(
@@ -224,7 +224,7 @@ fn transfer_non_reserve_to_non_reserve_works() {
 
 			// We are transferring asset 1, which corresponds to another parachain Id asset
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::Transfer)
@@ -236,7 +236,7 @@ fn transfer_non_reserve_to_non_reserve_works() {
 				)
 				.expect_cost(3000)
 				.expect_no_logs()
-				.assert_returns(vec![]);
+				.execute_returns(vec![]);
 
 			let expected_asset: MultiAsset = MultiAsset {
 				id: AssetId::Concrete(
@@ -272,7 +272,7 @@ fn transfer_non_reserve_to_non_reserve_with_fee_works() {
 
 			// We are transferring asset 1, which corresponds to another parachain Id asset
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::TransferWithFee)
@@ -285,7 +285,7 @@ fn transfer_non_reserve_to_non_reserve_with_fee_works() {
 				)
 				.expect_cost(3000)
 				.expect_no_logs()
-				.assert_returns(vec![]);
+				.execute_returns(vec![]);
 
 			let expected_asset: MultiAsset = MultiAsset {
 				id: AssetId::Concrete(
@@ -328,7 +328,7 @@ fn transfer_multi_asset_to_reserve_works() {
 			let asset = MultiLocation::parent();
 
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::TransferMultiAsset)
@@ -340,7 +340,7 @@ fn transfer_multi_asset_to_reserve_works() {
 				)
 				.expect_cost(3000)
 				.expect_no_logs()
-				.assert_returns(vec![]);
+				.execute_returns(vec![]);
 
 			let expected_asset: MultiAsset = MultiAsset {
 				id: AssetId::Concrete(asset),
@@ -376,7 +376,7 @@ fn transfer_multi_asset_self_reserve_works() {
 			let self_reserve = crate::mock::SelfReserve::get();
 
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::TransferMultiAsset)
@@ -388,7 +388,7 @@ fn transfer_multi_asset_self_reserve_works() {
 				)
 				.expect_cost(3000)
 				.expect_no_logs()
-				.assert_returns(vec![]);
+				.execute_returns(vec![]);
 
 			let expected_asset: MultiAsset = MultiAsset {
 				id: AssetId::Concrete(self_reserve),
@@ -423,7 +423,7 @@ fn transfer_multi_asset_self_reserve_with_fee_works() {
 			let self_reserve = crate::mock::SelfReserve::get();
 
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::TransferMultiAssetWithFee)
@@ -436,7 +436,7 @@ fn transfer_multi_asset_self_reserve_with_fee_works() {
 				)
 				.expect_cost(3000)
 				.expect_no_logs()
-				.assert_returns(vec![]);
+				.execute_returns(vec![]);
 
 			let expected_asset: MultiAsset = MultiAsset {
 				id: AssetId::Concrete(self_reserve.clone()),
@@ -478,7 +478,7 @@ fn transfer_multi_asset_non_reserve_to_non_reserve() {
 			);
 
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::TransferMultiAsset)
@@ -490,7 +490,7 @@ fn transfer_multi_asset_non_reserve_to_non_reserve() {
 				)
 				.expect_cost(3000)
 				.expect_no_logs()
-				.assert_returns(vec![]);
+				.execute_returns(vec![]);
 
 			let expected_asset: MultiAsset = MultiAsset {
 				id: AssetId::Concrete(asset_location),
@@ -528,7 +528,7 @@ fn transfer_multi_asset_non_reserve_to_non_reserve_with_fee() {
 			);
 
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::TransferMultiAssetWithFee)
@@ -541,7 +541,7 @@ fn transfer_multi_asset_non_reserve_to_non_reserve_with_fee() {
 				)
 				.expect_cost(3000)
 				.expect_no_logs()
-				.assert_returns(vec![]);
+				.execute_returns(vec![]);
 
 			let expected_asset: MultiAsset = MultiAsset {
 				id: AssetId::Concrete(asset_location.clone()),
@@ -583,7 +583,7 @@ fn transfer_multi_currencies() {
 
 			// We are transferring 2 assets
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::TransferMultiCurrencies)
@@ -595,7 +595,7 @@ fn transfer_multi_currencies() {
 				)
 				.expect_cost(3000)
 				.expect_no_logs()
-				.assert_returns(vec![]);
+				.execute_returns(vec![]);
 
 			let expected_asset_1: MultiAsset = MultiAsset {
 				id: AssetId::Concrete(
@@ -660,7 +660,7 @@ fn transfer_multi_assets() {
 
 			// We are transferring 2 assets
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::TransferMultiAssets)
@@ -672,7 +672,7 @@ fn transfer_multi_assets() {
 				)
 				.expect_cost(3000)
 				.expect_no_logs()
-				.assert_returns(vec![]);
+				.execute_returns(vec![]);
 
 			let expected: crate::mock::Event = XtokensEvent::TransferredMultiAssets {
 				sender: Alice,
@@ -709,7 +709,7 @@ fn transfer_multi_currencies_cannot_insert_more_than_max() {
 
 			// We are transferring 3 assets, when max is 2
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::TransferMultiCurrencies)
@@ -719,7 +719,7 @@ fn transfer_multi_currencies_cannot_insert_more_than_max() {
 						.write(U256::from(4000000))
 						.build(),
 				)
-				.assert_reverts(|output| output == b"More than max number of assets given");
+				.execute_reverts(|output| output == b"More than max number of assets given");
 		});
 }
 
@@ -762,7 +762,7 @@ fn transfer_multi_assets_cannot_insert_more_than_max() {
 
 			// We are transferring 3 assets, when max is 2
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::TransferMultiAssets)
@@ -772,7 +772,7 @@ fn transfer_multi_assets_cannot_insert_more_than_max() {
 						.write(U256::from(4000000))
 						.build(),
 				)
-				.assert_reverts(|output| output == b"More than max number of assets given");
+				.execute_reverts(|output| output == b"More than max number of assets given");
 		});
 }
 
@@ -810,7 +810,7 @@ fn transfer_multi_assets_is_not_sorted_error() {
 
 			// We are transferring 3 assets, when max is 2
 			precompiles()
-				.test_call(
+				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::TransferMultiAssets)
@@ -820,7 +820,7 @@ fn transfer_multi_assets_is_not_sorted_error() {
 						.write(U256::from(4000000))
 						.build(),
 				)
-				.assert_reverts(|output| {
+				.execute_reverts(|output| {
 					output == b"Provided vector either not sorted nor deduplicated"
 				});
 		});
