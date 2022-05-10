@@ -81,7 +81,9 @@ impl<T: Config> Pallet<T> {
 		let mut scheduled_requests = <DelegationScheduledRequests<T>>::get(&collator);
 
 		ensure!(
-			!scheduled_requests.iter().any(|x| x.delegator == delegator),
+			!scheduled_requests
+				.iter()
+				.any(|req| req.delegator == delegator),
 			<Error<T>>::PendingDelegationRequestAlreadyExists,
 		);
 
@@ -118,7 +120,9 @@ impl<T: Config> Pallet<T> {
 		let mut scheduled_requests = <DelegationScheduledRequests<T>>::get(&collator);
 
 		ensure!(
-			!scheduled_requests.iter().any(|x| x.delegator == delegator),
+			!scheduled_requests
+				.iter()
+				.any(|req| req.delegator == delegator),
 			<Error<T>>::PendingDelegationRequestAlreadyExists,
 		);
 
@@ -173,7 +177,7 @@ impl<T: Config> Pallet<T> {
 		let mut scheduled_requests = <DelegationScheduledRequests<T>>::get(&collator);
 		let request_idx = scheduled_requests
 			.iter()
-			.position(|x| x.delegator == delegator)
+			.position(|req| req.delegator == delegator)
 			.ok_or(<Error<T>>::PendingDelegationRequestDNE)?;
 
 		let request = scheduled_requests.remove(request_idx);
@@ -199,7 +203,7 @@ impl<T: Config> Pallet<T> {
 		let mut scheduled_requests = <DelegationScheduledRequests<T>>::get(&collator);
 		let request_idx = scheduled_requests
 			.iter()
-			.position(|x| x.delegator == delegator)
+			.position(|req| req.delegator == delegator)
 			.ok_or(<Error<T>>::PendingDelegationRequestDNE)?;
 		let request = &scheduled_requests[request_idx];
 
@@ -255,11 +259,11 @@ impl<T: Config> Pallet<T> {
 				state.less_total = state.less_total.saturating_sub(amount);
 
 				// decrease delegation
-				for x in &mut state.delegations.0 {
-					if x.owner == collator {
-						return if x.amount > amount {
-							let amount_before: BalanceOf<T> = x.amount.into();
-							x.amount = x.amount.saturating_sub(amount);
+				for bond in &mut state.delegations.0 {
+					if bond.owner == collator {
+						return if bond.amount > amount {
+							let amount_before: BalanceOf<T> = bond.amount.into();
+							bond.amount = bond.amount.saturating_sub(amount);
 							state.total = state.total.saturating_sub(amount);
 							let new_total: BalanceOf<T> = state.total.into();
 							ensure!(
@@ -297,7 +301,7 @@ impl<T: Config> Pallet<T> {
 							});
 							Ok(().into())
 						} else {
-							// must rm entire delegation if x.amount <= less or cancel request
+							// must rm entire delegation if bond.amount <= less or cancel request
 							Err(<Error<T>>::DelegationBelowMin.into())
 						};
 					}
@@ -307,33 +311,31 @@ impl<T: Config> Pallet<T> {
 		}
 	}
 
-	/// Removes the delegator's existing [ScheduledRequest] towards a given collator.
+	/// Removes the delegator's existing [ScheduledRequest] towards a given collator, if exists.
 	/// The state needs to be persisted by the caller of this function.
-	/// Returns [Error::PendingDelegationRequestDNE] if request does not exist.
 	pub(crate) fn delegation_remove_request_with_state(
 		collator: &T::AccountId,
 		delegator: &T::AccountId,
 		state: &mut Delegator<T::AccountId, BalanceOf<T>>,
-	) -> DispatchResultWithPostInfo {
+	) {
 		let mut scheduled_requests = <DelegationScheduledRequests<T>>::get(collator);
 
-		let request_idx = scheduled_requests
+		let maybe_request_idx = scheduled_requests
 			.iter()
-			.position(|x| &x.delegator == delegator)
-			.ok_or(<Error<T>>::PendingDelegationRequestDNE)?;
+			.position(|req| &req.delegator == delegator);
 
-		let request = scheduled_requests.remove(request_idx);
-		let amount = request.action.amount();
-		state.less_total = state.less_total.saturating_sub(amount);
-		<DelegationScheduledRequests<T>>::insert(collator, scheduled_requests);
-
-		Ok(().into())
+		if let Some(request_idx) = maybe_request_idx {
+			let request = scheduled_requests.remove(request_idx);
+			let amount = request.action.amount();
+			state.less_total = state.less_total.saturating_sub(amount);
+			<DelegationScheduledRequests<T>>::insert(collator, scheduled_requests);
+		}
 	}
 
 	/// Returns true if a [ScheduledRequest] exists for a given delegation
 	pub fn delegation_request_exists(collator: &T::AccountId, delegator: &T::AccountId) -> bool {
 		<DelegationScheduledRequests<T>>::get(collator)
 			.iter()
-			.any(|x| &x.delegator == delegator)
+			.any(|req| &req.delegator == delegator)
 	}
 }

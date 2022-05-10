@@ -557,7 +557,7 @@ impl<
 					if matches!(self.bottom_capacity, CapacityStatus::Full) {
 						ensure!(
 							delegation.amount.into() > self.lowest_bottom_delegation_amount,
-							Error::<T>::CannotDelegateLessThanLowestBottomWhenBottomIsFull
+							Error::<T>::CannotDelegateLessThanOrEqualToLowestBottomWhenFull
 						);
 						// need to subtract from total staked
 						less_total_staked = Some(self.lowest_bottom_delegation_amount);
@@ -659,8 +659,7 @@ impl<
 				&candidate,
 				&lowest_bottom_to_be_kicked.owner,
 				&mut delegator_state,
-			)
-			.ok(); // ignore DNE error
+			);
 
 			Pallet::<T>::deposit_event(Event::DelegationKicked {
 				delegator: lowest_bottom_to_be_kicked.owner.clone(),
