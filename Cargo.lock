@@ -11916,7 +11916,6 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "sp-application-crypto",
- "sp-core",
  "sp-runtime",
 ]
 
