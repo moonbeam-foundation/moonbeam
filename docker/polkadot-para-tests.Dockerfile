@@ -14,9 +14,12 @@ RUN ((getent passwd $HOST_UID > /dev/null) || \
 	chown -R $HOST_UID /polkadot && \
 	ln -s /polkadot/.local/share/polkadot /data
 
-RUN mkdir -p /binaries
-COPY build/polkadot /binaries/
-RUN chmod -R uog+rwX /binaries
+RUN --mount=type=cache,target=/ramdisk \
+  mkdir -p /ramdisk/binaries && \
+  chown -R $HOST_UID /ramdisk
+COPY --chown=$HOST_UID build/polkadot /ramdisk/binaries/
+COPY --chown=$HOST_UID tests /ramdisk/tests
+COPY --chown=$HOST_UID moonbeam-types-bundle /ramdisk/moonbeam-types-bundle
 
 USER $HOST_UID
 

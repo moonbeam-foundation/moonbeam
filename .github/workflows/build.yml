@@ -199,12 +199,19 @@ jobs:
         run: |
           POLKADOT_REPO=${{ needs.set-tags.outputs.polkadot_repo }}
           POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
-          DOCKER_TAG="purestake/polkadot-para-tests:sha-$POLKADOT_COMMIT"
-          docker rmi --force $DOCKER_TAG
+          TEST_HASH=$(md5sum tests/package-lock.json | cut -f1 -d' ')
+          DOCKER_TAG="purestake/polkadot-para-tests:sha-$POLKADOT_COMMIT-${TEST_HASH:0:8}"
           POLKADOT_EXISTS=$(docker manifest inspect $DOCKER_TAG > /dev/null && \
             echo "true" || echo "false")
 
           if [[ "$POLKADOT_EXISTS" == "false" ]]; then
+            cd moonbeam-types-bundle
+            npm install
+            npm run build
+            cd ../tests
+            npm install
+            cd ..
+
             mkdir -p build
             MOONBEAM_DOCKER_TAG="purestake/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
             docker create --pull always -ti --name dummy $MOONBEAM_DOCKER_TAG bash
@@ -396,13 +403,18 @@ jobs:
           #### Retrieving docker image as base to run tests
           POLKADOT_REPO=${{ needs.set-tags.outputs.polkadot_repo }}
           POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
-          DOCKER_TAG="purestake/polkadot-para-tests:sha-$POLKADOT_COMMIT"
+          TEST_HASH=$(md5sum tests/package-lock.json | cut -f1 -d' ')
+          DOCKER_TAG="purestake/polkadot-para-tests:sha-$POLKADOT_COMMIT-${TEST_HASH:0:8}"
+
+          #### Downloading image prior to concurrent execution
+          docker pull $DOCKER_TAG
 
           #### Script function to launch concurrent tests
           launch_as() {
             local cmd_name=$1
+            echo "Starting $cmd_name" > $cmd_name.txt
             shift
-            (time $@ || echo $cmd_name >> fail.txt) 2>&1 > $cmd_name.txt
+            (time $@ || echo $cmd_name >> fail.txt) 2>&1 >> $cmd_name.txt
             echo "Done $cmd_name"
           }
 
@@ -535,7 +547,8 @@ jobs:
 
           POLKADOT_REPO=${{ needs.set-tags.outputs.polkadot_repo }}
           POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
-          DOCKER_TAG="purestake/polkadot-para-tests:sha-$POLKADOT_COMMIT"
+          TEST_HASH=$(md5sum tests/package-lock.json | cut -f1 -d' ')
+          DOCKER_TAG="purestake/polkadot-para-tests:sha-$POLKADOT_COMMIT-${TEST_HASH:0:8}"
 
           #### Retrieve binary to avoid para-node script to rely on docker
           mkdir -p build
