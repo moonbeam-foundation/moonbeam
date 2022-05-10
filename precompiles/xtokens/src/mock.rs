@@ -222,6 +222,7 @@ where
 {
 	fn execute(
 		&self,
+		handle: &mut impl PrecompileHandle,
 		address: H160,
 		input: &[u8],
 		target_gas: Option<u64>,
@@ -230,7 +231,7 @@ where
 	) -> Option<EvmResult<PrecompileOutput>> {
 		match address {
 			a if a == precompile_address() => Some(XtokensWrapper::<R>::execute(
-				input, target_gas, context, is_static,
+				handle, input, target_gas, context, is_static,
 			)),
 			_ => None,
 		}
@@ -516,15 +517,4 @@ pub(crate) fn events() -> Vec<Event> {
 		.into_iter()
 		.map(|r| r.event)
 		.collect::<Vec<_>>()
-}
-
-// Helper function to give a simple evm context suitable for tests.
-// We can remove this once https://github.com/rust-blockchain/evm/pull/35
-// is in our dependency graph.
-pub fn evm_test_context() -> fp_evm::Context {
-	fp_evm::Context {
-		address: Default::default(),
-		caller: Default::default(),
-		apparent_value: From::from(0),
-	}
 }

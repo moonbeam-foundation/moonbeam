@@ -19,6 +19,7 @@ members = [
 	"precompiles/relay-encoder",
 	"precompiles/utils/macro",
 	"precompiles/xcm_transactor",
+	"precompiles/xtokens",
 	"runtime/moonbase",
 	"runtime/moonbeam",
 	"runtime/moonriver",
