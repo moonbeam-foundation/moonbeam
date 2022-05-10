@@ -525,6 +525,7 @@ pub fn run() -> Result<()> {
 		}
 		Some(Subcommand::Benchmark(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
+
 			// Switch on the concrete benchmark sub-command
 			match cmd {
 				BenchmarkCmd::Pallet(cmd) => {
@@ -660,6 +661,9 @@ pub fn run() -> Result<()> {
 					}
 				}
 				BenchmarkCmd::Overhead(_) => Err("Unsupported benchmarking command".into()),
+				BenchmarkCmd::Machine(cmd) => {
+					return runner.sync_run(|config| cmd.run(&config));
+				}
 			}
 		}
 		#[cfg(feature = "try-runtime")]

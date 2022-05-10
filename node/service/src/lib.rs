@@ -49,7 +49,6 @@ use cumulus_relay_chain_inprocess_interface::build_inprocess_relay_chain;
 use cumulus_relay_chain_interface::{RelayChainError, RelayChainInterface};
 use nimbus_consensus::NimbusManualSealConsensusDataProvider;
 use nimbus_consensus::{BuildNimbusConsensusParams, NimbusConsensus};
-use nimbus_primitives::NimbusId;
 use sc_executor::{NativeElseWasmExecutor, NativeExecutionDispatch};
 use sc_network::NetworkService;
 use sc_service::config::PrometheusConfig;
@@ -720,7 +719,7 @@ where
 			);
 			proposer_factory.set_soft_deadline(SOFT_DEADLINE_PERCENT);
 
-			let provider = move |_, (relay_parent, validation_data, author_id)| {
+			let provider = move |_, (relay_parent, validation_data, _author_id)| {
 				let relay_chain_interface = relay_chain_interface.clone();
 				async move {
 					let parachain_inherent =
@@ -740,7 +739,7 @@ where
 						)
 					})?;
 
-					let author = nimbus_primitives::InherentDataProvider::<NimbusId>(author_id);
+					let author = nimbus_primitives::InherentDataProvider;
 
 					Ok((time, parachain_inherent, author))
 				}

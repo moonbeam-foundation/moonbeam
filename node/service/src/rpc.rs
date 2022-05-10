@@ -205,8 +205,8 @@ where
 		is_authority,
 		block_data_cache.clone(),
 		fc_rpc::format::Geth,
-		fee_history_limit,
 		fee_history_cache,
+		fee_history_limit,
 	)));
 
 	if let Some(filter_pool) = filter_pool {
