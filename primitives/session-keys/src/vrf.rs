@@ -38,7 +38,7 @@ impl From<NimbusId> for VrfId {
 pub const VRF_ENGINE_ID: ConsensusEngineId = *b"rand";
 
 /// The KeyTypeId used for VRF keys
-pub const VRF_KEY_ID: KeyTypeId = KeyTypeId(*b"rand");
+pub const VRF_KEY_ID: KeyTypeId = KeyTypeId(VRF_ENGINE_ID);
 
 // The strongly-typed crypto wrappers to be used by VRF in the keystore
 mod vrf_crypto {
@@ -59,8 +59,10 @@ sp_application_crypto::with_pair! {
 
 #[test]
 fn nimbus_to_vrf_id() {
-	let nimbus_id: NimbusId = sr25519::Public::unchecked_from([1u8; 32]).into();
-	let expected_vrf_id: VrfId = sr25519::Public::unchecked_from([1u8; 32]).into();
-	let nimbus_to_vrf_id: VrfId = nimbus_id.into();
-	assert_eq!(expected_vrf_id, nimbus_to_vrf_id);
+	for x in 0u8..10u8 {
+		let nimbus_id: NimbusId = sr25519::Public::unchecked_from([x; 32]).into();
+		let expected_vrf_id: VrfId = sr25519::Public::unchecked_from([x; 32]).into();
+		let nimbus_to_vrf_id: VrfId = nimbus_id.into();
+		assert_eq!(expected_vrf_id, nimbus_to_vrf_id);
+	}
 }
