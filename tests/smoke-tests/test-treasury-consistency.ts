@@ -7,8 +7,9 @@ import { describeSmokeSuite } from "../util/setup-smoke-tests";
 const debug = require("debug")("smoke:treasury");
 
 const wssUrl = process.env.WSS_URL || null;
+const relayWssUrl = process.env.RELAY_WSS_URL || null;
 
-describeSmokeSuite(`Verify treasury consistency`, { wssUrl }, (context) => {
+describeSmokeSuite(`Verify treasury consistency`, { wssUrl, relayWssUrl }, (context) => {
   const accounts: { [account: string]: FrameSystemAccountInfo } = {};
 
   let atBlockNumber: number = 0;

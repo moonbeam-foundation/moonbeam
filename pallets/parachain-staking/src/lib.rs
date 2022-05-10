@@ -214,7 +214,7 @@ pub mod pallet {
 		PendingDelegationRequestDNE,
 		PendingDelegationRequestAlreadyExists,
 		PendingDelegationRequestNotDueYet,
-		CannotDelegateLessThanLowestBottomWhenBottomIsFull,
+		CannotDelegateLessThanOrEqualToLowestBottomWhenFull,
 	}
 
 	#[pallet::event]
@@ -968,15 +968,18 @@ pub mod pallet {
 						Delegator state also has a record. qed.",
 				);
 				if let Some(remaining) = delegator.rm_delegation(&candidate) {
+					Self::delegation_remove_request_with_state(
+						&candidate,
+						&bond.owner,
+						&mut delegator,
+					);
+
 					if remaining.is_zero() {
+						// we do not remove the scheduled delegation requests from other collators
+						// since it is assumed that they were removed incrementally before only the
+						// last delegation was left.
 						<DelegatorState<T>>::remove(&bond.owner);
 					} else {
-						Self::delegation_remove_request_with_state(
-							&candidate,
-							&bond.owner,
-							&mut delegator,
-						)
-						.ok(); // ignore DNE error
 						<DelegatorState<T>>::insert(&bond.owner, delegator);
 					}
 				}
@@ -1148,8 +1151,6 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			candidate: T::AccountId,
 			amount: BalanceOf<T>,
-			// will_be_in_top: bool // weight hint
-			// look into returning weight in DispatchResult
 			candidate_delegation_count: u32,
 			delegation_count: u32,
 		) -> DispatchResultWithPostInfo {
@@ -1248,9 +1249,9 @@ pub mod pallet {
 			delegation_count: u32,
 		) -> DispatchResultWithPostInfo {
 			ensure_signed(origin)?;
-			let state = <DelegatorState<T>>::get(&delegator).ok_or(Error::<T>::DelegatorDNE)?;
+			let mut state = <DelegatorState<T>>::get(&delegator).ok_or(Error::<T>::DelegatorDNE)?;
 			state.can_execute_leave::<T>(delegation_count)?;
-			for bond in state.delegations.0 {
+			for bond in state.delegations.0.clone() {
 				if let Err(error) = Self::delegator_leaves_candidate(
 					bond.owner.clone(),
 					delegator.clone(),
@@ -1261,6 +1262,8 @@ pub mod pallet {
 						error
 					);
 				}
+
+				Self::delegation_remove_request_with_state(&bond.owner, &delegator, &mut state);
 			}
 			<DelegatorState<T>>::remove(&delegator);
 			Self::deposit_event(Event::DelegatorLeft {

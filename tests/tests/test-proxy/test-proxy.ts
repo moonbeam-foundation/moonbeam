@@ -94,7 +94,7 @@ describeDevMoonbeam("Pallet proxy - shouldn't accept removed proxy", (context) =
           alith,
           context.polkadotApi.tx.proxy.removeProxy(baltathar.address, "Any", 0)
         );
-        expect(events2[4].method).to.be.eq("ExtrinsicSuccess");
+        expect(events2[5].method).to.be.eq("ExtrinsicSuccess");
 
         const events3 = await substrateTransaction(
           context,

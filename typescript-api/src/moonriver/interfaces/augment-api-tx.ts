@@ -30,12 +30,13 @@ import type {
 import type {
   CumulusPrimitivesParachainInherentParachainInherentData,
   EthereumTransactionTransactionV2,
-  MoonriverRuntimeAssetRegistrarMetadata,
-  MoonriverRuntimeAssetType,
-  MoonriverRuntimeCurrencyId,
+  FrameSupportScheduleMaybeHashed,
+  MoonriverRuntimeAssetConfigAssetRegistrarMetadata,
   MoonriverRuntimeOriginCaller,
   MoonriverRuntimeProxyType,
-  MoonriverRuntimeTransactors,
+  MoonriverRuntimeXcmConfigAssetType,
+  MoonriverRuntimeXcmConfigCurrencyId,
+  MoonriverRuntimeXcmConfigTransactors,
   NimbusPrimitivesNimbusCryptoPublic,
   PalletAssetsDestroyWitness,
   PalletDemocracyConviction,
@@ -46,6 +47,7 @@ import type {
   ParachainStakingInflationRangePerbill,
   ParachainStakingInflationRangeU128,
   SpRuntimeMultiSignature,
+  XcmV0OriginKind,
   XcmV1MultiLocation,
   XcmV2WeightLimit,
   XcmVersionedMultiAsset,
@@ -64,36 +66,109 @@ declare module "@polkadot/api-base/types/submittable" {
       changeExistingAssetType: AugmentedSubmittable<
         (
           assetId: u128 | AnyNumber | Uint8Array,
-          newAssetType: MoonriverRuntimeAssetType | { Xcm: any } | string | Uint8Array
+          newAssetType: MoonriverRuntimeXcmConfigAssetType | { Xcm: any } | string | Uint8Array,
+          numAssetsWeightHint: u32 | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [u128, MoonriverRuntimeAssetType]
+        [u128, MoonriverRuntimeXcmConfigAssetType, u32]
+      >;
+      /**
+       * Destroy a given foreign assetId The weight in this case is the one
+       * returned by the trait plus the db writes and reads from removing all
+       * the associated data
+       */
+      destroyForeignAsset: AugmentedSubmittable<
+        (
+          assetId: u128 | AnyNumber | Uint8Array,
+          destroyAssetWitness:
+            | PalletAssetsDestroyWitness
+            | { accounts?: any; sufficients?: any; approvals?: any }
+            | string
+            | Uint8Array,
+          numAssetsWeightHint: u32 | AnyNumber | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [u128, PalletAssetsDestroyWitness, u32]
+      >;
+      /**
+       * Destroy a given local assetId We do not store anything related to local
+       * assets in this pallet other than the counter and the counter is not
+       * used for destroying the asset, so no additional db reads/writes to be
+       * counter here
+       */
+      destroyLocalAsset: AugmentedSubmittable<
+        (
+          assetId: u128 | AnyNumber | Uint8Array,
+          destroyAssetWitness:
+            | PalletAssetsDestroyWitness
+            | { accounts?: any; sufficients?: any; approvals?: any }
+            | string
+            | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [u128, PalletAssetsDestroyWitness]
       >;
       /**
        * Register new asset with the asset manager
        */
-      registerAsset: AugmentedSubmittable<
+      registerForeignAsset: AugmentedSubmittable<
         (
-          asset: MoonriverRuntimeAssetType | { Xcm: any } | string | Uint8Array,
+          asset: MoonriverRuntimeXcmConfigAssetType | { Xcm: any } | string | Uint8Array,
           metadata:
-            | MoonriverRuntimeAssetRegistrarMetadata
+            | MoonriverRuntimeAssetConfigAssetRegistrarMetadata
             | { name?: any; symbol?: any; decimals?: any; isFrozen?: any }
             | string
             | Uint8Array,
           minAmount: u128 | AnyNumber | Uint8Array,
           isSufficient: bool | boolean | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [MoonriverRuntimeAssetType, MoonriverRuntimeAssetRegistrarMetadata, u128, bool]
+        [
+          MoonriverRuntimeXcmConfigAssetType,
+          MoonriverRuntimeAssetConfigAssetRegistrarMetadata,
+          u128,
+          bool
+        ]
+      >;
+      /**
+       * Register a new local asset No information is stored in this pallet
+       * about the local asset The reason is that we dont need to hold a mapping
+       * between the multilocation and the local asset, as this conversion is
+       * deterministic Further, we dont allow xcm fee payment in local assets
+       */
+      registerLocalAsset: AugmentedSubmittable<
+        (
+          creator: AccountId20 | string | Uint8Array,
+          owner: AccountId20 | string | Uint8Array,
+          isSufficient: bool | boolean | Uint8Array,
+          minBalance: u128 | AnyNumber | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [AccountId20, AccountId20, bool, u128]
+      >;
+      /**
+       * Remove a given assetId -> assetType association
+       */
+      removeExistingAssetType: AugmentedSubmittable<
+        (
+          assetId: u128 | AnyNumber | Uint8Array,
+          numAssetsWeightHint: u32 | AnyNumber | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [u128, u32]
+      >;
+      removeSupportedAsset: AugmentedSubmittable<
+        (
+          assetType: MoonriverRuntimeXcmConfigAssetType | { Xcm: any } | string | Uint8Array,
+          numAssetsWeightHint: u32 | AnyNumber | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [MoonriverRuntimeXcmConfigAssetType, u32]
       >;
       /**
        * Change the amount of units we are charging per execution second for a
-       * given AssetId
+       * given ForeignAssetType
        */
       setAssetUnitsPerSecond: AugmentedSubmittable<
         (
-          assetType: MoonriverRuntimeAssetType | { Xcm: any } | string | Uint8Array,
-          unitsPerSecond: u128 | AnyNumber | Uint8Array
+          assetType: MoonriverRuntimeXcmConfigAssetType | { Xcm: any } | string | Uint8Array,
+          unitsPerSecond: u128 | AnyNumber | Uint8Array,
+          numAssetsWeightHint: u32 | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [MoonriverRuntimeAssetType, u128]
+        [MoonriverRuntimeXcmConfigAssetType, u128, u32]
       >;
       /**
        * Generic tx
@@ -136,7 +211,7 @@ declare module "@polkadot/api-base/types/submittable" {
        *
        * Origin must be Signed and the sender should be the Manager of the asset `id`.
        *
-       * Bails with `BalanceZero` if the `who` is already dead.
+       * Bails with `NoAccount` if the `who` is already dead.
        *
        * - `id`: The identifier of the asset to have some amount burned.
        * - `who`: The account to be debited from.
@@ -494,6 +569,24 @@ declare module "@polkadot/api-base/types/submittable" {
         [Compact<u128>, AccountId20, Compact<u128>]
       >;
       /**
+       * Return the deposit (if any) of an asset account.
+       *
+       * The origin must be Signed.
+       *
+       * - `id`: The identifier of the asset for the account to be created.
+       * - `allow_burn`: If `true` then assets may be destroyed in order to
+       *   complete the refund.
+       *
+       * Emits `Refunded` event when successful.
+       */
+      refund: AugmentedSubmittable<
+        (
+          id: Compact<u128> | AnyNumber | Uint8Array,
+          allowBurn: bool | boolean | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [Compact<u128>, bool]
+      >;
+      /**
        * Set the metadata for an asset.
        *
        * Origin must be Signed and the sender should be the Owner of the asset `id`.
@@ -574,6 +667,21 @@ declare module "@polkadot/api-base/types/submittable" {
        * Weight: `O(1)`
        */
       thawAsset: AugmentedSubmittable<
+        (id: Compact<u128> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [Compact<u128>]
+      >;
+      /**
+       * Create an asset account for non-provider assets.
+       *
+       * A deposit will be taken from the signer account.
+       *
+       * - `origin`: Must be Signed; the signer account must have sufficient funds
+       *   for a deposit to be taken.
+       * - `id`: The identifier of the asset for the account to be created.
+       *
+       * Emits `Touched` event when successful.
+       */
+      touch: AugmentedSubmittable<
         (id: Compact<u128> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
         [Compact<u128>]
       >;
@@ -704,10 +812,7 @@ declare module "@polkadot/api-base/types/submittable" {
     authorInherent: {
       /**
        * This inherent is a workaround to run code after the "real" inherents
-       * have executed, but before transactions are executed. This this should
-       * go into on_post_inherents when it is ready
-       * https://github.com/paritytech/substrate/pull/10128 TODO better weight.
-       * For now we jsut set a somewhat soncervative fudge factor
+       * have executed, but before transactions are executed.
        */
       kickOffAuthorshipValidation: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
       /**
@@ -796,9 +901,10 @@ declare module "@polkadot/api-base/types/submittable" {
        * Set the balances of a given account.
        *
        * This will alter `FreeBalance` and `ReservedBalance` in storage. it will
-       * also decrease the total issuance of the system (`TotalIssuance`). If
-       * the new free or reserved balance is below the existential deposit, it
-       * will reset the account nonce (`frame_system::AccountNonce`).
+       * also alter the total issuance of the system (`TotalIssuance`)
+       * appropriately. If the new free or reserved balance is below the
+       * existential deposit, it will reset the account nonce
+       * (`frame_system::AccountNonce`).
        *
        * The dispatch origin for this call is `root`.
        */
@@ -813,8 +919,7 @@ declare module "@polkadot/api-base/types/submittable" {
       /**
        * Transfer some liquid free balance to another account.
        *
-       * `transfer` will set the `FreeBalance` of the sender and receiver. It
-       * will decrease the total issuance of the system by the `TransferFee`. If
+       * `transfer` will set the `FreeBalance` of the sender and receiver. If
        * the sender's account is below the existential deposit as a result of
        * the transfer, the account will be reaped.
        *
@@ -851,7 +956,7 @@ declare module "@polkadot/api-base/types/submittable" {
       /**
        * Transfer the entire transferable balance from the caller account.
        *
-       * NOTE: This function only attempts to transfer *transferable* balances.
+       * NOTE: This function only attempts to transfer _transferable_ balances.
        * This means that any locked, reserved, or existential deposits (when
        * `keep_alive` is `true`), will not be transferred by this function. To
        * ensure that this function results in a killed account, you might need
@@ -877,10 +982,12 @@ declare module "@polkadot/api-base/types/submittable" {
         [AccountId20, bool]
       >;
       /**
-       * Same as the `transfer` call, but with a check that the transfer will
-       * not kill the origin account.
+       * Same as the [`transfer`][`transfer`] call, but with a check that the
+       * transfer will not kill the origin account.
        *
-       * 99% of the time you want `transfer` instead.
+       * 99% of the time you want [`transfer`][`transfer`] instead.
+       *
+       * [`transfer`]: struct.Pallet.html#method.transfer
        */
       transferKeepAlive: AugmentedSubmittable<
         (
@@ -1263,7 +1370,7 @@ declare module "@polkadot/api-base/types/submittable" {
       /**
        * Cancel a proposal queued for enactment.
        *
-       * The dispatch origin of this call must be *Root*.
+       * The dispatch origin of this call must be _Root_.
        *
        * - `which`: The index of the referendum to cancel.
        *
@@ -1277,7 +1384,7 @@ declare module "@polkadot/api-base/types/submittable" {
       /**
        * Remove a referendum.
        *
-       * The dispatch origin of this call must be *Root*.
+       * The dispatch origin of this call must be _Root_.
        *
        * - `ref_index`: The index of the referendum to cancel.
        *
@@ -1290,7 +1397,7 @@ declare module "@polkadot/api-base/types/submittable" {
       /**
        * Clears all public proposals.
        *
-       * The dispatch origin of this call must be *Root*.
+       * The dispatch origin of this call must be _Root_.
        *
        * Weight: `O(1)`.
        */
@@ -1301,7 +1408,7 @@ declare module "@polkadot/api-base/types/submittable" {
        * The balance delegated is locked for as long as it's delegated, and
        * thereafter for the time appropriate for the conviction's lock period.
        *
-       * The dispatch origin of this call must be *Signed*, and the signing
+       * The dispatch origin of this call must be _Signed_, and the signing
        * account must either:
        *
        * - Be delegating already; or
@@ -1443,7 +1550,7 @@ declare module "@polkadot/api-base/types/submittable" {
        * call is successful, i.e. the preimage has not been uploaded before and
        * matches some imminent proposal, no fee is paid.
        *
-       * The dispatch origin of this call must be *Signed*.
+       * The dispatch origin of this call must be _Signed_.
        *
        * - `encoded_proposal`: The preimage of a proposal.
        *
@@ -1468,7 +1575,7 @@ declare module "@polkadot/api-base/types/submittable" {
        * the proposal to be in the dispatch queue but does require a deposit,
        * returned once enacted.
        *
-       * The dispatch origin of this call must be *Signed*.
+       * The dispatch origin of this call must be _Signed_.
        *
        * - `encoded_proposal`: The preimage of a proposal.
        *
@@ -1491,7 +1598,7 @@ declare module "@polkadot/api-base/types/submittable" {
       /**
        * Propose a sensitive action to be taken.
        *
-       * The dispatch origin of this call must be *Signed* and the sender must
+       * The dispatch origin of this call must be _Signed_ and the sender must
        * have funds to cover the deposit.
        *
        * - `proposal_hash`: The hash of the proposal preimage.
@@ -1511,7 +1618,7 @@ declare module "@polkadot/api-base/types/submittable" {
       /**
        * Remove an expired proposal preimage and collect the deposit.
        *
-       * The dispatch origin of this call must be *Signed*.
+       * The dispatch origin of this call must be _Signed_.
        *
        * - `proposal_hash`: The preimage hash of a proposal.
        * - `proposal_length_upper_bound`: an upper bound on length of the
@@ -1540,7 +1647,7 @@ declare module "@polkadot/api-base/types/submittable" {
        * must have expired, either because the referendum was cancelled, because
        * the voter lost the referendum or because the conviction period is over.
        *
-       * The dispatch origin of this call must be *Signed*.
+       * The dispatch origin of this call must be _Signed_.
        *
        * - `target`: The account of the vote to be removed; this account must have
        *   voted for referendum `index`.
@@ -1575,10 +1682,10 @@ declare module "@polkadot/api-base/types/submittable" {
        * - The account made a standard vote with conviction, and
        * - The lock period of the conviction is not over ...then the lock will be
        *   aggregated into the overall account's lock, which may involve
-       *   *overlocking* (where the two locks are combined into a single lock
+       *   _overlocking_ (where the two locks are combined into a single lock
        *   that is the maximum of both the amount locked and the time is it locked for).
        *
-       * The dispatch origin of this call must be *Signed*, and the signer must
+       * The dispatch origin of this call must be _Signed_, and the signer must
        * have a vote registered for referendum `index`.
        *
        * - `index`: The index of referendum of the vote to be removed.
@@ -1593,7 +1700,7 @@ declare module "@polkadot/api-base/types/submittable" {
       /**
        * Signals agreement with a particular proposal.
        *
-       * The dispatch origin of this call must be *Signed* and the sender must
+       * The dispatch origin of this call must be _Signed_ and the sender must
        * have funds to cover the deposit, equal to the original deposit.
        *
        * - `proposal`: The index of the proposal to second.
@@ -1616,7 +1723,7 @@ declare module "@polkadot/api-base/types/submittable" {
        * Tokens may be unlocked following once an amount of time consistent with
        * the lock period of the conviction with which the delegation was issued.
        *
-       * The dispatch origin of this call must be *Signed* and the signing
+       * The dispatch origin of this call must be _Signed_ and the signing
        * account must be currently delegating.
        *
        * Emits `Undelegated`.
@@ -1628,7 +1735,7 @@ declare module "@polkadot/api-base/types/submittable" {
       /**
        * Unlock tokens that have an expired lock.
        *
-       * The dispatch origin of this call must be *Signed*.
+       * The dispatch origin of this call must be _Signed_.
        *
        * - `target`: The account to remove the lock on.
        *
@@ -1657,7 +1764,7 @@ declare module "@polkadot/api-base/types/submittable" {
        * Vote in a referendum. If `vote.is_aye()`, the vote is to enact the
        * proposal; otherwise it is a vote to keep the status quo.
        *
-       * The dispatch origin of this call must be *Signed*.
+       * The dispatch origin of this call must be _Signed_.
        *
        * - `ref_index`: The index of the referendum to vote for.
        * - `vote`: The vote configuration.
@@ -1811,6 +1918,14 @@ declare module "@polkadot/api-base/types/submittable" {
         ]
       >;
       /**
+       * Increment `sufficients` for existing accounts having a nonzero `nonce`
+       * but zero `sufficients` value.
+       */
+      hotfixIncAccountSufficients: AugmentedSubmittable<
+        (addresses: Vec<H160> | (H160 | string | Uint8Array)[]) => SubmittableExtrinsic<ApiType>,
+        [Vec<H160>]
+      >;
+      /**
        * Withdraw balance from EVM into currency/balances pallet.
        */
       withdraw: AugmentedSubmittable<
@@ -1853,7 +1968,7 @@ declare module "@polkadot/api-base/types/submittable" {
        * Payment: Balance reserved by a previous `set_subs` call for one sub
        * will be repatriated to the sender.
        *
-       * The dispatch origin for this call must be *Signed* and the sender must
+       * The dispatch origin for this call must be _Signed_ and the sender must
        * have a registered sub identity of `sub`.
        */
       addSub: AugmentedSubmittable<
@@ -1877,7 +1992,7 @@ declare module "@polkadot/api-base/types/submittable" {
        *
        * Payment: A previously reserved deposit is returned on success.
        *
-       * The dispatch origin for this call must be *Signed* and the sender must
+       * The dispatch origin for this call must be _Signed_ and the sender must
        * have a registered identity.
        *
        * - `reg_index`: The index of the registrar whose judgement is no longer requested.
@@ -1902,7 +2017,7 @@ declare module "@polkadot/api-base/types/submittable" {
        *
        * Payment: All reserved balances on the account are returned.
        *
-       * The dispatch origin for this call must be *Signed* and the sender must
+       * The dispatch origin for this call must be _Signed_ and the sender must
        * have a registered identity.
        *
        * Emits `IdentityCleared` if successful.
@@ -1950,7 +2065,7 @@ declare module "@polkadot/api-base/types/submittable" {
       /**
        * Provide a judgement for an account's identity.
        *
-       * The dispatch origin for this call must be *Signed* and the sender must
+       * The dispatch origin for this call must be _Signed_ and the sender must
        * be the account of the registrar whose index is `reg_index`.
        *
        * - `reg_index`: the index of the registrar whose judgement is being made.
@@ -1992,9 +2107,9 @@ declare module "@polkadot/api-base/types/submittable" {
        * Remove the sender as a sub-account.
        *
        * Payment: Balance reserved by a previous `set_subs` call for one sub
-       * will be repatriated to the sender (*not* the original depositor).
+       * will be repatriated to the sender (_not_ the original depositor).
        *
-       * The dispatch origin for this call must be *Signed* and the sender must
+       * The dispatch origin for this call must be _Signed_ and the sender must
        * have a registered super-identity.
        *
        * NOTE: This should not normally be used, but is provided in the case
@@ -2008,7 +2123,7 @@ declare module "@polkadot/api-base/types/submittable" {
        * Payment: Balance reserved by a previous `set_subs` call for one sub
        * will be repatriated to the sender.
        *
-       * The dispatch origin for this call must be *Signed* and the sender must
+       * The dispatch origin for this call must be _Signed_ and the sender must
        * have a registered sub identity of `sub`.
        */
       removeSub: AugmentedSubmittable<
@@ -2018,7 +2133,7 @@ declare module "@polkadot/api-base/types/submittable" {
       /**
        * Alter the associated name of the given sub-account.
        *
-       * The dispatch origin for this call must be *Signed* and the sender must
+       * The dispatch origin for this call must be _Signed_ and the sender must
        * have a registered sub identity of `sub`.
        */
       renameSub: AugmentedSubmittable<
@@ -2043,7 +2158,7 @@ declare module "@polkadot/api-base/types/submittable" {
        * Payment: At most `max_fee` will be reserved for payment to the
        * registrar if judgement given.
        *
-       * The dispatch origin for this call must be *Signed* and the sender must
+       * The dispatch origin for this call must be _Signed_ and the sender must
        * have a registered identity.
        *
        * - `reg_index`: The index of the registrar whose judgement is requested.
@@ -2075,7 +2190,7 @@ declare module "@polkadot/api-base/types/submittable" {
       /**
        * Change the account associated with a registrar.
        *
-       * The dispatch origin for this call must be *Signed* and the sender must
+       * The dispatch origin for this call must be _Signed_ and the sender must
        * be the account of the registrar whose index is `index`.
        *
        * - `index`: the index of the registrar whose fee is to be set.
@@ -2099,7 +2214,7 @@ declare module "@polkadot/api-base/types/submittable" {
       /**
        * Set the fee required for a judgement to be requested from a registrar.
        *
-       * The dispatch origin for this call must be *Signed* and the sender must
+       * The dispatch origin for this call must be _Signed_ and the sender must
        * be the account of the registrar whose index is `index`.
        *
        * - `index`: the index of the registrar whose fee is to be set.
@@ -2123,7 +2238,7 @@ declare module "@polkadot/api-base/types/submittable" {
       /**
        * Set the field information for a registrar.
        *
-       * The dispatch origin for this call must be *Signed* and the sender must
+       * The dispatch origin for this call must be _Signed_ and the sender must
        * be the account of the registrar whose index is `index`.
        *
        * - `index`: the index of the registrar whose fee is to be set.
@@ -2150,7 +2265,7 @@ declare module "@polkadot/api-base/types/submittable" {
        * If the account already has identity information, the deposit is taken
        * as part payment for the new deposit.
        *
-       * The dispatch origin for this call must be *Signed*.
+       * The dispatch origin for this call must be _Signed_.
        *
        * - `info`: The identity information.
        *
@@ -2194,7 +2309,7 @@ declare module "@polkadot/api-base/types/submittable" {
        * will be returned and an amount `SubAccountDeposit` will be reserved for
        * each item in `subs`.
        *
-       * The dispatch origin for this call must be *Signed* and the sender must
+       * The dispatch origin for this call must be _Signed_ and the sender must
        * have a registered identity.
        *
        * - `subs`: The identity's (new) sub-accounts.
@@ -2239,6 +2354,627 @@ declare module "@polkadot/api-base/types/submittable" {
        */
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
     };
+    localAssets: {
+      /**
+       * Approve an amount of asset for transfer by a delegated third-party account.
+       *
+       * Origin must be Signed.
+       *
+       * Ensures that `ApprovalDeposit` worth of `Currency` is reserved from
+       * signing account for the purpose of holding the approval. If some
+       * non-zero amount of assets is already approved from signing account to
+       * `delegate`, then it is topped up or unreserved to meet the right value.
+       *
+       * NOTE: The signing account does not need to own `amount` of assets at
+       * the point of making this call.
+       *
+       * - `id`: The identifier of the asset.
+       * - `delegate`: The account to delegate permission to transfer asset.
+       * - `amount`: The amount of asset that may be transferred by `delegate`. If
+       *   there is already an approval in place, then this acts additively.
+       *
+       * Emits `ApprovedTransfer` on success.
+       *
+       * Weight: `O(1)`
+       */
+      approveTransfer: AugmentedSubmittable<
+        (
+          id: Compact<u128> | AnyNumber | Uint8Array,
+          delegate: AccountId20 | string | Uint8Array,
+          amount: Compact<u128> | AnyNumber | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [Compact<u128>, AccountId20, Compact<u128>]
+      >;
+      /**
+       * Reduce the balance of `who` by as much as possible up to `amount` assets of `id`.
+       *
+       * Origin must be Signed and the sender should be the Manager of the asset `id`.
+       *
+       * Bails with `NoAccount` if the `who` is already dead.
+       *
+       * - `id`: The identifier of the asset to have some amount burned.
+       * - `who`: The account to be debited from.
+       * - `amount`: The maximum amount by which `who`'s balance should be reduced.
+       *
+       * Emits `Burned` with the actual amount burned. If this takes the balance
+       * to below the minimum for the asset, then the amount burned is increased
+       * to take it to zero.
+       *
+       * Weight: `O(1)` Modes: Post-existence of `who`; Pre & post Zombie-status of `who`.
+       */
+      burn: AugmentedSubmittable<
+        (
+          id: Compact<u128> | AnyNumber | Uint8Array,
+          who: AccountId20 | string | Uint8Array,
+          amount: Compact<u128> | AnyNumber | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [Compact<u128>, AccountId20, Compact<u128>]
+      >;
+      /**
+       * Cancel all of some asset approved for delegated transfer by a
+       * third-party account.
+       *
+       * Origin must be Signed and there must be an approval in place between
+       * signer and `delegate`.
+       *
+       * Unreserves any deposit previously reserved by `approve_transfer` for
+       * the approval.
+       *
+       * - `id`: The identifier of the asset.
+       * - `delegate`: The account delegated permission to transfer asset.
+       *
+       * Emits `ApprovalCancelled` on success.
+       *
+       * Weight: `O(1)`
+       */
+      cancelApproval: AugmentedSubmittable<
+        (
+          id: Compact<u128> | AnyNumber | Uint8Array,
+          delegate: AccountId20 | string | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [Compact<u128>, AccountId20]
+      >;
+      /**
+       * Clear the metadata for an asset.
+       *
+       * Origin must be Signed and the sender should be the Owner of the asset `id`.
+       *
+       * Any deposit is freed for the asset owner.
+       *
+       * - `id`: The identifier of the asset to clear.
+       *
+       * Emits `MetadataCleared`.
+       *
+       * Weight: `O(1)`
+       */
+      clearMetadata: AugmentedSubmittable<
+        (id: Compact<u128> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [Compact<u128>]
+      >;
+      /**
+       * Issue a new class of fungible assets from a public origin.
+       *
+       * This new asset class has no assets initially and its owner is the origin.
+       *
+       * The origin must be Signed and the sender must have sufficient funds free.
+       *
+       * Funds of sender are reserved by `AssetDeposit`.
+       *
+       * Parameters:
+       *
+       * - `id`: The identifier of the new asset. This must not be currently in
+       *   use to identify an existing asset.
+       * - `admin`: The admin of this class of assets. The admin is the initial
+       *   address of each member of the asset class's admin team.
+       * - `min_balance`: The minimum balance of this new asset that any single
+       *   account must have. If an account's balance is reduced below this,
+       *   then it collapses to zero.
+       *
+       * Emits `Created` event when successful.
+       *
+       * Weight: `O(1)`
+       */
+      create: AugmentedSubmittable<
+        (
+          id: Compact<u128> | AnyNumber | Uint8Array,
+          admin: AccountId20 | string | Uint8Array,
+          minBalance: u128 | AnyNumber | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [Compact<u128>, AccountId20, u128]
+      >;
+      /**
+       * Destroy a class of fungible assets.
+       *
+       * The origin must conform to `ForceOrigin` or must be Signed and the
+       * sender must be the owner of the asset `id`.
+       *
+       * - `id`: The identifier of the asset to be destroyed. This must identify
+       *   an existing asset.
+       *
+       * Emits `Destroyed` event when successful.
+       *
+       * NOTE: It can be helpful to first freeze an asset before destroying it
+       * so that you can provide accurate witness information and prevent users
+       * from manipulating state in a way that can make it harder to destroy.
+       *
+       * Weight: `O(c + p + a)` where:
+       *
+       * - `c = (witness.accounts - witness.sufficients)`
+       * - `s = witness.sufficients`
+       * - `a = witness.approvals`
+       */
+      destroy: AugmentedSubmittable<
+        (
+          id: Compact<u128> | AnyNumber | Uint8Array,
+          witness:
+            | PalletAssetsDestroyWitness
+            | { accounts?: any; sufficients?: any; approvals?: any }
+            | string
+            | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [Compact<u128>, PalletAssetsDestroyWitness]
+      >;
+      /**
+       * Alter the attributes of a given asset.
+       *
+       * Origin must be `ForceOrigin`.
+       *
+       * - `id`: The identifier of the asset.
+       * - `owner`: The new Owner of this asset.
+       * - `issuer`: The new Issuer of this asset.
+       * - `admin`: The new Admin of this asset.
+       * - `freezer`: The new Freezer of this asset.
+       * - `min_balance`: The minimum balance of this new asset that any single
+       *   account must have. If an account's balance is reduced below this,
+       *   then it collapses to zero.
+       * - `is_sufficient`: Whether a non-zero balance of this asset is deposit of
+       *   sufficient value to account for the state bloat associated with its
+       *   balance storage. If set to `true`, then non-zero balances may be
+       *   stored without a `consumer` reference (and thus an ED in the Balances
+       *   pallet or whatever else is used to control user-account state growth).
+       * - `is_frozen`: Whether this asset class is frozen except for
+       *   permissioned/admin instructions.
+       *
+       * Emits `AssetStatusChanged` with the identity of the asset.
+       *
+       * Weight: `O(1)`
+       */
+      forceAssetStatus: AugmentedSubmittable<
+        (
+          id: Compact<u128> | AnyNumber | Uint8Array,
+          owner: AccountId20 | string | Uint8Array,
+          issuer: AccountId20 | string | Uint8Array,
+          admin: AccountId20 | string | Uint8Array,
+          freezer: AccountId20 | string | Uint8Array,
+          minBalance: Compact<u128> | AnyNumber | Uint8Array,
+          isSufficient: bool | boolean | Uint8Array,
+          isFrozen: bool | boolean | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [
+          Compact<u128>,
+          AccountId20,
+          AccountId20,
+          AccountId20,
+          AccountId20,
+          Compact<u128>,
+          bool,
+          bool
+        ]
+      >;
+      /**
+       * Cancel all of some asset approved for delegated transfer by a
+       * third-party account.
+       *
+       * Origin must be either ForceOrigin or Signed origin with the signer
+       * being the Admin account of the asset `id`.
+       *
+       * Unreserves any deposit previously reserved by `approve_transfer` for
+       * the approval.
+       *
+       * - `id`: The identifier of the asset.
+       * - `delegate`: The account delegated permission to transfer asset.
+       *
+       * Emits `ApprovalCancelled` on success.
+       *
+       * Weight: `O(1)`
+       */
+      forceCancelApproval: AugmentedSubmittable<
+        (
+          id: Compact<u128> | AnyNumber | Uint8Array,
+          owner: AccountId20 | string | Uint8Array,
+          delegate: AccountId20 | string | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [Compact<u128>, AccountId20, AccountId20]
+      >;
+      /**
+       * Clear the metadata for an asset.
+       *
+       * Origin must be ForceOrigin.
+       *
+       * Any deposit is returned.
+       *
+       * - `id`: The identifier of the asset to clear.
+       *
+       * Emits `MetadataCleared`.
+       *
+       * Weight: `O(1)`
+       */
+      forceClearMetadata: AugmentedSubmittable<
+        (id: Compact<u128> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [Compact<u128>]
+      >;
+      /**
+       * Issue a new class of fungible assets from a privileged origin.
+       *
+       * This new asset class has no assets initially.
+       *
+       * The origin must conform to `ForceOrigin`.
+       *
+       * Unlike `create`, no funds are reserved.
+       *
+       * - `id`: The identifier of the new asset. This must not be currently in
+       *   use to identify an existing asset.
+       * - `owner`: The owner of this class of assets. The owner has full
+       *   superuser permissions over this asset, but may later change and
+       *   configure the permissions using `transfer_ownership` and `set_team`.
+       * - `min_balance`: The minimum balance of this new asset that any single
+       *   account must have. If an account's balance is reduced below this,
+       *   then it collapses to zero.
+       *
+       * Emits `ForceCreated` event when successful.
+       *
+       * Weight: `O(1)`
+       */
+      forceCreate: AugmentedSubmittable<
+        (
+          id: Compact<u128> | AnyNumber | Uint8Array,
+          owner: AccountId20 | string | Uint8Array,
+          isSufficient: bool | boolean | Uint8Array,
+          minBalance: Compact<u128> | AnyNumber | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [Compact<u128>, AccountId20, bool, Compact<u128>]
+      >;
+      /**
+       * Force the metadata for an asset to some value.
+       *
+       * Origin must be ForceOrigin.
+       *
+       * Any deposit is left alone.
+       *
+       * - `id`: The identifier of the asset to update.
+       * - `name`: The user friendly name of this asset. Limited in length by `StringLimit`.
+       * - `symbol`: The exchange symbol for this asset. Limited in length by `StringLimit`.
+       * - `decimals`: The number of decimals this asset uses to represent one unit.
+       *
+       * Emits `MetadataSet`.
+       *
+       * Weight: `O(N + S)` where N and S are the length of the name and symbol
+       * respectively.
+       */
+      forceSetMetadata: AugmentedSubmittable<
+        (
+          id: Compact<u128> | AnyNumber | Uint8Array,
+          name: Bytes | string | Uint8Array,
+          symbol: Bytes | string | Uint8Array,
+          decimals: u8 | AnyNumber | Uint8Array,
+          isFrozen: bool | boolean | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [Compact<u128>, Bytes, Bytes, u8, bool]
+      >;
+      /**
+       * Move some assets from one account to another.
+       *
+       * Origin must be Signed and the sender should be the Admin of the asset `id`.
+       *
+       * - `id`: The identifier of the asset to have some amount transferred.
+       * - `source`: The account to be debited.
+       * - `dest`: The account to be credited.
+       * - `amount`: The amount by which the `source`'s balance of assets should
+       *   be reduced and `dest`'s balance increased. The amount actually
+       *   transferred may be slightly greater in the case that the transfer
+       *   would otherwise take the `source` balance above zero but below the
+       *   minimum balance. Must be greater than zero.
+       *
+       * Emits `Transferred` with the actual amount transferred. If this takes
+       * the source balance to below the minimum for the asset, then the amount
+       * transferred is increased to take it to zero.
+       *
+       * Weight: `O(1)` Modes: Pre-existence of `dest`; Post-existence of
+       * `source`; Account pre-existence of `dest`.
+       */
+      forceTransfer: AugmentedSubmittable<
+        (
+          id: Compact<u128> | AnyNumber | Uint8Array,
+          source: AccountId20 | string | Uint8Array,
+          dest: AccountId20 | string | Uint8Array,
+          amount: Compact<u128> | AnyNumber | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [Compact<u128>, AccountId20, AccountId20, Compact<u128>]
+      >;
+      /**
+       * Disallow further unprivileged transfers from an account.
+       *
+       * Origin must be Signed and the sender should be the Freezer of the asset `id`.
+       *
+       * - `id`: The identifier of the asset to be frozen.
+       * - `who`: The account to be frozen.
+       *
+       * Emits `Frozen`.
+       *
+       * Weight: `O(1)`
+       */
+      freeze: AugmentedSubmittable<
+        (
+          id: Compact<u128> | AnyNumber | Uint8Array,
+          who: AccountId20 | string | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [Compact<u128>, AccountId20]
+      >;
+      /**
+       * Disallow further unprivileged transfers for the asset class.
+       *
+       * Origin must be Signed and the sender should be the Freezer of the asset `id`.
+       *
+       * - `id`: The identifier of the asset to be frozen.
+       *
+       * Emits `Frozen`.
+       *
+       * Weight: `O(1)`
+       */
+      freezeAsset: AugmentedSubmittable<
+        (id: Compact<u128> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [Compact<u128>]
+      >;
+      /**
+       * Mint assets of a particular class.
+       *
+       * The origin must be Signed and the sender must be the Issuer of the asset `id`.
+       *
+       * - `id`: The identifier of the asset to have some amount minted.
+       * - `beneficiary`: The account to be credited with the minted assets.
+       * - `amount`: The amount of the asset to be minted.
+       *
+       * Emits `Issued` event when successful.
+       *
+       * Weight: `O(1)` Modes: Pre-existing balance of `beneficiary`; Account
+       * pre-existence of `beneficiary`.
+       */
+      mint: AugmentedSubmittable<
+        (
+          id: Compact<u128> | AnyNumber | Uint8Array,
+          beneficiary: AccountId20 | string | Uint8Array,
+          amount: Compact<u128> | AnyNumber | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [Compact<u128>, AccountId20, Compact<u128>]
+      >;
+      /**
+       * Return the deposit (if any) of an asset account.
+       *
+       * The origin must be Signed.
+       *
+       * - `id`: The identifier of the asset for the account to be created.
+       * - `allow_burn`: If `true` then assets may be destroyed in order to
+       *   complete the refund.
+       *
+       * Emits `Refunded` event when successful.
+       */
+      refund: AugmentedSubmittable<
+        (
+          id: Compact<u128> | AnyNumber | Uint8Array,
+          allowBurn: bool | boolean | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [Compact<u128>, bool]
+      >;
+      /**
+       * Set the metadata for an asset.
+       *
+       * Origin must be Signed and the sender should be the Owner of the asset `id`.
+       *
+       * Funds of sender are reserved according to the formula:
+       * `MetadataDepositBase + MetadataDepositPerByte * (name.len +
+       * symbol.len)` taking into account any already reserved funds.
+       *
+       * - `id`: The identifier of the asset to update.
+       * - `name`: The user friendly name of this asset. Limited in length by `StringLimit`.
+       * - `symbol`: The exchange symbol for this asset. Limited in length by `StringLimit`.
+       * - `decimals`: The number of decimals this asset uses to represent one unit.
+       *
+       * Emits `MetadataSet`.
+       *
+       * Weight: `O(1)`
+       */
+      setMetadata: AugmentedSubmittable<
+        (
+          id: Compact<u128> | AnyNumber | Uint8Array,
+          name: Bytes | string | Uint8Array,
+          symbol: Bytes | string | Uint8Array,
+          decimals: u8 | AnyNumber | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [Compact<u128>, Bytes, Bytes, u8]
+      >;
+      /**
+       * Change the Issuer, Admin and Freezer of an asset.
+       *
+       * Origin must be Signed and the sender should be the Owner of the asset `id`.
+       *
+       * - `id`: The identifier of the asset to be frozen.
+       * - `issuer`: The new Issuer of this asset.
+       * - `admin`: The new Admin of this asset.
+       * - `freezer`: The new Freezer of this asset.
+       *
+       * Emits `TeamChanged`.
+       *
+       * Weight: `O(1)`
+       */
+      setTeam: AugmentedSubmittable<
+        (
+          id: Compact<u128> | AnyNumber | Uint8Array,
+          issuer: AccountId20 | string | Uint8Array,
+          admin: AccountId20 | string | Uint8Array,
+          freezer: AccountId20 | string | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [Compact<u128>, AccountId20, AccountId20, AccountId20]
+      >;
+      /**
+       * Allow unprivileged transfers from an account again.
+       *
+       * Origin must be Signed and the sender should be the Admin of the asset `id`.
+       *
+       * - `id`: The identifier of the asset to be frozen.
+       * - `who`: The account to be unfrozen.
+       *
+       * Emits `Thawed`.
+       *
+       * Weight: `O(1)`
+       */
+      thaw: AugmentedSubmittable<
+        (
+          id: Compact<u128> | AnyNumber | Uint8Array,
+          who: AccountId20 | string | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [Compact<u128>, AccountId20]
+      >;
+      /**
+       * Allow unprivileged transfers for the asset again.
+       *
+       * Origin must be Signed and the sender should be the Admin of the asset `id`.
+       *
+       * - `id`: The identifier of the asset to be thawed.
+       *
+       * Emits `Thawed`.
+       *
+       * Weight: `O(1)`
+       */
+      thawAsset: AugmentedSubmittable<
+        (id: Compact<u128> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [Compact<u128>]
+      >;
+      /**
+       * Create an asset account for non-provider assets.
+       *
+       * A deposit will be taken from the signer account.
+       *
+       * - `origin`: Must be Signed; the signer account must have sufficient funds
+       *   for a deposit to be taken.
+       * - `id`: The identifier of the asset for the account to be created.
+       *
+       * Emits `Touched` event when successful.
+       */
+      touch: AugmentedSubmittable<
+        (id: Compact<u128> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [Compact<u128>]
+      >;
+      /**
+       * Move some assets from the sender account to another.
+       *
+       * Origin must be Signed.
+       *
+       * - `id`: The identifier of the asset to have some amount transferred.
+       * - `target`: The account to be credited.
+       * - `amount`: The amount by which the sender's balance of assets should be
+       *   reduced and `target`'s balance increased. The amount actually
+       *   transferred may be slightly greater in the case that the transfer
+       *   would otherwise take the sender balance above zero but below the
+       *   minimum balance. Must be greater than zero.
+       *
+       * Emits `Transferred` with the actual amount transferred. If this takes
+       * the source balance to below the minimum for the asset, then the amount
+       * transferred is increased to take it to zero.
+       *
+       * Weight: `O(1)` Modes: Pre-existence of `target`; Post-existence of
+       * sender; Account pre-existence of `target`.
+       */
+      transfer: AugmentedSubmittable<
+        (
+          id: Compact<u128> | AnyNumber | Uint8Array,
+          target: AccountId20 | string | Uint8Array,
+          amount: Compact<u128> | AnyNumber | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [Compact<u128>, AccountId20, Compact<u128>]
+      >;
+      /**
+       * Transfer some asset balance from a previously delegated account to some
+       * third-party account.
+       *
+       * Origin must be Signed and there must be an approval in place by the
+       * `owner` to the signer.
+       *
+       * If the entire amount approved for transfer is transferred, then any
+       * deposit previously reserved by `approve_transfer` is unreserved.
+       *
+       * - `id`: The identifier of the asset.
+       * - `owner`: The account which previously approved for a transfer of at
+       *   least `amount` and from which the asset balance will be withdrawn.
+       * - `destination`: The account to which the asset balance of `amount` will
+       *   be transferred.
+       * - `amount`: The amount of assets to transfer.
+       *
+       * Emits `TransferredApproved` on success.
+       *
+       * Weight: `O(1)`
+       */
+      transferApproved: AugmentedSubmittable<
+        (
+          id: Compact<u128> | AnyNumber | Uint8Array,
+          owner: AccountId20 | string | Uint8Array,
+          destination: AccountId20 | string | Uint8Array,
+          amount: Compact<u128> | AnyNumber | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [Compact<u128>, AccountId20, AccountId20, Compact<u128>]
+      >;
+      /**
+       * Move some assets from the sender account to another, keeping the sender
+       * account alive.
+       *
+       * Origin must be Signed.
+       *
+       * - `id`: The identifier of the asset to have some amount transferred.
+       * - `target`: The account to be credited.
+       * - `amount`: The amount by which the sender's balance of assets should be
+       *   reduced and `target`'s balance increased. The amount actually
+       *   transferred may be slightly greater in the case that the transfer
+       *   would otherwise take the sender balance above zero but below the
+       *   minimum balance. Must be greater than zero.
+       *
+       * Emits `Transferred` with the actual amount transferred. If this takes
+       * the source balance to below the minimum for the asset, then the amount
+       * transferred is increased to take it to zero.
+       *
+       * Weight: `O(1)` Modes: Pre-existence of `target`; Post-existence of
+       * sender; Account pre-existence of `target`.
+       */
+      transferKeepAlive: AugmentedSubmittable<
+        (
+          id: Compact<u128> | AnyNumber | Uint8Array,
+          target: AccountId20 | string | Uint8Array,
+          amount: Compact<u128> | AnyNumber | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [Compact<u128>, AccountId20, Compact<u128>]
+      >;
+      /**
+       * Change the Owner of an asset.
+       *
+       * Origin must be Signed and the sender should be the Owner of the asset `id`.
+       *
+       * - `id`: The identifier of the asset.
+       * - `owner`: The new Owner of this asset.
+       *
+       * Emits `OwnerChanged`.
+       *
+       * Weight: `O(1)`
+       */
+      transferOwnership: AugmentedSubmittable<
+        (
+          id: Compact<u128> | AnyNumber | Uint8Array,
+          owner: AccountId20 | string | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [Compact<u128>, AccountId20]
+      >;
+      /**
+       * Generic tx
+       */
+      [key: string]: SubmittableExtrinsicFunction<ApiType>;
+    };
     maintenanceMode: {
       /**
        * Place the chain in maintenance mode
@@ -2246,7 +2982,7 @@ declare module "@polkadot/api-base/types/submittable" {
        * Weight cost is:
        *
        * - One DB read to ensure we're not already in maintenance mode
-       * - Two DB writes - 1 for the mode and 1 for the event
+       * - Three DB writes - 1 for the mode, 1 for suspending xcm execution, 1 for the event
        */
       enterMaintenanceMode: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
       /**
@@ -2255,7 +2991,7 @@ declare module "@polkadot/api-base/types/submittable" {
        * Weight cost is:
        *
        * - One DB read to ensure we're in maintenance mode
-       * - Two DB writes - 1 for the mode and 1 for the event
+       * - Three DB writes - 1 for the mode, 1 for resuming xcm execution, 1 for the event
        */
       resumeNormalOperation: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
       /**
@@ -2567,8 +3303,8 @@ declare module "@polkadot/api-base/types/submittable" {
        * this is less than the maximum amount of weight that the message could
        * take to be executed, then no execution attempt will be made.
        *
-       * NOTE: A successful return to this does *not* imply that the `msg` was
-       * executed successfully to completion; only that *some* of it was executed.
+       * NOTE: A successful return to this does _not_ imply that the `msg` was
+       * executed successfully to completion; only that _some_ of it was executed.
        */
       execute: AugmentedSubmittable<
         (
@@ -2686,8 +3422,8 @@ declare module "@polkadot/api-base/types/submittable" {
        *   `dest`. Will generally be an `AccountId32` value.
        * - `assets`: The assets to be withdrawn. The first item should be the
        *   currency used to to pay the fee on the `dest` side. May not be empty.
-       * - `dest_weight`: Equal to the total weight on `dest` of the XCM message
-       *   `Teleport { assets, effects: [ BuyExecution{..}, DepositAsset{..} ] }`.
+       * - `fee_asset_item`: The index into `assets` of the item which should be
+       *   used to pay fees.
        * - `weight_limit`: The remote-side weight limit, if any, for the XCM fee purchase.
        */
       limitedTeleportAssets: AugmentedSubmittable<
@@ -2761,8 +3497,8 @@ declare module "@polkadot/api-base/types/submittable" {
        *   `dest`. Will generally be an `AccountId32` value.
        * - `assets`: The assets to be withdrawn. The first item should be the
        *   currency used to to pay the fee on the `dest` side. May not be empty.
-       * - `dest_weight`: Equal to the total weight on `dest` of the XCM message
-       *   `Teleport { assets, effects: [ BuyExecution{..}, DepositAsset{..} ] }`.
+       * - `fee_asset_item`: The index into `assets` of the item which should be
+       *   used to pay fees.
        */
       teleportAssets: AugmentedSubmittable<
         (
@@ -2782,7 +3518,7 @@ declare module "@polkadot/api-base/types/submittable" {
       /**
        * Register a proxy account for the sender that is able to make calls on its behalf.
        *
-       * The dispatch origin for this call must be *Signed*.
+       * The dispatch origin for this call must be _Signed_.
        *
        * Parameters:
        *
@@ -2827,7 +3563,7 @@ declare module "@polkadot/api-base/types/submittable" {
        * This will take a deposit of `AnnouncementDepositFactor` as well as
        * `AnnouncementDepositBase` if there are no other pending announcements.
        *
-       * The dispatch origin for this call must be *Signed* and a proxy of `real`.
+       * The dispatch origin for this call must be _Signed_ and a proxy of `real`.
        *
        * Parameters:
        *
@@ -2947,7 +3683,7 @@ declare module "@polkadot/api-base/types/submittable" {
        *
        * Removes any corresponding announcement(s).
        *
-       * The dispatch origin for this call must be *Signed*.
+       * The dispatch origin for this call must be _Signed_.
        *
        * Parameters:
        *
@@ -2976,7 +3712,7 @@ declare module "@polkadot/api-base/types/submittable" {
        *
        * Removes any corresponding announcement(s).
        *
-       * The dispatch origin for this call must be *Signed*.
+       * The dispatch origin for this call must be _Signed_.
        *
        * Parameters:
        *
@@ -3010,7 +3746,7 @@ declare module "@polkadot/api-base/types/submittable" {
        * of their delegates (`delegate`) has announced they want to execute. The
        * deposit is returned.
        *
-       * The dispatch origin for this call must be *Signed*.
+       * The dispatch origin for this call must be _Signed_.
        *
        * Parameters:
        *
@@ -3039,7 +3775,7 @@ declare module "@polkadot/api-base/types/submittable" {
        * May be called by a proxy account to remove a call they previously
        * announced and return the deposit.
        *
-       * The dispatch origin for this call must be *Signed*.
+       * The dispatch origin for this call must be _Signed_.
        *
        * Parameters:
        *
@@ -3065,7 +3801,7 @@ declare module "@polkadot/api-base/types/submittable" {
       /**
        * Unregister all proxy accounts for the sender.
        *
-       * The dispatch origin for this call must be *Signed*.
+       * The dispatch origin for this call must be _Signed_.
        *
        * WARNING: This may be called on accounts created by `anonymous`, however
        * if done, then the unreserved fees will be inaccessible. **All access to
@@ -3081,7 +3817,7 @@ declare module "@polkadot/api-base/types/submittable" {
       /**
        * Unregister a proxy account for the sender.
        *
-       * The dispatch origin for this call must be *Signed*.
+       * The dispatch origin for this call must be _Signed_.
        *
        * Parameters:
        *
@@ -3143,9 +3879,14 @@ declare module "@polkadot/api-base/types/submittable" {
           when: u32 | AnyNumber | Uint8Array,
           maybePeriodic: Option<ITuple<[u32, u32]>> | null | object | string | Uint8Array,
           priority: u8 | AnyNumber | Uint8Array,
-          call: Call | { callIndex?: any; args?: any } | string | Uint8Array
+          call:
+            | FrameSupportScheduleMaybeHashed
+            | { Value: any }
+            | { Hash: any }
+            | string
+            | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [u32, Option<ITuple<[u32, u32]>>, u8, Call]
+        [u32, Option<ITuple<[u32, u32]>>, u8, FrameSupportScheduleMaybeHashed]
       >;
       /**
        * Anonymously schedule a task after a delay.
@@ -3161,9 +3902,14 @@ declare module "@polkadot/api-base/types/submittable" {
           after: u32 | AnyNumber | Uint8Array,
           maybePeriodic: Option<ITuple<[u32, u32]>> | null | object | string | Uint8Array,
           priority: u8 | AnyNumber | Uint8Array,
-          call: Call | { callIndex?: any; args?: any } | string | Uint8Array
+          call:
+            | FrameSupportScheduleMaybeHashed
+            | { Value: any }
+            | { Hash: any }
+            | string
+            | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [u32, Option<ITuple<[u32, u32]>>, u8, Call]
+        [u32, Option<ITuple<[u32, u32]>>, u8, FrameSupportScheduleMaybeHashed]
       >;
       /**
        * Schedule a named task.
@@ -3174,9 +3920,14 @@ declare module "@polkadot/api-base/types/submittable" {
           when: u32 | AnyNumber | Uint8Array,
           maybePeriodic: Option<ITuple<[u32, u32]>> | null | object | string | Uint8Array,
           priority: u8 | AnyNumber | Uint8Array,
-          call: Call | { callIndex?: any; args?: any } | string | Uint8Array
+          call:
+            | FrameSupportScheduleMaybeHashed
+            | { Value: any }
+            | { Hash: any }
+            | string
+            | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [Bytes, u32, Option<ITuple<[u32, u32]>>, u8, Call]
+        [Bytes, u32, Option<ITuple<[u32, u32]>>, u8, FrameSupportScheduleMaybeHashed]
       >;
       /**
        * Schedule a named task after a delay.
@@ -3193,9 +3944,14 @@ declare module "@polkadot/api-base/types/submittable" {
           after: u32 | AnyNumber | Uint8Array,
           maybePeriodic: Option<ITuple<[u32, u32]>> | null | object | string | Uint8Array,
           priority: u8 | AnyNumber | Uint8Array,
-          call: Call | { callIndex?: any; args?: any } | string | Uint8Array
+          call:
+            | FrameSupportScheduleMaybeHashed
+            | { Value: any }
+            | { Hash: any }
+            | string
+            | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [Bytes, u32, Option<ITuple<[u32, u32]>>, u8, Call]
+        [Bytes, u32, Option<ITuple<[u32, u32]>>, u8, FrameSupportScheduleMaybeHashed]
       >;
       /**
        * Generic tx
@@ -3246,13 +4002,6 @@ declare module "@polkadot/api-base/types/submittable" {
       >;
       /**
        * Make some on-chain remark and emit event.
-       *
-       * # <weight>
-       *
-       * - `O(b)` where b is the length of the remark.
-       * - 1 event.
-       *
-       * # </weight>
        */
       remarkWithEvent: AugmentedSubmittable<
         (remark: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
@@ -3638,7 +4387,7 @@ declare module "@polkadot/api-base/types/submittable" {
        *
        * NOTE: Prior to version *12, this was called `as_limited_sub`.
        *
-       * The dispatch origin for this call must be *Signed*.
+       * The dispatch origin for this call must be _Signed_.
        */
       asDerivative: AugmentedSubmittable<
         (
@@ -3705,7 +4454,7 @@ declare module "@polkadot/api-base/types/submittable" {
       /**
        * Dispatches a function call with a provided origin.
        *
-       * The dispatch origin for this call must be *Root*.
+       * The dispatch origin for this call must be _Root_.
        *
        * # <weight>
        *
@@ -3740,6 +4489,15 @@ declare module "@polkadot/api-base/types/submittable" {
     };
     xcmTransactor: {
       /**
+       * De-Register a derivative index. This prevents an account to use a
+       * derivative address (represented by an index) from our of our sovereign
+       * accounts anymore
+       */
+      deregister: AugmentedSubmittable<
+        (index: u16 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [u16]
+      >;
+      /**
        * Register a derivative index for an account id. Dispatchable by
        * DerivativeAddressRegistrationOrigin
        *
@@ -3756,6 +4514,15 @@ declare module "@polkadot/api-base/types/submittable" {
           index: u16 | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [AccountId20, u16]
+      >;
+      /**
+       * Remove the transact info of a location
+       */
+      removeTransactInfo: AugmentedSubmittable<
+        (
+          location: XcmVersionedMultiLocation | { V0: any } | { V1: any } | string | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [XcmVersionedMultiLocation]
       >;
       /**
        * Change the transact info of a location
@@ -3779,18 +4546,19 @@ declare module "@polkadot/api-base/types/submittable" {
        */
       transactThroughDerivative: AugmentedSubmittable<
         (
-          dest: MoonriverRuntimeTransactors | "Relay" | number | Uint8Array,
+          dest: MoonriverRuntimeXcmConfigTransactors | "Relay" | number | Uint8Array,
           index: u16 | AnyNumber | Uint8Array,
           currencyId:
-            | MoonriverRuntimeCurrencyId
+            | MoonriverRuntimeXcmConfigCurrencyId
             | { SelfReserve: any }
-            | { OtherReserve: any }
+            | { ForeignAsset: any }
+            | { LocalAssetReserve: any }
             | string
             | Uint8Array,
           destWeight: u64 | AnyNumber | Uint8Array,
           innerCall: Bytes | string | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [MoonriverRuntimeTransactors, u16, MoonriverRuntimeCurrencyId, u64, Bytes]
+        [MoonriverRuntimeXcmConfigTransactors, u16, MoonriverRuntimeXcmConfigCurrencyId, u64, Bytes]
       >;
       /**
        * Transact the inner call through a derivative account in a destination
@@ -3803,13 +4571,13 @@ declare module "@polkadot/api-base/types/submittable" {
        */
       transactThroughDerivativeMultilocation: AugmentedSubmittable<
         (
-          dest: MoonriverRuntimeTransactors | "Relay" | number | Uint8Array,
+          dest: MoonriverRuntimeXcmConfigTransactors | "Relay" | number | Uint8Array,
           index: u16 | AnyNumber | Uint8Array,
           feeLocation: XcmVersionedMultiLocation | { V0: any } | { V1: any } | string | Uint8Array,
           destWeight: u64 | AnyNumber | Uint8Array,
           innerCall: Bytes | string | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [MoonriverRuntimeTransactors, u16, XcmVersionedMultiLocation, u64, Bytes]
+        [MoonriverRuntimeXcmConfigTransactors, u16, XcmVersionedMultiLocation, u64, Bytes]
       >;
       /**
        * Transact the call through the sovereign account in a destination chain,
@@ -3823,9 +4591,24 @@ declare module "@polkadot/api-base/types/submittable" {
           feePayer: AccountId20 | string | Uint8Array,
           feeLocation: XcmVersionedMultiLocation | { V0: any } | { V1: any } | string | Uint8Array,
           destWeight: u64 | AnyNumber | Uint8Array,
-          call: Bytes | string | Uint8Array
+          call: Bytes | string | Uint8Array,
+          originKind:
+            | XcmV0OriginKind
+            | "Native"
+            | "SovereignAccount"
+            | "Superuser"
+            | "Xcm"
+            | number
+            | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [XcmVersionedMultiLocation, AccountId20, XcmVersionedMultiLocation, u64, Bytes]
+        [
+          XcmVersionedMultiLocation,
+          AccountId20,
+          XcmVersionedMultiLocation,
+          u64,
+          Bytes,
+          XcmV0OriginKind
+        ]
       >;
       /**
        * Generic tx
@@ -3848,16 +4631,17 @@ declare module "@polkadot/api-base/types/submittable" {
       transfer: AugmentedSubmittable<
         (
           currencyId:
-            | MoonriverRuntimeCurrencyId
+            | MoonriverRuntimeXcmConfigCurrencyId
             | { SelfReserve: any }
-            | { OtherReserve: any }
+            | { ForeignAsset: any }
+            | { LocalAssetReserve: any }
             | string
             | Uint8Array,
           amount: u128 | AnyNumber | Uint8Array,
           dest: XcmVersionedMultiLocation | { V0: any } | { V1: any } | string | Uint8Array,
           destWeight: u64 | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [MoonriverRuntimeCurrencyId, u128, XcmVersionedMultiLocation, u64]
+        [MoonriverRuntimeXcmConfigCurrencyId, u128, XcmVersionedMultiLocation, u64]
       >;
       /**
        * Transfer `MultiAsset`.
@@ -3878,6 +4662,29 @@ declare module "@polkadot/api-base/types/submittable" {
           destWeight: u64 | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [XcmVersionedMultiAsset, XcmVersionedMultiLocation, u64]
+      >;
+      /**
+       * Transfer several `MultiAsset` specifying the item to be used as fee
+       *
+       * `dest_weight` is the weight for XCM execution on the dest chain, and it
+       * would be charged from the transferred assets. If set below
+       * requirements, the execution may fail and assets wouldn't be received.
+       *
+       * `fee_item` is index of the MultiAssets that we want to use for payment
+       *
+       * It's a no-op if any error on local XCM execution or message sending.
+       * Note sending assets out per se doesn't guarantee they would be
+       * received. Receiving depends on if the XCM message could be delivered by
+       * the network, and if the receiving chain would handle messages correctly.
+       */
+      transferMultiassets: AugmentedSubmittable<
+        (
+          assets: XcmVersionedMultiAssets | { V0: any } | { V1: any } | string | Uint8Array,
+          feeItem: u32 | AnyNumber | Uint8Array,
+          dest: XcmVersionedMultiLocation | { V0: any } | { V1: any } | string | Uint8Array,
+          destWeight: u64 | AnyNumber | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [XcmVersionedMultiAssets, u32, XcmVersionedMultiLocation, u64]
       >;
       /**
        * Transfer `MultiAsset` specifying the fee and amount as separate.
@@ -3908,6 +4715,46 @@ declare module "@polkadot/api-base/types/submittable" {
         [XcmVersionedMultiAsset, XcmVersionedMultiAsset, XcmVersionedMultiLocation, u64]
       >;
       /**
+       * Transfer several currencies specifying the item to be used as fee
+       *
+       * `dest_weight` is the weight for XCM execution on the dest chain, and it
+       * would be charged from the transferred assets. If set below
+       * requirements, the execution may fail and assets wouldn't be received.
+       *
+       * `fee_item` is index of the currencies tuple that we want to use for payment
+       *
+       * It's a no-op if any error on local XCM execution or message sending.
+       * Note sending assets out per se doesn't guarantee they would be
+       * received. Receiving depends on if the XCM message could be delivered by
+       * the network, and if the receiving chain would handle messages correctly.
+       */
+      transferMulticurrencies: AugmentedSubmittable<
+        (
+          currencies:
+            | Vec<ITuple<[MoonriverRuntimeXcmConfigCurrencyId, u128]>>
+            | [
+                (
+                  | MoonriverRuntimeXcmConfigCurrencyId
+                  | { SelfReserve: any }
+                  | { ForeignAsset: any }
+                  | { LocalAssetReserve: any }
+                  | string
+                  | Uint8Array
+                ),
+                u128 | AnyNumber | Uint8Array
+              ][],
+          feeItem: u32 | AnyNumber | Uint8Array,
+          dest: XcmVersionedMultiLocation | { V0: any } | { V1: any } | string | Uint8Array,
+          destWeight: u64 | AnyNumber | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [
+          Vec<ITuple<[MoonriverRuntimeXcmConfigCurrencyId, u128]>>,
+          u32,
+          XcmVersionedMultiLocation,
+          u64
+        ]
+      >;
+      /**
        * Transfer native currencies specifying the fee and amount as separate.
        *
        * `dest_weight` is the weight for XCM execution on the dest chain, and it
@@ -3928,9 +4775,10 @@ declare module "@polkadot/api-base/types/submittable" {
       transferWithFee: AugmentedSubmittable<
         (
           currencyId:
-            | MoonriverRuntimeCurrencyId
+            | MoonriverRuntimeXcmConfigCurrencyId
             | { SelfReserve: any }
-            | { OtherReserve: any }
+            | { ForeignAsset: any }
+            | { LocalAssetReserve: any }
             | string
             | Uint8Array,
           amount: u128 | AnyNumber | Uint8Array,
@@ -3938,7 +4786,7 @@ declare module "@polkadot/api-base/types/submittable" {
           dest: XcmVersionedMultiLocation | { V0: any } | { V1: any } | string | Uint8Array,
           destWeight: u64 | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [MoonriverRuntimeCurrencyId, u128, u128, XcmVersionedMultiLocation, u64]
+        [MoonriverRuntimeXcmConfigCurrencyId, u128, u128, XcmVersionedMultiLocation, u64]
       >;
       /**
        * Generic tx

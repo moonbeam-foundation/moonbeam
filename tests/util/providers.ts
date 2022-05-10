@@ -20,9 +20,12 @@ export async function customWeb3Request(web3: Web3, method: string, params: any[
       (error: Error | null, result?: JsonRpcResponse) => {
         if (error) {
           reject(
-            `Failed to send custom request (${method} (${params.join(",")})): ${
-              error.message || error.toString()
-            }`
+            `Failed to send custom request (${method} (${params
+              .map((p) => {
+                const str = p.toString();
+                return str.length > 128 ? `${str.slice(0, 96)}...${str.slice(-28)}` : str;
+              })
+              .join(",")})): ${error.message || error.toString()}`
           );
         }
         resolve(result);

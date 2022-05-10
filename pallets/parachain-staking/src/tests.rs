@@ -772,7 +772,7 @@ fn cannot_join_candidates_with_more_than_available_balance() {
 				ParachainStaking::join_candidates(Origin::signed(1), 501u128, 100u32),
 				DispatchError::Module(ModuleError {
 					index: 1,
-					error: 2,
+					error: [2, 0, 0, 0],
 					message: Some("InsufficientBalance")
 				})
 			);
@@ -1065,6 +1065,52 @@ fn execute_leave_candidates_removes_candidate_state() {
 				0
 			));
 			assert!(ParachainStaking::candidate_state(1).is_none());
+		});
+}
+
+#[test]
+fn execute_leave_candidates_removes_pending_delegation_requests() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 10), (2, 15)])
+		.with_candidates(vec![(1, 10)])
+		.with_delegations(vec![(2, 1, 15)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
+				Origin::signed(2),
+				1,
+				5
+			));
+			let state = ParachainStaking::delegation_scheduled_requests(&1);
+			assert_eq!(
+				state,
+				vec![ScheduledRequest {
+					delegator: 2,
+					when_executable: 3,
+					action: DelegationAction::Decrease(5),
+				}],
+			);
+			assert_ok!(ParachainStaking::schedule_leave_candidates(
+				Origin::signed(1),
+				1u32
+			));
+			// candidate state is not immediately removed
+			let candidate_state =
+				ParachainStaking::candidate_info(1).expect("just left => still exists");
+			assert_eq!(candidate_state.bond, 10u128);
+			roll_to(10);
+			assert_ok!(ParachainStaking::execute_leave_candidates(
+				Origin::signed(1),
+				1,
+				1
+			));
+			assert!(ParachainStaking::candidate_state(1).is_none());
+			assert!(
+				!ParachainStaking::delegation_scheduled_requests(&1)
+					.iter()
+					.any(|x| x.delegator == 2),
+				"delegation request not removed"
+			)
 		});
 }
 
@@ -1688,7 +1734,7 @@ fn only_candidate_can_cancel_candidate_bond_less_request() {
 		});
 }
 
-// NOMINATE
+// DELEGATE
 
 #[test]
 fn delegate_event_emits_correctly() {
@@ -1789,6 +1835,84 @@ fn can_delegate_if_revoking() {
 				1
 			));
 			assert_ok!(ParachainStaking::delegate(Origin::signed(2), 4, 10, 0, 2));
+		});
+}
+
+#[test]
+fn cannot_delegate_if_full_and_new_delegation_less_than_or_equal_lowest_bottom() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(1, 20),
+			(2, 10),
+			(3, 10),
+			(4, 10),
+			(5, 10),
+			(6, 10),
+			(7, 10),
+			(8, 10),
+			(9, 10),
+			(10, 10),
+			(11, 10),
+		])
+		.with_candidates(vec![(1, 20)])
+		.with_delegations(vec![
+			(2, 1, 10),
+			(3, 1, 10),
+			(4, 1, 10),
+			(5, 1, 10),
+			(6, 1, 10),
+			(8, 1, 10),
+			(9, 1, 10),
+			(10, 1, 10),
+		])
+		.build()
+		.execute_with(|| {
+			assert_noop!(
+				ParachainStaking::delegate(Origin::signed(11), 1, 10, 8, 0),
+				Error::<Test>::CannotDelegateLessThanOrEqualToLowestBottomWhenFull
+			);
+		});
+}
+
+#[test]
+fn can_delegate_if_full_and_new_delegation_greater_than_lowest_bottom() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(1, 20),
+			(2, 10),
+			(3, 10),
+			(4, 10),
+			(5, 10),
+			(6, 10),
+			(7, 10),
+			(8, 10),
+			(9, 10),
+			(10, 10),
+			(11, 11),
+		])
+		.with_candidates(vec![(1, 20)])
+		.with_delegations(vec![
+			(2, 1, 10),
+			(3, 1, 10),
+			(4, 1, 10),
+			(5, 1, 10),
+			(6, 1, 10),
+			(8, 1, 10),
+			(9, 1, 10),
+			(10, 1, 10),
+		])
+		.build()
+		.execute_with(|| {
+			assert_ok!(ParachainStaking::delegate(Origin::signed(11), 1, 11, 8, 0));
+			assert_event_emitted!(Event::DelegationKicked {
+				delegator: 10,
+				candidate: 1,
+				unstaked_amount: 10
+			});
+			assert_event_emitted!(Event::DelegatorLeft {
+				delegator: 10,
+				unstaked_amount: 10
+			});
 		});
 }
 
@@ -2091,6 +2215,47 @@ fn execute_leave_delegators_removes_delegator_state() {
 				1
 			));
 			assert!(ParachainStaking::delegator_state(2).is_none());
+		});
+}
+
+#[test]
+fn execute_leave_delegators_removes_pending_delegation_requests() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 10), (2, 15)])
+		.with_candidates(vec![(1, 10)])
+		.with_delegations(vec![(2, 1, 15)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
+				Origin::signed(2),
+				1,
+				5
+			));
+			let state = ParachainStaking::delegation_scheduled_requests(&1);
+			assert_eq!(
+				state,
+				vec![ScheduledRequest {
+					delegator: 2,
+					when_executable: 3,
+					action: DelegationAction::Decrease(5),
+				}],
+			);
+			assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(
+				2
+			)));
+			roll_to(10);
+			assert_ok!(ParachainStaking::execute_leave_delegators(
+				Origin::signed(2),
+				2,
+				1
+			));
+			assert!(ParachainStaking::delegator_state(2).is_none());
+			assert!(
+				!ParachainStaking::delegation_scheduled_requests(&1)
+					.iter()
+					.any(|x| x.delegator == 2),
+				"delegation request not removed"
+			)
 		});
 }
 

@@ -7,8 +7,9 @@ import { describeSmokeSuite } from "../util/setup-smoke-tests";
 const debug = require("debug")("smoke:balances");
 
 const wssUrl = process.env.WSS_URL || null;
+const relayWssUrl = process.env.RELAY_WSS_URL || null;
 
-describeSmokeSuite(`Verify balances consistency`, { wssUrl }, (context) => {
+describeSmokeSuite(`Verify balances consistency`, { wssUrl, relayWssUrl }, (context) => {
   const accounts: { [account: string]: FrameSystemAccountInfo } = {};
 
   let atBlockNumber: number = 0;
@@ -16,7 +17,7 @@ describeSmokeSuite(`Verify balances consistency`, { wssUrl }, (context) => {
 
   before("Retrieve all balances", async function () {
     // It takes time to load all the accounts.
-    this.timeout(600000);
+    this.timeout(4800000);
 
     const limit = 1000;
     let last_key = "";
@@ -53,7 +54,7 @@ describeSmokeSuite(`Verify balances consistency`, { wssUrl }, (context) => {
   });
 
   it("should have matching deposit/reserved", async function () {
-    this.timeout(120000);
+    this.timeout(240000);
     // Load data
     const [
       proxies,
