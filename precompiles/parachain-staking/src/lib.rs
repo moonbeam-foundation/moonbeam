@@ -48,6 +48,7 @@ enum Action {
 	MinDelegation = "min_delegation()",
 	Points = "points(uint256)",
 	CandidateCount = "candidate_count()",
+	Round = "round()",
 	// DEPRECATED
 	CollatorNominationCount = "collator_nomination_count(address)",
 	// DEPRECATED
@@ -60,6 +61,10 @@ enum Action {
 	IsDelegator = "is_delegator(address)",
 	IsCandidate = "is_candidate(address)",
 	IsSelectedCandidate = "is_selected_candidate(address)",
+	DelegationRequestIsPending = "delegation_request_is_pending(address,address)",
+	DelegatorExitIsPending = "delegator_exit_is_pending(address)",
+	CandidateExitIsPending = "candidate_exit_is_pending(address)",
+	CandidateRequestIsPending = "candidate_request_is_pending(address)",
 	JoinCandidates = "join_candidates(uint256,uint256)",
 	// DEPRECATED
 	LeaveCandidates = "leave_candidates(uint256)",
@@ -153,6 +158,7 @@ where
 			Action::MinDelegation => return Self::min_delegation(gasometer),
 			Action::Points => return Self::points(input, gasometer),
 			Action::CandidateCount => return Self::candidate_count(gasometer),
+			Action::Round => return Self::round(gasometer),
 			// DEPRECATED
 			Action::CollatorNominationCount => {
 				return Self::candidate_delegation_count(input, gasometer)
@@ -173,6 +179,18 @@ where
 			Action::IsDelegator => return Self::is_delegator(input, gasometer),
 			Action::IsCandidate => return Self::is_candidate(input, gasometer),
 			Action::IsSelectedCandidate => return Self::is_selected_candidate(input, gasometer),
+			Action::DelegationRequestIsPending => {
+				return Self::delegation_request_is_pending(input, gasometer)
+			}
+			Action::DelegatorExitIsPending => {
+				return Self::delegator_exit_is_pending(input, gasometer)
+			}
+			Action::CandidateExitIsPending => {
+				return Self::candidate_exit_is_pending(input, gasometer)
+			}
+			Action::CandidateRequestIsPending => {
+				return Self::candidate_request_is_pending(input, gasometer)
+			}
 			// runtime methods (dispatchables)
 			Action::JoinCandidates => Self::join_candidates(input, gasometer, context)?,
 			// DEPRECATED
@@ -308,6 +326,20 @@ where
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new().write(candidate_count).build(),
+			logs: vec![],
+		})
+	}
+
+	fn round(gasometer: &mut Gasometer) -> EvmResult<PrecompileOutput> {
+		// Fetch info.
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let round: u32 = <parachain_staking::Pallet<Runtime>>::round().current;
+
+		// Build output.
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gasometer.used_gas(),
+			output: EvmDataWriter::new().write(round).build(),
 			logs: vec![],
 		})
 	}
@@ -472,6 +504,150 @@ where
 			exit_status: ExitSucceed::Returned,
 			cost: gasometer.used_gas(),
 			output: EvmDataWriter::new().write(is_selected).build(),
+			logs: vec![],
+		})
+	}
+
+	fn delegation_request_is_pending(
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
+	) -> EvmResult<PrecompileOutput> {
+		// Read input.
+		input.expect_arguments(gasometer, 2)?;
+
+		// First argument is delegator
+		let delegator =
+			Runtime::AddressMapping::into_account_id(input.read::<Address>(gasometer)?.0);
+
+		// Second argument is candidate
+		let candidate =
+			Runtime::AddressMapping::into_account_id(input.read::<Address>(gasometer)?.0);
+
+		// Fetch info.
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		// If we are not able to get delegator state, we return false
+		// Users can call `is_delegator` to determine when this happens
+		let pending =
+			<parachain_staking::Pallet<Runtime>>::delegation_request_exists(&candidate, &delegator);
+
+		// Build output.
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gasometer.used_gas(),
+			output: EvmDataWriter::new().write(pending).build(),
+			logs: vec![],
+		})
+	}
+
+	fn delegator_exit_is_pending(
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
+	) -> EvmResult<PrecompileOutput> {
+		// Read input.
+		input.expect_arguments(gasometer, 1)?;
+
+		// Only argument is delegator
+		let delegator =
+			Runtime::AddressMapping::into_account_id(input.read::<Address>(gasometer)?.0);
+
+		// Fetch info.
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		// If we are not able to get delegator state, we return false
+		// Users can call `is_delegator` to determine when this happens
+		let pending = if let Some(state) =
+			<parachain_staking::Pallet<Runtime>>::delegator_state(&delegator)
+		{
+			state.is_leaving()
+		} else {
+			log::trace!(
+				target: "staking-precompile",
+				"Delegator state for {:?} not found, so pending exit is false",
+				delegator
+			);
+			false
+		};
+
+		// Build output.
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gasometer.used_gas(),
+			output: EvmDataWriter::new().write(pending).build(),
+			logs: vec![],
+		})
+	}
+
+	fn candidate_exit_is_pending(
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
+	) -> EvmResult<PrecompileOutput> {
+		// Read input.
+		input.expect_arguments(gasometer, 1)?;
+
+		// Only argument is candidate
+		let candidate =
+			Runtime::AddressMapping::into_account_id(input.read::<Address>(gasometer)?.0);
+
+		// Fetch info.
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		// If we are not able to get delegator state, we return false
+		// Users can call `is_candidate` to determine when this happens
+		let pending =
+			if let Some(state) = <parachain_staking::Pallet<Runtime>>::candidate_info(&candidate) {
+				state.is_leaving()
+			} else {
+				log::trace!(
+					target: "staking-precompile",
+					"Candidate state for {:?} not found, so pending exit is false",
+					candidate
+				);
+				false
+			};
+
+		// Build output.
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gasometer.used_gas(),
+			output: EvmDataWriter::new().write(pending).build(),
+			logs: vec![],
+		})
+	}
+
+	fn candidate_request_is_pending(
+		input: &mut EvmDataReader,
+		gasometer: &mut Gasometer,
+	) -> EvmResult<PrecompileOutput> {
+		// Read input.
+		input.expect_arguments(gasometer, 1)?;
+
+		// Only argument is candidate
+		let candidate =
+			Runtime::AddressMapping::into_account_id(input.read::<Address>(gasometer)?.0);
+
+		// Fetch info.
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		// If we are not able to get candidate metadata, we return false
+		// Users can call `is_candidate` to determine when this happens
+		let pending =
+			if let Some(state) = <parachain_staking::Pallet<Runtime>>::candidate_info(&candidate) {
+				state.request.is_some()
+			} else {
+				log::trace!(
+					target: "staking-precompile",
+					"Candidate metadata for {:?} not found, so pending request is false",
+					candidate
+				);
+				false
+			};
+
+		// Build output.
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			cost: gasometer.used_gas(),
+			output: EvmDataWriter::new().write(pending).build(),
 			logs: vec![],
 		})
 	}

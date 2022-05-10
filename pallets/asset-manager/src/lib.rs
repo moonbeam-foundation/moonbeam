@@ -282,7 +282,7 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn asset_type_units_per_second)]
 	pub type AssetTypeUnitsPerSecond<T: Config> =
-		StorageMap<_, Twox64Concat, T::ForeignAssetType, u128>;
+		StorageMap<_, Blake2_128Concat, T::ForeignAssetType, u128>;
 
 	/// Stores the counter of the number of local assets that have been
 	/// created so far

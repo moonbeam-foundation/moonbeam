@@ -2568,7 +2568,7 @@ fn call_xtokens_with_fee() {
 }
 
 #[test]
-fn precompile_existance() {
+fn precompile_existence() {
 	ExtBuilder::default().build().execute_with(|| {
 		let precompiles = Precompiles::new();
 		let precompile_addresses: std::collections::BTreeSet<_> = vec![

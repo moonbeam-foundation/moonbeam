@@ -14,6 +14,7 @@ log = "0.4"
 rlp = { version = "0.5", optional = true, default-features = false }
 serde = { version = "1.0.101", optional = true, default-features = false, features = [ "derive" ] }
 sha3 = { version = "0.8", optional = true, default-features = false }
+smallvec = "1.8.0"
 
 # Moonbeam
 account = { path = "../../primitives/account/", default-features = false }
@@ -30,6 +31,7 @@ pallet-crowdloan-rewards = { git = "https://github.com/purestake/crowdloan-rewar
 pallet-ethereum-chain-id = { path = "../../pallets/ethereum-chain-id", default-features = false }
 pallet-maintenance-mode = { path = "../../pallets/maintenance-mode", default-features = false, features = [ "xcm-support" ] }
 pallet-migrations = { path = "../../pallets/migrations", default-features = false }
+pallet-moonbeam-orbiters = { path = "../../pallets/moonbeam-orbiters", default-features = false }
 pallet-proxy-genesis-companion = { path = "../../pallets/proxy-genesis-companion", default-features = false }
 parachain-staking = { path = "../../pallets/parachain-staking", default-features = false }
 xcm-transactor = { path = "../../pallets/xcm-transactor", default-features = false }
@@ -113,6 +115,7 @@ parachain-info = { git = "https://github.com/purestake/cumulus", branch = "moonb
 
 # Polkadot / XCM
 orml-traits = { git = "https://github.com/purestake/open-runtime-module-library", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
+orml-xcm-support = { git = "https://github.com/purestake/open-runtime-module-library", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
 orml-xtokens = { git = "https://github.com/purestake/open-runtime-module-library", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
 pallet-xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
 polkadot-core-primitives = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
@@ -185,6 +188,7 @@ std = [
 	"pallet-identity/std",
 	"pallet-maintenance-mode/std",
 	"pallet-migrations/std",
+	"pallet-moonbeam-orbiters/std",
 	"pallet-proxy-genesis-companion/std",
 	"pallet-proxy/std",
 	"pallet-randomness-collective-flip/std",
@@ -247,6 +251,7 @@ runtime-benchmarks = [
 	"pallet-collective/runtime-benchmarks",
 	"pallet-crowdloan-rewards/runtime-benchmarks",
 	"pallet-ethereum/runtime-benchmarks",
+	"pallet-moonbeam-orbiters/runtime-benchmarks",
 	"pallet-society/runtime-benchmarks",
 	"pallet-timestamp/runtime-benchmarks",
 	"pallet-xcm/runtime-benchmarks",
@@ -262,6 +267,7 @@ try-runtime = [
 	"frame-try-runtime",
 	"pallet-asset-manager/try-runtime",
 	"pallet-author-mapping/try-runtime",
+	"pallet-author-slot-filter/try-runtime",
 	"pallet-balances/try-runtime",
 	"pallet-collective/try-runtime",
 	"pallet-maintenance-mode/try-runtime",

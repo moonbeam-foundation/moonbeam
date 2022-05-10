@@ -11,7 +11,7 @@ pragma solidity >=0.8.0;
 interface AuthorMapping {
     /**
      * Add association
-     * Selector: aa5ac585   
+     * Selector: aa5ac585
      *
      * @param nimbus_id The nimbusId to be associated
      */
@@ -24,13 +24,37 @@ interface AuthorMapping {
      * @param old_nimbus_id The old nimbusId to be replaced
      * @param new_nimbus_id The new nimbusId to be associated
      */
-    function update_association(bytes32 old_nimbus_id, bytes32 new_nimbus_id) external;
+    function update_association(bytes32 old_nimbus_id, bytes32 new_nimbus_id)
+        external;
 
-     /**
+    /**
      * Clear existing associationg
      * Selector: 7354c91d
      *
      * @param nimbus_id The nimbusId to be cleared
      */
     function clear_association(bytes32 nimbus_id) external;
+
+    /**
+     * Register association and session keys
+     * Selector: 4f50accf
+     *
+     * @param author_id The new author id registered
+     * @param keys The session keys
+     */
+    function register_keys(bytes32 author_id, bytes32 keys) external;
+
+    /**
+     * Set keys
+     * Selector: a8259c85
+     *
+     * @param old_author_id The old nimbusId to be replaced
+     * @param new_author_id The new nimbusId to be associated
+     * @param new_keys The new session keys
+     */
+    function set_keys(
+        bytes32 old_author_id,
+        bytes32 new_author_id,
+        bytes32 new_keys
+    ) external;
 }

@@ -166,10 +166,10 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     expect(registeredAsset.owner.toHex()).to.eq(palletId.toLowerCase());
   });
 
-  it("Should receive a 10 Statemine tokens to Alith with old prefix", async function () {
+  it("Should NOT receive a 10 Statemine tokens to Alith with old prefix", async function () {
     // We are going to test that, using the prefix prior to
     // https://github.com/paritytech/cumulus/pull/831
-    // we can receive the tokens on the assetId registed with the old prefix
+    // we cannot receive the tokens on the assetId registed with the old prefix
 
     // Old prefix:
     // Parachain(Statemint parachain)
@@ -237,13 +237,13 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     await context.createBlock();
 
     // Make sure the state has ALITH's foreign parachain tokens
-    let alith_dot_balance = (
-      (await context.polkadotApi.query.assets.account(assetId, alith.address)) as any
-    )
-      .unwrap()
-      ["balance"].toBigInt();
+    let alith_dot_balance = (await context.polkadotApi.query.assets.account(
+      assetId,
+      alith.address
+    )) as any;
 
-    expect(alith_dot_balance).to.eq(10n * FOREIGN_TOKEN);
+    // The message execution failed
+    expect(alith_dot_balance.isNone).to.be.true;
   });
 });
 
@@ -405,7 +405,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer of DEV", (context) =
       new Uint8Array([...new TextEncoder().encode("sibl"), ...paraId.toU8a()])
     ).padEnd(42, "0");
 
-    transferredBalance = new BN(100000000000000);
+    transferredBalance = 100000000000000n;
 
     // We first fund parachain 2000 sovreign account
     await createBlockWithExtrinsic(
@@ -416,10 +416,10 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer of DEV", (context) =
     let balance = (
       (await context.polkadotApi.query.system.account(sovereignAddress)) as any
     ).data.free.toBigInt();
-    expect(balance.toString()).to.eq(transferredBalance.toString());
+    expect(balance).to.eq(transferredBalance);
   });
 
-  it("Should receive MOVR from para Id 2000", async function () {
+  it("Should NOT receive MOVR from para Id 2000 with old reanchor", async function () {
     let ownParaId = (await context.polkadotApi.query.parachainInfo.parachainId()) as any;
     // Get Pallet balances index
     const metadata = await context.polkadotApi.rpc.state.getMetadata();
@@ -497,20 +497,18 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer of DEV", (context) =
     // Create a block in which the XCM will be executed
     await context.createBlock();
 
-    // We should expect sovereign balance to be 0, since we have transferred the full amount
+    // The message should not have been succesfully executed, since old prefix is not supported
+    // anymore
     let balance = (
       (await context.polkadotApi.query.system.account(sovereignAddress)) as any
     ).data.free.toBigInt();
-    expect(balance.toString()).to.eq(0n.toString());
+    expect(balance.toString()).to.eq(transferredBalance.toString());
 
-    // In the case of the random address: we have transferred 100000000000000,
-    // but 20000000000000 have been deducted
-    // for weight payment
+    // the random address does not receive anything
     let randomBalance = (
       (await context.polkadotApi.query.system.account(random.address)) as any
     ).data.free.toBigInt();
-    let expectedRandomBalance = 80000000000000n;
-    expect(randomBalance.toString()).to.eq(expectedRandomBalance.toString());
+    expect(randomBalance).to.eq(0n);
   });
 });
 
@@ -533,7 +531,7 @@ describeDevMoonbeam(
         new Uint8Array([...new TextEncoder().encode("sibl"), ...paraId.toU8a()])
       ).padEnd(42, "0");
 
-      transferredBalance = new BN(100000000000000);
+      transferredBalance = 100000000000000n;
 
       // We first fund parachain 2000 sovreign account
       await createBlockWithExtrinsic(
@@ -544,7 +542,7 @@ describeDevMoonbeam(
       let balance = (
         (await context.polkadotApi.query.system.account(sovereignAddress)) as any
       ).data.free.toBigInt();
-      expect(balance.toString()).to.eq(transferredBalance.toString());
+      expect(balance).to.eq(transferredBalance);
     });
 
     it("Should receive MOVR from para Id 2000 with new reanchor logic", async function () {
@@ -640,7 +638,7 @@ describeDevMoonbeam(
         (await context.polkadotApi.query.system.account(random.address)) as any
       ).data.free.toBigInt();
       let expectedRandomBalance = 80000000000000n;
-      expect(randomBalance.toString()).to.eq(expectedRandomBalance.toString());
+      expect(randomBalance).to.eq(expectedRandomBalance);
     });
   }
 );
@@ -705,7 +703,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     await createBlockWithExtrinsic(
       context,
       alith,
-      context.polkadotApi.tx.localAssets.transfer(assetId, alith.address, transferredBalance)
+      context.polkadotApi.tx.localAssets.transfer(assetId, sovereignAddress, transferredBalance)
     );
   });
 
@@ -911,7 +909,13 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
               id: {
                 Concrete: {
                   parents: 1,
-                  interior: { X2: [{ Parachain: statemint_para_id }, { GeneralIndex: 0 }] },
+                  interior: {
+                    X3: [
+                      { Parachain: statemint_para_id },
+                      { PalletInstance: statemint_assets_pallet_instance },
+                      { GeneralIndex: 0 },
+                    ],
+                  },
                 },
               },
               fun: { Fungible: new BN(10000000000000) },
@@ -920,7 +924,13 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
               id: {
                 Concrete: {
                   parents: 1,
-                  interior: { X2: [{ Parachain: statemint_para_id }, { GeneralIndex: 1 }] },
+                  interior: {
+                    X3: [
+                      { Parachain: statemint_para_id },
+                      { PalletInstance: statemint_assets_pallet_instance },
+                      { GeneralIndex: 1 },
+                    ],
+                  },
                 },
               },
               fun: { Fungible: new BN(10000000000000) },
@@ -934,7 +944,13 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
               id: {
                 Concrete: {
                   parents: new BN(1),
-                  interior: { X2: [{ Parachain: statemint_para_id }, { GeneralIndex: 1 }] },
+                  interior: {
+                    X3: [
+                      { Parachain: statemint_para_id },
+                      { PalletInstance: statemint_assets_pallet_instance },
+                      { GeneralIndex: 1 },
+                    ],
+                  },
                 },
               },
               fun: { Fungible: new BN(10000000000000) },
@@ -1046,11 +1062,11 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     await createBlockWithExtrinsic(
       context,
       alith,
-      context.polkadotApi.tx.localAssets.transfer(assetId, alith.address, transferredBalance)
+      context.polkadotApi.tx.localAssets.transfer(assetId, sovereignAddress, transferredBalance)
     );
   });
 
-  it("Should receive 10 Local Assets and DEV to pay for fee with old reanchor", async function () {
+  it("Should NOT receive 10 Local Assets and DEV for fee with old reanchor", async function () {
     let ownParaId = (await context.polkadotApi.query.parachainInfo.parachainId()) as any;
     const metadata = await context.polkadotApi.rpc.state.getMetadata();
     const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
@@ -1128,7 +1144,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
             maxAssets: new BN(2),
             beneficiary: {
               parents: 0,
-              interior: { X1: { AccountKey20: { network: "Any", key: alith.address } } },
+              interior: { X1: { AccountKey20: { network: "Any", key: baltathar.address } } },
             },
           },
         },
@@ -1152,16 +1168,16 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     // Create a block in which the XCM will be executed
     await context.createBlock();
 
-    // Make sure the state has ALITH's LOCAL parachain tokens
-    let alithLocalTokBalance = (
-      (await context.polkadotApi.query.localAssets.account(assetId, alith.address)) as any
-    )
-      .unwrap()
-      ["balance"].toBigInt();
+    // Old reanchor does not work anymore so no reception of tokens
+    let baltatharLocalTokBalance = (await context.polkadotApi.query.localAssets.account(
+      assetId,
+      baltathar.address
+    )) as any;
 
-    expect(alithLocalTokBalance.toString()).to.eq(transferredBalance.toString());
+    expect(baltatharLocalTokBalance.isNone).to.eq(true);
   });
 });
+
 describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
   let assetIdZero: string;
   let alith: KeyringPair;
