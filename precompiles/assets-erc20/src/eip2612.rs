@@ -15,7 +15,6 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use super::*;
-use core::fmt::Display;
 use frame_support::{
 	ensure,
 	storage::types::{StorageDoubleMap, ValueQuery},
@@ -26,6 +25,7 @@ use pallet_assets::pallet::{
 	Instance1, Instance10, Instance11, Instance12, Instance13, Instance14, Instance15, Instance16,
 	Instance2, Instance3, Instance4, Instance5, Instance6, Instance7, Instance8, Instance9,
 };
+use scale_info::prelude::string::ToString;
 use sp_core::H256;
 use sp_io::hashing::keccak_256;
 
@@ -133,7 +133,9 @@ where
 		let asset_name = pallet_assets::Pallet::<Runtime, Instance>::name(asset_id);
 
 		let name = if asset_name.is_empty() {
-			format!("Unnamed XC20 #{}", asset_id).as_bytes().to_vec()
+			let mut name = b"Unnamed XC20 #".to_vec();
+			name.extend_from_slice(asset_id.to_string().as_bytes());
+			name
 		} else {
 			asset_name
 		};
