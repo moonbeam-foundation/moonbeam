@@ -354,7 +354,7 @@ fn transfer_through_evm_to_stake() {
 				),
 				DispatchError::Module(ModuleError {
 					index: 10,
-					error: 2,
+					error: [2, 0, 0, 0],
 					message: Some("InsufficientBalance")
 				})
 			);
@@ -566,7 +566,7 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 				index: 0,
 				error: DispatchError::Module(ModuleError {
 					index: 90,
-					error: 8,
+					error: [8, 0, 0, 0],
 					message: None,
 				}),
 			});

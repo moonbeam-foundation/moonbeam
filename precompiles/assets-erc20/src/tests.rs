@@ -648,7 +648,8 @@ fn transfer_from_non_incremental_approval() {
 					output
 						== b"Dispatched call failed with error: DispatchErrorWithPostInfo { \
 					post_info: PostDispatchInfo { actual_weight: None, pays_fee: Pays::Yes }, \
-					error: Module(ModuleError { index: 2, error: 10, message: Some(\"Unapproved\") }) }"
+					error: Module(ModuleError { index: 2, error: [10, 0, 0, 0], \
+					message: Some(\"Unapproved\") }) }"
 				});
 		});
 }
@@ -698,7 +699,8 @@ fn transfer_from_above_allowance() {
 					output
 						== b"Dispatched call failed with error: DispatchErrorWithPostInfo { \
 					post_info: PostDispatchInfo { actual_weight: None, pays_fee: Pays::Yes }, \
-					error: Module(ModuleError { index: 2, error: 10, message: Some(\"Unapproved\") }) }"
+					error: Module(ModuleError { index: 2, error: [10, 0, 0, 0], \
+					message: Some(\"Unapproved\") }) }"
 				});
 		});
 }
