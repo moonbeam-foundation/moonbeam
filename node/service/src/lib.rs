@@ -429,7 +429,7 @@ where
 async fn start_node_impl<RuntimeApi, Executor, BIC>(
 	parachain_config: Configuration,
 	polkadot_config: Configuration,
-	id: polkadot_primitives::v0::Id,
+	id: polkadot_primitives::v2::Id,
 	rpc_config: RpcConfig,
 	build_consensus: BIC,
 ) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi, Executor>>)>
@@ -685,7 +685,7 @@ where
 pub async fn start_node<RuntimeApi, Executor>(
 	parachain_config: Configuration,
 	polkadot_config: Configuration,
-	id: polkadot_primitives::v0::Id,
+	id: polkadot_primitives::v2::Id,
 	rpc_config: RpcConfig,
 ) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi, Executor>>)>
 where

@@ -772,7 +772,7 @@ fn cannot_join_candidates_with_more_than_available_balance() {
 				ParachainStaking::join_candidates(Origin::signed(1), 501u128, 100u32),
 				DispatchError::Module(ModuleError {
 					index: 1,
-					error: 2,
+					error: [2, 0, 0, 0],
 					message: Some("InsufficientBalance")
 				})
 			);
