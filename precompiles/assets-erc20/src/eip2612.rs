@@ -15,6 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use super::*;
+use core::fmt::Display;
 use frame_support::{
 	ensure,
 	storage::types::{StorageDoubleMap, ValueQuery},
@@ -126,16 +127,15 @@ where
 	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin: OriginTrait,
 	IsLocal: Get<bool>,
 	<Runtime as pallet_timestamp::Config>::Moment: Into<U256>,
+	AssetIdOf<Runtime, Instance>: Display,
 {
 	fn compute_domain_separator(address: H160, asset_id: AssetIdOf<Runtime, Instance>) -> [u8; 32] {
 		let asset_name = pallet_assets::Pallet::<Runtime, Instance>::name(asset_id);
 
 		let name = if asset_name.is_empty() {
-			b"XC20: No name".to_vec()
+			format!("Unnamed XC20 #{}", asset_id).as_bytes().to_vec()
 		} else {
-			let mut name = b"XC20: ".to_vec();
-			name.extend_from_slice(&asset_name);
-			name
+			asset_name
 		};
 
 		let name: H256 = keccak_256(&name).into();
