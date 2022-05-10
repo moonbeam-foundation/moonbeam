@@ -16,11 +16,12 @@
 
 //! VRF Key type, which is sr25519
 use sp_application_crypto::KeyTypeId;
-use sp_runtime::ConsensusEngineId;
+use sp_runtime::{BoundToRuntimeAppPublic, ConsensusEngineId};
 
+/// Struct to implement `BoundToRuntimeAppPublic` by assigning Public = VrfId
 pub struct VrfSessionKey;
 
-impl sp_runtime::BoundToRuntimeAppPublic for VrfSessionKey {
+impl BoundToRuntimeAppPublic for VrfSessionKey {
 	type Public = VrfId;
 }
 
@@ -30,12 +31,10 @@ impl From<nimbus_primitives::NimbusId> for VrfId {
 	}
 }
 
-/// The ConsensusEngineId for nimbus consensus
-/// this same identifier will be used regardless of the filters installed
+/// The ConsensusEngineId for VRF keys
 pub const VRF_ENGINE_ID: ConsensusEngineId = *b"rand";
 
-/// The KeyTypeId used in the Nimbus consensus framework regardles of wat filters are in place.
-/// If this gets well adopted, we could move this definition to sp_core to avoid conflicts.
+/// The KeyTypeId used for VRF keys
 pub const VRF_KEY_ID: KeyTypeId = KeyTypeId(*b"rand");
 
 // The strongly-typed crypto wrappers to be used by VRF in the keystore
@@ -44,13 +43,13 @@ mod vrf_crypto {
 	app_crypto!(sr25519, crate::vrf::VRF_KEY_ID);
 }
 
-/// A nimbus author identifier (A public key).
+/// A vrf public key.
 pub type VrfId = vrf_crypto::Public;
 
-/// A nimbus signature.
+/// A vrf signature.
 pub type VrfSignature = vrf_crypto::Signature;
 
 sp_application_crypto::with_pair! {
-	/// A nimbus keypair
+	/// A vrf key pair
 	pub type VrfPair = vrf_crypto::Pair;
 }
