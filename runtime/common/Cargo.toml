@@ -28,8 +28,8 @@ sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbea
 sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
 
 # Frontier
-pallet-base-fee = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
-pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
+pallet-base-fee = { git = "https://github.com/purestake/frontier", branch = "jeremy-precompile-handle", default-features = false }
+pallet-evm = { git = "https://github.com/purestake/frontier", branch = "jeremy-precompile-handle", default-features = false }
 
 # Nimbus
 pallet-author-slot-filter = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.18", default-features = false }

@@ -24,8 +24,8 @@ sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-po
 
 # Frontier
 evm = { version = "0.35.0", default-features = false, features = [ "with-codec" ] }
-fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
-pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
+fp-evm = { git = "https://github.com/purestake/frontier", branch = "jeremy-precompile-handle", default-features = false }
+pallet-evm = { git = "https://github.com/purestake/frontier", branch = "jeremy-precompile-handle", default-features = false }
 
 # Polkadot
 xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
