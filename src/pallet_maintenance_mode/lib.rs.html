@@ -396,7 +396,7 @@
 		<span class="doccomment">/// The executive hooks that will be used in maintenance mode</span>
 		<span class="doccomment">/// Important: Use AllPalletsReversedWithSystemFirst here if you dont want to modify the</span>
 		<span class="doccomment">/// hooks behaviour</span>
-		<span class="kw">type</span> <span class="ident">MaitenanceExecutiveHooks</span>: <span class="ident">OnRuntimeUpgrade</span>
+		<span class="kw">type</span> <span class="ident">MaintenanceExecutiveHooks</span>: <span class="ident">OnRuntimeUpgrade</span>
 			<span class="op">+</span> <span class="ident">OnInitialize</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::BlockNumber</span><span class="op">&gt;</span>
 			<span class="op">+</span> <span class="ident">OnIdle</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::BlockNumber</span><span class="op">&gt;</span>
 			<span class="op">+</span> <span class="ident">OnFinalize</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::BlockNumber</span><span class="op">&gt;</span>

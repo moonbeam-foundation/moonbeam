@@ -149,7 +149,7 @@
 {
 	<span class="kw">fn</span> <span class="ident">on_idle</span>(<span class="ident">n</span>: <span class="ident">BlockNumberOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">remaining_weight</span>: <span class="ident">Weight</span>) -&gt; <span class="ident">Weight</span> {
 		<span class="kw">if</span> <span class="ident">Pallet</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::maintenance_mode</span>() {
-			<span class="ident">T::MaitenanceExecutiveHooks::on_idle</span>(<span class="ident">n</span>, <span class="ident">remaining_weight</span>)
+			<span class="ident">T::MaintenanceExecutiveHooks::on_idle</span>(<span class="ident">n</span>, <span class="ident">remaining_weight</span>)
 		} <span class="kw">else</span> {
 			<span class="ident">T::NormalExecutiveHooks::on_idle</span>(<span class="ident">n</span>, <span class="ident">remaining_weight</span>)
 		}
@@ -162,7 +162,7 @@
 {
 	<span class="kw">fn</span> <span class="ident">on_initialize</span>(<span class="ident">n</span>: <span class="ident">BlockNumberOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="ident">Weight</span> {
 		<span class="kw">if</span> <span class="ident">Pallet</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::maintenance_mode</span>() {
-			<span class="ident">T::MaitenanceExecutiveHooks::on_initialize</span>(<span class="ident">n</span>)
+			<span class="ident">T::MaintenanceExecutiveHooks::on_initialize</span>(<span class="ident">n</span>)
 		} <span class="kw">else</span> {
 			<span class="ident">T::NormalExecutiveHooks::on_initialize</span>(<span class="ident">n</span>)
 		}
@@ -175,7 +175,7 @@
 {
 	<span class="kw">fn</span> <span class="ident">on_finalize</span>(<span class="ident">n</span>: <span class="ident">BlockNumberOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) {
 		<span class="kw">if</span> <span class="ident">Pallet</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::maintenance_mode</span>() {
-			<span class="ident">T::MaitenanceExecutiveHooks::on_finalize</span>(<span class="ident">n</span>)
+			<span class="ident">T::MaintenanceExecutiveHooks::on_finalize</span>(<span class="ident">n</span>)
 		} <span class="kw">else</span> {
 			<span class="ident">T::NormalExecutiveHooks::on_finalize</span>(<span class="ident">n</span>)
 		}
@@ -188,7 +188,7 @@
 {
 	<span class="kw">fn</span> <span class="ident">offchain_worker</span>(<span class="ident">n</span>: <span class="ident">BlockNumberOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) {
 		<span class="kw">if</span> <span class="ident">Pallet</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::maintenance_mode</span>() {
-			<span class="ident">T::MaitenanceExecutiveHooks::offchain_worker</span>(<span class="ident">n</span>)
+			<span class="ident">T::MaintenanceExecutiveHooks::offchain_worker</span>(<span class="ident">n</span>)
 		} <span class="kw">else</span> {
 			<span class="ident">T::NormalExecutiveHooks::offchain_worker</span>(<span class="ident">n</span>)
 		}
@@ -201,7 +201,7 @@
 {
 	<span class="kw">fn</span> <span class="ident">on_runtime_upgrade</span>() -&gt; <span class="ident">Weight</span> {
 		<span class="kw">if</span> <span class="ident">Pallet</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::maintenance_mode</span>() {
-			<span class="ident">T::MaitenanceExecutiveHooks::on_runtime_upgrade</span>()
+			<span class="ident">T::MaintenanceExecutiveHooks::on_runtime_upgrade</span>()
 		} <span class="kw">else</span> {
 			<span class="ident">T::NormalExecutiveHooks::on_runtime_upgrade</span>()
 		}
@@ -210,7 +210,7 @@
 	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
 	<span class="kw">fn</span> <span class="ident">pre_upgrade</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
 		<span class="kw">if</span> <span class="ident">Pallet</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::maintenance_mode</span>() {
-			<span class="ident">T::MaitenanceExecutiveHooks::pre_upgrade</span>()
+			<span class="ident">T::MaintenanceExecutiveHooks::pre_upgrade</span>()
 		} <span class="kw">else</span> {
 			<span class="ident">T::NormalExecutiveHooks::pre_upgrade</span>()
 		}
@@ -219,7 +219,7 @@
 	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
 	<span class="kw">fn</span> <span class="ident">post_upgrade</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
 		<span class="kw">if</span> <span class="ident">Pallet</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::maintenance_mode</span>() {
-			<span class="ident">T::MaitenanceExecutiveHooks::post_upgrade</span>()
+			<span class="ident">T::MaintenanceExecutiveHooks::post_upgrade</span>()
 		} <span class="kw">else</span> {
 			<span class="ident">T::NormalExecutiveHooks::post_upgrade</span>()
 		}
