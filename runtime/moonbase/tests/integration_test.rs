@@ -2698,11 +2698,11 @@ fn author_mapping_register_and_set_keys() {
 			let author_mapping_precompile_address = H160::from_low_u64_be(2055);
 			let first_nimbus_id: NimbusId =
 				sp_core::sr25519::Public::unchecked_from([1u8; 32]).into();
-			let first_vrf_key: NimbusId =
+			let first_vrf_key: session_keys_primitives::VrfId =
 				sp_core::sr25519::Public::unchecked_from([3u8; 32]).into();
 			let second_nimbus_id: NimbusId =
 				sp_core::sr25519::Public::unchecked_from([2u8; 32]).into();
-			let second_vrf_key: NimbusId =
+			let second_vrf_key: session_keys_primitives::VrfId =
 				sp_core::sr25519::Public::unchecked_from([4u8; 32]).into();
 
 			let associate_expected_result = Some(Ok(PrecompileOutput {
