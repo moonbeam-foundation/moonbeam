@@ -21,7 +21,7 @@ use codec::{Decode, Encode, MaxEncodedLen};
 use frame_support::traits::Everything;
 use frame_support::{construct_runtime, pallet_prelude::*, parameter_types};
 use pallet_evm::{
-	AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet, SubstrateBlockHashMapping,
+	AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet,
 };
 use serde::{Deserialize, Serialize};
 use sp_core::H160;
@@ -235,10 +235,10 @@ impl Default for ExtBuilder {
 }
 
 impl ExtBuilder {
-	pub(crate) fn with_balances(mut self, balances: Vec<(AccountId, Balance)>) -> Self {
-		self.balances = balances;
-		self
-	}
+	// pub(crate) fn with_balances(mut self, balances: Vec<(AccountId, Balance)>) -> Self {
+	// 	self.balances = balances;
+	// 	self
+	// }
 
 	pub(crate) fn build(self) -> sp_io::TestExternalities {
 		let mut t = frame_system::GenesisConfig::default()
@@ -257,19 +257,19 @@ impl ExtBuilder {
 	}
 }
 
-pub(crate) fn roll_to(n: u64) {
-	while System::block_number() < n {
-		Balances::on_finalize(System::block_number());
-		System::on_finalize(System::block_number());
-		System::set_block_number(System::block_number() + 1);
-		System::on_initialize(System::block_number());
-		Balances::on_initialize(System::block_number());
-	}
-}
+// pub(crate) fn roll_to(n: u64) {
+// 	while System::block_number() < n {
+// 		Balances::on_finalize(System::block_number());
+// 		System::on_finalize(System::block_number());
+// 		System::set_block_number(System::block_number() + 1);
+// 		System::on_initialize(System::block_number());
+// 		Balances::on_initialize(System::block_number());
+// 	}
+// }
 
-pub(crate) fn events() -> Vec<Event> {
-	System::events()
-		.into_iter()
-		.map(|r| r.event)
-		.collect::<Vec<_>>()
-}
+// pub(crate) fn events() -> Vec<Event> {
+// 	System::events()
+// 		.into_iter()
+// 		.map(|r| r.event)
+// 		.collect::<Vec<_>>()
+// }
