@@ -20,6 +20,7 @@ members = [
 	"precompiles/utils/macro",
 	"precompiles/xcm_transactor",
 	"precompiles/xtokens",
+	"precompiles/batch",
 	"runtime/moonbase",
 	"runtime/moonbeam",
 	"runtime/moonriver",
