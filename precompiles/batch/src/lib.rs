@@ -24,11 +24,17 @@ use fp_evm::{
 };
 use pallet_evm::Precompile;
 use precompile_utils::{
-	check_function_modifier, Address, Bytes, EvmDataReader, EvmDataWriter,
-	EvmResult, FunctionModifier,
+	check_function_modifier, Address, Bytes, EvmDataReader, EvmDataWriter, EvmResult,
+	FunctionModifier,
 };
 use sp_core::U256;
 use sp_std::{marker::PhantomData, vec};
+
+#[cfg(test)]
+mod mock;
+#[cfg(test)]
+mod tests;
+
 #[precompile_utils::generate_function_selector]
 #[derive(Debug, PartialEq)]
 pub enum Action {
@@ -156,7 +162,7 @@ where
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
-			output: output.build(),
+			output: output.write(outputs).build(),
 		})
 	}
 }

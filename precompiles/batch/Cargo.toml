@@ -33,8 +33,11 @@ hex-literal = "0.3.4"
 serde = { version = "1.0.100" }
 sha3 = "0.8"
 
+codec = { package = "parity-scale-codec", version = "3.0.0", default-features = false, features = [ "max-encoded-len" ] }
 scale-info = { version = "2.0", default-features = false, features = [ "derive" ] }
 sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.19" }
+pallet-balances = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.19" }
+pallet-timestamp = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.19" }
 
 [features]
 default = [ "std" ]

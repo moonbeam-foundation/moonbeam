@@ -17,6 +17,7 @@ interface Batch {
     /// additional calls will be performed with an empty call data.
     /// @return successes Number of subcalls executed.
     /// @return outputs Data returned by each subcall.
+    /// Selector: 9205a0ba
     function batchSome(
         address[] memory to,
         uint256[] memory value,
@@ -36,6 +37,7 @@ interface Batch {
     /// @param call_data Call data for each `to` address. If array is shorter than "to" then
     /// additional calls will be performed with an empty call data.
     /// @return outputs Data returned by each subcall.
+    /// Selector: 2d41531c
     function batchAll(
         address[] memory to,
         uint256[] memory value,
