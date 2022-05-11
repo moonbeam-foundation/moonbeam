@@ -126,8 +126,6 @@ impl<'a> EvmDataReader<'a> {
 	}
 
 	/// Read data from the input.
-	/// Must be provided a gasometer to generate correct Revert errors.
-	/// TODO : Benchmark and add cost of parsing to gasometer ?
 	pub fn read<T: EvmData>(&mut self) -> EvmResult<T> {
 		T::read(self)
 	}

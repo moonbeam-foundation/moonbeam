@@ -231,7 +231,7 @@ pub enum FunctionModifier {
 }
 
 pub trait PrecompileHandleExt: PrecompileHandle {
-	/// Record cost of a log manualy.
+	/// Record cost of a log manually.
 	/// This can be useful to record log costs early when their content have static size.
 	#[must_use]
 	fn record_log_costs_manual(&mut self, topics: usize, data_len: usize) -> EvmResult;
