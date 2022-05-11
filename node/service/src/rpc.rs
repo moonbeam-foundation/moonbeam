@@ -203,7 +203,6 @@ where
 		overrides.clone(),
 		frontier_backend.clone(),
 		is_authority,
-		max_past_logs,
 		block_data_cache.clone(),
 		fc_rpc::format::Geth,
 		fee_history_limit,

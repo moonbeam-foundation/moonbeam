@@ -47,12 +47,14 @@ use frame_support::{
 	},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
-		DispatchClass, GetDispatchInfo, IdentityFee, Weight, WeightToFeeCoefficient,
-		WeightToFeeCoefficients, WeightToFeePolynomial,
+		ConstantMultiplier, DispatchClass, GetDispatchInfo, IdentityFee, Weight,
+		WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
 	},
 	PalletId,
 };
 
+#[cfg(feature = "std")]
+pub use fp_evm::GenesisAccount;
 use frame_system::{EnsureRoot, EnsureSigned};
 pub use moonbeam_core_primitives::{
 	AccountId, AccountIndex, Address, AssetId, Balance, BlockNumber, DigestItem, Hash, Header,
@@ -63,8 +65,6 @@ pub use pallet_author_slot_filter::EligibilityValue;
 use pallet_balances::NegativeImbalance;
 use pallet_ethereum::Call::transact;
 use pallet_ethereum::Transaction as EthereumTransaction;
-#[cfg(feature = "std")]
-pub use pallet_evm::GenesisAccount;
 use pallet_evm::{
 	Account as EVMAccount, EVMCurrencyAdapter, EnsureAddressNever, EnsureAddressRoot,
 	FeeCalculator, GasWeightMapping, OnChargeEVMTransaction as OnChargeEVMTransactionT, Runner,
@@ -169,7 +169,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbase"),
 	impl_name: create_runtime_str!("moonbase"),
 	authoring_version: 3,
-	spec_version: 1400,
+	spec_version: 1600,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -318,11 +318,15 @@ impl WeightToFeePolynomial for WeightToFee {
 	}
 }
 
+parameter_types! {
+	pub const TransactionByteFee: Balance = currency::TRANSACTION_BYTE_FEE;
+}
+
 impl pallet_transaction_payment::Config for Runtime {
 	type OnChargeTransaction = CurrencyAdapter<Balances, DealWithFees<Runtime>>;
-	type TransactionByteFee = ConstU128<{ currency::TRANSACTION_BYTE_FEE }>;
 	type OperationalFeeMultiplier = ConstU8<5>;
 	type WeightToFee = IdentityFee<Balance>;
+	type LengthToFee = ConstantMultiplier<Balance, TransactionByteFee>;
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Runtime>;
 }
 
@@ -688,6 +692,23 @@ parameter_types! {
 	pub const DefaultParachainBondReservePercent: Percent = Percent::from_percent(30);
 }
 
+pub struct OnCollatorPayout;
+impl parachain_staking::OnCollatorPayout<AccountId, Balance> for OnCollatorPayout {
+	fn on_collator_payout(
+		for_round: parachain_staking::RoundIndex,
+		collator_id: AccountId,
+		amount: Balance,
+	) -> Weight {
+		MoonbeamOrbiters::distribute_rewards(for_round, collator_id, amount)
+	}
+}
+pub struct OnNewRound;
+impl parachain_staking::OnNewRound for OnNewRound {
+	fn on_new_round(round_index: parachain_staking::RoundIndex) -> Weight {
+		MoonbeamOrbiters::on_new_round(round_index)
+	}
+}
+
 impl parachain_staking::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
@@ -726,6 +747,8 @@ impl parachain_staking::Config for Runtime {
 	type MinDelegation = ConstU128<{ 5 * currency::UNIT * currency::SUPPLY_FACTOR }>;
 	/// Minimum stake required to be reserved to be a delegator
 	type MinDelegatorStk = ConstU128<{ 5 * currency::UNIT * currency::SUPPLY_FACTOR }>;
+	type OnCollatorPayout = OnCollatorPayout;
+	type OnNewRound = OnNewRound;
 	type WeightInfo = parachain_staking::weights::SubstrateWeight<Runtime>;
 }
 
@@ -832,7 +855,9 @@ impl InstanceFilter<Call> for ProxyType {
 			),
 			ProxyType::Staking => matches!(
 				c,
-				Call::ParachainStaking(..) | Call::Utility(..) | Call::AuthorMapping(..)
+				Call::ParachainStaking(..)
+					| Call::Utility(..) | Call::AuthorMapping(..)
+					| Call::MoonbeamOrbiters(..)
 			),
 			ProxyType::CancelProxy => matches!(
 				c,
@@ -901,6 +926,7 @@ impl Contains<Call> for MaintenanceFilter {
 			Call::Identity(_) => false,
 			Call::XTokens(_) => false,
 			Call::ParachainStaking(_) => false,
+			Call::MoonbeamOrbiters(_) => false,
 			Call::PolkadotXcm(_) => false,
 			Call::Treasury(_) => false,
 			Call::XcmTransactor(_) => false,
@@ -1031,7 +1057,7 @@ impl pallet_maintenance_mode::Config for Runtime {
 	// We use AllPalletsReversedWithSystemFirst because we dont want to change the hooks in normal
 	// operation
 	type NormalExecutiveHooks = AllPalletsReversedWithSystemFirst;
-	type MaitenanceExecutiveHooks = MaintenanceHooks;
+	type MaintenanceExecutiveHooks = MaintenanceHooks;
 }
 
 impl pallet_proxy_genesis_companion::Config for Runtime {
@@ -1061,6 +1087,27 @@ impl pallet_base_fee::Config for Runtime {
 	// Tells `pallet_base_fee` whether to calculate a new BaseFee `on_finalize` or not.
 	type IsActive = ConstBool<false>;
 	type DefaultBaseFeePerGas = DefaultBaseFeePerGas;
+}
+
+parameter_types! {
+	pub OrbiterReserveIdentifier: [u8; 4] = [b'o', b'r', b'b', b'i'];
+}
+
+impl pallet_moonbeam_orbiters::Config for Runtime {
+	type Event = Event;
+	type AccountLookup = AuthorMapping;
+	type AddCollatorOrigin = EnsureRoot<AccountId>;
+	type Currency = Balances;
+	type DelCollatorOrigin = EnsureRoot<AccountId>;
+	/// Maximum number of orbiters per collator
+	type MaxPoolSize = ConstU32<8>;
+	/// Maximum number of round to keep on storage
+	type MaxRoundArchive = ConstU32<4>;
+	type OrbiterReserveIdentifier = OrbiterReserveIdentifier;
+	type RotatePeriod = ConstU32<3>;
+	/// Round index type.
+	type RoundIndex = parachain_staking::RoundIndex;
+	type WeightInfo = pallet_moonbeam_orbiters::weights::SubstrateWeight<Runtime>;
 }
 
 construct_runtime! {
@@ -1108,6 +1155,7 @@ construct_runtime! {
 		ProxyGenesisCompanion: pallet_proxy_genesis_companion::{Pallet, Config<T>} = 34,
 		BaseFee: pallet_base_fee::{Pallet, Call, Storage, Config<T>, Event} = 35,
 		LocalAssets: pallet_assets::<Instance1>::{Pallet, Call, Storage, Event<T>} = 36,
+		MoonbeamOrbiters: pallet_moonbeam_orbiters::{Pallet, Call, Storage, Event<T>} = 37,
 
 	}
 }

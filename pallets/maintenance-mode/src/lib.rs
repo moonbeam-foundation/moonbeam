@@ -125,7 +125,7 @@ pub mod pallet {
 		/// The executive hooks that will be used in maintenance mode
 		/// Important: Use AllPalletsReversedWithSystemFirst here if you dont want to modify the
 		/// hooks behaviour
-		type MaitenanceExecutiveHooks: OnRuntimeUpgrade
+		type MaintenanceExecutiveHooks: OnRuntimeUpgrade
 			+ OnInitialize<Self::BlockNumber>
 			+ OnIdle<Self::BlockNumber>
 			+ OnFinalize<Self::BlockNumber>
