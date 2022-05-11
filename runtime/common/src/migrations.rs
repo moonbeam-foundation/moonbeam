@@ -32,7 +32,10 @@ use pallet_asset_manager::{
 	},
 	Config as AssetManagerConfig,
 };
-use pallet_author_mapping::{migrations::AddKeysToRegistrationInfo, Config as AuthorMappingConfig};
+use pallet_author_mapping::{
+	migrations::{AddKeysToRegistrationInfo, MigrateKeysFromNimbusToVrfId},
+	Config as AuthorMappingConfig,
+};
 use pallet_author_slot_filter::migration::EligibleRatioToEligiblityCount;
 use pallet_author_slot_filter::Config as AuthorSlotFilterConfig;
 use pallet_base_fee::Config as BaseFeeConfig;
@@ -53,6 +56,30 @@ use xcm_transactor::{migrations::MaxTransactWeight, Config as XcmTransactorConfi
 
 /// This module acts as a registry where each migration is defined. Each migration should implement
 /// the "Migration" trait declared in the pallet-migrations crate.
+
+/// A moonbeam migration wrapping the similarly named migration in pallet-author-mapping
+pub struct AuthorMappingMigrateKeysFromNimbusToVrfId<T>(PhantomData<T>);
+impl<T: AuthorMappingConfig> Migration for AuthorMappingMigrateKeysFromNimbusToVrfId<T> {
+	fn friendly_name(&self) -> &str {
+		"MM_Author_Mapping_MigrateKeysFromNimbusToVrfId"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		MigrateKeysFromNimbusToVrfId::<T>::on_runtime_upgrade()
+	}
+
+	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<(), &'static str> {
+		MigrateKeysFromNimbusToVrfId::<T>::pre_upgrade()
+	}
+
+	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self) -> Result<(), &'static str> {
+		MigrateKeysFromNimbusToVrfId::<T>::post_upgrade()
+	}
+}
 
 /// A moonbeam migration wrapping the similarly named migration in pallet-author-mapping
 pub struct AuthorMappingAddKeysToRegistrationInfo<T>(PhantomData<T>);
@@ -619,6 +646,8 @@ where
 			ParachainStakingSplitDelegatorStateIntoDelegationScheduledRequests::<Runtime>(
 				Default::default(),
 			);
+		let migration_author_mapping_migrate_keys_from_nimbus_to_vrf_id =
+			AuthorMappingMigrateKeysFromNimbusToVrfId::<Runtime>(Default::default());
 		vec![
 			// completed in runtime 800
 			// Box::new(migration_author_mapping_twox_to_blake),
@@ -640,6 +669,7 @@ where
 			Box::new(migration_author_slot_filter_eligible_ratio_to_eligibility_count),
 			Box::new(migration_author_mapping_add_keys_to_registration_info),
 			Box::new(staking_delegator_state_requests),
+			Box::new(migration_author_mapping_migrate_keys_from_nimbus_to_vrf_id),
 		]
 	}
 }

@@ -25,6 +25,96 @@ use parity_scale_codec::{Decode, Encode};
 #[cfg(feature = "try-runtime")]
 use scale_info::prelude::format;
 
+pub struct MigrateKeysFromNimbusToVrfId<T>(PhantomData<T>);
+#[derive(Encode, Decode, PartialEq, Eq, Debug, scale_info::TypeInfo)]
+#[scale_info(skip_type_params(T))]
+struct TmpRegistrationInfo<T: Config> {
+	account: T::AccountId,
+	deposit: BalanceOf<T>,
+	keys: NimbusId,
+}
+fn change_keys_from_nimbus_to_vrf_id<T: Config>(
+	old: TmpRegistrationInfo<T>,
+) -> RegistrationInfo<T> {
+	RegistrationInfo {
+		account: old.account,
+		deposit: old.deposit,
+		keys: old.keys.into(),
+	}
+}
+impl<T: Config> OnRuntimeUpgrade for MigrateKeysFromNimbusToVrfId<T> {
+	fn on_runtime_upgrade() -> Weight {
+		log::info!(target: "MigrateKeysFromNimbusToVrfId", "running migration");
+
+		let mut read_write_count = 0u64;
+		<MappingWithDeposit<T>>::translate(
+			|_nimbus_id, old_registration_info: TmpRegistrationInfo<T>| {
+				read_write_count = read_write_count.saturating_add(1u64);
+				Some(change_keys_from_nimbus_to_vrf_id(old_registration_info))
+			},
+		);
+		// return weight
+		read_write_count.saturating_mul(T::DbWeight::get().read + T::DbWeight::get().write)
+	}
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade() -> Result<(), &'static str> {
+		use frame_support::traits::OnRuntimeUpgradeHelpersExt;
+		// get total deposited and account for all nimbus_keys
+		// get keys for all nimbus_keys as well
+		for (nimbus_id, info) in <MappingWithDeposit<T>>::iter() {
+			Self::set_temp_storage(
+				info.account,
+				&format!("MappingWithDeposit{:?}Account", nimbus_id)[..],
+			);
+			Self::set_temp_storage(
+				info.deposit,
+				&format!("MappingWithDeposit{:?}Deposit", nimbus_id)[..],
+			);
+			Self::set_temp_storage(
+				info.keys,
+				&format!("MappingWithDeposit{:?}Keys", nimbus_id)[..],
+			);
+		}
+		Ok(())
+	}
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade() -> Result<(), &'static str> {
+		use frame_support::traits::OnRuntimeUpgradeHelpersExt;
+		// ensure new deposit and account are the same as the old ones
+		// ensure new keys are equal to nimbus_id
+		for (nimbus_id, info) in <MappingWithDeposit<T>>::iter() {
+			let old_account: T::AccountId =
+				Self::get_temp_storage(&format!("MappingWithDeposit{:?}Account", nimbus_id)[..])
+					.expect("qed");
+			let new_account = info.account;
+			assert_eq!(
+				old_account, new_account,
+				"Old Account {:?} dne New Account {:?} for NimbusID {:?}",
+				old_account, new_account, nimbus_id
+			);
+			let old_deposit: BalanceOf<T> =
+				Self::get_temp_storage(&format!("MappingWithDeposit{:?}Deposit", nimbus_id)[..])
+					.expect("qed");
+			let new_deposit = info.deposit;
+			assert_eq!(
+				old_deposit, new_deposit,
+				"Old Deposit {:?} dne New Deposit {:?} for NimbusID {:?}",
+				old_deposit, new_deposit, nimbus_id
+			);
+			let old_keys: NimbusId =
+				Self::get_temp_storage(&format!("MappingWithDeposit{:?}Keys", nimbus_id)[..])
+					.expect("qed");
+			let old_keys_as_new_key_type: T::Keys = old_keys.into();
+			assert_eq!(
+				old_keys_as_new_key_type, info.keys,
+				"Old NimbusID {:?} dne New Keys {:?}",
+				old_keys_as_new_key_type, info.keys,
+			);
+		}
+		Ok(())
+	}
+}
+
 /// Migrates MappingWithDeposit map value from RegistrationInfo to RegistrationInformation,
 /// thereby adding a keys: T::Keys field to the value to support VRF keys that can be looked up
 /// via NimbusId.
