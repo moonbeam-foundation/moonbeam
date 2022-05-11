@@ -17,13 +17,36 @@
 use super::*;
 use core::assert_matches::assert_matches;
 use fp_evm::{ExitSucceed, PrecompileOutput, PrecompileResult, PrecompileSet};
+use sp_std::boxed::Box;
+
+pub struct Subcall {
+	pub address: H160,
+	pub transfer: Option<Transfer>,
+	pub input: Vec<u8>,
+	pub target_gas: Option<u64>,
+	pub is_static: bool,
+	pub context: Context,
+}
+
+pub struct SubcallOutput {
+	pub reason: ExitReason,
+	pub output: Vec<u8>,
+	pub cost: u64,
+	pub logs: Vec<Log>,
+}
+
+pub trait SubcallTrait: FnMut(Subcall) -> SubcallOutput + 'static {}
+
+impl<T: FnMut(Subcall) -> SubcallOutput + 'static> SubcallTrait for T {}
+
+pub type SubcallHandle = Box<dyn SubcallTrait>;
 
 /// Mock handle to write tests for precompiles.
-#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct MockHandle {
 	pub gas_limit: u64,
 	pub gas_used: u64,
 	pub logs: Vec<Log>,
+	pub subcall_handle: Option<SubcallHandle>,
 }
 
 impl MockHandle {
@@ -32,6 +55,7 @@ impl MockHandle {
 			gas_limit: u64::MAX,
 			gas_used: 0,
 			logs: vec![],
+			subcall_handle: None,
 		}
 	}
 
@@ -40,7 +64,12 @@ impl MockHandle {
 			gas_limit,
 			gas_used: 0,
 			logs: vec![],
+			subcall_handle: None,
 		}
+	}
+
+	pub fn set_subcall_handle(&mut self, handle: Option<SubcallHandle>) {
+		self.subcall_handle = handle;
 	}
 }
 
@@ -49,17 +78,41 @@ impl PrecompileHandle for MockHandle {
 	/// Precompile specifies in which context the subcall is executed.
 	fn call(
 		&mut self,
-		_: H160,
-		_: Option<Transfer>,
-		_: Vec<u8>,
-		_: Option<u64>,
-		_: bool,
-		_: &Context,
+		address: H160,
+		transfer: Option<Transfer>,
+		input: Vec<u8>,
+		target_gas: Option<u64>,
+		is_static: bool,
+		context: &Context,
 	) -> (ExitReason, Vec<u8>) {
-		unimplemented!("sub calls are not supported in mock");
-		// TODO : Allow Mock to store a Fn that can be called here.
-		// Tests could provide a function that could inspect data,
-		// register that it has been called, etc.
+		match &mut self.subcall_handle {
+			Some(handle) => {
+				let SubcallOutput {
+					reason,
+					output,
+					cost,
+					logs,
+				} = handle(Subcall {
+					address,
+					transfer,
+					input,
+					target_gas,
+					is_static,
+					context: context.clone(),
+				});
+
+				if self.record_cost(cost).is_err() {
+					return (ExitReason::Error(ExitError::OutOfGas), vec![]);
+				}
+
+				for log in logs {
+					self.log(log.address, log.topics, log.data)
+				}
+
+				(reason, output)
+			}
+			None => panic!("no subcall handle registered"),
+		}
 	}
 
 	fn record_cost(&mut self, cost: u64) -> Result<(), ExitError> {
@@ -93,6 +146,8 @@ pub struct PrecompilesTester<'p, P> {
 	context: Context,
 	is_static: bool,
 
+	subcall_handle: Option<SubcallHandle>,
+
 	expected_cost: Option<u64>,
 	expected_logs: Option<Vec<Log>>,
 }
@@ -117,6 +172,8 @@ impl<'p, P: PrecompileSet> PrecompilesTester<'p, P> {
 			},
 			is_static: false,
 
+			subcall_handle: None,
+
 			expected_cost: None,
 			expected_logs: None,
 		}
@@ -124,6 +181,16 @@ impl<'p, P: PrecompileSet> PrecompilesTester<'p, P> {
 
 	pub fn with_value(mut self, value: impl Into<U256>) -> Self {
 		self.context.apparent_value = value.into();
+		self
+	}
+
+	pub fn with_subcall_handle(mut self, subcall_handle: impl SubcallTrait) -> Self {
+		self.subcall_handle = Some(Box::new(subcall_handle));
+		self
+	}
+
+	pub fn with_target_gas(mut self, target_gas: Option<u64>) -> Self {
+		self.target_gas = target_gas;
 		self
 	}
 
@@ -156,8 +223,14 @@ impl<'p, P: PrecompileSet> PrecompilesTester<'p, P> {
 		}
 	}
 
-	fn execute(&self) -> (Option<PrecompileResult>, MockHandle) {
+	fn execute(&mut self) -> (Option<PrecompileResult>, MockHandle) {
 		let mut handle = MockHandle::new();
+		handle.set_subcall_handle(self.subcall_handle.take());
+
+		if let Some(gas_limit) = self.target_gas {
+			handle.gas_limit = gas_limit;
+		}
+
 		let res = self.precompiles.execute(
 			&mut handle,
 			self.to,
@@ -171,21 +244,21 @@ impl<'p, P: PrecompileSet> PrecompilesTester<'p, P> {
 
 	/// Execute the precompile set and expect some precompile to have been executed, regardless of the
 	/// result.
-	pub fn execute_some(self) {
+	pub fn execute_some(mut self) {
 		let (res, handle) = self.execute();
 		assert!(res.is_some());
 		self.assert_optionals(&handle);
 	}
 
 	/// Execute the precompile set and expect no precompile to have been executed.
-	pub fn execute_none(self) {
+	pub fn execute_none(mut self) {
 		let (res, handle) = self.execute();
 		assert!(res.is_some());
 		self.assert_optionals(&handle);
 	}
 
 	/// Execute the precompile set and check it returns provided output.
-	pub fn execute_returns(self, output: Vec<u8>) {
+	pub fn execute_returns(mut self, output: Vec<u8>) {
 		let (res, handle) = self.execute();
 		assert_eq!(
 			res,
@@ -199,12 +272,22 @@ impl<'p, P: PrecompileSet> PrecompilesTester<'p, P> {
 
 	/// Execute the precompile set and check if it reverts.
 	/// Take a closure allowing to perform custom matching on the output.
-	pub fn execute_reverts(self, check: impl Fn(&[u8]) -> bool) {
+	pub fn execute_reverts(mut self, check: impl Fn(&[u8]) -> bool) {
 		let (res, handle) = self.execute();
 		assert_matches!(
 			res,
 			Some(Err(PrecompileFailure::Revert { output, ..}))
 				if check(&output)
+		);
+		self.assert_optionals(&handle);
+	}
+
+	/// Execute the precompile set and check it returns provided output.
+	pub fn execute_error(mut self, error: ExitError) {
+		let (res, handle) = self.execute();
+		assert_eq!(
+			res,
+			Some(Err(PrecompileFailure::Error { exit_status: error }))
 		);
 		self.assert_optionals(&handle);
 	}
