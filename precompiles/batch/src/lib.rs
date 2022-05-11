@@ -28,7 +28,7 @@ use precompile_utils::{
 	FunctionModifier,
 };
 use sp_core::U256;
-use sp_std::{marker::PhantomData, vec};
+use sp_std::{iter::repeat, marker::PhantomData, vec};
 
 #[cfg(test)]
 mod mock;
@@ -36,16 +36,11 @@ mod mock;
 mod tests;
 
 #[precompile_utils::generate_function_selector]
-#[derive(Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Action {
 	BatchSome = "batchSome(address[],uint256[],bytes[])",
+	BatchSomeUntilFailure = "batchSomeUntilFailure(address[],uint256[],bytes[])",
 	BatchAll = "batchAll(address[],uint256[],bytes[])",
-}
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-enum BatchMode {
-	Some,
-	All,
 }
 
 /// Batch precompile.
@@ -67,10 +62,7 @@ where
 
 		check_function_modifier(context, is_static, FunctionModifier::Payable)?;
 
-		match selector {
-			Action::BatchSome => Self::batch(handle, input, context, BatchMode::Some),
-			Action::BatchAll => Self::batch(handle, input, context, BatchMode::All),
-		}
+		Self::batch(handle, input, context, selector)
 	}
 }
 
@@ -82,18 +74,18 @@ where
 		handle: &mut impl PrecompileHandle,
 		input: &mut EvmDataReader,
 		context: &Context,
-		mode: BatchMode,
+		action: Action,
 	) -> EvmResult<PrecompileOutput> {
 		let addresses: Vec<Address> = input.read()?;
 		let values: Vec<U256> = input.read()?;
 		let calls_data: Vec<Bytes> = input.read()?;
 
-		let len = addresses.len();
 		let addresses = addresses.into_iter().enumerate();
-		let values = values.into_iter().map(|x| Some(x)).fuse();
-		let calls_data = calls_data.into_iter().map(|x| Some(x)).fuse();
+		let values = values.into_iter().map(|x| Some(x)).chain(repeat(None));
+		let calls_data = calls_data.into_iter().map(|x| Some(x)).chain(repeat(None));
 
 		let mut outputs = vec![];
+		let mut success_counter = 0;
 
 		for ((i, address), (value, call_data)) in addresses.zip(values.zip(calls_data)) {
 			let address = address.0;
@@ -127,21 +119,27 @@ where
 
 			outputs.push(Bytes(output.clone()));
 
-			match (reason, mode) {
+			match (reason, action) {
+				// _: Fatal is always fatal
 				(ExitReason::Fatal(exit_status), _) => {
 					return Err(PrecompileFailure::Fatal { exit_status })
 				}
-				(ExitReason::Revert(exit_status), BatchMode::All) => {
+
+				// BatchAll : Reverts and errors are immediatly forwarded.
+				(ExitReason::Revert(exit_status), Action::BatchAll) => {
 					return Err(PrecompileFailure::Revert {
 						exit_status,
 						output,
 					})
 				}
-				(ExitReason::Error(exit_status), BatchMode::All) => {
+				(ExitReason::Error(exit_status), Action::BatchAll) => {
 					return Err(PrecompileFailure::Error { exit_status })
 				}
-				(ExitReason::Revert(_), BatchMode::Some)
-				| (ExitReason::Error(_), BatchMode::Some) => {
+
+				// BatchSomeUntilFailure : Reverts and errors prevent subsequent subcalls to
+				// be executed but the precompile still succeed.
+				(ExitReason::Revert(_), Action::BatchSomeUntilFailure)
+				| (ExitReason::Error(_), Action::BatchSomeUntilFailure) => {
 					return Ok(PrecompileOutput {
 						exit_status: ExitSucceed::Returned,
 						output: EvmDataWriter::new()
@@ -150,14 +148,21 @@ where
 							.build(),
 					})
 				}
-				(ExitReason::Succeed(_), _) => (),
+
+				// BatchSome: Reverts and errors don't prevent subsequent subcalls to be executed,
+				// but they are not counted as success.
+				(ExitReason::Revert(_), Action::BatchSome)
+				| (ExitReason::Error(_), Action::BatchSome) => (),
+
+				// Success
+				(ExitReason::Succeed(_), _) => success_counter += 1,
 			}
 		}
 
 		let mut output = EvmDataWriter::new();
 
-		if mode == BatchMode::Some {
-			output = output.write(U256::from(len));
+		if let Action::BatchSome | Action::BatchSomeUntilFailure = action {
+			output = output.write(U256::from(success_counter));
 		}
 
 		Ok(PrecompileOutput {
