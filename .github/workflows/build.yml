@@ -234,7 +234,7 @@ jobs:
     runs-on: self-hosted
     needs: ["set-tags"]
     env:
-      CARGO_SCCACHE_COMMIT: 90e1dc81
+      CARGO_SCCACHE_COMMIT: bed5571c
       RUSTFLAGS: "-C opt-level=3 -D warnings"
       # MOONBEAM_LOG: info
       # DEBUG: "test*"
