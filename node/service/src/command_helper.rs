@@ -21,10 +21,10 @@
 
 use std::{sync::Arc, time::Duration};
 
+use account::EthereumSigner;
 use parity_scale_codec::Encode;
 use frame_system::Call as SystemCall;
 use moonbase_runtime as runtime;
-use account::{AccountId20, EthereumSigner};
 use sc_cli::Result;
 use sc_client_api::BlockBackend;
 use sp_core::{ecdsa, Pair};
@@ -127,10 +127,33 @@ pub fn create_benchmark_extrinsic(
 ///
 /// Note: Should only be used for benchmarking.
 pub fn inherent_benchmark_data() -> Result<InherentData> {
-	let mut inherent_data = InherentData::new();
+
+	use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
+	use cumulus_primitives_core::PersistedValidationData;
+	use cumulus_primitives_parachain_inherent::ParachainInherentData;
+
+    let (relay_parent_storage_root, relay_chain_state) =
+        RelayStateSproofBuilder::default().into_state_root_and_proof();
+
+    let vfp = PersistedValidationData {
+        relay_parent_number: 0u32,
+        relay_parent_storage_root,
+        ..Default::default()
+    };
+    let parachain_inherent_data = ParachainInherentData {
+        validation_data: vfp,
+        relay_chain_state: relay_chain_state,
+        downward_messages: Default::default(),
+        horizontal_messages: Default::default(),
+    };
+
+	let mut inherent_data = InherentData::default();
+
+	parachain_inherent_data.provide_inherent_data(&mut inherent_data)
+		.expect("provide_inherent_data() failed");
+
 	let d = Duration::from_millis(0);
 	let timestamp = sp_timestamp::InherentDataProvider::new(d.into());
-
 	timestamp
 		.provide_inherent_data(&mut inherent_data)
 		.map_err(|e| format!("creating inherent data: {:?}", e))?;

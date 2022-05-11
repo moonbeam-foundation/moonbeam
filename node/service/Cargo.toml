@@ -112,6 +112,7 @@ cumulus-client-consensus-common = { git = "https://github.com/purestake/cumulus"
 cumulus-client-consensus-relay-chain = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.19" }
 cumulus-client-network = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.19" }
 cumulus-client-service = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.19" }
+cumulus-pallet-parachain-system = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.19" }
 cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.19" }
 cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.19" }
 cumulus-relay-chain-inprocess-interface = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.19" }
