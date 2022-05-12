@@ -33,7 +33,7 @@ use frame_support::{
 	StorageHasher, Twox128,
 };
 use moonbase_runtime::{
-	asset_config::AssetRegistrarMetadata, asset_config::LocalAssetInstance, currency::UNIT, get,
+	asset_config::AssetRegistrarMetadata, asset_config::LocalAssetInstance, currency::*, get,
 	xcm_config::AssetType, AccountId, AssetId, AssetManager, Assets, Balances, BaseFee,
 	BlockWeights, Call, CrowdloanRewards, Event, LocalAssets, ParachainStaking, PolkadotXcm,
 	Precompiles, Runtime, System, XTokens, XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
@@ -2296,6 +2296,47 @@ where
 	t.execute_with(|| {
 		System::set_block_consumed_resources(w, 0);
 		assertions()
+	});
+}
+
+#[test]
+fn length_fee_is_sensible() {
+	use sp_runtime::testing::TestXt;
+
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), (1 * UNIT) + (1 * WEI)),
+			(AccountId::from(BOB), 0),
+		])
+		.build()
+		.execute_with(|| {
+			// Substrate transfer
+			assert_ok!(Balances::transfer(
+				origin_of(AccountId::from(ALICE)),
+				AccountId::from(BOB),
+				1 * UNIT,
+			));
+			// 1 WEI is left in the account
+			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1 * WEI);
+		});
+
+	// tests that length fee is sensible for a few hypothetical transactions
+	ExtBuilder::default().build().execute_with(|| {
+		let call = frame_system::Call::remark::<Runtime> { remark: vec![] };
+		let uxt: TestXt<_, ()> = TestXt::new(
+			// call: frame_system::Call::remark::<Runtime> { remark: vec![] },
+			call,
+			Some((1u64, ())),
+		);
+		let fee_details = moonbase_runtime::TransactionPayment::query_fee_details(uxt, 10);
+
+		// TODO: review these limits
+		assert!(
+			fee_details
+				.inclusion_fee
+				.expect("fee should be calculated")
+				.len_fee < 10 * MICROUNIT
+		);
 	});
 }
 
