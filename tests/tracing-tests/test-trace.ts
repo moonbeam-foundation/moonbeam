@@ -668,22 +668,28 @@ describeDevMoonbeam("Trace", (context) => {
 
     expect(trace.result.from).to.be.eq(GENESIS_ACCOUNT.toLowerCase());
     expect(trace.result.to).to.be.eq("0x0000000000000000000000000000000000000808");
-    expect(trace.result.calls.length).to.be.eq(4);
+    expect(trace.result.calls.length).to.be.eq(2);
 
     expect(trace.result.calls[0].from).to.be.eq("0x0000000000000000000000000000000000000808");
     expect(trace.result.calls[0].to).to.be.eq(contractProxy.options.address.toLowerCase());
     expect(trace.result.calls[0].type).to.be.eq("CALL");
 
-    expect(trace.result.calls[1].from).to.be.eq(contractProxy.options.address.toLowerCase());
-    expect(trace.result.calls[1].to).to.be.eq(contractDummy.options.address.toLowerCase());
+    expect(trace.result.calls[0].calls.length).to.be.eq(1);
+    expect(trace.result.calls[0].calls[0].from).to.be.eq(
+      contractProxy.options.address.toLowerCase()
+    );
+    expect(trace.result.calls[0].calls[0].to).to.be.eq(contractDummy.options.address.toLowerCase());
+    expect(trace.result.calls[0].calls[0].type).to.be.eq("CALL");
+
+    expect(trace.result.calls[1].from).to.be.eq("0x0000000000000000000000000000000000000808");
+    expect(trace.result.calls[1].to).to.be.eq(contractProxy.options.address.toLowerCase());
     expect(trace.result.calls[1].type).to.be.eq("CALL");
 
-    expect(trace.result.calls[2].from).to.be.eq("0x0000000000000000000000000000000000000808");
-    expect(trace.result.calls[2].to).to.be.eq(contractProxy.options.address.toLowerCase());
-    expect(trace.result.calls[2].type).to.be.eq("CALL");
-
-    expect(trace.result.calls[3].from).to.be.eq(contractProxy.options.address.toLowerCase());
-    expect(trace.result.calls[3].to).to.be.eq(contractDummy.options.address.toLowerCase());
-    expect(trace.result.calls[3].type).to.be.eq("DELEGATECALL");
+    expect(trace.result.calls[1].calls.length).to.be.eq(1);
+    expect(trace.result.calls[1].calls[0].from).to.be.eq(
+      contractProxy.options.address.toLowerCase()
+    );
+    expect(trace.result.calls[1].calls[0].to).to.be.eq(contractDummy.options.address.toLowerCase());
+    expect(trace.result.calls[1].calls[0].type).to.be.eq("DELEGATECALL");
   });
 });
