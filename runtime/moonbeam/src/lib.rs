@@ -1313,7 +1313,7 @@ mod tests {
 			5_u8
 		);
 		assert_eq!(STORAGE_BYTE_FEE, Balance::from(10 * MILLIGLMR));
-		assert_eq!(FixedGasPrice::min_gas_price(), (100 * GIGAWEI).into());
+		assert_eq!(FixedGasPrice::min_gas_price().0, (100 * GIGAWEI).into());
 
 		// democracy minimums
 		assert_eq!(
