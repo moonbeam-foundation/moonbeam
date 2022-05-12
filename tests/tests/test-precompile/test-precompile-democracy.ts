@@ -124,7 +124,9 @@ describeDevMoonbeam("Democracy - genesis and preimage", (context) => {
       context.polkadotApi.tx.parachainStaking.setParachainBondAccount(GENESIS_ACCOUNT)
     );
 
-    const preimageStatus = await context.polkadotApi.query.democracy.preimages(encodedHash);
+    const preimageStatus = (await context.polkadotApi.query.democracy.preimages(
+      encodedHash
+    )) as any;
     expect(
       preimageStatus.unwrap().isAvailable && preimageStatus.unwrap().asAvailable.provider.toString()
     ).to.equal(GENESIS_ACCOUNT);

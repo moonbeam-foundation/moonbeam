@@ -25,7 +25,7 @@ jobs:
         run: |
           cd tools
           yarn install
-          yarn --silent run print-version-bump-info --from ${{ github.event.inputs.from }} --to ${{ github.event.inputs.to }} | tee ../version-bump.md
+          yarn --silent run print-version-bump-info -- --from ${{ github.event.inputs.from }} --to ${{ github.event.inputs.to }} | tee ../version-bump.md
       - name: Create version bump issue
         uses: peter-evans/create-issue-from-file@v3
         with:

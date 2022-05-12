@@ -15,7 +15,6 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
-	sysinfo::{query_partition_info, query_system_info, PartitionInfo, SystemInfo},
 	tests::{BlockCreationPerfTest, FibonacciPerfTest, StoragePerfTest, TestResults, TestRunner},
 	txn_signer::UnsignedTransaction,
 	PerfCmd,
@@ -25,7 +24,7 @@ use cumulus_primitives_parachain_inherent::{
 	MockValidationDataInherentDataProvider, MockXcmConfig,
 };
 use ethereum::TransactionAction;
-use fp_rpc::{ConvertTransaction, EthereumRuntimeRPCApi};
+use fp_rpc::{ConvertTransactionRuntimeApi, EthereumRuntimeRPCApi};
 use nimbus_primitives::NimbusId;
 use sc_cli::{CliConfiguration, Result as CliResult, SharedParams};
 use sc_client_api::HeaderBackend;
@@ -35,7 +34,7 @@ use sc_service::{Configuration, TFullBackend, TFullClient, TaskManager, Transact
 use sp_api::{BlockId, ConstructRuntimeApi, ProvideRuntimeApi};
 use sp_core::{H160, H256, U256};
 use sp_runtime::transaction_validity::TransactionSource;
-use std::{fs::File, io::prelude::*, marker::PhantomData, path::PathBuf, sync::Arc};
+use std::{fs::File, io::prelude::*, marker::PhantomData, sync::Arc};
 
 use futures::{
 	channel::{mpsc, oneshot},
@@ -44,9 +43,7 @@ use futures::{
 
 use cli_table::{print_stdout, WithTitle};
 use serde::Serialize;
-use service::{
-	chain_spec, rpc, Block, RuntimeApiCollection, RuntimeVariant, TransactionConverters,
-};
+use service::{chain_spec, rpc, Block, RuntimeApiCollection};
 use sha3::{Digest, Keccak256};
 
 pub type FullClient<RuntimeApi, Executor> =
@@ -65,7 +62,6 @@ where
 	client: Arc<FullClient<RuntimeApi, Executor>>,
 	manual_seal_command_sink: mpsc::Sender<EngineCommand<H256>>,
 	pool: Arc<sc_transaction_pool::FullPool<Block, FullClient<RuntimeApi, Executor>>>,
-	transaction_converter: TransactionConverters, // TODO: could be generic
 
 	_marker1: PhantomData<RuntimeApi>,
 	_marker2: PhantomData<Executor>,
@@ -79,7 +75,7 @@ where
 		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
 	Executor: NativeExecutionDispatch + 'static,
 {
-	pub fn from_cmd(config: Configuration, _cmd: &PerfCmd) -> CliResult<Self> {
+	pub fn from_cmd(mut config: Configuration, _cmd: &PerfCmd) -> CliResult<Self> {
 		println!("perf-test from_cmd");
 		let sc_service::PartialComponents {
 			client,
@@ -98,7 +94,7 @@ where
 					frontier_backend,
 					fee_history_cache,
 				),
-		} = service::new_partial::<RuntimeApi, Executor>(&config, true)?;
+		} = service::new_partial::<RuntimeApi, Executor>(&mut config, true)?;
 
 		// TODO: review -- we don't need any actual networking
 		let (network, system_rpc_tx, network_starter) =
@@ -119,18 +115,19 @@ where
 		// TODO: no need for prometheus here...
 		let prometheus_registry = config.prometheus_registry().cloned();
 
-		let env = sc_basic_authorship::ProposerFactory::new(
+		let mut env = sc_basic_authorship::ProposerFactory::new(
 			task_manager.spawn_handle(),
 			client.clone(),
 			transaction_pool.clone(),
 			prometheus_registry.as_ref(),
 			telemetry.as_ref().map(|x| x.handle()),
 		);
+		env.set_soft_deadline(service::SOFT_DEADLINE_PERCENT);
 
 		let command_sink;
 		let command_stream: Box<dyn Stream<Item = EngineCommand<H256>> + Send + Sync + Unpin> = {
 			let (sink, stream) = mpsc::channel(1000);
-			command_sink = Some(sink);
+			command_sink = sink;
 			Box::new(stream)
 		};
 
@@ -204,8 +201,15 @@ where
 			fee_history_cache: fee_history_cache.clone(),
 		});
 
-		let command_sink_for_deps = command_sink.clone();
-		let runtime_variant = RuntimeVariant::from_chain_spec(&config.chain_spec);
+		let command_sink_for_deps = Some(command_sink.clone());
+
+		let block_data_cache = Arc::new(fc_rpc::EthBlockDataCacheTask::new(
+			task_manager.spawn_handle(),
+			overrides.clone(),
+			3000,
+			3000,
+			prometheus_registry,
+		));
 
 		let rpc_extensions_builder = {
 			let client = client.clone();
@@ -213,12 +217,11 @@ where
 			let backend = backend.clone();
 			let network = network.clone();
 			let max_past_logs = 1000;
-			let runtime_variant = runtime_variant.clone();
 			let fee_history_cache = fee_history_cache.clone();
 			let overrides = overrides.clone();
+			let block_data_cache = block_data_cache.clone();
 
 			Box::new(move |deny_unsafe, _| {
-				let runtime_variant = runtime_variant.clone();
 				let deps = rpc::FullDeps {
 					client: client.clone(),
 					pool: pool.clone(),
@@ -228,20 +231,18 @@ where
 					network: network.clone(),
 					filter_pool: filter_pool.clone(),
 					ethapi_cmd: Default::default(),
-					eth_log_block_cache: 3000,
 					command_sink: command_sink_for_deps.clone(),
 					frontier_backend: frontier_backend.clone(),
 					backend: backend.clone(),
 					max_past_logs,
 					fee_history_limit,
 					fee_history_cache: fee_history_cache.clone(),
-					transaction_converter: TransactionConverters::for_runtime_variant(
-						runtime_variant,
-					),
 					xcm_senders: None,
+					overrides: overrides.clone(),
+					block_data_cache: block_data_cache.clone(),
 				};
 				#[allow(unused_mut)]
-				let mut io = rpc::create_full(deps, subscription_task_executor.clone(), overrides.clone());
+				let mut io = rpc::create_full(deps, subscription_task_executor.clone());
 				Ok(io)
 			})
 		};
@@ -264,9 +265,8 @@ where
 		Ok(TestContext {
 			_task_manager: task_manager,
 			client: client.clone(),
-			manual_seal_command_sink: command_sink.unwrap(),
+			manual_seal_command_sink: command_sink,
 			pool: transaction_pool,
-			transaction_converter: TransactionConverters::for_runtime_variant(runtime_variant),
 			_marker1: Default::default(),
 			_marker2: Default::default(),
 		})
@@ -389,17 +389,19 @@ where
 		let transaction_hash =
 			H256::from_slice(Keccak256::digest(&rlp::encode(&signed)).as_slice());
 
-		let unchecked_extrinsic = self
-			.transaction_converter
-			.convert_transaction(ethereum::TransactionV2::Legacy(signed));
+		let block_hash = BlockId::hash(self.client.info().best_hash);
+		log::debug!("eth_sign_and_send_transaction best_hash: {:?}", block_hash);
 
-		let hash = self.client.info().best_hash;
-		log::debug!("eth_sign_and_send_transaction best_hash: {:?}", hash);
-		let future = self.pool.submit_one(
-			&BlockId::hash(hash),
-			TransactionSource::Local,
-			unchecked_extrinsic,
-		);
+		#[allow(deprecated)]
+		let extrinsic = self
+			.client
+			.runtime_api()
+			.convert_transaction_before_version_2(&block_hash, signed)
+			.map_err(|_| "ConvertTransactionRuntimeApi not found")?;
+
+		let future = self
+			.pool
+			.submit_one(&block_hash, TransactionSource::Local, extrinsic);
 
 		let _ = futures::executor::block_on(future);
 
@@ -458,12 +460,7 @@ impl CliConfiguration for PerfCmd {
 
 impl PerfCmd {
 	// taking a different approach and starting a full dev service
-	pub fn run<RuntimeApi, Executor>(
-		&self,
-		path: &PathBuf,
-		cmd: &PerfCmd,
-		config: Configuration,
-	) -> CliResult<()>
+	pub fn run<RuntimeApi, Executor>(&self, cmd: &PerfCmd, config: Configuration) -> CliResult<()>
 	where
 		RuntimeApi:
 			ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
@@ -503,31 +500,16 @@ impl PerfCmd {
 			all_test_results.append(&mut results);
 		}
 
-		let (system_info, partition_info) = if cmd.disable_sysinfo {
-			(None, None)
-		} else {
-			let sys = query_system_info()?;
-			let part = query_partition_info(path).unwrap_or_else(|_| {
-				// TODO: this is inconsistent with behavior of query_system_info...
-				eprintln!("query_partition_info() failed, ignoring...");
-				Default::default()
-			});
-			(Some(sys), Some(part))
-		};
-
 		#[derive(Serialize)]
 		struct AllResults {
 			test_results: Vec<TestResults>,
-			system_info: Option<SystemInfo>,
-			partition_info: Option<PartitionInfo>,
 		}
 
 		let all_results = AllResults {
 			test_results: all_test_results.clone(),
-			system_info,
-			partition_info,
 		};
-		let results_str = serde_json::to_string_pretty(&all_results).unwrap();
+		let results_str =
+			serde_json::to_string_pretty(&all_results).expect("fail to serialize AllResults");
 
 		if let Some(target) = &cmd.output_file {
 			let mut file = File::create(target)?;

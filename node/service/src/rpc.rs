@@ -23,24 +23,24 @@ use std::{sync::Arc, time::Duration};
 use fp_rpc::EthereumRuntimeRPCApi;
 use sp_block_builder::BlockBuilder;
 
-use crate::{client::RuntimeApiCollection, TransactionConverters};
+use crate::client::RuntimeApiCollection;
 use cli_opt::EthApi as EthApiCmd;
 use cumulus_primitives_core::ParaId;
 use fc_mapping_sync::{MappingSyncWorker, SyncStrategy};
 use fc_rpc::{
-	EthApi, EthApiServer, EthBlockDataCache, EthFilterApi, EthFilterApiServer, EthPubSubApi,
+	EthApi, EthApiServer, EthBlockDataCacheTask, EthFilterApi, EthFilterApiServer, EthPubSubApi,
 	EthPubSubApiServer, EthTask, HexEncodedIdProvider, NetApi, NetApiServer, OverrideHandle,
 	RuntimeApiStorageOverride, SchemaV1Override, SchemaV2Override, SchemaV3Override,
 	StorageOverride, Web3Api, Web3ApiServer,
 };
 use fc_rpc_core::types::{FeeHistoryCache, FilterPool};
+use fp_storage::EthereumStorageSchema;
 use futures::StreamExt;
 use jsonrpc_pubsub::manager::SubscriptionManager;
 use manual_xcm_rpc::{ManualXcm, ManualXcmApi};
 use moonbeam_core_primitives::{Block, Hash};
 use moonbeam_finality_rpc::{MoonbeamFinality, MoonbeamFinalityApi};
 use moonbeam_rpc_txpool::{TxPool, TxPoolServer};
-use pallet_ethereum::EthereumStorageSchema;
 use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
 use sc_client_api::{
 	backend::{AuxStore, Backend, StateBackend, StorageProvider},
@@ -81,8 +81,6 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 	pub filter_pool: Option<FilterPool>,
 	/// The list of optional RPC extensions.
 	pub ethapi_cmd: Vec<EthApiCmd>,
-	/// Size of the LRU cache for block data and their transaction statuses.
-	pub eth_log_block_cache: usize,
 	/// Frontier Backend.
 	pub frontier_backend: Arc<fc_db::Backend<Block>>,
 	/// Backend.
@@ -95,10 +93,12 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 	pub fee_history_limit: u64,
 	/// Fee history cache.
 	pub fee_history_cache: FeeHistoryCache,
-	/// Ethereum transaction to Extrinsic converter.
-	pub transaction_converter: TransactionConverters,
 	/// Channels for manual xcm messages (downward, hrmp)
 	pub xcm_senders: Option<(flume::Sender<Vec<u8>>, flume::Sender<(ParaId, Vec<u8>)>)>,
+	/// Ethereum data access overrides.
+	pub overrides: Arc<OverrideHandle<Block>>,
+	/// Cache for Ethereum block data.
+	pub block_data_cache: Arc<EthBlockDataCacheTask<Block>>,
 }
 
 pub fn overrides_handle<C, BE>(client: Arc<C>) -> Arc<OverrideHandle<Block>>
@@ -137,7 +137,6 @@ where
 pub fn create_full<C, P, BE, A>(
 	deps: FullDeps<C, P, A, BE>,
 	subscription_task_executor: SubscriptionTaskExecutor,
-	overrides: Arc<OverrideHandle<Block>>,
 ) -> jsonrpc_core::IoHandler<sc_rpc::Metadata>
 where
 	BE: Backend<Block> + 'static,
@@ -161,15 +160,15 @@ where
 		network,
 		filter_pool,
 		ethapi_cmd,
-		eth_log_block_cache,
 		command_sink,
 		frontier_backend,
 		backend: _,
 		max_past_logs,
 		fee_history_limit,
 		fee_history_cache,
-		transaction_converter,
 		xcm_senders,
+		overrides,
+		block_data_cache,
 	} = deps;
 
 	io.extend_with(SystemApi::to_delegate(FullSystem::new(
@@ -183,22 +182,27 @@ where
 	// TODO: are we supporting signing?
 	let signers = Vec::new();
 
-	let block_data_cache = Arc::new(EthBlockDataCache::new(
-		eth_log_block_cache,
-		eth_log_block_cache,
-	));
+	enum Never {}
+	impl<T> fp_rpc::ConvertTransaction<T> for Never {
+		fn convert_transaction(&self, _transaction: pallet_ethereum::Transaction) -> T {
+			// The Never type is not instantiable, but this method requires the type to be
+			// instantiated to be called (`&self` parameter), so if the code compiles we have the
+			// guarantee that this function will never be called.
+			unreachable!()
+		}
+	}
+	let convert_transaction: Option<Never> = None;
 
 	io.extend_with(EthApiServer::to_delegate(EthApi::new(
 		client.clone(),
 		pool.clone(),
 		graph.clone(),
-		transaction_converter,
+		convert_transaction,
 		network.clone(),
 		signers,
 		overrides.clone(),
 		frontier_backend.clone(),
 		is_authority,
-		max_past_logs,
 		block_data_cache.clone(),
 		fc_rpc::format::Geth,
 		fee_history_limit,
@@ -211,7 +215,6 @@ where
 			frontier_backend.clone(),
 			filter_pool,
 			500_usize, // max stored filters
-			overrides.clone(),
 			max_past_logs,
 			block_data_cache.clone(),
 		)));
@@ -299,6 +302,8 @@ where
 			params.client.clone(),
 			params.substrate_backend.clone(),
 			params.frontier_backend.clone(),
+			3,
+			0,
 			SyncStrategy::Parachain,
 		)
 		.for_each(|()| futures::future::ready(())),

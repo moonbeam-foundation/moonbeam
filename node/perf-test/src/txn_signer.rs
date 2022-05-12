@@ -57,7 +57,7 @@ impl UnsignedTransaction {
 		let msg = libsecp256k1::Message::parse(hash.as_fixed_bytes());
 		let s = libsecp256k1::sign(
 			&msg,
-			&libsecp256k1::SecretKey::parse_slice(&key[..]).unwrap(),
+			&libsecp256k1::SecretKey::parse(&key.0).expect("invalid secret key"),
 		);
 		let sig = s.0.serialize();
 
@@ -66,7 +66,7 @@ impl UnsignedTransaction {
 			H256::from_slice(&sig[0..32]),
 			H256::from_slice(&sig[32..64]),
 		)
-		.unwrap();
+		.expect("invalid transaction signature");
 
 		Transaction {
 			nonce: self.nonce,

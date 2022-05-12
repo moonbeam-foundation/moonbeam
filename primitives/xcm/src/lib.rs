@@ -22,19 +22,16 @@ use frame_support::{
 	traits::{tokens::fungibles::Mutate, Get, OriginTrait},
 	weights::{constants::WEIGHT_PER_SECOND, Weight},
 };
+use orml_traits::location::{RelativeReserveProvider, Reserve};
 use sp_runtime::traits::Zero;
-use sp_std::borrow::Borrow;
+use sp_std::{borrow::Borrow, vec::Vec};
 use sp_std::{convert::TryInto, marker::PhantomData};
 use xcm::latest::{
-	AssetId as xcmAssetId, Error as XcmError, Fungibility,
-	Junction::{AccountKey20, Parachain},
-	Junctions::*,
+	AssetId as xcmAssetId, Error as XcmError, Fungibility, Junction::AccountKey20, Junctions::*,
 	MultiAsset, MultiLocation, NetworkId,
 };
 use xcm_builder::TakeRevenue;
-use xcm_executor::traits::{FilterAssetLocation, MatchesFungibles, WeightTrader};
-
-use sp_std::vec::Vec;
+use xcm_executor::traits::{MatchesFungibles, WeightTrader};
 
 /// Converter struct implementing `AssetIdConversion` converting a numeric asset ID
 /// (must be `TryFrom/TryInto<u128>`) into a MultiLocation Value and Viceversa through
@@ -150,6 +147,12 @@ impl<
 		match (first_asset.id, first_asset.fun) {
 			(xcmAssetId::Concrete(id), Fungibility::Fungible(_)) => {
 				let asset_type: AssetType = id.clone().into();
+				// Shortcut if we know the asset is not supported
+				// This involves the same db read per block, mitigating any attack based on
+				// non-supported assets
+				if !AssetIdInfoGetter::payment_is_supported(asset_type.clone()) {
+					return Err(XcmError::TooExpensive);
+				}
 				if let Some(units_per_second) = AssetIdInfoGetter::get_units_per_second(asset_type)
 				{
 					let amount = units_per_second.saturating_mul(weight as u128)
@@ -238,40 +241,25 @@ impl<
 	}
 }
 
-pub trait Reserve {
-	/// Returns assets reserve location.
-	fn reserve(&self) -> Option<MultiLocation>;
-}
-
-// Takes the chain part of a MultiAsset
-impl Reserve for MultiAsset {
-	fn reserve(&self) -> Option<MultiLocation> {
-		if let xcmAssetId::Concrete(location) = self.id.clone() {
-			let first_interior = location.first_interior();
-			let parents = location.parent_count();
-			match (parents, first_interior.clone()) {
-				(0, Some(Parachain(id))) => Some(MultiLocation::new(0, X1(Parachain(id.clone())))),
-				(1, Some(Parachain(id))) => Some(MultiLocation::new(1, X1(Parachain(id.clone())))),
-				(1, _) => Some(MultiLocation::parent()),
-				_ => None,
+/// This struct offers uses RelativeReserveProvider to output relative views of multilocations
+/// However, additionally accepts a MultiLocation that aims at representing the chain part
+/// (parent: 1, Parachain(paraId)) of the absolute representation of our chain.
+/// If a token reserve matches against this absolute view, we return  Some(MultiLocation::here())
+/// This helps users by preventing errors when they try to transfer a token through xtokens
+/// to our chain (either inserting the relative or the absolute value).
+pub struct AbsoluteAndRelativeReserve<AbsoluteMultiLocation>(PhantomData<AbsoluteMultiLocation>);
+impl<AbsoluteMultiLocation> Reserve for AbsoluteAndRelativeReserve<AbsoluteMultiLocation>
+where
+	AbsoluteMultiLocation: Get<MultiLocation>,
+{
+	fn reserve(asset: &MultiAsset) -> Option<MultiLocation> {
+		RelativeReserveProvider::reserve(asset).map(|relative_reserve| {
+			if relative_reserve == AbsoluteMultiLocation::get() {
+				MultiLocation::here()
+			} else {
+				relative_reserve
 			}
-		} else {
-			None
-		}
-	}
-}
-
-/// A `FilterAssetLocation` implementation. Filters multi native assets whose
-/// reserve is same with `origin`.
-pub struct MultiNativeAsset;
-impl FilterAssetLocation for MultiNativeAsset {
-	fn filter_asset_location(asset: &MultiAsset, origin: &MultiLocation) -> bool {
-		if let Some(ref reserve) = asset.reserve() {
-			if reserve == origin {
-				return true;
-			}
-		}
-		false
+		})
 	}
 }
 
@@ -284,9 +272,11 @@ pub trait AssetTypeGetter<AssetId, AssetType> {
 	fn get_asset_id(asset_type: AssetType) -> Option<AssetId>;
 }
 
-// Defines the trait to obtain the units per second of a give assetId for local execution
-// This parameter will be used to charge for fees upon assetId deposit
+// Defines the trait to obtain the units per second of a give asset_type for local execution
+// This parameter will be used to charge for fees upon asset_type deposit
 pub trait UnitsToWeightRatio<AssetType> {
+	// Whether payment in a particular asset_type is suppotrted
+	fn payment_is_supported(asset_type: AssetType) -> bool;
 	// Get units per second from asset type
 	fn get_units_per_second(asset_type: AssetType) -> Option<u128>;
 }

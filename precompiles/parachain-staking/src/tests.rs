@@ -15,15 +15,15 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::mock::{
-	events, evm_test_context, precompile_address, roll_to, set_points, Call, ExtBuilder, Origin,
-	ParachainStaking, PrecompilesValue, Runtime, TestAccount, TestPrecompiles,
+	events, evm_test_context, precompile_address, roll_to, roll_to_round_begin, set_points, Call,
+	ExtBuilder, Origin, ParachainStaking, PrecompilesValue, Runtime, TestAccount, TestPrecompiles,
 };
 use crate::{Action, PrecompileOutput};
-use fp_evm::PrecompileFailure;
+use fp_evm::{Context, PrecompileFailure};
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_evm::{Call as EvmCall, ExitSucceed, PrecompileSet};
 use parachain_staking::Event as StakingEvent;
-use precompile_utils::EvmDataWriter;
+use precompile_utils::{Address, EvmDataWriter};
 use sha3::{Digest, Keccak256};
 use sp_core::U256;
 use std::assert_matches::assert_matches;
@@ -58,10 +58,16 @@ fn selectors() {
 	assert_eq!(Action::MinNomination as u32, 0xc9f593b2);
 	assert_eq!(Action::MinDelegation as u32, 0x72ce8933);
 	assert_eq!(Action::CandidateCount as u32, 0x4b1c4c29);
+	assert_eq!(Action::Round as u32, 0x146ca531);
 	assert_eq!(Action::CollatorNominationCount as u32, 0x0ad6a7be);
 	assert_eq!(Action::CandidateDelegationCount as u32, 0x815b796c);
 	assert_eq!(Action::NominatorNominationCount as u32, 0xdae5659b);
 	assert_eq!(Action::DelegatorDelegationCount as u32, 0xfbc51bca);
+	assert_eq!(Action::SelectedCandidates as u32, 0x89f47a21);
+	assert_eq!(Action::DelegationRequestIsPending as u32, 0x192e1db3);
+	assert_eq!(Action::DelegatorExitIsPending as u32, 0xdc3ec64b);
+	assert_eq!(Action::CandidateExitIsPending as u32, 0xeb613b8a);
+	assert_eq!(Action::CandidateRequestIsPending as u32, 0x26ab05fb);
 	assert_eq!(Action::JoinCandidates as u32, 0x0a1bff60);
 	// DEPRECATED
 	assert_eq!(Action::LeaveCandidates as u32, 0x72b02a31);
@@ -274,6 +280,54 @@ fn points_non_zero() {
 				expected_one_result
 			);
 		});
+}
+
+#[test]
+fn round_works() {
+	ExtBuilder::default().build().execute_with(|| {
+		// Expected starts at round 1
+		let mut expected_result = Some(Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			output: EvmDataWriter::new().write(1u32).build(),
+			cost: Default::default(),
+			logs: Default::default(),
+		}));
+		// Assert that round is 1
+		assert_eq!(
+			precompiles().execute(
+				precompile_address(),
+				&EvmDataWriter::new_with_selector(Action::Round).build(),
+				None,
+				&evm_test_context(),
+				false
+			),
+			expected_result
+		);
+		// test next `ROUNDS_TO_TEST` rounds
+		const ROUNDS_TO_TEST: u64 = 10;
+		let mut current_round: u64 = 1;
+		while current_round < ROUNDS_TO_TEST {
+			current_round += 1;
+			roll_to_round_begin(current_round);
+			expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(current_round).build(),
+				cost: Default::default(),
+				logs: Default::default(),
+			}));
+			// Assert that round is equal to expectation
+			assert_eq!(
+				precompiles().execute(
+					precompile_address(),
+					&EvmDataWriter::new_with_selector(Action::Round).build(),
+					None,
+					&evm_test_context(),
+					false
+				),
+				expected_result
+			);
+		}
+	});
 }
 
 // DEPRECATED
@@ -727,6 +781,455 @@ fn is_selected_candidate_true() {
 }
 
 #[test]
+fn selected_candidates_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(TestAccount::Alice, 1_000)])
+		.with_candidates(vec![(TestAccount::Alice, 1_000)])
+		.build()
+		.execute_with(|| {
+			let input_data = EvmDataWriter::new_with_selector(Action::SelectedCandidates).build();
+			// Alice is only selected candidates
+			let expected_selected_candidate = vec![TestAccount::Alice];
+			let evm_expected_selected_candidate: Vec<Address> = expected_selected_candidate
+				.into_iter()
+				.map(|x| Address(x.into()))
+				.collect();
+			// Expected result is bogus selected repeated candidates
+			let expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new()
+					.write(evm_expected_selected_candidate)
+					.build(),
+				cost: Default::default(),
+				logs: Default::default(),
+			}));
+
+			// Assert that Alice is a selected candidate
+			assert_eq!(
+				precompiles().execute(
+					precompile_address(),
+					&input_data,
+					None,
+					&evm_test_context(),
+					false
+				),
+				expected_result
+			);
+		});
+}
+
+#[test]
+fn delegation_request_is_pending_works() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(TestAccount::Alice, 1_000),
+			(TestAccount::Charlie, 50),
+			(TestAccount::Bogus, 50),
+		])
+		.with_candidates(vec![(TestAccount::Alice, 1_000)])
+		.with_delegations(vec![(TestAccount::Charlie, TestAccount::Alice, 50)])
+		.build()
+		.execute_with(|| {
+			// Expected false because we dont have pending requests yet
+			let mut expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(false).build(),
+				cost: Default::default(),
+				logs: Default::default(),
+			}));
+			// Assert that we dont have pending requests
+			assert_eq!(
+				precompiles().execute(
+					precompile_address(),
+					&EvmDataWriter::new_with_selector(Action::DelegationRequestIsPending)
+						.write(Address(TestAccount::Charlie.into()))
+						.write(Address(TestAccount::Alice.into()))
+						.build(),
+					None,
+					&evm_test_context(),
+					false
+				),
+				expected_result
+			);
+
+			// Schedule Revoke request
+			assert_eq!(
+				precompiles().execute(
+					precompile_address(),
+					&EvmDataWriter::new_with_selector(Action::ScheduleRevokeDelegation)
+						.write(Address(TestAccount::Alice.into()))
+						.build(),
+					None,
+					&Context {
+						address: precompile_address(),
+						caller: TestAccount::Charlie.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: Default::default(),
+					cost: 282552000,
+					logs: Default::default(),
+				}))
+			);
+
+			// Expected true because we scheduled a revoke request
+			expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(true).build(),
+				cost: Default::default(),
+				logs: Default::default(),
+			}));
+			// Assert that we have pending requests
+			assert_eq!(
+				precompiles().execute(
+					precompile_address(),
+					&EvmDataWriter::new_with_selector(Action::DelegationRequestIsPending)
+						.write(Address(TestAccount::Charlie.into()))
+						.write(Address(TestAccount::Alice.into()))
+						.build(),
+					None,
+					&evm_test_context(),
+					false
+				),
+				expected_result
+			);
+		})
+}
+
+#[test]
+fn delegation_request_is_pending_returns_false_for_non_existing_delegator() {
+	ExtBuilder::default().build().execute_with(|| {
+		// Expected false because delegator Bob does not exist
+		let expected_result = Some(Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			output: EvmDataWriter::new().write(false).build(),
+			cost: Default::default(),
+			logs: Default::default(),
+		}));
+		// Assert that we return false
+		assert_eq!(
+			precompiles().execute(
+				precompile_address(),
+				&EvmDataWriter::new_with_selector(Action::DelegationRequestIsPending)
+					.write(Address(TestAccount::Bob.into()))
+					.write(Address(TestAccount::Alice.into()))
+					.build(),
+				None,
+				&evm_test_context(),
+				false
+			),
+			expected_result
+		);
+	})
+}
+
+#[test]
+fn delegation_exit_is_pending_works() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(TestAccount::Alice, 1_000),
+			(TestAccount::Charlie, 50),
+			(TestAccount::Bogus, 50),
+		])
+		.with_candidates(vec![(TestAccount::Alice, 1_000)])
+		.with_delegations(vec![(TestAccount::Charlie, TestAccount::Alice, 50)])
+		.build()
+		.execute_with(|| {
+			// Expected false because we dont have pending requests yet
+			let mut expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(false).build(),
+				cost: Default::default(),
+				logs: Default::default(),
+			}));
+			// Assert that we don't have pending requests
+			assert_eq!(
+				precompiles().execute(
+					precompile_address(),
+					&EvmDataWriter::new_with_selector(Action::DelegatorExitIsPending)
+						.write(Address(TestAccount::Charlie.into()))
+						.build(),
+					None,
+					&evm_test_context(),
+					false
+				),
+				expected_result
+			);
+
+			// Schedule exit request
+			assert_eq!(
+				precompiles().execute(
+					precompile_address(),
+					&EvmDataWriter::new_with_selector(Action::ScheduleLeaveDelegators).build(),
+					None,
+					&Context {
+						address: precompile_address(),
+						caller: TestAccount::Charlie.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: Default::default(),
+					cost: 152072000,
+					logs: Default::default(),
+				}))
+			);
+
+			// Expected true because we scheduled exit
+			expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(true).build(),
+				cost: Default::default(),
+				logs: Default::default(),
+			}));
+			// Assert that we have pending exit
+			assert_eq!(
+				precompiles().execute(
+					precompile_address(),
+					&EvmDataWriter::new_with_selector(Action::DelegatorExitIsPending)
+						.write(Address(TestAccount::Charlie.into()))
+						.build(),
+					None,
+					&evm_test_context(),
+					false
+				),
+				expected_result
+			);
+		})
+}
+
+#[test]
+fn delegation_exit_is_pending_returns_false_for_non_existing_delegator() {
+	ExtBuilder::default().build().execute_with(|| {
+		// Expected false because delegator Bob does not exist
+		let expected_result = Some(Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			output: EvmDataWriter::new().write(false).build(),
+			cost: Default::default(),
+			logs: Default::default(),
+		}));
+		// Assert that we return false
+		assert_eq!(
+			precompiles().execute(
+				precompile_address(),
+				&EvmDataWriter::new_with_selector(Action::DelegatorExitIsPending)
+					.write(Address(TestAccount::Bob.into()))
+					.build(),
+				None,
+				&evm_test_context(),
+				false
+			),
+			expected_result
+		);
+	})
+}
+
+#[test]
+fn candidate_exit_is_pending_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(TestAccount::Alice, 1_000)])
+		.with_candidates(vec![(TestAccount::Alice, 1_000)])
+		.build()
+		.execute_with(|| {
+			// Expected false because we dont have pending requests yet
+			let mut expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(false).build(),
+				cost: Default::default(),
+				logs: Default::default(),
+			}));
+			// Assert that we don't have pending requests
+			assert_eq!(
+				precompiles().execute(
+					precompile_address(),
+					&EvmDataWriter::new_with_selector(Action::CandidateExitIsPending)
+						.write(Address(TestAccount::Alice.into()))
+						.build(),
+					None,
+					&evm_test_context(),
+					false
+				),
+				expected_result
+			);
+
+			// Schedule exit request
+			assert_eq!(
+				precompiles().execute(
+					precompile_address(),
+					&EvmDataWriter::new_with_selector(Action::ScheduleLeaveCandidates)
+						.write(U256::one())
+						.build(),
+					None,
+					&Context {
+						address: precompile_address(),
+						caller: TestAccount::Alice.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: Default::default(),
+					cost: 313608000,
+					logs: Default::default(),
+				}))
+			);
+
+			// Expected true because we scheduled exit
+			expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(true).build(),
+				cost: Default::default(),
+				logs: Default::default(),
+			}));
+			// Assert that we have pending exit
+			assert_eq!(
+				precompiles().execute(
+					precompile_address(),
+					&EvmDataWriter::new_with_selector(Action::CandidateExitIsPending)
+						.write(Address(TestAccount::Alice.into()))
+						.build(),
+					None,
+					&evm_test_context(),
+					false
+				),
+				expected_result
+			);
+		})
+}
+
+#[test]
+fn candidate_exit_is_pending_returns_false_for_non_existing_delegator() {
+	ExtBuilder::default().build().execute_with(|| {
+		// Expected false because candidate Bob does not exist
+		let expected_result = Some(Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			output: EvmDataWriter::new().write(false).build(),
+			cost: Default::default(),
+			logs: Default::default(),
+		}));
+		// Assert that we return false
+		assert_eq!(
+			precompiles().execute(
+				precompile_address(),
+				&EvmDataWriter::new_with_selector(Action::CandidateExitIsPending)
+					.write(Address(TestAccount::Bob.into()))
+					.build(),
+				None,
+				&evm_test_context(),
+				false
+			),
+			expected_result
+		);
+	})
+}
+
+#[test]
+fn candidate_request_is_pending_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(TestAccount::Alice, 1_050)])
+		.with_candidates(vec![(TestAccount::Alice, 1_050)])
+		.build()
+		.execute_with(|| {
+			// Expected false because we dont have pending requests yet
+			let mut expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(false).build(),
+				cost: Default::default(),
+				logs: Default::default(),
+			}));
+			// Assert that we dont have pending requests
+			assert_eq!(
+				precompiles().execute(
+					precompile_address(),
+					&EvmDataWriter::new_with_selector(Action::CandidateRequestIsPending)
+						.write(Address(TestAccount::Alice.into()))
+						.build(),
+					None,
+					&evm_test_context(),
+					false
+				),
+				expected_result
+			);
+
+			// Schedule bond less request
+			assert_eq!(
+				precompiles().execute(
+					precompile_address(),
+					&EvmDataWriter::new_with_selector(Action::ScheduleCandidateBondLess)
+						.write(U256::zero())
+						.build(),
+					None,
+					&Context {
+						address: precompile_address(),
+						caller: TestAccount::Alice.into(),
+						apparent_value: From::from(0),
+					},
+					false,
+				),
+				Some(Ok(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output: Default::default(),
+					cost: 151339000,
+					logs: Default::default(),
+				}))
+			);
+
+			// Expected true because we scheduled a bond less request
+			expected_result = Some(Ok(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: EvmDataWriter::new().write(true).build(),
+				cost: Default::default(),
+				logs: Default::default(),
+			}));
+			// Assert that we have pending requests
+			assert_eq!(
+				precompiles().execute(
+					precompile_address(),
+					&EvmDataWriter::new_with_selector(Action::CandidateRequestIsPending)
+						.write(Address(TestAccount::Alice.into()))
+						.build(),
+					None,
+					&evm_test_context(),
+					false
+				),
+				expected_result
+			);
+		})
+}
+
+#[test]
+fn candidate_request_is_pending_returns_false_for_non_existing_candidate() {
+	ExtBuilder::default().build().execute_with(|| {
+		// Expected false because candidate Bob does not exist
+		let expected_result = Some(Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			output: EvmDataWriter::new().write(false).build(),
+			cost: Default::default(),
+			logs: Default::default(),
+		}));
+		// Assert that we return false
+		assert_eq!(
+			precompiles().execute(
+				precompile_address(),
+				&EvmDataWriter::new_with_selector(Action::CandidateRequestIsPending)
+					.write(Address(TestAccount::Bob.into()))
+					.build(),
+				None,
+				&evm_test_context(),
+				false
+			),
+			expected_result
+		);
+	})
+}
+
+#[test]
 fn join_candidates_works() {
 	ExtBuilder::default()
 		.with_balances(vec![(TestAccount::Alice, 1_000)])
@@ -745,8 +1248,12 @@ fn join_candidates_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Alice, input_data)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event =
-				StakingEvent::JoinedCollatorCandidates(TestAccount::Alice, 1000, 1000).into();
+			let expected: crate::mock::Event = StakingEvent::JoinedCollatorCandidates {
+				account: TestAccount::Alice,
+				amount_locked: 1000,
+				new_total_amt_locked: 1000,
+			}
+			.into();
 			// Assert that the events vector contains the one expected
 			println!("{:?}", events());
 			assert!(events().contains(&expected));
@@ -772,8 +1279,12 @@ fn leave_candidates_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Alice, input_data)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event =
-				StakingEvent::CandidateScheduledExit(1, TestAccount::Alice, 3).into();
+			let expected: crate::mock::Event = StakingEvent::CandidateScheduledExit {
+				exit_allowed_round: 1,
+				candidate: TestAccount::Alice,
+				scheduled_exit: 3,
+			}
+			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -797,8 +1308,12 @@ fn schedule_leave_candidates_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Alice, input_data)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event =
-				StakingEvent::CandidateScheduledExit(1, TestAccount::Alice, 3).into();
+			let expected: crate::mock::Event = StakingEvent::CandidateScheduledExit {
+				exit_allowed_round: 1,
+				candidate: TestAccount::Alice,
+				scheduled_exit: 3,
+			}
+			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -828,8 +1343,12 @@ fn execute_leave_candidates_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Alice, input_data)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event =
-				StakingEvent::CandidateLeft(TestAccount::Alice, 1_000, 0).into();
+			let expected: crate::mock::Event = StakingEvent::CandidateLeft {
+				ex_candidate: TestAccount::Alice,
+				unlocked_amount: 1_000,
+				new_total_amt_locked: 0,
+			}
+			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -857,8 +1376,10 @@ fn cancel_leave_candidates_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Alice, input_data)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event =
-				StakingEvent::CancelledCandidateExit(TestAccount::Alice).into();
+			let expected: crate::mock::Event = StakingEvent::CancelledCandidateExit {
+				candidate: TestAccount::Alice,
+			}
+			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -883,8 +1404,10 @@ fn go_online_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Alice, input_data)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event =
-				StakingEvent::CandidateBackOnline(1, TestAccount::Alice).into();
+			let expected: crate::mock::Event = StakingEvent::CandidateBackOnline {
+				candidate: TestAccount::Alice,
+			}
+			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -906,8 +1429,10 @@ fn go_offline_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Alice, input_data)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event =
-				StakingEvent::CandidateWentOffline(1, TestAccount::Alice).into();
+			let expected: crate::mock::Event = StakingEvent::CandidateWentOffline {
+				candidate: TestAccount::Alice,
+			}
+			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -931,8 +1456,12 @@ fn candidate_bond_more_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Alice, input_data)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event =
-				StakingEvent::CandidateBondedMore(TestAccount::Alice, 500, 1500).into();
+			let expected: crate::mock::Event = StakingEvent::CandidateBondedMore {
+				candidate: TestAccount::Alice,
+				amount: 500,
+				new_total_bond: 1500,
+			}
+			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -957,8 +1486,12 @@ fn candidate_bond_less_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Alice, input_data)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event =
-				StakingEvent::CandidateBondLessRequested(TestAccount::Alice, 500, 3).into();
+			let expected: crate::mock::Event = StakingEvent::CandidateBondLessRequested {
+				candidate: TestAccount::Alice,
+				amount_to_decrease: 500,
+				execute_round: 3,
+			}
+			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -982,8 +1515,12 @@ fn schedule_candidate_bond_less_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Alice, input_data)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event =
-				StakingEvent::CandidateBondLessRequested(TestAccount::Alice, 500, 3).into();
+			let expected: crate::mock::Event = StakingEvent::CandidateBondLessRequested {
+				candidate: TestAccount::Alice,
+				amount_to_decrease: 500,
+				execute_round: 3,
+			}
+			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -1012,8 +1549,12 @@ fn execute_candidate_bond_less_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Alice, input_data)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event =
-				StakingEvent::CandidateBondedLess(TestAccount::Alice, 500, 1000).into();
+			let expected: crate::mock::Event = StakingEvent::CandidateBondedLess {
+				candidate: TestAccount::Alice,
+				amount: 500,
+				new_bond: 1000,
+			}
+			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -1040,8 +1581,12 @@ fn cancel_candidate_bond_less_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Alice, input_data)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event =
-				StakingEvent::CancelledCandidateBondLess(TestAccount::Alice, 200, 3).into();
+			let expected: crate::mock::Event = StakingEvent::CancelledCandidateBondLess {
+				candidate: TestAccount::Alice,
+				amount: 200,
+				execute_round: 3,
+			}
+			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -1073,12 +1618,14 @@ fn nominate_works() {
 
 			assert!(ParachainStaking::is_delegator(&TestAccount::Bob));
 
-			let expected: crate::mock::Event = StakingEvent::Delegation(
-				TestAccount::Bob,
-				1_000,
-				TestAccount::Alice,
-				parachain_staking::DelegatorAdded::AddedToTop { new_total: 2_000 },
-			)
+			let expected: crate::mock::Event = StakingEvent::Delegation {
+				delegator: TestAccount::Bob,
+				locked_amount: 1_000,
+				candidate: TestAccount::Alice,
+				delegator_position: parachain_staking::DelegatorAdded::AddedToTop {
+					new_total: 2_000,
+				},
+			}
 			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
@@ -1110,12 +1657,14 @@ fn delegate_works() {
 
 			assert!(ParachainStaking::is_delegator(&TestAccount::Bob));
 
-			let expected: crate::mock::Event = StakingEvent::Delegation(
-				TestAccount::Bob,
-				1_000,
-				TestAccount::Alice,
-				parachain_staking::DelegatorAdded::AddedToTop { new_total: 2_000 },
-			)
+			let expected: crate::mock::Event = StakingEvent::Delegation {
+				delegator: TestAccount::Bob,
+				locked_amount: 1_000,
+				candidate: TestAccount::Alice,
+				delegator_position: parachain_staking::DelegatorAdded::AddedToTop {
+					new_total: 2_000,
+				},
+			}
 			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
@@ -1142,8 +1691,12 @@ fn leave_nominators_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Bob, input_data)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event =
-				StakingEvent::DelegatorExitScheduled(1, TestAccount::Bob, 3).into();
+			let expected: crate::mock::Event = StakingEvent::DelegatorExitScheduled {
+				round: 1,
+				delegator: TestAccount::Bob,
+				scheduled_exit: 3,
+			}
+			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -1166,8 +1719,12 @@ fn schedule_leave_delegators_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Bob, input_data)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event =
-				StakingEvent::DelegatorExitScheduled(1, TestAccount::Bob, 3).into();
+			let expected: crate::mock::Event = StakingEvent::DelegatorExitScheduled {
+				round: 1,
+				delegator: TestAccount::Bob,
+				scheduled_exit: 3,
+			}
+			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -1197,8 +1754,11 @@ fn execute_leave_delegators_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Alice, input_data)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event =
-				StakingEvent::DelegatorLeft(TestAccount::Bob, 500).into();
+			let expected: crate::mock::Event = StakingEvent::DelegatorLeft {
+				delegator: TestAccount::Bob,
+				unstaked_amount: 500,
+			}
+			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -1224,8 +1784,10 @@ fn cancel_leave_delegators_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Bob, input_data)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event =
-				StakingEvent::DelegatorExitCancelled(TestAccount::Bob).into();
+			let expected: crate::mock::Event = StakingEvent::DelegatorExitCancelled {
+				delegator: TestAccount::Bob,
+			}
+			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -1250,12 +1812,12 @@ fn revoke_nomination_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Bob, input_data)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event = StakingEvent::DelegationRevocationScheduled(
-				1,
-				TestAccount::Bob,
-				TestAccount::Alice,
-				3,
-			)
+			let expected: crate::mock::Event = StakingEvent::DelegationRevocationScheduled {
+				round: 1,
+				delegator: TestAccount::Bob,
+				candidate: TestAccount::Alice,
+				scheduled_exit: 3,
+			}
 			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
@@ -1280,12 +1842,12 @@ fn schedule_revoke_delegation_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Bob, input_data)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event = StakingEvent::DelegationRevocationScheduled(
-				1,
-				TestAccount::Bob,
-				TestAccount::Alice,
-				3,
-			)
+			let expected: crate::mock::Event = StakingEvent::DelegationRevocationScheduled {
+				round: 1,
+				delegator: TestAccount::Bob,
+				candidate: TestAccount::Alice,
+				scheduled_exit: 3,
+			}
 			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
@@ -1311,9 +1873,13 @@ fn nominator_bond_more_works() {
 
 			assert_ok!(Call::Evm(evm_call(TestAccount::Bob, input_data)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event =
-				StakingEvent::DelegationIncreased(TestAccount::Bob, TestAccount::Alice, 500, true)
-					.into();
+			let expected: crate::mock::Event = StakingEvent::DelegationIncreased {
+				delegator: TestAccount::Bob,
+				candidate: TestAccount::Alice,
+				amount: 500,
+				in_top: true,
+			}
+			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -1337,9 +1903,13 @@ fn delegator_bond_more_works() {
 
 			assert_ok!(Call::Evm(evm_call(TestAccount::Bob, input_data)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event =
-				StakingEvent::DelegationIncreased(TestAccount::Bob, TestAccount::Alice, 500, true)
-					.into();
+			let expected: crate::mock::Event = StakingEvent::DelegationIncreased {
+				delegator: TestAccount::Bob,
+				candidate: TestAccount::Alice,
+				amount: 500,
+				in_top: true,
+			}
+			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -1365,12 +1935,12 @@ fn nominator_bond_less_works() {
 			assert_ok!(Call::Evm(evm_call(TestAccount::Bob, input_data)).dispatch(Origin::root()));
 
 			// Check for the right events.
-			let expected_event: crate::mock::Event = StakingEvent::DelegationDecreaseScheduled(
-				TestAccount::Bob,
-				TestAccount::Alice,
-				500,
-				3,
-			)
+			let expected_event: crate::mock::Event = StakingEvent::DelegationDecreaseScheduled {
+				delegator: TestAccount::Bob,
+				candidate: TestAccount::Alice,
+				amount_to_decrease: 500,
+				execute_round: 3,
+			}
 			.into();
 
 			assert!(events().contains(&expected_event));
@@ -1397,12 +1967,12 @@ fn schedule_delegator_bond_less_works() {
 			assert_ok!(Call::Evm(evm_call(TestAccount::Bob, input_data)).dispatch(Origin::root()));
 
 			// Check for the right events.
-			let expected_event: crate::mock::Event = StakingEvent::DelegationDecreaseScheduled(
-				TestAccount::Bob,
-				TestAccount::Alice,
-				500,
-				3,
-			)
+			let expected_event: crate::mock::Event = StakingEvent::DelegationDecreaseScheduled {
+				delegator: TestAccount::Bob,
+				candidate: TestAccount::Alice,
+				amount_to_decrease: 500,
+				execute_round: 3,
+			}
 			.into();
 
 			assert!(events().contains(&expected_event));
@@ -1433,8 +2003,12 @@ fn execute_revoke_delegation_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Alice, input_data)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event =
-				StakingEvent::DelegationRevoked(TestAccount::Bob, TestAccount::Alice, 1_000).into();
+			let expected: crate::mock::Event = StakingEvent::DelegationRevoked {
+				delegator: TestAccount::Bob,
+				candidate: TestAccount::Alice,
+				unstaked_amount: 1_000,
+			}
+			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -1465,9 +2039,13 @@ fn execute_delegator_bond_less_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Alice, input_data)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event =
-				StakingEvent::DelegationDecreased(TestAccount::Bob, TestAccount::Alice, 500, true)
-					.into();
+			let expected: crate::mock::Event = StakingEvent::DelegationDecreased {
+				delegator: TestAccount::Bob,
+				candidate: TestAccount::Alice,
+				amount: 500,
+				in_top: true,
+			}
+			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -1495,15 +2073,14 @@ fn cancel_revoke_delegation_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Bob, input_data)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event = StakingEvent::CancelledDelegationRequest(
-				TestAccount::Bob,
-				parachain_staking::DelegationRequest {
-					collator: TestAccount::Alice,
-					amount: 1_000,
+			let expected: crate::mock::Event = StakingEvent::CancelledDelegationRequest {
+				delegator: TestAccount::Bob,
+				collator: TestAccount::Alice,
+				cancelled_request: parachain_staking::CancelledScheduledRequest {
 					when_executable: 3,
-					action: parachain_staking::DelegationChange::Revoke,
+					action: parachain_staking::DelegationAction::Revoke(1_000),
 				},
-			)
+			}
 			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
@@ -1533,15 +2110,14 @@ fn cancel_delegator_bonded_less_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(TestAccount::Bob, input_data)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event = StakingEvent::CancelledDelegationRequest(
-				TestAccount::Bob,
-				parachain_staking::DelegationRequest {
-					collator: TestAccount::Alice,
-					amount: 500,
+			let expected: crate::mock::Event = StakingEvent::CancelledDelegationRequest {
+				delegator: TestAccount::Bob,
+				collator: TestAccount::Alice,
+				cancelled_request: parachain_staking::CancelledScheduledRequest {
 					when_executable: 3,
-					action: parachain_staking::DelegationChange::Decrease,
+					action: parachain_staking::DelegationAction::Decrease(500),
 				},
-			)
+			}
 			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));

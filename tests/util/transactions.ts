@@ -11,6 +11,8 @@ import { customWeb3Request } from "./providers";
 import { ethers } from "ethers";
 import { AccessListish } from "@ethersproject/transactions";
 import { createBlockWithExtrinsic } from "./substrate-rpc";
+import type { ApiPromise } from "@polkadot/api";
+import type { SubmittableExtrinsic } from "@polkadot/api/promise/types";
 const debug = require("debug")("test:transaction");
 
 export interface TransactionOptions {
@@ -294,3 +296,50 @@ export async function substrateTransaction(context, sender, polkadotCall): Promi
   const { events } = await createBlockWithExtrinsic(context, sender, polkadotCall);
   return events;
 }
+
+export const sendAllStreamAndWaitLast = async (
+  api: ApiPromise,
+  extrinsics: SubmittableExtrinsic[],
+  { threshold = 500, batch = 200, timeout = 120000 } = {
+    threshold: 500,
+    batch: 200,
+    timeout: 120000,
+  }
+) => {
+  let promises = [];
+  while (extrinsics.length > 0) {
+    const pending = await api.rpc.author.pendingExtrinsics();
+    if (pending.length < threshold) {
+      const chunk = extrinsics.splice(0, Math.min(threshold - pending.length, batch));
+      // console.log(`Sending ${chunk.length}tx (${extrinsics.length} left)`);
+      promises.push(
+        Promise.all(
+          chunk.map((tx) => {
+            return new Promise(async (resolve, reject) => {
+              let unsub;
+              const timer = setTimeout(() => {
+                reject(`timed out`);
+                unsub();
+              }, timeout);
+              unsub = await tx.send((result) => {
+                // reset the timer
+                if (result.isError) {
+                  console.log(result.toHuman());
+                  clearTimeout(timer);
+                  reject(result.toHuman());
+                }
+                if (result.isInBlock) {
+                  unsub();
+                  clearTimeout(timer);
+                  resolve(null);
+                }
+              });
+            }).catch((e) => {});
+          })
+        )
+      );
+    }
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+  }
+  await Promise.all(promises);
+};

@@ -26,42 +26,47 @@ use cli_opt::{EthApi as EthApiCmd, RpcConfig};
 use fc_consensus::FrontierBlockImport;
 use fc_rpc_core::types::{FeeHistoryCache, FilterPool};
 use futures::StreamExt;
+use maplit::hashmap;
 #[cfg(feature = "moonbase-native")]
 pub use moonbase_runtime;
 #[cfg(feature = "moonbeam-native")]
 pub use moonbeam_runtime;
 #[cfg(feature = "moonriver-native")]
 pub use moonriver_runtime;
-use sc_service::BasePath;
 use std::{collections::BTreeMap, sync::Mutex, time::Duration};
 pub mod rpc;
-use cumulus_client_network::build_block_announce_validator;
+use cumulus_client_cli::CollatorOptions;
+use cumulus_client_consensus_common::ParachainConsensus;
+use cumulus_client_network::BlockAnnounceValidator;
 use cumulus_client_service::{
 	prepare_node_config, start_collator, start_full_node, StartCollatorParams, StartFullNodeParams,
 };
 use cumulus_primitives_core::ParaId;
 use cumulus_primitives_parachain_inherent::{
-	MockValidationDataInherentDataProvider, MockXcmConfig, ParachainInherentData,
+	MockValidationDataInherentDataProvider, MockXcmConfig,
 };
-use nimbus_consensus::{
-	build_nimbus_consensus, BuildNimbusConsensusParams, NimbusManualSealConsensusDataProvider,
-};
+use cumulus_relay_chain_inprocess_interface::build_inprocess_relay_chain;
+use cumulus_relay_chain_interface::{RelayChainError, RelayChainInterface};
+use nimbus_consensus::NimbusManualSealConsensusDataProvider;
+use nimbus_consensus::{BuildNimbusConsensusParams, NimbusConsensus};
 use nimbus_primitives::NimbusId;
-
 use sc_executor::{NativeElseWasmExecutor, NativeExecutionDispatch};
+use sc_network::NetworkService;
+use sc_service::config::PrometheusConfig;
 use sc_service::{
-	error::Error as ServiceError, ChainSpec, Configuration, PartialComponents, Role, TFullBackend,
-	TFullClient, TaskManager,
+	error::Error as ServiceError, BasePath, ChainSpec, Configuration, PartialComponents, Role,
+	TFullBackend, TFullClient, TaskManager,
 };
+use sc_telemetry::{Telemetry, TelemetryHandle, TelemetryWorker, TelemetryWorkerHandle};
 use sp_api::ConstructRuntimeApi;
 use sp_blockchain::HeaderBackend;
+use sp_keystore::SyncCryptoStorePtr;
 use std::sync::Arc;
+use substrate_prometheus_endpoint::Registry;
 
 pub use client::*;
 pub mod chain_spec;
 mod client;
-
-use sc_telemetry::{Telemetry, TelemetryWorker, TelemetryWorkerHandle};
 
 type FullClient<RuntimeApi, Executor> =
 	TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>;
@@ -205,8 +210,10 @@ pub fn open_frontier_backend(config: &Configuration) -> Result<Arc<fc_db::Backen
 	)?))
 }
 
-use sp_runtime::traits::BlakeTwo256;
+use sp_runtime::{traits::BlakeTwo256, Percent};
 use sp_trie::PrefixedMemoryDB;
+
+pub const SOFT_DEADLINE_PERCENT: Percent = Percent::from_percent(100);
 
 /// Builds a new object suitable for chain operations.
 #[allow(clippy::type_complexity)]
@@ -273,13 +280,25 @@ where
 	))
 }
 
+// If we're using prometheus, use a registry with a prefix of `moonbeam`.
+fn set_prometheus_registry(config: &mut Configuration) -> Result<(), ServiceError> {
+	if let Some(PrometheusConfig { registry, .. }) = config.prometheus_config.as_mut() {
+		let labels = hashmap! {
+			"chain".into() => config.chain_spec.id().into(),
+		};
+		*registry = Registry::new_custom(Some("moonbeam".into()), Some(labels))?;
+	}
+
+	Ok(())
+}
+
 /// Builds the PartialComponents for a parachain or development service
 ///
 /// Use this function if you don't actually need the full service, but just the partial in order to
 /// be able to perform chain operations.
 #[allow(clippy::type_complexity)]
 pub fn new_partial<RuntimeApi, Executor>(
-	config: &Configuration,
+	config: &mut Configuration,
 	dev_service: bool,
 ) -> Result<
 	PartialComponents<
@@ -310,6 +329,8 @@ where
 		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
 	Executor: NativeExecutionDispatch + 'static,
 {
+	set_prometheus_registry(config)?;
+
 	let telemetry = config
 		.telemetry_endpoints
 		.clone()
@@ -325,6 +346,7 @@ where
 		config.wasm_method,
 		config.default_heap_pages,
 		config.max_runtime_instances,
+		config.runtime_cache_size,
 	);
 
 	let (client, backend, keystore_container, task_manager) =
@@ -400,87 +422,16 @@ where
 	})
 }
 
-/// `fp_rpc::ConvertTransaction` is implemented for an arbitrary struct that lives in each runtime.
-/// It receives a ethereum::Transaction and returns a pallet-ethereum transact Call wrapped in an
-/// UncheckedExtrinsic.
-///
-/// Although the implementation should be the same in each runtime, this might change at some point.
-/// `TransactionConverters` is just a `fp_rpc::ConvertTransaction` implementor that proxies calls to
-/// each runtime implementation.
-pub enum TransactionConverters {
-	#[cfg(feature = "moonbeam-native")]
-	Moonbeam(moonbeam_runtime::TransactionConverter),
-	#[cfg(feature = "moonbase-native")]
-	Moonbase(moonbase_runtime::TransactionConverter),
-	#[cfg(feature = "moonriver-native")]
-	Moonriver(moonriver_runtime::TransactionConverter),
-}
-
-impl TransactionConverters {
-	#[cfg(feature = "moonbeam-native")]
-	fn moonbeam() -> Self {
-		TransactionConverters::Moonbeam(moonbeam_runtime::TransactionConverter)
-	}
-	#[cfg(not(feature = "moonbeam-native"))]
-	fn moonbeam() -> Self {
-		unimplemented!()
-	}
-	#[cfg(feature = "moonriver-native")]
-	fn moonriver() -> Self {
-		TransactionConverters::Moonriver(moonriver_runtime::TransactionConverter)
-	}
-	#[cfg(not(feature = "moonriver-native"))]
-	fn moonriver() -> Self {
-		unimplemented!()
-	}
-	#[cfg(feature = "moonbase-native")]
-	fn moonbase() -> Self {
-		TransactionConverters::Moonbase(moonbase_runtime::TransactionConverter)
-	}
-	#[cfg(not(feature = "moonbase-native"))]
-	fn moonbase() -> Self {
-		unimplemented!()
-	}
-	pub fn for_runtime_variant(runtime: RuntimeVariant) -> Self {
-		match runtime {
-			#[cfg(feature = "moonbeam-native")]
-			RuntimeVariant::Moonbeam => Self::moonbeam(),
-			#[cfg(feature = "moonriver-native")]
-			RuntimeVariant::Moonriver => Self::moonriver(),
-			#[cfg(feature = "moonbase-native")]
-			RuntimeVariant::Moonbase => Self::moonbase(),
-			_ => panic!("invalid chain spec"),
-		}
-	}
-}
-
-impl fp_rpc::ConvertTransaction<moonbeam_core_primitives::OpaqueExtrinsic>
-	for TransactionConverters
-{
-	fn convert_transaction(
-		&self,
-		transaction: pallet_ethereum::Transaction,
-	) -> moonbeam_core_primitives::OpaqueExtrinsic {
-		match &self {
-			#[cfg(feature = "moonbeam-native")]
-			Self::Moonbeam(inner) => inner.convert_transaction(transaction),
-			#[cfg(feature = "moonriver-native")]
-			Self::Moonriver(inner) => inner.convert_transaction(transaction),
-			#[cfg(feature = "moonbase-native")]
-			Self::Moonbase(inner) => inner.convert_transaction(transaction),
-		}
-	}
-}
-
 /// Start a node with the given parachain `Configuration` and relay chain `Configuration`.
 ///
 /// This is the actual implementation that is abstract over the executor and the runtime api.
 #[sc_tracing::logging::prefix_logs_with("🌗")]
-async fn start_node_impl<RuntimeApi, Executor>(
+async fn start_node_impl<RuntimeApi, Executor, BIC>(
 	parachain_config: Configuration,
 	polkadot_config: Configuration,
-	id: polkadot_primitives::v0::Id,
+	id: polkadot_primitives::v2::Id,
 	rpc_config: RpcConfig,
+	build_consensus: BIC,
 ) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi, Executor>>)>
 where
 	RuntimeApi:
@@ -488,16 +439,32 @@ where
 	RuntimeApi::RuntimeApi:
 		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
 	Executor: NativeExecutionDispatch + 'static,
+	BIC: FnOnce(
+		Arc<TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>>,
+		Option<&Registry>,
+		Option<TelemetryHandle>,
+		&TaskManager,
+		Arc<dyn RelayChainInterface>,
+		Arc<
+			sc_transaction_pool::FullPool<
+				Block,
+				TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>,
+			>,
+		>,
+		Arc<NetworkService<Block, Hash>>,
+		SyncCryptoStorePtr,
+		bool,
+	) -> Result<Box<dyn ParachainConsensus<Block>>, sc_service::Error>,
 {
 	if matches!(parachain_config.role, Role::Light) {
 		return Err("Light client not supported!".into());
 	}
 
-	let parachain_config = prepare_node_config(parachain_config);
+	let mut parachain_config = prepare_node_config(parachain_config);
 
-	let params = new_partial(&parachain_config, false)?;
+	let params = new_partial(&mut parachain_config, false)?;
 	let (
-		block_import,
+		_block_import,
 		filter_pool,
 		mut telemetry,
 		telemetry_worker_handle,
@@ -505,26 +472,27 @@ where
 		fee_history_cache,
 	) = params.other;
 
-	let relay_chain_full_node =
-		cumulus_client_service::build_polkadot_full_node(polkadot_config, telemetry_worker_handle)
-			.map_err(|e| match e {
-				polkadot_service::Error::Sub(x) => x,
-				s => format!("{}", s).into(),
-			})?;
-
 	let client = params.client.clone();
 	let backend = params.backend.clone();
-	let block_announce_validator = build_block_announce_validator(
-		relay_chain_full_node.client.clone(),
-		id,
-		Box::new(relay_chain_full_node.network.clone()),
-		relay_chain_full_node.backend.clone(),
-	);
+	let mut task_manager = params.task_manager;
 
+	let (relay_chain_interface, collator_key) = build_inprocess_relay_chain(
+		polkadot_config,
+		&parachain_config,
+		telemetry_worker_handle,
+		&mut task_manager,
+	)
+	.map_err(|e| match e {
+		RelayChainError::ServiceError(polkadot_service::Error::Sub(x)) => x,
+		s => s.to_string().into(),
+	})?;
+
+	let block_announce_validator = BlockAnnounceValidator::new(relay_chain_interface.clone(), id);
+
+	let force_authoring = parachain_config.force_authoring;
 	let collator = parachain_config.role.is_authority();
 	let prometheus_registry = parachain_config.prometheus_registry().cloned();
 	let transaction_pool = params.transaction_pool.clone();
-	let mut task_manager = params.task_manager;
 	let import_queue = cumulus_client_service::SharedImportQueue::new(params.import_queue);
 	let (network, system_rpc_tx, start_network) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
@@ -533,7 +501,9 @@ where
 			transaction_pool: transaction_pool.clone(),
 			spawn_handle: task_manager.spawn_handle(),
 			import_queue: import_queue.clone(),
-			block_announce_validator_builder: Some(Box::new(|_| block_announce_validator)),
+			block_announce_validator_builder: Some(Box::new(|_| {
+				Box::new(block_announce_validator)
+			})),
 			warp_sync: None,
 		})?;
 
@@ -576,6 +546,18 @@ where
 			}
 		};
 
+	let block_data_cache = Arc::new(fc_rpc::EthBlockDataCacheTask::new(
+		task_manager.spawn_handle(),
+		overrides.clone(),
+		rpc_config.eth_log_block_cache as u64,
+		rpc_config.eth_statuses_cache as u64,
+		prometheus_registry.clone(),
+	));
+
+	// variable `rpc_config` will be moved in next code block, we need to
+	// save param `relay_chain_rpc_url` to be able to use it later.
+	let relay_chain_rpc_url = rpc_config.relay_chain_rpc_url.clone();
+
 	let rpc_extensions_builder = {
 		let client = client.clone();
 		let pool = transaction_pool.clone();
@@ -587,26 +569,15 @@ where
 		let max_past_logs = rpc_config.max_past_logs;
 		let overrides = overrides.clone();
 		let fee_history_cache = fee_history_cache.clone();
-
-		let is_moonbeam = parachain_config.chain_spec.is_moonbeam();
-		let is_moonriver = parachain_config.chain_spec.is_moonriver();
+		let block_data_cache = block_data_cache.clone();
 
 		Box::new(move |deny_unsafe, _| {
-			let transaction_converter: TransactionConverters = if is_moonbeam {
-				TransactionConverters::moonbeam()
-			} else if is_moonriver {
-				TransactionConverters::moonriver()
-			} else {
-				TransactionConverters::moonbase()
-			};
-
 			let deps = rpc::FullDeps {
 				backend: backend.clone(),
 				client: client.clone(),
 				command_sink: None,
 				deny_unsafe,
 				ethapi_cmd: ethapi_cmd.clone(),
-				eth_log_block_cache: rpc_config.eth_log_block_cache,
 				filter_pool: filter_pool.clone(),
 				frontier_backend: frontier_backend.clone(),
 				graph: pool.pool().clone(),
@@ -616,11 +587,12 @@ where
 				fee_history_limit,
 				fee_history_cache: fee_history_cache.clone(),
 				network: network.clone(),
-				transaction_converter,
 				xcm_senders: None,
+				block_data_cache: block_data_cache.clone(),
+				overrides: overrides.clone(),
 			};
 			#[allow(unused_mut)]
-			let mut io = rpc::create_full(deps, subscription_task_executor.clone(), overrides.clone());
+			let mut io = rpc::create_full(deps, subscription_task_executor.clone());
 			if ethapi_cmd.contains(&EthApiCmd::Debug) || ethapi_cmd.contains(&EthApiCmd::Trace) {
 				rpc::tracing::extend_with_tracing(
 					client.clone(),
@@ -632,8 +604,6 @@ where
 			Ok(io)
 		})
 	};
-
-	let skip_prediction = parachain_config.force_authoring;
 
 	sc_service::spawn_tasks(sc_service::SpawnTasksParams {
 		rpc_extensions_builder,
@@ -653,36 +623,115 @@ where
 		Arc::new(move |hash, data| network.announce_block(hash, data))
 	};
 
+	let relay_chain_slot_duration = Duration::from_secs(6);
+
 	if collator {
-		let proposer_factory = sc_basic_authorship::ProposerFactory::with_proof_recording(
-			task_manager.spawn_handle(),
+		let parachain_consensus = build_consensus(
 			client.clone(),
-			transaction_pool,
 			prometheus_registry.as_ref(),
 			telemetry.as_ref().map(|t| t.handle()),
-		);
+			&task_manager,
+			relay_chain_interface.clone(),
+			transaction_pool,
+			network,
+			params.keystore_container.sync_keystore(),
+			force_authoring,
+		)?;
 
-		let relay_chain_backend = relay_chain_full_node.backend.clone();
-		let relay_chain_client = relay_chain_full_node.client.clone();
+		let spawner = task_manager.spawn_handle();
 
-		let parachain_consensus = build_nimbus_consensus(BuildNimbusConsensusParams {
+		let params = StartCollatorParams {
 			para_id: id,
-			proposer_factory,
-			block_import,
-			relay_chain_client: relay_chain_full_node.client.clone(),
-			relay_chain_backend: relay_chain_full_node.backend.clone(),
-			parachain_client: client.clone(),
-			keystore: params.keystore_container.sync_keystore(),
-			skip_prediction,
-			create_inherent_data_providers: move |_, (relay_parent, validation_data, author_id)| {
-				let parachain_inherent = ParachainInherentData::create_at_with_client(
-					relay_parent,
-					&relay_chain_client,
-					&*relay_chain_backend,
-					&validation_data,
-					id,
-				);
+			block_status: client.clone(),
+			announce_block,
+			client: client.clone(),
+			task_manager: &mut task_manager,
+			relay_chain_interface,
+			spawner,
+			parachain_consensus,
+			import_queue,
+			collator_key: collator_key.ok_or(sc_service::error::Error::Other(
+				"Collator Key is None".to_string(),
+			))?,
+			relay_chain_slot_duration,
+		};
+
+		start_collator(params).await?;
+	} else {
+		let params = StartFullNodeParams {
+			client: client.clone(),
+			announce_block,
+			task_manager: &mut task_manager,
+			para_id: id,
+			relay_chain_interface,
+			relay_chain_slot_duration,
+			import_queue,
+			collator_options: CollatorOptions {
+				relay_chain_rpc_url,
+			},
+		};
+
+		start_full_node(params)?;
+	}
+
+	start_network.start_network();
+
+	Ok((task_manager, client))
+}
+
+/// Start a normal parachain node.
+// Rustfmt wants to format the closure with space identation.
+#[rustfmt::skip]
+pub async fn start_node<RuntimeApi, Executor>(
+	parachain_config: Configuration,
+	polkadot_config: Configuration,
+	id: polkadot_primitives::v2::Id,
+	rpc_config: RpcConfig,
+) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi, Executor>>)>
+where
+	RuntimeApi:
+		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
+	RuntimeApi::RuntimeApi:
+		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
+	Executor: NativeExecutionDispatch + 'static,
+{
+	start_node_impl(
+		parachain_config,
+		polkadot_config,
+		id,
+		rpc_config,
+		|
+			client,
+			prometheus_registry,
+			telemetry,
+			task_manager,
+			relay_chain_interface,
+			transaction_pool,
+			_sync_oracle,
+			keystore,
+			force_authoring
+		| {
+			let mut proposer_factory = sc_basic_authorship::ProposerFactory::with_proof_recording(
+				task_manager.spawn_handle(),
+				client.clone(),
+				transaction_pool,
+				prometheus_registry,
+				telemetry.clone(),
+			);
+			proposer_factory.set_soft_deadline(SOFT_DEADLINE_PERCENT);
+
+			let provider = move |_, (relay_parent, validation_data, author_id)| {
+				let relay_chain_interface = relay_chain_interface.clone();
 				async move {
+					let parachain_inherent =
+						cumulus_primitives_parachain_inherent::ParachainInherentData::create_at(
+							relay_parent,
+							&relay_chain_interface,
+							&validation_data,
+							id,
+						)
+						.await;
+
 					let time = sp_timestamp::InherentDataProvider::from_system_time();
 
 					let parachain_inherent = parachain_inherent.ok_or_else(|| {
@@ -695,62 +744,26 @@ where
 
 					Ok((time, parachain_inherent, author))
 				}
-			},
-		});
+			};
 
-		let spawner = task_manager.spawn_handle();
-
-		let params = StartCollatorParams {
-			para_id: id,
-			block_status: client.clone(),
-			announce_block,
-			client: client.clone(),
-			task_manager: &mut task_manager,
-			spawner,
-			relay_chain_full_node,
-			parachain_consensus,
-			import_queue,
-		};
-
-		start_collator(params).await?;
-	} else {
-		let params = StartFullNodeParams {
-			client: client.clone(),
-			announce_block,
-			task_manager: &mut task_manager,
-			para_id: id,
-			relay_chain_full_node,
-		};
-
-		start_full_node(params)?;
-	}
-
-	start_network.start_network();
-
-	Ok((task_manager, client))
-}
-
-/// Start a normal parachain node.
-pub async fn start_node<RuntimeApi, Executor>(
-	parachain_config: Configuration,
-	polkadot_config: Configuration,
-	id: polkadot_primitives::v0::Id,
-	rpc_config: RpcConfig,
-) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi, Executor>>)>
-where
-	RuntimeApi:
-		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
-	RuntimeApi::RuntimeApi:
-		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
-	Executor: NativeExecutionDispatch + 'static,
-{
-	start_node_impl(parachain_config, polkadot_config, id, rpc_config).await
+			Ok(NimbusConsensus::build(BuildNimbusConsensusParams {
+				para_id: id,
+				proposer_factory,
+				block_import: client.clone(),
+				parachain_client: client.clone(),
+				keystore,
+				skip_prediction: force_authoring,
+				create_inherent_data_providers: provider,
+			}))
+		},
+	)
+	.await
 }
 
 /// Builds a new development service. This service uses manual seal, and mocks
 /// the parachain inherent.
 pub fn new_dev<RuntimeApi, Executor>(
-	config: Configuration,
+	mut config: Configuration,
 	_author_id: Option<nimbus_primitives::NimbusId>,
 	sealing: cli_opt::Sealing,
 	rpc_config: RpcConfig,
@@ -784,7 +797,7 @@ where
 				frontier_backend,
 				fee_history_cache,
 			),
-	} = new_partial::<RuntimeApi, Executor>(&config, true)?;
+	} = new_partial::<RuntimeApi, Executor>(&mut config, true)?;
 
 	let (network, system_rpc_tx, network_starter) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
@@ -816,13 +829,14 @@ where
 	let collator = config.role.is_authority();
 
 	if collator {
-		let env = sc_basic_authorship::ProposerFactory::new(
+		let mut env = sc_basic_authorship::ProposerFactory::new(
 			task_manager.spawn_handle(),
 			client.clone(),
 			transaction_pool.clone(),
 			prometheus_registry.as_ref(),
 			telemetry.as_ref().map(|x| x.handle()),
 		);
+		env.set_soft_deadline(SOFT_DEADLINE_PERCENT);
 		let commands_stream: Box<dyn Stream<Item = EngineCommand<H256>> + Send + Sync + Unpin> =
 			match sealing {
 				cli_opt::Sealing::Instant => {
@@ -950,6 +964,14 @@ where
 			}
 		};
 
+	let block_data_cache = Arc::new(fc_rpc::EthBlockDataCacheTask::new(
+		task_manager.spawn_handle(),
+		overrides.clone(),
+		rpc_config.eth_log_block_cache as u64,
+		rpc_config.eth_statuses_cache as u64,
+		prometheus_registry,
+	));
+
 	let rpc_extensions_builder = {
 		let client = client.clone();
 		let pool = transaction_pool.clone();
@@ -959,26 +981,15 @@ where
 		let max_past_logs = rpc_config.max_past_logs;
 		let overrides = overrides.clone();
 		let fee_history_cache = fee_history_cache.clone();
-
-		let is_moonbeam = config.chain_spec.is_moonbeam();
-		let is_moonriver = config.chain_spec.is_moonriver();
+		let block_data_cache = block_data_cache.clone();
 
 		Box::new(move |deny_unsafe, _| {
-			let transaction_converter: TransactionConverters = if is_moonbeam {
-				TransactionConverters::moonbeam()
-			} else if is_moonriver {
-				TransactionConverters::moonriver()
-			} else {
-				TransactionConverters::moonbase()
-			};
-
 			let deps = rpc::FullDeps {
 				backend: backend.clone(),
 				client: client.clone(),
 				command_sink: command_sink.clone(),
 				deny_unsafe,
 				ethapi_cmd: ethapi_cmd.clone(),
-				eth_log_block_cache: rpc_config.eth_log_block_cache,
 				filter_pool: filter_pool.clone(),
 				frontier_backend: frontier_backend.clone(),
 				graph: pool.pool().clone(),
@@ -988,11 +999,12 @@ where
 				fee_history_limit,
 				fee_history_cache: fee_history_cache.clone(),
 				network: network.clone(),
-				transaction_converter,
 				xcm_senders: xcm_senders.clone(),
+				overrides: overrides.clone(),
+				block_data_cache: block_data_cache.clone(),
 			};
 			#[allow(unused_mut)]
-			let mut io = rpc::create_full(deps, subscription_task_executor.clone(), overrides.clone());
+			let mut io = rpc::create_full(deps, subscription_task_executor.clone());
 			if ethapi_cmd.contains(&EthApiCmd::Debug) || ethapi_cmd.contains(&EthApiCmd::Trace) {
 				rpc::tracing::extend_with_tracing(
 					client.clone(),
@@ -1022,4 +1034,162 @@ where
 
 	network_starter.start_network();
 	Ok(task_manager)
+}
+
+#[cfg(test)]
+mod tests {
+	use moonbase_runtime::{currency::UNIT, AccountId};
+	use prometheus::{proto::LabelPair, Counter};
+	use sc_network::config::NetworkConfiguration;
+	use sc_service::ChainType;
+	use sc_service::{
+		config::{BasePath, DatabaseSource, KeystoreConfig},
+		Configuration, KeepBlocks, Role,
+	};
+	use std::path::Path;
+	use std::str::FromStr;
+
+	use crate::chain_spec::moonbase::{testnet_genesis, ChainSpec};
+	use crate::chain_spec::Extensions;
+
+	use super::*;
+
+	#[test]
+	fn test_set_prometheus_registry_uses_moonbeam_prefix() {
+		let counter_name = "my_counter";
+		let expected_metric_name = "moonbeam_my_counter";
+		let counter = Box::new(Counter::new(counter_name, "foobar").unwrap());
+		let mut config = Configuration {
+			prometheus_config: Some(PrometheusConfig::new_with_default_registry(
+				"0.0.0.0:8080".parse().unwrap(),
+				"".into(),
+			)),
+			..test_config("test")
+		};
+
+		set_prometheus_registry(&mut config).unwrap();
+		// generate metric
+		let reg = config.prometheus_registry().unwrap();
+		reg.register(counter.clone()).unwrap();
+		counter.inc();
+
+		let actual_metric_name = reg.gather().first().unwrap().get_name().to_string();
+		assert_eq!(actual_metric_name.as_str(), expected_metric_name);
+	}
+
+	#[test]
+	fn test_set_prometheus_registry_adds_chain_id_as_label() {
+		let input_chain_id = "moonriver";
+
+		let mut expected_label = LabelPair::default();
+		expected_label.set_name("chain".to_owned());
+		expected_label.set_value("moonriver".to_owned());
+		let expected_chain_label = Some(expected_label);
+
+		let counter = Box::new(Counter::new("foo", "foobar").unwrap());
+		let mut config = Configuration {
+			prometheus_config: Some(PrometheusConfig::new_with_default_registry(
+				"0.0.0.0:8080".parse().unwrap(),
+				"".into(),
+			)),
+			..test_config(input_chain_id)
+		};
+
+		set_prometheus_registry(&mut config).unwrap();
+		// generate metric
+		let reg = config.prometheus_registry().unwrap();
+		reg.register(counter.clone()).unwrap();
+		counter.inc();
+
+		let actual_chain_label = reg
+			.gather()
+			.first()
+			.unwrap()
+			.get_metric()
+			.first()
+			.unwrap()
+			.get_label()
+			.into_iter()
+			.find(|x| x.get_name() == "chain")
+			.cloned();
+
+		assert_eq!(actual_chain_label, expected_chain_label);
+	}
+
+	fn test_config(chain_id: &str) -> Configuration {
+		let network_config = NetworkConfiguration::new("", "", Default::default(), None);
+		let runtime = tokio::runtime::Runtime::new().expect("failed creating tokio runtime");
+		let spec = ChainSpec::from_genesis(
+			"test",
+			chain_id,
+			ChainType::Local,
+			move || {
+				testnet_genesis(
+					AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap(),
+					vec![],
+					vec![],
+					vec![],
+					vec![],
+					vec![],
+					1000 * UNIT,
+					ParaId::new(0),
+					0,
+				)
+			},
+			vec![],
+			None,
+			None,
+			None,
+			None,
+			Extensions::default(),
+		);
+
+		Configuration {
+			impl_name: String::from("test-impl"),
+			impl_version: String::from("0.1"),
+			role: Role::Full,
+			tokio_handle: runtime.handle().clone(),
+			transaction_pool: Default::default(),
+			network: network_config,
+			keystore_remote: Default::default(),
+			keystore: KeystoreConfig::Path {
+				path: "key".into(),
+				password: None,
+			},
+			database: DatabaseSource::RocksDb {
+				path: "db".into(),
+				cache_size: 128,
+			},
+			state_cache_size: 16777216,
+			state_cache_child_ratio: None,
+			state_pruning: Default::default(),
+			keep_blocks: KeepBlocks::All,
+			chain_spec: Box::new(spec),
+			wasm_method: sc_service::config::WasmExecutionMethod::Interpreted,
+			wasm_runtime_overrides: Default::default(),
+			execution_strategies: Default::default(),
+			rpc_http: None,
+			rpc_ipc: None,
+			rpc_ws: None,
+			rpc_ws_max_connections: None,
+			rpc_cors: None,
+			rpc_methods: Default::default(),
+			rpc_max_payload: None,
+			ws_max_out_buffer_capacity: None,
+			prometheus_config: None,
+			telemetry_endpoints: None,
+			default_heap_pages: None,
+			offchain_worker: Default::default(),
+			force_authoring: false,
+			disable_grandpa: false,
+			dev_key_seed: None,
+			tracing_targets: None,
+			tracing_receiver: Default::default(),
+			max_runtime_instances: 8,
+			announce_block: true,
+			base_path: Some(BasePath::new(Path::new(""))),
+			informant_output_format: Default::default(),
+			runtime_cache_size: 2,
+		}
+	}
 }
