@@ -2332,11 +2332,12 @@ fn length_fee_is_sensible() {
 				.len_fee
 		};
 
-		// left: cost of length fee, right: size in bytes
-		assert_eq!(                    1_000_000_001, calc_fee(1));
+		// editorconfig-checker-disable
+		//                  left: cost of length fee, right: size in bytes
+		//                             /------------- proportional component: O(N * 1B)
+		//                             |           /- exponential component: O(N ** 3)
 		//                             |           |
-		//                             |           \- exponential component: O(N ** 3)
-		//                             \------------- proportional component: O(N * 1B)
+		assert_eq!(                    1_000_000_001, calc_fee(1));
 		assert_eq!(                   10_000_001_000, calc_fee(10));
 		assert_eq!(                  100_001_000_000, calc_fee(100));
 		assert_eq!(                1_001_000_000_000, calc_fee(1_000));
@@ -2345,6 +2346,7 @@ fn length_fee_is_sensible() {
 		assert_eq!(        1_001_000_000_000_000_000, calc_fee(1_000_000)); // one UNIT, ~ 1MB
 		assert_eq!(    1_000_010_000_000_000_000_000, calc_fee(10_000_000));
 		assert_eq!(1_000_000_100_000_000_000_000_000, calc_fee(100_000_000));
+		// editorconfig-checker-enable
 	});
 }
 
