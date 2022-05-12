@@ -2489,7 +2489,7 @@ checksum = "77f3309417938f28bf8228fcff79a4a37103981e3e186d2ccd19c74b38f4eb71"
 [[package]]
 name = "evm"
 version = "0.35.0"
-source = "git+https://github.com/purestake/evm?branch=jeremy-precompile-handle-for-subcalls#3de14be22b00af4a221523959156d17bbb2bcb72"
+source = "git+https://github.com/purestake/evm?branch=jeremy-precompile-handle-for-subcalls#7a617728dddb37910ee42b0d3c08d63f584af772"
 dependencies = [
  "auto_impl",
  "environmental",
@@ -2509,7 +2509,7 @@ dependencies = [
 [[package]]
 name = "evm-core"
 version = "0.35.0"
-source = "git+https://github.com/purestake/evm?branch=jeremy-precompile-handle-for-subcalls#3de14be22b00af4a221523959156d17bbb2bcb72"
+source = "git+https://github.com/purestake/evm?branch=jeremy-precompile-handle-for-subcalls#7a617728dddb37910ee42b0d3c08d63f584af772"
 dependencies = [
  "parity-scale-codec",
  "primitive-types",
@@ -2520,7 +2520,7 @@ dependencies = [
 [[package]]
 name = "evm-gasometer"
 version = "0.35.0"
-source = "git+https://github.com/purestake/evm?branch=jeremy-precompile-handle-for-subcalls#3de14be22b00af4a221523959156d17bbb2bcb72"
+source = "git+https://github.com/purestake/evm?branch=jeremy-precompile-handle-for-subcalls#7a617728dddb37910ee42b0d3c08d63f584af772"
 dependencies = [
  "environmental",
  "evm-core",
@@ -2531,7 +2531,7 @@ dependencies = [
 [[package]]
 name = "evm-runtime"
 version = "0.35.0"
-source = "git+https://github.com/purestake/evm?branch=jeremy-precompile-handle-for-subcalls#3de14be22b00af4a221523959156d17bbb2bcb72"
+source = "git+https://github.com/purestake/evm?branch=jeremy-precompile-handle-for-subcalls#7a617728dddb37910ee42b0d3c08d63f584af772"
 dependencies = [
  "auto_impl",
  "environmental",
