@@ -31,7 +31,6 @@ use sp_runtime::{
 	Perbill, RuntimeDebug,
 };
 
-// use TestAccount because and also how will we mock the pre-runtime digest
 pub type AccountId = u64;
 pub type Balance = u128;
 pub type BlockNumber = u64;
