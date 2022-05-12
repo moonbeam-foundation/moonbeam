@@ -15,17 +15,34 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::mock::{
-	Account::{Alice, Bob, Charlie, Precompile},
-	ExtBuilder, PrecompilesValue, Runtime, TestPrecompiles,
+	balance, setup_revert_contract,
+	Account::{Alice, Bob, Charlie, David, Precompile, Revert},
+	Call, ExtBuilder, Origin, PrecompilesValue, Runtime, TestPrecompiles,
 };
 use crate::Action;
 use evm::ExitReason;
 use fp_evm::{ExitError, ExitRevert, ExitSucceed};
+use frame_support::{assert_ok, dispatch::Dispatchable};
+use pallet_evm::{Call as EvmCall, Event as EvmEvent};
 use precompile_utils::{testing::*, Address, Bytes, EvmDataWriter, LogsBuilder};
-use sp_core::{H256, U256};
+use sp_core::{H160, H256, U256};
 
 fn precompiles() -> TestPrecompiles<Runtime> {
 	PrecompilesValue::get()
+}
+
+fn evm_call(from: impl Into<H160>, input: Vec<u8>) -> EvmCall<Runtime> {
+	EvmCall::call {
+		source: from.into(),
+		target: Precompile.into(),
+		input,
+		value: U256::zero(), // No value sent in EVM
+		gas_limit: u64::max_value(),
+		max_fee_per_gas: 0.into(),
+		max_priority_fee_per_gas: Some(U256::zero()),
+		nonce: None, // Use the next nonce
+		access_list: Vec::new(),
+	}
 }
 
 #[test]
@@ -461,4 +478,207 @@ fn batch_all_incomplete() {
 		batch_incomplete(&precompiles(), Action::BatchAll)
 			.execute_reverts(|output| output == b"Revert message")
 	})
+}
+
+#[test]
+fn evm_batch_some_transfers_enough() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 10_000)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Call::Evm(evm_call(
+				Alice,
+				EvmDataWriter::new_with_selector(Action::BatchSome)
+					.write(vec![Address(Bob.into()), Address(Charlie.into()),])
+					.write(vec![U256::from(1_000u16), U256::from(2_000u16)])
+					.write::<Vec<Bytes>>(vec![])
+					.build()
+			))
+			.dispatch(Origin::root()));
+		})
+
+
+}
+
+#[test]
+fn evm_batch_some_until_failure_transfers_enough() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 10_000)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Call::Evm(evm_call(
+				Alice,
+				EvmDataWriter::new_with_selector(Action::BatchSomeUntilFailure)
+					.write(vec![Address(Bob.into()), Address(Charlie.into()),])
+					.write(vec![U256::from(1_000u16), U256::from(2_000u16)])
+					.write::<Vec<Bytes>>(vec![])
+					.build()
+			))
+			.dispatch(Origin::root()));
+		})
+}
+
+#[test]
+fn evm_batch_all_transfers_enough() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 10_000)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Call::Evm(evm_call(
+				Alice,
+				EvmDataWriter::new_with_selector(Action::BatchAll)
+					.write(vec![Address(Bob.into()), Address(Charlie.into()),])
+					.write(vec![U256::from(1_000u16), U256::from(2_000u16)])
+					.write::<Vec<Bytes>>(vec![])
+					.build()
+			))
+			.dispatch(Origin::root()));
+
+			assert_eq!(balance(Bob), 1_000);
+			assert_eq!(balance(Charlie), 2_000);
+		})
+}
+
+#[test]
+fn evm_batch_some_transfers_too_much() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 10_000)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Call::Evm(evm_call(
+				Alice,
+				EvmDataWriter::new_with_selector(Action::BatchSome)
+					.write(vec![Address(Bob.into()), Address(Charlie.into()), Address(David.into()),])
+					.write(vec![U256::from(9_000u16), U256::from(2_000u16), U256::from(500u16)])
+					.write::<Vec<Bytes>>(vec![])
+					.build()
+			))
+			.dispatch(Origin::root()));
+
+			assert_eq!(balance(Alice), 500); // gasprice = 0
+			assert_eq!(balance(Bob), 9_000);
+			assert_eq!(balance(Charlie), 0);
+			assert_eq!(balance(David), 500);
+		})
+}
+
+#[test]
+fn evm_batch_some_until_failure_transfers_too_much() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 10_000)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Call::Evm(evm_call(
+				Alice,
+				EvmDataWriter::new_with_selector(Action::BatchSomeUntilFailure)
+					.write(vec![Address(Bob.into()), Address(Charlie.into()), Address(David.into()),])
+					.write(vec![U256::from(9_000u16), U256::from(2_000u16), U256::from(500u16)])
+					.write::<Vec<Bytes>>(vec![])
+					.build()
+			))
+			.dispatch(Origin::root()));
+
+			assert_eq!(balance(Alice), 1_000); // gasprice = 0
+			assert_eq!(balance(Bob), 9_000);
+			assert_eq!(balance(Charlie), 0);
+			assert_eq!(balance(David), 0);
+		})
+}
+
+#[test]
+fn evm_batch_all_transfers_too_much() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 10_000)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Call::Evm(evm_call(
+				Alice,
+				EvmDataWriter::new_with_selector(Action::BatchAll)
+					.write(vec![Address(Bob.into()), Address(Charlie.into()), Address(David.into()),])
+					.write(vec![U256::from(9_000u16), U256::from(2_000u16), U256::from(500u16)])
+					.write::<Vec<Bytes>>(vec![])
+					.build()
+			))
+			.dispatch(Origin::root()));
+
+			assert_eq!(balance(Alice), 10_000); // gasprice = 0
+			assert_eq!(balance(Bob), 0);
+			assert_eq!(balance(Charlie), 0);
+			assert_eq!(balance(David), 0);
+		})
+}
+
+#[test]
+fn evm_batch_some_contract_revert() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 10_000)])
+		.build()
+		.execute_with(|| {
+			setup_revert_contract();
+
+			assert_ok!(Call::Evm(evm_call(
+				Alice,
+				EvmDataWriter::new_with_selector(Action::BatchSome)
+					.write(vec![Address(Bob.into()), Address(Revert.into()), Address(David.into()),])
+					.write(vec![U256::from(1_000u16), U256::from(2_000), U256::from(3_000u16)])
+					.write::<Vec<Bytes>>(vec![])
+					.build()
+			))
+			.dispatch(Origin::root()));
+
+			assert_eq!(balance(Alice), 6_000); // gasprice = 0
+			assert_eq!(balance(Bob), 1_000);
+			assert_eq!(balance(Revert), 0);
+			assert_eq!(balance(David), 3_000);
+		})
+}
+
+#[test]
+fn evm_batch_some_until_failure_contract_revert() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 10_000)])
+		.build()
+		.execute_with(|| {
+			setup_revert_contract();
+
+			assert_ok!(Call::Evm(evm_call(
+				Alice,
+				EvmDataWriter::new_with_selector(Action::BatchSomeUntilFailure)
+					.write(vec![Address(Bob.into()), Address(Revert.into()), Address(David.into()),])
+					.write(vec![U256::from(1_000u16), U256::from(2_000), U256::from(3_000u16)])
+					.write::<Vec<Bytes>>(vec![])
+					.build()
+			))
+			.dispatch(Origin::root()));
+
+			assert_eq!(balance(Alice), 9_000); // gasprice = 0
+			assert_eq!(balance(Bob), 1_000);
+			assert_eq!(balance(Revert), 0);
+			assert_eq!(balance(David), 0);
+		})
+}
+
+#[test]
+fn evm_batch_all_contract_revert() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 10_000)])
+		.build()
+		.execute_with(|| {
+			setup_revert_contract();
+
+			assert_ok!(Call::Evm(evm_call(
+				Alice,
+				EvmDataWriter::new_with_selector(Action::BatchAll)
+					.write(vec![Address(Bob.into()), Address(Revert.into()), Address(David.into()),])
+					.write(vec![U256::from(1_000u16), U256::from(2_000), U256::from(3_000u16)])
+					.write::<Vec<Bytes>>(vec![])
+					.build()
+			))
+			.dispatch(Origin::root()));
+
+			assert_eq!(balance(Alice), 10_000); // gasprice = 0
+			assert_eq!(balance(Bob), 0);
+			assert_eq!(balance(Revert), 0);
+			assert_eq!(balance(David), 0);
+		})
 }

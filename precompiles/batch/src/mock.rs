@@ -70,8 +70,10 @@ pub enum Account {
 	Alice,
 	Bob,
 	Charlie,
+	David,
 	Bogus,
 	Precompile,
+	Revert,
 }
 
 impl Default for Account {
@@ -86,8 +88,10 @@ impl Into<H160> for Account {
 			Account::Alice => H160::repeat_byte(0xAA),
 			Account::Bob => H160::repeat_byte(0xBB),
 			Account::Charlie => H160::repeat_byte(0xCC),
-			Account::Bogus => H160::repeat_byte(0xDD),
+			Account::David => H160::repeat_byte(0xDD),
+			Account::Bogus => H160::repeat_byte(0xFF),
 			Account::Precompile => H160::from_low_u64_be(1),
+			Account::Revert => H160::from_low_u64_be(2),
 		}
 	}
 }
@@ -98,7 +102,9 @@ impl AddressMapping<Account> for Account {
 			a if a == H160::repeat_byte(0xAA) => Self::Alice,
 			a if a == H160::repeat_byte(0xBB) => Self::Bob,
 			a if a == H160::repeat_byte(0xCC) => Self::Charlie,
+			a if a == H160::repeat_byte(0xDD) => Self::David,
 			a if a == H160::from_low_u64_be(1) => Self::Precompile,
+			a if a == H160::from_low_u64_be(2) => Self::Revert,
 			_ => Self::Bogus,
 		}
 	}
@@ -233,10 +239,10 @@ impl Default for ExtBuilder {
 }
 
 impl ExtBuilder {
-	// pub(crate) fn with_balances(mut self, balances: Vec<(AccountId, Balance)>) -> Self {
-	// 	self.balances = balances;
-	// 	self
-	// }
+	pub(crate) fn with_balances(mut self, balances: Vec<(AccountId, Balance)>) -> Self {
+		self.balances = balances;
+		self
+	}
 
 	pub(crate) fn build(self) -> sp_io::TestExternalities {
 		let mut t = frame_system::GenesisConfig::default()
@@ -253,6 +259,17 @@ impl ExtBuilder {
 		ext.execute_with(|| System::set_block_number(1));
 		ext
 	}
+}
+
+pub(crate) fn setup_revert_contract() {
+	pallet_evm::Pallet::<Runtime>::create_account(
+		Account::Revert.into(),
+		hex_literal::hex!("1460006000fd").to_vec(),
+	);
+}
+
+pub fn balance(account: impl Into<Account>) -> Balance {
+	pallet_balances::Pallet::<Runtime>::usable_balance(account.into())
 }
 
 // pub(crate) fn roll_to(n: u64) {

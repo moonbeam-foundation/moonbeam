@@ -28,7 +28,7 @@ use precompile_utils::{
 	FunctionModifier,
 };
 use sp_core::U256;
-use sp_std::{iter::repeat, marker::PhantomData, vec};
+use sp_std::{iter::repeat, marker::PhantomData, vec, vec::Vec};
 
 #[cfg(test)]
 mod mock;
@@ -60,7 +60,9 @@ where
 		let (mut input, selector) = EvmDataReader::new_with_selector(input)?;
 		let input = &mut input;
 
-		check_function_modifier(context, is_static, FunctionModifier::Payable)?;
+		// No funds are transfered to the precompile address.
+		// Transfers will directly be made on the behalf of the user by the precompile.
+		check_function_modifier(context, is_static, FunctionModifier::NonPayable)?;
 
 		Self::batch(handle, input, context, selector)
 	}
