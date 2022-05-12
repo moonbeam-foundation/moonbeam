@@ -496,8 +496,6 @@ fn evm_batch_some_transfers_enough() {
 			))
 			.dispatch(Origin::root()));
 		})
-
-
 }
 
 #[test]
@@ -548,8 +546,16 @@ fn evm_batch_some_transfers_too_much() {
 			assert_ok!(Call::Evm(evm_call(
 				Alice,
 				EvmDataWriter::new_with_selector(Action::BatchSome)
-					.write(vec![Address(Bob.into()), Address(Charlie.into()), Address(David.into()),])
-					.write(vec![U256::from(9_000u16), U256::from(2_000u16), U256::from(500u16)])
+					.write(vec![
+						Address(Bob.into()),
+						Address(Charlie.into()),
+						Address(David.into()),
+					])
+					.write(vec![
+						U256::from(9_000u16),
+						U256::from(2_000u16),
+						U256::from(500u16)
+					])
 					.write::<Vec<Bytes>>(vec![])
 					.build()
 			))
@@ -571,8 +577,16 @@ fn evm_batch_some_until_failure_transfers_too_much() {
 			assert_ok!(Call::Evm(evm_call(
 				Alice,
 				EvmDataWriter::new_with_selector(Action::BatchSomeUntilFailure)
-					.write(vec![Address(Bob.into()), Address(Charlie.into()), Address(David.into()),])
-					.write(vec![U256::from(9_000u16), U256::from(2_000u16), U256::from(500u16)])
+					.write(vec![
+						Address(Bob.into()),
+						Address(Charlie.into()),
+						Address(David.into()),
+					])
+					.write(vec![
+						U256::from(9_000u16),
+						U256::from(2_000u16),
+						U256::from(500u16)
+					])
 					.write::<Vec<Bytes>>(vec![])
 					.build()
 			))
@@ -594,8 +608,16 @@ fn evm_batch_all_transfers_too_much() {
 			assert_ok!(Call::Evm(evm_call(
 				Alice,
 				EvmDataWriter::new_with_selector(Action::BatchAll)
-					.write(vec![Address(Bob.into()), Address(Charlie.into()), Address(David.into()),])
-					.write(vec![U256::from(9_000u16), U256::from(2_000u16), U256::from(500u16)])
+					.write(vec![
+						Address(Bob.into()),
+						Address(Charlie.into()),
+						Address(David.into()),
+					])
+					.write(vec![
+						U256::from(9_000u16),
+						U256::from(2_000u16),
+						U256::from(500u16)
+					])
 					.write::<Vec<Bytes>>(vec![])
 					.build()
 			))
@@ -619,8 +641,16 @@ fn evm_batch_some_contract_revert() {
 			assert_ok!(Call::Evm(evm_call(
 				Alice,
 				EvmDataWriter::new_with_selector(Action::BatchSome)
-					.write(vec![Address(Bob.into()), Address(Revert.into()), Address(David.into()),])
-					.write(vec![U256::from(1_000u16), U256::from(2_000), U256::from(3_000u16)])
+					.write(vec![
+						Address(Bob.into()),
+						Address(Revert.into()),
+						Address(David.into()),
+					])
+					.write(vec![
+						U256::from(1_000u16),
+						U256::from(2_000),
+						U256::from(3_000u16)
+					])
 					.write::<Vec<Bytes>>(vec![])
 					.build()
 			))
@@ -644,8 +674,16 @@ fn evm_batch_some_until_failure_contract_revert() {
 			assert_ok!(Call::Evm(evm_call(
 				Alice,
 				EvmDataWriter::new_with_selector(Action::BatchSomeUntilFailure)
-					.write(vec![Address(Bob.into()), Address(Revert.into()), Address(David.into()),])
-					.write(vec![U256::from(1_000u16), U256::from(2_000), U256::from(3_000u16)])
+					.write(vec![
+						Address(Bob.into()),
+						Address(Revert.into()),
+						Address(David.into()),
+					])
+					.write(vec![
+						U256::from(1_000u16),
+						U256::from(2_000),
+						U256::from(3_000u16)
+					])
 					.write::<Vec<Bytes>>(vec![])
 					.build()
 			))
@@ -669,8 +707,16 @@ fn evm_batch_all_contract_revert() {
 			assert_ok!(Call::Evm(evm_call(
 				Alice,
 				EvmDataWriter::new_with_selector(Action::BatchAll)
-					.write(vec![Address(Bob.into()), Address(Revert.into()), Address(David.into()),])
-					.write(vec![U256::from(1_000u16), U256::from(2_000), U256::from(3_000u16)])
+					.write(vec![
+						Address(Bob.into()),
+						Address(Revert.into()),
+						Address(David.into()),
+					])
+					.write(vec![
+						U256::from(1_000u16),
+						U256::from(2_000),
+						U256::from(3_000u16)
+					])
 					.write::<Vec<Bytes>>(vec![])
 					.build()
 			))
