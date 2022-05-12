@@ -285,6 +285,8 @@
 <span id="280">280</span>
 <span id="281">281</span>
 <span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is 	part of Moonbeam.</span>
 
@@ -312,6 +314,7 @@
 	<span class="ident">Instance1</span>, <span class="ident">Instance10</span>, <span class="ident">Instance11</span>, <span class="ident">Instance12</span>, <span class="ident">Instance13</span>, <span class="ident">Instance14</span>, <span class="ident">Instance15</span>, <span class="ident">Instance16</span>,
 	<span class="ident">Instance2</span>, <span class="ident">Instance3</span>, <span class="ident">Instance4</span>, <span class="ident">Instance5</span>, <span class="ident">Instance6</span>, <span class="ident">Instance7</span>, <span class="ident">Instance8</span>, <span class="ident">Instance9</span>,
 };
+<span class="kw">use</span> <span class="ident">scale_info::prelude::string::ToString</span>;
 <span class="kw">use</span> <span class="ident">sp_core::H256</span>;
 <span class="kw">use</span> <span class="ident">sp_io::hashing::keccak_256</span>;
 
@@ -413,16 +416,17 @@
 	<span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>: <span class="ident">OriginTrait</span>,
 	<span class="ident">IsLocal</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
 	<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_timestamp::Config</span><span class="op">&gt;</span><span class="ident">::Moment</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>,
+	<span class="ident">AssetIdOf</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span>: <span class="ident">Display</span>,
 {
 	<span class="kw">fn</span> <span class="ident">compute_domain_separator</span>(<span class="ident">address</span>: <span class="ident">H160</span>, <span class="ident">asset_id</span>: <span class="ident">AssetIdOf</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span>) -&gt; [<span class="ident">u8</span>; <span class="number">32</span>] {
 		<span class="kw">let</span> <span class="ident">asset_name</span> <span class="op">=</span> <span class="ident">pallet_assets::Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::name</span>(<span class="ident">asset_id</span>);
 
 		<span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">asset_name</span>.<span class="ident">is_empty</span>() {
-			<span class="string">b&quot;XC20: No name&quot;</span>.<span class="ident">to_vec</span>()
-		} <span class="kw">else</span> {
-			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">name</span> <span class="op">=</span> <span class="string">b&quot;XC20: &quot;</span>.<span class="ident">to_vec</span>();
-			<span class="ident">name</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">asset_name</span>);
+			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">name</span> <span class="op">=</span> <span class="string">b&quot;Unnamed XC20 #&quot;</span>.<span class="ident">to_vec</span>();
+			<span class="ident">name</span>.<span class="ident">extend_from_slice</span>(<span class="ident">asset_id</span>.<span class="ident">to_string</span>().<span class="ident">as_bytes</span>());
 			<span class="ident">name</span>
+		} <span class="kw">else</span> {
+			<span class="ident">asset_name</span>
 		};
 
 		<span class="kw">let</span> <span class="ident">name</span>: <span class="ident">H256</span> <span class="op">=</span> <span class="ident">keccak_256</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>).<span class="ident">into</span>();
