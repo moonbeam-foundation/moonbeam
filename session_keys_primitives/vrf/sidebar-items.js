@@ -1,0 +1,1 @@
+initSidebarItems({"constant":[["VRF_ENGINE_ID","The ConsensusEngineId for VRF keys"],["VRF_KEY_ID","The KeyTypeId used for VRF keys"]],"struct":[["VrfSessionKey","Struct to implement `BoundToRuntimeAppPublic` by assigning Public = VrfId"]],"type":[["VrfId","A vrf public key."],["VrfPair","A vrf key pair"],["VrfSignature","A vrf signature."]]});

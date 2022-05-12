@@ -1469,6 +1469,7 @@
 <span id="1464">1464</span>
 <span id="1465">1465</span>
 <span id="1466">1466</span>
+<span id="1467">1467</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -1617,7 +1618,7 @@
 <span class="doccomment">/// Opaque types. These are used by the CLI to instantiate machinery that don&#39;t need to know</span>
 <span class="doccomment">/// the specifics of the runtime. They can then be made to be agnostic over specific formats</span>
 <span class="doccomment">/// of data like extrinsics, allowing for them to continue syncing the network through upgrades</span>
-<span class="doccomment">/// to even the core datastructures.</span>
+<span class="doccomment">/// to even the core data structures.</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">opaque</span> {
 	<span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
@@ -1627,6 +1628,7 @@
 	<span class="macro">impl_opaque_keys!</span> {
 		<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SessionKeys</span> {
 			<span class="kw">pub</span> <span class="ident">nimbus</span>: <span class="ident">AuthorInherent</span>,
+			<span class="kw">pub</span> <span class="ident">vrf</span>: <span class="ident">session_keys_primitives::VrfSessionKey</span>,
 		}
 	}
 }
@@ -2269,7 +2271,7 @@
 	<span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
 	<span class="kw">type</span> <span class="ident">DepositCurrency</span> <span class="op">=</span> <span class="ident">Balances</span>;
 	<span class="kw">type</span> <span class="ident">DepositAmount</span> <span class="op">=</span> <span class="ident">ConstU128</span><span class="op">&lt;</span>{ <span class="number">100</span> <span class="op">*</span> <span class="ident">currency::UNIT</span> <span class="op">*</span> <span class="ident">currency::SUPPLY_FACTOR</span> }<span class="op">&gt;</span>;
-	<span class="kw">type</span> <span class="ident">Keys</span> <span class="op">=</span> <span class="ident">NimbusId</span>; <span class="comment">// TODO: consider making custom type?</span>
+	<span class="kw">type</span> <span class="ident">Keys</span> <span class="op">=</span> <span class="ident">session_keys_primitives::VrfId</span>;
 	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">pallet_author_mapping::weights::SubstrateWeight</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
 }
 

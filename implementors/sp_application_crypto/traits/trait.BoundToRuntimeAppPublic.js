@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["session_keys_primitives"] = [{"text":"impl BoundToRuntimeAppPublic for <a class=\"struct\" href=\"session_keys_primitives/vrf/struct.VrfSessionKey.html\" title=\"struct session_keys_primitives::vrf::VrfSessionKey\">VrfSessionKey</a>","synthetic":false,"types":["session_keys_primitives::vrf::VrfSessionKey"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
