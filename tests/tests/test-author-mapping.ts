@@ -10,6 +10,7 @@ import {
   RANDOM_PRIV_KEY,
   DEFAULT_GENESIS_MAPPING,
   DEFAULT_GENESIS_STAKING,
+  GENESIS_ACCOUNT_BALANCE,
 } from "../util/constants";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 import { createBlockWithExtrinsic } from "../util/substrate-rpc";
@@ -197,22 +198,41 @@ describeDevMoonbeam("Author Mapping - double registration", (context) => {
   it("should succeed in adding an association for bob", async function () {
     const keyring = new Keyring({ type: "ethereum" });
     const genesisAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
+    // How much fee does it consume the extrinsic
+    const fee = (
+      await context.polkadotApi.tx.authorMapping
+        .addAssociation(bobAuthorId)
+        .paymentInfo(genesisAccount)
+    ).partialFee as any;
+
+    console.log(fee);
     await context.polkadotApi.tx.authorMapping
       .addAssociation(bobAuthorId)
       .signAndSend(genesisAccount);
+
     await context.createBlock();
     expect((await getMappingInfo(context, bobAuthorId)).account).to.eq(ALITH);
+    const expectedReservecBalance = 2n * DEFAULT_GENESIS_MAPPING + DEFAULT_GENESIS_STAKING;
     expect(
       ((await context.polkadotApi.query.system.account(ALITH)) as any).data.free.toBigInt()
-    ).to.eq(1207725818354628766561176n);
+    ).to.eq(GENESIS_ACCOUNT_BALANCE - expectedReservecBalance - BigInt(fee));
     expect(
       ((await context.polkadotApi.query.system.account(ALITH)) as any).data.reserved.toBigInt()
-    ).to.eq(2n * DEFAULT_GENESIS_MAPPING + DEFAULT_GENESIS_STAKING);
+    ).to.eq(expectedReservecBalance);
   });
 
   it("should associate with charlie, although already associated with bob", async function () {
     const keyring = new Keyring({ type: "ethereum" });
     const genesisAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
+    // Grab free balance before this test
+    let genesisAccountBalanceBefore = (
+      (await context.polkadotApi.query.system.account(ALITH)) as any
+    ).data.free.toBigInt();
+    const fee = (
+      await context.polkadotApi.tx.authorMapping
+        .addAssociation(charlieAuthorId)
+        .paymentInfo(genesisAccount)
+    ).partialFee as any;
     await context.polkadotApi.tx.authorMapping
       .addAssociation(charlieAuthorId)
       .signAndSend(genesisAccount);
@@ -220,12 +240,13 @@ describeDevMoonbeam("Author Mapping - double registration", (context) => {
     //check that both are registered
     expect((await getMappingInfo(context, charlieAuthorId)).account).to.eq(ALITH);
     expect((await getMappingInfo(context, bobAuthorId)).account).to.eq(ALITH);
+    const expectedReservecBalance = 3n * DEFAULT_GENESIS_MAPPING + DEFAULT_GENESIS_STAKING;
     expect(
       ((await context.polkadotApi.query.system.account(ALITH)) as any).data.free.toBigInt()
-    ).to.eq(1207625817094628358418291n);
+    ).to.eq(BigInt(genesisAccountBalanceBefore) - DEFAULT_GENESIS_MAPPING - BigInt(fee));
     expect(
       ((await context.polkadotApi.query.system.account(ALITH)) as any).data.reserved.toBigInt()
-    ).to.eq(3n * DEFAULT_GENESIS_MAPPING + DEFAULT_GENESIS_STAKING);
+    ).to.eq(expectedReservecBalance);
   });
 });
 
