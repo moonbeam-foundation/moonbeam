@@ -41,6 +41,8 @@ use sp_std::{
 	vec,
 };
 
+mod eip2612;
+
 #[cfg(test)]
 mod mock;
 #[cfg(test)]
@@ -84,6 +86,10 @@ pub enum Action {
 	SetTeam = "set_team(address,address,address)",
 	SetMetadata = "set_metadata(string,string,uint8)",
 	ClearMetadata = "clear_metadata()",
+	// EIP 2612
+	Eip2612Permit = "permit(address,address,uint256,uint256,uint8,bytes32,bytes32)",
+	Eip2612Nonces = "nonces(address)",
+	Eip2612DomainSeparator = "DOMAIN_SEPARATOR()",
 }
 
 /// This trait ensure we can convert AccountIds to AssetIds
@@ -117,8 +123,11 @@ pub struct Erc20AssetsPrecompileSet<Runtime, IsLocal, Instance: 'static = ()>(
 impl<Runtime, IsLocal, Instance> PrecompileSet
 	for Erc20AssetsPrecompileSet<Runtime, IsLocal, Instance>
 where
-	Instance: 'static,
-	Runtime: pallet_assets::Config<Instance> + pallet_evm::Config + frame_system::Config,
+	Instance: eip2612::InstanceToPrefix + 'static,
+	Runtime: pallet_assets::Config<Instance>
+		+ pallet_evm::Config
+		+ frame_system::Config
+		+ pallet_timestamp::Config,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	Runtime::Call: From<pallet_assets::Call<Runtime, Instance>>,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
@@ -126,6 +135,7 @@ where
 	Runtime: AccountIdAssetIdConversion<Runtime::AccountId, AssetIdOf<Runtime, Instance>>,
 	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin: OriginTrait,
 	IsLocal: Get<bool>,
+	<Runtime as pallet_timestamp::Config>::Moment: Into<U256>,
 {
 	fn execute(
 		&self,
@@ -193,6 +203,21 @@ where
 							Self::set_metadata(asset_id, input, gasometer, context)
 						}
 						Action::ClearMetadata => Self::clear_metadata(asset_id, gasometer, context),
+						Action::Eip2612Permit => {
+							eip2612::Eip2612::<Runtime, IsLocal, Instance>::permit(
+								address, asset_id, input, gasometer,
+							)
+						}
+						Action::Eip2612Nonces => {
+							eip2612::Eip2612::<Runtime, IsLocal, Instance>::nonces(
+								address, input, gasometer,
+							)
+						}
+						Action::Eip2612DomainSeparator => {
+							eip2612::Eip2612::<Runtime, IsLocal, Instance>::domain_separator(
+								address, asset_id, gasometer,
+							)
+						}
 					}
 				};
 				return Some(result);
@@ -222,8 +247,11 @@ impl<Runtime, IsLocal, Instance> Erc20AssetsPrecompileSet<Runtime, IsLocal, Inst
 
 impl<Runtime, IsLocal, Instance> Erc20AssetsPrecompileSet<Runtime, IsLocal, Instance>
 where
-	Instance: 'static,
-	Runtime: pallet_assets::Config<Instance> + pallet_evm::Config + frame_system::Config,
+	Instance: eip2612::InstanceToPrefix + 'static,
+	Runtime: pallet_assets::Config<Instance>
+		+ pallet_evm::Config
+		+ frame_system::Config
+		+ pallet_timestamp::Config,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	Runtime::Call: From<pallet_assets::Call<Runtime, Instance>>,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
@@ -231,6 +259,7 @@ where
 	Runtime: AccountIdAssetIdConversion<Runtime::AccountId, AssetIdOf<Runtime, Instance>>,
 	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin: OriginTrait,
 	IsLocal: Get<bool>,
+	<Runtime as pallet_timestamp::Config>::Moment: Into<U256>,
 {
 	fn total_supply(
 		asset_id: AssetIdOf<Runtime, Instance>,
@@ -327,40 +356,8 @@ where
 		let spender: H160 = input.read::<Address>(gasometer)?.into();
 		let amount: U256 = input.read(gasometer)?;
 
-		{
-			let origin = Runtime::AddressMapping::into_account_id(context.caller);
-			let spender: Runtime::AccountId = Runtime::AddressMapping::into_account_id(spender);
-			// Amount saturate if too high.
-			let amount: BalanceOf<Runtime, Instance> =
-				amount.try_into().unwrap_or_else(|_| Bounded::max_value());
+		Self::approve_inner(asset_id, gasometer, context.caller, spender, amount)?;
 
-			// Allowance read
-			gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-
-			// If previous approval exists, we need to clean it
-			if pallet_assets::Pallet::<Runtime, Instance>::allowance(asset_id, &origin, &spender)
-				!= 0u32.into()
-			{
-				RuntimeHelper::<Runtime>::try_dispatch(
-					Some(origin.clone()).into(),
-					pallet_assets::Call::<Runtime, Instance>::cancel_approval {
-						id: asset_id,
-						delegate: Runtime::Lookup::unlookup(spender.clone()),
-					},
-					gasometer,
-				)?;
-			}
-			// Dispatch call (if enough gas).
-			RuntimeHelper::<Runtime>::try_dispatch(
-				Some(origin).into(),
-				pallet_assets::Call::<Runtime, Instance>::approve_transfer {
-					id: asset_id,
-					delegate: Runtime::Lookup::unlookup(spender),
-					amount,
-				},
-				gasometer,
-			)?;
-		}
 		// Build output.
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
@@ -375,6 +372,47 @@ where
 				)
 				.build(),
 		})
+	}
+
+	fn approve_inner(
+		asset_id: AssetIdOf<Runtime, Instance>,
+		gasometer: &mut Gasometer,
+		owner: H160,
+		spender: H160,
+		value: U256,
+	) -> EvmResult {
+		let owner = Runtime::AddressMapping::into_account_id(owner);
+		let spender: Runtime::AccountId = Runtime::AddressMapping::into_account_id(spender);
+		// Amount saturate if too high.
+		let amount: BalanceOf<Runtime, Instance> =
+			value.try_into().unwrap_or_else(|_| Bounded::max_value());
+
+		// Allowance read
+		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		// If previous approval exists, we need to clean it
+		if pallet_assets::Pallet::<Runtime, Instance>::allowance(asset_id, &owner, &spender)
+			!= 0u32.into()
+		{
+			RuntimeHelper::<Runtime>::try_dispatch(
+				Some(owner.clone()).into(),
+				pallet_assets::Call::<Runtime, Instance>::cancel_approval {
+					id: asset_id,
+					delegate: Runtime::Lookup::unlookup(spender.clone()),
+				},
+				gasometer,
+			)?;
+		}
+		// Dispatch call (if enough gas).
+		RuntimeHelper::<Runtime>::try_dispatch(
+			Some(owner).into(),
+			pallet_assets::Call::<Runtime, Instance>::approve_transfer {
+				id: asset_id,
+				delegate: Runtime::Lookup::unlookup(spender),
+				amount,
+			},
+			gasometer,
+		)
 	}
 
 	fn transfer(

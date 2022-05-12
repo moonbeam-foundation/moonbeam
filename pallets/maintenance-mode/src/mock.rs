@@ -262,7 +262,7 @@ impl Config for Test {
 	#[cfg(feature = "xcm-support")]
 	type MaintenanceDmpHandler = MaintenanceDmpHandler;
 	type NormalExecutiveHooks = NormalHooks;
-	type MaitenanceExecutiveHooks = MaintenanceHooks;
+	type MaintenanceExecutiveHooks = MaintenanceHooks;
 }
 
 /// Externality builder for pallet maintenance mode's mock runtime
