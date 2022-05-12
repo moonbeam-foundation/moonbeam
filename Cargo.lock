@@ -2495,7 +2495,7 @@ dependencies = [
  "environmental",
  "ethereum",
  "evm-core",
- "evm-gasometer 0.35.0 (git+https://github.com/purestake/evm?branch=jeremy-precompile-handle-for-subcalls)",
+ "evm-gasometer",
  "evm-runtime",
  "log",
  "parity-scale-codec",
@@ -2515,18 +2515,6 @@ dependencies = [
  "primitive-types",
  "scale-info",
  "serde",
-]
-
-[[package]]
-name = "evm-gasometer"
-version = "0.35.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6181da8734c86873ac9b3f9886d4e00105361039dcfb9f621be9a0ddb8f43961"
-dependencies = [
- "environmental",
- "evm-core",
- "evm-runtime",
- "primitive-types",
 ]
 
 [[package]]
@@ -2560,7 +2548,7 @@ dependencies = [
  "ethereum",
  "ethereum-types",
  "evm",
- "evm-gasometer 0.35.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "evm-gasometer",
  "evm-runtime",
  "parity-scale-codec",
  "sp-runtime-interface",
@@ -5630,7 +5618,7 @@ version = "0.1.0"
 dependencies = [
  "ethereum-types",
  "evm",
- "evm-gasometer 0.35.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "evm-gasometer",
  "evm-runtime",
  "evm-tracing-events",
  "fp-evm",
