@@ -33,7 +33,7 @@ use frame_support::{
 	StorageHasher, Twox128,
 };
 use moonbase_runtime::{
-	asset_config::AssetRegistrarMetadata, asset_config::LocalAssetInstance, currency::*, get,
+	asset_config::AssetRegistrarMetadata, asset_config::LocalAssetInstance, get,
 	xcm_config::AssetType, AccountId, AssetId, AssetManager, Assets, Balances, BaseFee,
 	BlockWeights, Call, CrowdloanRewards, Event, LocalAssets, ParachainStaking, PolkadotXcm,
 	Precompiles, Runtime, System, XTokens, XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
