@@ -67,7 +67,7 @@ describeDevMoonbeam("Author Mapping - simple association", (context) => {
     expect((await getMappingInfo(context, bobAuthorId)).account).to.eq(ALITH);
     expect(
       ((await context.polkadotApi.query.system.account(ALITH)) as any).data.free.toBigInt()
-    ).to.eq(1207725818354628766561176n);
+    ).to.eq(1207725819614502764560800n);
     expect(
       ((await context.polkadotApi.query.system.account(ALITH)) as any).data.reserved.toBigInt()
     ).to.eq(2n * DEFAULT_GENESIS_MAPPING + DEFAULT_GENESIS_STAKING);
@@ -94,7 +94,7 @@ describeDevMoonbeam("Author Mapping - Fail to reassociate alice", (context) => {
     //check state
     expect(
       ((await context.polkadotApi.query.system.account(BALTATHAR)) as any).data.free.toBigInt()
-    ).to.eq(1208925818354628766561176n);
+    ).to.eq(1208925819614502764560800n);
     expect(
       ((await context.polkadotApi.query.system.account(BALTATHAR)) as any).data.reserved.toBigInt()
     ).to.eq(0n);
@@ -204,7 +204,7 @@ describeDevMoonbeam("Author Mapping - double registration", (context) => {
     expect((await getMappingInfo(context, bobAuthorId)).account).to.eq(ALITH);
     expect(
       ((await context.polkadotApi.query.system.account(ALITH)) as any).data.free.toBigInt()
-    ).to.eq(1207725818354628766561176n);
+    ).to.eq(1207725819614502764560800n);
     expect(
       ((await context.polkadotApi.query.system.account(ALITH)) as any).data.reserved.toBigInt()
     ).to.eq(2n * DEFAULT_GENESIS_MAPPING + DEFAULT_GENESIS_STAKING);
@@ -222,7 +222,7 @@ describeDevMoonbeam("Author Mapping - double registration", (context) => {
     expect((await getMappingInfo(context, bobAuthorId)).account).to.eq(ALITH);
     expect(
       ((await context.polkadotApi.query.system.account(ALITH)) as any).data.free.toBigInt()
-    ).to.eq(1207625817094628358418291n);
+    ).to.eq(1207625819614376354417539n);
     expect(
       ((await context.polkadotApi.query.system.account(ALITH)) as any).data.reserved.toBigInt()
     ).to.eq(3n * DEFAULT_GENESIS_MAPPING + DEFAULT_GENESIS_STAKING);
