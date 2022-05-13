@@ -215,7 +215,7 @@ describeSmokeSuite(`Verify staking consistency`, { wssUrl, relayWssUrl }, (conte
       const candidateId = `0x${candidate[0].toHex().slice(-40)}`;
       const candidateData = candidate[1].unwrap();
 
-      if (candidateData.status.isLeaving) {
+      if (candidateData.status.isLeaving && candidateData.status.isIdle) {
         expect(
           candidatePool.find((c) => c.owner.toHex() == candidateId),
           `Candidate ${candidateId} is leaving and should not be in the candidate pool`
