@@ -19,14 +19,14 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![feature(assert_matches)]
 
-use fp_evm::{Context, ExitSucceed, PrecompileHandle, PrecompileOutput};
+use fp_evm::{Context, PrecompileHandle, PrecompileOutput};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use nimbus_primitives::NimbusId;
 use pallet_author_mapping::Call as AuthorMappingCall;
 use pallet_evm::AddressMapping;
 use pallet_evm::Precompile;
 use precompile_utils::{
-	check_function_modifier, EvmDataReader, EvmResult, FunctionModifier, RuntimeHelper,
+	check_function_modifier, succeed, EvmDataReader, EvmResult, FunctionModifier, RuntimeHelper,
 };
 use sp_core::crypto::UncheckedFrom;
 use sp_core::H256;
@@ -114,10 +114,7 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: Default::default(),
-		})
+		Ok(succeed([]))
 	}
 
 	fn update_association(
@@ -144,10 +141,7 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: Default::default(),
-		})
+		Ok(succeed([]))
 	}
 
 	fn clear_association(
@@ -171,10 +165,7 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: Default::default(),
-		})
+		Ok(succeed([]))
 	}
 
 	fn register_keys(
@@ -202,10 +193,7 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: Default::default(),
-		})
+		Ok(succeed([]))
 	}
 
 	fn set_keys(
@@ -236,9 +224,6 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: Default::default(),
-		})
+		Ok(succeed([]))
 	}
 }

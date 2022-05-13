@@ -30,11 +30,11 @@ use frame_support::traits::{Currency, Get};
 use pallet_evm::AddressMapping;
 use pallet_evm::Precompile;
 use precompile_utils::{
-	check_function_modifier, revert, Address, EvmData, EvmDataReader, EvmDataWriter, EvmResult,
-	FunctionModifier, RuntimeHelper,
+	check_function_modifier, revert, succeed, Address, EvmData, EvmDataReader, EvmDataWriter,
+	EvmResult, FunctionModifier, RuntimeHelper,
 };
 use sp_core::H160;
-use sp_std::{convert::TryInto, fmt::Debug, marker::PhantomData, vec, vec::Vec};
+use sp_std::{convert::TryInto, fmt::Debug, marker::PhantomData, vec::Vec};
 
 type BalanceOf<Runtime> = <<Runtime as parachain_staking::Config>::Currency as Currency<
 	<Runtime as frame_system::Config>::AccountId,
@@ -232,10 +232,7 @@ where
 		// Dispatch call (if enough gas).
 		RuntimeHelper::<Runtime>::try_dispatch(handle, origin, call)?;
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: vec![],
-		})
+		Ok(succeed([]))
 	}
 }
 
@@ -260,10 +257,7 @@ where
 		.map_err(|_| revert("Amount is too large for provided balance type"))?;
 
 		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(min_nomination).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(min_nomination).build()))
 	}
 
 	// Storage Getters
@@ -281,10 +275,7 @@ where
 		let points: u32 = parachain_staking::Pallet::<Runtime>::points(round);
 
 		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(points).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(points).build()))
 	}
 
 	fn candidate_count(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
@@ -295,10 +286,7 @@ where
 			.len() as u32;
 
 		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(candidate_count).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(candidate_count).build()))
 	}
 
 	fn round(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
@@ -307,10 +295,7 @@ where
 		let round: u32 = <parachain_staking::Pallet<Runtime>>::round().current;
 
 		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(round).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(round).build()))
 	}
 
 	fn candidate_delegation_count(
@@ -344,10 +329,7 @@ where
 			};
 
 		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(result).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(result).build()))
 	}
 
 	fn delegator_delegation_count(
@@ -382,10 +364,7 @@ where
 			};
 
 		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(result).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(result).build()))
 	}
 
 	fn selected_candidates(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
@@ -396,11 +375,11 @@ where
 				.into_iter()
 				.map(|address| Address(address.into()))
 				.collect();
+
 		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(selected_candidates).build(),
-		})
+		Ok(succeed(
+			EvmDataWriter::new().write(selected_candidates).build(),
+		))
 	}
 
 	// Role Verifiers
@@ -419,10 +398,7 @@ where
 		let is_delegator = parachain_staking::Pallet::<Runtime>::is_delegator(&address);
 
 		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(is_delegator).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(is_delegator).build()))
 	}
 
 	fn is_candidate(
@@ -439,10 +415,7 @@ where
 		let is_candidate = parachain_staking::Pallet::<Runtime>::is_candidate(&address);
 
 		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(is_candidate).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(is_candidate).build()))
 	}
 
 	fn is_selected_candidate(
@@ -459,10 +432,7 @@ where
 		let is_selected = parachain_staking::Pallet::<Runtime>::is_selected_candidate(&address);
 
 		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(is_selected).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(is_selected).build()))
 	}
 
 	fn delegation_request_is_pending(
@@ -487,10 +457,7 @@ where
 			<parachain_staking::Pallet<Runtime>>::delegation_request_exists(&candidate, &delegator);
 
 		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(pending).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(pending).build()))
 	}
 
 	fn delegator_exit_is_pending(
@@ -522,10 +489,7 @@ where
 		};
 
 		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(pending).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(pending).build()))
 	}
 
 	fn candidate_exit_is_pending(
@@ -556,10 +520,7 @@ where
 			};
 
 		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(pending).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(pending).build()))
 	}
 
 	fn candidate_request_is_pending(
@@ -590,10 +551,7 @@ where
 			};
 
 		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(pending).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(pending).build()))
 	}
 
 	// Runtime Methods (dispatchables)

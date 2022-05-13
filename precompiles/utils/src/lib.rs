@@ -21,7 +21,8 @@ extern crate alloc;
 
 use crate::alloc::borrow::ToOwned;
 use fp_evm::{
-	Context, ExitError, ExitReason, ExitRevert, PrecompileFailure, PrecompileHandle, Transfer,
+	Context, ExitError, ExitReason, ExitRevert, ExitSucceed, PrecompileFailure, PrecompileHandle,
+	PrecompileOutput, Transfer,
 };
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
@@ -287,6 +288,14 @@ impl<T: PrecompileHandle> PrecompileHandleExt for T {
 pub fn revert(output: impl AsRef<[u8]>) -> PrecompileFailure {
 	PrecompileFailure::Revert {
 		exit_status: ExitRevert::Reverted,
+		output: output.as_ref().to_owned(),
+	}
+}
+
+#[must_use]
+pub fn succeed(output: impl AsRef<[u8]>) -> PrecompileOutput {
+	PrecompileOutput {
+		exit_status: ExitSucceed::Returned,
 		output: output.as_ref().to_owned(),
 	}
 }

@@ -19,13 +19,13 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![feature(assert_matches)]
 
-use evm::{executor::stack::PrecompileOutput, Context, ExitSucceed};
+use evm::{executor::stack::PrecompileOutput, Context};
 use fp_evm::PrecompileHandle;
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use pallet_evm::{AddressMapping, Precompile};
 use precompile_utils::{
-	check_function_modifier, revert, Address, Bytes, EvmDataReader, EvmDataWriter, EvmResult,
-	FunctionModifier, RuntimeHelper,
+	check_function_modifier, revert, succeed, Address, Bytes, EvmDataReader, EvmDataWriter,
+	EvmResult, FunctionModifier, RuntimeHelper,
 };
 
 use sp_core::H160;
@@ -129,10 +129,9 @@ where
 			.ok_or(revert("No index assigned"))?
 			.into();
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(Address(account)).build(),
-		})
+		Ok(succeed(
+			EvmDataWriter::new().write(Address(account)).build(),
+		))
 	}
 
 	fn transact_info(
@@ -148,14 +147,13 @@ where
 			xcm_transactor::Pallet::<Runtime>::transact_info(multilocation)
 				.ok_or(revert("Transact Info not set"))?;
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new()
+		Ok(succeed(
+			EvmDataWriter::new()
 				.write(remote_transact_info.transact_extra_weight)
 				.write(remote_transact_info.fee_per_second)
 				.write(remote_transact_info.max_weight)
 				.build(),
-		})
+		))
 	}
 
 	fn transact_through_derivative_multilocation(
@@ -196,10 +194,7 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: Default::default(),
-		})
+		Ok(succeed([]))
 	}
 
 	fn transact_through_derivative(
@@ -246,9 +241,6 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: Default::default(),
-		})
+		Ok(succeed([]))
 	}
 }

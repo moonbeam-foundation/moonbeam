@@ -3,6 +3,7 @@ import yargs from "yargs";
 import { getCommitAndLabels, getCompareLink } from "./github-utils";
 
 const BINARY_CHANGES_LABEL = "B5-clientnoteworthy";
+const BREAKING_CHANGES_LABEL = "D2-breaksapi";
 
 function capitalize(s) {
   return s[0].toUpperCase() + s.slice(1);
@@ -48,10 +49,18 @@ async function main() {
   );
   const filteredPr = prByLabels[BINARY_CHANGES_LABEL] || [];
 
+  const printPr = (pr) => {
+    if (pr.labels.includes(BREAKING_CHANGES_LABEL)) {
+      return "⚠️ " + pr.title + " (" + pr.number + ")";
+    } else {
+      return pr.title + " (" + pr.number + ")";
+    }
+  };
+
   const template = `
 ## Changes
 
-${filteredPr.map((pr) => `* ${pr.title} (#${pr.number})`).join("\n")}
+${filteredPr.map((pr) => `* ${printPr(pr)}`).join("\n")}
 
 ## Dependency changes
 

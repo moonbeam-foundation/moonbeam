@@ -25,6 +25,7 @@ use pallet_assets::pallet::{
 	Instance1, Instance10, Instance11, Instance12, Instance13, Instance14, Instance15, Instance16,
 	Instance2, Instance3, Instance4, Instance5, Instance6, Instance7, Instance8, Instance9,
 };
+use scale_info::prelude::string::ToString;
 use sp_core::H256;
 use sp_io::hashing::keccak_256;
 
@@ -126,16 +127,17 @@ where
 	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin: OriginTrait,
 	IsLocal: Get<bool>,
 	<Runtime as pallet_timestamp::Config>::Moment: Into<U256>,
+	AssetIdOf<Runtime, Instance>: Display,
 {
 	fn compute_domain_separator(address: H160, asset_id: AssetIdOf<Runtime, Instance>) -> [u8; 32] {
 		let asset_name = pallet_assets::Pallet::<Runtime, Instance>::name(asset_id);
 
 		let name = if asset_name.is_empty() {
-			b"XC20: No name".to_vec()
-		} else {
-			let mut name = b"XC20: ".to_vec();
-			name.extend_from_slice(&asset_name);
+			let mut name = b"Unnamed XC20 #".to_vec();
+			name.extend_from_slice(asset_id.to_string().as_bytes());
 			name
+		} else {
+			asset_name
 		};
 
 		let name: H256 = keccak_256(&name).into();
@@ -239,10 +241,7 @@ where
 			)
 			.record(handle);
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: vec![],
-		})
+		Ok(succeed([]))
 	}
 
 	pub(crate) fn nonces(
@@ -256,10 +255,7 @@ where
 
 		let nonce = NoncesStorage::<Instance>::get(address, owner);
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(nonce).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(nonce).build()))
 	}
 
 	pub(crate) fn domain_separator(
@@ -271,9 +267,8 @@ where
 
 		let domain_separator: H256 = Self::compute_domain_separator(address, asset_id).into();
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(domain_separator).build(),
-		})
+		Ok(succeed(
+			EvmDataWriter::new().write(domain_separator).build(),
+		))
 	}
 }

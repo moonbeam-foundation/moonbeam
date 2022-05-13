@@ -19,7 +19,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![feature(assert_matches)]
 
-use fp_evm::{Context, ExitSucceed, PrecompileHandle, PrecompileOutput};
+use fp_evm::{Context, PrecompileHandle, PrecompileOutput};
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
 	ensure,
@@ -27,8 +27,8 @@ use frame_support::{
 };
 use pallet_evm::{AddressMapping, Precompile};
 use precompile_utils::{
-	check_function_modifier, revert, Address, EvmData, EvmDataReader, EvmDataWriter, EvmResult,
-	FunctionModifier, RuntimeHelper,
+	check_function_modifier, revert, succeed, Address, EvmData, EvmDataReader, EvmDataWriter,
+	EvmResult, FunctionModifier, RuntimeHelper,
 };
 
 use sp_core::{H160, U256};
@@ -154,10 +154,7 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: Default::default(),
-		})
+		Ok(succeed([]))
 	}
 
 	fn transfer_with_fee(
@@ -205,10 +202,7 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: Default::default(),
-		})
+		Ok(succeed([]))
 	}
 
 	fn transfer_multiasset(
@@ -246,10 +240,7 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: Default::default(),
-		})
+		Ok(succeed([]))
 	}
 
 	fn transfer_multiasset_with_fee(
@@ -293,10 +284,7 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: Default::default(),
-		})
+		Ok(succeed([]))
 	}
 
 	fn transfer_multi_currencies(
@@ -361,10 +349,7 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: Default::default(),
-		})
+		Ok(succeed([]))
 	}
 
 	fn transfer_multi_assets(
@@ -418,10 +403,7 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: Default::default(),
-		})
+		Ok(succeed([]))
 	}
 }
 
