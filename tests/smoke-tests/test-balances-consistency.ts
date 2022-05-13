@@ -1,6 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { ApiDecoration } from "@polkadot/api/types";
 import type { FrameSystemAccountInfo } from "@polkadot/types/lookup";
+import { StorageKey, Option, u128 } from "@polkadot/types";
 import { expect } from "chai";
 import { printTokens } from "../util/logging";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
@@ -14,6 +15,7 @@ describeSmokeSuite(`Verify balances consistency`, { wssUrl, relayWssUrl }, (cont
 
   let atBlockNumber: number = 0;
   let apiAt: ApiDecoration<"promise"> = null;
+  let specVersion: number = 0;
 
   before("Retrieve all balances", async function () {
     // It takes time to load all the accounts.
@@ -27,6 +29,7 @@ describeSmokeSuite(`Verify balances consistency`, { wssUrl, relayWssUrl }, (cont
     apiAt = await context.polkadotApi.at(
       await context.polkadotApi.rpc.chain.getBlockHash(atBlockNumber)
     );
+    specVersion = (await apiAt.query.system.lastRuntimeUpgrade()).unwrap().specVersion.toNumber();
 
     // loop over all system accounts
     while (true) {
@@ -69,6 +72,7 @@ describeSmokeSuite(`Verify balances consistency`, { wssUrl, relayWssUrl }, (cont
       preimages,
       assets,
       assetsMetadata,
+      localAssetDeposits,
       namedReserves,
     ] = await Promise.all([
       apiAt.query.proxy.proxies.entries(),
@@ -83,6 +87,9 @@ describeSmokeSuite(`Verify balances consistency`, { wssUrl, relayWssUrl }, (cont
       apiAt.query.democracy.preimages.entries(),
       apiAt.query.assets.asset.entries(),
       apiAt.query.assets.metadata.entries(),
+      specVersion >= 1500
+        ? apiAt.query.assetManager.localAssetDeposit?.entries()
+        : ([] as [StorageKey<[u128]>, Option<any>][]), // TODO fix any
       apiAt.query.balances.reserves.entries(),
     ]);
 
@@ -187,6 +194,12 @@ describeSmokeSuite(`Verify balances consistency`, { wssUrl, relayWssUrl }, (cont
           .slice(-40)}`,
         reserved: {
           metadata: metadata[1].deposit.toBigInt(),
+        },
+      })),
+      localAssetDeposits.map((assetDeposit) => ({
+        accountId: assetDeposit[1].unwrap().creator.toHex(),
+        reserved: {
+          localAssetDeposit: assetDeposit[1].unwrap().deposit.toBigInt(),
         },
       })),
       namedReserves.map((namedReservesOf) => ({

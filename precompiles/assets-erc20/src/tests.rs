@@ -2096,7 +2096,7 @@ const createPermitMessageData = function () {
 	},
 	primaryType: "Permit",
 	domain: {
-		name: "XC20: No name",
+		name: "Unnamed XC20 #1",
 		version: "1",
 		chainId: 0,
 		verifyingContract: "0xffffffff00000000000000000000000000000001",
@@ -2173,8 +2173,8 @@ fn permit_valid_with_metamask_signed_data() {
 			let deadline: U256 = 1u16.into(); // todo: proper timestamp
 
 			let rsv = hex!(
-				"ea5efc4eb0bc92641e47852ab1db7091fea3358160aeadebeeead48291b8679d76be0550a4e68afbfb
-				75a178096086c17dc110acbcd1736264a99a458925ba2e1b"
+				"3aac886f06729d76067b6b0dbae23978fe48224b10b5648265b8f0e8c4cf25ff7625965d64bf9a6069d
+				b00ef5771b65fd24dd118531fc6e86b61a238ca76b9a11c"
 			)
 			.as_slice();
 			let (r, sv) = rsv.split_at(32);

@@ -18,6 +18,7 @@
 #![cfg_attr(test, feature(assert_matches))]
 
 use fp_evm::{Context, ExitSucceed, PrecompileHandle, PrecompileOutput};
+use core::fmt::Display;
 use frame_support::traits::fungibles::approvals::Inspect as ApprovalInspect;
 use frame_support::traits::fungibles::metadata::Inspect as MetadataInspect;
 use frame_support::traits::fungibles::Inspect;
@@ -137,6 +138,7 @@ where
 	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin: OriginTrait,
 	IsLocal: Get<bool>,
 	<Runtime as pallet_timestamp::Config>::Moment: Into<U256>,
+	AssetIdOf<Runtime, Instance>: Display,
 {
 	fn execute(
 		&self,
@@ -256,6 +258,7 @@ where
 	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin: OriginTrait,
 	IsLocal: Get<bool>,
 	<Runtime as pallet_timestamp::Config>::Moment: Into<U256>,
+	AssetIdOf<Runtime, Instance>: Display,
 {
 	fn total_supply(
 		asset_id: AssetIdOf<Runtime, Instance>,
