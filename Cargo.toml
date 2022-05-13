@@ -28,8 +28,8 @@ members = [
 [patch.crates-io]
 evm = { git = "https://github.com/purestake/evm", branch = "jeremy-precompile-handle-for-subcalls" }
 evm-core = { git = "https://github.com/purestake/evm", branch = "jeremy-precompile-handle-for-subcalls" }
-evm-runtime = { git = "https://github.com/purestake/evm", branch = "jeremy-precompile-handle-for-subcalls" }
 evm-gasometer = { git = "https://github.com/purestake/evm", branch = "jeremy-precompile-handle-for-subcalls" }
+evm-runtime = { git = "https://github.com/purestake/evm", branch = "jeremy-precompile-handle-for-subcalls" }
 
 # make sure dev builds with backtrace do
 # not slow us down

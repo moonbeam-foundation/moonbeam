@@ -24,7 +24,7 @@ mod mock;
 #[cfg(test)]
 mod tests;
 
-use fp_evm::{Context, ExitSucceed, PrecompileHandle, PrecompileOutput};
+use fp_evm::{Context, PrecompileHandle, PrecompileOutput};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use frame_support::traits::{Currency, Get};
 use pallet_evm::AddressMapping;
