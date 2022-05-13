@@ -205,7 +205,6 @@ describeDevMoonbeam("Author Mapping - double registration", (context) => {
         .paymentInfo(genesisAccount)
     ).partialFee as any;
 
-    console.log(fee);
     await context.polkadotApi.tx.authorMapping
       .addAssociation(bobAuthorId)
       .signAndSend(genesisAccount);
