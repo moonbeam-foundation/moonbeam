@@ -29,12 +29,12 @@ import type {
 import type {
   EthereumLog,
   EvmCoreErrorExitReason,
+  FrameSupportScheduleLookupError,
   FrameSupportTokensMiscBalanceStatus,
   FrameSupportWeightsDispatchInfo,
-  MoonbeamRuntimeAssetRegistrarMetadata,
-  MoonbeamRuntimeAssetType,
-  MoonbeamRuntimeCurrencyId,
+  MoonbeamRuntimeAssetConfigAssetRegistrarMetadata,
   MoonbeamRuntimeProxyType,
+  MoonbeamRuntimeXcmConfigAssetType,
   NimbusPrimitivesNimbusCryptoPublic,
   PalletDemocracyVoteAccountVote,
   PalletDemocracyVoteThreshold,
@@ -44,6 +44,7 @@ import type {
   XcmTransactorRemoteTransactInfoWithMaxWeight,
   XcmV1MultiAsset,
   XcmV1MultiLocation,
+  XcmV1MultiassetMultiAssets,
   XcmV2Response,
   XcmV2TraitsError,
   XcmV2TraitsOutcome,
@@ -55,12 +56,42 @@ import type {
 declare module "@polkadot/api-base/types/events" {
   export interface AugmentedEvents<ApiType extends ApiTypes> {
     assetManager: {
-      AssetRegistered: AugmentedEvent<
+      /**
+       * Removed all information related to an assetId and destroyed asset
+       */
+      ForeignAssetDestroyed: AugmentedEvent<ApiType, [u128, MoonbeamRuntimeXcmConfigAssetType]>;
+      /**
+       * New asset with the asset manager is registered
+       */
+      ForeignAssetRegistered: AugmentedEvent<
         ApiType,
-        [u128, MoonbeamRuntimeAssetType, MoonbeamRuntimeAssetRegistrarMetadata]
+        [u128, MoonbeamRuntimeXcmConfigAssetType, MoonbeamRuntimeAssetConfigAssetRegistrarMetadata]
       >;
-      AssetTypeChanged: AugmentedEvent<ApiType, [u128, MoonbeamRuntimeAssetType]>;
-      UnitsPerSecondChanged: AugmentedEvent<ApiType, [MoonbeamRuntimeAssetType, u128]>;
+      /**
+       * Removed all information related to an assetId
+       */
+      ForeignAssetRemoved: AugmentedEvent<ApiType, [u128, MoonbeamRuntimeXcmConfigAssetType]>;
+      /**
+       * Changed the xcm type mapping for a given asset id
+       */
+      ForeignAssetTypeChanged: AugmentedEvent<ApiType, [u128, MoonbeamRuntimeXcmConfigAssetType]>;
+      /**
+       * Removed all information related to an assetId and destroyed asset
+       */
+      LocalAssetDestroyed: AugmentedEvent<ApiType, [u128]>;
+      /**
+       * Local asset was created
+       */
+      LocalAssetRegistered: AugmentedEvent<ApiType, [u128, AccountId20, AccountId20]>;
+      /**
+       * Supported asset type for fee payment removed
+       */
+      SupportedAssetRemoved: AugmentedEvent<ApiType, [MoonbeamRuntimeXcmConfigAssetType]>;
+      /**
+       * Changed the amount of units we are charging per execution second for a
+       * given asset
+       */
+      UnitsPerSecondChanged: AugmentedEvent<ApiType, [MoonbeamRuntimeXcmConfigAssetType, u128]>;
       /**
        * Generic event
        */
@@ -548,11 +579,101 @@ declare module "@polkadot/api-base/types/events" {
        */
       [key: string]: AugmentedEvent<ApiType>;
     };
+    localAssets: {
+      /**
+       * An approval for account `delegate` was cancelled by `owner`.
+       */
+      ApprovalCancelled: AugmentedEvent<ApiType, [u128, AccountId20, AccountId20]>;
+      /**
+       * (Additional) funds have been approved for transfer to a destination account.
+       */
+      ApprovedTransfer: AugmentedEvent<ApiType, [u128, AccountId20, AccountId20, u128]>;
+      /**
+       * Some asset `asset_id` was frozen.
+       */
+      AssetFrozen: AugmentedEvent<ApiType, [u128]>;
+      /**
+       * An asset has had its attributes changed by the `Force` origin.
+       */
+      AssetStatusChanged: AugmentedEvent<ApiType, [u128]>;
+      /**
+       * Some asset `asset_id` was thawed.
+       */
+      AssetThawed: AugmentedEvent<ApiType, [u128]>;
+      /**
+       * Some assets were destroyed.
+       */
+      Burned: AugmentedEvent<ApiType, [u128, AccountId20, u128]>;
+      /**
+       * Some asset class was created.
+       */
+      Created: AugmentedEvent<ApiType, [u128, AccountId20, AccountId20]>;
+      /**
+       * An asset class was destroyed.
+       */
+      Destroyed: AugmentedEvent<ApiType, [u128]>;
+      /**
+       * Some asset class was force-created.
+       */
+      ForceCreated: AugmentedEvent<ApiType, [u128, AccountId20]>;
+      /**
+       * Some account `who` was frozen.
+       */
+      Frozen: AugmentedEvent<ApiType, [u128, AccountId20]>;
+      /**
+       * Some assets were issued.
+       */
+      Issued: AugmentedEvent<ApiType, [u128, AccountId20, u128]>;
+      /**
+       * Metadata has been cleared for an asset.
+       */
+      MetadataCleared: AugmentedEvent<ApiType, [u128]>;
+      /**
+       * New metadata has been set for an asset.
+       */
+      MetadataSet: AugmentedEvent<ApiType, [u128, Bytes, Bytes, u8, bool]>;
+      /**
+       * The owner changed.
+       */
+      OwnerChanged: AugmentedEvent<ApiType, [u128, AccountId20]>;
+      /**
+       * The management team changed.
+       */
+      TeamChanged: AugmentedEvent<ApiType, [u128, AccountId20, AccountId20, AccountId20]>;
+      /**
+       * Some account `who` was thawed.
+       */
+      Thawed: AugmentedEvent<ApiType, [u128, AccountId20]>;
+      /**
+       * Some assets were transferred.
+       */
+      Transferred: AugmentedEvent<ApiType, [u128, AccountId20, AccountId20, u128]>;
+      /**
+       * An `amount` was transferred in its entirety from `owner` to
+       * `destination` by the approved `delegate`.
+       */
+      TransferredApproved: AugmentedEvent<
+        ApiType,
+        [u128, AccountId20, AccountId20, AccountId20, u128]
+      >;
+      /**
+       * Generic event
+       */
+      [key: string]: AugmentedEvent<ApiType>;
+    };
     maintenanceMode: {
       /**
        * The chain was put into Maintenance Mode
        */
       EnteredMaintenanceMode: AugmentedEvent<ApiType, []>;
+      /**
+       * The call to resume on_idle XCM execution failed with inner error
+       */
+      FailedToResumeIdleXcmExecution: AugmentedEvent<ApiType, [SpRuntimeDispatchError]>;
+      /**
+       * The call to suspend on_idle XCM execution failed with inner error
+       */
+      FailedToSuspendIdleXcmExecution: AugmentedEvent<ApiType, [SpRuntimeDispatchError]>;
       /**
        * The chain returned to its normal operating state
        */
@@ -563,9 +684,21 @@ declare module "@polkadot/api-base/types/events" {
       [key: string]: AugmentedEvent<ApiType>;
     };
     migrations: {
+      /**
+       * Migration completed
+       */
       MigrationCompleted: AugmentedEvent<ApiType, [Bytes, u64]>;
+      /**
+       * Migration started
+       */
       MigrationStarted: AugmentedEvent<ApiType, [Bytes]>;
+      /**
+       * Runtime upgrade completed
+       */
       RuntimeUpgradeCompleted: AugmentedEvent<ApiType, [u64]>;
+      /**
+       * Runtime upgrade started
+       */
       RuntimeUpgradeStarted: AugmentedEvent<ApiType, []>;
       /**
        * Generic event
@@ -574,64 +707,62 @@ declare module "@polkadot/api-base/types/events" {
     };
     parachainStaking: {
       /**
-       * Set blocks per round [current_round, first_block, old, new,
-       * new_per_round_inflation]
+       * Set blocks per round
        */
       BlocksPerRoundSet: AugmentedEvent<ApiType, [u32, u32, u32, u32, Perbill, Perbill, Perbill]>;
       /**
-       * Candidate, Amount, Round at which could be executed
+       * Cancelled request to decrease candidate's bond.
        */
       CancelledCandidateBondLess: AugmentedEvent<ApiType, [AccountId20, u128, u32]>;
       /**
-       * Candidate
+       * Cancelled request to leave the set of candidates.
        */
       CancelledCandidateExit: AugmentedEvent<ApiType, [AccountId20]>;
       /**
-       * Delegator, Cancelled Request
+       * Cancelled request to change an existing delegation.
        */
       CancelledDelegationRequest: AugmentedEvent<
         ApiType,
         [AccountId20, ParachainStakingDelegationRequest]
       >;
       /**
-       * Candidate
+       * Candidate rejoins the set of collator candidates.
        */
       CandidateBackOnline: AugmentedEvent<ApiType, [AccountId20]>;
       /**
-       * Candidate, Amount, New Bond
+       * Сandidate has decreased a self bond.
        */
       CandidateBondedLess: AugmentedEvent<ApiType, [AccountId20, u128, u128]>;
       /**
-       * Candidate, Amount, New Bond Total
+       * Сandidate has increased a self bond.
        */
       CandidateBondedMore: AugmentedEvent<ApiType, [AccountId20, u128, u128]>;
       /**
-       * Candidate, Amount To Decrease, Round at which request can be executed by caller
+       * Сandidate requested to decrease a self bond.
        */
       CandidateBondLessRequested: AugmentedEvent<ApiType, [AccountId20, u128, u32]>;
       /**
-       * Ex-Candidate, Amount Unlocked, New Total Amt Locked
+       * Candidate has left the set of candidates.
        */
       CandidateLeft: AugmentedEvent<ApiType, [AccountId20, u128, u128]>;
       /**
-       * Round At Which Exit Is Allowed, Candidate, Scheduled Exit
+       * Сandidate has requested to leave the set of candidates.
        */
       CandidateScheduledExit: AugmentedEvent<ApiType, [u32, AccountId20, u32]>;
       /**
-       * Candidate
+       * Candidate temporarily leave the set of collator candidates without unbonding.
        */
       CandidateWentOffline: AugmentedEvent<ApiType, [AccountId20]>;
       /**
-       * Round, Collator Account, Total Exposed Amount (includes all delegations)
+       * Candidate selected for collators. Total Exposed Amount includes all delegations.
        */
       CollatorChosen: AugmentedEvent<ApiType, [u32, AccountId20, u128]>;
       /**
-       * Set collator commission to this value [old, new]
+       * Set collator commission to this value.
        */
       CollatorCommissionSet: AugmentedEvent<ApiType, [Perbill, Perbill]>;
       /**
-       * Delegator, Amount Locked, Candidate, Delegator Position with New Total
-       * Counted if in Top
+       * New delegation (increase of the existing one).
        */
       Delegation: AugmentedEvent<
         ApiType,
@@ -639,36 +770,36 @@ declare module "@polkadot/api-base/types/events" {
       >;
       DelegationDecreased: AugmentedEvent<ApiType, [AccountId20, AccountId20, u128, bool]>;
       /**
-       * Delegator, Candidate, Amount to be decreased, Round at which can be executed
+       * Delegator requested to decrease a bond for the collator candidate.
        */
       DelegationDecreaseScheduled: AugmentedEvent<ApiType, [AccountId20, AccountId20, u128, u32]>;
       DelegationIncreased: AugmentedEvent<ApiType, [AccountId20, AccountId20, u128, bool]>;
       /**
-       * Delegator, Candidate, Amount Unstaked
+       * Delegation kicked.
        */
       DelegationKicked: AugmentedEvent<ApiType, [AccountId20, AccountId20, u128]>;
       /**
-       * Round, Delegator, Candidate, Scheduled Exit
+       * Delegator requested to revoke delegation.
        */
       DelegationRevocationScheduled: AugmentedEvent<ApiType, [u32, AccountId20, AccountId20, u32]>;
       /**
-       * Delegator, Candidate, Amount Unstaked
+       * Delegation revoked.
        */
       DelegationRevoked: AugmentedEvent<ApiType, [AccountId20, AccountId20, u128]>;
       /**
-       * Delegator
+       * Cancelled a pending request to exit the set of delegators.
        */
       DelegatorExitCancelled: AugmentedEvent<ApiType, [AccountId20]>;
       /**
-       * Round, Delegator, Scheduled Exit
+       * Delegator requested to leave the set of delegators.
        */
       DelegatorExitScheduled: AugmentedEvent<ApiType, [u32, AccountId20, u32]>;
       /**
-       * Delegator, Amount Unstaked
+       * Delegator has left the set of delegators.
        */
       DelegatorLeft: AugmentedEvent<ApiType, [AccountId20, u128]>;
       /**
-       * Delegator, Candidate, Amount Unstaked, New Total Amt Staked for Candidate
+       * Delegation from candidate state has been remove.
        */
       DelegatorLeftCandidate: AugmentedEvent<ApiType, [AccountId20, AccountId20, u128, u128]>;
       /**
@@ -677,35 +808,35 @@ declare module "@polkadot/api-base/types/events" {
        */
       InflationSet: AugmentedEvent<ApiType, [Perbill, Perbill, Perbill, Perbill, Perbill, Perbill]>;
       /**
-       * Account, Amount Locked, New Total Amt Locked
+       * Account joined the set of collator candidates.
        */
       JoinedCollatorCandidates: AugmentedEvent<ApiType, [AccountId20, u128, u128]>;
       /**
-       * Starting Block, Round, Number of Collators Selected, Total Balance
+       * Started new round.
        */
       NewRound: AugmentedEvent<ApiType, [u32, u32, u32, u128]>;
       /**
-       * Account (re)set for parachain bond treasury [old, new]
+       * Account (re)set for parachain bond treasury.
        */
       ParachainBondAccountSet: AugmentedEvent<ApiType, [AccountId20, AccountId20]>;
       /**
-       * Percent of inflation reserved for parachain bond (re)set [old, new]
+       * Percent of inflation reserved for parachain bond (re)set.
        */
       ParachainBondReservePercentSet: AugmentedEvent<ApiType, [Percent, Percent]>;
       /**
-       * Transferred to account which holds funds reserved for parachain bond
+       * Transferred to account which holds funds reserved for parachain bond.
        */
       ReservedForParachainBond: AugmentedEvent<ApiType, [AccountId20, u128]>;
       /**
-       * Paid the account (delegator or collator) the balance as liquid rewards
+       * Paid the account (delegator or collator) the balance as liquid rewards.
        */
       Rewarded: AugmentedEvent<ApiType, [AccountId20, u128]>;
       /**
-       * Staking expectations set
+       * Staking expectations set.
        */
       StakeExpectationsSet: AugmentedEvent<ApiType, [u128, u128, u128]>;
       /**
-       * Set total selected candidates to this value [old, new]
+       * Set total selected candidates to this value.
        */
       TotalSelectedSet: AugmentedEvent<ApiType, [u32, u32]>;
       /**
@@ -902,18 +1033,25 @@ declare module "@polkadot/api-base/types/events" {
     };
     scheduler: {
       /**
-       * Canceled some task. [when, index]
+       * The call for the provided hash was not found so the task has been aborted.
+       */
+      CallLookupFailed: AugmentedEvent<
+        ApiType,
+        [ITuple<[u32, u32]>, Option<Bytes>, FrameSupportScheduleLookupError]
+      >;
+      /**
+       * Canceled some task.
        */
       Canceled: AugmentedEvent<ApiType, [u32, u32]>;
       /**
-       * Dispatched some task. [task, id, result]
+       * Dispatched some task.
        */
       Dispatched: AugmentedEvent<
         ApiType,
         [ITuple<[u32, u32]>, Option<Bytes>, Result<Null, SpRuntimeDispatchError>]
       >;
       /**
-       * Scheduled some task. [when, index]
+       * Scheduled some task.
        */
       Scheduled: AugmentedEvent<ApiType, [u32, u32]>;
       /**
@@ -927,26 +1065,26 @@ declare module "@polkadot/api-base/types/events" {
        */
       CodeUpdated: AugmentedEvent<ApiType, []>;
       /**
-       * An extrinsic failed. [error, info]
+       * An extrinsic failed.
        */
       ExtrinsicFailed: AugmentedEvent<
         ApiType,
         [SpRuntimeDispatchError, FrameSupportWeightsDispatchInfo]
       >;
       /**
-       * An extrinsic completed successfully. [info]
+       * An extrinsic completed successfully.
        */
       ExtrinsicSuccess: AugmentedEvent<ApiType, [FrameSupportWeightsDispatchInfo]>;
       /**
-       * An [account] was reaped.
+       * An account was reaped.
        */
       KilledAccount: AugmentedEvent<ApiType, [AccountId20]>;
       /**
-       * A new [account] was created.
+       * A new account was created.
        */
       NewAccount: AugmentedEvent<ApiType, [AccountId20]>;
       /**
-       * On on-chain remark happened. [origin, remark_hash]
+       * On on-chain remark happened.
        */
       Remarked: AugmentedEvent<ApiType, [AccountId20, H256]>;
       /**
@@ -994,32 +1132,31 @@ declare module "@polkadot/api-base/types/events" {
     };
     treasury: {
       /**
-       * Some funds have been allocated. [proposal_index, award, beneficiary]
+       * Some funds have been allocated.
        */
       Awarded: AugmentedEvent<ApiType, [u32, u128, AccountId20]>;
       /**
-       * Some of our funds have been burnt. [burn]
+       * Some of our funds have been burnt.
        */
       Burnt: AugmentedEvent<ApiType, [u128]>;
       /**
-       * Some funds have been deposited. [deposit]
+       * Some funds have been deposited.
        */
       Deposit: AugmentedEvent<ApiType, [u128]>;
       /**
-       * New proposal. [proposal_index]
+       * New proposal.
        */
       Proposed: AugmentedEvent<ApiType, [u32]>;
       /**
-       * A proposal was rejected; funds were slashed. [proposal_index, slashed]
+       * A proposal was rejected; funds were slashed.
        */
       Rejected: AugmentedEvent<ApiType, [u32, u128]>;
       /**
-       * Spending has finished; this is the amount that rolls over until next
-       * spend. [budget_remaining]
+       * Spending has finished; this is the amount that rolls over until next spend.
        */
       Rollover: AugmentedEvent<ApiType, [u128]>;
       /**
-       * We have ended a spend period and will now allocate funds. [budget_remaining]
+       * We have ended a spend period and will now allocate funds.
        */
       Spending: AugmentedEvent<ApiType, [u128]>;
       /**
@@ -1038,7 +1175,7 @@ declare module "@polkadot/api-base/types/events" {
        */
       BatchInterrupted: AugmentedEvent<ApiType, [u32, SpRuntimeDispatchError]>;
       /**
-       * A call was dispatched. [result]
+       * A call was dispatched.
        */
       DispatchedAs: AugmentedEvent<ApiType, [Result<Null, SpRuntimeDispatchError>]>;
       /**
@@ -1064,6 +1201,14 @@ declare module "@polkadot/api-base/types/events" {
        */
       Fail: AugmentedEvent<ApiType, [Option<H256>, XcmV2TraitsError]>;
       /**
+       * An XCM exceeded the individual message weight budget.
+       */
+      OverweightEnqueued: AugmentedEvent<ApiType, [u32, u32, u64, u64]>;
+      /**
+       * An XCM from the overweight queue was executed with the given actual weight used.
+       */
+      OverweightServiced: AugmentedEvent<ApiType, [u64, u64]>;
+      /**
        * Some XCM was executed ok.
        */
       Success: AugmentedEvent<ApiType, [Option<H256>]>;
@@ -1081,14 +1226,34 @@ declare module "@polkadot/api-base/types/events" {
       [key: string]: AugmentedEvent<ApiType>;
     };
     xcmTransactor: {
-      RegisterdDerivative: AugmentedEvent<ApiType, [AccountId20, u16]>;
+      DeRegisteredDerivative: AugmentedEvent<ApiType, [u16]>;
+      /**
+       * Registered a derivative index for an account id.
+       */
+      RegisteredDerivative: AugmentedEvent<ApiType, [AccountId20, u16]>;
+      /**
+       * Transacted the inner call through a derivative account in a destination chain.
+       */
       TransactedDerivative: AugmentedEvent<ApiType, [AccountId20, XcmV1MultiLocation, Bytes, u16]>;
+      /**
+       * Transacted the call through the sovereign account in a destination chain.
+       */
       TransactedSovereign: AugmentedEvent<ApiType, [AccountId20, XcmV1MultiLocation, Bytes]>;
+      /**
+       * Transact failed
+       */
       TransactFailed: AugmentedEvent<ApiType, [XcmV2TraitsError]>;
+      /**
+       * Changed the transact info of a location
+       */
       TransactInfoChanged: AugmentedEvent<
         ApiType,
         [XcmV1MultiLocation, XcmTransactorRemoteTransactInfoWithMaxWeight]
       >;
+      /**
+       * Removed the transact info of a location
+       */
+      TransactInfoRemoved: AugmentedEvent<ApiType, [XcmV1MultiLocation]>;
       /**
        * Generic event
        */
@@ -1096,32 +1261,11 @@ declare module "@polkadot/api-base/types/events" {
     };
     xTokens: {
       /**
-       * Transferred. [sender, currency_id, amount, dest]
+       * Transferred `MultiAsset` with fee.
        */
-      Transferred: AugmentedEvent<
+      TransferredMultiAssets: AugmentedEvent<
         ApiType,
-        [AccountId20, MoonbeamRuntimeCurrencyId, u128, XcmV1MultiLocation]
-      >;
-      /**
-       * Transferred `MultiAsset`. [sender, asset, dest]
-       */
-      TransferredMultiAsset: AugmentedEvent<
-        ApiType,
-        [AccountId20, XcmV1MultiAsset, XcmV1MultiLocation]
-      >;
-      /**
-       * Transferred `MultiAsset` with fee. [sender, asset, fee, dest]
-       */
-      TransferredMultiAssetWithFee: AugmentedEvent<
-        ApiType,
-        [AccountId20, XcmV1MultiAsset, XcmV1MultiAsset, XcmV1MultiLocation]
-      >;
-      /**
-       * Transferred with fee. [sender, currency_id, amount, fee, dest]
-       */
-      TransferredWithFee: AugmentedEvent<
-        ApiType,
-        [AccountId20, MoonbeamRuntimeCurrencyId, u128, u128, XcmV1MultiLocation]
+        [AccountId20, XcmV1MultiassetMultiAssets, XcmV1MultiAsset, XcmV1MultiLocation]
       >;
       /**
        * Generic event
