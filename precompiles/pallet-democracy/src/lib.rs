@@ -19,15 +19,15 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![feature(assert_matches)]
 
-use fp_evm::{Context, ExitSucceed, PrecompileHandle, PrecompileOutput};
+use fp_evm::{Context, PrecompileHandle, PrecompileOutput};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use frame_support::traits::Currency;
 use pallet_democracy::{AccountVote, Call as DemocracyCall, Vote};
 use pallet_evm::AddressMapping;
 use pallet_evm::Precompile;
 use precompile_utils::{
-	check_function_modifier, revert, Address, Bytes, EvmData, EvmDataReader, EvmDataWriter,
-	EvmResult, FunctionModifier, RuntimeHelper,
+	check_function_modifier, revert, succeed, Address, Bytes, EvmData, EvmDataReader,
+	EvmDataWriter, EvmResult, FunctionModifier, RuntimeHelper,
 };
 use sp_core::{H160, H256, U256};
 use sp_std::{
@@ -150,10 +150,7 @@ where
 		let prop_count = DemocracyOf::<Runtime>::public_prop_count();
 		log::trace!(target: "democracy-precompile", "Prop count from pallet is {:?}", prop_count);
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(prop_count).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(prop_count).build()))
 	}
 
 	fn deposit_of(
@@ -175,10 +172,7 @@ where
 			"Deposit of proposal {:?} is {:?}", prop_index, deposit
 		);
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(deposit).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(deposit).build()))
 	}
 
 	fn lowest_unbaked(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
@@ -190,10 +184,7 @@ where
 			"lowest unbaked referendum is {:?}", lowest_unbaked
 		);
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(lowest_unbaked).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(lowest_unbaked).build()))
 	}
 
 	// This method is not yet implemented because it depends on
@@ -286,10 +277,7 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Stopped,
-			output: Default::default(),
-		})
+		Ok(succeed([]))
 	}
 
 	fn second(
@@ -316,10 +304,7 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Stopped,
-			output: Default::default(),
-		})
+		Ok(succeed([]))
 	}
 
 	fn standard_vote(
@@ -352,10 +337,7 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Stopped,
-			output: Default::default(),
-		})
+		Ok(succeed([]))
 	}
 
 	fn remove_vote(
@@ -381,10 +363,7 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Stopped,
-			output: Default::default(),
-		})
+		Ok(succeed([]))
 	}
 
 	fn delegate(
@@ -417,10 +396,7 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Stopped,
-			output: Default::default(),
-		})
+		Ok(succeed([]))
 	}
 
 	fn un_delegate(
@@ -432,10 +408,7 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Stopped,
-			output: Default::default(),
-		})
+		Ok(succeed([]))
 	}
 
 	fn unlock(
@@ -459,10 +432,7 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Stopped,
-			output: Default::default(),
-		})
+		Ok(succeed([]))
 	}
 
 	fn note_preimage(
@@ -482,10 +452,7 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Stopped,
-			output: Default::default(),
-		})
+		Ok(succeed([]))
 	}
 
 	fn note_imminent_preimage(
@@ -505,9 +472,6 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Stopped,
-			output: Default::default(),
-		})
+		Ok(succeed([]))
 	}
 }

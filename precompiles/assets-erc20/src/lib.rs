@@ -17,8 +17,8 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![cfg_attr(test, feature(assert_matches))]
 
-use fp_evm::{Context, ExitSucceed, PrecompileHandle, PrecompileOutput};
 use core::fmt::Display;
+use fp_evm::{Context, PrecompileHandle, PrecompileOutput};
 use frame_support::traits::fungibles::approvals::Inspect as ApprovalInspect;
 use frame_support::traits::fungibles::metadata::Inspect as MetadataInspect;
 use frame_support::traits::fungibles::Inspect;
@@ -29,7 +29,7 @@ use frame_support::{
 };
 use pallet_evm::{AddressMapping, PrecompileSet};
 use precompile_utils::{
-	check_function_modifier, keccak256, revert, Address, Bytes, EvmData, EvmDataReader,
+	check_function_modifier, keccak256, revert, succeed, Address, Bytes, EvmData, EvmDataReader,
 	EvmDataWriter, EvmResult, FunctionModifier, LogExt, LogsBuilder, PrecompileHandleExt,
 	RuntimeHelper,
 };
@@ -40,7 +40,6 @@ use sp_core::{H160, U256};
 use sp_std::{
 	convert::{TryFrom, TryInto},
 	marker::PhantomData,
-	vec,
 };
 
 mod eip2612;
@@ -275,10 +274,7 @@ where
 			pallet_assets::Pallet::<Runtime, Instance>::total_issuance(asset_id).into();
 
 		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(amount).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(amount).build()))
 	}
 
 	fn balance_of(
@@ -300,10 +296,7 @@ where
 		};
 
 		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(amount).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(amount).build()))
 	}
 
 	fn allowance(
@@ -329,10 +322,7 @@ where
 		};
 
 		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(amount).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(amount).build()))
 	}
 
 	fn approve(
@@ -361,10 +351,7 @@ where
 			.record(handle);
 
 		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(true).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(true).build()))
 	}
 
 	fn approve_inner(
@@ -449,10 +436,7 @@ where
 			.record(handle);
 
 		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(true).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(true).build()))
 	}
 
 	fn transfer_from(
@@ -512,10 +496,7 @@ where
 			.record(handle);
 
 		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(true).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(true).build()))
 	}
 
 	fn name(
@@ -525,16 +506,15 @@ where
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new()
+		Ok(succeed(
+			EvmDataWriter::new()
 				.write::<Bytes>(
 					pallet_assets::Pallet::<Runtime, Instance>::name(asset_id)
 						.as_slice()
 						.into(),
 				)
 				.build(),
-		})
+		))
 	}
 
 	fn symbol(
@@ -544,16 +524,15 @@ where
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new()
+		Ok(succeed(
+			EvmDataWriter::new()
 				.write::<Bytes>(
 					pallet_assets::Pallet::<Runtime, Instance>::symbol(asset_id)
 						.as_slice()
 						.into(),
 				)
 				.build(),
-		})
+		))
 	}
 
 	fn decimals(
@@ -563,14 +542,13 @@ where
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new()
+		Ok(succeed(
+			EvmDataWriter::new()
 				.write::<u8>(pallet_assets::Pallet::<Runtime, Instance>::decimals(
 					asset_id,
 				))
 				.build(),
-		})
+		))
 	}
 
 	// From here: only for locals, we need to check whether we are in local assets otherwise fail
@@ -619,10 +597,7 @@ where
 			.record(handle);
 
 		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(true).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(true).build()))
 	}
 
 	fn burn(
@@ -670,10 +645,7 @@ where
 			.record(handle);
 
 		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(true).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(true).build()))
 	}
 
 	fn freeze(
@@ -708,10 +680,7 @@ where
 		}
 
 		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(true).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(true).build()))
 	}
 
 	fn thaw(
@@ -746,10 +715,7 @@ where
 		}
 
 		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(true).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(true).build()))
 	}
 
 	fn freeze_asset(
@@ -774,10 +740,7 @@ where
 		}
 
 		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(true).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(true).build()))
 	}
 
 	fn thaw_asset(
@@ -802,10 +765,7 @@ where
 		}
 
 		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(true).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(true).build()))
 	}
 
 	fn transfer_ownership(
@@ -840,10 +800,7 @@ where
 		}
 
 		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(true).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(true).build()))
 	}
 
 	fn set_team(
@@ -884,10 +841,7 @@ where
 		}
 
 		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(true).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(true).build()))
 	}
 
 	fn set_metadata(
@@ -925,10 +879,7 @@ where
 		}
 
 		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(true).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(true).build()))
 	}
 
 	fn clear_metadata(
@@ -953,9 +904,6 @@ where
 		}
 
 		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(true).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(true).build()))
 	}
 }

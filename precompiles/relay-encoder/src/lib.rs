@@ -20,7 +20,7 @@
 #![cfg_attr(test, feature(assert_matches))]
 
 use cumulus_primitives_core::relay_chain;
-use fp_evm::{Context, ExitSucceed, PrecompileHandle, PrecompileOutput};
+use fp_evm::{Context, PrecompileHandle, PrecompileOutput};
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
 	ensure,
@@ -28,8 +28,8 @@ use frame_support::{
 use pallet_evm::Precompile;
 use pallet_staking::RewardDestination;
 use precompile_utils::{
-	check_function_modifier, revert, Bytes, EvmData, EvmDataReader, EvmDataWriter, EvmResult,
-	FunctionModifier, RuntimeHelper,
+	check_function_modifier, revert, succeed, Bytes, EvmData, EvmDataReader, EvmDataWriter,
+	EvmResult, FunctionModifier, RuntimeHelper,
 };
 use sp_core::{H256, U256};
 use sp_runtime::AccountId32;
@@ -148,10 +148,7 @@ where
 		.as_slice()
 		.into();
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(encoded).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(encoded).build()))
 	}
 
 	fn encode_bond_extra(
@@ -168,10 +165,7 @@ where
 				.as_slice()
 				.into();
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(encoded).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(encoded).build()))
 	}
 
 	fn encode_unbond(
@@ -189,10 +183,7 @@ where
 			.as_slice()
 			.into();
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(encoded).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(encoded).build()))
 	}
 
 	fn encode_withdraw_unbonded(
@@ -209,10 +200,7 @@ where
 				.as_slice()
 				.into();
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(encoded).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(encoded).build()))
 	}
 
 	fn encode_validate(
@@ -235,10 +223,7 @@ where
 		.as_slice()
 		.into();
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(encoded).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(encoded).build()))
 	}
 
 	fn encode_nominate(
@@ -260,10 +245,7 @@ where
 			.as_slice()
 			.into();
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(encoded).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(encoded).build()))
 	}
 
 	fn encode_chill(
@@ -278,10 +260,7 @@ where
 			.as_slice()
 			.into();
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(encoded).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(encoded).build()))
 	}
 
 	fn encode_set_payee(
@@ -299,10 +278,7 @@ where
 				.as_slice()
 				.into();
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(encoded).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(encoded).build()))
 	}
 
 	fn encode_set_controller(
@@ -318,10 +294,7 @@ where
 				.as_slice()
 				.into();
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(encoded).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(encoded).build()))
 	}
 
 	fn encode_rebond(
@@ -338,10 +311,7 @@ where
 			.as_slice()
 			.into();
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(encoded).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(encoded).build()))
 	}
 }
 

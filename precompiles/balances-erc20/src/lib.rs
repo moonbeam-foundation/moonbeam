@@ -19,7 +19,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![cfg_attr(test, feature(assert_matches))]
 
-use fp_evm::{Context, ExitSucceed, PrecompileHandle, PrecompileOutput};
+use fp_evm::{Context, PrecompileHandle, PrecompileOutput};
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
 	sp_runtime::traits::{Bounded, CheckedSub, StaticLookup},
@@ -33,14 +33,14 @@ use pallet_balances::pallet::{
 };
 use pallet_evm::{AddressMapping, Precompile};
 use precompile_utils::{
-	check_function_modifier, keccak256, revert, Address, Bytes, EvmDataReader, EvmDataWriter,
-	EvmResult, FunctionModifier, LogExt, LogsBuilder, PrecompileHandleExt, RuntimeHelper,
+	check_function_modifier, keccak256, revert, succeed, Address, Bytes, EvmDataReader,
+	EvmDataWriter, EvmResult, FunctionModifier, LogExt, LogsBuilder, PrecompileHandleExt,
+	RuntimeHelper,
 };
 use sp_core::{H160, U256};
 use sp_std::{
 	convert::{TryFrom, TryInto},
 	marker::PhantomData,
-	vec,
 };
 
 mod eip2612;
@@ -285,10 +285,7 @@ where
 		let amount: U256 = pallet_balances::Pallet::<Runtime, Instance>::total_issuance().into();
 
 		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(amount).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(amount).build()))
 	}
 
 	fn balance_of(
@@ -309,10 +306,7 @@ where
 		};
 
 		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(amount).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(amount).build()))
 	}
 
 	fn allowance(
@@ -338,10 +332,7 @@ where
 		};
 
 		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(amount).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(amount).build()))
 	}
 
 	fn approve(
@@ -379,10 +370,7 @@ where
 			.record(handle);
 
 		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(true).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(true).build()))
 	}
 
 	fn transfer(
@@ -425,10 +413,7 @@ where
 			.record(handle);
 
 		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(true).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(true).build()))
 	}
 
 	fn transfer_from(
@@ -493,38 +478,32 @@ where
 			.record(handle);
 
 		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(true).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(true).build()))
 	}
 
 	fn name() -> EvmResult<PrecompileOutput> {
 		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new()
+		Ok(succeed(
+			EvmDataWriter::new()
 				.write::<Bytes>(Metadata::name().into())
 				.build(),
-		})
+		))
 	}
 
 	fn symbol() -> EvmResult<PrecompileOutput> {
 		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new()
+		Ok(succeed(
+			EvmDataWriter::new()
 				.write::<Bytes>(Metadata::symbol().into())
 				.build(),
-		})
+		))
 	}
 
 	fn decimals() -> EvmResult<PrecompileOutput> {
 		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(Metadata::decimals()).build(),
-		})
+		Ok(succeed(
+			EvmDataWriter::new().write(Metadata::decimals()).build(),
+		))
 	}
 
 	fn deposit(
@@ -565,10 +544,7 @@ where
 			)
 			.record(handle);
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: Default::default(),
-		})
+		Ok(succeed([]))
 	}
 
 	fn withdraw(
@@ -603,10 +579,7 @@ where
 			)
 			.record(handle);
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: Default::default(),
-		})
+		Ok(succeed([]))
 	}
 
 	fn u256_to_amount(value: U256) -> EvmResult<BalanceOf<Runtime, Instance>> {

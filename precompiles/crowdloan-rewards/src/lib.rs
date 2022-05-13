@@ -19,14 +19,14 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![feature(assert_matches)]
 
-use fp_evm::{Context, ExitSucceed, PrecompileHandle, PrecompileOutput};
+use fp_evm::{Context, PrecompileHandle, PrecompileOutput};
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
 	traits::Currency,
 };
 use pallet_evm::{AddressMapping, Precompile};
 use precompile_utils::{
-	check_function_modifier, revert, Address, EvmDataReader, EvmDataWriter, EvmResult,
+	check_function_modifier, revert, succeed, Address, EvmDataReader, EvmDataWriter, EvmResult,
 	FunctionModifier, RuntimeHelper,
 };
 
@@ -131,10 +131,7 @@ where
 
 		log::trace!(target: "crowldoan-rewards-precompile", "Result from pallet is {:?}", is_contributor);
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(is_contributor).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(is_contributor).build()))
 	}
 
 	fn reward_info(
@@ -180,10 +177,9 @@ where
 			total, claimed
 		);
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(total).write(claimed).build(),
-		})
+		Ok(succeed(
+			EvmDataWriter::new().write(total).write(claimed).build(),
+		))
 	}
 
 	fn claim(handle: &mut impl PrecompileHandle, context: &Context) -> EvmResult<PrecompileOutput> {
@@ -192,10 +188,7 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Stopped,
-			output: Default::default(),
-		})
+		Ok(succeed([]))
 	}
 
 	fn update_reward_address(
@@ -224,9 +217,6 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Stopped,
-			output: Default::default(),
-		})
+		Ok(succeed([]))
 	}
 }

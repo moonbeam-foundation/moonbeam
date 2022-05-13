@@ -241,10 +241,7 @@ where
 			)
 			.record(handle);
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: vec![],
-		})
+		Ok(succeed([]))
 	}
 
 	pub(crate) fn nonces(
@@ -258,10 +255,7 @@ where
 
 		let nonce = NoncesStorage::<Instance>::get(address, owner);
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(nonce).build(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(nonce).build()))
 	}
 
 	pub(crate) fn domain_separator(
@@ -273,9 +267,8 @@ where
 
 		let domain_separator: H256 = Self::compute_domain_separator(address, asset_id).into();
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(domain_separator).build(),
-		})
+		Ok(succeed(
+			EvmDataWriter::new().write(domain_separator).build(),
+		))
 	}
 }
