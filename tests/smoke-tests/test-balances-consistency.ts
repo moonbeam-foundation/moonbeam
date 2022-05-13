@@ -88,7 +88,7 @@ describeSmokeSuite(`Verify balances consistency`, { wssUrl, relayWssUrl }, (cont
       apiAt.query.assets.asset.entries(),
       apiAt.query.assets.metadata.entries(),
       specVersion >= 1500
-        ? apiAt.query.assetManager.localAssetDeposit?.entries()
+        ? apiAt.query.assetManager.localAssetDeposit.entries()
         : ([] as [StorageKey<[u128]>, Option<any>][]), // TODO fix any
       apiAt.query.balances.reserves.entries(),
     ]);
@@ -230,8 +230,8 @@ describeSmokeSuite(`Verify balances consistency`, { wssUrl, relayWssUrl }, (cont
       let reserved = accounts[accountId].data.reserved.toBigInt();
       const expectedReserve = expectedReserveByAccount[accountId]?.total || 0n;
 
-      expect(expectedReserve).to.equal(
-        reserved,
+      expect(reserved).to.equal(
+        expectedReserve,
         `${accountId} (reserved: ${reserved} vs expected: ${expectedReserve})\n (${Object.keys(
           expectedReserveByAccount[accountId]?.reserved || {}
         )
