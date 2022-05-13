@@ -69,9 +69,7 @@ describeSmokeSuite(`Verify XCM weight fees for relay`, { wssUrl, relayWssUrl }, 
       expect(
         // Conservative approach to allow up to 2 time the fees
         feePerSecond < expectedFeePerSecond * 2n,
-        `failed check: feePerSecond: ${feePerSecond} < expected ${
-          (expectedFeePerSecond * 101n) / 100n
-        }`
+        `failed check: feePerSecond: ${feePerSecond} < expected ${expectedFeePerSecond * 2n}`
       ).to.be.true;
     }
     debug(
