@@ -1,15 +1,13 @@
 import { expect } from "chai";
 
-import { GENESIS_ACCOUNT } from "../util/constants";
+import { GENESIS_ACCOUNT, TEST_ACCOUNT } from "../util/constants";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 import { createTransfer } from "../util/transactions";
 import { customWeb3Request } from "../util/providers";
 
 describeDevMoonbeam("Nonce - Initial", (context) => {
   it("should be at 0 before using it", async function () {
-    expect(
-      await context.web3.eth.getTransactionCount("0x1111111111111111111111111111111111111111")
-    ).to.eq(0);
+    expect(await context.web3.eth.getTransactionCount(TEST_ACCOUNT)).to.eq(0);
   });
 
   it("should be at 0 for genesis account", async function () {
@@ -27,9 +25,7 @@ describeDevMoonbeam("Nonce - Initial", (context) => {
 describeDevMoonbeam("Nonce - Previous block", (context) => {
   before("Setup: Create block with transfer", async () => {
     await context.createBlock({
-      transactions: [
-        await createTransfer(context, "0x1111111111111111111111111111111111111111", 512),
-      ],
+      transactions: [await createTransfer(context, TEST_ACCOUNT, 512)],
     });
   });
   it("should be at 0 after transferring", async function () {
@@ -40,7 +36,7 @@ describeDevMoonbeam("Nonce - Previous block", (context) => {
 describeDevMoonbeam("Nonce - Pending transaction", (context) => {
   before("Setup: Create block with transfer", async () => {
     await customWeb3Request(context.web3, "eth_sendRawTransaction", [
-      await createTransfer(context, "0x1111111111111111111111111111111111111111", 512),
+      await createTransfer(context, TEST_ACCOUNT, 512),
     ]);
   });
   it("should not increase transaction count", async function () {
@@ -57,9 +53,7 @@ describeDevMoonbeam("Nonce - Pending transaction", (context) => {
 describeDevMoonbeam("Nonce - Transferring", (context) => {
   before("Setup: Sending token", async function () {
     await context.createBlock({
-      transactions: [
-        await createTransfer(context, "0x1111111111111111111111111111111111111111", 512),
-      ],
+      transactions: [await createTransfer(context, TEST_ACCOUNT, 512)],
     });
   });
 
@@ -68,8 +62,6 @@ describeDevMoonbeam("Nonce - Transferring", (context) => {
   });
 
   it("should not increase the receiver nonce", async function () {
-    expect(
-      await context.web3.eth.getTransactionCount("0x1111111111111111111111111111111111111111")
-    ).to.eq(0);
+    expect(await context.web3.eth.getTransactionCount(TEST_ACCOUNT)).to.eq(0);
   });
 });

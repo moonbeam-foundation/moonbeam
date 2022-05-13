@@ -20,7 +20,7 @@
 use super::{
 	AccountId, AssetId, AssetManager, Assets, Balance, Balances, Call, DealWithFees, Event,
 	LocalAssets, Origin, ParachainInfo, ParachainSystem, PolkadotXcm, Runtime, Treasury,
-	WeightToFee, XcmpQueue, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, MAXIMUM_BLOCK_WEIGHT,
+	WeightToFee, XcmpQueue, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 
 use pallet_evm_precompile_assets_erc20::AccountIdAssetIdConversion;
@@ -277,10 +277,6 @@ impl xcm_executor::Config for XcmExecutorConfig {
 }
 
 type XcmExecutor = xcm_executor::XcmExecutor<XcmExecutorConfig>;
-
-parameter_types! {
-	pub const MaxDownwardMessageWeight: Weight = MAXIMUM_BLOCK_WEIGHT / 10;
-}
 
 // Converts a Signed Local Origin into a MultiLocation
 pub type LocalOriginToLocation = SignedToAccountId20<Origin, AccountId, RelayNetwork>;

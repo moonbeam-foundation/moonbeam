@@ -195,6 +195,25 @@ jobs:
             ./scripts/build-alphanet-relay-image.sh
             docker push $DOCKER_TAG
           fi
+      - name: Check & prepare para-test docker image
+        run: |
+          POLKADOT_REPO=${{ needs.set-tags.outputs.polkadot_repo }}
+          POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
+          DOCKER_TAG="purestake/polkadot-para-tests:sha-$POLKADOT_COMMIT"
+          POLKADOT_EXISTS=$(docker manifest inspect $DOCKER_TAG > /dev/null && \
+            echo "true" || echo "false")
+          if [[ "$POLKADOT_EXISTS" == "false" ]]; then
+            mkdir -p build
+            MOONBEAM_DOCKER_TAG="purestake/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
+            docker create --pull always -ti --name dummy $MOONBEAM_DOCKER_TAG bash
+            docker cp dummy:/usr/local/bin/polkadot build/polkadot
+            docker rm -f dummy
+            docker build . --pull --no-cache -f docker/polkadot-para-tests.Dockerfile \
+              --network=host \
+              --build-arg HOST_UID="$UID" \
+              -t $DOCKER_TAG
+            docker push $DOCKER_TAG
+          fi
 
   ####### Building and Testing binaries #######
 
@@ -215,12 +234,10 @@ jobs:
     runs-on: self-hosted
     needs: ["set-tags"]
     env:
-      CARGO_SCCACHE_COMMIT: 90e1dc81
+      CARGO_SCCACHE_COMMIT: bed5571c
       RUSTFLAGS: "-C opt-level=3 -D warnings"
       # MOONBEAM_LOG: info
       # DEBUG: "test*"
-    outputs:
-      RUSTC: ${{ steps.get-rust-versions.outputs.rustc }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -251,9 +268,6 @@ jobs:
           fi
           $SCCACHE_BIN -s
           echo "RUSTC_WRAPPER=$SCCACHE_BIN" >> $GITHUB_ENV
-      - id: get-rust-versions
-        run: |
-          echo "::set-output name=rustc::$(rustc --version)"
       - name: Build Node
         run: |
           env
@@ -312,7 +326,7 @@ jobs:
 
   typescript-tests:
     runs-on: self-hosted
-    needs: ["set-tags", "build"]
+    needs: ["set-tags", "build", "prepare-polkadot"]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -327,16 +341,33 @@ jobs:
         with:
           node-version: 14.x
       - name: Typescript integration tests (against dev service)
-        env:
-          BINARY_PATH: ../build/moonbeam
         run: |
           chmod uog+x build/moonbeam
+
+          ####  Preparing the repository
           cd moonbeam-types-bundle
           npm install
           npm run build
           cd ../tests
           npm install
-          node_modules/.bin/mocha --parallel -j 4 -r ts-node/register 'tests/**/test-*.ts'
+          cd ..
+
+          #### Retrieving docker image as base to run tests
+          POLKADOT_REPO=${{ needs.set-tags.outputs.polkadot_repo }}
+          POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
+          DOCKER_TAG="purestake/polkadot-para-tests:sha-$POLKADOT_COMMIT"
+
+          docker run \
+            -e BINARY_PATH='../build/moonbeam' \
+            -v $(pwd):/moonbeam:z \
+            -u $UID \
+            -w /moonbeam/tests \
+            $DOCKER_TAG \
+              node node_modules/.bin/mocha \
+                --parallel -j 4 \
+                --exit \
+                -r ts-node/register \
+                'tests/**/test-*.ts'
 
       # We determine whether there are unmodified package-lock.json files by:
       # 1. Asking git for a list of all modified files
@@ -398,7 +429,7 @@ jobs:
           npm run build
           cd ../tests
           npm install
-          node_modules/.bin/mocha --parallel -j 2 -r ts-node/register 'tracing-tests/**/test-*.ts'
+          node_modules/.bin/mocha --exit --parallel -j 2 -r ts-node/register 'tracing-tests/**/test-*.ts'
 
   typescript-para-tests:
     runs-on: self-hosted
@@ -437,11 +468,51 @@ jobs:
         run: |
           chmod uog+x build/polkadot
           chmod uog+x build/moonbeam
+
+          ####  Preparing the repository
           cd moonbeam-types-bundle
           npm install
           cd ../tests
           npm install
-          node_modules/.bin/mocha -r ts-node/register 'para-tests/**/test-*.ts'
+          cd ..
+
+          POLKADOT_REPO=${{ needs.set-tags.outputs.polkadot_repo }}
+          POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
+          DOCKER_TAG="purestake/polkadot-para-tests:sha-$POLKADOT_COMMIT"
+
+          #### Retrieve binary to avoid para-node script to rely on docker
+          mkdir -p build
+          localVersion=$(grep 'spec_version: [0-9]*' runtime/moonbase/src/lib.rs | grep -o '[0-9]*')
+          baseRuntime=$(git tag -l -n 'runtime-[0-9]*' | \
+            cut -d' ' -f 1 | cut -d'-' -f 2 | \
+            sed "1 i ${localVersion}" | \
+            sort -n -r | \
+            uniq | \
+            grep -A1 "${localVersion}" | \
+            tail -1)
+          rev=$(git rev-list -1 runtime-$baseRuntime)
+          sha8=${rev:0:8}
+          dockerImage=purestake/moonbeam:sha-${sha8}
+          binaryPath=build/moonbeam-${sha8}
+          docker create --pull always --name moonbeam-tmp ${dockerImage} && \
+          docker cp moonbeam-tmp:/moonbeam/moonbeam ${binaryPath} && \
+          docker rm moonbeam-tmp
+
+          echo "Running para-tests inside docker: $DOCKER_TAG"
+          docker run \
+            -e OVERRIDE_RUNTIME_PATH='./runtimes' \
+            -e BINARY_PATH='../build/moonbeam' \
+            -e MOONBEAM_LOG='info' \
+            -e RELAY_BINARY_PATH='/binaries/polkadot' \
+            -e RUNTIME_DIRECTORY='/tmp/runtimes' \
+            -e BINARY_DIRECTORY='../build/' \
+            -e SPECS_DIRECTORY='/tmp/specs' \
+            -v $(pwd):/moonbeam:z \
+            -v $(pwd)/${binaryPath}:/binaries/moonbeam:z \
+            -u $UID \
+            -w /moonbeam/tests \
+            $DOCKER_TAG \
+              node node_modules/.bin/mocha --exit -r ts-node/register 'para-tests/**/test-*.ts'
 
   docker-parachain:
     runs-on: ubuntu-latest

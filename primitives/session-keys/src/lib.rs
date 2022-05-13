@@ -17,6 +17,9 @@
 //! Primitives for session keys
 #![cfg_attr(not(feature = "std"), no_std)]
 
+pub mod vrf;
+pub use vrf::*;
+
 /// A Trait to lookup keys from AuthorIds
 pub trait KeysLookup<AuthorId, Keys> {
 	fn lookup_keys(author: &AuthorId) -> Option<Keys>;

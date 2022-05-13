@@ -47,12 +47,14 @@ use frame_support::{
 	},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
-		DispatchClass, GetDispatchInfo, IdentityFee, Weight, WeightToFeeCoefficient,
-		WeightToFeeCoefficients, WeightToFeePolynomial,
+		ConstantMultiplier, DispatchClass, GetDispatchInfo, IdentityFee, Weight,
+		WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
 	},
 	PalletId,
 };
 
+#[cfg(feature = "std")]
+pub use fp_evm::GenesisAccount;
 use frame_system::{EnsureRoot, EnsureSigned};
 pub use moonbeam_core_primitives::{
 	AccountId, AccountIndex, Address, AssetId, Balance, BlockNumber, DigestItem, Hash, Header,
@@ -63,8 +65,6 @@ pub use pallet_author_slot_filter::EligibilityValue;
 use pallet_balances::NegativeImbalance;
 use pallet_ethereum::Call::transact;
 use pallet_ethereum::Transaction as EthereumTransaction;
-#[cfg(feature = "std")]
-pub use pallet_evm::GenesisAccount;
 use pallet_evm::{
 	Account as EVMAccount, EVMCurrencyAdapter, EnsureAddressNever, EnsureAddressRoot,
 	FeeCalculator, GasWeightMapping, OnChargeEVMTransaction as OnChargeEVMTransactionT, Runner,
@@ -146,7 +146,7 @@ pub const WEEKS: BlockNumber = DAYS * 7;
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
 /// the specifics of the runtime. They can then be made to be agnostic over specific formats
 /// of data like extrinsics, allowing for them to continue syncing the network through upgrades
-/// to even the core datastructures.
+/// to even the core data structures.
 pub mod opaque {
 	use super::*;
 
@@ -156,6 +156,7 @@ pub mod opaque {
 	impl_opaque_keys! {
 		pub struct SessionKeys {
 			pub nimbus: AuthorInherent,
+			pub vrf: session_keys_primitives::VrfSessionKey,
 		}
 	}
 }
@@ -318,11 +319,15 @@ impl WeightToFeePolynomial for WeightToFee {
 	}
 }
 
+parameter_types! {
+	pub const TransactionByteFee: Balance = currency::TRANSACTION_BYTE_FEE;
+}
+
 impl pallet_transaction_payment::Config for Runtime {
 	type OnChargeTransaction = CurrencyAdapter<Balances, DealWithFees<Runtime>>;
-	type TransactionByteFee = ConstU128<{ currency::TRANSACTION_BYTE_FEE }>;
 	type OperationalFeeMultiplier = ConstU8<5>;
 	type WeightToFee = IdentityFee<Balance>;
+	type LengthToFee = ConstantMultiplier<Balance, TransactionByteFee>;
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Runtime>;
 }
 
@@ -794,7 +799,7 @@ impl pallet_author_mapping::Config for Runtime {
 	type Event = Event;
 	type DepositCurrency = Balances;
 	type DepositAmount = ConstU128<{ 100 * currency::UNIT * currency::SUPPLY_FACTOR }>;
-	type Keys = NimbusId; // TODO: consider making custom type?
+	type Keys = session_keys_primitives::VrfId;
 	type WeightInfo = pallet_author_mapping::weights::SubstrateWeight<Runtime>;
 }
 
@@ -1053,7 +1058,7 @@ impl pallet_maintenance_mode::Config for Runtime {
 	// We use AllPalletsReversedWithSystemFirst because we dont want to change the hooks in normal
 	// operation
 	type NormalExecutiveHooks = AllPalletsReversedWithSystemFirst;
-	type MaitenanceExecutiveHooks = MaintenanceHooks;
+	type MaintenanceExecutiveHooks = MaintenanceHooks;
 }
 
 impl pallet_proxy_genesis_companion::Config for Runtime {
