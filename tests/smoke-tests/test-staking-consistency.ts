@@ -8,9 +8,9 @@ import type {
   ParachainStakingDelegations,
   ParachainStakingCandidateMetadata,
   ParachainStakingBond,
+  ParachainStakingSetOrderedSetBond,
 } from "@polkadot/types/lookup";
 import { expect } from "chai";
-import { printTokens } from "../util/logging";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 const debug = require("debug")("smoke:staking");
 
@@ -25,6 +25,7 @@ describeSmokeSuite(`Verify staking consistency`, { wssUrl, relayWssUrl }, (conte
   let specVersion: number = 0;
   let maxTopDelegationsPerCandidate: number = 0;
   let allCandidateInfo: [StorageKey<[AccountId20]>, Option<ParachainStakingCandidateMetadata>][];
+  let candidatePool: ParachainStakingSetOrderedSetBond;
   let allDelegatorState: [StorageKey<[AccountId20]>, Option<ParachainStakingDelegator>][];
   let allTopDelegations: [StorageKey<[AccountId20]>, Option<ParachainStakingDelegations>][];
   let delegatorsPerCandidates: {
@@ -49,6 +50,7 @@ describeSmokeSuite(`Verify staking consistency`, { wssUrl, relayWssUrl }, (conte
     allCandidateInfo = await apiAt.query.parachainStaking.candidateInfo.entries();
     allDelegatorState = await apiAt.query.parachainStaking.delegatorState.entries();
     allTopDelegations = await apiAt.query.parachainStaking.topDelegations.entries();
+    candidatePool = await apiAt.query.parachainStaking.candidatePool();
 
     delegatorsPerCandidates = allDelegatorState.reduce((p, state) => {
       for (const delegation of state[1].unwrap().delegations) {
@@ -212,5 +214,25 @@ describeSmokeSuite(`Verify staking consistency`, { wssUrl, relayWssUrl }, (conte
     }
 
     debug(`Verified ${checks} lessTotal (runtime: ${specVersion})`);
+  });
+
+  it("all candidate are in candidateInfo and candidatePool", async function () {
+    for (const candidate of allCandidateInfo) {
+      const accountId = `0x${candidate[0].toHex().slice(-40)}`;
+      const delegators = delegatorsPerCandidates[accountId] || [];
+
+      const expectedTotalCounted =
+        delegators
+          .map((d) => d.delegation.amount.toBigInt())
+          .sort((a, b) => (a < b ? 1 : a > b ? -1 : 0))
+          .filter((_, i) => i < maxTopDelegationsPerCandidate)
+          .reduce((p, amount) => p + amount, 0n) + candidate[1].unwrap().bond.toBigInt();
+
+      expect(candidate[1].unwrap().totalCounted.toBigInt(), `Candidate: ${accountId}`).to.equal(
+        expectedTotalCounted
+      );
+    }
+
+    debug(`Verified ${Object.keys(allCandidateInfo).length} candidates`);
   });
 });
