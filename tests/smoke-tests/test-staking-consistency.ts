@@ -8,9 +8,9 @@ import type {
   ParachainStakingDelegations,
   ParachainStakingCandidateMetadata,
   ParachainStakingBond,
+  ParachainStakingSetOrderedSetBond,
 } from "@polkadot/types/lookup";
 import { expect } from "chai";
-import { printTokens } from "../util/logging";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 const debug = require("debug")("smoke:staking");
 
@@ -25,6 +25,7 @@ describeSmokeSuite(`Verify staking consistency`, { wssUrl, relayWssUrl }, (conte
   let specVersion: number = 0;
   let maxTopDelegationsPerCandidate: number = 0;
   let allCandidateInfo: [StorageKey<[AccountId20]>, Option<ParachainStakingCandidateMetadata>][];
+  let candidatePool: ParachainStakingSetOrderedSetBond;
   let allDelegatorState: [StorageKey<[AccountId20]>, Option<ParachainStakingDelegator>][];
   let allTopDelegations: [StorageKey<[AccountId20]>, Option<ParachainStakingDelegations>][];
   let delegatorsPerCandidates: {
@@ -48,6 +49,7 @@ describeSmokeSuite(`Verify staking consistency`, { wssUrl, relayWssUrl }, (conte
 
     allCandidateInfo = await apiAt.query.parachainStaking.candidateInfo.entries();
     allDelegatorState = await apiAt.query.parachainStaking.delegatorState.entries();
+    candidatePool = await apiAt.query.parachainStaking.candidatePool();
     allTopDelegations = await apiAt.query.parachainStaking.topDelegations.entries();
 
     delegatorsPerCandidates = allDelegatorState.reduce((p, state) => {
@@ -212,5 +214,38 @@ describeSmokeSuite(`Verify staking consistency`, { wssUrl, relayWssUrl }, (conte
     }
 
     debug(`Verified ${checks} lessTotal (runtime: ${specVersion})`);
+  });
+
+  it("candidatePool matches candidateInfo", async function () {
+    this.timeout(120000);
+
+    let foundCandidateInPool = 0;
+    for (const candidate of allCandidateInfo) {
+      const candidateId = `0x${candidate[0].toHex().slice(-40)}`;
+      const candidateData = candidate[1].unwrap();
+
+      if (candidateData.status.isLeaving) {
+        expect(
+          candidatePool.find((c) => c.owner.toHex() == candidateId),
+          `Candidate ${candidateId} is leaving and should not be in the candidate pool`
+        ).to.be.undefined;
+      } else {
+        expect(
+          candidatePool.find((c) => c.owner.toHex() == candidateId),
+          `Candidate ${candidateId} is active and should be in the candidate pool`
+        ).to.not.be.undefined;
+        foundCandidateInPool++;
+      }
+    }
+
+    expect(foundCandidateInPool, "Candidate in pool not matching expected number").to.be.equal(
+      candidatePool.length
+    );
+
+    debug(
+      `Verified ${Object.keys(allCandidateInfo).length} candidates info and ${
+        candidatePool.length
+      } in the pool`
+    );
   });
 });
