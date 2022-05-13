@@ -18,8 +18,6 @@ const wssUrl = process.env.WSS_URL || null;
 const relayWssUrl = process.env.RELAY_WSS_URL || null;
 
 describeSmokeSuite(`Verify staking consistency`, { wssUrl, relayWssUrl }, (context) => {
-  const accounts: { [account: string]: FrameSystemAccountInfo } = {};
-
   let atBlockNumber: number = 0;
   let apiAt: ApiDecoration<"promise"> = null;
   let specVersion: number = 0;
@@ -37,7 +35,7 @@ describeSmokeSuite(`Verify staking consistency`, { wssUrl, relayWssUrl }, (conte
 
   before("Setup apiAt", async function () {
     // It takes time to load all the accounts.
-    this.timeout(120000);
+    this.timeout(180000);
 
     atBlockNumber = (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber();
     apiAt = await context.polkadotApi.at(
@@ -67,9 +65,6 @@ describeSmokeSuite(`Verify staking consistency`, { wssUrl, relayWssUrl }, (conte
   });
 
   it("candidate totalCounted matches top X delegations", async function () {
-    this.timeout(120000);
-    // Load data
-
     for (const candidate of allCandidateInfo) {
       const accountId = `0x${candidate[0].toHex().slice(-40)}`;
       const delegators = delegatorsPerCandidates[accountId] || [];
@@ -119,8 +114,6 @@ describeSmokeSuite(`Verify staking consistency`, { wssUrl, relayWssUrl }, (conte
   });
 
   it("candidate topDelegations matches top X delegators", async function () {
-    this.timeout(120000);
-    // Load data
     for (const candidate of allCandidateInfo) {
       const accountId = `0x${candidate[0].toHex().slice(-40)}`;
       const delegators = delegatorsPerCandidates[accountId] || [];
@@ -217,8 +210,6 @@ describeSmokeSuite(`Verify staking consistency`, { wssUrl, relayWssUrl }, (conte
   });
 
   it("candidatePool matches candidateInfo", async function () {
-    this.timeout(120000);
-
     let foundCandidateInPool = 0;
     for (const candidate of allCandidateInfo) {
       const candidateId = `0x${candidate[0].toHex().slice(-40)}`;

@@ -19,7 +19,7 @@ describeSmokeSuite(`Verify balances consistency`, { wssUrl, relayWssUrl }, (cont
 
   before("Retrieve all balances", async function () {
     // It takes time to load all the accounts.
-    this.timeout(4800000);
+    this.timeout(3600000); // 1 hour should be enough
 
     const limit = 1000;
     let last_key = "";
