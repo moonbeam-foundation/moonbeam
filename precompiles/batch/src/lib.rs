@@ -20,11 +20,11 @@
 
 use evm::ExitReason;
 use fp_evm::{
-	Context, ExitSucceed, PrecompileFailure, PrecompileHandle, PrecompileOutput, Transfer,
+	Context, PrecompileFailure, PrecompileHandle, PrecompileOutput, Transfer,
 };
 use pallet_evm::Precompile;
 use precompile_utils::{
-	check_function_modifier, Address, Bytes, EvmDataReader, EvmDataWriter, EvmResult,
+	check_function_modifier, succeed, Address, Bytes, EvmDataReader, EvmDataWriter, EvmResult,
 	FunctionModifier,
 };
 use sp_core::U256;
@@ -142,13 +142,12 @@ where
 				// be executed but the precompile still succeed.
 				(ExitReason::Revert(_), Action::BatchSomeUntilFailure)
 				| (ExitReason::Error(_), Action::BatchSomeUntilFailure) => {
-					return Ok(PrecompileOutput {
-						exit_status: ExitSucceed::Returned,
-						output: EvmDataWriter::new()
+					return Ok(succeed(
+						EvmDataWriter::new()
 							.write(U256::from(i))
 							.write(outputs)
-							.build(),
-					})
+							.build()
+					))
 				}
 
 				// BatchSome: Reverts and errors don't prevent subsequent subcalls to be executed,
@@ -167,9 +166,6 @@ where
 			output = output.write(U256::from(success_counter));
 		}
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: output.write(outputs).build(),
-		})
+		Ok(succeed(output.write(outputs).build()))
 	}
 }
