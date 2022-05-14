@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -19,12 +19,12 @@ use super::*;
 use codec::{Decode, Encode, MaxEncodedLen};
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Everything, OnFinalize, OnInitialize},
+	traits::{EqualPrivilegeOnly, Everything, OnFinalize, OnInitialize},
 };
 use frame_system::{EnsureRoot, EnsureSigned};
 use pallet_democracy::VoteThreshold;
 use pallet_evm::{
-	AddressMapping, EnsureAddressNever, EnsureAddressRoot, SubstrateBlockHashMapping,
+	AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet, SubstrateBlockHashMapping,
 };
 use scale_info::TypeInfo;
 use serde::{Deserialize, Serialize};
@@ -41,6 +41,13 @@ pub type BlockNumber = u64;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
 type Block = frame_system::mocking::MockBlock<Runtime>;
+
+pub const PRECOMPILE_ADDRESS: u64 = 1;
+
+/// The democracy precompile is available at address one in the mock runtime.
+pub fn precompile_address() -> H160 {
+	H160::from_low_u64_be(1)
+}
 
 #[derive(
 	Eq,
@@ -62,6 +69,7 @@ pub enum TestAccount {
 	Bob,
 	Charlie,
 	Bogus,
+	Precompile,
 }
 
 impl Default for TestAccount {
@@ -76,8 +84,15 @@ impl AddressMapping<TestAccount> for TestAccount {
 			a if a == H160::repeat_byte(0xAA) => Self::Alice,
 			a if a == H160::repeat_byte(0xBB) => Self::Bob,
 			a if a == H160::repeat_byte(0xCC) => Self::Charlie,
+			a if a == H160::from_low_u64_be(PRECOMPILE_ADDRESS) => Self::Precompile,
 			_ => Self::Bogus,
 		}
+	}
+}
+
+impl From<H160> for TestAccount {
+	fn from(x: H160) -> TestAccount {
+		TestAccount::into_account_id(x)
 	}
 }
 
@@ -87,6 +102,7 @@ impl From<TestAccount> for H160 {
 			TestAccount::Alice => H160::repeat_byte(0xAA),
 			TestAccount::Bob => H160::repeat_byte(0xBB),
 			TestAccount::Charlie => H160::repeat_byte(0xCC),
+			TestAccount::Precompile => H160::from_low_u64_be(PRECOMPILE_ADDRESS),
 			TestAccount::Bogus => Default::default(),
 		}
 	}
@@ -104,7 +120,7 @@ construct_runtime!(
 		Evm: pallet_evm::{Pallet, Config, Call, Storage, Event<T>},
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
 		Democracy: pallet_democracy::{Pallet, Storage, Config<T>, Event<T>, Call},
-		Scheduler: pallet_scheduler::{Pallet, Call, Storage, Config, Event<T>},
+		Scheduler: pallet_scheduler::{Pallet, Call, Storage, Event<T>},
 	}
 );
 
@@ -136,6 +152,7 @@ impl frame_system::Config for Runtime {
 	type BlockLength = ();
 	type SS58Prefix = SS58Prefix;
 	type OnSetCode = ();
+	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 parameter_types! {
 	pub const ExistentialDeposit: u128 = 0;
@@ -152,11 +169,9 @@ impl pallet_balances::Config for Runtime {
 	type WeightInfo = ();
 }
 
-/// The democracy precompile is available at address 1 in the mock runtime.
-pub fn precompile_address() -> H160 {
-	H160::from_low_u64_be(1)
+parameter_types! {
+	pub const PrecompilesValue: Precompiles<Runtime> = Precompiles(PhantomData);
 }
-pub type Precompiles = (DemocracyWrapper<Runtime>,);
 
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
@@ -167,12 +182,14 @@ impl pallet_evm::Config for Runtime {
 	type Currency = Balances;
 	type Event = Event;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
-	type Precompiles = Precompiles;
+	type PrecompilesType = Precompiles<Self>;
+	type PrecompilesValue = PrecompilesValue;
 	type ChainId = ();
 	type OnChargeTransaction = ();
 	type BlockGasLimit = ();
 	type BlockHashMapping = SubstrateBlockHashMapping<Self>;
 	type FindAuthor = ();
+	type WeightInfo = ();
 }
 
 parameter_types! {
@@ -238,6 +255,41 @@ impl pallet_scheduler::Config for Runtime {
 	type ScheduleOrigin = EnsureRoot<TestAccount>;
 	type MaxScheduledPerBlock = ();
 	type WeightInfo = ();
+	type OriginPrivilegeCmp = EqualPrivilegeOnly; // TODO : Simplest type, maybe there is better ?
+	type PreimageProvider = ();
+	type NoPreimagePostponement = ();
+}
+
+#[derive(Default)]
+pub struct Precompiles<R>(PhantomData<R>);
+
+impl<R> PrecompileSet for Precompiles<R>
+where
+	DemocracyWrapper<R>: Precompile,
+{
+	fn execute(
+		&self,
+		address: H160,
+		input: &[u8],
+		target_gas: Option<u64>,
+		context: &Context,
+		is_static: bool,
+	) -> Option<EvmResult<PrecompileOutput>> {
+		match address {
+			a if a == hash(PRECOMPILE_ADDRESS) => Some(DemocracyWrapper::<R>::execute(
+				input, target_gas, context, is_static,
+			)),
+			_ => None,
+		}
+	}
+
+	fn is_precompile(&self, address: H160) -> bool {
+		address == hash(PRECOMPILE_ADDRESS)
+	}
+}
+
+fn hash(a: u64) -> H160 {
+	H160::from_low_u64_be(a)
 }
 
 /// Build test externalities, prepopulated with data for testing democracy precompiles
@@ -332,8 +384,8 @@ pub(crate) fn events() -> Vec<Event> {
 // Helper function to give a simple evm context suitable for tests.
 // We can remove this once https://github.com/rust-blockchain/evm/pull/35
 // is in our dependency graph.
-pub fn evm_test_context() -> evm::Context {
-	evm::Context {
+pub fn evm_test_context() -> fp_evm::Context {
+	fp_evm::Context {
 		address: Default::default(),
 		caller: Default::default(),
 		apparent_value: From::from(0),

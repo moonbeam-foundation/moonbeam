@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -17,7 +17,6 @@
 //! Test utilities
 use super::*;
 
-use evm::Context;
 use frame_support::traits::Everything;
 use frame_support::{construct_runtime, parameter_types};
 use pallet_evm::{
@@ -37,12 +36,12 @@ pub type AccountId = TestAccount;
 pub type Balance = u128;
 pub type BlockNumber = u64;
 
-type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
-type Block = frame_system::mocking::MockBlock<Test>;
+type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
+type Block = frame_system::mocking::MockBlock<Runtime>;
 
 // Configure a mock runtime to test the pallet.
 construct_runtime!(
-	pub enum Test where
+	pub enum Runtime where
 		Block = Block,
 		NodeBlock = Block,
 		UncheckedExtrinsic = UncheckedExtrinsic,
@@ -110,7 +109,7 @@ parameter_types! {
 	pub const BlockHashCount: u64 = 250;
 	pub const SS58Prefix: u8 = 42;
 }
-impl frame_system::Config for Test {
+impl frame_system::Config for Runtime {
 	type BaseCallFilter = Everything;
 	type DbWeight = ();
 	type Origin = Origin;
@@ -134,16 +133,17 @@ impl frame_system::Config for Test {
 	type BlockLength = ();
 	type SS58Prefix = SS58Prefix;
 	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
+	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 
 parameter_types! {
 	pub ParachainId: cumulus_primitives_core::ParaId = 100.into();
 }
 
-impl cumulus_pallet_parachain_system::Config for Test {
+impl cumulus_pallet_parachain_system::Config for Runtime {
 	type SelfParaId = ParachainId;
 	type Event = Event;
-	type OnValidationData = ();
+	type OnSystemEvent = ();
 	type OutboundXcmpMessageSource = ();
 	type XcmpMessageHandler = ();
 	type ReservedXcmpWeight = ();
@@ -154,7 +154,7 @@ impl cumulus_pallet_parachain_system::Config for Test {
 parameter_types! {
 	pub const ExistentialDeposit: u128 = 0;
 }
-impl pallet_balances::Config for Test {
+impl pallet_balances::Config for Runtime {
 	type MaxReserves = ();
 	type ReserveIdentifier = ();
 	type MaxLocks = ();
@@ -171,29 +171,37 @@ pub struct TestPrecompiles<R>(PhantomData<R>);
 
 impl<R> PrecompileSet for TestPrecompiles<R>
 where
-	R::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
-	<R::Call as Dispatchable>::Origin: From<Option<R::AccountId>>,
-	R: pallet_evm::Config,
+	RelayEncoderWrapper<R, test_relay_runtime::TestEncoder>: Precompile,
 {
 	fn execute(
+		&self,
 		address: H160,
 		input: &[u8],
 		target_gas: Option<u64>,
 		context: &Context,
-	) -> Option<Result<PrecompileOutput, ExitError>> {
+		is_static: bool,
+	) -> Option<EvmResult<PrecompileOutput>> {
 		match address {
 			a if a == precompile_address() => Some(RelayEncoderWrapper::<
 				R,
 				test_relay_runtime::TestEncoder,
-			>::execute(input, target_gas, context)),
+			>::execute(
+				input, target_gas, context, is_static
+			)),
 			_ => None,
 		}
 	}
+
+	fn is_precompile(&self, address: H160) -> bool {
+		address == precompile_address()
+	}
 }
 
-pub type Precompiles = TestPrecompiles<Test>;
+parameter_types! {
+	pub const PrecompilesValue: TestPrecompiles<Runtime> = TestPrecompiles(PhantomData);
+}
 
-impl pallet_evm::Config for Test {
+impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
 	type GasWeightMapping = ();
 	type CallOrigin = EnsureAddressRoot<TestAccount>;
@@ -202,18 +210,20 @@ impl pallet_evm::Config for Test {
 	type Currency = Balances;
 	type Event = Event;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
-	type Precompiles = Precompiles;
+	type PrecompilesValue = PrecompilesValue;
+	type PrecompilesType = TestPrecompiles<Self>;
 	type ChainId = ();
 	type OnChargeTransaction = ();
 	type BlockGasLimit = ();
 	type BlockHashMapping = SubstrateBlockHashMapping<Self>;
 	type FindAuthor = ();
+	type WeightInfo = ();
 }
 
 parameter_types! {
 	pub const MinimumPeriod: u64 = 5;
 }
-impl pallet_timestamp::Config for Test {
+impl pallet_timestamp::Config for Runtime {
 	type Moment = u64;
 	type OnTimestampSet = ();
 	type MinimumPeriod = MinimumPeriod;
@@ -246,10 +256,10 @@ impl ExtBuilder {
 
 	pub(crate) fn build(self) -> sp_io::TestExternalities {
 		let mut t = frame_system::GenesisConfig::default()
-			.build_storage::<Test>()
+			.build_storage::<Runtime>()
 			.expect("Frame system builds valid default genesis config");
 
-		pallet_balances::GenesisConfig::<Test> {
+		pallet_balances::GenesisConfig::<Runtime> {
 			balances: self.balances,
 		}
 		.assimilate_storage(&mut t)
@@ -264,8 +274,8 @@ impl ExtBuilder {
 // Helper function to give a simple evm context suitable for tests.
 // We can remove this once https://github.com/rust-blockchain/evm/pull/35
 // is in our dependency graph.
-pub fn evm_test_context() -> evm::Context {
-	evm::Context {
+pub fn evm_test_context() -> fp_evm::Context {
+	fp_evm::Context {
 		address: Default::default(),
 		caller: Default::default(),
 		apparent_value: From::from(0),

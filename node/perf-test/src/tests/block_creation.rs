@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -44,6 +44,10 @@ where
 		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
 	Executor: NativeExecutionDispatch + 'static,
 {
+	fn name(&self) -> String {
+		"block_creation".into()
+	}
+
 	fn run(
 		&mut self,
 		context: &TestContext<RuntimeApi, Executor>,
@@ -56,7 +60,7 @@ where
 		const NUM_EMPTY_BLOCKS: u64 = 2048;
 		println!("Creating {} empty blocks...", NUM_EMPTY_BLOCKS);
 		let now = Instant::now();
-		for i in 1..NUM_EMPTY_BLOCKS {
+		for _i in 1..NUM_EMPTY_BLOCKS {
 			context.create_block(true);
 		}
 		results.push(TestResults::new(

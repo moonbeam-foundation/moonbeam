@@ -32,7 +32,7 @@ describeDevMoonbeam("Staking - Parachain Bond - genesis and setParachainBondAcco
       .signAndSend(sudoAccount);
     await context.createBlock();
     const parachainBondInfo = await context.polkadotApi.query.parachainStaking.parachainBondInfo();
-    expect(parachainBondInfo.toHuman()["account"]).to.equal(GENESIS_ACCOUNT.toLowerCase());
+    expect(parachainBondInfo.toHuman()["account"]).to.equal(GENESIS_ACCOUNT);
     expect(parachainBondInfo.toHuman()["percent"]).to.equal("30.00%");
   });
 });

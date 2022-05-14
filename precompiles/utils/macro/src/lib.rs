@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -18,7 +18,6 @@ use proc_macro::TokenStream;
 use proc_macro2::Literal;
 use quote::{quote, quote_spanned};
 use sha3::{Digest, Keccak256};
-use std::convert::TryInto;
 use syn::{parse_macro_input, spanned::Spanned, Expr, ExprLit, Ident, ItemEnum, Lit, LitStr};
 
 struct Bytes(Vec<u8>);
@@ -69,7 +68,7 @@ pub fn keccak256(input: TokenStream) -> TokenStream {
 /// }
 /// ```
 ///
-/// Extanded to:
+/// Extended to:
 ///
 /// ```rust
 /// #[repr(u32)]
@@ -98,11 +97,8 @@ pub fn generate_function_selector(_: TokenStream, input: TokenStream) -> TokenSt
 		match variant.discriminant {
 			Some((_, Expr::Lit(ExprLit { lit, .. }))) => {
 				if let Lit::Str(lit_str) = lit {
-					let selector = u32::from_be_bytes(
-						Keccak256::digest(lit_str.value().as_ref())[..4]
-							.try_into()
-							.unwrap(),
-					);
+					let digest = Keccak256::digest(lit_str.value().as_ref());
+					let selector = u32::from_be_bytes([digest[0], digest[1], digest[2], digest[3]]);
 					ident_expressions.push(variant.ident);
 					variant_expressions.push(Expr::Lit(ExprLit {
 						lit: Lit::Verbatim(Literal::u32_suffixed(selector)),
@@ -132,6 +128,7 @@ pub fn generate_function_selector(_: TokenStream, input: TokenStream) -> TokenSt
 
 	(quote! {
 		#(#attrs)*
+		#[derive(num_enum::TryFromPrimitive, num_enum::IntoPrimitive)]
 		#[repr(u32)]
 		#vis #enum_token #ident {
 			#(

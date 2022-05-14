@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { describeDevMoonbeam } from "../util/setup-dev-tests";
+import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes } from "../util/setup-dev-tests";
 import { createTransfer } from "../util/transactions";
 
 import { TEST_ACCOUNT } from "../util/constants";
@@ -17,7 +17,7 @@ describeDevMoonbeam("Fork", (context) => {
     // Now lets fork the chain
     let currentHeight = await context.web3.eth.getBlockNumber();
     // We start parenting to the genesis
-    let parentHash = await context.polkadotApi.rpc.chain.getBlockHash(0);
+    let parentHash = (await context.polkadotApi.rpc.chain.getBlockHash(0)) as any;
     for (let i = 0; i <= currentHeight; i++) {
       parentHash = (await context.createBlock({ parentHash, finalize: false })).block.hash;
     }
@@ -30,13 +30,13 @@ describeDevMoonbeam("Fork", (context) => {
   });
 });
 
-describeDevMoonbeam("Fork", (context) => {
+describeDevMoonbeamAllEthTxTypes("Fork", (context) => {
   it("should re-insert Tx from retracted fork on new canonical chain", async function () {
     // Creation of the best chain so far, with blocks 0-1-2 and a transfer in block 2
     await context.createBlock({ finalize: false });
     const { txResults } = await context.createBlock({
       finalize: false,
-      transactions: [await createTransfer(context.web3, TEST_ACCOUNT, 512)],
+      transactions: [await createTransfer(context, TEST_ACCOUNT, 512)],
     });
     const insertedTx = txResults[0].result;
     const retractedTx = await context.web3.eth.getTransaction(insertedTx);
@@ -44,7 +44,7 @@ describeDevMoonbeam("Fork", (context) => {
 
     // Fork from 0-1-2
     //      to   0-1b-2b-3b-4b-5b-6b-7b-8b-9b-10b
-    let parentHash = await context.polkadotApi.rpc.chain.getBlockHash(0);
+    let parentHash = (await context.polkadotApi.rpc.chain.getBlockHash(0)) as any;
     // Create enough blocks to ensure the TX is re-scheduled and that chain is new best
     for (let i = 0; i < 10; i++) {
       parentHash = (await context.createBlock({ parentHash, finalize: false })).block.hash;

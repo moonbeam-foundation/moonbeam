@@ -1,11 +1,11 @@
 import { expect } from "chai";
-import { describeDevMoonbeam } from "../util/setup-dev-tests";
+import { describeDevMoonbeamAllEthTxTypes } from "../util/setup-dev-tests";
 import { createContract } from "../util/transactions";
 import { GENESIS_ACCOUNT } from "../util/constants";
 
-describeDevMoonbeam("Event - Contract", (context) => {
+describeDevMoonbeamAllEthTxTypes("Event - Contract", (context) => {
   it("should contain event", async function () {
-    const { rawTx } = await createContract(context.web3, "SingleEventContract", {
+    const { rawTx } = await createContract(context, "SingleEventContract", {
       from: GENESIS_ACCOUNT,
     });
     const { txResults } = await context.createBlock({ transactions: [rawTx] });
@@ -14,6 +14,6 @@ describeDevMoonbeam("Event - Contract", (context) => {
     expect(receipt.logs.length).to.be.eq(1);
     expect(
       "0x" + receipt.logs[0].topics[1].substring(26, receipt.logs[0].topics[1].length + 1)
-    ).to.be.eq(GENESIS_ACCOUNT.toLowerCase());
+    ).to.be.eq(GENESIS_ACCOUNT.toLowerCase()); // web3 doesn't checksum
   });
 });

@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -17,7 +17,7 @@
 //! Helper methods for computing issuance based on inflation
 use crate::pallet::{BalanceOf, Config, Pallet};
 use frame_support::traits::Currency;
-use parity_scale_codec::{Decode, Encode};
+use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 #[cfg(feature = "std")]
 use serde::{Deserialize, Serialize};
@@ -28,7 +28,7 @@ use substrate_fixed::types::{I32F32, I64F64};
 
 const SECONDS_PER_YEAR: u32 = 31557600;
 const SECONDS_PER_BLOCK: u32 = 12;
-const BLOCKS_PER_YEAR: u32 = SECONDS_PER_YEAR / SECONDS_PER_BLOCK;
+pub const BLOCKS_PER_YEAR: u32 = SECONDS_PER_YEAR / SECONDS_PER_BLOCK;
 
 fn rounds_per_year<T: Config>() -> u32 {
 	let blocks_per_round = <Pallet<T>>::round().length;
@@ -36,7 +36,9 @@ fn rounds_per_year<T: Config>() -> u32 {
 }
 
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-#[derive(Eq, PartialEq, Clone, Copy, Encode, Decode, Default, RuntimeDebug, TypeInfo)]
+#[derive(
+	Eq, PartialEq, Clone, Copy, Encode, Decode, Default, RuntimeDebug, MaxEncodedLen, TypeInfo,
+)]
 pub struct Range<T> {
 	pub min: T,
 	pub ideal: T,
@@ -59,8 +61,11 @@ impl<T: Ord + Copy> From<T> for Range<T> {
 	}
 }
 /// Convert an annual inflation to a round inflation
-/// round = 1 - (1+annual)^(1/rounds_per_year)
-fn perbill_annual_to_perbill_round(annual: Range<Perbill>, rounds_per_year: u32) -> Range<Perbill> {
+/// round = (1+annual)^(1/rounds_per_year) - 1
+pub fn perbill_annual_to_perbill_round(
+	annual: Range<Perbill>,
+	rounds_per_year: u32,
+) -> Range<Perbill> {
 	let exponent = I32F32::from_num(1) / I32F32::from_num(rounds_per_year);
 	let annual_to_round = |annual: Perbill| -> Perbill {
 		let x = I32F32::from_num(annual.deconstruct()) / I32F32::from_num(Perbill::ACCURACY);

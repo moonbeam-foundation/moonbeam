@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -29,13 +29,21 @@ use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 };
 
-pub const PRECOMPILE_ADDRESS: u64 = 1;
-
 pub type AccountId = Account;
 pub type Balance = u128;
 pub type BlockNumber = u64;
 pub type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
 pub type Block = frame_system::mocking::MockBlock<Runtime>;
+
+pub const PRECOMPILE_ADDRESS: u64 = 1;
+
+/// To test EIP2612 permits we need to have cryptographic accounts.
+pub const ALICE_PUBLIC_KEY: [u8; 20] =
+	hex_literal::hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac");
+
+/// To test EIP2612 permits we need to have cryptographic accounts.
+pub const ALICE_SECRET_KEY: [u8; 32] =
+	hex_literal::hex!("5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133");
 
 /// A simple account type.
 #[derive(
@@ -70,7 +78,7 @@ impl Default for Account {
 impl AddressMapping<Account> for Account {
 	fn into_account_id(h160_account: H160) -> Account {
 		match h160_account {
-			a if a == H160::repeat_byte(0xAA) => Self::Alice,
+			a if a == H160::from(&ALICE_PUBLIC_KEY) => Self::Alice,
 			a if a == H160::repeat_byte(0xBB) => Self::Bob,
 			a if a == H160::repeat_byte(0xCC) => Self::Charlie,
 			a if a == H160::from_low_u64_be(PRECOMPILE_ADDRESS) => Self::Precompile,
@@ -82,7 +90,7 @@ impl AddressMapping<Account> for Account {
 impl From<Account> for H160 {
 	fn from(x: Account) -> H160 {
 		match x {
-			Account::Alice => H160::repeat_byte(0xAA),
+			Account::Alice => H160::from(&ALICE_PUBLIC_KEY),
 			Account::Bob => H160::repeat_byte(0xBB),
 			Account::Charlie => H160::repeat_byte(0xCC),
 			Account::Precompile => H160::from_low_u64_be(PRECOMPILE_ADDRESS),
@@ -133,6 +141,7 @@ impl frame_system::Config for Runtime {
 	type BlockLength = ();
 	type SS58Prefix = SS58Prefix;
 	type OnSetCode = ();
+	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 
 parameter_types! {
@@ -162,6 +171,10 @@ impl pallet_balances::Config for Runtime {
 	type WeightInfo = ();
 }
 
+parameter_types! {
+	pub const PrecompilesValue: Precompiles<Runtime> = Precompiles(PhantomData);
+}
+
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
 	type GasWeightMapping = ();
@@ -171,12 +184,14 @@ impl pallet_evm::Config for Runtime {
 	type Currency = Balances;
 	type Event = Event;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
-	type Precompiles = Precompiles<Self>;
+	type PrecompilesType = Precompiles<Self>;
+	type PrecompilesValue = PrecompilesValue;
 	type ChainId = ();
 	type OnChargeTransaction = ();
 	type BlockGasLimit = ();
 	type BlockHashMapping = pallet_evm::SubstrateBlockHashMapping<Self>;
 	type FindAuthor = ();
+	type WeightInfo = ();
 }
 
 // Configure a mock runtime to test the pallet.
@@ -189,6 +204,7 @@ construct_runtime!(
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		Evm: pallet_evm::{Pallet, Call, Storage, Event<T>},
+		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
 	}
 );
 
@@ -210,33 +226,41 @@ impl Erc20Metadata for NativeErc20Metadata {
 	fn decimals() -> u8 {
 		18
 	}
+
+	/// Must return `true` only if it represents the main native currency of
+	/// the network. It must be the currency used in `pallet_evm`.
+	fn is_native_currency() -> bool {
+		true
+	}
 }
 
+#[derive(Default)]
 pub struct Precompiles<R>(PhantomData<R>);
 
 impl<R> PrecompileSet for Precompiles<R>
 where
-	R: pallet_balances::Config,
-	R: pallet_evm::Config,
-	R::AccountId: From<H160>,
-	R::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
-	R::Call: From<pallet_balances::Call<R>>,
-	<R::Call as Dispatchable>::Origin: From<Option<R::AccountId>>,
-	BalanceOf<R>: TryFrom<U256> + Into<U256>,
+	Erc20BalancesPrecompile<R, NativeErc20Metadata>: Precompile,
 {
 	fn execute(
+		&self,
 		address: H160,
 		input: &[u8],
 		target_gas: Option<u64>,
 		context: &Context,
-	) -> Option<Result<PrecompileOutput, ExitError>> {
+		is_static: bool,
+	) -> Option<EvmResult<PrecompileOutput>> {
 		match address {
-			a if a == hash(PRECOMPILE_ADDRESS) => Some(Erc20BalancesPrecompile::<
-				R,
-				NativeErc20Metadata,
-			>::execute(input, target_gas, context)),
+			a if a == hash(PRECOMPILE_ADDRESS) => {
+				Some(Erc20BalancesPrecompile::<R, NativeErc20Metadata>::execute(
+					input, target_gas, context, is_static,
+				))
+			}
 			_ => None,
 		}
+	}
+
+	fn is_precompile(&self, address: H160) -> bool {
+		address == hash(PRECOMPILE_ADDRESS)
 	}
 }
 
@@ -276,4 +300,11 @@ impl ExtBuilder {
 		ext.execute_with(|| System::set_block_number(1));
 		ext
 	}
+}
+
+pub(crate) fn events() -> Vec<Event> {
+	System::events()
+		.into_iter()
+		.map(|r| r.event)
+		.collect::<Vec<_>>()
 }

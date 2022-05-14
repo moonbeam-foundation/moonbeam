@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -62,7 +62,7 @@ impl<T: Ord> OrderedSet<T> {
 	/// Remove an element.
 	/// Return true if removal happened.
 	pub fn remove(&mut self, value: &T) -> bool {
-		match self.0.binary_search(&value) {
+		match self.0.binary_search(value) {
 			Ok(loc) => {
 				self.0.remove(loc);
 				true
@@ -73,7 +73,7 @@ impl<T: Ord> OrderedSet<T> {
 
 	/// Return if the set contains `value`
 	pub fn contains(&self, value: &T) -> bool {
-		self.0.binary_search(&value).is_ok()
+		self.0.binary_search(value).is_ok()
 	}
 
 	/// Clear the set

@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -15,15 +15,16 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
-	sysinfo::{query_partition_info, query_system_info, PartitionInfo, SystemInfo},
 	tests::{BlockCreationPerfTest, FibonacciPerfTest, StoragePerfTest, TestResults, TestRunner},
 	txn_signer::UnsignedTransaction,
 	PerfCmd,
 };
 
-use cumulus_primitives_parachain_inherent::MockValidationDataInherentDataProvider;
+use cumulus_primitives_parachain_inherent::{
+	MockValidationDataInherentDataProvider, MockXcmConfig,
+};
 use ethereum::TransactionAction;
-use fp_rpc::{ConvertTransaction, EthereumRuntimeRPCApi};
+use fp_rpc::{ConvertTransactionRuntimeApi, EthereumRuntimeRPCApi};
 use nimbus_primitives::NimbusId;
 use sc_cli::{CliConfiguration, Result as CliResult, SharedParams};
 use sc_client_api::HeaderBackend;
@@ -33,16 +34,16 @@ use sc_service::{Configuration, TFullBackend, TFullClient, TaskManager, Transact
 use sp_api::{BlockId, ConstructRuntimeApi, ProvideRuntimeApi};
 use sp_core::{H160, H256, U256};
 use sp_runtime::transaction_validity::TransactionSource;
-use std::{fs::File, io::prelude::*, marker::PhantomData, path::PathBuf, sync::Arc};
+use std::{fs::File, io::prelude::*, marker::PhantomData, sync::Arc};
 
 use futures::{
 	channel::{mpsc, oneshot},
 	SinkExt, Stream,
 };
 
-use cli_table::{format::Justify, print_stdout, Cell, Style, Table, WithTitle};
+use cli_table::{print_stdout, WithTitle};
 use serde::Serialize;
-use service::{chain_spec, rpc, Block, RuntimeApiCollection, TransactionConverters};
+use service::{chain_spec, rpc, Block, RuntimeApiCollection};
 use sha3::{Digest, Keccak256};
 
 pub type FullClient<RuntimeApi, Executor> =
@@ -74,7 +75,7 @@ where
 		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
 	Executor: NativeExecutionDispatch + 'static,
 {
-	pub fn from_cmd(config: Configuration, cmd: &PerfCmd) -> CliResult<Self> {
+	pub fn from_cmd(mut config: Configuration, _cmd: &PerfCmd) -> CliResult<Self> {
 		println!("perf-test from_cmd");
 		let sc_service::PartialComponents {
 			client,
@@ -85,8 +86,15 @@ where
 			select_chain: maybe_select_chain,
 			transaction_pool,
 			other:
-				(block_import, filter_pool, telemetry, _telemetry_worker_handle, frontier_backend),
-		} = service::new_partial::<RuntimeApi, Executor>(&config, true)?;
+				(
+					block_import,
+					filter_pool,
+					telemetry,
+					_telemetry_worker_handle,
+					frontier_backend,
+					fee_history_cache,
+				),
+		} = service::new_partial::<RuntimeApi, Executor>(&mut config, true)?;
 
 		// TODO: review -- we don't need any actual networking
 		let (network, system_rpc_tx, network_starter) =
@@ -96,7 +104,6 @@ where
 				transaction_pool: transaction_pool.clone(),
 				spawn_handle: task_manager.spawn_handle(),
 				import_queue,
-				on_demand: None,
 				block_announce_validator_builder: None,
 				warp_sync: None,
 			})?;
@@ -108,18 +115,19 @@ where
 		// TODO: no need for prometheus here...
 		let prometheus_registry = config.prometheus_registry().cloned();
 
-		let env = sc_basic_authorship::ProposerFactory::new(
+		let mut env = sc_basic_authorship::ProposerFactory::new(
 			task_manager.spawn_handle(),
 			client.clone(),
 			transaction_pool.clone(),
 			prometheus_registry.as_ref(),
 			telemetry.as_ref().map(|x| x.handle()),
 		);
+		env.set_soft_deadline(service::SOFT_DEADLINE_PERCENT);
 
-		let mut command_sink = None;
+		let command_sink;
 		let command_stream: Box<dyn Stream<Item = EngineCommand<H256>> + Send + Sync + Unpin> = {
 			let (sink, stream) = mpsc::channel(1000);
-			command_sink = Some(sink);
+			command_sink = sink;
 			Box::new(stream)
 		};
 
@@ -134,6 +142,7 @@ where
 		log::debug!("spawning authorship task...");
 		task_manager.spawn_essential_handle().spawn_blocking(
 			"authorship_task",
+			Some("block-authoring"),
 			run_manual_seal(ManualSealParams {
 				block_import,
 				env,
@@ -149,6 +158,8 @@ where
 						.expect("Header passed in as parent should be present in backend.");
 					let author_id = author_id.clone();
 
+					let client_for_xcm = client_set_aside_for_cidp.clone();
+
 					async move {
 						let time = sp_timestamp::InherentDataProvider::from_system_time();
 
@@ -156,6 +167,14 @@ where
 							current_para_block,
 							relay_offset: 1000,
 							relay_blocks_per_para_block: 2,
+							raw_downward_messages: Vec::new(),
+							raw_horizontal_messages: Vec::new(),
+							xcm_config: MockXcmConfig::new(
+								&*client_for_xcm,
+								block,
+								Default::default(),
+								Default::default(),
+							),
 						};
 
 						let author = nimbus_primitives::InherentDataProvider::<NimbusId>(author_id);
@@ -168,16 +187,29 @@ where
 
 		let subscription_task_executor =
 			sc_rpc::SubscriptionTaskExecutor::new(task_manager.spawn_handle());
+		let overrides = rpc::overrides_handle(client.clone());
 
+		let fee_history_limit = 2048;
 		service::rpc::spawn_essential_tasks(service::rpc::SpawnTasksParams {
 			task_manager: &task_manager,
 			client: client.clone(),
 			substrate_backend: backend.clone(),
 			frontier_backend: frontier_backend.clone(),
 			filter_pool: filter_pool.clone(),
+			overrides: overrides.clone(),
+			fee_history_limit,
+			fee_history_cache: fee_history_cache.clone(),
 		});
 
-		let command_sink_for_deps = command_sink.clone();
+		let command_sink_for_deps = Some(command_sink.clone());
+
+		let block_data_cache = Arc::new(fc_rpc::EthBlockDataCacheTask::new(
+			task_manager.spawn_handle(),
+			overrides.clone(),
+			3000,
+			3000,
+			prometheus_registry,
+		));
 
 		let rpc_extensions_builder = {
 			let client = client.clone();
@@ -185,6 +217,9 @@ where
 			let backend = backend.clone();
 			let network = network.clone();
 			let max_past_logs = 1000;
+			let fee_history_cache = fee_history_cache.clone();
+			let overrides = overrides.clone();
+			let block_data_cache = block_data_cache.clone();
 
 			Box::new(move |deny_unsafe, _| {
 				let deps = rpc::FullDeps {
@@ -196,14 +231,15 @@ where
 					network: network.clone(),
 					filter_pool: filter_pool.clone(),
 					ethapi_cmd: Default::default(),
-					eth_log_block_cache: 3000,
 					command_sink: command_sink_for_deps.clone(),
 					frontier_backend: frontier_backend.clone(),
 					backend: backend.clone(),
 					max_past_logs,
-					transaction_converter: TransactionConverters::Moonbase(
-						moonbase_runtime::TransactionConverter,
-					),
+					fee_history_limit,
+					fee_history_cache: fee_history_cache.clone(),
+					xcm_senders: None,
+					overrides: overrides.clone(),
+					block_data_cache: block_data_cache.clone(),
 				};
 				#[allow(unused_mut)]
 				let mut io = rpc::create_full(deps, subscription_task_executor.clone());
@@ -218,8 +254,6 @@ where
 			task_manager: &mut task_manager,
 			transaction_pool: transaction_pool.clone(),
 			rpc_extensions_builder,
-			on_demand: None,
-			remote_blockchain: None,
 			backend,
 			system_rpc_tx,
 			config,
@@ -231,7 +265,7 @@ where
 		Ok(TestContext {
 			_task_manager: task_manager,
 			client: client.clone(),
-			manual_seal_command_sink: command_sink.unwrap(),
+			manual_seal_command_sink: command_sink,
 			pool: transaction_pool,
 			_marker1: Default::default(),
 			_marker2: Default::default(),
@@ -270,7 +304,8 @@ where
 		data: Vec<u8>,
 		value: U256,
 		gas_limit: U256,
-		gas_price: Option<U256>,
+		max_fee_per_gas: Option<U256>,
+		max_priority_fee_per_gas: Option<U256>,
 		nonce: Option<U256>,
 	) -> Result<fp_evm::CallInfo, sp_runtime::DispatchError> {
 		let hash = self.client.info().best_hash;
@@ -283,9 +318,11 @@ where
 			data,
 			value,
 			gas_limit,
-			gas_price,
+			max_fee_per_gas,
+			max_priority_fee_per_gas,
 			nonce,
 			false,
+			None,
 		);
 
 		result.expect("why is this a Result<Result<...>>???") // TODO
@@ -297,7 +334,8 @@ where
 		data: Vec<u8>,
 		value: U256,
 		gas_limit: U256,
-		gas_price: Option<U256>,
+		max_fee_per_gas: Option<U256>,
+		max_priority_fee_per_gas: Option<U256>,
 		nonce: Option<U256>,
 	) -> Result<fp_evm::CreateInfo, sp_runtime::DispatchError> {
 		let hash = self.client.info().best_hash;
@@ -309,9 +347,11 @@ where
 			data,
 			value,
 			gas_limit,
-			gas_price,
+			max_fee_per_gas,
+			max_priority_fee_per_gas,
 			nonce,
 			false,
+			None,
 		);
 
 		result.expect("why is this a Result<Result<...>>???") // TODO
@@ -349,28 +389,28 @@ where
 		let transaction_hash =
 			H256::from_slice(Keccak256::digest(&rlp::encode(&signed)).as_slice());
 
-		let transaction_converter = moonbase_runtime::TransactionConverter;
-		let unchecked_extrinsic = transaction_converter.convert_transaction(signed);
+		let block_hash = BlockId::hash(self.client.info().best_hash);
+		log::debug!("eth_sign_and_send_transaction best_hash: {:?}", block_hash);
 
-		let hash = self.client.info().best_hash;
-		log::debug!("eth_sign_and_send_transaction best_hash: {:?}", hash);
-		let future = self.pool.submit_one(
-			&BlockId::hash(hash),
-			TransactionSource::Local,
-			unchecked_extrinsic,
-		);
+		#[allow(deprecated)]
+		let extrinsic = self
+			.client
+			.runtime_api()
+			.convert_transaction_before_version_2(&block_hash, signed)
+			.map_err(|_| "ConvertTransactionRuntimeApi not found")?;
 
-		futures::executor::block_on(future);
+		let future = self
+			.pool
+			.submit_one(&block_hash, TransactionSource::Local, extrinsic);
+
+		let _ = futures::executor::block_on(future);
 
 		Ok(transaction_hash)
 	}
 
 	/// Author a block through manual sealing
 	pub fn create_block(&self, create_empty: bool) -> CreatedBlock<H256> {
-		// TODO: Joshy's idea: call into propose_with() directly (or similar) rather than go through
-		// manual seal
-
-		log::debug!("Issuing seal command...");
+		log::trace!("Issuing seal command...");
 		let hash = self.client.info().best_hash;
 
 		let mut sink = self.manual_seal_command_sink.clone();
@@ -380,19 +420,17 @@ where
 			let command = EngineCommand::SealNewBlock {
 				create_empty,
 				finalize: true,
-				// TODO: why did I change these (compared to the --dev in crate service)?
-				//       try changing them to be similar to --dev...
 				parent_hash: Some(hash),
 				sender: Some(sender),
 			};
-			sink.send(command).await;
+			let _ = sink.send(command).await;
 			receiver.await
 		};
 
 		log::trace!("waiting for SealNewBlock command to resolve...");
 		futures::executor::block_on(future)
+			.expect("block_on failed")
 			.expect("Failed to receive SealNewBlock response")
-			.expect("we have two layers of results, apparently")
 	}
 }
 
@@ -422,12 +460,7 @@ impl CliConfiguration for PerfCmd {
 
 impl PerfCmd {
 	// taking a different approach and starting a full dev service
-	pub fn run<RuntimeApi, Executor>(
-		&self,
-		path: &PathBuf,
-		cmd: &PerfCmd,
-		config: Configuration,
-	) -> CliResult<()>
+	pub fn run<RuntimeApi, Executor>(&self, cmd: &PerfCmd, config: Configuration) -> CliResult<()>
 	where
 		RuntimeApi:
 			ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
@@ -450,31 +483,33 @@ impl PerfCmd {
 
 		let mut all_test_results: Vec<TestResults> = Default::default();
 
+		let (have_filter, enabled_tests) = if let Some(filter) = &cmd.tests {
+			let enabled_tests: Vec<&str> = filter.split(',').collect();
+			(true, enabled_tests)
+		} else {
+			(false, Default::default())
+		};
+
 		for mut test in tests {
+			if have_filter {
+				if !enabled_tests.contains(&test.name().as_str()) {
+					continue;
+				}
+			}
 			let mut results: Vec<TestResults> = (*test.run(&runner)?).to_vec();
 			all_test_results.append(&mut results);
 		}
 
-		let system_info = query_system_info()?;
-		let partition_info = query_partition_info(path).unwrap_or_else(|_| {
-			// TODO: this is inconsistent with behavior of query_system_info...
-			eprintln!("query_partition_info() failed, ignoring...");
-			Default::default()
-		});
-
 		#[derive(Serialize)]
 		struct AllResults {
 			test_results: Vec<TestResults>,
-			system_info: SystemInfo,
-			partition_info: PartitionInfo,
 		}
 
 		let all_results = AllResults {
 			test_results: all_test_results.clone(),
-			system_info,
-			partition_info,
 		};
-		let results_str = serde_json::to_string_pretty(&all_results).unwrap();
+		let results_str =
+			serde_json::to_string_pretty(&all_results).expect("fail to serialize AllResults");
 
 		if let Some(target) = &cmd.output_file {
 			let mut file = File::create(target)?;

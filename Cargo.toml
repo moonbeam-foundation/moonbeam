@@ -1,25 +1,35 @@
 [workspace]
+exclude = [ "bin/utils/moonkey" ]
 members = [
-    'runtime/moonbeam',
-    'runtime/moonriver',
-    'runtime/moonbase',
-    'node',
-    'node/cli',
-    'node/service',
-    'pallets/migrations',
-    'bin/utils/moonkey',
-    'pallets/maintenance-mode',
-    'precompiles/utils/macro',
+	"bin/utils/moonkey",
+	"client/rpc/finality",
+	"client/rpc/manual-xcm",
+	"node",
+	"node/cli",
+	"node/service",
+	"pallets/maintenance-mode",
+	"pallets/migrations",
+	"pallets/moonbeam-orbiters",
+	"pallets/proxy-genesis-companion",
+	"precompiles/balances-erc20",
+	"precompiles/utils/macro",
+	"runtime/moonbase",
+	"runtime/moonbeam",
+	"runtime/moonriver",
 ]
-exclude = [
-    'bin/utils/moonkey'
-]
+
+# make sure dev builds with backtrace do
+# not slow us down
+[profile.dev.package.backtrace]
+inherits = "release"
+
+[profile.production]
+codegen-units = 1
+incremental = false
+inherits = "release"
+lto = true
 
 [profile.release]
-panic = 'unwind'
-
-[patch.crates-io]
-evm = { git = "https://github.com/purestake/evm", branch = "moonbeam-polkadot-v0.9.11"}
-evm-runtime = { git = "https://github.com/purestake/evm", branch = "moonbeam-polkadot-v0.9.11" }
-evm-gasometer = { git = "https://github.com/purestake/evm", branch = "moonbeam-polkadot-v0.9.11" }
-ethereum = { git = "https://github.com/purestake/ethereum", branch = "joshy-scale-info" }
+# Moonbeam runtime requires unwinding.
+opt-level = 3
+panic = "unwind"

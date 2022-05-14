@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -65,6 +65,10 @@ where
 		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
 	Executor: NativeExecutionDispatch + 'static,
 {
+	fn name(&self) -> String {
+		"fibonacci".into()
+	}
+
 	fn run(
 		&mut self,
 		context: &TestContext<RuntimeApi, Executor>,
@@ -81,7 +85,7 @@ where
 		// do a create() call (which doesn't persist) to see what our expected contract address
 		// will be. afterward we create a txn and produce a block so it will persist.
 		// TODO: better way to calculate new contract address
-		let now = Instant::now();
+		let _now = Instant::now();
 		let create_info = context
 			.evm_create(
 				alice.address,
@@ -89,6 +93,7 @@ where
 				0.into(),
 				EXTRINSIC_GAS_LIMIT.into(),
 				Some(MIN_GAS_PRICE.into()),
+				None, // max_priority_fee_per_gas
 				Some(alice_nonce),
 			)
 			.expect("EVM create failed while estimating contract address");
@@ -112,7 +117,7 @@ where
 			)
 			.expect("EVM create failed while trying to deploy Fibonacci contract");
 
-		let now = Instant::now();
+		let _now = Instant::now();
 		context.create_block(true);
 
 		// TODO: verify txn results
@@ -134,6 +139,7 @@ where
 					0.into(),
 					EXTRINSIC_GAS_LIMIT.into(),
 					Some(MIN_GAS_PRICE.into()),
+					None, // max_priority_fee_per_gas
 					Some(alice_nonce),
 				)
 				.expect("EVM call failed while trying to invoke Fibonacci contract");

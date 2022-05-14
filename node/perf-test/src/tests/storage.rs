@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -78,6 +78,10 @@ where
 		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
 	Executor: NativeExecutionDispatch + 'static,
 {
+	fn name(&self) -> String {
+		"storage".into()
+	}
+
 	fn run(
 		&mut self,
 		context: &TestContext<RuntimeApi, Executor>,
@@ -133,6 +137,7 @@ where
 				0.into(),
 				EXTRINSIC_GAS_LIMIT.into(),
 				Some(MIN_GAS_PRICE.into()),
+				None, // max_priority_fee_per_gas
 				Some(alice_nonce),
 			)
 			.expect("EVM create failed while estimating contract address");
@@ -157,7 +162,7 @@ where
 
 		alice_nonce = alice_nonce.saturating_add(1.into());
 
-		let now = Instant::now();
+		let _now = Instant::now();
 		context.create_block(true);
 
 		const NUM_STORAGE_ITEMS: u64 = 50000;
@@ -216,6 +221,7 @@ where
 					0.into(),
 					EXTRINSIC_GAS_LIMIT.into(),
 					Some(MIN_GAS_PRICE.into()),
+					None, // max_priority_fee_per_gas
 					Some(alice_nonce),
 				)
 				.expect("EVM call failed while trying to call calculate_sum()");

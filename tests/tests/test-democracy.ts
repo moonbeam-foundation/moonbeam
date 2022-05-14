@@ -47,7 +47,7 @@ describeDevMoonbeam("Democracy - genesis and preimage", (context) => {
       (await context.polkadotApi.query.democracy.preimages(encodedHash)) as any
     ).unwrap();
     expect(preimageStatus.isAvailable).to.eq(true, "Preimage should be available");
-    expect(preimageStatus.asAvailable.provider.toString()).to.equal(GENESIS_ACCOUNT.toLowerCase());
+    expect(preimageStatus.asAvailable.provider.toString()).to.equal(GENESIS_ACCOUNT);
     expect(preimageStatus.asAvailable.deposit.toBigInt()).to.equal(2200n * MICROGLMR);
   });
 });
@@ -76,11 +76,11 @@ describeDevMoonbeam("Democracy - propose", (context) => {
     await context.createBlock();
 
     // referendumCount
-    const referendumCount = await context.polkadotApi.query.democracy.referendumCount();
+    const referendumCount = (await context.polkadotApi.query.democracy.referendumCount()) as any;
     expect(referendumCount.toBigInt()).to.equal(0n);
 
     // publicPropCount
-    const publicPropCount = await context.polkadotApi.query.democracy.publicPropCount();
+    const publicPropCount = (await context.polkadotApi.query.democracy.publicPropCount()) as any;
     expect(publicPropCount.toBigInt()).to.equal(1n);
 
     // publicProps
@@ -88,9 +88,9 @@ describeDevMoonbeam("Democracy - propose", (context) => {
     // encodedHash
     expect((publicProps.toJSON() as any)[0][1]).to.equal(encodedHash);
     // prop author
-    expect((publicProps.toJSON() as any)[0][2]).to.equal(GENESIS_ACCOUNT.toLowerCase());
+    expect((publicProps.toJSON() as any)[0][2]).to.equal(GENESIS_ACCOUNT);
     // depositOf
-    const depositOf = await context.polkadotApi.query.democracy.depositOf(0);
+    const depositOf = (await context.polkadotApi.query.democracy.depositOf(0)) as any;
     expect(depositOf.unwrap()[1].toBigInt()).to.equal(1000n * GLMR);
   });
 });
@@ -132,12 +132,12 @@ describeDevMoonbeam("Democracy - second proposal", (context) => {
     // encodedHash
     expect((publicProps.toJSON() as any)[0][1]).to.equal(encodedHash);
     // prop author
-    expect((publicProps.toJSON() as any)[0][2]).to.equal(GENESIS_ACCOUNT.toLowerCase());
+    expect((publicProps.toJSON() as any)[0][2]).to.equal(GENESIS_ACCOUNT);
 
     // depositOf
-    const depositOf = await context.polkadotApi.query.democracy.depositOf(0);
+    const depositOf = (await context.polkadotApi.query.democracy.depositOf(0)) as any;
     expect(depositOf.unwrap()[1].toBigInt()).to.equal(1000n * GLMR);
-    expect((depositOf.toJSON() as any)[0][1]).to.equal(ALITH.toLowerCase());
+    expect((depositOf.toJSON() as any)[0][1]).to.equal(ALITH);
   });
 
   it("check launch period", async function () {
@@ -224,7 +224,7 @@ describeDevMoonbeam("Democracy - vote yes on referendum", (context) => {
 
     // referendumInfoOf
     const referendumInfoOf = (
-      await context.polkadotApi.query.democracy.referendumInfoOf(0)
+      (await context.polkadotApi.query.democracy.referendumInfoOf(0)) as any
     ).unwrap() as any;
     const onGoing = referendumInfoOf.asOngoing;
 
@@ -237,7 +237,7 @@ describeDevMoonbeam("Democracy - vote yes on referendum", (context) => {
       await context.createBlock();
     }
     let parachainBondInfo = await context.polkadotApi.query.parachainStaking.parachainBondInfo();
-    expect(parachainBondInfo.toJSON()["account"]).to.equal(GENESIS_ACCOUNT.toLowerCase());
+    expect(parachainBondInfo.toJSON()["account"]).to.equal(GENESIS_ACCOUNT);
   });
 });
 
@@ -299,7 +299,7 @@ describeDevMoonbeam("Democracy - vote no on referendum", (context) => {
 
     // referendumInfoOf
     const referendumInfoOf = (
-      await context.polkadotApi.query.democracy.referendumInfoOf(0)
+      (await context.polkadotApi.query.democracy.referendumInfoOf(0)) as any
     ).unwrap() as any;
     const onGoing = referendumInfoOf.asOngoing;
 
@@ -340,7 +340,7 @@ describeDevMoonbeam("Democracy - forget notePreimage", (context) => {
       genesisAccount,
       context.polkadotApi.tx.democracy.propose(encodedHash, PROPOSAL_AMOUNT)
     );
-    expect(eventsPropose[5].toHuman().method).to.eq("ExtrinsicSuccess");
+    expect(eventsPropose[7].toHuman().method).to.eq("ExtrinsicSuccess");
     await context.createBlock();
     // second
     const { events: eventsSecond } = await createBlockWithExtrinsic(
@@ -348,14 +348,15 @@ describeDevMoonbeam("Democracy - forget notePreimage", (context) => {
       alith,
       context.polkadotApi.tx.democracy.second(0, 1000)
     );
-    expect(eventsSecond[2].toHuman().method).to.eq("ExtrinsicSuccess");
+    expect(eventsSecond[2].toHuman().method).to.eq("Seconded");
+    expect(eventsSecond[5].toHuman().method).to.eq("ExtrinsicSuccess");
     // let Launchperiod elapse to turn the proposal into a referendum
     // launchPeriod minus the 3 blocks that already elapsed
     for (let i = 0; i < 7200; i++) {
       await context.createBlock();
     }
     // referendumCount
-    let referendumCount = await context.polkadotApi.query.democracy.referendumCount();
+    let referendumCount = (await context.polkadotApi.query.democracy.referendumCount()) as any;
     expect(referendumCount.toBigInt()).to.equal(1n);
 
     // vote
@@ -367,11 +368,13 @@ describeDevMoonbeam("Democracy - forget notePreimage", (context) => {
         Standard: { balance: VOTE_AMOUNT, vote: { aye: true, conviction: 1 } },
       })
     );
-    expect(eventsVote[1].toHuman().method).to.eq("ExtrinsicSuccess");
+
+    expect(eventsVote[1].toHuman().method).to.eq("Voted");
+    expect(eventsVote[4].toHuman().method).to.eq("ExtrinsicSuccess");
 
     // referendumInfoOf
     const referendumInfoOf = (
-      await context.polkadotApi.query.democracy.referendumInfoOf(0)
+      (await context.polkadotApi.query.democracy.referendumInfoOf(0)) as any
     ).unwrap() as any;
     const onGoing = referendumInfoOf.asOngoing;
     expect(onGoing.proposalHash.toHex()).to.equal(encodedHash);
