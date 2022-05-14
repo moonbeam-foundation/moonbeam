@@ -25,11 +25,19 @@ describeSmokeSuite(`Verify balances consistency`, { wssUrl, relayWssUrl }, (cont
     let last_key = "";
     let count = 0;
 
-    atBlockNumber = (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber();
+    atBlockNumber = process.env.BLOCK_NUMBER
+      ? parseInt(process.env.BLOCK_NUMBER)
+      : (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber();
     apiAt = await context.polkadotApi.at(
       await context.polkadotApi.rpc.chain.getBlockHash(atBlockNumber)
     );
     specVersion = (await apiAt.query.system.lastRuntimeUpgrade()).unwrap().specVersion.toNumber();
+
+    if (process.env.ACCOUNT_ID) {
+      const userId = process.env.ACCOUNT_ID.toLowerCase();
+      accounts[userId] = await apiAt.query.system.account(userId);
+      return;
+    }
 
     // loop over all system accounts
     while (true) {
