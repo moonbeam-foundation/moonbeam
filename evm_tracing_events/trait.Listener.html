@@ -10,11 +10,11 @@
 }</code></pre></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Main trait to proxy emitted messages.
 Used 2 times :</p>
 <ul>
-<li>Inside the runtime to proxy the events throught the host functions</li>
+<li>Inside the runtime to proxy the events through the host functions</li>
 <li>Inside the client to forward those events to the client listener.</li>
 </ul>
 </div></details><h2 id="required-methods" class="small-section-header">Required methods<a href="#required-methods" class="anchor"></a></h2><div class="methods"><div id="tymethod.event" class="method has-srclink"><div class="rightside"><a class="srclink" href="../src/evm_tracing_events/lib.rs.html#84">source</a></div><h4 class="code-header">fn <a href="#tymethod.event" class="fnname">event</a>(&amp;mut self, event: <a class="enum" href="enum.Event.html" title="enum evm_tracing_events::Event">Event</a>)</h4></div><details class="rustdoc-toggle" open><summary><div id="tymethod.step_event_filter" class="method has-srclink"><div class="rightside"><a class="srclink" href="../src/evm_tracing_events/lib.rs.html#89">source</a></div><h4 class="code-header">fn <a href="#tymethod.step_event_filter" class="fnname">step_event_filter</a>(&amp;self) -&gt; <a class="struct" href="struct.StepEventFilter.html" title="struct evm_tracing_events::StepEventFilter">StepEventFilter</a></h4></div></summary><div class="docblock"><p>Allow the runtime to know which data should be discarded and not cloned.
-WARNING: It is only called once when the runtime tracing is instanciated to avoid
+WARNING: It is only called once when the runtime tracing is instantiated to avoid
 performing many ext calls.</p>
 </div></details></div><h2 id="implementors" class="small-section-header">Implementors<a href="#implementors" class="anchor"></a></h2><div class="item-list" id="implementors-list"></div><script type="text/javascript" src="../implementors/evm_tracing_events/trait.Listener.js" async></script></section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../" data-current-crate="evm_tracing_events" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (3b348d932 2022-02-19)" ></div>
 </body></html>

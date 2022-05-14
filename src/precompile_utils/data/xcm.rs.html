@@ -278,12 +278,12 @@
 <span class="kw">use</span> <span class="ident">xcm::latest</span>::{<span class="ident">Junction</span>, <span class="ident">Junctions</span>, <span class="ident">MultiLocation</span>, <span class="ident">NetworkId</span>};
 
 <span class="comment">// Function to convert network id to bytes</span>
-<span class="comment">// We dont implement EVMData here as these bytes will be appended only</span>
+<span class="comment">// We don&#39;t implement EVMData here as these bytes will be appended only</span>
 <span class="comment">// to certain Junction variants</span>
 <span class="comment">// Each NetworkId variant is represented as bytes</span>
 <span class="comment">// The first byte represents the enum variant to be used</span>
 <span class="comment">// The rest of the bytes (if any), represent the additional data that such enum variant requires</span>
-<span class="comment">// In this case, only Named requies additional non-bounded data.</span>
+<span class="comment">// In this case, only Named requires additional non-bounded data.</span>
 <span class="comment">// In such a case, since NetworkIds will be appended at the end, we will read the buffer until the</span>
 <span class="comment">// end to recover the name</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">network_id_to_bytes</span>(<span class="ident">network_id</span>: <span class="ident">NetworkId</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {

@@ -734,7 +734,7 @@
 	}
 
 	<span class="doccomment">/// Read raw bytes from the input.</span>
-	<span class="doccomment">/// Doesn&#39;t handle any alignement checks, prefer using `read` instead of possible.</span>
+	<span class="doccomment">/// Doesn&#39;t handle any alignment checks, prefer using `read` instead of possible.</span>
 	<span class="doccomment">/// Returns an error if trying to parse out of bounds.</span>
 	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_raw_bytes</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>, <span class="ident">len</span>: <span class="ident">usize</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span> {
 		<span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">move_cursor</span>(<span class="ident">gasometer</span>, <span class="ident">len</span>)<span class="question-mark">?</span>;

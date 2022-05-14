@@ -199,13 +199,13 @@
 
 <span class="doccomment">/// Main trait to proxy emitted messages.</span>
 <span class="doccomment">/// Used 2 times :</span>
-<span class="doccomment">/// - Inside the runtime to proxy the events throught the host functions</span>
+<span class="doccomment">/// - Inside the runtime to proxy the events through the host functions</span>
 <span class="doccomment">/// - Inside the client to forward those events to the client listener.</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Listener</span> {
 	<span class="kw">fn</span> <span class="ident">event</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">event</span>: <span class="ident">Event</span>);
 
 	<span class="doccomment">/// Allow the runtime to know which data should be discarded and not cloned.</span>
-	<span class="doccomment">/// WARNING: It is only called once when the runtime tracing is instanciated to avoid</span>
+	<span class="doccomment">/// WARNING: It is only called once when the runtime tracing is instantiated to avoid</span>
 	<span class="doccomment">/// performing many ext calls.</span>
 	<span class="kw">fn</span> <span class="ident">step_event_filter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">StepEventFilter</span>;
 }

@@ -17,7 +17,7 @@ Provide functions to parse common types.</p>
 </div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.EvmDataWriter.html" title="precompile_utils::EvmDataWriter struct">EvmDataWriter</a></div><div class="item-right docblock-short"><p>Help build an EVM input/output data.</p>
 </div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Gasometer.html" title="precompile_utils::Gasometer struct">Gasometer</a></div><div class="item-right docblock-short"><p>Custom Gasometer to record costs in precompiles.
 It is advised to record known costs as early as possible to
-avoid unecessary computations if there is an Out of Gas.</p>
+avoid unnecessary computations if there is an Out of Gas.</p>
 </div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.LogsBuilder.html" title="precompile_utils::LogsBuilder struct">LogsBuilder</a></div><div class="item-right docblock-short"><p>Builder for PrecompileOutput.</p>
 </div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.RuntimeHelper.html" title="precompile_utils::RuntimeHelper struct">RuntimeHelper</a></div><div class="item-right docblock-short"><p>Helper functions requiring a Runtime.
 This runtime must of course implement <code>pallet_evm::Config</code>.</p>
@@ -27,7 +27,7 @@ This runtime must of course implement <code>pallet_evm::Config</code>.</p>
 <div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.EvmData.html" title="precompile_utils::EvmData trait">EvmData</a></div><div class="item-right docblock-short"><p>Data that can be converted from and to EVM data types.</p>
 </div></div></div><h2 id="functions" class="small-section-header"><a href="#functions">Functions</a></h2>
 <div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.error.html" title="precompile_utils::error fn">error</a></div><div class="item-right docblock-short"><p>Return an error with provided (static) text.
-Using the <code>revert</code> function of <code>Gasometer</code> is prefered as erroring
+Using the <code>revert</code> function of <code>Gasometer</code> is preferred as erroring
 consumed all the gas limit and the error message is not easily
 retrievable.</p>
 </div></div></div><h2 id="types" class="small-section-header"><a href="#types">Type Definitions</a></h2>

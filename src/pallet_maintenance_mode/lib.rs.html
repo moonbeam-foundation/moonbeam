@@ -288,12 +288,12 @@
 <span class="doccomment">//! A pallet to put your runtime into a restricted maintenance or safe mode. This is useful when</span>
 <span class="doccomment">//! performing site maintenance, running data migrations, or protecting the chain during an attack.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! This introduces one storage read to fetch the base filter for each extrinsic. Hoever, it should</span>
+<span class="doccomment">//! This introduces one storage read to fetch the base filter for each extrinsic. However, it should</span>
 <span class="doccomment">//! be that the state cache eliminates this cost almost entirely. I wonder if that can or should be</span>
 <span class="doccomment">//! reflected in the weight calculation.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Possible future improvements</span>
-<span class="doccomment">//! 1. This could be more configureable by letting the runtime developer specify a type (probably an</span>
+<span class="doccomment">//! 1. This could be more configurable by letting the runtime developer specify a type (probably an</span>
 <span class="doccomment">//! enum) that can be converted into a filter. Similar end result (but different implementation) as</span>
 <span class="doccomment">//! Acala has it</span>
 <span class="doccomment">//! github.com/AcalaNetwork/Acala/blob/pause-transaction/modules/transaction-pause/src/lib.rs#L71</span>

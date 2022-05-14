@@ -382,7 +382,7 @@
 <span class="kw">use</span> <span class="ident">xcm_executor::traits</span>::{<span class="ident">MatchesFungibles</span>, <span class="ident">WeightTrader</span>};
 
 <span class="doccomment">/// Converter struct implementing `AssetIdConversion` converting a numeric asset ID</span>
-<span class="doccomment">/// (must be `TryFrom/TryInto&lt;u128&gt;`) into a MultiLocation Value and Viceversa through</span>
+<span class="doccomment">/// (must be `TryFrom/TryInto&lt;u128&gt;`) into a MultiLocation Value and vice versa through</span>
 <span class="doccomment">/// an intermediate generic type AssetType.</span>
 <span class="doccomment">/// The trait bounds enforce is that the AssetTypeGetter trait is also implemented for</span>
 <span class="doccomment">/// AssetIdInfoGetter</span>
@@ -525,10 +525,10 @@
 					<span class="comment">// In case the asset matches the one the trader already stored before, add</span>
 					<span class="comment">// to later refund</span>
 
-					<span class="comment">// Else we are always going to substract the weight if we can, but we latter do</span>
+					<span class="comment">// Else we are always going to subtract the weight if we can, but we latter do</span>
 					<span class="comment">// not refund it</span>
 
-					<span class="comment">// In short, we only refund on the asset the trader first succesfully was able</span>
+					<span class="comment">// In short, we only refund on the asset the trader first successfully was able</span>
 					<span class="comment">// to pay for an execution</span>
 					<span class="kw">let</span> <span class="ident">new_asset</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="number">1</span>.<span class="ident">clone</span>() {
 						<span class="prelude-val">Some</span>((<span class="ident">prev_id</span>, <span class="ident">prev_amount</span>, <span class="ident">units_per_second</span>)) =&gt; {
@@ -611,7 +611,7 @@
 	}
 }
 
-<span class="comment">// Defines the trait to obtain a generic AssetType from a generic AssetId and viceversa</span>
+<span class="comment">// Defines the trait to obtain a generic AssetType from a generic AssetId and vice versa</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">AssetTypeGetter</span><span class="op">&lt;</span><span class="ident">AssetId</span>, <span class="ident">AssetType</span><span class="op">&gt;</span> {
 	<span class="comment">// Get asset type from assetId</span>
 	<span class="kw">fn</span> <span class="ident">get_asset_type</span>(<span class="ident">asset_id</span>: <span class="ident">AssetId</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AssetType</span><span class="op">&gt;</span>;

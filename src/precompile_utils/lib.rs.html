@@ -423,7 +423,7 @@
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">T</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">PrecompileFailure</span><span class="op">&gt;</span>;
 
 <span class="doccomment">/// Return an error with provided (static) text.</span>
-<span class="doccomment">/// Using the `revert` function of `Gasometer` is prefered as erroring</span>
+<span class="doccomment">/// Using the `revert` function of `Gasometer` is preferred as erroring</span>
 <span class="doccomment">/// consumed all the gas limit and the error message is not easily</span>
 <span class="doccomment">/// retrievable.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">error</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">alloc::borrow::Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">text</span>: <span class="ident">T</span>) -&gt; <span class="ident">PrecompileFailure</span> {
@@ -441,7 +441,7 @@
 
 <span class="kw">impl</span> <span class="ident">LogsBuilder</span> {
 	<span class="doccomment">/// Create a new builder with no logs.</span>
-	<span class="doccomment">/// Takes the address of the precompile (usualy `context.address`).</span>
+	<span class="doccomment">/// Takes the address of the precompile (usually `context.address`).</span>
 	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">address</span>: <span class="ident">H160</span>) -&gt; <span class="self">Self</span> {
 		<span class="self">Self</span> {
 			<span class="ident">logs</span>: <span class="macro">vec!</span>[],
@@ -625,7 +625,7 @@
 
 <span class="doccomment">/// Custom Gasometer to record costs in precompiles.</span>
 <span class="doccomment">/// It is advised to record known costs as early as possible to</span>
-<span class="doccomment">/// avoid unecessary computations if there is an Out of Gas.</span>
+<span class="doccomment">/// avoid unnecessary computations if there is an Out of Gas.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Provides functions related to reverts, as reverts takes the recorded amount</span>
 <span class="doccomment">/// of gas into account.</span>
@@ -668,7 +668,7 @@
 		}
 	}
 
-	<span class="doccomment">/// Record cost of a log manualy.</span>
+	<span class="doccomment">/// Record cost of a log manually.</span>
 	<span class="doccomment">/// This can be useful to record log costs early when their content have static size.</span>
 	<span class="attribute">#[<span class="ident">must_use</span>]</span>
 	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">record_log_costs_manual</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">topics</span>: <span class="ident">usize</span>, <span class="ident">data_len</span>: <span class="ident">usize</span>) -&gt; <span class="ident">EvmResult</span> {
