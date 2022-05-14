@@ -83,6 +83,17 @@ impl Default for TestAccount {
 	}
 }
 
+impl Into<H160> for TestAccount {
+	fn into(self) -> H160 {
+		match self {
+			TestAccount::Alice => H160::repeat_byte(0xAA),
+			TestAccount::Bob => H160::repeat_byte(0xBB),
+			TestAccount::Charlie => H160::repeat_byte(0xCC),
+			TestAccount::Bogus => H160::repeat_byte(0xDD),
+		}
+	}
+}
+
 impl AddressMapping<TestAccount> for TestAccount {
 	fn into_account_id(h160_account: H160) -> TestAccount {
 		match h160_account {
@@ -142,6 +153,7 @@ impl frame_system::Config for Runtime {
 	type BlockLength = ();
 	type SS58Prefix = SS58Prefix;
 	type OnSetCode = ();
+	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 parameter_types! {
 	pub const ExistentialDeposit: u128 = 1;
@@ -211,6 +223,7 @@ impl pallet_evm::Config for Runtime {
 	type BlockGasLimit = ();
 	type BlockHashMapping = pallet_evm::SubstrateBlockHashMapping<Self>;
 	type FindAuthor = ();
+	type WeightInfo = ();
 }
 
 parameter_types! {
@@ -264,6 +277,8 @@ impl parachain_staking::Config for Runtime {
 	type MinCandidateStk = MinCollatorStk;
 	type MinDelegatorStk = MinDelegatorStk;
 	type MinDelegation = MinDelegation;
+	type OnCollatorPayout = ();
+	type OnNewRound = ();
 	type WeightInfo = ();
 }
 
@@ -372,6 +387,13 @@ pub(crate) fn roll_to(n: u64) {
 		Balances::on_initialize(System::block_number());
 		ParachainStaking::on_initialize(System::block_number());
 	}
+}
+
+/// Rolls block-by-block to the beginning of the specified round.
+/// This will complete the block in which the round change occurs.
+pub(crate) fn roll_to_round_begin(round: u64) {
+	let block = (round - 1) * DefaultBlocksPerRound::get() as u64;
+	roll_to(block)
 }
 
 pub(crate) fn events() -> Vec<Event> {

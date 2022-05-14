@@ -18,10 +18,10 @@
 
 //! Benchmarking
 use crate::{
-	BalanceOf, Call, CandidateBondLessRequest, Config, DelegationChange, DelegationRequest, Pallet,
-	Range,
+	BalanceOf, Call, CandidateBondLessRequest, Config, DelegationAction, Pallet, Range,
+	ScheduledRequest,
 };
-use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
+use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite, vec};
 use frame_support::traits::{Currency, Get, OnFinalize, OnInitialize, ReservableCurrency};
 use frame_system::RawOrigin;
 use nimbus_primitives::EventHandler;
@@ -123,53 +123,7 @@ fn roll_to_and_author<T: Config>(round_delay: u32, author: T::AccountId) {
 const USER_SEED: u32 = 999666;
 
 benchmarks! {
-	// HOTFIX BENCHMARK
-	hotfix_remove_delegation_requests {
-		let x in 2..<<T as Config>::MaxTopDelegationsPerCandidate as Get<u32>>::get()
-		+ <<T as Config>::MaxBottomDelegationsPerCandidate as Get<u32>>::get();
-		let mut delegators: Vec<T::AccountId> = Vec::new();
-		let collator = create_funded_collator::<T>(
-			"candidate",
-			100,
-			0u32.into(),
-			true,
-			1u32
-		)?;
-		let mut col_del_count = 0u32;
-		for i in 1..x {
-			let seed = USER_SEED + i;
-			let delegator = create_funded_delegator::<T>(
-				"delegator",
-				seed,
-				0u32.into(),
-				collator.clone(),
-				true,
-				col_del_count,
-			)?;
-			delegators.push(delegator);
-			col_del_count += 1u32;
-		}
-	}: _(RawOrigin::Root, delegators)
-	verify { }
-
-	hotfix_update_candidate_pool_value {
-		let x in 5..200;
-		let mut candidates: Vec<T::AccountId> = Vec::new();
-		for i in 1..x {
-			let account = create_funded_collator::<T>(
-				"candidate",
-				i + 100,
-				0u32.into(),
-				true,
-				i
-			)?;
-			candidates.push(account);
-		}
-	}: _(RawOrigin::Root, candidates)
-	verify { }
-
 	// MONETARY ORIGIN DISPATCHABLES
-
 	set_staking_expectations {
 		let stake_range: Range<BalanceOf<T>> = Range {
 			min: 100u32.into(),
@@ -651,13 +605,12 @@ benchmarks! {
 	}: _(RawOrigin::Signed(caller.clone()), collator.clone())
 	verify {
 		assert_eq!(
-			Pallet::<T>::delegator_state(&caller).unwrap().requests().get(&collator),
-			Some(&DelegationRequest {
-				collator,
-				amount: bond,
+			Pallet::<T>::delegation_scheduled_requests(&collator),
+			vec![ScheduledRequest {
+				delegator: caller,
 				when_executable: 3,
-				action: DelegationChange::Revoke
-			})
+				action: DelegationAction::Revoke(bond),
+			}],
 		);
 	}
 
@@ -706,13 +659,12 @@ benchmarks! {
 		let state = Pallet::<T>::delegator_state(&caller)
 			.expect("just request bonded less so exists");
 		assert_eq!(
-			state.requests().get(&collator),
-			Some(&DelegationRequest {
-				collator,
-				amount: 5u32.into(),
+			Pallet::<T>::delegation_scheduled_requests(&collator),
+			vec![ScheduledRequest {
+				delegator: caller,
 				when_executable: 3,
-				action: DelegationChange::Decrease
-			})
+				action: DelegationAction::Decrease(bond_less),
+			}],
 		);
 	}
 
@@ -812,7 +764,9 @@ benchmarks! {
 		)?;
 	} verify {
 		assert!(
-			Pallet::<T>::delegator_state(&caller).unwrap().requests().get(&collator).is_none()
+			!Pallet::<T>::delegation_scheduled_requests(&collator)
+			.iter()
+			.any(|x| &x.delegator == &caller)
 		);
 	}
 
@@ -846,11 +800,9 @@ benchmarks! {
 		)?;
 	} verify {
 		assert!(
-			Pallet::<T>::delegator_state(&caller)
-				.unwrap()
-				.requests()
-				.get(&collator)
-				.is_none()
+			!Pallet::<T>::delegation_scheduled_requests(&collator)
+				.iter()
+				.any(|x| &x.delegator == &caller)
 		);
 	}
 
@@ -858,9 +810,9 @@ benchmarks! {
 
 	round_transition_on_initialize {
 		// TOTAL SELECTED COLLATORS PER ROUND
-		let x in 1..28;
+		let x in 8..100;
 		// DELEGATIONS
-		let y in 0..(<<T as Config>::MaxTopDelegationsPerCandidate as Get<u32>>::get() * 28);
+		let y in 0..(<<T as Config>::MaxTopDelegationsPerCandidate as Get<u32>>::get() * 100);
 		let max_delegators_per_collator =
 			<<T as Config>::MaxTopDelegationsPerCandidate as Get<u32>>::get();
 		let max_delegations = x * max_delegators_per_collator;
@@ -873,7 +825,10 @@ benchmarks! {
 			max: Perbill::one(),
 		};
 		Pallet::<T>::set_inflation(RawOrigin::Root.into(), high_inflation.clone())?;
-		Pallet::<T>::set_total_selected(RawOrigin::Root.into(), 28u32)?;
+		// To set total selected to 40, must first increase round length to at least 40
+		// to avoid hitting RoundLengthMustBeAtLeastTotalSelectedCollators
+		Pallet::<T>::set_blocks_per_round(RawOrigin::Root.into(), 100u32)?;
+		Pallet::<T>::set_total_selected(RawOrigin::Root.into(), 100u32)?;
 		// INITIALIZE COLLATOR STATE
 		let mut collators: Vec<T::AccountId> = Vec::new();
 		let mut collator_count = 1u32;
@@ -1002,12 +957,8 @@ benchmarks! {
 	}
 
 	pay_one_collator_reward {
-		// y controls number of delegators
-		// TODO: mock.rs sets MaxTopDelegationsPerCandidate to 4, which is too low for this test to be
-		// meaningful. we use a higher value here, which works so long as we don't invoke any of
-		// pallet_staking's logic which uses MaxTopDelegationsPerCandidate as a constraint. this is
-		// brittle, to say the least...
-		let y in 0..2000;
+		// y controls number of delegations, its maximum per collator is the max top delegations
+		let y in 0..<<T as Config>::MaxTopDelegationsPerCandidate as Get<u32>>::get();
 
 		// must come after 'let foo in 0..` statements for macro
 		use crate::{

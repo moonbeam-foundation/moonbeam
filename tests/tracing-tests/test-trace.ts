@@ -1,10 +1,13 @@
 import { expect } from "chai";
 import { customWeb3Request } from "../util/providers";
-import { describeDevMoonbeam } from "../util/setup-dev-tests";
+import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes } from "../util/setup-dev-tests";
 import { ALITH, GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY } from "../util/constants";
 import { createContract } from "../util/transactions";
+import { ethers } from "ethers";
+import { getCompiled } from "../util/contracts";
 
 const BS_TRACER = require("../util/tracer/blockscout_tracer.min.json");
+const BS_TRACER_V2 = require("../util/tracer/blockscout_tracer_v2.min.json");
 
 async function createContracts(context) {
   let nonce = await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT);
@@ -212,6 +215,87 @@ describeDevMoonbeam(
   "Legacy",
   true
 );
+
+describeDevMoonbeamAllEthTxTypes(
+  "Trace blockscout v2",
+  (context) => {
+    it("should format as request (Blockscout v2)", async function () {
+      const send = await nestedSingle(context);
+      await context.createBlock();
+      let traceTx = await customWeb3Request(context.web3, "debug_traceTransaction", [
+        send.result,
+        { tracer: BS_TRACER_V2.body },
+      ]);
+      let entries = traceTx.result;
+      expect(entries).to.be.lengthOf(2);
+      let resCaller = entries[0];
+      let resCallee = entries[1];
+      expect(resCaller.callType).to.be.equal("call");
+      expect(resCallee.type).to.be.equal("call");
+      expect(resCallee.from).to.be.equal(resCaller.to);
+      expect(resCaller.traceAddress).to.be.empty;
+      expect(resCallee.traceAddress.length).to.be.eq(1);
+      expect(resCallee.traceAddress[0]).to.be.eq(0);
+    });
+  },
+  true
+);
+
+describeDevMoonbeamAllEthTxTypes("Trace (Blockscout v2)", (context) => {
+  it("should trace correctly out of gas transaction execution (Blockscout v2)", async function () {
+    this.timeout(10000);
+
+    const { contract, rawTx } = await createContract(context, "InfiniteContract");
+    await context.createBlock({ transactions: [rawTx] });
+
+    let callTx = await context.web3.eth.accounts.signTransaction(
+      {
+        from: GENESIS_ACCOUNT,
+        to: contract.options.address,
+        gas: "0x100000",
+        value: "0x00",
+        data: "0x5bec9e67",
+      },
+      GENESIS_ACCOUNT_PRIVATE_KEY
+    );
+    const data = await customWeb3Request(context.web3, "eth_sendRawTransaction", [
+      callTx.rawTransaction,
+    ]);
+    await context.createBlock();
+    let trace = await customWeb3Request(context.web3, "debug_traceTransaction", [
+      data.result,
+      { tracer: BS_TRACER_V2.body },
+    ]);
+
+    expect(trace.result.length).to.be.eq(1);
+    expect(trace.result[0].error).to.be.equal("out of gas");
+  });
+
+  it("should trace correctly precompiles (Blockscout v2)", async function () {
+    this.timeout(10000);
+
+    let callTx = await context.web3.eth.accounts.signTransaction(
+      {
+        from: GENESIS_ACCOUNT,
+        to: "0x0000000000000000000000000000000000000801",
+        gas: "0xdb3b",
+        value: "0x0",
+        data: "0x4e71d92d",
+      },
+      GENESIS_ACCOUNT_PRIVATE_KEY
+    );
+    const data = await customWeb3Request(context.web3, "eth_sendRawTransaction", [
+      callTx.rawTransaction,
+    ]);
+    await context.createBlock();
+    let trace = await customWeb3Request(context.web3, "debug_traceTransaction", [
+      data.result,
+      { tracer: BS_TRACER_V2.body },
+    ]);
+
+    expect(trace.result.length).to.be.eq(1);
+  });
+});
 
 describeDevMoonbeam("Trace", (context) => {
   it("should trace correctly out of gas transaction execution (Blockscout)", async function () {
@@ -425,5 +509,107 @@ describeDevMoonbeam("Trace", (context) => {
         "value",
       ]);
     });
+  });
+});
+
+describeDevMoonbeam("Trace", (context) => {
+  it("should correctly trace subcall (call list)", async function () {
+    this.timeout(10000);
+
+    const { contract: contractProxy, rawTx } = await createContract(context, "TestCallList");
+    await context.createBlock({ transactions: [rawTx] });
+
+    const { contract: contractDummy, rawTx: rawTx2 } = await createContract(
+      context,
+      "TestContract"
+    );
+    await context.createBlock({ transactions: [rawTx2] });
+
+    const proxyInterface = new ethers.utils.Interface(
+      (await getCompiled("TestCallList")).contract.abi
+    );
+    const dummyInterface = new ethers.utils.Interface(
+      (await getCompiled("TestContract")).contract.abi
+    );
+
+    let callTx = await context.web3.eth.accounts.signTransaction(
+      {
+        from: GENESIS_ACCOUNT,
+        to: contractProxy.options.address,
+        gas: "0x100000",
+        value: "0x00",
+        data: proxyInterface.encodeFunctionData("call", [
+          contractDummy.options.address,
+          dummyInterface.encodeFunctionData("multiply", [42]),
+        ]),
+      },
+      GENESIS_ACCOUNT_PRIVATE_KEY
+    );
+
+    const data = await customWeb3Request(context.web3, "eth_sendRawTransaction", [
+      callTx.rawTransaction,
+    ]);
+    await context.createBlock();
+    let trace = await customWeb3Request(context.web3, "debug_traceTransaction", [
+      data.result,
+      { tracer: "callTracer" },
+    ]);
+
+    expect(trace.result.from).to.be.eq(GENESIS_ACCOUNT.toLowerCase());
+    expect(trace.result.to).to.be.eq(contractProxy.options.address.toLowerCase());
+    expect(trace.result.calls.length).to.be.eq(1);
+    expect(trace.result.calls[0].from).to.be.eq(contractProxy.options.address.toLowerCase());
+    expect(trace.result.calls[0].to).to.be.eq(contractDummy.options.address.toLowerCase());
+    expect(trace.result.calls[0].type).to.be.eq("CALL");
+  });
+
+  it("should correctly trace delegatecall subcall (call list)", async function () {
+    this.timeout(10000);
+
+    const { contract: contractProxy, rawTx } = await createContract(context, "TestCallList");
+    await context.createBlock({ transactions: [rawTx] });
+
+    const { contract: contractDummy, rawTx: rawTx2 } = await createContract(
+      context,
+      "TestContract"
+    );
+    await context.createBlock({ transactions: [rawTx2] });
+
+    const proxyInterface = new ethers.utils.Interface(
+      (await getCompiled("TestCallList")).contract.abi
+    );
+    const dummyInterface = new ethers.utils.Interface(
+      (await getCompiled("TestContract")).contract.abi
+    );
+
+    let callTx = await context.web3.eth.accounts.signTransaction(
+      {
+        from: GENESIS_ACCOUNT,
+        to: contractProxy.options.address,
+        gas: "0x100000",
+        value: "0x00",
+        data: proxyInterface.encodeFunctionData("delegateCall", [
+          contractDummy.options.address,
+          dummyInterface.encodeFunctionData("multiply", [42]),
+        ]),
+      },
+      GENESIS_ACCOUNT_PRIVATE_KEY
+    );
+
+    const data = await customWeb3Request(context.web3, "eth_sendRawTransaction", [
+      callTx.rawTransaction,
+    ]);
+    await context.createBlock();
+    let trace = await customWeb3Request(context.web3, "debug_traceTransaction", [
+      data.result,
+      { tracer: "callTracer" },
+    ]);
+
+    expect(trace.result.from).to.be.eq(GENESIS_ACCOUNT.toLowerCase());
+    expect(trace.result.to).to.be.eq(contractProxy.options.address.toLowerCase());
+    expect(trace.result.calls.length).to.be.eq(1);
+    expect(trace.result.calls[0].from).to.be.eq(contractProxy.options.address.toLowerCase());
+    expect(trace.result.calls[0].to).to.be.eq(contractDummy.options.address.toLowerCase());
+    expect(trace.result.calls[0].type).to.be.eq("DELEGATECALL");
   });
 });

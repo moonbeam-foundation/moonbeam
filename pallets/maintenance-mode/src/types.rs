@@ -33,7 +33,7 @@ where
 {
 	fn on_idle(n: BlockNumberOf<T>, remaining_weight: Weight) -> Weight {
 		if Pallet::<T>::maintenance_mode() {
-			T::MaitenanceExecutiveHooks::on_idle(n, remaining_weight)
+			T::MaintenanceExecutiveHooks::on_idle(n, remaining_weight)
 		} else {
 			T::NormalExecutiveHooks::on_idle(n, remaining_weight)
 		}
@@ -46,7 +46,7 @@ where
 {
 	fn on_initialize(n: BlockNumberOf<T>) -> Weight {
 		if Pallet::<T>::maintenance_mode() {
-			T::MaitenanceExecutiveHooks::on_initialize(n)
+			T::MaintenanceExecutiveHooks::on_initialize(n)
 		} else {
 			T::NormalExecutiveHooks::on_initialize(n)
 		}
@@ -59,7 +59,7 @@ where
 {
 	fn on_finalize(n: BlockNumberOf<T>) {
 		if Pallet::<T>::maintenance_mode() {
-			T::MaitenanceExecutiveHooks::on_finalize(n)
+			T::MaintenanceExecutiveHooks::on_finalize(n)
 		} else {
 			T::NormalExecutiveHooks::on_finalize(n)
 		}
@@ -72,7 +72,7 @@ where
 {
 	fn offchain_worker(n: BlockNumberOf<T>) {
 		if Pallet::<T>::maintenance_mode() {
-			T::MaitenanceExecutiveHooks::offchain_worker(n)
+			T::MaintenanceExecutiveHooks::offchain_worker(n)
 		} else {
 			T::NormalExecutiveHooks::offchain_worker(n)
 		}
@@ -85,7 +85,7 @@ where
 {
 	fn on_runtime_upgrade() -> Weight {
 		if Pallet::<T>::maintenance_mode() {
-			T::MaitenanceExecutiveHooks::on_runtime_upgrade()
+			T::MaintenanceExecutiveHooks::on_runtime_upgrade()
 		} else {
 			T::NormalExecutiveHooks::on_runtime_upgrade()
 		}
@@ -94,7 +94,7 @@ where
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade() -> Result<(), &'static str> {
 		if Pallet::<T>::maintenance_mode() {
-			T::MaitenanceExecutiveHooks::pre_upgrade()
+			T::MaintenanceExecutiveHooks::pre_upgrade()
 		} else {
 			T::NormalExecutiveHooks::pre_upgrade()
 		}
@@ -103,7 +103,7 @@ where
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade() -> Result<(), &'static str> {
 		if Pallet::<T>::maintenance_mode() {
-			T::MaitenanceExecutiveHooks::post_upgrade()
+			T::MaintenanceExecutiveHooks::post_upgrade()
 		} else {
 			T::NormalExecutiveHooks::post_upgrade()
 		}

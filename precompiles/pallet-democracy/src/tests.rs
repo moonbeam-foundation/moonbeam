@@ -430,8 +430,8 @@ fn second_works() {
 					}
 					.into(),
 					DemocracyEvent::Seconded {
-						who: Alice,
-						proposal_index: 0
+						seconder: Alice,
+						prop_index: 0
 					}
 					.into(),
 					EvmEvent::Executed(Precompile.into()).into(),
@@ -476,7 +476,7 @@ fn standard_vote_aye_works() {
 					}
 					.into(),
 					DemocracyEvent::Voted {
-						who: Alice,
+						voter: Alice,
 						ref_index: 0,
 						vote: AccountVote::Standard {
 							vote: Vote {
@@ -545,7 +545,7 @@ fn standard_vote_nay_conviction_works() {
 					}
 					.into(),
 					DemocracyEvent::Voted {
-						who: Alice,
+						voter: Alice,
 						ref_index: 0,
 						vote: AccountVote::Standard {
 							vote: Vote {
@@ -629,7 +629,7 @@ fn remove_vote_works() {
 					}
 					.into(),
 					DemocracyEvent::Voted {
-						who: Alice,
+						voter: Alice,
 						ref_index: 0,
 						vote: AccountVote::Standard {
 							vote: Vote {

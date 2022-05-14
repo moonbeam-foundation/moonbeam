@@ -7,7 +7,7 @@ import { createMetadata, KeyringPair, OptionsWithMeta } from "@substrate/txwrapp
 import { Keyring } from "@polkadot/api";
 import { getRegistry } from "@substrate/txwrapper-registry";
 
-import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY } from "../../util/constants";
+import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY, TEST_ACCOUNT } from "../../util/constants";
 
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { rpcToLocalNode } from "../../util/transactions";
@@ -41,8 +41,6 @@ export function signWith(
 }
 
 describeDevMoonbeam("Balance transfer - txwrapper", (context) => {
-  const TEST_ACCOUNT = "0x1111111111111111111111111111111111111111";
-
   before("Create block with transfer to test account of 512", async function () {
     // txwrapper takes more time to initiate :/
     this.timeout(10000);
@@ -113,7 +111,7 @@ describeDevMoonbeam("Balance transfer - txwrapper", (context) => {
     const block1Hash = await context.polkadotApi.rpc.chain.getBlockHash(1);
     expect(await context.web3.eth.getBalance(GENESIS_ACCOUNT, 1)).to.equal(
       (
-        await context.polkadotApi.query.system.account.at(block1Hash, GENESIS_ACCOUNT)
+        (await context.polkadotApi.query.system.account.at(block1Hash, GENESIS_ACCOUNT)) as any
       ).data.free.toString()
     );
   });

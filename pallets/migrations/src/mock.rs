@@ -81,6 +81,7 @@ impl frame_system::Config for Test {
 	type BlockLength = ();
 	type SS58Prefix = SS58Prefix;
 	type OnSetCode = ();
+	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 
 /// MockMigrationManager stores the test-side callbacks/closures used in the Migrations list glue.

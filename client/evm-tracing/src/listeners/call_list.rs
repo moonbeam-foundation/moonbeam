@@ -367,6 +367,7 @@ impl Listener {
 			}
 
 			EvmEvent::Call {
+				code_address,
 				input,
 				is_static,
 				context,
@@ -390,12 +391,21 @@ impl Listener {
 						vec![]
 					};
 
+					// For subcalls we want to have "from" always be the parent context address
+					// instead of `context.caller`, since the latter will not have the correct
+					// value inside a DelegateCall.
+					let from = if let Some(parent_context) = self.context_stack.last() {
+						parent_context.to.clone()
+					} else {
+						context.caller
+					};
+
 					self.context_stack.push(Context {
 						entries_index: self.entries_next_index,
 
 						context_type: ContextType::Call(call_type),
 
-						from: context.caller,
+						from,
 						trace_address,
 						subtraces: 0,
 						value: context.apparent_value,
@@ -404,7 +414,7 @@ impl Listener {
 						start_gas: None,
 
 						data: input.to_vec(),
-						to: context.address,
+						to: code_address,
 					});
 
 					self.entries_next_index += 1;
@@ -469,10 +479,7 @@ impl Listener {
 					vec![]
 				};
 
-				if self.entries.is_empty() {
-					self.entries.push(BTreeMap::new());
-				}
-				self.entries.last_mut().unwrap().insert(
+				self.insert_entry(
 					self.entries_next_index,
 					Call {
 						from: address, // this contract is self destructing
@@ -513,11 +520,13 @@ impl Listener {
 	}
 
 	fn insert_entry(&mut self, key: u32, entry: Call) {
-		if self.entries.is_empty() {
-			self.entries.push(BTreeMap::new());
+		if let Some(ref mut last) = self.entries.last_mut() {
+			last.insert(key, entry);
+		} else {
+			let mut btree_map = BTreeMap::new();
+			btree_map.insert(key, entry);
+			self.entries.push(btree_map);
 		}
-
-		self.entries.last_mut().unwrap().insert(key, entry);
 	}
 
 	fn pop_context_to_entry(
