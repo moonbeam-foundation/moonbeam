@@ -23,12 +23,12 @@ use sp_std::vec::Vec;
 use xcm::latest::{Junction, Junctions, MultiLocation, NetworkId};
 
 // Function to convert network id to bytes
-// We dont implement EVMData here as these bytes will be appended only
+// We don't implement EVMData here as these bytes will be appended only
 // to certain Junction variants
 // Each NetworkId variant is represented as bytes
 // The first byte represents the enum variant to be used
 // The rest of the bytes (if any), represent the additional data that such enum variant requires
-// In this case, only Named requies additional non-bounded data.
+// In this case, only Named requires additional non-bounded data.
 // In such a case, since NetworkIds will be appended at the end, we will read the buffer until the
 // end to recover the name
 pub(crate) fn network_id_to_bytes(network_id: NetworkId) -> Vec<u8> {
