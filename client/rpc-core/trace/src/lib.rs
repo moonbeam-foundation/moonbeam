@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use ethereum_types::H160;
-use futures::{compat::Compat, future::BoxFuture};
+use futures::future::BoxFuture;
 use jsonrpc_derive::rpc;
 use moonbeam_client_evm_tracing::types::block::TransactionTrace;
 use moonbeam_rpc_core_types::RequestBlockId;
@@ -29,7 +29,7 @@ pub trait Trace {
 	fn filter(
 		&self,
 		filter: FilterRequest,
-	) -> Compat<BoxFuture<'static, jsonrpc_core::Result<Vec<TransactionTrace>>>>;
+	) -> BoxFuture<'static, jsonrpc_core::Result<Vec<TransactionTrace>>>;
 }
 
 #[derive(Clone, Eq, PartialEq, Debug, Deserialize)]

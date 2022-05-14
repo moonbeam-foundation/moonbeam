@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "node",
+    "strict": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "composite": true,
+    "declaration": true,
+    "paths": {
+      "moonbeam": ["moonbeam/src"],
+      "moonriver": ["moonriver/src"],
+      "moonbase": ["moonbase/src"]
+    }
+  },
+  "exclude": ["node_modules", "build"]
+}

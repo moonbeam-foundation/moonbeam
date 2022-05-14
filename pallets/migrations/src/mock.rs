@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -15,13 +15,14 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! A minimal runtime including the migrations pallet
+
 use super::*;
 use crate as pallet_migrations;
 use frame_support::{
 	construct_runtime,
 	pallet_prelude::*,
 	parameter_types,
-	traits::GenesisBuild,
+	traits::{Everything, GenesisBuild},
 	weights::{constants::RocksDbWeight, Weight},
 };
 use sp_core::H256;
@@ -57,7 +58,7 @@ parameter_types! {
 	pub const SS58Prefix: u8 = 42;
 }
 impl frame_system::Config for Test {
-	type BaseCallFilter = ();
+	type BaseCallFilter = Everything;
 	type DbWeight = RocksDbWeight;
 	type Origin = Origin;
 	type Index = u64;
@@ -80,6 +81,7 @@ impl frame_system::Config for Test {
 	type BlockLength = ();
 	type SS58Prefix = SS58Prefix;
 	type OnSetCode = ();
+	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 
 /// MockMigrationManager stores the test-side callbacks/closures used in the Migrations list glue.
@@ -234,8 +236,8 @@ impl Migration for MockMigration {
 /// Implementation of Migrations. Generates a Vec of MockMigrations on the fly based on the current
 /// contents of MOCK_MIGRATIONS_LIST.
 pub struct MockMigrations;
-impl Get<Vec<Box<dyn Migration>>> for MockMigrations {
-	fn get() -> Vec<Box<dyn Migration>> {
+impl GetMigrations for MockMigrations {
+	fn get_migrations() -> Vec<Box<dyn Migration>> {
 		let mut migrations: Vec<Box<dyn Migration>> = Vec::new();
 		MOCK_MIGRATIONS_LIST::with(|mgr: &mut MockMigrationManager| {
 			migrations = mgr.generate_migrations_list();
@@ -251,32 +253,42 @@ impl Config for Test {
 
 /// Externality builder for pallet migration's mock runtime
 pub(crate) struct ExtBuilder {
-	completed_migrations: Vec<Vec<u8>>,
+	uncompleted_migrations: Vec<&'static str>,
 }
 
 impl Default for ExtBuilder {
 	fn default() -> ExtBuilder {
 		ExtBuilder {
-			completed_migrations: vec![],
+			uncompleted_migrations: Vec::new(),
 		}
 	}
 }
 
 impl ExtBuilder {
+	pub(crate) fn with_uncompleted_migrations(uncompleted_migrations: Vec<&'static str>) -> Self {
+		Self {
+			uncompleted_migrations,
+		}
+	}
 	pub(crate) fn build(self) -> sp_io::TestExternalities {
-		let mut t = frame_system::GenesisConfig::default()
+		let mut storage = frame_system::GenesisConfig::default()
 			.build_storage::<Test>()
 			.expect("Frame system builds valid default genesis config");
 
-		GenesisBuild::<Test>::assimilate_storage(
-			&pallet_migrations::GenesisConfig {
-				completed_migrations: self.completed_migrations,
-			},
-			&mut t,
-		)
-		.expect("Pallet migration's storage can be assimilated");
+		GenesisBuild::<Test>::assimilate_storage(&pallet_migrations::GenesisConfig, &mut storage)
+			.expect("Pallet migration's storage can be assimilated");
 
-		let mut ext = sp_io::TestExternalities::new(t);
+		let mut ext = sp_io::TestExternalities::new(storage);
+		if !self.uncompleted_migrations.is_empty() {
+			for migration_name in self.uncompleted_migrations {
+				ext.insert(
+					<crate::pallet::MigrationState<Test>>::hashed_key_for(
+						migration_name.as_bytes(),
+					),
+					false.encode(),
+				);
+			}
+		}
 		ext.execute_with(|| System::set_block_number(1));
 		ext
 	}

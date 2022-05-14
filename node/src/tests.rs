@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -65,7 +65,7 @@ fn purge_chain_purges_relay_and_para() {
 			.unwrap();
 
 		// Let it produce some blocks.
-		thread::sleep(Duration::from_secs(20));
+		thread::sleep(Duration::from_secs(30));
 		assert!(
 			cmd.try_wait().unwrap().is_none(),
 			"the process should still be running"
@@ -100,7 +100,10 @@ fn purge_chain_purges_relay_and_para() {
 		// Make sure the parachain data directory exists
 		assert!(base_path.path().join("chains/moonbase_dev").exists());
 		// Make sure its database is deleted
-		assert!(!base_path.path().join("chains/moonbase_dev/db").exists());
+		assert!(!base_path
+			.path()
+			.join("chains/moonbase_dev/db/full")
+			.exists());
 	}
 }
 

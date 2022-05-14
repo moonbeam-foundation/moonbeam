@@ -24,7 +24,7 @@ export const notePreimage = async <
   const encodedProposal = proposal.method.toHex() || "";
   await context.polkadotApi.tx.democracy.notePreimage(encodedProposal).signAndSend(account);
   await context.createBlock();
-  // return encodedHash
+
   return blake2AsHex(encodedProposal);
 };
 
@@ -46,7 +46,9 @@ export const execFromTwoThirdsOfCouncil = async <
     charleth,
     context.polkadotApi.tx.councilCollective.propose(2, polkadotCall, lengthBound)
   );
-  const proposalHash = proposalEvents[0].data[2].toHuman() as string;
+  const proposalHash = proposalEvents
+    .find((e) => e.method.toString() == "Proposed")
+    .data[2].toHex() as string;
 
   // Dorothy vote for this proposal and close it
   await Promise.all([
@@ -78,15 +80,22 @@ export const execFromAllMembersOfTechCommittee = async <
   const { events: proposalEvents } = await createBlockWithExtrinsic(
     context,
     alith,
-    context.polkadotApi.tx.techComitteeCollective.propose(2, polkadotCall, lengthBound)
+    context.polkadotApi.tx.techCommitteeCollective.propose(2, polkadotCall, lengthBound)
   );
-  const proposalHash = proposalEvents[0].data[2].toHuman() as string;
+  const proposalHash = proposalEvents
+    .find((e) => e.method.toString() == "Proposed")
+    .data[2].toHex() as string;
+
+  // Get proposal count
+  const proposalCount = await context.polkadotApi.query.techCommitteeCollective.proposalCount();
 
   // Alith, Baltathar vote for this proposal and close it
   await Promise.all([
-    context.polkadotApi.tx.techComitteeCollective.vote(proposalHash, 0, true).signAndSend(alith),
-    context.polkadotApi.tx.techComitteeCollective
-      .vote(proposalHash, 0, true)
+    context.polkadotApi.tx.techCommitteeCollective
+      .vote(proposalHash, Number(proposalCount) - 1, true)
+      .signAndSend(alith),
+    context.polkadotApi.tx.techCommitteeCollective
+      .vote(proposalHash, Number(proposalCount) - 1, true)
       .signAndSend(baltathar),
   ]);
 
@@ -95,6 +104,11 @@ export const execFromAllMembersOfTechCommittee = async <
   return await createBlockWithExtrinsic(
     context,
     baltathar,
-    context.polkadotApi.tx.techComitteeCollective.close(proposalHash, 0, 1_000_000_000, lengthBound)
+    context.polkadotApi.tx.techCommitteeCollective.close(
+      proposalHash,
+      Number(proposalCount) - 1,
+      1_000_000_000,
+      lengthBound
+    )
   );
 };
