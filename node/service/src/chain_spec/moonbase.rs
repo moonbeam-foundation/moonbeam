@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -23,20 +23,21 @@
 use crate::chain_spec::{derive_bip44_pairs_from_mnemonic, get_account_id_from_pair};
 use crate::chain_spec::{generate_accounts, get_from_seed, Extensions};
 use cumulus_primitives_core::ParaId;
-use evm::GenesisAccount;
+use hex_literal::hex;
 use moonbase_runtime::{
 	currency::UNIT, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
-	CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig,
-	EthereumChainIdConfig, EthereumConfig, GenesisConfig, InflationInfo, ParachainInfoConfig,
-	ParachainStakingConfig, Precompiles, Range, SchedulerConfig, SudoConfig, SystemConfig,
-	TechComitteeCollectiveConfig, WASM_BINARY,
+	BaseFeeConfig, CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig,
+	EligibilityValue, EthereumChainIdConfig, EthereumConfig, GenesisAccount, GenesisConfig,
+	InflationInfo, MaintenanceModeConfig, ParachainInfoConfig, ParachainStakingConfig,
+	PolkadotXcmConfig, Precompiles, Range, SudoConfig, SystemConfig, TechCommitteeCollectiveConfig,
+	WASM_BINARY,
 };
 use nimbus_primitives::NimbusId;
 use sc_service::ChainType;
 #[cfg(test)]
 use sp_core::ecdsa;
-use sp_runtime::Perbill;
-use std::str::FromStr;
+use sp_core::U256;
+use sp_runtime::{Perbill, Permill};
 
 /// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
 pub type ChainSpec = sc_service::GenericChainSpec<GenesisConfig, Extensions>;
@@ -49,7 +50,9 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 	});
 	// We prefund the standard dev accounts plus Gerald
 	let mut accounts = generate_accounts(parent_mnemonic, num_accounts.unwrap_or(10));
-	accounts.push(AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap());
+	accounts.push(AccountId::from(hex!(
+		"6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b"
+	)));
 
 	ChainSpec::from_genesis(
 		"Moonbase Development Testnet",
@@ -69,7 +72,7 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 					get_from_seed::<NimbusId>("Alice"),
 					1_000 * UNIT,
 				)],
-				// Nominations
+				// Delegations
 				vec![],
 				accounts.clone(),
 				3_000_000 * UNIT,
@@ -77,15 +80,22 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 				1281,               //ChainId
 			)
 		},
+		// Bootnodes
 		vec![],
+		// Telemetry
 		None,
+		// Protocol ID
 		None,
+		// Fork ID
+		None,
+		// Properties
 		Some(
 			serde_json::from_str(
 				"{\"tokenDecimals\": 18, \"tokenSymbol\": \"UNIT\", \"SS58Prefix\": 1287}",
 			)
 			.expect("Provided valid json map"),
 		),
+		// Extensions
 		Extensions {
 			relay_chain: "dev-service".into(),
 			para_id: Default::default(),
@@ -106,53 +116,60 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 		move || {
 			testnet_genesis(
 				// Alith is Sudo
-				AccountId::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap(),
+				AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
 				// Council members: Baltathar, Charleth and Dorothy
 				vec![
-					AccountId::from_str("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0").unwrap(),
-					AccountId::from_str("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc").unwrap(),
-					AccountId::from_str("773539d4Ac0e786233D90A233654ccEE26a613D9").unwrap(),
+					AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
+					AccountId::from(hex!("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc")),
+					AccountId::from(hex!("773539d4Ac0e786233D90A233654ccEE26a613D9")),
 				],
 				// Tech comitee members: Alith and Baltathar
 				vec![
-					AccountId::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap(),
-					AccountId::from_str("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0").unwrap(),
+					AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
+					AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
 				],
 				// Collator Candidates
 				vec![
 					// Alice -> Alith
 					(
-						AccountId::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap(),
+						AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
 						get_from_seed::<NimbusId>("Alice"),
 						1_000 * UNIT,
 					),
 					// Bob -> Baltithar
 					(
-						AccountId::from_str("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0").unwrap(),
+						AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
 						get_from_seed::<NimbusId>("Bob"),
 						1_000 * UNIT,
 					),
 				],
-				// Nominations
+				// Delegations
 				vec![],
 				vec![
-					AccountId::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap(),
-					AccountId::from_str("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0").unwrap(),
+					AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
+					AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
 				],
 				3_000_000 * UNIT,
 				para_id,
 				1280, //ChainId
 			)
 		},
+		// Bootnodes
 		vec![],
+		// Telemetry
 		None,
+		// Protocol ID
 		None,
+		// Fork ID
+		None,
+		// Properties
 		Some(
 			serde_json::from_str(
 				"{\"tokenDecimals\": 18, \"tokenSymbol\": \"UNIT\", \"SS58Prefix\": 1287}",
 			)
 			.expect("Provided valid json map"),
 		),
+		// Extensions
 		Extensions {
 			relay_chain: "westend-local".into(),
 			para_id: para_id.into(),
@@ -161,23 +178,29 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 }
 
 pub fn moonbeam_inflation_config() -> InflationInfo<Balance> {
+	fn to_round_inflation(annual: Range<Perbill>) -> Range<Perbill> {
+		use parachain_staking::inflation::{perbill_annual_to_perbill_round, BLOCKS_PER_YEAR};
+		perbill_annual_to_perbill_round(
+			annual,
+			// rounds per year
+			BLOCKS_PER_YEAR / moonbase_runtime::get!(parachain_staking, DefaultBlocksPerRound, u32),
+		)
+	}
+	let annual = Range {
+		min: Perbill::from_percent(4),
+		ideal: Perbill::from_percent(5),
+		max: Perbill::from_percent(5),
+	};
 	InflationInfo {
+		// staking expectations
 		expect: Range {
 			min: 100_000 * UNIT,
 			ideal: 200_000 * UNIT,
 			max: 500_000 * UNIT,
 		},
-		annual: Range {
-			min: Perbill::from_percent(4),
-			ideal: Perbill::from_percent(5),
-			max: Perbill::from_percent(5),
-		},
-		// 8766 rounds (hours) in a year
-		round: Range {
-			min: Perbill::from_parts(Perbill::from_percent(4).deconstruct() / 8766),
-			ideal: Perbill::from_parts(Perbill::from_percent(5).deconstruct() / 8766),
-			max: Perbill::from_parts(Perbill::from_percent(5).deconstruct() / 8766),
-		},
+		// annual inflation
+		annual,
+		round: to_round_inflation(annual),
 	}
 }
 
@@ -186,15 +209,15 @@ pub fn testnet_genesis(
 	council_members: Vec<AccountId>,
 	tech_comittee_members: Vec<AccountId>,
 	candidates: Vec<(AccountId, NimbusId, Balance)>,
-	nominations: Vec<(AccountId, AccountId, Balance)>,
+	delegations: Vec<(AccountId, AccountId, Balance)>,
 	endowed_accounts: Vec<AccountId>,
 	crowdloan_fund_pot: Balance,
 	para_id: ParaId,
 	chain_id: u64,
 ) -> GenesisConfig {
-	// This is supposed the be the simplest bytecode to revert without returning any data.
+	// This is the simplest bytecode to revert without returning any data.
 	// We will pre-deploy it under all of our precompiles to ensure they can be called from
-	// within contracts. TODO We should have a test to ensure this is the right bytecode.
+	// within contracts.
 	// (PUSH1 0x00 PUSH1 0x00 REVERT)
 	let revert_bytecode = vec![0x60, 0x00, 0x60, 0x00, 0xFD];
 
@@ -203,7 +226,6 @@ pub fn testnet_genesis(
 			code: WASM_BINARY
 				.expect("WASM binary was not build, please build it!")
 				.to_vec(),
-			changes_trie_config: Default::default(),
 		},
 		balances: BalancesConfig {
 			balances: endowed_accounts
@@ -215,7 +237,9 @@ pub fn testnet_genesis(
 		crowdloan_rewards: CrowdloanRewardsConfig {
 			funded_amount: crowdloan_fund_pot,
 		},
-		sudo: SudoConfig { key: root_key },
+		sudo: SudoConfig {
+			key: Some(root_key),
+		},
 		parachain_info: ParachainInfoConfig {
 			parachain_id: para_id,
 		},
@@ -226,7 +250,7 @@ pub fn testnet_genesis(
 			accounts: Precompiles::used_addresses()
 				.map(|addr| {
 					(
-						addr,
+						addr.into(),
 						GenesisAccount {
 							nonce: Default::default(),
 							balance: Default::default(),
@@ -238,27 +262,31 @@ pub fn testnet_genesis(
 				.collect(),
 		},
 		ethereum: EthereumConfig {},
+		base_fee: BaseFeeConfig::new(
+			U256::from(1_000_000_000u64),
+			false,
+			Permill::from_parts(125_000),
+		),
 		democracy: DemocracyConfig::default(),
-		scheduler: SchedulerConfig {},
 		parachain_staking: ParachainStakingConfig {
 			candidates: candidates
 				.iter()
 				.cloned()
 				.map(|(account, _, bond)| (account, bond))
 				.collect(),
-			nominations,
+			delegations,
 			inflation_config: moonbeam_inflation_config(),
 		},
 		council_collective: CouncilCollectiveConfig {
 			phantom: Default::default(),
 			members: council_members,
 		},
-		tech_comittee_collective: TechComitteeCollectiveConfig {
+		tech_committee_collective: TechCommitteeCollectiveConfig {
 			phantom: Default::default(),
 			members: tech_comittee_members,
 		},
 		author_filter: AuthorFilterConfig {
-			eligible_ratio: sp_runtime::Percent::from_percent(50),
+			eligible_count: EligibilityValue::new_unchecked(50),
 		},
 		author_mapping: AuthorMappingConfig {
 			mappings: candidates
@@ -267,7 +295,14 @@ pub fn testnet_genesis(
 				.map(|(account_id, author_id, _)| (author_id, account_id))
 				.collect(),
 		},
+		proxy_genesis_companion: Default::default(),
 		treasury: Default::default(),
+		migrations: Default::default(),
+		maintenance_mode: MaintenanceModeConfig {
+			start_in_maintenance_mode: false,
+		},
+		// This should initialize it to whatever we have set in the pallet
+		polkadot_xcm: PolkadotXcmConfig::default(),
 	}
 }
 
@@ -280,15 +315,13 @@ mod tests {
 			"bottom drive obey lake curtain smoke basket hold race lonely fit walk".to_string();
 		let accounts = 10;
 		let pairs = derive_bip44_pairs_from_mnemonic::<ecdsa::Public>(&mnemonic, accounts);
-		let first_account =
-			get_account_id_from_pair::<ecdsa::Public>(pairs.first().unwrap().clone()).unwrap();
-		let last_account =
-			get_account_id_from_pair::<ecdsa::Public>(pairs.last().unwrap().clone()).unwrap();
+		let first_account = get_account_id_from_pair(pairs.first().unwrap().clone()).unwrap();
+		let last_account = get_account_id_from_pair(pairs.last().unwrap().clone()).unwrap();
 
 		let expected_first_account =
-			AccountId::from_str("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap();
+			AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"));
 		let expected_last_account =
-			AccountId::from_str("2898FE7a42Be376C8BC7AF536A940F7Fd5aDd423").unwrap();
+			AccountId::from(hex!("2898FE7a42Be376C8BC7AF536A940F7Fd5aDd423"));
 		assert_eq!(first_account, expected_first_account);
 		assert_eq!(last_account, expected_last_account);
 		assert_eq!(pairs.len(), 10);
@@ -300,15 +333,13 @@ mod tests {
 				.to_string();
 		let accounts = 20;
 		let pairs = derive_bip44_pairs_from_mnemonic::<ecdsa::Public>(&mnemonic, accounts);
-		let first_account =
-			get_account_id_from_pair::<ecdsa::Public>(pairs.first().unwrap().clone()).unwrap();
-		let last_account =
-			get_account_id_from_pair::<ecdsa::Public>(pairs.last().unwrap().clone()).unwrap();
+		let first_account = get_account_id_from_pair(pairs.first().unwrap().clone()).unwrap();
+		let last_account = get_account_id_from_pair(pairs.last().unwrap().clone()).unwrap();
 
 		let expected_first_account =
-			AccountId::from_str("1e56ca71b596f2b784a27a2fdffef053dbdeff83").unwrap();
+			AccountId::from(hex!("1e56ca71b596f2b784a27a2fdffef053dbdeff83"));
 		let expected_last_account =
-			AccountId::from_str("4148202BF0c0Ad7697Cff87EbB83340C80c947f8").unwrap();
+			AccountId::from(hex!("4148202BF0c0Ad7697Cff87EbB83340C80c947f8"));
 		assert_eq!(first_account, expected_first_account);
 		assert_eq!(last_account, expected_last_account);
 		assert_eq!(pairs.len(), 20);

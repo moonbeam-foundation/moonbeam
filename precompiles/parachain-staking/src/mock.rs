@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -16,14 +16,14 @@
 
 //! Test utilities
 use super::*;
-use codec::{Decode, Encode};
+use codec::{Decode, Encode, MaxEncodedLen};
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{GenesisBuild, MaxEncodedLen},
+	traits::{Everything, GenesisBuild, OnFinalize, OnInitialize},
 	weights::Weight,
 };
 use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet};
-use parachain_staking::{InflationInfo, Range};
+use parachain_staking::{AwardedPts, InflationInfo, Points, Range};
 use serde::{Deserialize, Serialize};
 use sp_core::{H160, H256};
 use sp_io;
@@ -37,11 +37,11 @@ pub type AccountId = TestAccount;
 pub type Balance = u128;
 pub type BlockNumber = u64;
 
-type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
-type Block = frame_system::mocking::MockBlock<Test>;
+type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
+type Block = frame_system::mocking::MockBlock<Runtime>;
 
 construct_runtime!(
-	pub enum Test where
+	pub enum Runtime where
 		Block = Block,
 		NodeBlock = Block,
 		UncheckedExtrinsic = UncheckedExtrinsic,
@@ -68,6 +68,7 @@ construct_runtime!(
 	Serialize,
 	Deserialize,
 	derive_more::Display,
+	scale_info::TypeInfo,
 )]
 pub enum TestAccount {
 	Alice,
@@ -79,6 +80,17 @@ pub enum TestAccount {
 impl Default for TestAccount {
 	fn default() -> Self {
 		Self::Bogus
+	}
+}
+
+impl Into<H160> for TestAccount {
+	fn into(self) -> H160 {
+		match self {
+			TestAccount::Alice => H160::repeat_byte(0xAA),
+			TestAccount::Bob => H160::repeat_byte(0xBB),
+			TestAccount::Charlie => H160::repeat_byte(0xCC),
+			TestAccount::Bogus => H160::repeat_byte(0xDD),
+		}
 	}
 }
 
@@ -117,8 +129,8 @@ parameter_types! {
 	pub const AvailableBlockRatio: Perbill = Perbill::one();
 	pub const SS58Prefix: u8 = 42;
 }
-impl frame_system::Config for Test {
-	type BaseCallFilter = ();
+impl frame_system::Config for Runtime {
+	type BaseCallFilter = Everything;
 	type DbWeight = ();
 	type Origin = Origin;
 	type Index = u64;
@@ -141,11 +153,12 @@ impl frame_system::Config for Test {
 	type BlockLength = ();
 	type SS58Prefix = SS58Prefix;
 	type OnSetCode = ();
+	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 parameter_types! {
 	pub const ExistentialDeposit: u128 = 1;
 }
-impl pallet_balances::Config for Test {
+impl pallet_balances::Config for Runtime {
 	type MaxReserves = ();
 	type ReserveIdentifier = [u8; 4];
 	type MaxLocks = ();
@@ -167,31 +180,34 @@ pub struct TestPrecompiles<R>(PhantomData<R>);
 
 impl<R> PrecompileSet for TestPrecompiles<R>
 where
-	R::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo + Decode,
-	<R::Call as Dispatchable>::Origin: From<Option<R::AccountId>>,
-	R: parachain_staking::Config + pallet_evm::Config,
-	R::AccountId: From<H160>,
-	BalanceOf<R>: EvmData,
-	R::Call: From<parachain_staking::Call<R>>,
+	ParachainStakingWrapper<R>: Precompile,
 {
 	fn execute(
+		&self,
 		address: H160,
 		input: &[u8],
 		target_gas: Option<u64>,
 		context: &Context,
-	) -> Option<Result<PrecompileOutput, ExitError>> {
+		is_static: bool,
+	) -> Option<EvmResult<PrecompileOutput>> {
 		match address {
 			a if a == precompile_address() => Some(ParachainStakingWrapper::<R>::execute(
-				input, target_gas, context,
+				input, target_gas, context, is_static,
 			)),
 			_ => None,
 		}
 	}
+
+	fn is_precompile(&self, address: H160) -> bool {
+		address == precompile_address()
+	}
 }
 
-pub type Precompiles = TestPrecompiles<Test>;
+parameter_types! {
+	pub PrecompilesValue: TestPrecompiles<Runtime> = TestPrecompiles(Default::default());
+}
 
-impl pallet_evm::Config for Test {
+impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
 	type GasWeightMapping = ();
 	type CallOrigin = EnsureAddressRoot<AccountId>;
@@ -200,18 +216,20 @@ impl pallet_evm::Config for Test {
 	type Currency = Balances;
 	type Event = Event;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
-	type Precompiles = Precompiles;
+	type PrecompilesType = TestPrecompiles<Runtime>;
+	type PrecompilesValue = PrecompilesValue;
 	type ChainId = ();
 	type OnChargeTransaction = ();
 	type BlockGasLimit = ();
 	type BlockHashMapping = pallet_evm::SubstrateBlockHashMapping<Self>;
 	type FindAuthor = ();
+	type WeightInfo = ();
 }
 
 parameter_types! {
 	pub const MinimumPeriod: u64 = 5;
 }
-impl pallet_timestamp::Config for Test {
+impl pallet_timestamp::Config for Runtime {
 	type Moment = u64;
 	type OnTimestampSet = ();
 	type MinimumPeriod = MinimumPeriod;
@@ -222,37 +240,45 @@ parameter_types! {
 	pub const MinBlocksPerRound: u32 = 3;
 	pub const DefaultBlocksPerRound: u32 = 5;
 	pub const LeaveCandidatesDelay: u32 = 2;
-	pub const LeaveNominatorsDelay: u32 = 2;
-	pub const RevokeNominationDelay: u32 = 2;
+	pub const CandidateBondLessDelay: u32 = 2;
+	pub const LeaveDelegatorsDelay: u32 = 2;
+	pub const RevokeDelegationDelay: u32 = 2;
+	pub const DelegationBondLessDelay: u32 = 2;
 	pub const RewardPaymentDelay: u32 = 2;
 	pub const MinSelectedCandidates: u32 = 5;
-	pub const MaxNominatorsPerCollator: u32 = 4;
-	pub const MaxCollatorsPerNominator: u32 = 4;
+	pub const MaxTopDelegationsPerCandidate: u32 = 4;
+	pub const MaxBottomDelegationsPerCandidate: u32 = 4;
+	pub const MaxDelegationsPerDelegator: u32 = 4;
 	pub const DefaultCollatorCommission: Perbill = Perbill::from_percent(20);
 	pub const DefaultParachainBondReservePercent: Percent = Percent::from_percent(30);
 	pub const MinCollatorStk: u128 = 10;
-	pub const MinNominatorStk: u128 = 5;
-	pub const MinNomination: u128 = 3;
+	pub const MinDelegatorStk: u128 = 5;
+	pub const MinDelegation: u128 = 3;
 }
-impl parachain_staking::Config for Test {
+impl parachain_staking::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
 	type MonetaryGovernanceOrigin = frame_system::EnsureRoot<AccountId>;
 	type MinBlocksPerRound = MinBlocksPerRound;
 	type DefaultBlocksPerRound = DefaultBlocksPerRound;
 	type LeaveCandidatesDelay = LeaveCandidatesDelay;
-	type LeaveNominatorsDelay = LeaveNominatorsDelay;
-	type RevokeNominationDelay = RevokeNominationDelay;
+	type CandidateBondLessDelay = CandidateBondLessDelay;
+	type LeaveDelegatorsDelay = LeaveDelegatorsDelay;
+	type RevokeDelegationDelay = RevokeDelegationDelay;
+	type DelegationBondLessDelay = DelegationBondLessDelay;
 	type RewardPaymentDelay = RewardPaymentDelay;
 	type MinSelectedCandidates = MinSelectedCandidates;
-	type MaxNominatorsPerCollator = MaxNominatorsPerCollator;
-	type MaxCollatorsPerNominator = MaxCollatorsPerNominator;
+	type MaxTopDelegationsPerCandidate = MaxTopDelegationsPerCandidate;
+	type MaxBottomDelegationsPerCandidate = MaxBottomDelegationsPerCandidate;
+	type MaxDelegationsPerDelegator = MaxDelegationsPerDelegator;
 	type DefaultCollatorCommission = DefaultCollatorCommission;
 	type DefaultParachainBondReservePercent = DefaultParachainBondReservePercent;
 	type MinCollatorStk = MinCollatorStk;
-	type MinCollatorCandidateStk = MinCollatorStk;
-	type MinNominatorStk = MinNominatorStk;
-	type MinNomination = MinNomination;
+	type MinCandidateStk = MinCollatorStk;
+	type MinDelegatorStk = MinDelegatorStk;
+	type MinDelegation = MinDelegation;
+	type OnCollatorPayout = ();
+	type OnNewRound = ();
 	type WeightInfo = ();
 }
 
@@ -261,8 +287,8 @@ pub(crate) struct ExtBuilder {
 	balances: Vec<(AccountId, Balance)>,
 	// [collator, amount]
 	collators: Vec<(AccountId, Balance)>,
-	// [nominator, collator, nomination_amount]
-	nominations: Vec<(AccountId, AccountId, Balance)>,
+	// [delegator, collator, delegation_amount]
+	delegations: Vec<(AccountId, AccountId, Balance)>,
 	// inflation config
 	inflation: InflationInfo<Balance>,
 }
@@ -271,7 +297,7 @@ impl Default for ExtBuilder {
 	fn default() -> ExtBuilder {
 		ExtBuilder {
 			balances: vec![],
-			nominations: vec![],
+			delegations: vec![],
 			collators: vec![],
 			inflation: InflationInfo {
 				expect: Range {
@@ -307,11 +333,11 @@ impl ExtBuilder {
 		self
 	}
 
-	pub(crate) fn with_nominations(
+	pub(crate) fn with_delegations(
 		mut self,
-		nominations: Vec<(AccountId, AccountId, Balance)>,
+		delegations: Vec<(AccountId, AccountId, Balance)>,
 	) -> Self {
-		self.nominations = nominations;
+		self.delegations = delegations;
 		self
 	}
 
@@ -323,17 +349,17 @@ impl ExtBuilder {
 
 	pub(crate) fn build(self) -> sp_io::TestExternalities {
 		let mut t = frame_system::GenesisConfig::default()
-			.build_storage::<Test>()
+			.build_storage::<Runtime>()
 			.expect("Frame system builds valid default genesis config");
 
-		pallet_balances::GenesisConfig::<Test> {
+		pallet_balances::GenesisConfig::<Runtime> {
 			balances: self.balances,
 		}
 		.assimilate_storage(&mut t)
 		.expect("Pallet balances storage can be assimilated");
-		parachain_staking::GenesisConfig::<Test> {
+		parachain_staking::GenesisConfig::<Runtime> {
 			candidates: self.collators,
-			nominations: self.nominations,
+			delegations: self.delegations,
 			inflation_config: self.inflation,
 		}
 		.assimilate_storage(&mut t)
@@ -345,10 +371,29 @@ impl ExtBuilder {
 	}
 }
 
-// Same storage changes as EventHandler::note_author impl
+// Sets the same storage changes as EventHandler::note_author impl
 pub(crate) fn set_points(round: u32, acc: TestAccount, pts: u32) {
-	<parachain_staking::Points<Test>>::mutate(round, |p| *p += pts);
-	<parachain_staking::AwardedPts<Test>>::mutate(round, acc, |p| *p += pts);
+	<Points<Runtime>>::mutate(round, |p| *p += pts);
+	<AwardedPts<Runtime>>::mutate(round, acc, |p| *p += pts);
+}
+
+pub(crate) fn roll_to(n: u64) {
+	while System::block_number() < n {
+		ParachainStaking::on_finalize(System::block_number());
+		Balances::on_finalize(System::block_number());
+		System::on_finalize(System::block_number());
+		System::set_block_number(System::block_number() + 1);
+		System::on_initialize(System::block_number());
+		Balances::on_initialize(System::block_number());
+		ParachainStaking::on_initialize(System::block_number());
+	}
+}
+
+/// Rolls block-by-block to the beginning of the specified round.
+/// This will complete the block in which the round change occurs.
+pub(crate) fn roll_to_round_begin(round: u64) {
+	let block = (round - 1) * DefaultBlocksPerRound::get() as u64;
+	roll_to(block)
 }
 
 pub(crate) fn events() -> Vec<Event> {
@@ -361,8 +406,8 @@ pub(crate) fn events() -> Vec<Event> {
 // Helper function to give a simple evm context suitable for tests.
 // We can remove this once https://github.com/rust-blockchain/evm/pull/35
 // is in our dependency graph.
-pub fn evm_test_context() -> evm::Context {
-	evm::Context {
+pub fn evm_test_context() -> fp_evm::Context {
+	fp_evm::Context {
 		address: Default::default(),
 		caller: Default::default(),
 		apparent_value: From::from(0),

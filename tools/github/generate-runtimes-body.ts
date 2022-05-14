@@ -4,8 +4,16 @@ import { readFileSync } from "fs";
 import yargs from "yargs";
 import path from "path";
 import { getCommitAndLabels, getCompareLink } from "./github-utils";
+import { blake2AsHex } from "@polkadot/util-crypto";
 
+const BREAKING_CHANGES_LABEL = "D2-breaksapi";
 const RUNTIME_CHANGES_LABEL = "B7-runtimenoteworthy";
+// `ParachainSystem` is pallet index 6. `authorize_upgrade` is extrinsic index 2.
+const MOONBASE_PREFIX_PARACHAINSYSTEM_AUTHORIZE_UPGRADE = "0x0602";
+// `ParachainSystem` is pallet index 1. `authorize_upgrade` is extrinsic index 2.
+const MOONRIVER_PREFIX_PARACHAINSYSTEM_AUTHORIZE_UPGRADE = "0x0102";
+// `ParachainSystem` is pallet index 1. `authorize_upgrade` is extrinsic index 2.
+const MOONBEAM_PREFIX_PARACHAINSYSTEM_AUTHORIZE_UPGRADE = "0x0102";
 
 function capitalize(s) {
   return s[0].toUpperCase() + s.slice(1);
@@ -22,6 +30,28 @@ function getRuntimeInfo(srtoolReportFolder: string, runtimeName: string) {
       readFileSync(path.join(srtoolReportFolder, `./${runtimeName}-srtool-digest.json`)).toString()
     ),
   };
+}
+
+// Srtool expects the pallet parachain_system to be at index 1. However, in the case of moonbase,
+// the pallet parachain_system is at index 6, so we have to recalculate the hash of the
+// authorizeUpgrade call in the case of moonbase by hand.
+function authorizeUpgradeHash(runtimeName: string, srtool: any): string {
+  if (runtimeName == "moonbase") {
+    return blake2AsHex(
+      MOONBASE_PREFIX_PARACHAINSYSTEM_AUTHORIZE_UPGRADE +
+        srtool.runtimes.compressed.blake2_256.substr(2) // remove "0x" prefix
+    );
+  } else if (runtimeName == "moonriver") {
+    return blake2AsHex(
+      MOONRIVER_PREFIX_PARACHAINSYSTEM_AUTHORIZE_UPGRADE +
+        srtool.runtimes.compressed.blake2_256.substr(2) // remove "0x" prefix
+    );
+  } else {
+    return blake2AsHex(
+      MOONBEAM_PREFIX_PARACHAINSYSTEM_AUTHORIZE_UPGRADE +
+        srtool.runtimes.compressed.blake2_256.substr(2) // remove "0x" prefix
+    );
+  }
 }
 
 async function main() {
@@ -73,6 +103,16 @@ async function main() {
   );
   const filteredPr = prByLabels[RUNTIME_CHANGES_LABEL] || [];
 
+  const printPr = (pr) => {
+    if (pr.labels.includes(BREAKING_CHANGES_LABEL)) {
+      return "⚠️ " + pr.title + " (" + pr.number + ")";
+    } else {
+      return pr.title + " (" + pr.number + ")";
+    }
+  };
+
+  //
+
   const template = `${
     runtimes.length > 0
       ? `## Runtimes
@@ -80,11 +120,13 @@ async function main() {
 ${runtimes
   .map(
     (runtime) => `### ${capitalize(runtime.name)}
-
-* spec_version: ${runtime.version}
-* sha256: ${runtime.srtool.runtimes.compact.sha256}
-* size: ${runtime.srtool.runtimes.compact.size}
-* proposal: ${runtime.srtool.runtimes.compact.prop}`
+\`\`\`
+✨ spec_version                : ${runtime.version}
+🏋 size                        : ${runtime.srtool.runtimes.compressed.size}
+#️⃣ sha256                      : ${runtime.srtool.runtimes.compressed.sha256}
+#️⃣ blake2-256                  : ${runtime.srtool.runtimes.compressed.blake2_256}
+🗳️ proposal (authorizeUpgrade) : ${authorizeUpgradeHash(runtime.name, runtime.srtool)}
+\`\`\``
   )
   .join(`\n\n`)}
 `
@@ -97,7 +139,7 @@ WASM runtime built using \`${runtimes[0]?.srtool.info.rustc}\`
 
 ## Changes
 
-${filteredPr.map((pr) => `* ${pr.title} (#${pr.number})`).join("\n")}
+${filteredPr.map((pr) => `* ${printPr(pr)}`).join("\n")}
 
 ## Dependency changes
 

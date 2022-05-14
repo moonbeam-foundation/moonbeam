@@ -3,9 +3,10 @@ import { KeyringPair } from "@polkadot/keyring/types";
 import { expect } from "chai";
 import Web3 from "web3";
 import { Account } from "web3-core";
-import { formatBalance } from "@polkadot/util";
+import { stringToU8a } from "@polkadot/util";
 import type { SubmittableExtrinsic } from "@polkadot/api/promise/types";
-import { blake2AsHex } from "@polkadot/util-crypto";
+import { blake2AsHex, randomAsHex } from "@polkadot/util-crypto";
+import { createBlockWithExtrinsic } from "../util/substrate-rpc";
 
 import {
   GENESIS_ACCOUNT,
@@ -14,26 +15,39 @@ import {
   GLMR,
   ALITH_PRIV_KEY,
   ALITH,
+  BALTATHAR_PRIVATE_KEY,
+  relayChainAddress,
+  relayChainAddress_2,
 } from "../util/constants";
-import { describeDevMoonbeam } from "../util/setup-dev-tests";
-const relayChainAddress: string =
-  "0x1111111111111111111111111111111111111111111111111111111111111111";
-const relayChainAddress_2: string =
-  "0x2222222222222222222222222222222222222222222222222222222222222222";
+import { describeDevMoonbeam, DevTestContext } from "../util/setup-dev-tests";
+import { verifyLatestBlockFees } from "../util/block";
 
 // 5 blocks per minute, 4 weeks
-const vesting = 201600;
+export const VESTING_PERIOD = 201600n;
 async function calculate_vested_amount(context, totalReward, initialPayment, numberOfBlocks) {
-  let amountToVest = BigInt(totalReward) - BigInt(initialPayment);
-  let vestedPerBlock = amountToVest / BigInt(vesting);
-
+  const amountToVest = BigInt(totalReward) - BigInt(initialPayment);
   // On average a parachain only gets a candidate into every other relay chain block.
   // In the dev service, where the relay block number is mocked, we get exactly two relay blocks.
-  let elapsedRelayBlocks = numberOfBlocks * 2;
-  let shouldHaveVested = BigInt(initialPayment) + vestedPerBlock * BigInt(elapsedRelayBlocks);
-  let claimedAsBalance = formatBalance(shouldHaveVested, { withSi: true, withUnit: "UNIT" }, 18);
-  return claimedAsBalance;
+  const elapsedRelayBlocks = numberOfBlocks * 2;
+  const amountForBlocks = (BigInt(amountToVest) * BigInt(elapsedRelayBlocks)) / VESTING_PERIOD;
+  const shouldHaveVested = BigInt(initialPayment) + amountForBlocks;
+  return shouldHaveVested;
 }
+
+// Return the unwrapped accountsPayable or null otherwise
+export const getAccountPayable = async (
+  context: DevTestContext,
+  address: string
+): Promise<{
+  totalReward: any;
+  claimedReward: any;
+  contributedRelayAddresses: any;
+} | null> => {
+  const accountsPayable = (await context.polkadotApi.query.crowdloanRewards.accountsPayable(
+    address
+  )) as any;
+  return accountsPayable.unwrapOr(null);
+};
 
 describeDevMoonbeam("Crowdloan", (context) => {
   let genesisAccount: KeyringPair, sudoAccount: KeyringPair;
@@ -43,17 +57,17 @@ describeDevMoonbeam("Crowdloan", (context) => {
     genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
     sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
   });
+
   it("should check initial state", async function () {
     // check that genesis has genesis balance
     expect(Number(await context.web3.eth.getBalance(GENESIS_ACCOUNT))).to.eq(
       Number(GENESIS_ACCOUNT_BALANCE)
     );
     // check that genesis is not registered
-    const isPayable = await context.polkadotApi.query.crowdloanRewards.accountsPayable(
-      GENESIS_ACCOUNT
-    );
-    expect(isPayable.toHuman()).to.equal(null);
+    const isPayable = await getAccountPayable(context, GENESIS_ACCOUNT);
+    expect(isPayable).to.equal(null);
   });
+
   it("should be able to register the genesis account for reward", async function () {
     // should be able to register the genesis account for reward
     await context.polkadotApi.tx.sudo
@@ -65,23 +79,23 @@ describeDevMoonbeam("Crowdloan", (context) => {
       .signAndSend(sudoAccount);
     await context.createBlock();
 
+    await verifyLatestBlockFees(context, expect, 3_000_000n);
+
     let initBlock = (await context.polkadotApi.query.crowdloanRewards.initRelayBlock()) as any;
 
     // Complete initialization
     await context.polkadotApi.tx.sudo
       .sudo(
-        context.polkadotApi.tx.crowdloanRewards.completeInitialization(Number(initBlock) + vesting)
+        context.polkadotApi.tx.crowdloanRewards.completeInitialization(
+          initBlock.toBigInt() + VESTING_PERIOD
+        )
       )
       .signAndSend(sudoAccount);
     await context.createBlock();
 
-    expect(
-      (
-        (
-          await context.polkadotApi.query.crowdloanRewards.accountsPayable(GENESIS_ACCOUNT)
-        ).toHuman() as any
-      ).total_reward
-    ).to.equal("3.0000 MUNIT");
+    expect((await getAccountPayable(context, GENESIS_ACCOUNT)).totalReward.toBigInt()).to.equal(
+      3_000_000n * GLMR
+    );
     let isInitialized = await context.polkadotApi.query.crowdloanRewards.initialized();
     expect(isInitialized.toHuman()).to.be.true;
   });
@@ -95,6 +109,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
     sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
   });
+
   it("should be able to make a first claim", async function () {
     await context.polkadotApi.tx.sudo
       .sudo(
@@ -110,50 +125,41 @@ describeDevMoonbeam("Crowdloan", (context) => {
     // Complete initialization
     await context.polkadotApi.tx.sudo
       .sudo(
-        context.polkadotApi.tx.crowdloanRewards.completeInitialization(Number(initBlock) + vesting)
+        context.polkadotApi.tx.crowdloanRewards.completeInitialization(
+          initBlock.toBigInt() + VESTING_PERIOD
+        )
       )
       .signAndSend(sudoAccount);
     await context.createBlock();
 
-    let rewardInfo = (
-      await context.polkadotApi.query.crowdloanRewards.accountsPayable(GENESIS_ACCOUNT)
-    ).toJSON() as any;
+    let rewardInfo = await getAccountPayable(context, GENESIS_ACCOUNT);
     let claimed = await calculate_vested_amount(
       context,
-      rewardInfo.total_reward,
-      rewardInfo.claimed_reward,
+      rewardInfo.totalReward,
+      rewardInfo.claimedReward,
       2
     );
     // construct a transaction
     const transfer = context.polkadotApi.tx.crowdloanRewards.claim();
     await transfer.signAndSend(genesisAccount);
+    const details = await context.polkadotApi.rpc.payment.queryFeeDetails(transfer.toHex());
+    const claimFee =
+      details.inclusionFee.unwrap().baseFee.toBigInt() +
+      details.inclusionFee.unwrap().lenFee.toBigInt() +
+      details.inclusionFee.unwrap().adjustedWeightFee.toBigInt();
 
     await context.createBlock();
 
-    expect(
-      (
-        (
-          await context.polkadotApi.query.crowdloanRewards.accountsPayable(GENESIS_ACCOUNT)
-        ).toHuman() as any
-      ).claimed_reward
-    ).to.equal(claimed);
+    expect((await getAccountPayable(context, GENESIS_ACCOUNT)).claimedReward.toBigInt()).to.equal(
+      claimed
+    );
 
     // check balances
     expect(
-      formatBalance(
-        BigInt(await context.web3.eth.getBalance(GENESIS_ACCOUNT)) - GENESIS_ACCOUNT_BALANCE,
-        { withSi: true, withUnit: "UNIT" },
-        18
-      )
-    ).to.equal(claimed);
-    const account = await context.polkadotApi.query.system.account(GENESIS_ACCOUNT);
-    expect(
-      formatBalance(
-        account.data.free.toBigInt() - GENESIS_ACCOUNT_BALANCE,
-        { withSi: true, withUnit: "UNIT" },
-        18
-      )
-    ).to.equal(claimed);
+      BigInt(await context.web3.eth.getBalance(GENESIS_ACCOUNT)) - GENESIS_ACCOUNT_BALANCE
+    ).to.equal(claimed - claimFee); // reduce the claim fee part;
+    const account = (await context.polkadotApi.query.system.account(GENESIS_ACCOUNT)) as any;
+    expect(account.data.free.toBigInt() - GENESIS_ACCOUNT_BALANCE).to.equal(claimed - claimFee);
   });
 });
 
@@ -165,6 +171,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
     sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
   });
+
   it("should show me the money after 5 blocks, after first claim was called", async function () {
     await context.polkadotApi.tx.sudo
       .sudo(
@@ -180,14 +187,14 @@ describeDevMoonbeam("Crowdloan", (context) => {
     // Complete initialization
     await context.polkadotApi.tx.sudo
       .sudo(
-        context.polkadotApi.tx.crowdloanRewards.completeInitialization(Number(initBlock) + vesting)
+        context.polkadotApi.tx.crowdloanRewards.completeInitialization(
+          initBlock.toBigInt() + VESTING_PERIOD
+        )
       )
       .signAndSend(sudoAccount);
     await context.createBlock();
 
-    let rewardInfo = (
-      await context.polkadotApi.query.crowdloanRewards.accountsPayable(GENESIS_ACCOUNT)
-    ).toJSON() as any;
+    let rewardInfo = await getAccountPayable(context, GENESIS_ACCOUNT);
 
     // construct a transaction
     const transfer = context.polkadotApi.tx.crowdloanRewards.claim();
@@ -201,17 +208,15 @@ describeDevMoonbeam("Crowdloan", (context) => {
 
     let claimed = await calculate_vested_amount(
       context,
-      rewardInfo.total_reward,
-      rewardInfo.claimed_reward,
+      rewardInfo.totalReward,
+      rewardInfo.claimedReward,
       5
     );
 
     await context.polkadotApi.tx.crowdloanRewards.claim().signAndSend(genesisAccount);
     await context.createBlock();
-    const isPayable4 = await context.polkadotApi.query.crowdloanRewards.accountsPayable(
-      GENESIS_ACCOUNT
-    );
-    expect((isPayable4.toHuman() as any).claimed_reward).to.equal(claimed);
+    const isPayable4 = await getAccountPayable(context, GENESIS_ACCOUNT);
+    expect(isPayable4.claimedReward.toBigInt()).to.equal(claimed);
   });
 });
 
@@ -223,6 +228,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
     sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
   });
+
   it("should make first claim 5 blocks after initialization called", async function () {
     await context.polkadotApi.tx.sudo
       .sudo(
@@ -238,14 +244,14 @@ describeDevMoonbeam("Crowdloan", (context) => {
     // Complete initialization
     await context.polkadotApi.tx.sudo
       .sudo(
-        context.polkadotApi.tx.crowdloanRewards.completeInitialization(Number(initBlock) + vesting)
+        context.polkadotApi.tx.crowdloanRewards.completeInitialization(
+          initBlock.toBigInt() + VESTING_PERIOD
+        )
       )
       .signAndSend(sudoAccount);
     await context.createBlock();
 
-    let rewardInfo = (
-      await context.polkadotApi.query.crowdloanRewards.accountsPayable(GENESIS_ACCOUNT)
-    ).toJSON() as any;
+    let rewardInfo = await getAccountPayable(context, GENESIS_ACCOUNT);
     await context.createBlock();
 
     // should show me the money after 5 blocks
@@ -253,18 +259,16 @@ describeDevMoonbeam("Crowdloan", (context) => {
     await context.createBlock();
     let claimed = await calculate_vested_amount(
       context,
-      rewardInfo.total_reward,
-      rewardInfo.claimed_reward,
+      rewardInfo.totalReward,
+      rewardInfo.claimedReward,
       5
     );
 
     await context.polkadotApi.tx.crowdloanRewards.claim().signAndSend(genesisAccount);
     await context.createBlock();
 
-    const isPayable4 = await context.polkadotApi.query.crowdloanRewards.accountsPayable(
-      GENESIS_ACCOUNT
-    );
-    expect((isPayable4.toHuman() as any).claimed_reward).to.equal(claimed);
+    const isPayable4 = await getAccountPayable(context, GENESIS_ACCOUNT);
+    expect(isPayable4.claimedReward.toBigInt()).to.equal(claimed);
   });
 });
 
@@ -276,6 +280,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
     sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
   });
+
   it("should not be able to call initializeRewardVec another time", async function () {
     await context.polkadotApi.tx.sudo
       .sudo(
@@ -291,7 +296,9 @@ describeDevMoonbeam("Crowdloan", (context) => {
     // Complete initialization
     await context.polkadotApi.tx.sudo
       .sudo(
-        context.polkadotApi.tx.crowdloanRewards.completeInitialization(Number(initBlock) + vesting)
+        context.polkadotApi.tx.crowdloanRewards.completeInitialization(
+          initBlock.toBigInt() + VESTING_PERIOD
+        )
       )
       .signAndSend(sudoAccount);
     await context.createBlock();
@@ -305,19 +312,15 @@ describeDevMoonbeam("Crowdloan", (context) => {
       )
       .signAndSend(genesisAccount);
     await context.createBlock();
-    expect(
-      (await context.polkadotApi.query.crowdloanRewards.accountsPayable(ALITH)).toHuman() as any
-    ).to.equal(null);
+    expect(await getAccountPayable(context, ALITH)).to.equal(null);
   });
 });
 
 describeDevMoonbeam("Crowdloan", (context) => {
-  let genesisAccount: KeyringPair;
   let alithAccount: KeyringPair;
 
   before("Setup genesis account for substrate", async () => {
     const keyring = new Keyring({ type: "ethereum" });
-    genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
     alithAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
   });
 
@@ -337,36 +340,35 @@ describeDevMoonbeam("Crowdloan", (context) => {
     // Complete initialization
     await context.polkadotApi.tx.sudo
       .sudo(
-        context.polkadotApi.tx.crowdloanRewards.completeInitialization(Number(initBlock) + vesting)
+        context.polkadotApi.tx.crowdloanRewards.completeInitialization(
+          initBlock.toBigInt() + VESTING_PERIOD
+        )
       )
       .signAndSend(alithAccount);
     await context.createBlock();
 
-    expect(
-      ((await context.polkadotApi.query.crowdloanRewards.accountsPayable(ALITH)).toHuman() as any)
-        .total_reward
-    ).to.equal("3.0000 MUNIT");
+    expect((await getAccountPayable(context, ALITH)).totalReward.toBigInt()).to.equal(
+      3_000_000n * GLMR
+    );
 
-    let rewardInfo = (
-      await context.polkadotApi.query.crowdloanRewards.accountsPayable(ALITH)
-    ).toJSON() as any;
+    let rewardInfo = await getAccountPayable(context, ALITH);
     let claimed = await calculate_vested_amount(
       context,
-      rewardInfo.total_reward,
-      rewardInfo.claimed_reward,
+      rewardInfo.totalReward,
+      rewardInfo.claimedReward,
       2
     );
     // claim
     await context.polkadotApi.tx.crowdloanRewards.claim().signAndSend(alithAccount);
     await context.createBlock();
 
-    const isPayable4 = await context.polkadotApi.query.crowdloanRewards.accountsPayable(ALITH);
-    expect((isPayable4.toHuman() as any).claimed_reward).to.equal(claimed);
+    const isPayable4 = await getAccountPayable(context, ALITH);
+    expect(isPayable4.claimedReward.toBigInt()).to.equal(claimed);
   });
 });
 
 describeDevMoonbeam("Crowdloan", (context) => {
-  let genesisAccount: KeyringPair, sudoAccount: KeyringPair;
+  let sudoAccount: KeyringPair;
 
   let numberOfAccounts: number = 1000; // min 2
   let largInput: [string, string, bigint][];
@@ -376,7 +378,6 @@ describeDevMoonbeam("Crowdloan", (context) => {
       (await context.polkadotApi.consts.crowdloanRewards.maxInitContributors) as any
     );
     const keyring = new Keyring({ type: "ethereum" });
-    genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
     sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
   });
 
@@ -408,33 +409,26 @@ describeDevMoonbeam("Crowdloan", (context) => {
     // Complete initialization
     await context.polkadotApi.tx.sudo
       .sudo(
-        context.polkadotApi.tx.crowdloanRewards.completeInitialization(Number(initBlock) + vesting)
+        context.polkadotApi.tx.crowdloanRewards.completeInitialization(
+          initBlock.toBigInt() + VESTING_PERIOD
+        )
       )
       .signAndSend(sudoAccount);
     await context.createBlock();
 
-    const rewardPerContributor = formatBalance(
-      (3_000_000n * GLMR) / BigInt(numberOfAccounts),
-      { withSi: true, withUnit: "UNIT" },
-      18
-    );
-
+    const rewardPerContributor = (3_000_000n * GLMR) / BigInt(numberOfAccounts);
     await Promise.all(
       largInput.map(async (input) => {
-        expect(
-          (
-            (
-              await context.polkadotApi.query.crowdloanRewards.accountsPayable(input[1])
-            ).toHuman() as any
-          ).total_reward
-        ).to.equal(rewardPerContributor);
+        expect((await getAccountPayable(context, input[1])).totalReward.toBigInt()).to.equal(
+          rewardPerContributor
+        );
       })
     );
   });
 });
 
 describeDevMoonbeam("Crowdloan", (context) => {
-  let genesisAccount: KeyringPair, sudoAccount: KeyringPair;
+  let sudoAccount: KeyringPair;
 
   let numberOfAccounts: number = 1000; // min 2
   let largInput: [string, string, bigint][];
@@ -445,7 +439,6 @@ describeDevMoonbeam("Crowdloan", (context) => {
       (await context.polkadotApi.consts.crowdloanRewards.maxInitContributors) as any
     );
     const keyring = new Keyring({ type: "ethereum" });
-    genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
     sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
   });
 
@@ -494,39 +487,31 @@ describeDevMoonbeam("Crowdloan", (context) => {
     // Complete initialization
     await context.polkadotApi.tx.sudo
       .sudo(
-        context.polkadotApi.tx.crowdloanRewards.completeInitialization(Number(initBlock) + vesting)
+        context.polkadotApi.tx.crowdloanRewards.completeInitialization(
+          initBlock.toBigInt() + VESTING_PERIOD
+        )
       )
       .signAndSend(sudoAccount);
     await context.createBlock();
 
-    const rewardPerContributor = formatBalance(
-      (3_000_000n * GLMR) / BigInt(numberOfAccounts),
-      { withSi: true, withUnit: "UNIT" },
-      18
-    );
-
     await Promise.all(
       largInput.map(async (input) => {
-        expect(
-          (
-            (
-              await context.polkadotApi.query.crowdloanRewards.accountsPayable(input[1])
-            ).toHuman() as any
-          ).total_reward
-        ).to.equal(rewardPerContributor);
+        expect((await getAccountPayable(context, input[1])).totalReward.toBigInt()).to.equal(
+          (3_000_000n * GLMR) / BigInt(numberOfAccounts)
+        );
       })
     );
   });
 });
 
 describeDevMoonbeam("Crowdloan", (context) => {
-  let genesisAccount: KeyringPair, sudoAccount: KeyringPair;
+  let sudoAccount: KeyringPair;
 
   before("Setup genesis account for substrate", async () => {
     const keyring = new Keyring({ type: "ethereum" });
-    genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
     sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
   });
+
   it("should be able to initialize through democracy", async function () {
     let calls = [];
     // We are gonna put the initialization and completion in a batch_all utility call
@@ -539,7 +524,9 @@ describeDevMoonbeam("Crowdloan", (context) => {
 
     let initBlock = (await context.polkadotApi.query.crowdloanRewards.initRelayBlock()) as any;
     calls.push(
-      context.polkadotApi.tx.crowdloanRewards.completeInitialization(Number(initBlock) + vesting)
+      context.polkadotApi.tx.crowdloanRewards.completeInitialization(
+        initBlock.toBigInt() + VESTING_PERIOD
+      )
     );
 
     // Here we build the utility call
@@ -577,46 +564,40 @@ describeDevMoonbeam("Crowdloan", (context) => {
     expect(isInitialized.toHuman()).to.be.true;
 
     // Get reward info of associated
-    let reward_info_associated = (
-      await context.polkadotApi.query.crowdloanRewards.accountsPayable(GENESIS_ACCOUNT)
-    ).toHuman() as any;
+    let reward_info_associated = await getAccountPayable(context, GENESIS_ACCOUNT);
 
     // Get reward info of unassociated
     let reward_info_unassociated = (
-      await context.polkadotApi.query.crowdloanRewards.unassociatedContributions(
+      (await context.polkadotApi.query.crowdloanRewards.unassociatedContributions(
         relayChainAddress_2
-      )
-    ).toHuman() as any;
+      )) as any
+    ).unwrap();
 
     // Check payments
-    expect(reward_info_associated.total_reward).to.equal("1.5000 MUNIT");
+    expect(reward_info_associated.totalReward.toBigInt()).to.equal(1_500_000n * GLMR);
 
-    expect(reward_info_associated.claimed_reward).to.equal("450.0000 kUNIT");
+    expect(reward_info_associated.claimedReward.toBigInt()).to.equal(450_000n * GLMR);
 
-    expect(reward_info_unassociated.total_reward).to.equal("1.5000 MUNIT");
+    expect(reward_info_unassociated.totalReward.toBigInt()).to.equal(1_500_000n * GLMR);
 
-    expect(reward_info_unassociated.claimed_reward).to.equal("0");
+    expect(reward_info_unassociated.claimedReward.toBigInt()).to.equal(0n);
 
     // check balances
-    const account = await context.polkadotApi.query.system.account(GENESIS_ACCOUNT);
-    expect(
-      formatBalance(
-        account.data.free.toBigInt() - GENESIS_ACCOUNT_BALANCE,
-        { withSi: true, withUnit: "UNIT" },
-        18
-      )
-    ).to.equal(reward_info_associated.claimed_reward);
+    const account = (await context.polkadotApi.query.system.account(GENESIS_ACCOUNT)) as any;
+    expect(account.data.free.toBigInt() - GENESIS_ACCOUNT_BALANCE).to.equal(
+      reward_info_associated.claimedReward.toBigInt()
+    );
   });
 });
 
 describeDevMoonbeam("Crowdloan", (context) => {
-  let genesisAccount: KeyringPair, sudoAccount: KeyringPair;
+  let sudoAccount: KeyringPair;
 
   before("Setup genesis account for substrate", async () => {
     const keyring = new Keyring({ type: "ethereum" });
-    genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
     sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
   });
+
   it("should be able to burn the dust", async function () {
     await context.polkadotApi.tx.sudo
       .sudo(
@@ -634,7 +615,9 @@ describeDevMoonbeam("Crowdloan", (context) => {
     // Complete initialization
     await context.polkadotApi.tx.sudo
       .sudo(
-        context.polkadotApi.tx.crowdloanRewards.completeInitialization(Number(initBlock) + vesting)
+        context.polkadotApi.tx.crowdloanRewards.completeInitialization(
+          initBlock.toBigInt() + VESTING_PERIOD
+        )
       )
       .signAndSend(sudoAccount);
     await context.createBlock();
@@ -643,9 +626,436 @@ describeDevMoonbeam("Crowdloan", (context) => {
 
     let isInitialized = await context.polkadotApi.query.crowdloanRewards.initialized();
 
-    expect(isInitialized.toHuman()).to.be.true;
+    expect(isInitialized.toJSON()).to.be.true;
 
     // We should have burnt 1
-    expect(issuance.toString()).to.eq((BigInt(previousIssuance) - BigInt(1)).toString());
+    expect(issuance.toBigInt()).to.eq(BigInt(previousIssuance) - BigInt(1));
+  });
+});
+
+describeDevMoonbeam("Crowdloan", (context) => {
+  let genesisAccount: KeyringPair,
+    sudoAccount: KeyringPair,
+    relayAccount: KeyringPair,
+    toAssociateAccount: KeyringPair;
+
+  before("Setup genesis account and relay accounts", async () => {
+    const keyring = new Keyring({ type: "ethereum" });
+    const relayKeyRing = new Keyring({ type: "ed25519" });
+    genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
+    sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
+    const seed = randomAsHex(32);
+    // add the account, override to ed25519
+    relayAccount = await relayKeyRing.addFromUri(seed, null, "ed25519");
+    toAssociateAccount = await keyring.addFromUri(seed, null, "ethereum");
+  });
+
+  it("should be able to associate identity", async function () {
+    await context.polkadotApi.tx.sudo
+      .sudo(
+        context.polkadotApi.tx.crowdloanRewards.initializeRewardVec([
+          [relayChainAddress, GENESIS_ACCOUNT, 1_500_000n * GLMR],
+          [relayAccount.addressRaw, null, 1_500_000n * GLMR],
+        ])
+      )
+      .signAndSend(sudoAccount);
+    await context.createBlock();
+
+    let initBlock = (await context.polkadotApi.query.crowdloanRewards.initRelayBlock()) as any;
+
+    // Complete initialization
+    await context.polkadotApi.tx.sudo
+      .sudo(
+        context.polkadotApi.tx.crowdloanRewards.completeInitialization(
+          initBlock.toBigInt() + VESTING_PERIOD
+        )
+      )
+      .signAndSend(sudoAccount);
+    await context.createBlock();
+
+    let isInitialized = await context.polkadotApi.query.crowdloanRewards.initialized();
+
+    expect(isInitialized.toJSON()).to.be.true;
+
+    // relayAccount should be in the unassociated contributions
+    expect(
+      (
+        (await context.polkadotApi.query.crowdloanRewards.unassociatedContributions(
+          relayAccount.addressRaw
+        )) as any
+      )
+        .unwrap()
+        .totalReward.toBigInt()
+    ).to.equal(1_500_000n * GLMR);
+
+    // toAssociateAccount should not be in accounts payable
+    expect(await getAccountPayable(context, toAssociateAccount.address)).to.be.null;
+
+    let message = new Uint8Array([
+      ...stringToU8a("<Bytes>"),
+      ...stringToU8a("moonbase-"),
+      ...toAssociateAccount.addressRaw,
+      ...stringToU8a("</Bytes>"),
+    ]);
+    // Construct the signature
+    let signature = {};
+    signature["Ed25519"] = relayAccount.sign(message);
+
+    // Associate the identity
+    await context.polkadotApi.tx.crowdloanRewards
+      .associateNativeIdentity(toAssociateAccount.address, relayAccount.addressRaw, signature)
+      .signAndSend(genesisAccount);
+    await context.createBlock();
+
+    // relayAccount should no longer be in the unassociated contributions
+    expect(
+      (
+        await context.polkadotApi.query.crowdloanRewards.unassociatedContributions(
+          relayAccount.addressRaw
+        )
+      ).toJSON()
+    ).to.be.null;
+
+    // toAssociateAccount should now be in accounts payable
+    let rewardInfo = await getAccountPayable(context, toAssociateAccount.address);
+
+    expect(rewardInfo.totalReward.toBigInt()).to.equal(1_500_000n * GLMR);
+    expect(rewardInfo.claimedReward.toBigInt()).to.equal(450_000n * GLMR);
+
+    // three blocks elapsed
+    let claimed = await calculate_vested_amount(
+      context,
+      rewardInfo.totalReward,
+      rewardInfo.claimedReward,
+      3
+    );
+
+    await context.polkadotApi.tx.crowdloanRewards.claim().signAndSend(toAssociateAccount);
+
+    await context.createBlock();
+
+    // Claimed amount should match
+    expect(
+      (await getAccountPayable(context, toAssociateAccount.address)).claimedReward.toBigInt()
+    ).to.equal(claimed);
+  });
+});
+
+describeDevMoonbeam("Crowdloan", (context) => {
+  let genesisAccount: KeyringPair,
+    sudoAccount: KeyringPair,
+    relayAccount: KeyringPair,
+    relayAccount2: KeyringPair,
+    firstAccount: KeyringPair,
+    toAssociateAccount: KeyringPair;
+
+  before("Setup genesis account and relay accounts", async () => {
+    const keyring = new Keyring({ type: "ethereum" });
+    const relayKeyRing = new Keyring({ type: "ed25519" });
+    genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
+    sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
+    const seed = randomAsHex(32);
+    // add the account, override to ed25519
+    relayAccount = await relayKeyRing.addFromUri(seed, null, "ed25519");
+    const seed2 = randomAsHex(32);
+
+    relayAccount2 = await relayKeyRing.addFromUri(seed2, null, "ed25519");
+
+    firstAccount = await keyring.addFromUri(seed, null, "ethereum");
+
+    toAssociateAccount = await keyring.addFromUri(seed2, null, "ethereum");
+  });
+
+  it("should be able to change reward address with relay keys", async function () {
+    await context.polkadotApi.tx.sudo
+      .sudo(
+        context.polkadotApi.tx.crowdloanRewards.initializeRewardVec([
+          [relayAccount.addressRaw, firstAccount.address, 1_500_000n * GLMR],
+          [relayAccount2.addressRaw, firstAccount.address, 1_500_000n * GLMR],
+        ])
+      )
+      .signAndSend(sudoAccount);
+    await context.createBlock();
+
+    let initBlock = (await context.polkadotApi.query.crowdloanRewards.initRelayBlock()) as any;
+
+    // Complete initialization
+    await context.polkadotApi.tx.sudo
+      .sudo(
+        context.polkadotApi.tx.crowdloanRewards.completeInitialization(
+          initBlock.toBigInt() + VESTING_PERIOD
+        )
+      )
+      .signAndSend(sudoAccount);
+    await context.createBlock();
+
+    let isInitialized = await context.polkadotApi.query.crowdloanRewards.initialized();
+
+    expect(isInitialized.toJSON()).to.be.true;
+
+    // toAssociateAccount should not be in accounts payable
+    expect(await getAccountPayable(context, toAssociateAccount.address)).to.be.null;
+
+    let message = new Uint8Array([
+      ...stringToU8a("<Bytes>"),
+      ...stringToU8a("moonbase-"),
+      ...toAssociateAccount.addressRaw,
+      ...firstAccount.addressRaw,
+      ...stringToU8a("</Bytes>"),
+    ]);
+
+    // Construct the signatures
+    let signature1 = {};
+    signature1["Ed25519"] = relayAccount.sign(message);
+    let signature2 = {};
+    signature2["Ed25519"] = relayAccount2.sign(message);
+
+    let proofs = [
+      [relayAccount.addressRaw, signature1],
+      [relayAccount2.addressRaw, signature2],
+    ];
+    // Associate the identity
+    await context.polkadotApi.tx.crowdloanRewards
+      .changeAssociationWithRelayKeys(toAssociateAccount.address, firstAccount.address, proofs)
+      .signAndSend(genesisAccount);
+    await context.createBlock();
+
+    // toAssociateAccount should now be in accounts payable
+    let rewardInfo = await getAccountPayable(context, toAssociateAccount.address);
+
+    expect(rewardInfo.totalReward.toBigInt()).to.equal(3_000_000n * GLMR);
+  });
+});
+
+describeDevMoonbeam("Crowdloan", (context) => {
+  let genesisAccount: KeyringPair, sudoAccount: KeyringPair, toUpdateAccount: KeyringPair;
+
+  before("Setup genesis account and relay accounts", async () => {
+    const keyring = new Keyring({ type: "ethereum" });
+    genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
+    sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
+    const seed = randomAsHex(32);
+    toUpdateAccount = await keyring.addFromUri(seed, null, "ethereum");
+  });
+
+  it("should be able to update reward address", async function () {
+    await context.polkadotApi.tx.sudo
+      .sudo(
+        context.polkadotApi.tx.crowdloanRewards.initializeRewardVec([
+          [relayChainAddress, GENESIS_ACCOUNT, 3_000_000n * GLMR],
+        ])
+      )
+      .signAndSend(sudoAccount);
+    await context.createBlock();
+
+    let initBlock = (await context.polkadotApi.query.crowdloanRewards.initRelayBlock()) as any;
+
+    // Complete initialization
+    await context.polkadotApi.tx.sudo
+      .sudo(
+        context.polkadotApi.tx.crowdloanRewards.completeInitialization(
+          initBlock.toBigInt() + VESTING_PERIOD
+        )
+      )
+      .signAndSend(sudoAccount);
+    await context.createBlock();
+
+    let isInitialized = await context.polkadotApi.query.crowdloanRewards.initialized();
+
+    expect(isInitialized.toJSON()).to.be.true;
+
+    // GENESIS_ACCOUNT should be in accounts pauable
+    let rewardInfo = await getAccountPayable(context, GENESIS_ACCOUNT);
+
+    expect(rewardInfo.totalReward.toBigInt()).to.equal(3_000_000n * GLMR);
+
+    expect(rewardInfo.claimedReward.toBigInt()).to.equal(900_000n * GLMR);
+
+    // three blocks elapsed
+    let claimed = await calculate_vested_amount(
+      context,
+      rewardInfo.totalReward,
+      rewardInfo.claimedReward,
+      2
+    );
+
+    await context.polkadotApi.tx.crowdloanRewards.claim().signAndSend(genesisAccount);
+
+    await context.createBlock();
+
+    // Claimed amount should match
+    const claimedRewards = (await getAccountPayable(context, GENESIS_ACCOUNT)).claimedReward;
+
+    expect(claimedRewards.toBigInt()).to.equal(claimed);
+
+    // Let's update the reward address
+    await context.polkadotApi.tx.crowdloanRewards
+      .updateRewardAddress(toUpdateAccount.address)
+      .signAndSend(genesisAccount);
+    await context.createBlock();
+
+    // GENESIS_ACCOUNT should no longer be in accounts payable
+    expect(await getAccountPayable(context, GENESIS_ACCOUNT)).to.be.null;
+
+    // toUpdateAccount should be in accounts paYable
+    rewardInfo = await getAccountPayable(context, toUpdateAccount.address);
+
+    expect(rewardInfo.totalReward.toBigInt()).to.equal(3_000_000n * GLMR);
+
+    expect(rewardInfo.claimedReward.toBigInt()).to.equal(claimed);
+  });
+});
+
+describeDevMoonbeam("Crowdloan", (context) => {
+  let genesisAccount: KeyringPair,
+    sudoAccount: KeyringPair,
+    toUpdateAccount: KeyringPair,
+    proxy: KeyringPair;
+
+  before("Setup genesis account and relay accounts", async () => {
+    const keyring = new Keyring({ type: "ethereum" });
+    genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
+    sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
+    proxy = keyring.addFromUri(BALTATHAR_PRIVATE_KEY, null, "ethereum");
+    const seed = randomAsHex(32);
+    toUpdateAccount = await keyring.addFromUri(seed, null, "ethereum");
+  });
+
+  it("should be able to call crowdloan rewards with non-transfer proxy", async function () {
+    await context.polkadotApi.tx.sudo
+      .sudo(
+        context.polkadotApi.tx.crowdloanRewards.initializeRewardVec([
+          [relayChainAddress, GENESIS_ACCOUNT, 3_000_000n * GLMR],
+        ])
+      )
+      .signAndSend(sudoAccount);
+    await context.createBlock();
+
+    let initBlock = (await context.polkadotApi.query.crowdloanRewards.initRelayBlock()) as any;
+
+    // Complete initialization
+    await context.polkadotApi.tx.sudo
+      .sudo(
+        context.polkadotApi.tx.crowdloanRewards.completeInitialization(
+          initBlock.toBigInt() + VESTING_PERIOD
+        )
+      )
+      .signAndSend(sudoAccount);
+    await context.createBlock();
+
+    let isInitialized = await context.polkadotApi.query.crowdloanRewards.initialized();
+
+    expect(isInitialized.toJSON()).to.be.true;
+
+    // GENESIS_ACCOUNT should be in accounts pauable
+    let rewardInfo = await getAccountPayable(context, GENESIS_ACCOUNT);
+
+    expect(rewardInfo.totalReward.toBigInt()).to.equal(3_000_000n * GLMR);
+
+    expect(rewardInfo.claimedReward.toBigInt()).to.equal(900_000n * GLMR);
+
+    // CreateProxy
+    await context.polkadotApi.tx.proxy
+      .addProxy(proxy.address, "NonTransfer", 0)
+      .signAndSend(genesisAccount);
+    await context.createBlock();
+
+    // three blocks elapsed
+    let claimed = await calculate_vested_amount(
+      context,
+      rewardInfo.totalReward,
+      rewardInfo.claimedReward,
+      3
+    );
+
+    // Claim with proxy
+    await context.polkadotApi.tx.proxy
+      .proxy(genesisAccount.address, null, context.polkadotApi.tx.crowdloanRewards.claim())
+      .signAndSend(proxy);
+
+    await context.createBlock();
+
+    // Claimed amount should match
+    const claimedRewards = (await getAccountPayable(context, GENESIS_ACCOUNT)).claimedReward;
+
+    expect(claimedRewards.toBigInt()).to.equal(claimed);
+  });
+});
+
+describeDevMoonbeam("Crowdloan", (context) => {
+  let genesisAccount: KeyringPair,
+    sudoAccount: KeyringPair,
+    toUpdateAccount: KeyringPair,
+    proxy: KeyringPair;
+
+  before("Setup genesis account and relay accounts", async () => {
+    const keyring = new Keyring({ type: "ethereum" });
+    genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
+    sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
+    proxy = keyring.addFromUri(BALTATHAR_PRIVATE_KEY, null, "ethereum");
+    const seed = randomAsHex(32);
+    toUpdateAccount = await keyring.addFromUri(seed, null, "ethereum");
+  });
+
+  it("should NOT be able to call non-claim extrinsic with non-transfer proxy", async function () {
+    await context.polkadotApi.tx.sudo
+      .sudo(
+        context.polkadotApi.tx.crowdloanRewards.initializeRewardVec([
+          [relayChainAddress, GENESIS_ACCOUNT, 3_000_000n * GLMR],
+        ])
+      )
+      .signAndSend(sudoAccount);
+    await context.createBlock();
+
+    let initBlock = (await context.polkadotApi.query.crowdloanRewards.initRelayBlock()) as any;
+
+    // Complete initialization
+    await context.polkadotApi.tx.sudo
+      .sudo(
+        context.polkadotApi.tx.crowdloanRewards.completeInitialization(
+          initBlock.toBigInt() + VESTING_PERIOD
+        )
+      )
+      .signAndSend(sudoAccount);
+    await context.createBlock();
+
+    let isInitialized = await context.polkadotApi.query.crowdloanRewards.initialized();
+
+    expect(isInitialized.toJSON()).to.be.true;
+
+    // GENESIS_ACCOUNT should be in accounts pauable
+    let rewardInfo = await getAccountPayable(context, GENESIS_ACCOUNT);
+
+    expect(rewardInfo.totalReward.toBigInt()).to.equal(3_000_000n * GLMR);
+
+    expect(rewardInfo.claimedReward.toBigInt()).to.equal(900_000n * GLMR);
+
+    // CreateProxy
+    await context.polkadotApi.tx.proxy
+      .addProxy(proxy.address, "NonTransfer", 0)
+      .signAndSend(genesisAccount);
+    await context.createBlock();
+
+    // Should not be ablte to do this
+    let { events } = await createBlockWithExtrinsic(
+      context,
+      proxy,
+      context.polkadotApi.tx.proxy.proxy(
+        genesisAccount.address,
+        null,
+        context.polkadotApi.tx.crowdloanRewards.updateRewardAddress(proxy.address)
+      )
+    );
+    expect(events[1].toHuman().method).to.eq("ProxyExecuted");
+    expect(events[1].data[0].toString()).to.be.eq(
+      `{"err":{"module":{"index":0,"error":"0x05000000"}}}`
+    );
+
+    // Genesis account still has the money
+    rewardInfo = await getAccountPayable(context, GENESIS_ACCOUNT);
+
+    expect(rewardInfo.totalReward.toBigInt()).to.equal(3_000_000n * GLMR);
+
+    expect(rewardInfo.claimedReward.toBigInt()).to.equal(900_000n * GLMR);
   });
 });

@@ -1,5 +1,7 @@
 import { Keyring } from "@polkadot/api";
-import { AddressOrPair, ApiTypes, SubmittableExtrinsic } from "@polkadot/api/types";
+import { ApiTypes, SubmittableExtrinsic } from "@polkadot/api/types";
+import { KeyringPair } from "@polkadot/keyring/types";
+import { blake2AsHex } from "@polkadot/util-crypto";
 import {
   ALITH_PRIV_KEY,
   BALTATHAR_PRIV_KEY,
@@ -10,6 +12,21 @@ import { DevTestContext } from "./setup-dev-tests";
 import { createBlockWithExtrinsic } from "./substrate-rpc";
 
 const keyring = new Keyring({ type: "ethereum" });
+
+export const notePreimage = async <
+  Call extends SubmittableExtrinsic<ApiType>,
+  ApiType extends ApiTypes
+>(
+  context: DevTestContext,
+  proposal: Call,
+  account: KeyringPair
+): Promise<string> => {
+  const encodedProposal = proposal.method.toHex() || "";
+  await context.polkadotApi.tx.democracy.notePreimage(encodedProposal).signAndSend(account);
+  await context.createBlock();
+
+  return blake2AsHex(encodedProposal);
+};
 
 export const execFromTwoThirdsOfCouncil = async <
   Call extends SubmittableExtrinsic<ApiType>,
@@ -29,10 +46,15 @@ export const execFromTwoThirdsOfCouncil = async <
     charleth,
     context.polkadotApi.tx.councilCollective.propose(2, polkadotCall, lengthBound)
   );
-  const proposalHash = proposalEvents[0].data[2].toHuman() as string;
+  const proposalHash = proposalEvents
+    .find((e) => e.method.toString() == "Proposed")
+    .data[2].toHex() as string;
 
   // Dorothy vote for this proposal and close it
-  await context.polkadotApi.tx.councilCollective.vote(proposalHash, 0, true).signAndSend(dorothy);
+  await Promise.all([
+    context.polkadotApi.tx.councilCollective.vote(proposalHash, 0, true).signAndSend(charleth),
+    context.polkadotApi.tx.councilCollective.vote(proposalHash, 0, true).signAndSend(dorothy),
+  ]);
   await context.createBlock();
 
   return await createBlockWithExtrinsic(
@@ -58,19 +80,35 @@ export const execFromAllMembersOfTechCommittee = async <
   const { events: proposalEvents } = await createBlockWithExtrinsic(
     context,
     alith,
-    context.polkadotApi.tx.techComitteeCollective.propose(2, polkadotCall, lengthBound)
+    context.polkadotApi.tx.techCommitteeCollective.propose(2, polkadotCall, lengthBound)
   );
-  const proposalHash = proposalEvents[0].data[2].toHuman() as string;
+  const proposalHash = proposalEvents
+    .find((e) => e.method.toString() == "Proposed")
+    .data[2].toHex() as string;
 
-  // Baltathar vote for this proposal and close it
-  await context.polkadotApi.tx.techComitteeCollective
-    .vote(proposalHash, 0, true)
-    .signAndSend(baltathar);
+  // Get proposal count
+  const proposalCount = await context.polkadotApi.query.techCommitteeCollective.proposalCount();
+
+  // Alith, Baltathar vote for this proposal and close it
+  await Promise.all([
+    context.polkadotApi.tx.techCommitteeCollective
+      .vote(proposalHash, Number(proposalCount) - 1, true)
+      .signAndSend(alith),
+    context.polkadotApi.tx.techCommitteeCollective
+      .vote(proposalHash, Number(proposalCount) - 1, true)
+      .signAndSend(baltathar),
+  ]);
+
   await context.createBlock();
   await context.createBlock();
   return await createBlockWithExtrinsic(
     context,
     baltathar,
-    context.polkadotApi.tx.techComitteeCollective.close(proposalHash, 0, 1_000_000_000, lengthBound)
+    context.polkadotApi.tx.techCommitteeCollective.close(
+      proposalHash,
+      Number(proposalCount) - 1,
+      1_000_000_000,
+      lengthBound
+    )
   );
 };

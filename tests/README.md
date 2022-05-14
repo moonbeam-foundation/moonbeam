@@ -9,6 +9,12 @@ It is written in typescript, using Mocha/Chai as Test framework.
 Each group will start a dev service with the
 [development spec](../node/service/src/chain_spec) before executing the tests.
 
+## Test categories
+
+- `test`: Tests expected to run by spawning a new dev node (~1-2 minutes)
+- `para-test`: Tests spawning a complete relay+para network (~5-20 minutes)
+- `smoke-test`: Tests veryfing the data (consistency) on an existing chain (~5-20 minutes)
+
 ## Installation
 
 ```
@@ -27,14 +33,67 @@ and to print more information:
 npm run test-with-logs
 ```
 
-# Running a parachain test
+# Smoke tests
+
+## Adding smoke tests
+
+Smoke test should only contains consistency/state checks.
+
+Testing the consistency is usually simple:
+
+- When you have redundant information: Verify they match:  
+  `totalIssuance == sum(accounts.map(acc => acc.free + acc.reserved))`
+- When you have conditional state: Verify the condition is valid:  
+  `parachainStaking.topDelegations.each(top => top.length <= parachainStaking.maxTopDelegationsPerCandidate)`
+- When you expect specific state: Verify it exists:  
+  `assets.assets.length > 0` or `maintenanceMode.maintenanceMode == false`)
+
+Smoke tests should **never** send an extrinsic to modify the state.  
+They should be split by pallet and only need 1 `describeSmokeSuite` per file.
+
+## Running smoke tests
+
+In order to use smoke tests, you need to provide a blockchain:
+
+```
+WSS_URL=wss://localhost:9944 npm run smoke-test
+```
+
+You can debug specific smoke test with `debug` library using prefix `smoke:*`:
+
+```
+DEBUG=smoke:* WSS_URL=wss://localhost:9944 npm run smoke-test
+```
+
+# Parachain test
+
+Either use script or use parachain testing framework.
+
+## Using Script
 
 You can directly launch a parachain test with this script.
-It takes care of getting the binary relay node and spawns 2 validators and 2 collators. 
+It takes care of getting the binary relay node and spawns 2 validators and 2 collators.
 
 ```bash
 scripts/run-para-test-single.sh moonriver/test-balance-genesis.ts
 ```
+
+## Using parachain testing framework
+
+### Requirements
+
+First make sure you have compiled moonbeam with `cargo build --release` and also copied
+the polkadot executable (built with `cargo build --release`) into the same folder as
+the moonbeam executable: `./target/release`
+(`cp ./target/release/polkadot ../moonbeam/target/release/polkadot`).
+
+Also don't forget to build `moonbeam-types-bundle` with `yarn run build` in that folder.
+
+### Execution
+
+Then run `npm run para-test-no-ci` to run the parachain tests in the para-tests-no-ci folder.
+
+This script is prefixed with `DEBUG=test:substrateEvents ` to log events during the tests.
 
 ## Write Tests
 

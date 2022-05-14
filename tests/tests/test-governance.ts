@@ -8,7 +8,7 @@ const keyring = new Keyring({ type: "ethereum" });
 
 let alith;
 
-describeDevMoonbeam("Governance", (context) => {
+describeDevMoonbeam("Governance - Democracy and Council Collectve", (context) => {
   before("Create accounts", async () => {
     alith = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
   });
@@ -25,7 +25,7 @@ describeDevMoonbeam("Governance", (context) => {
     const publicPropCount = await context.polkadotApi.query.democracy.publicPropCount();
     expect(publicPropCount.toHuman()).to.equal("1");
   });
-  it("should be able to fast track a referundum", async function () {
+  it("should be able to fast track a referundum with councilCollective pallet", async function () {
     // Verify that no referundum is triggered
     expect((await context.polkadotApi.query.democracy.referendumCount()).toHuman()).to.equal("0");
 

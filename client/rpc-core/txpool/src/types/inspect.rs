@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::GetT;
-use ethereum::{Transaction as EthereumTransaction, TransactionAction};
+use ethereum::{TransactionAction, TransactionV2 as EthereumTransaction};
 use ethereum_types::{H160, H256, U256};
 use serde::{Serialize, Serializer};
 
@@ -45,14 +45,19 @@ impl Serialize for Summary {
 
 impl GetT for Summary {
 	fn get(_hash: H256, _from_address: H160, txn: &EthereumTransaction) -> Self {
+		let (action, value, gas_price, gas_limit) = match txn {
+			EthereumTransaction::Legacy(t) => (t.action, t.value, t.gas_price, t.gas_limit),
+			EthereumTransaction::EIP2930(t) => (t.action, t.value, t.gas_price, t.gas_limit),
+			EthereumTransaction::EIP1559(t) => (t.action, t.value, t.max_fee_per_gas, t.gas_limit),
+		};
 		Self {
-			to: match txn.action {
+			to: match action {
 				TransactionAction::Call(to) => Some(to),
 				_ => None,
 			},
-			value: txn.value,
-			gas_price: txn.gas_price,
-			gas: txn.gas_limit,
+			value,
+			gas_price,
+			gas: gas_limit,
 		}
 	}
 }

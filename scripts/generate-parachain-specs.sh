@@ -5,7 +5,7 @@ source scripts/_init_var.sh
 echo "=================== Alphanet ==================="
 $MOONBEAM_BINARY build-spec \
   --disable-default-bootnode \
-  --chain 'moonbeam-local' \
+  --chain 'moonbase-local' \
   | grep '\"code\"' \
   | head -n1 > $ALPHANET_PARACHAIN_SPEC_TMP
 echo $ALPHANET_PARACHAIN_SPEC_TMP generated	

@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -17,7 +17,7 @@
 mod content;
 mod inspect;
 
-use ethereum::Transaction as EthereumTransaction;
+use ethereum::TransactionV2 as EthereumTransaction;
 use ethereum_types::{H160, H256, U256};
 use serde::Serialize;
 use std::collections::HashMap;

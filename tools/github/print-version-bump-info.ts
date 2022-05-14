@@ -3,71 +3,81 @@ import yargs from "yargs";
 import { getCommitAndLabels } from "./github-utils";
 
 async function printInfo(octokit: Octokit, previousVersion: string, nextVersion: string) {
-  const owner = "paritytech";
+  const owners = {
+    substrate: "paritytech",
+    polkadot: "paritytech",
+    cumulus: "paritytech",
+    nimbus: "purestake",
+  };
   const prefixes = {
     substrate: "polkadot-",
     polkadot: "release-",
     cumulus: "polkadot-",
+    nimbus: "moonbeam-polkadot-",
   };
   console.log(`# Description\n`);
   console.log(`This ticket is automatically generated using\n`);
   console.log("```");
-  console.log(`$ yarn run print-version-bump-info --from ${previousVersion} --to ${nextVersion}`);
+  console.log(`$ npm run print-version-bump-info -- --from ${previousVersion} --to ${nextVersion}`);
   console.log("```");
 
   const prInfoByLabels = {};
   for (const repo of Object.keys(prefixes)) {
     const previousTag = `${prefixes[repo]}${previousVersion}`;
     const nextTag = `${prefixes[repo]}${nextVersion}`;
-
-    const previousCommit = await octokit.rest.git.getCommit({
-      owner,
-      repo,
-      commit_sha: (
-        await octokit.rest.git.getTree({
-          owner,
-          repo,
-          tree_sha: previousTag,
-        })
-      ).data.sha,
-    });
-    const nextCommit = await octokit.rest.git.getCommit({
-      owner,
-      repo,
-      commit_sha: (
-        await octokit.rest.git.getTree({
-          owner,
-          repo,
-          tree_sha: nextTag,
-        })
-      ).data.sha,
-    });
-    console.log(
-      `\n## ${repo} (${previousCommit.data.author.date.slice(
-        0,
-        10
-      )} -> ${nextCommit.data.author.date.slice(0, 10)})\n`
-    );
-    const { commits, prByLabels } = await getCommitAndLabels(
-      octokit,
-      owner,
-      repo,
-      previousTag,
-      nextTag
-    );
-    console.log(`https://github.com/${owner}/${repo}/compare/${previousTag}...${nextTag}`);
-    console.log("```");
-    console.log(`    from: ${previousCommit.data.sha}`);
-    console.log(`      to: ${nextCommit.data.sha}`);
-    console.log(` commits: ${commits.length}`);
-    console.log("```");
-
-    for (const label of Object.keys(prByLabels)) {
-      prInfoByLabels[label] = (prInfoByLabels[label] || []).concat(
-        prByLabels[label].map((pr) => {
-          return `  ${`(${owner}/${repo}#${pr.number}) ${pr.title}`}`;
-        })
+    try {
+      const previousCommit = await octokit.rest.git.getCommit({
+        owner: owners[repo],
+        repo,
+        commit_sha: (
+          await octokit.rest.git.getTree({
+            owner: owners[repo],
+            repo,
+            tree_sha: previousTag,
+          })
+        ).data.sha,
+      });
+      const nextCommit = await octokit.rest.git.getCommit({
+        owner: owners[repo],
+        repo,
+        commit_sha: (
+          await octokit.rest.git.getTree({
+            owner: owners[repo],
+            repo,
+            tree_sha: nextTag,
+          })
+        ).data.sha,
+      });
+      console.log(
+        `\n## ${repo} (${previousCommit.data.author.date.slice(
+          0,
+          10
+        )} -> ${nextCommit.data.author.date.slice(0, 10)})\n`
       );
+      const { commits, prByLabels } = await getCommitAndLabels(
+        octokit,
+        owners[repo],
+        repo,
+        previousTag,
+        nextTag
+      );
+      console.log(`https://github.com/${owners[repo]}/${repo}/compare/${previousTag}...${nextTag}`);
+      console.log("```");
+      console.log(`    from: ${previousCommit.data.sha}`);
+      console.log(`      to: ${nextCommit.data.sha}`);
+      console.log(` commits: ${commits.length}`);
+      console.log("```");
+
+      for (const label of Object.keys(prByLabels)) {
+        prInfoByLabels[label] = (prInfoByLabels[label] || []).concat(
+          prByLabels[label].map((pr) => {
+            return `  ${`(${owners[repo]}/${repo}#${pr.number}) ${pr.title}`}`;
+          })
+        );
+      }
+    } catch (e) {
+      console.trace(`Failing to query ${repo} [${previousTag}..${nextTag}]: ${e.toString()}`);
+      process.exit(1);
     }
   }
 
@@ -86,7 +96,11 @@ async function printInfo(octokit: Octokit, previousVersion: string, nextVersion:
       continue;
     }
     console.log(`\n### ${labelName || "N/A"}\n`);
-    for (const prInfo of prInfoByLabels[labelName]) {
+    // Deduplicate PRs on same label
+    const deduplicatePrsOfLabel = prInfoByLabels[labelName].filter(function (elem, index, self) {
+      return index === self.indexOf(elem);
+    });
+    for (const prInfo of deduplicatePrsOfLabel) {
       console.log(prInfo);
     }
   }

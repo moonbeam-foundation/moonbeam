@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -19,35 +19,14 @@
 mod common;
 use common::*;
 
+use fp_evm::GenesisAccount;
 use nimbus_primitives::NimbusId;
-use pallet_evm::{Account as EVMAccount, AddressMapping, FeeCalculator, GenesisAccount};
-use sp_core::{Public, H160, H256, U256};
+use pallet_evm::{Account as EVMAccount, AddressMapping, FeeCalculator};
+use sp_core::{ByteArray, H160, H256, U256};
 
 use fp_rpc::runtime_decl_for_EthereumRuntimeRPCApi::EthereumRuntimeRPCApi;
-use fp_rpc::ConvertTransaction;
-use frame_support::assert_noop;
-use moonbeam_rpc_primitives_debug::runtime_decl_for_DebugRuntimeApi::DebugRuntimeApi;
 use moonbeam_rpc_primitives_txpool::runtime_decl_for_TxPoolRuntimeApi::TxPoolRuntimeApi;
-use std::collections::BTreeMap;
-use std::str::FromStr;
-
-fn ethereum_transaction() -> pallet_ethereum::Transaction {
-	// {from: 0x6be02d1d3665660d22ff9624b7be0551ee1ac91b, .., gasPrice: "0x01"}
-	let bytes = hex::decode(
-		"f86880843b9aca0083b71b0094111111111111111111111111111111111111111182020080820a26a0\
-		8c69faf613b9f72dbb029bb5d5acf42742d214c79743507e75fdc8adecdee928a001be4f58ff278ac61\
-		125a81a582a717d9c5d6554326c01b878297c6522b12282",
-	)
-	.expect("Transaction bytes.");
-	let transaction = rlp::decode::<pallet_ethereum::Transaction>(&bytes[..]);
-	assert!(transaction.is_ok());
-	transaction.unwrap()
-}
-
-fn uxt() -> UncheckedExtrinsic {
-	let converter = TransactionConverter;
-	converter.convert_transaction(ethereum_transaction())
-}
+use std::{collections::BTreeMap, str::FromStr};
 
 #[test]
 fn ethereum_runtime_rpc_api_chain_id() {
@@ -106,24 +85,24 @@ fn ethereum_runtime_rpc_api_account_code_at() {
 #[test]
 fn ethereum_runtime_rpc_api_author() {
 	ExtBuilder::default()
-		.with_collators(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
+		.with_collators(vec![(AccountId::from(ALICE), 100_000 * GLMR)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * GLMR),
-			(AccountId::from(BOB), 1_000 * GLMR),
+			(AccountId::from(ALICE), 200_000 * GLMR),
+			(AccountId::from(BOB), 100_000 * GLMR),
 		])
-		.with_nominations(vec![(
+		.with_delegations(vec![(
 			AccountId::from(BOB),
 			AccountId::from(ALICE),
-			500 * GLMR,
+			50_000 * GLMR,
 		)])
 		.build()
 		.execute_with(|| {
 			set_parachain_inherent_data();
-			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
+			run_to_block(2, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			assert_eq!(Runtime::author(), H160::from(ALICE));
 		});
 }
@@ -168,14 +147,16 @@ fn ethereum_runtime_rpc_api_call() {
 		.build()
 		.execute_with(|| {
 			let execution_result = Runtime::call(
-				H160::from(ALICE),  // from
-				H160::from(BOB),    // to
-				Vec::new(),         // data
-				U256::from(1000),   // value
-				U256::from(100000), // gas_limit
-				None,               // gas_price
-				None,               // nonce
-				false,              // estimate
+				H160::from(ALICE),     // from
+				H160::from(BOB),       // to
+				Vec::new(),            // data
+				U256::from(1000u64),   // value
+				U256::from(100000u64), // gas_limit
+				None,                  // max_fee_per_gas
+				None,                  // max_priority_fee_per_gas
+				None,                  // nonce
+				false,                 // estimate
+				None,                  // access_list
 			);
 			assert!(execution_result.is_ok());
 		});
@@ -188,13 +169,15 @@ fn ethereum_runtime_rpc_api_create() {
 		.build()
 		.execute_with(|| {
 			let execution_result = Runtime::create(
-				H160::from(ALICE),  // from
-				vec![0, 1, 1, 0],   // data
-				U256::zero(),       // value
-				U256::from(100000), // gas_limit
-				None,               // gas_price
-				None,               // nonce
-				false,              // estimate
+				H160::from(ALICE),     // from
+				vec![0, 1, 1, 0],      // data
+				U256::zero(),          // value
+				U256::from(100000u64), // gas_limit
+				None,                  // max_fee_per_gas
+				None,                  // max_priority_fee_per_gas
+				None,                  // nonce
+				false,                 // estimate
+				None,                  // access_list
 			);
 			assert!(execution_result.is_ok());
 		});
@@ -207,60 +190,57 @@ fn ethereum_runtime_rpc_api_current_transaction_statuses() {
 			.expect("internal H160 is valid; qed"),
 	);
 	ExtBuilder::default()
-		.with_collators(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
+		.with_collators(vec![(AccountId::from(ALICE), 100_000 * GLMR)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.with_balances(vec![
-			(alith, 2_000 * GLMR),
-			(AccountId::from(ALICE), 2_000 * GLMR),
-			(AccountId::from(BOB), 1_000 * GLMR),
+			(alith, 200_000 * GLMR),
+			(AccountId::from(ALICE), 200_000 * GLMR),
+			(AccountId::from(BOB), 100_000 * GLMR),
 		])
-		.with_nominations(vec![(
+		.with_delegations(vec![(
 			AccountId::from(BOB),
 			AccountId::from(ALICE),
-			500 * GLMR,
+			50_000 * GLMR,
 		)])
 		.build()
 		.execute_with(|| {
 			set_parachain_inherent_data();
-			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			// Calls are currently filtered, so the extrinsic will fail to apply.
-			let result = Executive::apply_extrinsic(uxt()).expect("Apply result.");
-			assert_noop!(result, sp_runtime::DispatchError::BadOrigin);
-			// // Future us: uncomment below.
-			// run_to_block(2);
-			// let statuses =
-			// 	Runtime::current_transaction_statuses().expect("Transaction statuses result.");
-			// assert_eq!(statuses.len(), 1);
+
+			let _result = Executive::apply_extrinsic(unchecked_eth_tx(VALID_ETH_TX));
+
+			run_to_block(2, None);
+			let statuses =
+				Runtime::current_transaction_statuses().expect("Transaction statuses result.");
+			assert_eq!(statuses.len(), 1);
 		});
 }
 
 #[test]
 fn ethereum_runtime_rpc_api_current_block() {
 	ExtBuilder::default()
-		.with_collators(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
+		.with_collators(vec![(AccountId::from(ALICE), 100_000 * GLMR)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * GLMR),
-			(AccountId::from(BOB), 1_000 * GLMR),
+			(AccountId::from(ALICE), 200_000 * GLMR),
+			(AccountId::from(BOB), 100_000 * GLMR),
 		])
-		.with_nominations(vec![(
+		.with_delegations(vec![(
 			AccountId::from(BOB),
 			AccountId::from(ALICE),
-			500 * GLMR,
+			50_000 * GLMR,
 		)])
 		.build()
 		.execute_with(|| {
 			set_parachain_inherent_data();
-			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			run_to_block(2);
+			run_to_block(2, None);
 			let block = Runtime::current_block().expect("Block result.");
-			assert_eq!(block.header.number, U256::from(1));
+			assert_eq!(block.header.number, U256::from(1u8));
 		});
 }
 
@@ -271,32 +251,30 @@ fn ethereum_runtime_rpc_api_current_receipts() {
 			.expect("internal H160 is valid; qed"),
 	);
 	ExtBuilder::default()
-		.with_collators(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
+		.with_collators(vec![(AccountId::from(ALICE), 100_000 * GLMR)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.with_balances(vec![
-			(alith, 2_000 * GLMR),
-			(AccountId::from(ALICE), 2_000 * GLMR),
-			(AccountId::from(BOB), 1_000 * GLMR),
+			(alith, 200_000 * GLMR),
+			(AccountId::from(ALICE), 200_000 * GLMR),
+			(AccountId::from(BOB), 100_000 * GLMR),
 		])
-		.with_nominations(vec![(
+		.with_delegations(vec![(
 			AccountId::from(BOB),
 			AccountId::from(ALICE),
-			500 * GLMR,
+			50_000 * GLMR,
 		)])
 		.build()
 		.execute_with(|| {
 			set_parachain_inherent_data();
-			set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			// Calls are currently filtered, so the extrinsic will fail to apply.
-			let result = Executive::apply_extrinsic(uxt()).expect("Apply result.");
-			assert_noop!(result, sp_runtime::DispatchError::BadOrigin);
-			// // Future us: uncomment below.
-			// run_to_block(2);
-			// let receipts = Runtime::current_receipts().expect("Receipts result.");
-			// assert_eq!(receipts.len(), 1);
+
+			let _result = Executive::apply_extrinsic(unchecked_eth_tx(VALID_ETH_TX));
+
+			run_to_block(2, None);
+			let receipts = Runtime::current_receipts().expect("Receipts result.");
+			assert_eq!(receipts.len(), 1);
 		});
 }
 
@@ -304,75 +282,18 @@ fn ethereum_runtime_rpc_api_current_receipts() {
 fn txpool_runtime_api_extrinsic_filter() {
 	ExtBuilder::default().build().execute_with(|| {
 		let non_eth_uxt = UncheckedExtrinsic::new_unsigned(
-			pallet_balances::Call::<Runtime>::transfer(AccountId::from(BOB), 1 * GLMR).into(),
+			pallet_balances::Call::<Runtime>::transfer {
+				dest: AccountId::from(BOB),
+				value: 1 * GLMR,
+			}
+			.into(),
 		);
-		let eth_uxt = uxt();
+		let eth_uxt = unchecked_eth_tx(VALID_ETH_TX);
 		let txpool = <Runtime as TxPoolRuntimeApi<moonbeam_runtime::Block>>::extrinsic_filter(
 			vec![eth_uxt.clone(), non_eth_uxt.clone()],
-			vec![uxt(), non_eth_uxt],
+			vec![unchecked_eth_tx(VALID_ETH_TX), non_eth_uxt],
 		);
 		assert_eq!(txpool.ready.len(), 1);
 		assert_eq!(txpool.future.len(), 1);
 	});
-}
-
-#[test]
-fn debug_runtime_api_trace_transaction() {
-	let alith = <Runtime as pallet_evm::Config>::AddressMapping::into_account_id(
-		H160::from_str("6be02d1d3665660d22ff9624b7be0551ee1ac91b")
-			.expect("internal H160 is valid; qed"),
-	);
-	ExtBuilder::default()
-		.with_balances(vec![
-			(alith, 2_000 * GLMR),
-			(AccountId::from(ALICE), 2_000 * GLMR),
-			(AccountId::from(BOB), 1_000 * GLMR),
-		])
-		.build()
-		.execute_with(|| {
-			let non_eth_uxt = UncheckedExtrinsic::new_unsigned(
-				pallet_balances::Call::<Runtime>::transfer(AccountId::from(BOB), 1 * GLMR).into(),
-			);
-			let transaction = ethereum_transaction();
-			let eth_uxt = uxt();
-			let header = System::finalize();
-			assert!(Runtime::trace_transaction(
-				&header,
-				vec![non_eth_uxt.clone(), eth_uxt, non_eth_uxt.clone()],
-				&transaction,
-				moonbeam_rpc_primitives_debug::single::TraceType::Raw {
-					disable_storage: true,
-					disable_memory: true,
-					disable_stack: true,
-				}
-			)
-			.is_ok());
-		});
-}
-
-#[test]
-fn debug_runtime_api_trace_block() {
-	let alith = <Runtime as pallet_evm::Config>::AddressMapping::into_account_id(
-		H160::from_str("6be02d1d3665660d22ff9624b7be0551ee1ac91b")
-			.expect("internal H160 is valid; qed"),
-	);
-	ExtBuilder::default()
-		.with_balances(vec![
-			(alith, 2_000 * GLMR),
-			(AccountId::from(ALICE), 2_000 * GLMR),
-			(AccountId::from(BOB), 1_000 * GLMR),
-		])
-		.build()
-		.execute_with(|| {
-			let non_eth_uxt = UncheckedExtrinsic::new_unsigned(
-				pallet_balances::Call::<Runtime>::transfer(AccountId::from(BOB), 1 * GLMR).into(),
-			);
-			let eth_uxt = uxt();
-			let header = System::finalize();
-			assert!(Runtime::trace_block(
-				&header,
-				vec![non_eth_uxt.clone(), eth_uxt.clone(), non_eth_uxt, eth_uxt],
-			)
-			.is_ok());
-		});
 }
