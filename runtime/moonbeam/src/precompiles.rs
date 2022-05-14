@@ -14,12 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+use crate::asset_config::{ForeignAssetInstance, LocalAssetInstance};
 use crowdloan_rewards_precompiles::CrowdloanRewardsWrapper;
 use fp_evm::Context;
 use moonbeam_relay_encoder::polkadot::PolkadotEncoder;
 use pallet_author_mapping_precompiles::AuthorMappingWrapper;
+use pallet_democracy_precompiles::DemocracyWrapper;
 use pallet_evm::{AddressMapping, Precompile, PrecompileResult, PrecompileSet};
-use pallet_evm_precompile_assets_erc20::Erc20AssetsPrecompileSet;
+use pallet_evm_precompile_assets_erc20::{Erc20AssetsPrecompileSet, IsForeign, IsLocal};
+use pallet_evm_precompile_balances_erc20::{Erc20BalancesPrecompile, Erc20Metadata};
 use pallet_evm_precompile_blake2::Blake2F;
 use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
 use pallet_evm_precompile_dispatch::Dispatch;
@@ -33,6 +36,32 @@ use sp_std::fmt::Debug;
 use sp_std::marker::PhantomData;
 use xcm_transactor_precompiles::XcmTransactorWrapper;
 use xtokens_precompiles::XtokensWrapper;
+
+pub struct NativeErc20Metadata;
+
+/// ERC20 metadata for the native token.
+impl Erc20Metadata for NativeErc20Metadata {
+	/// Returns the name of the token.
+	fn name() -> &'static str {
+		"GLMR token"
+	}
+
+	/// Returns the symbol of the token.
+	fn symbol() -> &'static str {
+		"GLMR"
+	}
+
+	/// Returns the decimals places of the token.
+	fn decimals() -> u8 {
+		18
+	}
+
+	/// Must return `true` only if it represents the main native currency of
+	/// the network. It must be the currency used in `pallet_evm`.
+	fn is_native_currency() -> bool {
+		true
+	}
+}
 
 /// The PrecompileSet installed in the Moonbeam runtime.
 /// We include the nine Istanbul precompiles
@@ -52,7 +81,8 @@ where
 	/// under the precompile.
 	pub fn used_addresses() -> impl Iterator<Item = R::AccountId> {
 		sp_std::vec![
-			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2052, 2053, 2054, 2055
+			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2050, 2051, 2052, 2053, 2054,
+			2055
 		]
 		.into_iter()
 		.map(|x| R::AddressMapping::into_account_id(hash(x)))
@@ -61,7 +91,8 @@ where
 
 /// The asset precompile address prefix. Addresses that match against this prefix will be routed
 /// to Erc20AssetsPrecompileSet
-pub const ASSET_PRECOMPILE_ADDRESS_PREFIX: &[u8] = &[255u8; 4];
+pub const FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX: &[u8] = &[255u8; 4];
+pub const LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX: &[u8] = &[255u8, 255u8, 255u8, 254u8];
 
 /// The following distribution has been decided for the precompiles
 /// 0-1023: Ethereum Mainnet Precompiles
@@ -72,10 +103,13 @@ where
 	Dispatch<R>: Precompile,
 	ParachainStakingWrapper<R>: Precompile,
 	CrowdloanRewardsWrapper<R>: Precompile,
-	Erc20AssetsPrecompileSet<R>: PrecompileSet,
+	Erc20BalancesPrecompile<R, NativeErc20Metadata>: Precompile,
+	Erc20AssetsPrecompileSet<R, IsForeign, ForeignAssetInstance>: PrecompileSet,
+	Erc20AssetsPrecompileSet<R, IsLocal, LocalAssetInstance>: PrecompileSet,
 	XtokensWrapper<R>: Precompile,
 	RelayEncoderWrapper<R, PolkadotEncoder>: Precompile,
 	XcmTransactorWrapper<R>: Precompile,
+	DemocracyWrapper<R>: Precompile,
 	AuthorMappingWrapper<R>: Precompile,
 	R: pallet_evm::Config,
 {
@@ -108,11 +142,19 @@ where
 			a if a == hash(1026) => Some(ECRecoverPublicKey::execute(
 				input, target_gas, context, is_static,
 			)),
-			// Moonbeam specific precompiles :
 			a if a == hash(2048) => Some(ParachainStakingWrapper::<R>::execute(
+				// Moonbeam specific precompiles :
 				input, target_gas, context, is_static,
 			)),
 			a if a == hash(2049) => Some(CrowdloanRewardsWrapper::<R>::execute(
+				input, target_gas, context, is_static,
+			)),
+			a if a == hash(2050) => {
+				Some(Erc20BalancesPrecompile::<R, NativeErc20Metadata>::execute(
+					input, target_gas, context, is_static,
+				))
+			}
+			a if a == hash(2051) => Some(DemocracyWrapper::<R>::execute(
 				input, target_gas, context, is_static,
 			)),
 			a if a == hash(2052) => Some(XtokensWrapper::<R>::execute(
@@ -128,17 +170,24 @@ where
 				input, target_gas, context, is_static,
 			)),
 			// If the address matches asset prefix, the we route through the asset precompile set
-			a if &a.to_fixed_bytes()[0..4] == ASSET_PRECOMPILE_ADDRESS_PREFIX => {
-				Erc20AssetsPrecompileSet::<R>::new()
+			a if &a.to_fixed_bytes()[0..4] == FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX => {
+				Erc20AssetsPrecompileSet::<R, IsForeign, ForeignAssetInstance>::new()
+					.execute(address, input, target_gas, context, is_static)
+			}
+			// If the address matches asset prefix, the we route through the asset precompile set
+			a if &a.to_fixed_bytes()[0..4] == LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX => {
+				Erc20AssetsPrecompileSet::<R, IsLocal, LocalAssetInstance>::new()
 					.execute(address, input, target_gas, context, is_static)
 			}
 			_ => None,
 		}
 	}
 	fn is_precompile(&self, address: H160) -> bool {
-		Self::used_addresses()
-			.find(|x| x == &R::AddressMapping::into_account_id(address))
-			.is_some() || Erc20AssetsPrecompileSet::<R>::new().is_precompile(address)
+		Self::used_addresses().any(|x| x == R::AddressMapping::into_account_id(address))
+			|| Erc20AssetsPrecompileSet::<R, IsForeign, ForeignAssetInstance>::new()
+				.is_precompile(address)
+			|| Erc20AssetsPrecompileSet::<R, IsLocal, LocalAssetInstance>::new()
+				.is_precompile(address)
 	}
 }
 

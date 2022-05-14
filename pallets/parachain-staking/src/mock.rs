@@ -81,6 +81,7 @@ impl frame_system::Config for Test {
 	type BlockLength = ();
 	type SS58Prefix = SS58Prefix;
 	type OnSetCode = ();
+	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 parameter_types! {
 	pub const ExistentialDeposit: u128 = 1;
@@ -137,6 +138,8 @@ impl Config for Test {
 	type MinCandidateStk = MinCollatorStk;
 	type MinDelegatorStk = MinDelegatorStk;
 	type MinDelegation = MinDelegation;
+	type OnCollatorPayout = ();
+	type OnNewRound = ();
 	type WeightInfo = ();
 }
 
@@ -324,8 +327,11 @@ macro_rules! assert_eq_events {
 /// Note that events are filtered to only match parachain-staking (see events()).
 #[macro_export]
 macro_rules! assert_eq_last_events {
-	($events:expr) => {
+	($events:expr $(,)?) => {
 		assert_tail_eq!($events, crate::mock::events());
+	};
+	($events:expr, $($arg:tt)*) => {
+		assert_tail_eq!($events, crate::mock::events(), $($arg)*);
 	};
 }
 
@@ -333,7 +339,7 @@ macro_rules! assert_eq_last_events {
 /// assert_eq_last_events.
 #[macro_export]
 macro_rules! assert_tail_eq {
-	($tail:expr, $arr:expr) => {
+	($tail:expr, $arr:expr $(,)?) => {
 		if $tail.len() != 0 {
 			// 0-length always passes
 
@@ -343,6 +349,18 @@ macro_rules! assert_tail_eq {
 
 			let len_diff = $arr.len() - $tail.len();
 			similar_asserts::assert_eq!($tail, $arr[len_diff..]);
+		}
+	};
+	($tail:expr, $arr:expr, $($arg:tt)*) => {
+		if $tail.len() != 0 {
+			// 0-length always passes
+
+			if $tail.len() > $arr.len() {
+				similar_asserts::assert_eq!($tail, $arr, $($arg)*); // will fail
+			}
+
+			let len_diff = $arr.len() - $tail.len();
+			similar_asserts::assert_eq!($tail, $arr[len_diff..], $($arg)*);
 		}
 	};
 }

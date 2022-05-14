@@ -116,7 +116,7 @@ fn no_selector_exists_but_length_is_right() {
 #[test]
 fn is_contributor_returns_false() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
+		.with_balances(vec![(Alice.into(), 1000)])
 		.build()
 		.execute_with(|| {
 			let input = EvmDataWriter::new_with_selector(Action::IsContributor)
@@ -148,7 +148,7 @@ fn is_contributor_returns_false() {
 #[test]
 fn is_contributor_returns_true() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
+		.with_balances(vec![(Alice.into(), 1000)])
 		.with_crowdloan_pot(100u32.into())
 		.build()
 		.execute_with(|| {
@@ -159,8 +159,8 @@ fn is_contributor_returns_true() {
 			let init_block = Crowdloan::init_vesting_block();
 			assert_ok!(Call::Crowdloan(CrowdloanCall::initialize_reward_vec {
 				rewards: vec![
-					([1u8; 32], Some(Alice), 50u32.into()),
-					([2u8; 32], Some(Bob), 50u32.into()),
+					([1u8; 32], Some(Alice.into()), 50u32.into()),
+					([2u8; 32], Some(Bob.into()), 50u32.into()),
 				]
 			})
 			.dispatch(Origin::root()));
@@ -196,7 +196,7 @@ fn is_contributor_returns_true() {
 #[test]
 fn claim_works() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
+		.with_balances(vec![(Alice.into(), 1000)])
 		.with_crowdloan_pot(100u32.into())
 		.build()
 		.execute_with(|| {
@@ -207,8 +207,8 @@ fn claim_works() {
 			let init_block = Crowdloan::init_vesting_block();
 			assert_ok!(Call::Crowdloan(CrowdloanCall::initialize_reward_vec {
 				rewards: vec![
-					([1u8; 32].into(), Some(Alice), 50u32.into()),
-					([2u8; 32].into(), Some(Bob), 50u32.into()),
+					([1u8; 32].into(), Some(Alice.into()), 50u32.into()),
+					([2u8; 32].into(), Some(Bob.into()), 50u32.into()),
 				]
 			})
 			.dispatch(Origin::root()));
@@ -225,7 +225,7 @@ fn claim_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(input)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event = CrowdloanEvent::RewardsPaid(Alice, 25).into();
+			let expected: crate::mock::Event = CrowdloanEvent::RewardsPaid(Alice.into(), 25).into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -234,7 +234,7 @@ fn claim_works() {
 #[test]
 fn reward_info_works() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
+		.with_balances(vec![(Alice.into(), 1000)])
 		.with_crowdloan_pot(100u32.into())
 		.build()
 		.execute_with(|| {
@@ -245,8 +245,8 @@ fn reward_info_works() {
 			let init_block = Crowdloan::init_vesting_block();
 			assert_ok!(Call::Crowdloan(CrowdloanCall::initialize_reward_vec {
 				rewards: vec![
-					([1u8; 32].into(), Some(Alice), 50u32.into()),
-					([2u8; 32].into(), Some(Bob), 50u32.into()),
+					([1u8; 32].into(), Some(Alice.into()), 50u32.into()),
+					([2u8; 32].into(), Some(Bob.into()), 50u32.into()),
 				]
 			})
 			.dispatch(Origin::root()));
@@ -287,7 +287,7 @@ fn reward_info_works() {
 #[test]
 fn update_reward_address_works() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
+		.with_balances(vec![(Alice.into(), 1000)])
 		.with_crowdloan_pot(100u32.into())
 		.build()
 		.execute_with(|| {
@@ -298,8 +298,8 @@ fn update_reward_address_works() {
 			let init_block = Crowdloan::init_vesting_block();
 			assert_ok!(Call::Crowdloan(CrowdloanCall::initialize_reward_vec {
 				rewards: vec![
-					([1u8; 32].into(), Some(Alice), 50u32.into()),
-					([2u8; 32].into(), Some(Bob), 50u32.into()),
+					([1u8; 32].into(), Some(Alice.into()), 50u32.into()),
+					([2u8; 32].into(), Some(Bob.into()), 50u32.into()),
 				]
 			})
 			.dispatch(Origin::root()));
@@ -319,19 +319,19 @@ fn update_reward_address_works() {
 			assert_ok!(Call::Evm(evm_call(input)).dispatch(Origin::root()));
 
 			let expected: crate::mock::Event =
-				CrowdloanEvent::RewardAddressUpdated(Alice, Charlie).into();
+				CrowdloanEvent::RewardAddressUpdated(Alice.into(), Charlie.into()).into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 			// Assert storage is correctly moved
-			assert!(Crowdloan::accounts_payable(Alice).is_none());
-			assert!(Crowdloan::accounts_payable(Charlie).is_some());
+			assert!(Crowdloan::accounts_payable(H160::from(Alice)).is_none());
+			assert!(Crowdloan::accounts_payable(H160::from(Charlie)).is_some());
 		});
 }
 
 #[test]
 fn test_bound_checks_for_address_parsing() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
+		.with_balances(vec![(Alice.into(), 1000)])
 		.with_crowdloan_pot(100u32.into())
 		.build()
 		.execute_with(|| {

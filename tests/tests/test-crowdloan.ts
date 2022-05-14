@@ -158,7 +158,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     expect(
       BigInt(await context.web3.eth.getBalance(GENESIS_ACCOUNT)) - GENESIS_ACCOUNT_BALANCE
     ).to.equal(claimed - claimFee); // reduce the claim fee part;
-    const account = await context.polkadotApi.query.system.account(GENESIS_ACCOUNT);
+    const account = (await context.polkadotApi.query.system.account(GENESIS_ACCOUNT)) as any;
     expect(account.data.free.toBigInt() - GENESIS_ACCOUNT_BALANCE).to.equal(claimed - claimFee);
   });
 });
@@ -583,7 +583,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     expect(reward_info_unassociated.claimedReward.toBigInt()).to.equal(0n);
 
     // check balances
-    const account = await context.polkadotApi.query.system.account(GENESIS_ACCOUNT);
+    const account = (await context.polkadotApi.query.system.account(GENESIS_ACCOUNT)) as any;
     expect(account.data.free.toBigInt() - GENESIS_ACCOUNT_BALANCE).to.equal(
       reward_info_associated.claimedReward.toBigInt()
     );
@@ -1047,7 +1047,9 @@ describeDevMoonbeam("Crowdloan", (context) => {
       )
     );
     expect(events[1].toHuman().method).to.eq("ProxyExecuted");
-    expect(events[1].data[0].toString()).to.be.eq(`{"err":{"module":{"index":0,"error":5}}}`);
+    expect(events[1].data[0].toString()).to.be.eq(
+      `{"err":{"module":{"index":0,"error":"0x05000000"}}}`
+    );
 
     // Genesis account still has the money
     rewardInfo = await getAccountPayable(context, GENESIS_ACCOUNT);

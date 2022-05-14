@@ -23,12 +23,12 @@ use sp_std::vec::Vec;
 use xcm::latest::{Junction, Junctions, MultiLocation, NetworkId};
 
 // Function to convert network id to bytes
-// We dont implement EVMData here as these bytes will be appended only
+// We don't implement EVMData here as these bytes will be appended only
 // to certain Junction variants
 // Each NetworkId variant is represented as bytes
 // The first byte represents the enum variant to be used
 // The rest of the bytes (if any), represent the additional data that such enum variant requires
-// In this case, only Named requies additional non-bounded data.
+// In this case, only Named requires additional non-bounded data.
 // In such a case, since NetworkIds will be appended at the end, we will read the buffer until the
 // end to recover the name
 pub(crate) fn network_id_to_bytes(network_id: NetworkId) -> Vec<u8> {
@@ -204,6 +204,10 @@ impl EvmData for Junction {
 		};
 		EvmData::write(writer, encoded_bytes);
 	}
+
+	fn has_static_size() -> bool {
+		false
+	}
 }
 
 impl EvmData for Junctions {
@@ -223,28 +227,24 @@ impl EvmData for Junctions {
 		let encoded: Vec<Junction> = value.iter().map(|junction| junction.clone()).collect();
 		EvmData::write(writer, encoded);
 	}
+
+	fn has_static_size() -> bool {
+		false
+	}
 }
 
 impl EvmData for MultiLocation {
 	fn read(reader: &mut EvmDataReader, gasometer: &mut Gasometer) -> EvmResult<Self> {
-		let mut inner_reader = reader.read_pointer(gasometer)?;
+		let (parents, interior) = reader.read(gasometer)?;
 
-		let num_parents = inner_reader.read(gasometer)?;
-
-		let junctions: Junctions = inner_reader.read(gasometer)?;
-
-		Ok(MultiLocation {
-			parents: num_parents,
-			interior: junctions,
-		})
+		Ok(MultiLocation { parents, interior })
 	}
 
 	fn write(writer: &mut EvmDataWriter, value: Self) {
-		let inner_writer = EvmDataWriter::new()
-			.write(value.parents)
-			.write(value.interior)
-			.build();
+		EvmData::write(writer, (value.parents, value.interior));
+	}
 
-		EvmDataWriter::write_pointer(writer, inner_writer);
+	fn has_static_size() -> bool {
+		<(u8, Junctions)>::has_static_size()
 	}
 }

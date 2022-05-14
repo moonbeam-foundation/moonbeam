@@ -18,6 +18,7 @@ use crate::{EvmResult, Gasometer};
 
 use alloc::borrow::ToOwned;
 use core::{any::type_name, ops::Range};
+use impl_trait_for_tuples::impl_for_tuples;
 use sp_core::{H160, H256, U256};
 use sp_std::{convert::TryInto, vec, vec::Vec};
 
@@ -73,7 +74,7 @@ impl From<&str> for Bytes {
 }
 
 impl Into<Vec<u8>> for Bytes {
-	fn into(self: Self) -> Vec<u8> {
+	fn into(self) -> Vec<u8> {
 		self.0
 	}
 }
@@ -132,7 +133,7 @@ impl<'a> EvmDataReader<'a> {
 	}
 
 	/// Read raw bytes from the input.
-	/// Doesn't handle any alignement checks, prefer using `read` instead of possible.
+	/// Doesn't handle any alignment checks, prefer using `read` instead of possible.
 	/// Returns an error if trying to parse out of bounds.
 	pub fn read_raw_bytes(&mut self, gasometer: &mut Gasometer, len: usize) -> EvmResult<&[u8]> {
 		let range = self.move_cursor(gasometer, len)?;
@@ -312,6 +313,33 @@ impl Default for EvmDataWriter {
 pub trait EvmData: Sized {
 	fn read(reader: &mut EvmDataReader, gasometer: &mut Gasometer) -> EvmResult<Self>;
 	fn write(writer: &mut EvmDataWriter, value: Self);
+	fn has_static_size() -> bool;
+}
+
+#[impl_for_tuples(1, 18)]
+impl EvmData for Tuple {
+	fn has_static_size() -> bool {
+		for_tuples!(#( Tuple::has_static_size() )&*)
+	}
+
+	fn read(reader: &mut EvmDataReader, gasometer: &mut Gasometer) -> EvmResult<Self> {
+		if !Self::has_static_size() {
+			let reader = &mut reader.read_pointer(gasometer)?;
+			Ok(for_tuples!( ( #( reader.read::<Tuple>(gasometer)? ),* ) ))
+		} else {
+			Ok(for_tuples!( ( #( reader.read::<Tuple>(gasometer)? ),* ) ))
+		}
+	}
+
+	fn write(writer: &mut EvmDataWriter, value: Self) {
+		if !Self::has_static_size() {
+			let mut inner_writer = EvmDataWriter::new();
+			for_tuples!( #( Tuple::write(&mut inner_writer, value.Tuple); )* );
+			writer.write_pointer(inner_writer.build());
+		} else {
+			for_tuples!( #( Tuple::write(writer, value.Tuple); )* );
+		}
+	}
 }
 
 impl EvmData for H256 {
@@ -329,6 +357,10 @@ impl EvmData for H256 {
 	fn write(writer: &mut EvmDataWriter, value: Self) {
 		writer.data.extend_from_slice(value.as_bytes());
 	}
+
+	fn has_static_size() -> bool {
+		true
+	}
 }
 
 impl EvmData for Address {
@@ -345,6 +377,10 @@ impl EvmData for Address {
 
 	fn write(writer: &mut EvmDataWriter, value: Self) {
 		H256::write(writer, value.0.into());
+	}
+
+	fn has_static_size() -> bool {
+		true
 	}
 }
 
@@ -364,6 +400,10 @@ impl EvmData for U256 {
 		let mut buffer = [0u8; 32];
 		value.to_big_endian(&mut buffer);
 		writer.data.extend_from_slice(&buffer);
+	}
+
+	fn has_static_size() -> bool {
+		true
 	}
 }
 
@@ -391,6 +431,10 @@ macro_rules! impl_evmdata_for_uints {
 					buffer[32 - core::mem::size_of::<Self>()..].copy_from_slice(&value.to_be_bytes());
 					writer.data.extend_from_slice(&buffer);
 				}
+
+				fn has_static_size() -> bool {
+					true
+				}
 			}
 		)*
 	};
@@ -417,6 +461,10 @@ impl EvmData for u8 {
 
 		writer.data.extend_from_slice(&buffer);
 	}
+
+	fn has_static_size() -> bool {
+		true
+	}
 }
 
 impl EvmData for bool {
@@ -434,6 +482,10 @@ impl EvmData for bool {
 		}
 
 		writer.data.extend_from_slice(&buffer);
+	}
+
+	fn has_static_size() -> bool {
+		true
 	}
 }
 
@@ -485,6 +537,10 @@ impl<T: EvmData> EvmData for Vec<T> {
 
 		writer.write_pointer(inner_writer.build());
 	}
+
+	fn has_static_size() -> bool {
+		false
+	}
 }
 
 impl EvmData for Bytes {
@@ -532,5 +588,9 @@ impl EvmData for Bytes {
 				.write_raw_bytes(&value)
 				.build(),
 		);
+	}
+
+	fn has_static_size() -> bool {
+		false
 	}
 }

@@ -3,6 +3,8 @@ import { customWeb3Request } from "../util/providers";
 import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes } from "../util/setup-dev-tests";
 import { ALITH, GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY } from "../util/constants";
 import { createContract } from "../util/transactions";
+import { ethers } from "ethers";
+import { getCompiled } from "../util/contracts";
 
 const BS_TRACER = require("../util/tracer/blockscout_tracer.min.json");
 const BS_TRACER_V2 = require("../util/tracer/blockscout_tracer_v2.min.json");
@@ -507,5 +509,107 @@ describeDevMoonbeam("Trace", (context) => {
         "value",
       ]);
     });
+  });
+});
+
+describeDevMoonbeam("Trace", (context) => {
+  it("should correctly trace subcall (call list)", async function () {
+    this.timeout(10000);
+
+    const { contract: contractProxy, rawTx } = await createContract(context, "TestCallList");
+    await context.createBlock({ transactions: [rawTx] });
+
+    const { contract: contractDummy, rawTx: rawTx2 } = await createContract(
+      context,
+      "TestContract"
+    );
+    await context.createBlock({ transactions: [rawTx2] });
+
+    const proxyInterface = new ethers.utils.Interface(
+      (await getCompiled("TestCallList")).contract.abi
+    );
+    const dummyInterface = new ethers.utils.Interface(
+      (await getCompiled("TestContract")).contract.abi
+    );
+
+    let callTx = await context.web3.eth.accounts.signTransaction(
+      {
+        from: GENESIS_ACCOUNT,
+        to: contractProxy.options.address,
+        gas: "0x100000",
+        value: "0x00",
+        data: proxyInterface.encodeFunctionData("call", [
+          contractDummy.options.address,
+          dummyInterface.encodeFunctionData("multiply", [42]),
+        ]),
+      },
+      GENESIS_ACCOUNT_PRIVATE_KEY
+    );
+
+    const data = await customWeb3Request(context.web3, "eth_sendRawTransaction", [
+      callTx.rawTransaction,
+    ]);
+    await context.createBlock();
+    let trace = await customWeb3Request(context.web3, "debug_traceTransaction", [
+      data.result,
+      { tracer: "callTracer" },
+    ]);
+
+    expect(trace.result.from).to.be.eq(GENESIS_ACCOUNT.toLowerCase());
+    expect(trace.result.to).to.be.eq(contractProxy.options.address.toLowerCase());
+    expect(trace.result.calls.length).to.be.eq(1);
+    expect(trace.result.calls[0].from).to.be.eq(contractProxy.options.address.toLowerCase());
+    expect(trace.result.calls[0].to).to.be.eq(contractDummy.options.address.toLowerCase());
+    expect(trace.result.calls[0].type).to.be.eq("CALL");
+  });
+
+  it("should correctly trace delegatecall subcall (call list)", async function () {
+    this.timeout(10000);
+
+    const { contract: contractProxy, rawTx } = await createContract(context, "TestCallList");
+    await context.createBlock({ transactions: [rawTx] });
+
+    const { contract: contractDummy, rawTx: rawTx2 } = await createContract(
+      context,
+      "TestContract"
+    );
+    await context.createBlock({ transactions: [rawTx2] });
+
+    const proxyInterface = new ethers.utils.Interface(
+      (await getCompiled("TestCallList")).contract.abi
+    );
+    const dummyInterface = new ethers.utils.Interface(
+      (await getCompiled("TestContract")).contract.abi
+    );
+
+    let callTx = await context.web3.eth.accounts.signTransaction(
+      {
+        from: GENESIS_ACCOUNT,
+        to: contractProxy.options.address,
+        gas: "0x100000",
+        value: "0x00",
+        data: proxyInterface.encodeFunctionData("delegateCall", [
+          contractDummy.options.address,
+          dummyInterface.encodeFunctionData("multiply", [42]),
+        ]),
+      },
+      GENESIS_ACCOUNT_PRIVATE_KEY
+    );
+
+    const data = await customWeb3Request(context.web3, "eth_sendRawTransaction", [
+      callTx.rawTransaction,
+    ]);
+    await context.createBlock();
+    let trace = await customWeb3Request(context.web3, "debug_traceTransaction", [
+      data.result,
+      { tracer: "callTracer" },
+    ]);
+
+    expect(trace.result.from).to.be.eq(GENESIS_ACCOUNT.toLowerCase());
+    expect(trace.result.to).to.be.eq(contractProxy.options.address.toLowerCase());
+    expect(trace.result.calls.length).to.be.eq(1);
+    expect(trace.result.calls[0].from).to.be.eq(contractProxy.options.address.toLowerCase());
+    expect(trace.result.calls[0].to).to.be.eq(contractDummy.options.address.toLowerCase());
+    expect(trace.result.calls[0].type).to.be.eq("DELEGATECALL");
   });
 });
