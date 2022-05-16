@@ -1,10 +1,10 @@
 [package]
 name = "moonbeam-cli-opt"
 authors = [ "PureStake" ]
-edition = "2018"
+edition = "2021"
 homepage = "https://moonbeam.network"
 license = "GPL-3.0-only"
-version = "0.22.0"
+version = "0.23.0"
 
 [dependencies]
 clap = { version = "3.1", features = [ "derive" ] }
@@ -19,4 +19,4 @@ url = "2.2.2"
 account = { path = "../../primitives/account" }
 
 # Substrate
-sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18" }
+sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20" }

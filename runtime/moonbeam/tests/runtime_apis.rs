@@ -19,8 +19,9 @@
 mod common;
 use common::*;
 
+use fp_evm::GenesisAccount;
 use nimbus_primitives::NimbusId;
-use pallet_evm::{Account as EVMAccount, AddressMapping, FeeCalculator, GenesisAccount};
+use pallet_evm::{Account as EVMAccount, AddressMapping, FeeCalculator};
 use sp_core::{ByteArray, H160, H256, U256};
 
 use fp_rpc::runtime_decl_for_EthereumRuntimeRPCApi::EthereumRuntimeRPCApi;
@@ -53,7 +54,7 @@ fn ethereum_runtime_rpc_api_account_basic() {
 #[test]
 fn ethereum_runtime_rpc_api_gas_price() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_eq!(Runtime::gas_price(), FixedGasPrice::min_gas_price());
+		assert_eq!(Runtime::gas_price(), FixedGasPrice::min_gas_price().0);
 	});
 }
 

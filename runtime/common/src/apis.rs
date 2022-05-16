@@ -195,11 +195,13 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 
 				fn account_basic(address: H160) -> EVMAccount {
-					EVM::account_basic(&address)
+					let (account, _) = EVM::account_basic(&address);
+					account
 				}
 
 				fn gas_price() -> U256 {
-					<Runtime as pallet_evm::Config>::FeeCalculator::min_gas_price()
+					let (gas_price, _) = <Runtime as pallet_evm::Config>::FeeCalculator::min_gas_price();
+					gas_price
 				}
 
 				fn account_code_at(address: H160) -> Vec<u8> {
@@ -235,7 +237,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					} else {
 						None
 					};
-
+					let is_transactional = false;
 					<Runtime as pallet_evm::Config>::Runner::call(
 						from,
 						to,
@@ -246,8 +248,9 @@ macro_rules! impl_runtime_apis_plus_common {
 						max_priority_fee_per_gas,
 						nonce,
 						Vec::new(),
+						is_transactional,
 						config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
-					).map_err(|err| err.into())
+					).map_err(|err| err.error.into())
 				}
 
 				fn create(
@@ -268,7 +271,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					} else {
 						None
 					};
-
+					let is_transactional = false;
 					#[allow(clippy::or_fun_call)] // suggestion not helpful here
 					<Runtime as pallet_evm::Config>::Runner::create(
 						from,
@@ -279,8 +282,9 @@ macro_rules! impl_runtime_apis_plus_common {
 						max_priority_fee_per_gas,
 						nonce,
 						Vec::new(),
+						is_transactional,
 						config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
-					).map_err(|err| err.into())
+					).map_err(|err| err.error.into())
 				}
 
 				fn current_transaction_statuses() -> Option<Vec<TransactionStatus>> {
@@ -422,6 +426,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					use parachain_staking::Pallet as ParachainStakingBench;
 					use pallet_author_mapping::Pallet as PalletAuthorMappingBench;
 					use pallet_author_slot_filter::Pallet as PalletAuthorSlotFilter;
+					use pallet_moonbeam_orbiters::Pallet as PalletMoonbeamOrbiters;
 					use pallet_author_inherent::Pallet as PalletAuthorInherent;
 
 					#[cfg(feature = "moonbase-runtime-benchmarks")]
@@ -436,6 +441,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					list_benchmark!(list, extra, pallet_crowdloan_rewards, PalletCrowdloanRewardsBench::<Runtime>);
 					list_benchmark!(list, extra, pallet_author_mapping, PalletAuthorMappingBench::<Runtime>);
 					list_benchmark!(list, extra, pallet_author_slot_filter, PalletAuthorSlotFilter::<Runtime>);
+					list_benchmark!(list, extra, pallet_moonbeam_orbiters, PalletMoonbeamOrbiters::<Runtime>);
 					list_benchmark!(list, extra, pallet_author_inherent, PalletAuthorInherent::<Runtime>);
 					#[cfg(feature = "moonbase-runtime-benchmarks")]
 					list_benchmark!(list, extra, pallet_asset_manager, PalletAssetManagerBench::<Runtime>);
@@ -461,6 +467,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					use parachain_staking::Pallet as ParachainStakingBench;
 					use pallet_author_mapping::Pallet as PalletAuthorMappingBench;
 					use pallet_author_slot_filter::Pallet as PalletAuthorSlotFilter;
+					use pallet_moonbeam_orbiters::Pallet as PalletMoonbeamOrbiters;
 					use pallet_author_inherent::Pallet as PalletAuthorInherent;
 					#[cfg(feature = "moonbase-runtime-benchmarks")]
 					use pallet_asset_manager::Pallet as PalletAssetManagerBench;
@@ -544,6 +551,12 @@ macro_rules! impl_runtime_apis_plus_common {
 						batches,
 						pallet_author_slot_filter,
 						PalletAuthorSlotFilter::<Runtime>
+					);
+					add_benchmark!(
+						params,
+						batches,
+						pallet_moonbeam_orbiters,
+						PalletMoonbeamOrbiters::<Runtime>
 					);
 					add_benchmark!(
 						params,

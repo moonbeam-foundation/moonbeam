@@ -27,7 +27,9 @@ jobs:
           ref: ${{ github.event.inputs.to }}
       - name: Srtool build
         id: srtool_build
-        uses: chevdor/srtool-actions@v0.3.0
+        uses: chevdor/srtool-actions@v0.4.0
+        env:
+          BUILD_OPTS: --features on-chain-release-build
         with:
           chain: ${{ matrix.chain }}
           tag: 1.57.0
