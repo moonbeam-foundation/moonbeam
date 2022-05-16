@@ -317,7 +317,7 @@ fn test_fee_calculation_works() {
 
 // Kusama case
 #[test]
-fn test_fee_calculation_works_2() {
+fn test_fee_calculation_works_kusama_0_9_20_case() {
 	ExtBuilder::default()
 		.with_balances(vec![])
 		.build()
