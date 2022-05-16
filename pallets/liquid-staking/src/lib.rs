@@ -44,7 +44,7 @@ pub mod pallet {
 		},
 		frame_system::pallet_prelude::*,
 		sp_runtime::{
-			traits::{CheckedSub, Zero},
+			traits::{CheckedAdd, CheckedSub, Zero},
 			Perbill,
 		},
 		sp_std::collections::btree_set::BTreeSet,
@@ -366,6 +366,20 @@ pub mod pallet {
 			leaving_shares: T::Balance,
 			requested_at: T::BlockNumber,
 		},
+		/// Transfered AutoCompounding shares to another account.
+		TransferedAutoCompounding {
+			candidate: T::AccountId,
+			sender: T::AccountId,
+			recipient: T::AccountId,
+			shares: T::Balance,
+		},
+		/// Transfered ManualClaim shares to another account.
+		TransferedManualClaim {
+			candidate: T::AccountId,
+			sender: T::AccountId,
+			recipient: T::AccountId,
+			shares: T::Balance,
+		},
 	}
 
 	#[pallet::error]
@@ -379,6 +393,7 @@ pub mod pallet {
 		NotEnoughShares,
 		TryingToLeaveTooSoon,
 		InconsistentState,
+		UnsufficientSharesForTransfer,
 	}
 
 	#[pallet::call]
@@ -761,7 +776,7 @@ pub mod pallet {
 
 				let inserted_stake = if put_in_auto_compound {
 					let shares = pools::auto_compounding::stake_to_shares_or_init::<T>(
-						&request.candidate.clone(),
+						&request.candidate,
 						canceled_stake,
 					)?;
 
@@ -776,7 +791,7 @@ pub mod pallet {
 					}
 				} else {
 					let shares = pools::manual_claim::stake_to_shares_or_init::<T>(
-						&request.candidate.clone(),
+						&request.candidate,
 						&canceled_stake,
 					)?;
 
@@ -796,12 +811,100 @@ pub mod pallet {
 					.ok_or(Error::<T>::MathUnderflow)?;
 
 				pools::auto_compounding::share_stake_among_holders::<T>(
-					&request.candidate.clone(),
+					&request.candidate,
 					dust_stake,
 				)?;
 
 				pools::check_candidate_consistency::<T>(&request.candidate)?;
 			}
+
+			Ok(().into())
+		}
+
+		#[pallet::weight(0)]
+		#[transactional]
+		pub fn transfer_auto_compounding(
+			origin: OriginFor<T>,
+			candidate: T::AccountId,
+			recipient: T::AccountId,
+			shares: T::Balance,
+		) -> DispatchResultWithPostInfo {
+			let sender = ensure_signed(origin)?;
+			ensure!(!Zero::is_zero(&shares), Error::<T>::StakeMustBeNonZero);
+
+			let sender_new_shares = AutoCompoundingShares::<T>::get(&candidate, &sender)
+				.checked_sub(&shares)
+				.ok_or(Error::<T>::UnsufficientSharesForTransfer)?;
+
+			let recipient_new_shares = AutoCompoundingShares::<T>::get(&candidate, &recipient)
+				.checked_add(&shares)
+				.ok_or(Error::<T>::MathOverflow)?;
+
+			AutoCompoundingShares::<T>::insert(&candidate, &sender, sender_new_shares);
+			AutoCompoundingShares::<T>::insert(&candidate, &recipient, recipient_new_shares);
+
+			Self::deposit_event(Event::TransferedAutoCompounding {
+				candidate,
+				sender,
+				recipient,
+				shares,
+			});
+
+			Ok(().into())
+		}
+
+		#[pallet::weight(0)]
+		#[transactional]
+		pub fn transfer_manual_claim(
+			origin: OriginFor<T>,
+			candidate: T::AccountId,
+			recipient: T::AccountId,
+			shares: T::Balance,
+		) -> DispatchResultWithPostInfo {
+			let sender = ensure_signed(origin)?;
+			ensure!(!Zero::is_zero(&shares), Error::<T>::StakeMustBeNonZero);
+
+			let sender_new_shares = ManualClaimShares::<T>::get(&candidate, &sender)
+				.checked_sub(&shares)
+				.ok_or(Error::<T>::UnsufficientSharesForTransfer)?;
+
+			let recipient_new_shares = ManualClaimShares::<T>::get(&candidate, &recipient)
+				.checked_add(&shares)
+				.ok_or(Error::<T>::MathOverflow)?;
+
+			// It is important to automatically claim rewards before updating
+			// the amount of shares since pending rewards are stored per share.
+			let sender_rewards =
+				pools::manual_claim::claim_rewards::<T>(candidate.clone(), sender.clone())?;
+			if !Zero::is_zero(&sender_rewards) {
+				T::Currency::transfer(
+					&T::StakingAccount::get(),
+					&sender,
+					sender_rewards,
+					ExistenceRequirement::KeepAlive,
+				)?;
+			}
+
+			let recipient_rewards =
+				pools::manual_claim::claim_rewards::<T>(candidate.clone(), recipient.clone())?;
+			if !Zero::is_zero(&recipient_rewards) {
+				T::Currency::transfer(
+					&T::StakingAccount::get(),
+					&recipient,
+					recipient_rewards,
+					ExistenceRequirement::KeepAlive,
+				)?;
+			}
+
+			ManualClaimShares::<T>::insert(&candidate, &sender, sender_new_shares);
+			ManualClaimShares::<T>::insert(&candidate, &recipient, recipient_new_shares);
+
+			Self::deposit_event(Event::TransferedManualClaim {
+				candidate,
+				sender,
+				recipient,
+				shares,
+			});
 
 			Ok(().into())
 		}
