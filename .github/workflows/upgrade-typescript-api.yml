@@ -1,0 +1,32 @@
+name: Upgrade typescript API
+on:
+  workflow_dispatch:
+    inputs:
+      spec_version:
+        description: runtime spec version
+        required: true
+
+jobs:
+  create-tracing-runtime:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: runtime-${{ github.event.inputs.spec_version }}
+      - name: Use Node.js 14.x
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14.x
+      - name: import runtime
+        run: |
+          cd typescript-api
+          ./scripts/runtime-upgrade.sh ${{ github.event.inputs.spec_version }}
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v3
+        with:
+          branch: "typescript-api-${{ github.event.inputs.spec_version }}"
+          commit-message: typescript API v0.${{ github.event.inputs.spec_version }}.0"
+          draft: true
+          title: "Upgrade typescript API for runtime  ${{ github.event.inputs.spec_version }}"
+          reviewers: "librelois,ekenigs,crystalin"
