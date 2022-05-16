@@ -22,12 +22,11 @@
 use evm::{executor::stack::PrecompileOutput, Context};
 use fp_evm::PrecompileHandle;
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
-use pallet_evm::{AddressMapping, Precompile};
+use pallet_evm::AddressMapping;
 use precompile_utils::{
 	check_function_modifier, revert, succeed, Address, Bytes, EvmDataReader, EvmDataWriter,
 	EvmResult, FunctionModifier, RuntimeHelper,
 };
-
 use sp_core::H160;
 use sp_std::{
 	boxed::Box,
@@ -38,13 +37,13 @@ use sp_std::{
 use xcm::latest::MultiLocation;
 use xcm_primitives::AccountIdToCurrencyId;
 use xcm_transactor::RemoteTransactInfoWithMaxWeight;
+
 #[cfg(test)]
 mod mock;
 #[cfg(test)]
 mod tests;
 
 pub type TransactorOf<Runtime> = <Runtime as xcm_transactor::Config>::Transactor;
-
 pub type CurrencyIdOf<Runtime> = <Runtime as xcm_transactor::Config>::CurrencyId;
 
 #[precompile_utils::generate_function_selector]
@@ -60,7 +59,7 @@ pub enum Action {
 /// A precompile to wrap the functionality from xcm transactor
 pub struct XcmTransactorWrapper<Runtime>(PhantomData<Runtime>);
 
-impl<Runtime> Precompile for XcmTransactorWrapper<Runtime>
+impl<Runtime> pallet_evm::Precompile for XcmTransactorWrapper<Runtime>
 where
 	Runtime: xcm_transactor::Config + pallet_evm::Config + frame_system::Config,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,

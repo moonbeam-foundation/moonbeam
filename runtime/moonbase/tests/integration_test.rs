@@ -2359,18 +2359,14 @@ fn precompile_existence() {
 
 				assert!(
 					precompiles
-						.execute(
-							&mut MockHandle::new(),
+						.execute(&mut MockHandle::new(
 							address,
-							&vec![],
-							None,
-							&Context {
+							Context {
 								address,
 								caller: H160::zero(),
 								apparent_value: U256::zero()
-							},
-							false
-						)
+							}
+						),)
 						.is_some(),
 					"execute({},..) should return Some(_)",
 					i
@@ -2384,18 +2380,14 @@ fn precompile_existence() {
 
 				assert!(
 					precompiles
-						.execute(
-							&mut MockHandle::new(),
+						.execute(&mut MockHandle::new(
 							address,
-							&vec![],
-							None,
-							&Context {
+							Context {
 								address,
 								caller: H160::zero(),
 								apparent_value: U256::zero()
-							},
-							false
-						)
+							}
+						),)
 						.is_none(),
 					"execute({},..) should return None",
 					i

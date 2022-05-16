@@ -31,6 +31,7 @@ use frame_support::{
 };
 use frame_system::{EnsureSigned, RawOrigin};
 use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet};
+use precompile_utils::Precompile;
 use serde::{Deserialize, Serialize};
 use sp_core::H256;
 use sp_io;
@@ -39,6 +40,7 @@ use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 	Perbill,
 };
+
 pub type AccountId = H160;
 pub type Balance = u128;
 pub type BlockNumber = u64;
@@ -184,19 +186,11 @@ impl<R> PrecompileSet for TestPrecompiles<R>
 where
 	CrowdloanRewardsWrapper<R>: Precompile,
 {
-	fn execute(
-		&self,
-		handle: &mut impl PrecompileHandle,
-		address: H160,
-		input: &[u8],
-		target_gas: Option<u64>,
-		context: &Context,
-		is_static: bool,
-	) -> Option<EvmResult<PrecompileOutput>> {
-		match address {
-			a if a == Account::Precompile.into() => Some(CrowdloanRewardsWrapper::<R>::execute(
-				handle, input, target_gas, context, is_static,
-			)),
+	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<EvmResult<PrecompileOutput>> {
+		match handle.code_address() {
+			a if a == Account::Precompile.into() => {
+				Some(CrowdloanRewardsWrapper::<R>::execute(handle))
+			}
 			_ => None,
 		}
 	}

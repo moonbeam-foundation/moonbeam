@@ -25,7 +25,6 @@ use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
 	ensure,
 };
-use pallet_evm::Precompile;
 use pallet_staking::RewardDestination;
 use precompile_utils::{
 	check_function_modifier, revert, succeed, Bytes, EvmData, EvmDataReader, EvmDataWriter,
@@ -83,7 +82,8 @@ enum Action {
 /// A precompile to provide relay stake calls encoding through evm
 pub struct RelayEncoderWrapper<Runtime, RelayRuntime>(PhantomData<(Runtime, RelayRuntime)>);
 
-impl<Runtime, RelayRuntime> Precompile for RelayEncoderWrapper<Runtime, RelayRuntime>
+// TODO: Migrate to precompile_utils::Precompile.
+impl<Runtime, RelayRuntime> pallet_evm::Precompile for RelayEncoderWrapper<Runtime, RelayRuntime>
 where
 	RelayRuntime: StakeEncodeCall,
 	Runtime: pallet_evm::Config,
