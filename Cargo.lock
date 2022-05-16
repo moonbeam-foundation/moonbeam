@@ -5503,6 +5503,7 @@ dependencies = [
  "runtime-common",
  "scale-info",
  "serde",
+ "session-keys-primitives",
  "sha3 0.8.2",
  "sha3 0.9.1",
  "smallvec 1.8.0",
@@ -5940,6 +5941,7 @@ dependencies = [
  "runtime-common",
  "scale-info",
  "serde",
+ "session-keys-primitives",
  "sha3 0.8.2",
  "sha3 0.9.1",
  "smallvec 1.8.0",
@@ -6183,6 +6185,7 @@ dependencies = [
  "runtime-common",
  "scale-info",
  "serde",
+ "session-keys-primitives",
  "sha3 0.8.2",
  "sha3 0.9.1",
  "smallvec 1.8.0",
@@ -11848,6 +11851,13 @@ dependencies = [
 [[package]]
 name = "session-keys-primitives"
 version = "0.1.0"
+dependencies = [
+ "nimbus-primitives",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-application-crypto",
+ "sp-runtime",
+]
 
 [[package]]
 name = "sha-1"

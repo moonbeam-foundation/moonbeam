@@ -17,12 +17,12 @@
 //! A pallet to put your runtime into a restricted maintenance or safe mode. This is useful when
 //! performing site maintenance, running data migrations, or protecting the chain during an attack.
 //!
-//! This introduces one storage read to fetch the base filter for each extrinsic. Hoever, it should
+//! This introduces one storage read to fetch the base filter for each extrinsic. However, it should
 //! be that the state cache eliminates this cost almost entirely. I wonder if that can or should be
 //! reflected in the weight calculation.
 //!
 //! Possible future improvements
-//! 1. This could be more configureable by letting the runtime developer specify a type (probably an
+//! 1. This could be more configurable by letting the runtime developer specify a type (probably an
 //! enum) that can be converted into a filter. Similar end result (but different implementation) as
 //! Acala has it
 //! github.com/AcalaNetwork/Acala/blob/pause-transaction/modules/transaction-pause/src/lib.rs#L71

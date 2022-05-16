@@ -150,6 +150,7 @@ pub mod opaque {
 	impl_opaque_keys! {
 		pub struct SessionKeys {
 			pub nimbus: AuthorInherent,
+			pub vrf: session_keys_primitives::VrfSessionKey,
 		}
 	}
 }
@@ -747,7 +748,7 @@ impl pallet_author_mapping::Config for Runtime {
 	type Event = Event;
 	type DepositCurrency = Balances;
 	type DepositAmount = ConstU128<{ 100 * currency::GLMR * currency::SUPPLY_FACTOR }>;
-	type Keys = NimbusId; // TODO: consider making custom type?
+	type Keys = session_keys_primitives::VrfId;
 	type WeightInfo = pallet_author_mapping::weights::SubstrateWeight<Runtime>;
 }
 
