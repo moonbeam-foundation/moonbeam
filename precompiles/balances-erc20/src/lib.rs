@@ -367,7 +367,7 @@ where
 				spender,
 				EvmDataWriter::new().write(amount).build(),
 			)
-			.record(handle);
+			.record(handle)?;
 
 		// Build output.
 		Ok(succeed(EvmDataWriter::new().write(true).build()))
@@ -410,7 +410,7 @@ where
 				to,
 				EvmDataWriter::new().write(amount).build(),
 			)
-			.record(handle);
+			.record(handle)?;
 
 		// Build output.
 		Ok(succeed(EvmDataWriter::new().write(true).build()))
@@ -475,7 +475,7 @@ where
 				to,
 				EvmDataWriter::new().write(amount).build(),
 			)
-			.record(handle);
+			.record(handle)?;
 
 		// Build output.
 		Ok(succeed(EvmDataWriter::new().write(true).build()))
@@ -542,7 +542,7 @@ where
 				context.caller,
 				EvmDataWriter::new().write(context.apparent_value).build(),
 			)
-			.record(handle);
+			.record(handle)?;
 
 		Ok(succeed([]))
 	}
@@ -577,7 +577,7 @@ where
 				context.caller,
 				EvmDataWriter::new().write(withdrawn_amount).build(),
 			)
-			.record(handle);
+			.record(handle)?;
 
 		Ok(succeed([]))
 	}

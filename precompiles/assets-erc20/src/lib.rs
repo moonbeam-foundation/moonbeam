@@ -139,15 +139,12 @@ where
 	<Runtime as pallet_timestamp::Config>::Moment: Into<U256>,
 	AssetIdOf<Runtime, Instance>: Display,
 {
-	fn execute(
-		&self,
-		handle: &mut impl PrecompileHandle,
-		address: H160,
-		input: &[u8],
-		_target_gas: Option<u64>,
-		context: &Context,
-		is_static: bool,
-	) -> Option<EvmResult<PrecompileOutput>> {
+	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<EvmResult<PrecompileOutput>> {
+		let address = handle.code_address();
+		let input = handle.input().to_vec();
+
+		let context = &handle.context().clone();
+
 		if let Some((_, asset_id)) =
 			Runtime::account_to_asset_id(Runtime::AddressMapping::into_account_id(address))
 		{
@@ -155,7 +152,7 @@ where
 			// which is all we care about at this point
 			if pallet_assets::Pallet::<Runtime, Instance>::maybe_total_supply(asset_id).is_some() {
 				let result = {
-					let (mut input, selector) = match EvmDataReader::new_with_selector(input) {
+					let (mut input, selector) = match EvmDataReader::new_with_selector(&input) {
 						Ok((input, selector)) => (input, selector),
 						Err(e) => return Some(Err(e)),
 					};
@@ -163,7 +160,7 @@ where
 
 					if let Err(err) = check_function_modifier(
 						context,
-						is_static,
+						handle.is_static(),
 						match selector {
 							Action::Approve | Action::Transfer | Action::TransferFrom => {
 								FunctionModifier::NonPayable
@@ -348,7 +345,7 @@ where
 				spender,
 				EvmDataWriter::new().write(amount).build(),
 			)
-			.record(handle);
+			.record(handle)?;
 
 		// Build output.
 		Ok(succeed(EvmDataWriter::new().write(true).build()))
@@ -433,7 +430,7 @@ where
 				to,
 				EvmDataWriter::new().write(amount).build(),
 			)
-			.record(handle);
+			.record(handle)?;
 
 		// Build output.
 		Ok(succeed(EvmDataWriter::new().write(true).build()))
@@ -493,7 +490,7 @@ where
 				to,
 				EvmDataWriter::new().write(amount).build(),
 			)
-			.record(handle);
+			.record(handle)?;
 
 		// Build output.
 		Ok(succeed(EvmDataWriter::new().write(true).build()))
@@ -594,7 +591,7 @@ where
 				to,
 				EvmDataWriter::new().write(amount).build(),
 			)
-			.record(handle);
+			.record(handle)?;
 
 		// Build output.
 		Ok(succeed(EvmDataWriter::new().write(true).build()))
@@ -642,7 +639,7 @@ where
 				H160::default(),
 				EvmDataWriter::new().write(amount).build(),
 			)
-			.record(handle);
+			.record(handle)?;
 
 		// Build output.
 		Ok(succeed(EvmDataWriter::new().write(true).build()))

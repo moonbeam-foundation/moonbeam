@@ -55,6 +55,24 @@ pub fn error<T: Into<alloc::borrow::Cow<'static, str>>>(text: T) -> PrecompileFa
 	}
 }
 
+/// A single precompile.
+/// Follows new EVM precompile design : https://github.com/rust-blockchain/evm/pull/122
+/// Automatically implemented for Frontier precompiles, at the cost of cloning the input.
+pub trait Precompile {
+	fn execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput>;
+}
+
+impl<T: pallet_evm::Precompile> Precompile for T {
+	fn execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		let input = handle.input().to_vec();
+		let target_gas = handle.gas_limit();
+		let context = handle.context().clone();
+		let is_static = handle.is_static();
+
+		<T as pallet_evm::Precompile>::execute(handle, &input, target_gas, &context, is_static)
+	}
+}
+
 /// Builder for PrecompileOutput.
 #[derive(Clone, Debug)]
 pub struct LogsBuilder {
@@ -139,12 +157,13 @@ impl LogsBuilder {
 
 /// Extension trait allowing to record logs into a PrecompileHandle.
 pub trait LogExt {
-	fn record(self, handle: &mut impl PrecompileHandle);
+	fn record(self, handle: &mut impl PrecompileHandle) -> EvmResult;
 }
 
 impl LogExt for Log {
-	fn record(self, handle: &mut impl PrecompileHandle) {
-		handle.log(self.address, self.topics, self.data);
+	fn record(self, handle: &mut impl PrecompileHandle) -> EvmResult {
+		handle.log(self.address, self.topics, self.data)?;
+		Ok(())
 	}
 }
 

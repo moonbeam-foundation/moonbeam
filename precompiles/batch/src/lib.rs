@@ -19,9 +19,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use evm::ExitReason;
-use fp_evm::{
-	Context, PrecompileFailure, PrecompileHandle, PrecompileOutput, Transfer,
-};
+use fp_evm::{Context, PrecompileFailure, PrecompileHandle, PrecompileOutput, Transfer};
 use pallet_evm::Precompile;
 use precompile_utils::{
 	check_function_modifier, succeed, Address, Bytes, EvmDataReader, EvmDataWriter, EvmResult,
@@ -146,7 +144,7 @@ where
 						EvmDataWriter::new()
 							.write(U256::from(i))
 							.write(outputs)
-							.build()
+							.build(),
 					))
 				}
 

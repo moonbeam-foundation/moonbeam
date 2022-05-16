@@ -47,30 +47,39 @@ pub struct MockHandle {
 	pub gas_used: u64,
 	pub logs: Vec<Log>,
 	pub subcall_handle: Option<SubcallHandle>,
+	pub code_address: H160,
+	pub input: Vec<u8>,
+	pub context: Context,
+	pub is_static: bool,
 }
 
 impl MockHandle {
-	pub fn new() -> Self {
+	pub fn new(code_address: H160, context: Context) -> Self {
 		Self {
 			gas_limit: u64::MAX,
 			gas_used: 0,
 			logs: vec![],
 			subcall_handle: None,
+			code_address,
+			input: Vec::new(),
+			context,
+			is_static: false,
 		}
 	}
 
-	pub fn with_gas_limit(gas_limit: u64) -> Self {
-		Self {
-			gas_limit,
-			gas_used: 0,
-			logs: vec![],
-			subcall_handle: None,
-		}
-	}
+	// pub fn with_gas_limit(gas_limit: u64) -> Self {
+	// 	Self {
+	// 		gas_limit,
+	// 		gas_used: 0,
+	// 		logs: vec![],
+	// 		subcall_handle: None,
+	// 	}
+	// }
 
-	pub fn set_subcall_handle(&mut self, handle: Option<SubcallHandle>) {
-		self.subcall_handle = handle;
-	}
+	// pub fn with_subcall_handle(mut self, handle: Option<SubcallHandle>) -> Self {
+	// 	self.subcall_handle = handle;
+	// 	self
+	// }
 }
 
 impl PrecompileHandle for MockHandle {
@@ -107,6 +116,7 @@ impl PrecompileHandle for MockHandle {
 
 				for log in logs {
 					self.log(log.address, log.topics, log.data)
+						.expect("cannot fail");
 				}
 
 				(reason, output)
@@ -129,23 +139,46 @@ impl PrecompileHandle for MockHandle {
 		self.gas_limit - self.gas_used
 	}
 
-	fn log(&mut self, address: H160, topics: Vec<H256>, data: Vec<u8>) {
+	fn log(&mut self, address: H160, topics: Vec<H256>, data: Vec<u8>) -> Result<(), ExitError> {
 		self.logs.push(Log {
 			address,
 			topics,
 			data,
-		})
+		});
+		Ok(())
+	}
+
+	/// Retreive the code address (what is the address of the precompile being called).
+	fn code_address(&self) -> H160 {
+		self.code_address
+	}
+
+	/// Retreive the input data the precompile is called with.
+	fn input(&self) -> &[u8] {
+		&self.input
+	}
+
+	/// Retreive the context in which the precompile is executed.
+	fn context(&self) -> &Context {
+		&self.context
+	}
+
+	/// Is the precompile call is done statically.
+	fn is_static(&self) -> bool {
+		self.is_static
+	}
+
+	/// Retreive the gas limit of this call.
+	fn gas_limit(&self) -> Option<u64> {
+		Some(self.gas_limit)
 	}
 }
 
 pub struct PrecompilesTester<'p, P> {
 	precompiles: &'p P,
-	to: H160,
-	data: Vec<u8>,
-	target_gas: Option<u64>,
-	context: Context,
-	is_static: bool,
+	handle: MockHandle,
 
+	target_gas: Option<u64>,
 	subcall_handle: Option<SubcallHandle>,
 
 	expected_cost: Option<u64>,
@@ -160,18 +193,22 @@ impl<'p, P: PrecompileSet> PrecompilesTester<'p, P> {
 		data: Vec<u8>,
 	) -> Self {
 		let to = to.into();
-		Self {
-			precompiles,
-			to: to.clone(),
-			data,
-			target_gas: None,
-			context: Context {
+		let mut handle = MockHandle::new(
+			to.clone(),
+			Context {
 				address: to,
 				caller: from.into(),
 				apparent_value: U256::zero(),
 			},
-			is_static: false,
+		);
 
+		handle.input = data;
+
+		Self {
+			precompiles,
+			handle,
+
+			target_gas: None,
 			subcall_handle: None,
 
 			expected_cost: None,
@@ -180,7 +217,7 @@ impl<'p, P: PrecompileSet> PrecompilesTester<'p, P> {
 	}
 
 	pub fn with_value(mut self, value: impl Into<U256>) -> Self {
-		self.context.apparent_value = value.into();
+		self.handle.context.apparent_value = value.into();
 		self
 	}
 
@@ -213,53 +250,56 @@ impl<'p, P: PrecompileSet> PrecompilesTester<'p, P> {
 		self
 	}
 
-	fn assert_optionals(&self, handle: &MockHandle) {
+	fn assert_optionals(&self) {
 		if let Some(cost) = &self.expected_cost {
-			assert_eq!(&handle.gas_used, cost);
+			assert_eq!(&self.handle.gas_used, cost);
 		}
 
 		if let Some(logs) = &self.expected_logs {
-			assert_eq!(&handle.logs, logs);
+			assert_eq!(&self.handle.logs, logs);
 		}
 	}
 
-	fn execute(&mut self) -> (Option<PrecompileResult>, MockHandle) {
-		let mut handle = MockHandle::new();
-		handle.set_subcall_handle(self.subcall_handle.take());
+	fn execute(&mut self) -> Option<PrecompileResult> {
+		let handle = &mut self.handle;
+		handle.subcall_handle = self.subcall_handle.take();
 
 		if let Some(gas_limit) = self.target_gas {
 			handle.gas_limit = gas_limit;
 		}
 
 		let res = self.precompiles.execute(
-			&mut handle,
-			self.to,
-			&self.data,
-			self.target_gas,
-			&self.context,
-			self.is_static,
+			handle,
+			// self.to,
+			// &self.data,
+			// self.target_gas,
+			// &self.context,
+			// self.is_static,
 		);
-		(res, handle)
+
+		self.subcall_handle = handle.subcall_handle.take();
+
+		res
 	}
 
 	/// Execute the precompile set and expect some precompile to have been executed, regardless of the
 	/// result.
 	pub fn execute_some(mut self) {
-		let (res, handle) = self.execute();
+		let res = self.execute();
 		assert!(res.is_some());
-		self.assert_optionals(&handle);
+		self.assert_optionals();
 	}
 
 	/// Execute the precompile set and expect no precompile to have been executed.
 	pub fn execute_none(mut self) {
-		let (res, handle) = self.execute();
+		let res = self.execute();
 		assert!(res.is_some());
-		self.assert_optionals(&handle);
+		self.assert_optionals();
 	}
 
 	/// Execute the precompile set and check it returns provided output.
 	pub fn execute_returns(mut self, output: Vec<u8>) {
-		let (res, handle) = self.execute();
+		let res = self.execute();
 		assert_eq!(
 			res,
 			Some(Ok(PrecompileOutput {
@@ -267,29 +307,29 @@ impl<'p, P: PrecompileSet> PrecompilesTester<'p, P> {
 				output
 			}))
 		);
-		self.assert_optionals(&handle);
+		self.assert_optionals();
 	}
 
 	/// Execute the precompile set and check if it reverts.
 	/// Take a closure allowing to perform custom matching on the output.
 	pub fn execute_reverts(mut self, check: impl Fn(&[u8]) -> bool) {
-		let (res, handle) = self.execute();
+		let res = self.execute();
 		assert_matches!(
 			res,
 			Some(Err(PrecompileFailure::Revert { output, ..}))
 				if check(&output)
 		);
-		self.assert_optionals(&handle);
+		self.assert_optionals();
 	}
 
 	/// Execute the precompile set and check it returns provided output.
 	pub fn execute_error(mut self, error: ExitError) {
-		let (res, handle) = self.execute();
+		let res = self.execute();
 		assert_eq!(
 			res,
 			Some(Err(PrecompileFailure::Error { exit_status: error }))
 		);
-		self.assert_optionals(&handle);
+		self.assert_optionals();
 	}
 }
 

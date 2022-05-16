@@ -239,7 +239,7 @@ where
 				spender,
 				EvmDataWriter::new().write(value).build(),
 			)
-			.record(handle);
+			.record(handle)?;
 
 		Ok(succeed([]))
 	}
