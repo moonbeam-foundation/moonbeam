@@ -108,7 +108,7 @@ fn send_relay_asset_to_relay() {
 			1u128,
 			true
 		));
-		// free execution
+		// Free execution
 		assert_ok!(AssetManager::set_asset_units_per_second(
 			parachain::Origin::root(),
 			source_location,

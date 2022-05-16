@@ -280,7 +280,7 @@ fn send_relay_asset_to_para_b() {
 fn send_para_a_asset_to_para_b() {
 	MockNet::reset();
 
-	// this represents the asset in paraA
+	// This represents the asset in paraA
 	let para_a_balances = MultiLocation::new(1, X2(Parachain(1), PalletInstance(1u8)));
 	let source_location = parachain::AssetType::Xcm(para_a_balances);
 	let source_id: parachain::AssetId = source_location.clone().into();
@@ -519,7 +519,7 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 		);
 	});
 
-	// para B balances have been credited
+	// Para B balances have been credited
 	ParaB::execute_with(|| {
 		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 100);
 	});
