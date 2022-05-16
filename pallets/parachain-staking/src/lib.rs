@@ -1237,14 +1237,17 @@ pub mod pallet {
 			let acc = ensure_signed(origin)?;
 			let mut state = <DelegatorState<T>>::get(&acc).ok_or(Error::<T>::DelegatorDNE)?;
 			let mut leaving_delegators = <LeavingDelegators<T>>::get();
+			let maybe_leaving_delegator =
+				leaving_delegators.binary_search_by(|item| item.cmp(&acc));
 			ensure!(!state.is_leaving(), Error::<T>::DelegatorAlreadyLeaving);
 			ensure!(
-				!leaving_delegators.contains(&acc),
+				maybe_leaving_delegator.is_err(),
 				Error::<T>::DelegatorAlreadyLeaving
 			);
+			let insert_index = maybe_leaving_delegator.unwrap_err();
+			leaving_delegators.insert(insert_index, acc.clone());
 
 			let (now, when) = state.schedule_leave::<T>();
-			leaving_delegators.push(acc.clone());
 			<LeavingDelegators<T>>::put(leaving_delegators);
 			<DelegatorState<T>>::insert(&acc, state);
 			Self::deposit_event(Event::DelegatorExitScheduled {
@@ -1266,10 +1269,11 @@ pub mod pallet {
 			let mut leaving_delegators = <LeavingDelegators<T>>::get();
 
 			state.can_execute_leave::<T>(delegation_count)?;
-			let leaving_delegator_index = leaving_delegators
-				.iter()
-				.position(|account| account == &delegator)
-				.ok_or(Error::<T>::DelegatorDNE)?;
+			let maybe_leaving_delegator =
+				leaving_delegators.binary_search_by(|item| item.cmp(&delegator));
+			ensure!(maybe_leaving_delegator.is_ok(), Error::<T>::DelegatorDNE);
+			let delegator_index = maybe_leaving_delegator.unwrap();
+			leaving_delegators.remove(delegator_index);
 
 			for bond in state.delegations.0.clone() {
 				if let Err(error) = Self::delegator_leaves_candidate(
@@ -1285,7 +1289,7 @@ pub mod pallet {
 
 				Self::delegation_remove_request_with_state(&bond.owner, &delegator, &mut state);
 			}
-			leaving_delegators.remove(leaving_delegator_index);
+
 			<LeavingDelegators<T>>::put(leaving_delegators);
 			<DelegatorState<T>>::remove(&delegator);
 			Self::deposit_event(Event::DelegatorLeft {
@@ -1305,11 +1309,11 @@ pub mod pallet {
 			// ensure state is leaving
 			ensure!(state.is_leaving(), Error::<T>::DelegatorDNE);
 			// cancel exit request
-			let leaving_delegator_index = leaving_delegators
-				.iter()
-				.position(|account| account == &delegator)
-				.ok_or(Error::<T>::DelegatorDNE)?;
-			leaving_delegators.remove(leaving_delegator_index);
+			let maybe_leaving_delegator =
+				leaving_delegators.binary_search_by(|item| item.cmp(&delegator));
+			ensure!(maybe_leaving_delegator.is_ok(), Error::<T>::DelegatorDNE);
+			let delegator_index = maybe_leaving_delegator.unwrap();
+			leaving_delegators.remove(delegator_index);
 			state.cancel_leave();
 			<LeavingDelegators<T>>::put(leaving_delegators);
 			<DelegatorState<T>>::insert(&delegator, state);
