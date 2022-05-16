@@ -609,11 +609,6 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a_with_new_reanchoring() {
 		));
 	});
 
-	// Para B balances have been substracted
-	ParaB::execute_with(|| {
-		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 0);
-	});
-
 	// Para A asset has been credited
 	ParaA::execute_with(|| {
 		assert_eq!(

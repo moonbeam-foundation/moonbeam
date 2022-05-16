@@ -113,7 +113,8 @@ where
 // We need to know how to charge for incoming assets
 // We assume AssetIdInfoGetter is implemented and is capable of getting how much units we should
 // charge for a given asset
-// This trader takes the first assets being received and tries to charge fees for that asset
+// This takes the first fungible asset, and takes whatever UnitPerSecondGetter establishes
+// UnitsToWeightRatio trait, which needs to be implemented by AssetIdInfoGetter
 pub struct FirstAssetTrader<
 	AssetType: From<MultiLocation> + Clone,
 	AssetIdInfoGetter: UnitsToWeightRatio<AssetType>,

@@ -180,7 +180,7 @@ pub mod pallet {
 		/// The units in which we record balances.
 		type Balance: Member + Parameter + AtLeast32BitUnsigned + Default + Copy + MaxEncodedLen;
 
-		/// The asset Registrar.
+		/// The asset Registrar. /// The trait we use to register Assets
 		type AssetRegistrar: AssetRegistrar<Self>;
 
 		/// Origin that is allowed to create and modify asset information for foreign assets
