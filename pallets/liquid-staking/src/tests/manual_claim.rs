@@ -20,7 +20,7 @@ use super::*;
 fn empty_delegation() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_noop!(
-			LiquidStaking::stake_auto_compounding(
+			LiquidStaking::stake_manual_claim(
 				Origin::signed(ACCOUNT_DELEGATOR_1),
 				ACCOUNT_CANDIDATE_1,
 				SharesOrStake::Shares(0)
@@ -35,7 +35,7 @@ fn empty_delegation() {
 #[test]
 fn single_delegation() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_ok!(LiquidStaking::stake_auto_compounding(
+		assert_ok!(LiquidStaking::stake_manual_claim(
 			Origin::signed(ACCOUNT_DELEGATOR_1),
 			ACCOUNT_CANDIDATE_1,
 			SharesOrStake::Shares(1)
@@ -44,19 +44,19 @@ fn single_delegation() {
 		assert_eq!(balance(&ACCOUNT_STAKING), 1_000_000_000);
 
 		assert_eq_events!(vec![
-			Event::StakedAutoCompounding {
+			Event::StakedManualClaim {
 				candidate: ACCOUNT_CANDIDATE_1,
 				delegator: ACCOUNT_DELEGATOR_1,
 				shares: 1,
-				stake: 1_000_000_000, // InitialAutoCompoundingShareValue
+				stake: 1_000_000_000, // InitialManualClaimShareValue
 			},
 			Event::IncreasedStake {
 				candidate: ACCOUNT_CANDIDATE_1,
-				stake: 1_000_000_000, // InitialAutoCompoundingShareValue
+				stake: 1_000_000_000, // InitialManualClaimShareValue
 			},
 			Event::UpdatedCandidatePosition {
 				candidate: ACCOUNT_CANDIDATE_1,
-				stake: 1_000_000_000, // InitialAutoCompoundingShareValue
+				stake: 1_000_000_000, // InitialManualClaimShareValue
 				self_delegation: 0,
 				before: None,
 				after: None,
@@ -68,7 +68,7 @@ fn single_delegation() {
 #[test]
 fn low_self_delegation() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_ok!(LiquidStaking::stake_auto_compounding(
+		assert_ok!(LiquidStaking::stake_manual_claim(
 			Origin::signed(ACCOUNT_CANDIDATE_1),
 			ACCOUNT_CANDIDATE_1,
 			SharesOrStake::Shares(1)
@@ -77,19 +77,19 @@ fn low_self_delegation() {
 		assert_eq!(balance(&ACCOUNT_STAKING), 1_000_000_000);
 
 		assert_eq_events!(vec![
-			Event::StakedAutoCompounding {
+			Event::StakedManualClaim {
 				candidate: ACCOUNT_CANDIDATE_1,
 				delegator: ACCOUNT_CANDIDATE_1,
 				shares: 1,
-				stake: 1_000_000_000, // InitialAutoCompoundingShareValue
+				stake: 1_000_000_000, // InitialManualClaimShareValue
 			},
 			Event::IncreasedStake {
 				candidate: ACCOUNT_CANDIDATE_1,
-				stake: 1_000_000_000, // InitialAutoCompoundingShareValue
+				stake: 1_000_000_000, // InitialManualClaimShareValue
 			},
 			Event::UpdatedCandidatePosition {
 				candidate: ACCOUNT_CANDIDATE_1,
-				stake: 1_000_000_000, // InitialAutoCompoundingShareValue
+				stake: 1_000_000_000, // InitialManualClaimShareValue
 				self_delegation: 1_000_000_000,
 				before: None,
 				after: None,
@@ -101,7 +101,7 @@ fn low_self_delegation() {
 #[test]
 fn sufficient_self_delegation() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_ok!(LiquidStaking::stake_auto_compounding(
+		assert_ok!(LiquidStaking::stake_manual_claim(
 			Origin::signed(ACCOUNT_CANDIDATE_1),
 			ACCOUNT_CANDIDATE_1,
 			SharesOrStake::Shares(10)
@@ -110,7 +110,7 @@ fn sufficient_self_delegation() {
 		assert_eq!(balance(&ACCOUNT_STAKING), 10_000_000_000);
 
 		assert_eq_events!(vec![
-			Event::StakedAutoCompounding {
+			Event::StakedManualClaim {
 				candidate: ACCOUNT_CANDIDATE_1,
 				delegator: ACCOUNT_CANDIDATE_1,
 				shares: 10,
@@ -134,7 +134,7 @@ fn sufficient_self_delegation() {
 #[test]
 fn multi_delegations() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_ok!(LiquidStaking::stake_auto_compounding(
+		assert_ok!(LiquidStaking::stake_manual_claim(
 			Origin::signed(ACCOUNT_DELEGATOR_1),
 			ACCOUNT_CANDIDATE_1,
 			SharesOrStake::Shares(1)
@@ -142,7 +142,7 @@ fn multi_delegations() {
 		assert_eq!(balance(&ACCOUNT_DELEGATOR_1), 999_000_000_000);
 		assert_eq!(balance(&ACCOUNT_STAKING), 1_000_000_000);
 
-		assert_ok!(LiquidStaking::stake_auto_compounding(
+		assert_ok!(LiquidStaking::stake_manual_claim(
 			Origin::signed(ACCOUNT_CANDIDATE_1),
 			ACCOUNT_CANDIDATE_1,
 			SharesOrStake::Shares(10)
@@ -150,7 +150,7 @@ fn multi_delegations() {
 		assert_eq!(balance(&ACCOUNT_CANDIDATE_1), 990_000_000_000);
 		assert_eq!(balance(&ACCOUNT_STAKING), 11_000_000_000);
 
-		assert_ok!(LiquidStaking::stake_auto_compounding(
+		assert_ok!(LiquidStaking::stake_manual_claim(
 			Origin::signed(ACCOUNT_DELEGATOR_2),
 			ACCOUNT_CANDIDATE_1,
 			SharesOrStake::Shares(2)
@@ -159,7 +159,7 @@ fn multi_delegations() {
 		assert_eq!(balance(&ACCOUNT_STAKING), 13_000_000_000);
 
 		assert_eq_events!(vec![
-			Event::StakedAutoCompounding {
+			Event::StakedManualClaim {
 				candidate: ACCOUNT_CANDIDATE_1,
 				delegator: ACCOUNT_DELEGATOR_1,
 				shares: 1,
@@ -177,7 +177,7 @@ fn multi_delegations() {
 				after: None,
 			},
 			// -----
-			Event::StakedAutoCompounding {
+			Event::StakedManualClaim {
 				candidate: ACCOUNT_CANDIDATE_1,
 				delegator: ACCOUNT_CANDIDATE_1,
 				shares: 10,
@@ -195,7 +195,7 @@ fn multi_delegations() {
 				after: Some(0),
 			},
 			// -----
-			Event::StakedAutoCompounding {
+			Event::StakedManualClaim {
 				candidate: ACCOUNT_CANDIDATE_1,
 				delegator: ACCOUNT_DELEGATOR_2,
 				shares: 2,
@@ -220,7 +220,7 @@ fn multi_delegations() {
 fn stake_amount_too_low() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_noop!(
-			LiquidStaking::stake_auto_compounding(
+			LiquidStaking::stake_manual_claim(
 				Origin::signed(ACCOUNT_DELEGATOR_1),
 				ACCOUNT_CANDIDATE_1,
 				SharesOrStake::Stake(999_999_999), // 1 below minimum
@@ -235,7 +235,7 @@ fn stake_amount_too_low() {
 #[test]
 fn stake_single_delegation() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_ok!(LiquidStaking::stake_auto_compounding(
+		assert_ok!(LiquidStaking::stake_manual_claim(
 			Origin::signed(ACCOUNT_DELEGATOR_1),
 			ACCOUNT_CANDIDATE_1,
 			SharesOrStake::Stake(1_999_999_999), // will be rounded down to 1_000_000_000
@@ -244,19 +244,19 @@ fn stake_single_delegation() {
 		assert_eq!(balance(&ACCOUNT_STAKING), 1_000_000_000);
 
 		assert_eq_events!(vec![
-			Event::StakedAutoCompounding {
+			Event::StakedManualClaim {
 				candidate: ACCOUNT_CANDIDATE_1,
 				delegator: ACCOUNT_DELEGATOR_1,
 				shares: 1,
-				stake: 1_000_000_000, // InitialAutoCompoundingShareValue
+				stake: 1_000_000_000, // InitialManualClaimShareValue
 			},
 			Event::IncreasedStake {
 				candidate: ACCOUNT_CANDIDATE_1,
-				stake: 1_000_000_000, // InitialAutoCompoundingShareValue
+				stake: 1_000_000_000, // InitialManualClaimShareValue
 			},
 			Event::UpdatedCandidatePosition {
 				candidate: ACCOUNT_CANDIDATE_1,
-				stake: 1_000_000_000, // InitialAutoCompoundingShareValue
+				stake: 1_000_000_000, // InitialManualClaimShareValue
 				self_delegation: 0,
 				before: None,
 				after: None,
