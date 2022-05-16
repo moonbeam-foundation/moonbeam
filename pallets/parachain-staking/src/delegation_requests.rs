@@ -34,6 +34,7 @@ use crate::Delegator;
 pub enum DelegationAction<Balance> {
 	Revoke(Balance),
 	Decrease(Balance),
+	Leave(Balance),
 }
 
 impl<Balance: Copy> DelegationAction<Balance> {
@@ -42,6 +43,7 @@ impl<Balance: Copy> DelegationAction<Balance> {
 		match self {
 			DelegationAction::Revoke(amount) => *amount,
 			DelegationAction::Decrease(amount) => *amount,
+			DelegationAction::Leave(amount) => *amount,
 		}
 	}
 }
@@ -168,6 +170,40 @@ impl<T: Config> Pallet<T> {
 		Ok(().into())
 	}
 
+	/// Schedules a [DelegationAction::Leave] for the delegator, towards a given collator.
+	pub(crate) fn delegation_schedule_leave(
+		collator: T::AccountId,
+		delegator: T::AccountId,
+		bonded_amount: BalanceOf<T>,
+	) -> DispatchResultWithPostInfo {
+		let mut state = <DelegatorState<T>>::get(&delegator).ok_or(<Error<T>>::DelegatorDNE)?;
+		let mut scheduled_requests = <DelegationScheduledRequests<T>>::get(&collator);
+
+		// remove any other scheduled request, if not [DelegationAction::Leave]
+		if let Some(index) = scheduled_requests
+			.iter()
+			.position(|req| req.delegator == delegator)
+		{
+			if matches!(scheduled_requests[index].action, DelegationAction::Leave(_)) {
+				return Err(<Error<T>>::PendingDelegationRequestAlreadyExists.into());
+			}
+
+			scheduled_requests.remove(index);
+		}
+
+		let now = <Round<T>>::get().current;
+		let when = now.saturating_add(T::RevokeDelegationDelay::get());
+		scheduled_requests.push(ScheduledRequest {
+			delegator: delegator.clone(),
+			action: DelegationAction::Leave(bonded_amount),
+			when_executable: when,
+		});
+		state.less_total = state.less_total.saturating_add(bonded_amount);
+		<DelegationScheduledRequests<T>>::insert(collator.clone(), scheduled_requests);
+
+		Ok(().into())
+	}
+
 	/// Cancels the delegator's existing [ScheduledRequest] towards a given collator.
 	pub(crate) fn delegation_cancel_request(
 		collator: T::AccountId,
@@ -214,6 +250,10 @@ impl<T: Config> Pallet<T> {
 		);
 
 		match request.action {
+			DelegationAction::Leave(_) => {
+				// noop, this action is only used as a marked to compute rewardable delegators.
+				Ok(().into())
+			}
 			DelegationAction::Revoke(amount) => {
 				// revoking last delegation => leaving set of delegators
 				let leaving = if state.delegations.0.len() == 1usize {

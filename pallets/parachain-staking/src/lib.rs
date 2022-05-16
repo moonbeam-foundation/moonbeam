@@ -1233,6 +1233,19 @@ pub mod pallet {
 			let mut state = <DelegatorState<T>>::get(&acc).ok_or(Error::<T>::DelegatorDNE)?;
 			ensure!(!state.is_leaving(), Error::<T>::DelegatorAlreadyLeaving);
 			let (now, when) = state.schedule_leave::<T>();
+
+			for bond in state.delegations.0.clone() {
+				if let Err(error) =
+					Self::delegation_schedule_leave(bond.owner.clone(), acc.clone(), bond.amount)
+				{
+					log::warn!(
+						"STORAGE CORRUPTED \nDelegator leaving collator {:?} failed with error: {:?}",
+						bond.owner,
+						error
+					);
+				}
+			}
+
 			<DelegatorState<T>>::insert(&acc, state);
 			Self::deposit_event(Event::DelegatorExitScheduled {
 				round: now,
@@ -1283,6 +1296,11 @@ pub mod pallet {
 			ensure!(state.is_leaving(), Error::<T>::DelegatorDNE);
 			// cancel exit request
 			state.cancel_leave();
+
+			for bond in state.delegations.0.clone() {
+				Self::delegation_remove_request_with_state(&bond.owner, &delegator, &mut state);
+			}
+
 			<DelegatorState<T>>::insert(&delegator, state);
 			Self::deposit_event(Event::DelegatorExitCancelled { delegator });
 			Ok(().into())
@@ -1652,6 +1670,14 @@ pub mod pallet {
 				.map(|mut bond| {
 					bond.amount = match requests.get(&bond.owner) {
 						None => bond.amount,
+						Some(DelegationAction::Leave(_)) => {
+							log::warn!(
+								"reward for delegator '{:?}' set to zero due to pending \
+								leave request",
+								bond.owner
+							);
+							BalanceOf::<T>::zero()
+						}
 						Some(DelegationAction::Revoke(_)) => {
 							log::warn!(
 								"reward for delegator '{:?}' set to zero due to pending \
