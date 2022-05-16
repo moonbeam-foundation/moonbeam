@@ -1704,6 +1704,8 @@
 <span id="1699">1699</span>
 <span id="1700">1700</span>
 <span id="1701">1701</span>
+<span id="1702">1702</span>
+<span id="1703">1703</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -3238,7 +3240,9 @@
 					<span class="kw">for</span> <span class="ident">Bond</span> { <span class="ident">owner</span>, <span class="ident">amount</span> } <span class="kw">in</span> <span class="ident">state</span>.<span class="ident">delegations</span> {
 						<span class="kw">let</span> <span class="ident">percent</span> <span class="op">=</span> <span class="ident">Perbill::from_rational</span>(<span class="ident">amount</span>, <span class="ident">state</span>.<span class="ident">total</span>);
 						<span class="kw">let</span> <span class="ident">due</span> <span class="op">=</span> <span class="ident">percent</span> <span class="op">*</span> <span class="ident">amt_due</span>;
-						<span class="ident">mint</span>(<span class="ident">due</span>, <span class="ident">owner</span>.<span class="ident">clone</span>());
+						<span class="kw">if</span> <span class="op">!</span><span class="ident">due</span>.<span class="ident">is_zero</span>() {
+							<span class="ident">mint</span>(<span class="ident">due</span>, <span class="ident">owner</span>.<span class="ident">clone</span>());
+						}
 					}
 				}
 
