@@ -346,6 +346,9 @@
 <span id="341">341</span>
 <span id="342">342</span>
 <span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -459,6 +462,8 @@
 }
 
 <span class="comment">// We need to know how to charge for incoming assets</span>
+<span class="comment">// We assume AssetIdInfoGetter is implemented and is capable of getting how much units we should</span>
+<span class="comment">// charge for a given asset</span>
 <span class="comment">// This takes the first fungible asset, and takes whatever UnitPerSecondGetter establishes</span>
 <span class="comment">// UnitsToWeightRatio trait, which needs to be implemented by AssetIdInfoGetter</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FirstAssetTrader</span><span class="op">&lt;</span>
@@ -555,6 +560,7 @@
 		}
 	}
 
+	<span class="comment">// Refund weight. We will refund in whatever asset is stored in self.</span>
 	<span class="kw">fn</span> <span class="ident">refund_weight</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">weight</span>: <span class="ident">Weight</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MultiAsset</span><span class="op">&gt;</span> {
 		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">id</span>, <span class="ident">prev_amount</span>, <span class="ident">units_per_second</span>)) <span class="op">=</span> <span class="self">self</span>.<span class="number">1</span>.<span class="ident">clone</span>() {
 			<span class="kw">let</span> <span class="ident">weight</span> <span class="op">=</span> <span class="ident">weight</span>.<span class="ident">min</span>(<span class="self">self</span>.<span class="number">0</span>);
