@@ -2300,6 +2300,7 @@ where
 }
 
 #[test]
+#[rustfmt::skip]
 fn length_fee_is_sensible() {
 	use sp_runtime::testing::TestXt;
 
