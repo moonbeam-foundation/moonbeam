@@ -135,11 +135,11 @@ fn send_relay_asset_to_relay() {
 	});
 
 	ParaA::execute_with(|| {
-		// free execution, full amount received
+		// Free execution, full amount received
 		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 123);
 	});
 
-	// lets gather the balance before sending back money
+	// Lets gather the balance before sending back money
 	let mut balance_before_sending = 0;
 	Relay::execute_with(|| {
 		balance_before_sending = RelayBalances::free_balance(&RELAYALICE);
@@ -165,14 +165,14 @@ fn send_relay_asset_to_relay() {
 		));
 	});
 
-	// the balances in paraAlice should have been substracted
+	// The balances in paraAlice should have been substracted
 	ParaA::execute_with(|| {
 		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 0);
 	});
 
-	// balances in the relay should have been received
+	// Balances in the relay should have been received
 	Relay::execute_with(|| {
-		// free execution,x	 full amount received
+		// Free execution,x	 full amount received
 		assert!(RelayBalances::free_balance(&RELAYALICE) > balance_before_sending);
 	});
 }
@@ -241,7 +241,7 @@ fn send_relay_asset_to_para_b() {
 	});
 
 	ParaA::execute_with(|| {
-		// free execution, full amount received
+		// Free execution, full amount received
 		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 123);
 	});
 
@@ -323,7 +323,7 @@ fn send_para_a_asset_to_para_b() {
 	};
 
 	ParaA::execute_with(|| {
-		// free execution, full amount received
+		// Free execution, full amount received
 		assert_ok!(XTokens::transfer(
 			parachain::Origin::signed(PARAALICE.into()),
 			parachain::CurrencyId::SelfReserve,
@@ -444,7 +444,6 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 	};
 
 	ParaB::execute_with(|| {
-		// free execution, full amount received
 		assert_ok!(XTokens::transfer(
 			parachain::Origin::signed(PARAALICE.into()),
 			parachain::CurrencyId::ForeignAsset(source_id),
@@ -456,7 +455,6 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 
 	// The message passed through parachainA so we needed to pay since its the native token
 	ParaC::execute_with(|| {
-		// free execution, full amount received
 		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 96);
 	});
 }
@@ -465,7 +463,7 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 	MockNet::reset();
 
-	// para A asset
+	// Para A asset
 	let para_a_balances = MultiLocation::new(1, X2(Parachain(1), PalletInstance(1u8)));
 	let source_location = parachain::AssetType::Xcm(para_a_balances);
 	let source_id: parachain::AssetId = source_location.clone().into();
@@ -522,7 +520,7 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 		);
 	});
 
-	// para B balances have been credited
+	// Para B balances have been credited
 	ParaB::execute_with(|| {
 		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 100);
 	});
@@ -549,7 +547,6 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 	});
 
 	ParaA::execute_with(|| {
-		// free execution, full amount received
 		// Weight used is 4
 		assert_eq!(
 			ParaBalances::free_balance(&PARAALICE.into()),
@@ -599,7 +596,6 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a_with_new_reanchoring() {
 		),
 	};
 	ParaA::execute_with(|| {
-		// free execution, full amount received
 		assert_ok!(XTokens::transfer(
 			parachain::Origin::signed(PARAALICE.into()),
 			parachain::CurrencyId::SelfReserve,
