@@ -322,6 +322,9 @@ fn test_fee_calculation_works_2() {
 		.with_balances(vec![])
 		.build()
 		.execute_with(|| {
+			// 38620923000 * 319324000/1e12 = 12332587.6161
+			// integer arithmetic would round this to 12332587
+			// floating point arithmetic rounds this to 12332588
 			assert_eq!(
 				XcmTransactor::calculate_fee_per_second(319324000, 38620923000),
 				12332588
