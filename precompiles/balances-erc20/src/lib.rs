@@ -214,6 +214,7 @@ where
 	<Runtime as pallet_timestamp::Config>::Moment: Into<U256>,
 {
 	fn execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		handle.forbid_delegatecall()?;
 		let selector = handle.read_selector().unwrap_or_else(|_| Action::Deposit);
 
 		handle.check_function_modifier(match selector {

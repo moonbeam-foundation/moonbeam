@@ -145,6 +145,10 @@ where
 			// We check maybe_total_supply. This function returns Some if the asset exists,
 			// which is all we care about at this point
 			if pallet_assets::Pallet::<Runtime, Instance>::maybe_total_supply(asset_id).is_some() {
+				if let Err(err) = handle.forbid_delegatecall() {
+					return Some(Err(err));
+				}
+
 				let result = {
 					let selector = match handle.read_selector() {
 						Ok(selector) => selector,

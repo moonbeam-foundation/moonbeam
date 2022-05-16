@@ -70,6 +70,7 @@ where
 	Runtime: AccountIdToCurrencyId<Runtime::AccountId, CurrencyIdOf<Runtime>>,
 {
 	fn execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		handle.forbid_delegatecall()?;
 		let selector = handle.read_selector()?;
 
 		handle.check_function_modifier(match selector {

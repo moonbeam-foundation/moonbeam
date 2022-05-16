@@ -248,6 +248,9 @@ pub trait PrecompileHandleExt: PrecompileHandle {
 	fn check_function_modifier(&self, modifier: FunctionModifier) -> EvmResult;
 
 	#[must_use]
+	fn forbid_delegatecall(&self) -> EvmResult;
+
+	#[must_use]
 	/// Read the selector from the input data.
 	fn read_selector<T>(&self) -> EvmResult<T>
 	where
@@ -307,6 +310,16 @@ impl<T: PrecompileHandle> PrecompileHandleExt for T {
 	}
 
 	#[must_use]
+	fn forbid_delegatecall(&self) -> EvmResult {
+		if self.code_address() != self.context().address {
+			Err(revert("cannot be called with DELEGATECALL"))
+		} else {
+			Ok(())
+		}
+	}
+
+
+	#[must_use]
 	/// Read the selector from the input data.
 	fn read_selector<S>(&self) -> EvmResult<S>
 	where
@@ -338,7 +351,6 @@ pub fn succeed(output: impl AsRef<[u8]>) -> PrecompileOutput {
 	}
 }
 
-#[must_use]
 /// Check that a function call is compatible with the context it is
 /// called into.
 fn check_function_modifier(

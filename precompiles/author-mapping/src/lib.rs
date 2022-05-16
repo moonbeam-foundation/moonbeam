@@ -59,6 +59,8 @@ where
 	fn execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		log::trace!(target: "author-mapping-precompile", "In author mapping wrapper");
 
+		handle.forbid_delegatecall()?;
+
 		let selector = handle.read_selector()?;
 
 		handle.check_function_modifier(FunctionModifier::NonPayable)?;
