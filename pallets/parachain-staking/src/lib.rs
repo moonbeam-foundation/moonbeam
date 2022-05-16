@@ -514,6 +514,11 @@ pub mod pallet {
 	>;
 
 	#[pallet::storage]
+	#[pallet::getter(fn leaving_delegators)]
+	/// List of delegators scheduled for leave
+	pub(crate) type LeavingDelegators<T: Config> = StorageValue<_, Vec<T::AccountId>, ValueQuery>;
+
+	#[pallet::storage]
 	#[pallet::getter(fn top_delegations)]
 	/// Top delegations for collator candidate
 	pub(crate) type TopDelegations<T: Config> = StorageMap<
@@ -1231,8 +1236,16 @@ pub mod pallet {
 		pub fn schedule_leave_delegators(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			let acc = ensure_signed(origin)?;
 			let mut state = <DelegatorState<T>>::get(&acc).ok_or(Error::<T>::DelegatorDNE)?;
+			let mut leaving_delegators = <LeavingDelegators<T>>::get();
 			ensure!(!state.is_leaving(), Error::<T>::DelegatorAlreadyLeaving);
+			ensure!(
+				!leaving_delegators.contains(&acc),
+				Error::<T>::DelegatorAlreadyLeaving
+			);
+
 			let (now, when) = state.schedule_leave::<T>();
+			leaving_delegators.push(acc.clone());
+			<LeavingDelegators<T>>::put(leaving_delegators);
 			<DelegatorState<T>>::insert(&acc, state);
 			Self::deposit_event(Event::DelegatorExitScheduled {
 				round: now,
@@ -1250,7 +1263,14 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			ensure_signed(origin)?;
 			let mut state = <DelegatorState<T>>::get(&delegator).ok_or(Error::<T>::DelegatorDNE)?;
+			let mut leaving_delegators = <LeavingDelegators<T>>::get();
+
 			state.can_execute_leave::<T>(delegation_count)?;
+			let leaving_delegator_index = leaving_delegators
+				.iter()
+				.position(|account| account == &delegator)
+				.ok_or(Error::<T>::DelegatorDNE)?;
+
 			for bond in state.delegations.0.clone() {
 				if let Err(error) = Self::delegator_leaves_candidate(
 					bond.owner.clone(),
@@ -1265,9 +1285,11 @@ pub mod pallet {
 
 				Self::delegation_remove_request_with_state(&bond.owner, &delegator, &mut state);
 			}
+			leaving_delegators.remove(leaving_delegator_index);
+			<LeavingDelegators<T>>::put(leaving_delegators);
 			<DelegatorState<T>>::remove(&delegator);
 			Self::deposit_event(Event::DelegatorLeft {
-				delegator: delegator,
+				delegator,
 				unstaked_amount: state.total,
 			});
 			Ok(().into())
@@ -1279,10 +1301,17 @@ pub mod pallet {
 			let delegator = ensure_signed(origin)?;
 			// ensure delegator state exists
 			let mut state = <DelegatorState<T>>::get(&delegator).ok_or(Error::<T>::DelegatorDNE)?;
+			let mut leaving_delegators = <LeavingDelegators<T>>::get();
 			// ensure state is leaving
 			ensure!(state.is_leaving(), Error::<T>::DelegatorDNE);
 			// cancel exit request
+			let leaving_delegator_index = leaving_delegators
+				.iter()
+				.position(|account| account == &delegator)
+				.ok_or(Error::<T>::DelegatorDNE)?;
+			leaving_delegators.remove(leaving_delegator_index);
 			state.cancel_leave();
+			<LeavingDelegators<T>>::put(leaving_delegators);
 			<DelegatorState<T>>::insert(&delegator, state);
 			Self::deposit_event(Event::DelegatorExitCancelled { delegator });
 			Ok(().into())

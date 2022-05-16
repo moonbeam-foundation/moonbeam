@@ -8697,3 +8697,150 @@ fn test_delegator_scheduled_for_bond_decrease_is_rewarded_when_request_cancelled
 			);
 		});
 }
+
+#[test]
+fn test_delegator_scheduled_for_leaveen_is_rewarded_for_previous_rounds_but_not_for_future() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 40), (3, 20), (4, 20)])
+		.with_candidates(vec![(1, 20), (3, 20), (4, 20)])
+		.with_delegations(vec![(2, 1, 10), (2, 3, 10)])
+		.build()
+		.execute_with(|| {
+			// preset rewards for rounds 1, 2 and 3
+			(1..=3).for_each(|round| set_author(round, 1, 1));
+
+			assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(
+				2
+			),));
+			assert_last_event!(MetaEvent::ParachainStaking(Event::DelegatorExitScheduled {
+				round: 1,
+				delegator: 2,
+				scheduled_exit: 3,
+			}));
+			let collator = ParachainStaking::candidate_info(1).expect("candidate must exist");
+			assert_eq!(
+				1, collator.delegation_count,
+				"collator's delegator count was reduced unexpectedly"
+			);
+			assert_eq!(
+				30, collator.total_counted,
+				"collator's total was reduced unexpectedly"
+			);
+
+			roll_to_round_begin(3);
+			assert_eq_last_events!(
+				vec![
+					Event::<Test>::Rewarded {
+						account: 1,
+						rewards: 4,
+					},
+					Event::<Test>::Rewarded {
+						account: 2,
+						rewards: 1,
+					},
+				],
+				"delegator was not rewarded as intended"
+			);
+
+			roll_to_round_begin(4);
+			assert_eq_last_events!(
+				vec![
+					Event::<Test>::Rewarded {
+						account: 1,
+						rewards: 4,
+					},
+					Event::<Test>::Rewarded {
+						account: 2,
+						rewards: 0,
+					},
+				],
+				"delegator was rewarded unexpectedly"
+			);
+			let collator_snapshot =
+				ParachainStaking::at_stake(ParachainStaking::round().current, 1);
+			assert_eq!(
+				1,
+				collator_snapshot.delegations.len(),
+				"collator snapshot's delegator count was reduced unexpectedly"
+			);
+			assert_eq!(
+				30, collator_snapshot.total,
+				"collator snapshot's total was reduced unexpectedly",
+			);
+		});
+}
+
+#[test]
+fn test_delegator_scheduled_for_leave_is_rewarded_when_request_cancelled() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 40), (3, 20), (4, 20)])
+		.with_candidates(vec![(1, 20), (3, 20), (4, 20)])
+		.with_delegations(vec![(2, 1, 10), (2, 3, 10)])
+		.build()
+		.execute_with(|| {
+			// preset rewards for rounds 2, 3 and 4
+			(2..=4).for_each(|round| set_author(round, 1, 1));
+
+			assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(
+				2
+			)));
+			assert_last_event!(MetaEvent::ParachainStaking(Event::DelegatorExitScheduled {
+				round: 1,
+				delegator: 2,
+				scheduled_exit: 3,
+			}));
+			let collator = ParachainStaking::candidate_info(1).expect("candidate must exist");
+			assert_eq!(
+				1, collator.delegation_count,
+				"collator's delegator count was reduced unexpectedly"
+			);
+			assert_eq!(
+				30, collator.total_counted,
+				"collator's total was reduced unexpectedly"
+			);
+
+			roll_to_round_begin(2);
+			assert_ok!(ParachainStaking::cancel_leave_delegators(Origin::signed(2)));
+
+			roll_to_round_begin(4);
+			assert_eq_last_events!(
+				vec![
+					Event::<Test>::Rewarded {
+						account: 1,
+						rewards: 4,
+					},
+					Event::<Test>::Rewarded {
+						account: 2,
+						rewards: 0,
+					},
+				],
+				"delegator was rewarded unexpectedly",
+			);
+			let collator_snapshot =
+				ParachainStaking::at_stake(ParachainStaking::round().current, 1);
+			assert_eq!(
+				1,
+				collator_snapshot.delegations.len(),
+				"collator snapshot's delegator count was reduced unexpectedly"
+			);
+			assert_eq!(
+				30, collator_snapshot.total,
+				"collator snapshot's total was reduced unexpectedly",
+			);
+
+			roll_to_round_begin(5);
+			assert_eq_last_events!(
+				vec![
+					Event::<Test>::Rewarded {
+						account: 1,
+						rewards: 4,
+					},
+					Event::<Test>::Rewarded {
+						account: 2,
+						rewards: 1,
+					},
+				],
+				"delegator was not rewarded as intended",
+			);
+		});
+}
