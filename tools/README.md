@@ -1,7 +1,5 @@
 # Tools
 
-_NB: this folder is yarn only_
-
 ## Launching complete network
 
 Based on [polkadot-launch](https://github.com/paritytech/polkadot-launch), the tool to launch
@@ -19,13 +17,13 @@ from the given docker images.
 (Docker is required for using network configurations other than "local")
 
 ```
-yarn install
+npm install
 ```
 
 ### Usage
 
 ```
-yarn run launch --parachain moonbase-0.11.2
+npm run launch -- --parachain moonbase-0.18.1
 ```
 
 The launch script accepts a preconfigured network (default is "local", see further).
@@ -48,9 +46,9 @@ Those are listed directly inside [launch.ts](./launch.ts). Ex:
 It is also possible to specify a binary instead of a docker image. Ex:
 
 ```
-yarn run launch --parachain local
+npm run launch -- --parachain local
 # or
-yarn run launch
+npm run launch
 ```
 
 which uses the configuration (based on latest rococo, you can override using `--relay local`):
@@ -68,8 +66,9 @@ local: {
   binary: "../../polkadot/target/release/polkadot",
   chain: "rococo-local",
 },
-
 ```
+
+In addition, you can run a runtime different from the client using `--parachain-runtime <git-tag>`
 
 - "binary" is the path to the binary to execute (related to the tools folder)
 
@@ -78,7 +77,7 @@ local: {
 See all parameters and possible choices doing
 
 ```
-> npm run launch --help
+> npm run launch -- --help
 
 Usage: launch [args]
 
@@ -93,6 +92,8 @@ Options:
                      [choices: "moonbase", "moonriver", "moonbeam",
                       "moonbase-local", "moonriver-local",
                       "moonbeam-local"]
+
+  --parachain-runtime <git-tag> to use for runtime specs                [string]
 
   --parachain-id     overrides parachain-id             [number] [default: 1000]
 
@@ -114,7 +115,7 @@ Options:
 Ex: _Run only local binaries (with runtime moonriver and relay runtime kusama)_
 
 ```
-npm run launch --parachain-chain moonriver-local --relay local --relay-chain kusama-local
+npm run launch -- --parachain-chain moonriver-local --relay local --relay-chain kusama-local
 ```
 
 (no --parachain defaults to `--parachain local`)
@@ -122,7 +123,7 @@ npm run launch --parachain-chain moonriver-local --relay local --relay-chain kus
 Ex: _Run alphanet-8.1 with westend 9030 runtime_
 
 ```
-npm run launch --parachain alphanet-8.1 --relay westend-9030
+npm run launch -- --parachain alphanet-8.1 --relay westend-9030
 ```
 
 ### Fast local build
@@ -134,18 +135,18 @@ polkadot side.
 
 Here is the list of cargo aliases allowing you to compile only some native rutimes:
 
-| command | native runtimes |
-|-|-|
-| `cargo moonbase`  | `moonbase, westend, polkadot`  |
+| command                  | native runtimes                       |
+| ------------------------ | ------------------------------------- |
+| `cargo moonbase`         | `moonbase, westend, polkadot`         |
 | `cargo moonbase-rococo`  | `moonbase, rococo, westend, polkadot` |
-| `cargo moonriver` | `moonriver, polkadot` |
-| `cargo moonriver-rococo` | `moonriver, rococo, polkadot` |
-| `cargo moonriver-kusama` | `moonriver, kusama, polkadot` |
-| `cargo moonbeam` | `moonbeam, polkadot` |
-| `cargo moonbeam-rococo` | `moonbeam, rococo, polkadot` |
+| `cargo moonriver`        | `moonriver, polkadot`                 |
+| `cargo moonriver-rococo` | `moonriver, rococo, polkadot`         |
+| `cargo moonriver-kusama` | `moonriver, kusama, polkadot`         |
+| `cargo moonbeam`         | `moonbeam, polkadot`                  |
+| `cargo moonbeam-rococo`  | `moonbeam, rococo, polkadot`          |
 
-* The `moonbase` native runtime require `westend` native runtime to compile.
-* The `polkadot` native runtime is always included (This is requirement from polkadot repo).
+- The `moonbase` native runtime require `westend` native runtime to compile.
+- The `polkadot` native runtime is always included (This is requirement from polkadot repo).
 
 ### Port assignments
 
@@ -199,6 +200,17 @@ For the default configuration, you can access through polkadotjs:
 
 2021-06-06 04:28:52  Building chain spec
 ```
+
+### Connect with MetaMask
+
+In order to connect to MetaMask, add a network in settings and use these inputs:
+New RPC URL: `http://localhost:RPC_PORT`
+Chain ID: `1280`
+
+You can obtain the RPC_PORT in the logs:
+`Starting a Collator for parachain 1000: 5Ec4AhPZk8STuex8Wsi9TwDtJQxKqzPJRCH7348Xtcs9vZLJ, Collator port : 34100 wsPort : 34102 rpcPort : 34101`
+
+Here `34101` is the rpcPort for the collator.
 
 ## Listing dependency pull request by labels
 

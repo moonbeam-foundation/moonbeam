@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -16,13 +16,13 @@
 
 //! Generate an Ethereum account.
 
+use clap::Parser;
 use cli_opt::account_key::GenerateAccountKey;
-use structopt::StructOpt;
 
-#[derive(Debug, StructOpt)]
-#[structopt(author = "PureStake")]
+#[derive(Debug, Parser)]
+#[clap(author = "PureStake")]
 struct Opt {
-	#[structopt(flatten)]
+	#[clap(flatten)]
 	cmd: GenerateAccountKey,
 }
 
@@ -34,6 +34,6 @@ impl Opt {
 
 fn main() {
 	// Parses the options
-	let cmd = Opt::from_args();
+	let cmd = Opt::parse();
 	cmd.run();
 }

@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -23,19 +23,23 @@ use std::{sync::Arc, time::Duration};
 use fp_rpc::EthereumRuntimeRPCApi;
 use sp_block_builder::BlockBuilder;
 
-use crate::{client::RuntimeApiCollection, TransactionConverters};
+use crate::client::RuntimeApiCollection;
 use cli_opt::EthApi as EthApiCmd;
-use ethereum::EthereumStorageSchema;
+use cumulus_primitives_core::ParaId;
 use fc_mapping_sync::{MappingSyncWorker, SyncStrategy};
 use fc_rpc::{
-	EthApi, EthApiServer, EthBlockDataCache, EthFilterApi, EthFilterApiServer, EthPubSubApi,
+	EthApi, EthApiServer, EthBlockDataCacheTask, EthFilterApi, EthFilterApiServer, EthPubSubApi,
 	EthPubSubApiServer, EthTask, HexEncodedIdProvider, NetApi, NetApiServer, OverrideHandle,
-	RuntimeApiStorageOverride, SchemaV1Override, StorageOverride, Web3Api, Web3ApiServer,
+	RuntimeApiStorageOverride, SchemaV1Override, SchemaV2Override, SchemaV3Override,
+	StorageOverride, Web3Api, Web3ApiServer,
 };
-use fc_rpc_core::types::FilterPool;
+use fc_rpc_core::types::{FeeHistoryCache, FilterPool};
+use fp_storage::EthereumStorageSchema;
 use futures::StreamExt;
 use jsonrpc_pubsub::manager::SubscriptionManager;
+use manual_xcm_rpc::{ManualXcm, ManualXcmApi};
 use moonbeam_core_primitives::{Block, Hash};
+use moonbeam_finality_rpc::{MoonbeamFinality, MoonbeamFinalityApi};
 use moonbeam_rpc_txpool::{TxPool, TxPoolServer};
 use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
 use sc_client_api::{
@@ -77,8 +81,6 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 	pub filter_pool: Option<FilterPool>,
 	/// The list of optional RPC extensions.
 	pub ethapi_cmd: Vec<EthApiCmd>,
-	/// Size of the LRU cache for block data and their transaction statuses.
-	pub eth_log_block_cache: usize,
 	/// Frontier Backend.
 	pub frontier_backend: Arc<fc_db::Backend<Block>>,
 	/// Backend.
@@ -87,9 +89,50 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 	pub command_sink: Option<futures::channel::mpsc::Sender<EngineCommand<Hash>>>,
 	/// Maximum number of logs in a query.
 	pub max_past_logs: u32,
-	/// Ethereum transaction to Extrinsic converter.
-	pub transaction_converter: TransactionConverters,
+	/// Maximum fee history cache size.
+	pub fee_history_limit: u64,
+	/// Fee history cache.
+	pub fee_history_cache: FeeHistoryCache,
+	/// Channels for manual xcm messages (downward, hrmp)
+	pub xcm_senders: Option<(flume::Sender<Vec<u8>>, flume::Sender<(ParaId, Vec<u8>)>)>,
+	/// Ethereum data access overrides.
+	pub overrides: Arc<OverrideHandle<Block>>,
+	/// Cache for Ethereum block data.
+	pub block_data_cache: Arc<EthBlockDataCacheTask<Block>>,
 }
+
+pub fn overrides_handle<C, BE>(client: Arc<C>) -> Arc<OverrideHandle<Block>>
+where
+	C: ProvideRuntimeApi<Block> + StorageProvider<Block, BE> + AuxStore,
+	C: HeaderBackend<Block> + HeaderMetadata<Block, Error = BlockChainError>,
+	C: Send + Sync + 'static,
+	C::Api: fp_rpc::EthereumRuntimeRPCApi<Block>,
+	BE: Backend<Block> + 'static,
+	BE::State: StateBackend<BlakeTwo256>,
+{
+	let mut overrides_map = BTreeMap::new();
+	overrides_map.insert(
+		EthereumStorageSchema::V1,
+		Box::new(SchemaV1Override::new(client.clone()))
+			as Box<dyn StorageOverride<_> + Send + Sync>,
+	);
+	overrides_map.insert(
+		EthereumStorageSchema::V2,
+		Box::new(SchemaV2Override::new(client.clone()))
+			as Box<dyn StorageOverride<_> + Send + Sync>,
+	);
+	overrides_map.insert(
+		EthereumStorageSchema::V3,
+		Box::new(SchemaV3Override::new(client.clone()))
+			as Box<dyn StorageOverride<_> + Send + Sync>,
+	);
+
+	Arc::new(OverrideHandle {
+		schemas: overrides_map,
+		fallback: Box::new(RuntimeApiStorageOverride::new(client.clone())),
+	})
+}
+
 /// Instantiate all Full RPC extensions.
 pub fn create_full<C, P, BE, A>(
 	deps: FullDeps<C, P, A, BE>,
@@ -117,12 +160,15 @@ where
 		network,
 		filter_pool,
 		ethapi_cmd,
-		eth_log_block_cache,
 		command_sink,
 		frontier_backend,
 		backend: _,
 		max_past_logs,
-		transaction_converter,
+		fee_history_limit,
+		fee_history_cache,
+		xcm_senders,
+		overrides,
+		block_data_cache,
 	} = deps;
 
 	io.extend_with(SystemApi::to_delegate(FullSystem::new(
@@ -136,44 +182,39 @@ where
 	// TODO: are we supporting signing?
 	let signers = Vec::new();
 
-	let block_data_cache = Arc::new(EthBlockDataCache::new(
-		eth_log_block_cache,
-		eth_log_block_cache,
-	));
-
-	let mut overrides_map = BTreeMap::new();
-	overrides_map.insert(
-		EthereumStorageSchema::V1,
-		Box::new(SchemaV1Override::new(client.clone()))
-			as Box<dyn StorageOverride<_> + Send + Sync>,
-	);
-
-	let overrides = Arc::new(OverrideHandle {
-		schemas: overrides_map,
-		fallback: Box::new(RuntimeApiStorageOverride::new(client.clone())),
-	});
+	enum Never {}
+	impl<T> fp_rpc::ConvertTransaction<T> for Never {
+		fn convert_transaction(&self, _transaction: pallet_ethereum::Transaction) -> T {
+			// The Never type is not instantiable, but this method requires the type to be
+			// instantiated to be called (`&self` parameter), so if the code compiles we have the
+			// guarantee that this function will never be called.
+			unreachable!()
+		}
+	}
+	let convert_transaction: Option<Never> = None;
 
 	io.extend_with(EthApiServer::to_delegate(EthApi::new(
 		client.clone(),
 		pool.clone(),
 		graph.clone(),
-		transaction_converter,
+		convert_transaction,
 		network.clone(),
 		signers,
 		overrides.clone(),
 		frontier_backend.clone(),
 		is_authority,
-		max_past_logs,
 		block_data_cache.clone(),
+		fc_rpc::format::Geth,
+		fee_history_limit,
+		fee_history_cache,
 	)));
 
 	if let Some(filter_pool) = filter_pool {
 		io.extend_with(EthFilterApiServer::to_delegate(EthFilterApi::new(
 			client.clone(),
-			frontier_backend,
+			frontier_backend.clone(),
 			filter_pool,
 			500_usize, // max stored filters
-			overrides.clone(),
 			max_past_logs,
 			block_data_cache.clone(),
 		)));
@@ -202,6 +243,11 @@ where
 		)));
 	}
 
+	io.extend_with(MoonbeamFinalityApi::to_delegate(MoonbeamFinality::new(
+		client.clone(),
+		frontier_backend.clone(),
+	)));
+
 	if let Some(command_sink) = command_sink {
 		io.extend_with(
 			// We provide the rpc handler with the sending end of the channel to allow the rpc
@@ -209,6 +255,13 @@ where
 			ManualSealApi::to_delegate(ManualSeal::new(command_sink)),
 		);
 	};
+
+	if let Some((downward_message_channel, hrmp_message_channel)) = xcm_senders {
+		io.extend_with(ManualXcmApi::to_delegate(ManualXcm {
+			downward_message_channel,
+			hrmp_message_channel,
+		}));
+	}
 
 	io
 }
@@ -219,6 +272,9 @@ pub struct SpawnTasksParams<'a, B: BlockT, C, BE> {
 	pub substrate_backend: Arc<BE>,
 	pub frontier_backend: Arc<fc_db::Backend<B>>,
 	pub filter_pool: Option<FilterPool>,
+	pub overrides: Arc<OverrideHandle<B>>,
+	pub fee_history_limit: u64,
+	pub fee_history_cache: FeeHistoryCache,
 }
 
 /// Spawn the tasks that are required to run Moonbeam.
@@ -226,7 +282,7 @@ pub fn spawn_essential_tasks<B, C, BE>(params: SpawnTasksParams<B, C, BE>)
 where
 	C: ProvideRuntimeApi<B> + BlockOf,
 	C: HeaderBackend<B> + HeaderMetadata<B, Error = BlockChainError> + 'static,
-	C: BlockchainEvents<B>,
+	C: BlockchainEvents<B> + StorageProvider<B, BE>,
 	C: Send + Sync + 'static,
 	C::Api: EthereumRuntimeRPCApi<B>,
 	C::Api: BlockBuilder<B>,
@@ -239,12 +295,15 @@ where
 	// Maps emulated ethereum data to substrate native data.
 	params.task_manager.spawn_essential_handle().spawn(
 		"frontier-mapping-sync-worker",
+		Some("frontier"),
 		MappingSyncWorker::new(
 			params.client.import_notification_stream(),
 			Duration::new(6, 0),
 			params.client.clone(),
 			params.substrate_backend.clone(),
 			params.frontier_backend.clone(),
+			3,
+			0,
 			SyncStrategy::Parachain,
 		)
 		.for_each(|()| futures::future::ready(())),
@@ -257,6 +316,7 @@ where
 		const FILTER_RETAIN_THRESHOLD: u64 = 100;
 		params.task_manager.spawn_essential_handle().spawn(
 			"frontier-filter-pool",
+			Some("frontier"),
 			EthTask::filter_pool_task(
 				Arc::clone(&params.client),
 				filter_pool,
@@ -267,9 +327,22 @@ where
 
 	params.task_manager.spawn_essential_handle().spawn(
 		"frontier-schema-cache-task",
+		Some("frontier"),
 		EthTask::ethereum_schema_cache_task(
 			Arc::clone(&params.client),
 			Arc::clone(&params.frontier_backend),
+		),
+	);
+
+	// Spawn Frontier FeeHistory cache maintenance task.
+	params.task_manager.spawn_essential_handle().spawn(
+		"frontier-fee-history",
+		Some("frontier"),
+		EthTask::fee_history_task(
+			Arc::clone(&params.client),
+			Arc::clone(&params.overrides),
+			params.fee_history_cache,
+			params.fee_history_limit,
 		),
 	);
 }

@@ -1,16 +1,16 @@
 [package]
 name = "moonkey"
-description = 'Moonbeam Key Tool'
+authors = [ "PureStake" ]
+description = "Moonbeam Key Tool"
+edition = "2021"
+homepage = "https://moonbeam.network"
+license = "GPL-3.0-only"
 version = "0.1.1"
-authors = ["PureStake"]
-edition = "2018"
-license = 'GPL-3.0-only'
-homepage = 'https://moonbeam.network'
 
 [[bin]]
 name = "moonkey"
 path = "src/main.rs"
 
 [dependencies]
+clap = { version = "3.1", features = [ "derive" ] }
 cli-opt = { package = "moonbeam-cli-opt", path = "../../../node/cli-opt", default-features = false }
-structopt = "0.3.8"

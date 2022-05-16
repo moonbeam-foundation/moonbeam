@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -19,13 +19,14 @@ use super::*;
 use codec::{Decode, Encode, MaxEncodedLen};
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Everything, OnFinalize, OnInitialize},
+	traits::{EqualPrivilegeOnly, Everything, OnFinalize, OnInitialize},
 };
 use frame_system::{EnsureRoot, EnsureSigned};
 use pallet_democracy::VoteThreshold;
 use pallet_evm::{
-	AddressMapping, EnsureAddressNever, EnsureAddressRoot, SubstrateBlockHashMapping,
+	AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet, SubstrateBlockHashMapping,
 };
+use scale_info::TypeInfo;
 use serde::{Deserialize, Serialize};
 use sp_core::H256;
 use sp_io;
@@ -38,8 +39,15 @@ pub type AccountId = TestAccount;
 pub type Balance = u128;
 pub type BlockNumber = u64;
 
-type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
-type Block = frame_system::mocking::MockBlock<Test>;
+type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
+type Block = frame_system::mocking::MockBlock<Runtime>;
+
+pub const PRECOMPILE_ADDRESS: u64 = 1;
+
+/// The democracy precompile is available at address one in the mock runtime.
+pub fn precompile_address() -> H160 {
+	H160::from_low_u64_be(1)
+}
 
 #[derive(
 	Eq,
@@ -54,12 +62,14 @@ type Block = frame_system::mocking::MockBlock<Test>;
 	Serialize,
 	Deserialize,
 	derive_more::Display,
+	TypeInfo,
 )]
 pub enum TestAccount {
 	Alice,
 	Bob,
 	Charlie,
 	Bogus,
+	Precompile,
 }
 
 impl Default for TestAccount {
@@ -74,8 +84,15 @@ impl AddressMapping<TestAccount> for TestAccount {
 			a if a == H160::repeat_byte(0xAA) => Self::Alice,
 			a if a == H160::repeat_byte(0xBB) => Self::Bob,
 			a if a == H160::repeat_byte(0xCC) => Self::Charlie,
+			a if a == H160::from_low_u64_be(PRECOMPILE_ADDRESS) => Self::Precompile,
 			_ => Self::Bogus,
 		}
+	}
+}
+
+impl From<H160> for TestAccount {
+	fn from(x: H160) -> TestAccount {
+		TestAccount::into_account_id(x)
 	}
 }
 
@@ -85,6 +102,7 @@ impl From<TestAccount> for H160 {
 			TestAccount::Alice => H160::repeat_byte(0xAA),
 			TestAccount::Bob => H160::repeat_byte(0xBB),
 			TestAccount::Charlie => H160::repeat_byte(0xCC),
+			TestAccount::Precompile => H160::from_low_u64_be(PRECOMPILE_ADDRESS),
 			TestAccount::Bogus => Default::default(),
 		}
 	}
@@ -92,7 +110,7 @@ impl From<TestAccount> for H160 {
 
 // Configure a mock runtime to test the pallet.
 construct_runtime!(
-	pub enum Test where
+	pub enum Runtime where
 		Block = Block,
 		NodeBlock = Block,
 		UncheckedExtrinsic = UncheckedExtrinsic,
@@ -102,7 +120,7 @@ construct_runtime!(
 		Evm: pallet_evm::{Pallet, Config, Call, Storage, Event<T>},
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
 		Democracy: pallet_democracy::{Pallet, Storage, Config<T>, Event<T>, Call},
-		Scheduler: pallet_scheduler::{Pallet, Call, Storage, Config, Event<T>},
+		Scheduler: pallet_scheduler::{Pallet, Call, Storage, Event<T>},
 	}
 );
 
@@ -110,7 +128,7 @@ parameter_types! {
 	pub const BlockHashCount: u64 = 250;
 	pub const SS58Prefix: u8 = 42;
 }
-impl frame_system::Config for Test {
+impl frame_system::Config for Runtime {
 	type BaseCallFilter = Everything;
 	type DbWeight = ();
 	type Origin = Origin;
@@ -134,11 +152,12 @@ impl frame_system::Config for Test {
 	type BlockLength = ();
 	type SS58Prefix = SS58Prefix;
 	type OnSetCode = ();
+	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 parameter_types! {
 	pub const ExistentialDeposit: u128 = 0;
 }
-impl pallet_balances::Config for Test {
+impl pallet_balances::Config for Runtime {
 	type MaxReserves = ();
 	type ReserveIdentifier = ();
 	type MaxLocks = ();
@@ -150,13 +169,11 @@ impl pallet_balances::Config for Test {
 	type WeightInfo = ();
 }
 
-/// The democracy precompile is available at address 1 in the mock runtime.
-pub fn precompile_address() -> H160 {
-	H160::from_low_u64_be(1)
+parameter_types! {
+	pub const PrecompilesValue: Precompiles<Runtime> = Precompiles(PhantomData);
 }
-pub type Precompiles = (DemocracyWrapper<Test>,);
 
-impl pallet_evm::Config for Test {
+impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
 	type GasWeightMapping = ();
 	type CallOrigin = EnsureAddressRoot<TestAccount>;
@@ -165,18 +182,20 @@ impl pallet_evm::Config for Test {
 	type Currency = Balances;
 	type Event = Event;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
-	type Precompiles = Precompiles;
+	type PrecompilesType = Precompiles<Self>;
+	type PrecompilesValue = PrecompilesValue;
 	type ChainId = ();
 	type OnChargeTransaction = ();
 	type BlockGasLimit = ();
 	type BlockHashMapping = SubstrateBlockHashMapping<Self>;
 	type FindAuthor = ();
+	type WeightInfo = ();
 }
 
 parameter_types! {
 	pub const MinimumPeriod: u64 = 5;
 }
-impl pallet_timestamp::Config for Test {
+impl pallet_timestamp::Config for Runtime {
 	type Moment = u64;
 	type OnTimestampSet = ();
 	type MinimumPeriod = MinimumPeriod;
@@ -186,6 +205,7 @@ impl pallet_timestamp::Config for Test {
 parameter_types! {
 	pub const LaunchPeriod: BlockNumber = 10;
 	pub const VotingPeriod: BlockNumber = 10;
+	pub const VoteLockingPeriod: BlockNumber = 10;
 	pub const FastTrackVotingPeriod: BlockNumber = 5;
 	pub const EnactmentPeriod: BlockNumber = 10;
 	pub const CooloffPeriod: BlockNumber = 10;
@@ -196,13 +216,14 @@ parameter_types! {
 	pub const InstantAllowed: bool = false;
 }
 
-impl pallet_democracy::Config for Test {
+impl pallet_democracy::Config for Runtime {
 	type Proposal = Call;
 	type Event = Event;
 	type Currency = Balances;
 	type EnactmentPeriod = EnactmentPeriod;
 	type LaunchPeriod = LaunchPeriod;
 	type VotingPeriod = VotingPeriod;
+	type VoteLockingPeriod = VoteLockingPeriod;
 	type FastTrackVotingPeriod = FastTrackVotingPeriod;
 	type MinimumDeposit = MinimumDeposit;
 	type ExternalOrigin = EnsureRoot<AccountId>;
@@ -225,7 +246,7 @@ impl pallet_democracy::Config for Test {
 	type WeightInfo = ();
 	type MaxProposals = MaxProposals;
 }
-impl pallet_scheduler::Config for Test {
+impl pallet_scheduler::Config for Runtime {
 	type Event = Event;
 	type Origin = Origin;
 	type PalletsOrigin = OriginCaller;
@@ -234,6 +255,41 @@ impl pallet_scheduler::Config for Test {
 	type ScheduleOrigin = EnsureRoot<TestAccount>;
 	type MaxScheduledPerBlock = ();
 	type WeightInfo = ();
+	type OriginPrivilegeCmp = EqualPrivilegeOnly; // TODO : Simplest type, maybe there is better ?
+	type PreimageProvider = ();
+	type NoPreimagePostponement = ();
+}
+
+#[derive(Default)]
+pub struct Precompiles<R>(PhantomData<R>);
+
+impl<R> PrecompileSet for Precompiles<R>
+where
+	DemocracyWrapper<R>: Precompile,
+{
+	fn execute(
+		&self,
+		address: H160,
+		input: &[u8],
+		target_gas: Option<u64>,
+		context: &Context,
+		is_static: bool,
+	) -> Option<EvmResult<PrecompileOutput>> {
+		match address {
+			a if a == hash(PRECOMPILE_ADDRESS) => Some(DemocracyWrapper::<R>::execute(
+				input, target_gas, context, is_static,
+			)),
+			_ => None,
+		}
+	}
+
+	fn is_precompile(&self, address: H160) -> bool {
+		address == hash(PRECOMPILE_ADDRESS)
+	}
+}
+
+fn hash(a: u64) -> H160 {
+	H160::from_low_u64_be(a)
 }
 
 /// Build test externalities, prepopulated with data for testing democracy precompiles
@@ -272,10 +328,10 @@ impl ExtBuilder {
 	/// Build the test externalities for use in tests
 	pub(crate) fn build(self) -> sp_io::TestExternalities {
 		let mut t = frame_system::GenesisConfig::default()
-			.build_storage::<Test>()
+			.build_storage::<Runtime>()
 			.expect("Frame system builds valid default genesis config");
 
-		pallet_balances::GenesisConfig::<Test> {
+		pallet_balances::GenesisConfig::<Runtime> {
 			balances: self.balances.clone(),
 		}
 		.assimilate_storage(&mut t)
@@ -328,8 +384,8 @@ pub(crate) fn events() -> Vec<Event> {
 // Helper function to give a simple evm context suitable for tests.
 // We can remove this once https://github.com/rust-blockchain/evm/pull/35
 // is in our dependency graph.
-pub fn evm_test_context() -> evm::Context {
-	evm::Context {
+pub fn evm_test_context() -> fp_evm::Context {
+	fp_evm::Context {
 		address: Default::default(),
 		caller: Default::default(),
 		apparent_value: From::from(0),

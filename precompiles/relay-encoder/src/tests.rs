@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -14,21 +14,29 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+use std::assert_matches::assert_matches;
+
 use crate::mock::{
-	evm_test_context, precompile_address, ExtBuilder, Precompiles, TestAccount::Alice,
+	evm_test_context, precompile_address, ExtBuilder, PrecompilesValue, Runtime,
+	TestAccount::Alice, TestPrecompiles,
 };
 use crate::test_relay_runtime::TestEncoder;
 use crate::StakeEncodeCall;
 use crate::*;
 use crate::{AvailableStakeCalls, PrecompileOutput};
+use fp_evm::PrecompileFailure;
 use num_enum::TryFromPrimitive;
-use pallet_evm::{ExitError, ExitSucceed, PrecompileSet};
+use pallet_evm::{ExitSucceed, PrecompileSet};
 use pallet_staking::RewardDestination;
 use pallet_staking::ValidatorPrefs;
 use precompile_utils::{Bytes, EvmDataWriter};
 use sha3::{Digest, Keccak256};
 use sp_core::{H256, U256};
 use sp_runtime::Perbill;
+
+fn precompiles() -> TestPrecompiles<Runtime> {
+	PrecompilesValue::get()
+}
 
 #[test]
 fn test_selector_enum() {
@@ -109,19 +117,16 @@ fn selector_less_than_four_bytes() {
 		// This selector is only three bytes long when four are required.
 		let bogus_selector = vec![1u8, 2u8, 3u8];
 
-		// Expected result is an error stating there are too few bytes
-		let expected_result = Some(Err(ExitError::Other(
-			"tried to parse selector out of bounds".into(),
-		)));
-
-		assert_eq!(
-			Precompiles::execute(
+		assert_matches!(
+			precompiles().execute(
 				precompile_address(),
 				&bogus_selector,
 				None,
 				&evm_test_context(),
+				false,
 			),
-			expected_result
+			Some(Err(PrecompileFailure::Revert { output, .. }))
+			if &output == b"tried to parse selector out of bounds"
 		);
 	});
 }
@@ -131,17 +136,16 @@ fn no_selector_exists_but_length_is_right() {
 	ExtBuilder::default().build().execute_with(|| {
 		let bogus_selector = vec![1u8, 2u8, 3u8, 4u8];
 
-		// Expected result is an error stating there are such a selector does not exist
-		let expected_result = Some(Err(ExitError::Other("unknown selector".into())));
-
-		assert_eq!(
-			Precompiles::execute(
+		assert_matches!(
+			precompiles().execute(
 				precompile_address(),
 				&bogus_selector,
 				None,
 				&evm_test_context(),
+				false,
 			),
-			expected_result
+			Some(Err(PrecompileFailure::Revert { output, ..}))
+			if &output == b"unknown selector"
 		);
 	});
 }
@@ -177,7 +181,13 @@ fn test_encode_bond() {
 			}));
 
 			assert_eq!(
-				Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
+				precompiles().execute(
+					precompile_address(),
+					&input_data,
+					None,
+					&evm_test_context(),
+					false
+				),
 				expected_result
 			);
 		});
@@ -207,7 +217,13 @@ fn test_encode_bond_more() {
 			}));
 
 			assert_eq!(
-				Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
+				precompiles().execute(
+					precompile_address(),
+					&input_data,
+					None,
+					&evm_test_context(),
+					false
+				),
 				expected_result
 			);
 		});
@@ -233,7 +249,13 @@ fn test_encode_chill() {
 			}));
 
 			assert_eq!(
-				Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
+				precompiles().execute(
+					precompile_address(),
+					&input_data,
+					None,
+					&evm_test_context(),
+					false
+				),
 				expected_result
 			);
 		});
@@ -267,7 +289,13 @@ fn test_encode_nominate() {
 			}));
 
 			assert_eq!(
-				Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
+				precompiles().execute(
+					precompile_address(),
+					&input_data,
+					None,
+					&evm_test_context(),
+					false
+				),
 				expected_result
 			);
 		});
@@ -298,7 +326,13 @@ fn test_encode_rebond() {
 			}));
 
 			assert_eq!(
-				Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
+				precompiles().execute(
+					precompile_address(),
+					&input_data,
+					None,
+					&evm_test_context(),
+					false
+				),
 				expected_result
 			);
 		});
@@ -329,7 +363,13 @@ fn test_encode_set_controller() {
 			}));
 
 			assert_eq!(
-				Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
+				precompiles().execute(
+					precompile_address(),
+					&input_data,
+					None,
+					&evm_test_context(),
+					false
+				),
 				expected_result
 			);
 		});
@@ -359,7 +399,13 @@ fn test_encode_set_payee() {
 			}));
 
 			assert_eq!(
-				Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
+				precompiles().execute(
+					precompile_address(),
+					&input_data,
+					None,
+					&evm_test_context(),
+					false
+				),
 				expected_result
 			);
 		});
@@ -392,7 +438,13 @@ fn test_encode_unbond() {
 
 			// Assert that no props have been opened.
 			assert_eq!(
-				Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
+				precompiles().execute(
+					precompile_address(),
+					&input_data,
+					None,
+					&evm_test_context(),
+					false
+				),
 				expected_result
 			);
 		});
@@ -430,7 +482,13 @@ fn test_encode_validate() {
 
 			// Assert that no props have been opened.
 			assert_eq!(
-				Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
+				precompiles().execute(
+					precompile_address(),
+					&input_data,
+					None,
+					&evm_test_context(),
+					false
+				),
 				expected_result
 			);
 		});
@@ -462,7 +520,13 @@ fn test_encode_withdraw_unbonded() {
 			}));
 
 			assert_eq!(
-				Precompiles::execute(precompile_address(), &input_data, None, &evm_test_context()),
+				precompiles().execute(
+					precompile_address(),
+					&input_data,
+					None,
+					&evm_test_context(),
+					false
+				),
 				expected_result
 			);
 		});

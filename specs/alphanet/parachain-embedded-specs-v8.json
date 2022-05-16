@@ -3,8 +3,8 @@
   "id": "moonbase_alpha",
   "chainType": "Live",
   "bootNodes": [
-    "/dns4/bootnode1.testnet.moonbeam.network/tcp/30334/p2p/12D3KooWQKF812W3B26VxxH8mQpRgF1y9c7rfKLGsVoGU6vtconY",
-    "/dns4/bootnode2.testnet.moonbeam.network/tcp/30334/p2p/12D3KooWRkEDGHLxExrVDKywiZQUPTJBoR43VthgSYyA9Re5vPT9"
+    "/dns4/frag-moonbase-alpha-boot-0.g.moonbase.moonbeam.network/tcp/30333/p2p/12D3KooWNtwcFhwfsTb14BiUX4jTHvDVY424nyDySYWMNZjmFA2R",
+    "/dns4/mtla-moonbase-alpha-boot-0.a.moonbase.moonbeam.network/tcp/30333/p2p/12D3KooWLkGLsJMmQDCXDitJn6y6ZTPXqmcQ7bkMDKpsx6YWiZDD"
   ],
   "telemetryEndpoints": [
     ["/dns/telemetry.polkadot.io/tcp/443/x-parity-wss/%2Fsubmit%2F", 0]

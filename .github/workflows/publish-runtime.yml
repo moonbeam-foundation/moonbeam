@@ -27,10 +27,12 @@ jobs:
           ref: ${{ github.event.inputs.to }}
       - name: Srtool build
         id: srtool_build
-        uses: chevdor/srtool-actions@v0.3.0
+        uses: chevdor/srtool-actions@v0.4.0
+        env:
+          BUILD_OPTS: --features on-chain-release-build
         with:
           chain: ${{ matrix.chain }}
-          tag: 1.53.0
+          tag: 1.57.0
       - name: Summary
         run: |
           echo '${{ steps.srtool_build.outputs.json }}' | jq . > ${{ matrix.chain }}-srtool-digest.json
@@ -78,6 +80,8 @@ jobs:
         with:
           node-version: 14.x
       - name: Generate release body
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         id: generate-release-body
         run: |
           cd tools

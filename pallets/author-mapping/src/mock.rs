@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -21,10 +21,12 @@ use frame_support::{
 	traits::{Everything, GenesisBuild},
 	weights::Weight,
 };
+use nimbus_primitives::NimbusId;
 use parity_scale_codec::{Decode, Encode};
+use scale_info::TypeInfo;
 #[cfg(feature = "std")]
 use serde::{Deserialize, Serialize};
-use sp_core::H256;
+use sp_core::{ByteArray, H256};
 use sp_io;
 use sp_runtime::{
 	testing::Header,
@@ -33,29 +35,38 @@ use sp_runtime::{
 };
 
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-#[derive(Eq, PartialEq, Clone, Copy, Encode, Decode, RuntimeDebug)]
+#[derive(Eq, PartialEq, Clone, Copy, Encode, Decode, RuntimeDebug, TypeInfo)]
 pub enum TestAuthor {
 	Alice,
 	Bob,
 	Charlie,
-	Dave,
-	Eve,
 }
 impl Default for TestAuthor {
 	fn default() -> TestAuthor {
 		TestAuthor::Alice
 	}
 }
+impl Into<NimbusId> for TestAuthor {
+	fn into(self) -> NimbusId {
+		match self {
+			Self::Alice => NimbusId::from_slice(&[0u8; 32]),
+			Self::Bob => NimbusId::from_slice(&[1u8; 32]),
+			Self::Charlie => NimbusId::from_slice(&[2u8; 32]),
+		}
+		.expect("valid ids")
+	}
+}
+
 pub type AccountId = u64;
 pub type Balance = u128;
 pub type BlockNumber = u64;
 
-type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
-type Block = frame_system::mocking::MockBlock<Test>;
+type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
+type Block = frame_system::mocking::MockBlock<Runtime>;
 
 // Configure a mock runtime to test the pallet.
 construct_runtime!(
-	pub enum Test where
+	pub enum Runtime where
 		Block = Block,
 		NodeBlock = Block,
 		UncheckedExtrinsic = UncheckedExtrinsic,
@@ -72,7 +83,7 @@ parameter_types! {
 	pub const MaximumBlockLength: u32 = 2 * 1024;
 	pub const AvailableBlockRatio: Perbill = Perbill::one();
 }
-impl frame_system::Config for Test {
+impl frame_system::Config for Runtime {
 	type BaseCallFilter = Everything;
 	type DbWeight = ();
 	type Origin = Origin;
@@ -96,11 +107,12 @@ impl frame_system::Config for Test {
 	type BlockLength = ();
 	type SS58Prefix = ();
 	type OnSetCode = ();
+	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 parameter_types! {
 	pub const ExistentialDeposit: u128 = 1;
 }
-impl pallet_balances::Config for Test {
+impl pallet_balances::Config for Runtime {
 	type MaxReserves = ();
 	type ReserveIdentifier = [u8; 4];
 	type MaxLocks = ();
@@ -115,11 +127,11 @@ impl pallet_balances::Config for Test {
 parameter_types! {
 	pub const DepositAmount: Balance = 100;
 }
-impl pallet_author_mapping::Config for Test {
+impl pallet_author_mapping::Config for Runtime {
 	type Event = Event;
-	type AuthorId = TestAuthor;
 	type DepositCurrency = Balances;
 	type DepositAmount = DepositAmount;
+	type Keys = NimbusId;
 	type WeightInfo = ();
 }
 
@@ -129,7 +141,7 @@ pub(crate) struct ExtBuilder {
 	/// Accounts endowed with balances
 	balances: Vec<(AccountId, Balance)>,
 	/// AuthorId -> AccoutId mappings
-	mappings: Vec<(TestAuthor, AccountId)>,
+	mappings: Vec<(NimbusId, AccountId)>,
 }
 
 impl Default for ExtBuilder {
@@ -147,23 +159,23 @@ impl ExtBuilder {
 		self
 	}
 
-	pub(crate) fn with_mappings(mut self, mappings: Vec<(TestAuthor, AccountId)>) -> Self {
+	pub(crate) fn with_mappings(mut self, mappings: Vec<(NimbusId, AccountId)>) -> Self {
 		self.mappings = mappings;
 		self
 	}
 
 	pub(crate) fn build(self) -> sp_io::TestExternalities {
 		let mut t = frame_system::GenesisConfig::default()
-			.build_storage::<Test>()
+			.build_storage::<Runtime>()
 			.expect("Frame system builds valid default genesis config");
 
-		pallet_balances::GenesisConfig::<Test> {
+		pallet_balances::GenesisConfig::<Runtime> {
 			balances: self.balances,
 		}
 		.assimilate_storage(&mut t)
 		.expect("Pallet balances storage can be assimilated");
 
-		pallet_author_mapping::GenesisConfig::<Test> {
+		pallet_author_mapping::GenesisConfig::<Runtime> {
 			mappings: self.mappings,
 		}
 		.assimilate_storage(&mut t)

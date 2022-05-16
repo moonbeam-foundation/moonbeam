@@ -32,6 +32,8 @@ pub use pallet::*;
 #[macro_use]
 extern crate environmental;
 
+use sp_std::prelude::*;
+
 /// A Migration that must happen on-chain upon a runtime-upgrade
 pub trait Migration {
 	/// A human-readable name for this migration. Also used as storage key.
@@ -58,15 +60,32 @@ pub trait Migration {
 	}
 }
 
+// The migration trait
+pub trait GetMigrations {
+	// Migration list Getter
+	fn get_migrations() -> Vec<Box<dyn Migration>>;
+}
+
+#[impl_trait_for_tuples::impl_for_tuples(30)]
+impl GetMigrations for Tuple {
+	fn get_migrations() -> Vec<Box<dyn Migration>> {
+		let mut migrations = Vec::new();
+
+		for_tuples!( #( migrations.extend(Tuple::get_migrations()); )* );
+
+		migrations
+	}
+}
+
 #[pallet]
 pub mod pallet {
 	use super::*;
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
-	use sp_std::prelude::*;
 
 	/// Pallet for migrations
 	#[pallet::pallet]
+	#[pallet::without_storage_info]
 	pub struct Pallet<T>(PhantomData<T>);
 
 	/// Configuration trait of this pallet.
@@ -75,16 +94,23 @@ pub mod pallet {
 		/// Overarching event type
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		/// The list of migrations that will be performed
-		type MigrationsList: Get<Vec<Box<dyn Migration>>>;
+		type MigrationsList: GetMigrations;
 	}
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
+		/// Runtime upgrade started
 		RuntimeUpgradeStarted(),
-		RuntimeUpgradeCompleted(Weight),
-		MigrationStarted(Vec<u8>),
-		MigrationCompleted(Vec<u8>, Weight),
+		/// Runtime upgrade completed
+		RuntimeUpgradeCompleted { weight: Weight },
+		/// Migration started
+		MigrationStarted { migration_name: Vec<u8> },
+		/// Migration completed
+		MigrationCompleted {
+			migration_name: Vec<u8>,
+			consumed_weight: Weight,
+		},
 	}
 
 	#[pallet::hooks]
@@ -101,10 +127,12 @@ pub mod pallet {
 
 			// start by flagging that we are not fully upgraded
 			<FullyUpgraded<T>>::put(false);
-			weight += T::DbWeight::get().writes(1);
+			weight = weight.saturating_add(T::DbWeight::get().writes(1));
 			Self::deposit_event(Event::RuntimeUpgradeStarted());
 
-			weight += perform_runtime_upgrades::<T>(available_weight.saturating_sub(weight));
+			weight = weight.saturating_add(perform_runtime_upgrades::<T>(
+				available_weight.saturating_sub(weight),
+			));
 
 			if !<FullyUpgraded<T>>::get() {
 				log::error!(
@@ -121,7 +149,7 @@ pub mod pallet {
 			use frame_support::traits::OnRuntimeUpgradeHelpersExt;
 
 			let mut failed = false;
-			for migration in &T::MigrationsList::get() {
+			for migration in &T::MigrationsList::get_migrations() {
 				let migration_name = migration.friendly_name();
 				let migration_name_as_bytes = migration_name.as_bytes();
 
@@ -164,7 +192,7 @@ pub mod pallet {
 			// TODO: my desire to DRY all the things feels like this code is very repetitive...
 
 			let mut failed = false;
-			for migration in &T::MigrationsList::get() {
+			for migration in &T::MigrationsList::get_migrations() {
 				let migration_name = migration.friendly_name();
 
 				// we can't query MigrationState because on_runtime_upgrade() would have
@@ -213,18 +241,22 @@ pub mod pallet {
 	#[pallet::getter(fn migration_state)]
 	/// MigrationState tracks the progress of a migration.
 	/// Maps name (Vec<u8>) -> whether or not migration has been completed (bool)
-	type MigrationState<T: Config> = StorageMap<_, Twox64Concat, Vec<u8>, bool, ValueQuery>;
+	pub(crate) type MigrationState<T: Config> =
+		StorageMap<_, Twox64Concat, Vec<u8>, bool, ValueQuery>;
 
 	#[pallet::genesis_config]
 	#[derive(Default)]
-	pub struct GenesisConfig {
-		pub completed_migrations: Vec<Vec<u8>>,
-	}
+	pub struct GenesisConfig;
 
 	#[pallet::genesis_build]
 	impl<T: Config> GenesisBuild<T> for GenesisConfig {
 		fn build(&self) {
-			for migration_name in &self.completed_migrations {
+			// When building a new genesis, all listed migrations should be considered as already
+			// applied, they only make sense for networks that had been launched in the past.
+			for migration_name in T::MigrationsList::get_migrations()
+				.into_iter()
+				.map(|migration| migration.friendly_name().as_bytes().to_vec())
+			{
 				<MigrationState<T>>::insert(migration_name, true);
 			}
 		}
@@ -233,7 +265,7 @@ pub mod pallet {
 	fn perform_runtime_upgrades<T: Config>(available_weight: Weight) -> Weight {
 		let mut weight: Weight = 0u64.into();
 
-		for migration in &T::MigrationsList::get() {
+		for migration in &T::MigrationsList::get_migrations() {
 			let migration_name = migration.friendly_name();
 			let migration_name_as_bytes = migration_name.as_bytes();
 			log::debug!( target: "pallet-migrations", "evaluating migration {}", migration_name);
@@ -241,7 +273,9 @@ pub mod pallet {
 			let migration_done = <MigrationState<T>>::get(migration_name_as_bytes);
 
 			if !migration_done {
-				<Pallet<T>>::deposit_event(Event::MigrationStarted(migration_name_as_bytes.into()));
+				<Pallet<T>>::deposit_event(Event::MigrationStarted {
+					migration_name: migration_name_as_bytes.into(),
+				});
 
 				// when we go overweight, leave a warning... there's nothing we can really do about
 				// this scenario other than hope that the block is actually accepted.
@@ -264,13 +298,13 @@ pub mod pallet {
 				);
 
 				let consumed_weight = migration.migrate(available_for_step);
-				<Pallet<T>>::deposit_event(Event::MigrationCompleted(
-					migration_name_as_bytes.into(),
-					consumed_weight,
-				));
+				<Pallet<T>>::deposit_event(Event::MigrationCompleted {
+					migration_name: migration_name_as_bytes.into(),
+					consumed_weight: consumed_weight,
+				});
 				<MigrationState<T>>::insert(migration_name_as_bytes, true);
 
-				weight += consumed_weight;
+				weight = weight.saturating_add(consumed_weight);
 				if weight > available_weight {
 					log::error!(
 						"Migration {} consumed more weight than it was given! ({} > {})",
@@ -283,8 +317,8 @@ pub mod pallet {
 		}
 
 		<FullyUpgraded<T>>::put(true);
-		weight += T::DbWeight::get().writes(1);
-		<Pallet<T>>::deposit_event(Event::RuntimeUpgradeCompleted(weight));
+		weight = weight.saturating_add(T::DbWeight::get().writes(1));
+		<Pallet<T>>::deposit_event(Event::RuntimeUpgradeCompleted { weight });
 
 		weight
 	}

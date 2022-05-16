@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -24,32 +24,26 @@
 //! - For each traced block an async task responsible to wait for a permit, spawn a blocking
 //!   task and waiting for the result, then send it to the main `CacheTask`.
 
-use futures::{
-	compat::Compat,
-	future::{BoxFuture, TryFutureExt},
-	select,
-	stream::FuturesUnordered,
-	FutureExt, SinkExt, StreamExt,
-};
+use futures::{future::BoxFuture, select, stream::FuturesUnordered, FutureExt, SinkExt, StreamExt};
 use std::{collections::BTreeMap, future::Future, marker::PhantomData, sync::Arc, time::Duration};
 use tokio::{
 	sync::{mpsc, oneshot, Semaphore},
-	time::delay_for,
+	time::sleep,
 };
 use tracing::{instrument, Instrument};
 
 use jsonrpc_core::Result;
-use sc_client_api::backend::Backend;
-use sp_api::{BlockId, Core, HeaderT, ProvideRuntimeApi};
+use sc_client_api::backend::{Backend, StateBackend, StorageProvider};
+use sc_utils::mpsc::TracingUnboundedSender;
+use sp_api::{ApiExt, BlockId, Core, HeaderT, ProvideRuntimeApi};
 use sp_block_builder::BlockBuilder;
 use sp_blockchain::{
 	Backend as BlockchainBackend, Error as BlockChainError, HeaderBackend, HeaderMetadata,
 };
-use sp_runtime::traits::Block as BlockT;
-use sp_utils::mpsc::TracingUnboundedSender;
+use sp_runtime::traits::{BlakeTwo256, Block as BlockT};
 
 use ethereum_types::H256;
-use fc_rpc::internal_err;
+use fc_rpc::{frontier_backend_client, internal_err, OverrideHandle};
 use fp_rpc::EthereumRuntimeRPCApi;
 
 use moonbeam_client_evm_tracing::{
@@ -246,9 +240,8 @@ where
 	fn filter(
 		&self,
 		filter: FilterRequest,
-	) -> Compat<BoxFuture<'static, jsonrpc_core::Result<Vec<TransactionTrace>>>> {
-		// Wraps the async function into futures compatibility layer.
-		self.clone().filter(filter).boxed().compat()
+	) -> BoxFuture<'static, jsonrpc_core::Result<Vec<TransactionTrace>>> {
+		self.clone().filter(filter).boxed()
 	}
 }
 
@@ -429,7 +422,9 @@ pub struct CacheTask<B, C, BE> {
 impl<B, C, BE> CacheTask<B, C, BE>
 where
 	BE: Backend<B> + 'static,
+	BE::State: StateBackend<BlakeTwo256>,
 	C: ProvideRuntimeApi<B>,
+	C: StorageProvider<B, BE>,
 	C: HeaderMetadata<B, Error = BlockChainError> + HeaderBackend<B>,
 	C: Send + Sync + 'static,
 	B: BlockT<Hash = H256> + Send + Sync + 'static,
@@ -437,6 +432,7 @@ where
 	C::Api: BlockBuilder<B>,
 	C::Api: DebugRuntimeApi<B>,
 	C::Api: EthereumRuntimeRPCApi<B>,
+	C::Api: ApiExt<B>,
 {
 	/// Create a new cache task.
 	///
@@ -447,19 +443,19 @@ where
 		backend: Arc<BE>,
 		cache_duration: Duration,
 		blocking_permits: Arc<Semaphore>,
+		overrides: Arc<OverrideHandle<B>>,
 	) -> (impl Future<Output = ()>, CacheRequester) {
 		// Communication with the outside world :
 		let (requester_tx, mut requester_rx) =
-			sp_utils::mpsc::tracing_unbounded("trace-filter-cache");
+			sc_utils::mpsc::tracing_unbounded("trace-filter-cache");
 
 		// Task running in the service.
 		let task = async move {
 			// The following variables are polled by the select! macro, and thus cannot be
 			// part of Self without introducing borrowing issues.
 			let mut batch_expirations = FuturesUnordered::new();
-			let (blocking_tx, blocking_rx) =
+			let (blocking_tx, mut blocking_rx) =
 				mpsc::channel(blocking_permits.available_permits() * 2);
-			let mut blocking_rx = blocking_rx.fuse();
 
 			// Contains the inner state of the cache task, excluding the pooled futures/channels.
 			// Having this object allow to refactor each event into its own function, simplifying
@@ -482,14 +478,14 @@ where
 						match request {
 							None => break,
 							Some(CacheRequest::StartBatch {sender, blocks})
-								=> inner.request_start_batch(&blocking_tx, sender, blocks),
+								=> inner.request_start_batch(&blocking_tx, sender, blocks, overrides.clone()),
 							Some(CacheRequest::GetTraces {sender, block})
 								=> inner.request_get_traces(sender, block),
 							Some(CacheRequest::StopBatch {batch_id}) => {
 								// Cannot be refactored inside `request_stop_batch` because
 								// it has an unnamable type :C
 								batch_expirations.push(async move {
-									delay_for(cache_duration).await;
+									sleep(cache_duration).await;
 									batch_id
 								});
 
@@ -497,7 +493,7 @@ where
 							},
 						}
 					},
-					message = blocking_rx.next() => {
+					message = blocking_rx.recv().fuse() => {
 						match message {
 							None => (),
 							Some(BlockingTaskMessage::Started { block_hash })
@@ -522,12 +518,13 @@ where
 
 	/// Handle the creation of a batch.
 	/// Will start the tracing process for blocks that are not already in the cache.
-	#[instrument(skip(self, blocking_tx, sender, blocks))]
+	#[instrument(skip(self, blocking_tx, sender, blocks, overrides))]
 	fn request_start_batch(
 		&mut self,
 		blocking_tx: &mpsc::Sender<BlockingTaskMessage>,
 		sender: oneshot::Sender<CacheBatchId>,
 		blocks: Vec<H256>,
+		overrides: Arc<OverrideHandle<B>>,
 	) {
 		tracing::trace!("Starting batch {}", self.next_batch_id);
 		self.batches.insert(self.next_batch_id, blocks.clone());
@@ -550,7 +547,8 @@ where
 				let (unqueue_sender, unqueue_receiver) = oneshot::channel();
 				let client = Arc::clone(&self.client);
 				let backend = Arc::clone(&self.backend);
-				let mut blocking_tx = blocking_tx.clone();
+				let blocking_tx = blocking_tx.clone();
+				let overrides = overrides.clone();
 
 				// Spawn all block caching asynchronously.
 				// It will wait to obtain a permit, then spawn a blocking task.
@@ -578,7 +576,7 @@ where
 						// Perform block tracing in a tokio blocking task.
 						let result = async {
 							tokio::task::spawn_blocking(move || {
-								Self::cache_block(client, backend, block)
+								Self::cache_block(client, backend, block, overrides.clone())
 							})
 							.await
 							.map_err(|e| {
@@ -777,11 +775,12 @@ where
 	}
 
 	/// (In blocking task) Use the Runtime API to trace the block.
-	#[instrument(skip(client, backend))]
+	#[instrument(skip(client, backend, overrides))]
 	fn cache_block(
 		client: Arc<C>,
 		backend: Arc<BE>,
 		substrate_hash: H256,
+		overrides: Arc<OverrideHandle<B>>,
 	) -> Result<Vec<TransactionTrace>> {
 		let substrate_block_id = BlockId::Hash(substrate_hash);
 
@@ -802,22 +801,29 @@ where
 		let height = *block_header.number();
 		let substrate_parent_id = BlockId::<B>::Hash(*block_header.parent_hash());
 
-		// Get Ethereum block data.
-		let (eth_block, _, eth_transactions) = api
-			.current_all(&BlockId::Hash(substrate_hash))
-			.map_err(|e| {
-				internal_err(format!(
-					"Failed to get Ethereum block data for Substrate block {} : {:?}",
-					substrate_hash, e
-				))
-			})?;
+		let schema = frontier_backend_client::onchain_storage_schema::<B, C, BE>(
+			client.as_ref(),
+			substrate_block_id,
+		);
 
-		let (eth_block, eth_transactions) = match (eth_block, eth_transactions) {
-			(Some(a), Some(b)) => (a, b),
+		// Get Ethereum block data.
+		let (eth_block, eth_transactions) = match overrides.schemas.get(&schema) {
+			Some(schema) => match (
+				schema.current_block(&substrate_block_id),
+				schema.current_transaction_statuses(&substrate_block_id),
+			) {
+				(Some(a), Some(b)) => (a, b),
+				_ => {
+					return Err(internal_err(format!(
+						"Failed to get Ethereum block data for Substrate block {}",
+						substrate_block_id
+					)))
+				}
+			},
 			_ => {
 				return Err(internal_err(format!(
-					"Failed to get Ethereum block data for Substrate block {}",
-					substrate_hash
+					"No storage override at {:?}",
+					substrate_block_id
 				)))
 			}
 		};
@@ -875,7 +881,8 @@ where
 		let mut proxy = moonbeam_client_evm_tracing::listeners::CallList::default();
 		proxy.using(f)?;
 		let mut traces: Vec<_> =
-			moonbeam_client_evm_tracing::formatters::TraceFilter::format(proxy).unwrap();
+			moonbeam_client_evm_tracing::formatters::TraceFilter::format(proxy)
+				.ok_or(internal_err("Fail to format proxy"))?;
 		// Fill missing data.
 		for trace in traces.iter_mut() {
 			trace.block_hash = eth_block_hash;
