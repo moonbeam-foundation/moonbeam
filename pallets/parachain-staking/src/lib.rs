@@ -87,7 +87,7 @@ pub mod pallet {
 		traits::{Saturating, Zero},
 		Perbill, Percent,
 	};
-	use sp_std::{collections::btree_map::BTreeMap, prelude::*};
+	use sp_std::{collections::btree_map::BTreeMap, collections::btree_set::BTreeSet, prelude::*};
 
 	/// Pallet for parachain staking
 	#[pallet::pallet]
@@ -1630,6 +1630,9 @@ pub mod pallet {
 			}
 
 			// snapshot exposure for round for weighting reward distribution
+			let leaving_delegators = <LeavingDelegators<T>>::get()
+				.into_iter()
+				.collect::<BTreeSet<_>>();
 			for account in collators.iter() {
 				let state = <CandidateInfo<T>>::get(account)
 					.expect("all members of CandidateQ must be candidates");
@@ -1638,7 +1641,8 @@ pub mod pallet {
 				delegation_count = delegation_count.saturating_add(state.delegation_count);
 				total = total.saturating_add(state.total_counted);
 				let snapshot_total = state.total_counted;
-				let top_rewardable_delegations = Self::get_rewardable_delegators(&account);
+				let top_rewardable_delegations =
+					Self::get_rewardable_delegators(&account, &leaving_delegators);
 
 				let snapshot = CollatorSnapshot {
 					bond: state.bond,
@@ -1668,6 +1672,7 @@ pub mod pallet {
 		/// The intended bond amounts will be used while calculating rewards.
 		fn get_rewardable_delegators(
 			collator: &T::AccountId,
+			leaving_delegators: &BTreeSet<T::AccountId>,
 		) -> Vec<Bond<T::AccountId, BalanceOf<T>>> {
 			let requests = <DelegationScheduledRequests<T>>::get(collator)
 				.into_iter()
@@ -1679,24 +1684,33 @@ pub mod pallet {
 				.delegations
 				.into_iter()
 				.map(|mut bond| {
-					bond.amount = match requests.get(&bond.owner) {
-						None => bond.amount,
-						Some(DelegationAction::Revoke(_)) => {
-							log::warn!(
-								"reward for delegator '{:?}' set to zero due to pending \
+					if leaving_delegators.contains(&bond.owner) {
+						log::warn!(
+							"reward for delegator '{:?}' set to zero due to pending \
+							leave request",
+							bond.owner
+						);
+						bond.amount = BalanceOf::<T>::zero();
+					} else {
+						bond.amount = match requests.get(&bond.owner) {
+							None => bond.amount,
+							Some(DelegationAction::Revoke(_)) => {
+								log::warn!(
+									"reward for delegator '{:?}' set to zero due to pending \
 								revoke request",
-								bond.owner
-							);
-							BalanceOf::<T>::zero()
-						}
-						Some(DelegationAction::Decrease(amount)) => {
-							log::warn!(
+									bond.owner
+								);
+								BalanceOf::<T>::zero()
+							}
+							Some(DelegationAction::Decrease(amount)) => {
+								log::warn!(
 								"reward for delegator '{:?}' reduced by set amount due to pending \
 								decrease request",
 								bond.owner
 							);
-							bond.amount.saturating_sub(*amount)
-						}
+								bond.amount.saturating_sub(*amount)
+							}
+						};
 					};
 
 					bond
