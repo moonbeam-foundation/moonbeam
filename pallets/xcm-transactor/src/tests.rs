@@ -315,6 +315,20 @@ fn test_fee_calculation_works() {
 		})
 }
 
+// Kusama case
+#[test]
+fn test_fee_calculation_works_2() {
+	ExtBuilder::default()
+		.with_balances(vec![])
+		.build()
+		.execute_with(|| {
+			assert_eq!(
+				XcmTransactor::calculate_fee_per_second(319324000, 38620923000),
+				12332588
+			);
+		})
+}
+
 #[test]
 fn test_max_transact_weight_migration_works() {
 	ExtBuilder::default()
