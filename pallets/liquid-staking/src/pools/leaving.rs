@@ -89,7 +89,7 @@ fn sub_shares<T: Config>(
 	Ok(stake)
 }
 
-pub fn register_leaving<T: Config>(
+pub(crate) fn register_leaving<T: Config>(
 	candidate: T::AccountId,
 	delegator: T::AccountId,
 	stake: T::Balance,
@@ -117,7 +117,7 @@ pub fn register_leaving<T: Config>(
 	Ok(())
 }
 
-pub fn execute_leaving<T: Config>(
+pub(crate) fn execute_leaving<T: Config>(
 	candidate: T::AccountId,
 	delegator: T::AccountId,
 	at_block: T::BlockNumber,
@@ -149,7 +149,7 @@ pub fn execute_leaving<T: Config>(
 	Ok(stake)
 }
 
-pub fn cancel_leaving<T: Config>(
+pub(crate) fn cancel_leaving<T: Config>(
 	candidate: T::AccountId,
 	delegator: T::AccountId,
 	at_block: T::BlockNumber,

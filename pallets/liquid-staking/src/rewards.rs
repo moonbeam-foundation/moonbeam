@@ -31,7 +31,7 @@ use {
 };
 
 #[transactional]
-pub fn distribute_rewards<T: Config>(
+pub(crate) fn distribute_rewards<T: Config>(
 	collator: T::AccountId,
 	value: T::Balance,
 ) -> Result<(), Error<T>> {

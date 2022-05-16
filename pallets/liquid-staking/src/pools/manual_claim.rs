@@ -68,7 +68,7 @@ pub fn stake_to_shares_or_init<T: Config>(
 	}
 }
 
-pub fn add_shares<T: Config>(
+pub(crate) fn add_shares<T: Config>(
 	candidate: T::AccountId,
 	delegator: T::AccountId,
 	shares: T::Balance,
@@ -94,7 +94,7 @@ pub fn add_shares<T: Config>(
 	Ok(stake)
 }
 
-pub fn sub_shares<T: Config>(
+pub(crate) fn sub_shares<T: Config>(
 	candidate: T::AccountId,
 	delegator: T::AccountId,
 	shares: T::Balance,
@@ -156,7 +156,7 @@ pub fn pending_rewards<T: Config>(
 	diff.checked_mul(&shares).ok_or(Error::MathOverflow)
 }
 
-pub fn claim_rewards<T: Config>(
+pub(crate) fn claim_rewards<T: Config>(
 	candidate: T::AccountId,
 	delegator: T::AccountId,
 ) -> Result<T::Balance, Error<T>> {

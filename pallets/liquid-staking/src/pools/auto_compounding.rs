@@ -68,7 +68,7 @@ pub fn stake_to_shares_or_init<T: Config>(
 	}
 }
 
-pub fn add_shares<T: Config>(
+pub(crate) fn add_shares<T: Config>(
 	candidate: T::AccountId,
 	delegator: T::AccountId,
 	shares: T::Balance,
@@ -94,7 +94,7 @@ pub fn add_shares<T: Config>(
 	Ok(stake)
 }
 
-pub fn sub_shares<T: Config>(
+pub(crate) fn sub_shares<T: Config>(
 	candidate: T::AccountId,
 	delegator: T::AccountId,
 	shares: T::Balance,
@@ -137,7 +137,7 @@ pub fn stake<T: Config>(
 	shares_to_stake(candidate, shares)
 }
 
-pub fn share_stake_among_holders<T: Config>(
+pub(crate) fn share_stake_among_holders<T: Config>(
 	candidate: &T::AccountId,
 	stake: T::Balance,
 ) -> Result<(), Error<T>> {

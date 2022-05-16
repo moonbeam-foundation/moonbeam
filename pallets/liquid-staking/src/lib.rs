@@ -16,9 +16,9 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-mod mul_div;
-mod pools;
-mod rewards;
+pub mod mul_div;
+pub mod pools;
+pub mod rewards;
 
 #[cfg(test)]
 mod mock;
