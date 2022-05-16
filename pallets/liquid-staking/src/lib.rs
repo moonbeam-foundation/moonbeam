@@ -128,15 +128,21 @@ pub mod pallet {
 
 		/// Inflation determines how much is minted as rewards every block.
 		type BlockInflation: Get<Perbill>;
+
+		/// Part of the rewards that will be sent to the reserve.
+		type RewardsReserveCommission: Get<Perbill>;
+
+		/// Part of the rewards that will be sent exclusively to the collator.
+		type RewardsCollatorCommission: Get<Perbill>;
 	}
 
-	/// Part of the rewards that will be sent to the reserve.
-	#[pallet::storage]
-	pub type RewardsReserveCommission<T: Config> = StorageValue<_, Perbill, ValueQuery>;
+	// /// Part of the rewards that will be sent to the reserve.
+	// #[pallet::storage]
+	// pub type RewardsReserveCommission<T: Config> = StorageValue<_, Perbill, ValueQuery>;
 
-	/// Part of the rewards that will be sent exclusively to the collator.
-	#[pallet::storage]
-	pub type RewardsCollatorCommission<T: Config> = StorageValue<_, Perbill, ValueQuery>;
+	// /// Part of the rewards that will be sent exclusively to the collator.
+	// #[pallet::storage]
+	// pub type RewardsCollatorCommission<T: Config> = StorageValue<_, Perbill, ValueQuery>;
 
 	/// Collator set.
 	#[pallet::storage]

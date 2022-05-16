@@ -43,6 +43,12 @@ pub const ACCOUNT_CANDIDATE_2: u64 = 3;
 pub const ACCOUNT_DELEGATOR_1: u64 = 4;
 pub const ACCOUNT_DELEGATOR_2: u64 = 5;
 
+pub const KILO: u128 = 1000;
+pub const MEGA: u128 = 1000 * KILO;
+pub const GIGA: u128 = 1000 * MEGA;
+pub const TERA: u128 = 1000 * GIGA;
+pub const PETA: u128 = 1000 * TERA;
+
 // Configure a mock runtime to test the pallet.
 construct_runtime!(
 	pub enum Runtime where
@@ -97,6 +103,8 @@ impl pallet_balances::Config for Runtime {
 
 parameter_types! {
 	pub BlockInflation: Perbill = Perbill::from_percent(1); // 1% each block.
+	pub RewardsReserveCommission: Perbill = Perbill::from_percent(30);
+	pub RewardsCollatorCommission: Perbill = Perbill::from_percent(20);
 }
 
 impl pallet::Config for Runtime {
@@ -105,11 +113,13 @@ impl pallet::Config for Runtime {
 	type Balance = Balance;
 	type StakingAccount = ConstU64<{ ACCOUNT_STAKING }>;
 	type ReserveAccount = ConstU64<{ ACCOUNT_RESERVE }>;
-	type InitialManualClaimShareValue = ConstU128<1_000_000_000>;
-	type InitialAutoCompoundingShareValue = ConstU128<1_000_000_000>;
+	type InitialManualClaimShareValue = ConstU128<{ 1 * KILO }>;
+	type InitialAutoCompoundingShareValue = ConstU128<{ 1 * KILO }>;
 	type LeavingDelay = ConstU64<5>;
-	type MinimumSelfDelegation = ConstU128<10_000_000_000>;
+	type MinimumSelfDelegation = ConstU128<{ 10 * KILO }>;
 	type BlockInflation = BlockInflation;
+	type RewardsReserveCommission = RewardsReserveCommission;
+	type RewardsCollatorCommission = RewardsCollatorCommission;
 }
 
 pub fn balance(who: &AccountId) -> Balance {
@@ -125,10 +135,10 @@ impl Default for ExtBuilder {
 	fn default() -> ExtBuilder {
 		ExtBuilder {
 			balances: vec![
-				(ACCOUNT_CANDIDATE_1, 1_000_000_000_000),
-				(ACCOUNT_CANDIDATE_2, 1_000_000_000_000),
-				(ACCOUNT_DELEGATOR_1, 1_000_000_000_000),
-				(ACCOUNT_DELEGATOR_2, 1_000_000_000_000),
+				(ACCOUNT_CANDIDATE_1, 1 * PETA),
+				(ACCOUNT_CANDIDATE_2, 1 * PETA),
+				(ACCOUNT_DELEGATOR_1, 1 * PETA),
+				(ACCOUNT_DELEGATOR_2, 1 * PETA),
 			],
 		}
 	}

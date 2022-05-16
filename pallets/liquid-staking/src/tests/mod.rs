@@ -26,3 +26,4 @@ use {
 mod auto_compounding;
 mod manual_claim;
 mod mixed;
+mod rewards;

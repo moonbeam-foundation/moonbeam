@@ -24,49 +24,49 @@ fn both_contribute_to_candidate_stake() {
 			ACCOUNT_CANDIDATE_1,
 			SharesOrStake::Shares(10)
 		));
-		assert_eq!(balance(&ACCOUNT_CANDIDATE_1), 990_000_000_000);
-		assert_eq!(balance(&ACCOUNT_STAKING), 10_000_000_000);
+		assert_eq!(balance(&ACCOUNT_CANDIDATE_1), 1 * PETA - 10 * KILO);
+		assert_eq!(balance(&ACCOUNT_STAKING), 10 * KILO);
 
 		assert_ok!(LiquidStaking::stake_auto_compounding(
-			Origin::signed(ACCOUNT_DELEGATOR_1),
+			Origin::signed(ACCOUNT_CANDIDATE_1),
 			ACCOUNT_CANDIDATE_1,
 			SharesOrStake::Shares(5)
 		));
-		assert_eq!(balance(&ACCOUNT_DELEGATOR_1), 995_000_000_000);
-		assert_eq!(balance(&ACCOUNT_STAKING), 15_000_000_000);
+		assert_eq!(balance(&ACCOUNT_CANDIDATE_1), 1 * PETA - 15 * KILO);
+		assert_eq!(balance(&ACCOUNT_STAKING), 15 * KILO);
 
 		assert_eq_events!(vec![
 			Event::StakedManualClaim {
 				candidate: ACCOUNT_CANDIDATE_1,
 				delegator: ACCOUNT_CANDIDATE_1,
 				shares: 10,
-				stake: 10_000_000_000,
+				stake: 10 * KILO,
 			},
 			Event::IncreasedStake {
 				candidate: ACCOUNT_CANDIDATE_1,
-				stake: 10_000_000_000,
+				stake: 10 * KILO,
 			},
 			Event::UpdatedCandidatePosition {
 				candidate: ACCOUNT_CANDIDATE_1,
-				stake: 10_000_000_000,
-				self_delegation: 10_000_000_000,
+				stake: 10 * KILO,
+				self_delegation: 10 * KILO,
 				before: None,
 				after: Some(0)
 			},
 			Event::StakedAutoCompounding {
 				candidate: ACCOUNT_CANDIDATE_1,
-				delegator: ACCOUNT_DELEGATOR_1,
+				delegator: ACCOUNT_CANDIDATE_1,
 				shares: 5,
-				stake: 5_000_000_000,
+				stake: 5 * KILO,
 			},
 			Event::IncreasedStake {
 				candidate: ACCOUNT_CANDIDATE_1,
-				stake: 5_000_000_000,
+				stake: 5 * KILO,
 			},
 			Event::UpdatedCandidatePosition {
 				candidate: ACCOUNT_CANDIDATE_1,
-				stake: 15_000_000_000,
-				self_delegation: 10_000_000_000,
+				stake: 15 * KILO,
+				self_delegation: 15 * KILO,
 				before: Some(0),
 				after: Some(0),
 			},
