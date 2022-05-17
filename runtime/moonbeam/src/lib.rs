@@ -886,6 +886,12 @@ impl Contains<Call> for NormalFilter {
 				pallet_xcm::Call::force_default_xcm_version { .. } => true,
 				_ => false,
 			},
+			// We filter for now transact through signed
+			Call::XcmTransactor(method) => match method {
+				xcm_transactor::Call::transact_through_signed_multilocation { .. } => false,
+				xcm_transactor::Call::transact_through_signed { .. } => false,
+				_ => true,
+			},
 			_ => true,
 		}
 	}

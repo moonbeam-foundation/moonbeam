@@ -2526,6 +2526,119 @@ fn transactor_cannot_use_more_than_max_weight() {
 }
 
 #[test]
+fn transact_through_signed_mult_not_enabled() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * MOVR),
+			(AccountId::from(BOB), 1_000 * MOVR),
+		])
+		.with_xcm_assets(vec![XcmAssetInitialization {
+			asset_type: AssetType::Xcm(MultiLocation::parent()),
+			metadata: AssetRegistrarMetadata {
+				name: b"RelayToken".to_vec(),
+				symbol: b"Relay".to_vec(),
+				decimals: 12,
+				is_frozen: false,
+			},
+			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
+			is_sufficient: true,
+		}])
+		.build()
+		.execute_with(|| {
+			// Root can set transact info
+			assert_ok!(XcmTransactor::set_transact_info(
+				root_origin(),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				// Relay charges 1000 for every instruction, and we have 3, so 3000
+				3000,
+				20000,
+				// lets say 1000 per instruction
+				Some(4000)
+			));
+
+			// Root can set transact info
+			assert_ok!(XcmTransactor::set_fee_per_second(
+				root_origin(),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				1
+			));
+
+			assert_noop!(
+				Call::XcmTransactor(
+					xcm_transactor::Call::<Runtime>::transact_through_signed_multilocation {
+						dest: Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+						fee_location: Box::new(xcm::VersionedMultiLocation::V1(
+							MultiLocation::parent()
+						)),
+						dest_weight: 11000,
+						call: vec![],
+					}
+				)
+				.dispatch(<Runtime as frame_system::Config>::Origin::signed(
+					AccountId::from(ALICE)
+				)),
+				frame_system::Error::<Runtime>::CallFiltered
+			);
+		})
+}
+
+#[test]
+fn transact_through_signed_not_enabled() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * MOVR),
+			(AccountId::from(BOB), 1_000 * MOVR),
+		])
+		.with_xcm_assets(vec![XcmAssetInitialization {
+			asset_type: AssetType::Xcm(MultiLocation::parent()),
+			metadata: AssetRegistrarMetadata {
+				name: b"RelayToken".to_vec(),
+				symbol: b"Relay".to_vec(),
+				decimals: 12,
+				is_frozen: false,
+			},
+			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
+			is_sufficient: true,
+		}])
+		.build()
+		.execute_with(|| {
+			let source_location = AssetType::Xcm(MultiLocation::parent());
+			let source_id: moonriver_runtime::AssetId = source_location.clone().into();
+
+			// Root can set transact info
+			assert_ok!(XcmTransactor::set_transact_info(
+				root_origin(),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				// Relay charges 1000 for every instruction, and we have 3, so 3000
+				3000,
+				20000,
+				// lets say 1000 per instruction
+				Some(4000)
+			));
+
+			// Root can set transact info
+			assert_ok!(XcmTransactor::set_fee_per_second(
+				root_origin(),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				1
+			));
+
+			assert_noop!(
+				Call::XcmTransactor(xcm_transactor::Call::<Runtime>::transact_through_signed {
+					dest: Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+					fee_currency_id: CurrencyId::ForeignAsset(source_id),
+					dest_weight: 11000,
+					call: vec![],
+				})
+				.dispatch(<Runtime as frame_system::Config>::Origin::signed(
+					AccountId::from(ALICE)
+				)),
+				frame_system::Error::<Runtime>::CallFiltered
+			);
+		})
+}
+
+#[test]
 fn call_xtokens_with_fee() {
 	ExtBuilder::default()
 		.with_balances(vec![
