@@ -9675,6 +9675,7 @@ dependencies = [
  "parity-scale-codec",
  "precompile-utils-macro",
  "sha3 0.9.1",
+ "similar-asserts",
  "sp-core",
  "sp-io",
  "sp-std",

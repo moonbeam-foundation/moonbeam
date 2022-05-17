@@ -64,4 +64,12 @@ interface Batch {
         uint256[] memory value,
         bytes[] memory call_data
     ) external payable returns (bytes[] memory outputs);
+
+    /// Emitted when a subcall succeeds.
+    /// Selector: 1394239457558577f9e943b1c40196059a4bc5075a41a6e33ea3c676a297ee67
+    event SubcallSucceeded(uint256 index, bytes output);
+
+    /// Emitted when a subcall fails.
+    /// Selector: e0844dd772fe51cb542f007a35cbc42ed46d2ce4a5be7ceacb2623920108fac3
+    event SubcallFailed(uint256 index, bytes output);
 }

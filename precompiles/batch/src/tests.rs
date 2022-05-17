@@ -19,7 +19,7 @@ use crate::mock::{
 	Account::{Alice, Bob, Charlie, David, Precompile, Revert},
 	Call, ExtBuilder, Origin, PrecompilesValue, Runtime, TestPrecompiles,
 };
-use crate::Action;
+use crate::{log_subcall_failed, log_subcall_succeeded, Action};
 use evm::ExitReason;
 use fp_evm::{ExitError, ExitRevert, ExitSucceed};
 use frame_support::{assert_ok, dispatch::Dispatchable};
@@ -201,7 +201,9 @@ fn batch_returns(
 			},
 		)
 		.expect_log(LogsBuilder::new(Bob.into()).log1(H256::repeat_byte(0x11), vec![]))
+		.expect_log(log_subcall_succeeded(Precompile, 0, b"ONE"))
 		.expect_log(LogsBuilder::new(Charlie.into()).log1(H256::repeat_byte(0x22), vec![]))
+		.expect_log(log_subcall_succeeded(Precompile, 1, b"TWO"))
 		.expect_cost(13 + 17)
 }
 
@@ -292,7 +294,7 @@ fn batch_out_of_gas(
 
 						SubcallOutput {
 							reason: ExitReason::Error(ExitError::OutOfGas),
-							output: b"ONE".to_vec(),
+							output: Vec::new(),
 							cost: 11_000,
 							logs: vec![],
 						}
@@ -306,24 +308,28 @@ fn batch_out_of_gas(
 #[test]
 fn batch_some_out_of_gas() {
 	ExtBuilder::default().build().execute_with(|| {
-		batch_out_of_gas(&precompiles(), Action::BatchSome).execute_returns(
-			EvmDataWriter::new()
-				.write(U256::from(0u8))
-				.write::<Vec<Bytes>>(vec![Bytes(vec![])])
-				.build(),
-		)
+		batch_out_of_gas(&precompiles(), Action::BatchSome)
+			.expect_log(log_subcall_failed(Precompile, 0, ""))
+			.execute_returns(
+				EvmDataWriter::new()
+					.write(U256::from(0u8))
+					.write::<Vec<Bytes>>(vec![Bytes(vec![])])
+					.build(),
+			)
 	})
 }
 
 #[test]
 fn batch_some_until_failure_out_of_gas() {
 	ExtBuilder::default().build().execute_with(|| {
-		batch_out_of_gas(&precompiles(), Action::BatchSomeUntilFailure).execute_returns(
-			EvmDataWriter::new()
-				.write(U256::from(0u8))
-				.write::<Vec<Bytes>>(vec![Bytes(vec![])])
-				.build(),
-		)
+		batch_out_of_gas(&precompiles(), Action::BatchSomeUntilFailure)
+			.expect_log(log_subcall_failed(Precompile, 0, ""))
+			.execute_returns(
+				EvmDataWriter::new()
+					.write(U256::from(0u8))
+					.write::<Vec<Bytes>>(vec![Bytes(vec![])])
+					.build(),
+			)
 	})
 }
 
@@ -430,9 +436,8 @@ fn batch_incomplete(
 							reason: ExitReason::Succeed(ExitSucceed::Returned),
 							output: b"THREE".to_vec(),
 							cost: 19,
-							logs: vec![
-								LogsBuilder::new(Bob.into()).log1(H256::repeat_byte(0x33), vec![])
-							],
+							logs: vec![LogsBuilder::new(Alice.into())
+								.log1(H256::repeat_byte(0x33), vec![])],
 						}
 					}
 					_ => panic!("unexpected subcall"),
@@ -444,31 +449,41 @@ fn batch_incomplete(
 #[test]
 fn batch_some_incomplete() {
 	ExtBuilder::default().build().execute_with(|| {
-		batch_incomplete(&precompiles(), Action::BatchSome).execute_returns(
-			EvmDataWriter::new()
-				.write(U256::from(2u8)) // 2 out of 3 succeeded
-				.write::<Vec<Bytes>>(vec![
-					Bytes(b"ONE".to_vec()),
-					Bytes(b"Revert message".to_vec()),
-					Bytes(b"THREE".to_vec()),
-				])
-				.build(),
-		)
+		batch_incomplete(&precompiles(), Action::BatchSome)
+			.expect_log(LogsBuilder::new(Bob.into()).log1(H256::repeat_byte(0x11), vec![]))
+			.expect_log(log_subcall_succeeded(Precompile, 0, b"ONE"))
+			.expect_log(log_subcall_failed(Precompile, 1, b"Revert message"))
+			.expect_log(LogsBuilder::new(Alice.into()).log1(H256::repeat_byte(0x33), vec![]))
+			.expect_log(log_subcall_succeeded(Precompile, 2, b"THREE"))
+			.execute_returns(
+				EvmDataWriter::new()
+					.write(U256::from(2u8)) // 2 out of 3 succeeded
+					.write::<Vec<Bytes>>(vec![
+						Bytes(b"ONE".to_vec()),
+						Bytes(b"Revert message".to_vec()),
+						Bytes(b"THREE".to_vec()),
+					])
+					.build(),
+			)
 	})
 }
 
 #[test]
 fn batch_some_until_failure_incomplete() {
 	ExtBuilder::default().build().execute_with(|| {
-		batch_incomplete(&precompiles(), Action::BatchSomeUntilFailure).execute_returns(
-			EvmDataWriter::new()
-				.write(U256::from(1u8)) // failed at index 1
-				.write::<Vec<Bytes>>(vec![
-					Bytes(b"ONE".to_vec()),
-					Bytes(b"Revert message".to_vec()),
-				])
-				.build(),
-		)
+		batch_incomplete(&precompiles(), Action::BatchSomeUntilFailure)
+			.expect_log(LogsBuilder::new(Bob.into()).log1(H256::repeat_byte(0x11), vec![]))
+			.expect_log(log_subcall_succeeded(Precompile, 0, b"ONE"))
+			.expect_log(log_subcall_failed(Precompile, 1, b"Revert message"))
+			.execute_returns(
+				EvmDataWriter::new()
+					.write(U256::from(1u8)) // failed at index 1
+					.write::<Vec<Bytes>>(vec![
+						Bytes(b"ONE".to_vec()),
+						Bytes(b"Revert message".to_vec()),
+					])
+					.build(),
+			)
 	})
 }
 

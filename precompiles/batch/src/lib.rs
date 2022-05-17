@@ -19,13 +19,12 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use evm::ExitReason;
-use fp_evm::{Context, PrecompileFailure, PrecompileHandle, PrecompileOutput, Transfer};
-use pallet_evm::Precompile;
+use fp_evm::{Context, Log, PrecompileFailure, PrecompileHandle, PrecompileOutput, Transfer};
 use precompile_utils::{
-	check_function_modifier, succeed, Address, Bytes, EvmDataReader, EvmDataWriter, EvmResult,
-	FunctionModifier,
+	check_function_modifier, keccak256, succeed, Address, Bytes, EvmDataReader, EvmDataWriter,
+	EvmResult, FunctionModifier, LogExt, LogsBuilder,
 };
-use sp_core::U256;
+use sp_core::{H160, U256};
 use sp_std::{iter::repeat, marker::PhantomData, vec, vec::Vec};
 
 #[cfg(test)]
@@ -41,10 +40,37 @@ pub enum Action {
 	BatchAll = "batchAll(address[],uint256[],bytes[])",
 }
 
+pub const LOG_SUBCALL_SUCCEEDED: [u8; 32] = keccak256!("SubcallSucceeded(uint256,bytes)");
+pub const LOG_SUBCALL_FAILED: [u8; 32] = keccak256!("SubcallFailed(uint256,bytes)");
+
+pub fn log_subcall_succeeded(
+	address: impl Into<H160>,
+	index: usize,
+	output: impl AsRef<[u8]>,
+) -> Log {
+	LogsBuilder::new(address.into()).log1(
+		LOG_SUBCALL_SUCCEEDED,
+		EvmDataWriter::new()
+			.write(U256::from(index))
+			.write(Bytes::from(output.as_ref()))
+			.build(),
+	)
+}
+
+pub fn log_subcall_failed(address: impl Into<H160>, index: usize, output: impl AsRef<[u8]>) -> Log {
+	LogsBuilder::new(address.into()).log1(
+		LOG_SUBCALL_FAILED,
+		EvmDataWriter::new()
+			.write(U256::from(index))
+			.write(Bytes::from(output.as_ref()))
+			.build(),
+	)
+}
+
 /// Batch precompile.
 pub struct BatchPrecompile<Runtime>(PhantomData<Runtime>);
 
-impl<Runtime> Precompile for BatchPrecompile<Runtime>
+impl<Runtime> pallet_evm::Precompile for BatchPrecompile<Runtime>
 where
 	Runtime: pallet_evm::Config,
 {
@@ -119,6 +145,20 @@ where
 
 			outputs.push(Bytes(output.clone()));
 
+			// Logs
+			match reason {
+				ExitReason::Revert(_) | ExitReason::Error(_) => {
+					log_subcall_failed(handle.code_address(), i, output.as_slice())
+						.record(handle)?
+				}
+				ExitReason::Succeed(_) => {
+					log_subcall_succeeded(handle.code_address(), i, output.as_slice())
+						.record(handle)?
+				}
+				_ => (),
+			}
+
+			// How to proceed
 			match (reason, action) {
 				// _: Fatal is always fatal
 				(ExitReason::Fatal(exit_status), _) => {
