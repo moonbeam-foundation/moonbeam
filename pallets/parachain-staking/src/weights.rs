@@ -184,6 +184,8 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add((73_000 as Weight).saturating_mul(x as Weight))
 			.saturating_add(T::DbWeight::get().reads(5 as Weight))
 			.saturating_add(T::DbWeight::get().writes(6 as Weight))
+			// Storage: Session NextKeys (r:1 w:0) -- ValidatorRegistration
+			.saturating_add(T::DbWeight::get().reads(1 as Weight))
 	}
 	// Storage: ParachainStaking CandidateInfo (r:1 w:1)
 	// Storage: ParachainStaking CandidatePool (r:1 w:1)
