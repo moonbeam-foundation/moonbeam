@@ -230,6 +230,64 @@ impl<T: Config> Pallet<T> {
 		Ok(().into())
 	}
 
+	/// Executes the delegator's existing leave request towards all collators.
+	pub(crate) fn delegator_execute_scheduled_leave_request(
+		delegator: T::AccountId,
+		delegation_count: u32,
+	) -> DispatchResultWithPostInfo {
+		let mut state = <DelegatorState<T>>::get(&delegator).ok_or(<Error<T>>::DelegatorDNE)?;
+		state.can_execute_leave::<T>(delegation_count)?;
+
+		let mut updated_scheduled_requests = vec![];
+
+		for bond in state.delegations.0.clone() {
+			let collator = bond.owner.clone();
+			let mut scheduled_requests = <DelegationScheduledRequests<T>>::get(&collator);
+			let request_idx = scheduled_requests
+				.iter()
+				.position(|req| req.delegator == delegator)
+				.ok_or(<Error<T>>::PendingDelegationRequestDNE)?;
+			let request = &scheduled_requests[request_idx];
+
+			let now = <Round<T>>::get().current;
+			ensure!(
+				request.when_executable <= now,
+				<Error<T>>::PendingDelegationRequestNotDueYet
+			);
+			ensure!(
+				matches!(request.action, DelegationAction::Leave(_)),
+				<Error<T>>::DelegatorNotLeaving
+			);
+			if let Err(error) =
+				Self::delegator_leaves_candidate(collator.clone(), delegator.clone(), bond.amount)
+			{
+				log::warn!(
+					"STORAGE CORRUPTED \nDelegator {:?} leaving collator failed with error: {:?}",
+					delegator,
+					error
+				);
+			}
+
+			let amount = scheduled_requests.remove(request_idx).action.amount();
+			state.less_total = state.less_total.saturating_sub(amount);
+			updated_scheduled_requests.push((collator, scheduled_requests));
+		}
+
+		updated_scheduled_requests
+			.into_iter()
+			.for_each(|(collator, scheduled_requests)| {
+				<DelegationScheduledRequests<T>>::insert(collator, scheduled_requests);
+			});
+
+		Self::deposit_event(Event::DelegatorLeft {
+			delegator: delegator.clone(),
+			unstaked_amount: state.total,
+		});
+		<DelegatorState<T>>::remove(&delegator);
+
+		Ok(().into())
+	}
+
 	/// Executes the delegator's existing [ScheduledRequest] towards a given collator.
 	pub(crate) fn delegation_execute_scheduled_request(
 		collator: T::AccountId,
@@ -251,7 +309,7 @@ impl<T: Config> Pallet<T> {
 
 		match request.action {
 			DelegationAction::Leave(_) => {
-				// noop, this action is only used as a marked to compute rewardable delegators.
+				// noop, this action is only used as a marker to compute rewardable delegators.
 				Ok(().into())
 			}
 			DelegationAction::Revoke(amount) => {
