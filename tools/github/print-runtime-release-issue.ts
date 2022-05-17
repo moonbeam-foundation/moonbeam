@@ -28,56 +28,47 @@ async function main() {
   const newVersion = argv.to;
   const lastClientVersion = argv.client;
 
+  const commonTemplate = `
+## Release
+- [ ] Tag master with runtime-${newVersion} and push to github
+- [ ] Start the github action Publish Runtime Draft
+with runtime-${previousVersion} => runtime-${newVersion}
+- [ ] Review the generated Draft and clean a bit the messages if needed (keep it draft)
+- [ ] Create the tracing runtime on moonbeam-runtime-overrides
+(see https://github.com/PureStake/moonbeam-runtime-overrides/blob/master/README.md)
+- [ ] Upgrade typescript API: Start the github action "Upgrade typescript API"
+- [ ] Add new tracing substitute in network configuration
+- [ ] Upgrade stagenet
+- [ ] Create new tracing image for partners: start the github action Publish Docker
+with ${lastClientVersion} and master
+- [ ] Upgrade alphanet
+- [ ] When everything is ok, publish the draft release
+  `;
+
   if (newVersion.endsWith("00")) {
     const template = `
-    ## Requirements
-    - [ ] To be manually edited (add pending PRs)
-  
-    ## Pre-Release
-    - [ ] Cleanup previous migrations (
-      https://github.com/PureStake/moonbeam/blob/master/runtime/common/src/migrations.rs)
-  
-    ## Release
-    - [ ] Tag master with runtime-${newVersion} and push to github
-    - [ ] Start the github action Publish Runtime Draft
-    with runtime-${previousVersion} => runtime-${newVersion}
-    - [ ] Review the generated Draft and clean a bit the messages if needed (keep it draft)
-    - [ ] Create the tracing runtime on moonbeam-runtime-overrides
-    (see https://github.com/PureStake/moonbeam-runtime-overrides/blob/master/README.md)
-    - [ ] Upgrade typescript API: Start the github action "Upgrade typescript API"
-    - [ ] Add new tracing substitute in network configuration
-    - [ ] Upgrade stagenet
-    - [ ] Create new tracing image for partners: start the github action Publish Docker
-    with ${lastClientVersion} and master
-    - [ ] Upgrade alphanet
-    - [ ] When everything is ok, publish the draft release
-  
-    ## Post Release
-    - [ ] Create a PR that increment spec version (like #1051)
+## Requirements
+- [ ] To be manually edited (add pending PRs)
+
+## Pre-Release
+- [ ] Cleanup previous migrations (
+  https://github.com/PureStake/moonbeam/blob/master/runtime/common/src/migrations.rs)
+
+${commonTemplate}
+
+## Post Release
+- [ ] Create a PR that increment spec version (like #1051)
     `;
     console.log(template);
   } else {
     const template = `
-    ## Requirements
-    - [ ] To be manually edited (add pending PRs)
-  
-    ## Pre-Release
-    - [ ] Bump spec version to ${newVersion}
-  
-    ## Release
-    - [ ] Tag master with runtime-${newVersion} and push to github
-    - [ ] Start the github action Publish Runtime Draft
-    with runtime-${previousVersion} => runtime-${newVersion}
-    - [ ] Review the generated Draft and clean a bit the messages if needed (keep it draft)
-    - [ ] Create the tracing runtime on moonbeam-runtime-overrides
-    (see https://github.com/PureStake/moonbeam-runtime-overrides/blob/master/README.md)
-    - [ ] Upgrade typescript API: Start the github action "Upgrade typescript API"
-    - [ ] Add new tracing substitute in network configuration 
-    - [ ] Upgrade stagenet
-    - [ ] Create new tracing image for partners: start the github action Publish Docker
-    with ${lastClientVersion} and master
-    - [ ] Upgrade alphanet
-    - [ ] When everything is ok, publish the draft release
+## Requirements
+- [ ] To be manually edited (add pending PRs)
+
+## Pre-Release
+- [ ] Bump spec version to ${newVersion}
+
+${commonTemplate}
     `;
     console.log(template);
   }
