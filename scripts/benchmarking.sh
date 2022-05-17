@@ -43,12 +43,12 @@ function choose_and_bench {
 
 function bench {
     echo "benchmarking '${1}::${2}' --check=${3}"
-    if [[ "${check}" -eq 1 ]]; then
+    if [[ "${3}" -eq 1 ]]; then
         STEPS=16
         REPEAT=1
     fi
 
-    WASMTIME_BACKTRACE_DETAILS=1 ${BINARY} benchmark \
+    WASMTIME_BACKTRACE_DETAILS=1 ${BINARY} benchmark pallet \
         --chain dev \
         --execution=wasm \
         --wasm-execution=compiled \
