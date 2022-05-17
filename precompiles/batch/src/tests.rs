@@ -23,8 +23,8 @@ use crate::{log_subcall_failed, log_subcall_succeeded, Action};
 use evm::ExitReason;
 use fp_evm::{ExitError, ExitRevert, ExitSucceed};
 use frame_support::{assert_ok, dispatch::Dispatchable};
-use pallet_evm::{Call as EvmCall, Event as EvmEvent};
-use precompile_utils::{testing::*, Address, Bytes, EvmDataWriter, LogsBuilder};
+use pallet_evm::Call as EvmCall;
+use precompile_utils::{testing::*, Address, Bytes, EvmDataWriter, LogExt, LogsBuilder};
 use sp_core::{H160, H256, U256};
 
 fn precompiles() -> TestPrecompiles<Runtime> {
@@ -47,9 +47,9 @@ fn evm_call(from: impl Into<H160>, input: Vec<u8>) -> EvmCall<Runtime> {
 
 #[test]
 fn selectors() {
-	assert_eq!(Action::BatchSome as u32, 0x9205a0ba);
-	assert_eq!(Action::BatchSomeUntilFailure as u32, 0xc803ba9a);
-	assert_eq!(Action::BatchAll as u32, 0x2d41531c);
+	assert_eq!(Action::BatchSome as u32, 0x3d662152);
+	assert_eq!(Action::BatchSomeUntilFailure as u32, 0x310a0280);
+	assert_eq!(Action::BatchAll as u32, 0x9cb89af4);
 }
 
 #[test]
@@ -63,15 +63,11 @@ fn batch_some_empty() {
 					.write::<Vec<Address>>(vec![])
 					.write::<Vec<U256>>(vec![])
 					.write::<Vec<Bytes>>(vec![])
+					.write(false)
 					.build(),
 			)
 			.with_subcall_handle(|Subcall { .. }| panic!("there should be no subcall"))
-			.execute_returns(
-				EvmDataWriter::new()
-					.write(U256::from(0u8))
-					.write::<Vec<Bytes>>(vec![])
-					.build(),
-			)
+			.execute_returns(Vec::new())
 	})
 }
 
@@ -86,15 +82,11 @@ fn batch_some_until_failure_empty() {
 					.write::<Vec<Address>>(vec![])
 					.write::<Vec<U256>>(vec![])
 					.write::<Vec<Bytes>>(vec![])
+					.write(false)
 					.build(),
 			)
 			.with_subcall_handle(|Subcall { .. }| panic!("there should be no subcall"))
-			.execute_returns(
-				EvmDataWriter::new()
-					.write(U256::from(0u8))
-					.write::<Vec<Bytes>>(vec![])
-					.build(),
-			)
+			.execute_returns(Vec::new())
 	})
 }
 
@@ -109,10 +101,11 @@ fn batch_all_empty() {
 					.write::<Vec<Address>>(vec![])
 					.write::<Vec<U256>>(vec![])
 					.write::<Vec<Bytes>>(vec![])
+					.write(false)
 					.build(),
 			)
 			.with_subcall_handle(|Subcall { .. }| panic!("there should be no subcall"))
-			.execute_returns(EvmDataWriter::new().write::<Vec<Bytes>>(vec![]).build())
+			.execute_returns(Vec::new())
 	})
 }
 
@@ -121,6 +114,11 @@ fn batch_returns(
 	action: Action,
 ) -> PrecompilesTester<TestPrecompiles<Runtime>> {
 	let mut counter = 0;
+
+	let return_log_cost = log_subcall_failed(Precompile, 0).compute_cost().unwrap();
+
+	let gas_reserve = return_log_cost + 1;
+
 	precompiles
 		.prepare_test(
 			Alice,
@@ -132,6 +130,7 @@ fn batch_returns(
 					Bytes::from(b"one".as_slice()),
 					Bytes::from(b"two".as_slice()),
 				])
+				.write(true)
 				.build(),
 		)
 		.with_target_gas(Some(100_000))
@@ -153,7 +152,11 @@ fn batch_returns(
 						assert_eq!(counter, 0, "this is the first call");
 						counter += 1;
 
-						assert_eq!(target_gas, Some(100_000), "batch forward all gas");
+						assert_eq!(
+							target_gas,
+							Some(100_000 - gas_reserve),
+							"batch forward all gas"
+						);
 						let transfer = transfer.expect("there is a transfer");
 						assert_eq!(transfer.source, Alice.into());
 						assert_eq!(transfer.target, Bob.into());
@@ -177,7 +180,11 @@ fn batch_returns(
 						assert_eq!(counter, 1, "this is the second call");
 						counter += 1;
 
-						assert_eq!(target_gas, Some(100_000 - 13), "batch forward all gas");
+						assert_eq!(
+							target_gas,
+							Some(100_000 - 13 - gas_reserve - return_log_cost),
+							"batch forward all gas"
+						);
 						let transfer = transfer.expect("there is a transfer");
 						assert_eq!(transfer.source, Alice.into());
 						assert_eq!(transfer.target, Charlie.into());
@@ -201,53 +208,30 @@ fn batch_returns(
 			},
 		)
 		.expect_log(LogsBuilder::new(Bob.into()).log1(H256::repeat_byte(0x11), vec![]))
-		.expect_log(log_subcall_succeeded(Precompile, 0, b"ONE"))
+		.expect_log(log_subcall_succeeded(Precompile, 0))
 		.expect_log(LogsBuilder::new(Charlie.into()).log1(H256::repeat_byte(0x22), vec![]))
-		.expect_log(log_subcall_succeeded(Precompile, 1, b"TWO"))
-		.expect_cost(13 + 17)
+		.expect_log(log_subcall_succeeded(Precompile, 1))
+		.expect_cost(13 + 17 + return_log_cost * 2)
 }
 
 #[test]
 fn batch_some_returns() {
 	ExtBuilder::default().build().execute_with(|| {
-		batch_returns(&precompiles(), Action::BatchSome).execute_returns(
-			EvmDataWriter::new()
-				.write(U256::from(2u8)) // successfully performed the 2 subcalls.
-				.write::<Vec<Bytes>>(vec![
-					Bytes(b"ONE".as_slice().into()),
-					Bytes(b"TWO".as_slice().into()),
-				])
-				.build(),
-		)
+		batch_returns(&precompiles(), Action::BatchSome).execute_returns(Vec::new())
 	})
 }
 
 #[test]
 fn batch_some_until_failure_returns() {
 	ExtBuilder::default().build().execute_with(|| {
-		batch_returns(&precompiles(), Action::BatchSomeUntilFailure).execute_returns(
-			EvmDataWriter::new()
-				.write(U256::from(2u8)) // successfully performed the 2 subcalls.
-				.write::<Vec<Bytes>>(vec![
-					Bytes(b"ONE".as_slice().into()),
-					Bytes(b"TWO".as_slice().into()),
-				])
-				.build(),
-		)
+		batch_returns(&precompiles(), Action::BatchSomeUntilFailure).execute_returns(Vec::new())
 	})
 }
 
 #[test]
 fn batch_all_returns() {
 	ExtBuilder::default().build().execute_with(|| {
-		batch_returns(&precompiles(), Action::BatchAll).execute_returns(
-			EvmDataWriter::new()
-				.write::<Vec<Bytes>>(vec![
-					Bytes(b"ONE".as_slice().into()),
-					Bytes(b"TWO".as_slice().into()),
-				])
-				.build(),
-		)
+		batch_returns(&precompiles(), Action::BatchAll).execute_returns(Vec::new())
 	})
 }
 
@@ -255,6 +239,10 @@ fn batch_out_of_gas(
 	precompiles: &TestPrecompiles<Runtime>,
 	action: Action,
 ) -> PrecompilesTester<TestPrecompiles<Runtime>> {
+	let return_log_cost = log_subcall_failed(Precompile, 0).compute_cost().unwrap();
+
+	let gas_reserve = return_log_cost + 1;
+
 	precompiles
 		.prepare_test(
 			Alice,
@@ -263,9 +251,10 @@ fn batch_out_of_gas(
 				.write(vec![Address(Bob.into())])
 				.write(vec![U256::from(1u8)])
 				.write(vec![Bytes::from(b"one".as_slice())])
+				.write(true)
 				.build(),
 		)
-		.with_target_gas(Some(10_000))
+		.with_target_gas(Some(50_000))
 		.with_subcall_handle(
 			move |Subcall {
 			          address,
@@ -281,7 +270,11 @@ fn batch_out_of_gas(
 
 				match address {
 					a if a == Bob.into() => {
-						assert_eq!(target_gas, Some(10_000), "batch forward all gas");
+						assert_eq!(
+							target_gas,
+							Some(50_000 - gas_reserve),
+							"batch forward all gas"
+						);
 						let transfer = transfer.expect("there is a transfer");
 						assert_eq!(transfer.source, Alice.into());
 						assert_eq!(transfer.target, Bob.into());
@@ -309,13 +302,8 @@ fn batch_out_of_gas(
 fn batch_some_out_of_gas() {
 	ExtBuilder::default().build().execute_with(|| {
 		batch_out_of_gas(&precompiles(), Action::BatchSome)
-			.expect_log(log_subcall_failed(Precompile, 0, ""))
-			.execute_returns(
-				EvmDataWriter::new()
-					.write(U256::from(0u8))
-					.write::<Vec<Bytes>>(vec![Bytes(vec![])])
-					.build(),
-			)
+			.expect_log(log_subcall_failed(Precompile, 0))
+			.execute_returns(Vec::new())
 	})
 }
 
@@ -323,13 +311,8 @@ fn batch_some_out_of_gas() {
 fn batch_some_until_failure_out_of_gas() {
 	ExtBuilder::default().build().execute_with(|| {
 		batch_out_of_gas(&precompiles(), Action::BatchSomeUntilFailure)
-			.expect_log(log_subcall_failed(Precompile, 0, ""))
-			.execute_returns(
-				EvmDataWriter::new()
-					.write(U256::from(0u8))
-					.write::<Vec<Bytes>>(vec![Bytes(vec![])])
-					.build(),
-			)
+			.expect_log(log_subcall_failed(Precompile, 0))
+			.execute_returns(Vec::new())
 	})
 }
 
@@ -345,6 +328,11 @@ fn batch_incomplete(
 	action: Action,
 ) -> PrecompilesTester<TestPrecompiles<Runtime>> {
 	let mut counter = 0;
+
+	let return_log_cost = log_subcall_failed(Precompile, 0).compute_cost().unwrap();
+
+	let gas_reserve = return_log_cost + 1;
+
 	precompiles
 		.prepare_test(
 			Alice,
@@ -357,6 +345,7 @@ fn batch_incomplete(
 				])
 				.write(vec![U256::from(1u8), U256::from(2u8)])
 				.write(vec![Bytes::from(b"one".as_slice())])
+				.write(true)
 				.build(),
 		)
 		.with_target_gas(Some(100_000))
@@ -378,7 +367,11 @@ fn batch_incomplete(
 						assert_eq!(counter, 0, "this is the first call");
 						counter += 1;
 
-						assert_eq!(target_gas, Some(100_000), "batch forward all gas");
+						assert_eq!(
+							target_gas,
+							Some(100_000 - gas_reserve),
+							"batch forward all gas"
+						);
 						let transfer = transfer.expect("there is a transfer");
 						assert_eq!(transfer.source, Alice.into());
 						assert_eq!(transfer.target, Bob.into());
@@ -402,7 +395,11 @@ fn batch_incomplete(
 						assert_eq!(counter, 1, "this is the second call");
 						counter += 1;
 
-						assert_eq!(target_gas, Some(100_000 - 13), "batch forward all gas");
+						assert_eq!(
+							target_gas,
+							Some(100_000 - 13 - gas_reserve - return_log_cost),
+							"batch forward all gas"
+						);
 						let transfer = transfer.expect("there is a transfer");
 						assert_eq!(transfer.source, Alice.into());
 						assert_eq!(transfer.target, Charlie.into());
@@ -424,7 +421,11 @@ fn batch_incomplete(
 						assert_eq!(counter, 2, "this is the third call");
 						counter += 1;
 
-						assert_eq!(target_gas, Some(100_000 - 13 - 17), "batch forward all gas");
+						assert_eq!(
+							target_gas,
+							Some(100_000 - 13 - 17 - gas_reserve - return_log_cost * 2),
+							"batch forward all gas"
+						);
 						assert!(transfer.is_none());
 
 						assert_eq!(context.address, Alice.into());
@@ -451,20 +452,11 @@ fn batch_some_incomplete() {
 	ExtBuilder::default().build().execute_with(|| {
 		batch_incomplete(&precompiles(), Action::BatchSome)
 			.expect_log(LogsBuilder::new(Bob.into()).log1(H256::repeat_byte(0x11), vec![]))
-			.expect_log(log_subcall_succeeded(Precompile, 0, b"ONE"))
-			.expect_log(log_subcall_failed(Precompile, 1, b"Revert message"))
+			.expect_log(log_subcall_succeeded(Precompile, 0))
+			.expect_log(log_subcall_failed(Precompile, 1))
 			.expect_log(LogsBuilder::new(Alice.into()).log1(H256::repeat_byte(0x33), vec![]))
-			.expect_log(log_subcall_succeeded(Precompile, 2, b"THREE"))
-			.execute_returns(
-				EvmDataWriter::new()
-					.write(U256::from(2u8)) // 2 out of 3 succeeded
-					.write::<Vec<Bytes>>(vec![
-						Bytes(b"ONE".to_vec()),
-						Bytes(b"Revert message".to_vec()),
-						Bytes(b"THREE".to_vec()),
-					])
-					.build(),
-			)
+			.expect_log(log_subcall_succeeded(Precompile, 2))
+			.execute_returns(Vec::new())
 	})
 }
 
@@ -473,17 +465,9 @@ fn batch_some_until_failure_incomplete() {
 	ExtBuilder::default().build().execute_with(|| {
 		batch_incomplete(&precompiles(), Action::BatchSomeUntilFailure)
 			.expect_log(LogsBuilder::new(Bob.into()).log1(H256::repeat_byte(0x11), vec![]))
-			.expect_log(log_subcall_succeeded(Precompile, 0, b"ONE"))
-			.expect_log(log_subcall_failed(Precompile, 1, b"Revert message"))
-			.execute_returns(
-				EvmDataWriter::new()
-					.write(U256::from(1u8)) // failed at index 1
-					.write::<Vec<Bytes>>(vec![
-						Bytes(b"ONE".to_vec()),
-						Bytes(b"Revert message".to_vec()),
-					])
-					.build(),
-			)
+			.expect_log(log_subcall_succeeded(Precompile, 0))
+			.expect_log(log_subcall_failed(Precompile, 1))
+			.execute_returns(Vec::new())
 	})
 }
 
@@ -507,6 +491,7 @@ fn evm_batch_some_transfers_enough() {
 					.write(vec![Address(Bob.into()), Address(Charlie.into()),])
 					.write(vec![U256::from(1_000u16), U256::from(2_000u16)])
 					.write::<Vec<Bytes>>(vec![])
+					.write(true)
 					.build()
 			))
 			.dispatch(Origin::root()));
@@ -525,6 +510,7 @@ fn evm_batch_some_until_failure_transfers_enough() {
 					.write(vec![Address(Bob.into()), Address(Charlie.into()),])
 					.write(vec![U256::from(1_000u16), U256::from(2_000u16)])
 					.write::<Vec<Bytes>>(vec![])
+					.write(true)
 					.build()
 			))
 			.dispatch(Origin::root()));
@@ -543,6 +529,7 @@ fn evm_batch_all_transfers_enough() {
 					.write(vec![Address(Bob.into()), Address(Charlie.into()),])
 					.write(vec![U256::from(1_000u16), U256::from(2_000u16)])
 					.write::<Vec<Bytes>>(vec![])
+					.write(true)
 					.build()
 			))
 			.dispatch(Origin::root()));
@@ -572,14 +559,18 @@ fn evm_batch_some_transfers_too_much() {
 						U256::from(500u16)
 					])
 					.write::<Vec<Bytes>>(vec![])
+					.write(true)
 					.build()
 			))
 			.dispatch(Origin::root()));
 
-			assert_eq!(balance(Alice), 500); // gasprice = 0
+			// Since transfer to Charlie fails because there are not enough funds,
+			// it is an ERROR and thus no transfer will be attempted to David, even
+			// if their is enough funds to do that.
+			assert_eq!(balance(Alice), 1000); // gasprice = 0
 			assert_eq!(balance(Bob), 9_000);
 			assert_eq!(balance(Charlie), 0);
-			assert_eq!(balance(David), 500);
+			assert_eq!(balance(David), 0);
 		})
 }
 
@@ -603,6 +594,7 @@ fn evm_batch_some_until_failure_transfers_too_much() {
 						U256::from(500u16)
 					])
 					.write::<Vec<Bytes>>(vec![])
+					.write(true)
 					.build()
 			))
 			.dispatch(Origin::root()));
@@ -634,6 +626,7 @@ fn evm_batch_all_transfers_too_much() {
 						U256::from(500u16)
 					])
 					.write::<Vec<Bytes>>(vec![])
+					.write(true)
 					.build()
 			))
 			.dispatch(Origin::root()));
@@ -667,6 +660,7 @@ fn evm_batch_some_contract_revert() {
 						U256::from(3_000u16)
 					])
 					.write::<Vec<Bytes>>(vec![])
+					.write(true)
 					.build()
 			))
 			.dispatch(Origin::root()));
@@ -700,6 +694,7 @@ fn evm_batch_some_until_failure_contract_revert() {
 						U256::from(3_000u16)
 					])
 					.write::<Vec<Bytes>>(vec![])
+					.write(true)
 					.build()
 			))
 			.dispatch(Origin::root()));
@@ -733,6 +728,7 @@ fn evm_batch_all_contract_revert() {
 						U256::from(3_000u16)
 					])
 					.write::<Vec<Bytes>>(vec![])
+					.write(true)
 					.build()
 			))
 			.dispatch(Origin::root()));

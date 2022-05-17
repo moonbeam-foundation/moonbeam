@@ -37,6 +37,7 @@ mod data;
 pub use data::{Address, Bytes, EvmData, EvmDataReader, EvmDataWriter};
 pub use precompile_utils_macro::{generate_function_selector, keccak256};
 
+#[cfg(feature = "testing")]
 pub mod testing;
 
 #[cfg(test)]
@@ -158,12 +159,18 @@ impl LogsBuilder {
 /// Extension trait allowing to record logs into a PrecompileHandle.
 pub trait LogExt {
 	fn record(self, handle: &mut impl PrecompileHandle) -> EvmResult;
+
+	fn compute_cost(&self) -> EvmResult<u64>;
 }
 
 impl LogExt for Log {
 	fn record(self, handle: &mut impl PrecompileHandle) -> EvmResult {
 		handle.log(self.address, self.topics, self.data)?;
 		Ok(())
+	}
+
+	fn compute_cost(&self) -> EvmResult<u64> {
+		Ok(log_costs(self.topics.len(), self.data.len())?)
 	}
 }
 
@@ -258,7 +265,38 @@ pub trait PrecompileHandleExt: PrecompileHandle {
 
 	/// Record cost of logs.
 	#[must_use]
-	fn record_log_costs(&mut self, logs: &[Log]) -> EvmResult;
+	fn record_log_costs(&mut self, logs: &[&Log]) -> EvmResult;
+}
+
+pub fn log_costs(topics: usize, data_len: usize) -> EvmResult<u64> {
+	// Cost calculation is copied from EVM code that is not publicly exposed by the crates.
+	// https://github.com/rust-blockchain/evm/blob/master/gasometer/src/costs.rs#L148
+
+	const G_LOG: u64 = 375;
+	const G_LOGDATA: u64 = 8;
+	const G_LOGTOPIC: u64 = 375;
+
+	let topic_cost = G_LOGTOPIC
+		.checked_mul(topics as u64)
+		.ok_or(PrecompileFailure::Error {
+			exit_status: ExitError::OutOfGas,
+		})?;
+
+	let data_cost = G_LOGDATA
+		.checked_mul(data_len as u64)
+		.ok_or(PrecompileFailure::Error {
+			exit_status: ExitError::OutOfGas,
+		})?;
+
+	G_LOG
+		.checked_add(topic_cost)
+		.ok_or(PrecompileFailure::Error {
+			exit_status: ExitError::OutOfGas,
+		})?
+		.checked_add(data_cost)
+		.ok_or(PrecompileFailure::Error {
+			exit_status: ExitError::OutOfGas,
+		})
 }
 
 impl<T: PrecompileHandle> PrecompileHandleExt for T {
@@ -266,35 +304,14 @@ impl<T: PrecompileHandle> PrecompileHandleExt for T {
 	/// This can be useful to record log costs early when their content have static size.
 	#[must_use]
 	fn record_log_costs_manual(&mut self, topics: usize, data_len: usize) -> EvmResult {
-		// Cost calculation is copied from EVM code that is not publicly exposed by the crates.
-		// https://github.com/rust-blockchain/evm/blob/master/gasometer/src/costs.rs#L148
-
-		const G_LOG: u64 = 375;
-		const G_LOGDATA: u64 = 8;
-		const G_LOGTOPIC: u64 = 375;
-
-		let topic_cost = G_LOGTOPIC
-			.checked_mul(topics as u64)
-			.ok_or(PrecompileFailure::Error {
-				exit_status: ExitError::OutOfGas,
-			})?;
-
-		let data_cost = G_LOGDATA
-			.checked_mul(data_len as u64)
-			.ok_or(PrecompileFailure::Error {
-				exit_status: ExitError::OutOfGas,
-			})?;
-
-		self.record_cost(G_LOG)?;
-		self.record_cost(topic_cost)?;
-		self.record_cost(data_cost)?;
+		self.record_cost(log_costs(topics, data_len)?)?;
 
 		Ok(())
 	}
 
 	/// Record cost of logs.
 	#[must_use]
-	fn record_log_costs(&mut self, logs: &[Log]) -> EvmResult {
+	fn record_log_costs(&mut self, logs: &[&Log]) -> EvmResult {
 		for log in logs {
 			self.record_log_costs_manual(log.topics.len(), log.data.len())?;
 		}

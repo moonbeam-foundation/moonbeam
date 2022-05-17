@@ -14,14 +14,15 @@ interface Batch {
     /// calls will be performed with a value of 0.
     /// @param call_data Call data for each `to` address. If array is shorter than "to" then
     /// additional calls will be performed with an empty call data.
-    /// @return successes Number of subcalls executed.
-    /// @return outputs Data returned by each subcall.
-    /// Selector: 9205a0ba
+    /// @param emitLogs Should the precompile emit logs for each call?
+    /// Increases slightly the cost
+    /// Selector: 3d662152
     function batchSome(
         address[] memory to,
         uint256[] memory value,
-        bytes[] memory call_data
-    ) external payable returns (uint256 successes, bytes[] memory outputs);
+        bytes[] memory call_data,
+        bool emitLogs
+    ) external;
 
     /// @dev Batch multiple calls into a single transaction.
     /// All calls are performed from the address calling this precompile, as
@@ -36,14 +37,14 @@ interface Batch {
     /// calls will be performed with a value of 0.
     /// @param call_data Call data for each `to` address. If array is shorter than "to" then
     /// additional calls will be performed with an empty call data.
-    /// @return successes Number of subcalls executed.
-    /// @return outputs Data returned by each subcall.
-    /// Selector: c803ba9a
+    /// @param emitLogs Should the precompile emit logs for each call? (increase cost).
+    /// Selector: 310a0280
     function batchSomeUntilFailure(
         address[] memory to,
         uint256[] memory value,
-        bytes[] memory call_data
-    ) external payable returns (uint256 successes, bytes[] memory outputs);
+        bytes[] memory call_data,
+        bool emitLogs
+    ) external;
 
     /// @dev Batch multiple calls into a single transaction.
     /// All calls are performed from the address calling this precompile, as
@@ -57,19 +58,18 @@ interface Batch {
     /// calls will be performed with a value of 0.
     /// @param call_data Call data for each `to` address. If array is shorter than "to" then
     /// additional calls will be performed with an empty call data.
-    /// @return outputs Data returned by each subcall.
-    /// Selector: 2d41531c
+    /// @param emitLogs Should the precompile emit logs for each call? (increase cost).
+    /// Selector: 9cb89af4
     function batchAll(
         address[] memory to,
         uint256[] memory value,
-        bytes[] memory call_data
-    ) external payable returns (bytes[] memory outputs);
+        bytes[] memory call_data,
+        bool emitLogs
+    ) external;
 
     /// Emitted when a subcall succeeds.
-    /// Selector: 1394239457558577f9e943b1c40196059a4bc5075a41a6e33ea3c676a297ee67
-    event SubcallSucceeded(uint256 index, bytes output);
+    event SubcallSucceeded(uint256 index);
 
     /// Emitted when a subcall fails.
-    /// Selector: e0844dd772fe51cb542f007a35cbc42ed46d2ce4a5be7ceacb2623920108fac3
-    event SubcallFailed(uint256 index, bytes output);
+    event SubcallFailed(uint256 index);
 }

@@ -18,11 +18,11 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use evm::ExitReason;
+use evm::{ExitError, ExitReason};
 use fp_evm::{Context, Log, PrecompileFailure, PrecompileHandle, PrecompileOutput, Transfer};
 use precompile_utils::{
 	check_function_modifier, keccak256, succeed, Address, Bytes, EvmDataReader, EvmDataWriter,
-	EvmResult, FunctionModifier, LogExt, LogsBuilder,
+	EvmResult, FunctionModifier, LogExt, LogsBuilder, PrecompileHandleExt,
 };
 use sp_core::{H160, U256};
 use sp_std::{iter::repeat, marker::PhantomData, vec, vec::Vec};
@@ -35,35 +35,25 @@ mod tests;
 #[precompile_utils::generate_function_selector]
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Action {
-	BatchSome = "batchSome(address[],uint256[],bytes[])",
-	BatchSomeUntilFailure = "batchSomeUntilFailure(address[],uint256[],bytes[])",
-	BatchAll = "batchAll(address[],uint256[],bytes[])",
+	BatchSome = "batchSome(address[],uint256[],bytes[],bool)",
+	BatchSomeUntilFailure = "batchSomeUntilFailure(address[],uint256[],bytes[],bool)",
+	BatchAll = "batchAll(address[],uint256[],bytes[],bool)",
 }
 
-pub const LOG_SUBCALL_SUCCEEDED: [u8; 32] = keccak256!("SubcallSucceeded(uint256,bytes)");
-pub const LOG_SUBCALL_FAILED: [u8; 32] = keccak256!("SubcallFailed(uint256,bytes)");
+pub const LOG_SUBCALL_SUCCEEDED: [u8; 32] = keccak256!("SubcallSucceeded(uint256)");
+pub const LOG_SUBCALL_FAILED: [u8; 32] = keccak256!("SubcallFailed(uint256)");
 
-pub fn log_subcall_succeeded(
-	address: impl Into<H160>,
-	index: usize,
-	output: impl AsRef<[u8]>,
-) -> Log {
+pub fn log_subcall_succeeded(address: impl Into<H160>, index: usize) -> Log {
 	LogsBuilder::new(address.into()).log1(
 		LOG_SUBCALL_SUCCEEDED,
-		EvmDataWriter::new()
-			.write(U256::from(index))
-			.write(Bytes::from(output.as_ref()))
-			.build(),
+		EvmDataWriter::new().write(U256::from(index)).build(),
 	)
 }
 
-pub fn log_subcall_failed(address: impl Into<H160>, index: usize, output: impl AsRef<[u8]>) -> Log {
+pub fn log_subcall_failed(address: impl Into<H160>, index: usize) -> Log {
 	LogsBuilder::new(address.into()).log1(
 		LOG_SUBCALL_FAILED,
-		EvmDataWriter::new()
-			.write(U256::from(index))
-			.write(Bytes::from(output.as_ref()))
-			.build(),
+		EvmDataWriter::new().write(U256::from(index)).build(),
 	)
 }
 
@@ -105,13 +95,13 @@ where
 		let addresses: Vec<Address> = input.read()?;
 		let values: Vec<U256> = input.read()?;
 		let calls_data: Vec<Bytes> = input.read()?;
+		let emit_logs: bool = input.read()?;
 
 		let addresses = addresses.into_iter().enumerate();
 		let values = values.into_iter().map(|x| Some(x)).chain(repeat(None));
 		let calls_data = calls_data.into_iter().map(|x| Some(x)).chain(repeat(None));
 
 		let mut outputs = vec![];
-		let mut success_counter = 0;
 
 		for ((i, address), (value, call_data)) in addresses.zip(values.zip(calls_data)) {
 			let address = address.0;
@@ -134,11 +124,32 @@ where
 				})
 			};
 
+			// We reserve enough gas to emit a final log .
+			// If not enough gas we stop there according to Action strategy.
+			let remaining_gas = handle.remaining_gas();
+			let gas_limit = match (
+				emit_logs,
+				action,
+				remaining_gas
+					.checked_sub(log_subcall_failed(handle.code_address(), i).compute_cost()? + 1),
+			) {
+				(false, _, _) => remaining_gas,
+				(true, _, Some(gas_limit)) => gas_limit,
+				(true, Action::BatchAll, None) => {
+					return Err(PrecompileFailure::Error {
+						exit_status: ExitError::OutOfGas,
+					})
+				}
+				(true, Action::BatchSome | Action::BatchSomeUntilFailure, None) => {
+					return Ok(succeed([]))
+				}
+			};
+
 			let (reason, output) = handle.call(
 				address,
 				transfer,
 				call_data,
-				Some(handle.remaining_gas()),
+				Some(gas_limit),
 				false,
 				&sub_context,
 			);
@@ -146,64 +157,58 @@ where
 			outputs.push(Bytes(output.clone()));
 
 			// Logs
-			match reason {
-				ExitReason::Revert(_) | ExitReason::Error(_) => {
-					log_subcall_failed(handle.code_address(), i, output.as_slice())
-						.record(handle)?
+			// We reserved enough gas so this should not OOG.
+			if emit_logs {
+				match reason {
+					ExitReason::Revert(_) | ExitReason::Error(_) => {
+						let log = log_subcall_failed(handle.code_address(), i);
+						handle.record_log_costs(&[&log])?;
+						log.record(handle)?
+					}
+					ExitReason::Succeed(_) => {
+						let log = log_subcall_succeeded(handle.code_address(), i);
+						handle.record_log_costs(&[&log])?;
+						log.record(handle)?
+					}
+					_ => (),
 				}
-				ExitReason::Succeed(_) => {
-					log_subcall_succeeded(handle.code_address(), i, output.as_slice())
-						.record(handle)?
-				}
-				_ => (),
 			}
 
 			// How to proceed
-			match (reason, action) {
+			match (action, reason) {
 				// _: Fatal is always fatal
-				(ExitReason::Fatal(exit_status), _) => {
+				(_, ExitReason::Fatal(exit_status)) => {
 					return Err(PrecompileFailure::Fatal { exit_status })
 				}
 
 				// BatchAll : Reverts and errors are immediatly forwarded.
-				(ExitReason::Revert(exit_status), Action::BatchAll) => {
+				(Action::BatchAll, ExitReason::Revert(exit_status)) => {
 					return Err(PrecompileFailure::Revert {
 						exit_status,
 						output,
 					})
 				}
-				(ExitReason::Error(exit_status), Action::BatchAll) => {
+				(Action::BatchAll, ExitReason::Error(exit_status)) => {
 					return Err(PrecompileFailure::Error { exit_status })
 				}
 
 				// BatchSomeUntilFailure : Reverts and errors prevent subsequent subcalls to
 				// be executed but the precompile still succeed.
-				(ExitReason::Revert(_), Action::BatchSomeUntilFailure)
-				| (ExitReason::Error(_), Action::BatchSomeUntilFailure) => {
-					return Ok(succeed(
-						EvmDataWriter::new()
-							.write(U256::from(i))
-							.write(outputs)
-							.build(),
-					))
-				}
+				//
+				// BatchSome : since Error consume all gas (or can be out of gas), we stop
+				// to not out of gas when processing next subcall.
+				(Action::BatchSomeUntilFailure, ExitReason::Revert(_) | ExitReason::Error(_))
+				| (Action::BatchSome, ExitReason::Error(_)) => return Ok(succeed([])),
 
 				// BatchSome: Reverts and errors don't prevent subsequent subcalls to be executed,
 				// but they are not counted as success.
-				(ExitReason::Revert(_), Action::BatchSome)
-				| (ExitReason::Error(_), Action::BatchSome) => (),
+				(Action::BatchSome, ExitReason::Revert(_)) => (),
 
 				// Success
-				(ExitReason::Succeed(_), _) => success_counter += 1,
+				(_, ExitReason::Succeed(_)) => (),
 			}
 		}
 
-		let mut output = EvmDataWriter::new();
-
-		if let Action::BatchSome | Action::BatchSomeUntilFailure = action {
-			output = output.write(U256::from(success_counter));
-		}
-
-		Ok(succeed(output.write(outputs).build()))
+		Ok(succeed([]))
 	}
 }
