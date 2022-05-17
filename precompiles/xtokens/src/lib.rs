@@ -25,22 +25,23 @@ use frame_support::{
 	ensure,
 	traits::Get,
 };
-use pallet_evm::{AddressMapping, Precompile};
+use pallet_evm::AddressMapping;
 use precompile_utils::{
 	check_function_modifier, revert, succeed, Address, EvmData, EvmDataReader, EvmDataWriter,
 	EvmResult, FunctionModifier, RuntimeHelper,
 };
-
 use sp_core::{H160, U256};
-use sp_std::boxed::Box;
 use sp_std::{
+	boxed::Box,
 	convert::{TryFrom, TryInto},
 	fmt::Debug,
 	marker::PhantomData,
 	vec::Vec,
 };
-use xcm::latest::{AssetId, Fungibility, MultiAsset, MultiAssets, MultiLocation};
-use xcm::{VersionedMultiAsset, VersionedMultiAssets, VersionedMultiLocation};
+use xcm::{
+	latest::{AssetId, Fungibility, MultiAsset, MultiAssets, MultiLocation},
+	VersionedMultiAsset, VersionedMultiAssets, VersionedMultiLocation,
+};
 use xcm_primitives::AccountIdToCurrencyId;
 
 #[cfg(test)]
@@ -70,7 +71,7 @@ pub enum Action {
 /// A precompile to wrap the functionality from xtokens
 pub struct XtokensWrapper<Runtime>(PhantomData<Runtime>);
 
-impl<Runtime> Precompile for XtokensWrapper<Runtime>
+impl<Runtime> pallet_evm::Precompile for XtokensWrapper<Runtime>
 where
 	Runtime: orml_xtokens::Config + pallet_evm::Config + frame_system::Config,
 	Runtime::AccountId: From<H160>,

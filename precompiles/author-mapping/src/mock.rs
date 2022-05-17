@@ -25,6 +25,7 @@ use frame_system::EnsureRoot;
 use pallet_evm::{
 	AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet, SubstrateBlockHashMapping,
 };
+use precompile_utils::Precompile;
 use scale_info::TypeInfo;
 use serde::{Deserialize, Serialize};
 use sp_core::{H160, H256};
@@ -229,19 +230,9 @@ impl<R> PrecompileSet for Precompiles<R>
 where
 	AuthorMappingWrapper<R>: Precompile,
 {
-	fn execute(
-		&self,
-		handle: &mut impl PrecompileHandle,
-		address: H160,
-		input: &[u8],
-		target_gas: Option<u64>,
-		context: &Context,
-		is_static: bool,
-	) -> Option<EvmResult<PrecompileOutput>> {
-		match address {
-			a if a == hash(PRECOMPILE_ADDRESS) => Some(AuthorMappingWrapper::<R>::execute(
-				handle, input, target_gas, context, is_static,
-			)),
+	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<EvmResult<PrecompileOutput>> {
+		match handle.code_address() {
+			a if a == hash(PRECOMPILE_ADDRESS) => Some(AuthorMappingWrapper::<R>::execute(handle)),
 			_ => None,
 		}
 	}

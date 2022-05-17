@@ -18,15 +18,15 @@
 use super::*;
 use codec::{Decode, Encode, MaxEncodedLen};
 use frame_support::{
+	construct_runtime, parameter_types,
 	traits::{EnsureOrigin, Everything, OriginTrait, PalletInfo as PalletInfoTrait},
 	weights::{RuntimeDbWeight, Weight},
 };
-
-use frame_support::{construct_runtime, parameter_types};
-
 use pallet_evm::{
 	AddressMapping, EnsureAddressNever, EnsureAddressRoot, GasWeightMapping, PrecompileSet,
 };
+use precompile_utils::Precompile;
+use scale_info::TypeInfo;
 use serde::{Deserialize, Serialize};
 use sp_core::H256;
 use sp_io;
@@ -39,10 +39,7 @@ use xcm::latest::{
 	Junction::{AccountKey20, GeneralIndex, PalletInstance, Parachain},
 	Junctions, MultiAsset, MultiLocation, NetworkId, Result as XcmResult, SendResult, SendXcm, Xcm,
 };
-
 use xcm_builder::FixedWeightBounds;
-
-use scale_info::TypeInfo;
 use xcm_executor::{
 	traits::{InvertLocation, TransactAsset, WeightTrader},
 	Assets,
@@ -232,19 +229,9 @@ impl<R> PrecompileSet for TestPrecompiles<R>
 where
 	XcmTransactorWrapper<R>: Precompile,
 {
-	fn execute(
-		&self,
-		handle: &mut impl PrecompileHandle,
-		address: H160,
-		input: &[u8],
-		target_gas: Option<u64>,
-		context: &Context,
-		is_static: bool,
-	) -> Option<EvmResult<PrecompileOutput>> {
-		match address {
-			a if a == precompile_address() => Some(XcmTransactorWrapper::<R>::execute(
-				handle, input, target_gas, context, is_static,
-			)),
+	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<EvmResult<PrecompileOutput>> {
+		match handle.code_address() {
+			a if a == precompile_address() => Some(XcmTransactorWrapper::<R>::execute(handle)),
 			_ => None,
 		}
 	}

@@ -28,7 +28,6 @@ use fp_evm::{Context, PrecompileHandle, PrecompileOutput};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use frame_support::traits::{Currency, Get};
 use pallet_evm::AddressMapping;
-use pallet_evm::Precompile;
 use precompile_utils::{
 	check_function_modifier, revert, succeed, Address, EvmData, EvmDataReader, EvmDataWriter,
 	EvmResult, FunctionModifier, RuntimeHelper,
@@ -109,7 +108,8 @@ enum Action {
 /// supporters who want to donate toward a perpetual nomination fund.
 pub struct ParachainStakingWrapper<Runtime>(PhantomData<Runtime>);
 
-impl<Runtime> Precompile for ParachainStakingWrapper<Runtime>
+// TODO: Migrate to precompile_utils::Precompile.
+impl<Runtime> pallet_evm::Precompile for ParachainStakingWrapper<Runtime>
 where
 	Runtime: parachain_staking::Config + pallet_evm::Config,
 	BalanceOf<Runtime>: EvmData,

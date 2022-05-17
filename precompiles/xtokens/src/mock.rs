@@ -17,15 +17,14 @@
 //! Test utilities
 use super::*;
 use codec::{Decode, Encode, MaxEncodedLen};
+use frame_support::{construct_runtime, parameter_types};
 use frame_support::{
 	traits::{EnsureOrigin, Everything, OriginTrait, PalletInfo as PalletInfoTrait},
 	weights::Weight,
 };
-
-use frame_support::{construct_runtime, parameter_types};
-
 use orml_traits::{location::AbsoluteReserveProvider, parameter_type_with_key};
 use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet};
+use precompile_utils::Precompile;
 use serde::{Deserialize, Serialize};
 use sp_core::H256;
 use sp_io;
@@ -220,19 +219,9 @@ impl<R> PrecompileSet for TestPrecompiles<R>
 where
 	XtokensWrapper<R>: Precompile,
 {
-	fn execute(
-		&self,
-		handle: &mut impl PrecompileHandle,
-		address: H160,
-		input: &[u8],
-		target_gas: Option<u64>,
-		context: &Context,
-		is_static: bool,
-	) -> Option<EvmResult<PrecompileOutput>> {
-		match address {
-			a if a == precompile_address() => Some(XtokensWrapper::<R>::execute(
-				handle, input, target_gas, context, is_static,
-			)),
+	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<EvmResult<PrecompileOutput>> {
+		match handle.code_address() {
+			a if a == precompile_address() => Some(XtokensWrapper::<R>::execute(handle)),
 			_ => None,
 		}
 	}

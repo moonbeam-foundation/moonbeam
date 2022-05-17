@@ -23,6 +23,7 @@ use pallet_evm::{
 	AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet, SubstrateBlockHashMapping,
 };
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+use precompile_utils::Precompile;
 use serde::{Deserialize, Serialize};
 use sp_core::H160;
 use sp_core::H256;
@@ -182,22 +183,11 @@ impl<R> PrecompileSet for TestPrecompiles<R>
 where
 	RelayEncoderWrapper<R, test_relay_runtime::TestEncoder>: Precompile,
 {
-	fn execute(
-		&self,
-		handle: &mut impl PrecompileHandle,
-		address: H160,
-		input: &[u8],
-		target_gas: Option<u64>,
-		context: &Context,
-		is_static: bool,
-	) -> Option<EvmResult<PrecompileOutput>> {
-		match address {
-			a if a == H160::from_low_u64_be(1) => Some(RelayEncoderWrapper::<
-				R,
-				test_relay_runtime::TestEncoder,
-			>::execute(
-				handle, input, target_gas, context, is_static,
-			)),
+	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<EvmResult<PrecompileOutput>> {
+		match handle.code_address() {
+			a if a == H160::from_low_u64_be(1) => {
+				Some(RelayEncoderWrapper::<R, test_relay_runtime::TestEncoder>::execute(handle))
+			}
 			_ => None,
 		}
 	}

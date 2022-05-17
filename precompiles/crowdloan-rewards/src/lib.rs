@@ -24,7 +24,7 @@ use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
 	traits::Currency,
 };
-use pallet_evm::{AddressMapping, Precompile};
+use pallet_evm::AddressMapping;
 use precompile_utils::{
 	check_function_modifier, revert, succeed, Address, EvmDataReader, EvmDataWriter, EvmResult,
 	FunctionModifier, RuntimeHelper,
@@ -59,7 +59,8 @@ pub enum Action {
 /// A precompile to wrap the functionality from pallet_crowdloan_rewards.
 pub struct CrowdloanRewardsWrapper<Runtime>(PhantomData<Runtime>);
 
-impl<Runtime> Precompile for CrowdloanRewardsWrapper<Runtime>
+// TODO: Migrate to precompile_utils::Precompile.
+impl<Runtime> pallet_evm::Precompile for CrowdloanRewardsWrapper<Runtime>
 where
 	Runtime: pallet_crowdloan_rewards::Config + pallet_evm::Config,
 	BalanceOf<Runtime>: TryFrom<U256> + Debug,

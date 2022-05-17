@@ -24,6 +24,7 @@ use frame_support::{
 };
 use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet};
 use parachain_staking::{AwardedPts, InflationInfo, Points, Range};
+use precompile_utils::Precompile;
 use serde::{Deserialize, Serialize};
 use sp_core::{H160, H256};
 use sp_io;
@@ -174,19 +175,9 @@ impl<R> PrecompileSet for TestPrecompiles<R>
 where
 	ParachainStakingWrapper<R>: Precompile,
 {
-	fn execute(
-		&self,
-		handle: &mut impl PrecompileHandle,
-		address: H160,
-		input: &[u8],
-		target_gas: Option<u64>,
-		context: &Context,
-		is_static: bool,
-	) -> Option<EvmResult<PrecompileOutput>> {
-		match address {
-			a if a == precompile_address() => Some(ParachainStakingWrapper::<R>::execute(
-				handle, input, target_gas, context, is_static,
-			)),
+	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<EvmResult<PrecompileOutput>> {
+		match handle.code_address() {
+			a if a == precompile_address() => Some(ParachainStakingWrapper::<R>::execute(handle)),
 			_ => None,
 		}
 	}

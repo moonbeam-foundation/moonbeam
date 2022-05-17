@@ -24,7 +24,6 @@ use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use nimbus_primitives::NimbusId;
 use pallet_author_mapping::Call as AuthorMappingCall;
 use pallet_evm::AddressMapping;
-use pallet_evm::Precompile;
 use precompile_utils::{
 	check_function_modifier, succeed, EvmDataReader, EvmResult, FunctionModifier, RuntimeHelper,
 };
@@ -50,7 +49,8 @@ pub enum Action {
 /// A precompile to wrap the functionality from pallet author mapping.
 pub struct AuthorMappingWrapper<Runtime>(PhantomData<Runtime>);
 
-impl<Runtime> Precompile for AuthorMappingWrapper<Runtime>
+// TODO: Migrate to precompile_utils::Precompile.
+impl<Runtime> pallet_evm::Precompile for AuthorMappingWrapper<Runtime>
 where
 	Runtime: pallet_author_mapping::Config + pallet_evm::Config + frame_system::Config,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,

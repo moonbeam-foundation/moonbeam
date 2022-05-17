@@ -24,7 +24,6 @@ use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use frame_support::traits::Currency;
 use pallet_democracy::{AccountVote, Call as DemocracyCall, Vote};
 use pallet_evm::AddressMapping;
-use pallet_evm::Precompile;
 use precompile_utils::{
 	check_function_modifier, revert, succeed, Address, Bytes, EvmData, EvmDataReader,
 	EvmDataWriter, EvmResult, FunctionModifier, RuntimeHelper,
@@ -74,7 +73,8 @@ enum Action {
 /// For an example of a political party that operates as a DAO, see PoliticalPartyDao.sol
 pub struct DemocracyWrapper<Runtime>(PhantomData<Runtime>);
 
-impl<Runtime> Precompile for DemocracyWrapper<Runtime>
+// TODO: Migrate to precompile_utils::Precompile.
+impl<Runtime> pallet_evm::Precompile for DemocracyWrapper<Runtime>
 where
 	Runtime: pallet_democracy::Config + pallet_evm::Config + frame_system::Config,
 	BalanceOf<Runtime>: TryFrom<U256> + TryInto<u128> + Debug + EvmData,
