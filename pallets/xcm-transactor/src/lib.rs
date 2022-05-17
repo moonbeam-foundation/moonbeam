@@ -20,7 +20,7 @@
 //!
 //! Module to provide transact capabilities on other chains
 //!
-//! For the transaction to successfuly be dispatched in the destination chain, pallet-utility
+//! For the transaction to successfully be dispatched in the destination chain, pallet-utility
 //! needs to be installed and at least paid xcm message execution should be allowed (and
 //! WithdrawAsset,BuyExecution and Transact messages allowed) in the destination chain
 //!

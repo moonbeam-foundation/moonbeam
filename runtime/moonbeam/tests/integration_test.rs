@@ -353,7 +353,7 @@ fn transfer_through_evm_to_stake() {
 				),
 				DispatchError::Module(ModuleError {
 					index: 10,
-					error: 2,
+					error: [2, 0, 0, 0],
 					message: Some("InsufficientBalance")
 				})
 			);
@@ -565,7 +565,7 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 				index: 0,
 				error: DispatchError::Module(ModuleError {
 					index: 90,
-					error: 8,
+					error: [8, 0, 0, 0],
 					message: None,
 				}),
 			});
@@ -2427,7 +2427,7 @@ fn xtokens_precompiles_transfer_multiasset() {
 }
 
 #[test]
-fn make_sure_glmr_cannot_be_transferred_precompile() {
+fn make_sure_glmr_can_be_transferred_precompile() {
 	ExtBuilder::default()
 		.with_balances(vec![
 			(AccountId::from(ALICE), 2_000 * GLMR),
@@ -2448,23 +2448,20 @@ fn make_sure_glmr_cannot_be_transferred_precompile() {
 					id: [1u8; 32],
 				}),
 			};
-			assert_noop!(
-				XTokens::transfer_multiasset(
-					origin_of(AccountId::from(ALICE)),
-					Box::new(VersionedMultiAsset::V1(MultiAsset {
-						id: Concrete(moonbeam_runtime::xcm_config::SelfLocation::get()),
-						fun: Fungible(1000)
-					})),
-					Box::new(VersionedMultiLocation::V1(dest)),
-					40000
-				),
-				orml_xtokens::Error::<Runtime>::XcmExecutionFailed
-			);
+			assert_ok!(XTokens::transfer_multiasset(
+				origin_of(AccountId::from(ALICE)),
+				Box::new(VersionedMultiAsset::V1(MultiAsset {
+					id: Concrete(moonbeam_runtime::xcm_config::SelfReserve::get()),
+					fun: Fungible(1000)
+				})),
+				Box::new(VersionedMultiLocation::V1(dest)),
+				40000
+			));
 		});
 }
 
 #[test]
-fn make_sure_glmr_cannot_be_transferred() {
+fn make_sure_glmr_can_be_transferred() {
 	ExtBuilder::default()
 		.with_balances(vec![
 			(AccountId::from(ALICE), 2_000 * GLMR),
@@ -2485,16 +2482,13 @@ fn make_sure_glmr_cannot_be_transferred() {
 					id: [1u8; 32],
 				}),
 			};
-			assert_noop!(
-				XTokens::transfer(
-					origin_of(AccountId::from(ALICE)),
-					CurrencyId::SelfReserve,
-					100,
-					Box::new(VersionedMultiLocation::V1(dest)),
-					40000
-				),
-				orml_xtokens::Error::<Runtime>::XcmExecutionFailed
-			);
+			assert_ok!(XTokens::transfer(
+				origin_of(AccountId::from(ALICE)),
+				CurrencyId::SelfReserve,
+				100,
+				Box::new(VersionedMultiLocation::V1(dest)),
+				40000
+			));
 		});
 }
 

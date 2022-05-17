@@ -34,7 +34,7 @@ use xcm_builder::TakeRevenue;
 use xcm_executor::traits::{MatchesFungibles, WeightTrader};
 
 /// Converter struct implementing `AssetIdConversion` converting a numeric asset ID
-/// (must be `TryFrom/TryInto<u128>`) into a MultiLocation Value and Viceversa through
+/// (must be `TryFrom/TryInto<u128>`) into a MultiLocation Value and vice versa through
 /// an intermediate generic type AssetType.
 /// The trait bounds enforce is that the AssetTypeGetter trait is also implemented for
 /// AssetIdInfoGetter
@@ -111,6 +111,8 @@ where
 }
 
 // We need to know how to charge for incoming assets
+// We assume AssetIdInfoGetter is implemented and is capable of getting how much units we should
+// charge for a given asset
 // This takes the first fungible asset, and takes whatever UnitPerSecondGetter establishes
 // UnitsToWeightRatio trait, which needs to be implemented by AssetIdInfoGetter
 pub struct FirstAssetTrader<
@@ -177,10 +179,10 @@ impl<
 					// In case the asset matches the one the trader already stored before, add
 					// to later refund
 
-					// Else we are always going to substract the weight if we can, but we latter do
+					// Else we are always going to subtract the weight if we can, but we latter do
 					// not refund it
 
-					// In short, we only refund on the asset the trader first succesfully was able
+					// In short, we only refund on the asset the trader first successfully was able
 					// to pay for an execution
 					let new_asset = match self.1.clone() {
 						Some((prev_id, prev_amount, units_per_second)) => {
@@ -207,6 +209,7 @@ impl<
 		}
 	}
 
+	// Refund weight. We will refund in whatever asset is stored in self.
 	fn refund_weight(&mut self, weight: Weight) -> Option<MultiAsset> {
 		if let Some((id, prev_amount, units_per_second)) = self.1.clone() {
 			let weight = weight.min(self.0);
@@ -263,7 +266,7 @@ where
 	}
 }
 
-// Defines the trait to obtain a generic AssetType from a generic AssetId and viceversa
+// Defines the trait to obtain a generic AssetType from a generic AssetId and vice versa
 pub trait AssetTypeGetter<AssetId, AssetType> {
 	// Get asset type from assetId
 	fn get_asset_type(asset_id: AssetId) -> Option<AssetType>;

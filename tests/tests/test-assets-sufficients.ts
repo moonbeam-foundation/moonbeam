@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
-import { ALITH, BALTATHAR, ALITH_PRIV_KEY } from "../util/constants";
+import { ALITH, BALTATHAR, ALITH_PRIV_KEY, GLMR } from "../util/constants";
 import { blake2AsU8a, xxhashAsU8a } from "@polkadot/util-crypto";
 import { BN, hexToU8a, bnToHex, u8aToHex } from "@polkadot/util";
 import Keyring from "@polkadot/keyring";
@@ -159,16 +159,9 @@ describeDevMoonbeam(
         ).providers.toBigInt()
       ).to.eq(0n);
 
-      // Lets transfer it the native token. We want to transfer enough to cover for a future fee.
-      const fee = (
-        await context.polkadotApi.tx.assets
-          .transfer(assetId, BALTATHAR, transferAmount)
-          .paymentInfo(freshAccount)
-      ).partialFee as any;
-
-      // For some reason paymentInfo overestimates by 4067
+      // We transfer a good amount to be able to pay for fees
       await context.polkadotApi.tx.balances
-        .transfer(freshAccount.address, BigInt(fee) - BigInt(4067))
+        .transfer(freshAccount.address, 1n * GLMR)
         .signAndSend(alith);
       await context.createBlock();
 
@@ -177,6 +170,7 @@ describeDevMoonbeam(
           (await context.polkadotApi.query.system.account(freshAccount.address)) as any
         ).sufficients.toBigInt()
       ).to.eq(1n);
+
       // Providers should now be 1
       expect(
         (
@@ -184,9 +178,27 @@ describeDevMoonbeam(
         ).providers.toBigInt()
       ).to.eq(1n);
 
-      // What happens now when we execute such transaction? both MOVR and Assets should be drained.
+      // Let's drain assets
       await context.polkadotApi.tx.assets
         .transfer(assetId, BALTATHAR, transferAmount)
+        .signAndSend(freshAccount);
+
+      await context.createBlock();
+
+      // Lets drain native token
+      // First calculate fee
+      // Then grab balance of freshAccount
+      // Then we just transfer out balance of freshAccount - fee
+      const fee = (
+        await context.polkadotApi.tx.balances.transfer(ALITH, 1n * GLMR).paymentInfo(freshAccount)
+      ).partialFee as any;
+
+      let freshAccountBalanceNativeToken = (
+        (await context.polkadotApi.query.system.account(freshAccount.address)) as any
+      ).data.free.toBigInt();
+
+      await context.polkadotApi.tx.balances
+        .transfer(BALTATHAR, freshAccountBalanceNativeToken - BigInt(fee))
         .signAndSend(freshAccount);
 
       await context.createBlock();

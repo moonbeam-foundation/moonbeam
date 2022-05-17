@@ -1,31 +1,43 @@
 import "@moonbeam-network/api-augment";
 import { ApiDecoration } from "@polkadot/api/types";
 import type { FrameSystemAccountInfo } from "@polkadot/types/lookup";
+import { StorageKey, Option, u128 } from "@polkadot/types";
 import { expect } from "chai";
 import { printTokens } from "../util/logging";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 const debug = require("debug")("smoke:balances");
 
 const wssUrl = process.env.WSS_URL || null;
+const relayWssUrl = process.env.RELAY_WSS_URL || null;
 
-describeSmokeSuite(`Verify balances consistency`, { wssUrl }, (context) => {
+describeSmokeSuite(`Verify balances consistency`, { wssUrl, relayWssUrl }, (context) => {
   const accounts: { [account: string]: FrameSystemAccountInfo } = {};
 
   let atBlockNumber: number = 0;
   let apiAt: ApiDecoration<"promise"> = null;
+  let specVersion: number = 0;
 
   before("Retrieve all balances", async function () {
     // It takes time to load all the accounts.
-    this.timeout(600000);
+    this.timeout(3600000); // 1 hour should be enough
 
     const limit = 1000;
     let last_key = "";
     let count = 0;
 
-    atBlockNumber = (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber();
+    atBlockNumber = process.env.BLOCK_NUMBER
+      ? parseInt(process.env.BLOCK_NUMBER)
+      : (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber();
     apiAt = await context.polkadotApi.at(
       await context.polkadotApi.rpc.chain.getBlockHash(atBlockNumber)
     );
+    specVersion = (await apiAt.query.system.lastRuntimeUpgrade()).unwrap().specVersion.toNumber();
+
+    if (process.env.ACCOUNT_ID) {
+      const userId = process.env.ACCOUNT_ID.toLowerCase();
+      accounts[userId] = await apiAt.query.system.account(userId);
+      return;
+    }
 
     // loop over all system accounts
     while (true) {
@@ -53,7 +65,7 @@ describeSmokeSuite(`Verify balances consistency`, { wssUrl }, (context) => {
   });
 
   it("should have matching deposit/reserved", async function () {
-    this.timeout(120000);
+    this.timeout(240000);
     // Load data
     const [
       proxies,
@@ -68,6 +80,10 @@ describeSmokeSuite(`Verify balances consistency`, { wssUrl }, (context) => {
       preimages,
       assets,
       assetsMetadata,
+      localAssets,
+      localAssetsMetadata,
+      localAssetDeposits,
+      namedReserves,
     ] = await Promise.all([
       apiAt.query.proxy.proxies.entries(),
       apiAt.query.proxy.announcements.entries(),
@@ -81,6 +97,10 @@ describeSmokeSuite(`Verify balances consistency`, { wssUrl }, (context) => {
       apiAt.query.democracy.preimages.entries(),
       apiAt.query.assets.asset.entries(),
       apiAt.query.assets.metadata.entries(),
+      apiAt.query.localAssets.asset.entries(),
+      apiAt.query.localAssets.metadata.entries(),
+      apiAt.query.assetManager.localAssetDeposit.entries(),
+      apiAt.query.balances.reserves.entries(),
     ]);
 
     const expectedReserveByAccount: {
@@ -176,14 +196,47 @@ describeSmokeSuite(`Verify balances consistency`, { wssUrl }, (context) => {
           asset: asset[1].unwrap().deposit.toBigInt(),
         },
       })),
-      assetsMetadata.map((metadata) => ({
+      assetsMetadata.map((assetMetadata) => ({
         accountId: `0x${assets
-          .find((asset) => asset[0].toHex().slice(-64) == metadata[0].toHex().slice(-64))[1]
+          .find((asset) => asset[0].toHex().slice(-64) == assetMetadata[0].toHex().slice(-64))[1]
           .unwrap()
           .owner.toHex()
           .slice(-40)}`,
         reserved: {
-          metadata: metadata[1].deposit.toBigInt(),
+          assetMetadata: assetMetadata[1].deposit.toBigInt(),
+        },
+      })),
+      localAssets.map((localAsset) => ({
+        accountId: `0x${localAsset[1].unwrap().owner.toHex().slice(-40)}`,
+        reserved: {
+          localAsset: localAsset[1].unwrap().deposit.toBigInt(),
+        },
+      })),
+      localAssetsMetadata.map((localAssetMetadata) => ({
+        accountId: `0x${localAssets
+          .find(
+            (localAsset) =>
+              localAsset[0].toHex().slice(-64) == localAssetMetadata[0].toHex().slice(-64)
+          )[1]
+          .unwrap()
+          .owner.toHex()
+          .slice(-40)}`,
+        reserved: {
+          localAssetMetadata: localAssetMetadata[1].deposit.toBigInt(),
+        },
+      })),
+      localAssetDeposits.map((assetDeposit) => ({
+        accountId: assetDeposit[1].unwrap().creator.toHex(),
+        reserved: {
+          localAssetDeposit: assetDeposit[1].unwrap().deposit.toBigInt(),
+        },
+      })),
+      namedReserves.map((namedReservesOf) => ({
+        accountId: `0x${namedReservesOf[0].toHex().slice(-40)}`,
+        reserved: {
+          named: namedReservesOf[1]
+            .map((namedDeposit) => namedDeposit.amount.toBigInt())
+            .reduce((accumulator, curr) => accumulator + curr),
         },
       })),
     ]
@@ -206,8 +259,8 @@ describeSmokeSuite(`Verify balances consistency`, { wssUrl }, (context) => {
       let reserved = accounts[accountId].data.reserved.toBigInt();
       const expectedReserve = expectedReserveByAccount[accountId]?.total || 0n;
 
-      expect(expectedReserve).to.equal(
-        reserved,
+      expect(reserved).to.equal(
+        expectedReserve,
         `${accountId} (reserved: ${reserved} vs expected: ${expectedReserve})\n (${Object.keys(
           expectedReserveByAccount[accountId]?.reserved || {}
         )
