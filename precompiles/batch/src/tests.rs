@@ -47,9 +47,9 @@ fn evm_call(from: impl Into<H160>, input: Vec<u8>) -> EvmCall<Runtime> {
 
 #[test]
 fn selectors() {
-	assert_eq!(Action::BatchSome as u32, 0x3d662152);
-	assert_eq!(Action::BatchSomeUntilFailure as u32, 0x310a0280);
-	assert_eq!(Action::BatchAll as u32, 0x9cb89af4);
+	assert_eq!(Action::BatchSome as u32, 0xb1d4c0a7);
+	assert_eq!(Action::BatchSomeUntilFailure as u32, 0xb4b8481a);
+	assert_eq!(Action::BatchAll as u32, 0x96e292b8);
 }
 
 #[test]
@@ -63,6 +63,7 @@ fn batch_some_empty() {
 					.write::<Vec<Address>>(vec![])
 					.write::<Vec<U256>>(vec![])
 					.write::<Vec<Bytes>>(vec![])
+					.write::<Vec<U256>>(vec![])
 					.write(false)
 					.build(),
 			)
@@ -82,6 +83,7 @@ fn batch_some_until_failure_empty() {
 					.write::<Vec<Address>>(vec![])
 					.write::<Vec<U256>>(vec![])
 					.write::<Vec<Bytes>>(vec![])
+					.write::<Vec<U256>>(vec![])
 					.write(false)
 					.build(),
 			)
@@ -101,6 +103,7 @@ fn batch_all_empty() {
 					.write::<Vec<Address>>(vec![])
 					.write::<Vec<U256>>(vec![])
 					.write::<Vec<Bytes>>(vec![])
+					.write::<Vec<U256>>(vec![])
 					.write(false)
 					.build(),
 			)
@@ -115,9 +118,14 @@ fn batch_returns(
 ) -> PrecompilesTester<TestPrecompiles<Runtime>> {
 	let mut counter = 0;
 
-	let return_log_cost = log_subcall_failed(Precompile, 0).compute_cost().unwrap();
-
-	let gas_reserve = return_log_cost + 1;
+	let (return_log_cost, gas_reserve) = match action {
+		Action::BatchAll => (0, 0),
+		_ => {
+			let return_log_cost = log_subcall_failed(Precompile, 0).compute_cost().unwrap();
+			let gas_reserve = return_log_cost + 1;
+			(return_log_cost, gas_reserve)
+		}
+	};
 
 	precompiles
 		.prepare_test(
@@ -130,6 +138,7 @@ fn batch_returns(
 					Bytes::from(b"one".as_slice()),
 					Bytes::from(b"two".as_slice()),
 				])
+				.write::<Vec<U256>>(vec![])
 				.write(true)
 				.build(),
 		)
@@ -207,31 +216,40 @@ fn batch_returns(
 				}
 			},
 		)
-		.expect_log(LogsBuilder::new(Bob.into()).log1(H256::repeat_byte(0x11), vec![]))
-		.expect_log(log_subcall_succeeded(Precompile, 0))
-		.expect_log(LogsBuilder::new(Charlie.into()).log1(H256::repeat_byte(0x22), vec![]))
-		.expect_log(log_subcall_succeeded(Precompile, 1))
 		.expect_cost(13 + 17 + return_log_cost * 2)
 }
 
 #[test]
 fn batch_some_returns() {
 	ExtBuilder::default().build().execute_with(|| {
-		batch_returns(&precompiles(), Action::BatchSome).execute_returns(Vec::new())
+		batch_returns(&precompiles(), Action::BatchSome)
+			.expect_log(LogsBuilder::new(Bob.into()).log1(H256::repeat_byte(0x11), vec![]))
+			.expect_log(log_subcall_succeeded(Precompile, 0))
+			.expect_log(LogsBuilder::new(Charlie.into()).log1(H256::repeat_byte(0x22), vec![]))
+			.expect_log(log_subcall_succeeded(Precompile, 1))
+			.execute_returns(Vec::new())
 	})
 }
 
 #[test]
 fn batch_some_until_failure_returns() {
 	ExtBuilder::default().build().execute_with(|| {
-		batch_returns(&precompiles(), Action::BatchSomeUntilFailure).execute_returns(Vec::new())
+		batch_returns(&precompiles(), Action::BatchSomeUntilFailure)
+			.expect_log(LogsBuilder::new(Bob.into()).log1(H256::repeat_byte(0x11), vec![]))
+			.expect_log(log_subcall_succeeded(Precompile, 0))
+			.expect_log(LogsBuilder::new(Charlie.into()).log1(H256::repeat_byte(0x22), vec![]))
+			.expect_log(log_subcall_succeeded(Precompile, 1))
+			.execute_returns(Vec::new())
 	})
 }
 
 #[test]
 fn batch_all_returns() {
 	ExtBuilder::default().build().execute_with(|| {
-		batch_returns(&precompiles(), Action::BatchAll).execute_returns(Vec::new())
+		batch_returns(&precompiles(), Action::BatchAll)
+			.expect_log(LogsBuilder::new(Bob.into()).log1(H256::repeat_byte(0x11), vec![]))
+			.expect_log(LogsBuilder::new(Charlie.into()).log1(H256::repeat_byte(0x22), vec![]))
+			.execute_returns(Vec::new())
 	})
 }
 
@@ -239,9 +257,14 @@ fn batch_out_of_gas(
 	precompiles: &TestPrecompiles<Runtime>,
 	action: Action,
 ) -> PrecompilesTester<TestPrecompiles<Runtime>> {
-	let return_log_cost = log_subcall_failed(Precompile, 0).compute_cost().unwrap();
-
-	let gas_reserve = return_log_cost + 1;
+	let gas_reserve = match action {
+		Action::BatchAll => 0,
+		_ => {
+			let return_log_cost = log_subcall_failed(Precompile, 0).compute_cost().unwrap();
+			let gas_reserve = return_log_cost + 1;
+			gas_reserve
+		}
+	};
 
 	precompiles
 		.prepare_test(
@@ -251,6 +274,7 @@ fn batch_out_of_gas(
 				.write(vec![Address(Bob.into())])
 				.write(vec![U256::from(1u8)])
 				.write(vec![Bytes::from(b"one".as_slice())])
+				.write::<Vec<U256>>(vec![])
 				.write(true)
 				.build(),
 		)
@@ -329,9 +353,14 @@ fn batch_incomplete(
 ) -> PrecompilesTester<TestPrecompiles<Runtime>> {
 	let mut counter = 0;
 
-	let return_log_cost = log_subcall_failed(Precompile, 0).compute_cost().unwrap();
-
-	let gas_reserve = return_log_cost + 1;
+	let (return_log_cost, gas_reserve) = match action {
+		Action::BatchAll => (0, 0),
+		_ => {
+			let return_log_cost = log_subcall_failed(Precompile, 0).compute_cost().unwrap();
+			let gas_reserve = return_log_cost + 1;
+			(return_log_cost, gas_reserve)
+		}
+	};
 
 	precompiles
 		.prepare_test(
@@ -345,6 +374,7 @@ fn batch_incomplete(
 				])
 				.write(vec![U256::from(1u8), U256::from(2u8)])
 				.write(vec![Bytes::from(b"one".as_slice())])
+				.write::<Vec<U256>>(vec![])
 				.write(true)
 				.build(),
 		)
@@ -491,6 +521,7 @@ fn evm_batch_some_transfers_enough() {
 					.write(vec![Address(Bob.into()), Address(Charlie.into()),])
 					.write(vec![U256::from(1_000u16), U256::from(2_000u16)])
 					.write::<Vec<Bytes>>(vec![])
+					.write::<Vec<U256>>(vec![])
 					.write(true)
 					.build()
 			))
@@ -510,6 +541,7 @@ fn evm_batch_some_until_failure_transfers_enough() {
 					.write(vec![Address(Bob.into()), Address(Charlie.into()),])
 					.write(vec![U256::from(1_000u16), U256::from(2_000u16)])
 					.write::<Vec<Bytes>>(vec![])
+					.write::<Vec<U256>>(vec![])
 					.write(true)
 					.build()
 			))
@@ -529,6 +561,7 @@ fn evm_batch_all_transfers_enough() {
 					.write(vec![Address(Bob.into()), Address(Charlie.into()),])
 					.write(vec![U256::from(1_000u16), U256::from(2_000u16)])
 					.write::<Vec<Bytes>>(vec![])
+					.write::<Vec<U256>>(vec![])
 					.write(true)
 					.build()
 			))
@@ -559,6 +592,7 @@ fn evm_batch_some_transfers_too_much() {
 						U256::from(500u16)
 					])
 					.write::<Vec<Bytes>>(vec![])
+					.write::<Vec<U256>>(vec![])
 					.write(true)
 					.build()
 			))
@@ -594,6 +628,7 @@ fn evm_batch_some_until_failure_transfers_too_much() {
 						U256::from(500u16)
 					])
 					.write::<Vec<Bytes>>(vec![])
+					.write::<Vec<U256>>(vec![])
 					.write(true)
 					.build()
 			))
@@ -626,6 +661,7 @@ fn evm_batch_all_transfers_too_much() {
 						U256::from(500u16)
 					])
 					.write::<Vec<Bytes>>(vec![])
+					.write::<Vec<U256>>(vec![])
 					.write(true)
 					.build()
 			))
@@ -660,6 +696,7 @@ fn evm_batch_some_contract_revert() {
 						U256::from(3_000u16)
 					])
 					.write::<Vec<Bytes>>(vec![])
+					.write::<Vec<U256>>(vec![])
 					.write(true)
 					.build()
 			))
@@ -694,6 +731,7 @@ fn evm_batch_some_until_failure_contract_revert() {
 						U256::from(3_000u16)
 					])
 					.write::<Vec<Bytes>>(vec![])
+					.write::<Vec<U256>>(vec![])
 					.write(true)
 					.build()
 			))
@@ -728,6 +766,7 @@ fn evm_batch_all_contract_revert() {
 						U256::from(3_000u16)
 					])
 					.write::<Vec<Bytes>>(vec![])
+					.write::<Vec<U256>>(vec![])
 					.write(true)
 					.build()
 			))

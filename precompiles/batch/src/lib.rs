@@ -35,9 +35,9 @@ mod tests;
 #[precompile_utils::generate_function_selector]
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Action {
-	BatchSome = "batchSome(address[],uint256[],bytes[],bool)",
-	BatchSomeUntilFailure = "batchSomeUntilFailure(address[],uint256[],bytes[],bool)",
-	BatchAll = "batchAll(address[],uint256[],bytes[],bool)",
+	BatchSome = "batchSome(address[],uint256[],bytes[],uint64[],bool)",
+	BatchSomeUntilFailure = "batchSomeUntilFailure(address[],uint256[],bytes[],uint64[],bool)",
+	BatchAll = "batchAll(address[],uint256[],bytes[],uint64[])",
 }
 
 pub const LOG_SUBCALL_SUCCEEDED: [u8; 32] = keccak256!("SubcallSucceeded(uint256)");
@@ -95,15 +95,23 @@ where
 		let addresses: Vec<Address> = input.read()?;
 		let values: Vec<U256> = input.read()?;
 		let calls_data: Vec<Bytes> = input.read()?;
-		let emit_logs: bool = input.read()?;
+		let gas_limits: Vec<u64> = input.read()?;
+		let emit_logs: bool = if action == Action::BatchAll {
+			false
+		} else {
+			input.read()?
+		};
 
 		let addresses = addresses.into_iter().enumerate();
 		let values = values.into_iter().map(|x| Some(x)).chain(repeat(None));
 		let calls_data = calls_data.into_iter().map(|x| Some(x)).chain(repeat(None));
+		let gas_limits = gas_limits.into_iter().map(|x| Some(x)).chain(repeat(None));
 
 		let mut outputs = vec![];
 
-		for ((i, address), (value, call_data)) in addresses.zip(values.zip(calls_data)) {
+		for ((i, address), (value, (call_data, gas_limit))) in
+			addresses.zip(values.zip(calls_data.zip(gas_limits)))
+		{
 			let address = address.0;
 			let value = value.unwrap_or(U256::zero());
 			let call_data = call_data.unwrap_or(Bytes(vec![])).0;
@@ -124,17 +132,17 @@ where
 				})
 			};
 
-			// We reserve enough gas to emit a final log .
+			// We reserve enough gas to emit a final log.
 			// If not enough gas we stop there according to Action strategy.
 			let remaining_gas = handle.remaining_gas();
-			let gas_limit = match (
+			let remaining_gas = match (
 				emit_logs,
 				action,
 				remaining_gas
 					.checked_sub(log_subcall_failed(handle.code_address(), i).compute_cost()? + 1),
 			) {
 				(false, _, _) => remaining_gas,
-				(true, _, Some(gas_limit)) => gas_limit,
+				(true, _, Some(remaining)) => remaining,
 				(true, Action::BatchAll, None) => {
 					return Err(PrecompileFailure::Error {
 						exit_status: ExitError::OutOfGas,
@@ -142,6 +150,31 @@ where
 				}
 				(true, Action::BatchSome | Action::BatchSomeUntilFailure, None) => {
 					return Ok(succeed([]))
+				}
+			};
+
+			// If there is a provided gas limit we ensure there is enough gas remaining.
+			let gas_limit = match (gas_limit, remaining_gas) {
+				(None, remaining_gas) => remaining_gas, // provide all gas if no gas limit,
+				(Some(gas_limit), remaining_gas) => {
+					if gas_limit > remaining_gas {
+						if emit_logs {
+							let log = log_subcall_failed(handle.code_address(), i);
+							handle.record_log_costs(&[&log])?;
+							log.record(handle)?;
+						}
+
+						match action {
+							Action::BatchAll => {
+								return Err(PrecompileFailure::Error {
+									exit_status: ExitError::OutOfGas,
+								})
+							}
+							Action::BatchSomeUntilFailure => return Ok(succeed([])),
+							Action::BatchSome => continue,
+						}
+					}
+					gas_limit
 				}
 			};
 

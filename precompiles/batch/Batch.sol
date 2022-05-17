@@ -14,13 +14,16 @@ interface Batch {
     /// calls will be performed with a value of 0.
     /// @param call_data Call data for each `to` address. If array is shorter than "to" then
     /// additional calls will be performed with an empty call data.
+    /// @param gas_limit Gas limit for each `to` address. If array is shorter than "to" then
+    /// the remaining gas available will be used.
     /// @param emitLogs Should the precompile emit logs for each call?
     /// Increases slightly the cost
-    /// Selector: 3d662152
+    /// Selector: b1d4c0a7
     function batchSome(
         address[] memory to,
         uint256[] memory value,
         bytes[] memory call_data,
+        uint64[] memory gas_limit,
         bool emitLogs
     ) external;
 
@@ -37,12 +40,15 @@ interface Batch {
     /// calls will be performed with a value of 0.
     /// @param call_data Call data for each `to` address. If array is shorter than "to" then
     /// additional calls will be performed with an empty call data.
+    /// @param gas_limit Gas limit for each `to` address. If array is shorter than "to" then
+    /// the remaining gas available will be used.
     /// @param emitLogs Should the precompile emit logs for each call? (increase cost).
-    /// Selector: 310a0280
+    /// Selector: b4b8481a
     function batchSomeUntilFailure(
         address[] memory to,
         uint256[] memory value,
         bytes[] memory call_data,
+        uint64[] memory gas_limit,
         bool emitLogs
     ) external;
 
@@ -58,13 +64,14 @@ interface Batch {
     /// calls will be performed with a value of 0.
     /// @param call_data Call data for each `to` address. If array is shorter than "to" then
     /// additional calls will be performed with an empty call data.
-    /// @param emitLogs Should the precompile emit logs for each call? (increase cost).
-    /// Selector: 9cb89af4
+    /// @param gas_limit Gas limit for each `to` address. If array is shorter than "to" then
+    /// the remaining gas available will be used.
+    /// Selector: 96e292b8
     function batchAll(
         address[] memory to,
         uint256[] memory value,
         bytes[] memory call_data,
-        bool emitLogs
+        uint64[] memory gas_limit
     ) external;
 
     /// Emitted when a subcall succeeds.
