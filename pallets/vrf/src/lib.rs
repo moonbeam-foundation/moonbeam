@@ -140,7 +140,7 @@ pub mod pallet {
 				log::warn!(
 					"VRF on_initialize: Relay storage root or slot number did not change between \
 				current and last block. Nimbus would have panicked if slot number didn't change \
-				so expect storage root did not change.t"
+				so probably storage root did not change."
 				);
 			}
 			let most_recent_vrf_input = VrfInput {
@@ -178,9 +178,9 @@ pub mod pallet {
 				})
 				.next();
 			let block_author_vrf_id =
-				block_author_vrf_id.expect("NimbusId encoded in preruntime digest must be valid");
+				block_author_vrf_id.expect("VrfId encoded in pre-runtime digest must be valid");
 			let pubkey = schnorrkel::PublicKey::from_bytes(block_author_vrf_id.as_slice())
-				.expect("Expect valid schnorrkel public key");
+				.expect("Expect VrfId to be valid schnorrkel public key");
 			let transcript = make_transcript::<T::RelayBlockHash>(input);
 			let randomness: Randomness = maybe_pre_digest
 				.and_then(|digest| {
@@ -191,11 +191,13 @@ pub mod pallet {
 						})
 						.map(|inout| inout.make_bytes(&sp_consensus_babe::BABE_VRF_INOUT_CONTEXT))
 				})
-				// TODO: verify that this can only fail do to block author error and not chance
-				.expect("VRF Output must be included by block author for block to be valid");
+				.expect("VRF output encoded in pre-runtime digest must be valid");
 			// Place last VRF output into the `LastRandomness` storage item
 			if let Some(current_randomness) = CurrentRandomness::<T>::take() {
 				LastRandomness::<T>::put(current_randomness);
+			} else {
+				// clear LastRandomness if there is no CurrentRandomness
+				<LastRandomness<T>>::remove();
 			}
 			CurrentRandomness::<T>::put(randomness);
 			T::DbWeight::get().read + 2 * T::DbWeight::get().write

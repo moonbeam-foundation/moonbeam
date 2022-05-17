@@ -16,18 +16,17 @@
 
 ///! Instant Randomness
 ///! exposes the most recent values for all the pallet storage values
-use crate::{traits::SendRandomness, Config, Error, Pallet};
+use crate::{Config, Error, Pallet};
 use frame_support::StorageValue;
-use sp_runtime::DispatchResult;
+use sp_runtime::DispatchError;
 
-// TODO: precompile methods to get this
-pub fn instant_randomness<T, V>(contract_address: T::AccountId, salt: T::Hash) -> DispatchResult
+/// Returns most recent value for the specified storage item `V`
+/// generic over storage map to be generic over type of randomness
+pub fn instant_randomness<T, V>(salt: T::Hash) -> Result<[u8; 32], DispatchError>
 where
 	T: Config,
 	V: StorageValue<Option<T::Hash>, Query = Option<T::Hash>>,
 {
-	let raw_randomness = V::get().ok_or(Error::<T>::RequestedRandomnessNotCorrectlyUpdated)?;
-	let randomness = Pallet::<T>::concat_and_hash(raw_randomness, salt);
-	T::RandomnessSender::send_randomness(contract_address, randomness);
-	Ok(())
+	let randomness = V::get().ok_or(Error::<T>::RequestedRandomnessNotCorrectlyUpdated)?;
+	Ok(Pallet::<T>::concat_and_hash(randomness, salt))
 }

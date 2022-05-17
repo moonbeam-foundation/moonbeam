@@ -29,16 +29,18 @@ pub enum BabeRandomness<Epoch, BlockNumber> {
 }
 
 #[derive(PartialEq, Copy, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
+#[scale_info(skip_type_params(T))]
 /// Type of request
-pub enum RequestType<BlockNumber> {
+/// Represents a request for the most recent randomness of this type at or after the inner time
+pub enum RequestType<T: Config> {
 	/// Babe one epoch ago
 	BabeOneEpochAgo(u64),
 	/// Babe two epochs ago
 	BabeTwoEpochsAgo(u64),
 	/// Babe per block
-	BabeCurrentBlock(BlockNumber),
+	BabeCurrentBlock(T::BlockNumber),
 	/// Local per block VRF output
-	Local(BlockNumber),
+	Local(T::BlockNumber),
 }
 
 #[derive(PartialEq, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
@@ -53,7 +55,7 @@ pub struct Request<T: Config> {
 	/// Salt to use once randomness is ready
 	pub salt: T::Hash,
 	/// Details regarding request type
-	pub info: RequestType<T::BlockNumber>,
+	pub info: RequestType<T>,
 }
 
 impl<T: Config> Request<T> {
@@ -75,6 +77,18 @@ pub struct RequestState<T: Config> {
 	pub expires: T::BlockNumber,
 }
 
+#[derive(PartialEq, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
+#[scale_info(skip_type_params(T))]
+/// Data required to make the subcallback
+pub struct FulfillArgs<T: Config> {
+	/// Contract that consumes the randomness
+	pub contract_address: T::AccountId,
+	/// Gas limit for subcall
+	pub gas_limit: u64,
+	/// Randomness
+	pub randomness: T::Hash,
+}
+
 impl<T: Config> RequestState<T> {
 	pub fn new(
 		request: Request<T>,
@@ -92,53 +106,55 @@ impl<T: Config> RequestState<T> {
 			expires,
 		})
 	}
-	pub fn fulfill(&self, caller: &T::AccountId) -> DispatchResult {
+	/// Returns Ok(FulfillArgs) if successful
+	/// This should be called before the callback
+	pub fn try_fulfill(&self, caller: &T::AccountId) -> Result<FulfillArgs<T>, DispatchError> {
 		ensure!(
 			self.request.can_be_fulfilled(),
 			Error::<T>::RequestCannotYetBeFulfilled
 		);
-		let raw_randomness: T::Hash = match self.request.info {
-			RequestType::Local { .. } => T::Hash::default(), // TODO
+		// TODO: audit
+		let gas_limit: u64 = self.request.fee * T::GetBaseFee::get_base_fee().into();
+		// TODO: impl
+		let randomness: T::Hash = match self.request.info {
+			RequestType::Local { .. } => T::Hash::default(),
 			_ => return Err(Error::<T>::NotYetImplemented.into()),
 		};
-		let randomness = Pallet::<T>::concat_and_hash(raw_randomness, self.request.salt);
-		// add self.request.fee as input to send_randomness as gas_limit and if fails, do not delete request
-		// convert it into gas
-		// fulfillment benchmarking must exclude send_randomness callback
-		// if send_randomness fails oog, then revert it and keep the request in storage
-		// might need some special event when execution fails oog
-		// responsibility of requester that callback succeeds => if it fails,
-		// pass gas_limit and fees
-		// check fees match gas_limit
-		T::RandomnessSender::send_randomness(self.request.contract_address.clone(), randomness);
-		// return deposit + fee_excess to contract_address
-		// refund cost_of_execution to caller?
+		// TODO: emit event?
+		Ok(FulfillArgs {
+			contract_address: self.request.contract_address,
+			gas_limit,
+			randomness,
+		})
+	}
+	/// Cleanup after fulfilling a request
+	/// This assumes the request was fulfilled and the callback did NOT OOG
+	pub fn do_fulfill(
+		&self,
+		caller: &T::AccountId,
+		cost_of_execution: BalanceOf<T>,
+		excess: BalanceOf<T>,
+	) -> DispatchResult {
 		T::Currency::unreserve(
 			&self.request.contract_address,
 			self.deposit + self.request.fee,
 		);
-		// get cost of execution from EVM
-		let execution_weight_estimate: Weight = 0; // TODO accurate estimate of execution weight
-		let execution_fee_estimate = T::WeightToFee::calc(&execution_weight_estimate);
-		let refund_fee = self.request.fee.saturating_sub(execution_fee_estimate);
-		// refund excess fee to refund address
-		// TODO: withdraw like Elois's orbiters PR
-		T::Currency::transfer(
-			&self.request.contract_address,
-			&self.request.refund_address,
-			refund_fee,
-			KeepAlive,
-		)
-		.expect("just unreserved deposit + fee => refund_fee must be transferrable");
-		// refund caller
-		// TODO: withdraw like Elois's orbiters PR
+		// refund cost_of_execution to caller
 		T::Currency::transfer(
 			&self.request.contract_address,
 			caller,
-			execution_fee_estimate,
+			cost_of_execution,
 			KeepAlive,
 		)
-		.expect("just unreserved deposit + fee => execution_fee_estimate must be transferrable");
+		.expect("just unreserved deposit + fee => cost_of_execution must be transferrable");
+		// refund excess fee to refund address
+		T::Currency::transfer(
+			&self.request.contract_address,
+			&self.request.refund_address,
+			excess,
+			KeepAlive,
+		)
+		.expect("just unreserved deposit + fee => excess must be transferrable");
 		Ok(())
 	}
 	pub fn increase_fee(&mut self, caller: &T::AccountId, new_fee: BalanceOf<T>) -> DispatchResult {

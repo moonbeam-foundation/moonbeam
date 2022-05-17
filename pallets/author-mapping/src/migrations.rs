@@ -16,7 +16,6 @@
 
 use crate::{BalanceOf, Config, MappingWithDeposit, RegistrationInfo};
 use frame_support::{
-	migration::{remove_storage_prefix, storage_key_iter},
 	pallet_prelude::PhantomData,
 	traits::{Get, OnRuntimeUpgrade},
 	weights::Weight,

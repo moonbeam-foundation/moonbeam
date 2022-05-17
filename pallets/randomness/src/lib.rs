@@ -70,11 +70,8 @@ pub mod pallet {
 		type RelayEpochIndex: GetEpochIndex<u64>;
 		/// Get relay chain randomness to insert into this pallet
 		type RelayRandomness: GetRelayRandomness<Self::Hash>;
-		/// Send randomness to smart contract
-		/// TODO: why can't Randomness = T::Hash?
-		type RandomnessSender: SendRandomness<Self::AccountId, [u8; 32]>;
-		/// Convert a weight value into a deductible fee based on the currency type.
-		type WeightToFee: WeightToFeePolynomial<Balance = BalanceOf<Self>>;
+		/// Get the base fee to convert fee into gas limit for subcall
+		type GetBaseFee: GetBaseFee<u64>;
 		#[pallet::constant]
 		/// The amount that should be taken as a security deposit when requesting randomness.
 		type Deposit: Get<BalanceOf<Self>>;
@@ -98,6 +95,7 @@ pub mod pallet {
 		NewFeeMustBeGreaterThanOldFee,
 		RequestHasNotExpired,
 		RequestedRandomnessNotCorrectlyUpdated,
+		RequestExecutionOOG,
 	}
 
 	#[pallet::event]
@@ -110,7 +108,7 @@ pub mod pallet {
 			contract_address: T::AccountId,
 			fee: BalanceOf<T>,
 			salt: T::Hash,
-			info: RequestType<T::BlockNumber>,
+			info: RequestType<T>,
 		},
 		RequestFulfilled {
 			id: RequestId,
@@ -243,8 +241,6 @@ pub mod pallet {
 				Error::<T>::CannotRequestPastRandomness
 			);
 			let deposit = T::Deposit::get().saturating_add(request.fee);
-			// is the calling contract always the consuming contract??
-			// or can the depositer be different from consumer
 			T::Currency::can_reserve(&request.contract_address, deposit)
 				.then(|| true)
 				.ok_or(Error::<T>::NotSufficientDeposit)?;

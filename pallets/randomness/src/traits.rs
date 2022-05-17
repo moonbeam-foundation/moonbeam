@@ -15,10 +15,10 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use frame_support::pallet_prelude::*;
+use sp_runtime::{DispatchError, DispatchResult};
 
-/// Send randomness to a smart contract, triggered by this pallet
-pub trait SendRandomness<AccountId, R> {
-	fn send_randomness(contract: AccountId, randomness: R);
+pub trait GetBaseFee<Fee> {
+	fn get_base_fee() -> Fee;
 }
 
 /// Get the epoch index
