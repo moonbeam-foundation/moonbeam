@@ -802,8 +802,7 @@ impl pallet_asset_manager::LocalAssetIdCreator<Runtime> for LocalAssetIdCreator 
 		// Our means of converting a creator to an assetId
 		// We basically hash (local asset counter)
 		let mut result: [u8; 16] = [0u8; 16];
-		let to_hash = local_asset_counter.encode();
-		let hash: H256 = to_hash.using_encoded(<Runtime as frame_system::Config>::Hashing::hash);
+		let hash: H256 = local_asset_counter.using_encoded(<Runtime as frame_system::Config>::Hashing::hash);
 		result.copy_from_slice(&hash.as_fixed_bytes()[0..16]);
 		u128::from_le_bytes(result)
 	}
