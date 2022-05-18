@@ -46,7 +46,7 @@ mod tests;
 pub type EvmResult<T = ()> = Result<T, PrecompileFailure>;
 
 /// Return an error with provided (static) text.
-/// Using the `revert` function of `Gasometer` is prefered as erroring
+/// Using the `revert` function of `Gasometer` is preferred as erroring
 /// consumed all the gas limit and the error message is not easily
 /// retrievable.
 pub fn error<T: Into<alloc::borrow::Cow<'static, str>>>(text: T) -> PrecompileFailure {
@@ -81,7 +81,7 @@ pub struct LogsBuilder {
 
 impl LogsBuilder {
 	/// Create a new builder with no logs.
-	/// Takes the address of the precompile (usualy `context.address`).
+	/// Takes the address of the precompile (usually `context.address`).
 	pub fn new(address: H160) -> Self {
 		Self { address }
 	}

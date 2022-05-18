@@ -1532,7 +1532,9 @@ pub mod pallet {
 					for Bond { owner, amount } in state.delegations {
 						let percent = Perbill::from_rational(amount, state.total);
 						let due = percent * amt_due;
-						mint(due, owner.clone());
+						if !due.is_zero() {
+							mint(due, owner.clone());
+						}
 					}
 				}
 
