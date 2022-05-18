@@ -49,7 +49,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@moonbeam-network/api-augment": "0.0.1-beta.4",
+    "@moonbeam-network/api-augment": "^0.1502.0",
     "@polkadot/api": "^7.15.1",
     "@substrate/txwrapper-core": "^1.5.9",
     "@substrate/txwrapper-registry": "^1.5.9",

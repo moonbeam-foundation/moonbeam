@@ -60,6 +60,11 @@ interface ParachainStaking {
     /// @return The CandidateCount weight hint
     function candidate_count() external view returns (uint256);
 
+    /// @dev Get the current round number
+    /// Selector: 146ca531
+    /// @return The current round number
+    function round() external view returns (uint256);
+
     /// DEPRECATED, replaced by candidate_delegation_count
     /// @dev Get the CollatorNominationCount weight hint
     /// Selector: 0ad6a7be

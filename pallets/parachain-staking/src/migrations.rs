@@ -15,13 +15,19 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! # Migrations
+
+#![allow(unused)]
+
+use crate::delegation_requests::{DelegationAction, ScheduledRequest};
+use crate::pallet::{DelegationScheduledRequests, DelegatorState, Total};
+#[allow(deprecated)]
+use crate::types::deprecated::{DelegationChange, Delegator as OldDelegator};
+use crate::types::Delegator;
 use crate::{
-	pallet::Total, BalanceOf, Bond, BottomDelegations, CandidateInfo, CandidateMetadata,
-	CandidateState, CapacityStatus, CollatorCandidate, Config, Delegations, DelegatorState, Event,
-	Pallet, Points, Round, Staked, TopDelegations,
+	BalanceOf, Bond, BottomDelegations, CandidateInfo, CandidateMetadata, CandidateState,
+	CapacityStatus, CollatorCandidate, Config, Delegations, Event, Pallet, Points, Round, Staked,
+	TopDelegations,
 };
-#[cfg(feature = "try-runtime")]
-use crate::{Collator2, Delegator, Nominator2};
 #[cfg(feature = "try-runtime")]
 use frame_support::traits::OnRuntimeUpgradeHelpersExt;
 use frame_support::Twox64Concat;
@@ -34,8 +40,209 @@ use frame_support::{
 	traits::{Get, OnRuntimeUpgrade, ReservableCurrency},
 	weights::Weight,
 };
+#[cfg(feature = "try-runtime")]
+use scale_info::prelude::string::String;
 use sp_runtime::traits::{Saturating, Zero};
 use sp_std::{convert::TryInto, vec::Vec};
+
+/// Migration to move delegator requests towards a delegation, from [DelegatorState] into
+/// [DelegationScheduledRequests] storage item.
+/// Additionally [DelegatorState] is migrated from [OldDelegator] to [Delegator].
+pub struct SplitDelegatorStateIntoDelegationScheduledRequests<T>(PhantomData<T>);
+
+impl<T: Config> SplitDelegatorStateIntoDelegationScheduledRequests<T> {
+	const PALLET_PREFIX: &'static [u8] = b"ParachainStaking";
+	const DELEGATOR_STATE_PREFIX: &'static [u8] = b"DelegatorState";
+
+	#[allow(deprecated)]
+	#[cfg(feature = "try-runtime")]
+	fn old_request_to_string(
+		delegator: &T::AccountId,
+		request: &crate::deprecated::DelegationRequest<T::AccountId, BalanceOf<T>>,
+	) -> String {
+		match request.action {
+			DelegationChange::Revoke => {
+				format!(
+					"delegator({:?})_when({})_Revoke({:?})",
+					delegator, request.when_executable, request.amount
+				)
+			}
+			DelegationChange::Decrease => {
+				format!(
+					"delegator({:?})_when({})_Decrease({:?})",
+					delegator, request.when_executable, request.amount
+				)
+			}
+		}
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn new_request_to_string(request: &ScheduledRequest<T::AccountId, BalanceOf<T>>) -> String {
+		match request.action {
+			DelegationAction::Revoke(v) => {
+				format!(
+					"delegator({:?})_when({})_Revoke({:?})",
+					request.delegator, request.when_executable, v
+				)
+			}
+			DelegationAction::Decrease(v) => {
+				format!(
+					"delegator({:?})_when({})_Decrease({:?})",
+					request.delegator, request.when_executable, v
+				)
+			}
+		}
+	}
+}
+
+#[allow(deprecated)]
+impl<T: Config> OnRuntimeUpgrade for SplitDelegatorStateIntoDelegationScheduledRequests<T> {
+	fn on_runtime_upgrade() -> Weight {
+		use sp_std::collections::btree_map::BTreeMap;
+
+		log::info!(
+			target: "SplitDelegatorStateIntoDelegationScheduledRequests",
+			"running migration for DelegatorState to new version and DelegationScheduledRequests \
+			storage item"
+		);
+
+		let mut reads: Weight = 0;
+		let mut writes: Weight = 0;
+
+		let mut scheduled_requests: BTreeMap<
+			T::AccountId,
+			Vec<ScheduledRequest<T::AccountId, BalanceOf<T>>>,
+		> = BTreeMap::new();
+		<DelegatorState<T>>::translate(
+			|delegator, old_state: OldDelegator<T::AccountId, BalanceOf<T>>| {
+				reads = reads.saturating_add(1);
+				writes = writes.saturating_add(1);
+
+				for (collator, request) in old_state.requests.requests.into_iter() {
+					let action = match request.action {
+						DelegationChange::Revoke => DelegationAction::Revoke(request.amount),
+						DelegationChange::Decrease => DelegationAction::Decrease(request.amount),
+					};
+					let entry = scheduled_requests.entry(collator.clone()).or_default();
+					entry.push(ScheduledRequest {
+						delegator: delegator.clone(),
+						when_executable: request.when_executable,
+						action,
+					});
+				}
+
+				let new_state = Delegator {
+					id: old_state.id,
+					delegations: old_state.delegations,
+					total: old_state.total,
+					less_total: old_state.requests.less_total,
+					status: old_state.status,
+				};
+				Some(new_state)
+			},
+		);
+
+		writes = writes.saturating_add(scheduled_requests.len() as Weight); // 1 write per request
+		for (collator, requests) in scheduled_requests {
+			<DelegationScheduledRequests<T>>::insert(collator, requests);
+		}
+
+		T::DbWeight::get().reads_writes(reads, writes)
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade() -> Result<(), &'static str> {
+		let mut expected_delegator_state_entries = 0u64;
+		let mut expected_requests = 0u64;
+		for (_key, state) in migration::storage_iter::<OldDelegator<T::AccountId, BalanceOf<T>>>(
+			Self::PALLET_PREFIX,
+			Self::DELEGATOR_STATE_PREFIX,
+		) {
+			Self::set_temp_storage(
+				state.requests.less_total,
+				&*format!("expected_delegator-{:?}_decrease_amount", state.id),
+			);
+
+			for (collator, request) in state.requests.requests.iter() {
+				Self::set_temp_storage(
+					Self::old_request_to_string(&state.id, &request),
+					&*format!(
+						"expected_collator-{:?}_delegator-{:?}_request",
+						collator, state.id,
+					),
+				);
+			}
+			expected_delegator_state_entries = expected_delegator_state_entries.saturating_add(1);
+			expected_requests =
+				expected_requests.saturating_add(state.requests.requests.len() as u64);
+		}
+
+		Self::set_temp_storage(
+			expected_delegator_state_entries,
+			"expected_delegator_state_entries",
+		);
+		Self::set_temp_storage(expected_requests, "expected_requests");
+
+		use frame_support::migration;
+
+		Ok(())
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade() -> Result<(), &'static str> {
+		// Scheduled decrease amount (bond_less) is correctly migrated
+		let mut actual_delegator_state_entries = 0;
+		for (delegator, state) in <DelegatorState<T>>::iter() {
+			let expected_delegator_decrease_amount: BalanceOf<T> = Self::get_temp_storage(
+				&*format!("expected_delegator-{:?}_decrease_amount", delegator),
+			)
+			.expect("must exist");
+			assert_eq!(
+				expected_delegator_decrease_amount, state.less_total,
+				"decrease amount did not match for delegator {:?}",
+				delegator,
+			);
+			actual_delegator_state_entries = actual_delegator_state_entries.saturating_add(1);
+		}
+
+		// Existing delegator state entries are not removed
+		let expected_delegator_state_entries: u64 =
+			Self::get_temp_storage("expected_delegator_state_entries").expect("must exist");
+		assert_eq!(
+			expected_delegator_state_entries, actual_delegator_state_entries,
+			"unexpected change in the number of DelegatorState entries"
+		);
+
+		// Scheduled requests are correctly migrated
+		let mut actual_requests = 0u64;
+		for (collator, scheduled_requests) in <DelegationScheduledRequests<T>>::iter() {
+			for request in scheduled_requests {
+				let expected_delegator_request: String = Self::get_temp_storage(&*format!(
+					"expected_collator-{:?}_delegator-{:?}_request",
+					collator, request.delegator,
+				))
+				.expect("must exist");
+				let actual_delegator_request = Self::new_request_to_string(&request);
+				assert_eq!(
+					expected_delegator_request, actual_delegator_request,
+					"scheduled request did not match for collator {:?}, delegator {:?}",
+					collator, request.delegator,
+				);
+
+				actual_requests = actual_requests.saturating_add(1);
+			}
+		}
+
+		let expected_requests: u64 =
+			Self::get_temp_storage("expected_requests").expect("must exist");
+		assert_eq!(
+			expected_requests, actual_requests,
+			"number of scheduled request entries did not match",
+		);
+
+		Ok(())
+	}
+}
 
 /// Migration to patch the incorrect delegations sums for all candidates
 pub struct PatchIncorrectDelegationSums<T>(PhantomData<T>);

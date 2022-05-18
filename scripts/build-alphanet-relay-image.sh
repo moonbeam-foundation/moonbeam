@@ -13,7 +13,7 @@ fi
 
 echo "Using Polkadot from $POLKADOT_REPO revision #${POLKADOT_COMMIT}"
 
-docker build . -f docker/polkadot-relay.Dockerfile \
+docker build . --pull --no-cache -f docker/polkadot-relay.Dockerfile --network=host \
   --build-arg POLKADOT_COMMIT="$POLKADOT_COMMIT" \
   --build-arg POLKADOT_REPO="$POLKADOT_REPO" \
   -t purestake/moonbase-relay-testnet:sha-$POLKADOT_COMMIT
