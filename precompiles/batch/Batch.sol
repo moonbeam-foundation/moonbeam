@@ -14,8 +14,8 @@ interface Batch {
     /// calls will be performed with a value of 0.
     /// @param call_data Call data for each `to` address. If array is shorter than "to" then
     /// additional calls will be performed with an empty call data.
-    /// @param gas_limit Gas limit for each `to` address. If array is shorter than "to" then
-    /// the remaining gas available will be used.
+    /// @param gas_limit Gas limit for each `to` address. Use 0 to forward all the remaining gas.
+    /// If array is shorter than "to" then the remaining gas available will be used.
     /// Selector: 79df4b9c
     function batchSome(
         address[] memory to,
@@ -37,8 +37,8 @@ interface Batch {
     /// calls will be performed with a value of 0.
     /// @param call_data Call data for each `to` address. If array is shorter than "to" then
     /// additional calls will be performed with an empty call data.
-    /// @param gas_limit Gas limit for each `to` address. If array is shorter than "to" then
-    /// the remaining gas available will be used.
+    /// @param gas_limit Gas limit for each `to` address. Use 0 to forward all the remaining gas.
+    /// If array is shorter than "to" then the remaining gas available will be used.
     /// Selector: cf0491c7
     function batchSomeUntilFailure(
         address[] memory to,
@@ -59,8 +59,8 @@ interface Batch {
     /// calls will be performed with a value of 0.
     /// @param call_data Call data for each `to` address. If array is shorter than "to" then
     /// additional calls will be performed with an empty call data.
-    /// @param gas_limit Gas limit for each `to` address. If array is shorter than "to" then
-    /// the remaining gas available will be used.
+    /// @param gas_limit Gas limit for each `to` address. Use 0 to forward all the remaining gas.
+    /// If array is shorter than "to" then the remaining gas available will be used.
     /// Selector: 96e292b8
     function batchAll(
         address[] memory to,
