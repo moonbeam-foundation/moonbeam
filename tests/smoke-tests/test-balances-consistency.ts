@@ -1,7 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { ApiDecoration } from "@polkadot/api/types";
 import type { FrameSystemAccountInfo } from "@polkadot/types/lookup";
-import { StorageKey, Option, u128 } from "@polkadot/types";
 import { expect } from "chai";
 import { printTokens } from "../util/logging";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
@@ -33,6 +32,7 @@ describeSmokeSuite(`Verify balances consistency`, { wssUrl, relayWssUrl }, (cont
     );
     specVersion = (await apiAt.query.system.lastRuntimeUpgrade()).unwrap().specVersion.toNumber();
 
+    debug(`Inspecting runtime version: ${specVersion}`);
     if (process.env.ACCOUNT_ID) {
       const userId = process.env.ACCOUNT_ID.toLowerCase();
       accounts[userId] = await apiAt.query.system.account(userId);
@@ -95,11 +95,11 @@ describeSmokeSuite(`Verify balances consistency`, { wssUrl, relayWssUrl }, (cont
       apiAt.query.identity.subsOf.entries(),
       apiAt.query.democracy.depositOf.entries(),
       apiAt.query.democracy.preimages.entries(),
-      apiAt.query.assets.asset.entries(),
-      apiAt.query.assets.metadata.entries(),
-      apiAt.query.localAssets.asset.entries(),
-      apiAt.query.localAssets.metadata.entries(),
-      apiAt.query.assetManager.localAssetDeposit.entries(),
+      specVersion >= 1300 ? apiAt.query.assets.asset.entries() : [],
+      specVersion >= 1300 ? apiAt.query.assets.metadata.entries() : [],
+      specVersion >= 1400 ? apiAt.query.localAssets.asset.entries() : [],
+      specVersion >= 1400 ? apiAt.query.localAssets.metadata.entries() : [],
+      specVersion >= 1400 ? apiAt.query.assetManager.localAssetDeposit.entries() : [],
       apiAt.query.balances.reserves.entries(),
     ]);
 
