@@ -1,6 +1,10 @@
 import "@polkadot/api-augment";
 import "@moonbeam-network/api-augment";
-import { SpRuntimeDispatchError, FrameSupportWeightsDispatchInfo } from "@polkadot/types/lookup";
+import {
+  SpRuntimeDispatchError,
+  FrameSupportWeightsDispatchInfo,
+  FrameSystemEventRecord,
+} from "@polkadot/types/lookup";
 import { expect } from "chai";
 import Keyring from "@polkadot/keyring";
 import {
@@ -15,10 +19,14 @@ import {
   GLMR,
   BALTATHAR_PRIV_KEY,
   BALTATHAR,
+  ALITH_ADDRESS,
 } from "../util/constants";
 import { describeDevMoonbeam, DevTestContext } from "../util/setup-dev-tests";
 import { KeyringPair } from "@substrate/txwrapper-core";
 import { IEvent } from "@polkadot/types/types";
+import { u128, Vec } from "@polkadot/types";
+import { BN } from "@polkadot/util";
+import { StringMappingType } from "typescript";
 
 describeDevMoonbeam("Staking - Genesis", (context) => {
   it("should match collator reserved bond reserved", async function () {
@@ -643,15 +651,117 @@ describeDevMoonbeam("Staking - Delegation Requests", (context) => {
   });
 });
 
-async function jumpToRound(context: DevTestContext, round: Number) {
+describeDevMoonbeam("Staking - Rewards", (context) => {
+  const EXTRA_BOND_AMOUNT = 1_000_000_000_000_000_000n;
+  const BOND_AMOUNT = MIN_GLMR_NOMINATOR + EXTRA_BOND_AMOUNT;
+
+  let ethan: KeyringPair;
+  let balathar: KeyringPair;
+  beforeEach("should successfully call delegate on ALITH", async () => {
+    const keyring = new Keyring({ type: "ethereum" });
+    ethan = keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
+    balathar = keyring.addFromUri(BALTATHAR_PRIV_KEY, null, "ethereum");
+
+    await context.polkadotApi.tx.parachainStaking
+      .delegate(ALITH, BOND_AMOUNT, 0, 0)
+      .signAndSend(ethan);
+    await context.createBlock();
+    const currentRound = await context.polkadotApi.query.parachainStaking.round();
+    await jumpToRound(context, currentRound.current.addn(1).toNumber());
+  });
+
+  afterEach("should clean up delegation requests", async () => {
+    await context.polkadotApi.tx.parachainStaking.cancelDelegationRequest(ALITH).signAndSend(ethan);
+    await context.createBlock();
+    await context.polkadotApi.tx.parachainStaking.cancelLeaveDelegators().signAndSend(ethan);
+    await context.createBlock();
+  });
+
+  it("should reward delegators without scheduled requests", async function () {
+    this.timeout(20000);
+
+    const rewardDelay = context.polkadotApi.consts.parachainStaking.rewardPaymentDelay;
+    const currentRound = (await context.polkadotApi.query.parachainStaking.round()).current;
+    const blockHash = await jumpToRound(context, currentRound.add(rewardDelay).toNumber());
+    let rewardedEvents = await getRewardedEventsAt(context, blockHash);
+
+    expect(
+      rewardedEvents.some(({ account }) => account == ethan.address),
+      "delegator was not rewarded"
+    ).to.be.true;
+  });
+
+  it("should not reward delegator if leave scheduled", async function () {
+    this.timeout(20000);
+
+    await context.polkadotApi.tx.parachainStaking.scheduleLeaveDelegators().signAndSend(ethan);
+    await context.createBlock();
+
+    const rewardDelay = context.polkadotApi.consts.parachainStaking.rewardPaymentDelay;
+    const currentRound = (await context.polkadotApi.query.parachainStaking.round()).current;
+    const blockHash = await jumpToRound(context, currentRound.add(rewardDelay).addn(1).toNumber());
+    let rewardedEvents = await getRewardedEventsAt(context, blockHash);
+    expect(
+      rewardedEvents.some(({ account }) => account == ethan.address),
+      "delegator was incorrectly rewarded"
+    ).to.be.false;
+  });
+
+  it("should not reward delegator if revoke scheduled", async function () {
+    this.timeout(20000);
+
+    await context.polkadotApi.tx.parachainStaking
+      .scheduleRevokeDelegation(ALITH)
+      .signAndSend(ethan);
+    await context.createBlock();
+
+    const rewardDelay = context.polkadotApi.consts.parachainStaking.rewardPaymentDelay;
+    const currentRound = (await context.polkadotApi.query.parachainStaking.round()).current;
+    const blockHash = await jumpToRound(context, currentRound.add(rewardDelay).addn(1).toNumber());
+
+    let rewardedEvents = await getRewardedEventsAt(context, blockHash);
+    expect(
+      rewardedEvents.some(({ account }) => account == ethan.address),
+      "delegator was incorrectly rewarded"
+    ).to.be.false;
+  });
+
+  it("should reward delegator after deducting pending bond decrease", async function () {
+    this.timeout(20000);
+
+    await context.polkadotApi.tx.parachainStaking
+      .delegate(ALITH, BOND_AMOUNT, 1, 0)
+      .signAndSend(balathar);
+    await context.polkadotApi.tx.parachainStaking
+      .scheduleDelegatorBondLess(ALITH, EXTRA_BOND_AMOUNT)
+      .signAndSend(ethan);
+    await context.createBlock();
+
+    const rewardDelay = context.polkadotApi.consts.parachainStaking.rewardPaymentDelay;
+    const currentRound = (await context.polkadotApi.query.parachainStaking.round()).current;
+    const blockHash = await jumpToRound(context, currentRound.add(rewardDelay).addn(1).toNumber());
+    let rewardedEvents = await getRewardedEventsAt(context, blockHash);
+    let rewardedEthan = rewardedEvents.find(({ account }) => account == ethan.address);
+    let rewardedBalathar = rewardedEvents.find(({ account }) => account == balathar.address);
+    expect(rewardedEthan).is.not.undefined;
+    expect(rewardedBalathar).is.not.undefined;
+    expect(
+      rewardedBalathar.amount.gt(rewardedEthan.amount),
+      `Ethan's reward ${rewardedEthan.amount} was not less than Balathar's reward ${rewardedBalathar.amount}`
+    ).is.true;
+  });
+});
+
+async function jumpToRound(context: DevTestContext, round: Number): Promise<string | null> {
+  let lastBlockHash = null;
   while (true) {
     const currentRound = (
       await context.polkadotApi.query.parachainStaking.round()
     ).current.toNumber();
     if (currentRound == round) {
-      break;
+      return lastBlockHash;
     }
-    await context.createBlock();
+    lastBlockHash = (await context.createBlock()).block.hash.toString();
   }
 }
 
@@ -690,4 +800,24 @@ async function getExtrinsicResult(
   }
 
   return dispatchError.toString();
+}
+
+async function getRewardedEventsAt(
+  context: DevTestContext,
+  blockHash: string
+): Promise<Array<{ account: string; amount: u128 }>> {
+  const signedBlock = await context.polkadotApi.rpc.chain.getBlock(blockHash);
+  const apiAt = await context.polkadotApi.at(signedBlock.block.header.hash);
+
+  let rewardedEvents: Array<{ account: string; amount: u128 }> = [];
+  for await (const event of await apiAt.query.system.events()) {
+    if (context.polkadotApi.events.parachainStaking.Rewarded.is(event.event)) {
+      rewardedEvents.push({
+        account: event.event.data[0].toString(),
+        amount: event.event.data[1],
+      });
+    }
+  }
+
+  return rewardedEvents;
 }
