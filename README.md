@@ -197,3 +197,5 @@ Moonbeam is open source under the terms of the GPL3. We welcome contributions. P
 [CONTRIBUTIONS.md](CONTRIBUTIONS.md) document for more information.
 
 Example of version bumping PR (runtime and node): https://github.com/PureStake/moonbeam/pull/601/files
+
+
