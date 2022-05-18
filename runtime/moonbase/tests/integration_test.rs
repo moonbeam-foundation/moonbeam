@@ -29,14 +29,13 @@ use frame_support::{
 		fungible::Inspect, fungibles::Inspect as FungiblesInspect, EnsureOrigin, PalletInfo,
 		StorageInfo, StorageInfoTrait,
 	},
-	weights::{DispatchClass, Weight},
 	StorageHasher, Twox128,
 };
 use moonbase_runtime::{
 	asset_config::AssetRegistrarMetadata, asset_config::LocalAssetInstance, currency::UNIT, get,
-	xcm_config::AssetType, AccountId, AssetId, AssetManager, Assets, Balances, BaseFee,
-	BlockWeights, Call, CrowdloanRewards, Event, LocalAssets, ParachainStaking, PolkadotXcm,
-	Precompiles, Runtime, System, XTokens, XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	xcm_config::AssetType, AccountId, AssetId, AssetManager, Assets, Balances, BaseFee, Call,
+	CrowdloanRewards, Event, LocalAssets, ParachainStaking, PolkadotXcm, Precompiles, Runtime,
+	System, XTokens, XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 	LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 
@@ -48,14 +47,10 @@ use pallet_evm_precompile_assets_erc20::{
 };
 use xtokens_precompiles::Action as XtokensAction;
 
-use pallet_transaction_payment::Multiplier;
 use parity_scale_codec::Encode;
 use sha3::{Digest, Keccak256};
 use sp_core::{crypto::UncheckedFrom, ByteArray, Pair, H160, U256};
-use sp_runtime::{
-	traits::{Convert, One},
-	DispatchError, ModuleError, TokenError,
-};
+use sp_runtime::{DispatchError, ModuleError, TokenError};
 use xcm::latest::prelude::*;
 
 #[test]
@@ -2283,20 +2278,6 @@ fn xtokens_precompile_transfer_local_asset() {
 				}))
 			);
 		})
-}
-
-fn run_with_system_weight<F>(w: Weight, mut assertions: F)
-where
-	F: FnMut() -> (),
-{
-	let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::default()
-		.build_storage::<Runtime>()
-		.unwrap()
-		.into();
-	t.execute_with(|| {
-		System::set_block_consumed_resources(w, 0);
-		assertions()
-	});
 }
 
 #[test]
