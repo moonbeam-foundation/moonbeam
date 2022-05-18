@@ -1047,6 +1047,38 @@
 <span id="1042">1042</span>
 <span id="1043">1043</span>
 <span id="1044">1044</span>
+<span id="1045">1045</span>
+<span id="1046">1046</span>
+<span id="1047">1047</span>
+<span id="1048">1048</span>
+<span id="1049">1049</span>
+<span id="1050">1050</span>
+<span id="1051">1051</span>
+<span id="1052">1052</span>
+<span id="1053">1053</span>
+<span id="1054">1054</span>
+<span id="1055">1055</span>
+<span id="1056">1056</span>
+<span id="1057">1057</span>
+<span id="1058">1058</span>
+<span id="1059">1059</span>
+<span id="1060">1060</span>
+<span id="1061">1061</span>
+<span id="1062">1062</span>
+<span id="1063">1063</span>
+<span id="1064">1064</span>
+<span id="1065">1065</span>
+<span id="1066">1066</span>
+<span id="1067">1067</span>
+<span id="1068">1068</span>
+<span id="1069">1069</span>
+<span id="1070">1070</span>
+<span id="1071">1071</span>
+<span id="1072">1072</span>
+<span id="1073">1073</span>
+<span id="1074">1074</span>
+<span id="1075">1075</span>
+<span id="1076">1076</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -1183,20 +1215,52 @@
 			<span class="ident">context</span>,
 			<span class="ident">is_static</span>,
 			<span class="kw">match</span> <span class="ident">selector</span> {
+				<span class="comment">// Views</span>
 				<span class="ident">Action::IsNominator</span>
 				<span class="op">|</span> <span class="ident">Action::IsDelegator</span>
 				<span class="op">|</span> <span class="ident">Action::IsCandidate</span>
 				<span class="op">|</span> <span class="ident">Action::IsSelectedCandidate</span>
-				<span class="op">|</span> <span class="ident">Action::Points</span>
 				<span class="op">|</span> <span class="ident">Action::MinNomination</span>
 				<span class="op">|</span> <span class="ident">Action::MinDelegation</span>
+				<span class="op">|</span> <span class="ident">Action::Points</span>
 				<span class="op">|</span> <span class="ident">Action::CandidateCount</span>
+				<span class="op">|</span> <span class="ident">Action::Round</span>
 				<span class="op">|</span> <span class="ident">Action::CollatorNominationCount</span>
-				<span class="op">|</span> <span class="ident">Action::CandidateDelegationCount</span>
 				<span class="op">|</span> <span class="ident">Action::NominatorNominationCount</span>
+				<span class="op">|</span> <span class="ident">Action::CandidateDelegationCount</span>
 				<span class="op">|</span> <span class="ident">Action::DelegatorDelegationCount</span>
-				<span class="op">|</span> <span class="ident">Action::SelectedCandidates</span> =&gt; <span class="ident">FunctionModifier::View</span>,
-				<span class="kw">_</span> =&gt; <span class="ident">FunctionModifier::NonPayable</span>,
+				<span class="op">|</span> <span class="ident">Action::SelectedCandidates</span>
+				<span class="op">|</span> <span class="ident">Action::DelegationRequestIsPending</span>
+				<span class="op">|</span> <span class="ident">Action::DelegatorExitIsPending</span>
+				<span class="op">|</span> <span class="ident">Action::CandidateExitIsPending</span>
+				<span class="op">|</span> <span class="ident">Action::CandidateRequestIsPending</span> =&gt; <span class="ident">FunctionModifier::View</span>,
+				<span class="comment">// Non-payables</span>
+				<span class="ident">Action::JoinCandidates</span>
+				<span class="op">|</span> <span class="ident">Action::LeaveCandidates</span>
+				<span class="op">|</span> <span class="ident">Action::ScheduleLeaveCandidates</span>
+				<span class="op">|</span> <span class="ident">Action::ExecuteLeaveCandidates</span>
+				<span class="op">|</span> <span class="ident">Action::CancelLeaveCandidates</span>
+				<span class="op">|</span> <span class="ident">Action::GoOffline</span>
+				<span class="op">|</span> <span class="ident">Action::GoOnline</span>
+				<span class="op">|</span> <span class="ident">Action::CandidateBondLess</span>
+				<span class="op">|</span> <span class="ident">Action::ScheduleCandidateBondLess</span>
+				<span class="op">|</span> <span class="ident">Action::CandidateBondMore</span>
+				<span class="op">|</span> <span class="ident">Action::ExecuteCandidateBondLess</span>
+				<span class="op">|</span> <span class="ident">Action::CancelCandidateBondLess</span>
+				<span class="op">|</span> <span class="ident">Action::Nominate</span>
+				<span class="op">|</span> <span class="ident">Action::Delegate</span>
+				<span class="op">|</span> <span class="ident">Action::LeaveNominators</span>
+				<span class="op">|</span> <span class="ident">Action::ScheduleLeaveDelegators</span>
+				<span class="op">|</span> <span class="ident">Action::ExecuteLeaveDelegators</span>
+				<span class="op">|</span> <span class="ident">Action::CancelLeaveDelegators</span>
+				<span class="op">|</span> <span class="ident">Action::RevokeNomination</span>
+				<span class="op">|</span> <span class="ident">Action::ScheduleRevokeDelegation</span>
+				<span class="op">|</span> <span class="ident">Action::NominatorBondLess</span>
+				<span class="op">|</span> <span class="ident">Action::ScheduleDelegatorBondLess</span>
+				<span class="op">|</span> <span class="ident">Action::NominatorBondMore</span>
+				<span class="op">|</span> <span class="ident">Action::DelegatorBondMore</span>
+				<span class="op">|</span> <span class="ident">Action::ExecuteDelegationRequest</span>
+				<span class="op">|</span> <span class="ident">Action::CancelDelegationRequest</span> =&gt; <span class="ident">FunctionModifier::NonPayable</span>,
 			},
 		)<span class="question-mark">?</span>;
 
