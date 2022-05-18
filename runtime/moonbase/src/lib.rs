@@ -83,7 +83,7 @@ use sp_runtime::{
 	transaction_validity::{
 		InvalidTransaction, TransactionSource, TransactionValidity, TransactionValidityError,
 	},
-	ApplyExtrinsicResult, FixedPointNumber, Perbill, Percent, Permill, Perquintill,
+	ApplyExtrinsicResult, Perbill, Percent, Permill, Perquintill,
 	SaturatedConversion,
 };
 use sp_std::{
@@ -371,6 +371,12 @@ impl FixedGasPrice {
 	fn gas_price() -> U256 {
 		(1 * currency::GIGAWEI * currency::SUPPLY_FACTOR).into()
 	}
+	fn weight_multiplier() -> Multiplier {
+		Self::gas_price()
+			.saturating_mul(WEIGHT_PER_GAS.into())
+			.as_u128() // TODO: this panics. a simple test case should suffice to check this
+			.into()
+	}
 }
 
 impl FeeCalculator for FixedGasPrice {
@@ -386,14 +392,11 @@ impl FeeCalculator for FixedGasPrice {
 /// integrity_test() hook. The important conversion occurs in its on_finalize() hook and uses the
 /// Convert trait.
 ///
-/// Reminder: FixedU128 is a fixed point unsigned in the range
+/// Reminder: Multiplier is a FixedU128, which is a fixed point unsigned in the range
 /// [0.000000000000000000, 340282366920938463463.374607431768211455]
 impl MultiplierUpdate for FixedGasPrice {
 	fn min() -> Multiplier {
-		Self::gas_price()
-			.saturating_mul(WEIGHT_PER_GAS.into())
-			.as_u128() // TODO: this panics. we should enforce the upper bound from FixedU128
-			.into()
+		Self::weight_multiplier()
 	}
 	fn target() -> Perquintill {
 		Perquintill::from_percent(0)
@@ -405,10 +408,7 @@ impl MultiplierUpdate for FixedGasPrice {
 
 impl Convert<Multiplier, Multiplier> for FixedGasPrice {
 	fn convert(_previous: Multiplier) -> Multiplier {
-		Self::gas_price()
-			.saturating_mul(WEIGHT_PER_GAS.into())
-			.as_u128() // TODO: this panics. we should enforce the upper bound from FixedU128
-			.into()
+		Self::weight_multiplier()
 	}
 }
 
