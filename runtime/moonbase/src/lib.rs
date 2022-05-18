@@ -1481,4 +1481,14 @@ mod tests {
 			50
 		);
 	}
+
+    #[test]
+    fn fixed_gas_price_is_sane() {
+        let expected: Multiplier = 25000000000000.into();
+
+        // this also tests that the conversions do not panic (assuming it uses constants)
+        assert_eq!(
+            FixedGasPrice::weight_multiplier(),
+            expected);
+    }
 }

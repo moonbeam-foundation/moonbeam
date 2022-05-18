@@ -2300,52 +2300,6 @@ where
 }
 
 #[test]
-fn multiplier_can_grow_from_zero() {
-	let minimum_multiplier = moonbase_runtime::MinimumMultiplier::get();
-	let target = moonbase_runtime::TargetBlockFullness::get()
-		* BlockWeights::get()
-			.get(DispatchClass::Normal)
-			.max_total
-			.unwrap();
-	// if the min is too small, then this will not change, and we are doomed forever.
-	// the weight is 1/100th bigger than target.
-	run_with_system_weight(target * 101 / 100, || {
-		let next = moonbase_runtime::SlowAdjustingFeeUpdate::<Runtime>::convert(minimum_multiplier);
-		assert!(
-			next > minimum_multiplier,
-			"{:?} !>= {:?}",
-			next,
-			minimum_multiplier
-		);
-	})
-}
-
-#[test]
-#[ignore] // test runs for a very long time
-fn multiplier_growth_simulator() {
-	// assume the multiplier is initially set to its minimum. We update it with values twice the
-	//target (target is 25%, thus 50%) and we see at which point it reaches 1.
-	let mut multiplier = moonbase_runtime::MinimumMultiplier::get();
-	let block_weight = moonbase_runtime::TargetBlockFullness::get()
-		* BlockWeights::get()
-			.get(DispatchClass::Normal)
-			.max_total
-			.unwrap()
-		* 2;
-	let mut blocks = 0;
-	while multiplier <= Multiplier::one() {
-		run_with_system_weight(block_weight, || {
-			let next = moonbase_runtime::SlowAdjustingFeeUpdate::<Runtime>::convert(multiplier);
-			// ensure that it is growing as well.
-			assert!(next > multiplier, "{:?} !>= {:?}", next, multiplier);
-			multiplier = next;
-		});
-		blocks += 1;
-		println!("block = {} multiplier {:?}", blocks, multiplier);
-	}
-}
-
-#[test]
 fn ethereum_invalid_transaction() {
 	ExtBuilder::default().build().execute_with(|| {
 		// Ensure an extrinsic not containing enough gas limit to store the transaction
