@@ -652,6 +652,7 @@ describeDevMoonbeam("Trace", (context) => {
               dummyInterface.encodeFunctionData("multiply", [42]),
             ]),
           ],
+          [],
         ]),
       },
       GENESIS_ACCOUNT_PRIVATE_KEY

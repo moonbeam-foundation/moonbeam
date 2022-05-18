@@ -16,15 +16,12 @@ interface Batch {
     /// additional calls will be performed with an empty call data.
     /// @param gas_limit Gas limit for each `to` address. If array is shorter than "to" then
     /// the remaining gas available will be used.
-    /// @param emitLogs Should the precompile emit logs for each call?
-    /// Increases slightly the cost
-    /// Selector: b1d4c0a7
+    /// Selector: 79df4b9c
     function batchSome(
         address[] memory to,
         uint256[] memory value,
         bytes[] memory call_data,
-        uint64[] memory gas_limit,
-        bool emitLogs
+        uint64[] memory gas_limit
     ) external;
 
     /// @dev Batch multiple calls into a single transaction.
@@ -42,14 +39,12 @@ interface Batch {
     /// additional calls will be performed with an empty call data.
     /// @param gas_limit Gas limit for each `to` address. If array is shorter than "to" then
     /// the remaining gas available will be used.
-    /// @param emitLogs Should the precompile emit logs for each call? (increase cost).
-    /// Selector: b4b8481a
+    /// Selector: cf0491c7
     function batchSomeUntilFailure(
         address[] memory to,
         uint256[] memory value,
         bytes[] memory call_data,
-        uint64[] memory gas_limit,
-        bool emitLogs
+        uint64[] memory gas_limit
     ) external;
 
     /// @dev Batch multiple calls into a single transaction.

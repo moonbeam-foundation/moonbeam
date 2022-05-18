@@ -19,7 +19,9 @@ use crate::mock::{
 	Account::{Alice, Bob, Charlie, David, Precompile, Revert},
 	Call, ExtBuilder, Origin, PrecompilesValue, Runtime, TestPrecompiles,
 };
-use crate::{log_subcall_failed, log_subcall_succeeded, Action};
+use crate::{
+	log_subcall_failed, log_subcall_succeeded, Action, LOG_SUBCALL_FAILED, LOG_SUBCALL_SUCCEEDED,
+};
 use evm::ExitReason;
 use fp_evm::{ExitError, ExitRevert, ExitSucceed};
 use frame_support::{assert_ok, dispatch::Dispatchable};
@@ -45,11 +47,25 @@ fn evm_call(from: impl Into<H160>, input: Vec<u8>) -> EvmCall<Runtime> {
 	}
 }
 
+fn costs(_: Action) -> (u64, u64) {
+	let return_log_cost = log_subcall_failed(Precompile, 0).compute_cost().unwrap();
+	let gas_reserve = return_log_cost + 1;
+	(return_log_cost, gas_reserve)
+}
+
 #[test]
 fn selectors() {
-	assert_eq!(Action::BatchSome as u32, 0xb1d4c0a7);
-	assert_eq!(Action::BatchSomeUntilFailure as u32, 0xb4b8481a);
+	assert_eq!(Action::BatchSome as u32, 0x79df4b9c);
+	assert_eq!(Action::BatchSomeUntilFailure as u32, 0xcf0491c7);
 	assert_eq!(Action::BatchAll as u32, 0x96e292b8);
+	assert_eq!(
+		LOG_SUBCALL_FAILED,
+		hex_literal::hex!("dbc5d06f4f877f959b1ff12d2161cdd693fa8e442ee53f1790b2804b24881f05")
+	);
+	assert_eq!(
+		LOG_SUBCALL_SUCCEEDED,
+		hex_literal::hex!("bf855484633929c3d6688eb3caf8eff910fb4bef030a8d7dbc9390d26759714d")
+	);
 }
 
 #[test]
@@ -118,14 +134,7 @@ fn batch_returns(
 ) -> PrecompilesTester<TestPrecompiles<Runtime>> {
 	let mut counter = 0;
 
-	let (return_log_cost, gas_reserve) = match action {
-		Action::BatchAll => (0, 0),
-		_ => {
-			let return_log_cost = log_subcall_failed(Precompile, 0).compute_cost().unwrap();
-			let gas_reserve = return_log_cost + 1;
-			(return_log_cost, gas_reserve)
-		}
-	};
+	let (return_log_cost, gas_reserve) = costs(action);
 
 	precompiles
 		.prepare_test(
@@ -248,7 +257,9 @@ fn batch_all_returns() {
 	ExtBuilder::default().build().execute_with(|| {
 		batch_returns(&precompiles(), Action::BatchAll)
 			.expect_log(LogsBuilder::new(Bob.into()).log1(H256::repeat_byte(0x11), vec![]))
+			.expect_log(log_subcall_succeeded(Precompile, 0))
 			.expect_log(LogsBuilder::new(Charlie.into()).log1(H256::repeat_byte(0x22), vec![]))
+			.expect_log(log_subcall_succeeded(Precompile, 1))
 			.execute_returns(Vec::new())
 	})
 }
@@ -257,14 +268,7 @@ fn batch_out_of_gas(
 	precompiles: &TestPrecompiles<Runtime>,
 	action: Action,
 ) -> PrecompilesTester<TestPrecompiles<Runtime>> {
-	let gas_reserve = match action {
-		Action::BatchAll => 0,
-		_ => {
-			let return_log_cost = log_subcall_failed(Precompile, 0).compute_cost().unwrap();
-			let gas_reserve = return_log_cost + 1;
-			gas_reserve
-		}
-	};
+	let (_, gas_reserve) = costs(action);
 
 	precompiles
 		.prepare_test(
@@ -353,14 +357,7 @@ fn batch_incomplete(
 ) -> PrecompilesTester<TestPrecompiles<Runtime>> {
 	let mut counter = 0;
 
-	let (return_log_cost, gas_reserve) = match action {
-		Action::BatchAll => (0, 0),
-		_ => {
-			let return_log_cost = log_subcall_failed(Precompile, 0).compute_cost().unwrap();
-			let gas_reserve = return_log_cost + 1;
-			(return_log_cost, gas_reserve)
-		}
-	};
+	let (return_log_cost, gas_reserve) = costs(action);
 
 	precompiles
 		.prepare_test(
@@ -480,12 +477,15 @@ fn batch_incomplete(
 #[test]
 fn batch_some_incomplete() {
 	ExtBuilder::default().build().execute_with(|| {
+		let (return_log_cost, _) = costs(Action::BatchSome);
+
 		batch_incomplete(&precompiles(), Action::BatchSome)
 			.expect_log(LogsBuilder::new(Bob.into()).log1(H256::repeat_byte(0x11), vec![]))
 			.expect_log(log_subcall_succeeded(Precompile, 0))
 			.expect_log(log_subcall_failed(Precompile, 1))
 			.expect_log(LogsBuilder::new(Alice.into()).log1(H256::repeat_byte(0x33), vec![]))
 			.expect_log(log_subcall_succeeded(Precompile, 2))
+			.expect_cost(13 + 17 + 19 + return_log_cost * 3)
 			.execute_returns(Vec::new())
 	})
 }
@@ -493,10 +493,13 @@ fn batch_some_incomplete() {
 #[test]
 fn batch_some_until_failure_incomplete() {
 	ExtBuilder::default().build().execute_with(|| {
+		let (return_log_cost, _) = costs(Action::BatchSomeUntilFailure);
+
 		batch_incomplete(&precompiles(), Action::BatchSomeUntilFailure)
 			.expect_log(LogsBuilder::new(Bob.into()).log1(H256::repeat_byte(0x11), vec![]))
 			.expect_log(log_subcall_succeeded(Precompile, 0))
 			.expect_log(log_subcall_failed(Precompile, 1))
+			.expect_cost(13 + 17 + return_log_cost * 2)
 			.execute_returns(Vec::new())
 	})
 }
@@ -598,13 +601,10 @@ fn evm_batch_some_transfers_too_much() {
 			))
 			.dispatch(Origin::root()));
 
-			// Since transfer to Charlie fails because there are not enough funds,
-			// it is an ERROR and thus no transfer will be attempted to David, even
-			// if their is enough funds to do that.
-			assert_eq!(balance(Alice), 1000); // gasprice = 0
+			assert_eq!(balance(Alice), 500); // gasprice = 0
 			assert_eq!(balance(Bob), 9_000);
 			assert_eq!(balance(Charlie), 0);
-			assert_eq!(balance(David), 0);
+			assert_eq!(balance(David), 500);
 		})
 }
 

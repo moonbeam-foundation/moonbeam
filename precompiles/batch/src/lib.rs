@@ -35,8 +35,8 @@ mod tests;
 #[precompile_utils::generate_function_selector]
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Action {
-	BatchSome = "batchSome(address[],uint256[],bytes[],uint64[],bool)",
-	BatchSomeUntilFailure = "batchSomeUntilFailure(address[],uint256[],bytes[],uint64[],bool)",
+	BatchSome = "batchSome(address[],uint256[],bytes[],uint64[])",
+	BatchSomeUntilFailure = "batchSomeUntilFailure(address[],uint256[],bytes[],uint64[])",
 	BatchAll = "batchAll(address[],uint256[],bytes[],uint64[])",
 }
 
@@ -96,18 +96,18 @@ where
 		let values: Vec<U256> = input.read()?;
 		let calls_data: Vec<Bytes> = input.read()?;
 		let gas_limits: Vec<u64> = input.read()?;
-		let emit_logs: bool = if action == Action::BatchAll {
-			false
-		} else {
-			input.read()?
-		};
 
 		let addresses = addresses.into_iter().enumerate();
 		let values = values.into_iter().map(|x| Some(x)).chain(repeat(None));
 		let calls_data = calls_data.into_iter().map(|x| Some(x)).chain(repeat(None));
-		let gas_limits = gas_limits.into_iter().map(|x| Some(x)).chain(repeat(None));
-
-		let mut outputs = vec![];
+		let gas_limits = gas_limits.into_iter().map(|x|
+			// x = 0 => forward all remaining gas
+			if x == 0 {
+				None
+			} else {
+				Some(x)
+			}
+		).chain(repeat(None));
 
 		for ((i, address), (value, (call_data, gas_limit))) in
 			addresses.zip(values.zip(calls_data.zip(gas_limits)))
@@ -135,22 +135,11 @@ where
 			// We reserve enough gas to emit a final log.
 			// If not enough gas we stop there according to Action strategy.
 			let remaining_gas = handle.remaining_gas();
-			let remaining_gas = match (
-				emit_logs,
-				action,
-				remaining_gas
-					.checked_sub(log_subcall_failed(handle.code_address(), i).compute_cost()? + 1),
-			) {
-				(false, _, _) => remaining_gas,
-				(true, _, Some(remaining)) => remaining,
-				(true, Action::BatchAll, None) => {
-					return Err(PrecompileFailure::Error {
-						exit_status: ExitError::OutOfGas,
-					})
-				}
-				(true, Action::BatchSome | Action::BatchSomeUntilFailure, None) => {
-					return Ok(succeed([]))
-				}
+			let remaining_gas = match remaining_gas
+				.checked_sub(log_subcall_failed(handle.code_address(), i).compute_cost()? + 1)
+			{
+				Some(remaining) => remaining,
+				None => return Ok(succeed([])),
 			};
 
 			// If there is a provided gas limit we ensure there is enough gas remaining.
@@ -158,11 +147,9 @@ where
 				(None, remaining_gas) => remaining_gas, // provide all gas if no gas limit,
 				(Some(gas_limit), remaining_gas) => {
 					if gas_limit > remaining_gas {
-						if emit_logs {
-							let log = log_subcall_failed(handle.code_address(), i);
-							handle.record_log_costs(&[&log])?;
-							log.record(handle)?;
-						}
+						let log = log_subcall_failed(handle.code_address(), i);
+						handle.record_log_costs(&[&log])?;
+						log.record(handle)?;
 
 						match action {
 							Action::BatchAll => {
@@ -187,24 +174,20 @@ where
 				&sub_context,
 			);
 
-			outputs.push(Bytes(output.clone()));
-
 			// Logs
 			// We reserved enough gas so this should not OOG.
-			if emit_logs {
-				match reason {
-					ExitReason::Revert(_) | ExitReason::Error(_) => {
-						let log = log_subcall_failed(handle.code_address(), i);
-						handle.record_log_costs(&[&log])?;
-						log.record(handle)?
-					}
-					ExitReason::Succeed(_) => {
-						let log = log_subcall_succeeded(handle.code_address(), i);
-						handle.record_log_costs(&[&log])?;
-						log.record(handle)?
-					}
-					_ => (),
+			match reason {
+				ExitReason::Revert(_) | ExitReason::Error(_) => {
+					let log = log_subcall_failed(handle.code_address(), i);
+					handle.record_log_costs(&[&log])?;
+					log.record(handle)?
 				}
+				ExitReason::Succeed(_) => {
+					let log = log_subcall_succeeded(handle.code_address(), i);
+					handle.record_log_costs(&[&log])?;
+					log.record(handle)?
+				}
+				_ => (),
 			}
 
 			// How to proceed
@@ -227,18 +210,12 @@ where
 
 				// BatchSomeUntilFailure : Reverts and errors prevent subsequent subcalls to
 				// be executed but the precompile still succeed.
-				//
-				// BatchSome : since Error consume all gas (or can be out of gas), we stop
-				// to not out of gas when processing next subcall.
-				(Action::BatchSomeUntilFailure, ExitReason::Revert(_) | ExitReason::Error(_))
-				| (Action::BatchSome, ExitReason::Error(_)) => return Ok(succeed([])),
+				(Action::BatchSomeUntilFailure, ExitReason::Revert(_) | ExitReason::Error(_)) => {
+					return Ok(succeed([]))
+				}
 
-				// BatchSome: Reverts and errors don't prevent subsequent subcalls to be executed,
-				// but they are not counted as success.
-				(Action::BatchSome, ExitReason::Revert(_)) => (),
-
-				// Success
-				(_, ExitReason::Succeed(_)) => (),
+				// Success or ignored revert/error.
+				(_, _) => (),
 			}
 		}
 
