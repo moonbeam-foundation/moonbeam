@@ -83,8 +83,7 @@ use sp_runtime::{
 	transaction_validity::{
 		InvalidTransaction, TransactionSource, TransactionValidity, TransactionValidityError,
 	},
-	ApplyExtrinsicResult, Perbill, Percent, Permill, Perquintill,
-	SaturatedConversion,
+	ApplyExtrinsicResult, Perbill, Percent, Permill, Perquintill, SaturatedConversion,
 };
 use sp_std::{
 	convert::{From, Into, TryFrom},
@@ -1482,13 +1481,11 @@ mod tests {
 		);
 	}
 
-    #[test]
-    fn fixed_gas_price_is_sane() {
-        let expected: Multiplier = 25000000000000.into();
+	#[test]
+	fn fixed_gas_price_is_sane() {
+		let expected: Multiplier = 25000000000000.into();
 
-        // this also tests that the conversions do not panic (assuming it uses constants)
-        assert_eq!(
-            FixedGasPrice::weight_multiplier(),
-            expected);
-    }
+		// this also tests that the conversions do not panic (assuming it uses constants)
+		assert_eq!(FixedGasPrice::weight_multiplier(), expected);
+	}
 }
