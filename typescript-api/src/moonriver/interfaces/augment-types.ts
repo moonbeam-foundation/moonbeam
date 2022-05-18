@@ -277,6 +277,7 @@ import type {
   VotingDirect,
   VotingDirectVote,
 } from "@polkadot/types/interfaces/democracy";
+import type { BlockStats } from "@polkadot/types/interfaces/dev";
 import type {
   ApprovalFlag,
   DefunctVoter,
@@ -935,6 +936,7 @@ import type {
   BlockTraceEventData,
   BlockTraceSpan,
   KeyValueOption,
+  MigrationStatusResult,
   ReadProof,
   RuntimeVersion,
   RuntimeVersionApi,
@@ -963,6 +965,7 @@ import type {
   DispatchClass,
   DispatchError,
   DispatchErrorModule,
+  DispatchErrorModuleU8a,
   DispatchErrorTo198,
   DispatchInfo,
   DispatchInfoTo190,
@@ -1206,6 +1209,7 @@ declare module "@polkadot/types/types/registry" {
     BlockNumber: BlockNumber;
     BlockNumberFor: BlockNumberFor;
     BlockNumberOf: BlockNumberOf;
+    BlockStats: BlockStats;
     BlockTrace: BlockTrace;
     BlockTraceEvent: BlockTraceEvent;
     BlockTraceEventData: BlockTraceEventData;
@@ -1359,6 +1363,7 @@ declare module "@polkadot/types/types/registry" {
     DispatchClass: DispatchClass;
     DispatchError: DispatchError;
     DispatchErrorModule: DispatchErrorModule;
+    DispatchErrorModuleU8a: DispatchErrorModuleU8a;
     DispatchErrorTo198: DispatchErrorTo198;
     DispatchFeePayment: DispatchFeePayment;
     DispatchInfo: DispatchInfo;
@@ -1645,6 +1650,7 @@ declare module "@polkadot/types/types/registry" {
     MetadataV13: MetadataV13;
     MetadataV14: MetadataV14;
     MetadataV9: MetadataV9;
+    MigrationStatusResult: MigrationStatusResult;
     MmrLeafProof: MmrLeafProof;
     MmrRootHash: MmrRootHash;
     ModuleConstantMetadataV10: ModuleConstantMetadataV10;

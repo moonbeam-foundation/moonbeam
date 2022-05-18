@@ -60,6 +60,11 @@ interface ParachainStaking {
     /// @return The CandidateCount weight hint
     function candidate_count() external view returns (uint256);
 
+    /// @dev Get the current round number
+    /// Selector: 146ca531
+    /// @return The current round number
+    function round() external view returns (uint256);
+
     /// DEPRECATED, replaced by candidate_delegation_count
     /// @dev Get the CollatorNominationCount weight hint
     /// Selector: 0ad6a7be
@@ -97,6 +102,48 @@ interface ParachainStaking {
         external
         view
         returns (uint256);
+
+    /// @dev Get the selected candidates for the current round
+    /// Selector: 0x89f47a21
+    /// @return The selected candidate accounts
+    function selected_candidates() external view returns (address[] memory);
+
+    /// @dev Whether there exists a pending request for a delegation made by a delegator
+    /// Selector: 192e1db3
+    /// @param delegator the delegator that made the delegation
+    /// @param candidate the candidate for which the delegation was made
+    /// @return Whether a pending request exists for such delegation
+    function delegation_request_is_pending(address delegator, address candidate)
+        external
+        view
+        returns (bool);
+
+    /// @dev Whether there exists a pending exit for delegator
+    /// Selector: dc3ec64b
+    /// @param delegator the delegator that made the exit request
+    /// @return Whether a pending exit exists for delegator
+    function delegator_exit_is_pending(address delegator)
+        external
+        view
+        returns (bool);
+
+    /// @dev Whether there exists a pending exit for candidate
+    /// Selector: eb613b8a
+    /// @param candidate the candidate for which the exit request was made
+    /// @return Whether a pending request exists for such delegation
+    function candidate_exit_is_pending(address candidate)
+        external
+        view
+        returns (bool);
+
+    /// @dev Whether there exists a pending bond less request made by a candidate
+    /// Selector: 26ab05fb
+    /// @param candidate the candidate which made the request
+    /// @return Whether a pending bond less request was made by the candidate
+    function candidate_request_is_pending(address candidate)
+        external
+        view
+        returns (bool);
 
     /// @dev Join the set of collator candidates
     /// Selector: 0a1bff60

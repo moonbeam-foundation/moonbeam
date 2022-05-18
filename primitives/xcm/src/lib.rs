@@ -22,23 +22,19 @@ use frame_support::{
 	traits::{tokens::fungibles::Mutate, Get, OriginTrait},
 	weights::{constants::WEIGHT_PER_SECOND, Weight},
 };
-use sp_runtime::traits::{CheckedConversion, Zero};
+use orml_traits::location::{RelativeReserveProvider, Reserve};
+use sp_runtime::traits::Zero;
 use sp_std::{borrow::Borrow, vec::Vec};
-use sp_std::{
-	convert::{TryFrom, TryInto},
-	marker::PhantomData,
-};
+use sp_std::{convert::TryInto, marker::PhantomData};
 use xcm::latest::{
-	AssetId as xcmAssetId, Error as XcmError, Fungibility,
-	Junction::{AccountKey20, Parachain},
-	Junctions::*,
+	AssetId as xcmAssetId, Error as XcmError, Fungibility, Junction::AccountKey20, Junctions::*,
 	MultiAsset, MultiLocation, NetworkId,
 };
 use xcm_builder::TakeRevenue;
-use xcm_executor::traits::{FilterAssetLocation, MatchesFungible, MatchesFungibles, WeightTrader};
+use xcm_executor::traits::{MatchesFungibles, WeightTrader};
 
 /// Converter struct implementing `AssetIdConversion` converting a numeric asset ID
-/// (must be `TryFrom/TryInto<u128>`) into a MultiLocation Value and Viceversa through
+/// (must be `TryFrom/TryInto<u128>`) into a MultiLocation Value and vice versa through
 /// an intermediate generic type AssetType.
 /// The trait bounds enforce is that the AssetTypeGetter trait is also implemented for
 /// AssetIdInfoGetter
@@ -115,6 +111,8 @@ where
 }
 
 // We need to know how to charge for incoming assets
+// We assume AssetIdInfoGetter is implemented and is capable of getting how much units we should
+// charge for a given asset
 // This takes the first fungible asset, and takes whatever UnitPerSecondGetter establishes
 // UnitsToWeightRatio trait, which needs to be implemented by AssetIdInfoGetter
 pub struct FirstAssetTrader<
@@ -181,10 +179,10 @@ impl<
 					// In case the asset matches the one the trader already stored before, add
 					// to later refund
 
-					// Else we are always going to substract the weight if we can, but we latter do
+					// Else we are always going to subtract the weight if we can, but we latter do
 					// not refund it
 
-					// In short, we only refund on the asset the trader first succesfully was able
+					// In short, we only refund on the asset the trader first successfully was able
 					// to pay for an execution
 					let new_asset = match self.1.clone() {
 						Some((prev_id, prev_amount, units_per_second)) => {
@@ -211,6 +209,7 @@ impl<
 		}
 	}
 
+	// Refund weight. We will refund in whatever asset is stored in self.
 	fn refund_weight(&mut self, weight: Weight) -> Option<MultiAsset> {
 		if let Some((id, prev_amount, units_per_second)) = self.1.clone() {
 			let weight = weight.min(self.0);
@@ -245,44 +244,29 @@ impl<
 	}
 }
 
-pub trait Reserve {
-	/// Returns assets reserve location.
-	fn reserve(&self) -> Option<MultiLocation>;
-}
-
-// Takes the chain part of a MultiAsset
-impl Reserve for MultiAsset {
-	fn reserve(&self) -> Option<MultiLocation> {
-		if let xcmAssetId::Concrete(location) = self.id.clone() {
-			let first_interior = location.first_interior();
-			let parents = location.parent_count();
-			match (parents, first_interior.clone()) {
-				(0, Some(Parachain(id))) => Some(MultiLocation::new(0, X1(Parachain(id.clone())))),
-				(1, Some(Parachain(id))) => Some(MultiLocation::new(1, X1(Parachain(id.clone())))),
-				(1, _) => Some(MultiLocation::parent()),
-				_ => None,
+/// This struct offers uses RelativeReserveProvider to output relative views of multilocations
+/// However, additionally accepts a MultiLocation that aims at representing the chain part
+/// (parent: 1, Parachain(paraId)) of the absolute representation of our chain.
+/// If a token reserve matches against this absolute view, we return  Some(MultiLocation::here())
+/// This helps users by preventing errors when they try to transfer a token through xtokens
+/// to our chain (either inserting the relative or the absolute value).
+pub struct AbsoluteAndRelativeReserve<AbsoluteMultiLocation>(PhantomData<AbsoluteMultiLocation>);
+impl<AbsoluteMultiLocation> Reserve for AbsoluteAndRelativeReserve<AbsoluteMultiLocation>
+where
+	AbsoluteMultiLocation: Get<MultiLocation>,
+{
+	fn reserve(asset: &MultiAsset) -> Option<MultiLocation> {
+		RelativeReserveProvider::reserve(asset).map(|relative_reserve| {
+			if relative_reserve == AbsoluteMultiLocation::get() {
+				MultiLocation::here()
+			} else {
+				relative_reserve
 			}
-		} else {
-			None
-		}
+		})
 	}
 }
 
-/// A `FilterAssetLocation` implementation. Filters multi native assets whose
-/// reserve is same with `origin`.
-pub struct MultiNativeAsset;
-impl FilterAssetLocation for MultiNativeAsset {
-	fn filter_asset_location(asset: &MultiAsset, origin: &MultiLocation) -> bool {
-		if let Some(ref reserve) = asset.reserve() {
-			if reserve == origin {
-				return true;
-			}
-		}
-		false
-	}
-}
-
-// Defines the trait to obtain a generic AssetType from a generic AssetId and viceversa
+// Defines the trait to obtain a generic AssetType from a generic AssetId and vice versa
 pub trait AssetTypeGetter<AssetId, AssetType> {
 	// Get asset type from assetId
 	fn get_asset_type(asset_id: AssetId) -> Option<AssetType>;
@@ -357,24 +341,6 @@ impl<
 				target: "xcm",
 				"take revenue failed matching fungible"
 			),
-		}
-	}
-}
-
-// Multi IsConcrete Implementation. Allows us to route both pre and post 0.9.16 anchoring versions
-// of our native token to the same currency
-// The incoming MultiAsset is matched against a Vec of multilocations and returned Some
-// if matches
-pub struct MultiIsConcrete<T>(PhantomData<T>);
-impl<T: Get<Vec<MultiLocation>>, B: TryFrom<u128>> MatchesFungible<B> for MultiIsConcrete<T> {
-	fn matches_fungible(a: &MultiAsset) -> Option<B> {
-		match (&a.id, &a.fun) {
-			(xcmAssetId::Concrete(ref id), Fungibility::Fungible(ref amount))
-				if T::get().contains(id) =>
-			{
-				CheckedConversion::checked_from(*amount)
-			}
-			_ => None,
 		}
 	}
 }

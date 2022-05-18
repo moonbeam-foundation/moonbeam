@@ -17,12 +17,12 @@
 //! A pallet to put your runtime into a restricted maintenance or safe mode. This is useful when
 //! performing site maintenance, running data migrations, or protecting the chain during an attack.
 //!
-//! This introduces one storage read to fetch the base filter for each extrinsic. Hoever, it should
+//! This introduces one storage read to fetch the base filter for each extrinsic. However, it should
 //! be that the state cache eliminates this cost almost entirely. I wonder if that can or should be
 //! reflected in the weight calculation.
 //!
 //! Possible future improvements
-//! 1. This could be more configureable by letting the runtime developer specify a type (probably an
+//! 1. This could be more configurable by letting the runtime developer specify a type (probably an
 //! enum) that can be converted into a filter. Similar end result (but different implementation) as
 //! Acala has it
 //! github.com/AcalaNetwork/Acala/blob/pause-transaction/modules/transaction-pause/src/lib.rs#L71
@@ -56,20 +56,35 @@ pub use pallet::*;
 pub mod pallet {
 	#[cfg(feature = "xcm-support")]
 	use cumulus_primitives_core::{
-		relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler, ParaId, XcmpMessageHandler,
+		relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler,
 	};
-	#[cfg(feature = "xcm-support")]
-	use sp_std::vec::Vec;
-
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{
 		Contains, EnsureOrigin, OffchainWorker, OnFinalize, OnIdle, OnInitialize, OnRuntimeUpgrade,
 	};
 	use frame_system::pallet_prelude::*;
+	use sp_runtime::DispatchResult;
+	#[cfg(feature = "xcm-support")]
+	use sp_std::vec::Vec;
 	/// Pallet for migrations
 	#[pallet::pallet]
 	#[pallet::without_storage_info]
 	pub struct Pallet<T>(PhantomData<T>);
+
+	/// Pause and resume execution of XCM
+	pub trait PauseXcmExecution {
+		fn suspend_xcm_execution() -> DispatchResult;
+		fn resume_xcm_execution() -> DispatchResult;
+	}
+
+	impl PauseXcmExecution for () {
+		fn suspend_xcm_execution() -> DispatchResult {
+			Ok(())
+		}
+		fn resume_xcm_execution() -> DispatchResult {
+			Ok(())
+		}
+	}
 
 	/// Configuration trait of this pallet.
 	#[pallet::config]
@@ -88,18 +103,17 @@ pub mod pallet {
 		/// able to return to normal mode. For example, if your MaintenanceOrigin is a council, make
 		/// sure that your councilors can still cast votes.
 		type MaintenanceOrigin: EnsureOrigin<Self::Origin>;
+		/// Handler to suspend and resume XCM execution
+		#[cfg(feature = "xcm-support")]
+		type XcmExecutionManager: PauseXcmExecution;
 		/// The DMP handler to be used in normal operating mode
+		/// TODO: remove once https://github.com/paritytech/polkadot/pull/5035 is merged
 		#[cfg(feature = "xcm-support")]
 		type NormalDmpHandler: DmpMessageHandler;
 		/// The DMP handler to be used in maintenance mode
+		/// TODO: remove once https://github.com/paritytech/polkadot/pull/5035 is merged
 		#[cfg(feature = "xcm-support")]
 		type MaintenanceDmpHandler: DmpMessageHandler;
-		/// The XCMP handler to be used in normal operating mode
-		#[cfg(feature = "xcm-support")]
-		type NormalXcmpHandler: XcmpMessageHandler;
-		/// The XCMP handler to be used in maintenance mode
-		#[cfg(feature = "xcm-support")]
-		type MaintenanceXcmpHandler: XcmpMessageHandler;
 		/// The executive hooks that will be used in normal operating mode
 		/// Important: Use AllPalletsReversedWithSystemFirst here if you dont want to modify the
 		/// hooks behaviour
@@ -111,7 +125,7 @@ pub mod pallet {
 		/// The executive hooks that will be used in maintenance mode
 		/// Important: Use AllPalletsReversedWithSystemFirst here if you dont want to modify the
 		/// hooks behaviour
-		type MaitenanceExecutiveHooks: OnRuntimeUpgrade
+		type MaintenanceExecutiveHooks: OnRuntimeUpgrade
 			+ OnInitialize<Self::BlockNumber>
 			+ OnIdle<Self::BlockNumber>
 			+ OnFinalize<Self::BlockNumber>
@@ -125,6 +139,10 @@ pub mod pallet {
 		EnteredMaintenanceMode,
 		/// The chain returned to its normal operating state
 		NormalOperationResumed,
+		/// The call to suspend on_idle XCM execution failed with inner error
+		FailedToSuspendIdleXcmExecution { error: DispatchError },
+		/// The call to resume on_idle XCM execution failed with inner error
+		FailedToResumeIdleXcmExecution { error: DispatchError },
 	}
 
 	/// An error that can occur while executing this pallet's extrinsics.
@@ -147,8 +165,8 @@ pub mod pallet {
 		///
 		/// Weight cost is:
 		/// * One DB read to ensure we're not already in maintenance mode
-		/// * Two DB writes - 1 for the mode and 1 for the event
-		#[pallet::weight(T::DbWeight::get().read + 2 * T::DbWeight::get().write)]
+		/// * Three DB writes - 1 for the mode, 1 for suspending xcm execution, 1 for the event
+		#[pallet::weight(T::DbWeight::get().read + 3 * T::DbWeight::get().write)]
 		pub fn enter_maintenance_mode(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			// Ensure Origin
 			T::MaintenanceOrigin::ensure_origin(origin)?;
@@ -163,6 +181,10 @@ pub mod pallet {
 
 			// Write to storage
 			MaintenanceMode::<T>::put(true);
+			// Suspend XCM execution
+			if let Err(error) = T::XcmExecutionManager::suspend_xcm_execution() {
+				<Pallet<T>>::deposit_event(Event::FailedToSuspendIdleXcmExecution { error });
+			}
 
 			// Event
 			<Pallet<T>>::deposit_event(Event::EnteredMaintenanceMode);
@@ -174,8 +196,8 @@ pub mod pallet {
 		///
 		/// Weight cost is:
 		/// * One DB read to ensure we're in maintenance mode
-		/// * Two DB writes - 1 for the mode and 1 for the event
-		#[pallet::weight(T::DbWeight::get().read + 2 * T::DbWeight::get().write)]
+		/// * Three DB writes - 1 for the mode, 1 for resuming xcm execution, 1 for the event
+		#[pallet::weight(T::DbWeight::get().read + 3 * T::DbWeight::get().write)]
 		pub fn resume_normal_operation(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			// Ensure Origin
 			T::MaintenanceOrigin::ensure_origin(origin)?;
@@ -190,6 +212,10 @@ pub mod pallet {
 
 			// Write to storage
 			MaintenanceMode::<T>::put(false);
+			// Resume XCM execution
+			if let Err(error) = T::XcmExecutionManager::resume_xcm_execution() {
+				<Pallet<T>>::deposit_event(Event::FailedToResumeIdleXcmExecution { error });
+			}
 
 			// Event
 			<Pallet<T>>::deposit_event(Event::NormalOperationResumed);
@@ -234,20 +260,6 @@ pub mod pallet {
 				T::MaintenanceDmpHandler::handle_dmp_messages(iter, limit)
 			} else {
 				T::NormalDmpHandler::handle_dmp_messages(iter, limit)
-			}
-		}
-	}
-
-	#[cfg(feature = "xcm-support")]
-	impl<T: Config> XcmpMessageHandler for Pallet<T> {
-		fn handle_xcmp_messages<'a, I: Iterator<Item = (ParaId, RelayBlockNumber, &'a [u8])>>(
-			iter: I,
-			limit: Weight,
-		) -> Weight {
-			if MaintenanceMode::<T>::get() {
-				T::MaintenanceXcmpHandler::handle_xcmp_messages(iter, limit)
-			} else {
-				T::NormalXcmpHandler::handle_xcmp_messages(iter, limit)
 			}
 		}
 	}

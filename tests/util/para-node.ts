@@ -94,9 +94,9 @@ export interface NodePorts {
   wsPort: number;
 }
 
-const RUNTIME_DIRECTORY = "runtimes";
-const BINARY_DIRECTORY = "binaries";
-const SPECS_DIRECTORY = "specs";
+const RUNTIME_DIRECTORY = process.env.RUNTIME_DIRECTORY || "runtimes";
+const BINARY_DIRECTORY = process.env.BINARY_DIRECTORY || "binaries";
+const SPECS_DIRECTORY = process.env.SPECS_DIRECTORY || "specs";
 
 // Downloads the runtime and return the filepath
 export async function getRuntimeWasm(
@@ -104,6 +104,10 @@ export async function getRuntimeWasm(
   runtimeTag: string
 ): Promise<string> {
   const runtimePath = path.join(RUNTIME_DIRECTORY, `${runtimeName}-${runtimeTag}.wasm`);
+
+  if (!fs.existsSync(RUNTIME_DIRECTORY)) {
+    fs.mkdirSync(RUNTIME_DIRECTORY, { recursive: true });
+  }
 
   if (runtimeTag == "local") {
     const builtRuntimePath = path.join(
@@ -176,7 +180,7 @@ export async function getMoonbeamDockerBinary(binaryTag: string): Promise<string
 
     console.log(`     Missing ${binaryPath} locally, downloading it...`);
     child_process.execSync(`mkdir -p ${path.dirname(binaryPath)} && \
-        docker create --name moonbeam-tmp ${dockerImage} && \
+        docker create --pull always --name moonbeam-tmp ${dockerImage} && \
         docker cp moonbeam-tmp:/moonbeam/moonbeam ${binaryPath} && \
         docker rm moonbeam-tmp`);
     console.log(`${binaryPath} downloaded !`);
@@ -194,7 +198,8 @@ export async function getRawSpecsFromTag(
 
     child_process.execSync(
       `mkdir -p ${path.dirname(specPath)} && ` +
-        `${binaryPath} build-spec --chain moonbase-local --raw > ${specPath}`
+        `${binaryPath} build-spec --chain moonbase-local ` +
+        `--raw --disable-default-bootnode > ${specPath}`
     );
   }
   return specPath;
@@ -208,7 +213,8 @@ export async function generateRawSpecs(
   if (!fs.existsSync(specPath)) {
     child_process.execSync(
       `mkdir -p ${path.dirname(specPath)} && ` +
-        `${binaryPath} build-spec --chain moonbase-local --raw > ${specPath}`
+        `${binaryPath} build-spec --chain moonbase-local ` +
+        `--raw --disable-default-bootnode > ${specPath}`
     );
   }
   return specPath;
@@ -302,12 +308,24 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
         },
       },
     },
+    "v0.9.18": {
+      runtime: {
+        runtime_genesis_config: {
+          configuration: {
+            config: {
+              validation_upgrade_cooldown: 30,
+            },
+          },
+        },
+      },
+    },
     local: {
       runtime: {
         runtime_genesis_config: {
           configuration: {
             config: {
               validation_upgrade_delay: 30,
+              validation_upgrade_cooldown: 30,
             },
           },
         },
@@ -326,6 +344,7 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
           port: ports[i].p2pPort,
           rpcPort: ports[i].rpcPort,
           wsPort: ports[i].wsPort,
+          flags: ["--wasm-execution=interpreted-i-know-what-i-do"],
         };
       }),
       genesis,
@@ -344,11 +363,13 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
               "--log=info,rpc=info,evm=trace,ethereum=trace,author=trace",
               "--unsafe-rpc-external",
               "--execution=wasm",
+              "--wasm-execution=interpreted-i-know-what-i-do",
               "--no-prometheus",
               "--no-telemetry",
               "--rpc-cors=all",
               "--",
               "--execution=wasm",
+              "--wasm-execution=interpreted-i-know-what-i-do",
               "--no-mdns",
               "--no-prometheus",
               "--no-telemetry",
@@ -367,11 +388,13 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
               "--log=info,rpc=info,evm=trace,ethereum=trace,author=trace",
               "--unsafe-rpc-external",
               "--execution=wasm",
+              "--wasm-execution=interpreted-i-know-what-i-do",
               "--no-prometheus",
               "--no-telemetry",
               "--rpc-cors=all",
               "--",
               "--execution=wasm",
+              "--wasm-execution=interpreted-i-know-what-i-do",
               "--no-mdns",
               "--no-prometheus",
               "--no-telemetry",

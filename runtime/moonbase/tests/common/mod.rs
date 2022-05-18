@@ -17,20 +17,20 @@
 #![allow(dead_code)]
 
 use cumulus_primitives_parachain_inherent::ParachainInherentData;
+use fp_evm::GenesisAccount;
 use frame_support::{
 	assert_ok,
 	dispatch::Dispatchable,
 	traits::{GenesisBuild, OnFinalize, OnInitialize},
 };
+use moonbase_runtime::{asset_config::AssetRegistrarMetadata, xcm_config::AssetType};
 pub use moonbase_runtime::{
 	currency::{GIGAWEI, SUPPLY_FACTOR, UNIT, WEI},
 	AccountId, AssetId, AssetManager, Assets, AuthorInherent, Balance, Balances, Call,
-	CrowdloanRewards, Ethereum, Event, Executive, FixedGasPrice, InflationInfo, ParachainStaking,
-	Range, Runtime, System, TransactionConverter, UncheckedExtrinsic, WEEKS,
+	CrowdloanRewards, Ethereum, Event, Executive, FixedGasPrice, InflationInfo, LocalAssets,
+	ParachainStaking, Range, Runtime, System, TransactionConverter, UncheckedExtrinsic, WEEKS,
 };
-use moonbase_runtime::{xcm_config::AssetType, AssetRegistrarMetadata};
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
-use pallet_evm::GenesisAccount;
 use sp_core::{Encode, H160};
 use sp_runtime::{Digest, DigestItem, Perbill};
 
@@ -110,8 +110,8 @@ pub struct XcmAssetInitialization {
 pub struct ExtBuilder {
 	// endowed accounts with balances
 	balances: Vec<(AccountId, Balance)>,
-	// [asset, Vec<Account, Balance>]
-	assets: Vec<(AssetId, Vec<(AccountId, Balance)>)>,
+	// [asset, Vec<Account, Balance>, owner]
+	local_assets: Vec<(AssetId, Vec<(AccountId, Balance)>, AccountId)>,
 	// [collator, amount]
 	collators: Vec<(AccountId, Balance)>,
 	// [delegator, collator, nomination_amount]
@@ -136,7 +136,7 @@ impl Default for ExtBuilder {
 		ExtBuilder {
 			balances: vec![],
 			delegations: vec![],
-			assets: vec![],
+			local_assets: vec![],
 			collators: vec![],
 			inflation: InflationInfo {
 				expect: Range {
@@ -188,8 +188,11 @@ impl ExtBuilder {
 		self
 	}
 
-	pub fn with_assets(mut self, assets: Vec<(AssetId, Vec<(AccountId, Balance)>)>) -> Self {
-		self.assets = assets;
+	pub fn with_local_assets(
+		mut self,
+		local_assets: Vec<(AssetId, Vec<(AccountId, Balance)>, AccountId)>,
+	) -> Self {
+		self.local_assets = local_assets;
 		self
 	}
 
@@ -288,21 +291,21 @@ impl ExtBuilder {
 
 		let mut ext = sp_io::TestExternalities::new(t);
 
-		let assets = self.assets.clone();
+		let local_assets = self.local_assets.clone();
 		let xcm_assets = self.xcm_assets.clone();
 
 		ext.execute_with(|| {
-			// If any assets specified, we create them here
-			for (asset_id, balances) in assets.clone() {
-				Assets::force_create(root_origin(), asset_id, ALICE.into(), true, 1).unwrap();
+			// If any local assets specified, we create them here
+			for (asset_id, balances, owner) in local_assets.clone() {
+				LocalAssets::force_create(root_origin(), asset_id, owner, true, 1).unwrap();
 				for (account, balance) in balances {
-					Assets::mint(origin_of(ALICE.into()), asset_id, account, balance).unwrap();
+					LocalAssets::mint(origin_of(owner.into()), asset_id, account, balance).unwrap();
 				}
 			}
 			// If any xcm assets specified, we register them here
 			for xcm_asset_initialization in xcm_assets {
 				let asset_id: AssetId = xcm_asset_initialization.asset_type.clone().into();
-				AssetManager::register_asset(
+				AssetManager::register_foreign_asset(
 					root_origin(),
 					xcm_asset_initialization.asset_type,
 					xcm_asset_initialization.metadata,

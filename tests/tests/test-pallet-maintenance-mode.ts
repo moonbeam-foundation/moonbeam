@@ -11,18 +11,16 @@ import {
   GENESIS_ACCOUNT_PRIVATE_KEY,
   GLMR,
   relayChainAddress,
+  TEST_ACCOUNT,
 } from "../util/constants";
 import { execFromAllMembersOfTechCommittee } from "../util/governance";
 
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
-import { createBlockWithExtrinsic, createBlockWithExtrinsicParachain } from "../util/substrate-rpc";
+import { createBlockWithExtrinsic } from "../util/substrate-rpc";
 import { createTransfer } from "../util/transactions";
 import { VESTING_PERIOD } from "./test-crowdloan";
 import { mockAssetBalance } from "./test-precompile/test-precompile-assets-erc20";
 import { customWeb3Request } from "../util/providers";
-import { BALANCES_ADDRESS } from "./test-precompile/test-precompile-xtokens";
-
-const TEST_ACCOUNT = "0x1111111111111111111111111111111111111111";
 
 export const expectError = (fun): Promise<string> => {
   return new Promise(async (resolve) => {
@@ -282,7 +280,7 @@ describeDevMoonbeam(
           context.polkadotApi.tx.crowdloanRewards.claim()
         );
       });
-      expect(error).to.eq("Error: 1010: Invalid Transaction: Transaction call is not expected");
+      expect(error).to.eq("RpcError: 1010: Invalid Transaction: Transaction call is not expected");
     });
   }
 );
@@ -327,7 +325,7 @@ describeDevMoonbeam(
           context.polkadotApi.tx.assets.transfer(assetId, BALTATHAR, 1000)
         );
       });
-      expect(error).to.eq("Error: 1010: Invalid Transaction: Transaction call is not expected");
+      expect(error).to.eq("RpcError: 1010: Invalid Transaction: Transaction call is not expected");
     });
   }
 );
@@ -372,7 +370,7 @@ describeDevMoonbeam(
           )
         );
       });
-      expect(error).to.eq("Error: 1010: Invalid Transaction: Transaction call is not expected");
+      expect(error).to.eq("RpcError: 1010: Invalid Transaction: Transaction call is not expected");
     });
   }
 );
@@ -433,7 +431,7 @@ describeDevMoonbeam(
           )
         );
       });
-      expect(error).to.eq("Error: 1010: Invalid Transaction: Transaction call is not expected");
+      expect(error).to.eq("RpcError: 1010: Invalid Transaction: Transaction call is not expected");
     });
   }
 );
@@ -455,12 +453,12 @@ describeDevMoonbeam(
       const keyring = new Keyring({ type: "ethereum" });
       sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
 
-      // registerAsset
+      // registerForeignAsset
       const { events: eventsRegister } = await createBlockWithExtrinsic(
         context,
         sudoAccount,
         context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.assetManager.registerAsset(
+          context.polkadotApi.tx.assetManager.registerForeignAsset(
             sourceLocation,
             assetMetadata,
             new BN(1),
@@ -549,12 +547,12 @@ describeDevMoonbeam(
       const keyring = new Keyring({ type: "ethereum" });
       sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
 
-      // registerAsset
+      // registerForeignAsset
       const { events: eventsRegister } = await createBlockWithExtrinsic(
         context,
         sudoAccount,
         context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.assetManager.registerAsset(
+          context.polkadotApi.tx.assetManager.registerForeignAsset(
             sourceLocation,
             assetMetadata,
             new BN(1),
