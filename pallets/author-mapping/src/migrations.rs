@@ -14,16 +14,85 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::{BalanceOf, Config, MappingWithDeposit, RegistrationInfo};
+use crate::{BalanceOf, Config, Event, MappingWithDeposit, NimbusLookup, Pallet, RegistrationInfo};
 use frame_support::{
 	pallet_prelude::PhantomData,
-	traits::{Get, OnRuntimeUpgrade},
+	traits::{Get, OnRuntimeUpgrade, ReservableCurrency},
 	weights::Weight,
 };
 use nimbus_primitives::NimbusId;
 use parity_scale_codec::{Decode, Encode};
 #[cfg(feature = "try-runtime")]
 use scale_info::prelude::format;
+
+/// Migrates MappingWithDeposit map value from RegistrationInfo to RegistrationInformation,
+/// thereby adding a keys: T::Keys field to the value to support VRF keys that can be looked up
+/// via NimbusId.
+pub struct AddAccountIdToNimbusLookup<T>(PhantomData<T>);
+impl<T: Config> OnRuntimeUpgrade for AddAccountIdToNimbusLookup<T> {
+	fn on_runtime_upgrade() -> Weight {
+		log::info!(target: "AddAccountIdToNimbusLookup", "running migration");
+
+		let mut read_count = 0u64;
+		let mut write_count = 0u64;
+		<MappingWithDeposit<T>>::translate(|nimbus_id, registration_info: RegistrationInfo<T>| {
+			read_count += 2u64;
+			if NimbusLookup::<T>::get(&registration_info.account).is_none() {
+				<NimbusLookup<T>>::insert(&registration_info.account, nimbus_id);
+				write_count += 2u64;
+				Some(registration_info)
+			} else {
+				// revoke the additional association and return the funds
+				T::DepositCurrency::unreserve(
+					&registration_info.account,
+					registration_info.deposit,
+				);
+
+				<Pallet<T>>::deposit_event(Event::AuthorDeRegistered {
+					author_id: nimbus_id,
+					account_id: registration_info.account,
+					keys: registration_info.keys,
+				});
+				write_count += 1u64;
+				None
+			}
+		});
+		// return weight
+		read_count.saturating_mul(T::DbWeight::get().read)
+			+ write_count.saturating_mul(T::DbWeight::get().write)
+	}
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade() -> Result<(), &'static str> {
+		use frame_support::traits::OnRuntimeUpgradeHelpersExt;
+		let mut nimbus_set: Vec<NimbusId> = Vec::new();
+		for (nimbus_id, info) in <MappingWithDeposit<T>>::iter() {
+			if !nimbus_set.contains(&nimbus_id) {
+				Self::set_temp_storage(
+					info.account,
+					&format!("MappingWithDeposit{:?}Account", nimbus_id)[..],
+				);
+				nimbus_set.push(nimbus_id);
+			}
+		}
+		Ok(())
+	}
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade() -> Result<(), &'static str> {
+		use frame_support::traits::OnRuntimeUpgradeHelpersExt;
+		for (nimbus_id, _) in <MappingWithDeposit<T>>::iter() {
+			let old_account: T::AccountId =
+				Self::get_temp_storage(&format!("MappingWithDeposit{:?}Account", nimbus_id)[..])
+					.expect("qed");
+			let maybe_account_of_nimbus = <NimbusLookup<T>>::get(old_account);
+			assert_eq!(
+				Some(nimbus_id),
+				maybe_account_of_nimbus,
+				"New NimbusLookup dne expected NimbusID"
+			);
+		}
+		Ok(())
+	}
+}
 
 /// Migrates MappingWithDeposit map value from RegistrationInfo to RegistrationInformation,
 /// thereby adding a keys: T::Keys field to the value to support VRF keys that can be looked up

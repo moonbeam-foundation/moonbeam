@@ -206,6 +206,7 @@ pub mod pallet {
 			);
 
 			MappingWithDeposit::<T>::remove(&author_id);
+			NimbusLookup::<T>::remove(&account_id);
 
 			T::DepositCurrency::unreserve(&account_id, stored_info.deposit);
 
@@ -252,7 +253,7 @@ pub mod pallet {
 		pub fn set_keys(origin: OriginFor<T>, keys: (NimbusId, T::Keys)) -> DispatchResult {
 			let account_id = ensure_signed(origin)?;
 			let old_author_id =
-				NimbusLookup::<T>::get(&account_id).ok_or(Error::<T>::OldAuthorIdNotFound)?;
+				Self::nimbus_id_of(&account_id).ok_or(Error::<T>::OldAuthorIdNotFound)?;
 			let stored_info = MappingWithDeposit::<T>::try_get(&old_author_id)
 				.map_err(|_| Error::<T>::AssociationNotFound)?;
 
