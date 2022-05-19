@@ -68,10 +68,7 @@ pub mod pallet {
 	use frame_support::{pallet_prelude::*, weights::constants::WEIGHT_PER_SECOND};
 	use frame_system::{ensure_signed, pallet_prelude::*};
 	use orml_traits::location::{Parse, Reserve};
-	use sp_runtime::{
-		traits::{AtLeast32BitUnsigned, Convert},
-		Perbill,
-	};
+	use sp_runtime::traits::{AtLeast32BitUnsigned, Convert};
 	use sp_std::borrow::ToOwned;
 	use sp_std::boxed::Box;
 	use sp_std::convert::TryFrom;
@@ -746,19 +743,15 @@ pub mod pallet {
 
 		/// Returns the fee for a given set of parameters
 		pub fn calculate_fee_per_second(weight: Weight, fee_per_second: u128) -> u128 {
-			// We use perbill to be more precise over floating point mults
-			// floating point multiplications are rounded up/down depending on the fractional part
-			// for integer multiplication and then division, we would always round down
-			let fee_per_bill = Perbill::from_rational(
-				fee_per_second % (WEIGHT_PER_SECOND as u128),
-				WEIGHT_PER_SECOND as u128,
-			);
-			let weight_fee_frac = fee_per_bill * (weight as u128);
+			// We use always round up in case of decimal computetion
+			let weight_per_second_u128 = WEIGHT_PER_SECOND as u128;
 
-			let coeff_integer = fee_per_second / WEIGHT_PER_SECOND as u128;
-			let weight_fee_integer = coeff_integer.saturating_mul(weight as u128);
+			// we add WEIGHT_PER_SECOND -1 to make sure that if there is a decimal part,
+			// we round up the result
+			let fee_mul_rounded_up = (fee_per_second.saturating_mul(weight as u128))
+				.saturating_add(weight_per_second_u128 - 1);
 
-			return weight_fee_frac.saturating_add(weight_fee_integer);
+			fee_mul_rounded_up / weight_per_second_u128
 		}
 	}
 }
