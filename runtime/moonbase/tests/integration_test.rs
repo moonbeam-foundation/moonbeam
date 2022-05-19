@@ -2794,22 +2794,45 @@ fn base_fee_should_default_to_associate_type_value() {
 }
 
 #[test]
-fn fixed_gas_price_is_sane() {
-	use pallet_transaction_payment::FeeDetails;
+fn substrate_based_fees_are_known() {
+	use pallet_transaction_payment::{FeeDetails, InclusionFee};
 	use sp_runtime::testing::TestXt;
 
-	let remark = frame_system::Call::<Runtime>::remark { remark: vec![] };
-	let signed_xt = TestXt::<_, ()>::new(remark, Some((1, ())));
+	let generate_xt = |weight: u128| {
+		let remark = frame_system::Call::<Runtime>::remark { remark: vec![1; weight as usize] };
+		let signed_xt = TestXt::<_, ()>::new(remark, Some((0, ())));
+		signed_xt
+	};
 
 	ExtBuilder::default().build().execute_with(|| {
 
-		let fee_details = moonbase_runtime::TransactionPayment::query_fee_details(signed_xt, 1000);
+		let query_fees = |weight: u128, len: u32| {
+			let signed_xt = generate_xt(weight);
+
+			// TODO: this returned weight doesn't seem to follow the weight fn declared for
+			// remark...
+			//
+			// NOTE: another alternative would be to call pallet_transaction_payment's
+			// compute_actual_fee_details() which gives better control over inputs
+			//
+			// use frame_support::dispatch::GetDispatchInfo;
+			// let w = signed_xt.get_dispatch_info().weight;
+			// assert_eq!(w as u128, weight);
+
+			moonbase_runtime::TransactionPayment::query_fee_details(signed_xt, len)
+		};
+
+		let fee_details = query_fees(1, 1000);
 
 		assert_eq!(
 			fee_details,
 			FeeDetails {
-				inclusion_fee: None,
-				tip: 0u32.into(),
+				inclusion_fee: Some(InclusionFee {
+					base_fee: 125000000,
+					len_fee: 10000000000000000,
+					adjusted_weight_fee: 12, // TODO: why 12 (see above)?
+				}),
+				tip: 0,
 			}
 		);
 	});
