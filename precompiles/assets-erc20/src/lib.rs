@@ -18,7 +18,7 @@
 #![cfg_attr(test, feature(assert_matches))]
 
 use core::fmt::Display;
-use fp_evm::{Context, PrecompileHandle, PrecompileOutput};
+use fp_evm::{PrecompileHandle, PrecompileOutput};
 use frame_support::traits::fungibles::approvals::Inspect as ApprovalInspect;
 use frame_support::traits::fungibles::metadata::Inspect as MetadataInspect;
 use frame_support::traits::fungibles::Inspect;
@@ -29,9 +29,8 @@ use frame_support::{
 };
 use pallet_evm::{AddressMapping, PrecompileSet};
 use precompile_utils::{
-	check_function_modifier, keccak256, revert, succeed, Address, Bytes, EvmData, EvmDataReader,
-	EvmDataWriter, EvmResult, FunctionModifier, LogExt, LogsBuilder, PrecompileHandleExt,
-	RuntimeHelper,
+	keccak256, revert, succeed, Address, Bytes, EvmData, EvmDataWriter, EvmResult,
+	FunctionModifier, LogExt, LogsBuilder, PrecompileHandleExt, RuntimeHelper,
 };
 use sp_runtime::traits::Bounded;
 use sp_std::vec::Vec;
@@ -140,76 +139,58 @@ where
 	AssetIdOf<Runtime, Instance>: Display,
 {
 	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<EvmResult<PrecompileOutput>> {
-		let address = handle.code_address();
-		let input = handle.input().to_vec();
-
-		let context = &handle.context().clone();
-
-		if let Some((_, asset_id)) =
-			Runtime::account_to_asset_id(Runtime::AddressMapping::into_account_id(address))
-		{
+		if let Some((_, asset_id)) = Runtime::account_to_asset_id(
+			Runtime::AddressMapping::into_account_id(handle.code_address()),
+		) {
 			// We check maybe_total_supply. This function returns Some if the asset exists,
 			// which is all we care about at this point
 			if pallet_assets::Pallet::<Runtime, Instance>::maybe_total_supply(asset_id).is_some() {
 				let result = {
-					let (mut input, selector) = match EvmDataReader::new_with_selector(&input) {
-						Ok((input, selector)) => (input, selector),
+					let selector = match handle.read_selector() {
+						Ok(selector) => selector,
 						Err(e) => return Some(Err(e)),
 					};
-					let input = &mut input;
 
-					if let Err(err) = check_function_modifier(
-						context,
-						handle.is_static(),
-						match selector {
-							Action::Approve | Action::Transfer | Action::TransferFrom => {
-								FunctionModifier::NonPayable
-							}
-							_ => FunctionModifier::View,
-						},
-					) {
+					if let Err(err) = handle.check_function_modifier(match selector {
+						Action::Approve | Action::Transfer | Action::TransferFrom => {
+							FunctionModifier::NonPayable
+						}
+						_ => FunctionModifier::View,
+					}) {
 						return Some(Err(err));
 					}
 
 					match selector {
 						// Local and Foreign common
-						Action::TotalSupply => Self::total_supply(asset_id, handle, input),
-						Action::BalanceOf => Self::balance_of(asset_id, handle, input),
-						Action::Allowance => Self::allowance(asset_id, handle, input),
-						Action::Approve => Self::approve(asset_id, handle, input, context),
-						Action::Transfer => Self::transfer(asset_id, handle, input, context),
-						Action::TransferFrom => {
-							Self::transfer_from(asset_id, handle, input, context)
-						}
+						Action::TotalSupply => Self::total_supply(asset_id, handle),
+						Action::BalanceOf => Self::balance_of(asset_id, handle),
+						Action::Allowance => Self::allowance(asset_id, handle),
+						Action::Approve => Self::approve(asset_id, handle),
+						Action::Transfer => Self::transfer(asset_id, handle),
+						Action::TransferFrom => Self::transfer_from(asset_id, handle),
 						Action::Name => Self::name(asset_id, handle),
 						Action::Symbol => Self::symbol(asset_id, handle),
 						Action::Decimals => Self::decimals(asset_id, handle),
 						// Only local
-						Action::Mint => Self::mint(asset_id, handle, input, context),
-						Action::Burn => Self::burn(asset_id, handle, input, context),
-						Action::Freeze => Self::freeze(asset_id, handle, input, context),
-						Action::Thaw => Self::thaw(asset_id, handle, input, context),
-						Action::FreezeAsset => Self::freeze_asset(asset_id, handle, context),
-						Action::ThawAsset => Self::thaw_asset(asset_id, handle, context),
-						Action::TransferOwnership => {
-							Self::transfer_ownership(asset_id, handle, input, context)
-						}
-						Action::SetTeam => Self::set_team(asset_id, handle, input, context),
-						Action::SetMetadata => Self::set_metadata(asset_id, handle, input, context),
-						Action::ClearMetadata => Self::clear_metadata(asset_id, handle, context),
+						Action::Mint => Self::mint(asset_id, handle),
+						Action::Burn => Self::burn(asset_id, handle),
+						Action::Freeze => Self::freeze(asset_id, handle),
+						Action::Thaw => Self::thaw(asset_id, handle),
+						Action::FreezeAsset => Self::freeze_asset(asset_id, handle),
+						Action::ThawAsset => Self::thaw_asset(asset_id, handle),
+						Action::TransferOwnership => Self::transfer_ownership(asset_id, handle),
+						Action::SetTeam => Self::set_team(asset_id, handle),
+						Action::SetMetadata => Self::set_metadata(asset_id, handle),
+						Action::ClearMetadata => Self::clear_metadata(asset_id, handle),
 						Action::Eip2612Permit => {
-							eip2612::Eip2612::<Runtime, IsLocal, Instance>::permit(
-								address, asset_id, handle, input,
-							)
+							eip2612::Eip2612::<Runtime, IsLocal, Instance>::permit(asset_id, handle)
 						}
 						Action::Eip2612Nonces => {
-							eip2612::Eip2612::<Runtime, IsLocal, Instance>::nonces(
-								address, handle, input,
-							)
+							eip2612::Eip2612::<Runtime, IsLocal, Instance>::nonces(asset_id, handle)
 						}
 						Action::Eip2612DomainSeparator => {
 							eip2612::Eip2612::<Runtime, IsLocal, Instance>::domain_separator(
-								address, asset_id, handle,
+								asset_id, handle,
 							)
 						}
 					}
@@ -259,11 +240,11 @@ where
 	fn total_supply(
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
 	) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		// Parse input.
+		let input = handle.read_input()?;
 		input.expect_arguments(0)?;
 
 		// Fetch info.
@@ -277,11 +258,11 @@ where
 	fn balance_of(
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
 	) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		// Read input.
+		let mut input = handle.read_input()?;
 		input.expect_arguments(1)?;
 
 		let owner: H160 = input.read::<Address>()?.into();
@@ -299,11 +280,11 @@ where
 	fn allowance(
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
 	) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		// Read input.
+		let mut input = handle.read_input()?;
 		input.expect_arguments(2)?;
 
 		let owner: H160 = input.read::<Address>()?.into();
@@ -325,23 +306,22 @@ where
 	fn approve(
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
 		handle.record_log_costs_manual(3, 32)?;
 
 		// Parse input.
+		let mut input = handle.read_input()?;
 		input.expect_arguments(2)?;
 
 		let spender: H160 = input.read::<Address>()?.into();
 		let amount: U256 = input.read()?;
 
-		Self::approve_inner(asset_id, handle, context.caller, spender, amount)?;
+		Self::approve_inner(asset_id, handle, handle.context().caller, spender, amount)?;
 
-		LogsBuilder::new(context.address)
+		LogsBuilder::new(handle.context().address)
 			.log3(
 				SELECTOR_LOG_APPROVAL,
-				context.caller,
+				handle.context().caller,
 				spender,
 				EvmDataWriter::new().write(amount).build(),
 			)
@@ -395,12 +375,11 @@ where
 	fn transfer(
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
 		handle.record_log_costs_manual(3, 32)?;
 
 		// Parse input.
+		let mut input = handle.read_input()?;
 		input.expect_arguments(2)?;
 
 		let to: H160 = input.read::<Address>()?.into();
@@ -408,7 +387,7 @@ where
 
 		// Build call with origin.
 		{
-			let origin = Runtime::AddressMapping::into_account_id(context.caller);
+			let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 			let to = Runtime::AddressMapping::into_account_id(to);
 
 			// Dispatch call (if enough gas).
@@ -423,10 +402,10 @@ where
 			)?;
 		}
 
-		LogsBuilder::new(context.address)
+		LogsBuilder::new(handle.context().address)
 			.log3(
 				SELECTOR_LOG_TRANSFER,
-				context.caller,
+				handle.context().caller,
 				to,
 				EvmDataWriter::new().write(amount).build(),
 			)
@@ -439,12 +418,11 @@ where
 	fn transfer_from(
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
 		handle.record_log_costs_manual(3, 32)?;
 
 		// Parse input.
+		let mut input = handle.read_input()?;
 		input.expect_arguments(3)?;
 		let from: H160 = input.read::<Address>()?.into();
 		let to: H160 = input.read::<Address>()?.into();
@@ -452,7 +430,7 @@ where
 
 		{
 			let caller: Runtime::AccountId =
-				Runtime::AddressMapping::into_account_id(context.caller);
+				Runtime::AddressMapping::into_account_id(handle.context().caller);
 			let from: Runtime::AccountId = Runtime::AddressMapping::into_account_id(from.clone());
 			let to: Runtime::AccountId = Runtime::AddressMapping::into_account_id(to);
 
@@ -483,7 +461,7 @@ where
 			}
 		}
 
-		LogsBuilder::new(context.address)
+		LogsBuilder::new(handle.context().address)
 			.log3(
 				SELECTOR_LOG_TRANSFER,
 				from,
@@ -552,8 +530,6 @@ where
 	fn mint(
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
 		if !IsLocal::get() {
 			return Err(revert("unknown selector"));
@@ -562,6 +538,7 @@ where
 		handle.record_log_costs_manual(3, 32)?;
 
 		// Parse input.
+		let mut input = handle.read_input()?;
 		input.expect_arguments(2)?;
 
 		let to: H160 = input.read::<Address>()?.into();
@@ -569,7 +546,7 @@ where
 
 		// Build call with origin.
 		{
-			let origin = Runtime::AddressMapping::into_account_id(context.caller);
+			let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 			let to = Runtime::AddressMapping::into_account_id(to);
 
 			// Dispatch call (if enough gas).
@@ -584,7 +561,7 @@ where
 			)?;
 		}
 
-		LogsBuilder::new(context.address)
+		LogsBuilder::new(handle.context().address)
 			.log3(
 				SELECTOR_LOG_TRANSFER,
 				H160::default(),
@@ -600,8 +577,6 @@ where
 	fn burn(
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
 		if !IsLocal::get() {
 			return Err(revert("unknown selector"));
@@ -610,6 +585,7 @@ where
 		handle.record_log_costs_manual(3, 32)?;
 
 		// Parse input.
+		let mut input = handle.read_input()?;
 		input.expect_arguments(2)?;
 
 		let to: H160 = input.read::<Address>()?.into();
@@ -617,7 +593,7 @@ where
 
 		// Build call with origin.
 		{
-			let origin = Runtime::AddressMapping::into_account_id(context.caller);
+			let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 			let to = Runtime::AddressMapping::into_account_id(to);
 
 			// Dispatch call (if enough gas).
@@ -632,7 +608,7 @@ where
 			)?;
 		}
 
-		LogsBuilder::new(context.address)
+		LogsBuilder::new(handle.context().address)
 			.log3(
 				SELECTOR_LOG_TRANSFER,
 				to,
@@ -648,21 +624,20 @@ where
 	fn freeze(
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
 		if !IsLocal::get() {
 			return Err(revert("unknown selector"));
 		}
 
 		// Parse input.
+		let mut input = handle.read_input()?;
 		input.expect_arguments(1)?;
 
 		let to: H160 = input.read::<Address>()?.into();
 
 		// Build call with origin.
 		{
-			let origin = Runtime::AddressMapping::into_account_id(context.caller);
+			let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 			let to = Runtime::AddressMapping::into_account_id(to);
 
 			// Dispatch call (if enough gas).
@@ -683,21 +658,20 @@ where
 	fn thaw(
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
 		if !IsLocal::get() {
 			return Err(revert("unknown selector"));
 		}
 
 		// Parse input.
+		let mut input = handle.read_input()?;
 		input.expect_arguments(1)?;
 
 		let to: H160 = input.read::<Address>()?.into();
 
 		// Build call with origin.
 		{
-			let origin = Runtime::AddressMapping::into_account_id(context.caller);
+			let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 			let to = Runtime::AddressMapping::into_account_id(to);
 
 			// Dispatch call (if enough gas).
@@ -718,7 +692,6 @@ where
 	fn freeze_asset(
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
-		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
 		if !IsLocal::get() {
 			return Err(revert("unknown selector"));
@@ -726,7 +699,7 @@ where
 
 		// Build call with origin.
 		{
-			let origin = Runtime::AddressMapping::into_account_id(context.caller);
+			let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
 			// Dispatch call (if enough gas).
 			RuntimeHelper::<Runtime>::try_dispatch(
@@ -743,7 +716,6 @@ where
 	fn thaw_asset(
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
-		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
 		if !IsLocal::get() {
 			return Err(revert("unknown selector"));
@@ -751,7 +723,7 @@ where
 
 		// Build call with origin.
 		{
-			let origin = Runtime::AddressMapping::into_account_id(context.caller);
+			let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
 			// Dispatch call (if enough gas).
 			RuntimeHelper::<Runtime>::try_dispatch(
@@ -768,21 +740,20 @@ where
 	fn transfer_ownership(
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
 		if !IsLocal::get() {
 			return Err(revert("unknown selector"));
 		}
 
 		// Parse input.
+		let mut input = handle.read_input()?;
 		input.expect_arguments(1)?;
 
 		let owner: H160 = input.read::<Address>()?.into();
 
 		// Build call with origin.
 		{
-			let origin = Runtime::AddressMapping::into_account_id(context.caller);
+			let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 			let owner = Runtime::AddressMapping::into_account_id(owner);
 
 			// Dispatch call (if enough gas).
@@ -803,14 +774,13 @@ where
 	fn set_team(
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
 		if !IsLocal::get() {
 			return Err(revert("unknown selector"));
 		}
 
 		// Parse input.
+		let mut input = handle.read_input()?;
 		input.expect_arguments(3)?;
 
 		let issuer: H160 = input.read::<Address>()?.into();
@@ -819,7 +789,7 @@ where
 
 		// Build call with origin.
 		{
-			let origin = Runtime::AddressMapping::into_account_id(context.caller);
+			let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 			let issuer = Runtime::AddressMapping::into_account_id(issuer);
 			let admin = Runtime::AddressMapping::into_account_id(admin);
 			let freezer = Runtime::AddressMapping::into_account_id(freezer);
@@ -844,14 +814,13 @@ where
 	fn set_metadata(
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
 		if !IsLocal::get() {
 			return Err(revert("unknown selector"));
 		}
 
 		// Parse input.
+		let mut input = handle.read_input()?;
 		input.expect_arguments(3)?;
 
 		let name: Bytes = input.read::<Bytes>()?.into();
@@ -860,7 +829,7 @@ where
 
 		// Build call with origin.
 		{
-			let origin = Runtime::AddressMapping::into_account_id(context.caller);
+			let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
 			// Dispatch call (if enough gas).
 			RuntimeHelper::<Runtime>::try_dispatch(
@@ -882,7 +851,6 @@ where
 	fn clear_metadata(
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
-		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
 		if !IsLocal::get() {
 			return Err(revert("unknown selector"));
@@ -890,7 +858,7 @@ where
 
 		// Build call with origin.
 		{
-			let origin = Runtime::AddressMapping::into_account_id(context.caller);
+			let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
 			// Dispatch call (if enough gas).
 			RuntimeHelper::<Runtime>::try_dispatch(

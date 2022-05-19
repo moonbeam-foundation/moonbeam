@@ -19,13 +19,13 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![feature(assert_matches)]
 
-use evm::{executor::stack::PrecompileOutput, Context};
+use evm::executor::stack::PrecompileOutput;
 use fp_evm::PrecompileHandle;
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use pallet_evm::AddressMapping;
 use precompile_utils::{
-	check_function_modifier, revert, succeed, Address, Bytes, EvmDataReader, EvmDataWriter,
-	EvmResult, FunctionModifier, RuntimeHelper,
+	revert, succeed, Address, Bytes, EvmDataWriter, EvmResult, FunctionModifier,
+	PrecompileHandleExt, RuntimeHelper,
 };
 use sp_core::H160;
 use sp_std::{
@@ -69,36 +69,24 @@ where
 	Runtime::AccountId: Into<H160>,
 	Runtime: AccountIdToCurrencyId<Runtime::AccountId, CurrencyIdOf<Runtime>>,
 {
-	fn execute(
-		handle: &mut impl PrecompileHandle,
-		input: &[u8], //Reminder this is big-endian
-		_target_gas: Option<u64>,
-		context: &Context,
-		is_static: bool,
-	) -> EvmResult<PrecompileOutput> {
-		let (mut input, selector) = EvmDataReader::new_with_selector(input)?;
-		let input = &mut input;
+	fn execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		let selector = handle.read_selector()?;
 
-		check_function_modifier(
-			context,
-			is_static,
-			match selector {
-				Action::TransactThroughDerivativeMultiLocation
-				| Action::TransactThroughDerivative => FunctionModifier::NonPayable,
-				_ => FunctionModifier::View,
-			},
-		)?;
+		handle.check_function_modifier(match selector {
+			Action::TransactThroughDerivativeMultiLocation | Action::TransactThroughDerivative => {
+				FunctionModifier::NonPayable
+			}
+			_ => FunctionModifier::View,
+		})?;
 
 		match selector {
 			// Check for accessor methods first. These return results immediately
-			Action::IndexToAccount => Self::account_index(handle, input),
-			Action::TransactInfo => Self::transact_info(handle, input),
+			Action::IndexToAccount => Self::account_index(handle),
+			Action::TransactInfo => Self::transact_info(handle),
 			Action::TransactThroughDerivativeMultiLocation => {
-				Self::transact_through_derivative_multilocation(handle, input, context)
+				Self::transact_through_derivative_multilocation(handle)
 			}
-			Action::TransactThroughDerivative => {
-				Self::transact_through_derivative(handle, input, context)
-			}
+			Action::TransactThroughDerivative => Self::transact_through_derivative(handle),
 		}
 	}
 }
@@ -113,13 +101,11 @@ where
 	Runtime::AccountId: Into<H160>,
 	Runtime: AccountIdToCurrencyId<Runtime::AccountId, CurrencyIdOf<Runtime>>,
 {
-	fn account_index(
-		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-	) -> EvmResult<PrecompileOutput> {
+	fn account_index(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		// Bound check
+		let mut input = handle.read_input()?;
 		input.expect_arguments(1)?;
 		let index: u16 = input.read::<u16>()?;
 
@@ -133,12 +119,10 @@ where
 		))
 	}
 
-	fn transact_info(
-		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-	) -> EvmResult<PrecompileOutput> {
+	fn transact_info(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
+		let mut input = handle.read_input()?;
 		let multilocation: MultiLocation = input.read::<MultiLocation>()?;
 
 		// fetch data from pallet
@@ -157,9 +141,8 @@ where
 
 	fn transact_through_derivative_multilocation(
 		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
+		let mut input = handle.read_input()?;
 		// Bound check
 		input.expect_arguments(5)?;
 
@@ -182,7 +165,7 @@ where
 
 		// Depending on the Runtime, this might involve a DB read. This is not the case in
 		// moonbeam, as we are using IdentityMapping
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = xcm_transactor::Call::<Runtime>::transact_through_derivative_multilocation {
 			dest: transactor,
 			index,
@@ -198,9 +181,8 @@ where
 
 	fn transact_through_derivative(
 		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
+		let mut input = handle.read_input()?;
 		// Bound check
 		input.expect_arguments(5)?;
 		let transactor: TransactorOf<Runtime> = input
@@ -212,6 +194,12 @@ where
 		// read currencyId
 		let to_address: H160 = input.read::<Address>()?.into();
 
+		// read fee amount
+		let weight: u64 = input.read::<u64>()?;
+
+		// inner call
+		let inner_call = input.read::<Bytes>()?;
+
 		let to_account = Runtime::AddressMapping::into_account_id(to_address);
 
 		// We convert the address into a currency
@@ -221,15 +209,9 @@ where
 			Runtime::account_to_currency_id(to_account)
 				.ok_or(revert("cannot convert into currency id"))?;
 
-		// read fee amount
-		let weight: u64 = input.read::<u64>()?;
-
-		// inner call
-		let inner_call = input.read::<Bytes>()?;
-
 		// Depending on the Runtime, this might involve a DB read. This is not the case in
 		// moonbeam, as we are using IdentityMapping
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = xcm_transactor::Call::<Runtime>::transact_through_derivative {
 			dest: transactor,
 			index,

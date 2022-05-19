@@ -19,14 +19,12 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![feature(assert_matches)]
 
-use fp_evm::{Context, PrecompileHandle, PrecompileOutput};
+use fp_evm::{PrecompileHandle, PrecompileOutput};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use nimbus_primitives::NimbusId;
 use pallet_author_mapping::Call as AuthorMappingCall;
-use pallet_evm::AddressMapping;
-use precompile_utils::{
-	check_function_modifier, succeed, EvmDataReader, EvmResult, FunctionModifier, RuntimeHelper,
-};
+use pallet_evm::{AddressMapping, Precompile};
+use precompile_utils::{succeed, EvmResult, FunctionModifier, PrecompileHandleExt, RuntimeHelper};
 use sp_core::crypto::UncheckedFrom;
 use sp_core::H256;
 use sp_std::{fmt::Debug, marker::PhantomData};
@@ -50,7 +48,7 @@ pub enum Action {
 pub struct AuthorMappingWrapper<Runtime>(PhantomData<Runtime>);
 
 // TODO: Migrate to precompile_utils::Precompile.
-impl<Runtime> pallet_evm::Precompile for AuthorMappingWrapper<Runtime>
+impl<Runtime> Precompile for AuthorMappingWrapper<Runtime>
 where
 	Runtime: pallet_author_mapping::Config + pallet_evm::Config + frame_system::Config,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
@@ -58,27 +56,20 @@ where
 	Runtime::Call: From<AuthorMappingCall<Runtime>>,
 	Runtime::Hash: From<H256>,
 {
-	fn execute(
-		handle: &mut impl PrecompileHandle,
-		input: &[u8], //Reminder this is big-endian
-		_target_gas: Option<u64>,
-		context: &Context,
-		is_static: bool,
-	) -> EvmResult<PrecompileOutput> {
+	fn execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		log::trace!(target: "author-mapping-precompile", "In author mapping wrapper");
 
-		let (mut input, selector) = EvmDataReader::new_with_selector(input)?;
-		let input = &mut input;
+		let selector = handle.read_selector()?;
 
-		check_function_modifier(context, is_static, FunctionModifier::NonPayable)?;
+		handle.check_function_modifier(FunctionModifier::NonPayable)?;
 
 		match selector {
 			// Dispatchables
-			Action::AddAssociation => Self::add_association(handle, input, context),
-			Action::UpdateAssociation => Self::update_association(handle, input, context),
-			Action::ClearAssociation => Self::clear_association(handle, input, context),
-			Action::RegisterKeys => Self::register_keys(handle, input, context),
-			Action::SetKeys => Self::set_keys(handle, input, context),
+			Action::AddAssociation => Self::add_association(handle),
+			Action::UpdateAssociation => Self::update_association(handle),
+			Action::ClearAssociation => Self::clear_association(handle),
+			Action::RegisterKeys => Self::register_keys(handle),
+			Action::SetKeys => Self::set_keys(handle),
 		}
 	}
 }
@@ -92,11 +83,9 @@ where
 	Runtime::Hash: From<H256>,
 {
 	// The dispatchable wrappers are next. They dispatch a Substrate inner Call.
-	fn add_association(
-		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-		context: &Context,
-	) -> EvmResult<PrecompileOutput> {
+	fn add_association(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		let mut input = handle.read_input()?;
+
 		// Bound check
 		input.expect_arguments(1)?;
 
@@ -107,7 +96,7 @@ where
 			"Associating author id {:?}", nimbus_id
 		);
 
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = AuthorMappingCall::<Runtime>::add_association {
 			author_id: nimbus_id,
 		};
@@ -117,11 +106,8 @@ where
 		Ok(succeed([]))
 	}
 
-	fn update_association(
-		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-		context: &Context,
-	) -> EvmResult<PrecompileOutput> {
+	fn update_association(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		let mut input = handle.read_input()?;
 		// Bound check
 		input.expect_arguments(2)?;
 
@@ -133,7 +119,7 @@ where
 			"Updating author id {:?} for {:?}", old_nimbus_id, new_nimbus_id
 		);
 
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = AuthorMappingCall::<Runtime>::update_association {
 			old_author_id: old_nimbus_id,
 			new_author_id: new_nimbus_id,
@@ -144,11 +130,8 @@ where
 		Ok(succeed([]))
 	}
 
-	fn clear_association(
-		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-		context: &Context,
-	) -> EvmResult<PrecompileOutput> {
+	fn clear_association(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		let mut input = handle.read_input()?;
 		// Bound check
 		input.expect_arguments(1)?;
 		let nimbus_id = sp_core::sr25519::Public::unchecked_from(input.read::<H256>()?).into();
@@ -158,7 +141,7 @@ where
 			"Clearing author id {:?}", nimbus_id
 		);
 
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = AuthorMappingCall::<Runtime>::clear_association {
 			author_id: nimbus_id,
 		};
@@ -168,11 +151,8 @@ where
 		Ok(succeed([]))
 	}
 
-	fn register_keys(
-		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-		context: &Context,
-	) -> EvmResult<PrecompileOutput> {
+	fn register_keys(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		let mut input = handle.read_input()?;
 		// Bound check
 		input.expect_arguments(2)?;
 		let nimbus_id = sp_core::sr25519::Public::unchecked_from(input.read::<H256>()?).into();
@@ -185,7 +165,7 @@ where
 			"Adding full association with author id {:?} keys {:?}", nimbus_id, keys
 		);
 
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = AuthorMappingCall::<Runtime>::register_keys {
 			author_id: nimbus_id,
 			keys,
@@ -196,11 +176,8 @@ where
 		Ok(succeed([]))
 	}
 
-	fn set_keys(
-		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-		context: &Context,
-	) -> EvmResult<PrecompileOutput> {
+	fn set_keys(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		let mut input = handle.read_input()?;
 		input.expect_arguments(3)?;
 		let old_author_id = sp_core::sr25519::Public::unchecked_from(input.read::<H256>()?).into();
 		let new_author_id = sp_core::sr25519::Public::unchecked_from(input.read::<H256>()?).into();
@@ -215,7 +192,7 @@ where
 			old_author_id, new_author_id, new_keys
 		);
 
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = AuthorMappingCall::<Runtime>::set_keys {
 			old_author_id,
 			new_author_id,

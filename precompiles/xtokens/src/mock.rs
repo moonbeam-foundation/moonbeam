@@ -24,7 +24,6 @@ use frame_support::{
 };
 use orml_traits::{location::AbsoluteReserveProvider, parameter_type_with_key};
 use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet};
-use precompile_utils::Precompile;
 use serde::{Deserialize, Serialize};
 use sp_core::H256;
 use sp_io;

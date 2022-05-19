@@ -20,15 +20,15 @@
 #![cfg_attr(test, feature(assert_matches))]
 
 use cumulus_primitives_core::relay_chain;
-use fp_evm::{Context, PrecompileHandle, PrecompileOutput};
+use fp_evm::{Precompile, PrecompileHandle, PrecompileOutput};
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
 	ensure,
 };
 use pallet_staking::RewardDestination;
 use precompile_utils::{
-	check_function_modifier, revert, succeed, Bytes, EvmData, EvmDataReader, EvmDataWriter,
-	EvmResult, FunctionModifier, RuntimeHelper,
+	revert, succeed, Bytes, EvmData, EvmDataReader, EvmDataWriter, EvmResult, FunctionModifier,
+	PrecompileHandleExt, RuntimeHelper,
 };
 use sp_core::{H256, U256};
 use sp_runtime::AccountId32;
@@ -83,23 +83,16 @@ enum Action {
 pub struct RelayEncoderWrapper<Runtime, RelayRuntime>(PhantomData<(Runtime, RelayRuntime)>);
 
 // TODO: Migrate to precompile_utils::Precompile.
-impl<Runtime, RelayRuntime> pallet_evm::Precompile for RelayEncoderWrapper<Runtime, RelayRuntime>
+impl<Runtime, RelayRuntime> Precompile for RelayEncoderWrapper<Runtime, RelayRuntime>
 where
 	RelayRuntime: StakeEncodeCall,
 	Runtime: pallet_evm::Config,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 {
-	fn execute(
-		handle: &mut impl PrecompileHandle,
-		input: &[u8], //Reminder this is big-endian
-		_target_gas: Option<u64>,
-		context: &Context,
-		is_static: bool,
-	) -> EvmResult<PrecompileOutput> {
-		let (mut input, selector) = EvmDataReader::new_with_selector(input)?;
-		let input = &mut input;
+	fn execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		let selector = handle.read_selector()?;
 
-		check_function_modifier(context, is_static, FunctionModifier::View)?;
+		handle.check_function_modifier(FunctionModifier::View)?;
 
 		// Parse the function selector
 		// These are the four-byte function selectors calculated from the RelayEncoder.sol
@@ -107,16 +100,16 @@ where
 		// https://docs.soliditylang.org/en/v0.8.0/abi-spec.html#function-selector
 		match selector {
 			// Storage Accessors
-			Action::EncodeBond => Self::encode_bond(handle, input),
-			Action::EncodeBondExtra => Self::encode_bond_extra(handle, input),
-			Action::EncodeUnbond => Self::encode_unbond(handle, input),
-			Action::EncodeWithdrawUnbonded => Self::encode_withdraw_unbonded(handle, input),
-			Action::EncodeValidate => Self::encode_validate(handle, input),
-			Action::EncodeNominate => Self::encode_nominate(handle, input),
-			Action::EncodeChill => Self::encode_chill(handle, input),
-			Action::EncodeSetPayee => Self::encode_set_payee(handle, input),
-			Action::EncodeSetController => Self::encode_set_controller(handle, input),
-			Action::EncodeRebond => Self::encode_rebond(handle, input),
+			Action::EncodeBond => Self::encode_bond(handle),
+			Action::EncodeBondExtra => Self::encode_bond_extra(handle),
+			Action::EncodeUnbond => Self::encode_unbond(handle),
+			Action::EncodeWithdrawUnbonded => Self::encode_withdraw_unbonded(handle),
+			Action::EncodeValidate => Self::encode_validate(handle),
+			Action::EncodeNominate => Self::encode_nominate(handle),
+			Action::EncodeChill => Self::encode_chill(handle),
+			Action::EncodeSetPayee => Self::encode_set_payee(handle),
+			Action::EncodeSetController => Self::encode_set_controller(handle),
+			Action::EncodeRebond => Self::encode_rebond(handle),
 		}
 	}
 }
@@ -127,12 +120,10 @@ where
 	Runtime: pallet_evm::Config,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 {
-	fn encode_bond(
-		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-	) -> EvmResult<PrecompileOutput> {
+	fn encode_bond(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
+		let mut input = handle.read_input()?;
 		input.expect_arguments(4)?;
 
 		let address: [u8; 32] = input.read::<H256>()?.into();
@@ -151,12 +142,10 @@ where
 		Ok(succeed(EvmDataWriter::new().write(encoded).build()))
 	}
 
-	fn encode_bond_extra(
-		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-	) -> EvmResult<PrecompileOutput> {
+	fn encode_bond_extra(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
+		let mut input = handle.read_input()?;
 		input.expect_arguments(1)?;
 		let amount: U256 = input.read()?;
 		let relay_amount = u256_to_relay_amount(amount)?;
@@ -168,12 +157,10 @@ where
 		Ok(succeed(EvmDataWriter::new().write(encoded).build()))
 	}
 
-	fn encode_unbond(
-		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-	) -> EvmResult<PrecompileOutput> {
+	fn encode_unbond(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
+		let mut input = handle.read_input()?;
 		input.expect_arguments(1)?;
 
 		let amount: U256 = input.read()?;
@@ -186,12 +173,10 @@ where
 		Ok(succeed(EvmDataWriter::new().write(encoded).build()))
 	}
 
-	fn encode_withdraw_unbonded(
-		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-	) -> EvmResult<PrecompileOutput> {
+	fn encode_withdraw_unbonded(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
+		let mut input = handle.read_input()?;
 		input.expect_arguments(1)?;
 
 		let num_slashing_spans: u32 = input.read()?;
@@ -203,12 +188,10 @@ where
 		Ok(succeed(EvmDataWriter::new().write(encoded).build()))
 	}
 
-	fn encode_validate(
-		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-	) -> EvmResult<PrecompileOutput> {
+	fn encode_validate(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
+		let mut input = handle.read_input()?;
 		input.expect_arguments(2)?;
 
 		let parst_per_billion: u32 = input.read()?;
@@ -226,12 +209,10 @@ where
 		Ok(succeed(EvmDataWriter::new().write(encoded).build()))
 	}
 
-	fn encode_nominate(
-		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-	) -> EvmResult<PrecompileOutput> {
+	fn encode_nominate(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
+		let mut input = handle.read_input()?;
 		let nominated_as_h256: Vec<H256> = input.read()?;
 
 		let nominated: Vec<AccountId32> = nominated_as_h256
@@ -248,12 +229,10 @@ where
 		Ok(succeed(EvmDataWriter::new().write(encoded).build()))
 	}
 
-	fn encode_chill(
-		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-	) -> EvmResult<PrecompileOutput> {
+	fn encode_chill(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
+		let input = handle.read_input()?;
 		input.expect_arguments(0)?;
 
 		let encoded: Bytes = RelayRuntime::encode_call(AvailableStakeCalls::Chill)
@@ -263,12 +242,10 @@ where
 		Ok(succeed(EvmDataWriter::new().write(encoded).build()))
 	}
 
-	fn encode_set_payee(
-		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-	) -> EvmResult<PrecompileOutput> {
+	fn encode_set_payee(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
+		let mut input = handle.read_input()?;
 		input.expect_arguments(2)?;
 
 		let reward_destination = input.read::<RewardDestinationWrapper>()?.into();
@@ -281,12 +258,10 @@ where
 		Ok(succeed(EvmDataWriter::new().write(encoded).build()))
 	}
 
-	fn encode_set_controller(
-		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-	) -> EvmResult<PrecompileOutput> {
+	fn encode_set_controller(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
+		let mut input = handle.read_input()?;
 		let controller: [u8; 32] = input.read::<H256>()?.into();
 
 		let encoded: Bytes =
@@ -297,12 +272,10 @@ where
 		Ok(succeed(EvmDataWriter::new().write(encoded).build()))
 	}
 
-	fn encode_rebond(
-		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-	) -> EvmResult<PrecompileOutput> {
+	fn encode_rebond(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
+		let mut input = handle.read_input()?;
 		input.expect_arguments(1)?;
 
 		let amount: U256 = input.read()?;

@@ -186,13 +186,12 @@ where
 	// Translated from
 	// https://github.com/Uniswap/v2-core/blob/master/contracts/UniswapV2ERC20.sol#L81
 	pub(crate) fn permit(
-		address: H160,
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
 	) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
+		let mut input = handle.read_input()?;
 		let owner: H160 = input.read::<Address>()?.into();
 		let spender: H160 = input.read::<Address>()?.into();
 		let value: U256 = input.read()?;
@@ -200,6 +199,8 @@ where
 		let v: u8 = input.read()?;
 		let r: H256 = input.read()?;
 		let s: H256 = input.read()?;
+
+		let address = handle.code_address();
 
 		// pallet_timestamp is in ms while Ethereum use second timestamps.
 		let timestamp: U256 = (pallet_timestamp::Pallet::<Runtime>::get()).into() / 1000;
@@ -245,27 +246,27 @@ where
 	}
 
 	pub(crate) fn nonces(
-		address: H160,
+		_asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
 	) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
+		let mut input = handle.read_input()?;
 		let owner: H160 = input.read::<Address>()?.into();
 
-		let nonce = NoncesStorage::<Instance>::get(address, owner);
+		let nonce = NoncesStorage::<Instance>::get(handle.code_address(), owner);
 
 		Ok(succeed(EvmDataWriter::new().write(nonce).build()))
 	}
 
 	pub(crate) fn domain_separator(
-		address: H160,
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		let domain_separator: H256 = Self::compute_domain_separator(address, asset_id).into();
+		let domain_separator: H256 =
+			Self::compute_domain_separator(handle.code_address(), asset_id).into();
 
 		Ok(succeed(
 			EvmDataWriter::new().write(domain_separator).build(),

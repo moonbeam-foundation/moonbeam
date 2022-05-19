@@ -26,7 +26,6 @@ use pallet_democracy::VoteThreshold;
 use pallet_evm::{
 	AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet, SubstrateBlockHashMapping,
 };
-use precompile_utils::Precompile;
 use scale_info::TypeInfo;
 use serde::{Deserialize, Serialize};
 use sp_core::H256;

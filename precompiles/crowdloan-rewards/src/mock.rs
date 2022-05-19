@@ -31,7 +31,6 @@ use frame_support::{
 };
 use frame_system::{EnsureSigned, RawOrigin};
 use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet};
-use precompile_utils::Precompile;
 use serde::{Deserialize, Serialize};
 use sp_core::H256;
 use sp_io;

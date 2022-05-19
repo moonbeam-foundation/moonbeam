@@ -24,13 +24,13 @@ mod mock;
 #[cfg(test)]
 mod tests;
 
-use fp_evm::{Context, PrecompileHandle, PrecompileOutput};
+use fp_evm::{PrecompileHandle, PrecompileOutput};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use frame_support::traits::{Currency, Get};
 use pallet_evm::AddressMapping;
 use precompile_utils::{
-	check_function_modifier, revert, succeed, Address, EvmData, EvmDataReader, EvmDataWriter,
-	EvmResult, FunctionModifier, RuntimeHelper,
+	revert, succeed, Address, EvmData, EvmDataReader, EvmDataWriter, EvmResult, FunctionModifier,
+	PrecompileHandleExt, RuntimeHelper,
 };
 use sp_core::H160;
 use sp_std::{convert::TryInto, fmt::Debug, marker::PhantomData, vec::Vec};
@@ -118,115 +118,86 @@ where
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	Runtime::Call: From<parachain_staking::Call<Runtime>>,
 {
-	fn execute(
-		handle: &mut impl PrecompileHandle,
-		input: &[u8],
-		_target_gas: Option<u64>,
-		context: &Context,
-		is_static: bool,
-	) -> EvmResult<PrecompileOutput> {
-		let (mut input, selector) = EvmDataReader::new_with_selector(input)?;
-		let input = &mut input;
+	fn execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		let selector = handle.read_selector()?;
 
-		check_function_modifier(
-			context,
-			is_static,
-			match selector {
-				Action::IsNominator
-				| Action::IsDelegator
-				| Action::IsCandidate
-				| Action::IsSelectedCandidate
-				| Action::Points
-				| Action::MinNomination
-				| Action::MinDelegation
-				| Action::CandidateCount
-				| Action::CollatorNominationCount
-				| Action::CandidateDelegationCount
-				| Action::NominatorNominationCount
-				| Action::DelegatorDelegationCount
-				| Action::SelectedCandidates => FunctionModifier::View,
-				_ => FunctionModifier::NonPayable,
-			},
-		)?;
+		handle.check_function_modifier(match selector {
+			Action::IsNominator
+			| Action::IsDelegator
+			| Action::IsCandidate
+			| Action::IsSelectedCandidate
+			| Action::Points
+			| Action::MinNomination
+			| Action::MinDelegation
+			| Action::CandidateCount
+			| Action::CollatorNominationCount
+			| Action::CandidateDelegationCount
+			| Action::NominatorNominationCount
+			| Action::DelegatorDelegationCount
+			| Action::SelectedCandidates => FunctionModifier::View,
+			_ => FunctionModifier::NonPayable,
+		})?;
 
 		// Return early if storage getter; return (origin, call) if dispatchable
 		let (origin, call) = match selector {
 			// DEPRECATED
 			Action::MinNomination => return Self::min_delegation(handle),
 			Action::MinDelegation => return Self::min_delegation(handle),
-			Action::Points => return Self::points(handle, input),
+			Action::Points => return Self::points(handle),
 			Action::CandidateCount => return Self::candidate_count(handle),
 			Action::Round => return Self::round(handle),
 			// DEPRECATED
-			Action::CollatorNominationCount => {
-				return Self::candidate_delegation_count(handle, input)
-			}
+			Action::CollatorNominationCount => return Self::candidate_delegation_count(handle),
 			// DEPRECATED
-			Action::NominatorNominationCount => {
-				return Self::delegator_delegation_count(handle, input)
-			}
-			Action::CandidateDelegationCount => {
-				return Self::candidate_delegation_count(handle, input)
-			}
-			Action::DelegatorDelegationCount => {
-				return Self::delegator_delegation_count(handle, input)
-			}
+			Action::NominatorNominationCount => return Self::delegator_delegation_count(handle),
+			Action::CandidateDelegationCount => return Self::candidate_delegation_count(handle),
+			Action::DelegatorDelegationCount => return Self::delegator_delegation_count(handle),
 			Action::SelectedCandidates => return Self::selected_candidates(handle),
 			// DEPRECATED
-			Action::IsNominator => return Self::is_delegator(handle, input),
-			Action::IsDelegator => return Self::is_delegator(handle, input),
-			Action::IsCandidate => return Self::is_candidate(handle, input),
-			Action::IsSelectedCandidate => return Self::is_selected_candidate(handle, input),
+			Action::IsNominator => return Self::is_delegator(handle),
+			Action::IsDelegator => return Self::is_delegator(handle),
+			Action::IsCandidate => return Self::is_candidate(handle),
+			Action::IsSelectedCandidate => return Self::is_selected_candidate(handle),
 			Action::DelegationRequestIsPending => {
-				return Self::delegation_request_is_pending(handle, input)
+				return Self::delegation_request_is_pending(handle)
 			}
-			Action::DelegatorExitIsPending => {
-				return Self::delegator_exit_is_pending(handle, input)
-			}
-			Action::CandidateExitIsPending => {
-				return Self::candidate_exit_is_pending(handle, input)
-			}
-			Action::CandidateRequestIsPending => {
-				return Self::candidate_request_is_pending(handle, input)
-			}
+			Action::DelegatorExitIsPending => return Self::delegator_exit_is_pending(handle),
+			Action::CandidateExitIsPending => return Self::candidate_exit_is_pending(handle),
+			Action::CandidateRequestIsPending => return Self::candidate_request_is_pending(handle),
 			// runtime methods (dispatchables)
-			Action::JoinCandidates => Self::join_candidates(input, context)?,
+			Action::JoinCandidates => Self::join_candidates(handle)?,
 			// DEPRECATED
-			Action::LeaveCandidates => Self::schedule_leave_candidates(input, context)?,
-			Action::ScheduleLeaveCandidates => Self::schedule_leave_candidates(input, context)?,
-			Action::ExecuteLeaveCandidates => Self::execute_leave_candidates(input, context)?,
-			Action::CancelLeaveCandidates => Self::cancel_leave_candidates(input, context)?,
-			Action::GoOffline => Self::go_offline(context)?,
-			Action::GoOnline => Self::go_online(context)?,
+			Action::LeaveCandidates => Self::schedule_leave_candidates(handle)?,
+			Action::ScheduleLeaveCandidates => Self::schedule_leave_candidates(handle)?,
+			Action::ExecuteLeaveCandidates => Self::execute_leave_candidates(handle)?,
+			Action::CancelLeaveCandidates => Self::cancel_leave_candidates(handle)?,
+			Action::GoOffline => Self::go_offline(handle)?,
+			Action::GoOnline => Self::go_online(handle)?,
 			// DEPRECATED
-			Action::CandidateBondLess => Self::schedule_candidate_bond_less(input, context)?,
-			Action::ScheduleCandidateBondLess => {
-				Self::schedule_candidate_bond_less(input, context)?
-			}
-			Action::CandidateBondMore => Self::candidate_bond_more(input, context)?,
-			Action::ExecuteCandidateBondLess => Self::execute_candidate_bond_less(input, context)?,
-			Action::CancelCandidateBondLess => Self::cancel_candidate_bond_less(context)?,
+			Action::CandidateBondLess => Self::schedule_candidate_bond_less(handle)?,
+			Action::ScheduleCandidateBondLess => Self::schedule_candidate_bond_less(handle)?,
+			Action::CandidateBondMore => Self::candidate_bond_more(handle)?,
+			Action::ExecuteCandidateBondLess => Self::execute_candidate_bond_less(handle)?,
+			Action::CancelCandidateBondLess => Self::cancel_candidate_bond_less(handle)?,
 			// DEPRECATED
-			Action::Nominate => Self::delegate(input, context)?,
-			Action::Delegate => Self::delegate(input, context)?,
+			Action::Nominate => Self::delegate(handle)?,
+			Action::Delegate => Self::delegate(handle)?,
 			// DEPRECATED
-			Action::LeaveNominators => Self::schedule_leave_delegators(context)?,
-			Action::ScheduleLeaveDelegators => Self::schedule_leave_delegators(context)?,
-			Action::ExecuteLeaveDelegators => Self::execute_leave_delegators(input, context)?,
-			Action::CancelLeaveDelegators => Self::cancel_leave_delegators(context)?,
+			Action::LeaveNominators => Self::schedule_leave_delegators(handle)?,
+			Action::ScheduleLeaveDelegators => Self::schedule_leave_delegators(handle)?,
+			Action::ExecuteLeaveDelegators => Self::execute_leave_delegators(handle)?,
+			Action::CancelLeaveDelegators => Self::cancel_leave_delegators(handle)?,
 			// DEPRECATED
-			Action::RevokeNomination => Self::schedule_revoke_delegation(input, context)?,
-			Action::ScheduleRevokeDelegation => Self::schedule_revoke_delegation(input, context)?,
+			Action::RevokeNomination => Self::schedule_revoke_delegation(handle)?,
+			Action::ScheduleRevokeDelegation => Self::schedule_revoke_delegation(handle)?,
 			// DEPRECATED
-			Action::NominatorBondLess => Self::schedule_delegator_bond_less(input, context)?,
-			Action::ScheduleDelegatorBondLess => {
-				Self::schedule_delegator_bond_less(input, context)?
-			}
+			Action::NominatorBondLess => Self::schedule_delegator_bond_less(handle)?,
+			Action::ScheduleDelegatorBondLess => Self::schedule_delegator_bond_less(handle)?,
 			// DEPRECATED
-			Action::NominatorBondMore => Self::delegator_bond_more(input, context)?,
-			Action::DelegatorBondMore => Self::delegator_bond_more(input, context)?,
-			Action::ExecuteDelegationRequest => Self::execute_delegation_request(input, context)?,
-			Action::CancelDelegationRequest => Self::cancel_delegation_request(input, context)?,
+			Action::NominatorBondMore => Self::delegator_bond_more(handle)?,
+			Action::DelegatorBondMore => Self::delegator_bond_more(handle)?,
+			Action::ExecuteDelegationRequest => Self::execute_delegation_request(handle)?,
+			Action::CancelDelegationRequest => Self::cancel_delegation_request(handle)?,
 		};
 
 		// Dispatch call (if enough gas).
@@ -262,10 +233,8 @@ where
 
 	// Storage Getters
 
-	fn points(
-		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-	) -> EvmResult<PrecompileOutput> {
+	fn points(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
 		input.expect_arguments(1)?;
 		let round = input.read::<u32>()?;
@@ -300,8 +269,8 @@ where
 
 	fn candidate_delegation_count(
 		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
 	) -> EvmResult<PrecompileOutput> {
+		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
 		input.expect_arguments(1)?;
 		let address = input.read::<Address>()?.0;
@@ -334,8 +303,8 @@ where
 
 	fn delegator_delegation_count(
 		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
 	) -> EvmResult<PrecompileOutput> {
+		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
 		input.expect_arguments(1)?;
 		let address = input.read::<Address>()?.0;
@@ -384,10 +353,8 @@ where
 
 	// Role Verifiers
 
-	fn is_delegator(
-		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-	) -> EvmResult<PrecompileOutput> {
+	fn is_delegator(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
 		input.expect_arguments(1)?;
 		let address = input.read::<Address>()?.0;
@@ -401,10 +368,8 @@ where
 		Ok(succeed(EvmDataWriter::new().write(is_delegator).build()))
 	}
 
-	fn is_candidate(
-		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-	) -> EvmResult<PrecompileOutput> {
+	fn is_candidate(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
 		input.expect_arguments(1)?;
 		let address = input.read::<Address>()?.0;
@@ -418,10 +383,8 @@ where
 		Ok(succeed(EvmDataWriter::new().write(is_candidate).build()))
 	}
 
-	fn is_selected_candidate(
-		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-	) -> EvmResult<PrecompileOutput> {
+	fn is_selected_candidate(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
 		input.expect_arguments(1)?;
 		let address = input.read::<Address>()?.0;
@@ -437,8 +400,8 @@ where
 
 	fn delegation_request_is_pending(
 		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
 	) -> EvmResult<PrecompileOutput> {
+		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
 		input.expect_arguments(2)?;
 
@@ -462,8 +425,8 @@ where
 
 	fn delegator_exit_is_pending(
 		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
 	) -> EvmResult<PrecompileOutput> {
+		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
 		input.expect_arguments(1)?;
 
@@ -494,8 +457,8 @@ where
 
 	fn candidate_exit_is_pending(
 		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
 	) -> EvmResult<PrecompileOutput> {
+		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
 		input.expect_arguments(1)?;
 
@@ -525,8 +488,8 @@ where
 
 	fn candidate_request_is_pending(
 		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
 	) -> EvmResult<PrecompileOutput> {
+		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
 		input.expect_arguments(1)?;
 
@@ -557,19 +520,19 @@ where
 	// Runtime Methods (dispatchables)
 
 	fn join_candidates(
-		input: &mut EvmDataReader,
-		context: &Context,
+		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<(
 		<Runtime::Call as Dispatchable>::Origin,
 		parachain_staking::Call<Runtime>,
 	)> {
+		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
 		input.expect_arguments(2)?;
 		let bond: BalanceOf<Runtime> = input.read()?;
 		let candidate_count = input.read()?;
 
 		// Build call with origin.
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = parachain_staking::Call::<Runtime>::join_candidates {
 			bond,
 			candidate_count,
@@ -580,18 +543,18 @@ where
 	}
 
 	fn schedule_leave_candidates(
-		input: &mut EvmDataReader,
-		context: &Context,
+		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<(
 		<Runtime::Call as Dispatchable>::Origin,
 		parachain_staking::Call<Runtime>,
 	)> {
+		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
 		input.expect_arguments(1)?;
 		let candidate_count = input.read()?;
 
 		// Build call with origin.
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call =
 			parachain_staking::Call::<Runtime>::schedule_leave_candidates { candidate_count };
 
@@ -600,12 +563,12 @@ where
 	}
 
 	fn execute_leave_candidates(
-		input: &mut EvmDataReader,
-		context: &Context,
+		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<(
 		<Runtime::Call as Dispatchable>::Origin,
 		parachain_staking::Call<Runtime>,
 	)> {
+		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
 		input.expect_arguments(1)?;
 		let candidate = input.read::<Address>()?.0;
@@ -613,7 +576,7 @@ where
 		let candidate_delegation_count = input.read()?;
 
 		// Build call with origin.
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = parachain_staking::Call::<Runtime>::execute_leave_candidates {
 			candidate,
 			candidate_delegation_count,
@@ -624,18 +587,18 @@ where
 	}
 
 	fn cancel_leave_candidates(
-		input: &mut EvmDataReader,
-		context: &Context,
+		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<(
 		<Runtime::Call as Dispatchable>::Origin,
 		parachain_staking::Call<Runtime>,
 	)> {
+		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
 		input.expect_arguments(1)?;
 		let candidate_count = input.read()?;
 
 		// Build call with origin.
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = parachain_staking::Call::<Runtime>::cancel_leave_candidates { candidate_count };
 
 		// Return call information
@@ -643,13 +606,13 @@ where
 	}
 
 	fn go_offline(
-		context: &Context,
+		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<(
 		<Runtime::Call as Dispatchable>::Origin,
 		parachain_staking::Call<Runtime>,
 	)> {
 		// Build call with origin.
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = parachain_staking::Call::<Runtime>::go_offline {};
 
 		// Return call information
@@ -657,13 +620,13 @@ where
 	}
 
 	fn go_online(
-		context: &Context,
+		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<(
 		<Runtime::Call as Dispatchable>::Origin,
 		parachain_staking::Call<Runtime>,
 	)> {
 		// Build call with origin.
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = parachain_staking::Call::<Runtime>::go_online {};
 
 		// Return call information
@@ -671,18 +634,18 @@ where
 	}
 
 	fn candidate_bond_more(
-		input: &mut EvmDataReader,
-		context: &Context,
+		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<(
 		<Runtime::Call as Dispatchable>::Origin,
 		parachain_staking::Call<Runtime>,
 	)> {
+		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
 		input.expect_arguments(1)?;
 		let more: BalanceOf<Runtime> = input.read()?;
 
 		// Build call with origin.
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = parachain_staking::Call::<Runtime>::candidate_bond_more { more };
 
 		// Return call information
@@ -690,18 +653,18 @@ where
 	}
 
 	fn schedule_candidate_bond_less(
-		input: &mut EvmDataReader,
-		context: &Context,
+		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<(
 		<Runtime::Call as Dispatchable>::Origin,
 		parachain_staking::Call<Runtime>,
 	)> {
+		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
 		input.expect_arguments(1)?;
 		let less: BalanceOf<Runtime> = input.read()?;
 
 		// Build call with origin.
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = parachain_staking::Call::<Runtime>::schedule_candidate_bond_less { less };
 
 		// Return call information
@@ -709,19 +672,19 @@ where
 	}
 
 	fn execute_candidate_bond_less(
-		input: &mut EvmDataReader,
-		context: &Context,
+		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<(
 		<Runtime::Call as Dispatchable>::Origin,
 		parachain_staking::Call<Runtime>,
 	)> {
+		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
 		input.expect_arguments(1)?;
 		let candidate = input.read::<Address>()?.0;
 		let candidate = Runtime::AddressMapping::into_account_id(candidate);
 
 		// Build call with origin.
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = parachain_staking::Call::<Runtime>::execute_candidate_bond_less { candidate };
 
 		// Return call information
@@ -729,13 +692,13 @@ where
 	}
 
 	fn cancel_candidate_bond_less(
-		context: &Context,
+		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<(
 		<Runtime::Call as Dispatchable>::Origin,
 		parachain_staking::Call<Runtime>,
 	)> {
 		// Build call with origin.
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = parachain_staking::Call::<Runtime>::cancel_candidate_bond_less {};
 
 		// Return call information
@@ -743,12 +706,12 @@ where
 	}
 
 	fn delegate(
-		input: &mut EvmDataReader,
-		context: &Context,
+		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<(
 		<Runtime::Call as Dispatchable>::Origin,
 		parachain_staking::Call<Runtime>,
 	)> {
+		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
 		input.expect_arguments(4)?;
 		let candidate = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
@@ -757,7 +720,7 @@ where
 		let delegation_count = input.read()?;
 
 		// Build call with origin.
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = parachain_staking::Call::<Runtime>::delegate {
 			candidate,
 			amount,
@@ -770,13 +733,13 @@ where
 	}
 
 	fn schedule_leave_delegators(
-		context: &Context,
+		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<(
 		<Runtime::Call as Dispatchable>::Origin,
 		parachain_staking::Call<Runtime>,
 	)> {
 		// Build call with origin.
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = parachain_staking::Call::<Runtime>::schedule_leave_delegators {};
 
 		// Return call information
@@ -784,12 +747,12 @@ where
 	}
 
 	fn execute_leave_delegators(
-		input: &mut EvmDataReader,
-		context: &Context,
+		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<(
 		<Runtime::Call as Dispatchable>::Origin,
 		parachain_staking::Call<Runtime>,
 	)> {
+		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
 		input.expect_arguments(2)?;
 		let delegator = input.read::<Address>()?.0;
@@ -797,7 +760,7 @@ where
 		let delegation_count = input.read()?;
 
 		// Build call with origin.
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = parachain_staking::Call::<Runtime>::execute_leave_delegators {
 			delegator,
 			delegation_count,
@@ -808,13 +771,13 @@ where
 	}
 
 	fn cancel_leave_delegators(
-		context: &Context,
+		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<(
 		<Runtime::Call as Dispatchable>::Origin,
 		parachain_staking::Call<Runtime>,
 	)> {
 		// Build call with origin.
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = parachain_staking::Call::<Runtime>::cancel_leave_delegators {};
 
 		// Return call information
@@ -822,19 +785,19 @@ where
 	}
 
 	fn schedule_revoke_delegation(
-		input: &mut EvmDataReader,
-		context: &Context,
+		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<(
 		<Runtime::Call as Dispatchable>::Origin,
 		parachain_staking::Call<Runtime>,
 	)> {
+		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
 		input.expect_arguments(1)?;
 		let collator = input.read::<Address>()?.0;
 		let collator = Runtime::AddressMapping::into_account_id(collator);
 
 		// Build call with origin.
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = parachain_staking::Call::<Runtime>::schedule_revoke_delegation { collator };
 
 		// Return call information
@@ -842,12 +805,12 @@ where
 	}
 
 	fn delegator_bond_more(
-		input: &mut EvmDataReader,
-		context: &Context,
+		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<(
 		<Runtime::Call as Dispatchable>::Origin,
 		parachain_staking::Call<Runtime>,
 	)> {
+		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
 		input.expect_arguments(2)?;
 		let candidate = input.read::<Address>()?.0;
@@ -855,7 +818,7 @@ where
 		let more: BalanceOf<Runtime> = input.read()?;
 
 		// Build call with origin.
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = parachain_staking::Call::<Runtime>::delegator_bond_more { candidate, more };
 
 		// Return call information
@@ -863,12 +826,12 @@ where
 	}
 
 	fn schedule_delegator_bond_less(
-		input: &mut EvmDataReader,
-		context: &Context,
+		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<(
 		<Runtime::Call as Dispatchable>::Origin,
 		parachain_staking::Call<Runtime>,
 	)> {
+		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
 		input.expect_arguments(2)?;
 		let candidate = input.read::<Address>()?.0;
@@ -876,7 +839,7 @@ where
 		let less: BalanceOf<Runtime> = input.read()?;
 
 		// Build call with origin.
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call =
 			parachain_staking::Call::<Runtime>::schedule_delegator_bond_less { candidate, less };
 
@@ -885,12 +848,12 @@ where
 	}
 
 	fn execute_delegation_request(
-		input: &mut EvmDataReader,
-		context: &Context,
+		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<(
 		<Runtime::Call as Dispatchable>::Origin,
 		parachain_staking::Call<Runtime>,
 	)> {
+		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
 		input.expect_arguments(2)?;
 		let delegator = input.read::<Address>()?.0;
@@ -899,7 +862,7 @@ where
 		let candidate = Runtime::AddressMapping::into_account_id(candidate);
 
 		// Build call with origin.
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = parachain_staking::Call::<Runtime>::execute_delegation_request {
 			delegator,
 			candidate,
@@ -910,19 +873,19 @@ where
 	}
 
 	fn cancel_delegation_request(
-		input: &mut EvmDataReader,
-		context: &Context,
+		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<(
 		<Runtime::Call as Dispatchable>::Origin,
 		parachain_staking::Call<Runtime>,
 	)> {
+		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
 		input.expect_arguments(1)?;
 		let candidate = input.read::<Address>()?.0;
 		let candidate = Runtime::AddressMapping::into_account_id(candidate);
 
 		// Build call with origin.
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = parachain_staking::Call::<Runtime>::cancel_delegation_request { candidate };
 
 		// Return call information

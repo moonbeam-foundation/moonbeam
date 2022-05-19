@@ -19,10 +19,12 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use evm::{ExitError, ExitReason};
-use fp_evm::{Context, Log, PrecompileFailure, PrecompileHandle, PrecompileOutput, Transfer};
+use fp_evm::{
+	Context, Log, Precompile, PrecompileFailure, PrecompileHandle, PrecompileOutput, Transfer,
+};
 use precompile_utils::{
-	check_function_modifier, keccak256, succeed, Address, Bytes, EvmDataReader, EvmDataWriter,
-	EvmResult, FunctionModifier, LogExt, LogsBuilder, PrecompileHandleExt,
+	keccak256, succeed, Address, Bytes, EvmDataWriter, EvmResult, FunctionModifier, LogExt,
+	LogsBuilder, PrecompileHandleExt,
 };
 use sp_core::{H160, U256};
 use sp_std::{iter::repeat, marker::PhantomData, vec, vec::Vec};
@@ -60,25 +62,18 @@ pub fn log_subcall_failed(address: impl Into<H160>, index: usize) -> Log {
 /// Batch precompile.
 pub struct BatchPrecompile<Runtime>(PhantomData<Runtime>);
 
-impl<Runtime> pallet_evm::Precompile for BatchPrecompile<Runtime>
+impl<Runtime> Precompile for BatchPrecompile<Runtime>
 where
 	Runtime: pallet_evm::Config,
 {
-	fn execute(
-		handle: &mut impl PrecompileHandle,
-		input: &[u8],
-		_target_gas: Option<u64>,
-		context: &Context,
-		is_static: bool,
-	) -> EvmResult<PrecompileOutput> {
-		let (mut input, selector) = EvmDataReader::new_with_selector(input)?;
-		let input = &mut input;
+	fn execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		let selector = handle.read_selector()?;
 
 		// No funds are transfered to the precompile address.
 		// Transfers will directly be made on the behalf of the user by the precompile.
-		check_function_modifier(context, is_static, FunctionModifier::NonPayable)?;
+		handle.check_function_modifier(FunctionModifier::NonPayable)?;
 
-		Self::batch(handle, input, context, selector)
+		Self::batch(handle, selector)
 	}
 }
 
@@ -86,12 +81,8 @@ impl<Runtime> BatchPrecompile<Runtime>
 where
 	Runtime: pallet_evm::Config,
 {
-	fn batch(
-		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-		context: &Context,
-		action: Action,
-	) -> EvmResult<PrecompileOutput> {
+	fn batch(handle: &mut impl PrecompileHandle, action: Action) -> EvmResult<PrecompileOutput> {
+		let mut input = handle.read_input()?;
 		let addresses: Vec<Address> = input.read()?;
 		let values: Vec<U256> = input.read()?;
 		let calls_data: Vec<Bytes> = input.read()?;
@@ -117,7 +108,7 @@ where
 			let call_data = call_data.unwrap_or(Bytes(vec![])).0;
 
 			let sub_context = Context {
-				caller: context.caller,
+				caller: handle.context().caller,
 				address: address.clone(),
 				apparent_value: value,
 			};
@@ -126,7 +117,7 @@ where
 				None
 			} else {
 				Some(Transfer {
-					source: context.caller,
+					source: handle.context().caller,
 					target: address.clone(),
 					value,
 				})

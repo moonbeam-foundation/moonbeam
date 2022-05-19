@@ -19,14 +19,14 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![feature(assert_matches)]
 
-use fp_evm::{Context, PrecompileHandle, PrecompileOutput};
+use fp_evm::{PrecompileHandle, PrecompileOutput};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use frame_support::traits::Currency;
 use pallet_democracy::{AccountVote, Call as DemocracyCall, Vote};
-use pallet_evm::AddressMapping;
+use pallet_evm::{AddressMapping, Precompile};
 use precompile_utils::{
-	check_function_modifier, revert, succeed, Address, Bytes, EvmData, EvmDataReader,
-	EvmDataWriter, EvmResult, FunctionModifier, RuntimeHelper,
+	revert, succeed, Address, Bytes, EvmData, EvmDataWriter, EvmResult, FunctionModifier,
+	PrecompileHandleExt, RuntimeHelper,
 };
 use sp_core::{H160, H256, U256};
 use sp_std::{
@@ -74,7 +74,7 @@ enum Action {
 pub struct DemocracyWrapper<Runtime>(PhantomData<Runtime>);
 
 // TODO: Migrate to precompile_utils::Precompile.
-impl<Runtime> pallet_evm::Precompile for DemocracyWrapper<Runtime>
+impl<Runtime> Precompile for DemocracyWrapper<Runtime>
 where
 	Runtime: pallet_democracy::Config + pallet_evm::Config + frame_system::Config,
 	BalanceOf<Runtime>: TryFrom<U256> + TryInto<u128> + Debug + EvmData,
@@ -83,53 +83,42 @@ where
 	Runtime::Call: From<DemocracyCall<Runtime>>,
 	Runtime::Hash: From<H256>,
 {
-	fn execute(
-		handle: &mut impl PrecompileHandle,
-		input: &[u8], //Reminder this is big-endian
-		_target_gas: Option<u64>,
-		context: &Context,
-		is_static: bool,
-	) -> EvmResult<PrecompileOutput> {
+	fn execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		log::trace!(target: "democracy-precompile", "In democracy wrapper");
 
-		let (mut input, selector) = EvmDataReader::new_with_selector(input)?;
-		let input = &mut input;
+		let selector = handle.read_selector()?;
 
-		check_function_modifier(
-			context,
-			is_static,
-			match selector {
-				Action::Propose
-				| Action::Second
-				| Action::StandardVote
-				| Action::RemoveVote
-				| Action::Delegate
-				| Action::UnDelegate
-				| Action::Unlock
-				| Action::NotePreimage
-				| Action::NoteImminentPreimage => FunctionModifier::NonPayable,
-				_ => FunctionModifier::View,
-			},
-		)?;
+		handle.check_function_modifier(match selector {
+			Action::Propose
+			| Action::Second
+			| Action::StandardVote
+			| Action::RemoveVote
+			| Action::Delegate
+			| Action::UnDelegate
+			| Action::Unlock
+			| Action::NotePreimage
+			| Action::NoteImminentPreimage => FunctionModifier::NonPayable,
+			_ => FunctionModifier::View,
+		})?;
 
 		match selector {
 			// Storage Accessors
 			Action::PublicPropCount => Self::public_prop_count(handle),
-			Action::DepositOf => Self::deposit_of(handle, input),
+			Action::DepositOf => Self::deposit_of(handle),
 			Action::LowestUnbaked => Self::lowest_unbaked(handle),
-			Action::OngoingReferendumInfo => Self::ongoing_referendum_info(handle, input),
-			Action::FinishedReferendumInfo => Self::finished_referendum_info(handle, input),
+			Action::OngoingReferendumInfo => Self::ongoing_referendum_info(handle),
+			Action::FinishedReferendumInfo => Self::finished_referendum_info(handle),
 
 			// Dispatchables
-			Action::Propose => Self::propose(handle, input, context),
-			Action::Second => Self::second(handle, input, context),
-			Action::StandardVote => Self::standard_vote(handle, input, context),
-			Action::RemoveVote => Self::remove_vote(handle, input, context),
-			Action::Delegate => Self::delegate(handle, input, context),
-			Action::UnDelegate => Self::un_delegate(handle, context),
-			Action::Unlock => Self::unlock(handle, input, context),
-			Action::NotePreimage => Self::note_preimage(handle, input, context),
-			Action::NoteImminentPreimage => Self::note_imminent_preimage(handle, input, context),
+			Action::Propose => Self::propose(handle),
+			Action::Second => Self::second(handle),
+			Action::StandardVote => Self::standard_vote(handle),
+			Action::RemoveVote => Self::remove_vote(handle),
+			Action::Delegate => Self::delegate(handle),
+			Action::UnDelegate => Self::un_delegate(handle),
+			Action::Unlock => Self::unlock(handle),
+			Action::NotePreimage => Self::note_preimage(handle),
+			Action::NoteImminentPreimage => Self::note_imminent_preimage(handle),
 		}
 	}
 }
@@ -153,10 +142,8 @@ where
 		Ok(succeed(EvmDataWriter::new().write(prop_count).build()))
 	}
 
-	fn deposit_of(
-		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-	) -> EvmResult<PrecompileOutput> {
+	fn deposit_of(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		let mut input = handle.read_input()?;
 		// Bound check
 		input.expect_arguments(1)?;
 		let prop_index: u32 = input.read()?;
@@ -190,10 +177,7 @@ where
 	// This method is not yet implemented because it depends on
 	// https://github.com/paritytech/substrate/pull/9565 which has been merged into Substrate
 	// master, but is not on the release branches that we are following
-	fn ongoing_referendum_info(
-		_handle: &mut impl PrecompileHandle,
-		_input: &mut EvmDataReader,
-	) -> EvmResult<PrecompileOutput> {
+	fn ongoing_referendum_info(_handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		Err(revert(
 			"This method depends on https://github.com/paritytech/substrate/pull/9565",
 		))
@@ -245,7 +229,6 @@ where
 	// master, but is not on the release branches that we are following
 	fn finished_referendum_info(
 		_handle: &mut impl PrecompileHandle,
-		_input: &mut EvmDataReader,
 	) -> EvmResult<PrecompileOutput> {
 		Err(revert(
 			"This method depends on https://github.com/paritytech/substrate/pull/9565",
@@ -253,11 +236,8 @@ where
 	}
 
 	// The dispatchable wrappers are next. They dispatch a Substrate inner Call.
-	fn propose(
-		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-		context: &Context,
-	) -> EvmResult<PrecompileOutput> {
+	fn propose(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		let mut input = handle.read_input()?;
 		// Bound check
 		input.expect_arguments(2)?;
 
@@ -269,7 +249,7 @@ where
 			"Proposing with hash {:?}, and amount {:?}", proposal_hash, amount
 		);
 
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = DemocracyCall::<Runtime>::propose {
 			proposal_hash,
 			value: amount,
@@ -280,11 +260,8 @@ where
 		Ok(succeed([]))
 	}
 
-	fn second(
-		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-		context: &Context,
-	) -> EvmResult<PrecompileOutput> {
+	fn second(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		let mut input = handle.read_input()?;
 		// Bound check
 		input.expect_arguments(2)?;
 
@@ -296,7 +273,7 @@ where
 			"Seconding proposal {:?}, with bound {:?}", proposal, seconds_upper_bound
 		);
 
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = DemocracyCall::<Runtime>::second {
 			proposal,
 			seconds_upper_bound,
@@ -307,11 +284,8 @@ where
 		Ok(succeed([]))
 	}
 
-	fn standard_vote(
-		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-		context: &Context,
-	) -> EvmResult<PrecompileOutput> {
+	fn standard_vote(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		let mut input = handle.read_input()?;
 		// Bound check
 		input.expect_arguments(4)?;
 
@@ -332,7 +306,7 @@ where
 			aye, ref_index, conviction
 		);
 
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = DemocracyCall::<Runtime>::vote { ref_index, vote };
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -340,11 +314,8 @@ where
 		Ok(succeed([]))
 	}
 
-	fn remove_vote(
-		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-		context: &Context,
-	) -> EvmResult<PrecompileOutput> {
+	fn remove_vote(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		let mut input = handle.read_input()?;
 		// Bound check
 		input.expect_arguments(1)?;
 
@@ -356,7 +327,7 @@ where
 			referendum_index
 		);
 
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = DemocracyCall::<Runtime>::remove_vote {
 			index: referendum_index,
 		};
@@ -366,11 +337,8 @@ where
 		Ok(succeed([]))
 	}
 
-	fn delegate(
-		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-		context: &Context,
-	) -> EvmResult<PrecompileOutput> {
+	fn delegate(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		let mut input = handle.read_input()?;
 		// Bound check
 		input.expect_arguments(3)?;
 
@@ -387,7 +355,7 @@ where
 			to, conviction, balance
 		);
 
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = DemocracyCall::<Runtime>::delegate {
 			to,
 			conviction,
@@ -399,11 +367,8 @@ where
 		Ok(succeed([]))
 	}
 
-	fn un_delegate(
-		handle: &mut impl PrecompileHandle,
-		context: &Context,
-	) -> EvmResult<PrecompileOutput> {
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+	fn un_delegate(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = DemocracyCall::<Runtime>::undelegate {};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -411,11 +376,8 @@ where
 		Ok(succeed([]))
 	}
 
-	fn unlock(
-		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-		context: &Context,
-	) -> EvmResult<PrecompileOutput> {
+	fn unlock(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		let mut input = handle.read_input()?;
 		// Bound check
 		input.expect_arguments(1)?;
 
@@ -427,7 +389,7 @@ where
 			"Unlocking democracy tokens for {:?}", target
 		);
 
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = DemocracyCall::<Runtime>::unlock { target };
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -435,11 +397,8 @@ where
 		Ok(succeed([]))
 	}
 
-	fn note_preimage(
-		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-		context: &Context,
-	) -> EvmResult<PrecompileOutput> {
+	fn note_preimage(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		let mut input = handle.read_input()?;
 		let encoded_proposal: Vec<u8> = input.read::<Bytes>()?.into();
 
 		log::trace!(
@@ -447,7 +406,7 @@ where
 			"Noting preimage {:?}", encoded_proposal
 		);
 
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = DemocracyCall::<Runtime>::note_preimage { encoded_proposal };
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -455,11 +414,8 @@ where
 		Ok(succeed([]))
 	}
 
-	fn note_imminent_preimage(
-		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-		context: &Context,
-	) -> EvmResult<PrecompileOutput> {
+	fn note_imminent_preimage(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		let mut input = handle.read_input()?;
 		let encoded_proposal: Vec<u8> = input.read::<Bytes>()?.into();
 
 		log::trace!(
@@ -467,7 +423,7 @@ where
 			"Noting imminent preimage {:?}", encoded_proposal
 		);
 
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = DemocracyCall::<Runtime>::note_imminent_preimage { encoded_proposal };
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;

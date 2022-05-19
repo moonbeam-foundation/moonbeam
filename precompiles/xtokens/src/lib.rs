@@ -19,16 +19,16 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![feature(assert_matches)]
 
-use fp_evm::{Context, PrecompileHandle, PrecompileOutput};
+use fp_evm::{PrecompileHandle, PrecompileOutput};
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
 	ensure,
 	traits::Get,
 };
-use pallet_evm::AddressMapping;
+use pallet_evm::{AddressMapping, Precompile};
 use precompile_utils::{
-	check_function_modifier, revert, succeed, Address, EvmData, EvmDataReader, EvmDataWriter,
-	EvmResult, FunctionModifier, RuntimeHelper,
+	revert, succeed, Address, EvmData, EvmDataReader, EvmDataWriter, EvmResult, FunctionModifier,
+	PrecompileHandleExt, RuntimeHelper,
 };
 use sp_core::{H160, U256};
 use sp_std::{
@@ -71,7 +71,7 @@ pub enum Action {
 /// A precompile to wrap the functionality from xtokens
 pub struct XtokensWrapper<Runtime>(PhantomData<Runtime>);
 
-impl<Runtime> pallet_evm::Precompile for XtokensWrapper<Runtime>
+impl<Runtime> Precompile for XtokensWrapper<Runtime>
 where
 	Runtime: orml_xtokens::Config + pallet_evm::Config + frame_system::Config,
 	Runtime::AccountId: From<H160>,
@@ -81,29 +81,18 @@ where
 	XBalanceOf<Runtime>: TryFrom<U256> + Into<U256> + EvmData,
 	Runtime: AccountIdToCurrencyId<Runtime::AccountId, CurrencyIdOf<Runtime>>,
 {
-	fn execute(
-		handle: &mut impl PrecompileHandle,
-		input: &[u8], //Reminder this is big-endian
-		_target_gas: Option<u64>,
-		context: &Context,
-		is_static: bool,
-	) -> EvmResult<PrecompileOutput> {
-		let (mut input, selector) = EvmDataReader::new_with_selector(input)?;
-		let input = &mut input;
+	fn execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		let selector = handle.read_selector()?;
 
-		check_function_modifier(context, is_static, FunctionModifier::NonPayable)?;
+		handle.check_function_modifier(FunctionModifier::NonPayable)?;
 
 		match selector {
-			Action::Transfer => Self::transfer(handle, input, context),
-			Action::TransferWithFee => Self::transfer_with_fee(handle, input, context),
-			Action::TransferMultiAsset => Self::transfer_multiasset(handle, input, context),
-			Action::TransferMultiAssetWithFee => {
-				Self::transfer_multiasset_with_fee(handle, input, context)
-			}
-			Action::TransferMultiCurrencies => {
-				Self::transfer_multi_currencies(handle, input, context)
-			}
-			Action::TransferMultiAssets => Self::transfer_multi_assets(handle, input, context),
+			Action::Transfer => Self::transfer(handle),
+			Action::TransferWithFee => Self::transfer_with_fee(handle),
+			Action::TransferMultiAsset => Self::transfer_multiasset(handle),
+			Action::TransferMultiAssetWithFee => Self::transfer_multiasset_with_fee(handle),
+			Action::TransferMultiCurrencies => Self::transfer_multi_currencies(handle),
+			Action::TransferMultiAssets => Self::transfer_multi_assets(handle),
 		}
 	}
 }
@@ -117,11 +106,9 @@ where
 	XBalanceOf<Runtime>: TryFrom<U256> + Into<U256> + EvmData,
 	Runtime: AccountIdToCurrencyId<Runtime::AccountId, CurrencyIdOf<Runtime>>,
 {
-	fn transfer(
-		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-		context: &Context,
-	) -> EvmResult<PrecompileOutput> {
+	fn transfer(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		let mut input = handle.read_input()?;
+
 		// Bound check
 		input.expect_arguments(2)?;
 		let to_address: H160 = input.read::<Address>()?.into();
@@ -141,7 +128,7 @@ where
 			Runtime::account_to_currency_id(to_account)
 				.ok_or(revert("cannot convert into currency id"))?;
 
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let amount = amount
 			.try_into()
 			.map_err(|_| revert("Amount is too large for provided balance type"))?;
@@ -158,11 +145,8 @@ where
 		Ok(succeed([]))
 	}
 
-	fn transfer_with_fee(
-		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-		context: &Context,
-	) -> EvmResult<PrecompileOutput> {
+	fn transfer_with_fee(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		let mut input = handle.read_input()?;
 		input.expect_arguments(5)?;
 
 		let to_address: H160 = input.read::<Address>()?.into();
@@ -181,7 +165,7 @@ where
 			Runtime::account_to_currency_id(to_account)
 				.ok_or(revert("cannot convert into currency id"))?;
 
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
 		// Transferred amount
 		let amount = amount
@@ -206,11 +190,8 @@ where
 		Ok(succeed([]))
 	}
 
-	fn transfer_multiasset(
-		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-		context: &Context,
-	) -> EvmResult<PrecompileOutput> {
+	fn transfer_multiasset(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		let mut input = handle.read_input()?;
 		// asset is defined as a multiLocation. For now we are assuming these are concrete
 		// fungible assets
 		let asset_multilocation: MultiLocation = input.read::<MultiLocation>()?;
@@ -225,7 +206,7 @@ where
 		input.expect_arguments(1)?;
 		let dest_weight: u64 = input.read::<u64>()?;
 
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let to_balance = amount
 			.try_into()
 			.map_err(|_| revert("Amount is too large for provided balance type"))?;
@@ -246,9 +227,8 @@ where
 
 	fn transfer_multiasset_with_fee(
 		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
+		let mut input = handle.read_input()?;
 		input.expect_arguments(5)?;
 
 		// asset is defined as a multiLocation. For now we are assuming these are concrete
@@ -262,7 +242,7 @@ where
 
 		let dest_weight: u64 = input.read::<u64>()?;
 
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let amount = amount
 			.try_into()
 			.map_err(|_| revert("Amount is too large for provided balance type"))?;
@@ -290,9 +270,8 @@ where
 
 	fn transfer_multi_currencies(
 		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
+		let mut input = handle.read_input()?;
 		input.expect_arguments(4)?;
 		let non_mapped_currencies: Vec<Currency> = input.read::<Vec<Currency>>()?;
 		let max_assets = MaxAssetsForTransfer::<Runtime>::get();
@@ -311,7 +290,7 @@ where
 
 		let dest_weight: u64 = input.read::<u64>()?;
 
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
 		// Build all currencies
 		let currencies: EvmResult<
@@ -353,11 +332,8 @@ where
 		Ok(succeed([]))
 	}
 
-	fn transfer_multi_assets(
-		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-		context: &Context,
-	) -> EvmResult<PrecompileOutput> {
+	fn transfer_multi_assets(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		let mut input = handle.read_input()?;
 		input.expect_arguments(4)?;
 		let assets: Vec<EvmMultiAsset> = input.read::<Vec<EvmMultiAsset>>()?;
 		let max_assets = MaxAssetsForTransfer::<Runtime>::get();
@@ -376,7 +352,7 @@ where
 
 		let dest_weight: u64 = input.read::<u64>()?;
 
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
 		let multiasset_vec: EvmResult<Vec<MultiAsset>> = assets
 			.iter()

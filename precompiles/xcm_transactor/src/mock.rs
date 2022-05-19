@@ -23,9 +23,9 @@ use frame_support::{
 	weights::{RuntimeDbWeight, Weight},
 };
 use pallet_evm::{
-	AddressMapping, EnsureAddressNever, EnsureAddressRoot, GasWeightMapping, PrecompileSet,
+	AddressMapping, EnsureAddressNever, EnsureAddressRoot, GasWeightMapping, Precompile,
+	PrecompileSet,
 };
-use precompile_utils::Precompile;
 use scale_info::TypeInfo;
 use serde::{Deserialize, Serialize};
 use sp_core::H256;

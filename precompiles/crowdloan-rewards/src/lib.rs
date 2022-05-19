@@ -19,15 +19,15 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![feature(assert_matches)]
 
-use fp_evm::{Context, PrecompileHandle, PrecompileOutput};
+use fp_evm::{Precompile, PrecompileHandle, PrecompileOutput};
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
 	traits::Currency,
 };
 use pallet_evm::AddressMapping;
 use precompile_utils::{
-	check_function_modifier, revert, succeed, Address, EvmDataReader, EvmDataWriter, EvmResult,
-	FunctionModifier, RuntimeHelper,
+	revert, succeed, Address, EvmDataWriter, EvmResult, FunctionModifier, PrecompileHandleExt,
+	RuntimeHelper,
 };
 
 use sp_core::{H160, U256};
@@ -59,8 +59,7 @@ pub enum Action {
 /// A precompile to wrap the functionality from pallet_crowdloan_rewards.
 pub struct CrowdloanRewardsWrapper<Runtime>(PhantomData<Runtime>);
 
-// TODO: Migrate to precompile_utils::Precompile.
-impl<Runtime> pallet_evm::Precompile for CrowdloanRewardsWrapper<Runtime>
+impl<Runtime> Precompile for CrowdloanRewardsWrapper<Runtime>
 where
 	Runtime: pallet_crowdloan_rewards::Config + pallet_evm::Config,
 	BalanceOf<Runtime>: TryFrom<U256> + Debug,
@@ -68,31 +67,20 @@ where
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	Runtime::Call: From<pallet_crowdloan_rewards::Call<Runtime>>,
 {
-	fn execute(
-		handle: &mut impl PrecompileHandle,
-		input: &[u8], //Reminder this is big-endian
-		_target_gas: Option<u64>,
-		context: &Context,
-		is_static: bool,
-	) -> EvmResult<PrecompileOutput> {
-		let (mut input, selector) = EvmDataReader::new_with_selector(input)?;
-		let input = &mut input;
+	fn execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		let selector = handle.read_selector()?;
 
-		check_function_modifier(
-			context,
-			is_static,
-			match selector {
-				Action::Claim | Action::UpdateRewardAddress => FunctionModifier::NonPayable,
-				_ => FunctionModifier::View,
-			},
-		)?;
+		handle.check_function_modifier(match selector {
+			Action::Claim | Action::UpdateRewardAddress => FunctionModifier::NonPayable,
+			_ => FunctionModifier::View,
+		})?;
 
 		match selector {
 			// Check for accessor methods first. These return results immediately
-			Action::IsContributor => Self::is_contributor(handle, input),
-			Action::RewardInfo => Self::reward_info(handle, input),
-			Action::Claim => Self::claim(handle, context),
-			Action::UpdateRewardAddress => Self::update_reward_address(handle, input, context),
+			Action::IsContributor => Self::is_contributor(handle),
+			Action::RewardInfo => Self::reward_info(handle),
+			Action::Claim => Self::claim(handle),
+			Action::UpdateRewardAddress => Self::update_reward_address(handle),
 		}
 	}
 }
@@ -106,13 +94,11 @@ where
 	Runtime::Call: From<pallet_crowdloan_rewards::Call<Runtime>>,
 {
 	// The accessors are first.
-	fn is_contributor(
-		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-	) -> EvmResult<PrecompileOutput> {
+	fn is_contributor(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?; // accounts_payable
 
 		// Bound check
+		let mut input = handle.read_input()?;
 		input.expect_arguments(1)?;
 
 		// parse the address
@@ -135,13 +121,11 @@ where
 		Ok(succeed(EvmDataWriter::new().write(is_contributor).build()))
 	}
 
-	fn reward_info(
-		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-	) -> EvmResult<PrecompileOutput> {
+	fn reward_info(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?; // accounts_payable
 
 		// Bound check
+		let mut input = handle.read_input()?;
 		input.expect_arguments(1)?;
 
 		// parse the address
@@ -183,8 +167,8 @@ where
 		))
 	}
 
-	fn claim(handle: &mut impl PrecompileHandle, context: &Context) -> EvmResult<PrecompileOutput> {
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+	fn claim(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = pallet_crowdloan_rewards::Call::<Runtime>::claim {};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -192,17 +176,14 @@ where
 		Ok(succeed([]))
 	}
 
-	fn update_reward_address(
-		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-		context: &Context,
-	) -> EvmResult<PrecompileOutput> {
+	fn update_reward_address(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		log::trace!(
 			target: "crowdloan-rewards-precompile",
 			"In update_reward_address dispatchable wrapper"
 		);
 
 		// Bound check
+		let mut input = handle.read_input()?;
 		input.expect_arguments(1)?;
 
 		// parse the address
@@ -212,7 +193,7 @@ where
 
 		log::trace!(target: "crowdloan-rewards-precompile", "New account is {:?}", new_address);
 
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call =
 			pallet_crowdloan_rewards::Call::<Runtime>::update_reward_address { new_reward_account };
 

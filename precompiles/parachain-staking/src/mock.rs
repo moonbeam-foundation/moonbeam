@@ -22,9 +22,10 @@ use frame_support::{
 	traits::{Everything, GenesisBuild, OnFinalize, OnInitialize},
 	weights::Weight,
 };
-use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet};
+use pallet_evm::{
+	AddressMapping, EnsureAddressNever, EnsureAddressRoot, Precompile, PrecompileSet,
+};
 use parachain_staking::{AwardedPts, InflationInfo, Points, Range};
-use precompile_utils::Precompile;
 use serde::{Deserialize, Serialize};
 use sp_core::{H160, H256};
 use sp_io;

@@ -21,7 +21,6 @@ use super::*;
 use codec::{Decode, Encode, MaxEncodedLen};
 use frame_support::{construct_runtime, parameter_types, traits::Everything};
 use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet};
-use precompile_utils::Precompile;
 use scale_info::TypeInfo;
 use serde::{Deserialize, Serialize};
 use sp_core::{H160, H256};
