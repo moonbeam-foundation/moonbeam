@@ -111,6 +111,8 @@ where
 }
 
 // We need to know how to charge for incoming assets
+// We assume AssetIdInfoGetter is implemented and is capable of getting how much units we should
+// charge for a given asset
 // This takes the first fungible asset, and takes whatever UnitPerSecondGetter establishes
 // UnitsToWeightRatio trait, which needs to be implemented by AssetIdInfoGetter
 pub struct FirstAssetTrader<
@@ -207,6 +209,7 @@ impl<
 		}
 	}
 
+	// Refund weight. We will refund in whatever asset is stored in self.
 	fn refund_weight(&mut self, weight: Weight) -> Option<MultiAsset> {
 		if let Some((id, prev_amount, units_per_second)) = self.1.clone() {
 			let weight = weight.min(self.0);
