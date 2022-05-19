@@ -2792,3 +2792,25 @@ fn base_fee_should_default_to_associate_type_value() {
 		);
 	});
 }
+
+#[test]
+fn fixed_gas_price_is_sane() {
+	use pallet_transaction_payment::FeeDetails;
+	use sp_runtime::testing::TestXt;
+
+	let remark = frame_system::Call::<Runtime>::remark { remark: vec![] };
+	let signed_xt = TestXt::<_, ()>::new(remark, Some((1, ())));
+
+	ExtBuilder::default().build().execute_with(|| {
+
+		let fee_details = moonbase_runtime::TransactionPayment::query_fee_details(signed_xt, 1000);
+
+		assert_eq!(
+			fee_details,
+			FeeDetails {
+				inclusion_fee: None,
+				tip: 0u32.into(),
+			}
+		);
+	});
+}
