@@ -742,7 +742,7 @@ pub mod pallet {
 		}
 
 		/// Returns the fee for a given set of parameters
-		/// We use always round up in case of fractional division
+		/// We always round up in case of fractional division
 		pub fn calculate_fee_per_second(weight: Weight, fee_per_second: u128) -> u128 {
 			// grab WEIGHT_PER_SECOND as u128
 			let weight_per_second_u128 = WEIGHT_PER_SECOND as u128;
