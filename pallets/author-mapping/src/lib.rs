@@ -254,7 +254,7 @@ pub mod pallet {
 		/// No new security deposit is required. Will replace `update_association` which is kept
 		/// now for backwards compatibility reasons.
 		#[pallet::weight(<T as Config>::WeightInfo::set_keys())]
-		pub fn set_keys(origin: OriginFor<T>, keys: T::AllKeys) -> DispatchResult {
+		pub fn set_keys(origin: OriginFor<T>, keys: (NimbusId, T::Keys)) -> DispatchResult {
 			let account_id = ensure_signed(origin)?;
 			let old_author_id =
 				NimbusLookup::<T>::get(&account_id).ok_or(Error::<T>::OldAuthorIdNotFound)?;
