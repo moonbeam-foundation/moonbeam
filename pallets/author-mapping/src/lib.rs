@@ -47,7 +47,6 @@ pub mod pallet {
 	use frame_system::pallet_prelude::*;
 	use nimbus_primitives::{AccountLookup, NimbusId};
 	use session_keys_primitives::KeysLookup;
-	use sp_runtime::traits::OpaqueKeys;
 
 	pub type BalanceOf<T> = <<T as Config>::DepositCurrency as Currency<
 		<T as frame_system::Config>::AccountId,
@@ -74,8 +73,6 @@ pub mod pallet {
 		type DepositCurrency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
 		/// The amount that should be taken as a security deposit when registering a NimbusId.
 		type DepositAmount: Get<<Self::DepositCurrency as Currency<Self::AccountId>>::Balance>;
-		/// Nimbus keys and the key(s) stored in `Self::Keys`
-		type AllKeys: OpaqueKeys + Member + Parameter + MaybeSerializeDeserialize;
 		/// Additional keys
 		/// Convertible From<NimbusId> to get default keys for each mapping (for the migration)
 		type Keys: Parameter + Member + MaybeSerializeDeserialize + From<NimbusId>;
@@ -265,21 +262,7 @@ pub mod pallet {
 				account_id == stored_info.account,
 				Error::<T>::NotYourAssociation
 			);
-			// Error if either new key is not included
-			let mut maybe_new_author_id: Option<NimbusId> = None;
-			let mut maybe_new_vrf_key: Option<T::Keys> = None;
-			for id in T::AllKeys::key_ids() {
-				let key = keys.get_raw(*id);
-				if id == &nimbus_primitives::NIMBUS_KEY_ID {
-					maybe_new_author_id = Some(session_keys_primitives::nimbus_id_from_bytes(key));
-				} else if id == &session_keys_primitives::VRF_KEY_ID {
-					// TODO: consider adding VRF From<bytes> and impl it in session key primitives instead
-					maybe_new_vrf_key =
-						Some(session_keys_primitives::nimbus_id_from_bytes(key).into());
-				}
-			}
-			let new_author_id = maybe_new_author_id.ok_or(Error::<T>::NewAuthorIdNotIncluded)?;
-			let new_keys = maybe_new_vrf_key.ok_or(Error::<T>::NewVrfKeyNotIncluded)?;
+			let (new_author_id, new_keys) = keys;
 			ensure!(
 				MappingWithDeposit::<T>::get(&new_author_id).is_none(),
 				Error::<T>::AlreadyAssociated
