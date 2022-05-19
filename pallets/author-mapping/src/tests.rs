@@ -426,9 +426,7 @@ fn registered_can_full_rotate() {
 		.execute_with(|| {
 			assert_ok!(AuthorMapping::set_keys(
 				Origin::signed(2),
-				TestAuthor::Bob.into(),
-				TestAuthor::Charlie.into(),
-				TestAuthor::Charlie.into(),
+				(TestAuthor::Charlie.into(), TestAuthor::Charlie.into())
 			));
 
 			assert_eq!(AuthorMapping::account_id_of(&TestAuthor::Bob.into()), None);
@@ -453,11 +451,9 @@ fn unregistered_author_cannot_be_full_rotated() {
 		assert_noop!(
 			AuthorMapping::set_keys(
 				Origin::signed(2),
-				TestAuthor::Alice.into(),
-				TestAuthor::Bob.into(),
-				TestAuthor::Bob.into(),
+				(TestAuthor::Bob.into(), TestAuthor::Bob.into()),
 			),
-			Error::<Runtime>::AssociationNotFound
+			Error::<Runtime>::OldAuthorIdNotFound
 		);
 	})
 }
@@ -472,11 +468,9 @@ fn registered_author_cannot_be_full_rotated_by_non_owner() {
 			assert_noop!(
 				AuthorMapping::set_keys(
 					Origin::signed(2),
-					TestAuthor::Alice.into(),
-					TestAuthor::Bob.into(),
-					TestAuthor::Bob.into(),
+					(TestAuthor::Bob.into(), TestAuthor::Bob.into())
 				),
-				Error::<Runtime>::NotYourAssociation
+				Error::<Runtime>::OldAuthorIdNotFound
 			);
 		})
 }
@@ -491,9 +485,7 @@ fn full_rotating_to_the_same_author_id_leaves_registration_in_tact() {
 			assert_noop!(
 				AuthorMapping::set_keys(
 					Origin::signed(1),
-					TestAuthor::Alice.into(),
-					TestAuthor::Alice.into(),
-					TestAuthor::Alice.into(),
+					(TestAuthor::Alice.into(), TestAuthor::Alice.into())
 				),
 				Error::<Runtime>::AlreadyAssociated
 			);

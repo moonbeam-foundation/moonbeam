@@ -93,8 +93,6 @@ pub mod pallet {
 		AlreadyAssociated,
 		/// No existing NimbusId can be found for the account
 		OldAuthorIdNotFound,
-		NewAuthorIdNotIncluded,
-		NewVrfKeyNotIncluded,
 	}
 
 	#[pallet::event]
