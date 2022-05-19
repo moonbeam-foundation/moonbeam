@@ -181,6 +181,7 @@ pub mod pallet {
 				..stored_info
 			};
 			MappingWithDeposit::<T>::insert(&new_author_id, &new_stored_info);
+			NimbusLookup::<T>::insert(&account_id, &new_author_id);
 
 			<Pallet<T>>::deposit_event(Event::AuthorRotated {
 				new_author_id: new_author_id,
