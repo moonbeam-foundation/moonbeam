@@ -47,6 +47,7 @@ pub mod pallet {
 	use frame_system::pallet_prelude::*;
 	use nimbus_primitives::{AccountLookup, NimbusId};
 	use session_keys_primitives::KeysLookup;
+	use sp_runtime::traits::OpaqueKeys;
 
 	pub type BalanceOf<T> = <<T as Config>::DepositCurrency as Currency<
 		<T as frame_system::Config>::AccountId,
@@ -73,6 +74,9 @@ pub mod pallet {
 		type DepositCurrency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
 		/// The amount that should be taken as a security deposit when registering a NimbusId.
 		type DepositAmount: Get<<Self::DepositCurrency as Currency<Self::AccountId>>::Balance>;
+		// TODO: rename to Keys
+		type BothKeys: OpaqueKeys + Member + Parameter + MaybeSerializeDeserialize;
+		// TODO: rename to VrfKeys
 		/// Additional keys
 		/// Convertible From<NimbusId> to get default keys for each mapping (for the migration)
 		type Keys: Parameter + Member + MaybeSerializeDeserialize + From<NimbusId>;
@@ -91,6 +95,10 @@ pub mod pallet {
 		CannotAffordSecurityDeposit,
 		/// The NimbusId in question is already associated and cannot be overwritten
 		AlreadyAssociated,
+		/// No existing NimbusId can be found for the account
+		OldAuthorIdNotFound,
+		NewAuthorIdNotIncluded,
+		NewVrfKeyNotIncluded,
 	}
 
 	#[pallet::event]
@@ -246,14 +254,10 @@ pub mod pallet {
 		/// No new security deposit is required. Will replace `update_association` which is kept
 		/// now for backwards compatibility reasons.
 		#[pallet::weight(<T as Config>::WeightInfo::set_keys())]
-		pub fn set_keys(
-			origin: OriginFor<T>,
-			old_author_id: NimbusId,
-			new_author_id: NimbusId,
-			new_keys: T::Keys,
-		) -> DispatchResult {
+		pub fn set_keys(origin: OriginFor<T>, keys: T::BothKeys) -> DispatchResult {
 			let account_id = ensure_signed(origin)?;
-
+			let old_author_id =
+				NimbusLookup::<T>::get(&account_id).ok_or(Error::<T>::OldAuthorIdNotFound)?;
 			let stored_info = MappingWithDeposit::<T>::try_get(&old_author_id)
 				.map_err(|_| Error::<T>::AssociationNotFound)?;
 
@@ -261,6 +265,21 @@ pub mod pallet {
 				account_id == stored_info.account,
 				Error::<T>::NotYourAssociation
 			);
+			// Error if either new key is not included
+			let mut maybe_new_author_id: Option<NimbusId> = None;
+			let mut maybe_new_vrf_key: Option<T::Keys> = None;
+			for id in T::BothKeys::key_ids() {
+				let key = keys.get_raw(*id);
+				if id == &nimbus_primitives::NIMBUS_KEY_ID {
+					maybe_new_author_id = Some(session_keys_primitives::nimbus_id_from_bytes(key));
+				} else if id == &session_keys_primitives::VRF_KEY_ID {
+					// TODO: consider adding VRF From<bytes> and impl it in session key primitives instead
+					maybe_new_vrf_key =
+						Some(session_keys_primitives::nimbus_id_from_bytes(key).into());
+				}
+			}
+			let new_author_id = maybe_new_author_id.ok_or(Error::<T>::NewAuthorIdNotIncluded)?;
+			let new_keys = maybe_new_vrf_key.ok_or(Error::<T>::NewVrfKeyNotIncluded)?;
 			ensure!(
 				MappingWithDeposit::<T>::get(&new_author_id).is_none(),
 				Error::<T>::AlreadyAssociated
@@ -274,6 +293,7 @@ pub mod pallet {
 					..stored_info
 				},
 			);
+			NimbusLookup::<T>::insert(&account_id, new_author_id.clone());
 
 			<Pallet<T>>::deposit_event(Event::AuthorRotated {
 				new_author_id,
@@ -293,7 +313,7 @@ pub mod pallet {
 		) -> DispatchResult {
 			let deposit = T::DepositAmount::get();
 
-			T::DepositCurrency::reserve(&account_id, deposit)
+			T::DepositCurrency::reserve(account_id, deposit)
 				.map_err(|_| Error::<T>::CannotAffordSecurityDeposit)?;
 
 			let info = RegistrationInfo {
@@ -302,7 +322,8 @@ pub mod pallet {
 				keys,
 			};
 
-			MappingWithDeposit::<T>::insert(&author_id, &info);
+			MappingWithDeposit::<T>::insert(author_id, info);
+			NimbusLookup::<T>::insert(account_id, author_id);
 
 			Ok(())
 		}
@@ -314,6 +335,12 @@ pub mod pallet {
 	/// to the AccountIds runtime.
 	pub type MappingWithDeposit<T: Config> =
 		StorageMap<_, Blake2_128Concat, NimbusId, RegistrationInfo<T>, OptionQuery>;
+
+	#[pallet::storage]
+	#[pallet::getter(fn nimbus_lookup)]
+	/// We maintain a reverse mapping from AccountIds to NimbusIDS
+	pub type NimbusLookup<T: Config> =
+		StorageMap<_, Twox64Concat, T::AccountId, NimbusId, OptionQuery>;
 
 	#[pallet::genesis_config]
 	/// Genesis config for author mapping pallet
@@ -365,6 +392,10 @@ pub mod pallet {
 		/// A helper function to lookup the keys associated with the given author id.
 		pub fn keys_of(author_id: &NimbusId) -> Option<T::Keys> {
 			Self::account_and_deposit_of(author_id).map(|info| info.keys)
+		}
+		/// A helper function to lookup NimbusId associated with a given AccountId
+		pub fn nimbus_id_of(account_id: &T::AccountId) -> Option<NimbusId> {
+			NimbusLookup::<T>::get(account_id)
 		}
 	}
 }
