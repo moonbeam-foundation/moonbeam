@@ -80,7 +80,6 @@ fn batch_some_empty() {
 					.write::<Vec<U256>>(vec![])
 					.write::<Vec<Bytes>>(vec![])
 					.write::<Vec<U256>>(vec![])
-					.write(false)
 					.build(),
 			)
 			.with_subcall_handle(|Subcall { .. }| panic!("there should be no subcall"))
@@ -100,7 +99,6 @@ fn batch_some_until_failure_empty() {
 					.write::<Vec<U256>>(vec![])
 					.write::<Vec<Bytes>>(vec![])
 					.write::<Vec<U256>>(vec![])
-					.write(false)
 					.build(),
 			)
 			.with_subcall_handle(|Subcall { .. }| panic!("there should be no subcall"))
@@ -120,7 +118,6 @@ fn batch_all_empty() {
 					.write::<Vec<U256>>(vec![])
 					.write::<Vec<Bytes>>(vec![])
 					.write::<Vec<U256>>(vec![])
-					.write(false)
 					.build(),
 			)
 			.with_subcall_handle(|Subcall { .. }| panic!("there should be no subcall"))
@@ -280,7 +277,6 @@ fn batch_out_of_gas(
 				.write(vec![U256::from(1u8)])
 				.write(vec![Bytes::from(b"one".as_slice())])
 				.write::<Vec<U256>>(vec![])
-				.write(true)
 				.build(),
 		)
 		.with_target_gas(Some(50_000))
@@ -373,7 +369,6 @@ fn batch_incomplete(
 				.write(vec![U256::from(1u8), U256::from(2u8)])
 				.write(vec![Bytes::from(b"one".as_slice())])
 				.write::<Vec<U256>>(vec![])
-				.write(true)
 				.build(),
 		)
 		.with_target_gas(Some(100_000))
@@ -511,6 +506,101 @@ fn batch_all_incomplete() {
 	ExtBuilder::default().build().execute_with(|| {
 		batch_incomplete(&precompiles(), Action::BatchAll)
 			.execute_reverts(|output| output == b"Revert message")
+	})
+}
+
+fn batch_log_out_of_gas(
+	precompiles: &TestPrecompiles<Runtime>,
+	action: Action,
+) -> PrecompilesTester<TestPrecompiles<Runtime>> {
+	let (_, gas_reserve) = costs(action);
+
+	precompiles
+		.prepare_test(
+			Alice,
+			Precompile,
+			EvmDataWriter::new_with_selector(action)
+				.write(vec![Address(Bob.into())])
+				.write(vec![U256::from(1u8)])
+				.write(vec![Bytes::from(b"one".as_slice())])
+				.write::<Vec<U256>>(vec![])
+				.build(),
+		)
+		.with_target_gas(Some(gas_reserve - 1))
+		.with_subcall_handle(move |_subcall| panic!("there shouldn't be any subcalls"))
+}
+
+#[test]
+fn batch_all_log_out_of_gas() {
+	ExtBuilder::default().build().execute_with(|| {
+		batch_log_out_of_gas(&precompiles(), Action::BatchAll).execute_error(ExitError::OutOfGas);
+	})
+}
+
+#[test]
+fn batch_some_log_out_of_gas() {
+	ExtBuilder::default().build().execute_with(|| {
+		batch_log_out_of_gas(&precompiles(), Action::BatchSome)
+			.expect_no_logs()
+			.execute_returns(Vec::new());
+	})
+}
+
+#[test]
+fn batch_some_until_failure_log_out_of_gas() {
+	ExtBuilder::default().build().execute_with(|| {
+		batch_log_out_of_gas(&precompiles(), Action::BatchSomeUntilFailure)
+			.expect_no_logs()
+			.execute_returns(Vec::new());
+	})
+}
+
+fn batch_gas_limit(
+	precompiles: &TestPrecompiles<Runtime>,
+	action: Action,
+) -> PrecompilesTester<TestPrecompiles<Runtime>> {
+	let (_, gas_reserve) = costs(action);
+
+	precompiles
+		.prepare_test(
+			Alice,
+			Precompile,
+			EvmDataWriter::new_with_selector(action)
+				.write(vec![Address(Bob.into())])
+				.write(vec![U256::from(1u8)])
+				.write(vec![Bytes::from(b"one".as_slice())])
+				.write(vec![50_000 - gas_reserve + 1])
+				.build(),
+		)
+		.with_target_gas(Some(50_000))
+		.with_subcall_handle(move |_subcall| panic!("there shouldn't be any subcalls"))
+}
+
+#[test]
+fn batch_all_gas_limit() {
+	ExtBuilder::default().build().execute_with(|| {
+		batch_gas_limit(&precompiles(), Action::BatchAll).execute_error(ExitError::OutOfGas);
+	})
+}
+
+#[test]
+fn batch_some_gas_limit() {
+	ExtBuilder::default().build().execute_with(|| {
+		let (return_log_cost, _) = costs(Action::BatchSome);
+
+		batch_gas_limit(&precompiles(), Action::BatchSome)
+			.expect_log(log_subcall_failed(Precompile, 0))
+			.expect_cost(return_log_cost)
+			.execute_returns(Vec::new());
+	})
+}
+
+#[test]
+fn batch_some_until_failure_gas_limit() {
+	ExtBuilder::default().build().execute_with(|| {
+		batch_gas_limit(&precompiles(), Action::BatchSomeUntilFailure)
+			.expect_log(log_subcall_failed(Precompile, 0))
+			.execute_returns(Vec::new());
 	})
 }
 

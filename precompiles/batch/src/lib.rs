@@ -126,17 +126,24 @@ where
 			// We reserve enough gas to emit a final log.
 			// If not enough gas we stop there according to Action strategy.
 			let remaining_gas = handle.remaining_gas();
-			let remaining_gas = match remaining_gas
-				.checked_sub(log_subcall_failed(handle.code_address(), i).compute_cost()? + 1)
-			{
-				Some(remaining) => remaining,
-				None => return Ok(succeed([])),
+			let remaining_gas = match (
+				remaining_gas
+					.checked_sub(log_subcall_failed(handle.code_address(), i).compute_cost()? + 1),
+				action,
+			) {
+				(Some(remaining), _) => remaining,
+				(None, Action::BatchAll) => {
+					return Err(PrecompileFailure::Error {
+						exit_status: ExitError::OutOfGas,
+					})
+				}
+				(None, _) => return Ok(succeed([])),
 			};
 
 			// If there is a provided gas limit we ensure there is enough gas remaining.
-			let gas_limit = match (gas_limit, remaining_gas) {
-				(None, remaining_gas) => remaining_gas, // provide all gas if no gas limit,
-				(Some(gas_limit), remaining_gas) => {
+			let gas_limit = match gas_limit {
+				None => remaining_gas, // provide all gas if no gas limit,
+				Some(gas_limit) => {
 					if gas_limit > remaining_gas {
 						let log = log_subcall_failed(handle.code_address(), i);
 						handle.record_log_costs(&[&log])?;
