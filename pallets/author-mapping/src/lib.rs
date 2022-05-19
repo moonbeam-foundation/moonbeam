@@ -74,9 +74,8 @@ pub mod pallet {
 		type DepositCurrency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
 		/// The amount that should be taken as a security deposit when registering a NimbusId.
 		type DepositAmount: Get<<Self::DepositCurrency as Currency<Self::AccountId>>::Balance>;
-		// TODO: rename to Keys
-		type BothKeys: OpaqueKeys + Member + Parameter + MaybeSerializeDeserialize;
-		// TODO: rename to VrfKeys
+		/// Nimbus keys and the key(s) stored in `Self::Keys`
+		type AllKeys: OpaqueKeys + Member + Parameter + MaybeSerializeDeserialize;
 		/// Additional keys
 		/// Convertible From<NimbusId> to get default keys for each mapping (for the migration)
 		type Keys: Parameter + Member + MaybeSerializeDeserialize + From<NimbusId>;
@@ -255,7 +254,7 @@ pub mod pallet {
 		/// No new security deposit is required. Will replace `update_association` which is kept
 		/// now for backwards compatibility reasons.
 		#[pallet::weight(<T as Config>::WeightInfo::set_keys())]
-		pub fn set_keys(origin: OriginFor<T>, keys: T::BothKeys) -> DispatchResult {
+		pub fn set_keys(origin: OriginFor<T>, keys: T::AllKeys) -> DispatchResult {
 			let account_id = ensure_signed(origin)?;
 			let old_author_id =
 				NimbusLookup::<T>::get(&account_id).ok_or(Error::<T>::OldAuthorIdNotFound)?;
@@ -269,7 +268,7 @@ pub mod pallet {
 			// Error if either new key is not included
 			let mut maybe_new_author_id: Option<NimbusId> = None;
 			let mut maybe_new_vrf_key: Option<T::Keys> = None;
-			for id in T::BothKeys::key_ids() {
+			for id in T::AllKeys::key_ids() {
 				let key = keys.get_raw(*id);
 				if id == &nimbus_primitives::NIMBUS_KEY_ID {
 					maybe_new_author_id = Some(session_keys_primitives::nimbus_id_from_bytes(key));
