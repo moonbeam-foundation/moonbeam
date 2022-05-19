@@ -54,6 +54,16 @@ fn test_selector_enum() {
 }
 
 #[test]
+fn forbid_delegatecall() {
+	ExtBuilder::default().build().execute_with(|| {
+		precompiles()
+			.prepare_test(Alice, Precompile, Vec::new())
+			.with_address(Alice)
+			.execute_reverts(|output| output == b"cannot be called with DELEGATECALL");
+	});
+}
+
+#[test]
 fn selector_less_than_four_bytes() {
 	ExtBuilder::default().build().execute_with(|| {
 		// This selector is only three bytes long when four are required.

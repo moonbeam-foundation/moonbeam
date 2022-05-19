@@ -124,6 +124,16 @@ fn no_selector_exists_but_length_is_right() {
 	});
 }
 
+#[test]
+fn forbid_delegatecall() {
+	ExtBuilder::default().build().execute_with(|| {
+		precompiles()
+			.prepare_test(Alice, Precompile, Vec::new())
+			.with_address(Alice)
+			.execute_reverts(|output| output == b"cannot be called with DELEGATECALL");
+	});
+}
+
 // DEPRECATED
 #[test]
 fn min_nomination_works() {

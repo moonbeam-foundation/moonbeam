@@ -83,7 +83,7 @@ where
 {
 	fn execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		handle.forbid_delegatecall()?;
-		
+
 		let selector = handle.read_selector()?;
 
 		handle.check_function_modifier(FunctionModifier::NonPayable)?;

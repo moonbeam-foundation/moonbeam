@@ -66,6 +66,16 @@ fn selectors() {
 }
 
 #[test]
+fn forbid_delegatecall() {
+	ExtBuilder::default().build().execute_with(|| {
+		precompiles()
+			.prepare_test(Account::Alice, Account::Precompile, Vec::new())
+			.with_address(Account::Alice)
+			.execute_reverts(|output| output == b"cannot be called with DELEGATECALL");
+	});
+}
+
+#[test]
 fn get_total_supply() {
 	ExtBuilder::default()
 		.with_balances(vec![(Account::Alice, 1000), (Account::Bob, 2500)])

@@ -98,6 +98,30 @@ fn selectors() {
 }
 
 #[test]
+fn forbid_delegatecall() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_ok!(ForeignAssets::force_create(
+			Origin::root(),
+			0u128,
+			Account::Alice.into(),
+			true,
+			1
+		));
+		assert_ok!(ForeignAssets::mint(
+			Origin::signed(Account::Alice),
+			0u128,
+			Account::Alice.into(),
+			1000
+		));
+
+		precompiles()
+			.prepare_test(Account::Alice, Account::ForeignAssetId(0u128), Vec::new())
+			.with_address(Account::Alice)
+			.execute_reverts(|output| output == b"cannot be called with DELEGATECALL");
+	});
+}
+
+#[test]
 fn get_total_supply() {
 	ExtBuilder::default()
 		.with_balances(vec![(Account::Alice, 1000), (Account::Bob, 2500)])

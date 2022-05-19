@@ -318,7 +318,6 @@ impl<T: PrecompileHandle> PrecompileHandleExt for T {
 		}
 	}
 
-
 	#[must_use]
 	/// Read the selector from the input data.
 	fn read_selector<S>(&self) -> EvmResult<S>

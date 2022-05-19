@@ -89,6 +89,16 @@ fn selectors() {
 }
 
 #[test]
+fn forbid_delegatecall() {
+	ExtBuilder::default().build().execute_with(|| {
+		precompiles()
+			.prepare_test(Alice, Precompile, Vec::new())
+			.with_address(Alice)
+			.execute_reverts(|output| output == b"cannot be called with DELEGATECALL");
+	});
+}
+
+#[test]
 fn prop_count_zero() {
 	ExtBuilder::default().build().execute_with(|| {
 		// Assert that no props have been opened.

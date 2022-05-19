@@ -221,6 +221,11 @@ impl<'p, P: PrecompileSet> PrecompilesTester<'p, P> {
 		self
 	}
 
+	pub fn with_address(mut self, address: impl Into<H160>) -> Self {
+		self.handle.context.address = address.into();
+		self
+	}
+
 	pub fn with_subcall_handle(mut self, subcall_handle: impl SubcallTrait) -> Self {
 		self.subcall_handle = Some(Box::new(subcall_handle));
 		self
