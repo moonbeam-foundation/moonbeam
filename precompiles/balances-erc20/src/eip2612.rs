@@ -90,13 +90,10 @@ where
 
 	// Translated from
 	// https://github.com/Uniswap/v2-core/blob/master/contracts/UniswapV2ERC20.sol#L81
-	pub(crate) fn permit(
-		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-		context: &Context,
-	) -> EvmResult<PrecompileOutput> {
+	pub(crate) fn permit(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
+		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		let owner: H160 = input.read::<Address>()?.into();
 		let spender: H160 = input.read::<Address>()?.into();
 		let value: U256 = input.read()?;
@@ -112,7 +109,14 @@ where
 
 		let nonce = NoncesStorage::<Instance>::get(owner);
 
-		let permit = Self::generate_permit(context.address, owner, spender, value, nonce, deadline);
+		let permit = Self::generate_permit(
+			handle.context().address,
+			owner,
+			spender,
+			value,
+			nonce,
+			deadline,
+		);
 
 		let mut sig = [0u8; 65];
 		sig[0..32].copy_from_slice(&r.as_bytes());
@@ -140,7 +144,7 @@ where
 			ApprovesStorage::<Runtime, Instance>::insert(owner, spender, amount);
 		}
 
-		LogsBuilder::new(context.address)
+		LogsBuilder::new(handle.context().address)
 			.log3(
 				SELECTOR_LOG_APPROVAL,
 				owner,
@@ -152,12 +156,10 @@ where
 		Ok(succeed([]))
 	}
 
-	pub(crate) fn nonces(
-		handle: &mut impl PrecompileHandle,
-		input: &mut EvmDataReader,
-	) -> EvmResult<PrecompileOutput> {
+	pub(crate) fn nonces(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
+		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		let owner: H160 = input.read::<Address>()?.into();
 
 		let nonce = NoncesStorage::<Instance>::get(owner);
@@ -167,11 +169,11 @@ where
 
 	pub(crate) fn domain_separator(
 		handle: &mut impl PrecompileHandle,
-		context: &Context,
 	) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		let domain_separator: H256 = Self::compute_domain_separator(context.address).into();
+		let domain_separator: H256 =
+			Self::compute_domain_separator(handle.context().address).into();
 
 		Ok(succeed(
 			EvmDataWriter::new().write(domain_separator).build(),

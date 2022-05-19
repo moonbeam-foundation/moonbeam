@@ -55,24 +55,6 @@ pub fn error<T: Into<alloc::borrow::Cow<'static, str>>>(text: T) -> PrecompileFa
 	}
 }
 
-/// A single precompile.
-/// Follows new EVM precompile design : https://github.com/rust-blockchain/evm/pull/122
-/// Automatically implemented for Frontier precompiles, at the cost of cloning the input.
-pub trait Precompile {
-	fn execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput>;
-}
-
-impl<T: pallet_evm::Precompile> Precompile for T {
-	fn execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let input = handle.input().to_vec();
-		let target_gas = handle.gas_limit();
-		let context = handle.context().clone();
-		let is_static = handle.is_static();
-
-		<T as pallet_evm::Precompile>::execute(handle, &input, target_gas, &context, is_static)
-	}
-}
-
 /// Builder for PrecompileOutput.
 #[derive(Clone, Debug)]
 pub struct LogsBuilder {
@@ -259,6 +241,21 @@ pub trait PrecompileHandleExt: PrecompileHandle {
 	/// Record cost of logs.
 	#[must_use]
 	fn record_log_costs(&mut self, logs: &[Log]) -> EvmResult;
+
+	#[must_use]
+	/// Check that a function call is compatible with the context it is
+	/// called into.
+	fn check_function_modifier(&self, modifier: FunctionModifier) -> EvmResult;
+
+	#[must_use]
+	/// Read the selector from the input data.
+	fn read_selector<T>(&self) -> EvmResult<T>
+	where
+		T: num_enum::TryFromPrimitive<Primitive = u32>;
+
+	#[must_use]
+	/// Returns a reader of the input, skipping the selector.
+	fn read_input(&self) -> EvmResult<EvmDataReader>;
 }
 
 impl<T: PrecompileHandle> PrecompileHandleExt for T {
@@ -301,6 +298,28 @@ impl<T: PrecompileHandle> PrecompileHandleExt for T {
 
 		Ok(())
 	}
+
+	#[must_use]
+	/// Check that a function call is compatible with the context it is
+	/// called into.
+	fn check_function_modifier(&self, modifier: FunctionModifier) -> EvmResult {
+		check_function_modifier(self.context(), self.is_static(), modifier)
+	}
+
+	#[must_use]
+	/// Read the selector from the input data.
+	fn read_selector<S>(&self) -> EvmResult<S>
+	where
+		S: num_enum::TryFromPrimitive<Primitive = u32>,
+	{
+		EvmDataReader::read_selector(self.input())
+	}
+
+	#[must_use]
+	/// Returns a reader of the input, skipping the selector.
+	fn read_input(&self) -> EvmResult<EvmDataReader> {
+		EvmDataReader::new_skip_selector(self.input())
+	}
 }
 
 #[must_use]
@@ -322,7 +341,7 @@ pub fn succeed(output: impl AsRef<[u8]>) -> PrecompileOutput {
 #[must_use]
 /// Check that a function call is compatible with the context it is
 /// called into.
-pub fn check_function_modifier(
+fn check_function_modifier(
 	context: &Context,
 	is_static: bool,
 	modifier: FunctionModifier,

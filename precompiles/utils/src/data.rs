@@ -94,7 +94,7 @@ impl<'a> EvmDataReader<'a> {
 	}
 
 	/// Create a new input parser from a selector-initial input.
-	pub fn new_with_selector<T>(input: &'a [u8]) -> EvmResult<(Self, T)>
+	pub fn read_selector<T>(input: &'a [u8]) -> EvmResult<T>
 	where
 		T: num_enum::TryFromPrimitive<Primitive = u32>,
 	{
@@ -113,7 +113,16 @@ impl<'a> EvmDataReader<'a> {
 			revert("unknown selector")
 		})?;
 
-		Ok((Self::new(&input[4..]), selector))
+		Ok(selector)
+	}
+
+	/// Create a new input parser from a selector-initial input.
+	pub fn new_skip_selector(input: &'a [u8]) -> EvmResult<Self> {
+		if input.len() < 4 {
+			return Err(revert("input is too short"));
+		}
+
+		Ok(Self::new(&input[4..]))
 	}
 
 	/// Check the input has at least the correct amount of arguments before the end (32 bytes values).

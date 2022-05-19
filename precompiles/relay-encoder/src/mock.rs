@@ -23,7 +23,6 @@ use pallet_evm::{
 	AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet, SubstrateBlockHashMapping,
 };
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
-use precompile_utils::Precompile;
 use serde::{Deserialize, Serialize};
 use sp_core::H160;
 use sp_core::H256;

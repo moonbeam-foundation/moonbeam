@@ -141,8 +141,9 @@ fn read_selector() {
 
 	let selector = &Keccak256::digest(b"action1()")[0..4];
 
-	let (_, parsed_selector) =
-		EvmDataReader::new_with_selector::<FakeAction>(selector).expect("there is a selector");
+	let parsed_selector =
+		EvmDataReader::read_selector::<FakeAction>(selector).expect("there is a selector");
+	EvmDataReader::new_skip_selector(selector).expect("there is a selector");
 
 	assert_eq!(parsed_selector, FakeAction::Action1)
 }
@@ -707,8 +708,8 @@ fn read_complex_solidity_function() {
 		0100000000000000000000000000000000000000000000000000000000000000"
 	);
 
-	let (mut reader, selector) =
-		EvmDataReader::new_with_selector::<Action>(&data).expect("to read selector");
+	let selector = EvmDataReader::read_selector::<Action>(&data).expect("to read selector");
+	let mut reader = EvmDataReader::new_skip_selector(&data).expect("to read selector");
 
 	assert_eq!(selector, Action::TransferMultiAsset);
 	// asset
