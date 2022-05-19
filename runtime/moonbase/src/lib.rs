@@ -372,14 +372,13 @@ parameter_types! {
 /// pallet-transaction-payment) which returns a fixed fee.
 pub struct FixedGasPrice;
 impl FixedGasPrice {
-	fn gas_price() -> U256 {
+	pub fn gas_price() -> U256 {
 		(1 * currency::GIGAWEI * currency::SUPPLY_FACTOR).into()
 	}
-	fn weight_multiplier() -> Multiplier {
-		Self::gas_price()
-			.saturating_mul(WEIGHT_PER_GAS.into())
-			.as_u128() // TODO: this panics. a simple test case should suffice to check this
-			.into()
+	pub fn weight_multiplier() -> Multiplier {
+		// note that 'as_u128' will panic if gas_price() overflows a u128
+		let weight_price = Self::gas_price() / U256::from(WEIGHT_PER_GAS);
+		weight_price.as_u128().into()
 	}
 }
 
@@ -1482,10 +1481,8 @@ mod tests {
 	}
 
 	#[test]
-	fn fixed_gas_price_is_sane() {
-		let expected: Multiplier = 25000000000000.into();
-
+	fn fixed_gas_price_as_weight_multiplier_is_known() {
 		// this also tests that the conversions do not panic (assuming it uses constants)
-		assert_eq!(FixedGasPrice::weight_multiplier(), expected);
+		assert_eq!(FixedGasPrice::weight_multiplier(), 40_000.into());
 	}
 }
