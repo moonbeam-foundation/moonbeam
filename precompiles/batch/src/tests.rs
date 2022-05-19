@@ -152,79 +152,80 @@ fn batch_returns(
 				.build(),
 		)
 		.with_target_gas(Some(100_000))
-		.with_subcall_handle(
-			move |Subcall {
-			          address,
-			          transfer,
-			          input,
-			          target_gas,
-			          is_static,
-			          context,
-			      }| {
-				// Called from the precompile caller.
-				assert_eq!(context.caller, Alice.into());
-				assert_eq!(is_static, false);
+		.with_subcall_handle(move |subcall| {
+			let Subcall {
+				address,
+				transfer,
+				input,
+				target_gas,
+				is_static,
+				context,
+			} = subcall;
 
-				match address {
-					a if a == Bob.into() => {
-						assert_eq!(counter, 0, "this is the first call");
-						counter += 1;
+			// Called from the precompile caller.
+			assert_eq!(context.caller, Alice.into());
+			assert_eq!(is_static, false);
 
-						assert_eq!(
-							target_gas,
-							Some(100_000 - gas_reserve),
-							"batch forward all gas"
-						);
-						let transfer = transfer.expect("there is a transfer");
-						assert_eq!(transfer.source, Alice.into());
-						assert_eq!(transfer.target, Bob.into());
-						assert_eq!(transfer.value, 1u8.into());
+			match address {
+				a if a == Bob.into() => {
+					assert_eq!(counter, 0, "this is the first call");
+					counter += 1;
 
-						assert_eq!(context.address, Bob.into());
-						assert_eq!(context.apparent_value, 1u8.into());
+					assert_eq!(
+						target_gas,
+						Some(100_000 - gas_reserve),
+						"batch forward all gas"
+					);
+					let transfer = transfer.expect("there is a transfer");
+					assert_eq!(transfer.source, Alice.into());
+					assert_eq!(transfer.target, Bob.into());
+					assert_eq!(transfer.value, 1u8.into());
 
-						assert_eq!(&input, b"one");
+					assert_eq!(context.address, Bob.into());
+					assert_eq!(context.apparent_value, 1u8.into());
 
-						SubcallOutput {
-							reason: ExitReason::Succeed(ExitSucceed::Returned),
-							output: b"ONE".to_vec(),
-							cost: 13,
-							logs: vec![
-								LogsBuilder::new(Bob.into()).log1(H256::repeat_byte(0x11), vec![])
-							],
-						}
+					assert_eq!(&input, b"one");
+
+					SubcallOutput {
+						reason: ExitReason::Succeed(ExitSucceed::Returned),
+						output: b"ONE".to_vec(),
+						cost: 13,
+						logs: vec![
+							LogsBuilder::new(Bob.into()).log1(H256::repeat_byte(0x11), vec![])
+						],
 					}
-					a if a == Charlie.into() => {
-						assert_eq!(counter, 1, "this is the second call");
-						counter += 1;
-
-						assert_eq!(
-							target_gas,
-							Some(100_000 - 13 - gas_reserve - return_log_cost),
-							"batch forward all gas"
-						);
-						let transfer = transfer.expect("there is a transfer");
-						assert_eq!(transfer.source, Alice.into());
-						assert_eq!(transfer.target, Charlie.into());
-						assert_eq!(transfer.value, 2u8.into());
-
-						assert_eq!(context.address, Charlie.into());
-						assert_eq!(context.apparent_value, 2u8.into());
-
-						assert_eq!(&input, b"two");
-
-						SubcallOutput {
-							reason: ExitReason::Succeed(ExitSucceed::Returned),
-							output: b"TWO".to_vec(),
-							cost: 17,
-							logs: vec![LogsBuilder::new(Charlie.into())
-								.log1(H256::repeat_byte(0x22), vec![])],
-						}
-					}
-					_ => panic!("unexpected subcall"),
 				}
-			},
-		)
+				a if a == Charlie.into() => {
+					assert_eq!(counter, 1, "this is the second call");
+					counter += 1;
+
+					assert_eq!(
+						target_gas,
+						Some(100_000 - 13 - gas_reserve - return_log_cost),
+						"batch forward all gas"
+					);
+					let transfer = transfer.expect("there is a transfer");
+					assert_eq!(transfer.source, Alice.into());
+					assert_eq!(transfer.target, Charlie.into());
+					assert_eq!(transfer.value, 2u8.into());
+
+					assert_eq!(context.address, Charlie.into());
+					assert_eq!(context.apparent_value, 2u8.into());
+
+					assert_eq!(&input, b"two");
+
+					SubcallOutput {
+						reason: ExitReason::Succeed(ExitSucceed::Returned),
+						output: b"TWO".to_vec(),
+						cost: 17,
+						logs: vec![
+							LogsBuilder::new(Charlie.into()).log1(H256::repeat_byte(0x22), vec![])
+						],
+					}
+				}
+				_ => panic!("unexpected subcall"),
+			}
+		})
 		.expect_cost(13 + 17 + return_log_cost * 2)
 }
 
@@ -283,47 +284,47 @@ fn batch_out_of_gas(
 				.build(),
 		)
 		.with_target_gas(Some(50_000))
-		.with_subcall_handle(
-			move |Subcall {
-			          address,
-			          transfer,
-			          input,
-			          target_gas,
-			          is_static,
-			          context,
-			      }| {
-				// Called from the precompile caller.
-				assert_eq!(context.caller, Alice.into());
-				assert_eq!(is_static, false);
+		.with_subcall_handle(move |subcall| {
+			let Subcall {
+				address,
+				transfer,
+				input,
+				target_gas,
+				is_static,
+				context,
+			} = subcall;
 
-				match address {
-					a if a == Bob.into() => {
-						assert_eq!(
-							target_gas,
-							Some(50_000 - gas_reserve),
-							"batch forward all gas"
-						);
-						let transfer = transfer.expect("there is a transfer");
-						assert_eq!(transfer.source, Alice.into());
-						assert_eq!(transfer.target, Bob.into());
-						assert_eq!(transfer.value, 1u8.into());
+			// Called from the precompile caller.
+			assert_eq!(context.caller, Alice.into());
+			assert_eq!(is_static, false);
 
-						assert_eq!(context.address, Bob.into());
-						assert_eq!(context.apparent_value, 1u8.into());
+			match address {
+				a if a == Bob.into() => {
+					assert_eq!(
+						target_gas,
+						Some(50_000 - gas_reserve),
+						"batch forward all gas"
+					);
+					let transfer = transfer.expect("there is a transfer");
+					assert_eq!(transfer.source, Alice.into());
+					assert_eq!(transfer.target, Bob.into());
+					assert_eq!(transfer.value, 1u8.into());
 
-						assert_eq!(&input, b"one");
+					assert_eq!(context.address, Bob.into());
+					assert_eq!(context.apparent_value, 1u8.into());
 
-						SubcallOutput {
-							reason: ExitReason::Error(ExitError::OutOfGas),
-							output: Vec::new(),
-							cost: 11_000,
-							logs: vec![],
-						}
+					assert_eq!(&input, b"one");
+
+					SubcallOutput {
+						reason: ExitReason::Error(ExitError::OutOfGas),
+						output: Vec::new(),
+						cost: 11_000,
+						logs: vec![],
 					}
-					_ => panic!("unexpected subcall"),
 				}
-			},
-		)
+				_ => panic!("unexpected subcall"),
+			}
+		})
 }
 
 #[test]
@@ -376,102 +377,103 @@ fn batch_incomplete(
 				.build(),
 		)
 		.with_target_gas(Some(100_000))
-		.with_subcall_handle(
-			move |Subcall {
-			          address,
-			          transfer,
-			          input,
-			          target_gas,
-			          is_static,
-			          context,
-			      }| {
-				// Called from the precompile caller.
-				assert_eq!(context.caller, Alice.into());
-				assert_eq!(is_static, false);
+		.with_subcall_handle(move |subcall| {
+			let Subcall {
+				address,
+				transfer,
+				input,
+				target_gas,
+				is_static,
+				context,
+			} = subcall;
 
-				match address {
-					a if a == Bob.into() => {
-						assert_eq!(counter, 0, "this is the first call");
-						counter += 1;
+			// Called from the precompile caller.
+			assert_eq!(context.caller, Alice.into());
+			assert_eq!(is_static, false);
 
-						assert_eq!(
-							target_gas,
-							Some(100_000 - gas_reserve),
-							"batch forward all gas"
-						);
-						let transfer = transfer.expect("there is a transfer");
-						assert_eq!(transfer.source, Alice.into());
-						assert_eq!(transfer.target, Bob.into());
-						assert_eq!(transfer.value, 1u8.into());
+			match address {
+				a if a == Bob.into() => {
+					assert_eq!(counter, 0, "this is the first call");
+					counter += 1;
 
-						assert_eq!(context.address, Bob.into());
-						assert_eq!(context.apparent_value, 1u8.into());
+					assert_eq!(
+						target_gas,
+						Some(100_000 - gas_reserve),
+						"batch forward all gas"
+					);
+					let transfer = transfer.expect("there is a transfer");
+					assert_eq!(transfer.source, Alice.into());
+					assert_eq!(transfer.target, Bob.into());
+					assert_eq!(transfer.value, 1u8.into());
 
-						assert_eq!(&input, b"one");
+					assert_eq!(context.address, Bob.into());
+					assert_eq!(context.apparent_value, 1u8.into());
 
-						SubcallOutput {
-							reason: ExitReason::Succeed(ExitSucceed::Returned),
-							output: b"ONE".to_vec(),
-							cost: 13,
-							logs: vec![
-								LogsBuilder::new(Bob.into()).log1(H256::repeat_byte(0x11), vec![])
-							],
-						}
+					assert_eq!(&input, b"one");
+
+					SubcallOutput {
+						reason: ExitReason::Succeed(ExitSucceed::Returned),
+						output: b"ONE".to_vec(),
+						cost: 13,
+						logs: vec![
+							LogsBuilder::new(Bob.into()).log1(H256::repeat_byte(0x11), vec![])
+						],
 					}
-					a if a == Charlie.into() => {
-						assert_eq!(counter, 1, "this is the second call");
-						counter += 1;
-
-						assert_eq!(
-							target_gas,
-							Some(100_000 - 13 - gas_reserve - return_log_cost),
-							"batch forward all gas"
-						);
-						let transfer = transfer.expect("there is a transfer");
-						assert_eq!(transfer.source, Alice.into());
-						assert_eq!(transfer.target, Charlie.into());
-						assert_eq!(transfer.value, 2u8.into());
-
-						assert_eq!(context.address, Charlie.into());
-						assert_eq!(context.apparent_value, 2u8.into());
-
-						assert_eq!(&input, b"");
-
-						SubcallOutput {
-							reason: ExitReason::Revert(ExitRevert::Reverted),
-							output: b"Revert message".to_vec(),
-							cost: 17,
-							logs: vec![],
-						}
-					}
-					a if a == Alice.into() => {
-						assert_eq!(counter, 2, "this is the third call");
-						counter += 1;
-
-						assert_eq!(
-							target_gas,
-							Some(100_000 - 13 - 17 - gas_reserve - return_log_cost * 2),
-							"batch forward all gas"
-						);
-						assert!(transfer.is_none());
-
-						assert_eq!(context.address, Alice.into());
-						assert_eq!(context.apparent_value, 0u8.into());
-
-						assert_eq!(&input, b"");
-
-						SubcallOutput {
-							reason: ExitReason::Succeed(ExitSucceed::Returned),
-							output: b"THREE".to_vec(),
-							cost: 19,
-							logs: vec![LogsBuilder::new(Alice.into())
-								.log1(H256::repeat_byte(0x33), vec![])],
-						}
-					}
-					_ => panic!("unexpected subcall"),
 				}
-			},
-		)
+				a if a == Charlie.into() => {
+					assert_eq!(counter, 1, "this is the second call");
+					counter += 1;
+
+					assert_eq!(
+						target_gas,
+						Some(100_000 - 13 - gas_reserve - return_log_cost),
+						"batch forward all gas"
+					);
+					let transfer = transfer.expect("there is a transfer");
+					assert_eq!(transfer.source, Alice.into());
+					assert_eq!(transfer.target, Charlie.into());
+					assert_eq!(transfer.value, 2u8.into());
+
+					assert_eq!(context.address, Charlie.into());
+					assert_eq!(context.apparent_value, 2u8.into());
+
+					assert_eq!(&input, b"");
+
+					SubcallOutput {
+						reason: ExitReason::Revert(ExitRevert::Reverted),
+						output: b"Revert message".to_vec(),
+						cost: 17,
+						logs: vec![],
+					}
+				}
+				a if a == Alice.into() => {
+					assert_eq!(counter, 2, "this is the third call");
+					counter += 1;
+
+					assert_eq!(
+						target_gas,
+						Some(100_000 - 13 - 17 - gas_reserve - return_log_cost * 2),
+						"batch forward all gas"
+					);
+					assert!(transfer.is_none());
+
+					assert_eq!(context.address, Alice.into());
+					assert_eq!(context.apparent_value, 0u8.into());
+
+					assert_eq!(&input, b"");
+
+					SubcallOutput {
+						reason: ExitReason::Succeed(ExitSucceed::Returned),
+						output: b"THREE".to_vec(),
+						cost: 19,
+						logs: vec![
+							LogsBuilder::new(Alice.into()).log1(H256::repeat_byte(0x33), vec![])
+						],
+					}
+				}
+				_ => panic!("unexpected subcall"),
+			}
+		})
 }
 
 #[test]

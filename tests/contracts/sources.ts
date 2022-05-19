@@ -1795,32 +1795,32 @@ export const contractSources: { [key: string]: string } = {
           }
       }`,
   Batch: `
-  pragma solidity >=0.8.0;
+    pragma solidity >=0.8.0;
 
-  contract Batch {
-     function batchSome(
-        address[] memory to,
-        uint256[] memory value,
-        bytes[] memory call_data,
-        uint64[] memory gas_limit
-     ) external {}
+    contract Batch {
+      function batchSome(
+          address[] memory to,
+          uint256[] memory value,
+          bytes[] memory call_data,
+          uint64[] memory gas_limit
+      ) external {}
 
-     function batchSomeUntilFailure(
-        address[] memory to,
-        uint256[] memory value,
-        bytes[] memory call_data,
-        uint64[] memory gas_limit
-     ) external {}
+      function batchSomeUntilFailure(
+          address[] memory to,
+          uint256[] memory value,
+          bytes[] memory call_data,
+          uint64[] memory gas_limit
+      ) external {}
 
-     function batchAll(
-        address[] memory to,
-        uint256[] memory value,
-        bytes[] memory call_data,
-        uint64[] memory gas_limit
-     ) external {}
+      function batchAll(
+          address[] memory to,
+          uint256[] memory value,
+          bytes[] memory call_data,
+          uint64[] memory gas_limit
+      ) external {}
 
-     event SubcallSucceeded(uint256 index);
+      event SubcallSucceeded(uint256 index);
 
-     event SubcallFailed(uint256 index);
-  }`,
+      event SubcallFailed(uint256 index);
+    }`,
 };
