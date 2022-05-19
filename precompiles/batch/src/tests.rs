@@ -185,7 +185,7 @@ fn batch_returns(
 
 					SubcallOutput {
 						reason: ExitReason::Succeed(ExitSucceed::Returned),
-						output: b"ONE".to_vec(),
+						output: Vec::new(),
 						cost: 13,
 						logs: vec![
 							LogsBuilder::new(Bob.into()).log1(H256::repeat_byte(0x11), vec![])
@@ -213,7 +213,7 @@ fn batch_returns(
 
 					SubcallOutput {
 						reason: ExitReason::Succeed(ExitSucceed::Returned),
-						output: b"TWO".to_vec(),
+						output: Vec::new(),
 						cost: 17,
 						logs: vec![
 							LogsBuilder::new(Charlie.into()).log1(H256::repeat_byte(0x22), vec![])
@@ -408,7 +408,7 @@ fn batch_incomplete(
 
 					SubcallOutput {
 						reason: ExitReason::Succeed(ExitSucceed::Returned),
-						output: b"ONE".to_vec(),
+						output: Vec::new(),
 						cost: 13,
 						logs: vec![
 							LogsBuilder::new(Bob.into()).log1(H256::repeat_byte(0x11), vec![])
@@ -459,7 +459,7 @@ fn batch_incomplete(
 
 					SubcallOutput {
 						reason: ExitReason::Succeed(ExitSucceed::Returned),
-						output: b"THREE".to_vec(),
+						output: Vec::new(),
 						cost: 19,
 						logs: vec![
 							LogsBuilder::new(Alice.into()).log1(H256::repeat_byte(0x33), vec![])
