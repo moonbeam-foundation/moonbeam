@@ -152,7 +152,7 @@ impl LogExt for Log {
 	}
 
 	fn compute_cost(&self) -> EvmResult<u64> {
-		Ok(log_costs(self.topics.len(), self.data.len())?)
+		log_costs(self.topics.len(), self.data.len())
 	}
 }
 
