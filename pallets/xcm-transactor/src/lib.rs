@@ -747,7 +747,7 @@ pub mod pallet {
 			// grab WEIGHT_PER_SECOND as u128
 			let weight_per_second_u128 = WEIGHT_PER_SECOND as u128;
 
-			// we add WEIGHT_PER_SECOND -1 after multiplication to make sure that 
+			// we add WEIGHT_PER_SECOND -1 after multiplication to make sure that
 			// if there is a fractional part we round up the result
 			let fee_mul_rounded_up = (fee_per_second.saturating_mul(weight as u128))
 				.saturating_add(weight_per_second_u128 - 1);
