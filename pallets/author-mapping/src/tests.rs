@@ -297,8 +297,7 @@ fn eligible_account_can_full_register() {
 		.execute_with(|| {
 			assert_ok!(AuthorMapping::register_keys(
 				Origin::signed(2),
-				TestAuthor::Bob.into(),
-				TestAuthor::Alice.into(),
+				(TestAuthor::Bob.into(), TestAuthor::Alice.into()),
 			));
 
 			assert_eq!(Balances::free_balance(&2), 900);
@@ -328,8 +327,7 @@ fn cannot_register_keys_without_deposit() {
 			assert_noop!(
 				AuthorMapping::register_keys(
 					Origin::signed(2),
-					TestAuthor::Alice.into(),
-					TestAuthor::Bob.into(),
+					(TestAuthor::Alice.into(), TestAuthor::Bob.into()),
 				),
 				Error::<Runtime>::CannotAffordSecurityDeposit
 			);
@@ -348,8 +346,7 @@ fn double_full_registration_counts_twice_as_much() {
 			// Register once as Bob
 			assert_ok!(AuthorMapping::register_keys(
 				Origin::signed(2),
-				TestAuthor::Bob.into(),
-				TestAuthor::Charlie.into(),
+				(TestAuthor::Bob.into(), TestAuthor::Charlie.into()),
 			));
 
 			assert_eq!(Balances::free_balance(&2), 900);
@@ -371,8 +368,7 @@ fn double_full_registration_counts_twice_as_much() {
 			// Register again as Alice
 			assert_ok!(AuthorMapping::register_keys(
 				Origin::signed(2),
-				TestAuthor::Alice.into(),
-				TestAuthor::Bob.into(),
+				(TestAuthor::Alice.into(), TestAuthor::Bob.into()),
 			));
 
 			assert_eq!(Balances::free_balance(&2), 800);
@@ -409,8 +405,7 @@ fn full_registered_author_cannot_be_overwritten() {
 			assert_noop!(
 				AuthorMapping::register_keys(
 					Origin::signed(2),
-					TestAuthor::Alice.into(),
-					TestAuthor::Bob.into()
+					(TestAuthor::Alice.into(), TestAuthor::Bob.into()),
 				),
 				Error::<Runtime>::AlreadyAssociated
 			);

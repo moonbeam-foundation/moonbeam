@@ -221,13 +221,9 @@ pub mod pallet {
 
 		/// Add association and set session keys
 		#[pallet::weight(<T as Config>::WeightInfo::register_keys())]
-		pub fn register_keys(
-			origin: OriginFor<T>,
-			author_id: NimbusId,
-			keys: T::Keys,
-		) -> DispatchResult {
+		pub fn register_keys(origin: OriginFor<T>, keys: (NimbusId, T::Keys)) -> DispatchResult {
 			let account_id = ensure_signed(origin)?;
-
+			let (author_id, keys) = keys;
 			ensure!(
 				MappingWithDeposit::<T>::get(&author_id).is_none(),
 				Error::<T>::AlreadyAssociated
