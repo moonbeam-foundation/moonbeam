@@ -747,7 +747,8 @@ describeDevMoonbeam("Staking - Rewards", (context) => {
     expect(rewardedBalathar).is.not.undefined;
     expect(
       rewardedBalathar.amount.gt(rewardedEthan.amount),
-      `Ethan's reward ${rewardedEthan.amount} was not less than Balathar's reward ${rewardedBalathar.amount}`
+      `Ethan's reward ${rewardedEthan.amount} was not less than Balathar's \
+      reward ${rewardedBalathar.amount}`
     ).is.true;
   });
 });

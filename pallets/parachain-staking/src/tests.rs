@@ -2315,7 +2315,7 @@ fn cannot_execute_leave_delegators_before_delay() {
 			)));
 			assert_noop!(
 				ParachainStaking::execute_leave_delegators(Origin::signed(2), 2, 1),
-				Error::<Test>::PendingDelegationRequestNotDueYet
+				Error::<Test>::DelegatorCannotLeaveYet
 			);
 			// can execute after delay
 			roll_to(10);

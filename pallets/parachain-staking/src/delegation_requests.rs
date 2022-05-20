@@ -456,7 +456,7 @@ impl<T: Config> Pallet<T> {
 
 			ensure!(
 				request.when_executable <= now,
-				<Error<T>>::PendingDelegationRequestNotDueYet
+				<Error<T>>::DelegatorCannotLeaveYet
 			);
 		}
 
