@@ -1201,8 +1201,6 @@ impl<A: Clone, B: Copy> From<CollatorCandidate<A, B>> for CollatorSnapshot<A, B>
 pub enum DelegatorStatus {
 	/// Active with no scheduled exit
 	Active,
-	/// Schedule exit to revoke all ongoing delegations
-	Leaving(RoundIndex),
 }
 
 #[derive(Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
@@ -1279,23 +1277,6 @@ impl<
 		matches!(self.status, DelegatorStatus::Active)
 	}
 
-	/// Can only leave if the current round is less than or equal to scheduled execution round
-	/// - returns None if not in leaving state
-	pub fn can_execute_leave<T: Config>(&self, delegation_weight_hint: u32) -> DispatchResult {
-		ensure!(
-			delegation_weight_hint >= (self.delegations.0.len() as u32),
-			Error::<T>::TooLowDelegationCountToLeaveDelegators
-		);
-		if let DelegatorStatus::Leaving(when) = self.status {
-			ensure!(
-				<Round<T>>::get().current >= when,
-				Error::<T>::DelegatorCannotLeaveYet
-			);
-			Ok(())
-		} else {
-			Err(Error::<T>::DelegatorNotLeaving.into())
-		}
-	}
 	pub fn add_delegation(&mut self, bond: Bond<AccountId, Balance>) -> bool {
 		let amt = bond.amount;
 		if self.delegations.insert(bond) {
