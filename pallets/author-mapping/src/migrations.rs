@@ -33,13 +33,11 @@ impl<T: Config> OnRuntimeUpgrade for AddAccountIdToNimbusLookup<T> {
 	fn on_runtime_upgrade() -> Weight {
 		log::info!(target: "AddAccountIdToNimbusLookup", "running migration");
 
-		let mut read_count = 0u64;
-		let mut write_count = 0u64;
+		let mut read_write_count = 0u64;
 		<MappingWithDeposit<T>>::translate(|nimbus_id, registration_info: RegistrationInfo<T>| {
-			read_count += 2u64;
+			read_write_count += 2u64;
 			if NimbusLookup::<T>::get(&registration_info.account).is_none() {
 				<NimbusLookup<T>>::insert(&registration_info.account, nimbus_id);
-				write_count += 2u64;
 				Some(registration_info)
 			} else {
 				// revoke the additional association and return the funds
@@ -53,13 +51,11 @@ impl<T: Config> OnRuntimeUpgrade for AddAccountIdToNimbusLookup<T> {
 					account_id: registration_info.account,
 					keys: registration_info.keys,
 				});
-				write_count += 1u64;
 				None
 			}
 		});
 		// return weight
-		read_count.saturating_mul(T::DbWeight::get().read)
-			+ write_count.saturating_mul(T::DbWeight::get().write)
+		read_write_count.saturating_mul(T::DbWeight::get().read + T::DbWeight::get().write)
 	}
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade() -> Result<(), &'static str> {
