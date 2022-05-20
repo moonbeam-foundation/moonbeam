@@ -149,7 +149,6 @@ where
 				| Action::DelegatorDelegationCount
 				| Action::SelectedCandidates
 				| Action::DelegationRequestIsPending
-				| Action::DelegatorExitIsPending
 				| Action::CandidateExitIsPending
 				| Action::CandidateRequestIsPending => FunctionModifier::View,
 				// Non-payables
