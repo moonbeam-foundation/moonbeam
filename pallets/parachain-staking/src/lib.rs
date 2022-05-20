@@ -1161,7 +1161,6 @@ pub mod pallet {
 				Error::<T>::InsufficientBalance
 			);
 			let delegator_state = if let Some(mut state) = <DelegatorState<T>>::get(&delegator) {
-				ensure!(state.is_active(), Error::<T>::CannotDelegateIfLeaving);
 				// delegation after first
 				ensure!(
 					amount >= T::MinDelegation::get(),

@@ -334,6 +334,22 @@ impl<T: Config> Pallet<T> {
 		let now = <Round<T>>::get().current;
 		let when = now.saturating_add(T::LeaveDelegatorsDelay::get());
 
+		// pre-validate that not all delegations already have a Revoke request.
+		let mut revoke_count = 0;
+		for bond in &state.delegations.0 {
+			let collator = bond.owner.clone();
+			let scheduled_requests = <DelegationScheduledRequests<T>>::get(&collator);
+			let maybe_revoke = scheduled_requests.iter().find(|req| {
+				req.delegator == delegator && matches!(req.action, DelegationAction::Revoke(_))
+			});
+			if let Some(_) = maybe_revoke {
+				revoke_count += 1;
+			}
+		}
+		if revoke_count == state.delegations.0.len() {
+			return Err(<Error<T>>::DelegatorAlreadyLeaving.into());
+		}
+
 		// it is assumed that a multiple delegations to the same collator does not exist, else this
 		// will cause a bug - the last duplicate delegation update will be the only one applied.
 		for bond in state.delegations.0.clone() {
@@ -406,7 +422,7 @@ impl<T: Config> Pallet<T> {
 				<DelegationScheduledRequests<T>>::insert(collator, scheduled_requests);
 			});
 
-		<DelegatorState<T>>::remove(&delegator);
+		<DelegatorState<T>>::insert(delegator.clone(), state);
 		Self::deposit_event(Event::DelegatorExitCancelled { delegator });
 
 		Ok(().into())

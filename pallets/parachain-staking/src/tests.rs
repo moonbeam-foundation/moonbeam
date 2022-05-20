@@ -1917,7 +1917,7 @@ fn can_delegate_if_full_and_new_delegation_greater_than_lowest_bottom() {
 }
 
 #[test]
-fn cannot_delegate_if_leaving() {
+fn can_still_delegate_if_leaving() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20), (2, 20), (3, 20)])
 		.with_candidates(vec![(1, 20), (3, 20)])
@@ -1927,10 +1927,7 @@ fn cannot_delegate_if_leaving() {
 			assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(
 				2
 			)));
-			assert_noop!(
-				ParachainStaking::delegate(Origin::signed(2), 3, 10, 0, 1),
-				Error::<Test>::CannotDelegateIfLeaving
-			);
+			assert_ok!(ParachainStaking::delegate(Origin::signed(2), 3, 10, 0, 1),);
 		});
 }
 
@@ -2318,7 +2315,7 @@ fn cannot_execute_leave_delegators_before_delay() {
 			)));
 			assert_noop!(
 				ParachainStaking::execute_leave_delegators(Origin::signed(2), 2, 1),
-				Error::<Test>::DelegatorCannotLeaveYet
+				Error::<Test>::PendingDelegationRequestNotDueYet
 			);
 			// can execute after delay
 			roll_to(10);
@@ -2473,7 +2470,7 @@ fn can_revoke_delegation_if_revoking_another_delegation() {
 }
 
 #[test]
-fn can_revoke_if_leaving() {
+fn delegator_not_allowed_revoke_if_already_leaving() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 20), (3, 20)])
 		.with_candidates(vec![(1, 30), (3, 20)])
@@ -2483,10 +2480,10 @@ fn can_revoke_if_leaving() {
 			assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(
 				2
 			)));
-			assert_ok!(ParachainStaking::schedule_revoke_delegation(
-				Origin::signed(2),
-				3
-			));
+			assert_noop!(
+				ParachainStaking::schedule_revoke_delegation(Origin::signed(2), 3),
+				<Error<Test>>::PendingDelegationRequestAlreadyExists,
+			);
 		});
 }
 
@@ -2778,7 +2775,7 @@ fn delegator_bond_less_updates_delegator_state() {
 }
 
 #[test]
-fn can_delegator_bond_less_if_leaving() {
+fn delegator_not_allowed_bond_less_if_leaving() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 15)])
 		.with_candidates(vec![(1, 30)])
@@ -2788,11 +2785,10 @@ fn can_delegator_bond_less_if_leaving() {
 			assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(
 				2
 			)));
-			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
-				Origin::signed(2),
-				1,
-				1
-			));
+			assert_noop!(
+				ParachainStaking::schedule_delegator_bond_less(Origin::signed(2), 1, 1),
+				<Error<Test>>::PendingDelegationRequestAlreadyExists,
+			);
 		});
 }
 
