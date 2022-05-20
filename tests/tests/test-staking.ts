@@ -678,14 +678,12 @@ describeDevMoonbeam("Staking - Delegation Requests", (context) => {
       if (context.polkadotApi.events.parachainStaking.DelegatorLeft.is(event.event)) {
         return {
           account: event.event.data[0].toString(),
-          unstakedAmount: event.event.data[1].toString(),
         };
       }
     });
     expect(leaveEvents).to.deep.equal([
       {
         account: "0xFf64d3F6efE2317EE2807d223a0Bdc4c0c49dfDB",
-        unstakedAmount: "5000000000000000100",
       },
     ]);
   });

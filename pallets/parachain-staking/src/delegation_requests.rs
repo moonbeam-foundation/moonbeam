@@ -333,42 +333,38 @@ impl<T: Config> Pallet<T> {
 		let now = <Round<T>>::get().current;
 		let when = now.saturating_add(T::LeaveDelegatorsDelay::get());
 
-		// pre-validate that not all delegations already have a Revoke request.
-		let mut revoke_count = 0;
-		for bond in &state.delegations.0 {
-			let collator = bond.owner.clone();
-			let scheduled_requests = <DelegationScheduledRequests<T>>::get(&collator);
-			let maybe_revoke = scheduled_requests.iter().find(|req| {
-				req.delegator == delegator && matches!(req.action, DelegationAction::Revoke(_))
-			});
-			if let Some(_) = maybe_revoke {
-				revoke_count += 1;
-			}
-		}
-		if revoke_count == state.delegations.0.len() {
-			return Err(<Error<T>>::DelegatorAlreadyLeaving.into());
-		}
-
 		// it is assumed that a multiple delegations to the same collator does not exist, else this
 		// will cause a bug - the last duplicate delegation update will be the only one applied.
+		let mut existing_revoke_count = 0;
 		for bond in state.delegations.0.clone() {
 			let collator = bond.owner;
 			let mut scheduled_requests = <DelegationScheduledRequests<T>>::get(&collator);
-
-			// cancel any existing requests
-			Self::cancel_request_with_state(&delegator, &mut state, &mut scheduled_requests);
-
-			// schedule revoke
 			let bonded_amount = state
 				.get_bond_amount(&collator)
 				.ok_or(<Error<T>>::DelegationDNE)?;
-			scheduled_requests.push(ScheduledRequest {
-				delegator: delegator.clone(),
-				action: DelegationAction::Revoke(bonded_amount),
-				when_executable: when,
-			});
+
+			// cancel any existing requests
+			let request =
+				Self::cancel_request_with_state(&delegator, &mut state, &mut scheduled_requests);
+			let request = match request {
+				Some(revoke_req) if matches!(revoke_req.action, DelegationAction::Revoke(_)) => {
+					existing_revoke_count += 1;
+					revoke_req // re-insert the same Revoke request
+				}
+				_ => ScheduledRequest {
+					delegator: delegator.clone(),
+					action: DelegationAction::Revoke(bonded_amount.clone()),
+					when_executable: when,
+				},
+			};
+
+			scheduled_requests.push(request);
 			state.less_total = state.less_total.saturating_add(bonded_amount);
 			updated_scheduled_requests.push((collator, scheduled_requests));
+		}
+
+		if existing_revoke_count == state.delegations.0.len() {
+			return Err(<Error<T>>::DelegatorAlreadyLeaving.into());
 		}
 
 		updated_scheduled_requests
