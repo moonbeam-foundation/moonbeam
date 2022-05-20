@@ -2627,7 +2627,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 			let update_expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: Default::default(),
-				cost: 11030u64,
+				cost: 15190u64,
 				logs: Default::default(),
 			}));
 
@@ -2746,7 +2746,7 @@ fn author_mapping_register_and_set_keys() {
 			let update_expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: Default::default(),
-				cost: 11023u64,
+				cost: 16280u64,
 				logs: Default::default(),
 			}));
 
