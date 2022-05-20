@@ -171,6 +171,9 @@
 <span id="166">166</span>
 <span id="167">167</span>
 <span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -239,6 +242,9 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">AccountId</span>: <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">PartialEq</span><span class="op">&gt;</span> <span class="ident">CollatorPoolInfo</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span> {
 	<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">add_orbiter</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">orbiter</span>: <span class="ident">AccountId</span>) {
+		<span class="kw">if</span> <span class="self">self</span>.<span class="ident">next_orbiter</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">orbiters</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span> {
+			<span class="self">self</span>.<span class="ident">next_orbiter</span> <span class="op">=</span> <span class="number">0</span>;
+		}
 		<span class="self">self</span>.<span class="ident">orbiters</span>.<span class="ident">insert</span>(<span class="self">self</span>.<span class="ident">next_orbiter</span> <span class="kw">as</span> <span class="ident">usize</span>, <span class="ident">orbiter</span>);
 		<span class="self">self</span>.<span class="ident">next_orbiter</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
 	}
