@@ -298,9 +298,9 @@ impl<T: Config> OnRuntimeUpgrade for TransactSignedWeightAndFeePerSecond<T> {
 			let (location, original_info): (MultiLocation, OldRemoteTransactInfoWithFeePerSecond) =
 				Self::get_temp_storage("example_pair").expect("qed");
 			let migrated_info_transact_info =
-				TransactInfoWithWeightLimit::<T>::get(location).expect("qed");
+				TransactInfoWithWeightLimit::<T>::get(&location).expect("qed");
 			let migrated_info_fee_per_second =
-				DestinationAssetFeePerSecond::<T>::get(location).expect("qed");
+				DestinationAssetFeePerSecond::<T>::get(&location).expect("qed");
 			// Check all the other params are equal
 			assert_eq!(
 				original_info.transact_extra_weight,
@@ -317,7 +317,7 @@ impl<T: Config> OnRuntimeUpgrade for TransactSignedWeightAndFeePerSecond<T> {
 			);
 			assert_eq!(
 				original_info
-					.fee_per_second
+					.fee_per_second,
 					migrated_info_fee_per_second
 			);
 		}
