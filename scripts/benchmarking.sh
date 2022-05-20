@@ -29,7 +29,7 @@ function help {
 }
 
 function choose_and_bench {
-    readarray -t options < <(${BINARY} benchmark --list | sed 1d)
+    readarray -t options < <(${BINARY} benchmark pallet --list | sed 1d)
     options+=('EXIT')
 
     select opt in "${options[@]}"; do
