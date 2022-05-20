@@ -315,11 +315,7 @@ impl<T: Config> OnRuntimeUpgrade for TransactSignedWeightAndFeePerSecond<T> {
 				migrated_info_transact_info.transact_extra_weight_signed,
 				None
 			);
-			assert_eq!(
-				original_info
-					.fee_per_second,
-					migrated_info_fee_per_second
-			);
+			assert_eq!(original_info.fee_per_second, migrated_info_fee_per_second);
 		}
 
 		Ok(())
