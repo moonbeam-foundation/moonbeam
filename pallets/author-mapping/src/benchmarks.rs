@@ -83,7 +83,7 @@ benchmarks! {
 		let caller = create_funded_user::<T>();
 		let id = nimbus_id(1u8);
 		let key: T::Keys = nimbus_id(2u8).into();
-	}: _(RawOrigin::Signed(caller.clone()), id.clone(), key.clone())
+	}: _(RawOrigin::Signed(caller.clone()), (id.clone(), key.clone()))
 	verify {
 		assert_eq!(Pallet::<T>::account_id_of(&id), Some(caller));
 		assert_eq!(Pallet::<T>::keys_of(&id), Some(key));
@@ -101,10 +101,9 @@ benchmarks! {
 				first_keys.clone(),
 			)
 		);
-	}: _(RawOrigin::Signed(caller.clone()),
-		first_id.clone(),
-		second_id.clone(),
-		second_keys.clone()) verify {
+	}: _(RawOrigin::Signed(caller.clone())
+		(second_id.clone(),
+		second_keys.clone())) verify {
 		assert_eq!(Pallet::<T>::account_id_of(&first_id), None);
 		assert_eq!(Pallet::<T>::keys_of(&first_id), None);
 		assert_eq!(Pallet::<T>::account_id_of(&second_id), Some(caller));
