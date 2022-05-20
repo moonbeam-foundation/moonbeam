@@ -5,6 +5,7 @@ import {
   FrameSupportWeightsDispatchInfo,
   FrameSystemEventRecord,
 } from "@polkadot/types/lookup";
+import type { IsEvent } from "@polkadot/types/metadata/decorate/types";
 import { expect } from "chai";
 import Keyring from "@polkadot/keyring";
 import {
@@ -23,10 +24,11 @@ import {
 } from "../util/constants";
 import { describeDevMoonbeam, DevTestContext } from "../util/setup-dev-tests";
 import { KeyringPair } from "@substrate/txwrapper-core";
-import { IEvent } from "@polkadot/types/types";
-import { u128, Vec } from "@polkadot/types";
+import { AnyTuple, IEvent } from "@polkadot/types/types";
+import { GenericEventData, u128, Vec } from "@polkadot/types";
 import { BN } from "@polkadot/util";
 import { StringMappingType } from "typescript";
+import { AugmentedEvent } from "@polkadot/api/types";
 
 describeDevMoonbeam("Staking - Genesis", (context) => {
   it("should match collator reserved bond reserved", async function () {
@@ -214,8 +216,17 @@ describeDevMoonbeam("Staking - Join Delegators", (context) => {
     ).current.toNumber();
     const roundDelay = context.polkadotApi.consts.parachainStaking.leaveDelegatorsDelay.toNumber();
 
-    expect(delegatorState.status.isLeaving).to.be.true;
-    expect(delegatorState.status.asLeaving.toNumber()).to.equal(currentRound + roundDelay);
+    for await (const delegation of delegatorState.delegations) {
+      const scheduledRequests =
+        (await context.polkadotApi.query.parachainStaking.delegationScheduledRequests(
+          delegation.owner
+        )) as unknown as any[];
+      const revokeRequest = scheduledRequests.find(
+        (req) => req.delegator.eq(ETHAN) && req.action.isRevoke
+      );
+      expect(revokeRequest).to.not.be.undefined;
+      expect(revokeRequest.whenExecutable.toNumber()).to.equal(currentRound + roundDelay);
+    }
   });
 
   it("should successfully execute schedule leave delegators at correct round", async function () {
@@ -227,9 +238,16 @@ describeDevMoonbeam("Staking - Join Delegators", (context) => {
     const delegatorState = (
       await context.polkadotApi.query.parachainStaking.delegatorState(ETHAN)
     ).unwrap();
-    expect(delegatorState.status.isLeaving).to.be.true;
+    const scheduledRequests =
+      (await context.polkadotApi.query.parachainStaking.delegationScheduledRequests(
+        ALITH
+      )) as unknown as any[];
+    const revokeRequest = scheduledRequests.find(
+      (req) => req.delegator.eq(ETHAN) && req.action.isRevoke
+    );
+    expect(revokeRequest).to.not.be.undefined;
 
-    const whenRound = delegatorState.status.asLeaving.toNumber();
+    const whenRound = revokeRequest.whenExecutable.toNumber();
     await jumpToRound(context, whenRound - 1);
 
     await context.polkadotApi.tx.parachainStaking
@@ -639,15 +657,37 @@ describeDevMoonbeam("Staking - Delegation Requests", (context) => {
     await context.createBlock();
 
     const delegatorState = await context.polkadotApi.query.parachainStaking.delegatorState(ETHAN);
-    await jumpToRound(context, delegatorState.unwrap().status.asLeaving.toNumber());
+    const scheduledRequests =
+      (await context.polkadotApi.query.parachainStaking.delegationScheduledRequests(
+        ALITH
+      )) as unknown as any[];
+    const revokeRequest = scheduledRequests.find(
+      (req) => req.delegator.eq(ETHAN) && req.action.isRevoke
+    );
+    expect(revokeRequest).to.not.be.undefined;
+    await jumpToRound(context, revokeRequest.whenExecutable.toNumber());
 
     await context.polkadotApi.tx.parachainStaking
       .executeLeaveDelegators(ETHAN, 1)
       .signAndSend(ethan);
-    await context.createBlock();
+    const block = await context.createBlock();
     const delegationRequestsAfter =
       await context.polkadotApi.query.parachainStaking.delegationScheduledRequests(ALITH);
     expect(delegationRequestsAfter.toJSON()).to.be.empty;
+    const leaveEvents = await getEventsAtFilter(context, block.block.hash.toString(), (event) => {
+      if (context.polkadotApi.events.parachainStaking.DelegatorLeft.is(event.event)) {
+        return {
+          account: event.event.data[0].toString(),
+          unstakedAmount: event.event.data[1].toString(),
+        };
+      }
+    });
+    expect(leaveEvents).to.deep.equal([
+      {
+        account: "0xFf64d3F6efE2317EE2807d223a0Bdc4c0c49dfDB",
+        unstakedAmount: "5000000000000000100",
+      },
+    ]);
   });
 });
 
@@ -801,6 +841,25 @@ async function getExtrinsicResult(
   }
 
   return dispatchError.toString();
+}
+
+async function getEventsAtFilter(
+  context: DevTestContext,
+  blockHash: string,
+  cb: (event: FrameSystemEventRecord) => object
+): Promise<Array<object>> {
+  const signedBlock = await context.polkadotApi.rpc.chain.getBlock(blockHash);
+  const apiAt = await context.polkadotApi.at(signedBlock.block.header.hash);
+
+  let events = [];
+  for await (const event of await apiAt.query.system.events()) {
+    const data = cb(event);
+    if (data) {
+      events.push(data);
+    }
+  }
+
+  return events;
 }
 
 async function getRewardedEventsAt(

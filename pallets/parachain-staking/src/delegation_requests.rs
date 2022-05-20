@@ -196,10 +196,9 @@ impl<T: Config> Pallet<T> {
 		state: &mut Delegator<T::AccountId, BalanceOf<T>>,
 		scheduled_requests: &mut Vec<ScheduledRequest<T::AccountId, BalanceOf<T>>>,
 	) -> Option<ScheduledRequest<T::AccountId, BalanceOf<T>>> {
-		let request_idx = scheduled_requests.iter().position(|req| {
-			let x = &req.delegator;
-			x == delegator
-		})?;
+		let request_idx = scheduled_requests
+			.iter()
+			.position(|req| &req.delegator == delegator)?;
 
 		let request = scheduled_requests.remove(request_idx);
 		let amount = request.action.amount();
@@ -441,35 +440,31 @@ impl<T: Config> Pallet<T> {
 			Error::<T>::TooLowDelegationCountToLeaveDelegators
 		);
 		let now = <Round<T>>::get().current;
-		let mut updated_scheduled_requests = vec![];
 
+		let mut validated_scheduled_requests = vec![];
 		// pre-validate that all delegations have a Revoke request that can be executed now.
 		for bond in &state.delegations.0 {
-			let collator = bond.owner.clone();
-			let scheduled_requests = <DelegationScheduledRequests<T>>::get(&collator);
-			let request = scheduled_requests
+			let scheduled_requests = <DelegationScheduledRequests<T>>::get(&bond.owner);
+			let request_idx = scheduled_requests
 				.iter()
-				.find(|req| {
+				.position(|req| {
 					req.delegator == delegator && matches!(req.action, DelegationAction::Revoke(_))
 				})
 				.ok_or(<Error<T>>::DelegatorNotLeaving)?;
+			let request = &scheduled_requests[request_idx];
 
 			ensure!(
 				request.when_executable <= now,
 				<Error<T>>::DelegatorCannotLeaveYet
 			);
+
+			validated_scheduled_requests.push((bond.clone(), scheduled_requests, request_idx))
 		}
 
+		let mut updated_scheduled_requests = vec![];
 		// we do not update the delegator state, since the it will be completely removed
-		for bond in &state.delegations.0 {
-			let collator = bond.owner.clone();
-			let mut scheduled_requests = <DelegationScheduledRequests<T>>::get(&collator);
-			let request_idx = scheduled_requests
-				.iter()
-				.position(|req| req.delegator == delegator)
-				.expect("must exist");
-			let request = &scheduled_requests[request_idx];
-			assert!(request.when_executable <= now);
+		for (bond, mut scheduled_requests, request_idx) in validated_scheduled_requests {
+			let collator = bond.owner;
 
 			if let Err(error) =
 				Self::delegator_leaves_candidate(collator.clone(), delegator.clone(), bond.amount)
