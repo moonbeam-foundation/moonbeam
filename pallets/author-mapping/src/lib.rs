@@ -91,6 +91,8 @@ pub mod pallet {
 		CannotAffordSecurityDeposit,
 		/// The NimbusId in question is already associated and cannot be overwritten
 		AlreadyAssociated,
+		/// No existing NimbusId can be found for the account
+		OldAuthorIdNotFound,
 	}
 
 	#[pallet::event]
@@ -173,6 +175,7 @@ pub mod pallet {
 				..stored_info
 			};
 			MappingWithDeposit::<T>::insert(&new_author_id, &new_stored_info);
+			NimbusLookup::<T>::insert(&account_id, &new_author_id);
 
 			<Pallet<T>>::deposit_event(Event::AuthorRotated {
 				new_author_id: new_author_id,
@@ -203,6 +206,7 @@ pub mod pallet {
 			);
 
 			MappingWithDeposit::<T>::remove(&author_id);
+			NimbusLookup::<T>::remove(&account_id);
 
 			T::DepositCurrency::unreserve(&account_id, stored_info.deposit);
 
@@ -217,13 +221,9 @@ pub mod pallet {
 
 		/// Add association and set session keys
 		#[pallet::weight(<T as Config>::WeightInfo::register_keys())]
-		pub fn register_keys(
-			origin: OriginFor<T>,
-			author_id: NimbusId,
-			keys: T::Keys,
-		) -> DispatchResult {
+		pub fn register_keys(origin: OriginFor<T>, keys: (NimbusId, T::Keys)) -> DispatchResult {
 			let account_id = ensure_signed(origin)?;
-
+			let (author_id, keys) = keys;
 			ensure!(
 				MappingWithDeposit::<T>::get(&author_id).is_none(),
 				Error::<T>::AlreadyAssociated
@@ -246,14 +246,10 @@ pub mod pallet {
 		/// No new security deposit is required. Will replace `update_association` which is kept
 		/// now for backwards compatibility reasons.
 		#[pallet::weight(<T as Config>::WeightInfo::set_keys())]
-		pub fn set_keys(
-			origin: OriginFor<T>,
-			old_author_id: NimbusId,
-			new_author_id: NimbusId,
-			new_keys: T::Keys,
-		) -> DispatchResult {
+		pub fn set_keys(origin: OriginFor<T>, keys: (NimbusId, T::Keys)) -> DispatchResult {
 			let account_id = ensure_signed(origin)?;
-
+			let old_author_id =
+				Self::nimbus_id_of(&account_id).ok_or(Error::<T>::OldAuthorIdNotFound)?;
 			let stored_info = MappingWithDeposit::<T>::try_get(&old_author_id)
 				.map_err(|_| Error::<T>::AssociationNotFound)?;
 
@@ -261,6 +257,7 @@ pub mod pallet {
 				account_id == stored_info.account,
 				Error::<T>::NotYourAssociation
 			);
+			let (new_author_id, new_keys) = keys;
 			ensure!(
 				MappingWithDeposit::<T>::get(&new_author_id).is_none(),
 				Error::<T>::AlreadyAssociated
@@ -274,6 +271,7 @@ pub mod pallet {
 					..stored_info
 				},
 			);
+			NimbusLookup::<T>::insert(&account_id, new_author_id.clone());
 
 			<Pallet<T>>::deposit_event(Event::AuthorRotated {
 				new_author_id,
@@ -293,7 +291,7 @@ pub mod pallet {
 		) -> DispatchResult {
 			let deposit = T::DepositAmount::get();
 
-			T::DepositCurrency::reserve(&account_id, deposit)
+			T::DepositCurrency::reserve(account_id, deposit)
 				.map_err(|_| Error::<T>::CannotAffordSecurityDeposit)?;
 
 			let info = RegistrationInfo {
@@ -302,7 +300,8 @@ pub mod pallet {
 				keys,
 			};
 
-			MappingWithDeposit::<T>::insert(&author_id, &info);
+			MappingWithDeposit::<T>::insert(author_id, info);
+			NimbusLookup::<T>::insert(account_id, author_id);
 
 			Ok(())
 		}
@@ -314,6 +313,12 @@ pub mod pallet {
 	/// to the AccountIds runtime.
 	pub type MappingWithDeposit<T: Config> =
 		StorageMap<_, Blake2_128Concat, NimbusId, RegistrationInfo<T>, OptionQuery>;
+
+	#[pallet::storage]
+	#[pallet::getter(fn nimbus_lookup)]
+	/// We maintain a reverse mapping from AccountIds to NimbusIDS
+	pub type NimbusLookup<T: Config> =
+		StorageMap<_, Blake2_128Concat, T::AccountId, NimbusId, OptionQuery>;
 
 	#[pallet::genesis_config]
 	/// Genesis config for author mapping pallet
@@ -365,6 +370,10 @@ pub mod pallet {
 		/// A helper function to lookup the keys associated with the given author id.
 		pub fn keys_of(author_id: &NimbusId) -> Option<T::Keys> {
 			Self::account_and_deposit_of(author_id).map(|info| info.keys)
+		}
+		/// A helper function to lookup NimbusId associated with a given AccountId
+		pub fn nimbus_id_of(account_id: &T::AccountId) -> Option<NimbusId> {
+			NimbusLookup::<T>::get(account_id)
 		}
 	}
 }
