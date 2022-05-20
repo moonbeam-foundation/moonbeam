@@ -1278,9 +1278,7 @@ impl<
 	pub fn is_active(&self) -> bool {
 		matches!(self.status, DelegatorStatus::Active)
 	}
-	pub fn is_leaving(&self) -> bool {
-		matches!(self.status, DelegatorStatus::Leaving(_))
-	}
+
 	/// Can only leave if the current round is less than or equal to scheduled execution round
 	/// - returns None if not in leaving state
 	pub fn can_execute_leave<T: Config>(&self, delegation_weight_hint: u32) -> DispatchResult {
@@ -1297,21 +1295,6 @@ impl<
 		} else {
 			Err(Error::<T>::DelegatorNotLeaving.into())
 		}
-	}
-	/// Set status to leaving
-	pub(crate) fn set_leaving(&mut self, when: RoundIndex) {
-		self.status = DelegatorStatus::Leaving(when);
-	}
-	/// Schedule status to exit
-	pub fn schedule_leave<T: Config>(&mut self) -> (RoundIndex, RoundIndex) {
-		let now = <Round<T>>::get().current;
-		let when = now + T::LeaveDelegatorsDelay::get();
-		self.set_leaving(when);
-		(now, when)
-	}
-	/// Set delegator status to active
-	pub fn cancel_leave(&mut self) {
-		self.status = DelegatorStatus::Active
 	}
 	pub fn add_delegation(&mut self, bond: Bond<AccountId, Balance>) -> bool {
 		let amt = bond.amount;
