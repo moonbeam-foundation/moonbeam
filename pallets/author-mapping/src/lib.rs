@@ -318,7 +318,7 @@ pub mod pallet {
 	#[pallet::getter(fn nimbus_lookup)]
 	/// We maintain a reverse mapping from AccountIds to NimbusIDS
 	pub type NimbusLookup<T: Config> =
-		StorageMap<_, Twox64Concat, T::AccountId, NimbusId, OptionQuery>;
+		StorageMap<_, Blake2_128Concat, T::AccountId, NimbusId, OptionQuery>;
 
 	#[pallet::genesis_config]
 	/// Genesis config for author mapping pallet
