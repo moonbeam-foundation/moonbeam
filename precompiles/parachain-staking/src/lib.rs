@@ -133,20 +133,52 @@ where
 			context,
 			is_static,
 			match selector {
+				// Views
 				Action::IsNominator
 				| Action::IsDelegator
 				| Action::IsCandidate
 				| Action::IsSelectedCandidate
-				| Action::Points
 				| Action::MinNomination
 				| Action::MinDelegation
+				| Action::Points
 				| Action::CandidateCount
+				| Action::Round
 				| Action::CollatorNominationCount
-				| Action::CandidateDelegationCount
 				| Action::NominatorNominationCount
+				| Action::CandidateDelegationCount
 				| Action::DelegatorDelegationCount
-				| Action::SelectedCandidates => FunctionModifier::View,
-				_ => FunctionModifier::NonPayable,
+				| Action::SelectedCandidates
+				| Action::DelegationRequestIsPending
+				| Action::DelegatorExitIsPending
+				| Action::CandidateExitIsPending
+				| Action::CandidateRequestIsPending => FunctionModifier::View,
+				// Non-payables
+				Action::JoinCandidates
+				| Action::LeaveCandidates
+				| Action::ScheduleLeaveCandidates
+				| Action::ExecuteLeaveCandidates
+				| Action::CancelLeaveCandidates
+				| Action::GoOffline
+				| Action::GoOnline
+				| Action::CandidateBondLess
+				| Action::ScheduleCandidateBondLess
+				| Action::CandidateBondMore
+				| Action::ExecuteCandidateBondLess
+				| Action::CancelCandidateBondLess
+				| Action::Nominate
+				| Action::Delegate
+				| Action::LeaveNominators
+				| Action::ScheduleLeaveDelegators
+				| Action::ExecuteLeaveDelegators
+				| Action::CancelLeaveDelegators
+				| Action::RevokeNomination
+				| Action::ScheduleRevokeDelegation
+				| Action::NominatorBondLess
+				| Action::ScheduleDelegatorBondLess
+				| Action::NominatorBondMore
+				| Action::DelegatorBondMore
+				| Action::ExecuteDelegationRequest
+				| Action::CancelDelegationRequest => FunctionModifier::NonPayable,
 			},
 		)?;
 
