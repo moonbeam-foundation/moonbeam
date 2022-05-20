@@ -754,6 +754,13 @@
 <span id="749">749</span>
 <span id="750">750</span>
 <span id="751">751</span>
+<span id="752">752</span>
+<span id="753">753</span>
+<span id="754">754</span>
+<span id="755">755</span>
+<span id="756">756</span>
+<span id="757">757</span>
+<span id="758">758</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -1498,10 +1505,17 @@
 		}
 
 		<span class="doccomment">/// Returns the fee for a given set of parameters</span>
+		<span class="doccomment">/// We always round up in case of fractional division</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">calculate_fee_per_second</span>(<span class="ident">weight</span>: <span class="ident">Weight</span>, <span class="ident">fee_per_second</span>: <span class="ident">u128</span>) -&gt; <span class="ident">u128</span> {
-			<span class="kw">let</span> <span class="ident">weight_fee</span> <span class="op">=</span>
-				<span class="ident">fee_per_second</span>.<span class="ident">saturating_mul</span>(<span class="ident">weight</span> <span class="kw">as</span> <span class="ident">u128</span>) <span class="op">/</span> (<span class="ident">WEIGHT_PER_SECOND</span> <span class="kw">as</span> <span class="ident">u128</span>);
-			<span class="kw">return</span> <span class="ident">weight_fee</span>;
+			<span class="comment">// grab WEIGHT_PER_SECOND as u128</span>
+			<span class="kw">let</span> <span class="ident">weight_per_second_u128</span> <span class="op">=</span> <span class="ident">WEIGHT_PER_SECOND</span> <span class="kw">as</span> <span class="ident">u128</span>;
+
+			<span class="comment">// we add WEIGHT_PER_SECOND -1 after multiplication to make sure that</span>
+			<span class="comment">// if there is a fractional part we round up the result</span>
+			<span class="kw">let</span> <span class="ident">fee_mul_rounded_up</span> <span class="op">=</span> (<span class="ident">fee_per_second</span>.<span class="ident">saturating_mul</span>(<span class="ident">weight</span> <span class="kw">as</span> <span class="ident">u128</span>))
+				.<span class="ident">saturating_add</span>(<span class="ident">weight_per_second_u128</span> <span class="op">-</span> <span class="number">1</span>);
+
+			<span class="ident">fee_mul_rounded_up</span> <span class="op">/</span> <span class="ident">weight_per_second_u128</span>
 		}
 	}
 }
