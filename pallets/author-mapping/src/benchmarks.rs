@@ -101,7 +101,7 @@ benchmarks! {
 				first_keys.clone(),
 			)
 		);
-	}: _(RawOrigin::Signed(caller.clone())
+	}: _(RawOrigin::Signed(caller.clone()),
 		(second_id.clone(),
 		second_keys.clone())) verify {
 		assert_eq!(Pallet::<T>::account_id_of(&first_id), None);
