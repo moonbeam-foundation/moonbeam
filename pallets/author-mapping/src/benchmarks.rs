@@ -97,8 +97,8 @@ benchmarks! {
 		let second_keys: T::Keys = nimbus_id(3u8).into();
 		assert_ok!(Pallet::<T>::register_keys(
 				RawOrigin::Signed(caller.clone()).into(),
-				first_id.clone(),
-				first_keys.clone(),
+				(first_id.clone(),
+				first_keys.clone()),
 			)
 		);
 	}: _(RawOrigin::Signed(caller.clone()),
