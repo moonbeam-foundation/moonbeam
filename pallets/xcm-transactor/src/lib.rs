@@ -742,10 +742,17 @@ pub mod pallet {
 		}
 
 		/// Returns the fee for a given set of parameters
+		/// We always round up in case of fractional division
 		pub fn calculate_fee_per_second(weight: Weight, fee_per_second: u128) -> u128 {
-			let weight_fee =
-				fee_per_second.saturating_mul(weight as u128) / (WEIGHT_PER_SECOND as u128);
-			return weight_fee;
+			// grab WEIGHT_PER_SECOND as u128
+			let weight_per_second_u128 = WEIGHT_PER_SECOND as u128;
+
+			// we add WEIGHT_PER_SECOND -1 after multiplication to make sure that
+			// if there is a fractional part we round up the result
+			let fee_mul_rounded_up = (fee_per_second.saturating_mul(weight as u128))
+				.saturating_add(weight_per_second_u128 - 1);
+
+			fee_mul_rounded_up / weight_per_second_u128
 		}
 	}
 }
