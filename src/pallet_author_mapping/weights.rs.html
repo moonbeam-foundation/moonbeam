@@ -157,6 +157,16 @@
 <span id="152">152</span>
 <span id="153">153</span>
 <span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -232,41 +242,46 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">frame_system::Config</span><span class="op">&gt;</span> <span class="ident">WeightInfo</span> <span class="kw">for</span> <span class="ident">SubstrateWeight</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
 	<span class="comment">// Storage: AuthorMapping MappingWithDeposit (r:1 w:1)</span>
 	<span class="comment">// Storage: System Account (r:1 w:1)</span>
+	<span class="comment">// Storage: AuthorMapping NimbusLookup (r:0 w:1)</span>
 	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
 	<span class="kw">fn</span> <span class="ident">add_association</span>() -&gt; <span class="ident">Weight</span> {
-		(<span class="number">33_145_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
+		(<span class="number">34_709_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
 			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">reads</span>(<span class="number">2</span> <span class="kw">as</span> <span class="ident">Weight</span>))
-			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">writes</span>(<span class="number">2</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">writes</span>(<span class="number">3</span> <span class="kw">as</span> <span class="ident">Weight</span>))
 	}
 	<span class="comment">// Storage: AuthorMapping MappingWithDeposit (r:2 w:2)</span>
+	<span class="comment">// Storage: AuthorMapping NimbusLookup (r:0 w:1)</span>
 	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
 	<span class="kw">fn</span> <span class="ident">update_association</span>() -&gt; <span class="ident">Weight</span> {
-		(<span class="number">25_754_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
+		(<span class="number">29_759_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
 			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">reads</span>(<span class="number">2</span> <span class="kw">as</span> <span class="ident">Weight</span>))
-			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">writes</span>(<span class="number">2</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">writes</span>(<span class="number">3</span> <span class="kw">as</span> <span class="ident">Weight</span>))
 	}
 	<span class="comment">// Storage: AuthorMapping MappingWithDeposit (r:1 w:1)</span>
 	<span class="comment">// Storage: System Account (r:1 w:1)</span>
+	<span class="comment">// Storage: AuthorMapping NimbusLookup (r:0 w:1)</span>
 	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
 	<span class="kw">fn</span> <span class="ident">clear_association</span>() -&gt; <span class="ident">Weight</span> {
-		(<span class="number">36_253_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
+		(<span class="number">36_180_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
 			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">reads</span>(<span class="number">2</span> <span class="kw">as</span> <span class="ident">Weight</span>))
-			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">writes</span>(<span class="number">2</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">writes</span>(<span class="number">3</span> <span class="kw">as</span> <span class="ident">Weight</span>))
 	}
 	<span class="comment">// Storage: AuthorMapping MappingWithDeposit (r:1 w:1)</span>
 	<span class="comment">// Storage: System Account (r:1 w:1)</span>
+	<span class="comment">// Storage: AuthorMapping NimbusLookup (r:0 w:1)</span>
 	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
 	<span class="kw">fn</span> <span class="ident">register_keys</span>() -&gt; <span class="ident">Weight</span> {
-		(<span class="number">33_600_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
+		(<span class="number">35_722_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
 			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">reads</span>(<span class="number">2</span> <span class="kw">as</span> <span class="ident">Weight</span>))
-			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">writes</span>(<span class="number">2</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">writes</span>(<span class="number">3</span> <span class="kw">as</span> <span class="ident">Weight</span>))
 	}
+	<span class="comment">// Storage: AuthorMapping NimbusLookup (r:1 w:1)</span>
 	<span class="comment">// Storage: AuthorMapping MappingWithDeposit (r:2 w:2)</span>
 	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
 	<span class="kw">fn</span> <span class="ident">set_keys</span>() -&gt; <span class="ident">Weight</span> {
-		(<span class="number">25_578_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
-			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">reads</span>(<span class="number">2</span> <span class="kw">as</span> <span class="ident">Weight</span>))
-			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">writes</span>(<span class="number">2</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+		(<span class="number">32_010_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
+			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">reads</span>(<span class="number">3</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">writes</span>(<span class="number">3</span> <span class="kw">as</span> <span class="ident">Weight</span>))
 	}
 }
 
@@ -274,41 +289,46 @@
 <span class="kw">impl</span> <span class="ident">WeightInfo</span> <span class="kw">for</span> () {
 	<span class="comment">// Storage: AuthorMapping MappingWithDeposit (r:1 w:1)</span>
 	<span class="comment">// Storage: System Account (r:1 w:1)</span>
+	<span class="comment">// Storage: AuthorMapping NimbusLookup (r:0 w:1)</span>
 	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
 	<span class="kw">fn</span> <span class="ident">add_association</span>() -&gt; <span class="ident">Weight</span> {
-		(<span class="number">33_145_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
+		(<span class="number">34_709_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
 			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">reads</span>(<span class="number">2</span> <span class="kw">as</span> <span class="ident">Weight</span>))
-			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">writes</span>(<span class="number">2</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">writes</span>(<span class="number">3</span> <span class="kw">as</span> <span class="ident">Weight</span>))
 	}
 	<span class="comment">// Storage: AuthorMapping MappingWithDeposit (r:2 w:2)</span>
+	<span class="comment">// Storage: AuthorMapping NimbusLookup (r:0 w:1)</span>
 	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
 	<span class="kw">fn</span> <span class="ident">update_association</span>() -&gt; <span class="ident">Weight</span> {
-		(<span class="number">25_754_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
+		(<span class="number">29_759_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
 			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">reads</span>(<span class="number">2</span> <span class="kw">as</span> <span class="ident">Weight</span>))
-			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">writes</span>(<span class="number">2</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">writes</span>(<span class="number">3</span> <span class="kw">as</span> <span class="ident">Weight</span>))
 	}
 	<span class="comment">// Storage: AuthorMapping MappingWithDeposit (r:1 w:1)</span>
 	<span class="comment">// Storage: System Account (r:1 w:1)</span>
+	<span class="comment">// Storage: AuthorMapping NimbusLookup (r:0 w:1)</span>
 	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
 	<span class="kw">fn</span> <span class="ident">clear_association</span>() -&gt; <span class="ident">Weight</span> {
-		(<span class="number">36_253_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
+		(<span class="number">36_180_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
 			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">reads</span>(<span class="number">2</span> <span class="kw">as</span> <span class="ident">Weight</span>))
-			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">writes</span>(<span class="number">2</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">writes</span>(<span class="number">3</span> <span class="kw">as</span> <span class="ident">Weight</span>))
 	}
 	<span class="comment">// Storage: AuthorMapping MappingWithDeposit (r:1 w:1)</span>
 	<span class="comment">// Storage: System Account (r:1 w:1)</span>
+	<span class="comment">// Storage: AuthorMapping NimbusLookup (r:0 w:1)</span>
 	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
 	<span class="kw">fn</span> <span class="ident">register_keys</span>() -&gt; <span class="ident">Weight</span> {
-		(<span class="number">33_600_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
+		(<span class="number">35_722_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
 			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">reads</span>(<span class="number">2</span> <span class="kw">as</span> <span class="ident">Weight</span>))
-			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">writes</span>(<span class="number">2</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">writes</span>(<span class="number">3</span> <span class="kw">as</span> <span class="ident">Weight</span>))
 	}
+	<span class="comment">// Storage: AuthorMapping NimbusLookup (r:1 w:1)</span>
 	<span class="comment">// Storage: AuthorMapping MappingWithDeposit (r:2 w:2)</span>
 	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
 	<span class="kw">fn</span> <span class="ident">set_keys</span>() -&gt; <span class="ident">Weight</span> {
-		(<span class="number">25_578_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
-			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">reads</span>(<span class="number">2</span> <span class="kw">as</span> <span class="ident">Weight</span>))
-			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">writes</span>(<span class="number">2</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+		(<span class="number">32_010_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
+			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">reads</span>(<span class="number">3</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">writes</span>(<span class="number">3</span> <span class="kw">as</span> <span class="ident">Weight</span>))
 	}
 }
 </code></pre></div>
