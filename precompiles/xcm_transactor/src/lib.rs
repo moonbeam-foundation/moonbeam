@@ -19,10 +19,9 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![feature(assert_matches)]
 
-use evm::executor::stack::PrecompileOutput;
 use fp_evm::PrecompileHandle;
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
-use pallet_evm::AddressMapping;
+use pallet_evm::{AddressMapping, PrecompileOutput};
 use precompile_utils::{
 	revert, succeed, Address, Bytes, EvmDataWriter, EvmResult, FunctionModifier,
 	PrecompileHandleExt, RuntimeHelper,

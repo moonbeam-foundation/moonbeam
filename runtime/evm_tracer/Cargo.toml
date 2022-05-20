@@ -22,9 +22,9 @@ sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-po
 
 # Frontier
 ethereum-types = { version = "0.13.1", default-features = false }
-evm = { version = "0.35.0", default-features = false, features = [ "with-codec" ] }
-evm-gasometer = { version = "0.35.0", default-features = false }
-evm-runtime = { version = "0.35.0", default-features = false }
+evm = { git = "https://github.com/rust-blockchain/evm", branch = "master", default-features = false, features = [ "with-codec" ] }
+evm-gasometer = { git = "https://github.com/rust-blockchain/evm", branch = "master", default-features = false }
+evm-runtime = { git = "https://github.com/rust-blockchain/evm", branch = "master", default-features = false }
 fp-evm = { git = "https://github.com/purestake/frontier", branch = "jeremy-precompile-handle-0.9.19", default-features = false }
 pallet-evm = { git = "https://github.com/purestake/frontier", branch = "jeremy-precompile-handle-0.9.19", default-features = false }
 

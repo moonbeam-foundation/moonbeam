@@ -14731,7 +14731,6 @@ version = "0.1.0"
 dependencies = [
  "cumulus-primitives-core",
  "derive_more",
- "evm",
  "fp-evm",
  "frame-support",
  "frame-system",
