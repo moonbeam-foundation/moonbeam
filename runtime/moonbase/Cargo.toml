@@ -22,6 +22,7 @@ moonbeam-core-primitives = { path = "../../core-primitives", default-features = 
 moonbeam-relay-encoder = { path = "../relay-encoder", default-features = false }
 precompile-utils = { path = "../../precompiles/utils", default-features = false }
 runtime-common = { path = "../common", default-features = false, features = [ "xcm-support" ] }
+session-keys-primitives = { path = "../../primitives/session-keys", default-features = false }
 xcm-primitives = { path = "../../primitives/xcm/", default-features = false }
 
 # Moonbeam pallets
@@ -215,6 +216,7 @@ std = [
 	"runtime-common/std",
 	"scale-info/std",
 	"serde",
+	"session-keys-primitives/std",
 	"sp-api/std",
 	"sp-block-builder/std",
 	"sp-core/std",

@@ -29,7 +29,7 @@ Add to your codebase entry point before any imports from the API itself.
 Update package version.
 
 ```bash
-npm --no-git-tag-version 0.1500.0
+npm version --no-git-tag-version 0.1500.0
 ```
 
 Generate new types.
