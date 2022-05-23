@@ -443,11 +443,6 @@ pub mod pallet {
 
 			weight
 		}
-
-		fn on_runtime_upgrade() -> Weight {
-			use frame_support::traits::OnRuntimeUpgrade;
-			crate::migrations::SplitDelegatorStateIntoDelegationScheduledRequests::<T>::on_runtime_upgrade()
-		}
 	}
 
 	#[pallet::storage]
