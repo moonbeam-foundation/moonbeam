@@ -2601,7 +2601,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 			let associate_expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: Default::default(),
-				cost: 11325u64,
+				cost: 15388u64,
 				logs: Default::default(),
 			}));
 
@@ -2634,7 +2634,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 			let update_expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: Default::default(),
-				cost: 11030u64,
+				cost: 15190u64,
 				logs: Default::default(),
 			}));
 
@@ -2668,7 +2668,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 			let clear_expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: Default::default(),
-				cost: 11450u64,
+				cost: 15447u64,
 				logs: Default::default(),
 			}));
 
@@ -2719,7 +2719,7 @@ fn author_mapping_register_and_set_keys() {
 			let associate_expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: Default::default(),
-				cost: 11344u64,
+				cost: 15428u64,
 				logs: Default::default(),
 			}));
 
@@ -2753,7 +2753,7 @@ fn author_mapping_register_and_set_keys() {
 			let update_expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: Default::default(),
-				cost: 11023u64,
+				cost: 16280u64,
 				logs: Default::default(),
 			}));
 
@@ -2762,7 +2762,6 @@ fn author_mapping_register_and_set_keys() {
 				Precompiles::new().execute(
 					author_mapping_precompile_address,
 					&EvmDataWriter::new_with_selector(AuthorMappingAction::SetKeys)
-						.write(sp_core::H256::from([1u8; 32]))
 						.write(sp_core::H256::from([2u8; 32]))
 						.write(sp_core::H256::from([4u8; 32]))
 						.build(),
