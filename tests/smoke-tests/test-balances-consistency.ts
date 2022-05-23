@@ -19,17 +19,25 @@ describeSmokeSuite(`Verify balances consistency`, { wssUrl, relayWssUrl }, (cont
 
   before("Retrieve all balances", async function () {
     // It takes time to load all the accounts.
-    this.timeout(4800000);
+    this.timeout(3600000); // 1 hour should be enough
 
     const limit = 1000;
     let last_key = "";
     let count = 0;
 
-    atBlockNumber = (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber();
+    atBlockNumber = process.env.BLOCK_NUMBER
+      ? parseInt(process.env.BLOCK_NUMBER)
+      : (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber();
     apiAt = await context.polkadotApi.at(
       await context.polkadotApi.rpc.chain.getBlockHash(atBlockNumber)
     );
     specVersion = (await apiAt.query.system.lastRuntimeUpgrade()).unwrap().specVersion.toNumber();
+
+    if (process.env.ACCOUNT_ID) {
+      const userId = process.env.ACCOUNT_ID.toLowerCase();
+      accounts[userId] = await apiAt.query.system.account(userId);
+      return;
+    }
 
     // loop over all system accounts
     while (true) {
@@ -72,6 +80,8 @@ describeSmokeSuite(`Verify balances consistency`, { wssUrl, relayWssUrl }, (cont
       preimages,
       assets,
       assetsMetadata,
+      localAssets,
+      localAssetsMetadata,
       localAssetDeposits,
       namedReserves,
     ] = await Promise.all([
@@ -87,9 +97,9 @@ describeSmokeSuite(`Verify balances consistency`, { wssUrl, relayWssUrl }, (cont
       apiAt.query.democracy.preimages.entries(),
       apiAt.query.assets.asset.entries(),
       apiAt.query.assets.metadata.entries(),
-      specVersion >= 1500
-        ? apiAt.query.assetManager.localAssetDeposit.entries()
-        : ([] as [StorageKey<[u128]>, Option<any>][]), // TODO fix any
+      apiAt.query.localAssets.asset.entries(),
+      apiAt.query.localAssets.metadata.entries(),
+      apiAt.query.assetManager.localAssetDeposit.entries(),
       apiAt.query.balances.reserves.entries(),
     ]);
 
@@ -186,14 +196,39 @@ describeSmokeSuite(`Verify balances consistency`, { wssUrl, relayWssUrl }, (cont
           asset: asset[1].unwrap().deposit.toBigInt(),
         },
       })),
-      assetsMetadata.map((metadata) => ({
+      assetsMetadata.map((assetMetadata) => ({
         accountId: `0x${assets
-          .find((asset) => asset[0].toHex().slice(-64) == metadata[0].toHex().slice(-64))[1]
+          .find((asset) => asset[0].toHex().slice(-64) == assetMetadata[0].toHex().slice(-64))[1]
           .unwrap()
           .owner.toHex()
           .slice(-40)}`,
         reserved: {
-          metadata: metadata[1].deposit.toBigInt(),
+          assetMetadata: assetMetadata[1].deposit.toBigInt(),
+        },
+      })),
+      localAssets.map((localAsset) => ({
+        accountId: `0x${localAsset[1].unwrap().owner.toHex().slice(-40)}`,
+        reserved: {
+          localAsset: localAsset[1].unwrap().deposit.toBigInt(),
+        },
+      })),
+      localAssetsMetadata.map((localAssetMetadata) => ({
+        accountId: `0x${localAssets
+          .find(
+            (localAsset) =>
+              localAsset[0].toHex().slice(-64) == localAssetMetadata[0].toHex().slice(-64)
+          )[1]
+          .unwrap()
+          .owner.toHex()
+          .slice(-40)}`,
+        reserved: {
+          localAssetMetadata: localAssetMetadata[1].deposit.toBigInt(),
+        },
+      })),
+      localAssetDeposits.map((assetDeposit) => ({
+        accountId: assetDeposit[1].unwrap().creator.toHex(),
+        reserved: {
+          localAssetDeposit: assetDeposit[1].unwrap().deposit.toBigInt(),
         },
       })),
       localAssetDeposits.map((assetDeposit) => ({

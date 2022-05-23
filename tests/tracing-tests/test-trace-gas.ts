@@ -1,9 +1,9 @@
 import { expect } from "chai";
 import { customWeb3Request } from "../util/providers";
-import { describeDevMoonbeamAllEthTxTypes } from "../util/setup-dev-tests";
+import { describeDevMoonbeam } from "../util/setup-dev-tests";
 import { createContract, createContractExecution } from "../util/transactions";
 
-describeDevMoonbeamAllEthTxTypes("Trace filter - Gas Loop", (context) => {
+describeDevMoonbeam("Trace filter - Gas Loop", (context) => {
   const testLoops: {
     count: number;
     txHash?: string;
@@ -72,6 +72,7 @@ describeDevMoonbeamAllEthTxTypes("Trace filter - Gas Loop", (context) => {
   });
 
   it("should return 2068654 gasUsed for 1000 loop", async function () {
+    this.timeout(12000);
     const { rawTx } = await createContract(context, "FiniteLoopContract");
     await context.createBlock({ transactions: [rawTx] });
 
