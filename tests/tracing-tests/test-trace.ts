@@ -62,6 +62,7 @@ async function nestedSingle(context) {
   );
 }
 
+// TODO: Refactor dependent tests
 describeDevMoonbeam(
   "Trace",
   (context) => {
@@ -219,7 +220,7 @@ describeDevMoonbeam(
 describeDevMoonbeamAllEthTxTypes(
   "Trace blockscout v2",
   (context) => {
-    it("should format as request (Blockscout v2)", async function () {
+    it("should format as request", async function () {
       const send = await nestedSingle(context);
       await context.createBlock();
       let traceTx = await customWeb3Request(context.web3, "debug_traceTransaction", [
@@ -241,10 +242,11 @@ describeDevMoonbeamAllEthTxTypes(
   true
 );
 
+// TODO: Refactor dependent tests
 describeDevMoonbeamAllEthTxTypes(
   "Trace (Blockscout v2)",
   (context) => {
-    it("should trace correctly out of gas transaction execution (Blockscout v2)", async function () {
+    it("should trace correctly out of gas transaction execution", async function () {
       const { contract, rawTx } = await createContract(context, "InfiniteContract");
       await context.createBlock({ transactions: [rawTx] });
 
@@ -271,7 +273,7 @@ describeDevMoonbeamAllEthTxTypes(
       expect(trace.result[0].error).to.be.equal("out of gas");
     });
 
-    it("should trace correctly precompiles (Blockscout v2)", async function () {
+    it("should trace correctly precompiles", async function () {
       let callTx = await context.web3.eth.accounts.signTransaction(
         {
           from: GENESIS_ACCOUNT,
@@ -298,9 +300,9 @@ describeDevMoonbeamAllEthTxTypes(
 );
 
 describeDevMoonbeam(
-  "Trace",
+  "Trace (Blockscout)",
   (context) => {
-    it("should trace correctly out of gas transaction execution (Blockscout)", async function () {
+    it("should trace correctly out of gas transaction execution", async function () {
       const { contract, rawTx } = await createContract(context, "InfiniteContract");
       await context.createBlock({ transactions: [rawTx] });
 
@@ -327,7 +329,7 @@ describeDevMoonbeam(
       expect(trace.result[0].error).to.be.equal("out of gas");
     });
 
-    it("should trace correctly precompiles (Blockscout)", async function () {
+    it("should trace correctly precompiles", async function () {
       let callTx = await context.web3.eth.accounts.signTransaction(
         {
           from: GENESIS_ACCOUNT,
@@ -376,9 +378,9 @@ describeDevMoonbeam(
 );
 
 describeDevMoonbeam(
-  "Trace",
+  "Trace (callTrace)",
   (context) => {
-    it("should format as request (callTrace Call)", async function () {
+    it("should format as request (Call)", async function () {
       const send = await nestedSingle(context);
       await context.createBlock();
       let traceTx = await customWeb3Request(context.web3, "debug_traceTransaction", [
@@ -408,7 +410,7 @@ describeDevMoonbeam(
       expect(nested_call.type).to.be.equal("CALL");
     });
 
-    it("should format as request (callTrace Create)", async function () {
+    it("should format as request (Create)", async function () {
       let nonce = await context.web3.eth.getTransactionCount(GENESIS_ACCOUNT);
       const { contract: callee, rawTx: rawTx1 } = await createContract(
         context,
@@ -442,7 +444,7 @@ describeDevMoonbeam(
       expect(res.type).to.be.equal("CREATE");
     });
 
-    it("should trace block by number and hash (callTrace)", async function () {
+    it("should trace block by number and hash", async function () {
       const contracts = await createContracts(context);
       let nonce = contracts.nonce;
       await nestedCall(
@@ -517,9 +519,9 @@ describeDevMoonbeam(
 );
 
 describeDevMoonbeam(
-  "Trace",
+  "Trace (call list)",
   (context) => {
-    it("should correctly trace subcall (call list)", async function () {
+    it("should correctly trace subcall", async function () {
       const { contract: contractProxy, rawTx } = await createContract(context, "TestCallList");
       await context.createBlock({ transactions: [rawTx] });
 
@@ -567,7 +569,7 @@ describeDevMoonbeam(
       expect(trace.result.calls[0].type).to.be.eq("CALL");
     });
 
-    it("should correctly trace delegatecall subcall (call list)", async function () {
+    it("should correctly trace delegatecall subcall", async function () {
       const { contract: contractProxy, rawTx } = await createContract(context, "TestCallList");
       await context.createBlock({ transactions: [rawTx] });
 
