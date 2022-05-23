@@ -315,6 +315,23 @@ fn test_fee_calculation_works() {
 		})
 }
 
+// Kusama case
+#[test]
+fn test_fee_calculation_works_kusama_0_9_20_case() {
+	ExtBuilder::default()
+		.with_balances(vec![])
+		.build()
+		.execute_with(|| {
+			// 38620923000 * 319324000/1e12 = 12332587.6161
+			// integer arithmetic would round this to 12332587
+			// we test here that it rounds up to 12332588 instead
+			assert_eq!(
+				XcmTransactor::calculate_fee_per_second(319324000, 38620923000),
+				12332588
+			);
+		})
+}
+
 #[test]
 fn test_max_transact_weight_migration_works() {
 	ExtBuilder::default()

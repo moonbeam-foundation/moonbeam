@@ -73,41 +73,46 @@ pub struct SubstrateWeight<T>(PhantomData<T>);
 impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: AuthorMapping MappingWithDeposit (r:1 w:1)
 	// Storage: System Account (r:1 w:1)
+	// Storage: AuthorMapping NimbusLookup (r:0 w:1)
 	#[rustfmt::skip]
 	fn add_association() -> Weight {
-		(33_145_000 as Weight)
+		(34_709_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
-			.saturating_add(T::DbWeight::get().writes(2 as Weight))
+			.saturating_add(T::DbWeight::get().writes(3 as Weight))
 	}
 	// Storage: AuthorMapping MappingWithDeposit (r:2 w:2)
+	// Storage: AuthorMapping NimbusLookup (r:0 w:1)
 	#[rustfmt::skip]
 	fn update_association() -> Weight {
-		(25_754_000 as Weight)
+		(29_759_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
-			.saturating_add(T::DbWeight::get().writes(2 as Weight))
+			.saturating_add(T::DbWeight::get().writes(3 as Weight))
 	}
 	// Storage: AuthorMapping MappingWithDeposit (r:1 w:1)
 	// Storage: System Account (r:1 w:1)
+	// Storage: AuthorMapping NimbusLookup (r:0 w:1)
 	#[rustfmt::skip]
 	fn clear_association() -> Weight {
-		(36_253_000 as Weight)
+		(36_180_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
-			.saturating_add(T::DbWeight::get().writes(2 as Weight))
+			.saturating_add(T::DbWeight::get().writes(3 as Weight))
 	}
 	// Storage: AuthorMapping MappingWithDeposit (r:1 w:1)
 	// Storage: System Account (r:1 w:1)
+	// Storage: AuthorMapping NimbusLookup (r:0 w:1)
 	#[rustfmt::skip]
 	fn register_keys() -> Weight {
-		(33_600_000 as Weight)
+		(35_722_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
-			.saturating_add(T::DbWeight::get().writes(2 as Weight))
+			.saturating_add(T::DbWeight::get().writes(3 as Weight))
 	}
+	// Storage: AuthorMapping NimbusLookup (r:1 w:1)
 	// Storage: AuthorMapping MappingWithDeposit (r:2 w:2)
 	#[rustfmt::skip]
 	fn set_keys() -> Weight {
-		(25_578_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(2 as Weight))
-			.saturating_add(T::DbWeight::get().writes(2 as Weight))
+		(32_010_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(3 as Weight))
+			.saturating_add(T::DbWeight::get().writes(3 as Weight))
 	}
 }
 
@@ -115,40 +120,45 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 impl WeightInfo for () {
 	// Storage: AuthorMapping MappingWithDeposit (r:1 w:1)
 	// Storage: System Account (r:1 w:1)
+	// Storage: AuthorMapping NimbusLookup (r:0 w:1)
 	#[rustfmt::skip]
 	fn add_association() -> Weight {
-		(33_145_000 as Weight)
+		(34_709_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(2 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(3 as Weight))
 	}
 	// Storage: AuthorMapping MappingWithDeposit (r:2 w:2)
+	// Storage: AuthorMapping NimbusLookup (r:0 w:1)
 	#[rustfmt::skip]
 	fn update_association() -> Weight {
-		(25_754_000 as Weight)
+		(29_759_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(2 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(3 as Weight))
 	}
 	// Storage: AuthorMapping MappingWithDeposit (r:1 w:1)
 	// Storage: System Account (r:1 w:1)
+	// Storage: AuthorMapping NimbusLookup (r:0 w:1)
 	#[rustfmt::skip]
 	fn clear_association() -> Weight {
-		(36_253_000 as Weight)
+		(36_180_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(2 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(3 as Weight))
 	}
 	// Storage: AuthorMapping MappingWithDeposit (r:1 w:1)
 	// Storage: System Account (r:1 w:1)
+	// Storage: AuthorMapping NimbusLookup (r:0 w:1)
 	#[rustfmt::skip]
 	fn register_keys() -> Weight {
-		(33_600_000 as Weight)
+		(35_722_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(2 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(3 as Weight))
 	}
+	// Storage: AuthorMapping NimbusLookup (r:1 w:1)
 	// Storage: AuthorMapping MappingWithDeposit (r:2 w:2)
 	#[rustfmt::skip]
 	fn set_keys() -> Weight {
-		(25_578_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(2 as Weight))
+		(32_010_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(3 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(3 as Weight))
 	}
 }
