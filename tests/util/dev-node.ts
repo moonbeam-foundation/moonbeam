@@ -77,6 +77,7 @@ export async function startMoonbeamDevNode(withWasm?: boolean): Promise<{
     `--rpc-port=${rpcPort}`,
     `--ws-port=${wsPort}`,
     `--tmp`,
+    `--wasm-execution=interpreted-i-know-what-i-do`,
   ];
   if (WASM_RUNTIME_OVERRIDES != "") {
     args.push(`--wasm-runtime-overrides=${WASM_RUNTIME_OVERRIDES}`);

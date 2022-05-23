@@ -77,7 +77,10 @@ use sp_api::impl_runtime_apis;
 use sp_core::{OpaqueMetadata, H160, H256, U256};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
-	traits::{BlakeTwo256, Block as BlockT, Dispatchable, IdentityLookup, PostDispatchInfoOf},
+	traits::{
+		BlakeTwo256, Block as BlockT, DispatchInfoOf, Dispatchable, IdentityLookup,
+		PostDispatchInfoOf,
+	},
 	transaction_validity::{
 		InvalidTransaction, TransactionSource, TransactionValidity, TransactionValidityError,
 	},
@@ -146,7 +149,7 @@ pub const WEEKS: BlockNumber = DAYS * 7;
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
 /// the specifics of the runtime. They can then be made to be agnostic over specific formats
 /// of data like extrinsics, allowing for them to continue syncing the network through upgrades
-/// to even the core datastructures.
+/// to even the core data structures.
 pub mod opaque {
 	use super::*;
 
@@ -156,6 +159,7 @@ pub mod opaque {
 	impl_opaque_keys! {
 		pub struct SessionKeys {
 			pub nimbus: AuthorInherent,
+			pub vrf: session_keys_primitives::VrfSessionKey,
 		}
 	}
 }
@@ -380,8 +384,11 @@ parameter_types! {
 
 pub struct FixedGasPrice;
 impl FeeCalculator for FixedGasPrice {
-	fn min_gas_price() -> U256 {
-		(1 * currency::GIGAWEI * currency::SUPPLY_FACTOR).into()
+	fn min_gas_price() -> (U256, Weight) {
+		(
+			(1 * currency::GIGAWEI * currency::SUPPLY_FACTOR).into(),
+			0u64,
+		)
 	}
 }
 
@@ -757,6 +764,7 @@ impl pallet_author_inherent::Config for Runtime {
 	type AccountLookup = AuthorMapping;
 	type EventHandler = ParachainStaking;
 	type CanAuthor = AuthorFilter;
+	type WeightInfo = pallet_author_inherent::weights::SubstrateWeight<Runtime>;
 }
 
 impl pallet_author_slot_filter::Config for Runtime {
@@ -798,7 +806,7 @@ impl pallet_author_mapping::Config for Runtime {
 	type Event = Event;
 	type DepositCurrency = Balances;
 	type DepositAmount = ConstU128<{ 100 * currency::UNIT * currency::SUPPLY_FACTOR }>;
-	type Keys = NimbusId; // TODO: consider making custom type?
+	type Keys = session_keys_primitives::VrfId;
 	type WeightInfo = pallet_author_mapping::weights::SubstrateWeight<Runtime>;
 }
 
@@ -1371,7 +1379,7 @@ mod tests {
 			5_u8
 		);
 		assert_eq!(STORAGE_BYTE_FEE, Balance::from(100 * MICROUNIT));
-		assert_eq!(FixedGasPrice::min_gas_price(), (1 * GIGAWEI).into());
+		assert_eq!(FixedGasPrice::min_gas_price().0, (1 * GIGAWEI).into());
 
 		// democracy minimums
 		assert_eq!(
