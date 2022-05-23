@@ -41,7 +41,7 @@ pub enum Action {
 	UpdateAssociation = "update_association(bytes32,bytes32)",
 	ClearAssociation = "clear_association(bytes32)",
 	RegisterKeys = "register_keys(bytes32,bytes32)",
-	SetKeys = "set_keys(bytes32,bytes32,bytes32)",
+	SetKeys = "set_keys(bytes32,bytes32)",
 }
 
 /// A precompile to wrap the functionality from pallet author mapping.
@@ -167,8 +167,7 @@ where
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = AuthorMappingCall::<Runtime>::register_keys {
-			author_id: nimbus_id,
-			keys,
+			keys: (nimbus_id, keys),
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -178,8 +177,7 @@ where
 
 	fn set_keys(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		let mut input = handle.read_input()?;
-		input.expect_arguments(3)?;
-		let old_author_id = sp_core::sr25519::Public::unchecked_from(input.read::<H256>()?).into();
+		input.expect_arguments(2)?;
 		let new_author_id = sp_core::sr25519::Public::unchecked_from(input.read::<H256>()?).into();
 		let new_keys_as_nimbus_id: NimbusId =
 			sp_core::sr25519::Public::unchecked_from(input.read::<H256>()?).into();
@@ -188,15 +186,13 @@ where
 
 		log::trace!(
 			target: "author-mapping-precompile",
-			"Setting keys old author id {:?} new author id {:?} new keys {:?}",
-			old_author_id, new_author_id, new_keys
+			"Setting keys: new author id {:?} new keys {:?}",
+			new_author_id, new_keys
 		);
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = AuthorMappingCall::<Runtime>::set_keys {
-			old_author_id,
-			new_author_id,
-			new_keys,
+			keys: (new_author_id, new_keys),
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;

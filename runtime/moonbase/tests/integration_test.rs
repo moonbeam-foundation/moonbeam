@@ -2215,7 +2215,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						.write(sp_core::H256::from([1u8; 32]))
 						.build(),
 				)
-				.expect_cost(11325)
+				.expect_cost(15388)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 
@@ -2237,7 +2237,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						.write(sp_core::H256::from([2u8; 32]))
 						.build(),
 				)
-				.expect_cost(11030)
+				.expect_cost(15190)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 
@@ -2258,7 +2258,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						.write(sp_core::H256::from([2u8; 32]))
 						.build(),
 				)
-				.expect_cost(11450)
+				.expect_cost(15447)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 
@@ -2298,7 +2298,7 @@ fn author_mapping_register_and_set_keys() {
 						.write(sp_core::H256::from([3u8; 32]))
 						.build(),
 				)
-				.expect_cost(11344)
+				.expect_cost(15428)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 
@@ -2316,12 +2316,11 @@ fn author_mapping_register_and_set_keys() {
 					ALICE,
 					author_mapping_precompile_address,
 					EvmDataWriter::new_with_selector(AuthorMappingAction::SetKeys)
-						.write(sp_core::H256::from([1u8; 32]))
 						.write(sp_core::H256::from([2u8; 32]))
 						.write(sp_core::H256::from([4u8; 32]))
 						.build(),
 				)
-				.expect_cost(11023)
+				.expect_cost(16280)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 
