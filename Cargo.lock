@@ -12032,11 +12032,11 @@ dependencies = [
 name = "session-keys-primitives"
 version = "0.1.0"
 dependencies = [
- "nimbus-primitives",
+ "nimbus-primitives 0.9.0 (git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.19)",
  "parity-scale-codec",
  "scale-info",
- "sp-application-crypto",
- "sp-runtime",
+ "sp-application-crypto 6.0.0 (git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.19)",
+ "sp-runtime 6.0.0 (git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.19)",
 ]
 
 [[package]]

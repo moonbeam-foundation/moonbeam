@@ -44,7 +44,6 @@ pub mod pallet {
 	// use crate::WeightInfo;
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{Currency, ReservableCurrency};
-	use frame_support::weights::WeightToFeePolynomial;
 	use frame_system::pallet_prelude::*;
 	use sp_runtime::traits::Saturating;
 	use sp_std::vec::Vec;
@@ -70,8 +69,6 @@ pub mod pallet {
 		type RelayEpochIndex: GetEpochIndex<u64>;
 		/// Get relay chain randomness to insert into this pallet
 		type RelayRandomness: GetRelayRandomness<Self::Hash>;
-		/// Get the base fee to convert fee into gas limit for subcall
-		type GetBaseFee: GetBaseFee<u64>;
 		#[pallet::constant]
 		/// The amount that should be taken as a security deposit when requesting randomness.
 		type Deposit: Get<BalanceOf<Self>>;
@@ -108,7 +105,8 @@ pub mod pallet {
 			contract_address: T::AccountId,
 			fee: BalanceOf<T>,
 			salt: T::Hash,
-			info: RequestType<T>,
+			//info: RequestType<T>,
+			// TODO: requires std::fmt::Debug impl
 		},
 		RequestFulfilled {
 			id: RequestId,
@@ -259,16 +257,30 @@ pub mod pallet {
 				contract_address: request.request.contract_address.clone(),
 				fee: request.request.fee,
 				salt: request.request.salt,
-				info: request.request.info,
+				//info: request.request.info,
 			});
 			<Requests<T>>::insert(request_id, request);
 			Ok(())
 		}
-		/// Execute fulfillment for randomness if it is due
-		pub fn execute_fulfillment(caller: T::AccountId, id: RequestId) -> DispatchResult {
-			let request = <Requests<T>>::get(id).ok_or(Error::<T>::RequestDNE)?;
-			// fulfill randomness request
-			request.fulfill(&caller)?;
+		/// Start fulfillment
+		/// Returns all arguments needed for fulfillment
+		/// including eventual call to do_fulfill
+		pub fn start_fulfillment(id: RequestId) -> Result<FulfillArgs<T>, DispatchError> {
+			<Requests<T>>::get(id)
+				.ok_or(Error::<T>::RequestDNE)?
+				.start_fulfill()
+		}
+		/// Finish fulfillment
+		/// Caller MUST ensure `id` corresponds to `request` or there will be side effects
+		pub fn finish_fulfillment(
+			id: RequestId,
+			request: Request<T>,
+			deposit: BalanceOf<T>,
+			caller: &T::AccountId,
+			cost_of_execution: BalanceOf<T>,
+			excess: BalanceOf<T>,
+		) -> DispatchResult {
+			request.finish_fulfill(deposit, caller, cost_of_execution, excess)?;
 			<Requests<T>>::remove(id);
 			Self::deposit_event(Event::RequestFulfilled { id });
 			Ok(())

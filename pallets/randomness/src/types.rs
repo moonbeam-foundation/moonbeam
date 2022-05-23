@@ -14,19 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::{traits::*, BalanceOf, Config, Error, Pallet};
+use crate::{BalanceOf, Config, CurrentEpochIndex, Error};
 use frame_support::pallet_prelude::*;
 use frame_support::traits::{Currency, ExistenceRequirement::KeepAlive, ReservableCurrency};
-use frame_support::weights::WeightToFeePolynomial;
 use sp_runtime::traits::{CheckedSub, Saturating};
-
-#[derive(PartialEq, Copy, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
-/// Randomness storage item from BABE
-pub enum BabeRandomness<Epoch, BlockNumber> {
-	OneEpochAgo(Epoch),
-	TwoEpochsAgo(Epoch),
-	CurrentBlock(BlockNumber),
-}
 
 #[derive(PartialEq, Copy, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
 #[scale_info(skip_type_params(T))]
@@ -45,6 +36,7 @@ pub enum RequestType<T: Config> {
 
 #[derive(PartialEq, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
 #[scale_info(skip_type_params(T))]
+/// Input arguments to request randomness
 pub struct Request<T: Config> {
 	/// Fee is returned to this account upon execution
 	pub refund_address: T::AccountId,
@@ -60,16 +52,45 @@ pub struct Request<T: Config> {
 
 impl<T: Config> Request<T> {
 	pub fn can_be_fulfilled(&self) -> bool {
-		todo!()
-		// todo match on RequestType and use CurrentEpochIndex to check if can be fulfilled
-		// self.when <= frame_system::Pallet::<T>::block_number()
+		let leq_current_block =
+			|when| -> bool { when <= frame_system::Pallet::<T>::block_number() };
+		let leq_current_epoch_index = |when| -> bool { when <= <CurrentEpochIndex<T>>::get() };
+		match self.info {
+			RequestType::BabeOneEpochAgo(index) => leq_current_epoch_index(index),
+			RequestType::BabeTwoEpochsAgo(index) => leq_current_epoch_index(index),
+			RequestType::BabeCurrentBlock(block) => leq_current_block(block),
+			RequestType::Local(block) => leq_current_block(block),
+		}
+	}
+	/// Cleanup after fulfilling a request
+	/// This assumes the request was fulfilled and the callback did NOT OOG
+	pub(crate) fn finish_fulfill(
+		&self,
+		deposit: BalanceOf<T>,
+		caller: &T::AccountId,
+		cost_of_execution: BalanceOf<T>,
+		excess: BalanceOf<T>,
+	) -> DispatchResult {
+		T::Currency::unreserve(&self.contract_address, deposit + self.fee);
+		// refund cost_of_execution to caller
+		T::Currency::transfer(&self.contract_address, caller, cost_of_execution, KeepAlive)
+			.expect("just unreserved deposit + fee => cost_of_execution must be transferrable");
+		// refund excess fee to refund address
+		T::Currency::transfer(
+			&self.contract_address,
+			&self.refund_address,
+			excess,
+			KeepAlive,
+		)
+		.expect("just unreserved deposit + fee => excess must be transferrable");
+		Ok(())
 	}
 }
 
 #[derive(PartialEq, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
 #[scale_info(skip_type_params(T))]
 pub struct RequestState<T: Config> {
-	/// Fee is returned to this account upon execution
+	/// Underlying request
 	pub request: Request<T>,
 	/// Deposit taken for making request (stored in case config changes)
 	pub deposit: BalanceOf<T>,
@@ -79,12 +100,17 @@ pub struct RequestState<T: Config> {
 
 #[derive(PartialEq, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
 #[scale_info(skip_type_params(T))]
-/// Data required to make the subcallback
+/// Data required to make the subcallback and finish fulfilling the request
 pub struct FulfillArgs<T: Config> {
+	/// Original request
+	pub request: Request<T>,
+	/// Deposit for request
+	pub deposit: BalanceOf<T>,
 	/// Contract that consumes the randomness
 	pub contract_address: T::AccountId,
-	/// Gas limit for subcall
-	pub gas_limit: u64,
+	/// Gas limit for subcall, requires conversion to u64
+	/// by multiplying by BaseFee
+	pub gas_limit: BalanceOf<T>,
 	/// Randomness
 	pub randomness: T::Hash,
 }
@@ -96,6 +122,7 @@ impl<T: Config> RequestState<T> {
 	) -> Result<RequestState<T>, DispatchError> {
 		let expires =
 			frame_system::Pallet::<T>::block_number().saturating_add(T::ExpirationDelay::get());
+		// TODO: impl
 		// ensure!(
 		// 	request.info.when() < expires,
 		// 	Error::<T>::InvalidRequestCannotBeFulfilledBeforeExpiry
@@ -108,54 +135,25 @@ impl<T: Config> RequestState<T> {
 	}
 	/// Returns Ok(FulfillArgs) if successful
 	/// This should be called before the callback
-	pub fn try_fulfill(&self, caller: &T::AccountId) -> Result<FulfillArgs<T>, DispatchError> {
+	pub fn start_fulfill(&self) -> Result<FulfillArgs<T>, DispatchError> {
 		ensure!(
 			self.request.can_be_fulfilled(),
 			Error::<T>::RequestCannotYetBeFulfilled
 		);
-		// TODO: audit
-		let gas_limit: u64 = self.request.fee * T::GetBaseFee::get_base_fee().into();
-		// TODO: impl
+		// TODO: impl get specific randomness type
+		// consider extracting into function
 		let randomness: T::Hash = match self.request.info {
 			RequestType::Local { .. } => T::Hash::default(),
 			_ => return Err(Error::<T>::NotYetImplemented.into()),
 		};
-		// TODO: emit event?
+		// No event emitted until fulfillment is complete
 		Ok(FulfillArgs {
-			contract_address: self.request.contract_address,
-			gas_limit,
+			request: self.request.clone(),
+			deposit: self.deposit,
+			contract_address: self.request.contract_address.clone(),
+			gas_limit: self.request.fee,
 			randomness,
 		})
-	}
-	/// Cleanup after fulfilling a request
-	/// This assumes the request was fulfilled and the callback did NOT OOG
-	pub fn do_fulfill(
-		&self,
-		caller: &T::AccountId,
-		cost_of_execution: BalanceOf<T>,
-		excess: BalanceOf<T>,
-	) -> DispatchResult {
-		T::Currency::unreserve(
-			&self.request.contract_address,
-			self.deposit + self.request.fee,
-		);
-		// refund cost_of_execution to caller
-		T::Currency::transfer(
-			&self.request.contract_address,
-			caller,
-			cost_of_execution,
-			KeepAlive,
-		)
-		.expect("just unreserved deposit + fee => cost_of_execution must be transferrable");
-		// refund excess fee to refund address
-		T::Currency::transfer(
-			&self.request.contract_address,
-			&self.request.refund_address,
-			excess,
-			KeepAlive,
-		)
-		.expect("just unreserved deposit + fee => excess must be transferrable");
-		Ok(())
 	}
 	pub fn increase_fee(&mut self, caller: &T::AccountId, new_fee: BalanceOf<T>) -> DispatchResult {
 		ensure!(

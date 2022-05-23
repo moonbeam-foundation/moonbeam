@@ -15,11 +15,6 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use frame_support::pallet_prelude::*;
-use sp_runtime::{DispatchError, DispatchResult};
-
-pub trait GetBaseFee<Fee> {
-	fn get_base_fee() -> Fee;
-}
 
 /// Get the epoch index
 pub trait GetEpochIndex<Index> {
