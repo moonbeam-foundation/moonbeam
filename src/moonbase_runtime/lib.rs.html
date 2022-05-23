@@ -1470,6 +1470,13 @@
 <span id="1465">1465</span>
 <span id="1466">1466</span>
 <span id="1467">1467</span>
+<span id="1468">1468</span>
+<span id="1469">1469</span>
+<span id="1470">1470</span>
+<span id="1471">1471</span>
+<span id="1472">1472</span>
+<span id="1473">1473</span>
+<span id="1474">1474</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -1549,7 +1556,10 @@
 <span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">OpaqueMetadata</span>, <span class="ident">H160</span>, <span class="ident">H256</span>, <span class="ident">U256</span>};
 <span class="kw">use</span> <span class="ident">sp_runtime</span>::{
 	<span class="ident">create_runtime_str</span>, <span class="ident">generic</span>, <span class="ident">impl_opaque_keys</span>,
-	<span class="ident">traits</span>::{<span class="ident">BlakeTwo256</span>, <span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span>, <span class="ident">Dispatchable</span>, <span class="ident">IdentityLookup</span>, <span class="ident">PostDispatchInfoOf</span>},
+	<span class="ident">traits</span>::{
+		<span class="ident">BlakeTwo256</span>, <span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span>, <span class="ident">DispatchInfoOf</span>, <span class="ident">Dispatchable</span>, <span class="ident">IdentityLookup</span>,
+		<span class="ident">PostDispatchInfoOf</span>,
+	},
 	<span class="ident">transaction_validity</span>::{
 		<span class="ident">InvalidTransaction</span>, <span class="ident">TransactionSource</span>, <span class="ident">TransactionValidity</span>, <span class="ident">TransactionValidityError</span>,
 	},
@@ -1853,8 +1863,11 @@
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FixedGasPrice</span>;
 <span class="kw">impl</span> <span class="ident">FeeCalculator</span> <span class="kw">for</span> <span class="ident">FixedGasPrice</span> {
-	<span class="kw">fn</span> <span class="ident">min_gas_price</span>() -&gt; <span class="ident">U256</span> {
-		(<span class="number">1</span> <span class="op">*</span> <span class="ident">currency::GIGAWEI</span> <span class="op">*</span> <span class="ident">currency::SUPPLY_FACTOR</span>).<span class="ident">into</span>()
+	<span class="kw">fn</span> <span class="ident">min_gas_price</span>() -&gt; (<span class="ident">U256</span>, <span class="ident">Weight</span>) {
+		(
+			(<span class="number">1</span> <span class="op">*</span> <span class="ident">currency::GIGAWEI</span> <span class="op">*</span> <span class="ident">currency::SUPPLY_FACTOR</span>).<span class="ident">into</span>(),
+			<span class="number">0u64</span>,
+		)
 	}
 }
 
@@ -2230,6 +2243,7 @@
 	<span class="kw">type</span> <span class="ident">AccountLookup</span> <span class="op">=</span> <span class="ident">AuthorMapping</span>;
 	<span class="kw">type</span> <span class="ident">EventHandler</span> <span class="op">=</span> <span class="ident">ParachainStaking</span>;
 	<span class="kw">type</span> <span class="ident">CanAuthor</span> <span class="op">=</span> <span class="ident">AuthorFilter</span>;
+	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">pallet_author_inherent::weights::SubstrateWeight</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
 }
 
 <span class="kw">impl</span> <span class="ident">pallet_author_slot_filter::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
@@ -2844,7 +2858,7 @@
 			<span class="number">5_u8</span>
 		);
 		<span class="macro">assert_eq!</span>(<span class="ident">STORAGE_BYTE_FEE</span>, <span class="ident">Balance::from</span>(<span class="number">100</span> <span class="op">*</span> <span class="ident">MICROUNIT</span>));
-		<span class="macro">assert_eq!</span>(<span class="ident">FixedGasPrice::min_gas_price</span>(), (<span class="number">1</span> <span class="op">*</span> <span class="ident">GIGAWEI</span>).<span class="ident">into</span>());
+		<span class="macro">assert_eq!</span>(<span class="ident">FixedGasPrice::min_gas_price</span>().<span class="number">0</span>, (<span class="number">1</span> <span class="op">*</span> <span class="ident">GIGAWEI</span>).<span class="ident">into</span>());
 
 		<span class="comment">// democracy minimums</span>
 		<span class="macro">assert_eq!</span>(

@@ -1198,6 +1198,19 @@
 <span id="1193">1193</span>
 <span id="1194">1194</span>
 <span id="1195">1195</span>
+<span id="1196">1196</span>
+<span id="1197">1197</span>
+<span id="1198">1198</span>
+<span id="1199">1199</span>
+<span id="1200">1200</span>
+<span id="1201">1201</span>
+<span id="1202">1202</span>
+<span id="1203">1203</span>
+<span id="1204">1204</span>
+<span id="1205">1205</span>
+<span id="1206">1206</span>
+<span id="1207">1207</span>
+<span id="1208">1208</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -1224,6 +1237,7 @@
 
 <span class="kw">use</span> <span class="ident">cli_opt</span>::{<span class="ident">EthApi</span> <span class="kw">as</span> <span class="ident">EthApiCmd</span>, <span class="ident">RpcConfig</span>};
 <span class="kw">use</span> <span class="ident">fc_consensus::FrontierBlockImport</span>;
+<span class="kw">use</span> <span class="ident">fc_db::DatabaseSource</span>;
 <span class="kw">use</span> <span class="ident">fc_rpc_core::types</span>::{<span class="ident">FeeHistoryCache</span>, <span class="ident">FilterPool</span>};
 <span class="kw">use</span> <span class="ident">futures::StreamExt</span>;
 <span class="kw">use</span> <span class="ident">maplit::hashmap</span>;
@@ -1249,7 +1263,6 @@
 <span class="kw">use</span> <span class="ident">cumulus_relay_chain_interface</span>::{<span class="ident">RelayChainError</span>, <span class="ident">RelayChainInterface</span>};
 <span class="kw">use</span> <span class="ident">nimbus_consensus::NimbusManualSealConsensusDataProvider</span>;
 <span class="kw">use</span> <span class="ident">nimbus_consensus</span>::{<span class="ident">BuildNimbusConsensusParams</span>, <span class="ident">NimbusConsensus</span>};
-<span class="kw">use</span> <span class="ident">nimbus_primitives::NimbusId</span>;
 <span class="kw">use</span> <span class="ident">sc_executor</span>::{<span class="ident">NativeElseWasmExecutor</span>, <span class="ident">NativeExecutionDispatch</span>};
 <span class="kw">use</span> <span class="ident">sc_network::NetworkService</span>;
 <span class="kw">use</span> <span class="ident">sc_service::config::PrometheusConfig</span>;
@@ -1386,7 +1399,7 @@
 	}
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">frontier_database_dir</span>(<span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="ident">Configuration</span>) -&gt; <span class="ident">std::path::PathBuf</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">frontier_database_dir</span>(<span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="ident">Configuration</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">std::path::PathBuf</span> {
 	<span class="kw">let</span> <span class="ident">config_dir</span> <span class="op">=</span> <span class="ident">config</span>
 		.<span class="ident">base_path</span>
 		.<span class="ident">as_ref</span>()
@@ -1394,7 +1407,7 @@
 		.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> {
 			<span class="ident">BasePath::from_project</span>(<span class="string">&quot;&quot;</span>, <span class="string">&quot;&quot;</span>, <span class="string">&quot;moonbeam&quot;</span>).<span class="ident">config_dir</span>(<span class="ident">config</span>.<span class="ident">chain_spec</span>.<span class="ident">id</span>())
 		});
-	<span class="ident">config_dir</span>.<span class="ident">join</span>(<span class="string">&quot;frontier&quot;</span>).<span class="ident">join</span>(<span class="string">&quot;db&quot;</span>)
+	<span class="ident">config_dir</span>.<span class="ident">join</span>(<span class="string">&quot;frontier&quot;</span>).<span class="ident">join</span>(<span class="ident">path</span>)
 }
 
 <span class="comment">// TODO This is copied from frontier. It should be imported instead after</span>
@@ -1402,9 +1415,22 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">open_frontier_backend</span>(<span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="ident">Configuration</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">fc_db::Backend</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">String</span><span class="op">&gt;</span> {
 	<span class="prelude-val">Ok</span>(<span class="ident">Arc::new</span>(<span class="ident">fc_db::Backend</span>::<span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span><span class="ident">::new</span>(
 		<span class="kw-2">&amp;</span><span class="ident">fc_db::DatabaseSettings</span> {
-			<span class="ident">source</span>: <span class="ident">fc_db::DatabaseSettingsSrc::RocksDb</span> {
-				<span class="ident">path</span>: <span class="ident">frontier_database_dir</span>(<span class="kw-2">&amp;</span><span class="ident">config</span>),
-				<span class="ident">cache_size</span>: <span class="number">0</span>,
+			<span class="ident">source</span>: <span class="kw">match</span> <span class="ident">config</span>.<span class="ident">database</span> {
+				<span class="ident">DatabaseSource::RocksDb</span> { .. } =&gt; <span class="ident">DatabaseSource::RocksDb</span> {
+					<span class="ident">path</span>: <span class="ident">frontier_database_dir</span>(<span class="ident">config</span>, <span class="string">&quot;db&quot;</span>),
+					<span class="ident">cache_size</span>: <span class="number">0</span>,
+				},
+				<span class="ident">DatabaseSource::ParityDb</span> { .. } =&gt; <span class="ident">DatabaseSource::ParityDb</span> {
+					<span class="ident">path</span>: <span class="ident">frontier_database_dir</span>(<span class="ident">config</span>, <span class="string">&quot;paritydb&quot;</span>),
+				},
+				<span class="ident">DatabaseSource::Auto</span> { .. } =&gt; <span class="ident">DatabaseSource::Auto</span> {
+					<span class="ident">rocksdb_path</span>: <span class="ident">frontier_database_dir</span>(<span class="ident">config</span>, <span class="string">&quot;db&quot;</span>),
+					<span class="ident">paritydb_path</span>: <span class="ident">frontier_database_dir</span>(<span class="ident">config</span>, <span class="string">&quot;paritydb&quot;</span>),
+					<span class="ident">cache_size</span>: <span class="number">0</span>,
+				},
+				<span class="kw">_</span> =&gt; {
+					<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="string">&quot;Supported db sources: `rocksdb` | `paritydb` | `auto`&quot;</span>.<span class="ident">to_string</span>())
+				}
 			},
 		},
 	)<span class="question-mark">?</span>))
@@ -1749,8 +1775,8 @@
 	<span class="kw">let</span> <span class="ident">block_data_cache</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">fc_rpc::EthBlockDataCacheTask::new</span>(
 		<span class="ident">task_manager</span>.<span class="ident">spawn_handle</span>(),
 		<span class="ident">overrides</span>.<span class="ident">clone</span>(),
-		<span class="ident">rpc_config</span>.<span class="ident">eth_log_block_cache</span> <span class="kw">as</span> <span class="ident">u64</span>,
-		<span class="ident">rpc_config</span>.<span class="ident">eth_statuses_cache</span> <span class="kw">as</span> <span class="ident">u64</span>,
+		<span class="ident">rpc_config</span>.<span class="ident">eth_log_block_cache</span>,
+		<span class="ident">rpc_config</span>.<span class="ident">eth_statuses_cache</span>,
 		<span class="ident">prometheus_registry</span>.<span class="ident">clone</span>(),
 	));
 
@@ -1920,7 +1946,7 @@
 			);
 			<span class="ident">proposer_factory</span>.<span class="ident">set_soft_deadline</span>(<span class="ident">SOFT_DEADLINE_PERCENT</span>);
 
-			<span class="kw">let</span> <span class="ident">provider</span> <span class="op">=</span> <span class="kw">move</span> <span class="op">|</span><span class="kw">_</span>, (<span class="ident">relay_parent</span>, <span class="ident">validation_data</span>, <span class="ident">author_id</span>)<span class="op">|</span> {
+			<span class="kw">let</span> <span class="ident">provider</span> <span class="op">=</span> <span class="kw">move</span> <span class="op">|</span><span class="kw">_</span>, (<span class="ident">relay_parent</span>, <span class="ident">validation_data</span>, <span class="ident">_author_id</span>)<span class="op">|</span> {
 				<span class="kw">let</span> <span class="ident">relay_chain_interface</span> <span class="op">=</span> <span class="ident">relay_chain_interface</span>.<span class="ident">clone</span>();
 				<span class="kw">async</span> <span class="kw">move</span> {
 					<span class="kw">let</span> <span class="ident">parachain_inherent</span> <span class="op">=</span>
@@ -1940,7 +1966,7 @@
 						)
 					})<span class="question-mark">?</span>;
 
-					<span class="kw">let</span> <span class="ident">author</span> <span class="op">=</span> <span class="ident">nimbus_primitives::InherentDataProvider</span>::<span class="op">&lt;</span><span class="ident">NimbusId</span><span class="op">&gt;</span>(<span class="ident">author_id</span>);
+					<span class="kw">let</span> <span class="ident">author</span> <span class="op">=</span> <span class="ident">nimbus_primitives::InherentDataProvider</span>;
 
 					<span class="prelude-val">Ok</span>((<span class="ident">time</span>, <span class="ident">parachain_inherent</span>, <span class="ident">author</span>))
 				}
@@ -2167,8 +2193,8 @@
 	<span class="kw">let</span> <span class="ident">block_data_cache</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">fc_rpc::EthBlockDataCacheTask::new</span>(
 		<span class="ident">task_manager</span>.<span class="ident">spawn_handle</span>(),
 		<span class="ident">overrides</span>.<span class="ident">clone</span>(),
-		<span class="ident">rpc_config</span>.<span class="ident">eth_log_block_cache</span> <span class="kw">as</span> <span class="ident">u64</span>,
-		<span class="ident">rpc_config</span>.<span class="ident">eth_statuses_cache</span> <span class="kw">as</span> <span class="ident">u64</span>,
+		<span class="ident">rpc_config</span>.<span class="ident">eth_log_block_cache</span>,
+		<span class="ident">rpc_config</span>.<span class="ident">eth_statuses_cache</span>,
 		<span class="ident">prometheus_registry</span>,
 	));
 

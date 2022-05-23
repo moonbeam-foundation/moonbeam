@@ -1008,6 +1008,21 @@
 <span id="1003">1003</span>
 <span id="1004">1004</span>
 <span id="1005">1005</span>
+<span id="1006">1006</span>
+<span id="1007">1007</span>
+<span id="1008">1008</span>
+<span id="1009">1009</span>
+<span id="1010">1010</span>
+<span id="1011">1011</span>
+<span id="1012">1012</span>
+<span id="1013">1013</span>
+<span id="1014">1014</span>
+<span id="1015">1015</span>
+<span id="1016">1016</span>
+<span id="1017">1017</span>
+<span id="1018">1018</span>
+<span id="1019">1019</span>
+<span id="1020">1020</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -1040,7 +1055,10 @@
 	<span class="ident">ChainSpec</span>, <span class="ident">CliConfiguration</span>, <span class="ident">DefaultConfigurationValues</span>, <span class="ident">ImportParams</span>, <span class="ident">KeystoreParams</span>,
 	<span class="ident">NetworkParams</span>, <span class="prelude-ty">Result</span>, <span class="ident">RuntimeVersion</span>, <span class="ident">SharedParams</span>, <span class="ident">SubstrateCli</span>,
 };
-<span class="kw">use</span> <span class="ident">sc_service::config</span>::{<span class="ident">BasePath</span>, <span class="ident">PrometheusConfig</span>};
+<span class="kw">use</span> <span class="ident">sc_service</span>::{
+	<span class="ident">config</span>::{<span class="ident">BasePath</span>, <span class="ident">PrometheusConfig</span>},
+	<span class="ident">DatabaseSource</span>,
+};
 <span class="kw">use</span> <span class="ident">service</span>::{<span class="ident">chain_spec</span>, <span class="ident">frontier_database_dir</span>, <span class="ident">IdentifyVariant</span>};
 <span class="kw">use</span> <span class="ident">sp_core::hexdisplay::HexDisplay</span>;
 <span class="kw">use</span> <span class="ident">sp_runtime::traits::Block</span> <span class="kw">as</span> <span class="kw">_</span>;
@@ -1320,9 +1338,17 @@
 					<span class="ident">cli</span>.<span class="ident">run</span>.<span class="ident">dev_service</span> <span class="op">|</span><span class="op">|</span> <span class="ident">relay_chain_id</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="string">&quot;dev-service&quot;</span>.<span class="ident">to_string</span>());
 
 				<span class="comment">// Remove Frontier offchain db</span>
-				<span class="kw">let</span> <span class="ident">frontier_database_config</span> <span class="op">=</span> <span class="ident">sc_service::DatabaseSource::RocksDb</span> {
-					<span class="ident">path</span>: <span class="ident">frontier_database_dir</span>(<span class="kw-2">&amp;</span><span class="ident">config</span>),
-					<span class="ident">cache_size</span>: <span class="number">0</span>,
+				<span class="kw">let</span> <span class="ident">frontier_database_config</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">config</span>.<span class="ident">database</span> {
+					<span class="ident">DatabaseSource::RocksDb</span> { .. } =&gt; <span class="ident">DatabaseSource::RocksDb</span> {
+						<span class="ident">path</span>: <span class="ident">frontier_database_dir</span>(<span class="kw-2">&amp;</span><span class="ident">config</span>, <span class="string">&quot;db&quot;</span>),
+						<span class="ident">cache_size</span>: <span class="number">0</span>,
+					},
+					<span class="ident">DatabaseSource::ParityDb</span> { .. } =&gt; <span class="ident">DatabaseSource::ParityDb</span> {
+						<span class="ident">path</span>: <span class="ident">frontier_database_dir</span>(<span class="kw-2">&amp;</span><span class="ident">config</span>, <span class="string">&quot;paritydb&quot;</span>),
+					},
+					<span class="kw">_</span> =&gt; {
+						<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;Cannot purge `{:?}` database&quot;</span>, <span class="ident">config</span>.<span class="ident">database</span>).<span class="ident">into</span>())
+					}
 				};
 				<span class="ident">cmd</span>.<span class="ident">base</span>.<span class="ident">run</span>(<span class="ident">frontier_database_config</span>)<span class="question-mark">?</span>;
 
@@ -1535,6 +1561,7 @@
 		}
 		<span class="prelude-val">Some</span>(<span class="ident">Subcommand::Benchmark</span>(<span class="ident">cmd</span>)) =&gt; {
 			<span class="kw">let</span> <span class="ident">runner</span> <span class="op">=</span> <span class="ident">cli</span>.<span class="ident">create_runner</span>(<span class="ident">cmd</span>)<span class="question-mark">?</span>;
+
 			<span class="comment">// Switch on the concrete benchmark sub-command</span>
 			<span class="kw">match</span> <span class="ident">cmd</span> {
 				<span class="ident">BenchmarkCmd::Pallet</span>(<span class="ident">cmd</span>) =&gt; {
@@ -1670,6 +1697,9 @@
 					}
 				}
 				<span class="ident">BenchmarkCmd::Overhead</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="string">&quot;Unsupported benchmarking command&quot;</span>.<span class="ident">into</span>()),
+				<span class="ident">BenchmarkCmd::Machine</span>(<span class="ident">cmd</span>) =&gt; {
+					<span class="kw">return</span> <span class="ident">runner</span>.<span class="ident">sync_run</span>(<span class="op">|</span><span class="ident">config</span><span class="op">|</span> <span class="ident">cmd</span>.<span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="ident">config</span>));
+				}
 			}
 		}
 		<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>

@@ -350,7 +350,6 @@
 <span id="345">345</span>
 <span id="346">346</span>
 <span id="347">347</span>
-<span id="348">348</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -381,10 +380,9 @@
 <span class="kw">use</span> <span class="ident">cumulus_primitives_core::ParaId</span>;
 <span class="kw">use</span> <span class="ident">fc_mapping_sync</span>::{<span class="ident">MappingSyncWorker</span>, <span class="ident">SyncStrategy</span>};
 <span class="kw">use</span> <span class="ident">fc_rpc</span>::{
-	<span class="ident">EthApi</span>, <span class="ident">EthApiServer</span>, <span class="ident">EthBlockDataCacheTask</span>, <span class="ident">EthFilterApi</span>, <span class="ident">EthFilterApiServer</span>, <span class="ident">EthPubSubApi</span>,
-	<span class="ident">EthPubSubApiServer</span>, <span class="ident">EthTask</span>, <span class="ident">HexEncodedIdProvider</span>, <span class="ident">NetApi</span>, <span class="ident">NetApiServer</span>, <span class="ident">OverrideHandle</span>,
-	<span class="ident">RuntimeApiStorageOverride</span>, <span class="ident">SchemaV1Override</span>, <span class="ident">SchemaV2Override</span>, <span class="ident">SchemaV3Override</span>,
-	<span class="ident">StorageOverride</span>, <span class="ident">Web3Api</span>, <span class="ident">Web3ApiServer</span>,
+	<span class="ident">Eth</span>, <span class="ident">EthApi</span>, <span class="ident">EthBlockDataCacheTask</span>, <span class="ident">EthFilter</span>, <span class="ident">EthFilterApi</span>, <span class="ident">EthPubSub</span>, <span class="ident">EthPubSubApi</span>, <span class="ident">EthTask</span>,
+	<span class="ident">HexEncodedIdProvider</span>, <span class="ident">Net</span>, <span class="ident">NetApi</span>, <span class="ident">OverrideHandle</span>, <span class="ident">RuntimeApiStorageOverride</span>, <span class="ident">SchemaV1Override</span>,
+	<span class="ident">SchemaV2Override</span>, <span class="ident">SchemaV3Override</span>, <span class="ident">StorageOverride</span>, <span class="ident">Web3</span>, <span class="ident">Web3Api</span>,
 };
 <span class="kw">use</span> <span class="ident">fc_rpc_core::types</span>::{<span class="ident">FeeHistoryCache</span>, <span class="ident">FilterPool</span>};
 <span class="kw">use</span> <span class="ident">fp_storage::EthereumStorageSchema</span>;
@@ -546,7 +544,7 @@
 	}
 	<span class="kw">let</span> <span class="ident">convert_transaction</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Never</span><span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-val">None</span>;
 
-	<span class="ident">io</span>.<span class="ident">extend_with</span>(<span class="ident">EthApiServer::to_delegate</span>(<span class="ident">EthApi::new</span>(
+	<span class="ident">io</span>.<span class="ident">extend_with</span>(<span class="ident">EthApi::to_delegate</span>(<span class="ident">Eth::new</span>(
 		<span class="ident">client</span>.<span class="ident">clone</span>(),
 		<span class="ident">pool</span>.<span class="ident">clone</span>(),
 		<span class="ident">graph</span>.<span class="ident">clone</span>(),
@@ -558,12 +556,12 @@
 		<span class="ident">is_authority</span>,
 		<span class="ident">block_data_cache</span>.<span class="ident">clone</span>(),
 		<span class="ident">fc_rpc::format::Geth</span>,
-		<span class="ident">fee_history_limit</span>,
 		<span class="ident">fee_history_cache</span>,
+		<span class="ident">fee_history_limit</span>,
 	)));
 
 	<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">filter_pool</span>) <span class="op">=</span> <span class="ident">filter_pool</span> {
-		<span class="ident">io</span>.<span class="ident">extend_with</span>(<span class="ident">EthFilterApiServer::to_delegate</span>(<span class="ident">EthFilterApi::new</span>(
+		<span class="ident">io</span>.<span class="ident">extend_with</span>(<span class="ident">EthFilterApi::to_delegate</span>(<span class="ident">EthFilter::new</span>(
 			<span class="ident">client</span>.<span class="ident">clone</span>(),
 			<span class="ident">frontier_backend</span>.<span class="ident">clone</span>(),
 			<span class="ident">filter_pool</span>,
@@ -573,13 +571,13 @@
 		)));
 	}
 
-	<span class="ident">io</span>.<span class="ident">extend_with</span>(<span class="ident">NetApiServer::to_delegate</span>(<span class="ident">NetApi::new</span>(
+	<span class="ident">io</span>.<span class="ident">extend_with</span>(<span class="ident">NetApi::to_delegate</span>(<span class="ident">Net::new</span>(
 		<span class="ident">client</span>.<span class="ident">clone</span>(),
 		<span class="ident">network</span>.<span class="ident">clone</span>(),
 		<span class="bool-val">true</span>,
 	)));
-	<span class="ident">io</span>.<span class="ident">extend_with</span>(<span class="ident">Web3ApiServer::to_delegate</span>(<span class="ident">Web3Api::new</span>(<span class="ident">client</span>.<span class="ident">clone</span>())));
-	<span class="ident">io</span>.<span class="ident">extend_with</span>(<span class="ident">EthPubSubApiServer::to_delegate</span>(<span class="ident">EthPubSubApi::new</span>(
+	<span class="ident">io</span>.<span class="ident">extend_with</span>(<span class="ident">Web3Api::to_delegate</span>(<span class="ident">Web3::new</span>(<span class="ident">client</span>.<span class="ident">clone</span>())));
+	<span class="ident">io</span>.<span class="ident">extend_with</span>(<span class="ident">EthPubSubApi::to_delegate</span>(<span class="ident">EthPubSub::new</span>(
 		<span class="ident">pool</span>,
 		<span class="ident">client</span>.<span class="ident">clone</span>(),
 		<span class="ident">network</span>,
