@@ -23,8 +23,8 @@ use fp_evm::{
 	Context, Log, Precompile, PrecompileFailure, PrecompileHandle, PrecompileOutput, Transfer,
 };
 use precompile_utils::{
-	keccak256, succeed, Address, Bytes, EvmDataWriter, EvmResult, FunctionModifier, LogExt,
-	LogsBuilder, PrecompileHandleExt,
+	call_cost, keccak256, revert, succeed, Address, Bytes, EvmDataWriter, EvmResult,
+	FunctionModifier, LogExt, LogsBuilder, PrecompileHandleExt,
 };
 use sp_core::{H160, U256};
 use sp_std::{iter::repeat, marker::PhantomData, vec, vec::Vec};
@@ -73,7 +73,10 @@ where
 		// Transfers will directly be made on the behalf of the user by the precompile.
 		handle.check_function_modifier(FunctionModifier::NonPayable)?;
 
-		Self::batch(handle, selector)
+		let res = Self::batch(handle, selector);
+		log::debug!(target: "batch", "Output: {:?}", res);
+		log::debug!(target: "batch", "Remaining gas: {}", handle.remaining_gas());
+		res
 	}
 }
 
@@ -82,6 +85,9 @@ where
 	Runtime: pallet_evm::Config,
 {
 	fn batch(handle: &mut impl PrecompileHandle, action: Action) -> EvmResult<PrecompileOutput> {
+		log::debug!(target: "batch", "----------------------------------------");
+		log::debug!(target: "batch", "Start of batch ({})", handle.remaining_gas());
+		log::debug!(target: "batch", "Cost of a log: {}", log_subcall_failed(handle.code_address(), 1).compute_cost()?);
 		let mut input = handle.read_input()?;
 		let addresses: Vec<Address> = input.read()?;
 		let values: Vec<U256> = input.read()?;
@@ -123,31 +129,62 @@ where
 				})
 			};
 
-			// We reserve enough gas to emit a final log.
+			// We reserve enough gas to emit a final log and perform the subcall itself.
 			// If not enough gas we stop there according to Action strategy.
 			let remaining_gas = handle.remaining_gas();
-			let remaining_gas = match (
-				remaining_gas
-					.checked_sub(log_subcall_failed(handle.code_address(), i).compute_cost()? + 1),
-				action,
-			) {
+
+			// Cost of batch log.
+			let log_cost = log_subcall_failed(handle.code_address(), i)
+				.compute_cost()
+				.map_err(|_| revert("failed to compute log cost"))?;
+
+			let forwarded_gas = match (remaining_gas.checked_sub(log_cost), action) {
 				(Some(remaining), _) => remaining,
 				(None, Action::BatchAll) => {
 					return Err(PrecompileFailure::Error {
 						exit_status: ExitError::OutOfGas,
 					})
 				}
-				(None, _) => return Ok(succeed([])),
+				(None, _) => {
+					log::debug!(target: "batch", "Not enough gas for log {} ({})", i, handle.remaining_gas());
+					return Ok(succeed([]));
+				}
+			};
+
+			// Cost of the call itself that the batch precompile must pay.
+			let call_cost = call_cost(value, <Runtime as pallet_evm::Config>::config());
+
+			let forwarded_gas = match forwarded_gas.checked_sub(call_cost) {
+				Some(remaining) => remaining,
+				None => {
+					let log = log_subcall_failed(handle.code_address(), i);
+					handle.record_log_costs(&[&log])?;
+					log.record(handle)?;
+
+					log::debug!(target: "batch", "Not enough gas for call {} ({})", i, handle.remaining_gas());
+
+					match action {
+						Action::BatchAll => {
+							return Err(PrecompileFailure::Error {
+								exit_status: ExitError::OutOfGas,
+							})
+						}
+						Action::BatchSomeUntilFailure => return Ok(succeed([])),
+						Action::BatchSome => continue,
+					}
+				}
 			};
 
 			// If there is a provided gas limit we ensure there is enough gas remaining.
-			let gas_limit = match gas_limit {
-				None => remaining_gas, // provide all gas if no gas limit,
-				Some(gas_limit) => {
-					if gas_limit > remaining_gas {
+			let forwarded_gas = match gas_limit {
+				None => forwarded_gas, // provide all gas if no gas limit,
+				Some(limit) => {
+					if limit > forwarded_gas {
 						let log = log_subcall_failed(handle.code_address(), i);
 						handle.record_log_costs(&[&log])?;
 						log.record(handle)?;
+
+						log::debug!(target: "batch", "Not enough gas for call gaslimit {} ({})", i, handle.remaining_gas());
 
 						match action {
 							Action::BatchAll => {
@@ -159,18 +196,22 @@ where
 							Action::BatchSome => continue,
 						}
 					}
-					gas_limit
+					limit
 				}
 			};
+
+			log::debug!(target: "batch", "Making subcall {} with gas_limt {} ({})", i, forwarded_gas, handle.remaining_gas());
 
 			let (reason, output) = handle.call(
 				address,
 				transfer,
 				call_data,
-				Some(gas_limit),
+				Some(forwarded_gas),
 				false,
 				&sub_context,
 			);
+
+			log::debug!(target: "batch", "Subcall done {} ({})", i, handle.remaining_gas());
 
 			// Logs
 			// We reserved enough gas so this should not OOG.
@@ -187,6 +228,8 @@ where
 				}
 				_ => (),
 			}
+
+			log::debug!(target: "batch", "Subcall {} done and event emitted ({})", i, handle.remaining_gas());
 
 			// How to proceed
 			match (action, reason) {
@@ -216,6 +259,8 @@ where
 				(_, _) => (),
 			}
 		}
+
+		log::debug!(target: "batch", "Normal end of batch ({})", handle.remaining_gas());
 
 		Ok(succeed([]))
 	}

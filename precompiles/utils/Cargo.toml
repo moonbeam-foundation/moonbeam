@@ -24,6 +24,7 @@ sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-pol
 sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.19", default-features = false }
 
 # Frontier
+evm = { version = "0.35.0", default-features = false, features = [ "with-codec" ] }
 fp-evm = { git = "https://github.com/purestake/frontier", branch = "jeremy-precompile-handle-0.9.19", default-features = false }
 pallet-evm = { git = "https://github.com/purestake/frontier", branch = "jeremy-precompile-handle-0.9.19", default-features = false }
 

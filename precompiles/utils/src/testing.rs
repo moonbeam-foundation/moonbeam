@@ -94,6 +94,16 @@ impl PrecompileHandle for MockHandle {
 		is_static: bool,
 		context: &Context,
 	) -> (ExitReason, Vec<u8>) {
+		if self
+			.record_cost(super::call_cost(
+				context.apparent_value,
+				&evm::Config::london(),
+			))
+			.is_err()
+		{
+			return (ExitReason::Error(ExitError::OutOfGas), vec![]);
+		}
+
 		match &mut self.subcall_handle {
 			Some(handle) => {
 				let SubcallOutput {

@@ -26,7 +26,7 @@ use evm::ExitReason;
 use fp_evm::{ExitError, ExitRevert, ExitSucceed};
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_evm::Call as EvmCall;
-use precompile_utils::{testing::*, Address, Bytes, EvmDataWriter, LogExt, LogsBuilder};
+use precompile_utils::{call_cost, testing::*, Address, Bytes, EvmDataWriter, LogExt, LogsBuilder};
 use sp_core::{H160, H256, U256};
 
 fn precompiles() -> TestPrecompiles<Runtime> {
@@ -47,10 +47,11 @@ fn evm_call(from: impl Into<H160>, input: Vec<u8>) -> EvmCall<Runtime> {
 	}
 }
 
-fn costs(_: Action) -> (u64, u64) {
+fn costs() -> (u64, u64) {
 	let return_log_cost = log_subcall_failed(Precompile, 0).compute_cost().unwrap();
-	let gas_reserve = return_log_cost + 1;
-	(return_log_cost, gas_reserve)
+	let call_cost =
+		return_log_cost + call_cost(U256::one(), <Runtime as pallet_evm::Config>::config());
+	(return_log_cost, call_cost)
 }
 
 #[test]
@@ -131,7 +132,7 @@ fn batch_returns(
 ) -> PrecompilesTester<TestPrecompiles<Runtime>> {
 	let mut counter = 0;
 
-	let (return_log_cost, gas_reserve) = costs(action);
+	let (return_log_cost, total_call_cost) = costs();
 
 	precompiles
 		.prepare_test(
@@ -170,7 +171,7 @@ fn batch_returns(
 
 					assert_eq!(
 						target_gas,
-						Some(100_000 - gas_reserve),
+						Some(100_000 - total_call_cost),
 						"batch forward all gas"
 					);
 					let transfer = transfer.expect("there is a transfer");
@@ -198,7 +199,7 @@ fn batch_returns(
 
 					assert_eq!(
 						target_gas,
-						Some(100_000 - 13 - gas_reserve - return_log_cost),
+						Some(100_000 - 13 - total_call_cost * 2),
 						"batch forward all gas"
 					);
 					let transfer = transfer.expect("there is a transfer");
@@ -223,7 +224,7 @@ fn batch_returns(
 				_ => panic!("unexpected subcall"),
 			}
 		})
-		.expect_cost(13 + 17 + return_log_cost * 2)
+		.expect_cost(13 + 17 + total_call_cost * 2)
 }
 
 #[test]
@@ -266,7 +267,7 @@ fn batch_out_of_gas(
 	precompiles: &TestPrecompiles<Runtime>,
 	action: Action,
 ) -> PrecompilesTester<TestPrecompiles<Runtime>> {
-	let (_, gas_reserve) = costs(action);
+	let (_, total_call_cost) = costs();
 
 	precompiles
 		.prepare_test(
@@ -298,7 +299,7 @@ fn batch_out_of_gas(
 				a if a == Bob.into() => {
 					assert_eq!(
 						target_gas,
-						Some(50_000 - gas_reserve),
+						Some(50_000 - total_call_cost),
 						"batch forward all gas"
 					);
 					let transfer = transfer.expect("there is a transfer");
@@ -354,7 +355,7 @@ fn batch_incomplete(
 ) -> PrecompilesTester<TestPrecompiles<Runtime>> {
 	let mut counter = 0;
 
-	let (return_log_cost, gas_reserve) = costs(action);
+	let (return_log_cost, total_call_cost) = costs();
 
 	precompiles
 		.prepare_test(
@@ -366,12 +367,12 @@ fn batch_incomplete(
 					Address(Charlie.into()),
 					Address(Alice.into()),
 				])
-				.write(vec![U256::from(1u8), U256::from(2u8)])
+				.write(vec![U256::from(1u8), U256::from(2u8), U256::from(3u8)])
 				.write(vec![Bytes::from(b"one".as_slice())])
 				.write::<Vec<U256>>(vec![])
 				.build(),
 		)
-		.with_target_gas(Some(100_000))
+		.with_target_gas(Some(300_000))
 		.with_subcall_handle(move |subcall| {
 			let Subcall {
 				address,
@@ -393,7 +394,7 @@ fn batch_incomplete(
 
 					assert_eq!(
 						target_gas,
-						Some(100_000 - gas_reserve),
+						Some(300_000 - total_call_cost),
 						"batch forward all gas"
 					);
 					let transfer = transfer.expect("there is a transfer");
@@ -421,7 +422,7 @@ fn batch_incomplete(
 
 					assert_eq!(
 						target_gas,
-						Some(100_000 - 13 - gas_reserve - return_log_cost),
+						Some(300_000 - 13 - total_call_cost * 2),
 						"batch forward all gas"
 					);
 					let transfer = transfer.expect("there is a transfer");
@@ -447,13 +448,16 @@ fn batch_incomplete(
 
 					assert_eq!(
 						target_gas,
-						Some(100_000 - 13 - 17 - gas_reserve - return_log_cost * 2),
+						Some(300_000 - 13 - 17 - total_call_cost * 3),
 						"batch forward all gas"
 					);
-					assert!(transfer.is_none());
+					let transfer = transfer.expect("there is a transfer");
+					assert_eq!(transfer.source, Alice.into());
+					assert_eq!(transfer.target, Alice.into());
+					assert_eq!(transfer.value, 3u8.into());
 
 					assert_eq!(context.address, Alice.into());
-					assert_eq!(context.apparent_value, 0u8.into());
+					assert_eq!(context.apparent_value, 3u8.into());
 
 					assert_eq!(&input, b"");
 
@@ -474,7 +478,7 @@ fn batch_incomplete(
 #[test]
 fn batch_some_incomplete() {
 	ExtBuilder::default().build().execute_with(|| {
-		let (return_log_cost, _) = costs(Action::BatchSome);
+		let (return_log_cost, total_call_cost) = costs();
 
 		batch_incomplete(&precompiles(), Action::BatchSome)
 			.expect_log(LogsBuilder::new(Bob.into()).log1(H256::repeat_byte(0x11), vec![]))
@@ -482,7 +486,7 @@ fn batch_some_incomplete() {
 			.expect_log(log_subcall_failed(Precompile, 1))
 			.expect_log(LogsBuilder::new(Alice.into()).log1(H256::repeat_byte(0x33), vec![]))
 			.expect_log(log_subcall_succeeded(Precompile, 2))
-			.expect_cost(13 + 17 + 19 + return_log_cost * 3)
+			.expect_cost(13 + 17 + 19 + total_call_cost * 3)
 			.execute_returns(Vec::new())
 	})
 }
@@ -490,13 +494,13 @@ fn batch_some_incomplete() {
 #[test]
 fn batch_some_until_failure_incomplete() {
 	ExtBuilder::default().build().execute_with(|| {
-		let (return_log_cost, _) = costs(Action::BatchSomeUntilFailure);
+		let (return_log_cost, total_call_cost) = costs();
 
 		batch_incomplete(&precompiles(), Action::BatchSomeUntilFailure)
 			.expect_log(LogsBuilder::new(Bob.into()).log1(H256::repeat_byte(0x11), vec![]))
 			.expect_log(log_subcall_succeeded(Precompile, 0))
 			.expect_log(log_subcall_failed(Precompile, 1))
-			.expect_cost(13 + 17 + return_log_cost * 2)
+			.expect_cost(13 + 17 + total_call_cost * 2)
 			.execute_returns(Vec::new())
 	})
 }
@@ -513,7 +517,7 @@ fn batch_log_out_of_gas(
 	precompiles: &TestPrecompiles<Runtime>,
 	action: Action,
 ) -> PrecompilesTester<TestPrecompiles<Runtime>> {
-	let (_, gas_reserve) = costs(action);
+	let (log_cost, _) = costs();
 
 	precompiles
 		.prepare_test(
@@ -526,7 +530,7 @@ fn batch_log_out_of_gas(
 				.write::<Vec<U256>>(vec![])
 				.build(),
 		)
-		.with_target_gas(Some(gas_reserve - 1))
+		.with_target_gas(Some(log_cost - 1))
 		.with_subcall_handle(move |_subcall| panic!("there shouldn't be any subcalls"))
 }
 
@@ -555,11 +559,11 @@ fn batch_some_until_failure_log_out_of_gas() {
 	})
 }
 
-fn batch_gas_limit(
+fn batch_call_out_of_gas(
 	precompiles: &TestPrecompiles<Runtime>,
 	action: Action,
 ) -> PrecompilesTester<TestPrecompiles<Runtime>> {
-	let (_, gas_reserve) = costs(action);
+	let (_, total_call_cost) = costs();
 
 	precompiles
 		.prepare_test(
@@ -569,7 +573,53 @@ fn batch_gas_limit(
 				.write(vec![Address(Bob.into())])
 				.write(vec![U256::from(1u8)])
 				.write(vec![Bytes::from(b"one".as_slice())])
-				.write(vec![50_000 - gas_reserve + 1])
+				.write::<Vec<U256>>(vec![])
+				.build(),
+		)
+		.with_target_gas(Some(total_call_cost - 1))
+		.with_subcall_handle(move |_subcall| panic!("there shouldn't be any subcalls"))
+}
+
+#[test]
+fn batch_all_call_out_of_gas() {
+	ExtBuilder::default().build().execute_with(|| {
+		batch_call_out_of_gas(&precompiles(), Action::BatchAll).execute_error(ExitError::OutOfGas);
+	})
+}
+
+#[test]
+fn batch_some_call_out_of_gas() {
+	ExtBuilder::default().build().execute_with(|| {
+		batch_call_out_of_gas(&precompiles(), Action::BatchSome)
+			.expect_log(log_subcall_failed(Precompile, 0))
+			.execute_returns(Vec::new());
+	})
+}
+
+#[test]
+fn batch_some_until_failure_call_out_of_gas() {
+	ExtBuilder::default().build().execute_with(|| {
+		batch_call_out_of_gas(&precompiles(), Action::BatchSomeUntilFailure)
+			.expect_log(log_subcall_failed(Precompile, 0))
+			.execute_returns(Vec::new());
+	})
+}
+
+fn batch_gas_limit(
+	precompiles: &TestPrecompiles<Runtime>,
+	action: Action,
+) -> PrecompilesTester<TestPrecompiles<Runtime>> {
+	let (_, total_call_cost) = costs();
+
+	precompiles
+		.prepare_test(
+			Alice,
+			Precompile,
+			EvmDataWriter::new_with_selector(action)
+				.write(vec![Address(Bob.into())])
+				.write(vec![U256::from(1u8)])
+				.write(vec![Bytes::from(b"one".as_slice())])
+				.write(vec![50_000 - total_call_cost + 1])
 				.build(),
 		)
 		.with_target_gas(Some(50_000))
@@ -586,7 +636,7 @@ fn batch_all_gas_limit() {
 #[test]
 fn batch_some_gas_limit() {
 	ExtBuilder::default().build().execute_with(|| {
-		let (return_log_cost, _) = costs(Action::BatchSome);
+		let (return_log_cost, _) = costs();
 
 		batch_gas_limit(&precompiles(), Action::BatchSome)
 			.expect_log(log_subcall_failed(Precompile, 0))
