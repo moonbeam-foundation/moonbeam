@@ -95,7 +95,7 @@ fn selectors() {
 	assert_eq!(Action::UpdateAssociation as u32, 0xd9cef879);
 	assert_eq!(Action::ClearAssociation as u32, 0x7354c91d);
 	assert_eq!(Action::RegisterKeys as u32, 0x4f50accf);
-	assert_eq!(Action::SetKeys as u32, 0xa8259c85);
+	assert_eq!(Action::SetKeys as u32, 0x47f92fc4);
 }
 
 #[test]
@@ -294,13 +294,11 @@ fn set_keys_works() {
 				sp_core::sr25519::Public::unchecked_from([4u8; 32]).into();
 
 			assert_ok!(Call::AuthorMapping(AuthorMappingCall::register_keys {
-				author_id: first_nimbus_id.clone(),
-				keys: first_vrf_key.clone(),
+				keys: (first_nimbus_id.clone(), first_vrf_key.clone()),
 			})
 			.dispatch(Origin::signed(Alice)));
 
 			let input = EvmDataWriter::new_with_selector(Action::SetKeys)
-				.write(sp_core::H256::from([1u8; 32]))
 				.write(sp_core::H256::from([2u8; 32]))
 				.write(sp_core::H256::from([4u8; 32]))
 				.build();
