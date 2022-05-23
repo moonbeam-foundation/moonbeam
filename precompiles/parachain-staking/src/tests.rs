@@ -869,7 +869,7 @@ fn delegation_request_is_pending_works() {
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
 					output: Default::default(),
-					cost: 282552000,
+					cost: 281793000,
 					logs: Default::default(),
 				}))
 			);
@@ -971,7 +971,7 @@ fn candidate_exit_is_pending_works() {
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
 					output: Default::default(),
-					cost: 313608000,
+					cost: 303417000,
 					logs: Default::default(),
 				}))
 			);
@@ -1071,7 +1071,7 @@ fn candidate_request_is_pending_works() {
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
 					output: Default::default(),
-					cost: 151339000,
+					cost: 151710000,
 					logs: Default::default(),
 				}))
 			);
