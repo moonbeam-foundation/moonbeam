@@ -45,14 +45,19 @@ macro_rules! impl_on_charge_evm_transaction {
 			fn correct_and_deposit_fee(
 				who: &H160,
 				corrected_fee: U256,
+				base_fee: U256,
 				already_withdrawn: Self::LiquidityInfo,
-			) {
+			) -> Self::LiquidityInfo {
 				<EVMCurrencyAdapter<<T as pallet_evm::Config>::Currency, OU> as OnChargeEVMTransactionT<
 					T,
-				>>::correct_and_deposit_fee(who, corrected_fee, already_withdrawn)
+				>>::correct_and_deposit_fee(who, corrected_fee, base_fee, already_withdrawn)
 			}
 
-			fn pay_priority_fee(_tip: U256) {}
+			fn pay_priority_fee(tip: Self::LiquidityInfo) {
+				if let Some(tip) = tip {
+					OU::on_unbalanced(tip);
+				}
+			}
 		}
 	}
 }
