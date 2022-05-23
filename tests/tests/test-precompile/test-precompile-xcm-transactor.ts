@@ -128,7 +128,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
     alith = keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
   });
 
-  it("allows to retrieve index through precompiles old-interface", async function () {
+  it("allows to retrieve index through precompiles", async function () {
     let data = iFace.encodeFunctionData(
       // action
       "index_to_account",
@@ -150,7 +150,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
     );
   });
 
-  it("allows to retrieve transactor info through precompiles", async function () {
+  it("allows to retrieve transactor info through precompiles old interface", async function () {
     let asset =
       // Destination as multilocation
       [
@@ -417,11 +417,18 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
     alith = keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
   });
 
-  it("allows to retrieve index through precompiles old-interface", async function () {
+  it("allows to retrieve fee per second through precompiles", async function () {
+    let asset =
+      // asset as multilocation
+      [
+        // one parent
+        1,
+        [],
+      ];
     let data = iFace.encodeFunctionData(
       // action
-      "index_to_account",
-      [0]
+      "fee_per_second",
+      [asset]
     );
     let tx_call = await customWeb3Request(context.web3, "eth_call", [
       {
@@ -435,7 +442,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
     ]);
 
     expect(tx_call.result).to.equal(
-      "0x000000000000000000000000f24ff3a9cf04c71dbc94d0b566f7a27b94566cac"
+      "0x000000000000000000000000000000000000000000000000000000e8d4a51000"
     );
   });
 
