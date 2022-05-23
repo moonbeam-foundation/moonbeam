@@ -8,9 +8,9 @@ import type {
   ParachainStakingDelegations,
   ParachainStakingCandidateMetadata,
   ParachainStakingBond,
+  ParachainStakingSetOrderedSetBond,
 } from "@polkadot/types/lookup";
 import { expect } from "chai";
-import { printTokens } from "../util/logging";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 const debug = require("debug")("smoke:staking");
 
@@ -18,13 +18,12 @@ const wssUrl = process.env.WSS_URL || null;
 const relayWssUrl = process.env.RELAY_WSS_URL || null;
 
 describeSmokeSuite(`Verify staking consistency`, { wssUrl, relayWssUrl }, (context) => {
-  const accounts: { [account: string]: FrameSystemAccountInfo } = {};
-
   let atBlockNumber: number = 0;
   let apiAt: ApiDecoration<"promise"> = null;
   let specVersion: number = 0;
   let maxTopDelegationsPerCandidate: number = 0;
   let allCandidateInfo: [StorageKey<[AccountId20]>, Option<ParachainStakingCandidateMetadata>][];
+  let candidatePool: ParachainStakingSetOrderedSetBond;
   let allDelegatorState: [StorageKey<[AccountId20]>, Option<ParachainStakingDelegator>][];
   let allTopDelegations: [StorageKey<[AccountId20]>, Option<ParachainStakingDelegations>][];
   let delegatorsPerCandidates: {
@@ -36,7 +35,7 @@ describeSmokeSuite(`Verify staking consistency`, { wssUrl, relayWssUrl }, (conte
 
   before("Setup apiAt", async function () {
     // It takes time to load all the accounts.
-    this.timeout(120000);
+    this.timeout(180000);
 
     atBlockNumber = (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber();
     apiAt = await context.polkadotApi.at(
@@ -48,6 +47,7 @@ describeSmokeSuite(`Verify staking consistency`, { wssUrl, relayWssUrl }, (conte
 
     allCandidateInfo = await apiAt.query.parachainStaking.candidateInfo.entries();
     allDelegatorState = await apiAt.query.parachainStaking.delegatorState.entries();
+    candidatePool = await apiAt.query.parachainStaking.candidatePool();
     allTopDelegations = await apiAt.query.parachainStaking.topDelegations.entries();
 
     delegatorsPerCandidates = allDelegatorState.reduce((p, state) => {
@@ -65,9 +65,6 @@ describeSmokeSuite(`Verify staking consistency`, { wssUrl, relayWssUrl }, (conte
   });
 
   it("candidate totalCounted matches top X delegations", async function () {
-    this.timeout(120000);
-    // Load data
-
     for (const candidate of allCandidateInfo) {
       const accountId = `0x${candidate[0].toHex().slice(-40)}`;
       const delegators = delegatorsPerCandidates[accountId] || [];
@@ -117,8 +114,6 @@ describeSmokeSuite(`Verify staking consistency`, { wssUrl, relayWssUrl }, (conte
   });
 
   it("candidate topDelegations matches top X delegators", async function () {
-    this.timeout(120000);
-    // Load data
     for (const candidate of allCandidateInfo) {
       const accountId = `0x${candidate[0].toHex().slice(-40)}`;
       const delegators = delegatorsPerCandidates[accountId] || [];
@@ -212,5 +207,36 @@ describeSmokeSuite(`Verify staking consistency`, { wssUrl, relayWssUrl }, (conte
     }
 
     debug(`Verified ${checks} lessTotal (runtime: ${specVersion})`);
+  });
+
+  it("candidatePool matches candidateInfo", async function () {
+    let foundCandidateInPool = 0;
+    for (const candidate of allCandidateInfo) {
+      const candidateId = `0x${candidate[0].toHex().slice(-40)}`;
+      const candidateData = candidate[1].unwrap();
+
+      if (candidateData.status.isLeaving || candidateData.status.isIdle) {
+        expect(
+          candidatePool.find((c) => c.owner.toHex() == candidateId),
+          `Candidate ${candidateId} is leaving and should not be in the candidate pool`
+        ).to.be.undefined;
+      } else {
+        expect(
+          candidatePool.find((c) => c.owner.toHex() == candidateId),
+          `Candidate ${candidateId} is active and should be in the candidate pool`
+        ).to.not.be.undefined;
+        foundCandidateInPool++;
+      }
+    }
+
+    expect(foundCandidateInPool, "Candidate in pool not matching expected number").to.be.equal(
+      candidatePool.length
+    );
+
+    debug(
+      `Verified ${Object.keys(allCandidateInfo).length} candidates info and ${
+        candidatePool.length
+      } in the pool`
+    );
   });
 });

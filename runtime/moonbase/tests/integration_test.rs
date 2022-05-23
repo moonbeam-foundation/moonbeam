@@ -2584,13 +2584,17 @@ fn author_mapping_precompile_associate_update_and_clear() {
 			let author_mapping_precompile_address = H160::from_low_u64_be(2055);
 			let first_nimbus_id: NimbusId =
 				sp_core::sr25519::Public::unchecked_from([1u8; 32]).into();
+			let first_vrf_id: session_keys_primitives::VrfId =
+				sp_core::sr25519::Public::unchecked_from([1u8; 32]).into();
 			let second_nimbus_id: NimbusId =
+				sp_core::sr25519::Public::unchecked_from([2u8; 32]).into();
+			let second_vrf_id: session_keys_primitives::VrfId =
 				sp_core::sr25519::Public::unchecked_from([2u8; 32]).into();
 
 			let associate_expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: Default::default(),
-				cost: 11325u64,
+				cost: 15388u64,
 				logs: Default::default(),
 			}));
 
@@ -2616,14 +2620,14 @@ fn author_mapping_precompile_associate_update_and_clear() {
 				Event::AuthorMapping(pallet_author_mapping::Event::AuthorRegistered {
 					author_id: first_nimbus_id.clone(),
 					account_id: AccountId::from(ALICE),
-					keys: first_nimbus_id.clone(),
+					keys: first_vrf_id.clone(),
 				});
 			assert_eq!(last_event(), expected_associate_event);
 
 			let update_expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: Default::default(),
-				cost: 11030u64,
+				cost: 15190u64,
 				logs: Default::default(),
 			}));
 
@@ -2650,14 +2654,14 @@ fn author_mapping_precompile_associate_update_and_clear() {
 				Event::AuthorMapping(pallet_author_mapping::Event::AuthorRotated {
 					new_author_id: second_nimbus_id.clone(),
 					account_id: AccountId::from(ALICE),
-					new_keys: second_nimbus_id.clone(),
+					new_keys: second_vrf_id.clone(),
 				});
 			assert_eq!(last_event(), expected_update_event);
 
 			let clear_expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: Default::default(),
-				cost: 11450u64,
+				cost: 15447u64,
 				logs: Default::default(),
 			}));
 
@@ -2681,9 +2685,9 @@ fn author_mapping_precompile_associate_update_and_clear() {
 
 			let expected_clear_event =
 				Event::AuthorMapping(pallet_author_mapping::Event::AuthorDeRegistered {
-					author_id: second_nimbus_id.clone(),
+					author_id: second_nimbus_id,
 					account_id: AccountId::from(ALICE),
-					keys: second_nimbus_id,
+					keys: second_vrf_id,
 				});
 			assert_eq!(last_event(), expected_clear_event);
 		});
@@ -2698,17 +2702,17 @@ fn author_mapping_register_and_set_keys() {
 			let author_mapping_precompile_address = H160::from_low_u64_be(2055);
 			let first_nimbus_id: NimbusId =
 				sp_core::sr25519::Public::unchecked_from([1u8; 32]).into();
-			let first_vrf_key: NimbusId =
+			let first_vrf_key: session_keys_primitives::VrfId =
 				sp_core::sr25519::Public::unchecked_from([3u8; 32]).into();
 			let second_nimbus_id: NimbusId =
 				sp_core::sr25519::Public::unchecked_from([2u8; 32]).into();
-			let second_vrf_key: NimbusId =
+			let second_vrf_key: session_keys_primitives::VrfId =
 				sp_core::sr25519::Public::unchecked_from([4u8; 32]).into();
 
 			let associate_expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: Default::default(),
-				cost: 11344u64,
+				cost: 15428u64,
 				logs: Default::default(),
 			}));
 
@@ -2742,7 +2746,7 @@ fn author_mapping_register_and_set_keys() {
 			let update_expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: Default::default(),
-				cost: 11023u64,
+				cost: 16280u64,
 				logs: Default::default(),
 			}));
 
@@ -2751,7 +2755,6 @@ fn author_mapping_register_and_set_keys() {
 				Precompiles::new().execute(
 					author_mapping_precompile_address,
 					&EvmDataWriter::new_with_selector(AuthorMappingAction::SetKeys)
-						.write(sp_core::H256::from([1u8; 32]))
 						.write(sp_core::H256::from([2u8; 32]))
 						.write(sp_core::H256::from([4u8; 32]))
 						.build(),

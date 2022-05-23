@@ -62,7 +62,7 @@ export async function getCommitAndLabels(
       excludedCommits.push(revertedCommits[commitMessageFirstLine]);
     } else {
       const foundRevertedCommitName = commitMessageFirstLine.match(/Revert \"(.*)\"/);
-      if (foundRevertedCommitName.length > 0) {
+      if (foundRevertedCommitName?.length > 0) {
         revertedCommits[foundRevertedCommitName[1]] = i;
       }
     }

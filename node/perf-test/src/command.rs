@@ -25,7 +25,6 @@ use cumulus_primitives_parachain_inherent::{
 };
 use ethereum::TransactionAction;
 use fp_rpc::{ConvertTransactionRuntimeApi, EthereumRuntimeRPCApi};
-use nimbus_primitives::NimbusId;
 use sc_cli::{CliConfiguration, Result as CliResult, SharedParams};
 use sc_client_api::HeaderBackend;
 use sc_consensus_manual_seal::{run_manual_seal, CreatedBlock, EngineCommand, ManualSealParams};
@@ -43,7 +42,7 @@ use futures::{
 
 use cli_table::{print_stdout, WithTitle};
 use serde::Serialize;
-use service::{chain_spec, rpc, Block, RuntimeApiCollection};
+use service::{rpc, Block, RuntimeApiCollection};
 use sha3::{Digest, Keccak256};
 
 pub type FullClient<RuntimeApi, Executor> =
@@ -108,10 +107,6 @@ where
 				warp_sync: None,
 			})?;
 
-		// TODO: maybe offchain worker needed?
-
-		let author_id = chain_spec::get_from_seed::<NimbusId>("Alice");
-
 		// TODO: no need for prometheus here...
 		let prometheus_registry = config.prometheus_registry().cloned();
 
@@ -156,7 +151,6 @@ where
 						.number(block)
 						.expect("Header lookup should succeed")
 						.expect("Header passed in as parent should be present in backend.");
-					let author_id = author_id.clone();
 
 					let client_for_xcm = client_set_aside_for_cidp.clone();
 
@@ -177,7 +171,7 @@ where
 							),
 						};
 
-						let author = nimbus_primitives::InherentDataProvider::<NimbusId>(author_id);
+						let author = nimbus_primitives::InherentDataProvider;
 
 						Ok((time, mocked_parachain, author))
 					}
