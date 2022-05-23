@@ -231,12 +231,6 @@ describeSmokeSuite(`Verify balances consistency`, { wssUrl, relayWssUrl }, (cont
           localAssetDeposit: assetDeposit[1].unwrap().deposit.toBigInt(),
         },
       })),
-      localAssetDeposits.map((assetDeposit) => ({
-        accountId: assetDeposit[1].unwrap().creator.toHex(),
-        reserved: {
-          localAssetDeposit: assetDeposit[1].unwrap().deposit.toBigInt(),
-        },
-      })),
       namedReserves.map((namedReservesOf) => ({
         accountId: `0x${namedReservesOf[0].toHex().slice(-40)}`,
         reserved: {
