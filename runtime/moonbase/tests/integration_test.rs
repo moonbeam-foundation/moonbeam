@@ -33,7 +33,7 @@ use frame_support::{
 	StorageHasher, Twox128,
 };
 use moonbase_runtime::{
-	asset_config::AssetRegistrarMetadata, asset_config::LocalAssetInstance, currency::UNIT, get,
+	asset_config::AssetRegistrarMetadata, asset_config::LocalAssetInstance, get,
 	xcm_config::AssetType, AccountId, AssetId, AssetManager, Assets, Balances, BaseFee,
 	BlockWeights, Call, CrowdloanRewards, Event, LocalAssets, ParachainStaking, PolkadotXcm,
 	Precompiles, Runtime, System, XTokens, XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
@@ -2300,6 +2300,58 @@ where
 }
 
 #[test]
+#[rustfmt::skip]
+fn length_fee_is_sensible() {
+	use sp_runtime::testing::TestXt;
+
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), (1 * UNIT) + (1 * WEI)),
+			(AccountId::from(BOB), 0),
+		])
+		.build()
+		.execute_with(|| {
+			// Substrate transfer
+			assert_ok!(Balances::transfer(
+				origin_of(AccountId::from(ALICE)),
+				AccountId::from(BOB),
+				1 * UNIT,
+			));
+			// 1 WEI is left in the account
+			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1 * WEI);
+		});
+
+	// tests that length fee is sensible for a few hypothetical transactions
+	ExtBuilder::default().build().execute_with(|| {
+		let call = frame_system::Call::remark::<Runtime> { remark: vec![] };
+		let uxt: TestXt<_, ()> = TestXt::new(call, Some((1u64, ())));
+
+		let calc_fee = |len: u32| -> Balance {
+			moonbase_runtime::TransactionPayment::query_fee_details(uxt.clone(), len)
+				.inclusion_fee
+				.expect("fee should be calculated")
+				.len_fee
+		};
+
+		// editorconfig-checker-disable
+		//                  left: cost of length fee, right: size in bytes
+		//                             /------------- proportional component: O(N * 1B)
+		//                             |           /- exponential component: O(N ** 3)
+		//                             |           |
+		assert_eq!(                    1_000_000_001, calc_fee(1));
+		assert_eq!(                   10_000_001_000, calc_fee(10));
+		assert_eq!(                  100_001_000_000, calc_fee(100));
+		assert_eq!(                1_001_000_000_000, calc_fee(1_000));
+		assert_eq!(               11_000_000_000_000, calc_fee(10_000)); // inflection point
+		assert_eq!(            1_100_000_000_000_000, calc_fee(100_000));
+		assert_eq!(        1_001_000_000_000_000_000, calc_fee(1_000_000)); // one UNIT, ~ 1MB
+		assert_eq!(    1_000_010_000_000_000_000_000, calc_fee(10_000_000));
+		assert_eq!(1_000_000_100_000_000_000_000_000, calc_fee(100_000_000));
+		// editorconfig-checker-enable
+	});
+}
+
+#[test]
 fn multiplier_can_grow_from_zero() {
 	let minimum_multiplier = moonbase_runtime::MinimumMultiplier::get();
 	let target = moonbase_runtime::TargetBlockFullness::get()
@@ -2594,7 +2646,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 			let associate_expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: Default::default(),
-				cost: 11325u64,
+				cost: 15388u64,
 				logs: Default::default(),
 			}));
 
@@ -2627,7 +2679,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 			let update_expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: Default::default(),
-				cost: 11030u64,
+				cost: 15190u64,
 				logs: Default::default(),
 			}));
 
@@ -2661,7 +2713,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 			let clear_expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: Default::default(),
-				cost: 11450u64,
+				cost: 15447u64,
 				logs: Default::default(),
 			}));
 
@@ -2712,7 +2764,7 @@ fn author_mapping_register_and_set_keys() {
 			let associate_expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: Default::default(),
-				cost: 11344u64,
+				cost: 15428u64,
 				logs: Default::default(),
 			}));
 
@@ -2746,7 +2798,7 @@ fn author_mapping_register_and_set_keys() {
 			let update_expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: Default::default(),
-				cost: 11023u64,
+				cost: 16280u64,
 				logs: Default::default(),
 			}));
 
@@ -2755,7 +2807,6 @@ fn author_mapping_register_and_set_keys() {
 				Precompiles::new().execute(
 					author_mapping_precompile_address,
 					&EvmDataWriter::new_with_selector(AuthorMappingAction::SetKeys)
-						.write(sp_core::H256::from([1u8; 32]))
 						.write(sp_core::H256::from([2u8; 32]))
 						.write(sp_core::H256::from([4u8; 32]))
 						.build(),
