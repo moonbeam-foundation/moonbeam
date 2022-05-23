@@ -220,6 +220,7 @@ describeDevMoonbeamAllEthTxTypes(
   "Trace blockscout v2",
   (context) => {
     it("should format as request (Blockscout v2)", async function () {
+      this.timeout(20000);
       const send = await nestedSingle(context);
       await context.createBlock();
       let traceTx = await customWeb3Request(context.web3, "debug_traceTransaction", [
@@ -243,7 +244,7 @@ describeDevMoonbeamAllEthTxTypes(
 
 describeDevMoonbeamAllEthTxTypes("Trace (Blockscout v2)", (context) => {
   it("should trace correctly out of gas transaction execution (Blockscout v2)", async function () {
-    this.timeout(10000);
+    this.timeout(20000);
 
     const { contract, rawTx } = await createContract(context, "InfiniteContract");
     await context.createBlock({ transactions: [rawTx] });
@@ -272,7 +273,7 @@ describeDevMoonbeamAllEthTxTypes("Trace (Blockscout v2)", (context) => {
   });
 
   it("should trace correctly precompiles (Blockscout v2)", async function () {
-    this.timeout(10000);
+    this.timeout(20000);
 
     let callTx = await context.web3.eth.accounts.signTransaction(
       {
@@ -299,7 +300,7 @@ describeDevMoonbeamAllEthTxTypes("Trace (Blockscout v2)", (context) => {
 
 describeDevMoonbeam("Trace", (context) => {
   it("should trace correctly out of gas transaction execution (Blockscout)", async function () {
-    this.timeout(10000);
+    this.timeout(20000);
 
     const { contract, rawTx } = await createContract(context, "InfiniteContract");
     await context.createBlock({ transactions: [rawTx] });
@@ -328,7 +329,7 @@ describeDevMoonbeam("Trace", (context) => {
   });
 
   it("should trace correctly precompiles (Blockscout)", async function () {
-    this.timeout(10000);
+    this.timeout(20000);
 
     let callTx = await context.web3.eth.accounts.signTransaction(
       {
@@ -353,7 +354,7 @@ describeDevMoonbeam("Trace", (context) => {
   });
 
   it("should trace correctly transfers (raw)", async function () {
-    this.timeout(10000);
+    this.timeout(20000);
 
     let callTx = await context.web3.eth.accounts.signTransaction(
       {
@@ -514,7 +515,7 @@ describeDevMoonbeam("Trace", (context) => {
 
 describeDevMoonbeam("Trace", (context) => {
   it("should correctly trace subcall (call list)", async function () {
-    this.timeout(10000);
+    this.timeout(20000);
 
     const { contract: contractProxy, rawTx } = await createContract(context, "TestCallList");
     await context.createBlock({ transactions: [rawTx] });
@@ -564,7 +565,7 @@ describeDevMoonbeam("Trace", (context) => {
   });
 
   it("should correctly trace delegatecall subcall (call list)", async function () {
-    this.timeout(10000);
+    this.timeout(20000);
 
     const { contract: contractProxy, rawTx } = await createContract(context, "TestCallList");
     await context.createBlock({ transactions: [rawTx] });
