@@ -1290,6 +1290,37 @@ fn author_does_not_receive_priority_fee() {
 }
 
 #[test]
+fn total_issuance_after_evm_transaction_with_priority_fee() {
+	ExtBuilder::default()
+		.with_balances(vec![(
+			AccountId::from(BOB),
+			(1 * GLMR) + (21_000 * (200 * GIGAWEI)),
+		)])
+		.build()
+		.execute_with(|| {
+			let issuance_before = <Runtime as pallet_evm::Config>::Currency::total_issuance();
+			// EVM transfer.
+			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
+				source: H160::from(BOB),
+				target: H160::from(ALICE),
+				input: Vec::new(),
+				value: (1 * GLMR).into(),
+				gas_limit: 21_000u64,
+				max_fee_per_gas: U256::from(200 * GIGAWEI),
+				max_priority_fee_per_gas: Some(U256::from(100 * GIGAWEI)),
+				nonce: Some(U256::from(0)),
+				access_list: Vec::new(),
+			})
+			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
+
+			let issuance_after = <Runtime as pallet_evm::Config>::Currency::total_issuance();
+			// 80% of (1 GWEI base fee + 1GWEI tip) was burned.
+			let expected_burn = (((200 * GIGAWEI) * 21_000) as f64 * 0.8) as u128;
+			assert_eq!(issuance_after, issuance_before - expected_burn,);
+		});
+}
+
+#[test]
 fn root_can_change_default_xcm_vers() {
 	ExtBuilder::default()
 		.with_balances(vec![
