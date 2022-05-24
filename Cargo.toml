@@ -26,12 +26,6 @@ members = [
 	"runtime/moonriver",
 ]
 
-[patch.crates-io]
-evm = { git = "https://github.com/rust-blockchain/evm", branch = "master" }
-evm-core = { git = "https://github.com/rust-blockchain/evm", branch = "master" }
-evm-gasometer = { git = "https://github.com/rust-blockchain/evm", branch = "master" }
-evm-runtime = { git = "https://github.com/rust-blockchain/evm", branch = "master" }
-
 # make sure dev builds with backtrace do
 # not slow us down
 [profile.dev.package.backtrace]

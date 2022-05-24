@@ -132,7 +132,7 @@ fn batch_returns(
 ) -> PrecompilesTester<TestPrecompiles<Runtime>> {
 	let mut counter = 0;
 
-	let (return_log_cost, total_call_cost) = costs();
+	let (_, total_call_cost) = costs();
 
 	precompiles
 		.prepare_test(
@@ -355,7 +355,7 @@ fn batch_incomplete(
 ) -> PrecompilesTester<TestPrecompiles<Runtime>> {
 	let mut counter = 0;
 
-	let (return_log_cost, total_call_cost) = costs();
+	let (_, total_call_cost) = costs();
 
 	precompiles
 		.prepare_test(
@@ -478,7 +478,7 @@ fn batch_incomplete(
 #[test]
 fn batch_some_incomplete() {
 	ExtBuilder::default().build().execute_with(|| {
-		let (return_log_cost, total_call_cost) = costs();
+		let (_, total_call_cost) = costs();
 
 		batch_incomplete(&precompiles(), Action::BatchSome)
 			.expect_log(LogsBuilder::new(Bob.into()).log1(H256::repeat_byte(0x11), vec![]))
@@ -494,7 +494,7 @@ fn batch_some_incomplete() {
 #[test]
 fn batch_some_until_failure_incomplete() {
 	ExtBuilder::default().build().execute_with(|| {
-		let (return_log_cost, total_call_cost) = costs();
+		let (_, total_call_cost) = costs();
 
 		batch_incomplete(&precompiles(), Action::BatchSomeUntilFailure)
 			.expect_log(LogsBuilder::new(Bob.into()).log1(H256::repeat_byte(0x11), vec![]))

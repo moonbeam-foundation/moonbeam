@@ -28,10 +28,9 @@ use cli_opt::EthApi as EthApiCmd;
 use cumulus_primitives_core::ParaId;
 use fc_mapping_sync::{MappingSyncWorker, SyncStrategy};
 use fc_rpc::{
-	EthApi, EthApiServer, EthBlockDataCacheTask, EthFilterApi, EthFilterApiServer, EthPubSubApi,
-	EthPubSubApiServer, EthTask, HexEncodedIdProvider, NetApi, NetApiServer, OverrideHandle,
-	RuntimeApiStorageOverride, SchemaV1Override, SchemaV2Override, SchemaV3Override,
-	StorageOverride, Web3Api, Web3ApiServer,
+	Eth, EthApi, EthBlockDataCacheTask, EthFilter, EthFilterApi, EthPubSub, EthPubSubApi, EthTask,
+	HexEncodedIdProvider, Net, NetApi, OverrideHandle, RuntimeApiStorageOverride, SchemaV1Override,
+	SchemaV2Override, SchemaV3Override, StorageOverride, Web3, Web3Api,
 };
 use fc_rpc_core::types::{FeeHistoryCache, FilterPool};
 use fp_storage::EthereumStorageSchema;
@@ -193,7 +192,7 @@ where
 	}
 	let convert_transaction: Option<Never> = None;
 
-	io.extend_with(EthApiServer::to_delegate(EthApi::new(
+	io.extend_with(EthApi::to_delegate(Eth::new(
 		client.clone(),
 		pool.clone(),
 		graph.clone(),
@@ -205,12 +204,12 @@ where
 		is_authority,
 		block_data_cache.clone(),
 		fc_rpc::format::Geth,
-		fee_history_limit,
 		fee_history_cache,
+		fee_history_limit,
 	)));
 
 	if let Some(filter_pool) = filter_pool {
-		io.extend_with(EthFilterApiServer::to_delegate(EthFilterApi::new(
+		io.extend_with(EthFilterApi::to_delegate(EthFilter::new(
 			client.clone(),
 			frontier_backend.clone(),
 			filter_pool,
@@ -220,13 +219,13 @@ where
 		)));
 	}
 
-	io.extend_with(NetApiServer::to_delegate(NetApi::new(
+	io.extend_with(NetApi::to_delegate(Net::new(
 		client.clone(),
 		network.clone(),
 		true,
 	)));
-	io.extend_with(Web3ApiServer::to_delegate(Web3Api::new(client.clone())));
-	io.extend_with(EthPubSubApiServer::to_delegate(EthPubSubApi::new(
+	io.extend_with(Web3Api::to_delegate(Web3::new(client.clone())));
+	io.extend_with(EthPubSubApi::to_delegate(EthPubSub::new(
 		pool,
 		client.clone(),
 		network,

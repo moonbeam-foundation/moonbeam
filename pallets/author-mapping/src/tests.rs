@@ -16,11 +16,15 @@
 
 //! Unit testing
 use crate::mock::{
-	last_event, AuthorMapping, Balances, Event as MetaEvent, ExtBuilder, Origin, Runtime, System,
-	TestAuthor,
+	last_event, AuthorMapping, Balances, DepositAmount, Event as MetaEvent, ExtBuilder, Origin,
+	Runtime, System, TestAuthor,
 };
-use crate::{Error, Event};
-use frame_support::{assert_noop, assert_ok};
+use crate::{Error, Event, MappingWithDeposit, RegistrationInfo};
+use frame_support::{
+	assert_noop, assert_ok,
+	traits::{OnRuntimeUpgrade, ReservableCurrency},
+};
+use nimbus_primitives::NimbusId;
 
 #[test]
 fn genesis_builder_works() {
@@ -297,8 +301,7 @@ fn eligible_account_can_full_register() {
 		.execute_with(|| {
 			assert_ok!(AuthorMapping::register_keys(
 				Origin::signed(2),
-				TestAuthor::Bob.into(),
-				TestAuthor::Alice.into(),
+				(TestAuthor::Bob.into(), TestAuthor::Alice.into()),
 			));
 
 			assert_eq!(Balances::free_balance(&2), 900);
@@ -328,8 +331,7 @@ fn cannot_register_keys_without_deposit() {
 			assert_noop!(
 				AuthorMapping::register_keys(
 					Origin::signed(2),
-					TestAuthor::Alice.into(),
-					TestAuthor::Bob.into(),
+					(TestAuthor::Alice.into(), TestAuthor::Bob.into()),
 				),
 				Error::<Runtime>::CannotAffordSecurityDeposit
 			);
@@ -348,8 +350,7 @@ fn double_full_registration_counts_twice_as_much() {
 			// Register once as Bob
 			assert_ok!(AuthorMapping::register_keys(
 				Origin::signed(2),
-				TestAuthor::Bob.into(),
-				TestAuthor::Charlie.into(),
+				(TestAuthor::Bob.into(), TestAuthor::Charlie.into()),
 			));
 
 			assert_eq!(Balances::free_balance(&2), 900);
@@ -371,8 +372,7 @@ fn double_full_registration_counts_twice_as_much() {
 			// Register again as Alice
 			assert_ok!(AuthorMapping::register_keys(
 				Origin::signed(2),
-				TestAuthor::Alice.into(),
-				TestAuthor::Bob.into(),
+				(TestAuthor::Alice.into(), TestAuthor::Bob.into()),
 			));
 
 			assert_eq!(Balances::free_balance(&2), 800);
@@ -409,8 +409,7 @@ fn full_registered_author_cannot_be_overwritten() {
 			assert_noop!(
 				AuthorMapping::register_keys(
 					Origin::signed(2),
-					TestAuthor::Alice.into(),
-					TestAuthor::Bob.into()
+					(TestAuthor::Alice.into(), TestAuthor::Bob.into()),
 				),
 				Error::<Runtime>::AlreadyAssociated
 			);
@@ -426,9 +425,7 @@ fn registered_can_full_rotate() {
 		.execute_with(|| {
 			assert_ok!(AuthorMapping::set_keys(
 				Origin::signed(2),
-				TestAuthor::Bob.into(),
-				TestAuthor::Charlie.into(),
-				TestAuthor::Charlie.into(),
+				(TestAuthor::Charlie.into(), TestAuthor::Charlie.into())
 			));
 
 			assert_eq!(AuthorMapping::account_id_of(&TestAuthor::Bob.into()), None);
@@ -453,11 +450,9 @@ fn unregistered_author_cannot_be_full_rotated() {
 		assert_noop!(
 			AuthorMapping::set_keys(
 				Origin::signed(2),
-				TestAuthor::Alice.into(),
-				TestAuthor::Bob.into(),
-				TestAuthor::Bob.into(),
+				(TestAuthor::Bob.into(), TestAuthor::Bob.into()),
 			),
-			Error::<Runtime>::AssociationNotFound
+			Error::<Runtime>::OldAuthorIdNotFound
 		);
 	})
 }
@@ -472,11 +467,9 @@ fn registered_author_cannot_be_full_rotated_by_non_owner() {
 			assert_noop!(
 				AuthorMapping::set_keys(
 					Origin::signed(2),
-					TestAuthor::Alice.into(),
-					TestAuthor::Bob.into(),
-					TestAuthor::Bob.into(),
+					(TestAuthor::Bob.into(), TestAuthor::Bob.into())
 				),
-				Error::<Runtime>::NotYourAssociation
+				Error::<Runtime>::OldAuthorIdNotFound
 			);
 		})
 }
@@ -491,11 +484,55 @@ fn full_rotating_to_the_same_author_id_leaves_registration_in_tact() {
 			assert_noop!(
 				AuthorMapping::set_keys(
 					Origin::signed(1),
-					TestAuthor::Alice.into(),
-					TestAuthor::Alice.into(),
-					TestAuthor::Alice.into(),
+					(TestAuthor::Alice.into(), TestAuthor::Alice.into())
 				),
 				Error::<Runtime>::AlreadyAssociated
 			);
+		})
+}
+
+#[test]
+fn add_reverse_mapping_migration_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 300)])
+		.build()
+		.execute_with(|| {
+			// register 3 NimbusId owned by 1 account
+			let alice_as_nimbus: NimbusId = TestAuthor::Alice.into();
+			let bob_as_nimbus: NimbusId = TestAuthor::Bob.into();
+			let charlie_as_nimbus: NimbusId = TestAuthor::Charlie.into();
+			MappingWithDeposit::<Runtime>::insert(
+				alice_as_nimbus.clone(),
+				RegistrationInfo {
+					account: 1,
+					deposit: DepositAmount::get(),
+					keys: alice_as_nimbus.clone(),
+				},
+			);
+			MappingWithDeposit::<Runtime>::insert(
+				bob_as_nimbus.clone(),
+				RegistrationInfo {
+					account: 1,
+					deposit: DepositAmount::get(),
+					keys: bob_as_nimbus.clone(),
+				},
+			);
+			MappingWithDeposit::<Runtime>::insert(
+				charlie_as_nimbus.clone(),
+				RegistrationInfo {
+					account: 1,
+					deposit: DepositAmount::get(),
+					keys: charlie_as_nimbus.clone(),
+				},
+			);
+			assert_ok!(Balances::reserve(&1, DepositAmount::get() * 3));
+			// run migration
+			crate::migrations::AddAccountIdToNimbusLookup::<Runtime>::on_runtime_upgrade();
+			// ensure last 2 mappings revoked => 200 unreserved but still 100 reserved
+			assert_eq!(Balances::free_balance(&1), DepositAmount::get() * 2);
+			assert_eq!(Balances::reserved_balance(&1), DepositAmount::get() * 1);
+			assert!(MappingWithDeposit::<Runtime>::get(bob_as_nimbus).is_some());
+			assert!(MappingWithDeposit::<Runtime>::get(alice_as_nimbus).is_none());
+			assert!(MappingWithDeposit::<Runtime>::get(charlie_as_nimbus).is_none());
 		})
 }

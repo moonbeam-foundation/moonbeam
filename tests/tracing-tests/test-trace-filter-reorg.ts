@@ -1,10 +1,10 @@
 import { expect } from "chai";
 import { customWeb3Request } from "../util/providers";
-import { describeDevMoonbeamAllEthTxTypes } from "../util/setup-dev-tests";
+import { describeDevMoonbeam } from "../util/setup-dev-tests";
 import { createContract, createContractExecution, createTransfer } from "../util/transactions";
 import { GENESIS_ACCOUNT, TEST_ACCOUNT } from "../util/constants";
 
-describeDevMoonbeamAllEthTxTypes("Trace filter reorg", (context) => {
+describeDevMoonbeam("Trace filter reorg", (context) => {
   it("succesfully reorg", async function () {
     this.timeout(150000000);
 

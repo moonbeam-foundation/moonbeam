@@ -46,15 +46,10 @@ interface AuthorMapping {
 
     /**
      * Set keys
-     * Selector: a8259c85
+     * Selector: 47f92fc4
      *
-     * @param old_author_id The old nimbusId to be replaced
      * @param new_author_id The new nimbusId to be associated
      * @param new_keys The new session keys
      */
-    function set_keys(
-        bytes32 old_author_id,
-        bytes32 new_author_id,
-        bytes32 new_keys
-    ) external;
+    function set_keys(bytes32 new_author_id, bytes32 new_keys) external;
 }
