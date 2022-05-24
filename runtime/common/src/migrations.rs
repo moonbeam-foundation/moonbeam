@@ -665,14 +665,14 @@ where
 		// TODO: this is a lot of allocation to do upon every get() call. this *should* be avoided
 		// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review
 
-		let migration_author_slot_filter_eligible_ratio_to_eligibility_count =
-			AuthorSlotFilterEligibleRatioToEligiblityCount::<Runtime>(Default::default());
-		let migration_author_mapping_add_keys_to_registration_info =
-			AuthorMappingAddKeysToRegistrationInfo::<Runtime>(Default::default());
-		let staking_delegator_state_requests =
-			ParachainStakingSplitDelegatorStateIntoDelegationScheduledRequests::<Runtime>(
-				Default::default(),
-			);
+		// let migration_author_slot_filter_eligible_ratio_to_eligibility_count =
+		// 	AuthorSlotFilterEligibleRatioToEligiblityCount::<Runtime>(Default::default());
+		// let migration_author_mapping_add_keys_to_registration_info =
+		// 	AuthorMappingAddKeysToRegistrationInfo::<Runtime>(Default::default());
+		// let staking_delegator_state_requests =
+		// 	ParachainStakingSplitDelegatorStateIntoDelegationScheduledRequests::<Runtime>(
+		// 		Default::default(),
+		// 	);
 		let migration_author_mapping_add_account_id_to_nimbus_lookup =
 			AuthorMappingAddAccountIdToNimbusLookup::<Runtime>(Default::default());
 		vec![
@@ -697,7 +697,7 @@ where
 			// Box::new(migration_author_slot_filter_eligible_ratio_to_eligibility_count),
 			// Box::new(migration_author_mapping_add_keys_to_registration_info),
 			// Box::new(staking_delegator_state_requests),
-			
+
 			// planned in runtime 1600
 			Box::new(migration_author_mapping_add_account_id_to_nimbus_lookup),
 		]
@@ -749,7 +749,7 @@ where
 			// Box::new(asset_manager_populate_asset_type_id_storage),
 			// completed in runtime 1300
 			// Box::new(xcm_supported_assets),
-			
+
 			// planned in runtime 1600
 			Box::new(xcm_transactor_transact_signed),
 		]
