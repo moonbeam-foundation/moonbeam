@@ -26,8 +26,8 @@ use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::Dispatchable,
 	traits::{
-		fungible::Inspect, fungibles::Inspect as FungiblesInspect, EnsureOrigin, PalletInfo,
-		StorageInfo, StorageInfoTrait,
+		fungible::Inspect, fungibles::Inspect as FungiblesInspect, Currency as CurrencyT,
+		EnsureOrigin, PalletInfo, StorageInfo, StorageInfoTrait,
 	},
 	weights::{DispatchClass, Weight},
 	StorageHasher, Twox128,
@@ -2493,6 +2493,112 @@ fn refund_ed_0_evm() {
 				Balances::free_balance(AccountId::from(ALICE)),
 				777 * 1_000_000_000,
 			);
+		});
+}
+
+#[test]
+fn author_does_not_receive_priority_fee() {
+	ExtBuilder::default()
+		.with_balances(vec![(
+			AccountId::from(BOB),
+			(1 * UNIT) + (21_000 * (500 * GIGAWEI)),
+		)])
+		.build()
+		.execute_with(|| {
+			// Some block author as seen by pallet-evm.
+			let author = AccountId::from(<pallet_evm::Pallet<Runtime>>::find_author());
+			// Currently the default impl of the evm uses `deposit_into_existing`.
+			// If we were to use this implementation, and for an author to receive eventual tips,
+			// the account needs to be somehow initialized, otherwise the deposit would fail.
+			Balances::make_free_balance_be(&author, 100 * UNIT);
+
+			// EVM transfer.
+			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
+				source: H160::from(BOB),
+				target: H160::from(ALICE),
+				input: Vec::new(),
+				value: (1 * UNIT).into(),
+				gas_limit: 21_000u64,
+				max_fee_per_gas: U256::from(300 * GIGAWEI),
+				max_priority_fee_per_gas: Some(U256::from(200 * GIGAWEI)),
+				nonce: Some(U256::from(0)),
+				access_list: Vec::new(),
+			})
+			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
+			// Author free balance didn't change.
+			assert_eq!(Balances::free_balance(author), 100 * UNIT,);
+		});
+}
+
+#[test]
+fn total_issuance_after_evm_transaction_with_priority_fee() {
+	ExtBuilder::default()
+		.with_balances(vec![(
+			AccountId::from(BOB),
+			(1 * UNIT) + (21_000 * (2 * GIGAWEI)),
+		)])
+		.build()
+		.execute_with(|| {
+			let issuance_before = <Runtime as pallet_evm::Config>::Currency::total_issuance();
+			// EVM transfer.
+			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
+				source: H160::from(BOB),
+				target: H160::from(ALICE),
+				input: Vec::new(),
+				value: (1 * UNIT).into(),
+				gas_limit: 21_000u64,
+				max_fee_per_gas: U256::from(2 * GIGAWEI),
+				max_priority_fee_per_gas: Some(U256::from(1 * GIGAWEI)),
+				nonce: Some(U256::from(0)),
+				access_list: Vec::new(),
+			})
+			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
+
+			let issuance_after = <Runtime as pallet_evm::Config>::Currency::total_issuance();
+			// Fee is 1 GWEI base fee + 1 GWEI tip.
+			let fee = ((2 * GIGAWEI) * 21_000) as f64;
+			// 80% was burned.
+			let expected_burn = (fee * 0.8) as u128;
+			assert_eq!(issuance_after, issuance_before - expected_burn,);
+			// 20% was sent to treasury.
+			let expected_treasury = (fee * 0.2) as u128;
+			assert_eq!(moonbase_runtime::Treasury::pot(), expected_treasury);
+		});
+}
+
+#[test]
+fn total_issuance_after_evm_transaction_without_priority_fee() {
+	ExtBuilder::default()
+		.with_balances(vec![(
+			AccountId::from(BOB),
+			(1 * UNIT) + (21_000 * (2 * GIGAWEI)),
+		)])
+		.build()
+		.execute_with(|| {
+			let issuance_before = <Runtime as pallet_evm::Config>::Currency::total_issuance();
+			// EVM transfer.
+			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
+				source: H160::from(BOB),
+				target: H160::from(ALICE),
+				input: Vec::new(),
+				value: (1 * UNIT).into(),
+				gas_limit: 21_000u64,
+				max_fee_per_gas: U256::from(1 * GIGAWEI),
+				max_priority_fee_per_gas: None,
+				nonce: Some(U256::from(0)),
+				access_list: Vec::new(),
+			})
+			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
+
+			let issuance_after = <Runtime as pallet_evm::Config>::Currency::total_issuance();
+			// Fee is 1 GWEI base fee.
+			let fee = ((1 * GIGAWEI) * 21_000) as f64;
+			// 80% was burned.
+			let expected_burn = (fee * 0.8) as u128;
+			assert_eq!(issuance_after, issuance_before - expected_burn,);
+			// 20% was sent to treasury.
+			let expected_treasury = (fee * 0.2) as u128;
+			assert_eq!(moonbase_runtime::Treasury::pot(), expected_treasury);
 		});
 }
 
