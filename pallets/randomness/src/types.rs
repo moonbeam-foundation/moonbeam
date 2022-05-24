@@ -129,18 +129,6 @@ impl<T: Config> RequestState<T> {
 			expires,
 		}
 	}
-	/// Get the randomness corresponding to the request
-	/// Only fails if the randomness is not available
-	/// Only should be called in `prepare_fulfill` after check that the request can be fulfilled
-	fn get_randomness(&self) -> Result<T::Hash, DispatchError> {
-		match self.request.info {
-			RequestType::BabeOneEpochAgo(_) => OneEpochAgoRandomness::<T>::get(),
-			RequestType::BabeTwoEpochsAgo(_) => TwoEpochsAgoRandomness::<T>::get(),
-			RequestType::BabeCurrentBlock(_) => CurrentBlockRandomness::<T>::get(),
-			RequestType::Local(_) => T::LocalRandomness::get_current_randomness(),
-		}
-		.ok_or(Error::<T>::RandomnessNotAvailable.into())
-	}
 	/// Returns Ok(FulfillArgs) if successful
 	/// This should be called before the callback
 	pub fn prepare_fulfill(&self) -> Result<FulfillArgs<T>, DispatchError> {
@@ -149,7 +137,13 @@ impl<T: Config> RequestState<T> {
 			Error::<T>::RequestCannotYetBeFulfilled
 		);
 		// get the randomness corresponding to the request
-		let randomness: T::Hash = self.get_randomness()?;
+		let randomness: T::Hash = match self.request.info {
+			RequestType::BabeOneEpochAgo(_) => OneEpochAgoRandomness::<T>::get(),
+			RequestType::BabeTwoEpochsAgo(_) => TwoEpochsAgoRandomness::<T>::get(),
+			RequestType::BabeCurrentBlock(_) => CurrentBlockRandomness::<T>::get(),
+			RequestType::Local(_) => T::LocalRandomness::get_current_randomness(),
+		}
+		.ok_or(Error::<T>::RandomnessNotAvailable)?;
 		// No event emitted until fulfillment is complete
 		Ok(FulfillArgs {
 			request: self.request.clone(),
