@@ -158,8 +158,8 @@ impl WeightInfo for () {
 	// Storage: ParachainSystem PendingUpwardMessages (r:1 w:1)
     #[rustfmt::skip]
 	fn transact_through_signed_multilocation() -> Weight {
-        (53_130_000 as Weight)
-            .saturating_add(RocksDbWeight::get().reads(7 as Weight))
-            .saturating_add(RocksDbWeight::get().writes(2 as Weight))
-    }
+		(53_130_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(7 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(2 as Weight))
+	}
 }
