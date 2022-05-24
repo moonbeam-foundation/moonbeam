@@ -171,6 +171,8 @@
 <span id="166">166</span>
 <span id="167">167</span>
 <span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -196,6 +198,7 @@
 <span class="kw">use</span> <span class="ident">pallet_evm</span>::{<span class="ident">AddressMapping</span>, <span class="ident">Precompile</span>, <span class="ident">PrecompileResult</span>, <span class="ident">PrecompileSet</span>};
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_assets_erc20</span>::{<span class="ident">Erc20AssetsPrecompileSet</span>, <span class="ident">IsForeign</span>, <span class="ident">IsLocal</span>};
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_balances_erc20</span>::{<span class="ident">Erc20BalancesPrecompile</span>, <span class="ident">Erc20Metadata</span>};
+<span class="kw">use</span> <span class="ident">pallet_evm_precompile_batch::BatchPrecompile</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_blake2::Blake2F</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_bn128</span>::{<span class="ident">Bn128Add</span>, <span class="ident">Bn128Mul</span>, <span class="ident">Bn128Pairing</span>};
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_dispatch::Dispatch</span>;
@@ -260,7 +263,7 @@
 	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">used_addresses</span>() -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">R::AccountId</span><span class="op">&gt;</span> {
 		<span class="macro">sp_std::vec!</span>[
 			<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>, <span class="number">1024</span>, <span class="number">1025</span>, <span class="number">1026</span>, <span class="number">2048</span>, <span class="number">2049</span>, <span class="number">2050</span>, <span class="number">2051</span>, <span class="number">2052</span>, <span class="number">2053</span>, <span class="number">2054</span>,
-			<span class="number">2055</span>
+			<span class="number">2055</span>, <span class="number">2056</span>
 		]
 		.<span class="ident">into_iter</span>()
 		.<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">R::AddressMapping::into_account_id</span>(<span class="ident">hash</span>(<span class="ident">x</span>)))
@@ -315,6 +318,7 @@
 			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="ident">hash</span>(<span class="number">2053</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">RelayEncoderWrapper</span>::<span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">KusamaEncoder</span><span class="op">&gt;</span><span class="ident">::execute</span>(<span class="ident">handle</span>)),
 			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="ident">hash</span>(<span class="number">2054</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">XcmTransactorWrapper</span>::<span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="ident">::execute</span>(<span class="ident">handle</span>)),
 			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="ident">hash</span>(<span class="number">2055</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">AuthorMappingWrapper</span>::<span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="ident">::execute</span>(<span class="ident">handle</span>)),
+			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="ident">hash</span>(<span class="number">2056</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">BatchPrecompile</span>::<span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="ident">::execute</span>(<span class="ident">handle</span>)),
 			<span class="comment">// If the address matches asset prefix, the we route through the asset precompile set</span>
 			<span class="ident">a</span> <span class="kw">if</span> <span class="kw-2">&amp;</span><span class="ident">a</span>.<span class="ident">to_fixed_bytes</span>()[<span class="number">0</span>..<span class="number">4</span>] <span class="op">==</span> <span class="ident">FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX</span> =&gt; {
 				<span class="ident">Erc20AssetsPrecompileSet</span>::<span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">IsForeign</span>, <span class="ident">ForeignAssetInstance</span><span class="op">&gt;</span><span class="ident">::new</span>()
