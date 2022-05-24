@@ -61,7 +61,6 @@ enum Action {
 	IsCandidate = "is_candidate(address)",
 	IsSelectedCandidate = "is_selected_candidate(address)",
 	DelegationRequestIsPending = "delegation_request_is_pending(address,address)",
-	DelegatorExitIsPending = "delegator_exit_is_pending(address)",
 	CandidateExitIsPending = "candidate_exit_is_pending(address)",
 	CandidateRequestIsPending = "candidate_request_is_pending(address)",
 	JoinCandidates = "join_candidates(uint256,uint256)",
@@ -138,7 +137,6 @@ where
 			| Action::DelegatorDelegationCount
 			| Action::SelectedCandidates
 			| Action::DelegationRequestIsPending
-			| Action::DelegatorExitIsPending
 			| Action::CandidateExitIsPending
 			| Action::CandidateRequestIsPending => FunctionModifier::View,
 			// Non-payables
@@ -193,7 +191,6 @@ where
 			Action::DelegationRequestIsPending => {
 				return Self::delegation_request_is_pending(handle)
 			}
-			Action::DelegatorExitIsPending => return Self::delegator_exit_is_pending(handle),
 			Action::CandidateExitIsPending => return Self::candidate_exit_is_pending(handle),
 			Action::CandidateRequestIsPending => return Self::candidate_request_is_pending(handle),
 			// runtime methods (dispatchables)
@@ -450,38 +447,6 @@ where
 		// Users can call `is_delegator` to determine when this happens
 		let pending =
 			<parachain_staking::Pallet<Runtime>>::delegation_request_exists(&candidate, &delegator);
-
-		// Build output.
-		Ok(succeed(EvmDataWriter::new().write(pending).build()))
-	}
-
-	fn delegator_exit_is_pending(
-		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<PrecompileOutput> {
-		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
-		// Read input.
-		input.expect_arguments(1)?;
-
-		// Only argument is delegator
-		let delegator = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
-
-		// Fetch info.
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-
-		// If we are not able to get delegator state, we return false
-		// Users can call `is_delegator` to determine when this happens
-		let pending = if let Some(state) =
-			<parachain_staking::Pallet<Runtime>>::delegator_state(&delegator)
-		{
-			state.is_leaving()
-		} else {
-			log::trace!(
-				target: "staking-precompile",
-				"Delegator state for {:?} not found, so pending exit is false",
-				delegator
-			);
-			false
-		};
 
 		// Build output.
 		Ok(succeed(EvmDataWriter::new().write(pending).build()))
