@@ -1314,9 +1314,50 @@ fn total_issuance_after_evm_transaction_with_priority_fee() {
 			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
 
 			let issuance_after = <Runtime as pallet_evm::Config>::Currency::total_issuance();
-			// 80% of (1 GWEI base fee + 1GWEI tip) was burned.
-			let expected_burn = (((200 * GIGAWEI) * 21_000) as f64 * 0.8) as u128;
+			// Fee is 100 GWEI base fee + 100 GWEI tip.
+			let fee = ((200 * GIGAWEI) * 21_000) as f64;
+			// 80% was burned.
+			let expected_burn = (fee * 0.8) as u128;
 			assert_eq!(issuance_after, issuance_before - expected_burn,);
+			// 20% was sent to treasury.
+			let expected_treasury = (fee * 0.2) as u128;
+			assert_eq!(moonbeam_runtime::Treasury::pot(), expected_treasury);
+		});
+}
+
+#[test]
+fn total_issuance_after_evm_transaction_without_priority_fee() {
+	ExtBuilder::default()
+		.with_balances(vec![(
+			AccountId::from(BOB),
+			(1 * GLMR) + (21_000 * (200 * GIGAWEI)),
+		)])
+		.build()
+		.execute_with(|| {
+			let issuance_before = <Runtime as pallet_evm::Config>::Currency::total_issuance();
+			// EVM transfer.
+			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
+				source: H160::from(BOB),
+				target: H160::from(ALICE),
+				input: Vec::new(),
+				value: (1 * GLMR).into(),
+				gas_limit: 21_000u64,
+				max_fee_per_gas: U256::from(100 * GIGAWEI),
+				max_priority_fee_per_gas: None,
+				nonce: Some(U256::from(0)),
+				access_list: Vec::new(),
+			})
+			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
+
+			let issuance_after = <Runtime as pallet_evm::Config>::Currency::total_issuance();
+			// Fee is 100 GWEI base fee.
+			let fee = ((100 * GIGAWEI) * 21_000) as f64;
+			// 80% was burned.
+			let expected_burn = (fee * 0.8) as u128;
+			assert_eq!(issuance_after, issuance_before - expected_burn,);
+			// 20% was sent to treasury.
+			let expected_treasury = (fee * 0.2) as u128;
+			assert_eq!(moonbeam_runtime::Treasury::pot(), expected_treasury);
 		});
 }
 
