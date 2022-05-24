@@ -149,12 +149,16 @@ pub mod pallet {
 	pub struct RemoteTransactInfoWithMaxWeight {
 		/// Extra weight that transacting a call in a destination chain adds
 		/// Extra weight involved when transacting without DescendOrigin
+		/// This should always be possible in a destination chain, since
+		/// it involves going through the sovereign account
 		pub transact_extra_weight: Weight,
 		/// Max destination weight
 		pub max_weight: Weight,
 		/// Whether we allow transacting through signed origins in another chain, and
 		/// how much extra cost implies
 		/// Extra weight involved when transacting with DescendOrigin
+		/// The reason for it being an option is because the destination chain
+		/// might not support constructing origins based on generic MultiLocations
 		pub transact_extra_weight_signed: Option<Weight>,
 	}
 
