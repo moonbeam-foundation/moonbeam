@@ -1414,6 +1414,12 @@
 <span id="1409">1409</span>
 <span id="1410">1410</span>
 <span id="1411">1411</span>
+<span id="1412">1412</span>
+<span id="1413">1413</span>
+<span id="1414">1414</span>
+<span id="1415">1415</span>
+<span id="1416">1416</span>
+<span id="1417">1417</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -2338,6 +2344,12 @@
 			<span class="ident">Call::PolkadotXcm</span>(<span class="ident">method</span>) =&gt; <span class="kw">match</span> <span class="ident">method</span> {
 				<span class="ident">pallet_xcm::Call::force_default_xcm_version</span> { .. } =&gt; <span class="bool-val">true</span>,
 				<span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
+			},
+			<span class="comment">// We filter for now transact through signed</span>
+			<span class="ident">Call::XcmTransactor</span>(<span class="ident">method</span>) =&gt; <span class="kw">match</span> <span class="ident">method</span> {
+				<span class="ident">xcm_transactor::Call::transact_through_signed_multilocation</span> { .. } =&gt; <span class="bool-val">false</span>,
+				<span class="ident">xcm_transactor::Call::transact_through_signed</span> { .. } =&gt; <span class="bool-val">false</span>,
+				<span class="kw">_</span> =&gt; <span class="bool-val">true</span>,
 			},
 			<span class="kw">_</span> =&gt; <span class="bool-val">true</span>,
 		}

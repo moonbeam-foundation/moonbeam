@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["MaxTransactWeight",""],["OldRemoteTransactInfo",""]]});
+initSidebarItems({"struct":[["OldRemoteTransactInfo",""],["OldRemoteTransactInfoWithFeePerSecond",""],["TransactSignedWeightAndFeePerSecond",""]]});

@@ -182,6 +182,150 @@
 <span id="177">177</span>
 <span id="178">178</span>
 <span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -198,12 +342,15 @@
 <span class="comment">// You should have received a copy of the GNU General Public License</span>
 <span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Config</span>, <span class="ident">RemoteTransactInfoWithMaxWeight</span>, <span class="ident">TransactInfoWithWeightLimit</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{
+	<span class="ident">Config</span>, <span class="ident">DestinationAssetFeePerSecond</span>, <span class="ident">RemoteTransactInfoWithMaxWeight</span>,
+	<span class="ident">TransactInfoWithWeightLimit</span>,
+};
 <span class="kw">use</span> <span class="ident">frame_support</span>::{
 	<span class="ident">pallet_prelude::PhantomData</span>,
-	<span class="ident">storage::migration</span>::{<span class="ident">remove_storage_prefix</span>, <span class="ident">storage_key_iter</span>},
+	<span class="ident">storage::migration::storage_key_iter</span>,
 	<span class="ident">traits</span>::{<span class="ident">Get</span>, <span class="ident">OnRuntimeUpgrade</span>},
-	<span class="ident">weights</span>::{<span class="ident">constants::WEIGHT_PER_SECOND</span>, <span class="ident">Weight</span>},
+	<span class="ident">weights::Weight</span>,
 	<span class="ident">Blake2_128Concat</span>,
 };
 <span class="kw">use</span> <span class="ident">parity_scale_codec</span>::{<span class="ident">Decode</span>, <span class="ident">Encode</span>};
@@ -228,18 +375,164 @@
 	<span class="kw">pub</span> <span class="ident">fee_per_weight</span>: <span class="ident">u128</span>,
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MaxTransactWeight</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">OnRuntimeUpgrade</span> <span class="kw">for</span> <span class="ident">MaxTransactWeight</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+<span class="comment">// This is the old storage, we write it here so that we know how to decode existing data</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>, <span class="ident">Clone</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">RuntimeDebug</span>, <span class="ident">PartialEq</span>, <span class="ident">scale_info::TypeInfo</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">OldRemoteTransactInfoWithFeePerSecond</span> {
+	<span class="doccomment">/// Extra weight that transacting a call in a destination chain adds</span>
+	<span class="kw">pub</span> <span class="ident">transact_extra_weight</span>: <span class="ident">Weight</span>,
+	<span class="doccomment">/// Fee per second</span>
+	<span class="kw">pub</span> <span class="ident">fee_per_second</span>: <span class="ident">u128</span>,
+	<span class="doccomment">/// MaxWeight</span>
+	<span class="kw">pub</span> <span class="ident">max_weight</span>: <span class="ident">u64</span>,
+}
+
+<span class="comment">/*pub struct MaxTransactWeight&lt;T&gt;(PhantomData&lt;T&gt;);
+impl&lt;T: Config&gt; OnRuntimeUpgrade for MaxTransactWeight&lt;T&gt; {
+	fn on_runtime_upgrade() -&gt; Weight {
+		log::info!(target: &quot;MaxTransactWeight&quot;, &quot;actually running it&quot;);
+		let pallet_prefix: &amp;[u8] = b&quot;XcmTransactor&quot;;
+		let storage_item_prefix: &amp;[u8] = b&quot;TransactInfo&quot;;
+
+		// Read all the data into memory.
+		// https://crates.parity.io/frame_support/storage/migration/fn.storage_key_iter.html
+		let stored_data: Vec&lt;_&gt; = storage_key_iter::&lt;
+			MultiLocation,
+			OldRemoteTransactInfo,
+			Blake2_128Concat,
+		&gt;(pallet_prefix, storage_item_prefix)
+		.collect();
+
+		let migrated_count: Weight = stored_data
+			.len()
+			.try_into()
+			.expect(&quot;There are between 0 and 2**64 mappings stored.&quot;);
+
+		log::info!(target: &quot;MaxTransactWeight&quot;, &quot;Migrating {:?} elements&quot;, migrated_count);
+
+		// Now remove the old storage
+		// https://crates.parity.io/frame_support/storage/migration/fn.remove_storage_prefix.html
+		remove_storage_prefix(pallet_prefix, storage_item_prefix, &amp;[]);
+
+		// Assert that old storage is empty
+		assert!(
+			storage_key_iter::&lt;MultiLocation, OldRemoteTransactInfo, Blake2_128Concat&gt;(
+				pallet_prefix,
+				storage_item_prefix
+			)
+			.next()
+			.is_none()
+		);
+
+		// Write to the new storage with removed and added fields
+		for (location, info) in stored_data {
+			TransactInfoWithWeightLimit::&lt;T&gt;::insert(location, {
+				RemoteTransactInfoWithMaxWeight {
+					transact_extra_weight: info.transact_extra_weight,
+					/// Fee per weight in the destination chain
+					/// Make sure the new one reflects per second, and not per weight unit
+					fee_per_second: info
+						.fee_per_weight
+						.saturating_mul(WEIGHT_PER_SECOND as u128),
+					/// Max destination weight
+					max_weight: 20000000000,
+					transact_extra_weight_signed: None,
+				}
+			});
+		}
+
+		log::info!(target: &quot;MaxTransactWeight&quot;, &quot;almost done&quot;);
+
+		// Return the weight used. For each migrated mapping there is a red to get it into
+		// memory, a write to clear the old stored value, and a write to re-store it.
+		let db_weights = T::DbWeight::get();
+		migrated_count.saturating_mul(2 * db_weights.write + db_weights.read)
+	}
+
+	#[cfg(feature = &quot;try-runtime&quot;)]
+	fn pre_upgrade() -&gt; Result&lt;(), &amp;&#39;static str&gt; {
+		use frame_support::traits::OnRuntimeUpgradeHelpersExt;
+
+		let pallet_prefix: &amp;[u8] = b&quot;XcmTransactor&quot;;
+		let storage_item_prefix: &amp;[u8] = b&quot;TransactInfo&quot;;
+
+		// We want to test that:
+		// There are no entries in the new storage beforehand
+		// The same number of mappings exist before and after
+		// As long as there are some mappings stored, one representative key maps to the
+		// same value after the migration.
+		// There are no entries in the old storage afterward
+
+		// Assert new storage is empty
+		assert!(TransactInfoWithWeightLimit::&lt;T&gt;::iter().next().is_none());
+
+		// Check number of entries, and set it aside in temp storage
+		let stored_data: Vec&lt;_&gt; = storage_key_iter::&lt;
+			MultiLocation,
+			OldRemoteTransactInfo,
+			Blake2_128Concat,
+		&gt;(pallet_prefix, storage_item_prefix)
+		.collect();
+		let mapping_count = stored_data.len();
+		Self::set_temp_storage(mapping_count as u32, &quot;mapping_count&quot;);
+
+		// Read an example pair from old storage and set it aside in temp storage
+		if mapping_count &gt; 0 {
+			let example_pair = stored_data
+				.iter()
+				.next()
+				.expect(&quot;We already confirmed that there was at least one item stored&quot;);
+
+			Self::set_temp_storage(example_pair, &quot;example_pair&quot;);
+		}
+
+		Ok(())
+	}
+
+	#[cfg(feature = &quot;try-runtime&quot;)]
+	fn post_upgrade() -&gt; Result&lt;(), &amp;&#39;static str&gt; {
+		use frame_support::traits::OnRuntimeUpgradeHelpersExt;
+
+		// Check number of entries matches what was set aside in pre_upgrade
+		let old_mapping_count: u64 = Self::get_temp_storage(&quot;mapping_count&quot;)
+			.expect(&quot;We stored a mapping count; it should be there; qed&quot;);
+		let new_mapping_count = TransactInfoWithWeightLimit::&lt;T&gt;::iter().count() as u64;
+		assert_eq!(old_mapping_count, new_mapping_count);
+
+		// Check that our example pair is still well-mapped after the migration
+		if new_mapping_count &gt; 0 {
+			let (account, original_info): (MultiLocation, OldRemoteTransactInfo) =
+				Self::get_temp_storage(&quot;example_pair&quot;).expect(&quot;qed&quot;);
+			let migrated_info = TransactInfoWithWeightLimit::&lt;T&gt;::get(account).expect(&quot;qed&quot;);
+			// Check all the other params are equal
+			assert_eq!(
+				original_info.transact_extra_weight,
+				migrated_info.transact_extra_weight
+			);
+			assert_eq!(
+				original_info
+					.fee_per_weight
+					.saturating_mul(WEIGHT_PER_SECOND as u128),
+				migrated_info.fee_per_second
+			);
+			assert_eq!(migrated_info.max_weight, 20000000000)
+		}
+
+		Ok(())
+	}
+}*/</span>
+
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TransactSignedWeightAndFeePerSecond</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">OnRuntimeUpgrade</span> <span class="kw">for</span> <span class="ident">TransactSignedWeightAndFeePerSecond</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
 	<span class="kw">fn</span> <span class="ident">on_runtime_upgrade</span>() -&gt; <span class="ident">Weight</span> {
-		<span class="macro">log::info!</span>(<span class="ident">target</span>: <span class="string">&quot;MaxTransactWeight&quot;</span>, <span class="string">&quot;actually running it&quot;</span>);
+		<span class="macro">log::info!</span>(<span class="ident">target</span>: <span class="string">&quot;TransactSignedWeightAndFeePerSecond&quot;</span>, <span class="string">&quot;actually running it&quot;</span>);
 		<span class="kw">let</span> <span class="ident">pallet_prefix</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;XcmTransactor&quot;</span>;
-		<span class="kw">let</span> <span class="ident">storage_item_prefix</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;TransactInfo&quot;</span>;
+		<span class="kw">let</span> <span class="ident">storage_item_prefix</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;TransactInfoWithWeightLimit&quot;</span>;
 
 		<span class="comment">// Read all the data into memory.</span>
 		<span class="comment">// https://crates.parity.io/frame_support/storage/migration/fn.storage_key_iter.html</span>
 		<span class="kw">let</span> <span class="ident">stored_data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">storage_key_iter</span>::<span class="op">&lt;</span>
 			<span class="ident">MultiLocation</span>,
-			<span class="ident">OldRemoteTransactInfo</span>,
+			<span class="ident">OldRemoteTransactInfoWithFeePerSecond</span>,
 			<span class="ident">Blake2_128Concat</span>,
 		<span class="op">&gt;</span>(<span class="ident">pallet_prefix</span>, <span class="ident">storage_item_prefix</span>)
 		.<span class="ident">collect</span>();
@@ -249,36 +542,21 @@
 			.<span class="ident">try_into</span>()
 			.<span class="ident">expect</span>(<span class="string">&quot;There are between 0 and 2**64 mappings stored.&quot;</span>);
 
-		<span class="macro">log::info!</span>(<span class="ident">target</span>: <span class="string">&quot;MaxTransactWeight&quot;</span>, <span class="string">&quot;Migrating {:?} elements&quot;</span>, <span class="ident">migrated_count</span>);
+		<span class="macro">log::info!</span>(
+			<span class="ident">target</span>: <span class="string">&quot;TransactSignedWeightAndFeePerSecond&quot;</span>, <span class="string">&quot;Migrating {:?} elements&quot;</span>, <span class="ident">migrated_count</span>);
 
-		<span class="comment">// Now remove the old storage</span>
-		<span class="comment">// https://crates.parity.io/frame_support/storage/migration/fn.remove_storage_prefix.html</span>
-		<span class="ident">remove_storage_prefix</span>(<span class="ident">pallet_prefix</span>, <span class="ident">storage_item_prefix</span>, <span class="kw-2">&amp;</span>[]);
-
-		<span class="comment">// Assert that old storage is empty</span>
-		<span class="macro">assert!</span>(
-			<span class="ident">storage_key_iter</span>::<span class="op">&lt;</span><span class="ident">MultiLocation</span>, <span class="ident">OldRemoteTransactInfo</span>, <span class="ident">Blake2_128Concat</span><span class="op">&gt;</span>(
-				<span class="ident">pallet_prefix</span>,
-				<span class="ident">storage_item_prefix</span>
-			)
-			.<span class="ident">next</span>()
-			.<span class="ident">is_none</span>()
-		);
-
-		<span class="comment">// Write to the new storage with removed and added fields</span>
+		<span class="comment">// Write to storage with removed and added fields</span>
 		<span class="kw">for</span> (<span class="ident">location</span>, <span class="ident">info</span>) <span class="kw">in</span> <span class="ident">stored_data</span> {
-			<span class="ident">TransactInfoWithWeightLimit</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="ident">location</span>, {
+			<span class="ident">TransactInfoWithWeightLimit</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="kw-2">&amp;</span><span class="ident">location</span>, {
 				<span class="ident">RemoteTransactInfoWithMaxWeight</span> {
 					<span class="ident">transact_extra_weight</span>: <span class="ident">info</span>.<span class="ident">transact_extra_weight</span>,
-					<span class="doccomment">/// Fee per weight in the destination chain</span>
-					<span class="doccomment">/// Make sure the new one reflects per second, and not per weight unit</span>
-					<span class="ident">fee_per_second</span>: <span class="ident">info</span>
-						.<span class="ident">fee_per_weight</span>
-						.<span class="ident">saturating_mul</span>(<span class="ident">WEIGHT_PER_SECOND</span> <span class="kw">as</span> <span class="ident">u128</span>),
 					<span class="doccomment">/// Max destination weight</span>
-					<span class="ident">max_weight</span>: <span class="number">20000000000</span>,
+					<span class="ident">max_weight</span>: <span class="ident">info</span>.<span class="ident">max_weight</span>,
+					<span class="ident">transact_extra_weight_signed</span>: <span class="prelude-val">None</span>,
 				}
 			});
+
+			<span class="ident">DestinationAssetFeePerSecond</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="kw-2">&amp;</span><span class="ident">location</span>, <span class="ident">info</span>.<span class="ident">fee_per_second</span>);
 		}
 
 		<span class="macro">log::info!</span>(<span class="ident">target</span>: <span class="string">&quot;MaxTransactWeight&quot;</span>, <span class="string">&quot;almost done&quot;</span>);
@@ -294,17 +572,16 @@
 		<span class="kw">use</span> <span class="ident">frame_support::traits::OnRuntimeUpgradeHelpersExt</span>;
 
 		<span class="kw">let</span> <span class="ident">pallet_prefix</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;XcmTransactor&quot;</span>;
-		<span class="kw">let</span> <span class="ident">storage_item_prefix</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;TransactInfo&quot;</span>;
+		<span class="kw">let</span> <span class="ident">storage_item_prefix</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;TransactInfoWithWeightLimit&quot;</span>;
 
 		<span class="comment">// We want to test that:</span>
-		<span class="comment">// There are no entries in the new storage beforehand</span>
 		<span class="comment">// The same number of mappings exist before and after</span>
 		<span class="comment">// As long as there are some mappings stored, one representative key maps to the</span>
 		<span class="comment">// same value after the migration.</span>
-		<span class="comment">// There are no entries in the old storage afterward</span>
+		<span class="comment">// There are no entries in the new DestinationAssetFeePerSecond beforehand</span>
 
-		<span class="comment">// Assert new storage is empty</span>
-		<span class="macro">assert!</span>(<span class="ident">TransactInfoWithWeightLimit</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::iter</span>().<span class="ident">next</span>().<span class="ident">is_none</span>());
+		<span class="comment">// Assert DestinationAssetFeePerSecond storage is empty</span>
+		<span class="macro">assert!</span>(<span class="ident">DestinationAssetFeePerSecond</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::iter</span>().<span class="ident">next</span>().<span class="ident">is_none</span>());
 
 		<span class="comment">// Check number of entries, and set it aside in temp storage</span>
 		<span class="kw">let</span> <span class="ident">stored_data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">storage_key_iter</span>::<span class="op">&lt;</span>
@@ -336,26 +613,37 @@
 		<span class="comment">// Check number of entries matches what was set aside in pre_upgrade</span>
 		<span class="kw">let</span> <span class="ident">old_mapping_count</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::get_temp_storage</span>(<span class="string">&quot;mapping_count&quot;</span>)
 			.<span class="ident">expect</span>(<span class="string">&quot;We stored a mapping count; it should be there; qed&quot;</span>);
-		<span class="kw">let</span> <span class="ident">new_mapping_count</span> <span class="op">=</span> <span class="ident">TransactInfoWithWeightLimit</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::iter</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">u64</span>;
-		<span class="macro">assert_eq!</span>(<span class="ident">old_mapping_count</span>, <span class="ident">new_mapping_count</span>);
+		<span class="kw">let</span> <span class="ident">new_mapping_count_transact_info</span> <span class="op">=</span>
+			<span class="ident">TransactInfoWithWeightLimit</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::iter</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">u64</span>;
+		<span class="kw">let</span> <span class="ident">new_mapping_count_fee_per_second</span> <span class="op">=</span>
+			<span class="ident">DestinationAssetFeePerSecond</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::iter</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">u64</span>;
+
+		<span class="macro">assert_eq!</span>(<span class="ident">old_mapping_count</span>, <span class="ident">new_mapping_count_transact_info</span>);
+		<span class="macro">assert_eq!</span>(<span class="ident">old_mapping_count</span>, <span class="ident">new_mapping_count_fee_per_second</span>);
 
 		<span class="comment">// Check that our example pair is still well-mapped after the migration</span>
-		<span class="kw">if</span> <span class="ident">new_mapping_count</span> <span class="op">&gt;</span> <span class="number">0</span> {
-			<span class="kw">let</span> (<span class="ident">account</span>, <span class="ident">original_info</span>): (<span class="ident">MultiLocation</span>, <span class="ident">OldRemoteTransactInfo</span>) <span class="op">=</span>
+		<span class="kw">if</span> <span class="ident">new_mapping_count_transact_info</span> <span class="op">&gt;</span> <span class="number">0</span> {
+			<span class="kw">let</span> (<span class="ident">location</span>, <span class="ident">original_info</span>): (<span class="ident">MultiLocation</span>, <span class="ident">OldRemoteTransactInfoWithFeePerSecond</span>) <span class="op">=</span>
 				<span class="ident"><span class="self">Self</span>::get_temp_storage</span>(<span class="string">&quot;example_pair&quot;</span>).<span class="ident">expect</span>(<span class="string">&quot;qed&quot;</span>);
-			<span class="kw">let</span> <span class="ident">migrated_info</span> <span class="op">=</span> <span class="ident">TransactInfoWithWeightLimit</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="ident">account</span>).<span class="ident">expect</span>(<span class="string">&quot;qed&quot;</span>);
+			<span class="kw">let</span> <span class="ident">migrated_info_transact_info</span> <span class="op">=</span>
+				<span class="ident">TransactInfoWithWeightLimit</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">location</span>).<span class="ident">expect</span>(<span class="string">&quot;qed&quot;</span>);
+			<span class="kw">let</span> <span class="ident">migrated_info_fee_per_second</span> <span class="op">=</span>
+				<span class="ident">DestinationAssetFeePerSecond</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">location</span>).<span class="ident">expect</span>(<span class="string">&quot;qed&quot;</span>);
 			<span class="comment">// Check all the other params are equal</span>
 			<span class="macro">assert_eq!</span>(
 				<span class="ident">original_info</span>.<span class="ident">transact_extra_weight</span>,
-				<span class="ident">migrated_info</span>.<span class="ident">transact_extra_weight</span>
+				<span class="ident">migrated_info_transact_info</span>.<span class="ident">transact_extra_weight</span>
 			);
 			<span class="macro">assert_eq!</span>(
-				<span class="ident">original_info</span>
-					.<span class="ident">fee_per_weight</span>
-					.<span class="ident">saturating_mul</span>(<span class="ident">WEIGHT_PER_SECOND</span> <span class="kw">as</span> <span class="ident">u128</span>),
-				<span class="ident">migrated_info</span>.<span class="ident">fee_per_second</span>
+				<span class="ident">original_info</span>.<span class="ident">max_weight</span>,
+				<span class="ident">migrated_info_transact_info</span>.<span class="ident">max_weight</span>
 			);
-			<span class="macro">assert_eq!</span>(<span class="ident">migrated_info</span>.<span class="ident">max_weight</span>, <span class="number">20000000000</span>)
+			<span class="comment">// Check that transact_extra_weight_signed is None</span>
+			<span class="macro">assert_eq!</span>(
+				<span class="ident">migrated_info_transact_info</span>.<span class="ident">transact_extra_weight_signed</span>,
+				<span class="prelude-val">None</span>
+			);
+			<span class="macro">assert_eq!</span>(<span class="ident">original_info</span>.<span class="ident">fee_per_second</span>, <span class="ident">migrated_info_fee_per_second</span>);
 		}
 
 		<span class="prelude-val">Ok</span>(())

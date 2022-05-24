@@ -600,6 +600,10 @@
 <span id="595">595</span>
 <span id="596">596</span>
 <span id="597">597</span>
+<span id="598">598</span>
+<span id="599">599</span>
+<span id="600">600</span>
+<span id="601">601</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -1118,6 +1122,10 @@
 						<span class="comment">// ParachainStaking Round</span>
 						<span class="macro">hex_literal::hex!</span>(  <span class="string">&quot;a686a3043d0adcf2fa655e57bc595a78&quot;</span>
 											<span class="string">&quot;13792e785168f725b60e2969c7fc2552&quot;</span>)
+							.<span class="ident">to_vec</span>().<span class="ident">into</span>(),
+						<span class="comment">// ParachainInfo ParachainId</span>
+						<span class="macro">hex_literal::hex!</span>(  <span class="string">&quot;0d715f2646c8f85767b5d2764bb27826&quot;</span>
+											<span class="string">&quot;04a74d81251e398fd8a0a4d55023bb3f&quot;</span>)
 							.<span class="ident">to_vec</span>().<span class="ident">into</span>(),
 
 					];
