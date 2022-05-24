@@ -755,6 +755,11 @@
 <span id="750">750</span>
 <span id="751">751</span>
 <span id="752">752</span>
+<span id="753">753</span>
+<span id="754">754</span>
+<span id="755">755</span>
+<span id="756">756</span>
+<span id="757">757</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2020 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -1422,14 +1427,14 @@
 		<span class="comment">// TODO: this is a lot of allocation to do upon every get() call. this *should* be avoided</span>
 		<span class="comment">// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review</span>
 
-		<span class="kw">let</span> <span class="ident">migration_author_slot_filter_eligible_ratio_to_eligibility_count</span> <span class="op">=</span>
-			<span class="ident">AuthorSlotFilterEligibleRatioToEligiblityCount</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>(<span class="ident">Default::default</span>());
-		<span class="kw">let</span> <span class="ident">migration_author_mapping_add_keys_to_registration_info</span> <span class="op">=</span>
-			<span class="ident">AuthorMappingAddKeysToRegistrationInfo</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>(<span class="ident">Default::default</span>());
-		<span class="kw">let</span> <span class="ident">staking_delegator_state_requests</span> <span class="op">=</span>
-			<span class="ident">ParachainStakingSplitDelegatorStateIntoDelegationScheduledRequests</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>(
-				<span class="ident">Default::default</span>(),
-			);
+		<span class="comment">// let migration_author_slot_filter_eligible_ratio_to_eligibility_count =</span>
+		<span class="comment">// 	AuthorSlotFilterEligibleRatioToEligiblityCount::&lt;Runtime&gt;(Default::default());</span>
+		<span class="comment">// let migration_author_mapping_add_keys_to_registration_info =</span>
+		<span class="comment">// 	AuthorMappingAddKeysToRegistrationInfo::&lt;Runtime&gt;(Default::default());</span>
+		<span class="comment">// let staking_delegator_state_requests =</span>
+		<span class="comment">// 	ParachainStakingSplitDelegatorStateIntoDelegationScheduledRequests::&lt;Runtime&gt;(</span>
+		<span class="comment">// 		Default::default(),</span>
+		<span class="comment">// 	);</span>
 		<span class="kw">let</span> <span class="ident">migration_author_mapping_add_account_id_to_nimbus_lookup</span> <span class="op">=</span>
 			<span class="ident">AuthorMappingAddAccountIdToNimbusLookup</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>(<span class="ident">Default::default</span>());
 		<span class="macro">vec!</span>[
@@ -1450,9 +1455,12 @@
 			<span class="comment">// Box::new(migration_parachain_staking_patch_incorrect_delegation_sums),</span>
 			<span class="comment">// completed in runtime 1300</span>
 			<span class="comment">// Box::new(migration_base_fee),</span>
-			<span class="ident">Box::new</span>(<span class="ident">migration_author_slot_filter_eligible_ratio_to_eligibility_count</span>),
-			<span class="ident">Box::new</span>(<span class="ident">migration_author_mapping_add_keys_to_registration_info</span>),
-			<span class="ident">Box::new</span>(<span class="ident">staking_delegator_state_requests</span>),
+			<span class="comment">// completed in runtime 1500</span>
+			<span class="comment">// Box::new(migration_author_slot_filter_eligible_ratio_to_eligibility_count),</span>
+			<span class="comment">// Box::new(migration_author_mapping_add_keys_to_registration_info),</span>
+			<span class="comment">// Box::new(staking_delegator_state_requests),</span>
+
+			<span class="comment">// planned in runtime 1600</span>
 			<span class="ident">Box::new</span>(<span class="ident">migration_author_mapping_add_account_id_to_nimbus_lookup</span>),
 		]
 	}
@@ -1503,6 +1511,8 @@
 			<span class="comment">// Box::new(asset_manager_populate_asset_type_id_storage),</span>
 			<span class="comment">// completed in runtime 1300</span>
 			<span class="comment">// Box::new(xcm_supported_assets),</span>
+
+			<span class="comment">// planned in runtime 1600</span>
 			<span class="ident">Box::new</span>(<span class="ident">xcm_transactor_transact_signed</span>),
 		]
 	}
