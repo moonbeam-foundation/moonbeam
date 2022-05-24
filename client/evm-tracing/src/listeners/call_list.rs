@@ -513,6 +513,13 @@ impl Listener {
 					self.insert_entry(key, entry);
 				}
 			}
+			EvmEvent::PrecompileSubcall { .. } => {
+				// In a precompile subcall there is no CALL opcode result to observe, thus
+				// we need this new event. Precompile subcall might use non-standard call
+				// behavior (like batch precompile does) thus we simply consider this a call.
+				self.call_type = Some(CallType::Call);
+			}
+
 			// We ignore other kinds of message if any (new ones may be added in the future).
 			#[allow(unreachable_patterns)]
 			_ => (),

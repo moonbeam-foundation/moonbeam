@@ -45,7 +45,7 @@ pub type SubcallHandle = Box<dyn SubcallTrait>;
 pub struct MockHandle {
 	pub gas_limit: u64,
 	pub gas_used: u64,
-	pub logs: Vec<Log>,
+	pub logs: Vec<PrettyLog>,
 	pub subcall_handle: Option<SubcallHandle>,
 	pub code_address: H160,
 	pub input: Vec<u8>,
@@ -94,6 +94,16 @@ impl PrecompileHandle for MockHandle {
 		is_static: bool,
 		context: &Context,
 	) -> (ExitReason, Vec<u8>) {
+		if self
+			.record_cost(super::call_cost(
+				context.apparent_value,
+				&evm::Config::london(),
+			))
+			.is_err()
+		{
+			return (ExitReason::Error(ExitError::OutOfGas), vec![]);
+		}
+
 		match &mut self.subcall_handle {
 			Some(handle) => {
 				let SubcallOutput {
@@ -140,11 +150,11 @@ impl PrecompileHandle for MockHandle {
 	}
 
 	fn log(&mut self, address: H160, topics: Vec<H256>, data: Vec<u8>) -> Result<(), ExitError> {
-		self.logs.push(Log {
+		self.logs.push(PrettyLog(Log {
 			address,
 			topics,
 			data,
-		});
+		}));
 		Ok(())
 	}
 
@@ -182,7 +192,7 @@ pub struct PrecompilesTester<'p, P> {
 	subcall_handle: Option<SubcallHandle>,
 
 	expected_cost: Option<u64>,
-	expected_logs: Option<Vec<Log>>,
+	expected_logs: Option<Vec<PrettyLog>>,
 }
 
 impl<'p, P: PrecompileSet> PrecompilesTester<'p, P> {
@@ -244,7 +254,7 @@ impl<'p, P: PrecompileSet> PrecompilesTester<'p, P> {
 	pub fn expect_log(mut self, log: Log) -> Self {
 		self.expected_logs = Some({
 			let mut logs = self.expected_logs.unwrap_or_else(Vec::new);
-			logs.push(log);
+			logs.push(PrettyLog(log));
 			logs
 		});
 		self
@@ -256,7 +266,7 @@ impl<'p, P: PrecompileSet> PrecompilesTester<'p, P> {
 		}
 
 		if let Some(logs) = &self.expected_logs {
-			assert_eq!(&self.handle.logs, logs);
+			similar_asserts::assert_eq!(&self.handle.logs, logs);
 		}
 	}
 
@@ -350,5 +360,29 @@ impl<T: PrecompileSet> PrecompileTesterExt for T {
 		data: Vec<u8>,
 	) -> PrecompilesTester<Self> {
 		PrecompilesTester::new(self, from, to, data)
+	}
+}
+
+#[derive(Clone, PartialEq, Eq)]
+pub struct PrettyLog(Log);
+
+impl core::fmt::Debug for PrettyLog {
+	fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> Result<(), core::fmt::Error> {
+		let bytes = self
+			.0
+			.data
+			.iter()
+			.map(|b| format!("{:02X}", b))
+			.collect::<Vec<String>>()
+			.join("");
+
+		let message = String::from_utf8(self.0.data.clone()).ok();
+
+		f.debug_struct("Log")
+			.field("address", &self.0.address)
+			.field("topics", &self.0.topics)
+			.field("data", &bytes)
+			.field("data_utf8", &message)
+			.finish()
 	}
 }

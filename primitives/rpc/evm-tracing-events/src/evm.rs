@@ -240,7 +240,7 @@ impl<'a> From<evm::tracing::Event<'a>> for EvmEvent {
 				target_gas,
 				is_static,
 				context,
-			} => Self::Call {
+			} => Self::PrecompileSubcall {
 				code_address,
 				transfer: if let Some(transfer) = transfer {
 					Some(transfer.clone().into())
