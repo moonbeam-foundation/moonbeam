@@ -247,7 +247,6 @@ runtime-wasm = []
 # to make it smaller like logging for example.
 on-chain-release-build = [ "sp-api/disable-logging" ]
 
-moonbase-runtime-benchmarks = []
 runtime-benchmarks = [
 	"frame-benchmarking",
 	"frame-support/runtime-benchmarks",
