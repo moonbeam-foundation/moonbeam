@@ -278,15 +278,6 @@
 <span id="273">273</span>
 <span id="274">274</span>
 <span id="275">275</span>
-<span id="276">276</span>
-<span id="277">277</span>
-<span id="278">278</span>
-<span id="279">279</span>
-<span id="280">280</span>
-<span id="281">281</span>
-<span id="282">282</span>
-<span id="283">283</span>
-<span id="284">284</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is 	part of Moonbeam.</span>
 
@@ -475,25 +466,26 @@
 	<span class="comment">// Translated from</span>
 	<span class="comment">// https://github.com/Uniswap/v2-core/blob/master/contracts/UniswapV2ERC20.sol#L81</span>
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">permit</span>(
-		<span class="ident">address</span>: <span class="ident">H160</span>,
 		<span class="ident">asset_id</span>: <span class="ident">AssetIdOf</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span>,
-		<span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>,
-		<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>,
+		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
 	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="ident">gasometer</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
+		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">owner</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>.<span class="ident">into</span>();
-		<span class="kw">let</span> <span class="ident">spender</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>.<span class="ident">into</span>();
-		<span class="kw">let</span> <span class="ident">value</span>: <span class="ident">U256</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">deadline</span>: <span class="ident">U256</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">v</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">r</span>: <span class="ident">H256</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">s</span>: <span class="ident">H256</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_input</span>()<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">owner</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">into</span>();
+		<span class="kw">let</span> <span class="ident">spender</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">into</span>();
+		<span class="kw">let</span> <span class="ident">value</span>: <span class="ident">U256</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">deadline</span>: <span class="ident">U256</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">v</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">r</span>: <span class="ident">H256</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">s</span>: <span class="ident">H256</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+
+		<span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">code_address</span>();
 
 		<span class="comment">// pallet_timestamp is in ms while Ethereum use second timestamps.</span>
 		<span class="kw">let</span> <span class="ident">timestamp</span>: <span class="ident">U256</span> <span class="op">=</span> (<span class="ident">pallet_timestamp::Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::get</span>()).<span class="ident">into</span>() <span class="op">/</span> <span class="number">1000</span>;
 
-		<span class="macro">ensure!</span>(<span class="ident">deadline</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">timestamp</span>, <span class="ident">gasometer</span>.<span class="ident">revert</span>(<span class="string">&quot;permit expired&quot;</span>));
+		<span class="macro">ensure!</span>(<span class="ident">deadline</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">timestamp</span>, <span class="ident">revert</span>(<span class="string">&quot;permit expired&quot;</span>));
 
 		<span class="kw">let</span> <span class="ident">nonce</span> <span class="op">=</span> <span class="ident">NoncesStorage</span>::<span class="op">&lt;</span><span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="ident">address</span>, <span class="ident">owner</span>);
 
@@ -506,69 +498,59 @@
 		<span class="ident">sig</span>[<span class="number">64</span>] <span class="op">=</span> <span class="ident">v</span>;
 
 		<span class="kw">let</span> <span class="ident">signer</span> <span class="op">=</span> <span class="ident">sp_io::crypto::secp256k1_ecdsa_recover</span>(<span class="kw-2">&amp;</span><span class="ident">sig</span>, <span class="kw-2">&amp;</span><span class="ident">permit</span>)
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">gasometer</span>.<span class="ident">revert</span>(<span class="string">&quot;invalid permit&quot;</span>))<span class="question-mark">?</span>;
+			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">revert</span>(<span class="string">&quot;invalid permit&quot;</span>))<span class="question-mark">?</span>;
 		<span class="kw">let</span> <span class="ident">signer</span> <span class="op">=</span> <span class="ident">H160::from</span>(<span class="ident">H256::from_slice</span>(<span class="ident">keccak_256</span>(<span class="kw-2">&amp;</span><span class="ident">signer</span>).<span class="ident">as_slice</span>()));
 
 		<span class="macro">ensure!</span>(
 			<span class="ident">signer</span> <span class="op">!</span><span class="op">=</span> <span class="ident">H160::zero</span>() <span class="op">&amp;&amp;</span> <span class="ident">signer</span> <span class="op">==</span> <span class="ident">owner</span>,
-			<span class="ident">gasometer</span>.<span class="ident">revert</span>(<span class="string">&quot;invalid permit&quot;</span>)
+			<span class="ident">revert</span>(<span class="string">&quot;invalid permit&quot;</span>)
 		);
 
 		<span class="ident">NoncesStorage</span>::<span class="op">&lt;</span><span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="ident">address</span>, <span class="ident">owner</span>, <span class="ident">nonce</span> <span class="op">+</span> <span class="ident">U256::one</span>());
 
 		<span class="ident">Erc20AssetsPrecompileSet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">IsLocal</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::approve_inner</span>(
-			<span class="ident">asset_id</span>, <span class="ident">gasometer</span>, <span class="ident">owner</span>, <span class="ident">spender</span>, <span class="ident">value</span>,
+			<span class="ident">asset_id</span>, <span class="ident">handle</span>, <span class="ident">owner</span>, <span class="ident">spender</span>, <span class="ident">value</span>,
 		)<span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>(<span class="ident">PrecompileOutput</span> {
-			<span class="ident">exit_status</span>: <span class="ident">ExitSucceed::Returned</span>,
-			<span class="ident">cost</span>: <span class="ident">gasometer</span>.<span class="ident">used_gas</span>(),
-			<span class="ident">output</span>: <span class="macro">vec!</span>[],
-			<span class="ident">logs</span>: <span class="ident">LogsBuilder::new</span>(<span class="ident">address</span>)
-				.<span class="ident">log3</span>(
-					<span class="ident">SELECTOR_LOG_APPROVAL</span>,
-					<span class="ident">owner</span>,
-					<span class="ident">spender</span>,
-					<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">value</span>).<span class="ident">build</span>(),
-				)
-				.<span class="ident">build</span>(),
-		})
+		<span class="kw">let</span> <span class="ident">log_builder</span> <span class="op">=</span> <span class="ident">LogsBuilder::new</span>(<span class="ident">address</span>);
+		<span class="ident">log_builder</span>
+			.<span class="ident">log3</span>(
+				<span class="ident">SELECTOR_LOG_APPROVAL</span>,
+				<span class="ident">owner</span>,
+				<span class="ident">spender</span>,
+				<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">value</span>).<span class="ident">build</span>(),
+			)
+			.<span class="ident">record</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>;
+
+		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>([]))
 	}
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">nonces</span>(
-		<span class="ident">address</span>: <span class="ident">H160</span>,
-		<span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>,
-		<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>,
+		<span class="ident">_asset_id</span>: <span class="ident">AssetIdOf</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span>,
+		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
 	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="ident">gasometer</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
+		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">owner</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>.<span class="ident">into</span>();
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_input</span>()<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">owner</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">into</span>();
 
-		<span class="kw">let</span> <span class="ident">nonce</span> <span class="op">=</span> <span class="ident">NoncesStorage</span>::<span class="op">&lt;</span><span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="ident">address</span>, <span class="ident">owner</span>);
+		<span class="kw">let</span> <span class="ident">nonce</span> <span class="op">=</span> <span class="ident">NoncesStorage</span>::<span class="op">&lt;</span><span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="ident">handle</span>.<span class="ident">code_address</span>(), <span class="ident">owner</span>);
 
-		<span class="prelude-val">Ok</span>(<span class="ident">PrecompileOutput</span> {
-			<span class="ident">exit_status</span>: <span class="ident">ExitSucceed::Returned</span>,
-			<span class="ident">cost</span>: <span class="ident">gasometer</span>.<span class="ident">used_gas</span>(),
-			<span class="ident">output</span>: <span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">nonce</span>).<span class="ident">build</span>(),
-			<span class="ident">logs</span>: <span class="macro">vec!</span>[],
-		})
+		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>(<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">nonce</span>).<span class="ident">build</span>()))
 	}
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">domain_separator</span>(
-		<span class="ident">address</span>: <span class="ident">H160</span>,
 		<span class="ident">asset_id</span>: <span class="ident">AssetIdOf</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span>,
-		<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>,
+		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
 	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="ident">gasometer</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
+		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">domain_separator</span>: <span class="ident">H256</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::compute_domain_separator</span>(<span class="ident">address</span>, <span class="ident">asset_id</span>).<span class="ident">into</span>();
+		<span class="kw">let</span> <span class="ident">domain_separator</span>: <span class="ident">H256</span> <span class="op">=</span>
+			<span class="ident"><span class="self">Self</span>::compute_domain_separator</span>(<span class="ident">handle</span>.<span class="ident">code_address</span>(), <span class="ident">asset_id</span>).<span class="ident">into</span>();
 
-		<span class="prelude-val">Ok</span>(<span class="ident">PrecompileOutput</span> {
-			<span class="ident">exit_status</span>: <span class="ident">ExitSucceed::Returned</span>,
-			<span class="ident">cost</span>: <span class="ident">gasometer</span>.<span class="ident">used_gas</span>(),
-			<span class="ident">output</span>: <span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">domain_separator</span>).<span class="ident">build</span>(),
-			<span class="ident">logs</span>: <span class="macro">vec!</span>[],
-		})
+		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>(
+			<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">domain_separator</span>).<span class="ident">build</span>(),
+		))
 	}
 }
 </code></pre></div>

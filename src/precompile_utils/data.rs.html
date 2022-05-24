@@ -599,6 +599,12 @@
 <span id="594">594</span>
 <span id="595">595</span>
 <span id="596">596</span>
+<span id="597">597</span>
+<span id="598">598</span>
+<span id="599">599</span>
+<span id="600">600</span>
+<span id="601">601</span>
+<span id="602">602</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -615,7 +621,7 @@
 <span class="comment">// You should have received a copy of the GNU General Public License</span>
 <span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">EvmResult</span>, <span class="ident">Gasometer</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">revert</span>, <span class="ident">EvmResult</span>};
 
 <span class="kw">use</span> <span class="ident">alloc::borrow::ToOwned</span>;
 <span class="kw">use</span> <span class="ident">core</span>::{<span class="ident">any::type_name</span>, <span class="ident">ops::Range</span>};
@@ -695,12 +701,12 @@
 	}
 
 	<span class="doccomment">/// Create a new input parser from a selector-initial input.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_with_selector</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>, <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>]) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span>(<span class="self">Self</span>, <span class="ident">T</span>)<span class="op">&gt;</span>
+	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_selector</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>]) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
 	<span class="kw">where</span>
 		<span class="ident">T</span>: <span class="ident">num_enum::TryFromPrimitive</span><span class="op">&lt;</span><span class="ident">Primitive</span> <span class="op">=</span> <span class="ident">u32</span><span class="op">&gt;</span>,
 	{
 		<span class="kw">if</span> <span class="ident">input</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="number">4</span> {
-			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">gasometer</span>.<span class="ident">revert</span>(<span class="string">&quot;tried to parse selector out of bounds&quot;</span>));
+			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">revert</span>(<span class="string">&quot;tried to parse selector out of bounds&quot;</span>));
 		}
 
 		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">4</span>];
@@ -711,52 +717,59 @@
 				<span class="string">&quot;Failed to match function selector for {}&quot;</span>,
 				<span class="ident">type_name</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>()
 			);
-			<span class="ident">gasometer</span>.<span class="ident">revert</span>(<span class="string">&quot;unknown selector&quot;</span>)
+			<span class="ident">revert</span>(<span class="string">&quot;unknown selector&quot;</span>)
 		})<span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>((<span class="ident"><span class="self">Self</span>::new</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="number">4</span>..]), <span class="ident">selector</span>))
+		<span class="prelude-val">Ok</span>(<span class="ident">selector</span>)
+	}
+
+	<span class="doccomment">/// Create a new input parser from a selector-initial input.</span>
+	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_skip_selector</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>]) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+		<span class="kw">if</span> <span class="ident">input</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="number">4</span> {
+			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">revert</span>(<span class="string">&quot;input is too short&quot;</span>));
+		}
+
+		<span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::new</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="number">4</span>..]))
 	}
 
 	<span class="doccomment">/// Check the input has at least the correct amount of arguments before the end (32 bytes values).</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expect_arguments</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>, <span class="ident">args</span>: <span class="ident">usize</span>) -&gt; <span class="ident">EvmResult</span> {
+	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expect_arguments</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">args</span>: <span class="ident">usize</span>) -&gt; <span class="ident">EvmResult</span> {
 		<span class="kw">if</span> <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">cursor</span> <span class="op">+</span> <span class="ident">args</span> <span class="op">*</span> <span class="number">32</span> {
 			<span class="prelude-val">Ok</span>(())
 		} <span class="kw">else</span> {
-			<span class="prelude-val">Err</span>(<span class="ident">gasometer</span>.<span class="ident">revert</span>(<span class="string">&quot;input doesn&#39;t match expected length&quot;</span>))
+			<span class="prelude-val">Err</span>(<span class="ident">revert</span>(<span class="string">&quot;input doesn&#39;t match expected length&quot;</span>))
 		}
 	}
 
 	<span class="doccomment">/// Read data from the input.</span>
-	<span class="doccomment">/// Must be provided a gasometer to generate correct Revert errors.</span>
-	<span class="doccomment">/// TODO : Benchmark and add cost of parsing to gasometer ?</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">EvmData</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-		<span class="ident">T::read</span>(<span class="self">self</span>, <span class="ident">gasometer</span>)
+	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">EvmData</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+		<span class="ident">T::read</span>(<span class="self">self</span>)
 	}
 
 	<span class="doccomment">/// Read raw bytes from the input.</span>
 	<span class="doccomment">/// Doesn&#39;t handle any alignment checks, prefer using `read` instead of possible.</span>
 	<span class="doccomment">/// Returns an error if trying to parse out of bounds.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_raw_bytes</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>, <span class="ident">len</span>: <span class="ident">usize</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">move_cursor</span>(<span class="ident">gasometer</span>, <span class="ident">len</span>)<span class="question-mark">?</span>;
+	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_raw_bytes</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">len</span>: <span class="ident">usize</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span> {
+		<span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">move_cursor</span>(<span class="ident">len</span>)<span class="question-mark">?</span>;
 
 		<span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="self">self</span>
 			.<span class="ident">input</span>
 			.<span class="ident">get</span>(<span class="ident">range</span>)
-			.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">gasometer</span>.<span class="ident">revert</span>(<span class="string">&quot;tried to parse raw bytes out of bounds&quot;</span>))<span class="question-mark">?</span>;
+			.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">revert</span>(<span class="string">&quot;tried to parse raw bytes out of bounds&quot;</span>))<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(<span class="ident">data</span>)
 	}
 
 	<span class="doccomment">/// Reads a pointer, returning a reader targetting the pointed location.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_pointer</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_pointer</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
 		<span class="kw">let</span> <span class="ident">offset</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="self">self</span>
-			.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>(<span class="ident">gasometer</span>)
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">gasometer</span>.<span class="ident">revert</span>(<span class="string">&quot;tried to parse array offset out of bounds&quot;</span>))<span class="question-mark">?</span>
+			.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>()
+			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">revert</span>(<span class="string">&quot;tried to parse array offset out of bounds&quot;</span>))<span class="question-mark">?</span>
 			.<span class="ident">try_into</span>()
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">gasometer</span>.<span class="ident">revert</span>(<span class="string">&quot;array offset is too large&quot;</span>))<span class="question-mark">?</span>;
+			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">revert</span>(<span class="string">&quot;array offset is too large&quot;</span>))<span class="question-mark">?</span>;
 
 		<span class="kw">if</span> <span class="ident">offset</span> <span class="op">&gt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">len</span>() {
-			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">gasometer</span>.<span class="ident">revert</span>(<span class="string">&quot;pointer points out of bounds&quot;</span>));
+			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">revert</span>(<span class="string">&quot;pointer points out of bounds&quot;</span>));
 		}
 
 		<span class="prelude-val">Ok</span>(<span class="self">Self</span> {
@@ -766,13 +779,13 @@
 	}
 
 	<span class="doccomment">/// Read remaining bytes</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_till_end</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">move_cursor</span>(<span class="ident">gasometer</span>, <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="self">self</span>.<span class="ident">cursor</span>)<span class="question-mark">?</span>;
+	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_till_end</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span> {
+		<span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">move_cursor</span>(<span class="self">self</span>.<span class="ident">input</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="self">self</span>.<span class="ident">cursor</span>)<span class="question-mark">?</span>;
 
 		<span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="self">self</span>
 			.<span class="ident">input</span>
 			.<span class="ident">get</span>(<span class="ident">range</span>)
-			.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">gasometer</span>.<span class="ident">revert</span>(<span class="string">&quot;tried to parse raw bytes out of bounds&quot;</span>))<span class="question-mark">?</span>;
+			.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">revert</span>(<span class="string">&quot;tried to parse raw bytes out of bounds&quot;</span>))<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(<span class="ident">data</span>)
 	}
@@ -780,12 +793,12 @@
 	<span class="doccomment">/// Move the reading cursor with provided length, and return a range from the previous cursor</span>
 	<span class="doccomment">/// location to the new one.</span>
 	<span class="doccomment">/// Checks cursor overflows.</span>
-	<span class="kw">fn</span> <span class="ident">move_cursor</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>, <span class="ident">len</span>: <span class="ident">usize</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">move_cursor</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">len</span>: <span class="ident">usize</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span> {
 		<span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">cursor</span>;
 		<span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="self">self</span>
 			.<span class="ident">cursor</span>
 			.<span class="ident">checked_add</span>(<span class="ident">len</span>)
-			.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">gasometer</span>.<span class="ident">revert</span>(<span class="string">&quot;data reading cursor overflow&quot;</span>))<span class="question-mark">?</span>;
+			.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">revert</span>(<span class="string">&quot;data reading cursor overflow&quot;</span>))<span class="question-mark">?</span>;
 
 		<span class="self">self</span>.<span class="ident">cursor</span> <span class="op">=</span> <span class="ident">end</span>;
 
@@ -912,7 +925,7 @@
 
 <span class="doccomment">/// Data that can be converted from and to EVM data types.</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">EvmData</span>: <span class="ident">Sized</span> {
-	<span class="kw">fn</span> <span class="ident">read</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>, <span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
+	<span class="kw">fn</span> <span class="ident">read</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
 	<span class="kw">fn</span> <span class="ident">write</span>(<span class="ident">writer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataWriter</span>, <span class="ident">value</span>: <span class="self">Self</span>);
 	<span class="kw">fn</span> <span class="ident">has_static_size</span>() -&gt; <span class="ident">bool</span>;
 }
@@ -923,12 +936,12 @@
 		<span class="macro">for_tuples!</span>(#( <span class="ident">Tuple::has_static_size</span>() )<span class="kw-2">&amp;</span><span class="kw-2">*</span>)
 	}
 
-	<span class="kw">fn</span> <span class="ident">read</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>, <span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">read</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
 		<span class="kw">if</span> <span class="op">!</span><span class="ident"><span class="self">Self</span>::has_static_size</span>() {
-			<span class="kw">let</span> <span class="ident">reader</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">reader</span>.<span class="ident">read_pointer</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>;
-			<span class="prelude-val">Ok</span>(<span class="macro">for_tuples!</span>( ( #( <span class="ident">reader</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Tuple</span><span class="op">&gt;</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span> ),<span class="op">*</span> ) ))
+			<span class="kw">let</span> <span class="ident">reader</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">reader</span>.<span class="ident">read_pointer</span>()<span class="question-mark">?</span>;
+			<span class="prelude-val">Ok</span>(<span class="macro">for_tuples!</span>( ( #( <span class="ident">reader</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Tuple</span><span class="op">&gt;</span>()<span class="question-mark">?</span> ),<span class="op">*</span> ) ))
 		} <span class="kw">else</span> {
-			<span class="prelude-val">Ok</span>(<span class="macro">for_tuples!</span>( ( #( <span class="ident">reader</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Tuple</span><span class="op">&gt;</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span> ),<span class="op">*</span> ) ))
+			<span class="prelude-val">Ok</span>(<span class="macro">for_tuples!</span>( ( #( <span class="ident">reader</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Tuple</span><span class="op">&gt;</span>()<span class="question-mark">?</span> ),<span class="op">*</span> ) ))
 		}
 	}
 
@@ -944,13 +957,13 @@
 }
 
 <span class="kw">impl</span> <span class="ident">EvmData</span> <span class="kw">for</span> <span class="ident">H256</span> {
-	<span class="kw">fn</span> <span class="ident">read</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>, <span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">move_cursor</span>(<span class="ident">gasometer</span>, <span class="number">32</span>)<span class="question-mark">?</span>;
+	<span class="kw">fn</span> <span class="ident">read</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+		<span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">move_cursor</span>(<span class="number">32</span>)<span class="question-mark">?</span>;
 
 		<span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">reader</span>
 			.<span class="ident">input</span>
 			.<span class="ident">get</span>(<span class="ident">range</span>)
-			.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">gasometer</span>.<span class="ident">revert</span>(<span class="string">&quot;tried to parse H256 out of bounds&quot;</span>))<span class="question-mark">?</span>;
+			.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">revert</span>(<span class="string">&quot;tried to parse H256 out of bounds&quot;</span>))<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(<span class="ident">H256::from_slice</span>(<span class="ident">data</span>))
 	}
@@ -965,13 +978,13 @@
 }
 
 <span class="kw">impl</span> <span class="ident">EvmData</span> <span class="kw">for</span> <span class="ident">Address</span> {
-	<span class="kw">fn</span> <span class="ident">read</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>, <span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">move_cursor</span>(<span class="ident">gasometer</span>, <span class="number">32</span>)<span class="question-mark">?</span>;
+	<span class="kw">fn</span> <span class="ident">read</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+		<span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">move_cursor</span>(<span class="number">32</span>)<span class="question-mark">?</span>;
 
 		<span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">reader</span>
 			.<span class="ident">input</span>
 			.<span class="ident">get</span>(<span class="ident">range</span>)
-			.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">gasometer</span>.<span class="ident">revert</span>(<span class="string">&quot;tried to parse H160 out of bounds&quot;</span>))<span class="question-mark">?</span>;
+			.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">revert</span>(<span class="string">&quot;tried to parse H160 out of bounds&quot;</span>))<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(<span class="ident">H160::from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">data</span>[<span class="number">12</span>..<span class="number">32</span>]).<span class="ident">into</span>())
 	}
@@ -986,13 +999,13 @@
 }
 
 <span class="kw">impl</span> <span class="ident">EvmData</span> <span class="kw">for</span> <span class="ident">U256</span> {
-	<span class="kw">fn</span> <span class="ident">read</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>, <span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">move_cursor</span>(<span class="ident">gasometer</span>, <span class="number">32</span>)<span class="question-mark">?</span>;
+	<span class="kw">fn</span> <span class="ident">read</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+		<span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">move_cursor</span>(<span class="number">32</span>)<span class="question-mark">?</span>;
 
 		<span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">reader</span>
 			.<span class="ident">input</span>
 			.<span class="ident">get</span>(<span class="ident">range</span>)
-			.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">gasometer</span>.<span class="ident">revert</span>(<span class="string">&quot;tried to parse U256 out of bounds&quot;</span>))<span class="question-mark">?</span>;
+			.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">revert</span>(<span class="string">&quot;tried to parse U256 out of bounds&quot;</span>))<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(<span class="ident">U256::from_big_endian</span>(<span class="ident">data</span>))
 	}
@@ -1012,13 +1025,13 @@
 	($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">uint</span>:<span class="ident">ty</span>, )<span class="kw-2">*</span>) =&gt; {
 		$(
 			<span class="kw">impl</span> <span class="ident">EvmData</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">uint</span> {
-				<span class="kw">fn</span> <span class="ident">read</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>, <span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-					<span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">move_cursor</span>(<span class="ident">gasometer</span>, <span class="number">32</span>)<span class="question-mark">?</span>;
+				<span class="kw">fn</span> <span class="ident">read</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+					<span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">move_cursor</span>(<span class="number">32</span>)<span class="question-mark">?</span>;
 
 					<span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">reader</span>
 						.<span class="ident">input</span>
 						.<span class="ident">get</span>(<span class="ident">range</span>)
-						.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">gasometer</span>.<span class="ident">revert</span>(<span class="macro">alloc::format!</span>(
+						.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">revert</span>(<span class="macro">alloc::format!</span>(
 							<span class="string">&quot;tried to parse {} out of bounds&quot;</span>, <span class="ident">core::any::type_name</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>()
 						)))<span class="question-mark">?</span>;
 
@@ -1045,13 +1058,13 @@
 
 <span class="comment">// The implementation for u8 is specific, for performance reasons.</span>
 <span class="kw">impl</span> <span class="ident">EvmData</span> <span class="kw">for</span> <span class="ident">u8</span> {
-	<span class="kw">fn</span> <span class="ident">read</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>, <span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">move_cursor</span>(<span class="ident">gasometer</span>, <span class="number">32</span>)<span class="question-mark">?</span>;
+	<span class="kw">fn</span> <span class="ident">read</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+		<span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">move_cursor</span>(<span class="number">32</span>)<span class="question-mark">?</span>;
 
 		<span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">reader</span>
 			.<span class="ident">input</span>
 			.<span class="ident">get</span>(<span class="ident">range</span>)
-			.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">gasometer</span>.<span class="ident">revert</span>(<span class="string">&quot;tried to parse u64 out of bounds&quot;</span>))<span class="question-mark">?</span>;
+			.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">revert</span>(<span class="string">&quot;tried to parse u64 out of bounds&quot;</span>))<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(<span class="ident">data</span>[<span class="number">31</span>])
 	}
@@ -1069,9 +1082,8 @@
 }
 
 <span class="kw">impl</span> <span class="ident">EvmData</span> <span class="kw">for</span> <span class="ident">bool</span> {
-	<span class="kw">fn</span> <span class="ident">read</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>, <span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">h256</span> <span class="op">=</span> <span class="ident">H256::read</span>(<span class="ident">reader</span>, <span class="ident">gasometer</span>)
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">gasometer</span>.<span class="ident">revert</span>(<span class="string">&quot;tried to parse bool out of bounds&quot;</span>))<span class="question-mark">?</span>;
+	<span class="kw">fn</span> <span class="ident">read</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+		<span class="kw">let</span> <span class="ident">h256</span> <span class="op">=</span> <span class="ident">H256::read</span>(<span class="ident">reader</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">revert</span>(<span class="string">&quot;tried to parse bool out of bounds&quot;</span>))<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(<span class="op">!</span><span class="ident">h256</span>.<span class="ident">is_zero</span>())
 	}
@@ -1091,14 +1103,14 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">EvmData</span><span class="op">&gt;</span> <span class="ident">EvmData</span> <span class="kw">for</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-	<span class="kw">fn</span> <span class="ident">read</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>, <span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner_reader</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_pointer</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>;
+	<span class="kw">fn</span> <span class="ident">read</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner_reader</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_pointer</span>()<span class="question-mark">?</span>;
 
 		<span class="kw">let</span> <span class="ident">array_size</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">inner_reader</span>
-			.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>(<span class="ident">gasometer</span>)
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">gasometer</span>.<span class="ident">revert</span>(<span class="string">&quot;tried to parse array length out of bounds&quot;</span>))<span class="question-mark">?</span>
+			.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>()
+			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">revert</span>(<span class="string">&quot;tried to parse array length out of bounds&quot;</span>))<span class="question-mark">?</span>
 			.<span class="ident">try_into</span>()
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">gasometer</span>.<span class="ident">revert</span>(<span class="string">&quot;array length is too large&quot;</span>))<span class="question-mark">?</span>;
+			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">revert</span>(<span class="string">&quot;array length is too large&quot;</span>))<span class="question-mark">?</span>;
 
 		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">array</span> <span class="op">=</span> <span class="macro">vec!</span>[];
 
@@ -1106,12 +1118,12 @@
 			<span class="ident">input</span>: <span class="ident">inner_reader</span>
 				.<span class="ident">input</span>
 				.<span class="ident">get</span>(<span class="number">32</span>..)
-				.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">gasometer</span>.<span class="ident">revert</span>(<span class="string">&quot;try to read array items out of bound&quot;</span>))<span class="question-mark">?</span>,
+				.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">revert</span>(<span class="string">&quot;try to read array items out of bound&quot;</span>))<span class="question-mark">?</span>,
 			<span class="ident">cursor</span>: <span class="number">0</span>,
 		};
 
 		<span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">array_size</span> {
-			<span class="ident">array</span>.<span class="ident">push</span>(<span class="ident">item_reader</span>.<span class="ident">read</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>);
+			<span class="ident">array</span>.<span class="ident">push</span>(<span class="ident">item_reader</span>.<span class="ident">read</span>()<span class="question-mark">?</span>);
 		}
 
 		<span class="prelude-val">Ok</span>(<span class="ident">array</span>)
@@ -1145,23 +1157,23 @@
 }
 
 <span class="kw">impl</span> <span class="ident">EvmData</span> <span class="kw">for</span> <span class="ident">Bytes</span> {
-	<span class="kw">fn</span> <span class="ident">read</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>, <span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner_reader</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_pointer</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>;
+	<span class="kw">fn</span> <span class="ident">read</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner_reader</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_pointer</span>()<span class="question-mark">?</span>;
 
 		<span class="comment">// Read bytes/string size.</span>
 		<span class="kw">let</span> <span class="ident">array_size</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">inner_reader</span>
-			.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>(<span class="ident">gasometer</span>)
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">gasometer</span>.<span class="ident">revert</span>(<span class="string">&quot;tried to parse bytes/string length out of bounds&quot;</span>))<span class="question-mark">?</span>
+			.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>()
+			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">revert</span>(<span class="string">&quot;tried to parse bytes/string length out of bounds&quot;</span>))<span class="question-mark">?</span>
 			.<span class="ident">try_into</span>()
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">gasometer</span>.<span class="ident">revert</span>(<span class="string">&quot;bytes/string length is too large&quot;</span>))<span class="question-mark">?</span>;
+			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">revert</span>(<span class="string">&quot;bytes/string length is too large&quot;</span>))<span class="question-mark">?</span>;
 
 		<span class="comment">// Get valid range over the bytes data.</span>
-		<span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <span class="ident">inner_reader</span>.<span class="ident">move_cursor</span>(<span class="ident">gasometer</span>, <span class="ident">array_size</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <span class="ident">inner_reader</span>.<span class="ident">move_cursor</span>(<span class="ident">array_size</span>)<span class="question-mark">?</span>;
 
 		<span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">inner_reader</span>
 			.<span class="ident">input</span>
 			.<span class="ident">get</span>(<span class="ident">range</span>)
-			.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">gasometer</span>.<span class="ident">revert</span>(<span class="string">&quot;tried to parse bytes/string out of bounds&quot;</span>))<span class="question-mark">?</span>;
+			.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">revert</span>(<span class="string">&quot;tried to parse bytes/string out of bounds&quot;</span>))<span class="question-mark">?</span>;
 
 		<span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="self">Self</span>(<span class="ident">data</span>.<span class="ident">to_owned</span>());
 

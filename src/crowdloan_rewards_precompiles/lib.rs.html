@@ -207,41 +207,6 @@
 <span id="202">202</span>
 <span id="203">203</span>
 <span id="204">204</span>
-<span id="205">205</span>
-<span id="206">206</span>
-<span id="207">207</span>
-<span id="208">208</span>
-<span id="209">209</span>
-<span id="210">210</span>
-<span id="211">211</span>
-<span id="212">212</span>
-<span id="213">213</span>
-<span id="214">214</span>
-<span id="215">215</span>
-<span id="216">216</span>
-<span id="217">217</span>
-<span id="218">218</span>
-<span id="219">219</span>
-<span id="220">220</span>
-<span id="221">221</span>
-<span id="222">222</span>
-<span id="223">223</span>
-<span id="224">224</span>
-<span id="225">225</span>
-<span id="226">226</span>
-<span id="227">227</span>
-<span id="228">228</span>
-<span id="229">229</span>
-<span id="230">230</span>
-<span id="231">231</span>
-<span id="232">232</span>
-<span id="233">233</span>
-<span id="234">234</span>
-<span id="235">235</span>
-<span id="236">236</span>
-<span id="237">237</span>
-<span id="238">238</span>
-<span id="239">239</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -263,14 +228,15 @@
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>), <span class="ident">no_std</span>)]</span>
 <span class="attribute">#![<span class="ident">feature</span>(<span class="ident">assert_matches</span>)]</span>
 
-<span class="kw">use</span> <span class="ident">fp_evm</span>::{<span class="ident">Context</span>, <span class="ident">ExitSucceed</span>, <span class="ident">PrecompileOutput</span>};
+<span class="kw">use</span> <span class="ident">fp_evm</span>::{<span class="ident">Precompile</span>, <span class="ident">PrecompileHandle</span>, <span class="ident">PrecompileOutput</span>};
 <span class="kw">use</span> <span class="ident">frame_support</span>::{
 	<span class="ident">dispatch</span>::{<span class="ident">Dispatchable</span>, <span class="ident">GetDispatchInfo</span>, <span class="ident">PostDispatchInfo</span>},
 	<span class="ident">traits::Currency</span>,
 };
-<span class="kw">use</span> <span class="ident">pallet_evm</span>::{<span class="ident">AddressMapping</span>, <span class="ident">Precompile</span>};
+<span class="kw">use</span> <span class="ident">pallet_evm::AddressMapping</span>;
 <span class="kw">use</span> <span class="ident">precompile_utils</span>::{
-	<span class="ident">Address</span>, <span class="ident">EvmDataReader</span>, <span class="ident">EvmDataWriter</span>, <span class="ident">EvmResult</span>, <span class="ident">FunctionModifier</span>, <span class="ident">Gasometer</span>, <span class="ident">RuntimeHelper</span>,
+	<span class="ident">revert</span>, <span class="ident">succeed</span>, <span class="ident">Address</span>, <span class="ident">EvmDataWriter</span>, <span class="ident">EvmResult</span>, <span class="ident">FunctionModifier</span>, <span class="ident">PrecompileHandleExt</span>,
+	<span class="ident">RuntimeHelper</span>,
 };
 
 <span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">H160</span>, <span class="ident">U256</span>};
@@ -292,7 +258,7 @@
 
 <span class="attribute">#[<span class="ident">precompile_utils::generate_function_selector</span>]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">enum</span> <span class="ident">Action</span> {
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Action</span> {
 	<span class="ident">IsContributor</span> <span class="op">=</span> <span class="string">&quot;is_contributor(address)&quot;</span>,
 	<span class="ident">RewardInfo</span> <span class="op">=</span> <span class="string">&quot;reward_info(address)&quot;</span>,
 	<span class="ident">Claim</span> <span class="op">=</span> <span class="string">&quot;claim()&quot;</span>,
@@ -310,32 +276,20 @@
 	<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Runtime::AccountId</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 	<span class="ident">Runtime::Call</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">pallet_crowdloan_rewards::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 {
-	<span class="kw">fn</span> <span class="ident">execute</span>(
-		<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="comment">//Reminder this is big-endian</span>
-		<span class="ident">target_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
-		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
-		<span class="ident">is_static</span>: <span class="ident">bool</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">gasometer</span> <span class="op">=</span> <span class="ident">Gasometer::new</span>(<span class="ident">target_gas</span>);
-		<span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">input</span>, <span class="ident">selector</span>) <span class="op">=</span> <span class="ident">EvmDataReader::new_with_selector</span>(<span class="kw-2">&amp;mut</span> <span class="ident">gasometer</span>, <span class="ident">input</span>)<span class="question-mark">?</span>;
+	<span class="kw">fn</span> <span class="ident">execute</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+		<span class="kw">let</span> <span class="ident">selector</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_selector</span>()<span class="question-mark">?</span>;
 
-		<span class="ident">gasometer</span>.<span class="ident">check_function_modifier</span>(
-			<span class="ident">context</span>,
-			<span class="ident">is_static</span>,
-			<span class="kw">match</span> <span class="ident">selector</span> {
-				<span class="ident">Action::Claim</span> <span class="op">|</span> <span class="ident">Action::UpdateRewardAddress</span> =&gt; <span class="ident">FunctionModifier::NonPayable</span>,
-				<span class="kw">_</span> =&gt; <span class="ident">FunctionModifier::View</span>,
-			},
-		)<span class="question-mark">?</span>;
+		<span class="ident">handle</span>.<span class="ident">check_function_modifier</span>(<span class="kw">match</span> <span class="ident">selector</span> {
+			<span class="ident">Action::Claim</span> <span class="op">|</span> <span class="ident">Action::UpdateRewardAddress</span> =&gt; <span class="ident">FunctionModifier::NonPayable</span>,
+			<span class="kw">_</span> =&gt; <span class="ident">FunctionModifier::View</span>,
+		})<span class="question-mark">?</span>;
 
 		<span class="kw">match</span> <span class="ident">selector</span> {
 			<span class="comment">// Check for accessor methods first. These return results immediately</span>
-			<span class="ident">Action::IsContributor</span> =&gt; <span class="ident"><span class="self">Self</span>::is_contributor</span>(<span class="kw-2">&amp;mut</span> <span class="ident">input</span>, <span class="kw-2">&amp;mut</span> <span class="ident">gasometer</span>),
-			<span class="ident">Action::RewardInfo</span> =&gt; <span class="ident"><span class="self">Self</span>::reward_info</span>(<span class="kw-2">&amp;mut</span> <span class="ident">input</span>, <span class="kw-2">&amp;mut</span> <span class="ident">gasometer</span>),
-			<span class="ident">Action::Claim</span> =&gt; <span class="ident"><span class="self">Self</span>::claim</span>(<span class="kw-2">&amp;mut</span> <span class="ident">gasometer</span>, <span class="ident">context</span>),
-			<span class="ident">Action::UpdateRewardAddress</span> =&gt; {
-				<span class="ident"><span class="self">Self</span>::update_reward_address</span>(<span class="kw-2">&amp;mut</span> <span class="ident">input</span>, <span class="kw-2">&amp;mut</span> <span class="ident">gasometer</span>, <span class="ident">context</span>)
-			}
+			<span class="ident">Action::IsContributor</span> =&gt; <span class="ident"><span class="self">Self</span>::is_contributor</span>(<span class="ident">handle</span>),
+			<span class="ident">Action::RewardInfo</span> =&gt; <span class="ident"><span class="self">Self</span>::reward_info</span>(<span class="ident">handle</span>),
+			<span class="ident">Action::Claim</span> =&gt; <span class="ident"><span class="self">Self</span>::claim</span>(<span class="ident">handle</span>),
+			<span class="ident">Action::UpdateRewardAddress</span> =&gt; <span class="ident"><span class="self">Self</span>::update_reward_address</span>(<span class="ident">handle</span>),
 		}
 	}
 }
@@ -348,18 +302,16 @@
 	<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Runtime::AccountId</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 	<span class="ident">Runtime::Call</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">pallet_crowdloan_rewards::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 {
-	<span class="comment">// The accessors are first. They directly return their result.</span>
-	<span class="kw">fn</span> <span class="ident">is_contributor</span>(
-		<span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>,
-		<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="ident">gasometer</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>; <span class="comment">// accounts_payable</span>
+	<span class="comment">// The accessors are first.</span>
+	<span class="kw">fn</span> <span class="ident">is_contributor</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>; <span class="comment">// accounts_payable</span>
 
 		<span class="comment">// Bound check</span>
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="ident">gasometer</span>, <span class="number">1</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_input</span>()<span class="question-mark">?</span>;
+		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
 
 		<span class="comment">// parse the address</span>
-		<span class="kw">let</span> <span class="ident">contributor</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>.<span class="ident">into</span>();
+		<span class="kw">let</span> <span class="ident">contributor</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">into</span>();
 
 		<span class="kw">let</span> <span class="ident">account</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">contributor</span>);
 
@@ -375,25 +327,18 @@
 
 		<span class="macro">log::trace!</span>(<span class="ident">target</span>: <span class="string">&quot;crowldoan-rewards-precompile&quot;</span>, <span class="string">&quot;Result from pallet is {:?}&quot;</span>, <span class="ident">is_contributor</span>);
 
-		<span class="prelude-val">Ok</span>(<span class="ident">PrecompileOutput</span> {
-			<span class="ident">exit_status</span>: <span class="ident">ExitSucceed::Returned</span>,
-			<span class="ident">cost</span>: <span class="ident">gasometer</span>.<span class="ident">used_gas</span>(),
-			<span class="ident">output</span>: <span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">is_contributor</span>).<span class="ident">build</span>(),
-			<span class="ident">logs</span>: <span class="ident">Default::default</span>(),
-		})
+		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>(<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">is_contributor</span>).<span class="ident">build</span>()))
 	}
 
-	<span class="kw">fn</span> <span class="ident">reward_info</span>(
-		<span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>,
-		<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="ident">gasometer</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>; <span class="comment">// accounts_payable</span>
+	<span class="kw">fn</span> <span class="ident">reward_info</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>; <span class="comment">// accounts_payable</span>
 
 		<span class="comment">// Bound check</span>
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="ident">gasometer</span>, <span class="number">1</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_input</span>()<span class="question-mark">?</span>;
+		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
 
 		<span class="comment">// parse the address</span>
-		<span class="kw">let</span> <span class="ident">contributor</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>.<span class="ident">into</span>();
+		<span class="kw">let</span> <span class="ident">contributor</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">into</span>();
 
 		<span class="kw">let</span> <span class="ident">account</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">contributor</span>);
 
@@ -406,79 +351,64 @@
 		<span class="comment">// fetch data from pallet</span>
 		<span class="kw">let</span> <span class="ident">reward_info</span> <span class="op">=</span> <span class="ident">pallet_crowdloan_rewards::Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::accounts_payable</span>(<span class="ident">account</span>);
 
-		<span class="kw">let</span> (<span class="ident">total</span>, <span class="ident">claimed</span>): (<span class="ident">U256</span>, <span class="ident">U256</span>) <span class="op">=</span>
-			<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">reward_info</span>) <span class="op">=</span> <span class="ident">reward_info</span> {
-				<span class="kw">let</span> <span class="ident">total_reward</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="ident">reward_info</span>.<span class="ident">total_reward</span>.<span class="ident">try_into</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-					<span class="ident">gasometer</span>.<span class="ident">revert</span>(<span class="string">&quot;Amount is too large for provided balance type&quot;</span>)
-				})<span class="question-mark">?</span>;
-				<span class="kw">let</span> <span class="ident">claimed_reward</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="ident">reward_info</span>.<span class="ident">claimed_reward</span>.<span class="ident">try_into</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-					<span class="ident">gasometer</span>.<span class="ident">revert</span>(<span class="string">&quot;Amount is too large for provided balance type&quot;</span>)
-				})<span class="question-mark">?</span>;
+		<span class="kw">let</span> (<span class="ident">total</span>, <span class="ident">claimed</span>): (<span class="ident">U256</span>, <span class="ident">U256</span>) <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">reward_info</span>) <span class="op">=</span> <span class="ident">reward_info</span> {
+			<span class="kw">let</span> <span class="ident">total_reward</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="ident">reward_info</span>
+				.<span class="ident">total_reward</span>
+				.<span class="ident">try_into</span>()
+				.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">revert</span>(<span class="string">&quot;Amount is too large for provided balance type&quot;</span>))<span class="question-mark">?</span>;
+			<span class="kw">let</span> <span class="ident">claimed_reward</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="ident">reward_info</span>
+				.<span class="ident">claimed_reward</span>
+				.<span class="ident">try_into</span>()
+				.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">revert</span>(<span class="string">&quot;Amount is too large for provided balance type&quot;</span>))<span class="question-mark">?</span>;
 
-				(<span class="ident">total_reward</span>.<span class="ident">into</span>(), <span class="ident">claimed_reward</span>.<span class="ident">into</span>())
-			} <span class="kw">else</span> {
-				(<span class="number">0u128</span>.<span class="ident">into</span>(), <span class="number">0u128</span>.<span class="ident">into</span>())
-			};
+			(<span class="ident">total_reward</span>.<span class="ident">into</span>(), <span class="ident">claimed_reward</span>.<span class="ident">into</span>())
+		} <span class="kw">else</span> {
+			(<span class="number">0u128</span>.<span class="ident">into</span>(), <span class="number">0u128</span>.<span class="ident">into</span>())
+		};
 
 		<span class="macro">log::trace!</span>(
 			<span class="ident">target</span>: <span class="string">&quot;crowldoan-rewards-precompile&quot;</span>, <span class="string">&quot;Result from pallet is {:?}  {:?}&quot;</span>,
 			<span class="ident">total</span>, <span class="ident">claimed</span>
 		);
 
-		<span class="prelude-val">Ok</span>(<span class="ident">PrecompileOutput</span> {
-			<span class="ident">exit_status</span>: <span class="ident">ExitSucceed::Returned</span>,
-			<span class="ident">cost</span>: <span class="ident">gasometer</span>.<span class="ident">used_gas</span>(),
-			<span class="ident">output</span>: <span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">total</span>).<span class="ident">write</span>(<span class="ident">claimed</span>).<span class="ident">build</span>(),
-			<span class="ident">logs</span>: <span class="ident">Default::default</span>(),
-		})
+		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>(
+			<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">total</span>).<span class="ident">write</span>(<span class="ident">claimed</span>).<span class="ident">build</span>(),
+		))
 	}
 
-	<span class="kw">fn</span> <span class="ident">claim</span>(<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
+	<span class="kw">fn</span> <span class="ident">claim</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
 		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">pallet_crowdloan_rewards::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::claim</span> {};
 
-		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>, <span class="ident">gasometer</span>)<span class="question-mark">?</span>;
+		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>(<span class="ident">PrecompileOutput</span> {
-			<span class="ident">exit_status</span>: <span class="ident">ExitSucceed::Stopped</span>,
-			<span class="ident">cost</span>: <span class="ident">gasometer</span>.<span class="ident">used_gas</span>(),
-			<span class="ident">output</span>: <span class="ident">Default::default</span>(),
-			<span class="ident">logs</span>: <span class="ident">Default::default</span>(),
-		})
+		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>([]))
 	}
 
-	<span class="kw">fn</span> <span class="ident">update_reward_address</span>(
-		<span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>,
-		<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>,
-		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">update_reward_address</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
 		<span class="macro">log::trace!</span>(
 			<span class="ident">target</span>: <span class="string">&quot;crowdloan-rewards-precompile&quot;</span>,
 			<span class="string">&quot;In update_reward_address dispatchable wrapper&quot;</span>
 		);
 
 		<span class="comment">// Bound check</span>
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="ident">gasometer</span>, <span class="number">1</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_input</span>()<span class="question-mark">?</span>;
+		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
 
 		<span class="comment">// parse the address</span>
-		<span class="kw">let</span> <span class="ident">new_address</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>.<span class="ident">into</span>();
+		<span class="kw">let</span> <span class="ident">new_address</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">into</span>();
 
 		<span class="kw">let</span> <span class="ident">new_reward_account</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">new_address</span>);
 
 		<span class="macro">log::trace!</span>(<span class="ident">target</span>: <span class="string">&quot;crowdloan-rewards-precompile&quot;</span>, <span class="string">&quot;New account is {:?}&quot;</span>, <span class="ident">new_address</span>);
 
-		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
+		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
 		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span>
 			<span class="ident">pallet_crowdloan_rewards::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::update_reward_address</span> { <span class="ident">new_reward_account</span> };
 
-		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>, <span class="ident">gasometer</span>)<span class="question-mark">?</span>;
+		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>(<span class="ident">PrecompileOutput</span> {
-			<span class="ident">exit_status</span>: <span class="ident">ExitSucceed::Stopped</span>,
-			<span class="ident">cost</span>: <span class="ident">gasometer</span>.<span class="ident">used_gas</span>(),
-			<span class="ident">output</span>: <span class="ident">Default::default</span>(),
-			<span class="ident">logs</span>: <span class="ident">Default::default</span>(),
-		})
+		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>([]))
 	}
 }
 </code></pre></div>

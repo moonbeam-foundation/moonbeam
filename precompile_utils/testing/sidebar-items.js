@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["MockHandle","Mock handle to write tests for precompiles."],["PrecompilesTester",""],["Subcall",""],["SubcallOutput",""]],"trait":[["PrecompileTesterExt",""],["SubcallTrait",""]],"type":[["SubcallHandle",""]]});

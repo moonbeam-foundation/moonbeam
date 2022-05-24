@@ -436,108 +436,6 @@
 <span id="431">431</span>
 <span id="432">432</span>
 <span id="433">433</span>
-<span id="434">434</span>
-<span id="435">435</span>
-<span id="436">436</span>
-<span id="437">437</span>
-<span id="438">438</span>
-<span id="439">439</span>
-<span id="440">440</span>
-<span id="441">441</span>
-<span id="442">442</span>
-<span id="443">443</span>
-<span id="444">444</span>
-<span id="445">445</span>
-<span id="446">446</span>
-<span id="447">447</span>
-<span id="448">448</span>
-<span id="449">449</span>
-<span id="450">450</span>
-<span id="451">451</span>
-<span id="452">452</span>
-<span id="453">453</span>
-<span id="454">454</span>
-<span id="455">455</span>
-<span id="456">456</span>
-<span id="457">457</span>
-<span id="458">458</span>
-<span id="459">459</span>
-<span id="460">460</span>
-<span id="461">461</span>
-<span id="462">462</span>
-<span id="463">463</span>
-<span id="464">464</span>
-<span id="465">465</span>
-<span id="466">466</span>
-<span id="467">467</span>
-<span id="468">468</span>
-<span id="469">469</span>
-<span id="470">470</span>
-<span id="471">471</span>
-<span id="472">472</span>
-<span id="473">473</span>
-<span id="474">474</span>
-<span id="475">475</span>
-<span id="476">476</span>
-<span id="477">477</span>
-<span id="478">478</span>
-<span id="479">479</span>
-<span id="480">480</span>
-<span id="481">481</span>
-<span id="482">482</span>
-<span id="483">483</span>
-<span id="484">484</span>
-<span id="485">485</span>
-<span id="486">486</span>
-<span id="487">487</span>
-<span id="488">488</span>
-<span id="489">489</span>
-<span id="490">490</span>
-<span id="491">491</span>
-<span id="492">492</span>
-<span id="493">493</span>
-<span id="494">494</span>
-<span id="495">495</span>
-<span id="496">496</span>
-<span id="497">497</span>
-<span id="498">498</span>
-<span id="499">499</span>
-<span id="500">500</span>
-<span id="501">501</span>
-<span id="502">502</span>
-<span id="503">503</span>
-<span id="504">504</span>
-<span id="505">505</span>
-<span id="506">506</span>
-<span id="507">507</span>
-<span id="508">508</span>
-<span id="509">509</span>
-<span id="510">510</span>
-<span id="511">511</span>
-<span id="512">512</span>
-<span id="513">513</span>
-<span id="514">514</span>
-<span id="515">515</span>
-<span id="516">516</span>
-<span id="517">517</span>
-<span id="518">518</span>
-<span id="519">519</span>
-<span id="520">520</span>
-<span id="521">521</span>
-<span id="522">522</span>
-<span id="523">523</span>
-<span id="524">524</span>
-<span id="525">525</span>
-<span id="526">526</span>
-<span id="527">527</span>
-<span id="528">528</span>
-<span id="529">529</span>
-<span id="530">530</span>
-<span id="531">531</span>
-<span id="532">532</span>
-<span id="533">533</span>
-<span id="534">534</span>
-<span id="535">535</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -559,15 +457,14 @@
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>), <span class="ident">no_std</span>)]</span>
 <span class="attribute">#![<span class="ident">feature</span>(<span class="ident">assert_matches</span>)]</span>
 
-<span class="kw">use</span> <span class="ident">fp_evm</span>::{<span class="ident">Context</span>, <span class="ident">ExitSucceed</span>, <span class="ident">PrecompileOutput</span>};
+<span class="kw">use</span> <span class="ident">fp_evm</span>::{<span class="ident">PrecompileHandle</span>, <span class="ident">PrecompileOutput</span>};
 <span class="kw">use</span> <span class="ident">frame_support::dispatch</span>::{<span class="ident">Dispatchable</span>, <span class="ident">GetDispatchInfo</span>, <span class="ident">PostDispatchInfo</span>};
 <span class="kw">use</span> <span class="ident">frame_support::traits::Currency</span>;
 <span class="kw">use</span> <span class="ident">pallet_democracy</span>::{<span class="ident">AccountVote</span>, <span class="ident">Call</span> <span class="kw">as</span> <span class="ident">DemocracyCall</span>, <span class="ident">Vote</span>};
-<span class="kw">use</span> <span class="ident">pallet_evm::AddressMapping</span>;
-<span class="kw">use</span> <span class="ident">pallet_evm::Precompile</span>;
+<span class="kw">use</span> <span class="ident">pallet_evm</span>::{<span class="ident">AddressMapping</span>, <span class="ident">Precompile</span>};
 <span class="kw">use</span> <span class="ident">precompile_utils</span>::{
-	<span class="ident">Address</span>, <span class="ident">Bytes</span>, <span class="ident">EvmData</span>, <span class="ident">EvmDataReader</span>, <span class="ident">EvmDataWriter</span>, <span class="ident">EvmResult</span>, <span class="ident">FunctionModifier</span>, <span class="ident">Gasometer</span>,
-	<span class="ident">RuntimeHelper</span>,
+	<span class="ident">revert</span>, <span class="ident">succeed</span>, <span class="ident">Address</span>, <span class="ident">Bytes</span>, <span class="ident">EvmData</span>, <span class="ident">EvmDataWriter</span>, <span class="ident">EvmResult</span>, <span class="ident">FunctionModifier</span>,
+	<span class="ident">PrecompileHandleExt</span>, <span class="ident">RuntimeHelper</span>,
 };
 <span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">H160</span>, <span class="ident">H256</span>, <span class="ident">U256</span>};
 <span class="kw">use</span> <span class="ident">sp_std</span>::{
@@ -614,6 +511,7 @@
 <span class="doccomment">/// For an example of a political party that operates as a DAO, see PoliticalPartyDao.sol</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DemocracyWrapper</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>);
 
+<span class="comment">// TODO: Migrate to precompile_utils::Precompile.</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="ident">Precompile</span> <span class="kw">for</span> <span class="ident">DemocracyWrapper</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>
 <span class="kw">where</span>
 	<span class="ident">Runtime</span>: <span class="ident">pallet_democracy::Config</span> <span class="op">+</span> <span class="ident">pallet_evm::Config</span> <span class="op">+</span> <span class="ident">frame_system::Config</span>,
@@ -623,55 +521,42 @@
 	<span class="ident">Runtime::Call</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">DemocracyCall</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 	<span class="ident">Runtime::Hash</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span>,
 {
-	<span class="kw">fn</span> <span class="ident">execute</span>(
-		<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="comment">//Reminder this is big-endian</span>
-		<span class="ident">target_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
-		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
-		<span class="ident">is_static</span>: <span class="ident">bool</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">execute</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
 		<span class="macro">log::trace!</span>(<span class="ident">target</span>: <span class="string">&quot;democracy-precompile&quot;</span>, <span class="string">&quot;In democracy wrapper&quot;</span>);
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">gasometer</span> <span class="op">=</span> <span class="ident">Gasometer::new</span>(<span class="ident">target_gas</span>);
-		<span class="kw">let</span> <span class="ident">gasometer</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">gasometer</span>;
+		<span class="kw">let</span> <span class="ident">selector</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_selector</span>()<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">input</span>, <span class="ident">selector</span>) <span class="op">=</span> <span class="ident">EvmDataReader::new_with_selector</span>(<span class="ident">gasometer</span>, <span class="ident">input</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">input</span>;
-
-		<span class="ident">gasometer</span>.<span class="ident">check_function_modifier</span>(
-			<span class="ident">context</span>,
-			<span class="ident">is_static</span>,
-			<span class="kw">match</span> <span class="ident">selector</span> {
-				<span class="ident">Action::Propose</span>
-				<span class="op">|</span> <span class="ident">Action::Second</span>
-				<span class="op">|</span> <span class="ident">Action::StandardVote</span>
-				<span class="op">|</span> <span class="ident">Action::RemoveVote</span>
-				<span class="op">|</span> <span class="ident">Action::Delegate</span>
-				<span class="op">|</span> <span class="ident">Action::UnDelegate</span>
-				<span class="op">|</span> <span class="ident">Action::Unlock</span>
-				<span class="op">|</span> <span class="ident">Action::NotePreimage</span>
-				<span class="op">|</span> <span class="ident">Action::NoteImminentPreimage</span> =&gt; <span class="ident">FunctionModifier::NonPayable</span>,
-				<span class="kw">_</span> =&gt; <span class="ident">FunctionModifier::View</span>,
-			},
-		)<span class="question-mark">?</span>;
+		<span class="ident">handle</span>.<span class="ident">check_function_modifier</span>(<span class="kw">match</span> <span class="ident">selector</span> {
+			<span class="ident">Action::Propose</span>
+			<span class="op">|</span> <span class="ident">Action::Second</span>
+			<span class="op">|</span> <span class="ident">Action::StandardVote</span>
+			<span class="op">|</span> <span class="ident">Action::RemoveVote</span>
+			<span class="op">|</span> <span class="ident">Action::Delegate</span>
+			<span class="op">|</span> <span class="ident">Action::UnDelegate</span>
+			<span class="op">|</span> <span class="ident">Action::Unlock</span>
+			<span class="op">|</span> <span class="ident">Action::NotePreimage</span>
+			<span class="op">|</span> <span class="ident">Action::NoteImminentPreimage</span> =&gt; <span class="ident">FunctionModifier::NonPayable</span>,
+			<span class="kw">_</span> =&gt; <span class="ident">FunctionModifier::View</span>,
+		})<span class="question-mark">?</span>;
 
 		<span class="kw">match</span> <span class="ident">selector</span> {
 			<span class="comment">// Storage Accessors</span>
-			<span class="ident">Action::PublicPropCount</span> =&gt; <span class="ident"><span class="self">Self</span>::public_prop_count</span>(<span class="ident">gasometer</span>),
-			<span class="ident">Action::DepositOf</span> =&gt; <span class="ident"><span class="self">Self</span>::deposit_of</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>),
-			<span class="ident">Action::LowestUnbaked</span> =&gt; <span class="ident"><span class="self">Self</span>::lowest_unbaked</span>(<span class="ident">gasometer</span>),
-			<span class="ident">Action::OngoingReferendumInfo</span> =&gt; <span class="ident"><span class="self">Self</span>::ongoing_referendum_info</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>),
-			<span class="ident">Action::FinishedReferendumInfo</span> =&gt; <span class="ident"><span class="self">Self</span>::finished_referendum_info</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>),
+			<span class="ident">Action::PublicPropCount</span> =&gt; <span class="ident"><span class="self">Self</span>::public_prop_count</span>(<span class="ident">handle</span>),
+			<span class="ident">Action::DepositOf</span> =&gt; <span class="ident"><span class="self">Self</span>::deposit_of</span>(<span class="ident">handle</span>),
+			<span class="ident">Action::LowestUnbaked</span> =&gt; <span class="ident"><span class="self">Self</span>::lowest_unbaked</span>(<span class="ident">handle</span>),
+			<span class="ident">Action::OngoingReferendumInfo</span> =&gt; <span class="ident"><span class="self">Self</span>::ongoing_referendum_info</span>(<span class="ident">handle</span>),
+			<span class="ident">Action::FinishedReferendumInfo</span> =&gt; <span class="ident"><span class="self">Self</span>::finished_referendum_info</span>(<span class="ident">handle</span>),
 
 			<span class="comment">// Dispatchables</span>
-			<span class="ident">Action::Propose</span> =&gt; <span class="ident"><span class="self">Self</span>::propose</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>, <span class="ident">context</span>),
-			<span class="ident">Action::Second</span> =&gt; <span class="ident"><span class="self">Self</span>::second</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>, <span class="ident">context</span>),
-			<span class="ident">Action::StandardVote</span> =&gt; <span class="ident"><span class="self">Self</span>::standard_vote</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>, <span class="ident">context</span>),
-			<span class="ident">Action::RemoveVote</span> =&gt; <span class="ident"><span class="self">Self</span>::remove_vote</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>, <span class="ident">context</span>),
-			<span class="ident">Action::Delegate</span> =&gt; <span class="ident"><span class="self">Self</span>::delegate</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>, <span class="ident">context</span>),
-			<span class="ident">Action::UnDelegate</span> =&gt; <span class="ident"><span class="self">Self</span>::un_delegate</span>(<span class="ident">gasometer</span>, <span class="ident">context</span>),
-			<span class="ident">Action::Unlock</span> =&gt; <span class="ident"><span class="self">Self</span>::unlock</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>, <span class="ident">context</span>),
-			<span class="ident">Action::NotePreimage</span> =&gt; <span class="ident"><span class="self">Self</span>::note_preimage</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>, <span class="ident">context</span>),
-			<span class="ident">Action::NoteImminentPreimage</span> =&gt; <span class="ident"><span class="self">Self</span>::note_imminent_preimage</span>(<span class="ident">input</span>, <span class="ident">gasometer</span>, <span class="ident">context</span>),
+			<span class="ident">Action::Propose</span> =&gt; <span class="ident"><span class="self">Self</span>::propose</span>(<span class="ident">handle</span>),
+			<span class="ident">Action::Second</span> =&gt; <span class="ident"><span class="self">Self</span>::second</span>(<span class="ident">handle</span>),
+			<span class="ident">Action::StandardVote</span> =&gt; <span class="ident"><span class="self">Self</span>::standard_vote</span>(<span class="ident">handle</span>),
+			<span class="ident">Action::RemoveVote</span> =&gt; <span class="ident"><span class="self">Self</span>::remove_vote</span>(<span class="ident">handle</span>),
+			<span class="ident">Action::Delegate</span> =&gt; <span class="ident"><span class="self">Self</span>::delegate</span>(<span class="ident">handle</span>),
+			<span class="ident">Action::UnDelegate</span> =&gt; <span class="ident"><span class="self">Self</span>::un_delegate</span>(<span class="ident">handle</span>),
+			<span class="ident">Action::Unlock</span> =&gt; <span class="ident"><span class="self">Self</span>::unlock</span>(<span class="ident">handle</span>),
+			<span class="ident">Action::NotePreimage</span> =&gt; <span class="ident"><span class="self">Self</span>::note_preimage</span>(<span class="ident">handle</span>),
+			<span class="ident">Action::NoteImminentPreimage</span> =&gt; <span class="ident"><span class="self">Self</span>::note_imminent_preimage</span>(<span class="ident">handle</span>),
 		}
 	}
 }
@@ -686,33 +571,25 @@
 	<span class="ident">Runtime::Hash</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span>,
 {
 	<span class="comment">// The accessors are first. They directly return their result.</span>
-
-	<span class="kw">fn</span> <span class="ident">public_prop_count</span>(<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">public_prop_count</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
 		<span class="comment">// Fetch data from pallet</span>
-		<span class="ident">gasometer</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
+		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
 		<span class="kw">let</span> <span class="ident">prop_count</span> <span class="op">=</span> <span class="ident">DemocracyOf</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::public_prop_count</span>();
 		<span class="macro">log::trace!</span>(<span class="ident">target</span>: <span class="string">&quot;democracy-precompile&quot;</span>, <span class="string">&quot;Prop count from pallet is {:?}&quot;</span>, <span class="ident">prop_count</span>);
 
-		<span class="prelude-val">Ok</span>(<span class="ident">PrecompileOutput</span> {
-			<span class="ident">exit_status</span>: <span class="ident">ExitSucceed::Returned</span>,
-			<span class="ident">cost</span>: <span class="ident">gasometer</span>.<span class="ident">used_gas</span>(),
-			<span class="ident">output</span>: <span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">prop_count</span>).<span class="ident">build</span>(),
-			<span class="ident">logs</span>: <span class="ident">Default::default</span>(),
-		})
+		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>(<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">prop_count</span>).<span class="ident">build</span>()))
 	}
 
-	<span class="kw">fn</span> <span class="ident">deposit_of</span>(
-		<span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>,
-		<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">deposit_of</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_input</span>()<span class="question-mark">?</span>;
 		<span class="comment">// Bound check</span>
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="ident">gasometer</span>, <span class="number">1</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">prop_index</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>;
+		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">prop_index</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
 
 		<span class="comment">// Fetch data from pallet</span>
-		<span class="ident">gasometer</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
+		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
 		<span class="kw">let</span> <span class="ident">deposit</span> <span class="op">=</span> <span class="ident">DemocracyOf</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::deposit_of</span>(<span class="ident">prop_index</span>)
-			.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">gasometer</span>.<span class="ident">revert</span>(<span class="string">&quot;No such proposal in pallet democracy&quot;</span>))<span class="question-mark">?</span>
+			.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">revert</span>(<span class="string">&quot;No such proposal in pallet democracy&quot;</span>))<span class="question-mark">?</span>
 			.<span class="number">1</span>;
 
 		<span class="macro">log::trace!</span>(
@@ -720,40 +597,28 @@
 			<span class="string">&quot;Deposit of proposal {:?} is {:?}&quot;</span>, <span class="ident">prop_index</span>, <span class="ident">deposit</span>
 		);
 
-		<span class="prelude-val">Ok</span>(<span class="ident">PrecompileOutput</span> {
-			<span class="ident">exit_status</span>: <span class="ident">ExitSucceed::Returned</span>,
-			<span class="ident">cost</span>: <span class="ident">gasometer</span>.<span class="ident">used_gas</span>(),
-			<span class="ident">output</span>: <span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">deposit</span>).<span class="ident">build</span>(),
-			<span class="ident">logs</span>: <span class="ident">Default::default</span>(),
-		})
+		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>(<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">deposit</span>).<span class="ident">build</span>()))
 	}
 
-	<span class="kw">fn</span> <span class="ident">lowest_unbaked</span>(<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">lowest_unbaked</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
 		<span class="comment">// Fetch data from pallet</span>
-		<span class="ident">gasometer</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
+		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
 		<span class="kw">let</span> <span class="ident">lowest_unbaked</span> <span class="op">=</span> <span class="ident">DemocracyOf</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::lowest_unbaked</span>();
 		<span class="macro">log::trace!</span>(
 			<span class="ident">target</span>: <span class="string">&quot;democracy-precompile&quot;</span>,
 			<span class="string">&quot;lowest unbaked referendum is {:?}&quot;</span>, <span class="ident">lowest_unbaked</span>
 		);
 
-		<span class="prelude-val">Ok</span>(<span class="ident">PrecompileOutput</span> {
-			<span class="ident">exit_status</span>: <span class="ident">ExitSucceed::Returned</span>,
-			<span class="ident">cost</span>: <span class="ident">gasometer</span>.<span class="ident">used_gas</span>(),
-			<span class="ident">output</span>: <span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">lowest_unbaked</span>).<span class="ident">build</span>(),
-			<span class="ident">logs</span>: <span class="ident">Default::default</span>(),
-		})
+		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>(<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">lowest_unbaked</span>).<span class="ident">build</span>()))
 	}
 
 	<span class="comment">// This method is not yet implemented because it depends on</span>
 	<span class="comment">// https://github.com/paritytech/substrate/pull/9565 which has been merged into Substrate</span>
 	<span class="comment">// master, but is not on the release branches that we are following</span>
-	<span class="kw">fn</span> <span class="ident">ongoing_referendum_info</span>(
-		<span class="ident">_input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>,
-		<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="prelude-val">Err</span>(<span class="ident">gasometer</span>
-			.<span class="ident">revert</span>(<span class="string">&quot;This method depends on https://github.com/paritytech/substrate/pull/9565&quot;</span>))
+	<span class="kw">fn</span> <span class="ident">ongoing_referendum_info</span>(<span class="ident">_handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+		<span class="prelude-val">Err</span>(<span class="ident">revert</span>(
+			<span class="string">&quot;This method depends on https://github.com/paritytech/substrate/pull/9565&quot;</span>,
+		))
 		<span class="comment">// let mut gasometer = Gasometer::new(target_gas);</span>
 
 		<span class="comment">// // Bound check</span>
@@ -801,93 +666,74 @@
 	<span class="comment">// https://github.com/paritytech/substrate/pull/9565 which has been merged into Substrate</span>
 	<span class="comment">// master, but is not on the release branches that we are following</span>
 	<span class="kw">fn</span> <span class="ident">finished_referendum_info</span>(
-		<span class="ident">_input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>,
-		<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>,
+		<span class="ident">_handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
 	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="prelude-val">Err</span>(<span class="ident">gasometer</span>
-			.<span class="ident">revert</span>(<span class="string">&quot;This method depends on https://github.com/paritytech/substrate/pull/9565&quot;</span>))
+		<span class="prelude-val">Err</span>(<span class="ident">revert</span>(
+			<span class="string">&quot;This method depends on https://github.com/paritytech/substrate/pull/9565&quot;</span>,
+		))
 	}
 
 	<span class="comment">// The dispatchable wrappers are next. They dispatch a Substrate inner Call.</span>
-	<span class="kw">fn</span> <span class="ident">propose</span>(
-		<span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>,
-		<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>,
-		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">propose</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_input</span>()<span class="question-mark">?</span>;
 		<span class="comment">// Bound check</span>
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="ident">gasometer</span>, <span class="number">2</span>)<span class="question-mark">?</span>;
+		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">2</span>)<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">proposal_hash</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>.<span class="ident">into</span>();
-		<span class="kw">let</span> <span class="ident">amount</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">proposal_hash</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">into</span>();
+		<span class="kw">let</span> <span class="ident">amount</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
 
 		<span class="macro">log::trace!</span>(
 			<span class="ident">target</span>: <span class="string">&quot;democracy-precompile&quot;</span>,
 			<span class="string">&quot;Proposing with hash {:?}, and amount {:?}&quot;</span>, <span class="ident">proposal_hash</span>, <span class="ident">amount</span>
 		);
 
-		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
+		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
 		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">DemocracyCall</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::propose</span> {
 			<span class="ident">proposal_hash</span>,
 			<span class="ident">value</span>: <span class="ident">amount</span>,
 		};
 
-		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>, <span class="ident">gasometer</span>)<span class="question-mark">?</span>;
+		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>(<span class="ident">PrecompileOutput</span> {
-			<span class="ident">exit_status</span>: <span class="ident">ExitSucceed::Stopped</span>,
-			<span class="ident">cost</span>: <span class="ident">gasometer</span>.<span class="ident">used_gas</span>(),
-			<span class="ident">output</span>: <span class="ident">Default::default</span>(),
-			<span class="ident">logs</span>: <span class="ident">Default::default</span>(),
-		})
+		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>([]))
 	}
 
-	<span class="kw">fn</span> <span class="ident">second</span>(
-		<span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>,
-		<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>,
-		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">second</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_input</span>()<span class="question-mark">?</span>;
 		<span class="comment">// Bound check</span>
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="ident">gasometer</span>, <span class="number">2</span>)<span class="question-mark">?</span>;
+		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">2</span>)<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">proposal</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">seconds_upper_bound</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">proposal</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">seconds_upper_bound</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
 
 		<span class="macro">log::trace!</span>(
 			<span class="ident">target</span>: <span class="string">&quot;democracy-precompile&quot;</span>,
 			<span class="string">&quot;Seconding proposal {:?}, with bound {:?}&quot;</span>, <span class="ident">proposal</span>, <span class="ident">seconds_upper_bound</span>
 		);
 
-		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
+		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
 		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">DemocracyCall</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::second</span> {
 			<span class="ident">proposal</span>,
 			<span class="ident">seconds_upper_bound</span>,
 		};
 
-		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>, <span class="ident">gasometer</span>)<span class="question-mark">?</span>;
+		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>(<span class="ident">PrecompileOutput</span> {
-			<span class="ident">exit_status</span>: <span class="ident">ExitSucceed::Stopped</span>,
-			<span class="ident">cost</span>: <span class="ident">gasometer</span>.<span class="ident">used_gas</span>(),
-			<span class="ident">output</span>: <span class="ident">Default::default</span>(),
-			<span class="ident">logs</span>: <span class="ident">Default::default</span>(),
-		})
+		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>([]))
 	}
 
-	<span class="kw">fn</span> <span class="ident">standard_vote</span>(
-		<span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>,
-		<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>,
-		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">standard_vote</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_input</span>()<span class="question-mark">?</span>;
 		<span class="comment">// Bound check</span>
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="ident">gasometer</span>, <span class="number">4</span>)<span class="question-mark">?</span>;
+		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">4</span>)<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">ref_index</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">aye</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">balance</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">ref_index</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">aye</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">balance</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
 		<span class="kw">let</span> <span class="ident">conviction</span> <span class="op">=</span> <span class="ident">input</span>
-			.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>
+			.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>()<span class="question-mark">?</span>
 			.<span class="ident">try_into</span>()
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">gasometer</span>.<span class="ident">revert</span>(<span class="string">&quot;Conviction must be an integer in the range 0-6&quot;</span>))<span class="question-mark">?</span>;
+			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">revert</span>(<span class="string">&quot;Conviction must be an integer in the range 0-6&quot;</span>))<span class="question-mark">?</span>;
 		<span class="kw">let</span> <span class="ident">vote</span> <span class="op">=</span> <span class="ident">AccountVote::Standard</span> {
 			<span class="ident">vote</span>: <span class="ident">Vote</span> { <span class="ident">aye</span>, <span class="ident">conviction</span> },
 			<span class="ident">balance</span>,
@@ -898,28 +744,20 @@
 			<span class="ident">aye</span>, <span class="ident">ref_index</span>, <span class="ident">conviction</span>
 		);
 
-		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
+		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
 		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">DemocracyCall</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::vote</span> { <span class="ident">ref_index</span>, <span class="ident">vote</span> };
 
-		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>, <span class="ident">gasometer</span>)<span class="question-mark">?</span>;
+		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>(<span class="ident">PrecompileOutput</span> {
-			<span class="ident">exit_status</span>: <span class="ident">ExitSucceed::Stopped</span>,
-			<span class="ident">cost</span>: <span class="ident">gasometer</span>.<span class="ident">used_gas</span>(),
-			<span class="ident">output</span>: <span class="ident">Default::default</span>(),
-			<span class="ident">logs</span>: <span class="ident">Default::default</span>(),
-		})
+		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>([]))
 	}
 
-	<span class="kw">fn</span> <span class="ident">remove_vote</span>(
-		<span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>,
-		<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>,
-		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">remove_vote</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_input</span>()<span class="question-mark">?</span>;
 		<span class="comment">// Bound check</span>
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="ident">gasometer</span>, <span class="number">1</span>)<span class="question-mark">?</span>;
+		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">referendum_index</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">referendum_index</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
 
 		<span class="macro">log::trace!</span>(
 			<span class="ident">target</span>: <span class="string">&quot;democracy-precompile&quot;</span>,
@@ -927,82 +765,61 @@
 			<span class="ident">referendum_index</span>
 		);
 
-		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
+		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
 		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">DemocracyCall</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::remove_vote</span> {
 			<span class="ident">index</span>: <span class="ident">referendum_index</span>,
 		};
 
-		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>, <span class="ident">gasometer</span>)<span class="question-mark">?</span>;
+		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>(<span class="ident">PrecompileOutput</span> {
-			<span class="ident">exit_status</span>: <span class="ident">ExitSucceed::Stopped</span>,
-			<span class="ident">cost</span>: <span class="ident">gasometer</span>.<span class="ident">used_gas</span>(),
-			<span class="ident">output</span>: <span class="ident">Default::default</span>(),
-			<span class="ident">logs</span>: <span class="ident">Default::default</span>(),
-		})
+		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>([]))
 	}
 
-	<span class="kw">fn</span> <span class="ident">delegate</span>(
-		<span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>,
-		<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>,
-		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">delegate</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_input</span>()<span class="question-mark">?</span>;
 		<span class="comment">// Bound check</span>
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="ident">gasometer</span>, <span class="number">3</span>)<span class="question-mark">?</span>;
+		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">3</span>)<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">to</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>.<span class="ident">into</span>();
+		<span class="kw">let</span> <span class="ident">to</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">into</span>();
 		<span class="kw">let</span> <span class="ident">to</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">to</span>);
 		<span class="kw">let</span> <span class="ident">conviction</span> <span class="op">=</span> <span class="ident">input</span>
-			.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>
+			.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>()<span class="question-mark">?</span>
 			.<span class="ident">try_into</span>()
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">gasometer</span>.<span class="ident">revert</span>(<span class="string">&quot;Conviction must be an integer in the range 0-6&quot;</span>))<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">balance</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>;
+			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">revert</span>(<span class="string">&quot;Conviction must be an integer in the range 0-6&quot;</span>))<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">balance</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
 
 		<span class="macro">log::trace!</span>(<span class="ident">target</span>: <span class="string">&quot;democracy-precompile&quot;</span>,
 			<span class="string">&quot;Delegating vote to {:?} with balance {:?} and {:?}&quot;</span>,
 			<span class="ident">to</span>, <span class="ident">conviction</span>, <span class="ident">balance</span>
 		);
 
-		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
+		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
 		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">DemocracyCall</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::delegate</span> {
 			<span class="ident">to</span>,
 			<span class="ident">conviction</span>,
 			<span class="ident">balance</span>,
 		};
 
-		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>, <span class="ident">gasometer</span>)<span class="question-mark">?</span>;
+		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>(<span class="ident">PrecompileOutput</span> {
-			<span class="ident">exit_status</span>: <span class="ident">ExitSucceed::Stopped</span>,
-			<span class="ident">cost</span>: <span class="ident">gasometer</span>.<span class="ident">used_gas</span>(),
-			<span class="ident">output</span>: <span class="ident">Default::default</span>(),
-			<span class="ident">logs</span>: <span class="ident">Default::default</span>(),
-		})
+		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>([]))
 	}
 
-	<span class="kw">fn</span> <span class="ident">un_delegate</span>(<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
+	<span class="kw">fn</span> <span class="ident">un_delegate</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
 		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">DemocracyCall</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::undelegate</span> {};
 
-		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>, <span class="ident">gasometer</span>)<span class="question-mark">?</span>;
+		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>(<span class="ident">PrecompileOutput</span> {
-			<span class="ident">exit_status</span>: <span class="ident">ExitSucceed::Stopped</span>,
-			<span class="ident">cost</span>: <span class="ident">gasometer</span>.<span class="ident">used_gas</span>(),
-			<span class="ident">output</span>: <span class="ident">Default::default</span>(),
-			<span class="ident">logs</span>: <span class="ident">Default::default</span>(),
-		})
+		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>([]))
 	}
 
-	<span class="kw">fn</span> <span class="ident">unlock</span>(
-		<span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>,
-		<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>,
-		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">unlock</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_input</span>()<span class="question-mark">?</span>;
 		<span class="comment">// Bound check</span>
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="ident">gasometer</span>, <span class="number">1</span>)<span class="question-mark">?</span>;
+		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">target</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>.<span class="ident">into</span>();
+		<span class="kw">let</span> <span class="ident">target</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">into</span>();
 		<span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">target</span>);
 
 		<span class="macro">log::trace!</span>(
@@ -1010,67 +827,46 @@
 			<span class="string">&quot;Unlocking democracy tokens for {:?}&quot;</span>, <span class="ident">target</span>
 		);
 
-		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
+		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
 		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">DemocracyCall</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::unlock</span> { <span class="ident">target</span> };
 
-		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>, <span class="ident">gasometer</span>)<span class="question-mark">?</span>;
+		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>(<span class="ident">PrecompileOutput</span> {
-			<span class="ident">exit_status</span>: <span class="ident">ExitSucceed::Stopped</span>,
-			<span class="ident">cost</span>: <span class="ident">gasometer</span>.<span class="ident">used_gas</span>(),
-			<span class="ident">output</span>: <span class="ident">Default::default</span>(),
-			<span class="ident">logs</span>: <span class="ident">Default::default</span>(),
-		})
+		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>([]))
 	}
 
-	<span class="kw">fn</span> <span class="ident">note_preimage</span>(
-		<span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>,
-		<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>,
-		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">encoded_proposal</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Bytes</span><span class="op">&gt;</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>.<span class="ident">into</span>();
+	<span class="kw">fn</span> <span class="ident">note_preimage</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_input</span>()<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">encoded_proposal</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Bytes</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">into</span>();
 
 		<span class="macro">log::trace!</span>(
 			<span class="ident">target</span>: <span class="string">&quot;democracy-precompile&quot;</span>,
 			<span class="string">&quot;Noting preimage {:?}&quot;</span>, <span class="ident">encoded_proposal</span>
 		);
 
-		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
+		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
 		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">DemocracyCall</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::note_preimage</span> { <span class="ident">encoded_proposal</span> };
 
-		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>, <span class="ident">gasometer</span>)<span class="question-mark">?</span>;
+		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>(<span class="ident">PrecompileOutput</span> {
-			<span class="ident">exit_status</span>: <span class="ident">ExitSucceed::Stopped</span>,
-			<span class="ident">cost</span>: <span class="ident">gasometer</span>.<span class="ident">used_gas</span>(),
-			<span class="ident">output</span>: <span class="ident">Default::default</span>(),
-			<span class="ident">logs</span>: <span class="ident">Default::default</span>(),
-		})
+		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>([]))
 	}
 
-	<span class="kw">fn</span> <span class="ident">note_imminent_preimage</span>(
-		<span class="ident">input</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>,
-		<span class="ident">gasometer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Gasometer</span>,
-		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">encoded_proposal</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Bytes</span><span class="op">&gt;</span>(<span class="ident">gasometer</span>)<span class="question-mark">?</span>.<span class="ident">into</span>();
+	<span class="kw">fn</span> <span class="ident">note_imminent_preimage</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_input</span>()<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">encoded_proposal</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Bytes</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">into</span>();
 
 		<span class="macro">log::trace!</span>(
 			<span class="ident">target</span>: <span class="string">&quot;democracy-precompile&quot;</span>,
 			<span class="string">&quot;Noting imminent preimage {:?}&quot;</span>, <span class="ident">encoded_proposal</span>
 		);
 
-		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">context</span>.<span class="ident">caller</span>);
+		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
 		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">DemocracyCall</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::note_imminent_preimage</span> { <span class="ident">encoded_proposal</span> };
 
-		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>, <span class="ident">gasometer</span>)<span class="question-mark">?</span>;
+		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>(<span class="ident">PrecompileOutput</span> {
-			<span class="ident">exit_status</span>: <span class="ident">ExitSucceed::Stopped</span>,
-			<span class="ident">cost</span>: <span class="ident">gasometer</span>.<span class="ident">used_gas</span>(),
-			<span class="ident">output</span>: <span class="ident">Default::default</span>(),
-			<span class="ident">logs</span>: <span class="ident">Default::default</span>(),
-		})
+		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>([]))
 	}
 }
 </code></pre></div>
