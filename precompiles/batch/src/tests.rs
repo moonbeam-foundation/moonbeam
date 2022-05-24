@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::mock::{
-	balance, setup_revert_contract,
+	balance,
 	Account::{Alice, Bob, Charlie, David, Precompile, Revert},
 	Call, ExtBuilder, Origin, PrecompilesValue, Runtime, TestPrecompiles,
 };
@@ -822,8 +822,6 @@ fn evm_batch_some_contract_revert() {
 		.with_balances(vec![(Alice, 10_000)])
 		.build()
 		.execute_with(|| {
-			setup_revert_contract();
-
 			assert_ok!(Call::Evm(evm_call(
 				Alice,
 				EvmDataWriter::new_with_selector(Action::BatchSome)
@@ -857,8 +855,6 @@ fn evm_batch_some_until_failure_contract_revert() {
 		.with_balances(vec![(Alice, 10_000)])
 		.build()
 		.execute_with(|| {
-			setup_revert_contract();
-
 			assert_ok!(Call::Evm(evm_call(
 				Alice,
 				EvmDataWriter::new_with_selector(Action::BatchSomeUntilFailure)
@@ -892,8 +888,6 @@ fn evm_batch_all_contract_revert() {
 		.with_balances(vec![(Alice, 10_000)])
 		.build()
 		.execute_with(|| {
-			setup_revert_contract();
-
 			assert_ok!(Call::Evm(evm_call(
 				Alice,
 				EvmDataWriter::new_with_selector(Action::BatchAll)

@@ -250,35 +250,17 @@ impl ExtBuilder {
 		.expect("Pallet balances storage can be assimilated");
 
 		let mut ext = sp_io::TestExternalities::new(t);
-		ext.execute_with(|| System::set_block_number(1));
+		ext.execute_with(|| {
+			System::set_block_number(1);
+			pallet_evm::Pallet::<Runtime>::create_account(
+				Account::Revert.into(),
+				hex_literal::hex!("1460006000fd").to_vec(),
+			);
+		});
 		ext
 	}
-}
-
-pub(crate) fn setup_revert_contract() {
-	pallet_evm::Pallet::<Runtime>::create_account(
-		Account::Revert.into(),
-		hex_literal::hex!("1460006000fd").to_vec(),
-	);
 }
 
 pub fn balance(account: impl Into<Account>) -> Balance {
 	pallet_balances::Pallet::<Runtime>::usable_balance(account.into())
 }
-
-// pub(crate) fn roll_to(n: u64) {
-// 	while System::block_number() < n {
-// 		Balances::on_finalize(System::block_number());
-// 		System::on_finalize(System::block_number());
-// 		System::set_block_number(System::block_number() + 1);
-// 		System::on_initialize(System::block_number());
-// 		Balances::on_initialize(System::block_number());
-// 	}
-// }
-
-// pub(crate) fn events() -> Vec<Event> {
-// 	System::events()
-// 		.into_iter()
-// 		.map(|r| r.event)
-// 		.collect::<Vec<_>>()
-// }
