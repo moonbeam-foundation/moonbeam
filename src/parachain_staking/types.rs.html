@@ -1548,42 +1548,6 @@
 <span id="1543">1543</span>
 <span id="1544">1544</span>
 <span id="1545">1545</span>
-<span id="1546">1546</span>
-<span id="1547">1547</span>
-<span id="1548">1548</span>
-<span id="1549">1549</span>
-<span id="1550">1550</span>
-<span id="1551">1551</span>
-<span id="1552">1552</span>
-<span id="1553">1553</span>
-<span id="1554">1554</span>
-<span id="1555">1555</span>
-<span id="1556">1556</span>
-<span id="1557">1557</span>
-<span id="1558">1558</span>
-<span id="1559">1559</span>
-<span id="1560">1560</span>
-<span id="1561">1561</span>
-<span id="1562">1562</span>
-<span id="1563">1563</span>
-<span id="1564">1564</span>
-<span id="1565">1565</span>
-<span id="1566">1566</span>
-<span id="1567">1567</span>
-<span id="1568">1568</span>
-<span id="1569">1569</span>
-<span id="1570">1570</span>
-<span id="1571">1571</span>
-<span id="1572">1572</span>
-<span id="1573">1573</span>
-<span id="1574">1574</span>
-<span id="1575">1575</span>
-<span id="1576">1576</span>
-<span id="1577">1577</span>
-<span id="1578">1578</span>
-<span id="1579">1579</span>
-<span id="1580">1580</span>
-<span id="1581">1581</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -2787,8 +2751,6 @@
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">DelegatorStatus</span> {
 	<span class="doccomment">/// Active with no scheduled exit</span>
 	<span class="ident">Active</span>,
-	<span class="doccomment">/// Schedule exit to revoke all ongoing delegations</span>
-	<span class="ident">Leaving</span>(<span class="ident">RoundIndex</span>),
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">RuntimeDebug</span>, <span class="ident">TypeInfo</span>)]</span>
@@ -2864,41 +2826,7 @@
 	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_active</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
 		<span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">status</span>, <span class="ident">DelegatorStatus::Active</span>)
 	}
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_leaving</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-		<span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">status</span>, <span class="ident">DelegatorStatus::Leaving</span>(<span class="kw">_</span>))
-	}
-	<span class="doccomment">/// Can only leave if the current round is less than or equal to scheduled execution round</span>
-	<span class="doccomment">/// - returns None if not in leaving state</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">can_execute_leave</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">delegation_weight_hint</span>: <span class="ident">u32</span>) -&gt; <span class="ident">DispatchResult</span> {
-		<span class="macro">ensure!</span>(
-			<span class="ident">delegation_weight_hint</span> <span class="op">&gt;</span><span class="op">=</span> (<span class="self">self</span>.<span class="ident">delegations</span>.<span class="number">0</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>),
-			<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::TooLowDelegationCountToLeaveDelegators</span>
-		);
-		<span class="kw">if</span> <span class="kw">let</span> <span class="ident">DelegatorStatus::Leaving</span>(<span class="ident">when</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">status</span> {
-			<span class="macro">ensure!</span>(
-				<span class="op">&lt;</span><span class="ident">Round</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>().<span class="ident">current</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">when</span>,
-				<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::DelegatorCannotLeaveYet</span>
-			);
-			<span class="prelude-val">Ok</span>(())
-		} <span class="kw">else</span> {
-			<span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::DelegatorNotLeaving</span>.<span class="ident">into</span>())
-		}
-	}
-	<span class="doccomment">/// Set status to leaving</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_leaving</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">when</span>: <span class="ident">RoundIndex</span>) {
-		<span class="self">self</span>.<span class="ident">status</span> <span class="op">=</span> <span class="ident">DelegatorStatus::Leaving</span>(<span class="ident">when</span>);
-	}
-	<span class="doccomment">/// Schedule status to exit</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">schedule_leave</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; (<span class="ident">RoundIndex</span>, <span class="ident">RoundIndex</span>) {
-		<span class="kw">let</span> <span class="ident">now</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Round</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>().<span class="ident">current</span>;
-		<span class="kw">let</span> <span class="ident">when</span> <span class="op">=</span> <span class="ident">now</span> <span class="op">+</span> <span class="ident">T::LeaveDelegatorsDelay::get</span>();
-		<span class="self">self</span>.<span class="ident">set_leaving</span>(<span class="ident">when</span>);
-		(<span class="ident">now</span>, <span class="ident">when</span>)
-	}
-	<span class="doccomment">/// Set delegator status to active</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cancel_leave</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-		<span class="self">self</span>.<span class="ident">status</span> <span class="op">=</span> <span class="ident">DelegatorStatus::Active</span>
-	}
+
 	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_delegation</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">bond</span>: <span class="ident">Bond</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">Balance</span><span class="op">&gt;</span>) -&gt; <span class="ident">bool</span> {
 		<span class="kw">let</span> <span class="ident">amt</span> <span class="op">=</span> <span class="ident">bond</span>.<span class="ident">amount</span>;
 		<span class="kw">if</span> <span class="self">self</span>.<span class="ident">delegations</span>.<span class="ident">insert</span>(<span class="ident">bond</span>) {

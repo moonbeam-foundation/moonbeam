@@ -1667,45 +1667,6 @@
 <span id="1662">1662</span>
 <span id="1663">1663</span>
 <span id="1664">1664</span>
-<span id="1665">1665</span>
-<span id="1666">1666</span>
-<span id="1667">1667</span>
-<span id="1668">1668</span>
-<span id="1669">1669</span>
-<span id="1670">1670</span>
-<span id="1671">1671</span>
-<span id="1672">1672</span>
-<span id="1673">1673</span>
-<span id="1674">1674</span>
-<span id="1675">1675</span>
-<span id="1676">1676</span>
-<span id="1677">1677</span>
-<span id="1678">1678</span>
-<span id="1679">1679</span>
-<span id="1680">1680</span>
-<span id="1681">1681</span>
-<span id="1682">1682</span>
-<span id="1683">1683</span>
-<span id="1684">1684</span>
-<span id="1685">1685</span>
-<span id="1686">1686</span>
-<span id="1687">1687</span>
-<span id="1688">1688</span>
-<span id="1689">1689</span>
-<span id="1690">1690</span>
-<span id="1691">1691</span>
-<span id="1692">1692</span>
-<span id="1693">1693</span>
-<span id="1694">1694</span>
-<span id="1695">1695</span>
-<span id="1696">1696</span>
-<span id="1697">1697</span>
-<span id="1698">1698</span>
-<span id="1699">1699</span>
-<span id="1700">1700</span>
-<span id="1701">1701</span>
-<span id="1702">1702</span>
-<span id="1703">1703</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -2869,7 +2830,6 @@
 				<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::InsufficientBalance</span>
 			);
 			<span class="kw">let</span> <span class="ident">delegator_state</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">state</span>) <span class="op">=</span> <span class="op">&lt;</span><span class="ident">DelegatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">delegator</span>) {
-				<span class="macro">ensure!</span>(<span class="ident">state</span>.<span class="ident">is_active</span>(), <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::CannotDelegateIfLeaving</span>);
 				<span class="comment">// delegation after first</span>
 				<span class="macro">ensure!</span>(
 					<span class="ident">amount</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">T::MinDelegation::get</span>(),
@@ -2933,21 +2893,12 @@
 			<span class="prelude-val">Ok</span>(().<span class="ident">into</span>())
 		}
 		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span><span class="ident">::WeightInfo::schedule_leave_delegators</span>())]</span>
-		<span class="doccomment">/// Request to leave the set of delegators. If successful, the caller is scheduled</span>
-		<span class="doccomment">/// to be allowed to exit. Success forbids future delegator actions until the request is</span>
-		<span class="doccomment">/// invoked or cancelled.</span>
+		<span class="doccomment">/// Request to leave the set of delegators. If successful, the caller is scheduled to be</span>
+		<span class="doccomment">/// allowed to exit via a [DelegationAction::Revoke] towards all existing delegations.</span>
+		<span class="doccomment">/// Success forbids future delegation requests until the request is invoked or cancelled.</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">schedule_leave_delegators</span>(<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="ident">DispatchResultWithPostInfo</span> {
-			<span class="kw">let</span> <span class="ident">acc</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
-			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">DelegatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">acc</span>).<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::DelegatorDNE</span>)<span class="question-mark">?</span>;
-			<span class="macro">ensure!</span>(<span class="op">!</span><span class="ident">state</span>.<span class="ident">is_leaving</span>(), <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::DelegatorAlreadyLeaving</span>);
-			<span class="kw">let</span> (<span class="ident">now</span>, <span class="ident">when</span>) <span class="op">=</span> <span class="ident">state</span>.<span class="ident">schedule_leave</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>();
-			<span class="op">&lt;</span><span class="ident">DelegatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="kw-2">&amp;</span><span class="ident">acc</span>, <span class="ident">state</span>);
-			<span class="ident"><span class="self">Self</span>::deposit_event</span>(<span class="ident">Event::DelegatorExitScheduled</span> {
-				<span class="ident">round</span>: <span class="ident">now</span>,
-				<span class="ident">delegator</span>: <span class="ident">acc</span>,
-				<span class="ident">scheduled_exit</span>: <span class="ident">when</span>,
-			});
-			<span class="prelude-val">Ok</span>(().<span class="ident">into</span>())
+			<span class="kw">let</span> <span class="ident">delegator</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
+			<span class="ident"><span class="self">Self</span>::delegator_schedule_revoke_all</span>(<span class="ident">delegator</span>)
 		}
 		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span><span class="ident">::WeightInfo::execute_leave_delegators</span>(<span class="kw-2">*</span><span class="ident">delegation_count</span>))]</span>
 		<span class="doccomment">/// Execute the right to exit the set of delegators and revoke all ongoing delegations.</span>
@@ -2957,43 +2908,14 @@
 			<span class="ident">delegation_count</span>: <span class="ident">u32</span>,
 		) -&gt; <span class="ident">DispatchResultWithPostInfo</span> {
 			<span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
-			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">DelegatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">delegator</span>).<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::DelegatorDNE</span>)<span class="question-mark">?</span>;
-			<span class="ident">state</span>.<span class="ident">can_execute_leave</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">delegation_count</span>)<span class="question-mark">?</span>;
-			<span class="kw">for</span> <span class="ident">bond</span> <span class="kw">in</span> <span class="ident">state</span>.<span class="ident">delegations</span>.<span class="number">0</span>.<span class="ident">clone</span>() {
-				<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>) <span class="op">=</span> <span class="ident"><span class="self">Self</span>::delegator_leaves_candidate</span>(
-					<span class="ident">bond</span>.<span class="ident">owner</span>.<span class="ident">clone</span>(),
-					<span class="ident">delegator</span>.<span class="ident">clone</span>(),
-					<span class="ident">bond</span>.<span class="ident">amount</span>,
-				) {
-					<span class="macro">log::warn!</span>(
-						<span class="string">&quot;STORAGE CORRUPTED \nDelegator leaving collator failed with error: {:?}&quot;</span>,
-						<span class="ident">error</span>
-					);
-				}
-
-				<span class="ident"><span class="self">Self</span>::delegation_remove_request_with_state</span>(<span class="kw-2">&amp;</span><span class="ident">bond</span>.<span class="ident">owner</span>, <span class="kw-2">&amp;</span><span class="ident">delegator</span>, <span class="kw-2">&amp;mut</span> <span class="ident">state</span>);
-			}
-			<span class="op">&lt;</span><span class="ident">DelegatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::remove</span>(<span class="kw-2">&amp;</span><span class="ident">delegator</span>);
-			<span class="ident"><span class="self">Self</span>::deposit_event</span>(<span class="ident">Event::DelegatorLeft</span> {
-				<span class="ident">delegator</span>: <span class="ident">delegator</span>,
-				<span class="ident">unstaked_amount</span>: <span class="ident">state</span>.<span class="ident">total</span>,
-			});
-			<span class="prelude-val">Ok</span>(().<span class="ident">into</span>())
+			<span class="ident"><span class="self">Self</span>::delegator_execute_scheduled_revoke_all</span>(<span class="ident">delegator</span>, <span class="ident">delegation_count</span>)
 		}
 		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span><span class="ident">::WeightInfo::cancel_leave_delegators</span>())]</span>
 		<span class="doccomment">/// Cancel a pending request to exit the set of delegators. Success clears the pending exit</span>
 		<span class="doccomment">/// request (thereby resetting the delay upon another `leave_delegators` call).</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cancel_leave_delegators</span>(<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="ident">DispatchResultWithPostInfo</span> {
 			<span class="kw">let</span> <span class="ident">delegator</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
-			<span class="comment">// ensure delegator state exists</span>
-			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">DelegatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">delegator</span>).<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::DelegatorDNE</span>)<span class="question-mark">?</span>;
-			<span class="comment">// ensure state is leaving</span>
-			<span class="macro">ensure!</span>(<span class="ident">state</span>.<span class="ident">is_leaving</span>(), <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::DelegatorDNE</span>);
-			<span class="comment">// cancel exit request</span>
-			<span class="ident">state</span>.<span class="ident">cancel_leave</span>();
-			<span class="op">&lt;</span><span class="ident">DelegatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="kw-2">&amp;</span><span class="ident">delegator</span>, <span class="ident">state</span>);
-			<span class="ident"><span class="self">Self</span>::deposit_event</span>(<span class="ident">Event::DelegatorExitCancelled</span> { <span class="ident">delegator</span> });
-			<span class="prelude-val">Ok</span>(().<span class="ident">into</span>())
+			<span class="ident"><span class="self">Self</span>::delegator_cancel_scheduled_revoke_all</span>(<span class="ident">delegator</span>)
 		}
 
 		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span><span class="ident">::WeightInfo::schedule_revoke_delegation</span>())]</span>
