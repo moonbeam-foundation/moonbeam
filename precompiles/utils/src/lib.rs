@@ -15,11 +15,15 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 #![cfg_attr(not(feature = "std"), no_std)]
+#![feature(assert_matches)]
 
 extern crate alloc;
 
 use crate::alloc::borrow::ToOwned;
-use fp_evm::{Context, ExitError, ExitRevert, PrecompileFailure};
+use fp_evm::{
+	Context, ExitError, ExitReason, ExitRevert, ExitSucceed, PrecompileFailure, PrecompileHandle,
+	PrecompileOutput, Transfer,
+};
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
 	traits::Get,
@@ -32,6 +36,8 @@ mod data;
 
 pub use data::{Address, Bytes, EvmData, EvmDataReader, EvmDataWriter};
 pub use precompile_utils_macro::{generate_function_selector, keccak256};
+
+pub mod testing;
 
 #[cfg(test)]
 mod tests;
@@ -53,104 +59,93 @@ pub fn error<T: Into<alloc::borrow::Cow<'static, str>>>(text: T) -> PrecompileFa
 #[derive(Clone, Debug)]
 pub struct LogsBuilder {
 	address: H160,
-	logs: Vec<Log>,
 }
 
 impl LogsBuilder {
 	/// Create a new builder with no logs.
 	/// Takes the address of the precompile (usually `context.address`).
 	pub fn new(address: H160) -> Self {
-		Self {
-			logs: vec![],
-			address,
+		Self { address }
+	}
+
+	/// Create a 0-topic log.
+	#[must_use]
+	pub fn log0(&self, data: impl Into<Vec<u8>>) -> Log {
+		Log {
+			address: self.address,
+			topics: vec![],
+			data: data.into(),
 		}
 	}
 
-	/// Returns the logs array.
-	pub fn build(self) -> Vec<Log> {
-		self.logs
-	}
-
-	/// Add a 0-topic log.
-	pub fn log0<D>(mut self, data: D) -> Self
-	where
-		D: Into<Vec<u8>>,
-	{
-		self.logs.push(Log {
+	/// Create a 1-topic log.
+	#[must_use]
+	pub fn log1(&self, topic0: impl Into<H256>, data: impl Into<Vec<u8>>) -> Log {
+		Log {
 			address: self.address,
-			data: data.into(),
-			topics: vec![],
-		});
-		self
-	}
-
-	/// Add a 1-topic log.
-	pub fn log1<D, T0>(mut self, topic0: T0, data: D) -> Self
-	where
-		D: Into<Vec<u8>>,
-		T0: Into<H256>,
-	{
-		self.logs.push(Log {
-			address: self.address,
-			data: data.into(),
 			topics: vec![topic0.into()],
-		});
-		self
+			data: data.into(),
+		}
 	}
 
-	/// Add a 2-topics log.
-	pub fn log2<D, T0, T1>(mut self, topic0: T0, topic1: T1, data: D) -> Self
-	where
-		D: Into<Vec<u8>>,
-		T0: Into<H256>,
-		T1: Into<H256>,
-	{
-		self.logs.push(Log {
+	/// Create a 2-topics log.
+	#[must_use]
+	pub fn log2(
+		&self,
+		topic0: impl Into<H256>,
+		topic1: impl Into<H256>,
+		data: impl Into<Vec<u8>>,
+	) -> Log {
+		Log {
 			address: self.address,
-			data: data.into(),
 			topics: vec![topic0.into(), topic1.into()],
-		});
-		self
+			data: data.into(),
+		}
 	}
 
-	/// Add a 3-topics log.
-	pub fn log3<D, T0, T1, T2>(mut self, topic0: T0, topic1: T1, topic2: T2, data: D) -> Self
-	where
-		D: Into<Vec<u8>>,
-		T0: Into<H256>,
-		T1: Into<H256>,
-		T2: Into<H256>,
-	{
-		self.logs.push(Log {
+	/// Create a 3-topics log.
+	#[must_use]
+	pub fn log3(
+		&self,
+		topic0: impl Into<H256>,
+		topic1: impl Into<H256>,
+		topic2: impl Into<H256>,
+		data: impl Into<Vec<u8>>,
+	) -> Log {
+		Log {
 			address: self.address,
-			data: data.into(),
 			topics: vec![topic0.into(), topic1.into(), topic2.into()],
-		});
-		self
+			data: data.into(),
+		}
 	}
 
-	/// Add a 4-topics log.
-	pub fn log4<D, T0, T1, T2, T3>(
-		mut self,
-		topic0: T0,
-		topic1: T1,
-		topic2: T2,
-		topic3: T3,
-		data: D,
-	) -> Self
-	where
-		D: Into<Vec<u8>>,
-		T0: Into<H256>,
-		T1: Into<H256>,
-		T2: Into<H256>,
-		T3: Into<H256>,
-	{
-		self.logs.push(Log {
+	/// Create a 4-topics log.
+	#[must_use]
+	pub fn log4(
+		&self,
+		topic0: impl Into<H256>,
+		topic1: impl Into<H256>,
+		topic2: impl Into<H256>,
+		topic3: impl Into<H256>,
+		data: impl Into<Vec<u8>>,
+	) -> Log {
+		Log {
 			address: self.address,
-			data: data.into(),
 			topics: vec![topic0.into(), topic1.into(), topic2.into(), topic3.into()],
-		});
-		self
+			data: data.into(),
+		}
+	}
+}
+
+/// Extension trait allowing to record logs into a PrecompileHandle.
+pub trait LogExt {
+	fn record(self, handle: &mut impl PrecompileHandle) -> EvmResult;
+}
+
+impl LogExt for Log {
+	fn record(self, handle: &mut impl PrecompileHandle) -> EvmResult {
+		handle.log(self.address, self.topics, self.data)?;
+		Ok(())
 	}
 }
 
@@ -168,9 +163,9 @@ where
 	/// Return an error if there are not enough gas, or if the call fails.
 	/// If successful returns the used gas using the Runtime GasWeightMapping.
 	pub fn try_dispatch<Call>(
+		handle: &mut impl PrecompileHandleExt,
 		origin: <Runtime::Call as Dispatchable>::Origin,
 		call: Call,
-		gasometer: &mut Gasometer,
 	) -> EvmResult<()>
 	where
 		Runtime::Call: From<Call>,
@@ -179,13 +174,12 @@ where
 		let dispatch_info = call.get_dispatch_info();
 
 		// Make sure there is enough gas.
-		if let Some(gas_limit) = gasometer.remaining_gas()? {
-			let required_gas = Runtime::GasWeightMapping::weight_to_gas(dispatch_info.weight);
-			if required_gas > gas_limit {
-				return Err(PrecompileFailure::Error {
-					exit_status: ExitError::OutOfGas,
-				});
-			}
+		let remaining_gas = handle.remaining_gas();
+		let required_gas = Runtime::GasWeightMapping::weight_to_gas(dispatch_info.weight);
+		if required_gas > remaining_gas {
+			return Err(PrecompileFailure::Error {
+				exit_status: ExitError::OutOfGas,
+			});
 		}
 
 		// Dispatch call.
@@ -195,15 +189,13 @@ where
 		// computations.
 		let used_weight = call
 			.dispatch(origin)
-			.map_err(|e| {
-				gasometer.revert(alloc::format!("Dispatched call failed with error: {:?}", e))
-			})?
+			.map_err(|e| revert(alloc::format!("Dispatched call failed with error: {:?}", e)))?
 			.actual_weight;
 
 		let used_gas =
 			Runtime::GasWeightMapping::weight_to_gas(used_weight.unwrap_or(dispatch_info.weight));
 
-		gasometer.record_cost(used_gas)?;
+		handle.record_cost(used_gas)?;
 
 		Ok(())
 	}
@@ -240,55 +232,37 @@ pub enum FunctionModifier {
 	Payable,
 }
 
-/// Custom Gasometer to record costs in precompiles.
-/// It is advised to record known costs as early as possible to
-/// avoid unnecessary computations if there is an Out of Gas.
-///
-/// Provides functions related to reverts, as reverts takes the recorded amount
-/// of gas into account.
-#[derive(Clone, Copy, Debug)]
-pub struct Gasometer {
-	target_gas: Option<u64>,
-	used_gas: u64,
-}
-
-impl Gasometer {
-	/// Create a new Gasometer with provided gas limit.
-	/// None is no limit.
-	pub fn new(target_gas: Option<u64>) -> Self {
-		Self {
-			target_gas,
-			used_gas: 0,
-		}
-	}
-
-	/// Get used gas.
-	pub fn used_gas(&self) -> u64 {
-		self.used_gas
-	}
-
-	/// Record cost, and return error if it goes out of gas.
-	#[must_use]
-	pub fn record_cost(&mut self, cost: u64) -> EvmResult {
-		self.used_gas = self
-			.used_gas
-			.checked_add(cost)
-			.ok_or(PrecompileFailure::Error {
-				exit_status: ExitError::OutOfGas,
-			})?;
-
-		match self.target_gas {
-			Some(gas_limit) if self.used_gas > gas_limit => Err(PrecompileFailure::Error {
-				exit_status: ExitError::OutOfGas,
-			}),
-			_ => Ok(()),
-		}
-	}
-
+pub trait PrecompileHandleExt: PrecompileHandle {
 	/// Record cost of a log manually.
 	/// This can be useful to record log costs early when their content have static size.
 	#[must_use]
-	pub fn record_log_costs_manual(&mut self, topics: usize, data_len: usize) -> EvmResult {
+	fn record_log_costs_manual(&mut self, topics: usize, data_len: usize) -> EvmResult;
+
+	/// Record cost of logs.
+	#[must_use]
+	fn record_log_costs(&mut self, logs: &[Log]) -> EvmResult;
+
+	#[must_use]
+	/// Check that a function call is compatible with the context it is
+	/// called into.
+	fn check_function_modifier(&self, modifier: FunctionModifier) -> EvmResult;
+
+	#[must_use]
+	/// Read the selector from the input data.
+	fn read_selector<T>(&self) -> EvmResult<T>
+	where
+		T: num_enum::TryFromPrimitive<Primitive = u32>;
+
+	#[must_use]
+	/// Returns a reader of the input, skipping the selector.
+	fn read_input(&self) -> EvmResult<EvmDataReader>;
+}
+
+impl<T: PrecompileHandle> PrecompileHandleExt for T {
+	/// Record cost of a log manualy.
+	/// This can be useful to record log costs early when their content have static size.
+	#[must_use]
+	fn record_log_costs_manual(&mut self, topics: usize, data_len: usize) -> EvmResult {
 		// Cost calculation is copied from EVM code that is not publicly exposed by the crates.
 		// https://github.com/rust-blockchain/evm/blob/master/gasometer/src/costs.rs#L148
 
@@ -317,7 +291,7 @@ impl Gasometer {
 
 	/// Record cost of logs.
 	#[must_use]
-	pub fn record_log_costs(&mut self, logs: &[Log]) -> EvmResult {
+	fn record_log_costs(&mut self, logs: &[Log]) -> EvmResult {
 		for log in logs {
 			self.record_log_costs_manual(log.topics.len(), log.data.len())?;
 		}
@@ -325,54 +299,60 @@ impl Gasometer {
 		Ok(())
 	}
 
-	/// Compute remaining gas.
-	/// Returns error if out of gas.
-	/// Returns None if no gas limit.
-	#[must_use]
-	pub fn remaining_gas(&self) -> EvmResult<Option<u64>> {
-		Ok(match self.target_gas {
-			None => None,
-			Some(gas_limit) => Some(gas_limit.checked_sub(self.used_gas).ok_or(
-				PrecompileFailure::Error {
-					exit_status: ExitError::OutOfGas,
-				},
-			)?),
-		})
-	}
-
-	/// Revert the execution, making the user pay for the the currently
-	/// recorded cost. It is better to **revert** instead of **error** as
-	/// erroring consumes the entire gas limit, and **revert** returns an error
-	/// message to the calling contract.
-	///
-	/// TODO : Record cost of the input based on its size and handle Out of Gas ?
-	/// This might be required if we format revert messages using user data.
-	#[must_use]
-	pub fn revert(&self, output: impl AsRef<[u8]>) -> PrecompileFailure {
-		PrecompileFailure::Revert {
-			exit_status: ExitRevert::Reverted,
-			output: output.as_ref().to_owned(),
-			cost: self.used_gas,
-		}
-	}
-
 	#[must_use]
 	/// Check that a function call is compatible with the context it is
 	/// called into.
-	pub fn check_function_modifier(
-		&self,
-		context: &Context,
-		is_static: bool,
-		modifier: FunctionModifier,
-	) -> EvmResult {
-		if is_static && modifier != FunctionModifier::View {
-			return Err(self.revert("can't call non-static function in static context"));
-		}
-
-		if modifier != FunctionModifier::Payable && context.apparent_value > U256::zero() {
-			return Err(self.revert("function is not payable"));
-		}
-
-		Ok(())
+	fn check_function_modifier(&self, modifier: FunctionModifier) -> EvmResult {
+		check_function_modifier(self.context(), self.is_static(), modifier)
 	}
+
+	#[must_use]
+	/// Read the selector from the input data.
+	fn read_selector<S>(&self) -> EvmResult<S>
+	where
+		S: num_enum::TryFromPrimitive<Primitive = u32>,
+	{
+		EvmDataReader::read_selector(self.input())
+	}
+
+	#[must_use]
+	/// Returns a reader of the input, skipping the selector.
+	fn read_input(&self) -> EvmResult<EvmDataReader> {
+		EvmDataReader::new_skip_selector(self.input())
+	}
+}
+
+#[must_use]
+pub fn revert(output: impl AsRef<[u8]>) -> PrecompileFailure {
+	PrecompileFailure::Revert {
+		exit_status: ExitRevert::Reverted,
+		output: output.as_ref().to_owned(),
+	}
+}
+
+#[must_use]
+pub fn succeed(output: impl AsRef<[u8]>) -> PrecompileOutput {
+	PrecompileOutput {
+		exit_status: ExitSucceed::Returned,
+		output: output.as_ref().to_owned(),
+	}
+}
+
+#[must_use]
+/// Check that a function call is compatible with the context it is
+/// called into.
+fn check_function_modifier(
+	context: &Context,
+	is_static: bool,
+	modifier: FunctionModifier,
+) -> EvmResult {
+	if is_static && modifier != FunctionModifier::View {
+		return Err(revert("can't call non-static function in static context"));
+	}
+
+	if modifier != FunctionModifier::Payable && context.apparent_value > U256::zero() {
+		return Err(revert("function is not payable"));
+	}
+
+	Ok(())
 }

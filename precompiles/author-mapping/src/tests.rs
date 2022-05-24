@@ -16,21 +16,20 @@
 
 use crate::{
 	mock::{
-		events, evm_test_context, Call, ExtBuilder, Origin, Precompiles, PrecompilesValue, Runtime,
-		TestAccount::{Alice, Precompile},
+		events,
+		Account::{Alice, Precompile},
+		Call, ExtBuilder, Origin, Precompiles, PrecompilesValue, Runtime,
 	},
 	Action,
 };
-use fp_evm::PrecompileFailure;
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use nimbus_primitives::NimbusId;
 use pallet_author_mapping::{Call as AuthorMappingCall, Event as AuthorMappingEvent};
 use pallet_balances::Event as BalancesEvent;
-use pallet_evm::{Call as EvmCall, Event as EvmEvent, PrecompileSet};
-use precompile_utils::EvmDataWriter;
+use pallet_evm::{Call as EvmCall, Event as EvmEvent};
+use precompile_utils::{testing::*, EvmDataWriter};
 use sp_core::crypto::UncheckedFrom;
 use sp_core::U256;
-use std::assert_matches::assert_matches;
 
 fn precompiles() -> Precompiles<Runtime> {
 	PrecompilesValue::get()
@@ -54,38 +53,18 @@ fn evm_call(input: Vec<u8>) -> EvmCall<Runtime> {
 fn selector_less_than_four_bytes() {
 	ExtBuilder::default().build().execute_with(|| {
 		// This selector is only three bytes long when four are required.
-		let bogus_selector = vec![1u8, 2u8, 3u8];
-
-		assert_matches!(
-			precompiles().execute(
-				Precompile.into(),
-				&bogus_selector,
-				None,
-				&evm_test_context(),
-				false,
-			),
-			Some(Err(PrecompileFailure::Revert { output, ..}))
-				if output == b"tried to parse selector out of bounds",
-		);
+		precompiles()
+			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8])
+			.execute_reverts(|output| output == b"tried to parse selector out of bounds");
 	});
 }
 
 #[test]
 fn no_selector_exists_but_length_is_right() {
 	ExtBuilder::default().build().execute_with(|| {
-		let bogus_selector = vec![1u8, 2u8, 3u8, 4u8];
-
-		assert_matches!(
-			precompiles().execute(
-				Precompile.into(),
-				&bogus_selector,
-				None,
-				&evm_test_context(),
-				false,
-			),
-			Some(Err(PrecompileFailure::Revert { output, ..}))
-				if output == b"unknown selector",
-		);
+		precompiles()
+			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8, 4u8])
+			.execute_reverts(|output| output == b"unknown selector");
 	});
 }
 

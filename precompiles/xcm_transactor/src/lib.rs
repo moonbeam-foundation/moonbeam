@@ -19,14 +19,13 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![feature(assert_matches)]
 
-use evm::{executor::stack::PrecompileOutput, Context, ExitSucceed};
+use fp_evm::PrecompileHandle;
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
-use pallet_evm::{AddressMapping, Precompile};
+use pallet_evm::{AddressMapping, PrecompileOutput};
 use precompile_utils::{
-	Address, Bytes, EvmDataReader, EvmDataWriter, EvmResult, FunctionModifier, Gasometer,
-	RuntimeHelper,
+	revert, succeed, Address, Bytes, EvmDataWriter, EvmResult, FunctionModifier,
+	PrecompileHandleExt, RuntimeHelper,
 };
-
 use sp_core::H160;
 use sp_std::{
 	boxed::Box,
@@ -37,13 +36,13 @@ use sp_std::{
 use xcm::latest::MultiLocation;
 use xcm_primitives::AccountIdToCurrencyId;
 use xcm_transactor::RemoteTransactInfoWithMaxWeight;
+
 #[cfg(test)]
 mod mock;
 #[cfg(test)]
 mod tests;
 
 pub type TransactorOf<Runtime> = <Runtime as xcm_transactor::Config>::Transactor;
-
 pub type CurrencyIdOf<Runtime> = <Runtime as xcm_transactor::Config>::CurrencyId;
 
 #[precompile_utils::generate_function_selector]
@@ -65,7 +64,7 @@ pub enum Action {
 /// A precompile to wrap the functionality from xcm transactor
 pub struct XcmTransactorWrapper<Runtime>(PhantomData<Runtime>);
 
-impl<Runtime> Precompile for XcmTransactorWrapper<Runtime>
+impl<Runtime> pallet_evm::Precompile for XcmTransactorWrapper<Runtime>
 where
 	Runtime: xcm_transactor::Config + pallet_evm::Config + frame_system::Config,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
@@ -75,46 +74,31 @@ where
 	Runtime::AccountId: Into<H160>,
 	Runtime: AccountIdToCurrencyId<Runtime::AccountId, CurrencyIdOf<Runtime>>,
 {
-	fn execute(
-		input: &[u8], //Reminder this is big-endian
-		target_gas: Option<u64>,
-		context: &Context,
-		is_static: bool,
-	) -> EvmResult<PrecompileOutput> {
-		let mut gasometer = Gasometer::new(target_gas);
-		let gasometer = &mut gasometer;
-		let (mut input, selector) = EvmDataReader::new_with_selector(gasometer, input)?;
-		let input = &mut input;
+	fn execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		let selector = handle.read_selector()?;
 
-		gasometer.check_function_modifier(
-			context,
-			is_static,
-			match selector {
-				Action::TransactThroughDerivativeMultiLocation
-				| Action::TransactThroughDerivative => FunctionModifier::NonPayable,
-				_ => FunctionModifier::View,
-			},
-		)?;
+		handle.check_function_modifier(match selector {
+			Action::TransactThroughDerivativeMultiLocation | Action::TransactThroughDerivative => {
+				FunctionModifier::NonPayable
+			}
+			_ => FunctionModifier::View,
+		})?;
 
 		match selector {
 			// Check for accessor methods first. These return results immediately
-			Action::IndexToAccount => Self::account_index(input, gasometer),
+			Action::IndexToAccount => Self::account_index(handle),
 			// DEPRECATED
-			Action::TransactInfo => Self::transact_info(input, gasometer),
+			Action::TransactInfo => Self::transact_info(handle),
+			Action::TransactInfoWithSigned => Self::transact_info_with_signed(handle),
+			Action::FeePerSecond => Self::fee_per_second(handle),
 			Action::TransactThroughDerivativeMultiLocation => {
-				Self::transact_through_derivative_multilocation(input, gasometer, context)
+				Self::transact_through_derivative_multilocation(handle)
 			}
-			Action::TransactThroughDerivative => {
-				Self::transact_through_derivative(input, gasometer, context)
-			}
-			Action::TransactInfoWithSigned => Self::transact_info_with_signed(input, gasometer),
-			Action::FeePerSecond => Self::fee_per_second(input, gasometer),
+			Action::TransactThroughDerivative => Self::transact_through_derivative(handle),
 			Action::TransactThroughSignedMultiLocation => {
-				Self::transact_through_signed_multilocation(input, gasometer, context)
+				Self::transact_through_signed_multilocation(handle)
 			}
-			Action::TransactThroughSigned => {
-				Self::transact_through_signed(input, gasometer, context)
-			}
+			Action::TransactThroughSigned => Self::transact_through_signed(handle),
 		}
 	}
 }
@@ -129,136 +113,115 @@ where
 	Runtime::AccountId: Into<H160>,
 	Runtime: AccountIdToCurrencyId<Runtime::AccountId, CurrencyIdOf<Runtime>>,
 {
-	fn account_index(
-		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
-	) -> EvmResult<PrecompileOutput> {
-		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+	fn account_index(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		// Bound check
-		input.expect_arguments(gasometer, 1)?;
-		let index: u16 = input.read::<u16>(gasometer)?;
+		let mut input = handle.read_input()?;
+		input.expect_arguments(1)?;
+		let index: u16 = input.read::<u16>()?;
 
 		// fetch data from pallet
 		let account: H160 = xcm_transactor::Pallet::<Runtime>::index_to_account(index)
-			.ok_or(gasometer.revert("No index assigned"))?
+			.ok_or(revert("No index assigned"))?
 			.into();
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			cost: gasometer.used_gas(),
-			output: EvmDataWriter::new().write(Address(account)).build(),
-			logs: Default::default(),
-		})
+		Ok(succeed(
+			EvmDataWriter::new().write(Address(account)).build(),
+		))
 	}
 
-	fn transact_info(
-		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
-	) -> EvmResult<PrecompileOutput> {
-		gasometer.record_cost(2 * RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+	fn transact_info(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		handle.record_cost(2 * RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		let multilocation: MultiLocation = input.read::<MultiLocation>(gasometer)?;
+		let mut input = handle.read_input()?;
+		let multilocation: MultiLocation = input.read::<MultiLocation>()?;
 
 		// fetch data from pallet
 		let remote_transact_info: RemoteTransactInfoWithMaxWeight =
 			xcm_transactor::Pallet::<Runtime>::transact_info(&multilocation)
-				.ok_or(gasometer.revert("Transact Info not set"))?;
+				.ok_or(revert("Transact Info not set"))?;
 
 		// fetch data from pallet
 		let fee_per_second: u128 =
 			xcm_transactor::Pallet::<Runtime>::dest_asset_fee_per_second(&multilocation)
-				.ok_or(gasometer.revert("Fee Per Second not set"))?;
+				.ok_or(revert("Fee Per Second not set"))?;
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			cost: gasometer.used_gas(),
-			output: EvmDataWriter::new()
+		Ok(succeed(
+			EvmDataWriter::new()
 				.write(remote_transact_info.transact_extra_weight)
 				.write(fee_per_second)
 				.write(remote_transact_info.max_weight)
 				.build(),
-			logs: Default::default(),
-		})
+		))
 	}
 
 	fn transact_info_with_signed(
-		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
+		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
-		gasometer.record_cost(1 * RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		handle.record_cost(1 * RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		let multilocation: MultiLocation = input.read::<MultiLocation>(gasometer)?;
+		let mut input = handle.read_input()?;
+		let multilocation: MultiLocation = input.read::<MultiLocation>()?;
 
 		// fetch data from pallet
 		let remote_transact_info: RemoteTransactInfoWithMaxWeight =
 			xcm_transactor::Pallet::<Runtime>::transact_info(multilocation)
-				.ok_or(gasometer.revert("Transact Info not set"))?;
+				.ok_or(revert("Transact Info not set"))?;
 
 		let transact_extra_weight_signed = remote_transact_info
 			.transact_extra_weight_signed
 			.unwrap_or(0);
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			cost: gasometer.used_gas(),
-			output: EvmDataWriter::new()
+		Ok(succeed(
+			EvmDataWriter::new()
 				.write(remote_transact_info.transact_extra_weight)
 				.write(transact_extra_weight_signed)
 				.write(remote_transact_info.max_weight)
 				.build(),
-			logs: Default::default(),
-		})
+		))
 	}
 
-	fn fee_per_second(
-		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
-	) -> EvmResult<PrecompileOutput> {
-		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+	fn fee_per_second(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		handle.record_cost(1 * RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let mut input = handle.read_input()?;
 
-		let multilocation: MultiLocation = input.read::<MultiLocation>(gasometer)?;
+		let multilocation: MultiLocation = input.read::<MultiLocation>()?;
 
 		// fetch data from pallet
 		let fee_per_second: u128 =
 			xcm_transactor::Pallet::<Runtime>::dest_asset_fee_per_second(multilocation)
-				.ok_or(gasometer.revert("Fee Per Second not set"))?;
+				.ok_or(revert("Fee Per Second not set"))?;
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			cost: gasometer.used_gas(),
-			output: EvmDataWriter::new().write(fee_per_second).build(),
-			logs: Default::default(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(fee_per_second).build()))
 	}
 
 	fn transact_through_derivative_multilocation(
-		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
-		context: &Context,
+		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
+		let mut input = handle.read_input()?;
 		// Bound check
-		input.expect_arguments(gasometer, 5)?;
+		input.expect_arguments(5)?;
 
 		// Does not need DB read
 		let transactor: TransactorOf<Runtime> = input
-			.read::<u8>(gasometer)?
+			.read::<u8>()?
 			.try_into()
-			.map_err(|_| gasometer.revert("Non-existent transactor"))?;
-		let index: u16 = input.read::<u16>(gasometer)?;
+			.map_err(|_| revert("Non-existent transactor"))?;
+		let index: u16 = input.read::<u16>()?;
 
 		// read fee location
 		// defined as a multiLocation. For now we are assuming these are concrete
 		// fungible assets
-		let fee_multilocation: MultiLocation = input.read::<MultiLocation>(gasometer)?;
+		let fee_multilocation: MultiLocation = input.read::<MultiLocation>()?;
 		// read fee amount
-		let weight: u64 = input.read::<u64>(gasometer)?;
+		let weight: u64 = input.read::<u64>()?;
 
 		// inner call
-		let inner_call = input.read::<Bytes>(gasometer)?;
+		let inner_call = input.read::<Bytes>()?;
 
 		// Depending on the Runtime, this might involve a DB read. This is not the case in
 		// moonbeam, as we are using IdentityMapping
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = xcm_transactor::Call::<Runtime>::transact_through_derivative_multilocation {
 			dest: transactor,
 			index,
@@ -267,50 +230,44 @@ where
 			inner_call: inner_call.0,
 		};
 
-		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			cost: gasometer.used_gas(),
-			output: Default::default(),
-			logs: Default::default(),
-		})
+		Ok(succeed([]))
 	}
 
 	fn transact_through_derivative(
-		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
-		context: &Context,
+		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
+		let mut input = handle.read_input()?;
 		// Bound check
-		input.expect_arguments(gasometer, 5)?;
+		input.expect_arguments(5)?;
 		let transactor: TransactorOf<Runtime> = input
-			.read::<u8>(gasometer)?
+			.read::<u8>()?
 			.try_into()
-			.map_err(|_| gasometer.revert("Non-existent transactor"))?;
-		let index: u16 = input.read::<u16>(gasometer)?;
+			.map_err(|_| revert("Non-existent transactor"))?;
+		let index: u16 = input.read::<u16>()?;
 
 		// read currencyId
-		let to_address: H160 = input.read::<Address>(gasometer)?.into();
+		let to_address: H160 = input.read::<Address>()?.into();
+
+		// read fee amount
+		let weight: u64 = input.read::<u64>()?;
+
+		// inner call
+		let inner_call = input.read::<Bytes>()?;
 
 		let to_account = Runtime::AddressMapping::into_account_id(to_address);
 
 		// We convert the address into a currency
 		// This involves a DB read in moonbeam, hence the db Read
-		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let currency_id: <Runtime as xcm_transactor::Config>::CurrencyId =
 			Runtime::account_to_currency_id(to_account)
-				.ok_or(gasometer.revert("cannot convert into currency id"))?;
-
-		// read fee amount
-		let weight: u64 = input.read::<u64>(gasometer)?;
-
-		// inner call
-		let inner_call = input.read::<Bytes>(gasometer)?;
+				.ok_or(revert("cannot convert into currency id"))?;
 
 		// Depending on the Runtime, this might involve a DB read. This is not the case in
 		// moonbeam, as we are using IdentityMapping
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = xcm_transactor::Call::<Runtime>::transact_through_derivative {
 			dest: transactor,
 			index,
@@ -319,40 +276,35 @@ where
 			inner_call: inner_call.0,
 		};
 
-		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			cost: gasometer.used_gas(),
-			output: Default::default(),
-			logs: Default::default(),
-		})
+		Ok(succeed([]))
 	}
 
 	fn transact_through_signed_multilocation(
-		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
-		context: &Context,
+		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
+		let mut input = handle.read_input()?;
+
 		// Bound check
-		input.expect_arguments(gasometer, 4)?;
+		input.expect_arguments(4)?;
 
 		// read destination
-		let dest: MultiLocation = input.read::<MultiLocation>(gasometer)?;
+		let dest: MultiLocation = input.read::<MultiLocation>()?;
 
 		// read fee location
 		// defined as a multiLocation. For now we are assuming these are concrete
 		// fungible assets
-		let fee_multilocation: MultiLocation = input.read::<MultiLocation>(gasometer)?;
+		let fee_multilocation: MultiLocation = input.read::<MultiLocation>()?;
 		// read weight amount
-		let weight: u64 = input.read::<u64>(gasometer)?;
+		let weight: u64 = input.read::<u64>()?;
 
 		// call
-		let call = input.read::<Bytes>(gasometer)?;
+		let call = input.read::<Bytes>()?;
 
 		// Depending on the Runtime, this might involve a DB read. This is not the case in
 		// moonbeam, as we are using IdentityMapping
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = xcm_transactor::Call::<Runtime>::transact_through_signed_multilocation {
 			dest: Box::new(xcm::VersionedMultiLocation::V1(dest)),
 			fee_location: Box::new(xcm::VersionedMultiLocation::V1(fee_multilocation)),
@@ -360,48 +312,43 @@ where
 			call: call.0,
 		};
 
-		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			cost: gasometer.used_gas(),
-			output: Default::default(),
-			logs: Default::default(),
-		})
+		Ok(succeed([]))
 	}
 
-	fn transact_through_signed(
-		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
-		context: &Context,
-	) -> EvmResult<PrecompileOutput> {
+	fn transact_through_signed(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		handle.record_cost(1 * RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		let mut input = handle.read_input()?;
+
 		// Bound check
-		input.expect_arguments(gasometer, 4)?;
+		input.expect_arguments(4)?;
 
 		// read destination
-		let dest: MultiLocation = input.read::<MultiLocation>(gasometer)?;
+		let dest: MultiLocation = input.read::<MultiLocation>()?;
 
 		// read currencyId
-		let to_address: H160 = input.read::<Address>(gasometer)?.into();
+		let to_address: H160 = input.read::<Address>()?.into();
 
 		let to_account = Runtime::AddressMapping::into_account_id(to_address);
 
 		// We convert the address into a currency
 		// This involves a DB read in moonbeam, hence the db Read
-		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
 		let currency_id: <Runtime as xcm_transactor::Config>::CurrencyId =
 			Runtime::account_to_currency_id(to_account)
-				.ok_or(gasometer.revert("cannot convert into currency id"))?;
+				.ok_or(revert("cannot convert into currency id"))?;
 
 		// read weight amount
-		let weight: u64 = input.read::<u64>(gasometer)?;
+		let weight: u64 = input.read::<u64>()?;
 
 		// call
-		let call = input.read::<Bytes>(gasometer)?;
+		let call = input.read::<Bytes>()?;
 
 		// Depending on the Runtime, this might involve a DB read. This is not the case in
 		// moonbeam, as we are using IdentityMapping
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = xcm_transactor::Call::<Runtime>::transact_through_signed {
 			dest: Box::new(xcm::VersionedMultiLocation::V1(dest)),
 			fee_currency_id: currency_id,
@@ -409,13 +356,8 @@ where
 			call: call.0,
 		};
 
-		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			cost: gasometer.used_gas(),
-			output: Default::default(),
-			logs: Default::default(),
-		})
+		Ok(succeed([]))
 	}
 }

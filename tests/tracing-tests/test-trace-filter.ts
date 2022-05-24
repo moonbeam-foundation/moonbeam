@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { customWeb3Request } from "../util/providers";
-import { describeDevMoonbeamAllEthTxTypes } from "../util/setup-dev-tests";
+import { describeDevMoonbeam } from "../util/setup-dev-tests";
 import { createContract, createContractExecution } from "../util/transactions";
 import { GENESIS_ACCOUNT } from "../util/constants";
 
@@ -10,7 +10,7 @@ const GENESIS_CONTRACT_ADDRESSES = [
   "0xf8cef78e923919054037a1d03662bbd884ff4edf",
 ];
 
-describeDevMoonbeamAllEthTxTypes("Trace filter - Contract creation ", (context) => {
+describeDevMoonbeam("Trace filter - Contract creation ", (context) => {
   before("Setup: Create 4 blocks with TraceFilter contracts", async function () {
     const { contract, rawTx } = await createContract(context, "TraceFilter", {}, [false]);
     await context.createBlock({ transactions: [rawTx] });

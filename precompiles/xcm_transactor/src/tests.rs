@@ -14,20 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 use crate::mock::{
-	evm_test_context, ExtBuilder, Origin, PrecompilesValue, Runtime, TestAccount::*,
-	TestPrecompiles, XcmTransactor,
+	ExtBuilder, Origin, PrecompilesValue, Runtime, TestAccount::*, TestPrecompiles, XcmTransactor,
 };
-use crate::{Action, PrecompileOutput};
+use crate::Action;
 
-use fp_evm::PrecompileFailure;
 use frame_support::assert_ok;
-use num_enum::TryFromPrimitive;
-use pallet_evm::{ExitSucceed, PrecompileSet};
-use precompile_utils::{Address, Bytes, EvmDataWriter};
-use sha3::{Digest, Keccak256};
+use precompile_utils::{testing::*, Address, Bytes, EvmDataWriter};
 use sp_core::{H160, U256};
 use sp_std::boxed::Box;
-use std::assert_matches::assert_matches;
 use xcm::v1::MultiLocation;
 
 fn precompiles() -> TestPrecompiles<Runtime> {
@@ -36,73 +30,30 @@ fn precompiles() -> TestPrecompiles<Runtime> {
 
 #[test]
 fn test_selector_enum() {
-	let mut buffer = [0u8; 4];
-	buffer.copy_from_slice(&Keccak256::digest(b"index_to_account(uint16)")[0..4]);
+	assert_eq!(Action::IndexToAccount as u32, 0x71b0edfa);
+	assert_eq!(Action::TransactInfo as u32, 0xf87f493f);
 	assert_eq!(
-		Action::try_from_primitive(u32::from_be_bytes(buffer)).unwrap(),
-		Action::IndexToAccount,
+		Action::TransactThroughDerivativeMultiLocation as u32,
+		0x9f89f03e
 	);
-
-	buffer.copy_from_slice(&Keccak256::digest(b"transact_info((uint8,bytes[]))")[0..4]);
-	assert_eq!(
-		Action::try_from_primitive(u32::from_be_bytes(buffer)).unwrap(),
-		Action::TransactInfo,
-	);
-	buffer.copy_from_slice(
-		&Keccak256::digest(
-			b"transact_through_derivative_multilocation(uint8,uint16,(uint8,bytes[]),uint64,bytes)",
-		)[0..4],
-	);
-	assert_eq!(
-		Action::try_from_primitive(u32::from_be_bytes(buffer)).unwrap(),
-		Action::TransactThroughDerivativeMultiLocation,
-	);
-
-	buffer.copy_from_slice(
-		&Keccak256::digest(b"transact_through_derivative(uint8,uint16,address,uint64,bytes)")[0..4],
-	);
-	assert_eq!(
-		Action::try_from_primitive(u32::from_be_bytes(buffer)).unwrap(),
-		Action::TransactThroughDerivative,
-	);
+	assert_eq!(Action::TransactThroughDerivative as u32, 0x267d4062);
 }
 
 #[test]
 fn selector_less_than_four_bytes() {
 	ExtBuilder::default().build().execute_with(|| {
-		// This selector is only three bytes long when four are required.
-		let bogus_selector = vec![1u8, 2u8, 3u8];
-
-		assert_matches!(
-			precompiles().execute(
-				Precompile.into(),
-				&bogus_selector,
-				None,
-				&evm_test_context(),
-				false,
-			),
-			Some(Err(PrecompileFailure::Revert { output, ..}))
-				if output == b"tried to parse selector out of bounds",
-		);
+		precompiles()
+			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8])
+			.execute_reverts(|output| output == b"tried to parse selector out of bounds");
 	});
 }
 
 #[test]
 fn no_selector_exists_but_length_is_right() {
 	ExtBuilder::default().build().execute_with(|| {
-		let bogus_selector = vec![1u8, 2u8, 3u8, 4u8];
-
-		assert_matches!(
-			precompiles().execute(
-				Precompile.into(),
-				&bogus_selector,
-				None,
-				&evm_test_context(),
-				false,
-			),
-			Some(Err(PrecompileFailure::Revert { output, ..}))
-				if output == b"unknown selector",
-		);
+		precompiles()
+			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8, 4u8])
+			.execute_reverts(|output| output == b"unknown selector");
 	});
 }
 
@@ -117,29 +68,23 @@ fn take_index_for_account() {
 				.build();
 
 			// Assert that errors since no index is assigned
-			assert_matches!(
-				precompiles().execute(Precompile.into(), &input, None, &evm_test_context(), false),
-				Some(Err(PrecompileFailure::Revert { output, ..}))
-				if output == b"No index assigned"
-			);
+			precompiles()
+				.prepare_test(Alice, Precompile, input.clone())
+				.execute_reverts(|output| output == b"No index assigned");
 
 			// register index
 			assert_ok!(XcmTransactor::register(Origin::root(), Alice.into(), 0));
 
 			// Expected result is zero
-			let expected_result = Some(Ok(PrecompileOutput {
-				exit_status: ExitSucceed::Returned,
-				output: EvmDataWriter::new()
-					.write(Address(H160::from(Alice)))
-					.build(),
-				cost: 1,
-				logs: Default::default(),
-			}));
-
-			assert_eq!(
-				precompiles().execute(Precompile.into(), &input, None, &evm_test_context(), false),
-				expected_result
-			);
+			precompiles()
+				.prepare_test(Alice, Precompile, input)
+				.expect_cost(1)
+				.expect_no_logs()
+				.execute_returns(
+					EvmDataWriter::new()
+						.write(Address(H160::from(Alice)))
+						.build(),
+				);
 		});
 }
 
@@ -154,11 +99,9 @@ fn take_transact_info() {
 				.build();
 
 			// Assert that errors since no index is assigned
-			assert_matches!(
-				precompiles().execute(Precompile.into(), &input, None, &evm_test_context(), false),
-				Some(Err(PrecompileFailure::Revert { output, ..}))
-				if output == b"Transact Info not set"
-			);
+			precompiles()
+				.prepare_test(Alice, Precompile, input.clone())
+				.execute_reverts(|output| output == b"Transact Info not set");
 
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
@@ -176,25 +119,19 @@ fn take_transact_info() {
 				1
 			));
 
-			// Expected result is zero
-			let expected_result = Some(Ok(PrecompileOutput {
-				exit_status: ExitSucceed::Returned,
-				output: EvmDataWriter::new()
-					.write(0u64)
-					.write(1u128)
-					.write(10000u64)
-					.build(),
-				cost: 2,
-				logs: Default::default(),
-			}));
-
-			assert_eq!(
-				precompiles().execute(Precompile.into(), &input, None, &evm_test_context(), false),
-				expected_result
-			);
+			precompiles()
+				.prepare_test(Alice, Precompile, input)
+				.expect_cost(2)
+				.expect_no_logs()
+				.execute_returns(
+					EvmDataWriter::new()
+						.write(0u64)
+						.write(1u128)
+						.write(10000u64)
+						.build(),
+				);
 		});
 }
-
 #[test]
 fn take_transact_info_with_signed() {
 	ExtBuilder::default()
@@ -206,11 +143,9 @@ fn take_transact_info_with_signed() {
 				.build();
 
 			// Assert that errors since no index is assigned
-			assert_matches!(
-				precompiles().execute(Precompile.into(), &input, None, &evm_test_context(), false),
-				Some(Err(PrecompileFailure::Revert { output, ..}))
-				if output == b"Transact Info not set"
-			);
+			precompiles()
+				.prepare_test(Alice, Precompile, input.clone())
+				.execute_reverts(|output| output == b"Transact Info not set");
 
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
@@ -221,29 +156,24 @@ fn take_transact_info_with_signed() {
 				Some(1)
 			));
 
-			// Root can set transact info
+			// Root can set fee per second
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				Origin::root(),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				1
 			));
 
-			// Expected result is zero
-			let expected_result = Some(Ok(PrecompileOutput {
-				exit_status: ExitSucceed::Returned,
-				output: EvmDataWriter::new()
-					.write(0u64)
-					.write(1u64)
-					.write(10000u64)
-					.build(),
-				cost: 1,
-				logs: Default::default(),
-			}));
-
-			assert_eq!(
-				precompiles().execute(Precompile.into(), &input, None, &evm_test_context(), false),
-				expected_result
-			);
+			precompiles()
+				.prepare_test(Alice, Precompile, input)
+				.expect_cost(1)
+				.expect_no_logs()
+				.execute_returns(
+					EvmDataWriter::new()
+						.write(0u64)
+						.write(1u128)
+						.write(10000u64)
+						.build(),
+				);
 		});
 }
 
@@ -258,31 +188,21 @@ fn take_fee_per_second() {
 				.build();
 
 			// Assert that errors
-			assert_matches!(
-				precompiles().execute(Precompile.into(), &input, None, &evm_test_context(), false),
-				Some(Err(PrecompileFailure::Revert { output, ..}))
-				if output == b"Fee Per Second not set"
-			);
+			precompiles()
+				.prepare_test(Alice, Precompile, input.clone())
+				.execute_reverts(|output| output == b"Fee Per Second not set");
 
-			// Root can set transact info
+			// Root can set fee per secnd
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				Origin::root(),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				1
 			));
-
-			// Expected result is zero
-			let expected_result = Some(Ok(PrecompileOutput {
-				exit_status: ExitSucceed::Returned,
-				output: EvmDataWriter::new().write(1u64).build(),
-				cost: 1,
-				logs: Default::default(),
-			}));
-
-			assert_eq!(
-				precompiles().execute(Precompile.into(), &input, None, &evm_test_context(), false),
-				expected_result
-			);
+			precompiles()
+				.prepare_test(Alice, Precompile, input)
+				.expect_cost(1)
+				.expect_no_logs()
+				.execute_returns(EvmDataWriter::new().write(1u64).build());
 		});
 }
 
@@ -314,14 +234,15 @@ fn test_transactor_multilocation() {
 			// we pay with our current self reserve.
 			let fee_payer_asset = MultiLocation::parent();
 
-			let bytes: Bytes = vec![1u8, 2u8, 3u8].as_slice().into();
+			let bytes = Bytes(vec![1u8, 2u8, 3u8]);
 
 			// We are transferring asset 0, which we have instructed to be the relay asset
-			assert_eq!(
-				precompiles().execute(
-					Precompile.into(),
-					&EvmDataWriter::new_with_selector(
-						Action::TransactThroughDerivativeMultiLocation
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile,
+					EvmDataWriter::new_with_selector(
+						Action::TransactThroughDerivativeMultiLocation,
 					)
 					.write(0u8)
 					.write(0u16)
@@ -329,21 +250,10 @@ fn test_transactor_multilocation() {
 					.write(U256::from(4000000))
 					.write(bytes)
 					.build(),
-					None,
-					&evm::Context {
-						address: Precompile.into(),
-						caller: Alice.into(),
-						apparent_value: From::from(0),
-					},
-					false,
-				),
-				Some(Ok(PrecompileOutput {
-					exit_status: ExitSucceed::Returned,
-					cost: 4004000,
-					output: vec![],
-					logs: vec![]
-				}))
-			);
+				)
+				.expect_cost(4004000)
+				.expect_no_logs()
+				.execute_returns(vec![]);
 		});
 }
 
@@ -372,34 +282,24 @@ fn test_transactor() {
 				1
 			));
 
-			let bytes: Bytes = vec![1u8, 2u8, 3u8].as_slice().into();
+			let bytes = Bytes(vec![1u8, 2u8, 3u8]);
 
 			// We are transferring asset 0, which we have instructed to be the relay asset
-			assert_eq!(
-				precompiles().execute(
-					Precompile.into(),
-					&EvmDataWriter::new_with_selector(Action::TransactThroughDerivative)
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile,
+					EvmDataWriter::new_with_selector(Action::TransactThroughDerivative)
 						.write(0u8)
 						.write(0u16)
 						.write(Address(AssetId(0).into()))
 						.write(U256::from(4000000))
 						.write(bytes)
 						.build(),
-					None,
-					&evm::Context {
-						address: Precompile.into(),
-						caller: Alice.into(),
-						apparent_value: From::from(0),
-					},
-					false,
-				),
-				Some(Ok(PrecompileOutput {
-					exit_status: ExitSucceed::Returned,
-					cost: 4004001,
-					output: vec![],
-					logs: vec![]
-				}))
-			);
+				)
+				.expect_cost(4004001)
+				.expect_no_logs()
+				.execute_returns(vec![]);
 		});
 }
 
@@ -430,33 +330,21 @@ fn test_transact_signed() {
 
 			let bytes: Bytes = vec![1u8, 2u8, 3u8].as_slice().into();
 
-			let output = precompiles().execute(
-				Precompile.into(),
-				&EvmDataWriter::new_with_selector(Action::TransactThroughSigned)
-					.write(dest)
-					.write(Address(AssetId(0).into()))
-					.write(U256::from(4000000))
-					.write(bytes)
-					.build(),
-				None,
-				&evm::Context {
-					address: Precompile.into(),
-					caller: Alice.into(),
-					apparent_value: From::from(0),
-				},
-				false,
-			);
-
 			// We are transferring asset 0, which we have instructed to be the relay asset
-			assert_eq!(
-				output,
-				Some(Ok(PrecompileOutput {
-					exit_status: ExitSucceed::Returned,
-					cost: 428130001,
-					output: vec![],
-					logs: vec![]
-				}))
-			);
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile,
+					EvmDataWriter::new_with_selector(Action::TransactThroughSigned)
+						.write(dest)
+						.write(Address(AssetId(0).into()))
+						.write(U256::from(4000000))
+						.write(bytes)
+						.build(),
+				)
+				.expect_cost(428130001)
+				.expect_no_logs()
+				.execute_returns(vec![]);
 		});
 }
 
@@ -489,31 +377,20 @@ fn test_transact_signed_multilocation() {
 
 			let bytes: Bytes = vec![1u8, 2u8, 3u8].as_slice().into();
 
-			let output = precompiles().execute(
-				Precompile.into(),
-				&EvmDataWriter::new_with_selector(Action::TransactThroughSignedMultiLocation)
-					.write(dest)
-					.write(fee_payer_asset)
-					.write(U256::from(4000000))
-					.write(bytes)
-					.build(),
-				None,
-				&evm::Context {
-					address: Precompile.into(),
-					caller: Alice.into(),
-					apparent_value: From::from(0),
-				},
-				false,
-			);
-
-			assert_eq!(
-				output,
-				Some(Ok(PrecompileOutput {
-					exit_status: ExitSucceed::Returned,
-					cost: 428130000,
-					output: vec![],
-					logs: vec![]
-				}))
-			);
+			// We are transferring asset 0, which we have instructed to be the relay asset
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile,
+					EvmDataWriter::new_with_selector(Action::TransactThroughSignedMultiLocation)
+						.write(dest)
+						.write(fee_payer_asset)
+						.write(U256::from(4000000))
+						.write(bytes)
+						.build(),
+				)
+				.expect_cost(428130000)
+				.expect_no_logs()
+				.execute_returns(vec![]);
 		});
 }
