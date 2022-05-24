@@ -452,7 +452,7 @@ fn test_transact_signed() {
 				output,
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
-					cost: 451907001,
+					cost: 428130001,
 					output: vec![],
 					logs: vec![]
 				}))
@@ -510,7 +510,7 @@ fn test_transact_signed_multilocation() {
 				output,
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
-					cost: 451907000,
+					cost: 428130000,
 					output: vec![],
 					logs: vec![]
 				}))
