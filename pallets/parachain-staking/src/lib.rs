@@ -1223,7 +1223,7 @@ pub mod pallet {
 			});
 			Ok(().into())
 		}
-		#[pallet::weight(20_000_000_000)]
+		#[pallet::weight(<T as Config>::WeightInfo::schedule_leave_delegators())]
 		/// Request to leave the set of delegators. If successful, the caller is scheduled to be
 		/// allowed to exit via a [DelegationAction::Revoke] towards all existing delegations.
 		/// Success forbids future delegation requests until the request is invoked or cancelled.
@@ -1241,7 +1241,7 @@ pub mod pallet {
 			ensure_signed(origin)?;
 			Self::delegator_execute_scheduled_revoke_all(delegator, delegation_count)
 		}
-		#[pallet::weight(20_000_000_000)]
+		#[pallet::weight(<T as Config>::WeightInfo::cancel_leave_delegators())]
 		/// Cancel a pending request to exit the set of delegators. Success clears the pending exit
 		/// request (thereby resetting the delay upon another `leave_delegators` call).
 		pub fn cancel_leave_delegators(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
