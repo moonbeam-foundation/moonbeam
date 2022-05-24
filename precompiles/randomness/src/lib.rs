@@ -147,11 +147,10 @@ where
 	}
 	// precompile
 	fn fulfill() {
-		// ::start_fulfill
+		// ::prepare fulfill
 		// subcall
-		// revert if subcall OOG
-		// revert else
-		// ::end fulfillment
+		// revert() if subcall OOG
+		// ::post fulfill
 	}
 	// TODO: increase request fee
 	// TODO: execute request expiration
