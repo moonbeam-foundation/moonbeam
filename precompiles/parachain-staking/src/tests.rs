@@ -65,7 +65,6 @@ fn selectors() {
 	assert_eq!(Action::DelegatorDelegationCount as u32, 0xfbc51bca);
 	assert_eq!(Action::SelectedCandidates as u32, 0x89f47a21);
 	assert_eq!(Action::DelegationRequestIsPending as u32, 0x192e1db3);
-	assert_eq!(Action::DelegatorExitIsPending as u32, 0xdc3ec64b);
 	assert_eq!(Action::CandidateExitIsPending as u32, 0xeb613b8a);
 	assert_eq!(Action::CandidateRequestIsPending as u32, 0x26ab05fb);
 	assert_eq!(Action::JoinCandidates as u32, 0x0a1bff60);
@@ -870,7 +869,7 @@ fn delegation_request_is_pending_works() {
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
 					output: Default::default(),
-					cost: 282552000,
+					cost: 281793000,
 					logs: Default::default(),
 				}))
 			);
@@ -927,109 +926,6 @@ fn delegation_request_is_pending_returns_false_for_non_existing_delegator() {
 }
 
 #[test]
-fn delegation_exit_is_pending_works() {
-	ExtBuilder::default()
-		.with_balances(vec![
-			(TestAccount::Alice, 1_000),
-			(TestAccount::Charlie, 50),
-			(TestAccount::Bogus, 50),
-		])
-		.with_candidates(vec![(TestAccount::Alice, 1_000)])
-		.with_delegations(vec![(TestAccount::Charlie, TestAccount::Alice, 50)])
-		.build()
-		.execute_with(|| {
-			// Expected false because we dont have pending requests yet
-			let mut expected_result = Some(Ok(PrecompileOutput {
-				exit_status: ExitSucceed::Returned,
-				output: EvmDataWriter::new().write(false).build(),
-				cost: Default::default(),
-				logs: Default::default(),
-			}));
-			// Assert that we don't have pending requests
-			assert_eq!(
-				precompiles().execute(
-					precompile_address(),
-					&EvmDataWriter::new_with_selector(Action::DelegatorExitIsPending)
-						.write(Address(TestAccount::Charlie.into()))
-						.build(),
-					None,
-					&evm_test_context(),
-					false
-				),
-				expected_result
-			);
-
-			// Schedule exit request
-			assert_eq!(
-				precompiles().execute(
-					precompile_address(),
-					&EvmDataWriter::new_with_selector(Action::ScheduleLeaveDelegators).build(),
-					None,
-					&Context {
-						address: precompile_address(),
-						caller: TestAccount::Charlie.into(),
-						apparent_value: From::from(0),
-					},
-					false,
-				),
-				Some(Ok(PrecompileOutput {
-					exit_status: ExitSucceed::Returned,
-					output: Default::default(),
-					cost: 152072000,
-					logs: Default::default(),
-				}))
-			);
-
-			// Expected true because we scheduled exit
-			expected_result = Some(Ok(PrecompileOutput {
-				exit_status: ExitSucceed::Returned,
-				output: EvmDataWriter::new().write(true).build(),
-				cost: Default::default(),
-				logs: Default::default(),
-			}));
-			// Assert that we have pending exit
-			assert_eq!(
-				precompiles().execute(
-					precompile_address(),
-					&EvmDataWriter::new_with_selector(Action::DelegatorExitIsPending)
-						.write(Address(TestAccount::Charlie.into()))
-						.build(),
-					None,
-					&evm_test_context(),
-					false
-				),
-				expected_result
-			);
-		})
-}
-
-#[test]
-fn delegation_exit_is_pending_returns_false_for_non_existing_delegator() {
-	ExtBuilder::default().build().execute_with(|| {
-		// Expected false because delegator Bob does not exist
-		let expected_result = Some(Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(false).build(),
-			cost: Default::default(),
-			logs: Default::default(),
-		}));
-		// Assert that we return false
-		assert_eq!(
-			precompiles().execute(
-				precompile_address(),
-				&EvmDataWriter::new_with_selector(Action::DelegatorExitIsPending)
-					.write(Address(TestAccount::Bob.into()))
-					.build(),
-				None,
-				&evm_test_context(),
-				false
-			),
-			expected_result
-		);
-	})
-}
-
-#[test]
 fn candidate_exit_is_pending_works() {
 	ExtBuilder::default()
 		.with_balances(vec![(TestAccount::Alice, 1_000)])
@@ -1075,7 +971,7 @@ fn candidate_exit_is_pending_works() {
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
 					output: Default::default(),
-					cost: 313608000,
+					cost: 303417000,
 					logs: Default::default(),
 				}))
 			);
@@ -1175,7 +1071,7 @@ fn candidate_request_is_pending_works() {
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
 					output: Default::default(),
-					cost: 151339000,
+					cost: 151710000,
 					logs: Default::default(),
 				}))
 			);

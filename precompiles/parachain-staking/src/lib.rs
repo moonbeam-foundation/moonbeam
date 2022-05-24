@@ -62,7 +62,6 @@ enum Action {
 	IsCandidate = "is_candidate(address)",
 	IsSelectedCandidate = "is_selected_candidate(address)",
 	DelegationRequestIsPending = "delegation_request_is_pending(address,address)",
-	DelegatorExitIsPending = "delegator_exit_is_pending(address)",
 	CandidateExitIsPending = "candidate_exit_is_pending(address)",
 	CandidateRequestIsPending = "candidate_request_is_pending(address)",
 	JoinCandidates = "join_candidates(uint256,uint256)",
@@ -150,7 +149,6 @@ where
 				| Action::DelegatorDelegationCount
 				| Action::SelectedCandidates
 				| Action::DelegationRequestIsPending
-				| Action::DelegatorExitIsPending
 				| Action::CandidateExitIsPending
 				| Action::CandidateRequestIsPending => FunctionModifier::View,
 				// Non-payables
@@ -213,9 +211,6 @@ where
 			Action::IsSelectedCandidate => return Self::is_selected_candidate(input, gasometer),
 			Action::DelegationRequestIsPending => {
 				return Self::delegation_request_is_pending(input, gasometer)
-			}
-			Action::DelegatorExitIsPending => {
-				return Self::delegator_exit_is_pending(input, gasometer)
 			}
 			Action::CandidateExitIsPending => {
 				return Self::candidate_exit_is_pending(input, gasometer)
@@ -562,44 +557,6 @@ where
 		// Users can call `is_delegator` to determine when this happens
 		let pending =
 			<parachain_staking::Pallet<Runtime>>::delegation_request_exists(&candidate, &delegator);
-
-		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			cost: gasometer.used_gas(),
-			output: EvmDataWriter::new().write(pending).build(),
-			logs: vec![],
-		})
-	}
-
-	fn delegator_exit_is_pending(
-		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
-	) -> EvmResult<PrecompileOutput> {
-		// Read input.
-		input.expect_arguments(gasometer, 1)?;
-
-		// Only argument is delegator
-		let delegator =
-			Runtime::AddressMapping::into_account_id(input.read::<Address>(gasometer)?.0);
-
-		// Fetch info.
-		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-
-		// If we are not able to get delegator state, we return false
-		// Users can call `is_delegator` to determine when this happens
-		let pending = if let Some(state) =
-			<parachain_staking::Pallet<Runtime>>::delegator_state(&delegator)
-		{
-			state.is_leaving()
-		} else {
-			log::trace!(
-				target: "staking-precompile",
-				"Delegator state for {:?} not found, so pending exit is false",
-				delegator
-			);
-			false
-		};
 
 		// Build output.
 		Ok(PrecompileOutput {
