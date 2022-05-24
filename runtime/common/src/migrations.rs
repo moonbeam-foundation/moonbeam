@@ -693,9 +693,12 @@ where
 			// Box::new(migration_parachain_staking_patch_incorrect_delegation_sums),
 			// completed in runtime 1300
 			// Box::new(migration_base_fee),
-			Box::new(migration_author_slot_filter_eligible_ratio_to_eligibility_count),
-			Box::new(migration_author_mapping_add_keys_to_registration_info),
-			Box::new(staking_delegator_state_requests),
+			// completed in runtime 1500
+			// Box::new(migration_author_slot_filter_eligible_ratio_to_eligibility_count),
+			// Box::new(migration_author_mapping_add_keys_to_registration_info),
+			// Box::new(staking_delegator_state_requests),
+			
+			// planned in runtime 1600
 			Box::new(migration_author_mapping_add_account_id_to_nimbus_lookup),
 		]
 	}
@@ -746,6 +749,8 @@ where
 			// Box::new(asset_manager_populate_asset_type_id_storage),
 			// completed in runtime 1300
 			// Box::new(xcm_supported_assets),
+			
+			// planned in runtime 1600
 			Box::new(xcm_transactor_transact_signed),
 		]
 	}
