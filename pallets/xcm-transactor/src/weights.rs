@@ -156,7 +156,7 @@ impl WeightInfo for () {
 	// Storage: PolkadotXcm SafeXcmVersion (r:1 w:0)
 	// Storage: ParachainSystem HostConfiguration (r:1 w:0)
 	// Storage: ParachainSystem PendingUpwardMessages (r:1 w:1)
-    #[rustfmt::skip]
+	#[rustfmt::skip]
 	fn transact_through_signed_multilocation() -> Weight {
 		(53_130_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(7 as Weight))
