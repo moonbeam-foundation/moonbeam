@@ -63,7 +63,6 @@ fn selectors() {
 	assert_eq!(Action::DelegatorDelegationCount as u32, 0xfbc51bca);
 	assert_eq!(Action::SelectedCandidates as u32, 0x89f47a21);
 	assert_eq!(Action::DelegationRequestIsPending as u32, 0x192e1db3);
-	assert_eq!(Action::DelegatorExitIsPending as u32, 0xdc3ec64b);
 	assert_eq!(Action::CandidateExitIsPending as u32, 0xeb613b8a);
 	assert_eq!(Action::CandidateRequestIsPending as u32, 0x26ab05fb);
 	assert_eq!(Action::JoinCandidates as u32, 0x0a1bff60);
@@ -549,7 +548,7 @@ fn delegation_request_is_pending_works() {
 						.write(Address(Alice.into()))
 						.build(),
 				)
-				.expect_cost(282552000)
+				.expect_cost(281793000)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 
@@ -589,71 +588,6 @@ fn delegation_request_is_pending_returns_false_for_non_existing_delegator() {
 }
 
 #[test]
-fn delegation_exit_is_pending_works() {
-	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1_000), (Charlie, 50), (Bogus, 50)])
-		.with_candidates(vec![(Alice, 1_000)])
-		.with_delegations(vec![(Charlie, Alice, 50)])
-		.build()
-		.execute_with(|| {
-			// Assert that we don't have pending requests
-			precompiles()
-				.prepare_test(
-					Alice,
-					Precompile,
-					EvmDataWriter::new_with_selector(Action::DelegatorExitIsPending)
-						.write(Address(Charlie.into()))
-						.build(),
-				)
-				.expect_cost(0) // TODO: Test db read/write costs
-				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(false).build());
-
-			// Schedule exit request
-			precompiles()
-				.prepare_test(
-					Charlie,
-					Precompile,
-					EvmDataWriter::new_with_selector(Action::ScheduleLeaveDelegators).build(),
-				)
-				.expect_cost(152072000)
-				.expect_no_logs()
-				.execute_returns(vec![]);
-
-			// Assert that we have pending exit
-			precompiles()
-				.prepare_test(
-					Alice,
-					Precompile,
-					EvmDataWriter::new_with_selector(Action::DelegatorExitIsPending)
-						.write(Address(Charlie.into()))
-						.build(),
-				)
-				.expect_cost(0) // TODO: Test db read/write costs
-				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(true).build());
-		})
-}
-
-#[test]
-fn delegation_exit_is_pending_returns_false_for_non_existing_delegator() {
-	ExtBuilder::default().build().execute_with(|| {
-		// Expected false because delegator Bob does not exist
-		precompiles()
-			.prepare_test(
-				Alice,
-				Precompile,
-				EvmDataWriter::new_with_selector(Action::DelegatorExitIsPending)
-					.write(Address(Bob.into()))
-					.build(),
-			)
-			.expect_cost(0) // TODO: Test db read/write costs
-			.expect_no_logs()
-			.execute_returns(EvmDataWriter::new().write(false).build());
-	})
-}
-
-#[test]
 fn candidate_exit_is_pending_works() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice, 1_000)])
@@ -682,7 +616,7 @@ fn candidate_exit_is_pending_works() {
 						.write(U256::one())
 						.build(),
 				)
-				.expect_cost(313608000)
+				.expect_cost(303417000)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 
@@ -748,7 +682,7 @@ fn candidate_request_is_pending_works() {
 						.write(U256::zero())
 						.build(),
 				)
-				.expect_cost(151339000)
+				.expect_cost(151710000)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 
