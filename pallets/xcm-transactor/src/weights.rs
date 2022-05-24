@@ -102,17 +102,16 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add(T::DbWeight::get().writes(1 as Weight))
 	}
 	// Storage: XcmTransactor TransactInfoWithWeightLimit (r:1 w:0)
-	// Storage: XcmTransactor DestinationFeePerSecond (r:1 w:0)
-	// Storage: ParachainInfo ParachainId (r:1 w:0)
-	// Storage: PolkadotXcm SupportedVersion (r:1 w:0)
-	// Storage: PolkadotXcm VersionDiscoveryQueue (r:1 w:1)
-	// Storage: PolkadotXcm SafeXcmVersion (r:1 w:0)
-	// Storage: ParachainSystem HostConfiguration (r:1 w:0)
-	// Storage: ParachainSystem PendingUpwardMessages (r:1 w:1)
+    // Storage: XcmTransactor DestinationAssetFeePerSecond (r:1 w:0)
+    // Storage: PolkadotXcm SupportedVersion (r:1 w:0)
+    // Storage: PolkadotXcm VersionDiscoveryQueue (r:1 w:1)
+    // Storage: PolkadotXcm SafeXcmVersion (r:1 w:0)
+    // Storage: ParachainSystem HostConfiguration (r:1 w:0)
+    // Storage: ParachainSystem PendingUpwardMessages (r:1 w:1)
 	#[rustfmt::skip]
 	fn transact_through_signed_multilocation() -> Weight {
-		(51_907_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(8 as Weight))
+		(53_130_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(7 as Weight))
 			.saturating_add(T::DbWeight::get().writes(2 as Weight))
 	}
 }
@@ -151,17 +150,16 @@ impl WeightInfo for () {
 			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
 	}
 	// Storage: XcmTransactor TransactInfoWithWeightLimit (r:1 w:0)
-	// Storage: XcmTransactor DestinationFeePerSecond (r:1 w:0)
-	// Storage: ParachainInfo ParachainId (r:1 w:0)
-	// Storage: PolkadotXcm SupportedVersion (r:1 w:0)
-	// Storage: PolkadotXcm VersionDiscoveryQueue (r:1 w:1)
-	// Storage: PolkadotXcm SafeXcmVersion (r:1 w:0)
-	// Storage: ParachainSystem HostConfiguration (r:1 w:0)
-	// Storage: ParachainSystem PendingUpwardMessages (r:1 w:1)
-	#[rustfmt::skip]
-	fn transact_through_signed_multilocation() -> Weight {
-		(51_907_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(8 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(2 as Weight))
-	}
+    // Storage: XcmTransactor DestinationAssetFeePerSecond (r:1 w:0)
+    // Storage: PolkadotXcm SupportedVersion (r:1 w:0)
+    // Storage: PolkadotXcm VersionDiscoveryQueue (r:1 w:1)
+    // Storage: PolkadotXcm SafeXcmVersion (r:1 w:0)
+    // Storage: ParachainSystem HostConfiguration (r:1 w:0)
+    // Storage: ParachainSystem PendingUpwardMessages (r:1 w:1)
+    #[rustfmt::skip]
+    fn transact_through_signed_multilocation() -> Weight {
+        (53_130_000 as Weight)
+            .saturating_add(RocksDbWeight::get().reads(7 as Weight))
+            .saturating_add(RocksDbWeight::get().writes(2 as Weight))
+    }
 }
