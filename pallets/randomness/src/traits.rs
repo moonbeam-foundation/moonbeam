@@ -21,12 +21,6 @@ pub trait GetEpochIndex<Index> {
 	fn get_epoch_index() -> (Index, Weight);
 }
 
-/// Get the per block VRF randomness to insert into runtime
-/// - infallible because every block must contain a VRF output
-pub trait GetLocalRandomness<R> {
-	fn get_local_randomness() -> R;
-}
-
 /// Get babe randomness to insert into runtime
 pub trait GetRelayRandomness<R> {
 	fn get_current_block_randomness() -> (Option<R>, Weight);

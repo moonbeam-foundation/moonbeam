@@ -7876,6 +7876,7 @@ dependencies = [
  "frame-support 4.0.0-dev (git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.18)",
  "frame-system 4.0.0-dev (git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.18)",
  "pallet-balances 4.0.0-dev (git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.18)",
+ "pallet-vrf",
  "parity-scale-codec",
  "scale-info",
  "sp-core 6.0.0 (git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.18)",

@@ -15,11 +15,12 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
-	BalanceOf, Config, CurrentBlockRandomness, CurrentEpochIndex, Error, GetLocalRandomness,
-	OneEpochAgoRandomness, TwoEpochsAgoRandomness,
+	BalanceOf, Config, CurrentBlockRandomness, CurrentEpochIndex, Error, OneEpochAgoRandomness,
+	TwoEpochsAgoRandomness,
 };
 use frame_support::pallet_prelude::*;
 use frame_support::traits::{Currency, ExistenceRequirement::KeepAlive, ReservableCurrency};
+use pallet_vrf::GetMaybeRandomness;
 use sp_runtime::traits::{CheckedSub, Saturating};
 
 #[derive(PartialEq, Copy, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
@@ -133,21 +134,15 @@ impl<T: Config> RequestState<T> {
 	/// Only should be called in `prepare_fulfill` after check that the request can be fulfilled
 	fn get_randomness(&self) -> Result<T::Hash, DispatchError> {
 		match self.request.info {
-			RequestType::BabeOneEpochAgo(_) => {
-				OneEpochAgoRandomness::<T>::get().ok_or(Error::<T>::RandomnessNotAvailable.into())
-			}
-			RequestType::BabeTwoEpochsAgo(_) => {
-				TwoEpochsAgoRandomness::<T>::get().ok_or(Error::<T>::RandomnessNotAvailable.into())
-			}
-			RequestType::BabeCurrentBlock(_) => {
-				CurrentBlockRandomness::<T>::get().ok_or(Error::<T>::RandomnessNotAvailable.into())
-			}
-			RequestType::Local(_) => Ok(T::LocalRandomness::get_local_randomness()),
+			RequestType::BabeOneEpochAgo(_) => OneEpochAgoRandomness::<T>::get(),
+			RequestType::BabeTwoEpochsAgo(_) => TwoEpochsAgoRandomness::<T>::get(),
+			RequestType::BabeCurrentBlock(_) => CurrentBlockRandomness::<T>::get(),
+			RequestType::Local(_) => T::LocalRandomness::get_current_randomness(),
 		}
+		.ok_or(Error::<T>::RandomnessNotAvailable.into())
 	}
 	/// Returns Ok(FulfillArgs) if successful
 	/// This should be called before the callback
-	/// RENAME TO PREPARE FULFILL
 	pub fn prepare_fulfill(&self) -> Result<FulfillArgs<T>, DispatchError> {
 		ensure!(
 			self.request.can_be_fulfilled(),

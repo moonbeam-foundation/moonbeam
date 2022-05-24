@@ -63,10 +63,9 @@ pub mod pallet {
 	}
 
 	/// Exposes randomness in this pallet to the runtime
-	pub trait GetMaybeRandomness {
-		type Randomness;
-		fn get_last_randomness() -> Option<Self::Randomness>;
-		fn get_current_randomness() -> Option<Self::Randomness>;
+	pub trait GetMaybeRandomness<R> {
+		fn get_last_randomness() -> Option<R>;
+		fn get_current_randomness() -> Option<R>;
 	}
 
 	/// Make VRF transcript
@@ -204,12 +203,11 @@ pub mod pallet {
 		}
 	}
 
-	impl<T: Config> GetMaybeRandomness for Pallet<T> {
-		type Randomness = Randomness;
-		fn get_last_randomness() -> Option<Self::Randomness> {
+	impl<T: Config> GetMaybeRandomness<Randomness> for Pallet<T> {
+		fn get_last_randomness() -> Option<Randomness> {
 			LastRandomness::<T>::get()
 		}
-		fn get_current_randomness() -> Option<Self::Randomness> {
+		fn get_current_randomness() -> Option<Randomness> {
 			CurrentRandomness::<T>::get()
 		}
 	}
