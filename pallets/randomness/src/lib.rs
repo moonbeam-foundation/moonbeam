@@ -69,6 +69,8 @@ pub mod pallet {
 		type RelayEpochIndex: GetEpochIndex<u64>;
 		/// Get relay chain randomness to insert into this pallet
 		type RelayRandomness: GetRelayRandomness<Self::Hash>;
+		/// Get per block vrf randomness
+		type LocalRandomness: GetLocalRandomness<Self::Hash>;
 		#[pallet::constant]
 		/// The amount that should be taken as a security deposit when requesting randomness.
 		type Deposit: Get<BalanceOf<Self>>;
@@ -85,7 +87,6 @@ pub mod pallet {
 		RequestCounterOverflowed,
 		NotSufficientDeposit,
 		CannotRequestPastRandomness,
-		InvalidRequestCannotBeFulfilledBeforeExpiry,
 		RequestDNE,
 		RequestCannotYetBeFulfilled,
 		OnlyRequesterCanIncreaseFee,
@@ -93,6 +94,7 @@ pub mod pallet {
 		RequestHasNotExpired,
 		RequestedRandomnessNotCorrectlyUpdated,
 		RequestExecutionOOG,
+		RandomnessNotAvailable,
 	}
 
 	#[pallet::event]
@@ -124,7 +126,7 @@ pub mod pallet {
 	#[pallet::getter(fn request)]
 	/// Randomness requests not yet fulfilled or purged
 	pub type Requests<T: Config> =
-		StorageMap<_, Blake2_128Concat, RequestId, RequestState<T>, OptionQuery>;
+		StorageMap<_, Twox64Concat, RequestId, RequestState<T>, OptionQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn request_count)]
@@ -179,9 +181,8 @@ pub mod pallet {
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
 		// Get randomness from runtime and set it locally
-		// TODO: check if relay block number changed and if so, then do this
-		// else need to basically say randomness has not changed;
-		// only necessary constraint once asynchronous backing is implemented
+		// TODO (once asynchronous backing is implemented):
+		// only get new randomness iff relay block number changes
 		fn on_initialize(_now: BlockNumberFor<T>) -> Weight {
 			let last_epoch_index = <CurrentEpochIndex<T>>::get();
 			let (maybe_new_epoch_index, get_epoch_index_wt) = T::RelayEpochIndex::get_epoch_index();
@@ -205,7 +206,7 @@ pub mod pallet {
 				<OneEpochAgoRandomness<T>>::put(one_epoch_ago_randomness);
 				<TwoEpochsAgoRandomness<T>>::put(two_epochs_ago_randomness);
 				weight_consumed += 2 * T::DbWeight::get().read
-					+ 2 * T::DbWeight::get().write
+					+ 5 * T::DbWeight::get().write
 					+ one_epoch_ago_randomness_wt
 					+ two_epochs_ago_randomness_wt;
 			}
@@ -231,7 +232,7 @@ pub mod pallet {
 		}
 	}
 
-	// This is where we expose pallet functionality for the precompile
+	// Expose functionality in here for precompile
 	impl<T: Config> Pallet<T> {
 		pub fn request_randomness(request: Request<T>) -> DispatchResult {
 			ensure!(
@@ -248,27 +249,25 @@ pub mod pallet {
 				.checked_add(1u64)
 				.ok_or(Error::<T>::RequestCounterOverflowed)?;
 			T::Currency::reserve(&request.contract_address, deposit)?;
-			let request: RequestState<T> = RequestState::new(request, deposit)?;
 			// insert request
 			<RequestCount<T>>::put(next_id);
 			Self::deposit_event(Event::RandomnessRequested {
 				id: request_id,
-				refund_address: request.request.refund_address.clone(),
-				contract_address: request.request.contract_address.clone(),
-				fee: request.request.fee,
-				salt: request.request.salt,
+				refund_address: request.refund_address.clone(),
+				contract_address: request.contract_address.clone(),
+				fee: request.fee,
+				salt: request.salt,
 				//info: request.request.info,
 			});
-			<Requests<T>>::insert(request_id, request);
+			<Requests<T>>::insert(request_id, RequestState::new(request, deposit));
 			Ok(())
 		}
-		/// Start fulfillment
+		/// Prepare fulfillment
 		/// Returns all arguments needed for fulfillment
-		/// including eventual call to do_fulfill
-		pub fn start_fulfillment(id: RequestId) -> Result<FulfillArgs<T>, DispatchError> {
+		pub fn prepare_fulfillment(id: RequestId) -> Result<FulfillArgs<T>, DispatchError> {
 			<Requests<T>>::get(id)
 				.ok_or(Error::<T>::RequestDNE)?
-				.start_fulfill()
+				.prepare_fulfill()
 		}
 		/// Finish fulfillment
 		/// Caller MUST ensure `id` corresponds to `request` or there will be side effects

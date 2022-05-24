@@ -1136,7 +1136,6 @@ impl pallet_randomness::Config for Test {
 	type RelayEpochIndex = RelayEpochIndex;
 	type RelayRandomness = RelayRandomness;
 	type RandomnessSender = RandomnessSender;
-	type WeightToFee = Weight;
 	type Deposit = RandomnessRequestDeposit;
 	type ExpirationDelay = ExpirationDelay;
 }

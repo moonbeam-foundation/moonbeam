@@ -14,7 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::{BalanceOf, Config, CurrentEpochIndex, Error};
+use crate::{
+	BalanceOf, Config, CurrentBlockRandomness, CurrentEpochIndex, Error, GetLocalRandomness,
+	OneEpochAgoRandomness, TwoEpochsAgoRandomness,
+};
 use frame_support::pallet_prelude::*;
 use frame_support::traits::{Currency, ExistenceRequirement::KeepAlive, ReservableCurrency};
 use sp_runtime::traits::{CheckedSub, Saturating};
@@ -116,36 +119,42 @@ pub struct FulfillArgs<T: Config> {
 }
 
 impl<T: Config> RequestState<T> {
-	pub fn new(
-		request: Request<T>,
-		deposit: BalanceOf<T>,
-	) -> Result<RequestState<T>, DispatchError> {
+	pub(crate) fn new(request: Request<T>, deposit: BalanceOf<T>) -> RequestState<T> {
 		let expires =
 			frame_system::Pallet::<T>::block_number().saturating_add(T::ExpirationDelay::get());
-		// TODO: impl
-		// ensure!(
-		// 	request.info.when() < expires,
-		// 	Error::<T>::InvalidRequestCannotBeFulfilledBeforeExpiry
-		// );
-		Ok(RequestState {
+		RequestState {
 			request,
 			deposit,
 			expires,
-		})
+		}
+	}
+	/// Get the randomness corresponding to the request
+	/// Only fails if the randomness is not available
+	/// Only should be called in `prepare_fulfill` after check that the request can be fulfilled
+	fn get_randomness(&self) -> Result<T::Hash, DispatchError> {
+		match self.request.info {
+			RequestType::BabeOneEpochAgo(_) => {
+				OneEpochAgoRandomness::<T>::get().ok_or(Error::<T>::RandomnessNotAvailable.into())
+			}
+			RequestType::BabeTwoEpochsAgo(_) => {
+				TwoEpochsAgoRandomness::<T>::get().ok_or(Error::<T>::RandomnessNotAvailable.into())
+			}
+			RequestType::BabeCurrentBlock(_) => {
+				CurrentBlockRandomness::<T>::get().ok_or(Error::<T>::RandomnessNotAvailable.into())
+			}
+			RequestType::Local(_) => Ok(T::LocalRandomness::get_local_randomness()),
+		}
 	}
 	/// Returns Ok(FulfillArgs) if successful
 	/// This should be called before the callback
-	pub fn start_fulfill(&self) -> Result<FulfillArgs<T>, DispatchError> {
+	/// RENAME TO PREPARE FULFILL
+	pub fn prepare_fulfill(&self) -> Result<FulfillArgs<T>, DispatchError> {
 		ensure!(
 			self.request.can_be_fulfilled(),
 			Error::<T>::RequestCannotYetBeFulfilled
 		);
-		// TODO: impl get specific randomness type
-		// consider extracting into function
-		let randomness: T::Hash = match self.request.info {
-			RequestType::Local { .. } => T::Hash::default(),
-			_ => return Err(Error::<T>::NotYetImplemented.into()),
-		};
+		// get the randomness corresponding to the request
+		let randomness: T::Hash = self.get_randomness()?;
 		// No event emitted until fulfillment is complete
 		Ok(FulfillArgs {
 			request: self.request.clone(),

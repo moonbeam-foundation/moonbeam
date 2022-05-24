@@ -197,7 +197,7 @@ pub mod pallet {
 				LastRandomness::<T>::put(current_randomness);
 			} else {
 				// clear LastRandomness if there is no CurrentRandomness
-				<LastRandomness<T>>::remove();
+				<LastRandomness<T>>::kill();
 			}
 			CurrentRandomness::<T>::put(randomness);
 			T::DbWeight::get().read + 2 * T::DbWeight::get().write

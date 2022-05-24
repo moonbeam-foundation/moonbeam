@@ -15,6 +15,7 @@ members = [
 	"pallets/vrf",
 	"precompiles/balances-erc20",
 	"precompiles/utils/macro",
+	"precompiles/randomness",
 	"runtime/moonbase",
 	"runtime/moonbeam",
 	"runtime/moonriver",
