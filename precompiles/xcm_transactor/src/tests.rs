@@ -108,8 +108,59 @@ fn take_transact_info() {
 				Origin::root(),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				0,
-				1,
-				10000,
+				10000u64,
+				None
+			));
+
+			// Root can set transact info
+			assert_ok!(XcmTransactor::set_fee_per_second(
+				Origin::root(),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				1
+			));
+
+			precompiles()
+				.prepare_test(Alice, Precompile, input)
+				.expect_cost(2)
+				.expect_no_logs()
+				.execute_returns(
+					EvmDataWriter::new()
+						.write(0u64)
+						.write(1u128)
+						.write(10000u64)
+						.build(),
+				);
+		});
+}
+#[test]
+fn take_transact_info_with_signed() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			let input = EvmDataWriter::new_with_selector(Action::TransactInfoWithSigned)
+				.write(MultiLocation::parent())
+				.build();
+
+			// Assert that errors since no index is assigned
+			precompiles()
+				.prepare_test(Alice, Precompile, input.clone())
+				.execute_reverts(|output| output == b"Transact Info not set");
+
+			// Root can set transact info
+			assert_ok!(XcmTransactor::set_transact_info(
+				Origin::root(),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				0,
+				10000u64,
+				Some(1)
+			));
+
+			// Root can set fee per second
+			assert_ok!(XcmTransactor::set_fee_per_second(
+				Origin::root(),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				1
 			));
 
 			precompiles()
@@ -127,6 +178,35 @@ fn take_transact_info() {
 }
 
 #[test]
+fn take_fee_per_second() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			let input = EvmDataWriter::new_with_selector(Action::FeePerSecond)
+				.write(MultiLocation::parent())
+				.build();
+
+			// Assert that errors
+			precompiles()
+				.prepare_test(Alice, Precompile, input.clone())
+				.execute_reverts(|output| output == b"Fee Per Second not set");
+
+			// Root can set fee per secnd
+			assert_ok!(XcmTransactor::set_fee_per_second(
+				Origin::root(),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				1
+			));
+			precompiles()
+				.prepare_test(Alice, Precompile, input)
+				.expect_cost(1)
+				.expect_no_logs()
+				.execute_returns(EvmDataWriter::new().write(1u64).build());
+		});
+}
+
+#[test]
 fn test_transactor_multilocation() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice, 1000)])
@@ -140,8 +220,15 @@ fn test_transactor_multilocation() {
 				Origin::root(),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				0,
-				1,
-				10000000
+				10000000,
+				None
+			));
+
+			// Root can set transact info
+			assert_ok!(XcmTransactor::set_fee_per_second(
+				Origin::root(),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				1
 			));
 
 			// we pay with our current self reserve.
@@ -184,8 +271,15 @@ fn test_transactor() {
 				Origin::root(),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				0,
-				1,
-				10000000
+				10000000,
+				None
+			));
+
+			// Root can set transact info
+			assert_ok!(XcmTransactor::set_fee_per_second(
+				Origin::root(),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				1
 			));
 
 			let bytes = Bytes(vec![1u8, 2u8, 3u8]);
@@ -204,6 +298,98 @@ fn test_transactor() {
 						.build(),
 				)
 				.expect_cost(4004001)
+				.expect_no_logs()
+				.execute_returns(vec![]);
+		});
+}
+
+#[test]
+fn test_transact_signed() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			// Root can set transact info
+			assert_ok!(XcmTransactor::set_transact_info(
+				Origin::root(),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				0,
+				10000000,
+				Some(1)
+			));
+
+			// Root can set transact info
+			assert_ok!(XcmTransactor::set_fee_per_second(
+				Origin::root(),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				1
+			));
+
+			// Destination
+			let dest = MultiLocation::parent();
+
+			let bytes: Bytes = vec![1u8, 2u8, 3u8].as_slice().into();
+
+			// We are transferring asset 0, which we have instructed to be the relay asset
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile,
+					EvmDataWriter::new_with_selector(Action::TransactThroughSigned)
+						.write(dest)
+						.write(Address(AssetId(0).into()))
+						.write(U256::from(4000000))
+						.write(bytes)
+						.build(),
+				)
+				.expect_cost(428130001)
+				.expect_no_logs()
+				.execute_returns(vec![]);
+		});
+}
+
+#[test]
+fn test_transact_signed_multilocation() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			// Root can set transact info
+			assert_ok!(XcmTransactor::set_transact_info(
+				Origin::root(),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				0,
+				10000000,
+				Some(1)
+			));
+
+			// Root can set transact info
+			assert_ok!(XcmTransactor::set_fee_per_second(
+				Origin::root(),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				1
+			));
+
+			// Destination
+			let dest = MultiLocation::parent();
+
+			let fee_payer_asset = MultiLocation::parent();
+
+			let bytes: Bytes = vec![1u8, 2u8, 3u8].as_slice().into();
+
+			// We are transferring asset 0, which we have instructed to be the relay asset
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile,
+					EvmDataWriter::new_with_selector(Action::TransactThroughSignedMultiLocation)
+						.write(dest)
+						.write(fee_payer_asset)
+						.write(U256::from(4000000))
+						.write(bytes)
+						.build(),
+				)
+				.expect_cost(428130000)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 		});

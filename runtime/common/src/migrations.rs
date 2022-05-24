@@ -52,7 +52,9 @@ use sp_std::{marker::PhantomData, prelude::*};
 #[cfg(feature = "xcm-support")]
 use xcm::latest::MultiLocation;
 #[cfg(feature = "xcm-support")]
-use xcm_transactor::{migrations::MaxTransactWeight, Config as XcmTransactorConfig};
+use xcm_transactor::{
+	migrations::TransactSignedWeightAndFeePerSecond, Config as XcmTransactorConfig,
+};
 
 /// This module acts as a registry where each migration is defined. Each migration should implement
 /// the "Migration" trait declared in the pallet-migrations crate.
@@ -418,28 +420,53 @@ impl<T: BaseFeeConfig> Migration for MigrateBaseFeePerGas<T> {
 	}
 }
 
+// #[cfg(feature = "xcm-support")]
+// pub struct XcmTransactorMaxTransactWeight<T>(PhantomData<T>);
+// #[cfg(feature = "xcm-support")]
+// impl<T: XcmTransactorConfig> Migration for XcmTransactorMaxTransactWeight<T> {
+// 	fn friendly_name(&self) -> &str {
+// 		"MM_Xcm_Transactor_MaxTransactWeight"
+// 	}
+
+// 	fn migrate(&self, _available_weight: Weight) -> Weight {
+// 		MaxTransactWeight::<T>::on_runtime_upgrade()
+// 	}
+
+// 	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+// 	#[cfg(feature = "try-runtime")]
+// 	fn pre_upgrade(&self) -> Result<(), &'static str> {
+// 		MaxTransactWeight::<T>::pre_upgrade()
+// 	}
+
+// 	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+// 	#[cfg(feature = "try-runtime")]
+// 	fn post_upgrade(&self) -> Result<(), &'static str> {
+// 		MaxTransactWeight::<T>::post_upgrade()
+// 	}
+// }
+
 #[cfg(feature = "xcm-support")]
-pub struct XcmTransactorMaxTransactWeight<T>(PhantomData<T>);
+pub struct XcmTransactorTransactSignedWeightAndFeePerSecond<T>(PhantomData<T>);
 #[cfg(feature = "xcm-support")]
-impl<T: XcmTransactorConfig> Migration for XcmTransactorMaxTransactWeight<T> {
+impl<T: XcmTransactorConfig> Migration for XcmTransactorTransactSignedWeightAndFeePerSecond<T> {
 	fn friendly_name(&self) -> &str {
-		"MM_Xcm_Transactor_MaxTransactWeight"
+		"MM_Xcm_Transactor_TransactSignedWeightAndFeePerSecond"
 	}
 
 	fn migrate(&self, _available_weight: Weight) -> Weight {
-		MaxTransactWeight::<T>::on_runtime_upgrade()
+		TransactSignedWeightAndFeePerSecond::<T>::on_runtime_upgrade()
 	}
 
 	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade(&self) -> Result<(), &'static str> {
-		MaxTransactWeight::<T>::pre_upgrade()
+		TransactSignedWeightAndFeePerSecond::<T>::pre_upgrade()
 	}
 
 	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade(&self) -> Result<(), &'static str> {
-		MaxTransactWeight::<T>::post_upgrade()
+		TransactSignedWeightAndFeePerSecond::<T>::post_upgrade()
 	}
 }
 
@@ -705,6 +732,9 @@ where
 		// TODO: this is a lot of allocation to do upon every get() call. this *should* be avoided
 		// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review
 
+		let xcm_transactor_transact_signed =
+			XcmTransactorTransactSignedWeightAndFeePerSecond::<Runtime>(Default::default());
+
 		vec![
 			// completed in runtime 1201
 			// Box::new(xcm_transactor_max_weight),
@@ -716,6 +746,7 @@ where
 			// Box::new(asset_manager_populate_asset_type_id_storage),
 			// completed in runtime 1300
 			// Box::new(xcm_supported_assets),
+			Box::new(xcm_transactor_transact_signed),
 		]
 	}
 }

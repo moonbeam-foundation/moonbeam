@@ -517,6 +517,10 @@ macro_rules! impl_runtime_apis_plus_common {
 						hex_literal::hex!(  "a686a3043d0adcf2fa655e57bc595a78"
 											"13792e785168f725b60e2969c7fc2552")
 							.to_vec().into(),
+						// ParachainInfo ParachainId
+						hex_literal::hex!(  "0d715f2646c8f85767b5d2764bb27826"
+											"04a74d81251e398fd8a0a4d55023bb3f")
+							.to_vec().into(),
 
 					];
 

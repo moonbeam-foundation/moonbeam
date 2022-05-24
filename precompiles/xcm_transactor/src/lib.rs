@@ -49,10 +49,16 @@ pub type CurrencyIdOf<Runtime> = <Runtime as xcm_transactor::Config>::CurrencyId
 #[derive(Debug, PartialEq)]
 pub enum Action {
 	IndexToAccount = "index_to_account(uint16)",
+	// DEPRECATED
 	TransactInfo = "transact_info((uint8,bytes[]))",
 	TransactThroughDerivativeMultiLocation =
 		"transact_through_derivative_multilocation(uint8,uint16,(uint8,bytes[]),uint64,bytes)",
 	TransactThroughDerivative = "transact_through_derivative(uint8,uint16,address,uint64,bytes)",
+	TransactInfoWithSigned = "transact_info_with_signed((uint8,bytes[]))",
+	FeePerSecond = "fee_per_second((uint8,bytes[]))",
+	TransactThroughSignedMultiLocation =
+		"transact_through_signed_multilocation((uint8,bytes[]),(uint8,bytes[]),uint64,bytes)",
+	TransactThroughSigned = "transact_through_signed((uint8,bytes[]),address,uint64,bytes)",
 }
 
 /// A precompile to wrap the functionality from xcm transactor
@@ -81,11 +87,18 @@ where
 		match selector {
 			// Check for accessor methods first. These return results immediately
 			Action::IndexToAccount => Self::account_index(handle),
+			// DEPRECATED
 			Action::TransactInfo => Self::transact_info(handle),
+			Action::TransactInfoWithSigned => Self::transact_info_with_signed(handle),
+			Action::FeePerSecond => Self::fee_per_second(handle),
 			Action::TransactThroughDerivativeMultiLocation => {
 				Self::transact_through_derivative_multilocation(handle)
 			}
 			Action::TransactThroughDerivative => Self::transact_through_derivative(handle),
+			Action::TransactThroughSignedMultiLocation => {
+				Self::transact_through_signed_multilocation(handle)
+			}
+			Action::TransactThroughSigned => Self::transact_through_signed(handle),
 		}
 	}
 }
@@ -119,7 +132,34 @@ where
 	}
 
 	fn transact_info(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		handle.record_cost(2 * RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		let mut input = handle.read_input()?;
+		let multilocation: MultiLocation = input.read::<MultiLocation>()?;
+
+		// fetch data from pallet
+		let remote_transact_info: RemoteTransactInfoWithMaxWeight =
+			xcm_transactor::Pallet::<Runtime>::transact_info(&multilocation)
+				.ok_or(revert("Transact Info not set"))?;
+
+		// fetch data from pallet
+		let fee_per_second: u128 =
+			xcm_transactor::Pallet::<Runtime>::dest_asset_fee_per_second(&multilocation)
+				.ok_or(revert("Fee Per Second not set"))?;
+
+		Ok(succeed(
+			EvmDataWriter::new()
+				.write(remote_transact_info.transact_extra_weight)
+				.write(fee_per_second)
+				.write(remote_transact_info.max_weight)
+				.build(),
+		))
+	}
+
+	fn transact_info_with_signed(
+		handle: &mut impl PrecompileHandle,
+	) -> EvmResult<PrecompileOutput> {
+		handle.record_cost(1 * RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		let mut input = handle.read_input()?;
 		let multilocation: MultiLocation = input.read::<MultiLocation>()?;
@@ -129,13 +169,30 @@ where
 			xcm_transactor::Pallet::<Runtime>::transact_info(multilocation)
 				.ok_or(revert("Transact Info not set"))?;
 
+		let transact_extra_weight_signed = remote_transact_info
+			.transact_extra_weight_signed
+			.unwrap_or(0);
 		Ok(succeed(
 			EvmDataWriter::new()
 				.write(remote_transact_info.transact_extra_weight)
-				.write(remote_transact_info.fee_per_second)
+				.write(transact_extra_weight_signed)
 				.write(remote_transact_info.max_weight)
 				.build(),
 		))
+	}
+
+	fn fee_per_second(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		handle.record_cost(1 * RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let mut input = handle.read_input()?;
+
+		let multilocation: MultiLocation = input.read::<MultiLocation>()?;
+
+		// fetch data from pallet
+		let fee_per_second: u128 =
+			xcm_transactor::Pallet::<Runtime>::dest_asset_fee_per_second(multilocation)
+				.ok_or(revert("Fee Per Second not set"))?;
+
+		Ok(succeed(EvmDataWriter::new().write(fee_per_second).build()))
 	}
 
 	fn transact_through_derivative_multilocation(
@@ -217,6 +274,86 @@ where
 			currency_id,
 			dest_weight: weight,
 			inner_call: inner_call.0,
+		};
+
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(succeed([]))
+	}
+
+	fn transact_through_signed_multilocation(
+		handle: &mut impl PrecompileHandle,
+	) -> EvmResult<PrecompileOutput> {
+		let mut input = handle.read_input()?;
+
+		// Bound check
+		input.expect_arguments(4)?;
+
+		// read destination
+		let dest: MultiLocation = input.read::<MultiLocation>()?;
+
+		// read fee location
+		// defined as a multiLocation. For now we are assuming these are concrete
+		// fungible assets
+		let fee_multilocation: MultiLocation = input.read::<MultiLocation>()?;
+		// read weight amount
+		let weight: u64 = input.read::<u64>()?;
+
+		// call
+		let call = input.read::<Bytes>()?;
+
+		// Depending on the Runtime, this might involve a DB read. This is not the case in
+		// moonbeam, as we are using IdentityMapping
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let call = xcm_transactor::Call::<Runtime>::transact_through_signed_multilocation {
+			dest: Box::new(xcm::VersionedMultiLocation::V1(dest)),
+			fee_location: Box::new(xcm::VersionedMultiLocation::V1(fee_multilocation)),
+			dest_weight: weight,
+			call: call.0,
+		};
+
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(succeed([]))
+	}
+
+	fn transact_through_signed(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		handle.record_cost(1 * RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		let mut input = handle.read_input()?;
+
+		// Bound check
+		input.expect_arguments(4)?;
+
+		// read destination
+		let dest: MultiLocation = input.read::<MultiLocation>()?;
+
+		// read currencyId
+		let to_address: H160 = input.read::<Address>()?.into();
+
+		let to_account = Runtime::AddressMapping::into_account_id(to_address);
+
+		// We convert the address into a currency
+		// This involves a DB read in moonbeam, hence the db Read
+
+		let currency_id: <Runtime as xcm_transactor::Config>::CurrencyId =
+			Runtime::account_to_currency_id(to_account)
+				.ok_or(revert("cannot convert into currency id"))?;
+
+		// read weight amount
+		let weight: u64 = input.read::<u64>()?;
+
+		// call
+		let call = input.read::<Bytes>()?;
+
+		// Depending on the Runtime, this might involve a DB read. This is not the case in
+		// moonbeam, as we are using IdentityMapping
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let call = xcm_transactor::Call::<Runtime>::transact_through_signed {
+			dest: Box::new(xcm::VersionedMultiLocation::V1(dest)),
+			fee_currency_id: currency_id,
+			dest_weight: weight,
+			call: call.0,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
