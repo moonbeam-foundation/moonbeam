@@ -34,10 +34,10 @@ pallet-maintenance-mode = { path = "../../pallets/maintenance-mode", default-fea
 pallet-migrations = { path = "../../pallets/migrations", default-features = false }
 pallet-moonbeam-orbiters = { path = "../../pallets/moonbeam-orbiters", default-features = false }
 pallet-proxy-genesis-companion = { path = "../../pallets/proxy-genesis-companion", default-features = false }
+pallet-randomness = { path = "../../pallets/randomness", default-features = false }
+pallet-vrf = { path = "../../pallets/vrf", default-features = false }
 parachain-staking = { path = "../../pallets/parachain-staking", default-features = false }
 xcm-transactor = { path = "../../pallets/xcm-transactor", default-features = false }
-pallet-vrf = { path = "../../pallets/vrf", default-features = false }
-pallet-randomness = { path = "../../pallets/randomness", default-features = false }
 
 # Moonbeam precompiles
 crowdloan-rewards-precompiles = { path = "../../precompiles/crowdloan-rewards", default-features = false }
@@ -45,6 +45,7 @@ pallet-author-mapping-precompiles = { path = "../../precompiles/author-mapping",
 pallet-democracy-precompiles = { path = "../../precompiles/pallet-democracy", default-features = false }
 pallet-evm-precompile-assets-erc20 = { path = "../../precompiles/assets-erc20", default-features = false }
 pallet-evm-precompile-balances-erc20 = { path = "../../precompiles/balances-erc20", default-features = false }
+pallet-evm-precompile-batch = { path = "../../precompiles/batch", default-features = false }
 parachain-staking-precompiles = { path = "../../precompiles/parachain-staking", default-features = false }
 relay-encoder-precompiles = { path = "../../precompiles/relay-encoder", default-features = false }
 xcm-transactor-precompiles = { path = "../../precompiles/xcm_transactor", default-features = false }
@@ -189,6 +190,7 @@ std = [
 	"pallet-ethereum/std",
 	"pallet-evm-precompile-assets-erc20/std",
 	"pallet-evm-precompile-balances-erc20/std",
+	"pallet-evm-precompile-batch/std",
 	"pallet-evm/std",
 	"pallet-identity/std",
 	"pallet-maintenance-mode/std",
@@ -197,6 +199,7 @@ std = [
 	"pallet-proxy-genesis-companion/std",
 	"pallet-proxy/std",
 	"pallet-randomness-collective-flip/std",
+	"pallet-randomness/std",
 	"pallet-scheduler/std",
 	"pallet-society/std",
 	"pallet-sudo/std",
@@ -205,7 +208,6 @@ std = [
 	"pallet-transaction-payment/std",
 	"pallet-treasury/std",
 	"pallet-utility/std",
-	"pallet-randomness/std",
 	"pallet-vrf/std",
 	"pallet-xcm/std",
 	"parachain-info/std",

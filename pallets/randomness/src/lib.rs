@@ -232,7 +232,7 @@ pub mod pallet {
 		}
 	}
 
-	// Expose functionality in here for precompile
+	// Public functions for precompile usage only
 	impl<T: Config> Pallet<T> {
 		pub fn request_randomness(request: Request<T>) -> DispatchResult {
 			ensure!(

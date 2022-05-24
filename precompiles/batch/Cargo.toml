@@ -1,20 +1,21 @@
 [package]
-name = "pallet-author-mapping-precompiles"
+name = "pallet-evm-precompile-batch"
 authors = [ "PureStake" ]
-description = "A Precompile to make pallet-author-mapping accessible to pallet-evm"
+description = "A Precompile to batch multiple calls."
 edition = "2021"
-version = "0.2.0"
+version = "0.1.0"
 
 [dependencies]
 log = "0.4"
 num_enum = { version = "0.5.3", default-features = false }
+paste = "1.0.6"
+slices = "0.2.0"
 
 # Moonbeam
-pallet-author-mapping = { path = "../../pallets/author-mapping", default-features = false }
 precompile-utils = { path = "../utils", default-features = false }
 
 # Substrate
-codec = { package = "parity-scale-codec", version = "3.0.0", default-features = false }
+codec = { package = "parity-scale-codec", version = "3.0.0", default-features = false, features = [ "max-encoded-len" ] }
 frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
 frame-system = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
 sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
@@ -22,21 +23,20 @@ sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0
 sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
 
 # Frontier
+evm = { git = "https://github.com/rust-blockchain/evm", branch = "master", default-features = false, features = [ "with-codec" ] }
 fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.20", default-features = false }
 pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.20", default-features = false }
 
-# Nimbus
-nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.20", default-features = false }
-
 [dev-dependencies]
-derive_more = "0.99"
+derive_more = { version = "0.99" }
 hex-literal = "0.3.4"
-serde = "1.0.100"
+serde = { version = "1.0.100" }
+sha3 = "0.8"
 
-# Substrate
+codec = { package = "parity-scale-codec", version = "3.0.0", default-features = false, features = [ "max-encoded-len" ] }
 pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20" }
-pallet-scheduler = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20" }
 pallet-timestamp = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20" }
+precompile-utils = { path = "../utils", features = [ "testing" ] }
 scale-info = { version = "2.0", default-features = false, features = [ "derive" ] }
 sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20" }
 
@@ -47,8 +47,6 @@ std = [
 	"fp-evm/std",
 	"frame-support/std",
 	"frame-system/std",
-	"nimbus-primitives/std",
-	"pallet-author-mapping/std",
 	"pallet-evm/std",
 	"precompile-utils/std",
 	"sp-core/std",

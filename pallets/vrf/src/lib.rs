@@ -98,13 +98,13 @@ pub mod pallet {
 	}
 
 	/// Current block randomness
-	/// Set in `on_initialize`, before it will contain the randomness from the last block
+	/// Set in `on_initialize`, before it will contain the randomness for this block
 	#[pallet::storage]
 	#[pallet::getter(fn current_randomness)]
 	pub type CurrentRandomness<T> = StorageValue<_, Randomness, OptionQuery>;
 
 	/// Last block randomness
-	/// Set in `on_initialize`, before it will contain the randomness from the last last block
+	/// Set in `on_initialize`, before it will contain the randomness from the last block
 	#[pallet::storage]
 	#[pallet::getter(fn last_randomness)]
 	pub type LastRandomness<T> = StorageValue<_, Randomness, OptionQuery>;

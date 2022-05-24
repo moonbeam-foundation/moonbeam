@@ -6,9 +6,9 @@ edition = "2018"
 version = "0.1.0"
 
 [dependencies]
-log = "0.4"
 frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
 frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
+log = "0.4"
 parity-scale-codec = { version = "3.1.2", default-features = false }
 scale-info = { version = "2.0.1", default-features = false, features = [ "derive" ] }
 sp-application-crypto = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18", default-features = false }

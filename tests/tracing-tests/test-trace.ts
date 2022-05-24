@@ -616,6 +616,91 @@ describeDevMoonbeam(
       expect(trace.result.calls[0].to).to.be.eq(contractDummy.options.address.toLowerCase());
       expect(trace.result.calls[0].type).to.be.eq("DELEGATECALL");
     });
+
+    it("should correctly trace precompile subcall (call list)", async function () {
+      this.timeout(10000);
+
+      const { contract: contractProxy, rawTx } = await createContract(context, "TestCallList");
+      await context.createBlock({ transactions: [rawTx] });
+
+      const { contract: contractDummy, rawTx: rawTx2 } = await createContract(
+        context,
+        "TestContract"
+      );
+      await context.createBlock({ transactions: [rawTx2] });
+
+      const proxyInterface = new ethers.utils.Interface(
+        (await getCompiled("TestCallList")).contract.abi
+      );
+      const dummyInterface = new ethers.utils.Interface(
+        (await getCompiled("TestContract")).contract.abi
+      );
+      const batchInterface = new ethers.utils.Interface((await getCompiled("Batch")).contract.abi);
+
+      let callTx = await context.web3.eth.accounts.signTransaction(
+        {
+          from: GENESIS_ACCOUNT,
+          to: "0x0000000000000000000000000000000000000808",
+          gas: "0x100000",
+          value: "0x00",
+          data: batchInterface.encodeFunctionData("batchAll", [
+            [contractProxy.options.address, contractProxy.options.address],
+            [],
+            [
+              proxyInterface.encodeFunctionData("call", [
+                contractDummy.options.address,
+                dummyInterface.encodeFunctionData("multiply", [42]),
+              ]),
+              proxyInterface.encodeFunctionData("delegateCall", [
+                contractDummy.options.address,
+                dummyInterface.encodeFunctionData("multiply", [42]),
+              ]),
+            ],
+            [],
+          ]),
+        },
+        GENESIS_ACCOUNT_PRIVATE_KEY
+      );
+
+      const data = await customWeb3Request(context.web3, "eth_sendRawTransaction", [
+        callTx.rawTransaction,
+      ]);
+      await context.createBlock();
+      let trace = await customWeb3Request(context.web3, "debug_traceTransaction", [
+        data.result,
+        { tracer: "callTracer" },
+      ]);
+
+      expect(trace.result.from).to.be.eq(GENESIS_ACCOUNT.toLowerCase());
+      expect(trace.result.to).to.be.eq("0x0000000000000000000000000000000000000808");
+      expect(trace.result.calls.length).to.be.eq(2);
+
+      expect(trace.result.calls[0].from).to.be.eq("0x0000000000000000000000000000000000000808");
+      expect(trace.result.calls[0].to).to.be.eq(contractProxy.options.address.toLowerCase());
+      expect(trace.result.calls[0].type).to.be.eq("CALL");
+
+      expect(trace.result.calls[0].calls.length).to.be.eq(1);
+      expect(trace.result.calls[0].calls[0].from).to.be.eq(
+        contractProxy.options.address.toLowerCase()
+      );
+      expect(trace.result.calls[0].calls[0].to).to.be.eq(
+        contractDummy.options.address.toLowerCase()
+      );
+      expect(trace.result.calls[0].calls[0].type).to.be.eq("CALL");
+
+      expect(trace.result.calls[1].from).to.be.eq("0x0000000000000000000000000000000000000808");
+      expect(trace.result.calls[1].to).to.be.eq(contractProxy.options.address.toLowerCase());
+      expect(trace.result.calls[1].type).to.be.eq("CALL");
+
+      expect(trace.result.calls[1].calls.length).to.be.eq(1);
+      expect(trace.result.calls[1].calls[0].from).to.be.eq(
+        contractProxy.options.address.toLowerCase()
+      );
+      expect(trace.result.calls[1].calls[0].to).to.be.eq(
+        contractDummy.options.address.toLowerCase()
+      );
+      expect(trace.result.calls[1].calls[0].type).to.be.eq("DELEGATECALL");
+    });
   },
   "Legacy",
   true

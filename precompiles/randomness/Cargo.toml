@@ -23,6 +23,7 @@ sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0
 sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
 
 # Frontier
+pallet-base-fee = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.20", default-features = false }
 pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.20", default-features = false }
 
 # Nimbus
@@ -48,8 +49,9 @@ std = [
 	"frame-support/std",
 	"frame-system/std",
 	"nimbus-primitives/std",
-	"pallet-randomness/std",
+	"pallet-base-fee/std",
 	"pallet-evm/std",
+	"pallet-randomness/std",
 	"precompile-utils/std",
 	"sp-core/std",
 	"sp-io/std",
