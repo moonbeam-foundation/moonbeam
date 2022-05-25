@@ -230,6 +230,10 @@ pub mod pallet {
 				Self::nimbus_id_of(&account_id).ok_or(Error::<T>::OldAuthorIdNotFound)?;
 			let stored_info =
 				MappingWithDeposit::<T>::take(&author_id).ok_or(Error::<T>::AssociationNotFound)?;
+			ensure!(
+				account_id == stored_info.account,
+				Error::<T>::NotYourAssociation
+			);
 
 			MappingWithDeposit::<T>::remove(&author_id);
 			NimbusLookup::<T>::remove(&account_id);
@@ -261,6 +265,10 @@ pub mod pallet {
 			if let Some(old_author_id) = Self::nimbus_id_of(&account_id) {
 				let stored_info = MappingWithDeposit::<T>::try_get(&old_author_id)
 					.map_err(|_| Error::<T>::AssociationNotFound)?;
+				ensure!(
+					account_id == stored_info.account,
+					Error::<T>::NotYourAssociation
+				);
 
 				MappingWithDeposit::<T>::remove(&old_author_id);
 				MappingWithDeposit::<T>::insert(
