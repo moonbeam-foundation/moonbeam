@@ -257,12 +257,14 @@ pub mod pallet {
 		#[pallet::weight(<T as Config>::WeightInfo::set_keys())]
 		pub fn set_keys(origin: OriginFor<T>, keys: (NimbusId, T::Keys)) -> DispatchResult {
 			let account_id = ensure_signed(origin)?;
-			let (author_id, keys) = keys;
-			ensure!(
-				MappingWithDeposit::<T>::get(&author_id).is_none(),
-				Error::<T>::AlreadyAssociated
-			);
+			let (new_author_id, keys) = keys;
 			if let Some(old_author_id) = Self::nimbus_id_of(&account_id) {
+				if old_author_id != new_author_id {
+					ensure!(
+						MappingWithDeposit::<T>::get(&new_author_id).is_none(),
+						Error::<T>::AlreadyAssociated
+					);
+				} // else allow claiming the same mapping over again (idempotence)
 				let stored_info = MappingWithDeposit::<T>::try_get(&old_author_id)
 					.map_err(|_| Error::<T>::AssociationNotFound)?;
 				ensure!(
@@ -272,24 +274,28 @@ pub mod pallet {
 
 				MappingWithDeposit::<T>::remove(&old_author_id);
 				MappingWithDeposit::<T>::insert(
-					&author_id,
+					&new_author_id,
 					&RegistrationInfo {
 						keys: keys.clone(),
 						..stored_info
 					},
 				);
-				NimbusLookup::<T>::insert(&account_id, author_id.clone());
+				NimbusLookup::<T>::insert(&account_id, new_author_id.clone());
 
 				<Pallet<T>>::deposit_event(Event::AuthorRotated {
-					new_author_id: author_id,
+					new_author_id,
 					account_id,
 					new_keys: keys,
 				});
 			} else {
-				Self::enact_registration(&author_id, &account_id, keys.clone())?;
+				ensure!(
+					MappingWithDeposit::<T>::get(&new_author_id).is_none(),
+					Error::<T>::AlreadyAssociated
+				);
+				Self::enact_registration(&new_author_id, &account_id, keys.clone())?;
 
 				<Pallet<T>>::deposit_event(Event::AuthorRegistered {
-					author_id,
+					author_id: new_author_id,
 					account_id,
 					keys,
 				});
