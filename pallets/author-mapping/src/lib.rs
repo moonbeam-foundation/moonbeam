@@ -197,24 +197,7 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let account_id = ensure_signed(origin)?;
 
-			let stored_info = MappingWithDeposit::<T>::try_get(&author_id)
-				.map_err(|_| Error::<T>::AssociationNotFound)?;
-
-			ensure!(
-				account_id == stored_info.account,
-				Error::<T>::NotYourAssociation
-			);
-
-			MappingWithDeposit::<T>::remove(&author_id);
-			NimbusLookup::<T>::remove(&account_id);
-
-			T::DepositCurrency::unreserve(&account_id, stored_info.deposit);
-
-			<Pallet<T>>::deposit_event(Event::AuthorDeRegistered {
-				author_id,
-				account_id,
-				keys: stored_info.keys,
-			});
+			Self::rm_keys(author_id, account_id)?;
 
 			Ok(().into())
 		}
@@ -228,23 +211,8 @@ pub mod pallet {
 			let account_id = ensure_signed(origin)?;
 			let author_id =
 				Self::nimbus_id_of(&account_id).ok_or(Error::<T>::OldAuthorIdNotFound)?;
-			let stored_info =
-				MappingWithDeposit::<T>::take(&author_id).ok_or(Error::<T>::AssociationNotFound)?;
-			ensure!(
-				account_id == stored_info.account,
-				Error::<T>::NotYourAssociation
-			);
 
-			MappingWithDeposit::<T>::remove(&author_id);
-			NimbusLookup::<T>::remove(&account_id);
-
-			T::DepositCurrency::unreserve(&account_id, stored_info.deposit);
-
-			<Pallet<T>>::deposit_event(Event::AuthorDeRegistered {
-				author_id,
-				account_id,
-				keys: stored_info.keys,
-			});
+			Self::rm_keys(author_id, account_id)?;
 
 			Ok(().into())
 		}
@@ -259,11 +227,12 @@ pub mod pallet {
 			let account_id = ensure_signed(origin)?;
 			let (new_author_id, keys) = keys;
 			if let Some(old_author_id) = Self::nimbus_id_of(&account_id) {
-				ensure!(
-					old_author_id != new_author_id
-						&& MappingWithDeposit::<T>::get(&new_author_id).is_none(),
-					Error::<T>::AlreadyAssociated
-				);
+				if old_author_id != new_author_id {
+					ensure!(
+						MappingWithDeposit::<T>::get(&new_author_id).is_none(),
+						Error::<T>::AlreadyAssociated
+					);
+				}
 				let stored_info = MappingWithDeposit::<T>::try_get(&old_author_id)
 					.map_err(|_| Error::<T>::AssociationNotFound)?;
 				ensure!(
@@ -305,6 +274,27 @@ pub mod pallet {
 	}
 
 	impl<T: Config> Pallet<T> {
+		fn rm_keys(author_id: NimbusId, account_id: T::AccountId) -> DispatchResult {
+			let stored_info = MappingWithDeposit::<T>::try_get(&author_id)
+				.map_err(|_| Error::<T>::AssociationNotFound)?;
+
+			ensure!(
+				account_id == stored_info.account,
+				Error::<T>::NotYourAssociation
+			);
+
+			MappingWithDeposit::<T>::remove(&author_id);
+			NimbusLookup::<T>::remove(&account_id);
+
+			T::DepositCurrency::unreserve(&account_id, stored_info.deposit);
+
+			<Pallet<T>>::deposit_event(Event::AuthorDeRegistered {
+				author_id,
+				account_id,
+				keys: stored_info.keys,
+			});
+			Ok(())
+		}
 		pub fn enact_registration(
 			author_id: &NimbusId,
 			account_id: &T::AccountId,
