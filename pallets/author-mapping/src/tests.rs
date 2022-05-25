@@ -65,7 +65,7 @@ fn eligible_account_can_register() {
 			assert_eq!(
 				last_event(),
 				MetaEvent::AuthorMapping(Event::AuthorRegistered {
-					author_id: TestAuthor::Bob.into(),
+					nimbus_id: TestAuthor::Bob.into(),
 					account_id: 2,
 					keys: TestAuthor::Bob.into(),
 				})
@@ -114,7 +114,7 @@ fn double_registration_costs_twice_as_much() {
 			assert_eq!(
 				last_event(),
 				MetaEvent::AuthorMapping(Event::AuthorRegistered {
-					author_id: TestAuthor::Bob.into(),
+					nimbus_id: TestAuthor::Bob.into(),
 					account_id: 2,
 					keys: TestAuthor::Bob.into(),
 				})
@@ -136,7 +136,7 @@ fn double_registration_costs_twice_as_much() {
 			assert_eq!(
 				last_event(),
 				MetaEvent::AuthorMapping(Event::AuthorRegistered {
-					author_id: TestAuthor::Alice.into(),
+					nimbus_id: TestAuthor::Alice.into(),
 					account_id: 2,
 					keys: TestAuthor::Alice.into(),
 				})
@@ -169,7 +169,7 @@ fn registered_account_can_clear() {
 			assert_eq!(
 				last_event(),
 				MetaEvent::AuthorMapping(Event::AuthorDeRegistered {
-					author_id: TestAuthor::Alice.into(),
+					nimbus_id: TestAuthor::Alice.into(),
 					account_id: 1,
 					keys: TestAuthor::Alice.into(),
 				})
@@ -273,7 +273,7 @@ fn registered_author_cannot_be_rotated_by_non_owner() {
 }
 
 #[test]
-fn rotating_to_the_same_author_id_leaves_registration_in_tact() {
+fn rotating_to_the_same_nimbus_id_leaves_registration_in_tact() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 1000)])
 		.with_mappings(vec![(TestAuthor::Alice.into(), 1)])
@@ -311,7 +311,7 @@ fn eligible_account_can_full_register() {
 			assert_eq!(
 				last_event(),
 				MetaEvent::AuthorMapping(Event::AuthorRegistered {
-					author_id: TestAuthor::Bob.into(),
+					nimbus_id: TestAuthor::Bob.into(),
 					account_id: 2,
 					keys: TestAuthor::Alice.into(),
 				})
@@ -414,7 +414,7 @@ fn registered_author_cannot_be_full_rotated_by_non_owner() {
 }
 
 #[test]
-fn full_rotating_to_the_same_author_id_leaves_registration_in_tact() {
+fn full_rotating_to_the_same_nimbus_id_leaves_registration_in_tact() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 1000)])
 		.with_mappings(vec![(TestAuthor::Alice.into(), 1)])

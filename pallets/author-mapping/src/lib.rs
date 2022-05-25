@@ -100,19 +100,19 @@ pub mod pallet {
 	pub enum Event<T: Config> {
 		/// A NimbusId has been registered and mapped to an AccountId.
 		AuthorRegistered {
-			author_id: NimbusId,
+			nimbus_id: NimbusId,
 			account_id: T::AccountId,
 			keys: T::Keys,
 		},
 		/// An NimbusId has been de-registered, and its AccountId mapping removed.
 		AuthorDeRegistered {
-			author_id: NimbusId,
+			nimbus_id: NimbusId,
 			account_id: T::AccountId,
 			keys: T::Keys,
 		},
 		/// An NimbusId has been registered, replacing a previous registration and its mapping.
 		AuthorRotated {
-			new_author_id: NimbusId,
+			new_nimbus_id: NimbusId,
 			account_id: T::AccountId,
 			new_keys: T::Keys,
 		},
@@ -125,39 +125,26 @@ pub mod pallet {
 		/// Users who have been (or will soon be) elected active collators in staking,
 		/// should submit this extrinsic to have their blocks accepted and earn rewards.
 		#[pallet::weight(<T as Config>::WeightInfo::add_association())]
-		pub fn add_association(origin: OriginFor<T>, author_id: NimbusId) -> DispatchResult {
+		pub fn add_association(origin: OriginFor<T>, nimbus_id: NimbusId) -> DispatchResult {
 			let account_id = ensure_signed(origin)?;
 
-			ensure!(
-				MappingWithDeposit::<T>::get(&author_id).is_none(),
-				Error::<T>::AlreadyAssociated
-			);
-
-			Self::enact_registration(&author_id, &account_id, author_id.clone().into())?;
-
-			<Pallet<T>>::deposit_event(Event::AuthorRegistered {
-				author_id: author_id.clone(),
-				account_id,
-				keys: author_id.into(),
-			});
-
-			Ok(())
+			Self::register_keys(nimbus_id.clone(), account_id, nimbus_id.into())
 		}
 
 		/// Change your Mapping.
 		///
 		/// This is useful for normal key rotation or for when switching from one physical collator
 		/// machine to another. No new security deposit is required.
-		/// This sets keys to new_author_id.into() by default.
+		/// This sets keys to new_nimbus_id.into() by default.
 		#[pallet::weight(<T as Config>::WeightInfo::update_association())]
 		pub fn update_association(
 			origin: OriginFor<T>,
-			old_author_id: NimbusId,
-			new_author_id: NimbusId,
+			old_nimbus_id: NimbusId,
+			new_nimbus_id: NimbusId,
 		) -> DispatchResult {
 			let account_id = ensure_signed(origin)?;
 
-			let stored_info = MappingWithDeposit::<T>::try_get(&old_author_id)
+			let stored_info = MappingWithDeposit::<T>::try_get(&old_nimbus_id)
 				.map_err(|_| Error::<T>::AssociationNotFound)?;
 
 			ensure!(
@@ -165,20 +152,20 @@ pub mod pallet {
 				Error::<T>::NotYourAssociation
 			);
 			ensure!(
-				MappingWithDeposit::<T>::get(&new_author_id).is_none(),
+				MappingWithDeposit::<T>::get(&new_nimbus_id).is_none(),
 				Error::<T>::AlreadyAssociated
 			);
 
-			MappingWithDeposit::<T>::remove(&old_author_id);
+			MappingWithDeposit::<T>::remove(&old_nimbus_id);
 			let new_stored_info = RegistrationInfo {
-				keys: new_author_id.clone().into(),
+				keys: new_nimbus_id.clone().into(),
 				..stored_info
 			};
-			MappingWithDeposit::<T>::insert(&new_author_id, &new_stored_info);
-			NimbusLookup::<T>::insert(&account_id, &new_author_id);
+			MappingWithDeposit::<T>::insert(&new_nimbus_id, &new_stored_info);
+			NimbusLookup::<T>::insert(&account_id, &new_nimbus_id);
 
 			<Pallet<T>>::deposit_event(Event::AuthorRotated {
-				new_author_id: new_author_id,
+				new_nimbus_id: new_nimbus_id,
 				account_id,
 				new_keys: new_stored_info.keys,
 			});
@@ -191,15 +178,10 @@ pub mod pallet {
 		/// This is useful when you are no longer an author and would like to re-claim your security
 		/// deposit.
 		#[pallet::weight(<T as Config>::WeightInfo::clear_association())]
-		pub fn clear_association(
-			origin: OriginFor<T>,
-			author_id: NimbusId,
-		) -> DispatchResultWithPostInfo {
+		pub fn clear_association(origin: OriginFor<T>, nimbus_id: NimbusId) -> DispatchResult {
 			let account_id = ensure_signed(origin)?;
 
-			Self::rm_keys(author_id, account_id)?;
-
-			Ok(().into())
+			Self::rm_keys(nimbus_id, account_id)
 		}
 
 		/// Remove your Mapping.
@@ -207,14 +189,12 @@ pub mod pallet {
 		/// This is useful when you are no longer an author and would like to re-claim your security
 		/// deposit.
 		#[pallet::weight(<T as Config>::WeightInfo::remove_keys())]
-		pub fn remove_keys(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
+		pub fn remove_keys(origin: OriginFor<T>) -> DispatchResult {
 			let account_id = ensure_signed(origin)?;
-			let author_id =
+			let nimbus_id =
 				Self::nimbus_id_of(&account_id).ok_or(Error::<T>::OldAuthorIdNotFound)?;
 
-			Self::rm_keys(author_id, account_id)?;
-
-			Ok(().into())
+			Self::rm_keys(nimbus_id, account_id)
 		}
 
 		/// Set association and session keys at once.
@@ -225,48 +205,38 @@ pub mod pallet {
 		#[pallet::weight(<T as Config>::WeightInfo::set_keys())]
 		pub fn set_keys(origin: OriginFor<T>, keys: (NimbusId, T::Keys)) -> DispatchResult {
 			let account_id = ensure_signed(origin)?;
-			let (new_author_id, keys) = keys;
-			if let Some(old_author_id) = Self::nimbus_id_of(&account_id) {
-				if old_author_id != new_author_id {
+			let (new_nimbus_id, keys) = keys;
+			if let Some(old_nimbus_id) = Self::nimbus_id_of(&account_id) {
+				if old_nimbus_id != new_nimbus_id {
 					ensure!(
-						MappingWithDeposit::<T>::get(&new_author_id).is_none(),
+						MappingWithDeposit::<T>::get(&new_nimbus_id).is_none(),
 						Error::<T>::AlreadyAssociated
 					);
 				}
-				let stored_info = MappingWithDeposit::<T>::try_get(&old_author_id)
+				let stored_info = MappingWithDeposit::<T>::try_get(&old_nimbus_id)
 					.map_err(|_| Error::<T>::AssociationNotFound)?;
 				ensure!(
 					account_id == stored_info.account,
 					Error::<T>::NotYourAssociation
 				);
 
-				MappingWithDeposit::<T>::remove(&old_author_id);
+				MappingWithDeposit::<T>::remove(&old_nimbus_id);
 				MappingWithDeposit::<T>::insert(
-					&new_author_id,
+					&new_nimbus_id,
 					&RegistrationInfo {
 						keys: keys.clone(),
 						..stored_info
 					},
 				);
-				NimbusLookup::<T>::insert(&account_id, new_author_id.clone());
+				NimbusLookup::<T>::insert(&account_id, new_nimbus_id.clone());
 
-				<Pallet<T>>::deposit_event(Event::AuthorRotated {
-					new_author_id,
+				Self::deposit_event(Event::AuthorRotated {
+					new_nimbus_id,
 					account_id,
 					new_keys: keys,
 				});
 			} else {
-				ensure!(
-					MappingWithDeposit::<T>::get(&new_author_id).is_none(),
-					Error::<T>::AlreadyAssociated
-				);
-				Self::enact_registration(&new_author_id, &account_id, keys.clone())?;
-
-				<Pallet<T>>::deposit_event(Event::AuthorRegistered {
-					author_id: new_author_id,
-					account_id,
-					keys,
-				});
+				Self::register_keys(new_nimbus_id, account_id, keys)?;
 			}
 
 			Ok(())
@@ -274,8 +244,8 @@ pub mod pallet {
 	}
 
 	impl<T: Config> Pallet<T> {
-		fn rm_keys(author_id: NimbusId, account_id: T::AccountId) -> DispatchResult {
-			let stored_info = MappingWithDeposit::<T>::try_get(&author_id)
+		fn rm_keys(nimbus_id: NimbusId, account_id: T::AccountId) -> DispatchResult {
+			let stored_info = MappingWithDeposit::<T>::try_get(&nimbus_id)
 				.map_err(|_| Error::<T>::AssociationNotFound)?;
 
 			ensure!(
@@ -283,20 +253,38 @@ pub mod pallet {
 				Error::<T>::NotYourAssociation
 			);
 
-			MappingWithDeposit::<T>::remove(&author_id);
+			MappingWithDeposit::<T>::remove(&nimbus_id);
 			NimbusLookup::<T>::remove(&account_id);
 
 			T::DepositCurrency::unreserve(&account_id, stored_info.deposit);
 
 			<Pallet<T>>::deposit_event(Event::AuthorDeRegistered {
-				author_id,
+				nimbus_id,
 				account_id,
 				keys: stored_info.keys,
 			});
 			Ok(())
 		}
+		fn register_keys(
+			nimbus_id: NimbusId,
+			account_id: T::AccountId,
+			keys: T::Keys,
+		) -> DispatchResult {
+			ensure!(
+				MappingWithDeposit::<T>::get(&nimbus_id).is_none(),
+				Error::<T>::AlreadyAssociated
+			);
+			Self::enact_registration(&nimbus_id, &account_id, keys.clone())?;
+
+			<Pallet<T>>::deposit_event(Event::AuthorRegistered {
+				nimbus_id,
+				account_id,
+				keys,
+			});
+			Ok(())
+		}
 		pub fn enact_registration(
-			author_id: &NimbusId,
+			nimbus_id: &NimbusId,
 			account_id: &T::AccountId,
 			keys: T::Keys,
 		) -> DispatchResult {
@@ -311,8 +299,8 @@ pub mod pallet {
 				keys,
 			};
 
-			MappingWithDeposit::<T>::insert(author_id, info);
-			NimbusLookup::<T>::insert(account_id, author_id);
+			MappingWithDeposit::<T>::insert(nimbus_id, info);
+			NimbusLookup::<T>::insert(account_id, nimbus_id);
 
 			Ok(())
 		}
@@ -348,11 +336,11 @@ pub mod pallet {
 	#[pallet::genesis_build]
 	impl<T: Config> GenesisBuild<T> for GenesisConfig<T> {
 		fn build(&self) {
-			for (author_id, account_id) in &self.mappings {
+			for (nimbus_id, account_id) in &self.mappings {
 				if let Err(e) = Pallet::<T>::enact_registration(
-					&author_id,
+					&nimbus_id,
 					&account_id,
-					author_id.clone().into(),
+					nimbus_id.clone().into(),
 				) {
 					log::warn!("Error with genesis author mapping registration: {:?}", e);
 				}
@@ -375,12 +363,12 @@ pub mod pallet {
 	impl<T: Config> Pallet<T> {
 		/// A helper function to lookup the account id associated with the given author id. This is
 		/// the primary lookup that this pallet is responsible for.
-		pub fn account_id_of(author_id: &NimbusId) -> Option<T::AccountId> {
-			Self::account_and_deposit_of(author_id).map(|info| info.account)
+		pub fn account_id_of(nimbus_id: &NimbusId) -> Option<T::AccountId> {
+			Self::account_and_deposit_of(nimbus_id).map(|info| info.account)
 		}
 		/// A helper function to lookup the keys associated with the given author id.
-		pub fn keys_of(author_id: &NimbusId) -> Option<T::Keys> {
-			Self::account_and_deposit_of(author_id).map(|info| info.keys)
+		pub fn keys_of(nimbus_id: &NimbusId) -> Option<T::Keys> {
+			Self::account_and_deposit_of(nimbus_id).map(|info| info.keys)
 		}
 		/// A helper function to lookup NimbusId associated with a given AccountId
 		pub fn nimbus_id_of(account_id: &T::AccountId) -> Option<NimbusId> {

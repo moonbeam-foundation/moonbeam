@@ -97,9 +97,7 @@ where
 		);
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = AuthorMappingCall::<Runtime>::add_association {
-			author_id: nimbus_id,
-		};
+		let call = AuthorMappingCall::<Runtime>::add_association { nimbus_id };
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
@@ -121,8 +119,8 @@ where
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = AuthorMappingCall::<Runtime>::update_association {
-			old_author_id: old_nimbus_id,
-			new_author_id: new_nimbus_id,
+			old_nimbus_id,
+			new_nimbus_id,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -142,9 +140,7 @@ where
 		);
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = AuthorMappingCall::<Runtime>::clear_association {
-			author_id: nimbus_id,
-		};
+		let call = AuthorMappingCall::<Runtime>::clear_association { nimbus_id };
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
@@ -168,7 +164,7 @@ where
 	fn set_keys(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		let mut input = handle.read_input()?;
 		input.expect_arguments(2)?;
-		let new_author_id = sp_core::sr25519::Public::unchecked_from(input.read::<H256>()?).into();
+		let new_nimbus_id = sp_core::sr25519::Public::unchecked_from(input.read::<H256>()?).into();
 		let new_keys_as_nimbus_id: NimbusId =
 			sp_core::sr25519::Public::unchecked_from(input.read::<H256>()?).into();
 		let new_keys: <Runtime as pallet_author_mapping::Config>::Keys =
@@ -177,12 +173,12 @@ where
 		log::trace!(
 			target: "author-mapping-precompile",
 			"Setting keys: new author id {:?} new keys {:?}",
-			new_author_id, new_keys
+			new_nimbus_id, new_keys
 		);
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = AuthorMappingCall::<Runtime>::set_keys {
-			keys: (new_author_id, new_keys),
+			keys: (new_nimbus_id, new_keys),
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;

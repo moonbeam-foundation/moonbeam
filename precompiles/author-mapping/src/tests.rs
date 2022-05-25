@@ -103,7 +103,7 @@ fn add_association_works() {
 					}
 					.into(),
 					AuthorMappingEvent::AuthorRegistered {
-						author_id: expected_nimbus_id.clone(),
+						nimbus_id: expected_nimbus_id.clone(),
 						account_id: Alice,
 						keys: expected_nimbus_id.into(),
 					}
@@ -126,7 +126,7 @@ fn update_association_works() {
 				sp_core::sr25519::Public::unchecked_from([2u8; 32]).into();
 
 			assert_ok!(Call::AuthorMapping(AuthorMappingCall::add_association {
-				author_id: first_nimbus_id.clone(),
+				nimbus_id: first_nimbus_id.clone(),
 			})
 			.dispatch(Origin::signed(Alice)));
 
@@ -148,13 +148,13 @@ fn update_association_works() {
 					}
 					.into(),
 					AuthorMappingEvent::AuthorRegistered {
-						author_id: first_nimbus_id.clone(),
+						nimbus_id: first_nimbus_id.clone(),
 						account_id: Alice,
 						keys: first_nimbus_id.into(),
 					}
 					.into(),
 					AuthorMappingEvent::AuthorRotated {
-						new_author_id: second_nimbus_id.clone(),
+						new_nimbus_id: second_nimbus_id.clone(),
 						account_id: Alice,
 						new_keys: second_nimbus_id.into(),
 					}
@@ -174,7 +174,7 @@ fn clear_association_works() {
 			let nimbus_id: NimbusId = sp_core::sr25519::Public::unchecked_from([1u8; 32]).into();
 
 			assert_ok!(Call::AuthorMapping(AuthorMappingCall::add_association {
-				author_id: nimbus_id.clone(),
+				nimbus_id: nimbus_id.clone(),
 			})
 			.dispatch(Origin::signed(Alice)));
 
@@ -195,7 +195,7 @@ fn clear_association_works() {
 					}
 					.into(),
 					AuthorMappingEvent::AuthorRegistered {
-						author_id: nimbus_id.clone(),
+						nimbus_id: nimbus_id.clone(),
 						account_id: Alice,
 						keys: nimbus_id.clone().into(),
 					}
@@ -206,7 +206,7 @@ fn clear_association_works() {
 					}
 					.into(),
 					AuthorMappingEvent::AuthorDeRegistered {
-						author_id: nimbus_id.clone(),
+						nimbus_id: nimbus_id.clone(),
 						account_id: Alice,
 						keys: nimbus_id.into(),
 					}
@@ -226,7 +226,7 @@ fn remove_keys_works() {
 			let nimbus_id: NimbusId = sp_core::sr25519::Public::unchecked_from([1u8; 32]).into();
 
 			assert_ok!(Call::AuthorMapping(AuthorMappingCall::add_association {
-				author_id: nimbus_id.clone(),
+				nimbus_id: nimbus_id.clone(),
 			})
 			.dispatch(Origin::signed(Alice)));
 
@@ -245,7 +245,7 @@ fn remove_keys_works() {
 					}
 					.into(),
 					AuthorMappingEvent::AuthorRegistered {
-						author_id: nimbus_id.clone(),
+						nimbus_id: nimbus_id.clone(),
 						account_id: Alice,
 						keys: nimbus_id.clone().into(),
 					}
@@ -256,7 +256,7 @@ fn remove_keys_works() {
 					}
 					.into(),
 					AuthorMappingEvent::AuthorDeRegistered {
-						author_id: nimbus_id.clone(),
+						nimbus_id: nimbus_id.clone(),
 						account_id: Alice,
 						keys: nimbus_id.into(),
 					}
@@ -305,13 +305,13 @@ fn set_keys_works() {
 					}
 					.into(),
 					AuthorMappingEvent::AuthorRegistered {
-						author_id: first_nimbus_id.clone(),
+						nimbus_id: first_nimbus_id.clone(),
 						account_id: Alice,
 						keys: first_vrf_key.into(),
 					}
 					.into(),
 					AuthorMappingEvent::AuthorRotated {
-						new_author_id: second_nimbus_id.clone(),
+						new_nimbus_id: second_nimbus_id.clone(),
 						account_id: Alice,
 						new_keys: second_vrf_key.into(),
 					}
