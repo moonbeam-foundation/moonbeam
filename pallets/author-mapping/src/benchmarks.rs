@@ -79,16 +79,6 @@ benchmarks! {
 		assert_eq!(Pallet::<T>::account_id_of(&first_id), None);
 	}
 
-	register_keys {
-		let caller = create_funded_user::<T>();
-		let id = nimbus_id(1u8);
-		let key: T::Keys = nimbus_id(2u8).into();
-	}: _(RawOrigin::Signed(caller.clone()), (id.clone(), key.clone()))
-	verify {
-		assert_eq!(Pallet::<T>::account_id_of(&id), Some(caller));
-		assert_eq!(Pallet::<T>::keys_of(&id), Some(key));
-	}
-
 	set_keys {
 		let caller = create_funded_user::<T>();
 		let first_id = nimbus_id(1u8);

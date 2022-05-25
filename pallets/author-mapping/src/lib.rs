@@ -219,27 +219,6 @@ pub mod pallet {
 			Ok(().into())
 		}
 
-		/// Add association and set session keys
-		#[pallet::weight(<T as Config>::WeightInfo::register_keys())]
-		pub fn register_keys(origin: OriginFor<T>, keys: (NimbusId, T::Keys)) -> DispatchResult {
-			let account_id = ensure_signed(origin)?;
-			let (author_id, keys) = keys;
-			ensure!(
-				MappingWithDeposit::<T>::get(&author_id).is_none(),
-				Error::<T>::AlreadyAssociated
-			);
-
-			Self::enact_registration(&author_id, &account_id, keys.clone())?;
-
-			<Pallet<T>>::deposit_event(Event::AuthorRegistered {
-				author_id,
-				account_id,
-				keys,
-			});
-
-			Ok(())
-		}
-
 		/// Set association and session keys at once.
 		///
 		/// This is useful for key rotation to update Nimbus and VRF keys in one call.
@@ -248,36 +227,43 @@ pub mod pallet {
 		#[pallet::weight(<T as Config>::WeightInfo::set_keys())]
 		pub fn set_keys(origin: OriginFor<T>, keys: (NimbusId, T::Keys)) -> DispatchResult {
 			let account_id = ensure_signed(origin)?;
-			let old_author_id =
-				Self::nimbus_id_of(&account_id).ok_or(Error::<T>::OldAuthorIdNotFound)?;
-			let stored_info = MappingWithDeposit::<T>::try_get(&old_author_id)
-				.map_err(|_| Error::<T>::AssociationNotFound)?;
+			let (author_id, keys) = keys;
+			if let Some(old_author_id) = Self::nimbus_id_of(&account_id) {
+				let stored_info = MappingWithDeposit::<T>::try_get(&old_author_id)
+					.map_err(|_| Error::<T>::AssociationNotFound)?;
+				ensure!(
+					account_id == stored_info.account,
+					Error::<T>::NotYourAssociation
+				);
+				ensure!(
+					MappingWithDeposit::<T>::get(&author_id).is_none(),
+					Error::<T>::AlreadyAssociated
+				);
 
-			ensure!(
-				account_id == stored_info.account,
-				Error::<T>::NotYourAssociation
-			);
-			let (new_author_id, new_keys) = keys;
-			ensure!(
-				MappingWithDeposit::<T>::get(&new_author_id).is_none(),
-				Error::<T>::AlreadyAssociated
-			);
+				MappingWithDeposit::<T>::remove(&old_author_id);
+				MappingWithDeposit::<T>::insert(
+					&author_id,
+					&RegistrationInfo {
+						keys: keys.clone(),
+						..stored_info
+					},
+				);
+				NimbusLookup::<T>::insert(&account_id, author_id.clone());
 
-			MappingWithDeposit::<T>::remove(&old_author_id);
-			MappingWithDeposit::<T>::insert(
-				&new_author_id,
-				&RegistrationInfo {
-					keys: new_keys.clone(),
-					..stored_info
-				},
-			);
-			NimbusLookup::<T>::insert(&account_id, new_author_id.clone());
+				<Pallet<T>>::deposit_event(Event::AuthorRotated {
+					new_author_id: author_id,
+					account_id,
+					new_keys: keys,
+				});
+			} else {
+				Self::enact_registration(&author_id, &account_id, keys.clone())?;
 
-			<Pallet<T>>::deposit_event(Event::AuthorRotated {
-				new_author_id,
-				account_id,
-				new_keys,
-			});
+				<Pallet<T>>::deposit_event(Event::AuthorRegistered {
+					author_id,
+					account_id,
+					keys,
+				});
+			}
 
 			Ok(())
 		}
