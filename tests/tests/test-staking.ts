@@ -864,7 +864,8 @@ describeDevMoonbeam("Staking - Delegator Leave", (context) => {
     ]);
   });
 
-  it("should not allow cancelLeaveDelegators to be executed if single Revoke is manually cancelled", async function () {
+  it("should not allow cancelLeaveDelegators to be executed if single Revoke is manually \
+  cancelled", async function () {
     this.timeout(20000);
     const leaveDelay = context.polkadotApi.consts.parachainStaking.leaveDelegatorsDelay;
     const currentRound = (await context.polkadotApi.query.parachainStaking.round()).current;
@@ -905,7 +906,8 @@ describeDevMoonbeam("Staking - Delegator Leave", (context) => {
     ]);
   });
 
-  it("should not allow executeLeaveDelegators to be executed if single Revoke is manually cancelled", async function () {
+  it("should not allow executeLeaveDelegators to be executed if single Revoke is manually \
+  cancelled", async function () {
     this.timeout(20000);
     const leaveDelay = context.polkadotApi.consts.parachainStaking.leaveDelegatorsDelay;
     const currentRound = (await context.polkadotApi.query.parachainStaking.round()).current;
