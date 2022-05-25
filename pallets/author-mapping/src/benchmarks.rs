@@ -79,6 +79,21 @@ benchmarks! {
 		assert_eq!(Pallet::<T>::account_id_of(&first_id), None);
 	}
 
+	remove_keys {
+		let caller = create_funded_user::<T>();
+		let id = nimbus_id(1u8);
+		let keys: T::Keys = nimbus_id(3u8).into();
+		assert_ok!(Pallet::<T>::set_keys(
+				RawOrigin::Signed(caller.clone()).into(),
+				(id.clone(), keys.clone()),
+			)
+		);
+	}: _(RawOrigin::Signed(caller.clone()))
+	verify {
+		assert_eq!(Pallet::<T>::account_id_of(&id), None);
+		assert_eq!(Pallet::<T>::nimbus_id_of(&caller), None);
+	}
+
 	set_keys {
 		let caller = create_funded_user::<T>();
 		let first_id = nimbus_id(1u8);

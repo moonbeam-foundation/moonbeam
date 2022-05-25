@@ -219,6 +219,32 @@ pub mod pallet {
 			Ok(().into())
 		}
 
+		/// Remove your Mapping.
+		///
+		/// This is useful when you are no longer an author and would like to re-claim your security
+		/// deposit.
+		#[pallet::weight(<T as Config>::WeightInfo::clear_association())]
+		pub fn remove_keys(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
+			let account_id = ensure_signed(origin)?;
+			let author_id =
+				Self::nimbus_id_of(&account_id).ok_or(Error::<T>::OldAuthorIdNotFound)?;
+			let stored_info =
+				MappingWithDeposit::<T>::take(&author_id).ok_or(Error::<T>::AssociationNotFound)?;
+
+			MappingWithDeposit::<T>::remove(&author_id);
+			NimbusLookup::<T>::remove(&account_id);
+
+			T::DepositCurrency::unreserve(&account_id, stored_info.deposit);
+
+			<Pallet<T>>::deposit_event(Event::AuthorDeRegistered {
+				author_id,
+				account_id,
+				keys: stored_info.keys,
+			});
+
+			Ok(().into())
+		}
+
 		/// Set association and session keys at once.
 		///
 		/// This is useful for key rotation to update Nimbus and VRF keys in one call.

@@ -28,12 +28,19 @@ interface AuthorMapping {
         external;
 
     /**
-     * Clear existing associationg
+     * Clear existing association
      * Selector: 7354c91d
      *
      * @param nimbus_id The nimbusId to be cleared
      */
     function clear_association(bytes32 nimbus_id) external;
+
+    /**
+     * Remove keys
+     * Selector: 3b6c4284
+     *
+     */
+    function remove_keys() external;
 
     /**
      * Set keys

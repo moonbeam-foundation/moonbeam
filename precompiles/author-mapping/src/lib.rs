@@ -40,6 +40,7 @@ pub enum Action {
 	AddAssociation = "add_association(bytes32)",
 	UpdateAssociation = "update_association(bytes32,bytes32)",
 	ClearAssociation = "clear_association(bytes32)",
+	RemoveKeys = "remove_keys()",
 	SetKeys = "set_keys(bytes32,bytes32)",
 }
 
@@ -67,6 +68,7 @@ where
 			Action::AddAssociation => Self::add_association(handle),
 			Action::UpdateAssociation => Self::update_association(handle),
 			Action::ClearAssociation => Self::clear_association(handle),
+			Action::RemoveKeys => Self::remove_keys(handle),
 			Action::SetKeys => Self::set_keys(handle),
 		}
 	}
@@ -143,6 +145,20 @@ where
 		let call = AuthorMappingCall::<Runtime>::clear_association {
 			author_id: nimbus_id,
 		};
+
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(succeed([]))
+	}
+
+	fn remove_keys(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		log::trace!(
+			target: "author-mapping-precompile",
+			"Removing keys"
+		);
+
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let call = AuthorMappingCall::<Runtime>::remove_keys {};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 

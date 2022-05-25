@@ -157,10 +157,7 @@ fn registered_account_can_clear() {
 		.with_mappings(vec![(TestAuthor::Alice.into(), 1)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(AuthorMapping::clear_association(
-				Origin::signed(1),
-				TestAuthor::Alice.into()
-			));
+			assert_ok!(AuthorMapping::remove_keys(Origin::signed(1)));
 
 			assert_eq!(Balances::free_balance(&1), 1000);
 			assert_eq!(Balances::reserved_balance(&1), 0);
@@ -184,8 +181,8 @@ fn registered_account_can_clear() {
 fn unregistered_author_cannot_be_cleared() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_noop!(
-			AuthorMapping::clear_association(Origin::signed(1), TestAuthor::Alice.into()),
-			Error::<Runtime>::AssociationNotFound
+			AuthorMapping::remove_keys(Origin::signed(1)),
+			Error::<Runtime>::OldAuthorIdNotFound
 		);
 	})
 }
