@@ -36,15 +36,6 @@ interface AuthorMapping {
     function clear_association(bytes32 nimbus_id) external;
 
     /**
-     * Register association and session keys
-     * Selector: 4f50accf
-     *
-     * @param author_id The new author id registered
-     * @param keys The session keys
-     */
-    function register_keys(bytes32 author_id, bytes32 keys) external;
-
-    /**
      * Set keys
      * Selector: 47f92fc4
      *

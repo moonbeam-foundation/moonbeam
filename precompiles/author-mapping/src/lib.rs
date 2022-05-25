@@ -40,7 +40,6 @@ pub enum Action {
 	AddAssociation = "add_association(bytes32)",
 	UpdateAssociation = "update_association(bytes32,bytes32)",
 	ClearAssociation = "clear_association(bytes32)",
-	RegisterKeys = "register_keys(bytes32,bytes32)",
 	SetKeys = "set_keys(bytes32,bytes32)",
 }
 
@@ -68,7 +67,6 @@ where
 			Action::AddAssociation => Self::add_association(handle),
 			Action::UpdateAssociation => Self::update_association(handle),
 			Action::ClearAssociation => Self::clear_association(handle),
-			Action::RegisterKeys => Self::register_keys(handle),
 			Action::SetKeys => Self::set_keys(handle),
 		}
 	}
@@ -144,30 +142,6 @@ where
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = AuthorMappingCall::<Runtime>::clear_association {
 			author_id: nimbus_id,
-		};
-
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
-
-		Ok(succeed([]))
-	}
-
-	fn register_keys(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let mut input = handle.read_input()?;
-		// Bound check
-		input.expect_arguments(2)?;
-		let nimbus_id = sp_core::sr25519::Public::unchecked_from(input.read::<H256>()?).into();
-		let keys_as_nimbus_id: NimbusId =
-			sp_core::sr25519::Public::unchecked_from(input.read::<H256>()?).into();
-		let keys: <Runtime as pallet_author_mapping::Config>::Keys = keys_as_nimbus_id.into();
-
-		log::trace!(
-			target: "author-mapping-precompile",
-			"Adding full association with author id {:?} keys {:?}", nimbus_id, keys
-		);
-
-		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = AuthorMappingCall::<Runtime>::register_keys {
-			keys: (nimbus_id, keys),
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;

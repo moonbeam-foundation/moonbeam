@@ -229,12 +229,6 @@ pub mod pallet {
 			let account_id = ensure_signed(origin)?;
 			let (author_id, keys) = keys;
 			if let Some(old_author_id) = Self::nimbus_id_of(&account_id) {
-				let stored_info = MappingWithDeposit::<T>::try_get(&old_author_id)
-					.map_err(|_| Error::<T>::AssociationNotFound)?;
-				ensure!(
-					account_id == stored_info.account,
-					Error::<T>::NotYourAssociation
-				);
 				ensure!(
 					MappingWithDeposit::<T>::get(&author_id).is_none(),
 					Error::<T>::AlreadyAssociated

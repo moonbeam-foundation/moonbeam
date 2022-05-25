@@ -218,46 +218,6 @@ fn clear_association_works() {
 }
 
 #[test]
-fn register_keys_works() {
-	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
-		.build()
-		.execute_with(|| {
-			let expected_nimbus_id: NimbusId =
-				sp_core::sr25519::Public::unchecked_from([1u8; 32]).into();
-			let first_vrf_key: NimbusId =
-				sp_core::sr25519::Public::unchecked_from([3u8; 32]).into();
-
-			let input = EvmDataWriter::new_with_selector(Action::RegisterKeys)
-				.write(sp_core::H256::from([1u8; 32]))
-				.write(sp_core::H256::from([3u8; 32]))
-				.build();
-
-			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(evm_call(input)).dispatch(Origin::root()));
-
-			// Assert that the events are as expected
-			assert_eq!(
-				events(),
-				vec![
-					BalancesEvent::Reserved {
-						who: Alice,
-						amount: 10
-					}
-					.into(),
-					AuthorMappingEvent::AuthorRegistered {
-						author_id: expected_nimbus_id.clone(),
-						account_id: Alice,
-						keys: first_vrf_key.into(),
-					}
-					.into(),
-					EvmEvent::Executed(Precompile.into()).into(),
-				]
-			);
-		})
-}
-
-#[test]
 fn set_keys_works() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice, 1000)])
@@ -272,7 +232,7 @@ fn set_keys_works() {
 			let second_vrf_key: NimbusId =
 				sp_core::sr25519::Public::unchecked_from([4u8; 32]).into();
 
-			assert_ok!(Call::AuthorMapping(AuthorMappingCall::register_keys {
+			assert_ok!(Call::AuthorMapping(AuthorMappingCall::set_keys {
 				keys: (first_nimbus_id.clone(), first_vrf_key.clone()),
 			})
 			.dispatch(Origin::signed(Alice)));

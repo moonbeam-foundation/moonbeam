@@ -85,7 +85,9 @@ benchmarks! {
 		let first_keys: T::Keys = nimbus_id(3u8).into();
 		let second_id = nimbus_id(2u8);
 		let second_keys: T::Keys = nimbus_id(3u8).into();
-		assert_ok!(Pallet::<T>::register_keys(
+		// we benchmark set_keys after already calling set_keys because
+		// key rotation is more common than initially setting them
+		assert_ok!(Pallet::<T>::set_keys(
 				RawOrigin::Signed(caller.clone()).into(),
 				(first_id.clone(),
 				first_keys.clone()),
