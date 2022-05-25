@@ -11,7 +11,7 @@ num_enum = { version = "0.5.3", default-features = false }
 
 # Moonbeam
 pallet-author-mapping = { path = "../../pallets/author-mapping", default-features = false }
-precompile-utils = { path = "../utils", default-features = false }
+precompile-utils = { path = "../utils", features = ["testing"] }
 
 # Substrate
 codec = { package = "parity-scale-codec", version = "3.0.0", default-features = false }

@@ -218,6 +218,56 @@ fn clear_association_works() {
 }
 
 #[test]
+fn remove_keys_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			let nimbus_id: NimbusId = sp_core::sr25519::Public::unchecked_from([1u8; 32]).into();
+
+			assert_ok!(Call::AuthorMapping(AuthorMappingCall::add_association {
+				author_id: nimbus_id.clone(),
+			})
+			.dispatch(Origin::signed(Alice)));
+
+			let input = EvmDataWriter::new_with_selector(Action::RemoveKeys).build();
+
+			// Make sure the call goes through successfully
+			assert_ok!(Call::Evm(evm_call(input)).dispatch(Origin::root()));
+
+			// Assert that the events are as expected
+			assert_eq!(
+				events(),
+				vec![
+					BalancesEvent::Reserved {
+						who: Alice,
+						amount: 10
+					}
+					.into(),
+					AuthorMappingEvent::AuthorRegistered {
+						author_id: nimbus_id.clone(),
+						account_id: Alice,
+						keys: nimbus_id.clone().into(),
+					}
+					.into(),
+					BalancesEvent::Unreserved {
+						who: Alice,
+						amount: 10
+					}
+					.into(),
+					AuthorMappingEvent::AuthorDeRegistered {
+						author_id: nimbus_id.clone(),
+						account_id: Alice,
+						keys: nimbus_id.into(),
+					}
+					.into(),
+					EvmEvent::Executed(Precompile.into()).into(),
+				]
+			);
+		})
+}
+
+#[test]
 fn set_keys_works() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice, 1000)])
