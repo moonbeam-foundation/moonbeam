@@ -21,6 +21,7 @@ import {
   BALTATHAR_PRIV_KEY,
   BALTATHAR,
   ALITH_ADDRESS,
+  ETHAN_ADDRESS,
 } from "../util/constants";
 import { describeDevMoonbeam, DevTestContext } from "../util/setup-dev-tests";
 import { KeyringPair } from "@substrate/txwrapper-core";
@@ -788,6 +789,174 @@ describeDevMoonbeam("Staking - Rewards", (context) => {
       `Ethan's reward ${rewardedEthan.amount} was not less than Balathar's \
       reward ${rewardedBalathar.amount}`
     ).is.true;
+  });
+});
+
+describeDevMoonbeam("Staking - Delegator Leave", (context) => {
+  const EXTRA_BOND_AMOUNT = 1_000_000_000_000_000_000n;
+  const BOND_AMOUNT = MIN_GLMR_NOMINATOR + EXTRA_BOND_AMOUNT;
+
+  let ethan: KeyringPair;
+  let balathar: KeyringPair;
+
+  before("should set baltathar as candidate", async () => {
+    const keyring = new Keyring({ type: "ethereum" });
+    ethan = keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
+    balathar = keyring.addFromUri(BALTATHAR_PRIV_KEY, null, "ethereum");
+    await context.polkadotApi.tx.parachainStaking
+      .joinCandidates(MIN_GLMR_STAKING, 1)
+      .signAndSend(balathar);
+    await context.createBlock();
+  });
+
+  beforeEach(
+    "should successfully call delegate on ALITH and BALTATHAR and schedule leave",
+    async () => {
+      await context.polkadotApi.tx.parachainStaking
+        .delegate(ALITH, BOND_AMOUNT, 0, 0)
+        .signAndSend(ethan);
+      await context.createBlock();
+
+      await context.polkadotApi.tx.parachainStaking
+        .delegate(BALTATHAR, BOND_AMOUNT, 0, 1)
+        .signAndSend(ethan);
+      await context.createBlock();
+
+      await context.polkadotApi.tx.parachainStaking.scheduleLeaveDelegators().signAndSend(ethan);
+      await context.createBlock();
+      const currentRound = await context.polkadotApi.query.parachainStaking.round();
+      await jumpToRound(context, currentRound.current.addn(1).toNumber());
+    }
+  );
+
+  afterEach("should clean up delegation requests", async () => {
+    await context.polkadotApi.tx.parachainStaking.cancelLeaveDelegators().signAndSend(ethan);
+    await context.createBlock();
+    await context.polkadotApi.tx.parachainStaking.cancelDelegationRequest(ALITH).signAndSend(ethan);
+    await context.createBlock();
+    await context.polkadotApi.tx.parachainStaking
+      .cancelDelegationRequest(BALTATHAR)
+      .signAndSend(ethan);
+    await context.createBlock();
+  });
+
+  it("should allow executeLeaveDelegators to be executed after round delay", async function () {
+    this.timeout(10000);
+    const leaveDelay = context.polkadotApi.consts.parachainStaking.leaveDelegatorsDelay;
+    const currentRound = (await context.polkadotApi.query.parachainStaking.round()).current;
+    await jumpToRound(context, currentRound.add(leaveDelay).addn(1).toNumber());
+    await context.polkadotApi.tx.parachainStaking
+      .executeLeaveDelegators(ETHAN_ADDRESS, 2)
+      .signAndSend(ethan);
+    const block = await context.createBlock();
+
+    const leaveEvents = await getEventsAtFilter(context, block.block.hash.toString(), (event) => {
+      if (context.polkadotApi.events.parachainStaking.DelegatorLeft.is(event.event)) {
+        return {
+          account: event.event.data[0].toString(),
+        };
+      }
+    });
+    expect(leaveEvents).to.deep.equal([
+      {
+        account: ETHAN_ADDRESS,
+      },
+    ]);
+  });
+
+  it("should not allow cancelLeaveDelegators to be executed if single Revoke is manually cancelled", async function () {
+    this.timeout(20000);
+    const leaveDelay = context.polkadotApi.consts.parachainStaking.leaveDelegatorsDelay;
+    const currentRound = (await context.polkadotApi.query.parachainStaking.round()).current;
+    await jumpToRound(context, currentRound.add(leaveDelay).addn(1).toNumber());
+    await context.polkadotApi.tx.parachainStaking
+      .cancelDelegationRequest(BALTATHAR)
+      .signAndSend(ethan);
+    await context.createBlock();
+    await context.polkadotApi.tx.parachainStaking.cancelLeaveDelegators().signAndSend(ethan);
+    await context.createBlock();
+    let result = await getExtrinsicResult(context, "parachainStaking", "cancelLeaveDelegators");
+    expect(result).to.equal("DelegatorNotLeaving");
+
+    await context.polkadotApi.tx.parachainStaking
+      .scheduleRevokeDelegation(BALTATHAR)
+      .signAndSend(ethan);
+    await context.createBlock();
+    await context.polkadotApi.tx.parachainStaking.cancelLeaveDelegators().signAndSend(ethan);
+    const blockNow = await context.createBlock();
+    result = await getExtrinsicResult(context, "parachainStaking", "cancelLeaveDelegators");
+    expect(result).to.be.null;
+
+    const leaveEvents = await getEventsAtFilter(
+      context,
+      blockNow.block.hash.toString(),
+      (event) => {
+        if (context.polkadotApi.events.parachainStaking.DelegatorExitCancelled.is(event.event)) {
+          return {
+            account: event.event.data[0].toString(),
+          };
+        }
+      }
+    );
+    expect(leaveEvents).to.deep.equal([
+      {
+        account: ETHAN_ADDRESS,
+      },
+    ]);
+  });
+
+  it("should not allow executeLeaveDelegators to be executed if single Revoke is manually cancelled", async function () {
+    this.timeout(20000);
+    const leaveDelay = context.polkadotApi.consts.parachainStaking.leaveDelegatorsDelay;
+    const currentRound = (await context.polkadotApi.query.parachainStaking.round()).current;
+    await jumpToRound(context, currentRound.add(leaveDelay).addn(1).toNumber());
+    await context.polkadotApi.tx.parachainStaking
+      .cancelDelegationRequest(BALTATHAR)
+      .signAndSend(ethan);
+    await context.createBlock();
+    await context.polkadotApi.tx.parachainStaking
+      .executeLeaveDelegators(ETHAN_ADDRESS, 2)
+      .signAndSend(ethan);
+    await context.createBlock();
+    let result = await getExtrinsicResult(context, "parachainStaking", "executeLeaveDelegators");
+    expect(result).to.equal("DelegatorNotLeaving");
+
+    await context.polkadotApi.tx.parachainStaking
+      .scheduleRevokeDelegation(BALTATHAR)
+      .signAndSend(ethan);
+    await context.createBlock();
+    await context.polkadotApi.tx.parachainStaking
+      .executeLeaveDelegators(ETHAN_ADDRESS, 2)
+      .signAndSend(ethan);
+    await context.createBlock();
+    result = await getExtrinsicResult(context, "parachainStaking", "executeLeaveDelegators");
+    expect(result).to.be.equal("DelegatorCannotLeaveYet");
+
+    const currentRoundNow = (await context.polkadotApi.query.parachainStaking.round()).current;
+    await jumpToRound(context, currentRoundNow.add(leaveDelay).addn(1).toNumber());
+    await context.polkadotApi.tx.parachainStaking
+      .executeLeaveDelegators(ETHAN_ADDRESS, 2)
+      .signAndSend(ethan);
+    const blockNow = await context.createBlock();
+    result = await getExtrinsicResult(context, "parachainStaking", "executeLeaveDelegators");
+    expect(result).to.be.null;
+
+    const leaveEvents = await getEventsAtFilter(
+      context,
+      blockNow.block.hash.toString(),
+      (event) => {
+        if (context.polkadotApi.events.parachainStaking.DelegatorLeft.is(event.event)) {
+          return {
+            account: event.event.data[0].toString(),
+          };
+        }
+      }
+    );
+    expect(leaveEvents).to.deep.equal([
+      {
+        account: ETHAN_ADDRESS,
+      },
+    ]);
   });
 });
 
