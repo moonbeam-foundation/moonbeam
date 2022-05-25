@@ -342,64 +342,6 @@ fn cannot_set_keys_without_deposit() {
 }
 
 #[test]
-fn double_full_registration_counts_twice_as_much() {
-	ExtBuilder::default()
-		.with_balances(vec![(2, 1000)])
-		.build()
-		.execute_with(|| {
-			// Register once as Bob
-			assert_ok!(AuthorMapping::set_keys(
-				Origin::signed(2),
-				(TestAuthor::Bob.into(), TestAuthor::Charlie.into()),
-			));
-
-			assert_eq!(Balances::free_balance(&2), 900);
-			assert_eq!(Balances::reserved_balance(&2), 100);
-			assert_eq!(
-				AuthorMapping::account_id_of(&TestAuthor::Bob.into()),
-				Some(2)
-			);
-
-			assert_eq!(
-				last_event(),
-				MetaEvent::AuthorMapping(Event::AuthorRegistered {
-					author_id: TestAuthor::Bob.into(),
-					account_id: 2,
-					keys: TestAuthor::Charlie.into(),
-				})
-			);
-
-			// Register again as Alice
-			assert_ok!(AuthorMapping::set_keys(
-				Origin::signed(2),
-				(TestAuthor::Alice.into(), TestAuthor::Bob.into()),
-			));
-
-			assert_eq!(Balances::free_balance(&2), 800);
-			assert_eq!(Balances::reserved_balance(&2), 200);
-			assert_eq!(
-				AuthorMapping::account_id_of(&TestAuthor::Alice.into()),
-				Some(2)
-			);
-
-			assert_eq!(
-				last_event(),
-				MetaEvent::AuthorMapping(Event::AuthorRegistered {
-					author_id: TestAuthor::Alice.into(),
-					account_id: 2,
-					keys: TestAuthor::Bob.into(),
-				})
-			);
-
-			// Should still be registered as Bob as well
-			assert_eq!(
-				AuthorMapping::account_id_of(&TestAuthor::Bob.into()),
-				Some(2)
-			);
-		})
-}
-
-#[test]
 fn full_registered_author_cannot_be_overwritten() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 1000)])
@@ -445,16 +387,16 @@ fn registered_can_full_rotate() {
 }
 
 #[test]
-fn unregistered_author_cannot_be_full_rotated() {
-	ExtBuilder::default().build().execute_with(|| {
-		assert_noop!(
-			AuthorMapping::set_keys(
+fn unregistered_author_can_be_full_rotated() {
+	ExtBuilder::default()
+		.with_balances(vec![(2, 1000)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(AuthorMapping::set_keys(
 				Origin::signed(2),
 				(TestAuthor::Bob.into(), TestAuthor::Bob.into()),
-			),
-			Error::<Runtime>::OldAuthorIdNotFound
-		);
-	})
+			));
+		})
 }
 
 #[test]
@@ -467,9 +409,9 @@ fn registered_author_cannot_be_full_rotated_by_non_owner() {
 			assert_noop!(
 				AuthorMapping::set_keys(
 					Origin::signed(2),
-					(TestAuthor::Bob.into(), TestAuthor::Bob.into())
+					(TestAuthor::Alice.into(), TestAuthor::Bob.into())
 				),
-				Error::<Runtime>::OldAuthorIdNotFound
+				Error::<Runtime>::AlreadyAssociated
 			);
 		})
 }

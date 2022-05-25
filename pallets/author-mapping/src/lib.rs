@@ -228,11 +228,13 @@ pub mod pallet {
 		pub fn set_keys(origin: OriginFor<T>, keys: (NimbusId, T::Keys)) -> DispatchResult {
 			let account_id = ensure_signed(origin)?;
 			let (author_id, keys) = keys;
+			ensure!(
+				MappingWithDeposit::<T>::get(&author_id).is_none(),
+				Error::<T>::AlreadyAssociated
+			);
 			if let Some(old_author_id) = Self::nimbus_id_of(&account_id) {
-				ensure!(
-					MappingWithDeposit::<T>::get(&author_id).is_none(),
-					Error::<T>::AlreadyAssociated
-				);
+				let stored_info = MappingWithDeposit::<T>::try_get(&old_author_id)
+					.map_err(|_| Error::<T>::AssociationNotFound)?;
 
 				MappingWithDeposit::<T>::remove(&old_author_id);
 				MappingWithDeposit::<T>::insert(
