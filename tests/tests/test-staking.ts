@@ -841,7 +841,7 @@ describeDevMoonbeam("Staking - Delegator Leave", (context) => {
   });
 
   it("should allow executeLeaveDelegators to be executed after round delay", async function () {
-    this.timeout(10000);
+    this.timeout(20000);
     const leaveDelay = context.polkadotApi.consts.parachainStaking.leaveDelegatorsDelay;
     const currentRound = (await context.polkadotApi.query.parachainStaking.round()).current;
     await jumpToRound(context, currentRound.add(leaveDelay).addn(1).toNumber());
@@ -865,8 +865,8 @@ describeDevMoonbeam("Staking - Delegator Leave", (context) => {
   });
 
   it("should not allow cancelLeaveDelegators to be executed if single Revoke is manually \
-  cancelled", async function () {
-    this.timeout(20000);
+cancelled", async function () {
+    this.timeout(50000);
     const leaveDelay = context.polkadotApi.consts.parachainStaking.leaveDelegatorsDelay;
     const currentRound = (await context.polkadotApi.query.parachainStaking.round()).current;
     await jumpToRound(context, currentRound.add(leaveDelay).addn(1).toNumber());
@@ -907,8 +907,8 @@ describeDevMoonbeam("Staking - Delegator Leave", (context) => {
   });
 
   it("should not allow executeLeaveDelegators to be executed if single Revoke is manually \
-  cancelled", async function () {
-    this.timeout(20000);
+cancelled", async function () {
+    this.timeout(50000);
     const leaveDelay = context.polkadotApi.consts.parachainStaking.leaveDelegatorsDelay;
     const currentRound = (await context.polkadotApi.query.parachainStaking.round()).current;
     await jumpToRound(context, currentRound.add(leaveDelay).addn(1).toNumber());
