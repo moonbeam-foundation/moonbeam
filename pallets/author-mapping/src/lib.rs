@@ -91,6 +91,8 @@ pub mod pallet {
 		CannotAffordSecurityDeposit,
 		/// The NimbusId in question is already associated and cannot be overwritten
 		AlreadyAssociated,
+		/// The NimbusId cannot be overwritten because it is not yours and it is already associated
+		CannotOverwriteNimbusIdIfNotYours,
 		/// No existing NimbusId can be found for the account
 		OldAuthorIdNotFound,
 	}
@@ -210,7 +212,7 @@ pub mod pallet {
 				if old_nimbus_id != new_nimbus_id {
 					ensure!(
 						MappingWithDeposit::<T>::get(&new_nimbus_id).is_none(),
-						Error::<T>::AlreadyAssociated
+						Error::<T>::CannotOverwriteNimbusIdIfNotYours
 					);
 				}
 				let stored_info = MappingWithDeposit::<T>::try_get(&old_nimbus_id)
