@@ -2328,6 +2328,41 @@ fn cannot_execute_leave_delegators_before_delay() {
 }
 
 #[test]
+fn cannot_execute_leave_delegators_if_single_delegation_revoke_manually_cancelled() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 20), (3, 30)])
+		.with_candidates(vec![(1, 30), (3, 30)])
+		.with_delegations(vec![(2, 1, 10), (2, 3, 10)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(
+				2
+			)));
+			assert_ok!(ParachainStaking::cancel_delegation_request(
+				Origin::signed(2),
+				3
+			));
+			roll_to(10);
+			assert_noop!(
+				ParachainStaking::execute_leave_delegators(Origin::signed(2), 2, 2),
+				Error::<Test>::DelegatorNotLeaving
+			);
+			// can execute after manually scheduling revoke, and the round delay after which
+			// all revokes can be executed
+			assert_ok!(ParachainStaking::schedule_revoke_delegation(
+				Origin::signed(2),
+				3
+			));
+			roll_to(20);
+			assert_ok!(ParachainStaking::execute_leave_delegators(
+				Origin::signed(2),
+				2,
+				2
+			));
+		});
+}
+
+#[test]
 fn insufficient_execute_leave_delegators_weight_hint_fails() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20), (6, 20)])
@@ -2409,6 +2444,36 @@ fn cancel_leave_delegators_updates_delegator_state() {
 			let delegator =
 				ParachainStaking::delegator_state(&2).expect("just cancelled exit so exists");
 			assert!(delegator.is_active());
+		});
+}
+
+#[test]
+fn cannot_cancel_leave_delegators_if_single_delegation_revoke_manually_cancelled() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 20), (3, 30)])
+		.with_candidates(vec![(1, 30), (3, 30)])
+		.with_delegations(vec![(2, 1, 10), (2, 3, 10)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(
+				2
+			)));
+			assert_ok!(ParachainStaking::cancel_delegation_request(
+				Origin::signed(2),
+				3
+			));
+			roll_to(10);
+			assert_noop!(
+				ParachainStaking::cancel_leave_delegators(Origin::signed(2)),
+				Error::<Test>::DelegatorNotLeaving
+			);
+			// can execute after manually scheduling revoke, without waiting for round delay after
+			// which all revokes can be executed
+			assert_ok!(ParachainStaking::schedule_revoke_delegation(
+				Origin::signed(2),
+				3
+			));
+			assert_ok!(ParachainStaking::cancel_leave_delegators(Origin::signed(2)));
 		});
 }
 
