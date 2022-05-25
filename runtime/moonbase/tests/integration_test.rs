@@ -2463,7 +2463,7 @@ fn author_mapping_register_and_set_keys() {
 						.write(sp_core::H256::from([3u8; 32]))
 						.build(),
 				)
-				.expect_cost(15428)
+				.expect_cost(16280)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 

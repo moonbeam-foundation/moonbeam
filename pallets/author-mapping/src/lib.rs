@@ -259,12 +259,11 @@ pub mod pallet {
 			let account_id = ensure_signed(origin)?;
 			let (new_author_id, keys) = keys;
 			if let Some(old_author_id) = Self::nimbus_id_of(&account_id) {
-				if old_author_id != new_author_id {
-					ensure!(
-						MappingWithDeposit::<T>::get(&new_author_id).is_none(),
-						Error::<T>::AlreadyAssociated
-					);
-				} // else allow claiming the same mapping over again (idempotence)
+				ensure!(
+					old_author_id != new_author_id
+						&& MappingWithDeposit::<T>::get(&new_author_id).is_none(),
+					Error::<T>::AlreadyAssociated
+				);
 				let stored_info = MappingWithDeposit::<T>::try_get(&old_author_id)
 					.map_err(|_| Error::<T>::AssociationNotFound)?;
 				ensure!(
