@@ -2458,7 +2458,7 @@ fn author_mapping_register_and_set_keys() {
 				.prepare_test(
 					ALICE,
 					author_mapping_precompile_address,
-					EvmDataWriter::new_with_selector(AuthorMappingAction::RegisterKeys)
+					EvmDataWriter::new_with_selector(AuthorMappingAction::SetKeys)
 						.write(sp_core::H256::from([1u8; 32]))
 						.write(sp_core::H256::from([3u8; 32]))
 						.build(),

@@ -223,7 +223,7 @@ pub mod pallet {
 		///
 		/// This is useful when you are no longer an author and would like to re-claim your security
 		/// deposit.
-		#[pallet::weight(<T as Config>::WeightInfo::clear_association())]
+		#[pallet::weight(<T as Config>::WeightInfo::remove_keys())]
 		pub fn remove_keys(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			let account_id = ensure_signed(origin)?;
 			let author_id =
