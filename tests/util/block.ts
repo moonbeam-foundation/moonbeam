@@ -300,3 +300,30 @@ export const verifyLatestBlockFees = async (
   const blockNumber = Number(signedBlock.block.header.number);
   return verifyBlockFees(context, blockNumber, blockNumber, expect, expectedBalanceDiff);
 };
+
+export const getBlockExtrinsic = async (
+  api: ApiPromise,
+  blockHash: string | BlockHash,
+  section: string,
+  method: string
+) => {
+  const apiAt = await api.at(blockHash);
+  const [{ block }, records] = await Promise.all([
+    api.rpc.chain.getBlock(blockHash),
+    apiAt.query.system.events(),
+  ]);
+  const extIndex = block.extrinsics.findIndex(
+    (ext) => ext.method.section == section && ext.method.method == method
+  );
+  const extrinsic = extIndex > -1 ? block.extrinsics[extIndex] : null;
+
+  const events = records
+    .filter(({ phase }) => phase.isApplyExtrinsic && phase.asApplyExtrinsic.eq(extIndex))
+    .map(({ event }) => event);
+  const resultEvent = events.find(
+    (event) =>
+      event.section === "system" &&
+      (event.method === "ExtrinsicSuccess" || event.method === "ExtrinsicFailed")
+  );
+  return { block, extrinsic, events, resultEvent };
+};

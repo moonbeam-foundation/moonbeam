@@ -49,6 +49,7 @@ pub mod pallet {
 	use nimbus_primitives::{AccountLookup, NimbusId};
 	use session_keys_primitives::KeysLookup;
 	use sp_std::vec::Vec;
+	use sp_std::mem::size_of;
 
 	pub type BalanceOf<T> = <<T as Config>::DepositCurrency as Currency<
 		<T as frame_system::Config>::AccountId,
@@ -68,6 +69,15 @@ pub mod pallet {
 	impl<T: Config> fmt::Debug for KeysWrapper<T> {
 		fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 			write!(f, "{:?}{:?}", self.0, self.1)
+		}
+	}
+	impl<T: Config> TryFrom<Vec<u8>> for KeysWrapper<T> {
+		type Error = Error<T>;
+		fn try_from(input: Vec<u8>) -> Result<Self, Self::Error> {
+			if input.len() != size_of::<KeysWrapper<T>>() as usize {
+				return Err(Self::Error::WrongKeySize)
+			}
+			Ok(KeysWrapper::<T>::decode(&mut input.as_slice()).unwrap())
 		}
 	}
 	impl<T: Config> scale_info::TypeInfo for KeysWrapper<T> {
@@ -111,6 +121,8 @@ pub mod pallet {
 		AlreadyAssociated,
 		/// No existing NimbusId can be found for the account
 		OldAuthorIdNotFound,
+		/// Keys have wrong size
+		WrongKeySize,
 	}
 
 	#[pallet::event]
@@ -200,10 +212,10 @@ pub mod pallet {
 		/// No new security deposit is required. Will replace `update_association` which is kept
 		/// now for backwards compatibility reasons.
 		#[pallet::weight(<T as Config>::WeightInfo::set_keys())]
-		pub fn set_keys(origin: OriginFor<T>, keys: KeysWrapper<T>) -> DispatchResult {
+		pub fn set_keys(origin: OriginFor<T>, keys: Vec<u8>) -> DispatchResult {
 			let account_id = ensure_signed(origin)?;
-			let KeysWrapper(new_nimbus_id, keys) = keys;
-
+			let KeysWrapper::<T>(new_nimbus_id, keys) = keys.try_into()?;
+			
 			if let Some(old_nimbus_id) = Self::nimbus_id_of(&account_id) {
 				Self::rotate_keys(old_nimbus_id, new_nimbus_id, account_id, keys)
 			} else {
