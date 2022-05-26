@@ -47,7 +47,7 @@ pub mod pallet {
 	use frame_system::pallet_prelude::*;
 	use nimbus_primitives::{AccountLookup, NimbusId};
 	use session_keys_primitives::KeysLookup;
-	use sp_std::vec::Vec;
+	use sp_std::{mem::size_of, vec::Vec};
 
 	pub type BalanceOf<T> = <<T as Config>::DepositCurrency as Currency<
 		<T as frame_system::Config>::AccountId,
@@ -66,6 +66,11 @@ pub mod pallet {
 		let mut r = nimbus_id.encode();
 		r.extend(&keys.encode());
 		r
+	}
+
+	/// Size of NimbusId + T::Keys to check size of `set_keys` input before trying to decode
+	pub fn keys_size<T: Config>() -> usize {
+		size_of::<NimbusId>() as usize + size_of::<T::Keys>() as usize
 	}
 
 	#[pallet::pallet]
@@ -198,8 +203,7 @@ pub mod pallet {
 		#[pallet::weight(<T as Config>::WeightInfo::set_keys())]
 		pub fn set_keys(origin: OriginFor<T>, keys: Vec<u8>) -> DispatchResult {
 			let account_id = ensure_signed(origin)?;
-			const ALL_KEYS_SIZE: usize = 64; // TODO: should this be a config associated type ?
-			ensure!(keys.len() == ALL_KEYS_SIZE, Error::<T>::WrongKeySize);
+			ensure!(keys.len() == keys_size::<T>(), Error::<T>::WrongKeySize);
 			let encoded = &mut keys.as_slice();
 			let new_nimbus_id =
 				NimbusId::decode(encoded).map_err(|_| Error::<T>::DecodeNimbusFailed)?;

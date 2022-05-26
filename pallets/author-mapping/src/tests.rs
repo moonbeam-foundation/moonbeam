@@ -19,12 +19,18 @@ use crate::mock::{
 	last_event, AuthorMapping, Balances, DepositAmount, Event as MetaEvent, ExtBuilder, Origin,
 	Runtime, System, TestAuthor,
 };
-use crate::{keys_wrapper, Error, Event, MappingWithDeposit, RegistrationInfo};
+use crate::{keys_size, keys_wrapper, Error, Event, MappingWithDeposit, RegistrationInfo};
 use frame_support::{
 	assert_noop, assert_ok,
 	traits::{OnRuntimeUpgrade, ReservableCurrency},
 };
 use nimbus_primitives::NimbusId;
+
+#[test]
+fn check_key_size() {
+	// NimbusId (32) + NimbusId (32)
+	assert_eq!(keys_size::<Runtime>(), 64usize);
+}
 
 #[test]
 fn genesis_builder_works() {
