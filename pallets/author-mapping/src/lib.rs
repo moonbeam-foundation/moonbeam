@@ -161,33 +161,12 @@ pub mod pallet {
 		) -> DispatchResult {
 			let account_id = ensure_signed(origin)?;
 
-			let stored_info = MappingWithDeposit::<T>::try_get(&old_nimbus_id)
-				.map_err(|_| Error::<T>::AssociationNotFound)?;
-
-			ensure!(
-				account_id == stored_info.account,
-				Error::<T>::NotYourAssociation
-			);
-			ensure!(
-				MappingWithDeposit::<T>::get(&new_nimbus_id).is_none(),
-				Error::<T>::AlreadyAssociated
-			);
-
-			MappingWithDeposit::<T>::remove(&old_nimbus_id);
-			let new_stored_info = RegistrationInfo {
-				keys: new_nimbus_id.clone().into(),
-				..stored_info
-			};
-			MappingWithDeposit::<T>::insert(&new_nimbus_id, &new_stored_info);
-			NimbusLookup::<T>::insert(&account_id, &new_nimbus_id);
-
-			<Pallet<T>>::deposit_event(Event::KeysRotated {
-				new_nimbus_id: new_nimbus_id,
+			Self::rotate_keys(
+				old_nimbus_id,
+				new_nimbus_id.clone(),
 				account_id,
-				new_keys: new_stored_info.keys,
-			});
-
-			Ok(())
+				new_nimbus_id.into(),
+			)
 		}
 
 		/// Clear your Mapping.
@@ -223,41 +202,12 @@ pub mod pallet {
 		pub fn set_keys(origin: OriginFor<T>, keys: KeysWrapper<T>) -> DispatchResult {
 			let account_id = ensure_signed(origin)?;
 			let KeysWrapper(new_nimbus_id, keys) = keys;
+
 			if let Some(old_nimbus_id) = Self::nimbus_id_of(&account_id) {
-				if old_nimbus_id != new_nimbus_id {
-					// cannot overwrite a NimbusId if it is not yours
-					ensure!(
-						MappingWithDeposit::<T>::get(&new_nimbus_id).is_none(),
-						Error::<T>::AlreadyAssociated
-					);
-				}
-				let stored_info = MappingWithDeposit::<T>::try_get(&old_nimbus_id)
-					.map_err(|_| Error::<T>::AssociationNotFound)?;
-				ensure!(
-					account_id == stored_info.account,
-					Error::<T>::NotYourAssociation
-				);
-
-				MappingWithDeposit::<T>::remove(&old_nimbus_id);
-				MappingWithDeposit::<T>::insert(
-					&new_nimbus_id,
-					&RegistrationInfo {
-						keys: keys.clone(),
-						..stored_info
-					},
-				);
-				NimbusLookup::<T>::insert(&account_id, new_nimbus_id.clone());
-
-				Self::deposit_event(Event::KeysRotated {
-					new_nimbus_id,
-					account_id,
-					new_keys: keys,
-				});
+				Self::rotate_keys(old_nimbus_id, new_nimbus_id, account_id, keys)
 			} else {
-				Self::register_keys(new_nimbus_id, account_id, keys)?;
+				Self::register_keys(new_nimbus_id, account_id, keys)
 			}
-
-			Ok(())
 		}
 	}
 
@@ -298,6 +248,42 @@ pub mod pallet {
 				nimbus_id,
 				account_id,
 				keys,
+			});
+			Ok(())
+		}
+		fn rotate_keys(
+			old_nimbus_id: NimbusId,
+			new_nimbus_id: NimbusId,
+			account_id: T::AccountId,
+			new_keys: T::Keys,
+		) -> DispatchResult {
+			let stored_info = MappingWithDeposit::<T>::try_get(&old_nimbus_id)
+				.map_err(|_| Error::<T>::AssociationNotFound)?;
+
+			ensure!(
+				account_id == stored_info.account,
+				Error::<T>::NotYourAssociation
+			);
+			if old_nimbus_id != new_nimbus_id {
+				// cannot overwrite a NimbusId if it is not yours
+				ensure!(
+					MappingWithDeposit::<T>::get(&new_nimbus_id).is_none(),
+					Error::<T>::AlreadyAssociated
+				);
+			}
+
+			MappingWithDeposit::<T>::remove(&old_nimbus_id);
+			let new_stored_info = RegistrationInfo {
+				keys: new_keys.clone(),
+				..stored_info
+			};
+			MappingWithDeposit::<T>::insert(&new_nimbus_id, &new_stored_info);
+			NimbusLookup::<T>::insert(&account_id, &new_nimbus_id);
+
+			<Pallet<T>>::deposit_event(Event::KeysRotated {
+				new_nimbus_id,
+				account_id,
+				new_keys,
 			});
 			Ok(())
 		}
