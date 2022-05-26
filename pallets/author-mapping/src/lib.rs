@@ -101,6 +101,8 @@ pub mod pallet {
 		AlreadyAssociated,
 		/// No existing NimbusId can be found for the account
 		OldAuthorIdNotFound,
+		/// Keys have wrong size
+		WrongKeySize,
 		/// Failed to decode NimbusId for `set_keys`
 		DecodeNimbusFailed,
 		/// Failed to decode T::Keys for `set_keys`
@@ -196,6 +198,8 @@ pub mod pallet {
 		#[pallet::weight(<T as Config>::WeightInfo::set_keys())]
 		pub fn set_keys(origin: OriginFor<T>, keys: Vec<u8>) -> DispatchResult {
 			let account_id = ensure_signed(origin)?;
+			const ALL_KEYS_SIZE: usize = 64; // TODO: should this be a config associated type ?
+			ensure!(keys.len() == ALL_KEYS_SIZE, Error::<T>::WrongKeySize);
 			let encoded = &mut keys.as_slice();
 			let new_nimbus_id =
 				NimbusId::decode(encoded).map_err(|_| Error::<T>::DecodeNimbusFailed)?;
