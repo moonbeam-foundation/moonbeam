@@ -77,10 +77,7 @@ pub mod pallet {
 			if input.len() != size_of::<KeysWrapper<T>>() as usize {
 				return Err(Self::Error::WrongKeySize)
 			}
-			let encoded = &mut input.as_slice();
-			let nimbus_id = NimbusId::decode(encoded).unwrap();
-			let extra_keys = T::Keys::decode(encoded).unwrap();
-			Ok(KeysWrapper(nimbus_id, extra_keys))
+			Ok(KeysWrapper::<T>::decode(&mut input.as_slice()).unwrap())
 		}
 	}
 	impl<T: Config> scale_info::TypeInfo for KeysWrapper<T> {
