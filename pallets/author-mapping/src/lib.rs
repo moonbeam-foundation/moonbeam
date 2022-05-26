@@ -62,7 +62,8 @@ pub mod pallet {
 	}
 
 	#[derive(Clone, Encode, Decode, PartialEq, Eq)]
-	pub struct KeysWrapper<T: Config>(NimbusId, T::Keys);
+	/// Wrapper type to ensure output from rotateKeys RPC can be copied pasted to `set_keys` input
+	pub struct KeysWrapper<T: Config>(pub NimbusId, pub T::Keys);
 	impl<T: Config> fmt::Debug for KeysWrapper<T> {
 		fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 			write!(f, "{:?}{:?}", self.0, self.1)
@@ -115,19 +116,19 @@ pub mod pallet {
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
 		/// A NimbusId has been registered and mapped to an AccountId.
-		AuthorRegistered {
+		KeysRegistered {
 			nimbus_id: NimbusId,
 			account_id: T::AccountId,
 			keys: T::Keys,
 		},
 		/// An NimbusId has been de-registered, and its AccountId mapping removed.
-		AuthorDeRegistered {
+		KeysRemoved {
 			nimbus_id: NimbusId,
 			account_id: T::AccountId,
 			keys: T::Keys,
 		},
 		/// An NimbusId has been registered, replacing a previous registration and its mapping.
-		AuthorRotated {
+		KeysRotated {
 			new_nimbus_id: NimbusId,
 			account_id: T::AccountId,
 			new_keys: T::Keys,
@@ -180,7 +181,7 @@ pub mod pallet {
 			MappingWithDeposit::<T>::insert(&new_nimbus_id, &new_stored_info);
 			NimbusLookup::<T>::insert(&account_id, &new_nimbus_id);
 
-			<Pallet<T>>::deposit_event(Event::AuthorRotated {
+			<Pallet<T>>::deposit_event(Event::KeysRotated {
 				new_nimbus_id: new_nimbus_id,
 				account_id,
 				new_keys: new_stored_info.keys,
@@ -247,7 +248,7 @@ pub mod pallet {
 				);
 				NimbusLookup::<T>::insert(&account_id, new_nimbus_id.clone());
 
-				Self::deposit_event(Event::AuthorRotated {
+				Self::deposit_event(Event::KeysRotated {
 					new_nimbus_id,
 					account_id,
 					new_keys: keys,
@@ -275,7 +276,7 @@ pub mod pallet {
 
 			T::DepositCurrency::unreserve(&account_id, stored_info.deposit);
 
-			<Pallet<T>>::deposit_event(Event::AuthorDeRegistered {
+			<Pallet<T>>::deposit_event(Event::KeysRemoved {
 				nimbus_id,
 				account_id,
 				keys: stored_info.keys,
@@ -293,7 +294,7 @@ pub mod pallet {
 			);
 			Self::enact_registration(&nimbus_id, &account_id, keys.clone())?;
 
-			<Pallet<T>>::deposit_event(Event::AuthorRegistered {
+			<Pallet<T>>::deposit_event(Event::KeysRegistered {
 				nimbus_id,
 				account_id,
 				keys,

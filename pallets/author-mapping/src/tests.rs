@@ -16,10 +16,10 @@
 
 //! Unit testing
 use crate::mock::{
-	last_event, AuthorMapping, Balances, DepositAmount, Event as MetaEvent, ExtBuilder,
-	KeysWrapper, Origin, Runtime, System, TestAuthor,
+	last_event, AuthorMapping, Balances, DepositAmount, Event as MetaEvent, ExtBuilder, Origin,
+	Runtime, System, TestAuthor,
 };
-use crate::{Error, Event, MappingWithDeposit, RegistrationInfo};
+use crate::{Error, Event, KeysWrapper, MappingWithDeposit, RegistrationInfo};
 use frame_support::{
 	assert_noop, assert_ok,
 	traits::{OnRuntimeUpgrade, ReservableCurrency},
@@ -64,7 +64,7 @@ fn eligible_account_can_register() {
 
 			assert_eq!(
 				last_event(),
-				MetaEvent::AuthorMapping(Event::AuthorRegistered {
+				MetaEvent::AuthorMapping(Event::KeysRegistered {
 					nimbus_id: TestAuthor::Bob.into(),
 					account_id: 2,
 					keys: TestAuthor::Bob.into(),
@@ -113,7 +113,7 @@ fn double_registration_costs_twice_as_much() {
 
 			assert_eq!(
 				last_event(),
-				MetaEvent::AuthorMapping(Event::AuthorRegistered {
+				MetaEvent::AuthorMapping(Event::KeysRegistered {
 					nimbus_id: TestAuthor::Bob.into(),
 					account_id: 2,
 					keys: TestAuthor::Bob.into(),
@@ -135,7 +135,7 @@ fn double_registration_costs_twice_as_much() {
 
 			assert_eq!(
 				last_event(),
-				MetaEvent::AuthorMapping(Event::AuthorRegistered {
+				MetaEvent::AuthorMapping(Event::KeysRegistered {
 					nimbus_id: TestAuthor::Alice.into(),
 					account_id: 2,
 					keys: TestAuthor::Alice.into(),
@@ -168,7 +168,7 @@ fn registered_account_can_clear() {
 
 			assert_eq!(
 				last_event(),
-				MetaEvent::AuthorMapping(Event::AuthorDeRegistered {
+				MetaEvent::AuthorMapping(Event::KeysRemoved {
 					nimbus_id: TestAuthor::Alice.into(),
 					account_id: 1,
 					keys: TestAuthor::Alice.into(),
@@ -310,7 +310,7 @@ fn eligible_account_can_full_register() {
 
 			assert_eq!(
 				last_event(),
-				MetaEvent::AuthorMapping(Event::AuthorRegistered {
+				MetaEvent::AuthorMapping(Event::KeysRegistered {
 					nimbus_id: TestAuthor::Bob.into(),
 					account_id: 2,
 					keys: TestAuthor::Alice.into(),

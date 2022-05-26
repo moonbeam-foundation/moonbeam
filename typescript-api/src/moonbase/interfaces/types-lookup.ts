@@ -1090,17 +1090,17 @@ declare module "@polkadot/types/lookup" {
    * @name PalletAuthorMappingEvent (70)
    */
   export interface PalletAuthorMappingEvent extends Enum {
-    readonly isAuthorRegistered: boolean;
-    readonly asAuthorRegistered: {
+    readonly isKeysRegistered: boolean;
+    readonly asKeysRegistered: {
       readonly authorId: NimbusPrimitivesNimbusCryptoPublic;
       readonly accountId: AccountId20;
     } & Struct;
-    readonly isAuthorDeRegistered: boolean;
-    readonly asAuthorDeRegistered: {
+    readonly isKeysRemoved: boolean;
+    readonly asKeysRemoved: {
       readonly authorId: NimbusPrimitivesNimbusCryptoPublic;
     } & Struct;
-    readonly isAuthorRotated: boolean;
-    readonly asAuthorRotated: {
+    readonly isKeysRotated: boolean;
+    readonly asKeysRotated: {
       readonly newAuthorId: NimbusPrimitivesNimbusCryptoPublic;
       readonly accountId: AccountId20;
     } & Struct;
@@ -1110,9 +1110,9 @@ declare module "@polkadot/types/lookup" {
       readonly accountId: AccountId20;
     } & Struct;
     readonly type:
-      | "AuthorRegistered"
-      | "AuthorDeRegistered"
-      | "AuthorRotated"
+      | "KeysRegistered"
+      | "KeysRemoved"
+      | "KeysRotated"
       | "DefunctAuthorBusted";
   }
 
