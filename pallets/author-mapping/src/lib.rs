@@ -42,14 +42,12 @@ pub mod migrations;
 #[pallet]
 pub mod pallet {
 	use crate::WeightInfo;
-	use frame_support::dispatch::fmt;
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{Currency, ReservableCurrency};
 	use frame_system::pallet_prelude::*;
 	use nimbus_primitives::{AccountLookup, NimbusId};
 	use session_keys_primitives::KeysLookup;
 	use sp_std::vec::Vec;
-	use sp_std::mem::size_of;
 
 	pub type BalanceOf<T> = <<T as Config>::DepositCurrency as Currency<
 		<T as frame_system::Config>::AccountId,
@@ -63,29 +61,11 @@ pub mod pallet {
 		pub(crate) keys: T::Keys,
 	}
 
-	#[derive(Clone, Encode, Decode, PartialEq, Eq)]
-	/// Wrapper type to ensure output from rotateKeys RPC can be copied pasted to `set_keys` input
-	pub struct KeysWrapper<T: Config>(pub NimbusId, pub T::Keys);
-	impl<T: Config> fmt::Debug for KeysWrapper<T> {
-		fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-			write!(f, "{:?}{:?}", self.0, self.1)
-		}
-	}
-	impl<T: Config> TryFrom<Vec<u8>> for KeysWrapper<T> {
-		type Error = Error<T>;
-		fn try_from(input: Vec<u8>) -> Result<Self, Self::Error> {
-			if input.len() != size_of::<KeysWrapper<T>>() as usize {
-				return Err(Self::Error::WrongKeySize)
-			}
-			Ok(KeysWrapper::<T>::decode(&mut input.as_slice()).unwrap())
-		}
-	}
-	impl<T: Config> scale_info::TypeInfo for KeysWrapper<T> {
-		type Identity = Vec<u8>;
-
-		fn type_info() -> scale_info::Type {
-			Self::Identity::type_info()
-		}
+	/// Wrapper to form the input to `set_keys` from NimbusId + keys
+	pub fn keys_wrapper<T: Config>(nimbus_id: NimbusId, keys: T::Keys) -> Vec<u8> {
+		let mut r = nimbus_id.encode();
+		r.extend(&keys.encode());
+		r
 	}
 
 	#[pallet::pallet]
@@ -121,8 +101,10 @@ pub mod pallet {
 		AlreadyAssociated,
 		/// No existing NimbusId can be found for the account
 		OldAuthorIdNotFound,
-		/// Keys have wrong size
-		WrongKeySize,
+		/// Failed to decode NimbusId for `set_keys`
+		DecodeNimbusFailed,
+		/// Failed to decode T::Keys for `set_keys`
+		DecodeKeysFailed,
 	}
 
 	#[pallet::event]
@@ -214,8 +196,11 @@ pub mod pallet {
 		#[pallet::weight(<T as Config>::WeightInfo::set_keys())]
 		pub fn set_keys(origin: OriginFor<T>, keys: Vec<u8>) -> DispatchResult {
 			let account_id = ensure_signed(origin)?;
-			let KeysWrapper::<T>(new_nimbus_id, keys) = keys.try_into()?;
-			
+			let encoded = &mut keys.as_slice();
+			let new_nimbus_id =
+				NimbusId::decode(encoded).map_err(|_| Error::<T>::DecodeNimbusFailed)?;
+			let keys = T::Keys::decode(encoded).map_err(|_| Error::<T>::DecodeKeysFailed)?;
+
 			if let Some(old_nimbus_id) = Self::nimbus_id_of(&account_id) {
 				Self::rotate_keys(old_nimbus_id, new_nimbus_id, account_id, keys)
 			} else {

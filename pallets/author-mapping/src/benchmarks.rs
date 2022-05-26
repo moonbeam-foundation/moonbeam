@@ -17,7 +17,7 @@
 #![cfg(feature = "runtime-benchmarks")]
 
 //! Benchmarking
-use crate::{BalanceOf, Call, Config, KeysWrapper, Pallet};
+use crate::{keys_wrapper, BalanceOf, Call, Config, Pallet};
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
 use frame_support::{
 	assert_ok,
@@ -85,7 +85,7 @@ benchmarks! {
 		let keys: T::Keys = nimbus_id(3u8).into();
 		assert_ok!(Pallet::<T>::set_keys(
 				RawOrigin::Signed(caller.clone()).into(),
-				KeysWrapper(id.clone(), keys.clone()),
+				keys_wrapper::<T>(id.clone(), keys.clone()),
 			)
 		);
 	}: _(RawOrigin::Signed(caller.clone()))
@@ -104,11 +104,11 @@ benchmarks! {
 		// key rotation is more common than initially setting them
 		assert_ok!(Pallet::<T>::set_keys(
 				RawOrigin::Signed(caller.clone()).into(),
-				KeysWrapper(first_id.clone(),
+				keys_wrapper::<T>(first_id.clone(),
 				first_keys.clone()),
 			)
 		);
-	}: _(RawOrigin::Signed(caller.clone()), KeysWrapper(second_id.clone(), second_keys.clone())
+	}: _(RawOrigin::Signed(caller.clone()), keys_wrapper::<T>(second_id.clone(), second_keys.clone())
 		) verify {
 		assert_eq!(Pallet::<T>::account_id_of(&first_id), None);
 		assert_eq!(Pallet::<T>::keys_of(&first_id), None);

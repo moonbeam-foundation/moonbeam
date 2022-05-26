@@ -34,6 +34,7 @@ hex-literal = "0.3.4"
 serde = "1.0.100"
 
 # Moonbeam
+pallet-author-mapping = { path = "../../pallets/author-mapping" }
 precompile-utils = { path = "../utils", features = [ "testing" ] }
 
 # Substrate

@@ -21,7 +21,7 @@
 
 use fp_evm::{PrecompileHandle, PrecompileOutput};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
-use pallet_author_mapping::{Call as AuthorMappingCall};
+use pallet_author_mapping::Call as AuthorMappingCall;
 use pallet_evm::{AddressMapping, Precompile};
 use precompile_utils::{succeed, EvmResult, FunctionModifier, PrecompileHandleExt, RuntimeHelper};
 use sp_core::crypto::UncheckedFrom;

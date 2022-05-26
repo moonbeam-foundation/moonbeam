@@ -19,7 +19,7 @@ use crate::mock::{
 	last_event, AuthorMapping, Balances, DepositAmount, Event as MetaEvent, ExtBuilder, Origin,
 	Runtime, System, TestAuthor,
 };
-use crate::{Error, Event, KeysWrapper, MappingWithDeposit, RegistrationInfo};
+use crate::{keys_wrapper, Error, Event, MappingWithDeposit, RegistrationInfo};
 use frame_support::{
 	assert_noop, assert_ok,
 	traits::{OnRuntimeUpgrade, ReservableCurrency},
@@ -295,7 +295,7 @@ fn eligible_account_can_full_register() {
 		.execute_with(|| {
 			assert_ok!(AuthorMapping::set_keys(
 				Origin::signed(2),
-				KeysWrapper(TestAuthor::Bob.into(), TestAuthor::Alice.into()),
+				keys_wrapper::<Runtime>(TestAuthor::Bob.into(), TestAuthor::Alice.into()),
 			));
 
 			assert_eq!(Balances::free_balance(&2), 900);
@@ -325,7 +325,7 @@ fn cannot_set_keys_without_deposit() {
 			assert_noop!(
 				AuthorMapping::set_keys(
 					Origin::signed(2),
-					KeysWrapper(TestAuthor::Alice.into(), TestAuthor::Bob.into()),
+					keys_wrapper::<Runtime>(TestAuthor::Alice.into(), TestAuthor::Bob.into()),
 				),
 				Error::<Runtime>::CannotAffordSecurityDeposit
 			);
@@ -345,7 +345,7 @@ fn full_registered_author_cannot_be_overwritten() {
 			assert_noop!(
 				AuthorMapping::set_keys(
 					Origin::signed(2),
-					KeysWrapper(TestAuthor::Alice.into(), TestAuthor::Bob.into()),
+					keys_wrapper::<Runtime>(TestAuthor::Alice.into(), TestAuthor::Bob.into()),
 				),
 				Error::<Runtime>::AlreadyAssociated
 			);
@@ -361,7 +361,7 @@ fn registered_can_full_rotate() {
 		.execute_with(|| {
 			assert_ok!(AuthorMapping::set_keys(
 				Origin::signed(2),
-				KeysWrapper(TestAuthor::Charlie.into(), TestAuthor::Charlie.into())
+				keys_wrapper::<Runtime>(TestAuthor::Charlie.into(), TestAuthor::Charlie.into())
 			));
 
 			assert_eq!(AuthorMapping::account_id_of(&TestAuthor::Bob.into()), None);
@@ -388,7 +388,7 @@ fn unregistered_author_can_be_full_rotated() {
 		.execute_with(|| {
 			assert_ok!(AuthorMapping::set_keys(
 				Origin::signed(2),
-				KeysWrapper(TestAuthor::Bob.into(), TestAuthor::Bob.into()),
+				keys_wrapper::<Runtime>(TestAuthor::Bob.into(), TestAuthor::Bob.into()),
 			));
 		})
 }
@@ -403,7 +403,7 @@ fn registered_author_cannot_be_full_rotated_by_non_owner() {
 			assert_noop!(
 				AuthorMapping::set_keys(
 					Origin::signed(2),
-					KeysWrapper(TestAuthor::Alice.into(), TestAuthor::Bob.into())
+					keys_wrapper::<Runtime>(TestAuthor::Alice.into(), TestAuthor::Bob.into())
 				),
 				Error::<Runtime>::AlreadyAssociated
 			);
@@ -419,7 +419,7 @@ fn full_rotating_to_the_same_nimbus_id_leaves_registration_in_tact() {
 		.execute_with(|| {
 			assert_ok!(AuthorMapping::set_keys(
 				Origin::signed(1),
-				KeysWrapper(TestAuthor::Alice.into(), TestAuthor::Alice.into())
+				keys_wrapper::<Runtime>(TestAuthor::Alice.into(), TestAuthor::Alice.into())
 			));
 		})
 }
