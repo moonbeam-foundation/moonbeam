@@ -48,6 +48,7 @@ pub mod pallet {
 	use frame_system::pallet_prelude::*;
 	use nimbus_primitives::{AccountLookup, NimbusId};
 	use session_keys_primitives::KeysLookup;
+	use sp_std::vec::Vec;
 
 	pub type BalanceOf<T> = <<T as Config>::DepositCurrency as Currency<
 		<T as frame_system::Config>::AccountId,
@@ -70,7 +71,7 @@ pub mod pallet {
 		}
 	}
 	impl<T: Config> scale_info::TypeInfo for KeysWrapper<T> {
-		type Identity = [u8; 64];
+		type Identity = Vec<u8>;
 
 		fn type_info() -> scale_info::Type {
 			Self::Identity::type_info()
