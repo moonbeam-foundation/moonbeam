@@ -42,6 +42,7 @@ pub mod migrations;
 #[pallet]
 pub mod pallet {
 	use crate::WeightInfo;
+	use frame_support::dispatch::fmt;
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{Currency, ReservableCurrency};
 	use frame_system::pallet_prelude::*;
@@ -58,6 +59,21 @@ pub mod pallet {
 		pub(crate) account: T::AccountId,
 		pub(crate) deposit: BalanceOf<T>,
 		pub(crate) keys: T::Keys,
+	}
+
+	#[derive(Clone, Encode, Decode, PartialEq, Eq)]
+	pub struct KeysWrapper<T: Config>(NimbusId, T::Keys);
+	impl<T: Config> fmt::Debug for KeysWrapper<T> {
+		fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+			write!(f, "{:?}{:?}", self.0, self.1)
+		}
+	}
+	impl<T: Config> scale_info::TypeInfo for KeysWrapper<T> {
+		type Identity = [u8; 64];
+
+		fn type_info() -> scale_info::Type {
+			Self::Identity::type_info()
+		}
 	}
 
 	#[pallet::pallet]
@@ -203,9 +219,9 @@ pub mod pallet {
 		/// No new security deposit is required. Will replace `update_association` which is kept
 		/// now for backwards compatibility reasons.
 		#[pallet::weight(<T as Config>::WeightInfo::set_keys())]
-		pub fn set_keys(origin: OriginFor<T>, keys: (NimbusId, T::Keys)) -> DispatchResult {
+		pub fn set_keys(origin: OriginFor<T>, keys: KeysWrapper<T>) -> DispatchResult {
 			let account_id = ensure_signed(origin)?;
-			let (new_nimbus_id, keys) = keys;
+			let KeysWrapper(new_nimbus_id, keys) = keys;
 			if let Some(old_nimbus_id) = Self::nimbus_id_of(&account_id) {
 				if old_nimbus_id != new_nimbus_id {
 					// cannot overwrite a NimbusId if it is not yours

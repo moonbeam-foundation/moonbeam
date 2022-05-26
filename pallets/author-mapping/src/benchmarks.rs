@@ -104,13 +104,12 @@ benchmarks! {
 		// key rotation is more common than initially setting them
 		assert_ok!(Pallet::<T>::set_keys(
 				RawOrigin::Signed(caller.clone()).into(),
-				(first_id.clone(),
+				KeysWrapper(first_id.clone(),
 				first_keys.clone()),
 			)
 		);
-	}: _(RawOrigin::Signed(caller.clone()),
-		(second_id.clone(),
-		second_keys.clone())) verify {
+	}: _(RawOrigin::Signed(caller.clone()), KeysWrapper(second_id.clone(), second_keys.clone())
+		) verify {
 		assert_eq!(Pallet::<T>::account_id_of(&first_id), None);
 		assert_eq!(Pallet::<T>::keys_of(&first_id), None);
 		assert_eq!(Pallet::<T>::account_id_of(&second_id), Some(caller));
