@@ -379,3 +379,24 @@ describeDevMoonbeam("Precompile Author Mapping - Update someone else nimbus key"
     expect(nimbusLookup.unwrap().toString()).to.equal(originalKeys[0]);
   });
 });
+
+// Testing invalid inputs
+
+describeDevMoonbeam("Precompile Author Mapping - Set Faith only 1 key", (context) => {
+  it("should fail", async function () {
+    await setKeysThroughPrecompile(context, faith.address, FAITH_PRIVATE_KEY, originalKeys[0]);
+    const { extrinsic, events, resultEvent } = await getBlockExtrinsic(
+      context.polkadotApi,
+      await context.polkadotApi.rpc.chain.getBlockHash(),
+      "ethereum",
+      "transact"
+    );
+
+    expect(extrinsic).to.exist;
+    expect(resultEvent.method).to.equal("ExtrinsicFailed");
+    expect(
+      (events.find((e) => e.section == "ethereum" && e.method == "Executed").data[3] as any)
+        .isRevert
+    ).to.be.true;
+  });
+});
