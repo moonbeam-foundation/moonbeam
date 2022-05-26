@@ -49,6 +49,7 @@ pub mod pallet {
 	use nimbus_primitives::{AccountLookup, NimbusId};
 	use session_keys_primitives::KeysLookup;
 	use sp_std::vec::Vec;
+	use sp_std::mem::size_of;
 
 	pub type BalanceOf<T> = <<T as Config>::DepositCurrency as Currency<
 		<T as frame_system::Config>::AccountId,
@@ -70,12 +71,16 @@ pub mod pallet {
 			write!(f, "{:?}{:?}", self.0, self.1)
 		}
 	}
-	impl<T: Config>  From<Vec<u8>> for KeysWrapper<T> {
-		fn from(keys: Vec<u8>) -> Self {
-			let encoded = &mut keys.as_slice();
+	impl<T: Config> TryFrom<Vec<u8>> for KeysWrapper<T> {
+		type Error = Error<T>;
+		fn try_from(input: Vec<u8>) -> Result<Self, Self::Error> {
+			if input.len() != size_of::<KeysWrapper<T>>() as usize {
+				return Err(Self::Error::WrongKeySize)
+			}
+			let encoded = &mut input.as_slice();
 			let nimbus_id = NimbusId::decode(encoded).unwrap();
 			let extra_keys = T::Keys::decode(encoded).unwrap();
-			KeysWrapper(nimbus_id, extra_keys)
+			Ok(KeysWrapper(nimbus_id, extra_keys))
 		}
 	}
 	impl<T: Config> scale_info::TypeInfo for KeysWrapper<T> {
@@ -119,6 +124,8 @@ pub mod pallet {
 		AlreadyAssociated,
 		/// No existing NimbusId can be found for the account
 		OldAuthorIdNotFound,
+		/// Keys have wrong size
+		WrongKeySize,
 	}
 
 	#[pallet::event]
@@ -210,7 +217,7 @@ pub mod pallet {
 		#[pallet::weight(<T as Config>::WeightInfo::set_keys())]
 		pub fn set_keys(origin: OriginFor<T>, keys: Vec<u8>) -> DispatchResult {
 			let account_id = ensure_signed(origin)?;
-			let KeysWrapper::<T>(new_nimbus_id, keys) = keys.into();
+			let KeysWrapper::<T>(new_nimbus_id, keys) = keys.try_into()?;
 			
 			if let Some(old_nimbus_id) = Self::nimbus_id_of(&account_id) {
 				Self::rotate_keys(old_nimbus_id, new_nimbus_id, account_id, keys)

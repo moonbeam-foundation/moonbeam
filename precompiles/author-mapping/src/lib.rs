@@ -21,8 +21,7 @@
 
 use fp_evm::{PrecompileHandle, PrecompileOutput};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
-use nimbus_primitives::NimbusId;
-use pallet_author_mapping::{Call as AuthorMappingCall, KeysWrapper};
+use pallet_author_mapping::{Call as AuthorMappingCall};
 use pallet_evm::{AddressMapping, Precompile};
 use precompile_utils::{succeed, EvmResult, FunctionModifier, PrecompileHandleExt, RuntimeHelper};
 use sp_core::crypto::UncheckedFrom;
@@ -162,12 +161,10 @@ where
 	}
 
 	fn set_keys(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let mut input = handle.read_input()?;
-		input.expect_arguments(2)?;
-
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = AuthorMappingCall::<Runtime>::set_keys {
-			keys: input.read()?,
+			// Taking all input minus selector (4 bytes)
+			keys: handle.input()[4..].to_vec(),
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
