@@ -37,14 +37,14 @@ describeDevMoonbeam("Author Mapping - Set Faith first time keys", (context) => {
     expect(resultEvent.method).to.equal("ExtrinsicSuccess");
   });
 
-  it("should send AuthorRegistered event", async function () {
+  it("should send KeysRegistered event", async function () {
     const { events } = await getBlockExtrinsic(
       context.polkadotApi,
       await context.polkadotApi.rpc.chain.getBlockHash(),
       "authorMapping",
       "setKeys"
     );
-    expect(events.find((e) => e.section == "authorMapping" && e.method == "AuthorRegistered")).to
+    expect(events.find((e) => e.section == "authorMapping" && e.method == "KeysRegistered")).to
       .exist;
   });
 
@@ -88,15 +88,14 @@ describeDevMoonbeam("Author Mapping - Update Faith mapping to the same keys", (c
     expect(resultEvent.method).to.equal("ExtrinsicSuccess");
   });
 
-  it("should send AuthorRotated event", async function () {
+  it("should send KeysRotated event", async function () {
     const { events } = await getBlockExtrinsic(
       context.polkadotApi,
       await context.polkadotApi.rpc.chain.getBlockHash(),
       "authorMapping",
       "setKeys"
     );
-    expect(events.find((e) => e.section == "authorMapping" && e.method == "AuthorRotated")).to
-      .exist;
+    expect(events.find((e) => e.section == "authorMapping" && e.method == "KeysRotated")).to.exist;
   });
 
   it("should keep the same keys", async function () {
@@ -145,15 +144,14 @@ describeDevMoonbeam("Author Mapping - Update different keys", (context) => {
     expect(resultEvent.method).to.equal("ExtrinsicSuccess");
   });
 
-  it("should send AuthorRotated event", async function () {
+  it("should send KeysRotated event", async function () {
     const { events } = await getBlockExtrinsic(
       context.polkadotApi,
       await context.polkadotApi.rpc.chain.getBlockHash(),
       "authorMapping",
       "setKeys"
     );
-    expect(events.find((e) => e.section == "authorMapping" && e.method == "AuthorRotated")).to
-      .exist;
+    expect(events.find((e) => e.section == "authorMapping" && e.method == "KeysRotated")).to.exist;
   });
 
   it("should remove previous keys", async function () {
@@ -204,15 +202,14 @@ describeDevMoonbeam("Author Mapping - Remove Faith keys", (context) => {
     expect(resultEvent.method).to.equal("ExtrinsicSuccess");
   });
 
-  it("should send AuthorDeRegistered event", async function () {
+  it("should send KeysRemoved event", async function () {
     const { events } = await getBlockExtrinsic(
       context.polkadotApi,
       await context.polkadotApi.rpc.chain.getBlockHash(),
       "authorMapping",
       "removeKeys"
     );
-    expect(events.find((e) => e.section == "authorMapping" && e.method == "AuthorDeRegistered")).to
-      .exist;
+    expect(events.find((e) => e.section == "authorMapping" && e.method == "KeysRemoved")).to.exist;
   });
 
   it("should remove keys", async function () {
@@ -252,15 +249,15 @@ describeDevMoonbeam("Author Mapping - Removing non-existing author", (context) =
     expect(resultEvent.method).to.equal("ExtrinsicFailed");
   });
 
-  it("should not send AuthorDeRegistered event", async function () {
+  it("should not send KeysRemoved event", async function () {
     const { events } = await getBlockExtrinsic(
       context.polkadotApi,
       await context.polkadotApi.rpc.chain.getBlockHash(),
       "authorMapping",
       "removeKeys"
     );
-    expect(events.find((e) => e.section == "authorMapping" && e.method == "AuthorDeRegistered")).to
-      .not.exist;
+    expect(events.find((e) => e.section == "authorMapping" && e.method == "KeysRemoved")).to.not
+      .exist;
   });
 });
 
