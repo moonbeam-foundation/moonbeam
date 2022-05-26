@@ -36,6 +36,9 @@ hex-literal = "0.3.3"
 serde = "1.0.100"
 sha3 = "0.9"
 
+# Moonbeam
+precompile-utils = { path = "../utils", features = [ "testing" ] }
+
 # Substrate
 pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20" }
 pallet-timestamp = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20" }

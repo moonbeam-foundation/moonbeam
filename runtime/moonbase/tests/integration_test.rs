@@ -2385,8 +2385,8 @@ fn author_mapping_precompile_associate_update_and_clear() {
 				.execute_returns(vec![]);
 
 			let expected_associate_event =
-				Event::AuthorMapping(pallet_author_mapping::Event::AuthorRegistered {
-					author_id: first_nimbus_id.clone(),
+				Event::AuthorMapping(pallet_author_mapping::Event::KeysRegistered {
+					nimbus_id: first_nimbus_id.clone(),
 					account_id: AccountId::from(ALICE),
 					keys: first_vrf_id.clone(),
 				});
@@ -2407,8 +2407,8 @@ fn author_mapping_precompile_associate_update_and_clear() {
 				.execute_returns(vec![]);
 
 			let expected_update_event =
-				Event::AuthorMapping(pallet_author_mapping::Event::AuthorRotated {
-					new_author_id: second_nimbus_id.clone(),
+				Event::AuthorMapping(pallet_author_mapping::Event::KeysRotated {
+					new_nimbus_id: second_nimbus_id.clone(),
 					account_id: AccountId::from(ALICE),
 					new_keys: second_vrf_id.clone(),
 				});
@@ -2428,8 +2428,8 @@ fn author_mapping_precompile_associate_update_and_clear() {
 				.execute_returns(vec![]);
 
 			let expected_clear_event =
-				Event::AuthorMapping(pallet_author_mapping::Event::AuthorDeRegistered {
-					author_id: second_nimbus_id,
+				Event::AuthorMapping(pallet_author_mapping::Event::KeysRemoved {
+					nimbus_id: second_nimbus_id,
 					account_id: AccountId::from(ALICE),
 					keys: second_vrf_id,
 				});
@@ -2458,18 +2458,18 @@ fn author_mapping_register_and_set_keys() {
 				.prepare_test(
 					ALICE,
 					author_mapping_precompile_address,
-					EvmDataWriter::new_with_selector(AuthorMappingAction::RegisterKeys)
+					EvmDataWriter::new_with_selector(AuthorMappingAction::SetKeys)
 						.write(sp_core::H256::from([1u8; 32]))
 						.write(sp_core::H256::from([3u8; 32]))
 						.build(),
 				)
-				.expect_cost(15428)
+				.expect_cost(16280)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 
 			let expected_associate_event =
-				Event::AuthorMapping(pallet_author_mapping::Event::AuthorRegistered {
-					author_id: first_nimbus_id.clone(),
+				Event::AuthorMapping(pallet_author_mapping::Event::KeysRegistered {
+					nimbus_id: first_nimbus_id.clone(),
 					account_id: AccountId::from(ALICE),
 					keys: first_vrf_key.clone(),
 				});
@@ -2490,8 +2490,8 @@ fn author_mapping_register_and_set_keys() {
 				.execute_returns(vec![]);
 
 			let expected_update_event =
-				Event::AuthorMapping(pallet_author_mapping::Event::AuthorRotated {
-					new_author_id: second_nimbus_id.clone(),
+				Event::AuthorMapping(pallet_author_mapping::Event::KeysRotated {
+					new_nimbus_id: second_nimbus_id.clone(),
 					account_id: AccountId::from(ALICE),
 					new_keys: second_vrf_key.clone(),
 				});

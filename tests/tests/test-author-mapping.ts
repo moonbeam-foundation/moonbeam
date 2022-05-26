@@ -57,8 +57,7 @@ describeDevMoonbeam("Author Mapping - simple association", (context) => {
     // check events
     expect(events.length === 8);
     expect(context.polkadotApi.events.balances.Reserved.is(events[1] as any)).to.be.true;
-    expect(context.polkadotApi.events.authorMapping.AuthorRegistered.is(events[2] as any)).to.be
-      .true;
+    expect(context.polkadotApi.events.authorMapping.KeysRegistered.is(events[2] as any)).to.be.true;
     expect(context.polkadotApi.events.system.NewAccount.is(events[4] as any)).to.be.true;
     expect(context.polkadotApi.events.balances.Endowed.is(events[5] as any)).to.be.true;
     expect(context.polkadotApi.events.treasury.Deposit.is(events[6] as any)).to.be.true;
@@ -267,8 +266,7 @@ describeDevMoonbeam("Author Mapping - registered author can clear (de register)"
     //check events
     expect(events.length === 6);
     expect(context.polkadotApi.events.balances.Unreserved.is(events[1] as any)).to.be.true;
-    expect(context.polkadotApi.events.authorMapping.AuthorDeRegistered.is(events[2] as any)).to.be
-      .true;
+    expect(context.polkadotApi.events.authorMapping.KeysRemoved.is(events[2] as any)).to.be.true;
     expect(context.polkadotApi.events.treasury.Deposit.is(events[4] as any)).to.be.true;
     expect(context.polkadotApi.events.system.ExtrinsicSuccess.is(events[5] as any)).to.be.true;
 
