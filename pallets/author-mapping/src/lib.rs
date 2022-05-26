@@ -70,7 +70,7 @@ pub mod pallet {
 		}
 	}
 	impl<T: Config> scale_info::TypeInfo for KeysWrapper<T> {
-		type Identity = [u8; 64];
+		type Identity = Vec<u8>;
 
 		fn type_info() -> scale_info::Type {
 			Self::Identity::type_info()
