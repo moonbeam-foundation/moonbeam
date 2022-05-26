@@ -43,9 +43,9 @@ describeDevMoonbeam("Democracy - genesis and preimage", (context) => {
       genesisAccount
     );
 
-    const preimageStatus = (
-      (await context.polkadotApi.query.democracy.preimages(encodedHash)) as any
-    ).unwrap();
+    const preimageStatus = ((await context.polkadotApi.query.democracy.preimages(
+      encodedHash
+    )) as any).unwrap();
     expect(preimageStatus.isAvailable).to.eq(true, "Preimage should be available");
     expect(preimageStatus.asAvailable.provider.toString()).to.equal(GENESIS_ACCOUNT);
     expect(preimageStatus.asAvailable.deposit.toBigInt()).to.equal(2200n * MICROGLMR);
@@ -223,9 +223,9 @@ describeDevMoonbeam("Democracy - vote yes on referendum", (context) => {
     await context.createBlock();
 
     // referendumInfoOf
-    const referendumInfoOf = (
-      (await context.polkadotApi.query.democracy.referendumInfoOf(0)) as any
-    ).unwrap() as any;
+    const referendumInfoOf = ((await context.polkadotApi.query.democracy.referendumInfoOf(
+      0
+    )) as any).unwrap() as any;
     const onGoing = referendumInfoOf.asOngoing;
 
     expect(onGoing.proposalHash.toHex()).to.equal(encodedHash);
@@ -298,9 +298,9 @@ describeDevMoonbeam("Democracy - vote no on referendum", (context) => {
     await context.createBlock();
 
     // referendumInfoOf
-    const referendumInfoOf = (
-      (await context.polkadotApi.query.democracy.referendumInfoOf(0)) as any
-    ).unwrap() as any;
+    const referendumInfoOf = ((await context.polkadotApi.query.democracy.referendumInfoOf(
+      0
+    )) as any).unwrap() as any;
     const onGoing = referendumInfoOf.asOngoing;
 
     expect(onGoing.proposalHash.toHex()).to.equal(encodedHash);
@@ -373,9 +373,9 @@ describeDevMoonbeam("Democracy - forget notePreimage", (context) => {
     expect(eventsVote[4].toHuman().method).to.eq("ExtrinsicSuccess");
 
     // referendumInfoOf
-    const referendumInfoOf = (
-      (await context.polkadotApi.query.democracy.referendumInfoOf(0)) as any
-    ).unwrap() as any;
+    const referendumInfoOf = ((await context.polkadotApi.query.democracy.referendumInfoOf(
+      0
+    )) as any).unwrap() as any;
     const onGoing = referendumInfoOf.asOngoing;
     expect(onGoing.proposalHash.toHex()).to.equal(encodedHash);
     expect(onGoing.tally.ayes.toBigInt()).to.equal(10n * GLMR);

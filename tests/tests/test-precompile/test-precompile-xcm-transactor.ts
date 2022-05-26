@@ -29,9 +29,9 @@ async function mockAssetBalance(context, assetBalance, assetDetails, sudoAccount
     .signAndSend(sudoAccount);
   await context.createBlock();
 
-  let assets = (
-    (await context.polkadotApi.query.assetManager.assetIdType(assetId)) as any
-  ).toJSON();
+  let assets = ((await context.polkadotApi.query.assetManager.assetIdType(
+    assetId
+  )) as any).toJSON();
   // make sure we created it
   expect(assets["xcm"]["parents"]).to.equal(1);
 

@@ -135,15 +135,13 @@ describeDevMoonbeamAllEthTxTypes("Staking - Join Delegators", (context) => {
   });
 
   it("should have successfully delegated ALITH", async function () {
-    const delegatorsAfter = (
-      (await context.polkadotApi.query.parachainStaking.delegatorState(ETHAN)) as any
-    ).unwrap();
+    const delegatorsAfter = ((await context.polkadotApi.query.parachainStaking.delegatorState(
+      ETHAN
+    )) as any).unwrap();
     expect(
-      (
-        delegatorsAfter.toJSON() as {
-          delegations: { owner: string; amount: string }[];
-        }
-      ).delegations[0].owner
+      (delegatorsAfter.toJSON() as {
+        delegations: { owner: string; amount: string }[];
+      }).delegations[0].owner
     ).to.equal(ALITH, "delegation didn't go through");
     expect(delegatorsAfter.status.toString()).equal("Active");
   });

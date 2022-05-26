@@ -94,9 +94,9 @@ describeDevMoonbeam("XCM - asset manager - register local asset", (context) => {
     expect(registeredAsset.owner.toString()).to.eq(ALITH);
 
     // check deposit in storage
-    const deposit = (
-      (await parachainOne.query.assetManager.localAssetDeposit(assetId)) as any
-    ).unwrap();
+    const deposit = ((await parachainOne.query.assetManager.localAssetDeposit(
+      assetId
+    )) as any).unwrap();
     expect(deposit.creator.toString()).to.eq(ALITH);
 
     await verifyLatestBlockFees(context, expect);
@@ -164,20 +164,17 @@ describeDevMoonbeam("XCM - asset manager - Change existing asset", (context) => 
     let assetType = (await context.polkadotApi.query.assetManager.assetIdType(assetId)) as Object;
 
     // assetId
-    let id = (
-      (await context.polkadotApi.query.assetManager.assetTypeId(newSourceLocation)) as any
-    ).unwrap();
+    let id = ((await context.polkadotApi.query.assetManager.assetTypeId(
+      newSourceLocation
+    )) as any).unwrap();
 
     // asset units per second changed
-    let assetUnitsPerSecond = (
-      (await context.polkadotApi.query.assetManager.assetTypeUnitsPerSecond(
-        newSourceLocation
-      )) as any
-    ).unwrap();
+    let assetUnitsPerSecond = ((await context.polkadotApi.query.assetManager.assetTypeUnitsPerSecond(
+      newSourceLocation
+    )) as any).unwrap();
 
     // Supported assets
-    let supportedAssets =
-      (await context.polkadotApi.query.assetManager.supportedFeePaymentAssets()) as any;
+    let supportedAssets = (await context.polkadotApi.query.assetManager.supportedFeePaymentAssets()) as any;
 
     expect(assetUnitsPerSecond.toString()).to.eq(new BN(1).toString());
     expect(assetType.toString()).to.eq(JSON.stringify(newSourceLocation).toLowerCase());
@@ -244,9 +241,9 @@ describeDevMoonbeam("XCM - asset manager - Remove asset from supported", (contex
     );
 
     // assetId
-    let id = (
-      (await context.polkadotApi.query.assetManager.assetTypeId(sourceLocation)) as any
-    ).unwrap();
+    let id = ((await context.polkadotApi.query.assetManager.assetTypeId(
+      sourceLocation
+    )) as any).unwrap();
 
     // asset units per second removed
     let assetUnitsPerSecond = (await context.polkadotApi.query.assetManager.assetTypeUnitsPerSecond(
@@ -254,8 +251,7 @@ describeDevMoonbeam("XCM - asset manager - Remove asset from supported", (contex
     )) as any;
 
     // Supported assets should be 0
-    let supportedAssets =
-      (await context.polkadotApi.query.assetManager.supportedFeePaymentAssets()) as any;
+    let supportedAssets = (await context.polkadotApi.query.assetManager.supportedFeePaymentAssets()) as any;
 
     expect(assetUnitsPerSecond.isNone).to.eq(true);
     expect(bnToHex(id)).to.eq(assetId);
@@ -336,8 +332,7 @@ describeDevMoonbeam("XCM - asset manager - destroy foreign asset", (context) => 
     )) as any;
 
     // Supported assets should be 0
-    let supportedAssets =
-      (await context.polkadotApi.query.assetManager.supportedFeePaymentAssets()) as any;
+    let supportedAssets = (await context.polkadotApi.query.assetManager.supportedFeePaymentAssets()) as any;
 
     // assetDetails should have dissapeared
     let assetDetails = (await context.polkadotApi.query.assets.asset(assetId)) as any;

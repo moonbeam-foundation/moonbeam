@@ -53,9 +53,9 @@ export async function mockAssetBalance(
     .signAndSend(sudoAccount);
   await context.createBlock();
 
-  let assets = (
-    (await context.polkadotApi.query.assetManager.assetIdType(assetId)) as any
-  ).toJSON();
+  let assets = ((await context.polkadotApi.query.assetManager.assetIdType(
+    assetId
+  )) as any).toJSON();
   // make sure we created it
   expect(assets["xcm"]["parents"]).to.equal(1);
 
@@ -130,9 +130,10 @@ describeDevMoonbeamAllEthTxTypes(
 
       await mockAssetBalance(context, assetBalance, assetDetails, sudoAccount, assetId, ALITH);
 
-      let beforeAssetBalance = (
-        (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any
-      ).balance as BN;
+      let beforeAssetBalance = ((await context.polkadotApi.query.assets.account(
+        assetId,
+        ALITH
+      )) as any).balance as BN;
 
       const contractData = await getCompiled("ERC20Instance");
       iFace = new ethers.utils.Interface(contractData.contract.abi);

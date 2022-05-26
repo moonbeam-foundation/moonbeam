@@ -226,7 +226,9 @@ const logListener = [];
 // This will start a parachain node, only 1 at a time (check every 100ms).
 // This will prevent race condition on the findAvailablePorts which uses the PID of the process
 // Returns ports for the 3rd parachain node
-export async function startParachainNodes(options: ParaTestOptions): Promise<{
+export async function startParachainNodes(
+  options: ParaTestOptions
+): Promise<{
   relayPorts: NodePorts[];
   paraPorts: ParachainPorts[];
 }> {

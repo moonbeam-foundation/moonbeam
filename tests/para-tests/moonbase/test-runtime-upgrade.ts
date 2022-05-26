@@ -64,9 +64,7 @@ describeParachain(
         const keyring = new Keyring({ type: "ethereum" });
         const alith = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
 
-        const currentVersion = await (
-          (await context.polkadotApiParaone.query.system.lastRuntimeUpgrade()) as any
-        ).unwrap();
+        const currentVersion = await ((await context.polkadotApiParaone.query.system.lastRuntimeUpgrade()) as any).unwrap();
         expect(currentVersion.toJSON()).to.deep.equal({
           specVersion: Number(baseRuntime),
           specName: "moonbase",

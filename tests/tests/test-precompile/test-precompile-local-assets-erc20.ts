@@ -1707,9 +1707,9 @@ describeDevMoonbeamAllEthTxTypes(
 
       expect(receipt.status).to.equal(true);
 
-      const registeredAsset = (
-        (await context.polkadotApi.query.localAssets.asset(assetId)) as any
-      ).unwrap();
+      const registeredAsset = ((await context.polkadotApi.query.localAssets.asset(
+        assetId
+      )) as any).unwrap();
 
       expect(registeredAsset.isFrozen.toHuman()).to.be.true;
     });
@@ -1786,9 +1786,9 @@ describeDevMoonbeamAllEthTxTypes(
 
       expect(receipt.status).to.equal(true);
 
-      const registeredAsset = (
-        (await context.polkadotApi.query.localAssets.asset(assetId)) as any
-      ).unwrap();
+      const registeredAsset = ((await context.polkadotApi.query.localAssets.asset(
+        assetId
+      )) as any).unwrap();
 
       expect(registeredAsset.isFrozen.toHuman()).to.be.false;
     });
@@ -1860,9 +1860,9 @@ describeDevMoonbeamAllEthTxTypes(
 
       expect(receipt.status).to.equal(true);
 
-      const registeredAsset = (
-        (await context.polkadotApi.query.localAssets.asset(assetId)) as any
-      ).unwrap();
+      const registeredAsset = ((await context.polkadotApi.query.localAssets.asset(
+        assetId
+      )) as any).unwrap();
 
       expect(registeredAsset.owner.toHex()).to.eq(ALITH.toLowerCase());
     });
@@ -1934,9 +1934,9 @@ describeDevMoonbeamAllEthTxTypes(
 
       expect(receipt.status).to.equal(true);
 
-      const registeredAsset = (
-        (await context.polkadotApi.query.localAssets.asset(assetId)) as any
-      ).unwrap();
+      const registeredAsset = ((await context.polkadotApi.query.localAssets.asset(
+        assetId
+      )) as any).unwrap();
 
       expect(registeredAsset.admin.toHex()).to.eq(ALITH.toLowerCase());
       expect(registeredAsset.freezer.toHex()).to.eq(ALITH.toLowerCase());

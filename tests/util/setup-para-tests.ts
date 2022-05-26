@@ -202,9 +202,9 @@ export function describeParachain(
               const existingCode = await context.polkadotApiParaone.rpc.state.getStorage(":code");
               if (existingCode.toString() == code) {
                 reject(
-                  `Runtime upgrade with same code: ${existingCode.toString().slice(0, 20)} vs ${code
+                  `Runtime upgrade with same code: ${existingCode
                     .toString()
-                    .slice(0, 20)}`
+                    .slice(0, 20)} vs ${code.toString().slice(0, 20)}`
                 );
               }
 
@@ -275,17 +275,17 @@ export function describeParachain(
                   if (!isInitialVersion) {
                     const blockNumber = context.blockNumber;
                     console.log(
-                      `✅ [${version.implName}-${version.specVersion} ${existingCode
-                        .toString()
-                        .slice(0, 6)}...] [#${blockNumber}]`
+                      `✅ [${version.implName}-${
+                        version.specVersion
+                      } ${existingCode.toString().slice(0, 6)}...] [#${blockNumber}]`
                     );
                     unsub();
                     const newCode = await context.polkadotApiParaone.rpc.state.getStorage(":code");
                     if (newCode.toString() != code) {
                       reject(
-                        `Unexpected new code: ${newCode.toString().slice(0, 20)} vs ${code
+                        `Unexpected new code: ${newCode
                           .toString()
-                          .slice(0, 20)}`
+                          .slice(0, 20)} vs ${code.toString().slice(0, 20)}`
                       );
                     }
                     if (waitMigration) {

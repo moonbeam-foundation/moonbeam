@@ -42,8 +42,7 @@ describeSmokeSuite(`Verify staking consistency`, { wssUrl, relayWssUrl }, (conte
       await context.polkadotApi.rpc.chain.getBlockHash(atBlockNumber)
     );
     specVersion = (await apiAt.query.system.lastRuntimeUpgrade()).unwrap().specVersion.toNumber();
-    maxTopDelegationsPerCandidate =
-      apiAt.consts.parachainStaking.maxTopDelegationsPerCandidate.toNumber();
+    maxTopDelegationsPerCandidate = apiAt.consts.parachainStaking.maxTopDelegationsPerCandidate.toNumber();
 
     allCandidateInfo = await apiAt.query.parachainStaking.candidateInfo.entries();
     allDelegatorState = await apiAt.query.parachainStaking.delegatorState.entries();
@@ -162,8 +161,7 @@ describeSmokeSuite(`Verify staking consistency`, { wssUrl, relayWssUrl }, (conte
   it("all delegators lessTotal matches revoke/decrease requests", async function () {
     let checks = 0;
     if (specVersion >= 1500) {
-      const delegationScheduledRequests =
-        await apiAt.query.parachainStaking.delegationScheduledRequests.entries();
+      const delegationScheduledRequests = await apiAt.query.parachainStaking.delegationScheduledRequests.entries();
       const delegatorRequests = delegationScheduledRequests.reduce((p, requests: any) => {
         for (const request of requests[1]) {
           const delegator = request.delegator.toHex();
