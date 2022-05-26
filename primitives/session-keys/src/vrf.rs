@@ -34,6 +34,14 @@ impl From<NimbusId> for VrfId {
 	}
 }
 
+pub fn nimbus_from_bytes(i: [u8; 32]) -> NimbusId {
+	sr25519::Public::unchecked_from(i).into()
+}
+
+pub fn vrf_from_bytes(i: [u8; 32]) -> VrfId {
+	sr25519::Public::unchecked_from(i).into()
+}
+
 /// The ConsensusEngineId for VRF keys
 pub const VRF_ENGINE_ID: ConsensusEngineId = *b"rand";
 

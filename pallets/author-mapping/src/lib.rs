@@ -62,12 +62,29 @@ pub mod pallet {
 		pub(crate) keys: T::Keys,
 	}
 
-	#[derive(Clone, Encode, Decode, PartialEq, Eq)]
+	#[derive(Clone, Encode, PartialEq, Eq)]
 	/// Wrapper type to ensure output from rotateKeys RPC can be copied pasted to `set_keys` input
 	pub struct KeysWrapper<T: Config>(pub NimbusId, pub T::Keys);
 	impl<T: Config> fmt::Debug for KeysWrapper<T> {
 		fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 			write!(f, "{:?}{:?}", self.0, self.1)
+		}
+	}
+	impl<T: Config> Decode for KeysWrapper<T> {
+		fn decode<I: parity_scale_codec::Input>(
+			input: &mut I,
+		) -> Result<Self, parity_scale_codec::Error> {
+			const KEY_LEN: usize = 32;
+			const NUM_KEY: usize = 2;
+			let decoded = <[u8; KEY_LEN * NUM_KEY]>::decode(input)?;
+			let mut nimbus_bytes: [u8; KEY_LEN] = Default::default();
+			let mut vrf_bytes: [u8; KEY_LEN] = Default::default();
+			nimbus_bytes.copy_from_slice(&decoded[0..KEY_LEN]);
+			vrf_bytes.copy_from_slice(&decoded[KEY_LEN..(KEY_LEN * NUM_KEY)]);
+			Ok(Self(
+				session_keys_primitives::nimbus_from_bytes(nimbus_bytes),
+				session_keys_primitives::nimbus_from_bytes(vrf_bytes).into(),
+			))
 		}
 	}
 	impl<T: Config> scale_info::TypeInfo for KeysWrapper<T> {
