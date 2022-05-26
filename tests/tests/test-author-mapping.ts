@@ -223,9 +223,9 @@ describeDevMoonbeam("Author Mapping - double registration", (context) => {
     const keyring = new Keyring({ type: "ethereum" });
     const genesisAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
     // Grab free balance before this test
-    let genesisAccountBalanceBefore = ((await context.polkadotApi.query.system.account(
-      ALITH
-    )) as any).data.free.toBigInt();
+    let genesisAccountBalanceBefore = (
+      (await context.polkadotApi.query.system.account(ALITH)) as any
+    ).data.free.toBigInt();
     const fee = (
       await context.polkadotApi.tx.authorMapping
         .addAssociation(charlieAuthorId)

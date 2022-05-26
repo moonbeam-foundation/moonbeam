@@ -633,7 +633,11 @@ declare module "@polkadot/types/lookup" {
       readonly authorId: NimbusPrimitivesNimbusCryptoPublic;
       readonly accountId: AccountId20;
     } & Struct;
-    readonly type: "KeysRegistered" | "KeysRemoved" | "KeysRotated" | "DefunctAuthorBusted";
+    readonly type:
+      | "KeysRegistered"
+      | "KeysRemoved"
+      | "KeysRotated"
+      | "DefunctAuthorBusted";
   }
 
   /**

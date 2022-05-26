@@ -567,9 +567,11 @@ describeDevMoonbeam("Crowdloan", (context) => {
     let reward_info_associated = await getAccountPayable(context, GENESIS_ACCOUNT);
 
     // Get reward info of unassociated
-    let reward_info_unassociated = ((await context.polkadotApi.query.crowdloanRewards.unassociatedContributions(
-      relayChainAddress_2
-    )) as any).unwrap();
+    let reward_info_unassociated = (
+      (await context.polkadotApi.query.crowdloanRewards.unassociatedContributions(
+        relayChainAddress_2
+      )) as any
+    ).unwrap();
 
     // Check payments
     expect(reward_info_associated.totalReward.toBigInt()).to.equal(1_500_000n * GLMR);
@@ -677,9 +679,11 @@ describeDevMoonbeam("Crowdloan", (context) => {
 
     // relayAccount should be in the unassociated contributions
     expect(
-      ((await context.polkadotApi.query.crowdloanRewards.unassociatedContributions(
-        relayAccount.addressRaw
-      )) as any)
+      (
+        (await context.polkadotApi.query.crowdloanRewards.unassociatedContributions(
+          relayAccount.addressRaw
+        )) as any
+      )
         .unwrap()
         .totalReward.toBigInt()
     ).to.equal(1_500_000n * GLMR);

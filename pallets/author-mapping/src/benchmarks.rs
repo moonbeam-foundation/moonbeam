@@ -17,7 +17,7 @@
 #![cfg(feature = "runtime-benchmarks")]
 
 //! Benchmarking
-use crate::{BalanceOf, Call, Config, KeysWrapper, Pallet};
+use crate::{BalanceOf, Call, Config, Pallet};
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
 use frame_support::{
 	assert_ok,

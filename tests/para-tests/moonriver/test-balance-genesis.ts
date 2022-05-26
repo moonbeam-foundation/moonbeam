@@ -13,9 +13,9 @@ describeParachain(
   (context) => {
     it("should be accessible through polkadotjs", async function () {
       expect(
-        ((await context.polkadotApiParaone.query.system.account(
-          ALITH.toString()
-        )) as any).data.free.toBigInt() // TODO: fix type
+        (
+          (await context.polkadotApiParaone.query.system.account(ALITH.toString())) as any
+        ).data.free.toBigInt() // TODO: fix type
       ).to.eq(1207825819614629174706176n);
     });
   }

@@ -138,7 +138,7 @@ export const createBlockWithExtrinsicParachain = async <
 ): Promise<{ extrinsic: GenericExtrinsic<AnyTuple>; events: Event[] }> => {
   console.log("-------------- EXTRINSIC CALL -------------------------------");
   // This should return a Uint8Array
-  const extrinsicHash = ((await polkadotCall.signAndSend(sender)) as unknown) as Uint8Array;
+  const extrinsicHash = (await polkadotCall.signAndSend(sender)) as unknown as Uint8Array;
 
   // We create the block which is containing the extrinsic
   //const blockResult = await context.createBlock();

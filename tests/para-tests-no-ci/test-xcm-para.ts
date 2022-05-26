@@ -159,9 +159,9 @@ describeParachain(
       // Sets default xcm version to relay
       await setDefaultVersionRelay(relayOne, aliceRelay);
 
-      let beforeAliceRelayBalance = ((await relayOne.query.system.account(
-        aliceRelay.address
-      )) as any).data.free;
+      let beforeAliceRelayBalance = (
+        (await relayOne.query.system.account(aliceRelay.address)) as any
+      ).data.free;
 
       let reserveTrasnsferAssetsCall = relayOne.tx.xcmPallet.reserveTransferAssets(
         { V1: { parents: new BN(0), interior: { X1: { Parachain: new BN(1000) } } } },
@@ -192,9 +192,9 @@ describeParachain(
       // Wait for parachain block to have been emited
       await waitOneBlock(parachainOne, 2);
       // about 1k should have been substracted from AliceRelay
-      let afterAliceRelayBalance = ((await relayOne.query.system.account(
-        aliceRelay.address
-      )) as any).data.free;
+      let afterAliceRelayBalance = (
+        (await relayOne.query.system.account(aliceRelay.address)) as any
+      ).data.free;
 
       expect(afterAliceRelayBalance.toString()).to.eq(expectedAfterRelayBalance.toString());
 
@@ -367,9 +367,9 @@ describeParachain(
       // Sets default xcm version to relay
       await setDefaultVersionRelay(relayOne, aliceRelay);
 
-      let beforeAliceRelayBalance = ((await relayOne.query.system.account(
-        aliceRelay.address
-      )) as any).data.free;
+      let beforeAliceRelayBalance = (
+        (await relayOne.query.system.account(aliceRelay.address)) as any
+      ).data.free;
 
       let reserveTrasnsferAssetsCall = relayOne.tx.xcmPallet.reserveTransferAssets(
         { V1: { parents: new BN(0), interior: { X1: { Parachain: new BN(1000) } } } },
@@ -397,9 +397,9 @@ describeParachain(
       // Wait for parachain block to have been emited
       await waitOneBlock(parachainOne, 2);
 
-      let afterAliceRelayBalance = ((await relayOne.query.system.account(
-        aliceRelay.address
-      )) as any).data.free;
+      let afterAliceRelayBalance = (
+        (await relayOne.query.system.account(aliceRelay.address)) as any
+      ).data.free;
 
       expect(afterAliceRelayBalance.toString()).to.eq(expectedAfterRelayBalance.toString());
 

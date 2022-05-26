@@ -45,8 +45,9 @@ describeParachain(
         })
       );
 
-      const minDelegatorStk = ((await context.polkadotApiParaone.consts.parachainStaking
-        .minDelegatorStk) as any).toBigInt();
+      const minDelegatorStk = (
+        (await context.polkadotApiParaone.consts.parachainStaking.minDelegatorStk) as any
+      ).toBigInt();
 
       process.stdout.write(
         `Extrinsic: Transfer ${minDelegatorStk / 10n ** 18n + 2n} tokens to ${

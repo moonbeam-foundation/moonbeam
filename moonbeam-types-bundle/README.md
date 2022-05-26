@@ -10,12 +10,12 @@ a **camelCase** format
 
 A **new version** has been released `moonbeam-types-bundle@2.0.0`.
 
-The default export `typesBundle` has **been removed** to avoid confusion.
+The default export `typesBundle` has **been removed** to avoid confusion.  
 
 **2 new typesBundles** are available:
 
-- `import { typesBundlePre900 } from "moonbeam-types-bundle"` to use the new naming convention
-- `import { typesBundleDeprecated } from "moonbeam-types-bundle"` to keep using old naming convention that isn't camelCase (This will break at runtime 1000)
+* `import { typesBundlePre900 } from "moonbeam-types-bundle"` to use the new naming convention
+* `import { typesBundleDeprecated } from "moonbeam-types-bundle"` to keep using old naming convention that isn't camelCase (This will break at runtime 1000)
 
 The following package versions have been tested:
 
@@ -30,7 +30,6 @@ Running the latest TypeScript version will not work.
 ### Breaking changes in typesBundlePre900
 
 Those types are being changed:
-
 ```
   AssetRegistrarMetadata: {
     ...
@@ -63,9 +62,9 @@ Those types are being changed:
 
 ## How to upgrade your tools/scripts using moonbeam-types-bundle
 
-_(If your tool/script is not requesting past blocks, you can use the `typesBundleDeprecated`
-for now and fully remove it once the network has been upgraded to runtime 900,
-around Nov 18th 2021)_
+*(If your tool/script is not requesting past blocks, you can use the `typesBundleDeprecated` 
+for now and fully remove it once the network has been upgraded to runtime 900, 
+around Nov 18th 2021)*
 
 The following package versions have been tested:
 
@@ -80,12 +79,12 @@ Running the latest TypeScript version will not work.
 Ultimately it is necessary to use the new type naming as the previous one won't be supported, but
 you can import `typesBundleDeprecated` to buy yourself some time.
 
-- moonbeam-types-bundle v1.x.x will break on runtime upgrade 900
-  (planned Thursday 18th November 2021 on Moonriver)
-- moonbeam-types-bundle v2.x.x `typesBundleDeprecated` (using previous naming case)
-  will **break on runtime 1000**
-- **moonbeam-types-bundle v2.x.x** `typesBundlePre900` (using new naming case)
-  will be **maintained**.
+* moonbeam-types-bundle v1.x.x will break on runtime upgrade 900
+(planned Thursday 18th November 2021 on Moonriver)
+* moonbeam-types-bundle v2.x.x `typesBundleDeprecated` (using previous naming case) 
+will **break on runtime 1000**
+* **moonbeam-types-bundle v2.x.x** `typesBundlePre900` (using new naming case) 
+will be **maintained**.
 
 ### Step 1: Install new package
 

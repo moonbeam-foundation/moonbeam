@@ -55,35 +55,27 @@ export function mapExtrinsics(
   records: FrameSystemEventRecord[] | any,
   fees?: RuntimeDispatchInfo[] | any
 ): TxWithEventAndFee[] {
-  return extrinsics.map(
-    (extrinsic, index): TxWithEventAndFee => {
-      let dispatchError: DispatchError | undefined;
-      let dispatchInfo: DispatchInfo | undefined;
+  return extrinsics.map((extrinsic, index): TxWithEventAndFee => {
+    let dispatchError: DispatchError | undefined;
+    let dispatchInfo: DispatchInfo | undefined;
 
-      const events = records
-        .filter(({ phase }) => phase.isApplyExtrinsic && phase.asApplyExtrinsic.eq(index))
-        .map(({ event }) => {
-          if (event.section === "system") {
-            if (event.method === "ExtrinsicSuccess") {
-              dispatchInfo = (event.data[0] as any) as DispatchInfo;
-            } else if (event.method === "ExtrinsicFailed") {
-              dispatchError = (event.data[0] as any) as DispatchError;
-              dispatchInfo = (event.data[1] as any) as DispatchInfo;
-            }
+    const events = records
+      .filter(({ phase }) => phase.isApplyExtrinsic && phase.asApplyExtrinsic.eq(index))
+      .map(({ event }) => {
+        if (event.section === "system") {
+          if (event.method === "ExtrinsicSuccess") {
+            dispatchInfo = event.data[0] as any as DispatchInfo;
+          } else if (event.method === "ExtrinsicFailed") {
+            dispatchError = event.data[0] as any as DispatchError;
+            dispatchInfo = event.data[1] as any as DispatchInfo;
           }
+        }
 
-          return event as any;
-        });
+        return event as any;
+      });
 
-      return {
-        dispatchError,
-        dispatchInfo,
-        events,
-        extrinsic,
-        fee: fees ? fees[index] : undefined,
-      };
-    }
-  );
+    return { dispatchError, dispatchInfo, events, extrinsic, fee: fees ? fees[index] : undefined };
+  });
 }
 
 const getBlockDetails = async (
@@ -103,10 +95,10 @@ const getBlockDetails = async (
 
   const txWithEvents = mapExtrinsics(block.extrinsics, records, fees);
 
-  return ({
+  return {
     block,
     txWithEvents,
-  } as any) as BlockDetails;
+  } as any as BlockDetails;
 };
 
 export interface BlockRangeOption {
@@ -244,12 +236,12 @@ export const verifyBlockFees = async (
                 : extrinsic.signer.toString();
 
               // Get balance of the origin account both before and after extrinsic execution
-              const fromBalance = (await (await api.at(previousBlockHash)).query.system.account(
-                origin
-              )) as any;
-              const toBalance = (await (await api.at(blockDetails.block.hash)).query.system.account(
-                origin
-              )) as any;
+              const fromBalance = (await (
+                await api.at(previousBlockHash)
+              ).query.system.account(origin)) as any;
+              const toBalance = (await (
+                await api.at(blockDetails.block.hash)
+              ).query.system.account(origin)) as any;
 
               expect(txFees.toString()).to.eq(
                 (

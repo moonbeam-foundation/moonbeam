@@ -53,9 +53,9 @@ describeDevMoonbeam("Proxing governance", (context) => {
       Standard: { balance: VOTE_AMOUNT, vote: { aye: true, conviction: 1 } },
     });
 
-    const dorothyPreBalance = ((await context.polkadotApi.query.system.account(
-      DOROTHY
-    )) as any).data.free.toBigInt();
+    const dorothyPreBalance = (
+      (await context.polkadotApi.query.system.account(DOROTHY)) as any
+    ).data.free.toBigInt();
     const ext = context.polkadotApi.tx.proxy.proxy(DOROTHY, "Governance", voteCall);
     const { events } = await createBlockWithExtrinsic(context, ethan, ext);
 
@@ -72,9 +72,9 @@ describeDevMoonbeam("Proxing governance", (context) => {
     expect(dorothyAccountData.data.miscFrozen.toBigInt()).to.equal(VOTE_AMOUNT);
 
     // Verify that vote is registered
-    const referendumInfoOf = ((await context.polkadotApi.query.democracy.referendumInfoOf(
-      0
-    )) as any).unwrap() as any;
+    const referendumInfoOf = (
+      (await context.polkadotApi.query.democracy.referendumInfoOf(0)) as any
+    ).unwrap() as any;
     const onGoing = referendumInfoOf.asOngoing;
 
     expect(onGoing.proposalHash.toHex()).to.equal(proposalHash);

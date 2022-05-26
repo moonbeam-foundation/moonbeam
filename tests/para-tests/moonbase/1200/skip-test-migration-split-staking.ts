@@ -38,8 +38,9 @@ describeParachain(
         })
       );
 
-      const minDelegatorStk = ((await context.polkadotApiParaone.consts.parachainStaking
-        .minDelegatorStk) as any).toBigInt();
+      const minDelegatorStk = (
+        (await context.polkadotApiParaone.consts.parachainStaking.minDelegatorStk) as any
+      ).toBigInt();
 
       expect(
         await context.polkadotApiParaone.query.parachainStaking.candidateState.entries()
@@ -87,9 +88,11 @@ describeParachain(
       process.stdout.write(`✅: ${bondBatches.length} extrinsics\n`);
 
       process.stdout.write(`Verifying candidate state pre-migration...`);
-      const candidateStatePreMigration = ((await context.polkadotApiParaone.query.parachainStaking.candidateState(
-        alith.address
-      )) as any).unwrap();
+      const candidateStatePreMigration = (
+        (await context.polkadotApiParaone.query.parachainStaking.candidateState(
+          alith.address
+        )) as any
+      ).unwrap();
       expect(candidateStatePreMigration.delegators).to.be.length(360);
       expect(candidateStatePreMigration.topDelegations).to.be.length(300);
       expect(candidateStatePreMigration.bottomDelegations).to.be.length(60);
@@ -104,15 +107,20 @@ describeParachain(
       process.stdout.write("✅\n");
 
       process.stdout.write("Checking candidateInfo post-migration...");
-      const candidateInfo = await context.polkadotApiParaone.query.parachainStaking.candidateInfo.entries();
+      const candidateInfo =
+        await context.polkadotApiParaone.query.parachainStaking.candidateInfo.entries();
       expect(candidateInfo).to.be.length(2);
-      const topDelegations = ((await context.polkadotApiParaone.query.parachainStaking.topDelegations(
-        alith.address
-      )) as any).unwrap();
+      const topDelegations = (
+        (await context.polkadotApiParaone.query.parachainStaking.topDelegations(
+          alith.address
+        )) as any
+      ).unwrap();
       expect(topDelegations.delegations).to.be.length(300);
-      const bottomDelegations = ((await context.polkadotApiParaone.query.parachainStaking.bottomDelegations(
-        alith.address
-      )) as any).unwrap();
+      const bottomDelegations = (
+        (await context.polkadotApiParaone.query.parachainStaking.bottomDelegations(
+          alith.address
+        )) as any
+      ).unwrap();
       expect(bottomDelegations.delegations).to.be.length(50); // new runtime only allow 50 bottom
       process.stdout.write(`✅\n`);
 

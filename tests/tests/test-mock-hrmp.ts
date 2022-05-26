@@ -93,9 +93,9 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     expect(events[4].method.toString()).to.eq("ExtrinsicSuccess");
 
     // check asset in storage
-    const registeredAsset = ((await context.polkadotApi.query.assets.asset(
-      assetId
-    )) as any).unwrap();
+    const registeredAsset = (
+      (await context.polkadotApi.query.assets.asset(assetId)) as any
+    ).unwrap();
     expect(registeredAsset.owner.toHex()).to.eq(palletId.toLowerCase());
   });
 
@@ -108,10 +108,9 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     await context.createBlock();
 
     // Make sure the state has ALITH's foreign parachain tokens
-    let alith_dot_balance = ((await context.polkadotApi.query.assets.account(
-      assetId,
-      alith.address
-    )) as any)
+    let alith_dot_balance = (
+      (await context.polkadotApi.query.assets.account(assetId, alith.address)) as any
+    )
       .unwrap()
       ["balance"].toBigInt();
 
@@ -161,9 +160,9 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     expect(events[4].method.toString()).to.eq("ExtrinsicSuccess");
 
     // check asset in storage
-    const registeredAsset = ((await context.polkadotApi.query.assets.asset(
-      assetId
-    )) as any).unwrap();
+    const registeredAsset = (
+      (await context.polkadotApi.query.assets.asset(assetId)) as any
+    ).unwrap();
     expect(registeredAsset.owner.toHex()).to.eq(palletId.toLowerCase());
   });
 
@@ -289,9 +288,9 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     expect(events[4].method.toString()).to.eq("ExtrinsicSuccess");
 
     // check asset in storage
-    const registeredAsset = ((await context.polkadotApi.query.assets.asset(
-      assetId
-    )) as any).unwrap();
+    const registeredAsset = (
+      (await context.polkadotApi.query.assets.asset(assetId)) as any
+    ).unwrap();
     expect(registeredAsset.owner.toHex()).to.eq(palletId.toLowerCase());
   });
 
@@ -379,10 +378,9 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     await context.createBlock();
 
     // Make sure the state has ALITH's foreign parachain tokens
-    let alith_dot_balance = ((await context.polkadotApi.query.assets.account(
-      assetId,
-      alith.address
-    )) as any)
+    let alith_dot_balance = (
+      (await context.polkadotApi.query.assets.account(assetId, alith.address)) as any
+    )
       .unwrap()
       ["balance"].toBigInt();
 
@@ -415,9 +413,9 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer of DEV", (context) =
       alith,
       context.polkadotApi.tx.balances.transfer(sovereignAddress, transferredBalance)
     );
-    let balance = ((await context.polkadotApi.query.system.account(
-      sovereignAddress
-    )) as any).data.free.toBigInt();
+    let balance = (
+      (await context.polkadotApi.query.system.account(sovereignAddress)) as any
+    ).data.free.toBigInt();
     expect(balance).to.eq(transferredBalance);
   });
 
@@ -501,15 +499,15 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer of DEV", (context) =
 
     // The message should not have been succesfully executed, since old prefix is not supported
     // anymore
-    let balance = ((await context.polkadotApi.query.system.account(
-      sovereignAddress
-    )) as any).data.free.toBigInt();
+    let balance = (
+      (await context.polkadotApi.query.system.account(sovereignAddress)) as any
+    ).data.free.toBigInt();
     expect(balance.toString()).to.eq(transferredBalance.toString());
 
     // the random address does not receive anything
-    let randomBalance = ((await context.polkadotApi.query.system.account(
-      random.address
-    )) as any).data.free.toBigInt();
+    let randomBalance = (
+      (await context.polkadotApi.query.system.account(random.address)) as any
+    ).data.free.toBigInt();
     expect(randomBalance).to.eq(0n);
   });
 });
@@ -541,9 +539,9 @@ describeDevMoonbeam(
         alith,
         context.polkadotApi.tx.balances.transfer(sovereignAddress, transferredBalance)
       );
-      let balance = ((await context.polkadotApi.query.system.account(
-        sovereignAddress
-      )) as any).data.free.toBigInt();
+      let balance = (
+        (await context.polkadotApi.query.system.account(sovereignAddress)) as any
+      ).data.free.toBigInt();
       expect(balance).to.eq(transferredBalance);
     });
 
@@ -628,17 +626,17 @@ describeDevMoonbeam(
       await context.createBlock();
 
       // We should expect sovereign balance to be 0, since we have transferred the full amount
-      let balance = ((await context.polkadotApi.query.system.account(
-        sovereignAddress
-      )) as any).data.free.toBigInt();
+      let balance = (
+        (await context.polkadotApi.query.system.account(sovereignAddress)) as any
+      ).data.free.toBigInt();
       expect(balance.toString()).to.eq(0n.toString());
 
       // In the case of the random address: we have transferred 100000000000000,
       // but 20000000000000 have been deducted
       // for weight payment
-      let randomBalance = ((await context.polkadotApi.query.system.account(
-        random.address
-      )) as any).data.free.toBigInt();
+      let randomBalance = (
+        (await context.polkadotApi.query.system.account(random.address)) as any
+      ).data.free.toBigInt();
       let expectedRandomBalance = 80000000000000n;
       expect(randomBalance).to.eq(expectedRandomBalance);
     });
@@ -808,10 +806,9 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     await context.createBlock();
 
     // Make sure the state has ALITH's LOCAL parachain tokens
-    let alithLocalTokBalance = ((await context.polkadotApi.query.localAssets.account(
-      assetId,
-      alith.address
-    )) as any)
+    let alithLocalTokBalance = (
+      (await context.polkadotApi.query.localAssets.account(assetId, alith.address)) as any
+    )
       .unwrap()
       ["balance"].toBigInt();
 
@@ -890,13 +887,13 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
       expect(events[4].method.toString()).to.eq("ExtrinsicSuccess");
 
       // check assets in storage
-      const registeredAssetZero = ((await context.polkadotApi.query.assets.asset(
-        assetIdZero
-      )) as any).unwrap();
+      const registeredAssetZero = (
+        (await context.polkadotApi.query.assets.asset(assetIdZero)) as any
+      ).unwrap();
       expect(registeredAssetZero.owner.toHex()).to.eq(palletId.toLowerCase());
-      const registeredAssetOne = ((await context.polkadotApi.query.assets.asset(
-        assetIdZero
-      )) as any).unwrap();
+      const registeredAssetOne = (
+        (await context.polkadotApi.query.assets.asset(assetIdZero)) as any
+      ).unwrap();
       expect(registeredAssetOne.owner.toHex()).to.eq(palletId.toLowerCase());
     }
   );
@@ -995,10 +992,9 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     await context.createBlock();
 
     // Make sure the state has ALITH's foreign parachain tokens
-    let alithAssetZeroBalance = ((await context.polkadotApi.query.assets.account(
-      assetIdZero,
-      alith.address
-    )) as any)
+    let alithAssetZeroBalance = (
+      (await context.polkadotApi.query.assets.account(assetIdZero, alith.address)) as any
+    )
       .unwrap()
       ["balance"].toBigInt();
 
@@ -1213,9 +1209,9 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     assetIdZero = assetIdZero.replace(/,/g, "");
 
     // check assets in storage
-    const registeredAssetZero = ((await context.polkadotApi.query.assets.asset(
-      assetIdZero
-    )) as any).unwrap();
+    const registeredAssetZero = (
+      (await context.polkadotApi.query.assets.asset(assetIdZero)) as any
+    ).unwrap();
     expect(registeredAssetZero.owner.toHex()).to.eq(palletId.toLowerCase());
   });
 
