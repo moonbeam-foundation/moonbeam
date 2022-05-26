@@ -197,7 +197,7 @@ declare module "@polkadot/api-base/types/events" {
       /**
        * A NimbusId has been registered and mapped to an AccountId.
        */
-      : AugmentedEvent<ApiType, [NimbusPrimitivesNimbusCryptoPublic, AccountId20]>;
+      KeysRegistered: AugmentedEvent<ApiType, [NimbusPrimitivesNimbusCryptoPublic, AccountId20]>;
       /**
        * An NimbusId has been registered, replacing a previous registration and
        * its mapping.
