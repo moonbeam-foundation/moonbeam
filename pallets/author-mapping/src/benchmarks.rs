@@ -85,7 +85,7 @@ benchmarks! {
 		let keys: T::Keys = nimbus_id(3u8).into();
 		assert_ok!(Pallet::<T>::set_keys(
 				RawOrigin::Signed(caller.clone()).into(),
-				(id.clone(), keys.clone()),
+				KeysWrapper(id.clone(), keys.clone()),
 			)
 		);
 	}: _(RawOrigin::Signed(caller.clone()))
