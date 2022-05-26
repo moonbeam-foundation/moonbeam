@@ -193,16 +193,16 @@ declare module "@polkadot/api-base/types/events" {
       /**
        * An NimbusId has been de-registered, and its AccountId mapping removed.
        */
-      AuthorDeRegistered: AugmentedEvent<ApiType, [NimbusPrimitivesNimbusCryptoPublic]>;
+      KeysRemoved: AugmentedEvent<ApiType, [NimbusPrimitivesNimbusCryptoPublic]>;
       /**
        * A NimbusId has been registered and mapped to an AccountId.
        */
-      AuthorRegistered: AugmentedEvent<ApiType, [NimbusPrimitivesNimbusCryptoPublic, AccountId20]>;
+      KeysRegistered: AugmentedEvent<ApiType, [NimbusPrimitivesNimbusCryptoPublic, AccountId20]>;
       /**
        * An NimbusId has been registered, replacing a previous registration and
        * its mapping.
        */
-      AuthorRotated: AugmentedEvent<ApiType, [NimbusPrimitivesNimbusCryptoPublic, AccountId20]>;
+      KeysRotated: AugmentedEvent<ApiType, [NimbusPrimitivesNimbusCryptoPublic, AccountId20]>;
       /**
        * An NimbusId has been forcibly deregistered after not being rotated or
        * cleaned up. The reporteing account has been rewarded accordingly.

@@ -781,14 +781,14 @@ export default {
    */
   PalletAuthorMappingEvent: {
     _enum: {
-      AuthorRegistered: {
+      KeysRegistered: {
         authorId: "NimbusPrimitivesNimbusCryptoPublic",
         accountId: "AccountId20",
       },
-      AuthorDeRegistered: {
+      KeysRemoved: {
         authorId: "NimbusPrimitivesNimbusCryptoPublic",
       },
-      AuthorRotated: {
+      KeysRotated: {
         newAuthorId: "NimbusPrimitivesNimbusCryptoPublic",
         accountId: "AccountId20",
       },

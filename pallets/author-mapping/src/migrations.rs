@@ -46,8 +46,8 @@ impl<T: Config> OnRuntimeUpgrade for AddAccountIdToNimbusLookup<T> {
 					registration_info.deposit,
 				);
 
-				<Pallet<T>>::deposit_event(Event::AuthorDeRegistered {
-					author_id: nimbus_id,
+				<Pallet<T>>::deposit_event(Event::KeysRemoved {
+					nimbus_id,
 					account_id: registration_info.account,
 					keys: registration_info.keys,
 				});
