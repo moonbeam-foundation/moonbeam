@@ -393,7 +393,26 @@ describeDevMoonbeam("Precompile Author Mapping - Set Faith only 1 key", (context
     );
 
     expect(extrinsic).to.exist;
-    expect(resultEvent.method).to.equal("ExtrinsicFailed");
+    expect(resultEvent.method).to.equal("ExtrinsicSucceed");
+    expect(
+      (events.find((e) => e.section == "ethereum" && e.method == "Executed").data[3] as any)
+        .isRevert
+    ).to.be.true;
+  });
+});
+
+describeDevMoonbeam("Precompile Author Mapping - Set Faith mapping with 0 keys", (context) => {
+  it("should fail", async function () {
+    await setKeysThroughPrecompile(context, faith.address, FAITH_PRIVATE_KEY, "");
+    const { extrinsic, events, resultEvent } = await getBlockExtrinsic(
+      context.polkadotApi,
+      await context.polkadotApi.rpc.chain.getBlockHash(),
+      "ethereum",
+      "transact"
+    );
+
+    expect(extrinsic).to.exist;
+    expect(resultEvent.method).to.equal("ExtrinsicSucceed");
     expect(
       (events.find((e) => e.section == "ethereum" && e.method == "Executed").data[3] as any)
         .isRevert
