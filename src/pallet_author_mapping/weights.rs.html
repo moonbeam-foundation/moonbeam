@@ -231,7 +231,7 @@
 	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
 	<span class="kw">fn</span> <span class="ident">clear_association</span>() -&gt; <span class="ident">Weight</span>;
 	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-	<span class="kw">fn</span> <span class="ident">register_keys</span>() -&gt; <span class="ident">Weight</span>;
+	<span class="kw">fn</span> <span class="ident">remove_keys</span>() -&gt; <span class="ident">Weight</span>;
 	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
 	<span class="kw">fn</span> <span class="ident">set_keys</span>() -&gt; <span class="ident">Weight</span>;
 }
@@ -266,13 +266,13 @@
 			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">reads</span>(<span class="number">2</span> <span class="kw">as</span> <span class="ident">Weight</span>))
 			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">writes</span>(<span class="number">3</span> <span class="kw">as</span> <span class="ident">Weight</span>))
 	}
+	<span class="comment">// Storage: AuthorMapping NimbusLookup (r:1 w:1)</span>
 	<span class="comment">// Storage: AuthorMapping MappingWithDeposit (r:1 w:1)</span>
 	<span class="comment">// Storage: System Account (r:1 w:1)</span>
-	<span class="comment">// Storage: AuthorMapping NimbusLookup (r:0 w:1)</span>
 	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-	<span class="kw">fn</span> <span class="ident">register_keys</span>() -&gt; <span class="ident">Weight</span> {
-		(<span class="number">35_722_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
-			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">reads</span>(<span class="number">2</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+	<span class="kw">fn</span> <span class="ident">remove_keys</span>() -&gt; <span class="ident">Weight</span> {
+		(<span class="number">41_773_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
+			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">reads</span>(<span class="number">3</span> <span class="kw">as</span> <span class="ident">Weight</span>))
 			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">writes</span>(<span class="number">3</span> <span class="kw">as</span> <span class="ident">Weight</span>))
 	}
 	<span class="comment">// Storage: AuthorMapping NimbusLookup (r:1 w:1)</span>
@@ -313,13 +313,13 @@
 			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">reads</span>(<span class="number">2</span> <span class="kw">as</span> <span class="ident">Weight</span>))
 			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">writes</span>(<span class="number">3</span> <span class="kw">as</span> <span class="ident">Weight</span>))
 	}
+	<span class="comment">// Storage: AuthorMapping NimbusLookup (r:1 w:1)</span>
 	<span class="comment">// Storage: AuthorMapping MappingWithDeposit (r:1 w:1)</span>
 	<span class="comment">// Storage: System Account (r:1 w:1)</span>
-	<span class="comment">// Storage: AuthorMapping NimbusLookup (r:0 w:1)</span>
 	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-	<span class="kw">fn</span> <span class="ident">register_keys</span>() -&gt; <span class="ident">Weight</span> {
-		(<span class="number">35_722_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
-			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">reads</span>(<span class="number">2</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+	<span class="kw">fn</span> <span class="ident">remove_keys</span>() -&gt; <span class="ident">Weight</span> {
+		(<span class="number">41_773_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
+			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">reads</span>(<span class="number">3</span> <span class="kw">as</span> <span class="ident">Weight</span>))
 			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">writes</span>(<span class="number">3</span> <span class="kw">as</span> <span class="ident">Weight</span>))
 	}
 	<span class="comment">// Storage: AuthorMapping NimbusLookup (r:1 w:1)</span>

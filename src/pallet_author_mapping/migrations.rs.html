@@ -226,8 +226,8 @@
 					<span class="ident">registration_info</span>.<span class="ident">deposit</span>,
 				);
 
-				<span class="op">&lt;</span><span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::deposit_event</span>(<span class="ident">Event::AuthorDeRegistered</span> {
-					<span class="ident">author_id</span>: <span class="ident">nimbus_id</span>,
+				<span class="op">&lt;</span><span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::deposit_event</span>(<span class="ident">Event::KeysRemoved</span> {
+					<span class="ident">nimbus_id</span>,
 					<span class="ident">account_id</span>: <span class="ident">registration_info</span>.<span class="ident">account</span>,
 					<span class="ident">keys</span>: <span class="ident">registration_info</span>.<span class="ident">keys</span>,
 				});

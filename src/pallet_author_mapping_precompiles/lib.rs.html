@@ -177,34 +177,6 @@
 <span id="172">172</span>
 <span id="173">173</span>
 <span id="174">174</span>
-<span id="175">175</span>
-<span id="176">176</span>
-<span id="177">177</span>
-<span id="178">178</span>
-<span id="179">179</span>
-<span id="180">180</span>
-<span id="181">181</span>
-<span id="182">182</span>
-<span id="183">183</span>
-<span id="184">184</span>
-<span id="185">185</span>
-<span id="186">186</span>
-<span id="187">187</span>
-<span id="188">188</span>
-<span id="189">189</span>
-<span id="190">190</span>
-<span id="191">191</span>
-<span id="192">192</span>
-<span id="193">193</span>
-<span id="194">194</span>
-<span id="195">195</span>
-<span id="196">196</span>
-<span id="197">197</span>
-<span id="198">198</span>
-<span id="199">199</span>
-<span id="200">200</span>
-<span id="201">201</span>
-<span id="202">202</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -228,7 +200,6 @@
 
 <span class="kw">use</span> <span class="ident">fp_evm</span>::{<span class="ident">PrecompileHandle</span>, <span class="ident">PrecompileOutput</span>};
 <span class="kw">use</span> <span class="ident">frame_support::dispatch</span>::{<span class="ident">Dispatchable</span>, <span class="ident">GetDispatchInfo</span>, <span class="ident">PostDispatchInfo</span>};
-<span class="kw">use</span> <span class="ident">nimbus_primitives::NimbusId</span>;
 <span class="kw">use</span> <span class="ident">pallet_author_mapping::Call</span> <span class="kw">as</span> <span class="ident">AuthorMappingCall</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm</span>::{<span class="ident">AddressMapping</span>, <span class="ident">Precompile</span>};
 <span class="kw">use</span> <span class="ident">precompile_utils</span>::{<span class="ident">succeed</span>, <span class="ident">EvmResult</span>, <span class="ident">FunctionModifier</span>, <span class="ident">PrecompileHandleExt</span>, <span class="ident">RuntimeHelper</span>};
@@ -247,7 +218,7 @@
 	<span class="ident">AddAssociation</span> <span class="op">=</span> <span class="string">&quot;add_association(bytes32)&quot;</span>,
 	<span class="ident">UpdateAssociation</span> <span class="op">=</span> <span class="string">&quot;update_association(bytes32,bytes32)&quot;</span>,
 	<span class="ident">ClearAssociation</span> <span class="op">=</span> <span class="string">&quot;clear_association(bytes32)&quot;</span>,
-	<span class="ident">RegisterKeys</span> <span class="op">=</span> <span class="string">&quot;register_keys(bytes32,bytes32)&quot;</span>,
+	<span class="ident">RemoveKeys</span> <span class="op">=</span> <span class="string">&quot;remove_keys()&quot;</span>,
 	<span class="ident">SetKeys</span> <span class="op">=</span> <span class="string">&quot;set_keys(bytes32,bytes32)&quot;</span>,
 }
 
@@ -275,7 +246,7 @@
 			<span class="ident">Action::AddAssociation</span> =&gt; <span class="ident"><span class="self">Self</span>::add_association</span>(<span class="ident">handle</span>),
 			<span class="ident">Action::UpdateAssociation</span> =&gt; <span class="ident"><span class="self">Self</span>::update_association</span>(<span class="ident">handle</span>),
 			<span class="ident">Action::ClearAssociation</span> =&gt; <span class="ident"><span class="self">Self</span>::clear_association</span>(<span class="ident">handle</span>),
-			<span class="ident">Action::RegisterKeys</span> =&gt; <span class="ident"><span class="self">Self</span>::register_keys</span>(<span class="ident">handle</span>),
+			<span class="ident">Action::RemoveKeys</span> =&gt; <span class="ident"><span class="self">Self</span>::remove_keys</span>(<span class="ident">handle</span>),
 			<span class="ident">Action::SetKeys</span> =&gt; <span class="ident"><span class="self">Self</span>::set_keys</span>(<span class="ident">handle</span>),
 		}
 	}
@@ -304,9 +275,7 @@
 		);
 
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">AuthorMappingCall</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::add_association</span> {
-			<span class="ident">author_id</span>: <span class="ident">nimbus_id</span>,
-		};
+		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">AuthorMappingCall</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::add_association</span> { <span class="ident">nimbus_id</span> };
 
 		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
 
@@ -328,8 +297,8 @@
 
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
 		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">AuthorMappingCall</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::update_association</span> {
-			<span class="ident">old_author_id</span>: <span class="ident">old_nimbus_id</span>,
-			<span class="ident">new_author_id</span>: <span class="ident">new_nimbus_id</span>,
+			<span class="ident">old_nimbus_id</span>,
+			<span class="ident">new_nimbus_id</span>,
 		};
 
 		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
@@ -349,33 +318,21 @@
 		);
 
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">AuthorMappingCall</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::clear_association</span> {
-			<span class="ident">author_id</span>: <span class="ident">nimbus_id</span>,
-		};
+		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">AuthorMappingCall</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::clear_association</span> { <span class="ident">nimbus_id</span> };
 
 		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>([]))
 	}
 
-	<span class="kw">fn</span> <span class="ident">register_keys</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_input</span>()<span class="question-mark">?</span>;
-		<span class="comment">// Bound check</span>
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">2</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">nimbus_id</span> <span class="op">=</span> <span class="ident">sp_core::sr25519::Public::unchecked_from</span>(<span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span>()<span class="question-mark">?</span>).<span class="ident">into</span>();
-		<span class="kw">let</span> <span class="ident">keys_as_nimbus_id</span>: <span class="ident">NimbusId</span> <span class="op">=</span>
-			<span class="ident">sp_core::sr25519::Public::unchecked_from</span>(<span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span>()<span class="question-mark">?</span>).<span class="ident">into</span>();
-		<span class="kw">let</span> <span class="ident">keys</span>: <span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_author_mapping::Config</span><span class="op">&gt;</span><span class="ident">::Keys</span> <span class="op">=</span> <span class="ident">keys_as_nimbus_id</span>.<span class="ident">into</span>();
-
+	<span class="kw">fn</span> <span class="ident">remove_keys</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
 		<span class="macro">log::trace!</span>(
 			<span class="ident">target</span>: <span class="string">&quot;author-mapping-precompile&quot;</span>,
-			<span class="string">&quot;Adding full association with author id {:?} keys {:?}&quot;</span>, <span class="ident">nimbus_id</span>, <span class="ident">keys</span>
+			<span class="string">&quot;Removing keys&quot;</span>
 		);
 
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">AuthorMappingCall</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::register_keys</span> {
-			<span class="ident">keys</span>: (<span class="ident">nimbus_id</span>, <span class="ident">keys</span>),
-		};
+		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">AuthorMappingCall</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::remove_keys</span> {};
 
 		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
 
@@ -383,23 +340,10 @@
 	}
 
 	<span class="kw">fn</span> <span class="ident">set_keys</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_input</span>()<span class="question-mark">?</span>;
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">2</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">new_author_id</span> <span class="op">=</span> <span class="ident">sp_core::sr25519::Public::unchecked_from</span>(<span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span>()<span class="question-mark">?</span>).<span class="ident">into</span>();
-		<span class="kw">let</span> <span class="ident">new_keys_as_nimbus_id</span>: <span class="ident">NimbusId</span> <span class="op">=</span>
-			<span class="ident">sp_core::sr25519::Public::unchecked_from</span>(<span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span>()<span class="question-mark">?</span>).<span class="ident">into</span>();
-		<span class="kw">let</span> <span class="ident">new_keys</span>: <span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_author_mapping::Config</span><span class="op">&gt;</span><span class="ident">::Keys</span> <span class="op">=</span>
-			<span class="ident">new_keys_as_nimbus_id</span>.<span class="ident">into</span>();
-
-		<span class="macro">log::trace!</span>(
-			<span class="ident">target</span>: <span class="string">&quot;author-mapping-precompile&quot;</span>,
-			<span class="string">&quot;Setting keys: new author id {:?} new keys {:?}&quot;</span>,
-			<span class="ident">new_author_id</span>, <span class="ident">new_keys</span>
-		);
-
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
 		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">AuthorMappingCall</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::set_keys</span> {
-			<span class="ident">keys</span>: (<span class="ident">new_author_id</span>, <span class="ident">new_keys</span>),
+			<span class="comment">// Taking all input minus selector (4 bytes)</span>
+			<span class="ident">keys</span>: <span class="ident">handle</span>.<span class="ident">input</span>()[<span class="number">4</span>..].<span class="ident">to_vec</span>(),
 		};
 
 		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
