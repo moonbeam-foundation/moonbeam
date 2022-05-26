@@ -393,7 +393,7 @@ describeDevMoonbeam("Precompile Author Mapping - Set Faith only 1 key", (context
     );
 
     expect(extrinsic).to.exist;
-    expect(resultEvent.method).to.equal("ExtrinsicSucceed");
+    expect(resultEvent.method).to.equal("ExtrinsicSuccess");
     expect(
       (events.find((e) => e.section == "ethereum" && e.method == "Executed").data[3] as any)
         .isRevert
@@ -412,7 +412,7 @@ describeDevMoonbeam("Precompile Author Mapping - Set Faith mapping with 0 keys",
     );
 
     expect(extrinsic).to.exist;
-    expect(resultEvent.method).to.equal("ExtrinsicSucceed");
+    expect(resultEvent.method).to.equal("ExtrinsicSuccess");
     expect(
       (events.find((e) => e.section == "ethereum" && e.method == "Executed").data[3] as any)
         .isRevert
