@@ -70,6 +70,14 @@ pub mod pallet {
 			write!(f, "{:?}{:?}", self.0, self.1)
 		}
 	}
+	impl<T: Config>  From<Vec<u8>> for KeysWrapper<T> {
+		fn from(keys: Vec<u8>) -> Self {
+			let encoded = &mut keys.as_slice();
+			let nimbus_id = NimbusId::decode(encoded).unwrap();
+			let extra_keys = T::Keys::decode(encoded).unwrap();
+			KeysWrapper(nimbus_id, extra_keys)
+		}
+	}
 	impl<T: Config> scale_info::TypeInfo for KeysWrapper<T> {
 		type Identity = Vec<u8>;
 
@@ -200,10 +208,10 @@ pub mod pallet {
 		/// No new security deposit is required. Will replace `update_association` which is kept
 		/// now for backwards compatibility reasons.
 		#[pallet::weight(<T as Config>::WeightInfo::set_keys())]
-		pub fn set_keys(origin: OriginFor<T>, keys: KeysWrapper<T>) -> DispatchResult {
+		pub fn set_keys(origin: OriginFor<T>, keys: Vec<u8>) -> DispatchResult {
 			let account_id = ensure_signed(origin)?;
-			let KeysWrapper(new_nimbus_id, keys) = keys;
-
+			let KeysWrapper::<T>(new_nimbus_id, keys) = keys.into();
+			
 			if let Some(old_nimbus_id) = Self::nimbus_id_of(&account_id) {
 				Self::rotate_keys(old_nimbus_id, new_nimbus_id, account_id, keys)
 			} else {
