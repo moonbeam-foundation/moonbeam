@@ -205,6 +205,8 @@ jobs:
           if [[ "$POLKADOT_EXISTS" == "false" ]]; then
             mkdir -p build
             MOONBEAM_DOCKER_TAG="purestake/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
+            # Clear the dummy container if it wasn't properly cleaned up
+            docker rm -f dummy 2> /dev/null
             docker create --pull always -ti --name dummy $MOONBEAM_DOCKER_TAG bash
             docker cp dummy:/usr/local/bin/polkadot build/polkadot
             docker rm -f dummy
@@ -234,7 +236,7 @@ jobs:
     runs-on: self-hosted
     needs: ["set-tags"]
     env:
-      CARGO_SCCACHE_COMMIT: 90e1dc81
+      CARGO_SCCACHE_COMMIT: bed5571c
       RUSTFLAGS: "-C opt-level=3 -D warnings"
       # MOONBEAM_LOG: info
       # DEBUG: "test*"
@@ -357,6 +359,8 @@ jobs:
           POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
           DOCKER_TAG="purestake/polkadot-para-tests:sha-$POLKADOT_COMMIT"
 
+          CPUS=$(lscpu | egrep '^CPU\(s\)' | grep -o '[0-9]*')
+
           docker run \
             -e BINARY_PATH='../build/moonbeam' \
             -v $(pwd):/moonbeam:z \
@@ -364,7 +368,7 @@ jobs:
             -w /moonbeam/tests \
             $DOCKER_TAG \
               node node_modules/.bin/mocha \
-                --parallel -j 4 \
+                --parallel -j $((CPUS / 2)) \
                 --exit \
                 -r ts-node/register \
                 'tests/**/test-*.ts'
@@ -421,6 +425,7 @@ jobs:
           BINARY_PATH: ../build/moonbeam
           ETHAPI_CMD: --ethapi=txpool,debug,trace
           FORCE_WASM_EXECUTION: true
+          FORCE_COMPILED_WASM: true
           WASM_RUNTIME_OVERRIDES: moonbase-overrides
         run: |
           chmod uog+x build/moonbeam
@@ -452,6 +457,8 @@ jobs:
         run: |
           POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
           DOCKER_TAG="purestake/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
+          # Clear the dummy container if it wasn't properly cleaned up
+          docker rm -f dummy 2> /dev/null
           docker create -ti --name dummy $DOCKER_TAG bash
           docker cp dummy:/usr/local/bin/polkadot build/polkadot
           docker rm -f dummy

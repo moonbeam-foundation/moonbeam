@@ -42,7 +42,7 @@
     "watch": "npm-watch",
     "build": "cargo build --release",
     "non-ci-test": "mocha -r ts-node/register 'non_ci_tests/**/test-*.ts'",
-    "test-single": "mocha -r ts-node/register 'tests/test-precompile/test-precompile-democracy.ts'",
+    "test-single": "mocha -r ts-node/register 'tests/test-precompile/test-precompile-batch.ts'",
     "current-test": "mocha -r ts-node/register",
     "lint": "npx prettier --write --ignore-path .gitignore '**/*.(yml|js|ts|json)'",
     "clean": "rimraf *.log binaries/* runtimes/* specs/*"
@@ -50,7 +50,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@moonbeam-network/api-augment": "0.0.1-beta.4",
+    "@moonbeam-network/api-augment": "^0.1502.0",
     "@polkadot/api": "^7.15.1",
     "@substrate/txwrapper-core": "^1.5.9",
     "@substrate/txwrapper-registry": "^1.5.9",

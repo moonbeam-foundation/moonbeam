@@ -67,6 +67,9 @@ export async function startMoonbeamDevNode(withWasm?: boolean): Promise<{
   const cmd = BINARY_PATH;
   let args = [
     withWasm ? `--execution=Wasm` : `--execution=Native`, // Faster execution using native
+    process.env.FORCE_COMPILED_WASM
+      ? `--wasm-execution=compiled`
+      : `--wasm-execution=interpreted-i-know-what-i-do`,
     ETHAPI_CMD != "" ? `${ETHAPI_CMD}` : `--ethapi=txpool`,
     `--no-telemetry`,
     `--no-prometheus`,

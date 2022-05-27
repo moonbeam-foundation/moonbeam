@@ -32,7 +32,7 @@ jobs:
       - name: Create version bump issue
         uses: peter-evans/create-issue-from-file@v3
         with:
-          title: ${{ github.event.inputs.to }} release
+          title: runtime-${{ github.event.inputs.to }} release
           content-filepath: ./runtime-release-issue.md
           labels: |
             automated issue

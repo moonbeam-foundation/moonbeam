@@ -32,7 +32,10 @@ use pallet_asset_manager::{
 	},
 	Config as AssetManagerConfig,
 };
-use pallet_author_mapping::{migrations::AddKeysToRegistrationInfo, Config as AuthorMappingConfig};
+use pallet_author_mapping::{
+	migrations::{AddAccountIdToNimbusLookup, AddKeysToRegistrationInfo},
+	Config as AuthorMappingConfig,
+};
 use pallet_author_slot_filter::migration::EligibleRatioToEligiblityCount;
 use pallet_author_slot_filter::Config as AuthorSlotFilterConfig;
 use pallet_base_fee::Config as BaseFeeConfig;
@@ -49,10 +52,36 @@ use sp_std::{marker::PhantomData, prelude::*};
 #[cfg(feature = "xcm-support")]
 use xcm::latest::MultiLocation;
 #[cfg(feature = "xcm-support")]
-use xcm_transactor::{migrations::MaxTransactWeight, Config as XcmTransactorConfig};
+use xcm_transactor::{
+	migrations::TransactSignedWeightAndFeePerSecond, Config as XcmTransactorConfig,
+};
 
 /// This module acts as a registry where each migration is defined. Each migration should implement
 /// the "Migration" trait declared in the pallet-migrations crate.
+
+/// A moonbeam migration wrapping the similarly named migration in pallet-author-mapping
+pub struct AuthorMappingAddAccountIdToNimbusLookup<T>(PhantomData<T>);
+impl<T: AuthorMappingConfig> Migration for AuthorMappingAddAccountIdToNimbusLookup<T> {
+	fn friendly_name(&self) -> &str {
+		"MM_Author_Mapping_AddAccountIdToNimbusLookup"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		AddAccountIdToNimbusLookup::<T>::on_runtime_upgrade()
+	}
+
+	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<(), &'static str> {
+		AddAccountIdToNimbusLookup::<T>::pre_upgrade()
+	}
+
+	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self) -> Result<(), &'static str> {
+		AddAccountIdToNimbusLookup::<T>::post_upgrade()
+	}
+}
 
 /// A moonbeam migration wrapping the similarly named migration in pallet-author-mapping
 pub struct AuthorMappingAddKeysToRegistrationInfo<T>(PhantomData<T>);
@@ -391,28 +420,53 @@ impl<T: BaseFeeConfig> Migration for MigrateBaseFeePerGas<T> {
 	}
 }
 
+// #[cfg(feature = "xcm-support")]
+// pub struct XcmTransactorMaxTransactWeight<T>(PhantomData<T>);
+// #[cfg(feature = "xcm-support")]
+// impl<T: XcmTransactorConfig> Migration for XcmTransactorMaxTransactWeight<T> {
+// 	fn friendly_name(&self) -> &str {
+// 		"MM_Xcm_Transactor_MaxTransactWeight"
+// 	}
+
+// 	fn migrate(&self, _available_weight: Weight) -> Weight {
+// 		MaxTransactWeight::<T>::on_runtime_upgrade()
+// 	}
+
+// 	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+// 	#[cfg(feature = "try-runtime")]
+// 	fn pre_upgrade(&self) -> Result<(), &'static str> {
+// 		MaxTransactWeight::<T>::pre_upgrade()
+// 	}
+
+// 	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+// 	#[cfg(feature = "try-runtime")]
+// 	fn post_upgrade(&self) -> Result<(), &'static str> {
+// 		MaxTransactWeight::<T>::post_upgrade()
+// 	}
+// }
+
 #[cfg(feature = "xcm-support")]
-pub struct XcmTransactorMaxTransactWeight<T>(PhantomData<T>);
+pub struct XcmTransactorTransactSignedWeightAndFeePerSecond<T>(PhantomData<T>);
 #[cfg(feature = "xcm-support")]
-impl<T: XcmTransactorConfig> Migration for XcmTransactorMaxTransactWeight<T> {
+impl<T: XcmTransactorConfig> Migration for XcmTransactorTransactSignedWeightAndFeePerSecond<T> {
 	fn friendly_name(&self) -> &str {
-		"MM_Xcm_Transactor_MaxTransactWeight"
+		"MM_Xcm_Transactor_TransactSignedWeightAndFeePerSecond"
 	}
 
 	fn migrate(&self, _available_weight: Weight) -> Weight {
-		MaxTransactWeight::<T>::on_runtime_upgrade()
+		TransactSignedWeightAndFeePerSecond::<T>::on_runtime_upgrade()
 	}
 
 	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade(&self) -> Result<(), &'static str> {
-		MaxTransactWeight::<T>::pre_upgrade()
+		TransactSignedWeightAndFeePerSecond::<T>::pre_upgrade()
 	}
 
 	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade(&self) -> Result<(), &'static str> {
-		MaxTransactWeight::<T>::post_upgrade()
+		TransactSignedWeightAndFeePerSecond::<T>::post_upgrade()
 	}
 }
 
@@ -611,14 +665,16 @@ where
 		// TODO: this is a lot of allocation to do upon every get() call. this *should* be avoided
 		// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review
 
-		let migration_author_slot_filter_eligible_ratio_to_eligibility_count =
-			AuthorSlotFilterEligibleRatioToEligiblityCount::<Runtime>(Default::default());
-		let migration_author_mapping_add_keys_to_registration_info =
-			AuthorMappingAddKeysToRegistrationInfo::<Runtime>(Default::default());
-		let staking_delegator_state_requests =
-			ParachainStakingSplitDelegatorStateIntoDelegationScheduledRequests::<Runtime>(
-				Default::default(),
-			);
+		// let migration_author_slot_filter_eligible_ratio_to_eligibility_count =
+		// 	AuthorSlotFilterEligibleRatioToEligiblityCount::<Runtime>(Default::default());
+		// let migration_author_mapping_add_keys_to_registration_info =
+		// 	AuthorMappingAddKeysToRegistrationInfo::<Runtime>(Default::default());
+		// let staking_delegator_state_requests =
+		// 	ParachainStakingSplitDelegatorStateIntoDelegationScheduledRequests::<Runtime>(
+		// 		Default::default(),
+		// 	);
+		let migration_author_mapping_add_account_id_to_nimbus_lookup =
+			AuthorMappingAddAccountIdToNimbusLookup::<Runtime>(Default::default());
 		vec![
 			// completed in runtime 800
 			// Box::new(migration_author_mapping_twox_to_blake),
@@ -637,9 +693,13 @@ where
 			// Box::new(migration_parachain_staking_patch_incorrect_delegation_sums),
 			// completed in runtime 1300
 			// Box::new(migration_base_fee),
-			Box::new(migration_author_slot_filter_eligible_ratio_to_eligibility_count),
-			Box::new(migration_author_mapping_add_keys_to_registration_info),
-			Box::new(staking_delegator_state_requests),
+			// completed in runtime 1500
+			// Box::new(migration_author_slot_filter_eligible_ratio_to_eligibility_count),
+			// Box::new(migration_author_mapping_add_keys_to_registration_info),
+			// Box::new(staking_delegator_state_requests),
+
+			// planned in runtime 1600
+			Box::new(migration_author_mapping_add_account_id_to_nimbus_lookup),
 		]
 	}
 }
@@ -675,6 +735,9 @@ where
 		// TODO: this is a lot of allocation to do upon every get() call. this *should* be avoided
 		// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review
 
+		let xcm_transactor_transact_signed =
+			XcmTransactorTransactSignedWeightAndFeePerSecond::<Runtime>(Default::default());
+
 		vec![
 			// completed in runtime 1201
 			// Box::new(xcm_transactor_max_weight),
@@ -686,6 +749,9 @@ where
 			// Box::new(asset_manager_populate_asset_type_id_storage),
 			// completed in runtime 1300
 			// Box::new(xcm_supported_assets),
+
+			// planned in runtime 1600
+			Box::new(xcm_transactor_transact_signed),
 		]
 	}
 }

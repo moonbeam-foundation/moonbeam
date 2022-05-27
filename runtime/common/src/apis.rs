@@ -195,11 +195,13 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 
 				fn account_basic(address: H160) -> EVMAccount {
-					EVM::account_basic(&address)
+					let (account, _) = EVM::account_basic(&address);
+					account
 				}
 
 				fn gas_price() -> U256 {
-					<Runtime as pallet_evm::Config>::FeeCalculator::min_gas_price()
+					let (gas_price, _) = <Runtime as pallet_evm::Config>::FeeCalculator::min_gas_price();
+					gas_price
 				}
 
 				fn account_code_at(address: H160) -> Vec<u8> {
@@ -248,7 +250,7 @@ macro_rules! impl_runtime_apis_plus_common {
 						Vec::new(),
 						is_transactional,
 						config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
-					).map_err(|err| err.into())
+					).map_err(|err| err.error.into())
 				}
 
 				fn create(
@@ -282,7 +284,7 @@ macro_rules! impl_runtime_apis_plus_common {
 						Vec::new(),
 						is_transactional,
 						config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
-					).map_err(|err| err.into())
+					).map_err(|err| err.error.into())
 				}
 
 				fn current_transaction_statuses() -> Option<Vec<TransactionStatus>> {
@@ -514,6 +516,10 @@ macro_rules! impl_runtime_apis_plus_common {
 						// ParachainStaking Round
 						hex_literal::hex!(  "a686a3043d0adcf2fa655e57bc595a78"
 											"13792e785168f725b60e2969c7fc2552")
+							.to_vec().into(),
+						// ParachainInfo ParachainId
+						hex_literal::hex!(  "0d715f2646c8f85767b5d2764bb27826"
+											"04a74d81251e398fd8a0a4d55023bb3f")
 							.to_vec().into(),
 
 					];
