@@ -166,10 +166,29 @@ one test file.
 
 Those tests are intended to run using an exported state from an existing network.  
 They require to specify the exported state, the runtime name and the parachain id.  
-Also the exported state needs to be modified using fos2 file (TODO: add link).
+Also the exported state needs to be modified using fos2 file.
+
+### Retrieving exported state
+
+```
+mkdir -p ~/projects/moonbeam-states
+for network in moonbase-alpha moonriver moonbeam; do wget https://s3.us-east-2.amazonaws.com/snapshots.moonbeam.network/${network}/latest/${network}-state.json -O ~/projects/moonbeam-states/${network}-state.json; done
+```
+
+### Modifying exported state
+
+```
+for network in moonbase-alpha moonriver moonbeam; do node_modules/.bin/ts-node state-modifier.ts ~/projects/moonbeam-states/${network}-state.json; done
+```
+
+### Executing the tests
 
 Here is an exemple of the command to run:
 
 ```
-RUNTIME_NAME=moonbeam SPEC_FILE=~/projects/moonbeam-states/moonbeam-export-state-0.21.1-bd3048299-2022-04-01-1-56-09.mod.json PARA_ID=2004 PORT_PREFIX=51 npm run fork-test
+RUNTIME_NAME=moonbeam SPEC_FILE=~/projects/moonbeam-states/moonbeam-state.mod.json PARA_ID=2004 PORT_PREFIX=51 npm run fork-test
+
+RUNTIME_NAME=moonbase SPEC_FILE=~/projects/moonbase-alpha-states/moonbase-alpha-state.mod.json PARA_ID=1000 PORT_PREFIX=52 npm run fork-test
+
+RUNTIME_NAME=moonriver SPEC_FILE=~/projects/moonriver-states/moonriver-state.mod.json PARA_ID=2023 PORT_PREFIX=53 npm run fork-test
 ```
