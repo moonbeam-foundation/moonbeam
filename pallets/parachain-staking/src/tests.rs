@@ -30,8 +30,8 @@ use crate::{
 	assert_eq_events, assert_eq_last_events, assert_event_emitted, assert_event_not_emitted,
 	assert_last_event, assert_tail_eq, set::OrderedSet, AtStake, Bond, BottomDelegations,
 	CandidateInfo, CandidateMetadata, CandidatePool, CandidateState, CapacityStatus,
-	CollatorCandidate, CollatorStatus, Config, Delegations, Delegator, DelegatorAdded,
-	DelegatorState, DelegatorStatus, Error, Event, Range, TopDelegations, Total,
+	CollatorCandidate, CollatorStatus, Config, DelegationScheduledRequests, Delegations, Delegator,
+	DelegatorAdded, DelegatorState, DelegatorStatus, Error, Event, Range, TopDelegations, Total,
 };
 use frame_support::{assert_noop, assert_ok, traits::ReservableCurrency};
 use sp_runtime::{traits::Zero, DispatchError, ModuleError, Perbill, Percent};
@@ -1110,7 +1110,11 @@ fn execute_leave_candidates_removes_pending_delegation_requests() {
 					.iter()
 					.any(|x| x.delegator == 2),
 				"delegation request not removed"
-			)
+			);
+			assert!(
+				!<DelegationScheduledRequests<Test>>::contains_key(&1),
+				"the key was not removed from storage"
+			);
 		});
 }
 
