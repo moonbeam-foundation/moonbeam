@@ -44,7 +44,7 @@ interface AuthorMapping {
 
     /**
      * Set keys
-     * Selector: 47f92fc4
+     * Selector: bcb24ddc
      *
      * @param keys The new session keys
      */
