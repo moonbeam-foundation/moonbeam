@@ -21,7 +21,7 @@ const faith = keyring.addFromUri(FAITH_PRIVATE_KEY, null, "ethereum");
 
 const AUTHOR_MAPPING_PRECOMPILE_ADDRESS = "0x0000000000000000000000000000000000000807";
 const SELECTORS = {
-  set_keys: "47f92fc4",
+  set_keys: "bcb24ddc",
   remove_keys: "3b6c4284",
 };
 
