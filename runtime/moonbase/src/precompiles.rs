@@ -16,7 +16,7 @@
 
 use crate::asset_config::{ForeignAssetInstance, LocalAssetInstance};
 use crowdloan_rewards_precompiles::CrowdloanRewardsWrapper;
-use fp_evm::PrecompileHandle;
+use fp_evm::{Context, ExitRevert, PrecompileFailure, PrecompileHandle};
 use moonbeam_relay_encoder::westend::WestendEncoder;
 use pallet_author_mapping_precompiles::AuthorMappingWrapper;
 use pallet_democracy_precompiles::DemocracyWrapper;
@@ -115,7 +115,16 @@ where
 	R: pallet_evm::Config,
 {
 	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<PrecompileResult> {
-		match handle.code_address() {
+		// Filter known precompile addresses except Ethereum officials
+		if handle.code_address() > hash(9) && context.context().address != address {
+			return Some(Err(PrecompileFailure::Revert {
+				exit_status: ExitRevert::Reverted,
+				output: b"cannot be called with DELEGATECALL or CALLCODE".to_vec(),
+				cost: 0,
+			}));
+		}
+
+		match address {
 			// Ethereum precompiles :
 			a if a == hash(1) => Some(ECRecover::execute(handle)),
 			a if a == hash(2) => Some(Sha256::execute(handle)),
