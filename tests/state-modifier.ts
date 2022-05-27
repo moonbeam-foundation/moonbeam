@@ -1,5 +1,6 @@
 import fs from "fs";
 import readline from "readline";
+import chalk from "chalk";
 
 import { xxhashAsU8a, blake2AsU8a } from "@polkadot/util-crypto";
 import { u8aConcat, u8aToHex } from "@polkadot/util";
@@ -63,9 +64,11 @@ async function main(inputFile: string, outputFile?: string) {
   const lastDmqMqcHeadPrefix = `        "${storageKey("ParachainSystem", "LastDmqMqcHead")}`;
   const alithBalance = `        "${storageBlake128MapKey("System", "Account", ALITH)}`;
   const bobBalance = `        "${storageBlake128MapKey("System", "Account", BOB)}`;
-  const collatorAuthorMapping = {};
-  // First pass
 
+  // List all the collator author mapping
+  const collatorAuthorMapping = {};
+
+  // First pass
   let selectedCollator = null;
   for await (const line of rl1) {
     if (line.startsWith(collatorLinePrefix)) {
@@ -88,7 +91,10 @@ async function main(inputFile: string, outputFile?: string) {
     }
   }
 
-  console.log(`Using account ${selectedCollator} as alice collator`);
+  // List all the collator author mapping
+  console.log(
+    `Using account ${selectedCollator} as alice collator, session ${collatorAuthorMapping[selectedCollator]}`
+  );
 
   if (!selectedCollator) {
     console.log(`Couldn't find collator with prefix ${authorLinePrefix}`);
@@ -111,37 +117,22 @@ async function main(inputFile: string, outputFile?: string) {
   const authorMappingPrefix = `        "${collatorMappingKey}"`;
 
   for await (const line of rl2) {
-    if (
-      !line.startsWith(revelentMessagingStatePrefix) &&
-      !line.startsWith(authorEligibilityRatioPrefix) &&
-      !line.startsWith(authorEligibilityCountPrefix) &&
-      !line.startsWith(councilLinePrefix) &&
-      !line.startsWith(techCommitteeeLinePrefix) &&
-      !line.startsWith(authorMappingPrefix) &&
-      // !line.startsWith(parachainIdPrefix) &&
-      !line.startsWith(lastDmqMqcHeadPrefix) &&
-      !line.startsWith(alithBalance) &&
-      !line.startsWith(bobBalance)
-    ) {
-      outStream.write(line);
-      outStream.write("\n");
-    }
-
     if (line.startsWith(`      "top"`)) {
       console.log("found top");
-      outStream.write(
-        `        "${storageBlake128MapKey(
-          "AuthorMapping",
-          "MappingWithDeposit",
-          ALITH_SESSION
-        )}": "${selectedCollator}000010632d5ec76b0500000000000000",\n`
-      );
+      const newLine = `        "${storageBlake128MapKey(
+        "AuthorMapping",
+        "MappingWithDeposit",
+        ALITH_SESSION
+      )}": "${selectedCollator}000010632d5ec76b0500000000000000${ALITH_SESSION.slice(2)}",\n`;
+      console.log(` ${chalk.green(`+ Adding session`)}\n\t${newLine}`);
+      outStream.write(newLine);
+
       outStream.write(
         `        "${storageBlake128MapKey(
           "AuthorMapping",
           "MappingWithDeposit",
           BOB_SESSION
-        )}": "${selectedCollator}000010632d5ec76b0500000000000000",\n`
+        )}": "${selectedCollator}000010632d5ec76b0500000000000000${BOB_SESSION.slice(2)}",\n`
       );
       // outStream.write(
       //   `        "${storageKey(
@@ -179,6 +170,22 @@ async function main(inputFile: string, outputFile?: string) {
           BOB
         )}": "0x00000000000000000000000000000000d699d3ded12e14d6e701000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",\n`
       );
+    } else if (line.startsWith(authorMappingPrefix)) {
+      console.log(` ${chalk.red(`- Removing session`)}\n\t${line}`);
+    } else if (
+      !line.startsWith(revelentMessagingStatePrefix) &&
+      !line.startsWith(authorEligibilityRatioPrefix) &&
+      !line.startsWith(authorEligibilityCountPrefix) &&
+      !line.startsWith(councilLinePrefix) &&
+      !line.startsWith(techCommitteeeLinePrefix) &&
+      !line.startsWith(authorMappingPrefix) &&
+      // !line.startsWith(parachainIdPrefix) &&
+      !line.startsWith(lastDmqMqcHeadPrefix) &&
+      !line.startsWith(alithBalance) &&
+      !line.startsWith(bobBalance)
+    ) {
+      outStream.write(line);
+      outStream.write("\n");
     }
   }
   // outStream.write("}\n")
