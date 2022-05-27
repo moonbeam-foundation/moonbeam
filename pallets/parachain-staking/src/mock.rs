@@ -141,6 +141,7 @@ impl Config for Test {
 	type OnCollatorPayout = ();
 	type OnNewRound = ();
 	type CollatorRegistration = ValidatorRegistrationMock<Self>;
+	type AdditionalIssuance = ();
 	type WeightInfo = ();
 }
 

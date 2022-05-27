@@ -172,6 +172,9 @@ pub mod pallet {
 		type OnNewRound: OnNewRound;
 		/// Whether a given collator has completed required registration to be selected as block author
 		type CollatorRegistration: ValidatorRegistration<Self::AccountId>;
+		/// Any additional issuance that should be used for inflation calcs
+		/// If you don't need it, you can specify the type `()`.
+		type AdditionalIssuance: AdditionalIssuance<BalanceOf<Self>>;
 		/// Weight information for extrinsics in this pallet.
 		type WeightInfo: WeightInfo;
 	}

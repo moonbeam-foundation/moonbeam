@@ -8023,8 +8023,9 @@ dependencies = [
  "frame-support",
  "frame-system",
  "log",
- "nimbus-primitives",
+ "pallet-authorship",
  "pallet-balances",
+ "pallet-session",
  "parity-scale-codec",
  "scale-info",
  "serde",
@@ -8032,6 +8033,7 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
+ "sp-staking",
  "sp-std",
  "substrate-fixed",
 ]
