@@ -122,7 +122,7 @@ where
 		is_static: bool,
 	) -> Option<PrecompileResult> {
 		// Filter known precompile addresses except Ethereum officials
-		if address > hash(9) && context.address != address {
+		if self.is_precompile(address) && address > hash(9) && context.address != address {
 			return Some(Err(PrecompileFailure::Revert {
 				exit_status: ExitRevert::Reverted,
 				output: b"cannot be called with DELEGATECALL or CALLCODE".to_vec(),
