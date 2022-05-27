@@ -74,7 +74,7 @@ fn selectors() {
 	assert_eq!(Action::UpdateAssociation as u32, 0xd9cef879);
 	assert_eq!(Action::ClearAssociation as u32, 0x7354c91d);
 	assert_eq!(Action::RemoveKeys as u32, 0x3b6c4284);
-	assert_eq!(Action::SetKeys as u32, 0x47f92fc4);
+	assert_eq!(Action::SetKeys as u32, 0xbcb24ddc);
 }
 
 #[test]
