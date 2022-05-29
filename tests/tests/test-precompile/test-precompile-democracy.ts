@@ -4,7 +4,6 @@ import { expect } from "chai";
 import {
   GENESIS_ACCOUNT,
   GENESIS_ACCOUNT_PRIVATE_KEY,
-  GLMR,
   ALITH_PRIV_KEY,
   ALITH,
   PROPOSAL_AMOUNT,
@@ -14,15 +13,9 @@ import {
 } from "../../util/constants";
 import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
 import { ApiTypes, SubmittableExtrinsic } from "@polkadot/api/types";
-
+import { BN } from "@polkadot/util";
 import { blake2AsHex } from "@polkadot/util-crypto";
-import { createBlockWithExtrinsic } from "../../util/substrate-rpc";
-import {
-  callPrecompile,
-  createContract,
-  createTransaction,
-  sendPrecompileTx,
-} from "../../util/transactions";
+import { createContract, createTransaction, sendPrecompileTx } from "../../util/transactions";
 import { numberToHex } from "@polkadot/util";
 import { getCompiled } from "../../util/contracts";
 import { ethers } from "ethers";
@@ -315,14 +308,17 @@ describeDevMoonbeam("Democracy - vote on referendum", (context) => {
       [numberToHex(0), numberToHex(1000)]
     );
   });
+
   it("check enactment period", async function () {
     // enactmentPeriod
     expect(enactmentPeriod.toHuman()).to.equal("7,200");
   });
+
   it("check voting Period", async function () {
     // votingPeriod
     expect(votingPeriod.toHuman()).to.equal("36,000");
   });
+
   it("vote", async function () {
     this.timeout(2000000);
     // let Launchperiod elapse to turn the proposal into a referendum
@@ -340,108 +336,64 @@ describeDevMoonbeam("Democracy - vote on referendum", (context) => {
       "standard_vote",
       [numberToHex(0), "0x01", numberToHex(Number(VOTE_AMOUNT)), numberToHex(1)]
     );
-
     // referendumInfoOf
     const referendumInfoOf = await context.polkadotApi.query.democracy.referendumInfoOf(0);
-    console.log("referendumInfoOf.toHuman() ", referendumInfoOf.toHuman());
-    expect((referendumInfoOf.toHuman() as any).Ongoing.proposalHash).to.equal(encodedHash);
-    expect((referendumInfoOf.toHuman() as any).Ongoing.tally.ayes).to.equal(
-      "10,000,000,000,000,000,000"
+    expect(referendumInfoOf.unwrap().asOngoing.proposalHash.toHex()).to.equal(encodedHash);
+    expect(referendumInfoOf.unwrap().asOngoing.delay.toNumber()).to.equal(
+      enactmentPeriod.toNumber()
     );
-    expect((referendumInfoOf.toHuman() as any).Ongoing.tally.turnout).to.equal(
-      "10,000,000,000,000,000,000"
+    expect(referendumInfoOf.unwrap().asOngoing.tally.ayes.toBigInt()).to.equal(
+      10_000_000_000_000_000_000n
+    );
+    expect(referendumInfoOf.unwrap().asOngoing.tally.turnout.toBigInt()).to.equal(
+      10_000_000_000_000_000_000n
     );
 
-    // let votePeriod + enactmentPeriod elapse to turn the proposal into a referendum
-    for (let i = 0; i < Number(votingPeriod) + Number(enactmentPeriod) + 10; i++) {
-      await context.createBlock();
-    }
-    let parachainBondInfo = await context.polkadotApi.query.parachainStaking.parachainBondInfo();
-    expect(parachainBondInfo.toHuman()["account"]).to.equal(GENESIS_ACCOUNT);
-  });
-});
+    const referendumHex = referendumInfoOf.toHex();
 
-// When forgetting to call notePreimage, all following steps should work as intended
-// until the end where the proposal is never enacted
+    // Instead of waiting votePeriod + enactmentPeriod (which is very long) we hack
+    // the referendum to be shorter
+    const blockNumber = (await context.polkadotApi.rpc.chain.getHeader()).number;
 
-describeDevMoonbeam("Democracy - forget notePreimage", (context) => {
-  let genesisAccount: KeyringPair, alith: KeyringPair;
-  let encodedHash: string;
-  let enactmentPeriod, votingPeriod;
-  let iFace: Interface;
-
-  before("Setup genesis account for substrate", async () => {
-    const keyring = new Keyring({ type: "ethereum" });
-    genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
-    alith = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
-
-    iFace = await deployAndInterfaceContract(context, "Democracy");
-    // notePreimage
-    // compute proposal hash but don't submit it
-    const encodedProposal =
-      context.polkadotApi.tx.parachainStaking
-        .setParachainBondAccount(GENESIS_ACCOUNT)
-        .method.toHex() || "";
-    encodedHash = blake2AsHex(encodedProposal);
-  });
-  it("vote", async function () {
-    this.timeout(200000);
-
-    // propose
-    const { events: eventsPropose } = await createBlockWithExtrinsic(
-      context,
-      genesisAccount,
-      context.polkadotApi.tx.democracy.propose(encodedHash, PROPOSAL_AMOUNT)
+    // new end block to
+    const newEndBlock = context.polkadotApi.registry.createType(
+      "u32",
+      blockNumber.toBn().add(new BN(2))
     );
-    expect(eventsPropose[2].toHuman().method).to.eq("Proposed");
-    expect(eventsPropose[5].toHuman().method).to.eq("ExtrinsicSuccess");
+
+    // Set 0 block delay
+    const delay = context.polkadotApi.registry.createType(
+      "u32",
+      referendumInfoOf.unwrap().asOngoing.delay.sub(enactmentPeriod)
+    );
+
+    // taking same referendum with different end & delay
+    const modReferendum = `0x00${newEndBlock.toHex(true).slice(2)}${referendumHex.slice(
+      12,
+      78
+    )}${delay.toHex(true).slice(2)}${referendumHex.slice(86)}`;
+
+    // Changing storage for the referendum using sudo
+    await context.polkadotApi.tx.sudo
+      .sudo(
+        context.polkadotApi.tx.system.setStorage([
+          [context.polkadotApi.query.democracy.referendumInfoOf.key(0).toString(), modReferendum],
+        ])
+      )
+      .signAndSend(alith);
     await context.createBlock();
-    // second
-    const { events: eventsSecond } = await createBlockWithExtrinsic(
-      context,
-      alith,
-      context.polkadotApi.tx.democracy.second(0, 1000)
-    );
-    expect(eventsSecond[2].toHuman().method).to.eq("Seconded");
-    expect(eventsSecond[5].toHuman().method).to.eq("ExtrinsicSuccess");
-    // let Launchperiod elapse to turn the proposal into a referendum
-    // launchPeriod minus the 3 blocks that already elapsed
-    for (let i = 0; i < 7200; i++) {
+
+    // Waiting extra blocks for the vote to finish
+    for (let i = 0; i < 2; i++) {
       await context.createBlock();
     }
-    // referendumCount
-    let referendumCount = await context.polkadotApi.query.democracy.referendumCount();
-    expect(referendumCount.toHuman()).to.equal("1");
 
-    // vote
-    await context.createBlock();
-    const { events: eventsVote } = await createBlockWithExtrinsic(
-      context,
-      alith,
-      context.polkadotApi.tx.democracy.vote(0, {
-        Standard: { balance: VOTE_AMOUNT, vote: { aye: true, conviction: 1 } },
-      })
-    );
+    let parachainBondInfo =
+      (await context.polkadotApi.query.parachainStaking.parachainBondInfo()) as any;
 
-    expect(eventsVote[1].toHuman().method).to.eq("Voted");
-    expect(eventsVote[4].toHuman().method).to.eq("ExtrinsicSuccess");
-
-    // referendumInfoOf
-    const referendumInfoOf = await context.polkadotApi.query.democracy.referendumInfoOf(0);
-    expect((referendumInfoOf.toHuman() as any).Ongoing.proposalHash).to.equal(encodedHash);
-    expect((referendumInfoOf.toHuman() as any).Ongoing.tally.ayes).to.equal(
-      "10,000,000,000,000,000,000"
-    );
-    expect((referendumInfoOf.toHuman() as any).Ongoing.tally.turnout).to.equal(
-      "10,000,000,000,000,000,000"
-    );
-
-    // let votePeriod + enactmentPeriod elapse to turn the proposal into a referendum
-    for (let i = 0; i < Number(votingPeriod) + Number(enactmentPeriod); i++) {
-      await context.createBlock();
-    }
-    // the enactement should fail
-    let parachainBondInfo = await context.polkadotApi.query.parachainStaking.parachainBondInfo();
-    expect(parachainBondInfo.toHuman()["account"]).to.equal(ZERO_ADDRESS);
+    const referendumDone = await context.polkadotApi.query.democracy.referendumInfoOf(0);
+    expect(referendumDone.unwrap().isFinished).to.be.true;
+    expect(referendumDone.unwrap().asFinished.approved.isTrue).to.be.true;
+    expect(parachainBondInfo.account.toString()).to.equal(GENESIS_ACCOUNT);
   });
 });
