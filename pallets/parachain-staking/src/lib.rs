@@ -1316,7 +1316,7 @@ pub mod pallet {
 		) -> DispatchResult {
 			ensure_signed(origin)?;
 			ensure!(candidates.len() < 100, <Error<T>>::InsufficientBalance);
-			for candidate in candidates {
+			for candidate in &candidates {
 				ensure!(
 					<CandidateInfo<T>>::get(&candidate).is_none(),
 					<Error<T>>::CandidateNotLeaving
@@ -1325,6 +1325,9 @@ pub mod pallet {
 					<DelegationScheduledRequests<T>>::get(&candidate).is_empty(),
 					<Error<T>>::CandidateNotLeaving
 				);
+			}
+
+			for candidate in candidates {
 				<DelegationScheduledRequests<T>>::remove(candidate);
 			}
 
