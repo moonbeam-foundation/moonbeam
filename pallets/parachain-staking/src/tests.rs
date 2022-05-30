@@ -30,8 +30,8 @@ use crate::{
 	assert_eq_events, assert_eq_last_events, assert_event_emitted, assert_event_not_emitted,
 	assert_last_event, assert_tail_eq, set::OrderedSet, AtStake, Bond, BottomDelegations,
 	CandidateInfo, CandidateMetadata, CandidatePool, CandidateState, CapacityStatus,
-	CollatorCandidate, CollatorStatus, Config, Delegations, Delegator, DelegatorAdded,
-	DelegatorState, DelegatorStatus, Error, Event, Range, TopDelegations, Total,
+	CollatorCandidate, CollatorStatus, Config, DelegationScheduledRequests, Delegations, Delegator,
+	DelegatorAdded, DelegatorState, DelegatorStatus, Error, Event, Range, TopDelegations, Total,
 };
 use frame_support::{assert_noop, assert_ok, traits::ReservableCurrency};
 use sp_runtime::{traits::Zero, DispatchError, ModuleError, Perbill, Percent};
@@ -8838,5 +8838,109 @@ fn test_delegator_scheduled_for_leave_is_rewarded_when_request_cancelled() {
 				],
 				"delegator was not rewarded as intended",
 			);
+		});
+}
+
+#[test]
+fn test_delegation_request_exists_returns_false_when_nothing_exists() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 25)])
+		.with_candidates(vec![(1, 30)])
+		.with_delegations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			assert!(!ParachainStaking::delegation_request_exists(&1, &2));
+		});
+}
+
+#[test]
+fn test_delegation_request_exists_returns_true_when_decrease_exists() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 25)])
+		.with_candidates(vec![(1, 30)])
+		.with_delegations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			<DelegationScheduledRequests<Test>>::insert(
+				1,
+				vec![ScheduledRequest {
+					delegator: 2,
+					when_executable: 3,
+					action: DelegationAction::Decrease(5),
+				}],
+			);
+			assert!(ParachainStaking::delegation_request_exists(&1, &2));
+		});
+}
+
+#[test]
+fn test_delegation_request_exists_returns_true_when_revoke_exists() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 25)])
+		.with_candidates(vec![(1, 30)])
+		.with_delegations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			<DelegationScheduledRequests<Test>>::insert(
+				1,
+				vec![ScheduledRequest {
+					delegator: 2,
+					when_executable: 3,
+					action: DelegationAction::Revoke(5),
+				}],
+			);
+			assert!(ParachainStaking::delegation_request_exists(&1, &2));
+		});
+}
+
+#[test]
+fn test_delegation_request_revoke_exists_returns_false_when_nothing_exists() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 25)])
+		.with_candidates(vec![(1, 30)])
+		.with_delegations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			assert!(!ParachainStaking::delegation_request_revoke_exists(&1, &2));
+		});
+}
+
+#[test]
+fn test_delegation_request_revoke_exists_returns_false_when_decrease_exists() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 25)])
+		.with_candidates(vec![(1, 30)])
+		.with_delegations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			<DelegationScheduledRequests<Test>>::insert(
+				1,
+				vec![ScheduledRequest {
+					delegator: 2,
+					when_executable: 3,
+					action: DelegationAction::Decrease(5),
+				}],
+			);
+			assert!(!ParachainStaking::delegation_request_revoke_exists(&1, &2));
+		});
+}
+
+#[test]
+fn test_delegation_request_revoke_exists_returns_true_when_revoke_exists() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 25)])
+		.with_candidates(vec![(1, 30)])
+		.with_delegations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			<DelegationScheduledRequests<Test>>::insert(
+				1,
+				vec![ScheduledRequest {
+					delegator: 2,
+					when_executable: 3,
+					action: DelegationAction::Revoke(5),
+				}],
+			);
+			assert!(ParachainStaking::delegation_request_revoke_exists(&1, &2));
 		});
 }
