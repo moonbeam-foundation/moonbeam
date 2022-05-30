@@ -118,7 +118,7 @@ where
 		// Filter known precompile addresses except Ethereum officials
 		if self.is_precompile(handle.code_address())
 			&& handle.code_address() > hash(9)
-			&& handle.context().address != address
+			&& handle.code_address() != handle.context().address
 		{
 			return Some(Err(PrecompileFailure::Revert {
 				exit_status: ExitRevert::Reverted,
