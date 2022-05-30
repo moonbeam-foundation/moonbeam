@@ -520,14 +520,16 @@ impl<T: Config> Pallet<T> {
 			.any(|req| &req.delegator == delegator)
 	}
 
-	/// Returns true if a [ScheduledRequest] exists for a given delegation
+	/// Returns true if a [DelegationAction::Revoke] [ScheduledRequest] exists for a given delegation
 	pub fn delegation_request_revoke_exists(
 		collator: &T::AccountId,
 		delegator: &T::AccountId,
 	) -> bool {
 		<DelegationScheduledRequests<T>>::get(collator)
 			.iter()
-			.any(|req| &req.delegator == delegator && matches!(req, DelegationAction::Revoke(_)))
+			.any(|req| {
+				&req.delegator == delegator && matches!(req.action, DelegationAction::Revoke(_))
+			})
 	}
 }
 
