@@ -123,7 +123,6 @@ where
 			return Some(Err(PrecompileFailure::Revert {
 				exit_status: ExitRevert::Reverted,
 				output: b"cannot be called with DELEGATECALL or CALLCODE".to_vec(),
-				cost: 0,
 			}));
 		}
 
