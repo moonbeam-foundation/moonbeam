@@ -215,7 +215,6 @@ pub mod pallet {
 		PendingDelegationRequestAlreadyExists,
 		PendingDelegationRequestNotDueYet,
 		CannotDelegateLessThanOrEqualToLowestBottomWhenFull,
-		PendingDelegationRevoke,
 	}
 
 	#[pallet::event]
@@ -1269,10 +1268,6 @@ pub mod pallet {
 			more: BalanceOf<T>,
 		) -> DispatchResultWithPostInfo {
 			let delegator = ensure_signed(origin)?;
-			ensure!(
-				!Self::delegation_request_revoke_exists(&candidate, &delegator),
-				Error::<T>::PendingDelegationRevoke
-			);
 			let mut state = <DelegatorState<T>>::get(&delegator).ok_or(Error::<T>::DelegatorDNE)?;
 			state.increase_delegation::<T>(candidate.clone(), more)?;
 			Ok(().into())
