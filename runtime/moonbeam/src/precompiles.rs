@@ -16,7 +16,7 @@
 
 use crate::asset_config::{ForeignAssetInstance, LocalAssetInstance};
 use crowdloan_rewards_precompiles::CrowdloanRewardsWrapper;
-use fp_evm::{Context, ExitRevert, PrecompileFailure, PrecompileHandle};
+use fp_evm::{ExitRevert, PrecompileFailure, PrecompileHandle};
 use moonbeam_relay_encoder::polkadot::PolkadotEncoder;
 use pallet_author_mapping_precompiles::AuthorMappingWrapper;
 use pallet_democracy_precompiles::DemocracyWrapper;
