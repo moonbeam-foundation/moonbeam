@@ -116,14 +116,17 @@ where
 {
 	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<PrecompileResult> {
 		// Filter known precompile addresses except Ethereum officials
-		if self.is_precompile(handle.code_address()) && handle.code_address() > hash(9) && context.context().address != address {
+		if self.is_precompile(handle.code_address())
+			&& handle.code_address() > hash(9)
+			&& context.context().address != address
+		{
 			return Some(Err(PrecompileFailure::Revert {
 				exit_status: ExitRevert::Reverted,
 				output: b"cannot be called with DELEGATECALL or CALLCODE".to_vec(),
 				cost: 0,
 			}));
 		}
-		
+
 		match handle.code_address() {
 			// Ethereum precompiles :
 			a if a == hash(1) => Some(ECRecover::execute(handle)),
