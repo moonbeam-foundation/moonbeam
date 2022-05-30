@@ -1270,7 +1270,7 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let delegator = ensure_signed(origin)?;
 			ensure!(
-				!Self::delegation_request_exists(&candidate, &delegator),
+				!Self::delegation_request_revoke_exists(&candidate, &delegator),
 				Error::<T>::PendingDelegationRevoke
 			);
 			let mut state = <DelegatorState<T>>::get(&delegator).ok_or(Error::<T>::DelegatorDNE)?;
