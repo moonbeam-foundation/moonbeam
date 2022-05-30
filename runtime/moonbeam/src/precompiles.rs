@@ -124,7 +124,7 @@ where
 			}));
 		}
 
-		match address {
+		match handle.code_address() {
 			// Ethereum precompiles :
 			a if a == hash(1) => Some(ECRecover::execute(handle)),
 			a if a == hash(2) => Some(Sha256::execute(handle)),
