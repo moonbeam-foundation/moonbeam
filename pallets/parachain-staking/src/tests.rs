@@ -2723,6 +2723,25 @@ fn can_delegator_bond_more_for_leaving_candidate() {
 		});
 }
 
+#[test]
+fn delegator_bond_more_disallowed_when_revoke_scheduled() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 15)])
+		.with_candidates(vec![(1, 30)])
+		.with_delegations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(ParachainStaking::schedule_revoke_delegation(
+				Origin::signed(2),
+				1
+			));
+			assert_noop!(
+				ParachainStaking::delegator_bond_more(Origin::signed(2), 1, 5),
+				<Error<Test>>::PendingDelegationRevoke
+			);
+		});
+}
+
 // DELEGATOR BOND LESS
 
 #[test]
