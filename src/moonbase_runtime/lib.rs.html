@@ -2194,9 +2194,9 @@
 	<span class="doccomment">/// Minimum stake required to be reserved to be a candidate</span>
 	<span class="kw">type</span> <span class="ident">MinCandidateStk</span> <span class="op">=</span> <span class="ident">ConstU128</span><span class="op">&lt;</span>{ <span class="number">500</span> <span class="op">*</span> <span class="ident">currency::UNIT</span> <span class="op">*</span> <span class="ident">currency::SUPPLY_FACTOR</span> }<span class="op">&gt;</span>;
 	<span class="doccomment">/// Minimum stake required to be reserved to be a delegator</span>
-	<span class="kw">type</span> <span class="ident">MinDelegation</span> <span class="op">=</span> <span class="ident">ConstU128</span><span class="op">&lt;</span>{ <span class="number">5</span> <span class="op">*</span> <span class="ident">currency::UNIT</span> <span class="op">*</span> <span class="ident">currency::SUPPLY_FACTOR</span> }<span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">MinDelegation</span> <span class="op">=</span> <span class="ident">ConstU128</span><span class="op">&lt;</span>{ <span class="number">1</span> <span class="op">*</span> <span class="ident">currency::UNIT</span> <span class="op">*</span> <span class="ident">currency::SUPPLY_FACTOR</span> }<span class="op">&gt;</span>;
 	<span class="doccomment">/// Minimum stake required to be reserved to be a delegator</span>
-	<span class="kw">type</span> <span class="ident">MinDelegatorStk</span> <span class="op">=</span> <span class="ident">ConstU128</span><span class="op">&lt;</span>{ <span class="number">5</span> <span class="op">*</span> <span class="ident">currency::UNIT</span> <span class="op">*</span> <span class="ident">currency::SUPPLY_FACTOR</span> }<span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">MinDelegatorStk</span> <span class="op">=</span> <span class="ident">ConstU128</span><span class="op">&lt;</span>{ <span class="number">1</span> <span class="op">*</span> <span class="ident">currency::UNIT</span> <span class="op">*</span> <span class="ident">currency::SUPPLY_FACTOR</span> }<span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">OnCollatorPayout</span> <span class="op">=</span> <span class="ident">OnCollatorPayout</span>;
 	<span class="kw">type</span> <span class="ident">OnNewRound</span> <span class="op">=</span> <span class="ident">OnNewRound</span>;
 	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">parachain_staking::weights::SubstrateWeight</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
@@ -2863,11 +2863,11 @@
 		);
 		<span class="macro">assert_eq!</span>(
 			<span class="macro">get!</span>(<span class="ident">parachain_staking</span>, <span class="ident">MinDelegation</span>, <span class="ident">u128</span>),
-			<span class="ident">Balance::from</span>(<span class="number">5</span> <span class="op">*</span> <span class="ident">UNIT</span>)
+			<span class="ident">Balance::from</span>(<span class="number">1</span> <span class="op">*</span> <span class="ident">UNIT</span>)
 		);
 		<span class="macro">assert_eq!</span>(
 			<span class="macro">get!</span>(<span class="ident">parachain_staking</span>, <span class="ident">MinDelegatorStk</span>, <span class="ident">u128</span>),
-			<span class="ident">Balance::from</span>(<span class="number">5</span> <span class="op">*</span> <span class="ident">UNIT</span>)
+			<span class="ident">Balance::from</span>(<span class="number">1</span> <span class="op">*</span> <span class="ident">UNIT</span>)
 		);
 
 		<span class="comment">// crowdloan min reward</span>
