@@ -4,12 +4,17 @@ import { expect } from "chai";
 import { BN, u8aToHex } from "@polkadot/util";
 
 import { ALITH_PRIV_KEY, BALTATHAR_PRIVATE_KEY, RANDOM_PRIV_KEY } from "../util/constants";
+import { GENESIS_ACCOUNT, TEST_ACCOUNT } from "../util/constants";
+
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 import { createBlockWithExtrinsic } from "../util/substrate-rpc";
 import { customWeb3Request } from "../util/providers";
 import type { XcmVersionedXcm } from "@polkadot/types/lookup";
 
 import { ParaId, XcmpMessageFormat } from "@polkadot/types/interfaces";
+import {ChaChaRng} from "randchacha";
+import { createTransfer } from "../util/transactions";
+import { substrateTransaction } from "../util/transactions";
 
 const FOREIGN_TOKEN = 1_000_000_000_000n;
 
@@ -1287,5 +1292,194 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     )) as any;
 
     expect(alithAssetZeroBalance.isNone).to.eq(true);
+  });
+});
+
+
+describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
+  it.only("Should test that XCMP is executed both when set_validation_data and on_idle ", async function () {
+    this.timeout(120000);
+    const metadata = await context.polkadotApi.rpc.state.getMetadata();
+    const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
+      (pallet) => {
+        return pallet.name === "Balances";
+      }
+    ).index;
+    let ownParaId = (await context.polkadotApi.query.parachainInfo.parachainId()) as any;
+
+    
+    // To test this, we will generate a message that we know for sure it goes beyond the 20_000_000_000
+    // that we need to fill the initialization weight assigned for xcmp
+
+    // The rest will try to be executed on idle
+    // We dont need succesful messages for this, i.e., we can just deal with a WithdrawAsset + BuyExecution
+    // that we know passes the abrrier
+    const keyringEth = new Keyring({ type: "ethereum" });
+    const alith = keyringEth.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
+    // We are going to test that, using one of them as fee payment (assetOne),
+    // we can receive the other
+    let xcmMessage = {
+      V2: [
+        { WithdrawAsset: [
+          { id: {
+            Concrete: {
+              parents: 0,
+              interior: {
+                X1: { PalletInstance: balancesPalletIndex },
+              },
+            },
+          },
+          fun: { Fungible: 1 }
+          }
+      ]
+      },
+      {
+        ClearOrigin: null
+      },
+      {
+        ClearOrigin: null
+      },
+      {
+        ClearOrigin: null
+      },
+      {
+        ClearOrigin: null
+      },
+      {
+        ClearOrigin: null
+      },
+      {
+        ClearOrigin: null
+      },
+      {
+        ClearOrigin: null
+      },
+      {
+        ClearOrigin: null
+      },
+      {
+        ClearOrigin: null
+      },
+      {
+        ClearOrigin: null
+      },
+      {
+        ClearOrigin: null
+      },
+      {
+        ClearOrigin: null
+      },
+      {
+        ClearOrigin: null
+      },
+      {
+        ClearOrigin: null
+      },
+      {
+        ClearOrigin: null
+      },
+      {
+        ClearOrigin: null
+      },
+      { BuyExecution:  {
+          fees:
+          { id: {
+            Concrete: {
+              parents: 1,
+              interior: {
+                X2: [{ Parachain: ownParaId }, { PalletInstance: balancesPalletIndex }],
+              },
+            },
+          },
+          fun: { Fungible: 1 }
+          },
+          weightLimit: {Limited: new BN(20000000000)}
+          }
+      },
+      ],
+    };
+    const xcmpFormat: XcmpMessageFormat = context.polkadotApi.createType(
+      "XcmpMessageFormat",
+      "ConcatenatedVersionedXcm"
+    ) as any;
+    const receivedMessage: XcmVersionedXcm = context.polkadotApi.createType(
+      "XcmVersionedXcm",
+      xcmMessage
+    ) as any;
+
+    const totalMessage = [...xcmpFormat.toU8a(), ...receivedMessage.toU8a()];
+
+    console.log(totalMessage);
+
+    // Each instruction in Moonbase costs 100_000_000
+    // we are executing 2, so each message costs 200_000_000
+    // This means we need 100 messages to exhaust the limit
+    // We will try to inject 120
+
+    for (let i=0; i<100; i++) {
+
+      const paraId = context.polkadotApi.createType("ParaId", i+1) as any;
+      const sovereignAddress = u8aToHex(
+      new Uint8Array([...new TextEncoder().encode("sibl"), ...paraId.toU8a()])
+    ).padEnd(42, "0");
+
+    // We first fund parachain 2000 sovreign account
+    await createBlockWithExtrinsic(
+      context,
+      alith,
+      context.polkadotApi.tx.balances.transfer(sovereignAddress, 100n)
+    );
+    }
+    
+
+    let indices = Array.from(Array(100).keys());
+    let seed = await context.polkadotApi.query.system.parentHash();
+    console.log(ChaChaRng)
+    let rng = new ChaChaRng(seed);
+    console.log("Seed");
+    console.log(u8aToHex(seed))
+    for (let i=0; i<100; i++) {
+      let rand = rng.nextU32();
+      console.log("rand");
+      console.log(rand)
+      let j = rand % 100;
+      [indices[i], indices[j]] = [indices[j], indices[i]];
+    }
+
+    console.log(indices)
+    for (let i=0; i<100; i++) {
+      await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [
+      i+1,
+      totalMessage,
+      ]);
+    }
+
+    await context.polkadotApi.tx.proxy.addProxy(TEST_ACCOUNT, "Staking", 0)
+    .signAndSend(alith);
+
+
+    let block = await context.createBlock();
+
+    const signedBlock = await context.polkadotApi.rpc.chain.getBlock();
+    const apiAt = await context.polkadotApi.at(signedBlock.block.header.hash);
+    const allRecords = await apiAt.query.system.events();
+    let events = allRecords.map(({ event }) => `${event.section}.${event.method}.${event.data}`);
+    console.log(events.length)
+    events.forEach((e) => {
+      console.log(e);
+    });
+
+    for (let i=0; i<100; i++) {
+
+      const paraId = context.polkadotApi.createType("ParaId", i+1) as any;
+      const sovereignAddress = u8aToHex(
+      new Uint8Array([...new TextEncoder().encode("sibl"), ...paraId.toU8a()])
+    ).padEnd(42, "0");
+
+    
+    let balance = await context.polkadotApi.query.system.account(sovereignAddress);
+    console.log(balance.toString())
+    }
+
   });
 });
