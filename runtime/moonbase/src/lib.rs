@@ -1402,11 +1402,11 @@ mod tests {
 		);
 		assert_eq!(
 			get!(parachain_staking, MinDelegation, u128),
-			Balance::from(5 * UNIT)
+			Balance::from(1 * UNIT)
 		);
 		assert_eq!(
 			get!(parachain_staking, MinDelegatorStk, u128),
-			Balance::from(5 * UNIT)
+			Balance::from(1 * UNIT)
 		);
 
 		// crowdloan min reward
