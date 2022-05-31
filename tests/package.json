@@ -41,7 +41,7 @@
     "watch": "npm-watch",
     "build": "cargo build --release",
     "non-ci-test": "mocha -r ts-node/register 'non_ci_tests/**/test-*.ts'",
-    "test-single": "mocha -r ts-node/register 'tests/test-mock-hrmp.ts'",
+    "test-single": "mocha -r ts-node/register 'tests/test-precompile/test-precompile-batch.ts'",
     "current-test": "mocha -r ts-node/register",
     "lint": "npx prettier --write --ignore-path .gitignore '**/*.(yml|js|ts|json)'",
     "clean": "rimraf *.log binaries/* runtimes/* specs/*"
