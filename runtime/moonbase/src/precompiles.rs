@@ -16,7 +16,7 @@
 
 use crate::asset_config::{ForeignAssetInstance, LocalAssetInstance};
 use crowdloan_rewards_precompiles::CrowdloanRewardsWrapper;
-use fp_evm::{ExitRevert, PrecompileFailure, PrecompileHandle};
+use fp_evm::PrecompileHandle;
 use moonbeam_relay_encoder::westend::WestendEncoder;
 use pallet_author_mapping_precompiles::AuthorMappingWrapper;
 use pallet_democracy_precompiles::DemocracyWrapper;
@@ -31,6 +31,7 @@ use pallet_evm_precompile_modexp::Modexp;
 use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
 use parachain_staking_precompiles::ParachainStakingWrapper;
+use precompile_utils::revert;
 use relay_encoder_precompiles::RelayEncoderWrapper;
 use sp_core::H160;
 use sp_std::fmt::Debug;
@@ -120,10 +121,9 @@ where
 			&& handle.code_address() > hash(9)
 			&& handle.code_address() != handle.context().address
 		{
-			return Some(Err(PrecompileFailure::Revert {
-				exit_status: ExitRevert::Reverted,
-				output: b"cannot be called with DELEGATECALL or CALLCODE".to_vec(),
-			}));
+			return Some(Err(revert(
+				"cannot be called with DELEGATECALL or CALLCODE",
+			)));
 		}
 
 		match handle.code_address() {
