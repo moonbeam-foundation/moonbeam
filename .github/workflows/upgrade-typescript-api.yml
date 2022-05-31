@@ -3,11 +3,11 @@ on:
   workflow_dispatch:
     inputs:
       spec_version:
-        description: runtime spec version
+        description: runtime spec version (ex. 1601)
         required: true
 
 jobs:
-  create-tracing-runtime:
+  upgrading-typescript-api:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
