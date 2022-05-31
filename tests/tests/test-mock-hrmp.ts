@@ -12,9 +12,11 @@ import { customWeb3Request } from "../util/providers";
 import type { XcmVersionedXcm } from "@polkadot/types/lookup";
 
 import { ParaId, XcmpMessageFormat } from "@polkadot/types/interfaces";
-import {ChaChaRng} from "randchacha";
+import { ChaChaRng } from "randchacha";
 import { createTransfer } from "../util/transactions";
 import { substrateTransaction } from "../util/transactions";
+import { Context } from "mocha";
+import { shuffled } from "ethers/lib/utils";
 
 const FOREIGN_TOKEN = 1_000_000_000_000n;
 
@@ -1295,10 +1297,11 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
   });
 });
 
-
 describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
-  it.only("Should test that XCMP is executed both when set_validation_data and on_idle ", async function () {
+  it("Should test that XCMP is executed randomized and until exhausted", async function () {
     this.timeout(120000);
+    const keyringEth = new Keyring({ type: "ethereum" });
+    const alith = keyringEth.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
     const metadata = await context.polkadotApi.rpc.state.getMetadata();
     const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
       (pallet) => {
@@ -1307,21 +1310,39 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     ).index;
     let ownParaId = (await context.polkadotApi.query.parachainInfo.parachainId()) as any;
 
-    
-    // To test this, we will generate a message that we know for sure it goes beyond the 20_000_000_000
-    // that we need to fill the initialization weight assigned for xcmp
+    // lets work with restrict decay 0 for now
+    await createBlockWithExtrinsic(
+      context,
+      alith,
+      context.polkadotApi.tx.sudo.sudo(
+        context.polkadotApi.tx.xcmpQueue.updateWeightRestrictDecay(0)
+      )
+    );
 
-    // The rest will try to be executed on idle
-    // We dont need succesful messages for this, i.e., we can just deal with a WithdrawAsset + BuyExecution
-    // that we know passes the abrrier
-    const keyringEth = new Keyring({ type: "ethereum" });
-    const alith = keyringEth.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
-    // We are going to test that, using one of them as fee payment (assetOne),
-    // we can receive the other
-    let xcmMessage = {
-      V2: [
-        { WithdrawAsset: [
-          { id: {
+    let numParaMsgs = 50;
+    // let's target half of then being executed
+
+    // xcmp reserved is BLOCK/4
+    let totalXcmpWeight =
+      context.polkadotApi.consts.system.blockWeights.maxBlock.toBigInt() / BigInt(4);
+
+    // we want half of numParaMsgs to be executed. That should give us how much each message should wait
+    let weightPerMessage = (totalXcmpWeight * BigInt(2)) / BigInt(numParaMsgs);
+
+    let weightPerXcmInst = 100_000_000n;
+    // Now we need to construct the message. This needs to:
+    // - pass barrier (withdraw + clearOrigin*n buyExecution)
+    // - fail in buyExecution, so that the previous instruction weights are counted
+    // we know at least 2 instructions are needed per message (withdrawAsset + buyExecution)
+    // how many clearOrigins do we need to append?
+
+    let clearOriginsPerMessage = (weightPerMessage - weightPerXcmInst * 1n) / weightPerXcmInst;
+
+    let instructions = [];
+    instructions.push({
+      WithdrawAsset: [
+        {
+          id: {
             Concrete: {
               parents: 0,
               interior: {
@@ -1329,61 +1350,23 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
               },
             },
           },
-          fun: { Fungible: 1 }
-          }
-      ]
-      },
-      {
-        ClearOrigin: null
-      },
-      {
-        ClearOrigin: null
-      },
-      {
-        ClearOrigin: null
-      },
-      {
-        ClearOrigin: null
-      },
-      {
-        ClearOrigin: null
-      },
-      {
-        ClearOrigin: null
-      },
-      {
-        ClearOrigin: null
-      },
-      {
-        ClearOrigin: null
-      },
-      {
-        ClearOrigin: null
-      },
-      {
-        ClearOrigin: null
-      },
-      {
-        ClearOrigin: null
-      },
-      {
-        ClearOrigin: null
-      },
-      {
-        ClearOrigin: null
-      },
-      {
-        ClearOrigin: null
-      },
-      {
-        ClearOrigin: null
-      },
-      {
-        ClearOrigin: null
-      },
-      { BuyExecution:  {
-          fees:
-          { id: {
+          fun: { Fungible: 1 },
+        },
+      ],
+    });
+
+    // we push clear origins
+    for (let i = 0; i < clearOriginsPerMessage; i++) {
+      instructions.push({
+        ClearOrigin: null,
+      });
+    }
+
+    // we push the last buyExecution, that will fail
+    instructions.push({
+      BuyExecution: {
+        fees: {
+          id: {
             Concrete: {
               parents: 1,
               interior: {
@@ -1391,12 +1374,14 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
               },
             },
           },
-          fun: { Fungible: 1 }
-          },
-          weightLimit: {Limited: new BN(20000000000)}
-          }
+          fun: { Fungible: 1 },
+        },
+        weightLimit: { Limited: new BN(20000000000) },
       },
-      ],
+    });
+
+    let xcmMessage = {
+      V2: instructions,
     };
     const xcmpFormat: XcmpMessageFormat = context.polkadotApi.createType(
       "XcmpMessageFormat",
@@ -1409,77 +1394,80 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
 
     const totalMessage = [...xcmpFormat.toU8a(), ...receivedMessage.toU8a()];
 
-    console.log(totalMessage);
-
-    // Each instruction in Moonbase costs 100_000_000
-    // we are executing 2, so each message costs 200_000_000
-    // This means we need 100 messages to exhaust the limit
-    // We will try to inject 120
-
-    for (let i=0; i<100; i++) {
-
-      const paraId = context.polkadotApi.createType("ParaId", i+1) as any;
+    // We want these isntructions to fail in BuyExecution. That means
+    // WithdrawAsset needs to work. The only way for this to work
+    // is to fund each sovereign account
+    for (let i = 0; i < numParaMsgs; i++) {
+      const paraId = context.polkadotApi.createType("ParaId", i + 1) as any;
       const sovereignAddress = u8aToHex(
-      new Uint8Array([...new TextEncoder().encode("sibl"), ...paraId.toU8a()])
-    ).padEnd(42, "0");
+        new Uint8Array([...new TextEncoder().encode("sibl"), ...paraId.toU8a()])
+      ).padEnd(42, "0");
 
-    // We first fund parachain 2000 sovreign account
-    await createBlockWithExtrinsic(
-      context,
-      alith,
-      context.polkadotApi.tx.balances.transfer(sovereignAddress, 100n)
-    );
+      // We first fund each sovereign account with 100
+      // we will only withdraw 1, so no problem on this
+      await createBlockWithExtrinsic(
+        context,
+        alith,
+        context.polkadotApi.tx.balances.transfer(sovereignAddress, 100n)
+      );
     }
-    
 
-    let indices = Array.from(Array(100).keys());
+    // now we start injecting messages
+    // one per para
+    for (let i = 0; i < numParaMsgs; i++) {
+      await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [i + 1, totalMessage]);
+    }
+
+    await context.createBlock();
+
+    // we want to mimic the randomization process in the queue
+    let indices = Array.from(Array(numParaMsgs).keys());
     let seed = await context.polkadotApi.query.system.parentHash();
-    console.log(ChaChaRng)
     let rng = new ChaChaRng(seed);
-    console.log("Seed");
-    console.log(u8aToHex(seed))
-    for (let i=0; i<100; i++) {
+
+    // the randomization is as follows
+    // for every rand number, we do module number of paras
+    // the given index is swaped with that obtained with the
+    // random number
+    for (let i = 0; i < numParaMsgs; i++) {
       let rand = rng.nextU32();
-      console.log("rand");
-      console.log(rand)
-      let j = rand % 100;
+      let j = rand % numParaMsgs;
       [indices[i], indices[j]] = [indices[j], indices[i]];
     }
-
-    console.log(indices)
-    for (let i=0; i<100; i++) {
-      await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [
-      i+1,
-      totalMessage,
-      ]);
-    }
-
-    await context.polkadotApi.tx.proxy.addProxy(TEST_ACCOUNT, "Staking", 0)
-    .signAndSend(alith);
-
-
-    let block = await context.createBlock();
 
     const signedBlock = await context.polkadotApi.rpc.chain.getBlock();
     const apiAt = await context.polkadotApi.at(signedBlock.block.header.hash);
     const allRecords = await apiAt.query.system.events();
     let events = allRecords.map(({ event }) => `${event.section}.${event.method}.${event.data}`);
-    console.log(events.length)
+    let executedCount = 0;
+    let notExecutedCount = 0;
+    // we count how many were executed and how many not
     events.forEach((e) => {
-      console.log(e);
+      if (e.toString().includes("notHoldingFees")) {
+        executedCount += 1;
+      } else if (e.toString().includes("weightLimitReached")) {
+        notExecutedCount += 1;
+      }
     });
 
-    for (let i=0; i<100; i++) {
-
-      const paraId = context.polkadotApi.createType("ParaId", i+1) as any;
+    // check balances
+    for (let i = 0; i < numParaMsgs; i++) {
+      // we need to check the randomization works. We have the shuffleing
+      // and the amount executed, we need to make sure the balances
+      // corresponding to the first executedCount shuffled indices
+      // has one less unit of token
+      const paraId = context.polkadotApi.createType("ParaId", i + 1) as any;
       const sovereignAddress = u8aToHex(
-      new Uint8Array([...new TextEncoder().encode("sibl"), ...paraId.toU8a()])
-    ).padEnd(42, "0");
+        new Uint8Array([...new TextEncoder().encode("sibl"), ...paraId.toU8a()])
+      ).padEnd(42, "0");
 
-    
-    let balance = await context.polkadotApi.query.system.account(sovereignAddress);
-    console.log(balance.toString())
+      let balance = await context.polkadotApi.query.system.account(sovereignAddress);
+
+      if (indices.indexOf(i) < executedCount) {
+        expect(balance.data.free.toBigInt()).to.eq(99n);
+      } else {
+        expect(balance.data.free.toBigInt()).to.eq(100n);
+      }
     }
-
   });
 });
