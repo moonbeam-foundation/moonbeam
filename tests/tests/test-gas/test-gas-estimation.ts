@@ -1,5 +1,6 @@
 import { expect, use as chaiUse } from "chai";
 import chaiAsPromised from "chai-as-promised";
+import { ethers } from "ethers";
 
 import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 
@@ -93,5 +94,64 @@ describeDevMoonbeamAllEthTxTypes("Estimate Gas - Handle Gas price", (context) =>
       data: contract.byteCode,
     });
     expect(result).to.equal(152884);
+  });
+});
+
+describeDevMoonbeamAllEthTxTypes("Estimate Gas - Batch precompile", (context) => {
+  it("all batch functions should estimate the same cost", async function () {
+    const { contract: contractProxy, rawTx } = await createContract(context, "TestCallList");
+    await context.createBlock({ transactions: [rawTx] });
+
+    const { contract: contractDummy, rawTx: rawTx2 } = await createContract(
+      context,
+      "TestContract"
+    );
+    await context.createBlock({ transactions: [rawTx2] });
+
+    const proxyInterface = new ethers.utils.Interface(
+      (await getCompiled("TestCallList")).contract.abi
+    );
+    const dummyInterface = new ethers.utils.Interface(
+      (await getCompiled("TestContract")).contract.abi
+    );
+
+    const batchInterface = new ethers.utils.Interface((await getCompiled("Batch")).contract.abi);
+
+    const callParameters = [
+      [contractProxy.options.address, contractProxy.options.address],
+      [],
+      [
+        proxyInterface.encodeFunctionData("call", [
+          contractDummy.options.address,
+          dummyInterface.encodeFunctionData("multiply", [42]),
+        ]),
+        proxyInterface.encodeFunctionData("delegateCall", [
+          contractDummy.options.address,
+          dummyInterface.encodeFunctionData("multiply", [42]),
+        ]),
+      ],
+      [],
+    ];
+
+    const batchSomeGas = await context.web3.eth.estimateGas({
+      from: GENESIS_ACCOUNT,
+      to: "0x0000000000000000000000000000000000000808",
+      data: batchInterface.encodeFunctionData("batchSome", callParameters),
+    });
+
+    const batchSomeUntilFailureGas = await context.web3.eth.estimateGas({
+      from: GENESIS_ACCOUNT,
+      to: "0x0000000000000000000000000000000000000808",
+      data: batchInterface.encodeFunctionData("batchSomeUntilFailure", callParameters),
+    });
+
+    const batchAllGas = await context.web3.eth.estimateGas({
+      from: GENESIS_ACCOUNT,
+      to: "0x0000000000000000000000000000000000000808",
+      data: batchInterface.encodeFunctionData("batchAll", callParameters),
+    });
+
+    expect(batchSomeGas).to.be.eq(batchAllGas);
+    expect(batchSomeUntilFailureGas).to.be.eq(batchAllGas);
   });
 });
