@@ -773,6 +773,8 @@
 <span id="768">768</span>
 <span id="769">769</span>
 <span id="770">770</span>
+<span id="771">771</span>
+<span id="772">772</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -1105,6 +1107,7 @@
 			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">reads</span>(<span class="number">2</span> <span class="kw">as</span> <span class="ident">Weight</span>))
 			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">writes</span>(<span class="number">2</span> <span class="kw">as</span> <span class="ident">Weight</span>))
 	}
+	<span class="comment">// Storage: ParachainStaking DelegationScheduledRequests (r:1 w:0)</span>
 	<span class="comment">// Storage: ParachainStaking DelegatorState (r:1 w:1)</span>
 	<span class="comment">// Storage: ParachainStaking CandidateInfo (r:1 w:1)</span>
 	<span class="comment">// Storage: System Account (r:1 w:1)</span>
@@ -1113,8 +1116,8 @@
 	<span class="comment">// Storage: ParachainStaking Total (r:1 w:1)</span>
 	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
 	<span class="kw">fn</span> <span class="ident">delegator_bond_more</span>() -&gt; <span class="ident">Weight</span> {
-		(<span class="number">61_720_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
-			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">reads</span>(<span class="number">6</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+		(<span class="number">66_476_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
+			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">reads</span>(<span class="number">7</span> <span class="kw">as</span> <span class="ident">Weight</span>))
 			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">writes</span>(<span class="number">6</span> <span class="kw">as</span> <span class="ident">Weight</span>))
 	}
 	<span class="comment">// Storage: ParachainStaking DelegatorState (r:1 w:1)</span>
@@ -1430,6 +1433,7 @@
 			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">reads</span>(<span class="number">2</span> <span class="kw">as</span> <span class="ident">Weight</span>))
 			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">writes</span>(<span class="number">2</span> <span class="kw">as</span> <span class="ident">Weight</span>))
 	}
+	<span class="comment">// Storage: ParachainStaking DelegationScheduledRequests (r:1 w:0)</span>
 	<span class="comment">// Storage: ParachainStaking DelegatorState (r:1 w:1)</span>
 	<span class="comment">// Storage: ParachainStaking CandidateInfo (r:1 w:1)</span>
 	<span class="comment">// Storage: System Account (r:1 w:1)</span>
@@ -1438,8 +1442,8 @@
 	<span class="comment">// Storage: ParachainStaking Total (r:1 w:1)</span>
 	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
 	<span class="kw">fn</span> <span class="ident">delegator_bond_more</span>() -&gt; <span class="ident">Weight</span> {
-		(<span class="number">61_720_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
-			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">reads</span>(<span class="number">6</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+		(<span class="number">66_476_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
+			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">reads</span>(<span class="number">7</span> <span class="kw">as</span> <span class="ident">Weight</span>))
 			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">writes</span>(<span class="number">6</span> <span class="kw">as</span> <span class="ident">Weight</span>))
 	}
 	<span class="comment">// Storage: ParachainStaking DelegatorState (r:1 w:1)</span>
