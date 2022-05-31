@@ -177,12 +177,17 @@ impl Listener {
 						stack: if self.disable_stack {
 							None
 						} else {
-							Some(
-								stack
-									.expect("stack data to not be filtered out")
-									.data
-									.clone(),
-							)
+							let stack = stack.expect("stack data to not be filtered out");
+
+							self.remaining_memory_usage = self
+								.remaining_memory_usage
+								.and_then(|inner| inner.checked_sub(stack.data.len()));
+
+							if self.remaining_memory_usage.is_none() {
+								return;
+							}
+
+							Some(stack.data.clone())
 						},
 					});
 				}
@@ -212,6 +217,15 @@ impl Listener {
 						let storage = if self.disable_storage {
 							None
 						} else {
+							self.remaining_memory_usage =
+								self.remaining_memory_usage.and_then(|inner| {
+									inner.checked_sub(context.storage_cache.len() * 64)
+								});
+
+							if self.remaining_memory_usage.is_none() {
+								return;
+							}
+
 							Some(context.storage_cache.clone())
 						};
 
