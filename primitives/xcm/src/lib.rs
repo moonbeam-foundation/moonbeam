@@ -23,6 +23,8 @@ use frame_support::{
 	weights::{constants::WEIGHT_PER_SECOND, Weight},
 };
 use orml_traits::location::{RelativeReserveProvider, Reserve};
+use parity_scale_codec::Encode;
+use sp_io::hashing::blake2_256;
 use sp_runtime::traits::Zero;
 use sp_std::{borrow::Borrow, vec::Vec};
 use sp_std::{convert::TryInto, marker::PhantomData};
@@ -31,7 +33,7 @@ use xcm::latest::{
 	MultiAsset, MultiLocation, NetworkId,
 };
 use xcm_builder::TakeRevenue;
-use xcm_executor::traits::{MatchesFungibles, WeightTrader};
+use xcm_executor::traits::{Convert, MatchesFungibles, WeightTrader};
 
 /// Converter struct implementing `AssetIdConversion` converting a numeric asset ID
 /// (must be `TryFrom/TryInto<u128>`) into a MultiLocation Value and vice versa through
@@ -342,5 +344,23 @@ impl<
 				"take revenue failed matching fungible"
 			),
 		}
+	}
+}
+
+pub struct Account20Hash<Network, AccountId>(PhantomData<(Network, AccountId)>);
+impl<Network: Get<NetworkId>, AccountId: From<[u8; 20]> + Into<[u8; 20]> + Clone>
+	Convert<MultiLocation, AccountId> for Account20Hash<Network, AccountId>
+{
+	fn convert_ref(location: impl Borrow<MultiLocation>) -> Result<AccountId, ()> {
+		let hash: [u8; 32] = ("multiloc", location.borrow())
+			.borrow()
+			.using_encoded(blake2_256);
+		let mut account_id = [0u8; 20];
+		account_id.copy_from_slice(&hash[0..20]);
+		Ok(account_id.into())
+	}
+
+	fn reverse_ref(_: impl Borrow<AccountId>) -> Result<MultiLocation, ()> {
+		Err(())
 	}
 }

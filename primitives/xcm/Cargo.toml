@@ -23,6 +23,7 @@ parity-scale-codec = { version = "3.0.0", default-features = false, features = [
 scale-info = { version = "2.0", default-features = false, features = [ "derive" ] }
 sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
 sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
+sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
 
 # Polkadot / XCM
 orml-traits = { git = "https://github.com/purestake/open-runtime-module-library", branch = "moonbeam-polkadot-v0.9.20", default-features = false }
@@ -37,6 +38,7 @@ std = [
 	"parity-scale-codec/std",
 	"serde/std",
 	"sha3/std",
+	"sp-io/std",
 	"sp-runtime/std",
 	"sp-std/std",
 	"xcm-builder/std",
