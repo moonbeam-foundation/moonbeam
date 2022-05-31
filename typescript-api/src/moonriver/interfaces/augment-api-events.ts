@@ -38,7 +38,7 @@ import type {
   NimbusPrimitivesNimbusCryptoPublic,
   PalletDemocracyVoteAccountVote,
   PalletDemocracyVoteThreshold,
-  ParachainStakingDelegationRequest,
+  ParachainStakingDelegationRequestsCancelledScheduledRequest,
   ParachainStakingDelegatorAdded,
   SpRuntimeDispatchError,
   XcmTransactorRemoteTransactInfoWithMaxWeight,
@@ -187,7 +187,7 @@ declare module "@polkadot/api-base/types/events" {
       /**
        * The amount of eligible authors for the filter to select has been changed.
        */
-      EligibleUpdated: AugmentedEvent<ApiType, [Percent]>;
+      EligibleUpdated: AugmentedEvent<ApiType, [u32]>;
       /**
        * Generic event
        */
@@ -197,23 +197,24 @@ declare module "@polkadot/api-base/types/events" {
       /**
        * An NimbusId has been de-registered, and its AccountId mapping removed.
        */
-      KeysRemoved: AugmentedEvent<ApiType, [NimbusPrimitivesNimbusCryptoPublic]>;
+      AuthorDeRegistered: AugmentedEvent<
+        ApiType,
+        [NimbusPrimitivesNimbusCryptoPublic, AccountId20, NimbusPrimitivesNimbusCryptoPublic]
+      >;
       /**
        * A NimbusId has been registered and mapped to an AccountId.
        */
-      KeysRegistered: AugmentedEvent<ApiType, [NimbusPrimitivesNimbusCryptoPublic, AccountId20]>;
+      AuthorRegistered: AugmentedEvent<
+        ApiType,
+        [NimbusPrimitivesNimbusCryptoPublic, AccountId20, NimbusPrimitivesNimbusCryptoPublic]
+      >;
       /**
        * An NimbusId has been registered, replacing a previous registration and
        * its mapping.
        */
-      KeysRotated: AugmentedEvent<ApiType, [NimbusPrimitivesNimbusCryptoPublic, AccountId20]>;
-      /**
-       * An NimbusId has been forcibly deregistered after not being rotated or
-       * cleaned up. The reporteing account has been rewarded accordingly.
-       */
-      DefunctAuthorBusted: AugmentedEvent<
+      AuthorRotated: AugmentedEvent<
         ApiType,
-        [NimbusPrimitivesNimbusCryptoPublic, AccountId20]
+        [NimbusPrimitivesNimbusCryptoPublic, AccountId20, NimbusPrimitivesNimbusCryptoPublic]
       >;
       /**
        * Generic event
@@ -709,6 +710,28 @@ declare module "@polkadot/api-base/types/events" {
        */
       [key: string]: AugmentedEvent<ApiType>;
     };
+    moonbeamOrbiters: {
+      /**
+       * An orbiter join a collator pool
+       */
+      OrbiterJoinCollatorPool: AugmentedEvent<ApiType, [AccountId20, AccountId20]>;
+      /**
+       * An orbiter leave a collator pool
+       */
+      OrbiterLeaveCollatorPool: AugmentedEvent<ApiType, [AccountId20, AccountId20]>;
+      /**
+       * Paid the orbiter account the balance as liquid rewards.
+       */
+      OrbiterRewarded: AugmentedEvent<ApiType, [AccountId20, u128]>;
+      OrbiterRotation: AugmentedEvent<
+        ApiType,
+        [AccountId20, Option<AccountId20>, Option<AccountId20>]
+      >;
+      /**
+       * Generic event
+       */
+      [key: string]: AugmentedEvent<ApiType>;
+    };
     parachainStaking: {
       /**
        * Set blocks per round
@@ -727,22 +750,22 @@ declare module "@polkadot/api-base/types/events" {
        */
       CancelledDelegationRequest: AugmentedEvent<
         ApiType,
-        [AccountId20, ParachainStakingDelegationRequest]
+        [AccountId20, ParachainStakingDelegationRequestsCancelledScheduledRequest, AccountId20]
       >;
       /**
        * Candidate rejoins the set of collator candidates.
        */
       CandidateBackOnline: AugmentedEvent<ApiType, [AccountId20]>;
       /**
-       * Сandidate has decreased a self bond.
+       * Candidate has decreased a self bond.
        */
       CandidateBondedLess: AugmentedEvent<ApiType, [AccountId20, u128, u128]>;
       /**
-       * Сandidate has increased a self bond.
+       * Candidate has increased a self bond.
        */
       CandidateBondedMore: AugmentedEvent<ApiType, [AccountId20, u128, u128]>;
       /**
-       * Сandidate requested to decrease a self bond.
+       * Candidate requested to decrease a self bond.
        */
       CandidateBondLessRequested: AugmentedEvent<ApiType, [AccountId20, u128, u32]>;
       /**
@@ -750,7 +773,7 @@ declare module "@polkadot/api-base/types/events" {
        */
       CandidateLeft: AugmentedEvent<ApiType, [AccountId20, u128, u128]>;
       /**
-       * Сandidate has requested to leave the set of candidates.
+       * Candidate has requested to leave the set of candidates.
        */
       CandidateScheduledExit: AugmentedEvent<ApiType, [u32, AccountId20, u32]>;
       /**

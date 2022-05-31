@@ -1,6 +1,6 @@
 {
   "name": "@moonbeam-network/api-augment",
-  "version": "0.0.1-beta.5",
+  "version": "0.1601.0",
   "private": true,
   "description": "Moonbeam types augment for @polkadot/api",
   "author": "PureStake",
