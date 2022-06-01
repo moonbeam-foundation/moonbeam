@@ -86,7 +86,7 @@ impl frame_system::Config for Runtime {
 	type OnNewAccount = ();
 	type OnKilledAccount = ();
 	type DbWeight = ();
-	type BaseCallFilter = Nothing;
+	type BaseCallFilter = Everything;
 	type SystemWeightInfo = ();
 	type SS58Prefix = ();
 	type OnSetCode = ();
@@ -267,10 +267,69 @@ pub type AssetTransactors = (
 	ForeignFungiblesTransactor,
 	LocalFungiblesTransactor,
 );
+
+use frame_support::ensure;
+use frame_support::traits::Contains;
+use sp_std::marker::PhantomData;
+use xcm_executor::traits::ShouldExecute;
+/// Allows execution from `origin` if it is contained in `T` (i.e. `T::Contains(origin)`) taking
+/// payments into account.
+///
+/// Only allows for `DescendOrigin` + `WithdrawAsset`, + `BuyExecution`
+pub struct AllowDescendOriginFromLocal<T>(PhantomData<T>);
+impl<T: Contains<MultiLocation>> ShouldExecute for AllowDescendOriginFromLocal<T> {
+	fn should_execute<Call>(
+		origin: &MultiLocation,
+		message: &mut Xcm<Call>,
+		max_weight: Weight,
+		_weight_credit: &mut Weight,
+	) -> Result<(), ()> {
+		log::trace!(
+			target: "xcm::barriers",
+			"AllowTopLevelPaidExecutionFromLocal origin:
+			{:?}, message: {:?}, max_weight: {:?}, weight_credit: {:?}",
+			origin, message, max_weight, _weight_credit,
+		);
+		ensure!(T::contains(origin), ());
+		let mut iter = message.0.iter_mut();
+		let i = iter.next().ok_or(())?;
+		match i {
+			DescendOrigin(..) => (),
+			_ => return Err(()),
+		}
+
+		let mut i = iter.next().ok_or(())?;
+		match i {
+			WithdrawAsset(..) => (),
+			_ => return Err(()),
+		}
+
+		i = iter.next().ok_or(())?;
+		match i {
+			BuyExecution {
+				weight_limit: Limited(ref mut weight),
+				..
+			} if *weight >= max_weight => {
+				*weight = max_weight;
+				Ok(())
+			}
+			BuyExecution {
+				ref mut weight_limit,
+				..
+			} if weight_limit == &Unlimited => {
+				*weight_limit = Limited(max_weight);
+				Ok(())
+			}
+			_ => Err(()),
+		}
+	}
+}
+
 pub type XcmRouter = super::ParachainXcmRouter<MsgQueue>;
 
 pub type Barrier = (
 	TakeWeightCredit,
+	AllowDescendOriginFromLocal<Everything>,
 	AllowTopLevelPaidExecutionFrom<Everything>,
 	// Expected responses are OK.
 	AllowKnownQueryResponses<PolkadotXcm>,
@@ -528,6 +587,7 @@ pub mod mock_msg_queue {
 			let hash = Encode::using_encoded(&xcm, T::Hashing::hash);
 			let (result, event) = match Xcm::<T::Call>::try_from(xcm) {
 				Ok(xcm) => {
+					println!("the message arrived it {:?}", xcm);
 					let location = MultiLocation::new(1, Junctions::X1(Parachain(sender.into())));
 					match T::XcmExecutor::execute_xcm(location, xcm, max_weight) {
 						Outcome::Error(e) => (Err(e.clone()), Event::Fail(Some(hash), e)),
