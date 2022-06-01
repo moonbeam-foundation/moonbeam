@@ -40,7 +40,7 @@ pub enum Action {
 	UpdateAssociation = "update_association(bytes32,bytes32)",
 	ClearAssociation = "clear_association(bytes32)",
 	RemoveKeys = "remove_keys()",
-	SetKeys = "set_keys(bytes32,bytes32)",
+	SetKeys = "set_keys(bytes)",
 }
 
 /// A precompile to wrap the functionality from pallet author mapping.
