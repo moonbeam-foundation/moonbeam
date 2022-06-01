@@ -13,10 +13,6 @@ import type { XcmVersionedXcm } from "@polkadot/types/lookup";
 
 import { ParaId, XcmpMessageFormat } from "@polkadot/types/interfaces";
 import { ChaChaRng } from "randchacha";
-import { createTransfer } from "../util/transactions";
-import { substrateTransaction } from "../util/transactions";
-import { Context } from "mocha";
-import { shuffled } from "ethers/lib/utils";
 
 const FOREIGN_TOKEN = 1_000_000_000_000n;
 
@@ -59,12 +55,17 @@ const statemintLocationAssetOne = {
   },
 };
 
+// enum to mark how xcmp execution went
 enum XcmpExecution {
+  // it means the xcmp message was executed on_initialization
   InitializationExecutedPassingBarrier,
+  // it means the xcmp message failed in the barrier check on_initialization
   InitializationExecutedNotPassingBarrier,
+  // it means the xcmp was executed on_idle
   OnIdleExecutedPassingBarrier,
 }
 
+// Function to calculate how messages coming from different paras will be executed
 export async function calculateShufflingAndExecution(
   context,
   numParaMsgs,
@@ -97,6 +98,7 @@ export async function calculateShufflingAndExecution(
     let j = rand % numParaMsgs;
     [indices[i], indices[j]] = [indices[j], indices[i]];
 
+    // mimics the decay algorithm
     if (totalXcmpWeight - weightUsed > thresholdWeight) {
       if (weightAvailable != totalXcmpWeight) {
         weightAvailable += (totalXcmpWeight - weightAvailable) / (decay + 1n);
@@ -1398,7 +1400,9 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     // we know at least 2 instructions are needed per message (withdrawAsset + buyExecution)
     // how many clearOrigins do we need to append?
 
-    let clearOriginsPerMessage = (weightPerMessage - weightPerXcmInst * 1n) / weightPerXcmInst;
+    // In this case we want to never reach the thresholdLimit, to make sure we execute every
+    // single messages.
+    let clearOriginsPerMessage = (weightPerMessage - weightPerXcmInst) / weightPerXcmInst;
 
     let instructions = [];
     instructions.push({
@@ -1494,6 +1498,14 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
 
     let indices = result[0];
     let shouldItExecute = result[1];
+
+    // assert we dont have on_idle execution
+    expect(shouldItExecute.indexOf(XcmpExecution.InitializationExecutedPassingBarrier) > -1).to.be
+      .true;
+    expect(shouldItExecute.indexOf(XcmpExecution.InitializationExecutedNotPassingBarrier) > -1).to
+      .be.true;
+    expect(shouldItExecute.indexOf(XcmpExecution.OnIdleExecutedPassingBarrier) > -1).to.be.false;
+
     // check balances
     for (let i = 0; i < numParaMsgs; i++) {
       // we need to check the randomization works. We have the shuffleing
@@ -1520,7 +1532,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
 });
 
 describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
-  it("Should test that XCMP-DECAY is executed randomized and until exhausted", async function () {
+  it("Should test XCMP with decay randomized until exhausted, then Onidle", async function () {
     this.timeout(120000);
     const keyringEth = new Keyring({ type: "ethereum" });
     const alith = keyringEth.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
@@ -1550,7 +1562,10 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     // how many clearOrigins do we need to append?
 
     // we will bias this number. The reason is we want to test the decay, and therefore we need
-    // an unbalanced number of messages executed
+    // an unbalanced number of messages executed. We specifically need that at some point
+    // we get out of the loop of the execution (we reach the threshold limit), to then
+    // go on idle
+
     // for that reason, we multiply times 2
     let clearOriginsPerMessage = (weightPerMessage - weightPerXcmInst * 2n) / weightPerXcmInst;
 
@@ -1639,6 +1654,9 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     // all the withdraws + clear origins `buyExecution
     let weightUsePerMessage = (clearOriginsPerMessage + 2n) * 100_000_000n;
 
+    // in this case, we have some that will execute on_initialize
+    // some that will fail the execution
+    // and some that will execute on_idle
     const result = await calculateShufflingAndExecution(
       context,
       numParaMsgs,
@@ -1648,6 +1666,14 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
 
     let indices = result[0];
     let shouldItExecute = result[1];
+
+    // assert we have all kinds of execution
+    expect(shouldItExecute.indexOf(XcmpExecution.InitializationExecutedPassingBarrier) > -1).to.be
+      .true;
+    expect(shouldItExecute.indexOf(XcmpExecution.InitializationExecutedNotPassingBarrier) > -1).to
+      .be.true;
+    expect(shouldItExecute.indexOf(XcmpExecution.OnIdleExecutedPassingBarrier) > -1).to.be.true;
+
     // check balances
     for (let i = 0; i < numParaMsgs; i++) {
       // we need to check the randomization works. We have the shuffleing
