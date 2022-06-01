@@ -347,9 +347,9 @@ impl<
 	}
 }
 
-pub struct Account20Hash<Network, AccountId>(PhantomData<(Network, AccountId)>);
-impl<Network: Get<NetworkId>, AccountId: From<[u8; 20]> + Into<[u8; 20]> + Clone>
-	Convert<MultiLocation, AccountId> for Account20Hash<Network, AccountId>
+pub struct Account20Hash<AccountId>(PhantomData<AccountId>);
+impl<AccountId: From<[u8; 20]> + Into<[u8; 20]> + Clone> Convert<MultiLocation, AccountId>
+	for Account20Hash<AccountId>
 {
 	fn convert_ref(location: impl Borrow<MultiLocation>) -> Result<AccountId, ()> {
 		let hash: [u8; 32] = ("multiloc", location.borrow())
