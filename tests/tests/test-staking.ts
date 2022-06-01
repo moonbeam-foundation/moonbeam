@@ -22,6 +22,7 @@ import {
   BALTATHAR,
   ALITH_ADDRESS,
   ETHAN_ADDRESS,
+  ALITH_PRIV_KEY,
 } from "../util/constants";
 import { describeDevMoonbeam, DevTestContext } from "../util/setup-dev-tests";
 import { KeyringPair } from "@substrate/txwrapper-core";
@@ -82,9 +83,14 @@ describeDevMoonbeam("Staking - Genesis", (context) => {
 
 describeDevMoonbeam("Staking - Join Candidates", (context) => {
   const keyring = new Keyring({ type: "ethereum" });
+  const alith = keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
   const ethan = keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
 
   before("should join as a candidate", async () => {
+    await context.polkadotApi.tx.sudo
+      .sudo(context.polkadotApi.tx.parachainStaking.setBlocksPerRound(10))
+      .signAndSend(alith);
+    await context.createBlock();
     await context.polkadotApi.tx.parachainStaking
       .joinCandidates(MIN_GLMR_STAKING, 1)
       .signAndSend(ethan);
@@ -134,8 +140,6 @@ describeDevMoonbeam("Staking - Join Candidates", (context) => {
   });
 
   it("should successfully execute schedule leave candidates at correct round", async function () {
-    this.timeout(20000);
-
     let candidatesAfter = await context.polkadotApi.query.parachainStaking.candidatePool();
     expect(candidatesAfter.length).to.equal(2, "new candidate should have been added");
 
@@ -177,9 +181,14 @@ describeDevMoonbeam("Staking - Join Candidates", (context) => {
 
 describeDevMoonbeam("Staking - Join Delegators", (context) => {
   const keyring = new Keyring({ type: "ethereum" });
+  const alith = keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
   const ethan = keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
 
   before("should successfully call delegate on ALITH", async function () {
+    await context.polkadotApi.tx.sudo
+      .sudo(context.polkadotApi.tx.parachainStaking.setBlocksPerRound(10))
+      .signAndSend(alith);
+    await context.createBlock();
     await context.polkadotApi.tx.parachainStaking
       .delegate(ALITH, MIN_GLMR_NOMINATOR, 0, 0)
       .signAndSend(ethan);
@@ -231,8 +240,6 @@ describeDevMoonbeam("Staking - Join Delegators", (context) => {
   });
 
   it("should successfully execute schedule leave delegators at correct round", async function () {
-    this.timeout(20000);
-
     await context.polkadotApi.tx.parachainStaking.scheduleLeaveDelegators().signAndSend(ethan);
     await context.createBlock();
 
@@ -280,13 +287,19 @@ describeDevMoonbeam("Staking - Delegation Requests", (context) => {
   const BOND_AMOUNT = MIN_GLMR_NOMINATOR + 100n;
   const BOND_AMOUNT_HEX = numberToHex(BOND_AMOUNT);
 
-  let ethan: KeyringPair;
-  let balathar: KeyringPair;
-  beforeEach("should successfully call delegate on ALITH", async () => {
-    const keyring = new Keyring({ type: "ethereum" });
-    ethan = keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
-    balathar = keyring.addFromUri(BALTATHAR_PRIV_KEY, null, "ethereum");
+  const keyring = new Keyring({ type: "ethereum" });
+  const alith = keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
+  const ethan = keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
+  const balathar = keyring.addFromUri(BALTATHAR_PRIV_KEY, null, "ethereum");
 
+  before("should limit blocks per round", async () => {
+    await context.polkadotApi.tx.sudo
+      .sudo(context.polkadotApi.tx.parachainStaking.setBlocksPerRound(10))
+      .signAndSend(alith);
+    await context.createBlock();
+  });
+
+  beforeEach("should successfully call delegate on ALITH", async () => {
     await context.polkadotApi.tx.parachainStaking
       .delegate(ALITH, BOND_AMOUNT, 0, 0)
       .signAndSend(ethan);
@@ -362,12 +375,6 @@ describeDevMoonbeam("Staking - Delegation Requests", (context) => {
   });
 
   it("should not execute revoke before target round", async function () {
-    this.timeout(50000);
-
-    const currentRound = (
-      await context.polkadotApi.query.parachainStaking.round()
-    ).current.toNumber();
-
     // schedule revoke
     await context.polkadotApi.tx.parachainStaking
       .scheduleRevokeDelegation(ALITH)
@@ -376,6 +383,10 @@ describeDevMoonbeam("Staking - Delegation Requests", (context) => {
     const delegationRequests =
       await context.polkadotApi.query.parachainStaking.delegationScheduledRequests(ALITH);
     expect(delegationRequests.toJSON()).to.not.be.empty;
+
+    const currentRound = (
+      await context.polkadotApi.query.parachainStaking.round()
+    ).current.toNumber();
 
     // jump to a round before the actual executable Round
     await jumpToRound(context, delegationRequests[0].whenExecutable - 1);
@@ -418,8 +429,6 @@ describeDevMoonbeam("Staking - Delegation Requests", (context) => {
   });
 
   it("should successfully execute revoke", async function () {
-    this.timeout(20000);
-
     // schedule revoke
     await context.polkadotApi.tx.parachainStaking
       .scheduleRevokeDelegation(ALITH)
@@ -513,8 +522,6 @@ describeDevMoonbeam("Staking - Delegation Requests", (context) => {
   });
 
   it("should not execute bond less before target round", async function () {
-    this.timeout(50000);
-
     const currentRound = (
       await context.polkadotApi.query.parachainStaking.round()
     ).current.toNumber();
@@ -572,8 +579,6 @@ describeDevMoonbeam("Staking - Delegation Requests", (context) => {
   });
 
   it("should successfully execute bond less", async function () {
-    this.timeout(20000);
-
     // schedule bond less
     const LESS_AMOUNT = 10;
     await context.polkadotApi.tx.parachainStaking
@@ -606,18 +611,10 @@ describeDevMoonbeam("Staking - Delegation Requests", (context) => {
   });
 
   it("should successfully remove scheduled requests on collator leave", async function () {
-    this.timeout(20000);
-
     await context.polkadotApi.tx.parachainStaking
       .joinCandidates(100n * BOND_AMOUNT, 1)
       .signAndSend(balathar);
     await context.createBlock();
-
-    await context.polkadotApi.tx.parachainStaking
-      .delegate(BALTATHAR, BOND_AMOUNT, 0, 1)
-      .signAndSend(ethan);
-    await context.createBlock();
-
     const delegationRequestsBefore =
       await context.polkadotApi.query.parachainStaking.delegationScheduledRequests(ALITH);
     expect(delegationRequestsBefore.toJSON()).to.be.empty;
@@ -643,8 +640,6 @@ describeDevMoonbeam("Staking - Delegation Requests", (context) => {
   });
 
   it("should successfully remove scheduled requests on delegator leave", async function () {
-    this.timeout(20000);
-
     const delegationRequestsBefore =
       await context.polkadotApi.query.parachainStaking.delegationScheduledRequests(ALITH);
     expect(delegationRequestsBefore.toJSON()).to.be.empty;
@@ -694,12 +689,15 @@ describeDevMoonbeam("Staking - Rewards", (context) => {
   const EXTRA_BOND_AMOUNT = 1_000_000_000_000_000_000n;
   const BOND_AMOUNT = MIN_GLMR_NOMINATOR + EXTRA_BOND_AMOUNT;
 
-  let ethan: KeyringPair;
-  let balathar: KeyringPair;
-  beforeEach("should successfully call delegate on ALITH", async () => {
-    const keyring = new Keyring({ type: "ethereum" });
-    ethan = keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
-    balathar = keyring.addFromUri(BALTATHAR_PRIV_KEY, null, "ethereum");
+  const keyring = new Keyring({ type: "ethereum" });
+  const alith = keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
+  const ethan = keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
+  const balathar = keyring.addFromUri(BALTATHAR_PRIV_KEY, null, "ethereum");
+  before("should successfully call delegate on ALITH", async () => {
+    await context.polkadotApi.tx.sudo
+      .sudo(context.polkadotApi.tx.parachainStaking.setBlocksPerRound(10))
+      .signAndSend(alith);
+    await context.createBlock();
 
     await context.polkadotApi.tx.parachainStaking
       .delegate(ALITH, BOND_AMOUNT, 0, 0)
@@ -717,8 +715,6 @@ describeDevMoonbeam("Staking - Rewards", (context) => {
   });
 
   it("should reward delegators without scheduled requests", async function () {
-    this.timeout(20000);
-
     const rewardDelay = context.polkadotApi.consts.parachainStaking.rewardPaymentDelay;
     const currentRound = (await context.polkadotApi.query.parachainStaking.round()).current;
     const blockHash = await jumpToRound(context, currentRound.add(rewardDelay).toNumber());
@@ -731,8 +727,6 @@ describeDevMoonbeam("Staking - Rewards", (context) => {
   });
 
   it("should not reward delegator if leave scheduled", async function () {
-    this.timeout(20000);
-
     await context.polkadotApi.tx.parachainStaking.scheduleLeaveDelegators().signAndSend(ethan);
     await context.createBlock();
 
@@ -747,8 +741,6 @@ describeDevMoonbeam("Staking - Rewards", (context) => {
   });
 
   it("should not reward delegator if revoke scheduled", async function () {
-    this.timeout(20000);
-
     await context.polkadotApi.tx.parachainStaking
       .scheduleRevokeDelegation(ALITH)
       .signAndSend(ethan);
@@ -766,8 +758,6 @@ describeDevMoonbeam("Staking - Rewards", (context) => {
   });
 
   it("should reward delegator after deducting pending bond decrease", async function () {
-    this.timeout(20000);
-
     await context.polkadotApi.tx.parachainStaking
       .delegate(ALITH, BOND_AMOUNT, 1, 0)
       .signAndSend(balathar);
@@ -796,13 +786,16 @@ describeDevMoonbeam("Staking - Delegator Leave", (context) => {
   const EXTRA_BOND_AMOUNT = 1_000_000_000_000_000_000n;
   const BOND_AMOUNT = MIN_GLMR_NOMINATOR + EXTRA_BOND_AMOUNT;
 
-  let ethan: KeyringPair;
-  let balathar: KeyringPair;
+  const keyring = new Keyring({ type: "ethereum" });
+  const alith = keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
+  const ethan = keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
+  const balathar = keyring.addFromUri(BALTATHAR_PRIV_KEY, null, "ethereum");
 
   before("should set baltathar as candidate", async () => {
-    const keyring = new Keyring({ type: "ethereum" });
-    ethan = keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
-    balathar = keyring.addFromUri(BALTATHAR_PRIV_KEY, null, "ethereum");
+    await context.polkadotApi.tx.sudo
+      .sudo(context.polkadotApi.tx.parachainStaking.setBlocksPerRound(10))
+      .signAndSend(alith);
+    await context.createBlock();
     await context.polkadotApi.tx.parachainStaking
       .joinCandidates(MIN_GLMR_STAKING, 1)
       .signAndSend(balathar);
@@ -841,7 +834,6 @@ describeDevMoonbeam("Staking - Delegator Leave", (context) => {
   });
 
   it("should allow executeLeaveDelegators to be executed after round delay", async function () {
-    this.timeout(20000);
     const leaveDelay = context.polkadotApi.consts.parachainStaking.leaveDelegatorsDelay;
     const currentRound = (await context.polkadotApi.query.parachainStaking.round()).current;
     await jumpToRound(context, currentRound.add(leaveDelay).addn(1).toNumber());
@@ -866,7 +858,6 @@ describeDevMoonbeam("Staking - Delegator Leave", (context) => {
 
   it("should not allow cancelLeaveDelegators to be executed if single Revoke is manually \
 cancelled", async function () {
-    this.timeout(50000);
     const leaveDelay = context.polkadotApi.consts.parachainStaking.leaveDelegatorsDelay;
     const currentRound = (await context.polkadotApi.query.parachainStaking.round()).current;
     await jumpToRound(context, currentRound.add(leaveDelay).addn(1).toNumber());
@@ -908,7 +899,6 @@ cancelled", async function () {
 
   it("should not allow executeLeaveDelegators to be executed if single Revoke is manually \
 cancelled", async function () {
-    this.timeout(50000);
     const leaveDelay = context.polkadotApi.consts.parachainStaking.leaveDelegatorsDelay;
     const currentRound = (await context.polkadotApi.query.parachainStaking.round()).current;
     await jumpToRound(context, currentRound.add(leaveDelay).addn(1).toNumber());
