@@ -188,7 +188,7 @@ Here is an exemple of the command to run:
 ```
 RUNTIME_NAME=moonbeam SPEC_FILE=~/projects/moonbeam-states/moonbeam-state.mod.json PARA_ID=2004 PORT_PREFIX=51 npm run fork-test
 
-RUNTIME_NAME=moonbase SPEC_FILE=~/projects/moonbase-alpha-states/moonbase-alpha-state.mod.json PARA_ID=1000 PORT_PREFIX=52 npm run fork-test
+RUNTIME_NAME=moonbase SPEC_FILE=~/projects/moonbeam-states/moonbase-alpha-state.mod.json PARA_ID=1000 PORT_PREFIX=52 npm run fork-test
 
-RUNTIME_NAME=moonriver SPEC_FILE=~/projects/moonriver-states/moonriver-state.mod.json PARA_ID=2023 PORT_PREFIX=53 npm run fork-test
+RUNTIME_NAME=moonriver SPEC_FILE=~/projects/moonbeam-states/moonriver-state.mod.json PARA_ID=2023 PORT_PREFIX=53 npm run fork-test
 ```
