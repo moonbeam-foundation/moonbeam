@@ -118,6 +118,7 @@ async function main(inputFile: string, outputFile?: string) {
 
   for await (const line of rl2) {
     if (line.startsWith(`      "top"`)) {
+      outStream.write(line);
       console.log("found top");
       const newLine = `        "${storageBlake128MapKey(
         "AuthorMapping",
