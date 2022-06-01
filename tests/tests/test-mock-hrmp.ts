@@ -1698,3 +1698,106 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     }
   });
 });
+
+describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
+  it("Should test for two XCMP insertions for same para, the last is executed", async function () {
+    const keyringEth = new Keyring({ type: "ethereum" });
+    const alith = keyringEth.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
+    const metadata = await context.polkadotApi.rpc.state.getMetadata();
+    const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
+      (pallet) => {
+        return pallet.name === "Balances";
+      }
+    ).index;
+    let ownParaId = (await context.polkadotApi.query.parachainInfo.parachainId()) as any;
+
+    // We distinguish between instructions not executed, and executed
+    let instructionsNotExecuted = [];
+    let instructionsExecuted = [];
+
+    instructionsNotExecuted.push({
+      WithdrawAsset: [
+        {
+          id: {
+            Concrete: {
+              parents: 0,
+              interior: {
+                X1: { PalletInstance: balancesPalletIndex },
+              },
+            },
+          },
+          fun: { Fungible: 1 },
+        },
+      ],
+    });
+
+    // we push the last buyExecution, that will fail
+    instructionsNotExecuted.push({
+      BuyExecution: {
+        fees: {
+          id: {
+            Concrete: {
+              parents: 1,
+              interior: {
+                X2: [{ Parachain: ownParaId }, { PalletInstance: balancesPalletIndex }],
+              },
+            },
+          },
+          fun: { Fungible: 1 },
+        },
+        weightLimit: { Limited: new BN(20000000000) },
+      },
+    });
+
+    instructionsExecuted.push({
+      ClearOrigin: null,
+    });
+
+    let xcmMessageNotExecuted = {
+      V2: instructionsNotExecuted,
+    };
+    let xcmMessageExecuted = {
+      V2: instructionsExecuted,
+    };
+    const xcmpFormat: XcmpMessageFormat = context.polkadotApi.createType(
+      "XcmpMessageFormat",
+      "ConcatenatedVersionedXcm"
+    ) as any;
+    const receivedMessageNotExecuted: XcmVersionedXcm = context.polkadotApi.createType(
+      "XcmVersionedXcm",
+      xcmMessageNotExecuted
+    ) as any;
+
+    const receivedMessageExecuted: XcmVersionedXcm = context.polkadotApi.createType(
+      "XcmVersionedXcm",
+      xcmMessageExecuted
+    ) as any;
+
+    const totalMessageNotExecuted = [...xcmpFormat.toU8a(), ...receivedMessageNotExecuted.toU8a()];
+    const totalMessageExecuted = [...xcmpFormat.toU8a(), ...receivedMessageExecuted.toU8a()];
+
+    const paraId = context.polkadotApi.createType("ParaId", 1) as any;
+    const sovereignAddress = u8aToHex(
+      new Uint8Array([...new TextEncoder().encode("sibl"), ...paraId.toU8a()])
+    ).padEnd(42, "0");
+
+    // We first fund each sovereign account with 100
+    // we will only withdraw 1, so no problem on this
+    await createBlockWithExtrinsic(
+      context,
+      alith,
+      context.polkadotApi.tx.balances.transfer(sovereignAddress, 100n)
+    );
+
+    // now we start injecting messages
+    // two for para 1
+    await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [1, totalMessageNotExecuted]);
+    await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [1, totalMessageExecuted]);
+
+    await context.createBlock();
+
+    // The balance of the sovereign account should be 100, as the first message does not executed
+    let balance = await context.polkadotApi.query.system.account(sovereignAddress);
+    expect(balance.data.free.toBigInt()).to.eq(100n);
+  });
+});
