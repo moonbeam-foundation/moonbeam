@@ -59,6 +59,68 @@ const statemintLocationAssetOne = {
   },
 };
 
+enum XcmpExecution {
+  InitializationExecutedPassingBarrier,
+  InitializationExecutedNotPassingBarrier,
+  OnIdleExecutedPassingBarrier,
+}
+
+export async function calculateShufflingAndExecution(
+  context,
+  numParaMsgs,
+  weightUsePerMessage,
+  totalXcmpWeight
+) {
+  // the randomization is as follows
+  // for every rand number, we do module number of paras
+  // the given index is swaped with that obtained with the
+  // random number
+
+  let weightAvailable = 0n;
+  let weightUsed = 0n;
+
+  // we want to mimic the randomization process in the queue
+  let indices = Array.from(Array(numParaMsgs).keys());
+  let shouldItExecute = new Array(numParaMsgs).fill(false);
+
+  let seed = await context.polkadotApi.query.system.parentHash();
+  let rng = new ChaChaRng(seed);
+
+  const signedBlock = await context.polkadotApi.rpc.chain.getBlock();
+  const apiAt = await context.polkadotApi.at(signedBlock.block.header.hash);
+  const queueConfig = (await apiAt.query.xcmpQueue.queueConfig()) as any;
+  let decay = queueConfig.weightRestrictDecay.toBigInt();
+  let thresholdWeight = queueConfig.thresholdWeight.toBigInt();
+
+  for (let i = 0; i < numParaMsgs; i++) {
+    let rand = rng.nextU32();
+    let j = rand % numParaMsgs;
+    [indices[i], indices[j]] = [indices[j], indices[i]];
+
+    if (totalXcmpWeight - weightUsed > thresholdWeight) {
+      if (weightAvailable != totalXcmpWeight) {
+        weightAvailable += (totalXcmpWeight - weightAvailable) / (decay + 1n);
+        if (weightAvailable + thresholdWeight > totalXcmpWeight) {
+          weightAvailable = totalXcmpWeight;
+        }
+      }
+      let weight_remaining = weightAvailable - weightUsed;
+
+      if (weight_remaining < weightUsePerMessage) {
+        shouldItExecute[i] = XcmpExecution.InitializationExecutedNotPassingBarrier;
+      } else {
+        shouldItExecute[i] = XcmpExecution.InitializationExecutedPassingBarrier;
+        weightUsed += weightUsePerMessage;
+      }
+    } else {
+      // we know this will execute on idle
+      shouldItExecute[i] = XcmpExecution.OnIdleExecutedPassingBarrier;
+    }
+  }
+
+  return [indices, shouldItExecute];
+}
+
 describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
   let assetId: string;
   let alith: KeyringPair;
@@ -1420,62 +1482,18 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
 
     await context.createBlock();
 
-    enum Execution {
-      InitializationExecutedPassingBarrier,
-      InitializationExecutedNotPassingBarrier,
-      OnIdleExecutedPassingBarrier,
-    }
-
-    // we want to mimic the randomization process in the queue
-    let indices = Array.from(Array(numParaMsgs).keys());
-    let shouldItExecute = new Array(numParaMsgs).fill(false);
-
-    let seed = await context.polkadotApi.query.system.parentHash();
-    let rng = new ChaChaRng(seed);
-    // all the withdraws + clear origin + buyExecution
+    // all the withdraws + clear origins `buyExecution
     let weightUsePerMessage = (clearOriginsPerMessage + 2n) * 100_000_000n;
 
-    const signedBlock = await context.polkadotApi.rpc.chain.getBlock();
-    const apiAt = await context.polkadotApi.at(signedBlock.block.header.hash);
-    const queueConfig = (await apiAt.query.xcmpQueue.queueConfig()) as any;
+    const result = await calculateShufflingAndExecution(
+      context,
+      numParaMsgs,
+      weightUsePerMessage,
+      totalXcmpWeight
+    );
 
-    let decay = queueConfig.weightRestrictDecay.toBigInt();
-    let thresholdWeight = queueConfig.thresholdWeight.toBigInt();
-
-    // the randomization is as follows
-    // for every rand number, we do module number of paras
-    // the given index is swaped with that obtained with the
-    // random number
-
-    let weightAvailable = 0n;
-    let weightUsed = 0n;
-
-    for (let i = 0; i < numParaMsgs; i++) {
-      let rand = rng.nextU32();
-      let j = rand % numParaMsgs;
-      [indices[i], indices[j]] = [indices[j], indices[i]];
-
-      if (totalXcmpWeight - weightUsed > thresholdWeight) {
-        if (weightAvailable != totalXcmpWeight) {
-          weightAvailable += (totalXcmpWeight - weightAvailable) / (decay + 1n);
-          if (weightAvailable + thresholdWeight > totalXcmpWeight) {
-            weightAvailable = totalXcmpWeight;
-          }
-        }
-        let weight_remaining = weightAvailable - weightUsed;
-
-        if (weight_remaining < weightUsePerMessage) {
-          shouldItExecute[i] = Execution.InitializationExecutedNotPassingBarrier;
-        } else {
-          shouldItExecute[i] = Execution.InitializationExecutedPassingBarrier;
-          weightUsed += weightUsePerMessage;
-        }
-      } else {
-        // we know this will execute on idle
-        shouldItExecute[i] = Execution.OnIdleExecutedPassingBarrier;
-      }
-    }
-
+    let indices = result[0];
+    let shouldItExecute = result[1];
     // check balances
     for (let i = 0; i < numParaMsgs; i++) {
       // we need to check the randomization works. We have the shuffleing
@@ -1490,8 +1508,8 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
       let balance = await context.polkadotApi.query.system.account(sovereignAddress);
 
       if (
-        shouldItExecute[indices.indexOf(i)] == Execution.InitializationExecutedPassingBarrier ||
-        shouldItExecute[indices.indexOf(i)] == Execution.OnIdleExecutedPassingBarrier
+        shouldItExecute[indices.indexOf(i)] == XcmpExecution.InitializationExecutedPassingBarrier ||
+        shouldItExecute[indices.indexOf(i)] == XcmpExecution.OnIdleExecutedPassingBarrier
       ) {
         expect(balance.data.free.toBigInt()).to.eq(99n);
       } else {
@@ -1618,63 +1636,18 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
 
     await context.createBlock();
 
-    // we want to mimic the randomization process in the queue
-    let indices = Array.from(Array(numParaMsgs).keys());
-    let shouldItExecute = new Array(numParaMsgs).fill(false);
-
-    let seed = await context.polkadotApi.query.system.parentHash();
-    let rng = new ChaChaRng(seed);
-
-    const signedBlock = await context.polkadotApi.rpc.chain.getBlock();
-    const apiAt = await context.polkadotApi.at(signedBlock.block.header.hash);
-    const queueConfig = (await apiAt.query.xcmpQueue.queueConfig()) as any;
-
-    // all the withdraws + clear origins
+    // all the withdraws + clear origins `buyExecution
     let weightUsePerMessage = (clearOriginsPerMessage + 2n) * 100_000_000n;
 
-    let decay = queueConfig.weightRestrictDecay.toBigInt();
-    let thresholdWeight = queueConfig.thresholdWeight.toBigInt();
+    const result = await calculateShufflingAndExecution(
+      context,
+      numParaMsgs,
+      weightUsePerMessage,
+      totalXcmpWeight
+    );
 
-    // the randomization is as follows
-    // for every rand number, we do module number of paras
-    // the given index is swaped with that obtained with the
-    // random number
-
-    let weightAvailable = 0n;
-    let weightUsed = 0n;
-
-    enum Execution {
-      InitializationExecutedPassingBarrier,
-      InitializationExecutedNotPassingBarrier,
-      OnIdleExecutedPassingBarrier,
-    }
-
-    for (let i = 0; i < numParaMsgs; i++) {
-      let rand = rng.nextU32();
-      let j = rand % numParaMsgs;
-      [indices[i], indices[j]] = [indices[j], indices[i]];
-
-      if (totalXcmpWeight - weightUsed > thresholdWeight) {
-        if (weightAvailable != totalXcmpWeight) {
-          weightAvailable += (totalXcmpWeight - weightAvailable) / (decay + 1n);
-          if (weightAvailable + thresholdWeight > totalXcmpWeight) {
-            weightAvailable = totalXcmpWeight;
-          }
-        }
-        let weight_remaining = weightAvailable - weightUsed;
-
-        if (weight_remaining < weightUsePerMessage) {
-          shouldItExecute[i] = Execution.InitializationExecutedNotPassingBarrier;
-        } else {
-          shouldItExecute[i] = Execution.InitializationExecutedPassingBarrier;
-          weightUsed += weightUsePerMessage;
-        }
-      } else {
-        // we know this will execute on idle
-        shouldItExecute[i] = Execution.OnIdleExecutedPassingBarrier;
-      }
-    }
-
+    let indices = result[0];
+    let shouldItExecute = result[1];
     // check balances
     for (let i = 0; i < numParaMsgs; i++) {
       // we need to check the randomization works. We have the shuffleing
@@ -1689,8 +1662,8 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
       let balance = await context.polkadotApi.query.system.account(sovereignAddress);
 
       if (
-        shouldItExecute[indices.indexOf(i)] == Execution.InitializationExecutedPassingBarrier ||
-        shouldItExecute[indices.indexOf(i)] == Execution.OnIdleExecutedPassingBarrier
+        shouldItExecute[indices.indexOf(i)] == XcmpExecution.InitializationExecutedPassingBarrier ||
+        shouldItExecute[indices.indexOf(i)] == XcmpExecution.OnIdleExecutedPassingBarrier
       ) {
         expect(balance.data.free.toBigInt()).to.eq(99n);
       } else {
