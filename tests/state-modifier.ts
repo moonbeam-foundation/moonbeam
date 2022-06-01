@@ -128,13 +128,13 @@ async function main(inputFile: string, outputFile?: string) {
       console.log(` ${chalk.green(`+ Adding session`)}\n\t${newLine}`);
       outStream.write(newLine);
 
-      outStream.write(
-        `        "${storageBlake128MapKey(
-          "AuthorMapping",
-          "MappingWithDeposit",
-          BOB_SESSION
-        )}": "${selectedCollator}000010632d5ec76b0500000000000000${BOB_SESSION.slice(2)}",\n`
-      );
+      // outStream.write(
+      //   `        "${storageBlake128MapKey(
+      //     "AuthorMapping",
+      //     "MappingWithDeposit",
+      //     BOB_SESSION
+      //   )}": "${selectedCollator}000010632d5ec76b0500000000000000${BOB_SESSION.slice(2)}",\n`
+      // );
       // outStream.write(
       //   `        "${storageKey(
       //     "ParachainSystem",
@@ -147,7 +147,7 @@ async function main(inputFile: string, outputFile?: string) {
           .join("")}${messagingState.slice(66)}",\n`
       );
       outStream.write(`        "${storageKey("AuthorFilter", "EligibleRatio")}": "0x64",\n`);
-      outStream.write(`        "${storageKey("AuthorFilter", "EligibleCount")}": "0x32",\n`);
+      outStream.write(`        "${storageKey("AuthorFilter", "EligibleCount")}": "0x32000000",\n`);
       outStream.write(
         `        "${storageKey("CouncilCollective", "Members")}": "0x04${ALITH.slice(2)}",\n`
       );
