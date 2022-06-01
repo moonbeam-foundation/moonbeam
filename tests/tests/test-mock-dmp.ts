@@ -90,8 +90,7 @@ describeDevMoonbeam("Mock XCM - receive downward transfer", (context) => {
 });
 
 describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
-  it.only("Should test DMP on_initialization and on_idle", async function () {
-    this.timeout(120000);
+  it("Should test DMP on_initialization and on_idle", async function () {
     const keyringEth = new Keyring({ type: "ethereum" });
     const alith = keyringEth.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
     const metadata = await context.polkadotApi.rpc.state.getMetadata();
