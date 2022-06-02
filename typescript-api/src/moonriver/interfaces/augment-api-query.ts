@@ -64,6 +64,7 @@ import type {
   PalletDemocracyVoteVoting,
   PalletIdentityRegistrarInfo,
   PalletIdentityRegistration,
+  PalletMoonbeamOrbitersCollatorPoolInfo,
   PalletProxyAnnouncement,
   PalletProxyProxyDefinition,
   PalletSchedulerScheduledV3,
@@ -77,6 +78,7 @@ import type {
   ParachainStakingCollatorCandidate,
   ParachainStakingCollatorSnapshot,
   ParachainStakingDelayedPayout,
+  ParachainStakingDelegationRequestsScheduledRequest,
   ParachainStakingDelegations,
   ParachainStakingDelegator,
   ParachainStakingInflationInflationInfo,
@@ -222,8 +224,10 @@ declare module "@polkadot/api-base/types/storage" {
     };
     authorFilter: {
       /**
-       * The percentage of active authors that will be eligible at each height.
+       * The number of active authors that will be eligible at each height.
        */
+      eligibleCount: AugmentedQuery<ApiType, () => Observable<u32>, []> &
+        QueryableStorageEntry<ApiType, []>;
       eligibleRatio: AugmentedQuery<ApiType, () => Observable<Percent>, []> &
         QueryableStorageEntry<ApiType, []>;
       /**
@@ -245,7 +249,7 @@ declare module "@polkadot/api-base/types/storage" {
     authorMapping: {
       /**
        * We maintain a mapping from the NimbusIds used in the consensus layer to
-       * the AccountIds runtime (including this staking pallet).
+       * the AccountIds runtime.
        */
       mappingWithDeposit: AugmentedQuery<
         ApiType,
@@ -815,6 +819,59 @@ declare module "@polkadot/api-base/types/storage" {
        */
       [key: string]: QueryableStorageEntry<ApiType>;
     };
+    moonbeamOrbiters: {
+      /**
+       * Account lookup override
+       */
+      accountLookupOverride: AugmentedQuery<
+        ApiType,
+        (arg: AccountId20 | string | Uint8Array) => Observable<Option<Option<AccountId20>>>,
+        [AccountId20]
+      > &
+        QueryableStorageEntry<ApiType, [AccountId20]>;
+      /**
+       * Current orbiters, with their "parent" collator
+       */
+      collatorsPool: AugmentedQuery<
+        ApiType,
+        (
+          arg: AccountId20 | string | Uint8Array
+        ) => Observable<Option<PalletMoonbeamOrbitersCollatorPoolInfo>>,
+        [AccountId20]
+      > &
+        QueryableStorageEntry<ApiType, [AccountId20]>;
+      /**
+       * Counter for the related counted storage map
+       */
+      counterForCollatorsPool: AugmentedQuery<ApiType, () => Observable<u32>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /**
+       * Current round index
+       */
+      currentRound: AugmentedQuery<ApiType, () => Observable<u32>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /**
+       * Minimum deposit required to be registered as an orbiter
+       */
+      minOrbiterDeposit: AugmentedQuery<ApiType, () => Observable<Option<u128>>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /**
+       * Store active orbiter per round and per parent collator
+       */
+      orbiterPerRound: AugmentedQuery<
+        ApiType,
+        (
+          arg1: u32 | AnyNumber | Uint8Array,
+          arg2: AccountId20 | string | Uint8Array
+        ) => Observable<Option<AccountId20>>,
+        [u32, AccountId20]
+      > &
+        QueryableStorageEntry<ApiType, [u32, AccountId20]>;
+      /**
+       * Generic query
+       */
+      [key: string]: QueryableStorageEntry<ApiType>;
+    };
     parachainInfo: {
       parachainId: AugmentedQuery<ApiType, () => Observable<u32>, []> &
         QueryableStorageEntry<ApiType, []>;
@@ -910,6 +967,17 @@ declare module "@polkadot/api-base/types/storage" {
         [u32]
       > &
         QueryableStorageEntry<ApiType, [u32]>;
+      /**
+       * Stores outstanding delegation requests per collator.
+       */
+      delegationScheduledRequests: AugmentedQuery<
+        ApiType,
+        (
+          arg: AccountId20 | string | Uint8Array
+        ) => Observable<Vec<ParachainStakingDelegationRequestsScheduledRequest>>,
+        [AccountId20]
+      > &
+        QueryableStorageEntry<ApiType, [AccountId20]>;
       /**
        * Get delegator state associated with an account if account is delegating else None
        */

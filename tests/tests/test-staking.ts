@@ -693,6 +693,94 @@ describeDevMoonbeam("Staking - Delegation Requests", (context) => {
   });
 });
 
+describeDevMoonbeam("Staking - Bond More", (context) => {
+  const BOND_AMOUNT = MIN_GLMR_NOMINATOR + 100n;
+  const keyring = new Keyring({ type: "ethereum" });
+  const ethan = keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
+
+  before("should successfully call delegate on ALITH", async () => {
+    await context.polkadotApi.tx.parachainStaking
+      .delegate(ALITH, BOND_AMOUNT, 0, 0)
+      .signAndSend(ethan);
+    await context.createBlock();
+  });
+
+  afterEach("should clean up delegation requests", async () => {
+    await context.polkadotApi.tx.parachainStaking.cancelDelegationRequest(ALITH).signAndSend(ethan);
+    await context.createBlock();
+  });
+
+  it("should allow bond more when no delgation request scheduled", async function () {
+    const bondAmountBefore = (
+      await context.polkadotApi.query.parachainStaking.delegatorState(ETHAN)
+    ).unwrap().total;
+
+    // schedule bond less
+    const increaseAmount = 5;
+    await context.polkadotApi.tx.parachainStaking
+      .delegatorBondMore(ALITH, increaseAmount)
+      .signAndSend(ethan);
+    await context.createBlock();
+
+    const bondAmountAfter = (
+      await context.polkadotApi.query.parachainStaking.delegatorState(ETHAN)
+    ).unwrap().total;
+    expect(bondAmountAfter.eq(bondAmountBefore.addn(increaseAmount))).to.be.true;
+  });
+
+  it("should allow bond more when bond less schedule", async function () {
+    const bondAmountBefore = (
+      await context.polkadotApi.query.parachainStaking.delegatorState(ETHAN)
+    ).unwrap().total;
+
+    // schedule bond less
+    await context.polkadotApi.tx.parachainStaking
+      .scheduleDelegatorBondLess(ALITH, 10n)
+      .signAndSend(ethan);
+    await context.createBlock();
+
+    const increaseAmount = 5;
+    await context.polkadotApi.tx.parachainStaking
+      .delegatorBondMore(ALITH, increaseAmount)
+      .signAndSend(ethan);
+    await context.createBlock();
+
+    const bondAmountAfter = (
+      await context.polkadotApi.query.parachainStaking.delegatorState(ETHAN)
+    ).unwrap().total;
+    expect(bondAmountAfter.eq(bondAmountBefore.addn(increaseAmount))).to.be.true;
+  });
+
+  it("should not allow bond more when revoke schedule", async function () {
+    const bondAmountBefore = (
+      await context.polkadotApi.query.parachainStaking.delegatorState(ETHAN)
+    ).unwrap().total;
+
+    // schedule bond less
+    await context.polkadotApi.tx.parachainStaking
+      .scheduleRevokeDelegation(ALITH)
+      .signAndSend(ethan);
+    await context.createBlock();
+
+    const increaseAmount = 5n;
+    await context.polkadotApi.tx.parachainStaking
+      .delegatorBondMore(ALITH, increaseAmount)
+      .signAndSend(ethan);
+    await context.createBlock();
+
+    const extrinsicError = await getExtrinsicResult(
+      context,
+      "parachainStaking",
+      "delegatorBondMore"
+    );
+    expect(extrinsicError).to.equal("PendingDelegationRevoke");
+    const bondAmountAfter = (
+      await context.polkadotApi.query.parachainStaking.delegatorState(ETHAN)
+    ).unwrap().total;
+    expect(bondAmountAfter.eq(bondAmountBefore)).to.be.true;
+  });
+});
+
 describeDevMoonbeam("Staking - Rewards", (context) => {
   const EXTRA_BOND_AMOUNT = 1_000_000_000_000_000_000n;
   const BOND_AMOUNT = MIN_GLMR_NOMINATOR + EXTRA_BOND_AMOUNT;
