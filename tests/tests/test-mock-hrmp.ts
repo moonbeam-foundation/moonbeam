@@ -3,13 +3,21 @@ import { KeyringPair } from "@polkadot/keyring/types";
 import { expect } from "chai";
 import { BN, u8aToHex } from "@polkadot/util";
 
-import { ALITH_PRIV_KEY, BALTATHAR_PRIVATE_KEY, RANDOM_PRIV_KEY } from "../util/constants";
+import {
+  ALITH_PRIV_KEY,
+  BALTATHAR_PRIVATE_KEY,
+  GLMR,
+  RANDOM_PRIV_KEY,
+  TEST_ACCOUNT,
+} from "../util/constants";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 import { createBlockWithExtrinsic } from "../util/substrate-rpc";
 import { customWeb3Request } from "../util/providers";
 import type { XcmVersionedXcm } from "@polkadot/types/lookup";
 
 import { ParaId, XcmpMessageFormat } from "@polkadot/types/interfaces";
+import { MultiLocation } from "@polkadot/types/interfaces";
+import { deriveAddress } from "@substrate/txwrapper-core";
 
 const FOREIGN_TOKEN = 1_000_000_000_000n;
 
@@ -1287,5 +1295,155 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     )) as any;
 
     expect(alithAssetZeroBalance.isNone).to.eq(true);
+  });
+});
+
+describeDevMoonbeam("Mock XCM - receive horizontal transact", (context) => {
+  let transferredBalance;
+  let alith: KeyringPair;
+  let DescendOriginAddress;
+  let sendingAddress;
+
+  before("Should receive transact action with DescendOrigin", async function () {
+    const keyringEth = new Keyring({ type: "ethereum" });
+    alith = keyringEth.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
+    const allones = "0x0101010101010101010101010101010101010101";
+    sendingAddress = allones;
+
+    const derivedMultiLocation: MultiLocation = context.polkadotApi.createType(
+      "MultiLocation",
+      JSON.parse(
+        `{\
+            "parents": 1,\
+            "interior": {\
+              "X2": [\
+                { "Parachain": 1 },\
+                { "AccountKey20": \
+                  {\
+                    "network": "Any",\
+                    "key": "${allones}"\
+                  } \
+                }\
+              ]\
+            }\
+          }`
+      )
+    );
+
+    let toHash = new Uint8Array([
+      ...new Uint8Array([32]),
+      ...new TextEncoder().encode("multiloc"),
+      ...derivedMultiLocation.toU8a(),
+    ]);
+
+    DescendOriginAddress = u8aToHex(context.polkadotApi.registry.hash(toHash).slice(0, 20));
+
+    transferredBalance = 1n * GLMR;
+
+    // We first fund parachain 2000 sovreign account
+    await createBlockWithExtrinsic(
+      context,
+      alith,
+      context.polkadotApi.tx.balances.transfer(DescendOriginAddress, transferredBalance)
+    );
+    let balance = (
+      (await context.polkadotApi.query.system.account(DescendOriginAddress)) as any
+    ).data.free.toBigInt();
+    expect(balance).to.eq(transferredBalance);
+  });
+
+  it.only("Should receive transact and should be able to execute ", async function () {
+    // Get Pallet balances index
+    const metadata = await context.polkadotApi.rpc.state.getMetadata();
+    const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
+      (pallet) => {
+        return pallet.name === "Balances";
+      }
+    ).index;
+
+    let transferCall = context.polkadotApi.tx.balances.transfer(
+      TEST_ACCOUNT,
+      transferredBalance / 10n
+    );
+    let transferCallEncoded = transferCall?.method.toHex();
+    // We are going to test that we can receive a transact operation from parachain 1
+    // using descendOrigin first
+    let xcmMessage = {
+      V2: [
+        {
+          DescendOrigin: {
+            X1: {
+              AccountKey20: {
+                network: "Any",
+                key: sendingAddress,
+              },
+            },
+          },
+        },
+        {
+          WithdrawAsset: [
+            {
+              id: {
+                Concrete: {
+                  parents: 0,
+                  interior: {
+                    X1: { PalletInstance: balancesPalletIndex },
+                  },
+                },
+              },
+              fun: { Fungible: transferredBalance / 2n },
+            },
+          ],
+        },
+        {
+          BuyExecution: {
+            fees: {
+              id: {
+                Concrete: {
+                  parents: 0,
+                  interior: {
+                    X1: { PalletInstance: balancesPalletIndex },
+                  },
+                },
+              },
+              fun: { Fungible: transferredBalance / 2n },
+            },
+            weightLimit: { Limited: new BN(4000000000) },
+          },
+        },
+        {
+          Transact: {
+            originType: "SovereignAccount",
+            requireWeightAtMost: new BN(1000000000),
+            call: {
+              encoded: transferCallEncoded,
+            },
+          },
+        },
+      ],
+    };
+    const xcmpFormat: XcmpMessageFormat = context.polkadotApi.createType(
+      "XcmpMessageFormat",
+      "ConcatenatedVersionedXcm"
+    ) as any;
+    const receivedMessage: XcmVersionedXcm = context.polkadotApi.createType(
+      "XcmVersionedXcm",
+      xcmMessage
+    ) as any;
+
+    const totalMessage = [...xcmpFormat.toU8a(), ...receivedMessage.toU8a()];
+    // Send RPC call to inject XCM message
+    // We will set a specific message knowing that it should mint the statemint asset
+    await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [1, totalMessage]);
+
+    // Create a block in which the XCM will be executed
+    await context.createBlock();
+
+    // Make sure the state has ALITH's foreign parachain tokens
+    let testAccountBalance = (
+      (await context.polkadotApi.query.system.account(TEST_ACCOUNT)) as any
+    ).data.free.toBigInt();
+
+    expect(testAccountBalance).to.eq(transferredBalance / 10n);
   });
 });
