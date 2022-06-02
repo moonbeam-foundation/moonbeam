@@ -1420,6 +1420,9 @@
 <span id="1415">1415</span>
 <span id="1416">1416</span>
 <span id="1417">1417</span>
+<span id="1418">1418</span>
+<span id="1419">1419</span>
+<span id="1420">1420</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -2282,11 +2285,14 @@
 
 <span class="kw">impl</span> <span class="ident">pallet_migrations::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
 	<span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
-	<span class="kw">type</span> <span class="ident">MigrationsList</span> <span class="op">=</span> <span class="ident">runtime_common::migrations::CommonMigrations</span><span class="op">&lt;</span>
-		<span class="ident">Runtime</span>,
-		<span class="ident">CouncilCollective</span>,
-		<span class="ident">TechCommitteeCollective</span>,
-	<span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">MigrationsList</span> <span class="op">=</span> (
+		<span class="ident">runtime_common::migrations::CommonMigrations</span><span class="op">&lt;</span>
+			<span class="ident">Runtime</span>,
+			<span class="ident">CouncilCollective</span>,
+			<span class="ident">TechCommitteeCollective</span>,
+		<span class="op">&gt;</span>,
+		<span class="ident">runtime_common::migrations::XcmMigrations</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
+	);
 }
 
 <span class="doccomment">/// Maintenance mode Call filter</span>
