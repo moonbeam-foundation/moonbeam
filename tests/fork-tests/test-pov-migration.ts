@@ -20,6 +20,7 @@ import { describeParachain } from "../util/setup-para-tests";
 const RUNTIME_NAME = process.env.RUNTIME_NAME as "moonbeam" | "moonbase" | "moonriver";
 const SPEC_FILE = process.env.SPEC_FILE;
 const PARA_ID = process.env.PARA_ID && parseInt(process.env.PARA_ID);
+const SKIP_INTERMEDIATE_RUNTIME = !!process.env.SKIP_INTERMEDIATE_RUNTIME;
 
 if (!RUNTIME_NAME) {
   console.error(`Missing RUNTIME_NAME (ex: moonbeam)`);
@@ -81,15 +82,17 @@ describeParachain(
           `${currentVersion.specVersion.toString()}`
       );
 
-      // For each runtime already released, we do the upgrade if
-      for (const runtime of allRuntimes) {
-        if (runtime > currentVersion.specVersion.toNumber()) {
-          console.log(`Found already released runtime not deployed: ${runtime}`);
-          await context.upgradeRuntime(alith, RUNTIME_NAME, `runtime-${runtime}`, {
-            useGovernance: true,
-          });
-          // Wait for upgrade cooldown
-          await context.waitBlocks(1);
+      if (!SKIP_INTERMEDIATE_RUNTIME) {
+        // For each runtime already released, we do the upgrade if
+        for (const runtime of allRuntimes) {
+          if (runtime > currentVersion.specVersion.toNumber()) {
+            console.log(`Found already released runtime not deployed: ${runtime}`);
+            await context.upgradeRuntime(alith, RUNTIME_NAME, `runtime-${runtime}`, {
+              useGovernance: true,
+            });
+            // Wait for upgrade cooldown
+            await context.waitBlocks(1);
+          }
         }
       }
 
