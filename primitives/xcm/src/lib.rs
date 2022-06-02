@@ -18,8 +18,11 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+use frame_support::ensure;
+use frame_support::traits::Contains;
 use frame_support::{
-	traits::{tokens::fungibles::Mutate, Get, OriginTrait},
+	ensure,
+	traits::{tokens::fungibles::Mutate, Contains, Get, OriginTrait},
 	weights::{constants::WEIGHT_PER_SECOND, Weight},
 };
 use orml_traits::location::{RelativeReserveProvider, Reserve};
@@ -39,7 +42,7 @@ use xcm::latest::{
 };
 
 use xcm_builder::TakeRevenue;
-use xcm_executor::traits::{Convert, MatchesFungibles, WeightTrader};
+use xcm_executor::traits::{Convert, MatchesFungibles, ShouldExecuter, WeightTrade};
 
 /// Converter struct implementing `AssetIdConversion` converting a numeric asset ID
 /// (must be `TryFrom/TryInto<u128>`) into a MultiLocation Value and vice versa through
@@ -353,6 +356,8 @@ impl<
 	}
 }
 
+// Struct that converts a given MultiLocation into a 20 bytes account id by hashing
+// with blake2_256 and taking the first 20 bytes
 pub struct Account20Hash<AccountId>(PhantomData<AccountId>);
 impl<AccountId: From<[u8; 20]> + Into<[u8; 20]> + Clone> Convert<MultiLocation, AccountId>
 	for Account20Hash<AccountId>
@@ -371,9 +376,6 @@ impl<AccountId: From<[u8; 20]> + Into<[u8; 20]> + Clone> Convert<MultiLocation, 
 	}
 }
 
-use frame_support::ensure;
-use frame_support::traits::Contains;
-use xcm_executor::traits::ShouldExecute;
 /// Allows execution from `origin` if it is contained in `T` (i.e. `T::Contains(origin)`) taking
 /// payments into account.
 ///
