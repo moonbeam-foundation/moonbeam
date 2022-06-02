@@ -1,3 +1,4 @@
+import "@moonbeam-network/api-augment";
 import { expect } from "chai";
 import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 import { createContract, createTransaction } from "../../util/transactions";

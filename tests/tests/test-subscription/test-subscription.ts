@@ -1,3 +1,4 @@
+import "@moonbeam-network/api-augment";
 import { expect } from "chai";
 import { customWeb3Request, web3Subscribe } from "../../util/providers";
 import { BlockHeader } from "web3-eth";

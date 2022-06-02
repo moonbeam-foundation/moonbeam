@@ -1,8 +1,9 @@
+import "@moonbeam-network/api-augment";
 import { expect } from "chai";
 
 import { TransactionReceipt } from "web3-core";
 import { verifyLatestBlockFees } from "../../util/block";
-import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
+import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 
 import { createContract, createContractExecution } from "../../util/transactions";
 

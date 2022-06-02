@@ -2,12 +2,7 @@ import { Keyring } from "@polkadot/api";
 import { ApiTypes, SubmittableExtrinsic } from "@polkadot/api/types";
 import { KeyringPair } from "@polkadot/keyring/types";
 import { blake2AsHex } from "@polkadot/util-crypto";
-import {
-  ALITH_PRIV_KEY,
-  BALTATHAR_PRIV_KEY,
-  CHARLETH_PRIV_KEY,
-  DOROTHY_PRIV_KEY,
-} from "./constants";
+import { alith, baltathar, charleth, dorothy } from "./accounts";
 import { DevTestContext } from "./setup-dev-tests";
 import { createBlockWithExtrinsic } from "./substrate-rpc";
 
@@ -28,6 +23,21 @@ export const notePreimage = async <
   return blake2AsHex(encodedProposal);
 };
 
+export const instantFastTrack = async (
+  context: DevTestContext,
+  proposalHash: string,
+  { votingPeriod, delayPeriod } = { votingPeriod: 2, delayPeriod: 0 }
+) => {
+  await execFromTwoThirdsOfCouncil(
+    context,
+    context.polkadotApi.tx.democracy.externalProposeMajority(proposalHash)
+  );
+  await execFromAllMembersOfTechCommittee(
+    context,
+    context.polkadotApi.tx.democracy.fastTrack(proposalHash, votingPeriod, delayPeriod)
+  );
+};
+
 export const execFromTwoThirdsOfCouncil = async <
   Call extends SubmittableExtrinsic<ApiType>,
   ApiType extends ApiTypes
@@ -35,10 +45,6 @@ export const execFromTwoThirdsOfCouncil = async <
   context: DevTestContext,
   polkadotCall: Call
 ) => {
-  // Council members
-  const charleth = await keyring.addFromUri(CHARLETH_PRIV_KEY, null, "ethereum");
-  const dorothy = await keyring.addFromUri(DOROTHY_PRIV_KEY, null, "ethereum");
-
   // Charleth submit the proposal to the council (and therefore implicitly votes for)
   let lengthBound = polkadotCall.encodedLength;
   const { events: proposalEvents } = await createBlockWithExtrinsic(
@@ -47,8 +53,8 @@ export const execFromTwoThirdsOfCouncil = async <
     context.polkadotApi.tx.councilCollective.propose(2, polkadotCall, lengthBound)
   );
   const proposalHash = proposalEvents
-    .find((e) => e.method.toString() == "Proposed")
-    .data[2].toHex() as string;
+    .find(({ event: { method } }) => method.toString() == "Proposed")
+    .event.data[2].toHex() as string;
 
   // Dorothy vote for this proposal and close it
   await Promise.all([
@@ -72,8 +78,6 @@ export const execFromAllMembersOfTechCommittee = async <
   polkadotCall: Call
 ) => {
   // Tech committee members
-  const alith = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
-  const baltathar = await keyring.addFromUri(BALTATHAR_PRIV_KEY, null, "ethereum");
 
   // Alith submit the proposal to the council (and therefore implicitly votes for)
   let lengthBound = polkadotCall.encodedLength;
@@ -83,8 +87,8 @@ export const execFromAllMembersOfTechCommittee = async <
     context.polkadotApi.tx.techCommitteeCollective.propose(2, polkadotCall, lengthBound)
   );
   const proposalHash = proposalEvents
-    .find((e) => e.method.toString() == "Proposed")
-    .data[2].toHex() as string;
+    .find(({ event: { method } }) => method.toString() == "Proposed")
+    .event.data[2].toHex() as string;
 
   // Get proposal count
   const proposalCount = await context.polkadotApi.query.techCommitteeCollective.proposalCount();

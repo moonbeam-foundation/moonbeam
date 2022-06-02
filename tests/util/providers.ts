@@ -3,10 +3,10 @@ import { ApiPromise, WsProvider } from "@polkadot/api";
 import { typesBundlePre900 } from "../../moonbeam-types-bundle";
 import { JsonRpcResponse } from "web3-core-helpers";
 import { ethers } from "ethers";
-import { GENESIS_ACCOUNT_PRIVATE_KEY } from "./constants";
 import { Subscription as Web3Subscription } from "web3-core-subscriptions";
 import { BlockHeader } from "web3-eth";
 import { Log } from "web3-core";
+import { ALITH_PRIVATE_KEY } from "./accounts";
 
 export async function customWeb3Request(web3: Web3, method: string, params: any[]) {
   return new Promise<JsonRpcResponse>((resolve, reject) => {
@@ -62,7 +62,7 @@ export const provideWeb3Api = async (port: number, protocol: "ws" | "http" = "ht
       : new Web3(`http://localhost:${port}`);
 
   // Adding genesis account for convenience
-  web3.eth.accounts.wallet.add(GENESIS_ACCOUNT_PRIVATE_KEY);
+  web3.eth.accounts.wallet.add(ALITH_PRIVATE_KEY);
 
   // Hack to add customRequest method.
   (web3 as any).customRequest = (method: string, params: any[]) =>

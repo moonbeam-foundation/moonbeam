@@ -1,3 +1,4 @@
+import "@moonbeam-network/api-augment";
 import { expect } from "chai";
 
 import { createContract } from "../../util/transactions";

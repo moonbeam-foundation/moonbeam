@@ -1,8 +1,9 @@
+import "@moonbeam-network/api-augment";
 import { ApiPromise } from "@polkadot/api";
 import { AddressOrPair, ApiTypes, SubmittableExtrinsic } from "@polkadot/api/types";
 import { GenericExtrinsic } from "@polkadot/types/extrinsic";
-import { AnyTuple } from "@polkadot/types/types";
-import { Event, EventRecord } from "@polkadot/types/interfaces";
+import { AnyTuple, RegistryError } from "@polkadot/types/types";
+import { DispatchError, DispatchInfo, Event, EventRecord } from "@polkadot/types/interfaces";
 import { u8aToHex } from "@polkadot/util";
 import { DevTestContext } from "./setup-dev-tests";
 const debug = require("debug")("test:substrateEvents");
@@ -40,13 +41,21 @@ export const createBlockWithExtrinsic = async <
   const extrinsic = blockData.block.extrinsics[extrinsicIndex];
 
   // We retrieve the events associated with the extrinsic
-  const events = allRecords
-    .filter(
-      ({ phase }) => phase.isApplyExtrinsic && phase.asApplyExtrinsic.toNumber() == extrinsicIndex
-    )
-    .map(({ event }) => event);
+  const events = allRecords.filter(
+    ({ phase }) => phase.isApplyExtrinsic && phase.asApplyExtrinsic.toNumber() == extrinsicIndex
+  );
 
-  return { extrinsic, events };
+  const failed = extractError(events);
+
+  return {
+    extrinsic,
+    events,
+    error:
+      failed &&
+      ((failed.isModule && context.polkadotApi.registry.findMetaError(failed.asModule)) ||
+        ({ name: failed.toString() } as RegistryError)),
+    successful: !failed,
+  };
 };
 
 // LAUNCH BASED NETWORK TESTING (PARA TESTS)
@@ -144,3 +153,43 @@ export const createBlockWithExtrinsicParachain = async <
   //const blockResult = await context.createBlock();
   return await tryLookingForEvents(api, extrinsicHash);
 };
+
+export function filterAndApply<T>(
+  events: EventRecord[],
+  section: string,
+  methods: string[],
+  onFound: (record: EventRecord) => T
+): T[] {
+  return events
+    .filter(({ event }) => section === event.section && methods.includes(event.method))
+    .map((record) => onFound(record));
+}
+
+export function getDispatchError({
+  event: {
+    data: [dispatchError],
+  },
+}: EventRecord): DispatchError {
+  return dispatchError as DispatchError;
+}
+
+function getDispatchInfo({ event: { data, method } }: EventRecord): DispatchInfo {
+  return method === "ExtrinsicSuccess" ? (data[0] as DispatchInfo) : (data[1] as DispatchInfo);
+}
+
+export function extractError(events: EventRecord[] = []): DispatchError | undefined {
+  return filterAndApply(events, "system", ["ExtrinsicFailed"], getDispatchError)[0];
+}
+
+export function isExtrinsicSuccessful(events: EventRecord[] = []): boolean {
+  return filterAndApply(events, "system", ["ExtrinsicSuccess"], () => true).length > 0;
+}
+
+export function extractInfo(events: EventRecord[] = []): DispatchInfo | undefined {
+  return filterAndApply(
+    events,
+    "system",
+    ["ExtrinsicFailed", "ExtrinsicSuccess"],
+    getDispatchInfo
+  )[0];
+}

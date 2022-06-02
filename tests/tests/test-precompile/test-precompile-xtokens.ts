@@ -1,3 +1,4 @@
+import "@moonbeam-network/api-augment";
 import { expect } from "chai";
 import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 import { ethers } from "ethers";

@@ -1,9 +1,9 @@
+import "@moonbeam-network/api-augment";
 import { expect } from "chai";
-import { GENESIS_ACCOUNT } from "../../util/constants";
-import { customWeb3Request } from "../../util/providers";
 import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
-import { createContract, createTransaction } from "../../util/transactions";
+import { createTransaction } from "../../util/transactions";
 import * as RLP from "rlp";
+import { alith } from "../../util/accounts";
 
 const DEPLOYED_BYTECODE = "0x60006000fd";
 
@@ -54,7 +54,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - precompiles dummy bytecode", (co
     const contractAddress =
       "0x" +
       context.web3.utils
-        .sha3(RLP.encode([GENESIS_ACCOUNT, 0]) as any)
+        .sha3(RLP.encode([alith.address, 0]) as any)
         .slice(12)
         .substring(14);
 

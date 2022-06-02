@@ -1,16 +1,6 @@
-import { Keyring } from "@polkadot/api";
-import { KeyringPair } from "@polkadot/keyring/types";
+import "@moonbeam-network/api-augment";
 import { expect } from "chai";
-import {
-  GENESIS_ACCOUNT,
-  GENESIS_ACCOUNT_PRIVATE_KEY,
-  ALITH_PRIV_KEY,
-  ALITH,
-  PROPOSAL_AMOUNT,
-  VOTE_AMOUNT,
-  ZERO_ADDRESS,
-  GAS_PRICE,
-} from "../../util/constants";
+import { PROPOSAL_AMOUNT, VOTE_AMOUNT, ZERO_ADDRESS, GAS_PRICE } from "../../util/constants";
 import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
 import { ApiTypes, SubmittableExtrinsic } from "@polkadot/api/types";
 import { BN } from "@polkadot/util";
@@ -20,6 +10,7 @@ import { numberToHex } from "@polkadot/util";
 import { getCompiled } from "../../util/contracts";
 import { ethers } from "ethers";
 import { Interface } from "ethers/lib/utils";
+import { alith, ALITH_PRIVATE_KEY, baltathar, BALTATHAR_PRIVATE_KEY } from "../../util/accounts";
 
 const ADDRESS_DEMO_PRECOMPILE = "0x0000000000000000000000000000000000000803";
 // Function selector reference
@@ -74,8 +65,8 @@ export const notePreimagePrecompile = async <
   );
 
   const tx = await createTransaction(context, {
-    from: GENESIS_ACCOUNT,
-    privateKey: GENESIS_ACCOUNT_PRIVATE_KEY,
+    from: alith.address,
+    privateKey: ALITH_PRIVATE_KEY,
     value: "0x0",
     gas: "0x200000",
     gasPrice: GAS_PRICE,
@@ -91,38 +82,33 @@ export const notePreimagePrecompile = async <
 };
 
 describeDevMoonbeam("Democracy - genesis and preimage", (context) => {
-  let genesisAccount: KeyringPair;
   let iFace: Interface;
 
   before("Setup genesis account for substrate", async () => {
-    const keyring = new Keyring({ type: "ethereum" });
-    genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
     iFace = await deployAndInterfaceContract(context, "Democracy");
   });
   it("should check initial state - no referendum", async function () {
     // referendumCount
     const referendumCount = await context.polkadotApi.query.democracy.referendumCount();
-    expect(referendumCount.toHuman()).to.equal("0");
+    expect(referendumCount.toNumber()).to.equal(0);
   });
   it("should check initial state - 0x0 ParachainBondAccount", async function () {
     // referendumCount
     const parachainBondInfo = await context.polkadotApi.query.parachainStaking.parachainBondInfo();
-    expect(parachainBondInfo.toHuman()["account"]).to.equal(ZERO_ADDRESS);
+    expect(parachainBondInfo.account.toString()).to.equal(ZERO_ADDRESS);
   });
   it("notePreimage", async function () {
     // notePreimage
     const encodedHash = await notePreimagePrecompile(
       context,
       iFace,
-      context.polkadotApi.tx.parachainStaking.setParachainBondAccount(GENESIS_ACCOUNT)
+      context.polkadotApi.tx.parachainStaking.setParachainBondAccount(alith.address)
     );
 
-    const preimageStatus = (await context.polkadotApi.query.democracy.preimages(
-      encodedHash
-    )) as any;
+    const preimageStatus = await context.polkadotApi.query.democracy.preimages(encodedHash);
     expect(
       preimageStatus.unwrap().isAvailable && preimageStatus.unwrap().asAvailable.provider.toString()
-    ).to.equal(GENESIS_ACCOUNT);
+    ).to.equal(alith.address);
     expect(
       preimageStatus.unwrap().isAvailable && preimageStatus.unwrap().asAvailable.deposit.toString()
     ).to.equal("2200000000000000");
@@ -130,20 +116,17 @@ describeDevMoonbeam("Democracy - genesis and preimage", (context) => {
 });
 
 describeDevMoonbeam("Democracy - propose", (context) => {
-  let genesisAccount: KeyringPair;
   let encodedHash: `0x${string}`;
   let iFace: Interface;
 
   before("Setup genesis account for substrate", async () => {
-    const keyring = new Keyring({ type: "ethereum" });
-    genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
     iFace = await deployAndInterfaceContract(context, "Democracy");
 
     // encodedHash
     encodedHash = await notePreimagePrecompile(
       context,
       iFace,
-      context.polkadotApi.tx.parachainStaking.setParachainBondAccount(GENESIS_ACCOUNT)
+      context.polkadotApi.tx.parachainStaking.setParachainBondAccount(alith.address)
     );
   });
   it("propose", async function () {
@@ -152,42 +135,38 @@ describeDevMoonbeam("Democracy - propose", (context) => {
       context,
       ADDRESS_DEMO_PRECOMPILE,
       SELECTORS,
-      GENESIS_ACCOUNT,
-      GENESIS_ACCOUNT_PRIVATE_KEY,
+      alith.address,
+      ALITH_PRIVATE_KEY,
       "propose",
       [encodedHash, numberToHex(Number(PROPOSAL_AMOUNT))]
     );
 
     // referendumCount
     const referendumCount = await context.polkadotApi.query.democracy.referendumCount();
-    expect(referendumCount.toHuman()).to.equal("0");
+    expect(referendumCount.toNumber()).to.equal(0);
 
     // publicPropCount
     const publicPropCount = await context.polkadotApi.query.democracy.publicPropCount();
-    expect(publicPropCount.toHuman()).to.equal("1");
+    expect(publicPropCount.toNumber()).to.equal(1);
 
     // publicProps
     const publicProps = await context.polkadotApi.query.democracy.publicProps();
     // encodedHash
-    expect((publicProps.toHuman() as any)[0][1]).to.equal(encodedHash);
+    expect(publicProps[0][1]).to.equal(encodedHash);
     // prop author
-    expect((publicProps.toHuman() as any)[0][2]).to.equal(GENESIS_ACCOUNT);
+    expect(publicProps[0][2]).to.equal(alith.address);
     // depositOf
     const depositOf = await context.polkadotApi.query.democracy.depositOf(0);
-    expect((depositOf.toHuman() as any)[1]).to.equal("1,000,000,000,000,000,000,000");
+    expect(depositOf.unwrap()[1]).to.equal("1,000,000,000,000,000,000,000");
   });
 });
 
 describeDevMoonbeam("Democracy - second proposal", (context) => {
-  let genesisAccount: KeyringPair, alith: KeyringPair;
   let encodedHash: `0x${string}`;
   let launchPeriod;
   let iFace: Interface;
 
   before("Setup genesis account for substrate", async () => {
-    const keyring = new Keyring({ type: "ethereum" });
-    genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
-    alith = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
     iFace = await deployAndInterfaceContract(context, "Democracy");
 
     //launchPeriod
@@ -197,7 +176,7 @@ describeDevMoonbeam("Democracy - second proposal", (context) => {
     encodedHash = await notePreimagePrecompile(
       context,
       iFace,
-      context.polkadotApi.tx.parachainStaking.setParachainBondAccount(GENESIS_ACCOUNT)
+      context.polkadotApi.tx.parachainStaking.setParachainBondAccount(alith.address)
     );
 
     // propose
@@ -205,8 +184,8 @@ describeDevMoonbeam("Democracy - second proposal", (context) => {
       context,
       ADDRESS_DEMO_PRECOMPILE,
       SELECTORS,
-      GENESIS_ACCOUNT,
-      GENESIS_ACCOUNT_PRIVATE_KEY,
+      alith.address,
+      ALITH_PRIVATE_KEY,
       "propose",
       [encodedHash, numberToHex(Number(PROPOSAL_AMOUNT))]
     );
@@ -216,8 +195,8 @@ describeDevMoonbeam("Democracy - second proposal", (context) => {
       context,
       ADDRESS_DEMO_PRECOMPILE,
       SELECTORS,
-      ALITH,
-      ALITH_PRIV_KEY,
+      baltathar.address,
+      BALTATHAR_PRIVATE_KEY,
       "second",
       [numberToHex(0), numberToHex(1000)]
     );
@@ -227,18 +206,18 @@ describeDevMoonbeam("Democracy - second proposal", (context) => {
     // publicProps
     const publicProps = await context.polkadotApi.query.democracy.publicProps();
     // encodedHash
-    expect((publicProps.toHuman() as any)[0][1]).to.equal(encodedHash);
+    expect(publicProps[0][1]).to.equal(encodedHash);
     // prop author
-    expect((publicProps.toHuman() as any)[0][2]).to.equal(GENESIS_ACCOUNT);
+    expect(publicProps[0][2]).to.equal(alith.address);
 
     // depositOf
     const depositOf = await context.polkadotApi.query.democracy.depositOf(0);
-    expect((depositOf.toHuman() as any)[1]).to.equal("1,000,000,000,000,000,000,000");
-    expect((depositOf.toHuman() as any)[0][1]).to.equal(ALITH);
+    expect(depositOf.unwrap()[1]).to.equal("1,000,000,000,000,000,000,000");
+    expect(depositOf.unwrap()[0][1]).to.equal(alith.address);
   });
   it("check launch period", async function () {
     // launchPeriod
-    expect(launchPeriod.toHuman()).to.equal("7,200");
+    expect(launchPeriod.unwrap()).to.equal("7,200");
   });
   it("check referendum is up", async function () {
     this.timeout(1000000);
@@ -249,29 +228,24 @@ describeDevMoonbeam("Democracy - second proposal", (context) => {
     }
     // referendumCount
     let referendumCount = await context.polkadotApi.query.democracy.referendumCount();
-    expect(referendumCount.toHuman()).to.equal("1");
+    expect(referendumCount.toNumber()).to.equal(1);
 
     // publicPropCount
     const publicPropCount = await context.polkadotApi.query.democracy.publicPropCount();
-    expect(publicPropCount.toHuman()).to.equal("1");
+    expect(publicPropCount.toNumber()).to.equal(1);
 
     // referendumInfoOf
     const referendumInfoOf = await context.polkadotApi.query.democracy.referendumInfoOf(0);
-    expect((referendumInfoOf.toHuman() as any).Ongoing.proposalHash).to.equal(encodedHash);
+    expect(referendumInfoOf.unwrap().asOngoing.proposalHash).to.equal(encodedHash);
   });
 });
 
 describeDevMoonbeam("Democracy - vote on referendum", (context) => {
-  let genesisAccount: KeyringPair, alith: KeyringPair;
   let encodedHash: `0x${string}`;
   let enactmentPeriod, votingPeriod;
   let iFace: Interface;
 
   before("Setup genesis account for substrate", async () => {
-    const keyring = new Keyring({ type: "ethereum" });
-    genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
-    alith = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
-
     iFace = await deployAndInterfaceContract(context, "Democracy");
 
     // enactmentPeriod
@@ -283,7 +257,7 @@ describeDevMoonbeam("Democracy - vote on referendum", (context) => {
     encodedHash = await notePreimagePrecompile(
       context,
       iFace,
-      context.polkadotApi.tx.parachainStaking.setParachainBondAccount(GENESIS_ACCOUNT)
+      context.polkadotApi.tx.parachainStaking.setParachainBondAccount(alith.address)
     );
 
     // propose
@@ -291,8 +265,8 @@ describeDevMoonbeam("Democracy - vote on referendum", (context) => {
       context,
       ADDRESS_DEMO_PRECOMPILE,
       SELECTORS,
-      GENESIS_ACCOUNT,
-      GENESIS_ACCOUNT_PRIVATE_KEY,
+      alith.address,
+      ALITH_PRIVATE_KEY,
       "propose",
       [encodedHash, numberToHex(Number(PROPOSAL_AMOUNT))]
     );
@@ -302,8 +276,8 @@ describeDevMoonbeam("Democracy - vote on referendum", (context) => {
       context,
       ADDRESS_DEMO_PRECOMPILE,
       SELECTORS,
-      ALITH,
-      ALITH_PRIV_KEY,
+      baltathar.address,
+      BALTATHAR_PRIVATE_KEY,
       "second",
       [numberToHex(0), numberToHex(1000)]
     );
@@ -311,12 +285,12 @@ describeDevMoonbeam("Democracy - vote on referendum", (context) => {
 
   it("check enactment period", async function () {
     // enactmentPeriod
-    expect(enactmentPeriod.toHuman()).to.equal("7,200");
+    expect(enactmentPeriod.unwrap()).to.equal("7,200");
   });
 
   it("check voting Period", async function () {
     // votingPeriod
-    expect(votingPeriod.toHuman()).to.equal("36,000");
+    expect(votingPeriod.unwrap()).to.equal("36,000");
   });
 
   it("vote", async function () {
@@ -331,8 +305,8 @@ describeDevMoonbeam("Democracy - vote on referendum", (context) => {
       context,
       ADDRESS_DEMO_PRECOMPILE,
       SELECTORS,
-      ALITH,
-      ALITH_PRIV_KEY,
+      alith.address,
+      ALITH_PRIVATE_KEY,
       "standard_vote",
       [numberToHex(0), "0x01", numberToHex(Number(VOTE_AMOUNT)), numberToHex(1)]
     );
@@ -388,12 +362,11 @@ describeDevMoonbeam("Democracy - vote on referendum", (context) => {
       await context.createBlock();
     }
 
-    let parachainBondInfo =
-      (await context.polkadotApi.query.parachainStaking.parachainBondInfo()) as any;
+    let parachainBondInfo = await context.polkadotApi.query.parachainStaking.parachainBondInfo();
 
     const referendumDone = await context.polkadotApi.query.democracy.referendumInfoOf(0);
     expect(referendumDone.unwrap().isFinished).to.be.true;
     expect(referendumDone.unwrap().asFinished.approved.isTrue).to.be.true;
-    expect(parachainBondInfo.account.toString()).to.equal(GENESIS_ACCOUNT);
+    expect(parachainBondInfo.account.toString()).to.equal(alith.address);
   });
 });

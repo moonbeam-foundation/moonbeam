@@ -15,6 +15,8 @@ import { ChildProcess } from "child_process";
 import { createAndFinalizeBlock } from "./block";
 import { SPAWNING_TIME, DEBUG_MODE } from "./constants";
 import { HttpProvider } from "web3-core";
+import { KeyringPair } from "@polkadot/keyring/types";
+
 const debug = require("debug")("test:setup");
 
 export interface BlockCreation {

@@ -9,6 +9,7 @@
 // Would the delegation pass in substrate but get the eth back in the evm?
 // We have to make sure that's not possible
 
+import "@moonbeam-network/api-augment";
 import { expect } from "chai";
 import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 
@@ -17,7 +18,7 @@ import { getCompiled } from "../../util/contracts";
 import {
   createContract,
   createContractExecution,
-  GENESIS_TRANSACTION,
+  ALITH_TRANSACTION,
 } from "../../util/transactions";
 import { numberToHex } from "@polkadot/util";
 
@@ -41,7 +42,7 @@ describeDevMoonbeamAllEthTxTypes(
               contractCall: contract.methods.score_a_free_delegation(),
             },
             {
-              ...GENESIS_TRANSACTION,
+              ...ALITH_TRANSACTION,
               value: numberToHex(Number(MIN_GLMR_STAKING)),
             }
           ),

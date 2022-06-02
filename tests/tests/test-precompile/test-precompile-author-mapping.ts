@@ -1,3 +1,4 @@
+import "@moonbeam-network/api-augment";
 import { expect } from "chai";
 import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 import { ethers } from "ethers";
@@ -7,13 +8,8 @@ import { Keyring } from "@polkadot/api";
 import { randomAsHex } from "@polkadot/util-crypto";
 import { u8aToHex } from "@polkadot/util";
 
-import {
-  GENESIS_ACCOUNT,
-  GENESIS_ACCOUNT_PRIVATE_KEY,
-  DEFAULT_GENESIS_MAPPING,
-} from "../../util/constants";
-
-const ADDRESS_AUTHOR_MAPPING = "0x0000000000000000000000000000000000000807";
+import { DEFAULT_GENESIS_MAPPING, PRECOMPILE_AUTHOR_MAPPING_ADDRESS } from "../../util/constants";
+import { alith, ALITH_PRIVATE_KEY } from "../../util/accounts";
 
 async function getMappingInfo(
   context,
@@ -51,12 +47,12 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - author mapping", (context) => {
     const base_fee = await context.web3.eth.getGasPrice();
 
     const tx = await createTransaction(context, {
-      from: GENESIS_ACCOUNT,
-      privateKey: GENESIS_ACCOUNT_PRIVATE_KEY,
+      from: alith.address,
+      privateKey: ALITH_PRIVATE_KEY,
       value: "0x0",
       gas: "0x200000",
       gasPrice: base_fee,
-      to: ADDRESS_AUTHOR_MAPPING,
+      to: PRECOMPILE_AUTHOR_MAPPING_ADDRESS,
       data,
     });
 
@@ -68,7 +64,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - author mapping", (context) => {
     expect(receipt.status).to.equal(true);
 
     const registerInfo = await getMappingInfo(context, u8aToHex(mappingAccount.publicKey));
-    expect(await registerInfo.account).to.eq(GENESIS_ACCOUNT);
+    expect(await registerInfo.account).to.eq(alith.address);
     expect(await registerInfo.deposit).to.eq(DEFAULT_GENESIS_MAPPING);
   });
 });
@@ -77,8 +73,6 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - author mapping", (context) => {
   let firstMappingAccount, secondMappingAccount;
   before("First add association", async () => {
     // We will work with genesis account
-    const keyring = new Keyring({ type: "ethereum" });
-    let genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
 
     // lets generate 2 seeds for 2 sr25519 addresses
     const seed = randomAsHex(32);
@@ -92,12 +86,12 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - author mapping", (context) => {
     // Add association
     await context.polkadotApi.tx.authorMapping
       .addAssociation(firstMappingAccount.publicKey)
-      .signAndSend(genesisAccount);
+      .signAndSend(alith);
     await context.createBlock();
 
     // Verify association was added
     const registerInfo = await getMappingInfo(context, u8aToHex(firstMappingAccount.publicKey));
-    expect(await registerInfo.account).to.eq(GENESIS_ACCOUNT);
+    expect(await registerInfo.account).to.eq(alith.address);
     expect(await registerInfo.deposit).to.eq(DEFAULT_GENESIS_MAPPING);
   });
   it("allows to update association", async function () {
@@ -116,12 +110,12 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - author mapping", (context) => {
     const base_fee = await context.web3.eth.getGasPrice();
 
     const tx = await createTransaction(context, {
-      from: GENESIS_ACCOUNT,
-      privateKey: GENESIS_ACCOUNT_PRIVATE_KEY,
+      from: alith.address,
+      privateKey: ALITH_PRIVATE_KEY,
       value: "0x0",
       gas: "0x200000",
       gasPrice: base_fee,
-      to: ADDRESS_AUTHOR_MAPPING,
+      to: PRECOMPILE_AUTHOR_MAPPING_ADDRESS,
       data,
     });
 
@@ -137,7 +131,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - author mapping", (context) => {
       context,
       u8aToHex(secondMappingAccount.publicKey)
     );
-    expect(await secondRegisterInfo.account).to.eq(GENESIS_ACCOUNT);
+    expect(await secondRegisterInfo.account).to.eq(alith.address);
     expect(await secondRegisterInfo.deposit).to.eq(DEFAULT_GENESIS_MAPPING);
 
     const firstRegisterInfo = await getMappingInfo(
@@ -151,10 +145,6 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - author mapping", (context) => {
 describeDevMoonbeamAllEthTxTypes("Precompiles - author mapping", (context) => {
   let mappingAccount;
   before("First add association", async () => {
-    // We will work with genesis account
-    const keyring = new Keyring({ type: "ethereum" });
-    let genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
-
     const seed = randomAsHex(32);
     const mappingKeyRing = new Keyring({ type: "sr25519" });
     // account
@@ -163,12 +153,12 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - author mapping", (context) => {
     // Add association
     await context.polkadotApi.tx.authorMapping
       .addAssociation(mappingAccount.publicKey)
-      .signAndSend(genesisAccount);
+      .signAndSend(alith);
     await context.createBlock();
 
     // Verify association was added
     const registerInfo = await getMappingInfo(context, u8aToHex(mappingAccount.publicKey));
-    expect(await registerInfo.account).to.eq(GENESIS_ACCOUNT);
+    expect(await registerInfo.account).to.eq(alith.address);
     expect(await registerInfo.deposit).to.eq(DEFAULT_GENESIS_MAPPING);
   });
   it("allows to clear association", async function () {
@@ -187,12 +177,12 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - author mapping", (context) => {
     const base_fee = await context.web3.eth.getGasPrice();
 
     const tx = await createTransaction(context, {
-      from: GENESIS_ACCOUNT,
-      privateKey: GENESIS_ACCOUNT_PRIVATE_KEY,
+      from: alith.address,
+      privateKey: ALITH_PRIVATE_KEY,
       value: "0x0",
       gas: "0x200000",
       gasPrice: base_fee,
-      to: ADDRESS_AUTHOR_MAPPING,
+      to: PRECOMPILE_AUTHOR_MAPPING_ADDRESS,
       data,
     });
 

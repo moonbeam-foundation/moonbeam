@@ -1,3 +1,4 @@
+import "@moonbeam-network/api-augment";
 import { expect } from "chai";
 import { TEST_ACCOUNT } from "../../util/constants";
 import { web3Subscribe } from "../../util/providers";

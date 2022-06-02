@@ -1,3 +1,4 @@
+import "@moonbeam-network/api-augment";
 import { expect } from "chai";
 import { GENESIS_ACCOUNT } from "../../util/constants";
 import { customWeb3Request } from "../../util/providers";

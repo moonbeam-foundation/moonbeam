@@ -1,3 +1,4 @@
+import "@moonbeam-network/api-augment";
 import { expect } from "chai";
 import { blake2AsHex } from "@polkadot/util-crypto";
 import Keyring from "@polkadot/keyring";

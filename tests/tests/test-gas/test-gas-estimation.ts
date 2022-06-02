@@ -1,3 +1,4 @@
+import "@moonbeam-network/api-augment";
 import { expect, use as chaiUse } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { ethers } from "ethers";
@@ -6,10 +7,10 @@ import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 
 import { TransactionReceipt } from "web3-core";
 import { getCompiled } from "../../util/contracts";
-import { GENESIS_ACCOUNT } from "../../util/constants";
 
 import { createContract } from "../../util/transactions";
 import { Contract } from "web3-eth-contract";
+import { alith } from "../../util/accounts";
 
 chaiUse(chaiAsPromised);
 
@@ -64,7 +65,7 @@ describeDevMoonbeamAllEthTxTypes("Estimate Gas - Supplied estimate is sufficient
     const contract = await getCompiled("Incrementer");
     // ask RPC for an gas estimate of deploying this contract
     const estimate = await context.web3.eth.estimateGas({
-      from: GENESIS_ACCOUNT,
+      from: alith.address,
       data: contract.byteCode,
     });
 
@@ -84,13 +85,13 @@ describeDevMoonbeamAllEthTxTypes("Estimate Gas - Handle Gas price", (context) =>
   it("eth_estimateGas 0x0 gasPrice is equivalent to not setting one", async function () {
     const contract = await getCompiled("Incrementer");
     let result = await context.web3.eth.estimateGas({
-      from: GENESIS_ACCOUNT,
+      from: alith.address,
       data: contract.byteCode,
       gasPrice: "0x0",
     });
     expect(result).to.equal(152884);
     result = await context.web3.eth.estimateGas({
-      from: GENESIS_ACCOUNT,
+      from: alith.address,
       data: contract.byteCode,
     });
     expect(result).to.equal(152884);
@@ -134,19 +135,19 @@ describeDevMoonbeamAllEthTxTypes("Estimate Gas - Batch precompile", (context) =>
     ];
 
     const batchSomeGas = await context.web3.eth.estimateGas({
-      from: GENESIS_ACCOUNT,
+      from: alith.address,
       to: "0x0000000000000000000000000000000000000808",
       data: batchInterface.encodeFunctionData("batchSome", callParameters),
     });
 
     const batchSomeUntilFailureGas = await context.web3.eth.estimateGas({
-      from: GENESIS_ACCOUNT,
+      from: alith.address,
       to: "0x0000000000000000000000000000000000000808",
       data: batchInterface.encodeFunctionData("batchSomeUntilFailure", callParameters),
     });
 
     const batchAllGas = await context.web3.eth.estimateGas({
-      from: GENESIS_ACCOUNT,
+      from: alith.address,
       to: "0x0000000000000000000000000000000000000808",
       data: batchInterface.encodeFunctionData("batchAll", callParameters),
     });
