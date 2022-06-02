@@ -8859,6 +8859,32 @@ fn test_delegation_request_exists_returns_false_when_nothing_exists() {
 
 #[test]
 fn test_delegation_request_exists_returns_true_when_decrease_exists() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 25)])
+		.with_candidates(vec![(1, 30)])
+		.with_delegations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			<DelegationScheduledRequests<Test>>::insert(
+				1,
+				vec![ScheduledRequest {
+					delegator: 2,
+					when_executable: 3,
+					action: DelegationAction::Decrease(5),
+				}],
+			);
+			assert!(ParachainStaking::delegation_request_exists(&1, &2));
+		});
+}
+
+#[test]
+fn test_delegation_request_exists_returns_true_when_revoke_exists() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 25)])
+		.with_candidates(vec![(1, 30)])
+		.with_delegations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
 			<DelegationScheduledRequests<Test>>::insert(
 				1,
 				vec![ScheduledRequest {
