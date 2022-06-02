@@ -18,8 +18,6 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use frame_support::ensure;
-use frame_support::traits::Contains;
 use frame_support::{
 	ensure,
 	traits::{tokens::fungibles::Mutate, Contains, Get, OriginTrait},
@@ -42,7 +40,7 @@ use xcm::latest::{
 };
 
 use xcm_builder::TakeRevenue;
-use xcm_executor::traits::{Convert, MatchesFungibles, ShouldExecuter, WeightTrade};
+use xcm_executor::traits::{Convert, MatchesFungibles, ShouldExecute, WeightTrader};
 
 /// Converter struct implementing `AssetIdConversion` converting a numeric asset ID
 /// (must be `TryFrom/TryInto<u128>`) into a MultiLocation Value and vice versa through
@@ -377,7 +375,7 @@ impl<AccountId: From<[u8; 20]> + Into<[u8; 20]> + Clone> Convert<MultiLocation, 
 }
 
 /// Allows execution from `origin` if it is contained in `T` (i.e. `T::Contains(origin)`) taking
-/// payments into account.
+/// payments into account and if it starts with DescendOrigin.
 ///
 /// Only allows for `DescendOrigin` + `WithdrawAsset`, + `BuyExecution`
 pub struct AllowDescendOriginFromLocal<T>(PhantomData<T>);
@@ -397,17 +395,21 @@ impl<T: Contains<MultiLocation>> ShouldExecute for AllowDescendOriginFromLocal<T
 		ensure!(T::contains(origin), ());
 		let mut iter = message.0.iter_mut();
 		let i = iter.next().ok_or(())?;
+
+		// Make sure the first instruction is DescendOrigin
 		match i {
 			DescendOrigin(..) => (),
 			_ => return Err(()),
 		}
 
+		// Then WithdrawAsset
 		let mut i = iter.next().ok_or(())?;
 		match i {
 			WithdrawAsset(..) => (),
 			_ => return Err(()),
 		}
 
+		// Then BuyExecution
 		i = iter.next().ok_or(())?;
 		match i {
 			BuyExecution {
