@@ -750,25 +750,6 @@ fn cannot_join_candidates_if_delegator() {
 }
 
 #[test]
-fn cannot_join_candidates_if_unregistered() {
-	use crate::mock::UNREGISTERED_ACCOUNT;
-	ExtBuilder::default()
-		.with_balances(vec![(UNREGISTERED_ACCOUNT, 1000)])
-		.with_candidates(vec![(UNREGISTERED_ACCOUNT, 500)])
-		.build()
-		.execute_with(|| {
-			assert_noop!(
-				ParachainStaking::join_candidates(
-					Origin::signed(UNREGISTERED_ACCOUNT),
-					11u128,
-					100u32
-				),
-				Error::<Test>::CollatorNotRegistered
-			);
-		});
-}
-
-#[test]
 fn cannot_join_candidates_without_min_bond() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 1000)])

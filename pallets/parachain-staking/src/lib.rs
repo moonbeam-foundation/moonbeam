@@ -80,9 +80,7 @@ pub mod pallet {
 	};
 	use crate::{set::OrderedSet, traits::*, types::*, InflationInfo, Range, WeightInfo};
 	use frame_support::pallet_prelude::*;
-	use frame_support::traits::{
-		Currency, Get, Imbalance, ReservableCurrency, ValidatorRegistration,
-	};
+	use frame_support::traits::{Currency, Get, Imbalance, ReservableCurrency};
 	use frame_system::pallet_prelude::*;
 	use parity_scale_codec::Decode;
 	use sp_runtime::{
@@ -170,8 +168,6 @@ pub mod pallet {
 		/// Handler to notify the runtime when a new round begin.
 		/// If you don't need it, you can specify the type `()`.
 		type OnNewRound: OnNewRound;
-		/// Whether a given collator has completed required registration to be selected as block author
-		type CollatorRegistration: ValidatorRegistration<Self::AccountId>;
 		/// Any additional issuance that should be used for inflation calcs
 		/// If you don't need it, you can specify the type `()`.
 		type AdditionalIssuance: AdditionalIssuance<BalanceOf<Self>>;
@@ -222,7 +218,6 @@ pub mod pallet {
 		PendingDelegationRequestAlreadyExists,
 		PendingDelegationRequestNotDueYet,
 		CannotDelegateLessThanOrEqualToLowestBottomWhenFull,
-		CollatorNotRegistered,
 	}
 
 	#[pallet::event]
@@ -889,10 +884,6 @@ pub mod pallet {
 			let acc = ensure_signed(origin)?;
 			ensure!(!Self::is_candidate(&acc), Error::<T>::CandidateExists);
 			ensure!(!Self::is_delegator(&acc), Error::<T>::DelegatorExists);
-			ensure!(
-				T::CollatorRegistration::is_registered(&acc),
-				Error::<T>::CollatorNotRegistered
-			);
 			ensure!(
 				bond >= T::MinCandidateStk::get(),
 				Error::<T>::CandidateBondBelowMin
