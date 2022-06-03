@@ -556,7 +556,7 @@ where
 						Ok(Response::Single(
 							moonbeam_client_evm_tracing::formatters::Raw::format(proxy).ok_or(
 								internal_err(
-									"replayed transaction generated too much data.\
+									"replayed transaction generated too much data. \
 								try disabling memory or storage?",
 								),
 							)?,

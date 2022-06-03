@@ -187,7 +187,7 @@ pub struct RunCmd {
 
 	/// Size in bytes of data a raw tracing request is allowed to use.
 	/// Bound the size of memory, stack and storage data.
-	#[clap(long, default_value = "50000000")]
+	#[clap(long, default_value = "20000000")]
 	pub tracing_raw_max_memory_usage: usize,
 
 	/// Maximum number of logs in a query.
