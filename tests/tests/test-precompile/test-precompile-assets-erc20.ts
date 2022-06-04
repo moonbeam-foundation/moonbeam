@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
+import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 import { web3EthCall } from "../../util/providers";
 import { BN, bnToHex, stringToHex, numberToHex } from "@polkadot/util";
 import { getCompiled } from "../../util/contracts";
@@ -366,6 +366,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
     });
 
     const { contract, rawTx } = await createContract(context, "ERC20Instance");
+    await context.createBlock({ transactions: [rawTx] });
     contractInstanceAddress = contract.options.address;
 
     // We fund the contract address with this test
@@ -378,8 +379,6 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
       contractInstanceAddress,
       true
     );
-
-    await context.createBlock({ transactions: [rawTx] });
   });
   it("allows to approve transfer and use transferFrom from contract calls", async function () {
     // Create approval
@@ -397,8 +396,6 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
     const receiptAlith = await context.web3.eth.getTransactionReceipt(
       blockAlith.txResults[0].result
     );
-    console.log(contractInstanceAddress);
-    console.log(receiptAlith);
 
     expect(receiptAlith.status).to.equal(true);
     expect(receiptAlith.logs.length).to.eq(1);
@@ -452,7 +449,11 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
         await createTransaction(context, {
           ...BALTATHAR_TRANSACTION_TEMPLATE,
           to: ADDRESS_ERC20,
-          data: ERC20_INTERFACE.encodeFunctionData("approve", [baltathar.address, 1000]),
+          data: ERC20_INTERFACE.encodeFunctionData("transferFrom", [
+            contractInstanceAddress,
+            charleth.address,
+            1000,
+          ]),
         }),
       ],
     });
@@ -500,6 +501,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
 
     const { contract, rawTx } = await createContract(context, "ERC20Instance");
     contractInstanceAddress = contract.options.address;
+    await context.createBlock({ transactions: [rawTx] });
     // We fund Alith with this test
     await mockAssetBalance(
       context,
@@ -510,8 +512,6 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
       alith.address,
       true
     );
-
-    await context.createBlock({ transactions: [rawTx] });
   });
 
   it("Bob approves contract and use transferFrom from contract calls", async function () {
@@ -601,6 +601,7 @@ describeDevMoonbeamAllEthTxTypes(
 
       const { contract, rawTx } = await createContract(context, "ERC20Instance");
       contractInstanceAddress = contract.options.address;
+      await context.createBlock({ transactions: [rawTx] });
       await mockAssetBalance(
         context,
         assetBalance,
@@ -609,8 +610,6 @@ describeDevMoonbeamAllEthTxTypes(
         assetId,
         contractInstanceAddress
       );
-
-      await context.createBlock({ transactions: [rawTx] });
     });
     it("allows to transfer through call from SC ", async function () {
       // Create approval

@@ -150,12 +150,12 @@ describeDevMoonbeam("Democracy - propose", (context) => {
     // publicProps
     const publicProps = await context.polkadotApi.query.democracy.publicProps();
     // encodedHash
-    expect(publicProps[0][1]).to.equal(encodedHash);
+    expect(publicProps[0][1].toString()).to.equal(encodedHash);
     // prop author
-    expect(publicProps[0][2]).to.equal(alith.address);
+    expect(publicProps[0][2].toString()).to.equal(alith.address);
     // depositOf
     const depositOf = await context.polkadotApi.query.democracy.depositOf(0);
-    expect(depositOf.unwrap()[1]).to.equal("1,000,000,000,000,000,000,000");
+    expect(depositOf.unwrap()[1].toBigInt()).to.equal(1_000_000_000_000_000_000_000n);
   });
 });
 
@@ -203,19 +203,16 @@ describeDevMoonbeam("Democracy - second proposal", (context) => {
     // publicProps
     const publicProps = await context.polkadotApi.query.democracy.publicProps();
     // encodedHash
-    expect(publicProps[0][1]).to.equal(encodedHash);
+    expect(publicProps[0][1].toString()).to.equal(encodedHash);
     // prop author
-    expect(publicProps[0][2]).to.equal(alith.address);
+    expect(publicProps[0][2].toString()).to.equal(alith.address);
 
     // depositOf
     const depositOf = await context.polkadotApi.query.democracy.depositOf(0);
-    expect(depositOf.unwrap()[1]).to.equal("1,000,000,000,000,000,000,000");
-    expect(depositOf.unwrap()[0][1]).to.equal(alith.address);
+    expect(depositOf.unwrap()[1].toBigInt()).to.equal(1_000_000_000_000_000_000_000n);
+    expect(depositOf.unwrap()[0][1].toString()).to.equal(baltathar.address);
   });
-  it("check launch period", async function () {
-    // launchPeriod
-    expect(launchPeriod.unwrap()).to.equal("7,200");
-  });
+
   it("check referendum is up", async function () {
     this.timeout(1000000);
     // let Launchperiod elapse to turn the proposal into a referendum
@@ -233,21 +230,19 @@ describeDevMoonbeam("Democracy - second proposal", (context) => {
 
     // referendumInfoOf
     const referendumInfoOf = await context.polkadotApi.query.democracy.referendumInfoOf(0);
-    expect(referendumInfoOf.unwrap().asOngoing.proposalHash).to.equal(encodedHash);
+    expect(referendumInfoOf.unwrap().asOngoing.proposalHash.toString()).to.equal(encodedHash);
   });
 });
 
 describeDevMoonbeam("Democracy - vote on referendum", (context) => {
   let encodedHash: `0x${string}`;
-  let enactmentPeriod, votingPeriod;
+  let enactmentPeriod;
 
   before("Setup genesis account for substrate", async () => {
     await deployContract(context, "Democracy");
 
     // enactmentPeriod
     enactmentPeriod = await context.polkadotApi.consts.democracy.enactmentPeriod;
-    // votingPeriod
-    votingPeriod = await context.polkadotApi.consts.democracy.votingPeriod;
 
     // encodedHash
     encodedHash = await notePreimagePrecompile(
@@ -277,16 +272,6 @@ describeDevMoonbeam("Democracy - vote on referendum", (context) => {
       "second",
       [numberToHex(0), numberToHex(1000)]
     );
-  });
-
-  it("check enactment period", async function () {
-    // enactmentPeriod
-    expect(enactmentPeriod.unwrap()).to.equal("7,200");
-  });
-
-  it("check voting Period", async function () {
-    // votingPeriod
-    expect(votingPeriod.unwrap()).to.equal("36,000");
   });
 
   it("vote", async function () {
