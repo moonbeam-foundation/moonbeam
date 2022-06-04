@@ -7,7 +7,7 @@ import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { createBlockWithExtrinsic } from "../../util/substrate-rpc";
 import { verifyLatestBlockFees } from "../../util/block";
 import { alith } from "../../util/accounts";
-import { PARA_1000_SOURCE_LOCATION, RELAY_ASSET_SOURCE_LOCATION } from "../../util/assets";
+import { PARA_1000_SOURCE_LOCATION, RELAY_SOURCE_LOCATION } from "../../util/assets";
 
 const palletId = "0x6D6f646c617373746d6E67720000000000000000";
 
@@ -27,7 +27,7 @@ describeDevMoonbeam("XCM - asset manager - foreign asset", (context) => {
       alith,
       parachainOne.tx.sudo.sudo(
         parachainOne.tx.assetManager.registerForeignAsset(
-          RELAY_ASSET_SOURCE_LOCATION,
+          RELAY_SOURCE_LOCATION,
           assetMetadata,
           new BN(1),
           true
@@ -45,7 +45,7 @@ describeDevMoonbeam("XCM - asset manager - foreign asset", (context) => {
       context,
       alith,
       parachainOne.tx.sudo.sudo(
-        parachainOne.tx.assetManager.setAssetUnitsPerSecond(RELAY_ASSET_SOURCE_LOCATION, 0, 0)
+        parachainOne.tx.assetManager.setAssetUnitsPerSecond(RELAY_SOURCE_LOCATION, 0, 0)
       )
     );
     expect(events[1].event.method.toString()).to.eq("UnitsPerSecondChanged");
@@ -103,7 +103,7 @@ describeDevMoonbeam("XCM - asset manager - Change existing asset", (context) => 
       alith,
       parachainOne.tx.sudo.sudo(
         parachainOne.tx.assetManager.registerForeignAsset(
-          RELAY_ASSET_SOURCE_LOCATION,
+          RELAY_SOURCE_LOCATION,
           assetMetadata,
           new BN(1),
           true
@@ -121,7 +121,7 @@ describeDevMoonbeam("XCM - asset manager - Change existing asset", (context) => 
       context,
       alith,
       parachainOne.tx.sudo.sudo(
-        parachainOne.tx.assetManager.setAssetUnitsPerSecond(RELAY_ASSET_SOURCE_LOCATION, 1, 0)
+        parachainOne.tx.assetManager.setAssetUnitsPerSecond(RELAY_SOURCE_LOCATION, 1, 0)
       )
     );
     expect(events[1].event.method.toString()).to.eq("UnitsPerSecondChanged");
@@ -186,7 +186,7 @@ describeDevMoonbeam("XCM - asset manager - Remove asset from supported", (contex
       alith,
       parachainOne.tx.sudo.sudo(
         parachainOne.tx.assetManager.registerForeignAsset(
-          RELAY_ASSET_SOURCE_LOCATION,
+          RELAY_SOURCE_LOCATION,
           assetMetadata,
           new BN(1),
           true
@@ -204,7 +204,7 @@ describeDevMoonbeam("XCM - asset manager - Remove asset from supported", (contex
       context,
       alith,
       parachainOne.tx.sudo.sudo(
-        parachainOne.tx.assetManager.setAssetUnitsPerSecond(RELAY_ASSET_SOURCE_LOCATION, 1, 0)
+        parachainOne.tx.assetManager.setAssetUnitsPerSecond(RELAY_SOURCE_LOCATION, 1, 0)
       )
     );
     expect(events[1].event.method.toString()).to.eq("UnitsPerSecondChanged");
@@ -223,20 +223,18 @@ describeDevMoonbeam("XCM - asset manager - Remove asset from supported", (contex
       context,
       alith,
       context.polkadotApi.tx.sudo.sudo(
-        context.polkadotApi.tx.assetManager.removeSupportedAsset(RELAY_ASSET_SOURCE_LOCATION, 1)
+        context.polkadotApi.tx.assetManager.removeSupportedAsset(RELAY_SOURCE_LOCATION, 1)
       )
     );
 
     // assetId
     const id = (
-      await context.polkadotApi.query.assetManager.assetTypeId(RELAY_ASSET_SOURCE_LOCATION)
+      await context.polkadotApi.query.assetManager.assetTypeId(RELAY_SOURCE_LOCATION)
     ).unwrap();
 
     // asset units per second removed
     const assetUnitsPerSecond =
-      await context.polkadotApi.query.assetManager.assetTypeUnitsPerSecond(
-        RELAY_ASSET_SOURCE_LOCATION
-      );
+      await context.polkadotApi.query.assetManager.assetTypeUnitsPerSecond(RELAY_SOURCE_LOCATION);
 
     // Supported assets should be 0
     const supportedAssets =
@@ -259,7 +257,7 @@ describeDevMoonbeam("XCM - asset manager - destroy foreign asset", (context) => 
       alith,
       parachainOne.tx.sudo.sudo(
         parachainOne.tx.assetManager.registerForeignAsset(
-          RELAY_ASSET_SOURCE_LOCATION,
+          RELAY_SOURCE_LOCATION,
           assetMetadata,
           new BN(1),
           true
@@ -277,7 +275,7 @@ describeDevMoonbeam("XCM - asset manager - destroy foreign asset", (context) => 
       context,
       alith,
       parachainOne.tx.sudo.sudo(
-        parachainOne.tx.assetManager.setAssetUnitsPerSecond(RELAY_ASSET_SOURCE_LOCATION, 1, 0)
+        parachainOne.tx.assetManager.setAssetUnitsPerSecond(RELAY_SOURCE_LOCATION, 1, 0)
       )
     );
     expect(events[1].event.method.toString()).to.eq("UnitsPerSecondChanged");
@@ -307,15 +305,11 @@ describeDevMoonbeam("XCM - asset manager - destroy foreign asset", (context) => 
     );
 
     // assetId
-    const id = await context.polkadotApi.query.assetManager.assetTypeId(
-      RELAY_ASSET_SOURCE_LOCATION
-    );
+    const id = await context.polkadotApi.query.assetManager.assetTypeId(RELAY_SOURCE_LOCATION);
 
     // asset units per second removed
     const assetUnitsPerSecond =
-      await context.polkadotApi.query.assetManager.assetTypeUnitsPerSecond(
-        RELAY_ASSET_SOURCE_LOCATION
-      );
+      await context.polkadotApi.query.assetManager.assetTypeUnitsPerSecond(RELAY_SOURCE_LOCATION);
 
     // Supported assets should be 0
     const supportedAssets =

@@ -2,7 +2,7 @@ import "@moonbeam-network/api-augment";
 import { expect } from "chai";
 import Keyring from "@polkadot/keyring";
 
-import { ALITH, BALTATHAR_AUTHOR_ID } from "../../util/constants";
+import { ALITH, BALTATHAR_SESSION_KEY } from "../../util/constants";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { createBlockWithExtrinsic } from "../../util/substrate-rpc";
 import { ALITH_PRIVATE_KEY, BALTATHAR_PRIVATE_KEY } from "../../util/constants";
@@ -42,7 +42,7 @@ describeDevMoonbeam("Proxy : Author Mapping - simple association", (context) => 
       context.polkadotApi.tx.proxy.proxy(
         alith.address,
         null,
-        context.polkadotApi.tx.authorMapping.addAssociation(BALTATHAR_AUTHOR_ID)
+        context.polkadotApi.tx.authorMapping.addAssociation(BALTATHAR_SESSION_KEY)
       )
     );
 
@@ -51,6 +51,6 @@ describeDevMoonbeam("Proxy : Author Mapping - simple association", (context) => 
     expect(events2[6].method).to.be.eq("ExtrinsicSuccess");
 
     // // check association
-    expect((await getMappingInfo(context, BALTATHAR_AUTHOR_ID)).account).to.eq(ALITH);
+    expect((await getMappingInfo(context, BALTATHAR_SESSION_KEY)).account).to.eq(ALITH);
   });
 });

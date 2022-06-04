@@ -7,7 +7,7 @@ import {
   BALTATHAR_PRIVATE_KEY,
   CHARLETH_PRIVATE_KEY,
   CHARLETH_ADDRESS,
-  BALTATHAR_AUTHOR_ID,
+  BALTATHAR_SESSION_KEY,
 } from "../../util/constants";
 import { getMappingInfo } from "./test-proxy-author-mapping";
 import { expectBalanceDifference } from "../../util/balances";
@@ -78,7 +78,7 @@ describeDevMoonbeam("Proxy: Balances - shouldn't accept other proxy types", (con
           context.polkadotApi.tx.proxy.proxy(
             alith.address,
             null,
-            context.polkadotApi.tx.authorMapping.addAssociation(BALTATHAR_AUTHOR_ID)
+            context.polkadotApi.tx.authorMapping.addAssociation(BALTATHAR_SESSION_KEY)
           )
         );
 
@@ -89,7 +89,7 @@ describeDevMoonbeam("Proxy: Balances - shouldn't accept other proxy types", (con
         expect(events2[4].method).to.be.eq("ExtrinsicSuccess");
 
         // // check association failed
-        expect(await getMappingInfo(context, BALTATHAR_AUTHOR_ID)).to.eq(null);
+        expect(await getMappingInfo(context, BALTATHAR_SESSION_KEY)).to.eq(null);
       },
       expect
     );

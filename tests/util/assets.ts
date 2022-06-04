@@ -9,7 +9,8 @@ import { DevTestContext } from "./setup-dev-tests";
 import type { KeyringPair } from "@substrate/txwrapper-core";
 import { createBlockWithExtrinsic } from "./substrate-rpc";
 
-export const RELAY_ASSET_SOURCE_LOCATION = { Xcm: { parents: 1, interior: "Here" } };
+export const RELAY_SOURCE_LOCATION = { Xcm: { parents: 1, interior: "Here" } };
+export const RELAY_V1_SOURCE_LOCATION = { V1: { parents: 1, interior: "Here" } };
 export const PARA_1000_SOURCE_LOCATION = {
   Xcm: { parents: 1, interior: { X1: { Parachain: 1000 } } },
 };
@@ -41,7 +42,7 @@ export async function mockAssetBalance(
   await context.polkadotApi.tx.sudo
     .sudo(
       context.polkadotApi.tx.assetManager.registerForeignAsset(
-        RELAY_ASSET_SOURCE_LOCATION,
+        RELAY_SOURCE_LOCATION,
         relayAssetMetadata,
         new BN(1),
         is_sufficient

@@ -16,7 +16,7 @@ import {
   MIN_GLMR_STAKING,
   ETHAN,
   ALITH,
-  MIN_GLMR_NOMINATOR,
+  MIN_GLMR_DELEGATOR,
   GLMR,
   BALTATHAR_PRIV_KEY,
   BALTATHAR,
@@ -180,7 +180,7 @@ describeDevMoonbeam("Staking - Join Delegators", (context) => {
 
   before("should successfully call delegate on ALITH", async function () {
     await context.polkadotApi.tx.parachainStaking
-      .delegate(ALITH, MIN_GLMR_NOMINATOR, 0, 0)
+      .delegate(ALITH, MIN_GLMR_DELEGATOR, 0, 0)
       .signAndSend(ethan);
     await context.createBlock();
   });
@@ -276,7 +276,7 @@ describeDevMoonbeam("Staking - Join Delegators", (context) => {
 describeDevMoonbeam("Staking - Delegation Requests", (context) => {
   const numberToHex = (n: BigInt): string => `0x${n.toString(16).padStart(32, "0")}`;
 
-  const BOND_AMOUNT = MIN_GLMR_NOMINATOR + 100n;
+  const BOND_AMOUNT = MIN_GLMR_DELEGATOR + 100n;
   const BOND_AMOUNT_HEX = numberToHex(BOND_AMOUNT);
 
   let ethan: KeyringPair;
@@ -691,7 +691,7 @@ describeDevMoonbeam("Staking - Delegation Requests", (context) => {
 
 describeDevMoonbeam("Staking - Bond More", (context) => {
   const BOND_AMOUNT = MIN_GLMR_NOMINATOR + 100n;
-  const keyring = new Keyring({ type: "ethereum" });
+  const keyring = new MIN_GLMR_DELEGATORthereum" });
   const ethan = keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
 
   before("should successfully call delegate on ALITH", async () => {

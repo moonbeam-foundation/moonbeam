@@ -1,18 +1,27 @@
 import "@moonbeam-network/api-augment";
 import { expect } from "chai";
-import { PROPOSAL_AMOUNT, VOTE_AMOUNT, ZERO_ADDRESS, GAS_PRICE } from "../../util/constants";
+import {
+  PROPOSAL_AMOUNT,
+  VOTE_AMOUNT,
+  ZERO_ADDRESS,
+  PRECOMPILE_DEMOCRACY_ADDRESS,
+} from "../../util/constants";
 import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
 import { ApiTypes, SubmittableExtrinsic } from "@polkadot/api/types";
 import { BN } from "@polkadot/util";
 import { blake2AsHex } from "@polkadot/util-crypto";
-import { createContract, createTransaction, sendPrecompileTx } from "../../util/transactions";
+import {
+  ALITH_TRANSACTION_TEMPLATE,
+  createContract,
+  createTransaction,
+  sendPrecompileTx,
+} from "../../util/transactions";
 import { numberToHex } from "@polkadot/util";
 import { getCompiled } from "../../util/contracts";
 import { ethers } from "ethers";
 import { Interface } from "ethers/lib/utils";
 import { alith, ALITH_PRIVATE_KEY, baltathar, BALTATHAR_PRIVATE_KEY } from "../../util/accounts";
 
-const ADDRESS_DEMO_PRECOMPILE = "0x0000000000000000000000000000000000000803";
 // Function selector reference
 // {
 // "0185921e": "delegate(address,uint256,uint256)",
@@ -36,16 +45,12 @@ const SELECTORS = {
   note_preimage: "200881f5",
 };
 
-export const deployAndInterfaceContract = async (
-  context: DevTestContext,
-  contractName: string
-): Promise<Interface> => {
-  // deploy contract
-  const { rawTx } = await createContract(context, contractName);
-  await context.createBlock({ transactions: [rawTx] });
-  // Instantiate interface
-  const contractData = await getCompiled(contractName);
-  return new ethers.utils.Interface(contractData.contract.abi);
+const DEMOCRACY_INTERFACE = new ethers.utils.Interface(getCompiled("Democracy").contract.abi);
+
+export const deployContract = async (context: DevTestContext, contractName: string) => {
+  await context.createBlock({
+    transactions: [(await createContract(context, contractName)).rawTx],
+  });
 };
 
 export const notePreimagePrecompile = async <
@@ -65,12 +70,8 @@ export const notePreimagePrecompile = async <
   );
 
   const tx = await createTransaction(context, {
-    from: alith.address,
-    privateKey: ALITH_PRIVATE_KEY,
-    value: "0x0",
-    gas: "0x200000",
-    gasPrice: GAS_PRICE,
-    to: ADDRESS_DEMO_PRECOMPILE,
+    ...ALITH_TRANSACTION_TEMPLATE,
+    to: PRECOMPILE_DEMOCRACY_ADDRESS,
     data,
   });
 
@@ -82,10 +83,8 @@ export const notePreimagePrecompile = async <
 };
 
 describeDevMoonbeam("Democracy - genesis and preimage", (context) => {
-  let iFace: Interface;
-
   before("Setup genesis account for substrate", async () => {
-    iFace = await deployAndInterfaceContract(context, "Democracy");
+    await deployContract(context, "Democracy");
   });
   it("should check initial state - no referendum", async function () {
     // referendumCount
@@ -101,7 +100,7 @@ describeDevMoonbeam("Democracy - genesis and preimage", (context) => {
     // notePreimage
     const encodedHash = await notePreimagePrecompile(
       context,
-      iFace,
+      DEMOCRACY_INTERFACE,
       context.polkadotApi.tx.parachainStaking.setParachainBondAccount(alith.address)
     );
 
@@ -117,15 +116,14 @@ describeDevMoonbeam("Democracy - genesis and preimage", (context) => {
 
 describeDevMoonbeam("Democracy - propose", (context) => {
   let encodedHash: `0x${string}`;
-  let iFace: Interface;
 
   before("Setup genesis account for substrate", async () => {
-    iFace = await deployAndInterfaceContract(context, "Democracy");
+    await deployContract(context, "Democracy");
 
     // encodedHash
     encodedHash = await notePreimagePrecompile(
       context,
-      iFace,
+      DEMOCRACY_INTERFACE,
       context.polkadotApi.tx.parachainStaking.setParachainBondAccount(alith.address)
     );
   });
@@ -133,7 +131,7 @@ describeDevMoonbeam("Democracy - propose", (context) => {
     // propose
     await sendPrecompileTx(
       context,
-      ADDRESS_DEMO_PRECOMPILE,
+      PRECOMPILE_DEMOCRACY_ADDRESS,
       SELECTORS,
       alith.address,
       ALITH_PRIVATE_KEY,
@@ -164,10 +162,9 @@ describeDevMoonbeam("Democracy - propose", (context) => {
 describeDevMoonbeam("Democracy - second proposal", (context) => {
   let encodedHash: `0x${string}`;
   let launchPeriod;
-  let iFace: Interface;
 
   before("Setup genesis account for substrate", async () => {
-    iFace = await deployAndInterfaceContract(context, "Democracy");
+    await deployContract(context, "Democracy");
 
     //launchPeriod
     launchPeriod = await context.polkadotApi.consts.democracy.launchPeriod;
@@ -175,14 +172,14 @@ describeDevMoonbeam("Democracy - second proposal", (context) => {
     // notePreimage
     encodedHash = await notePreimagePrecompile(
       context,
-      iFace,
+      DEMOCRACY_INTERFACE,
       context.polkadotApi.tx.parachainStaking.setParachainBondAccount(alith.address)
     );
 
     // propose
     await sendPrecompileTx(
       context,
-      ADDRESS_DEMO_PRECOMPILE,
+      PRECOMPILE_DEMOCRACY_ADDRESS,
       SELECTORS,
       alith.address,
       ALITH_PRIVATE_KEY,
@@ -193,7 +190,7 @@ describeDevMoonbeam("Democracy - second proposal", (context) => {
     // second
     await sendPrecompileTx(
       context,
-      ADDRESS_DEMO_PRECOMPILE,
+      PRECOMPILE_DEMOCRACY_ADDRESS,
       SELECTORS,
       baltathar.address,
       BALTATHAR_PRIVATE_KEY,
@@ -243,10 +240,9 @@ describeDevMoonbeam("Democracy - second proposal", (context) => {
 describeDevMoonbeam("Democracy - vote on referendum", (context) => {
   let encodedHash: `0x${string}`;
   let enactmentPeriod, votingPeriod;
-  let iFace: Interface;
 
   before("Setup genesis account for substrate", async () => {
-    iFace = await deployAndInterfaceContract(context, "Democracy");
+    await deployContract(context, "Democracy");
 
     // enactmentPeriod
     enactmentPeriod = await context.polkadotApi.consts.democracy.enactmentPeriod;
@@ -256,14 +252,14 @@ describeDevMoonbeam("Democracy - vote on referendum", (context) => {
     // encodedHash
     encodedHash = await notePreimagePrecompile(
       context,
-      iFace,
+      DEMOCRACY_INTERFACE,
       context.polkadotApi.tx.parachainStaking.setParachainBondAccount(alith.address)
     );
 
     // propose
     await sendPrecompileTx(
       context,
-      ADDRESS_DEMO_PRECOMPILE,
+      PRECOMPILE_DEMOCRACY_ADDRESS,
       SELECTORS,
       alith.address,
       ALITH_PRIVATE_KEY,
@@ -274,7 +270,7 @@ describeDevMoonbeam("Democracy - vote on referendum", (context) => {
     // second
     await sendPrecompileTx(
       context,
-      ADDRESS_DEMO_PRECOMPILE,
+      PRECOMPILE_DEMOCRACY_ADDRESS,
       SELECTORS,
       baltathar.address,
       BALTATHAR_PRIVATE_KEY,
@@ -303,7 +299,7 @@ describeDevMoonbeam("Democracy - vote on referendum", (context) => {
     // vote
     await sendPrecompileTx(
       context,
-      ADDRESS_DEMO_PRECOMPILE,
+      PRECOMPILE_DEMOCRACY_ADDRESS,
       SELECTORS,
       alith.address,
       ALITH_PRIVATE_KEY,

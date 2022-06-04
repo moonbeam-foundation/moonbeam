@@ -9,7 +9,7 @@ import { ethers } from "ethers";
 import { AccessListish } from "@ethersproject/transactions";
 import type { ApiPromise } from "@polkadot/api";
 import type { SubmittableExtrinsic } from "@polkadot/api/promise/types";
-import { alith, ALITH_PRIVATE_KEY } from "./accounts";
+import { alith, ALITH_PRIVATE_KEY, baltathar, BALTATHAR_PRIVATE_KEY } from "./accounts";
 
 const debug = require("debug")("test:transaction");
 
@@ -22,18 +22,28 @@ export interface TransactionOptions {
   gasPrice?: string | number;
   maxFeePerGas?: string | number;
   maxPriorityFeePerGas?: string | number;
-  value?: string | number | BigInt;
+  value?: string | number;
   data?: string;
   accessList?: AccessListish; // AccessList | Array<[string, Array<string>]>
 }
 
-export const ALITH_TRANSACTION: TransactionOptions = {
-  from: alith.address,
-  privateKey: ALITH_PRIVATE_KEY,
+export const TRANSACTION_TEMPLATE: TransactionOptions = {
   nonce: null,
   gas: 12_000_000,
   gasPrice: 1_000_000_000,
   value: "0x00",
+};
+
+export const ALITH_TRANSACTION_TEMPLATE: TransactionOptions = {
+  ...TRANSACTION_TEMPLATE,
+  from: alith.address,
+  privateKey: ALITH_PRIVATE_KEY,
+};
+
+export const BALTATHAR_TRANSACTION_TEMPLATE: TransactionOptions = {
+  ...TRANSACTION_TEMPLATE,
+  from: baltathar.address,
+  privateKey: BALTATHAR_PRIVATE_KEY,
 };
 
 export const createTransaction = async (
@@ -133,9 +143,13 @@ export const createTransfer = async (
   context: DevTestContext,
   to: string,
   value: number | string | BigInt,
-  options: TransactionOptions = ALITH_TRANSACTION
+  options: TransactionOptions = ALITH_TRANSACTION_TEMPLATE
 ): Promise<string> => {
-  return await createTransaction(context, { ...options, value, to });
+  return await createTransaction(context, {
+    ...options,
+    value: value.toString(),
+    to,
+  });
 };
 
 // Will create the transaction to deploy a contract.
@@ -144,7 +158,7 @@ export const createTransfer = async (
 export async function createContract(
   context: DevTestContext,
   contractName: string,
-  options: TransactionOptions = ALITH_TRANSACTION,
+  options: TransactionOptions = ALITH_TRANSACTION_TEMPLATE,
   contractArguments: any[] = []
 ): Promise<{ rawTx: string; contract: Contract; contractAddress: string }> {
   const contractCompiled = getCompiled(contractName);
@@ -183,7 +197,7 @@ export async function createContractExecution(
     contract: Contract;
     contractCall: any;
   },
-  options: TransactionOptions = ALITH_TRANSACTION
+  options: TransactionOptions = ALITH_TRANSACTION_TEMPLATE
 ) {
   const rawTx = await createTransaction(context, {
     ...options,
@@ -247,7 +261,7 @@ export async function sendPrecompileTx(
     privateKey,
     value: "0x0",
     gas: "0x200000",
-    gasPrice: ALITH_TRANSACTION.gasPrice,
+    gasPrice: ALITH_TRANSACTION_TEMPLATE.gasPrice,
     to: precompileContractAddress,
     data,
   });

@@ -1,99 +1,21 @@
 import { expect } from "chai";
 import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
-import { customWeb3Request } from "../../util/providers";
-import {
-  GENESIS_ACCOUNT,
-  ALITH,
-  BALTATHAR,
-  ALITH_PRIV_KEY,
-  CHARLETH,
-  BALTATHAR_PRIV_KEY,
-} from "../../util/constants";
-import { blake2AsU8a, xxhashAsU8a } from "@polkadot/util-crypto";
-import { BN, hexToU8a, bnToHex, u8aToHex, stringToHex, numberToHex } from "@polkadot/util";
-import Keyring from "@polkadot/keyring";
+import { web3EthCall } from "../../util/providers";
+import { BN, bnToHex, stringToHex, numberToHex } from "@polkadot/util";
 import { getCompiled } from "../../util/contracts";
 import { ethers } from "ethers";
-import { createContract, createTransaction } from "../../util/transactions";
-
-const sourceLocationRelayAssetType = { XCM: { parents: 1, interior: "Here" } };
-
-interface AssetMetadata {
-  name: string;
-  symbol: string;
-  decimals: BN;
-  isFrozen: boolean;
-}
-
-const relayAssetMetadata: AssetMetadata = {
-  name: "DOT",
-  symbol: "DOT",
-  decimals: new BN(12),
-  isFrozen: false,
-};
-
-export async function mockAssetBalance(
-  context,
-  assetBalance,
-  assetDetails,
-  sudoAccount,
-  assetId,
-  account
-) {
-  // Register the asset
-  await context.polkadotApi.tx.sudo
-    .sudo(
-      context.polkadotApi.tx.assetManager.registerForeignAsset(
-        sourceLocationRelayAssetType,
-        relayAssetMetadata,
-        new BN(1),
-        true
-      )
-    )
-    .signAndSend(sudoAccount);
-  await context.createBlock();
-
-  let assets = (
-    (await context.polkadotApi.query.assetManager.assetIdType(assetId)) as any
-  ).toJSON();
-  // make sure we created it
-  expect(assets["xcm"]["parents"]).to.equal(1);
-
-  // Get keys to modify balance
-  let module = xxhashAsU8a(new TextEncoder().encode("Assets"), 128);
-  let account_key = xxhashAsU8a(new TextEncoder().encode("Account"), 128);
-  let blake2concatAssetId = new Uint8Array([
-    ...blake2AsU8a(assetId.toU8a(), 128),
-    ...assetId.toU8a(),
-  ]);
-
-  let blake2concatAccount = new Uint8Array([
-    ...blake2AsU8a(hexToU8a(account), 128),
-    ...hexToU8a(account),
-  ]);
-  let overallAccountKey = new Uint8Array([
-    ...module,
-    ...account_key,
-    ...blake2concatAssetId,
-    ...blake2concatAccount,
-  ]);
-
-  // Get keys to modify total supply
-  let assetKey = xxhashAsU8a(new TextEncoder().encode("Asset"), 128);
-  let overallAssetKey = new Uint8Array([...module, ...assetKey, ...blake2concatAssetId]);
-  await context.polkadotApi.tx.sudo
-    .sudo(
-      context.polkadotApi.tx.system.setStorage([
-        [u8aToHex(overallAccountKey), u8aToHex(assetBalance.toU8a())],
-        [u8aToHex(overallAssetKey), u8aToHex(assetDetails.toU8a())],
-      ])
-    )
-    .signAndSend(sudoAccount);
-  await context.createBlock();
-  return;
-}
+import {
+  ALITH_TRANSACTION_TEMPLATE,
+  BALTATHAR_TRANSACTION_TEMPLATE,
+  createContract,
+  createTransaction,
+} from "../../util/transactions";
+import { mockAssetBalance } from "../../util/assets";
+import { alith, baltathar, BALTATHAR_PRIVATE_KEY, charleth } from "../../util/accounts";
+import { u128 } from "@polkadot/types";
 
 const ADDRESS_ERC20 = "0xFfFFfFff1FcaCBd218EDc0EbA20Fc2308C778080";
+const ASSET_ID = new BN("42259045809535163221576417993425387648");
 const SELECTORS = {
   balanceOf: "70a08231",
   totalSupply: "18160ddd",
@@ -104,161 +26,103 @@ const SELECTORS = {
   logApprove: "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925",
   logTransfer: "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
 };
-const GAS_PRICE = "0x" + (1_000_000_000).toString(16);
+
+const ERC20_CONTRACT = getCompiled("ERC20Instance");
+const ERC20_INTERFACE = new ethers.utils.Interface(ERC20_CONTRACT.contract.abi);
 
 describeDevMoonbeamAllEthTxTypes(
   "Precompiles - Assets-ERC20 Wasm",
   (context) => {
-    let sudoAccount, assetId, iFace;
+    let assetId: u128;
     before("Setup contract and mock balance", async () => {
-      const keyring = new Keyring({ type: "ethereum" });
-      sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
       // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
       // And we need relay tokens for issuing a transaction to be executed in the relay
       const balance = new BN("100000000000000");
       const assetBalance = context.polkadotApi.createType("PalletAssetsAssetAccount", {
         balance: balance,
       });
-      assetId = context.polkadotApi.createType(
-        "u128",
-        new BN("42259045809535163221576417993425387648")
-      );
+      assetId = context.polkadotApi.createType("u128", ASSET_ID);
 
       const assetDetails = context.polkadotApi.createType("PalletAssetsAssetDetails", {
         supply: balance,
       });
 
-      await mockAssetBalance(context, assetBalance, assetDetails, sudoAccount, assetId, ALITH);
+      await mockAssetBalance(
+        context,
+        assetBalance,
+        assetDetails,
+        alith,
+        assetId,
+        alith.address,
+        true
+      );
 
-      let beforeAssetBalance = (
-        (await context.polkadotApi.query.assets.account(assetId, ALITH)) as any
-      ).balance as BN;
-
-      const contractData = await getCompiled("ERC20Instance");
-      iFace = new ethers.utils.Interface(contractData.contract.abi);
-      const { contract, rawTx } = await createContract(context, "ERC20Instance");
-      const address = contract.options.address;
-      await context.createBlock({ transactions: [rawTx] });
+      await context.createBlock({
+        transactions: [(await createContract(context, "ERC20Instance")).rawTx],
+      });
     });
 
     it("allows to call name", async function () {
-      let data = iFace.encodeFunctionData(
-        // action
-        "name",
-        []
+      expect(
+        (
+          await web3EthCall(context.web3, {
+            to: ADDRESS_ERC20,
+            data: ERC20_INTERFACE.encodeFunctionData("name", []),
+          })
+        ).result
+      ).equals(
+        numberToHex(32, 256) +
+          numberToHex(3, 256).slice(2) +
+          stringToHex("DOT").slice(2).padEnd(64, "0")
       );
-
-      const tx_call = await customWeb3Request(context.web3, "eth_call", [
-        {
-          from: GENESIS_ACCOUNT,
-          value: "0x0",
-          gas: "0x10000",
-          gasPrice: GAS_PRICE,
-          to: ADDRESS_ERC20,
-          data: data,
-        },
-      ]);
-
-      let expected = stringToHex("DOT");
-      let offset = numberToHex(32).slice(2).padStart(64, "0");
-      let length = numberToHex(3).slice(2).padStart(64, "0");
-      // Bytes are padded at the end
-      let expected_hex = expected.slice(2).padEnd(64, "0");
-      expect(tx_call.result).equals("0x" + offset + length + expected_hex);
     });
 
     it("allows to call symbol", async function () {
-      let data = iFace.encodeFunctionData(
-        // action
-        "symbol",
-        []
+      expect(
+        (
+          await web3EthCall(context.web3, {
+            to: ADDRESS_ERC20,
+            data: ERC20_INTERFACE.encodeFunctionData("symbol", []),
+          })
+        ).result
+      ).equals(
+        numberToHex(32, 256) +
+          numberToHex(3, 256).slice(2) +
+          stringToHex("DOT").slice(2).padEnd(64, "0")
       );
-
-      const tx_call = await customWeb3Request(context.web3, "eth_call", [
-        {
-          from: GENESIS_ACCOUNT,
-          value: "0x0",
-          gas: "0x10000",
-          gasPrice: GAS_PRICE,
-          to: ADDRESS_ERC20,
-          data: data,
-        },
-      ]);
-
-      let expected = stringToHex("DOT");
-      let offset = numberToHex(32).slice(2).padStart(64, "0");
-      let length = numberToHex(3).slice(2).padStart(64, "0");
-      // Bytes are padded at the end
-      let expected_hex = expected.slice(2).padEnd(64, "0");
-      expect(tx_call.result).equals("0x" + offset + length + expected_hex);
     });
 
     it("allows to call decimals", async function () {
-      let data = iFace.encodeFunctionData(
-        // action
-        "decimals",
-        []
-      );
-
-      const tx_call = await customWeb3Request(context.web3, "eth_call", [
-        {
-          from: GENESIS_ACCOUNT,
-          value: "0x0",
-          gas: "0x10000",
-          gasPrice: GAS_PRICE,
-          to: ADDRESS_ERC20,
-          data: data,
-        },
-      ]);
-
-      let expected = "0x" + numberToHex(12).slice(2).padStart(64, "0");
-      expect(tx_call.result).equals(expected);
+      expect(
+        (
+          await web3EthCall(context.web3, {
+            to: ADDRESS_ERC20,
+            data: ERC20_INTERFACE.encodeFunctionData("decimals", []),
+          })
+        ).result
+      ).equals(numberToHex(12, 256));
     });
 
     it("allows to call getBalance", async function () {
-      let data = iFace.encodeFunctionData(
-        // action
-        "balanceOf",
-        [ALITH]
-      );
-
-      const tx_call = await customWeb3Request(context.web3, "eth_call", [
-        {
-          from: GENESIS_ACCOUNT,
-          value: "0x0",
-          gas: "0x10000",
-          gasPrice: GAS_PRICE,
-          to: ADDRESS_ERC20,
-          data: data,
-        },
-      ]);
-      let amount = new BN(100000000000000);
-
-      let amount_hex = "0x" + bnToHex(amount).slice(2).padStart(64, "0");
-      expect(tx_call.result).equals(amount_hex);
+      expect(
+        (
+          await web3EthCall(context.web3, {
+            to: ADDRESS_ERC20,
+            data: ERC20_INTERFACE.encodeFunctionData("balanceOf", [alith.address]),
+          })
+        ).result
+      ).equals(bnToHex(100000000000000n, 256));
     });
 
     it("allows to call totalSupply", async function () {
-      let data = iFace.encodeFunctionData(
-        // action
-        "totalSupply",
-        []
-      );
-      const tx_call = await customWeb3Request(context.web3, "eth_call", [
-        {
-          from: GENESIS_ACCOUNT,
-          value: "0x0",
-          gas: "0x10000",
-          gasPrice: GAS_PRICE,
-          to: ADDRESS_ERC20,
-          data: data,
-        },
-      ]);
-
-      let amount = new BN(100000000000000);
-
-      let amount_hex = "0x" + bnToHex(amount).slice(2).padStart(64, "0");
-      expect(tx_call.result).equals(amount_hex);
+      expect(
+        (
+          await web3EthCall(context.web3, {
+            to: ADDRESS_ERC20,
+            data: ERC20_INTERFACE.encodeFunctionData("totalSupply", []),
+          })
+        ).result
+      ).equals(bnToHex(100000000000000n, 256));
     });
   },
   true
@@ -267,10 +131,8 @@ describeDevMoonbeamAllEthTxTypes(
 describeDevMoonbeamAllEthTxTypes(
   "Precompiles - Assets-ERC20 Wasm",
   (context) => {
-    let sudoAccount, assetId, iFace;
+    let assetId: u128;
     before("Setup contract and mock balance", async () => {
-      const keyring = new Keyring({ type: "ethereum" });
-      sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
       // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
       // And we need relay tokens for issuing a transaction to be executed in the relay
       const balance = context.polkadotApi.createType("Balance", 100000000000000);
@@ -278,36 +140,30 @@ describeDevMoonbeamAllEthTxTypes(
         balance: balance,
       });
 
-      assetId = context.polkadotApi.createType(
-        "u128",
-        new BN("42259045809535163221576417993425387648")
-      );
       const assetDetails = context.polkadotApi.createType("PalletAssetsAssetDetails", {
         supply: balance,
       });
+      assetId = context.polkadotApi.createType("u128", ASSET_ID);
 
-      await mockAssetBalance(context, assetBalance, assetDetails, sudoAccount, assetId, ALITH);
-
-      const contractData = await getCompiled("ERC20Instance");
-      iFace = new ethers.utils.Interface(contractData.contract.abi);
-      const { rawTx } = await createContract(context, "ERC20Instance");
-      await context.createBlock({ transactions: [rawTx] });
-    });
-    it("allows to approve transfers, and allowance matches", async function () {
-      let data = iFace.encodeFunctionData(
-        // action
-        "approve",
-        [BALTATHAR, 1000]
+      await mockAssetBalance(
+        context,
+        assetBalance,
+        assetDetails,
+        alith,
+        assetId,
+        alith.address,
+        true
       );
 
+      await context.createBlock({
+        transactions: [(await createContract(context, "ERC20Instance")).rawTx],
+      });
+    });
+    it("allows to approve transfers, and allowance matches", async function () {
       const tx = await createTransaction(context, {
-        from: ALITH,
-        privateKey: ALITH_PRIV_KEY,
-        value: "0x0",
-        gas: "0x200000",
-        gasPrice: GAS_PRICE,
+        ...ALITH_TRANSACTION_TEMPLATE,
         to: ADDRESS_ERC20,
-        data: data,
+        data: ERC20_INTERFACE.encodeFunctionData("approve", [baltathar.address, 1000]),
       });
 
       const block = await context.createBlock({
@@ -321,35 +177,26 @@ describeDevMoonbeamAllEthTxTypes(
       expect(receipt.logs[0].address).to.eq(ADDRESS_ERC20);
       expect(receipt.logs[0].topics.length).to.eq(3);
       expect(receipt.logs[0].topics[0]).to.eq(SELECTORS.logApprove);
-      let approvals = (await context.polkadotApi.query.assets.approvals(
-        assetId,
-        ALITH,
-        BALTATHAR
-      )) as any;
-
-      expect(approvals.unwrap().amount.eq(new BN(1000))).to.equal(true);
-    });
-    it("should gather the allowance", async function () {
-      let data = iFace.encodeFunctionData(
-        // action
-        "allowance",
-        [ALITH, BALTATHAR]
+      const approvals = await context.polkadotApi.query.assets.approvals(
+        assetId.toU8a(),
+        alith.address,
+        baltathar.address
       );
 
-      const tx_call = await customWeb3Request(context.web3, "eth_call", [
-        {
-          from: GENESIS_ACCOUNT,
-          value: "0x0",
-          gas: "0x10000",
-          gasPrice: GAS_PRICE,
-          to: ADDRESS_ERC20,
-          data: data,
-        },
-      ]);
-      let amount = new BN(1000);
-
-      let amount_hex = "0x" + bnToHex(amount).slice(2).padStart(64, "0");
-      expect(tx_call.result).equals(amount_hex);
+      expect(approvals.unwrap().amount.toBigInt()).to.equal(1000n);
+    });
+    it("should gather the allowance", async function () {
+      expect(
+        (
+          await web3EthCall(context.web3, {
+            to: ADDRESS_ERC20,
+            data: ERC20_INTERFACE.encodeFunctionData("allowance", [
+              alith.address,
+              baltathar.address,
+            ]),
+          })
+        ).result
+      ).equals(bnToHex(1000n, 256));
     });
   },
   true
@@ -358,10 +205,8 @@ describeDevMoonbeamAllEthTxTypes(
 describeDevMoonbeamAllEthTxTypes(
   "Precompiles - Assets-ERC20 Wasm",
   (context) => {
-    let sudoAccount, assetId, iFace, contractInstanceAddress;
+    let assetId: u128;
     before("Setup contract and mock balance", async () => {
-      const keyring = new Keyring({ type: "ethereum" });
-      sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
       // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
       // And we need relay tokens for issuing a transaction to be executed in the relay
       const balance = context.polkadotApi.createType("Balance", 100000000000000);
@@ -369,70 +214,57 @@ describeDevMoonbeamAllEthTxTypes(
         balance: balance,
       });
 
-      assetId = context.polkadotApi.createType(
-        "u128",
-        new BN("42259045809535163221576417993425387648")
-      );
+      assetId = context.polkadotApi.createType("u128", ASSET_ID);
       const assetDetails = context.polkadotApi.createType("PalletAssetsAssetDetails", {
         supply: balance,
       });
 
-      await mockAssetBalance(context, assetBalance, assetDetails, sudoAccount, assetId, ALITH);
+      await mockAssetBalance(
+        context,
+        assetBalance,
+        assetDetails,
+        alith,
+        assetId,
+        alith.address,
+        true
+      );
 
-      const contractData = await getCompiled("ERC20Instance");
-      iFace = new ethers.utils.Interface(contractData.contract.abi);
-      const { contract, rawTx } = await createContract(context, "ERC20Instance");
-      contractInstanceAddress = contract.options.address;
-      await context.createBlock({ transactions: [rawTx] });
+      await context.createBlock({
+        transactions: [(await createContract(context, "ERC20Instance")).rawTx],
+      });
     });
     it("allows to approve transfer and use transferFrom", async function () {
-      // Create approval
-      let data = iFace.encodeFunctionData(
-        // action
-        "approve",
-        [BALTATHAR, 1000]
+      await context.createBlock({
+        transactions: [
+          await createTransaction(context, {
+            ...ALITH_TRANSACTION_TEMPLATE,
+            to: ADDRESS_ERC20,
+            data: ERC20_INTERFACE.encodeFunctionData("approve", [baltathar.address, 1000]),
+          }),
+        ],
+      });
+
+      const approvals = await context.polkadotApi.query.assets.approvals(
+        assetId.toU8a(),
+        alith.address,
+        baltathar.address
       );
 
-      let tx = await createTransaction(context, {
-        from: ALITH,
-        privateKey: ALITH_PRIV_KEY,
-        value: "0x0",
-        gas: "0x200000",
-        gasPrice: GAS_PRICE,
-        to: ADDRESS_ERC20,
-        data: data,
-      });
-
-      let block = await context.createBlock({
-        transactions: [tx],
-      });
-
-      let approvals = (await context.polkadotApi.query.assets.approvals(
-        assetId,
-        ALITH,
-        BALTATHAR
-      )) as any;
-
-      expect(approvals.unwrap().amount.eq(new BN(1000))).to.equal(true);
+      expect(approvals.unwrap().amount.toBigInt()).to.equal(1000n);
       // We are gonna spend 1000 from alith to send it to charleth
-      data = iFace.encodeFunctionData(
-        // action
-        "transferFrom",
-        [ALITH, CHARLETH, 1000]
-      );
 
-      tx = await createTransaction(context, {
-        from: BALTATHAR,
-        privateKey: BALTATHAR_PRIV_KEY,
-        value: "0x0",
-        gas: "0x200000",
-        gasPrice: GAS_PRICE,
-        to: ADDRESS_ERC20,
-        data: data,
-      });
-
-      block = await context.createBlock({
-        transactions: [tx],
+      const block = await context.createBlock({
+        transactions: [
+          await createTransaction(context, {
+            ...BALTATHAR_TRANSACTION_TEMPLATE,
+            to: ADDRESS_ERC20,
+            data: ERC20_INTERFACE.encodeFunctionData("transferFrom", [
+              alith.address,
+              charleth.address,
+              1000,
+            ]),
+          }),
+        ],
       });
       const receipt = await context.web3.eth.getTransactionReceipt(block.txResults[0].result);
 
@@ -443,19 +275,19 @@ describeDevMoonbeamAllEthTxTypes(
       expect(receipt.status).to.equal(true);
 
       // Approve amount is null now
-      approvals = (await context.polkadotApi.query.assets.approvals(
-        assetId,
-        ALITH,
-        BALTATHAR
-      )) as any;
-      expect(approvals.isNone).to.eq(true);
+      const newApprovals = await context.polkadotApi.query.assets.approvals(
+        assetId.toU8a(),
+        alith.address,
+        baltathar.address
+      );
+      expect(newApprovals.isNone).to.eq(true);
 
       // Charleth balance is 1000
-      let charletBalance = (await context.polkadotApi.query.assets.account(
-        assetId,
-        CHARLETH
-      )) as any;
-      expect(charletBalance.unwrap()["balance"].eq(new BN(1000))).to.equal(true);
+      const charletBalance = await context.polkadotApi.query.assets.account(
+        assetId.toU8a(),
+        charleth.address
+      );
+      expect(charletBalance.unwrap().balance.toBigInt()).to.equal(1000n);
     });
   },
   true
@@ -464,10 +296,8 @@ describeDevMoonbeamAllEthTxTypes(
 describeDevMoonbeamAllEthTxTypes(
   "Precompiles - Assets-ERC20 Wasm",
   (context) => {
-    let sudoAccount, assetId, iFace;
+    let assetId: u128;
     before("Setup contract and mock balance", async () => {
-      const keyring = new Keyring({ type: "ethereum" });
-      sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
       // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
       // And we need relay tokens for issuing a transaction to be executed in the relay
       const balance = context.polkadotApi.createType("Balance", 100000000000000);
@@ -475,62 +305,54 @@ describeDevMoonbeamAllEthTxTypes(
         balance: balance,
       });
 
-      assetId = context.polkadotApi.createType(
-        "u128",
-        new BN("42259045809535163221576417993425387648")
-      );
+      assetId = context.polkadotApi.createType("u128", ASSET_ID);
       const assetDetails = context.polkadotApi.createType("PalletAssetsAssetDetails", {
         supply: balance,
       });
 
-      await mockAssetBalance(context, assetBalance, assetDetails, sudoAccount, assetId, ALITH);
-
-      const contractData = await getCompiled("ERC20Instance");
-      iFace = new ethers.utils.Interface(contractData.contract.abi);
-      const { rawTx } = await createContract(context, "ERC20Instance");
-      await context.createBlock({ transactions: [rawTx] });
-    });
-    it("allows to transfer", async function () {
-      // Create approval
-      let data = iFace.encodeFunctionData(
-        // action
-        "transfer",
-        [BALTATHAR, 1000]
+      await mockAssetBalance(
+        context,
+        assetBalance,
+        assetDetails,
+        alith,
+        assetId,
+        alith.address,
+        true
       );
 
-      let tx = await createTransaction(context, {
-        from: ALITH,
-        privateKey: ALITH_PRIV_KEY,
-        value: "0x0",
-        gas: "0x200000",
-        gasPrice: GAS_PRICE,
-        to: ADDRESS_ERC20,
-        data: data,
+      await context.createBlock({
+        transactions: [(await createContract(context, "ERC20Instance")).rawTx],
       });
-
-      let block = await context.createBlock({
-        transactions: [tx],
+    });
+    it("allows to transfer", async function () {
+      const block = await context.createBlock({
+        transactions: [
+          await createTransaction(context, {
+            ...ALITH_TRANSACTION_TEMPLATE,
+            to: ADDRESS_ERC20,
+            data: ERC20_INTERFACE.encodeFunctionData("transfer", [baltathar.address, 1000]),
+          }),
+        ],
       });
 
       const receipt = await context.web3.eth.getTransactionReceipt(block.txResults[0].result);
       expect(receipt.status).to.equal(true);
 
       // Baltathar balance is 1000
-      let baltatharBalance = (await context.polkadotApi.query.assets.account(
-        assetId,
-        BALTATHAR
-      )) as any;
-      expect(baltatharBalance.unwrap()["balance"].eq(new BN(1000))).to.equal(true);
+      const baltatharBalance = await context.polkadotApi.query.assets.account(
+        assetId.toU8a(),
+        baltathar.address
+      );
+      expect(baltatharBalance.unwrap().balance.toBigInt()).to.equal(1000n);
     });
   },
   true
 );
 
 describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) => {
-  let sudoAccount, assetId, iFace, contractInstanceAddress;
+  let assetId: u128;
+  let contractInstanceAddress: string;
   before("Setup contract and mock balance", async () => {
-    const keyring = new Keyring({ type: "ethereum" });
-    sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
     // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
     // And we need relay tokens for issuing a transaction to be executed in the relay
     const balance = context.polkadotApi.createType("Balance", 100000000000000);
@@ -538,142 +360,132 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
       balance: balance,
     });
 
-    assetId = context.polkadotApi.createType(
-      "u128",
-      new BN("42259045809535163221576417993425387648")
-    );
+    assetId = context.polkadotApi.createType("u128", ASSET_ID);
     const assetDetails = context.polkadotApi.createType("PalletAssetsAssetDetails", {
       supply: balance,
     });
 
-    const contractData = await getCompiled("ERC20Instance");
-    iFace = new ethers.utils.Interface(contractData.contract.abi);
     const { contract, rawTx } = await createContract(context, "ERC20Instance");
     contractInstanceAddress = contract.options.address;
+
     // We fund the contract address with this test
     await mockAssetBalance(
       context,
       assetBalance,
       assetDetails,
-      sudoAccount,
+      alith,
       assetId,
-      contractInstanceAddress
+      contractInstanceAddress,
+      true
     );
 
     await context.createBlock({ transactions: [rawTx] });
   });
   it("allows to approve transfer and use transferFrom from contract calls", async function () {
     // Create approval
-    let data = iFace.encodeFunctionData(
-      // action
-      "approve",
-      [BALTATHAR, 1000]
+
+    const blockAlith = await context.createBlock({
+      transactions: [
+        await createTransaction(context, {
+          ...ALITH_TRANSACTION_TEMPLATE,
+          to: contractInstanceAddress,
+          data: ERC20_INTERFACE.encodeFunctionData("approve", [baltathar.address, 1000]),
+        }),
+      ],
+    });
+
+    const receiptAlith = await context.web3.eth.getTransactionReceipt(
+      blockAlith.txResults[0].result
+    );
+    console.log(contractInstanceAddress);
+    console.log(receiptAlith);
+
+    expect(receiptAlith.status).to.equal(true);
+    expect(receiptAlith.logs.length).to.eq(1);
+    expect(receiptAlith.logs[0].address).to.eq(ADDRESS_ERC20);
+    expect(receiptAlith.logs[0].topics.length).to.eq(3);
+    expect(receiptAlith.logs[0].topics[0]).to.eq(SELECTORS.logApprove);
+
+    const approvals = await context.polkadotApi.query.assets.approvals(
+      assetId.toU8a(),
+      contractInstanceAddress,
+      baltathar.address
     );
 
-    let tx = await createTransaction(context, {
-      from: ALITH,
-      privateKey: ALITH_PRIV_KEY,
-      value: "0x0",
-      gas: "0x200000",
-      gasPrice: GAS_PRICE,
-      to: contractInstanceAddress,
-      data: data,
-    });
-
-    let block = await context.createBlock({
-      transactions: [tx],
-    });
-
-    let receipt = await context.web3.eth.getTransactionReceipt(block.txResults[0].result);
-
-    expect(receipt.status).to.equal(true);
-    expect(receipt.logs.length).to.eq(1);
-    expect(receipt.logs[0].address).to.eq(ADDRESS_ERC20);
-    expect(receipt.logs[0].topics.length).to.eq(3);
-    expect(receipt.logs[0].topics[0]).to.eq(SELECTORS.logApprove);
-
-    let approvals = (await context.polkadotApi.query.assets.approvals(
-      assetId,
-      contractInstanceAddress,
-      BALTATHAR
-    )) as any;
-
-    expect(approvals.unwrap().amount.eq(new BN(1000))).to.equal(true);
+    expect(approvals.unwrap().amount.toBigInt()).to.equal(1000n);
     // We are gonna spend 1000 from contractInstanceAddress to send it to charleth
     // Since this is a regular call, it will take contractInstanceAddress as msg.sender
     // thus from & to will be the same, and approval wont be touched
-    data = iFace.encodeFunctionData(
-      // action
-      "transferFrom",
-      [contractInstanceAddress, CHARLETH, 1000]
+    const blockBaltathar = await context.createBlock({
+      transactions: [
+        await createTransaction(context, {
+          ...BALTATHAR_TRANSACTION_TEMPLATE,
+          to: contractInstanceAddress,
+          data: ERC20_INTERFACE.encodeFunctionData("transferFrom", [
+            contractInstanceAddress,
+            charleth.address,
+            1000,
+          ]),
+        }),
+      ],
+    });
+    const receiptBaltathar = await context.web3.eth.getTransactionReceipt(
+      blockBaltathar.txResults[0].result
     );
-
-    tx = await createTransaction(context, {
-      from: BALTATHAR,
-      privateKey: BALTATHAR_PRIV_KEY,
-      value: "0x0",
-      gas: "0x200000",
-      gasPrice: GAS_PRICE,
-      to: contractInstanceAddress,
-      data: data,
-    });
-    block = await context.createBlock({
-      transactions: [tx],
-    });
-    receipt = await context.web3.eth.getTransactionReceipt(block.txResults[0].result);
-    expect(receipt.logs.length).to.eq(1);
-    expect(receipt.logs[0].address).to.eq(ADDRESS_ERC20);
-    expect(receipt.logs[0].topics.length).to.eq(3);
-    expect(receipt.logs[0].topics[0]).to.eq(SELECTORS.logTransfer);
-    expect(receipt.status).to.equal(true);
+    expect(receiptBaltathar.logs.length).to.eq(1);
+    expect(receiptBaltathar.logs[0].address).to.eq(ADDRESS_ERC20);
+    expect(receiptBaltathar.logs[0].topics.length).to.eq(3);
+    expect(receiptBaltathar.logs[0].topics[0]).to.eq(SELECTORS.logTransfer);
+    expect(receiptBaltathar.status).to.equal(true);
 
     // approvals are untouched
-    approvals = (await context.polkadotApi.query.assets.approvals(
-      assetId,
+    const newApprovals = await context.polkadotApi.query.assets.approvals(
+      assetId.toU8a(),
       contractInstanceAddress,
-      BALTATHAR
-    )) as any;
-    expect(approvals.unwrap().amount.eq(new BN(1000))).to.equal(true);
+      baltathar.address
+    );
+    expect(newApprovals.unwrap().amount.toBigInt()).to.equal(1000n);
 
     // this time we call directly from Baltathar the ERC20 contract
-    tx = await createTransaction(context, {
-      from: BALTATHAR,
-      privateKey: BALTATHAR_PRIV_KEY,
-      value: "0x0",
-      gas: "0x200000",
-      gasPrice: GAS_PRICE,
-      to: ADDRESS_ERC20,
-      data: data,
+    const directBlock = await context.createBlock({
+      transactions: [
+        await createTransaction(context, {
+          ...BALTATHAR_TRANSACTION_TEMPLATE,
+          to: ADDRESS_ERC20,
+          data: ERC20_INTERFACE.encodeFunctionData("approve", [baltathar.address, 1000]),
+        }),
+      ],
     });
-    block = await context.createBlock({
-      transactions: [tx],
-    });
-    receipt = await context.web3.eth.getTransactionReceipt(block.txResults[0].result);
-    expect(receipt.logs.length).to.eq(1);
-    expect(receipt.logs[0].address).to.eq(ADDRESS_ERC20);
-    expect(receipt.logs[0].topics.length).to.eq(3);
-    expect(receipt.logs[0].topics[0]).to.eq(SELECTORS.logTransfer);
-    expect(receipt.status).to.equal(true);
+    const direcReceipt = await context.web3.eth.getTransactionReceipt(
+      directBlock.txResults[0].result
+    );
+    expect(direcReceipt.logs.length).to.eq(1);
+    expect(direcReceipt.logs[0].address).to.eq(ADDRESS_ERC20);
+    expect(direcReceipt.logs[0].topics.length).to.eq(3);
+    expect(direcReceipt.logs[0].topics[0]).to.eq(SELECTORS.logTransfer);
+    expect(direcReceipt.status).to.equal(true);
 
     // Approve amount is null now
-    approvals = (await context.polkadotApi.query.assets.approvals(
-      assetId,
+    const directApprovals = await context.polkadotApi.query.assets.approvals(
+      assetId.toU8a(),
       contractInstanceAddress,
-      BALTATHAR
-    )) as any;
-    expect(approvals.isNone).to.eq(true);
+      baltathar.address
+    );
+    expect(directApprovals.isNone).to.eq(true);
 
     // Charleth balance is 2000
-    let charletBalance = (await context.polkadotApi.query.assets.account(assetId, CHARLETH)) as any;
-    expect(charletBalance.unwrap()["balance"].eq(new BN(2000))).to.equal(true);
+    const charletBalance = await context.polkadotApi.query.assets.account(
+      assetId.toU8a(),
+      charleth.address
+    );
+    expect(charletBalance.unwrap().balance.toBigInt()).to.equal(2000n);
   });
 });
 
 describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) => {
-  let sudoAccount, assetId, iFace, contractInstanceAddress;
+  let assetId: u128;
+  let contractInstanceAddress: string;
   before("Setup contract and mock balance", async () => {
-    const keyring = new Keyring({ type: "ethereum" });
-    sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
     // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
     // And we need relay tokens for issuing a transaction to be executed in the relay
     const balance = context.polkadotApi.createType("Balance", 100000000000000);
@@ -681,46 +493,39 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
       balance: balance,
     });
 
-    assetId = context.polkadotApi.createType(
-      "u128",
-      new BN("42259045809535163221576417993425387648")
-    );
+    assetId = context.polkadotApi.createType("u128", ASSET_ID);
     const assetDetails = context.polkadotApi.createType("PalletAssetsAssetDetails", {
       supply: balance,
     });
 
-    const contractData = await getCompiled("ERC20Instance");
-    iFace = new ethers.utils.Interface(contractData.contract.abi);
     const { contract, rawTx } = await createContract(context, "ERC20Instance");
     contractInstanceAddress = contract.options.address;
     // We fund Alith with this test
-    await mockAssetBalance(context, assetBalance, assetDetails, sudoAccount, assetId, ALITH);
+    await mockAssetBalance(
+      context,
+      assetBalance,
+      assetDetails,
+      alith,
+      assetId,
+      alith.address,
+      true
+    );
 
     await context.createBlock({ transactions: [rawTx] });
   });
-  it("Bob approves contract and use transferFrom from contract calls", async function () {
-    // Create approval
-    let data = iFace.encodeFunctionData(
-      // action
-      "approve",
-      [contractInstanceAddress, 1000]
-    );
 
-    let tx = await createTransaction(context, {
-      from: ALITH,
-      privateKey: ALITH_PRIV_KEY,
-      value: "0x0",
-      gas: "0x200000",
-      gasPrice: GAS_PRICE,
+  it("Bob approves contract and use transferFrom from contract calls", async function () {
+    const tx = await createTransaction(context, {
+      ...ALITH_TRANSACTION_TEMPLATE,
       to: ADDRESS_ERC20,
-      data: data,
+      data: ERC20_INTERFACE.encodeFunctionData("approve", [contractInstanceAddress, 1000]),
     });
 
-    let block = await context.createBlock({
+    const block = await context.createBlock({
       transactions: [tx],
     });
 
-    let receipt = await context.web3.eth.getTransactionReceipt(block.txResults[0].result);
+    const receipt = await context.web3.eth.getTransactionReceipt(block.txResults[0].result);
 
     expect(receipt.status).to.equal(true);
     expect(receipt.logs.length).to.eq(1);
@@ -728,61 +533,60 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
     expect(receipt.logs[0].topics.length).to.eq(3);
     expect(receipt.logs[0].topics[0]).to.eq(SELECTORS.logApprove);
 
-    let approvals = (await context.polkadotApi.query.assets.approvals(
-      assetId,
-      ALITH,
+    const approvals = await context.polkadotApi.query.assets.approvals(
+      assetId.toU8a(),
+      alith.address,
       contractInstanceAddress
-    )) as any;
-
-    expect(approvals.unwrap().amount.eq(new BN(1000))).to.equal(true);
-    // We are gonna spend 1000 from ALITH to send it to charleth from contract address
-    // even if Bob calls, msg.sender will become the contract with regular calls
-    data = iFace.encodeFunctionData(
-      // action
-      "transferFrom",
-      [ALITH, CHARLETH, 1000]
     );
 
-    tx = await createTransaction(context, {
-      from: BALTATHAR,
-      privateKey: BALTATHAR_PRIV_KEY,
-      value: "0x0",
-      gas: "0x200000",
-      gasPrice: GAS_PRICE,
-      to: contractInstanceAddress,
-      data: data,
+    expect(approvals.unwrap().amount.toBigInt()).to.equal(1000n);
+    // We are gonna spend 1000 from alith.address to send it to charleth from contract address
+    // even if Bob calls, msg.sender will become the contract with regular calls
+    const blockBaltathar = await context.createBlock({
+      transactions: [
+        await createTransaction(context, {
+          ...BALTATHAR_TRANSACTION_TEMPLATE,
+          to: contractInstanceAddress,
+          data: ERC20_INTERFACE.encodeFunctionData("transferFrom", [
+            alith.address,
+            charleth.address,
+            1000,
+          ]),
+        }),
+      ],
     });
-    block = await context.createBlock({
-      transactions: [tx],
-    });
-    receipt = await context.web3.eth.getTransactionReceipt(block.txResults[0].result);
-    expect(receipt.logs.length).to.eq(1);
-    expect(receipt.logs[0].address).to.eq(ADDRESS_ERC20);
-    expect(receipt.logs[0].topics.length).to.eq(3);
-    expect(receipt.logs[0].topics[0]).to.eq(SELECTORS.logTransfer);
-    expect(receipt.status).to.equal(true);
+    const receiptBaltathar = await context.web3.eth.getTransactionReceipt(
+      blockBaltathar.txResults[0].result
+    );
+    expect(receiptBaltathar.logs.length).to.eq(1);
+    expect(receiptBaltathar.logs[0].address).to.eq(ADDRESS_ERC20);
+    expect(receiptBaltathar.logs[0].topics.length).to.eq(3);
+    expect(receiptBaltathar.logs[0].topics[0]).to.eq(SELECTORS.logTransfer);
+    expect(receiptBaltathar.status).to.equal(true);
 
     // Approve amount is null now
-    approvals = (await context.polkadotApi.query.assets.approvals(
-      assetId,
-      ALITH,
+    const approvalBaltathar = await context.polkadotApi.query.assets.approvals(
+      assetId.toU8a(),
+      alith.address,
       contractInstanceAddress
-    )) as any;
-    expect(approvals.isNone).to.eq(true);
+    );
+    expect(approvalBaltathar.isNone).to.eq(true);
 
     // Charleth balance is 1000
-    let charletBalance = (await context.polkadotApi.query.assets.account(assetId, CHARLETH)) as any;
-    expect(charletBalance.unwrap()["balance"].eq(new BN(1000))).to.equal(true);
+    const charletBalance = await context.polkadotApi.query.assets.account(
+      assetId.toU8a(),
+      charleth.address
+    );
+    expect(charletBalance.unwrap().balance.toBigInt()).to.equal(1000n);
   });
 });
 
 describeDevMoonbeamAllEthTxTypes(
   "Precompiles - Assets-ERC20 Wasm",
   (context) => {
-    let sudoAccount, assetId, iFace, contractInstanceAddress;
+    let assetId: u128;
+    let contractInstanceAddress: string;
     before("Setup contract and mock balance", async () => {
-      const keyring = new Keyring({ type: "ethereum" });
-      sudoAccount = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
       // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
       // And we need relay tokens for issuing a transaction to be executed in the relay
       const balance = context.polkadotApi.createType("Balance", 100000000000000);
@@ -790,23 +594,18 @@ describeDevMoonbeamAllEthTxTypes(
         balance: balance,
       });
 
-      assetId = context.polkadotApi.createType(
-        "u128",
-        new BN("42259045809535163221576417993425387648")
-      );
+      assetId = context.polkadotApi.createType("u128", ASSET_ID);
       const assetDetails = context.polkadotApi.createType("PalletAssetsAssetDetails", {
         supply: balance,
       });
 
-      const contractData = await getCompiled("ERC20Instance");
-      iFace = new ethers.utils.Interface(contractData.contract.abi);
       const { contract, rawTx } = await createContract(context, "ERC20Instance");
       contractInstanceAddress = contract.options.address;
       await mockAssetBalance(
         context,
         assetBalance,
         assetDetails,
-        sudoAccount,
+        alith,
         assetId,
         contractInstanceAddress
       );
@@ -815,35 +614,25 @@ describeDevMoonbeamAllEthTxTypes(
     });
     it("allows to transfer through call from SC ", async function () {
       // Create approval
-      let data = iFace.encodeFunctionData(
-        // action
-        "transfer",
-        [BALTATHAR, 1000]
-      );
-
-      let tx = await createTransaction(context, {
-        from: ALITH,
-        privateKey: ALITH_PRIV_KEY,
-        value: "0x0",
-        gas: "0x200000",
-        gasPrice: GAS_PRICE,
-        to: contractInstanceAddress,
-        data: data,
-      });
-
-      let block = await context.createBlock({
-        transactions: [tx],
+      const block = await context.createBlock({
+        transactions: [
+          await createTransaction(context, {
+            ...ALITH_TRANSACTION_TEMPLATE,
+            to: contractInstanceAddress,
+            data: ERC20_INTERFACE.encodeFunctionData("transfer", [baltathar.address, 1000]),
+          }),
+        ],
       });
 
       const receipt = await context.web3.eth.getTransactionReceipt(block.txResults[0].result);
       expect(receipt.status).to.equal(true);
 
       // Baltathar balance is 1000
-      let baltatharBalance = (await context.polkadotApi.query.assets.account(
-        assetId,
-        BALTATHAR
-      )) as any;
-      expect(baltatharBalance.unwrap()["balance"].eq(new BN(1000))).to.equal(true);
+      const baltatharBalance = await context.polkadotApi.query.assets.account(
+        assetId.toU8a(),
+        baltathar.address
+      );
+      expect(baltatharBalance.unwrap().balance.toBigInt()).to.equal(1000n);
     });
   },
   true

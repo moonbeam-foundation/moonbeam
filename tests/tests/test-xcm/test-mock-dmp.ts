@@ -8,7 +8,7 @@ import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { createBlockWithExtrinsic } from "../../util/substrate-rpc";
 import { customWeb3Request } from "../../util/providers";
 import { alith } from "../../util/accounts";
-import { RELAY_ASSET_SOURCE_LOCATION } from "../../util/assets";
+import { RELAY_SOURCE_LOCATION } from "../../util/assets";
 
 // Twelve decimal places in the moonbase relay chain's token
 const RELAY_TOKEN = 1_000_000_000_000n;
@@ -32,7 +32,7 @@ describeDevMoonbeam("Mock XCM - receive downward transfer", (context) => {
       alith,
       context.polkadotApi.tx.sudo.sudo(
         context.polkadotApi.tx.assetManager.registerForeignAsset(
-          RELAY_ASSET_SOURCE_LOCATION,
+          RELAY_SOURCE_LOCATION,
           assetMetadata,
           new BN(1),
           true
@@ -50,11 +50,7 @@ describeDevMoonbeam("Mock XCM - receive downward transfer", (context) => {
       context,
       alith,
       context.polkadotApi.tx.sudo.sudo(
-        context.polkadotApi.tx.assetManager.setAssetUnitsPerSecond(
-          RELAY_ASSET_SOURCE_LOCATION,
-          0,
-          0
-        )
+        context.polkadotApi.tx.assetManager.setAssetUnitsPerSecond(RELAY_SOURCE_LOCATION, 0, 0)
       )
     );
     expect(events[1].event.method.toString()).to.eq("UnitsPerSecondChanged");

@@ -6,7 +6,8 @@ import { ethers } from "ethers";
 import { Subscription as Web3Subscription } from "web3-core-subscriptions";
 import { BlockHeader } from "web3-eth";
 import { Log } from "web3-core";
-import { ALITH_PRIVATE_KEY } from "./accounts";
+import { alith, ALITH_PRIVATE_KEY } from "./accounts";
+import { MIN_GAS_PRICE } from "./constants";
 
 export async function customWeb3Request(web3: Web3, method: string, params: any[]) {
   return new Promise<JsonRpcResponse>((resolve, reject) => {
@@ -32,6 +33,31 @@ export async function customWeb3Request(web3: Web3, method: string, params: any[
       }
     );
   });
+}
+
+export interface Web3EthCallOptions {
+  from?: string | number;
+  to: string;
+  value?: number | string | bigint;
+  gas?: number | string;
+  gasPrice?: number | string | bigint;
+  maxPriorityFeePerGas?: number | string | bigint;
+  maxFeePerGas?: number | string | bigint;
+  data?: string;
+  nonce?: number;
+}
+
+export async function web3EthCall(web3: Web3, options: Web3EthCallOptions) {
+  return await customWeb3Request(web3, "eth_call", [
+    {
+      from: options.from == undefined ? options.from : alith.address,
+      value: options.value,
+      gas: options.gas == undefined ? options.gas : 256000,
+      gasPrice: options.gas == undefined ? options.gas : `0x${MIN_GAS_PRICE}`,
+      to: options.to,
+      data: options.data,
+    },
+  ]);
 }
 
 // Extra type because web3 is not well typed

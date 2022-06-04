@@ -10,14 +10,20 @@ const keyringEth = new Keyring({ type: "ethereum" });
 export const ALITH_ADDRESS = "0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac";
 export const ALITH_PRIVATE_KEY =
   "0x5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133";
+export const ALITH_SESSION_ADDRESS =
+  "0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d";
 
 export const BALTATHAR_ADDRESS = "0x3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0";
 export const BALTATHAR_PRIVATE_KEY =
   "0x8075991ce870b93a8870eca0c0f91913d12f47948ca0fd25b49c6fa7cdbeee8b";
+export const BALTATHAR_SESSION_ADDRESS =
+  "0x8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48";
 
 export const CHARLETH_ADDRESS = "0x798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc";
 export const CHARLETH_PRIVATE_KEY =
   "0x0b6e18cafb6ed99687ec547bd28139cafdd2bffe70e6b688025de6b445aa5c5b";
+export const CHARLETH_SESSION_ADDRESS =
+  "0x90b5ab205c6974c9ea841be688864633dc9ca8a357843eeacf2314649965fe22";
 
 export const DOROTHY_ADDRESS = "0x773539d4Ac0e786233D90A233654ccEE26a613D9";
 export const DOROTHY_PRIVATE_KEY =
@@ -48,9 +54,9 @@ export const alith = keyringEth.addFromUri(ALITH_PRIVATE_KEY);
 export const baltathar = keyringEth.addFromUri(BALTATHAR_PRIVATE_KEY);
 export const charleth = keyringEth.addFromUri(CHARLETH_PRIVATE_KEY);
 export const dorothy = keyringEth.addFromUri(DOROTHY_PRIVATE_KEY);
-export const ethan = keyringEth.addFromUri(DOROTHY_PRIVATE_KEY);
-export const faith = keyringEth.addFromUri(DOROTHY_PRIVATE_KEY);
-export const goliath = keyringEth.addFromUri(DOROTHY_PRIVATE_KEY);
+export const ethan = keyringEth.addFromUri(ETHAN_PRIVATE_KEY);
+export const faith = keyringEth.addFromUri(FAITH_PRIVATE_KEY);
+export const goliath = keyringEth.addFromUri(GOLIATH_PRIVATE_KEY);
 
 // deprecated
 export const gerald = keyringEth.addFromUri(GERALD_PRIVATE_KEY);

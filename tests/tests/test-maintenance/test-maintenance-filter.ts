@@ -10,7 +10,7 @@ import { createBlockWithExtrinsic } from "../../util/substrate-rpc";
 import { createTransfer } from "../../util/transactions";
 import { customWeb3Request } from "../../util/providers";
 import { alith, baltathar, charleth, generateKeyingPair } from "../../util/accounts";
-import { mockAssetBalance, RELAY_ASSET_SOURCE_LOCATION } from "../../util/assets";
+import { mockAssetBalance, RELAY_SOURCE_LOCATION } from "../../util/assets";
 
 const ARBITRARY_ASSET_ID = 42259045809535163221576417993425387648n;
 const RELAYCHAIN_ARBITRARY_ADDRESS_1: string =
@@ -177,11 +177,7 @@ describeDevMoonbeam("Maintenance Mode - Filter", (context) => {
       context,
       alith,
       context.polkadotApi.tx.sudo.sudo(
-        context.polkadotApi.tx.assetManager.setAssetUnitsPerSecond(
-          RELAY_ASSET_SOURCE_LOCATION,
-          0,
-          0
-        )
+        context.polkadotApi.tx.assetManager.setAssetUnitsPerSecond(RELAY_SOURCE_LOCATION, 0, 0)
       )
     );
   });

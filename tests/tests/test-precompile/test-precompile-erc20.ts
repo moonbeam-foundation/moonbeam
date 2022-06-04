@@ -1,8 +1,12 @@
 import "@moonbeam-network/api-augment";
 import { expect } from "chai";
 import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
-import { customWeb3Request } from "../../util/providers";
-import { createTransaction } from "../../util/transactions";
+import { customWeb3Request, web3EthCall } from "../../util/providers";
+import {
+  ALITH_TRANSACTION_TEMPLATE,
+  BALTATHAR_TRANSACTION_TEMPLATE,
+  createTransaction,
+} from "../../util/transactions";
 import { PRECOMPILE_NATIVE_ERC20_ADDRESS } from "../../util/constants";
 import {
   alith,
@@ -22,7 +26,6 @@ const SELECTORS = {
   logApprove: "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925",
   logTransfer: "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
 };
-const GAS_PRICE = "0x" + (1_000_000_000).toString(16);
 
 async function getBalance(context, blockHeight, address) {
   const blockHash = await context.polkadotApi.rpc.chain.getBlockHash(blockHeight);
@@ -30,16 +33,12 @@ async function getBalance(context, blockHeight, address) {
   return account.data.free;
 }
 
-async function sendApprove(context, from, fromPrivate, spender, amount) {
-  const fromData = from.slice(2).padStart(64, "0").toLowerCase(); //web3 rpc returns lowercase
+async function sendApprove(context, spender, amount) {
+  const fromData = alith.address.slice(2).padStart(64, "0").toLowerCase(); //web3 rpc returns lowercase
   const spenderData = spender.slice(2).padStart(64, "0").toLowerCase();
 
   const tx = await createTransaction(context, {
-    from: from,
-    privateKey: fromPrivate,
-    value: "0x0",
-    gas: "0x200000",
-    gasPrice: GAS_PRICE,
+    ...ALITH_TRANSACTION_TEMPLATE,
     to: PRECOMPILE_NATIVE_ERC20_ADDRESS,
     data: `0x${SELECTORS.approve}${spenderData}${amount}`,
   });
@@ -63,16 +62,10 @@ async function checkAllowance(context, owner, spender, amount) {
   const ownerData = owner.slice(2).padStart(64, "0");
   const spenderData = spender.slice(2).padStart(64, "0");
 
-  const request = await customWeb3Request(context.web3, "eth_call", [
-    {
-      from: alith.address,
-      value: "0x0",
-      gas: "0x10000",
-      gasPrice: GAS_PRICE,
-      to: PRECOMPILE_NATIVE_ERC20_ADDRESS,
-      data: `0x${SELECTORS.allowance}${ownerData}${spenderData}`,
-    },
-  ]);
+  const request = await web3EthCall(context.web3, {
+    to: PRECOMPILE_NATIVE_ERC20_ADDRESS,
+    data: `0x${SELECTORS.allowance}${ownerData}${spenderData}`,
+  });
 
   expect(request.result).equals(`0x${amount.padStart(64, "0")}`);
 }
@@ -81,47 +74,33 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - ERC20 Native", (context) => {
   it("allows to call getBalance", async function () {
     const address = alith.address.slice(2).padStart(64, "0");
 
-    const tx_call = await customWeb3Request(context.web3, "eth_call", [
-      {
-        from: alith.address,
-        value: "0x0",
-        gas: "0x10000",
-        gasPrice: GAS_PRICE,
-        to: PRECOMPILE_NATIVE_ERC20_ADDRESS,
-        data: `0x${SELECTORS.balanceOf}${address}`,
-      },
-    ]);
+    const request = await web3EthCall(context.web3, {
+      to: PRECOMPILE_NATIVE_ERC20_ADDRESS,
+      data: `0x${SELECTORS.balanceOf}${address}`,
+    });
 
     let amount = await getBalance(context, 0, alith.address);
     amount = "0x" + amount.toHex().slice(2).padStart(64, "0");
-    expect(tx_call.result).equals(amount);
+    expect(request.result).equals(amount);
   });
 
   it("allows to call totalSupply", async function () {
-    const tx_call = await customWeb3Request(context.web3, "eth_call", [
-      {
-        from: alith.address,
-        value: "0x0",
-        gas: "0x10000",
-        gasPrice: GAS_PRICE,
-        to: PRECOMPILE_NATIVE_ERC20_ADDRESS,
-        data: `0x${SELECTORS.totalSupply}`,
-      },
-    ]);
+    const request = await web3EthCall(context.web3, {
+      to: PRECOMPILE_NATIVE_ERC20_ADDRESS,
+      data: `0x${SELECTORS.totalSupply}`,
+    });
 
     const amount = await context.polkadotApi.query.balances.totalIssuance();
     const amount_hex = "0x" + amount.toHex().slice(2).padStart(64, "0");
 
-    expect(tx_call.result).equals(amount_hex);
+    expect(request.result).equals(amount_hex);
   });
 });
 
 describeDevMoonbeamAllEthTxTypes("Precompiles - ERC20 Native", (context) => {
   it("allows to approve transfers, and allowance matches", async function () {
     const amount = `1000000000000`.padStart(64, "0");
-
-    await sendApprove(context, alith.address, ALITH_PRIVATE_KEY, baltathar.address, amount);
-
+    await sendApprove(context, baltathar.address, amount);
     await checkAllowance(context, alith.address, baltathar.address, amount);
   });
 });
@@ -132,11 +111,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - ERC20 Native", (context) => {
 
     const to = charleth.address.slice(2).padStart(64, "0");
     const tx = await createTransaction(context, {
-      from: alith.address,
-      privateKey: ALITH_PRIVATE_KEY,
-      value: "0x0",
-      gas: "0x200000",
-      gasPrice: GAS_PRICE,
+      ...ALITH_TRANSACTION_TEMPLATE,
       to: PRECOMPILE_NATIVE_ERC20_ADDRESS,
       data: `0x${SELECTORS.transfer}${to}${amount}`,
     });
@@ -164,20 +139,15 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - ERC20 Native", (context) => {
     const allowedAmount = `1000000000000`.padStart(64, "0");
     const transferAmount = `400000000000`.padStart(64, "0");
 
-    await sendApprove(context, alith.address, ALITH_PRIVATE_KEY, baltathar.address, allowedAmount);
+    await sendApprove(context, baltathar.address, allowedAmount);
 
     // transferFrom
     {
       const from = alith.address.slice(2).padStart(64, "0").toLowerCase(); // web3 rpc returns lowercase
       const to = charleth.address.slice(2).padStart(64, "0").toLowerCase();
 
-      const gas_price = await context.web3.eth.getGasPrice();
       const tx = await createTransaction(context, {
-        from: baltathar.address,
-        privateKey: BALTATHAR_PRIVATE_KEY,
-        value: "0x0",
-        gas: "0x200000",
-        gasPrice: context.web3.utils.toHex(gas_price),
+        ...BALTATHAR_TRANSACTION_TEMPLATE,
         to: PRECOMPILE_NATIVE_ERC20_ADDRESS,
         data: `0x${SELECTORS.transferFrom}${from}${to}${transferAmount}`,
       });
@@ -218,20 +188,15 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - ERC20", (context) => {
     const allowedAmount = `1000000000000`.padStart(64, "0");
     const transferAmount = `1400000000000`.padStart(64, "0");
 
-    await sendApprove(context, alith.address, ALITH_PRIVATE_KEY, baltathar.address, allowedAmount);
+    await sendApprove(context, baltathar.address, allowedAmount);
 
     // transferFrom
     {
       let from = alith.address.slice(2).padStart(64, "0");
       let to = charleth.address.slice(2).padStart(64, "0");
 
-      const gas_price = await context.web3.eth.getGasPrice();
       let tx = await createTransaction(context, {
-        from: baltathar.address,
-        privateKey: BALTATHAR_PRIVATE_KEY,
-        value: "0x0",
-        gas: "0x200000",
-        gasPrice: context.web3.utils.toHex(gas_price),
+        ...BALTATHAR_TRANSACTION_TEMPLATE,
         to: PRECOMPILE_NATIVE_ERC20_ADDRESS,
         data: `0x${SELECTORS.transferFrom}${from}${to}${transferAmount}`,
       });
