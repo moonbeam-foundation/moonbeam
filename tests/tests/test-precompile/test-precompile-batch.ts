@@ -4,7 +4,7 @@ import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 import { customWeb3Request } from "../../util/providers";
 import { ethers } from "ethers";
 import { getCompiled } from "../../util/contracts";
-import { alith, ALITH_PRIVATE_KEY, baltathar } from "../../util/accounts";
+import { alith, ALITH_PRIVATE_KEY, baltathar, charleth } from "../../util/accounts";
 
 describeDevMoonbeamAllEthTxTypes("Batch - All functions should consume the same gas", (context) => {
   it("should consume the same gas", async function () {
@@ -19,7 +19,7 @@ describeDevMoonbeamAllEthTxTypes("Batch - All functions should consume the same 
         value: "0x00",
         nonce: 0,
         data: batchInterface.encodeFunctionData("batchAll", [
-          [alith.address, baltathar.address],
+          [baltathar.address, charleth.address],
           ["1000000000000000000", "2000000000000000000"],
           [],
           [],
@@ -36,7 +36,7 @@ describeDevMoonbeamAllEthTxTypes("Batch - All functions should consume the same 
         value: "0x00",
         nonce: 1,
         data: batchInterface.encodeFunctionData("batchSome", [
-          [alith.address, baltathar.address],
+          [baltathar.address, charleth.address],
           ["1000000000000000000", "2000000000000000000"],
           [],
           [],
@@ -53,7 +53,7 @@ describeDevMoonbeamAllEthTxTypes("Batch - All functions should consume the same 
         value: "0x00",
         nonce: 2,
         data: batchInterface.encodeFunctionData("batchSomeUntilFailure", [
-          [alith.address, baltathar.address],
+          [baltathar.address, charleth.address],
           ["1000000000000000000", "2000000000000000000"],
           [],
           [],
