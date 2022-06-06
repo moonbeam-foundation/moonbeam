@@ -46,7 +46,7 @@ pub mod pallet {
 	use frame_support::traits::{Currency, ReservableCurrency};
 	use frame_system::pallet_prelude::*;
 	use sp_runtime::traits::Saturating;
-	use sp_std::vec::Vec;
+	use sp_std::{convert::TryInto, vec::Vec};
 
 	/// Request identifier, unique per request for randomness
 	pub type RequestId = u64;
