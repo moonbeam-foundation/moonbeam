@@ -107,8 +107,7 @@ pub mod pallet {
 			contract_address: T::AccountId,
 			fee: BalanceOf<T>,
 			salt: T::Hash,
-			//info: RequestType<T>,
-			// TODO: requires std::fmt::Debug impl
+			// TODO: split into event based on Request.Info pls, not 1 event for all requests
 		},
 		RequestFulfilled {
 			id: RequestId,
@@ -277,13 +276,12 @@ pub mod pallet {
 			deposit: BalanceOf<T>,
 			caller: &T::AccountId,
 			cost_of_execution: BalanceOf<T>,
-			excess: BalanceOf<T>,
-		) -> DispatchResult {
-			request.finish_fulfill(deposit, caller, cost_of_execution, excess)?;
+		) {
+			request.finish_fulfill(deposit, caller, cost_of_execution);
 			<Requests<T>>::remove(id);
 			Self::deposit_event(Event::RequestFulfilled { id });
-			Ok(())
 		}
+		/// Increase fee associated with request
 		pub fn increase_request_fee(
 			caller: T::AccountId,
 			id: RequestId,

@@ -16,7 +16,7 @@
 
 use crate::{
 	BalanceOf, Config, CurrentBlockRandomness, CurrentEpochIndex, Error, OneEpochAgoRandomness,
-	TwoEpochsAgoRandomness,
+	Pallet, TwoEpochsAgoRandomness,
 };
 use frame_support::pallet_prelude::*;
 use frame_support::traits::{Currency, ExistenceRequirement::KeepAlive, ReservableCurrency};
@@ -48,6 +48,8 @@ pub struct Request<T: Config> {
 	pub contract_address: T::AccountId,
 	/// Fee to pay for execution
 	pub fee: BalanceOf<T>,
+	/// Gas limit for subcall
+	pub gas_limit: u64,
 	/// Salt to use once randomness is ready
 	pub salt: T::Hash,
 	/// Details regarding request type
@@ -67,27 +69,34 @@ impl<T: Config> Request<T> {
 		}
 	}
 	/// Cleanup after fulfilling a request
-	/// This assumes the request was fulfilled and the callback did NOT OOG
 	pub(crate) fn finish_fulfill(
 		&self,
 		deposit: BalanceOf<T>,
 		caller: &T::AccountId,
 		cost_of_execution: BalanceOf<T>,
-		excess: BalanceOf<T>,
-	) -> DispatchResult {
-		T::Currency::unreserve(&self.contract_address, deposit + self.fee);
-		// refund cost_of_execution to caller
-		T::Currency::transfer(&self.contract_address, caller, cost_of_execution, KeepAlive)
-			.expect("just unreserved deposit + fee => cost_of_execution must be transferrable");
-		// refund excess fee to refund address
-		T::Currency::transfer(
-			&self.contract_address,
-			&self.refund_address,
-			excess,
-			KeepAlive,
-		)
-		.expect("just unreserved deposit + fee => excess must be transferrable");
-		Ok(())
+	) {
+		// unreserve deposit and fee before refund
+		let amount = T::Currency::unreserve(&self.contract_address, deposit + self.fee);
+		let refundable_amount = if amount < self.fee {
+			// should refund come out of the deposit if `cost_of_execution` > self.fee?
+			// TODO: log warning, emit event?
+			amount
+		} else {
+			self.fee
+		};
+		if let Some(excess) = refundable_amount.checked_sub(&cost_of_execution) {
+			// refund cost_of_execution to caller of `fulfill`
+			T::Currency::transfer(&self.contract_address, caller, cost_of_execution, KeepAlive)
+				.expect("just unreserved deposit + fee => cost_of_execution must be transferrable");
+			// refund excess to refund address
+			T::Currency::transfer(
+				&self.contract_address,
+				&self.refund_address,
+				excess,
+				KeepAlive,
+			)
+			.expect("just unreserved deposit + fee => excess must be transferrable");
+		} // else should log warning or emit event that no refund happened???
 	}
 }
 
@@ -110,13 +119,8 @@ pub struct FulfillArgs<T: Config> {
 	pub request: Request<T>,
 	/// Deposit for request
 	pub deposit: BalanceOf<T>,
-	/// Contract that consumes the randomness
-	pub contract_address: T::AccountId,
-	/// Gas limit for subcall, requires conversion to u64
-	/// by multiplying by BaseFee
-	pub gas_limit: BalanceOf<T>,
 	/// Randomness
-	pub randomness: T::Hash,
+	pub randomness: [u8; 32],
 }
 
 impl<T: Config> RequestState<T> {
@@ -144,12 +148,12 @@ impl<T: Config> RequestState<T> {
 			RequestType::Local(_) => T::LocalRandomness::get_current_randomness(),
 		}
 		.ok_or(Error::<T>::RandomnessNotAvailable)?;
+		// compute random output using salt
+		let randomness = Pallet::<T>::concat_and_hash(randomness, self.request.salt);
 		// No event emitted until fulfillment is complete
 		Ok(FulfillArgs {
 			request: self.request.clone(),
 			deposit: self.deposit,
-			contract_address: self.request.contract_address.clone(),
-			gas_limit: self.request.fee,
 			randomness,
 		})
 	}

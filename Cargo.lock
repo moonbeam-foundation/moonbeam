@@ -7928,7 +7928,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-randomness-precompiles"
-version = "0.2.0"
+version = "0.1.0"
 dependencies = [
  "derive_more",
  "fp-evm",

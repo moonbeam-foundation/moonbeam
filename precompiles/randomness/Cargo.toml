@@ -3,7 +3,7 @@ name = "pallet-randomness-precompiles"
 authors = [ "PureStake" ]
 description = "A Precompile to make randomnness accessible to pallet-evm"
 edition = "2021"
-version = "0.2.0"
+version = "0.1.0"
 
 [dependencies]
 log = "0.4"
