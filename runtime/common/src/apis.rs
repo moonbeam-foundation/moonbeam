@@ -427,9 +427,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					use pallet_author_mapping::Pallet as PalletAuthorMappingBench;
 					use pallet_author_slot_filter::Pallet as PalletAuthorSlotFilter;
 					use pallet_moonbeam_orbiters::Pallet as PalletMoonbeamOrbiters;
-					#[cfg(feature = "moonbase-runtime-benchmarks")]
 					use pallet_asset_manager::Pallet as PalletAssetManagerBench;
-					#[cfg(feature = "moonbase-runtime-benchmarks")]
 					use xcm_transactor::Pallet as XcmTransactorBench;
 
 					let mut list = Vec::<BenchmarkList>::new();
@@ -440,9 +438,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					list_benchmark!(list, extra, pallet_author_mapping, PalletAuthorMappingBench::<Runtime>);
 					list_benchmark!(list, extra, pallet_author_slot_filter, PalletAuthorSlotFilter::<Runtime>);
 					list_benchmark!(list, extra, pallet_moonbeam_orbiters, PalletMoonbeamOrbiters::<Runtime>);
-					#[cfg(feature = "moonbase-runtime-benchmarks")]
 					list_benchmark!(list, extra, pallet_asset_manager, PalletAssetManagerBench::<Runtime>);
-					#[cfg(feature = "moonbase-runtime-benchmarks")]
 					list_benchmark!(list, extra, xcm_transactor, XcmTransactorBench::<Runtime>);
 
 					let storage_info = AllPalletsWithSystem::storage_info();
@@ -465,9 +461,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					use pallet_author_mapping::Pallet as PalletAuthorMappingBench;
 					use pallet_author_slot_filter::Pallet as PalletAuthorSlotFilter;
 					use pallet_moonbeam_orbiters::Pallet as PalletMoonbeamOrbiters;
-					#[cfg(feature = "moonbase-runtime-benchmarks")]
 					use pallet_asset_manager::Pallet as PalletAssetManagerBench;
-					#[cfg(feature = "moonbase-runtime-benchmarks")]
 					use xcm_transactor::Pallet as XcmTransactorBench;
 
 					let whitelist: Vec<TrackedStorageKey> = vec![
@@ -517,6 +511,10 @@ macro_rules! impl_runtime_apis_plus_common {
 						hex_literal::hex!(  "a686a3043d0adcf2fa655e57bc595a78"
 											"13792e785168f725b60e2969c7fc2552")
 							.to_vec().into(),
+						// ParachainInfo ParachainId
+						hex_literal::hex!(  "0d715f2646c8f85767b5d2764bb27826"
+											"04a74d81251e398fd8a0a4d55023bb3f")
+							.to_vec().into(),
 
 					];
 
@@ -554,14 +552,12 @@ macro_rules! impl_runtime_apis_plus_common {
 						pallet_moonbeam_orbiters,
 						PalletMoonbeamOrbiters::<Runtime>
 					);
-					#[cfg(feature = "moonbase-runtime-benchmarks")]
 					add_benchmark!(
 						params,
 						batches,
 						pallet_asset_manager,
 						PalletAssetManagerBench::<Runtime>
 					);
-					#[cfg(feature = "moonbase-runtime-benchmarks")]
 					add_benchmark!(
 						params,
 						batches,

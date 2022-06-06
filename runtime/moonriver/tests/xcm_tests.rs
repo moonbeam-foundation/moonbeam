@@ -1003,8 +1003,14 @@ fn transact_through_derivative_multilocation() {
 			Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 			// Relay charges 1000 for every instruction, and we have 3, so 3000
 			3000,
+			20000000000,
+			None
+		));
+		// Root can set transact info
+		assert_ok!(XcmTransactor::set_fee_per_second(
+			parachain::Origin::root(),
+			Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 			1 * WEIGHT_PER_SECOND as u128,
-			20000000000
 		));
 	});
 
@@ -1144,9 +1150,16 @@ fn transact_through_sovereign() {
 		assert_ok!(XcmTransactor::set_transact_info(
 			parachain::Origin::root(),
 			Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+			// Relay charges 1000 for every instruction, and we have 3, so 3000
 			3000,
+			20000000000,
+			None
+		));
+		// Root can set transact info
+		assert_ok!(XcmTransactor::set_fee_per_second(
+			parachain::Origin::root(),
+			Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 			1 * WEIGHT_PER_SECOND as u128,
-			20000000000
 		));
 	});
 
@@ -2178,6 +2191,104 @@ fn send_para_a_local_asset_to_para_b_and_send_it_back_together_with_some_dev() {
 				alith_balance_native_token_after
 			);
 		});
+	});
+}
+
+#[test]
+fn transact_through_signed_multilocation() {
+	MockNet::reset();
+	let mut ancestry = MultiLocation::parent();
+
+	ParaA::execute_with(|| {
+		// Root can set transact info
+		assert_ok!(XcmTransactor::set_transact_info(
+			parachain::Origin::root(),
+			Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+			// Relay charges 1000 for every instruction, and we have 3, so 3000
+			3000,
+			20000000000,
+			// 4 instructions in transact through signed
+			Some(4000)
+		));
+		// Root can set transact info
+		assert_ok!(XcmTransactor::set_fee_per_second(
+			parachain::Origin::root(),
+			Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+			1 * WEIGHT_PER_SECOND as u128,
+		));
+		ancestry = parachain::Ancestry::get();
+	});
+
+	// Let's construct the Junction that we will append with DescendOrigin
+	let signed_origin: Junctions = X1(AccountKey20 {
+		network: NetworkId::Any,
+		key: PARAALICE,
+	});
+
+	let mut descend_origin_multilocation = parachain::SelfLocation::get();
+	descend_origin_multilocation
+		.append_with(signed_origin)
+		.unwrap();
+
+	// To convert it to what the relay will see instead of us
+	descend_origin_multilocation
+		.reanchor(&MultiLocation::parent(), &ancestry)
+		.unwrap();
+
+	let derived = xcm_builder::Account32Hash::<
+		relay_chain::KusamaNetwork,
+		relay_chain::AccountId,
+	>::convert_ref(descend_origin_multilocation)
+	.unwrap();
+
+	Relay::execute_with(|| {
+		// free execution, full amount received
+		assert_ok!(RelayBalances::transfer(
+			relay_chain::Origin::signed(RELAYALICE),
+			derived.clone(),
+			4000004100u128,
+		));
+		// derived account has all funds
+		assert!(RelayBalances::free_balance(&derived) == 4000004100);
+		// sovereign account has 0 funds
+		assert!(RelayBalances::free_balance(&para_a_account()) == 0);
+	});
+
+	// Encode the call. Balances transact to para_a_account
+	// First index
+	let mut encoded: Vec<u8> = Vec::new();
+	let index = <relay_chain::Runtime as frame_system::Config>::PalletInfo::index::<
+		relay_chain::Balances,
+	>()
+	.unwrap() as u8;
+
+	encoded.push(index);
+
+	// Then call bytes
+	let mut call_bytes = pallet_balances::Call::<relay_chain::Runtime>::transfer {
+		// 100 to sovereign
+		dest: para_a_account(),
+		value: 100u32.into(),
+	}
+	.encode();
+	encoded.append(&mut call_bytes);
+
+	ParaA::execute_with(|| {
+		assert_ok!(XcmTransactor::transact_through_signed_multilocation(
+			parachain::Origin::signed(PARAALICE.into()),
+			Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+			Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+			// 4000000000 for transfer + 4000 for XCM
+			// 1-1 to fee
+			4000000000,
+			encoded,
+		));
+	});
+
+	Relay::execute_with(|| {
+		assert!(RelayBalances::free_balance(&para_a_account()) == 100);
+
+		assert!(RelayBalances::free_balance(&derived) == 0);
 	});
 }
 

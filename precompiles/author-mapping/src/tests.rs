@@ -24,7 +24,7 @@ use crate::{
 };
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use nimbus_primitives::NimbusId;
-use pallet_author_mapping::{Call as AuthorMappingCall, Event as AuthorMappingEvent};
+use pallet_author_mapping::{keys_wrapper, Call as AuthorMappingCall, Event as AuthorMappingEvent};
 use pallet_balances::Event as BalancesEvent;
 use pallet_evm::{Call as EvmCall, Event as EvmEvent};
 use precompile_utils::{testing::*, EvmDataWriter};
@@ -73,8 +73,8 @@ fn selectors() {
 	assert_eq!(Action::AddAssociation as u32, 0xaa5ac585);
 	assert_eq!(Action::UpdateAssociation as u32, 0xd9cef879);
 	assert_eq!(Action::ClearAssociation as u32, 0x7354c91d);
-	assert_eq!(Action::RegisterKeys as u32, 0x4f50accf);
-	assert_eq!(Action::SetKeys as u32, 0x47f92fc4);
+	assert_eq!(Action::RemoveKeys as u32, 0x3b6c4284);
+	assert_eq!(Action::SetKeys as u32, 0xbcb24ddc);
 }
 
 #[test]
@@ -102,8 +102,8 @@ fn add_association_works() {
 						amount: 10
 					}
 					.into(),
-					AuthorMappingEvent::AuthorRegistered {
-						author_id: expected_nimbus_id.clone(),
+					AuthorMappingEvent::KeysRegistered {
+						nimbus_id: expected_nimbus_id.clone(),
 						account_id: Alice,
 						keys: expected_nimbus_id.into(),
 					}
@@ -126,7 +126,7 @@ fn update_association_works() {
 				sp_core::sr25519::Public::unchecked_from([2u8; 32]).into();
 
 			assert_ok!(Call::AuthorMapping(AuthorMappingCall::add_association {
-				author_id: first_nimbus_id.clone(),
+				nimbus_id: first_nimbus_id.clone(),
 			})
 			.dispatch(Origin::signed(Alice)));
 
@@ -147,14 +147,14 @@ fn update_association_works() {
 						amount: 10
 					}
 					.into(),
-					AuthorMappingEvent::AuthorRegistered {
-						author_id: first_nimbus_id.clone(),
+					AuthorMappingEvent::KeysRegistered {
+						nimbus_id: first_nimbus_id.clone(),
 						account_id: Alice,
 						keys: first_nimbus_id.into(),
 					}
 					.into(),
-					AuthorMappingEvent::AuthorRotated {
-						new_author_id: second_nimbus_id.clone(),
+					AuthorMappingEvent::KeysRotated {
+						new_nimbus_id: second_nimbus_id.clone(),
 						account_id: Alice,
 						new_keys: second_nimbus_id.into(),
 					}
@@ -174,7 +174,7 @@ fn clear_association_works() {
 			let nimbus_id: NimbusId = sp_core::sr25519::Public::unchecked_from([1u8; 32]).into();
 
 			assert_ok!(Call::AuthorMapping(AuthorMappingCall::add_association {
-				author_id: nimbus_id.clone(),
+				nimbus_id: nimbus_id.clone(),
 			})
 			.dispatch(Origin::signed(Alice)));
 
@@ -194,8 +194,8 @@ fn clear_association_works() {
 						amount: 10
 					}
 					.into(),
-					AuthorMappingEvent::AuthorRegistered {
-						author_id: nimbus_id.clone(),
+					AuthorMappingEvent::KeysRegistered {
+						nimbus_id: nimbus_id.clone(),
 						account_id: Alice,
 						keys: nimbus_id.clone().into(),
 					}
@@ -205,8 +205,8 @@ fn clear_association_works() {
 						amount: 10
 					}
 					.into(),
-					AuthorMappingEvent::AuthorDeRegistered {
-						author_id: nimbus_id.clone(),
+					AuthorMappingEvent::KeysRemoved {
+						nimbus_id: nimbus_id.clone(),
 						account_id: Alice,
 						keys: nimbus_id.into(),
 					}
@@ -218,20 +218,19 @@ fn clear_association_works() {
 }
 
 #[test]
-fn register_keys_works() {
+fn remove_keys_works() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let expected_nimbus_id: NimbusId =
-				sp_core::sr25519::Public::unchecked_from([1u8; 32]).into();
-			let first_vrf_key: NimbusId =
-				sp_core::sr25519::Public::unchecked_from([3u8; 32]).into();
+			let nimbus_id: NimbusId = sp_core::sr25519::Public::unchecked_from([1u8; 32]).into();
 
-			let input = EvmDataWriter::new_with_selector(Action::RegisterKeys)
-				.write(sp_core::H256::from([1u8; 32]))
-				.write(sp_core::H256::from([3u8; 32]))
-				.build();
+			assert_ok!(Call::AuthorMapping(AuthorMappingCall::add_association {
+				nimbus_id: nimbus_id.clone(),
+			})
+			.dispatch(Origin::signed(Alice)));
+
+			let input = EvmDataWriter::new_with_selector(Action::RemoveKeys).build();
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(input)).dispatch(Origin::root()));
@@ -245,10 +244,21 @@ fn register_keys_works() {
 						amount: 10
 					}
 					.into(),
-					AuthorMappingEvent::AuthorRegistered {
-						author_id: expected_nimbus_id.clone(),
+					AuthorMappingEvent::KeysRegistered {
+						nimbus_id: nimbus_id.clone(),
 						account_id: Alice,
-						keys: first_vrf_key.into(),
+						keys: nimbus_id.clone().into(),
+					}
+					.into(),
+					BalancesEvent::Unreserved {
+						who: Alice,
+						amount: 10
+					}
+					.into(),
+					AuthorMappingEvent::KeysRemoved {
+						nimbus_id: nimbus_id.clone(),
+						account_id: Alice,
+						keys: nimbus_id.into(),
 					}
 					.into(),
 					EvmEvent::Executed(Precompile.into()).into(),
@@ -272,8 +282,8 @@ fn set_keys_works() {
 			let second_vrf_key: NimbusId =
 				sp_core::sr25519::Public::unchecked_from([4u8; 32]).into();
 
-			assert_ok!(Call::AuthorMapping(AuthorMappingCall::register_keys {
-				keys: (first_nimbus_id.clone(), first_vrf_key.clone()),
+			assert_ok!(Call::AuthorMapping(AuthorMappingCall::set_keys {
+				keys: keys_wrapper::<Runtime>(first_nimbus_id.clone(), first_vrf_key.clone()),
 			})
 			.dispatch(Origin::signed(Alice)));
 
@@ -294,14 +304,14 @@ fn set_keys_works() {
 						amount: 10
 					}
 					.into(),
-					AuthorMappingEvent::AuthorRegistered {
-						author_id: first_nimbus_id.clone(),
+					AuthorMappingEvent::KeysRegistered {
+						nimbus_id: first_nimbus_id.clone(),
 						account_id: Alice,
 						keys: first_vrf_key.into(),
 					}
 					.into(),
-					AuthorMappingEvent::AuthorRotated {
-						new_author_id: second_nimbus_id.clone(),
+					AuthorMappingEvent::KeysRotated {
+						new_nimbus_id: second_nimbus_id.clone(),
 						account_id: Alice,
 						new_keys: second_vrf_key.into(),
 					}

@@ -28,7 +28,7 @@ interface AuthorMapping {
         external;
 
     /**
-     * Clear existing associationg
+     * Clear existing association
      * Selector: 7354c91d
      *
      * @param nimbus_id The nimbusId to be cleared
@@ -36,20 +36,17 @@ interface AuthorMapping {
     function clear_association(bytes32 nimbus_id) external;
 
     /**
-     * Register association and session keys
-     * Selector: 4f50accf
+     * Remove keys
+     * Selector: 3b6c4284
      *
-     * @param author_id The new author id registered
-     * @param keys The session keys
      */
-    function register_keys(bytes32 author_id, bytes32 keys) external;
+    function remove_keys() external;
 
     /**
      * Set keys
-     * Selector: 47f92fc4
+     * Selector: bcb24ddc
      *
-     * @param new_author_id The new nimbusId to be associated
-     * @param new_keys The new session keys
+     * @param keys The new session keys
      */
-    function set_keys(bytes32 new_author_id, bytes32 new_keys) external;
+    function set_keys(bytes memory keys) external;
 }

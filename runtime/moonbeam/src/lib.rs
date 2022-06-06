@@ -167,7 +167,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbeam"),
 	impl_name: create_runtime_str!("moonbeam"),
 	authoring_version: 3,
-	spec_version: 1600,
+	spec_version: 1601,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -860,11 +860,14 @@ impl pallet_proxy::Config for Runtime {
 
 impl pallet_migrations::Config for Runtime {
 	type Event = Event;
-	type MigrationsList = runtime_common::migrations::CommonMigrations<
-		Runtime,
-		CouncilCollective,
-		TechCommitteeCollective,
-	>;
+	type MigrationsList = (
+		runtime_common::migrations::CommonMigrations<
+			Runtime,
+			CouncilCollective,
+			TechCommitteeCollective,
+		>,
+		runtime_common::migrations::XcmMigrations<Runtime>,
+	);
 }
 
 /// Maintenance mode Call filter
@@ -922,6 +925,12 @@ impl Contains<Call> for NormalFilter {
 			Call::PolkadotXcm(method) => match method {
 				pallet_xcm::Call::force_default_xcm_version { .. } => true,
 				_ => false,
+			},
+			// We filter for now transact through signed
+			Call::XcmTransactor(method) => match method {
+				xcm_transactor::Call::transact_through_signed_multilocation { .. } => false,
+				xcm_transactor::Call::transact_through_signed { .. } => false,
+				_ => true,
 			},
 			_ => true,
 		}

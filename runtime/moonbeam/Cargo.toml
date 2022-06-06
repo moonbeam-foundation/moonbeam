@@ -21,7 +21,7 @@ account = { path = "../../primitives/account/", default-features = false }
 moonbeam-core-primitives = { path = "../../core-primitives", default-features = false }
 moonbeam-relay-encoder = { path = "../relay-encoder", default-features = false }
 precompile-utils = { path = "../../precompiles/utils", default-features = false }
-runtime-common = { path = "../common", default-features = false }
+runtime-common = { path = "../common", default-features = false, features = [ "xcm-support" ] }
 session-keys-primitives = { path = "../../primitives/session-keys", default-features = false }
 xcm-primitives = { path = "../../primitives/xcm/", default-features = false }
 
@@ -263,6 +263,7 @@ runtime-benchmarks = [
 	"parachain-staking/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
 	"xcm-builder/runtime-benchmarks",
+	"xcm-transactor/runtime-benchmarks",
 ]
 
 try-runtime = [

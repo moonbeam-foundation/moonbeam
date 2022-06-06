@@ -330,6 +330,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
 			.saturating_add(T::DbWeight::get().writes(2 as Weight))
 	}
+	// Storage: ParachainStaking DelegationScheduledRequests (r:1 w:0)
 	// Storage: ParachainStaking DelegatorState (r:1 w:1)
 	// Storage: ParachainStaking CandidateInfo (r:1 w:1)
 	// Storage: System Account (r:1 w:1)
@@ -338,8 +339,8 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: ParachainStaking Total (r:1 w:1)
 	#[rustfmt::skip]
 	fn delegator_bond_more() -> Weight {
-		(61_720_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(6 as Weight))
+		(66_476_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(7 as Weight))
 			.saturating_add(T::DbWeight::get().writes(6 as Weight))
 	}
 	// Storage: ParachainStaking DelegatorState (r:1 w:1)
@@ -655,6 +656,7 @@ impl WeightInfo for () {
 			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(2 as Weight))
 	}
+	// Storage: ParachainStaking DelegationScheduledRequests (r:1 w:0)
 	// Storage: ParachainStaking DelegatorState (r:1 w:1)
 	// Storage: ParachainStaking CandidateInfo (r:1 w:1)
 	// Storage: System Account (r:1 w:1)
@@ -663,8 +665,8 @@ impl WeightInfo for () {
 	// Storage: ParachainStaking Total (r:1 w:1)
 	#[rustfmt::skip]
 	fn delegator_bond_more() -> Weight {
-		(61_720_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(6 as Weight))
+		(66_476_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(7 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(6 as Weight))
 	}
 	// Storage: ParachainStaking DelegatorState (r:1 w:1)
