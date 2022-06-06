@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { expect } from "chai";
-import { execFromAllMembersOfTechCommittee } from "../../util/governance";
+import { execTechnicalCommitteeProposal } from "../../util/governance";
 import { Result } from "@polkadot/types";
 import { SpRuntimeDispatchError } from "@polkadot/types/lookup";
 
@@ -10,7 +10,7 @@ import { alith } from "../../util/accounts";
 
 describeDevMoonbeam("Maintenance Mode - Entering Maintenance Mode", (context) => {
   it("should succeed with Technical Committee", async function () {
-    const { events, successful } = await execFromAllMembersOfTechCommittee(
+    const { events, successful } = await execTechnicalCommitteeProposal(
       context,
       context.polkadotApi.tx.maintenanceMode.enterMaintenanceMode()
     );
@@ -19,6 +19,19 @@ describeDevMoonbeam("Maintenance Mode - Entering Maintenance Mode", (context) =>
     expect((await context.polkadotApi.query.maintenanceMode.maintenanceMode()).toHuman()).to.equal(
       true
     );
+  });
+});
+
+describeDevMoonbeam("Maintenance Mode - Entering Maintenance Mode", (context) => {
+  it("should fail with half the technical Committee", async function () {
+    const { events } = await execTechnicalCommitteeProposal(
+      context,
+      context.polkadotApi.tx.maintenanceMode.enterMaintenanceMode(),
+      [alith],
+      1
+    );
+    expect((events[1].event.data[1] as Result<any, SpRuntimeDispatchError>).asErr.isBadOrigin).to.be
+      .true;
   });
 });
 
@@ -73,7 +86,7 @@ describeDevMoonbeam("Maintenance Mode - Resuming normal operation", (context) =>
 
 describeDevMoonbeam("Maintenance Mode - Resuming normal operation", (context) => {
   before("entering maintenance mode", async () => {
-    await execFromAllMembersOfTechCommittee(
+    await execTechnicalCommitteeProposal(
       context,
       context.polkadotApi.tx.maintenanceMode.enterMaintenanceMode()
     );
@@ -93,14 +106,14 @@ describeDevMoonbeam("Maintenance Mode - Resuming normal operation", (context) =>
 
 describeDevMoonbeam("Maintenance Mode - Resuming normal operation", (context) => {
   before("entering maintenance mode", async () => {
-    await execFromAllMembersOfTechCommittee(
+    await execTechnicalCommitteeProposal(
       context,
       context.polkadotApi.tx.maintenanceMode.enterMaintenanceMode()
     );
   });
 
   it("should succeed with council", async function () {
-    const { events, successful } = await execFromAllMembersOfTechCommittee(
+    const { events, successful } = await execTechnicalCommitteeProposal(
       context,
       context.polkadotApi.tx.maintenanceMode.resumeNormalOperation()
     );
@@ -109,5 +122,25 @@ describeDevMoonbeam("Maintenance Mode - Resuming normal operation", (context) =>
     expect((await context.polkadotApi.query.maintenanceMode.maintenanceMode()).toHuman()).to.equal(
       false
     );
+  });
+});
+
+describeDevMoonbeam("Maintenance Mode - Resuming normal operation", (context) => {
+  before("entering maintenance mode", async () => {
+    await execTechnicalCommitteeProposal(
+      context,
+      context.polkadotApi.tx.maintenanceMode.enterMaintenanceMode()
+    );
+  });
+
+  it("should fail with half the technical Committee", async function () {
+    const { events } = await execTechnicalCommitteeProposal(
+      context,
+      context.polkadotApi.tx.maintenanceMode.resumeNormalOperation(),
+      [alith],
+      1
+    );
+    expect((events[1].event.data[1] as Result<any, SpRuntimeDispatchError>).asErr.isBadOrigin).to.be
+      .true;
   });
 });

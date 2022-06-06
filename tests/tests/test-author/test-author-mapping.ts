@@ -5,14 +5,18 @@ import { expect } from "chai";
 import {
   DEFAULT_GENESIS_MAPPING,
   DEFAULT_GENESIS_STAKING,
-  ALITH_SESSION_KEY,
-  BALTATHAR_SESSION_KEY,
-  CHARLETH_SESSION_KEY,
   DEFAULT_GENESIS_BALANCE,
 } from "../../util/constants";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { createBlockWithExtrinsic } from "../../util/substrate-rpc";
-import { alith, baltathar, generateKeyingPair } from "../../util/accounts";
+import {
+  alith,
+  baltathar,
+  generateKeyingPair,
+  ALITH_SESSION_ADDRESS,
+  BALTATHAR_SESSION_ADDRESS,
+  CHARLETH_SESSION_ADDRESS,
+} from "../../util/accounts";
 
 async function getMappingInfo(
   context,
@@ -30,11 +34,11 @@ async function getMappingInfo(
 
 describeDevMoonbeam("Author Mapping - simple association", (context) => {
   it("should match genesis state", async function () {
-    expect((await getMappingInfo(context, ALITH_SESSION_KEY)).account).to.eq(alith.address);
-    expect((await getMappingInfo(context, ALITH_SESSION_KEY)).deposit).to.eq(
+    expect((await getMappingInfo(context, ALITH_SESSION_ADDRESS)).account).to.eq(alith.address);
+    expect((await getMappingInfo(context, ALITH_SESSION_ADDRESS)).deposit).to.eq(
       DEFAULT_GENESIS_MAPPING
     );
-    expect(await getMappingInfo(context, BALTATHAR_SESSION_KEY)).to.eq(null);
+    expect(await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS)).to.eq(null);
     expect(
       (await context.polkadotApi.query.system.account(alith.address)).data.free.toBigInt()
     ).to.eq(1207825819614629174706176n);
@@ -47,7 +51,7 @@ describeDevMoonbeam("Author Mapping - simple association", (context) => {
     const { events } = await createBlockWithExtrinsic(
       context,
       alith,
-      context.polkadotApi.tx.authorMapping.addAssociation(BALTATHAR_SESSION_KEY)
+      context.polkadotApi.tx.authorMapping.addAssociation(BALTATHAR_SESSION_ADDRESS)
     );
     // check events
     expect(events.length === 8);
@@ -59,7 +63,7 @@ describeDevMoonbeam("Author Mapping - simple association", (context) => {
     expect(context.polkadotApi.events.system.ExtrinsicSuccess.is(events[7].event)).to.be.true;
 
     // check association
-    expect((await getMappingInfo(context, BALTATHAR_SESSION_KEY)).account).to.eq(alith.address);
+    expect((await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS)).account).to.eq(alith.address);
     expect(
       (await context.polkadotApi.query.system.account(alith.address)).data.free.toBigInt()
     ).to.eq(1207725819589017722705800n);
@@ -74,7 +78,7 @@ describeDevMoonbeam("Author Mapping - Fail to reassociate alice", (context) => {
     const { events } = await createBlockWithExtrinsic(
       context,
       baltathar,
-      context.polkadotApi.tx.authorMapping.addAssociation(ALITH_SESSION_KEY)
+      context.polkadotApi.tx.authorMapping.addAssociation(ALITH_SESSION_ADDRESS)
     );
 
     // should check events for failure
@@ -91,28 +95,28 @@ describeDevMoonbeam("Author Mapping - Fail to reassociate alice", (context) => {
     expect(
       (await context.polkadotApi.query.system.account(baltathar.address)).data.reserved.toBigInt()
     ).to.eq(0n);
-    expect((await getMappingInfo(context, ALITH_SESSION_KEY)).account).to.eq(alith.address);
+    expect((await getMappingInfo(context, ALITH_SESSION_ADDRESS)).account).to.eq(alith.address);
   });
 
   it("should fail to take someone else association", async function () {
     await createBlockWithExtrinsic(
       context,
       baltathar,
-      context.polkadotApi.tx.authorMapping.addAssociation(CHARLETH_SESSION_KEY)
+      context.polkadotApi.tx.authorMapping.addAssociation(CHARLETH_SESSION_ADDRESS)
     );
     const { error } = await createBlockWithExtrinsic(
       context,
       baltathar,
       context.polkadotApi.tx.authorMapping.updateAssociation(
-        CHARLETH_SESSION_KEY,
-        ALITH_SESSION_KEY
+        CHARLETH_SESSION_ADDRESS,
+        ALITH_SESSION_ADDRESS
       )
     );
 
     expect(error.name).to.equal("AlreadyAssociated");
 
     //check state
-    expect((await getMappingInfo(context, ALITH_SESSION_KEY)).account).to.eq(alith.address);
+    expect((await getMappingInfo(context, ALITH_SESSION_ADDRESS)).account).to.eq(alith.address);
   });
 });
 
@@ -124,7 +128,7 @@ describeDevMoonbeam("Author Mapping - Fail without deposit", (context) => {
     ).to.eq(0n);
     try {
       await context.polkadotApi.tx.authorMapping
-        .addAssociation(BALTATHAR_SESSION_KEY)
+        .addAssociation(BALTATHAR_SESSION_ADDRESS)
         .signAndSend(rando);
     } catch (e) {
       expect(e.message.toString()).to.eq(
@@ -135,7 +139,7 @@ describeDevMoonbeam("Author Mapping - Fail without deposit", (context) => {
   });
 
   it("should not add the association", async function () {
-    expect(await getMappingInfo(context, BALTATHAR_SESSION_KEY)).to.eq(null);
+    expect(await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS)).to.eq(null);
   });
 
   // TODO: Fix this test as there is no failed extrinsic in the block
@@ -188,16 +192,16 @@ describeDevMoonbeam("Author Mapping - double registration", (context) => {
     // How much fee does it consume the extrinsic
     const fee = (
       await context.polkadotApi.tx.authorMapping
-        .addAssociation(BALTATHAR_SESSION_KEY)
+        .addAssociation(BALTATHAR_SESSION_ADDRESS)
         .paymentInfo(alith)
     ).partialFee.toBigInt();
 
     await context.polkadotApi.tx.authorMapping
-      .addAssociation(BALTATHAR_SESSION_KEY)
+      .addAssociation(BALTATHAR_SESSION_ADDRESS)
       .signAndSend(alith);
 
     await context.createBlock();
-    expect((await getMappingInfo(context, BALTATHAR_SESSION_KEY)).account).to.eq(alith.address);
+    expect((await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS)).account).to.eq(alith.address);
     const expectedReservecBalance = 2n * DEFAULT_GENESIS_MAPPING + DEFAULT_GENESIS_STAKING;
     expect(
       (await context.polkadotApi.query.system.account(alith.address)).data.free.toBigInt()
@@ -214,16 +218,16 @@ describeDevMoonbeam("Author Mapping - double registration", (context) => {
     ).data.free.toBigInt();
     const fee = (
       await context.polkadotApi.tx.authorMapping
-        .addAssociation(CHARLETH_SESSION_KEY)
+        .addAssociation(CHARLETH_SESSION_ADDRESS)
         .paymentInfo(alith)
     ).partialFee.toBigInt();
     await context.polkadotApi.tx.authorMapping
-      .addAssociation(CHARLETH_SESSION_KEY)
+      .addAssociation(CHARLETH_SESSION_ADDRESS)
       .signAndSend(alith);
     await context.createBlock();
     //check that both are registered
-    expect((await getMappingInfo(context, CHARLETH_SESSION_KEY)).account).to.eq(alith.address);
-    expect((await getMappingInfo(context, BALTATHAR_SESSION_KEY)).account).to.eq(alith.address);
+    expect((await getMappingInfo(context, CHARLETH_SESSION_ADDRESS)).account).to.eq(alith.address);
+    expect((await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS)).account).to.eq(alith.address);
     const expectedReservecBalance = 3n * DEFAULT_GENESIS_MAPPING + DEFAULT_GENESIS_STAKING;
     expect(
       (await context.polkadotApi.query.system.account(alith.address)).data.free.toBigInt()
@@ -237,15 +241,15 @@ describeDevMoonbeam("Author Mapping - double registration", (context) => {
 describeDevMoonbeam("Author Mapping - registered author can clear (de register)", (context) => {
   it("should succeed in clearing an association", async function () {
     await context.polkadotApi.tx.authorMapping
-      .addAssociation(BALTATHAR_SESSION_KEY)
+      .addAssociation(BALTATHAR_SESSION_ADDRESS)
       .signAndSend(alith);
     await context.createBlock();
-    expect((await getMappingInfo(context, BALTATHAR_SESSION_KEY)).account).to.eq(alith.address);
+    expect((await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS)).account).to.eq(alith.address);
 
     const { events } = await createBlockWithExtrinsic(
       context,
       alith,
-      context.polkadotApi.tx.authorMapping.clearAssociation(BALTATHAR_SESSION_KEY)
+      context.polkadotApi.tx.authorMapping.clearAssociation(BALTATHAR_SESSION_ADDRESS)
     );
     //check events
     expect(events.length === 6);
@@ -255,18 +259,18 @@ describeDevMoonbeam("Author Mapping - registered author can clear (de register)"
     expect(context.polkadotApi.events.system.ExtrinsicSuccess.is(events[5].event)).to.be.true;
 
     // check mapping
-    expect(await getMappingInfo(context, BALTATHAR_SESSION_KEY)).to.eq(null);
+    expect(await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS)).to.eq(null);
   });
 });
 
 describeDevMoonbeam("Author Mapping - unregistered author cannot clear association", (context) => {
   it("should not succeed in clearing an association for an unregistered author", async function () {
-    expect(await getMappingInfo(context, BALTATHAR_SESSION_KEY)).to.eq(null);
+    expect(await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS)).to.eq(null);
 
     const { events } = await createBlockWithExtrinsic(
       context,
       alith,
-      context.polkadotApi.tx.authorMapping.clearAssociation(BALTATHAR_SESSION_KEY)
+      context.polkadotApi.tx.authorMapping.clearAssociation(BALTATHAR_SESSION_ADDRESS)
     );
     expect(events.length === 6);
     expect(context.polkadotApi.events.system.NewAccount.is(events[2].event)).to.be.true;
@@ -279,15 +283,15 @@ describeDevMoonbeam("Author Mapping - unregistered author cannot clear associati
 describeDevMoonbeam("Author Mapping - non author clearing", (context) => {
   it("should not succeed in clearing an association for a non-author", async function () {
     await context.polkadotApi.tx.authorMapping
-      .addAssociation(BALTATHAR_SESSION_KEY)
+      .addAssociation(BALTATHAR_SESSION_ADDRESS)
       .signAndSend(alith);
     await context.createBlock();
-    expect((await getMappingInfo(context, BALTATHAR_SESSION_KEY)).account).to.eq(alith.address);
+    expect((await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS)).account).to.eq(alith.address);
 
     const { events } = await createBlockWithExtrinsic(
       context,
       baltathar,
-      context.polkadotApi.tx.authorMapping.clearAssociation(BALTATHAR_SESSION_KEY)
+      context.polkadotApi.tx.authorMapping.clearAssociation(BALTATHAR_SESSION_ADDRESS)
     );
 
     expect(events.length === 4);
@@ -299,16 +303,16 @@ describeDevMoonbeam("Author Mapping - non author clearing", (context) => {
 describeDevMoonbeam("Author Mapping - registered can rotate", (context) => {
   it("should succeed in rotating account ids for an author", async function () {
     await context.polkadotApi.tx.authorMapping
-      .addAssociation(BALTATHAR_SESSION_KEY)
+      .addAssociation(BALTATHAR_SESSION_ADDRESS)
       .signAndSend(alith);
     await context.createBlock();
-    expect((await getMappingInfo(context, BALTATHAR_SESSION_KEY)).account).to.eq(alith.address);
+    expect((await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS)).account).to.eq(alith.address);
     await context.polkadotApi.tx.authorMapping
-      .updateAssociation(BALTATHAR_SESSION_KEY, CHARLETH_SESSION_KEY)
+      .updateAssociation(BALTATHAR_SESSION_ADDRESS, CHARLETH_SESSION_ADDRESS)
       .signAndSend(alith);
     await context.createBlock();
-    expect(await getMappingInfo(context, BALTATHAR_SESSION_KEY)).to.eq(null);
-    expect((await getMappingInfo(context, CHARLETH_SESSION_KEY)).account).to.eq(alith.address);
+    expect(await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS)).to.eq(null);
+    expect((await getMappingInfo(context, CHARLETH_SESSION_ADDRESS)).account).to.eq(alith.address);
 
     await context.createBlock();
   });
@@ -317,11 +321,11 @@ describeDevMoonbeam("Author Mapping - registered can rotate", (context) => {
 describeDevMoonbeam("Author Mapping - unregistered cannot rotate", (context) => {
   it("should fail rotating account ids if not registered", async function () {
     await context.polkadotApi.tx.authorMapping
-      .updateAssociation(BALTATHAR_SESSION_KEY, CHARLETH_SESSION_KEY)
+      .updateAssociation(BALTATHAR_SESSION_ADDRESS, CHARLETH_SESSION_ADDRESS)
       .signAndSend(alith);
     await context.createBlock();
-    expect(await getMappingInfo(context, BALTATHAR_SESSION_KEY)).to.eq(null);
-    expect(await getMappingInfo(context, CHARLETH_SESSION_KEY)).to.eq(null);
+    expect(await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS)).to.eq(null);
+    expect(await getMappingInfo(context, CHARLETH_SESSION_ADDRESS)).to.eq(null);
 
     await context.createBlock();
   });
@@ -330,16 +334,16 @@ describeDevMoonbeam("Author Mapping - unregistered cannot rotate", (context) => 
 describeDevMoonbeam("Author Mapping - non-author cannot rotate", (context) => {
   it("should fail rotating account ids if not an author", async function () {
     await context.polkadotApi.tx.authorMapping
-      .addAssociation(BALTATHAR_SESSION_KEY)
+      .addAssociation(BALTATHAR_SESSION_ADDRESS)
       .signAndSend(alith);
     await context.createBlock();
-    expect((await getMappingInfo(context, BALTATHAR_SESSION_KEY)).account).to.eq(alith.address);
+    expect((await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS)).account).to.eq(alith.address);
     await context.polkadotApi.tx.authorMapping
-      .updateAssociation(BALTATHAR_SESSION_KEY, CHARLETH_SESSION_KEY)
+      .updateAssociation(BALTATHAR_SESSION_ADDRESS, CHARLETH_SESSION_ADDRESS)
       .signAndSend(baltathar);
     await context.createBlock();
-    expect((await getMappingInfo(context, BALTATHAR_SESSION_KEY)).account).to.eq(alith.address);
-    expect(await getMappingInfo(context, CHARLETH_SESSION_KEY)).to.eq(null);
+    expect((await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS)).account).to.eq(alith.address);
+    expect(await getMappingInfo(context, CHARLETH_SESSION_ADDRESS)).to.eq(null);
 
     await context.createBlock();
   });

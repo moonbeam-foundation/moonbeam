@@ -3,7 +3,7 @@ import { expect } from "chai";
 import { BN, hexToU8a } from "@polkadot/util";
 import { u128 } from "@polkadot/types";
 import { GLMR } from "../../util/constants";
-import { execFromAllMembersOfTechCommittee } from "../../util/governance";
+import { execTechnicalCommitteeProposal } from "../../util/governance";
 
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { createBlockWithExtrinsic } from "../../util/substrate-rpc";
@@ -19,7 +19,7 @@ const ARBITRARY_VESTING_PERIOD = 201600n;
 
 describeDevMoonbeam("Maintenance Mode - Filter", (context) => {
   before("entering maintenant mode", async () => {
-    await execFromAllMembersOfTechCommittee(
+    await execTechnicalCommitteeProposal(
       context,
       context.polkadotApi.tx.maintenanceMode.enterMaintenanceMode()
     );
@@ -183,7 +183,7 @@ describeDevMoonbeam("Maintenance Mode - Filter", (context) => {
   });
 
   before("entering maintenant mode", async () => {
-    await execFromAllMembersOfTechCommittee(
+    await execTechnicalCommitteeProposal(
       context,
       context.polkadotApi.tx.maintenanceMode.enterMaintenanceMode()
     );
@@ -207,7 +207,7 @@ describeDevMoonbeam("Maintenance Mode - Filter", (context) => {
     expect(alithBalance.isNone).to.eq(true);
 
     // turn maintenance off
-    await execFromAllMembersOfTechCommittee(
+    await execTechnicalCommitteeProposal(
       context,
       context.polkadotApi.tx.maintenanceMode.resumeNormalOperation()
     );
@@ -271,7 +271,7 @@ describeDevMoonbeam("Maintenance Mode - Filter", (context) => {
   });
 
   before("entering maintenant mode", async () => {
-    await execFromAllMembersOfTechCommittee(
+    await execTechnicalCommitteeProposal(
       context,
       context.polkadotApi.tx.maintenanceMode.enterMaintenanceMode()
     );
@@ -294,7 +294,7 @@ describeDevMoonbeam("Maintenance Mode - Filter", (context) => {
     expect(alithBalance.isNone).to.eq(true);
 
     // turn maintenance off
-    await execFromAllMembersOfTechCommittee(
+    await execTechnicalCommitteeProposal(
       context,
       context.polkadotApi.tx.maintenanceMode.resumeNormalOperation()
     );
