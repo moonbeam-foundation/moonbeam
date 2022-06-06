@@ -147,15 +147,24 @@ where
 			output: Default::default(),
 		})
 	}
-	/// Subcall to store randomness and emit an event by input `contract`
-	// TODO: add atomic bool to prevent reentrancy
-	fn provide_randomness(
+	/// Reverts if fees and gas_limit are not enough to make the subcall safely
+	fn ensure_can_provide_randomness(
 		handle: &mut impl PrecompileHandle,
+		request_fee: BalanceOf<Runtime>,
 		gas_limit: u64,
-		contract: H160,
-		randomness: H256,
 	) -> EvmResult<()> {
-		// if not true, revert but keep request in storage (before callback)
+		// assert fee / base_fee > gasLimit
+		let fee_as_u256: U256 = request_fee.into();
+		// TODO: should this be as_u64 which panics?
+		let fees_available: u64 = fee_as_u256
+			.checked_div(pallet_base_fee::Pallet::<Runtime>::base_fee_per_gas())
+			.unwrap_or_default()
+			.low_u64();
+		if gas_limit >= fees_available {
+			return Err(revert(
+				"Gas limit at current price must be less than fees allotted",
+			));
+		}
 		let log_cost = log_subcall_failed(handle.code_address())
 			.compute_cost()
 			.map_err(|_| revert("failed to compute log cost"))?;
@@ -167,6 +176,15 @@ where
 		if gas_limit <= call_cost + log_cost + FULFILLMENT_ESTIMATED_COST {
 			return Err(revert("Gas limit must exceed overhead call cost"));
 		}
+		Ok(())
+	}
+	/// Subcall to provide randomness
+	fn provide_randomness(
+		handle: &mut impl PrecompileHandle,
+		gas_limit: u64,
+		contract: H160,
+		randomness: H256,
+	) -> EvmResult<()> {
 		let (reason, _) = handle.call(
 			contract,
 			None,
@@ -174,7 +192,7 @@ where
 			Some(gas_limit),
 			false,
 			&Context {
-				caller: handle.context().address, // precompile address
+				caller: handle.context().address,
 				address: contract,
 				apparent_value: U256::zero(),
 			},
@@ -199,25 +217,16 @@ where
 	/// Fulfill a randomness request due to be fulfilled
 	fn fulfill_request(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		let mut input = handle.read_input()?;
-		// only get requestId for prepare fulfillment
-		let id = input.read::<u64>()?;
+		let request_id = input.read::<u64>()?;
 		// read all the inputs
 		let pallet_randomness::FulfillArgs {
 			request,
 			deposit,
 			randomness,
-		} = pallet_randomness::Pallet::<Runtime>::prepare_fulfillment(id)
+		} = pallet_randomness::Pallet::<Runtime>::prepare_fulfillment(request_id)
 			.map_err(|_| error("failed to prepare fulfillment"))?;
-		// assert fee / base_fee > gasLimit
-		let fee_as_u256: U256 = request.fee.into();
-		let base_fee = pallet_base_fee::Pallet::<Runtime>::base_fee_per_gas();
-		// TODO: should this be as_u64 which panics?
-		let fees_available: u64 = (fee_as_u256 / base_fee).low_u64();
-		if request.gas_limit >= fees_available {
-			return Err(revert(
-				"Gas limit at current price must be less than fees allotted",
-			));
-		}
+		// check that randomness can be provided
+		Self::ensure_can_provide_randomness(handle, request.fee, request.gas_limit)?;
 		// get gas before subcall
 		let before_remaining_gas = handle.remaining_gas();
 		// make subcall
@@ -229,7 +238,9 @@ where
 		)?;
 		// get gas after subcall
 		let after_remaining_gas = handle.remaining_gas();
-		let base_fee_as_u64: u64 = base_fee.try_into().unwrap_or_default();
+		let base_fee_as_u64: u64 = pallet_base_fee::Pallet::<Runtime>::base_fee_per_gas()
+			.try_into()
+			.unwrap_or_default();
 		// cost of execution is before_remaining_gas less after_remaining_gas
 		let cost_of_execution = before_remaining_gas
 			.checked_sub(after_remaining_gas)
@@ -242,7 +253,7 @@ where
 		// refund excess fee to the refund_address
 		// remove request state
 		pallet_randomness::Pallet::<Runtime>::finish_fulfillment(
-			id,
+			request_id,
 			request,
 			deposit,
 			&Runtime::AddressMapping::into_account_id(handle.context().caller),
