@@ -24,15 +24,13 @@ describeDevMoonbeam("Trace filter - Gas Loop", (context) => {
     // by specifying the fromBlock and toBlock
     for (let i = 0; i < testLoops.length; i++) {
       const loop = testLoops[i];
-      const { txResults } = await context.createBlock({
-        transactions: [
-          await createContractExecution(context, {
-            contract,
-            contractCall: contract.methods.incr(loop.count),
-          }),
-        ],
-      });
-      loop.txHash = txResults[0].result;
+      const { result } = await context.createBlockWithEth(
+        await createContractExecution(context, {
+          contract,
+          contractCall: contract.methods.incr(loop.count),
+        })
+      );
+      loop.txHash = result.result;
       loop.blockNumber = i + 2;
     }
   });

@@ -1,31 +1,30 @@
 import { expect } from "chai";
+import { generateKeyingPair } from "../util/accounts";
 import { customWeb3Request } from "../util/providers";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
-import { createContract, createContractExecution, createTransfer } from "../util/transactions";
-import { GENESIS_ACCOUNT, TEST_ACCOUNT } from "../util/constants";
+import { createTransfer } from "../util/transactions";
 
 describeDevMoonbeam("Trace filter reorg", (context) => {
   it("succesfully reorg", async function () {
+    const randomAccount = generateKeyingPair();
     this.timeout(150000000);
 
     // Create a first base block.
     const block1 = await context.createBlock({});
 
     // Create a first branch including a transaction.
-    const tx = await createTransfer(context, TEST_ACCOUNT, "0x200"); // nonce 0
-    const block2 = await context.createBlock({
+    const tx = await createTransfer(context, randomAccount.address, "0x200"); // nonce 0
+    const block2 = await context.createBlockWithEth(tx, {
       parentHash: block1.block.hash,
       finalize: false,
-      transactions: [tx],
     });
     // Contains nonce 0.
 
     // Create a branch.
-    const tx2 = await createTransfer(context, TEST_ACCOUNT, "0x300", { nonce: 1 }); // nonce 1
-    const block2a = await context.createBlock({
+    const tx2 = await createTransfer(context, randomAccount.address, "0x300", { nonce: 1 }); // nonce 1
+    const block2a = await context.createBlockWithEth(tx2, {
       parentHash: block1.block.hash,
       finalize: false,
-      transactions: [tx2],
     });
     // Contains nonce 1.
 

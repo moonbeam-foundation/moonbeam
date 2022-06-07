@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { customWeb3Request } from "../util/providers";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 import { createContract, createContractExecution } from "../util/transactions";
-import { ALITH_CONTRACT_ADDRESSES } from "../util/accounts";
+import { alith, ALITH_CONTRACT_ADDRESSES } from "../util/accounts";
 
 const GENESIS_CONTRACT_ADDRESSES = [
   ALITH_CONTRACT_ADDRESSES[0],
@@ -22,17 +22,15 @@ describeDevMoonbeam("Trace filter - Contract creation ", (context) => {
     const { rawTx: rawTx4 } = await createContract(context, "TraceFilter", { nonce: 3 }, [false]);
     await context.createBlockWithEth([rawTx3, rawTx4]);
 
-    await context.createBlock({
-      transactions: [
-        await createContractExecution(context, {
-          contract,
-          contractCall: contract.methods.subcalls(
-            GENESIS_CONTRACT_ADDRESSES[1],
-            GENESIS_CONTRACT_ADDRESSES[2]
-          ),
-        }),
-      ],
-    });
+    await context.createBlockWithEth(
+      await createContractExecution(context, {
+        contract,
+        contractCall: contract.methods.subcalls(
+          GENESIS_CONTRACT_ADDRESSES[1],
+          GENESIS_CONTRACT_ADDRESSES[2]
+        ),
+      })
+    );
   });
 
   it("should be able to replay deployed contract", async function () {
@@ -172,7 +170,7 @@ describeDevMoonbeam("Trace filter - Contract creation ", (context) => {
       {
         fromBlock: "0x03",
         toBlock: "0x04",
-        fromAddress: [GENESIS_ACCOUNT],
+        fromAddress: [alith.address],
       },
     ]);
 
