@@ -2512,13 +2512,14 @@ fn substrate_based_fees_are_known() {
 	use sp_runtime::testing::TestXt;
 
 	let generate_xt = |weight: u128| {
-		let remark = frame_system::Call::<Runtime>::remark { remark: vec![1; weight as usize] };
+		let remark = frame_system::Call::<Runtime>::remark {
+			remark: vec![1; weight as usize],
+		};
 		let signed_xt = TestXt::<_, ()>::new(remark, Some((0, ())));
 		signed_xt
 	};
 
 	ExtBuilder::default().build().execute_with(|| {
-
 		let query_fees = |weight: u128, len: u32| {
 			let signed_xt = generate_xt(weight);
 
