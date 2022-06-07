@@ -283,13 +283,13 @@ pub mod pallet {
 		}
 		/// Increase fee associated with request
 		pub fn increase_request_fee(
-			caller: T::AccountId,
+			caller: &T::AccountId,
 			id: RequestId,
 			new_fee: BalanceOf<T>,
 		) -> DispatchResult {
 			let mut request = <Requests<T>>::get(id).ok_or(Error::<T>::RequestDNE)?;
 			// fulfill randomness request
-			request.increase_fee(&caller, new_fee)?;
+			request.increase_fee(caller, new_fee)?;
 			<Requests<T>>::insert(id, request);
 			Self::deposit_event(Event::RequestFeeIncreased { id, new_fee });
 			Ok(())
@@ -297,7 +297,7 @@ pub mod pallet {
 		/// Execute request expiration
 		/// transfers fee to caller && purges request iff it has expired
 		/// does NOT try to fulfill the request
-		pub fn execute_request_expiration(caller: T::AccountId, id: RequestId) -> DispatchResult {
+		pub fn execute_request_expiration(caller: &T::AccountId, id: RequestId) -> DispatchResult {
 			let request = <Requests<T>>::get(id).ok_or(Error::<T>::RequestDNE)?;
 			request.execute_expiration(&caller)?;
 			<Requests<T>>::remove(id);

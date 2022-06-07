@@ -53,6 +53,8 @@ pub enum Action {
 		"request_babe_randomness_one_epoch_ago(address,uint256,uint64,bytes32,uint64)",
 	RequestLocalRandomness = "request_local_randomness(address,uint256,uint64,bytes32,uint256)",
 	FulfillRequest = "fulfill_request(address,address)",
+	IncreaseRequestFee = "increase_request_fee(uint64)",
+	ExecuteRequestExpiration = "execute_request_expiration(uint64)",
 }
 
 /// A precompile to wrap the functionality from pallet author mapping.
@@ -81,6 +83,8 @@ where
 			}
 			Action::RequestLocalRandomness => Self::request_local_randomness(handle),
 			Action::FulfillRequest => Self::fulfill_request(handle),
+			Action::IncreaseRequestFee => Self::increase_request_fee(handle),
+			Action::ExecuteRequestExpiration => Self::execute_request_expiration(handle),
 		}
 	}
 }
@@ -116,7 +120,7 @@ where
 		// 	"Requesting randomness {:?}", request
 		// );
 		pallet_randomness::Pallet::<Runtime>::request_randomness(request)
-			.map_err(|_| error("failed to request randomness"))?;
+			.map_err(|e| error(format!("{:?}", e)))?;
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
@@ -141,7 +145,7 @@ where
 			info: pallet_randomness::RequestType::Local(block_number),
 		};
 		pallet_randomness::Pallet::<Runtime>::request_randomness(request)
-			.map_err(|_| error("failed to request randomness"))?;
+			.map_err(|e| error(format!("{:?}", e)))?;
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
 			output: Default::default(),
@@ -149,7 +153,7 @@ where
 	}
 	/// Reverts if fees and gas_limit are not enough to make the subcall safely
 	fn ensure_can_provide_randomness(
-		handle: &mut impl PrecompileHandle,
+		code_address: impl Into<H160>,
 		request_fee: BalanceOf<Runtime>,
 		gas_limit: u64,
 	) -> EvmResult<()> {
@@ -165,7 +169,7 @@ where
 				"Gas limit at current price must be less than fees allotted",
 			));
 		}
-		let log_cost = log_subcall_failed(handle.code_address())
+		let log_cost = log_subcall_failed(code_address)
 			.compute_cost()
 			.map_err(|_| revert("failed to compute log cost"))?;
 		// Cost of the call itself that the batch precompile must pay.
@@ -224,9 +228,9 @@ where
 			deposit,
 			randomness,
 		} = pallet_randomness::Pallet::<Runtime>::prepare_fulfillment(request_id)
-			.map_err(|_| error("failed to prepare fulfillment"))?;
+			.map_err(|e| error(format!("{:?}", e)))?;
 		// check that randomness can be provided
-		Self::ensure_can_provide_randomness(handle, request.fee, request.gas_limit)?;
+		Self::ensure_can_provide_randomness(handle.code_address(), request.fee, request.gas_limit)?;
 		// get gas before subcall
 		let before_remaining_gas = handle.remaining_gas();
 		// make subcall
@@ -264,6 +268,38 @@ where
 			output: Default::default(),
 		})
 	}
-	// TODO: increase request fee
-	// TODO: execute request expiration
+	/// Increase the fee used to refund fulfillment of the request
+	fn increase_request_fee(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		let mut input = handle.read_input()?;
+		let request_id = input.read::<u64>()?;
+		let new_fee: BalanceOf<Runtime> = input.read()?;
+		pallet_randomness::Pallet::<Runtime>::increase_request_fee(
+			&Runtime::AddressMapping::into_account_id(handle.context().caller),
+			request_id,
+			new_fee,
+		)
+		.map_err(|e| error(format!("{:?}", e)))?;
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			output: Default::default(),
+		})
+	}
+	/// Execute request expiration to remove the request from storage
+	/// Transfers `fee` to caller and `deposit` back to `contract_address`
+	fn execute_request_expiration(
+		handle: &mut impl PrecompileHandle,
+	) -> EvmResult<PrecompileOutput> {
+		let mut input = handle.read_input()?;
+		let request_id = input.read::<u64>()?;
+		pallet_randomness::Pallet::<Runtime>::execute_request_expiration(
+			&Runtime::AddressMapping::into_account_id(handle.context().caller),
+			request_id,
+		)
+		.map_err(|e| error(format!("{:?}", e)))?;
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			output: Default::default(),
+		})
+	}
+	// TODO: instant (most ) randomness request for each type of provided randomness
 }
