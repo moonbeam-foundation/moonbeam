@@ -175,7 +175,8 @@ export function describeDevMoonbeam(
           transactions,
         ]);
         const block = (await context.createBlock(options)).block;
-        await Promise.resolve((resolve) => setTimeout(resolve, 10)); // Adds extra time to avoid empty transaction when querying it
+        // Adds extra time to avoid empty transaction when querying it
+        await Promise.resolve((resolve) => setTimeout(resolve, 10));
         return {
           result,
           block,
@@ -191,7 +192,8 @@ export function describeDevMoonbeam(
           SubmittableExtrinsic<ApiType> | SubmittableExtrinsic<ApiType>[]
         >
       > => {
-        // This should return a  string, but is a bit complex to handle type properly so any will suffice
+        // This should return a  string, but is a bit complex to handle type
+        // properly so any will suffice
         const extrinsicHashes: string[] = [];
         const txs = Array.isArray(transactions) ? transactions : [transactions];
         for (const call of txs) {

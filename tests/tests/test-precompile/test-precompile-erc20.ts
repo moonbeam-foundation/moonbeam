@@ -28,7 +28,7 @@ async function getBalance(context, blockHeight, address) {
 }
 
 async function sendApprove(context, spender, amount) {
-  const fromData = alith.address.slice(2).padStart(64, "0").toLowerCase(); //web3 rpc returns lowercase
+  const fromData = alith.address.slice(2).padStart(64, "0").toLowerCase();
   const spenderData = spender.slice(2).padStart(64, "0").toLowerCase();
 
   const { result } = await context.createBlockWithEth(
@@ -134,7 +134,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - ERC20 Native", (context) => {
 
     // transferFrom
     {
-      const from = alith.address.slice(2).padStart(64, "0").toLowerCase(); // web3 rpc returns lowercase
+      const from = alith.address.slice(2).padStart(64, "0").toLowerCase();
       const to = charleth.address.slice(2).padStart(64, "0").toLowerCase();
 
       const { result } = await context.createBlockWithEth(
