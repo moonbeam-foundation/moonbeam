@@ -2512,19 +2512,18 @@ fn substrate_based_weight_fees_are_known() {
 	use sp_runtime::testing::TestXt;
 
 	let generate_xt = |weight: u128| {
-
-        // an empty remark has an encoded size of 12 in this case. we want to generate a txn with
-        // a specific weight and remark's weight is its encoded size, so we simply adjust for this
-        // (and don't allow a size less than 12).
-        //
-        // TODO: there may be a better way to do this (use a different pub fn from
-        // transaction-payment for testing?)
-        let known_encoded_overhead_bytes = 11;
-        assert!(
-            weight >= known_encoded_overhead_bytes,
-            "this test only supports weight >= {}",
-            known_encoded_overhead_bytes
-        );
+		// an empty remark has an encoded size of 12 in this case. we want to generate a txn with
+		// a specific weight and remark's weight is its encoded size, so we simply adjust for this
+		// (and don't allow a size less than 12).
+		//
+		// TODO: there may be a better way to do this (use a different pub fn from
+		// transaction-payment for testing?)
+		let known_encoded_overhead_bytes = 11;
+		assert!(
+			weight >= known_encoded_overhead_bytes,
+			"this test only supports weight >= {}",
+			known_encoded_overhead_bytes
+		);
 
 		let remark = frame_system::Call::<Runtime>::remark {
 			remark: vec![1; (weight - known_encoded_overhead_bytes) as usize],
