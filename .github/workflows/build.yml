@@ -205,6 +205,8 @@ jobs:
           if [[ "$POLKADOT_EXISTS" == "false" ]]; then
             mkdir -p build
             MOONBEAM_DOCKER_TAG="purestake/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
+            # Clear the dummy container if it wasn't properly cleaned up
+            docker rm -f dummy 2> /dev/null
             docker create --pull always -ti --name dummy $MOONBEAM_DOCKER_TAG bash
             docker cp dummy:/usr/local/bin/polkadot build/polkadot
             docker rm -f dummy
@@ -423,6 +425,7 @@ jobs:
           BINARY_PATH: ../build/moonbeam
           ETHAPI_CMD: --ethapi=txpool,debug,trace
           FORCE_WASM_EXECUTION: true
+          FORCE_COMPILED_WASM: true
           WASM_RUNTIME_OVERRIDES: moonbase-overrides
         run: |
           chmod uog+x build/moonbeam
@@ -454,6 +457,8 @@ jobs:
         run: |
           POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
           DOCKER_TAG="purestake/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
+          # Clear the dummy container if it wasn't properly cleaned up
+          docker rm -f dummy 2> /dev/null
           docker create -ti --name dummy $DOCKER_TAG bash
           docker cp dummy:/usr/local/bin/polkadot build/polkadot
           docker rm -f dummy

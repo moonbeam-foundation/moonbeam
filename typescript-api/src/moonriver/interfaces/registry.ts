@@ -157,6 +157,11 @@ import type {
   PalletMaintenanceModeError,
   PalletMaintenanceModeEvent,
   PalletMigrationsEvent,
+  PalletMoonbeamOrbitersCall,
+  PalletMoonbeamOrbitersCollatorPoolInfo,
+  PalletMoonbeamOrbitersCurrentOrbiter,
+  PalletMoonbeamOrbitersError,
+  PalletMoonbeamOrbitersEvent,
   PalletProxyAnnouncement,
   PalletProxyCall,
   PalletProxyError,
@@ -192,8 +197,9 @@ import type {
   ParachainStakingCollatorSnapshot,
   ParachainStakingCollatorStatus,
   ParachainStakingDelayedPayout,
-  ParachainStakingDelegationChange,
-  ParachainStakingDelegationRequest,
+  ParachainStakingDelegationRequestsCancelledScheduledRequest,
+  ParachainStakingDelegationRequestsDelegationAction,
+  ParachainStakingDelegationRequestsScheduledRequest,
   ParachainStakingDelegations,
   ParachainStakingDelegator,
   ParachainStakingDelegatorAdded,
@@ -205,7 +211,6 @@ import type {
   ParachainStakingInflationRangeU128,
   ParachainStakingNominator2,
   ParachainStakingParachainBondConfig,
-  ParachainStakingPendingDelegationRequests,
   ParachainStakingRoundInfo,
   ParachainStakingSetOrderedSetAccountId20,
   ParachainStakingSetOrderedSetBond,
@@ -430,6 +435,11 @@ declare module "@polkadot/types/types/registry" {
     PalletMaintenanceModeError: PalletMaintenanceModeError;
     PalletMaintenanceModeEvent: PalletMaintenanceModeEvent;
     PalletMigrationsEvent: PalletMigrationsEvent;
+    PalletMoonbeamOrbitersCall: PalletMoonbeamOrbitersCall;
+    PalletMoonbeamOrbitersCollatorPoolInfo: PalletMoonbeamOrbitersCollatorPoolInfo;
+    PalletMoonbeamOrbitersCurrentOrbiter: PalletMoonbeamOrbitersCurrentOrbiter;
+    PalletMoonbeamOrbitersError: PalletMoonbeamOrbitersError;
+    PalletMoonbeamOrbitersEvent: PalletMoonbeamOrbitersEvent;
     PalletProxyAnnouncement: PalletProxyAnnouncement;
     PalletProxyCall: PalletProxyCall;
     PalletProxyError: PalletProxyError;
@@ -465,8 +475,9 @@ declare module "@polkadot/types/types/registry" {
     ParachainStakingCollatorSnapshot: ParachainStakingCollatorSnapshot;
     ParachainStakingCollatorStatus: ParachainStakingCollatorStatus;
     ParachainStakingDelayedPayout: ParachainStakingDelayedPayout;
-    ParachainStakingDelegationChange: ParachainStakingDelegationChange;
-    ParachainStakingDelegationRequest: ParachainStakingDelegationRequest;
+    ParachainStakingDelegationRequestsCancelledScheduledRequest: ParachainStakingDelegationRequestsCancelledScheduledRequest;
+    ParachainStakingDelegationRequestsDelegationAction: ParachainStakingDelegationRequestsDelegationAction;
+    ParachainStakingDelegationRequestsScheduledRequest: ParachainStakingDelegationRequestsScheduledRequest;
     ParachainStakingDelegations: ParachainStakingDelegations;
     ParachainStakingDelegator: ParachainStakingDelegator;
     ParachainStakingDelegatorAdded: ParachainStakingDelegatorAdded;
@@ -478,7 +489,6 @@ declare module "@polkadot/types/types/registry" {
     ParachainStakingInflationRangeU128: ParachainStakingInflationRangeU128;
     ParachainStakingNominator2: ParachainStakingNominator2;
     ParachainStakingParachainBondConfig: ParachainStakingParachainBondConfig;
-    ParachainStakingPendingDelegationRequests: ParachainStakingPendingDelegationRequests;
     ParachainStakingRoundInfo: ParachainStakingRoundInfo;
     ParachainStakingSetOrderedSetAccountId20: ParachainStakingSetOrderedSetAccountId20;
     ParachainStakingSetOrderedSetBond: ParachainStakingSetOrderedSetBond;

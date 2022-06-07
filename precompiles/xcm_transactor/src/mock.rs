@@ -18,15 +18,15 @@
 use super::*;
 use codec::{Decode, Encode, MaxEncodedLen};
 use frame_support::{
+	construct_runtime, parameter_types,
 	traits::{EnsureOrigin, Everything, OriginTrait, PalletInfo as PalletInfoTrait},
 	weights::{RuntimeDbWeight, Weight},
 };
-
-use frame_support::{construct_runtime, parameter_types};
-
 use pallet_evm::{
-	AddressMapping, EnsureAddressNever, EnsureAddressRoot, GasWeightMapping, PrecompileSet,
+	AddressMapping, EnsureAddressNever, EnsureAddressRoot, GasWeightMapping, Precompile,
+	PrecompileSet,
 };
+use scale_info::TypeInfo;
 use serde::{Deserialize, Serialize};
 use sp_core::H256;
 use sp_io;
@@ -39,10 +39,7 @@ use xcm::latest::{
 	Junction::{AccountKey20, GeneralIndex, PalletInstance, Parachain},
 	Junctions, MultiAsset, MultiLocation, NetworkId, Result as XcmResult, SendResult, SendXcm, Xcm,
 };
-
 use xcm_builder::FixedWeightBounds;
-
-use scale_info::TypeInfo;
 use xcm_executor::{
 	traits::{InvertLocation, TransactAsset, WeightTrader},
 	Assets,
@@ -151,7 +148,7 @@ impl sp_runtime::traits::Convert<TestAccount, MultiLocation> for AccountIdToMult
 	fn convert(account: TestAccount) -> MultiLocation {
 		let as_h160: H160 = account.into();
 		MultiLocation::new(
-			1,
+			0,
 			Junctions::X1(AccountKey20 {
 				network: NetworkId::Any,
 				key: as_h160.as_fixed_bytes().clone(),
@@ -232,18 +229,9 @@ impl<R> PrecompileSet for TestPrecompiles<R>
 where
 	XcmTransactorWrapper<R>: Precompile,
 {
-	fn execute(
-		&self,
-		address: H160,
-		input: &[u8],
-		target_gas: Option<u64>,
-		context: &Context,
-		is_static: bool,
-	) -> Option<EvmResult<PrecompileOutput>> {
-		match address {
-			a if a == precompile_address() => Some(XcmTransactorWrapper::<R>::execute(
-				input, target_gas, context, is_static,
-			)),
+	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<EvmResult<PrecompileOutput>> {
+		match handle.code_address() {
+			a if a == precompile_address() => Some(XcmTransactorWrapper::<R>::execute(handle)),
 			_ => None,
 		}
 	}
@@ -527,15 +515,5 @@ impl ExtBuilder {
 		let mut ext = sp_io::TestExternalities::new(t);
 		ext.execute_with(|| System::set_block_number(1));
 		ext
-	}
-}
-// Helper function to give a simple evm context suitable for tests.
-// We can remove this once https://github.com/rust-blockchain/evm/pull/35
-// is in our dependency graph.
-pub fn evm_test_context() -> evm::Context {
-	evm::Context {
-		address: Default::default(),
-		caller: Default::default(),
-		apparent_value: From::from(0),
 	}
 }

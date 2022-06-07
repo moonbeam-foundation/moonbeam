@@ -233,7 +233,7 @@ export async function sendPrecompileTx(
   from: string,
   privateKey: string,
   selector: string,
-  parameters: `0x${string}`[]
+  parameters: string[]
 ) {
   let data: string;
   if (selectors[selector]) {

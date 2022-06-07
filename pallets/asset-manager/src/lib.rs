@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! TODO Doc comments for the pallet
 //! # Asset Manager Pallet
 //!
 //! This pallet allows to register new assets if certain conditions are met
@@ -168,7 +167,8 @@ pub mod pallet {
 	pub trait Config: frame_system::Config {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 
-		/// The Asset Id. This will be used to register the asset in Assets
+		/// The Asset Id. This will be used to create the asset and to associate it with
+		/// a assetType
 		type AssetId: Member + Parameter + Default + Copy + HasCompact + MaxEncodedLen;
 
 		/// The Asset Metadata we want to store
@@ -180,6 +180,7 @@ pub mod pallet {
 		/// The units in which we record balances.
 		type Balance: Member + Parameter + AtLeast32BitUnsigned + Default + Copy + MaxEncodedLen;
 
+		/// The asset Registrar.
 		/// The trait we use to register Assets
 		type AssetRegistrar: AssetRegistrar<Self>;
 
@@ -321,7 +322,10 @@ pub mod pallet {
 		) -> DispatchResult {
 			T::ForeignAssetModifierOrigin::ensure_origin(origin)?;
 
+			// Compute assetId from asset
 			let asset_id: T::AssetId = asset.clone().into();
+
+			// Ensure such an assetId does not exist
 			ensure!(
 				AssetIdType::<T>::get(&asset_id).is_none(),
 				Error::<T>::AssetAlreadyExists
@@ -334,6 +338,7 @@ pub mod pallet {
 			)
 			.map_err(|_| Error::<T>::ErrorCreatingAsset)?;
 
+			// Insert the association assetId->assetType
 			AssetIdType::<T>::insert(&asset_id, &asset);
 			AssetTypeId::<T>::insert(&asset, &asset_id);
 
@@ -356,6 +361,7 @@ pub mod pallet {
 		) -> DispatchResult {
 			T::ForeignAssetModifierOrigin::ensure_origin(origin)?;
 
+			// Ensure such an assetId does not exist
 			ensure!(
 				AssetTypeId::<T>::get(&asset_type).is_some(),
 				Error::<T>::AssetDoesNotExist

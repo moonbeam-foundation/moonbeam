@@ -43,6 +43,7 @@ pallet-author-mapping-precompiles = { path = "../../precompiles/author-mapping",
 pallet-democracy-precompiles = { path = "../../precompiles/pallet-democracy", default-features = false }
 pallet-evm-precompile-assets-erc20 = { path = "../../precompiles/assets-erc20", default-features = false }
 pallet-evm-precompile-balances-erc20 = { path = "../../precompiles/balances-erc20", default-features = false }
+pallet-evm-precompile-batch = { path = "../../precompiles/batch", default-features = false }
 parachain-staking-precompiles = { path = "../../precompiles/parachain-staking", default-features = false }
 relay-encoder-precompiles = { path = "../../precompiles/relay-encoder", default-features = false }
 xcm-transactor-precompiles = { path = "../../precompiles/xcm_transactor", default-features = false }
@@ -187,6 +188,7 @@ std = [
 	"pallet-ethereum/std",
 	"pallet-evm-precompile-assets-erc20/std",
 	"pallet-evm-precompile-balances-erc20/std",
+	"pallet-evm-precompile-batch/std",
 	"pallet-evm/std",
 	"pallet-identity/std",
 	"pallet-maintenance-mode/std",
@@ -247,7 +249,6 @@ runtime-wasm = []
 # to make it smaller like logging for example.
 on-chain-release-build = [ "sp-api/disable-logging" ]
 
-moonbase-runtime-benchmarks = []
 runtime-benchmarks = [
 	"frame-benchmarking",
 	"frame-support/runtime-benchmarks",

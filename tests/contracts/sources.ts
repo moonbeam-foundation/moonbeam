@@ -825,122 +825,228 @@ export const contractSources: { [key: string]: string } = {
         }
     }`,
   XcmTransactorInstance: `
-    // SPDX-License-Identifier: GPL-3.0-only
-    pragma solidity >=0.8.0;
-
-    /**
-     * @title Xcm Transactor Interface
-     *
-     * The interface through which solidity contracts will interact with xcm transactor pallet
-     *
-     */
-    interface XcmTransactor {
-        // A multilocation is defined by its number of parents and the encoded junctions (interior)
-        struct Multilocation {
-            uint8 parents;
-            bytes [] interior;
-        }
-
-        /** Get index of an account in xcm transactor
-         *
-         * @param index The index of which we want to retrieve the account
-         */
-        function index_to_account(uint16 index) external view returns(address);
-
-        /** Get transact info of a multilocation
-         * Selector 71b0edfa
-         * @param multilocation The location for which we want to retrieve transact info
-         */
-        function transact_info(
-            Multilocation memory multilocation) 
-        external view  returns(uint64, uint256, uint64);
-
-        /** Transact through XCM using fee based on its multilocation
-         *
-         * @dev The token transfer burns/transfers the corresponding amount before sending
-         * @param transactor The transactor to be used
-         * @param index The index to be used
-         * @param fee_asset The asset in which we want to pay fees. 
-         * It has to be a reserve of the destination chain
-         * @param weight The weight we want to buy in the destination chain
-         * @param inner_call The inner call to be executed in the destination chain
-         */
-        function transact_through_derivative_multilocation(
-            uint8 transactor,
-            uint16 index,
-            Multilocation memory fee_asset,
-            uint64 weight,
-            bytes memory inner_call
-        ) external;
-        
-        /** Transact through XCM using fee based on its currency_id
-         *
-         * @dev The token transfer burns/transfers the corresponding amount before sending
-         * @param transactor The transactor to be used
-         * @param index The index to be used
-         * @param currency_id Address of the currencyId of the asset to be used for fees
-         * It has to be a reserve of the destination chain
-         * @param weight The weight we want to buy in the destination chain
-         * @param inner_call The inner call to be executed in the destination chain
-         */
-        function transact_through_derivative(
-            uint8 transactor,
-            uint16 index,
-            address currency_id,
-            uint64 weight,
-            bytes memory inner_call
-        ) external;
-    }
-
-    contract XcmTransactorInstance is XcmTransactor {
-
-    /// The Xcm Transactor wrapper at the known pre-compile address.
-    XcmTransactor public xcmtransactor = XcmTransactor(0x0000000000000000000000000000000000000806);
-
-        function index_to_account(uint16 index) external view override returns(address) {
-            // We nominate our target collator with all the tokens provided
-            return xcmtransactor.index_to_account(index);
-        }
-
-        function transact_info(
-            Multilocation memory multilocation
-        ) external view override returns(uint64, uint256, uint64) {
-            // We nominate our target collator with all the tokens provided
-            return xcmtransactor.transact_info(multilocation);
-        }
-
-        function transact_through_derivative_multilocation(
-            uint8 transactor,
-            uint16 index,
-            Multilocation memory fee_asset,
-            uint64 weight,
-            bytes memory inner_call
-        ) override external {
-            xcmtransactor.transact_through_derivative_multilocation(
-                transactor,
-                index,
-                fee_asset,
-                weight,
-                inner_call
+  // SPDX-License-Identifier: GPL-3.0-only
+  pragma solidity >=0.8.0;
+  
+  /**
+   * @title Xcm Transactor Interface
+   * The interface through which solidity contracts will interact with xcm transactor pallet
+   * Address :    0x0000000000000000000000000000000000000806
+   */
+  
+  interface XcmTransactor {
+  
+      // A multilocation is defined by its number of parents and the encoded junctions (interior)
+      struct Multilocation {
+          uint8 parents;
+          bytes [] interior;
+      }
+  
+      /** Get index of an account in xcm transactor
+       * Selector 71b0edfa
+       * @param index The index of which we want to retrieve the account
+      * @return owner The owner of the derivative index
+       */
+      function index_to_account(uint16 index) external view returns(address owner);
+  
+      /// DEPRECATED, replaced by transact_info_with_signed
+      /** Get transact info of a multilocation
+       * Selector f87f493f
+       * @param multilocation The location for which we want to know the transact info
+       * @return transact_extra_weight extra weight involved in using transact through derivative
+       * @return fee_per_second The amount of fee charged for a second of execution in the dest
+       * @return max_weight Maximum allowed weight for a single message in dest
+       */
+      function transact_info(Multilocation memory multilocation) external view 
+          returns(uint64 transact_extra_weight, uint256 fee_per_second, uint64 max_weight);
+      
+      /** Get transact info of a multilocation
+       * Selector f87f493f
+       * @param multilocation The location for which we want to know the transact info
+       * @return transact_extra_weight xcm extra weight when in using transact through derivative
+       * @return transact_extra_weight_signed extra weight when using transact through signed
+       * @return max_weight Maximum allowed weight for a single message in dest
+       */
+      function transact_info_with_signed(Multilocation memory multilocation) external view 
+          returns(
+              uint64 transact_extra_weight,
+              uint64 transact_extra_weight_signed,
+              uint64 max_weight
             );
-        }
-        
-        function transact_through_derivative(
-            uint8 transactor,
-            uint16 index,
-            address currency_id,
-            uint64 weight,
-            bytes memory inner_call
-        ) override external {
-            xcmtransactor.transact_through_derivative(
-                transactor,
-                index,
-                currency_id,
-                weight,
-                inner_call
-            );
-        }
-    }`,
+  
+      /** Get fee per second charged in its reserve chain for an asset
+       * Selector f87f493f
+       * @param multilocation The asset location for which we want to know the fee per second value
+       * @return fee_per_second The fee per second that the reserve chain charges for this asset
+       */
+      function fee_per_second(Multilocation memory multilocation) external view 
+          returns(uint256 fee_per_second);
+  
+      /** Transact through XCM using fee based on its multilocation
+      * Selector 9f89f03e
+      * @dev The token transfer burns/transfers the corresponding amount before sending
+      * @param transactor The transactor to be used
+      * @param index The index to be used
+      * @param fee_asset The asset in which we want to pay fees. 
+      * It has to be a reserve of the destination chain
+      * @param weight The weight we want to buy in the destination chain
+      * @param inner_call The inner call to be executed in the destination chain
+      */
+      function transact_through_derivative_multilocation(
+          uint8 transactor,
+          uint16 index,
+          Multilocation memory fee_asset,
+          uint64 weight,
+          bytes memory inner_call
+      ) external;
+      
+      /** Transact through XCM using fee based on its currency_id
+      * Selector 267d4062
+      * @dev The token transfer burns/transfers the corresponding amount before sending
+      * @param transactor The transactor to be used
+      * @param index The index to be used
+      * @param currency_id Address of the currencyId of the asset to be used for fees
+      * It has to be a reserve of the destination chain
+      * @param weight The weight we want to buy in the destination chain
+      * @param inner_call The inner call to be executed in the destination chain
+      */
+      function transact_through_derivative(
+          uint8 transactor,
+          uint16 index,
+          address currency_id,
+          uint64 weight,
+          bytes memory inner_call
+      ) external;
+  
+      /** Transact through XCM using fee based on its multilocation through signed origins
+      * Selector 19760407
+      * @dev No token is burnt before sending the message. The caller must ensure the destination
+      * is able to undertand the DescendOrigin message, and create a unique account from which
+      * dispatch the call
+      * @param dest The destination chain (as multilocation) where to send the message
+      * @param fee_location The asset multilocation that indentifies the fee payment currency
+      * It has to be a reserve of the destination chain
+      * @param weight The weight we want to buy in the destination chain for the call to be made
+      * @param call The call to be executed in the destination chain
+      */
+      function transact_through_signed_multilocation(
+          Multilocation memory dest,
+          Multilocation memory fee_location,
+          uint64 weight,
+          bytes memory call
+      ) external;
+  
+      /** Transact through XCM using fee based on its erc20 address through signed origins
+      * Selector 9f89f03e
+      * @dev No token is burnt before sending the message. The caller must ensure the destination
+      * is able to undertand the DescendOrigin message, and create a unique account from which
+      * dispatch the call
+      * @param dest The destination chain (as multilocation) where to send the message
+      * @param fee_location_address The ERC20 address of the token we want to use to pay for fees
+      * only callable if such an asset has been BRIDGED to our chain
+      * @param weight The weight we want to buy in the destination chain for the call to be made
+      * @param call The call to be executed in the destination chain
+      */
+      function transact_through_signed(
+          Multilocation memory dest,
+          address fee_location_address,
+          uint64 weight,
+          bytes memory call
+      ) external;
+  }
+  
+  contract XcmTransactorInstance is XcmTransactor {
+  
+      /// The Xcm Transactor wrapper at the known pre-compile address.
+      XcmTransactor public xcmtransactor = XcmTransactor(
+          0x0000000000000000000000000000000000000806
+      );
+  
+      function index_to_account(uint16 index) external view override returns(address) {
+          // We nominate our target collator with all the tokens provided
+          return xcmtransactor.index_to_account(index);
+      }
+  
+      function transact_info(
+          Multilocation memory multilocation
+      ) external view override returns(uint64, uint256, uint64) {
+          return xcmtransactor.transact_info(multilocation);
+      }
+  
+      function transact_info_with_signed(
+          Multilocation memory multilocation
+      ) external view override returns(uint64, uint64, uint64) {
+          return xcmtransactor.transact_info_with_signed(multilocation);
+      }
+  
+      function fee_per_second(
+          Multilocation memory multilocation
+      ) external view override returns(uint256) {
+          return xcmtransactor.fee_per_second(multilocation);
+      }
+  
+      function transact_through_derivative_multilocation(
+          uint8 transactor,
+          uint16 index,
+          Multilocation memory fee_asset,
+          uint64 weight,
+          bytes memory inner_call
+      ) override external {
+          xcmtransactor.transact_through_derivative_multilocation(
+              transactor,
+              index,
+              fee_asset,
+              weight,
+              inner_call
+          );
+      }
+          
+      function transact_through_derivative(
+          uint8 transactor,
+          uint16 index,
+          address currency_id,
+          uint64 weight,
+          bytes memory inner_call
+      ) override external {
+          xcmtransactor.transact_through_derivative(
+              transactor,
+              index,
+              currency_id,
+              weight,
+              inner_call
+          );
+      }
+  
+      function transact_through_signed(
+          Multilocation memory dest,
+          address fee_location_address,
+          uint64 weight,
+          bytes memory call
+      ) override external {
+  
+          xcmtransactor.transact_through_signed(
+              dest,
+              fee_location_address,
+              weight,
+              call
+          );
+      }
+  
+      function transact_through_signed_multilocation(
+          Multilocation memory dest,
+          Multilocation memory fee_location,
+          uint64 weight,
+          bytes memory call
+      ) override external {
+  
+          xcmtransactor.transact_through_signed_multilocation(
+              dest,
+              fee_location,
+              weight,
+              call
+          );
+      }
+  }`,
   // Blake2Check contract used to test blake2 precompile at address 0x9
   // source: https://eips.ethereum.org/EIPS/eip-152#example-usage-in-solidity
   Blake2Check: `
@@ -1794,4 +1900,33 @@ export const contractSources: { [key: string]: string } = {
               return target.delegatecall(data);
           }
       }`,
+  Batch: `
+    pragma solidity >=0.8.0;
+
+    contract Batch {
+      function batchSome(
+          address[] memory to,
+          uint256[] memory value,
+          bytes[] memory call_data,
+          uint64[] memory gas_limit
+      ) external {}
+
+      function batchSomeUntilFailure(
+          address[] memory to,
+          uint256[] memory value,
+          bytes[] memory call_data,
+          uint64[] memory gas_limit
+      ) external {}
+
+      function batchAll(
+          address[] memory to,
+          uint256[] memory value,
+          bytes[] memory call_data,
+          uint64[] memory gas_limit
+      ) external {}
+
+      event SubcallSucceeded(uint256 index);
+
+      event SubcallFailed(uint256 index);
+    }`,
 };
