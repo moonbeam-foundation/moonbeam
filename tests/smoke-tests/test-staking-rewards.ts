@@ -30,7 +30,7 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
   const nowRound = await (await api.at(nowBlockHash)).query.parachainStaking.round();
   const nowRoundNumber = nowRound.current;
   const nowRoundFirstBlock = nowRound.first;
-  const nowRoundFirstBlockHash = await api.rpc.chain.getBlockHash(nowRoundFirstBlock); // rewards were given here
+  const nowRoundFirstBlockHash = await api.rpc.chain.getBlockHash(nowRoundFirstBlock);
   const apiAtRewarded = await api.at(nowRoundFirstBlockHash);
   const rewardDelay = apiAtRewarded.consts.parachainStaking.rewardPaymentDelay;
   const priorRewardedBlockHash = await api.rpc.chain.getBlockHash(nowRoundFirstBlock.subn(1));
@@ -59,8 +59,11 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
   const apiAtOriginal = await api.at(originalRoundPriorBlockHash);
 
   debug(`
-round   ${originalRoundNumber.toString()} (prior round last block ${originalRoundPriorBlock} / ${originalRoundPriorBlockHash.toHex()})
-paid in ${nowRoundNumber.toString()} (first block ${nowRoundFirstBlock.toNumber()} / ${nowRoundFirstBlockHash.toHex()} / prior ${priorRewardedBlockHash.toHex()})`);
+round   ${originalRoundNumber.toString()} (prior round last block \
+  ${originalRoundPriorBlock} / ${originalRoundPriorBlockHash.toHex()})
+paid in ${nowRoundNumber.toString()} (first block \
+  ${nowRoundFirstBlock.toNumber()} / ${nowRoundFirstBlockHash.toHex()} / prior \
+  ${priorRewardedBlockHash.toHex()})`);
 
   // collect info about staked value from collators and delegators
   const apiAtPriorRewarded = await api.at(priorRewardedBlockHash);
@@ -166,7 +169,8 @@ paid in ${nowRoundNumber.toString()} (first block ${nowRoundFirstBlock.toNumber(
     if (!reservedForParachainBond.isZero()) {
       expect(
         parachainBondReward.eq(reservedForParachainBond),
-        `parachain bond amount does not match ${parachainBondReward.toString()} != ${reservedForParachainBond.toString()}`
+        `parachain bond amount does not match \
+        ${parachainBondReward.toString()} != ${reservedForParachainBond.toString()}`
       ).to.be.true;
       return totalRoundIssuance.sub(parachainBondReward);
     }
@@ -179,7 +183,8 @@ paid in ${nowRoundNumber.toString()} (first block ${nowRoundFirstBlock.toNumber(
   ).unwrap();
   expect(
     delayedPayout.totalStakingReward.eq(totalStakingReward),
-    `reward amounts do not match ${delayedPayout.totalStakingReward.toString()} != ${totalStakingReward.toString()}`
+    `reward amounts do not match \
+    ${delayedPayout.totalStakingReward.toString()} != ${totalStakingReward.toString()}`
   ).to.be.true;
 
   // verify rewards
