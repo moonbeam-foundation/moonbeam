@@ -33,9 +33,9 @@ use frame_support::{
 };
 use moonbase_runtime::{
 	asset_config::AssetRegistrarMetadata, asset_config::LocalAssetInstance, get,
-	xcm_config::AssetType, AccountId, AssetId, AssetManager, Assets, Balances, BaseFee,
-	BlockWeights, Call, CrowdloanRewards, Event, LocalAssets, ParachainStaking, PolkadotXcm,
-	Precompiles, Runtime, System, XTokens, XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	xcm_config::AssetType, AccountId, AssetId, AssetManager, Assets, Balances, BaseFee, Call,
+	CrowdloanRewards, Event, LocalAssets, ParachainStaking, PolkadotXcm, Precompiles, Runtime,
+	System, XTokens, XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 	LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 
@@ -2507,13 +2507,27 @@ fn base_fee_should_default_to_associate_type_value() {
 }
 
 #[test]
-fn substrate_based_fees_are_known() {
+fn substrate_based_weight_fees_are_known() {
 	use pallet_transaction_payment::{FeeDetails, InclusionFee};
 	use sp_runtime::testing::TestXt;
 
 	let generate_xt = |weight: u128| {
+
+        // an empty remark has an encoded size of 12 in this case. we want to generate a txn with
+        // a specific weight and remark's weight is its encoded size, so we simply adjust for this
+        // (and don't allow a size less than 12).
+        //
+        // TODO: there may be a better way to do this (use a different pub fn from
+        // transaction-payment for testing?)
+        let known_encoded_overhead_bytes = 11;
+        assert!(
+            weight >= known_encoded_overhead_bytes,
+            "this test only supports weight >= {}",
+            known_encoded_overhead_bytes
+        );
+
 		let remark = frame_system::Call::<Runtime>::remark {
-			remark: vec![1; weight as usize],
+			remark: vec![1; (weight - known_encoded_overhead_bytes) as usize],
 		};
 		let signed_xt = TestXt::<_, ()>::new(remark, Some((0, ())));
 		signed_xt
@@ -2535,43 +2549,50 @@ fn substrate_based_fees_are_known() {
 			moonbase_runtime::TransactionPayment::query_fee_details(signed_xt, len)
 		};
 
-		let base_extrinsic =
-			moonbase_runtime::BlockWeights::get()
+		let base_extrinsic = moonbase_runtime::BlockWeights::get()
 			.per_class
 			.get(DispatchClass::Normal)
 			.base_extrinsic;
 		let expected_base_fee = base_extrinsic as u128 * currency::WEIGHT_FEE;
 		assert_eq!(6250000000000, expected_base_fee);
 
-		let fee_details = query_fees(1, 1000);
+		let fee_details = query_fees(11, 0);
 		assert_eq!(
 			fee_details,
 			FeeDetails {
 				inclusion_fee: Some(InclusionFee {
 					base_fee: expected_base_fee,
-					len_fee: 1001000000000,
-					adjusted_weight_fee: 600000, // TODO: why 600000 (see above)?
+					len_fee: 0,
+					adjusted_weight_fee: 11 * currency::WEIGHT_FEE,
 				}),
 				tip: 0,
 			}
 		);
 
-		let fee_details = query_fees(10, 10000);
+		let fee_details = query_fees(12, 0);
 		assert_eq!(
 			fee_details,
 			FeeDetails {
 				inclusion_fee: Some(InclusionFee {
 					base_fee: expected_base_fee,
-					len_fee: 11000000000000,
-					adjusted_weight_fee: 1050000,
+					len_fee: 0,
+					adjusted_weight_fee: 12 * currency::WEIGHT_FEE,
 				}),
 				tip: 0,
 			}
 		);
 
-		// see notes above. this test should be able to calculate fees given runtime
-		// constants, that is, it should demonstrate that we know precisely how our fees
-		// are derived
-		// panic!("Test fails because it doesn't demonstrate how fees are calculated");
+		let fee_details = query_fees(64, 0);
+		assert_eq!(
+			fee_details,
+			FeeDetails {
+				inclusion_fee: Some(InclusionFee {
+					base_fee: expected_base_fee,
+					len_fee: 0,
+					adjusted_weight_fee: 64 * currency::WEIGHT_FEE,
+				}),
+				tip: 0,
+			}
+		);
 	});
 }
