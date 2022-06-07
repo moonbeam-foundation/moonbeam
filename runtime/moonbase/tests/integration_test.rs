@@ -2520,6 +2520,9 @@ fn substrate_based_fees_are_known() {
 	};
 
 	ExtBuilder::default().build().execute_with(|| {
+		use frame_support::weights::DispatchClass;
+		use moonbase_runtime::currency;
+
 		let query_fees = |weight: u128, len: u32| {
 			let signed_xt = generate_xt(weight);
 
@@ -2532,8 +2535,13 @@ fn substrate_based_fees_are_known() {
 			moonbase_runtime::TransactionPayment::query_fee_details(signed_xt, len)
 		};
 
-		// TODO: derive this
-		let expected_base_fee = 6250000000000;
+		let base_extrinsic =
+			moonbase_runtime::BlockWeights::get()
+			.per_class
+			.get(DispatchClass::Normal)
+			.base_extrinsic;
+		let expected_base_fee = base_extrinsic as u128 * currency::WEIGHT_FEE;
+		assert_eq!(6250000000000, expected_base_fee);
 
 		let fee_details = query_fees(1, 1000);
 		assert_eq!(
@@ -2564,6 +2572,6 @@ fn substrate_based_fees_are_known() {
 		// see notes above. this test should be able to calculate fees given runtime
 		// constants, that is, it should demonstrate that we know precisely how our fees
 		// are derived
-		panic!("Test fails because it doesn't demonstrate how fees are calculated");
+		// panic!("Test fails because it doesn't demonstrate how fees are calculated");
 	});
 }
