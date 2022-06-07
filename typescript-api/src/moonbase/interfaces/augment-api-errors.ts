@@ -622,6 +622,49 @@ declare module "@polkadot/api-base/types/errors" {
        */
       [key: string]: AugmentedError<ApiType>;
     };
+    moonbeamOrbiters: {
+      /**
+       * The collator is already added in orbiters program.
+       */
+      CollatorAlreadyAdded: AugmentedError<ApiType>;
+      /**
+       * This collator is not in orbiters program.
+       */
+      CollatorNotFound: AugmentedError<ApiType>;
+      /**
+       * There are already too many orbiters associated with this collator.
+       */
+      CollatorPoolTooLarge: AugmentedError<ApiType>;
+      /**
+       * There are more collator pools than the number specified in the parameter.
+       */
+      CollatorsPoolCountTooLow: AugmentedError<ApiType>;
+      /**
+       * The minimum deposit required to register as an orbiter has not yet been
+       * included in the onchain storage
+       */
+      MinOrbiterDepositNotSet: AugmentedError<ApiType>;
+      /**
+       * This orbiter is already associated with this collator.
+       */
+      OrbiterAlreadyInPool: AugmentedError<ApiType>;
+      /**
+       * This orbiter has not made a deposit
+       */
+      OrbiterDepositNotFound: AugmentedError<ApiType>;
+      /**
+       * This orbiter is not found
+       */
+      OrbiterNotFound: AugmentedError<ApiType>;
+      /**
+       * The orbiter is still at least in one pool
+       */
+      OrbiterStillInAPool: AugmentedError<ApiType>;
+      /**
+       * Generic error
+       */
+      [key: string]: AugmentedError<ApiType>;
+    };
     parachainStaking: {
       AlreadyActive: AugmentedError<ApiType>;
       AlreadyDelegatedCandidate: AugmentedError<ApiType>;

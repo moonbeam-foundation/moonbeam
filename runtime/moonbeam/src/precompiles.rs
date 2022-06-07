@@ -16,13 +16,14 @@
 
 use crate::asset_config::{ForeignAssetInstance, LocalAssetInstance};
 use crowdloan_rewards_precompiles::CrowdloanRewardsWrapper;
-use fp_evm::Context;
+use fp_evm::PrecompileHandle;
 use moonbeam_relay_encoder::polkadot::PolkadotEncoder;
 use pallet_author_mapping_precompiles::AuthorMappingWrapper;
 use pallet_democracy_precompiles::DemocracyWrapper;
 use pallet_evm::{AddressMapping, Precompile, PrecompileResult, PrecompileSet};
 use pallet_evm_precompile_assets_erc20::{Erc20AssetsPrecompileSet, IsForeign, IsLocal};
 use pallet_evm_precompile_balances_erc20::{Erc20BalancesPrecompile, Erc20Metadata};
+use pallet_evm_precompile_batch::BatchPrecompile;
 use pallet_evm_precompile_blake2::Blake2F;
 use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
 use pallet_evm_precompile_dispatch::Dispatch;
@@ -30,6 +31,7 @@ use pallet_evm_precompile_modexp::Modexp;
 use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
 use parachain_staking_precompiles::ParachainStakingWrapper;
+use precompile_utils::revert;
 use relay_encoder_precompiles::RelayEncoderWrapper;
 use sp_core::H160;
 use sp_std::fmt::Debug;
@@ -82,7 +84,7 @@ where
 	pub fn used_addresses() -> impl Iterator<Item = R::AccountId> {
 		sp_std::vec![
 			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2050, 2051, 2052, 2053, 2054,
-			2055
+			2055, 2056
 		]
 		.into_iter()
 		.map(|x| R::AddressMapping::into_account_id(hash(x)))
@@ -113,71 +115,55 @@ where
 	AuthorMappingWrapper<R>: Precompile,
 	R: pallet_evm::Config,
 {
-	fn execute(
-		&self,
-		address: H160,
-		input: &[u8],
-		target_gas: Option<u64>,
-		context: &Context,
-		is_static: bool,
-	) -> Option<PrecompileResult> {
-		match address {
+	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<PrecompileResult> {
+		// Filter known precompile addresses except Ethereum officials
+		if self.is_precompile(handle.code_address())
+			&& handle.code_address() > hash(9)
+			&& handle.code_address() != handle.context().address
+		{
+			return Some(Err(revert(
+				"cannot be called with DELEGATECALL or CALLCODE",
+			)));
+		}
+
+		match handle.code_address() {
 			// Ethereum precompiles :
-			a if a == hash(1) => Some(ECRecover::execute(input, target_gas, context, is_static)),
-			a if a == hash(2) => Some(Sha256::execute(input, target_gas, context, is_static)),
-			a if a == hash(3) => Some(Ripemd160::execute(input, target_gas, context, is_static)),
-			a if a == hash(4) => Some(Identity::execute(input, target_gas, context, is_static)),
-			a if a == hash(5) => Some(Modexp::execute(input, target_gas, context, is_static)),
-			a if a == hash(6) => Some(Bn128Add::execute(input, target_gas, context, is_static)),
-			a if a == hash(7) => Some(Bn128Mul::execute(input, target_gas, context, is_static)),
-			a if a == hash(8) => Some(Bn128Pairing::execute(input, target_gas, context, is_static)),
-			a if a == hash(9) => Some(Blake2F::execute(input, target_gas, context, is_static)),
+			a if a == hash(1) => Some(ECRecover::execute(handle)),
+			a if a == hash(2) => Some(Sha256::execute(handle)),
+			a if a == hash(3) => Some(Ripemd160::execute(handle)),
+			a if a == hash(4) => Some(Identity::execute(handle)),
+			a if a == hash(5) => Some(Modexp::execute(handle)),
+			a if a == hash(6) => Some(Bn128Add::execute(handle)),
+			a if a == hash(7) => Some(Bn128Mul::execute(handle)),
+			a if a == hash(8) => Some(Bn128Pairing::execute(handle)),
+			a if a == hash(9) => Some(Blake2F::execute(handle)),
 			// Non-Moonbeam specific nor Ethereum precompiles :
-			a if a == hash(1024) => {
-				Some(Sha3FIPS256::execute(input, target_gas, context, is_static))
+			a if a == hash(1024) => Some(Sha3FIPS256::execute(handle)),
+			a if a == hash(1025) => Some(Dispatch::<R>::execute(handle)),
+			a if a == hash(1026) => Some(ECRecoverPublicKey::execute(handle)),
+
+			// Moonbeam specific precompiles :
+			a if a == hash(2048) => Some(ParachainStakingWrapper::<R>::execute(handle)),
+			a if a == hash(2049) => Some(CrowdloanRewardsWrapper::<R>::execute(handle)),
+			a if a == hash(2050) => Some(
+				Erc20BalancesPrecompile::<R, NativeErc20Metadata>::execute(handle),
+			),
+			a if a == hash(2051) => Some(DemocracyWrapper::<R>::execute(handle)),
+			a if a == hash(2052) => Some(XtokensWrapper::<R>::execute(handle)),
+			a if a == hash(2053) => {
+				Some(RelayEncoderWrapper::<R, PolkadotEncoder>::execute(handle))
 			}
-			a if a == hash(1025) => Some(Dispatch::<R>::execute(
-				input, target_gas, context, is_static,
-			)),
-			a if a == hash(1026) => Some(ECRecoverPublicKey::execute(
-				input, target_gas, context, is_static,
-			)),
-			a if a == hash(2048) => Some(ParachainStakingWrapper::<R>::execute(
-				// Moonbeam specific precompiles :
-				input, target_gas, context, is_static,
-			)),
-			a if a == hash(2049) => Some(CrowdloanRewardsWrapper::<R>::execute(
-				input, target_gas, context, is_static,
-			)),
-			a if a == hash(2050) => {
-				Some(Erc20BalancesPrecompile::<R, NativeErc20Metadata>::execute(
-					input, target_gas, context, is_static,
-				))
-			}
-			a if a == hash(2051) => Some(DemocracyWrapper::<R>::execute(
-				input, target_gas, context, is_static,
-			)),
-			a if a == hash(2052) => Some(XtokensWrapper::<R>::execute(
-				input, target_gas, context, is_static,
-			)),
-			a if a == hash(2053) => Some(RelayEncoderWrapper::<R, PolkadotEncoder>::execute(
-				input, target_gas, context, is_static,
-			)),
-			a if a == hash(2054) => Some(XcmTransactorWrapper::<R>::execute(
-				input, target_gas, context, is_static,
-			)),
-			a if a == hash(2055) => Some(AuthorMappingWrapper::<R>::execute(
-				input, target_gas, context, is_static,
-			)),
+			a if a == hash(2054) => Some(XcmTransactorWrapper::<R>::execute(handle)),
+			a if a == hash(2055) => Some(AuthorMappingWrapper::<R>::execute(handle)),
+			a if a == hash(2056) => Some(BatchPrecompile::<R>::execute(handle)),
 			// If the address matches asset prefix, the we route through the asset precompile set
 			a if &a.to_fixed_bytes()[0..4] == FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX => {
 				Erc20AssetsPrecompileSet::<R, IsForeign, ForeignAssetInstance>::new()
-					.execute(address, input, target_gas, context, is_static)
+					.execute(handle)
 			}
 			// If the address matches asset prefix, the we route through the asset precompile set
 			a if &a.to_fixed_bytes()[0..4] == LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX => {
-				Erc20AssetsPrecompileSet::<R, IsLocal, LocalAssetInstance>::new()
-					.execute(address, input, target_gas, context, is_static)
+				Erc20AssetsPrecompileSet::<R, IsLocal, LocalAssetInstance>::new().execute(handle)
 			}
 			_ => None,
 		}
