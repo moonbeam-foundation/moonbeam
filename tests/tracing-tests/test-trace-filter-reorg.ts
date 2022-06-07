@@ -20,8 +20,8 @@ describeDevMoonbeam("Trace filter reorg", (context) => {
     });
     // Contains nonce 0.
 
-    // Create a branch.
-    const tx2 = await createTransfer(context, randomAccount.address, "0x300", { nonce: 1 }); // nonce 1
+    // Create a branch. // nonce 1
+    const tx2 = await createTransfer(context, randomAccount.address, "0x300", { nonce: 1 });
     const block2a = await context.createBlockWithEth(tx2, {
       parentHash: block1.block.hash,
       finalize: false,
