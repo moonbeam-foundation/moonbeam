@@ -2527,26 +2527,42 @@ fn substrate_based_fees_are_known() {
 			//
 			// NOTE: another alternative would be to call pallet_transaction_payment's
 			// compute_actual_fee_details() which gives better control over inputs
-			//
-			// use frame_support::dispatch::GetDispatchInfo;
-			// let w = signed_xt.get_dispatch_info().weight;
-			// assert_eq!(w as u128, weight);
 
 			moonbase_runtime::TransactionPayment::query_fee_details(signed_xt, len)
 		};
 
-		let fee_details = query_fees(1, 1000);
+		// TODO: derive this
+		let expected_base_fee = 6250000000000;
 
+		let fee_details = query_fees(1, 1000);
 		assert_eq!(
 			fee_details,
 			FeeDetails {
 				inclusion_fee: Some(InclusionFee {
-					base_fee: 125000000,
-					len_fee: 10000000000000000,
-					adjusted_weight_fee: 12, // TODO: why 12 (see above)?
+					base_fee: expected_base_fee,
+					len_fee: 1001000000000,
+					adjusted_weight_fee: 600000, // TODO: why 600000 (see above)?
 				}),
 				tip: 0,
 			}
 		);
+
+		let fee_details = query_fees(10, 10000);
+		assert_eq!(
+			fee_details,
+			FeeDetails {
+				inclusion_fee: Some(InclusionFee {
+					base_fee: expected_base_fee,
+					len_fee: 11000000000000,
+					adjusted_weight_fee: 1050000,
+				}),
+				tip: 0,
+			}
+		);
+
+		// see notes above. this test should be able to calculate fees given runtime
+		// constants, that is, it should demonstrate that we know precisely how our fees
+		// are derived
+		panic!("Test fails because it doesn't demonstrate how fees are calculated");
 	});
 }
