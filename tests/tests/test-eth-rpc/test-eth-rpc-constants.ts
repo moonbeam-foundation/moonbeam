@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { describeDevMoonbeam } from "../util/setup-dev-tests";
+import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 
 describeDevMoonbeam("RPC Constants", (context) => {
   it("should have 0 hashrate", async function () {

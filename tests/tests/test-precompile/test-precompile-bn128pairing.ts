@@ -5,9 +5,7 @@ import { createContract } from "../../util/transactions";
 
 describeDevMoonbeamAllEthTxTypes("Precompiles - bn128Pairing", (context) => {
   it("should be accessible from a smart contract", async function () {
-    await context.createBlock({
-      transactions: [(await createContract(context, "Bn128Pairing")).rawTx],
-    });
+    await context.createBlockWithEth((await createContract(context, "Bn128Pairing")).rawTx);
 
     // Because the call to bn128mul is in the constructor of HashRipmd160, verifying the code
     // is enough.

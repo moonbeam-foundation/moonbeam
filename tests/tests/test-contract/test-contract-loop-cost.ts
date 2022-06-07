@@ -20,15 +20,13 @@ import { createContract, createContractExecution } from "../../util/transactions
   describeDevMoonbeamAllEthTxTypes("Contract loop", (context) => {
     it(`should consume ${gas} for ${loop} loop`, async function () {
       const { contract, rawTx } = await createContract(context, "FiniteLoopContract");
-      await context.createBlock({ transactions: [rawTx] });
-      await context.createBlock({
-        transactions: [
-          await createContractExecution(context, {
-            contract,
-            contractCall: contract.methods.incr(loop),
-          }),
-        ],
-      });
+      await context.createBlockWithEth(rawTx);
+      await context.createBlockWithEth([
+        await createContractExecution(context, {
+          contract,
+          contractCall: contract.methods.incr(loop),
+        }),
+      ]);
 
       expect(await contract.methods.count().call()).to.eq(loop.toString());
 

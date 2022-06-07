@@ -1,6 +1,6 @@
 import { expect } from "chai";
-import { customWeb3Request } from "../util/providers";
-import { describeDevMoonbeam } from "../util/setup-dev-tests";
+import { customWeb3Request } from "../../util/providers";
+import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 
 describeDevMoonbeam("Transaction Cost discards", (context) => {
   it("should take transaction cost into account and not submit it to the pool", async function () {

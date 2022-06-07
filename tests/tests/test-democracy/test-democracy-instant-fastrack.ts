@@ -22,9 +22,7 @@ const setupProposalAnd3TechnicalCommittee = async (context: DevTestContext) => {
     context.polkadotApi.tx.democracy.externalProposeMajority(proposalHash)
   );
 
-  await createBlockWithExtrinsic(
-    context,
-    alith,
+  await context.createBlockWithExtrinsic(
     context.polkadotApi.tx.sudo.sudo(
       context.polkadotApi.tx.techCommitteeCollective.setMembers(
         [alith.address, baltathar.address, charleth.address],

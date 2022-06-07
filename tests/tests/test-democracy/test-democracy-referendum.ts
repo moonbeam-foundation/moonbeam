@@ -20,12 +20,11 @@ describeDevMoonbeam("Democracy - Referendum", (context) => {
 
   it("should succeed with enough votes", async function () {
     // vote
-    await context.polkadotApi.tx.democracy
-      .vote(0, {
+    await context.createBlockWithExtrinsic(
+      context.polkadotApi.tx.democracy.vote(0, {
         Standard: { balance: VOTE_AMOUNT, vote: { aye: true, conviction: 1 } },
       })
-      .signAndSend(alith);
-    await context.createBlock();
+    );
 
     // referendumInfoOf
     const referendumInfoOf = (
@@ -69,12 +68,11 @@ describeDevMoonbeam("Democracy - Referendum", (context) => {
 
   it("should fail with enough no votes", async function () {
     // vote
-    await context.polkadotApi.tx.democracy
-      .vote(0, {
+    await context.createBlockWithExtrinsic(
+      context.polkadotApi.tx.democracy.vote(0, {
         Standard: { balance: VOTE_AMOUNT, vote: { aye: false, conviction: 1 } },
       })
-      .signAndSend(alith);
-    await context.createBlock();
+    );
 
     // referendumInfoOf
     const referendumInfoOf = (

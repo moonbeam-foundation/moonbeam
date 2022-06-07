@@ -30,27 +30,25 @@ describeDevMoonbeamAllEthTxTypes(
       const initialBalance = await context.web3.eth.getBalance(alith.address);
       // Deploy attack contract
       const { contract, rawTx } = await createContract(context, "StakingDelegationAttaker");
-      await context.createBlock({ transactions: [rawTx] });
+      await context.createBlockWithEth(rawTx);
 
       // call the payable function, which should revert
-      const block = await context.createBlock({
-        transactions: [
-          await createContractExecution(
-            context,
-            {
-              contract,
-              contractCall: contract.methods.score_a_free_delegation(),
-            },
-            {
-              ...ALITH_TRANSACTION_TEMPLATE,
-              value: numberToHex(Number(MIN_GLMR_STAKING)),
-            }
-          ),
-        ],
-      });
+      const { result } = await context.createBlockWithEth(
+        await createContractExecution(
+          context,
+          {
+            contract,
+            contractCall: contract.methods.score_a_free_delegation(),
+          },
+          {
+            ...ALITH_TRANSACTION_TEMPLATE,
+            value: numberToHex(Number(MIN_GLMR_STAKING)),
+          }
+        )
+      );
 
       // TX should be included but fail
-      const receipt = await context.web3.eth.getTransactionReceipt(block.txResults[0].result);
+      const receipt = await context.web3.eth.getTransactionReceipt(result.result);
       expect(receipt.status).to.eq(false);
 
       // Delegation shouldn't have passed

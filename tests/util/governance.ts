@@ -58,10 +58,10 @@ export const execCouncilProposal = async <
 ) => {
   // Charleth submit the proposal to the council (and therefore implicitly votes for)
   let lengthBound = polkadotCall.encodedLength;
-  const proposalResult = await createBlockWithExtrinsic(
-    context,
-    charleth,
-    context.polkadotApi.tx.councilCollective.propose(threshold, polkadotCall, lengthBound)
+  const { result: proposalResult } = await context.createBlockWithExtrinsic(
+    await context.polkadotApi.tx.councilCollective
+      .propose(threshold, polkadotCall, lengthBound)
+      .signAsync(charleth)
   );
 
   if (threshold <= 1) {
@@ -83,10 +83,10 @@ export const execCouncilProposal = async <
     )
   );
   await context.createBlock();
-  return await createBlockWithExtrinsic(
-    context,
-    dorothy,
-    context.polkadotApi.tx.councilCollective.close(proposalHash, 0, 1_000_000_000, lengthBound)
+  return await context.createBlockWithExtrinsic(
+    await context.polkadotApi.tx.councilCollective
+      .close(proposalHash, 0, 1_000_000_000, lengthBound)
+      .signAsync(dorothy)
   );
 };
 
@@ -106,10 +106,12 @@ export const execTechnicalCommitteeProposal = async <
 
   // Alith submit the proposal to the council (and therefore implicitly votes for)
   let lengthBound = polkadotCall.encodedLength;
-  const proposalResult = await createBlockWithExtrinsic(
-    context,
-    alith,
-    context.polkadotApi.tx.techCommitteeCollective.propose(threshold, polkadotCall, lengthBound)
+  const { result: proposalResult } = await context.createBlockWithExtrinsic(
+    await context.polkadotApi.tx.techCommitteeCollective.propose(
+      threshold,
+      polkadotCall,
+      lengthBound
+    )
   );
 
   if (threshold <= 1) {
@@ -134,14 +136,10 @@ export const execTechnicalCommitteeProposal = async <
     )
   );
   await context.createBlock();
-  return await createBlockWithExtrinsic(
-    context,
-    baltathar,
-    context.polkadotApi.tx.techCommitteeCollective.close(
-      proposalHash,
-      Number(proposalCount) - 1,
-      1_000_000_000,
-      lengthBound
-    )
+  const { result: closeResult } = await context.createBlockWithExtrinsic(
+    await context.polkadotApi.tx.techCommitteeCollective
+      .close(proposalHash, Number(proposalCount) - 1, 1_000_000_000, lengthBound)
+      .signAsync(baltathar)
   );
+  return closeResult;
 };

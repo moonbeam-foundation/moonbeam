@@ -34,11 +34,11 @@ describeDevMoonbeamAllEthTxTypes("Chain - Fork", (context) => {
   it("should re-insert Tx from retracted fork on new canonical chain", async function () {
     // Creation of the best chain so far, with blocks 0-1-2 and a transfer in block 2
     await context.createBlock({ finalize: false });
-    const { txResults } = await context.createBlock({
-      finalize: false,
-      transactions: [await createTransfer(context, baltathar.address, 512)],
-    });
-    const insertedTx = txResults[0].result;
+    const { result } = await context.createBlockWithEth(
+      await createTransfer(context, baltathar.address, 512),
+      { finalize: false }
+    );
+    const insertedTx = result.result;
     const retractedTx = await context.web3.eth.getTransaction(insertedTx);
     expect(retractedTx).to.not.be.null;
 

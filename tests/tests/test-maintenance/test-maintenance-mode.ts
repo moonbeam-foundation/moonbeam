@@ -37,9 +37,9 @@ describeDevMoonbeam("Maintenance Mode - Entering Maintenance Mode", (context) =>
 
 describeDevMoonbeam("Maintenance Mode - Entering Maintenance Mode", (context) => {
   it("should fail with sudo", async function () {
-    const { events } = await createBlockWithExtrinsic(
-      context,
-      alith,
+    const {
+      result: { events },
+    } = await context.createBlockWithExtrinsic(
       context.polkadotApi.tx.sudo.sudo(
         context.polkadotApi.tx.maintenanceMode.enterMaintenanceMode()
       )
@@ -51,9 +51,9 @@ describeDevMoonbeam("Maintenance Mode - Entering Maintenance Mode", (context) =>
 
 describeDevMoonbeam("Maintenance Mode - Entering Maintenance Mode", (context) => {
   it("should fail without sudo", async function () {
-    const { error } = await createBlockWithExtrinsic(
-      context,
-      alith,
+    const {
+      result: { error },
+    } = await context.createBlockWithExtrinsic(
       context.polkadotApi.tx.maintenanceMode.enterMaintenanceMode()
     );
     expect(error.name).to.eq("BadOrigin");
@@ -62,9 +62,7 @@ describeDevMoonbeam("Maintenance Mode - Entering Maintenance Mode", (context) =>
 
 describeDevMoonbeam("Maintenance Mode - Resuming normal operation", (context) => {
   before("entering maintenance mode", async function () {
-    await createBlockWithExtrinsic(
-      context,
-      alith,
+    await context.createBlockWithExtrinsic(
       context.polkadotApi.tx.sudo.sudo(
         context.polkadotApi.tx.maintenanceMode.enterMaintenanceMode()
       )
@@ -72,9 +70,9 @@ describeDevMoonbeam("Maintenance Mode - Resuming normal operation", (context) =>
   });
 
   it("should fail with sudo", async function () {
-    const { events } = await createBlockWithExtrinsic(
-      context,
-      alith,
+    const {
+      result: { events },
+    } = await context.createBlockWithExtrinsic(
       context.polkadotApi.tx.sudo.sudo(
         context.polkadotApi.tx.maintenanceMode.resumeNormalOperation()
       )
@@ -94,9 +92,9 @@ describeDevMoonbeam("Maintenance Mode - Resuming normal operation", (context) =>
 
   it("should fail without sudo", async function () {
     // and try to turn it off
-    const { error } = await createBlockWithExtrinsic(
-      context,
-      alith,
+    const {
+      result: { error },
+    } = await context.createBlockWithExtrinsic(
       context.polkadotApi.tx.maintenanceMode.resumeNormalOperation()
     );
     expect(error.name).to.eq("BadOrigin");

@@ -5,6 +5,8 @@ import {
   DEFAULT_GENESIS_STAKING,
 } from "./constants";
 const keyringEth = new Keyring({ type: "ethereum" });
+const keyringEd25519 = new Keyring({ type: "ed25519" });
+const keyringSr25519 = new Keyring({ type: "sr25519" });
 
 // Prefunded accounts.
 export const ALITH_ADDRESS = "0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac";
@@ -12,6 +14,14 @@ export const ALITH_PRIVATE_KEY =
   "0x5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133";
 export const ALITH_SESSION_ADDRESS =
   "0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d";
+export const ALITH_CONTRACT_ADDRESSES = [
+  "0xc01Ee7f10EA4aF4673cFff62710E1D7792aBa8f3",
+  "0x970951a12F975E6762482ACA81E57D5A2A4e73F4",
+  "0x3ed62137c5DB927cb137c26455969116BF0c23Cb",
+  "0x962c0940d72E7Db6c9a5F81f1cA87D8DB2B82A23",
+  "0x5CC307268a1393AB9A764A20DACE848AB8275c46",
+  "0xeAB4eEBa1FF8504c124D031F6844AD98d07C318f",
+];
 
 export const BALTATHAR_ADDRESS = "0x3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0";
 export const BALTATHAR_PRIVATE_KEY =
@@ -45,8 +55,16 @@ export const GOLIATH_PRIVATE_KEY =
 export const GERALD_ADDRESS = "0x6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b";
 export const GERALD_PRIVATE_KEY =
   "0x99B3C12287537E38C90A9219D4CB074A89A16E9CDB20BF85728EBD97C343E342";
+export const GERALD_CONTRACT_ADDRESSES = [
+  "0xC2Bf5F29a4384b1aB0C063e1c666f02121B6084a",
+  "0x5c4242beB94dE30b922f57241f1D02f36e906915",
+  "0x42e2EE7Ba8975c473157634Ac2AF4098190fc741",
+  "0xF8cef78E923919054037a1D03662bBD884fF4edf",
+  "0xe573BCA813c741229ffB2488F7856C6cAa841041",
+  "0xBb0CC0fb3e0c06725c67167501f850B4900D6DB5",
+];
 
-// This is Alice
+// This is Alice0x6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b
 export const ALITH_GENESIS_BALANCE =
   DEFAULT_GENESIS_BALANCE - DEFAULT_GENESIS_STAKING - DEFAULT_GENESIS_MAPPING;
 
@@ -64,5 +82,10 @@ export const gerald = keyringEth.addFromUri(GERALD_PRIVATE_KEY);
 let accountSeed = 10000;
 export function generateKeyingPair(type: "ethereum" | "sr25519" | "ed25519" = "ethereum") {
   const privateKey = `0xDEADBEEF${(accountSeed++).toString(16).padStart(56, "0")}`;
-  return keyringEth.addFromUri(privateKey, { type });
+  if (type == "sr25519") {
+    return keyringSr25519.addFromUri(privateKey);
+  } else if (type == "ed25519") {
+    return keyringEd25519.addFromUri(privateKey);
+  }
+  return keyringEth.addFromUri(privateKey);
 }

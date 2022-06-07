@@ -6,19 +6,17 @@ import { createTransfer } from "../../util/transactions";
 
 describeDevMoonbeamAllEthTxTypes("Existential Deposit", (context) => {
   it("should be disabled (no reaped account on 0 balance)", async function () {
-    await context.createBlock({
-      transactions: [
-        await createTransfer(
-          context,
-          baltathar.address,
-          ALITH_GENESIS_BALANCE - 21000n * 1_000_000_000n,
-          {
-            from: alith.address,
-            gas: 21000,
-          }
-        ),
-      ],
-    });
+    await context.createBlockWithEth(
+      await createTransfer(
+        context,
+        baltathar.address,
+        ALITH_GENESIS_BALANCE - 21000n * 1_000_000_000n,
+        {
+          from: alith.address,
+          gas: 21000,
+        }
+      )
+    );
     expect(parseInt(await context.web3.eth.getBalance(alith.address))).to.eq(0);
     expect(await context.web3.eth.getTransactionCount(alith.address)).to.eq(1);
   });
@@ -26,19 +24,17 @@ describeDevMoonbeamAllEthTxTypes("Existential Deposit", (context) => {
 
 describeDevMoonbeamAllEthTxTypes("Existential Deposit", (context) => {
   it("should be disabled (no reaped account on tiny balance - 1)", async function () {
-    await context.createBlock({
-      transactions: [
-        await createTransfer(
-          context,
-          baltathar.address,
-          ALITH_GENESIS_BALANCE - 1n - 21000n * 1_000_000_000n,
-          {
-            from: alith.address,
-            gas: 21000,
-          }
-        ),
-      ],
-    });
+    await context.createBlockWithEth(
+      await createTransfer(
+        context,
+        baltathar.address,
+        ALITH_GENESIS_BALANCE - 1n - 21000n * 1_000_000_000n,
+        {
+          from: alith.address,
+          gas: 21000,
+        }
+      )
+    );
     expect(parseInt(await context.web3.eth.getBalance(alith.address))).to.eq(1);
     expect(await context.web3.eth.getTransactionCount(alith.address)).to.eq(1);
   });

@@ -1,10 +1,8 @@
 import { expect } from "chai";
 
-import { AnyTuple, IEvent } from "@polkadot/types/types";
-import { GENESIS_ACCOUNT, TEST_ACCOUNT } from "../util/constants";
-import { describeDevMoonbeam } from "../util/setup-dev-tests";
-import Keyring from "@polkadot/keyring";
-import { GENESIS_ACCOUNT_PRIVATE_KEY } from "../util/constants";
+import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+import { alith, generateKeyingPair } from "../../util/accounts";
+import { DEFAULT_GENESIS_BALANCE, GLMR } from "../../util/constants";
 
 describeDevMoonbeam("Polkadot API - Header", (context) => {
   it("should return genesis block", async function () {
@@ -30,15 +28,15 @@ describeDevMoonbeam("Polkadot API", (context) => {
 });
 
 describeDevMoonbeam("Polkadot API - Transfers", (context) => {
+  const randomAccount = generateKeyingPair();
   before("Setup: Create empty block with balance.transfer", async () => {
-    const keyring = new Keyring({ type: "ethereum" });
-    const genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
-    await context.polkadotApi.tx.balances.transfer(TEST_ACCOUNT, 123).signAndSend(genesisAccount);
-    await context.createBlock();
+    await context.createBlockWithExtrinsic(
+      context.polkadotApi.tx.balances.transfer(randomAccount.address, 2n * GLMR)
+    );
   });
 
   it("should be stored on chain", async function () {
-    expect(await context.web3.eth.getBalance(TEST_ACCOUNT)).to.equal("123");
+    expect(BigInt(await context.web3.eth.getBalance(randomAccount.address))).to.equal(2n * GLMR);
   });
 
   it("should appear in extrinsics", async function () {
@@ -64,10 +62,10 @@ describeDevMoonbeam("Polkadot API - Transfers", (context) => {
           expect(message.substring(0, 42)).to.eq(`authorInherent.kickOffAuthorshipValidation`);
           break;
         case 3:
-          expect(message).to.eq(
-            `balances.transfer(0x1111111111111111111111111111111111111111, 123)`
+          expect(message.toLocaleLowerCase()).to.eq(
+            `balances.transfer(${randomAccount.address.toLocaleLowerCase()}, 2000000000000000000)`
           );
-          expect(ex.signer.toString()).to.eq(GENESIS_ACCOUNT);
+          expect(ex.signer.toString()).to.eq(alith.address);
           break;
         default:
           throw new Error(`Unexpected extrinsic: ${message}`);
@@ -82,7 +80,7 @@ describeDevMoonbeam("Polkadot API - Transfers", (context) => {
     )) as any;
 
     // map between the extrinsics and events
-    signedBlock.block.extrinsics.forEach(({ method: { method, section } }, index) => {
+    signedBlock.block.extrinsics.forEach((_, index) => {
       // filter the specific events based on the phase and then the
       // index of our extrinsic in the block
       const events = allRecords
@@ -103,9 +101,7 @@ describeDevMoonbeam("Polkadot API - Transfers", (context) => {
         // Fourth event: balances.transfer:: system.NewAccount, balances.Endowed, balances.Transfer,
         // system.ExtrinsicSuccess
         case 3:
-          events.map((event, index) => {
-            console.log(`event[${index}].method: ${event.method}`);
-          });
+          console.log(events.map((e) => `${e.section}.${e.method}`).join(" - "));
           expect(events).to.be.of.length(9);
           expect(context.polkadotApi.events.system.NewAccount.is(events[1])).to.be.true;
           expect(context.polkadotApi.events.balances.Endowed.is(events[2])).to.be.true;

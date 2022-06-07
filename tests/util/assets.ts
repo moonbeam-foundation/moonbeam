@@ -14,6 +14,12 @@ export const RELAY_V1_SOURCE_LOCATION = { V1: { parents: 1, interior: "Here" } }
 export const PARA_1000_SOURCE_LOCATION = {
   Xcm: { parents: 1, interior: { X1: { Parachain: 1000 } } },
 };
+export const PARA_2000_SOURCE_LOCATION = {
+  Xcm: { parents: 1, interior: { X1: { Parachain: 2000 } } },
+};
+export const PARA_1001_SOURCE_LOCATION = {
+  Xcm: { parents: 1, interior: { X1: { Parachain: 1001 } } },
+};
 
 interface AssetMetadata {
   name: string;
@@ -108,17 +114,19 @@ export async function registerLocalAssetWithMeta(
     mints = [],
   }: RegisterLocalAssetOptions
 ): Promise<{ assetId: string; assetAddress: string }> {
-  const { events: eventsRegister } = await createBlockWithExtrinsic(
-    context,
-    sudoAccount,
-    context.polkadotApi.tx.sudo.sudo(
-      context.polkadotApi.tx.assetManager.registerLocalAsset(
-        registrerAccount.address,
-        registrerAccount.address,
-        true,
-        new BN(1)
+  const {
+    result: { events: eventsRegister },
+  } = await context.createBlockWithExtrinsic(
+    await context.polkadotApi.tx.sudo
+      .sudo(
+        context.polkadotApi.tx.assetManager.registerLocalAsset(
+          registrerAccount.address,
+          registrerAccount.address,
+          true,
+          new BN(1)
+        )
       )
-    )
+      .signAsync(sudoAccount)
   );
 
   // Look for assetId in events
@@ -129,22 +137,18 @@ export async function registerLocalAssetWithMeta(
   const assetAddress = u8aToHex(new Uint8Array([...hexToU8a("0xFFFFFFFE"), ...hexToU8a(assetId)]));
 
   // Set metadata
-  await createBlockWithExtrinsic(
-    context,
-    registrerAccount,
-    context.polkadotApi.tx.localAssets.setMetadata(assetId, name, symbol, new BN(decimals))
+  await context.createBlockWithExtrinsic(
+    await context.polkadotApi.tx.localAssets
+      .setMetadata(assetId, name, symbol, new BN(decimals))
+      .signAsync(registrerAccount)
   );
 
   // mint accounts
   for (const { account, amount } of mints) {
-    await createBlockWithExtrinsic(
-      context,
-      registrerAccount,
-      context.polkadotApi.tx.localAssets.mint(
-        assetId,
-        typeof account == "string" ? account : account.address,
-        amount
-      )
+    await context.createBlockWithExtrinsic(
+      await context.polkadotApi.tx.localAssets
+        .mint(assetId, typeof account == "string" ? account : account.address, amount)
+        .signAsync(registrerAccount)
     );
   }
 

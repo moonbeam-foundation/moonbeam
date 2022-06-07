@@ -19,7 +19,7 @@ describeDevMoonbeamAllEthTxTypes("Estimate Gas - Multiply", (context) => {
 
   before("Setup: Create simple context", async function () {
     const { contract, rawTx } = await createContract(context, "TestContract");
-    await context.createBlock({ transactions: [rawTx] });
+    await context.createBlockWithEth(rawTx);
     multContract = contract;
   });
 
@@ -71,10 +71,8 @@ describeDevMoonbeamAllEthTxTypes("Estimate Gas - Supplied estimate is sufficient
 
     // attempt a transaction with our estimated gas
     const { rawTx } = await createContract(context, "Incrementer", { gas: estimate });
-    const { txResults } = await context.createBlock({ transactions: [rawTx] });
-    const receipt: TransactionReceipt = await context.web3.eth.getTransactionReceipt(
-      txResults[0].result
-    );
+    const { result } = await context.createBlockWithEth(rawTx);
+    const receipt: TransactionReceipt = await context.web3.eth.getTransactionReceipt(result.result);
 
     // the transaction should succeed because the estimate should have been sufficient
     expect(receipt.status).to.equal(true);
@@ -101,13 +99,12 @@ describeDevMoonbeamAllEthTxTypes("Estimate Gas - Handle Gas price", (context) =>
 describeDevMoonbeamAllEthTxTypes("Estimate Gas - Batch precompile", (context) => {
   it("all batch functions should estimate the same cost", async function () {
     const { contract: contractProxy, rawTx } = await createContract(context, "TestCallList");
-    await context.createBlock({ transactions: [rawTx] });
-
+    await context.createBlockWithEth(rawTx);
     const { contract: contractDummy, rawTx: rawTx2 } = await createContract(
       context,
       "TestContract"
     );
-    await context.createBlock({ transactions: [rawTx2] });
+    await context.createBlockWithEth(rawTx2);
 
     const proxyInterface = new ethers.utils.Interface(
       (await getCompiled("TestCallList")).contract.abi

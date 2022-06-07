@@ -266,9 +266,7 @@ export async function sendPrecompileTx(
     data,
   });
 
-  return context.createBlock({
-    transactions: [tx],
-  });
+  return context.createBlockWithEth(tx);
 }
 
 const GAS_PRICE = "0x" + (1_000_000_000).toString(16);

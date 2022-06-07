@@ -100,7 +100,7 @@ describeDevMoonbeam("Staking - Genesis", (context) => {
 
 describeDevMoonbeamAllEthTxTypes("Staking - Join Candidates", (context) => {
   it("should successfully call joinCandidates on ethan", async function () {
-    const block = await sendPrecompileTx(
+    const { result } = await sendPrecompileTx(
       context,
       PRECOMPILE_PARACHAIN_STAKING_ADDRESS,
       SELECTORS,
@@ -110,11 +110,10 @@ describeDevMoonbeamAllEthTxTypes("Staking - Join Candidates", (context) => {
       [numberToHex(Number(MIN_GLMR_STAKING)), numberToHex(1)]
     );
 
-    const receipt = await context.web3.eth.getTransactionReceipt(block.txResults[0].result);
+    const receipt = await context.web3.eth.getTransactionReceipt(result.result);
     expect(receipt.status).to.equal(true);
 
     const candidatesAfter = await context.polkadotApi.query.parachainStaking.candidatePool();
-    console.log(candidatesAfter.toHuman());
     expect(candidatesAfter.length).to.equal(2, "New candidate should have been added");
     expect(candidatesAfter[1].owner.toString()).to.equal(
       ethan.address,

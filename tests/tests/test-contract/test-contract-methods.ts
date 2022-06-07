@@ -10,9 +10,9 @@ describeDevMoonbeamAllEthTxTypes("Contract creation", (context) => {
 
   before("Setup: Create the contract", async function () {
     const { contract, rawTx } = await createContract(context, "TestContract");
-    const { txResults } = await context.createBlock({ transactions: [rawTx] });
+    const { result } = await context.createBlockWithEth(rawTx);
     testContract = contract;
-    testContractTx = txResults[0].result;
+    testContractTx = result.result;
   });
 
   it("should appear in the block transaction list", async () => {

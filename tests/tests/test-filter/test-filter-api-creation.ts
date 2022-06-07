@@ -6,16 +6,15 @@ import { createContract } from "../../util/transactions";
 
 describeDevMoonbeamAllEthTxTypes("Filter API", (context) => {
   it("should be able to create a Log filter", async function () {
-    const { contract, rawTx } = await createContract(context, "SingleEventContract");
-    await context.createBlock({ transactions: [rawTx] });
+    await context.createBlockWithEth((await createContract(context, "SingleEventContract")).rawTx);
 
     const createFilter = await customWeb3Request(context.web3, "eth_newFilter", [
       {
         fromBlock: "0x0",
         toBlock: "latest",
         address: [
-          "0xC2Bf5F29a4384b1aB0C063e1c666f02121B6084a",
-          "0x5c4242beB94dE30b922f57241f1D02f36e906915",
+          "0xc01Ee7f10EA4aF4673cFff62710E1D7792aBa8f3",
+          "0x970951a12F975E6762482ACA81E57D5A2A4e73F4",
         ],
         topics: ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
       },
@@ -26,14 +25,13 @@ describeDevMoonbeamAllEthTxTypes("Filter API", (context) => {
 
 describeDevMoonbeamAllEthTxTypes("Filter API - Creating", (context) => {
   it("should increment filter id", async function () {
-    const { contract, rawTx } = await createContract(context, "SingleEventContract");
-    await context.createBlock({ transactions: [rawTx] });
+    await context.createBlockWithEth((await createContract(context, "SingleEventContract")).rawTx);
 
     const createFilter = await customWeb3Request(context.web3, "eth_newFilter", [
       {
         fromBlock: "0x1",
         toBlock: "0x2",
-        address: "0xC2Bf5F29a4384b1aB0C063e1c666f02121B6084a",
+        address: "0xc01Ee7f10EA4aF4673cFff62710E1D7792aBa8f3",
         topics: ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
       },
     ]);
@@ -43,7 +41,7 @@ describeDevMoonbeamAllEthTxTypes("Filter API - Creating", (context) => {
       {
         fromBlock: "0x1",
         toBlock: "0x2",
-        address: "0xC2Bf5F29a4384b1aB0C063e1c666f02121B6084a",
+        address: "0xc01Ee7f10EA4aF4673cFff62710E1D7792aBa8f3",
         topics: ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"],
       },
     ]);

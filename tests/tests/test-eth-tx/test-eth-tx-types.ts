@@ -8,9 +8,7 @@ describeDevMoonbeam(
   "Ethereum Transaction - Legacy",
   (context) => {
     it("should contain valid legacy Ethereum data", async function () {
-      await context.createBlock({
-        transactions: [await createTransfer(context, baltathar.address, 512)],
-      });
+      await context.createBlockWithEth(await createTransfer(context, baltathar.address, 512));
 
       const signedBlock = await context.polkadotApi.rpc.chain.getBlock();
       let extrinsic = signedBlock.block.extrinsics.find((ex) => ex.method.section == "ethereum")
@@ -20,13 +18,13 @@ describeDevMoonbeam(
         nonce: 0,
         gasPrice: 1000000000,
         gasLimit: 12000000,
-        action: { call: baltathar.address },
+        action: { call: baltathar.address.toLowerCase() },
         value: 512,
         input: "0x",
         signature: {
-          v: 2598,
-          r: "0x8c69faf613b9f72dbb029bb5d5acf42742d214c79743507e75fdc8adecdee928",
-          s: "0x01be4f58ff278ac61125a81a582a717d9c5d6554326c01b878297c6522b12282",
+          v: 2597,
+          r: "0x440c713c1ea8ced9edacac8a33baa89411dca31af33b5c6e2c8e4a3c95112ab4",
+          s: "0x17c303f32862b65034da593cc0fb1178c915ef7a0b9c221ff3b7d00647b208fb",
         },
       });
     });
@@ -40,18 +38,16 @@ describeDevMoonbeam(
   (context) => {
     it("should contain valid EIP2930 Ethereum data", async function () {
       // Accesslist mock data, it doesn't matter.
-      await context.createBlock({
-        transactions: [
-          await createTransfer(context, baltathar.address, 512, {
-            accessList: [
-              [
-                "0x0000000000000000000000000000000000000000",
-                ["0x0000000000000000000000000000000000000000000000000000000000000000"],
-              ],
+      await context.createBlockWithEth(
+        await createTransfer(context, baltathar.address, 512, {
+          accessList: [
+            [
+              "0x0000000000000000000000000000000000000000",
+              ["0x0000000000000000000000000000000000000000000000000000000000000000"],
             ],
-          }),
-        ],
-      });
+          ],
+        })
+      );
 
       const signedBlock = await context.polkadotApi.rpc.chain.getBlock();
       let extrinsic = signedBlock.block.extrinsics.find((ex) => ex.method.section == "ethereum")
@@ -63,7 +59,7 @@ describeDevMoonbeam(
         gasPrice: 1000000000,
         gasLimit: 12000000,
         action: {
-          call: baltathar.address,
+          call: baltathar.address.toLowerCase(),
         },
         value: 512,
         input: "0x",
@@ -74,8 +70,8 @@ describeDevMoonbeam(
           },
         ],
         oddYParity: true,
-        r: "0xb3afc47c1048d0a7d02bd90cfd90dffcdaa26fddc1644df23439b5ce94d19f1a",
-        s: "0x5cfa40c0c59e5c67fd2dac5bc0934c8d7f8b9970c153c878e2c8a1f23c67a3b9",
+        r: "0xb18ae6b035dfdf47954130cc9fa74ce051a59500d569b78a9b5e30d97e821682",
+        s: "0x3fc8aa94a1e068a9463b3ece33efc98a199e3f72f15cb9707a133425e9448cb1",
       });
     });
   },
@@ -88,18 +84,16 @@ describeDevMoonbeam(
   (context) => {
     it("should contain valid EIP1559 Ethereum data", async function () {
       // Accesslist mock data, it doesn't matter.
-      await context.createBlock({
-        transactions: [
-          await createTransfer(context, baltathar.address, 512, {
-            accessList: [
-              [
-                "0x0000000000000000000000000000000000000000",
-                ["0x0000000000000000000000000000000000000000000000000000000000000000"],
-              ],
+      await context.createBlockWithEth(
+        await createTransfer(context, baltathar.address, 512, {
+          accessList: [
+            [
+              "0x0000000000000000000000000000000000000000",
+              ["0x0000000000000000000000000000000000000000000000000000000000000000"],
             ],
-          }),
-        ],
-      });
+          ],
+        })
+      );
 
       const signedBlock = await context.polkadotApi.rpc.chain.getBlock();
       let extrinsic = signedBlock.block.extrinsics.find((ex) => ex.method.section == "ethereum")
@@ -112,7 +106,7 @@ describeDevMoonbeam(
         maxFeePerGas: 1000000000,
         gasLimit: 12000000,
         action: {
-          call: baltathar.address,
+          call: baltathar.address.toLowerCase(),
         },
         value: 512,
         input: "0x",
@@ -123,8 +117,8 @@ describeDevMoonbeam(
           },
         ],
         oddYParity: false,
-        r: "0x7477d1ec3db20e2726a69e7aab7e1b6beda2a312222e4db85c316cc796e655bf",
-        s: "0x53b7ae2a82b3cebaaec6086620bcf683c5171d5669152280f56bdfc9e322f284",
+        r: "0xf631af2a9504e6a87764310814c00a9260ba328da571008d60f4f770f43bee5d",
+        s: "0x016d1aaa3dcff84a35e7fcf5947738de786fdbac8270c438710bda917fdcb96f",
       });
     });
   },

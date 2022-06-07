@@ -43,13 +43,11 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - precompiles dummy bytecode", (co
   it("should revert when dummy bytecode is called", async function () {
     // we deploy a new contract with the same bytecode to be able to
     // execute the bytecode instead of executing a precompile.
-    const createTx = await createTransaction(context, {
-      data: INIT_CODE,
-    });
-
-    await context.createBlock({
-      transactions: [createTx],
-    });
+    await context.createBlockWithEth(
+      await createTransaction(context, {
+        data: INIT_CODE,
+      })
+    );
 
     const contractAddress =
       "0x" +
@@ -63,16 +61,15 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - precompiles dummy bytecode", (co
     expect(code).to.equal(DEPLOYED_BYTECODE);
 
     // try to call contract (with empty data, shouldn't matter)
-    const callTx = await createTransaction(context, {
-      data: "0x",
-      to: contractAddress,
-    });
 
-    const block = await context.createBlock({
-      transactions: [callTx],
-    });
+    const { result } = await context.createBlockWithEth(
+      await createTransaction(context, {
+        data: "0x",
+        to: contractAddress,
+      })
+    );
 
-    const receipt = await context.web3.eth.getTransactionReceipt(block.txResults[0].result);
+    const receipt = await context.web3.eth.getTransactionReceipt(result.result);
 
     expect(receipt.status).to.equal(false);
     // 21006 = call cost + 2*PUSH cost

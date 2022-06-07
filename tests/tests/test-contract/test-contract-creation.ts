@@ -8,13 +8,13 @@ import { getCompiled } from "../../util/contracts";
 
 describeDevMoonbeamAllEthTxTypes("Contract creation", (context) => {
   it("should return the transaction hash", async () => {
-    const { rawTx } = await createContract(context, "TestContract");
-    const { txResults } = await context.createBlock({ transactions: [rawTx] });
-
-    expect(
-      txResults[0].result,
-      "0x286fc7f456a452abb22bc37974fe281164e53ce6381583c8febaa89c92f31c0b"
+    const { result } = await context.createBlockWithEth(
+      (
+        await createContract(context, "TestContract")
+      ).rawTx
     );
+
+    expect(result.result, "0x286fc7f456a452abb22bc37974fe281164e53ce6381583c8febaa89c92f31c0b");
   });
 });
 
@@ -22,9 +22,12 @@ describeDevMoonbeamAllEthTxTypes("eth_call contract create", (context) => {
   it("should return the contract code", async () => {
     const contractData = await getCompiled("TestContract");
     let callCode = await context.web3.eth.call({ data: contractData.byteCode });
-    const { rawTx } = await createContract(context, "TestContract");
-    const { txResults } = await context.createBlock({ transactions: [rawTx] });
-    let receipt = await context.web3.eth.getTransactionReceipt(txResults[0].result);
+    const { result } = await context.createBlockWithEth(
+      (
+        await createContract(context, "TestContract")
+      ).rawTx
+    );
+    let receipt = await context.web3.eth.getTransactionReceipt(result.result);
     let deployedCode = await context.web3.eth.getCode(receipt.contractAddress);
     expect(callCode).to.be.eq(deployedCode);
   });
@@ -59,8 +62,7 @@ describeDevMoonbeamAllEthTxTypes("Contract creation", (context) => {
 
 describeDevMoonbeamAllEthTxTypes("Contract creation -block fees", (context) => {
   it("should check latest block fees", async function () {
-    const { rawTx } = await createContract(context, "TestContract");
-    const {} = await context.createBlock({ transactions: [rawTx] });
+    await context.createBlockWithEth((await createContract(context, "TestContract")).rawTx);
     await verifyLatestBlockFees(context, expect);
   });
 });

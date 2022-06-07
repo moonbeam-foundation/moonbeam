@@ -2,25 +2,25 @@ import { expect } from "chai";
 import { customWeb3Request } from "../util/providers";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 import { createContract, createContractExecution } from "../util/transactions";
-import { GENESIS_ACCOUNT } from "../util/constants";
+import { ALITH_CONTRACT_ADDRESSES } from "../util/accounts";
 
 const GENESIS_CONTRACT_ADDRESSES = [
-  "0xc2bf5f29a4384b1ab0c063e1c666f02121b6084a",
-  "0x42e2ee7ba8975c473157634ac2af4098190fc741",
-  "0xf8cef78e923919054037a1d03662bbd884ff4edf",
+  ALITH_CONTRACT_ADDRESSES[0],
+  ALITH_CONTRACT_ADDRESSES[2],
+  ALITH_CONTRACT_ADDRESSES[3],
 ];
 
 describeDevMoonbeam("Trace filter - Contract creation ", (context) => {
   before("Setup: Create 4 blocks with TraceFilter contracts", async function () {
     const { contract, rawTx } = await createContract(context, "TraceFilter", {}, [false]);
-    await context.createBlock({ transactions: [rawTx] });
+    await context.createBlockWithEth(rawTx);
 
     const { rawTx: rawTx2 } = await createContract(context, "TraceFilter", {}, [true]);
-    await context.createBlock({ transactions: [rawTx2] });
+    await context.createBlockWithEth([rawTx2]);
 
     const { rawTx: rawTx3 } = await createContract(context, "TraceFilter", {}, [false]);
     const { rawTx: rawTx4 } = await createContract(context, "TraceFilter", { nonce: 3 }, [false]);
-    await context.createBlock({ transactions: [rawTx3, rawTx4] });
+    await context.createBlockWithEth([rawTx3, rawTx4]);
 
     await context.createBlock({
       transactions: [
@@ -53,7 +53,7 @@ describeDevMoonbeam("Trace filter - Contract creation ", (context) => {
       value: "0x0",
     });
     expect(response.result[0].result).to.include({
-      address: "0xc2bf5f29a4384b1ab0c063e1c666f02121b6084a",
+      address: ALITH_CONTRACT_ADDRESSES[0],
       gasUsed: "0x10fd9", // TODO : Compare with value from another (comparable) network.
     });
 

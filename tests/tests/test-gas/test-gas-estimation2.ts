@@ -11,7 +11,7 @@ chaiUse(chaiAsPromised);
 describeDevMoonbeamAllEthTxTypes("Estimate Gas - infinite loop", (context) => {
   it("Should be able to estimate gas of infinite loop call", async function () {
     const { contract, rawTx } = await createContract(context, "InfiniteContract");
-    await context.createBlock({ transactions: [rawTx] });
+    await context.createBlockWithEth(rawTx);
 
     await expect(
       contract.methods.infinite().estimateGas({

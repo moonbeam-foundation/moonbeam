@@ -51,11 +51,9 @@ describeDevMoonbeam("Ethers.js contract", (context) => {
         gasLimit: 1_000_000,
         gasPrice: 1_000_000_000,
       });
-      console.log("Contract sent");
       await context.createBlock();
       resolve(await contractPromise);
     });
-    console.log("Contract created");
 
     // Must create the block and then wait, because etherjs will wait until
     // the contract is mined to return;
@@ -65,7 +63,6 @@ describeDevMoonbeam("Ethers.js contract", (context) => {
       resolve(await callPromise);
     });
     expect(result.toString()).to.equal("21");
-    console.log("Contract called");
 
     // Instantiate contract from address
     const contractFromAddress = new ethers.Contract(
@@ -78,6 +75,5 @@ describeDevMoonbeam("Ethers.js contract", (context) => {
         await contractFromAddress.multiply(3, { gasLimit: 1_000_000, gasPrice: 1_000_000_000 })
       ).toString()
     ).to.equal("21");
-    console.log("Contract inner called");
   });
 });

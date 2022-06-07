@@ -21,17 +21,13 @@ const XCM_TRANSACTOR_CONTRACT = getCompiled("XcmTransactorInstance");
 const XCM_TRANSACTOR_INTERFACE = new ethers.utils.Interface(XCM_TRANSACTOR_CONTRACT.contract.abi);
 
 const registerXcmTransactorAndContract = async (context: DevTestContext) => {
-  await createBlockWithExtrinsic(
-    context,
-    alith,
+  await context.createBlockWithExtrinsic(
     context.polkadotApi.tx.sudo.sudo(
       context.polkadotApi.tx.xcmTransactor.register(alith.address, 0)
     )
   );
 
-  await createBlockWithExtrinsic(
-    context,
-    alith,
+  await context.createBlockWithExtrinsic(
     context.polkadotApi.tx.sudo.sudo(
       context.polkadotApi.tx.xcmTransactor.setTransactInfo(
         RELAY_V1_SOURCE_LOCATION,
@@ -42,9 +38,7 @@ const registerXcmTransactorAndContract = async (context: DevTestContext) => {
     )
   );
 
-  await createBlockWithExtrinsic(
-    context,
-    alith,
+  await context.createBlockWithExtrinsic(
     context.polkadotApi.tx.sudo.sudo(
       context.polkadotApi.tx.xcmTransactor.setFeePerSecond(
         RELAY_V1_SOURCE_LOCATION,
@@ -53,9 +47,7 @@ const registerXcmTransactorAndContract = async (context: DevTestContext) => {
     )
   );
 
-  await context.createBlock({
-    transactions: [(await createContract(context, "XcmTransactorInstance")).rawTx],
-  });
+  await context.createBlockWithEth((await createContract(context, "XcmTransactorInstance")).rawTx);
 };
 
 describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
@@ -147,15 +139,13 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
       "transact_through_derivative_multilocation",
       [transactor, index, asset, weight, transact_call]
     );
-    await context.createBlock({
-      transactions: [
-        await createTransaction(context, {
-          ...ALITH_TRANSACTION_TEMPLATE,
-          to: PRECOMPILE_XCM_TRANSACTOR_ADDRESS,
-          data,
-        }),
-      ],
-    });
+    await context.createBlockWithEth(
+      await createTransaction(context, {
+        ...ALITH_TRANSACTION_TEMPLATE,
+        to: PRECOMPILE_XCM_TRANSACTOR_ADDRESS,
+        data,
+      })
+    );
 
     // We have used 1000 units to pay for the fees in the relay, so balance and supply should
     // have changed
@@ -233,16 +223,13 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
       "transact_through_derivative",
       [transactor, index, asset, weight, transact_call]
     );
-
-    const tx = await createTransaction(context, {
-      ...ALITH_TRANSACTION_TEMPLATE,
-      to: PRECOMPILE_XCM_TRANSACTOR_ADDRESS,
-      data,
-    });
-
-    const block = await context.createBlock({
-      transactions: [tx],
-    });
+    await context.createBlockWithEth(
+      await createTransaction(context, {
+        ...ALITH_TRANSACTION_TEMPLATE,
+        to: PRECOMPILE_XCM_TRANSACTOR_ADDRESS,
+        data,
+      })
+    );
 
     // We have used 1000 units to pay for the fees in the relay, so balance and supply should
     // have changed
@@ -345,15 +332,13 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
       [dest, asset, weight, transact_call]
     );
 
-    const tx = await createTransaction(context, {
-      ...ALITH_TRANSACTION_TEMPLATE,
-      to: PRECOMPILE_XCM_TRANSACTOR_ADDRESS,
-      data,
-    });
-
-    const block = await context.createBlock({
-      transactions: [tx],
-    });
+    await context.createBlockWithEth(
+      await createTransaction(context, {
+        ...ALITH_TRANSACTION_TEMPLATE,
+        to: PRECOMPILE_XCM_TRANSACTOR_ADDRESS,
+        data,
+      })
+    );
 
     // 1000 fee for the relay is paid with relay assets
     await verifyLatestBlockFees(context, expect);
@@ -394,15 +379,13 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
       [dest, asset, weight, transact_call]
     );
 
-    const tx = await createTransaction(context, {
-      ...ALITH_TRANSACTION_TEMPLATE,
-      to: PRECOMPILE_XCM_TRANSACTOR_ADDRESS,
-      data,
-    });
-
-    const block = await context.createBlock({
-      transactions: [tx],
-    });
+    await context.createBlockWithEth(
+      await createTransaction(context, {
+        ...ALITH_TRANSACTION_TEMPLATE,
+        to: PRECOMPILE_XCM_TRANSACTOR_ADDRESS,
+        data,
+      })
+    );
 
     // 1000 fee for the relay is paid with relay assets
     await verifyLatestBlockFees(context, expect);

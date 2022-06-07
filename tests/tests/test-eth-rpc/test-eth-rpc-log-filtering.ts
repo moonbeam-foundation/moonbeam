@@ -42,8 +42,8 @@ describeDevMoonbeamAllEthTxTypes("Ethereum RPC - Filtering non-matching logs", (
     const { rawTx } = await createContract(context, "SingleEventContract", {
       from: alith.address,
     });
-    const { txResults } = await context.createBlock({ transactions: [rawTx] });
-    const receipt = await context.web3.eth.getTransactionReceipt(txResults[0].result);
+    const { result } = await context.createBlockWithEth(rawTx);
+    const receipt = await context.web3.eth.getTransactionReceipt(result.result);
     non_matching_cases = getNonMatchingCases(receipt);
   });
   it("EthFilterApi::getFilterLogs - should filter out non-matching cases.", async function () {

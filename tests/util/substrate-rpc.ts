@@ -1,62 +1,34 @@
 import "@moonbeam-network/api-augment";
 import { ApiPromise } from "@polkadot/api";
-import { AddressOrPair, ApiTypes, SubmittableExtrinsic } from "@polkadot/api/types";
+import {
+  AddressOrPair,
+  ApiTypes,
+  SubmittableExtrinsic,
+  SubmittableResultResult,
+} from "@polkadot/api/types";
 import { GenericExtrinsic } from "@polkadot/types/extrinsic";
 import { AnyTuple, RegistryError } from "@polkadot/types/types";
 import { DispatchError, DispatchInfo, Event, EventRecord } from "@polkadot/types/interfaces";
 import { u8aToHex } from "@polkadot/util";
 import { DevTestContext } from "./setup-dev-tests";
+import { alith } from "./accounts";
+import { createAndFinalizeBlock } from "./block";
 const debug = require("debug")("test:substrateEvents");
 
-// DEV LOCAL TESTING
+export interface ExtrinsicCreation {
+  extrinsic: GenericExtrinsic<AnyTuple>;
+  events: EventRecord[];
+  error: RegistryError;
+  successful: boolean;
+}
 
 export const createBlockWithExtrinsic = async <
-  Call extends SubmittableExtrinsic<ApiType>,
+  Call extends SubmittableExtrinsic<ApiType>[],
   ApiType extends ApiTypes
 >(
   context: DevTestContext,
-  sender: AddressOrPair,
-  polkadotCall: Call
-) => {
-  // This should return a string, but is a bit complex to handle type properly so any will suffice
-  const extrinsicHash = (await polkadotCall.signAndSend(sender)) as any;
-
-  // We create the block which is containing the extrinsic
-  const blockResult = await context.createBlock();
-
-  // We retrieve the events for that block
-  const allRecords: EventRecord[] = (await (
-    await context.polkadotApi.at(blockResult.block.hash)
-  ).query.system.events()) as any;
-
-  // We retrieve the block (including the extrinsics)
-  const blockData = await context.polkadotApi.rpc.chain.getBlock(blockResult.block.hash);
-
-  const extrinsicIndex = blockData.block.extrinsics.findIndex(
-    (ext) => ext.hash.toHex() == extrinsicHash
-  );
-  if (extrinsicIndex < 0) {
-    throw new Error(`Extrinsic ${extrinsicHash} is missing in the block ${blockResult.block.hash}`);
-  }
-  const extrinsic = blockData.block.extrinsics[extrinsicIndex];
-
-  // We retrieve the events associated with the extrinsic
-  const events = allRecords.filter(
-    ({ phase }) => phase.isApplyExtrinsic && phase.asApplyExtrinsic.toNumber() == extrinsicIndex
-  );
-
-  const failed = extractError(events);
-
-  return {
-    extrinsic,
-    events,
-    error:
-      failed &&
-      ((failed.isModule && context.polkadotApi.registry.findMetaError(failed.asModule)) ||
-        ({ name: failed.toString() } as RegistryError)),
-    successful: !failed,
-  };
-};
+  polkadotCalls: [...Call]
+) => {};
 
 // LAUNCH BASED NETWORK TESTING (PARA TESTS)
 

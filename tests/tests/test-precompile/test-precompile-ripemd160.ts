@@ -19,9 +19,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - ripemd160 ", (context) => {
 
 describeDevMoonbeamAllEthTxTypes("Precompiles - ripemd160 ", (context) => {
   it("should be accessible from a smart contract", async function () {
-    await context.createBlock({
-      transactions: [(await createContract(context, "HashRipmd160")).rawTx],
-    });
+    await context.createBlockWithEth((await createContract(context, "HashRipmd160")).rawTx);
 
     // Because the call to ripemd160 is in the constructor of HashRipmd160, verifying the code
     // is enough

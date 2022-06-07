@@ -13,13 +13,13 @@ describeDevMoonbeam("Delegate Call", (context) => {
     this.timeout(10000);
 
     const { contract: contractProxy, rawTx } = await createContract(context, "TestCallList");
-    await context.createBlock({ transactions: [rawTx] });
+    await context.createBlockWithEth(rawTx);
 
     const { contract: contractDummy, rawTx: rawTx2 } = await createContract(
       context,
       "TestContract"
     );
-    await context.createBlock({ transactions: [rawTx2] });
+    await context.createBlockWithEth(rawTx2);
 
     const proxyInterface = new ethers.utils.Interface(
       (await getCompiled("TestCallList")).contract.abi
@@ -41,7 +41,6 @@ describeDevMoonbeam("Delegate Call", (context) => {
       },
     ]);
 
-    console.log(JSON.stringify(tx_call));
     expect(tx_call.result).to.equal(
       "0x0000000000000000000000000000000000000000000000000000000000000001" +
         "0000000000000000000000000000000000000000000000000000000000000040" +
@@ -74,7 +73,7 @@ describeDevMoonbeam("DELEGATECALL for precompiles", (context) => {
   before("Setup delecateCall contract", async () => {
     const contractDetails = await createContract(context, "TestCallList");
     contractProxy = contractDetails.contract;
-    await context.createBlock({ transactions: [contractDetails.rawTx] });
+    await context.createBlockWithEth(contractDetails.rawTx);
 
     proxyInterface = new ethers.utils.Interface((await getCompiled("TestCallList")).contract.abi);
   });

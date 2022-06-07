@@ -4,13 +4,14 @@ import { KeyringPair } from "@polkadot/keyring/types";
 import { expect } from "chai";
 import { BN, u8aToHex } from "@polkadot/util";
 
-import { ALITH_PRIV_KEY, BALTATHAR_PRIVATE_KEY, RANDOM_PRIV_KEY } from "../../util/constants";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { createBlockWithExtrinsic } from "../../util/substrate-rpc";
 import { customWeb3Request } from "../../util/providers";
 import type { XcmVersionedXcm } from "@polkadot/types/lookup";
 
 import { ParaId, XcmpMessageFormat } from "@polkadot/types/interfaces";
+import { PARA_1001_SOURCE_LOCATION, PARA_2000_SOURCE_LOCATION } from "../../util/assets";
+import { alith, baltathar, generateKeyingPair } from "../../util/accounts";
 
 const FOREIGN_TOKEN = 1_000_000_000_000n;
 
@@ -25,10 +26,8 @@ const assetMetadata = {
   decimals: new BN(12),
   isFrozen: false,
 };
-
-const sourceLocation = { XCM: { parents: 1, interior: { X1: { Parachain: foreign_para_id } } } };
-const statemintLocation = {
-  XCM: {
+const STATEMINT_LOCATION = {
+  Xcm: {
     parents: 1,
     interior: {
       X3: [
@@ -39,9 +38,8 @@ const statemintLocation = {
     },
   },
 };
-
-const statemintLocationAssetOne = {
-  XCM: {
+const STATEMINT_ASSET_ONE_LOCATION = {
+  Xcm: {
     parents: 1,
     interior: {
       X3: [
@@ -55,19 +53,15 @@ const statemintLocationAssetOne = {
 
 describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
   let assetId: string;
-  let alith: KeyringPair;
 
   before("Should Register an asset and set unit per sec", async function () {
-    const keyringEth = new Keyring({ type: "ethereum" });
-    alith = keyringEth.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
-
     // registerForeignAsset
-    const { events: eventsRegister } = await createBlockWithExtrinsic(
-      context,
-      alith,
+    const {
+      result: { events: eventsRegister },
+    } = await context.createBlockWithExtrinsic(
       context.polkadotApi.tx.sudo.sudo(
         context.polkadotApi.tx.assetManager.registerForeignAsset(
-          sourceLocation,
+          PARA_2000_SOURCE_LOCATION,
           assetMetadata,
           new BN(1),
           true
@@ -75,23 +69,21 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
       )
     );
     // Look for assetId in events
-    eventsRegister.forEach((e) => {
-      if (e.section.toString() === "assetManager") {
-        assetId = e.data[0].toHex();
-      }
-    });
-    assetId = assetId.replace(/,/g, "");
+    assetId = eventsRegister
+      .find(({ event: { section } }) => section.toString() === "assetManager")
+      .event.data[0].toHex()
+      .replace(/,/g, "");
 
     // setAssetUnitsPerSecond
-    const { events } = await createBlockWithExtrinsic(
-      context,
-      alith,
+    const {
+      result: { events },
+    } = await context.createBlockWithExtrinsic(
       context.polkadotApi.tx.sudo.sudo(
-        context.polkadotApi.tx.assetManager.setAssetUnitsPerSecond(sourceLocation, 0, 0)
+        context.polkadotApi.tx.assetManager.setAssetUnitsPerSecond(PARA_2000_SOURCE_LOCATION, 0, 0)
       )
     );
-    expect(events[1].method.toString()).to.eq("UnitsPerSecondChanged");
-    expect(events[4].method.toString()).to.eq("ExtrinsicSuccess");
+    expect(events[1].event.method.toString()).to.eq("UnitsPerSecondChanged");
+    expect(events[4].event.method.toString()).to.eq("ExtrinsicSuccess");
 
     // check asset in storage
     const registeredAsset = (
@@ -113,7 +105,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
       (await context.polkadotApi.query.assets.account(assetId, alith.address)) as any
     )
       .unwrap()
-      ["balance"].toBigInt();
+      .balance.toBigInt();
 
     expect(alith_dot_balance).to.eq(10n * FOREIGN_TOKEN);
   });
@@ -121,20 +113,16 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
 
 describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
   let assetId: string;
-  let alith: KeyringPair;
 
   before("Should Register an asset and set unit per sec", async function () {
-    const keyringEth = new Keyring({ type: "ethereum" });
-    alith = keyringEth.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
-
     // registerForeignAsset
     // We register statemine with the new prefix
-    const { events: eventsRegister } = await createBlockWithExtrinsic(
-      context,
-      alith,
+    const {
+      result: { events: eventsRegister },
+    } = await context.createBlockWithExtrinsic(
       context.polkadotApi.tx.sudo.sudo(
         context.polkadotApi.tx.assetManager.registerForeignAsset(
-          statemintLocation,
+          STATEMINT_LOCATION,
           assetMetadata,
           new BN(1),
           true
@@ -142,23 +130,21 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
       )
     );
     // Look for assetId in events
-    eventsRegister.forEach((e) => {
-      if (e.section.toString() === "assetManager") {
-        assetId = e.data[0].toHex();
-      }
-    });
-    assetId = assetId.replace(/,/g, "");
+    assetId = eventsRegister
+      .find(({ event: { section } }) => section.toString() === "assetManager")
+      .event.data[0].toHex()
+      .replace(/,/g, "");
 
     // setAssetUnitsPerSecond
-    const { events } = await createBlockWithExtrinsic(
-      context,
-      alith,
+    const {
+      result: { events },
+    } = await context.createBlockWithExtrinsic(
       context.polkadotApi.tx.sudo.sudo(
-        context.polkadotApi.tx.assetManager.setAssetUnitsPerSecond(statemintLocation, 0, 0)
+        context.polkadotApi.tx.assetManager.setAssetUnitsPerSecond(STATEMINT_LOCATION, 0, 0)
       )
     );
-    expect(events[1].method.toString()).to.eq("UnitsPerSecondChanged");
-    expect(events[4].method.toString()).to.eq("ExtrinsicSuccess");
+    expect(events[1].event.method.toString()).to.eq("UnitsPerSecondChanged");
+    expect(events[4].event.method.toString()).to.eq("ExtrinsicSuccess");
 
     // check asset in storage
     const registeredAsset = (
@@ -250,19 +236,15 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
 
 describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
   let assetId: string;
-  let alith: KeyringPair;
 
   before("Should Register an asset and set unit per sec", async function () {
-    const keyringEth = new Keyring({ type: "ethereum" });
-    alith = keyringEth.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
-
     // registerForeignAsset
-    const { events: eventsRegister } = await createBlockWithExtrinsic(
-      context,
-      alith,
+    const {
+      result: { events: eventsRegister },
+    } = await context.createBlockWithExtrinsic(
       context.polkadotApi.tx.sudo.sudo(
         context.polkadotApi.tx.assetManager.registerForeignAsset(
-          statemintLocation,
+          STATEMINT_LOCATION,
           assetMetadata,
           new BN(1),
           true
@@ -270,23 +252,21 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
       )
     );
     // Look for assetId in events
-    eventsRegister.forEach((e) => {
-      if (e.section.toString() === "assetManager") {
-        assetId = e.data[0].toHex();
-      }
-    });
-    assetId = assetId.replace(/,/g, "");
+    assetId = eventsRegister
+      .find(({ event: { section } }) => section.toString() === "assetManager")
+      .event.data[0].toHex()
+      .replace(/,/g, "");
 
     // setAssetUnitsPerSecond
-    const { events } = await createBlockWithExtrinsic(
-      context,
-      alith,
+    const {
+      result: { events },
+    } = await context.createBlockWithExtrinsic(
       context.polkadotApi.tx.sudo.sudo(
-        context.polkadotApi.tx.assetManager.setAssetUnitsPerSecond(statemintLocation, 0, 0)
+        context.polkadotApi.tx.assetManager.setAssetUnitsPerSecond(STATEMINT_LOCATION, 0, 0)
       )
     );
-    expect(events[1].method.toString()).to.eq("UnitsPerSecondChanged");
-    expect(events[4].method.toString()).to.eq("ExtrinsicSuccess");
+    expect(events[1].event.method.toString()).to.eq("UnitsPerSecondChanged");
+    expect(events[4].event.method.toString()).to.eq("ExtrinsicSuccess");
 
     // check asset in storage
     const registeredAsset = (
@@ -370,37 +350,32 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     const totalMessage = [...xcmpFormat.toU8a(), ...receivedMessage.toU8a()];
     // Send RPC call to inject XCM message
     // We will set a specific message knowing that it should mint the statemint asset
-    await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [
+    const r = await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [
       statemint_para_id,
       totalMessage,
     ]);
+    console.log(r);
 
     // Create a block in which the XCM will be executed
     await context.createBlock();
 
     // Make sure the state has ALITH's foreign parachain tokens
-    let alith_dot_balance = (
-      (await context.polkadotApi.query.assets.account(assetId, alith.address)) as any
-    )
-      .unwrap()
-      ["balance"].toBigInt();
-
-    expect(alith_dot_balance).to.eq(10n * FOREIGN_TOKEN);
+    expect(
+      (await context.polkadotApi.query.assets.account(assetId, alith.address))
+        .unwrap()
+        .balance.toBigInt()
+    ).to.eq(10n * FOREIGN_TOKEN);
   });
 });
 
 describeDevMoonbeam("Mock XCM - receive horizontal transfer of DEV", (context) => {
-  let alith: KeyringPair;
   let random: KeyringPair;
   let paraId: ParaId;
   let transferredBalance;
   let sovereignAddress;
 
   before("Should send DEV to the parachain sovereign", async function () {
-    const keyringEth = new Keyring({ type: "ethereum" });
-    alith = keyringEth.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
-    random = keyringEth.addFromUri(RANDOM_PRIV_KEY, null, "ethereum");
-
+    random = generateKeyingPair();
     paraId = context.polkadotApi.createType("ParaId", 2000) as any;
     sovereignAddress = u8aToHex(
       new Uint8Array([...new TextEncoder().encode("sibl"), ...paraId.toU8a()])
@@ -409,9 +384,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer of DEV", (context) =
     transferredBalance = 100000000000000n;
 
     // We first fund parachain 2000 sovreign account
-    await createBlockWithExtrinsic(
-      context,
-      alith,
+    await context.createBlockWithExtrinsic(
       context.polkadotApi.tx.balances.transfer(sovereignAddress, transferredBalance)
     );
     let balance = (
@@ -516,17 +489,13 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer of DEV", (context) =
 describeDevMoonbeam(
   "Mock XCM - receive horizontal transfer of DEV with new reanchor",
   (context) => {
-    let alith: KeyringPair;
     let random: KeyringPair;
     let paraId: ParaId;
     let transferredBalance;
     let sovereignAddress;
 
     before("Should send DEV to the parachain sovereign", async function () {
-      const keyringEth = new Keyring({ type: "ethereum" });
-      alith = keyringEth.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
-      random = keyringEth.addFromUri(RANDOM_PRIV_KEY, null, "ethereum");
-
+      random = generateKeyingPair();
       paraId = context.polkadotApi.createType("ParaId", 2000) as any;
       sovereignAddress = u8aToHex(
         new Uint8Array([...new TextEncoder().encode("sibl"), ...paraId.toU8a()])
@@ -535,9 +504,7 @@ describeDevMoonbeam(
       transferredBalance = 100000000000000n;
 
       // We first fund parachain 2000 sovreign account
-      await createBlockWithExtrinsic(
-        context,
-        alith,
+      await context.createBlockWithExtrinsic(
         context.polkadotApi.tx.balances.transfer(sovereignAddress, transferredBalance)
       );
       let balance = (
@@ -646,21 +613,15 @@ describeDevMoonbeam(
 
 describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
   let assetId: string;
-  let alith: KeyringPair;
-  let baltathar: KeyringPair;
   let paraId: ParaId;
   let transferredBalance;
   let sovereignAddress;
 
   before("Should Register an asset and set unit per sec", async function () {
-    const keyringEth = new Keyring({ type: "ethereum" });
-    alith = keyringEth.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
-    baltathar = await keyringEth.addFromUri(BALTATHAR_PRIVATE_KEY, null, "ethereum");
-
     // registerAsset
-    const { events: eventsRegister } = await createBlockWithExtrinsic(
-      context,
-      alith,
+    const {
+      result: { events: eventsRegister },
+    } = await context.createBlockWithExtrinsic(
       context.polkadotApi.tx.sudo.sudo(
         context.polkadotApi.tx.assetManager.registerLocalAsset(
           baltathar.address,
@@ -672,20 +633,18 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     );
 
     // Look for assetId in events
-    eventsRegister.forEach((e) => {
-      if (e.section.toString() === "assetManager") {
-        assetId = e.data[0].toHex();
-      }
-    });
-    assetId = assetId.replace(/,/g, "");
+    assetId = eventsRegister
+      .find(({ event: { section } }) => section.toString() === "assetManager")
+      .event.data[0].toHex()
+      .replace(/,/g, "");
 
     transferredBalance = new BN(100000000000000);
 
     // mint asset
-    await createBlockWithExtrinsic(
-      context,
-      baltathar,
-      context.polkadotApi.tx.localAssets.mint(assetId, alith.address, transferredBalance)
+    await context.createBlockWithExtrinsic(
+      await context.polkadotApi.tx.localAssets
+        .mint(assetId, alith.address, transferredBalance)
+        .signAsync(baltathar)
     );
 
     paraId = context.polkadotApi.createType("ParaId", 2000) as any;
@@ -694,16 +653,12 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     ).padEnd(42, "0");
 
     // We first fund parachain 2000 sovreign account
-    await createBlockWithExtrinsic(
-      context,
-      alith,
+    await context.createBlockWithExtrinsic(
       context.polkadotApi.tx.balances.transfer(sovereignAddress, transferredBalance)
     );
 
     // transfer to para Id sovereign to emulate having sent the tokens
-    await createBlockWithExtrinsic(
-      context,
-      alith,
+    await context.createBlockWithExtrinsic(
       context.polkadotApi.tx.localAssets.transfer(assetId, sovereignAddress, transferredBalance)
     );
   });
@@ -820,22 +775,18 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
 describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
   let assetIdZero: string;
   let assetIdOne: string;
-  let alith: KeyringPair;
 
   before(
     "Should Register two asset from same para but set unit per sec for one",
     async function () {
-      const keyringEth = new Keyring({ type: "ethereum" });
-      alith = keyringEth.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
-
       // registerAsset Asset 0
       // We register statemine with the new prefix
-      const { events: eventsRegisterZero } = await createBlockWithExtrinsic(
-        context,
-        alith,
+      const {
+        result: { events: eventsRegisterZero },
+      } = await context.createBlockWithExtrinsic(
         context.polkadotApi.tx.sudo.sudo(
           context.polkadotApi.tx.assetManager.registerForeignAsset(
-            statemintLocation,
+            STATEMINT_LOCATION,
             assetMetadata,
             new BN(1),
             true
@@ -843,21 +794,19 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
         )
       );
       // Look for assetId in events
-      eventsRegisterZero.forEach((e) => {
-        if (e.section.toString() === "assetManager") {
-          assetIdZero = e.data[0].toHex();
-        }
-      });
-      assetIdZero = assetIdZero.replace(/,/g, "");
+      assetIdZero = eventsRegisterZero
+        .find(({ event: { section } }) => section.toString() === "assetManager")
+        .event.data[0].toHex()
+        .replace(/,/g, "");
 
       // registerAsset Asset 1
       // We register statemine with the new prefix
-      const { events: eventsRegisterOne } = await createBlockWithExtrinsic(
-        context,
-        alith,
+      const {
+        result: { events: eventsRegisterOne },
+      } = await context.createBlockWithExtrinsic(
         context.polkadotApi.tx.sudo.sudo(
           context.polkadotApi.tx.assetManager.registerForeignAsset(
-            statemintLocationAssetOne,
+            STATEMINT_ASSET_ONE_LOCATION,
             assetMetadata,
             new BN(1),
             true
@@ -865,27 +814,25 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
         )
       );
       // Look for assetId in events
-      eventsRegisterOne.forEach((e) => {
-        if (e.section.toString() === "assetManager") {
-          assetIdOne = e.data[0].toHex();
-        }
-      });
-      assetIdOne = assetIdOne.replace(/,/g, "");
+      assetIdOne = eventsRegisterOne
+        .find(({ event: { section } }) => section.toString() === "assetManager")
+        .event.data[0].toHex()
+        .replace(/,/g, "");
 
       // setAssetUnitsPerSecond.We only set it for statemintLocationAssetOne
-      const { events } = await createBlockWithExtrinsic(
-        context,
-        alith,
+      const {
+        result: { events },
+      } = await context.createBlockWithExtrinsic(
         context.polkadotApi.tx.sudo.sudo(
           context.polkadotApi.tx.assetManager.setAssetUnitsPerSecond(
-            statemintLocationAssetOne,
+            STATEMINT_ASSET_ONE_LOCATION,
             0,
             0
           )
         )
       );
-      expect(events[1].method.toString()).to.eq("UnitsPerSecondChanged");
-      expect(events[4].method.toString()).to.eq("ExtrinsicSuccess");
+      expect(events[1].event.method.toString()).to.eq("UnitsPerSecondChanged");
+      expect(events[4].event.method.toString()).to.eq("ExtrinsicSuccess");
 
       // check assets in storage
       const registeredAssetZero = (
@@ -1005,21 +952,15 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
 
 describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
   let assetId: string;
-  let alith: KeyringPair;
-  let baltathar: KeyringPair;
   let paraId: ParaId;
   let transferredBalance;
   let sovereignAddress;
 
   before("Should Register an asset and set unit per sec", async function () {
-    const keyringEth = new Keyring({ type: "ethereum" });
-    alith = keyringEth.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
-    baltathar = await keyringEth.addFromUri(BALTATHAR_PRIVATE_KEY, null, "ethereum");
-
     // registerAsset
-    const { events: eventsRegister } = await createBlockWithExtrinsic(
-      context,
-      alith,
+    const {
+      result: { events: eventsRegister },
+    } = await context.createBlockWithExtrinsic(
       context.polkadotApi.tx.sudo.sudo(
         context.polkadotApi.tx.assetManager.registerLocalAsset(
           baltathar.address,
@@ -1031,20 +972,18 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     );
 
     // Look for assetId in events
-    eventsRegister.forEach((e) => {
-      if (e.section.toString() === "assetManager") {
-        assetId = e.data[0].toHex();
-      }
-    });
-    assetId = assetId.replace(/,/g, "");
+    assetId = eventsRegister
+      .find(({ event: { section } }) => section.toString() === "assetManager")
+      .event.data[0].toHex()
+      .replace(/,/g, "");
 
     transferredBalance = new BN(100000000000000);
 
     // mint asset
-    await createBlockWithExtrinsic(
-      context,
-      baltathar,
-      context.polkadotApi.tx.localAssets.mint(assetId, alith.address, transferredBalance)
+    await context.createBlockWithExtrinsic(
+      await context.polkadotApi.tx.localAssets
+        .mint(assetId, alith.address, transferredBalance)
+        .signAsync(baltathar)
     );
 
     paraId = context.polkadotApi.createType("ParaId", 2000) as any;
@@ -1053,16 +992,12 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     ).padEnd(42, "0");
 
     // We first fund parachain 2000 sovreign account
-    await createBlockWithExtrinsic(
-      context,
-      alith,
+    await context.createBlockWithExtrinsic(
       context.polkadotApi.tx.balances.transfer(sovereignAddress, transferredBalance)
     );
 
     // transfer to para Id sovereign to emulate having sent the tokens
-    await createBlockWithExtrinsic(
-      context,
-      alith,
+    await context.createBlockWithExtrinsic(
       context.polkadotApi.tx.localAssets.transfer(assetId, sovereignAddress, transferredBalance)
     );
   });
@@ -1181,20 +1116,16 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
 
 describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
   let assetIdZero: string;
-  let alith: KeyringPair;
 
   before("Should register one asset without setting units per second", async function () {
-    const keyringEth = new Keyring({ type: "ethereum" });
-    alith = keyringEth.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
-
     // registerAsset Asset 0
     // We register statemine with the new prefix
-    const { events: eventsRegisterZero } = await createBlockWithExtrinsic(
-      context,
-      alith,
+    const {
+      result: { events: eventsRegisterZero },
+    } = await context.createBlockWithExtrinsic(
       context.polkadotApi.tx.sudo.sudo(
         context.polkadotApi.tx.assetManager.registerForeignAsset(
-          statemintLocation,
+          STATEMINT_LOCATION,
           assetMetadata,
           new BN(1),
           true
@@ -1202,12 +1133,10 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
       )
     );
     // Look for assetId in events
-    eventsRegisterZero.forEach((e) => {
-      if (e.section.toString() === "assetManager") {
-        assetIdZero = e.data[0].toHex();
-      }
-    });
-    assetIdZero = assetIdZero.replace(/,/g, "");
+    assetIdZero = eventsRegisterZero
+      .find(({ event: { section } }) => section.toString() === "assetManager")
+      .event.data[0].toHex()
+      .replace(/,/g, "");
 
     // check assets in storage
     const registeredAssetZero = (

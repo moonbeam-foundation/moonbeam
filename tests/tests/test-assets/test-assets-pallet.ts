@@ -29,13 +29,11 @@ describeDevMoonbeam("Pallet Assets - Transfer", (context) => {
   });
 
   it("should be sucessful", async function () {
-    const { events, error } = await createBlockWithExtrinsic(
-      context,
-      alith,
+    const { result } = await context.createBlockWithExtrinsic(
       context.polkadotApi.tx.assets.transfer(assetId, baltathar.address, 1000)
     );
 
-    expect(error).to.be.undefined;
+    expect(result.error).to.be.undefined;
 
     // Baltathar balance is 1000
     const baltatharBalance = await context.polkadotApi.query.assets.account(
@@ -63,9 +61,7 @@ describeDevMoonbeam("Pallet Assets - Destruction", (context) => {
 
     await mockAssetBalance(context, assetBalance, assetDetails, alith, assetId, alith.address);
 
-    await createBlockWithExtrinsic(
-      context,
-      alith,
+    await context.createBlockWithExtrinsic(
       context.polkadotApi.tx.assets.transfer(assetId, baltathar.address, 1000)
     );
   });
@@ -88,9 +84,7 @@ describeDevMoonbeam("Pallet Assets - Destruction", (context) => {
     expect(assetDetailsBefore.isNone).to.eq(false);
 
     // Destroy asset
-    await createBlockWithExtrinsic(
-      context,
-      alith,
+    await context.createBlockWithExtrinsic(
       context.polkadotApi.tx.sudo.sudo(
         context.polkadotApi.tx.assets.destroy(assetId, assetDestroyWitness)
       )

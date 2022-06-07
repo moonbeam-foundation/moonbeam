@@ -1,11 +1,8 @@
 import "@moonbeam-network/api-augment";
-import Keyring from "@polkadot/keyring";
-import { KeyringPair } from "@polkadot/keyring/types";
 import { expect } from "chai";
 import { BN } from "@polkadot/util";
 
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
-import { createBlockWithExtrinsic } from "../../util/substrate-rpc";
 import { customWeb3Request } from "../../util/providers";
 import { alith } from "../../util/accounts";
 import { RELAY_SOURCE_LOCATION } from "../../util/assets";
@@ -27,9 +24,9 @@ describeDevMoonbeam("Mock XCM - receive downward transfer", (context) => {
 
   before("Should Register an asset and set unit per sec", async function () {
     // registerForeignAsset
-    const { events: eventsRegister } = await createBlockWithExtrinsic(
-      context,
-      alith,
+    const {
+      result: { events: eventsRegister },
+    } = await context.createBlockWithExtrinsic(
       context.polkadotApi.tx.sudo.sudo(
         context.polkadotApi.tx.assetManager.registerForeignAsset(
           RELAY_SOURCE_LOCATION,
@@ -46,9 +43,9 @@ describeDevMoonbeam("Mock XCM - receive downward transfer", (context) => {
       .replace(/,/g, "");
 
     // setAssetUnitsPerSecond
-    const { events } = await createBlockWithExtrinsic(
-      context,
-      alith,
+    const {
+      result: { events },
+    } = await context.createBlockWithExtrinsic(
       context.polkadotApi.tx.sudo.sudo(
         context.polkadotApi.tx.assetManager.setAssetUnitsPerSecond(RELAY_SOURCE_LOCATION, 0, 0)
       )

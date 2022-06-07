@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { expect } from "chai";
-import { TEST_ACCOUNT } from "../../util/constants";
+import { alith, ALITH_CONTRACT_ADDRESSES, gerald, GERALD_PRIVATE_KEY } from "../../util/accounts";
 import { web3Subscribe } from "../../util/providers";
 
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
@@ -24,9 +24,7 @@ describeDevMoonbeam("Subscription - Logs", (context) => {
     });
 
     const { rawTx } = await createContract(context, "SingleEventContract");
-    await context.createBlock({
-      transactions: [rawTx],
-    });
+    await context.createBlockWithEth(rawTx);
 
     const data = await dataPromise;
     subscription.unsubscribe();
@@ -61,15 +59,15 @@ describeDevMoonbeam("Subscription - Logs", (context) => {
     web3Ws = await context.createWeb3("ws");
 
     const subSingleAdd = web3Subscribe(web3Ws, "logs", {
-      address: "0xC2Bf5F29a4384b1aB0C063e1c666f02121B6084a",
+      address: ALITH_CONTRACT_ADDRESSES[0],
     });
 
     const subMultiAdd = web3Subscribe(web3Ws, "logs", {
       address: [
-        "0xF8cef78E923919054037a1D03662bBD884fF4edf",
-        "0x42e2EE7Ba8975c473157634Ac2AF4098190fc741",
-        "0x5c4242beB94dE30b922f57241f1D02f36e906915",
-        "0xC2Bf5F29a4384b1aB0C063e1c666f02121B6084a",
+        ALITH_CONTRACT_ADDRESSES[3],
+        ALITH_CONTRACT_ADDRESSES[2],
+        ALITH_CONTRACT_ADDRESSES[1],
+        ALITH_CONTRACT_ADDRESSES[0],
       ],
     });
 
@@ -78,20 +76,20 @@ describeDevMoonbeam("Subscription - Logs", (context) => {
     });
 
     const subTopicWildcard = web3Subscribe(web3Ws, "logs", {
-      topics: [null, "0x0000000000000000000000006be02d1d3665660d22ff9624b7be0551ee1ac91b"],
+      topics: [null, "0x000000000000000000000000f24ff3a9cf04c71dbc94d0b566f7a27b94566cac"],
     });
 
     const subTopicList = web3Subscribe(web3Ws, "logs", {
       topics: [
         ["0x0040d54d5e5b097202376b55bcbaaedd2ee468ce4496f1d30030c4e5308bf94d"],
-        ["0x0000000000000000000000006be02d1d3665660d22ff9624b7be0551ee1ac91b"],
+        ["0x000000000000000000000000f24ff3a9cf04c71dbc94d0b566f7a27b94566cac"],
       ],
     });
 
     const subTopicCond = web3Subscribe(web3Ws, "logs", {
       topics: [
         "0x0040d54d5e5b097202376b55bcbaaedd2ee468ce4496f1d30030c4e5308bf94d",
-        ["0x0000000000000000000000006be02d1d3665660d22ff9624b7be0551ee1ac91b"],
+        ["0x000000000000000000000000f24ff3a9cf04c71dbc94d0b566f7a27b94566cac"],
       ],
     });
 
@@ -100,7 +98,7 @@ describeDevMoonbeam("Subscription - Logs", (context) => {
         "0x0040d54d5e5b097202376b55bcbaaedd2ee468ce4496f1d30030c4e5308bf94d",
         [
           "0x0000000000000000000000000000000000000000000000000000000000000000",
-          "0x0000000000000000000000006be02d1d3665660d22ff9624b7be0551ee1ac91b",
+          "0x000000000000000000000000f24ff3a9cf04c71dbc94d0b566f7a27b94566cac",
         ],
       ],
     });
@@ -109,7 +107,7 @@ describeDevMoonbeam("Subscription - Logs", (context) => {
       topics: [
         null,
         [
-          "0x0000000000000000000000006be02d1d3665660d22ff9624b7be0551ee1ac91b",
+          "0x000000000000000000000000f24ff3a9cf04c71dbc94d0b566f7a27b94566cac",
           "0x0000000000000000000000000000000000000000000000000000000000000000",
         ],
         null,
@@ -149,9 +147,7 @@ describeDevMoonbeam("Subscription - Logs", (context) => {
     subTopicWildAndCondPromise = subData(subTopicWildAndCond);
 
     const { rawTx } = await createContract(context, "SingleEventContract");
-    await context.createBlock({
-      transactions: [rawTx],
-    });
+    await context.createBlockWithEth(rawTx);
   });
 
   it("should be able to filter by address", async function () {
@@ -206,11 +202,9 @@ describeDevMoonbeam("Subscription - Reverted transaction", (context) => {
 
     // Expected to fail because of not enough fund to pay the deployment
     const { rawTx } = await createContract(context, "SingleEventContract", {
-      from: TEST_ACCOUNT,
+      from: alith.address,
     });
-    await context.createBlock({
-      transactions: [rawTx],
-    });
+    await context.createBlockWithEth(rawTx);
 
     const data = await new Promise((resolve) => {
       let result = null;

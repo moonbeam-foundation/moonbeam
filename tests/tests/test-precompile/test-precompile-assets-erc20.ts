@@ -57,9 +57,7 @@ describeDevMoonbeamAllEthTxTypes(
         true
       );
 
-      await context.createBlock({
-        transactions: [(await createContract(context, "ERC20Instance")).rawTx],
-      });
+      await context.createBlockWithEth((await createContract(context, "ERC20Instance")).rawTx);
     });
 
     it("allows to call name", async function () {
@@ -155,9 +153,7 @@ describeDevMoonbeamAllEthTxTypes(
         true
       );
 
-      await context.createBlock({
-        transactions: [(await createContract(context, "ERC20Instance")).rawTx],
-      });
+      await context.createBlockWithEth((await createContract(context, "ERC20Instance")).rawTx);
     });
     it("allows to approve transfers, and allowance matches", async function () {
       const tx = await createTransaction(context, {
@@ -166,11 +162,9 @@ describeDevMoonbeamAllEthTxTypes(
         data: ERC20_INTERFACE.encodeFunctionData("approve", [baltathar.address, 1000]),
       });
 
-      const block = await context.createBlock({
-        transactions: [tx],
-      });
+      const { result } = await context.createBlockWithEth(tx);
 
-      const receipt = await context.web3.eth.getTransactionReceipt(block.txResults[0].result);
+      const receipt = await context.web3.eth.getTransactionReceipt(result.result);
 
       expect(receipt.status).to.equal(true);
       expect(receipt.logs.length).to.eq(1);
@@ -229,20 +223,16 @@ describeDevMoonbeamAllEthTxTypes(
         true
       );
 
-      await context.createBlock({
-        transactions: [(await createContract(context, "ERC20Instance")).rawTx],
-      });
+      await context.createBlockWithEth((await createContract(context, "ERC20Instance")).rawTx);
     });
     it("allows to approve transfer and use transferFrom", async function () {
-      await context.createBlock({
-        transactions: [
-          await createTransaction(context, {
-            ...ALITH_TRANSACTION_TEMPLATE,
-            to: ADDRESS_ERC20,
-            data: ERC20_INTERFACE.encodeFunctionData("approve", [baltathar.address, 1000]),
-          }),
-        ],
-      });
+      await context.createBlockWithEth(
+        await createTransaction(context, {
+          ...ALITH_TRANSACTION_TEMPLATE,
+          to: ADDRESS_ERC20,
+          data: ERC20_INTERFACE.encodeFunctionData("approve", [baltathar.address, 1000]),
+        })
+      );
 
       const approvals = await context.polkadotApi.query.assets.approvals(
         assetId.toU8a(),
@@ -253,20 +243,18 @@ describeDevMoonbeamAllEthTxTypes(
       expect(approvals.unwrap().amount.toBigInt()).to.equal(1000n);
       // We are gonna spend 1000 from alith to send it to charleth
 
-      const block = await context.createBlock({
-        transactions: [
-          await createTransaction(context, {
-            ...BALTATHAR_TRANSACTION_TEMPLATE,
-            to: ADDRESS_ERC20,
-            data: ERC20_INTERFACE.encodeFunctionData("transferFrom", [
-              alith.address,
-              charleth.address,
-              1000,
-            ]),
-          }),
-        ],
-      });
-      const receipt = await context.web3.eth.getTransactionReceipt(block.txResults[0].result);
+      const { result } = await context.createBlockWithEth(
+        await createTransaction(context, {
+          ...BALTATHAR_TRANSACTION_TEMPLATE,
+          to: ADDRESS_ERC20,
+          data: ERC20_INTERFACE.encodeFunctionData("transferFrom", [
+            alith.address,
+            charleth.address,
+            1000,
+          ]),
+        })
+      );
+      const receipt = await context.web3.eth.getTransactionReceipt(result.result);
 
       expect(receipt.logs.length).to.eq(1);
       expect(receipt.logs[0].address).to.eq(ADDRESS_ERC20);
@@ -320,22 +308,18 @@ describeDevMoonbeamAllEthTxTypes(
         true
       );
 
-      await context.createBlock({
-        transactions: [(await createContract(context, "ERC20Instance")).rawTx],
-      });
+      await context.createBlockWithEth((await createContract(context, "ERC20Instance")).rawTx);
     });
     it("allows to transfer", async function () {
-      const block = await context.createBlock({
-        transactions: [
-          await createTransaction(context, {
-            ...ALITH_TRANSACTION_TEMPLATE,
-            to: ADDRESS_ERC20,
-            data: ERC20_INTERFACE.encodeFunctionData("transfer", [baltathar.address, 1000]),
-          }),
-        ],
-      });
+      const { result } = await context.createBlockWithEth(
+        await createTransaction(context, {
+          ...ALITH_TRANSACTION_TEMPLATE,
+          to: ADDRESS_ERC20,
+          data: ERC20_INTERFACE.encodeFunctionData("transfer", [baltathar.address, 1000]),
+        })
+      );
 
-      const receipt = await context.web3.eth.getTransactionReceipt(block.txResults[0].result);
+      const receipt = await context.web3.eth.getTransactionReceipt(result.result);
       expect(receipt.status).to.equal(true);
 
       // Baltathar balance is 1000
@@ -366,7 +350,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
     });
 
     const { contract, rawTx } = await createContract(context, "ERC20Instance");
-    await context.createBlock({ transactions: [rawTx] });
+    await context.createBlockWithEth(rawTx);
     contractInstanceAddress = contract.options.address;
 
     // We fund the contract address with this test
@@ -383,19 +367,15 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
   it("allows to approve transfer and use transferFrom from contract calls", async function () {
     // Create approval
 
-    const blockAlith = await context.createBlock({
-      transactions: [
-        await createTransaction(context, {
-          ...ALITH_TRANSACTION_TEMPLATE,
-          to: contractInstanceAddress,
-          data: ERC20_INTERFACE.encodeFunctionData("approve", [baltathar.address, 1000]),
-        }),
-      ],
-    });
-
-    const receiptAlith = await context.web3.eth.getTransactionReceipt(
-      blockAlith.txResults[0].result
+    const blockAlith = await context.createBlockWithEth(
+      await createTransaction(context, {
+        ...ALITH_TRANSACTION_TEMPLATE,
+        to: contractInstanceAddress,
+        data: ERC20_INTERFACE.encodeFunctionData("approve", [baltathar.address, 1000]),
+      })
     );
+
+    const receiptAlith = await context.web3.eth.getTransactionReceipt(blockAlith.result.result);
 
     expect(receiptAlith.status).to.equal(true);
     expect(receiptAlith.logs.length).to.eq(1);
@@ -413,21 +393,19 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
     // We are gonna spend 1000 from contractInstanceAddress to send it to charleth
     // Since this is a regular call, it will take contractInstanceAddress as msg.sender
     // thus from & to will be the same, and approval wont be touched
-    const blockBaltathar = await context.createBlock({
-      transactions: [
-        await createTransaction(context, {
-          ...BALTATHAR_TRANSACTION_TEMPLATE,
-          to: contractInstanceAddress,
-          data: ERC20_INTERFACE.encodeFunctionData("transferFrom", [
-            contractInstanceAddress,
-            charleth.address,
-            1000,
-          ]),
-        }),
-      ],
-    });
+    const blockBaltathar = await context.createBlockWithEth(
+      await createTransaction(context, {
+        ...BALTATHAR_TRANSACTION_TEMPLATE,
+        to: contractInstanceAddress,
+        data: ERC20_INTERFACE.encodeFunctionData("transferFrom", [
+          contractInstanceAddress,
+          charleth.address,
+          1000,
+        ]),
+      })
+    );
     const receiptBaltathar = await context.web3.eth.getTransactionReceipt(
-      blockBaltathar.txResults[0].result
+      blockBaltathar.result.result
     );
     expect(receiptBaltathar.logs.length).to.eq(1);
     expect(receiptBaltathar.logs[0].address).to.eq(ADDRESS_ERC20);
@@ -444,22 +422,18 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
     expect(newApprovals.unwrap().amount.toBigInt()).to.equal(1000n);
 
     // this time we call directly from Baltathar the ERC20 contract
-    const directBlock = await context.createBlock({
-      transactions: [
-        await createTransaction(context, {
-          ...BALTATHAR_TRANSACTION_TEMPLATE,
-          to: ADDRESS_ERC20,
-          data: ERC20_INTERFACE.encodeFunctionData("transferFrom", [
-            contractInstanceAddress,
-            charleth.address,
-            1000,
-          ]),
-        }),
-      ],
-    });
-    const direcReceipt = await context.web3.eth.getTransactionReceipt(
-      directBlock.txResults[0].result
+    const directBlock = await context.createBlockWithEth(
+      await createTransaction(context, {
+        ...BALTATHAR_TRANSACTION_TEMPLATE,
+        to: ADDRESS_ERC20,
+        data: ERC20_INTERFACE.encodeFunctionData("transferFrom", [
+          contractInstanceAddress,
+          charleth.address,
+          1000,
+        ]),
+      })
     );
+    const direcReceipt = await context.web3.eth.getTransactionReceipt(directBlock.result.result);
     expect(direcReceipt.logs.length).to.eq(1);
     expect(direcReceipt.logs[0].address).to.eq(ADDRESS_ERC20);
     expect(direcReceipt.logs[0].topics.length).to.eq(3);
@@ -501,7 +475,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
 
     const { contract, rawTx } = await createContract(context, "ERC20Instance");
     contractInstanceAddress = contract.options.address;
-    await context.createBlock({ transactions: [rawTx] });
+    await context.createBlockWithEth(rawTx);
     // We fund Alith with this test
     await mockAssetBalance(
       context,
@@ -521,11 +495,9 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
       data: ERC20_INTERFACE.encodeFunctionData("approve", [contractInstanceAddress, 1000]),
     });
 
-    const block = await context.createBlock({
-      transactions: [tx],
-    });
+    const { result } = await context.createBlockWithEth(tx);
 
-    const receipt = await context.web3.eth.getTransactionReceipt(block.txResults[0].result);
+    const receipt = await context.web3.eth.getTransactionReceipt(result.result);
 
     expect(receipt.status).to.equal(true);
     expect(receipt.logs.length).to.eq(1);
@@ -542,21 +514,19 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
     expect(approvals.unwrap().amount.toBigInt()).to.equal(1000n);
     // We are gonna spend 1000 from alith.address to send it to charleth from contract address
     // even if Bob calls, msg.sender will become the contract with regular calls
-    const blockBaltathar = await context.createBlock({
-      transactions: [
-        await createTransaction(context, {
-          ...BALTATHAR_TRANSACTION_TEMPLATE,
-          to: contractInstanceAddress,
-          data: ERC20_INTERFACE.encodeFunctionData("transferFrom", [
-            alith.address,
-            charleth.address,
-            1000,
-          ]),
-        }),
-      ],
-    });
+    const blockBaltathar = await context.createBlockWithEth(
+      await createTransaction(context, {
+        ...BALTATHAR_TRANSACTION_TEMPLATE,
+        to: contractInstanceAddress,
+        data: ERC20_INTERFACE.encodeFunctionData("transferFrom", [
+          alith.address,
+          charleth.address,
+          1000,
+        ]),
+      })
+    );
     const receiptBaltathar = await context.web3.eth.getTransactionReceipt(
-      blockBaltathar.txResults[0].result
+      blockBaltathar.result.result
     );
     expect(receiptBaltathar.logs.length).to.eq(1);
     expect(receiptBaltathar.logs[0].address).to.eq(ADDRESS_ERC20);
@@ -601,7 +571,7 @@ describeDevMoonbeamAllEthTxTypes(
 
       const { contract, rawTx } = await createContract(context, "ERC20Instance");
       contractInstanceAddress = contract.options.address;
-      await context.createBlock({ transactions: [rawTx] });
+      await context.createBlockWithEth(rawTx);
       await mockAssetBalance(
         context,
         assetBalance,
@@ -613,17 +583,15 @@ describeDevMoonbeamAllEthTxTypes(
     });
     it("allows to transfer through call from SC ", async function () {
       // Create approval
-      const block = await context.createBlock({
-        transactions: [
-          await createTransaction(context, {
-            ...ALITH_TRANSACTION_TEMPLATE,
-            to: contractInstanceAddress,
-            data: ERC20_INTERFACE.encodeFunctionData("transfer", [baltathar.address, 1000]),
-          }),
-        ],
-      });
+      const { result } = await context.createBlockWithEth(
+        await createTransaction(context, {
+          ...ALITH_TRANSACTION_TEMPLATE,
+          to: contractInstanceAddress,
+          data: ERC20_INTERFACE.encodeFunctionData("transfer", [baltathar.address, 1000]),
+        })
+      );
 
-      const receipt = await context.web3.eth.getTransactionReceipt(block.txResults[0].result);
+      const receipt = await context.web3.eth.getTransactionReceipt(result.result);
       expect(receipt.status).to.equal(true);
 
       // Baltathar balance is 1000

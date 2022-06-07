@@ -6,11 +6,14 @@ import { createContract } from "../../util/transactions";
 
 describeDevMoonbeamAllEthTxTypes("Contract - Event", (context) => {
   it("should contain event", async function () {
-    const { rawTx } = await createContract(context, "SingleEventContract", {
-      from: alith.address,
-    });
-    const { txResults } = await context.createBlock({ transactions: [rawTx] });
-    const receipt = await context.web3.eth.getTransactionReceipt(txResults[0].result);
+    const { result } = await context.createBlockWithEth(
+      (
+        await createContract(context, "SingleEventContract", {
+          from: alith.address,
+        })
+      ).rawTx
+    );
+    const receipt = await context.web3.eth.getTransactionReceipt(result.result);
 
     expect(receipt.logs.length).to.be.eq(1);
     expect(

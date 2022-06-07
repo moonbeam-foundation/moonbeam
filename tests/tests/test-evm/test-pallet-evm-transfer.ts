@@ -1,9 +1,9 @@
 import "@moonbeam-network/api-augment";
 import { expect } from "chai";
 import { alith, baltathar } from "../../util/accounts";
+import { DEFAULT_GENESIS_BALANCE } from "../../util/constants";
 
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
-import { createBlockWithExtrinsic } from "../../util/substrate-rpc";
 
 // A call from root (sudo) can make a transfer directly in pallet_evm
 // A signed call cannot make a transfer directly in pallet_evm
@@ -11,9 +11,9 @@ import { createBlockWithExtrinsic } from "../../util/substrate-rpc";
 describeDevMoonbeam("Pallet EVM transfer - no sudo", (context) => {
   let events;
   before("Send a simple transfer with pallet evm", async () => {
-    ({ events } = await createBlockWithExtrinsic(
-      context,
-      alith,
+    ({
+      result: { events },
+    } = await context.createBlockWithExtrinsic(
       context.polkadotApi.tx.evm.call(
         alith.address,
         baltathar.address,
@@ -29,16 +29,17 @@ describeDevMoonbeam("Pallet EVM transfer - no sudo", (context) => {
   });
 
   it("should fail without sudo", async function () {
-    expect(events[5].toHuman().method).to.eq("ExtrinsicFailed");
-    expect(await context.web3.eth.getBalance(baltathar.address)).to.equal("0");
+    expect(events[5].event.method).to.eq("ExtrinsicFailed");
+    expect(await context.web3.eth.getBalance(baltathar.address)).to.equal(
+      DEFAULT_GENESIS_BALANCE.toString()
+    );
   });
 });
 describeDevMoonbeam("Pallet EVM transfer - with sudo", (context) => {
-  let events;
-  before("Send a simple transfer with pallet evm with sudo", async () => {
-    ({ events } = await createBlockWithExtrinsic(
-      context,
-      alith,
+  it("should succeed with sudo", async function () {
+    const {
+      result: { events },
+    } = await context.createBlockWithExtrinsic(
       context.polkadotApi.tx.sudo.sudo(
         context.polkadotApi.tx.evm.call(
           alith.address,
@@ -52,13 +53,15 @@ describeDevMoonbeam("Pallet EVM transfer - with sudo", (context) => {
           []
         )
       )
-    ));
-  });
+    );
 
-  it("should succeed with sudo", async function () {
-    expect(events[13].toHuman().method).to.eq("ExtrinsicSuccess");
+    expect(
+      events.find(
+        ({ event: { section, method } }) => section == "system" && method == "ExtrinsicSuccess"
+      )
+    ).to.exist;
     expect(await context.web3.eth.getBalance(baltathar.address)).to.equal(
-      100_000_000_000_000_000_000n.toString()
+      (DEFAULT_GENESIS_BALANCE + 100_000_000_000_000_000_000n).toString()
     );
   });
 });
