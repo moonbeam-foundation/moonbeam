@@ -28,7 +28,7 @@ use precompile_utils::{
 	FunctionModifier, LogExt, LogsBuilder, PrecompileHandleExt,
 };
 use sp_core::{H160, H256, U256};
-use sp_std::{fmt::Debug, marker::PhantomData};
+use sp_std::{cell::RefCell, fmt::Debug, marker::PhantomData};
 
 // #[cfg(test)]
 // mod mock;
@@ -108,8 +108,49 @@ where
 	Ok(())
 }
 
-/// A precompile to wrap the functionality from pallet author mapping.
-pub struct RandomnessWrapper<Runtime>(PhantomData<Runtime>);
+/// Subcall to provide randomness
+/// caller must call `ensure_can_provide_randomness` before calling this function
+fn provide_randomness(
+	handle: &mut impl PrecompileHandle,
+	gas_limit: u64,
+	contract: H160,
+	randomness: H256,
+) -> EvmResult<()> {
+	let (reason, _) = handle.call(
+		contract,
+		None,
+		EvmDataWriter::new().write(randomness).build(),
+		Some(gas_limit),
+		false,
+		&Context {
+			caller: handle.context().address,
+			address: contract,
+			apparent_value: U256::zero(),
+		},
+	);
+	// Logs
+	// We reserved enough gas so this should not OOG.
+	match reason {
+		ExitReason::Revert(_) | ExitReason::Error(_) => {
+			let log = log_subcall_failed(handle.code_address());
+			handle.record_log_costs(&[&log])?;
+			log.record(handle)?
+		}
+		ExitReason::Succeed(_) => {
+			let log = log_subcall_succeeded(handle.code_address());
+			handle.record_log_costs(&[&log])?;
+			log.record(handle)?
+		}
+		_ => (),
+	}
+	Ok(())
+}
+
+/// A precompile to wrap the functionality from pallet-randomness
+pub struct RandomnessWrapper<Runtime> {
+	pub did_call: RefCell<bool>,
+	runtime: PhantomData<Runtime>,
+}
 
 impl<Runtime> Precompile for RandomnessWrapper<Runtime>
 where
@@ -153,54 +194,6 @@ where
 			}
 			Action::InstantLocalRandomness => Self::instant_local_randomness(handle),
 		}
-	}
-}
-
-impl<Runtime> RandomnessWrapper<Runtime>
-where
-	Runtime: pallet_randomness::Config + pallet_evm::Config + pallet_base_fee::Config,
-	<Runtime as frame_system::Config>::BlockNumber: EvmData,
-	<Runtime as frame_system::Config>::Hash: From<H256> + Into<H256> + EvmData,
-	<Runtime as frame_system::Config>::AccountId: From<H160> + Into<H160>,
-	BalanceOf<Runtime>: From<u64> + TryFrom<U256> + Into<U256> + EvmData,
-{
-	/// Subcall to provide randomness
-	/// caller must call `ensure_can_provide_randomness` before calling this function
-	/// TODO: atomic bool to prevent reentrancy
-	fn provide_randomness(
-		handle: &mut impl PrecompileHandle,
-		gas_limit: u64,
-		contract: H160,
-		randomness: H256,
-	) -> EvmResult<()> {
-		let (reason, _) = handle.call(
-			contract,
-			None,
-			EvmDataWriter::new().write(randomness).build(),
-			Some(gas_limit),
-			false,
-			&Context {
-				caller: handle.context().address,
-				address: contract,
-				apparent_value: U256::zero(),
-			},
-		);
-		// Logs
-		// We reserved enough gas so this should not OOG.
-		match reason {
-			ExitReason::Revert(_) | ExitReason::Error(_) => {
-				let log = log_subcall_failed(handle.code_address());
-				handle.record_log_costs(&[&log])?;
-				log.record(handle)?
-			}
-			ExitReason::Succeed(_) => {
-				let log = log_subcall_succeeded(handle.code_address());
-				handle.record_log_costs(&[&log])?;
-				log.record(handle)?
-			}
-			_ => (),
-		}
-		Ok(())
 	}
 }
 
@@ -338,7 +331,7 @@ where
 		// get gas before subcall
 		let before_remaining_gas = handle.remaining_gas();
 		// make subcall
-		Self::provide_randomness(
+		provide_randomness(
 			handle,
 			request.gas_limit,
 			request.contract_address.clone().into(),
@@ -405,7 +398,7 @@ where
 			output: Default::default(),
 		})
 	}
-	/// Provides babe randomness current block to caller by invoking subcall
+	/// Provides most recent babe randomness current block to caller by invoking subcall
 	fn instant_babe_randomness_current_block(
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
@@ -421,7 +414,7 @@ where
 		>(salt)
 		.map_err(|e| error(format!("{:?}", e)))?;
 		// make subcall
-		Self::provide_randomness(
+		provide_randomness(
 			handle,
 			gas_limit,
 			Runtime::AddressMapping::into_account_id(handle.context().caller).into(),
@@ -432,7 +425,7 @@ where
 			output: Default::default(),
 		})
 	}
-	/// Provides babe randomness one epoch ago to caller by invoking subcall
+	/// Provides most recent babe randomness one epoch ago to caller by invoking subcall
 	fn instant_babe_randomness_one_epoch_ago(
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
@@ -448,7 +441,7 @@ where
 		>(salt)
 		.map_err(|e| error(format!("{:?}", e)))?;
 		// make subcall
-		Self::provide_randomness(
+		provide_randomness(
 			handle,
 			gas_limit,
 			Runtime::AddressMapping::into_account_id(handle.context().caller).into(),
@@ -459,7 +452,7 @@ where
 			output: Default::default(),
 		})
 	}
-	/// Provides babe randomness two epochs ago to caller by invoking subcall on behalf of caller
+	/// Provides most recent babe randomness two epochs ago to caller by invoking subcall
 	fn instant_babe_randomness_two_epochs_ago(
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
@@ -475,7 +468,7 @@ where
 		>(salt)
 		.map_err(|e| error(format!("{:?}", e)))?;
 		// make subcall
-		Self::provide_randomness(
+		provide_randomness(
 			handle,
 			gas_limit,
 			Runtime::AddressMapping::into_account_id(handle.context().caller).into(),
@@ -497,7 +490,7 @@ where
 		let randomness = pallet_randomness::instant_local_randomness::<Runtime>(salt)
 			.map_err(|e| error(format!("{:?}", e)))?;
 		// make subcall
-		Self::provide_randomness(
+		provide_randomness(
 			handle,
 			gas_limit,
 			Runtime::AddressMapping::into_account_id(handle.context().caller).into(),
@@ -508,5 +501,4 @@ where
 			output: Default::default(),
 		})
 	}
-	// TODO: instant (most ) randomness request for each type of provided randomness
 }
