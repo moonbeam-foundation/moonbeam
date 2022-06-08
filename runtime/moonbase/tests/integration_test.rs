@@ -1919,23 +1919,6 @@ where
 fn length_fee_is_sensible() {
 	use sp_runtime::testing::TestXt;
 
-	ExtBuilder::default()
-		.with_balances(vec![
-			(AccountId::from(ALICE), (1 * UNIT) + (1 * WEI)),
-			(AccountId::from(BOB), 0),
-		])
-		.build()
-		.execute_with(|| {
-			// Substrate transfer
-			assert_ok!(Balances::transfer(
-				origin_of(AccountId::from(ALICE)),
-				AccountId::from(BOB),
-				1 * UNIT,
-			));
-			// 1 WEI is left in the account
-			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1 * WEI);
-		});
-
 	// tests that length fee is sensible for a few hypothetical transactions
 	ExtBuilder::default().build().execute_with(|| {
 		let call = frame_system::Call::remark::<Runtime> { remark: vec![] };
