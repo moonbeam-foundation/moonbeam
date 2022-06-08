@@ -64,7 +64,6 @@ pub mod pallet {
 
 	/// Exposes randomness in this pallet to the runtime
 	pub trait GetMaybeRandomness<R> {
-		fn get_last_randomness() -> Option<R>;
 		fn get_current_randomness() -> Option<R>;
 	}
 
@@ -191,22 +190,12 @@ pub mod pallet {
 						.map(|inout| inout.make_bytes(&sp_consensus_babe::BABE_VRF_INOUT_CONTEXT))
 				})
 				.expect("VRF output encoded in pre-runtime digest must be valid");
-			// Place last VRF output into the `LastRandomness` storage item
-			if let Some(current_randomness) = CurrentRandomness::<T>::take() {
-				LastRandomness::<T>::put(current_randomness);
-			} else {
-				// clear LastRandomness if there is no CurrentRandomness
-				<LastRandomness<T>>::kill();
-			}
 			CurrentRandomness::<T>::put(randomness);
 			T::DbWeight::get().read + 2 * T::DbWeight::get().write
 		}
 	}
 
 	impl<T: Config> GetMaybeRandomness<Randomness> for Pallet<T> {
-		fn get_last_randomness() -> Option<Randomness> {
-			LastRandomness::<T>::get()
-		}
 		fn get_current_randomness() -> Option<Randomness> {
 			CurrentRandomness::<T>::get()
 		}

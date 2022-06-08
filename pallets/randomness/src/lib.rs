@@ -145,36 +145,16 @@ pub mod pallet {
 	pub type CurrentBlockRandomness<T: Config> = StorageValue<_, Option<T::Hash>, ValueQuery>;
 
 	#[pallet::storage]
-	#[pallet::getter(fn last_current_block_randomness)]
-	/// Last relay chain current block randomness
-	/// Some(randomness) or None if not updated
-	/// TODO: replace with LastParentBlockRandomness once
-	/// https://github.com/paritytech/substrate/pull/11113 is merged
-	pub type LastCurrentBlockRandomness<T: Config> = StorageValue<_, Option<T::Hash>, ValueQuery>;
-
-	#[pallet::storage]
 	#[pallet::getter(fn one_epoch_ago_randomness)]
 	/// Relay chain one epoch ago randomness
 	/// Some(randomness) or None if not updated
 	pub type OneEpochAgoRandomness<T: Config> = StorageValue<_, Option<T::Hash>, ValueQuery>;
 
 	#[pallet::storage]
-	#[pallet::getter(fn last_one_epoch_ago_randomness)]
-	/// Last relay chain one epoch ago randomness
-	/// Some(randomness) or None if not updated
-	pub type LastOneEpochAgoRandomness<T: Config> = StorageValue<_, Option<T::Hash>, ValueQuery>;
-
-	#[pallet::storage]
 	#[pallet::getter(fn two_epochs_ago_randomness)]
 	/// Relay chain two epochs ago randomness
 	/// Some(randomness) or None if not updated
 	pub type TwoEpochsAgoRandomness<T: Config> = StorageValue<_, Option<T::Hash>, ValueQuery>;
-
-	#[pallet::storage]
-	#[pallet::getter(fn last_two_epochs_ago_randomness)]
-	/// Last relay chain two epochs ago randomness
-	/// Some(randomness) or None if not updated
-	pub type LastTwoEpochsAgoRandomness<T: Config> = StorageValue<_, Option<T::Hash>, ValueQuery>;
 
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
@@ -183,40 +163,26 @@ pub mod pallet {
 		// only get new randomness iff relay block number changes
 		fn on_initialize(_now: BlockNumberFor<T>) -> Weight {
 			let last_epoch_index = <CurrentEpochIndex<T>>::get();
-			let (maybe_new_epoch_index, get_epoch_index_wt) = T::RelayEpochIndex::get_epoch_index();
+			let (maybe_new_epoch_index, mut weight_consumed) =
+				T::RelayEpochIndex::get_epoch_index();
 			let epoch_changed = maybe_new_epoch_index > last_epoch_index;
-			let mut weight_consumed: Weight =
-				T::DbWeight::get().read + T::DbWeight::get().write + get_epoch_index_wt;
 			if epoch_changed {
 				// insert new epoch information
 				<CurrentEpochIndex<T>>::put(maybe_new_epoch_index);
-				// update epoch randomness values
-				let (last_one_epoch_ago_randomness, last_two_epochs_ago_randomness) = (
-					<OneEpochAgoRandomness<T>>::get(),
-					<TwoEpochsAgoRandomness<T>>::get(),
-				);
-				<LastOneEpochAgoRandomness<T>>::put(last_one_epoch_ago_randomness);
-				<LastTwoEpochsAgoRandomness<T>>::put(last_two_epochs_ago_randomness);
 				let (one_epoch_ago_randomness, one_epoch_ago_randomness_wt) =
 					T::RelayRandomness::get_one_epoch_ago_randomness();
 				let (two_epochs_ago_randomness, two_epochs_ago_randomness_wt) =
 					T::RelayRandomness::get_two_epochs_ago_randomness();
 				<OneEpochAgoRandomness<T>>::put(one_epoch_ago_randomness);
 				<TwoEpochsAgoRandomness<T>>::put(two_epochs_ago_randomness);
-				weight_consumed += 2 * T::DbWeight::get().read
-					+ 5 * T::DbWeight::get().write
+				weight_consumed += 3 * T::DbWeight::get().write
 					+ one_epoch_ago_randomness_wt
 					+ two_epochs_ago_randomness_wt;
 			}
-			let last_current_block_randomness = <CurrentBlockRandomness<T>>::get();
-			<LastCurrentBlockRandomness<T>>::put(last_current_block_randomness);
 			let (current_block_randomness, current_block_randomness_wt) =
 				T::RelayRandomness::get_current_block_randomness();
 			<CurrentBlockRandomness<T>>::put(current_block_randomness);
-			weight_consumed
-				+ T::DbWeight::get().read
-				+ T::DbWeight::get().write
-				+ current_block_randomness_wt
+			weight_consumed + T::DbWeight::get().write + current_block_randomness_wt
 		}
 	}
 
