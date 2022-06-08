@@ -273,7 +273,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	// units per second we should charge
 	type Trader = (
 		UsingComponents<
-			IdentityFee<Balance>,
+			<Runtime as pallet_transaction_payment::Config>::WeightToFee,
 			SelfReserve,
 			AccountId,
 			Balances,
