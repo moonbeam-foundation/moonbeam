@@ -83,9 +83,8 @@ pub mod pallet {
 
 	#[pallet::error]
 	pub enum Error<T> {
-		NotYetImplemented,
 		RequestCounterOverflowed,
-		NotSufficientDeposit,
+		InsufficientDeposit,
 		CannotRequestPastRandomness,
 		RequestDNE,
 		RequestCannotYetBeFulfilled,
@@ -99,14 +98,37 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
-		/// Randomness requested and request put in storage
-		RandomnessRequested {
+		RandomnessRequestedCurrentBlock {
 			id: RequestId,
 			refund_address: T::AccountId,
 			contract_address: T::AccountId,
 			fee: BalanceOf<T>,
 			salt: T::Hash,
-			// TODO: split into event based on Request.Info pls, not 1 event for all requests
+			earliest_block: T::BlockNumber,
+		},
+		RandomnessRequestedBabeOneEpochAgo {
+			id: RequestId,
+			refund_address: T::AccountId,
+			contract_address: T::AccountId,
+			fee: BalanceOf<T>,
+			salt: T::Hash,
+			earliest_epoch: u64,
+		},
+		RandomnessRequestedBabeTwoEpochsAgo {
+			id: RequestId,
+			refund_address: T::AccountId,
+			contract_address: T::AccountId,
+			fee: BalanceOf<T>,
+			salt: T::Hash,
+			earliest_epoch: u64,
+		},
+		RandomnessRequestedLocal {
+			id: RequestId,
+			refund_address: T::AccountId,
+			contract_address: T::AccountId,
+			fee: BalanceOf<T>,
+			salt: T::Hash,
+			earliest_block: T::BlockNumber,
 		},
 		RequestFulfilled {
 			id: RequestId,
@@ -206,7 +228,7 @@ pub mod pallet {
 			let deposit = T::Deposit::get().saturating_add(request.fee);
 			T::Currency::can_reserve(&request.contract_address, deposit)
 				.then(|| true)
-				.ok_or(Error::<T>::NotSufficientDeposit)?;
+				.ok_or(Error::<T>::InsufficientDeposit)?;
 			// get new request ID
 			let request_id = <RequestCount<T>>::get();
 			let next_id = request_id
@@ -215,14 +237,7 @@ pub mod pallet {
 			T::Currency::reserve(&request.contract_address, deposit)?;
 			// insert request
 			<RequestCount<T>>::put(next_id);
-			Self::deposit_event(Event::RandomnessRequested {
-				id: request_id,
-				refund_address: request.refund_address.clone(),
-				contract_address: request.contract_address.clone(),
-				fee: request.fee,
-				salt: request.salt,
-				//info: request.request.info,
-			});
+			request.emit_randomness_requested_event(request_id);
 			<Requests<T>>::insert(request_id, RequestState::new(request, deposit));
 			Ok(())
 		}

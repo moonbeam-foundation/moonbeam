@@ -15,8 +15,8 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
-	BalanceOf, Config, CurrentBlockRandomness, CurrentEpochIndex, Error, OneEpochAgoRandomness,
-	Pallet, TwoEpochsAgoRandomness,
+	BalanceOf, Config, CurrentBlockRandomness, CurrentEpochIndex, Error, Event,
+	OneEpochAgoRandomness, Pallet, RequestId, TwoEpochsAgoRandomness,
 };
 use frame_support::pallet_prelude::*;
 use frame_support::traits::{Currency, ExistenceRequirement::KeepAlive, ReservableCurrency};
@@ -28,12 +28,12 @@ use sp_runtime::traits::{CheckedSub, Saturating};
 /// Type of request
 /// Represents a request for the most recent randomness of this type at or after the inner time
 pub enum RequestType<T: Config> {
+	/// Babe per block
+	BabeCurrentBlock(T::BlockNumber),
 	/// Babe one epoch ago
 	BabeOneEpochAgo(u64),
 	/// Babe two epochs ago
 	BabeTwoEpochsAgo(u64),
-	/// Babe per block
-	BabeCurrentBlock(T::BlockNumber),
 	/// Local per block VRF output
 	Local(T::BlockNumber),
 }
@@ -62,11 +62,50 @@ impl<T: Config> Request<T> {
 			|when| -> bool { when <= frame_system::Pallet::<T>::block_number() };
 		let leq_current_epoch_index = |when| -> bool { when <= <CurrentEpochIndex<T>>::get() };
 		match self.info {
+			RequestType::BabeCurrentBlock(block) => leq_current_block(block),
 			RequestType::BabeOneEpochAgo(index) => leq_current_epoch_index(index),
 			RequestType::BabeTwoEpochsAgo(index) => leq_current_epoch_index(index),
-			RequestType::BabeCurrentBlock(block) => leq_current_block(block),
 			RequestType::Local(block) => leq_current_block(block),
 		}
+	}
+	pub(crate) fn emit_randomness_requested_event(&self, id: RequestId) {
+		let event = match self.info {
+			RequestType::BabeCurrentBlock(block) => Event::<T>::RandomnessRequestedCurrentBlock {
+				id,
+				refund_address: self.refund_address.clone(),
+				contract_address: self.contract_address.clone(),
+				fee: self.fee,
+				salt: self.salt,
+				earliest_block: block,
+			},
+			RequestType::BabeOneEpochAgo(index) => Event::<T>::RandomnessRequestedBabeOneEpochAgo {
+				id,
+				refund_address: self.refund_address.clone(),
+				contract_address: self.contract_address.clone(),
+				fee: self.fee,
+				salt: self.salt,
+				earliest_epoch: index,
+			},
+			RequestType::BabeTwoEpochsAgo(index) => {
+				Event::<T>::RandomnessRequestedBabeTwoEpochsAgo {
+					id,
+					refund_address: self.refund_address.clone(),
+					contract_address: self.contract_address.clone(),
+					fee: self.fee,
+					salt: self.salt,
+					earliest_epoch: index,
+				}
+			}
+			RequestType::Local(block) => Event::<T>::RandomnessRequestedLocal {
+				id,
+				refund_address: self.refund_address.clone(),
+				contract_address: self.contract_address.clone(),
+				fee: self.fee,
+				salt: self.salt,
+				earliest_block: block,
+			},
+		};
+		Pallet::<T>::deposit_event(event);
 	}
 	/// Cleanup after fulfilling a request
 	pub(crate) fn finish_fulfill(
