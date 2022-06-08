@@ -294,28 +294,6 @@ where
 	}
 }
 
-pub struct WeightToFee;
-impl WeightToFeePolynomial for WeightToFee {
-	type Balance = Balance;
-
-	/// Return a vec of coefficients. Here we just use one coefficient and reduce it to a constant
-	/// modifier in order to closely match Ethereum-based fees.
-	///
-	/// Calculation, per the documentation in `frame_support`:
-	///
-	/// ```ignore
-	/// coeff_integer * x^(degree) + coeff_frac * x^(degree)
-	/// ```
-	fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
-		smallvec![WeightToFeeCoefficient {
-			degree: 1,
-			coeff_frac: Perbill::zero(),
-			coeff_integer: currency::WEIGHT_FEE,
-			negative: false,
-		}]
-	}
-}
-
 pub struct LengthToFee;
 impl WeightToFeePolynomial for LengthToFee {
 	type Balance = Balance;

@@ -29,7 +29,7 @@ use sp_runtime::traits::Hash as THash;
 use frame_support::{
 	parameter_types,
 	traits::{Everything, Nothing, PalletInfoAccess},
-	weights::{IdentityFee, Weight},
+	weights::Weight,
 };
 
 use frame_system::EnsureRoot;

@@ -29,7 +29,7 @@ use sp_runtime::traits::Hash as THash;
 use frame_support::{
 	parameter_types,
 	traits::{Everything, Nothing, PalletInfoAccess},
-	weights::{IdentityFee, Weight},
+	weights::Weight,
 };
 
 use frame_system::EnsureRoot;
@@ -261,7 +261,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	// units per second we should charge
 	type Trader = (
 		UsingComponents<
-			IdentityFee<Balance>,
+			<Runtime as pallet_transaction_payment::Config>::WeightToFee,
 			SelfReserve,
 			AccountId,
 			Balances,
