@@ -211,7 +211,6 @@ std = [
 	"parachain-staking/std",
 	"parity-scale-codec/std",
 	"precompile-utils/std",
-	"precompile-utils/testing",
 	"runtime-common/std",
 	"scale-info/std",
 	"serde",
