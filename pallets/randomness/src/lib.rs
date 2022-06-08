@@ -92,7 +92,6 @@ pub mod pallet {
 		OnlyRequesterCanIncreaseFee,
 		NewFeeMustBeGreaterThanOldFee,
 		RequestHasNotExpired,
-		RequestedRandomnessNotCorrectlyUpdated,
 		RequestExecutionOOG,
 		RandomnessNotAvailable,
 	}

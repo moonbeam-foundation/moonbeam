@@ -18,15 +18,22 @@
 ///! exposes the most recent values for all the pallet storage values
 use crate::{Config, Error, Pallet};
 use frame_support::StorageValue;
+use pallet_vrf::GetMaybeRandomness;
 use sp_runtime::DispatchError;
 
+/// Returns most recent value for the local randomness (per block VRF)
+pub fn instant_local_randomness<T: Config>(salt: T::Hash) -> Result<[u8; 32], DispatchError> {
+	let randomness =
+		T::LocalRandomness::get_current_randomness().ok_or(Error::<T>::RandomnessNotAvailable)?;
+	Ok(Pallet::<T>::concat_and_hash(randomness, salt))
+}
+
 /// Returns most recent value for the specified storage item `V`
-/// generic over storage map to be generic over type of randomness
-pub fn instant_randomness<T, V>(salt: T::Hash) -> Result<[u8; 32], DispatchError>
+pub fn instant_relay_randomness<T, V>(salt: T::Hash) -> Result<[u8; 32], DispatchError>
 where
 	T: Config,
 	V: StorageValue<Option<T::Hash>, Query = Option<T::Hash>>,
 {
-	let randomness = V::get().ok_or(Error::<T>::RequestedRandomnessNotCorrectlyUpdated)?;
+	let randomness = V::get().ok_or(Error::<T>::RandomnessNotAvailable)?;
 	Ok(Pallet::<T>::concat_and_hash(randomness, salt))
 }
