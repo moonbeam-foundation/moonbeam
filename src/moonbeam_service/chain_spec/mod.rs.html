@@ -152,6 +152,10 @@
 <span id="147">147</span>
 <span id="148">148</span>
 <span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -167,14 +171,16 @@
 
 <span class="comment">// You should have received a copy of the GNU General Public License</span>
 <span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="kw">use</span> <span class="ident">bip32::ExtendedPrivateKey</span>;
 <span class="kw">use</span> <span class="ident">bip39</span>::{<span class="ident">Language</span>, <span class="ident">Mnemonic</span>, <span class="ident">Seed</span>};
+<span class="kw">use</span> <span class="ident">cli_opt::account_key::Secp256k1SecretKey</span>;
+<span class="kw">use</span> <span class="ident">libsecp256k1</span>::{<span class="ident">PublicKey</span>, <span class="ident">PublicKeyFormat</span>};
 <span class="kw">use</span> <span class="ident">log::debug</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">moonbeam_core_primitives::AccountId</span>;
 <span class="kw">use</span> <span class="ident">sc_chain_spec</span>::{<span class="ident">ChainSpecExtension</span>, <span class="ident">ChainSpecGroup</span>};
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
 <span class="kw">use</span> <span class="ident">sha3</span>::{<span class="ident">Digest</span>, <span class="ident">Keccak256</span>};
 <span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">ecdsa</span>, <span class="ident">Pair</span>, <span class="ident">Public</span>, <span class="ident">H160</span>, <span class="ident">H256</span>};
-<span class="kw">use</span> <span class="ident">tiny_hderive::bip32::ExtendedPrivKey</span>;
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">fake_spec</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;moonbase-native&quot;</span>)]</span>
@@ -248,11 +254,16 @@
 
 	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">childs</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
 	<span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">num_accounts</span> {
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">child_pair</span>) <span class="op">=</span>
-			<span class="ident">ExtendedPrivKey::derive</span>(<span class="ident">seed</span>.<span class="ident">as_bytes</span>(), <span class="macro">format!</span>(<span class="string">&quot;m/44&#39;/60&#39;/0&#39;/0/{}&quot;</span>, <span class="ident">i</span>).<span class="ident">as_ref</span>())
-				.<span class="ident">ok</span>()
-				.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">account</span><span class="op">|</span> <span class="ident">TPublic::Pair::from_seed_slice</span>(<span class="kw-2">&amp;</span><span class="ident">account</span>.<span class="ident">secret</span>()).<span class="ident">ok</span>())
-		{
+		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">child_pair</span>) <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;m/44&#39;/60&#39;/0&#39;/0/{}&quot;</span>, <span class="ident">i</span>)
+			.<span class="ident">parse</span>()
+			.<span class="ident">ok</span>()
+			.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">derivation_path</span><span class="op">|</span> {
+				<span class="ident">ExtendedPrivateKey</span>::<span class="op">&lt;</span><span class="ident">Secp256k1SecretKey</span><span class="op">&gt;</span><span class="ident">::derive_from_path</span>(<span class="kw-2">&amp;</span><span class="ident">seed</span>, <span class="kw-2">&amp;</span><span class="ident">derivation_path</span>)
+					.<span class="ident">ok</span>()
+			})
+			.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">extended</span><span class="op">|</span> {
+				<span class="ident">TPublic::Pair::from_seed_slice</span>(<span class="kw-2">&amp;</span><span class="ident">extended</span>.<span class="ident">private_key</span>().<span class="number">0</span>.<span class="ident">serialize</span>()).<span class="ident">ok</span>()
+			}) {
 			<span class="ident">childs</span>.<span class="ident">push</span>(<span class="ident">child_pair</span>);
 		} <span class="kw">else</span> {
 			<span class="macro">log::error!</span>(<span class="string">&quot;An error ocurred while deriving key {} from parent&quot;</span>, <span class="ident">i</span>)
@@ -263,12 +274,9 @@
 
 <span class="doccomment">/// Helper function to get an `AccountId` from an ECDSA Key Pair.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_account_id_from_pair</span>(<span class="ident">pair</span>: <span class="ident">ecdsa::Pair</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span> {
-	<span class="kw">let</span> <span class="ident">decompressed</span> <span class="op">=</span> <span class="ident">libsecp256k1::PublicKey::parse_slice</span>(
-		<span class="kw-2">&amp;</span><span class="ident">pair</span>.<span class="ident">public</span>().<span class="number">0</span>,
-		<span class="prelude-val">Some</span>(<span class="ident">libsecp256k1::PublicKeyFormat::Compressed</span>),
-	)
-	.<span class="ident">ok</span>()<span class="question-mark">?</span>
-	.<span class="ident">serialize</span>();
+	<span class="kw">let</span> <span class="ident">decompressed</span> <span class="op">=</span> <span class="ident">PublicKey::parse_slice</span>(<span class="kw-2">&amp;</span><span class="ident">pair</span>.<span class="ident">public</span>().<span class="number">0</span>, <span class="prelude-val">Some</span>(<span class="ident">PublicKeyFormat::Compressed</span>))
+		.<span class="ident">ok</span>()<span class="question-mark">?</span>
+		.<span class="ident">serialize</span>();
 
 	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">m</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">64</span>];
 	<span class="ident">m</span>.<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">decompressed</span>[<span class="number">1</span>..<span class="number">65</span>]);
