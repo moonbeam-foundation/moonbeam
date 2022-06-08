@@ -124,7 +124,7 @@ pub mod currency {
 	pub const GLMR: Balance = 1_000_000_000_000_000_000;
 	pub const KILOGLMR: Balance = 1_000_000_000_000_000_000_000;
 
-	pub const TRANSACTION_BYTE_FEE: Balance = 10 * MICROGLMR * SUPPLY_FACTOR;
+	pub const TRANSACTION_BYTE_FEE: Balance = 1 * GIGAWEI * SUPPLY_FACTOR;
 	pub const STORAGE_BYTE_FEE: Balance = 100 * MICROGLMR * SUPPLY_FACTOR;
 	pub const WEIGHT_FEE: Balance = 100 * KILOWEI * SUPPLY_FACTOR;
 
@@ -1339,7 +1339,7 @@ mod tests {
 		assert_eq!(SUPPLY_FACTOR, 100);
 
 		// txn fees
-		assert_eq!(TRANSACTION_BYTE_FEE, Balance::from(1 * MILLIGLMR));
+		assert_eq!(TRANSACTION_BYTE_FEE, Balance::from(100 * GIGAWEI));
 		assert_eq!(
 			get!(pallet_transaction_payment, OperationalFeeMultiplier, u8),
 			5_u8
