@@ -309,7 +309,7 @@ impl WeightToFeePolynomial for LengthToFee {
 			WeightToFeeCoefficient {
 				degree: 3,
 				coeff_frac: Perbill::zero(),
-				coeff_integer: 1,
+				coeff_integer: 1 * currency::SUPPLY_FACTOR,
 				negative: false,
 			},
 		]
