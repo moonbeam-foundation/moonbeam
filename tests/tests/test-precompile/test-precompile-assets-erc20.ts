@@ -57,7 +57,8 @@ describeDevMoonbeamAllEthTxTypes(
         true
       );
 
-      await context.createBlockWithEth((await createContract(context, "ERC20Instance")).rawTx);
+      const { rawTx } = await createContract(context, "ERC20Instance");
+      await context.createBlockWithEth(rawTx);
     });
 
     it("allows to call name", async function () {
@@ -153,7 +154,8 @@ describeDevMoonbeamAllEthTxTypes(
         true
       );
 
-      await context.createBlockWithEth((await createContract(context, "ERC20Instance")).rawTx);
+      const { rawTx } = await createContract(context, "ERC20Instance");
+      await context.createBlockWithEth(rawTx);
     });
     it("allows to approve transfers, and allowance matches", async function () {
       const tx = await createTransaction(context, {
@@ -223,11 +225,12 @@ describeDevMoonbeamAllEthTxTypes(
         true
       );
 
-      await context.createBlockWithEth((await createContract(context, "ERC20Instance")).rawTx);
+      const { rawTx } = await createContract(context, "ERC20Instance");
+      await context.createBlockWithEth(rawTx);
     });
     it("allows to approve transfer and use transferFrom", async function () {
       await context.createBlockWithEth(
-        await createTransaction(context, {
+        createTransaction(context, {
           ...ALITH_TRANSACTION_TEMPLATE,
           to: ADDRESS_ERC20,
           data: ERC20_INTERFACE.encodeFunctionData("approve", [baltathar.address, 1000]),
@@ -244,7 +247,7 @@ describeDevMoonbeamAllEthTxTypes(
       // We are gonna spend 1000 from alith to send it to charleth
 
       const { result } = await context.createBlockWithEth(
-        await createTransaction(context, {
+        createTransaction(context, {
           ...BALTATHAR_TRANSACTION_TEMPLATE,
           to: ADDRESS_ERC20,
           data: ERC20_INTERFACE.encodeFunctionData("transferFrom", [
@@ -308,11 +311,12 @@ describeDevMoonbeamAllEthTxTypes(
         true
       );
 
-      await context.createBlockWithEth((await createContract(context, "ERC20Instance")).rawTx);
+      const { rawTx } = await createContract(context, "ERC20Instance");
+      await context.createBlockWithEth(rawTx);
     });
     it("allows to transfer", async function () {
       const { result } = await context.createBlockWithEth(
-        await createTransaction(context, {
+        createTransaction(context, {
           ...ALITH_TRANSACTION_TEMPLATE,
           to: ADDRESS_ERC20,
           data: ERC20_INTERFACE.encodeFunctionData("transfer", [baltathar.address, 1000]),
@@ -368,7 +372,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
     // Create approval
 
     const blockAlith = await context.createBlockWithEth(
-      await createTransaction(context, {
+      createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
         to: contractInstanceAddress,
         data: ERC20_INTERFACE.encodeFunctionData("approve", [baltathar.address, 1000]),
@@ -394,7 +398,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
     // Since this is a regular call, it will take contractInstanceAddress as msg.sender
     // thus from & to will be the same, and approval wont be touched
     const blockBaltathar = await context.createBlockWithEth(
-      await createTransaction(context, {
+      createTransaction(context, {
         ...BALTATHAR_TRANSACTION_TEMPLATE,
         to: contractInstanceAddress,
         data: ERC20_INTERFACE.encodeFunctionData("transferFrom", [
@@ -423,7 +427,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
 
     // this time we call directly from Baltathar the ERC20 contract
     const directBlock = await context.createBlockWithEth(
-      await createTransaction(context, {
+      createTransaction(context, {
         ...BALTATHAR_TRANSACTION_TEMPLATE,
         to: ADDRESS_ERC20,
         data: ERC20_INTERFACE.encodeFunctionData("transferFrom", [
@@ -515,7 +519,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
     // We are gonna spend 1000 from alith.address to send it to charleth from contract address
     // even if Bob calls, msg.sender will become the contract with regular calls
     const blockBaltathar = await context.createBlockWithEth(
-      await createTransaction(context, {
+      createTransaction(context, {
         ...BALTATHAR_TRANSACTION_TEMPLATE,
         to: contractInstanceAddress,
         data: ERC20_INTERFACE.encodeFunctionData("transferFrom", [
@@ -584,7 +588,7 @@ describeDevMoonbeamAllEthTxTypes(
     it("allows to transfer through call from SC ", async function () {
       // Create approval
       const { result } = await context.createBlockWithEth(
-        await createTransaction(context, {
+        createTransaction(context, {
           ...ALITH_TRANSACTION_TEMPLATE,
           to: contractInstanceAddress,
           data: ERC20_INTERFACE.encodeFunctionData("transfer", [baltathar.address, 1000]),

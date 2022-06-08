@@ -11,7 +11,7 @@ describeDevMoonbeamAllEthTxTypes("Fees - Transaction", (context) => {
     expect(await context.web3.eth.getBalance(TREASURY_ACCOUNT, 0)).to.equal(0n.toString());
 
     // We make an ethereum transaction, 20% of the fees should go to treasury.
-    await context.createBlockWithEth(await createTransfer(context, baltathar.address, 128));
+    await context.createBlockWithEth(createTransfer(context, baltathar.address, 128));
     expect(await context.web3.eth.getBalance(TREASURY_ACCOUNT, 1)).to.equal("4200000000000");
   });
 });
@@ -23,7 +23,7 @@ describeDevMoonbeamAllEthTxTypes("Fees - Transaction", (context) => {
     ).toBigInt();
 
     // We make an ethereum transaction, 20% of the fees should go to treasury.
-    await context.createBlockWithEth(await createTransfer(context, baltathar.address, 128));
+    await context.createBlockWithEth(createTransfer(context, baltathar.address, 128));
     expect(await (await context.polkadotApi.query.balances.totalIssuance()).toBigInt()).to.equal(
       originalTotalIssuance - 16800000000000n
     );

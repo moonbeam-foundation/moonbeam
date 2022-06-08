@@ -47,7 +47,8 @@ const registerXcmTransactorAndContract = async (context: DevTestContext) => {
     )
   );
 
-  await context.createBlockWithEth((await createContract(context, "XcmTransactorInstance")).rawTx);
+  const { rawTx } = await createContract(context, "XcmTransactorInstance");
+  await context.createBlockWithEth(rawTx);
 };
 
 describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
@@ -140,7 +141,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
       [transactor, index, asset, weight, transact_call]
     );
     await context.createBlockWithEth(
-      await createTransaction(context, {
+      createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
         to: PRECOMPILE_XCM_TRANSACTOR_ADDRESS,
         data,
@@ -224,7 +225,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
       [transactor, index, asset, weight, transact_call]
     );
     await context.createBlockWithEth(
-      await createTransaction(context, {
+      createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
         to: PRECOMPILE_XCM_TRANSACTOR_ADDRESS,
         data,
@@ -333,7 +334,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
     );
 
     await context.createBlockWithEth(
-      await createTransaction(context, {
+      createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
         to: PRECOMPILE_XCM_TRANSACTOR_ADDRESS,
         data,
@@ -380,7 +381,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
     );
 
     await context.createBlockWithEth(
-      await createTransaction(context, {
+      createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
         to: PRECOMPILE_XCM_TRANSACTOR_ADDRESS,
         data,

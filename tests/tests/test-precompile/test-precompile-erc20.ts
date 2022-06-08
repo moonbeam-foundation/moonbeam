@@ -32,7 +32,7 @@ async function sendApprove(context, spender, amount) {
   const spenderData = spender.slice(2).padStart(64, "0").toLowerCase();
 
   const { result } = await context.createBlockWithEth(
-    await createTransaction(context, {
+    createTransaction(context, {
       ...ALITH_TRANSACTION_TEMPLATE,
       to: PRECOMPILE_NATIVE_ERC20_ADDRESS,
       data: `0x${SELECTORS.approve}${spenderData}${amount}`,
@@ -104,7 +104,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - ERC20 Native", (context) => {
     const to = charleth.address.slice(2).padStart(64, "0");
 
     const { result } = await context.createBlockWithEth(
-      await createTransaction(context, {
+      createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
         to: PRECOMPILE_NATIVE_ERC20_ADDRESS,
         data: `0x${SELECTORS.transfer}${to}${amount}`,
@@ -138,7 +138,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - ERC20 Native", (context) => {
       const to = charleth.address.slice(2).padStart(64, "0").toLowerCase();
 
       const { result } = await context.createBlockWithEth(
-        await createTransaction(context, {
+        createTransaction(context, {
           ...BALTATHAR_TRANSACTION_TEMPLATE,
           to: PRECOMPILE_NATIVE_ERC20_ADDRESS,
           data: `0x${SELECTORS.transferFrom}${from}${to}${transferAmount}`,
@@ -185,7 +185,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - ERC20", (context) => {
       let to = charleth.address.slice(2).padStart(64, "0");
 
       const { result } = await context.createBlockWithEth(
-        await createTransaction(context, {
+        createTransaction(context, {
           ...BALTATHAR_TRANSACTION_TEMPLATE,
           to: PRECOMPILE_NATIVE_ERC20_ADDRESS,
           data: `0x${SELECTORS.transferFrom}${from}${to}${transferAmount}`,

@@ -26,7 +26,7 @@ describeDevMoonbeam("Maintenance Mode - Filter", (context) => {
   });
 
   it("should forbid transferring tokens", async function () {
-    await context.createBlockWithEth(await createTransfer(context, charleth.address, 512));
+    await context.createBlockWithEth(createTransfer(context, charleth.address, 512));
     expect(
       await context
         .createBlockWithExtrinsic(

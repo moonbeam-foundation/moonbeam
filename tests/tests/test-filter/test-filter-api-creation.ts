@@ -6,7 +6,8 @@ import { createContract } from "../../util/transactions";
 
 describeDevMoonbeamAllEthTxTypes("Filter API", (context) => {
   it("should be able to create a Log filter", async function () {
-    await context.createBlockWithEth((await createContract(context, "SingleEventContract")).rawTx);
+    const { rawTx } = await createContract(context, "SingleEventContract");
+    await context.createBlockWithEth(rawTx);
 
     const createFilter = await customWeb3Request(context.web3, "eth_newFilter", [
       {
@@ -25,7 +26,8 @@ describeDevMoonbeamAllEthTxTypes("Filter API", (context) => {
 
 describeDevMoonbeamAllEthTxTypes("Filter API - Creating", (context) => {
   it("should increment filter id", async function () {
-    await context.createBlockWithEth((await createContract(context, "SingleEventContract")).rawTx);
+    const { rawTx } = await createContract(context, "SingleEventContract");
+    await context.createBlockWithEth(rawTx);
 
     const createFilter = await customWeb3Request(context.web3, "eth_newFilter", [
       {

@@ -34,7 +34,7 @@ describeDevMoonbeamAllEthTxTypes(
 
       // call the payable function, which should revert
       const { result } = await context.createBlockWithEth(
-        await createContractExecution(
+        createContractExecution(
           context,
           {
             contract,

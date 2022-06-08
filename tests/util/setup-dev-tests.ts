@@ -58,18 +58,35 @@ export interface DevTestContext {
   createEthers: () => Promise<ethers.providers.JsonRpcProvider>;
   createPolkadotApi: () => Promise<ApiPromise>;
 
-  createBlockWithEth: <T extends string | string[]>(
+  createBlockWithEth: <T extends string | string[] | Promise<string> | Promise<string>[]>(
     transactions: T,
     options?: BlockCreation
-  ) => Promise<EthBlockCreationResponse<T>>;
+  ) => Promise<
+    EthBlockCreationResponse<
+      T extends Promise<string> ? string : T extends Promise<string>[] ? string[] : T
+    >
+  >;
   createBlock: (options?: BlockCreation) => Promise<BlockCreationResponse>;
   createBlockWithExtrinsic<
-    Call extends SubmittableExtrinsic<ApiType> | SubmittableExtrinsic<ApiType>[],
+    Call extends
+      | SubmittableExtrinsic<ApiType>
+      | SubmittableExtrinsic<ApiType>[]
+      | Promise<SubmittableExtrinsic<ApiType>>
+      | Promise<SubmittableExtrinsic<ApiType>>[],
     ApiType extends ApiTypes
   >(
     transactions: Call,
     options?: BlockCreation
-  ): Promise<SubBlockCreationResponse<ApiType, Call>>;
+  ): Promise<
+    SubBlockCreationResponse<
+      ApiType,
+      Call extends Promise<SubmittableExtrinsic<ApiType>>
+        ? SubmittableExtrinsic<ApiType>
+        : Call extends Promise<SubmittableExtrinsic<ApiType>>[]
+        ? SubmittableExtrinsic<ApiType>[]
+        : Call
+    >
+  >;
 
   // We also provided singleton providers for simplicity
   web3: EnhancedWeb3;
@@ -159,12 +176,14 @@ export function describeDevMoonbeam(
       };
 
       context.createBlockWithEth = async (
-        transactions: string | string[],
+        transactions: string | string[] | Promise<string> | Promise<string>[],
         options?: BlockCreation
       ): Promise<EthBlockCreationResponse<string | string[]>> => {
         if (Array.isArray(transactions)) {
           const result = await Promise.all(
-            transactions.map((t) => customWeb3Request(context.web3, "eth_sendRawTransaction", [t]))
+            transactions
+              .map(async (t) => await t)
+              .map((t) => customWeb3Request(context.web3, "eth_sendRawTransaction", [t]))
           );
           return {
             result,
@@ -172,7 +191,7 @@ export function describeDevMoonbeam(
           };
         }
         const result = await customWeb3Request(context.web3, "eth_sendRawTransaction", [
-          transactions,
+          await transactions,
         ]);
         const block = (await context.createBlock(options)).block;
         // Adds extra time to avoid empty transaction when querying it
@@ -184,7 +203,11 @@ export function describeDevMoonbeam(
       };
 
       context.createBlockWithExtrinsic = async <ApiType extends ApiTypes>(
-        transactions: SubmittableExtrinsic<ApiType> | SubmittableExtrinsic<ApiType>[],
+        transactions:
+          | SubmittableExtrinsic<ApiType>
+          | SubmittableExtrinsic<ApiType>[]
+          | Promise<SubmittableExtrinsic<ApiType>>
+          | Promise<SubmittableExtrinsic<ApiType>>[],
         options?: BlockCreation
       ): Promise<
         SubBlockCreationResponse<
@@ -196,7 +219,7 @@ export function describeDevMoonbeam(
         // properly so any will suffice
         const extrinsicHashes: string[] = [];
         const txs = Array.isArray(transactions) ? transactions : [transactions];
-        for (const call of txs) {
+        for await (const call of txs) {
           if (call.isSigned) {
             extrinsicHashes.push((await call.send()).toString());
           } else {

@@ -11,8 +11,8 @@ describeDevMoonbeam("Resubmit transations", (context) => {
     const optionsHighGas = { nonce: 0, gasPrice: 1 };
 
     await context.createBlockWithEth([
-      await createTransfer(context, randomAccount.address, 1, optionsLowGas),
-      await createTransfer(context, randomAccount.address, 2, optionsHighGas),
+      createTransfer(context, randomAccount.address, 1, optionsLowGas),
+      createTransfer(context, randomAccount.address, 2, optionsHighGas),
     ]);
 
     expect(await context.web3.eth.getBalance(randomAccount.address, 1)).to.equal((2).toString());
@@ -26,8 +26,8 @@ describeDevMoonbeam("Resubmit transations", (context) => {
     const optionsHighGas = { nonce: 0, gasPrice: 1 };
 
     await context.createBlockWithEth([
-      await createTransfer(context, randomAccount.address, 3, optionsHighGas),
-      await createTransfer(context, randomAccount.address, 1, optionsLowGas),
+      createTransfer(context, randomAccount.address, 3, optionsHighGas),
+      createTransfer(context, randomAccount.address, 1, optionsLowGas),
     ]);
 
     expect(await context.web3.eth.getBalance(randomAccount.address, 1)).to.equal((3).toString());
@@ -42,8 +42,8 @@ describeDevMoonbeam("Resubmit transations", (context) => {
     const optionsHighGas = { nonce: 0, gasPrice: 1, gas: 0x10000 };
 
     await context.createBlockWithEth([
-      await createTransfer(context, randomAccount.address, 1, optionsLowGas),
-      await createTransfer(context, randomAccount.address, 2, optionsHighGas),
+      createTransfer(context, randomAccount.address, 1, optionsLowGas),
+      createTransfer(context, randomAccount.address, 2, optionsHighGas),
     ]);
 
     expect(await context.web3.eth.getBalance(randomAccount.address, 1)).to.equal((2).toString());

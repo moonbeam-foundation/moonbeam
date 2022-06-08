@@ -36,7 +36,7 @@ describeDevMoonbeam("Subscription - Block headers", (context) => {
     // after the subscription
     await new Promise((resolve) => setTimeout(resolve, 100));
 
-    await context.createBlockWithEth(await createTransfer(context, baltathar.address, 0));
+    await context.createBlockWithEth(createTransfer(context, baltathar.address, 0));
 
     const data = await new Promise<BlockHeader>((resolve) => {
       subscription.once("data", resolve);

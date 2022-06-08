@@ -17,12 +17,12 @@ describeDevMoonbeamAllEthTxTypes("Contract loop increment", (context) => {
   it("should increment contract state", async function () {
     const { contract, rawTx } = await createContract(context, "TestContractIncr");
     await context.createBlockWithEth(rawTx);
-    await context.createBlockWithEth([
-      await createContractExecution(context, {
+    await context.createBlockWithEth(
+      createContractExecution(context, {
         contract,
         contractCall: contract.methods.incr(),
-      }),
-    ]);
+      })
+    );
 
     expect(await contract.methods.count().call()).to.eq("1");
   });
@@ -32,12 +32,12 @@ describeDevMoonbeamAllEthTxTypes("Contract loop increment - check fees", (contex
   it("should increment contract state", async function () {
     const { contract, rawTx } = await createContract(context, "TestContractIncr");
     await context.createBlockWithEth(rawTx);
-    await context.createBlockWithEth([
-      await createContractExecution(context, {
+    await context.createBlockWithEth(
+      createContractExecution(context, {
         contract,
         contractCall: contract.methods.incr(),
-      }),
-    ]);
+      })
+    );
     await verifyLatestBlockFees(context, expect);
   });
 });

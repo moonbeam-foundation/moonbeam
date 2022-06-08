@@ -11,7 +11,7 @@ describeDevMoonbeam("Trace filter - Concurrency", (context) => {
 
     for (let i = 0; i < 50; i++) {
       await context.createBlockWithEth(
-        await createContractExecution(context, {
+        createContractExecution(context, {
           contract,
           contractCall: contract.methods.incr(2000),
         })

@@ -15,7 +15,7 @@ import {
 describeDevMoonbeamAllEthTxTypes("Balance transfer cost", (context) => {
   const randomAccount = generateKeyingPair();
   it("should cost 21000 * 1_000_000_000", async function () {
-    await context.createBlockWithEth(await createTransfer(context, randomAccount.address, 0));
+    await context.createBlockWithEth(createTransfer(context, randomAccount.address, 0));
 
     expect(await context.web3.eth.getBalance(alith.address, 1)).to.equal(
       (ALITH_GENESIS_BALANCE - 21000n * 1_000_000_000n).toString()
@@ -61,7 +61,7 @@ describeDevMoonbeamAllEthTxTypes("Balance transfer", (context) => {
 describeDevMoonbeamAllEthTxTypes("Balance transfer - fees", (context) => {
   const randomAccount = generateKeyingPair();
   before("Create block with transfer to test account of 512", async () => {
-    await context.createBlockWithEth(await createTransfer(context, randomAccount.address, 512));
+    await context.createBlockWithEth(createTransfer(context, randomAccount.address, 512));
   });
   it("should check latest block fees", async function () {
     await verifyLatestBlockFees(context, expect, BigInt(512));
@@ -79,7 +79,7 @@ describeDevMoonbeam(
       const maxFeePerGas = 1_000_000_000;
 
       const block = await context.createBlockWithEth(
-        await createTransaction(context, {
+        createTransaction(context, {
           from: alith.address,
           privateKey: ALITH_PRIVATE_KEY,
           value: "0x0",
@@ -111,7 +111,7 @@ describeDevMoonbeam(
       const maxFeePerGas = 1_000_000_000 * 2;
 
       await context.createBlockWithEth(
-        await createTransaction(context, {
+        createTransaction(context, {
           from: alith.address,
           privateKey: ALITH_PRIVATE_KEY,
           value: "0x0",

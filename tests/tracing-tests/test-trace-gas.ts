@@ -25,7 +25,7 @@ describeDevMoonbeam("Trace filter - Gas Loop", (context) => {
     for (let i = 0; i < testLoops.length; i++) {
       const loop = testLoops[i];
       const { result } = await context.createBlockWithEth(
-        await createContractExecution(context, {
+        createContractExecution(context, {
           contract,
           contractCall: contract.methods.incr(loop.count),
         })

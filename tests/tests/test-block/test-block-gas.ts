@@ -8,13 +8,8 @@ import { customWeb3Request } from "../../util/providers";
 
 describeDevMoonbeamAllEthTxTypes("Block Gas - Limit", (context) => {
   it("should be allowed to the max block gas", async function () {
-    const { result } = await context.createBlockWithEth(
-      (
-        await createContract(context, "TestContract", {
-          gas: EXTRINSIC_GAS_LIMIT,
-        })
-      ).rawTx
-    );
+    const { rawTx } = await createContract(context, "TestContract", { gas: EXTRINSIC_GAS_LIMIT });
+    const { result } = await context.createBlockWithEth(rawTx);
     expect(result.result).to.not.be.null;
 
     const receipt = await context.web3.eth.getTransaction(result.result);

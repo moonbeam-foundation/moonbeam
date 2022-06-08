@@ -43,7 +43,7 @@ describeDevMoonbeam(
       const maxFeePerGas = 1_000_000_000 * 2;
 
       await context.createBlockWithEth(
-        await createTransaction(context, {
+        createTransaction(context, {
           ...ALITH_TRANSACTION_TEMPLATE,
           gas: "0x5208",
           maxFeePerGas: maxFeePerGas,

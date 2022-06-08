@@ -21,12 +21,12 @@ import { createContract, createContractExecution } from "../../util/transactions
     it(`should consume ${gas} for ${loop} loop`, async function () {
       const { contract, rawTx } = await createContract(context, "FiniteLoopContract");
       await context.createBlockWithEth(rawTx);
-      await context.createBlockWithEth([
-        await createContractExecution(context, {
+      await context.createBlockWithEth(
+        createContractExecution(context, {
           contract,
           contractCall: contract.methods.incr(loop),
-        }),
-      ]);
+        })
+      );
 
       expect(await contract.methods.count().call()).to.eq(loop.toString());
 

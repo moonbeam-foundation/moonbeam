@@ -44,7 +44,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - precompiles dummy bytecode", (co
     // we deploy a new contract with the same bytecode to be able to
     // execute the bytecode instead of executing a precompile.
     await context.createBlockWithEth(
-      await createTransaction(context, {
+      createTransaction(context, {
         data: INIT_CODE,
       })
     );
@@ -63,7 +63,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - precompiles dummy bytecode", (co
     // try to call contract (with empty data, shouldn't matter)
 
     const { result } = await context.createBlockWithEth(
-      await createTransaction(context, {
+      createTransaction(context, {
         data: "0x",
         to: contractAddress,
       })

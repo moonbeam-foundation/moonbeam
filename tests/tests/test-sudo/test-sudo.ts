@@ -34,7 +34,7 @@ describeDevMoonbeam("Sudo - fail if no funds in sudo", (context) => {
   before("Setup genesis account for substrate", async () => {
     const initBalance = await context.web3.eth.getBalance(alith.address);
     const { result } = await context.createBlockWithEth(
-      await createTransfer(
+      createTransfer(
         context,
         baltathar.address,
         BigInt(initBalance) - 1n - 21000n * 1_000_000_000n,

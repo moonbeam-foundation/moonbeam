@@ -35,7 +35,7 @@ describeDevMoonbeamAllEthTxTypes("Chain - Fork", (context) => {
     // Creation of the best chain so far, with blocks 0-1-2 and a transfer in block 2
     await context.createBlock({ finalize: false });
     const { result } = await context.createBlockWithEth(
-      await createTransfer(context, baltathar.address, 512),
+      createTransfer(context, baltathar.address, 512),
       { finalize: false }
     );
     const insertedTx = result.result;

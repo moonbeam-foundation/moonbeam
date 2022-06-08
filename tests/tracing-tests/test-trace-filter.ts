@@ -23,7 +23,7 @@ describeDevMoonbeam("Trace filter - Contract creation ", (context) => {
     await context.createBlockWithEth([rawTx3, rawTx4]);
 
     await context.createBlockWithEth(
-      await createContractExecution(context, {
+      createContractExecution(context, {
         contract,
         contractCall: contract.methods.subcalls(
           GENESIS_CONTRACT_ADDRESSES[1],

@@ -42,7 +42,7 @@ describeDevMoonbeamAllEthTxTypes("EthPool - Future Ethereum transaction", (conte
   it("should be executed after condition is met", async function () {
     // Create block including transaction with nonce 0
     await context.createBlockWithEth(
-      await createTransfer(context, baltathar.address, 512, {
+      createTransfer(context, baltathar.address, 512, {
         nonce: 0,
       })
     );

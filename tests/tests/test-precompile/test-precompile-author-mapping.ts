@@ -24,7 +24,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - author mapping", (context) => {
     await context.createBlockWithEth(rawTx);
 
     const { result } = await context.createBlockWithEth(
-      await createTransaction(context, {
+      createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
         to: PRECOMPILE_AUTHOR_MAPPING_ADDRESS,
         data: AUTHOR_MAPPING_INTERFACE.encodeFunctionData("add_association", [
@@ -118,7 +118,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - author mapping", (context) => {
     await context.createBlockWithEth(rawTx);
 
     const { result } = await context.createBlockWithEth(
-      await createTransaction(context, {
+      createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
         to: PRECOMPILE_AUTHOR_MAPPING_ADDRESS,
         data: AUTHOR_MAPPING_INTERFACE.encodeFunctionData("clear_association", [

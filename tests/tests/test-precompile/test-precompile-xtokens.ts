@@ -28,7 +28,8 @@ async function getBalance(context: DevTestContext, blockHeight: number, address:
 
 describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
   it("allows to issue transfer xtokens", async function () {
-    await context.createBlockWithEth((await createContract(context, "XtokensInstance")).rawTx);
+    const { rawTx } = await createContract(context, "XtokensInstance");
+    await context.createBlockWithEth(rawTx);
     // Junction::AccountId32
     const destination_enum_selector = "0x01";
     // [0x01; 32]
@@ -70,7 +71,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
     );
 
     const { result } = await context.createBlockWithEth(
-      await createTransaction(context, {
+      createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
         to: PRECOMPILE_XTOKENS_ADDRESS,
         data,
@@ -90,7 +91,8 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
 
 describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
   it("allows to issue transfer xtokens with fee", async function () {
-    await context.createBlockWithEth((await createContract(context, "XtokensInstance")).rawTx);
+    const { rawTx } = await createContract(context, "XtokensInstance");
+    await context.createBlockWithEth(rawTx);
     // Junction::AccountId32
     const destination_enum_selector = "0x01";
     // [0x01; 32]
@@ -137,7 +139,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
     );
 
     const { result } = await context.createBlockWithEth(
-      await createTransaction(context, {
+      createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
         to: PRECOMPILE_XTOKENS_ADDRESS,
         data,
@@ -157,7 +159,8 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
 
 describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
   it("allows to issue transfer_multiasset xtokens", async function () {
-    await context.createBlockWithEth((await createContract(context, "XtokensInstance")).rawTx);
+    const { rawTx } = await createContract(context, "XtokensInstance");
+    await context.createBlockWithEth(rawTx);
     // Junction::AccountId32
     const destination_enum_selector = "0x01";
     // [0x01; 32]
@@ -215,7 +218,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
 
     // create tx
     const { result } = await context.createBlockWithEth(
-      await createTransaction(context, {
+      createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
         to: PRECOMPILE_XTOKENS_ADDRESS,
         data,
@@ -235,7 +238,8 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
 
 describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
   it("allows to issue transfer_multiasset xtokens with fee", async function () {
-    await context.createBlockWithEth((await createContract(context, "XtokensInstance")).rawTx);
+    const { rawTx } = await createContract(context, "XtokensInstance");
+    await context.createBlockWithEth(rawTx);
     // Junction::AccountId32
     const destination_enum_selector = "0x01";
     // [0x01; 32]
@@ -299,7 +303,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
     // create tx
 
     const { result } = await context.createBlockWithEth(
-      await createTransaction(context, {
+      createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
         to: PRECOMPILE_XTOKENS_ADDRESS,
         data,
@@ -319,7 +323,8 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
 
 describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
   it("allows to issue transfer multicurrencies xtokens", async function () {
-    await context.createBlockWithEth((await createContract(context, "XtokensInstance")).rawTx);
+    const { rawTx } = await createContract(context, "XtokensInstance");
+    await context.createBlockWithEth(rawTx);
     // Junction::AccountId32
     const destination_enum_selector = "0x01";
     // [0x01; 32]
@@ -364,7 +369,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
       ]
     );
     const { result } = await context.createBlockWithEth(
-      await createTransaction(context, {
+      createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
         to: PRECOMPILE_XTOKENS_ADDRESS,
         data,
@@ -384,7 +389,8 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
 
 describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
   it("allows to issue transfer multiassets xtokens", async function () {
-    await context.createBlockWithEth((await createContract(context, "XtokensInstance")).rawTx);
+    const { rawTx } = await createContract(context, "XtokensInstance");
+    await context.createBlockWithEth(rawTx);
     // Junction::AccountId32
     const destination_enum_selector = "0x01";
     // [0x01; 32]
@@ -444,7 +450,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
     );
 
     const { result } = await context.createBlockWithEth(
-      await createTransaction(context, {
+      createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
         to: PRECOMPILE_XTOKENS_ADDRESS,
         data,

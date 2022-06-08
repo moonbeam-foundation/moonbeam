@@ -297,7 +297,7 @@ describeDevMoonbeamAllEthTxTypes(
       );
 
       const { result } = await context.createBlockWithEth(
-        await createTransaction(context, {
+        createTransaction(context, {
           ...ALITH_TRANSACTION_TEMPLATE,
           to: assetAddress,
           data: data,
@@ -319,7 +319,7 @@ describeDevMoonbeamAllEthTxTypes(
       );
 
       const { result: newResult } = await context.createBlockWithEth(
-        await createTransaction(context, {
+        createTransaction(context, {
           ...BALTATHAR_TRANSACTION_TEMPLATE,
           to: assetAddress,
           data: data,
@@ -375,7 +375,7 @@ describeDevMoonbeamAllEthTxTypes(
         [baltathar.address, 1000]
       );
       const { result } = await context.createBlockWithEth(
-        await createTransaction(context, {
+        createTransaction(context, {
           ...ALITH_TRANSACTION_TEMPLATE,
           to: assetAddress,
           data: data,
@@ -433,7 +433,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
     // We need this because the asset addres is random,
     // so we need a way to correctly reference it in the contract
     await context.createBlockWithEth(
-      await createTransaction(context, {
+      createTransaction(context, {
         from: alith.address,
         privateKey: ALITH_PRIVATE_KEY,
         value: "0x0",
@@ -464,7 +464,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
     ]);
 
     const { result } = await context.createBlockWithEth(
-      await createTransaction(context, {
+      createTransaction(context, {
         from: alith.address,
         privateKey: ALITH_PRIVATE_KEY,
         value: "0x0",
@@ -500,7 +500,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
     );
 
     const { result: newResult } = await context.createBlockWithEth(
-      await createTransaction(context, {
+      createTransaction(context, {
         from: baltathar.address,
         privateKey: BALTATHAR_PRIVATE_KEY,
         value: "0x0",
@@ -527,7 +527,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
 
     // this time we call directly from Baltathar the ERC20 contract
     const { result: baltatharResult } = await context.createBlockWithEth(
-      await createTransaction(context, {
+      createTransaction(context, {
         from: baltathar.address,
         privateKey: BALTATHAR_PRIVATE_KEY,
         value: "0x0",
@@ -584,18 +584,19 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
 
     // We need this because the asset addres is random,
     // so we need a way to correctly reference it in the contract
-    let setDataTx = await createTransaction(context, {
-      from: alith.address,
-      privateKey: ALITH_PRIVATE_KEY,
-      value: "0x0",
-      gas: "0x200000",
-      gasPrice: GAS_PRICE,
-      to: contractInstanceAddress,
-      data: setAddressData,
-    });
-
-    await context.createBlockWithEth(setDataTx);
+    await context.createBlockWithEth(
+      createTransaction(context, {
+        from: alith.address,
+        privateKey: ALITH_PRIVATE_KEY,
+        value: "0x0",
+        gas: "0x200000",
+        gasPrice: GAS_PRICE,
+        to: contractInstanceAddress,
+        data: setAddressData,
+      })
+    );
   });
+
   it("Bob approves contract and use transferFrom from contract calls", async function () {
     // Create approval
     let data = LOCAL_ASSET_EXTENDED_ERC20_INTERFACE.encodeFunctionData(
@@ -605,7 +606,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
     );
 
     const { result } = await context.createBlockWithEth(
-      await createTransaction(context, {
+      createTransaction(context, {
         from: alith.address,
         privateKey: ALITH_PRIVATE_KEY,
         value: "0x0",
@@ -640,7 +641,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
     );
 
     const { result: baltatharResult } = await context.createBlockWithEth(
-      await createTransaction(context, {
+      createTransaction(context, {
         from: baltathar.address,
         privateKey: BALTATHAR_PRIVATE_KEY,
         value: "0x0",
@@ -687,9 +688,7 @@ describeDevMoonbeamAllEthTxTypes(
 
       // before we mint asset, since these are non-sufficient, we need to transfer native balance
       await context.createBlockWithExtrinsic(
-        await context.polkadotApi.tx.balances
-          .transfer(contractInstanceAddress, 1000)
-          .signAsync(baltathar)
+        context.polkadotApi.tx.balances.transfer(contractInstanceAddress, 1000).signAsync(baltathar)
       );
 
       // register, setMeta & mint local Asset
@@ -708,7 +707,7 @@ describeDevMoonbeamAllEthTxTypes(
       // We need this because the asset addres is random,
       // so we need a way to correctly reference it in the contract
       await context.createBlockWithEth(
-        await createTransaction(context, {
+        createTransaction(context, {
           ...ALITH_TRANSACTION_TEMPLATE,
           to: contractInstanceAddress,
           data: setAddressData,
@@ -724,7 +723,7 @@ describeDevMoonbeamAllEthTxTypes(
       );
 
       const { result } = await context.createBlockWithEth(
-        await createTransaction(context, {
+        createTransaction(context, {
           ...ALITH_TRANSACTION_TEMPLATE,
           to: contractInstanceAddress,
           data: data,
@@ -767,7 +766,7 @@ describeDevMoonbeamAllEthTxTypes(
       );
 
       const { result } = await context.createBlockWithEth(
-        await createTransaction(context, {
+        createTransaction(context, {
           ...BALTATHAR_TRANSACTION_TEMPLATE,
           to: assetAddress,
           data: data,
@@ -817,7 +816,7 @@ describeDevMoonbeamAllEthTxTypes(
       );
 
       const { result } = await context.createBlockWithEth(
-        await createTransaction(context, {
+        createTransaction(context, {
           ...BALTATHAR_TRANSACTION_TEMPLATE,
           to: assetAddress,
           data: data,
@@ -866,7 +865,7 @@ describeDevMoonbeamAllEthTxTypes(
       );
 
       const { result } = await context.createBlockWithEth(
-        await createTransaction(context, {
+        createTransaction(context, {
           ...BALTATHAR_TRANSACTION_TEMPLATE,
           to: assetAddress,
           data: data,
@@ -912,7 +911,7 @@ describeDevMoonbeamAllEthTxTypes(
       );
 
       const { result } = await context.createBlockWithEth(
-        await createTransaction(context, {
+        createTransaction(context, {
           ...BALTATHAR_TRANSACTION_TEMPLATE,
           to: assetAddress,
           data: data,
@@ -959,7 +958,7 @@ describeDevMoonbeamAllEthTxTypes(
       );
 
       const { result } = await context.createBlockWithEth(
-        await createTransaction(context, {
+        createTransaction(context, {
           ...BALTATHAR_TRANSACTION_TEMPLATE,
           to: assetAddress,
           data: data,
@@ -1004,7 +1003,7 @@ describeDevMoonbeamAllEthTxTypes(
       );
 
       const { result } = await context.createBlockWithEth(
-        await createTransaction(context, {
+        createTransaction(context, {
           ...BALTATHAR_TRANSACTION_TEMPLATE,
           to: assetAddress,
           data: data,
@@ -1049,7 +1048,7 @@ describeDevMoonbeamAllEthTxTypes(
       );
 
       const { result } = await context.createBlockWithEth(
-        await createTransaction(context, {
+        createTransaction(context, {
           ...BALTATHAR_TRANSACTION_TEMPLATE,
           to: assetAddress,
           data: data,
@@ -1090,7 +1089,7 @@ describeDevMoonbeamAllEthTxTypes(
       );
 
       const { result } = await context.createBlockWithEth(
-        await createTransaction(context, {
+        createTransaction(context, {
           ...BALTATHAR_TRANSACTION_TEMPLATE,
           to: assetAddress,
           data: data,
@@ -1133,7 +1132,7 @@ describeDevMoonbeamAllEthTxTypes(
       );
 
       const { result } = await context.createBlockWithEth(
-        await createTransaction(context, {
+        createTransaction(context, {
           ...BALTATHAR_TRANSACTION_TEMPLATE,
           to: assetAddress,
           data: data,
@@ -1176,7 +1175,7 @@ describeDevMoonbeamAllEthTxTypes(
       );
 
       const { result } = await context.createBlockWithEth(
-        await createTransaction(context, {
+        createTransaction(context, {
           ...BALTATHAR_TRANSACTION_TEMPLATE,
           to: assetAddress,
           data: data,

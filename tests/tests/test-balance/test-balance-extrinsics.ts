@@ -9,7 +9,7 @@ import { createTransfer } from "../../util/transactions";
 describeDevMoonbeamAllEthTxTypes("Balance - Extrinsic", (context) => {
   const randomAccount = generateKeyingPair();
   it("should emit ethereum/transfer events", async function () {
-    await context.createBlockWithEth(await createTransfer(context, randomAccount.address, 512));
+    await context.createBlockWithEth(createTransfer(context, randomAccount.address, 512));
 
     const blockHash = await context.polkadotApi.rpc.chain.getBlockHash(1);
     const signedBlock = await context.polkadotApi.rpc.chain.getBlock(blockHash);
