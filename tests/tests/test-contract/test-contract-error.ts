@@ -25,7 +25,7 @@ describeDevMoonbeamAllEthTxTypes("Contract loop error", (context) => {
 describeDevMoonbeamAllEthTxTypes("Contract loop error", (context) => {
   it("should fail with OutOfGas on infinite loop transaction", async function () {
     const { contract, rawTx } = await createContract(context, "InfiniteContract");
-    const infiniteTx = await createContractExecution(
+    const infiniteTx = createContractExecution(
       context,
       {
         contract,
