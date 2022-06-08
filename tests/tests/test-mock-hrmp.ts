@@ -1352,7 +1352,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact", (context) => {
     expect(balance).to.eq(transferredBalance);
   });
 
-  it.only("Should receive transact and should be able to execute ", async function () {
+  it("Should receive transact and should be able to execute ", async function () {
     // Get Pallet balances index
     const metadata = await context.polkadotApi.rpc.state.getMetadata();
     const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
