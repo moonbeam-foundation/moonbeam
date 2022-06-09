@@ -46,8 +46,8 @@ pallet-evm-precompile-democracy = { path = "../../precompiles/pallet-democracy",
 pallet-evm-precompile-parachain-staking = { path = "../../precompiles/parachain-staking", default-features = false }
 pallet-evm-precompile-relay-encoder = { path = "../../precompiles/relay-encoder", default-features = false }
 pallet-evm-precompile-xcm-transactor = { path = "../../precompiles/xcm-transactor", default-features = false }
+pallet-evm-precompile-xtokens = { path = "../../precompiles/xtokens", default-features = false }
 pallet-evm-precompileset-assets-erc20 = { path = "../../precompiles/assets-erc20", default-features = false }
-xtokens-precompiles = { path = "../../precompiles/xtokens", default-features = false }
 
 # Moonbeam tracing
 evm-tracing-events = { path = "../../primitives/rpc/evm-tracing-events", optional = true, default-features = false }
@@ -191,6 +191,7 @@ std = [
 	"pallet-evm-precompile-parachain-staking/std",
 	"pallet-evm-precompile-relay-encoder/std",
 	"pallet-evm-precompile-xcm-transactor/std",
+	"pallet-evm-precompile-xtokens/std",
 	"pallet-evm-precompileset-assets-erc20/std",
 	"pallet-evm/std",
 	"pallet-identity/std",
@@ -232,7 +233,6 @@ std = [
 	"xcm-executor/std",
 	"xcm-primitives/std",
 	"xcm/std",
-	"xtokens-precompiles/std",
  ]
 evm-tracing = [ "evm-tracing-events", "moonbeam-evm-tracer", "rlp", "sha3" ]
 

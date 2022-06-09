@@ -5409,6 +5409,7 @@ dependencies = [
  "pallet-evm-precompile-sha3fips",
  "pallet-evm-precompile-simple",
  "pallet-evm-precompile-xcm-transactor",
+ "pallet-evm-precompile-xtokens",
  "pallet-evm-precompileset-assets-erc20",
  "pallet-identity",
  "pallet-maintenance-mode",
@@ -5460,7 +5461,6 @@ dependencies = [
  "xcm-executor",
  "xcm-primitives",
  "xcm-simulator",
- "xtokens-precompiles",
 ]
 
 [[package]]
@@ -5849,6 +5849,7 @@ dependencies = [
  "pallet-evm-precompile-sha3fips",
  "pallet-evm-precompile-simple",
  "pallet-evm-precompile-xcm-transactor",
+ "pallet-evm-precompile-xtokens",
  "pallet-evm-precompileset-assets-erc20",
  "pallet-identity",
  "pallet-maintenance-mode",
@@ -5898,7 +5899,6 @@ dependencies = [
  "xcm-executor",
  "xcm-primitives",
  "xcm-simulator",
- "xtokens-precompiles",
 ]
 
 [[package]]
@@ -6094,6 +6094,7 @@ dependencies = [
  "pallet-evm-precompile-sha3fips",
  "pallet-evm-precompile-simple",
  "pallet-evm-precompile-xcm-transactor",
+ "pallet-evm-precompile-xtokens",
  "pallet-evm-precompileset-assets-erc20",
  "pallet-identity",
  "pallet-maintenance-mode",
@@ -6144,7 +6145,6 @@ dependencies = [
  "xcm-executor",
  "xcm-primitives",
  "xcm-simulator",
- "xtokens-precompiles",
 ]
 
 [[package]]
@@ -7449,6 +7449,39 @@ dependencies = [
  "pallet-timestamp",
  "pallet-xcm",
  "pallet-xcm-transactor",
+ "parity-scale-codec",
+ "precompile-utils",
+ "rustc-hex",
+ "scale-info",
+ "serde",
+ "sha3 0.9.1",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "xcm",
+ "xcm-builder",
+ "xcm-executor",
+ "xcm-primitives",
+]
+
+[[package]]
+name = "pallet-evm-precompile-xtokens"
+version = "0.1.0"
+dependencies = [
+ "cumulus-primitives-core",
+ "derive_more",
+ "fp-evm",
+ "frame-support",
+ "frame-system",
+ "log",
+ "num_enum",
+ "orml-traits",
+ "orml-xtokens",
+ "pallet-balances",
+ "pallet-evm",
+ "pallet-timestamp",
+ "pallet-xcm",
  "parity-scale-codec",
  "precompile-utils",
  "rustc-hex",
@@ -14861,39 +14894,6 @@ dependencies = [
  "sp-std",
  "xcm",
  "xcm-executor",
-]
-
-[[package]]
-name = "xtokens-precompiles"
-version = "0.1.0"
-dependencies = [
- "cumulus-primitives-core",
- "derive_more",
- "fp-evm",
- "frame-support",
- "frame-system",
- "log",
- "num_enum",
- "orml-traits",
- "orml-xtokens",
- "pallet-balances",
- "pallet-evm",
- "pallet-timestamp",
- "pallet-xcm",
- "parity-scale-codec",
- "precompile-utils",
- "rustc-hex",
- "scale-info",
- "serde",
- "sha3 0.9.1",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
- "xcm",
- "xcm-builder",
- "xcm-executor",
- "xcm-primitives",
 ]
 
 [[package]]
