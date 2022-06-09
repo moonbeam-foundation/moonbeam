@@ -32,15 +32,12 @@ describeDevMoonbeam("Subscription - Block headers", (context) => {
     this.timeout(10000);
     const subscription = web3Subscribe(web3Ws, "newBlockHeaders");
     await new Promise((resolve) => subscription.once("connected", resolve));
-    // TODO this should not be needed. test seems to fail when the block is created to quickly
-    // after the subscription
-    await new Promise((resolve) => setTimeout(resolve, 100));
 
-    await context.createBlock(createTransfer(context, baltathar.address, 0));
-
-    const data = await new Promise<BlockHeader>((resolve) => {
+    const promise = new Promise<BlockHeader>((resolve) => {
       subscription.once("data", resolve);
     });
+    await context.createBlock(createTransfer(context, baltathar.address, 0));
+    const data = await promise;
     subscription.unsubscribe();
 
     expect(data).to.include({

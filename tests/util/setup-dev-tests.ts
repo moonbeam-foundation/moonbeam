@@ -235,7 +235,7 @@ export function describeDevMoonbeam(
 
         // Adds extra time to avoid empty transaction when querying it
         if (results.find((r) => r.type == "eth")) {
-          await Promise.resolve((resolve) => setTimeout(resolve, 2));
+          await new Promise((resolve) => setTimeout(resolve, 2));
         }
         return {
           block: blockResult,
