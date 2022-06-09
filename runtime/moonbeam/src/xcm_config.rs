@@ -495,7 +495,7 @@ impl XcmTransact for Transactors {
 	}
 }
 
-impl xcm_transactor::Config for Runtime {
+impl pallet_xcm_transactor::Config for Runtime {
 	type Event = Event;
 	type Balance = Balance;
 	type Transactor = Transactors;
@@ -512,5 +512,5 @@ impl xcm_transactor::Config for Runtime {
 	type BaseXcmWeight = BaseXcmWeight;
 	type AssetTransactor = AssetTransactors;
 	type ReserveProvider = AbsoluteAndRelativeReserve<SelfLocationAbsolute>;
-	type WeightInfo = xcm_transactor::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = pallet_xcm_transactor::weights::SubstrateWeight<Runtime>;
 }

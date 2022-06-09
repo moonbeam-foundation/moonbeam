@@ -1605,7 +1605,7 @@ export default {
     },
   },
   /**
-   * Lookup129: xcm_transactor::pallet::Event<T>
+   * Lookup129: pallet_xcm_transactor::pallet::Event<T>
    */
   XcmTransactorEvent: {
     _enum: {
@@ -1640,7 +1640,7 @@ export default {
     },
   },
   /**
-   * Lookup130: xcm_transactor::pallet::RemoteTransactInfoWithMaxWeight
+   * Lookup130: pallet_xcm_transactor::pallet::RemoteTransactInfoWithMaxWeight
    */
   XcmTransactorRemoteTransactInfoWithMaxWeight: {
     transactExtraWeight: "u64",
@@ -3387,7 +3387,7 @@ export default {
     },
   },
   /**
-   * Lookup292: xcm_transactor::pallet::Call<T>
+   * Lookup292: pallet_xcm_transactor::pallet::Call<T>
    */
   XcmTransactorCall: {
     _enum: {
@@ -4590,7 +4590,7 @@ export default {
     ],
   },
   /**
-   * Lookup479: xcm_transactor::pallet::Error<T>
+   * Lookup479: pallet_xcm_transactor::pallet::Error<T>
    */
   XcmTransactorError: {
     _enum: [

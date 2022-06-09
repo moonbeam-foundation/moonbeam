@@ -2332,7 +2332,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 					17000,
 					vec![],
 				),
-				xcm_transactor::Error::<Runtime>::MaxWeightTransactReached
+				pallet_xcm_transactor::Error::<Runtime>::MaxWeightTransactReached
 			);
 			assert_noop!(
 				XcmTransactor::transact_through_derivative(
@@ -2344,7 +2344,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 					17000,
 					vec![],
 				),
-				xcm_transactor::Error::<Runtime>::MaxWeightTransactReached
+				pallet_xcm_transactor::Error::<Runtime>::MaxWeightTransactReached
 			);
 		})
 }

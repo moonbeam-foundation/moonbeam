@@ -47,14 +47,14 @@ use pallet_parachain_staking::{
 	},
 	Config as ParachainStakingConfig,
 };
+#[cfg(feature = "xcm-support")]
+use pallet_xcm_transactor::{
+	migrations::TransactSignedWeightAndFeePerSecond, Config as XcmTransactorConfig,
+};
 use sp_runtime::Permill;
 use sp_std::{marker::PhantomData, prelude::*};
 #[cfg(feature = "xcm-support")]
 use xcm::latest::MultiLocation;
-#[cfg(feature = "xcm-support")]
-use xcm_transactor::{
-	migrations::TransactSignedWeightAndFeePerSecond, Config as XcmTransactorConfig,
-};
 
 /// This module acts as a registry where each migration is defined. Each migration should implement
 /// the "Migration" trait declared in the pallet-migrations crate.
@@ -710,7 +710,8 @@ pub struct XcmMigrations<Runtime>(PhantomData<Runtime>);
 #[cfg(feature = "xcm-support")]
 impl<Runtime> GetMigrations for XcmMigrations<Runtime>
 where
-	Runtime: xcm_transactor::Config + pallet_migrations::Config + pallet_asset_manager::Config,
+	Runtime:
+		pallet_xcm_transactor::Config + pallet_migrations::Config + pallet_asset_manager::Config,
 	<Runtime as pallet_asset_manager::Config>::ForeignAssetType:
 		Into<Option<MultiLocation>> + From<MultiLocation>,
 {

@@ -429,7 +429,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					use pallet_moonbeam_orbiters::Pallet as PalletMoonbeamOrbiters;
 					use pallet_author_inherent::Pallet as PalletAuthorInherent;
 					use pallet_asset_manager::Pallet as PalletAssetManagerBench;
-					use xcm_transactor::Pallet as XcmTransactorBench;
+					use pallet_xcm_transactor::Pallet as XcmTransactorBench;
 
 					let mut list = Vec::<BenchmarkList>::new();
 
@@ -465,7 +465,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					use pallet_moonbeam_orbiters::Pallet as PalletMoonbeamOrbiters;
 					use pallet_author_inherent::Pallet as PalletAuthorInherent;
 					use pallet_asset_manager::Pallet as PalletAssetManagerBench;
-					use xcm_transactor::Pallet as XcmTransactorBench;
+					use pallet_xcm_transactor::Pallet as XcmTransactorBench;
 
 					let whitelist: Vec<TrackedStorageKey> = vec![
 						// Block Number

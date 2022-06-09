@@ -35,7 +35,7 @@ pallet-migrations = { path = "../../pallets/migrations", default-features = fals
 pallet-moonbeam-orbiters = { path = "../../pallets/moonbeam-orbiters", default-features = false }
 pallet-parachain-staking = { path = "../../pallets/parachain-staking", default-features = false }
 pallet-proxy-genesis-companion = { path = "../../pallets/proxy-genesis-companion", default-features = false }
-xcm-transactor = { path = "../../pallets/xcm-transactor", default-features = false }
+pallet-xcm-transactor = { path = "../../pallets/xcm-transactor", default-features = false }
 
 # Moonbeam precompiles
 crowdloan-rewards-precompiles = { path = "../../precompiles/crowdloan-rewards", default-features = false }
@@ -208,6 +208,7 @@ std = [
 	"pallet-transaction-payment/std",
 	"pallet-treasury/std",
 	"pallet-utility/std",
+	"pallet-xcm-transactor/std",
 	"pallet-xcm/std",
 	"parachain-info/std",
 	"parachain-staking-precompiles/std",
@@ -232,7 +233,6 @@ std = [
 	"xcm-executor/std",
 	"xcm-primitives/std",
 	"xcm-transactor-precompiles/std",
-	"xcm-transactor/std",
 	"xcm/std",
 	"xtokens-precompiles/std",
  ]
@@ -269,10 +269,10 @@ runtime-benchmarks = [
 	"pallet-parachain-staking/runtime-benchmarks",
 	"pallet-society/runtime-benchmarks",
 	"pallet-timestamp/runtime-benchmarks",
+	"pallet-xcm-transactor/runtime-benchmarks",
 	"pallet-xcm/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
 	"xcm-builder/runtime-benchmarks",
-	"xcm-transactor/runtime-benchmarks",
 ]
 try-runtime = [
 	"frame-executive/try-runtime",

@@ -958,8 +958,8 @@ impl Contains<Call> for NormalFilter {
 			},
 			// We filter for now transact through signed
 			Call::XcmTransactor(method) => match method {
-				xcm_transactor::Call::transact_through_signed_multilocation { .. } => false,
-				xcm_transactor::Call::transact_through_signed { .. } => false,
+				pallet_xcm_transactor::Call::transact_through_signed_multilocation { .. } => false,
+				pallet_xcm_transactor::Call::transact_through_signed { .. } => false,
 				_ => true,
 			},
 			_ => true,
@@ -1141,7 +1141,7 @@ construct_runtime! {
 		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>} = 104,
 		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>} = 105,
 		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>} = 106,
-		XcmTransactor: xcm_transactor::{Pallet, Call, Storage, Event<T>} = 107,
+		XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Storage, Event<T>} = 107,
 		LocalAssets: pallet_assets::<Instance1>::{Pallet, Call, Storage, Event<T>} = 108,
 	}
 }

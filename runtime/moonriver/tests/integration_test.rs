@@ -2252,7 +2252,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 					17000,
 					vec![],
 				),
-				xcm_transactor::Error::<Runtime>::MaxWeightTransactReached
+				pallet_xcm_transactor::Error::<Runtime>::MaxWeightTransactReached
 			);
 			assert_noop!(
 				XcmTransactor::transact_through_derivative(
@@ -2264,7 +2264,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 					17000,
 					vec![],
 				),
-				xcm_transactor::Error::<Runtime>::MaxWeightTransactReached
+				pallet_xcm_transactor::Error::<Runtime>::MaxWeightTransactReached
 			);
 		})
 }
@@ -2309,7 +2309,7 @@ fn transact_through_signed_mult_not_enabled() {
 
 			assert_noop!(
 				Call::XcmTransactor(
-					xcm_transactor::Call::<Runtime>::transact_through_signed_multilocation {
+					pallet_xcm_transactor::Call::<Runtime>::transact_through_signed_multilocation {
 						dest: Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 						fee_location: Box::new(xcm::VersionedMultiLocation::V1(
 							MultiLocation::parent()
@@ -2368,12 +2368,14 @@ fn transact_through_signed_not_enabled() {
 			));
 
 			assert_noop!(
-				Call::XcmTransactor(xcm_transactor::Call::<Runtime>::transact_through_signed {
-					dest: Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-					fee_currency_id: CurrencyId::ForeignAsset(source_id),
-					dest_weight: 11000,
-					call: vec![],
-				})
+				Call::XcmTransactor(
+					pallet_xcm_transactor::Call::<Runtime>::transact_through_signed {
+						dest: Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+						fee_currency_id: CurrencyId::ForeignAsset(source_id),
+						dest_weight: 11000,
+						call: vec![],
+					}
+				)
 				.dispatch(<Runtime as frame_system::Config>::Origin::signed(
 					AccountId::from(ALICE)
 				)),
