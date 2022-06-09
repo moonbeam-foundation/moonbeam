@@ -4,7 +4,7 @@ authors = [ "PureStake" ]
 edition = "2021"
 homepage = "https://moonbeam.network"
 license = "GPL-3.0-only"
-version = "0.23.0"
+version = "0.24.0"
 
 [dependencies]
 bip32 = { version = "0.4.0", default-features = false, features = [ "bip39" ] }
