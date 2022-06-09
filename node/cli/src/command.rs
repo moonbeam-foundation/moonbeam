@@ -667,7 +667,12 @@ pub fn run() -> Result<()> {
 				}
 				BenchmarkCmd::Overhead(_) => Err("Unsupported benchmarking command".into()),
 				BenchmarkCmd::Machine(cmd) => {
-					return runner.sync_run(|config| cmd.run(&config));
+					return runner.sync_run(|config| {
+						cmd.run(
+							&config,
+							frame_benchmarking_cli::SUBSTRATE_REFERENCE_HARDWARE.clone(),
+						)
+					});
 				}
 			}
 		}
