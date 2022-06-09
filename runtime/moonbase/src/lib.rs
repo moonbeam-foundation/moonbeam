@@ -29,6 +29,7 @@
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use cumulus_pallet_parachain_system::RelaychainBlockNumberProvider;
+use cumulus_primitives_core::relay_chain::v2::Slot;
 use fp_rpc::TransactionStatus;
 
 use account::AccountId20;
@@ -70,6 +71,7 @@ use pallet_evm::{
 	FeeCalculator, GasWeightMapping, OnChargeEVMTransaction as OnChargeEVMTransactionT, Runner,
 };
 use pallet_transaction_payment::{CurrencyAdapter, Multiplier, TargetedFeeAdjustment};
+use pallet_vrf::GetMostRecentVrfInputs;
 pub use parachain_staking::{InflationInfo, Range};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
@@ -1099,25 +1101,17 @@ impl pallet_randomness::GetRelayRandomness<H256> for RelayRandomness {
 	}
 }
 
-pub struct RandomnessSender;
-impl pallet_randomness::SendRandomness<AccountId, [u8; 32]> for RandomnessSender {
-	fn send_randomness(_contract: AccountId, _randomness: [u8; 32]) {
-		// TODO: how will this be done
-		// the contract must implement a callback that we can call?
-	}
-}
-
 // TODO: set reasonable params
 parameter_types! {
 	pub const RandomnessRequestDeposit: u128 = 10;
 	pub const ExpirationDelay: BlockNumber = 100;
 }
-impl pallet_randomness::Config for Test {
+impl pallet_randomness::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
 	type RelayEpochIndex = RelayEpochIndex;
 	type RelayRandomness = RelayRandomness;
-	type RandomnessSender = RandomnessSender;
+	type LocalRandomness = Vrf;
 	type Deposit = RandomnessRequestDeposit;
 	type ExpirationDelay = ExpirationDelay;
 }
@@ -1127,17 +1121,19 @@ impl GetMostRecentVrfInputs<Hash, Slot> for MostRecentVrfInputGetter {
 	fn get_most_recent_relay_storage_root() -> (Hash, Weight) {
 		let most_recent_relay_storage_root =
 			ParachainSystem::validation_data().relay_parent_storage_root;
-		(most_recent_relay_storage_root, DbWeight::get().read)
+		(most_recent_relay_storage_root, RocksDbWeight::get().read)
 	}
 	fn get_most_recent_relay_slot_number() -> (Slot, Weight) {
 		let most_recent_relay_slot_number = ParachainSystem::relay_state_proof().read_slot();
-		(most_recent_relay_slot_number, DbWeight::get().read)
+		(most_recent_relay_slot_number, RocksDbWeight::get().read)
 	}
 }
 
 pub struct NimbusToVrfKey;
-impl session_key_primitives::KeysLookup<NimbusId, AuthorityId> for NimbusToVrfKey {
-	fn lookup_keys(authority_id: &NimbusId) -> Option<AuthorityId> {
+impl session_keys_primitives::KeysLookup<NimbusId, session_keys_primitives::VrfId>
+	for NimbusToVrfKey
+{
+	fn lookup_keys(authority_id: &NimbusId) -> Option<session_keys_primitives::VrfId> {
 		None
 		//AuthorMapping::keys_of(authority_id)
 	}

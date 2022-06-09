@@ -22,9 +22,9 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
-use session_keys_primitives::KeysLookup;
+use session_keys_primitives::{KeysLookup, VrfId};
 use sp_application_crypto::ByteArray;
-use sp_consensus_babe::{digests::PreDigest, AuthorityId, Slot, Transcript, BABE_ENGINE_ID};
+use sp_consensus_babe::{digests::PreDigest, Slot, Transcript, BABE_ENGINE_ID};
 use sp_consensus_vrf::schnorrkel;
 
 #[cfg(test)]
@@ -92,8 +92,8 @@ pub mod pallet {
 		/// Gets the most recent relay block hash and relay slot number in `on_initialize`
 		/// and returns weight consumed for getting these values
 		type MostRecentVrfInputGetter: GetMostRecentVrfInputs<Self::RelayBlockHash, Slot>;
-		/// Takes input NimbusId and gets back AuthorityId
-		type VrfKeyLookup: KeysLookup<NimbusId, AuthorityId>;
+		/// Takes input NimbusId and gets back VrfId
+		type VrfKeyLookup: KeysLookup<NimbusId, VrfId>;
 	}
 
 	/// Current block randomness
@@ -153,7 +153,7 @@ pub mod pallet {
 		}
 		/// Returns weight consumed in `on_initialize`
 		fn set_randomness(input: VrfInput<T::RelayBlockHash, Slot>) -> Weight {
-			let mut block_author_vrf_id: Option<AuthorityId> = None;
+			let mut block_author_vrf_id: Option<VrfId> = None;
 			let maybe_pre_digest: Option<PreDigest> = <frame_system::Pallet<T>>::digest()
 				.logs
 				.iter()
@@ -195,9 +195,13 @@ pub mod pallet {
 		}
 	}
 
-	impl<T: Config> GetMaybeRandomness<Randomness> for Pallet<T> {
-		fn get_current_randomness() -> Option<Randomness> {
-			CurrentRandomness::<T>::get()
+	impl<T: Config> GetMaybeRandomness<T::Hash> for Pallet<T> {
+		fn get_current_randomness() -> Option<T::Hash> {
+			if let Some(r) = CurrentRandomness::<T>::get() {
+				T::Hash::decode(&mut &r[..]).ok()
+			} else {
+				None
+			}
 		}
 	}
 }
