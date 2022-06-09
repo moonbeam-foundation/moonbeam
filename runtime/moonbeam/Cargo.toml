@@ -38,11 +38,11 @@ pallet-proxy-genesis-companion = { path = "../../pallets/proxy-genesis-companion
 pallet-xcm-transactor = { path = "../../pallets/xcm-transactor", default-features = false }
 
 # Moonbeam precompiles
-pallet-democracy-precompiles = { path = "../../precompiles/pallet-democracy", default-features = false }
 pallet-evm-precompile-author-mapping = { path = "../../precompiles/author-mapping", default-features = false }
 pallet-evm-precompile-balances-erc20 = { path = "../../precompiles/balances-erc20", default-features = false }
 pallet-evm-precompile-batch = { path = "../../precompiles/batch", default-features = false }
 pallet-evm-precompile-crowdloan-rewards = { path = "../../precompiles/crowdloan-rewards", default-features = false }
+pallet-evm-precompile-democracy = { path = "../../precompiles/pallet-democracy", default-features = false }
 pallet-evm-precompileset-assets-erc20 = { path = "../../precompiles/assets-erc20", default-features = false }
 parachain-staking-precompiles = { path = "../../precompiles/parachain-staking", default-features = false }
 relay-encoder-precompiles = { path = "../../precompiles/relay-encoder", default-features = false }
