@@ -18,7 +18,7 @@ describeDevMoonbeam(
 );
 
 describeDevMoonbeam(
-  "Substrate Length Fees - Transaction (Moonriver)",
+  "Substrate Length Fees - Transaction (Moonbase)",
   (context) => {
     it("should have expensive runtime-upgrade fees", async () => {
       const fee = await testRuntimeUpgrade(context);
@@ -66,7 +66,7 @@ describeDevMoonbeam(
 );
 
 describeDevMoonbeam(
-  "Substrate Length Fees - Transaction (Moonriver)",
+  "Substrate Length Fees - Transaction (Moonbeam)",
   (context) => {
     it("should have expensive runtime-upgrade fees", async () => {
       const fee = await testRuntimeUpgrade(context);
