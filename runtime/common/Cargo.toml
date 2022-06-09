@@ -1,5 +1,5 @@
 [package]
-name = "runtime-common"
+name = "moonbeam-runtime-common"
 authors = [ "PureStake" ]
 description = "Common code shared between runtimes"
 edition = "2021"

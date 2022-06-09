@@ -5378,6 +5378,7 @@ dependencies = [
  "moonbeam-relay-encoder",
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
+ "moonbeam-runtime-common",
  "nimbus-primitives",
  "orml-traits",
  "orml-xcm-support",
@@ -5436,7 +5437,6 @@ dependencies = [
  "polkadot-runtime-parachains",
  "precompile-utils",
  "rlp",
- "runtime-common",
  "scale-info",
  "serde",
  "session-keys-primitives",
@@ -5818,6 +5818,7 @@ dependencies = [
  "moonbeam-relay-encoder",
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
+ "moonbeam-runtime-common",
  "nimbus-primitives",
  "orml-traits",
  "orml-xcm-support",
@@ -5875,7 +5876,6 @@ dependencies = [
  "polkadot-runtime-parachains",
  "precompile-utils",
  "rlp",
- "runtime-common",
  "scale-info",
  "serde",
  "session-keys-primitives",
@@ -5899,6 +5899,31 @@ dependencies = [
  "xcm-executor",
  "xcm-primitives",
  "xcm-simulator",
+]
+
+[[package]]
+name = "moonbeam-runtime-common"
+version = "0.8.0-dev"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "impl-trait-for-tuples",
+ "log",
+ "pallet-asset-manager",
+ "pallet-author-inherent",
+ "pallet-author-mapping",
+ "pallet-author-slot-filter",
+ "pallet-base-fee",
+ "pallet-collective",
+ "pallet-evm",
+ "pallet-migrations",
+ "pallet-parachain-staking",
+ "pallet-scheduler",
+ "pallet-xcm-transactor",
+ "sp-core",
+ "sp-runtime",
+ "sp-std",
+ "xcm",
 ]
 
 [[package]]
@@ -6063,6 +6088,7 @@ dependencies = [
  "moonbeam-relay-encoder",
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
+ "moonbeam-runtime-common",
  "nimbus-primitives",
  "orml-traits",
  "orml-xcm-support",
@@ -6120,7 +6146,6 @@ dependencies = [
  "polkadot-runtime-parachains",
  "precompile-utils",
  "rlp",
- "runtime-common",
  "scale-info",
  "serde",
  "session-keys-primitives",
@@ -10570,31 +10595,6 @@ checksum = "ffc936cf8a7ea60c58f030fd36a612a48f440610214dc54bc36431f9ea0c3efb"
 dependencies = [
  "libc",
  "winapi 0.3.9",
-]
-
-[[package]]
-name = "runtime-common"
-version = "0.8.0-dev"
-dependencies = [
- "frame-support",
- "frame-system",
- "impl-trait-for-tuples",
- "log",
- "pallet-asset-manager",
- "pallet-author-inherent",
- "pallet-author-mapping",
- "pallet-author-slot-filter",
- "pallet-base-fee",
- "pallet-collective",
- "pallet-evm",
- "pallet-migrations",
- "pallet-parachain-staking",
- "pallet-scheduler",
- "pallet-xcm-transactor",
- "sp-core",
- "sp-runtime",
- "sp-std",
- "xcm",
 ]
 
 [[package]]

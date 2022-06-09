@@ -20,8 +20,8 @@ smallvec = "1.8.0"
 account = { path = "../../primitives/account/", default-features = false }
 moonbeam-core-primitives = { path = "../../core-primitives", default-features = false }
 moonbeam-relay-encoder = { path = "../relay-encoder", default-features = false }
+moonbeam-runtime-common = { path = "../common", default-features = false, features = [ "xcm-support" ] }
 precompile-utils = { path = "../../precompiles/utils", default-features = false }
-runtime-common = { path = "../common", default-features = false, features = [ "xcm-support" ] }
 session-keys-primitives = { path = "../../primitives/session-keys", default-features = false }
 xcm-primitives = { path = "../../primitives/xcm/", default-features = false }
 
@@ -172,6 +172,7 @@ std = [
 	"moonbeam-evm-tracer/std",
 	"moonbeam-rpc-primitives-debug/std",
 	"moonbeam-rpc-primitives-txpool/std",
+	"moonbeam-runtime-common/std",
 	"nimbus-primitives/std",
 	"orml-xtokens/std",
 	"pallet-asset-manager/std",
@@ -216,7 +217,6 @@ std = [
 	"parachain-info/std",
 	"parity-scale-codec/std",
 	"precompile-utils/std",
-	"runtime-common/std",
 	"scale-info/std",
 	"serde",
 	"session-keys-primitives/std",
@@ -278,6 +278,7 @@ try-runtime = [
 	"frame-executive/try-runtime",
 	"frame-system/try-runtime",
 	"frame-try-runtime",
+	"moonbeam-runtime-common/try-runtime",
 	"pallet-asset-manager/try-runtime",
 	"pallet-author-mapping/try-runtime",
 	"pallet-author-slot-filter/try-runtime",
@@ -291,5 +292,4 @@ try-runtime = [
 	"pallet-scheduler/try-runtime",
 	"pallet-society/try-runtime",
 	"pallet-timestamp/try-runtime",
-	"runtime-common/try-runtime",
 ]
