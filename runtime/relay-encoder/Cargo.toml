@@ -38,10 +38,10 @@ default = [ "std" ]
 std = [
 	"cumulus-primitives-core/std",
 	"frame-system/std",
+	"pallet-evm-precompile-relay-encoder/std",
 	"pallet-staking/std",
 	"parity-scale-codec/std",
 	"parity-scale-codec/std",
-	"pallet-evm-precompile-relay-encoder/std",
 	"sp-runtime/std",
 	"sp-std/std",
 	"xcm-primitives/std",
