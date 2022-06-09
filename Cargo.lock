@@ -5418,7 +5418,6 @@ dependencies = [
  "pallet-assets",
  "pallet-author-inherent",
  "pallet-author-mapping",
- "pallet-author-mapping-precompiles",
  "pallet-author-slot-filter",
  "pallet-balances",
  "pallet-base-fee",
@@ -5429,6 +5428,7 @@ dependencies = [
  "pallet-ethereum",
  "pallet-ethereum-chain-id",
  "pallet-evm",
+ "pallet-evm-precompile-author-mapping",
  "pallet-evm-precompile-balances-erc20",
  "pallet-evm-precompile-batch",
  "pallet-evm-precompile-blake2",
@@ -5858,7 +5858,6 @@ dependencies = [
  "pallet-assets",
  "pallet-author-inherent",
  "pallet-author-mapping",
- "pallet-author-mapping-precompiles",
  "pallet-author-slot-filter",
  "pallet-balances",
  "pallet-base-fee",
@@ -5869,6 +5868,7 @@ dependencies = [
  "pallet-ethereum",
  "pallet-ethereum-chain-id",
  "pallet-evm",
+ "pallet-evm-precompile-author-mapping",
  "pallet-evm-precompile-balances-erc20",
  "pallet-evm-precompile-batch",
  "pallet-evm-precompile-blake2",
@@ -6103,7 +6103,6 @@ dependencies = [
  "pallet-assets",
  "pallet-author-inherent",
  "pallet-author-mapping",
- "pallet-author-mapping-precompiles",
  "pallet-author-slot-filter",
  "pallet-balances",
  "pallet-base-fee",
@@ -6114,6 +6113,7 @@ dependencies = [
  "pallet-ethereum",
  "pallet-ethereum-chain-id",
  "pallet-evm",
+ "pallet-evm-precompile-author-mapping",
  "pallet-evm-precompile-balances-erc20",
  "pallet-evm-precompile-batch",
  "pallet-evm-precompile-blake2",
@@ -6795,33 +6795,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-author-mapping-precompiles"
-version = "0.2.0"
-dependencies = [
- "derive_more",
- "fp-evm",
- "frame-support",
- "frame-system",
- "hex-literal",
- "log",
- "nimbus-primitives",
- "num_enum",
- "pallet-author-mapping",
- "pallet-balances",
- "pallet-evm",
- "pallet-scheduler",
- "pallet-timestamp",
- "parity-scale-codec",
- "precompile-utils",
- "scale-info",
- "serde",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
 name = "pallet-author-slot-filter"
 version = "0.9.0"
 source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.20#888afc92cf008677e02966ad4a0934ffa21e0516"
@@ -7258,6 +7231,33 @@ dependencies = [
  "scale-info",
  "serde",
  "sha3 0.10.1",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-evm-precompile-author-mapping"
+version = "0.2.0"
+dependencies = [
+ "derive_more",
+ "fp-evm",
+ "frame-support",
+ "frame-system",
+ "hex-literal",
+ "log",
+ "nimbus-primitives",
+ "num_enum",
+ "pallet-author-mapping",
+ "pallet-balances",
+ "pallet-evm",
+ "pallet-scheduler",
+ "pallet-timestamp",
+ "parity-scale-codec",
+ "precompile-utils",
+ "scale-info",
+ "serde",
  "sp-core",
  "sp-io",
  "sp-runtime",

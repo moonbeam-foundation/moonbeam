@@ -42,8 +42,8 @@ use moonbase_runtime::{
 
 use crowdloan_rewards_precompiles::Action as CrowdloanAction;
 use nimbus_primitives::NimbusId;
-use pallet_author_mapping_precompiles::Action as AuthorMappingAction;
 use pallet_evm::PrecompileSet;
+use pallet_evm_precompile_author_mapping::Action as AuthorMappingAction;
 use pallet_evm_precompileset_assets_erc20::{
 	AccountIdAssetIdConversion, Action as AssetAction, SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER,
 };
