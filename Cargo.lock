@@ -5404,6 +5404,7 @@ dependencies = [
  "pallet-evm-precompile-democracy",
  "pallet-evm-precompile-dispatch",
  "pallet-evm-precompile-modexp",
+ "pallet-evm-precompile-parachain-staking",
  "pallet-evm-precompile-sha3fips",
  "pallet-evm-precompile-simple",
  "pallet-evm-precompileset-assets-erc20",
@@ -5426,7 +5427,6 @@ dependencies = [
  "pallet-xcm",
  "pallet-xcm-transactor",
  "parachain-info",
- "parachain-staking-precompiles",
  "parity-scale-codec",
  "polkadot-core-primitives",
  "polkadot-parachain",
@@ -5844,6 +5844,7 @@ dependencies = [
  "pallet-evm-precompile-democracy",
  "pallet-evm-precompile-dispatch",
  "pallet-evm-precompile-modexp",
+ "pallet-evm-precompile-parachain-staking",
  "pallet-evm-precompile-sha3fips",
  "pallet-evm-precompile-simple",
  "pallet-evm-precompileset-assets-erc20",
@@ -5865,7 +5866,6 @@ dependencies = [
  "pallet-xcm",
  "pallet-xcm-transactor",
  "parachain-info",
- "parachain-staking-precompiles",
  "parity-scale-codec",
  "polkadot-core-primitives",
  "polkadot-parachain",
@@ -6089,6 +6089,7 @@ dependencies = [
  "pallet-evm-precompile-democracy",
  "pallet-evm-precompile-dispatch",
  "pallet-evm-precompile-modexp",
+ "pallet-evm-precompile-parachain-staking",
  "pallet-evm-precompile-sha3fips",
  "pallet-evm-precompile-simple",
  "pallet-evm-precompileset-assets-erc20",
@@ -6110,7 +6111,6 @@ dependencies = [
  "pallet-xcm",
  "pallet-xcm-transactor",
  "parachain-info",
- "parachain-staking-precompiles",
  "parity-scale-codec",
  "polkadot-core-primitives",
  "polkadot-parachain",
@@ -7358,6 +7358,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-evm-precompile-parachain-staking"
+version = "1.0.0"
+dependencies = [
+ "derive_more",
+ "fp-evm",
+ "frame-support",
+ "frame-system",
+ "log",
+ "num_enum",
+ "pallet-balances",
+ "pallet-evm",
+ "pallet-parachain-staking",
+ "pallet-timestamp",
+ "parity-scale-codec",
+ "precompile-utils",
+ "rustc-hex",
+ "scale-info",
+ "serde",
+ "sha3 0.9.1",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-evm-precompile-sha3fips"
 version = "2.0.0-dev"
 source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.20#652abf16eb99435c37895ff2517f7deec6b6b0ca"
@@ -8039,32 +8065,6 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "serde",
-]
-
-[[package]]
-name = "parachain-staking-precompiles"
-version = "1.0.0"
-dependencies = [
- "derive_more",
- "fp-evm",
- "frame-support",
- "frame-system",
- "log",
- "num_enum",
- "pallet-balances",
- "pallet-evm",
- "pallet-parachain-staking",
- "pallet-timestamp",
- "parity-scale-codec",
- "precompile-utils",
- "rustc-hex",
- "scale-info",
- "serde",
- "sha3 0.9.1",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
 ]
 
 [[package]]

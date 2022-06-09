@@ -1,5 +1,5 @@
 [package]
-name = "parachain-staking-precompiles"
+name = "pallet-evm-precompile-parachain-staking"
 authors = [ "PureStake" ]
 description = "A Precompile to make parachain staking accessible to pallet-evm"
 edition = "2021"
