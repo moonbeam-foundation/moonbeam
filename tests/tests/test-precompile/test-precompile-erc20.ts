@@ -31,7 +31,7 @@ async function sendApprove(context, spender, amount) {
   const fromData = alith.address.slice(2).padStart(64, "0").toLowerCase();
   const spenderData = spender.slice(2).padStart(64, "0").toLowerCase();
 
-  const { result } = await context.createBlockWithEth(
+  const { result } = await context.createBlock(
     createTransaction(context, {
       ...ALITH_TRANSACTION_TEMPLATE,
       to: PRECOMPILE_NATIVE_ERC20_ADDRESS,
@@ -39,7 +39,7 @@ async function sendApprove(context, spender, amount) {
     })
   );
 
-  const receipt = await context.web3.eth.getTransactionReceipt(result.result);
+  const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
   expect(receipt.status).to.equal(true);
   expect(receipt.logs.length).to.eq(1);
   expect(receipt.logs[0].address).to.eq(PRECOMPILE_NATIVE_ERC20_ADDRESS);
@@ -103,7 +103,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - ERC20 Native", (context) => {
 
     const to = charleth.address.slice(2).padStart(64, "0");
 
-    const { result } = await context.createBlockWithEth(
+    const { result } = await context.createBlock(
       createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
         to: PRECOMPILE_NATIVE_ERC20_ADDRESS,
@@ -111,7 +111,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - ERC20 Native", (context) => {
       })
     );
 
-    const receipt = await context.web3.eth.getTransactionReceipt(result.result);
+    const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
     expect(receipt.status).to.equal(true);
 
     const fees = receipt.gasUsed * 1_000_000_000;
@@ -137,7 +137,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - ERC20 Native", (context) => {
       const from = alith.address.slice(2).padStart(64, "0").toLowerCase();
       const to = charleth.address.slice(2).padStart(64, "0").toLowerCase();
 
-      const { result } = await context.createBlockWithEth(
+      const { result } = await context.createBlock(
         createTransaction(context, {
           ...BALTATHAR_TRANSACTION_TEMPLATE,
           to: PRECOMPILE_NATIVE_ERC20_ADDRESS,
@@ -145,7 +145,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - ERC20 Native", (context) => {
         })
       );
 
-      const receipt = await context.web3.eth.getTransactionReceipt(result.result);
+      const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
 
       expect(receipt.logs.length).to.eq(1);
       expect(receipt.logs[0].address).to.eq(PRECOMPILE_NATIVE_ERC20_ADDRESS);
@@ -184,7 +184,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - ERC20", (context) => {
       let from = alith.address.slice(2).padStart(64, "0");
       let to = charleth.address.slice(2).padStart(64, "0");
 
-      const { result } = await context.createBlockWithEth(
+      const { result } = await context.createBlock(
         createTransaction(context, {
           ...BALTATHAR_TRANSACTION_TEMPLATE,
           to: PRECOMPILE_NATIVE_ERC20_ADDRESS,
@@ -192,7 +192,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - ERC20", (context) => {
         })
       );
 
-      const receipt = await context.web3.eth.getTransactionReceipt(result.result);
+      const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
       expect(receipt.status).to.equal(false); // transfer fails because it is not allowed that much
     }
 

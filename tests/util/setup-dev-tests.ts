@@ -28,29 +28,18 @@ export interface BlockCreation {
   parentHash?: BlockHash;
   finalize?: boolean;
 }
-export interface SubBlockCreation<
-  Call extends SubmittableExtrinsic<ApiType>,
-  ApiType extends ApiTypes
-> extends BlockCreation {
-  transactions: Call[];
-}
 
-export interface BlockCreationResponse {
+export interface BlockCreationResponse<
+  ApiType extends ApiTypes,
+  Call extends SubmittableExtrinsic<ApiType> | string | (SubmittableExtrinsic<ApiType> | string)[]
+> {
   block: {
     duration: number;
     hash: BlockHash;
   };
-}
-export interface EthBlockCreationResponse<T extends string | string[]>
-  extends BlockCreationResponse {
-  result: T extends string[] ? JsonRpcResponse[] : JsonRpcResponse;
-}
-
-export interface SubBlockCreationResponse<
-  ApiType extends ApiTypes,
-  Call extends SubmittableExtrinsic<ApiType> | SubmittableExtrinsic<ApiType>[]
-> extends BlockCreationResponse {
-  result: Call extends SubmittableExtrinsic<ApiType>[] ? ExtrinsicCreation[] : ExtrinsicCreation;
+  result: Call extends (string | SubmittableExtrinsic<ApiType>)[]
+    ? ExtrinsicCreation[]
+    : ExtrinsicCreation;
 }
 
 export interface DevTestContext {
@@ -58,20 +47,19 @@ export interface DevTestContext {
   createEthers: () => Promise<ethers.providers.JsonRpcProvider>;
   createPolkadotApi: () => Promise<ApiPromise>;
 
-  createBlockWithEth: <T extends string | Promise<string>, TX extends T | T[]>(
-    transactions: TX,
-    options?: BlockCreation
-  ) => Promise<EthBlockCreationResponse<TX extends T[] ? string[] : string>>;
-  createBlock: (options?: BlockCreation) => Promise<BlockCreationResponse>;
-  createBlockWithExtrinsic<
+  createBlock<
     ApiType extends ApiTypes,
-    Call extends SubmittableExtrinsic<ApiType> | Promise<SubmittableExtrinsic<ApiType>>,
+    Call extends
+      | SubmittableExtrinsic<ApiType>
+      | Promise<SubmittableExtrinsic<ApiType>>
+      | string
+      | Promise<string>,
     Calls extends Call | Call[]
   >(
-    transactions: Calls,
+    transactions?: Calls,
     options?: BlockCreation
   ): Promise<
-    SubBlockCreationResponse<ApiType, Calls extends Call[] ? Awaited<Call>[] : Awaited<Call>>
+    BlockCreationResponse<ApiType, Calls extends Call[] ? Awaited<Call>[] : Awaited<Call>>
   >;
 
   // We also provided singleton providers for simplicity
@@ -154,105 +142,104 @@ export function describeDevMoonbeam(
       context.web3 = await context.createWeb3();
       context.ethers = await context.createEthers();
 
-      context.createBlock = async <T>(options: BlockCreation = {}) => {
-        let { parentHash, finalize } = options;
-        return {
-          block: await createAndFinalizeBlock(context.polkadotApi, parentHash, finalize),
-        };
-      };
-
-      context.createBlockWithEth = async (
-        transactions: string | Promise<string> | (string | Promise<string>)[],
-        options?: BlockCreation
-      ): Promise<EthBlockCreationResponse<string | string[]>> => {
-        if (Array.isArray(transactions)) {
-          const result = await Promise.all(
-            transactions.map(async (t) =>
-              customWeb3Request(context.web3, "eth_sendRawTransaction", [await t])
-            )
-          );
-          return {
-            result,
-            block: (await context.createBlock()).block,
-          };
-        }
-        const result = await customWeb3Request(context.web3, "eth_sendRawTransaction", [
-          await transactions,
-        ]);
-        const block = (await context.createBlock(options)).block;
-        // Adds extra time to avoid empty transaction when querying it
-        await Promise.resolve((resolve) => setTimeout(resolve, 10));
-        return {
-          result,
-          block,
-        };
-      };
-
-      context.createBlockWithExtrinsic = async <ApiType extends ApiTypes>(
-        transactions:
+      context.createBlock = async <
+        ApiType extends ApiTypes,
+        Call extends
           | SubmittableExtrinsic<ApiType>
           | Promise<SubmittableExtrinsic<ApiType>>
-          | (Promise<SubmittableExtrinsic<ApiType>> | SubmittableExtrinsic<ApiType>)[],
-        options?: BlockCreation
-      ): Promise<
-        SubBlockCreationResponse<
-          ApiType,
-          SubmittableExtrinsic<ApiType> | SubmittableExtrinsic<ApiType>[]
-        >
-      > => {
-        // This should return a  string, but is a bit complex to handle type
-        // properly so any will suffice
-        const extrinsicHashes: string[] = [];
-        const txs = Array.isArray(transactions) ? transactions : [transactions];
+          | string
+          | Promise<string>,
+        Calls extends Call | Call[]
+      >(
+        transactions?: Calls,
+        options: BlockCreation = {}
+      ) => {
+        const results: ({ type: "eth"; hash: string } | { type: "sub"; hash: string })[] = [];
+        const txs =
+          transactions == undefined
+            ? []
+            : Array.isArray(transactions)
+            ? transactions
+            : [transactions];
         for await (const call of txs) {
-          if (call.isSigned) {
-            extrinsicHashes.push((await call.send()).toString());
+          if (typeof call == "string") {
+            // Ethereum
+            results.push({
+              type: "eth",
+              hash: (await customWeb3Request(context.web3, "eth_sendRawTransaction", [call]))
+                .result,
+            });
+          } else if (call.isSigned) {
+            results.push({
+              type: "sub",
+              hash: (await call.send()).toString(),
+            });
           } else {
-            extrinsicHashes.push((await call.signAndSend(alith)).toString());
+            results.push({
+              type: "sub",
+              hash: (await call.signAndSend(alith)).toString(),
+            });
           }
         }
 
-        const blockResult = await context.createBlock(options);
+        const { parentHash, finalize } = options;
+        const blockResult = await createAndFinalizeBlock(context.polkadotApi, parentHash, finalize);
+
+        // No need to extract events if no transactions
+        if (results.length == 0) {
+          return {
+            block: blockResult,
+            result: null,
+          };
+        }
 
         // We retrieve the events for that block
         const allRecords: EventRecord[] = (await (
-          await context.polkadotApi.at(blockResult.block.hash)
+          await context.polkadotApi.at(blockResult.hash)
         ).query.system.events()) as any;
-
         // We retrieve the block (including the extrinsics)
-        const blockData = await context.polkadotApi.rpc.chain.getBlock(blockResult.block.hash);
+        const blockData = await context.polkadotApi.rpc.chain.getBlock(blockResult.hash);
 
-        const result: ExtrinsicCreation[] = extrinsicHashes.map((extrinsicHash) => {
-          const extrinsicIndex = blockData.block.extrinsics.findIndex(
-            (ext) => ext.hash.toHex() == extrinsicHash
-          );
-          if (extrinsicIndex < 0) {
-            throw new Error(
-              `Extrinsic ${extrinsicHashes} is missing in the block ${blockResult.block.hash}`
-            );
-          }
-          blockData.block.extrinsics[extrinsicIndex] as any;
+        const result: ExtrinsicCreation[] = results.map((result) => {
+          const extrinsicIndex =
+            result.type == "eth"
+              ? allRecords
+                  .find(
+                    ({ phase, event: { section, method, data } }) =>
+                      phase.isApplyExtrinsic &&
+                      section == "ethereum" &&
+                      method == "Executed" &&
+                      data[3].toString() &&
+                      result.hash
+                  )
+                  ?.phase?.asApplyExtrinsic?.toNumber()
+              : blockData.block.extrinsics.findIndex((ext) => ext.hash.toHex() == result.hash);
 
           // We retrieve the events associated with the extrinsic
           const events = allRecords.filter(
             ({ phase }) =>
-              phase.isApplyExtrinsic && phase.asApplyExtrinsic.toNumber() == extrinsicIndex
+              phase.isApplyExtrinsic && phase.asApplyExtrinsic.toNumber() === extrinsicIndex
           );
           const failed = extractError(events);
           return {
-            extrinsic: blockData.block.extrinsics[extrinsicIndex],
+            extrinsic: extrinsicIndex >= 0 ? blockData.block.extrinsics[extrinsicIndex] : null,
             events,
             error:
               failed &&
               ((failed.isModule && context.polkadotApi.registry.findMetaError(failed.asModule)) ||
                 ({ name: failed.toString() } as RegistryError)),
             successful: !failed,
+            hash: result.hash,
           };
         });
 
+        // Adds extra time to avoid empty transaction when querying it
+        if (results.find((r) => r.type == "eth")) {
+          await Promise.resolve((resolve) => setTimeout(resolve, 2));
+        }
         return {
-          block: blockResult.block,
-          result: Array.isArray(transactions) ? result : result[0],
+          block: blockResult,
+          result: Array.isArray(transactions) ? result : (result[0] as any),
         };
       };
 

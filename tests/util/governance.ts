@@ -22,8 +22,9 @@ export const notePreimage = async <
   account: KeyringPair
 ): Promise<string> => {
   const encodedProposal = proposal.method.toHex() || "";
-  await context.polkadotApi.tx.democracy.notePreimage(encodedProposal).signAndSend(account);
-  await context.createBlock();
+  await context.createBlock(
+    context.polkadotApi.tx.democracy.notePreimage(encodedProposal).signAsync(account)
+  );
 
   return blake2AsHex(encodedProposal);
 };
@@ -58,8 +59,8 @@ export const execCouncilProposal = async <
 ) => {
   // Charleth submit the proposal to the council (and therefore implicitly votes for)
   let lengthBound = polkadotCall.encodedLength;
-  const { result: proposalResult } = await context.createBlockWithExtrinsic(
-    await context.polkadotApi.tx.councilCollective
+  const { result: proposalResult } = await context.createBlock(
+    context.polkadotApi.tx.councilCollective
       .propose(threshold, polkadotCall, lengthBound)
       .signAsync(charleth)
   );
@@ -83,8 +84,8 @@ export const execCouncilProposal = async <
     )
   );
   await context.createBlock();
-  return await context.createBlockWithExtrinsic(
-    await context.polkadotApi.tx.councilCollective
+  return await context.createBlock(
+    context.polkadotApi.tx.councilCollective
       .close(proposalHash, 0, 1_000_000_000, lengthBound)
       .signAsync(dorothy)
   );
@@ -106,12 +107,8 @@ export const execTechnicalCommitteeProposal = async <
 
   // Alith submit the proposal to the council (and therefore implicitly votes for)
   let lengthBound = polkadotCall.encodedLength;
-  const { result: proposalResult } = await context.createBlockWithExtrinsic(
-    await context.polkadotApi.tx.techCommitteeCollective.propose(
-      threshold,
-      polkadotCall,
-      lengthBound
-    )
+  const { result: proposalResult } = await context.createBlock(
+    context.polkadotApi.tx.techCommitteeCollective.propose(threshold, polkadotCall, lengthBound)
   );
 
   if (threshold <= 1) {
@@ -128,16 +125,15 @@ export const execTechnicalCommitteeProposal = async <
   // Get proposal count
   const proposalCount = await context.polkadotApi.query.techCommitteeCollective.proposalCount();
 
-  await Promise.all(
+  await context.createBlock(
     voters.map((voter) =>
       context.polkadotApi.tx.techCommitteeCollective
         .vote(proposalHash, Number(proposalCount) - 1, true)
-        .signAndSend(voter)
+        .signAsync(voter)
     )
   );
-  await context.createBlock();
-  const { result: closeResult } = await context.createBlockWithExtrinsic(
-    await context.polkadotApi.tx.techCommitteeCollective
+  const { result: closeResult } = await context.createBlock(
+    context.polkadotApi.tx.techCommitteeCollective
       .close(proposalHash, Number(proposalCount) - 1, 1_000_000_000, lengthBound)
       .signAsync(baltathar)
   );

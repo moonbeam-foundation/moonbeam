@@ -5,7 +5,7 @@ import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 describeDevMoonbeam("Precompiles - xcm transactor", (context) => {
   before("Setup genesis account and relay accounts", async () => {
     // register index 0 for Alith
-    await context.createBlockWithExtrinsic(
+    await context.createBlock(
       context.polkadotApi.tx.sudo.sudo(
         context.polkadotApi.tx.xcmTransactor.register(alith.address, 0)
       )

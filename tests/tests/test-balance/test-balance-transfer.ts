@@ -3,7 +3,11 @@ import { expect } from "chai";
 import { verifyLatestBlockFees } from "../../util/block";
 
 import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
-import { createTransfer, createTransaction } from "../../util/transactions";
+import {
+  createTransfer,
+  createTransaction,
+  ALITH_TRANSACTION_TEMPLATE,
+} from "../../util/transactions";
 import { customWeb3Request } from "../../util/providers";
 import {
   alith,
@@ -15,7 +19,7 @@ import {
 describeDevMoonbeamAllEthTxTypes("Balance transfer cost", (context) => {
   const randomAccount = generateKeyingPair();
   it("should cost 21000 * 1_000_000_000", async function () {
-    await context.createBlockWithEth(createTransfer(context, randomAccount.address, 0));
+    await context.createBlock(createTransfer(context, randomAccount.address, 0));
 
     expect(await context.web3.eth.getBalance(alith.address, 1)).to.equal(
       (ALITH_GENESIS_BALANCE - 21000n * 1_000_000_000n).toString()
@@ -61,7 +65,7 @@ describeDevMoonbeamAllEthTxTypes("Balance transfer", (context) => {
 describeDevMoonbeamAllEthTxTypes("Balance transfer - fees", (context) => {
   const randomAccount = generateKeyingPair();
   before("Create block with transfer to test account of 512", async () => {
-    await context.createBlockWithEth(createTransfer(context, randomAccount.address, 512));
+    await context.createBlock(createTransfer(context, randomAccount.address, 512));
   });
   it("should check latest block fees", async function () {
     await verifyLatestBlockFees(context, expect, BigInt(512));
@@ -78,11 +82,9 @@ describeDevMoonbeam(
       // base fee. Expect the balances to reflect this case.
       const maxFeePerGas = 1_000_000_000;
 
-      const block = await context.createBlockWithEth(
+      await context.createBlock(
         createTransaction(context, {
-          from: alith.address,
-          privateKey: ALITH_PRIVATE_KEY,
-          value: "0x0",
+          ...ALITH_TRANSACTION_TEMPLATE,
           gas: "0x5208",
           maxFeePerGas: maxFeePerGas,
           maxPriorityFeePerGas: "0xBEBC200", // 0.2GWEI
@@ -110,11 +112,9 @@ describeDevMoonbeam(
       // is 2GWEI and the base fee is 1GWEI.
       const maxFeePerGas = 1_000_000_000 * 2;
 
-      await context.createBlockWithEth(
+      await context.createBlock(
         createTransaction(context, {
-          from: alith.address,
-          privateKey: ALITH_PRIVATE_KEY,
-          value: "0x0",
+          ...ALITH_TRANSACTION_TEMPLATE,
           gas: "0x5208",
           maxFeePerGas: maxFeePerGas,
           maxPriorityFeePerGas: maxFeePerGas,

@@ -7,8 +7,8 @@ import { createContract } from "../../util/transactions";
 describeDevMoonbeamAllEthTxTypes("Receipt - Revert", (context) => {
   it("should generate a receipt", async function () {
     const { rawTx } = await createContract(context, "FailContract");
-    const { result } = await context.createBlockWithEth(rawTx);
-    const receipt = await context.web3.eth.getTransactionReceipt(result.result);
+    const { result } = await context.createBlock(rawTx);
+    const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
 
     expect(receipt.status).to.be.false;
     expect(receipt).to.include({
@@ -18,7 +18,7 @@ describeDevMoonbeamAllEthTxTypes("Receipt - Revert", (context) => {
       from: "0xf24ff3a9cf04c71dbc94d0b566f7a27b94566cac",
       gasUsed: 54600,
       to: null,
-      transactionHash: result.result,
+      transactionHash: result.hash,
       transactionIndex: 0,
     });
   });

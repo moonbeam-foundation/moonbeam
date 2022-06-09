@@ -110,7 +110,7 @@ describeDevMoonbeamAllEthTxTypes("Staking - Join Candidates", (context) => {
       [numberToHex(Number(MIN_GLMR_STAKING)), numberToHex(1)]
     );
 
-    const receipt = await context.web3.eth.getTransactionReceipt(result.result);
+    const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
     expect(receipt.status).to.equal(true);
 
     const candidatesAfter = await context.polkadotApi.query.parachainStaking.candidatePool();
@@ -181,10 +181,11 @@ describeDevMoonbeamAllEthTxTypes("Staking - Join Delegators", (context) => {
     ).to.equal(0);
 
     // Schedule Revoke
-    await context.polkadotApi.tx.parachainStaking
-      .scheduleRevokeDelegation(alith.address)
-      .signAndSend(ethan);
-    await context.createBlock();
+    await context.createBlock(
+      context.polkadotApi.tx.parachainStaking
+        .scheduleRevokeDelegation(alith.address)
+        .signAsync(ethan)
+    );
 
     // Check that there exists a pending request
     expect(

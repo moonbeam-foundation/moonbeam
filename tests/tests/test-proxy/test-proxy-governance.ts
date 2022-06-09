@@ -25,8 +25,8 @@ describeDevMoonbeam("Proxing governance", (context) => {
     expect(referendumCount.toBigInt()).to.equal(1n);
 
     // Dorothy add proxy right to ethan for governance only
-    await context.createBlockWithExtrinsic(
-      await context.polkadotApi.tx.proxy.addProxy(ethan.address, "Governance", 0).signAsync(dorothy)
+    await context.createBlock(
+      context.polkadotApi.tx.proxy.addProxy(ethan.address, "Governance", 0).signAsync(dorothy)
     );
 
     // Ethan vote as Dorothy
@@ -36,8 +36,8 @@ describeDevMoonbeam("Proxing governance", (context) => {
 
     const {
       result: { events },
-    } = await context.createBlockWithExtrinsic(
-      await context.polkadotApi.tx.proxy
+    } = await context.createBlock(
+      context.polkadotApi.tx.proxy
         .proxy(
           dorothy.address,
           "Governance",

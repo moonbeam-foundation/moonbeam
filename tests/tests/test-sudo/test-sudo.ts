@@ -9,7 +9,7 @@ describeDevMoonbeam("Sudo - successful setParachainBondAccount", (context) => {
   it("should be able to call sudo with the right account", async function () {
     const {
       result: { events },
-    } = await context.createBlockWithExtrinsic(
+    } = await context.createBlock(
       context.polkadotApi.tx.sudo.sudo(
         context.polkadotApi.tx.parachainStaking.setParachainBondAccount(alith.address)
       )
@@ -33,7 +33,7 @@ describeDevMoonbeam("Sudo - successful setParachainBondAccount", (context) => {
 describeDevMoonbeam("Sudo - fail if no funds in sudo", (context) => {
   before("Setup genesis account for substrate", async () => {
     const initBalance = await context.web3.eth.getBalance(alith.address);
-    const { result } = await context.createBlockWithEth(
+    await context.createBlock(
       createTransfer(
         context,
         baltathar.address,
@@ -47,7 +47,7 @@ describeDevMoonbeam("Sudo - fail if no funds in sudo", (context) => {
   });
   it("should not be able to call sudo with no funds", async function () {
     try {
-      await context.createBlockWithExtrinsic(
+      await context.createBlock(
         context.polkadotApi.tx.sudo.sudo(
           context.polkadotApi.tx.parachainStaking.setParachainBondAccount(alith.address)
         )
@@ -67,8 +67,8 @@ describeDevMoonbeam("Sudo - Only sudo account", (context) => {
   it("should NOT be able to call sudo with another account than sudo account", async function () {
     const {
       result: { events },
-    } = await context.createBlockWithExtrinsic(
-      await context.polkadotApi.tx.sudo
+    } = await context.createBlock(
+      context.polkadotApi.tx.sudo
         .sudo(context.polkadotApi.tx.parachainStaking.setParachainBondAccount(alith.address))
         .signAsync(baltathar)
     );
@@ -92,7 +92,7 @@ describeDevMoonbeam("Sudo - Only sudo account", (context) => {
 
 describeDevMoonbeam("Sudo - Only sudo account - test gas", (context) => {
   it("should NOT be able to call sudo with another account than sudo account", async function () {
-    await context.createBlockWithExtrinsic(
+    await context.createBlock(
       context.polkadotApi.tx.sudo.sudo(
         context.polkadotApi.tx.parachainStaking.setParachainBondAccount(alith.address)
       )

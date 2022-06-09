@@ -6,7 +6,7 @@ import { createTransfer } from "../../util/transactions";
 
 describeDevMoonbeamAllEthTxTypes("Existential Deposit", (context) => {
   it("should be disabled (no reaped account on 0 balance)", async function () {
-    await context.createBlockWithEth(
+    await context.createBlock(
       createTransfer(context, baltathar.address, ALITH_GENESIS_BALANCE - 21000n * 1_000_000_000n, {
         from: alith.address,
         gas: 21000,
@@ -19,7 +19,7 @@ describeDevMoonbeamAllEthTxTypes("Existential Deposit", (context) => {
 
 describeDevMoonbeamAllEthTxTypes("Existential Deposit", (context) => {
   it("should be disabled (no reaped account on tiny balance - 1)", async function () {
-    await context.createBlockWithEth(
+    await context.createBlock(
       createTransfer(
         context,
         baltathar.address,

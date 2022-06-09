@@ -10,22 +10,23 @@ describeDevMoonbeam("Trace filter reorg", (context) => {
     this.timeout(150000000);
 
     // Create a first base block.
-    const block1 = await context.createBlock({});
+    const block1 = await context.createBlock([], {});
 
     // Create a first branch including a transaction.
-    const tx = await createTransfer(context, randomAccount.address, "0x200"); // nonce 0
-    const block2 = await context.createBlockWithEth(tx, {
+    await context.createBlock(createTransfer(context, randomAccount.address, "0x200"), {
       parentHash: block1.block.hash,
       finalize: false,
     });
     // Contains nonce 0.
 
     // Create a branch. // nonce 1
-    const tx2 = await createTransfer(context, randomAccount.address, "0x300", { nonce: 1 });
-    const block2a = await context.createBlockWithEth(tx2, {
-      parentHash: block1.block.hash,
-      finalize: false,
-    });
+    const block2a = await context.createBlock(
+      createTransfer(context, randomAccount.address, "0x300", { nonce: 1 }),
+      {
+        parentHash: block1.block.hash,
+        finalize: false,
+      }
+    );
     // Contains nonce 1.
 
     // Continue this new branch, it reorgs.
@@ -36,31 +37,31 @@ describeDevMoonbeam("Trace filter reorg", (context) => {
     // This block however will contain the transaction with nonce 1 but the
     // chain don't expect this nonce so the the Ethereum transaction in not executed.
     // However it is still in the list of extrinsics for this block.
-    const block3a = await context.createBlock({
+    const block3a = await context.createBlock([], {
       parentHash: block2a.block.hash,
       finalize: false,
     });
     // Contains nonce 1 again !.
 
     // Additionnal blocks.
-    const block4a = await context.createBlock({
+    const block4a = await context.createBlock([], {
       parentHash: block3a.block.hash,
       finalize: true,
     });
     // Contains nonce 0.
 
-    const block5a = await context.createBlock({
+    const block5a = await context.createBlock([], {
       parentHash: block4a.block.hash,
       finalize: true,
     });
     // Contains nonce 1.
 
-    const block6a = await context.createBlock({
+    const block6a = await context.createBlock([], {
       parentHash: block5a.block.hash,
       finalize: true,
     });
 
-    await context.createBlock({
+    await context.createBlock([], {
       parentHash: block6a.block.hash,
       finalize: true,
     });

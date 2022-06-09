@@ -7,8 +7,8 @@ import { createTransfer } from "../../util/transactions";
 describeDevMoonbeam("Chain - Fork", (context) => {
   it("should change best chain to the longest chain", async function () {
     // Creation of the best chain so far, with blocks 0-1-2
-    await context.createBlock({ finalize: false });
-    await context.createBlock({ finalize: false });
+    await context.createBlock([], { finalize: false });
+    await context.createBlock([], { finalize: false });
 
     // Lets grab the ethereum block hashes so far
     let ethHash1 = (await context.web3.eth.getBlock(1)).hash;
@@ -19,7 +19,7 @@ describeDevMoonbeam("Chain - Fork", (context) => {
     // We start parenting to the genesis
     let parentHash = (await context.polkadotApi.rpc.chain.getBlockHash(0)) as any;
     for (let i = 0; i <= currentHeight; i++) {
-      parentHash = (await context.createBlock({ parentHash, finalize: false })).block.hash;
+      parentHash = (await context.createBlock([], { parentHash, finalize: false })).block.hash;
     }
 
     // We created at 1 block more than the previous best chain. We should be in the best chain now
@@ -33,12 +33,11 @@ describeDevMoonbeam("Chain - Fork", (context) => {
 describeDevMoonbeamAllEthTxTypes("Chain - Fork", (context) => {
   it("should re-insert Tx from retracted fork on new canonical chain", async function () {
     // Creation of the best chain so far, with blocks 0-1-2 and a transfer in block 2
-    await context.createBlock({ finalize: false });
-    const { result } = await context.createBlockWithEth(
-      createTransfer(context, baltathar.address, 512),
-      { finalize: false }
-    );
-    const insertedTx = result.result;
+    await context.createBlock([], { finalize: false });
+    const { result } = await context.createBlock(createTransfer(context, baltathar.address, 512), {
+      finalize: false,
+    });
+    const insertedTx = result.hash;
     const retractedTx = await context.web3.eth.getTransaction(insertedTx);
     expect(retractedTx).to.not.be.null;
 
@@ -47,7 +46,7 @@ describeDevMoonbeamAllEthTxTypes("Chain - Fork", (context) => {
     let parentHash = (await context.polkadotApi.rpc.chain.getBlockHash(0)) as any;
     // Create enough blocks to ensure the TX is re-scheduled and that chain is new best
     for (let i = 0; i < 10; i++) {
-      parentHash = (await context.createBlock({ parentHash, finalize: false })).block.hash;
+      parentHash = (await context.createBlock([], { parentHash, finalize: false })).block.hash;
       // TODO: investigate why ! Gives extra time (trouble with ci)
       await new Promise((resolve) => setTimeout(resolve, 100));
     }

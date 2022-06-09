@@ -8,7 +8,7 @@ describeDevMoonbeam(
   "Ethereum Transaction - Legacy",
   (context) => {
     it("should contain valid legacy Ethereum data", async function () {
-      await context.createBlockWithEth(createTransfer(context, baltathar.address, 512));
+      await context.createBlock(createTransfer(context, baltathar.address, 512));
 
       const signedBlock = await context.polkadotApi.rpc.chain.getBlock();
       let extrinsic = signedBlock.block.extrinsics.find((ex) => ex.method.section == "ethereum")
@@ -38,7 +38,7 @@ describeDevMoonbeam(
   (context) => {
     it("should contain valid EIP2930 Ethereum data", async function () {
       // Accesslist mock data, it doesn't matter.
-      await context.createBlockWithEth(
+      await context.createBlock(
         createTransfer(context, baltathar.address, 512, {
           accessList: [
             [
@@ -84,7 +84,7 @@ describeDevMoonbeam(
   (context) => {
     it("should contain valid EIP1559 Ethereum data", async function () {
       // Accesslist mock data, it doesn't matter.
-      await context.createBlockWithEth(
+      await context.createBlock(
         createTransfer(context, baltathar.address, 512, {
           accessList: [
             [

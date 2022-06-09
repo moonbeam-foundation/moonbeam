@@ -16,7 +16,7 @@ describeDevMoonbeam("Proxy: Balances - should accept known proxy", (context) => 
       async () => {
         const {
           result: { events },
-        } = await context.createBlockWithExtrinsic(
+        } = await context.createBlock(
           context.polkadotApi.tx.proxy.addProxy(baltathar.address, "Balances" as any, 0)
         );
         expect(events[2].event.method).to.be.eq("ProxyAdded");
@@ -25,8 +25,8 @@ describeDevMoonbeam("Proxy: Balances - should accept known proxy", (context) => 
 
         const {
           result: { events: events2 },
-        } = await context.createBlockWithExtrinsic(
-          await context.polkadotApi.tx.proxy
+        } = await context.createBlock(
+          context.polkadotApi.tx.proxy
             .proxy(
               alith.address,
               null,
@@ -46,7 +46,7 @@ describeDevMoonbeam("Proxy: Balances - should accept known proxy", (context) => 
 
 describeDevMoonbeam("Proxy: Balances - shouldn't accept other proxy types", (context) => {
   before("first add proxy", async () => {
-    const events = await context.createBlockWithExtrinsic(
+    await context.createBlock(
       context.polkadotApi.tx.proxy.addProxy(baltathar.address, "Balances" as any, 0)
     );
   });
@@ -58,8 +58,8 @@ describeDevMoonbeam("Proxy: Balances - shouldn't accept other proxy types", (con
       async () => {
         const {
           result: { events: events2 },
-        } = await context.createBlockWithExtrinsic(
-          await context.polkadotApi.tx.proxy
+        } = await context.createBlock(
+          context.polkadotApi.tx.proxy
             .proxy(
               alith.address,
               null,

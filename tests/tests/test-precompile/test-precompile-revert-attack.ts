@@ -30,10 +30,10 @@ describeDevMoonbeamAllEthTxTypes(
       const initialBalance = await context.web3.eth.getBalance(alith.address);
       // Deploy attack contract
       const { contract, rawTx } = await createContract(context, "StakingDelegationAttaker");
-      await context.createBlockWithEth(rawTx);
+      await context.createBlock(rawTx);
 
       // call the payable function, which should revert
-      const { result } = await context.createBlockWithEth(
+      const { result } = await context.createBlock(
         createContractExecution(
           context,
           {
@@ -48,7 +48,7 @@ describeDevMoonbeamAllEthTxTypes(
       );
 
       // TX should be included but fail
-      const receipt = await context.web3.eth.getTransactionReceipt(result.result);
+      const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
       expect(receipt.status).to.eq(false);
 
       // Delegation shouldn't have passed

@@ -256,17 +256,17 @@ export async function sendPrecompileTx(
     data += para.slice(2).padStart(64, "0");
   });
 
-  const tx = await createTransaction(context, {
-    from,
-    privateKey,
-    value: "0x0",
-    gas: "0x200000",
-    gasPrice: ALITH_TRANSACTION_TEMPLATE.gasPrice,
-    to: precompileContractAddress,
-    data,
-  });
-
-  return context.createBlockWithEth(tx);
+  return context.createBlock(
+    createTransaction(context, {
+      from,
+      privateKey,
+      value: "0x0",
+      gas: "0x200000",
+      gasPrice: ALITH_TRANSACTION_TEMPLATE.gasPrice,
+      to: precompileContractAddress,
+      data,
+    })
+  );
 }
 
 const GAS_PRICE = "0x" + (1_000_000_000).toString(16);

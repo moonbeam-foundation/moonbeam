@@ -45,17 +45,18 @@ export async function mockAssetBalance(
   is_sufficient = false
 ) {
   // Register the asset
-  await context.polkadotApi.tx.sudo
-    .sudo(
-      context.polkadotApi.tx.assetManager.registerForeignAsset(
-        RELAY_SOURCE_LOCATION,
-        relayAssetMetadata,
-        new BN(1),
-        is_sufficient
+  await context.createBlock(
+    context.polkadotApi.tx.sudo
+      .sudo(
+        context.polkadotApi.tx.assetManager.registerForeignAsset(
+          RELAY_SOURCE_LOCATION,
+          relayAssetMetadata,
+          new BN(1),
+          is_sufficient
+        )
       )
-    )
-    .signAndSend(sudoAccount);
-  await context.createBlock();
+      .signAsync(sudoAccount)
+  );
 
   let assets = (await context.polkadotApi.query.assetManager.assetIdType(assetId)).toJSON();
   // make sure we created it
@@ -83,15 +84,16 @@ export async function mockAssetBalance(
   // Get keys to modify total supply
   let assetKey = xxhashAsU8a(new TextEncoder().encode("Asset"), 128);
   let overallAssetKey = new Uint8Array([...module, ...assetKey, ...blake2concatAssetId]);
-  await context.polkadotApi.tx.sudo
-    .sudo(
-      context.polkadotApi.tx.system.setStorage([
-        [u8aToHex(overallAccountKey), u8aToHex(assetBalance.toU8a())],
-        [u8aToHex(overallAssetKey), u8aToHex(assetDetails.toU8a())],
-      ])
-    )
-    .signAndSend(sudoAccount);
-  await context.createBlock();
+  await context.createBlock(
+    context.polkadotApi.tx.sudo
+      .sudo(
+        context.polkadotApi.tx.system.setStorage([
+          [u8aToHex(overallAccountKey), u8aToHex(assetBalance.toU8a())],
+          [u8aToHex(overallAssetKey), u8aToHex(assetDetails.toU8a())],
+        ])
+      )
+      .signAsync(sudoAccount)
+  );
   return;
 }
 
@@ -116,8 +118,8 @@ export async function registerLocalAssetWithMeta(
 ): Promise<{ assetId: string; assetAddress: string }> {
   const {
     result: { events: eventsRegister },
-  } = await context.createBlockWithExtrinsic(
-    await context.polkadotApi.tx.sudo
+  } = await context.createBlock(
+    context.polkadotApi.tx.sudo
       .sudo(
         context.polkadotApi.tx.assetManager.registerLocalAsset(
           registrerAccount.address,
@@ -137,16 +139,16 @@ export async function registerLocalAssetWithMeta(
   const assetAddress = u8aToHex(new Uint8Array([...hexToU8a("0xFFFFFFFE"), ...hexToU8a(assetId)]));
 
   // Set metadata
-  await context.createBlockWithExtrinsic(
-    await context.polkadotApi.tx.localAssets
+  await context.createBlock(
+    context.polkadotApi.tx.localAssets
       .setMetadata(assetId, name, symbol, new BN(decimals))
       .signAsync(registrerAccount)
   );
 
   // mint accounts
   for (const { account, amount } of mints) {
-    await context.createBlockWithExtrinsic(
-      await context.polkadotApi.tx.localAssets
+    await context.createBlock(
+      context.polkadotApi.tx.localAssets
         .mint(assetId, typeof account == "string" ? account : account.address, amount)
         .signAsync(registrerAccount)
     );

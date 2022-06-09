@@ -22,17 +22,16 @@ describeDevMoonbeam("Proxy : Author Mapping - simple association", (context) => 
   it("should succeed in adding an association", async function () {
     const {
       result: { events },
-    } = await context.createBlockWithExtrinsic(
-      // @ts-ignore
-      context.polkadotApi.tx.proxy.addProxy(baltathar.address, "AuthorMapping", 0)
+    } = await context.createBlock(
+      context.polkadotApi.tx.proxy.addProxy(baltathar.address, "AuthorMapping" as any, 0)
     );
     expect(events[2].event.method).to.be.eq("ProxyAdded");
     expect(events[2].event.data[2].toString()).to.be.eq("AuthorMapping"); //ProxyType
     expect(events[7].event.method).to.be.eq("ExtrinsicSuccess");
     const {
       result: { events: events2 },
-    } = await context.createBlockWithExtrinsic(
-      await context.polkadotApi.tx.proxy
+    } = await context.createBlock(
+      context.polkadotApi.tx.proxy
         .proxy(
           alith.address,
           null,

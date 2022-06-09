@@ -26,7 +26,7 @@ describeDevMoonbeam("Mock XCM - receive downward transfer", (context) => {
     // registerForeignAsset
     const {
       result: { events: eventsRegister },
-    } = await context.createBlockWithExtrinsic(
+    } = await context.createBlock(
       context.polkadotApi.tx.sudo.sudo(
         context.polkadotApi.tx.assetManager.registerForeignAsset(
           RELAY_SOURCE_LOCATION,
@@ -45,7 +45,7 @@ describeDevMoonbeam("Mock XCM - receive downward transfer", (context) => {
     // setAssetUnitsPerSecond
     const {
       result: { events },
-    } = await context.createBlockWithExtrinsic(
+    } = await context.createBlock(
       context.polkadotApi.tx.sudo.sudo(
         context.polkadotApi.tx.assetManager.setAssetUnitsPerSecond(RELAY_SOURCE_LOCATION, 0, 0)
       )

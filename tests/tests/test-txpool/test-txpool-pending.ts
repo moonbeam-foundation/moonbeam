@@ -63,7 +63,7 @@ describeDevMoonbeam("TxPool - Ethereum Contract Call", (context) => {
       gas: 1048576,
     });
     testContract = contract;
-    await context.createBlockWithEth(rawTx);
+    await context.createBlock(rawTx);
 
     txHash = (
       await customWeb3Request(context.web3, "eth_sendRawTransaction", [

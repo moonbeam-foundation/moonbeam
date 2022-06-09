@@ -7,10 +7,10 @@ describeDevMoonbeam("Trace filter - Concurrency", (context) => {
   before("Setup: Create 50 blocks with 1 contract loop execution each", async function () {
     this.timeout(180000);
     const { contract, rawTx } = await createContract(context, "FiniteLoopContract");
-    await context.createBlockWithEth(rawTx);
+    await context.createBlock(rawTx);
 
     for (let i = 0; i < 50; i++) {
-      await context.createBlockWithEth(
+      await context.createBlock(
         createContractExecution(context, {
           contract,
           contractCall: contract.methods.incr(2000),

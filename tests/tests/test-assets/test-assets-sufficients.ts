@@ -54,7 +54,7 @@ describeDevMoonbeam(
       // We are going to use a fresh account here, since we mocked the asset balance
 
       // We transfer Assets to freshAccount, which should increase sufficients
-      await context.createBlockWithExtrinsic(
+      await context.createBlock(
         context.polkadotApi.tx.assets.transfer(
           assetId,
           freshAccount.address,
@@ -73,7 +73,7 @@ describeDevMoonbeam(
       ).to.eq(0n);
 
       // We transfer a good amount to be able to pay for fees
-      await context.createBlockWithExtrinsic(
+      await context.createBlock(
         context.polkadotApi.tx.balances.transfer(freshAccount.address, 1n * GLMR)
       );
 
@@ -89,8 +89,8 @@ describeDevMoonbeam(
       ).to.eq(1n);
 
       // Let's drain assets
-      await context.createBlockWithExtrinsic(
-        await context.polkadotApi.tx.assets
+      await context.createBlock(
+        context.polkadotApi.tx.assets
           .transfer(assetId, baltathar.address, ARBITRARY_TRANSFER_AMOUNT)
           .signAsync(freshAccount)
       );
@@ -109,8 +109,8 @@ describeDevMoonbeam(
         await context.polkadotApi.query.system.account(freshAccount.address)
       ).data.free.toBigInt();
 
-      await context.createBlockWithExtrinsic(
-        await context.polkadotApi.tx.balances
+      await context.createBlock(
+        context.polkadotApi.tx.balances
           .transfer(baltathar.address, freshAccountBalanceNativeToken - fee)
           .signAsync(freshAccount)
       );
@@ -190,7 +190,7 @@ describeDevMoonbeam(
 
       // We transfer Assets to freshAccount, which should increase sufficients
 
-      await context.createBlockWithExtrinsic(
+      await context.createBlock(
         context.polkadotApi.tx.assets.transfer(
           assetId,
           freshAccount.address,
@@ -215,7 +215,7 @@ describeDevMoonbeam(
           .paymentInfo(freshAccount)
       ).partialFee.toBigInt();
 
-      await context.createBlockWithExtrinsic(
+      await context.createBlock(
         context.polkadotApi.tx.balances.transfer(freshAccount.address, fee)
       );
 
@@ -230,8 +230,8 @@ describeDevMoonbeam(
       ).to.eq(1n);
 
       // What happens now when we execute such transaction? both MOVR and Assets should be drained.
-      await context.createBlockWithExtrinsic(
-        await context.polkadotApi.tx.assets
+      await context.createBlock(
+        context.polkadotApi.tx.assets
           .transfer(assetId, baltathar.address, ARBITRARY_TRANSFER_AMOUNT)
           .signAsync(freshAccount)
       );
@@ -313,7 +313,7 @@ describeDevMoonbeam(
       // We are going to use a fresh account here, since we mocked the asset balance
 
       // We cannot transfer to freshAccount, since sufficient is false
-      await context.createBlockWithExtrinsic(
+      await context.createBlock(
         context.polkadotApi.tx.assets.transfer(
           assetId,
           freshAccount.address,
@@ -339,7 +339,7 @@ describeDevMoonbeam(
       ).partialFee.toBigInt();
 
       // We transfer Balances, which should increase provider
-      await context.createBlockWithExtrinsic(
+      await context.createBlock(
         context.polkadotApi.tx.balances.transfer(freshAccount.address, fee)
       );
 
@@ -375,8 +375,8 @@ describeDevMoonbeam(
       ).to.eq(1n);
 
       // What happens now when we execute such transaction? both MOVR and Assets should be drained.
-      await context.createBlockWithExtrinsic(
-        await context.polkadotApi.tx.assets
+      await context.createBlock(
+        context.polkadotApi.tx.assets
           .transfer(assetId, baltathar.address, ARBITRARY_TRANSFER_AMOUNT)
           .signAsync(freshAccount)
       );

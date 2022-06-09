@@ -10,7 +10,7 @@ import { createContract, createContractExecution } from "../../util/transactions
 describeDevMoonbeamAllEthTxTypes("Contract loop error", (context) => {
   it("should return OutOfGas on inifinite loop call", async function () {
     const { contract, rawTx } = await createContract(context, "InfiniteContract");
-    await context.createBlockWithEth(rawTx);
+    await context.createBlock(rawTx);
 
     await contract.methods
       .infinite()
@@ -34,10 +34,10 @@ describeDevMoonbeamAllEthTxTypes("Contract loop error", (context) => {
       { nonce: 1 }
     );
 
-    const { result } = await context.createBlockWithEth([rawTx, infiniteTx]);
+    const { result } = await context.createBlock([rawTx, infiniteTx]);
 
     const receipt: TransactionReceipt = await context.web3.eth.getTransactionReceipt(
-      result[1].result
+      result[1].hash
     );
     expect(receipt.status).to.eq(false);
   });
@@ -55,8 +55,8 @@ describeDevMoonbeamAllEthTxTypes("Contract loop error - check fees", (context) =
       { nonce: 1 }
     );
 
-    await context.createBlockWithEth(rawTx);
-    await context.createBlockWithEth(infiniteTx);
+    await context.createBlock(rawTx);
+    await context.createBlock(infiniteTx);
     await verifyLatestBlockFees(context, expect);
   });
 });

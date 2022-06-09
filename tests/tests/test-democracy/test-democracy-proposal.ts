@@ -16,7 +16,7 @@ describeDevMoonbeam("Democracy - proposing a vote", (context) => {
       alith
     );
     // propose
-    await context.createBlockWithExtrinsic(
+    await context.createBlock(
       context.polkadotApi.tx.democracy.propose(encodedHash, PROPOSAL_AMOUNT)
     );
   });
@@ -65,10 +65,10 @@ describeDevMoonbeam("Democracy - Seconding a proposal", (context) => {
     );
 
     // propose & second
-    await context.createBlockWithExtrinsic(
+    await context.createBlock(
       context.polkadotApi.tx.democracy.propose(encodedHash, PROPOSAL_AMOUNT)
     );
-    await context.createBlockWithExtrinsic(context.polkadotApi.tx.democracy.second(0, 1000));
+    await context.createBlock(context.polkadotApi.tx.democracy.second(0, 1000));
   });
 
   it("should succeed", async function () {
@@ -107,10 +107,10 @@ describeDevMoonbeam("Democracy - Seconding a proposal", (context) => {
     );
 
     // propose & second
-    await context.createBlockWithExtrinsic(
+    await context.createBlock(
       context.polkadotApi.tx.democracy.propose(encodedHash, PROPOSAL_AMOUNT)
     );
-    await context.createBlockWithExtrinsic(context.polkadotApi.tx.democracy.second(0, 1000));
+    await context.createBlock(context.polkadotApi.tx.democracy.second(0, 1000));
   });
 
   it("should end-up in a valid referendum", async function () {

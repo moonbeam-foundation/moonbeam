@@ -12,8 +12,8 @@ describeDevMoonbeamAllEthTxTypes("EthPool - Future Ethereum transaction", (conte
     const { rawTx } = await createContract(context, "TestContract", {
       nonce: 1,
     });
-    const { result } = await context.createBlockWithEth(rawTx);
-    txHash = result.result;
+    const { result } = await context.createBlock(rawTx);
+    txHash = result.hash;
   });
 
   it("should not be executed until condition is met", async function () {
@@ -35,13 +35,13 @@ describeDevMoonbeamAllEthTxTypes("EthPool - Future Ethereum transaction", (conte
     const { rawTx } = await createContract(context, "TestContract", {
       nonce: 1,
     });
-    const { result } = await context.createBlockWithEth(rawTx);
-    txHash = result.result;
+    const { result } = await context.createBlock(rawTx);
+    txHash = result.hash;
   });
 
   it("should be executed after condition is met", async function () {
     // Create block including transaction with nonce 0
-    await context.createBlockWithEth(
+    await context.createBlock(
       createTransfer(context, baltathar.address, 512, {
         nonce: 0,
       })

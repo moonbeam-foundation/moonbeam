@@ -32,9 +32,8 @@ describeDevMoonbeam("Ethereum Transaction - Large Transaction", (context) => {
     expect(max_size).to.equal(808875); // our max Ethereum TXN size in bytes
 
     const tx = await generateLargeTxn(max_size);
-    const txResults = await customWeb3Request(context.web3, "eth_sendRawTransaction", [tx]);
-    await context.createBlock();
-    const receipt = await context.web3.eth.getTransactionReceipt(txResults.result);
+    const { result } = await context.createBlock(tx);
+    const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
 
     expect(receipt.status).to.be.false; // this txn is nonsense, but the RPC should accept it
   });

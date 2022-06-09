@@ -29,7 +29,7 @@ async function getBalance(context: DevTestContext, blockHeight: number, address:
 describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
   it("allows to issue transfer xtokens", async function () {
     const { rawTx } = await createContract(context, "XtokensInstance");
-    await context.createBlockWithEth(rawTx);
+    await context.createBlock(rawTx);
     // Junction::AccountId32
     const destination_enum_selector = "0x01";
     // [0x01; 32]
@@ -70,7 +70,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
       ]
     );
 
-    const { result } = await context.createBlockWithEth(
+    const { result } = await context.createBlock(
       createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
         to: PRECOMPILE_XTOKENS_ADDRESS,
@@ -78,7 +78,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
       })
     );
 
-    const receipt = await context.web3.eth.getTransactionReceipt(result.result);
+    const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
     const fees = BigInt(receipt.gasUsed) * MIN_GAS_PRICE;
 
     // our tokens + fees should have been spent
@@ -92,7 +92,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
 describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
   it("allows to issue transfer xtokens with fee", async function () {
     const { rawTx } = await createContract(context, "XtokensInstance");
-    await context.createBlockWithEth(rawTx);
+    await context.createBlock(rawTx);
     // Junction::AccountId32
     const destination_enum_selector = "0x01";
     // [0x01; 32]
@@ -138,7 +138,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
       ]
     );
 
-    const { result } = await context.createBlockWithEth(
+    const { result } = await context.createBlock(
       createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
         to: PRECOMPILE_XTOKENS_ADDRESS,
@@ -146,7 +146,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
       })
     );
 
-    const receipt = await context.web3.eth.getTransactionReceipt(result.result);
+    const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
     const fees = BigInt(receipt.gasUsed) * MIN_GAS_PRICE;
 
     // our tokens + fees should have been spent
@@ -160,7 +160,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
 describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
   it("allows to issue transfer_multiasset xtokens", async function () {
     const { rawTx } = await createContract(context, "XtokensInstance");
-    await context.createBlockWithEth(rawTx);
+    await context.createBlock(rawTx);
     // Junction::AccountId32
     const destination_enum_selector = "0x01";
     // [0x01; 32]
@@ -217,7 +217,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
     const base_fee = await context.web3.eth.getGasPrice();
 
     // create tx
-    const { result } = await context.createBlockWithEth(
+    const { result } = await context.createBlock(
       createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
         to: PRECOMPILE_XTOKENS_ADDRESS,
@@ -225,7 +225,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
       })
     );
 
-    const receipt = await context.web3.eth.getTransactionReceipt(result.result);
+    const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
     const fees = BigInt(receipt.gasUsed) * MIN_GAS_PRICE;
 
     // our tokens + fees should have been spent
@@ -239,7 +239,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
 describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
   it("allows to issue transfer_multiasset xtokens with fee", async function () {
     const { rawTx } = await createContract(context, "XtokensInstance");
-    await context.createBlockWithEth(rawTx);
+    await context.createBlock(rawTx);
     // Junction::AccountId32
     const destination_enum_selector = "0x01";
     // [0x01; 32]
@@ -302,7 +302,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
 
     // create tx
 
-    const { result } = await context.createBlockWithEth(
+    const { result } = await context.createBlock(
       createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
         to: PRECOMPILE_XTOKENS_ADDRESS,
@@ -310,7 +310,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
       })
     );
 
-    const receipt = await context.web3.eth.getTransactionReceipt(result.result);
+    const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
     const fees = BigInt(receipt.gasUsed) * MIN_GAS_PRICE;
 
     // our tokens + fees should have been spent
@@ -324,7 +324,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
 describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
   it("allows to issue transfer multicurrencies xtokens", async function () {
     const { rawTx } = await createContract(context, "XtokensInstance");
-    await context.createBlockWithEth(rawTx);
+    await context.createBlock(rawTx);
     // Junction::AccountId32
     const destination_enum_selector = "0x01";
     // [0x01; 32]
@@ -368,7 +368,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
         weight,
       ]
     );
-    const { result } = await context.createBlockWithEth(
+    const { result } = await context.createBlock(
       createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
         to: PRECOMPILE_XTOKENS_ADDRESS,
@@ -376,7 +376,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
       })
     );
 
-    const receipt = await context.web3.eth.getTransactionReceipt(result.result);
+    const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
     const fees = BigInt(receipt.gasUsed) * MIN_GAS_PRICE;
 
     // our tokens + fees should have been spent
@@ -390,7 +390,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
 describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
   it("allows to issue transfer multiassets xtokens", async function () {
     const { rawTx } = await createContract(context, "XtokensInstance");
-    await context.createBlockWithEth(rawTx);
+    await context.createBlock(rawTx);
     // Junction::AccountId32
     const destination_enum_selector = "0x01";
     // [0x01; 32]
@@ -449,7 +449,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
       ]
     );
 
-    const { result } = await context.createBlockWithEth(
+    const { result } = await context.createBlock(
       createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
         to: PRECOMPILE_XTOKENS_ADDRESS,
@@ -457,7 +457,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
       })
     );
 
-    const receipt = await context.web3.eth.getTransactionReceipt(result.result);
+    const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
     const fees = BigInt(receipt.gasUsed) * MIN_GAS_PRICE;
 
     // our tokens + fees should have been spent

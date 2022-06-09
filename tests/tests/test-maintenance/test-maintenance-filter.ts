@@ -26,12 +26,10 @@ describeDevMoonbeam("Maintenance Mode - Filter", (context) => {
   });
 
   it("should forbid transferring tokens", async function () {
-    await context.createBlockWithEth(createTransfer(context, charleth.address, 512));
+    await context.createBlock(createTransfer(context, charleth.address, 512));
     expect(
       await context
-        .createBlockWithExtrinsic(
-          context.polkadotApi.tx.balances.transfer(baltathar.address, 1n * GLMR)
-        )
+        .createBlock(context.polkadotApi.tx.balances.transfer(baltathar.address, 1n * GLMR))
         .catch((e) => e.toString())
     ).to.equal("RpcError: 1010: Invalid Transaction: Transaction call is not expected");
   });
@@ -40,7 +38,7 @@ describeDevMoonbeam("Maintenance Mode - Filter", (context) => {
     const randomAccount = generateKeyingPair();
     const {
       result: { successful },
-    } = await context.createBlockWithExtrinsic(
+    } = await context.createBlock(
       context.polkadotApi.tx.sudo.sudo(
         context.polkadotApi.tx.evm.call(
           alith.address,
@@ -62,7 +60,7 @@ describeDevMoonbeam("Maintenance Mode - Filter", (context) => {
   });
 
   it("should forbid crowdloan rewards claim", async () => {
-    await context.createBlockWithExtrinsic(
+    await context.createBlock(
       context.polkadotApi.tx.sudo.sudo(
         context.polkadotApi.tx.crowdloanRewards.initializeRewardVec([
           [RELAYCHAIN_ARBITRARY_ADDRESS_1, charleth.address, 3_000_000n * GLMR],
@@ -70,7 +68,7 @@ describeDevMoonbeam("Maintenance Mode - Filter", (context) => {
       )
     );
     const initBlock = await context.polkadotApi.query.crowdloanRewards.initRelayBlock();
-    await context.createBlockWithExtrinsic(
+    await context.createBlock(
       context.polkadotApi.tx.sudo.sudo(
         context.polkadotApi.tx.crowdloanRewards.completeInitialization(
           initBlock.toBigInt() + ARBITRARY_VESTING_PERIOD
@@ -80,7 +78,7 @@ describeDevMoonbeam("Maintenance Mode - Filter", (context) => {
 
     expect(
       await context
-        .createBlockWithExtrinsic(context.polkadotApi.tx.crowdloanRewards.claim())
+        .createBlock(context.polkadotApi.tx.crowdloanRewards.claim())
         .catch((e) => e.toString())
     ).to.equal("RpcError: 1010: Invalid Transaction: Transaction call is not expected");
   });
@@ -100,9 +98,7 @@ describeDevMoonbeam("Maintenance Mode - Filter", (context) => {
 
     expect(
       await context
-        .createBlockWithExtrinsic(
-          context.polkadotApi.tx.assets.transfer(assetId, baltathar.address, 1000)
-        )
+        .createBlock(context.polkadotApi.tx.assets.transfer(assetId, baltathar.address, 1000))
         .catch((e) => e.toString())
     ).to.equal("RpcError: 1010: Invalid Transaction: Transaction call is not expected");
   });
@@ -110,8 +106,8 @@ describeDevMoonbeam("Maintenance Mode - Filter", (context) => {
   it("should forbid xtokens transfer", async () => {
     expect(
       await context
-        .createBlockWithExtrinsic(
-          await context.polkadotApi.tx.xTokens
+        .createBlock(
+          context.polkadotApi.tx.xTokens
             .transfer(
               "SelfReserve", //enum
               100n * GLMR,
@@ -137,8 +133,8 @@ describeDevMoonbeam("Maintenance Mode - Filter", (context) => {
   it("should forbid xcmTransactor to", async () => {
     expect(
       await context
-        .createBlockWithExtrinsic(
-          await context.polkadotApi.tx.xcmTransactor
+        .createBlock(
+          context.polkadotApi.tx.xcmTransactor
             .transactThroughDerivative("Relay", 0, "SelfReserve", 4000000000n, "")
             .signAsync(baltathar)
         )
@@ -163,7 +159,7 @@ describeDevMoonbeam("Maintenance Mode - Filter", (context) => {
     await mockAssetBalance(context, assetBalance, assetDetails, alith, assetId, baltathar.address);
 
     // setAssetUnitsPerSecond
-    await context.createBlockWithExtrinsic(
+    await context.createBlock(
       context.polkadotApi.tx.sudo.sudo(
         context.polkadotApi.tx.assetManager.setAssetUnitsPerSecond(RELAY_SOURCE_LOCATION, 0, 0)
       )
@@ -232,7 +228,7 @@ describeDevMoonbeam("Maintenance Mode - Filter", (context) => {
     // registerForeignAsset
     const {
       result: { events: eventsRegister },
-    } = await context.createBlockWithExtrinsic(
+    } = await context.createBlock(
       context.polkadotApi.tx.sudo.sudo(
         context.polkadotApi.tx.assetManager.registerForeignAsset(
           sourceLocation,
@@ -249,7 +245,7 @@ describeDevMoonbeam("Maintenance Mode - Filter", (context) => {
       .replace(/,/g, "");
 
     // setAssetUnitsPerSecond
-    await context.createBlockWithExtrinsic(
+    await context.createBlock(
       context.polkadotApi.tx.sudo.sudo(
         context.polkadotApi.tx.assetManager.setAssetUnitsPerSecond(sourceLocation, 0, 0)
       )

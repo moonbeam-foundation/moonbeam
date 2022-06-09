@@ -16,7 +16,7 @@ describeDevMoonbeam("Staking - Parachain Bond", (context) => {
 
   it("should be changeable to alith address", async function () {
     // should be able to register the genesis account for reward
-    await context.createBlockWithExtrinsic(
+    await context.createBlock(
       context.polkadotApi.tx.sudo.sudo(
         context.polkadotApi.tx.parachainStaking.setParachainBondAccount(alith.address)
       )
@@ -32,7 +32,7 @@ describeDevMoonbeam("Staking - Parachain Bond - no sudo on setParachainBondAccou
   it("should NOT be able set the parachain bond if NOT sudo", async function () {
     // should be able to register the genesis account for reward
     try {
-      await context.createBlockWithExtrinsic(
+      await context.createBlock(
         context.polkadotApi.tx.authorMapping.setParachainBondAccount(alith.address)
       );
     } catch (e) {
@@ -48,7 +48,7 @@ describeDevMoonbeam("Staking - Parachain Bond - no sudo on setParachainBondAccou
 describeDevMoonbeam("Staking - Parachain Bond - setParachainBondReservePercent", (context) => {
   it("should be able set the parachain bond reserve percent with sudo", async function () {
     // should be able to register the genesis account
-    await context.createBlockWithExtrinsic(
+    await context.createBlock(
       context.polkadotApi.tx.sudo.sudo(
         context.polkadotApi.tx.parachainStaking.setParachainBondReservePercent(TWENTY_PERCENT)
       )
@@ -65,7 +65,7 @@ describeDevMoonbeam(
     it("should NOT be able set the parachain bond reserve percent without sudo", async function () {
       // should be able to register the genesis account for reward
       try {
-        await context.createBlockWithExtrinsic(
+        await context.createBlock(
           context.polkadotApi.tx.authorMapping.setParachainBondReservePercent(TWENTY_PERCENT)
         );
       } catch (e) {

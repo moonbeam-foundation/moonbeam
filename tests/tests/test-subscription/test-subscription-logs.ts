@@ -24,7 +24,7 @@ describeDevMoonbeam("Subscription - Logs", (context) => {
     });
 
     const { rawTx } = await createContract(context, "SingleEventContract");
-    await context.createBlockWithEth(rawTx);
+    await context.createBlock(rawTx);
 
     const data = await dataPromise;
     subscription.unsubscribe();
@@ -147,7 +147,7 @@ describeDevMoonbeam("Subscription - Logs", (context) => {
     subTopicWildAndCondPromise = subData(subTopicWildAndCond);
 
     const { rawTx } = await createContract(context, "SingleEventContract");
-    await context.createBlockWithEth(rawTx);
+    await context.createBlock(rawTx);
   });
 
   it("should be able to filter by address", async function () {
@@ -204,7 +204,7 @@ describeDevMoonbeam("Subscription - Reverted transaction", (context) => {
     const { rawTx } = await createContract(context, "SingleEventContract", {
       from: alith.address,
     });
-    await context.createBlockWithEth(rawTx);
+    await context.createBlock(rawTx);
 
     const data = await new Promise((resolve) => {
       let result = null;

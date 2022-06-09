@@ -21,9 +21,9 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - author mapping", (context) => {
   it("allows to add association", async function () {
     const mappingAccount = generateKeyingPair("sr25519");
     const { rawTx } = await createContract(context, "AuthorMapping");
-    await context.createBlockWithEth(rawTx);
+    await context.createBlock(rawTx);
 
-    const { result } = await context.createBlockWithEth(
+    const { result } = await context.createBlock(
       createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
         to: PRECOMPILE_AUTHOR_MAPPING_ADDRESS,
@@ -33,7 +33,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - author mapping", (context) => {
       })
     );
 
-    const receipt = await context.web3.eth.getTransactionReceipt(result.result);
+    const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
     expect(receipt.status).to.equal(true);
 
     const mapping = await context.polkadotApi.query.authorMapping.mappingWithDeposit(
@@ -51,7 +51,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - author mapping", (context) => {
     firstMappingAccount = generateKeyingPair("sr25519");
     secondMappingAccount = generateKeyingPair("sr25519");
     // Add association
-    await context.createBlockWithExtrinsic(
+    await context.createBlock(
       context.polkadotApi.tx.authorMapping.addAssociation(firstMappingAccount.publicKey)
     );
 
@@ -65,7 +65,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - author mapping", (context) => {
 
   it("allows to update association", async function () {
     const { rawTx } = await createContract(context, "AuthorMapping");
-    await context.createBlockWithEth(rawTx);
+    await context.createBlock(rawTx);
 
     const tx = await createTransaction(context, {
       to: PRECOMPILE_AUTHOR_MAPPING_ADDRESS,
@@ -75,9 +75,8 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - author mapping", (context) => {
       ]),
     });
 
-    const { result } = await context.createBlockWithEth(tx);
-
-    const receipt = await context.web3.eth.getTransactionReceipt(result.result);
+    const { result } = await context.createBlock(tx);
+    const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
     expect(receipt.status).to.equal(true);
 
     // Verify we updated firstMappingAccount for secondMappingAccount
@@ -102,8 +101,8 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - author mapping", (context) => {
     mappingAccount = generateKeyingPair("sr25519");
     // Add association
 
-    await context.createBlockWithExtrinsic(
-      await context.polkadotApi.tx.authorMapping.addAssociation(mappingAccount.publicKey)
+    await context.createBlock(
+      context.polkadotApi.tx.authorMapping.addAssociation(mappingAccount.publicKey)
     );
 
     // Verify association was added
@@ -115,9 +114,9 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - author mapping", (context) => {
   });
   it("allows to clear association", async function () {
     const { rawTx } = await createContract(context, "AuthorMapping");
-    await context.createBlockWithEth(rawTx);
+    await context.createBlock(rawTx);
 
-    const { result } = await context.createBlockWithEth(
+    const { result } = await context.createBlock(
       createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
         to: PRECOMPILE_AUTHOR_MAPPING_ADDRESS,
@@ -127,7 +126,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - author mapping", (context) => {
       })
     );
 
-    const receipt = await context.web3.eth.getTransactionReceipt(result.result);
+    const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
     expect(receipt.status).to.equal(true);
 
     // Verify we removed the association

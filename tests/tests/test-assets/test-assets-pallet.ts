@@ -29,7 +29,7 @@ describeDevMoonbeam("Pallet Assets - Transfer", (context) => {
   });
 
   it("should be sucessful", async function () {
-    const { result } = await context.createBlockWithExtrinsic(
+    const { result } = await context.createBlock(
       context.polkadotApi.tx.assets.transfer(assetId, baltathar.address, 1000)
     );
 
@@ -61,7 +61,7 @@ describeDevMoonbeam("Pallet Assets - Destruction", (context) => {
 
     await mockAssetBalance(context, assetBalance, assetDetails, alith, assetId, alith.address);
 
-    await context.createBlockWithExtrinsic(
+    await context.createBlock(
       context.polkadotApi.tx.assets.transfer(assetId, baltathar.address, 1000)
     );
   });
@@ -84,7 +84,7 @@ describeDevMoonbeam("Pallet Assets - Destruction", (context) => {
     expect(assetDetailsBefore.isNone).to.eq(false);
 
     // Destroy asset
-    await context.createBlockWithExtrinsic(
+    await context.createBlock(
       context.polkadotApi.tx.sudo.sudo(
         context.polkadotApi.tx.assets.destroy(assetId, assetDestroyWitness)
       )

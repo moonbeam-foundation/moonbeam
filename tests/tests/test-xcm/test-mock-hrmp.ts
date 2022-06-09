@@ -58,7 +58,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     // registerForeignAsset
     const {
       result: { events: eventsRegister },
-    } = await context.createBlockWithExtrinsic(
+    } = await context.createBlock(
       context.polkadotApi.tx.sudo.sudo(
         context.polkadotApi.tx.assetManager.registerForeignAsset(
           PARA_2000_SOURCE_LOCATION,
@@ -77,7 +77,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     // setAssetUnitsPerSecond
     const {
       result: { events },
-    } = await context.createBlockWithExtrinsic(
+    } = await context.createBlock(
       context.polkadotApi.tx.sudo.sudo(
         context.polkadotApi.tx.assetManager.setAssetUnitsPerSecond(PARA_2000_SOURCE_LOCATION, 0, 0)
       )
@@ -119,7 +119,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     // We register statemine with the new prefix
     const {
       result: { events: eventsRegister },
-    } = await context.createBlockWithExtrinsic(
+    } = await context.createBlock(
       context.polkadotApi.tx.sudo.sudo(
         context.polkadotApi.tx.assetManager.registerForeignAsset(
           STATEMINT_LOCATION,
@@ -138,7 +138,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     // setAssetUnitsPerSecond
     const {
       result: { events },
-    } = await context.createBlockWithExtrinsic(
+    } = await context.createBlock(
       context.polkadotApi.tx.sudo.sudo(
         context.polkadotApi.tx.assetManager.setAssetUnitsPerSecond(STATEMINT_LOCATION, 0, 0)
       )
@@ -241,7 +241,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     // registerForeignAsset
     const {
       result: { events: eventsRegister },
-    } = await context.createBlockWithExtrinsic(
+    } = await context.createBlock(
       context.polkadotApi.tx.sudo.sudo(
         context.polkadotApi.tx.assetManager.registerForeignAsset(
           STATEMINT_LOCATION,
@@ -260,7 +260,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     // setAssetUnitsPerSecond
     const {
       result: { events },
-    } = await context.createBlockWithExtrinsic(
+    } = await context.createBlock(
       context.polkadotApi.tx.sudo.sudo(
         context.polkadotApi.tx.assetManager.setAssetUnitsPerSecond(STATEMINT_LOCATION, 0, 0)
       )
@@ -384,7 +384,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer of DEV", (context) =
     transferredBalance = 100000000000000n;
 
     // We first fund parachain 2000 sovreign account
-    await context.createBlockWithExtrinsic(
+    await context.createBlock(
       context.polkadotApi.tx.balances.transfer(sovereignAddress, transferredBalance)
     );
     let balance = (
@@ -504,7 +504,7 @@ describeDevMoonbeam(
       transferredBalance = 100000000000000n;
 
       // We first fund parachain 2000 sovreign account
-      await context.createBlockWithExtrinsic(
+      await context.createBlock(
         context.polkadotApi.tx.balances.transfer(sovereignAddress, transferredBalance)
       );
       let balance = (
@@ -621,7 +621,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     // registerAsset
     const {
       result: { events: eventsRegister },
-    } = await context.createBlockWithExtrinsic(
+    } = await context.createBlock(
       context.polkadotApi.tx.sudo.sudo(
         context.polkadotApi.tx.assetManager.registerLocalAsset(
           baltathar.address,
@@ -641,8 +641,8 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     transferredBalance = new BN(100000000000000);
 
     // mint asset
-    await context.createBlockWithExtrinsic(
-      await context.polkadotApi.tx.localAssets
+    await context.createBlock(
+      context.polkadotApi.tx.localAssets
         .mint(assetId, alith.address, transferredBalance)
         .signAsync(baltathar)
     );
@@ -653,12 +653,12 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     ).padEnd(42, "0");
 
     // We first fund parachain 2000 sovreign account
-    await context.createBlockWithExtrinsic(
+    await context.createBlock(
       context.polkadotApi.tx.balances.transfer(sovereignAddress, transferredBalance)
     );
 
     // transfer to para Id sovereign to emulate having sent the tokens
-    await context.createBlockWithExtrinsic(
+    await context.createBlock(
       context.polkadotApi.tx.localAssets.transfer(assetId, sovereignAddress, transferredBalance)
     );
   });
@@ -783,7 +783,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
       // We register statemine with the new prefix
       const {
         result: { events: eventsRegisterZero },
-      } = await context.createBlockWithExtrinsic(
+      } = await context.createBlock(
         context.polkadotApi.tx.sudo.sudo(
           context.polkadotApi.tx.assetManager.registerForeignAsset(
             STATEMINT_LOCATION,
@@ -803,7 +803,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
       // We register statemine with the new prefix
       const {
         result: { events: eventsRegisterOne },
-      } = await context.createBlockWithExtrinsic(
+      } = await context.createBlock(
         context.polkadotApi.tx.sudo.sudo(
           context.polkadotApi.tx.assetManager.registerForeignAsset(
             STATEMINT_ASSET_ONE_LOCATION,
@@ -822,7 +822,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
       // setAssetUnitsPerSecond.We only set it for statemintLocationAssetOne
       const {
         result: { events },
-      } = await context.createBlockWithExtrinsic(
+      } = await context.createBlock(
         context.polkadotApi.tx.sudo.sudo(
           context.polkadotApi.tx.assetManager.setAssetUnitsPerSecond(
             STATEMINT_ASSET_ONE_LOCATION,
@@ -960,7 +960,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     // registerAsset
     const {
       result: { events: eventsRegister },
-    } = await context.createBlockWithExtrinsic(
+    } = await context.createBlock(
       context.polkadotApi.tx.sudo.sudo(
         context.polkadotApi.tx.assetManager.registerLocalAsset(
           baltathar.address,
@@ -980,8 +980,8 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     transferredBalance = new BN(100000000000000);
 
     // mint asset
-    await context.createBlockWithExtrinsic(
-      await context.polkadotApi.tx.localAssets
+    await context.createBlock(
+      context.polkadotApi.tx.localAssets
         .mint(assetId, alith.address, transferredBalance)
         .signAsync(baltathar)
     );
@@ -992,12 +992,12 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     ).padEnd(42, "0");
 
     // We first fund parachain 2000 sovreign account
-    await context.createBlockWithExtrinsic(
+    await context.createBlock(
       context.polkadotApi.tx.balances.transfer(sovereignAddress, transferredBalance)
     );
 
     // transfer to para Id sovereign to emulate having sent the tokens
-    await context.createBlockWithExtrinsic(
+    await context.createBlock(
       context.polkadotApi.tx.localAssets.transfer(assetId, sovereignAddress, transferredBalance)
     );
   });
@@ -1122,7 +1122,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     // We register statemine with the new prefix
     const {
       result: { events: eventsRegisterZero },
-    } = await context.createBlockWithExtrinsic(
+    } = await context.createBlock(
       context.polkadotApi.tx.sudo.sudo(
         context.polkadotApi.tx.assetManager.registerForeignAsset(
           STATEMINT_LOCATION,

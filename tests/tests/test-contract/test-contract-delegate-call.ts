@@ -13,13 +13,13 @@ describeDevMoonbeam("Delegate Call", (context) => {
     this.timeout(10000);
 
     const { contract: contractProxy, rawTx } = await createContract(context, "TestCallList");
-    await context.createBlockWithEth(rawTx);
+    await context.createBlock(rawTx);
 
     const { contract: contractDummy, rawTx: rawTx2 } = await createContract(
       context,
       "TestContract"
     );
-    await context.createBlockWithEth(rawTx2);
+    await context.createBlock(rawTx2);
 
     const proxyInterface = new ethers.utils.Interface(
       (await getCompiled("TestCallList")).contract.abi
@@ -73,7 +73,7 @@ describeDevMoonbeam("DELEGATECALL for precompiles", (context) => {
   before("Setup delecateCall contract", async () => {
     const contractDetails = await createContract(context, "TestCallList");
     contractProxy = contractDetails.contract;
-    await context.createBlockWithEth(contractDetails.rawTx);
+    await context.createBlock(contractDetails.rawTx);
 
     proxyInterface = new ethers.utils.Interface((await getCompiled("TestCallList")).contract.abi);
   });

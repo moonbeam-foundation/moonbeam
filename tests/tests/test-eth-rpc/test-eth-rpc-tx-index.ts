@@ -5,7 +5,7 @@ import { baltathar } from "../../util/accounts";
 
 describeDevMoonbeam("Transaction Index", (context) => {
   before("Setup: Create block with transaction", async () => {
-    await context.createBlockWithEth(createTransfer(context, baltathar.address, 0));
+    await context.createBlock(createTransfer(context, baltathar.address, 0));
   });
   it("should get transaction by index", async function () {
     const block = 1;

@@ -24,7 +24,7 @@ describeDevMoonbeam("Subscription - Past Events", (context) => {
       nonce: 3,
     });
 
-    await context.createBlockWithEth([rawTx1, rawTx2, rawTx3, rawTx4]);
+    await context.createBlock([rawTx1, rawTx2, rawTx3, rawTx4]);
   });
 
   it("should be retrieved by topic", async function () {

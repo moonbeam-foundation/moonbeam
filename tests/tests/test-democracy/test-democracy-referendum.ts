@@ -20,7 +20,7 @@ describeDevMoonbeam("Democracy - Referendum", (context) => {
 
   it("should succeed with enough votes", async function () {
     // vote
-    await context.createBlockWithExtrinsic(
+    await context.createBlock(
       context.polkadotApi.tx.democracy.vote(0, {
         Standard: { balance: VOTE_AMOUNT, vote: { aye: true, conviction: 1 } },
       })
@@ -68,7 +68,7 @@ describeDevMoonbeam("Democracy - Referendum", (context) => {
 
   it("should fail with enough no votes", async function () {
     // vote
-    await context.createBlockWithExtrinsic(
+    await context.createBlock(
       context.polkadotApi.tx.democracy.vote(0, {
         Standard: { balance: VOTE_AMOUNT, vote: { aye: false, conviction: 1 } },
       })

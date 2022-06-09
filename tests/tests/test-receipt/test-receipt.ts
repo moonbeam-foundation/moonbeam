@@ -15,8 +15,8 @@ describeDevMoonbeamAllEthTxTypes("Receipt - Contract", (context) => {
     const { contract, rawTx } = await createContract(context, "SingleEventContract", {
       from: alith.address,
     });
-    const { result } = await context.createBlockWithEth(rawTx);
-    txHash = result.result;
+    const { result } = await context.createBlock(rawTx);
+    txHash = result.hash;
     eventContract = contract;
   });
 
@@ -42,7 +42,7 @@ describeDevMoonbeam(
       // is 2GWEI and the base fee is 1GWEI.
       const maxFeePerGas = 1_000_000_000 * 2;
 
-      await context.createBlockWithEth(
+      await context.createBlock(
         createTransaction(context, {
           ...ALITH_TRANSACTION_TEMPLATE,
           gas: "0x5208",

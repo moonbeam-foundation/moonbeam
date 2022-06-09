@@ -13,16 +13,16 @@ const GENESIS_CONTRACT_ADDRESSES = [
 describeDevMoonbeam("Trace filter - Contract creation ", (context) => {
   before("Setup: Create 4 blocks with TraceFilter contracts", async function () {
     const { contract, rawTx } = await createContract(context, "TraceFilter", {}, [false]);
-    await context.createBlockWithEth(rawTx);
+    await context.createBlock(rawTx);
 
     const { rawTx: rawTx2 } = await createContract(context, "TraceFilter", {}, [true]);
-    await context.createBlockWithEth([rawTx2]);
+    await context.createBlock([rawTx2]);
 
     const { rawTx: rawTx3 } = await createContract(context, "TraceFilter", {}, [false]);
     const { rawTx: rawTx4 } = await createContract(context, "TraceFilter", { nonce: 3 }, [false]);
-    await context.createBlockWithEth([rawTx3, rawTx4]);
+    await context.createBlock([rawTx3, rawTx4]);
 
-    await context.createBlockWithEth(
+    await context.createBlock(
       createContractExecution(context, {
         contract,
         contractCall: contract.methods.subcalls(
@@ -50,7 +50,7 @@ describeDevMoonbeam("Trace filter - Contract creation ", (context) => {
       gas: "0xb60b27",
       value: "0x0",
     });
-    expect(response.result[0].result).to.include({
+    expect(response.result[0].hash).to.include({
       address: ALITH_CONTRACT_ADDRESSES[0],
       gasUsed: "0x10fd9", // TODO : Compare with value from another (comparable) network.
     });
@@ -83,7 +83,7 @@ describeDevMoonbeam("Trace filter - Contract creation ", (context) => {
     expect(response.result[0].action.value).to.equal("0x0");
     expect(response.result[0].blockHash).to.be.a("string");
     expect(response.result[0].blockNumber).to.equal(2);
-    expect(response.result[0].result).to.equal(undefined);
+    expect(response.result[0].hash).to.equal(undefined);
     expect(response.result[0].error).to.equal("Reverted");
     expect(response.result[0].subtraces).to.equal(0);
     expect(response.result[0].traceAddress.length).to.equal(0);

@@ -6,10 +6,10 @@ import { createContract } from "../../util/transactions";
 describeDevMoonbeamAllEthTxTypes("Precompiles - Blake2", (context) => {
   it("should be accessible from a smart contract", async function () {
     const { contract, rawTx } = await createContract(context, "Blake2Check");
-    const { result } = await context.createBlockWithEth(rawTx);
+    const { result } = await context.createBlock(rawTx);
 
     // The contract should deploy successfully and the receipt should show success.
-    const receipt = await context.web3.eth.getTransactionReceipt(result.result);
+    const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
     expect(receipt.status).to.be.true;
 
     // invoke the contract's test function 'callF'

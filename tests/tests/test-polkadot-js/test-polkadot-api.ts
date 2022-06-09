@@ -30,7 +30,7 @@ describeDevMoonbeam("Polkadot API", (context) => {
 describeDevMoonbeam("Polkadot API - Transfers", (context) => {
   const randomAccount = generateKeyingPair();
   before("Setup: Create empty block with balance.transfer", async () => {
-    await context.createBlockWithExtrinsic(
+    await context.createBlock(
       context.polkadotApi.tx.balances.transfer(randomAccount.address, 2n * GLMR)
     );
   });

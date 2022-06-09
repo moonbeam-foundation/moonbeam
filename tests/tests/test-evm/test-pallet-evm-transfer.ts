@@ -13,7 +13,7 @@ describeDevMoonbeam("Pallet EVM transfer - no sudo", (context) => {
   before("Send a simple transfer with pallet evm", async () => {
     ({
       result: { events },
-    } = await context.createBlockWithExtrinsic(
+    } = await context.createBlock(
       context.polkadotApi.tx.evm.call(
         alith.address,
         baltathar.address,
@@ -39,7 +39,7 @@ describeDevMoonbeam("Pallet EVM transfer - with sudo", (context) => {
   it("should succeed with sudo", async function () {
     const {
       result: { events },
-    } = await context.createBlockWithExtrinsic(
+    } = await context.createBlock(
       context.polkadotApi.tx.sudo.sudo(
         context.polkadotApi.tx.evm.call(
           alith.address,

@@ -48,7 +48,8 @@ const SELECTORS = {
 const DEMOCRACY_INTERFACE = new ethers.utils.Interface(getCompiled("Democracy").contract.abi);
 
 export const deployContract = async (context: DevTestContext, contractName: string) => {
-  await context.createBlockWithEth((await createContract(context, contractName)).rawTx);
+  const { rawTx } = await createContract(context, contractName);
+  await context.createBlock(rawTx);
 };
 
 export const notePreimagePrecompile = async <
@@ -73,7 +74,7 @@ export const notePreimagePrecompile = async <
     data,
   });
 
-  await context.createBlockWithEth(tx);
+  await context.createBlock(tx);
   // return encodedHash
   return blake2AsHex(encodedProposal);
 };

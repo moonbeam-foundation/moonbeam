@@ -24,7 +24,7 @@ describeDevMoonbeam("XCM - asset manager - foreign asset", (context) => {
     // registerForeignAsset
     const {
       result: { events: eventsRegister },
-    } = await context.createBlockWithExtrinsic(
+    } = await context.createBlock(
       parachainOne.tx.sudo.sudo(
         parachainOne.tx.assetManager.registerForeignAsset(
           RELAY_SOURCE_LOCATION,
@@ -43,7 +43,7 @@ describeDevMoonbeam("XCM - asset manager - foreign asset", (context) => {
     // setAssetUnitsPerSecond
     const {
       result: { events },
-    } = await context.createBlockWithExtrinsic(
+    } = await context.createBlock(
       parachainOne.tx.sudo.sudo(
         parachainOne.tx.assetManager.setAssetUnitsPerSecond(RELAY_SOURCE_LOCATION, 0, 0)
       )
@@ -65,7 +65,7 @@ describeDevMoonbeam("XCM - asset manager - register local asset", (context) => {
     // registerForeignAsset
     const {
       result: { events: eventsRegister },
-    } = await context.createBlockWithExtrinsic(
+    } = await context.createBlock(
       parachainOne.tx.sudo.sudo(
         parachainOne.tx.assetManager.registerLocalAsset(
           alith.address,
@@ -100,7 +100,7 @@ describeDevMoonbeam("XCM - asset manager - Change existing asset", (context) => 
     // registerForeignAsset
     const {
       result: { events: eventsRegister },
-    } = await context.createBlockWithExtrinsic(
+    } = await context.createBlock(
       parachainOne.tx.sudo.sudo(
         parachainOne.tx.assetManager.registerForeignAsset(
           RELAY_SOURCE_LOCATION,
@@ -119,7 +119,7 @@ describeDevMoonbeam("XCM - asset manager - Change existing asset", (context) => 
     // setAssetUnitsPerSecond
     const {
       result: { events },
-    } = await context.createBlockWithExtrinsic(
+    } = await context.createBlock(
       parachainOne.tx.sudo.sudo(
         parachainOne.tx.assetManager.setAssetUnitsPerSecond(RELAY_SOURCE_LOCATION, 1, 0)
       )
@@ -136,7 +136,7 @@ describeDevMoonbeam("XCM - asset manager - Change existing asset", (context) => 
 
   it("should change the asset Id", async function () {
     // ChangeAssetType
-    await context.createBlockWithExtrinsic(
+    await context.createBlock(
       context.polkadotApi.tx.sudo.sudo(
         context.polkadotApi.tx.assetManager.changeExistingAssetType(
           assetId,
@@ -181,7 +181,7 @@ describeDevMoonbeam("XCM - asset manager - Remove asset from supported", (contex
     // registerForeignAsset
     const {
       result: { events: eventsRegister },
-    } = await context.createBlockWithExtrinsic(
+    } = await context.createBlock(
       parachainOne.tx.sudo.sudo(
         parachainOne.tx.assetManager.registerForeignAsset(
           RELAY_SOURCE_LOCATION,
@@ -200,7 +200,7 @@ describeDevMoonbeam("XCM - asset manager - Remove asset from supported", (contex
     // setAssetUnitsPerSecond
     const {
       result: { events },
-    } = await context.createBlockWithExtrinsic(
+    } = await context.createBlock(
       parachainOne.tx.sudo.sudo(
         parachainOne.tx.assetManager.setAssetUnitsPerSecond(RELAY_SOURCE_LOCATION, 1, 0)
       )
@@ -217,7 +217,7 @@ describeDevMoonbeam("XCM - asset manager - Remove asset from supported", (contex
 
   it("should remove an asset from our supported fee payments", async function () {
     // ChangeAssetType
-    await context.createBlockWithExtrinsic(
+    await context.createBlock(
       context.polkadotApi.tx.sudo.sudo(
         context.polkadotApi.tx.assetManager.removeSupportedAsset(RELAY_SOURCE_LOCATION, 1)
       )
@@ -250,7 +250,7 @@ describeDevMoonbeam("XCM - asset manager - destroy foreign asset", (context) => 
     // registerAsset
     const {
       result: { events: eventsRegister },
-    } = await context.createBlockWithExtrinsic(
+    } = await context.createBlock(
       parachainOne.tx.sudo.sudo(
         parachainOne.tx.assetManager.registerForeignAsset(
           RELAY_SOURCE_LOCATION,
@@ -269,7 +269,7 @@ describeDevMoonbeam("XCM - asset manager - destroy foreign asset", (context) => 
     // setAssetUnitsPerSecond
     const {
       result: { events },
-    } = await context.createBlockWithExtrinsic(
+    } = await context.createBlock(
       parachainOne.tx.sudo.sudo(
         parachainOne.tx.assetManager.setAssetUnitsPerSecond(RELAY_SOURCE_LOCATION, 1, 0)
       )
@@ -292,7 +292,7 @@ describeDevMoonbeam("XCM - asset manager - destroy foreign asset", (context) => 
     });
 
     // Destroy foreign asset
-    await context.createBlockWithExtrinsic(
+    await context.createBlock(
       context.polkadotApi.tx.sudo.sudo(
         context.polkadotApi.tx.assetManager.destroyForeignAsset(assetId, assetDestroyWitness, 1)
       )
@@ -331,7 +331,7 @@ describeDevMoonbeam("XCM - asset manager - destroy local asset", (context) => {
     // registerAsset
     const {
       result: { events: eventsRegister },
-    } = await context.createBlockWithExtrinsic(
+    } = await context.createBlock(
       parachainOne.tx.sudo.sudo(
         parachainOne.tx.assetManager.registerLocalAsset(
           alith.address,
@@ -369,7 +369,7 @@ describeDevMoonbeam("XCM - asset manager - destroy local asset", (context) => {
     // Reserved amount back to creator
     const accountDetailsBefore = await context.polkadotApi.query.system.account(alith.address);
 
-    await context.createBlockWithExtrinsic(
+    await context.createBlock(
       context.polkadotApi.tx.sudo.sudo(
         context.polkadotApi.tx.assetManager.destroyLocalAsset(assetId, assetDestroyWitness)
       )

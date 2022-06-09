@@ -67,19 +67,15 @@ describeDevMoonbeam("Staking - Genesis", (context) => {
 
 describeDevMoonbeam("Staking - Join Candidates", (context) => {
   before("should join as a candidate", async () => {
-    await context.createBlockWithExtrinsic(
-      await context.polkadotApi.tx.parachainStaking
-        .joinCandidates(MIN_GLMR_STAKING, 1)
-        .signAsync(ethan)
+    await context.createBlock(
+      context.polkadotApi.tx.parachainStaking.joinCandidates(MIN_GLMR_STAKING, 1).signAsync(ethan)
     );
   });
 
   afterEach("cleanup candidate leave request", async () => {
     let candidateCount = (await context.polkadotApi.query.parachainStaking.candidatePool()).length;
-    await context.createBlockWithExtrinsic(
-      await context.polkadotApi.tx.parachainStaking
-        .cancelLeaveCandidates(candidateCount)
-        .signAsync(ethan)
+    await context.createBlock(
+      context.polkadotApi.tx.parachainStaking.cancelLeaveCandidates(candidateCount).signAsync(ethan)
     );
   });
 
@@ -100,8 +96,8 @@ describeDevMoonbeam("Staking - Join Candidates", (context) => {
     let candidatesAfter = await context.polkadotApi.query.parachainStaking.candidatePool();
     expect(candidatesAfter.length).to.equal(2, "new candidate should have been added");
 
-    await context.createBlockWithExtrinsic(
-      await context.polkadotApi.tx.parachainStaking
+    await context.createBlock(
+      context.polkadotApi.tx.parachainStaking
         .scheduleLeaveCandidates(candidatesAfter.length)
         .signAsync(ethan)
     );
@@ -124,8 +120,8 @@ describeDevMoonbeam("Staking - Join Candidates", (context) => {
     let candidatesAfter = await context.polkadotApi.query.parachainStaking.candidatePool();
     expect(candidatesAfter.length).to.equal(2, "new candidate should have been added");
 
-    await context.createBlockWithExtrinsic(
-      await context.polkadotApi.tx.parachainStaking
+    await context.createBlock(
+      context.polkadotApi.tx.parachainStaking
         .scheduleLeaveCandidates(candidatesAfter.length)
         .signAsync(ethan)
     );
@@ -138,8 +134,8 @@ describeDevMoonbeam("Staking - Join Candidates", (context) => {
     const whenRound = candidateState.status.asLeaving.toNumber();
     await jumpToRound(context, whenRound - 1);
 
-    await context.createBlockWithExtrinsic(
-      await context.polkadotApi.tx.parachainStaking
+    await context.createBlock(
+      context.polkadotApi.tx.parachainStaking
         .executeLeaveCandidates(ethan.address, candidateState.delegationCount)
         .signAsync(ethan)
     );
@@ -151,8 +147,8 @@ describeDevMoonbeam("Staking - Join Candidates", (context) => {
     expect(extrinsicResult).to.equal("CandidateCannotLeaveYet");
 
     await jumpToRound(context, whenRound);
-    await context.createBlockWithExtrinsic(
-      await context.polkadotApi.tx.parachainStaking
+    await context.createBlock(
+      context.polkadotApi.tx.parachainStaking
         .executeLeaveCandidates(ethan.address, candidateState.delegationCount)
         .signAsync(ethan)
     );
@@ -165,15 +161,17 @@ describeDevMoonbeam("Staking - Join Candidates", (context) => {
 
 describeDevMoonbeam("Staking - Join Delegators", (context) => {
   before("should successfully call delegate on Alith", async function () {
-    await context.polkadotApi.tx.parachainStaking
-      .delegate(alith.address, MIN_GLMR_DELEGATOR, 0, 0)
-      .signAndSend(ethan);
-    await context.createBlock();
+    await context.createBlock(
+      context.polkadotApi.tx.parachainStaking
+        .delegate(alith.address, MIN_GLMR_DELEGATOR, 0, 0)
+        .signAsync(ethan)
+    );
   });
 
   afterEach("cleanup delegator leave request", async () => {
-    await context.polkadotApi.tx.parachainStaking.cancelLeaveDelegators().signAndSend(ethan);
-    await context.createBlock();
+    await context.createBlock(
+      context.polkadotApi.tx.parachainStaking.cancelLeaveDelegators().signAsync(ethan)
+    );
   });
 
   it("should have successfully delegated stake to Alith", async function () {
@@ -191,8 +189,9 @@ describeDevMoonbeam("Staking - Join Delegators", (context) => {
   });
 
   it("should successfully schedule leave delegators", async function () {
-    await context.polkadotApi.tx.parachainStaking.scheduleLeaveDelegators().signAndSend(ethan);
-    await context.createBlock();
+    await context.createBlock(
+      context.polkadotApi.tx.parachainStaking.scheduleLeaveDelegators().signAsync(ethan)
+    );
 
     const delegatorState = (
       await context.polkadotApi.query.parachainStaking.delegatorState(ethan.address)
@@ -218,8 +217,9 @@ describeDevMoonbeam("Staking - Join Delegators", (context) => {
   it("should successfully execute schedule leave delegators at correct round", async function () {
     this.timeout(20000);
 
-    await context.polkadotApi.tx.parachainStaking.scheduleLeaveDelegators().signAndSend(ethan);
-    await context.createBlock();
+    await context.createBlock(
+      context.polkadotApi.tx.parachainStaking.scheduleLeaveDelegators().signAsync(ethan)
+    );
 
     const delegatorState = (
       await context.polkadotApi.query.parachainStaking.delegatorState(ethan.address)
@@ -236,10 +236,11 @@ describeDevMoonbeam("Staking - Join Delegators", (context) => {
     const whenRound = revokeRequest.whenExecutable.toNumber();
     await jumpToRound(context, whenRound - 1);
 
-    await context.polkadotApi.tx.parachainStaking
-      .executeLeaveDelegators(ethan.address, delegatorState.delegations.length)
-      .signAndSend(ethan);
-    await context.createBlock();
+    await context.createBlock(
+      context.polkadotApi.tx.parachainStaking
+        .executeLeaveDelegators(ethan.address, delegatorState.delegations.length)
+        .signAsync(ethan)
+    );
     const extrinsicResult = await getExtrinsicResult(
       context,
       "parachainStaking",
@@ -248,10 +249,11 @@ describeDevMoonbeam("Staking - Join Delegators", (context) => {
     expect(extrinsicResult).to.equal("DelegatorCannotLeaveYet");
 
     await jumpToRound(context, whenRound);
-    await context.polkadotApi.tx.parachainStaking
-      .executeLeaveDelegators(ethan.address, delegatorState.delegations.length)
-      .signAndSend(ethan);
-    await context.createBlock();
+    await context.createBlock(
+      context.polkadotApi.tx.parachainStaking
+        .executeLeaveDelegators(ethan.address, delegatorState.delegations.length)
+        .signAsync(ethan)
+    );
     const delegatorStateAfter = await context.polkadotApi.query.parachainStaking.delegatorState(
       ethan.address
     );
@@ -264,16 +266,16 @@ describeDevMoonbeam("Staking - Delegation Requests", (context) => {
   const DELEGATION = MIN_GLMR_DELEGATOR * 5n;
 
   beforeEach("should successfully call delegate on Alith", async () => {
-    await context.createBlockWithExtrinsic(
-      await context.polkadotApi.tx.parachainStaking
+    await context.createBlock(
+      context.polkadotApi.tx.parachainStaking
         .delegate(alith.address, DELEGATION, 0, 0)
         .signAsync(ethan)
     );
   });
 
   afterEach("should clean up delegation requests", async () => {
-    await context.createBlockWithExtrinsic(
-      await context.polkadotApi.tx.parachainStaking
+    await context.createBlock(
+      context.polkadotApi.tx.parachainStaking
         .cancelDelegationRequest(alith.address)
         .signAsync(ethan)
     );
@@ -289,10 +291,11 @@ describeDevMoonbeam("Staking - Delegation Requests", (context) => {
     ).current.toNumber();
 
     // schedule revoke
-    await context.polkadotApi.tx.parachainStaking
-      .scheduleRevokeDelegation(alith.address)
-      .signAndSend(ethan);
-    await context.createBlock();
+    await context.createBlock(
+      context.polkadotApi.tx.parachainStaking
+        .scheduleRevokeDelegation(alith.address)
+        .signAsync(ethan)
+    );
 
     const delegationRequestsAfter =
       await context.polkadotApi.query.parachainStaking.delegationScheduledRequests(alith.address);
@@ -317,10 +320,11 @@ describeDevMoonbeam("Staking - Delegation Requests", (context) => {
       await context.polkadotApi.query.parachainStaking.round()
     ).current.toNumber();
 
-    await context.polkadotApi.tx.parachainStaking
-      .scheduleRevokeDelegation(alith.address)
-      .signAndSend(ethan);
-    await context.createBlock();
+    await context.createBlock(
+      context.polkadotApi.tx.parachainStaking
+        .scheduleRevokeDelegation(alith.address)
+        .signAsync(ethan)
+    );
     const delegationRequestsAfterSchedule =
       await context.polkadotApi.query.parachainStaking.delegationScheduledRequests(alith.address);
     const roundDelay = context.polkadotApi.consts.parachainStaking.revokeDelegationDelay.toNumber();
@@ -334,10 +338,11 @@ describeDevMoonbeam("Staking - Delegation Requests", (context) => {
       },
     ]);
 
-    await context.polkadotApi.tx.parachainStaking
-      .cancelDelegationRequest(alith.address)
-      .signAndSend(ethan);
-    await context.createBlock();
+    await context.createBlock(
+      context.polkadotApi.tx.parachainStaking
+        .cancelDelegationRequest(alith.address)
+        .signAsync(ethan)
+    );
 
     const delegationRequestsAfterCancel =
       await context.polkadotApi.query.parachainStaking.delegationScheduledRequests(alith.address);
@@ -352,10 +357,11 @@ describeDevMoonbeam("Staking - Delegation Requests", (context) => {
     ).current.toNumber();
 
     // schedule revoke
-    await context.polkadotApi.tx.parachainStaking
-      .scheduleRevokeDelegation(alith.address)
-      .signAndSend(ethan);
-    await context.createBlock();
+    await context.createBlock(
+      context.polkadotApi.tx.parachainStaking
+        .scheduleRevokeDelegation(alith.address)
+        .signAsync(ethan)
+    );
     const delegationRequests =
       await context.polkadotApi.query.parachainStaking.delegationScheduledRequests(alith.address);
     expect(delegationRequests.toJSON()).to.not.be.empty;
@@ -364,11 +370,12 @@ describeDevMoonbeam("Staking - Delegation Requests", (context) => {
     await jumpToRound(context, delegationRequests[0].whenExecutable.toNumber() - 1);
 
     // execute revoke
-    await context.polkadotApi.tx.parachainStaking
-      .executeDelegationRequest(ethan.address, alith.address)
-      .signAndSend(ethan);
 
-    await context.createBlock();
+    await context.createBlock(
+      context.polkadotApi.tx.parachainStaking
+        .executeDelegationRequest(ethan.address, alith.address)
+        .signAsync(ethan)
+    );
     const extrinsicResult = await getExtrinsicResult(
       context,
       "parachainStaking",
@@ -404,8 +411,8 @@ describeDevMoonbeam("Staking - Delegation Requests", (context) => {
     this.timeout(20000);
 
     // schedule revoke
-    await context.createBlockWithExtrinsic(
-      await context.polkadotApi.tx.parachainStaking
+    await context.createBlock(
+      context.polkadotApi.tx.parachainStaking
         .scheduleRevokeDelegation(alith.address)
         .signAsync(ethan)
     );
@@ -417,8 +424,8 @@ describeDevMoonbeam("Staking - Delegation Requests", (context) => {
     await jumpToRound(context, delegationRequests[0].whenExecutable.toNumber());
 
     // execute revoke
-    await context.createBlockWithExtrinsic(
-      await context.polkadotApi.tx.parachainStaking
+    await context.createBlock(
+      context.polkadotApi.tx.parachainStaking
         .executeDelegationRequest(ethan.address, alith.address)
         .signAsync(ethan)
     );
@@ -443,8 +450,8 @@ describeDevMoonbeam("Staking - Delegation Requests", (context) => {
     ).current.toNumber();
 
     // schedule bond less
-    const { result } = await context.createBlockWithExtrinsic(
-      await context.polkadotApi.tx.parachainStaking
+    await context.createBlock(
+      context.polkadotApi.tx.parachainStaking
         .scheduleDelegatorBondLess(alith.address, 10n)
         .signAsync(ethan)
     );
@@ -473,10 +480,11 @@ describeDevMoonbeam("Staking - Delegation Requests", (context) => {
     ).current.toNumber();
 
     const LESS_AMOUNT = 10;
-    await context.polkadotApi.tx.parachainStaking
-      .scheduleDelegatorBondLess(alith.address, LESS_AMOUNT)
-      .signAndSend(ethan);
-    await context.createBlock();
+    await context.createBlock(
+      context.polkadotApi.tx.parachainStaking
+        .scheduleDelegatorBondLess(alith.address, LESS_AMOUNT)
+        .signAsync(ethan)
+    );
     const delegationRequestsAfterSchedule =
       await context.polkadotApi.query.parachainStaking.delegationScheduledRequests(alith.address);
     const roundDelay =
@@ -491,10 +499,11 @@ describeDevMoonbeam("Staking - Delegation Requests", (context) => {
       },
     ]);
 
-    await context.polkadotApi.tx.parachainStaking
-      .cancelDelegationRequest(alith.address)
-      .signAndSend(ethan);
-    await context.createBlock();
+    await context.createBlock(
+      context.polkadotApi.tx.parachainStaking
+        .cancelDelegationRequest(alith.address)
+        .signAsync(ethan)
+    );
 
     const delegationRequestsAfterCancel =
       await context.polkadotApi.query.parachainStaking.delegationScheduledRequests(alith.address);
@@ -510,10 +519,11 @@ describeDevMoonbeam("Staking - Delegation Requests", (context) => {
 
     // schedule bond less
     const LESS_AMOUNT = 10;
-    await context.polkadotApi.tx.parachainStaking
-      .scheduleDelegatorBondLess(alith.address, LESS_AMOUNT)
-      .signAndSend(ethan);
-    await context.createBlock();
+    await context.createBlock(
+      context.polkadotApi.tx.parachainStaking
+        .scheduleDelegatorBondLess(alith.address, LESS_AMOUNT)
+        .signAsync(ethan)
+    );
     const delegationRequests =
       await context.polkadotApi.query.parachainStaking.delegationScheduledRequests(alith.address);
     expect(delegationRequests.toJSON()).to.not.be.empty;
@@ -522,11 +532,12 @@ describeDevMoonbeam("Staking - Delegation Requests", (context) => {
     await jumpToRound(context, delegationRequests[0].whenExecutable.toNumber() - 1);
 
     // execute bond less
-    await context.polkadotApi.tx.parachainStaking
-      .executeDelegationRequest(ethan.address, alith.address)
-      .signAndSend(ethan);
 
-    await context.createBlock();
+    await context.createBlock(
+      context.polkadotApi.tx.parachainStaking
+        .executeDelegationRequest(ethan.address, alith.address)
+        .signAsync(ethan)
+    );
     const extrinsicResult = await getExtrinsicResult(
       context,
       "parachainStaking",
@@ -565,10 +576,11 @@ describeDevMoonbeam("Staking - Delegation Requests", (context) => {
 
     // schedule bond less
     const LESS_AMOUNT = 10;
-    await context.polkadotApi.tx.parachainStaking
-      .scheduleDelegatorBondLess(alith.address, LESS_AMOUNT)
-      .signAndSend(ethan);
-    await context.createBlock();
+    await context.createBlock(
+      context.polkadotApi.tx.parachainStaking
+        .scheduleDelegatorBondLess(alith.address, LESS_AMOUNT)
+        .signAsync(ethan)
+    );
     const delegationRequests =
       await context.polkadotApi.query.parachainStaking.delegationScheduledRequests(alith.address);
     expect(delegationRequests).to.not.be.empty;
@@ -577,10 +589,11 @@ describeDevMoonbeam("Staking - Delegation Requests", (context) => {
     await jumpToRound(context, delegationRequests[0].whenExecutable.toNumber());
 
     // execute bond less
-    await context.polkadotApi.tx.parachainStaking
-      .executeDelegationRequest(ethan.address, alith.address)
-      .signAndSend(ethan);
-    await context.createBlock();
+    await context.createBlock(
+      context.polkadotApi.tx.parachainStaking
+        .executeDelegationRequest(ethan.address, alith.address)
+        .signAsync(ethan)
+    );
 
     const {
       delegations: [firstDelegationAfter, ..._],
@@ -597,14 +610,14 @@ describeDevMoonbeam("Staking - Delegation Requests", (context) => {
   it("should successfully remove scheduled requests on collator leave", async function () {
     this.timeout(20000);
 
-    const { result } = await context.createBlockWithExtrinsic(
-      await context.polkadotApi.tx.parachainStaking
+    await context.createBlock(
+      context.polkadotApi.tx.parachainStaking
         .joinCandidates(MIN_GLMR_STAKING, 1)
         .signAsync(baltathar)
     );
 
-    const { result: result2 } = await context.createBlockWithExtrinsic(
-      await context.polkadotApi.tx.parachainStaking
+    await context.createBlock(
+      context.polkadotApi.tx.parachainStaking
         .delegate(baltathar.address, DELEGATION, 0, 1)
         .signAsync(ethan)
     );
@@ -615,11 +628,11 @@ describeDevMoonbeam("Staking - Delegation Requests", (context) => {
 
     // schedule bond less
 
-    await context.createBlockWithExtrinsic([
-      await context.polkadotApi.tx.parachainStaking
+    await context.createBlock([
+      context.polkadotApi.tx.parachainStaking
         .scheduleDelegatorBondLess(baltathar.address, 10n)
         .signAsync(ethan),
-      await context.polkadotApi.tx.parachainStaking.scheduleLeaveCandidates(2).signAsync(baltathar),
+      context.polkadotApi.tx.parachainStaking.scheduleLeaveCandidates(2).signAsync(baltathar),
     ]);
 
     const collatorState = await context.polkadotApi.query.parachainStaking.candidateInfo(
@@ -627,10 +640,11 @@ describeDevMoonbeam("Staking - Delegation Requests", (context) => {
     );
     await jumpToRound(context, collatorState.unwrap().status.asLeaving.toNumber());
 
-    await context.polkadotApi.tx.parachainStaking
-      .executeLeaveCandidates(baltathar.address, 1)
-      .signAndSend(ethan);
-    await context.createBlock();
+    await context.createBlock(
+      context.polkadotApi.tx.parachainStaking
+        .executeLeaveCandidates(baltathar.address, 1)
+        .signAsync(ethan)
+    );
     const delegationRequestsAfter =
       await context.polkadotApi.query.parachainStaking.delegationScheduledRequests(alith.address);
     expect(delegationRequestsAfter.toJSON()).to.be.empty;
@@ -644,12 +658,14 @@ describeDevMoonbeam("Staking - Delegation Requests", (context) => {
     expect(delegationRequestsBefore.toJSON()).to.be.empty;
 
     // schedule bond less
-    await context.polkadotApi.tx.parachainStaking
-      .scheduleDelegatorBondLess(alith.address, 10n)
-      .signAndSend(ethan);
-    await context.createBlock();
-    await context.polkadotApi.tx.parachainStaking.scheduleLeaveDelegators().signAndSend(ethan);
-    await context.createBlock();
+    await context.createBlock(
+      context.polkadotApi.tx.parachainStaking
+        .scheduleDelegatorBondLess(alith.address, 10n)
+        .signAsync(ethan)
+    );
+    await context.createBlock(
+      context.polkadotApi.tx.parachainStaking.scheduleLeaveDelegators().signAsync(ethan)
+    );
 
     const delegatorState = await context.polkadotApi.query.parachainStaking.delegatorState(
       ethan.address
@@ -664,10 +680,11 @@ describeDevMoonbeam("Staking - Delegation Requests", (context) => {
     expect(revokeRequest).to.not.be.undefined;
     await jumpToRound(context, revokeRequest.whenExecutable.toNumber());
 
-    await context.polkadotApi.tx.parachainStaking
-      .executeLeaveDelegators(ethan.address, 1)
-      .signAndSend(ethan);
-    const block = await context.createBlock();
+    const block = await context.createBlock(
+      context.polkadotApi.tx.parachainStaking
+        .executeLeaveDelegators(ethan.address, 1)
+        .signAsync(ethan)
+    );
     const delegationRequestsAfter =
       await context.polkadotApi.query.parachainStaking.delegationScheduledRequests(alith.address);
     expect(delegationRequestsAfter.toJSON()).to.be.empty;
@@ -689,16 +706,16 @@ describeDevMoonbeam("Staking - Delegation Requests", (context) => {
 describeDevMoonbeam("Staking - Bond More", (context) => {
   const DELEGATION = MIN_GLMR_DELEGATOR * 5n;
   before("should successfully call delegate on Alith", async () => {
-    await context.createBlockWithExtrinsic(
-      await context.polkadotApi.tx.parachainStaking
+    await context.createBlock(
+      context.polkadotApi.tx.parachainStaking
         .delegate(alith.address, DELEGATION, 0, 0)
         .signAsync(ethan)
     );
   });
 
   afterEach("should clean up delegation requests", async () => {
-    await context.createBlockWithExtrinsic(
-      await context.polkadotApi.tx.parachainStaking
+    await context.createBlock(
+      context.polkadotApi.tx.parachainStaking
         .cancelDelegationRequest(alith.address)
         .signAsync(ethan)
     );
@@ -711,10 +728,11 @@ describeDevMoonbeam("Staking - Bond More", (context) => {
 
     // schedule bond less
     const increaseAmount = 5;
-    await context.polkadotApi.tx.parachainStaking
-      .delegatorBondMore(alith.address, increaseAmount)
-      .signAndSend(ethan);
-    await context.createBlock();
+    await context.createBlock(
+      context.polkadotApi.tx.parachainStaking
+        .delegatorBondMore(alith.address, increaseAmount)
+        .signAsync(ethan)
+    );
 
     const bondAmountAfter = (
       await context.polkadotApi.query.parachainStaking.delegatorState(ethan.address)
@@ -728,16 +746,18 @@ describeDevMoonbeam("Staking - Bond More", (context) => {
     ).unwrap().total;
 
     // schedule bond less
-    await context.polkadotApi.tx.parachainStaking
-      .scheduleDelegatorBondLess(alith.address, 10n)
-      .signAndSend(ethan);
-    await context.createBlock();
+    await context.createBlock(
+      context.polkadotApi.tx.parachainStaking
+        .scheduleDelegatorBondLess(alith.address, 10n)
+        .signAsync(ethan)
+    );
 
     const increaseAmount = 5;
-    await context.polkadotApi.tx.parachainStaking
-      .delegatorBondMore(alith.address, increaseAmount)
-      .signAndSend(ethan);
-    await context.createBlock();
+    await context.createBlock(
+      context.polkadotApi.tx.parachainStaking
+        .delegatorBondMore(alith.address, increaseAmount)
+        .signAsync(ethan)
+    );
 
     const bondAmountAfter = (
       await context.polkadotApi.query.parachainStaking.delegatorState(ethan.address)
@@ -751,16 +771,18 @@ describeDevMoonbeam("Staking - Bond More", (context) => {
     ).unwrap().total;
 
     // schedule bond less
-    await context.polkadotApi.tx.parachainStaking
-      .scheduleRevokeDelegation(alith.address)
-      .signAndSend(ethan);
-    await context.createBlock();
+    await context.createBlock(
+      context.polkadotApi.tx.parachainStaking
+        .scheduleRevokeDelegation(alith.address)
+        .signAsync(ethan)
+    );
 
     const increaseAmount = 5n;
-    await context.polkadotApi.tx.parachainStaking
-      .delegatorBondMore(alith.address, increaseAmount)
-      .signAndSend(ethan);
-    await context.createBlock();
+    await context.createBlock(
+      context.polkadotApi.tx.parachainStaking
+        .delegatorBondMore(alith.address, increaseAmount)
+        .signAsync(ethan)
+    );
 
     const extrinsicError = await getExtrinsicResult(
       context,
@@ -780,8 +802,8 @@ describeDevMoonbeam("Staking - Rewards", (context) => {
   const BOND_AMOUNT = MIN_GLMR_STAKING + EXTRA_BOND_AMOUNT;
 
   beforeEach("should successfully call delegate on Alith", async () => {
-    await context.createBlockWithExtrinsic(
-      await context.polkadotApi.tx.parachainStaking
+    await context.createBlock(
+      context.polkadotApi.tx.parachainStaking
         .delegate(alith.address, BOND_AMOUNT, 0, 0)
         .signAsync(ethan)
     );
@@ -790,13 +812,13 @@ describeDevMoonbeam("Staking - Rewards", (context) => {
   });
 
   afterEach("should clean up delegation requests", async () => {
-    await context.createBlockWithExtrinsic(
-      await context.polkadotApi.tx.parachainStaking
+    await context.createBlock(
+      context.polkadotApi.tx.parachainStaking
         .cancelDelegationRequest(alith.address)
         .signAsync(ethan)
     );
-    await context.createBlockWithExtrinsic(
-      await context.polkadotApi.tx.parachainStaking.cancelLeaveDelegators().signAsync(ethan)
+    await context.createBlock(
+      context.polkadotApi.tx.parachainStaking.cancelLeaveDelegators().signAsync(ethan)
     );
   });
 
@@ -817,8 +839,8 @@ describeDevMoonbeam("Staking - Rewards", (context) => {
   it("should not reward delegator if leave scheduled", async function () {
     this.timeout(20000);
 
-    await context.createBlockWithExtrinsic(
-      await context.polkadotApi.tx.parachainStaking.scheduleLeaveDelegators().signAsync(ethan)
+    await context.createBlock(
+      context.polkadotApi.tx.parachainStaking.scheduleLeaveDelegators().signAsync(ethan)
     );
 
     const rewardDelay = context.polkadotApi.consts.parachainStaking.rewardPaymentDelay;
@@ -834,8 +856,8 @@ describeDevMoonbeam("Staking - Rewards", (context) => {
   it("should not reward delegator if revoke scheduled", async function () {
     this.timeout(20000);
 
-    await context.createBlockWithExtrinsic(
-      await context.polkadotApi.tx.parachainStaking
+    await context.createBlock(
+      context.polkadotApi.tx.parachainStaking
         .scheduleRevokeDelegation(alith.address)
         .signAsync(ethan)
     );
@@ -854,11 +876,11 @@ describeDevMoonbeam("Staking - Rewards", (context) => {
   it("should reward delegator after deducting pending bond decrease", async function () {
     this.timeout(20000);
 
-    await context.createBlockWithExtrinsic([
-      await context.polkadotApi.tx.parachainStaking
+    await context.createBlock([
+      context.polkadotApi.tx.parachainStaking
         .delegate(alith.address, BOND_AMOUNT, 1, 0)
         .signAsync(baltathar),
-      await context.polkadotApi.tx.parachainStaking
+      context.polkadotApi.tx.parachainStaking
         .scheduleDelegatorBondLess(alith.address, EXTRA_BOND_AMOUNT)
         .signAsync(ethan),
     ]);

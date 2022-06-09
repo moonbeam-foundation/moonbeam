@@ -25,7 +25,7 @@ describeDevMoonbeam("Ethereum Transaction - Initial Nonce", (context) => {
 
 describeDevMoonbeam("Ethereum Transaction - Previous block nonce", (context) => {
   before("Setup: Create block with transfer", async () => {
-    await context.createBlockWithEth(createTransfer(context, baltathar.address, 512));
+    await context.createBlock(createTransfer(context, baltathar.address, 512));
   });
   it("should be at 0 after transferring", async function () {
     expect(await context.web3.eth.getTransactionCount(alith.address, 0)).to.eq(0);
@@ -51,7 +51,7 @@ describeDevMoonbeam("Ethereum Transaction - Pending transaction nonce", (context
 
 describeDevMoonbeam("Ethereum Transaction - Transferring Nonce", (context) => {
   before("Setup: Sending token", async function () {
-    await context.createBlockWithEth(createTransfer(context, baltathar.address, 512));
+    await context.createBlock(createTransfer(context, baltathar.address, 512));
   });
 
   it("should increase the sender nonce", async function () {

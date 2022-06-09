@@ -39,7 +39,7 @@ describeDevMoonbeam("Maintenance Mode - Entering Maintenance Mode", (context) =>
   it("should fail with sudo", async function () {
     const {
       result: { events },
-    } = await context.createBlockWithExtrinsic(
+    } = await context.createBlock(
       context.polkadotApi.tx.sudo.sudo(
         context.polkadotApi.tx.maintenanceMode.enterMaintenanceMode()
       )
@@ -53,16 +53,14 @@ describeDevMoonbeam("Maintenance Mode - Entering Maintenance Mode", (context) =>
   it("should fail without sudo", async function () {
     const {
       result: { error },
-    } = await context.createBlockWithExtrinsic(
-      context.polkadotApi.tx.maintenanceMode.enterMaintenanceMode()
-    );
+    } = await context.createBlock(context.polkadotApi.tx.maintenanceMode.enterMaintenanceMode());
     expect(error.name).to.eq("BadOrigin");
   });
 });
 
 describeDevMoonbeam("Maintenance Mode - Resuming normal operation", (context) => {
   before("entering maintenance mode", async function () {
-    await context.createBlockWithExtrinsic(
+    await context.createBlock(
       context.polkadotApi.tx.sudo.sudo(
         context.polkadotApi.tx.maintenanceMode.enterMaintenanceMode()
       )
@@ -72,7 +70,7 @@ describeDevMoonbeam("Maintenance Mode - Resuming normal operation", (context) =>
   it("should fail with sudo", async function () {
     const {
       result: { events },
-    } = await context.createBlockWithExtrinsic(
+    } = await context.createBlock(
       context.polkadotApi.tx.sudo.sudo(
         context.polkadotApi.tx.maintenanceMode.resumeNormalOperation()
       )
@@ -94,9 +92,7 @@ describeDevMoonbeam("Maintenance Mode - Resuming normal operation", (context) =>
     // and try to turn it off
     const {
       result: { error },
-    } = await context.createBlockWithExtrinsic(
-      context.polkadotApi.tx.maintenanceMode.resumeNormalOperation()
-    );
+    } = await context.createBlock(context.polkadotApi.tx.maintenanceMode.resumeNormalOperation());
     expect(error.name).to.eq("BadOrigin");
     expect((await context.polkadotApi.query.maintenanceMode.maintenanceMode()).isTrue).to.be.true;
   });

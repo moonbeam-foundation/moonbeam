@@ -14,9 +14,7 @@ describeDevMoonbeam("Democracy - Preimage", (context) => {
         .setParachainBondAccount(alith.address)
         .method.toHex() || "";
     const encodedHash = blake2AsHex(encodedProposal);
-    await context.createBlockWithExtrinsic(
-      context.polkadotApi.tx.democracy.notePreimage(encodedProposal)
-    );
+    await context.createBlock(context.polkadotApi.tx.democracy.notePreimage(encodedProposal));
 
     const preimageStatus = await context.polkadotApi.query.democracy.preimages(encodedHash);
     expect(preimageStatus.isSome).to.be.true;
@@ -36,7 +34,7 @@ describeDevMoonbeam("Democracy - Preimage", (context) => {
 
     const {
       result: { error },
-    } = await context.createBlockWithExtrinsic(
+    } = await context.createBlock(
       context.polkadotApi.tx.democracy.reapPreimage(encodedHash, 10000)
     );
 
@@ -55,9 +53,7 @@ describeDevMoonbeam("Democracy - Preimage", (context) => {
       alith
     );
 
-    await context.createBlockWithExtrinsic(
-      context.polkadotApi.tx.democracy.reapPreimage(encodedHash, 10000)
-    );
+    await context.createBlock(context.polkadotApi.tx.democracy.reapPreimage(encodedHash, 10000));
 
     const preimageStatus = await context.polkadotApi.query.democracy.preimages(encodedHash);
     expect(preimageStatus.isSome).to.be.true;

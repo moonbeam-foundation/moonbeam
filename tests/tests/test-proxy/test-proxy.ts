@@ -17,8 +17,8 @@ describeDevMoonbeam("Pallet proxy - shouldn't accept unknown proxy", (context) =
       async () => {
         const {
           result: { events },
-        } = await context.createBlockWithExtrinsic(
-          await context.polkadotApi.tx.proxy
+        } = await context.createBlock(
+          context.polkadotApi.tx.proxy
             .proxy(
               alith.address,
               null,
@@ -42,7 +42,7 @@ describeDevMoonbeam("Pallet proxy - should accept known proxy", (context) => {
       async () => {
         const {
           result: { events },
-        } = await context.createBlockWithExtrinsic(
+        } = await context.createBlock(
           context.polkadotApi.tx.proxy.addProxy(baltathar.address, "Any", 0)
         );
         expect(events[2].event.method).to.be.eq("ProxyAdded");
@@ -51,8 +51,8 @@ describeDevMoonbeam("Pallet proxy - should accept known proxy", (context) => {
 
         const {
           result: { events: events2 },
-        } = await context.createBlockWithExtrinsic(
-          await context.polkadotApi.tx.proxy
+        } = await context.createBlock(
+          context.polkadotApi.tx.proxy
             .proxy(
               alith.address,
               null,
@@ -78,21 +78,21 @@ describeDevMoonbeam("Pallet proxy - shouldn't accept removed proxy", (context) =
       async () => {
         const {
           result: { events },
-        } = await context.createBlockWithExtrinsic(
+        } = await context.createBlock(
           context.polkadotApi.tx.proxy.addProxy(baltathar.address, "Any", 0)
         );
         expect(events[7].event.method).to.be.eq("ExtrinsicSuccess");
 
         const {
           result: { events: events2 },
-        } = await context.createBlockWithExtrinsic(
+        } = await context.createBlock(
           context.polkadotApi.tx.proxy.removeProxy(baltathar.address, "Any", 0)
         );
         expect(events2[5].event.method).to.be.eq("ExtrinsicSuccess");
 
         const {
           result: { events: events3 },
-        } = await context.createBlockWithExtrinsic(
+        } = await context.createBlock(
           context.polkadotApi.tx.proxy.proxy(
             alith.address,
             null,
@@ -115,15 +115,15 @@ describeDevMoonbeam("Pallet proxy - shouldn't accept instant for delayed proxy",
       async () => {
         const {
           result: { events },
-        } = await context.createBlockWithExtrinsic(
+        } = await context.createBlock(
           context.polkadotApi.tx.proxy.addProxy(baltathar.address, "Any", 2)
         );
         expect(events[7].event.method).to.be.eq("ExtrinsicSuccess");
 
         const {
           result: { events: events2 },
-        } = await context.createBlockWithExtrinsic(
-          await context.polkadotApi.tx.proxy
+        } = await context.createBlock(
+          context.polkadotApi.tx.proxy
             .proxy(
               alith.address,
               null,
@@ -147,7 +147,7 @@ describeDevMoonbeam("Pallet proxy - shouldn't accept early delayed proxy", (cont
       async () => {
         const {
           result: { events },
-        } = await context.createBlockWithExtrinsic(
+        } = await context.createBlock(
           context.polkadotApi.tx.proxy.addProxy(baltathar.address, "Any", 6)
         );
         events.forEach(({ event }) => debug(`1${event.method}(${event.data})`));
@@ -157,10 +157,8 @@ describeDevMoonbeam("Pallet proxy - shouldn't accept early delayed proxy", (cont
 
         const {
           result: { events: events2 },
-        } = await context.createBlockWithExtrinsic(
-          await context.polkadotApi.tx.proxy
-            .announce(alith.address, transfer.hash)
-            .signAsync(baltathar)
+        } = await context.createBlock(
+          context.polkadotApi.tx.proxy.announce(alith.address, transfer.hash).signAsync(baltathar)
         );
         events2.forEach(({ event }) => debug(`2${event.method}(${event.data})`));
         expect(events2[2].event.method).to.be.eq("Announced");
@@ -169,8 +167,8 @@ describeDevMoonbeam("Pallet proxy - shouldn't accept early delayed proxy", (cont
         // Too early.
         const {
           result: { events: events3 },
-        } = await context.createBlockWithExtrinsic(
-          await context.polkadotApi.tx.proxy
+        } = await context.createBlock(
+          context.polkadotApi.tx.proxy
             .proxyAnnounced(baltathar.address, alith.address, null, transfer)
             .signAsync(baltathar)
         );
@@ -191,7 +189,7 @@ describeDevMoonbeam("Pallet proxy - should accept on-time delayed proxy", (conte
       async () => {
         const {
           result: { events },
-        } = await context.createBlockWithExtrinsic(
+        } = await context.createBlock(
           context.polkadotApi.tx.proxy.addProxy(baltathar.address, "Any", 2)
         );
         expect(events[7].event.method).to.be.eq("ExtrinsicSuccess");
@@ -203,10 +201,8 @@ describeDevMoonbeam("Pallet proxy - should accept on-time delayed proxy", (conte
 
         const {
           result: { events: events2 },
-        } = await context.createBlockWithExtrinsic(
-          await context.polkadotApi.tx.proxy
-            .announce(alith.address, transfer_hash)
-            .signAsync(baltathar)
+        } = await context.createBlock(
+          context.polkadotApi.tx.proxy.announce(alith.address, transfer_hash).signAsync(baltathar)
         );
         expect(events2[2].event.method).to.be.eq("Announced");
         expect(events2[2].event.data[2].toHex()).to.eq(transfer_hash);
@@ -218,8 +214,8 @@ describeDevMoonbeam("Pallet proxy - should accept on-time delayed proxy", (conte
         // On time.
         const {
           result: { events: events3 },
-        } = await context.createBlockWithExtrinsic(
-          await context.polkadotApi.tx.proxy
+        } = await context.createBlock(
+          context.polkadotApi.tx.proxy
             .proxyAnnounced(baltathar.address, alith.address, null, transfer)
             .signAsync(baltathar)
         );

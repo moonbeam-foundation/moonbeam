@@ -20,6 +20,7 @@ export interface ExtrinsicCreation {
   events: EventRecord[];
   error: RegistryError;
   successful: boolean;
+  hash: string;
 }
 
 export const createBlockWithExtrinsic = async <

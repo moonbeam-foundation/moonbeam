@@ -25,9 +25,7 @@ describeDevMoonbeam("Reducible Balance", (context) => {
     let encodedHash = blake2AsHex(encodedProposal);
 
     // Submit the pre-image
-    await context.createBlockWithExtrinsic(
-      context.polkadotApi.tx.democracy.notePreimage(encodedProposal)
-    );
+    await context.createBlock(context.polkadotApi.tx.democracy.notePreimage(encodedProposal));
 
     // Record balance
     let beforeBalance = await context.web3.eth.getBalance(alith.address);
@@ -38,9 +36,7 @@ describeDevMoonbeam("Reducible Balance", (context) => {
     ).partialFee as any;
 
     // Propose
-    await context.createBlockWithExtrinsic(
-      context.polkadotApi.tx.democracy.propose(encodedHash, lock_amount)
-    );
+    await context.createBlock(context.polkadotApi.tx.democracy.propose(encodedHash, lock_amount));
 
     expect(await context.web3.eth.getBalance(alith.address)).to.equal(
       (

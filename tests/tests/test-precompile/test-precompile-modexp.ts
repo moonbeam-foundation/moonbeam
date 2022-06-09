@@ -8,10 +8,10 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - ModExp", (context) => {
     // See also the ModExp unit tests at
     // github.com/paritytech/frontier/blob/378221a4/frame/evm/precompile/modexp/src/lib.rs#L101
     const { rawTx } = await createContract(context, "ModularCheck");
-    const { result } = await context.createBlockWithEth(rawTx);
+    const { result } = await context.createBlock(rawTx);
 
     // The contract should deploy successfully and the receipt should show success.
-    const receipt = await context.web3.eth.getTransactionReceipt(result.result);
+    const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
     expect(receipt.status).to.be.true;
   });
 });
