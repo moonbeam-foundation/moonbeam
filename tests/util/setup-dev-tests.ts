@@ -1,6 +1,10 @@
 import { ApiPromise } from "@polkadot/api";
 import { JsonRpcResponse } from "web3-core-helpers";
 import type { BlockHash } from "@polkadot/types/interfaces/chain/types";
+import { ApiTypes, SubmittableExtrinsic } from "@polkadot/api/types";
+import { cryptoWaitReady } from "@polkadot/util-crypto";
+import { RegistryError } from "@polkadot/types/types";
+import { EventRecord } from "@polkadot/types/interfaces";
 
 import { ethers } from "ethers";
 import { startMoonbeamDevNode } from "./dev-node";
@@ -15,12 +19,27 @@ import { ChildProcess } from "child_process";
 import { createAndFinalizeBlock } from "./block";
 import { SPAWNING_TIME, DEBUG_MODE } from "./constants";
 import { HttpProvider } from "web3-core";
+import { extractError, ExtrinsicCreation } from "./substrate-rpc";
+import { alith } from "./accounts";
+
 const debug = require("debug")("test:setup");
 
 export interface BlockCreation {
   parentHash?: BlockHash;
   finalize?: boolean;
-  transactions?: string[];
+}
+
+export interface BlockCreationResponse<
+  ApiType extends ApiTypes,
+  Call extends SubmittableExtrinsic<ApiType> | string | (SubmittableExtrinsic<ApiType> | string)[]
+> {
+  block: {
+    duration: number;
+    hash: BlockHash;
+  };
+  result: Call extends (string | SubmittableExtrinsic<ApiType>)[]
+    ? ExtrinsicCreation[]
+    : ExtrinsicCreation;
 }
 
 export interface DevTestContext {
@@ -28,13 +47,20 @@ export interface DevTestContext {
   createEthers: () => Promise<ethers.providers.JsonRpcProvider>;
   createPolkadotApi: () => Promise<ApiPromise>;
 
-  createBlock: (options?: BlockCreation) => Promise<{
-    txResults: JsonRpcResponse[];
-    block: {
-      duration: number;
-      hash: BlockHash;
-    };
-  }>;
+  createBlock<
+    ApiType extends ApiTypes,
+    Call extends
+      | SubmittableExtrinsic<ApiType>
+      | Promise<SubmittableExtrinsic<ApiType>>
+      | string
+      | Promise<string>,
+    Calls extends Call | Call[]
+  >(
+    transactions?: Calls,
+    options?: BlockCreation
+  ): Promise<
+    BlockCreationResponse<ApiType, Calls extends Call[] ? Awaited<Call>[] : Awaited<Call>>
+  >;
 
   // We also provided singleton providers for simplicity
   web3: EnhancedWeb3;
@@ -116,16 +142,104 @@ export function describeDevMoonbeam(
       context.web3 = await context.createWeb3();
       context.ethers = await context.createEthers();
 
-      context.createBlock = async <T>(options: BlockCreation = {}) => {
-        let { parentHash, finalize, transactions = [] } = options;
+      context.createBlock = async <
+        ApiType extends ApiTypes,
+        Call extends
+          | SubmittableExtrinsic<ApiType>
+          | Promise<SubmittableExtrinsic<ApiType>>
+          | string
+          | Promise<string>,
+        Calls extends Call | Call[]
+      >(
+        transactions?: Calls,
+        options: BlockCreation = {}
+      ) => {
+        const results: ({ type: "eth"; hash: string } | { type: "sub"; hash: string })[] = [];
+        const txs =
+          transactions == undefined
+            ? []
+            : Array.isArray(transactions)
+            ? transactions
+            : [transactions];
+        for await (const call of txs) {
+          if (typeof call == "string") {
+            // Ethereum
+            results.push({
+              type: "eth",
+              hash: (await customWeb3Request(context.web3, "eth_sendRawTransaction", [call]))
+                .result,
+            });
+          } else if (call.isSigned) {
+            results.push({
+              type: "sub",
+              hash: (await call.send()).toString(),
+            });
+          } else {
+            results.push({
+              type: "sub",
+              hash: (await call.signAndSend(alith)).toString(),
+            });
+          }
+        }
 
-        let txResults = await Promise.all(
-          transactions.map((t) => customWeb3Request(context.web3, "eth_sendRawTransaction", [t]))
-        );
-        const block = await createAndFinalizeBlock(context.polkadotApi, parentHash, finalize);
+        const { parentHash, finalize } = options;
+        const blockResult = await createAndFinalizeBlock(context.polkadotApi, parentHash, finalize);
+
+        // No need to extract events if no transactions
+        if (results.length == 0) {
+          return {
+            block: blockResult,
+            result: null,
+          };
+        }
+
+        // We retrieve the events for that block
+        const allRecords: EventRecord[] = (await (
+          await context.polkadotApi.at(blockResult.hash)
+        ).query.system.events()) as any;
+        // We retrieve the block (including the extrinsics)
+        const blockData = await context.polkadotApi.rpc.chain.getBlock(blockResult.hash);
+
+        const result: ExtrinsicCreation[] = results.map((result) => {
+          const extrinsicIndex =
+            result.type == "eth"
+              ? allRecords
+                  .find(
+                    ({ phase, event: { section, method, data } }) =>
+                      phase.isApplyExtrinsic &&
+                      section == "ethereum" &&
+                      method == "Executed" &&
+                      data[3].toString() &&
+                      result.hash
+                  )
+                  ?.phase?.asApplyExtrinsic?.toNumber()
+              : blockData.block.extrinsics.findIndex((ext) => ext.hash.toHex() == result.hash);
+
+          // We retrieve the events associated with the extrinsic
+          const events = allRecords.filter(
+            ({ phase }) =>
+              phase.isApplyExtrinsic && phase.asApplyExtrinsic.toNumber() === extrinsicIndex
+          );
+          const failed = extractError(events);
+          return {
+            extrinsic: extrinsicIndex >= 0 ? blockData.block.extrinsics[extrinsicIndex] : null,
+            events,
+            error:
+              failed &&
+              ((failed.isModule && context.polkadotApi.registry.findMetaError(failed.asModule)) ||
+                ({ name: failed.toString() } as RegistryError)),
+            successful: !failed,
+            hash: result.hash,
+          };
+        });
+
+        // Adds extra time to avoid empty transaction when querying it
+        if (results.find((r) => r.type == "eth")) {
+          await new Promise((resolve) => setTimeout(resolve, 2));
+        }
         return {
-          txResults,
-          block,
+          block: blockResult,
+          result: Array.isArray(transactions) ? result : (result[0] as any),
         };
       };
 
