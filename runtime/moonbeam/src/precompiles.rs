@@ -15,7 +15,6 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::asset_config::{ForeignAssetInstance, LocalAssetInstance};
-use crowdloan_rewards_precompiles::CrowdloanRewardsWrapper;
 use fp_evm::PrecompileHandle;
 use moonbeam_relay_encoder::polkadot::PolkadotEncoder;
 use pallet_democracy_precompiles::DemocracyWrapper;
@@ -25,6 +24,7 @@ use pallet_evm_precompile_balances_erc20::{Erc20BalancesPrecompile, Erc20Metadat
 use pallet_evm_precompile_batch::BatchPrecompile;
 use pallet_evm_precompile_blake2::Blake2F;
 use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
+use pallet_evm_precompile_crowdloan_rewards::CrowdloanRewardsWrapper;
 use pallet_evm_precompile_dispatch::Dispatch;
 use pallet_evm_precompile_modexp::Modexp;
 use pallet_evm_precompile_sha3fips::Sha3FIPS256;

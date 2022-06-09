@@ -21,7 +21,6 @@
 mod common;
 use common::*;
 
-use crowdloan_rewards_precompiles::Action as CrowdloanAction;
 use fp_evm::Context;
 use frame_support::{
 	assert_noop, assert_ok,
@@ -41,6 +40,7 @@ use moonbeam_runtime::{
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
+use pallet_evm_precompile_crowdloan_rewards::Action as CrowdloanAction;
 use pallet_evm_precompileset_assets_erc20::{
 	AccountIdAssetIdConversion, Action as AssetAction, SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER,
 };
