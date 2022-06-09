@@ -5442,6 +5442,7 @@ dependencies = [
  "pallet-maintenance-mode",
  "pallet-migrations",
  "pallet-moonbeam-orbiters",
+ "pallet-parachain-staking",
  "pallet-proxy",
  "pallet-proxy-genesis-companion",
  "pallet-randomness-collective-flip",
@@ -5455,7 +5456,6 @@ dependencies = [
  "pallet-utility",
  "pallet-xcm",
  "parachain-info",
- "parachain-staking",
  "parachain-staking-precompiles",
  "parity-scale-codec",
  "polkadot-core-primitives",
@@ -5882,6 +5882,7 @@ dependencies = [
  "pallet-maintenance-mode",
  "pallet-migrations",
  "pallet-moonbeam-orbiters",
+ "pallet-parachain-staking",
  "pallet-proxy",
  "pallet-proxy-genesis-companion",
  "pallet-randomness-collective-flip",
@@ -5894,7 +5895,6 @@ dependencies = [
  "pallet-utility",
  "pallet-xcm",
  "parachain-info",
- "parachain-staking",
  "parachain-staking-precompiles",
  "parity-scale-codec",
  "polkadot-core-primitives",
@@ -5992,10 +5992,10 @@ dependencies = [
  "nix",
  "pallet-author-inherent",
  "pallet-ethereum",
+ "pallet-parachain-staking",
  "pallet-sudo",
  "pallet-transaction-payment-rpc",
  "pallet-transaction-payment-rpc-runtime-api",
- "parachain-staking",
  "parity-scale-codec",
  "parking_lot 0.12.0",
  "polkadot-cli",
@@ -6127,6 +6127,7 @@ dependencies = [
  "pallet-maintenance-mode",
  "pallet-migrations",
  "pallet-moonbeam-orbiters",
+ "pallet-parachain-staking",
  "pallet-proxy",
  "pallet-proxy-genesis-companion",
  "pallet-randomness-collective-flip",
@@ -6139,7 +6140,6 @@ dependencies = [
  "pallet-utility",
  "pallet-xcm",
  "parachain-info",
- "parachain-staking",
  "parachain-staking-precompiles",
  "parity-scale-codec",
  "polkadot-core-primitives",
@@ -7658,6 +7658,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-parachain-staking"
+version = "3.0.0"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "nimbus-primitives",
+ "pallet-balances",
+ "parity-scale-codec",
+ "scale-info",
+ "serde",
+ "similar-asserts",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "substrate-fixed",
+]
+
+[[package]]
 name = "pallet-preimage"
 version = "4.0.0-dev"
 source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.20#563f4820d8f36d256ada7ea3fef46b2e94c4cd5a"
@@ -7995,27 +8016,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "parachain-staking"
-version = "3.0.0"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "log",
- "nimbus-primitives",
- "pallet-balances",
- "parity-scale-codec",
- "scale-info",
- "serde",
- "similar-asserts",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
- "substrate-fixed",
-]
-
-[[package]]
 name = "parachain-staking-precompiles"
 version = "1.0.0"
 dependencies = [
@@ -8027,8 +8027,8 @@ dependencies = [
  "num_enum",
  "pallet-balances",
  "pallet-evm",
+ "pallet-parachain-staking",
  "pallet-timestamp",
- "parachain-staking",
  "parity-scale-codec",
  "precompile-utils",
  "rustc-hex",
@@ -10495,8 +10495,8 @@ dependencies = [
  "pallet-collective",
  "pallet-evm",
  "pallet-migrations",
+ "pallet-parachain-staking",
  "pallet-scheduler",
- "parachain-staking",
  "sp-core",
  "sp-runtime",
  "sp-std",

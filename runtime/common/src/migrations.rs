@@ -40,7 +40,7 @@ use pallet_author_slot_filter::migration::EligibleRatioToEligiblityCount;
 use pallet_author_slot_filter::Config as AuthorSlotFilterConfig;
 use pallet_base_fee::Config as BaseFeeConfig;
 use pallet_migrations::{GetMigrations, Migration};
-use parachain_staking::{
+use pallet_parachain_staking::{
 	migrations::{
 		IncreaseMaxDelegationsPerCandidate, PatchIncorrectDelegationSums, PurgeStaleStorage,
 		SplitCandidateStateToDecreasePoV, SplitDelegatorStateIntoDelegationScheduledRequests,
@@ -131,7 +131,7 @@ impl<T: ParachainStakingConfig> Migration for ParachainStakingPatchIncorrectDele
 	}
 }
 
-/// Staking split delegator state into [parachain_staking::DelegatorScheduledRequests]
+/// Staking split delegator state into [pallet_parachain_staking::DelegatorScheduledRequests]
 pub struct ParachainStakingSplitDelegatorStateIntoDelegationScheduledRequests<T>(PhantomData<T>);
 impl<T: ParachainStakingConfig> Migration
 	for ParachainStakingSplitDelegatorStateIntoDelegationScheduledRequests<T>
@@ -635,7 +635,7 @@ pub struct CommonMigrations<Runtime, Council, Tech>(PhantomData<(Runtime, Counci
 impl<Runtime, Council, Tech> GetMigrations for CommonMigrations<Runtime, Council, Tech>
 where
 	Runtime: pallet_author_mapping::Config,
-	Runtime: parachain_staking::Config,
+	Runtime: pallet_parachain_staking::Config,
 	Runtime: pallet_scheduler::Config,
 	Runtime: pallet_base_fee::Config,
 	Runtime: AuthorSlotFilterConfig,

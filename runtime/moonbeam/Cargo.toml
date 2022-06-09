@@ -33,8 +33,8 @@ pallet-ethereum-chain-id = { path = "../../pallets/ethereum-chain-id", default-f
 pallet-maintenance-mode = { path = "../../pallets/maintenance-mode", default-features = false, features = [ "xcm-support" ] }
 pallet-migrations = { path = "../../pallets/migrations", default-features = false }
 pallet-moonbeam-orbiters = { path = "../../pallets/moonbeam-orbiters", default-features = false }
+pallet-parachain-staking = { path = "../../pallets/parachain-staking", default-features = false }
 pallet-proxy-genesis-companion = { path = "../../pallets/proxy-genesis-companion", default-features = false }
-parachain-staking = { path = "../../pallets/parachain-staking", default-features = false }
 xcm-transactor = { path = "../../pallets/xcm-transactor", default-features = false }
 
 # Moonbeam precompiles
@@ -194,6 +194,7 @@ std = [
 	"pallet-maintenance-mode/std",
 	"pallet-migrations/std",
 	"pallet-moonbeam-orbiters/std",
+	"pallet-parachain-staking/std",
 	"pallet-proxy-genesis-companion/std",
 	"pallet-proxy/std",
 	"pallet-randomness-collective-flip/std",
@@ -207,7 +208,6 @@ std = [
 	"pallet-xcm/std",
 	"parachain-info/std",
 	"parachain-staking-precompiles/std",
-	"parachain-staking/std",
 	"parity-scale-codec/std",
 	"precompile-utils/std",
 	"relay-encoder-precompiles/std",
@@ -259,11 +259,10 @@ runtime-benchmarks = [
 	"pallet-crowdloan-rewards/runtime-benchmarks",
 	"pallet-ethereum/runtime-benchmarks",
 	"pallet-moonbeam-orbiters/runtime-benchmarks",
+	"pallet-parachain-staking/runtime-benchmarks",
 	"pallet-society/runtime-benchmarks",
 	"pallet-timestamp/runtime-benchmarks",
 	"pallet-xcm/runtime-benchmarks",
-	"parachain-staking/runtime-benchmarks",
-	"parachain-staking/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
 	"xcm-builder/runtime-benchmarks",
 	"xcm-transactor/runtime-benchmarks",
@@ -281,9 +280,9 @@ try-runtime = [
 	"pallet-maintenance-mode/try-runtime",
 	#"pallet-crowdloan-rewards/try-runtime",
 	"pallet-migrations/try-runtime",
+	"pallet-parachain-staking/try-runtime",
 	"pallet-scheduler/try-runtime",
 	"pallet-society/try-runtime",
 	"pallet-timestamp/try-runtime",
-	"parachain-staking/try-runtime",
 	"runtime-common/try-runtime",
 ]
