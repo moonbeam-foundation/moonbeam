@@ -71,7 +71,7 @@ use pallet_evm::{
 	FeeCalculator, GasWeightMapping, OnChargeEVMTransaction as OnChargeEVMTransactionT, Runner,
 };
 use pallet_transaction_payment::{CurrencyAdapter, Multiplier, TargetedFeeAdjustment};
-use pallet_vrf::GetMostRecentVrfInputs;
+use pallet_vrf::GetVrfInputs;
 pub use parachain_staking::{InflationInfo, Range};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
@@ -1116,36 +1116,43 @@ impl pallet_randomness::Config for Runtime {
 	type ExpirationDelay = ExpirationDelay;
 }
 
-pub struct MostRecentVrfInputGetter;
-impl GetMostRecentVrfInputs<Hash, Slot> for MostRecentVrfInputGetter {
-	fn get_most_recent_relay_storage_root() -> (Hash, Weight) {
-		let most_recent_relay_storage_root =
-			ParachainSystem::validation_data().relay_parent_storage_root;
-		(most_recent_relay_storage_root, RocksDbWeight::get().read)
-	}
-	fn get_most_recent_relay_slot_number() -> (Slot, Weight) {
-		let most_recent_relay_slot_number = ParachainSystem::relay_state_proof().read_slot();
-		(most_recent_relay_slot_number, RocksDbWeight::get().read)
-	}
+use cumulus_pallet_parachain_system::RelayChainStateProof; // TODO: move to top of file
+/// Only callable after `set_validation_data` is called which forms this proof the same way
+fn relay_chain_state_proof() -> RelayChainStateProof {
+	let relay_storage_root = ParachainSystem::validation_data()
+		.expect("set in `set_validation_data`")
+		.relay_parent_storage_root;
+	let relay_chain_state =
+		ParachainSystem::relay_state_proof().expect("set in `set_validation_data`");
+	RelayChainStateProof::new(ParachainInfo::get(), relay_storage_root, relay_chain_state)
+		.expect("Invalid relay chain state proof, already constructed in `set_validation_data`")
 }
 
-pub struct NimbusToVrfKey;
-impl session_keys_primitives::KeysLookup<NimbusId, session_keys_primitives::VrfId>
-	for NimbusToVrfKey
-{
-	fn lookup_keys(authority_id: &NimbusId) -> Option<session_keys_primitives::VrfId> {
-		None
-		//AuthorMapping::keys_of(authority_id)
+// TODO: review if panics inside this impl are OK???? It will cause on_initialize to panic and could brick chain
+// so need to be sure it will never happen
+pub struct VrfInputs;
+impl GetVrfInputs<Slot, Hash> for VrfInputs {
+	fn get_slot_number() -> (Slot, Weight) {
+		let slot_number = relay_chain_state_proof()
+			.read_slot()
+			.expect("CheckInherents reads slot from state proof in same way QED");
+		// expect data was already read in `set_validation_data` so free to reread
+		(slot_number, 0)
+	}
+	fn get_storage_root() -> (Hash, Weight) {
+		let storage_root = ParachainSystem::validation_data()
+			.expect("set in `set_validation_data`")
+			.relay_parent_storage_root;
+		// expect validation data was already read in `set_validation_data` so free to reread
+		(storage_root, 0)
 	}
 }
 
 impl pallet_vrf::Config for Runtime {
-	/// The relay block hash type (probably H256)
-	type RelayBlockHash = Hash;
 	/// Gets the most recent relay block hash and relay slot number in `on_initialize`
-	type MostRecentVrfInputGetter = MostRecentVrfInputGetter;
+	type VrfInputs = VrfInputs;
 	/// Lookup VRF key using NimbusID
-	type VrfKeyLookup = NimbusToVrfKey;
+	type VrfKeyLookup = AuthorMapping;
 }
 
 parameter_types! {

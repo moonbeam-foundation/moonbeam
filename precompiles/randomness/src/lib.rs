@@ -19,16 +19,19 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![feature(assert_matches)]
 
-use fp_evm::{Context, ExitReason, ExitSucceed, Log, PrecompileHandle, PrecompileOutput};
+extern crate alloc;
+
+use fp_evm::{
+	Context, ExitReason, ExitSucceed, Log, Precompile, PrecompileHandle, PrecompileOutput,
+};
 use pallet_evm::AddressMapping;
-use pallet_evm::Precompile;
 use pallet_randomness::BalanceOf;
 use precompile_utils::{
 	call_cost, error, keccak256, revert, Address, EvmData, EvmDataWriter, EvmResult,
 	FunctionModifier, LogExt, LogsBuilder, PrecompileHandleExt,
 };
 use sp_core::{H160, H256, U256};
-use sp_std::{cell::RefCell, fmt::Debug, marker::PhantomData};
+use sp_std::{fmt::Debug, marker::PhantomData};
 
 // #[cfg(test)]
 // mod mock;
@@ -147,10 +150,7 @@ fn provide_randomness(
 }
 
 /// A precompile to wrap the functionality from pallet-randomness
-pub struct RandomnessWrapper<Runtime> {
-	pub did_call: RefCell<bool>,
-	runtime: PhantomData<Runtime>,
-}
+pub struct RandomnessWrapper<Runtime>(PhantomData<Runtime>);
 
 impl<Runtime> Precompile for RandomnessWrapper<Runtime>
 where
@@ -225,7 +225,7 @@ where
 			info: pallet_randomness::RequestType::BabeCurrentBlock(block_number),
 		};
 		pallet_randomness::Pallet::<Runtime>::request_randomness(request)
-			.map_err(|e| error(format!("{:?}", e)))?;
+			.map_err(|e| error(alloc::format!("{:?}", e)))?;
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
@@ -252,7 +252,7 @@ where
 			info: pallet_randomness::RequestType::BabeOneEpochAgo(epoch_index),
 		};
 		pallet_randomness::Pallet::<Runtime>::request_randomness(request)
-			.map_err(|e| error(format!("{:?}", e)))?;
+			.map_err(|e| error(alloc::format!("{:?}", e)))?;
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
@@ -279,7 +279,7 @@ where
 			info: pallet_randomness::RequestType::BabeTwoEpochsAgo(epoch_index),
 		};
 		pallet_randomness::Pallet::<Runtime>::request_randomness(request)
-			.map_err(|e| error(format!("{:?}", e)))?;
+			.map_err(|e| error(alloc::format!("{:?}", e)))?;
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
@@ -304,7 +304,7 @@ where
 			info: pallet_randomness::RequestType::Local(block_number),
 		};
 		pallet_randomness::Pallet::<Runtime>::request_randomness(request)
-			.map_err(|e| error(format!("{:?}", e)))?;
+			.map_err(|e| error(alloc::format!("{:?}", e)))?;
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
 			output: Default::default(),
@@ -320,7 +320,7 @@ where
 			deposit,
 			randomness,
 		} = pallet_randomness::Pallet::<Runtime>::prepare_fulfillment(request_id)
-			.map_err(|e| error(format!("{:?}", e)))?;
+			.map_err(|e| error(alloc::format!("{:?}", e)))?;
 		// check that randomness can be provided
 		ensure_can_provide_randomness::<Runtime>(
 			handle.code_address(),
@@ -375,7 +375,7 @@ where
 			request_id,
 			new_fee,
 		)
-		.map_err(|e| error(format!("{:?}", e)))?;
+		.map_err(|e| error(alloc::format!("{:?}", e)))?;
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
 			output: Default::default(),
@@ -392,7 +392,7 @@ where
 			&Runtime::AddressMapping::into_account_id(handle.context().caller),
 			request_id,
 		)
-		.map_err(|e| error(format!("{:?}", e)))?;
+		.map_err(|e| error(alloc::format!("{:?}", e)))?;
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
 			output: Default::default(),
@@ -412,7 +412,7 @@ where
 			Runtime,
 			pallet_randomness::CurrentBlockRandomness<Runtime>,
 		>(salt)
-		.map_err(|e| error(format!("{:?}", e)))?;
+		.map_err(|e| error(alloc::format!("{:?}", e)))?;
 		// make subcall
 		provide_randomness(
 			handle,
@@ -439,7 +439,7 @@ where
 			Runtime,
 			pallet_randomness::OneEpochAgoRandomness<Runtime>,
 		>(salt)
-		.map_err(|e| error(format!("{:?}", e)))?;
+		.map_err(|e| error(alloc::format!("{:?}", e)))?;
 		// make subcall
 		provide_randomness(
 			handle,
@@ -466,7 +466,7 @@ where
 			Runtime,
 			pallet_randomness::TwoEpochsAgoRandomness<Runtime>,
 		>(salt)
-		.map_err(|e| error(format!("{:?}", e)))?;
+		.map_err(|e| error(alloc::format!("{:?}", e)))?;
 		// make subcall
 		provide_randomness(
 			handle,
@@ -488,7 +488,7 @@ where
 		ensure_can_provide_randomness::<Runtime>(handle.code_address(), gas_limit, None, None)?;
 		// get randomness from pallet
 		let randomness = pallet_randomness::instant_local_randomness::<Runtime>(salt)
-			.map_err(|e| error(format!("{:?}", e)))?;
+			.map_err(|e| error(alloc::format!("{:?}", e)))?;
 		// make subcall
 		provide_randomness(
 			handle,

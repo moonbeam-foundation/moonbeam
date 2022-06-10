@@ -5495,6 +5495,7 @@ dependencies = [
  "pallet-proxy-genesis-companion",
  "pallet-randomness",
  "pallet-randomness-collective-flip",
+ "pallet-randomness-precompiles",
  "pallet-scheduler",
  "pallet-society",
  "pallet-sudo",

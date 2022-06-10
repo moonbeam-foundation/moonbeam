@@ -18,13 +18,13 @@
 ///! exposes the most recent values for all the pallet storage values
 use crate::{Config, Error, Pallet};
 use frame_support::StorageValue;
-use pallet_vrf::GetMaybeRandomness;
+use pallet_vrf::MaybeGetRandomness;
 use sp_runtime::DispatchError;
 
 /// Returns most recent value for the local randomness (per block VRF)
 pub fn instant_local_randomness<T: Config>(salt: T::Hash) -> Result<[u8; 32], DispatchError> {
 	let randomness =
-		T::LocalRandomness::get_current_randomness().ok_or(Error::<T>::RandomnessNotAvailable)?;
+		T::LocalRandomness::maybe_get_randomness().ok_or(Error::<T>::RandomnessNotAvailable)?;
 	Ok(Pallet::<T>::concat_and_hash(randomness, salt))
 }
 

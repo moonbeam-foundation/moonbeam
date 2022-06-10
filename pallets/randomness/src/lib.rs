@@ -70,7 +70,7 @@ pub mod pallet {
 		/// Get relay chain randomness to insert into this pallet
 		type RelayRandomness: GetRelayRandomness<Self::Hash>;
 		/// Get per block vrf randomness
-		type LocalRandomness: pallet_vrf::GetMaybeRandomness<Self::Hash>;
+		type LocalRandomness: pallet_vrf::MaybeGetRandomness<Self::Hash>;
 		#[pallet::constant]
 		/// The amount that should be taken as a security deposit when requesting randomness.
 		type Deposit: Get<BalanceOf<Self>>;

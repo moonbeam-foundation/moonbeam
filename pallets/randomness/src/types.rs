@@ -20,7 +20,7 @@ use crate::{
 };
 use frame_support::pallet_prelude::*;
 use frame_support::traits::{Currency, ExistenceRequirement::KeepAlive, ReservableCurrency};
-use pallet_vrf::GetMaybeRandomness;
+use pallet_vrf::MaybeGetRandomness;
 use sp_runtime::traits::{CheckedSub, Saturating};
 
 #[derive(PartialEq, Copy, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
@@ -184,7 +184,7 @@ impl<T: Config> RequestState<T> {
 			RequestType::BabeOneEpochAgo(_) => OneEpochAgoRandomness::<T>::get(),
 			RequestType::BabeTwoEpochsAgo(_) => TwoEpochsAgoRandomness::<T>::get(),
 			RequestType::BabeCurrentBlock(_) => CurrentBlockRandomness::<T>::get(),
-			RequestType::Local(_) => T::LocalRandomness::get_current_randomness(),
+			RequestType::Local(_) => T::LocalRandomness::maybe_get_randomness(),
 		}
 		.ok_or(Error::<T>::RandomnessNotAvailable)?;
 		// compute random output using salt

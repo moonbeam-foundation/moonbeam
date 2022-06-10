@@ -30,6 +30,7 @@ use pallet_evm_precompile_dispatch::Dispatch;
 use pallet_evm_precompile_modexp::Modexp;
 use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
+use pallet_randomness_precompiles::RandomnessWrapper;
 use parachain_staking_precompiles::ParachainStakingWrapper;
 use precompile_utils::revert;
 use relay_encoder_precompiles::RelayEncoderWrapper;
@@ -91,7 +92,7 @@ where
 	pub fn used_addresses() -> impl Iterator<Item = R::AccountId> {
 		sp_std::vec![
 			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2050, 2051, 2052, 2053, 2054,
-			2055, 2056
+			2055, 2056, 2057,
 		]
 		.into_iter()
 		.map(|x| R::AddressMapping::into_account_id(hash(x)))
@@ -155,6 +156,7 @@ where
 			a if a == hash(2054) => Some(XcmTransactorWrapper::<R>::execute(handle)),
 			a if a == hash(2055) => Some(AuthorMappingWrapper::<R>::execute(handle)),
 			a if a == hash(2056) => Some(BatchPrecompile::<R>::execute(handle)),
+			a if a == hash(2057) => Some(RandomnessWrapper::<R>::execute(handle)),
 			// If the address matches asset prefix, the we route through the asset precompile set
 			a if &a.to_fixed_bytes()[0..4] == FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX => {
 				Erc20AssetsPrecompileSet::<R, IsForeign, ForeignAssetInstance>::new()
