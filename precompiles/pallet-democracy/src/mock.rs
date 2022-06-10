@@ -184,7 +184,6 @@ impl pallet_evm::Config for Runtime {
 	type BlockGasLimit = ();
 	type BlockHashMapping = SubstrateBlockHashMapping<Self>;
 	type FindAuthor = ();
-	type WeightInfo = ();
 }
 
 parameter_types! {
