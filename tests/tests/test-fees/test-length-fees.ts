@@ -14,7 +14,7 @@ describeDevMoonbeam(
     });
   },
   "Legacy",
-  "moonbase",
+  "moonbase"
 );
 
 describeDevMoonbeam(
@@ -26,7 +26,7 @@ describeDevMoonbeam(
     });
   },
   "Legacy",
-  "moonbase",
+  "moonbase"
 );
 
 describeDevMoonbeam(
@@ -38,7 +38,7 @@ describeDevMoonbeam(
     });
   },
   "Legacy",
-  "moonriver",
+  "moonriver"
 );
 
 describeDevMoonbeam(
@@ -50,7 +50,7 @@ describeDevMoonbeam(
     });
   },
   "Legacy",
-  "moonriver",
+  "moonriver"
 );
 
 describeDevMoonbeam(
@@ -62,7 +62,7 @@ describeDevMoonbeam(
     });
   },
   "Legacy",
-  "moonbeam",
+  "moonbeam"
 );
 
 describeDevMoonbeam(
@@ -74,47 +74,47 @@ describeDevMoonbeam(
     });
   },
   "Legacy",
-  "moonbeam",
+  "moonbeam"
 );
 
 // define our tests here so we can DRY.
 // each test submits some txn then measures and returns the fees charged.
 
 const testBalanceTransfer = async (context) => {
-    let initialBalance = (
-      (await context.polkadotApi.query.system.account(baltathar.address)) as any
-    ).data.free.toBigInt();
+  let initialBalance = (
+    (await context.polkadotApi.query.system.account(baltathar.address)) as any
+  ).data.free.toBigInt();
 
-    // send a balance transfer to self and see what our fees end up being
-    await context.polkadotApi.tx.balances.transfer(baltathar.address, 1).signAndSend(baltathar);
-    await context.createBlock();
+  // send a balance transfer to self and see what our fees end up being
+  await context.polkadotApi.tx.balances.transfer(baltathar.address, 1).signAndSend(baltathar);
+  await context.createBlock();
 
-    let afterBalance = (
-      (await context.polkadotApi.query.system.account(baltathar.address)) as any
-    ).data.free.toBigInt();
+  let afterBalance = (
+    (await context.polkadotApi.query.system.account(baltathar.address)) as any
+  ).data.free.toBigInt();
 
-    const fee = initialBalance - afterBalance;
-    return fee;
-}
+  const fee = initialBalance - afterBalance;
+  return fee;
+};
 
 const testRuntimeUpgrade = async (context) => {
-    let initialBalance = (
-      (await context.polkadotApi.query.system.account(baltathar.address)) as any
-    ).data.free.toBigInt();
+  let initialBalance = (
+    (await context.polkadotApi.query.system.account(baltathar.address)) as any
+  ).data.free.toBigInt();
 
-    // generate a mock runtime upgrade hex string
-    let size = 4194304; // 2MB bytes represented in hex
-    let hex = "0x" + "F".repeat(size);
+  // generate a mock runtime upgrade hex string
+  let size = 4194304; // 2MB bytes represented in hex
+  let hex = "0x" + "F".repeat(size);
 
-    // send an enactAuthorizedUpgrade. we expect this to fail, but we just want to see that it was
-    // included in a block (not rejected) and was charged based on its length
-    await context.polkadotApi.tx.parachainSystem.enactAuthorizedUpgrade(hex).signAndSend(baltathar);
-    await context.createBlock();
+  // send an enactAuthorizedUpgrade. we expect this to fail, but we just want to see that it was
+  // included in a block (not rejected) and was charged based on its length
+  await context.polkadotApi.tx.parachainSystem.enactAuthorizedUpgrade(hex).signAndSend(baltathar);
+  await context.createBlock();
 
-    let afterBalance = (
-      (await context.polkadotApi.query.system.account(baltathar.address)) as any
-    ).data.free.toBigInt();
+  let afterBalance = (
+    (await context.polkadotApi.query.system.account(baltathar.address)) as any
+  ).data.free.toBigInt();
 
-    const fee = initialBalance - afterBalance;
-    return fee;
-}
+  const fee = initialBalance - afterBalance;
+  return fee;
+};

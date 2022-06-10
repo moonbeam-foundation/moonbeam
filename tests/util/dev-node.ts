@@ -47,7 +47,10 @@ let nodeStarted = false;
 
 // This will start a moonbeam dev node, only 1 at a time (check every 100ms).
 // This will prevent race condition on the findAvailablePorts which uses the PID of the process
-export async function startMoonbeamDevNode(withWasm?: boolean, runtime: RuntimeChain = "moonbase"): Promise<{
+export async function startMoonbeamDevNode(
+  withWasm?: boolean,
+  runtime: RuntimeChain = "moonbase"
+): Promise<{
   p2pPort: number;
   rpcPort: number;
   wsPort: number;
