@@ -33,6 +33,14 @@ use sp_runtime::{
 	Perbill,
 };
 
+/// To test EIP2612 permits we need to have cryptographic accounts.
+pub const ALICE_PUBLIC_KEY: [u8; 20] =
+	hex_literal::hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac");
+
+/// To test EIP2612 permits we need to have cryptographic accounts.
+pub const ALICE_SECRET_KEY: [u8; 32] =
+	hex_literal::hex!("5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133");
+
 pub type AccountId = Account;
 pub type Balance = u128;
 pub type BlockNumber = u64;
@@ -88,7 +96,7 @@ impl Default for Account {
 impl Into<H160> for Account {
 	fn into(self) -> H160 {
 		match self {
-			Account::Alice => H160::repeat_byte(0xAA),
+			Account::Alice => H160::from(&ALICE_PUBLIC_KEY),
 			Account::Bob => H160::repeat_byte(0xBB),
 			Account::Charlie => H160::repeat_byte(0xCC),
 			Account::David => H160::repeat_byte(0xDD),
@@ -102,7 +110,7 @@ impl Into<H160> for Account {
 impl AddressMapping<Account> for Account {
 	fn into_account_id(h160_account: H160) -> Account {
 		match h160_account {
-			a if a == H160::repeat_byte(0xAA) => Self::Alice,
+			a if a == H160::from(&ALICE_PUBLIC_KEY) => Self::Alice,
 			a if a == H160::repeat_byte(0xBB) => Self::Bob,
 			a if a == H160::repeat_byte(0xCC) => Self::Charlie,
 			a if a == H160::repeat_byte(0xDD) => Self::David,

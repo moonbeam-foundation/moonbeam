@@ -7426,6 +7426,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "hex-literal",
+ "libsecp256k1 0.7.0",
  "log",
  "num_enum",
  "pallet-balances",
