@@ -456,15 +456,11 @@ impl<T: Config> Pallet<T> {
 
 		// backwards compatible handling for DelegatorStatus::Leaving
 		#[allow(deprecated)]
-		if matches!(state.status, DelegatorStatus::Leaving(_)) {
-			if let DelegatorStatus::Leaving(when) = state.status {
-				ensure!(
-					<Round<T>>::get().current >= when,
-					Error::<T>::DelegatorCannotLeaveYet
-				);
-			} else {
-				return Err(Error::<T>::DelegatorNotLeaving.into());
-			}
+		if matches!(state.status, DelegatorStatus::Leaving(when)) {
+			ensure!(
+				<Round<T>>::get().current >= when,
+				Error::<T>::DelegatorCannotLeaveYet
+			);
 
 			for bond in state.delegations.0.clone() {
 				if let Err(error) = Self::delegator_leaves_candidate(
