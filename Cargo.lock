@@ -595,8 +595,7 @@ dependencies = [
 [[package]]
 name = "bip32"
 version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b30ed1d6f8437a487a266c8293aeb95b61a23261273e3e02912cdb8b68bf798b"
+source = "git+https://github.com/purestake/crates?branch=bip32-v0.4.0-fix#e64488955372fb10ee8c2d77bb02103f2edf9acb"
 dependencies = [
  "bs58",
  "hmac 0.12.1",

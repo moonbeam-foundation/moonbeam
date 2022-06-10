@@ -10,7 +10,7 @@ version = "0.23.0"
 ansi_term = "0.12.1"
 async-io = "1.3"
 async-trait = "0.1.42"
-bip32 = { version = "0.4.0", default-features = false, features = [ "bip39" ] }
+bip32 = { git = "https://github.com/purestake/crates", branch = "bip32-v0.4.0-fix", default-features = false, features = [ "bip39" ] }
 derive_more = "0.99"
 exit-future = "0.1.4"
 flume = "0.10.9"
