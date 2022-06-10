@@ -457,9 +457,6 @@ impl<T: Config> Pallet<T> {
 		// backwards compatible handling for DelegatorStatus::Leaving
 		#[allow(deprecated)]
 		if matches!(state.status, DelegatorStatus::Leaving(_)) {
-			state.status = DelegatorStatus::Active;
-			<DelegatorState<T>>::insert(delegator.clone(), state.clone());
-
 			if let DelegatorStatus::Leaving(when) = state.status {
 				ensure!(
 					<Round<T>>::get().current >= when,
