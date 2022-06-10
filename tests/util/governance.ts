@@ -142,7 +142,6 @@ export const execTechnicalCommitteeProposal = async <
 };
 
 export const executeProposalWithCouncil = async (api: ApiPromise, encodedHash: string) => {
-  const alith = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
   let nonce = (await api.rpc.system.accountNextIndex(alith.address)).toNumber();
   let referendumNextIndex = (await api.query.democracy.referendumCount()).toNumber();
 
@@ -196,9 +195,7 @@ export const cancelReferendaWithCouncil = async (api: ApiPromise, refIndex: numb
   const encodedProposal = proposal.method.toHex();
   const encodedHash = blake2AsHex(encodedProposal);
 
-  const alith = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
   let nonce = (await api.rpc.system.accountNextIndex(alith.address)).toNumber();
   await api.tx.democracy.notePreimage(encodedProposal).signAndSend(alith, { nonce: nonce++ });
-
   await executeProposalWithCouncil(api, encodedHash);
 };

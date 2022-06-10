@@ -20,6 +20,8 @@ import { sha256 } from "ethers/lib/utils";
 import { cancelReferendaWithCouncil, executeProposalWithCouncil } from "./governance";
 const debug = require("debug")("test:setup");
 
+const PORT_PREFIX = (process.env.PORT_PREFIX && parseInt(process.env.PORT_PREFIX)) || 19;
+
 export interface ParaTestContext {
   createWeb3: (protocol?: "ws" | "http") => Promise<EnhancedWeb3>;
   createEthers: () => Promise<ethers.providers.JsonRpcProvider>;
@@ -76,9 +78,9 @@ export function describeParachain(
                   parachainId: 1000,
                   ports: [
                     {
-                      p2pPort: 19931,
-                      wsPort: 19933,
-                      rpcPort: 19932,
+                      p2pPort: PORT_PREFIX * 1000 + 100,
+                      wsPort: PORT_PREFIX * 1000 + 102,
+                      rpcPort: PORT_PREFIX * 1000 + 101,
                     },
                   ],
                 },

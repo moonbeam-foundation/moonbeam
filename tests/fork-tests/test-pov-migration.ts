@@ -1,7 +1,6 @@
-import { Keyring } from "@polkadot/api";
 import child_process from "child_process";
+import { alith } from "../util/accounts";
 
-import { ALITH_PRIV_KEY } from "../util/constants";
 import { describeParachain } from "../util/setup-para-tests";
 
 /**
@@ -68,8 +67,6 @@ describeParachain(
   (context) => {
     it("should not fail", async function () {
       this.timeout(5000000);
-      const keyring = new Keyring({ type: "ethereum" });
-      const alith = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
 
       // Wait for chain to start
       await context.waitBlocks(1);
