@@ -27,8 +27,8 @@ use fp_evm::{
 use pallet_evm::AddressMapping;
 use pallet_randomness::BalanceOf;
 use precompile_utils::{
-	call_cost, error, keccak256, revert, Address, EvmData, EvmDataWriter, EvmResult,
-	FunctionModifier, LogExt, LogsBuilder, PrecompileHandleExt,
+	call_cost, error, keccak256, revert, Address, EvmDataWriter, EvmResult, FunctionModifier,
+	LogExt, LogsBuilder, PrecompileHandleExt,
 };
 use sp_core::{H160, H256, U256};
 use sp_std::{fmt::Debug, marker::PhantomData};
@@ -155,10 +155,10 @@ pub struct RandomnessWrapper<Runtime>(PhantomData<Runtime>);
 impl<Runtime> Precompile for RandomnessWrapper<Runtime>
 where
 	Runtime: pallet_randomness::Config + pallet_evm::Config + pallet_base_fee::Config,
-	<Runtime as frame_system::Config>::BlockNumber: EvmData,
-	<Runtime as frame_system::Config>::Hash: From<H256> + Into<H256> + EvmData,
+	<Runtime as frame_system::Config>::BlockNumber: From<U256>,
+	<Runtime as frame_system::Config>::Hash: From<H256> + Into<H256>,
 	<Runtime as frame_system::Config>::AccountId: From<H160> + Into<H160> + From<Address>,
-	BalanceOf<Runtime>: From<u64> + TryFrom<U256> + Into<U256> + EvmData,
+	BalanceOf<Runtime>: From<u64> + From<U256> + Into<U256>,
 {
 	fn execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		log::trace!(target: "randomness-precompile", "In randomness wrapper");
@@ -200,10 +200,10 @@ where
 impl<Runtime> RandomnessWrapper<Runtime>
 where
 	Runtime: pallet_randomness::Config + pallet_evm::Config + pallet_base_fee::Config,
-	<Runtime as frame_system::Config>::BlockNumber: EvmData,
-	<Runtime as frame_system::Config>::Hash: From<H256> + Into<H256> + EvmData,
-	<Runtime as frame_system::Config>::AccountId: From<H160> + Into<H160>,
-	BalanceOf<Runtime>: From<u64> + TryFrom<U256> + Into<U256> + EvmData,
+	<Runtime as frame_system::Config>::BlockNumber: From<U256>,
+	<Runtime as frame_system::Config>::Hash: From<H256> + Into<H256>,
+	<Runtime as frame_system::Config>::AccountId: From<H160> + Into<H160> + From<Address>,
+	BalanceOf<Runtime>: From<u64> + From<U256> + Into<U256>,
 {
 	/// Make request for babe randomness current block
 	fn request_babe_randomness_current_block(
@@ -212,10 +212,10 @@ where
 		let mut input = handle.read_input()?;
 		let contract_address = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let refund_address = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
-		let fee: BalanceOf<Runtime> = input.read()?;
+		let fee: BalanceOf<Runtime> = input.read::<U256>()?.into();
 		let gas_limit = input.read::<u64>()?;
 		let salt = input.read::<H256>()?;
-		let block_number = input.read()?;
+		let block_number = input.read::<U256>()?.into();
 		let request = pallet_randomness::Request {
 			refund_address,
 			contract_address,
@@ -239,7 +239,7 @@ where
 		let mut input = handle.read_input()?;
 		let contract_address = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let refund_address = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
-		let fee: BalanceOf<Runtime> = input.read()?;
+		let fee: BalanceOf<Runtime> = input.read::<U256>()?.into();
 		let gas_limit = input.read::<u64>()?;
 		let salt = input.read::<H256>()?;
 		let epoch_index = input.read::<u64>()?;
@@ -266,7 +266,7 @@ where
 		let mut input = handle.read_input()?;
 		let contract_address = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let refund_address = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
-		let fee: BalanceOf<Runtime> = input.read()?;
+		let fee: BalanceOf<Runtime> = input.read::<U256>()?.into();
 		let gas_limit = input.read::<u64>()?;
 		let salt = input.read::<H256>()?;
 		let epoch_index = input.read::<u64>()?;
@@ -291,10 +291,10 @@ where
 		let mut input = handle.read_input()?;
 		let contract_address = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let refund_address = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
-		let fee: BalanceOf<Runtime> = input.read()?;
+		let fee: BalanceOf<Runtime> = input.read::<U256>()?.into();
 		let gas_limit = input.read::<u64>()?;
 		let salt = input.read::<H256>()?;
-		let block_number = input.read()?;
+		let block_number = input.read::<U256>()?.into();
 		let request = pallet_randomness::Request {
 			refund_address,
 			contract_address,
@@ -369,7 +369,7 @@ where
 	fn increase_request_fee(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		let mut input = handle.read_input()?;
 		let request_id = input.read::<u64>()?;
-		let new_fee: BalanceOf<Runtime> = input.read()?;
+		let new_fee: BalanceOf<Runtime> = input.read::<U256>()?.into();
 		pallet_randomness::Pallet::<Runtime>::increase_request_fee(
 			&Runtime::AddressMapping::into_account_id(handle.context().caller),
 			request_id,
@@ -404,7 +404,7 @@ where
 	) -> EvmResult<PrecompileOutput> {
 		let mut input = handle.read_input()?;
 		let gas_limit = input.read::<u64>()?;
-		let salt = input.read()?;
+		let salt = input.read::<H256>()?.into();
 		// check that randomness can be provided
 		ensure_can_provide_randomness::<Runtime>(handle.code_address(), gas_limit, None, None)?;
 		// get randomness from pallet
@@ -431,7 +431,7 @@ where
 	) -> EvmResult<PrecompileOutput> {
 		let mut input = handle.read_input()?;
 		let gas_limit = input.read::<u64>()?;
-		let salt = input.read()?;
+		let salt = input.read::<H256>()?.into();
 		// check that randomness can be provided
 		ensure_can_provide_randomness::<Runtime>(handle.code_address(), gas_limit, None, None)?;
 		// get randomness from pallet
@@ -458,7 +458,7 @@ where
 	) -> EvmResult<PrecompileOutput> {
 		let mut input = handle.read_input()?;
 		let gas_limit = input.read::<u64>()?;
-		let salt = input.read()?;
+		let salt = input.read::<H256>()?.into();
 		// check that randomness can be provided
 		ensure_can_provide_randomness::<Runtime>(handle.code_address(), gas_limit, None, None)?;
 		// get randomness from pallet
@@ -483,7 +483,7 @@ where
 	fn instant_local_randomness(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		let mut input = handle.read_input()?;
 		let gas_limit = input.read::<u64>()?;
-		let salt = input.read()?;
+		let salt = input.read::<H256>()?.into();
 		// check that randomness can be provided
 		ensure_can_provide_randomness::<Runtime>(handle.code_address(), gas_limit, None, None)?;
 		// get randomness from pallet

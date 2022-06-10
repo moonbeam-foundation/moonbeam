@@ -114,6 +114,7 @@ where
 	RelayEncoderWrapper<R, WestendEncoder>: Precompile,
 	XcmTransactorWrapper<R>: Precompile,
 	AuthorMappingWrapper<R>: Precompile,
+	RandomnessWrapper<R>: Precompile,
 	R: pallet_evm::Config,
 {
 	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<PrecompileResult> {
