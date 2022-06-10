@@ -20,7 +20,7 @@ use crate::pallet::{
 	BalanceOf, CandidateInfo, Config, DelegationScheduledRequests, DelegatorState, Error, Event,
 	Pallet, Round, RoundIndex, Total,
 };
-use crate::Delegator;
+use crate::{Delegator, DelegatorStatus};
 use frame_support::ensure;
 use frame_support::traits::{Get, ReservableCurrency};
 use frame_support::{dispatch::DispatchResultWithPostInfo, RuntimeDebug};
@@ -333,6 +333,13 @@ impl<T: Config> Pallet<T> {
 		let now = <Round<T>>::get().current;
 		let when = now.saturating_add(T::LeaveDelegatorsDelay::get());
 
+		// lazy migration for DelegatorStatus::Leaving
+		#[allow(deprecated)]
+		if matches!(state.status, DelegatorStatus::Leaving(_)) {
+			state.status = DelegatorStatus::Active;
+			<DelegatorState<T>>::insert(delegator.clone(), state.clone());
+		}
+
 		// it is assumed that a multiple delegations to the same collator does not exist, else this
 		// will cause a bug - the last duplicate delegation update will be the only one applied.
 		let mut existing_revoke_count = 0;
@@ -391,6 +398,13 @@ impl<T: Config> Pallet<T> {
 		let mut state = <DelegatorState<T>>::get(&delegator).ok_or(<Error<T>>::DelegatorDNE)?;
 		let mut updated_scheduled_requests = vec![];
 
+		// lazy migration for DelegatorStatus::Leaving
+		#[allow(deprecated)]
+		if matches!(state.status, DelegatorStatus::Leaving(_)) {
+			state.status = DelegatorStatus::Active;
+			<DelegatorState<T>>::insert(delegator.clone(), state.clone());
+		}
+
 		// pre-validate that all delegations have a Revoke request.
 		for bond in &state.delegations.0 {
 			let collator = bond.owner.clone();
@@ -430,7 +444,15 @@ impl<T: Config> Pallet<T> {
 		delegator: T::AccountId,
 		delegation_count: u32,
 	) -> DispatchResultWithPostInfo {
-		let state = <DelegatorState<T>>::get(&delegator).ok_or(<Error<T>>::DelegatorDNE)?;
+		let mut state = <DelegatorState<T>>::get(&delegator).ok_or(<Error<T>>::DelegatorDNE)?;
+
+		// lazy migration for DelegatorStatus::Leaving
+		#[allow(deprecated)]
+		if matches!(state.status, DelegatorStatus::Leaving(_)) {
+			state.status = DelegatorStatus::Active;
+			<DelegatorState<T>>::insert(delegator.clone(), state.clone());
+		}
+
 		ensure!(
 			delegation_count >= (state.delegations.0.len() as u32),
 			Error::<T>::TooLowDelegationCountToLeaveDelegators
