@@ -9041,7 +9041,7 @@ fn test_delegator_with_deprecated_status_leaving_can_execute_leave_delegators_as
 
 #[allow(deprecated)]
 #[test]
-fn test_delegator_with_deprecated_status_leaving_cannot_execute_leave_delegators_and_not_fixed() {
+fn test_delegator_with_deprecated_status_leaving_cannot_execute_leave_delegators_early_no_fix() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20), (2, 40)])
 		.with_candidates(vec![(1, 20)])
