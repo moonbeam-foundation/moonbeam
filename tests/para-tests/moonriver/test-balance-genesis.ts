@@ -1,6 +1,6 @@
 import { expect } from "chai";
+import { alith } from "../../util/accounts";
 
-import { ALITH } from "../../util/constants";
 import { describeParachain } from "../../util/setup-para-tests";
 
 describeParachain(
@@ -14,7 +14,7 @@ describeParachain(
     it("should be accessible through polkadotjs", async function () {
       expect(
         (
-          (await context.polkadotApiParaone.query.system.account(ALITH.toString())) as any
+          (await context.polkadotApiParaone.query.system.account(alith.address.toString())) as any
         ).data.free.toBigInt() // TODO: fix type
       ).to.eq(1207825819614629174706176n);
     });

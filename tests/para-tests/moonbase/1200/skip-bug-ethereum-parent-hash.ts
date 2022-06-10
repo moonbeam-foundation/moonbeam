@@ -1,11 +1,9 @@
-import { Keyring } from "@polkadot/api";
 import { expect } from "chai";
 import Web3 from "web3";
+import { alith, baltathar, BALTATHAR_PRIVATE_KEY } from "../../../util/accounts";
 
-import { ALITH_PRIV_KEY, BALTATHAR_PRIV_KEY } from "../../../util/constants";
 import { customWeb3Request } from "../../../util/providers";
 import { describeParachain } from "../../../util/setup-para-tests";
-import { createTransfer } from "../../../util/transactions";
 
 // This test will run on local until the new runtime is available
 
@@ -27,10 +25,6 @@ describeParachain(
       // Expected to take 4 blocks to setup + 10 blocks for upgrade + 4 blocks to check =>
       // ~300000 + init 50000 + error marging 150000
       this.timeout(500000);
-
-      const keyring = new Keyring({ type: "ethereum" });
-      const alith = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
-      const baltathar = await keyring.addFromUri(BALTATHAR_PRIV_KEY, null, "ethereum");
 
       let baltatharNonce = await context.web3.eth.getTransactionCount(baltathar.address);
 
@@ -58,7 +52,7 @@ describeParachain(
             gas: "0x100000",
             nonce: baltatharNonce++,
           },
-          BALTATHAR_PRIV_KEY
+          BALTATHAR_PRIVATE_KEY
         );
 
         await customWeb3Request(context.web3, "eth_sendRawTransaction", [tx.rawTransaction]);

@@ -51,9 +51,9 @@ async function main() {
 
   const printPr = (pr) => {
     if (pr.labels.includes(BREAKING_CHANGES_LABEL)) {
-      return "⚠️ " + pr.title + " (" + pr.number + ")";
+      return "⚠️ " + pr.title + " (#" + pr.number + ")";
     } else {
-      return pr.title + " (" + pr.number + ")";
+      return pr.title + " (#" + pr.number + ")";
     }
   };
 

@@ -1,3 +1,4 @@
+import "@moonbeam-network/api-augment";
 import { expect } from "chai";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { createContract } from "../../util/transactions";
@@ -8,7 +9,7 @@ describeDevMoonbeam("Block Contract - Block variables", (context) => {
 
   before("Setup: Creating contract with block variables", async function () {
     const { contract, rawTx } = await createContract(context, "CheckBlockVariables");
-    await context.createBlock({ transactions: [rawTx] });
+    await context.createBlock(rawTx);
     blockContract = contract;
   });
 
