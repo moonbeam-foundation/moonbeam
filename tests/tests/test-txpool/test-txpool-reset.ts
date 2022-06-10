@@ -1,3 +1,4 @@
+import "@moonbeam-network/api-augment";
 import { expect } from "chai";
 
 import { createContract } from "../../util/transactions";
@@ -18,7 +19,7 @@ describeDevMoonbeam("TxPool - New block", (context) => {
     const { rawTx } = await createContract(context, "TestContract", {
       gas: 1048576,
     });
-    await context.createBlock({ transactions: [rawTx] });
+    await context.createBlock(rawTx);
     await context.createBlock();
   });
 

@@ -194,14 +194,14 @@ describeSmokeSuite(`Verify staking consistency`, { wssUrl, relayWssUrl }, (conte
     if (specVersion < 1500) {
       for (const state of allDelegatorState) {
         const delegator = `0x${state[0].toHex().slice(-40)}`;
-        const totalRequestAmount = Array.from(state[1].unwrap().requests.requests.values()).reduce(
-          (p, v) => p + v.amount.toBigInt(),
-          0n
-        );
+        const totalRequestAmount = Array.from(
+          (state[1] as any).unwrap().requests.requests.values()
+        ).reduce((p, v: any) => p + v.amount.toBigInt(), 0n);
 
-        expect(state[1].unwrap().requests.lessTotal.toBigInt(), `delegator: ${delegator}`).to.equal(
-          totalRequestAmount
-        );
+        expect(
+          (state[1] as any).unwrap().requests.lessTotal.toBigInt(),
+          `delegator: ${delegator}`
+        ).to.equal(totalRequestAmount);
         checks++;
       }
     }

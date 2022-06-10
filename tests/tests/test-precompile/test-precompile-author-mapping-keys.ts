@@ -1,12 +1,12 @@
+import "@moonbeam-network/api-augment";
 import { expect } from "chai";
-import Keyring from "@polkadot/keyring";
 
-import { ETHAN_PRIVATE_KEY, FAITH_PRIVATE_KEY } from "../../util/constants";
 import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
 import { getBlockExtrinsic } from "../../util/block";
 import { sendPrecompileTx } from "../../util/transactions";
+import { PRECOMPILE_AUTHOR_MAPPING_ADDRESS } from "../../util/constants";
+import { ethan, ETHAN_PRIVATE_KEY, faith, FAITH_PRIVATE_KEY } from "../../util/accounts";
 const debug = require("debug")("test-precompile:author-mapping");
-const keyring = new Keyring({ type: "ethereum" });
 
 // Keys used to set author-mapping in the tests
 const originalKeys = [
@@ -16,10 +16,6 @@ const originalKeys = [
 // Concatenated keys
 const concatOriginalKeys = `0x${originalKeys.map((key) => key.slice(2)).join("")}`;
 
-// We are using Faith account because she doesn't have authorMapping setup at genesis
-const faith = keyring.addFromUri(FAITH_PRIVATE_KEY, null, "ethereum");
-
-const AUTHOR_MAPPING_PRECOMPILE_ADDRESS = "0x0000000000000000000000000000000000000807";
 const SELECTORS = {
   set_keys: "bcb24ddc",
   remove_keys: "3b6c4284",
@@ -33,7 +29,7 @@ const setKeysThroughPrecompile = async (
 ) => {
   await sendPrecompileTx(
     context,
-    AUTHOR_MAPPING_PRECOMPILE_ADDRESS,
+    PRECOMPILE_AUTHOR_MAPPING_ADDRESS,
     SELECTORS,
     account,
     private_key,
@@ -222,7 +218,7 @@ describeDevMoonbeam("Precompile Author Mapping - Remove Faith keys", (context) =
     // Remove the keys
     await sendPrecompileTx(
       context,
-      AUTHOR_MAPPING_PRECOMPILE_ADDRESS,
+      PRECOMPILE_AUTHOR_MAPPING_ADDRESS,
       SELECTORS,
       faith.address,
       FAITH_PRIVATE_KEY,
@@ -279,7 +275,7 @@ describeDevMoonbeam("Precompile Author Mapping - Removing non-existing author", 
     // Remove the keys
     await sendPrecompileTx(
       context,
-      AUTHOR_MAPPING_PRECOMPILE_ADDRESS,
+      PRECOMPILE_AUTHOR_MAPPING_ADDRESS,
       SELECTORS,
       faith.address,
       FAITH_PRIVATE_KEY,
@@ -319,7 +315,6 @@ describeDevMoonbeam("Precompile Author Mapping - Removing non-existing author", 
 
 describeDevMoonbeam("Precompile Author Mapping - Update someone else nimbus key", (context) => {
   // Using ethan who doesn't have author-mapping
-  const ethan = keyring.addFromUri(ETHAN_PRIVATE_KEY, null, "ethereum");
 
   before("setup account & keys", async function () {
     await setKeysThroughPrecompile(context, faith.address, FAITH_PRIVATE_KEY, concatOriginalKeys);
