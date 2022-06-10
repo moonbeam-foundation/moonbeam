@@ -398,11 +398,13 @@ impl<T: Config> Pallet<T> {
 		let mut state = <DelegatorState<T>>::get(&delegator).ok_or(<Error<T>>::DelegatorDNE)?;
 		let mut updated_scheduled_requests = vec![];
 
-		// lazy migration for DelegatorStatus::Leaving
+		// backwards compatible handling for DelegatorStatus::Leaving
 		#[allow(deprecated)]
 		if matches!(state.status, DelegatorStatus::Leaving(_)) {
 			state.status = DelegatorStatus::Active;
 			<DelegatorState<T>>::insert(delegator.clone(), state.clone());
+			Self::deposit_event(Event::DelegatorExitCancelled { delegator });
+			return Ok(().into());
 		}
 
 		// pre-validate that all delegations have a Revoke request.
@@ -446,18 +448,48 @@ impl<T: Config> Pallet<T> {
 	) -> DispatchResultWithPostInfo {
 		let mut state = <DelegatorState<T>>::get(&delegator).ok_or(<Error<T>>::DelegatorDNE)?;
 
-		// lazy migration for DelegatorStatus::Leaving
-		#[allow(deprecated)]
-		if matches!(state.status, DelegatorStatus::Leaving(_)) {
-			state.status = DelegatorStatus::Active;
-			<DelegatorState<T>>::insert(delegator.clone(), state.clone());
-		}
-
 		ensure!(
 			delegation_count >= (state.delegations.0.len() as u32),
 			Error::<T>::TooLowDelegationCountToLeaveDelegators
 		);
 		let now = <Round<T>>::get().current;
+
+		// backwards compatible handling for DelegatorStatus::Leaving
+		#[allow(deprecated)]
+		if matches!(state.status, DelegatorStatus::Leaving(_)) {
+			state.status = DelegatorStatus::Active;
+			<DelegatorState<T>>::insert(delegator.clone(), state.clone());
+
+			if let DelegatorStatus::Leaving(when) = state.status {
+				ensure!(
+					<Round<T>>::get().current >= when,
+					Error::<T>::DelegatorCannotLeaveYet
+				);
+			} else {
+				return Err(Error::<T>::DelegatorNotLeaving.into());
+			}
+
+			for bond in state.delegations.0.clone() {
+				if let Err(error) = Self::delegator_leaves_candidate(
+					bond.owner.clone(),
+					delegator.clone(),
+					bond.amount,
+				) {
+					log::warn!(
+						"STORAGE CORRUPTED \nDelegator leaving collator failed with error: {:?}",
+						error
+					);
+				}
+
+				Self::delegation_remove_request_with_state(&bond.owner, &delegator, &mut state);
+			}
+			<DelegatorState<T>>::remove(&delegator);
+			Self::deposit_event(Event::DelegatorLeft {
+				delegator,
+				unstaked_amount: state.total,
+			});
+			return Ok(().into());
+		}
 
 		let mut validated_scheduled_requests = vec![];
 		// pre-validate that all delegations have a Revoke request that can be executed now.
