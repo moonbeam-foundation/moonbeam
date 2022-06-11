@@ -24,7 +24,6 @@ extern crate alloc;
 use fp_evm::{
 	Context, ExitReason, ExitSucceed, Log, Precompile, PrecompileHandle, PrecompileOutput,
 };
-use pallet_evm::AddressMapping;
 use pallet_randomness::BalanceOf;
 use precompile_utils::{
 	call_cost, error, keccak256, revert, Address, EvmDataWriter, EvmResult, FunctionModifier,
@@ -155,10 +154,8 @@ pub struct RandomnessWrapper<Runtime>(PhantomData<Runtime>);
 impl<Runtime> Precompile for RandomnessWrapper<Runtime>
 where
 	Runtime: pallet_randomness::Config + pallet_evm::Config + pallet_base_fee::Config,
-	<Runtime as frame_system::Config>::BlockNumber: From<U256>,
-	<Runtime as frame_system::Config>::Hash: From<H256> + Into<H256>,
-	<Runtime as frame_system::Config>::AccountId: From<H160> + Into<H160> + From<Address>,
-	BalanceOf<Runtime>: From<u64> + From<U256> + Into<U256>,
+	<Runtime as frame_system::Config>::BlockNumber: From<u32>,
+	BalanceOf<Runtime>: TryFrom<U256> + Into<U256>,
 {
 	fn execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		log::trace!(target: "randomness-precompile", "In randomness wrapper");
@@ -200,22 +197,23 @@ where
 impl<Runtime> RandomnessWrapper<Runtime>
 where
 	Runtime: pallet_randomness::Config + pallet_evm::Config + pallet_base_fee::Config,
-	<Runtime as frame_system::Config>::BlockNumber: From<U256>,
-	<Runtime as frame_system::Config>::Hash: From<H256> + Into<H256>,
-	<Runtime as frame_system::Config>::AccountId: From<H160> + Into<H160> + From<Address>,
-	BalanceOf<Runtime>: From<u64> + From<U256> + Into<U256>,
+	<Runtime as frame_system::Config>::BlockNumber: From<u32>,
+	BalanceOf<Runtime>: TryFrom<U256> + Into<U256>,
 {
 	/// Make request for babe randomness current block
 	fn request_babe_randomness_current_block(
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
 		let mut input = handle.read_input()?;
-		let contract_address = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let refund_address = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
-		let fee: BalanceOf<Runtime> = input.read::<U256>()?.into();
+		let contract_address = handle.context().caller;
+		let refund_address = input.read::<Address>()?.0;
+		let fee: BalanceOf<Runtime> = input
+			.read::<U256>()?
+			.try_into()
+			.map_err(|_| revert("amount is too large for provided balance type"))?;
 		let gas_limit = input.read::<u64>()?;
 		let salt = input.read::<H256>()?;
-		let block_number = input.read::<U256>()?.into();
+		let block_number = input.read::<u32>()?.into();
 		let request = pallet_randomness::Request {
 			refund_address,
 			contract_address,
@@ -237,9 +235,12 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
 		let mut input = handle.read_input()?;
-		let contract_address = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let refund_address = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
-		let fee: BalanceOf<Runtime> = input.read::<U256>()?.into();
+		let contract_address = handle.context().caller;
+		let refund_address = input.read::<Address>()?.0;
+		let fee: BalanceOf<Runtime> = input
+			.read::<U256>()?
+			.try_into()
+			.map_err(|_| revert("amount is too large for provided balance type"))?;
 		let gas_limit = input.read::<u64>()?;
 		let salt = input.read::<H256>()?;
 		let epoch_index = input.read::<u64>()?;
@@ -264,9 +265,12 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
 		let mut input = handle.read_input()?;
-		let contract_address = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let refund_address = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
-		let fee: BalanceOf<Runtime> = input.read::<U256>()?.into();
+		let contract_address = handle.context().caller;
+		let refund_address = input.read::<Address>()?.0;
+		let fee: BalanceOf<Runtime> = input
+			.read::<U256>()?
+			.try_into()
+			.map_err(|_| revert("amount is too large for provided balance type"))?;
 		let gas_limit = input.read::<u64>()?;
 		let salt = input.read::<H256>()?;
 		let epoch_index = input.read::<u64>()?;
@@ -289,12 +293,15 @@ where
 	/// Make request for local VRF randomness
 	fn request_local_randomness(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		let mut input = handle.read_input()?;
-		let contract_address = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let refund_address = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
-		let fee: BalanceOf<Runtime> = input.read::<U256>()?.into();
+		let contract_address = handle.context().caller;
+		let refund_address = input.read::<Address>()?.0;
+		let fee: BalanceOf<Runtime> = input
+			.read::<U256>()?
+			.try_into()
+			.map_err(|_| revert("amount is too large for provided balance type"))?;
 		let gas_limit = input.read::<u64>()?;
 		let salt = input.read::<H256>()?;
-		let block_number = input.read::<U256>()?.into();
+		let block_number = input.read::<u32>()?.into();
 		let request = pallet_randomness::Request {
 			refund_address,
 			contract_address,
@@ -339,16 +346,16 @@ where
 		)?;
 		// get gas after subcall
 		let after_remaining_gas = handle.remaining_gas();
-		let base_fee_as_u64: u64 = pallet_base_fee::Pallet::<Runtime>::base_fee_per_gas()
-			.try_into()
-			.unwrap_or_default();
-		// cost of execution is before_remaining_gas less after_remaining_gas
-		let cost_of_execution = before_remaining_gas
+		let gas_used: U256 = before_remaining_gas
 			.checked_sub(after_remaining_gas)
 			.ok_or(revert("Before remaining gas < After remaining gas"))?
-			.checked_mul(base_fee_as_u64)
-			.ok_or(revert("Multiply cost of execution by base fee overflowed"))?
 			.into();
+		// cost of execution is before_remaining_gas less after_remaining_gas
+		let cost_of_execution: BalanceOf<Runtime> = gas_used
+			.checked_mul(pallet_base_fee::Pallet::<Runtime>::base_fee_per_gas())
+			.ok_or(revert("Multiply gas used by base fee overflowed"))?
+			.try_into()
+			.map_err(|_| revert("amount is too large for provided balance type"))?;
 		// Finish fulfillment to
 		// refund cost of execution to caller
 		// refund excess fee to the refund_address
@@ -357,7 +364,7 @@ where
 			request_id,
 			request,
 			deposit,
-			&Runtime::AddressMapping::into_account_id(handle.context().caller),
+			&handle.context().caller,
 			cost_of_execution,
 		);
 		Ok(PrecompileOutput {
@@ -369,9 +376,12 @@ where
 	fn increase_request_fee(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		let mut input = handle.read_input()?;
 		let request_id = input.read::<u64>()?;
-		let new_fee: BalanceOf<Runtime> = input.read::<U256>()?.into();
+		let new_fee: BalanceOf<Runtime> = input
+			.read::<U256>()?
+			.try_into()
+			.map_err(|_| revert("amount is too large for provided balance type"))?;
 		pallet_randomness::Pallet::<Runtime>::increase_request_fee(
-			&Runtime::AddressMapping::into_account_id(handle.context().caller),
+			&handle.context().caller,
 			request_id,
 			new_fee,
 		)
@@ -389,7 +399,7 @@ where
 		let mut input = handle.read_input()?;
 		let request_id = input.read::<u64>()?;
 		pallet_randomness::Pallet::<Runtime>::execute_request_expiration(
-			&Runtime::AddressMapping::into_account_id(handle.context().caller),
+			&handle.context().caller,
 			request_id,
 		)
 		.map_err(|e| error(alloc::format!("{:?}", e)))?;
@@ -414,12 +424,7 @@ where
 		>(salt)
 		.map_err(|e| error(alloc::format!("{:?}", e)))?;
 		// make subcall
-		provide_randomness(
-			handle,
-			gas_limit,
-			Runtime::AddressMapping::into_account_id(handle.context().caller).into(),
-			H256(randomness),
-		)?;
+		provide_randomness(handle, gas_limit, handle.context().caller, H256(randomness))?;
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
 			output: Default::default(),
@@ -441,12 +446,7 @@ where
 		>(salt)
 		.map_err(|e| error(alloc::format!("{:?}", e)))?;
 		// make subcall
-		provide_randomness(
-			handle,
-			gas_limit,
-			Runtime::AddressMapping::into_account_id(handle.context().caller).into(),
-			H256(randomness),
-		)?;
+		provide_randomness(handle, gas_limit, handle.context().caller, H256(randomness))?;
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
 			output: Default::default(),
@@ -468,12 +468,7 @@ where
 		>(salt)
 		.map_err(|e| error(alloc::format!("{:?}", e)))?;
 		// make subcall
-		provide_randomness(
-			handle,
-			gas_limit,
-			Runtime::AddressMapping::into_account_id(handle.context().caller).into(),
-			H256(randomness),
-		)?;
+		provide_randomness(handle, gas_limit, handle.context().caller, H256(randomness))?;
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
 			output: Default::default(),
@@ -490,12 +485,7 @@ where
 		let randomness = pallet_randomness::instant_local_randomness::<Runtime>(salt)
 			.map_err(|e| error(alloc::format!("{:?}", e)))?;
 		// make subcall
-		provide_randomness(
-			handle,
-			gas_limit,
-			Runtime::AddressMapping::into_account_id(handle.context().caller).into(),
-			H256(randomness),
-		)?;
+		provide_randomness(handle, gas_limit, handle.context().caller, H256(randomness))?;
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
 			output: Default::default(),

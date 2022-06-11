@@ -20,7 +20,9 @@ use crate::{
 };
 use frame_support::pallet_prelude::*;
 use frame_support::traits::{Currency, ExistenceRequirement::KeepAlive, ReservableCurrency};
+use pallet_evm::AddressMapping;
 use pallet_vrf::MaybeGetRandomness;
+use sp_core::{H160, H256};
 use sp_runtime::traits::{CheckedSub, Saturating};
 
 #[derive(PartialEq, Copy, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
@@ -43,15 +45,15 @@ pub enum RequestType<T: Config> {
 /// Input arguments to request randomness
 pub struct Request<T: Config> {
 	/// Fee is returned to this account upon execution
-	pub refund_address: T::AccountId,
+	pub refund_address: H160,
 	/// Contract that consumes the randomness
-	pub contract_address: T::AccountId,
+	pub contract_address: H160,
 	/// Fee to pay for execution
 	pub fee: BalanceOf<T>,
 	/// Gas limit for subcall
 	pub gas_limit: u64,
 	/// Salt to use once randomness is ready
-	pub salt: T::Hash,
+	pub salt: H256,
 	/// Details regarding request type
 	pub info: RequestType<T>,
 }
@@ -111,31 +113,40 @@ impl<T: Config> Request<T> {
 	pub(crate) fn finish_fulfill(
 		&self,
 		deposit: BalanceOf<T>,
-		caller: &T::AccountId,
+		caller: &H160,
 		cost_of_execution: BalanceOf<T>,
 	) {
 		// unreserve deposit and fee before refund
-		let amount = T::Currency::unreserve(&self.contract_address, deposit + self.fee);
-		let refundable_amount = if amount < self.fee {
-			// should refund come out of the deposit if `cost_of_execution` > self.fee?
-			// TODO: log warning, emit event?
-			amount
+		let amt_to_unreserve = deposit.saturating_add(self.fee);
+		let contract_address = T::AddressMapping::into_account_id(self.contract_address.clone());
+		let amt_not_unreserved = T::ReserveCurrency::unreserve(&contract_address, amt_to_unreserve);
+		let amt_unreserved = amt_to_unreserve.saturating_sub(amt_not_unreserved);
+		let refundable_amount = if amt_unreserved < self.fee {
+			// EDGE CASE: amount unreserved is not equal to deposit + fee
+			// If the amount unreserved is less than the `fee`, we use the entire amount unreserved
+			// to refund caller of fulfill. The `deposit` acts as a safety margin for the refund.
+			amt_unreserved
 		} else {
 			self.fee
 		};
 		if let Some(excess) = refundable_amount.checked_sub(&cost_of_execution) {
 			// refund cost_of_execution to caller of `fulfill`
-			T::Currency::transfer(&self.contract_address, caller, cost_of_execution, KeepAlive)
-				.expect("just unreserved deposit + fee => cost_of_execution must be transferrable");
+			T::ReserveCurrency::transfer(
+				&contract_address,
+				&T::AddressMapping::into_account_id(caller.clone()),
+				cost_of_execution,
+				KeepAlive,
+			)
+			.expect("just unreserved deposit + fee => cost_of_execution must be transferrable");
 			// refund excess to refund address
-			T::Currency::transfer(
-				&self.contract_address,
-				&self.refund_address,
+			T::ReserveCurrency::transfer(
+				&contract_address,
+				&T::AddressMapping::into_account_id(self.refund_address),
 				excess,
 				KeepAlive,
 			)
 			.expect("just unreserved deposit + fee => excess must be transferrable");
-		} // else should log warning or emit event that no refund happened???
+		} // TODO: else should log warning or emit event that no refund happened???
 	}
 }
 
@@ -196,7 +207,7 @@ impl<T: Config> RequestState<T> {
 			randomness,
 		})
 	}
-	pub fn increase_fee(&mut self, caller: &T::AccountId, new_fee: BalanceOf<T>) -> DispatchResult {
+	pub fn increase_fee(&mut self, caller: &H160, new_fee: BalanceOf<T>) -> DispatchResult {
 		ensure!(
 			caller == &self.request.contract_address,
 			Error::<T>::OnlyRequesterCanIncreaseFee
@@ -204,7 +215,10 @@ impl<T: Config> RequestState<T> {
 		let to_reserve = new_fee
 			.checked_sub(&self.request.fee)
 			.ok_or(Error::<T>::NewFeeMustBeGreaterThanOldFee)?;
-		T::Currency::reserve(caller, to_reserve)?;
+		T::ReserveCurrency::reserve(
+			&T::AddressMapping::into_account_id(caller.clone()),
+			to_reserve,
+		)?;
 		self.request.fee = new_fee;
 		Ok(())
 	}
@@ -215,17 +229,14 @@ impl<T: Config> RequestState<T> {
 			frame_system::Pallet::<T>::block_number() >= self.expires,
 			Error::<T>::RequestHasNotExpired
 		);
-		T::Currency::unreserve(
-			&self.request.contract_address,
+		let contract_address =
+			T::AddressMapping::into_account_id(self.request.contract_address.clone());
+		T::ReserveCurrency::unreserve(
+			&contract_address,
 			self.deposit.saturating_add(self.request.fee),
 		);
-		T::Currency::transfer(
-			&self.request.contract_address,
-			caller,
-			self.request.fee,
-			KeepAlive,
-		)
-		.expect("just unreserved deposit + fee => fee must be transferrable");
+		T::ReserveCurrency::transfer(&contract_address, caller, self.request.fee, KeepAlive)
+			.expect("just unreserved deposit + fee => fee must be transferrable");
 		Ok(())
 	}
 }

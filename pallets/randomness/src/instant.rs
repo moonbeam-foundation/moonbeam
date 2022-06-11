@@ -19,17 +19,18 @@
 use crate::{Config, Error, Pallet};
 use frame_support::StorageValue;
 use pallet_vrf::MaybeGetRandomness;
+use sp_core::H256;
 use sp_runtime::DispatchError;
 
 /// Returns most recent value for the local randomness (per block VRF)
-pub fn instant_local_randomness<T: Config>(salt: T::Hash) -> Result<[u8; 32], DispatchError> {
+pub fn instant_local_randomness<T: Config>(salt: H256) -> Result<[u8; 32], DispatchError> {
 	let randomness =
 		T::LocalRandomness::maybe_get_randomness().ok_or(Error::<T>::RandomnessNotAvailable)?;
 	Ok(Pallet::<T>::concat_and_hash(randomness, salt))
 }
 
 /// Returns most recent value for the specified storage item `V`
-pub fn instant_relay_randomness<T, V>(salt: T::Hash) -> Result<[u8; 32], DispatchError>
+pub fn instant_relay_randomness<T, V>(salt: H256) -> Result<[u8; 32], DispatchError>
 where
 	T: Config,
 	V: StorageValue<Option<T::Hash>, Query = Option<T::Hash>>,

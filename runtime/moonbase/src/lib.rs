@@ -1108,7 +1108,7 @@ parameter_types! {
 }
 impl pallet_randomness::Config for Runtime {
 	type Event = Event;
-	type Currency = Balances;
+	type ReserveCurrency = Balances;
 	type RelayEpochIndex = RelayEpochIndex;
 	type RelayRandomness = RelayRandomness;
 	type LocalRandomness = Vrf;

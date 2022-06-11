@@ -115,6 +115,11 @@ pub mod pallet {
 			let (set_inputs_weight, relay_based_vrf_input) = Self::set_most_recent_vrf_inputs();
 			set_inputs_weight + Self::set_randomness(relay_based_vrf_input)
 		}
+		// TODO: set vrf inputs with inherent without inputs
+		// explain why it is safe to use, because `ValidationData` is killed in on_initialize
+		// WHY NOT JUST SET THE VRF INPUT IN ON FINALIZE?
+		// make sure vrf input is set
+		// fn on_finalize()
 	}
 
 	impl<T: Config> Pallet<T> {

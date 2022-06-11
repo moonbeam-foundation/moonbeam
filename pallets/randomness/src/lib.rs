@@ -45,14 +45,17 @@ pub mod pallet {
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{Currency, ReservableCurrency};
 	use frame_system::pallet_prelude::*;
+	use pallet_evm::AddressMapping;
+	use sp_core::{H160, H256};
 	use sp_runtime::traits::Saturating;
 	use sp_std::{convert::TryInto, vec::Vec};
 
 	/// Request identifier, unique per request for randomness
 	pub type RequestId = u64;
 
-	pub type BalanceOf<T> =
-		<<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
+	pub type BalanceOf<T> = <<T as Config>::ReserveCurrency as Currency<
+		<T as frame_system::Config>::AccountId,
+	>>::Balance;
 
 	#[pallet::pallet]
 	#[pallet::without_storage_info]
@@ -60,11 +63,11 @@ pub mod pallet {
 
 	/// Configuration trait of this pallet.
 	#[pallet::config]
-	pub trait Config: frame_system::Config {
+	pub trait Config: frame_system::Config + pallet_evm::Config {
 		/// Overarching event type
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		/// Currency in which the security deposit will be taken.
-		type Currency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
+		type ReserveCurrency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
 		/// Get relay chain epoch index to insert into this pallet
 		type RelayEpochIndex: GetEpochIndex<u64>;
 		/// Get relay chain randomness to insert into this pallet
@@ -100,34 +103,34 @@ pub mod pallet {
 	pub enum Event<T: Config> {
 		RandomnessRequestedCurrentBlock {
 			id: RequestId,
-			refund_address: T::AccountId,
-			contract_address: T::AccountId,
+			refund_address: H160,
+			contract_address: H160,
 			fee: BalanceOf<T>,
-			salt: T::Hash,
+			salt: H256,
 			earliest_block: T::BlockNumber,
 		},
 		RandomnessRequestedBabeOneEpochAgo {
 			id: RequestId,
-			refund_address: T::AccountId,
-			contract_address: T::AccountId,
+			refund_address: H160,
+			contract_address: H160,
 			fee: BalanceOf<T>,
-			salt: T::Hash,
+			salt: H256,
 			earliest_epoch: u64,
 		},
 		RandomnessRequestedBabeTwoEpochsAgo {
 			id: RequestId,
-			refund_address: T::AccountId,
-			contract_address: T::AccountId,
+			refund_address: H160,
+			contract_address: H160,
 			fee: BalanceOf<T>,
-			salt: T::Hash,
+			salt: H256,
 			earliest_epoch: u64,
 		},
 		RandomnessRequestedLocal {
 			id: RequestId,
-			refund_address: T::AccountId,
-			contract_address: T::AccountId,
+			refund_address: H160,
+			contract_address: H160,
 			fee: BalanceOf<T>,
-			salt: T::Hash,
+			salt: H256,
 			earliest_block: T::BlockNumber,
 		},
 		RequestFulfilled {
@@ -210,7 +213,7 @@ pub mod pallet {
 
 	// Utility functions
 	impl<T: Config> Pallet<T> {
-		pub(crate) fn concat_and_hash(a: T::Hash, b: T::Hash) -> [u8; 32] {
+		pub(crate) fn concat_and_hash(a: T::Hash, b: H256) -> [u8; 32] {
 			let mut s = Vec::new();
 			s.extend_from_slice(a.as_ref());
 			s.extend_from_slice(b.as_ref());
@@ -226,7 +229,9 @@ pub mod pallet {
 				Error::<T>::CannotRequestPastRandomness
 			);
 			let deposit = T::Deposit::get().saturating_add(request.fee);
-			T::Currency::can_reserve(&request.contract_address, deposit)
+			let contract_address =
+				T::AddressMapping::into_account_id(request.contract_address.clone());
+			T::ReserveCurrency::can_reserve(&contract_address, deposit)
 				.then(|| true)
 				.ok_or(Error::<T>::InsufficientDeposit)?;
 			// get new request ID
@@ -234,7 +239,7 @@ pub mod pallet {
 			let next_id = request_id
 				.checked_add(1u64)
 				.ok_or(Error::<T>::RequestCounterOverflowed)?;
-			T::Currency::reserve(&request.contract_address, deposit)?;
+			T::ReserveCurrency::reserve(&contract_address, deposit)?;
 			// insert request
 			<RequestCount<T>>::put(next_id);
 			request.emit_randomness_requested_event(request_id);
@@ -254,7 +259,7 @@ pub mod pallet {
 			id: RequestId,
 			request: Request<T>,
 			deposit: BalanceOf<T>,
-			caller: &T::AccountId,
+			caller: &H160,
 			cost_of_execution: BalanceOf<T>,
 		) {
 			request.finish_fulfill(deposit, caller, cost_of_execution);
@@ -263,7 +268,7 @@ pub mod pallet {
 		}
 		/// Increase fee associated with request
 		pub fn increase_request_fee(
-			caller: &T::AccountId,
+			caller: &H160,
 			id: RequestId,
 			new_fee: BalanceOf<T>,
 		) -> DispatchResult {
@@ -277,8 +282,9 @@ pub mod pallet {
 		/// Execute request expiration
 		/// transfers fee to caller && purges request iff it has expired
 		/// does NOT try to fulfill the request
-		pub fn execute_request_expiration(caller: &T::AccountId, id: RequestId) -> DispatchResult {
+		pub fn execute_request_expiration(caller: &H160, id: RequestId) -> DispatchResult {
 			let request = <Requests<T>>::get(id).ok_or(Error::<T>::RequestDNE)?;
+			let caller = T::AddressMapping::into_account_id(caller.clone());
 			request.execute_expiration(&caller)?;
 			<Requests<T>>::remove(id);
 			Self::deposit_event(Event::RequestExpirationExecuted { id });

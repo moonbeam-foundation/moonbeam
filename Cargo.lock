@@ -7771,6 +7771,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "pallet-balances",
+ "pallet-evm",
  "pallet-vrf",
  "parity-scale-codec",
  "scale-info",
