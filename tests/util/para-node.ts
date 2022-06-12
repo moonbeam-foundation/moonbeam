@@ -490,7 +490,7 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
       (_, reject) =>
         (raceTimer = setTimeout(
           () => reject(new Error("timeout")),
-          "spec" in options.parachain ? 3600000 : 60000
+          "spec" in options.parachain ? 12000000 : 60000
         ))
     ),
   ]);
