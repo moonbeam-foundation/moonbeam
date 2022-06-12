@@ -1146,8 +1146,6 @@ fn relay_chain_state_proof() -> RelayChainStateProof {
 		.expect("Invalid relay chain state proof, already constructed in `set_validation_data`")
 }
 
-// TODO: review if panics inside this impl are OK???? It will cause on_initialize to panic and could brick chain
-// so need to be sure it will never happen
 pub struct VrfInputs;
 impl GetVrfInputs<Slot, Hash> for VrfInputs {
 	fn get_slot_number() -> Slot {
