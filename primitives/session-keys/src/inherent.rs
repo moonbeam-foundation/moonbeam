@@ -36,7 +36,7 @@ impl InherentError {
 	#[cfg(feature = "std")]
 	pub fn try_from(id: &InherentIdentifier, data: &[u8]) -> Option<Self> {
 		if id == &INHERENT_IDENTIFIER {
-			<InherentError as parity_scale_codec::Decode>::decode(&mut &data[..]).ok()
+			<InherentError as parity_scale_codec::Decode>::decode(&mut &*data).ok()
 		} else {
 			None
 		}
