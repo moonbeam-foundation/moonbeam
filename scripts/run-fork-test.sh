@@ -71,13 +71,14 @@ PID=$!
 
 # Wait for the node to start
 echo "Waiting nodes... (10 minutes)"
+sleep 5
 ( tail -f -n0 spawn-node.log & ) | grep -q 'POLKADOT LAUNCH COMPLETE'
 
 export RELAY_WSS_URL=ws://localhost:51002
 export WSS_URL=ws://localhost:51102
 # Run the fork test (without spawning the node using DEBUG_MODE)
 echo "Running fork tests... (10 minutes)"
-DEBUG_MODE=true npm run fork-test
+DEBUG_MODE=true DEBUG=test:setup* npm run fork-test
 
 echo "Running smoke tests... (10 minutes)"
 SKIP_RELAY_TESTS=true DEBUG=smoke:* npm run smoke-test
