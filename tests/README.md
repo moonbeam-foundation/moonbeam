@@ -192,3 +192,24 @@ SKIP_INTERMEDIATE_RUNTIME=true RUNTIME_NAME=moonbase SPEC_FILE=~/projects/moonbe
 
 SKIP_INTERMEDIATE_RUNTIME=true RUNTIME_NAME=moonriver SPEC_FILE=~/projects/moonbeam-states/moonriver-state.mod.json PARA_ID=2023 PORT_PREFIX=53 npm run fork-test
 ```
+
+### Starting the node separately
+
+```
+SKIP_INTERMEDIATE_RUNTIME=true RUNTIME_NAME=moonbeam SPEC_FILE=~/projects/moonbeam-states/moonbeam-state.mod.json PARA_ID=2004 PORT_PREFIX=51 ./node_modules/.bin/ts-node spawn-fork-node.ts
+SKIP_INTERMEDIATE_RUNTIME=true RUNTIME_NAME=moonbase SPEC_FILE=~/projects/moonbeam-states/moonbase-alpha-state.mod.json PARA_ID=1000 PORT_PREFIX=51 ./node_modules/.bin/ts-node spawn-fork-node.ts
+SKIP_INTERMEDIATE_RUNTIME=true RUNTIME_NAME=moonriver SPEC_FILE=~/projects/moonbeam-states/moonriver-state.mod.json PARA_ID=2023 PORT_PREFIX=51 ./node_modules/.bin/ts-node spawn-fork-node.ts
+```
+
+### Generating moonbeam-fork-test image
+
+```
+docker build ./scripts -t purestake/moonbeam-fork-tests:0.0.1 -f docker/moonbeam-fork-tests.Dockerfile
+```
+
+### Running complete fork test locally
+
+```
+mkdir ~/moonbeam-states
+./scripts/run-fork-tests.sh
+```

@@ -65,25 +65,25 @@ const main = async () => {
       console.log(
         `Compressed PoV: ${
           compressedPov < 1000
-            ? chalk.green(compressedPov)
+            ? chalk.green(compressedPov.toString())
             : compressedPov < 2000
-            ? chalk.yellow(compressedPov)
-            : chalk.red(compressedPov)
+            ? chalk.yellow(compressedPov.toString())
+            : chalk.red(compressedPov.toString())
         } kb  (storage_proof: ${
           storageProof < 1500
-            ? chalk.green(storageProof)
+            ? chalk.green(storageProof.toString())
             : storageProof < 3000
-            ? chalk.yellow(storageProof)
-            : chalk.red(storageProof)
+            ? chalk.yellow(storageProof.toString())
+            : chalk.red(storageProof.toString())
         } kb)`
       );
       console.log(
         `Execution time: ${
           executionTime < 100
-            ? chalk.green(executionTime)
+            ? chalk.green(executionTime.toString())
             : executionTime < 300
-            ? chalk.yellow(executionTime)
-            : chalk.red(executionTime)
+            ? chalk.yellow(executionTime.toString())
+            : chalk.red(executionTime.toString())
         } ms`
       );
 
