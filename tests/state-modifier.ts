@@ -35,6 +35,7 @@ const storageBlake128MapKey = (module, name, key) => {
 async function main(inputFile: string, outputFile?: string) {
   const ALITH = "0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac";
   const ALITH_SESSION = "0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d";
+  const ALITH_MIN_BALANCE = 10_000n * 10n ** 18n;
 
   const in1Stream = fs.createReadStream(inputFile, "utf8");
   const rl1 = readline.createInterface({
@@ -119,15 +120,15 @@ async function main(inputFile: string, outputFile?: string) {
   const alithFreeBalance = hexToBigInt(alithAccountData.slice(34, 66), { isLe: true });
   let newAlithAccountData = alithAccountData;
   let newTotalIssuance = totalIssuance;
-  if (alithFreeBalance < 1000n * 10n ** 18n) {
+  if (alithFreeBalance < ALITH_MIN_BALANCE) {
     newAlithAccountData = `${alithAccountData.slice(0, 34)}${nToHex(
-      alithFreeBalance + 1000n * 10n ** 18n,
+      alithFreeBalance + ALITH_MIN_BALANCE,
       {
         isLe: true,
         bitLength: 128,
       }
     ).slice(2)}${alithAccountData.slice(66)}`;
-    newTotalIssuance = totalIssuance + 1_000n * 10n ** 18n;
+    newTotalIssuance = totalIssuance + ALITH_MIN_BALANCE;
   }
 
   const in2Stream = fs.createReadStream(inputFile, "utf8");
