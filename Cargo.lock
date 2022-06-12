@@ -6076,6 +6076,7 @@ dependencies = [
  "sc-transaction-pool-api",
  "serde",
  "serde_json",
+ "session-keys-primitives",
  "sha3 0.9.1",
  "sp-api",
  "sp-block-builder",
@@ -12046,10 +12047,12 @@ dependencies = [
 name = "session-keys-primitives"
 version = "0.1.0"
 dependencies = [
+ "async-trait",
  "nimbus-primitives",
  "parity-scale-codec",
  "scale-info",
  "sp-application-crypto",
+ "sp-inherents",
  "sp-runtime",
 ]
 

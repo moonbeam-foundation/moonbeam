@@ -1132,19 +1132,15 @@ fn relay_chain_state_proof() -> RelayChainStateProof {
 // so need to be sure it will never happen
 pub struct VrfInputs;
 impl GetVrfInputs<Slot, Hash> for VrfInputs {
-	fn get_slot_number() -> (Slot, Weight) {
-		let slot_number = relay_chain_state_proof()
+	fn get_slot_number() -> Slot {
+		relay_chain_state_proof()
 			.read_slot()
-			.expect("CheckInherents reads slot from state proof in same way QED");
-		// expect data was already read in `set_validation_data` so free to reread
-		(slot_number, 0)
+			.expect("CheckInherents reads slot from state proof in same way QED")
 	}
-	fn get_storage_root() -> (Hash, Weight) {
-		let storage_root = ParachainSystem::validation_data()
+	fn get_storage_root() -> Hash {
+		ParachainSystem::validation_data()
 			.expect("set in `set_validation_data`")
-			.relay_parent_storage_root;
-		// expect validation data was already read in `set_validation_data` so free to reread
-		(storage_root, 0)
+			.relay_parent_storage_root
 	}
 }
 
@@ -1222,7 +1218,7 @@ construct_runtime! {
 		BaseFee: pallet_base_fee::{Pallet, Call, Storage, Config<T>, Event} = 35,
 		LocalAssets: pallet_assets::<Instance1>::{Pallet, Call, Storage, Event<T>} = 36,
 		MoonbeamOrbiters: pallet_moonbeam_orbiters::{Pallet, Call, Storage, Event<T>} = 37,
-		Vrf: pallet_vrf::{Pallet, Storage} = 38,
+		Vrf: pallet_vrf::{Pallet, Call, Storage} = 38,
 		Randomness: pallet_randomness::{Pallet, Storage, Event<T>} = 39,
 	}
 }

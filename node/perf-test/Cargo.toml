@@ -19,11 +19,11 @@ serde_json = "1.0"
 sha3 = { version = "0.8" }
 
 # Moonbeam
-
 cli-opt = { package = "moonbeam-cli-opt", path = "../cli-opt", default-features = false }
 # TODO: handle different runtime builds
 moonbase-runtime = { path = "../../runtime/moonbase" }
 service = { package = "moonbeam-service", path = "../service", default-features = false }
+session-keys-primitives = { path = "../../primitives/session-keys" }
 
 # Substrate
 sc-basic-authorship = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20" }
