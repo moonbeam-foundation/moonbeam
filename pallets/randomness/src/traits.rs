@@ -18,7 +18,7 @@ use frame_support::pallet_prelude::*;
 
 /// Get the epoch index
 pub trait GetEpochIndex<Index> {
-	fn get_epoch_index() -> (Index, Weight);
+	fn get_epoch_index() -> (Option<Index>, Weight);
 }
 
 /// Get babe randomness to insert into runtime

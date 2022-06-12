@@ -9,6 +9,7 @@ version = "0.1.0"
 #frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", optional = true, default-features = false }
 frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
 frame-system = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
+log = "0.4"
 pallet-vrf = { path = "../vrf", default-features = false }
 parity-scale-codec = { version = "3.0.0", default-features = false, features = [ "derive" ] }
 scale-info = { version = "2.0", default-features = false, features = [ "derive" ] }
@@ -22,6 +23,7 @@ pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam
 
 [dev-dependencies]
 pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20" }
+pallet-timestamp = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20" }
 
 [features]
 default = [ "std" ]

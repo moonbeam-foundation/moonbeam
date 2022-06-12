@@ -29,7 +29,7 @@
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use cumulus_pallet_parachain_system::RelaychainBlockNumberProvider;
-use cumulus_primitives_core::relay_chain::v2::Slot;
+use cumulus_primitives_core::relay_chain::{self, v2::Slot};
 use fp_rpc::TransactionStatus;
 
 use account::AccountId20;
@@ -1081,23 +1081,41 @@ impl pallet_base_fee::Config for Runtime {
 	type DefaultBaseFeePerGas = DefaultBaseFeePerGas;
 }
 
+// TODO: weight and propagate error better
 pub struct RelayEpochIndex;
 impl pallet_randomness::GetEpochIndex<u64> for RelayEpochIndex {
-	fn get_epoch_index() -> (u64, Weight) {
-		(1u64, 0)
+	fn get_epoch_index() -> (Option<u64>, Weight) {
+		let epoch = relay_chain_state_proof()
+			.read_optional_entry(relay_chain::well_known_keys::EPOCH_INDEX)
+			.ok()
+			.flatten();
+		(epoch, 0)
 	}
 }
 
+// TODO: weights and propagate error better instead of flatten
 pub struct RelayRandomness;
 impl pallet_randomness::GetRelayRandomness<H256> for RelayRandomness {
 	fn get_current_block_randomness() -> (Option<H256>, Weight) {
-		(None, 0)
+		let randomness = relay_chain_state_proof()
+			.read_optional_entry(relay_chain::well_known_keys::CURRENT_BLOCK_RANDOMNESS)
+			.ok()
+			.flatten();
+		(randomness, 0)
 	}
 	fn get_one_epoch_ago_randomness() -> (Option<H256>, Weight) {
-		(None, 0)
+		let randomness = relay_chain_state_proof()
+			.read_optional_entry(relay_chain::well_known_keys::ONE_EPOCH_AGO_RANDOMNESS)
+			.ok()
+			.flatten();
+		(randomness, 0)
 	}
 	fn get_two_epochs_ago_randomness() -> (Option<H256>, Weight) {
-		(None, 0)
+		let randomness = relay_chain_state_proof()
+			.read_optional_entry(relay_chain::well_known_keys::TWO_EPOCHS_AGO_RANDOMNESS)
+			.ok()
+			.flatten();
+		(randomness, 0)
 	}
 }
 

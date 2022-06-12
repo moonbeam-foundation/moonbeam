@@ -28,6 +28,7 @@ use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 	Perbill,
 };
+use sp_std::convert::{TryFrom, TryInto};
 
 pub type AccountId = u64;
 pub type Balance = u128;
@@ -45,6 +46,8 @@ construct_runtime!(
 	{
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
+		Timestamp: pallet_timestamp::{Pallet, Call, Storage},
+		EVM: pallet_evm::{Pallet, Call, Storage, Config, Event<T>},
 		Randomness: pallet_randomness::{Pallet, Storage, Event<T>},
 	}
 );
@@ -98,10 +101,48 @@ impl pallet_balances::Config for Test {
 	type WeightInfo = ();
 }
 
+parameter_types! {
+	pub const MinimumPeriod: u64 = 6000 / 2;
+}
+
+impl pallet_timestamp::Config for Test {
+	type Moment = u64;
+	type OnTimestampSet = ();
+	type MinimumPeriod = MinimumPeriod;
+	type WeightInfo = ();
+}
+
+pub struct AddressMapping;
+
+impl pallet_evm::AddressMapping<AccountId> for AddressMapping {
+	fn into_account_id(address: sp_core::H160) -> AccountId {
+		0u64
+	}
+}
+
+impl pallet_evm::Config for Test {
+	type FeeCalculator = ();
+	type GasWeightMapping = ();
+	type CallOrigin = pallet_evm::EnsureAddressRoot<AccountId>;
+	type WithdrawOrigin = pallet_evm::EnsureAddressNever<AccountId>;
+	type AddressMapping = AddressMapping;
+	type Currency = Balances;
+	type Runner = pallet_evm::runner::stack::Runner<Self>;
+	type Event = Event;
+	type PrecompilesType = ();
+	type PrecompilesValue = ();
+	type ChainId = ();
+	type BlockGasLimit = ();
+	type OnChargeTransaction = ();
+	type BlockHashMapping = pallet_evm::SubstrateBlockHashMapping<Self>;
+	type FindAuthor = ();
+	type WeightInfo = ();
+}
+
 pub struct RelayEpochIndex;
 impl GetEpochIndex<u64> for RelayEpochIndex {
-	fn get_epoch_index() -> (u64, Weight) {
-		(1u64, 0)
+	fn get_epoch_index() -> (Option<u64>, Weight) {
+		(None, 0)
 	}
 }
 
@@ -118,9 +159,11 @@ impl GetRelayRandomness<H256> for RelayRandomness {
 	}
 }
 
-pub struct RandomnessSender;
-impl SendRandomness<u64, [u8; 32]> for RandomnessSender {
-	fn send_randomness(_contract: u64, _randomness: [u8; 32]) {}
+pub struct LocalRandomness;
+impl pallet_vrf::MaybeGetRandomness<H256> for LocalRandomness {
+	fn maybe_get_randomness() -> Option<H256> {
+		None
+	}
 }
 
 parameter_types! {
@@ -129,11 +172,10 @@ parameter_types! {
 }
 impl Config for Test {
 	type Event = Event;
-	type Currency = Balances;
+	type ReserveCurrency = Balances;
 	type RelayEpochIndex = RelayEpochIndex;
 	type RelayRandomness = RelayRandomness;
-	type RandomnessSender = RandomnessSender;
-	type WeightToFee = IdentityFee<u128>;
+	type LocalRandomness = LocalRandomness;
 	type Deposit = Deposit;
 	type ExpirationDelay = ExpirationDelay;
 	//type WeightToFee = ();

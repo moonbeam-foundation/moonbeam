@@ -7771,8 +7771,10 @@ version = "0.1.0"
 dependencies = [
  "frame-support",
  "frame-system",
+ "log",
  "pallet-balances",
  "pallet-evm",
+ "pallet-timestamp",
  "pallet-vrf",
  "parity-scale-codec",
  "scale-info",
@@ -8448,6 +8450,7 @@ dependencies = [
  "sc-transaction-pool",
  "serde",
  "serde_json",
+ "session-keys-primitives",
  "sha3 0.8.2",
  "sp-api",
  "sp-core",

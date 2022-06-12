@@ -183,26 +183,33 @@ pub mod pallet {
 
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
-		// Get randomness from runtime and set it locally
+		/// Get randomness from runtime and set it locally
 		// TODO (once asynchronous backing is implemented):
 		// only get new randomness iff relay block number changes
 		fn on_initialize(_now: BlockNumberFor<T>) -> Weight {
 			let last_epoch_index = <CurrentEpochIndex<T>>::get();
 			let (maybe_new_epoch_index, mut weight_consumed) =
 				T::RelayEpochIndex::get_epoch_index();
-			let epoch_changed = maybe_new_epoch_index > last_epoch_index;
-			if epoch_changed {
-				// insert new epoch information
-				<CurrentEpochIndex<T>>::put(maybe_new_epoch_index);
-				let (one_epoch_ago_randomness, one_epoch_ago_randomness_wt) =
-					T::RelayRandomness::get_one_epoch_ago_randomness();
-				let (two_epochs_ago_randomness, two_epochs_ago_randomness_wt) =
-					T::RelayRandomness::get_two_epochs_ago_randomness();
-				<OneEpochAgoRandomness<T>>::put(one_epoch_ago_randomness);
-				<TwoEpochsAgoRandomness<T>>::put(two_epochs_ago_randomness);
-				weight_consumed += 3 * T::DbWeight::get().write
-					+ one_epoch_ago_randomness_wt
-					+ two_epochs_ago_randomness_wt;
+			if let Some(new_epoch_index) = maybe_new_epoch_index {
+				// EPOCH CHANGED
+				if new_epoch_index > last_epoch_index {
+					// insert new epoch information
+					<CurrentEpochIndex<T>>::put(new_epoch_index);
+					let (one_epoch_ago_randomness, one_epoch_ago_randomness_wt) =
+						T::RelayRandomness::get_one_epoch_ago_randomness();
+					let (two_epochs_ago_randomness, two_epochs_ago_randomness_wt) =
+						T::RelayRandomness::get_two_epochs_ago_randomness();
+					<OneEpochAgoRandomness<T>>::put(one_epoch_ago_randomness);
+					<TwoEpochsAgoRandomness<T>>::put(two_epochs_ago_randomness);
+					weight_consumed += 3 * T::DbWeight::get().write
+						+ one_epoch_ago_randomness_wt
+						+ two_epochs_ago_randomness_wt;
+				}
+			} else {
+				log::warn!(
+					"Could not read epoch index from relay chain state proof \
+					Did not want to panic upon decode failure but do never expect this branch"
+				);
 			}
 			let (current_block_randomness, current_block_randomness_wt) =
 				T::RelayRandomness::get_current_block_randomness();
