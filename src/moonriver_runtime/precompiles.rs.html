@@ -184,6 +184,15 @@
 <span id="179">179</span>
 <span id="180">180</span>
 <span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -217,7 +226,7 @@
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_sha3fips::Sha3FIPS256</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_simple</span>::{<span class="ident">ECRecover</span>, <span class="ident">ECRecoverPublicKey</span>, <span class="ident">Identity</span>, <span class="ident">Ripemd160</span>, <span class="ident">Sha256</span>};
 <span class="kw">use</span> <span class="ident">parachain_staking_precompiles::ParachainStakingWrapper</span>;
-<span class="kw">use</span> <span class="ident">precompile_utils::revert</span>;
+<span class="kw">use</span> <span class="ident">precompile_utils</span>::{<span class="ident">revert</span>, <span class="ident">StatefulPrecompile</span>};
 <span class="kw">use</span> <span class="ident">relay_encoder_precompiles::RelayEncoderWrapper</span>;
 <span class="kw">use</span> <span class="ident">sp_core::H160</span>;
 <span class="kw">use</span> <span class="ident">sp_std::fmt::Debug</span>;
@@ -260,16 +269,25 @@
 <span class="doccomment">/// We include the nine Istanbul precompiles</span>
 <span class="doccomment">/// (https://github.com/ethereum/go-ethereum/blob/3c46f557/core/vm/contracts.go#L69)</span>
 <span class="doccomment">/// as well as a special precompile for dispatching Substrate extrinsics</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MoonriverPrecompiles</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>);
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MoonriverPrecompiles</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
+	<span class="ident">batch</span>: <span class="ident">BatchPrecompile</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
+	<span class="ident">_phantom</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
+}
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">MoonriverPrecompiles</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>
 <span class="kw">where</span>
 	<span class="ident">R</span>: <span class="ident">pallet_evm::Config</span>,
 {
 	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-		<span class="self">Self</span>(<span class="ident">Default::default</span>())
+		<span class="self">Self</span> {
+			<span class="comment">// we allow up to 3 levels of nesting.</span>
+			<span class="comment">// it should be more than enough for users to compose nested groups.</span>
+			<span class="ident">batch</span>: <span class="ident">BatchPrecompile::new_with_max_recursion_level</span>(<span class="number">3</span>),
+			<span class="ident">_phantom</span>: <span class="ident">PhantomData</span>,
+		}
 	}
+
 	<span class="doccomment">/// Return all addresses that contain precompiles. This can be used to populate dummy code</span>
 	<span class="doccomment">/// under the precompile.</span>
 	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">used_addresses</span>() -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">R::AccountId</span><span class="op">&gt;</span> {
@@ -340,7 +358,7 @@
 			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="ident">hash</span>(<span class="number">2053</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">RelayEncoderWrapper</span>::<span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">KusamaEncoder</span><span class="op">&gt;</span><span class="ident">::execute</span>(<span class="ident">handle</span>)),
 			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="ident">hash</span>(<span class="number">2054</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">XcmTransactorWrapper</span>::<span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="ident">::execute</span>(<span class="ident">handle</span>)),
 			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="ident">hash</span>(<span class="number">2055</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">AuthorMappingWrapper</span>::<span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="ident">::execute</span>(<span class="ident">handle</span>)),
-			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="ident">hash</span>(<span class="number">2056</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">BatchPrecompile</span>::<span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="ident">::execute</span>(<span class="ident">handle</span>)),
+			<span class="ident">a</span> <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="ident">hash</span>(<span class="number">2056</span>) =&gt; <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">batch</span>.<span class="ident">execute</span>(<span class="ident">handle</span>)),
 			<span class="comment">// If the address matches asset prefix, the we route through the asset precompile set</span>
 			<span class="ident">a</span> <span class="kw">if</span> <span class="kw-2">&amp;</span><span class="ident">a</span>.<span class="ident">to_fixed_bytes</span>()[<span class="number">0</span>..<span class="number">4</span>] <span class="op">==</span> <span class="ident">FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX</span> =&gt; {
 				<span class="ident">Erc20AssetsPrecompileSet</span>::<span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">IsForeign</span>, <span class="ident">ForeignAssetInstance</span><span class="op">&gt;</span><span class="ident">::new</span>()

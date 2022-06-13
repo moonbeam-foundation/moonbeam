@@ -440,6 +440,12 @@
 <span id="435">435</span>
 <span id="436">436</span>
 <span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -487,6 +493,12 @@
 
 <span class="doccomment">/// Alias for Result returning an EVM precompile error.</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">T</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">PrecompileFailure</span><span class="op">&gt;</span>;
+
+<span class="doccomment">/// Trait similar to `fp_evm::Precompile` but with a `&amp;self` parameter to manage some</span>
+<span class="doccomment">/// state (this state is only kept in a single transaction and is lost afterward).</span>
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">StatefulPrecompile</span> {
+	<span class="kw">fn</span> <span class="ident">execute</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span>;
+}
 
 <span class="doccomment">/// Return an error with provided (static) text.</span>
 <span class="doccomment">/// Using the `revert` function of `Gasometer` is preferred as erroring</span>
