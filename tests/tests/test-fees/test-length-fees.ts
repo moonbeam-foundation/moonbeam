@@ -82,7 +82,7 @@ describeDevMoonbeam(
 
 const testBalanceTransfer = async (context) => {
   let initialBalance = (
-    (await context.polkadotApi.query.system.account(baltathar.address)) as any
+    (await context.polkadotApi.query.system.account(baltathar.address))
   ).data.free.toBigInt();
 
   // send a balance transfer to self and see what our fees end up being
@@ -91,7 +91,7 @@ const testBalanceTransfer = async (context) => {
   );
 
   let afterBalance = (
-    (await context.polkadotApi.query.system.account(baltathar.address)) as any
+    (await context.polkadotApi.query.system.account(baltathar.address))
   ).data.free.toBigInt();
 
   const fee = initialBalance - afterBalance;
@@ -99,8 +99,8 @@ const testBalanceTransfer = async (context) => {
 };
 
 const testRuntimeUpgrade = async (context) => {
-  let initialBalance = (
-    (await context.polkadotApi.query.system.account(baltathar.address)) as any
+  const initialBalance = (
+    (await context.polkadotApi.query.system.account(baltathar.address))
   ).data.free.toBigInt();
 
   // generate a mock runtime upgrade hex string
@@ -113,7 +113,7 @@ const testRuntimeUpgrade = async (context) => {
   await context.createBlock();
 
   let afterBalance = (
-    (await context.polkadotApi.query.system.account(baltathar.address)) as any
+    (await context.polkadotApi.query.system.account(baltathar.address))
   ).data.free.toBigInt();
 
   const fee = initialBalance - afterBalance;
