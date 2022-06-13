@@ -84,9 +84,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
   it("Should test DMP on_initialization and on_idle", async function () {
     const metadata = await context.polkadotApi.rpc.state.getMetadata();
     const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
-      (pallet) => {
-        return pallet.name === "Balances";
-      }
+      (pallet) => pallet.name === "Balances"
     ).index;
     let ownParaId = (await context.polkadotApi.query.parachainInfo.parachainId()) as any;
 
@@ -94,13 +92,13 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     // let's target half of then being executed
 
     // xcmp reserved is BLOCK/4
-    let totalDmpWeight =
+    const totalDmpWeight =
       context.polkadotApi.consts.system.blockWeights.maxBlock.toBigInt() / BigInt(4);
 
     // we want half of numParaMsgs to be executed. That give us how much each message weights
-    let weightPerMessage = (totalDmpWeight * BigInt(2)) / BigInt(numMsgs);
+    const weightPerMessage = (totalDmpWeight * BigInt(2)) / BigInt(numMsgs);
 
-    let weightPerXcmInst = 100_000_000n;
+    const weightPerXcmInst = 100_000_000n;
     // Now we need to construct the message. This needs to:
     // - pass barrier (withdraw + clearOrigin*n buyExecution)
     // - fail in buyExecution, so that the previous instruction weights are counted
@@ -113,7 +111,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     // go on idle
 
     // for that reason, we multiply times 2
-    let clearOriginsPerMessage = (weightPerMessage - weightPerXcmInst * 2n) / weightPerXcmInst;
+    const clearOriginsPerMessage = (weightPerMessage - weightPerXcmInst * 2n) / weightPerXcmInst;
 
     let instructions = [];
     instructions.push({
@@ -190,7 +188,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     const signedBlock = await context.polkadotApi.rpc.chain.getBlock();
     const apiAt = await context.polkadotApi.at(signedBlock.block.header.hash);
     const allRecords = await apiAt.query.system.events();
-    let events = allRecords.map(({ event }) => `${event.section}.${event.method}.${event.data}`);
+    const events = allRecords.map(({ event }) => `${event.section}.${event.method}.${event.data}`);
 
     // lets grab at which point the dmp queue was exhausted
     let index = events.findIndex((event) => {
@@ -224,7 +222,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     // the test was designed to go half and half
     expect(executedOnInitialization).to.be.eq(25);
     expect(executedOnIdle).to.be.eq(25);
-    let pageIndex = (await apiAt.query.dmpQueue.pageIndex()) as any;
+    const pageIndex = (await apiAt.query.dmpQueue.pageIndex()) as any;
     expect(pageIndex.beginUsed.toBigInt()).to.eq(0n);
     expect(pageIndex.endUsed.toBigInt()).to.eq(0n);
   });

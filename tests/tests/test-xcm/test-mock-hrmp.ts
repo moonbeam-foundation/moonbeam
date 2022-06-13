@@ -467,9 +467,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer of DEV", (context) =
     // Get Pallet balances index
     const metadata = await context.polkadotApi.rpc.state.getMetadata();
     const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
-      (pallet) => {
-        return pallet.name === "Balances";
-      }
+      (pallet) => pallet.name === "Balances"
     ).index;
     // We are charging 100_000_000 weight for every XCM instruction
     // We are executing 4 instructions
@@ -587,9 +585,7 @@ describeDevMoonbeam(
       // Get Pallet balances index
       const metadata = await context.polkadotApi.rpc.state.getMetadata();
       const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
-        (pallet) => {
-          return pallet.name === "Balances";
-        }
+        (pallet) => pallet.name === "Balances"
       ).index;
       // We are charging 100_000_000 weight for every XCM instruction
       // We are executing 4 instructions
@@ -735,9 +731,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
   it("Should receive 10 Local Asset tokens and sufficent DEV to pay for fee", async function () {
     const metadata = await context.polkadotApi.rpc.state.getMetadata();
     const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
-      (pallet) => {
-        return pallet.name === "Balances";
-      }
+      (pallet) => pallet.name === "Balances"
     ).index;
 
     const localAssetsPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
@@ -1075,9 +1069,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     let ownParaId = (await context.polkadotApi.query.parachainInfo.parachainId()) as any;
     const metadata = await context.polkadotApi.rpc.state.getMetadata();
     const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
-      (pallet) => {
-        return pallet.name === "Balances";
-      }
+      (pallet) => pallet.name === "Balances"
     ).index;
 
     const localAssetsPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
@@ -1294,9 +1286,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     this.timeout(120000);
     const metadata = await context.polkadotApi.rpc.state.getMetadata();
     const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
-      (pallet) => {
-        return pallet.name === "Balances";
-      }
+      (pallet) => pallet.name === "Balances"
     ).index;
 
     // lets work with restrict decay 0 for now
@@ -1306,17 +1296,17 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
       )
     );
 
-    let numParaMsgs = 50;
+    const numParaMsgs = 50;
     // let's target half of then being executed
 
     // xcmp reserved is BLOCK/4
-    let totalXcmpWeight =
+    const totalXcmpWeight =
       context.polkadotApi.consts.system.blockWeights.maxBlock.toBigInt() / BigInt(4);
 
     // we want half of numParaMsgs to be executed. That give us how much each message weights
-    let weightPerMessage = (totalXcmpWeight * BigInt(2)) / BigInt(numParaMsgs);
+    const weightPerMessage = (totalXcmpWeight * BigInt(2)) / BigInt(numParaMsgs);
 
-    let weightPerXcmInst = 100_000_000n;
+    const weightPerXcmInst = 100_000_000n;
     // Now we need to construct the message. This needs to:
     // - pass barrier (withdraw + clearOrigin*n buyExecution)
     // - fail in buyExecution, so that the previous instruction weights are counted
@@ -1325,7 +1315,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
 
     // In this case we want to never reach the thresholdLimit, to make sure we execute every
     // single messages.
-    let clearOriginsPerMessage = (weightPerMessage - weightPerXcmInst) / weightPerXcmInst;
+    const clearOriginsPerMessage = (weightPerMessage - weightPerXcmInst) / weightPerXcmInst;
 
     let instructions = [];
     instructions.push({
@@ -1369,7 +1359,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
       },
     });
 
-    let xcmMessage = {
+    const xcmMessage = {
       V2: instructions,
     };
     const xcmpFormat: XcmpMessageFormat = context.polkadotApi.createType(
@@ -1406,7 +1396,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     await context.createBlock();
 
     // all the withdraws + clear origins `buyExecution
-    let weightUsePerMessage = (clearOriginsPerMessage + 2n) * 100_000_000n;
+    const weightUsePerMessage = (clearOriginsPerMessage + 2n) * 100_000_000n;
 
     const result = await calculateShufflingAndExecution(
       context,
@@ -1415,8 +1405,8 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
       totalXcmpWeight
     );
 
-    let indices = result[0];
-    let shouldItExecute = result[1];
+    const indices = result[0];
+    const shouldItExecute = result[1];
 
     // assert we dont have on_idle execution
     expect(shouldItExecute.indexOf(XcmpExecution.InitializationExecutedPassingBarrier) > -1).to.be
@@ -1455,22 +1445,20 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     this.timeout(120000);
     const metadata = await context.polkadotApi.rpc.state.getMetadata();
     const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
-      (pallet) => {
-        return pallet.name === "Balances";
-      }
+      (pallet) => pallet.name === "Balances"
     ).index;
 
-    let numParaMsgs = 50;
+    const numParaMsgs = 50;
     // let's target half of then being executed
 
     // xcmp reserved is BLOCK/4
-    let totalXcmpWeight =
+    const totalXcmpWeight =
       context.polkadotApi.consts.system.blockWeights.maxBlock.toBigInt() / BigInt(4);
 
     // we want half of numParaMsgs to be executed. That give us how much each message weights
-    let weightPerMessage = (totalXcmpWeight * BigInt(2)) / BigInt(numParaMsgs);
+    const weightPerMessage = (totalXcmpWeight * BigInt(2)) / BigInt(numParaMsgs);
 
-    let weightPerXcmInst = 100_000_000n;
+    const weightPerXcmInst = 100_000_000n;
     // Now we need to construct the message. This needs to:
     // - pass barrier (withdraw + clearOrigin*n buyExecution)
     // - fail in buyExecution, so that the previous instruction weights are counted
@@ -1483,7 +1471,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     // go on idle
 
     // for that reason, we multiply times 2
-    let clearOriginsPerMessage = (weightPerMessage - weightPerXcmInst * 2n) / weightPerXcmInst;
+    const clearOriginsPerMessage = (weightPerMessage - weightPerXcmInst * 2n) / weightPerXcmInst;
 
     let instructions = [];
     instructions.push({
@@ -1564,7 +1552,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     await context.createBlock();
 
     // all the withdraws + clear origins `buyExecution
-    let weightUsePerMessage = (clearOriginsPerMessage + 2n) * 100_000_000n;
+    const weightUsePerMessage = (clearOriginsPerMessage + 2n) * 100_000_000n;
 
     // in this case, we have some that will execute on_initialize
     // some that will fail the execution
@@ -1576,8 +1564,8 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
       totalXcmpWeight
     );
 
-    let indices = result[0];
-    let shouldItExecute = result[1];
+    const indices = result[0];
+    const shouldItExecute = result[1];
 
     // assert we have all kinds of execution
     expect(shouldItExecute.indexOf(XcmpExecution.InitializationExecutedPassingBarrier) > -1).to.be
@@ -1597,7 +1585,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
         new Uint8Array([...new TextEncoder().encode("sibl"), ...paraId.toU8a()])
       ).padEnd(42, "0");
 
-      let balance = await context.polkadotApi.query.system.account(sovereignAddress);
+      const balance = await context.polkadotApi.query.system.account(sovereignAddress);
 
       if (
         shouldItExecute[indices.indexOf(i)] == XcmpExecution.InitializationExecutedPassingBarrier ||
@@ -1615,9 +1603,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
   it("Should test for two XCMP insertions for same para, the last is executed", async function () {
     const metadata = await context.polkadotApi.rpc.state.getMetadata();
     const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
-      (pallet) => {
-        return pallet.name === "Balances";
-      }
+      (pallet) => pallet.name === "Balances"
     ).index;
 
     // We distinguish between instructions not executed, and executed
@@ -1691,10 +1677,10 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
       },
     });
 
-    let xcmMessageNotExecuted = {
+    const xcmMessageNotExecuted = {
       V2: instructionsNotExecuted,
     };
-    let xcmMessageExecuted = {
+    const xcmMessageExecuted = {
       V2: instructionsExecuted,
     };
     const xcmpFormat: XcmpMessageFormat = context.polkadotApi.createType(
@@ -1730,7 +1716,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     await context.createBlock();
 
     // The balance of the sovereign account should be 98, as the first message does not executed
-    let balance = await context.polkadotApi.query.system.account(sovereignAddress);
+    const balance = await context.polkadotApi.query.system.account(sovereignAddress);
     expect(balance.data.free.toBigInt()).to.eq(98n);
   });
 });
@@ -1739,12 +1725,8 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
   it("Should test for three XCMP insertions, the channel gests suspended", async function () {
     const metadata = await context.polkadotApi.rpc.state.getMetadata();
     const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
-      (pallet) => {
-        return pallet.name === "Balances";
-      }
+      (pallet) => pallet.name === "Balances"
     ).index;
-    let ownParaId = (await context.polkadotApi.query.parachainInfo.parachainId()) as any;
-
     let instructionsNotExecuted = [];
 
     instructionsNotExecuted.push({
@@ -1781,7 +1763,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
       },
     });
 
-    let xcmMessageNotExecuted = {
+    const xcmMessageNotExecuted = {
       V2: instructionsNotExecuted,
     };
 
@@ -1806,7 +1788,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     await context.createBlock(context.polkadotApi.tx.balances.transfer(sovereignAddress, 100n));
 
     const queueConfig = (await context.polkadotApi.query.xcmpQueue.queueConfig()) as any;
-    let suspendThreshold = queueConfig.suspendThreshold.toNumber();
+    const suspendThreshold = queueConfig.suspendThreshold.toNumber();
 
     // now we start injecting messages
     for (let i = 0; i < suspendThreshold + 1; i++) {
@@ -1816,7 +1798,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     await context.createBlock();
 
     // The balance of the sovereign account should be 100, as none of the messages got executed
-    let balance = await context.polkadotApi.query.system.account(sovereignAddress);
+    const balance = await context.polkadotApi.query.system.account(sovereignAddress);
     expect(balance.data.free.toBigInt()).to.eq(100n);
   });
 });
