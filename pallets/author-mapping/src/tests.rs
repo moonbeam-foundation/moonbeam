@@ -19,12 +19,18 @@ use crate::mock::{
 	last_event, AuthorMapping, Balances, DepositAmount, Event as MetaEvent, ExtBuilder, Origin,
 	Runtime, System, TestAuthor,
 };
-use crate::{Error, Event, MappingWithDeposit, RegistrationInfo};
+use crate::{keys_size, keys_wrapper, Error, Event, MappingWithDeposit, RegistrationInfo};
 use frame_support::{
 	assert_noop, assert_ok,
 	traits::{OnRuntimeUpgrade, ReservableCurrency},
 };
 use nimbus_primitives::NimbusId;
+
+#[test]
+fn check_key_size() {
+	// NimbusId (32) + NimbusId (32)
+	assert_eq!(keys_size::<Runtime>(), 64usize);
+}
 
 #[test]
 fn genesis_builder_works() {
@@ -64,8 +70,8 @@ fn eligible_account_can_register() {
 
 			assert_eq!(
 				last_event(),
-				MetaEvent::AuthorMapping(Event::AuthorRegistered {
-					author_id: TestAuthor::Bob.into(),
+				MetaEvent::AuthorMapping(Event::KeysRegistered {
+					nimbus_id: TestAuthor::Bob.into(),
 					account_id: 2,
 					keys: TestAuthor::Bob.into(),
 				})
@@ -113,8 +119,8 @@ fn double_registration_costs_twice_as_much() {
 
 			assert_eq!(
 				last_event(),
-				MetaEvent::AuthorMapping(Event::AuthorRegistered {
-					author_id: TestAuthor::Bob.into(),
+				MetaEvent::AuthorMapping(Event::KeysRegistered {
+					nimbus_id: TestAuthor::Bob.into(),
 					account_id: 2,
 					keys: TestAuthor::Bob.into(),
 				})
@@ -135,8 +141,8 @@ fn double_registration_costs_twice_as_much() {
 
 			assert_eq!(
 				last_event(),
-				MetaEvent::AuthorMapping(Event::AuthorRegistered {
-					author_id: TestAuthor::Alice.into(),
+				MetaEvent::AuthorMapping(Event::KeysRegistered {
+					nimbus_id: TestAuthor::Alice.into(),
 					account_id: 2,
 					keys: TestAuthor::Alice.into(),
 				})
@@ -157,10 +163,7 @@ fn registered_account_can_clear() {
 		.with_mappings(vec![(TestAuthor::Alice.into(), 1)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(AuthorMapping::clear_association(
-				Origin::signed(1),
-				TestAuthor::Alice.into()
-			));
+			assert_ok!(AuthorMapping::remove_keys(Origin::signed(1)));
 
 			assert_eq!(Balances::free_balance(&1), 1000);
 			assert_eq!(Balances::reserved_balance(&1), 0);
@@ -171,8 +174,8 @@ fn registered_account_can_clear() {
 
 			assert_eq!(
 				last_event(),
-				MetaEvent::AuthorMapping(Event::AuthorDeRegistered {
-					author_id: TestAuthor::Alice.into(),
+				MetaEvent::AuthorMapping(Event::KeysRemoved {
+					nimbus_id: TestAuthor::Alice.into(),
 					account_id: 1,
 					keys: TestAuthor::Alice.into(),
 				})
@@ -184,8 +187,8 @@ fn registered_account_can_clear() {
 fn unregistered_author_cannot_be_cleared() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_noop!(
-			AuthorMapping::clear_association(Origin::signed(1), TestAuthor::Alice.into()),
-			Error::<Runtime>::AssociationNotFound
+			AuthorMapping::remove_keys(Origin::signed(1)),
+			Error::<Runtime>::OldAuthorIdNotFound
 		);
 	})
 }
@@ -276,20 +279,17 @@ fn registered_author_cannot_be_rotated_by_non_owner() {
 }
 
 #[test]
-fn rotating_to_the_same_author_id_leaves_registration_in_tact() {
+fn rotating_to_the_same_nimbus_id_leaves_registration_in_tact() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 1000)])
 		.with_mappings(vec![(TestAuthor::Alice.into(), 1)])
 		.build()
 		.execute_with(|| {
-			assert_noop!(
-				AuthorMapping::update_association(
-					Origin::signed(1),
-					TestAuthor::Alice.into(),
-					TestAuthor::Alice.into()
-				),
-				Error::<Runtime>::AlreadyAssociated
-			);
+			assert_ok!(AuthorMapping::update_association(
+				Origin::signed(1),
+				TestAuthor::Alice.into(),
+				TestAuthor::Alice.into()
+			));
 		})
 }
 
@@ -299,9 +299,9 @@ fn eligible_account_can_full_register() {
 		.with_balances(vec![(2, 1000)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(AuthorMapping::register_keys(
+			assert_ok!(AuthorMapping::set_keys(
 				Origin::signed(2),
-				(TestAuthor::Bob.into(), TestAuthor::Alice.into()),
+				keys_wrapper::<Runtime>(TestAuthor::Bob.into(), TestAuthor::Alice.into()),
 			));
 
 			assert_eq!(Balances::free_balance(&2), 900);
@@ -313,8 +313,8 @@ fn eligible_account_can_full_register() {
 
 			assert_eq!(
 				last_event(),
-				MetaEvent::AuthorMapping(Event::AuthorRegistered {
-					author_id: TestAuthor::Bob.into(),
+				MetaEvent::AuthorMapping(Event::KeysRegistered {
+					nimbus_id: TestAuthor::Bob.into(),
 					account_id: 2,
 					keys: TestAuthor::Alice.into(),
 				})
@@ -323,79 +323,21 @@ fn eligible_account_can_full_register() {
 }
 
 #[test]
-fn cannot_register_keys_without_deposit() {
+fn cannot_set_keys_without_deposit() {
 	ExtBuilder::default()
 		.with_balances(vec![(2, 10)])
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				AuthorMapping::register_keys(
+				AuthorMapping::set_keys(
 					Origin::signed(2),
-					(TestAuthor::Alice.into(), TestAuthor::Bob.into()),
+					keys_wrapper::<Runtime>(TestAuthor::Alice.into(), TestAuthor::Bob.into()),
 				),
 				Error::<Runtime>::CannotAffordSecurityDeposit
 			);
 
 			assert_eq!(Balances::free_balance(&2), 10);
 			assert_eq!(AuthorMapping::keys_of(&TestAuthor::Alice.into()), None);
-		})
-}
-
-#[test]
-fn double_full_registration_counts_twice_as_much() {
-	ExtBuilder::default()
-		.with_balances(vec![(2, 1000)])
-		.build()
-		.execute_with(|| {
-			// Register once as Bob
-			assert_ok!(AuthorMapping::register_keys(
-				Origin::signed(2),
-				(TestAuthor::Bob.into(), TestAuthor::Charlie.into()),
-			));
-
-			assert_eq!(Balances::free_balance(&2), 900);
-			assert_eq!(Balances::reserved_balance(&2), 100);
-			assert_eq!(
-				AuthorMapping::account_id_of(&TestAuthor::Bob.into()),
-				Some(2)
-			);
-
-			assert_eq!(
-				last_event(),
-				MetaEvent::AuthorMapping(Event::AuthorRegistered {
-					author_id: TestAuthor::Bob.into(),
-					account_id: 2,
-					keys: TestAuthor::Charlie.into(),
-				})
-			);
-
-			// Register again as Alice
-			assert_ok!(AuthorMapping::register_keys(
-				Origin::signed(2),
-				(TestAuthor::Alice.into(), TestAuthor::Bob.into()),
-			));
-
-			assert_eq!(Balances::free_balance(&2), 800);
-			assert_eq!(Balances::reserved_balance(&2), 200);
-			assert_eq!(
-				AuthorMapping::account_id_of(&TestAuthor::Alice.into()),
-				Some(2)
-			);
-
-			assert_eq!(
-				last_event(),
-				MetaEvent::AuthorMapping(Event::AuthorRegistered {
-					author_id: TestAuthor::Alice.into(),
-					account_id: 2,
-					keys: TestAuthor::Bob.into(),
-				})
-			);
-
-			// Should still be registered as Bob as well
-			assert_eq!(
-				AuthorMapping::account_id_of(&TestAuthor::Bob.into()),
-				Some(2)
-			);
 		})
 }
 
@@ -407,9 +349,9 @@ fn full_registered_author_cannot_be_overwritten() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				AuthorMapping::register_keys(
+				AuthorMapping::set_keys(
 					Origin::signed(2),
-					(TestAuthor::Alice.into(), TestAuthor::Bob.into()),
+					keys_wrapper::<Runtime>(TestAuthor::Alice.into(), TestAuthor::Bob.into()),
 				),
 				Error::<Runtime>::AlreadyAssociated
 			);
@@ -425,7 +367,7 @@ fn registered_can_full_rotate() {
 		.execute_with(|| {
 			assert_ok!(AuthorMapping::set_keys(
 				Origin::signed(2),
-				(TestAuthor::Charlie.into(), TestAuthor::Charlie.into())
+				keys_wrapper::<Runtime>(TestAuthor::Charlie.into(), TestAuthor::Charlie.into())
 			));
 
 			assert_eq!(AuthorMapping::account_id_of(&TestAuthor::Bob.into()), None);
@@ -445,16 +387,16 @@ fn registered_can_full_rotate() {
 }
 
 #[test]
-fn unregistered_author_cannot_be_full_rotated() {
-	ExtBuilder::default().build().execute_with(|| {
-		assert_noop!(
-			AuthorMapping::set_keys(
+fn unregistered_author_can_be_full_rotated() {
+	ExtBuilder::default()
+		.with_balances(vec![(2, 1000)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(AuthorMapping::set_keys(
 				Origin::signed(2),
-				(TestAuthor::Bob.into(), TestAuthor::Bob.into()),
-			),
-			Error::<Runtime>::OldAuthorIdNotFound
-		);
-	})
+				keys_wrapper::<Runtime>(TestAuthor::Bob.into(), TestAuthor::Bob.into()),
+			));
+		})
 }
 
 #[test]
@@ -467,27 +409,24 @@ fn registered_author_cannot_be_full_rotated_by_non_owner() {
 			assert_noop!(
 				AuthorMapping::set_keys(
 					Origin::signed(2),
-					(TestAuthor::Bob.into(), TestAuthor::Bob.into())
+					keys_wrapper::<Runtime>(TestAuthor::Alice.into(), TestAuthor::Bob.into())
 				),
-				Error::<Runtime>::OldAuthorIdNotFound
+				Error::<Runtime>::AlreadyAssociated
 			);
 		})
 }
 
 #[test]
-fn full_rotating_to_the_same_author_id_leaves_registration_in_tact() {
+fn full_rotating_to_the_same_nimbus_id_leaves_registration_in_tact() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 1000)])
 		.with_mappings(vec![(TestAuthor::Alice.into(), 1)])
 		.build()
 		.execute_with(|| {
-			assert_noop!(
-				AuthorMapping::set_keys(
-					Origin::signed(1),
-					(TestAuthor::Alice.into(), TestAuthor::Alice.into())
-				),
-				Error::<Runtime>::AlreadyAssociated
-			);
+			assert_ok!(AuthorMapping::set_keys(
+				Origin::signed(1),
+				keys_wrapper::<Runtime>(TestAuthor::Alice.into(), TestAuthor::Alice.into())
+			));
 		})
 }
 

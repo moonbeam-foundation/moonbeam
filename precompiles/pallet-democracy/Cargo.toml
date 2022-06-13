@@ -31,6 +31,9 @@ derive_more = "0.99"
 hex-literal = "0.3.4"
 serde = "1.0.100"
 
+# Moonbeam
+precompile-utils = { path = "../utils", features = [ "testing" ] }
+
 # Substrate
 pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20" }
 pallet-scheduler = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20" }

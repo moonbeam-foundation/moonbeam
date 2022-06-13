@@ -7,7 +7,7 @@ pragma solidity ^0.8.0;
 interface LocalAsset {
     /**
      * @dev Mint tokens to an address
-     * Selector: 23b872dd
+     * Selector: 40c10f19
      * @param to address The address to which you want to mint tokens
      * @param value uint256 the amount of tokens to be minted
      */
@@ -16,7 +16,7 @@ interface LocalAsset {
 
     /**
      * @dev Burn tokens from an address
-     * Selector: 23b872dd
+     * Selector: 9dc29fac
      * @param from address The address from which you want to burn tokens
      * @param value uint256 the amount of tokens to be burnt
      */
@@ -25,7 +25,7 @@ interface LocalAsset {
 
     /**
      * @dev Freeze an account, preventing it from operating with the asset
-     * Selector: 23b872dd
+     * Selector: 8d1fdf2f
      * @param account address The address that you want to freeze
      */
     function freeze(address account)
@@ -33,7 +33,7 @@ interface LocalAsset {
 
     /**
      * @dev Unfreeze an account, letting it from operating againt with the asset
-     * Selector: 23b872dd
+     * Selector: 5ea20216
      * @param account address The address that you want to unfreeze
      */
     function thaw(address account)
@@ -41,21 +41,21 @@ interface LocalAsset {
 
     /**
      * @dev Freeze the entire asset operations
-     * Selector: 23b872dd
+     * Selector: 6b8751c1
      */
     function freeze_asset()
         external returns (bool);
 
     /**
      * @dev Unfreeze the entire asset operations
-     * Selector: 23b872dd
+     * Selector: 1cddec19
      */
     function thaw_asset()
         external returns (bool);
 
     /**
      * @dev Transfer the ownership of an asset to a new account
-     * Selector: 23b872dd
+     * Selector: f0350c04
      * @param owner address The address of the new owner
      */
     function transfer_ownership(address owner)
@@ -63,7 +63,7 @@ interface LocalAsset {
     
     /**
      * @dev Specify the issuer, admin and freezer of an asset
-     * Selector: 23b872dd
+     * Selector: f8bf8e95
      * @param issuer address The address capable of issuing tokens
      * @param admin address The address capable of burning tokens and unfreezing accounts/assets
      * @param freezer address The address capable of freezing accounts/asset
@@ -73,7 +73,7 @@ interface LocalAsset {
 
     /**
      * @dev Specify the name, symbol and decimals of your asset
-     * Selector: 23b872dd
+     * Selector: ee5dc1e4
      * @param name string The name of the asset
      * @param symbol string The symbol of the asset
      * @param decimals uint8 The number of decimals of your asset
@@ -83,7 +83,7 @@ interface LocalAsset {
 
     /**
      * @dev Clear the name, symbol and decimals of your asset
-     * Selector: 23b872dd
+     * Selector: d3ba4b9e
      */
     function clear_metadata()
         external returns (bool);
