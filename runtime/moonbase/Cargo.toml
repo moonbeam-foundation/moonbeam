@@ -144,6 +144,8 @@ cumulus-test-relay-sproof-builder = { git = "https://github.com/paritytech/cumul
 polkadot-runtime-parachains = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.20" }
 xcm-simulator = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.20" }
 
+precompile-utils = { path = "../../precompiles/utils", default-features = false, features = [ "testing" ] }
+
 [build-dependencies]
 substrate-wasm-builder = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20" }
 
@@ -249,7 +251,6 @@ runtime-wasm = []
 # to make it smaller like logging for example.
 on-chain-release-build = [ "sp-api/disable-logging" ]
 
-moonbase-runtime-benchmarks = []
 runtime-benchmarks = [
 	"frame-benchmarking",
 	"frame-support/runtime-benchmarks",
@@ -257,6 +258,7 @@ runtime-benchmarks = [
 	"frame-system/runtime-benchmarks",
 	"hex-literal",
 	"pallet-asset-manager/runtime-benchmarks",
+	"pallet-author-inherent/runtime-benchmarks",
 	"pallet-author-mapping/runtime-benchmarks",
 	"pallet-author-slot-filter/runtime-benchmarks",
 	"pallet-balances/runtime-benchmarks",

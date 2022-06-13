@@ -32,6 +32,7 @@ pallet-base-fee = { git = "https://github.com/purestake/frontier", branch = "moo
 pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.20", default-features = false }
 
 # Nimbus
+pallet-author-inherent = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.20", default-features = false }
 pallet-author-slot-filter = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.20", default-features = false }
 
 # Polkadot
@@ -41,6 +42,7 @@ xcm = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.2
 std = [
 	"frame-support/std",
 	"pallet-asset-manager/std",
+	"pallet-author-inherent/std",
 	"pallet-author-mapping/std",
 	"pallet-base-fee/std",
 	"pallet-evm/std",

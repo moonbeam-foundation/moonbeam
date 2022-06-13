@@ -1,3 +1,4 @@
+import "@moonbeam-network/api-augment";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 
 describeDevMoonbeam("TxPool - Limits", (context) => {
