@@ -143,7 +143,7 @@ pub mod pallet {
 
 	#[pallet::storage]
 	#[pallet::getter(fn orbiter)]
-	/// Account lookup override
+	/// Check if account is an orbiter
 	pub type RegisteredOrbiter<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, bool>;
 
 	#[pallet::genesis_config]
