@@ -86,8 +86,9 @@ const testBalanceTransfer = async (context) => {
   ).data.free.toBigInt();
 
   // send a balance transfer to self and see what our fees end up being
-  await context.polkadotApi.tx.balances.transfer(baltathar.address, 1).signAndSend(baltathar);
-  await context.createBlock();
+  await context.createBlock(
+    context.polkadotApi.tx.balances.transfer(baltathar.address, 1).signAsync(baltathar)
+  );
 
   let afterBalance = (
     (await context.polkadotApi.query.system.account(baltathar.address)) as any
