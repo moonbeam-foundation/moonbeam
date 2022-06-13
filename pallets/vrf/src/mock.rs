@@ -15,21 +15,18 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! A minimal runtime including the vrf pallet
-use crate::{AuthorityId, GetMostRecentVrfInputs, Slot};
-use frame_support::{
-	construct_runtime, pallet_prelude::*, parameter_types, traits::Everything, weights::Weight,
-};
+use crate::{GetVrfInputs, Slot, VrfId};
+use frame_support::{construct_runtime, parameter_types, traits::Everything, weights::Weight};
 use nimbus_primitives::NimbusId;
-use parity_scale_codec::{Decode, Encode};
-use scale_info::TypeInfo;
 use session_keys_primitives::KeysLookup;
-use sp_core::{ByteArray, H256};
+use sp_core::H256;
 use sp_io;
 use sp_runtime::{
 	testing::Header,
-	traits::{BlakeTwo256, Convert, IdentityLookup},
-	Perbill, RuntimeDebug,
+	traits::{BlakeTwo256, IdentityLookup},
+	Perbill,
 };
+use std::convert::{TryFrom, TryInto};
 
 pub type AccountId = u64;
 pub type Balance = u128;
@@ -47,7 +44,7 @@ construct_runtime!(
 	{
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
-		Vrf: crate::{Pallet, Storage},
+		Vrf: crate::{Pallet, Call, Storage},
 	}
 );
 
@@ -98,31 +95,26 @@ impl pallet_balances::Config for Runtime {
 	type WeightInfo = ();
 }
 
-pub struct MostRecentVrfInputGetter;
-impl GetMostRecentVrfInputs<H256, Slot> for MostRecentVrfInputGetter {
-	fn get_most_recent_relay_storage_root() -> (H256, Weight) {
-		(H256::default(), 0u64)
+pub struct VrfInputs;
+impl GetVrfInputs<Slot, H256> for VrfInputs {
+	fn get_slot_number() -> Slot {
+		Slot::default()
 	}
-	fn get_most_recent_relay_slot_number() -> (Slot, Weight) {
-		(Slot::default(), 0u64)
+	fn get_storage_root() -> H256 {
+		H256::default()
 	}
 }
 
 pub struct NimbusToVrfKey;
-impl KeysLookup<NimbusId, AuthorityId> for NimbusToVrfKey {
-	fn lookup_keys(authority_id: &NimbusId) -> Option<AuthorityId> {
+impl KeysLookup<NimbusId, VrfId> for NimbusToVrfKey {
+	fn lookup_keys(authority_id: &NimbusId) -> Option<VrfId> {
 		None
 	}
 }
 
-parameter_types! {
-	pub const DepositAmount: Balance = 100;
-}
 impl crate::Config for Runtime {
-	/// The relay block hash type (probably H256)
-	type RelayBlockHash = H256;
 	/// Gets the most recent relay block hash and relay slot number in `on_initialize`
-	type MostRecentVrfInputGetter = MostRecentVrfInputGetter;
+	type VrfInputs = VrfInputs;
 	/// Lookup VRF key using NimbusID
 	type VrfKeyLookup = NimbusToVrfKey;
 }

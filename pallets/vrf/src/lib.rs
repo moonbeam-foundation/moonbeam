@@ -45,7 +45,7 @@ pub mod pallet {
 	use frame_system::pallet_prelude::*;
 
 	/// VRF inputs from the relay chain
-	/// Both inputs are expected to change every block (TODO: should we enforce this?)
+	/// Both inputs are expected to change every block
 	#[derive(Default, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
 	pub struct VrfInput<RelayHash, SlotNumber> {
 		/// Relay parent block slot number
@@ -150,7 +150,7 @@ pub mod pallet {
 
 		fn is_inherent_required(_: &InherentData) -> Result<Option<Self::Error>, Self::Error> {
 			// Return Ok(Some(_)) unconditionally because this inherent is required in every block
-			// If it is not found, throw an AuthorInherentRequired error.
+			// If it is not found, throw a VrfInherentRequired error.
 			Ok(Some(InherentError::Other(
 				sp_runtime::RuntimeString::Borrowed("Inherent required to set VRF inputs"),
 			)))
@@ -170,6 +170,8 @@ pub mod pallet {
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
 		// Set this block's randomness using the VRF output
 		fn on_initialize(_now: BlockNumberFor<T>) -> Weight {
+			// TODO: how is this set the first block in the runtime upgrade that includes this code
+			// what is the genesis VRF input and how do we populate LastVrfInput with this value
 			let vrf_input = <LastVrfInput<T>>::get()
 				.expect("Expect to be set in `set_vrf_inputs` inherent prior to on_initialize");
 			Self::set_randomness(vrf_input)
@@ -198,7 +200,7 @@ pub mod pallet {
 					} else {
 						if id == NIMBUS_ENGINE_ID {
 							let nimbus_id = NimbusId::decode(&mut data)
-								.expect("NimbusId encoded in preruntime digest must be valid");
+								.expect("NimbusId encoded in pre-runtime digest must be valid");
 
 							block_author_vrf_id = Some(
 								T::VrfKeyLookup::lookup_keys(&nimbus_id)
