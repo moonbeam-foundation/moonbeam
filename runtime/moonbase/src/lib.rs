@@ -891,7 +891,8 @@ impl pallet_proxy::Config for Runtime {
 
 impl pallet_migrations::Config for Runtime {
 	type Event = Event;
-	//TODO wire up our correct list of migrations here. Maybe this shouldn't be in `moonbeam_runtime_common`.
+	// TODO wire up our correct list of migrations here. Maybe this shouldn't be in
+	// `moonbeam_runtime_common`.
 	type MigrationsList = (
 		moonbeam_runtime_common::migrations::CommonMigrations<
 			Runtime,
@@ -1443,7 +1444,8 @@ mod tests {
 	}
 
 	#[test]
-	// Required migration is pallet_parachain_staking::migrations::IncreaseMaxTopDelegationsPerCandidate
+	// Required migration is
+	// pallet_parachain_staking::migrations::IncreaseMaxTopDelegationsPerCandidate
 	// Purpose of this test is to remind of required migration if constant is ever changed
 	fn updating_maximum_delegators_per_candidate_requires_configuring_required_migration() {
 		assert_eq!(
