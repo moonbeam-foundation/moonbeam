@@ -91,7 +91,7 @@ where
 	pub fn used_addresses() -> impl Iterator<Item = R::AccountId> {
 		sp_std::vec![
 			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2050, 2051, 2052, 2053, 2054,
-			2055, 2056
+			2055, 2056, 2058
 		]
 		.into_iter()
 		.map(|x| R::AddressMapping::into_account_id(hash(x)))
@@ -113,6 +113,7 @@ where
 	RelayEncoderWrapper<R, WestendEncoder>: Precompile,
 	XcmTransactorWrapper<R>: Precompile,
 	AuthorMappingWrapper<R>: Precompile,
+	CallPermitPrecompile<R>: Precompile,
 	R: pallet_evm::Config,
 {
 	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<PrecompileResult> {
@@ -155,6 +156,7 @@ where
 			a if a == hash(2054) => Some(XcmTransactorWrapper::<R>::execute(handle)),
 			a if a == hash(2055) => Some(AuthorMappingWrapper::<R>::execute(handle)),
 			a if a == hash(2056) => Some(BatchPrecompile::<R>::execute(handle)),
+			a if a == hash(2058) => Some(CallPermitPrecompile::<R>::execute(handle)),
 			// If the address matches asset prefix, the we route through the asset precompile set
 			a if &a.to_fixed_bytes()[0..4] == FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX => {
 				Erc20AssetsPrecompileSet::<R, IsForeign, ForeignAssetInstance>::new()

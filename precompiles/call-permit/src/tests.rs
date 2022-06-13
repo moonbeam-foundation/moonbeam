@@ -16,37 +16,34 @@
 
 use crate::{
 	mock::{
-		balance,
-		Account::{Alice, Bob, Charlie, David, Precompile, Revert},
-		Call, ExtBuilder, Origin, PrecompilesValue, Runtime, TestPrecompiles, ALICE_SECRET_KEY,
+		Account::{Alice, Bob, Charlie, Precompile},
+		ExtBuilder, PrecompilesValue, Runtime, TestPrecompiles, ALICE_SECRET_KEY,
 	},
 	Action, CallPermitPrecompile,
 };
 use evm::ExitReason;
-use fp_evm::{ExitError, ExitRevert, ExitSucceed};
-use frame_support::{assert_ok, dispatch::Dispatchable};
+use fp_evm::{ExitRevert, ExitSucceed};
 use libsecp256k1::{sign, Message, SecretKey};
-use pallet_evm::Call as EvmCall;
-use precompile_utils::{call_cost, testing::*, Address, Bytes, EvmDataWriter, LogExt, LogsBuilder};
+use precompile_utils::{call_cost, testing::*, Address, Bytes, EvmDataWriter, LogsBuilder};
 use sp_core::{H160, H256, U256};
 
 fn precompiles() -> TestPrecompiles<Runtime> {
 	PrecompilesValue::get()
 }
 
-fn evm_call(from: impl Into<H160>, input: Vec<u8>) -> EvmCall<Runtime> {
-	EvmCall::call {
-		source: from.into(),
-		target: Precompile.into(),
-		input,
-		value: U256::zero(), // No value sent in EVM
-		gas_limit: u64::max_value(),
-		max_fee_per_gas: 0.into(),
-		max_priority_fee_per_gas: Some(U256::zero()),
-		nonce: None, // Use the next nonce
-		access_list: Vec::new(),
-	}
-}
+// fn evm_call(from: impl Into<H160>, input: Vec<u8>) -> EvmCall<Runtime> {
+// 	EvmCall::call {
+// 		source: from.into(),
+// 		target: Precompile.into(),
+// 		input,
+// 		value: U256::zero(), // No value sent in EVM
+// 		gas_limit: u64::max_value(),
+// 		max_fee_per_gas: 0.into(),
+// 		max_priority_fee_per_gas: Some(U256::zero()),
+// 		nonce: None, // Use the next nonce
+// 		access_list: Vec::new(),
+// 	}
+// }
 
 #[test]
 fn selectors() {
@@ -79,8 +76,6 @@ fn valid_permit_returns() {
 				nonce,
 				deadline,
 			);
-
-			dbg!(H256::from(permit));
 
 			let secret_key = SecretKey::parse(&ALICE_SECRET_KEY).unwrap();
 			let message = Message::parse(&permit);
@@ -183,8 +178,6 @@ fn valid_permit_reverts() {
 				deadline,
 			);
 
-			dbg!(H256::from(permit));
-
 			let secret_key = SecretKey::parse(&ALICE_SECRET_KEY).unwrap();
 			let message = Message::parse(&permit);
 			let (rs, v) = sign(&message, &secret_key);
@@ -284,8 +277,6 @@ fn invalid_permit_nonce() {
 				deadline,
 			);
 
-			dbg!(H256::from(permit));
-
 			let secret_key = SecretKey::parse(&ALICE_SECRET_KEY).unwrap();
 			let message = Message::parse(&permit);
 			let (rs, v) = sign(&message, &secret_key);
@@ -351,8 +342,6 @@ fn invalid_permit_gas_limit_too_low() {
 				nonce,
 				deadline,
 			);
-
-			dbg!(H256::from(permit));
 
 			let secret_key = SecretKey::parse(&ALICE_SECRET_KEY).unwrap();
 			let message = Message::parse(&permit);
@@ -437,8 +426,6 @@ fn invalid_permit_gas_limit_overflow() {
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
 				.execute_returns(EvmDataWriter::new().write(U256::from(0u8)).build());
-
-			let call_cost = call_cost(value, <Runtime as pallet_evm::Config>::config());
 
 			precompiles()
 				.prepare_test(

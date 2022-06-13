@@ -271,6 +271,6 @@ impl ExtBuilder {
 	}
 }
 
-pub fn balance(account: impl Into<Account>) -> Balance {
-	pallet_balances::Pallet::<Runtime>::usable_balance(account.into())
-}
+// pub fn balance(account: impl Into<Account>) -> Balance {
+// 	pallet_balances::Pallet::<Runtime>::usable_balance(account.into())
+// }
