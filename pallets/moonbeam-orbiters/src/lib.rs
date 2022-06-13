@@ -239,7 +239,7 @@ pub mod pallet {
 			deposit: BalanceOf<T>,
 		},
 		/// An orbiter has unregistered
-		OrbiterUnRegistered { account: T::AccountId },
+		OrbiterUnregistered { account: T::AccountId },
 	}
 
 	#[pallet::call]
@@ -355,7 +355,7 @@ pub mod pallet {
 
 			T::Currency::unreserve_all_named(&T::OrbiterReserveIdentifier::get(), &orbiter);
 			RegisteredOrbiter::<T>::remove(&orbiter);
-			Self::deposit_event(Event::OrbiterUnRegistered { account: orbiter });
+			Self::deposit_event(Event::OrbiterUnregistered { account: orbiter });
 
 			Ok(())
 		}
