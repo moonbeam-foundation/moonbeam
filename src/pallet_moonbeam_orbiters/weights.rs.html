@@ -204,6 +204,8 @@
 <span id="199">199</span>
 <span id="200">200</span>
 <span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -303,16 +305,18 @@
 	<span class="comment">// Storage: MoonbeamOrbiters MinOrbiterDeposit (r:1 w:0)</span>
 	<span class="comment">// Storage: Balances Reserves (r:1 w:1)</span>
 	<span class="comment">// Storage: System Account (r:1 w:1)</span>
+	<span class="comment">// Storage: MoonbeamOrbiters RegisteredOrbiter (r:0 w:1)</span>
 	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
 	<span class="kw">fn</span> <span class="ident">orbiter_register</span>() -&gt; <span class="ident">Weight</span> {
 		(<span class="number">32_506_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
 			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">reads</span>(<span class="number">3</span> <span class="kw">as</span> <span class="ident">Weight</span>))
-			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">writes</span>(<span class="number">2</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">writes</span>(<span class="number">3</span> <span class="kw">as</span> <span class="ident">Weight</span>))
 	}
 	<span class="comment">// Storage: MoonbeamOrbiters CounterForCollatorsPool (r:1 w:0)</span>
 	<span class="comment">// Storage: MoonbeamOrbiters CollatorsPool (r:1 w:0)</span>
 	<span class="comment">// Storage: Balances Reserves (r:1 w:1)</span>
 	<span class="comment">// Storage: System Account (r:1 w:1)</span>
+	<span class="comment">// Storage: MoonbeamOrbiters RegisteredOrbiter (r:0 w:1)</span>
 	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
 	<span class="kw">fn</span> <span class="ident">orbiter_unregister</span>(<span class="ident">n</span>: <span class="ident">u32</span>, ) -&gt; <span class="ident">Weight</span> {
 		(<span class="number">33_919_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
@@ -320,7 +324,7 @@
 			.<span class="ident">saturating_add</span>((<span class="number">6_981_000</span> <span class="kw">as</span> <span class="ident">Weight</span>).<span class="ident">saturating_mul</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">Weight</span>))
 			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">reads</span>(<span class="number">4</span> <span class="kw">as</span> <span class="ident">Weight</span>))
 			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">reads</span>((<span class="number">1</span> <span class="kw">as</span> <span class="ident">Weight</span>).<span class="ident">saturating_mul</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">Weight</span>)))
-			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">writes</span>(<span class="number">2</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">writes</span>(<span class="number">3</span> <span class="kw">as</span> <span class="ident">Weight</span>))
 	}
 	<span class="comment">// Storage: MoonbeamOrbiters CollatorsPool (r:1 w:1)</span>
 	<span class="comment">// Storage: MoonbeamOrbiters CounterForCollatorsPool (r:1 w:1)</span>
