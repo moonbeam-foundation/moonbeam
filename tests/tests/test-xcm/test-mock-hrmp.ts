@@ -1313,7 +1313,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     let totalXcmpWeight =
       context.polkadotApi.consts.system.blockWeights.maxBlock.toBigInt() / BigInt(4);
 
-    // we want half of numParaMsgs to be executed. That should give us how much each message should wait
+    // we want half of numParaMsgs to be executed. That give us how much each message weights
     let weightPerMessage = (totalXcmpWeight * BigInt(2)) / BigInt(numParaMsgs);
 
     let weightPerXcmInst = 100_000_000n;
@@ -1467,7 +1467,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     let totalXcmpWeight =
       context.polkadotApi.consts.system.blockWeights.maxBlock.toBigInt() / BigInt(4);
 
-    // we want half of numParaMsgs to be executed. That should give us how much each message should wait
+    // we want half of numParaMsgs to be executed. That give us how much each message weights
     let weightPerMessage = (totalXcmpWeight * BigInt(2)) / BigInt(numParaMsgs);
 
     let weightPerXcmInst = 100_000_000n;
