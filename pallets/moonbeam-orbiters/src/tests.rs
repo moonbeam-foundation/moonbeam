@@ -300,11 +300,6 @@ fn test_orbiter_unregister() {
 				}
 				.into(),
 			);
-			System::assert_last_event(
-				Event::<Test>::OrbiterUnRegistered {
-					account: 2,
-				}
-				.into(),
-			);
+			System::assert_last_event(Event::<Test>::OrbiterUnRegistered { account: 2 }.into());
 		});
 }
