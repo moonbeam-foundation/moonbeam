@@ -46,6 +46,12 @@ mod tests;
 /// Alias for Result returning an EVM precompile error.
 pub type EvmResult<T = ()> = Result<T, PrecompileFailure>;
 
+/// Trait similar to `fp_evm::Precompile` but with a `&self` parameter to manage some
+/// state (this state is only kept in a single transaction and is lost afterward).
+pub trait StatefulPrecompile {
+	fn execute(&self, handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput>;
+}
+
 /// Return an error with provided (static) text.
 /// Using the `revert` function of `Gasometer` is preferred as erroring
 /// consumed all the gas limit and the error message is not easily
