@@ -202,14 +202,14 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
 
     // OnInitialization
     eventsExecutedOnInitialization.forEach((e) => {
-      if (e.toString().includes("notHoldingFees")) {
+      if (e.toString().includes("tooExpensive")) {
         executedOnInitialization += 1;
       }
     });
 
     // OnIdle
     eventsExecutedOnIdle.forEach((e) => {
-      if (e.toString().includes("notHoldingFees")) {
+      if (e.toString().includes("tooExpensive")) {
         executedOnIdle += 1;
       }
     });
