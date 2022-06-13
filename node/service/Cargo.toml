@@ -131,7 +131,7 @@ frame-benchmarking-cli = { git = "https://github.com/paritytech/substrate", bran
 
 [dev-dependencies]
 assert_cmd = "0.12"
-nix = "0.17"
+nix = "0.23"
 prometheus = { version = "0.13.0", default-features = false }
 rand = "0.7.3"
 
