@@ -141,6 +141,11 @@ pub mod pallet {
 		OptionQuery,
 	>;
 
+	#[pallet::storage]
+	#[pallet::getter(fn orbiter)]
+	/// Account lookup override
+	pub type RegisteredOrbiter<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, bool>;
+
 	#[pallet::genesis_config]
 	pub struct GenesisConfig<T: Config> {
 		pub min_orbiter_deposit: BalanceOf<T>,
@@ -307,7 +312,9 @@ pub mod pallet {
 					&T::OrbiterReserveIdentifier::get(),
 					&orbiter,
 					min_orbiter_deposit,
-				)
+				)?;
+				RegisteredOrbiter::<T>::insert(&orbiter, true);
+				Ok(())
 			} else {
 				Err(Error::<T>::MinOrbiterDepositNotSet.into())
 			}
@@ -336,6 +343,7 @@ pub mod pallet {
 			);
 
 			T::Currency::unreserve_all_named(&T::OrbiterReserveIdentifier::get(), &orbiter);
+			RegisteredOrbiter::<T>::remove(&orbiter);
 
 			Ok(())
 		}
