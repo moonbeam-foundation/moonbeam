@@ -167,9 +167,6 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn current_relay_block_number)]
 	/// Most recent relay block number
-	// TODO: is it necessary to store or can we get and use it directly, same with CurrentEpochIndex
-	// TODO: use this for validating when BabeCurrentBlockRandomness can be executed instead of current block
-	// TODO: only requires using it to update randomness once async backing happens (then should check if changes to update randomness)
 	pub type CurrentRelayBlockNumber<T: Config> = StorageValue<_, T::BlockNumber, ValueQuery>;
 
 	#[pallet::storage]
@@ -226,10 +223,8 @@ pub mod pallet {
 			if let Some(new_relay_block_number) = maybe_new_relay_block_number {
 				if new_relay_block_number > last_relay_block_number {
 					<CurrentRelayBlockNumber<T>>::put(new_relay_block_number);
-					let (current_block_randomness, w3) =
-						T::RelayRandomness::get_current_block_randomness();
-					<CurrentBlockRandomness<T>>::put(current_block_randomness);
-					weight_consumed = weight_consumed.saturating_add(T::DbWeight::get().write + w3);
+					// move babe current block randomness here once async backing as optimization
+					weight_consumed = weight_consumed.saturating_add(T::DbWeight::get().write);
 				}
 			} else {
 				log::warn!(
@@ -237,7 +232,11 @@ pub mod pallet {
 					Did not want to panic upon decode failure but do never expect this branch"
 				);
 			}
-			weight_consumed
+			// move into above relay block number update once async backing to optimize s.t. only
+			// gets new current_block_randomness iff relay block changes
+			let (current_block_randomness, w3) = T::RelayRandomness::get_current_block_randomness();
+			<CurrentBlockRandomness<T>>::put(current_block_randomness);
+			weight_consumed + T::DbWeight::get().write + w3
 		}
 	}
 
