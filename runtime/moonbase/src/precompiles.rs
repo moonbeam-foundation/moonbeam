@@ -31,7 +31,7 @@ use pallet_evm_precompile_modexp::Modexp;
 use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
 use parachain_staking_precompiles::ParachainStakingWrapper;
-use precompile_utils::revert;
+use precompile_utils::{revert, StatefulPrecompile};
 use relay_encoder_precompiles::RelayEncoderWrapper;
 use sp_core::H160;
 use sp_std::fmt::Debug;
@@ -76,16 +76,25 @@ pub const LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX: &[u8] = &[255u8, 255u8, 255u8, 
 /// We include the nine Istanbul precompiles
 /// (https://github.com/ethereum/go-ethereum/blob/3c46f557/core/vm/contracts.go#L69)
 /// as well as a special precompile for dispatching Substrate extrinsics
-#[derive(Debug, Clone, Copy)]
-pub struct MoonbasePrecompiles<R>(PhantomData<R>);
+#[derive(Debug, Clone)]
+pub struct MoonbasePrecompiles<R> {
+	batch: BatchPrecompile<R>,
+	_phantom: PhantomData<R>,
+}
 
 impl<R> MoonbasePrecompiles<R>
 where
 	R: pallet_evm::Config,
 {
 	pub fn new() -> Self {
-		Self(Default::default())
+		Self {
+			// we allow up to 3 levels of nesting.
+			// it should be more than enough for users to compose nested groups.
+			batch: BatchPrecompile::new_with_max_recursion_level(3),
+			_phantom: PhantomData,
+		}
 	}
+
 	/// Return all addresses that contain precompiles. This can be used to populate dummy code
 	/// under the precompile.
 	pub fn used_addresses() -> impl Iterator<Item = R::AccountId> {
@@ -154,7 +163,7 @@ where
 			a if a == hash(2053) => Some(RelayEncoderWrapper::<R, WestendEncoder>::execute(handle)),
 			a if a == hash(2054) => Some(XcmTransactorWrapper::<R>::execute(handle)),
 			a if a == hash(2055) => Some(AuthorMappingWrapper::<R>::execute(handle)),
-			a if a == hash(2056) => Some(BatchPrecompile::<R>::execute(handle)),
+			a if a == hash(2056) => Some(self.batch.execute(handle)),
 			// If the address matches asset prefix, the we route through the asset precompile set
 			a if &a.to_fixed_bytes()[0..4] == FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX => {
 				Erc20AssetsPrecompileSet::<R, IsForeign, ForeignAssetInstance>::new()
