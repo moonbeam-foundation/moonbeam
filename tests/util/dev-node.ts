@@ -83,6 +83,8 @@ export async function startMoonbeamDevNode(
     `--alice`,
     `--chain=${runtime}-dev`,
     `--sealing=manual`,
+    `--in-peers=0`,
+    `--out-peers=0`,
     `-l${MOONBEAM_LOG}`,
     `--port=${p2pPort}`,
     `--rpc-port=${rpcPort}`,
