@@ -1082,8 +1082,12 @@ impl pallet_base_fee::Config for Runtime {
 }
 
 // TODO: weight and propagate error better
-pub struct RelayEpochIndex;
-impl pallet_randomness::GetEpochIndex<u64> for RelayEpochIndex {
+pub struct RelayTime;
+impl pallet_randomness::GetRelayTime<BlockNumber, u64> for RelayTime {
+	fn get_block_number() -> (Option<BlockNumber>, Weight) {
+		let block = ParachainSystem::validation_data().map(|d| d.relay_parent_number);
+		(block, 0)
+	}
 	fn get_epoch_index() -> (Option<u64>, Weight) {
 		let epoch = relay_chain_state_proof()
 			.read_optional_entry(relay_chain::well_known_keys::EPOCH_INDEX)
@@ -1127,7 +1131,7 @@ parameter_types! {
 impl pallet_randomness::Config for Runtime {
 	type Event = Event;
 	type ReserveCurrency = Balances;
-	type RelayEpochIndex = RelayEpochIndex;
+	type RelayTime = RelayTime;
 	type RelayRandomness = RelayRandomness;
 	type LocalRandomness = Vrf;
 	type Deposit = RandomnessRequestDeposit;
