@@ -113,47 +113,42 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     // for that reason, we multiply times 2
     const clearOriginsPerMessage = (weightPerMessage - weightPerXcmInst * 2n) / weightPerXcmInst;
 
-    let instructions = [];
-    instructions.push({
-      WithdrawAsset: [
-        {
-          id: {
-            Concrete: {
-              parents: 0,
-              interior: {
-                X1: { PalletInstance: balancesPalletIndex },
+    const instructions = [
+      {
+        WithdrawAsset: [
+          {
+            id: {
+              Concrete: {
+                parents: 0,
+                interior: {
+                  X1: { PalletInstance: balancesPalletIndex },
+                },
               },
             },
+            fun: { Fungible: 1 },
           },
-          fun: { Fungible: 1 },
-        },
-      ],
-    });
-
-    // we push clear origins
-    for (let i = 0; i < clearOriginsPerMessage; i++) {
-      instructions.push({
-        ClearOrigin: null,
-      });
-    }
-
-    // we push the last buyExecution, that will fail
-    instructions.push({
-      BuyExecution: {
-        fees: {
-          id: {
-            Concrete: {
-              parents: 1,
-              interior: {
-                X2: [{ Parachain: ownParaId }, { PalletInstance: balancesPalletIndex }],
-              },
-            },
-          },
-          fun: { Fungible: 1 },
-        },
-        weightLimit: { Limited: new BN(20000000000) },
+        ],
       },
-    });
+      ...Array(Number(clearOriginsPerMessage)).fill({
+        ClearOrigin: null,
+      }),
+      {
+        BuyExecution: {
+          fees: {
+            id: {
+              Concrete: {
+                parents: 0,
+                interior: {
+                  X1: { PalletInstance: balancesPalletIndex },
+                },
+              },
+            },
+            fun: { Fungible: 1 },
+          },
+          weightLimit: { Limited: new BN(20000000000) },
+        },
+      },
+    ];
 
     let xcmMessage = {
       V2: instructions,
@@ -222,7 +217,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     // the test was designed to go half and half
     expect(executedOnInitialization).to.be.eq(25);
     expect(executedOnIdle).to.be.eq(25);
-    const pageIndex = (await apiAt.query.dmpQueue.pageIndex()) as any;
+    const pageIndex = await apiAt.query.dmpQueue.pageIndex();
     expect(pageIndex.beginUsed.toBigInt()).to.eq(0n);
     expect(pageIndex.endUsed.toBigInt()).to.eq(0n);
   });

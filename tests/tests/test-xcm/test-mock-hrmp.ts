@@ -1317,47 +1317,42 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     // single messages.
     const clearOriginsPerMessage = (weightPerMessage - weightPerXcmInst) / weightPerXcmInst;
 
-    let instructions = [];
-    instructions.push({
-      WithdrawAsset: [
-        {
-          id: {
-            Concrete: {
-              parents: 0,
-              interior: {
-                X1: { PalletInstance: balancesPalletIndex },
+    const instructions = [
+      {
+        WithdrawAsset: [
+          {
+            id: {
+              Concrete: {
+                parents: 0,
+                interior: {
+                  X1: { PalletInstance: balancesPalletIndex },
+                },
               },
             },
+            fun: { Fungible: 1 },
           },
-          fun: { Fungible: 1 },
-        },
-      ],
-    });
-
-    // we push clear origins
-    for (let i = 0; i < clearOriginsPerMessage; i++) {
-      instructions.push({
-        ClearOrigin: null,
-      });
-    }
-
-    // we push the last buyExecution, that will fail
-    instructions.push({
-      BuyExecution: {
-        fees: {
-          id: {
-            Concrete: {
-              parents: 0,
-              interior: {
-                X1: { PalletInstance: balancesPalletIndex },
-              },
-            },
-          },
-          fun: { Fungible: 1 },
-        },
-        weightLimit: { Limited: new BN(20000000000) },
+        ],
       },
-    });
+      ...Array(Number(clearOriginsPerMessage)).fill({
+        ClearOrigin: null,
+      }),
+      {
+        BuyExecution: {
+          fees: {
+            id: {
+              Concrete: {
+                parents: 0,
+                interior: {
+                  X1: { PalletInstance: balancesPalletIndex },
+                },
+              },
+            },
+            fun: { Fungible: 1 },
+          },
+          weightLimit: { Limited: new BN(20000000000) },
+        },
+      },
+    ];
 
     const xcmMessage = {
       V2: instructions,
@@ -1473,47 +1468,42 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     // for that reason, we multiply times 2
     const clearOriginsPerMessage = (weightPerMessage - weightPerXcmInst * 2n) / weightPerXcmInst;
 
-    let instructions = [];
-    instructions.push({
-      WithdrawAsset: [
-        {
-          id: {
-            Concrete: {
-              parents: 0,
-              interior: {
-                X1: { PalletInstance: balancesPalletIndex },
+    const instructions = [
+      {
+        WithdrawAsset: [
+          {
+            id: {
+              Concrete: {
+                parents: 0,
+                interior: {
+                  X1: { PalletInstance: balancesPalletIndex },
+                },
               },
             },
+            fun: { Fungible: 1 },
           },
-          fun: { Fungible: 1 },
-        },
-      ],
-    });
-
-    // we push clear origins
-    for (let i = 0; i < clearOriginsPerMessage; i++) {
-      instructions.push({
-        ClearOrigin: null,
-      });
-    }
-
-    // we push the last buyExecution, that will fail
-    instructions.push({
-      BuyExecution: {
-        fees: {
-          id: {
-            Concrete: {
-              parents: 0,
-              interior: {
-                X1: { PalletInstance: balancesPalletIndex },
-              },
-            },
-          },
-          fun: { Fungible: 1 },
-        },
-        weightLimit: { Limited: new BN(20000000000) },
+        ],
       },
-    });
+      ...Array(Number(clearOriginsPerMessage)).fill({
+        ClearOrigin: null,
+      }),
+      {
+        BuyExecution: {
+          fees: {
+            id: {
+              Concrete: {
+                parents: 0,
+                interior: {
+                  X1: { PalletInstance: balancesPalletIndex },
+                },
+              },
+            },
+            fun: { Fungible: 1 },
+          },
+          weightLimit: { Limited: new BN(20000000000) },
+        },
+      },
+    ];
 
     let xcmMessage = {
       V2: instructions,
@@ -1606,76 +1596,73 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
       (pallet) => pallet.name === "Balances"
     ).index;
 
-    // We distinguish between instructions not executed, and executed
-    let instructionsNotExecuted = [];
-    let instructionsExecuted = [];
-
-    instructionsNotExecuted.push({
-      WithdrawAsset: [
-        {
-          id: {
-            Concrete: {
-              parents: 0,
-              interior: {
-                X1: { PalletInstance: balancesPalletIndex },
+    const instructionsNotExecuted = [
+      {
+        WithdrawAsset: [
+          {
+            id: {
+              Concrete: {
+                parents: 0,
+                interior: {
+                  X1: { PalletInstance: balancesPalletIndex },
+                },
               },
             },
+            fun: { Fungible: 1 },
           },
-          fun: { Fungible: 1 },
-        },
-      ],
-    });
-
-    // we push the last buyExecution, that will fail
-    instructionsNotExecuted.push({
-      BuyExecution: {
-        fees: {
-          id: {
-            Concrete: {
-              parents: 0,
-              interior: {
-                X1: { PalletInstance: balancesPalletIndex },
-              },
-            },
-          },
-          fun: { Fungible: 1 },
-        },
-        weightLimit: { Limited: new BN(20000000000) },
+        ],
       },
-    });
-
-    instructionsExecuted.push({
-      WithdrawAsset: [
-        {
-          id: {
-            Concrete: {
-              parents: 0,
-              interior: {
-                X1: { PalletInstance: balancesPalletIndex },
+      {
+        BuyExecution: {
+          fees: {
+            id: {
+              Concrete: {
+                parents: 0,
+                interior: {
+                  X1: { PalletInstance: balancesPalletIndex },
+                },
               },
             },
+            fun: { Fungible: 1 },
           },
-          fun: { Fungible: 2 },
+          weightLimit: { Limited: new BN(20000000000) },
         },
-      ],
-    });
-
-    instructionsExecuted.push({
-      BuyExecution: {
-        fees: {
-          id: {
-            Concrete: {
-              parents: 0,
-              interior: {
-                X1: { PalletInstance: balancesPalletIndex },
-              },
-            },
-          },
-          fun: { Fungible: 2 },
-        },
-        weightLimit: { Limited: new BN(20000000000) },
       },
-    });
+    ];
+
+    const instructionsExecuted = [
+      {
+        WithdrawAsset: [
+          {
+            id: {
+              Concrete: {
+                parents: 0,
+                interior: {
+                  X1: { PalletInstance: balancesPalletIndex },
+                },
+              },
+            },
+            fun: { Fungible: 2 },
+          },
+        ],
+      },
+      {
+        BuyExecution: {
+          fees: {
+            id: {
+              Concrete: {
+                parents: 0,
+                interior: {
+                  X1: { PalletInstance: balancesPalletIndex },
+                },
+              },
+            },
+            fun: { Fungible: 2 },
+          },
+          weightLimit: { Limited: new BN(20000000000) },
+        },
+      },
+    ];
 
     const xcmMessageNotExecuted = {
       V2: instructionsNotExecuted,
@@ -1727,41 +1714,40 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
       (pallet) => pallet.name === "Balances"
     ).index;
-    let instructionsNotExecuted = [];
 
-    instructionsNotExecuted.push({
-      WithdrawAsset: [
-        {
-          id: {
-            Concrete: {
-              parents: 0,
-              interior: {
-                X1: { PalletInstance: balancesPalletIndex },
+    const instructionsNotExecuted = [
+      {
+        WithdrawAsset: [
+          {
+            id: {
+              Concrete: {
+                parents: 0,
+                interior: {
+                  X1: { PalletInstance: balancesPalletIndex },
+                },
               },
             },
+            fun: { Fungible: 1 },
           },
-          fun: { Fungible: 1 },
-        },
-      ],
-    });
-
-    // we push the last buyExecution, that will fail
-    instructionsNotExecuted.push({
-      BuyExecution: {
-        fees: {
-          id: {
-            Concrete: {
-              parents: 0,
-              interior: {
-                X1: { PalletInstance: balancesPalletIndex },
-              },
-            },
-          },
-          fun: { Fungible: 1 },
-        },
-        weightLimit: { Limited: new BN(20000000000) },
+        ],
       },
-    });
+      {
+        BuyExecution: {
+          fees: {
+            id: {
+              Concrete: {
+                parents: 0,
+                interior: {
+                  X1: { PalletInstance: balancesPalletIndex },
+                },
+              },
+            },
+            fun: { Fungible: 1 },
+          },
+          weightLimit: { Limited: new BN(20000000000) },
+        },
+      },
+    ];
 
     const xcmMessageNotExecuted = {
       V2: instructionsNotExecuted,
