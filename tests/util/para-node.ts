@@ -371,7 +371,9 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
           rpcPort: ports[i].rpcPort,
           wsPort: ports[i].wsPort,
           flags: [
-            "--wasm-execution=interpreted-i-know-what-i-do",
+            process.env.FORCE_COMPILED_WASM
+              ? `--wasm-execution=compiled`
+              : `--wasm-execution=interpreted-i-know-what-i-do`,
             "--log=parachain::candidate-backing=trace,parachain::candidate-selection=trace," +
               "parachain::pvf=trace,parachain::collator-protocol=trace," +
               "parachain::provisioner=trace",
@@ -398,14 +400,17 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
                 "collation_generation=trace",
               "--unsafe-rpc-external",
               "--execution=wasm",
-              "--wasm-execution=interpreted-i-know-what-i-do",
+              process.env.FORCE_COMPILED_WASM
+                ? `--wasm-execution=compiled`
+                : `--wasm-execution=interpreted-i-know-what-i-do`,
               "--no-prometheus",
               "--no-telemetry",
-              "--force-authoring",
               "--rpc-cors=all",
               "--",
               "--execution=wasm",
-              "--wasm-execution=interpreted-i-know-what-i-do",
+              process.env.FORCE_COMPILED_WASM
+                ? `--wasm-execution=compiled`
+                : `--wasm-execution=interpreted-i-know-what-i-do`,
               "--no-mdns",
               "--no-prometheus",
               "--no-telemetry",
@@ -439,7 +444,7 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
               `--port=${ports[i * 4 + numberOfParachains + 4].p2pPort}`,
               `--rpc-port=${ports[i * 4 + numberOfParachains + 4].rpcPort}`,
               `--ws-port=${ports[i * 4 + numberOfParachains + 4].wsPort}`,
-            ],
+            ].filter((_, i) => !process.env.SINGLE_PARACHAIN_NODE || i < 1),
           },
         ],
       };
@@ -478,8 +483,10 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
     parachainArray.forEach(async (_, i) => {
       const filenameNode1 = `${ports[i * 4 + numberOfParachains + 1].wsPort}.log`;
       listenTo(filenameNode1, `para-${i}-0`);
-      const filenameNode2 = `${ports[i * 4 + numberOfParachains + 3].wsPort}.log`;
-      listenTo(filenameNode2, `para-${i}-1`);
+      if (!process.env.SINGLE_PARACHAIN_NODE) {
+        const filenameNode2 = `${ports[i * 4 + numberOfParachains + 3].wsPort}.log`;
+        listenTo(filenameNode2, `para-${i}-1`);
+      }
     });
   }
 
@@ -519,7 +526,7 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
             rpcPort: ports[i * 4 + numberOfParachains + 3].rpcPort,
             wsPort: ports[i * 4 + numberOfParachains + 3].wsPort,
           },
-        ],
+        ].filter((_, i) => !process.env.SINGLE_PARACHAIN_NODE || i < 1),
       };
     }),
   };

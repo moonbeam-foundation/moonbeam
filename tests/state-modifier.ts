@@ -52,6 +52,7 @@ async function main(inputFile: string, outputFile?: string) {
   let messagingState = null;
   const collatorLinePrefix = `        "${storageKey("ParachainStaking", "SelectedCandidates")}`;
   const authorLinePrefix = `        "${storageKey("AuthorMapping", "MappingWithDeposit")}`;
+  const nimbusLookupPrefix = `        "${storageKey("AuthorMapping", "NimbusLookup")}`;
   const revelentMessagingStatePrefix = `        "${storageKey(
     "ParachainSystem",
     "RelevantMessagingState"
@@ -64,6 +65,7 @@ async function main(inputFile: string, outputFile?: string) {
   const lastDmqMqcHeadPrefix = `        "${storageKey("ParachainSystem", "LastDmqMqcHead")}`;
   const alithBalancePrefix = `        "${storageBlake128MapKey("System", "Account", ALITH)}`;
   const totalIssuanceBalancePrefix = `        "${storageKey("Balances", "TotalIssuance")}`;
+  const bootnodesPrefix = `    "/`;
 
   // List all the collator author mapping
   const authorMappingLines = {};
@@ -108,8 +110,6 @@ async function main(inputFile: string, outputFile?: string) {
   }
   const selectedCollatorMappingKey = authorMappingLines[selectedCollator].split('"')[1];
 
-  console.log(selectedCollator, authorMappingLines[selectedCollator]);
-
   if (!messagingState) {
     console.log(`Couldn't find messaging state with prefix ${revelentMessagingStatePrefix}`);
     return;
@@ -141,71 +141,87 @@ async function main(inputFile: string, outputFile?: string) {
   const selectedAuthorMappingPrefix = `        "${selectedCollatorMappingKey}"`;
 
   for await (const line of rl2) {
-    if (line.startsWith(`      "top"`)) {
-      outStream.write(line);
-      console.log("found top");
-    } else if (line.startsWith(selectedAuthorMappingPrefix)) {
-      console.log(` ${chalk.red(`- AuthorMapping.MappingWithDeposit`)}\n\t${line}`);
+    if (line.startsWith(selectedAuthorMappingPrefix)) {
+      console.log(
+        ` ${chalk.red(
+          `  - Removing AuthorMapping.MappingWithDeposit ${
+            authorMappingLines[selectedCollator].split('"')[1]
+          }`
+        )}\n\t${line}`
+      );
       let newLine = `        "${storageBlake128MapKey(
         "AuthorMapping",
         "MappingWithDeposit",
         ALITH_SESSION
-      )}": "${authorMappingLines[selectedCollator]
-        .split('"')[3]
-        .slice(0, -64)}${ALITH_SESSION.slice(2)}",\n`;
+      )}": "${authorMappingLines[selectedCollator].split('"')[3].slice(-64)}${ALITH_SESSION.slice(
+        2
+      )}",\n`;
       console.log(
-        ` ${chalk.green(`+ Adding AuthorMapping.MappingWithDeposit: Alith`)}\n\t${newLine}`
+        ` ${chalk.green(`  + Adding AuthorMapping.MappingWithDeposit: Alith`)}\n\t${newLine}`
       );
       outStream.write(newLine);
+    } else if (line.startsWith(nimbusLookupPrefix)) {
+      console.log(
+        ` ${chalk.red(`  - Removing AuthorMapping.NimbusLookup ${selectedCollator}\n\t${line}`)}`
+      );
+      let newLine = `        "${storageBlake128MapKey(
+        "AuthorMapping",
+        "NimbusLookup",
+        ALITH
+      )}": "${ALITH_SESSION}",\n`;
+      console.log(` ${chalk.green(`  + Adding AuthorMapping.NimbusLookup: Alith`)}\n\t${newLine}`);
+      outStream.write(newLine);
     } else if (line.startsWith(revelentMessagingStatePrefix)) {
-      console.log(` ${chalk.red(`- Removing  ParachainSystem.RelevantMessagingState`)}\n\t${line}`);
+      console.log(
+        ` ${chalk.red(`  - Removing ParachainSystem.RelevantMessagingState`)}\n\t${line}`
+      );
       const newLine = `        "${storageKey(
         "ParachainSystem",
         "RelevantMessagingState"
       )}": "0x${new Array(64).fill(0).join("")}${messagingState.slice(66)}",\n`;
       console.log(
-        ` ${chalk.green(`+ Adding ParachainSystem.RelevantMessagingState`)}\n\t${newLine}`
+        ` ${chalk.green(`  + Adding ParachainSystem.RelevantMessagingState`)}\n\t${newLine}`
       );
       outStream.write(newLine);
     } else if (line.startsWith(authorEligibilityRatioPrefix)) {
-      console.log(` ${chalk.red(`- Removing AuthorFilter.EligibleRatio`)}\n\t${line}`);
+      console.log(` ${chalk.red(`  - Removing AuthorFilter.EligibleRatio`)}\n\t${line}`);
       const newLine = `        "${storageKey("AuthorFilter", "EligibleRatio")}": "0x64",\n`;
-      console.log(` ${chalk.green(`+ Adding AuthorFilter.EligibleRatio`)}\n\t${newLine}`);
+      console.log(` ${chalk.green(`  + Adding AuthorFilter.EligibleRatio`)}\n\t${newLine}`);
       outStream.write(newLine);
     } else if (line.startsWith(authorEligibilityCountPrefix)) {
-      console.log(` ${chalk.red(`- Removing AuthorFilter.EligibleCount`)}\n\t${line}`);
+      console.log(` ${chalk.red(`  - Removing AuthorFilter.EligibleCount`)}\n\t${line}`);
 
       const newLine = `        "${storageKey("AuthorFilter", "EligibleCount")}": "0x32000000",\n`;
-      console.log(` ${chalk.green(`+ Adding AuthorFilter.EligibleCount`)}\n\t${newLine}`);
+      console.log(` ${chalk.green(`  + Adding AuthorFilter.EligibleCount`)}\n\t${newLine}`);
       outStream.write(newLine);
     } else if (line.startsWith(councilLinePrefix)) {
-      console.log(` ${chalk.red(`- Removing CouncilCollective.Members`)}\n\t${line}`);
+      console.log(` ${chalk.red(`  - Removing CouncilCollective.Members`)}\n\t${line}`);
       const newLine = `        "${storageKey("CouncilCollective", "Members")}": "0x04${ALITH.slice(
         2
       )}",\n`;
-      console.log(` ${chalk.green(`+ Adding CouncilCollective.Members`)}\n\t${newLine}`);
+      console.log(` ${chalk.green(`  + Adding CouncilCollective.Members`)}\n\t${newLine}`);
       outStream.write(newLine);
     } else if (line.startsWith(techCommitteeeLinePrefix)) {
-      console.log(` ${chalk.red(`- Removing TechCommitteeCollective.Members`)}\n\t${line}`);
+      console.log(` ${chalk.red(`  - Removing TechCommitteeCollective.Members`)}\n\t${line}`);
       const newLine = `        "${storageKey(
         "TechCommitteeCollective",
         "Members"
       )}": "0x04${ALITH.slice(2)}",\n`;
-      console.log(` ${chalk.green(`+ Adding TechCommitteeCollective.Members`)}\n\t${newLine}`);
+      console.log(` ${chalk.green(`  + Adding TechCommitteeCollective.Members`)}\n\t${newLine}`);
       outStream.write(newLine);
     } else if (line.startsWith(lastDmqMqcHeadPrefix)) {
-      console.log(` ${chalk.red(`- Removing ParachainSystem.LastDmqMqcHead`)}\n\t${line}`);
+      console.log(` ${chalk.red(`  - Removing ParachainSystem.LastDmqMqcHead`)}\n\t${line}`);
     } else if (line.startsWith(alithBalancePrefix)) {
-      console.log(` ${chalk.red(`- Removing System.Account: Alith`)}\n\t${line}`);
+      console.log(` ${chalk.red(`  - Removing System.Account: Alith`)}\n\t${line}`);
       const newLine = `        "${storageBlake128MapKey(
         "System",
         "Account",
         ALITH
       )}": "${newAlithAccountData}",\n`;
-      console.log(` ${chalk.green(`+ Adding System.Account: Alith`)}\n\t${newLine}`);
+      console.log(` ${chalk.green(`  + Adding System.Account: Alith`)}\n\t${newLine}`);
       outStream.write(newLine);
     } else if (line.startsWith(totalIssuanceBalancePrefix)) {
-      console.log(` ${chalk.red(`- Removing Balances.TotalIssuance`)}\n\t${line}`);
+      console.log(` ${chalk.red(`  - Removing Balances.TotalIssuance`)}\n\t${line}`);
 
       const newLine = `        "${storageKey("Balances", "TotalIssuance")}": "${nToHex(
         newTotalIssuance,
@@ -214,8 +230,10 @@ async function main(inputFile: string, outputFile?: string) {
           bitLength: 128,
         }
       )}",\n`;
-      console.log(` ${chalk.green(`+ Balances.TotalIssuance`)}\n\t${newLine}`);
+      console.log(` ${chalk.green(`  + Balances.TotalIssuance`)}\n\t${newLine}`);
       outStream.write(newLine);
+    } else if (line.startsWith(bootnodesPrefix)) {
+      console.log(` ${chalk.red(`  - Removing bootnode`)}\n\t${line}`);
     } else {
       outStream.write(line);
       outStream.write("\n");

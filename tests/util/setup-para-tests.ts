@@ -167,7 +167,7 @@ export function describeParachain(
                 `Start listening for new blocks. Production will start in ${chalk.red(`1 minute`)}`
               );
             }
-            debug(`New block: #${context.blockNumber}}`);
+            debug(`New block: #${context.blockNumber}`);
 
             let i = pendingPromises.length;
             while (i--) {
