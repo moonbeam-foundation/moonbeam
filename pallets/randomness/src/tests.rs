@@ -15,21 +15,330 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! # Randomness Pallet Unit Tests
+use crate::mock::*;
+use crate::*;
+use frame_support::{assert_noop, assert_ok};
+use sp_core::H256;
 
-// use crate::mock::*;
-// use crate::*;
+/// Helps test same effects for all 4 variants of RequestType
+fn build_default_request(info: RequestType<Test>) -> Request<Test> {
+	Request {
+		refund_address: Account::Bob.into(),
+		contract_address: Account::Alice.into(),
+		fee: 5,
+		gas_limit: 100u64,
+		salt: H256::default(),
+		info,
+	}
+}
 
-// "calls":
-// request_randomness
-// execute_fulfillment
-// increase_request_fee
-// execute_request_expiration
-// instant_babe_randomness
-// instant_local_randomness
-
-// on_initialize hooks (consider special impl)
+// REQUEST RANDOMNESS
 
 #[test]
-fn test_tests() {
-	assert!(true);
+fn cannot_make_request_already_fulfillable() {
+	ExtBuilder::default()
+		.with_balances(vec![(Account::Alice, 15)])
+		.build()
+		.execute_with(|| {
+			let request = build_default_request(RequestType::BabeCurrentBlock(0u64));
+			assert_noop!(
+				Randomness::request_randomness(request),
+				Error::<Test>::CannotRequestPastRandomness
+			);
+			let request = build_default_request(RequestType::BabeOneEpochAgo(0u64));
+			assert_noop!(
+				Randomness::request_randomness(request),
+				Error::<Test>::CannotRequestPastRandomness
+			);
+			let request = build_default_request(RequestType::BabeTwoEpochsAgo(0u64));
+			assert_noop!(
+				Randomness::request_randomness(request),
+				Error::<Test>::CannotRequestPastRandomness
+			);
+			let request = build_default_request(RequestType::Local(0u64));
+			assert_noop!(
+				Randomness::request_randomness(request),
+				Error::<Test>::CannotRequestPastRandomness
+			);
+		});
 }
+
+#[test]
+fn cannot_make_request_with_less_than_deposit() {
+	ExtBuilder::default()
+		.with_balances(vec![(Account::Alice, 9)])
+		.build()
+		.execute_with(|| {
+			let request = build_default_request(RequestType::BabeCurrentBlock(16u64));
+			assert_noop!(
+				Randomness::request_randomness(request),
+				Error::<Test>::InsufficientDeposit
+			);
+			let request = build_default_request(RequestType::BabeOneEpochAgo(16u64));
+			assert_noop!(
+				Randomness::request_randomness(request),
+				Error::<Test>::InsufficientDeposit
+			);
+			let request = build_default_request(RequestType::BabeTwoEpochsAgo(16u64));
+			assert_noop!(
+				Randomness::request_randomness(request),
+				Error::<Test>::InsufficientDeposit
+			);
+			let request = build_default_request(RequestType::Local(16u64));
+			assert_noop!(
+				Randomness::request_randomness(request),
+				Error::<Test>::InsufficientDeposit
+			);
+		});
+}
+
+#[test]
+fn cannot_make_request_with_less_than_deposit_plus_fee() {
+	ExtBuilder::default()
+		.with_balances(vec![(Account::Alice, 14)])
+		.build()
+		.execute_with(|| {
+			let request = build_default_request(RequestType::BabeCurrentBlock(16u64));
+			assert_noop!(
+				Randomness::request_randomness(request),
+				Error::<Test>::InsufficientDeposit
+			);
+			let request = build_default_request(RequestType::BabeOneEpochAgo(16u64));
+			assert_noop!(
+				Randomness::request_randomness(request),
+				Error::<Test>::InsufficientDeposit
+			);
+			let request = build_default_request(RequestType::BabeTwoEpochsAgo(16u64));
+			assert_noop!(
+				Randomness::request_randomness(request),
+				Error::<Test>::InsufficientDeposit
+			);
+			let request = build_default_request(RequestType::Local(16u64));
+			assert_noop!(
+				Randomness::request_randomness(request),
+				Error::<Test>::InsufficientDeposit
+			);
+		});
+}
+
+#[test]
+fn request_reserves_deposit_and_fee() {
+	ExtBuilder::default()
+		.with_balances(vec![(Account::Alice, 60)])
+		.build()
+		.execute_with(|| {
+			assert_eq!(Balances::reserved_balance(&Account::Alice), 0);
+			assert_eq!(Balances::free_balance(&Account::Alice), 60);
+			let request = build_default_request(RequestType::BabeCurrentBlock(16u64));
+			assert_ok!(Randomness::request_randomness(request));
+			assert_eq!(Balances::reserved_balance(&Account::Alice), 15);
+			assert_eq!(Balances::free_balance(&Account::Alice), 45);
+			let request = build_default_request(RequestType::BabeOneEpochAgo(16u64));
+			assert_ok!(Randomness::request_randomness(request));
+			assert_eq!(Balances::reserved_balance(&Account::Alice), 30);
+			assert_eq!(Balances::free_balance(&Account::Alice), 30);
+			let request = build_default_request(RequestType::BabeTwoEpochsAgo(16u64));
+			assert_ok!(Randomness::request_randomness(request));
+			assert_eq!(Balances::reserved_balance(&Account::Alice), 45);
+			assert_eq!(Balances::free_balance(&Account::Alice), 15);
+			let request = build_default_request(RequestType::Local(16u64));
+			assert_ok!(Randomness::request_randomness(request));
+			assert_eq!(Balances::reserved_balance(&Account::Alice), 60);
+			assert_eq!(Balances::free_balance(&Account::Alice), 0);
+		});
+}
+
+#[test]
+fn request_babe_current_block_randomness_increments_request_counter() {
+	ExtBuilder::default()
+		.with_balances(vec![(Account::Alice, 60)])
+		.build()
+		.execute_with(|| {
+			let request = build_default_request(RequestType::BabeCurrentBlock(16u64));
+			assert_eq!(Randomness::request_count(), 0);
+			assert_ok!(Randomness::request_randomness(request));
+			assert_eq!(Randomness::request_count(), 1);
+			let request = build_default_request(RequestType::BabeOneEpochAgo(16u64));
+			assert_ok!(Randomness::request_randomness(request));
+			assert_eq!(Randomness::request_count(), 2);
+			let request = build_default_request(RequestType::BabeTwoEpochsAgo(16u64));
+			assert_ok!(Randomness::request_randomness(request));
+			assert_eq!(Randomness::request_count(), 3);
+			let request = build_default_request(RequestType::Local(16u64));
+			assert_ok!(Randomness::request_randomness(request));
+			assert_eq!(Randomness::request_count(), 4);
+		});
+}
+
+#[test]
+fn request_babe_current_block_randomness_inserts_request_state() {
+	ExtBuilder::default()
+		.with_balances(vec![(Account::Alice, 60)])
+		.build()
+		.execute_with(|| {
+			let request = build_default_request(RequestType::BabeCurrentBlock(16u64));
+			assert_eq!(Randomness::requests(0), None);
+			assert_ok!(Randomness::request_randomness(request.clone()));
+			assert_eq!(
+				Randomness::requests(0),
+				Some(RequestState {
+					request,
+					deposit: 10,
+					expires: 6,
+				})
+			);
+			let request = build_default_request(RequestType::BabeOneEpochAgo(16u64));
+			assert_eq!(Randomness::requests(1), None);
+			assert_ok!(Randomness::request_randomness(request.clone()));
+			assert_eq!(
+				Randomness::requests(1),
+				Some(RequestState {
+					request,
+					deposit: 10,
+					expires: 6,
+				})
+			);
+			let request = build_default_request(RequestType::BabeTwoEpochsAgo(16u64));
+			assert_eq!(Randomness::requests(2), None);
+			assert_ok!(Randomness::request_randomness(request.clone()));
+			assert_eq!(
+				Randomness::requests(2),
+				Some(RequestState {
+					request,
+					deposit: 10,
+					expires: 6,
+				})
+			);
+			let request = build_default_request(RequestType::Local(16u64));
+			assert_eq!(Randomness::requests(3), None);
+			assert_ok!(Randomness::request_randomness(request.clone()));
+			assert_eq!(
+				Randomness::requests(3),
+				Some(RequestState {
+					request,
+					deposit: 10,
+					expires: 6,
+				})
+			);
+		});
+}
+
+// REQUEST RANDOMNESS EVENTS EMIT BASED ON REQUESTED TYPE OF RANDOMNESS
+
+#[test]
+fn request_babe_current_block_randomness_emits_event() {
+	ExtBuilder::default()
+		.with_balances(vec![(Account::Alice, 15)])
+		.build()
+		.execute_with(|| {
+			let request = Request {
+				refund_address: Account::Bob.into(),
+				contract_address: Account::Alice.into(),
+				fee: 5,
+				gas_limit: 100u64,
+				salt: H256::default(),
+				info: RequestType::BabeCurrentBlock(16u64),
+			};
+			assert_ok!(Randomness::request_randomness(request));
+			assert_event_emitted!(crate::Event::RandomnessRequestedCurrentBlock {
+				id: 0,
+				refund_address: Account::Bob.into(),
+				contract_address: Account::Alice.into(),
+				fee: 5,
+				gas_limit: 100u64,
+				salt: H256::default(),
+				earliest_block: 16u64,
+			});
+		});
+}
+
+#[test]
+fn request_babe_one_epoch_ago_randomness_emits_event() {
+	ExtBuilder::default()
+		.with_balances(vec![(Account::Alice, 15)])
+		.build()
+		.execute_with(|| {
+			let request = Request {
+				refund_address: Account::Bob.into(),
+				contract_address: Account::Alice.into(),
+				fee: 5,
+				gas_limit: 100u64,
+				salt: H256::default(),
+				info: RequestType::BabeOneEpochAgo(16u64),
+			};
+			assert_ok!(Randomness::request_randomness(request));
+			assert_event_emitted!(crate::Event::RandomnessRequestedBabeOneEpochAgo {
+				id: 0,
+				refund_address: Account::Bob.into(),
+				contract_address: Account::Alice.into(),
+				fee: 5,
+				gas_limit: 100u64,
+				salt: H256::default(),
+				earliest_epoch: 16u64,
+			});
+		});
+}
+
+#[test]
+fn request_babe_two_epochs_ago_randomness_emits_event() {
+	ExtBuilder::default()
+		.with_balances(vec![(Account::Alice, 15)])
+		.build()
+		.execute_with(|| {
+			let request = Request {
+				refund_address: Account::Bob.into(),
+				contract_address: Account::Alice.into(),
+				fee: 5,
+				gas_limit: 100u64,
+				salt: H256::default(),
+				info: RequestType::BabeTwoEpochsAgo(16u64),
+			};
+			assert_ok!(Randomness::request_randomness(request));
+			assert_event_emitted!(crate::Event::RandomnessRequestedBabeTwoEpochsAgo {
+				id: 0,
+				refund_address: Account::Bob.into(),
+				contract_address: Account::Alice.into(),
+				fee: 5,
+				gas_limit: 100u64,
+				salt: H256::default(),
+				earliest_epoch: 16u64,
+			});
+		});
+}
+
+#[test]
+fn request_local_randomness_emits_event() {
+	ExtBuilder::default()
+		.with_balances(vec![(Account::Alice, 15)])
+		.build()
+		.execute_with(|| {
+			let request = Request {
+				refund_address: Account::Bob.into(),
+				contract_address: Account::Alice.into(),
+				fee: 5,
+				gas_limit: 100u64,
+				salt: H256::default(),
+				info: RequestType::Local(16u64),
+			};
+			assert_ok!(Randomness::request_randomness(request));
+			assert_event_emitted!(crate::Event::RandomnessRequestedLocal {
+				id: 0,
+				refund_address: Account::Bob.into(),
+				contract_address: Account::Alice.into(),
+				fee: 5,
+				gas_limit: 100u64,
+				salt: H256::default(),
+				earliest_block: 16u64,
+			});
+		});
+}
+
+// PREPARE FULFILLMENT
+
+// FINISH FULFILLMENT
+
+// INCREASE REQUEST FEE
+
+// EXECUTE REQUEST EXPIRATION
+
+// ON INITIALIZE LOGIC AND HOOKS

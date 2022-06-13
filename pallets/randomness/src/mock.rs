@@ -17,12 +17,11 @@
 //! A minimal runtime including the pallet-randomness pallet
 use super::*;
 use crate as pallet_randomness;
-use frame_support::{
-	construct_runtime, parameter_types,
-	traits::Everything,
-	weights::{IdentityFee, Weight},
-};
-use sp_core::H256;
+use frame_support::{construct_runtime, parameter_types, traits::Everything, weights::Weight};
+use pallet_evm::AddressMapping;
+use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+use serde::{Deserialize, Serialize};
+use sp_core::{H160, H256};
 use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
@@ -30,7 +29,6 @@ use sp_runtime::{
 };
 use sp_std::convert::{TryFrom, TryInto};
 
-pub type AccountId = u64;
 pub type Balance = u128;
 pub type BlockNumber = u64;
 
@@ -52,6 +50,66 @@ construct_runtime!(
 	}
 );
 
+// FRom https://github.com/PureStake/moonbeam/pull/518. Merge to common once is merged
+#[derive(
+	Eq,
+	PartialEq,
+	Ord,
+	PartialOrd,
+	Clone,
+	Encode,
+	Decode,
+	Debug,
+	MaxEncodedLen,
+	Serialize,
+	Deserialize,
+	derive_more::Display,
+	scale_info::TypeInfo,
+)]
+pub enum Account {
+	Alice,
+	Bob,
+	Charlie,
+	Bogus,
+	Precompile,
+}
+
+impl Default for Account {
+	fn default() -> Self {
+		Self::Bogus
+	}
+}
+
+impl Into<H160> for Account {
+	fn into(self) -> H160 {
+		match self {
+			Account::Alice => H160::repeat_byte(0xAA),
+			Account::Bob => H160::repeat_byte(0xBB),
+			Account::Charlie => H160::repeat_byte(0xCC),
+			Account::Bogus => H160::repeat_byte(0xDD),
+			Account::Precompile => H160::from_low_u64_be(1),
+		}
+	}
+}
+
+impl AddressMapping<Account> for Account {
+	fn into_account_id(h160_account: H160) -> Account {
+		match h160_account {
+			a if a == H160::repeat_byte(0xAA) => Self::Alice,
+			a if a == H160::repeat_byte(0xBB) => Self::Bob,
+			a if a == H160::repeat_byte(0xCC) => Self::Charlie,
+			a if a == H160::from_low_u64_be(1) => Self::Precompile,
+			_ => Self::Bogus,
+		}
+	}
+}
+
+impl From<H160> for Account {
+	fn from(x: H160) -> Account {
+		Account::into_account_id(x)
+	}
+}
+
 parameter_types! {
 	pub const BlockHashCount: u64 = 250;
 	pub const MaximumBlockWeight: Weight = 1024;
@@ -68,7 +126,7 @@ impl frame_system::Config for Test {
 	type Call = Call;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
-	type AccountId = AccountId;
+	type AccountId = Account;
 	type Lookup = IdentityLookup<Self::AccountId>;
 	type Header = Header;
 	type Event = Event;
@@ -112,20 +170,12 @@ impl pallet_timestamp::Config for Test {
 	type WeightInfo = ();
 }
 
-pub struct AddressMapping;
-
-impl pallet_evm::AddressMapping<AccountId> for AddressMapping {
-	fn into_account_id(address: sp_core::H160) -> AccountId {
-		0u64
-	}
-}
-
 impl pallet_evm::Config for Test {
 	type FeeCalculator = ();
 	type GasWeightMapping = ();
-	type CallOrigin = pallet_evm::EnsureAddressRoot<AccountId>;
-	type WithdrawOrigin = pallet_evm::EnsureAddressNever<AccountId>;
-	type AddressMapping = AddressMapping;
+	type CallOrigin = pallet_evm::EnsureAddressRoot<Account>;
+	type WithdrawOrigin = pallet_evm::EnsureAddressNever<Account>;
+	type AddressMapping = Account;
 	type Currency = Balances;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
 	type Event = Event;
@@ -139,10 +189,13 @@ impl pallet_evm::Config for Test {
 	type WeightInfo = ();
 }
 
-pub struct RelayEpochIndex;
-impl GetEpochIndex<u64> for RelayEpochIndex {
+pub struct RelayTime;
+impl GetRelayTime<BlockNumber, u64> for RelayTime {
+	fn get_block_number() -> (Option<BlockNumber>, Weight) {
+		(Some(1), 0)
+	}
 	fn get_epoch_index() -> (Option<u64>, Weight) {
-		(None, 0)
+		(Some(1), 0)
 	}
 }
 
@@ -173,7 +226,7 @@ parameter_types! {
 impl Config for Test {
 	type Event = Event;
 	type ReserveCurrency = Balances;
-	type RelayEpochIndex = RelayEpochIndex;
+	type RelayTime = RelayTime;
 	type RelayRandomness = RelayRandomness;
 	type LocalRandomness = LocalRandomness;
 	type Deposit = Deposit;
@@ -181,9 +234,40 @@ impl Config for Test {
 	//type WeightToFee = ();
 }
 
+pub(crate) fn events() -> Vec<pallet::Event<Test>> {
+	System::events()
+		.into_iter()
+		.map(|r| r.event)
+		.filter_map(|e| {
+			if let Event::Randomness(inner) = e {
+				Some(inner)
+			} else {
+				None
+			}
+		})
+		.collect::<Vec<_>>()
+}
+
+/// Panics if an event is not found in the system log of events
+#[macro_export]
+macro_rules! assert_event_emitted {
+	($event:expr) => {
+		match &$event {
+			e => {
+				assert!(
+					crate::mock::events().iter().find(|x| *x == e).is_some(),
+					"Event {:?} was not found in events: \n {:?}",
+					e,
+					crate::mock::events()
+				);
+			}
+		}
+	};
+}
+
 /// Externality builder for pallet maintenance mode's mock runtime
 pub(crate) struct ExtBuilder {
-	balances: Vec<(AccountId, Balance)>,
+	balances: Vec<(Account, Balance)>,
 }
 
 impl Default for ExtBuilder {
@@ -196,7 +280,7 @@ impl Default for ExtBuilder {
 
 impl ExtBuilder {
 	#[allow(dead_code)]
-	pub(crate) fn with_balances(mut self, balances: Vec<(AccountId, Balance)>) -> Self {
+	pub(crate) fn with_balances(mut self, balances: Vec<(Account, Balance)>) -> Self {
 		self.balances = balances;
 		self
 	}

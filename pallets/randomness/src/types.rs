@@ -15,8 +15,8 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
-	BalanceOf, Config, CurrentBlockRandomness, CurrentEpochIndex, Error, Event,
-	OneEpochAgoRandomness, Pallet, RequestId, TwoEpochsAgoRandomness,
+	BalanceOf, Config, CurrentBlockRandomness, CurrentEpochIndex, CurrentRelayBlockNumber, Error,
+	Event, OneEpochAgoRandomness, Pallet, RequestId, TwoEpochsAgoRandomness,
 };
 use frame_support::pallet_prelude::*;
 use frame_support::traits::{Currency, ExistenceRequirement::KeepAlive, ReservableCurrency};
@@ -30,13 +30,13 @@ use sp_runtime::traits::{CheckedSub, Saturating};
 /// Type of request
 /// Represents a request for the most recent randomness of this type at or after the inner time
 pub enum RequestType<T: Config> {
-	/// Babe per block
+	/// Babe per relay chain block
 	BabeCurrentBlock(T::BlockNumber),
 	/// Babe one epoch ago
 	BabeOneEpochAgo(u64),
 	/// Babe two epochs ago
 	BabeTwoEpochsAgo(u64),
-	/// Local per block VRF output
+	/// Local per parachain block VRF output
 	Local(T::BlockNumber),
 }
 
@@ -60,14 +60,11 @@ pub struct Request<T: Config> {
 
 impl<T: Config> Request<T> {
 	pub fn can_be_fulfilled(&self) -> bool {
-		let leq_current_block =
-			|when| -> bool { when <= frame_system::Pallet::<T>::block_number() };
-		let leq_current_epoch_index = |when| -> bool { when <= <CurrentEpochIndex<T>>::get() };
 		match self.info {
-			RequestType::BabeCurrentBlock(block) => leq_current_block(block),
-			RequestType::BabeOneEpochAgo(index) => leq_current_epoch_index(index),
-			RequestType::BabeTwoEpochsAgo(index) => leq_current_epoch_index(index),
-			RequestType::Local(block) => leq_current_block(block),
+			RequestType::BabeCurrentBlock(block) => block <= <CurrentRelayBlockNumber<T>>::get(),
+			RequestType::BabeOneEpochAgo(epoch) => epoch <= <CurrentEpochIndex<T>>::get(),
+			RequestType::BabeTwoEpochsAgo(epoch) => epoch <= <CurrentEpochIndex<T>>::get(),
+			RequestType::Local(block) => block <= frame_system::Pallet::<T>::block_number(),
 		}
 	}
 	pub(crate) fn emit_randomness_requested_event(&self, id: RequestId) {
@@ -77,6 +74,7 @@ impl<T: Config> Request<T> {
 				refund_address: self.refund_address.clone(),
 				contract_address: self.contract_address.clone(),
 				fee: self.fee,
+				gas_limit: self.gas_limit,
 				salt: self.salt,
 				earliest_block: block,
 			},
@@ -85,6 +83,7 @@ impl<T: Config> Request<T> {
 				refund_address: self.refund_address.clone(),
 				contract_address: self.contract_address.clone(),
 				fee: self.fee,
+				gas_limit: self.gas_limit,
 				salt: self.salt,
 				earliest_epoch: index,
 			},
@@ -94,6 +93,7 @@ impl<T: Config> Request<T> {
 					refund_address: self.refund_address.clone(),
 					contract_address: self.contract_address.clone(),
 					fee: self.fee,
+					gas_limit: self.gas_limit,
 					salt: self.salt,
 					earliest_epoch: index,
 				}
@@ -103,6 +103,7 @@ impl<T: Config> Request<T> {
 				refund_address: self.refund_address.clone(),
 				contract_address: self.contract_address.clone(),
 				fee: self.fee,
+				gas_limit: self.gas_limit,
 				salt: self.salt,
 				earliest_block: block,
 			},
@@ -174,12 +175,12 @@ pub struct FulfillArgs<T: Config> {
 }
 
 impl<T: Config> RequestState<T> {
-	pub(crate) fn new(request: Request<T>, deposit: BalanceOf<T>) -> RequestState<T> {
+	pub(crate) fn new(request: Request<T>) -> RequestState<T> {
 		let expires =
 			frame_system::Pallet::<T>::block_number().saturating_add(T::ExpirationDelay::get());
 		RequestState {
 			request,
-			deposit,
+			deposit: T::Deposit::get(),
 			expires,
 		}
 	}

@@ -22,8 +22,10 @@ sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v
 pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.20", default-features = false }
 
 [dev-dependencies]
+derive_more = "0.99"
 pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20" }
 pallet-timestamp = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20" }
+serde = "1.0.100"
 
 [features]
 default = [ "std" ]

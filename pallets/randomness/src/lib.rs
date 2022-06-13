@@ -68,8 +68,8 @@ pub mod pallet {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		/// Currency in which the security deposit will be taken.
 		type ReserveCurrency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
-		/// Get relay chain epoch index to insert into this pallet
-		type RelayEpochIndex: GetEpochIndex<u64>;
+		/// Get relay block number and epoch index to insert into this pallet
+		type RelayTime: GetRelayTime<Self::BlockNumber, u64>;
 		/// Get relay chain randomness to insert into this pallet
 		type RelayRandomness: GetRelayRandomness<Self::Hash>;
 		/// Get per block vrf randomness
@@ -106,6 +106,7 @@ pub mod pallet {
 			refund_address: H160,
 			contract_address: H160,
 			fee: BalanceOf<T>,
+			gas_limit: u64,
 			salt: H256,
 			earliest_block: T::BlockNumber,
 		},
@@ -114,6 +115,7 @@ pub mod pallet {
 			refund_address: H160,
 			contract_address: H160,
 			fee: BalanceOf<T>,
+			gas_limit: u64,
 			salt: H256,
 			earliest_epoch: u64,
 		},
@@ -122,6 +124,7 @@ pub mod pallet {
 			refund_address: H160,
 			contract_address: H160,
 			fee: BalanceOf<T>,
+			gas_limit: u64,
 			salt: H256,
 			earliest_epoch: u64,
 		},
@@ -130,6 +133,7 @@ pub mod pallet {
 			refund_address: H160,
 			contract_address: H160,
 			fee: BalanceOf<T>,
+			gas_limit: u64,
 			salt: H256,
 			earliest_block: T::BlockNumber,
 		},
@@ -146,10 +150,9 @@ pub mod pallet {
 	}
 
 	#[pallet::storage]
-	#[pallet::getter(fn request)]
+	#[pallet::getter(fn requests)]
 	/// Randomness requests not yet fulfilled or purged
-	pub type Requests<T: Config> =
-		StorageMap<_, Twox64Concat, RequestId, RequestState<T>, OptionQuery>;
+	pub type Requests<T: Config> = StorageMap<_, Twox64Concat, RequestId, RequestState<T>>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn request_count)]
@@ -160,6 +163,14 @@ pub mod pallet {
 	#[pallet::getter(fn current_epoch_index)]
 	/// Most recent epoch index, when it changes => update the epoch randomness
 	pub type CurrentEpochIndex<T: Config> = StorageValue<_, u64, ValueQuery>;
+
+	#[pallet::storage]
+	#[pallet::getter(fn current_relay_block_number)]
+	/// Most recent relay block number
+	// TODO: is it necessary to store or can we get and use it directly, same with CurrentEpochIndex
+	// TODO: use this for validating when BabeCurrentBlockRandomness can be executed instead of current block
+	// TODO: only requires using it to update randomness once async backing happens (then should check if changes to update randomness)
+	pub type CurrentRelayBlockNumber<T: Config> = StorageValue<_, T::BlockNumber, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn current_block_randomness)]
@@ -188,22 +199,20 @@ pub mod pallet {
 		// only get new randomness iff relay block number changes
 		fn on_initialize(_now: BlockNumberFor<T>) -> Weight {
 			let last_epoch_index = <CurrentEpochIndex<T>>::get();
-			let (maybe_new_epoch_index, mut weight_consumed) =
-				T::RelayEpochIndex::get_epoch_index();
+			let (maybe_new_epoch_index, mut weight_consumed) = T::RelayTime::get_epoch_index();
 			if let Some(new_epoch_index) = maybe_new_epoch_index {
 				// EPOCH CHANGED
 				if new_epoch_index > last_epoch_index {
 					// insert new epoch information
 					<CurrentEpochIndex<T>>::put(new_epoch_index);
-					let (one_epoch_ago_randomness, one_epoch_ago_randomness_wt) =
+					let (one_epoch_ago_randomness, w0) =
 						T::RelayRandomness::get_one_epoch_ago_randomness();
-					let (two_epochs_ago_randomness, two_epochs_ago_randomness_wt) =
+					let (two_epochs_ago_randomness, w1) =
 						T::RelayRandomness::get_two_epochs_ago_randomness();
 					<OneEpochAgoRandomness<T>>::put(one_epoch_ago_randomness);
 					<TwoEpochsAgoRandomness<T>>::put(two_epochs_ago_randomness);
-					weight_consumed += 3 * T::DbWeight::get().write
-						+ one_epoch_ago_randomness_wt
-						+ two_epochs_ago_randomness_wt;
+					weight_consumed =
+						weight_consumed.saturating_add(3 * T::DbWeight::get().write + w0 + w1);
 				}
 			} else {
 				log::warn!(
@@ -211,10 +220,24 @@ pub mod pallet {
 					Did not want to panic upon decode failure but do never expect this branch"
 				);
 			}
-			let (current_block_randomness, current_block_randomness_wt) =
-				T::RelayRandomness::get_current_block_randomness();
-			<CurrentBlockRandomness<T>>::put(current_block_randomness);
-			weight_consumed + T::DbWeight::get().write + current_block_randomness_wt
+			let last_relay_block_number = <CurrentRelayBlockNumber<T>>::get();
+			let (maybe_new_relay_block_number, w2) = T::RelayTime::get_block_number();
+			weight_consumed = weight_consumed.saturating_add(w2);
+			if let Some(new_relay_block_number) = maybe_new_relay_block_number {
+				if new_relay_block_number > last_relay_block_number {
+					<CurrentRelayBlockNumber<T>>::put(new_relay_block_number);
+					let (current_block_randomness, w3) =
+						T::RelayRandomness::get_current_block_randomness();
+					<CurrentBlockRandomness<T>>::put(current_block_randomness);
+					weight_consumed = weight_consumed.saturating_add(T::DbWeight::get().write + w3);
+				}
+			} else {
+				log::warn!(
+					"Could not read relay block number \
+					Did not want to panic upon decode failure but do never expect this branch"
+				);
+			}
+			weight_consumed
 		}
 	}
 
@@ -235,10 +258,10 @@ pub mod pallet {
 				!request.can_be_fulfilled(),
 				Error::<T>::CannotRequestPastRandomness
 			);
-			let deposit = T::Deposit::get().saturating_add(request.fee);
+			let total_to_reserve = T::Deposit::get().saturating_add(request.fee);
 			let contract_address =
 				T::AddressMapping::into_account_id(request.contract_address.clone());
-			T::ReserveCurrency::can_reserve(&contract_address, deposit)
+			T::ReserveCurrency::can_reserve(&contract_address, total_to_reserve)
 				.then(|| true)
 				.ok_or(Error::<T>::InsufficientDeposit)?;
 			// get new request ID
@@ -246,11 +269,11 @@ pub mod pallet {
 			let next_id = request_id
 				.checked_add(1u64)
 				.ok_or(Error::<T>::RequestCounterOverflowed)?;
-			T::ReserveCurrency::reserve(&contract_address, deposit)?;
+			T::ReserveCurrency::reserve(&contract_address, total_to_reserve)?;
 			// insert request
 			<RequestCount<T>>::put(next_id);
 			request.emit_randomness_requested_event(request_id);
-			<Requests<T>>::insert(request_id, RequestState::new(request, deposit));
+			<Requests<T>>::insert(request_id, RequestState::new(request));
 			Ok(())
 		}
 		/// Prepare fulfillment

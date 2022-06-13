@@ -7769,6 +7769,7 @@ dependencies = [
 name = "pallet-randomness"
 version = "0.1.0"
 dependencies = [
+ "derive_more",
  "frame-support",
  "frame-system",
  "log",
@@ -7778,6 +7779,7 @@ dependencies = [
  "pallet-vrf",
  "parity-scale-codec",
  "scale-info",
+ "serde",
  "sp-core",
  "sp-io",
  "sp-runtime",

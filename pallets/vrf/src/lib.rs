@@ -27,10 +27,10 @@ use sp_application_crypto::ByteArray;
 use sp_consensus_babe::{digests::PreDigest, Slot, Transcript, BABE_ENGINE_ID};
 use sp_consensus_vrf::schnorrkel;
 
-#[cfg(test)]
-mod mock;
-#[cfg(test)]
-mod tests;
+// #[cfg(test)]
+// mod mock;
+// #[cfg(test)]
+// mod tests;
 
 use frame_support::pallet;
 
