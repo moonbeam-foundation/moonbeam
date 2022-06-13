@@ -233,6 +233,13 @@ pub mod pallet {
 			old_orbiter: Option<T::AccountId>,
 			new_orbiter: Option<T::AccountId>,
 		},
+		/// An orbiter has registered
+		OrbiterRegistered {
+			account: T::AccountId,
+			deposit: BalanceOf<T>,
+		},
+		/// An orbiter has unregistered
+		OrbiterUnRegistered { account: T::AccountId },
 	}
 
 	#[pallet::call]
@@ -314,6 +321,10 @@ pub mod pallet {
 					min_orbiter_deposit,
 				)?;
 				RegisteredOrbiter::<T>::insert(&orbiter, true);
+				Self::deposit_event(Event::OrbiterRegistered {
+					account: orbiter,
+					deposit: min_orbiter_deposit,
+				});
 				Ok(())
 			} else {
 				Err(Error::<T>::MinOrbiterDepositNotSet.into())
@@ -344,6 +355,7 @@ pub mod pallet {
 
 			T::Currency::unreserve_all_named(&T::OrbiterReserveIdentifier::get(), &orbiter);
 			RegisteredOrbiter::<T>::remove(&orbiter);
+			Self::deposit_event(Event::OrbiterUnRegistered { account: orbiter });
 
 			Ok(())
 		}
