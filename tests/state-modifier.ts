@@ -153,9 +153,9 @@ async function main(inputFile: string, outputFile?: string) {
         "AuthorMapping",
         "MappingWithDeposit",
         ALITH_SESSION
-      )}": "${authorMappingLines[selectedCollator].split('"')[3].slice(-64)}${ALITH_SESSION.slice(
-        2
-      )}",\n`;
+      )}": "${authorMappingLines[selectedCollator]
+        .split('"')[3]
+        .slice(0, -64)}${ALITH_SESSION.slice(2)}",\n`;
       console.log(
         ` ${chalk.green(`  + Adding AuthorMapping.MappingWithDeposit: Alith`)}\n\t${newLine}`
       );
