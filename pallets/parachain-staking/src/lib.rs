@@ -73,6 +73,8 @@ pub use traits::*;
 pub use types::*;
 pub use RoundIndex;
 
+
+
 #[pallet]
 pub mod pallet {
 	use crate::delegation_requests::{
@@ -80,7 +82,7 @@ pub mod pallet {
 	};
 	use crate::{set::OrderedSet, traits::*, types::*, InflationInfo, Range, WeightInfo};
 	use frame_support::pallet_prelude::*;
-	use frame_support::traits::{Currency, Get, Imbalance, ReservableCurrency};
+	use frame_support::traits::{Currency, Get, Imbalance, ReservableCurrency, LockableCurrency, tokens::WithdrawReasons};
 	use frame_system::pallet_prelude::*;
 	use parity_scale_codec::Decode;
 	use sp_runtime::{
@@ -99,13 +101,17 @@ pub mod pallet {
 	pub type BalanceOf<T> =
 		<<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
 
+	pub const COLLATOR_LOCK_IDENTIFIER: [u8; 8] = *b"ColStake";
+	pub const DELEGATOR_LOCK_IDENTIFIER: [u8; 8] = *b"DelStake";
+
 	/// Configuration trait of this pallet.
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
 		/// Overarching event type
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		/// The currency type
-		type Currency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
+		type Currency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>
+			+ LockableCurrency<Self::AccountId>;
 		/// The origin for monetary governance
 		type MonetaryGovernanceOrigin: EnsureOrigin<Self::Origin>;
 		/// Minimum number of blocks per round
@@ -899,7 +905,7 @@ pub mod pallet {
 				}),
 				Error::<T>::CandidateExists
 			);
-			T::Currency::reserve(&acc, bond)?;
+			T::Currency::set_lock(COLLATOR_LOCK_IDENTIFIER, &acc, bond, WithdrawReasons::all());
 			let candidate = CandidateMetadata::new(bond);
 			<CandidateInfo<T>>::insert(&acc, candidate);
 			let empty_delegations: Delegations<T::AccountId, BalanceOf<T>> = Default::default();
@@ -961,7 +967,6 @@ pub mod pallet {
 			);
 			state.can_leave::<T>()?;
 			let return_stake = |bond: Bond<T::AccountId, BalanceOf<T>>| {
-				T::Currency::unreserve(&bond.owner, bond.amount);
 				// remove delegation from delegator state
 				let mut delegator = DelegatorState::<T>::get(&bond.owner).expect(
 					"Collator state and delegator state are consistent. 
@@ -980,9 +985,18 @@ pub mod pallet {
 						// since it is assumed that they were removed incrementally before only the
 						// last delegation was left.
 						<DelegatorState<T>>::remove(&bond.owner);
+						T::Currency::remove_lock(DELEGATOR_LOCK_IDENTIFIER, &bond.owner);
 					} else {
 						<DelegatorState<T>>::insert(&bond.owner, delegator);
+						// update locked balance to match adjusted total staked
+						T::Currency::set_lock(DELEGATOR_LOCK_IDENTIFIER, &bond.owner, remaining, WithdrawReasons::all());
 					}
+
+				} else {
+
+					// TODO: review. we assume here that this delegator has no remaining staked
+					// balance, so we ensure the lock is cleared
+					T::Currency::remove_lock(DELEGATOR_LOCK_IDENTIFIER, &bond.owner);
 				}
 			};
 			// total backing stake is at least the candidate self bond
@@ -1002,7 +1016,7 @@ pub mod pallet {
 			}
 			total_backing = total_backing.saturating_add(bottom_delegations.total);
 			// return stake to collator
-			T::Currency::unreserve(&candidate, state.bond);
+			T::Currency::remove_lock(COLLATOR_LOCK_IDENTIFIER, &candidate);
 			<CandidateInfo<T>>::remove(&candidate);
 			<DelegationScheduledRequests<T>>::remove(&candidate);
 			<TopDelegations<T>>::remove(&candidate);
@@ -1158,6 +1172,9 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let delegator = ensure_signed(origin)?;
 			// check that caller can reserve the amount before any changes to storage
+			// TODO: is this check still appropriate?
+			// TODO: also, we don't want delegator and collator locks to overlap -- they should be
+			// cummulative
 			ensure!(
 				T::Currency::can_reserve(&delegator, amount),
 				Error::<T>::InsufficientBalance
@@ -1205,8 +1222,7 @@ pub mod pallet {
 					amount,
 				},
 			)?;
-			T::Currency::reserve(&delegator, amount)
-				.expect("verified can reserve at top of this extrinsic body");
+			T::Currency::set_lock(DELEGATOR_LOCK_IDENTIFIER, &delegator, delegator_state.total, WithdrawReasons::all());
 			// only is_some if kicked the lowest bottom as a consequence of this new delegation
 			let net_total_increase = if let Some(less) = less_total_staked {
 				amount.saturating_sub(less)
@@ -1382,6 +1398,7 @@ pub mod pallet {
 		) -> DispatchResult {
 			let mut state = <CandidateInfo<T>>::get(&candidate).ok_or(Error::<T>::CandidateDNE)?;
 			state.rm_delegation_if_exists::<T>(&candidate, delegator.clone(), amount)?;
+			// TODO: this one is a bit tricky... where does this touch DelegatorState?
 			T::Currency::unreserve(&delegator, amount);
 			let new_total_locked = <Total<T>>::get().saturating_sub(amount);
 			<Total<T>>::put(new_total_locked);
