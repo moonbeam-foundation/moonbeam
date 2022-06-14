@@ -30,6 +30,7 @@ describeDevMoonbeam(
     });
   },
   "Legacy",
+  "moonbase",
   false
 );
 
@@ -76,6 +77,7 @@ describeDevMoonbeam(
     });
   },
   "EIP2930",
+  "moonbase",
   false
 );
 
@@ -123,5 +125,6 @@ describeDevMoonbeam(
     });
   },
   "EIP1559",
+  "moonbase",
   false
 );
