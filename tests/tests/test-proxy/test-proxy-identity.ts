@@ -1,46 +1,53 @@
 import "@polkadot/api-augment";
 import "@moonbeam-network/api-augment";
 import { expect } from "chai";
-import { alith, baltathar, BALTATHAR_SESSION_ADDRESS, ethan } from "../../util/accounts";
+import { alith, baltathar } from "../../util/accounts";
 
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 
-import { BlockCreationResponse } from "../../util/setup-dev-tests";
-import { ApiTypes, SubmittableExtrinsic } from "@polkadot/api/types";
-async function expectOk<
-  ApiType extends ApiTypes,
-  Call extends
-    | SubmittableExtrinsic<ApiType>
-    | Promise<SubmittableExtrinsic<ApiType>>
-    | string
-    | Promise<string>,
-  Calls extends Call | Call[]
->(
-  call: Promise<
-    BlockCreationResponse<ApiType, Calls extends Call[] ? Awaited<Call>[] : Awaited<Call>>
-  >
-) {
-  const block = await call;
-  if (Array.isArray(block.result)) {
-    block.result.forEach((r, idx) => {
-      expect(r.successful, `tx[${idx}] - ${r.error?.name}`).to.be.true;
-    });
-  } else {
-    expect(block.result.successful, block.result.error?.name).to.be.true;
-  }
-}
-
-describeDevMoonbeam("Proxy : IdentityJudgement", (context) => {
+describeDevMoonbeam("Proxy : IdentityJudgement fails without proxy", (context) => {
   before("should setup registrar", async () => {
     const block = await context.createBlock([
-      context.polkadotApi.tx.sudo.sudo(
-        context.polkadotApi.tx.identity.addRegistrar(baltathar.address)
-      ),
+      context.polkadotApi.tx.sudo.sudo(context.polkadotApi.tx.identity.addRegistrar(alith.address)),
       context.polkadotApi.tx.identity
         .setIdentity({
           display: { Raw: "foobar" },
         })
-        .signAsync(ethan),
+        .signAsync(baltathar),
+    ]);
+
+    block.result.forEach((r, idx) => {
+      expect(r.successful, `tx[${idx}] - ${r.error?.name}`).to.be.true;
+    });
+  });
+
+  it("should fail providing judgement", async () => {
+    const blockExecute = await context.createBlock(
+      context.polkadotApi.tx.proxy
+        .proxy(
+          alith.address,
+          null,
+          context.polkadotApi.tx.identity.provideJudgement(0, baltathar.address, {
+            Reasonable: true,
+          })
+        )
+        .signAsync(baltathar)
+    );
+
+    expect(blockExecute.result.successful).to.be.false;
+    expect(blockExecute.result.error.name).to.equal("NotProxy");
+  });
+});
+
+describeDevMoonbeam("Proxy : IdentityJudgement succeeds with proxy", (context) => {
+  before("should setup registrar", async () => {
+    const block = await context.createBlock([
+      context.polkadotApi.tx.sudo.sudo(context.polkadotApi.tx.identity.addRegistrar(alith.address)),
+      context.polkadotApi.tx.identity
+        .setIdentity({
+          display: { Raw: "foobar" },
+        })
+        .signAsync(baltathar),
     ]);
 
     block.result.forEach((r, idx) => {
@@ -51,8 +58,8 @@ describeDevMoonbeam("Proxy : IdentityJudgement", (context) => {
   it("should succeed providing judgement", async () => {
     const blockAdd = await context.createBlock(
       context.polkadotApi.tx.proxy
-        .addProxy(ethan.address, "IdentityJudgement" as any, 0)
-        .signAsync(baltathar)
+        .addProxy(baltathar.address, "IdentityJudgement" as any, 0)
+        .signAsync(alith)
     );
 
     expect(blockAdd.result.successful).to.be.true;
@@ -73,13 +80,13 @@ describeDevMoonbeam("Proxy : IdentityJudgement", (context) => {
     const blockExecute = await context.createBlock(
       context.polkadotApi.tx.proxy
         .proxy(
-          baltathar.address,
+          alith.address,
           null,
-          context.polkadotApi.tx.identity.provideJudgement(0, ethan.address, {
+          context.polkadotApi.tx.identity.provideJudgement(0, baltathar.address, {
             Reasonable: true,
           })
         )
-        .signAsync(ethan)
+        .signAsync(baltathar)
     );
 
     expect(blockExecute.result.successful).to.be.true;
@@ -100,7 +107,7 @@ describeDevMoonbeam("Proxy : IdentityJudgement", (context) => {
     expect(proxyExecuteEvent).to.deep.equal({
       proxyExecuted: "Ok",
       judgementGiven: {
-        address: ethan.address,
+        address: baltathar.address,
         decision: "0",
       },
     });
