@@ -38,8 +38,7 @@ pub use data::{Address, Bytes, EvmData, EvmDataReader, EvmDataWriter};
 pub use fp_evm::Precompile;
 pub use precompile_utils_macro::{generate_function_selector, keccak256};
 
-pub mod precompileset;
-pub use precompileset::PrecompileSetBuilderExt;
+pub mod precompile_set;
 
 #[cfg(feature = "testing")]
 pub mod testing;

@@ -126,6 +126,12 @@ impl<T, U, V> Clone for Erc20AssetsPrecompileSet<T, U, V> {
 	}
 }
 
+impl<T, U, V> Default for Erc20AssetsPrecompileSet<T, U, V> {
+	fn default() -> Self {
+		Self(PhantomData)
+	}
+}
+
 impl<Runtime, IsLocal, Instance> PrecompileSet
 	for Erc20AssetsPrecompileSet<Runtime, IsLocal, Instance>
 where
