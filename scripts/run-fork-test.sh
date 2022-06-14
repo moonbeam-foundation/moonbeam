@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # This script is expected to be included in a docker image (with node)
 set -e 
@@ -9,9 +9,11 @@ export PARA_ID=${PARA_ID:-"2004"}
 export PORT_PREFIX=${PORT_PREFIX:-"51"}
 export ROOT_FOLDER=${ROOT_FOLDER:-"/data"}
 export GIT_TAG=${GIT_TAG:-"master"}
-export SKIP_INTERMEDIATE_RUNTIME=${SKIP_INTERMEDIATE_RUNTIME:-"true"}
-export FORCE_COMPILED_WASM=${FORCE_COMPILED_WASM:-"true"}
-export SINGLE_PARACHAIN_NODE=${SINGLE_PARACHAIN_NODE:-"true"}
+export SKIP_INTERMEDIATE_RUNTIME=${SKIP_INTERMEDIATE_RUNTIME:-true}
+export FORCE_COMPILED_WASM=${FORCE_COMPILED_WASM:-true}
+export SINGLE_PARACHAIN_NODE=${SINGLE_PARACHAIN_NODE:-true}
+export SKIP_DOWNLOAD=${SKIP_DOWNLOAD:-false}
+export SKIP_COMPILATION=${SKIP_COMPILATION:-false}
 
 export NODE_OPTIONS=--max-old-space-size=16000
 
@@ -21,47 +23,55 @@ trap "trap - TERM && kill -- -$$" INT TERM EXIT
 mkdir -p $ROOT_FOLDER/states
 cd $ROOT_FOLDER
 
-# Clone moonbeam repo & building
-echo "Cloning repository..."
-git clone --depth 1 -b $GIT_TAG https://github.com/purestake/moonbeam
-cd $ROOT_FOLDER/moonbeam
-mkdir binaries
+if [[ $SKIP_DOWNLOAD != true ]]
+then
+    # Clone moonbeam repo & building
+    echo "Cloning repository..."
+    git clone --depth 1 -b $GIT_TAG https://github.com/purestake/moonbeam
+    cd $ROOT_FOLDER/moonbeam
+    mkdir binaries
 
-echo "Retrieving binaries..."
-MOONBEAM_CLIENT_TAG=`curl -s https://api.github.com/repos/purestake/moonbeam/releases | jq -r '.[] | .tag_name' | grep '^v' | head -1`
-POLKADOT_CLIENT_TAG=`curl -s https://api.github.com/repos/paritytech/polkadot/releases | jq -r '.[] | .tag_name' | grep '^v' | head -1`
+    echo "Retrieving binaries..."
+    MOONBEAM_CLIENT_TAG=`curl -s https://api.github.com/repos/purestake/moonbeam/releases | jq -r '.[] | .tag_name' | grep '^v' | head -1`
+    POLKADOT_CLIENT_TAG=`curl -s https://api.github.com/repos/paritytech/polkadot/releases | jq -r '.[] | .tag_name' | grep '^v' | head -1`
 
-wget -q https://github.com/PureStake/moonbeam/releases/download/${MOONBEAM_CLIENT_TAG}/moonbeam \
-    -O $ROOT_FOLDER/moonbeam/binaries/moonbeam; 
-export BINARY_PATH=$ROOT_FOLDER/moonbeam/binaries/moonbeam;
+    wget -q https://github.com/PureStake/moonbeam/releases/download/${MOONBEAM_CLIENT_TAG}/moonbeam \
+        -O $ROOT_FOLDER/moonbeam/binaries/moonbeam; 
+    export BINARY_PATH=$ROOT_FOLDER/moonbeam/binaries/moonbeam;
 
-wget -q https://github.com/paritytech/polkadot/releases/download/${POLKADOT_CLIENT_TAG}/polkadot \
-    -O $ROOT_FOLDER/moonbeam/binaries/polkadot; 
-export RELAY_BINARY_PATH=$ROOT_FOLDER/moonbeam/binaries/polkadot;
+    wget -q https://github.com/paritytech/polkadot/releases/download/${POLKADOT_CLIENT_TAG}/polkadot \
+        -O $ROOT_FOLDER/moonbeam/binaries/polkadot; 
+    export RELAY_BINARY_PATH=$ROOT_FOLDER/moonbeam/binaries/polkadot;
 
-chmod uog+x $BINARY_PATH $RELAY_BINARY_PATH
+    chmod uog+x $BINARY_PATH $RELAY_BINARY_PATH
 
-echo "Retrieving ${NETWORK} state... (few minutes)"
-wget -q https://s3.us-east-2.amazonaws.com/snapshots.moonbeam.network/${NETWORK}/latest/${NETWORK}-state.json \
-    -O $ROOT_FOLDER/states/${NETWORK}-state.json; 
+    echo "Retrieving ${NETWORK} state... (few minutes)"
+    wget -q https://s3.us-east-2.amazonaws.com/snapshots.moonbeam.network/${NETWORK}/latest/${NETWORK}-state.json \
+        -O $ROOT_FOLDER/states/${NETWORK}-state.json; 
+fi;
 
-## Build the runtime to test
-echo "Building $GIT_TAG $RUNTIME_NAME runtime... (5 minutes)"
-cd $ROOT_FOLDER/moonbeam
-cargo build --release -p ${RUNTIME_NAME}-runtime
+if [[ $SKIP_COMPILATION != true ]]
+then
+    ## Build the runtime to test
+    echo "Building $GIT_TAG $RUNTIME_NAME runtime... (5 minutes)"
+    cd $ROOT_FOLDER/moonbeam
+    cargo build --release -p ${RUNTIME_NAME}-runtime
 
-echo "Preparing tests... (3 minutes)"
-cd $ROOT_FOLDER/moonbeam/moonbeam-types-bundle
-npm install
-cd $ROOT_FOLDER/moonbeam/tools
-npm install
+    echo "Preparing tests... (3 minutes)"
+    cd $ROOT_FOLDER/moonbeam/moonbeam-types-bundle
+    npm install
+    cd $ROOT_FOLDER/moonbeam/tools
+    npm install
 
-cd $ROOT_FOLDER/moonbeam/tests
-git fetch origin crystalin-fork-test-preparation:crystalin-fork-test-preparation
-git checkout crystalin-fork-test-preparation
-npm install
+    cd $ROOT_FOLDER/moonbeam/tests
+    git fetch origin crystalin-fork-test-preparation:crystalin-fork-test-preparation
+    git checkout crystalin-fork-test-preparation
+    npm install
+fi;
+
 
 # Modify state
+cd $ROOT_FOLDER/moonbeam/tests
 echo "Customizing $NETWORK forked state..."
 export SPEC_FILE=$ROOT_FOLDER/states/${NETWORK}-state.mod.json
 node_modules/.bin/ts-node state-modifier.ts $ROOT_FOLDER/states/${NETWORK}-state.json

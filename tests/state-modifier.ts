@@ -52,7 +52,6 @@ async function main(inputFile: string, outputFile?: string) {
   let messagingState = null;
   const collatorLinePrefix = `        "${storageKey("ParachainStaking", "SelectedCandidates")}`;
   const authorLinePrefix = `        "${storageKey("AuthorMapping", "MappingWithDeposit")}`;
-  const nimbusLookupPrefix = `        "${storageKey("AuthorMapping", "NimbusLookup")}`;
   const revelentMessagingStatePrefix = `        "${storageKey(
     "ParachainSystem",
     "RelevantMessagingState"
@@ -139,6 +138,11 @@ async function main(inputFile: string, outputFile?: string) {
   const outStream = fs.createWriteStream(destFile, { encoding: "utf8" });
 
   const selectedAuthorMappingPrefix = `        "${selectedCollatorMappingKey}"`;
+  const selectedNimbusLookupPrefix = `        "${storageBlake128MapKey(
+    "AuthorMapping",
+    "NimbusLookup",
+    selectedCollator
+  )}`;
 
   for await (const line of rl2) {
     if (line.startsWith(selectedAuthorMappingPrefix)) {
@@ -160,7 +164,7 @@ async function main(inputFile: string, outputFile?: string) {
         ` ${chalk.green(`  + Adding AuthorMapping.MappingWithDeposit: Alith`)}\n\t${newLine}`
       );
       outStream.write(newLine);
-    } else if (line.startsWith(nimbusLookupPrefix)) {
+    } else if (line.startsWith(selectedNimbusLookupPrefix)) {
       console.log(
         ` ${chalk.red(`  - Removing AuthorMapping.NimbusLookup ${selectedCollator}\n\t${line}`)}`
       );
@@ -191,7 +195,7 @@ async function main(inputFile: string, outputFile?: string) {
     } else if (line.startsWith(authorEligibilityCountPrefix)) {
       console.log(` ${chalk.red(`  - Removing AuthorFilter.EligibleCount`)}\n\t${line}`);
 
-      const newLine = `        "${storageKey("AuthorFilter", "EligibleCount")}": "0x32000000",\n`;
+      const newLine = `        "${storageKey("AuthorFilter", "EligibleCount")}": "0xFF000000",\n`;
       console.log(` ${chalk.green(`  + Adding AuthorFilter.EligibleCount`)}\n\t${newLine}`);
       outStream.write(newLine);
     } else if (line.startsWith(councilLinePrefix)) {
@@ -230,7 +234,7 @@ async function main(inputFile: string, outputFile?: string) {
           bitLength: 128,
         }
       )}",\n`;
-      console.log(` ${chalk.green(`  + Balances.TotalIssuance`)}\n\t${newLine}`);
+      console.log(` ${chalk.green(`  + Adding Balances.TotalIssuance`)}\n\t${newLine}`);
       outStream.write(newLine);
     } else if (line.startsWith(bootnodesPrefix)) {
       console.log(` ${chalk.red(`  - Removing bootnode`)}\n\t${line}`);
