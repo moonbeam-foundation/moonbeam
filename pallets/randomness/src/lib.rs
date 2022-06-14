@@ -196,47 +196,32 @@ pub mod pallet {
 		// only get new randomness iff relay block number changes
 		fn on_initialize(_now: BlockNumberFor<T>) -> Weight {
 			let last_epoch_index = <CurrentEpochIndex<T>>::get();
-			let (maybe_new_epoch_index, mut weight_consumed) = T::RelayTime::get_epoch_index();
-			if let Some(new_epoch_index) = maybe_new_epoch_index {
-				// EPOCH CHANGED
-				if new_epoch_index > last_epoch_index {
-					// insert new epoch information
-					<CurrentEpochIndex<T>>::put(new_epoch_index);
-					let (one_epoch_ago_randomness, w0) =
-						T::RelayRandomness::get_one_epoch_ago_randomness();
-					let (two_epochs_ago_randomness, w1) =
-						T::RelayRandomness::get_two_epochs_ago_randomness();
-					<OneEpochAgoRandomness<T>>::put(one_epoch_ago_randomness);
-					<TwoEpochsAgoRandomness<T>>::put(two_epochs_ago_randomness);
-					weight_consumed =
-						weight_consumed.saturating_add(3 * T::DbWeight::get().write + w0 + w1);
-				}
-			} else {
-				log::warn!(
-					"Could not read epoch index from relay chain state proof \
-					Did not want to panic upon decode failure but do never expect this branch"
-				);
+			let maybe_new_epoch_index = T::RelayTime::get_epoch_index();
+			// EPOCH CHANGED
+			if new_epoch_index > last_epoch_index {
+				// insert new epoch information
+				<CurrentEpochIndex<T>>::put(new_epoch_index);
+				let (one_epoch_ago_randomness, w0) =
+					T::RelayRandomness::get_one_epoch_ago_randomness();
+				let (two_epochs_ago_randomness, w1) =
+					T::RelayRandomness::get_two_epochs_ago_randomness();
+				<OneEpochAgoRandomness<T>>::put(one_epoch_ago_randomness);
+				<TwoEpochsAgoRandomness<T>>::put(two_epochs_ago_randomness);
+				weight_consumed =
+					weight_consumed.saturating_add(3 * T::DbWeight::get().write + w0 + w1);
 			}
 			let last_relay_block_number = <CurrentRelayBlockNumber<T>>::get();
-			let (maybe_new_relay_block_number, w2) = T::RelayTime::get_block_number();
-			weight_consumed = weight_consumed.saturating_add(w2);
-			if let Some(new_relay_block_number) = maybe_new_relay_block_number {
-				if new_relay_block_number > last_relay_block_number {
-					<CurrentRelayBlockNumber<T>>::put(new_relay_block_number);
-					// move babe current block randomness here once async backing as optimization
-					weight_consumed = weight_consumed.saturating_add(T::DbWeight::get().write);
-				}
-			} else {
-				log::warn!(
-					"Could not read relay block number \
-					Did not want to panic upon decode failure but do never expect this branch"
-				);
+			let new_relay_block_number = T::RelayTime::get_block_number();
+			if new_relay_block_number > last_relay_block_number {
+				<CurrentRelayBlockNumber<T>>::put(new_relay_block_number);
+				// move babe current block randomness here once async backing as optimization
+				weight_consumed = weight_consumed.saturating_add(T::DbWeight::get().write);
 			}
 			// move into above relay block number update once async backing to optimize s.t. only
 			// gets new current_block_randomness iff relay block changes
-			let (current_block_randomness, w3) = T::RelayRandomness::get_current_block_randomness();
+			let (current_block_randomness, w2) = T::RelayRandomness::get_current_block_randomness();
 			<CurrentBlockRandomness<T>>::put(current_block_randomness);
-			weight_consumed + T::DbWeight::get().write + w3
+			weight_consumed + T::DbWeight::get().write + w2
 		}
 	}
 

@@ -47,12 +47,14 @@ pub mod pallet {
 	/// VRF inputs from the relay chain
 	/// Both inputs are expected to change every block
 	#[derive(Default, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
-	pub struct VrfInput<RelayHash, SlotNumber> {
+	pub struct VrfInput<SlotNumber, RelayHash> {
 		/// Relay parent block slot number
 		pub slot_number: SlotNumber,
 		/// Relay parent block storage root
 		pub storage_root: RelayHash,
 	}
+
+	/// 
 
 	/// For the runtime to implement to expose cumulus data to this pallet and cost of getting data
 	pub trait GetVrfInputs<SlotNumber, StorageRoot> {
@@ -68,7 +70,7 @@ pub mod pallet {
 	}
 
 	/// Make VRF transcript
-	pub fn make_transcript<Hash: AsRef<[u8]>>(input: VrfInput<Hash, Slot>) -> Transcript {
+	pub fn make_transcript<Hash: AsRef<[u8]>>(input: VrfInput<Slot, Hash>) -> Transcript {
 		let mut transcript = Transcript::new(&BABE_ENGINE_ID);
 		transcript.append_u64(b"relay slot number", *input.slot_number);
 		transcript.append_message(b"relay storage root", input.storage_root.as_ref());
@@ -98,13 +100,13 @@ pub mod pallet {
 	/// Set in `on_initialize` before setting randomness
 	#[pallet::storage]
 	#[pallet::getter(fn current_vrf_input)]
-	pub(crate) type CurrentVrfInput<T: Config> = StorageValue<_, VrfInput<T::Hash, Slot>>;
+	pub(crate) type CurrentVrfInput<T: Config> = StorageValue<_, VrfInput<Slot, T::Hash>>;
 
 	/// Last block's VRF input relay chain data
 	/// Used in on_initialize as the VRF inputs for this block
 	#[pallet::storage]
 	#[pallet::getter(fn last_vrf_input)]
-	pub(crate) type LastVrfInput<T: Config> = StorageValue<_, VrfInput<T::Hash, Slot>>;
+	pub(crate) type LastVrfInput<T: Config> = StorageValue<_, VrfInput<Slot, T::Hash>>;
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
