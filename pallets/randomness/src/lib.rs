@@ -46,6 +46,7 @@ pub mod pallet {
 	use frame_support::traits::{Currency, ReservableCurrency};
 	use frame_system::pallet_prelude::*;
 	use pallet_evm::AddressMapping;
+	use pallet_vrf::GetRelayTime;
 	use sp_core::{H160, H256};
 	use sp_runtime::traits::Saturating;
 	use sp_std::{convert::TryInto, vec::Vec};
@@ -69,7 +70,7 @@ pub mod pallet {
 		/// Currency in which the security deposit will be taken.
 		type ReserveCurrency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
 		/// Get relay block number and epoch index to insert into this pallet
-		type RelayTime: GetRelayTime<Self::BlockNumber, u64>;
+		type RelayTime: pallet_vrf::GetRelayTime<Self::BlockNumber, u64>;
 		/// Get relay chain randomness to insert into this pallet
 		type RelayRandomness: GetRelayRandomness<Self::Hash>;
 		/// Get per block vrf randomness
@@ -196,8 +197,9 @@ pub mod pallet {
 		// only get new randomness iff relay block number changes
 		fn on_initialize(_now: BlockNumberFor<T>) -> Weight {
 			let last_epoch_index = <CurrentEpochIndex<T>>::get();
-			let maybe_new_epoch_index = T::RelayTime::get_epoch_index();
-			// EPOCH CHANGED
+			let new_epoch_index = T::RelayTime::get_epoch_index();
+			let mut weight_consumed = T::DbWeight::get().read;
+			// if epoch changed then update epoch and all epoch randomness values
 			if new_epoch_index > last_epoch_index {
 				// insert new epoch information
 				<CurrentEpochIndex<T>>::put(new_epoch_index);
@@ -221,7 +223,7 @@ pub mod pallet {
 			// gets new current_block_randomness iff relay block changes
 			let (current_block_randomness, w2) = T::RelayRandomness::get_current_block_randomness();
 			<CurrentBlockRandomness<T>>::put(current_block_randomness);
-			weight_consumed + T::DbWeight::get().write + w2
+			weight_consumed + T::DbWeight::get().read + T::DbWeight::get().write + w2
 		}
 	}
 

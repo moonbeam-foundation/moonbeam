@@ -16,12 +16,6 @@
 
 use frame_support::pallet_prelude::*;
 
-/// Get the relay chain epoch index and block number
-pub trait GetRelayTime<BlockNumber, EpochIndex> {
-	fn get_block_number() -> BlockNumber;
-	fn get_epoch_index() -> EpochIndex;
-}
-
 /// Get babe randomness to insert into runtime
 pub trait GetRelayRandomness<R> {
 	fn get_current_block_randomness() -> (Option<R>, Weight);

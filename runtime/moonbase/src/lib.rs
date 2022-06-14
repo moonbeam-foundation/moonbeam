@@ -1081,19 +1081,17 @@ impl pallet_base_fee::Config for Runtime {
 	type DefaultBaseFeePerGas = DefaultBaseFeePerGas;
 }
 
-// TODO: weight and propagate error better
-pub struct RelayTime;
-impl pallet_randomness::GetRelayTime<BlockNumber, u64> for RelayTime {
-	fn get_block_number() -> (Option<BlockNumber>, Weight) {
-		let block = ParachainSystem::validation_data().map(|d| d.relay_parent_number);
-		(block, 0)
+pub struct RelayTimeFromVrfPallet;
+impl pallet_vrf::GetRelayTime<BlockNumber, u64> for RelayTimeFromVrfPallet {
+	fn get_block_number() -> BlockNumber {
+		Vrf::relay_chain_time()
+			.expect("always should exist")
+			.block_number
 	}
-	fn get_epoch_index() -> (Option<u64>, Weight) {
-		let epoch = relay_chain_state_proof()
-			.read_optional_entry(relay_chain::well_known_keys::EPOCH_INDEX)
-			.ok()
-			.flatten();
-		(epoch, 0)
+	fn get_epoch_index() -> u64 {
+		Vrf::relay_chain_time()
+			.expect("always should exist")
+			.epoch_index
 	}
 }
 
@@ -1131,7 +1129,7 @@ parameter_types! {
 impl pallet_randomness::Config for Runtime {
 	type Event = Event;
 	type ReserveCurrency = Balances;
-	type RelayTime = RelayTime;
+	type RelayTime = RelayTimeFromVrfPallet;
 	type RelayRandomness = RelayRandomness;
 	type LocalRandomness = Vrf;
 	type Deposit = RandomnessRequestDeposit;
@@ -1164,7 +1162,26 @@ impl GetVrfInputs<Slot, Hash> for VrfInputs {
 	}
 }
 
+/// Must be called before on_initialize because ParachainSystem kills this storage in on_initialize
+pub struct RelayTimeFromParachainSystem;
+impl pallet_vrf::GetRelayTime<BlockNumber, u64> for RelayTimeFromParachainSystem {
+	fn get_block_number() -> BlockNumber {
+		ParachainSystem::validation_data()
+			.map(|d| d.relay_parent_number)
+			.expect("exists iff this was called before on_initialize && after set_validation_data")
+	}
+	fn get_epoch_index() -> u64 {
+		relay_chain_state_proof()
+			.read_optional_entry(relay_chain::well_known_keys::EPOCH_INDEX)
+			.ok()
+			.flatten()
+			.expect("expected to be able to read epoch index from relay chain state proof")
+	}
+}
+
 impl pallet_vrf::Config for Runtime {
+	/// Gets the most recent relay block number and epoch index
+	type RelayTime = RelayTimeFromParachainSystem;
 	/// Gets the most recent relay block hash and relay slot number in `on_initialize`
 	type VrfInputs = VrfInputs;
 	/// Lookup VRF key using NimbusID

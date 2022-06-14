@@ -190,12 +190,12 @@ impl pallet_evm::Config for Test {
 }
 
 pub struct RelayTime;
-impl GetRelayTime<BlockNumber, u64> for RelayTime {
-	fn get_block_number() -> (Option<BlockNumber>, Weight) {
-		(Some(1), 0)
+impl pallet_vrf::GetRelayTime<BlockNumber, u64> for RelayTime {
+	fn get_block_number() -> BlockNumber {
+		1
 	}
-	fn get_epoch_index() -> (Option<u64>, Weight) {
-		(Some(1), 0)
+	fn get_epoch_index() -> u64 {
+		1
 	}
 }
 
