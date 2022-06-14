@@ -22,6 +22,7 @@
 use fp_evm::PrecompileHandle;
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use pallet_evm::{AddressMapping, PrecompileOutput};
+use pallet_xcm_transactor::RemoteTransactInfoWithMaxWeight;
 use precompile_utils::{
 	revert, succeed, Address, Bytes, EvmDataWriter, EvmResult, FunctionModifier,
 	PrecompileHandleExt, RuntimeHelper,
@@ -35,15 +36,14 @@ use sp_std::{
 };
 use xcm::latest::MultiLocation;
 use xcm_primitives::AccountIdToCurrencyId;
-use xcm_transactor::RemoteTransactInfoWithMaxWeight;
 
 #[cfg(test)]
 mod mock;
 #[cfg(test)]
 mod tests;
 
-pub type TransactorOf<Runtime> = <Runtime as xcm_transactor::Config>::Transactor;
-pub type CurrencyIdOf<Runtime> = <Runtime as xcm_transactor::Config>::CurrencyId;
+pub type TransactorOf<Runtime> = <Runtime as pallet_xcm_transactor::Config>::Transactor;
+pub type CurrencyIdOf<Runtime> = <Runtime as pallet_xcm_transactor::Config>::CurrencyId;
 
 #[precompile_utils::generate_function_selector]
 #[derive(Debug, PartialEq)]
@@ -66,9 +66,9 @@ pub struct XcmTransactorWrapper<Runtime>(PhantomData<Runtime>);
 
 impl<Runtime> pallet_evm::Precompile for XcmTransactorWrapper<Runtime>
 where
-	Runtime: xcm_transactor::Config + pallet_evm::Config + frame_system::Config,
+	Runtime: pallet_xcm_transactor::Config + pallet_evm::Config + frame_system::Config,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
-	Runtime::Call: From<xcm_transactor::Call<Runtime>>,
+	Runtime::Call: From<pallet_xcm_transactor::Call<Runtime>>,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	TransactorOf<Runtime>: TryFrom<u8>,
 	Runtime::AccountId: Into<H160>,
@@ -105,9 +105,9 @@ where
 
 impl<Runtime> XcmTransactorWrapper<Runtime>
 where
-	Runtime: xcm_transactor::Config + pallet_evm::Config + frame_system::Config,
+	Runtime: pallet_xcm_transactor::Config + pallet_evm::Config + frame_system::Config,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
-	Runtime::Call: From<xcm_transactor::Call<Runtime>>,
+	Runtime::Call: From<pallet_xcm_transactor::Call<Runtime>>,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	TransactorOf<Runtime>: TryFrom<u8>,
 	Runtime::AccountId: Into<H160>,
@@ -122,7 +122,7 @@ where
 		let index: u16 = input.read::<u16>()?;
 
 		// fetch data from pallet
-		let account: H160 = xcm_transactor::Pallet::<Runtime>::index_to_account(index)
+		let account: H160 = pallet_xcm_transactor::Pallet::<Runtime>::index_to_account(index)
 			.ok_or(revert("No index assigned"))?
 			.into();
 
@@ -139,12 +139,12 @@ where
 
 		// fetch data from pallet
 		let remote_transact_info: RemoteTransactInfoWithMaxWeight =
-			xcm_transactor::Pallet::<Runtime>::transact_info(&multilocation)
+			pallet_xcm_transactor::Pallet::<Runtime>::transact_info(&multilocation)
 				.ok_or(revert("Transact Info not set"))?;
 
 		// fetch data from pallet
 		let fee_per_second: u128 =
-			xcm_transactor::Pallet::<Runtime>::dest_asset_fee_per_second(&multilocation)
+			pallet_xcm_transactor::Pallet::<Runtime>::dest_asset_fee_per_second(&multilocation)
 				.ok_or(revert("Fee Per Second not set"))?;
 
 		Ok(succeed(
@@ -166,7 +166,7 @@ where
 
 		// fetch data from pallet
 		let remote_transact_info: RemoteTransactInfoWithMaxWeight =
-			xcm_transactor::Pallet::<Runtime>::transact_info(multilocation)
+			pallet_xcm_transactor::Pallet::<Runtime>::transact_info(multilocation)
 				.ok_or(revert("Transact Info not set"))?;
 
 		let transact_extra_weight_signed = remote_transact_info
@@ -189,7 +189,7 @@ where
 
 		// fetch data from pallet
 		let fee_per_second: u128 =
-			xcm_transactor::Pallet::<Runtime>::dest_asset_fee_per_second(multilocation)
+			pallet_xcm_transactor::Pallet::<Runtime>::dest_asset_fee_per_second(multilocation)
 				.ok_or(revert("Fee Per Second not set"))?;
 
 		Ok(succeed(EvmDataWriter::new().write(fee_per_second).build()))
@@ -222,13 +222,14 @@ where
 		// Depending on the Runtime, this might involve a DB read. This is not the case in
 		// moonbeam, as we are using IdentityMapping
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = xcm_transactor::Call::<Runtime>::transact_through_derivative_multilocation {
-			dest: transactor,
-			index,
-			fee_location: Box::new(xcm::VersionedMultiLocation::V1(fee_multilocation)),
-			dest_weight: weight,
-			inner_call: inner_call.0,
-		};
+		let call =
+			pallet_xcm_transactor::Call::<Runtime>::transact_through_derivative_multilocation {
+				dest: transactor,
+				index,
+				fee_location: Box::new(xcm::VersionedMultiLocation::V1(fee_multilocation)),
+				dest_weight: weight,
+				inner_call: inner_call.0,
+			};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
@@ -261,14 +262,14 @@ where
 		// We convert the address into a currency
 		// This involves a DB read in moonbeam, hence the db Read
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let currency_id: <Runtime as xcm_transactor::Config>::CurrencyId =
+		let currency_id: <Runtime as pallet_xcm_transactor::Config>::CurrencyId =
 			Runtime::account_to_currency_id(to_account)
 				.ok_or(revert("cannot convert into currency id"))?;
 
 		// Depending on the Runtime, this might involve a DB read. This is not the case in
 		// moonbeam, as we are using IdentityMapping
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = xcm_transactor::Call::<Runtime>::transact_through_derivative {
+		let call = pallet_xcm_transactor::Call::<Runtime>::transact_through_derivative {
 			dest: transactor,
 			index,
 			currency_id,
@@ -305,7 +306,7 @@ where
 		// Depending on the Runtime, this might involve a DB read. This is not the case in
 		// moonbeam, as we are using IdentityMapping
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = xcm_transactor::Call::<Runtime>::transact_through_signed_multilocation {
+		let call = pallet_xcm_transactor::Call::<Runtime>::transact_through_signed_multilocation {
 			dest: Box::new(xcm::VersionedMultiLocation::V1(dest)),
 			fee_location: Box::new(xcm::VersionedMultiLocation::V1(fee_multilocation)),
 			dest_weight: weight,
@@ -336,7 +337,7 @@ where
 		// We convert the address into a currency
 		// This involves a DB read in moonbeam, hence the db Read
 
-		let currency_id: <Runtime as xcm_transactor::Config>::CurrencyId =
+		let currency_id: <Runtime as pallet_xcm_transactor::Config>::CurrencyId =
 			Runtime::account_to_currency_id(to_account)
 				.ok_or(revert("cannot convert into currency id"))?;
 
@@ -349,7 +350,7 @@ where
 		// Depending on the Runtime, this might involve a DB read. This is not the case in
 		// moonbeam, as we are using IdentityMapping
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = xcm_transactor::Call::<Runtime>::transact_through_signed {
+		let call = pallet_xcm_transactor::Call::<Runtime>::transact_through_signed {
 			dest: Box::new(xcm::VersionedMultiLocation::V1(dest)),
 			fee_currency_id: currency_id,
 			dest_weight: weight,
