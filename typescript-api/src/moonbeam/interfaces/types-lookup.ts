@@ -5,7 +5,7 @@ declare module "@polkadot/types/lookup" {
   import type { Data } from "@polkadot/types";
   import type {
     BTreeMap,
-    BTreeSet as BTreeSetType,
+    BTreeSet,
     Bytes,
     Compact,
     Enum,
@@ -2590,7 +2590,7 @@ declare module "@polkadot/types/lookup" {
    * @name SpTrieStorageProof (157)
    */
   export interface SpTrieStorageProof extends Struct {
-    readonly trieNodes: BTreeSetType<Bytes>;
+    readonly trieNodes: BTreeSet<Bytes>;
   }
 
   /**
