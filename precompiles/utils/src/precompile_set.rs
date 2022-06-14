@@ -18,7 +18,7 @@
 //! final precompile set with security checks. All security checks are enabled by
 //! default and must be disabled explicely throught type annotations.
 
-use crate::revert;
+use crate::{revert, StatefulPrecompile as StatefulPrecompileT};
 use fp_evm::{Precompile, PrecompileHandle, PrecompileResult, PrecompileSet};
 use frame_support::pallet_prelude::Get;
 use impl_trait_for_tuples::impl_for_tuples;
@@ -169,6 +169,91 @@ where
 		}
 
 		let res = P::execute(handle);
+
+		// Decrease recursion level if needed.
+		if R::recursion_limit().is_some() {
+			match self.current_recursion_level.try_borrow_mut() {
+				Ok(mut recursion_level) => {
+					*recursion_level -= 1;
+				}
+				// We don't hold the borrow and are in single-threaded code, thus we should
+				// not be able to fail borrowing in nested calls.
+				Err(_) => return Some(Err(revert("couldn't check precompile nesting"))),
+			}
+		}
+
+		Some(res)
+	}
+
+	#[inline(always)]
+	fn is_precompile(&self, address: H160) -> bool {
+		address == A::get()
+	}
+
+	#[inline(always)]
+	fn used_addresses(&self) -> Vec<H160> {
+		vec![A::get()]
+	}
+}
+
+/// Wraps a stateful precompile: a type implementing the `StatefulPrecompile` trait.
+/// Type parameters allow to define:
+/// - A: The address of the precompile
+/// - R: The recursion limit (defaults to 1)
+/// - R: If DELEGATECALL is supported (default to no)
+pub struct StatefulPrecompile<A, P, R = LimitRecursionTo<1>, D = ForbidDelegateCall> {
+	precompile: P,
+	current_recursion_level: RefCell<u16>,
+	_phantom: PhantomData<(A, R, D)>,
+}
+
+impl<A, P, R, D> PrecompileSetFragment for StatefulPrecompile<A, P, R, D>
+where
+	A: Get<H160>,
+	P: StatefulPrecompileT + Default,
+	R: RecursionLimit,
+	D: DelegateCallSupport,
+{
+	#[inline(always)]
+	fn new() -> Self {
+		Self {
+			precompile: P::default(),
+			current_recursion_level: RefCell::new(0),
+			_phantom: PhantomData,
+		}
+	}
+
+	#[inline(always)]
+	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<PrecompileResult> {
+		// Check if this is the address of the precompile.
+		if A::get() != handle.code_address() {
+			return None;
+		}
+
+		// Check DELEGATECALL config.
+		if !D::allow_delegate_call() && handle.code_address() != handle.context().address {
+			return Some(Err(revert(
+				"cannot be called with DELEGATECALL or CALLCODE",
+			)));
+		}
+
+		// Check and increase recursion level if needed.
+		if let Some(max_recursion_level) = R::recursion_limit() {
+			match self.current_recursion_level.try_borrow_mut() {
+				Ok(mut recursion_level) => {
+					if *recursion_level >= max_recursion_level {
+						return Some(Err(revert("precompile is called with too high nesting")));
+					}
+
+					*recursion_level += 1;
+				}
+				// We don't hold the borrow and are in single-threaded code, thus we should
+				// not be able to fail borrowing in nested calls.
+				Err(_) => return Some(Err(revert("couldn't check precompile nesting"))),
+			}
+		}
+
+		let res = self.precompile.execute(handle);
 
 		// Decrease recursion level if needed.
 		if R::recursion_limit().is_some() {
