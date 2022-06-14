@@ -31,11 +31,10 @@ use pallet_evm_precompile_modexp::Modexp;
 use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
 use parachain_staking_precompiles::ParachainStakingWrapper;
-use precompile_utils::{revert, StatefulPrecompile};
+use precompile_utils::{precompileset::BuilderParams, PrecompileSetBuilderExt};
 use relay_encoder_precompiles::RelayEncoderWrapper;
 use sp_core::H160;
-use sp_std::fmt::Debug;
-use sp_std::marker::PhantomData;
+use sp_std::{boxed::Box, fmt::Debug, marker::PhantomData};
 use xcm_transactor_precompiles::XcmTransactorWrapper;
 use xtokens_precompiles::XtokensWrapper;
 
@@ -70,26 +69,119 @@ impl Erc20Metadata for NativeErc20Metadata {
 pub const FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX: &[u8] = &[255u8; 4];
 pub const LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX: &[u8] = &[255u8, 255u8, 255u8, 254u8];
 
+type ChainedPrecompileSet<R>
+where
+	Dispatch<R>: Precompile,
+	ParachainStakingWrapper<R>: Precompile,
+	CrowdloanRewardsWrapper<R>: Precompile,
+	Erc20BalancesPrecompile<R, NativeErc20Metadata>: Precompile,
+	Erc20AssetsPrecompileSet<R, IsForeign, ForeignAssetInstance>: PrecompileSet,
+	Erc20AssetsPrecompileSet<R, IsLocal, LocalAssetInstance>: PrecompileSet,
+	XtokensWrapper<R>: Precompile,
+	RelayEncoderWrapper<R, KusamaEncoder>: Precompile,
+	XcmTransactorWrapper<R>: Precompile,
+	DemocracyWrapper<R>: Precompile,
+	AuthorMappingWrapper<R>: Precompile,
+	R: pallet_evm::Config,
+= impl PrecompileSet + Clone;
+
+pub fn moonriver_precompiles<R>() -> ChainedPrecompileSet<R>
+where
+	Dispatch<R>: Precompile,
+	ParachainStakingWrapper<R>: Precompile,
+	CrowdloanRewardsWrapper<R>: Precompile,
+	Erc20BalancesPrecompile<R, NativeErc20Metadata>: Precompile,
+	Erc20AssetsPrecompileSet<R, IsForeign, ForeignAssetInstance>: PrecompileSet,
+	Erc20AssetsPrecompileSet<R, IsLocal, LocalAssetInstance>: PrecompileSet,
+	XtokensWrapper<R>: Precompile,
+	RelayEncoderWrapper<R, KusamaEncoder>: Precompile,
+	XcmTransactorWrapper<R>: Precompile,
+	DemocracyWrapper<R>: Precompile,
+	AuthorMappingWrapper<R>: Precompile,
+	R: pallet_evm::Config,
+{
+	// Ethereum precompiles:
+	().add_precompile::<ECRecover>(hash(1), BuilderParams::new().allow_delegatecall())
+		.add_precompile::<Sha256>(hash(2), BuilderParams::new().allow_delegatecall())
+		.add_precompile::<Ripemd160>(hash(3), BuilderParams::new().allow_delegatecall())
+		.add_precompile::<Identity>(hash(4), BuilderParams::new().allow_delegatecall())
+		.add_precompile::<Modexp>(hash(5), BuilderParams::new().allow_delegatecall())
+		.add_precompile::<Bn128Add>(hash(6), BuilderParams::new().allow_delegatecall())
+		.add_precompile::<Bn128Add>(hash(6), BuilderParams::new().allow_delegatecall())
+		.add_precompile::<Bn128Mul>(hash(7), BuilderParams::new().allow_delegatecall())
+		.add_precompile::<Bn128Pairing>(hash(8), BuilderParams::new().allow_delegatecall())
+		.add_precompile::<Blake2F>(hash(9), BuilderParams::new().allow_delegatecall())
+		// Non-Moonbeam specific nor Ethereum precompiles :
+		.add_precompile::<Sha3FIPS256>(hash(1024), BuilderParams::new())
+		.add_precompile::<Dispatch<R>>(hash(1025), BuilderParams::new())
+		.add_precompile::<ECRecoverPublicKey>(hash(1026), BuilderParams::new())
+		// Moonbeam specific precompiles :
+		.add_precompile::<ParachainStakingWrapper<R>>(hash(2048), BuilderParams::new())
+		.add_precompile::<CrowdloanRewardsWrapper<R>>(hash(2049), BuilderParams::new())
+		.add_precompile::<Erc20BalancesPrecompile<R, NativeErc20Metadata>>(
+			hash(2050),
+			BuilderParams::new(),
+		)
+		.add_precompile::<DemocracyWrapper<R>>(hash(2051), BuilderParams::new())
+		.add_precompile::<XtokensWrapper<R>>(hash(2052), BuilderParams::new())
+		.add_precompile::<RelayEncoderWrapper<R, KusamaEncoder>>(hash(2053), BuilderParams::new())
+		.add_precompile::<XcmTransactorWrapper<R>>(hash(2054), BuilderParams::new())
+		.add_precompile::<AuthorMappingWrapper<R>>(hash(2055), BuilderParams::new())
+		.add_precompile::<BatchPrecompile<R>>(
+			hash(2056),
+			BuilderParams::new().with_max_recursion(Some(3)),
+		)
+		.add_precompile_set(
+			FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+			Erc20AssetsPrecompileSet::<R, IsForeign, ForeignAssetInstance>::new(),
+		)
+		.add_precompile_set(
+			LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+			Erc20AssetsPrecompileSet::<R, IsLocal, LocalAssetInstance>::new(),
+		)
+}
+
 /// The PrecompileSet installed in the Moonriver runtime.
 /// We include the nine Istanbul precompiles
 /// (https://github.com/ethereum/go-ethereum/blob/3c46f557/core/vm/contracts.go#L69)
 /// as well as a special precompile for dispatching Substrate extrinsics
-#[derive(Debug, Clone)]
-pub struct MoonriverPrecompiles<R> {
-	batch: BatchPrecompile<R>,
-	_phantom: PhantomData<R>,
+#[derive(Clone)]
+pub struct MoonriverPrecompiles<R>
+where
+	Dispatch<R>: Precompile,
+	ParachainStakingWrapper<R>: Precompile,
+	CrowdloanRewardsWrapper<R>: Precompile,
+	Erc20BalancesPrecompile<R, NativeErc20Metadata>: Precompile,
+	Erc20AssetsPrecompileSet<R, IsForeign, ForeignAssetInstance>: PrecompileSet,
+	Erc20AssetsPrecompileSet<R, IsLocal, LocalAssetInstance>: PrecompileSet,
+	XtokensWrapper<R>: Precompile,
+	RelayEncoderWrapper<R, KusamaEncoder>: Precompile,
+	XcmTransactorWrapper<R>: Precompile,
+	DemocracyWrapper<R>: Precompile,
+	AuthorMappingWrapper<R>: Precompile,
+	R: pallet_evm::Config,
+{
+	inner: ChainedPrecompileSet<R>,
 }
 
 impl<R> MoonriverPrecompiles<R>
 where
+	Dispatch<R>: Precompile,
+	ParachainStakingWrapper<R>: Precompile,
+	CrowdloanRewardsWrapper<R>: Precompile,
+	Erc20BalancesPrecompile<R, NativeErc20Metadata>: Precompile,
+	Erc20AssetsPrecompileSet<R, IsForeign, ForeignAssetInstance>: PrecompileSet,
+	Erc20AssetsPrecompileSet<R, IsLocal, LocalAssetInstance>: PrecompileSet,
+	XtokensWrapper<R>: Precompile,
+	RelayEncoderWrapper<R, KusamaEncoder>: Precompile,
+	XcmTransactorWrapper<R>: Precompile,
+	DemocracyWrapper<R>: Precompile,
+	AuthorMappingWrapper<R>: Precompile,
 	R: pallet_evm::Config,
 {
 	pub fn new() -> Self {
 		Self {
-			// we allow up to 3 levels of nesting.
-			// it should be more than enough for users to compose nested groups.
-			batch: BatchPrecompile::new_with_max_recursion_level(3),
-			_phantom: PhantomData,
+			inner: moonriver_precompiles::<R>(),
 		}
 	}
 
@@ -125,63 +217,10 @@ where
 	R: pallet_evm::Config,
 {
 	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<PrecompileResult> {
-		// Filter known precompile addresses except Ethereum officials
-		if self.is_precompile(handle.code_address())
-			&& handle.code_address() > hash(9)
-			&& handle.code_address() != handle.context().address
-		{
-			return Some(Err(revert(
-				"cannot be called with DELEGATECALL or CALLCODE",
-			)));
-		}
-
-		match handle.code_address() {
-			// Ethereum precompiles :
-			a if a == hash(1) => Some(ECRecover::execute(handle)),
-			a if a == hash(2) => Some(Sha256::execute(handle)),
-			a if a == hash(3) => Some(Ripemd160::execute(handle)),
-			a if a == hash(4) => Some(Identity::execute(handle)),
-			a if a == hash(5) => Some(Modexp::execute(handle)),
-			a if a == hash(6) => Some(Bn128Add::execute(handle)),
-			a if a == hash(7) => Some(Bn128Mul::execute(handle)),
-			a if a == hash(8) => Some(Bn128Pairing::execute(handle)),
-			a if a == hash(9) => Some(Blake2F::execute(handle)),
-
-			// Non-Moonbeam specific nor Ethereum precompiles :
-			a if a == hash(1024) => Some(Sha3FIPS256::execute(handle)),
-			a if a == hash(1025) => Some(Dispatch::<R>::execute(handle)),
-			a if a == hash(1026) => Some(ECRecoverPublicKey::execute(handle)),
-
-			// Moonbeam specific precompiles :
-			a if a == hash(2048) => Some(ParachainStakingWrapper::<R>::execute(handle)),
-			a if a == hash(2049) => Some(CrowdloanRewardsWrapper::<R>::execute(handle)),
-			a if a == hash(2050) => Some(
-				Erc20BalancesPrecompile::<R, NativeErc20Metadata>::execute(handle),
-			),
-			a if a == hash(2051) => Some(DemocracyWrapper::<R>::execute(handle)),
-			a if a == hash(2052) => Some(XtokensWrapper::<R>::execute(handle)),
-			a if a == hash(2053) => Some(RelayEncoderWrapper::<R, KusamaEncoder>::execute(handle)),
-			a if a == hash(2054) => Some(XcmTransactorWrapper::<R>::execute(handle)),
-			a if a == hash(2055) => Some(AuthorMappingWrapper::<R>::execute(handle)),
-			a if a == hash(2056) => Some(self.batch.execute(handle)),
-			// If the address matches asset prefix, the we route through the asset precompile set
-			a if &a.to_fixed_bytes()[0..4] == FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX => {
-				Erc20AssetsPrecompileSet::<R, IsForeign, ForeignAssetInstance>::new()
-					.execute(handle)
-			}
-			// If the address matches asset prefix, the we route through the asset precompile set
-			a if &a.to_fixed_bytes()[0..4] == LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX => {
-				Erc20AssetsPrecompileSet::<R, IsLocal, LocalAssetInstance>::new().execute(handle)
-			}
-			_ => None,
-		}
+		self.inner.execute(handle)
 	}
 	fn is_precompile(&self, address: H160) -> bool {
-		Self::used_addresses().any(|x| x == R::AddressMapping::into_account_id(address))
-			|| Erc20AssetsPrecompileSet::<R, IsForeign, ForeignAssetInstance>::new()
-				.is_precompile(address)
-			|| Erc20AssetsPrecompileSet::<R, IsLocal, LocalAssetInstance>::new()
-				.is_precompile(address)
+		self.inner.is_precompile(address)
 	}
 }
 

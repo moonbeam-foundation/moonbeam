@@ -35,7 +35,11 @@ use sp_std::{marker::PhantomData, vec, vec::Vec};
 mod data;
 
 pub use data::{Address, Bytes, EvmData, EvmDataReader, EvmDataWriter};
+pub use fp_evm::Precompile;
 pub use precompile_utils_macro::{generate_function_selector, keccak256};
+
+pub mod precompileset;
+pub use precompileset::PrecompileSetBuilderExt;
 
 #[cfg(feature = "testing")]
 pub mod testing;
@@ -50,6 +54,12 @@ pub type EvmResult<T = ()> = Result<T, PrecompileFailure>;
 /// state (this state is only kept in a single transaction and is lost afterward).
 pub trait StatefulPrecompile {
 	fn execute(&self, handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput>;
+}
+
+impl<T: Precompile> StatefulPrecompile for T {
+	fn execute(&self, handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		<Self as Precompile>::execute(handle)
+	}
 }
 
 /// Return an error with provided (static) text.

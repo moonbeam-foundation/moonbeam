@@ -120,6 +120,12 @@ pub struct Erc20AssetsPrecompileSet<Runtime, IsLocal, Instance: 'static = ()>(
 	PhantomData<(Runtime, IsLocal, Instance)>,
 );
 
+impl<T, U, V> Clone for Erc20AssetsPrecompileSet<T, U, V> {
+	fn clone(&self) -> Self {
+		Self(PhantomData)
+	}
+}
+
 impl<Runtime, IsLocal, Instance> PrecompileSet
 	for Erc20AssetsPrecompileSet<Runtime, IsLocal, Instance>
 where

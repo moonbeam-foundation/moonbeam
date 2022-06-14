@@ -71,7 +71,7 @@ impl Erc20Metadata for NativeErc20Metadata {
 /// as well as a special precompile for dispatching Substrate extrinsics
 #[derive(Debug, Clone)]
 pub struct MoonbeamPrecompiles<R> {
-	batch: BatchPrecompile<R>,
+	// batch: BatchPrecompile<R>,
 	_phantom: PhantomData<R>,
 }
 
@@ -83,7 +83,7 @@ where
 		Self {
 			// we allow up to 3 levels of nesting.
 			// it should be more than enough for users to compose nested groups.
-			batch: BatchPrecompile::new_with_max_recursion_level(3),
+			// batch: BatchPrecompile::new_with_max_recursion_level(3),
 			_phantom: PhantomData,
 		}
 	}
@@ -137,52 +137,53 @@ where
 
 		match handle.code_address() {
 			// Ethereum precompiles :
-			a if a == hash(1) => Some(ECRecover::execute(handle)),
-			a if a == hash(2) => Some(Sha256::execute(handle)),
-			a if a == hash(3) => Some(Ripemd160::execute(handle)),
-			a if a == hash(4) => Some(Identity::execute(handle)),
-			a if a == hash(5) => Some(Modexp::execute(handle)),
-			a if a == hash(6) => Some(Bn128Add::execute(handle)),
-			a if a == hash(7) => Some(Bn128Mul::execute(handle)),
-			a if a == hash(8) => Some(Bn128Pairing::execute(handle)),
-			a if a == hash(9) => Some(Blake2F::execute(handle)),
-			// Non-Moonbeam specific nor Ethereum precompiles :
-			a if a == hash(1024) => Some(Sha3FIPS256::execute(handle)),
-			a if a == hash(1025) => Some(Dispatch::<R>::execute(handle)),
-			a if a == hash(1026) => Some(ECRecoverPublicKey::execute(handle)),
+			// a if a == hash(1) => Some(ECRecover::execute(handle)),
+			// a if a == hash(2) => Some(Sha256::execute(handle)),
+			// a if a == hash(3) => Some(Ripemd160::execute(handle)),
+			// a if a == hash(4) => Some(Identity::execute(handle)),
+			// a if a == hash(5) => Some(Modexp::execute(handle)),
+			// a if a == hash(6) => Some(Bn128Add::execute(handle)),
+			// a if a == hash(7) => Some(Bn128Mul::execute(handle)),
+			// a if a == hash(8) => Some(Bn128Pairing::execute(handle)),
+			// a if a == hash(9) => Some(Blake2F::execute(handle)),
+			// // Non-Moonbeam specific nor Ethereum precompiles :
+			// a if a == hash(1024) => Some(Sha3FIPS256::execute(handle)),
+			// a if a == hash(1025) => Some(Dispatch::<R>::execute(handle)),
+			// a if a == hash(1026) => Some(ECRecoverPublicKey::execute(handle)),
 
-			// Moonbeam specific precompiles :
-			a if a == hash(2048) => Some(ParachainStakingWrapper::<R>::execute(handle)),
-			a if a == hash(2049) => Some(CrowdloanRewardsWrapper::<R>::execute(handle)),
-			a if a == hash(2050) => Some(
-				Erc20BalancesPrecompile::<R, NativeErc20Metadata>::execute(handle),
-			),
-			a if a == hash(2051) => Some(DemocracyWrapper::<R>::execute(handle)),
-			a if a == hash(2052) => Some(XtokensWrapper::<R>::execute(handle)),
-			a if a == hash(2053) => {
-				Some(RelayEncoderWrapper::<R, PolkadotEncoder>::execute(handle))
-			}
-			a if a == hash(2054) => Some(XcmTransactorWrapper::<R>::execute(handle)),
-			a if a == hash(2055) => Some(AuthorMappingWrapper::<R>::execute(handle)),
-			a if a == hash(2056) => Some(self.batch.execute(handle)),
-			// If the address matches asset prefix, the we route through the asset precompile set
-			a if &a.to_fixed_bytes()[0..4] == FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX => {
-				Erc20AssetsPrecompileSet::<R, IsForeign, ForeignAssetInstance>::new()
-					.execute(handle)
-			}
-			// If the address matches asset prefix, the we route through the asset precompile set
-			a if &a.to_fixed_bytes()[0..4] == LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX => {
-				Erc20AssetsPrecompileSet::<R, IsLocal, LocalAssetInstance>::new().execute(handle)
-			}
+			// // Moonbeam specific precompiles :
+			// a if a == hash(2048) => Some(ParachainStakingWrapper::<R>::execute(handle)),
+			// a if a == hash(2049) => Some(CrowdloanRewardsWrapper::<R>::execute(handle)),
+			// a if a == hash(2050) => Some(
+			// 	Erc20BalancesPrecompile::<R, NativeErc20Metadata>::execute(handle),
+			// ),
+			// a if a == hash(2051) => Some(DemocracyWrapper::<R>::execute(handle)),
+			// a if a == hash(2052) => Some(XtokensWrapper::<R>::execute(handle)),
+			// a if a == hash(2053) => {
+			// 	Some(RelayEncoderWrapper::<R, PolkadotEncoder>::execute(handle))
+			// }
+			// a if a == hash(2054) => Some(XcmTransactorWrapper::<R>::execute(handle)),
+			// a if a == hash(2055) => Some(AuthorMappingWrapper::<R>::execute(handle)),
+			// a if a == hash(2056) => Some(self.batch.execute(handle)),
+			// // If the address matches asset prefix, the we route through the asset precompile set
+			// a if &a.to_fixed_bytes()[0..4] == FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX => {
+			// 	Erc20AssetsPrecompileSet::<R, IsForeign, ForeignAssetInstance>::new()
+			// 		.execute(handle)
+			// }
+			// // If the address matches asset prefix, the we route through the asset precompile set
+			// a if &a.to_fixed_bytes()[0..4] == LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX => {
+			// 	Erc20AssetsPrecompileSet::<R, IsLocal, LocalAssetInstance>::new().execute(handle)
+			// }
 			_ => None,
 		}
 	}
 	fn is_precompile(&self, address: H160) -> bool {
-		Self::used_addresses().any(|x| x == R::AddressMapping::into_account_id(address))
-			|| Erc20AssetsPrecompileSet::<R, IsForeign, ForeignAssetInstance>::new()
-				.is_precompile(address)
-			|| Erc20AssetsPrecompileSet::<R, IsLocal, LocalAssetInstance>::new()
-				.is_precompile(address)
+		// Self::used_addresses().any(|x| x == R::AddressMapping::into_account_id(address))
+		// 	|| Erc20AssetsPrecompileSet::<R, IsForeign, ForeignAssetInstance>::new()
+		// 		.is_precompile(address)
+		// 	|| Erc20AssetsPrecompileSet::<R, IsLocal, LocalAssetInstance>::new()
+		// 		.is_precompile(address)
+		false
 	}
 }
 
