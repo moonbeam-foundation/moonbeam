@@ -169,7 +169,7 @@ impl pallet_balances::Config for Runtime {
 pub type TestPrecompiles<R> = PrecompileSetFromTuple<
 	R,
 	(
-		StatelessPrecompile<AddressU64<1>, BatchPrecompile<R>, LimitRecursionTo<2>>,
+		PrecompileAt<AddressU64<1>, BatchPrecompile<R>, LimitRecursionTo<2>>,
 		RevertPrecompile<AddressU64<2>>,
 	),
 >;

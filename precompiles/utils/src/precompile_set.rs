@@ -18,7 +18,7 @@
 //! final precompile set with security checks. All security checks are enabled by
 //! default and must be disabled explicely throught type annotations.
 
-use crate::{revert, StatefulPrecompile as StatefulPrecompileT};
+use crate::{revert, SelfRefPrecompile};
 use fp_evm::{Precompile, PrecompileHandle, PrecompileResult, PrecompileSet};
 use frame_support::pallet_prelude::Get;
 use impl_trait_for_tuples::impl_for_tuples;
@@ -118,12 +118,12 @@ pub trait PrecompileSetFragment {
 /// - A: The address of the precompile
 /// - R: The recursion limit (defaults to 1)
 /// - R: If DELEGATECALL is supported (default to no)
-pub struct StatelessPrecompile<A, P, R = LimitRecursionTo<1>, D = ForbidDelegateCall> {
+pub struct PrecompileAt<A, P, R = LimitRecursionTo<1>, D = ForbidDelegateCall> {
 	current_recursion_level: RefCell<u16>,
 	_phantom: PhantomData<(A, P, R, D)>,
 }
 
-impl<A, P, R, D> PrecompileSetFragment for StatelessPrecompile<A, P, R, D>
+impl<A, P, R, D> PrecompileSetFragment for PrecompileAt<A, P, R, D>
 where
 	A: Get<H160>,
 	P: Precompile,
@@ -201,16 +201,16 @@ where
 /// - A: The address of the precompile
 /// - R: The recursion limit (defaults to 1)
 /// - R: If DELEGATECALL is supported (default to no)
-pub struct StatefulPrecompile<A, P, R = LimitRecursionTo<1>, D = ForbidDelegateCall> {
+pub struct SelfRefPrecompileAt<A, P, R = LimitRecursionTo<1>, D = ForbidDelegateCall> {
 	precompile: P,
 	current_recursion_level: RefCell<u16>,
 	_phantom: PhantomData<(A, R, D)>,
 }
 
-impl<A, P, R, D> PrecompileSetFragment for StatefulPrecompile<A, P, R, D>
+impl<A, P, R, D> PrecompileSetFragment for SelfRefPrecompileAt<A, P, R, D>
 where
 	A: Get<H160>,
-	P: StatefulPrecompileT,
+	P: SelfRefPrecompile,
 	R: RecursionLimit,
 	D: DelegateCallSupport,
 {
@@ -286,12 +286,12 @@ where
 /// Type parameters allow to define:
 /// - A: The common prefix
 /// - D: If DELEGATECALL is supported (default to no)
-pub struct PrefixedPrecompileSet<A, P, D = ForbidDelegateCall> {
+pub struct PrecompileSetStartingWith<A, P, D = ForbidDelegateCall> {
 	precompile_set: P,
 	_phantom: PhantomData<(A, D)>,
 }
 
-impl<A, P, D> PrecompileSetFragment for PrefixedPrecompileSet<A, P, D>
+impl<A, P, D> PrecompileSetFragment for PrecompileSetStartingWith<A, P, D>
 where
 	A: Get<&'static [u8]>,
 	P: PrecompileSet + Default,

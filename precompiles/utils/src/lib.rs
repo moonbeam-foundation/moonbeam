@@ -51,7 +51,7 @@ pub type EvmResult<T = ()> = Result<T, PrecompileFailure>;
 
 /// Trait similar to `fp_evm::Precompile` but with a `&self` parameter to manage some
 /// state (this state is only kept in a single transaction and is lost afterward).
-pub trait StatefulPrecompile {
+pub trait SelfRefPrecompile {
 	/// Instanciate the precompile.
 	/// Will be called once when building the PrecompileSet at the start of each
 	/// Ethereum transaction.
