@@ -1048,7 +1048,7 @@ where
 		telemetry: None,
 	})?;
 
-	log::info!("Development Service Ready");
+	println!("Development Service Ready");
 
 	network_starter.start_network();
 	Ok(task_manager)
