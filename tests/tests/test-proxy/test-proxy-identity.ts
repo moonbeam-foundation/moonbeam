@@ -31,7 +31,7 @@ async function expectOk<
 }
 
 describeDevMoonbeam("Proxy : IdentityJudgement", (context) => {
-  before("should setup registrar", async () => {
+  before("setup one identity and one registrar", async () => {
     const block = await context.createBlock([
       context.polkadotApi.tx.sudo.sudo(
         context.polkadotApi.tx.identity.addRegistrar(baltathar.address)
