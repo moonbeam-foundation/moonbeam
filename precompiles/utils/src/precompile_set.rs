@@ -210,14 +210,14 @@ pub struct StatefulPrecompile<A, P, R = LimitRecursionTo<1>, D = ForbidDelegateC
 impl<A, P, R, D> PrecompileSetFragment for StatefulPrecompile<A, P, R, D>
 where
 	A: Get<H160>,
-	P: StatefulPrecompileT + Default,
+	P: StatefulPrecompileT,
 	R: RecursionLimit,
 	D: DelegateCallSupport,
 {
 	#[inline(always)]
 	fn new() -> Self {
 		Self {
-			precompile: P::default(),
+			precompile: P::instanciate(),
 			current_recursion_level: RefCell::new(0),
 			_phantom: PhantomData,
 		}
