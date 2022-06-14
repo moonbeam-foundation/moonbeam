@@ -35,7 +35,7 @@ use precompile_utils::{
 use sp_core::H160;
 use sp_std::{convert::TryInto, fmt::Debug, marker::PhantomData, vec::Vec};
 
-type BalanceOf<Runtime> = <<Runtime as parachain_staking::Config>::Currency as Currency<
+type BalanceOf<Runtime> = <<Runtime as pallet_parachain_staking::Config>::Currency as Currency<
 	<Runtime as frame_system::Config>::AccountId,
 >>::Balance;
 
@@ -110,12 +110,12 @@ pub struct ParachainStakingWrapper<Runtime>(PhantomData<Runtime>);
 // TODO: Migrate to precompile_utils::Precompile.
 impl<Runtime> pallet_evm::Precompile for ParachainStakingWrapper<Runtime>
 where
-	Runtime: parachain_staking::Config + pallet_evm::Config,
+	Runtime: pallet_parachain_staking::Config + pallet_evm::Config,
 	BalanceOf<Runtime>: EvmData,
 	Runtime::AccountId: Into<H160>,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
-	Runtime::Call: From<parachain_staking::Call<Runtime>>,
+	Runtime::Call: From<pallet_parachain_staking::Call<Runtime>>,
 {
 	fn execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		let selector = handle.read_selector()?;
@@ -238,23 +238,24 @@ where
 
 impl<Runtime> ParachainStakingWrapper<Runtime>
 where
-	Runtime: parachain_staking::Config + pallet_evm::Config,
+	Runtime: pallet_parachain_staking::Config + pallet_evm::Config,
 	BalanceOf<Runtime>: EvmData,
 	Runtime::AccountId: Into<H160>,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
-	Runtime::Call: From<parachain_staking::Call<Runtime>>,
+	Runtime::Call: From<pallet_parachain_staking::Call<Runtime>>,
 {
 	// Constants
 
 	fn min_delegation(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		// Fetch info.
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let min_nomination: u128 = <<Runtime as parachain_staking::Config>::MinDelegation as Get<
-			BalanceOf<Runtime>,
-		>>::get()
-		.try_into()
-		.map_err(|_| revert("Amount is too large for provided balance type"))?;
+		let min_nomination: u128 =
+			<<Runtime as pallet_parachain_staking::Config>::MinDelegation as Get<
+				BalanceOf<Runtime>,
+			>>::get()
+			.try_into()
+			.map_err(|_| revert("Amount is too large for provided balance type"))?;
 
 		// Build output.
 		Ok(succeed(EvmDataWriter::new().write(min_nomination).build()))
@@ -270,7 +271,7 @@ where
 
 		// Fetch info.
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let points: u32 = parachain_staking::Pallet::<Runtime>::points(round);
+		let points: u32 = pallet_parachain_staking::Pallet::<Runtime>::points(round);
 
 		// Build output.
 		Ok(succeed(EvmDataWriter::new().write(points).build()))
@@ -279,7 +280,7 @@ where
 	fn candidate_count(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		// Fetch info.
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let candidate_count: u32 = <parachain_staking::Pallet<Runtime>>::candidate_pool()
+		let candidate_count: u32 = <pallet_parachain_staking::Pallet<Runtime>>::candidate_pool()
 			.0
 			.len() as u32;
 
@@ -290,7 +291,7 @@ where
 	fn round(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		// Fetch info.
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let round: u32 = <parachain_staking::Pallet<Runtime>>::round().current;
+		let round: u32 = <pallet_parachain_staking::Pallet<Runtime>>::round().current;
 
 		// Build output.
 		Ok(succeed(EvmDataWriter::new().write(round).build()))
@@ -307,24 +308,25 @@ where
 
 		// Fetch info.
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let result =
-			if let Some(state) = <parachain_staking::Pallet<Runtime>>::candidate_info(&address) {
-				let candidate_delegation_count: u32 = state.delegation_count;
+		let result = if let Some(state) =
+			<pallet_parachain_staking::Pallet<Runtime>>::candidate_info(&address)
+		{
+			let candidate_delegation_count: u32 = state.delegation_count;
 
-				log::trace!(
-					target: "staking-precompile",
-					"Result from pallet is {:?}",
-					candidate_delegation_count
-				);
+			log::trace!(
+				target: "staking-precompile",
+				"Result from pallet is {:?}",
 				candidate_delegation_count
-			} else {
-				log::trace!(
-					target: "staking-precompile",
-					"Candidate {:?} not found, so delegation count is 0",
-					address
-				);
-				0u32
-			};
+			);
+			candidate_delegation_count
+		} else {
+			log::trace!(
+				target: "staking-precompile",
+				"Candidate {:?} not found, so delegation count is 0",
+				address
+			);
+			0u32
+		};
 
 		// Build output.
 		Ok(succeed(EvmDataWriter::new().write(result).build()))
@@ -341,25 +343,26 @@ where
 
 		// Fetch info.
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let result =
-			if let Some(state) = <parachain_staking::Pallet<Runtime>>::delegator_state(&address) {
-				let delegator_delegation_count: u32 = state.delegations.0.len() as u32;
+		let result = if let Some(state) =
+			<pallet_parachain_staking::Pallet<Runtime>>::delegator_state(&address)
+		{
+			let delegator_delegation_count: u32 = state.delegations.0.len() as u32;
 
-				log::trace!(
-					target: "staking-precompile",
-					"Result from pallet is {:?}",
-					delegator_delegation_count
-				);
-
+			log::trace!(
+				target: "staking-precompile",
+				"Result from pallet is {:?}",
 				delegator_delegation_count
-			} else {
-				log::trace!(
-					target: "staking-precompile",
-					"Delegator {:?} not found, so delegation count is 0",
-					address
-				);
-				0u32
-			};
+			);
+
+			delegator_delegation_count
+		} else {
+			log::trace!(
+				target: "staking-precompile",
+				"Delegator {:?} not found, so delegation count is 0",
+				address
+			);
+			0u32
+		};
 
 		// Build output.
 		Ok(succeed(EvmDataWriter::new().write(result).build()))
@@ -369,7 +372,7 @@ where
 		// Fetch info.
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let selected_candidates: Vec<Address> =
-			parachain_staking::Pallet::<Runtime>::selected_candidates()
+			pallet_parachain_staking::Pallet::<Runtime>::selected_candidates()
 				.into_iter()
 				.map(|address| Address(address.into()))
 				.collect();
@@ -391,7 +394,7 @@ where
 
 		// Fetch info.
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let is_delegator = parachain_staking::Pallet::<Runtime>::is_delegator(&address);
+		let is_delegator = pallet_parachain_staking::Pallet::<Runtime>::is_delegator(&address);
 
 		// Build output.
 		Ok(succeed(EvmDataWriter::new().write(is_delegator).build()))
@@ -406,7 +409,7 @@ where
 
 		// Fetch info.
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let is_candidate = parachain_staking::Pallet::<Runtime>::is_candidate(&address);
+		let is_candidate = pallet_parachain_staking::Pallet::<Runtime>::is_candidate(&address);
 
 		// Build output.
 		Ok(succeed(EvmDataWriter::new().write(is_candidate).build()))
@@ -421,7 +424,8 @@ where
 
 		// Fetch info.
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let is_selected = parachain_staking::Pallet::<Runtime>::is_selected_candidate(&address);
+		let is_selected =
+			pallet_parachain_staking::Pallet::<Runtime>::is_selected_candidate(&address);
 
 		// Build output.
 		Ok(succeed(EvmDataWriter::new().write(is_selected).build()))
@@ -445,8 +449,9 @@ where
 
 		// If we are not able to get delegator state, we return false
 		// Users can call `is_delegator` to determine when this happens
-		let pending =
-			<parachain_staking::Pallet<Runtime>>::delegation_request_exists(&candidate, &delegator);
+		let pending = <pallet_parachain_staking::Pallet<Runtime>>::delegation_request_exists(
+			&candidate, &delegator,
+		);
 
 		// Build output.
 		Ok(succeed(EvmDataWriter::new().write(pending).build()))
@@ -467,17 +472,18 @@ where
 
 		// If we are not able to get delegator state, we return false
 		// Users can call `is_candidate` to determine when this happens
-		let pending =
-			if let Some(state) = <parachain_staking::Pallet<Runtime>>::candidate_info(&candidate) {
-				state.is_leaving()
-			} else {
-				log::trace!(
-					target: "staking-precompile",
-					"Candidate state for {:?} not found, so pending exit is false",
-					candidate
-				);
-				false
-			};
+		let pending = if let Some(state) =
+			<pallet_parachain_staking::Pallet<Runtime>>::candidate_info(&candidate)
+		{
+			state.is_leaving()
+		} else {
+			log::trace!(
+				target: "staking-precompile",
+				"Candidate state for {:?} not found, so pending exit is false",
+				candidate
+			);
+			false
+		};
 
 		// Build output.
 		Ok(succeed(EvmDataWriter::new().write(pending).build()))
@@ -498,17 +504,18 @@ where
 
 		// If we are not able to get candidate metadata, we return false
 		// Users can call `is_candidate` to determine when this happens
-		let pending =
-			if let Some(state) = <parachain_staking::Pallet<Runtime>>::candidate_info(&candidate) {
-				state.request.is_some()
-			} else {
-				log::trace!(
-					target: "staking-precompile",
-					"Candidate metadata for {:?} not found, so pending request is false",
-					candidate
-				);
-				false
-			};
+		let pending = if let Some(state) =
+			<pallet_parachain_staking::Pallet<Runtime>>::candidate_info(&candidate)
+		{
+			state.request.is_some()
+		} else {
+			log::trace!(
+				target: "staking-precompile",
+				"Candidate metadata for {:?} not found, so pending request is false",
+				candidate
+			);
+			false
+		};
 
 		// Build output.
 		Ok(succeed(EvmDataWriter::new().write(pending).build()))
@@ -520,7 +527,7 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<(
 		<Runtime::Call as Dispatchable>::Origin,
-		parachain_staking::Call<Runtime>,
+		pallet_parachain_staking::Call<Runtime>,
 	)> {
 		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
@@ -530,7 +537,7 @@ where
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = parachain_staking::Call::<Runtime>::join_candidates {
+		let call = pallet_parachain_staking::Call::<Runtime>::join_candidates {
 			bond,
 			candidate_count,
 		};
@@ -543,7 +550,7 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<(
 		<Runtime::Call as Dispatchable>::Origin,
-		parachain_staking::Call<Runtime>,
+		pallet_parachain_staking::Call<Runtime>,
 	)> {
 		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
@@ -552,8 +559,9 @@ where
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call =
-			parachain_staking::Call::<Runtime>::schedule_leave_candidates { candidate_count };
+		let call = pallet_parachain_staking::Call::<Runtime>::schedule_leave_candidates {
+			candidate_count,
+		};
 
 		// Return call information
 		Ok((Some(origin).into(), call))
@@ -563,7 +571,7 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<(
 		<Runtime::Call as Dispatchable>::Origin,
-		parachain_staking::Call<Runtime>,
+		pallet_parachain_staking::Call<Runtime>,
 	)> {
 		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
@@ -574,7 +582,7 @@ where
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = parachain_staking::Call::<Runtime>::execute_leave_candidates {
+		let call = pallet_parachain_staking::Call::<Runtime>::execute_leave_candidates {
 			candidate,
 			candidate_delegation_count,
 		};
@@ -587,7 +595,7 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<(
 		<Runtime::Call as Dispatchable>::Origin,
-		parachain_staking::Call<Runtime>,
+		pallet_parachain_staking::Call<Runtime>,
 	)> {
 		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
@@ -596,7 +604,8 @@ where
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = parachain_staking::Call::<Runtime>::cancel_leave_candidates { candidate_count };
+		let call =
+			pallet_parachain_staking::Call::<Runtime>::cancel_leave_candidates { candidate_count };
 
 		// Return call information
 		Ok((Some(origin).into(), call))
@@ -606,11 +615,11 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<(
 		<Runtime::Call as Dispatchable>::Origin,
-		parachain_staking::Call<Runtime>,
+		pallet_parachain_staking::Call<Runtime>,
 	)> {
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = parachain_staking::Call::<Runtime>::go_offline {};
+		let call = pallet_parachain_staking::Call::<Runtime>::go_offline {};
 
 		// Return call information
 		Ok((Some(origin).into(), call))
@@ -620,11 +629,11 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<(
 		<Runtime::Call as Dispatchable>::Origin,
-		parachain_staking::Call<Runtime>,
+		pallet_parachain_staking::Call<Runtime>,
 	)> {
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = parachain_staking::Call::<Runtime>::go_online {};
+		let call = pallet_parachain_staking::Call::<Runtime>::go_online {};
 
 		// Return call information
 		Ok((Some(origin).into(), call))
@@ -634,7 +643,7 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<(
 		<Runtime::Call as Dispatchable>::Origin,
-		parachain_staking::Call<Runtime>,
+		pallet_parachain_staking::Call<Runtime>,
 	)> {
 		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
@@ -643,7 +652,7 @@ where
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = parachain_staking::Call::<Runtime>::candidate_bond_more { more };
+		let call = pallet_parachain_staking::Call::<Runtime>::candidate_bond_more { more };
 
 		// Return call information
 		Ok((Some(origin).into(), call))
@@ -653,7 +662,7 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<(
 		<Runtime::Call as Dispatchable>::Origin,
-		parachain_staking::Call<Runtime>,
+		pallet_parachain_staking::Call<Runtime>,
 	)> {
 		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
@@ -662,7 +671,7 @@ where
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = parachain_staking::Call::<Runtime>::schedule_candidate_bond_less { less };
+		let call = pallet_parachain_staking::Call::<Runtime>::schedule_candidate_bond_less { less };
 
 		// Return call information
 		Ok((Some(origin).into(), call))
@@ -672,7 +681,7 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<(
 		<Runtime::Call as Dispatchable>::Origin,
-		parachain_staking::Call<Runtime>,
+		pallet_parachain_staking::Call<Runtime>,
 	)> {
 		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
@@ -682,7 +691,8 @@ where
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = parachain_staking::Call::<Runtime>::execute_candidate_bond_less { candidate };
+		let call =
+			pallet_parachain_staking::Call::<Runtime>::execute_candidate_bond_less { candidate };
 
 		// Return call information
 		Ok((Some(origin).into(), call))
@@ -692,11 +702,11 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<(
 		<Runtime::Call as Dispatchable>::Origin,
-		parachain_staking::Call<Runtime>,
+		pallet_parachain_staking::Call<Runtime>,
 	)> {
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = parachain_staking::Call::<Runtime>::cancel_candidate_bond_less {};
+		let call = pallet_parachain_staking::Call::<Runtime>::cancel_candidate_bond_less {};
 
 		// Return call information
 		Ok((Some(origin).into(), call))
@@ -706,7 +716,7 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<(
 		<Runtime::Call as Dispatchable>::Origin,
-		parachain_staking::Call<Runtime>,
+		pallet_parachain_staking::Call<Runtime>,
 	)> {
 		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
@@ -718,7 +728,7 @@ where
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = parachain_staking::Call::<Runtime>::delegate {
+		let call = pallet_parachain_staking::Call::<Runtime>::delegate {
 			candidate,
 			amount,
 			candidate_delegation_count,
@@ -733,11 +743,11 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<(
 		<Runtime::Call as Dispatchable>::Origin,
-		parachain_staking::Call<Runtime>,
+		pallet_parachain_staking::Call<Runtime>,
 	)> {
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = parachain_staking::Call::<Runtime>::schedule_leave_delegators {};
+		let call = pallet_parachain_staking::Call::<Runtime>::schedule_leave_delegators {};
 
 		// Return call information
 		Ok((Some(origin).into(), call))
@@ -747,7 +757,7 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<(
 		<Runtime::Call as Dispatchable>::Origin,
-		parachain_staking::Call<Runtime>,
+		pallet_parachain_staking::Call<Runtime>,
 	)> {
 		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
@@ -758,7 +768,7 @@ where
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = parachain_staking::Call::<Runtime>::execute_leave_delegators {
+		let call = pallet_parachain_staking::Call::<Runtime>::execute_leave_delegators {
 			delegator,
 			delegation_count,
 		};
@@ -771,11 +781,11 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<(
 		<Runtime::Call as Dispatchable>::Origin,
-		parachain_staking::Call<Runtime>,
+		pallet_parachain_staking::Call<Runtime>,
 	)> {
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = parachain_staking::Call::<Runtime>::cancel_leave_delegators {};
+		let call = pallet_parachain_staking::Call::<Runtime>::cancel_leave_delegators {};
 
 		// Return call information
 		Ok((Some(origin).into(), call))
@@ -785,7 +795,7 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<(
 		<Runtime::Call as Dispatchable>::Origin,
-		parachain_staking::Call<Runtime>,
+		pallet_parachain_staking::Call<Runtime>,
 	)> {
 		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
@@ -795,7 +805,8 @@ where
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = parachain_staking::Call::<Runtime>::schedule_revoke_delegation { collator };
+		let call =
+			pallet_parachain_staking::Call::<Runtime>::schedule_revoke_delegation { collator };
 
 		// Return call information
 		Ok((Some(origin).into(), call))
@@ -805,7 +816,7 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<(
 		<Runtime::Call as Dispatchable>::Origin,
-		parachain_staking::Call<Runtime>,
+		pallet_parachain_staking::Call<Runtime>,
 	)> {
 		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
@@ -816,7 +827,8 @@ where
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = parachain_staking::Call::<Runtime>::delegator_bond_more { candidate, more };
+		let call =
+			pallet_parachain_staking::Call::<Runtime>::delegator_bond_more { candidate, more };
 
 		// Return call information
 		Ok((Some(origin).into(), call))
@@ -826,7 +838,7 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<(
 		<Runtime::Call as Dispatchable>::Origin,
-		parachain_staking::Call<Runtime>,
+		pallet_parachain_staking::Call<Runtime>,
 	)> {
 		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
@@ -837,8 +849,10 @@ where
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call =
-			parachain_staking::Call::<Runtime>::schedule_delegator_bond_less { candidate, less };
+		let call = pallet_parachain_staking::Call::<Runtime>::schedule_delegator_bond_less {
+			candidate,
+			less,
+		};
 
 		// Return call information
 		Ok((Some(origin).into(), call))
@@ -848,7 +862,7 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<(
 		<Runtime::Call as Dispatchable>::Origin,
-		parachain_staking::Call<Runtime>,
+		pallet_parachain_staking::Call<Runtime>,
 	)> {
 		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
@@ -860,7 +874,7 @@ where
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = parachain_staking::Call::<Runtime>::execute_delegation_request {
+		let call = pallet_parachain_staking::Call::<Runtime>::execute_delegation_request {
 			delegator,
 			candidate,
 		};
@@ -873,7 +887,7 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<(
 		<Runtime::Call as Dispatchable>::Origin,
-		parachain_staking::Call<Runtime>,
+		pallet_parachain_staking::Call<Runtime>,
 	)> {
 		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
@@ -883,7 +897,8 @@ where
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = parachain_staking::Call::<Runtime>::cancel_delegation_request { candidate };
+		let call =
+			pallet_parachain_staking::Call::<Runtime>::cancel_delegation_request { candidate };
 
 		// Return call information
 		Ok((Some(origin).into(), call))
