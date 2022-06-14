@@ -52,5 +52,5 @@ fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-pol
 pallet-ethereum = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.20" }
 
 # Cumulus / Nimbus
-cumulus-primitives-parachain-inherent = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.20" }
-nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.20" }
+cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", branch = "girazoki-xcm-call-polkadot-changes" }
+nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "girazoki-xcm-call-polkadot-changes" }

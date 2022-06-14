@@ -101,29 +101,29 @@ fp-storage = { git = "https://github.com/purestake/frontier", branch = "moonbeam
 pallet-ethereum = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.20" }
 
 # Cumulus / Nimbus
-cumulus-client-cli = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.20" }
-cumulus-client-collator = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.20" }
-cumulus-client-consensus-common = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.20" }
-cumulus-client-consensus-relay-chain = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.20" }
-cumulus-client-network = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.20" }
-cumulus-client-service = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.20" }
-cumulus-primitives-core = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.20" }
-cumulus-primitives-parachain-inherent = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.20" }
-cumulus-relay-chain-inprocess-interface = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.20" }
-cumulus-relay-chain-interface = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.20" }
-cumulus-relay-chain-rpc-interface = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.20" }
-cumulus-test-relay-sproof-builder = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.20" }
-nimbus-consensus = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.20" }
+cumulus-client-cli = { git = "https://github.com/purestake/cumulus", branch = "girazoki-xcm-call-polkadot-changes" }
+cumulus-client-collator = { git = "https://github.com/purestake/cumulus", branch = "girazoki-xcm-call-polkadot-changes" }
+cumulus-client-consensus-common = { git = "https://github.com/purestake/cumulus", branch = "girazoki-xcm-call-polkadot-changes" }
+cumulus-client-consensus-relay-chain = { git = "https://github.com/purestake/cumulus", branch = "girazoki-xcm-call-polkadot-changes" }
+cumulus-client-network = { git = "https://github.com/purestake/cumulus", branch = "girazoki-xcm-call-polkadot-changes" }
+cumulus-client-service = { git = "https://github.com/purestake/cumulus", branch = "girazoki-xcm-call-polkadot-changes" }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "girazoki-xcm-call-polkadot-changes" }
+cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", branch = "girazoki-xcm-call-polkadot-changes" }
+cumulus-relay-chain-inprocess-interface = { git = "https://github.com/purestake/cumulus", branch = "girazoki-xcm-call-polkadot-changes" }
+cumulus-relay-chain-interface = { git = "https://github.com/purestake/cumulus", branch = "girazoki-xcm-call-polkadot-changes" }
+cumulus-relay-chain-rpc-interface = { git = "https://github.com/purestake/cumulus", branch = "girazoki-xcm-call-polkadot-changes" }
+cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulus", branch = "girazoki-xcm-call-polkadot-changes" }
+nimbus-consensus = { git = "https://github.com/purestake/nimbus", branch = "girazoki-xcm-call-polkadot-changes" }
 # TODO we should be able to depend only on the primitives crate once we move the inherent data provider there.
-nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.20" }
-pallet-author-inherent = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.20" }
+nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "girazoki-xcm-call-polkadot-changes" }
+pallet-author-inherent = { git = "https://github.com/purestake/nimbus", branch = "girazoki-xcm-call-polkadot-changes" }
 
 # Polkadot
-polkadot-cli = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.20" }
-polkadot-parachain = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.20" }
-polkadot-primitives = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.20" }
-polkadot-service = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.20" }
-xcm = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.20", default-features = false }
+polkadot-cli = { git = "https://github.com/purestake/polkadot", branch = "girazoki-xcm-call-polkadot-changes" }
+polkadot-parachain = { git = "https://github.com/purestake/polkadot", branch = "girazoki-xcm-call-polkadot-changes" }
+polkadot-primitives = { git = "https://github.com/purestake/polkadot", branch = "girazoki-xcm-call-polkadot-changes" }
+polkadot-service = { git = "https://github.com/purestake/polkadot", branch = "girazoki-xcm-call-polkadot-changes" }
+xcm = { git = "https://github.com/purestake/polkadot", branch = "girazoki-xcm-call-polkadot-changes", default-features = false }
 
 # Benchmarking
 frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20" }
@@ -136,7 +136,7 @@ prometheus = { version = "0.13.0", default-features = false }
 rand = "0.7.3"
 
 # Polkadot dev-dependencies
-polkadot-runtime-common = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.20" }
+polkadot-runtime-common = { git = "https://github.com/purestake/polkadot", branch = "girazoki-xcm-call-polkadot-changes" }
 
 # Substrate dev-dependencies
 pallet-sudo = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20" }

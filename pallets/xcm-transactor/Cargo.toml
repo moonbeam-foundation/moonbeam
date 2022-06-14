@@ -21,13 +21,13 @@ sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkad
 sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
 
 # Cumulus
-cumulus-primitives-core = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.20", default-features = false }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "girazoki-xcm-call-polkadot-changes", default-features = false }
 
 # Polkadot / XCM
-orml-traits = { git = "https://github.com/purestake/open-runtime-module-library", branch = "moonbeam-polkadot-v0.9.20", default-features = false }
-xcm = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.20", default-features = false }
-xcm-builder = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.20", default-features = false }
-xcm-executor = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.20", default-features = false }
+orml-traits = { git = "https://github.com/purestake/open-runtime-module-library", branch = "girazoki-xcm-call-polkadot-changes", default-features = false }
+xcm = { git = "https://github.com/purestake/polkadot", branch = "girazoki-xcm-call-polkadot-changes", default-features = false }
+xcm-builder = { git = "https://github.com/purestake/polkadot", branch = "girazoki-xcm-call-polkadot-changes", default-features = false }
+xcm-executor = { git = "https://github.com/purestake/polkadot", branch = "girazoki-xcm-call-polkadot-changes", default-features = false }
 
 # Benchmarks
 frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", optional = true, default-features = false }
@@ -35,7 +35,7 @@ frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch =
 [dev-dependencies]
 pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20" }
 pallet-timestamp = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20" }
-pallet-xcm = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.20" }
+pallet-xcm = { git = "https://github.com/purestake/polkadot", branch = "girazoki-xcm-call-polkadot-changes" }
 parity-scale-codec = { version = "3.0.0" }
 sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20" }
 

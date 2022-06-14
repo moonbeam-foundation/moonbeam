@@ -21,17 +21,17 @@ sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkad
 sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
 
 # Cumulus
-cumulus-primitives-core = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.20", default-features = false }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "girazoki-xcm-call-polkadot-changes", default-features = false }
 
 [dev-dependencies]
 frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20" }
 pallet-proxy = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20" }
 pallet-utility = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20" }
 
-kusama-runtime = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.20" }
-polkadot-runtime = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.20" }
-rococo-runtime = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.20" }
-westend-runtime = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.20" }
+kusama-runtime = { git = "https://github.com/purestake/polkadot", branch = "girazoki-xcm-call-polkadot-changes" }
+polkadot-runtime = { git = "https://github.com/purestake/polkadot", branch = "girazoki-xcm-call-polkadot-changes" }
+rococo-runtime = { git = "https://github.com/purestake/polkadot", branch = "girazoki-xcm-call-polkadot-changes" }
+westend-runtime = { git = "https://github.com/purestake/polkadot", branch = "girazoki-xcm-call-polkadot-changes" }
 
 [features]
 default = [ "std" ]
