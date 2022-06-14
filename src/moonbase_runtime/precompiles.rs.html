@@ -210,29 +210,29 @@
 <span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::asset_config</span>::{<span class="ident">ForeignAssetInstance</span>, <span class="ident">LocalAssetInstance</span>};
-<span class="kw">use</span> <span class="ident">crowdloan_rewards_precompiles::CrowdloanRewardsWrapper</span>;
 <span class="kw">use</span> <span class="ident">fp_evm::PrecompileHandle</span>;
 <span class="kw">use</span> <span class="ident">moonbeam_relay_encoder::westend::WestendEncoder</span>;
-<span class="kw">use</span> <span class="ident">pallet_author_mapping_precompiles::AuthorMappingWrapper</span>;
-<span class="kw">use</span> <span class="ident">pallet_democracy_precompiles::DemocracyWrapper</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm</span>::{<span class="ident">AddressMapping</span>, <span class="ident">Precompile</span>, <span class="ident">PrecompileResult</span>, <span class="ident">PrecompileSet</span>};
-<span class="kw">use</span> <span class="ident">pallet_evm_precompile_assets_erc20</span>::{<span class="ident">Erc20AssetsPrecompileSet</span>, <span class="ident">IsForeign</span>, <span class="ident">IsLocal</span>};
+<span class="kw">use</span> <span class="ident">pallet_evm_precompile_author_mapping::AuthorMappingWrapper</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_balances_erc20</span>::{<span class="ident">Erc20BalancesPrecompile</span>, <span class="ident">Erc20Metadata</span>};
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_batch::BatchPrecompile</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_blake2::Blake2F</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_bn128</span>::{<span class="ident">Bn128Add</span>, <span class="ident">Bn128Mul</span>, <span class="ident">Bn128Pairing</span>};
+<span class="kw">use</span> <span class="ident">pallet_evm_precompile_crowdloan_rewards::CrowdloanRewardsWrapper</span>;
+<span class="kw">use</span> <span class="ident">pallet_evm_precompile_democracy::DemocracyWrapper</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_dispatch::Dispatch</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_modexp::Modexp</span>;
+<span class="kw">use</span> <span class="ident">pallet_evm_precompile_parachain_staking::ParachainStakingWrapper</span>;
+<span class="kw">use</span> <span class="ident">pallet_evm_precompile_relay_encoder::RelayEncoderWrapper</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_sha3fips::Sha3FIPS256</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_simple</span>::{<span class="ident">ECRecover</span>, <span class="ident">ECRecoverPublicKey</span>, <span class="ident">Identity</span>, <span class="ident">Ripemd160</span>, <span class="ident">Sha256</span>};
-<span class="kw">use</span> <span class="ident">parachain_staking_precompiles::ParachainStakingWrapper</span>;
+<span class="kw">use</span> <span class="ident">pallet_evm_precompile_xcm_transactor::XcmTransactorWrapper</span>;
+<span class="kw">use</span> <span class="ident">pallet_evm_precompile_xtokens::XtokensWrapper</span>;
+<span class="kw">use</span> <span class="ident">pallet_evm_precompileset_assets_erc20</span>::{<span class="ident">Erc20AssetsPrecompileSet</span>, <span class="ident">IsForeign</span>, <span class="ident">IsLocal</span>};
 <span class="kw">use</span> <span class="ident">precompile_utils</span>::{<span class="ident">revert</span>, <span class="ident">StatefulPrecompile</span>};
-<span class="kw">use</span> <span class="ident">relay_encoder_precompiles::RelayEncoderWrapper</span>;
 <span class="kw">use</span> <span class="ident">sp_core::H160</span>;
 <span class="kw">use</span> <span class="ident">sp_std::fmt::Debug</span>;
 <span class="kw">use</span> <span class="ident">sp_std::marker::PhantomData</span>;
-<span class="kw">use</span> <span class="ident">xcm_transactor_precompiles::XcmTransactorWrapper</span>;
-<span class="kw">use</span> <span class="ident">xtokens_precompiles::XtokensWrapper</span>;
 
 <span class="doccomment">/// ERC20 metadata for the native token.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">NativeErc20Metadata</span>;

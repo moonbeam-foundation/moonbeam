@@ -337,6 +337,8 @@
 <span id="332">332</span>
 <span id="333">333</span>
 <span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -512,12 +514,14 @@
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">moonbeam_inflation_config</span>() -&gt; <span class="ident">InflationInfo</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span> {
 	<span class="kw">fn</span> <span class="ident">to_round_inflation</span>(<span class="ident">annual</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">Perbill</span><span class="op">&gt;</span>) -&gt; <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">Perbill</span><span class="op">&gt;</span> {
-		<span class="kw">use</span> <span class="ident">parachain_staking::inflation</span>::{<span class="ident">perbill_annual_to_perbill_round</span>, <span class="ident">BLOCKS_PER_YEAR</span>};
+		<span class="kw">use</span> <span class="ident">pallet_parachain_staking::inflation</span>::{
+			<span class="ident">perbill_annual_to_perbill_round</span>, <span class="ident">BLOCKS_PER_YEAR</span>,
+		};
 		<span class="ident">perbill_annual_to_perbill_round</span>(
 			<span class="ident">annual</span>,
 			<span class="comment">// rounds per year</span>
 			<span class="ident">BLOCKS_PER_YEAR</span>
-				<span class="op">/</span> <span class="macro">moonriver_runtime::get!</span>(<span class="ident">parachain_staking</span>, <span class="ident">DefaultBlocksPerRound</span>, <span class="ident">u32</span>),
+				<span class="op">/</span> <span class="macro">moonriver_runtime::get!</span>(<span class="ident">pallet_parachain_staking</span>, <span class="ident">DefaultBlocksPerRound</span>, <span class="ident">u32</span>),
 		)
 	}
 	<span class="kw">let</span> <span class="ident">annual</span> <span class="op">=</span> <span class="ident">Range</span> {

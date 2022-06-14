@@ -514,46 +514,46 @@
 	}
 }
 
-<span class="kw">impl</span> <span class="ident">relay_encoder_precompiles::StakeEncodeCall</span> <span class="kw">for</span> <span class="ident">KusamaEncoder</span> {
-	<span class="kw">fn</span> <span class="ident">encode_call</span>(<span class="ident">call</span>: <span class="ident">relay_encoder_precompiles::AvailableStakeCalls</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
+<span class="kw">impl</span> <span class="ident">pallet_evm_precompile_relay_encoder::StakeEncodeCall</span> <span class="kw">for</span> <span class="ident">KusamaEncoder</span> {
+	<span class="kw">fn</span> <span class="ident">encode_call</span>(<span class="ident">call</span>: <span class="ident">pallet_evm_precompile_relay_encoder::AvailableStakeCalls</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
 		<span class="kw">match</span> <span class="ident">call</span> {
-			<span class="ident">relay_encoder_precompiles::AvailableStakeCalls::Bond</span>(<span class="ident">a</span>, <span class="ident">b</span>, <span class="ident">c</span>) =&gt; {
+			<span class="ident">pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Bond</span>(<span class="ident">a</span>, <span class="ident">b</span>, <span class="ident">c</span>) =&gt; {
 				<span class="ident">RelayCall::Stake</span>(<span class="ident">StakeCall::Bond</span>(<span class="ident">a</span>.<span class="ident">into</span>(), <span class="ident">b</span>, <span class="ident">c</span>)).<span class="ident">encode</span>()
 			}
 
-			<span class="ident">relay_encoder_precompiles::AvailableStakeCalls::BondExtra</span>(<span class="ident">a</span>) =&gt; {
+			<span class="ident">pallet_evm_precompile_relay_encoder::AvailableStakeCalls::BondExtra</span>(<span class="ident">a</span>) =&gt; {
 				<span class="ident">RelayCall::Stake</span>(<span class="ident">StakeCall::BondExtra</span>(<span class="ident">a</span>)).<span class="ident">encode</span>()
 			}
 
-			<span class="ident">relay_encoder_precompiles::AvailableStakeCalls::Unbond</span>(<span class="ident">a</span>) =&gt; {
+			<span class="ident">pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Unbond</span>(<span class="ident">a</span>) =&gt; {
 				<span class="ident">RelayCall::Stake</span>(<span class="ident">StakeCall::Unbond</span>(<span class="ident">a</span>)).<span class="ident">encode</span>()
 			}
 
-			<span class="ident">relay_encoder_precompiles::AvailableStakeCalls::WithdrawUnbonded</span>(<span class="ident">a</span>) =&gt; {
+			<span class="ident">pallet_evm_precompile_relay_encoder::AvailableStakeCalls::WithdrawUnbonded</span>(<span class="ident">a</span>) =&gt; {
 				<span class="ident">RelayCall::Stake</span>(<span class="ident">StakeCall::WithdrawUnbonded</span>(<span class="ident">a</span>)).<span class="ident">encode</span>()
 			}
 
-			<span class="ident">relay_encoder_precompiles::AvailableStakeCalls::Validate</span>(<span class="ident">a</span>) =&gt; {
+			<span class="ident">pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Validate</span>(<span class="ident">a</span>) =&gt; {
 				<span class="ident">RelayCall::Stake</span>(<span class="ident">StakeCall::Validate</span>(<span class="ident">a</span>)).<span class="ident">encode</span>()
 			}
 
-			<span class="ident">relay_encoder_precompiles::AvailableStakeCalls::Chill</span> =&gt; {
+			<span class="ident">pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Chill</span> =&gt; {
 				<span class="ident">RelayCall::Stake</span>(<span class="ident">StakeCall::Chill</span>).<span class="ident">encode</span>()
 			}
 
-			<span class="ident">relay_encoder_precompiles::AvailableStakeCalls::SetPayee</span>(<span class="ident">a</span>) =&gt; {
+			<span class="ident">pallet_evm_precompile_relay_encoder::AvailableStakeCalls::SetPayee</span>(<span class="ident">a</span>) =&gt; {
 				<span class="ident">RelayCall::Stake</span>(<span class="ident">StakeCall::SetPayee</span>(<span class="ident">a</span>.<span class="ident">into</span>())).<span class="ident">encode</span>()
 			}
 
-			<span class="ident">relay_encoder_precompiles::AvailableStakeCalls::SetController</span>(<span class="ident">a</span>) =&gt; {
+			<span class="ident">pallet_evm_precompile_relay_encoder::AvailableStakeCalls::SetController</span>(<span class="ident">a</span>) =&gt; {
 				<span class="ident">RelayCall::Stake</span>(<span class="ident">StakeCall::SetController</span>(<span class="ident">a</span>.<span class="ident">into</span>())).<span class="ident">encode</span>()
 			}
 
-			<span class="ident">relay_encoder_precompiles::AvailableStakeCalls::Rebond</span>(<span class="ident">a</span>) =&gt; {
+			<span class="ident">pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Rebond</span>(<span class="ident">a</span>) =&gt; {
 				<span class="ident">RelayCall::Stake</span>(<span class="ident">StakeCall::Rebond</span>(<span class="ident">a</span>.<span class="ident">into</span>())).<span class="ident">encode</span>()
 			}
 
-			<span class="ident">relay_encoder_precompiles::AvailableStakeCalls::Nominate</span>(<span class="ident">a</span>) =&gt; {
+			<span class="ident">pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Nominate</span>(<span class="ident">a</span>) =&gt; {
 				<span class="kw">let</span> <span class="ident">nominated</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">AccountIdLookup</span><span class="op">&lt;</span><span class="ident">AccountId32</span>, ()<span class="op">&gt;</span> <span class="kw">as</span> <span class="ident">StaticLookup</span><span class="op">&gt;</span><span class="ident">::Source</span><span class="op">&gt;</span> <span class="op">=</span>
 					<span class="ident">a</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">add</span><span class="op">|</span> (<span class="kw-2">*</span><span class="ident">add</span>).<span class="ident">clone</span>().<span class="ident">into</span>()).<span class="ident">collect</span>();
 
@@ -568,7 +568,7 @@
 	<span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 	<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::kusama::KusamaEncoder</span>;
 	<span class="kw">use</span> <span class="ident">frame_support::traits::PalletInfo</span>;
-	<span class="kw">use</span> <span class="ident">relay_encoder_precompiles::StakeEncodeCall</span>;
+	<span class="kw">use</span> <span class="ident">pallet_evm_precompile_relay_encoder::StakeEncodeCall</span>;
 	<span class="kw">use</span> <span class="ident">sp_runtime::Perbill</span>;
 
 	<span class="attribute">#[<span class="ident">test</span>]</span>
@@ -591,7 +591,7 @@
 		<span class="ident">expected_encoded</span>.<span class="ident">append</span>(<span class="kw-2">&amp;mut</span> <span class="ident">expected</span>);
 
 		<span class="kw">let</span> <span class="ident">call_bytes</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">KusamaEncoder</span> <span class="kw">as</span> <span class="ident">StakeEncodeCall</span><span class="op">&gt;</span><span class="ident">::encode_call</span>(
-			<span class="ident">relay_encoder_precompiles::AvailableStakeCalls::Chill</span>,
+			<span class="ident">pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Chill</span>,
 		);
 
 		<span class="ident">expected_encoded</span>.<span class="ident">append</span>(<span class="kw-2">&amp;mut</span> <span class="ident">expected</span>);
@@ -626,7 +626,7 @@
 
 		<span class="macro">assert_eq!</span>(
 			<span class="op">&lt;</span><span class="ident">KusamaEncoder</span> <span class="kw">as</span> <span class="ident">StakeEncodeCall</span><span class="op">&gt;</span><span class="ident">::encode_call</span>(
-				<span class="ident">relay_encoder_precompiles::AvailableStakeCalls::Bond</span>(
+				<span class="ident">pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Bond</span>(
 					<span class="ident">relay_account</span>.<span class="ident">into</span>(),
 					<span class="number">100u32</span>.<span class="ident">into</span>(),
 					<span class="ident">pallet_staking::RewardDestination::Controller</span>
@@ -653,7 +653,7 @@
 
 		<span class="macro">assert_eq!</span>(
 			<span class="op">&lt;</span><span class="ident">KusamaEncoder</span> <span class="kw">as</span> <span class="ident">StakeEncodeCall</span><span class="op">&gt;</span><span class="ident">::encode_call</span>(
-				<span class="ident">relay_encoder_precompiles::AvailableStakeCalls::BondExtra</span>(<span class="number">100u32</span>.<span class="ident">into</span>(),)
+				<span class="ident">pallet_evm_precompile_relay_encoder::AvailableStakeCalls::BondExtra</span>(<span class="number">100u32</span>.<span class="ident">into</span>(),)
 			),
 			<span class="ident">expected_encoded</span>
 		);
@@ -676,7 +676,7 @@
 
 		<span class="macro">assert_eq!</span>(
 			<span class="op">&lt;</span><span class="ident">KusamaEncoder</span> <span class="kw">as</span> <span class="ident">StakeEncodeCall</span><span class="op">&gt;</span><span class="ident">::encode_call</span>(
-				<span class="ident">relay_encoder_precompiles::AvailableStakeCalls::Unbond</span>(<span class="number">100u32</span>.<span class="ident">into</span>(),)
+				<span class="ident">pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Unbond</span>(<span class="number">100u32</span>.<span class="ident">into</span>(),)
 			),
 			<span class="ident">expected_encoded</span>
 		);
@@ -699,7 +699,7 @@
 
 		<span class="macro">assert_eq!</span>(
 			<span class="op">&lt;</span><span class="ident">KusamaEncoder</span> <span class="kw">as</span> <span class="ident">StakeEncodeCall</span><span class="op">&gt;</span><span class="ident">::encode_call</span>(
-				<span class="ident">relay_encoder_precompiles::AvailableStakeCalls::WithdrawUnbonded</span>(<span class="number">100u32</span>,)
+				<span class="ident">pallet_evm_precompile_relay_encoder::AvailableStakeCalls::WithdrawUnbonded</span>(<span class="number">100u32</span>,)
 			),
 			<span class="ident">expected_encoded</span>
 		);
@@ -727,7 +727,7 @@
 
 		<span class="macro">assert_eq!</span>(
 			<span class="op">&lt;</span><span class="ident">KusamaEncoder</span> <span class="kw">as</span> <span class="ident">StakeEncodeCall</span><span class="op">&gt;</span><span class="ident">::encode_call</span>(
-				<span class="ident">relay_encoder_precompiles::AvailableStakeCalls::Validate</span>(<span class="ident">validator_prefs</span>)
+				<span class="ident">pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Validate</span>(<span class="ident">validator_prefs</span>)
 			),
 			<span class="ident">expected_encoded</span>
 		);
@@ -751,9 +751,9 @@
 
 		<span class="macro">assert_eq!</span>(
 			<span class="op">&lt;</span><span class="ident">KusamaEncoder</span> <span class="kw">as</span> <span class="ident">StakeEncodeCall</span><span class="op">&gt;</span><span class="ident">::encode_call</span>(
-				<span class="ident">relay_encoder_precompiles::AvailableStakeCalls::Nominate</span>(
-					<span class="macro">vec!</span>[<span class="ident">relay_account</span>.<span class="ident">into</span>()]
-				)
+				<span class="ident">pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Nominate</span>(<span class="macro">vec!</span>[
+					<span class="ident">relay_account</span>.<span class="ident">into</span>()
+				])
 			),
 			<span class="ident">expected_encoded</span>
 		);
@@ -773,7 +773,7 @@
 
 		<span class="macro">assert_eq!</span>(
 			<span class="op">&lt;</span><span class="ident">KusamaEncoder</span> <span class="kw">as</span> <span class="ident">StakeEncodeCall</span><span class="op">&gt;</span><span class="ident">::encode_call</span>(
-				<span class="ident">relay_encoder_precompiles::AvailableStakeCalls::Chill</span>
+				<span class="ident">pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Chill</span>
 			),
 			<span class="ident">expected_encoded</span>
 		);
@@ -797,7 +797,7 @@
 
 		<span class="macro">assert_eq!</span>(
 			<span class="op">&lt;</span><span class="ident">KusamaEncoder</span> <span class="kw">as</span> <span class="ident">StakeEncodeCall</span><span class="op">&gt;</span><span class="ident">::encode_call</span>(
-				<span class="ident">relay_encoder_precompiles::AvailableStakeCalls::SetPayee</span>(
+				<span class="ident">pallet_evm_precompile_relay_encoder::AvailableStakeCalls::SetPayee</span>(
 					<span class="ident">pallet_staking::RewardDestination::Controller</span>
 				)
 			),
@@ -824,7 +824,7 @@
 
 		<span class="macro">assert_eq!</span>(
 			<span class="op">&lt;</span><span class="ident">KusamaEncoder</span> <span class="kw">as</span> <span class="ident">StakeEncodeCall</span><span class="op">&gt;</span><span class="ident">::encode_call</span>(
-				<span class="ident">relay_encoder_precompiles::AvailableStakeCalls::SetController</span>(
+				<span class="ident">pallet_evm_precompile_relay_encoder::AvailableStakeCalls::SetController</span>(
 					<span class="ident">relay_account</span>.<span class="ident">clone</span>().<span class="ident">into</span>()
 				)
 			),
@@ -849,7 +849,7 @@
 
 		<span class="macro">assert_eq!</span>(
 			<span class="op">&lt;</span><span class="ident">KusamaEncoder</span> <span class="kw">as</span> <span class="ident">StakeEncodeCall</span><span class="op">&gt;</span><span class="ident">::encode_call</span>(
-				<span class="ident">relay_encoder_precompiles::AvailableStakeCalls::Rebond</span>(<span class="number">100u32</span>.<span class="ident">into</span>())
+				<span class="ident">pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Rebond</span>(<span class="number">100u32</span>.<span class="ident">into</span>())
 			),
 			<span class="ident">expected_encoded</span>
 		);

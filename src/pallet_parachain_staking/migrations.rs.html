@@ -1,0 +1,1636 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `pallets/parachain-staking/src/migrations.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>migrations.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../pallet_parachain_staking/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
+        </a><h2 class="location"></h2>
+    </nav>
+    <nav class="sidebar"><a class="sidebar-logo" href="../../pallet_parachain_staking/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../pallet_parachain_staking/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<span id="2">  2</span>
+<span id="3">  3</span>
+<span id="4">  4</span>
+<span id="5">  5</span>
+<span id="6">  6</span>
+<span id="7">  7</span>
+<span id="8">  8</span>
+<span id="9">  9</span>
+<span id="10"> 10</span>
+<span id="11"> 11</span>
+<span id="12"> 12</span>
+<span id="13"> 13</span>
+<span id="14"> 14</span>
+<span id="15"> 15</span>
+<span id="16"> 16</span>
+<span id="17"> 17</span>
+<span id="18"> 18</span>
+<span id="19"> 19</span>
+<span id="20"> 20</span>
+<span id="21"> 21</span>
+<span id="22"> 22</span>
+<span id="23"> 23</span>
+<span id="24"> 24</span>
+<span id="25"> 25</span>
+<span id="26"> 26</span>
+<span id="27"> 27</span>
+<span id="28"> 28</span>
+<span id="29"> 29</span>
+<span id="30"> 30</span>
+<span id="31"> 31</span>
+<span id="32"> 32</span>
+<span id="33"> 33</span>
+<span id="34"> 34</span>
+<span id="35"> 35</span>
+<span id="36"> 36</span>
+<span id="37"> 37</span>
+<span id="38"> 38</span>
+<span id="39"> 39</span>
+<span id="40"> 40</span>
+<span id="41"> 41</span>
+<span id="42"> 42</span>
+<span id="43"> 43</span>
+<span id="44"> 44</span>
+<span id="45"> 45</span>
+<span id="46"> 46</span>
+<span id="47"> 47</span>
+<span id="48"> 48</span>
+<span id="49"> 49</span>
+<span id="50"> 50</span>
+<span id="51"> 51</span>
+<span id="52"> 52</span>
+<span id="53"> 53</span>
+<span id="54"> 54</span>
+<span id="55"> 55</span>
+<span id="56"> 56</span>
+<span id="57"> 57</span>
+<span id="58"> 58</span>
+<span id="59"> 59</span>
+<span id="60"> 60</span>
+<span id="61"> 61</span>
+<span id="62"> 62</span>
+<span id="63"> 63</span>
+<span id="64"> 64</span>
+<span id="65"> 65</span>
+<span id="66"> 66</span>
+<span id="67"> 67</span>
+<span id="68"> 68</span>
+<span id="69"> 69</span>
+<span id="70"> 70</span>
+<span id="71"> 71</span>
+<span id="72"> 72</span>
+<span id="73"> 73</span>
+<span id="74"> 74</span>
+<span id="75"> 75</span>
+<span id="76"> 76</span>
+<span id="77"> 77</span>
+<span id="78"> 78</span>
+<span id="79"> 79</span>
+<span id="80"> 80</span>
+<span id="81"> 81</span>
+<span id="82"> 82</span>
+<span id="83"> 83</span>
+<span id="84"> 84</span>
+<span id="85"> 85</span>
+<span id="86"> 86</span>
+<span id="87"> 87</span>
+<span id="88"> 88</span>
+<span id="89"> 89</span>
+<span id="90"> 90</span>
+<span id="91"> 91</span>
+<span id="92"> 92</span>
+<span id="93"> 93</span>
+<span id="94"> 94</span>
+<span id="95"> 95</span>
+<span id="96"> 96</span>
+<span id="97"> 97</span>
+<span id="98"> 98</span>
+<span id="99"> 99</span>
+<span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
+<span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
+<span id="552">552</span>
+<span id="553">553</span>
+<span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
+<span id="557">557</span>
+<span id="558">558</span>
+<span id="559">559</span>
+<span id="560">560</span>
+<span id="561">561</span>
+<span id="562">562</span>
+<span id="563">563</span>
+<span id="564">564</span>
+<span id="565">565</span>
+<span id="566">566</span>
+<span id="567">567</span>
+<span id="568">568</span>
+<span id="569">569</span>
+<span id="570">570</span>
+<span id="571">571</span>
+<span id="572">572</span>
+<span id="573">573</span>
+<span id="574">574</span>
+<span id="575">575</span>
+<span id="576">576</span>
+<span id="577">577</span>
+<span id="578">578</span>
+<span id="579">579</span>
+<span id="580">580</span>
+<span id="581">581</span>
+<span id="582">582</span>
+<span id="583">583</span>
+<span id="584">584</span>
+<span id="585">585</span>
+<span id="586">586</span>
+<span id="587">587</span>
+<span id="588">588</span>
+<span id="589">589</span>
+<span id="590">590</span>
+<span id="591">591</span>
+<span id="592">592</span>
+<span id="593">593</span>
+<span id="594">594</span>
+<span id="595">595</span>
+<span id="596">596</span>
+<span id="597">597</span>
+<span id="598">598</span>
+<span id="599">599</span>
+<span id="600">600</span>
+<span id="601">601</span>
+<span id="602">602</span>
+<span id="603">603</span>
+<span id="604">604</span>
+<span id="605">605</span>
+<span id="606">606</span>
+<span id="607">607</span>
+<span id="608">608</span>
+<span id="609">609</span>
+<span id="610">610</span>
+<span id="611">611</span>
+<span id="612">612</span>
+<span id="613">613</span>
+<span id="614">614</span>
+<span id="615">615</span>
+<span id="616">616</span>
+<span id="617">617</span>
+<span id="618">618</span>
+<span id="619">619</span>
+<span id="620">620</span>
+<span id="621">621</span>
+<span id="622">622</span>
+<span id="623">623</span>
+<span id="624">624</span>
+<span id="625">625</span>
+<span id="626">626</span>
+<span id="627">627</span>
+<span id="628">628</span>
+<span id="629">629</span>
+<span id="630">630</span>
+<span id="631">631</span>
+<span id="632">632</span>
+<span id="633">633</span>
+<span id="634">634</span>
+<span id="635">635</span>
+<span id="636">636</span>
+<span id="637">637</span>
+<span id="638">638</span>
+<span id="639">639</span>
+<span id="640">640</span>
+<span id="641">641</span>
+<span id="642">642</span>
+<span id="643">643</span>
+<span id="644">644</span>
+<span id="645">645</span>
+<span id="646">646</span>
+<span id="647">647</span>
+<span id="648">648</span>
+<span id="649">649</span>
+<span id="650">650</span>
+<span id="651">651</span>
+<span id="652">652</span>
+<span id="653">653</span>
+<span id="654">654</span>
+<span id="655">655</span>
+<span id="656">656</span>
+<span id="657">657</span>
+<span id="658">658</span>
+<span id="659">659</span>
+<span id="660">660</span>
+<span id="661">661</span>
+<span id="662">662</span>
+<span id="663">663</span>
+<span id="664">664</span>
+<span id="665">665</span>
+<span id="666">666</span>
+<span id="667">667</span>
+<span id="668">668</span>
+<span id="669">669</span>
+<span id="670">670</span>
+<span id="671">671</span>
+<span id="672">672</span>
+<span id="673">673</span>
+<span id="674">674</span>
+<span id="675">675</span>
+<span id="676">676</span>
+<span id="677">677</span>
+<span id="678">678</span>
+<span id="679">679</span>
+<span id="680">680</span>
+<span id="681">681</span>
+<span id="682">682</span>
+<span id="683">683</span>
+<span id="684">684</span>
+<span id="685">685</span>
+<span id="686">686</span>
+<span id="687">687</span>
+<span id="688">688</span>
+<span id="689">689</span>
+<span id="690">690</span>
+<span id="691">691</span>
+<span id="692">692</span>
+<span id="693">693</span>
+<span id="694">694</span>
+<span id="695">695</span>
+<span id="696">696</span>
+<span id="697">697</span>
+<span id="698">698</span>
+<span id="699">699</span>
+<span id="700">700</span>
+<span id="701">701</span>
+<span id="702">702</span>
+<span id="703">703</span>
+<span id="704">704</span>
+<span id="705">705</span>
+<span id="706">706</span>
+<span id="707">707</span>
+<span id="708">708</span>
+<span id="709">709</span>
+<span id="710">710</span>
+<span id="711">711</span>
+<span id="712">712</span>
+<span id="713">713</span>
+<span id="714">714</span>
+<span id="715">715</span>
+<span id="716">716</span>
+<span id="717">717</span>
+<span id="718">718</span>
+<span id="719">719</span>
+<span id="720">720</span>
+<span id="721">721</span>
+<span id="722">722</span>
+<span id="723">723</span>
+<span id="724">724</span>
+<span id="725">725</span>
+<span id="726">726</span>
+<span id="727">727</span>
+<span id="728">728</span>
+<span id="729">729</span>
+<span id="730">730</span>
+<span id="731">731</span>
+<span id="732">732</span>
+<span id="733">733</span>
+<span id="734">734</span>
+<span id="735">735</span>
+<span id="736">736</span>
+<span id="737">737</span>
+<span id="738">738</span>
+<span id="739">739</span>
+<span id="740">740</span>
+<span id="741">741</span>
+<span id="742">742</span>
+<span id="743">743</span>
+<span id="744">744</span>
+<span id="745">745</span>
+<span id="746">746</span>
+<span id="747">747</span>
+<span id="748">748</span>
+<span id="749">749</span>
+<span id="750">750</span>
+<span id="751">751</span>
+<span id="752">752</span>
+<span id="753">753</span>
+<span id="754">754</span>
+<span id="755">755</span>
+<span id="756">756</span>
+<span id="757">757</span>
+<span id="758">758</span>
+<span id="759">759</span>
+<span id="760">760</span>
+<span id="761">761</span>
+<span id="762">762</span>
+<span id="763">763</span>
+<span id="764">764</span>
+<span id="765">765</span>
+<span id="766">766</span>
+<span id="767">767</span>
+<span id="768">768</span>
+<span id="769">769</span>
+<span id="770">770</span>
+<span id="771">771</span>
+<span id="772">772</span>
+<span id="773">773</span>
+<span id="774">774</span>
+<span id="775">775</span>
+<span id="776">776</span>
+<span id="777">777</span>
+<span id="778">778</span>
+<span id="779">779</span>
+<span id="780">780</span>
+<span id="781">781</span>
+<span id="782">782</span>
+<span id="783">783</span>
+<span id="784">784</span>
+<span id="785">785</span>
+<span id="786">786</span>
+<span id="787">787</span>
+<span id="788">788</span>
+<span id="789">789</span>
+<span id="790">790</span>
+<span id="791">791</span>
+<span id="792">792</span>
+<span id="793">793</span>
+<span id="794">794</span>
+<span id="795">795</span>
+<span id="796">796</span>
+<span id="797">797</span>
+<span id="798">798</span>
+<span id="799">799</span>
+<span id="800">800</span>
+<span id="801">801</span>
+<span id="802">802</span>
+<span id="803">803</span>
+<span id="804">804</span>
+<span id="805">805</span>
+<span id="806">806</span>
+<span id="807">807</span>
+<span id="808">808</span>
+<span id="809">809</span>
+<span id="810">810</span>
+<span id="811">811</span>
+<span id="812">812</span>
+<span id="813">813</span>
+<span id="814">814</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
+<span class="comment">// This file is part of Moonbeam.</span>
+
+<span class="comment">// Moonbeam is free software: you can redistribute it and/or modify</span>
+<span class="comment">// it under the terms of the GNU General Public License as published by</span>
+<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
+<span class="comment">// (at your option) any later version.</span>
+
+<span class="comment">// Moonbeam is distributed in the hope that it will be useful,</span>
+<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="comment">// GNU General Public License for more details.</span>
+
+<span class="comment">// You should have received a copy of the GNU General Public License</span>
+<span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="doccomment">//! # Migrations</span>
+
+<span class="attribute">#![<span class="ident">allow</span>(<span class="ident">unused</span>)]</span>
+
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::delegation_requests</span>::{<span class="ident">DelegationAction</span>, <span class="ident">ScheduledRequest</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::pallet</span>::{<span class="ident">DelegationScheduledRequests</span>, <span class="ident">DelegatorState</span>, <span class="ident">Total</span>};
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::types::deprecated</span>::{<span class="ident">DelegationChange</span>, <span class="ident">Delegator</span> <span class="kw">as</span> <span class="ident">OldDelegator</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::types::Delegator</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::{
+	<span class="ident">BalanceOf</span>, <span class="ident">Bond</span>, <span class="ident">BottomDelegations</span>, <span class="ident">CandidateInfo</span>, <span class="ident">CandidateMetadata</span>, <span class="ident">CandidateState</span>,
+	<span class="ident">CapacityStatus</span>, <span class="ident">CollatorCandidate</span>, <span class="ident">Config</span>, <span class="ident">Delegations</span>, <span class="ident">Event</span>, <span class="ident">Pallet</span>, <span class="ident">Points</span>, <span class="ident">Round</span>, <span class="ident">Staked</span>,
+	<span class="ident">TopDelegations</span>,
+};
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
+<span class="kw">use</span> <span class="ident">frame_support::traits::OnRuntimeUpgradeHelpersExt</span>;
+<span class="kw">use</span> <span class="ident">frame_support::Twox64Concat</span>;
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">alloc</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
+<span class="kw">use</span> <span class="ident">alloc::format</span>;
+<span class="kw">use</span> <span class="ident">frame_support</span>::{
+	<span class="ident">migration</span>::{<span class="ident">remove_storage_prefix</span>, <span class="ident">storage_key_iter</span>},
+	<span class="ident">pallet_prelude::PhantomData</span>,
+	<span class="ident">traits</span>::{<span class="ident">Get</span>, <span class="ident">OnRuntimeUpgrade</span>, <span class="ident">ReservableCurrency</span>},
+	<span class="ident">weights::Weight</span>,
+};
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
+<span class="kw">use</span> <span class="ident">scale_info::prelude::string::String</span>;
+<span class="kw">use</span> <span class="ident">sp_runtime::traits</span>::{<span class="ident">Saturating</span>, <span class="ident">Zero</span>};
+<span class="kw">use</span> <span class="ident">sp_std</span>::{<span class="ident">convert::TryInto</span>, <span class="ident">vec::Vec</span>};
+
+<span class="doccomment">/// Migration to move delegator requests towards a delegation, from [DelegatorState] into</span>
+<span class="doccomment">/// [DelegationScheduledRequests] storage item.</span>
+<span class="doccomment">/// Additionally [DelegatorState] is migrated from [OldDelegator] to [Delegator].</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SplitDelegatorStateIntoDelegationScheduledRequests</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">SplitDelegatorStateIntoDelegationScheduledRequests</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+	<span class="kw">const</span> <span class="ident">PALLET_PREFIX</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;ParachainStaking&quot;</span>;
+	<span class="kw">const</span> <span class="ident">DELEGATOR_STATE_PREFIX</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;DelegatorState&quot;</span>;
+
+	<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
+	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
+	<span class="kw">fn</span> <span class="ident">old_request_to_string</span>(
+		<span class="ident">delegator</span>: <span class="kw-2">&amp;</span><span class="ident">T::AccountId</span>,
+		<span class="ident">request</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="kw">crate</span>::deprecated::DelegationRequest</span><span class="op">&lt;</span><span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+	) -&gt; <span class="ident">String</span> {
+		<span class="kw">match</span> <span class="ident">request</span>.<span class="ident">action</span> {
+			<span class="ident">DelegationChange::Revoke</span> =&gt; {
+				<span class="macro">format!</span>(
+					<span class="string">&quot;delegator({:?})_when({})_Revoke({:?})&quot;</span>,
+					<span class="ident">delegator</span>, <span class="ident">request</span>.<span class="ident">when_executable</span>, <span class="ident">request</span>.<span class="ident">amount</span>
+				)
+			}
+			<span class="ident">DelegationChange::Decrease</span> =&gt; {
+				<span class="macro">format!</span>(
+					<span class="string">&quot;delegator({:?})_when({})_Decrease({:?})&quot;</span>,
+					<span class="ident">delegator</span>, <span class="ident">request</span>.<span class="ident">when_executable</span>, <span class="ident">request</span>.<span class="ident">amount</span>
+				)
+			}
+		}
+	}
+
+	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
+	<span class="kw">fn</span> <span class="ident">new_request_to_string</span>(<span class="ident">request</span>: <span class="kw-2">&amp;</span><span class="ident">ScheduledRequest</span><span class="op">&lt;</span><span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="ident">String</span> {
+		<span class="kw">match</span> <span class="ident">request</span>.<span class="ident">action</span> {
+			<span class="ident">DelegationAction::Revoke</span>(<span class="ident">v</span>) =&gt; {
+				<span class="macro">format!</span>(
+					<span class="string">&quot;delegator({:?})_when({})_Revoke({:?})&quot;</span>,
+					<span class="ident">request</span>.<span class="ident">delegator</span>, <span class="ident">request</span>.<span class="ident">when_executable</span>, <span class="ident">v</span>
+				)
+			}
+			<span class="ident">DelegationAction::Decrease</span>(<span class="ident">v</span>) =&gt; {
+				<span class="macro">format!</span>(
+					<span class="string">&quot;delegator({:?})_when({})_Decrease({:?})&quot;</span>,
+					<span class="ident">request</span>.<span class="ident">delegator</span>, <span class="ident">request</span>.<span class="ident">when_executable</span>, <span class="ident">v</span>
+				)
+			}
+		}
+	}
+}
+
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">OnRuntimeUpgrade</span> <span class="kw">for</span> <span class="ident">SplitDelegatorStateIntoDelegationScheduledRequests</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">on_runtime_upgrade</span>() -&gt; <span class="ident">Weight</span> {
+		<span class="kw">use</span> <span class="ident">sp_std::collections::btree_map::BTreeMap</span>;
+
+		<span class="macro">log::info!</span>(
+			<span class="ident">target</span>: <span class="string">&quot;SplitDelegatorStateIntoDelegationScheduledRequests&quot;</span>,
+			<span class="string">&quot;running migration for DelegatorState to new version and DelegationScheduledRequests \
+			storage item&quot;</span>
+		);
+
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reads</span>: <span class="ident">Weight</span> <span class="op">=</span> <span class="number">0</span>;
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">writes</span>: <span class="ident">Weight</span> <span class="op">=</span> <span class="number">0</span>;
+
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">scheduled_requests</span>: <span class="ident">BTreeMap</span><span class="op">&lt;</span>
+			<span class="ident">T::AccountId</span>,
+			<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ScheduledRequest</span><span class="op">&lt;</span><span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+		<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">BTreeMap::new</span>();
+		<span class="op">&lt;</span><span class="ident">DelegatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::translate</span>(
+			<span class="op">|</span><span class="ident">delegator</span>, <span class="ident">old_state</span>: <span class="ident">OldDelegator</span><span class="op">&lt;</span><span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">|</span> {
+				<span class="ident">reads</span> <span class="op">=</span> <span class="ident">reads</span>.<span class="ident">saturating_add</span>(<span class="number">1</span>);
+				<span class="ident">writes</span> <span class="op">=</span> <span class="ident">writes</span>.<span class="ident">saturating_add</span>(<span class="number">1</span>);
+
+				<span class="kw">for</span> (<span class="ident">collator</span>, <span class="ident">request</span>) <span class="kw">in</span> <span class="ident">old_state</span>.<span class="ident">requests</span>.<span class="ident">requests</span>.<span class="ident">into_iter</span>() {
+					<span class="kw">let</span> <span class="ident">action</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">request</span>.<span class="ident">action</span> {
+						<span class="ident">DelegationChange::Revoke</span> =&gt; <span class="ident">DelegationAction::Revoke</span>(<span class="ident">request</span>.<span class="ident">amount</span>),
+						<span class="ident">DelegationChange::Decrease</span> =&gt; <span class="ident">DelegationAction::Decrease</span>(<span class="ident">request</span>.<span class="ident">amount</span>),
+					};
+					<span class="kw">let</span> <span class="ident">entry</span> <span class="op">=</span> <span class="ident">scheduled_requests</span>.<span class="ident">entry</span>(<span class="ident">collator</span>.<span class="ident">clone</span>()).<span class="ident">or_default</span>();
+					<span class="ident">entry</span>.<span class="ident">push</span>(<span class="ident">ScheduledRequest</span> {
+						<span class="ident">delegator</span>: <span class="ident">delegator</span>.<span class="ident">clone</span>(),
+						<span class="ident">when_executable</span>: <span class="ident">request</span>.<span class="ident">when_executable</span>,
+						<span class="ident">action</span>,
+					});
+				}
+
+				<span class="kw">let</span> <span class="ident">new_state</span> <span class="op">=</span> <span class="ident">Delegator</span> {
+					<span class="ident">id</span>: <span class="ident">old_state</span>.<span class="ident">id</span>,
+					<span class="ident">delegations</span>: <span class="ident">old_state</span>.<span class="ident">delegations</span>,
+					<span class="ident">total</span>: <span class="ident">old_state</span>.<span class="ident">total</span>,
+					<span class="ident">less_total</span>: <span class="ident">old_state</span>.<span class="ident">requests</span>.<span class="ident">less_total</span>,
+					<span class="ident">status</span>: <span class="ident">old_state</span>.<span class="ident">status</span>,
+				};
+				<span class="prelude-val">Some</span>(<span class="ident">new_state</span>)
+			},
+		);
+
+		<span class="ident">writes</span> <span class="op">=</span> <span class="ident">writes</span>.<span class="ident">saturating_add</span>(<span class="ident">scheduled_requests</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">Weight</span>); <span class="comment">// 1 write per request</span>
+		<span class="kw">for</span> (<span class="ident">collator</span>, <span class="ident">requests</span>) <span class="kw">in</span> <span class="ident">scheduled_requests</span> {
+			<span class="op">&lt;</span><span class="ident">DelegationScheduledRequests</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="ident">collator</span>, <span class="ident">requests</span>);
+		}
+
+		<span class="ident">T::DbWeight::get</span>().<span class="ident">reads_writes</span>(<span class="ident">reads</span>, <span class="ident">writes</span>)
+	}
+
+	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
+	<span class="kw">fn</span> <span class="ident">pre_upgrade</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">expected_delegator_state_entries</span> <span class="op">=</span> <span class="number">0u64</span>;
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">expected_requests</span> <span class="op">=</span> <span class="number">0u64</span>;
+		<span class="kw">for</span> (<span class="ident">_key</span>, <span class="ident">state</span>) <span class="kw">in</span> <span class="ident">migration::storage_iter</span>::<span class="op">&lt;</span><span class="ident">OldDelegator</span><span class="op">&lt;</span><span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>(
+			<span class="ident"><span class="self">Self</span>::PALLET_PREFIX</span>,
+			<span class="ident"><span class="self">Self</span>::DELEGATOR_STATE_PREFIX</span>,
+		) {
+			<span class="ident"><span class="self">Self</span>::set_temp_storage</span>(
+				<span class="ident">state</span>.<span class="ident">requests</span>.<span class="ident">less_total</span>,
+				<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="macro">format!</span>(<span class="string">&quot;expected_delegator-{:?}_decrease_amount&quot;</span>, <span class="ident">state</span>.<span class="ident">id</span>),
+			);
+
+			<span class="kw">for</span> (<span class="ident">collator</span>, <span class="ident">request</span>) <span class="kw">in</span> <span class="ident">state</span>.<span class="ident">requests</span>.<span class="ident">requests</span>.<span class="ident">iter</span>() {
+				<span class="ident"><span class="self">Self</span>::set_temp_storage</span>(
+					<span class="ident"><span class="self">Self</span>::old_request_to_string</span>(<span class="kw-2">&amp;</span><span class="ident">state</span>.<span class="ident">id</span>, <span class="kw-2">&amp;</span><span class="ident">request</span>),
+					<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="macro">format!</span>(
+						<span class="string">&quot;expected_collator-{:?}_delegator-{:?}_request&quot;</span>,
+						<span class="ident">collator</span>, <span class="ident">state</span>.<span class="ident">id</span>,
+					),
+				);
+			}
+			<span class="ident">expected_delegator_state_entries</span> <span class="op">=</span> <span class="ident">expected_delegator_state_entries</span>.<span class="ident">saturating_add</span>(<span class="number">1</span>);
+			<span class="ident">expected_requests</span> <span class="op">=</span>
+				<span class="ident">expected_requests</span>.<span class="ident">saturating_add</span>(<span class="ident">state</span>.<span class="ident">requests</span>.<span class="ident">requests</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u64</span>);
+		}
+
+		<span class="ident"><span class="self">Self</span>::set_temp_storage</span>(
+			<span class="ident">expected_delegator_state_entries</span>,
+			<span class="string">&quot;expected_delegator_state_entries&quot;</span>,
+		);
+		<span class="ident"><span class="self">Self</span>::set_temp_storage</span>(<span class="ident">expected_requests</span>, <span class="string">&quot;expected_requests&quot;</span>);
+
+		<span class="kw">use</span> <span class="ident">frame_support::migration</span>;
+
+		<span class="prelude-val">Ok</span>(())
+	}
+
+	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
+	<span class="kw">fn</span> <span class="ident">post_upgrade</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
+		<span class="comment">// Scheduled decrease amount (bond_less) is correctly migrated</span>
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">actual_delegator_state_entries</span> <span class="op">=</span> <span class="number">0</span>;
+		<span class="kw">for</span> (<span class="ident">delegator</span>, <span class="ident">state</span>) <span class="kw">in</span> <span class="op">&lt;</span><span class="ident">DelegatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::iter</span>() {
+			<span class="kw">let</span> <span class="ident">expected_delegator_decrease_amount</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::get_temp_storage</span>(
+				<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="macro">format!</span>(<span class="string">&quot;expected_delegator-{:?}_decrease_amount&quot;</span>, <span class="ident">delegator</span>),
+			)
+			.<span class="ident">expect</span>(<span class="string">&quot;must exist&quot;</span>);
+			<span class="macro">assert_eq!</span>(
+				<span class="ident">expected_delegator_decrease_amount</span>, <span class="ident">state</span>.<span class="ident">less_total</span>,
+				<span class="string">&quot;decrease amount did not match for delegator {:?}&quot;</span>,
+				<span class="ident">delegator</span>,
+			);
+			<span class="ident">actual_delegator_state_entries</span> <span class="op">=</span> <span class="ident">actual_delegator_state_entries</span>.<span class="ident">saturating_add</span>(<span class="number">1</span>);
+		}
+
+		<span class="comment">// Existing delegator state entries are not removed</span>
+		<span class="kw">let</span> <span class="ident">expected_delegator_state_entries</span>: <span class="ident">u64</span> <span class="op">=</span>
+			<span class="ident"><span class="self">Self</span>::get_temp_storage</span>(<span class="string">&quot;expected_delegator_state_entries&quot;</span>).<span class="ident">expect</span>(<span class="string">&quot;must exist&quot;</span>);
+		<span class="macro">assert_eq!</span>(
+			<span class="ident">expected_delegator_state_entries</span>, <span class="ident">actual_delegator_state_entries</span>,
+			<span class="string">&quot;unexpected change in the number of DelegatorState entries&quot;</span>
+		);
+
+		<span class="comment">// Scheduled requests are correctly migrated</span>
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">actual_requests</span> <span class="op">=</span> <span class="number">0u64</span>;
+		<span class="kw">for</span> (<span class="ident">collator</span>, <span class="ident">scheduled_requests</span>) <span class="kw">in</span> <span class="op">&lt;</span><span class="ident">DelegationScheduledRequests</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::iter</span>() {
+			<span class="kw">for</span> <span class="ident">request</span> <span class="kw">in</span> <span class="ident">scheduled_requests</span> {
+				<span class="kw">let</span> <span class="ident">expected_delegator_request</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::get_temp_storage</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="macro">format!</span>(
+					<span class="string">&quot;expected_collator-{:?}_delegator-{:?}_request&quot;</span>,
+					<span class="ident">collator</span>, <span class="ident">request</span>.<span class="ident">delegator</span>,
+				))
+				.<span class="ident">expect</span>(<span class="string">&quot;must exist&quot;</span>);
+				<span class="kw">let</span> <span class="ident">actual_delegator_request</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::new_request_to_string</span>(<span class="kw-2">&amp;</span><span class="ident">request</span>);
+				<span class="macro">assert_eq!</span>(
+					<span class="ident">expected_delegator_request</span>, <span class="ident">actual_delegator_request</span>,
+					<span class="string">&quot;scheduled request did not match for collator {:?}, delegator {:?}&quot;</span>,
+					<span class="ident">collator</span>, <span class="ident">request</span>.<span class="ident">delegator</span>,
+				);
+
+				<span class="ident">actual_requests</span> <span class="op">=</span> <span class="ident">actual_requests</span>.<span class="ident">saturating_add</span>(<span class="number">1</span>);
+			}
+		}
+
+		<span class="kw">let</span> <span class="ident">expected_requests</span>: <span class="ident">u64</span> <span class="op">=</span>
+			<span class="ident"><span class="self">Self</span>::get_temp_storage</span>(<span class="string">&quot;expected_requests&quot;</span>).<span class="ident">expect</span>(<span class="string">&quot;must exist&quot;</span>);
+		<span class="macro">assert_eq!</span>(
+			<span class="ident">expected_requests</span>, <span class="ident">actual_requests</span>,
+			<span class="string">&quot;number of scheduled request entries did not match&quot;</span>,
+		);
+
+		<span class="prelude-val">Ok</span>(())
+	}
+}
+
+<span class="doccomment">/// Migration to patch the incorrect delegations sums for all candidates</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PatchIncorrectDelegationSums</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">OnRuntimeUpgrade</span> <span class="kw">for</span> <span class="ident">PatchIncorrectDelegationSums</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">on_runtime_upgrade</span>() -&gt; <span class="ident">Weight</span> {
+		<span class="macro">log::info!</span>(
+			<span class="ident">target</span>: <span class="string">&quot;PatchIncorrectDelegationSums&quot;</span>,
+			<span class="string">&quot;running migration to patch incorrect delegation sums&quot;</span>
+		);
+		<span class="kw">let</span> <span class="ident">pallet_prefix</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;ParachainStaking&quot;</span>;
+		<span class="kw">let</span> <span class="ident">top_delegations_prefix</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;TopDelegations&quot;</span>;
+		<span class="kw">let</span> <span class="ident">bottom_delegations_prefix</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;BottomDelegations&quot;</span>;
+		<span class="comment">// Read all the data into memory.</span>
+		<span class="comment">// https://crates.parity.io/frame_support/storage/migration/fn.storage_key_iter.html</span>
+		<span class="kw">let</span> <span class="ident">stored_top_delegations</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">storage_key_iter</span>::<span class="op">&lt;</span>
+			<span class="ident">T::AccountId</span>,
+			<span class="ident">Delegations</span><span class="op">&lt;</span><span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+			<span class="ident">Twox64Concat</span>,
+		<span class="op">&gt;</span>(<span class="ident">pallet_prefix</span>, <span class="ident">top_delegations_prefix</span>)
+		.<span class="ident">collect</span>();
+		<span class="kw">let</span> <span class="ident">migrated_candidates_top_count</span>: <span class="ident">Weight</span> <span class="op">=</span> <span class="ident">stored_top_delegations</span>
+			.<span class="ident">len</span>()
+			.<span class="ident">try_into</span>()
+			.<span class="ident">expect</span>(<span class="string">&quot;There are between 0 and 2**64 mappings stored.&quot;</span>);
+		<span class="kw">let</span> <span class="ident">stored_bottom_delegations</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">storage_key_iter</span>::<span class="op">&lt;</span>
+			<span class="ident">T::AccountId</span>,
+			<span class="ident">Delegations</span><span class="op">&lt;</span><span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+			<span class="ident">Twox64Concat</span>,
+		<span class="op">&gt;</span>(<span class="ident">pallet_prefix</span>, <span class="ident">bottom_delegations_prefix</span>)
+		.<span class="ident">collect</span>();
+		<span class="kw">let</span> <span class="ident">migrated_candidates_bottom_count</span>: <span class="ident">Weight</span> <span class="op">=</span> <span class="ident">stored_bottom_delegations</span>
+			.<span class="ident">len</span>()
+			.<span class="ident">try_into</span>()
+			.<span class="ident">expect</span>(<span class="string">&quot;There are between 0 and 2**64 mappings stored.&quot;</span>);
+		<span class="kw">fn</span> <span class="ident">fix_delegations</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span>(
+			<span class="ident">delegations</span>: <span class="ident">Delegations</span><span class="op">&lt;</span><span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+		) -&gt; <span class="ident">Delegations</span><span class="op">&lt;</span><span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+			<span class="kw">let</span> <span class="ident">correct_total</span> <span class="op">=</span> <span class="ident">delegations</span>
+				.<span class="ident">delegations</span>
+				.<span class="ident">iter</span>()
+				.<span class="ident">fold</span>(<span class="ident">BalanceOf</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::zero</span>(), <span class="op">|</span><span class="ident">acc</span>, <span class="ident">b</span><span class="op">|</span> <span class="ident">acc</span> <span class="op">+</span> <span class="ident">b</span>.<span class="ident">amount</span>);
+			<span class="macro">log::info!</span>(
+				<span class="ident">target</span>: <span class="string">&quot;PatchIncorrectDelegationSums&quot;</span>,
+				<span class="string">&quot;Correcting total from {:?} to {:?}&quot;</span>,
+				<span class="ident">delegations</span>.<span class="ident">total</span>, <span class="ident">correct_total</span>
+			);
+			<span class="ident">Delegations</span> {
+				<span class="ident">delegations</span>: <span class="ident">delegations</span>.<span class="ident">delegations</span>,
+				<span class="ident">total</span>: <span class="ident">correct_total</span>,
+			}
+		}
+		<span class="kw">for</span> (<span class="ident">account</span>, <span class="ident">old_top_delegations</span>) <span class="kw">in</span> <span class="ident">stored_top_delegations</span> {
+			<span class="kw">let</span> <span class="ident">new_top_delegations</span> <span class="op">=</span> <span class="ident">fix_delegations</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">old_top_delegations</span>);
+			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">candidate_info</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">CandidateInfo</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">account</span>)
+				.<span class="ident">expect</span>(<span class="string">&quot;TopDelegations exists =&gt; CandidateInfo exists&quot;</span>);
+			<span class="ident">candidate_info</span>.<span class="ident">total_counted</span> <span class="op">=</span> <span class="ident">candidate_info</span>.<span class="ident">bond</span> <span class="op">+</span> <span class="ident">new_top_delegations</span>.<span class="ident">total</span>;
+			<span class="kw">if</span> <span class="ident">candidate_info</span>.<span class="ident">is_active</span>() {
+				<span class="ident">Pallet</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::update_active</span>(<span class="ident">account</span>.<span class="ident">clone</span>(), <span class="ident">candidate_info</span>.<span class="ident">total_counted</span>);
+			}
+			<span class="op">&lt;</span><span class="ident">CandidateInfo</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="kw-2">&amp;</span><span class="ident">account</span>, <span class="ident">candidate_info</span>);
+			<span class="op">&lt;</span><span class="ident">TopDelegations</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="kw-2">&amp;</span><span class="ident">account</span>, <span class="ident">new_top_delegations</span>);
+		}
+		<span class="kw">for</span> (<span class="ident">account</span>, <span class="ident">old_bottom_delegations</span>) <span class="kw">in</span> <span class="ident">stored_bottom_delegations</span> {
+			<span class="kw">let</span> <span class="ident">new_bottom_delegations</span> <span class="op">=</span> <span class="ident">fix_delegations</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">old_bottom_delegations</span>);
+			<span class="op">&lt;</span><span class="ident">BottomDelegations</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="kw-2">&amp;</span><span class="ident">account</span>, <span class="ident">new_bottom_delegations</span>);
+		}
+		<span class="kw">let</span> <span class="ident">weight</span> <span class="op">=</span> <span class="ident">T::DbWeight::get</span>();
+		<span class="kw">let</span> <span class="ident">top</span> <span class="op">=</span> <span class="ident">migrated_candidates_top_count</span>.<span class="ident">saturating_mul</span>(<span class="number">3</span> <span class="op">*</span> <span class="ident">weight</span>.<span class="ident">write</span> <span class="op">+</span> <span class="number">3</span> <span class="op">*</span> <span class="ident">weight</span>.<span class="ident">read</span>);
+		<span class="kw">let</span> <span class="ident">bottom</span> <span class="op">=</span> <span class="ident">migrated_candidates_bottom_count</span>.<span class="ident">saturating_mul</span>(<span class="ident">weight</span>.<span class="ident">write</span> <span class="op">+</span> <span class="ident">weight</span>.<span class="ident">read</span>);
+		<span class="comment">// 20% max block weight as margin for error</span>
+		<span class="ident">top</span> <span class="op">+</span> <span class="ident">bottom</span> <span class="op">+</span> <span class="number">100_000_000_000</span>
+	}
+	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
+	<span class="kw">fn</span> <span class="ident">pre_upgrade</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
+		<span class="comment">// get total counted for all candidates</span>
+		<span class="kw">for</span> (<span class="ident">account</span>, <span class="ident">state</span>) <span class="kw">in</span> <span class="op">&lt;</span><span class="ident">CandidateInfo</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::iter</span>() {
+			<span class="ident"><span class="self">Self</span>::set_temp_storage</span>(
+				<span class="ident">state</span>.<span class="ident">total_counted</span>,
+				<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Candidate{:?}TotalCounted&quot;</span>, <span class="ident">account</span>)[..],
+			);
+		}
+		<span class="prelude-val">Ok</span>(())
+	}
+
+	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
+	<span class="kw">fn</span> <span class="ident">post_upgrade</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
+		<span class="comment">// ensure new total counted = top_delegations.sum() + collator self bond</span>
+		<span class="kw">for</span> (<span class="ident">account</span>, <span class="ident">state</span>) <span class="kw">in</span> <span class="op">&lt;</span><span class="ident">CandidateInfo</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::iter</span>() {
+			<span class="kw">let</span> <span class="ident">old_count</span> <span class="op">=</span>
+				<span class="ident"><span class="self">Self</span>::get_temp_storage</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Candidate{:?}TotalCounted&quot;</span>, <span class="ident">account</span>)[..])
+					.<span class="ident">expect</span>(<span class="string">&quot;qed&quot;</span>);
+			<span class="kw">let</span> <span class="ident">new_count</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">total_counted</span>;
+			<span class="kw">let</span> <span class="ident">top_delegations_sum</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">TopDelegations</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="ident">account</span>)
+				.<span class="ident">expect</span>(<span class="string">&quot;CandidateInfo exists =&gt; TopDelegations exists&quot;</span>)
+				.<span class="ident">delegations</span>
+				.<span class="ident">iter</span>()
+				.<span class="ident">fold</span>(<span class="ident">BalanceOf</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::zero</span>(), <span class="op">|</span><span class="ident">acc</span>, <span class="ident">b</span><span class="op">|</span> <span class="ident">acc</span> <span class="op">+</span> <span class="ident">b</span>.<span class="ident">amount</span>);
+			<span class="kw">let</span> <span class="ident">correct_total_counted</span> <span class="op">=</span> <span class="ident">top_delegations_sum</span> <span class="op">+</span> <span class="ident">state</span>.<span class="ident">bond</span>;
+			<span class="macro">assert_eq!</span>(<span class="ident">new_count</span>, <span class="ident">correct_total_counted</span>);
+			<span class="kw">if</span> <span class="ident">new_count</span> <span class="op">!</span><span class="op">=</span> <span class="ident">old_count</span> {
+				<span class="macro">log::info!</span>(
+					<span class="ident">target</span>: <span class="string">&quot;PatchIncorrectDelegationSums&quot;</span>,
+					<span class="string">&quot;Corrected total from {:?} to {:?}&quot;</span>,
+					<span class="ident">old_count</span>, <span class="ident">new_count</span>
+				);
+			}
+		}
+		<span class="prelude-val">Ok</span>(())
+	}
+}
+
+<span class="doccomment">/// Migration to split CandidateState and minimize unnecessary storage reads</span>
+<span class="doccomment">/// for PoV optimization</span>
+<span class="doccomment">/// This assumes Config::MaxTopDelegationsPerCandidate == OldConfig::MaxDelegatorsPerCandidate</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SplitCandidateStateToDecreasePoV</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">OnRuntimeUpgrade</span> <span class="kw">for</span> <span class="ident">SplitCandidateStateToDecreasePoV</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">on_runtime_upgrade</span>() -&gt; <span class="ident">Weight</span> {
+		<span class="kw">let</span> <span class="ident">pallet_prefix</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;ParachainStaking&quot;</span>;
+		<span class="kw">let</span> <span class="ident">storage_item_prefix</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;CandidateState&quot;</span>;
+		<span class="comment">// Read all the data into memory.</span>
+		<span class="comment">// https://crates.parity.io/frame_support/storage/migration/fn.storage_key_iter.html</span>
+		<span class="kw">let</span> <span class="ident">stored_data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">storage_key_iter</span>::<span class="op">&lt;</span>
+			<span class="ident">T::AccountId</span>,
+			<span class="ident">CollatorCandidate</span><span class="op">&lt;</span><span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+			<span class="ident">Twox64Concat</span>,
+		<span class="op">&gt;</span>(<span class="ident">pallet_prefix</span>, <span class="ident">storage_item_prefix</span>)
+		.<span class="ident">collect</span>();
+		<span class="kw">let</span> <span class="ident">migrated_count</span>: <span class="ident">Weight</span> <span class="op">=</span> <span class="ident">stored_data</span>
+			.<span class="ident">len</span>()
+			.<span class="ident">try_into</span>()
+			.<span class="ident">expect</span>(<span class="string">&quot;There are between 0 and 2**64 mappings stored.&quot;</span>);
+		<span class="comment">// Now remove the old storage</span>
+		<span class="comment">// https://crates.parity.io/frame_support/storage/migration/fn.remove_storage_prefix.html</span>
+		<span class="ident">remove_storage_prefix</span>(<span class="ident">pallet_prefix</span>, <span class="ident">storage_item_prefix</span>, <span class="kw-2">&amp;</span>[]);
+		<span class="comment">// Assert that old storage is empty</span>
+		<span class="macro">assert!</span>(<span class="ident">storage_key_iter</span>::<span class="op">&lt;</span>
+			<span class="ident">T::AccountId</span>,
+			<span class="ident">CollatorCandidate</span><span class="op">&lt;</span><span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+			<span class="ident">Twox64Concat</span>,
+		<span class="op">&gt;</span>(<span class="ident">pallet_prefix</span>, <span class="ident">storage_item_prefix</span>)
+		.<span class="ident">next</span>()
+		.<span class="ident">is_none</span>());
+		<span class="kw">for</span> (<span class="ident">account</span>, <span class="ident">state</span>) <span class="kw">in</span> <span class="ident">stored_data</span> {
+			<span class="comment">// all delegations are stored greatest to least post migration</span>
+			<span class="comment">// but bottom delegations were least to greatest pre migration</span>
+			<span class="kw">let</span> <span class="ident">new_bottom_delegations</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Bond</span><span class="op">&lt;</span><span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span>
+				<span class="kw">if</span> <span class="ident">state</span>.<span class="ident">bottom_delegations</span>.<span class="ident">len</span>()
+					<span class="op">&gt;</span> <span class="ident">T::MaxBottomDelegationsPerCandidate::get</span>() <span class="kw">as</span> <span class="ident">usize</span>
+				{
+					<span class="comment">// if actual length &gt; max bottom delegations, revoke the bottom actual - max</span>
+					<span class="kw">let</span> <span class="ident">rest</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">bottom_delegations</span>.<span class="ident">len</span>()
+						<span class="op">-</span> <span class="ident">T::MaxBottomDelegationsPerCandidate::get</span>() <span class="kw">as</span> <span class="ident">usize</span>;
+					<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">total_less</span> <span class="op">=</span> <span class="ident">BalanceOf</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::zero</span>();
+					<span class="ident">state</span>.<span class="ident">bottom_delegations</span>.<span class="ident">iter</span>().<span class="ident">take</span>(<span class="ident">rest</span>).<span class="ident">for_each</span>(
+						<span class="op">|</span><span class="ident">Bond</span> { <span class="ident">owner</span>, <span class="ident">amount</span> }<span class="op">|</span> {
+							<span class="ident">total_less</span> <span class="op">=</span> <span class="ident">total_less</span>.<span class="ident">saturating_add</span>(<span class="kw-2">*</span><span class="ident">amount</span>);
+							<span class="comment">// update delegator state</span>
+							<span class="comment">// unreserve kicked bottom</span>
+							<span class="ident">T::Currency::unreserve</span>(<span class="kw-2">&amp;</span><span class="ident">owner</span>, <span class="kw-2">*</span><span class="ident">amount</span>);
+							<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">delegator_state</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">DelegatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">owner</span>)
+								.<span class="ident">expect</span>(<span class="string">&quot;Delegation existence =&gt; DelegatorState existence&quot;</span>);
+							<span class="kw">let</span> <span class="ident">leaving</span> <span class="op">=</span> <span class="ident">delegator_state</span>.<span class="ident">delegations</span>.<span class="number">0</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1usize</span>;
+							<span class="ident">delegator_state</span>.<span class="ident">rm_delegation</span>(<span class="kw-2">&amp;</span><span class="ident">account</span>);
+							<span class="ident">Pallet</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::deposit_event</span>(<span class="ident">Event::DelegationKicked</span> {
+								<span class="ident">delegator</span>: <span class="ident">owner</span>.<span class="ident">clone</span>(),
+								<span class="ident">candidate</span>: <span class="ident">account</span>.<span class="ident">clone</span>(),
+								<span class="ident">unstaked_amount</span>: <span class="kw-2">*</span><span class="ident">amount</span>,
+							});
+							<span class="kw">if</span> <span class="ident">leaving</span> {
+								<span class="op">&lt;</span><span class="ident">DelegatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::remove</span>(<span class="kw-2">&amp;</span><span class="ident">owner</span>);
+								<span class="ident">Pallet</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::deposit_event</span>(<span class="ident">Event::DelegatorLeft</span> {
+									<span class="ident">delegator</span>: <span class="ident">owner</span>.<span class="ident">clone</span>(),
+									<span class="ident">unstaked_amount</span>: <span class="kw-2">*</span><span class="ident">amount</span>,
+								});
+							} <span class="kw">else</span> {
+								<span class="op">&lt;</span><span class="ident">DelegatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="kw-2">&amp;</span><span class="ident">owner</span>, <span class="ident">delegator_state</span>);
+							}
+						},
+					);
+					<span class="kw">let</span> <span class="ident">new_total</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Total</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>() <span class="op">-</span> <span class="ident">total_less</span>;
+					<span class="op">&lt;</span><span class="ident">Total</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::put</span>(<span class="ident">new_total</span>);
+					<span class="ident">state</span>
+						.<span class="ident">bottom_delegations</span>
+						.<span class="ident">into_iter</span>()
+						.<span class="ident">rev</span>()
+						.<span class="ident">take</span>(<span class="ident">T::MaxBottomDelegationsPerCandidate::get</span>() <span class="kw">as</span> <span class="ident">usize</span>)
+						.<span class="ident">collect</span>()
+				} <span class="kw">else</span> {
+					<span class="ident">state</span>.<span class="ident">bottom_delegations</span>.<span class="ident">into_iter</span>().<span class="ident">rev</span>().<span class="ident">collect</span>()
+				};
+			<span class="kw">let</span> <span class="ident">lowest_top_delegation_amount</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">state</span>.<span class="ident">top_delegations</span>.<span class="ident">is_empty</span>() {
+				<span class="ident">BalanceOf</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::zero</span>()
+			} <span class="kw">else</span> {
+				<span class="ident">state</span>.<span class="ident">top_delegations</span>[<span class="ident">state</span>.<span class="ident">top_delegations</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>].<span class="ident">amount</span>
+			};
+			<span class="kw">let</span> <span class="ident">highest_bottom_delegation_amount</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">new_bottom_delegations</span>.<span class="ident">is_empty</span>() {
+				<span class="ident">BalanceOf</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::zero</span>()
+			} <span class="kw">else</span> {
+				<span class="ident">new_bottom_delegations</span>[<span class="number">0</span>].<span class="ident">amount</span>
+			};
+			<span class="comment">// start here,</span>
+			<span class="kw">let</span> <span class="ident">lowest_bottom_delegation_amount</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">new_bottom_delegations</span>.<span class="ident">is_empty</span>() {
+				<span class="ident">BalanceOf</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::zero</span>()
+			} <span class="kw">else</span> {
+				<span class="ident">new_bottom_delegations</span>[<span class="ident">new_bottom_delegations</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>].<span class="ident">amount</span>
+			};
+			<span class="kw">let</span> <span class="ident">top_capacity</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">state</span>.<span class="ident">top_delegations</span> {
+				<span class="ident">x</span> <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">T::MaxTopDelegationsPerCandidate::get</span>() =&gt; {
+					<span class="ident">CapacityStatus::Full</span>
+				}
+				<span class="ident">x</span> <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">is_empty</span>() =&gt; <span class="ident">CapacityStatus::Empty</span>,
+				<span class="kw">_</span> =&gt; <span class="ident">CapacityStatus::Partial</span>,
+			};
+			<span class="kw">let</span> <span class="ident">bottom_capacity</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">new_bottom_delegations</span> {
+				<span class="ident">x</span> <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">T::MaxBottomDelegationsPerCandidate::get</span>() =&gt; {
+					<span class="ident">CapacityStatus::Full</span>
+				}
+				<span class="ident">x</span> <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">is_empty</span>() =&gt; <span class="ident">CapacityStatus::Empty</span>,
+				<span class="kw">_</span> =&gt; <span class="ident">CapacityStatus::Partial</span>,
+			};
+			<span class="kw">let</span> <span class="ident">metadata</span> <span class="op">=</span> <span class="ident">CandidateMetadata</span> {
+				<span class="ident">bond</span>: <span class="ident">state</span>.<span class="ident">bond</span>,
+				<span class="ident">delegation_count</span>: <span class="ident">state</span>.<span class="ident">top_delegations</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>
+					<span class="op">+</span> <span class="ident">new_bottom_delegations</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>,
+				<span class="ident">total_counted</span>: <span class="ident">state</span>.<span class="ident">total_counted</span>,
+				<span class="ident">lowest_top_delegation_amount</span>,
+				<span class="ident">highest_bottom_delegation_amount</span>,
+				<span class="ident">lowest_bottom_delegation_amount</span>,
+				<span class="ident">top_capacity</span>,
+				<span class="ident">bottom_capacity</span>,
+				<span class="ident">request</span>: <span class="ident">state</span>.<span class="ident">request</span>,
+				<span class="ident">status</span>: <span class="ident">state</span>.<span class="ident">state</span>,
+			};
+			<span class="op">&lt;</span><span class="ident">CandidateInfo</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="kw-2">&amp;</span><span class="ident">account</span>, <span class="ident">metadata</span>);
+			<span class="kw">let</span> <span class="ident">top_delegations</span> <span class="op">=</span> <span class="ident">Delegations</span> {
+				<span class="ident">total</span>: <span class="ident">state</span>.<span class="ident">total_counted</span> <span class="op">-</span> <span class="ident">state</span>.<span class="ident">bond</span>,
+				<span class="ident">delegations</span>: <span class="ident">state</span>.<span class="ident">top_delegations</span>,
+			};
+			<span class="op">&lt;</span><span class="ident">TopDelegations</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="kw-2">&amp;</span><span class="ident">account</span>, <span class="ident">top_delegations</span>);
+			<span class="kw">let</span> <span class="ident">bottom_delegations</span> <span class="op">=</span> <span class="ident">Delegations</span> {
+				<span class="ident">total</span>: <span class="ident">new_bottom_delegations</span>
+					.<span class="ident">iter</span>()
+					.<span class="ident">fold</span>(<span class="ident">BalanceOf</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::zero</span>(), <span class="op">|</span><span class="ident">acc</span>, <span class="ident">b</span><span class="op">|</span> <span class="ident">acc</span> <span class="op">+</span> <span class="ident">b</span>.<span class="ident">amount</span>),
+				<span class="ident">delegations</span>: <span class="ident">new_bottom_delegations</span>,
+			};
+			<span class="op">&lt;</span><span class="ident">BottomDelegations</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="kw-2">&amp;</span><span class="ident">account</span>, <span class="ident">bottom_delegations</span>);
+		}
+		<span class="kw">let</span> <span class="ident">weight</span> <span class="op">=</span> <span class="ident">T::DbWeight::get</span>();
+		<span class="ident">migrated_count</span>.<span class="ident">saturating_mul</span>(<span class="number">3</span> <span class="op">*</span> <span class="ident">weight</span>.<span class="ident">write</span> <span class="op">+</span> <span class="ident">weight</span>.<span class="ident">read</span>)
+	}
+	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
+	<span class="kw">fn</span> <span class="ident">pre_upgrade</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
+		<span class="comment">// get delegation count for all candidates to check consistency</span>
+		<span class="kw">for</span> (<span class="ident">account</span>, <span class="ident">state</span>) <span class="kw">in</span> <span class="op">&lt;</span><span class="ident">CandidateState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::iter</span>() {
+			<span class="comment">// insert top + bottom into some temp map?</span>
+			<span class="kw">let</span> <span class="ident">total_delegation_count</span> <span class="op">=</span>
+				<span class="ident">state</span>.<span class="ident">top_delegations</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span> <span class="op">+</span> <span class="ident">state</span>.<span class="ident">bottom_delegations</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>;
+			<span class="ident"><span class="self">Self</span>::set_temp_storage</span>(
+				<span class="ident">total_delegation_count</span>,
+				<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Candidate{:?}DelegationCount&quot;</span>, <span class="ident">account</span>)[..],
+			);
+		}
+		<span class="prelude-val">Ok</span>(())
+	}
+
+	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
+	<span class="kw">fn</span> <span class="ident">post_upgrade</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
+		<span class="comment">// check that top + bottom are the same as the expected (stored in temp)</span>
+		<span class="kw">for</span> (<span class="ident">account</span>, <span class="ident">state</span>) <span class="kw">in</span> <span class="op">&lt;</span><span class="ident">CandidateInfo</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::iter</span>() {
+			<span class="kw">let</span> <span class="ident">expected_count</span>: <span class="ident">u32</span> <span class="op">=</span>
+				<span class="ident"><span class="self">Self</span>::get_temp_storage</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Candidate{:?}DelegationCount&quot;</span>, <span class="ident">account</span>)[..])
+					.<span class="ident">expect</span>(<span class="string">&quot;qed&quot;</span>);
+			<span class="kw">let</span> <span class="ident">actual_count</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">delegation_count</span>;
+			<span class="macro">assert_eq!</span>(<span class="ident">expected_count</span>, <span class="ident">actual_count</span>);
+		}
+		<span class="prelude-val">Ok</span>(())
+	}
+}
+
+<span class="doccomment">/// Migration to properly increase maximum delegations per collator</span>
+<span class="doccomment">/// The logic may be used to recompute the top and bottom delegations whenever</span>
+<span class="doccomment">/// MaxTopDelegationsPerCandidate changes (works for if decreases as well)</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IncreaseMaxDelegationsPerCandidate</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">OnRuntimeUpgrade</span> <span class="kw">for</span> <span class="ident">IncreaseMaxDelegationsPerCandidate</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">on_runtime_upgrade</span>() -&gt; <span class="ident">Weight</span> {
+		<span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">reads</span>, <span class="kw-2">mut</span> <span class="ident">writes</span>) <span class="op">=</span> (<span class="number">0u64</span>, <span class="number">0u64</span>);
+		<span class="kw">for</span> (<span class="ident">account</span>, <span class="ident">state</span>) <span class="kw">in</span> <span class="op">&lt;</span><span class="ident">CandidateState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::iter</span>() {
+			<span class="ident">reads</span> <span class="op">=</span> <span class="ident">reads</span>.<span class="ident">saturating_add</span>(<span class="number">1u64</span>);
+			<span class="comment">// 1. collect all delegations into single vec and order them</span>
+			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">all_delegations</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">top_delegations</span>.<span class="ident">clone</span>();
+			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">starting_bottom_delegations</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">bottom_delegations</span>.<span class="ident">clone</span>();
+			<span class="ident">all_delegations</span>.<span class="ident">append</span>(<span class="kw-2">&amp;mut</span> <span class="ident">starting_bottom_delegations</span>);
+			<span class="comment">// sort all delegations from greatest to least</span>
+			<span class="ident">all_delegations</span>.<span class="ident">sort_unstable_by</span>(<span class="op">|</span><span class="ident">a</span>, <span class="ident">b</span><span class="op">|</span> <span class="ident">b</span>.<span class="ident">amount</span>.<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>.<span class="ident">amount</span>));
+			<span class="kw">let</span> <span class="ident">top_n</span> <span class="op">=</span> <span class="ident">T::MaxTopDelegationsPerCandidate::get</span>() <span class="kw">as</span> <span class="ident">usize</span>;
+			<span class="comment">// 2. split them into top and bottom using the T::MaxNominatorsPerCollator</span>
+			<span class="kw">let</span> <span class="ident">top_delegations</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Bond</span><span class="op">&lt;</span><span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span>
+				<span class="ident">all_delegations</span>.<span class="ident">iter</span>().<span class="ident">take</span>(<span class="ident">top_n</span>).<span class="ident">cloned</span>().<span class="ident">collect</span>();
+			<span class="kw">let</span> <span class="ident">bottom_delegations</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">all_delegations</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="ident">top_n</span> {
+				<span class="kw">let</span> <span class="ident">rest</span> <span class="op">=</span> <span class="ident">all_delegations</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">top_n</span>;
+				<span class="kw">let</span> <span class="ident">bottom</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Bond</span><span class="op">&lt;</span><span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span>
+					<span class="ident">all_delegations</span>.<span class="ident">iter</span>().<span class="ident">rev</span>().<span class="ident">take</span>(<span class="ident">rest</span>).<span class="ident">cloned</span>().<span class="ident">collect</span>();
+				<span class="ident">bottom</span>
+			} <span class="kw">else</span> {
+				<span class="comment">// empty, all nominations are in top</span>
+				<span class="ident">Vec::new</span>()
+			};
+			<span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">total_counted</span>, <span class="kw-2">mut</span> <span class="ident">total_backing</span>): (<span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">=</span>
+				(<span class="ident">state</span>.<span class="ident">bond</span>.<span class="ident">into</span>(), <span class="ident">state</span>.<span class="ident">bond</span>.<span class="ident">into</span>());
+			<span class="kw">for</span> <span class="ident">Bond</span> { <span class="ident">amount</span>, .. } <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">top_delegations</span> {
+				<span class="ident">total_counted</span> <span class="op">=</span> <span class="ident">total_counted</span>.<span class="ident">saturating_add</span>(<span class="kw-2">*</span><span class="ident">amount</span>);
+				<span class="ident">total_backing</span> <span class="op">=</span> <span class="ident">total_backing</span>.<span class="ident">saturating_add</span>(<span class="kw-2">*</span><span class="ident">amount</span>);
+			}
+			<span class="kw">for</span> <span class="ident">Bond</span> { <span class="ident">amount</span>, .. } <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">bottom_delegations</span> {
+				<span class="ident">total_backing</span> <span class="op">=</span> <span class="ident">total_backing</span>.<span class="ident">saturating_add</span>(<span class="kw-2">*</span><span class="ident">amount</span>);
+			}
+			<span class="comment">// update candidate pool with new total counted if it changed</span>
+			<span class="kw">if</span> <span class="ident">state</span>.<span class="ident">total_counted</span> <span class="op">!</span><span class="op">=</span> <span class="ident">total_counted</span> <span class="op">&amp;&amp;</span> <span class="ident">state</span>.<span class="ident">is_active</span>() {
+				<span class="ident">reads</span> <span class="op">=</span> <span class="ident">reads</span>.<span class="ident">saturating_add</span>(<span class="number">1u64</span>);
+				<span class="ident">writes</span> <span class="op">=</span> <span class="ident">writes</span>.<span class="ident">saturating_add</span>(<span class="number">1u64</span>);
+				<span class="op">&lt;</span><span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::update_active</span>(<span class="ident">account</span>.<span class="ident">clone</span>(), <span class="ident">total_counted</span>);
+			}
+			<span class="op">&lt;</span><span class="ident">CandidateState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::insert</span>(
+				<span class="ident">account</span>,
+				<span class="ident">CollatorCandidate</span> {
+					<span class="ident">top_delegations</span>,
+					<span class="ident">bottom_delegations</span>,
+					<span class="ident">total_counted</span>,
+					<span class="ident">total_backing</span>,
+					..<span class="ident">state</span>
+				},
+			);
+			<span class="ident">writes</span> <span class="op">=</span> <span class="ident">writes</span>.<span class="ident">saturating_add</span>(<span class="number">1u64</span>);
+		}
+		<span class="kw">let</span> <span class="ident">weight</span> <span class="op">=</span> <span class="ident">T::DbWeight::get</span>();
+		<span class="comment">// 20% of the max block weight as safety margin for computation</span>
+		<span class="ident">weight</span>.<span class="ident">reads</span>(<span class="ident">reads</span>) <span class="op">+</span> <span class="ident">weight</span>.<span class="ident">writes</span>(<span class="ident">writes</span>) <span class="op">+</span> <span class="number">100_000_000_000</span>
+	}
+	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
+	<span class="kw">fn</span> <span class="ident">pre_upgrade</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
+		<span class="comment">// get delegation count for all candidates to check consistency</span>
+		<span class="kw">for</span> (<span class="ident">account</span>, <span class="ident">state</span>) <span class="kw">in</span> <span class="op">&lt;</span><span class="ident">CandidateState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::iter</span>() {
+			<span class="comment">// insert top + bottom into some temp map?</span>
+			<span class="kw">let</span> <span class="ident">total_delegation_count</span> <span class="op">=</span>
+				<span class="ident">state</span>.<span class="ident">top_delegations</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span> <span class="op">+</span> <span class="ident">state</span>.<span class="ident">bottom_delegations</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>;
+			<span class="ident"><span class="self">Self</span>::set_temp_storage</span>(
+				<span class="ident">total_delegation_count</span>,
+				<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Candidate{:?}DelegationCount&quot;</span>, <span class="ident">account</span>)[..],
+			);
+		}
+		<span class="prelude-val">Ok</span>(())
+	}
+
+	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
+	<span class="kw">fn</span> <span class="ident">post_upgrade</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
+		<span class="comment">// check that top + bottom are the same as the expected (stored in temp)</span>
+		<span class="kw">for</span> (<span class="ident">account</span>, <span class="ident">state</span>) <span class="kw">in</span> <span class="op">&lt;</span><span class="ident">CandidateState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::iter</span>() {
+			<span class="kw">let</span> <span class="ident">expected_count</span>: <span class="ident">u32</span> <span class="op">=</span>
+				<span class="ident"><span class="self">Self</span>::get_temp_storage</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Candidate{:?}DelegationCount&quot;</span>, <span class="ident">account</span>)[..])
+					.<span class="ident">expect</span>(<span class="string">&quot;qed&quot;</span>);
+			<span class="kw">let</span> <span class="ident">actual_count</span> <span class="op">=</span>
+				<span class="ident">state</span>.<span class="ident">top_delegations</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span> <span class="op">+</span> <span class="ident">state</span>.<span class="ident">bottom_delegations</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>;
+			<span class="macro">assert_eq!</span>(<span class="ident">expected_count</span>, <span class="ident">actual_count</span>);
+		}
+		<span class="prelude-val">Ok</span>(())
+	}
+}
+
+<span class="doccomment">/// Migration to replace the automatic ExitQueue with a manual exits API.</span>
+<span class="doccomment">/// This migration is idempotent so it can be run more than once without any risk.</span>
+<span class="comment">// pub struct RemoveExitQueue&lt;T&gt;(PhantomData&lt;T&gt;);</span>
+<span class="comment">// impl&lt;T: Config&gt; OnRuntimeUpgrade for RemoveExitQueue&lt;T&gt; {</span>
+<span class="comment">// 	fn on_runtime_upgrade() -&gt; Weight {</span>
+<span class="comment">// 		log::info!(target: &quot;RemoveExitQueue&quot;, &quot;running migration to remove staking exit queue&quot;);</span>
+<span class="comment">// 		let exit_queue = &lt;ExitQueue2&lt;T&gt;&gt;::take();</span>
+<span class="comment">// 		let (mut reads, mut writes) = (1u64, 0u64);</span>
+<span class="comment">// 		let mut delegator_exits: BTreeMap&lt;T::AccountId, RoundIndex&gt; = BTreeMap::new();</span>
+<span class="comment">// 		let mut delegation_revocations: BTreeMap&lt;T::AccountId, (T::AccountId, RoundIndex)&gt; =</span>
+<span class="comment">// 			BTreeMap::new();</span>
+<span class="comment">// 		// Track scheduled delegator exits and revocations before migrating state</span>
+<span class="comment">// 		// Candidates already track exit info locally so no tracking is necessary</span>
+<span class="comment">// 		for (delegator, is_revocation, when) in exit_queue.nominator_schedule {</span>
+<span class="comment">// 			if let Some(revoking_candidate) = is_revocation {</span>
+<span class="comment">// 				delegation_revocations.insert(delegator, (revoking_candidate, when));</span>
+<span class="comment">// 			} else {</span>
+<span class="comment">// 				delegator_exits.insert(delegator, when);</span>
+<span class="comment">// 			}</span>
+<span class="comment">// 		}</span>
+<span class="comment">// 		// execute candidate migration</span>
+<span class="comment">// 		for (candidate_id, collator_state) in &lt;CollatorState2&lt;T&gt;&gt;::drain() {</span>
+<span class="comment">// 			let candidate_state: CollatorCandidate&lt;T::AccountId, BalanceOf&lt;T&gt;&gt; =</span>
+<span class="comment">// 				collator_state.into();</span>
+<span class="comment">// 			&lt;CandidateState&lt;T&gt;&gt;::insert(candidate_id, candidate_state);</span>
+<span class="comment">// 			reads += 1u64;</span>
+<span class="comment">// 			writes += 1u64;</span>
+<span class="comment">// 		}</span>
+<span class="comment">// 		// execute delegator migration</span>
+<span class="comment">// 		for (delegator_id, nominator_state) in &lt;NominatorState2&lt;T&gt;&gt;::drain() {</span>
+<span class="comment">// 			let mut delegator_state =</span>
+<span class="comment">// 				migrate_nominator_to_delegator_state::&lt;T&gt;(delegator_id.clone(), nominator_state);</span>
+<span class="comment">// 			// add exit if it exists</span>
+<span class="comment">// 			if let Some(when) = delegator_exits.get(&amp;delegator_id) {</span>
+<span class="comment">// 				delegator_state.set_leaving(*when);</span>
+<span class="comment">// 			}</span>
+<span class="comment">// 			// add revocation if exists</span>
+<span class="comment">// 			if let Some((candidate, when)) = delegation_revocations.get(&amp;delegator_id) {</span>
+<span class="comment">// 				delegator_state.hotfix_set_revoke::&lt;T&gt;(candidate.clone(), *when);</span>
+<span class="comment">// 			}</span>
+<span class="comment">// 			&lt;DelegatorState&lt;T&gt;&gt;::insert(delegator_id, delegator_state);</span>
+<span class="comment">// 			reads += 1u64;</span>
+<span class="comment">// 			writes += 1u64;</span>
+<span class="comment">// 		}</span>
+<span class="comment">// 		let db_weight = T::DbWeight::get();</span>
+<span class="comment">// 		if reads &gt; 1u64 {</span>
+<span class="comment">// 			// 50% of the max block weight as safety margin for computation</span>
+<span class="comment">// 			db_weight.reads(reads) + db_weight.writes(writes) + 250_000_000_000</span>
+<span class="comment">// 		} else {</span>
+<span class="comment">// 			// migration was already executed before</span>
+<span class="comment">// 			db_weight.reads(reads)</span>
+<span class="comment">// 		}</span>
+<span class="comment">// 	}</span>
+
+<span class="comment">// 	#[cfg(feature = &quot;try-runtime&quot;)]</span>
+<span class="comment">// 	fn pre_upgrade() -&gt; Result&lt;(), &amp;&#39;static str&gt; {</span>
+<span class="comment">// 		use frame_support::storage::migration::storage_iter;</span>
+
+<span class="comment">// 		let pallet_prefix: &amp;[u8] = b&quot;ParachainStaking&quot;;</span>
+<span class="comment">// 		let collator_state_prefix: &amp;[u8] = b&quot;CollatorState2&quot;;</span>
+<span class="comment">// 		let nominator_state_prefix: &amp;[u8] = b&quot;NominatorState2&quot;;</span>
+
+<span class="comment">// 		// Assert new storage is empty</span>
+<span class="comment">// 		assert!(CandidateState::&lt;T&gt;::iter().next().is_none());</span>
+<span class="comment">// 		assert!(DelegatorState::&lt;T&gt;::iter().next().is_none());</span>
+
+<span class="comment">// 		// Check number of old collator candidates, and set it aside in temp storage</span>
+<span class="comment">// 		let old_collator_count = storage_iter::&lt;Collator2&lt;T::AccountId, BalanceOf&lt;T&gt;&gt;&gt;(</span>
+<span class="comment">// 			pallet_prefix,</span>
+<span class="comment">// 			collator_state_prefix,</span>
+<span class="comment">// 		)</span>
+<span class="comment">// 		.count() as u64;</span>
+<span class="comment">// 		Self::set_temp_storage(old_collator_count, &quot;old_collator_count&quot;);</span>
+
+<span class="comment">// 		// Read first old candidate from old storage and set it aside in temp storage</span>
+<span class="comment">// 		if old_collator_count &gt; 0 {</span>
+<span class="comment">// 			let example_collator = storage_key_iter::&lt;</span>
+<span class="comment">// 				T::AccountId,</span>
+<span class="comment">// 				Collator2&lt;T::AccountId, BalanceOf&lt;T&gt;&gt;,</span>
+<span class="comment">// 				Twox64Concat,</span>
+<span class="comment">// 			&gt;(pallet_prefix, collator_state_prefix)</span>
+<span class="comment">// 			.next()</span>
+<span class="comment">// 			.expect(&quot;We already confirmed that there was at least one item stored&quot;);</span>
+
+<span class="comment">// 			Self::set_temp_storage(example_collator, &quot;example_collator&quot;);</span>
+<span class="comment">// 		}</span>
+
+<span class="comment">// 		// Check number of new delegators, and set it aside in temp storage</span>
+<span class="comment">// 		let old_nominator_count = storage_iter::&lt;Nominator2&lt;T::AccountId, BalanceOf&lt;T&gt;&gt;&gt;(</span>
+<span class="comment">// 			pallet_prefix,</span>
+<span class="comment">// 			nominator_state_prefix,</span>
+<span class="comment">// 		)</span>
+<span class="comment">// 		.count() as u64;</span>
+<span class="comment">// 		Self::set_temp_storage(old_nominator_count, &quot;old_nominator_count&quot;);</span>
+
+<span class="comment">// 		// Read first new delegator from old storage and set it aside in temp storage</span>
+<span class="comment">// 		if old_nominator_count &gt; 0 {</span>
+<span class="comment">// 			let example_nominator = storage_key_iter::&lt;</span>
+<span class="comment">// 				T::AccountId,</span>
+<span class="comment">// 				Nominator2&lt;T::AccountId, BalanceOf&lt;T&gt;&gt;,</span>
+<span class="comment">// 				Twox64Concat,</span>
+<span class="comment">// 			&gt;(pallet_prefix, nominator_state_prefix)</span>
+<span class="comment">// 			.next()</span>
+<span class="comment">// 			.expect(&quot;We already confirmed that there was at least one item stored&quot;);</span>
+
+<span class="comment">// 			Self::set_temp_storage(example_nominator, &quot;example_nominator&quot;);</span>
+<span class="comment">// 		}</span>
+<span class="comment">// 		Ok(())</span>
+<span class="comment">// 	}</span>
+
+<span class="comment">// 	#[cfg(feature = &quot;try-runtime&quot;)]</span>
+<span class="comment">// 	fn post_upgrade() -&gt; Result&lt;(), &amp;&#39;static str&gt; {</span>
+<span class="comment">// 		// Check number of candidates matches what was set aside in pre_upgrade</span>
+<span class="comment">// 		let old_candidate_count: u64 = Self::get_temp_storage(&quot;old_collator_count&quot;)</span>
+<span class="comment">// 			.expect(&quot;We stored the old collator candidate count so it should be there&quot;);</span>
+<span class="comment">// 		let new_candidate_count = CandidateState::&lt;T&gt;::iter().count() as u64;</span>
+<span class="comment">// 		assert_eq!(old_candidate_count, new_candidate_count);</span>
+
+<span class="comment">// 		// Check that our example candidate is converted correctly</span>
+<span class="comment">// 		if new_candidate_count &gt; 0 {</span>
+<span class="comment">// 			let (account, original_collator_state): (</span>
+<span class="comment">// 				T::AccountId,</span>
+<span class="comment">// 				Collator2&lt;T::AccountId, BalanceOf&lt;T&gt;&gt;,</span>
+<span class="comment">// 			) = Self::get_temp_storage(&quot;example_collator&quot;).expect(&quot;qed&quot;);</span>
+<span class="comment">// 			let new_candidate_state = CandidateState::&lt;T&gt;::get(account).expect(&quot;qed&quot;);</span>
+<span class="comment">// 			let old_candidate_converted: CollatorCandidate&lt;T::AccountId, BalanceOf&lt;T&gt;&gt; =</span>
+<span class="comment">// 				original_collator_state.into();</span>
+<span class="comment">// 			assert_eq!(new_candidate_state, old_candidate_converted);</span>
+<span class="comment">// 		}</span>
+
+<span class="comment">// 		// Check number of delegators matches what was set aside in pre_upgrade</span>
+<span class="comment">// 		let old_nominator_count: u64 = Self::get_temp_storage(&quot;old_nominator_count&quot;)</span>
+<span class="comment">// 			.expect(&quot;We stored the old nominator count so it should be there&quot;);</span>
+<span class="comment">// 		let new_delegator_count = DelegatorState::&lt;T&gt;::iter().count() as u64;</span>
+<span class="comment">// 		assert_eq!(old_nominator_count, new_delegator_count);</span>
+
+<span class="comment">// 		// Check that our example delegator is converted correctly</span>
+<span class="comment">// 		if new_delegator_count &gt; 0 {</span>
+<span class="comment">// 			let (account, original_delegator_state): (</span>
+<span class="comment">// 				T::AccountId,</span>
+<span class="comment">// 				Nominator2&lt;T::AccountId, BalanceOf&lt;T&gt;&gt;,</span>
+<span class="comment">// 			) = Self::get_temp_storage(&quot;example_nominator&quot;).expect(&quot;qed&quot;);</span>
+<span class="comment">// 			let new_delegator_state = DelegatorState::&lt;T&gt;::get(&amp;account).expect(&quot;qed&quot;);</span>
+<span class="comment">// 			let old_delegator_converted: Delegator&lt;T::AccountId, BalanceOf&lt;T&gt;&gt; =</span>
+<span class="comment">// 				migrate_nominator_to_delegator_state::&lt;T&gt;(account, original_delegator_state);</span>
+<span class="comment">// 			assert_eq!(old_delegator_converted, new_delegator_state);</span>
+<span class="comment">// 		}</span>
+<span class="comment">// 		Ok(())</span>
+<span class="comment">// 	}</span>
+<span class="comment">// }</span>
+
+<span class="doccomment">/// Migration to purge staking storage bloat for `Points` and `AtStake` storage items</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PurgeStaleStorage</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">OnRuntimeUpgrade</span> <span class="kw">for</span> <span class="ident">PurgeStaleStorage</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">on_runtime_upgrade</span>() -&gt; <span class="ident">Weight</span> {
+		<span class="macro">log::info!</span>(<span class="ident">target</span>: <span class="string">&quot;PurgeStaleStorage&quot;</span>, <span class="string">&quot;running migration to remove storage bloat&quot;</span>);
+		<span class="kw">let</span> <span class="ident">current_round</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Round</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>().<span class="ident">current</span>;
+		<span class="kw">let</span> <span class="ident">payment_delay</span> <span class="op">=</span> <span class="ident">T::RewardPaymentDelay::get</span>();
+		<span class="kw">let</span> <span class="ident">db_weight</span> <span class="op">=</span> <span class="ident">T::DbWeight::get</span>();
+		<span class="kw">let</span> (<span class="ident">reads</span>, <span class="kw-2">mut</span> <span class="ident">writes</span>) <span class="op">=</span> (<span class="number">3u64</span>, <span class="number">0u64</span>);
+		<span class="kw">if</span> <span class="ident">current_round</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">payment_delay</span> {
+			<span class="comment">// early enough so no storage bloat exists yet</span>
+			<span class="comment">// (only relevant for chains &lt;= payment_delay rounds old)</span>
+			<span class="kw">return</span> <span class="ident">db_weight</span>.<span class="ident">reads</span>(<span class="ident">reads</span>);
+		}
+		<span class="comment">// already paid out at the beginning of current round</span>
+		<span class="kw">let</span> <span class="ident">most_recent_round_to_kill</span> <span class="op">=</span> <span class="ident">current_round</span> <span class="op">-</span> <span class="ident">payment_delay</span>;
+		<span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">1</span>..<span class="op">=</span><span class="ident">most_recent_round_to_kill</span> {
+			<span class="ident">writes</span> <span class="op">=</span> <span class="ident">writes</span>.<span class="ident">saturating_add</span>(<span class="number">2u64</span>);
+			<span class="op">&lt;</span><span class="ident">Staked</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::remove</span>(<span class="ident">i</span>);
+			<span class="op">&lt;</span><span class="ident">Points</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::remove</span>(<span class="ident">i</span>);
+		}
+		<span class="comment">// 5% of the max block weight as safety margin for computation</span>
+		<span class="ident">db_weight</span>.<span class="ident">reads</span>(<span class="ident">reads</span>) <span class="op">+</span> <span class="ident">db_weight</span>.<span class="ident">writes</span>(<span class="ident">writes</span>) <span class="op">+</span> <span class="number">25_000_000_000</span>
+	}
+
+	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
+	<span class="kw">fn</span> <span class="ident">pre_upgrade</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
+		<span class="comment">// trivial migration</span>
+		<span class="prelude-val">Ok</span>(())
+	}
+
+	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
+	<span class="kw">fn</span> <span class="ident">post_upgrade</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
+		<span class="comment">// expect only the storage items for the last 2 rounds to be stored</span>
+		<span class="kw">let</span> <span class="ident">staked_count</span> <span class="op">=</span> <span class="ident">Staked</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::iter</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">u32</span>;
+		<span class="kw">let</span> <span class="ident">points_count</span> <span class="op">=</span> <span class="ident">Points</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::iter</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">u32</span>;
+		<span class="kw">let</span> <span class="ident">delay</span> <span class="op">=</span> <span class="ident">T::RewardPaymentDelay::get</span>();
+		<span class="macro">assert_eq!</span>(
+			<span class="ident">staked_count</span>, <span class="ident">delay</span>,
+			<span class="string">&quot;Expected {} for `Staked` count, Found: {}&quot;</span>,
+			<span class="ident">delay</span>, <span class="ident">staked_count</span>
+		);
+		<span class="macro">assert_eq!</span>(
+			<span class="ident">points_count</span>, <span class="ident">delay</span>,
+			<span class="string">&quot;Expected {} for `Points` count, Found: {}&quot;</span>,
+			<span class="ident">delay</span>, <span class="ident">staked_count</span>
+		);
+		<span class="prelude-val">Ok</span>(())
+	}
+}
+</code></pre></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pallet_parachain_staking" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (3b348d932 2022-02-19)" ></div>
+</body></html>
