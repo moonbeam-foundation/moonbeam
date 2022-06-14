@@ -394,23 +394,18 @@ impl<T: Contains<MultiLocation>> ShouldExecute for AllowDescendOriginFromLocal<T
 		);
 		ensure!(T::contains(origin), ());
 		let mut iter = message.0.iter_mut();
-		let i = iter.next().ok_or(())?;
-
 		// Make sure the first instruction is DescendOrigin
-		match i {
-			DescendOrigin(..) => (),
-			_ => return Err(()),
-		}
+		iter.next()
+			.filter(|instruction| matches!(instruction, DescendOrigin(_)))
+			.ok_or(())?;
 
 		// Then WithdrawAsset
-		let mut i = iter.next().ok_or(())?;
-		match i {
-			WithdrawAsset(..) => (),
-			_ => return Err(()),
-		}
+		iter.next()
+			.filter(|instruction| matches!(instruction, WithdrawAsset(_)))
+			.ok_or(())?;
 
 		// Then BuyExecution
-		i = iter.next().ok_or(())?;
+		let i = iter.next().ok_or(())?;
 		match i {
 			BuyExecution {
 				weight_limit: Limited(ref mut weight),
