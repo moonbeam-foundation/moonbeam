@@ -40,6 +40,7 @@ import type {
   PalletDemocracyVoteThreshold,
   ParachainStakingDelegationRequestsCancelledScheduledRequest,
   ParachainStakingDelegatorAdded,
+  SessionKeysPrimitivesVrfVrfCryptoPublic,
   SpRuntimeDispatchError,
   XcmTransactorRemoteTransactInfoWithMaxWeight,
   XcmV1MultiAsset,
@@ -191,26 +192,26 @@ declare module "@polkadot/api-base/types/events" {
     };
     authorMapping: {
       /**
-       * An NimbusId has been de-registered, and its AccountId mapping removed.
-       */
-      AuthorDeRegistered: AugmentedEvent<
-        ApiType,
-        [NimbusPrimitivesNimbusCryptoPublic, AccountId20, NimbusPrimitivesNimbusCryptoPublic]
-      >;
-      /**
        * A NimbusId has been registered and mapped to an AccountId.
        */
-      AuthorRegistered: AugmentedEvent<
+      KeysRegistered: AugmentedEvent<
         ApiType,
-        [NimbusPrimitivesNimbusCryptoPublic, AccountId20, NimbusPrimitivesNimbusCryptoPublic]
+        [NimbusPrimitivesNimbusCryptoPublic, AccountId20, SessionKeysPrimitivesVrfVrfCryptoPublic]
+      >;
+      /**
+       * An NimbusId has been de-registered, and its AccountId mapping removed.
+       */
+      KeysRemoved: AugmentedEvent<
+        ApiType,
+        [NimbusPrimitivesNimbusCryptoPublic, AccountId20, SessionKeysPrimitivesVrfVrfCryptoPublic]
       >;
       /**
        * An NimbusId has been registered, replacing a previous registration and
        * its mapping.
        */
-      AuthorRotated: AugmentedEvent<
+      KeysRotated: AugmentedEvent<
         ApiType,
-        [NimbusPrimitivesNimbusCryptoPublic, AccountId20, NimbusPrimitivesNimbusCryptoPublic]
+        [NimbusPrimitivesNimbusCryptoPublic, AccountId20, SessionKeysPrimitivesVrfVrfCryptoPublic]
       >;
       /**
        * Generic event
@@ -1050,6 +1051,13 @@ declare module "@polkadot/api-base/types/events" {
        */
       ProxyExecuted: AugmentedEvent<ApiType, [Result<Null, SpRuntimeDispatchError>]>;
       /**
+       * A proxy was removed.
+       */
+      ProxyRemoved: AugmentedEvent<
+        ApiType,
+        [AccountId20, AccountId20, MoonbaseRuntimeProxyType, u32]
+      >;
+      /**
        * Generic event
        */
       [key: string]: AugmentedEvent<ApiType>;
@@ -1269,6 +1277,14 @@ declare module "@polkadot/api-base/types/events" {
     xcmTransactor: {
       DeRegisteredDerivative: AugmentedEvent<ApiType, [u16]>;
       /**
+       * Set dest fee per second
+       */
+      DestFeePerSecondChanged: AugmentedEvent<ApiType, [XcmV1MultiLocation, u128]>;
+      /**
+       * Remove dest fee per second
+       */
+      DestFeePerSecondRemoved: AugmentedEvent<ApiType, [XcmV1MultiLocation]>;
+      /**
        * Registered a derivative index for an account id.
        */
       RegisteredDerivative: AugmentedEvent<ApiType, [AccountId20, u16]>;
@@ -1276,6 +1292,10 @@ declare module "@polkadot/api-base/types/events" {
        * Transacted the inner call through a derivative account in a destination chain.
        */
       TransactedDerivative: AugmentedEvent<ApiType, [AccountId20, XcmV1MultiLocation, Bytes, u16]>;
+      /**
+       * Transacted the call through a signed account in a destination chain.
+       */
+      TransactedSigned: AugmentedEvent<ApiType, [AccountId20, XcmV1MultiLocation, Bytes]>;
       /**
        * Transacted the call through the sovereign account in a destination chain.
        */
