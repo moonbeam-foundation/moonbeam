@@ -32,7 +32,6 @@ describeSmokeSuite(`Verify XCM weight fees for relay`, { wssUrl, relayWssUrl }, 
   it("should have value over relay expected fees", async function () {
     // Load data
     const relayRuntime = context.relayApi.runtimeVersion.specName.toString();
-    console.log(relayRuntime);
     const relayMultiLocation: MultiLocation = context.polkadotApi.createType(
       "MultiLocation",
       JSON.parse('{ "parents": 1, "interior": "Here" }')

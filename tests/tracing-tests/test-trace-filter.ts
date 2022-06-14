@@ -2,37 +2,35 @@ import { expect } from "chai";
 import { customWeb3Request } from "../util/providers";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 import { createContract, createContractExecution } from "../util/transactions";
-import { GENESIS_ACCOUNT } from "../util/constants";
+import { alith, ALITH_CONTRACT_ADDRESSES } from "../util/accounts";
 
 const GENESIS_CONTRACT_ADDRESSES = [
-  "0xc2bf5f29a4384b1ab0c063e1c666f02121b6084a",
-  "0x42e2ee7ba8975c473157634ac2af4098190fc741",
-  "0xf8cef78e923919054037a1d03662bbd884ff4edf",
+  ALITH_CONTRACT_ADDRESSES[0],
+  ALITH_CONTRACT_ADDRESSES[2],
+  ALITH_CONTRACT_ADDRESSES[3],
 ];
 
 describeDevMoonbeam("Trace filter - Contract creation ", (context) => {
   before("Setup: Create 4 blocks with TraceFilter contracts", async function () {
     const { contract, rawTx } = await createContract(context, "TraceFilter", {}, [false]);
-    await context.createBlock({ transactions: [rawTx] });
+    await context.createBlock(rawTx);
 
     const { rawTx: rawTx2 } = await createContract(context, "TraceFilter", {}, [true]);
-    await context.createBlock({ transactions: [rawTx2] });
+    await context.createBlock([rawTx2]);
 
     const { rawTx: rawTx3 } = await createContract(context, "TraceFilter", {}, [false]);
     const { rawTx: rawTx4 } = await createContract(context, "TraceFilter", { nonce: 3 }, [false]);
-    await context.createBlock({ transactions: [rawTx3, rawTx4] });
+    await context.createBlock([rawTx3, rawTx4]);
 
-    await context.createBlock({
-      transactions: [
-        await createContractExecution(context, {
-          contract,
-          contractCall: contract.methods.subcalls(
-            GENESIS_CONTRACT_ADDRESSES[1],
-            GENESIS_CONTRACT_ADDRESSES[2]
-          ),
-        }),
-      ],
-    });
+    await context.createBlock(
+      createContractExecution(context, {
+        contract,
+        contractCall: contract.methods.subcalls(
+          GENESIS_CONTRACT_ADDRESSES[1],
+          GENESIS_CONTRACT_ADDRESSES[2]
+        ),
+      })
+    );
   });
 
   it("should be able to replay deployed contract", async function () {
@@ -52,8 +50,8 @@ describeDevMoonbeam("Trace filter - Contract creation ", (context) => {
       gas: "0xb60b27",
       value: "0x0",
     });
-    expect(response.result[0].result).to.include({
-      address: "0xc2bf5f29a4384b1ab0c063e1c666f02121b6084a",
+    expect(response.result[0].hash).to.include({
+      address: ALITH_CONTRACT_ADDRESSES[0],
       gasUsed: "0x10fd9", // TODO : Compare with value from another (comparable) network.
     });
 
@@ -85,7 +83,7 @@ describeDevMoonbeam("Trace filter - Contract creation ", (context) => {
     expect(response.result[0].action.value).to.equal("0x0");
     expect(response.result[0].blockHash).to.be.a("string");
     expect(response.result[0].blockNumber).to.equal(2);
-    expect(response.result[0].result).to.equal(undefined);
+    expect(response.result[0].hash).to.equal(undefined);
     expect(response.result[0].error).to.equal("Reverted");
     expect(response.result[0].subtraces).to.equal(0);
     expect(response.result[0].traceAddress.length).to.equal(0);
@@ -172,7 +170,7 @@ describeDevMoonbeam("Trace filter - Contract creation ", (context) => {
       {
         fromBlock: "0x03",
         toBlock: "0x04",
-        fromAddress: [GENESIS_ACCOUNT],
+        fromAddress: [alith.address],
       },
     ]);
 

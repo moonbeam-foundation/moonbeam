@@ -427,6 +427,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					use pallet_author_mapping::Pallet as PalletAuthorMappingBench;
 					use pallet_author_slot_filter::Pallet as PalletAuthorSlotFilter;
 					use pallet_moonbeam_orbiters::Pallet as PalletMoonbeamOrbiters;
+					use pallet_author_inherent::Pallet as PalletAuthorInherent;
 					use pallet_asset_manager::Pallet as PalletAssetManagerBench;
 					use xcm_transactor::Pallet as XcmTransactorBench;
 
@@ -438,6 +439,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					list_benchmark!(list, extra, pallet_author_mapping, PalletAuthorMappingBench::<Runtime>);
 					list_benchmark!(list, extra, pallet_author_slot_filter, PalletAuthorSlotFilter::<Runtime>);
 					list_benchmark!(list, extra, pallet_moonbeam_orbiters, PalletMoonbeamOrbiters::<Runtime>);
+					list_benchmark!(list, extra, pallet_author_inherent, PalletAuthorInherent::<Runtime>);
 					list_benchmark!(list, extra, pallet_asset_manager, PalletAssetManagerBench::<Runtime>);
 					list_benchmark!(list, extra, xcm_transactor, XcmTransactorBench::<Runtime>);
 
@@ -461,6 +463,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					use pallet_author_mapping::Pallet as PalletAuthorMappingBench;
 					use pallet_author_slot_filter::Pallet as PalletAuthorSlotFilter;
 					use pallet_moonbeam_orbiters::Pallet as PalletMoonbeamOrbiters;
+					use pallet_author_inherent::Pallet as PalletAuthorInherent;
 					use pallet_asset_manager::Pallet as PalletAssetManagerBench;
 					use xcm_transactor::Pallet as XcmTransactorBench;
 
@@ -551,6 +554,12 @@ macro_rules! impl_runtime_apis_plus_common {
 						batches,
 						pallet_moonbeam_orbiters,
 						PalletMoonbeamOrbiters::<Runtime>
+					);
+					add_benchmark!(
+						params,
+						batches,
+						pallet_author_inherent,
+						PalletAuthorInherent::<Runtime>
 					);
 					add_benchmark!(
 						params,

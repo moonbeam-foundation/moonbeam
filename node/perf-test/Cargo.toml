@@ -11,7 +11,7 @@ clap = { version = "3.1", features = [ "derive" ] }
 cli-table = "0.4"
 futures = { version = "0.3.1", features = [ "compat" ] }
 hex = "0.4.3"
-libsecp256k1 = { version = "0.5" }
+libsecp256k1 = { version = "0.6" }
 log = "0.4.8"
 rlp = { version = "0.5" }
 serde = { version = "1.0", features = [ "derive" ] }

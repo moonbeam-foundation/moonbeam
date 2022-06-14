@@ -338,10 +338,8 @@ impl<T: Config> Pallet<T> {
 		let mut existing_revoke_count = 0;
 		for bond in state.delegations.0.clone() {
 			let collator = bond.owner;
+			let bonded_amount = bond.amount;
 			let mut scheduled_requests = <DelegationScheduledRequests<T>>::get(&collator);
-			let bonded_amount = state
-				.get_bond_amount(&collator)
-				.ok_or(<Error<T>>::DelegationDNE)?;
 
 			// cancel any existing requests
 			let request =

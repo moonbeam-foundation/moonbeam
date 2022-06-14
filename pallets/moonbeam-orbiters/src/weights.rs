@@ -97,16 +97,18 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: MoonbeamOrbiters MinOrbiterDeposit (r:1 w:0)
 	// Storage: Balances Reserves (r:1 w:1)
 	// Storage: System Account (r:1 w:1)
+	// Storage: MoonbeamOrbiters RegisteredOrbiter (r:0 w:1)
 	#[rustfmt::skip]
 	fn orbiter_register() -> Weight {
 		(32_506_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(3 as Weight))
-			.saturating_add(T::DbWeight::get().writes(2 as Weight))
+			.saturating_add(T::DbWeight::get().writes(3 as Weight))
 	}
 	// Storage: MoonbeamOrbiters CounterForCollatorsPool (r:1 w:0)
 	// Storage: MoonbeamOrbiters CollatorsPool (r:1 w:0)
 	// Storage: Balances Reserves (r:1 w:1)
 	// Storage: System Account (r:1 w:1)
+	// Storage: MoonbeamOrbiters RegisteredOrbiter (r:0 w:1)
 	#[rustfmt::skip]
 	fn orbiter_unregister(n: u32, ) -> Weight {
 		(33_919_000 as Weight)
@@ -114,7 +116,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add((6_981_000 as Weight).saturating_mul(n as Weight))
 			.saturating_add(T::DbWeight::get().reads(4 as Weight))
 			.saturating_add(T::DbWeight::get().reads((1 as Weight).saturating_mul(n as Weight)))
-			.saturating_add(T::DbWeight::get().writes(2 as Weight))
+			.saturating_add(T::DbWeight::get().writes(3 as Weight))
 	}
 	// Storage: MoonbeamOrbiters CollatorsPool (r:1 w:1)
 	// Storage: MoonbeamOrbiters CounterForCollatorsPool (r:1 w:1)
