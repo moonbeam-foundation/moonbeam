@@ -10,7 +10,7 @@ version = "0.1.0"
 [dependencies]
 
 # Moonbeam
-relay-encoder-precompiles = { path = "../../precompiles/relay-encoder/", default-features = false }
+pallet-evm-precompile-relay-encoder = { path = "../../precompiles/relay-encoder/", default-features = false }
 xcm-primitives = { path = "../../primitives/xcm", default-features = false }
 
 # Substrate
@@ -38,10 +38,10 @@ default = [ "std" ]
 std = [
 	"cumulus-primitives-core/std",
 	"frame-system/std",
+	"pallet-evm-precompile-relay-encoder/std",
 	"pallet-staking/std",
 	"parity-scale-codec/std",
 	"parity-scale-codec/std",
-	"relay-encoder-precompiles/std",
 	"sp-runtime/std",
 	"sp-std/std",
 	"xcm-primitives/std",

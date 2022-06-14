@@ -1,5 +1,5 @@
 [package]
-name = "pallet-democracy-precompiles"
+name = "pallet-evm-precompile-democracy"
 authors = [ "PureStake" ]
 description = "A Precompile to make Substrate's pallet-democracy accessible to pallet-evm"
 edition = "2021"

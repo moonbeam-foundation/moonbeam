@@ -1,7 +1,7 @@
 [package]
-name = "pallet-evm-precompile-assets-erc20"
+name = "pallet-evm-precompileset-assets-erc20"
 authors = [ "PureStake" ]
-description = "A Precompile to expose a Assets pallet through an ERC20-compliant interface."
+description = "A Precompile to expose Assets pallet through an ERC20-compliant interface."
 edition = "2021"
 version = "0.1.0"
 

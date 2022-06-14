@@ -64,7 +64,7 @@ construct_runtime!(
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		Evm: pallet_evm::{Pallet, Call, Storage, Event<T>},
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
-		XcmTransactor: xcm_transactor::{Pallet, Call, Storage, Event<T>},
+		XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Storage, Event<T>},
 	}
 );
 
@@ -365,7 +365,7 @@ parameter_types! {
 	pub MaxInstructions: u32 = 100;
 }
 
-impl xcm_transactor::Config for Runtime {
+impl pallet_xcm_transactor::Config for Runtime {
 	type Event = Event;
 	type Balance = Balance;
 	type Transactor = MockTransactors;
