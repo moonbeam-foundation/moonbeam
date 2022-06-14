@@ -16,7 +16,7 @@
 
 use super::*;
 use core::assert_matches::assert_matches;
-use fp_evm::{ExitSucceed, PrecompileOutput, PrecompileResult, PrecompileSet};
+use fp_evm::{ExitSucceed, PrecompileOutput, PrecompileResult, PrecompileSet, Transfer, ExitReason};
 use sp_std::boxed::Box;
 
 pub struct Subcall {
