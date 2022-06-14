@@ -86,12 +86,12 @@
     "jsdocSingleLineComment": false
   },
   "devDependencies": {
-    "@polkadot/api": "^8.3.1",
-    "@polkadot/typegen": "^8.3.1",
-    "prettier": "^2.6.2",
+    "@polkadot/api": "^8.8.2",
+    "@polkadot/typegen": "^8.8.2",
+    "prettier": "^2.7.0",
     "prettier-plugin-jsdoc": "^0.3.38",
     "rimraf": "^3.0.2",
-    "ts-node": "^10.7.0",
-    "typescript": "^4.6.4"
+    "ts-node": "^10.8.1",
+    "typescript": "^4.7.3"
   }
 }
