@@ -1230,7 +1230,6 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact", (context) => {
   let random: KeyringPair;
 
   before("Should receive transact action with DescendOrigin", async function () {
-
     const allones = "0x0101010101010101010101010101010101010101";
     sendingAddress = allones;
     random = generateKeyingPair();
@@ -1311,7 +1310,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact", (context) => {
                   interior: {
                     X1: { PalletInstance: balancesPalletIndex },
                   },
-                  },
+                },
               },
               fun: { Fungible: transferredBalance / 2n },
             },
@@ -1363,7 +1362,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact", (context) => {
 
     // Make sure the state has ALITH's foreign parachain tokens
     const testAccountBalance = (
-      (await context.polkadotApi.query.system.account(random.address))
+      await context.polkadotApi.query.system.account(random.address)
     ).data.free.toBigInt();
 
     expect(testAccountBalance).to.eq(transferredBalance / 10n);
