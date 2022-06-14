@@ -1,7 +1,7 @@
-import { Keyring } from "@polkadot/api";
 import { expect } from "chai";
+import { Keyring } from "@polkadot/api";
+import { alith } from "../../../util/accounts";
 
-import { ALITH_PRIV_KEY } from "../../../util/constants";
 import { describeParachain } from "../../../util/setup-para-tests";
 import { sendAllStreamAndWaitLast } from "../../../util/transactions";
 
@@ -25,9 +25,7 @@ describeParachain(
       // Expected to take 4 blocks to setup + 10 blocks for upgrade + 4 blocks to check =>
       // ~300000 + init 50000 + error marging 150000
       this.timeout(500000);
-
       const keyring = new Keyring({ type: "ethereum" });
-      const alith = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
 
       const maxTopDelegations = 360;
 
