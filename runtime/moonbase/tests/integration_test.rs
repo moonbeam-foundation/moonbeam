@@ -40,14 +40,14 @@ use moonbase_runtime::{
 	LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 
-use crowdloan_rewards_precompiles::Action as CrowdloanAction;
 use nimbus_primitives::NimbusId;
-use pallet_author_mapping_precompiles::Action as AuthorMappingAction;
 use pallet_evm::PrecompileSet;
-use pallet_evm_precompile_assets_erc20::{
+use pallet_evm_precompile_author_mapping::Action as AuthorMappingAction;
+use pallet_evm_precompile_crowdloan_rewards::Action as CrowdloanAction;
+use pallet_evm_precompile_xtokens::Action as XtokensAction;
+use pallet_evm_precompileset_assets_erc20::{
 	AccountIdAssetIdConversion, Action as AssetAction, SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER,
 };
-use xtokens_precompiles::Action as XtokensAction;
 
 use pallet_transaction_payment::Multiplier;
 use parity_scale_codec::Encode;
@@ -300,7 +300,7 @@ fn join_collator_candidates() {
 					1_000 * UNIT,
 					2u32
 				),
-				parachain_staking::Error::<Runtime>::CandidateExists
+				pallet_parachain_staking::Error::<Runtime>::CandidateExists
 			);
 			assert_noop!(
 				ParachainStaking::join_candidates(
@@ -308,7 +308,7 @@ fn join_collator_candidates() {
 					1_000 * UNIT,
 					2u32
 				),
-				parachain_staking::Error::<Runtime>::DelegatorExists
+				pallet_parachain_staking::Error::<Runtime>::DelegatorExists
 			);
 			assert!(System::events().is_empty());
 			assert_ok!(ParachainStaking::join_candidates(
@@ -318,11 +318,13 @@ fn join_collator_candidates() {
 			));
 			assert_eq!(
 				last_event(),
-				Event::ParachainStaking(parachain_staking::Event::JoinedCollatorCandidates {
-					account: AccountId::from(DAVE),
-					amount_locked: 1_000 * UNIT,
-					new_total_amt_locked: 3_100 * UNIT
-				})
+				Event::ParachainStaking(
+					pallet_parachain_staking::Event::JoinedCollatorCandidates {
+						account: AccountId::from(DAVE),
+						amount_locked: 1_000 * UNIT,
+						new_total_amt_locked: 3_100 * UNIT
+					}
+				)
 			);
 			let candidates = ParachainStaking::candidate_pool();
 			assert_eq!(candidates.0[0].owner, AccountId::from(ALICE));
@@ -2330,7 +2332,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 					17000,
 					vec![],
 				),
-				xcm_transactor::Error::<Runtime>::MaxWeightTransactReached
+				pallet_xcm_transactor::Error::<Runtime>::MaxWeightTransactReached
 			);
 			assert_noop!(
 				XcmTransactor::transact_through_derivative(
@@ -2342,7 +2344,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 					17000,
 					vec![],
 				),
-				xcm_transactor::Error::<Runtime>::MaxWeightTransactReached
+				pallet_xcm_transactor::Error::<Runtime>::MaxWeightTransactReached
 			);
 		})
 }

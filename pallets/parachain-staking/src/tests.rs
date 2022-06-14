@@ -1110,7 +1110,11 @@ fn execute_leave_candidates_removes_pending_delegation_requests() {
 					.iter()
 					.any(|x| x.delegator == 2),
 				"delegation request not removed"
-			)
+			);
+			assert!(
+				!<DelegationScheduledRequests<Test>>::contains_key(&1),
+				"the key was not removed from storage"
+			);
 		});
 }
 
@@ -8942,5 +8946,114 @@ fn test_delegation_request_revoke_exists_returns_true_when_revoke_exists() {
 				}],
 			);
 			assert!(ParachainStaking::delegation_request_revoke_exists(&1, &2));
+		});
+}
+
+#[test]
+fn test_hotfix_remove_delegation_requests_exited_candidates_cleans_up() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20)])
+		.with_candidates(vec![(1, 20)])
+		.build()
+		.execute_with(|| {
+			// invalid state
+			<DelegationScheduledRequests<Test>>::insert(
+				2,
+				Vec::<ScheduledRequest<u64, u128>>::new(),
+			);
+			<DelegationScheduledRequests<Test>>::insert(
+				3,
+				Vec::<ScheduledRequest<u64, u128>>::new(),
+			);
+			assert_ok!(
+				ParachainStaking::hotfix_remove_delegation_requests_exited_candidates(
+					Origin::signed(1),
+					vec![2, 3, 4] // 4 does not exist, but is OK for idempotency
+				)
+			);
+
+			assert!(!<DelegationScheduledRequests<Test>>::contains_key(2));
+			assert!(!<DelegationScheduledRequests<Test>>::contains_key(3));
+		});
+}
+
+#[test]
+fn test_hotfix_remove_delegation_requests_exited_candidates_cleans_up_only_specified_keys() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20)])
+		.with_candidates(vec![(1, 20)])
+		.build()
+		.execute_with(|| {
+			// invalid state
+			<DelegationScheduledRequests<Test>>::insert(
+				2,
+				Vec::<ScheduledRequest<u64, u128>>::new(),
+			);
+			<DelegationScheduledRequests<Test>>::insert(
+				3,
+				Vec::<ScheduledRequest<u64, u128>>::new(),
+			);
+			assert_ok!(
+				ParachainStaking::hotfix_remove_delegation_requests_exited_candidates(
+					Origin::signed(1),
+					vec![2]
+				)
+			);
+
+			assert!(!<DelegationScheduledRequests<Test>>::contains_key(2));
+			assert!(<DelegationScheduledRequests<Test>>::contains_key(3));
+		});
+}
+
+#[test]
+fn test_hotfix_remove_delegation_requests_exited_candidates_errors_when_requests_not_empty() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20)])
+		.with_candidates(vec![(1, 20)])
+		.build()
+		.execute_with(|| {
+			// invalid state
+			<DelegationScheduledRequests<Test>>::insert(
+				2,
+				Vec::<ScheduledRequest<u64, u128>>::new(),
+			);
+			<DelegationScheduledRequests<Test>>::insert(
+				3,
+				vec![ScheduledRequest {
+					delegator: 10,
+					when_executable: 1,
+					action: DelegationAction::Revoke(10),
+				}],
+			);
+
+			assert_noop!(
+				ParachainStaking::hotfix_remove_delegation_requests_exited_candidates(
+					Origin::signed(1),
+					vec![2, 3]
+				),
+				<Error<Test>>::CandidateNotLeaving,
+			);
+		});
+}
+
+#[test]
+fn test_hotfix_remove_delegation_requests_exited_candidates_errors_when_candidate_not_exited() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20)])
+		.with_candidates(vec![(1, 20)])
+		.build()
+		.execute_with(|| {
+			// invalid state
+			<DelegationScheduledRequests<Test>>::insert(
+				1,
+				Vec::<ScheduledRequest<u64, u128>>::new(),
+			);
+			assert_noop!(
+				ParachainStaking::hotfix_remove_delegation_requests_exited_candidates(
+					Origin::signed(1),
+					vec![1]
+				),
+				<Error<Test>>::CandidateNotLeaving,
+			);
 		});
 }

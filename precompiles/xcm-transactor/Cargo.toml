@@ -1,5 +1,5 @@
 [package]
-name = "xcm-transactor-precompiles"
+name = "pallet-evm-precompile-xcm-transactor"
 authors = [ "PureStake" ]
 description = "A Precompile to make xcm-transactor accessible to pallet-evm"
 edition = "2021"
@@ -11,9 +11,9 @@ num_enum = { version = "0.5.3", default-features = false }
 rustc-hex = { version = "2.0.1", default-features = false }
 
 # Moonbeam
+pallet-xcm-transactor = { path = "../../pallets/xcm-transactor", default-features = false }
 precompile-utils = { path = "../utils", default-features = false }
 xcm-primitives = { path = "../../primitives/xcm/", default-features = false }
-xcm-transactor = { path = "../../pallets/xcm-transactor", default-features = false }
 
 # Substrate
 frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
@@ -63,9 +63,9 @@ std = [
 	"frame-support/std",
 	"frame-system/std",
 	"pallet-evm/std",
+	"pallet-xcm-transactor/std",
 	"precompile-utils/std",
 	"sp-core/std",
 	"sp-std/std",
 	"xcm-primitives/std",
-	"xcm-transactor/std",
 ]

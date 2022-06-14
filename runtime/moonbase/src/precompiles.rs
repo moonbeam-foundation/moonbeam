@@ -15,25 +15,25 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::asset_config::{ForeignAssetInstance, LocalAssetInstance};
-use crowdloan_rewards_precompiles::CrowdloanRewardsWrapper;
 use frame_support::parameter_types;
 use moonbeam_relay_encoder::westend::WestendEncoder;
-use pallet_author_mapping_precompiles::AuthorMappingWrapper;
-use pallet_democracy_precompiles::DemocracyWrapper;
-use pallet_evm_precompile_assets_erc20::{Erc20AssetsPrecompileSet, IsForeign, IsLocal};
+use pallet_evm_precompile_author_mapping::AuthorMappingWrapper;
 use pallet_evm_precompile_balances_erc20::{Erc20BalancesPrecompile, Erc20Metadata};
 use pallet_evm_precompile_batch::BatchPrecompile;
 use pallet_evm_precompile_blake2::Blake2F;
 use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
+use pallet_evm_precompile_crowdloan_rewards::CrowdloanRewardsWrapper;
+use pallet_evm_precompile_democracy::DemocracyWrapper;
 use pallet_evm_precompile_dispatch::Dispatch;
 use pallet_evm_precompile_modexp::Modexp;
+use pallet_evm_precompile_parachain_staking::ParachainStakingWrapper;
+use pallet_evm_precompile_relay_encoder::RelayEncoderWrapper;
 use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
-use parachain_staking_precompiles::ParachainStakingWrapper;
+use pallet_evm_precompile_xcm_transactor::XcmTransactorWrapper;
+use pallet_evm_precompile_xtokens::XtokensWrapper;
+use pallet_evm_precompileset_assets_erc20::{Erc20AssetsPrecompileSet, IsForeign, IsLocal};
 use precompile_utils::precompile_set::*;
-use relay_encoder_precompiles::RelayEncoderWrapper;
-use xcm_transactor_precompiles::XcmTransactorWrapper;
-use xtokens_precompiles::XtokensWrapper;
 
 /// ERC20 metadata for the native token.
 pub struct NativeErc20Metadata;
