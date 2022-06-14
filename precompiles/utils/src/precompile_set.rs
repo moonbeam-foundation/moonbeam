@@ -24,7 +24,7 @@ use frame_support::pallet_prelude::Get;
 use impl_trait_for_tuples::impl_for_tuples;
 use pallet_evm::AddressMapping;
 use sp_core::H160;
-use sp_std::{cell::RefCell, marker::PhantomData, vec, vec::Vec};
+use sp_std::{cell::RefCell, marker::PhantomData, ops::RangeInclusive, vec, vec::Vec};
 
 // CONFIGURATION TYPES
 
@@ -411,6 +411,49 @@ impl PrecompileSetFragment for Tuple {
 	}
 }
 
+/// Wraps a precompileset fragment into a range, and will skip processing it if the address
+/// is out of the range.
+pub struct PrecompilesInRangeInclusive<S, E, P> {
+	inner: P,
+	range: RangeInclusive<H160>,
+	_phantom: PhantomData<(S, E)>,
+}
+
+impl<S, E, P> PrecompileSetFragment for PrecompilesInRangeInclusive<S, E, P>
+where
+	S: Get<H160>,
+	E: Get<H160>,
+	P: PrecompileSetFragment,
+{
+	fn new() -> Self {
+		Self {
+			inner: P::new(),
+			range: RangeInclusive::new(S::get(), E::get()),
+			_phantom: PhantomData,
+		}
+	}
+
+	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<PrecompileResult> {
+		if self.range.contains(&handle.code_address()) {
+			self.inner.execute(handle)
+		} else {
+			None
+		}
+	}
+
+	fn is_precompile(&self, address: H160) -> bool {
+		if self.range.contains(&address) {
+			self.inner.is_precompile(address)
+		} else {
+			false
+		}
+	}
+
+	fn used_addresses(&self) -> Vec<H160> {
+		self.inner.used_addresses()
+	}
+}
+
 /// Wraps a tuple of `PrecompileSetFragment` to make a real `PrecompileSet`.
 pub struct PrecompileSetFromTuple<R, P> {
 	inner: P,
@@ -428,7 +471,7 @@ impl<R, P: PrecompileSetFragment> PrecompileSet for PrecompileSetFromTuple<R, P>
 }
 
 impl<R: pallet_evm::Config, P: PrecompileSetFragment> PrecompileSetFromTuple<R, P> {
-	/// Cretate a new instance of the PrecompileSet.
+	/// Create a new instance of the PrecompileSet.
 	pub fn new() -> Self {
 		Self {
 			inner: P::new(),

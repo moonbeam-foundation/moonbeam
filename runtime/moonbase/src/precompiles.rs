@@ -84,32 +84,39 @@ parameter_types! {
 pub type MoonbasePrecompiles<R> = PrecompileSetFromTuple<
 	R,
 	(
-		// Ethereum precompiles:
-		// We allow DELEGATECALL to stay compliant with Ethereum behavior.
-		// They don't do any recursion, so NoRecursionLimit is safe to use to skip recursion check.
-		PrecompileAt<AddressU64<1>, ECRecover, NoRecursionLimit, AllowDelegateCall>,
-		PrecompileAt<AddressU64<2>, Sha256, NoRecursionLimit, AllowDelegateCall>,
-		PrecompileAt<AddressU64<3>, Ripemd160, NoRecursionLimit, AllowDelegateCall>,
-		PrecompileAt<AddressU64<4>, Modexp, NoRecursionLimit, AllowDelegateCall>,
-		PrecompileAt<AddressU64<5>, Identity, NoRecursionLimit, AllowDelegateCall>,
-		PrecompileAt<AddressU64<6>, Bn128Add, NoRecursionLimit, AllowDelegateCall>,
-		PrecompileAt<AddressU64<7>, Bn128Mul, NoRecursionLimit, AllowDelegateCall>,
-		PrecompileAt<AddressU64<8>, Bn128Pairing, NoRecursionLimit, AllowDelegateCall>,
-		PrecompileAt<AddressU64<9>, Blake2F, NoRecursionLimit, AllowDelegateCall>,
-		// Non-Moonbeam specific nor Ethereum precompiles :
-		PrecompileAt<AddressU64<1024>, Sha3FIPS256>,
-		PrecompileAt<AddressU64<1025>, Dispatch<R>>,
-		PrecompileAt<AddressU64<1026>, ECRecoverPublicKey>,
-		// Moonbeam specific precompiles:
-		PrecompileAt<AddressU64<2048>, ParachainStakingWrapper<R>>,
-		PrecompileAt<AddressU64<2049>, CrowdloanRewardsWrapper<R>>,
-		PrecompileAt<AddressU64<2050>, Erc20BalancesPrecompile<R, NativeErc20Metadata>>,
-		PrecompileAt<AddressU64<2051>, DemocracyWrapper<R>>,
-		PrecompileAt<AddressU64<2052>, XtokensWrapper<R>>,
-		PrecompileAt<AddressU64<2053>, RelayEncoderWrapper<R, WestendEncoder>>,
-		PrecompileAt<AddressU64<2054>, XcmTransactorWrapper<R>>,
-		PrecompileAt<AddressU64<2055>, AuthorMappingWrapper<R>>,
-		PrecompileAt<AddressU64<2056>, BatchPrecompile<R>, LimitRecursionTo<3>>,
+		// Skip precompiles if out of range.
+		PrecompilesInRangeInclusive<
+			AddressU64<1>,
+			AddressU64<4095>,
+			(
+				// Ethereum precompiles:
+				// We allow DELEGATECALL to stay compliant with Ethereum behavior.
+				// They don't do any recursion, so NoRecursionLimit is safe to use to skip recursion check.
+				PrecompileAt<AddressU64<1>, ECRecover, NoRecursionLimit, AllowDelegateCall>,
+				PrecompileAt<AddressU64<2>, Sha256, NoRecursionLimit, AllowDelegateCall>,
+				PrecompileAt<AddressU64<3>, Ripemd160, NoRecursionLimit, AllowDelegateCall>,
+				PrecompileAt<AddressU64<4>, Modexp, NoRecursionLimit, AllowDelegateCall>,
+				PrecompileAt<AddressU64<5>, Identity, NoRecursionLimit, AllowDelegateCall>,
+				PrecompileAt<AddressU64<6>, Bn128Add, NoRecursionLimit, AllowDelegateCall>,
+				PrecompileAt<AddressU64<7>, Bn128Mul, NoRecursionLimit, AllowDelegateCall>,
+				PrecompileAt<AddressU64<8>, Bn128Pairing, NoRecursionLimit, AllowDelegateCall>,
+				PrecompileAt<AddressU64<9>, Blake2F, NoRecursionLimit, AllowDelegateCall>,
+				// Non-Moonbeam specific nor Ethereum precompiles :
+				PrecompileAt<AddressU64<1024>, Sha3FIPS256>,
+				PrecompileAt<AddressU64<1025>, Dispatch<R>>,
+				PrecompileAt<AddressU64<1026>, ECRecoverPublicKey>,
+				// Moonbeam specific precompiles:
+				PrecompileAt<AddressU64<2048>, ParachainStakingWrapper<R>>,
+				PrecompileAt<AddressU64<2049>, CrowdloanRewardsWrapper<R>>,
+				PrecompileAt<AddressU64<2050>, Erc20BalancesPrecompile<R, NativeErc20Metadata>>,
+				PrecompileAt<AddressU64<2051>, DemocracyWrapper<R>>,
+				PrecompileAt<AddressU64<2052>, XtokensWrapper<R>>,
+				PrecompileAt<AddressU64<2053>, RelayEncoderWrapper<R, WestendEncoder>>,
+				PrecompileAt<AddressU64<2054>, XcmTransactorWrapper<R>>,
+				PrecompileAt<AddressU64<2055>, AuthorMappingWrapper<R>>,
+				PrecompileAt<AddressU64<2056>, BatchPrecompile<R>, LimitRecursionTo<3>>,
+			),
+		>,
 		// Prefixed precompile sets (XC20)
 		PrecompileSetStartingWith<
 			ForeignAssetPrefix,
