@@ -6,7 +6,7 @@ import { alith, baltathar } from "../../util/accounts";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 
 describeDevMoonbeam("Proxy : IdentityJudgement fails without proxy", (context) => {
-  before("should setup registrar", async () => {
+  before("setup one identity and registrar", async () => {
     const block = await context.createBlock([
       context.polkadotApi.tx.sudo.sudo(context.polkadotApi.tx.identity.addRegistrar(alith.address)),
       context.polkadotApi.tx.identity
@@ -40,7 +40,7 @@ describeDevMoonbeam("Proxy : IdentityJudgement fails without proxy", (context) =
 });
 
 describeDevMoonbeam("Proxy : IdentityJudgement succeeds with proxy", (context) => {
-  before("should setup registrar", async () => {
+  before("setup one identity and registrar", async () => {
     const block = await context.createBlock([
       context.polkadotApi.tx.sudo.sudo(context.polkadotApi.tx.identity.addRegistrar(alith.address)),
       context.polkadotApi.tx.identity
