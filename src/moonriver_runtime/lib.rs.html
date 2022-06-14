@@ -1455,10 +1455,6 @@
 <span id="1450">1450</span>
 <span id="1451">1451</span>
 <span id="1452">1452</span>
-<span id="1453">1453</span>
-<span id="1454">1454</span>
-<span id="1455">1455</span>
-<span id="1456">1456</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -1508,8 +1504,8 @@
 	},
 	<span class="ident">weights</span>::{
 		<span class="ident">constants</span>::{<span class="ident">RocksDbWeight</span>, <span class="ident">WEIGHT_PER_SECOND</span>},
-		<span class="ident">ConstantMultiplier</span>, <span class="ident">DispatchClass</span>, <span class="ident">GetDispatchInfo</span>, <span class="ident">IdentityFee</span>, <span class="ident">Weight</span>,
-		<span class="ident">WeightToFeeCoefficient</span>, <span class="ident">WeightToFeeCoefficients</span>, <span class="ident">WeightToFeePolynomial</span>,
+		<span class="ident">ConstantMultiplier</span>, <span class="ident">DispatchClass</span>, <span class="ident">GetDispatchInfo</span>, <span class="ident">Weight</span>, <span class="ident">WeightToFeeCoefficient</span>,
+		<span class="ident">WeightToFeeCoefficients</span>, <span class="ident">WeightToFeePolynomial</span>,
 	},
 	<span class="ident">PalletId</span>,
 };
@@ -1584,7 +1580,7 @@
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MOVR</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">1_000_000_000_000_000_000</span>;
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">KILOMOVR</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">1_000_000_000_000_000_000_000</span>;
 
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TRANSACTION_BYTE_FEE</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">10</span> <span class="op">*</span> <span class="ident">MICROMOVR</span> <span class="op">*</span> <span class="ident">SUPPLY_FACTOR</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TRANSACTION_BYTE_FEE</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">1</span> <span class="op">*</span> <span class="ident">GIGAWEI</span> <span class="op">*</span> <span class="ident">SUPPLY_FACTOR</span>;
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">STORAGE_BYTE_FEE</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">100</span> <span class="op">*</span> <span class="ident">MICROMOVR</span> <span class="op">*</span> <span class="ident">SUPPLY_FACTOR</span>;
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">WEIGHT_FEE</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">100</span> <span class="op">*</span> <span class="ident">KILOWEI</span> <span class="op">*</span> <span class="ident">SUPPLY_FACTOR</span>;
 
@@ -1755,37 +1751,33 @@
 	}
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">WeightToFee</span>;
-<span class="kw">impl</span> <span class="ident">WeightToFeePolynomial</span> <span class="kw">for</span> <span class="ident">WeightToFee</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LengthToFee</span>;
+<span class="kw">impl</span> <span class="ident">WeightToFeePolynomial</span> <span class="kw">for</span> <span class="ident">LengthToFee</span> {
 	<span class="kw">type</span> <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">Balance</span>;
 
-	<span class="doccomment">/// Return a vec of coefficients. Here we just use one coefficient and reduce it to a constant</span>
-	<span class="doccomment">/// modifier in order to closely match Ethereum-based fees.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// Calculation, per the documentation in `frame_support`:</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// ```ignore</span>
-	<span class="doccomment">/// coeff_integer * x^(degree) + coeff_frac * x^(degree)</span>
-	<span class="doccomment">/// ```</span>
 	<span class="kw">fn</span> <span class="ident">polynomial</span>() -&gt; <span class="ident">WeightToFeeCoefficients</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Balance</span><span class="op">&gt;</span> {
-		<span class="macro">smallvec!</span>[<span class="ident">WeightToFeeCoefficient</span> {
-			<span class="ident">degree</span>: <span class="number">1</span>,
-			<span class="ident">coeff_frac</span>: <span class="ident">Perbill::zero</span>(),
-			<span class="ident">coeff_integer</span>: <span class="ident">currency::WEIGHT_FEE</span>,
-			<span class="ident">negative</span>: <span class="bool-val">false</span>,
-		}]
+		<span class="macro">smallvec!</span>[
+			<span class="ident">WeightToFeeCoefficient</span> {
+				<span class="ident">degree</span>: <span class="number">1</span>,
+				<span class="ident">coeff_frac</span>: <span class="ident">Perbill::zero</span>(),
+				<span class="ident">coeff_integer</span>: <span class="ident">currency::TRANSACTION_BYTE_FEE</span>,
+				<span class="ident">negative</span>: <span class="bool-val">false</span>,
+			},
+			<span class="ident">WeightToFeeCoefficient</span> {
+				<span class="ident">degree</span>: <span class="number">3</span>,
+				<span class="ident">coeff_frac</span>: <span class="ident">Perbill::zero</span>(),
+				<span class="ident">coeff_integer</span>: <span class="number">1</span> <span class="op">*</span> <span class="ident">currency::SUPPLY_FACTOR</span>,
+				<span class="ident">negative</span>: <span class="bool-val">false</span>,
+			},
+		]
 	}
-}
-
-<span class="macro">parameter_types!</span> {
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TransactionByteFee</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">currency::TRANSACTION_BYTE_FEE</span>;
 }
 
 <span class="kw">impl</span> <span class="ident">pallet_transaction_payment::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
 	<span class="kw">type</span> <span class="ident">OnChargeTransaction</span> <span class="op">=</span> <span class="ident">CurrencyAdapter</span><span class="op">&lt;</span><span class="ident">Balances</span>, <span class="ident">DealWithFees</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">OperationalFeeMultiplier</span> <span class="op">=</span> <span class="ident">ConstU8</span><span class="op">&lt;</span><span class="number">5</span><span class="op">&gt;</span>;
-	<span class="kw">type</span> <span class="ident">WeightToFee</span> <span class="op">=</span> <span class="ident">IdentityFee</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span>;
-	<span class="kw">type</span> <span class="ident">LengthToFee</span> <span class="op">=</span> <span class="ident">ConstantMultiplier</span><span class="op">&lt;</span><span class="ident">Balance</span>, <span class="ident">TransactionByteFee</span><span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">WeightToFee</span> <span class="op">=</span> <span class="ident">ConstantMultiplier</span><span class="op">&lt;</span><span class="ident">Balance</span>, <span class="ident">ConstU128</span><span class="op">&lt;</span>{ <span class="ident">currency::WEIGHT_FEE</span> }<span class="op">&gt;</span><span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">LengthToFee</span> <span class="op">=</span> <span class="ident">LengthToFee</span>;
 	<span class="kw">type</span> <span class="ident">FeeMultiplierUpdate</span> <span class="op">=</span> <span class="ident">SlowAdjustingFeeUpdate</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
 }
 
@@ -2811,7 +2803,7 @@
 		<span class="macro">assert_eq!</span>(<span class="ident">SUPPLY_FACTOR</span>, <span class="number">1</span>);
 
 		<span class="comment">// txn fees</span>
-		<span class="macro">assert_eq!</span>(<span class="ident">TRANSACTION_BYTE_FEE</span>, <span class="ident">Balance::from</span>(<span class="number">10</span> <span class="op">*</span> <span class="ident">MICROMOVR</span>));
+		<span class="macro">assert_eq!</span>(<span class="ident">TRANSACTION_BYTE_FEE</span>, <span class="ident">Balance::from</span>(<span class="number">1</span> <span class="op">*</span> <span class="ident">GIGAWEI</span>));
 		<span class="macro">assert_eq!</span>(
 			<span class="macro">get!</span>(<span class="ident">pallet_transaction_payment</span>, <span class="ident">OperationalFeeMultiplier</span>, <span class="ident">u8</span>),
 			<span class="number">5_u8</span>

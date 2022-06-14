@@ -550,7 +550,7 @@
 <span class="kw">use</span> <span class="ident">frame_support</span>::{
 	<span class="ident">parameter_types</span>,
 	<span class="ident">traits</span>::{<span class="ident">Everything</span>, <span class="ident">Nothing</span>, <span class="ident">PalletInfoAccess</span>},
-	<span class="ident">weights</span>::{<span class="ident">IdentityFee</span>, <span class="ident">Weight</span>},
+	<span class="ident">weights::Weight</span>,
 };
 
 <span class="kw">use</span> <span class="ident">frame_system::EnsureRoot</span>;
@@ -782,7 +782,7 @@
 	<span class="comment">// units per second we should charge</span>
 	<span class="kw">type</span> <span class="ident">Trader</span> <span class="op">=</span> (
 		<span class="ident">UsingComponents</span><span class="op">&lt;</span>
-			<span class="ident">IdentityFee</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span>,
+			<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_transaction_payment::Config</span><span class="op">&gt;</span><span class="ident">::WeightToFee</span>,
 			<span class="ident">SelfReserve</span>,
 			<span class="ident">AccountId</span>,
 			<span class="ident">Balances</span>,
