@@ -8,7 +8,10 @@ export async function jumpToRound(context: DevTestContext, round: Number): Promi
     ).current.toNumber();
     if (currentRound == round) {
       return lastBlockHash;
+    } else if (currentRound > round) {
+      return null;
     }
+
     lastBlockHash = (await context.createBlock()).block.hash.toString();
   }
 }
