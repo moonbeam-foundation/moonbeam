@@ -1,3 +1,5 @@
+#!/usr/bin/env ts-node
+
 import { exec as execProcess } from "child_process";
 import yargs from "yargs";
 import util from "node:util";
@@ -43,7 +45,8 @@ async function main() {
         .option("params", {
           type: "string",
           describe:
-            "The parameter values. Example: '1 50 100' (single param) or '1,1000 50,2000 100,3000' (multiple param)",
+            "The parameter values. Example: '1 50 100' (single param) or \
+            '1,1000 50,2000 100,3000' (multiple param)",
         })
         .option("output", {
           type: "string",
@@ -225,6 +228,7 @@ async function view(input: string, output: string, open: boolean) {
   const totalWrites = data.map((x: any) => x["totalWrites"]);
   const extrinsicTime = data.map((x: any) => x["extrinsicTime"]);
 
+  // editorconfig-checker-disable
   fs.writeFileSync(
     output,
     `<html>
@@ -366,6 +370,7 @@ async function view(input: string, output: string, open: boolean) {
     <body>
   </html>`
   );
+  // editorconfig-checker-enable
 
   const openCmd = (() => {
     switch (process.platform) {
