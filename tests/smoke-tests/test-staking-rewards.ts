@@ -87,7 +87,7 @@ ${priorRewardedBlockHash.toHex()})`);
     },
     { bond, total, delegations },
   ] of atStake) {
-    const collatorId = toUniform(accountId);
+    const collatorId = accountId.toHex();
     collators.add(collatorId);
     const points = await apiAtPriorRewarded.query.parachainStaking.awardedPts(
       originalRoundNumber,
@@ -105,13 +105,13 @@ ${priorRewardedBlockHash.toHex()})`);
     const topDelegations = new Set(
       (await apiAtOriginal.query.parachainStaking.topDelegations(accountId))
         .unwrap()
-        .delegations.map((d) => toUniform(d.owner))
+        .delegations.map((d) => d.owner.toHex())
     );
     for (const { owner, amount } of delegations) {
-      if (!topDelegations.has(toUniform(owner))) {
+      if (!topDelegations.has(owner.toHex())) {
         continue;
       }
-      const id = toUniform(owner);
+      const id = owner.toHex();
       delegators.add(id);
       collatorInfo.delegators[id] = {
         id: id,
@@ -203,7 +203,7 @@ ${priorRewardedBlockHash.toHex()})`);
   const latestRoundNumber = latestBlock.block.header.number.toNumber();
   const awardedCollators = (
     await apiAtPriorRewarded.query.parachainStaking.awardedPts.keys(originalRoundNumber)
-  ).map((x) => toUniform(x.args[1]));
+  ).map((awarded) => awarded.args[1].toHex());
 
   const awardedCollatorCount = awardedCollators.length;
 
@@ -299,8 +299,8 @@ async function assertRewardedEventsAtBlock(
 
     if (apiAtBlock.events.parachainStaking.Rewarded.is(event)) {
       rewardCount++;
-      rewards[toUniform(event.data[0])] = {
-        account: toUniform(event.data[0]),
+      rewards[event.data[0].toHex()] = {
+        account: event.data[0].toHex(),
         amount: event.data[1],
       };
     }
@@ -417,10 +417,6 @@ class Perthing {
     // Round up
     return dm.div.negative !== 0 ? dm.div.isubn(1) : dm.div.iaddn(1);
   }
-}
-
-function toUniform(accountId: AccountId20): string {
-  return `0x${accountId.toHex().toUpperCase().substring(2)}`;
 }
 
 class Perbill extends Perthing {
