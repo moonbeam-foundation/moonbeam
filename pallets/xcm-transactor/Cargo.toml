@@ -1,5 +1,5 @@
 [package]
-name = "xcm-transactor"
+name = "pallet-xcm-transactor"
 authors = [ "PureStake" ]
 edition = "2021"
 version = "0.1.0"
