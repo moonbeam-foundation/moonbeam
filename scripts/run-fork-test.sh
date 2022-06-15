@@ -5,7 +5,6 @@ set -e
 
 export RUNTIME_NAME=${RUNTIME_NAME:-"moonbeam"}
 export NETWORK=${NETWORK:-"moonbeam"} #moonbase-alpha for alphanet
-export PARA_ID=${PARA_ID:-"2004"}
 export PORT_PREFIX=${PORT_PREFIX:-"51"}
 export ROOT_FOLDER=${ROOT_FOLDER:-"/data"}
 export GIT_TAG=${GIT_TAG:-"master"}
@@ -15,9 +14,25 @@ export SINGLE_PARACHAIN_NODE=${SINGLE_PARACHAIN_NODE:-true}
 export SKIP_DOWNLOAD=${SKIP_DOWNLOAD:-false}
 export SKIP_COMPILATION=${SKIP_COMPILATION:-false}
 
+export BINARY_PATH=$ROOT_FOLDER/moonbeam/binaries/moonbeam;
+export RELAY_BINARY_PATH=$ROOT_FOLDER/moonbeam/binaries/polkadot;
 export NODE_OPTIONS=--max-old-space-size=16000
 
+if [[ $PARA_ID == "" ]]; then
+    if [[ $NETWORK == "moonbeam" ]]; then
+        export PARA_ID=2004
+    elif [[ $NETWORK == "moonriver" ]]; then
+        export PARA_ID=2023
+    elif [[ $NETWORK == "moonbase-alpha" ]]; then
+        export PARA_ID=1000
+    else
+        export PARA_ID=1000
+    fi
+fi
+
 echo "Preparation..."
+echo " - moonbeam: ${GIT_TAG} [folder: ${ROOT_FOLDER} - port-prefix: ${PORT_PREFIX}]"
+echo " -  network: ${NETWORK} [runtime: ${RUNTIME_NAME} - id: ${PARA_ID}]"
 trap "trap - TERM && kill -- -$$" INT TERM EXIT
 
 mkdir -p $ROOT_FOLDER/states
@@ -36,12 +51,10 @@ then
     POLKADOT_CLIENT_TAG=`curl -s https://api.github.com/repos/paritytech/polkadot/releases | jq -r '.[] | .tag_name' | grep '^v' | head -1`
 
     wget -q https://github.com/PureStake/moonbeam/releases/download/${MOONBEAM_CLIENT_TAG}/moonbeam \
-        -O $ROOT_FOLDER/moonbeam/binaries/moonbeam; 
-    export BINARY_PATH=$ROOT_FOLDER/moonbeam/binaries/moonbeam;
+        -O $BINARY_PATH; 
 
     wget -q https://github.com/paritytech/polkadot/releases/download/${POLKADOT_CLIENT_TAG}/polkadot \
-        -O $ROOT_FOLDER/moonbeam/binaries/polkadot; 
-    export RELAY_BINARY_PATH=$ROOT_FOLDER/moonbeam/binaries/polkadot;
+        -O $RELAY_BINARY_PATH; 
 
     chmod uog+x $BINARY_PATH $RELAY_BINARY_PATH
 
