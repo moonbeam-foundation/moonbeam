@@ -2,7 +2,7 @@ import "@polkadot/api-augment";
 import "@moonbeam-network/api-augment";
 import { BN } from "@polkadot/util";
 import { u128, u32 } from "@polkadot/types";
-import { AccountId20 } from "@polkadot/types/interfaces";
+import { HexString } from "@polkadot/util/types";
 import { ApiPromise } from "@polkadot/api";
 import { expect } from "chai";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
@@ -12,7 +12,7 @@ const wssUrl = process.env.WSS_URL || null;
 const relayWssUrl = process.env.RELAY_WSS_URL || null;
 
 describeSmokeSuite(`Verify staking rewards`, { wssUrl, relayWssUrl }, function (context) {
-  it("rewards are given as expected", async () => {
+  it("rewards are given as expected", async function () {
     this.timeout(500000);
     const atBlockNumber = (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber();
     await assertRewardsAtRoundBefore(context.polkadotApi, atBlockNumber);
@@ -76,8 +76,8 @@ ${priorRewardedBlockHash.toHex()})`);
   const stakedValue: StakedValue = {};
   const collatorCount = atStake.length;
 
-  const collators: Set<string> = new Set();
-  const delegators: Set<string> = new Set();
+  const collators: Set<HexString> = new Set();
+  const delegators: Set<HexString> = new Set();
   for (const [
     {
       args: [_, accountId],
@@ -207,7 +207,7 @@ ${priorRewardedBlockHash.toHex()})`);
   const maxRoundChecks = Math.min(latestRoundNumber - nowBlockNumber + 1, awardedCollatorCount);
   debug(`verifying ${maxRoundChecks} blocks for rewards (awarded ${awardedCollatorCount})`);
   const expectedRewardedCollators = new Set(awardedCollators);
-  const rewardedCollators = new Set<string>();
+  const rewardedCollators = new Set<HexString>();
   for await (const i of new Array(maxRoundChecks).keys()) {
     const blockNumber = nowRoundFirstBlock.addn(i);
     const rewarded = await assertRewardedEventsAtBlock(
@@ -228,7 +228,7 @@ ${priorRewardedBlockHash.toHex()})`);
     const expectedRewardedDelegators = new Set(
       Object.entries(stakedValue[rewarded.collator].delegators)
         .filter(([_, value]) => !value.amount.isZero())
-        .map(([key, _]) => key)
+        .map(([key, _]) => key as HexString)
     );
 
     const notRewarded = new Set(
@@ -274,8 +274,8 @@ ${priorRewardedBlockHash.toHex()})`);
 async function assertRewardedEventsAtBlock(
   api: ApiPromise,
   rewardedBlockNumber: BN,
-  delegators: Set<string>,
-  collators: Set<string>,
+  delegators: Set<HexString>,
+  collators: Set<HexString>,
   collatorCommissionRate: BN,
   totalRoundIssuance: BN,
   totalPoints: u32,
@@ -286,7 +286,7 @@ async function assertRewardedEventsAtBlock(
   const apiAtBlock = await api.at(nowRoundRewardBlockHash);
 
   debug(`> block ${rewardedBlockNumber} (${nowRoundRewardBlockHash})`);
-  const rewards = {};
+  const rewards: { [key: HexString]: { account: HexString; amount: u128 } } = {};
   const blockEvents = await apiAtBlock.query.system.events();
   let rewardCount = 0;
   for (const { phase, event } of blockEvents) {
@@ -308,10 +308,10 @@ async function assertRewardedEventsAtBlock(
   let collatorInfo: any = {};
   let rewarded = {
     collator: null,
-    delegators: new Set<string>(),
+    delegators: new Set<HexString>(),
   };
 
-  for (const accountId of Object.keys(rewards)) {
+  for (const accountId of Object.keys(rewards) as HexString[]) {
     if (collators.has(accountId)) {
       // collator is always paid first so this is guaranteed to execute first
       collatorInfo = stakedValue[accountId];
@@ -362,15 +362,15 @@ function assertEqualWithAccount(a: BN, b: BN, account: string) {
   ).to.be.true;
 }
 
-type Rewarded = { collator: string | null; delegators: Set<string> };
+type Rewarded = { collator: HexString | null; delegators: Set<HexString> };
 
 type StakedValue = {
-  [key: string]: {
-    id: string;
+  [key: HexString]: {
+    id: HexString;
     bond: u128;
     total: u128;
     points: u32;
-    delegators: { [key: string]: { id: string; amount: u128 } };
+    delegators: { [key: HexString]: { id: HexString; amount: u128 } };
   };
 };
 
