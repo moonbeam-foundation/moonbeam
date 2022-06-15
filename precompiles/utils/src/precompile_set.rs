@@ -18,7 +18,7 @@
 //! final precompile set with security checks. All security checks are enabled by
 //! default and must be disabled explicely throught type annotations.
 
-use crate::{revert, SelfRefPrecompile};
+use crate::{revert, StatefulPrecompile};
 use fp_evm::{Precompile, PrecompileHandle, PrecompileResult, PrecompileSet};
 use frame_support::pallet_prelude::Get;
 use impl_trait_for_tuples::impl_for_tuples;
@@ -201,23 +201,23 @@ where
 /// - A: The address of the precompile
 /// - R: The recursion limit (defaults to 1)
 /// - R: If DELEGATECALL is supported (default to no)
-pub struct SelfRefPrecompileAt<A, P, R = LimitRecursionTo<1>, D = ForbidDelegateCall> {
+pub struct StatefulPrecompileAt<A, P, R = LimitRecursionTo<1>, D = ForbidDelegateCall> {
 	precompile: P,
 	current_recursion_level: RefCell<u16>,
 	_phantom: PhantomData<(A, R, D)>,
 }
 
-impl<A, P, R, D> PrecompileSetFragment for SelfRefPrecompileAt<A, P, R, D>
+impl<A, P, R, D> PrecompileSetFragment for StatefulPrecompileAt<A, P, R, D>
 where
 	A: Get<H160>,
-	P: SelfRefPrecompile,
+	P: StatefulPrecompile,
 	R: RecursionLimit,
 	D: DelegateCallSupport,
 {
 	#[inline(always)]
 	fn new() -> Self {
 		Self {
-			precompile: P::instanciate(),
+			precompile: P::new(),
 			current_recursion_level: RefCell::new(0),
 			_phantom: PhantomData,
 		}
