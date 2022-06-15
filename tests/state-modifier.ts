@@ -15,20 +15,6 @@ const storageBlake128MapKey = (module, name, key) => {
   );
 };
 
-/**
- * All module prefixes except those mentioned in the skippedModulesPrefix will be added to this by the script.
- * If you want to add any past module or part of a skipped module, add the prefix here manually.
- *
- * Any storage value’s hex can be logged via console.log(api.query.<module>.<call>.key([...opt params])),
- * e.g. console.log(api.query.timestamp.now.key()).
- *
- * If you want a map/doublemap key prefix, you can do it via .keyPrefix(),
- * e.g. console.log(api.query.system.account.keyPrefix()).
- *
- * For module hashing, do it via xxhashAsHex,
- * e.g. console.log(xxhashAsHex('System', 128)).
- */
-
 // const ALITH_PRIV_KEY = "0x5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133";
 // const BOB_PRIV_KEY = "0x8075991ce870b93a8870eca0c0f91913d12f47948ca0fd25b49c6fa7cdbeee8b";
 
