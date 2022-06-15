@@ -84,46 +84,46 @@ impl xcm_primitives::UtilityEncodeCall for WestendEncoder {
 	}
 }
 
-impl relay_encoder_precompiles::StakeEncodeCall for WestendEncoder {
-	fn encode_call(call: relay_encoder_precompiles::AvailableStakeCalls) -> Vec<u8> {
+impl pallet_evm_precompile_relay_encoder::StakeEncodeCall for WestendEncoder {
+	fn encode_call(call: pallet_evm_precompile_relay_encoder::AvailableStakeCalls) -> Vec<u8> {
 		match call {
-			relay_encoder_precompiles::AvailableStakeCalls::Bond(a, b, c) => {
+			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Bond(a, b, c) => {
 				RelayCall::Stake(StakeCall::Bond(a.into(), b, c)).encode()
 			}
 
-			relay_encoder_precompiles::AvailableStakeCalls::BondExtra(a) => {
+			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::BondExtra(a) => {
 				RelayCall::Stake(StakeCall::BondExtra(a)).encode()
 			}
 
-			relay_encoder_precompiles::AvailableStakeCalls::Unbond(a) => {
+			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Unbond(a) => {
 				RelayCall::Stake(StakeCall::Unbond(a)).encode()
 			}
 
-			relay_encoder_precompiles::AvailableStakeCalls::WithdrawUnbonded(a) => {
+			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::WithdrawUnbonded(a) => {
 				RelayCall::Stake(StakeCall::WithdrawUnbonded(a)).encode()
 			}
 
-			relay_encoder_precompiles::AvailableStakeCalls::Validate(a) => {
+			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Validate(a) => {
 				RelayCall::Stake(StakeCall::Validate(a)).encode()
 			}
 
-			relay_encoder_precompiles::AvailableStakeCalls::Chill => {
+			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Chill => {
 				RelayCall::Stake(StakeCall::Chill).encode()
 			}
 
-			relay_encoder_precompiles::AvailableStakeCalls::SetPayee(a) => {
+			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::SetPayee(a) => {
 				RelayCall::Stake(StakeCall::SetPayee(a.into())).encode()
 			}
 
-			relay_encoder_precompiles::AvailableStakeCalls::SetController(a) => {
+			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::SetController(a) => {
 				RelayCall::Stake(StakeCall::SetController(a.into())).encode()
 			}
 
-			relay_encoder_precompiles::AvailableStakeCalls::Rebond(a) => {
+			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Rebond(a) => {
 				RelayCall::Stake(StakeCall::Rebond(a.into())).encode()
 			}
 
-			relay_encoder_precompiles::AvailableStakeCalls::Nominate(a) => {
+			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Nominate(a) => {
 				let nominated: Vec<<AccountIdLookup<AccountId32, ()> as StaticLookup>::Source> =
 					a.iter().map(|add| (*add).clone().into()).collect();
 
@@ -138,7 +138,7 @@ mod tests {
 	use super::*;
 	use crate::westend::WestendEncoder;
 	use frame_support::traits::PalletInfo;
-	use relay_encoder_precompiles::StakeEncodeCall;
+	use pallet_evm_precompile_relay_encoder::StakeEncodeCall;
 	use sp_runtime::Perbill;
 
 	#[test]
@@ -161,7 +161,7 @@ mod tests {
 		expected_encoded.append(&mut expected);
 
 		let call_bytes = <WestendEncoder as StakeEncodeCall>::encode_call(
-			relay_encoder_precompiles::AvailableStakeCalls::Chill,
+			pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Chill,
 		);
 
 		expected_encoded.append(&mut expected);
@@ -196,7 +196,7 @@ mod tests {
 
 		assert_eq!(
 			<WestendEncoder as StakeEncodeCall>::encode_call(
-				relay_encoder_precompiles::AvailableStakeCalls::Bond(
+				pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Bond(
 					relay_account.into(),
 					100u32.into(),
 					pallet_staking::RewardDestination::Controller
@@ -223,7 +223,7 @@ mod tests {
 
 		assert_eq!(
 			<WestendEncoder as StakeEncodeCall>::encode_call(
-				relay_encoder_precompiles::AvailableStakeCalls::BondExtra(100u32.into(),)
+				pallet_evm_precompile_relay_encoder::AvailableStakeCalls::BondExtra(100u32.into(),)
 			),
 			expected_encoded
 		);
@@ -246,7 +246,7 @@ mod tests {
 
 		assert_eq!(
 			<WestendEncoder as StakeEncodeCall>::encode_call(
-				relay_encoder_precompiles::AvailableStakeCalls::Unbond(100u32.into(),)
+				pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Unbond(100u32.into(),)
 			),
 			expected_encoded
 		);
@@ -269,7 +269,7 @@ mod tests {
 
 		assert_eq!(
 			<WestendEncoder as StakeEncodeCall>::encode_call(
-				relay_encoder_precompiles::AvailableStakeCalls::WithdrawUnbonded(100u32,)
+				pallet_evm_precompile_relay_encoder::AvailableStakeCalls::WithdrawUnbonded(100u32,)
 			),
 			expected_encoded
 		);
@@ -297,7 +297,7 @@ mod tests {
 
 		assert_eq!(
 			<WestendEncoder as StakeEncodeCall>::encode_call(
-				relay_encoder_precompiles::AvailableStakeCalls::Validate(validator_prefs)
+				pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Validate(validator_prefs)
 			),
 			expected_encoded
 		);
@@ -321,9 +321,9 @@ mod tests {
 
 		assert_eq!(
 			<WestendEncoder as StakeEncodeCall>::encode_call(
-				relay_encoder_precompiles::AvailableStakeCalls::Nominate(
-					vec![relay_account.into()]
-				)
+				pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Nominate(vec![
+					relay_account.into()
+				])
 			),
 			expected_encoded
 		);
@@ -343,7 +343,7 @@ mod tests {
 
 		assert_eq!(
 			<WestendEncoder as StakeEncodeCall>::encode_call(
-				relay_encoder_precompiles::AvailableStakeCalls::Chill
+				pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Chill
 			),
 			expected_encoded
 		);
@@ -367,7 +367,7 @@ mod tests {
 
 		assert_eq!(
 			<WestendEncoder as StakeEncodeCall>::encode_call(
-				relay_encoder_precompiles::AvailableStakeCalls::SetPayee(
+				pallet_evm_precompile_relay_encoder::AvailableStakeCalls::SetPayee(
 					pallet_staking::RewardDestination::Controller
 				)
 			),
@@ -394,7 +394,7 @@ mod tests {
 
 		assert_eq!(
 			<WestendEncoder as StakeEncodeCall>::encode_call(
-				relay_encoder_precompiles::AvailableStakeCalls::SetController(
+				pallet_evm_precompile_relay_encoder::AvailableStakeCalls::SetController(
 					relay_account.clone().into()
 				)
 			),
@@ -419,7 +419,7 @@ mod tests {
 
 		assert_eq!(
 			<WestendEncoder as StakeEncodeCall>::encode_call(
-				relay_encoder_precompiles::AvailableStakeCalls::Rebond(100u32.into())
+				pallet_evm_precompile_relay_encoder::AvailableStakeCalls::Rebond(100u32.into())
 			),
 			expected_encoded
 		);
