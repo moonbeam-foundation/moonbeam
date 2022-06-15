@@ -41,6 +41,7 @@ async function main(inputFile: string, outputFile?: string) {
   let messagingState = null;
   const collatorLinePrefix = `        "${storageKey("ParachainStaking", "SelectedCandidates")}`;
   const orbiterLinePrefix = `        "${storageKey("MoonbeamOrbiters", "CollatorsPool")}`;
+  const nimbusBlockNumberPrefix = `        "${storageKey("AuthorInherent", "HighestSlotSeen")}"`;
   const authorLinePrefix = `        "${storageKey("AuthorMapping", "MappingWithDeposit")}`;
   const revelentMessagingStatePrefix = `        "${storageKey(
     "ParachainSystem",
@@ -154,6 +155,11 @@ async function main(inputFile: string, outputFile?: string) {
           `  - Removing (Extra) AuthorMapping.MappingWithDeposit ${ALITH_SESSION}`
         )}\n\t${line}`
       );
+    } else if (line.startsWith(nimbusBlockNumberPrefix)) {
+      console.log(` ${chalk.red(`  - Removing AuthorInherent.HighestSlotSeen`)}\n\t${line}`);
+      let newLine = `${nimbusBlockNumberPrefix}: "0x00000000",\n`;
+      console.log(` ${chalk.green(`  + Adding AuthorInherent.HighestSlotSeen`)}\n\t${newLine}`);
+      outStream.write(newLine);
     } else if (line.startsWith(selectedAuthorMappingPrefix)) {
       console.log(
         ` ${chalk.red(
