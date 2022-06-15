@@ -274,7 +274,7 @@ fn verify_proxy_type_indices() {
 	assert_eq!(moonbeam_runtime::ProxyType::CancelProxy as u8, 4);
 	assert_eq!(moonbeam_runtime::ProxyType::Balances as u8, 5);
 	assert_eq!(moonbeam_runtime::ProxyType::AuthorMapping as u8, 6);
-	assert_eq!(moonbase_runtime::ProxyType::IdentityJudgement as u8, 7);
+	assert_eq!(moonbeam_runtime::ProxyType::IdentityJudgement as u8, 7);
 }
 
 #[test]
