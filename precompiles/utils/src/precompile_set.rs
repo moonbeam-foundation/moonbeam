@@ -413,13 +413,13 @@ impl PrecompileSetFragment for Tuple {
 
 /// Wraps a precompileset fragment into a range, and will skip processing it if the address
 /// is out of the range.
-pub struct PrecompilesInRangeInclusive<S, E, P> {
+pub struct PrecompilesInRangeInclusive<R, P> {
 	inner: P,
 	range: RangeInclusive<H160>,
-	_phantom: PhantomData<(S, E)>,
+	_phantom: PhantomData<R>,
 }
 
-impl<S, E, P> PrecompileSetFragment for PrecompilesInRangeInclusive<S, E, P>
+impl<S, E, P> PrecompileSetFragment for PrecompilesInRangeInclusive<(S, E), P>
 where
 	S: Get<H160>,
 	E: Get<H160>,

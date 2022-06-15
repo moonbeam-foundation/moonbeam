@@ -86,8 +86,7 @@ pub type MoonbasePrecompiles<R> = PrecompileSetFromTuple<
 	(
 		// Skip precompiles if out of range.
 		PrecompilesInRangeInclusive<
-			AddressU64<1>,
-			AddressU64<4095>,
+			(AddressU64<1>, AddressU64<4095>),
 			(
 				// Ethereum precompiles:
 				// We allow DELEGATECALL to stay compliant with Ethereum behavior.
