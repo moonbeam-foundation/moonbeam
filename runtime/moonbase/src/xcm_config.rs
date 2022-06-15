@@ -257,26 +257,8 @@ pub type XcmFeesToAccount = xcm_primitives::XcmFeesToAccount<
 use sp_runtime::DispatchErrorWithPostInfo;
 use sp_runtime::traits::PostDispatchInfoOf;
 use frame_system::RawOrigin;
-pub struct MoonbeamCall;
-impl CallDispatcher<Call> for MoonbeamCall {
-	fn dispatch(
-		call: Call,
-		origin: Origin,
-	) -> Result<PostDispatchInfoOf<Call>, DispatchErrorWithPostInfo<PostDispatchInfoOf<Call>>> {
-		let origin_caller: RawOrigin<AccountId> = origin.clone().caller.try_into().unwrap();
-		match call {
-			Call::Ethereum(pallet_ethereum::Call::transact_xcm { .. }) => {
-				match origin_caller {
-					RawOrigin::Signed(account_id) => 
-						Call::dispatch(call, pallet_ethereum::Origin::XcmEthereumTransaction(account_id.into()).into()),
-					_ => Call::dispatch(call, origin)
-				}
-			}
-			_ => Call::dispatch(call, origin)
+runtime_common::impl_moonbeam_xcm_call!();
 
-		}
-	}
-}
 pub struct XcmExecutorConfig;
 impl xcm_executor::Config for XcmExecutorConfig {
 	type Call = Call;
