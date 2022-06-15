@@ -10,7 +10,6 @@ export interface SmokeTestContext {
 export type SmokeTestOptions = {
   wssUrl: string;
   relayWssUrl: string;
-  timeout?: number;
 };
 
 export function describeSmokeSuite(
@@ -20,7 +19,7 @@ export function describeSmokeSuite(
 ) {
   describe(title, function () {
     // Set timeout to 5000 for all tests.
-    this.timeout(options.timeout || 23700);
+    this.timeout(23700);
 
     // The context is initialized empty to allow passing a reference
     // and to be filled once the node information is retrieved

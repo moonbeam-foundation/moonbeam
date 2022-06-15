@@ -11,16 +11,13 @@ const debug = require("debug")("smoke:staking");
 const wssUrl = process.env.WSS_URL || null;
 const relayWssUrl = process.env.RELAY_WSS_URL || null;
 
-describeSmokeSuite(
-  `Verify staking rewards`,
-  { wssUrl, relayWssUrl, timeout: 500000 },
-  function (context) {
-    it("rewards are given as expected", async () => {
-      const atBlockNumber = (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber();
-      await assertRewardsAtRoundBefore(context.polkadotApi, atBlockNumber);
-    });
-  }
-);
+describeSmokeSuite(`Verify staking rewards`, { wssUrl, relayWssUrl }, function (context) {
+  it("rewards are given as expected", async () => {
+    this.timeout(500000);
+    const atBlockNumber = (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber();
+    await assertRewardsAtRoundBefore(context.polkadotApi, atBlockNumber);
+  });
+});
 
 async function assertRewardsAtRoundBefore(api: ApiPromise, nowBlockNumber: number) {
   const nowBlockHash = await api.rpc.chain.getBlockHash(nowBlockNumber);
