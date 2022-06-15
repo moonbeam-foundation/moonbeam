@@ -25,8 +25,8 @@ sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0
 sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
 
 # Frontier
-fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.20", default-features = false }
-pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.20", default-features = false }
+fp-evm = { git = "https://github.com/purestake/frontier", branch = "girazoki-xcm-call-polkadot-changes", default-features = false }
+pallet-evm = { git = "https://github.com/purestake/frontier", branch = "girazoki-xcm-call-polkadot-changes", default-features = false }
 
 [dev-dependencies]
 derive_more = { version = "0.99" }

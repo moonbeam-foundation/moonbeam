@@ -20,7 +20,7 @@
 use super::{
 	AccountId, AssetId, AssetManager, Assets, Balance, Balances, Call, DealWithFees, Event,
 	LocalAssets, Origin, ParachainInfo, ParachainSystem, PolkadotXcm, Runtime, Treasury,
-	WeightToFee, XcmpQueue, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	WeightToFee, XcmpQueue, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, System
 };
 
 use pallet_evm_precompile_assets_erc20::AccountIdAssetIdConversion;
@@ -45,7 +45,7 @@ use xcm_builder::{
 };
 
 use xcm::latest::prelude::*;
-use xcm_executor::traits::JustTry;
+use xcm_executor::traits::{JustTry, CallDispatcher};
 
 use orml_xcm_support::MultiNativeAsset;
 use xcm_primitives::{
@@ -254,6 +254,29 @@ pub type XcmFeesToAccount = xcm_primitives::XcmFeesToAccount<
 	XcmFeesAccount,
 >;
 
+use sp_runtime::DispatchErrorWithPostInfo;
+use sp_runtime::traits::PostDispatchInfoOf;
+use frame_system::RawOrigin;
+pub struct MoonbeamCall;
+impl CallDispatcher<Call> for MoonbeamCall {
+	fn dispatch(
+		call: Call,
+		origin: Origin,
+	) -> Result<PostDispatchInfoOf<Call>, DispatchErrorWithPostInfo<PostDispatchInfoOf<Call>>> {
+		let origin_caller: RawOrigin<AccountId> = origin.clone().caller.try_into().unwrap();
+		match call {
+			Call::Ethereum(pallet_ethereum::Call::transact_xcm { .. }) => {
+				match origin_caller {
+					RawOrigin::Signed(account_id) => 
+						Call::dispatch(call, pallet_ethereum::Origin::XcmEthereumTransaction(account_id.into()).into()),
+					_ => Call::dispatch(call, origin)
+				}
+			}
+			_ => Call::dispatch(call, origin)
+
+		}
+	}
+}
 pub struct XcmExecutorConfig;
 impl xcm_executor::Config for XcmExecutorConfig {
 	type Call = Call;
@@ -282,7 +305,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type SubscriptionService = PolkadotXcm;
 	type AssetTrap = PolkadotXcm;
 	type AssetClaims = PolkadotXcm;
-	type CallDispatcher = Call;
+	type CallDispatcher = MoonbeamCall;
 }
 
 type XcmExecutor = xcm_executor::XcmExecutor<XcmExecutorConfig>;

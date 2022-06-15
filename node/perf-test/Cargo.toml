@@ -45,11 +45,11 @@ sp-timestamp = { git = "https://github.com/paritytech/substrate", branch = "polk
 
 # Frontier
 ethereum = { version = "0.12.0" }
-fc-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.20" }
-fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.20" }
-fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.20" }
-fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.20" }
-pallet-ethereum = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.20" }
+fc-consensus = { git = "https://github.com/purestake/frontier", branch = "girazoki-xcm-call-polkadot-changes" }
+fc-rpc = { git = "https://github.com/purestake/frontier", branch = "girazoki-xcm-call-polkadot-changes" }
+fp-evm = { git = "https://github.com/purestake/frontier", branch = "girazoki-xcm-call-polkadot-changes" }
+fp-rpc = { git = "https://github.com/purestake/frontier", branch = "girazoki-xcm-call-polkadot-changes" }
+pallet-ethereum = { git = "https://github.com/purestake/frontier", branch = "girazoki-xcm-call-polkadot-changes" }
 
 # Cumulus / Nimbus
 cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", branch = "girazoki-xcm-call-polkadot-changes" }
