@@ -35,6 +35,9 @@ const storageBlake128MapKey = (module, name, key) => {
 async function main(inputFile: string, outputFile?: string) {
   const ALITH = "0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac";
   const ALITH_SESSION = "0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d";
+
+  console.log(chalk.blueBright(`  * Preparing Alith: ${ALITH} session ${ALITH_SESSION}`));
+
   const ALITH_MIN_BALANCE = 10_000n * 10n ** 18n;
 
   const in1Stream = fs.createReadStream(inputFile, "utf8");
@@ -51,6 +54,7 @@ async function main(inputFile: string, outputFile?: string) {
 
   let messagingState = null;
   const collatorLinePrefix = `        "${storageKey("ParachainStaking", "SelectedCandidates")}`;
+  const orbiterLinePrefix = `        "${storageKey("MoonbeamOrbiters", "CollatorsPool")}`;
   const authorLinePrefix = `        "${storageKey("AuthorMapping", "MappingWithDeposit")}`;
   const revelentMessagingStatePrefix = `        "${storageKey(
     "ParachainSystem",
@@ -70,16 +74,21 @@ async function main(inputFile: string, outputFile?: string) {
   const authorMappingLines = {};
 
   // First pass
-  let selectedCollator = null;
+  let collators: string[] = [];
+  let orbiters: string[] = [];
+  // let selectedCollator = null;
   let totalIssuance: bigint;
   let alithAccountData;
   for await (const line of rl1) {
     if (line.startsWith(collatorLinePrefix)) {
-      // First collator we found, it will be our target for Alice
-      if (!selectedCollator) {
-        selectedCollator = `0x${line.split('"')[3].slice(-40)}`;
-        console.log(`Using account ${selectedCollator} as alice collator`);
+      const data = line.split('"')[3].slice(2);
+      // the data contains arbitrary size as bytes at the beginning so we parse from the end;
+      for (let i = data.length; i > 40; i -= 40) {
+        collators.push(`0x${data.slice(i - 40, i)}`);
       }
+    }
+    if (line.startsWith(orbiterLinePrefix)) {
+      orbiters.push(`0x${line.split('"')[1].slice(-40)}`);
     }
     if (line.startsWith(authorLinePrefix)) {
       const collator = line.split('"')[3].slice(0, 42);
@@ -95,12 +104,14 @@ async function main(inputFile: string, outputFile?: string) {
       alithAccountData = line.split('"')[3];
     }
   }
-
-  // List all the collator author mapping
+  // We make sure the collator is not an orbiter
+  const selectedCollator = collators.find((c) => !orbiters.includes(c) && authorMappingLines[c]);
   console.log(
-    `Using account ${selectedCollator} as alice collator, session ${
-      authorMappingLines[selectedCollator].split('"')[1]
-    }`
+    chalk.blueBright(
+      `  *  Found collator: ${selectedCollator} session 0x${authorMappingLines[selectedCollator]
+        .split('"')[1]
+        .slice(-64)}`
+    )
   );
 
   if (!selectedCollator) {
@@ -138,14 +149,26 @@ async function main(inputFile: string, outputFile?: string) {
   const outStream = fs.createWriteStream(destFile, { encoding: "utf8" });
 
   const selectedAuthorMappingPrefix = `        "${selectedCollatorMappingKey}"`;
-  const selectedNimbusLookupPrefix = `        "${storageBlake128MapKey(
+  const selectedNimbusLookup = storageBlake128MapKey(
     "AuthorMapping",
     "NimbusLookup",
     selectedCollator
+  );
+  const selectedNimbusLookupPrefix = `        "${selectedNimbusLookup}"`;
+  const alithAuthorMappingPrefix = `        "${storageBlake128MapKey(
+    "AuthorMapping",
+    "MappingWithDeposit",
+    ALITH_SESSION
   )}`;
 
   for await (const line of rl2) {
-    if (line.startsWith(selectedAuthorMappingPrefix)) {
+    if (line.startsWith(alithAuthorMappingPrefix)) {
+      console.log(
+        ` ${chalk.red(
+          `  - Removing (Extra) AuthorMapping.MappingWithDeposit ${ALITH_SESSION}`
+        )}\n\t${line}`
+      );
+    } else if (line.startsWith(selectedAuthorMappingPrefix)) {
       console.log(
         ` ${chalk.red(
           `  - Removing AuthorMapping.MappingWithDeposit ${
@@ -166,13 +189,9 @@ async function main(inputFile: string, outputFile?: string) {
       outStream.write(newLine);
     } else if (line.startsWith(selectedNimbusLookupPrefix)) {
       console.log(
-        ` ${chalk.red(`  - Removing AuthorMapping.NimbusLookup ${selectedCollator}\n\t${line}`)}`
+        ` ${chalk.red(`  - Removing AuthorMapping.NimbusLookup ${selectedCollator}`)}\n\t${line}`
       );
-      let newLine = `        "${storageBlake128MapKey(
-        "AuthorMapping",
-        "NimbusLookup",
-        ALITH
-      )}": "${ALITH_SESSION}",\n`;
+      let newLine = `${selectedNimbusLookupPrefix}: "${ALITH_SESSION}",\n`;
       console.log(` ${chalk.green(`  + Adding AuthorMapping.NimbusLookup: Alith`)}\n\t${newLine}`);
       outStream.write(newLine);
     } else if (line.startsWith(revelentMessagingStatePrefix)) {

@@ -395,9 +395,9 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
             nodeKey: NODE_KEYS[i * 2 + numberOfParachains + 1].key,
             name: "alice",
             flags: [
-              "--log=info,evm=trace,ethereum=trace,sc_basic_authorship=trace," +
+              "--log=info,evm=trace,ethereum=trace,sc_basic_authorship=trace,author=trace," +
                 "cumulus-consensus=trace,cumulus-collator=trace,collator_protocol=trace," +
-                "collation_generation=trace",
+                "collation_generation=trace,filtering=trace",
               "--unsafe-rpc-external",
               "--execution=wasm",
               process.env.FORCE_COMPILED_WASM
@@ -428,7 +428,7 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
             flags: [
               "--log=info,rpc=debug,evm=trace,ethereum=trace,sc_basic_authorship=trace," +
                 "cumulus-consensus=trace,cumulus-collator=trace,collator_protocol=trace," +
-                "collation_generation=trace",
+                "collation_generation=trace,author=trace,filtering=trace",
               "--unsafe-rpc-external",
               "--execution=wasm",
               "--wasm-execution=interpreted-i-know-what-i-do",
@@ -444,9 +444,9 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
               `--port=${ports[i * 4 + numberOfParachains + 4].p2pPort}`,
               `--rpc-port=${ports[i * 4 + numberOfParachains + 4].rpcPort}`,
               `--ws-port=${ports[i * 4 + numberOfParachains + 4].wsPort}`,
-            ].filter((_, i) => !process.env.SINGLE_PARACHAIN_NODE || i < 1),
+            ],
           },
-        ],
+        ].filter((_, i) => !process.env.SINGLE_PARACHAIN_NODE || i < 1),
       };
     }),
     simpleParachains: [],
