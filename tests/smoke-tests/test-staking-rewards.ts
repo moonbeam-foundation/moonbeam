@@ -59,7 +59,7 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
   const originalRoundPriorBlockHash = await api.rpc.chain.getBlockHash(originalRoundPriorBlock);
   const apiAtOriginal = await api.at(originalRoundPriorBlockHash);
 
-  console.log(`
+  debug(`
 now     ${nowRound.current.toString()} (${nowBlockNumber} / ${nowBlockHash.toHex()})
 round   ${originalRoundNumber.toString()} (prior round last block \
 ${originalRoundPriorBlock} / ${originalRoundPriorBlockHash.toHex()})
