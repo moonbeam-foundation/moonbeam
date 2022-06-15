@@ -2,6 +2,7 @@ import "@polkadot/api-augment";
 import "@moonbeam-network/api-augment";
 import { BN } from "@polkadot/util";
 import { u128, u32 } from "@polkadot/types";
+import { AccountId20 } from "@polkadot/types/interfaces";
 import { ApiPromise } from "@polkadot/api";
 import { expect } from "chai";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
@@ -12,6 +13,7 @@ const relayWssUrl = process.env.RELAY_WSS_URL || null;
 
 describeSmokeSuite(`Verify staking rewards`, { wssUrl, relayWssUrl }, function (context) {
   it("rewards are given as expected", async () => {
+    this.timeout(500000);
     const atBlockNumber = (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber();
     await assertRewardsAtRoundBefore(context.polkadotApi, atBlockNumber);
   });
@@ -59,11 +61,12 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
   const apiAtOriginal = await api.at(originalRoundPriorBlockHash);
 
   debug(`
+now     ${nowRound.current.toString()} (${nowBlockNumber} / ${nowBlockHash.toHex()})
 round   ${originalRoundNumber.toString()} (prior round last block \
-  ${originalRoundPriorBlock} / ${originalRoundPriorBlockHash.toHex()})
+${originalRoundPriorBlock} / ${originalRoundPriorBlockHash.toHex()})
 paid in ${nowRoundNumber.toString()} (first block \
-  ${nowRoundFirstBlock.toNumber()} / ${nowRoundFirstBlockHash.toHex()} / prior \
-  ${priorRewardedBlockHash.toHex()})`);
+${nowRoundFirstBlock.toNumber()} / ${nowRoundFirstBlockHash.toHex()} / prior \
+${priorRewardedBlockHash.toHex()})`);
 
   // collect info about staked value from collators and delegators
   const apiAtPriorRewarded = await api.at(priorRewardedBlockHash);
@@ -81,7 +84,7 @@ paid in ${nowRoundNumber.toString()} (first block \
     },
     { bond, total, delegations },
   ] of atStake) {
-    const collatorId = accountId.toHex().toUpperCase();
+    const collatorId = accountId.toHex();
     collators.add(collatorId);
     const points = await apiAtPriorRewarded.query.parachainStaking.awardedPts(
       originalRoundNumber,
@@ -99,13 +102,13 @@ paid in ${nowRoundNumber.toString()} (first block \
     const topDelegations = new Set(
       (await apiAtOriginal.query.parachainStaking.topDelegations(accountId))
         .unwrap()
-        .delegations.map((d) => d.owner.toHex().toUpperCase())
+        .delegations.map((d) => d.owner.toHex())
     );
     for (const { owner, amount } of delegations) {
-      if (!topDelegations.has(owner.toHex().toUpperCase())) {
+      if (!topDelegations.has(owner.toHex())) {
         continue;
       }
-      const id = owner.toHex().toUpperCase();
+      const id = owner.toHex();
       delegators.add(id);
       collatorInfo.delegators[id] = {
         id: id,
@@ -117,12 +120,15 @@ paid in ${nowRoundNumber.toString()} (first block \
       Object.keys(collatorInfo.delegators).length,
       `delegator count mismatch ${topDelegations.size} != ${
         Object.keys(collatorInfo.delegators).length
-      }`
+      } for round ${originalRoundNumber.toString()}`
     );
 
     stakedValue[collatorId] = collatorInfo;
   }
-  expect(collatorCount).to.equal(Object.keys(stakedValue).length, "collator count mismatch");
+  expect(collatorCount).to.equal(
+    Object.keys(stakedValue).length,
+    `collator count mismatch for round ${originalRoundNumber.toString()}`
+  );
 
   // calculate reward amounts
   const parachainBondInfo = await apiAtPriorRewarded.query.parachainStaking.parachainBondInfo();
@@ -170,7 +176,8 @@ paid in ${nowRoundNumber.toString()} (first block \
       expect(
         parachainBondReward.eq(reservedForParachainBond),
         `parachain bond amount does not match \
-        ${parachainBondReward.toString()} != ${reservedForParachainBond.toString()}`
+        ${parachainBondReward.toString()} != ${reservedForParachainBond.toString()} \
+        for round ${originalRoundNumber.toString()}`
       ).to.be.true;
       return totalRoundIssuance.sub(parachainBondReward);
     }
@@ -184,7 +191,8 @@ paid in ${nowRoundNumber.toString()} (first block \
   expect(
     delayedPayout.totalStakingReward.eq(totalStakingReward),
     `reward amounts do not match \
-    ${delayedPayout.totalStakingReward.toString()} != ${totalStakingReward.toString()}`
+    ${delayedPayout.totalStakingReward.toString()} != ${totalStakingReward.toString()} \
+    for round ${originalRoundNumber.toString()}`
   ).to.be.true;
 
   // verify rewards
@@ -192,7 +200,7 @@ paid in ${nowRoundNumber.toString()} (first block \
   const latestRoundNumber = latestBlock.block.header.number.toNumber();
   const awardedCollators = (
     await apiAtPriorRewarded.query.parachainStaking.awardedPts.keys(originalRoundNumber)
-  ).map((x) => x.args[1].toString().toUpperCase());
+  ).map((awarded) => awarded.args[1].toHex());
 
   const awardedCollatorCount = awardedCollators.length;
 
@@ -201,9 +209,10 @@ paid in ${nowRoundNumber.toString()} (first block \
   const expectedRewardedCollators = new Set(awardedCollators);
   const rewardedCollators = new Set<string>();
   for await (const i of new Array(maxRoundChecks).keys()) {
+    const blockNumber = nowRoundFirstBlock.addn(i);
     const rewarded = await assertRewardedEventsAtBlock(
       api,
-      nowRoundFirstBlock.addn(i),
+      blockNumber,
       delegators,
       collators,
       collatorCommissionRate,
@@ -213,11 +222,13 @@ paid in ${nowRoundNumber.toString()} (first block \
       stakedValue
     );
 
-    expect(rewarded.collator, "collator was not rewarded").to.exist;
+    expect(rewarded.collator, `collator was not rewarded at block ${blockNumber}`).to.exist;
 
     rewardedCollators.add(rewarded.collator);
     const expectedRewardedDelegators = new Set(
-      Object.keys(stakedValue[rewarded.collator].delegators)
+      Object.entries(stakedValue[rewarded.collator].delegators)
+        .filter(([_, value]) => !value.amount.isZero())
+        .map(([key, _]) => key)
     );
 
     const notRewarded = new Set(
@@ -230,13 +241,13 @@ paid in ${nowRoundNumber.toString()} (first block \
       notRewarded,
       `delegators "${[...notRewarded].join(", ")}" were not rewarded for collator "${
         rewarded.collator
-      }"`
+      }" at block ${blockNumber}`
     ).to.be.empty;
     expect(
       unexpectedlyRewarded,
       `delegators "${[...unexpectedlyRewarded].join(
         ", "
-      )}" were unexpectedly rewarded for collator "${rewarded.collator}"`
+      )}" were unexpectedly rewarded for collator "${rewarded.collator}" at block ${blockNumber}`
     ).to.be.empty;
   }
 
@@ -248,9 +259,16 @@ paid in ${nowRoundNumber.toString()} (first block \
   );
   expect(
     unexpectedlyRewarded,
-    `collators "${[...unexpectedlyRewarded].join(", ")}" were unexpectedly rewarded`
+    `collators "${[...unexpectedlyRewarded].join(
+      ", "
+    )}" were unexpectedly rewarded for round ${originalRoundNumber.toString()}`
   ).to.be.empty;
-  expect(notRewarded, `collators "${[...notRewarded].join(", ")}" were not rewarded`).to.be.empty;
+  expect(
+    notRewarded,
+    `collators "${[...notRewarded].join(
+      ", "
+    )}" were not rewarded for round ${originalRoundNumber.toString()}`
+  ).to.be.empty;
 }
 
 async function assertRewardedEventsAtBlock(
@@ -278,8 +296,8 @@ async function assertRewardedEventsAtBlock(
 
     if (apiAtBlock.events.parachainStaking.Rewarded.is(event)) {
       rewardCount++;
-      rewards[event.data[0].toHex().toUpperCase()] = {
-        account: event.data[0].toHex().toUpperCase(),
+      rewards[event.data[0].toHex()] = {
+        account: event.data[0].toHex(),
         amount: event.data[1],
       };
     }
@@ -319,6 +337,10 @@ async function assertRewardedEventsAtBlock(
         collatorInfo.delegators,
         "collator was not paid before the delegator (possibly not at all)"
       ).to.exist;
+      // skip checking if rewarded amount was zero
+      if (rewards[accountId].amount.isZero()) {
+        continue;
+      }
       const bondShare = new Perbill(collatorInfo.delegators[accountId].amount, collatorInfo.total);
       const candidateReward = bondShare.of(delegationReward);
       rewarded.delegators.add(accountId);
