@@ -12,7 +12,7 @@ const wssUrl = process.env.WSS_URL || null;
 const relayWssUrl = process.env.RELAY_WSS_URL || null;
 
 describeSmokeSuite(`Verify staking rewards`, { wssUrl, relayWssUrl }, function (context) {
-  it("rewards are given as expected", async () => {
+  it("rewards are given as expected", async function () {
     this.timeout(500000);
     const atBlockNumber = (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber();
     await assertRewardsAtRoundBefore(context.polkadotApi, atBlockNumber);
@@ -207,7 +207,7 @@ ${priorRewardedBlockHash.toHex()})`);
   const maxRoundChecks = Math.min(latestRoundNumber - nowBlockNumber + 1, awardedCollatorCount);
   debug(`verifying ${maxRoundChecks} blocks for rewards (awarded ${awardedCollatorCount})`);
   const expectedRewardedCollators = new Set(awardedCollators);
-  const rewardedCollators = new Set<string>();
+  const rewardedCollators = new Set<`0x${string}`>();
   for await (const i of new Array(maxRoundChecks).keys()) {
     const blockNumber = nowRoundFirstBlock.addn(i);
     const rewarded = await assertRewardedEventsAtBlock(
@@ -362,7 +362,7 @@ function assertEqualWithAccount(a: BN, b: BN, account: string) {
   ).to.be.true;
 }
 
-type Rewarded = { collator: string | null; delegators: Set<string> };
+type Rewarded = { collator: `0x${string}` | null; delegators: Set<string> };
 
 type StakedValue = {
   [key: string]: {
