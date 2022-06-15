@@ -211,6 +211,7 @@ describeDevMoonbeam(
     });
   },
   "Legacy",
+  "moonbase",
   true
 );
 
@@ -371,6 +372,7 @@ describeDevMoonbeam(
     });
   },
   "Legacy",
+  "moonbase",
   true
 );
 
@@ -510,6 +512,7 @@ describeDevMoonbeam(
     });
   },
   "Legacy",
+  "moonbase",
   true
 );
 
@@ -698,5 +701,6 @@ describeDevMoonbeam(
     });
   },
   "Legacy",
+  "moonbase",
   true
 );

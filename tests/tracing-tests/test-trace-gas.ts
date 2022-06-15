@@ -47,7 +47,7 @@ describeDevMoonbeam("Trace filter - Gas Loop", (context) => {
     ]);
     expect(trace.result.length).to.equal(1);
     expect(trace.result[0].error).to.not.exist;
-    expect(trace.result[0].hash.gasUsed).to.equal(
+    expect(trace.result[0].result.gasUsed).to.equal(
       context.web3.utils.numberToHex(testLoops[0].expectedGas)
     );
   });
@@ -64,7 +64,7 @@ describeDevMoonbeam("Trace filter - Gas Loop", (context) => {
     ]);
     expect(trace.result.length).to.equal(1);
     expect(trace.result[0].error).to.not.exist;
-    expect(trace.result[0].hash.gasUsed).to.equal(
+    expect(trace.result[0].result.gasUsed).to.equal(
       context.web3.utils.numberToHex(testLoops[1].expectedGas)
     );
   });
@@ -82,7 +82,7 @@ describeDevMoonbeam("Trace filter - Gas Loop", (context) => {
     ]);
     expect(trace.result.length).to.equal(1);
     expect(trace.result[0].error).to.not.exist;
-    expect(trace.result[0].hash.gasUsed).to.equal(
+    expect(trace.result[0].result.gasUsed).to.equal(
       context.web3.utils.numberToHex(testLoops[2].expectedGas)
     );
   });
