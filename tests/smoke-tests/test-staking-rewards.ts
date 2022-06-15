@@ -2,6 +2,7 @@ import "@polkadot/api-augment";
 import "@moonbeam-network/api-augment";
 import { BN } from "@polkadot/util";
 import { u128, u32 } from "@polkadot/types";
+import { AccountId20 } from "@polkadot/types/interfaces";
 import { ApiPromise } from "@polkadot/api";
 import { expect } from "chai";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
@@ -58,12 +59,13 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
   const originalRoundPriorBlockHash = await api.rpc.chain.getBlockHash(originalRoundPriorBlock);
   const apiAtOriginal = await api.at(originalRoundPriorBlockHash);
 
-  debug(`
+  console.log(`
+now     ${nowRound.current.toString()} (${nowBlockNumber} / ${nowBlockHash.toHex()})
 round   ${originalRoundNumber.toString()} (prior round last block \
-  ${originalRoundPriorBlock} / ${originalRoundPriorBlockHash.toHex()})
+${originalRoundPriorBlock} / ${originalRoundPriorBlockHash.toHex()})
 paid in ${nowRoundNumber.toString()} (first block \
-  ${nowRoundFirstBlock.toNumber()} / ${nowRoundFirstBlockHash.toHex()} / prior \
-  ${priorRewardedBlockHash.toHex()})`);
+${nowRoundFirstBlock.toNumber()} / ${nowRoundFirstBlockHash.toHex()} / prior \
+${priorRewardedBlockHash.toHex()})`);
 
   // collect info about staked value from collators and delegators
   const apiAtPriorRewarded = await api.at(priorRewardedBlockHash);
@@ -81,7 +83,7 @@ paid in ${nowRoundNumber.toString()} (first block \
     },
     { bond, total, delegations },
   ] of atStake) {
-    const collatorId = accountId.toHex().toUpperCase();
+    const collatorId = toUniform(accountId);
     collators.add(collatorId);
     const points = await apiAtPriorRewarded.query.parachainStaking.awardedPts(
       originalRoundNumber,
@@ -99,13 +101,13 @@ paid in ${nowRoundNumber.toString()} (first block \
     const topDelegations = new Set(
       (await apiAtOriginal.query.parachainStaking.topDelegations(accountId))
         .unwrap()
-        .delegations.map((d) => d.owner.toHex().toUpperCase())
+        .delegations.map((d) => toUniform(d.owner))
     );
     for (const { owner, amount } of delegations) {
-      if (!topDelegations.has(owner.toHex().toUpperCase())) {
+      if (!topDelegations.has(toUniform(owner))) {
         continue;
       }
-      const id = owner.toHex().toUpperCase();
+      const id = toUniform(owner);
       delegators.add(id);
       collatorInfo.delegators[id] = {
         id: id,
@@ -117,12 +119,15 @@ paid in ${nowRoundNumber.toString()} (first block \
       Object.keys(collatorInfo.delegators).length,
       `delegator count mismatch ${topDelegations.size} != ${
         Object.keys(collatorInfo.delegators).length
-      }`
+      } for round ${originalRoundNumber.toString()}`
     );
 
     stakedValue[collatorId] = collatorInfo;
   }
-  expect(collatorCount).to.equal(Object.keys(stakedValue).length, "collator count mismatch");
+  expect(collatorCount).to.equal(
+    Object.keys(stakedValue).length,
+    `collator count mismatch for round ${originalRoundNumber.toString()}`
+  );
 
   // calculate reward amounts
   const parachainBondInfo = await apiAtPriorRewarded.query.parachainStaking.parachainBondInfo();
@@ -170,7 +175,8 @@ paid in ${nowRoundNumber.toString()} (first block \
       expect(
         parachainBondReward.eq(reservedForParachainBond),
         `parachain bond amount does not match \
-        ${parachainBondReward.toString()} != ${reservedForParachainBond.toString()}`
+        ${parachainBondReward.toString()} != ${reservedForParachainBond.toString()} \
+        for round ${originalRoundNumber.toString()}`
       ).to.be.true;
       return totalRoundIssuance.sub(parachainBondReward);
     }
@@ -184,7 +190,8 @@ paid in ${nowRoundNumber.toString()} (first block \
   expect(
     delayedPayout.totalStakingReward.eq(totalStakingReward),
     `reward amounts do not match \
-    ${delayedPayout.totalStakingReward.toString()} != ${totalStakingReward.toString()}`
+    ${delayedPayout.totalStakingReward.toString()} != ${totalStakingReward.toString()} \
+    for round ${originalRoundNumber.toString()}`
   ).to.be.true;
 
   // verify rewards
@@ -192,7 +199,7 @@ paid in ${nowRoundNumber.toString()} (first block \
   const latestRoundNumber = latestBlock.block.header.number.toNumber();
   const awardedCollators = (
     await apiAtPriorRewarded.query.parachainStaking.awardedPts.keys(originalRoundNumber)
-  ).map((x) => x.args[1].toString().toUpperCase());
+  ).map((x) => toUniform(x.args[1]));
 
   const awardedCollatorCount = awardedCollators.length;
 
@@ -201,9 +208,10 @@ paid in ${nowRoundNumber.toString()} (first block \
   const expectedRewardedCollators = new Set(awardedCollators);
   const rewardedCollators = new Set<string>();
   for await (const i of new Array(maxRoundChecks).keys()) {
+    const blockNumber = nowRoundFirstBlock.addn(i);
     const rewarded = await assertRewardedEventsAtBlock(
       api,
-      nowRoundFirstBlock.addn(i),
+      blockNumber,
       delegators,
       collators,
       collatorCommissionRate,
@@ -213,11 +221,13 @@ paid in ${nowRoundNumber.toString()} (first block \
       stakedValue
     );
 
-    expect(rewarded.collator, "collator was not rewarded").to.exist;
+    expect(rewarded.collator, `collator was not rewarded at block ${blockNumber}`).to.exist;
 
     rewardedCollators.add(rewarded.collator);
     const expectedRewardedDelegators = new Set(
-      Object.keys(stakedValue[rewarded.collator].delegators)
+      Object.entries(stakedValue[rewarded.collator].delegators)
+        .filter(([_, value]) => !value.amount.isZero())
+        .map(([key, _]) => key)
     );
 
     const notRewarded = new Set(
@@ -230,13 +240,13 @@ paid in ${nowRoundNumber.toString()} (first block \
       notRewarded,
       `delegators "${[...notRewarded].join(", ")}" were not rewarded for collator "${
         rewarded.collator
-      }"`
+      }" at block ${blockNumber}`
     ).to.be.empty;
     expect(
       unexpectedlyRewarded,
       `delegators "${[...unexpectedlyRewarded].join(
         ", "
-      )}" were unexpectedly rewarded for collator "${rewarded.collator}"`
+      )}" were unexpectedly rewarded for collator "${rewarded.collator}" at block ${blockNumber}`
     ).to.be.empty;
   }
 
@@ -248,9 +258,16 @@ paid in ${nowRoundNumber.toString()} (first block \
   );
   expect(
     unexpectedlyRewarded,
-    `collators "${[...unexpectedlyRewarded].join(", ")}" were unexpectedly rewarded`
+    `collators "${[...unexpectedlyRewarded].join(
+      ", "
+    )}" were unexpectedly rewarded for round ${originalRoundNumber.toString()}`
   ).to.be.empty;
-  expect(notRewarded, `collators "${[...notRewarded].join(", ")}" were not rewarded`).to.be.empty;
+  expect(
+    notRewarded,
+    `collators "${[...notRewarded].join(
+      ", "
+    )}" were not rewarded for round ${originalRoundNumber.toString()}`
+  ).to.be.empty;
 }
 
 async function assertRewardedEventsAtBlock(
@@ -278,8 +295,8 @@ async function assertRewardedEventsAtBlock(
 
     if (apiAtBlock.events.parachainStaking.Rewarded.is(event)) {
       rewardCount++;
-      rewards[event.data[0].toHex().toUpperCase()] = {
-        account: event.data[0].toHex().toUpperCase(),
+      rewards[toUniform(event.data[0])] = {
+        account: toUniform(event.data[0]),
         amount: event.data[1],
       };
     }
@@ -392,6 +409,10 @@ class Perthing {
     // Round up
     return dm.div.negative !== 0 ? dm.div.isubn(1) : dm.div.iaddn(1);
   }
+}
+
+function toUniform(accountId: AccountId20): string {
+  return `0x${accountId.toHex().toUpperCase().substring(2)}`;
 }
 
 class Perbill extends Perthing {
