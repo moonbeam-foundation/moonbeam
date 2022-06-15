@@ -3,11 +3,11 @@ on:
   workflow_dispatch:
     inputs:
       spec_version:
-        description: runtime spec version
+        description: runtime spec version (ex. 1601)
         required: true
 
 jobs:
-  create-tracing-runtime:
+  upgrading-typescript-api:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -25,6 +25,7 @@ jobs:
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v3
         with:
+          base: master
           branch: "typescript-api-${{ github.event.inputs.spec_version }}"
           commit-message: typescript API v0.${{ github.event.inputs.spec_version }}.0"
           draft: true

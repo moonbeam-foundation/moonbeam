@@ -1,7 +1,7 @@
 import { Keyring } from "@polkadot/api";
 import { expect } from "chai";
+import { alith } from "../../../util/accounts";
 
-import { ALITH_ADDRESS, ALITH_PRIV_KEY } from "../../../util/constants";
 import { describeParachain } from "../../../util/setup-para-tests";
 import { sendAllStreamAndWaitLast } from "../../../util/transactions";
 
@@ -27,12 +27,11 @@ describeParachain(
       this.timeout(500000);
 
       const keyring = new Keyring({ type: "ethereum" });
-      const alith = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
 
       // verify alith initial total staked
       expect(
         ((await context.polkadotApiParaone.query.parachainStaking.candidatePool()) as any)
-          .find((c) => c.owner.toString() == ALITH_ADDRESS)
+          .find((c) => c.owner.toString() == alith.address)
           .amount.toBigInt()
       ).to.be.equal(1000000000000000000000n);
 
@@ -94,7 +93,7 @@ describeParachain(
       // verify alith new delegators are added
       expect(
         ((await context.polkadotApiParaone.query.parachainStaking.candidatePool()) as any)
-          .find((c) => c.owner.toString() == ALITH_ADDRESS)
+          .find((c) => c.owner.toString() == alith.address)
           .amount.toBigInt()
       ).to.be.equal(1000000000000000000000n + minDelegatorStk * BigInt(delegatorCount));
 
@@ -118,7 +117,7 @@ describeParachain(
       // Verify BUG: alith total didn't increase with the bond more
       expect(
         ((await context.polkadotApiParaone.query.parachainStaking.candidatePool()) as any)
-          .find((c) => c.owner.toString() == ALITH_ADDRESS)
+          .find((c) => c.owner.toString() == alith.address)
           .amount.toBigInt()
       ).to.be.equal(1000000000000000000000n + minDelegatorStk * BigInt(delegatorCount));
       process.stdout.write(`✅\n`);
@@ -128,7 +127,7 @@ describeParachain(
       process.stdout.write("Verifying candidate pool is fixed post-migration...");
       expect(
         ((await context.polkadotApiParaone.query.parachainStaking.candidatePool()) as any)
-          .find((c) => c.owner.toString() == ALITH_ADDRESS)
+          .find((c) => c.owner.toString() == alith.address)
           .amount.toBigInt()
       ).to.be.equal(
         1000000000000000000000n + (minDelegatorStk + 1n * 10n ** 18n) * BigInt(delegatorCount)

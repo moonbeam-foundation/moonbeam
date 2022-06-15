@@ -798,11 +798,11 @@ declare module "@polkadot/api-base/types/submittable" {
     };
     authorFilter: {
       /**
-       * Update the eligible ratio. Intended to be called by governance.
+       * Update the eligible count. Intended to be called by governance.
        */
       setEligible: AugmentedSubmittable<
-        (updated: Percent | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
-        [Percent]
+        (updated: u32 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [u32]
       >;
       /**
        * Generic tx
@@ -848,10 +848,40 @@ declare module "@polkadot/api-base/types/submittable" {
         [NimbusPrimitivesNimbusCryptoPublic]
       >;
       /**
+       * Add association and set session keys
+       */
+      registerKeys: AugmentedSubmittable<
+        (
+          authorId: NimbusPrimitivesNimbusCryptoPublic | string | Uint8Array,
+          keys: NimbusPrimitivesNimbusCryptoPublic | string | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [NimbusPrimitivesNimbusCryptoPublic, NimbusPrimitivesNimbusCryptoPublic]
+      >;
+      /**
+       * Set association and session keys at once.
+       *
+       * This is useful for key rotation to update Nimbus and VRF keys in one
+       * call. No new security deposit is required. Will replace
+       * `update_association` which is kept now for backwards compatibility reasons.
+       */
+      setKeys: AugmentedSubmittable<
+        (
+          oldAuthorId: NimbusPrimitivesNimbusCryptoPublic | string | Uint8Array,
+          newAuthorId: NimbusPrimitivesNimbusCryptoPublic | string | Uint8Array,
+          newKeys: NimbusPrimitivesNimbusCryptoPublic | string | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [
+          NimbusPrimitivesNimbusCryptoPublic,
+          NimbusPrimitivesNimbusCryptoPublic,
+          NimbusPrimitivesNimbusCryptoPublic
+        ]
+      >;
+      /**
        * Change your Mapping.
        *
        * This is useful for normal key rotation or for when switching from one
-       * physical collator machine to another. No new security deposit is required.
+       * physical collator machine to another. No new security deposit is
+       * required. This sets keys to new_author_id.into() by default.
        */
       updateAssociation: AugmentedSubmittable<
         (
@@ -2999,6 +3029,58 @@ declare module "@polkadot/api-base/types/submittable" {
        */
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
     };
+    moonbeamOrbiters: {
+      /**
+       * Add a collator to orbiters program.
+       */
+      addCollator: AugmentedSubmittable<
+        (collator: AccountId20 | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [AccountId20]
+      >;
+      /**
+       * Add an orbiter in a collator pool
+       */
+      collatorAddOrbiter: AugmentedSubmittable<
+        (orbiter: AccountId20 | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [AccountId20]
+      >;
+      /**
+       * Remove an orbiter from the caller collator pool
+       */
+      collatorRemoveOrbiter: AugmentedSubmittable<
+        (orbiter: AccountId20 | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [AccountId20]
+      >;
+      /**
+       * Remove the caller from the specified collator pool
+       */
+      orbiterLeaveCollatorPool: AugmentedSubmittable<
+        (collator: AccountId20 | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [AccountId20]
+      >;
+      /**
+       * Registering as an orbiter
+       */
+      orbiterRegister: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
+      /**
+       * Deregistering from orbiters
+       */
+      orbiterUnregister: AugmentedSubmittable<
+        (collatorsPoolCount: u32 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [u32]
+      >;
+      /**
+       * Remove a collator from orbiters program.
+       */
+      removeCollator: AugmentedSubmittable<
+        (collator: AccountId20 | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [AccountId20]
+      >;
+      /**
+       * Generic tx
+       */
+      [key: string]: SubmittableExtrinsicFunction<ApiType>;
+    };
     parachainStaking: {
       /**
        * Cancel pending request to adjust the collator candidate self bond
@@ -3104,27 +3186,6 @@ declare module "@polkadot/api-base/types/submittable" {
        * Rejoin the set of collator candidates if previously had called `go_offline`
        */
       goOnline: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
-      /**
-       * Hotfix patch to remove all delegation requests not removed during a
-       * candidate exit
-       */
-      hotfixRemoveDelegationRequests: AugmentedSubmittable<
-        (
-          delegators: Vec<AccountId20> | (AccountId20 | string | Uint8Array)[]
-        ) => SubmittableExtrinsic<ApiType>,
-        [Vec<AccountId20>]
-      >;
-      /**
-       * Hotfix patch to correct and update CandidatePool value for candidates
-       * that have called candidate_bond_more when it did not update the
-       * CandidatePool value
-       */
-      hotfixUpdateCandidatePoolValue: AugmentedSubmittable<
-        (
-          candidates: Vec<AccountId20> | (AccountId20 | string | Uint8Array)[]
-        ) => SubmittableExtrinsic<ApiType>,
-        [Vec<AccountId20>]
-      >;
       /**
        * Join the set of collator candidates
        */

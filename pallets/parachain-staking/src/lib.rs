@@ -215,6 +215,7 @@ pub mod pallet {
 		PendingDelegationRequestAlreadyExists,
 		PendingDelegationRequestNotDueYet,
 		CannotDelegateLessThanOrEqualToLowestBottomWhenFull,
+		PendingDelegationRevoke,
 	}
 
 	#[pallet::event]
@@ -1003,6 +1004,7 @@ pub mod pallet {
 			// return stake to collator
 			T::Currency::unreserve(&candidate, state.bond);
 			<CandidateInfo<T>>::remove(&candidate);
+			<DelegationScheduledRequests<T>>::remove(&candidate);
 			<TopDelegations<T>>::remove(&candidate);
 			<BottomDelegations<T>>::remove(&candidate);
 			let new_total_staked = <Total<T>>::get().saturating_sub(total_backing);
@@ -1268,6 +1270,10 @@ pub mod pallet {
 			more: BalanceOf<T>,
 		) -> DispatchResultWithPostInfo {
 			let delegator = ensure_signed(origin)?;
+			ensure!(
+				!Self::delegation_request_revoke_exists(&candidate, &delegator),
+				Error::<T>::PendingDelegationRevoke
+			);
 			let mut state = <DelegatorState<T>>::get(&delegator).ok_or(Error::<T>::DelegatorDNE)?;
 			state.increase_delegation::<T>(candidate.clone(), more)?;
 			Ok(().into())
@@ -1303,6 +1309,34 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let delegator = ensure_signed(origin)?;
 			Self::delegation_cancel_request(candidate, delegator)
+		}
+
+		/// Hotfix to remove existing empty entries for candidates that have left.
+		#[pallet::weight(
+			T::DbWeight::get().reads_writes(2 * candidates.len() as u64, candidates.len() as u64)
+		)]
+		pub fn hotfix_remove_delegation_requests_exited_candidates(
+			origin: OriginFor<T>,
+			candidates: Vec<T::AccountId>,
+		) -> DispatchResult {
+			ensure_signed(origin)?;
+			ensure!(candidates.len() < 100, <Error<T>>::InsufficientBalance);
+			for candidate in &candidates {
+				ensure!(
+					<CandidateInfo<T>>::get(&candidate).is_none(),
+					<Error<T>>::CandidateNotLeaving
+				);
+				ensure!(
+					<DelegationScheduledRequests<T>>::get(&candidate).is_empty(),
+					<Error<T>>::CandidateNotLeaving
+				);
+			}
+
+			for candidate in candidates {
+				<DelegationScheduledRequests<T>>::remove(candidate);
+			}
+
+			Ok(().into())
 		}
 	}
 

@@ -21,7 +21,6 @@
 mod common;
 use common::*;
 
-use crowdloan_rewards_precompiles::Action as CrowdloanAction;
 use fp_evm::Context;
 use frame_support::{
 	assert_noop, assert_ok,
@@ -41,7 +40,9 @@ use moonbeam_runtime::{
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
-use pallet_evm_precompile_assets_erc20::{
+use pallet_evm_precompile_crowdloan_rewards::Action as CrowdloanAction;
+use pallet_evm_precompile_xtokens::Action as XtokensAction;
+use pallet_evm_precompileset_assets_erc20::{
 	AccountIdAssetIdConversion, Action as AssetAction, SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER,
 };
 use pallet_transaction_payment::Multiplier;
@@ -55,7 +56,6 @@ use sp_runtime::{
 };
 use xcm::latest::prelude::*;
 use xcm::{VersionedMultiAsset, VersionedMultiAssets, VersionedMultiLocation};
-use xtokens_precompiles::Action as XtokensAction;
 
 #[test]
 fn xcmp_queue_controller_origin_is_root() {
@@ -305,7 +305,7 @@ fn join_collator_candidates() {
 					100_000 * GLMR,
 					2u32
 				),
-				parachain_staking::Error::<Runtime>::CandidateExists
+				pallet_parachain_staking::Error::<Runtime>::CandidateExists
 			);
 			assert_noop!(
 				ParachainStaking::join_candidates(
@@ -313,7 +313,7 @@ fn join_collator_candidates() {
 					100_000 * GLMR,
 					2u32
 				),
-				parachain_staking::Error::<Runtime>::DelegatorExists
+				pallet_parachain_staking::Error::<Runtime>::DelegatorExists
 			);
 			assert!(System::events().is_empty());
 			assert_ok!(ParachainStaking::join_candidates(
@@ -323,11 +323,13 @@ fn join_collator_candidates() {
 			));
 			assert_eq!(
 				last_event(),
-				Event::ParachainStaking(parachain_staking::Event::JoinedCollatorCandidates {
-					account: AccountId::from(DAVE),
-					amount_locked: 100_000 * GLMR,
-					new_total_amt_locked: 310_000 * GLMR
-				})
+				Event::ParachainStaking(
+					pallet_parachain_staking::Event::JoinedCollatorCandidates {
+						account: AccountId::from(DAVE),
+						amount_locked: 100_000 * GLMR,
+						new_total_amt_locked: 310_000 * GLMR
+					}
+				)
 			);
 			let candidates = ParachainStaking::candidate_pool();
 			assert_eq!(candidates.0[0].owner, AccountId::from(ALICE));
@@ -1052,6 +1054,41 @@ where
 	t.execute_with(|| {
 		System::set_block_consumed_resources(w, 0);
 		assertions()
+	});
+}
+
+#[test]
+#[rustfmt::skip]
+fn length_fee_is_sensible() {
+	use sp_runtime::testing::TestXt;
+
+	// tests that length fee is sensible for a few hypothetical transactions
+	ExtBuilder::default().build().execute_with(|| {
+		let call = frame_system::Call::remark::<Runtime> { remark: vec![] };
+		let uxt: TestXt<_, ()> = TestXt::new(call, Some((1u64, ())));
+
+		let calc_fee = |len: u32| -> Balance {
+			moonbeam_runtime::TransactionPayment::query_fee_details(uxt.clone(), len)
+				.inclusion_fee
+				.expect("fee should be calculated")
+				.len_fee
+		};
+
+		// editorconfig-checker-disable
+		//                  left: cost of length fee, right: size in bytes
+		//                             /------------- proportional component: O(N * 1B)
+		//                             |           /- exponential component: O(N ** 3)
+		//                             |           |
+		assert_eq!(                    100_000_000_100, calc_fee(1));
+		assert_eq!(                  1_000_000_100_000, calc_fee(10));
+		assert_eq!(                 10_000_100_000_000, calc_fee(100));
+		assert_eq!(                100_100_000_000_000, calc_fee(1_000));
+		assert_eq!(              1_100_000_000_000_000, calc_fee(10_000)); // inflection point
+		assert_eq!(            110_000_000_000_000_000, calc_fee(100_000));
+		assert_eq!(        100_100_000_000_000_000_000, calc_fee(1_000_000)); // 100 GLMR, ~ 1MB
+		assert_eq!(    100_001_000_000_000_000_000_000, calc_fee(10_000_000));
+		assert_eq!(100_000_010_000_000_000_000_000_000, calc_fee(100_000_000));
+		// editorconfig-checker-enable
 	});
 }
 
@@ -2313,7 +2350,7 @@ fn transact_through_signed_mult_not_enabled() {
 
 			assert_noop!(
 				Call::XcmTransactor(
-					xcm_transactor::Call::<Runtime>::transact_through_signed_multilocation {
+					pallet_xcm_transactor::Call::<Runtime>::transact_through_signed_multilocation {
 						dest: Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 						fee_location: Box::new(xcm::VersionedMultiLocation::V1(
 							MultiLocation::parent()
@@ -2372,12 +2409,14 @@ fn transact_through_signed_not_enabled() {
 			));
 
 			assert_noop!(
-				Call::XcmTransactor(xcm_transactor::Call::<Runtime>::transact_through_signed {
-					dest: Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-					fee_currency_id: CurrencyId::ForeignAsset(source_id),
-					dest_weight: 11000,
-					call: vec![],
-				})
+				Call::XcmTransactor(
+					pallet_xcm_transactor::Call::<Runtime>::transact_through_signed {
+						dest: Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+						fee_currency_id: CurrencyId::ForeignAsset(source_id),
+						dest_weight: 11000,
+						call: vec![],
+					}
+				)
 				.dispatch(<Runtime as frame_system::Config>::Origin::signed(
 					AccountId::from(ALICE)
 				)),
@@ -2441,7 +2480,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 					17000,
 					vec![],
 				),
-				xcm_transactor::Error::<Runtime>::MaxWeightTransactReached
+				pallet_xcm_transactor::Error::<Runtime>::MaxWeightTransactReached
 			);
 			assert_noop!(
 				XcmTransactor::transact_through_derivative(
@@ -2453,7 +2492,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 					17000,
 					vec![],
 				),
-				xcm_transactor::Error::<Runtime>::MaxWeightTransactReached
+				pallet_xcm_transactor::Error::<Runtime>::MaxWeightTransactReached
 			);
 		})
 }
