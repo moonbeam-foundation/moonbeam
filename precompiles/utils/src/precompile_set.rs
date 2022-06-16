@@ -24,7 +24,10 @@ use frame_support::pallet_prelude::Get;
 use impl_trait_for_tuples::impl_for_tuples;
 use pallet_evm::AddressMapping;
 use sp_core::H160;
-use sp_std::{cell::RefCell, marker::PhantomData, ops::RangeInclusive, vec, vec::Vec};
+use sp_std::{
+	cell::RefCell, collections::btree_map::BTreeMap, marker::PhantomData, ops::RangeInclusive, vec,
+	vec::Vec,
+};
 
 // CONFIGURATION TYPES
 
@@ -140,13 +143,15 @@ where
 
 	#[inline(always)]
 	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<PrecompileResult> {
+		let code_address = handle.code_address();
+
 		// Check if this is the address of the precompile.
-		if A::get() != handle.code_address() {
+		if A::get() != code_address {
 			return None;
 		}
 
 		// Check DELEGATECALL config.
-		if !D::allow_delegate_call() && handle.code_address() != handle.context().address {
+		if !D::allow_delegate_call() && code_address != handle.context().address {
 			return Some(Err(revert(
 				"cannot be called with DELEGATECALL or CALLCODE",
 			)));
@@ -225,13 +230,15 @@ where
 
 	#[inline(always)]
 	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<PrecompileResult> {
+		let code_address = handle.code_address();
+
 		// Check if this is the address of the precompile.
-		if A::get() != handle.code_address() {
+		if A::get() != code_address {
 			return None;
 		}
 
 		// Check DELEGATECALL config.
-		if !D::allow_delegate_call() && handle.code_address() != handle.context().address {
+		if !D::allow_delegate_call() && code_address != handle.context().address {
 			return Some(Err(revert(
 				"cannot be called with DELEGATECALL or CALLCODE",
 			)));
@@ -286,39 +293,81 @@ where
 /// Type parameters allow to define:
 /// - A: The common prefix
 /// - D: If DELEGATECALL is supported (default to no)
-pub struct PrecompileSetStartingWith<A, P, D = ForbidDelegateCall> {
+pub struct PrecompileSetStartingWith<A, P, R = LimitRecursionTo<1>, D = ForbidDelegateCall> {
 	precompile_set: P,
-	_phantom: PhantomData<(A, D)>,
+	current_recursion_level: RefCell<BTreeMap<H160, u16>>,
+	_phantom: PhantomData<(A, R, D)>,
 }
 
-impl<A, P, D> PrecompileSetFragment for PrecompileSetStartingWith<A, P, D>
+impl<A, P, R, D> PrecompileSetFragment for PrecompileSetStartingWith<A, P, R, D>
 where
 	A: Get<&'static [u8]>,
 	P: PrecompileSet + Default,
+	R: RecursionLimit,
 	D: DelegateCallSupport,
 {
 	#[inline(always)]
 	fn new() -> Self {
 		Self {
 			precompile_set: P::default(),
+			current_recursion_level: RefCell::new(BTreeMap::new()),
 			_phantom: PhantomData,
 		}
 	}
 
 	#[inline(always)]
 	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<PrecompileResult> {
-		if self.is_precompile(handle.code_address()) {
-			// Check DELEGATECALL config.
-			if !D::allow_delegate_call() && handle.code_address() != handle.context().address {
-				return Some(Err(revert(
-					"cannot be called with DELEGATECALL or CALLCODE",
-				)));
-			}
+		let code_address = handle.code_address();
 
-			self.precompile_set.execute(handle)
-		} else {
-			None
+		if !self.is_precompile(code_address) {
+			return None;
 		}
+
+		// Check DELEGATECALL config.
+		if !D::allow_delegate_call() && code_address != handle.context().address {
+			return Some(Err(revert(
+				"cannot be called with DELEGATECALL or CALLCODE",
+			)));
+		}
+
+		// Check and increase recursion level if needed.
+		if let Some(max_recursion_level) = R::recursion_limit() {
+			match self.current_recursion_level.try_borrow_mut() {
+				Ok(mut recursion_level_map) => {
+					let recursion_level = recursion_level_map.entry(code_address).or_insert(0);
+
+					if *recursion_level >= max_recursion_level {
+						return Some(Err(revert("precompile is called with too high nesting")));
+					}
+
+					*recursion_level += 1;
+				}
+				// We don't hold the borrow and are in single-threaded code, thus we should
+				// not be able to fail borrowing in nested calls.
+				Err(_) => return Some(Err(revert("couldn't check precompile nesting"))),
+			}
+		}
+
+		let res = self.precompile_set.execute(handle);
+
+		// Decrease recursion level if needed.
+		if R::recursion_limit().is_some() {
+			match self.current_recursion_level.try_borrow_mut() {
+				Ok(mut recursion_level_map) => {
+					let recursion_level = match recursion_level_map.get_mut(&code_address) {
+						Some(recursion_level) => recursion_level,
+						None => return Some(Err(revert("couldn't retreive precompile nesting"))),
+					};
+
+					*recursion_level -= 1;
+				}
+				// We don't hold the borrow and are in single-threaded code, thus we should
+				// not be able to fail borrowing in nested calls.
+				Err(_) => return Some(Err(revert("couldn't check precompile nesting"))),
+			}
+		}
+
+		res
 	}
 
 	#[inline(always)]
