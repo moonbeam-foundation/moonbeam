@@ -14,6 +14,7 @@ export SINGLE_PARACHAIN_NODE=${SINGLE_PARACHAIN_NODE:-true}
 export SKIP_DOWNLOAD=${SKIP_DOWNLOAD:-false}
 export SKIP_COMPILATION=${SKIP_COMPILATION:-false}
 
+
 export BINARY_PATH=$ROOT_FOLDER/moonbeam/binaries/moonbeam;
 export RELAY_BINARY_PATH=$ROOT_FOLDER/moonbeam/binaries/polkadot;
 export NODE_OPTIONS=--max-old-space-size=16000
@@ -106,7 +107,7 @@ echo "Running fork tests... (10 minutes)"
 DEBUG_MODE=true DEBUG=test:setup* npm run fork-test
 
 echo "Running smoke tests... (10 minutes)"
-SKIP_RELAY_TESTS=true DEBUG=smoke:* npm run smoke-test
+SKIP_BLOCK_CONSISTENCY_TESTS=true SKIP_RELAY_TESTS=true DEBUG=smoke:* npm run smoke-test
 
 echo "Retrieving runtime stats..."
 cd $ROOT_FOLDER/moonbeam/tools
