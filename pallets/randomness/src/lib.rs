@@ -23,10 +23,8 @@ use frame_support::pallet;
 pub use pallet::*;
 
 pub mod instant;
-pub mod traits;
 pub mod types;
 pub use instant::*;
-pub use traits::*;
 pub use types::*;
 
 // pub mod weights;
@@ -44,9 +42,7 @@ pub mod pallet {
 	// use crate::WeightInfo;
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{Currency, ReservableCurrency};
-	use frame_system::pallet_prelude::*;
 	use pallet_evm::AddressMapping;
-	use pallet_vrf::GetRelayTime;
 	use sp_core::{H160, H256};
 	use sp_runtime::traits::Saturating;
 	use sp_std::{convert::TryInto, vec::Vec};
@@ -69,10 +65,6 @@ pub mod pallet {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		/// Currency in which the security deposit will be taken.
 		type ReserveCurrency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
-		/// Get relay block number and epoch index to insert into this pallet
-		type RelayTime: pallet_vrf::GetRelayTime<Self::BlockNumber, u64>;
-		/// Get relay chain randomness to insert into this pallet
-		type RelayRandomness: GetRelayRandomness<Self::Hash>;
 		/// Get per block vrf randomness
 		type LocalRandomness: pallet_vrf::MaybeGetRandomness<Self::Hash>;
 		#[pallet::constant]
@@ -190,43 +182,6 @@ pub mod pallet {
 	/// Some(randomness) or None if not updated
 	pub type TwoEpochsAgoRandomness<T: Config> = StorageValue<_, Option<T::Hash>, ValueQuery>;
 
-	#[pallet::hooks]
-	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
-		/// Get randomness from runtime and set it locally
-		// TODO (once asynchronous backing is implemented):
-		// only get new randomness iff relay block number changes
-		fn on_initialize(_now: BlockNumberFor<T>) -> Weight {
-			let last_epoch_index = <CurrentEpochIndex<T>>::get();
-			let new_epoch_index = T::RelayTime::get_epoch_index();
-			let mut weight_consumed = T::DbWeight::get().read;
-			// if epoch changed then update epoch and all epoch randomness values
-			if new_epoch_index > last_epoch_index {
-				// insert new epoch information
-				<CurrentEpochIndex<T>>::put(new_epoch_index);
-				let (one_epoch_ago_randomness, w0) =
-					T::RelayRandomness::get_one_epoch_ago_randomness();
-				let (two_epochs_ago_randomness, w1) =
-					T::RelayRandomness::get_two_epochs_ago_randomness();
-				<OneEpochAgoRandomness<T>>::put(one_epoch_ago_randomness);
-				<TwoEpochsAgoRandomness<T>>::put(two_epochs_ago_randomness);
-				weight_consumed =
-					weight_consumed.saturating_add(3 * T::DbWeight::get().write + w0 + w1);
-			}
-			let last_relay_block_number = <CurrentRelayBlockNumber<T>>::get();
-			let new_relay_block_number = T::RelayTime::get_block_number();
-			if new_relay_block_number > last_relay_block_number {
-				<CurrentRelayBlockNumber<T>>::put(new_relay_block_number);
-				// move babe current block randomness here once async backing as optimization
-				weight_consumed = weight_consumed.saturating_add(T::DbWeight::get().write);
-			}
-			// move into above relay block number update once async backing to optimize s.t. only
-			// gets new current_block_randomness iff relay block changes
-			let (current_block_randomness, w2) = T::RelayRandomness::get_current_block_randomness();
-			<CurrentBlockRandomness<T>>::put(current_block_randomness);
-			weight_consumed + T::DbWeight::get().read + T::DbWeight::get().write + w2
-		}
-	}
-
 	// Utility functions
 	impl<T: Config> Pallet<T> {
 		pub(crate) fn concat_and_hash(a: T::Hash, b: H256) -> [u8; 32] {
@@ -234,6 +189,33 @@ pub mod pallet {
 			s.extend_from_slice(a.as_ref());
 			s.extend_from_slice(b.as_ref());
 			sp_io::hashing::blake2_256(&s)
+		}
+		/// For the runtime to set the randomness storage values in this pallet
+		pub fn set_randomness(
+			block_number: T::BlockNumber,
+			epoch_index: Option<u64>,
+			current_block_randomness: Option<T::Hash>,
+			one_epoch_ago_randomness: Option<T::Hash>,
+			two_epochs_ago_randomness: Option<T::Hash>,
+		) {
+			<CurrentRelayBlockNumber<T>>::put(block_number);
+			if let Some(epoch) = epoch_index {
+				<CurrentEpochIndex<T>>::put(epoch);
+			} else {
+				log::warn!("Error reading epoch index from relay chain state proof");
+			}
+			if current_block_randomness.is_none() {
+				log::warn!("Error reading current block randomness from relay chain state proof");
+			}
+			if one_epoch_ago_randomness.is_none() {
+				log::warn!("Error reading one epoch ago randomness from relay chain state proof");
+			}
+			if two_epochs_ago_randomness.is_none() {
+				log::warn!("Error reading two epochs ago randomness from relay chain state proof");
+			}
+			<CurrentBlockRandomness<T>>::put(current_block_randomness);
+			<OneEpochAgoRandomness<T>>::put(one_epoch_ago_randomness);
+			<TwoEpochsAgoRandomness<T>>::put(two_epochs_ago_randomness);
 		}
 	}
 

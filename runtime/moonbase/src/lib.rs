@@ -1081,46 +1081,6 @@ impl pallet_base_fee::Config for Runtime {
 	type DefaultBaseFeePerGas = DefaultBaseFeePerGas;
 }
 
-pub struct RelayTimeFromVrfPallet;
-impl pallet_vrf::GetRelayTime<BlockNumber, u64> for RelayTimeFromVrfPallet {
-	fn get_block_number() -> BlockNumber {
-		Vrf::relay_chain_time()
-			.expect("always should exist")
-			.block_number
-	}
-	fn get_epoch_index() -> u64 {
-		Vrf::relay_chain_time()
-			.expect("always should exist")
-			.epoch_index
-	}
-}
-
-// TODO: weights and propagate error better instead of flatten
-pub struct RelayRandomness;
-impl pallet_randomness::GetRelayRandomness<H256> for RelayRandomness {
-	fn get_current_block_randomness() -> (Option<H256>, Weight) {
-		let randomness = relay_chain_state_proof()
-			.read_optional_entry(relay_chain::well_known_keys::CURRENT_BLOCK_RANDOMNESS)
-			.ok()
-			.flatten();
-		(randomness, 0)
-	}
-	fn get_one_epoch_ago_randomness() -> (Option<H256>, Weight) {
-		let randomness = relay_chain_state_proof()
-			.read_optional_entry(relay_chain::well_known_keys::ONE_EPOCH_AGO_RANDOMNESS)
-			.ok()
-			.flatten();
-		(randomness, 0)
-	}
-	fn get_two_epochs_ago_randomness() -> (Option<H256>, Weight) {
-		let randomness = relay_chain_state_proof()
-			.read_optional_entry(relay_chain::well_known_keys::TWO_EPOCHS_AGO_RANDOMNESS)
-			.ok()
-			.flatten();
-		(randomness, 0)
-	}
-}
-
 // TODO: set reasonable params
 parameter_types! {
 	pub const RandomnessRequestDeposit: u128 = 10;
@@ -1129,8 +1089,6 @@ parameter_types! {
 impl pallet_randomness::Config for Runtime {
 	type Event = Event;
 	type ReserveCurrency = Balances;
-	type RelayTime = RelayTimeFromVrfPallet;
-	type RelayRandomness = RelayRandomness;
 	type LocalRandomness = Vrf;
 	type Deposit = RandomnessRequestDeposit;
 	type ExpirationDelay = ExpirationDelay;
@@ -1162,30 +1120,47 @@ impl GetVrfInputs<Slot, Hash> for VrfInputs {
 	}
 }
 
-/// Must be called before on_initialize because ParachainSystem kills this storage in on_initialize
-pub struct RelayTimeFromParachainSystem;
-impl pallet_vrf::GetRelayTime<BlockNumber, u64> for RelayTimeFromParachainSystem {
-	fn get_block_number() -> BlockNumber {
-		ParachainSystem::validation_data()
+pub struct BabeDataSetter;
+impl pallet_vrf::SetRelayRandomness for BabeDataSetter {
+	fn set_relay_randomness() {
+		let block_number = ParachainSystem::validation_data()
 			.map(|d| d.relay_parent_number)
-			.expect("exists iff this was called before on_initialize && after set_validation_data")
-	}
-	fn get_epoch_index() -> u64 {
-		relay_chain_state_proof()
+			.expect("exists iff this was called before on_initialize && after set_validation_data");
+		let relay_chain_state_proof = relay_chain_state_proof();
+		let epoch_index = relay_chain_state_proof
 			.read_optional_entry(relay_chain::well_known_keys::EPOCH_INDEX)
 			.ok()
 			.flatten()
-			.expect("expected to be able to read epoch index from relay chain state proof")
+			.expect("expected to be able to read epoch index from relay chain state proof");
+		let current_block_randomness = relay_chain_state_proof
+			.read_optional_entry(relay_chain::well_known_keys::CURRENT_BLOCK_RANDOMNESS)
+			.ok()
+			.flatten();
+		let one_epoch_ago_randomness = relay_chain_state_proof
+			.read_optional_entry(relay_chain::well_known_keys::ONE_EPOCH_AGO_RANDOMNESS)
+			.ok()
+			.flatten();
+		let two_epochs_ago_randomness = relay_chain_state_proof
+			.read_optional_entry(relay_chain::well_known_keys::TWO_EPOCHS_AGO_RANDOMNESS)
+			.ok()
+			.flatten();
+		Randomness::set_randomness(
+			block_number,
+			epoch_index,
+			current_block_randomness,
+			one_epoch_ago_randomness,
+			two_epochs_ago_randomness,
+		);
 	}
 }
 
 impl pallet_vrf::Config for Runtime {
-	/// Gets the most recent relay block number and epoch index
-	type RelayTime = RelayTimeFromParachainSystem;
 	/// Gets the most recent relay block hash and relay slot number in `on_initialize`
 	type VrfInputs = VrfInputs;
 	/// Lookup VRF key using NimbusID
 	type VrfKeyLookup = AuthorMapping;
+	/// Handler to set the babe relay randomness in `pallet-randomness`
+	type BabeDataSetter = BabeDataSetter;
 }
 
 parameter_types! {

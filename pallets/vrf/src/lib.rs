@@ -48,19 +48,10 @@ pub mod pallet {
 	/// Both inputs are expected to change every block
 	#[derive(Default, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
 	pub struct VrfInput<SlotNumber, RelayHash> {
-		/// Relay parent block slot number
+		/// Relay block slot number
 		pub slot_number: SlotNumber,
-		/// Relay parent block storage root
+		/// Relay block storage root
 		pub storage_root: RelayHash,
-	}
-
-	/// Relay chain time data for randomness pallet
-	/// Stored in this pallet so can be updated in the `set_vrf_inputs` inherent
-	/// after all inherents but before on_initialize
-	#[derive(Default, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
-	pub struct RelayTime<BlockNumber, EpochIndex> {
-		pub block_number: BlockNumber,
-		pub epoch_index: EpochIndex,
 	}
 
 	/// For the runtime to implement to expose cumulus data to this pallet and cost of getting data
@@ -71,10 +62,9 @@ pub mod pallet {
 		fn get_storage_root() -> StorageRoot;
 	}
 
-	/// Get the relay chain epoch index and block number
-	pub trait GetRelayTime<BlockNumber, EpochIndex> {
-		fn get_block_number() -> BlockNumber;
-		fn get_epoch_index() -> EpochIndex;
+	/// To set the relay chain data in `pallet-randomness`, to be implemented in the runtime
+	pub trait SetRelayRandomness {
+		fn set_relay_randomness();
 	}
 
 	/// Exposes randomness in this pallet to the runtime
@@ -97,19 +87,13 @@ pub mod pallet {
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
-		/// Gets the most recent relay block number and epoch index
-		type RelayTime: GetRelayTime<BlockNumberFor<Self>, u64>;
 		/// Gets the most recent relay block hash and relay slot number
 		type VrfInputs: GetVrfInputs<Slot, Self::Hash>;
 		/// Takes NimbusId to return VrfId
 		type VrfKeyLookup: KeysLookup<NimbusId, VrfId>;
+		/// Handler to set the babe relay randomness in `pallet-randomness`
+		type BabeDataSetter: SetRelayRandomness;
 	}
-
-	/// Current relay block number and epoch index
-	/// Stored here to be updated by the `set_vrf_inputs` inherent
-	#[pallet::storage]
-	#[pallet::getter(fn relay_chain_time)]
-	pub type RelayChainTime<T> = StorageValue<_, RelayTime<BlockNumberFor<T>, u64>>;
 
 	/// Current block randomness
 	/// Set in `on_initialize`, before it will contain the randomness for this block
@@ -136,14 +120,12 @@ pub mod pallet {
 		// This should go into on_post_inherents when it is ready
 		// https://github.com/paritytech/substrate/pull/10128
 		// TODO weight
-		#[pallet::weight((0, DispatchClass::Mandatory))]
+		#[pallet::weight((1_000 + 7 * T::DbWeight::get().write, DispatchClass::Mandatory))]
 		pub fn set_vrf_inputs(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			ensure_none(origin)?;
 
 			let storage_root = T::VrfInputs::get_storage_root();
 			let slot_number = T::VrfInputs::get_slot_number();
-			let block_number = T::RelayTime::get_block_number();
-			let epoch_index = T::RelayTime::get_epoch_index();
 			if let Some(last_vrf_inputs) = <CurrentVrfInput<T>>::take() {
 				// logs if input uniqueness assumptions are violated (no reuse of vrf inputs)
 				if last_vrf_inputs.storage_root == storage_root
@@ -162,10 +144,7 @@ pub mod pallet {
 				storage_root,
 			};
 			<CurrentVrfInput<T>>::put(inputs);
-			<RelayChainTime<T>>::put(RelayTime {
-				block_number,
-				epoch_index,
-			});
+			T::BabeDataSetter::set_relay_randomness();
 
 			Ok(Pays::No.into())
 		}

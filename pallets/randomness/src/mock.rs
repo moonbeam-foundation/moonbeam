@@ -189,29 +189,6 @@ impl pallet_evm::Config for Test {
 	type WeightInfo = ();
 }
 
-pub struct RelayTime;
-impl pallet_vrf::GetRelayTime<BlockNumber, u64> for RelayTime {
-	fn get_block_number() -> BlockNumber {
-		1
-	}
-	fn get_epoch_index() -> u64 {
-		1
-	}
-}
-
-pub struct RelayRandomness;
-impl GetRelayRandomness<H256> for RelayRandomness {
-	fn get_current_block_randomness() -> (Option<H256>, Weight) {
-		(None, 0)
-	}
-	fn get_one_epoch_ago_randomness() -> (Option<H256>, Weight) {
-		(None, 0)
-	}
-	fn get_two_epochs_ago_randomness() -> (Option<H256>, Weight) {
-		(None, 0)
-	}
-}
-
 pub struct LocalRandomness;
 impl pallet_vrf::MaybeGetRandomness<H256> for LocalRandomness {
 	fn maybe_get_randomness() -> Option<H256> {
@@ -226,8 +203,6 @@ parameter_types! {
 impl Config for Test {
 	type Event = Event;
 	type ReserveCurrency = Balances;
-	type RelayTime = RelayTime;
-	type RelayRandomness = RelayRandomness;
 	type LocalRandomness = LocalRandomness;
 	type Deposit = Deposit;
 	type ExpirationDelay = ExpirationDelay;
