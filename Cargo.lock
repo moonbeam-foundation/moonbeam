@@ -5371,7 +5371,7 @@ dependencies = [
  "pallet-proxy-genesis-companion",
  "pallet-randomness",
  "pallet-randomness-collective-flip",
- "pallet-randomness-precompiles",
+ "pallet-evm-precompile-randomness",
  "pallet-scheduler",
  "pallet-society",
  "pallet-sudo",
@@ -7870,7 +7870,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-randomness-precompiles"
+name = "pallet-evm-precompile-randomness"
 version = "0.1.0"
 dependencies = [
  "derive_more",

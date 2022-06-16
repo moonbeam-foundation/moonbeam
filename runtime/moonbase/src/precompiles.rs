@@ -28,13 +28,13 @@ use pallet_evm_precompile_democracy::DemocracyWrapper;
 use pallet_evm_precompile_dispatch::Dispatch;
 use pallet_evm_precompile_modexp::Modexp;
 use pallet_evm_precompile_parachain_staking::ParachainStakingWrapper;
+use pallet_evm_precompile_randomness::RandomnessWrapper; // TODO: rename
 use pallet_evm_precompile_relay_encoder::RelayEncoderWrapper;
 use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
 use pallet_evm_precompile_xcm_transactor::XcmTransactorWrapper;
 use pallet_evm_precompile_xtokens::XtokensWrapper;
 use pallet_evm_precompileset_assets_erc20::{Erc20AssetsPrecompileSet, IsForeign, IsLocal};
-use pallet_randomness_precompiles::RandomnessWrapper; // TODO: rename
 use precompile_utils::{revert, StatefulPrecompile};
 use sp_core::H160;
 use sp_std::fmt::Debug;

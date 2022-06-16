@@ -1,5 +1,5 @@
 [package]
-name = "pallet-randomness-precompiles"
+name = "pallet-evm-precompile-randomness"
 authors = [ "PureStake" ]
 description = "A Precompile to make randomnness accessible to pallet-evm"
 edition = "2021"
