@@ -48,8 +48,8 @@ use frame_support::{
 	},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
-		DispatchClass, GetDispatchInfo, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients,
-		WeightToFeePolynomial,
+		ConstantMultiplier, DispatchClass, GetDispatchInfo, Weight, WeightToFeeCoefficient,
+		WeightToFeeCoefficients, WeightToFeePolynomial,
 	},
 	PalletId,
 };
@@ -70,9 +70,8 @@ use pallet_evm::{
 	Account as EVMAccount, EVMCurrencyAdapter, EnsureAddressNever, EnsureAddressRoot,
 	FeeCalculator, GasWeightMapping, OnChargeEVMTransaction as OnChargeEVMTransactionT, Runner,
 };
+pub use pallet_parachain_staking::{InflationInfo, Range};
 use pallet_transaction_payment::{CurrencyAdapter, Multiplier, TargetedFeeAdjustment};
-use pallet_vrf::GetVrfInputs;
-pub use parachain_staking::{InflationInfo, Range};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 use sp_api::impl_runtime_apis;
@@ -302,28 +301,6 @@ where
 	}
 }
 
-pub struct WeightToFee;
-impl WeightToFeePolynomial for WeightToFee {
-	type Balance = Balance;
-
-	/// Return a vec of coefficients. Here we just use one coefficient and reduce it to a constant
-	/// modifier in order to closely match Ethereum-based fees.
-	///
-	/// Calculation, per the documentation in `frame_support`:
-	///
-	/// ```ignore
-	/// coeff_integer * x^(degree) + coeff_frac * x^(degree)
-	/// ```
-	fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
-		smallvec![WeightToFeeCoefficient {
-			degree: 1,
-			coeff_frac: Perbill::zero(),
-			coeff_integer: currency::WEIGHT_FEE,
-			negative: false,
-		}]
-	}
-}
-
 pub struct LengthToFee;
 impl WeightToFeePolynomial for LengthToFee {
 	type Balance = Balance;
@@ -339,7 +316,7 @@ impl WeightToFeePolynomial for LengthToFee {
 			WeightToFeeCoefficient {
 				degree: 3,
 				coeff_frac: Perbill::zero(),
-				coeff_integer: 1,
+				coeff_integer: 1 * currency::SUPPLY_FACTOR,
 				negative: false,
 			},
 		]
@@ -349,7 +326,7 @@ impl WeightToFeePolynomial for LengthToFee {
 impl pallet_transaction_payment::Config for Runtime {
 	type OnChargeTransaction = CurrencyAdapter<Balances, DealWithFees<Runtime>>;
 	type OperationalFeeMultiplier = ConstU8<5>;
-	type WeightToFee = WeightToFee;
+	type WeightToFee = ConstantMultiplier<Balance, ConstU128<{ currency::WEIGHT_FEE }>>;
 	type LengthToFee = LengthToFee;
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Runtime>;
 }
@@ -443,7 +420,7 @@ where
 	}
 }
 
-runtime_common::impl_on_charge_evm_transaction!();
+moonbeam_runtime_common::impl_on_charge_evm_transaction!();
 
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = FixedGasPrice;
@@ -451,7 +428,7 @@ impl pallet_evm::Config for Runtime {
 	type BlockHashMapping = pallet_ethereum::EthereumBlockHashMapping<Self>;
 	type CallOrigin = EnsureAddressRoot<AccountId>;
 	type WithdrawOrigin = EnsureAddressNever<AccountId>;
-	type AddressMapping = runtime_common::IntoAddressMapping;
+	type AddressMapping = moonbeam_runtime_common::IntoAddressMapping;
 	type Currency = Balances;
 	type Event = Event;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
@@ -684,9 +661,9 @@ parameter_types! {
 }
 
 pub struct OnCollatorPayout;
-impl parachain_staking::OnCollatorPayout<AccountId, Balance> for OnCollatorPayout {
+impl pallet_parachain_staking::OnCollatorPayout<AccountId, Balance> for OnCollatorPayout {
 	fn on_collator_payout(
-		for_round: parachain_staking::RoundIndex,
+		for_round: pallet_parachain_staking::RoundIndex,
 		collator_id: AccountId,
 		amount: Balance,
 	) -> Weight {
@@ -694,13 +671,13 @@ impl parachain_staking::OnCollatorPayout<AccountId, Balance> for OnCollatorPayou
 	}
 }
 pub struct OnNewRound;
-impl parachain_staking::OnNewRound for OnNewRound {
-	fn on_new_round(round_index: parachain_staking::RoundIndex) -> Weight {
+impl pallet_parachain_staking::OnNewRound for OnNewRound {
+	fn on_new_round(round_index: pallet_parachain_staking::RoundIndex) -> Weight {
 		MoonbeamOrbiters::on_new_round(round_index)
 	}
 }
 
-impl parachain_staking::Config for Runtime {
+impl pallet_parachain_staking::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
 	type MonetaryGovernanceOrigin = EnsureRoot<AccountId>;
@@ -740,7 +717,7 @@ impl parachain_staking::Config for Runtime {
 	type MinDelegatorStk = ConstU128<{ 1 * currency::UNIT * currency::SUPPLY_FACTOR }>;
 	type OnCollatorPayout = OnCollatorPayout;
 	type OnNewRound = OnNewRound;
-	type WeightInfo = parachain_staking::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = pallet_parachain_staking::weights::SubstrateWeight<Runtime>;
 }
 
 impl pallet_author_inherent::Config for Runtime {
@@ -893,14 +870,15 @@ impl pallet_proxy::Config for Runtime {
 
 impl pallet_migrations::Config for Runtime {
 	type Event = Event;
-	//TODO wire up our correct list of migrations here. Maybe this shouldn't be in `runtime_common`.
+	// TODO wire up our correct list of migrations here. Maybe this shouldn't be in
+	// `moonbeam_runtime_common`.
 	type MigrationsList = (
-		runtime_common::migrations::CommonMigrations<
+		moonbeam_runtime_common::migrations::CommonMigrations<
 			Runtime,
 			CouncilCollective,
 			TechCommitteeCollective,
 		>,
-		runtime_common::migrations::XcmMigrations<Runtime>,
+		moonbeam_runtime_common::migrations::XcmMigrations<Runtime>,
 	);
 }
 
@@ -1107,7 +1085,7 @@ fn relay_chain_state_proof() -> RelayChainStateProof {
 }
 
 pub struct VrfInputs;
-impl GetVrfInputs<Slot, Hash> for VrfInputs {
+impl pallet_vrf::GetVrfInputs<Slot, Hash> for VrfInputs {
 	fn get_slot_number() -> Slot {
 		relay_chain_state_proof()
 			.read_slot()
@@ -1180,7 +1158,7 @@ impl pallet_moonbeam_orbiters::Config for Runtime {
 	type OrbiterReserveIdentifier = OrbiterReserveIdentifier;
 	type RotatePeriod = ConstU32<3>;
 	/// Round index type.
-	type RoundIndex = parachain_staking::RoundIndex;
+	type RoundIndex = pallet_parachain_staking::RoundIndex;
 	type WeightInfo = pallet_moonbeam_orbiters::weights::SubstrateWeight<Runtime>;
 }
 
@@ -1202,7 +1180,7 @@ construct_runtime! {
 		EthereumChainId: pallet_ethereum_chain_id::{Pallet, Storage, Config} = 9,
 		EVM: pallet_evm::{Pallet, Config, Call, Storage, Event<T>} = 10,
 		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Origin, Config} = 11,
-		ParachainStaking: parachain_staking::{Pallet, Call, Storage, Event<T>, Config<T>} = 12,
+		ParachainStaking: pallet_parachain_staking::{Pallet, Call, Storage, Event<T>, Config<T>} = 12,
 		Scheduler: pallet_scheduler::{Pallet, Storage, Event<T>, Call} = 13,
 		Democracy: pallet_democracy::{Pallet, Storage, Config<T>, Event<T>, Call} = 14,
 		CouncilCollective:
@@ -1225,7 +1203,7 @@ construct_runtime! {
 		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>} = 30,
 		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>} = 31,
 		Migrations: pallet_migrations::{Pallet, Storage, Config, Event<T>} = 32,
-		XcmTransactor: xcm_transactor::{Pallet, Call, Storage, Event<T>} = 33,
+		XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Storage, Event<T>} = 33,
 		ProxyGenesisCompanion: pallet_proxy_genesis_companion::{Pallet, Config<T>} = 34,
 		BaseFee: pallet_base_fee::{Pallet, Call, Storage, Config<T>, Event} = 35,
 		LocalAssets: pallet_assets::<Instance1>::{Pallet, Call, Storage, Event<T>} = 36,
@@ -1276,7 +1254,7 @@ pub type Executive = frame_executive::Executive<
 //     // Specific impls provided to the `impl_runtime_apis_plus_common!` macro.
 // }
 // ```
-runtime_common::impl_runtime_apis_plus_common! {
+moonbeam_runtime_common::impl_runtime_apis_plus_common! {
 	impl sp_transaction_pool::runtime_api::TaggedTransactionQueue<Block> for Runtime {
 		fn validate_transaction(
 			source: TransactionSource,
@@ -1386,7 +1364,7 @@ cumulus_pallet_parachain_system::register_validate_block!(
 	CheckInherents = CheckInherents,
 );
 
-runtime_common::impl_self_contained_call!();
+moonbeam_runtime_common::impl_self_contained_call!();
 
 // Shorthand for a Get field of a pallet Config.
 #[macro_export]
@@ -1411,7 +1389,9 @@ mod tests {
 		);
 		assert!(std::mem::size_of::<pallet_evm::Call<Runtime>>() <= CALL_ALIGN as usize);
 		assert!(std::mem::size_of::<pallet_ethereum::Call<Runtime>>() <= CALL_ALIGN as usize);
-		assert!(std::mem::size_of::<parachain_staking::Call<Runtime>>() <= CALL_ALIGN as usize);
+		assert!(
+			std::mem::size_of::<pallet_parachain_staking::Call<Runtime>>() <= CALL_ALIGN as usize
+		);
 		assert!(
 			std::mem::size_of::<pallet_author_inherent::Call<Runtime>>() <= CALL_ALIGN as usize
 		);
@@ -1428,7 +1408,7 @@ mod tests {
 		assert!(std::mem::size_of::<orml_xtokens::Call<Runtime>>() <= CALL_ALIGN as usize);
 		assert!(std::mem::size_of::<pallet_asset_manager::Call<Runtime>>() <= CALL_ALIGN as usize);
 		assert!(std::mem::size_of::<pallet_migrations::Call<Runtime>>() <= CALL_ALIGN as usize);
-		assert!(std::mem::size_of::<xcm_transactor::Call<Runtime>>() <= CALL_ALIGN as usize);
+		assert!(std::mem::size_of::<pallet_xcm_transactor::Call<Runtime>>() <= CALL_ALIGN as usize);
 		assert!(
 			std::mem::size_of::<pallet_proxy_genesis_companion::Call<Runtime>>()
 				<= CALL_ALIGN as usize
@@ -1478,19 +1458,19 @@ mod tests {
 
 		// staking minimums
 		assert_eq!(
-			get!(parachain_staking, MinCollatorStk, u128),
+			get!(pallet_parachain_staking, MinCollatorStk, u128),
 			Balance::from(1 * KILOUNIT)
 		);
 		assert_eq!(
-			get!(parachain_staking, MinCandidateStk, u128),
+			get!(pallet_parachain_staking, MinCandidateStk, u128),
 			Balance::from(500 * UNIT)
 		);
 		assert_eq!(
-			get!(parachain_staking, MinDelegation, u128),
+			get!(pallet_parachain_staking, MinDelegation, u128),
 			Balance::from(1 * UNIT)
 		);
 		assert_eq!(
-			get!(parachain_staking, MinDelegatorStk, u128),
+			get!(pallet_parachain_staking, MinDelegatorStk, u128),
 			Balance::from(1 * UNIT)
 		);
 
@@ -1526,15 +1506,20 @@ mod tests {
 	}
 
 	#[test]
-	// Required migration is parachain_staking::migrations::IncreaseMaxTopDelegationsPerCandidate
+	// Required migration is
+	// pallet_parachain_staking::migrations::IncreaseMaxTopDelegationsPerCandidate
 	// Purpose of this test is to remind of required migration if constant is ever changed
 	fn updating_maximum_delegators_per_candidate_requires_configuring_required_migration() {
 		assert_eq!(
-			get!(parachain_staking, MaxTopDelegationsPerCandidate, u32),
+			get!(pallet_parachain_staking, MaxTopDelegationsPerCandidate, u32),
 			300
 		);
 		assert_eq!(
-			get!(parachain_staking, MaxBottomDelegationsPerCandidate, u32),
+			get!(
+				pallet_parachain_staking,
+				MaxBottomDelegationsPerCandidate,
+				u32
+			),
 			50
 		);
 	}

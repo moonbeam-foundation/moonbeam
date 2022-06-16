@@ -22,7 +22,7 @@ members = [
 	"precompiles/randomness",
 	"precompiles/relay-encoder",
 	"precompiles/utils/macro",
-	"precompiles/xcm_transactor",
+	"precompiles/xcm-transactor",
 	"precompiles/xtokens",
 	"runtime/moonbase",
 	"runtime/moonbeam",

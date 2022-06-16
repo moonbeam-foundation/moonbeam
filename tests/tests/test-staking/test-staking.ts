@@ -623,7 +623,9 @@ describeDevMoonbeam("Staking - Delegation Requests", (context) => {
     );
 
     const delegationRequestsBefore =
-      await context.polkadotApi.query.parachainStaking.delegationScheduledRequests(alith.address);
+      await context.polkadotApi.query.parachainStaking.delegationScheduledRequests(
+        baltathar.address
+      );
     expect(delegationRequestsBefore.isEmpty).to.be.true;
 
     // schedule bond less
@@ -646,8 +648,14 @@ describeDevMoonbeam("Staking - Delegation Requests", (context) => {
         .signAsync(ethan)
     );
     const delegationRequestsAfter =
-      await context.polkadotApi.query.parachainStaking.delegationScheduledRequests(alith.address);
+      await context.polkadotApi.query.parachainStaking.delegationScheduledRequests(
+        baltathar.address
+      );
     expect(delegationRequestsAfter.toJSON()).to.be.empty;
+    const delegationRequestsKeysAfter = (
+      await context.polkadotApi.query.parachainStaking.delegationScheduledRequests.keys()
+    ).map(({ args: [accountId] }) => accountId.toString());
+    expect(delegationRequestsKeysAfter).to.not.contain(baltathar.address);
   });
 
   it("should successfully remove scheduled requests on delegator leave", async function () {

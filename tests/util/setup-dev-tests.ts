@@ -7,7 +7,7 @@ import { RegistryError } from "@polkadot/types/types";
 import { EventRecord } from "@polkadot/types/interfaces";
 
 import { ethers } from "ethers";
-import { startMoonbeamDevNode } from "./dev-node";
+import { startMoonbeamDevNode, RuntimeChain } from "./dev-node";
 import {
   provideWeb3Api,
   provideEthersApi,
@@ -81,6 +81,7 @@ export function describeDevMoonbeam(
   title: string,
   cb: (context: DevTestContext) => void,
   ethTransactionType: EthTransactionType = "Legacy",
+  runtime: RuntimeChain = "moonbase",
   withWasm?: boolean
 ) {
   describe(title, function () {
@@ -98,7 +99,7 @@ export function describeDevMoonbeam(
     before("Starting Moonbeam Test Node", async function () {
       this.timeout(SPAWNING_TIME);
       const init = !DEBUG_MODE
-        ? await startMoonbeamDevNode(withWasm)
+        ? await startMoonbeamDevNode(withWasm, runtime)
         : {
             runningNode: null,
             p2pPort: 19931,
@@ -273,7 +274,7 @@ export function describeDevMoonbeamAllEthTxTypes(
   withWasm?: boolean
 ) {
   let wasm = withWasm !== undefined ? withWasm : false;
-  describeDevMoonbeam(title + " (Legacy)", cb, "Legacy", wasm);
-  describeDevMoonbeam(title + " (EIP1559)", cb, "EIP1559", wasm);
-  describeDevMoonbeam(title + " (EIP2930)", cb, "EIP2930", wasm);
+  describeDevMoonbeam(title + " (Legacy)", cb, "Legacy", "moonbase", wasm);
+  describeDevMoonbeam(title + " (EIP1559)", cb, "EIP1559", "moonbase", wasm);
+  describeDevMoonbeam(title + " (EIP2930)", cb, "EIP2930", "moonbase", wasm);
 }
