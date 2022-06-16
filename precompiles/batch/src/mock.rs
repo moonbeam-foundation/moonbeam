@@ -166,7 +166,7 @@ impl pallet_balances::Config for Runtime {
 	type WeightInfo = ();
 }
 
-pub type TestPrecompiles<R> = PrecompileSetFromTuple<
+pub type TestPrecompiles<R> = PrecompileSetBuilder<
 	R,
 	(
 		PrecompileAt<AddressU64<1>, BatchPrecompile<R>, LimitRecursionTo<2>>,

@@ -98,7 +98,7 @@ impl<const N: u64> Get<H160> for AddressU64<N> {
 
 /// A fragment of a PrecompileSet. Should be implemented as is it
 /// was a PrecompileSet containing only the precompile(set) it wraps.
-/// They can be combined into a real PrecompileSet using `PrecompileSetFromTuple`.
+/// They can be combined into a real PrecompileSet using `PrecompileSetBuilder`.
 pub trait PrecompileSetFragment {
 	/// Instanciate the fragment.
 	fn new() -> Self;
@@ -455,12 +455,12 @@ where
 }
 
 /// Wraps a tuple of `PrecompileSetFragment` to make a real `PrecompileSet`.
-pub struct PrecompileSetFromTuple<R, P> {
+pub struct PrecompileSetBuilder<R, P> {
 	inner: P,
 	_phantom: PhantomData<R>,
 }
 
-impl<R, P: PrecompileSetFragment> PrecompileSet for PrecompileSetFromTuple<R, P> {
+impl<R, P: PrecompileSetFragment> PrecompileSet for PrecompileSetBuilder<R, P> {
 	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<PrecompileResult> {
 		self.inner.execute(handle)
 	}
@@ -470,7 +470,7 @@ impl<R, P: PrecompileSetFragment> PrecompileSet for PrecompileSetFromTuple<R, P>
 	}
 }
 
-impl<R: pallet_evm::Config, P: PrecompileSetFragment> PrecompileSetFromTuple<R, P> {
+impl<R: pallet_evm::Config, P: PrecompileSetFragment> PrecompileSetBuilder<R, P> {
 	/// Create a new instance of the PrecompileSet.
 	pub fn new() -> Self {
 		Self {

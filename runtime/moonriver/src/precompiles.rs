@@ -81,7 +81,7 @@ parameter_types! {
 /// 0-1023: Ethereum Mainnet Precompiles
 /// 1024-2047 Precompiles that are not in Ethereum Mainnet but are neither Moonbeam specific
 /// 2048-4095 Moonbeam specific precompiles
-pub type MoonriverPrecompiles<R> = PrecompileSetFromTuple<
+pub type MoonriverPrecompiles<R> = PrecompileSetBuilder<
 	R,
 	(
 		// Skip precompiles if out of range.
