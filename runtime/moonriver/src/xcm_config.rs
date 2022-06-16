@@ -246,6 +246,12 @@ pub type XcmFeesToAccount = xcm_primitives::XcmFeesToAccount<
 	XcmFeesAccount,
 >;
 
+use sp_runtime::DispatchErrorWithPostInfo;
+use sp_runtime::traits::PostDispatchInfoOf;
+use frame_system::RawOrigin;
+use xcm_executor::traits::CallDispatcher;
+runtime_common::impl_moonbeam_xcm_call!();
+
 pub struct XcmExecutorConfig;
 impl xcm_executor::Config for XcmExecutorConfig {
 	type Call = Call;
@@ -274,7 +280,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type SubscriptionService = PolkadotXcm;
 	type AssetTrap = PolkadotXcm;
 	type AssetClaims = PolkadotXcm;
-	type CallDispatcher = Call;
+	type CallDispatcher = MoonbeamCall;
 }
 
 type XcmExecutor = xcm_executor::XcmExecutor<XcmExecutorConfig>;
