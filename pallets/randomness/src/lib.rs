@@ -195,15 +195,23 @@ pub mod pallet {
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		/// This inherent is a workaround to run code after the "real" inherents have executed,
-		/// but before transactions are executed.
+		/// but before on_initialize, where ParachainSystem kills data required to form the
+		/// RelayChainStateProof (which must be read to get BABE randomness for example).
 		// This should go into on_post_inherents when it is ready
 		// https://github.com/paritytech/substrate/pull/10128
-		// TODO weight
-		#[pallet::weight((10_000 + 7 * T::DbWeight::get().write, DispatchClass::Mandatory))]
+		// Weight is 10_000 margin of safety + number of reads/writes
+		#[pallet::weight((
+			10_000 + 7 * T::DbWeight::get().write + T::DbWeight::get().read,
+			DispatchClass::Mandatory
+		))]
 		pub fn set_relay_data(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			ensure_none(origin)?;
 
+			// Expected to call `Self::set_relay_randomness` with inputs read from the runtime
+			// Therefore expect 5 writes
 			T::RelayRandomnessSetter::set_relay_randomness();
+			// Expected to call `pallet_vrf::set_vrf_inputs` with inputs read from the runtime
+			// Therefore expect 2 writes + 1 read
 			T::VrfInputSetter::set_vrf_inputs();
 
 			Ok(Pays::No.into())
@@ -245,7 +253,7 @@ pub mod pallet {
 			sp_io::hashing::blake2_256(&s)
 		}
 		/// For the runtime to set the randomness storage values in this pallet
-		pub fn set_randomness(
+		pub fn set_relay_randomness(
 			block_number: T::BlockNumber,
 			epoch_index: Option<u64>,
 			current_block_randomness: Option<T::Hash>,

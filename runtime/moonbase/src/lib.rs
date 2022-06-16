@@ -1133,7 +1133,7 @@ impl session_keys_primitives::SetRelayRandomness for RelayRandomnessSetter {
 			.read_optional_entry(relay_chain::well_known_keys::TWO_EPOCHS_AGO_RANDOMNESS)
 			.ok()
 			.flatten();
-		Randomness::set_randomness(
+		Randomness::set_relay_randomness(
 			block_number,
 			epoch_index,
 			current_block_randomness,
