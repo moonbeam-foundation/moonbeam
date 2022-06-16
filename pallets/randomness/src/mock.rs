@@ -21,6 +21,7 @@ use frame_support::{construct_runtime, parameter_types, traits::Everything, weig
 use pallet_evm::AddressMapping;
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use serde::{Deserialize, Serialize};
+use session_keys_primitives::MaybeGetRandomness;
 use sp_core::{H160, H256};
 use sp_runtime::{
 	testing::Header,
@@ -44,8 +45,6 @@ construct_runtime!(
 	{
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
-		Timestamp: pallet_timestamp::{Pallet, Call, Storage},
-		EVM: pallet_evm::{Pallet, Call, Storage, Config, Event<T>},
 		Randomness: pallet_randomness::{Pallet, Storage, Event<T>},
 	}
 );
@@ -159,38 +158,8 @@ impl pallet_balances::Config for Test {
 	type WeightInfo = ();
 }
 
-parameter_types! {
-	pub const MinimumPeriod: u64 = 6000 / 2;
-}
-
-impl pallet_timestamp::Config for Test {
-	type Moment = u64;
-	type OnTimestampSet = ();
-	type MinimumPeriod = MinimumPeriod;
-	type WeightInfo = ();
-}
-
-impl pallet_evm::Config for Test {
-	type FeeCalculator = ();
-	type GasWeightMapping = ();
-	type CallOrigin = pallet_evm::EnsureAddressRoot<Account>;
-	type WithdrawOrigin = pallet_evm::EnsureAddressNever<Account>;
-	type AddressMapping = Account;
-	type Currency = Balances;
-	type Runner = pallet_evm::runner::stack::Runner<Self>;
-	type Event = Event;
-	type PrecompilesType = ();
-	type PrecompilesValue = ();
-	type ChainId = ();
-	type BlockGasLimit = ();
-	type OnChargeTransaction = ();
-	type BlockHashMapping = pallet_evm::SubstrateBlockHashMapping<Self>;
-	type FindAuthor = ();
-	type WeightInfo = ();
-}
-
 pub struct LocalRandomness;
-impl pallet_vrf::MaybeGetRandomness<H256> for LocalRandomness {
+impl MaybeGetRandomness<H256> for LocalRandomness {
 	fn maybe_get_randomness() -> Option<H256> {
 		None
 	}
@@ -202,7 +171,10 @@ parameter_types! {
 }
 impl Config for Test {
 	type Event = Event;
+	type AddressMapping = Account;
 	type ReserveCurrency = Balances;
+	type RelayRandomnessSetter = ();
+	type VrfInputSetter = ();
 	type LocalRandomness = LocalRandomness;
 	type Deposit = Deposit;
 	type ExpirationDelay = ExpirationDelay;

@@ -18,18 +18,8 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 pub mod inherent;
+pub mod traits;
 pub mod vrf;
 pub use inherent::*;
+pub use traits::*;
 pub use vrf::*;
-
-/// A Trait to lookup keys from AuthorIds
-pub trait KeysLookup<AuthorId, Keys> {
-	fn lookup_keys(author: &AuthorId) -> Option<Keys>;
-}
-
-// A dummy impl used in simple tests
-impl<AuthorId, Keys> KeysLookup<AuthorId, Keys> for () {
-	fn lookup_keys(_: &AuthorId) -> Option<Keys> {
-		None
-	}
-}

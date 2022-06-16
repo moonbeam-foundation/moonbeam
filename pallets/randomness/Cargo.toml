@@ -10,9 +10,9 @@ version = "0.1.0"
 frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
 frame-system = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
 log = "0.4"
-pallet-vrf = { path = "../vrf", default-features = false }
 parity-scale-codec = { version = "3.0.0", default-features = false, features = [ "derive" ] }
 scale-info = { version = "2.0", default-features = false, features = [ "derive" ] }
+session-keys-primitives = { path = "../../primitives/session-keys", default-features = false }
 sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
 sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
 sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
@@ -34,9 +34,9 @@ std = [
 	"frame-support/std",
 	"frame-system/std",
 	"pallet-evm/std",
-	"pallet-vrf/std",
 	"parity-scale-codec/std",
 	"scale-info/std",
+	"session-keys-primitives/std",
 	"sp-core/std",
 	"sp-io/std",
 	"sp-runtime/std",

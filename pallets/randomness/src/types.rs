@@ -21,7 +21,7 @@ use crate::{
 use frame_support::pallet_prelude::*;
 use frame_support::traits::{Currency, ExistenceRequirement::KeepAlive, ReservableCurrency};
 use pallet_evm::AddressMapping;
-use pallet_vrf::MaybeGetRandomness;
+use session_keys_primitives::MaybeGetRandomness;
 use sp_core::{H160, H256};
 use sp_runtime::traits::{CheckedSub, Saturating};
 

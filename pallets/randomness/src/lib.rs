@@ -42,7 +42,11 @@ pub mod pallet {
 	// use crate::WeightInfo;
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{Currency, ReservableCurrency};
+	use frame_system::pallet_prelude::*;
 	use pallet_evm::AddressMapping;
+	use session_keys_primitives::{
+		InherentError, MaybeGetRandomness, SetRelayRandomness, SetVrfInputs, INHERENT_IDENTIFIER,
+	};
 	use sp_core::{H160, H256};
 	use sp_runtime::traits::Saturating;
 	use sp_std::{convert::TryInto, vec::Vec};
@@ -60,13 +64,19 @@ pub mod pallet {
 
 	/// Configuration trait of this pallet.
 	#[pallet::config]
-	pub trait Config: frame_system::Config + pallet_evm::Config {
+	pub trait Config: frame_system::Config {
 		/// Overarching event type
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
+		/// Address mapping to convert from H160 to AccountId
+		type AddressMapping: AddressMapping<Self::AccountId>;
 		/// Currency in which the security deposit will be taken.
 		type ReserveCurrency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
+		/// Set BABE randomness values in `set_relay_data` inherent from the runtime
+		type RelayRandomnessSetter: SetRelayRandomness;
+		/// Set vrf inputs in `set_relay_data` inherent from the runtime
+		type VrfInputSetter: SetVrfInputs;
 		/// Get per block vrf randomness
-		type LocalRandomness: pallet_vrf::MaybeGetRandomness<Self::Hash>;
+		type LocalRandomness: MaybeGetRandomness<Self::Hash>;
 		#[pallet::constant]
 		/// The amount that should be taken as a security deposit when requesting randomness.
 		type Deposit: Get<BalanceOf<Self>>;
@@ -181,6 +191,50 @@ pub mod pallet {
 	/// Relay chain two epochs ago randomness
 	/// Some(randomness) or None if not updated
 	pub type TwoEpochsAgoRandomness<T: Config> = StorageValue<_, Option<T::Hash>, ValueQuery>;
+
+	#[pallet::call]
+	impl<T: Config> Pallet<T> {
+		/// This inherent is a workaround to run code after the "real" inherents have executed,
+		/// but before transactions are executed.
+		// This should go into on_post_inherents when it is ready
+		// https://github.com/paritytech/substrate/pull/10128
+		// TODO weight
+		#[pallet::weight((10_000 + 7 * T::DbWeight::get().write, DispatchClass::Mandatory))]
+		pub fn set_relay_data(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
+			ensure_none(origin)?;
+
+			T::RelayRandomnessSetter::set_relay_randomness();
+			T::VrfInputSetter::set_vrf_inputs();
+
+			Ok(Pays::No.into())
+		}
+	}
+
+	#[pallet::inherent]
+	impl<T: Config> ProvideInherent for Pallet<T> {
+		type Call = Call<T>;
+		type Error = InherentError;
+		const INHERENT_IDENTIFIER: InherentIdentifier = INHERENT_IDENTIFIER;
+
+		fn is_inherent_required(_: &InherentData) -> Result<Option<Self::Error>, Self::Error> {
+			// Return Ok(Some(_)) unconditionally because this inherent is required in every block
+			// If it is not found, throw a VrfInherentRequired error.
+			Ok(Some(InherentError::Other(
+				sp_runtime::RuntimeString::Borrowed(
+					"Inherent required to set relay data for randomness",
+				),
+			)))
+		}
+
+		// The empty-payload inherent extrinsic.
+		fn create_inherent(_data: &InherentData) -> Option<Self::Call> {
+			Some(Call::set_relay_data {})
+		}
+
+		fn is_inherent(call: &Self::Call) -> bool {
+			matches!(call, Call::set_relay_data { .. })
+		}
+	}
 
 	// Utility functions
 	impl<T: Config> Pallet<T> {

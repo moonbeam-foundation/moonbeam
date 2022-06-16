@@ -22,7 +22,6 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
-use session_keys_primitives::{InherentError, KeysLookup, VrfId, INHERENT_IDENTIFIER};
 use sp_application_crypto::ByteArray;
 use sp_consensus_babe::{digests::PreDigest, Slot, Transcript, BABE_ENGINE_ID};
 use sp_consensus_vrf::schnorrkel;
@@ -43,6 +42,7 @@ pub mod pallet {
 	use super::*;
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
+	use session_keys_primitives::{KeysLookup, MaybeGetRandomness, VrfId};
 
 	/// VRF inputs from the relay chain
 	/// Both inputs are expected to change every block
@@ -52,24 +52,6 @@ pub mod pallet {
 		pub slot_number: SlotNumber,
 		/// Relay block storage root
 		pub storage_root: RelayHash,
-	}
-
-	/// For the runtime to implement to expose cumulus data to this pallet and cost of getting data
-	pub trait GetVrfInputs<SlotNumber, StorageRoot> {
-		/// Returns most recent relay slot number and weight consumed by get
-		fn get_slot_number() -> SlotNumber;
-		/// Returns most recent relay storage root and weight consumed by get
-		fn get_storage_root() -> StorageRoot;
-	}
-
-	/// To set the relay chain data in `pallet-randomness`, to be implemented in the runtime
-	pub trait SetRelayRandomness {
-		fn set_relay_randomness();
-	}
-
-	/// Exposes randomness in this pallet to the runtime
-	pub trait MaybeGetRandomness<R> {
-		fn maybe_get_randomness() -> Option<R>;
 	}
 
 	/// Make VRF transcript
@@ -87,12 +69,8 @@ pub mod pallet {
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
-		/// Gets the most recent relay block hash and relay slot number
-		type VrfInputs: GetVrfInputs<Slot, Self::Hash>;
 		/// Takes NimbusId to return VrfId
 		type VrfKeyLookup: KeysLookup<NimbusId, VrfId>;
-		/// Handler to set the babe relay randomness in `pallet-randomness`
-		type BabeDataSetter: SetRelayRandomness;
 	}
 
 	/// Current block randomness
@@ -113,75 +91,15 @@ pub mod pallet {
 	#[pallet::getter(fn last_vrf_input)]
 	pub(crate) type LastVrfInput<T: Config> = StorageValue<_, VrfInput<Slot, T::Hash>>;
 
-	#[pallet::call]
-	impl<T: Config> Pallet<T> {
-		/// This inherent is a workaround to run code after the "real" inherents have executed,
-		/// but before transactions are executed.
-		// This should go into on_post_inherents when it is ready
-		// https://github.com/paritytech/substrate/pull/10128
-		// TODO weight
-		#[pallet::weight((1_000 + 7 * T::DbWeight::get().write, DispatchClass::Mandatory))]
-		pub fn set_vrf_inputs(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
-			ensure_none(origin)?;
-
-			let storage_root = T::VrfInputs::get_storage_root();
-			let slot_number = T::VrfInputs::get_slot_number();
-			if let Some(last_vrf_inputs) = <CurrentVrfInput<T>>::take() {
-				// logs if input uniqueness assumptions are violated (no reuse of vrf inputs)
-				if last_vrf_inputs.storage_root == storage_root
-					|| last_vrf_inputs.slot_number == slot_number
-				{
-					log::warn!(
-						"VRF on_initialize: storage root or slot number did not change between \
-					current and last block. Nimbus would've panicked if slot number did not change \
-					so probably storage root did not change."
-					);
-				}
-				<LastVrfInput<T>>::put(last_vrf_inputs);
-			}
-			let inputs = VrfInput {
-				slot_number,
-				storage_root,
-			};
-			<CurrentVrfInput<T>>::put(inputs);
-			T::BabeDataSetter::set_relay_randomness();
-
-			Ok(Pays::No.into())
-		}
-	}
-
-	#[pallet::inherent]
-	impl<T: Config> ProvideInherent for Pallet<T> {
-		type Call = Call<T>;
-		type Error = InherentError;
-		const INHERENT_IDENTIFIER: InherentIdentifier = INHERENT_IDENTIFIER;
-
-		fn is_inherent_required(_: &InherentData) -> Result<Option<Self::Error>, Self::Error> {
-			// Return Ok(Some(_)) unconditionally because this inherent is required in every block
-			// If it is not found, throw a VrfInherentRequired error.
-			Ok(Some(InherentError::Other(
-				sp_runtime::RuntimeString::Borrowed("Inherent required to set VRF inputs"),
-			)))
-		}
-
-		// The empty-payload inherent extrinsic.
-		fn create_inherent(_data: &InherentData) -> Option<Self::Call> {
-			Some(Call::set_vrf_inputs {})
-		}
-
-		fn is_inherent(call: &Self::Call) -> bool {
-			matches!(call, Call::set_vrf_inputs { .. })
-		}
-	}
-
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
 		// Set this block's randomness using the VRF output
 		fn on_initialize(_now: BlockNumberFor<T>) -> Weight {
 			// TODO: how is this set the first block in the runtime upgrade that includes this code
 			// what is the genesis VRF input and how do we populate LastVrfInput with this value
-			let vrf_input = <LastVrfInput<T>>::get()
-				.expect("Expect to be set in `set_vrf_inputs` inherent prior to on_initialize");
+			// PROPOSE: first block will be just default if it is not set, 0 input is default
+			let vrf_input = <LastVrfInput<T>>::get().unwrap_or_default();
+			//.expect("Expect to be set in `set_vrf_inputs` inherent prior to on_initialize");
 			Self::set_randomness(vrf_input)
 		}
 		// Ensure next block's VRF input is set in storage
@@ -236,6 +154,27 @@ pub mod pallet {
 				.expect("VRF output encoded in pre-runtime digest must be valid");
 			CurrentRandomness::<T>::put(randomness);
 			T::DbWeight::get().read + 2 * T::DbWeight::get().write
+		}
+		/// Set vrf inputs from the runtime
+		pub fn set_vrf_inputs(slot_number: Slot, storage_root: T::Hash) {
+			if let Some(last_vrf_inputs) = <CurrentVrfInput<T>>::take() {
+				// logs if input uniqueness assumptions are violated (no reuse of vrf inputs)
+				if last_vrf_inputs.storage_root == storage_root
+					|| last_vrf_inputs.slot_number == slot_number
+				{
+					log::warn!(
+						"VRF on_initialize: storage root or slot number did not change between \
+					current and last block. Nimbus would've panicked if slot number did not change \
+					so probably storage root did not change."
+					);
+				}
+				<LastVrfInput<T>>::put(last_vrf_inputs);
+			}
+			let inputs = VrfInput {
+				slot_number,
+				storage_root,
+			};
+			<CurrentVrfInput<T>>::put(inputs);
 		}
 	}
 

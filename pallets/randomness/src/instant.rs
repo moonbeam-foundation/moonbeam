@@ -18,7 +18,7 @@
 ///! exposes the most recent values for all the pallet storage values
 use crate::{Config, Error, Pallet};
 use frame_support::StorageValue;
-use pallet_vrf::MaybeGetRandomness;
+use session_keys_primitives::MaybeGetRandomness;
 use sp_core::H256;
 use sp_runtime::DispatchError;
 

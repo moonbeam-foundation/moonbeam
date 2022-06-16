@@ -28,8 +28,8 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
-use cumulus_pallet_parachain_system::RelaychainBlockNumberProvider;
-use cumulus_primitives_core::relay_chain::{self, v2::Slot};
+use cumulus_pallet_parachain_system::{RelayChainStateProof, RelaychainBlockNumberProvider};
+use cumulus_primitives_core::relay_chain;
 use fp_rpc::TransactionStatus;
 
 use account::AccountId20;
@@ -1059,20 +1059,32 @@ impl pallet_base_fee::Config for Runtime {
 	type DefaultBaseFeePerGas = DefaultBaseFeePerGas;
 }
 
-// TODO: set reasonable params
 parameter_types! {
-	pub const RandomnessRequestDeposit: u128 = 10;
-	pub const ExpirationDelay: BlockNumber = 100;
-}
-impl pallet_randomness::Config for Runtime {
-	type Event = Event;
-	type ReserveCurrency = Balances;
-	type LocalRandomness = Vrf;
-	type Deposit = RandomnessRequestDeposit;
-	type ExpirationDelay = ExpirationDelay;
+	pub OrbiterReserveIdentifier: [u8; 4] = [b'o', b'r', b'b', b'i'];
 }
 
-use cumulus_pallet_parachain_system::RelayChainStateProof; // TODO: move to top of file
+impl pallet_moonbeam_orbiters::Config for Runtime {
+	type Event = Event;
+	type AccountLookup = AuthorMapping;
+	type AddCollatorOrigin = EnsureRoot<AccountId>;
+	type Currency = Balances;
+	type DelCollatorOrigin = EnsureRoot<AccountId>;
+	/// Maximum number of orbiters per collator
+	type MaxPoolSize = ConstU32<8>;
+	/// Maximum number of round to keep on storage
+	type MaxRoundArchive = ConstU32<4>;
+	type OrbiterReserveIdentifier = OrbiterReserveIdentifier;
+	type RotatePeriod = ConstU32<3>;
+	/// Round index type.
+	type RoundIndex = pallet_parachain_staking::RoundIndex;
+	type WeightInfo = pallet_moonbeam_orbiters::weights::SubstrateWeight<Runtime>;
+}
+
+impl pallet_vrf::Config for Runtime {
+	/// Lookup VRF key using NimbusID
+	type VrfKeyLookup = AuthorMapping;
+}
+
 /// Only callable after `set_validation_data` is called which forms this proof the same way
 fn relay_chain_state_proof() -> RelayChainStateProof {
 	let relay_storage_root = ParachainSystem::validation_data()
@@ -1084,22 +1096,21 @@ fn relay_chain_state_proof() -> RelayChainStateProof {
 		.expect("Invalid relay chain state proof, already constructed in `set_validation_data`")
 }
 
-pub struct VrfInputs;
-impl pallet_vrf::GetVrfInputs<Slot, Hash> for VrfInputs {
-	fn get_slot_number() -> Slot {
-		relay_chain_state_proof()
+pub struct VrfInputSetter;
+impl session_keys_primitives::SetVrfInputs for VrfInputSetter {
+	fn set_vrf_inputs() {
+		let slot_number = relay_chain_state_proof()
 			.read_slot()
-			.expect("CheckInherents reads slot from state proof in same way QED")
-	}
-	fn get_storage_root() -> Hash {
-		ParachainSystem::validation_data()
+			.expect("CheckInherents reads slot from state proof in same way QED");
+		let storage_root = ParachainSystem::validation_data()
 			.expect("set in `set_validation_data`")
-			.relay_parent_storage_root
+			.relay_parent_storage_root;
+		Vrf::set_vrf_inputs(slot_number, storage_root);
 	}
 }
 
-pub struct BabeDataSetter;
-impl pallet_vrf::SetRelayRandomness for BabeDataSetter {
+pub struct RelayRandomnessSetter;
+impl session_keys_primitives::SetRelayRandomness for RelayRandomnessSetter {
 	fn set_relay_randomness() {
 		let block_number = ParachainSystem::validation_data()
 			.map(|d| d.relay_parent_number)
@@ -1132,34 +1143,20 @@ impl pallet_vrf::SetRelayRandomness for BabeDataSetter {
 	}
 }
 
-impl pallet_vrf::Config for Runtime {
-	/// Gets the most recent relay block hash and relay slot number in `on_initialize`
-	type VrfInputs = VrfInputs;
-	/// Lookup VRF key using NimbusID
-	type VrfKeyLookup = AuthorMapping;
-	/// Handler to set the babe relay randomness in `pallet-randomness`
-	type BabeDataSetter = BabeDataSetter;
-}
-
+// TODO: set reasonable params
 parameter_types! {
-	pub OrbiterReserveIdentifier: [u8; 4] = [b'o', b'r', b'b', b'i'];
+	pub const RandomnessRequestDeposit: u128 = 10;
+	pub const ExpirationDelay: BlockNumber = 100;
 }
-
-impl pallet_moonbeam_orbiters::Config for Runtime {
+impl pallet_randomness::Config for Runtime {
 	type Event = Event;
-	type AccountLookup = AuthorMapping;
-	type AddCollatorOrigin = EnsureRoot<AccountId>;
-	type Currency = Balances;
-	type DelCollatorOrigin = EnsureRoot<AccountId>;
-	/// Maximum number of orbiters per collator
-	type MaxPoolSize = ConstU32<8>;
-	/// Maximum number of round to keep on storage
-	type MaxRoundArchive = ConstU32<4>;
-	type OrbiterReserveIdentifier = OrbiterReserveIdentifier;
-	type RotatePeriod = ConstU32<3>;
-	/// Round index type.
-	type RoundIndex = pallet_parachain_staking::RoundIndex;
-	type WeightInfo = pallet_moonbeam_orbiters::weights::SubstrateWeight<Runtime>;
+	type AddressMapping = moonbeam_runtime_common::IntoAddressMapping;
+	type ReserveCurrency = Balances;
+	type RelayRandomnessSetter = RelayRandomnessSetter;
+	type VrfInputSetter = VrfInputSetter;
+	type LocalRandomness = Vrf;
+	type Deposit = RandomnessRequestDeposit;
+	type ExpirationDelay = ExpirationDelay;
 }
 
 construct_runtime! {
@@ -1208,8 +1205,8 @@ construct_runtime! {
 		BaseFee: pallet_base_fee::{Pallet, Call, Storage, Config<T>, Event} = 35,
 		LocalAssets: pallet_assets::<Instance1>::{Pallet, Call, Storage, Event<T>} = 36,
 		MoonbeamOrbiters: pallet_moonbeam_orbiters::{Pallet, Call, Storage, Event<T>} = 37,
-		Vrf: pallet_vrf::{Pallet, Call, Storage} = 38,
-		Randomness: pallet_randomness::{Pallet, Storage, Event<T>} = 39,
+		Vrf: pallet_vrf::{Pallet, Storage} = 38,
+		Randomness: pallet_randomness::{Pallet, Call, Storage, Event<T>} = 39,
 	}
 }
 
@@ -1339,7 +1336,7 @@ struct CheckInherents;
 impl cumulus_pallet_parachain_system::CheckInherents<Block> for CheckInherents {
 	fn check_inherents(
 		block: &Block,
-		relay_state_proof: &cumulus_pallet_parachain_system::RelayChainStateProof,
+		relay_state_proof: &RelayChainStateProof,
 	) -> sp_inherents::CheckInherentsResult {
 		let relay_chain_slot = relay_state_proof
 			.read_slot()
