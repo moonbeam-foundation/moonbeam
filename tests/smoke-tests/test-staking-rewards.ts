@@ -125,7 +125,8 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
     for (const topDelegation of topDelegations) {
       if (!Object.keys(collatorInfo.delegators).includes(topDelegation)) {
         throw new Error(
-          `${topDelegation} is missing from collatorInfo for round ${originalRoundNumber.toString()}`
+          `${topDelegation} is missing from collatorInfo ` +
+            `for round ${originalRoundNumber.toString()}`
         );
       }
     }

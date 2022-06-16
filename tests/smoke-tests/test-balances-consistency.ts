@@ -263,17 +263,16 @@ describeSmokeSuite(`Verify balances consistency`, { wssUrl, relayWssUrl }, (cont
 
       if (reserved != expectedReserve) {
         failedExpectations.push(
-          `${accountId} (reserved: ${reserved} vs expected: ${expectedReserve})\n        (${Object.keys(
-            expectedReserveByAccount[accountId]?.reserved || {}
-          )
-            .map(
-              (key) =>
-                `${key}: ${printTokens(
-                  context.polkadotApi,
-                  expectedReserveByAccount[accountId].reserved[key]
-                )}`
-            )
-            .join(` - `)})`
+          `${accountId} (reserved: ${reserved} vs expected: ${expectedReserve})\n` +
+            `        (${Object.keys(expectedReserveByAccount[accountId]?.reserved || {})
+              .map(
+                (key) =>
+                  `${key}: ${printTokens(
+                    context.polkadotApi,
+                    expectedReserveByAccount[accountId].reserved[key]
+                  )}`
+              )
+              .join(` - `)})`
         );
       }
     }
