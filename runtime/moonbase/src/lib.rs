@@ -1096,26 +1096,21 @@ fn relay_chain_state_proof() -> RelayChainStateProof {
 		.expect("Invalid relay chain state proof, already constructed in `set_validation_data`")
 }
 
-pub struct VrfInputSetter;
-impl session_keys_primitives::SetVrfInputs for VrfInputSetter {
-	fn set_vrf_inputs() {
-		let slot_number = relay_chain_state_proof()
-			.read_slot()
-			.expect("CheckInherents reads slot from state proof in same way QED");
-		let storage_root = ParachainSystem::validation_data()
-			.expect("set in `set_validation_data`")
-			.relay_parent_storage_root;
-		Vrf::set_vrf_inputs(slot_number, storage_root);
-	}
-}
-
-pub struct RelayRandomnessSetter;
-impl session_keys_primitives::SetRelayRandomness for RelayRandomnessSetter {
-	fn set_relay_randomness() {
-		let block_number = ParachainSystem::validation_data()
-			.map(|d| d.relay_parent_number)
-			.expect("exists iff this was called before on_initialize && after set_validation_data");
+pub struct RelayDataSetter;
+impl session_keys_primitives::SetRelayData for RelayDataSetter {
+	fn set_relay_data() {
+		let validation_data = ParachainSystem::validation_data()
+			.expect("set in `set_validation_data` and available before on_initialize");
 		let relay_chain_state_proof = relay_chain_state_proof();
+		// GET VRF INPUTS
+		let slot_number = relay_chain_state_proof
+			.read_slot()
+			.expect("CheckInherents reads slot from state proof QED");
+		let storage_root = validation_data.relay_parent_storage_root;
+		// SET VRF INPUTS
+		Vrf::set_vrf_inputs(slot_number, storage_root);
+		// GET BABE RANDOMNESS VALUES
+		let block_number = validation_data.relay_parent_number;
 		let epoch_index = relay_chain_state_proof
 			.read_optional_entry(relay_chain::well_known_keys::EPOCH_INDEX)
 			.ok()
@@ -1133,6 +1128,7 @@ impl session_keys_primitives::SetRelayRandomness for RelayRandomnessSetter {
 			.read_optional_entry(relay_chain::well_known_keys::TWO_EPOCHS_AGO_RANDOMNESS)
 			.ok()
 			.flatten();
+		// SET RANDOMNESS VALUES
 		Randomness::set_relay_randomness(
 			block_number,
 			epoch_index,
@@ -1152,8 +1148,7 @@ impl pallet_randomness::Config for Runtime {
 	type Event = Event;
 	type AddressMapping = moonbeam_runtime_common::IntoAddressMapping;
 	type ReserveCurrency = Balances;
-	type RelayRandomnessSetter = RelayRandomnessSetter;
-	type VrfInputSetter = VrfInputSetter;
+	type RelayDataSetter = RelayDataSetter;
 	type LocalRandomness = Vrf;
 	type Deposit = RandomnessRequestDeposit;
 	type ExpirationDelay = ExpirationDelay;

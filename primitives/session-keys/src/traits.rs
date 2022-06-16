@@ -26,25 +26,16 @@ impl<AuthorId, Keys> KeysLookup<AuthorId, Keys> for () {
 	}
 }
 
-/// To set the vrf inputs in pallet-vrf from the runtime
-pub trait SetVrfInputs {
-	fn set_vrf_inputs();
-}
-
-impl SetVrfInputs for () {
-	fn set_vrf_inputs() {}
-}
-
 /// Exposes randomness in pallet-vrf to the runtime
 pub trait MaybeGetRandomness<R> {
 	fn maybe_get_randomness() -> Option<R>;
 }
 
-/// To read randomness into pallet-randomness from the runtime
-pub trait SetRelayRandomness {
-	fn set_relay_randomness();
+/// To read and set data from relay chain from runtime into pallet-{randomness, vrf}
+pub trait SetRelayData {
+	fn set_relay_data();
 }
 
-impl SetRelayRandomness for () {
-	fn set_relay_randomness() {}
+impl SetRelayData for () {
+	fn set_relay_data() {}
 }

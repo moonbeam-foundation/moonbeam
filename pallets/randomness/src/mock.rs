@@ -173,8 +173,7 @@ impl Config for Test {
 	type Event = Event;
 	type AddressMapping = Account;
 	type ReserveCurrency = Balances;
-	type RelayRandomnessSetter = ();
-	type VrfInputSetter = ();
+	type RelayDataSetter = ();
 	type LocalRandomness = LocalRandomness;
 	type Deposit = Deposit;
 	type ExpirationDelay = ExpirationDelay;

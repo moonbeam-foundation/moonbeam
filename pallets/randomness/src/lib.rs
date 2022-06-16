@@ -45,7 +45,7 @@ pub mod pallet {
 	use frame_system::pallet_prelude::*;
 	use pallet_evm::AddressMapping;
 	use session_keys_primitives::{
-		InherentError, MaybeGetRandomness, SetRelayRandomness, SetVrfInputs, INHERENT_IDENTIFIER,
+		InherentError, MaybeGetRandomness, SetRelayData, INHERENT_IDENTIFIER,
 	};
 	use sp_core::{H160, H256};
 	use sp_runtime::traits::Saturating;
@@ -71,10 +71,8 @@ pub mod pallet {
 		type AddressMapping: AddressMapping<Self::AccountId>;
 		/// Currency in which the security deposit will be taken.
 		type ReserveCurrency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
-		/// Set BABE randomness values in `set_relay_data` inherent from the runtime
-		type RelayRandomnessSetter: SetRelayRandomness;
-		/// Set vrf inputs in `set_relay_data` inherent from the runtime
-		type VrfInputSetter: SetVrfInputs;
+		/// Set data for this pallet and vrf pallet in the `set_relay_data` inherent
+		type RelayDataSetter: SetRelayData;
 		/// Get per block vrf randomness
 		type LocalRandomness: MaybeGetRandomness<Self::Hash>;
 		#[pallet::constant]
@@ -208,11 +206,9 @@ pub mod pallet {
 			ensure_none(origin)?;
 
 			// Expected to call `Self::set_relay_randomness` with inputs read from the runtime
-			// Therefore expect 5 writes
-			T::RelayRandomnessSetter::set_relay_randomness();
 			// Expected to call `pallet_vrf::set_vrf_inputs` with inputs read from the runtime
-			// Therefore expect 2 writes + 1 read
-			T::VrfInputSetter::set_vrf_inputs();
+			// Therefore expect 2 writes + 5 writes + 1 read
+			T::RelayDataSetter::set_relay_data();
 
 			Ok(Pays::No.into())
 		}
