@@ -2265,10 +2265,16 @@ fn transact_through_signed_multilocation_para_to_para() {
 	let mut ancestry = MultiLocation::parent();
 
 	let account_test = hex::decode("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap();
-	let multilocation =  MultiLocation::new(1, X2(Parachain(2023), AccountKey20 {
-		network: NetworkId::Any,
-		key: account_test.try_into().unwrap()
-	}));
+	let multilocation = MultiLocation::new(
+		1,
+		X2(
+			Parachain(2023),
+			AccountKey20 {
+				network: NetworkId::Any,
+				key: account_test.try_into().unwrap(),
+			},
+		),
+	);
 
 	let account = xcm_primitives::Account20Hash::<parachain::AccountId>::convert_ref(multilocation);
 	println!("account {:?}", account);
@@ -2365,6 +2371,120 @@ fn transact_through_signed_multilocation_para_to_para() {
 		assert!(ParaBalances::free_balance(&derived) == 0);
 
 		assert!(ParaBalances::free_balance(&para_a_account_20()) == 100);
+	});
+}
+
+#[test]
+fn transact_through_signed_multilocation_para_to_para_ethereum() {
+	MockNet::reset();
+	let mut ancestry = MultiLocation::parent();
+
+	let para_b_location = MultiLocation::new(1, X1(Parachain(2)));
+
+	let para_b_balances = MultiLocation::new(1, X2(Parachain(2), PalletInstance(1u8)));
+
+	ParaA::execute_with(|| {
+		// Root can set transact info
+		assert_ok!(XcmTransactor::set_transact_info(
+			parachain::Origin::root(),
+			// ParaB
+			Box::new(xcm::VersionedMultiLocation::V1(para_b_location.clone())),
+			// Para charges 1000 for every instruction, and we have 3, so 3
+			3,
+			20000000000,
+			// 4 instructions in transact through signed
+			Some(4)
+		));
+		// Root can set transact info
+		assert_ok!(XcmTransactor::set_fee_per_second(
+			parachain::Origin::root(),
+			Box::new(xcm::VersionedMultiLocation::V1(para_b_balances.clone())),
+			parachain::ParaTokensPerSecond::get().1 as u128,
+		));
+		ancestry = parachain::Ancestry::get();
+	});
+
+	// Let's construct the Junction that we will append with DescendOrigin
+	let signed_origin: Junctions = X1(AccountKey20 {
+		network: NetworkId::Any,
+		key: PARAALICE,
+	});
+
+	let mut descend_origin_multilocation = parachain::SelfLocation::get();
+	descend_origin_multilocation
+		.append_with(signed_origin)
+		.unwrap();
+
+	// To convert it to what the paraB will see instead of us
+	descend_origin_multilocation
+		.reanchor(&para_b_location, &ancestry)
+		.unwrap();
+
+	let derived = xcm_primitives::Account20Hash::<parachain::AccountId>::convert_ref(
+		descend_origin_multilocation,
+	)
+	.unwrap();
+
+	let mut parachain_b_alice_balances_before = 0;
+	ParaB::execute_with(|| {
+		assert_ok!(ParaBalances::transfer(
+			parachain::Origin::signed(PARAALICE.into()),
+			derived.clone(),
+			4000000104u128,
+		));
+		// derived account has all funds
+		assert!(ParaBalances::free_balance(&derived) == 4000000104);
+		// sovereign account has 0 funds
+		assert!(ParaBalances::free_balance(&para_a_account_20()) == 0);
+
+		parachain_b_alice_balances_before = ParaBalances::free_balance(&PARAALICE.into())
+	});
+
+	// Encode the call. Balances transact to para_a_account
+	// First index
+	let mut encoded: Vec<u8> = Vec::new();
+	let index =
+		<parachain::Runtime as frame_system::Config>::PalletInfo::index::<parachain::Ethereum>()
+			.unwrap() as u8;
+
+	encoded.push(index);
+
+	use sp_core::U256;
+	// Let's do a EVM transfer
+	let eth_tx = fp_xcm::EthereumXcmTransaction::V1(fp_xcm::EthereumXcmTransactionV1 {
+		gas_limit: U256::from(21000),
+		fee_payment: fp_xcm::EthereumXcmFee::Auto(fp_xcm::AutoEthereumXcmFee::Low),
+		action: pallet_ethereum::TransactionAction::Call(PARAALICE.into()),
+		value: U256::from(100),
+		input: vec![],
+		access_list: None,
+	});
+
+	// Then call bytes
+	let mut call_bytes = pallet_ethereum::Call::<parachain::Runtime>::transact_xcm {
+		xcm_transaction: eth_tx,
+	}
+	.encode();
+	encoded.append(&mut call_bytes);
+
+	ParaA::execute_with(|| {
+		assert_ok!(XcmTransactor::transact_through_signed_multilocation(
+			parachain::Origin::signed(PARAALICE.into()),
+			Box::new(xcm::VersionedMultiLocation::V1(para_b_location)),
+			Box::new(xcm::VersionedMultiLocation::V1(para_b_balances)),
+			// 4000000000 for transfer + 4000 for XCM
+			// 1-1 to fee
+			4000000000,
+			encoded,
+		));
+	});
+
+	ParaB::execute_with(|| {
+		// Make sure the EVM transfer went through
+		assert!(
+			ParaBalances::free_balance(&PARAALICE.into())
+				== parachain_b_alice_balances_before + 100
+		);
 	});
 }
 

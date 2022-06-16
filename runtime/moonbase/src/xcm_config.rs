@@ -19,8 +19,8 @@
 
 use super::{
 	AccountId, AssetId, AssetManager, Assets, Balance, Balances, Call, DealWithFees, Event,
-	LocalAssets, Origin, ParachainInfo, ParachainSystem, PolkadotXcm, Runtime, Treasury,
-	WeightToFee, XcmpQueue, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, System
+	LocalAssets, Origin, ParachainInfo, ParachainSystem, PolkadotXcm, Runtime, System, Treasury,
+	WeightToFee, XcmpQueue, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 
 use pallet_evm_precompile_assets_erc20::AccountIdAssetIdConversion;
@@ -45,7 +45,7 @@ use xcm_builder::{
 };
 
 use xcm::latest::prelude::*;
-use xcm_executor::traits::{JustTry, CallDispatcher};
+use xcm_executor::traits::{CallDispatcher, JustTry};
 
 use orml_xcm_support::MultiNativeAsset;
 use xcm_primitives::{
@@ -254,9 +254,9 @@ pub type XcmFeesToAccount = xcm_primitives::XcmFeesToAccount<
 	XcmFeesAccount,
 >;
 
-use sp_runtime::DispatchErrorWithPostInfo;
-use sp_runtime::traits::PostDispatchInfoOf;
 use frame_system::RawOrigin;
+use sp_runtime::traits::PostDispatchInfoOf;
+use sp_runtime::DispatchErrorWithPostInfo;
 runtime_common::impl_moonbeam_xcm_call!();
 
 pub struct XcmExecutorConfig;

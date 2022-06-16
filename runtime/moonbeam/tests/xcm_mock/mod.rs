@@ -33,6 +33,10 @@ pub fn para_a_account() -> AccountId32 {
 	ParaId::from(1).into_account()
 }
 
+pub fn para_a_account_20() -> parachain::AccountId {
+	ParaId::from(1).into_account()
+}
+
 pub fn evm_account() -> H160 {
 	H160::from_str("1000000000000000000000000000000000000001").unwrap()
 }

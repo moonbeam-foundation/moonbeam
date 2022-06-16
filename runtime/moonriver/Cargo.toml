@@ -145,6 +145,8 @@ xcm-simulator = { git = "https://github.com/purestake/polkadot", branch = "giraz
 
 precompile-utils = { path = "../../precompiles/utils", default-features = false, features = [ "testing" ] }
 
+fp-xcm = { git = "https://github.com/purestake/frontier", branch = "girazoki-xcm-call-polkadot-changes"}
+
 [build-dependencies]
 substrate-wasm-builder = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20" }
 
