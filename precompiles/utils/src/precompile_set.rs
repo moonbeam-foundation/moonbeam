@@ -43,16 +43,18 @@ pub trait RecursionLimit: sealed::Sealed {
 /// There is no limit to the amount times a precompiles can
 /// call itself recursively.
 /// Should be used with care as it could cause stack overflows.
-pub struct NoRecursionLimit;
-impl sealed::Sealed for NoRecursionLimit {}
-impl RecursionLimit for NoRecursionLimit {
+pub struct UnlimitedRecursion;
+impl sealed::Sealed for UnlimitedRecursion {}
+impl RecursionLimit for UnlimitedRecursion {
 	#[inline(always)]
 	fn recursion_limit() -> Option<u16> {
 		None
 	}
 }
 
-/// A precompile can be called recursively N times.
+/// A precompile can (even indirectly) call itself with N levels of nesting.
+/// 0 = anyone can call the precompile but a subcall of the precompile will not be able to call it
+/// back (re-entrancy protection).
 pub struct LimitRecursionTo<const N: u16>;
 impl<const N: u16> sealed::Sealed for LimitRecursionTo<N> {}
 impl<const N: u16> RecursionLimit for LimitRecursionTo<N> {
@@ -61,6 +63,8 @@ impl<const N: u16> RecursionLimit for LimitRecursionTo<N> {
 		Some(N)
 	}
 }
+
+pub type ForbidRecursion = LimitRecursionTo<0>;
 
 /// Is DELEGATECALL allowed to use for a precompile.
 pub trait DelegateCallSupport: sealed::Sealed {
@@ -121,7 +125,7 @@ pub trait PrecompileSetFragment {
 /// - A: The address of the precompile
 /// - R: The recursion limit (defaults to 1)
 /// - R: If DELEGATECALL is supported (default to no)
-pub struct PrecompileAt<A, P, R = LimitRecursionTo<1>, D = ForbidDelegateCall> {
+pub struct PrecompileAt<A, P, R = ForbidRecursion, D = ForbidDelegateCall> {
 	current_recursion_level: RefCell<u16>,
 	_phantom: PhantomData<(A, P, R, D)>,
 }
@@ -161,7 +165,7 @@ where
 		if let Some(max_recursion_level) = R::recursion_limit() {
 			match self.current_recursion_level.try_borrow_mut() {
 				Ok(mut recursion_level) => {
-					if *recursion_level >= max_recursion_level {
+					if *recursion_level > max_recursion_level {
 						return Some(Err(revert("precompile is called with too high nesting")));
 					}
 
@@ -206,7 +210,7 @@ where
 /// - A: The address of the precompile
 /// - R: The recursion limit (defaults to 1)
 /// - R: If DELEGATECALL is supported (default to no)
-pub struct StatefulPrecompileAt<A, P, R = LimitRecursionTo<1>, D = ForbidDelegateCall> {
+pub struct StatefulPrecompileAt<A, P, R = ForbidRecursion, D = ForbidDelegateCall> {
 	precompile: P,
 	current_recursion_level: RefCell<u16>,
 	_phantom: PhantomData<(A, R, D)>,
@@ -248,7 +252,7 @@ where
 		if let Some(max_recursion_level) = R::recursion_limit() {
 			match self.current_recursion_level.try_borrow_mut() {
 				Ok(mut recursion_level) => {
-					if *recursion_level >= max_recursion_level {
+					if *recursion_level > max_recursion_level {
 						return Some(Err(revert("precompile is called with too high nesting")));
 					}
 
@@ -293,7 +297,7 @@ where
 /// Type parameters allow to define:
 /// - A: The common prefix
 /// - D: If DELEGATECALL is supported (default to no)
-pub struct PrecompileSetStartingWith<A, P, R = LimitRecursionTo<1>, D = ForbidDelegateCall> {
+pub struct PrecompileSetStartingWith<A, P, R = ForbidRecursion, D = ForbidDelegateCall> {
 	precompile_set: P,
 	current_recursion_level: RefCell<BTreeMap<H160, u16>>,
 	_phantom: PhantomData<(A, R, D)>,
@@ -336,7 +340,7 @@ where
 				Ok(mut recursion_level_map) => {
 					let recursion_level = recursion_level_map.entry(code_address).or_insert(0);
 
-					if *recursion_level >= max_recursion_level {
+					if *recursion_level > max_recursion_level {
 						return Some(Err(revert("precompile is called with too high nesting")));
 					}
 
