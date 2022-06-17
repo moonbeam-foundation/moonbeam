@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { customWeb3Request } from "../util/providers";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 import { createContract, createContractExecution } from "../util/transactions";
-import { alith, ALITH_CONTRACT_ADDRESSES } from "../util/accounts";
+import { alith, ALITH_ADDRESS, ALITH_CONTRACT_ADDRESSES } from "../util/accounts";
 
 const GENESIS_CONTRACT_ADDRESSES = [
   ALITH_CONTRACT_ADDRESSES[0],
@@ -46,12 +46,12 @@ describeDevMoonbeam("Trace filter - Contract creation ", (context) => {
     expect(response.result.length).to.equal(1);
     expect(response.result[0].action).to.include({
       creationMethod: "create",
-      from: "0x6be02d1d3665660d22ff9624b7be0551ee1ac91b",
+      from: ALITH_ADDRESS,
       gas: "0xb60b27",
       value: "0x0",
     });
-    expect(response.result[0].hash).to.include({
-      address: ALITH_CONTRACT_ADDRESSES[0],
+    expect(response.result[0].result).to.include({
+      address: ALITH_CONTRACT_ADDRESSES[0].toLocaleLowerCase(),
       gasUsed: "0x10fd9", // TODO : Compare with value from another (comparable) network.
     });
 
@@ -77,13 +77,13 @@ describeDevMoonbeam("Trace filter - Contract creation ", (context) => {
 
     expect(response.result.length).to.equal(1);
     expect(response.result[0].action.creationMethod).to.equal("create");
-    expect(response.result[0].action.from).to.equal("0x6be02d1d3665660d22ff9624b7be0551ee1ac91b");
+    expect(response.result[0].action.from).to.equal(ALITH_ADDRESS);
     expect(response.result[0].action.gas).to.equal("0xb60bd0");
     expect(response.result[0].action.init).to.be.a("string");
     expect(response.result[0].action.value).to.equal("0x0");
     expect(response.result[0].blockHash).to.be.a("string");
     expect(response.result[0].blockNumber).to.equal(2);
-    expect(response.result[0].hash).to.equal(undefined);
+    expect(response.result[0].result).to.equal(undefined);
     expect(response.result[0].error).to.equal("Reverted");
     expect(response.result[0].subtraces).to.equal(0);
     expect(response.result[0].traceAddress.length).to.equal(0);
