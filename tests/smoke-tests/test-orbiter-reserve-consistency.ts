@@ -36,32 +36,37 @@ describeSmokeSuite(`Verify orbiters`, { wssUrl, relayWssUrl }, (context) => {
     const reserves = await apiAt.query.balances.reserves.entries();
     const orbiterReserves = reserves
       .map((reserveSet) =>
-        reserveSet[1].find((r) => r.id.toUtf8() == "orbi") ? reserveSet[0].toHex().slice(-40) : null
+        reserveSet[1].find((r) => r.id.toUtf8() == "orbi")
+          ? `0x${reserveSet[0].toHex().slice(-40)}`
+          : null
       )
       .filter((r) => !!r);
 
-    const orbiterAccounts = registeredOrbiters.map((o) => o[0].toHex().slice(-40));
+    const orbiterRegisteredAccounts = registeredOrbiters.map((o) => `0x${o[0].toHex().slice(-40)}`);
 
     for (const reservedAccount of orbiterReserves) {
       expect(
-        orbiterAccounts,
+        orbiterRegisteredAccounts,
         `Account ${reservedAccount} has "orbi" reserve but is not orbiter.`
       ).to.include(reservedAccount);
     }
 
-    for (const orbiterAccount of orbiterAccounts) {
+    for (const orbiterAccount of orbiterRegisteredAccounts) {
       expect(
         orbiterReserves,
         `Account ${orbiterAccount} is orbiter but doesn't have "orbi" reserve.`
       ).to.include(orbiterAccount);
     }
-    debug(`Verified ${orbiterAccounts.length} orbiter reserves`);
+    debug(`Verified ${orbiterRegisteredAccounts.length} orbiter reserves`);
   });
 
   it("should be registered if in a pool", async function () {
     for (const orbiterPool of collatorsPools) {
       const collator = orbiterPool[0].toHex().slice(-40);
       const pool = orbiterPool[1].unwrap();
+      const orbiterRegisteredAccounts = registeredOrbiters.map(
+        (o) => `0x${o[0].toHex().slice(-40)}`
+      );
       if (pool.maybeCurrentOrbiter.isSome) {
         const selectedOrbiter = pool.maybeCurrentOrbiter.unwrap().accountId.toHex();
         const poolOrbiters = pool.orbiters.map((o) => o.toHex());
@@ -69,6 +74,11 @@ describeSmokeSuite(`Verify orbiters`, { wssUrl, relayWssUrl }, (context) => {
         expect(
           poolOrbiters,
           `Selected orbiter ${selectedOrbiter} is not in the pool ${collator} orbiters`
+        ).to.include(selectedOrbiter);
+
+        expect(
+          orbiterRegisteredAccounts,
+          `Account ${selectedOrbiter} is in a pool but not registered`
         ).to.include(selectedOrbiter);
       }
     }
