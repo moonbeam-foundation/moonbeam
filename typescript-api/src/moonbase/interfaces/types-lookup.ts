@@ -5,7 +5,7 @@ declare module "@polkadot/types/lookup" {
   import type { Data } from "@polkadot/types";
   import type {
     BTreeMap,
-    BTreeSet as BTreeSetType,
+    BTreeSet,
     Bytes,
     Compact,
     Enum,
@@ -2802,13 +2802,8 @@ declare module "@polkadot/types/lookup" {
    * @name SpTrieStorageProof (166)
    */
   export interface SpTrieStorageProof extends Struct {
-    readonly trieNodes: BTreeSet;
+    readonly trieNodes: BTreeSet<Bytes>;
   }
-
-  /**
-   * @name BTreeSet (167)
-   */
-  export interface BTreeSet extends BTreeSetType<Bytes> {}
 
   /**
    * @name PolkadotCorePrimitivesInboundDownwardMessage (169)
@@ -2982,11 +2977,19 @@ declare module "@polkadot/types/lookup" {
   export interface ParachainStakingCall extends Enum {
     readonly isSetStakingExpectations: boolean;
     readonly asSetStakingExpectations: {
-      readonly expectations: ParachainStakingInflationRangeU128;
+      readonly expectations: {
+        readonly min: u128;
+        readonly ideal: u128;
+        readonly max: u128;
+      } & Struct;
     } & Struct;
     readonly isSetInflation: boolean;
     readonly asSetInflation: {
-      readonly schedule: ParachainStakingInflationRangePerbill;
+      readonly schedule: {
+        readonly min: Perbill;
+        readonly ideal: Perbill;
+        readonly max: Perbill;
+      } & Struct;
     } & Struct;
     readonly isSetParachainBondAccount: boolean;
     readonly asSetParachainBondAccount: {
@@ -3105,24 +3108,6 @@ declare module "@polkadot/types/lookup" {
       | "ScheduleDelegatorBondLess"
       | "ExecuteDelegationRequest"
       | "CancelDelegationRequest";
-  }
-
-  /**
-   * @name ParachainStakingInflationRangeU128 (191)
-   */
-  export interface ParachainStakingInflationRangeU128 extends Struct {
-    readonly min: u128;
-    readonly ideal: u128;
-    readonly max: u128;
-  }
-
-  /**
-   * @name ParachainStakingInflationRangePerbill (192)
-   */
-  export interface ParachainStakingInflationRangePerbill extends Struct {
-    readonly min: Perbill;
-    readonly ideal: Perbill;
-    readonly max: Perbill;
   }
 
   /**
@@ -5227,9 +5212,21 @@ declare module "@polkadot/types/lookup" {
    * @name ParachainStakingInflationInflationInfo (378)
    */
   export interface ParachainStakingInflationInflationInfo extends Struct {
-    readonly expect: ParachainStakingInflationRangeU128;
-    readonly annual: ParachainStakingInflationRangePerbill;
-    readonly round: ParachainStakingInflationRangePerbill;
+    readonly expect: {
+      readonly min: u128;
+      readonly ideal: u128;
+      readonly max: u128;
+    } & Struct;
+    readonly annual: {
+      readonly min: Perbill;
+      readonly ideal: Perbill;
+      readonly max: Perbill;
+    } & Struct;
+    readonly round: {
+      readonly min: Perbill;
+      readonly ideal: Perbill;
+      readonly max: Perbill;
+    } & Struct;
   }
 
   /**
