@@ -166,22 +166,38 @@ one test file.
 
 Those tests are intended to run using an exported state from an existing network.  
 They require to specify the exported state, the runtime name and the parachain id.  
-Also the exported state needs to be modified using fos2 file.
+Also the exported state needs to be modified using the state-modifier.ts script.
 
-### Retrieving exported state
+### End to end script (automated)
+
+You can run the full process using the docker image:
+
+```
+docker run -e GIT_TAG=perm-runtime-1605 -e NETWORK=moonriver -e RUNTIME_NAME=moonriver purestake/moonbeam-fork-tests:0.0.1
+```
+
+or locally (for debugging pruposes) with the script:
+
+```
+ROOT_FOLDER=/tmp/moonbeam-states GIT_TAG=perm-runtime-1604 NETWORK=moonbase-alpha RUNTIME_NAME=moobase ./scripts/run-fork-test.sh
+```
+
+Where `ROOT_FOLDER` should be an empty folder
+
+### Retrieving exported state (manual step 1)
 
 ```
 mkdir -p ~/projects/moonbeam-states
 for network in moonbase-alpha moonriver moonbeam; do wget https://s3.us-east-2.amazonaws.com/snapshots.moonbeam.network/${network}/latest/${network}-state.json -O ~/projects/moonbeam-states/${network}-state.json; done
 ```
 
-### Modifying exported state
+### Modifying exported state (manual step 2)
 
 ```
 for network in moonbase-alpha moonriver moonbeam; do node_modules/.bin/ts-node state-modifier.ts ~/projects/moonbeam-states/${network}-state.json; done
 ```
 
-### Executing the tests
+### Executing the tests (manual step 3a)
 
 Here is an exemple of the command to run:
 
@@ -195,21 +211,16 @@ SKIP_INTERMEDIATE_RUNTIME=true RUNTIME_NAME=moonriver SPEC_FILE=~/projects/moonb
 
 ### Starting the node separately
 
+If you want to inspect the forkned network or keep it running after the tests
+
 ```
-SKIP_INTERMEDIATE_RUNTIME=true RUNTIME_NAME=moonbeam SPEC_FILE=~/projects/moonbeam-states/moonbeam-state.mod.json PARA_ID=2004 PORT_PREFIX=51 ./node_modules/.bin/ts-node spawn-fork-node.ts
-SKIP_INTERMEDIATE_RUNTIME=true RUNTIME_NAME=moonbase SPEC_FILE=~/projects/moonbeam-states/moonbase-alpha-state.mod.json PARA_ID=1000 PORT_PREFIX=51 ./node_modules/.bin/ts-node spawn-fork-node.ts
-SKIP_INTERMEDIATE_RUNTIME=true RUNTIME_NAME=moonriver SPEC_FILE=~/projects/moonbeam-states/moonriver-state.mod.json PARA_ID=2023 PORT_PREFIX=51 ./node_modules/.bin/ts-node spawn-fork-node.ts
+PARA_ID=2004 PORT_PREFIX=51 ./node_modules/.bin/ts-node spawn-fork-node.ts
+PARA_ID=1000 PORT_PREFIX=51 ./node_modules/.bin/ts-node spawn-fork-node.ts
+PARA_ID=2023 PORT_PREFIX=51 ./node_modules/.bin/ts-node spawn-fork-node.ts
 ```
 
 ### Generating moonbeam-fork-test image
 
 ```
 docker build ./scripts -t purestake/moonbeam-fork-tests:0.0.1 -f docker/moonbeam-fork-tests.Dockerfile
-```
-
-### Running complete fork test locally
-
-```
-mkdir ~/moonbeam-states
-./scripts/run-fork-tests.sh
 ```
