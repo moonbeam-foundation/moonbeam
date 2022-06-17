@@ -24,9 +24,7 @@ async function createContracts(context) {
     { nonce: nonce++ },
     []
   );
-  await context.createBlock([], {
-    transactions: [rawTx1, rawTx2],
-  });
+  await context.createBlock([rawTx1, rawTx2]);
 
   return {
     caller: caller,

@@ -50,9 +50,8 @@ describeDevMoonbeam("Trace filter - Contract creation ", (context) => {
       gas: "0xb60b27",
       value: "0x0",
     });
-    console.log(response.result[0].hash);
-    expect(response.result[0].hash).to.include({
-      address: ALITH_CONTRACT_ADDRESSES[0],
+    expect(response.result[0].result).to.include({
+      address: ALITH_CONTRACT_ADDRESSES[0].toLocaleLowerCase(),
       gasUsed: "0x10fd9", // TODO : Compare with value from another (comparable) network.
     });
 
@@ -84,7 +83,7 @@ describeDevMoonbeam("Trace filter - Contract creation ", (context) => {
     expect(response.result[0].action.value).to.equal("0x0");
     expect(response.result[0].blockHash).to.be.a("string");
     expect(response.result[0].blockNumber).to.equal(2);
-    expect(response.result[0].hash).to.equal(undefined);
+    expect(response.result[0].result).to.equal(undefined);
     expect(response.result[0].error).to.equal("Reverted");
     expect(response.result[0].subtraces).to.equal(0);
     expect(response.result[0].traceAddress.length).to.equal(0);
