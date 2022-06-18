@@ -76,6 +76,34 @@ export const rpcDefinitions: Record<string, Record<string, DefinitionRpc | Defin
       type: "Result<()>",
     },
   },
+  moon: {
+    isBlockFinalized: {
+      description: "Checks if an Ethereum block is finalized",
+      params: [{ name: "blockHash", type: "Hash" }],
+      type: "bool",
+    },
+    isTxFinalized: {
+      description: "Checks if an Ethereum transaction is finalized",
+      params: [{ name: "transactionHash", type: "Hash" }],
+      type: "bool",
+    },
+  },
+  eth: {
+    feeHistory: {
+      description: "Returns Ethereum fee history",
+      params: [
+        { name: "blockCount", type: "U256" },
+        { name: "newestBlock", type: "BlockNumber" },
+        { name: "rewardPercentiles", type: "Option<Vec<f64>>" },
+      ],
+      type: "FeeHistory",
+    },
+    maxPriorityFeePerGas: {
+      description: "Returns Ethereum max priority fee per gas",
+      params: [],
+      type: "U256",
+    },
+  },
 };
 
 const TYPES_0_4: RegistryTypes = {
@@ -475,55 +503,6 @@ export const moonbeamDefinitions = {
     {
       minmax: [900, undefined],
       types: TYPES_POST_900,
-      rpc: {
-        moon: {
-          isBlockFinalized: {
-            description: "Checks if an Ethereum block is finalized",
-            params: [
-              {
-                name: "blockHash",
-                type: "Hash",
-              },
-            ],
-            type: "bool",
-          },
-          isTxFinalized: {
-            description: "Checks if an Ethereum transaction is finalized",
-            params: [
-              {
-                name: "transactionHash",
-                type: "Hash",
-              },
-            ],
-            type: "bool",
-          },
-        },
-        eth: {
-          feeHistory: {
-            description: "Returns Ethereum fee history",
-            params: [
-              {
-                name: "blockCount",
-                type: "U256",
-              },
-              {
-                name: "newestBlock",
-                type: "BlockNumber",
-              },
-              {
-                name: "rewardPercentiles",
-                type: "Option<Vec<f64>>",
-              },
-            ],
-            type: "FeeHistory",
-          },
-          maxPriorityFeePerGas: {
-            description: "Returns Ethereum max priority fee per gas",
-            params: [],
-            type: "U256",
-          },
-        },
-      },
     },
   ],
 } as OverrideBundleDefinition;
