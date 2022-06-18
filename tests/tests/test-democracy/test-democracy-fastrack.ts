@@ -1,16 +1,17 @@
 import "@moonbeam-network/api-augment";
-import { expect } from "chai";
-import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
+
 import { Result } from "@polkadot/types";
 import { SpRuntimeDispatchError } from "@polkadot/types/lookup";
+import { expect } from "chai";
+
+import { alith, baltathar, charleth } from "../../util/accounts";
+import { HOURS } from "../../util/constants";
 import {
-  notePreimage,
   execCouncilProposal,
   execTechnicalCommitteeProposal,
+  notePreimage,
 } from "../../util/governance";
-import { alith, baltathar, charleth } from "../../util/accounts";
-import { createBlockWithExtrinsic } from "../../util/substrate-rpc";
-import { HOURS } from "../../util/constants";
+import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 
 describeDevMoonbeam("Democracy - FastTracking", (context) => {
   let proposalHash: string;

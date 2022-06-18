@@ -1,18 +1,17 @@
 import "@moonbeam-network/api-augment";
-import Keyring from "@polkadot/keyring";
+
 import { KeyringPair } from "@polkadot/keyring/types";
-import { expect } from "chai";
-import { BN, u8aToHex } from "@polkadot/util";
-
-import { describeDevMoonbeam } from "../../util/setup-dev-tests";
-import { createBlockWithExtrinsic } from "../../util/substrate-rpc";
-import { customWeb3Request } from "../../util/providers";
-import type { XcmVersionedXcm } from "@polkadot/types/lookup";
-
 import { ParaId, XcmpMessageFormat } from "@polkadot/types/interfaces";
-import { PARA_1001_SOURCE_LOCATION, PARA_2000_SOURCE_LOCATION } from "../../util/assets";
-import { alith, baltathar, generateKeyingPair } from "../../util/accounts";
+import { BN, u8aToHex } from "@polkadot/util";
+import { expect } from "chai";
 import { ChaChaRng } from "randchacha";
+
+import { alith, baltathar, generateKeyingPair } from "../../util/accounts";
+import { PARA_2000_SOURCE_LOCATION } from "../../util/assets";
+import { customWeb3Request } from "../../util/providers";
+import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
+
+import type { XcmVersionedXcm } from "@polkadot/types/lookup";
 
 const FOREIGN_TOKEN = 1_000_000_000_000n;
 
@@ -64,10 +63,10 @@ enum XcmpExecution {
 
 // Function to calculate how messages coming from different paras will be executed
 export async function calculateShufflingAndExecution(
-  context,
-  numParaMsgs,
-  weightUsePerMessage,
-  totalXcmpWeight
+  context: DevTestContext,
+  numParaMsgs: number,
+  weightUsePerMessage: bigint,
+  totalXcmpWeight: bigint
 ) {
   // the randomization is as follows
   // for every rand number, we do module number of paras
@@ -245,7 +244,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
             },
           ],
         },
-        { ClearOrigin: null },
+        { ClearOrigin: null as any },
         {
           BuyExecution: {
             fees: {
@@ -374,7 +373,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
             },
           ],
         },
-        { ClearOrigin: null },
+        { ClearOrigin: null as any },
         {
           BuyExecution: {
             fees: {
@@ -440,8 +439,8 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
 describeDevMoonbeam("Mock XCM - receive horizontal transfer of DEV", (context) => {
   let random: KeyringPair;
   let paraId: ParaId;
-  let transferredBalance;
-  let sovereignAddress;
+  let transferredBalance: bigint;
+  let sovereignAddress: string;
 
   before("Should send DEV to the parachain sovereign", async function () {
     random = generateKeyingPair();
@@ -491,7 +490,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer of DEV", (context) =
             },
           ],
         },
-        { ClearOrigin: null },
+        { ClearOrigin: null as any },
         {
           BuyExecution: {
             fees: {
@@ -558,8 +557,8 @@ describeDevMoonbeam(
   (context) => {
     let random: KeyringPair;
     let paraId: ParaId;
-    let transferredBalance;
-    let sovereignAddress;
+    let transferredBalance: bigint;
+    let sovereignAddress: string;
 
     before("Should send DEV to the parachain sovereign", async function () {
       random = generateKeyingPair();
@@ -610,7 +609,7 @@ describeDevMoonbeam(
               },
             ],
           },
-          { ClearOrigin: null },
+          { ClearOrigin: null as any },
           {
             BuyExecution: {
               fees: {
@@ -679,8 +678,8 @@ describeDevMoonbeam(
 describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
   let assetId: string;
   let paraId: ParaId;
-  let transferredBalance;
-  let sovereignAddress;
+  let transferredBalance: bigint;
+  let sovereignAddress: string;
 
   before("Should Register an asset and set unit per sec", async function () {
     // registerAsset
@@ -703,7 +702,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
       .event.data[0].toHex()
       .replace(/,/g, "");
 
-    transferredBalance = new BN(100000000000000);
+    transferredBalance = 100000000000000n;
 
     // mint asset
     await context.createBlock(
@@ -775,7 +774,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
             },
           ],
         },
-        { ClearOrigin: null },
+        { ClearOrigin: null as any },
         {
           BuyExecution: {
             fees: {
@@ -948,7 +947,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
             },
           ],
         },
-        { ClearOrigin: null },
+        { ClearOrigin: null as any },
         {
           BuyExecution: {
             fees: {
@@ -1016,8 +1015,8 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
 describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
   let assetId: string;
   let paraId: ParaId;
-  let transferredBalance;
-  let sovereignAddress;
+  let transferredBalance: bigint;
+  let sovereignAddress: string;
 
   before("Should Register an asset and set unit per sec", async function () {
     // registerAsset
@@ -1040,7 +1039,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
       .event.data[0].toHex()
       .replace(/,/g, "");
 
-    transferredBalance = new BN(100000000000000);
+    transferredBalance = 100000000000000n;
 
     // mint asset
     await context.createBlock(
@@ -1117,7 +1116,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
             },
           ],
         },
-        { ClearOrigin: null },
+        { ClearOrigin: null as any },
         {
           BuyExecution: {
             fees: {
@@ -1224,7 +1223,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
             },
           ],
         },
-        { ClearOrigin: null },
+        { ClearOrigin: null as any },
         {
           BuyExecution: {
             fees: {

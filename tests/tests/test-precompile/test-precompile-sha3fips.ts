@@ -1,7 +1,9 @@
 import "@moonbeam-network/api-augment";
+
 import { expect } from "chai";
-import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
+
 import { web3EthCall } from "../../util/providers";
+import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 
 describeDevMoonbeamAllEthTxTypes("Precompiles - sha3fips", (context) => {
   // Test taken from https://github.com/binance-chain/bsc/pull/118

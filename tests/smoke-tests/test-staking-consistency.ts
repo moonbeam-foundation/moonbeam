@@ -61,7 +61,7 @@ describeSmokeSuite(`Verify staking consistency`, { wssUrl, relayWssUrl }, (conte
         });
       }
       return p;
-    }, {});
+    }, {} as { [key: `0x${string}`]: { delegator: `0x${string}`; delegation: ParachainStakingBond }[] });
   });
 
   it("candidate totalCounted matches top X delegations", async function () {

@@ -1,26 +1,28 @@
 import "@moonbeam-network/api-augment";
+
+import { ApiTypes, SubmittableExtrinsic } from "@polkadot/api/types";
+import { u32 } from "@polkadot/types-codec";
+import { BN, numberToHex } from "@polkadot/util";
+import { blake2AsHex } from "@polkadot/util-crypto";
 import { expect } from "chai";
+import { ethers } from "ethers";
+import { Interface } from "ethers/lib/utils";
+
+import { alith, ALITH_PRIVATE_KEY, baltathar, BALTATHAR_PRIVATE_KEY } from "../../util/accounts";
 import {
+  PRECOMPILE_DEMOCRACY_ADDRESS,
   PROPOSAL_AMOUNT,
   VOTE_AMOUNT,
   ZERO_ADDRESS,
-  PRECOMPILE_DEMOCRACY_ADDRESS,
 } from "../../util/constants";
+import { getCompiled } from "../../util/contracts";
 import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
-import { ApiTypes, SubmittableExtrinsic } from "@polkadot/api/types";
-import { BN } from "@polkadot/util";
-import { blake2AsHex } from "@polkadot/util-crypto";
 import {
   ALITH_TRANSACTION_TEMPLATE,
   createContract,
   createTransaction,
   sendPrecompileTx,
 } from "../../util/transactions";
-import { numberToHex } from "@polkadot/util";
-import { getCompiled } from "../../util/contracts";
-import { ethers } from "ethers";
-import { Interface } from "ethers/lib/utils";
-import { alith, ALITH_PRIVATE_KEY, baltathar, BALTATHAR_PRIVATE_KEY } from "../../util/accounts";
 
 // Function selector reference
 // {
@@ -158,13 +160,13 @@ describeDevMoonbeam("Democracy - propose", (context) => {
 
 describeDevMoonbeam("Democracy - second proposal", (context) => {
   let encodedHash: `0x${string}`;
-  let launchPeriod;
+  let launchPeriod: u32;
 
   before("Setup genesis account for substrate", async () => {
     await deployContract(context, "Democracy");
 
     //launchPeriod
-    launchPeriod = await context.polkadotApi.consts.democracy.launchPeriod;
+    launchPeriod = context.polkadotApi.consts.democracy.launchPeriod;
 
     // notePreimage
     encodedHash = await notePreimagePrecompile(
@@ -233,7 +235,7 @@ describeDevMoonbeam("Democracy - second proposal", (context) => {
 
 describeDevMoonbeam("Democracy - vote on referendum", (context) => {
   let encodedHash: `0x${string}`;
-  let enactmentPeriod;
+  let enactmentPeriod: u32;
 
   before("Setup genesis account for substrate", async () => {
     await deployContract(context, "Democracy");

@@ -1,9 +1,11 @@
 import "@moonbeam-network/api-augment";
+
 import { expect } from "chai";
+
+import { baltathar } from "../../util/accounts";
 import { TREASURY_ACCOUNT } from "../../util/constants";
 import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 import { createTransfer } from "../../util/transactions";
-import { baltathar } from "../../util/accounts";
 
 describeDevMoonbeamAllEthTxTypes("Fees - Transaction", (context) => {
   it("should send 20% of the fees to treasury", async () => {

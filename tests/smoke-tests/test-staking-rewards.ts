@@ -97,7 +97,7 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
       accountId
     );
 
-    const collatorInfo = {
+    const collatorInfo: StakedValueData = {
       id: collatorId,
       bond,
       total,
@@ -180,7 +180,7 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
     }
     // only deduct parachainBondReward if it was transferred (event must exist)
     if (apiAtRewarded.events.parachainStaking.ReservedForParachainBond.is(event)) {
-      reservedForParachainBond = event.data[1];
+      reservedForParachainBond = event.data[1] as any;
       break;
     }
   }
@@ -301,7 +301,7 @@ async function assertRewardedEventsAtBlock(
   const apiAtBlock = await api.at(nowRoundRewardBlockHash);
 
   debug(`> block ${rewardedBlockNumber} (${nowRoundRewardBlockHash})`);
-  const rewards = {};
+  const rewards: { [key: `0x${string}`]: { account: string; amount: u128 } } = {};
   const blockEvents = await apiAtBlock.query.system.events();
   let rewardCount = 0;
   for (const { phase, event } of blockEvents) {
@@ -313,7 +313,7 @@ async function assertRewardedEventsAtBlock(
       rewardCount++;
       rewards[event.data[0].toHex()] = {
         account: event.data[0].toHex(),
-        amount: event.data[1],
+        amount: event.data[1] as u128,
       };
     }
   }
@@ -322,11 +322,11 @@ async function assertRewardedEventsAtBlock(
   let delegationReward: BN = new BN(0);
   let collatorInfo: any = {};
   let rewarded = {
-    collator: null,
+    collator: null as `0x${string}`,
     delegators: new Set<string>(),
   };
 
-  for (const accountId of Object.keys(rewards)) {
+  for (const accountId of Object.keys(rewards) as `0x${string}`[]) {
     if (collators.has(accountId)) {
       // collator is always paid first so this is guaranteed to execute first
       collatorInfo = stakedValue[accountId];
@@ -379,14 +379,16 @@ function assertEqualWithAccount(a: BN, b: BN, account: string) {
 
 type Rewarded = { collator: `0x${string}` | null; delegators: Set<string> };
 
+type StakedValueData = {
+  id: string;
+  bond: u128;
+  total: u128;
+  points: u32;
+  delegators: { [key: string]: { id: string; amount: u128 } };
+};
+
 type StakedValue = {
-  [key: string]: {
-    id: string;
-    bond: u128;
-    total: u128;
-    points: u32;
-    delegators: { [key: string]: { id: string; amount: u128 } };
-  };
+  [key: string]: StakedValueData;
 };
 
 class Perthing {

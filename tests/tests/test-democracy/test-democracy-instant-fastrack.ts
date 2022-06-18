@@ -1,15 +1,16 @@
 import "@moonbeam-network/api-augment";
-import { expect } from "chai";
-import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
+
 import { Result } from "@polkadot/types";
 import { SpRuntimeDispatchError } from "@polkadot/types/lookup";
+import { expect } from "chai";
+
+import { alith, baltathar, charleth } from "../../util/accounts";
 import {
-  notePreimage,
   execCouncilProposal,
   execTechnicalCommitteeProposal,
+  notePreimage,
 } from "../../util/governance";
-import { alith, baltathar, charleth } from "../../util/accounts";
-import { createBlockWithExtrinsic } from "../../util/substrate-rpc";
+import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
 
 const setupProposalAnd3TechnicalCommittee = async (context: DevTestContext) => {
   let proposalHash = await notePreimage(

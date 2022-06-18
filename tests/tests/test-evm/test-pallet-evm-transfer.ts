@@ -1,17 +1,17 @@
 import "@moonbeam-network/api-augment";
+
 import { expect } from "chai";
+
 import { alith, baltathar } from "../../util/accounts";
 import { DEFAULT_GENESIS_BALANCE } from "../../util/constants";
-
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 
 // A call from root (sudo) can make a transfer directly in pallet_evm
 // A signed call cannot make a transfer directly in pallet_evm
 
-describeDevMoonbeam("Pallet EVM transfer - no sudo", (context) => {
-  let events;
-  before("Send a simple transfer with pallet evm", async () => {
-    ({
+describeDevMoonbeam("Pallet EVM - call", (context) => {
+  it("should fail without sudo", async function () {
+    const {
       result: { events },
     } = await context.createBlock(
       context.polkadotApi.tx.evm.call(
@@ -25,17 +25,15 @@ describeDevMoonbeam("Pallet EVM transfer - no sudo", (context) => {
         undefined,
         []
       )
-    ));
-  });
-
-  it("should fail without sudo", async function () {
+    );
     expect(events[5].event.method).to.eq("ExtrinsicFailed");
     expect(await context.web3.eth.getBalance(baltathar.address)).to.equal(
       DEFAULT_GENESIS_BALANCE.toString()
     );
   });
 });
-describeDevMoonbeam("Pallet EVM transfer - with sudo", (context) => {
+
+describeDevMoonbeam("Pallet EVM - call", (context) => {
   it("should succeed with sudo", async function () {
     const {
       result: { events },

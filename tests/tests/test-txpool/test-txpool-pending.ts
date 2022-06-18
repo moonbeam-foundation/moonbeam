@@ -1,14 +1,15 @@
 import "@moonbeam-network/api-augment";
+
 import { expect } from "chai";
 import { Contract } from "web3-eth-contract";
 
-import { createContract, createContractExecution } from "../../util/transactions";
-import { describeDevMoonbeam } from "../../util/setup-dev-tests";
-import { customWeb3Request } from "../../util/providers";
 import { alith } from "../../util/accounts";
+import { customWeb3Request } from "../../util/providers";
+import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+import { createContract, createContractExecution } from "../../util/transactions";
 
 describeDevMoonbeam("TxPool - Pending Ethereum transaction", (context) => {
-  let txHash;
+  let txHash: string;
   before("Setup: Create transaction", async () => {
     const { rawTx } = await createContract(context, "TestContract", {
       gas: 1048576,
@@ -56,7 +57,8 @@ describeDevMoonbeam("TxPool - Pending Ethereum transaction", (context) => {
 });
 
 describeDevMoonbeam("TxPool - Ethereum Contract Call", (context) => {
-  let testContract: Contract, txHash;
+  let testContract: Contract;
+  let txHash: string;
 
   before("Setup: Create contract block and add call transaction", async () => {
     const { contract, rawTx } = await createContract(context, "TestContract", {

@@ -1,18 +1,18 @@
 // As inspired by https://github.com/paritytech/txwrapper/blob/master/examples/polkadot.ts
 // This flow is used by some exchange partners like kraken
-
 import "@moonbeam-network/api-augment";
-import { expect } from "chai";
-import { methods as substrateMethods } from "@substrate/txwrapper-substrate";
-import { createMetadata, KeyringPair, OptionsWithMeta } from "@substrate/txwrapper-core";
-import { getRegistry } from "@substrate/txwrapper-registry";
 
+import { EXTRINSIC_VERSION } from "@polkadot/types/extrinsic/v4/Extrinsic";
+import { createMetadata, KeyringPair, OptionsWithMeta } from "@substrate/txwrapper-core";
+import { createSignedTx, createSigningPayload } from "@substrate/txwrapper-core/lib/core/construct";
+import { getRegistry } from "@substrate/txwrapper-registry";
+import { methods as substrateMethods } from "@substrate/txwrapper-substrate";
+import { expect } from "chai";
+
+import { alith, generateKeyingPair } from "../../util/accounts";
+import { verifyLatestBlockFees } from "../../util/block";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { rpcToLocalNode } from "../../util/transactions";
-import { EXTRINSIC_VERSION } from "@polkadot/types/extrinsic/v4/Extrinsic";
-import { createSignedTx, createSigningPayload } from "@substrate/txwrapper-core/lib/core/construct";
-import { verifyLatestBlockFees } from "../../util/block";
-import { alith, generateKeyingPair } from "../../util/accounts";
 
 /**
  * Signing function. Implement this on the OFFLINE signing device.
@@ -114,6 +114,6 @@ describeDevMoonbeam("Balance transfer - txwrapper", (context) => {
     );
   });
   it("should check fees", async function () {
-    await verifyLatestBlockFees(context, expect, BigInt(512));
+    await verifyLatestBlockFees(context, BigInt(512));
   });
 });

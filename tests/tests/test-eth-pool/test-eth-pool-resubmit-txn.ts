@@ -1,7 +1,7 @@
 import { expect } from "chai";
+
 import { generateKeyingPair } from "../../util/accounts";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
-
 import { createTransfer } from "../../util/transactions";
 
 describeDevMoonbeam("Resubmit transations", (context) => {

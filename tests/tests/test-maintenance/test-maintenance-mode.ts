@@ -1,12 +1,12 @@
 import "@moonbeam-network/api-augment";
-import { expect } from "chai";
-import { execTechnicalCommitteeProposal } from "../../util/governance";
+
 import { Result } from "@polkadot/types";
 import { SpRuntimeDispatchError } from "@polkadot/types/lookup";
+import { expect } from "chai";
 
-import { describeDevMoonbeam } from "../../util/setup-dev-tests";
-import { createBlockWithExtrinsic } from "../../util/substrate-rpc";
 import { alith } from "../../util/accounts";
+import { execTechnicalCommitteeProposal } from "../../util/governance";
+import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 
 describeDevMoonbeam("Maintenance Mode - Entering Maintenance Mode", (context) => {
   it("should succeed with Technical Committee", async function () {

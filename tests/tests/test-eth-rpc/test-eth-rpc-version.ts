@@ -1,6 +1,6 @@
 import { expect } from "chai";
+
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
-import { createContract } from "../../util/transactions";
 
 describeDevMoonbeam("Version RPC", (context) => {
   it("should return 1281 for eth_chainId", async function () {

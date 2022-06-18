@@ -1,9 +1,10 @@
 import "@moonbeam-network/api-augment";
-import { expect } from "chai";
-import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 
-import { getCompiled } from "../../util/contracts";
+import { expect } from "chai";
+
 import { alith } from "../../util/accounts";
+import { getCompiled } from "../../util/contracts";
+import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 
 describeDevMoonbeam("Estimate Gas - Contract creation", (context) => {
   it("should return contract creation gas cost", async function () {

@@ -251,7 +251,7 @@ describeSmokeSuite(`Verify balances consistency`, { wssUrl, relayWssUrl }, (cont
         p[v.accountId].total += Object.keys(v.reserved).reduce((p, key) => p + v.reserved[key], 0n);
         p[v.accountId].reserved = { ...p[v.accountId].reserved, ...v.reserved };
         return p;
-      }, {});
+      }, {} as { [key: string]: { total: bigint; reserved: { [key: string]: bigint } } });
 
     debug(`Retrieved ${Object.keys(expectedReserveByAccount).length} deposits`);
 

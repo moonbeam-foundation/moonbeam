@@ -1,7 +1,8 @@
 import "@moonbeam-network/api-augment";
-import { describeDevMoonbeam } from "../../util/setup-dev-tests";
-import { customWeb3Request } from "../../util/providers";
+
 import { alith, ALITH_PRIVATE_KEY } from "../../util/accounts";
+import { customWeb3Request } from "../../util/providers";
+import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 
 /*
  * These test cases trigger bugs in the bn128 precompiles which perform a from_slice()
