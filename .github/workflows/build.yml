@@ -348,10 +348,10 @@ jobs:
 
           ####  Preparing the repository
           cd moonbeam-types-bundle
-          npm install
+          npm ci
           npm run build
           cd ../tests
-          npm install
+          npm ci
           cd ..
 
           #### Retrieving docker image as base to run tests
@@ -393,7 +393,6 @@ jobs:
           if [[ $FILECOUNT -eq 0 ]]; then
             echo "All package-lock.json files are valid"
           else
-            cat tests/package-lock.json
             git diff --cached
             echo "The following package-lock.json files have uncommitted changes"
             echo $DIFF_INDEX | grep package-lock.json
@@ -432,10 +431,10 @@ jobs:
         run: |
           chmod uog+x build/moonbeam
           cd moonbeam-types-bundle
-          npm install
+          npm ci
           npm run build
           cd ../tests
-          npm install
+          npm ci
           node_modules/.bin/mocha --exit --parallel -j 2 -r ts-node/register 'tracing-tests/**/test-*.ts'
 
   typescript-para-tests:
@@ -480,9 +479,9 @@ jobs:
 
           ####  Preparing the repository
           cd moonbeam-types-bundle
-          npm install
+          npm ci
           cd ../tests
-          npm install
+          npm ci
           cd ..
 
           POLKADOT_REPO=${{ needs.set-tags.outputs.polkadot_repo }}
