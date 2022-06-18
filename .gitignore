@@ -17,6 +17,7 @@
 /tests/binaries
 /tests/runtimes
 /tests/specs
+/tests/build
 /tests/rococo*.json
 
 # Moonbeam-Launch

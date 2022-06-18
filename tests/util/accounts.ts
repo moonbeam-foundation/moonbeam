@@ -1,9 +1,11 @@
 import Keyring from "@polkadot/keyring";
+
 import {
   DEFAULT_GENESIS_BALANCE,
   DEFAULT_GENESIS_MAPPING,
   DEFAULT_GENESIS_STAKING,
 } from "./constants";
+
 const keyringEth = new Keyring({ type: "ethereum" });
 const keyringEd25519 = new Keyring({ type: "ed25519" });
 const keyringSr25519 = new Keyring({ type: "sr25519" });

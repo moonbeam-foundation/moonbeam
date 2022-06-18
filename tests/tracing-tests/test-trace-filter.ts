@@ -1,8 +1,11 @@
+import "@moonbeam-network/api-augment";
+
 import { expect } from "chai";
+
+import { alith, ALITH_ADDRESS, ALITH_CONTRACT_ADDRESSES } from "../util/accounts";
 import { customWeb3Request } from "../util/providers";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 import { createContract, createContractExecution } from "../util/transactions";
-import { alith, ALITH_ADDRESS, ALITH_CONTRACT_ADDRESSES } from "../util/accounts";
 
 const GENESIS_CONTRACT_ADDRESSES = [
   ALITH_CONTRACT_ADDRESSES[0],

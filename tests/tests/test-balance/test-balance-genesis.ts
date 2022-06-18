@@ -1,7 +1,8 @@
 import "@moonbeam-network/api-augment";
-import { expect } from "chai";
-import { alith, ALITH_GENESIS_BALANCE } from "../../util/accounts";
 
+import { expect } from "chai";
+
+import { alith, ALITH_GENESIS_BALANCE } from "../../util/accounts";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 
 describeDevMoonbeam("Balance genesis", (context) => {

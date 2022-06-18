@@ -1,16 +1,15 @@
 import "@moonbeam-network/api-augment";
+
 import { expect, use as chaiUse } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { ethers } from "ethers";
-
-import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
-
 import { TransactionReceipt } from "web3-core";
-import { getCompiled } from "../../util/contracts";
-
-import { createContract } from "../../util/transactions";
 import { Contract } from "web3-eth-contract";
+
 import { alith } from "../../util/accounts";
+import { getCompiled } from "../../util/contracts";
+import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
+import { createContract } from "../../util/transactions";
 
 chaiUse(chaiAsPromised);
 

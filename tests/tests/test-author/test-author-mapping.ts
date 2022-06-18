@@ -3,22 +3,22 @@ import "@moonbeam-network/api-augment";
 import { expect } from "chai";
 
 import {
-  DEFAULT_GENESIS_MAPPING,
-  DEFAULT_GENESIS_STAKING,
-  DEFAULT_GENESIS_BALANCE,
-} from "../../util/constants";
-import { describeDevMoonbeam } from "../../util/setup-dev-tests";
-import {
   alith,
-  baltathar,
-  generateKeyingPair,
   ALITH_SESSION_ADDRESS,
+  baltathar,
   BALTATHAR_SESSION_ADDRESS,
   CHARLETH_SESSION_ADDRESS,
+  generateKeyingPair,
 } from "../../util/accounts";
+import {
+  DEFAULT_GENESIS_BALANCE,
+  DEFAULT_GENESIS_MAPPING,
+  DEFAULT_GENESIS_STAKING,
+} from "../../util/constants";
+import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
 
 async function getMappingInfo(
-  context,
+  context: DevTestContext,
   authorId: string
 ): Promise<{ account: string; deposit: BigInt }> {
   const mapping = await context.polkadotApi.query.authorMapping.mappingWithDeposit(authorId);

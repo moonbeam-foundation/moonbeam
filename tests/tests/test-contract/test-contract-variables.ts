@@ -1,8 +1,10 @@
 import "@moonbeam-network/api-augment";
+
 import { expect } from "chai";
+import { Contract } from "web3-eth-contract";
+
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { createContract } from "../../util/transactions";
-import { Contract } from "web3-eth-contract";
 
 describeDevMoonbeam("Block Contract - Block variables", (context) => {
   let blockContract: Contract;

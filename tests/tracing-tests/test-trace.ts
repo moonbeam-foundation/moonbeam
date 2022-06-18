@@ -1,15 +1,23 @@
+import "@moonbeam-network/api-augment";
+
 import { expect } from "chai";
-import { customWeb3Request } from "../util/providers";
-import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes } from "../util/setup-dev-tests";
-import { createContract } from "../util/transactions";
 import { ethers } from "ethers";
-import { getCompiled } from "../util/contracts";
+import { Contract } from "web3-eth-contract";
+
 import { alith, ALITH_PRIVATE_KEY, baltathar } from "../util/accounts";
+import { getCompiled } from "../util/contracts";
+import { customWeb3Request } from "../util/providers";
+import {
+  describeDevMoonbeam,
+  describeDevMoonbeamAllEthTxTypes,
+  DevTestContext,
+} from "../util/setup-dev-tests";
+import { createContract } from "../util/transactions";
 
 const BS_TRACER = require("../util/tracer/blockscout_tracer.min.json");
 const BS_TRACER_V2 = require("../util/tracer/blockscout_tracer_v2.min.json");
 
-async function createContracts(context) {
+async function createContracts(context: DevTestContext) {
   let nonce = await context.web3.eth.getTransactionCount(alith.address);
   const { contract: callee, rawTx: rawTx1 } = await createContract(
     context,
@@ -34,7 +42,13 @@ async function createContracts(context) {
   };
 }
 
-async function nestedCall(context, caller, callerAddr, calleeAddr, nonce) {
+async function nestedCall(
+  context: DevTestContext,
+  caller: Contract,
+  callerAddr: string,
+  calleeAddr: string,
+  nonce: number
+) {
   let callTx = await context.web3.eth.accounts.signTransaction(
     {
       from: alith.address,
@@ -49,7 +63,7 @@ async function nestedCall(context, caller, callerAddr, calleeAddr, nonce) {
   return await customWeb3Request(context.web3, "eth_sendRawTransaction", [callTx.rawTransaction]);
 }
 
-async function nestedSingle(context) {
+async function nestedSingle(context: DevTestContext) {
   const contracts = await createContracts(context);
   return await nestedCall(
     context,
@@ -473,7 +487,7 @@ describeDevMoonbeam(
         { tracer: "callTracer" },
       ]);
       expect(block.transactions.length).to.be.equal(traceTx.result.length);
-      traceTx.result.forEach((trace) => {
+      traceTx.result.forEach((trace: { [key: string]: any }) => {
         expect(trace.calls.length).to.be.equal(1);
         expect(Object.keys(trace)).to.deep.equal([
           "calls",
@@ -493,7 +507,7 @@ describeDevMoonbeam(
         { tracer: "callTracer" },
       ]);
       expect(block.transactions.length).to.be.equal(traceTx.result.length);
-      traceTx.result.forEach((trace) => {
+      traceTx.result.forEach((trace: { [key: string]: any }) => {
         expect(trace.calls.length).to.be.equal(1);
         expect(Object.keys(trace)).to.deep.equal([
           "calls",

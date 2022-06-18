@@ -1,10 +1,10 @@
 import "@moonbeam-network/api-augment";
-import { expect } from "chai";
 
+import { expect } from "chai";
 import { TransactionReceipt } from "web3-core";
+
 import { verifyLatestBlockFees } from "../../util/block";
 import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
-
 import { createContract, createContractExecution } from "../../util/transactions";
 
 describeDevMoonbeamAllEthTxTypes("Contract loop error", (context) => {
@@ -18,7 +18,9 @@ describeDevMoonbeamAllEthTxTypes("Contract loop error", (context) => {
       .then(() => {
         return Promise.reject({ message: "Execution succeeded but should have failed" });
       })
-      .catch((err) => expect(err.message).to.equal(`Returned error: out of gas`));
+      .catch((err: { message: string }) =>
+        expect(err.message).to.equal(`Returned error: out of gas`)
+      );
   });
 });
 
@@ -57,6 +59,6 @@ describeDevMoonbeamAllEthTxTypes("Contract loop error - check fees", (context) =
 
     await context.createBlock(rawTx);
     await context.createBlock(infiniteTx);
-    await verifyLatestBlockFees(context, expect);
+    await verifyLatestBlockFees(context);
   });
 });

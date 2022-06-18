@@ -1,9 +1,9 @@
 import solc from "solc";
 import fs from "fs/promises";
-import { contractSources } from "./contracts/sources";
-import { Compiled } from "../tests/util/contracts";
+import { contractSources } from "../contracts/sources";
+import { Compiled } from "../util/contracts";
 
-function getImports(dependency) {
+function getImports(dependency: string) {
   if (contractSources[dependency]) {
     return { contents: contractSources[dependency] };
   }
