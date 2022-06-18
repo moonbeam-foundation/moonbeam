@@ -755,9 +755,7 @@ where
 
 					let author = nimbus_primitives::InherentDataProvider;
 
-					let randomness = session_keys_primitives::InherentDataProvider;
-
-					Ok((time, parachain_inherent, author, randomness))
+					Ok((time, parachain_inherent, author))
 				}
 			};
 

@@ -173,9 +173,7 @@ where
 
 						let author = nimbus_primitives::InherentDataProvider;
 
-						let randomness = session_keys_primitives::InherentDataProvider;
-
-						Ok((time, mocked_parachain, author, randomness))
+						Ok((time, mocked_parachain, author))
 					}
 				},
 			}),
