@@ -1901,7 +1901,7 @@ export const contractSources: { [key: string]: string } = {
           }
       }`,
 
-    affectedContract: `
+  affectedContract: `
     pragma solidity ^0.8.0;
 
     interface IERC20 {
@@ -1918,7 +1918,8 @@ export const contractSources: { [key: string]: string } = {
     
         // Run external call to call the stealNow function passing the ERC20 (WETH) token address
         function externalCall(address _erc20Address) public  {
-            (bool success, ) = stealContract.call(abi.encodeWithSignature("stealNow(address)",_erc20Address));
+            (bool success, ) = 
+                stealContract.call(abi.encodeWithSignature("stealNow(address)",_erc20Address));
             require(success);
         }
     
@@ -1931,7 +1932,7 @@ export const contractSources: { [key: string]: string } = {
         receive () external payable {
         }
     }`,
-    Steal: `
+  Steal: `
     pragma solidity ^0.8.0;
     interface IERC20 {
         function balanceOf(address) external view returns (uint256);
@@ -1959,7 +1960,7 @@ export const contractSources: { [key: string]: string } = {
             emit isSuccess(success1, success2);
         }
     }`,
-    WETH9: `
+  WETH9: `
     pragma solidity ^0.8.0;
     contract WETH9 {
         string public name     = "Wrapped Ether";
@@ -2003,5 +2004,5 @@ export const contractSources: { [key: string]: string } = {
     
             return true;
         }
-    }`
+    }`,
 };
