@@ -1780,7 +1780,11 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
       await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [1, totalMessageNotExecuted]);
     }
 
-    await context.createBlock();
+    const result = await context.createBlock().catch((e) => e);
+    expect(result.toString()).to.eq(
+      "RpcError: 20000: Error at calling runtime api: " +
+        "Execution failed: Runtime panicked: assertion failed: mid <= self.len()"
+    );
 
     // The balance of the sovereign account should be 100, as none of the messages got executed
     const balance = await context.polkadotApi.query.system.account(sovereignAddress);

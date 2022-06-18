@@ -26,19 +26,14 @@ export async function createAndFinalizeBlock(
   hash: string;
 }> {
   const startTime: number = Date.now();
-  try {
-    const block = parentHash
-      ? await api.rpc.engine.createBlock(true, finalize, parentHash)
-      : await api.rpc.engine.createBlock(true, finalize);
+  const block = parentHash
+    ? await api.rpc.engine.createBlock(true, finalize, parentHash)
+    : await api.rpc.engine.createBlock(true, finalize);
 
-    return {
-      duration: Date.now() - startTime,
-      hash: block.get("hash").toString(),
-    };
-  } catch (e) {
-    console.log("ERROR DURING BLOCK FINALIZATION", e);
-    throw e;
-  }
+  return {
+    duration: Date.now() - startTime,
+    hash: block.get("hash").toString(),
+  };
 }
 
 export interface TxWithEventAndFee extends TxWithEvent {
