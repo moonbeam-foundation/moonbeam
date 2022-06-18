@@ -27,6 +27,7 @@ use pallet_evm::AddressMapping;
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use serde::{Deserialize, Serialize};
 use session_keys_primitives::VrfId;
+use sp_consensus_babe::Slot;
 use sp_core::{H160, H256};
 use sp_runtime::{
 	testing::Header,
@@ -175,6 +176,32 @@ impl pallet_author_mapping::Config for Test {
 	type WeightInfo = ();
 }
 
+pub struct BabeDataGetter;
+impl crate::traits::GetBabeData<BlockNumber, u64, Option<H256>> for BabeDataGetter {
+	fn get_relay_block_number() -> BlockNumber {
+		1u64
+	}
+	fn get_relay_epoch_index() -> u64 {
+		1u64
+	}
+	fn get_current_block_randomness() -> Option<H256> {
+		None
+	}
+	fn get_one_epoch_ago_randomness() -> Option<H256> {
+		None
+	}
+	fn get_two_epochs_ago_randomness() -> Option<H256> {
+		None
+	}
+}
+
+pub struct VrfInputGetter;
+impl crate::traits::GetVrfInput<VrfInput<Slot, H256>> for VrfInputGetter {
+	fn get_vrf_input() -> VrfInput<Slot, H256> {
+		VrfInput::default()
+	}
+}
+
 parameter_types! {
 	pub const Deposit: u128 = 10;
 	pub const ExpirationDelay: u32 = 5;
@@ -183,7 +210,8 @@ impl Config for Test {
 	type Event = Event;
 	type AddressMapping = Account;
 	type ReserveCurrency = Balances;
-	type RelayDataSetter = ();
+	type BabeDataGetter = BabeDataGetter;
+	type VrfInputGetter = VrfInputGetter;
 	type VrfKeyLookup = AuthorMapping;
 	type Deposit = Deposit;
 	type ExpirationDelay = ExpirationDelay;
@@ -245,6 +273,7 @@ impl ExtBuilder {
 		self
 	}
 
+	#[allow(dead_code)]
 	pub(crate) fn with_mappings(mut self, mappings: Vec<(NimbusId, Account)>) -> Self {
 		self.mappings = mappings;
 		self

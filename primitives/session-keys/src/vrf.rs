@@ -17,7 +17,16 @@
 //! VRF Key type, which is sr25519
 use nimbus_primitives::NimbusId;
 use sp_application_crypto::{sr25519, KeyTypeId, UncheckedFrom};
+use sp_consensus_babe::{Slot, Transcript};
 use sp_runtime::{BoundToRuntimeAppPublic, ConsensusEngineId};
+
+/// Make VRF transcript from the VrfInput
+pub fn make_transcript<Hash: AsRef<[u8]>>(slot: Slot, storage_root: Hash) -> Transcript {
+	let mut transcript = Transcript::new(&VRF_ENGINE_ID);
+	transcript.append_u64(b"relay slot number", *slot);
+	transcript.append_message(b"relay storage root", storage_root.as_ref());
+	transcript
+}
 
 /// Struct to implement `BoundToRuntimeAppPublic` by assigning Public = VrfId
 pub struct VrfSessionKey;
@@ -39,6 +48,9 @@ pub const VRF_ENGINE_ID: ConsensusEngineId = *b"rand";
 
 /// The KeyTypeId used for VRF keys
 pub const VRF_KEY_ID: KeyTypeId = KeyTypeId(VRF_ENGINE_ID);
+
+/// VRFInOut context.
+pub static VRF_INOUT_CONTEXT: &[u8] = b"VRFInOutContext";
 
 // The strongly-typed crypto wrappers to be used by VRF in the keystore
 mod vrf_crypto {

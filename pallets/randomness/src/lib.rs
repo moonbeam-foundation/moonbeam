@@ -25,9 +25,11 @@ pub use pallet::*;
 pub mod instant;
 pub mod traits;
 pub mod types;
+pub mod vrf;
 pub use instant::*;
 pub use traits::*;
 pub use types::*;
+use vrf::*;
 
 // pub mod weights;
 // use weights::WeightInfo;
@@ -45,28 +47,16 @@ pub mod pallet {
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{Currency, ReservableCurrency};
 	use frame_system::pallet_prelude::*;
-	use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
+	use nimbus_primitives::NimbusId;
 	use pallet_evm::AddressMapping;
 	use session_keys_primitives::{KeysLookup, VrfId};
-	use sp_application_crypto::ByteArray;
-	use sp_consensus_babe::{digests::PreDigest, Slot, Transcript, BABE_ENGINE_ID};
-	use sp_consensus_vrf::schnorrkel;
+	use sp_consensus_babe::Slot;
 	use sp_core::{H160, H256};
 	use sp_runtime::traits::Saturating;
 	use sp_std::{convert::TryInto, vec::Vec};
 
-	/// Make VRF transcript
-	fn make_transcript<Hash: AsRef<[u8]>>(input: VrfInput<Slot, Hash>) -> Transcript {
-		let mut transcript = Transcript::new(&BABE_ENGINE_ID);
-		transcript.append_u64(b"relay slot number", *input.slot_number);
-		transcript.append_message(b"relay storage root", input.storage_root.as_ref());
-		transcript
-	}
-
 	/// Request identifier, unique per request for randomness
 	pub type RequestId = u64;
-	/// VRF output
-	type Randomness = schnorrkel::Randomness;
 
 	pub type BalanceOf<T> = <<T as Config>::ReserveCurrency as Currency<
 		<T as frame_system::Config>::AccountId,
@@ -191,83 +181,19 @@ pub mod pallet {
 
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
-		// Set this block's randomness using the VRF output
+		// Set this block's randomness using the VRF output, verified by the VrfInput put in
+		// storage in the previous block's `on_initialize`
 		fn on_initialize(_now: BlockNumberFor<T>) -> Weight {
-			// first block will be just default if it is not set, 0 input is default
-			// TODO: client will need to sign LastVrfInput::get().unwrap_or_default() with vrf keys
-			let vrf_input = <NextVrfInput<T>>::get().unwrap_or_default();
-			Self::set_randomness(vrf_input)
+			set_randomness::<T>()
 		}
 		// Set next block's VRF input in storage
 		fn on_finalize(_now: BlockNumberFor<T>) {
-			// Expect 1 read + 2 writes
 			// Necessary because required data is killed in `ParachainSystem::on_initialize`
-			Self::set_vrf_input(T::VrfInputGetter::get_vrf_input());
+			set_vrf_input::<T>();
 		}
 	}
 
-	impl<T: Config> Pallet<T> {
-		/// Returns weight consumed in `on_initialize`
-		fn set_randomness(input: VrfInput<Slot, T::Hash>) -> Weight {
-			let mut block_author_vrf_id: Option<VrfId> = None;
-			let maybe_pre_digest: Option<PreDigest> = <frame_system::Pallet<T>>::digest()
-				.logs
-				.iter()
-				.filter_map(|s| s.as_pre_runtime())
-				.filter_map(|(id, mut data)| {
-					if id == BABE_ENGINE_ID {
-						PreDigest::decode(&mut data).ok()
-					} else {
-						if id == NIMBUS_ENGINE_ID {
-							let nimbus_id = NimbusId::decode(&mut data)
-								.expect("NimbusId encoded in pre-runtime digest must be valid");
-
-							block_author_vrf_id = Some(
-								T::VrfKeyLookup::lookup_keys(&nimbus_id)
-									.expect("No VRF Key Mapped to this NimbusId"),
-							);
-						}
-						None
-					}
-				})
-				.next();
-			let block_author_vrf_id =
-				block_author_vrf_id.expect("VrfId encoded in pre-runtime digest must be valid");
-			let pubkey = schnorrkel::PublicKey::from_bytes(block_author_vrf_id.as_slice())
-				.expect("Expect VrfId to be valid schnorrkel public key");
-			let transcript = make_transcript::<T::Hash>(input);
-			let vrf_output: Randomness = maybe_pre_digest
-				.and_then(|digest| {
-					digest
-						.vrf_output()
-						.and_then(|vrf_output| {
-							vrf_output.0.attach_input_hash(&pubkey, transcript).ok()
-						})
-						.map(|inout| inout.make_bytes(&sp_consensus_babe::BABE_VRF_INOUT_CONTEXT))
-				})
-				.expect("VRF output encoded in pre-runtime digest must be valid");
-			LocalVrfOutput::<T>::put(T::Hash::decode(&mut &vrf_output[..]).ok());
-			T::DbWeight::get().read + 2 * T::DbWeight::get().write
-		}
-		/// Set vrf input in storage and log warning if either of the values did NOT change
-		fn set_vrf_input(input: VrfInput<Slot, T::Hash>) {
-			if let Some(previous_vrf_inputs) = <NextVrfInput<T>>::take() {
-				// logs if input uniqueness assumptions are violated (no reuse of vrf inputs)
-				if previous_vrf_inputs.storage_root == input.storage_root
-					|| previous_vrf_inputs.slot_number == input.slot_number
-				{
-					log::warn!(
-						"VRF on_initialize: storage root or slot number did not change between \
-					current and last block. Nimbus would've panicked if slot number did not change \
-					so probably storage root did not change."
-					);
-				}
-			}
-			<NextVrfInput<T>>::put(input);
-		}
-	}
-
-	// Utility functions
+	// Utility function
 	impl<T: Config> Pallet<T> {
 		pub(crate) fn concat_and_hash(a: T::Hash, b: H256) -> [u8; 32] {
 			let mut s = Vec::new();

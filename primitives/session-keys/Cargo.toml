@@ -6,22 +6,20 @@ edition = "2021"
 version = "0.1.0"
 
 [dependencies]
-async-trait = { version = "0.1", optional = true }
 nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.20", default-features = false }
 parity-scale-codec = { version = "3.0.0", default-features = false, features = [ "derive" ] }
 scale-info = { version = "2.0", default-features = false, features = [ "derive" ] }
 sp-application-crypto = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
-sp-inherents = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
+sp-consensus-babe = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
 sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
 
 [features]
 default = [ "std" ]
 std = [
-	"async-trait",
 	"nimbus-primitives/std",
 	"parity-scale-codec/std",
 	"scale-info/std",
 	"sp-application-crypto/std",
-	"sp-inherents/std",
+	"sp-consensus-babe/std",
 	"sp-runtime/std",
 ]
