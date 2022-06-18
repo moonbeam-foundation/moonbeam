@@ -5380,7 +5380,6 @@ dependencies = [
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-treasury",
  "pallet-utility",
- "pallet-vrf",
  "pallet-xcm",
  "pallet-xcm-transactor",
  "parachain-info",
@@ -7870,13 +7869,17 @@ dependencies = [
  "frame-support",
  "frame-system",
  "log",
+ "nimbus-primitives",
+ "pallet-author-mapping",
  "pallet-balances",
  "pallet-evm",
- "pallet-timestamp",
  "parity-scale-codec",
  "scale-info",
  "serde",
  "session-keys-primitives",
+ "sp-application-crypto",
+ "sp-consensus-babe",
+ "sp-consensus-vrf",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -8141,26 +8144,6 @@ dependencies = [
  "scale-info",
  "sp-runtime",
  "sp-std",
-]
-
-[[package]]
-name = "pallet-vrf"
-version = "0.1.0"
-dependencies = [
- "frame-support",
- "frame-system",
- "log",
- "nimbus-primitives",
- "pallet-balances",
- "parity-scale-codec",
- "scale-info",
- "session-keys-primitives",
- "sp-application-crypto",
- "sp-consensus-babe",
- "sp-consensus-vrf",
- "sp-core",
- "sp-io",
- "sp-runtime",
 ]
 
 [[package]]

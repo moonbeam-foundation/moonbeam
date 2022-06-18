@@ -12,7 +12,6 @@ members = [
 	"pallets/migrations",
 	"pallets/moonbeam-orbiters",
 	"pallets/proxy-genesis-companion",
-	"pallets/vrf",
 	"precompiles/author-mapping",
 	"precompiles/balances-erc20",
 	"precompiles/batch",

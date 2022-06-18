@@ -15,26 +15,33 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 ///! Instant Randomness
-///! exposes the most recent values for all the pallet storage values
-use crate::{Config, Error, Pallet};
-use frame_support::StorageValue;
-use session_keys_primitives::MaybeGetRandomness;
+use crate::{Config, Error, GetBabeData, LocalVrfOutput, Pallet};
 use sp_core::H256;
 use sp_runtime::DispatchError;
 
-/// Returns most recent value for the local randomness (per block VRF)
-pub fn instant_local_randomness<T: Config>(salt: H256) -> Result<[u8; 32], DispatchError> {
-	let randomness =
-		T::LocalRandomness::maybe_get_randomness().ok_or(Error::<T>::RandomnessNotAvailable)?;
+/// Returns BABE one epoch ago randomness
+pub fn instant_one_epoch_ago_randomness<T: Config>(salt: H256) -> Result<[u8; 32], DispatchError> {
+	let randomness = T::BabeDataGetter::get_one_epoch_ago_randomness()
+		.ok_or(Error::<T>::RandomnessNotAvailable)?;
 	Ok(Pallet::<T>::concat_and_hash(randomness, salt))
 }
 
-/// Returns most recent value for the specified storage item `V`
-pub fn instant_relay_randomness<T, V>(salt: H256) -> Result<[u8; 32], DispatchError>
-where
-	T: Config,
-	V: StorageValue<Option<T::Hash>, Query = Option<T::Hash>>,
-{
-	let randomness = V::get().ok_or(Error::<T>::RandomnessNotAvailable)?;
+/// Returns BABE two epochs ago randomness
+pub fn instant_two_epochs_ago_randomness<T: Config>(salt: H256) -> Result<[u8; 32], DispatchError> {
+	let randomness = T::BabeDataGetter::get_two_epochs_ago_randomness()
+		.ok_or(Error::<T>::RandomnessNotAvailable)?;
+	Ok(Pallet::<T>::concat_and_hash(randomness, salt))
+}
+
+/// Returns BABE current block randomness
+pub fn instant_current_block_randomness<T: Config>(salt: H256) -> Result<[u8; 32], DispatchError> {
+	let randomness = T::BabeDataGetter::get_current_block_randomness()
+		.ok_or(Error::<T>::RandomnessNotAvailable)?;
+	Ok(Pallet::<T>::concat_and_hash(randomness, salt))
+}
+
+/// Returns most recent value for the local randomness
+pub fn instant_local_randomness<T: Config>(salt: H256) -> Result<[u8; 32], DispatchError> {
+	let randomness = <LocalVrfOutput<T>>::get().ok_or(Error::<T>::RandomnessNotAvailable)?;
 	Ok(Pallet::<T>::concat_and_hash(randomness, salt))
 }

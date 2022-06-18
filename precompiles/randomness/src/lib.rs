@@ -418,11 +418,8 @@ where
 		// check that randomness can be provided
 		ensure_can_provide_randomness::<Runtime>(handle.code_address(), gas_limit, None, None)?;
 		// get randomness from pallet
-		let randomness = pallet_randomness::instant_relay_randomness::<
-			Runtime,
-			pallet_randomness::CurrentBlockRandomness<Runtime>,
-		>(salt)
-		.map_err(|e| error(alloc::format!("{:?}", e)))?;
+		let randomness = pallet_randomness::instant_current_block_randomness::<Runtime>(salt)
+			.map_err(|e| error(alloc::format!("{:?}", e)))?;
 		// make subcall
 		provide_randomness(handle, gas_limit, handle.context().caller, H256(randomness))?;
 		Ok(PrecompileOutput {
@@ -440,11 +437,8 @@ where
 		// check that randomness can be provided
 		ensure_can_provide_randomness::<Runtime>(handle.code_address(), gas_limit, None, None)?;
 		// get randomness from pallet
-		let randomness = pallet_randomness::instant_relay_randomness::<
-			Runtime,
-			pallet_randomness::OneEpochAgoRandomness<Runtime>,
-		>(salt)
-		.map_err(|e| error(alloc::format!("{:?}", e)))?;
+		let randomness = pallet_randomness::instant_one_epoch_ago_randomness::<Runtime>(salt)
+			.map_err(|e| error(alloc::format!("{:?}", e)))?;
 		// make subcall
 		provide_randomness(handle, gas_limit, handle.context().caller, H256(randomness))?;
 		Ok(PrecompileOutput {
@@ -462,11 +456,8 @@ where
 		// check that randomness can be provided
 		ensure_can_provide_randomness::<Runtime>(handle.code_address(), gas_limit, None, None)?;
 		// get randomness from pallet
-		let randomness = pallet_randomness::instant_relay_randomness::<
-			Runtime,
-			pallet_randomness::TwoEpochsAgoRandomness<Runtime>,
-		>(salt)
-		.map_err(|e| error(alloc::format!("{:?}", e)))?;
+		let randomness = pallet_randomness::instant_two_epochs_ago_randomness::<Runtime>(salt)
+			.map_err(|e| error(alloc::format!("{:?}", e)))?;
 		// make subcall
 		provide_randomness(handle, gas_limit, handle.context().caller, H256(randomness))?;
 		Ok(PrecompileOutput {

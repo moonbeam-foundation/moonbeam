@@ -17,11 +17,16 @@
 //! A minimal runtime including the pallet-randomness pallet
 use super::*;
 use crate as pallet_randomness;
-use frame_support::{construct_runtime, parameter_types, traits::Everything, weights::Weight};
+use frame_support::{
+	construct_runtime, parameter_types,
+	traits::{Everything, GenesisBuild},
+	weights::Weight,
+};
+use nimbus_primitives::NimbusId;
 use pallet_evm::AddressMapping;
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use serde::{Deserialize, Serialize};
-use session_keys_primitives::MaybeGetRandomness;
+use session_keys_primitives::VrfId;
 use sp_core::{H160, H256};
 use sp_runtime::{
 	testing::Header,
@@ -45,6 +50,7 @@ construct_runtime!(
 	{
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
+		AuthorMapping: pallet_author_mapping::{Pallet, Call, Storage, Config<T>, Event<T>},
 		Randomness: pallet_randomness::{Pallet, Storage, Event<T>},
 	}
 );
@@ -158,11 +164,15 @@ impl pallet_balances::Config for Test {
 	type WeightInfo = ();
 }
 
-pub struct LocalRandomness;
-impl MaybeGetRandomness<H256> for LocalRandomness {
-	fn maybe_get_randomness() -> Option<H256> {
-		None
-	}
+parameter_types! {
+	pub const DepositAmount: Balance = 100;
+}
+impl pallet_author_mapping::Config for Test {
+	type Event = Event;
+	type DepositCurrency = Balances;
+	type DepositAmount = DepositAmount;
+	type Keys = VrfId;
+	type WeightInfo = ();
 }
 
 parameter_types! {
@@ -174,7 +184,7 @@ impl Config for Test {
 	type AddressMapping = Account;
 	type ReserveCurrency = Balances;
 	type RelayDataSetter = ();
-	type LocalRandomness = LocalRandomness;
+	type VrfKeyLookup = AuthorMapping;
 	type Deposit = Deposit;
 	type ExpirationDelay = ExpirationDelay;
 	//type WeightToFee = ();
@@ -211,15 +221,19 @@ macro_rules! assert_event_emitted {
 	};
 }
 
-/// Externality builder for pallet maintenance mode's mock runtime
+/// Externality builder for pallet randomness mock runtime
 pub(crate) struct ExtBuilder {
+	/// Balance amounts per AccountId
 	balances: Vec<(Account, Balance)>,
+	/// AuthorId -> AccountId mappings
+	mappings: Vec<(NimbusId, Account)>,
 }
 
 impl Default for ExtBuilder {
 	fn default() -> ExtBuilder {
 		ExtBuilder {
 			balances: Vec::new(),
+			mappings: Vec::new(),
 		}
 	}
 }
@@ -228,6 +242,11 @@ impl ExtBuilder {
 	#[allow(dead_code)]
 	pub(crate) fn with_balances(mut self, balances: Vec<(Account, Balance)>) -> Self {
 		self.balances = balances;
+		self
+	}
+
+	pub(crate) fn with_mappings(mut self, mappings: Vec<(NimbusId, Account)>) -> Self {
+		self.mappings = mappings;
 		self
 	}
 
@@ -242,6 +261,12 @@ impl ExtBuilder {
 		}
 		.assimilate_storage(&mut t)
 		.expect("Pallet balances storage can be assimilated");
+
+		pallet_author_mapping::GenesisConfig::<Test> {
+			mappings: self.mappings,
+		}
+		.assimilate_storage(&mut t)
+		.expect("Pallet author mapping's storage can be assimilated");
 
 		let mut ext = sp_io::TestExternalities::new(t);
 		ext.execute_with(|| System::set_block_number(1));

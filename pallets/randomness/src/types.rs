@@ -15,13 +15,11 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
-	BalanceOf, Config, CurrentBlockRandomness, CurrentEpochIndex, CurrentRelayBlockNumber, Error,
-	Event, OneEpochAgoRandomness, Pallet, RequestId, TwoEpochsAgoRandomness,
+	traits::GetBabeData, BalanceOf, Config, Error, Event, LocalVrfOutput, Pallet, RequestId,
 };
 use frame_support::pallet_prelude::*;
 use frame_support::traits::{Currency, ExistenceRequirement::KeepAlive, ReservableCurrency};
 use pallet_evm::AddressMapping;
-use session_keys_primitives::MaybeGetRandomness;
 use sp_core::{H160, H256};
 use sp_runtime::traits::{CheckedSub, Saturating};
 
@@ -39,6 +37,22 @@ pub enum RequestType<T: Config> {
 	/// Local per parachain block VRF output
 	Local(T::BlockNumber),
 }
+
+/// VRF inputs from the relay chain
+/// Both inputs are expected to change every block
+#[derive(Default, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
+pub struct VrfInput<SlotNumber, RelayHash> {
+	/// Relay block slot number
+	pub slot_number: SlotNumber,
+	/// Relay block storage root
+	pub storage_root: RelayHash,
+}
+
+// randomness is unknown but predictable
+// upon request creation, add storage item with babe_value: None
+// EpochRequests epoch_number => struct { Option<randomness>, num_requests }
+//  (also needs to track number of requests and once 0, remove)
+// in inherent, check if storage item for epoch and set value to it and if none, don't set value (only set when a new epoch)
 
 #[derive(PartialEq, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
 #[scale_info(skip_type_params(T))]
@@ -61,9 +75,15 @@ pub struct Request<T: Config> {
 impl<T: Config> Request<T> {
 	pub fn can_be_fulfilled(&self) -> bool {
 		match self.info {
-			RequestType::BabeCurrentBlock(block) => block <= <CurrentRelayBlockNumber<T>>::get(),
-			RequestType::BabeOneEpochAgo(epoch) => epoch <= <CurrentEpochIndex<T>>::get(),
-			RequestType::BabeTwoEpochsAgo(epoch) => epoch <= <CurrentEpochIndex<T>>::get(),
+			RequestType::BabeCurrentBlock(block) => {
+				block <= T::BabeDataGetter::get_relay_block_number()
+			}
+			RequestType::BabeOneEpochAgo(epoch) => {
+				epoch <= T::BabeDataGetter::get_relay_epoch_index()
+			}
+			RequestType::BabeTwoEpochsAgo(epoch) => {
+				epoch <= T::BabeDataGetter::get_relay_epoch_index()
+			}
 			RequestType::Local(block) => block <= frame_system::Pallet::<T>::block_number(),
 		}
 	}
@@ -193,10 +213,10 @@ impl<T: Config> RequestState<T> {
 		);
 		// get the randomness corresponding to the request
 		let randomness: T::Hash = match self.request.info {
-			RequestType::BabeOneEpochAgo(_) => OneEpochAgoRandomness::<T>::get(),
-			RequestType::BabeTwoEpochsAgo(_) => TwoEpochsAgoRandomness::<T>::get(),
-			RequestType::BabeCurrentBlock(_) => CurrentBlockRandomness::<T>::get(),
-			RequestType::Local(_) => T::LocalRandomness::maybe_get_randomness(),
+			RequestType::BabeOneEpochAgo(_) => T::BabeDataGetter::get_one_epoch_ago_randomness(),
+			RequestType::BabeTwoEpochsAgo(_) => T::BabeDataGetter::get_two_epochs_ago_randomness(),
+			RequestType::BabeCurrentBlock(_) => T::BabeDataGetter::get_current_block_randomness(),
+			RequestType::Local(_) => LocalVrfOutput::<T>::get(),
 		}
 		.ok_or(Error::<T>::RandomnessNotAvailable)?;
 		// compute random output using salt

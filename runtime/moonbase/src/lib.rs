@@ -29,7 +29,7 @@
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use cumulus_pallet_parachain_system::{RelayChainStateProof, RelaychainBlockNumberProvider};
-use cumulus_primitives_core::relay_chain;
+use cumulus_primitives_core::relay_chain::{self, v2::Slot};
 use fp_rpc::TransactionStatus;
 
 use account::AccountId20;
@@ -1080,11 +1080,6 @@ impl pallet_moonbeam_orbiters::Config for Runtime {
 	type WeightInfo = pallet_moonbeam_orbiters::weights::SubstrateWeight<Runtime>;
 }
 
-impl pallet_vrf::Config for Runtime {
-	/// Lookup VRF key using NimbusID
-	type VrfKeyLookup = AuthorMapping;
-}
-
 /// Only callable after `set_validation_data` is called which forms this proof the same way
 fn relay_chain_state_proof() -> RelayChainStateProof {
 	let relay_storage_root = ParachainSystem::validation_data()
@@ -1096,46 +1091,51 @@ fn relay_chain_state_proof() -> RelayChainStateProof {
 		.expect("Invalid relay chain state proof, already constructed in `set_validation_data`")
 }
 
-pub struct RelayDataSetter;
-impl session_keys_primitives::SetRelayData for RelayDataSetter {
-	fn set_relay_data() {
-		let validation_data = ParachainSystem::validation_data()
-			.expect("set in `set_validation_data` and available before on_initialize");
-		let relay_chain_state_proof = relay_chain_state_proof();
-		// GET VRF INPUTS
-		let slot_number = relay_chain_state_proof
-			.read_slot()
-			.expect("CheckInherents reads slot from state proof QED");
-		let storage_root = validation_data.relay_parent_storage_root;
-		// SET VRF INPUTS
-		Vrf::set_vrf_inputs(slot_number, storage_root);
-		// GET BABE RANDOMNESS VALUES
-		let block_number = validation_data.relay_parent_number;
-		let epoch_index = relay_chain_state_proof
+pub struct BabeDataGetter;
+impl pallet_randomness::GetBabeData<BlockNumber, u64, Option<Hash>> for BabeDataGetter {
+	fn get_relay_block_number() -> BlockNumber {
+		ParachainSystem::validation_data()
+			.expect("set in `set_validation_data`inherent => available before on_initialize")
+			.relay_parent_number
+	}
+	fn get_relay_epoch_index() -> u64 {
+		relay_chain_state_proof()
 			.read_optional_entry(relay_chain::well_known_keys::EPOCH_INDEX)
 			.ok()
 			.flatten()
-			.expect("expected to be able to read epoch index from relay chain state proof");
-		let current_block_randomness = relay_chain_state_proof
+			.expect("expected to be able to read epoch index from relay chain state proof")
+	}
+	fn get_current_block_randomness() -> Option<Hash> {
+		relay_chain_state_proof()
 			.read_optional_entry(relay_chain::well_known_keys::CURRENT_BLOCK_RANDOMNESS)
 			.ok()
-			.flatten();
-		let one_epoch_ago_randomness = relay_chain_state_proof
+			.flatten()
+	}
+	fn get_one_epoch_ago_randomness() -> Option<Hash> {
+		relay_chain_state_proof()
 			.read_optional_entry(relay_chain::well_known_keys::ONE_EPOCH_AGO_RANDOMNESS)
 			.ok()
-			.flatten();
-		let two_epochs_ago_randomness = relay_chain_state_proof
+			.flatten()
+	}
+	fn get_two_epochs_ago_randomness() -> Option<Hash> {
+		relay_chain_state_proof()
 			.read_optional_entry(relay_chain::well_known_keys::TWO_EPOCHS_AGO_RANDOMNESS)
 			.ok()
-			.flatten();
-		// SET RANDOMNESS VALUES
-		Randomness::set_relay_randomness(
-			block_number,
-			epoch_index,
-			current_block_randomness,
-			one_epoch_ago_randomness,
-			two_epochs_ago_randomness,
-		);
+			.flatten()
+	}
+}
+
+pub struct VrfInputGetter;
+impl pallet_randomness::GetVrfInput<pallet_randomness::VrfInput<Slot, Hash>> for VrfInputGetter {
+	fn get_vrf_input() -> pallet_randomness::VrfInput<Slot, Hash> {
+		pallet_randomness::VrfInput {
+			slot_number: relay_chain_state_proof()
+				.read_slot()
+				.expect("CheckInherents reads slot from state proof QED"),
+			storage_root: ParachainSystem::validation_data()
+				.expect("set in `set_validation_data`inherent => available before on_initialize")
+				.relay_parent_storage_root,
+		}
 	}
 }
 
@@ -1148,8 +1148,9 @@ impl pallet_randomness::Config for Runtime {
 	type Event = Event;
 	type AddressMapping = moonbeam_runtime_common::IntoAddressMapping;
 	type ReserveCurrency = Balances;
-	type RelayDataSetter = RelayDataSetter;
-	type LocalRandomness = Vrf;
+	type BabeDataGetter = BabeDataGetter;
+	type VrfInputGetter = VrfInputGetter;
+	type VrfKeyLookup = AuthorMapping;
 	type Deposit = RandomnessRequestDeposit;
 	type ExpirationDelay = ExpirationDelay;
 }
@@ -1200,8 +1201,7 @@ construct_runtime! {
 		BaseFee: pallet_base_fee::{Pallet, Call, Storage, Config<T>, Event} = 35,
 		LocalAssets: pallet_assets::<Instance1>::{Pallet, Call, Storage, Event<T>} = 36,
 		MoonbeamOrbiters: pallet_moonbeam_orbiters::{Pallet, Call, Storage, Event<T>} = 37,
-		Vrf: pallet_vrf::{Pallet, Storage} = 38,
-		Randomness: pallet_randomness::{Pallet, Call, Storage, Event<T>} = 39,
+		Randomness: pallet_randomness::{Pallet, Storage, Event<T>} = 38,
 	}
 }
 

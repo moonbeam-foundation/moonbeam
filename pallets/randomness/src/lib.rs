@@ -23,8 +23,10 @@ use frame_support::pallet;
 pub use pallet::*;
 
 pub mod instant;
+pub mod traits;
 pub mod types;
 pub use instant::*;
+pub use traits::*;
 pub use types::*;
 
 // pub mod weights;
@@ -43,16 +45,28 @@ pub mod pallet {
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{Currency, ReservableCurrency};
 	use frame_system::pallet_prelude::*;
+	use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
 	use pallet_evm::AddressMapping;
-	use session_keys_primitives::{
-		InherentError, MaybeGetRandomness, SetRelayData, INHERENT_IDENTIFIER,
-	};
+	use session_keys_primitives::{KeysLookup, VrfId};
+	use sp_application_crypto::ByteArray;
+	use sp_consensus_babe::{digests::PreDigest, Slot, Transcript, BABE_ENGINE_ID};
+	use sp_consensus_vrf::schnorrkel;
 	use sp_core::{H160, H256};
 	use sp_runtime::traits::Saturating;
 	use sp_std::{convert::TryInto, vec::Vec};
 
+	/// Make VRF transcript
+	fn make_transcript<Hash: AsRef<[u8]>>(input: VrfInput<Slot, Hash>) -> Transcript {
+		let mut transcript = Transcript::new(&BABE_ENGINE_ID);
+		transcript.append_u64(b"relay slot number", *input.slot_number);
+		transcript.append_message(b"relay storage root", input.storage_root.as_ref());
+		transcript
+	}
+
 	/// Request identifier, unique per request for randomness
 	pub type RequestId = u64;
+	/// VRF output
+	type Randomness = schnorrkel::Randomness;
 
 	pub type BalanceOf<T> = <<T as Config>::ReserveCurrency as Currency<
 		<T as frame_system::Config>::AccountId,
@@ -71,10 +85,12 @@ pub mod pallet {
 		type AddressMapping: AddressMapping<Self::AccountId>;
 		/// Currency in which the security deposit will be taken.
 		type ReserveCurrency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
-		/// Set data for this pallet and vrf pallet in the `set_relay_data` inherent
-		type RelayDataSetter: SetRelayData;
-		/// Get per block vrf randomness
-		type LocalRandomness: MaybeGetRandomness<Self::Hash>;
+		/// Get the BABE data from the runtime
+		type BabeDataGetter: GetBabeData<Self::BlockNumber, u64, Option<Self::Hash>>;
+		/// Get the VRF input from the runtime
+		type VrfInputGetter: GetVrfInput<VrfInput<Slot, Self::Hash>>;
+		/// Takes NimbusId to return VrfId
+		type VrfKeyLookup: KeysLookup<NimbusId, VrfId>;
 		#[pallet::constant]
 		/// The amount that should be taken as a security deposit when requesting randomness.
 		type Deposit: Get<BalanceOf<Self>>;
@@ -160,83 +176,94 @@ pub mod pallet {
 	/// Number of randomness requests made so far, used to generate the next request's uid
 	pub type RequestCount<T: Config> = StorageValue<_, RequestId, ValueQuery>;
 
+	/// Current local per-block VRF randomness
+	/// Set in `on_initialize`, before it will contain the randomness for this block
 	#[pallet::storage]
-	#[pallet::getter(fn current_epoch_index)]
-	/// Most recent epoch index, when it changes => update the epoch randomness
-	pub type CurrentEpochIndex<T: Config> = StorageValue<_, u64, ValueQuery>;
+	#[pallet::getter(fn local_vrf_output)]
+	pub type LocalVrfOutput<T: Config> = StorageValue<_, Option<T::Hash>, ValueQuery>;
 
+	/// VRF input for next block
+	/// Set in `on_finalize` of previous block
+	/// Used in `on_initialize` of this block to verify randomness
 	#[pallet::storage]
-	#[pallet::getter(fn current_relay_block_number)]
-	/// Most recent relay block number
-	pub type CurrentRelayBlockNumber<T: Config> = StorageValue<_, T::BlockNumber, ValueQuery>;
+	#[pallet::getter(fn next_vrf_input)]
+	pub(crate) type NextVrfInput<T: Config> = StorageValue<_, VrfInput<Slot, T::Hash>>;
 
-	#[pallet::storage]
-	#[pallet::getter(fn current_block_randomness)]
-	/// Relay chain current block randomness
-	/// Some(randomness) or None if not updated
-	/// TODO: replace with ParentBlockRandomness once
-	/// https://github.com/paritytech/substrate/pull/11113 is merged
-	pub type CurrentBlockRandomness<T: Config> = StorageValue<_, Option<T::Hash>, ValueQuery>;
-
-	#[pallet::storage]
-	#[pallet::getter(fn one_epoch_ago_randomness)]
-	/// Relay chain one epoch ago randomness
-	/// Some(randomness) or None if not updated
-	pub type OneEpochAgoRandomness<T: Config> = StorageValue<_, Option<T::Hash>, ValueQuery>;
-
-	#[pallet::storage]
-	#[pallet::getter(fn two_epochs_ago_randomness)]
-	/// Relay chain two epochs ago randomness
-	/// Some(randomness) or None if not updated
-	pub type TwoEpochsAgoRandomness<T: Config> = StorageValue<_, Option<T::Hash>, ValueQuery>;
-
-	#[pallet::call]
-	impl<T: Config> Pallet<T> {
-		/// This inherent is a workaround to run code after the "real" inherents have executed,
-		/// but before on_initialize, where ParachainSystem kills data required to form the
-		/// RelayChainStateProof (which must be read to get BABE randomness for example).
-		// This should go into on_post_inherents when it is ready
-		// https://github.com/paritytech/substrate/pull/10128
-		// Weight is 10_000 margin of safety + number of reads/writes
-		#[pallet::weight((
-			10_000 + 7 * T::DbWeight::get().write + T::DbWeight::get().read,
-			DispatchClass::Mandatory
-		))]
-		pub fn set_relay_data(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
-			ensure_none(origin)?;
-
-			// Expected to call `Self::set_relay_randomness` with inputs read from the runtime
-			// Expected to call `pallet_vrf::set_vrf_inputs` with inputs read from the runtime
-			// Therefore expect 2 writes + 5 writes + 1 read
-			T::RelayDataSetter::set_relay_data();
-
-			Ok(Pays::No.into())
+	#[pallet::hooks]
+	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
+		// Set this block's randomness using the VRF output
+		fn on_initialize(_now: BlockNumberFor<T>) -> Weight {
+			// first block will be just default if it is not set, 0 input is default
+			// TODO: client will need to sign LastVrfInput::get().unwrap_or_default() with vrf keys
+			let vrf_input = <NextVrfInput<T>>::get().unwrap_or_default();
+			Self::set_randomness(vrf_input)
+		}
+		// Set next block's VRF input in storage
+		fn on_finalize(_now: BlockNumberFor<T>) {
+			// Expect 1 read + 2 writes
+			// Necessary because required data is killed in `ParachainSystem::on_initialize`
+			Self::set_vrf_input(T::VrfInputGetter::get_vrf_input());
 		}
 	}
 
-	#[pallet::inherent]
-	impl<T: Config> ProvideInherent for Pallet<T> {
-		type Call = Call<T>;
-		type Error = InherentError;
-		const INHERENT_IDENTIFIER: InherentIdentifier = INHERENT_IDENTIFIER;
+	impl<T: Config> Pallet<T> {
+		/// Returns weight consumed in `on_initialize`
+		fn set_randomness(input: VrfInput<Slot, T::Hash>) -> Weight {
+			let mut block_author_vrf_id: Option<VrfId> = None;
+			let maybe_pre_digest: Option<PreDigest> = <frame_system::Pallet<T>>::digest()
+				.logs
+				.iter()
+				.filter_map(|s| s.as_pre_runtime())
+				.filter_map(|(id, mut data)| {
+					if id == BABE_ENGINE_ID {
+						PreDigest::decode(&mut data).ok()
+					} else {
+						if id == NIMBUS_ENGINE_ID {
+							let nimbus_id = NimbusId::decode(&mut data)
+								.expect("NimbusId encoded in pre-runtime digest must be valid");
 
-		fn is_inherent_required(_: &InherentData) -> Result<Option<Self::Error>, Self::Error> {
-			// Return Ok(Some(_)) unconditionally because this inherent is required in every block
-			// If it is not found, throw a VrfInherentRequired error.
-			Ok(Some(InherentError::Other(
-				sp_runtime::RuntimeString::Borrowed(
-					"Inherent required to set relay data for randomness",
-				),
-			)))
+							block_author_vrf_id = Some(
+								T::VrfKeyLookup::lookup_keys(&nimbus_id)
+									.expect("No VRF Key Mapped to this NimbusId"),
+							);
+						}
+						None
+					}
+				})
+				.next();
+			let block_author_vrf_id =
+				block_author_vrf_id.expect("VrfId encoded in pre-runtime digest must be valid");
+			let pubkey = schnorrkel::PublicKey::from_bytes(block_author_vrf_id.as_slice())
+				.expect("Expect VrfId to be valid schnorrkel public key");
+			let transcript = make_transcript::<T::Hash>(input);
+			let vrf_output: Randomness = maybe_pre_digest
+				.and_then(|digest| {
+					digest
+						.vrf_output()
+						.and_then(|vrf_output| {
+							vrf_output.0.attach_input_hash(&pubkey, transcript).ok()
+						})
+						.map(|inout| inout.make_bytes(&sp_consensus_babe::BABE_VRF_INOUT_CONTEXT))
+				})
+				.expect("VRF output encoded in pre-runtime digest must be valid");
+			LocalVrfOutput::<T>::put(T::Hash::decode(&mut &vrf_output[..]).ok());
+			T::DbWeight::get().read + 2 * T::DbWeight::get().write
 		}
-
-		// The empty-payload inherent extrinsic.
-		fn create_inherent(_data: &InherentData) -> Option<Self::Call> {
-			Some(Call::set_relay_data {})
-		}
-
-		fn is_inherent(call: &Self::Call) -> bool {
-			matches!(call, Call::set_relay_data { .. })
+		/// Set vrf input in storage and log warning if either of the values did NOT change
+		fn set_vrf_input(input: VrfInput<Slot, T::Hash>) {
+			if let Some(previous_vrf_inputs) = <NextVrfInput<T>>::take() {
+				// logs if input uniqueness assumptions are violated (no reuse of vrf inputs)
+				if previous_vrf_inputs.storage_root == input.storage_root
+					|| previous_vrf_inputs.slot_number == input.slot_number
+				{
+					log::warn!(
+						"VRF on_initialize: storage root or slot number did not change between \
+					current and last block. Nimbus would've panicked if slot number did not change \
+					so probably storage root did not change."
+					);
+				}
+			}
+			<NextVrfInput<T>>::put(input);
 		}
 	}
 
@@ -247,33 +274,6 @@ pub mod pallet {
 			s.extend_from_slice(a.as_ref());
 			s.extend_from_slice(b.as_ref());
 			sp_io::hashing::blake2_256(&s)
-		}
-		/// For the runtime to set the randomness storage values in this pallet
-		pub fn set_relay_randomness(
-			block_number: T::BlockNumber,
-			epoch_index: Option<u64>,
-			current_block_randomness: Option<T::Hash>,
-			one_epoch_ago_randomness: Option<T::Hash>,
-			two_epochs_ago_randomness: Option<T::Hash>,
-		) {
-			<CurrentRelayBlockNumber<T>>::put(block_number);
-			if let Some(epoch) = epoch_index {
-				<CurrentEpochIndex<T>>::put(epoch);
-			} else {
-				log::warn!("Error reading epoch index from relay chain state proof");
-			}
-			if current_block_randomness.is_none() {
-				log::warn!("Error reading current block randomness from relay chain state proof");
-			}
-			if one_epoch_ago_randomness.is_none() {
-				log::warn!("Error reading one epoch ago randomness from relay chain state proof");
-			}
-			if two_epochs_ago_randomness.is_none() {
-				log::warn!("Error reading two epochs ago randomness from relay chain state proof");
-			}
-			<CurrentBlockRandomness<T>>::put(current_block_randomness);
-			<OneEpochAgoRandomness<T>>::put(one_epoch_ago_randomness);
-			<TwoEpochsAgoRandomness<T>>::put(two_epochs_ago_randomness);
 		}
 	}
 

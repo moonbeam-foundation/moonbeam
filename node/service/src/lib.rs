@@ -755,9 +755,9 @@ where
 
 					let author = nimbus_primitives::InherentDataProvider;
 
-					let vrf_input = session_keys_primitives::InherentDataProvider;
+					let randomness = session_keys_primitives::InherentDataProvider;
 
-					Ok((time, parachain_inherent, author, vrf_input))
+					Ok((time, parachain_inherent, author, randomness))
 				}
 			};
 
