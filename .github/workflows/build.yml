@@ -393,7 +393,8 @@ jobs:
           if [[ $FILECOUNT -eq 0 ]]; then
             echo "All package-lock.json files are valid"
           else
-            git diff
+            cat tests/package-lock.json
+            git diff --cached
             echo "The following package-lock.json files have uncommitted changes"
             echo $DIFF_INDEX | grep package-lock.json
             false
