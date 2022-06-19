@@ -15,24 +15,36 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! VRF logic
-use crate::{Config, GetVrfInput, LocalVrfOutput, NextVrfInput};
+use crate::{Config, CurrentVrfInput, GetVrfInput, LocalVrfOutput, NextVrfInput};
 use frame_support::{pallet_prelude::Weight, traits::Get};
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
-use parity_scale_codec::Decode;
+use parity_scale_codec::{Decode, Encode};
+use scale_info::TypeInfo;
 pub use session_keys_primitives::make_transcript;
 use session_keys_primitives::{KeysLookup, VrfId, VRF_ENGINE_ID, VRF_INOUT_CONTEXT};
 use sp_consensus_babe::digests::PreDigest;
 use sp_consensus_vrf::schnorrkel;
 use sp_core::crypto::ByteArray;
+use sp_runtime::RuntimeDebug;
 
 /// VRF output
 type Randomness = schnorrkel::Randomness;
+
+/// VRF inputs from the relay chain
+/// Both inputs are expected to change every block
+#[derive(Default, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
+pub struct VrfInput<SlotNumber, RelayHash> {
+	/// Relay block slot number
+	pub slot_number: SlotNumber,
+	/// Relay block storage root
+	pub storage_root: RelayHash,
+}
 
 /// Returns weight consumed in `on_initialize`
 pub(crate) fn set_randomness<T: Config>() -> Weight {
 	// first block will be just default if it is not set, 0 input is default
 	// TODO: client will need to sign LastVrfInput::get().unwrap_or_default() with vrf keys
-	let input = <NextVrfInput<T>>::get().unwrap_or_default();
+	let input = <CurrentVrfInput<T>>::get().unwrap_or_default();
 	let mut block_author_vrf_id: Option<VrfId> = None;
 	let maybe_pre_digest: Option<PreDigest> = <frame_system::Pallet<T>>::digest()
 		.logs
@@ -76,10 +88,10 @@ pub(crate) fn set_randomness<T: Config>() -> Weight {
 /// Set vrf input in storage and log warning if either of the values did NOT change
 pub(crate) fn set_vrf_input<T: Config>() {
 	let input = T::VrfInputGetter::get_vrf_input();
-	if let Some(previous_vrf_inputs) = <NextVrfInput<T>>::take() {
+	if let Some(last_vrf_input) = <NextVrfInput<T>>::take() {
 		// logs if input uniqueness assumptions are violated (no reuse of vrf inputs)
-		if previous_vrf_inputs.storage_root == input.storage_root
-			|| previous_vrf_inputs.slot_number == input.slot_number
+		if last_vrf_input.storage_root == input.storage_root
+			|| last_vrf_input.slot_number == input.slot_number
 		{
 			log::warn!(
 				"VRF on_initialize: storage root or slot number did not change between \
@@ -87,6 +99,7 @@ pub(crate) fn set_vrf_input<T: Config>() {
             so probably storage root did not change."
 			);
 		}
+		<CurrentVrfInput<T>>::put(last_vrf_input);
 	}
 	<NextVrfInput<T>>::put(input);
 }

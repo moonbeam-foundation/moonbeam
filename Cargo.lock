@@ -11895,11 +11895,13 @@ dependencies = [
 name = "session-keys-primitives"
 version = "0.1.0"
 dependencies = [
+ "async-trait",
  "nimbus-primitives",
  "parity-scale-codec",
  "scale-info",
  "sp-application-crypto",
  "sp-consensus-babe",
+ "sp-inherents",
  "sp-runtime",
 ]
 

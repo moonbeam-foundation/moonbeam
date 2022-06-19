@@ -38,14 +38,45 @@ pub enum RequestType<T: Config> {
 	Local(T::BlockNumber),
 }
 
-/// VRF inputs from the relay chain
-/// Both inputs are expected to change every block
-#[derive(Default, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
-pub struct VrfInput<SlotNumber, RelayHash> {
-	/// Relay block slot number
-	pub slot_number: SlotNumber,
-	/// Relay block storage root
-	pub storage_root: RelayHash,
+#[derive(PartialEq, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
+/// Raw randomness snapshot, the unique value for a `RequestType` in `RandomnessResults` map
+pub struct RandomnessResult<Hash> {
+	/// Randomness once available
+	pub randomness: Option<Hash>,
+	/// Number of randomness requests for the type
+	pub request_count: u64,
+}
+
+impl<Hash: Clone> RandomnessResult<Hash> {
+	pub fn new() -> RandomnessResult<Hash> {
+		RandomnessResult {
+			randomness: None,
+			request_count: 1u64,
+		}
+	}
+	/// Increment request count
+	pub fn increment_request_count<T: Config>(&self) -> Result<Self, DispatchError> {
+		let new_request_count = self
+			.request_count
+			.checked_add(1u64)
+			.ok_or(Error::<T>::RequestCounterOverflowed)?;
+		Ok(RandomnessResult {
+			randomness: self.randomness.clone(),
+			request_count: new_request_count,
+		})
+	}
+	/// Returns whether successfully decremented
+	/// Failure implies the randomness result should be removed from storage
+	pub fn decrement_request_count(&self) -> Option<Self> {
+		if let Some(new_request_count) = self.request_count.checked_sub(1u64) {
+			Some(RandomnessResult {
+				randomness: self.randomness.clone(),
+				request_count: new_request_count,
+			})
+		} else {
+			None
+		}
+	}
 }
 
 // randomness is unknown but predictable

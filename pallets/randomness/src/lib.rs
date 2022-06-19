@@ -49,7 +49,7 @@ pub mod pallet {
 	use frame_system::pallet_prelude::*;
 	use nimbus_primitives::NimbusId;
 	use pallet_evm::AddressMapping;
-	use session_keys_primitives::{KeysLookup, VrfId};
+	use session_keys_primitives::{InherentError, KeysLookup, VrfId, INHERENT_IDENTIFIER};
 	use sp_consensus_babe::Slot;
 	use sp_core::{H160, H256};
 	use sp_runtime::traits::Saturating;
@@ -173,11 +173,81 @@ pub mod pallet {
 	pub type LocalVrfOutput<T: Config> = StorageValue<_, Option<T::Hash>, ValueQuery>;
 
 	/// VRF input for next block
-	/// Set in `on_finalize` of previous block
-	/// Used in `on_initialize` of this block to verify randomness
+	/// Set in `prepare_vrf` of current block
 	#[pallet::storage]
 	#[pallet::getter(fn next_vrf_input)]
 	pub(crate) type NextVrfInput<T: Config> = StorageValue<_, VrfInput<Slot, T::Hash>>;
+
+	/// VRF input for current block
+	/// Set in `prepare_vrf` of current block with previous value of `NextVrfInput`
+	/// Used in `on_initialize` of this block to verify randomness
+	#[pallet::storage]
+	#[pallet::getter(fn current_vrf_input)]
+	pub(crate) type CurrentVrfInput<T: Config> = StorageValue<_, VrfInput<Slot, T::Hash>>;
+
+	/// Snapshot of randomness to fulfill all requests that are for the same raw randomness
+	/// Removed once $value.request_count == 0
+	#[pallet::storage]
+	#[pallet::getter(fn randomness_results)]
+	pub(crate) type RandomnessResults<T: Config> =
+		StorageMap<_, Twox64Concat, RequestType<T>, RandomnessResult<T::Hash>>;
+
+	#[pallet::call]
+	impl<T: Config> Pallet<T> {
+		/// This inherent is a workaround to run code in every block after
+		/// `ParachainSystem::set_validation_data` but before all extrinsics.
+		/// 1. populates the `RandomnessResults` that are due this block with the raw values
+		/// 2. sets the VRF input for the next block and puts the VRF input for next block into
+		/// the relevant storage item to validate the VRF output in this pallet's `on_initialize`
+		// This should go into on_post_inherents when it is ready
+		// https://github.com/paritytech/substrate/pull/10128
+		// Weight is 10_000 margin of safety + number of reads/writes
+		#[pallet::weight((
+			10_000 + 7 * T::DbWeight::get().write + T::DbWeight::get().read,
+			DispatchClass::Mandatory
+		))]
+		pub fn prepare_vrf(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
+			ensure_none(origin)?;
+
+			// (1) populate the `RandomnessResults` for all BABE randomness values with raw values
+			todo!();
+
+			// (2) sets the VRF input for the next block and puts the input for this block into
+			// `CurrentVrfInput` storage item to validate the VRF output in `on_initialize`
+			set_vrf_input::<T>();
+
+			// TODO: when we validate VRF output in `on_initialize`, need to also update all due
+			// RandomnessResults for this block with type Local(current_block)
+
+			Ok(Pays::No.into())
+		}
+	}
+
+	#[pallet::inherent]
+	impl<T: Config> ProvideInherent for Pallet<T> {
+		type Call = Call<T>;
+		type Error = InherentError;
+		const INHERENT_IDENTIFIER: InherentIdentifier = INHERENT_IDENTIFIER;
+
+		fn is_inherent_required(_: &InherentData) -> Result<Option<Self::Error>, Self::Error> {
+			// Return Ok(Some(_)) unconditionally because this inherent is required in every block
+			// If it is not found, throw a VrfInherentRequired error.
+			Ok(Some(InherentError::Other(
+				sp_runtime::RuntimeString::Borrowed(
+					"Inherent required to set vrf input and current babe randomness results",
+				),
+			)))
+		}
+
+		// The empty-payload inherent extrinsic.
+		fn create_inherent(_data: &InherentData) -> Option<Self::Call> {
+			Some(Call::prepare_vrf {})
+		}
+
+		fn is_inherent(call: &Self::Call) -> bool {
+			matches!(call, Call::prepare_vrf { .. })
+		}
+	}
 
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
@@ -221,6 +291,15 @@ pub mod pallet {
 			let next_id = request_id
 				.checked_add(1u64)
 				.ok_or(Error::<T>::RequestCounterOverflowed)?;
+			if let Some(existing_randomness_snapshot) = <RandomnessResults<T>>::take(&request.info)
+			{
+				<RandomnessResults<T>>::insert(
+					&request.info,
+					existing_randomness_snapshot.increment_request_count::<T>()?,
+				);
+			} else {
+				<RandomnessResults<T>>::insert(&request.info, RandomnessResult::new());
+			}
 			T::ReserveCurrency::reserve(&contract_address, total_to_reserve)?;
 			// insert request
 			<RequestCount<T>>::put(next_id);
@@ -233,8 +312,8 @@ pub mod pallet {
 		pub fn prepare_fulfillment(id: RequestId) -> Result<FulfillArgs<T>, DispatchError> {
 			<Requests<T>>::get(id)
 				.ok_or(Error::<T>::RequestDNE)?
-				.prepare_fulfill()
-		}
+				.prepare_fulfill() // TODO: prepare fulfill from the RandomnessResult
+		} // TODO: populate RandomnessResults from an inherent?
 		/// Finish fulfillment
 		/// Caller MUST ensure `id` corresponds to `request` or there will be side effects
 		pub fn finish_fulfillment(
