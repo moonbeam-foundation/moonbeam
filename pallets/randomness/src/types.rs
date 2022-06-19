@@ -79,6 +79,13 @@ impl<Hash: Clone> RandomnessResult<Hash> {
 	}
 }
 
+#[derive(Default, PartialEq, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
+/// Relay time information
+pub struct RelayTimeInfo<BlockNumber, EpochIndex> {
+	pub relay_block_number: BlockNumber,
+	pub relay_epoch_index: EpochIndex,
+}
+
 // randomness is unknown but predictable
 // upon request creation, add storage item with babe_value: None
 // EpochRequests epoch_number => struct { Option<randomness>, num_requests }

@@ -172,18 +172,19 @@ pub mod pallet {
 	#[pallet::getter(fn local_vrf_output)]
 	pub type LocalVrfOutput<T: Config> = StorageValue<_, Option<T::Hash>, ValueQuery>;
 
-	/// VRF input for next block
-	/// Set in `prepare_vrf` of current block
-	#[pallet::storage]
-	#[pallet::getter(fn next_vrf_input)]
-	pub(crate) type NextVrfInput<T: Config> = StorageValue<_, VrfInput<Slot, T::Hash>>;
-
-	/// VRF input for current block
-	/// Set in `prepare_vrf` of current block with previous value of `NextVrfInput`
-	/// Used in `on_initialize` of this block to verify randomness
+	/// Current VRF input
+	/// Set in `on_finalize` of last block
+	/// Used in `on_initialize` of current block to validate VRF output
 	#[pallet::storage]
 	#[pallet::getter(fn current_vrf_input)]
 	pub(crate) type CurrentVrfInput<T: Config> = StorageValue<_, VrfInput<Slot, T::Hash>>;
+
+	/// Relay time information to determine when to update randomness results based on when
+	/// epoch and relay block change
+	#[pallet::storage]
+	#[pallet::getter(fn relay_time)]
+	pub(crate) type RelayTime<T: Config> =
+		StorageValue<_, RelayTimeInfo<T::BlockNumber, u64>, ValueQuery>;
 
 	/// Snapshot of randomness to fulfill all requests that are for the same raw randomness
 	/// Removed once $value.request_count == 0
@@ -194,27 +195,62 @@ pub mod pallet {
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
+		/// Populates the `RandomnessResults` that are due this block with the raw values
 		/// This inherent is a workaround to run code in every block after
 		/// `ParachainSystem::set_validation_data` but before all extrinsics.
-		/// 1. populates the `RandomnessResults` that are due this block with the raw values
-		/// 2. sets the VRF input for the next block and puts the VRF input for next block into
 		/// the relevant storage item to validate the VRF output in this pallet's `on_initialize`
 		// This should go into on_post_inherents when it is ready
 		// https://github.com/paritytech/substrate/pull/10128
-		// Weight is 10_000 margin of safety + number of reads/writes
-		#[pallet::weight((
-			10_000 + 7 * T::DbWeight::get().write + T::DbWeight::get().read,
-			DispatchClass::Mandatory
-		))]
-		pub fn prepare_vrf(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
+		// TODO: weight
+		#[pallet::weight((10_000, DispatchClass::Mandatory))]
+		pub fn set_babe_randomness_results(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			ensure_none(origin)?;
 
-			// (1) populate the `RandomnessResults` for all BABE randomness values with raw values
-			todo!();
-
-			// (2) sets the VRF input for the next block and puts the input for this block into
-			// `CurrentVrfInput` storage item to validate the VRF output in `on_initialize`
-			set_vrf_input::<T>();
+			let last_relay_time = <RelayTime<T>>::get();
+			// populate the `RandomnessResults` for BABE current block randomness
+			let relay_block_number = T::BabeDataGetter::get_relay_block_number();
+			if relay_block_number > last_relay_time.relay_block_number {
+				let babe_current_this_block = RequestType::BabeCurrentBlock(relay_block_number);
+				if let Some(mut results) = <RandomnessResults<T>>::get(&babe_current_this_block) {
+					if let Some(randomness) = T::BabeDataGetter::get_current_block_randomness() {
+						results.randomness = Some(randomness);
+						<RandomnessResults<T>>::insert(babe_current_this_block, results);
+					} else {
+						log::warn!("Could not read BABE current block randomness from the relay");
+					}
+				}
+			}
+			// populate the `RandomnessResults` for BABE epoch randomness (1 and 2 ago)
+			let relay_epoch_index = T::BabeDataGetter::get_relay_epoch_index();
+			if relay_epoch_index > last_relay_time.relay_epoch_index {
+				let babe_one_epoch_ago_this_block = RequestType::BabeOneEpochAgo(relay_epoch_index);
+				let babe_two_epochs_ago_this_block =
+					RequestType::BabeOneEpochAgo(relay_epoch_index);
+				if let Some(mut results) =
+					<RandomnessResults<T>>::get(&babe_one_epoch_ago_this_block)
+				{
+					if let Some(randomness) = T::BabeDataGetter::get_one_epoch_ago_randomness() {
+						results.randomness = Some(randomness);
+						<RandomnessResults<T>>::insert(babe_one_epoch_ago_this_block, results);
+					} else {
+						log::warn!("Could not read BABE one epoch ago randomness from the relay");
+					}
+				}
+				if let Some(mut results) =
+					<RandomnessResults<T>>::get(&babe_two_epochs_ago_this_block)
+				{
+					if let Some(randomness) = T::BabeDataGetter::get_two_epochs_ago_randomness() {
+						results.randomness = Some(randomness);
+						<RandomnessResults<T>>::insert(babe_two_epochs_ago_this_block, results);
+					} else {
+						log::warn!("Could not read BABE two epochs ago randomness from the relay");
+					}
+				}
+			}
+			<RelayTime<T>>::put(RelayTimeInfo {
+				relay_block_number,
+				relay_epoch_index,
+			});
 
 			// TODO: when we validate VRF output in `on_initialize`, need to also update all due
 			// RandomnessResults for this block with type Local(current_block)
@@ -234,18 +270,18 @@ pub mod pallet {
 			// If it is not found, throw a VrfInherentRequired error.
 			Ok(Some(InherentError::Other(
 				sp_runtime::RuntimeString::Borrowed(
-					"Inherent required to set vrf input and current babe randomness results",
+					"Inherent required to set babe randomness results",
 				),
 			)))
 		}
 
 		// The empty-payload inherent extrinsic.
 		fn create_inherent(_data: &InherentData) -> Option<Self::Call> {
-			Some(Call::prepare_vrf {})
+			Some(Call::set_babe_randomness_results {})
 		}
 
 		fn is_inherent(call: &Self::Call) -> bool {
-			matches!(call, Call::prepare_vrf { .. })
+			matches!(call, Call::set_babe_randomness_results { .. })
 		}
 	}
 
@@ -275,6 +311,12 @@ pub mod pallet {
 
 	// Public functions for precompile usage only
 	impl<T: Config> Pallet<T> {
+		/// Returns the next block VRF input
+		/// Must be called in block instead of `VrfInput` which is not updated until `on_finalize`
+		/// with the next block's VRF input
+		pub fn next_block_vrf_input() -> VrfInput<Slot, T::Hash> {
+			T::VrfInputGetter::get_vrf_input()
+		}
 		pub fn request_randomness(request: Request<T>) -> DispatchResult {
 			ensure!(
 				!request.can_be_fulfilled(),

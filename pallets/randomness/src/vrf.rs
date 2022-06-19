@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! VRF logic
-use crate::{Config, CurrentVrfInput, GetVrfInput, LocalVrfOutput, NextVrfInput};
+use crate::{Config, CurrentVrfInput, GetVrfInput, LocalVrfOutput};
 use frame_support::{pallet_prelude::Weight, traits::Get};
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
 use parity_scale_codec::{Decode, Encode};
@@ -43,7 +43,7 @@ pub struct VrfInput<SlotNumber, RelayHash> {
 /// Returns weight consumed in `on_initialize`
 pub(crate) fn set_randomness<T: Config>() -> Weight {
 	// first block will be just default if it is not set, 0 input is default
-	// TODO: client will need to sign LastVrfInput::get().unwrap_or_default() with vrf keys
+	// TODO: client will need to sign NextVrfInput::get().unwrap_or_default() with vrf keys
 	let input = <CurrentVrfInput<T>>::get().unwrap_or_default();
 	let mut block_author_vrf_id: Option<VrfId> = None;
 	let maybe_pre_digest: Option<PreDigest> = <frame_system::Pallet<T>>::digest()
@@ -88,7 +88,7 @@ pub(crate) fn set_randomness<T: Config>() -> Weight {
 /// Set vrf input in storage and log warning if either of the values did NOT change
 pub(crate) fn set_vrf_input<T: Config>() {
 	let input = T::VrfInputGetter::get_vrf_input();
-	if let Some(last_vrf_input) = <NextVrfInput<T>>::take() {
+	if let Some(last_vrf_input) = <CurrentVrfInput<T>>::take() {
 		// logs if input uniqueness assumptions are violated (no reuse of vrf inputs)
 		if last_vrf_input.storage_root == input.storage_root
 			|| last_vrf_input.slot_number == input.slot_number
@@ -99,7 +99,6 @@ pub(crate) fn set_vrf_input<T: Config>() {
             so probably storage root did not change."
 			);
 		}
-		<CurrentVrfInput<T>>::put(last_vrf_input);
 	}
-	<NextVrfInput<T>>::put(input);
+	<CurrentVrfInput<T>>::put(input);
 }
