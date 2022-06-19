@@ -29,7 +29,7 @@ pub mod vrf;
 pub use instant::*;
 pub use traits::*;
 pub use types::*;
-use vrf::*;
+pub use vrf::VrfInput;
 
 // pub mod weights;
 // use weights::WeightInfo;
@@ -102,7 +102,9 @@ pub mod pallet {
 		NewFeeMustBeGreaterThanOldFee,
 		RequestHasNotExpired,
 		RequestExecutionOOG,
-		RandomnessNotAvailable,
+		InstantRandomnessNotAvailable,
+		RandomnessResultDNE,
+		RandomnessResultNotFilled,
 	}
 
 	#[pallet::event]
@@ -252,9 +254,6 @@ pub mod pallet {
 				relay_epoch_index,
 			});
 
-			// TODO: when we validate VRF output in `on_initialize`, need to also update all due
-			// RandomnessResults for this block with type Local(current_block)
-
 			Ok(Pays::No.into())
 		}
 	}
@@ -290,12 +289,14 @@ pub mod pallet {
 		// Set this block's randomness using the VRF output, verified by the VrfInput put in
 		// storage in the previous block's `on_initialize`
 		fn on_initialize(_now: BlockNumberFor<T>) -> Weight {
-			set_randomness::<T>()
+			// Set and validate VRF output using input put in storage last block's `on_finalize`
+			vrf::set_output::<T>()
 		}
 		// Set next block's VRF input in storage
 		fn on_finalize(_now: BlockNumberFor<T>) {
 			// Necessary because required data is killed in `ParachainSystem::on_initialize`
-			set_vrf_input::<T>();
+			// which may happen before the VRF output is verified in the next block on_initialize
+			vrf::set_input::<T>();
 		}
 	}
 
@@ -366,6 +367,11 @@ pub mod pallet {
 			cost_of_execution: BalanceOf<T>,
 		) {
 			request.finish_fulfill(deposit, caller, cost_of_execution);
+			if let Some(result) = RandomnessResults::<T>::take(&request.info) {
+				if let Some(new_result) = result.decrement_request_count() {
+					RandomnessResults::<T>::insert(&request.info, new_result);
+				} // else RandomnessResult is removed from storage
+			}
 			<Requests<T>>::remove(id);
 			Self::deposit_event(Event::RequestFulfilled { id });
 		}

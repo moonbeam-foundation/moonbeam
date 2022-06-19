@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
-	traits::GetBabeData, BalanceOf, Config, Error, Event, LocalVrfOutput, Pallet, RequestId,
+	traits::GetBabeData, BalanceOf, Config, Error, Event, Pallet, RandomnessResults, RequestId,
 };
 use frame_support::pallet_prelude::*;
 use frame_support::traits::{Currency, ExistenceRequirement::KeepAlive, ReservableCurrency};
@@ -124,6 +124,21 @@ impl<T: Config> Request<T> {
 			}
 			RequestType::Local(block) => block <= frame_system::Pallet::<T>::block_number(),
 		}
+	}
+	fn get_randomness(&self) -> Result<T::Hash, DispatchError> {
+		ensure!(
+			self.can_be_fulfilled(),
+			Error::<T>::RequestCannotYetBeFulfilled
+		);
+		// TODO: more specific errors here and everywhere else this is used, one error per path
+		let randomness = <RandomnessResults<T>>::get(&self.info)
+			// hitting this error is a bug because a RandomnessResult should exist if request exists
+			.ok_or(Error::<T>::RandomnessResultDNE)?
+			.randomness
+			// hitting this error is a bug because a RandomnessResult should be updated if request
+			// can be fulfilled
+			.ok_or(Error::<T>::RandomnessResultNotFilled)?;
+		Ok(randomness)
 	}
 	pub(crate) fn emit_randomness_requested_event(&self, id: RequestId) {
 		let event = match self.info {
@@ -245,18 +260,8 @@ impl<T: Config> RequestState<T> {
 	/// Returns Ok(FulfillArgs) if successful
 	/// This should be called before the callback
 	pub fn prepare_fulfill(&self) -> Result<FulfillArgs<T>, DispatchError> {
-		ensure!(
-			self.request.can_be_fulfilled(),
-			Error::<T>::RequestCannotYetBeFulfilled
-		);
 		// get the randomness corresponding to the request
-		let randomness: T::Hash = match self.request.info {
-			RequestType::BabeOneEpochAgo(_) => T::BabeDataGetter::get_one_epoch_ago_randomness(),
-			RequestType::BabeTwoEpochsAgo(_) => T::BabeDataGetter::get_two_epochs_ago_randomness(),
-			RequestType::BabeCurrentBlock(_) => T::BabeDataGetter::get_current_block_randomness(),
-			RequestType::Local(_) => LocalVrfOutput::<T>::get(),
-		}
-		.ok_or(Error::<T>::RandomnessNotAvailable)?;
+		let randomness: T::Hash = self.request.get_randomness()?;
 		// compute random output using salt
 		let randomness = Pallet::<T>::concat_and_hash(randomness, self.request.salt);
 		// No event emitted until fulfillment is complete

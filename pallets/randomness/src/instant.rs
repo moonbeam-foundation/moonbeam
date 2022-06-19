@@ -22,26 +22,26 @@ use sp_runtime::DispatchError;
 /// Returns BABE one epoch ago randomness
 pub fn instant_one_epoch_ago_randomness<T: Config>(salt: H256) -> Result<[u8; 32], DispatchError> {
 	let randomness = T::BabeDataGetter::get_one_epoch_ago_randomness()
-		.ok_or(Error::<T>::RandomnessNotAvailable)?;
+		.ok_or(Error::<T>::InstantRandomnessNotAvailable)?;
 	Ok(Pallet::<T>::concat_and_hash(randomness, salt))
 }
 
 /// Returns BABE two epochs ago randomness
 pub fn instant_two_epochs_ago_randomness<T: Config>(salt: H256) -> Result<[u8; 32], DispatchError> {
 	let randomness = T::BabeDataGetter::get_two_epochs_ago_randomness()
-		.ok_or(Error::<T>::RandomnessNotAvailable)?;
+		.ok_or(Error::<T>::InstantRandomnessNotAvailable)?;
 	Ok(Pallet::<T>::concat_and_hash(randomness, salt))
 }
 
 /// Returns BABE current block randomness
 pub fn instant_current_block_randomness<T: Config>(salt: H256) -> Result<[u8; 32], DispatchError> {
 	let randomness = T::BabeDataGetter::get_current_block_randomness()
-		.ok_or(Error::<T>::RandomnessNotAvailable)?;
+		.ok_or(Error::<T>::InstantRandomnessNotAvailable)?;
 	Ok(Pallet::<T>::concat_and_hash(randomness, salt))
 }
 
 /// Returns most recent value for the local randomness
 pub fn instant_local_randomness<T: Config>(salt: H256) -> Result<[u8; 32], DispatchError> {
-	let randomness = <LocalVrfOutput<T>>::get().ok_or(Error::<T>::RandomnessNotAvailable)?;
+	let randomness = <LocalVrfOutput<T>>::get().ok_or(Error::<T>::InstantRandomnessNotAvailable)?;
 	Ok(Pallet::<T>::concat_and_hash(randomness, salt))
 }
