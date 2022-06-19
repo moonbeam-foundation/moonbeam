@@ -78,13 +78,13 @@ export const rpcDefinitions: Record<string, Record<string, DefinitionRpc | Defin
   },
   moon: {
     isBlockFinalized: {
-      description: "Checks if an Ethereum block is finalized",
+      description: "Returns whether an Ethereum block is finalized",
       params: [{ name: "blockHash", type: "Hash" }],
       type: "bool",
     },
     isTxFinalized: {
-      description: "Checks if an Ethereum transaction is finalized",
-      params: [{ name: "transactionHash", type: "Hash" }],
+      description: "Returns whether an Ethereum transaction is finalized",
+      params: [{ name: "txHash", type: "Hash" }],
       type: "bool",
     },
   },
