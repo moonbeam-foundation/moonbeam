@@ -88,22 +88,6 @@ export const rpcDefinitions: Record<string, Record<string, DefinitionRpc | Defin
       type: "bool",
     },
   },
-  eth: {
-    feeHistory: {
-      description: "Returns Ethereum fee history",
-      params: [
-        { name: "blockCount", type: "U256" },
-        { name: "newestBlock", type: "BlockNumber" },
-        { name: "rewardPercentiles", type: "Option<Vec<f64>>" },
-      ],
-      type: "FeeHistory",
-    },
-    maxPriorityFeePerGas: {
-      description: "Returns Ethereum max priority fee per gas",
-      params: [],
-      type: "U256",
-    },
-  },
 };
 
 const TYPES_0_4: RegistryTypes = {
