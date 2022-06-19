@@ -5,7 +5,6 @@ import "@moonbeam-network/api-augment";
 import { EXTRINSIC_VERSION } from "@polkadot/types/extrinsic/v4/Extrinsic";
 import { createMetadata, KeyringPair, OptionsWithMeta } from "@substrate/txwrapper-core";
 import { createSignedTx, createSigningPayload } from "@substrate/txwrapper-core/lib/core/construct";
-import { getRegistry } from "@substrate/txwrapper-registry";
 import { methods as substrateMethods } from "@substrate/txwrapper-substrate";
 import { expect } from "chai";
 
@@ -59,12 +58,13 @@ describeDevMoonbeam("Balance transfer - txwrapper", (context) => {
       rpcToLocalNode(context.rpcPort, "state_getRuntimeVersion"),
     ]);
 
-    const registry = getRegistry({
-      chainName: "Moonriver",
-      specName,
-      specVersion,
-      metadataRpc,
-    });
+    // const registry = getRegistry({
+    //   chainName: "Moonriver",
+    //   specName,
+    //   specVersion,
+    //   metadataRpc,
+    // });
+    const registry = context.polkadotApi.registry as any;
     const unsigned = substrateMethods.balances.transfer(
       {
         dest: randomAccount.address,
