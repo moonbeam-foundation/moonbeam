@@ -1,13 +1,12 @@
-import "@polkadot/api-augment";
-
 import { ApiPromise } from "@polkadot/api";
-import { KeyringPair } from "@substrate/txwrapper-core";
+import "@polkadot/api-augment";
 import chalk from "chalk";
 import { ethers } from "ethers";
 import { sha256 } from "ethers/lib/utils";
 import fs from "fs";
 import { HttpProvider } from "web3-core";
 
+import { KeyringPair } from "@polkadot/keyring/types";
 import { DEBUG_MODE } from "./constants";
 import {
   getRuntimeWasm,
