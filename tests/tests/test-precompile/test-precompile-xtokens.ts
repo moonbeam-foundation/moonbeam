@@ -1,21 +1,22 @@
 import "@moonbeam-network/api-augment";
-import { expect } from "chai";
-import { describeDevMoonbeamAllEthTxTypes, DevTestContext } from "../../util/setup-dev-tests";
-import { ethers } from "ethers";
-import { getCompiled } from "../../util/contracts";
-import {
-  ALITH_TRANSACTION_TEMPLATE,
-  createContract,
-  createTransaction,
-} from "../../util/transactions";
 
+import { expect } from "chai";
+import { ethers } from "ethers";
+
+import { alith } from "../../util/accounts";
 import { verifyLatestBlockFees } from "../../util/block";
 import {
   MIN_GAS_PRICE,
   PRECOMPILE_NATIVE_ERC20_ADDRESS,
   PRECOMPILE_XTOKENS_ADDRESS,
 } from "../../util/constants";
-import { alith } from "../../util/accounts";
+import { getCompiled } from "../../util/contracts";
+import { describeDevMoonbeamAllEthTxTypes, DevTestContext } from "../../util/setup-dev-tests";
+import {
+  ALITH_TRANSACTION_TEMPLATE,
+  createContract,
+  createTransaction,
+} from "../../util/transactions";
 
 const XTOKENS_CONTRACT = getCompiled("XtokensInstance");
 const XTOKENS_INTERFACE = new ethers.utils.Interface(XTOKENS_CONTRACT.contract.abi);
@@ -85,7 +86,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
     expect(await getBalance(context, 2, alith.address)).to.equal(
       (await getBalance(context, 1, alith.address)) - amountTransferred - fees
     );
-    await verifyLatestBlockFees(context, expect, amountTransferred);
+    await verifyLatestBlockFees(context, amountTransferred);
   });
 });
 
@@ -153,7 +154,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
     expect(await getBalance(context, 2, alith.address)).to.equal(
       (await getBalance(context, 1, alith.address)) - amountTransferred - BigInt(fee) - fees
     );
-    await verifyLatestBlockFees(context, expect, BigInt(amountTransferred + fee));
+    await verifyLatestBlockFees(context, BigInt(amountTransferred + fee));
   });
 });
 
@@ -232,7 +233,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
     expect(await getBalance(context, 2, alith.address)).to.equal(
       (await getBalance(context, 1, alith.address)) - amountTransferred - fees
     );
-    await verifyLatestBlockFees(context, expect, amountTransferred);
+    await verifyLatestBlockFees(context, amountTransferred);
   });
 });
 
@@ -317,7 +318,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
     expect(await getBalance(context, 2, alith.address)).to.equal(
       (await getBalance(context, 1, alith.address)) - amountTransferred - BigInt(fee) - fees
     );
-    await verifyLatestBlockFees(context, expect, amountTransferred + fee);
+    await verifyLatestBlockFees(context, amountTransferred + fee);
   });
 });
 
@@ -383,7 +384,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
     expect(await getBalance(context, 2, alith.address)).to.equal(
       (await getBalance(context, 1, alith.address)) - amountTransferred - fees
     );
-    await verifyLatestBlockFees(context, expect, amountTransferred);
+    await verifyLatestBlockFees(context, amountTransferred);
   });
 });
 
@@ -464,6 +465,6 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
     expect(await getBalance(context, 2, alith.address)).to.equal(
       (await getBalance(context, 1, alith.address)) - amountTransferred - fees
     );
-    await verifyLatestBlockFees(context, expect, amountTransferred);
+    await verifyLatestBlockFees(context, amountTransferred);
   });
 });

@@ -19,13 +19,15 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use evm::{ExitError, ExitReason};
-use fp_evm::{Context, Log, PrecompileFailure, PrecompileHandle, PrecompileOutput, Transfer};
+use fp_evm::{
+	Context, Log, Precompile, PrecompileFailure, PrecompileHandle, PrecompileOutput, Transfer,
+};
 use precompile_utils::{
 	call_cost, keccak256, revert, succeed, Address, Bytes, EvmDataWriter, EvmResult,
-	FunctionModifier, LogExt, LogsBuilder, PrecompileHandleExt, StatefulPrecompile,
+	FunctionModifier, LogExt, LogsBuilder, PrecompileHandleExt,
 };
 use sp_core::{H160, U256};
-use sp_std::{cell::RefCell, iter::repeat, marker::PhantomData, vec, vec::Vec};
+use sp_std::{iter::repeat, marker::PhantomData, vec, vec::Vec};
 
 #[cfg(test)]
 mod mock;
@@ -59,53 +61,20 @@ pub fn log_subcall_failed(address: impl Into<H160>, index: usize) -> Log {
 
 /// Batch precompile.
 #[derive(Debug, Clone)]
-pub struct BatchPrecompile<Runtime> {
-	/// Recursion level that will be increased when entering the precompile,
-	/// and decreased when exiting it. RefCell allows to mutate this value
-	/// while only having a shared reference. This is safe as the execution
-	/// is single-threaded and we don't hold the reference while doing subcalls.
-	recursion_level: RefCell<u8>,
-	/// Number of time the precompile can be called recursively.
-	/// 1 = can be called but subcalls cannot call again this precompile
-	/// ...
-	max_recursion_level: u8,
-	_phantom: PhantomData<Runtime>,
-}
+pub struct BatchPrecompile<Runtime>(PhantomData<Runtime>);
 
-impl<Runtime> StatefulPrecompile for BatchPrecompile<Runtime>
+impl<Runtime> Precompile for BatchPrecompile<Runtime>
 where
 	Runtime: pallet_evm::Config,
 {
-	fn execute(&self, handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+	fn execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		let selector = handle.read_selector()?;
 
 		// No funds are transfered to the precompile address.
 		// Transfers will directly be made on the behalf of the user by the precompile.
 		handle.check_function_modifier(FunctionModifier::NonPayable)?;
 
-		match self.recursion_level.try_borrow_mut() {
-			Ok(mut recursion_level) => {
-				if *recursion_level >= self.max_recursion_level {
-					return Err(revert("Too much calls to Batch precompiles are nested"));
-				}
-
-				*recursion_level += 1;
-			}
-			// We don't hold the borrow and are in single-threaded code, thus we should
-			// not be able to fail borrowing in nested calls.
-			Err(_) => return Err(revert("Couldn't check nesting of Batch calls")),
-		}
-
-		let res = Self::batch(handle, selector);
-
-		match self.recursion_level.try_borrow_mut() {
-			Ok(mut recursion_level) => {
-				*recursion_level -= 1;
-			}
-			Err(_) => return Err(revert("Couldn't check nesting of Batch calls")),
-		}
-
-		res
+		Self::batch(handle, selector)
 	}
 }
 
@@ -113,14 +82,6 @@ impl<Runtime> BatchPrecompile<Runtime>
 where
 	Runtime: pallet_evm::Config,
 {
-	pub fn new_with_max_recursion_level(max_recursion_level: u8) -> Self {
-		Self {
-			recursion_level: RefCell::new(0),
-			max_recursion_level,
-			_phantom: PhantomData,
-		}
-	}
-
 	fn batch(handle: &mut impl PrecompileHandle, action: Action) -> EvmResult<PrecompileOutput> {
 		let mut input = handle.read_input()?;
 		let addresses: Vec<Address> = input.read()?;

@@ -20,8 +20,8 @@ use super::*;
 use codec::{Decode, Encode, MaxEncodedLen};
 use frame_support::traits::Everything;
 use frame_support::{construct_runtime, pallet_prelude::*, parameter_types};
-use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet};
-use precompile_utils::revert;
+use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot};
+use precompile_utils::precompile_set::*;
 use serde::{Deserialize, Serialize};
 use sp_core::H160;
 use sp_core::H256;
@@ -166,34 +166,13 @@ impl pallet_balances::Config for Runtime {
 	type WeightInfo = ();
 }
 
-#[derive(Debug, Clone)]
-pub struct TestPrecompiles<R> {
-	batch: BatchPrecompile<R>,
-	_phantom: PhantomData<R>,
-}
-
-impl<R: pallet_evm::Config> TestPrecompiles<R> {
-	pub fn new() -> Self {
-		Self {
-			batch: BatchPrecompile::new_with_max_recursion_level(2),
-			_phantom: PhantomData,
-		}
-	}
-}
-
-impl<R: pallet_evm::Config> PrecompileSet for TestPrecompiles<R> {
-	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<EvmResult<PrecompileOutput>> {
-		match handle.code_address() {
-			a if a == Account::Precompile.into() => Some(self.batch.execute(handle)),
-			a if a == Account::Revert.into() => Some(EvmResult::Err(revert("revert"))),
-			_ => None,
-		}
-	}
-
-	fn is_precompile(&self, address: H160) -> bool {
-		address == Account::Precompile.into()
-	}
-}
+pub type TestPrecompiles<R> = PrecompileSetBuilder<
+	R,
+	(
+		PrecompileAt<AddressU64<1>, BatchPrecompile<R>, LimitRecursionTo<1>>,
+		RevertPrecompile<AddressU64<2>>,
+	),
+>;
 
 parameter_types! {
 	pub PrecompilesValue: TestPrecompiles<Runtime> = TestPrecompiles::new();

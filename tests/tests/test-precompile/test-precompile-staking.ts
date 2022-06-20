@@ -1,16 +1,17 @@
 import "@moonbeam-network/api-augment";
+
+import { numberToHex } from "@polkadot/util";
 import { expect } from "chai";
-import Keyring from "@polkadot/keyring";
+
+import { alith, ethan, ETHAN_PRIVATE_KEY } from "../../util/accounts";
+import { verifyLatestBlockFees } from "../../util/block";
 import { MIN_GLMR_STAKING, PRECOMPILE_PARACHAIN_STAKING_ADDRESS } from "../../util/constants";
 import {
   describeDevMoonbeam,
   describeDevMoonbeamAllEthTxTypes,
   DevTestContext,
 } from "../../util/setup-dev-tests";
-import { numberToHex } from "@polkadot/util";
 import { callPrecompile, sendPrecompileTx } from "../../util/transactions";
-import { verifyLatestBlockFees } from "../../util/block";
-import { ethan, ETHAN_PRIVATE_KEY, alith } from "../../util/accounts";
 
 const SELECTORS = {
   candidate_bond_less: "289b6ba7",
@@ -125,7 +126,7 @@ describeDevMoonbeamAllEthTxTypes("Staking - Join Candidates", (context) => {
     );
 
     expect(Number((await isCandidate(context, ethan.address)).result)).to.equal(1);
-    await verifyLatestBlockFees(context, expect, MIN_GLMR_STAKING);
+    await verifyLatestBlockFees(context, MIN_GLMR_STAKING);
   });
 });
 
@@ -158,11 +159,7 @@ describeDevMoonbeamAllEthTxTypes("Staking - Join Delegators", (context) => {
 });
 
 describeDevMoonbeamAllEthTxTypes("Staking - Join Delegators", (context) => {
-  let ethan;
   before("should successfully call delegate for ethan.address to ALITH", async function () {
-    const keyring = new Keyring({ type: "ethereum" });
-    ethan = await keyring.addFromUri(ETHAN_PRIVATE_KEY, null, "ethereum");
-
     // Delegate ethan.address->ALITH
     await sendPrecompileTx(
       context,

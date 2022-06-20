@@ -1,11 +1,13 @@
 import "@moonbeam-network/api-augment";
+
 import { expect } from "chai";
 
-import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
-import { getBlockExtrinsic } from "../../util/block";
-import { sendPrecompileTx } from "../../util/transactions";
-import { PRECOMPILE_AUTHOR_MAPPING_ADDRESS } from "../../util/constants";
 import { ethan, ETHAN_PRIVATE_KEY, faith, FAITH_PRIVATE_KEY } from "../../util/accounts";
+import { getBlockExtrinsic } from "../../util/block";
+import { PRECOMPILE_AUTHOR_MAPPING_ADDRESS } from "../../util/constants";
+import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
+import { sendPrecompileTx } from "../../util/transactions";
+
 const debug = require("debug")("test-precompile:author-mapping");
 
 // Keys used to set author-mapping in the tests

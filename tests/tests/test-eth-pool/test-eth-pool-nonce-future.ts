@@ -1,13 +1,14 @@
 import "@moonbeam-network/api-augment";
+
 import { expect } from "chai";
 
-import { createContract, createTransfer } from "../../util/transactions";
-import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
-import { customWeb3Request } from "../../util/providers";
 import { baltathar } from "../../util/accounts";
+import { customWeb3Request } from "../../util/providers";
+import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
+import { createContract, createTransfer } from "../../util/transactions";
 
 describeDevMoonbeamAllEthTxTypes("EthPool - Future Ethereum transaction", (context) => {
-  let txHash;
+  let txHash: string;
   before("Setup: Create a block with transaction", async () => {
     const { rawTx } = await createContract(context, "TestContract", {
       nonce: 1,
@@ -30,7 +31,7 @@ describeDevMoonbeamAllEthTxTypes("EthPool - Future Ethereum transaction", (conte
 });
 
 describeDevMoonbeamAllEthTxTypes("EthPool - Future Ethereum transaction", (context) => {
-  let txHash;
+  let txHash: string;
   before("Setup: Create a block with transaction", async () => {
     const { rawTx } = await createContract(context, "TestContract", {
       nonce: 1,

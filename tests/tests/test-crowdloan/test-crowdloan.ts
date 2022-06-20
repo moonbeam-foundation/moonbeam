@@ -1,16 +1,17 @@
 import "@moonbeam-network/api-augment";
+
+import { stringToU8a } from "@polkadot/util";
+import { blake2AsHex } from "@polkadot/util-crypto";
 import { expect } from "chai";
 import Web3 from "web3";
 import { Account } from "web3-core";
-import { stringToU8a } from "@polkadot/util";
-import type { SubmittableExtrinsic } from "@polkadot/api/promise/types";
-import { blake2AsHex } from "@polkadot/util-crypto";
 
+import { alith, ALITH_GENESIS_BALANCE, baltathar, generateKeyingPair } from "../../util/accounts";
+import { verifyLatestBlockFees } from "../../util/block";
 import { DEFAULT_GENESIS_BALANCE, GLMR } from "../../util/constants";
 import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
-import { verifyLatestBlockFees } from "../../util/block";
-import { alith, ALITH_GENESIS_BALANCE, baltathar, generateKeyingPair } from "../../util/accounts";
 
+import type { SubmittableExtrinsic } from "@polkadot/api/promise/types";
 // Relay addresses for crowdloan tests
 export const RELAYCHAIN_ARBITRARY_ADDRESS_1: string =
   "0x1111111111111111111111111111111111111111111111111111111111111111";
@@ -64,7 +65,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
       )
     );
 
-    await verifyLatestBlockFees(context, expect, 3_000_000n);
+    await verifyLatestBlockFees(context, 3_000_000n);
 
     const initBlock = await context.polkadotApi.query.crowdloanRewards.initRelayBlock();
 

@@ -1,18 +1,14 @@
 import "@moonbeam-network/api-augment";
+
 import { ApiPromise } from "@polkadot/api";
-import {
-  AddressOrPair,
-  ApiTypes,
-  SubmittableExtrinsic,
-  SubmittableResultResult,
-} from "@polkadot/api/types";
+import { AddressOrPair, ApiTypes, SubmittableExtrinsic } from "@polkadot/api/types";
 import { GenericExtrinsic } from "@polkadot/types/extrinsic";
-import { AnyTuple, RegistryError } from "@polkadot/types/types";
 import { DispatchError, DispatchInfo, Event, EventRecord } from "@polkadot/types/interfaces";
+import { AnyTuple, RegistryError } from "@polkadot/types/types";
 import { u8aToHex } from "@polkadot/util";
+
 import { DevTestContext } from "./setup-dev-tests";
-import { alith } from "./accounts";
-import { createAndFinalizeBlock } from "./block";
+
 const debug = require("debug")("test:substrateEvents");
 
 export interface ExtrinsicCreation {
@@ -97,7 +93,10 @@ async function lookForExtrinsicAndEvents(api: ApiPromise, extrinsicHash: Uint8Ar
   return { events, extrinsic };
 }
 
-async function tryLookingForEvents(api: ApiPromise, extrinsicHash: Uint8Array) {
+async function tryLookingForEvents(
+  api: ApiPromise,
+  extrinsicHash: Uint8Array
+): Promise<ReturnType<typeof lookForExtrinsicAndEvents>> {
   await waitOneBlock(api);
   let { extrinsic, events } = await lookForExtrinsicAndEvents(api, extrinsicHash);
   if (events.length > 0) {

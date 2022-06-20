@@ -1,12 +1,11 @@
 import "@moonbeam-network/api-augment";
-import { expect } from "chai";
-import { BN } from "@polkadot/util";
-import { u128 } from "@polkadot/types";
 
-import { describeDevMoonbeam } from "../../util/setup-dev-tests";
-import { createBlockWithExtrinsic } from "../../util/substrate-rpc";
+import { u128 } from "@polkadot/types";
+import { expect } from "chai";
+
 import { alith, baltathar } from "../../util/accounts";
 import { mockAssetBalance } from "../../util/assets";
+import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 
 const ARBITRARY_ASSET_ID = 42259045809535163221576417993425387648n;
 
@@ -28,7 +27,7 @@ describeDevMoonbeam("Pallet Assets - Transfer", (context) => {
     await mockAssetBalance(context, assetBalance, assetDetails, alith, assetId, alith.address);
   });
 
-  it("should be sucessful", async function () {
+  it("should be sucessfull", async function () {
     const { result } = await context.createBlock(
       context.polkadotApi.tx.assets.transfer(assetId, baltathar.address, 1000)
     );
