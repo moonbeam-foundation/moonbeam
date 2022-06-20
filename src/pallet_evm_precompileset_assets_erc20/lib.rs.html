@@ -877,6 +877,18 @@
 <span id="872">872</span>
 <span id="873">873</span>
 <span id="874">874</span>
+<span id="875">875</span>
+<span id="876">876</span>
+<span id="877">877</span>
+<span id="878">878</span>
+<span id="879">879</span>
+<span id="880">880</span>
+<span id="881">881</span>
+<span id="882">882</span>
+<span id="883">883</span>
+<span id="884">884</span>
+<span id="885">885</span>
+<span id="886">886</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is 	part of Moonbeam.</span>
 
@@ -998,6 +1010,18 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Erc20AssetsPrecompileSet</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">IsLocal</span>, <span class="ident">Instance</span>: <span class="lifetime">&#39;static</span> <span class="op">=</span> ()<span class="op">&gt;</span>(
 	<span class="ident">PhantomData</span><span class="op">&lt;</span>(<span class="ident">Runtime</span>, <span class="ident">IsLocal</span>, <span class="ident">Instance</span>)<span class="op">&gt;</span>,
 );
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Erc20AssetsPrecompileSet</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span>, <span class="ident">V</span><span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span> {
+		<span class="self">Self</span>(<span class="ident">PhantomData</span>)
+	}
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Erc20AssetsPrecompileSet</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span>, <span class="ident">V</span><span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
+		<span class="self">Self</span>(<span class="ident">PhantomData</span>)
+	}
+}
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">IsLocal</span>, <span class="ident">Instance</span><span class="op">&gt;</span> <span class="ident">PrecompileSet</span>
 	<span class="kw">for</span> <span class="ident">Erc20AssetsPrecompileSet</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">IsLocal</span>, <span class="ident">Instance</span><span class="op">&gt;</span>

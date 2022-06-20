@@ -446,6 +446,15 @@
 <span id="441">441</span>
 <span id="442">442</span>
 <span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -469,8 +478,8 @@
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::alloc::borrow::ToOwned</span>;
 <span class="kw">use</span> <span class="ident">fp_evm</span>::{
-	<span class="ident">Context</span>, <span class="ident">ExitError</span>, <span class="ident">ExitReason</span>, <span class="ident">ExitRevert</span>, <span class="ident">ExitSucceed</span>, <span class="ident">PrecompileFailure</span>, <span class="ident">PrecompileHandle</span>,
-	<span class="ident">PrecompileOutput</span>, <span class="ident">Transfer</span>,
+	<span class="ident">Context</span>, <span class="ident">ExitError</span>, <span class="ident">ExitRevert</span>, <span class="ident">ExitSucceed</span>, <span class="ident">PrecompileFailure</span>, <span class="ident">PrecompileHandle</span>,
+	<span class="ident">PrecompileOutput</span>,
 };
 <span class="kw">use</span> <span class="ident">frame_support</span>::{
 	<span class="ident">dispatch</span>::{<span class="ident">Dispatchable</span>, <span class="ident">GetDispatchInfo</span>, <span class="ident">PostDispatchInfo</span>},
@@ -483,7 +492,10 @@
 <span class="kw">mod</span> <span class="ident">data</span>;
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">data</span>::{<span class="ident">Address</span>, <span class="ident">Bytes</span>, <span class="ident">EvmData</span>, <span class="ident">EvmDataReader</span>, <span class="ident">EvmDataWriter</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">fp_evm::Precompile</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">precompile_utils_macro</span>::{<span class="ident">generate_function_selector</span>, <span class="ident">keccak256</span>};
+
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">precompile_set</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;testing&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">testing</span>;
@@ -497,6 +509,12 @@
 <span class="doccomment">/// Trait similar to `fp_evm::Precompile` but with a `&amp;self` parameter to manage some</span>
 <span class="doccomment">/// state (this state is only kept in a single transaction and is lost afterward).</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">StatefulPrecompile</span> {
+	<span class="doccomment">/// Instanciate the precompile.</span>
+	<span class="doccomment">/// Will be called once when building the PrecompileSet at the start of each</span>
+	<span class="doccomment">/// Ethereum transaction.</span>
+	<span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span>;
+
+	<span class="doccomment">/// Execute the precompile with a reference to its state.</span>
 	<span class="kw">fn</span> <span class="ident">execute</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span>;
 }
 
