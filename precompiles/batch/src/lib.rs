@@ -60,6 +60,7 @@ pub fn log_subcall_failed(address: impl Into<H160>, index: usize) -> Log {
 }
 
 /// Batch precompile.
+#[derive(Debug, Clone)]
 pub struct BatchPrecompile<Runtime>(PhantomData<Runtime>);
 
 impl<Runtime> Precompile for BatchPrecompile<Runtime>
@@ -73,8 +74,7 @@ where
 		// Transfers will directly be made on the behalf of the user by the precompile.
 		handle.check_function_modifier(FunctionModifier::NonPayable)?;
 
-		let res = Self::batch(handle, selector);
-		res
+		Self::batch(handle, selector)
 	}
 }
 

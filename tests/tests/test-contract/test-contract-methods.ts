@@ -1,7 +1,10 @@
+import "@moonbeam-network/api-augment";
+
 import { expect } from "chai";
-import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
-import { createContract } from "../../util/transactions";
 import { Contract } from "web3-eth-contract";
+
+import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
+import { createContract } from "../../util/transactions";
 
 describeDevMoonbeamAllEthTxTypes("Contract creation", (context) => {
   let testContract: Contract;
@@ -9,9 +12,9 @@ describeDevMoonbeamAllEthTxTypes("Contract creation", (context) => {
 
   before("Setup: Create the contract", async function () {
     const { contract, rawTx } = await createContract(context, "TestContract");
-    const { txResults } = await context.createBlock({ transactions: [rawTx] });
+    const { result } = await context.createBlock(rawTx);
     testContract = contract;
-    testContractTx = txResults[0].result;
+    testContractTx = result.hash;
   });
 
   it("should appear in the block transaction list", async () => {
@@ -43,7 +46,7 @@ describeDevMoonbeamAllEthTxTypes("Contract creation", (context) => {
       .then(() => {
         return Promise.reject({ message: "Execution succeeded but should have failed" });
       })
-      .catch((err) =>
+      .catch((err: { message: string }) =>
         expect(err.message).to.equal(
           `Returned error: VM Exception while processing transaction: revert`
         )
@@ -73,7 +76,7 @@ describeDevMoonbeamAllEthTxTypes("Contract creation", (context) => {
       .then(() => {
         return Promise.reject({ message: "Execution succeeded but should have failed" });
       })
-      .catch((err) =>
+      .catch((err: { message: string }) =>
         expect(err.message).to.equal(
           `Returned error: VM Exception while processing transaction: revert`
         )
@@ -104,7 +107,7 @@ describeDevMoonbeamAllEthTxTypes("Contract creation", (context) => {
       .then(() => {
         return Promise.reject({ message: "Execution succeeded but should have failed" });
       })
-      .catch((err) =>
+      .catch((err: { message: string }) =>
         expect(err.message).to.equal(
           `Returned error: VM Exception while processing transaction: revert`
         )

@@ -1,8 +1,10 @@
+import "@moonbeam-network/api-augment";
+
 import { expect } from "chai";
 
-import { createContract } from "../../util/transactions";
-import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { customWeb3Request } from "../../util/providers";
+import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+import { createContract } from "../../util/transactions";
 
 describeDevMoonbeam("TxPool - Genesis", (context) => {
   it("should be empty", async function () {
@@ -18,7 +20,7 @@ describeDevMoonbeam("TxPool - New block", (context) => {
     const { rawTx } = await createContract(context, "TestContract", {
       gas: 1048576,
     });
-    await context.createBlock({ transactions: [rawTx] });
+    await context.createBlock(rawTx);
     await context.createBlock();
   });
 

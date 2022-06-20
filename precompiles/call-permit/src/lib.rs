@@ -33,6 +33,7 @@ use precompile_utils::{
 };
 use sp_core::{H160, H256, U256};
 use sp_io::hashing::keccak_256;
+use sp_std::vec::Vec;
 
 #[cfg(test)]
 mod mock;
@@ -179,7 +180,7 @@ where
 			.checked_add(call_cost)
 			.ok_or_else(|| revert("call require too much gas (u64 overflow)"))?;
 
-		if total_cost > dbg!(handle.remaining_gas()) {
+		if total_cost > handle.remaining_gas() {
 			return Err(revert("gaslimit is too low to dispatch provided call"));
 		}
 
@@ -201,8 +202,6 @@ where
 			nonce,
 			deadline,
 		);
-
-		dbg!(H256::from(permit));
 
 		let mut sig = [0u8; 65];
 		sig[0..32].copy_from_slice(&r.as_bytes());

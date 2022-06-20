@@ -1,8 +1,9 @@
-import tcpPortUsed from "tcp-port-used";
-import path from "path";
-import fs from "fs";
 import child_process from "child_process";
+import fs from "fs";
+import path from "path";
 import { killAll, run } from "polkadot-launch";
+import tcpPortUsed from "tcp-port-used";
+
 import {
   BINARY_PATH,
   DISPLAY_LOG,
@@ -10,6 +11,7 @@ import {
   RELAY_BINARY_PATH,
   RELAY_CHAIN_NODE_NAMES,
 } from "./constants";
+
 const debug = require("debug")("test:para-node");
 
 export async function findAvailablePorts(parachainCount: number = 1) {
@@ -221,7 +223,7 @@ export async function generateRawSpecs(
 }
 
 // log listeners to kill at the end;
-const logListener = [];
+const logListener: child_process.ChildProcessWithoutNullStreams[] = [];
 
 // This will start a parachain node, only 1 at a time (check every 100ms).
 // This will prevent race condition on the findAvailablePorts which uses the PID of the process
@@ -250,7 +252,12 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
   const ports = await findAvailablePorts(numberOfParachains);
 
   //Build hrmpChannels, all connected to first parachain
-  const hrmpChannels = [];
+  const hrmpChannels: {
+    sender: number;
+    recipient: number;
+    maxCapacity: number;
+    maxMessageSize: number;
+  }[] = [];
   new Array(numberOfParachains - 1).fill(0).forEach((_, i) => {
     hrmpChannels.push({
       sender: 1000,
@@ -332,7 +339,7 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
       },
     },
   };
-  const genesis = RELAY_GENESIS_PER_VERSION[options?.relaychain?.binary] || {};
+  const genesis = (RELAY_GENESIS_PER_VERSION as any)[options?.relaychain?.binary] || {};
   // Build launchConfig
   const launchConfig = {
     relaychain: {
@@ -407,7 +414,7 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
         ],
       };
     }),
-    simpleParachains: [],
+    simpleParachains: [] as any[],
     hrmpChannels: hrmpChannels,
     finalization: true,
   };

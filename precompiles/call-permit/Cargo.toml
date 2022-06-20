@@ -31,9 +31,9 @@ pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam
 [dev-dependencies]
 derive_more = { version = "0.99" }
 hex-literal = "0.3.4"
+libsecp256k1 = "0.7"
 serde = { version = "1.0.100" }
 sha3 = "0.8"
-libsecp256k1 = "0.7"
 
 codec = { package = "parity-scale-codec", version = "3.0.0", default-features = false, features = [ "max-encoded-len" ] }
 pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20" }

@@ -1,210 +1,142 @@
-import { expect } from "chai";
-import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
-import { ethers } from "ethers";
-import { getCompiled } from "../../util/contracts";
-import { createContract, createTransaction } from "../../util/transactions";
-import { Keyring } from "@polkadot/api";
-import { randomAsHex } from "@polkadot/util-crypto";
+import "@moonbeam-network/api-augment";
+
 import { u8aToHex } from "@polkadot/util";
+import { KeyringPair } from "@substrate/txwrapper-core";
+import { expect } from "chai";
+import { ethers } from "ethers";
 
+import { alith, generateKeyingPair } from "../../util/accounts";
+import { DEFAULT_GENESIS_MAPPING, PRECOMPILE_AUTHOR_MAPPING_ADDRESS } from "../../util/constants";
+import { getCompiled } from "../../util/contracts";
+import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 import {
-  GENESIS_ACCOUNT,
-  GENESIS_ACCOUNT_PRIVATE_KEY,
-  DEFAULT_GENESIS_MAPPING,
-} from "../../util/constants";
+  ALITH_TRANSACTION_TEMPLATE,
+  createContract,
+  createTransaction,
+} from "../../util/transactions";
 
-const ADDRESS_AUTHOR_MAPPING = "0x0000000000000000000000000000000000000807";
-
-async function getMappingInfo(
-  context,
-  authorId: string
-): Promise<{ account: string; deposit: BigInt }> {
-  const mapping = await context.polkadotApi.query.authorMapping.mappingWithDeposit(authorId);
-  if (mapping.isSome) {
-    return {
-      account: mapping.unwrap().account.toString(),
-      deposit: mapping.unwrap().deposit.toBigInt(),
-    };
-  }
-  return null;
-}
+const AUTHOR_MAPPING_CONTRACT = getCompiled("AuthorMapping");
+const AUTHOR_MAPPING_INTERFACE = new ethers.utils.Interface(AUTHOR_MAPPING_CONTRACT.contract.abi);
 
 describeDevMoonbeamAllEthTxTypes("Precompiles - author mapping", (context) => {
   it("allows to add association", async function () {
-    const contractData = await getCompiled("AuthorMapping");
-    const iFace = new ethers.utils.Interface(contractData.contract.abi);
-    const { contract, rawTx } = await createContract(context, "AuthorMapping");
-    const address = contract.options.address;
-    await context.createBlock({ transactions: [rawTx] });
-    const seed = randomAsHex(32);
+    const mappingAccount = generateKeyingPair("sr25519");
+    const { rawTx } = await createContract(context, "AuthorMapping");
+    await context.createBlock(rawTx);
 
-    const mappingKeyRing = new Keyring({ type: "sr25519" });
-    // add the account
-    let mappingAccount = await mappingKeyRing.addFromUri(seed, null, "sr25519");
-
-    const data = iFace.encodeFunctionData(
-      // action
-      "add_association",
-      [mappingAccount.publicKey]
+    const { result } = await context.createBlock(
+      createTransaction(context, {
+        ...ALITH_TRANSACTION_TEMPLATE,
+        to: PRECOMPILE_AUTHOR_MAPPING_ADDRESS,
+        data: AUTHOR_MAPPING_INTERFACE.encodeFunctionData("add_association", [
+          mappingAccount.publicKey,
+        ]),
+      })
     );
 
-    const base_fee = await context.web3.eth.getGasPrice();
-
-    const tx = await createTransaction(context, {
-      from: GENESIS_ACCOUNT,
-      privateKey: GENESIS_ACCOUNT_PRIVATE_KEY,
-      value: "0x0",
-      gas: "0x200000",
-      gasPrice: base_fee,
-      to: ADDRESS_AUTHOR_MAPPING,
-      data,
-    });
-
-    const block = await context.createBlock({
-      transactions: [tx],
-    });
-
-    const receipt = await context.web3.eth.getTransactionReceipt(block.txResults[0].result);
+    const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
     expect(receipt.status).to.equal(true);
 
-    const registerInfo = await getMappingInfo(context, u8aToHex(mappingAccount.publicKey));
-    expect(await registerInfo.account).to.eq(GENESIS_ACCOUNT);
-    expect(await registerInfo.deposit).to.eq(DEFAULT_GENESIS_MAPPING);
+    const mapping = await context.polkadotApi.query.authorMapping.mappingWithDeposit(
+      u8aToHex(mappingAccount.publicKey)
+    );
+    expect(mapping.unwrap().account.toString()).to.eq(alith.address);
+    expect(mapping.unwrap().deposit.toBigInt()).to.eq(DEFAULT_GENESIS_MAPPING);
   });
 });
 
 describeDevMoonbeamAllEthTxTypes("Precompiles - author mapping", (context) => {
-  let firstMappingAccount, secondMappingAccount;
+  let firstMappingAccount: KeyringPair;
+  let secondMappingAccount: KeyringPair;
   before("First add association", async () => {
-    // We will work with genesis account
-    const keyring = new Keyring({ type: "ethereum" });
-    let genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
-
-    // lets generate 2 seeds for 2 sr25519 addresses
-    const seed = randomAsHex(32);
-    const seed2 = randomAsHex(32);
-
-    const mappingKeyRing = new Keyring({ type: "sr25519" });
-    // accounts
-    firstMappingAccount = await mappingKeyRing.addFromUri(seed, null, "sr25519");
-    secondMappingAccount = await mappingKeyRing.addFromUri(seed2, null, "sr25519");
-
+    firstMappingAccount = generateKeyingPair("sr25519");
+    secondMappingAccount = generateKeyingPair("sr25519");
     // Add association
-    await context.polkadotApi.tx.authorMapping
-      .addAssociation(firstMappingAccount.publicKey)
-      .signAndSend(genesisAccount);
-    await context.createBlock();
-
-    // Verify association was added
-    const registerInfo = await getMappingInfo(context, u8aToHex(firstMappingAccount.publicKey));
-    expect(await registerInfo.account).to.eq(GENESIS_ACCOUNT);
-    expect(await registerInfo.deposit).to.eq(DEFAULT_GENESIS_MAPPING);
-  });
-  it("allows to update association", async function () {
-    const contractData = await getCompiled("AuthorMapping");
-    const iFace = new ethers.utils.Interface(contractData.contract.abi);
-    const { contract, rawTx } = await createContract(context, "AuthorMapping");
-    const address = contract.options.address;
-    await context.createBlock({ transactions: [rawTx] });
-
-    const data = iFace.encodeFunctionData(
-      // action
-      "update_association",
-      [firstMappingAccount.publicKey, secondMappingAccount.publicKey]
+    await context.createBlock(
+      context.polkadotApi.tx.authorMapping.addAssociation(firstMappingAccount.publicKey)
     );
 
-    const base_fee = await context.web3.eth.getGasPrice();
+    // Verify association was added
+    const mapping = await context.polkadotApi.query.authorMapping.mappingWithDeposit(
+      u8aToHex(firstMappingAccount.publicKey)
+    );
+    expect(mapping.unwrap().account.toString()).to.eq(alith.address);
+    expect(mapping.unwrap().deposit.toBigInt()).to.eq(DEFAULT_GENESIS_MAPPING);
+  });
+
+  it("allows to update association", async function () {
+    const { rawTx } = await createContract(context, "AuthorMapping");
+    await context.createBlock(rawTx);
 
     const tx = await createTransaction(context, {
-      from: GENESIS_ACCOUNT,
-      privateKey: GENESIS_ACCOUNT_PRIVATE_KEY,
-      value: "0x0",
-      gas: "0x200000",
-      gasPrice: base_fee,
-      to: ADDRESS_AUTHOR_MAPPING,
-      data,
+      to: PRECOMPILE_AUTHOR_MAPPING_ADDRESS,
+      data: AUTHOR_MAPPING_INTERFACE.encodeFunctionData("update_association", [
+        firstMappingAccount.publicKey,
+        secondMappingAccount.publicKey,
+      ]),
     });
 
-    const block = await context.createBlock({
-      transactions: [tx],
-    });
-
-    const receipt = await context.web3.eth.getTransactionReceipt(block.txResults[0].result);
+    const { result } = await context.createBlock(tx);
+    const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
     expect(receipt.status).to.equal(true);
 
     // Verify we updated firstMappingAccount for secondMappingAccount
-    const secondRegisterInfo = await getMappingInfo(
-      context,
+    const mapping = await context.polkadotApi.query.authorMapping.mappingWithDeposit(
       u8aToHex(secondMappingAccount.publicKey)
     );
-    expect(await secondRegisterInfo.account).to.eq(GENESIS_ACCOUNT);
-    expect(await secondRegisterInfo.deposit).to.eq(DEFAULT_GENESIS_MAPPING);
-
-    const firstRegisterInfo = await getMappingInfo(
-      context,
-      u8aToHex(firstMappingAccount.publicKey)
-    );
-    expect(firstRegisterInfo).to.eq(null);
+    expect(mapping.unwrap().account.toString()).to.eq(alith.address);
+    expect(mapping.unwrap().deposit.toBigInt()).to.eq(DEFAULT_GENESIS_MAPPING);
+    expect(
+      (
+        await context.polkadotApi.query.authorMapping.mappingWithDeposit(
+          u8aToHex(firstMappingAccount.publicKey)
+        )
+      ).isNone
+    ).to.be.true;
   });
 });
 
 describeDevMoonbeamAllEthTxTypes("Precompiles - author mapping", (context) => {
-  let mappingAccount;
+  let mappingAccount: KeyringPair;
   before("First add association", async () => {
-    // We will work with genesis account
-    const keyring = new Keyring({ type: "ethereum" });
-    let genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
-
-    const seed = randomAsHex(32);
-    const mappingKeyRing = new Keyring({ type: "sr25519" });
-    // account
-    mappingAccount = await mappingKeyRing.addFromUri(seed, null, "sr25519");
-
+    mappingAccount = generateKeyingPair("sr25519");
     // Add association
-    await context.polkadotApi.tx.authorMapping
-      .addAssociation(mappingAccount.publicKey)
-      .signAndSend(genesisAccount);
-    await context.createBlock();
 
-    // Verify association was added
-    const registerInfo = await getMappingInfo(context, u8aToHex(mappingAccount.publicKey));
-    expect(await registerInfo.account).to.eq(GENESIS_ACCOUNT);
-    expect(await registerInfo.deposit).to.eq(DEFAULT_GENESIS_MAPPING);
-  });
-  it("allows to clear association", async function () {
-    const contractData = await getCompiled("AuthorMapping");
-    const iFace = new ethers.utils.Interface(contractData.contract.abi);
-    const { contract, rawTx } = await createContract(context, "AuthorMapping");
-    const address = contract.options.address;
-    await context.createBlock({ transactions: [rawTx] });
-
-    const data = iFace.encodeFunctionData(
-      // action
-      "clear_association",
-      [mappingAccount.publicKey]
+    await context.createBlock(
+      context.polkadotApi.tx.authorMapping.addAssociation(mappingAccount.publicKey)
     );
 
-    const base_fee = await context.web3.eth.getGasPrice();
+    // Verify association was added
+    const mapping = await context.polkadotApi.query.authorMapping.mappingWithDeposit(
+      u8aToHex(mappingAccount.publicKey)
+    );
+    expect(mapping.unwrap().account.toString()).to.eq(alith.address);
+    expect(mapping.unwrap().deposit.toBigInt()).to.eq(DEFAULT_GENESIS_MAPPING);
+  });
+  it("allows to clear association", async function () {
+    const { rawTx } = await createContract(context, "AuthorMapping");
+    await context.createBlock(rawTx);
 
-    const tx = await createTransaction(context, {
-      from: GENESIS_ACCOUNT,
-      privateKey: GENESIS_ACCOUNT_PRIVATE_KEY,
-      value: "0x0",
-      gas: "0x200000",
-      gasPrice: base_fee,
-      to: ADDRESS_AUTHOR_MAPPING,
-      data,
-    });
+    const { result } = await context.createBlock(
+      createTransaction(context, {
+        ...ALITH_TRANSACTION_TEMPLATE,
+        to: PRECOMPILE_AUTHOR_MAPPING_ADDRESS,
+        data: AUTHOR_MAPPING_INTERFACE.encodeFunctionData("clear_association", [
+          mappingAccount.publicKey,
+        ]),
+      })
+    );
 
-    const block = await context.createBlock({
-      transactions: [tx],
-    });
-
-    const receipt = await context.web3.eth.getTransactionReceipt(block.txResults[0].result);
+    const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
     expect(receipt.status).to.equal(true);
 
     // Verify we removed the association
-    const firstRegisterInfo = await getMappingInfo(context, u8aToHex(mappingAccount.publicKey));
-    expect(firstRegisterInfo).to.eq(null);
+    expect(
+      (
+        await context.polkadotApi.query.authorMapping.mappingWithDeposit(
+          u8aToHex(mappingAccount.publicKey)
+        )
+      ).isNone
+    ).to.be.true;
   });
 });
