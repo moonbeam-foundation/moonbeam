@@ -64,7 +64,8 @@ pub type NoncesStorage = StorageMap<
 
 /// EIP2612 permit typehash.
 pub const PERMIT_TYPEHASH: [u8; 32] = keccak256!(
-	"CallPermit(address from,address to,uint256 value,bytes data,uint64 gaslimit,uint256 nonce,uint256 deadline)"
+	"CallPermit(address from,address to,uint256 value,bytes data,uint64 gaslimit\
+,uint256 nonce,uint256 deadline)"
 );
 
 /// EIP2612 permit domain used to compute an individualized domain separator.

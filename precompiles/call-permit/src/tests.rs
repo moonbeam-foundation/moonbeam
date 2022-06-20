@@ -458,7 +458,6 @@ fn invalid_permit_gas_limit_overflow() {
 // await window.ethereum.enable();
 // const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
 
-
 // const from = accounts[0];
 // const to = "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
 // const value = 42;
@@ -594,8 +593,8 @@ fn valid_permit_returns_with_metamask_signed_data() {
 
 			// Made with MetaMask
 			let rsv = hex_literal::hex!(
-				"56b497d556cb1b57a16aac6e8d53f3cbf1108df467ffcb937a3744369a27478f608de0534b8e0385e55ffd9
-				7cbafcfeac12ab52d0b74a2dea582bc8de46f257d1c"
+				"56b497d556cb1b57a16aac6e8d53f3cbf1108df467ffcb937a3744369a27478f608de05
+				34b8e0385e55ffd97cbafcfeac12ab52d0b74a2dea582bc8de46f257d1c"
 			)
 			.as_slice();
 			let (r, sv) = rsv.split_at(32);
