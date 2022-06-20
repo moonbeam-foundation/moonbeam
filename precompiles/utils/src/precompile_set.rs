@@ -124,7 +124,7 @@ pub trait PrecompileSetFragment {
 /// Type parameters allow to define:
 /// - A: The address of the precompile
 /// - R: The recursion limit (defaults to 1)
-/// - R: If DELEGATECALL is supported (default to no)
+/// - D: If DELEGATECALL is supported (default to no)
 pub struct PrecompileAt<A, P, R = ForbidRecursion, D = ForbidDelegateCall> {
 	current_recursion_level: RefCell<u16>,
 	_phantom: PhantomData<(A, P, R, D)>,
@@ -209,7 +209,7 @@ where
 /// Type parameters allow to define:
 /// - A: The address of the precompile
 /// - R: The recursion limit (defaults to 1)
-/// - R: If DELEGATECALL is supported (default to no)
+/// - D: If DELEGATECALL is supported (default to no)
 pub struct StatefulPrecompileAt<A, P, R = ForbidRecursion, D = ForbidDelegateCall> {
 	precompile: P,
 	current_recursion_level: RefCell<u16>,
