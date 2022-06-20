@@ -355,8 +355,8 @@ pub mod pallet {
 		pub fn prepare_fulfillment(id: RequestId) -> Result<FulfillArgs<T>, DispatchError> {
 			<Requests<T>>::get(id)
 				.ok_or(Error::<T>::RequestDNE)?
-				.prepare_fulfill() // TODO: prepare fulfill from the RandomnessResult
-		} // TODO: populate RandomnessResults from an inherent?
+				.prepare_fulfill()
+		}
 		/// Finish fulfillment
 		/// Caller MUST ensure `id` corresponds to `request` or there will be side effects
 		pub fn finish_fulfillment(
@@ -395,6 +395,11 @@ pub mod pallet {
 			let request = <Requests<T>>::get(id).ok_or(Error::<T>::RequestDNE)?;
 			let caller = T::AddressMapping::into_account_id(caller.clone());
 			request.execute_expiration(&caller)?;
+			if let Some(result) = RandomnessResults::<T>::take(&request.request.info) {
+				if let Some(new_result) = result.decrement_request_count() {
+					RandomnessResults::<T>::insert(&request.request.info, new_result);
+				} // else RandomnessResult is removed from storage
+			}
 			<Requests<T>>::remove(id);
 			Self::deposit_event(Event::RequestExpirationExecuted { id });
 			Ok(())

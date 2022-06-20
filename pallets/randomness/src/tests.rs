@@ -333,6 +333,49 @@ fn request_local_randomness_emits_event() {
 		});
 }
 
+#[test]
+fn request_randomness_adds_new_randomness_result() {
+	ExtBuilder::default()
+		.with_balances(vec![(Account::Alice, 15)])
+		.build()
+		.execute_with(|| {
+			let request = Request {
+				refund_address: Account::Bob.into(),
+				contract_address: Account::Alice.into(),
+				fee: 5,
+				gas_limit: 100u64,
+				salt: H256::default(),
+				info: RequestType::Local(16u64),
+			};
+			assert_ok!(Randomness::request_randomness(request));
+			let result = Randomness::randomness_results(RequestType::Local(16u64)).unwrap();
+			assert_eq!(result.request_count, 1u64);
+			assert!(result.randomness.is_none());
+		});
+}
+
+#[test]
+fn request_randomness_increments_randomness_result() {
+	ExtBuilder::default()
+		.with_balances(vec![(Account::Alice, 30)])
+		.build()
+		.execute_with(|| {
+			let request = Request {
+				refund_address: Account::Bob.into(),
+				contract_address: Account::Alice.into(),
+				fee: 5,
+				gas_limit: 100u64,
+				salt: H256::default(),
+				info: RequestType::Local(16u64),
+			};
+			assert_ok!(Randomness::request_randomness(request.clone()));
+			assert_ok!(Randomness::request_randomness(request));
+			let result = Randomness::randomness_results(RequestType::Local(16u64)).unwrap();
+			assert_eq!(result.request_count, 2u64);
+			assert!(result.randomness.is_none());
+		});
+}
+
 // PREPARE FULFILLMENT
 
 // FINISH FULFILLMENT

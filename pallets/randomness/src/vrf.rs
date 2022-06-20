@@ -95,7 +95,6 @@ pub(crate) fn set_output<T: Config>() -> Weight {
 			digest
 				.vrf_output()
 				.and_then(|vrf_output| vrf_output.0.attach_input_hash(&pubkey, transcript).ok())
-				// TODO: replace with VRF_INOUT_CONTEXT
 				.map(|inout| inout.make_bytes(&VRF_INOUT_CONTEXT))
 		})
 		.expect("VRF output encoded in pre-runtime digest must be valid");

@@ -130,7 +130,6 @@ impl<T: Config> Request<T> {
 			self.can_be_fulfilled(),
 			Error::<T>::RequestCannotYetBeFulfilled
 		);
-		// TODO: more specific errors here and everywhere else this is used, one error per path
 		let randomness = <RandomnessResults<T>>::get(&self.info)
 			// hitting this error is a bug because a RandomnessResult should exist if request exists
 			.ok_or(Error::<T>::RandomnessResultDNE)?
@@ -251,6 +250,7 @@ impl<T: Config> RequestState<T> {
 	pub(crate) fn new(request: Request<T>) -> RequestState<T> {
 		let expires =
 			frame_system::Pallet::<T>::block_number().saturating_add(T::ExpirationDelay::get());
+		// TODO: check that request.info.when is before `expires` (how to do it with EpochIndex)
 		RequestState {
 			request,
 			deposit: T::Deposit::get(),
