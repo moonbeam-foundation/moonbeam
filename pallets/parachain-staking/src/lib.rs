@@ -73,8 +73,6 @@ pub use traits::*;
 pub use types::*;
 pub use RoundIndex;
 
-
-
 #[pallet]
 pub mod pallet {
 	use crate::delegation_requests::{
@@ -82,7 +80,9 @@ pub mod pallet {
 	};
 	use crate::{set::OrderedSet, traits::*, types::*, InflationInfo, Range, WeightInfo};
 	use frame_support::pallet_prelude::*;
-	use frame_support::traits::{Currency, Get, Imbalance, ReservableCurrency, LockableCurrency, tokens::WithdrawReasons};
+	use frame_support::traits::{
+		tokens::WithdrawReasons, Currency, Get, Imbalance, LockableCurrency, ReservableCurrency,
+	};
 	use frame_system::pallet_prelude::*;
 	use parity_scale_codec::Decode;
 	use sp_runtime::{
@@ -110,7 +110,8 @@ pub mod pallet {
 		/// Overarching event type
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		/// The currency type
-		type Currency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>
+		type Currency: Currency<Self::AccountId>
+			+ ReservableCurrency<Self::AccountId>
 			+ LockableCurrency<Self::AccountId>;
 		/// The origin for monetary governance
 		type MonetaryGovernanceOrigin: EnsureOrigin<Self::Origin>;
@@ -989,11 +990,14 @@ pub mod pallet {
 					} else {
 						<DelegatorState<T>>::insert(&bond.owner, delegator);
 						// update locked balance to match adjusted total staked
-						T::Currency::set_lock(DELEGATOR_LOCK_IDENTIFIER, &bond.owner, remaining, WithdrawReasons::all());
+						T::Currency::set_lock(
+							DELEGATOR_LOCK_IDENTIFIER,
+							&bond.owner,
+							remaining,
+							WithdrawReasons::all(),
+						);
 					}
-
 				} else {
-
 					// TODO: review. we assume here that this delegator has no remaining staked
 					// balance, so we ensure the lock is cleared
 					T::Currency::remove_lock(DELEGATOR_LOCK_IDENTIFIER, &bond.owner);
@@ -1222,7 +1226,12 @@ pub mod pallet {
 					amount,
 				},
 			)?;
-			T::Currency::set_lock(DELEGATOR_LOCK_IDENTIFIER, &delegator, delegator_state.total, WithdrawReasons::all());
+			T::Currency::set_lock(
+				DELEGATOR_LOCK_IDENTIFIER,
+				&delegator,
+				delegator_state.total,
+				WithdrawReasons::all(),
+			);
 			// only is_some if kicked the lowest bottom as a consequence of this new delegation
 			let net_total_increase = if let Some(less) = less_total_staked {
 				amount.saturating_sub(less)
