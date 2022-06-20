@@ -1,14 +1,15 @@
 import "@moonbeam-network/api-augment";
-import { expect } from "chai";
-import { blake2AsU8a, xxhashAsU8a } from "@polkadot/util-crypto";
-import { BN, hexToU8a, u8aToHex } from "@polkadot/util";
+
 import { u128 } from "@polkadot/types";
+import { BN, hexToU8a, u8aToHex } from "@polkadot/util";
+import { blake2AsU8a, xxhashAsU8a } from "@polkadot/util-crypto";
+import { expect } from "chai";
+
+import { DevTestContext } from "./setup-dev-tests";
+
 import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 import type { AccountId20 } from "@polkadot/types/interfaces/runtime";
-import { DevTestContext } from "./setup-dev-tests";
 import type { KeyringPair } from "@substrate/txwrapper-core";
-import { createBlockWithExtrinsic } from "./substrate-rpc";
-
 export const RELAY_SOURCE_LOCATION = { Xcm: { parents: 1, interior: "Here" } };
 export const RELAY_V1_SOURCE_LOCATION = { V1: { parents: 1, interior: "Here" } };
 export const PARA_1000_SOURCE_LOCATION = {
@@ -58,9 +59,9 @@ export async function mockAssetBalance(
       .signAsync(sudoAccount)
   );
 
-  let assets = (await context.polkadotApi.query.assetManager.assetIdType(assetId)).toJSON();
+  const assets = await context.polkadotApi.query.assetManager.assetIdType(assetId);
   // make sure we created it
-  expect(assets["xcm"]["parents"]).to.equal(1);
+  expect(assets.unwrap().asXcm.parents.toNumber()).to.equal(1);
 
   // Get keys to modify balance
   let module = xxhashAsU8a(new TextEncoder().encode("Assets"), 128);

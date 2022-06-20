@@ -1,6 +1,19 @@
 // Moon-808
 // What happens if one calls
 // function score_a_free_delegation() public payable{
+import "@moonbeam-network/api-augment";
+
+import { numberToHex } from "@polkadot/util";
+import { expect } from "chai";
+
+import { alith } from "../../util/accounts";
+import { MIN_GLMR_STAKING } from "../../util/constants";
+import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
+import {
+  ALITH_TRANSACTION_TEMPLATE,
+  createContract,
+  createContractExecution,
+} from "../../util/transactions";
 
 //     // We delegate our target collator with all the tokens provided
 //     staking.delegate(target, msg.value);
@@ -8,19 +21,6 @@
 // }
 // Would the delegation pass in substrate but get the eth back in the evm?
 // We have to make sure that's not possible
-
-import "@moonbeam-network/api-augment";
-import { expect } from "chai";
-import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
-
-import { MIN_GLMR_STAKING } from "../../util/constants";
-import {
-  ALITH_TRANSACTION_TEMPLATE,
-  createContract,
-  createContractExecution,
-} from "../../util/transactions";
-import { numberToHex } from "@polkadot/util";
-import { alith } from "../../util/accounts";
 
 describeDevMoonbeamAllEthTxTypes(
   "Precompiles - test revert attack on state modifier",

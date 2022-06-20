@@ -1,13 +1,13 @@
 import "@moonbeam-network/api-augment";
-import { expect } from "chai";
-import { BN, bnToHex } from "@polkadot/util";
 
-import { GLMR } from "../../util/constants";
-import { describeDevMoonbeam } from "../../util/setup-dev-tests";
-import { createBlockWithExtrinsic } from "../../util/substrate-rpc";
-import { verifyLatestBlockFees } from "../../util/block";
+import { BN, bnToHex } from "@polkadot/util";
+import { expect } from "chai";
+
 import { alith } from "../../util/accounts";
 import { PARA_1000_SOURCE_LOCATION, RELAY_SOURCE_LOCATION } from "../../util/assets";
+import { verifyLatestBlockFees } from "../../util/block";
+import { GLMR } from "../../util/constants";
+import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 
 const palletId = "0x6D6f646c617373746d6E67720000000000000000";
 
@@ -55,7 +55,7 @@ describeDevMoonbeam("XCM - asset manager - foreign asset", (context) => {
     const registeredAsset = (await parachainOne.query.assets.asset(assetId)).unwrap();
     expect(registeredAsset.owner.toString()).to.eq(palletId);
 
-    await verifyLatestBlockFees(context, expect);
+    await verifyLatestBlockFees(context);
   });
 });
 
@@ -89,7 +89,7 @@ describeDevMoonbeam("XCM - asset manager - register local asset", (context) => {
     const deposit = (await parachainOne.query.assetManager.localAssetDeposit(assetId)).unwrap();
     expect(deposit.creator.toString()).to.eq(alith.address);
 
-    await verifyLatestBlockFees(context, expect);
+    await verifyLatestBlockFees(context);
   });
 });
 
@@ -131,7 +131,7 @@ describeDevMoonbeam("XCM - asset manager - Change existing asset", (context) => 
     const registeredAsset = (await parachainOne.query.assets.asset(assetId)).unwrap();
     expect(registeredAsset.owner.toString()).to.eq(palletId);
 
-    await verifyLatestBlockFees(context, expect);
+    await verifyLatestBlockFees(context);
   });
 
   it("should change the asset Id", async function () {
@@ -212,7 +212,7 @@ describeDevMoonbeam("XCM - asset manager - Remove asset from supported", (contex
     const registeredAsset = (await parachainOne.query.assets.asset(assetId)).unwrap();
     expect(registeredAsset.owner.toString()).to.eq(palletId);
 
-    await verifyLatestBlockFees(context, expect);
+    await verifyLatestBlockFees(context);
   });
 
   it("should remove an asset from our supported fee payments", async function () {
@@ -281,7 +281,7 @@ describeDevMoonbeam("XCM - asset manager - destroy foreign asset", (context) => 
     const registeredAsset = (await parachainOne.query.assets.asset(assetId)).unwrap();
     expect(registeredAsset.owner.toString()).to.eq(palletId);
 
-    await verifyLatestBlockFees(context, expect);
+    await verifyLatestBlockFees(context);
   });
 
   it("should be able to destroy a foreign asset through pallet-asset-manager", async function () {
@@ -356,7 +356,7 @@ describeDevMoonbeam("XCM - asset manager - destroy local asset", (context) => {
     expect(accountDetails.data.reserved.toString()).to.eq(
       (accountDetailsBefore.data.reserved.toBigInt() + 100n * GLMR).toString()
     );
-    await verifyLatestBlockFees(context, expect);
+    await verifyLatestBlockFees(context);
   });
 
   it("should be able to destroy a local asset through pallet-asset-manager", async function () {

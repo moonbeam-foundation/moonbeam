@@ -3,7 +3,6 @@
 
 import type {
   AccountEthereumSignature,
-  BTreeSet,
   CumulusPalletDmpQueueCall,
   CumulusPalletDmpQueueConfigData,
   CumulusPalletDmpQueueError,
@@ -207,8 +206,6 @@ import type {
   ParachainStakingError,
   ParachainStakingEvent,
   ParachainStakingInflationInflationInfo,
-  ParachainStakingInflationRangePerbill,
-  ParachainStakingInflationRangeU128,
   ParachainStakingNominator2,
   ParachainStakingParachainBondConfig,
   ParachainStakingRoundInfo,
@@ -281,7 +278,6 @@ import type {
 declare module "@polkadot/types/types/registry" {
   export interface InterfaceTypes {
     AccountEthereumSignature: AccountEthereumSignature;
-    BTreeSet: BTreeSet;
     CumulusPalletDmpQueueCall: CumulusPalletDmpQueueCall;
     CumulusPalletDmpQueueConfigData: CumulusPalletDmpQueueConfigData;
     CumulusPalletDmpQueueError: CumulusPalletDmpQueueError;
@@ -485,8 +481,6 @@ declare module "@polkadot/types/types/registry" {
     ParachainStakingError: ParachainStakingError;
     ParachainStakingEvent: ParachainStakingEvent;
     ParachainStakingInflationInflationInfo: ParachainStakingInflationInflationInfo;
-    ParachainStakingInflationRangePerbill: ParachainStakingInflationRangePerbill;
-    ParachainStakingInflationRangeU128: ParachainStakingInflationRangeU128;
     ParachainStakingNominator2: ParachainStakingNominator2;
     ParachainStakingParachainBondConfig: ParachainStakingParachainBondConfig;
     ParachainStakingRoundInfo: ParachainStakingRoundInfo;
