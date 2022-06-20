@@ -30,7 +30,7 @@ describeParachain(
 
       // verify alith initial total staked
       expect(
-        ((await context.polkadotApiParaone.query.parachainStaking.candidatePool()) as any)
+        (await context.polkadotApiParaone.query.parachainStaking.candidatePool())
           .find((c) => c.owner.toString() == alith.address)
           .amount.toBigInt()
       ).to.be.equal(1000000000000000000000n);
@@ -45,7 +45,7 @@ describeParachain(
       );
 
       const minDelegatorStk = (
-        (await context.polkadotApiParaone.consts.parachainStaking.minDelegatorStk) as any
+        await context.polkadotApiParaone.consts.parachainStaking.minDelegatorStk
       ).toBigInt();
 
       process.stdout.write(
@@ -92,7 +92,7 @@ describeParachain(
 
       // verify alith new delegators are added
       expect(
-        ((await context.polkadotApiParaone.query.parachainStaking.candidatePool()) as any)
+        (await context.polkadotApiParaone.query.parachainStaking.candidatePool())
           .find((c) => c.owner.toString() == alith.address)
           .amount.toBigInt()
       ).to.be.equal(1000000000000000000000n + minDelegatorStk * BigInt(delegatorCount));
@@ -116,7 +116,7 @@ describeParachain(
       process.stdout.write(`Verifying candidate pool bug pre-migration...`);
       // Verify BUG: alith total didn't increase with the bond more
       expect(
-        ((await context.polkadotApiParaone.query.parachainStaking.candidatePool()) as any)
+        (await context.polkadotApiParaone.query.parachainStaking.candidatePool())
           .find((c) => c.owner.toString() == alith.address)
           .amount.toBigInt()
       ).to.be.equal(1000000000000000000000n + minDelegatorStk * BigInt(delegatorCount));
@@ -126,7 +126,7 @@ describeParachain(
 
       process.stdout.write("Verifying candidate pool is fixed post-migration...");
       expect(
-        ((await context.polkadotApiParaone.query.parachainStaking.candidatePool()) as any)
+        (await context.polkadotApiParaone.query.parachainStaking.candidatePool())
           .find((c) => c.owner.toString() == alith.address)
           .amount.toBigInt()
       ).to.be.equal(

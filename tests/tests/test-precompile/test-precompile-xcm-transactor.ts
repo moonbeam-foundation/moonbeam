@@ -1,20 +1,21 @@
 import "@moonbeam-network/api-augment";
+
+import { BN } from "@polkadot/util";
 import { expect } from "chai";
-import { describeDevMoonbeamAllEthTxTypes, DevTestContext } from "../../util/setup-dev-tests";
-import { web3EthCall } from "../../util/providers";
 import { ethers } from "ethers";
+
+import { alith } from "../../util/accounts";
+import { mockAssetBalance, RELAY_V1_SOURCE_LOCATION } from "../../util/assets";
+import { verifyLatestBlockFees } from "../../util/block";
+import { PRECOMPILE_XCM_TRANSACTOR_ADDRESS } from "../../util/constants";
 import { getCompiled } from "../../util/contracts";
+import { web3EthCall } from "../../util/providers";
+import { describeDevMoonbeamAllEthTxTypes, DevTestContext } from "../../util/setup-dev-tests";
 import {
   ALITH_TRANSACTION_TEMPLATE,
   createContract,
   createTransaction,
 } from "../../util/transactions";
-import { BN } from "@polkadot/util";
-import { verifyLatestBlockFees } from "../../util/block";
-import { alith } from "../../util/accounts";
-import { mockAssetBalance, RELAY_V1_SOURCE_LOCATION } from "../../util/assets";
-import { PRECOMPILE_XCM_TRANSACTOR_ADDRESS } from "../../util/constants";
-import { createBlockWithExtrinsic } from "../../util/substrate-rpc";
 
 const ADDRESS_RELAY_ASSETS = "0xffffffff1fcacbd218edc0eba20fc2308c778080";
 const XCM_TRANSACTOR_CONTRACT = getCompiled("XcmTransactorInstance");
@@ -69,7 +70,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
 
   it("allows to retrieve transactor info through precompiles old interface", async function () {
     // Destination as multilocation, one parent
-    const asset = [1, []];
+    const asset: [number, {}[]] = [1, []];
 
     expect(
       (
@@ -123,7 +124,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
 
     const transactor = 0;
     const index = 0;
-    const asset =
+    const asset: [number, {}[]] =
       // Destination as multilocation
       [
         // one parent
@@ -163,7 +164,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
     expect(AfterAssetDetails.unwrap().supply.toBigInt()).to.equal(expectedBalance);
 
     // 1000 fee for the relay is paid with relay assets
-    await verifyLatestBlockFees(context, expect);
+    await verifyLatestBlockFees(context);
   });
 });
 
@@ -247,7 +248,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
     expect(AfterAssetDetails.unwrap().supply.toBigInt()).to.equal(expectedBalance);
 
     // 1000 fee for the relay is paid with relay assets
-    await verifyLatestBlockFees(context, expect);
+    await verifyLatestBlockFees(context);
   });
 });
 
@@ -257,7 +258,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
   });
 
   it("allows to retrieve fee per second through precompiles", async function () {
-    const asset =
+    const asset: [number, {}[]] =
       // asset as multilocation
       [
         // one parent
@@ -280,7 +281,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
   });
 
   it("allows to retrieve transactor info through precompiles", async function () {
-    const asset =
+    const asset: [number, {}[]] =
       // Destination as multilocation
       [
         // one parent
@@ -313,7 +314,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
   it("allows to issue transfer signed xcm transactor with currency Id", async function () {
     // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
     // And we need relay tokens for issuing a transaction to be executed in the relay
-    const dest =
+    const dest: [number, {}[]] =
       // Destination as multilocation
       [
         // one parent
@@ -342,7 +343,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
     );
 
     // 1000 fee for the relay is paid with relay assets
-    await verifyLatestBlockFees(context, expect);
+    await verifyLatestBlockFees(context);
   });
 });
 
@@ -354,7 +355,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
   it("allows to issue transfer signed xcm transactor with multilocation", async function () {
     // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
     // And we need relay tokens for issuing a transaction to be executed in the relay
-    const dest =
+    const dest: [number, {}[]] =
       // Destination as multilocation
       [
         // one parent
@@ -362,7 +363,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
         [],
       ];
     // asset as multilocation
-    const asset =
+    const asset: [number, {}[]] =
       // Destination as multilocation
       [
         // one parent
@@ -389,6 +390,6 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
     );
 
     // 1000 fee for the relay is paid with relay assets
-    await verifyLatestBlockFees(context, expect);
+    await verifyLatestBlockFees(context);
   });
 });

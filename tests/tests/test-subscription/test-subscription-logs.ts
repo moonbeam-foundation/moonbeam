@@ -1,13 +1,15 @@
 import "@moonbeam-network/api-augment";
-import { expect } from "chai";
-import { alith, ALITH_CONTRACT_ADDRESSES, gerald, GERALD_PRIVATE_KEY } from "../../util/accounts";
-import { web3Subscribe } from "../../util/providers";
 
+import { expect } from "chai";
+import { Log } from "web3-core";
+
+import { alith, ALITH_CONTRACT_ADDRESSES } from "../../util/accounts";
+import { EnhancedWeb3, web3Subscribe } from "../../util/providers";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { createContract } from "../../util/transactions";
 
 describeDevMoonbeam("Subscription - Logs", (context) => {
-  let web3Ws;
+  let web3Ws: EnhancedWeb3;
   before("Setup: Create empty block", async () => {
     web3Ws = await context.createWeb3("ws");
   });
@@ -46,14 +48,14 @@ describeDevMoonbeam("Subscription - Logs", (context) => {
 describeDevMoonbeam("Subscription - Logs", (context) => {
   let web3Ws;
 
-  let subSingleAddPromise;
-  let subMultiAddPromise;
-  let subTopicPromise;
-  let subTopicWildcardPromise;
-  let subTopicListPromise;
-  let subTopicCondPromise;
-  let subTopicMultiCondPromise;
-  let subTopicWildAndCondPromise;
+  let subSingleAddPromise: Promise<Log>;
+  let subMultiAddPromise: Promise<Log>;
+  let subTopicPromise: Promise<Log>;
+  let subTopicWildcardPromise: Promise<Log>;
+  let subTopicListPromise: Promise<Log>;
+  let subTopicCondPromise: Promise<Log>;
+  let subTopicMultiCondPromise: Promise<Log>;
+  let subTopicWildAndCondPromise: Promise<Log>;
 
   before("Setup: Create all subs and a block with transfer", async () => {
     web3Ws = await context.createWeb3("ws");
@@ -131,8 +133,8 @@ describeDevMoonbeam("Subscription - Logs", (context) => {
       })
     );
 
-    const subData = (sub) => {
-      return new Promise((resolve) => {
+    const subData = (sub: ReturnType<typeof web3Subscribe>) => {
+      return new Promise<Log>((resolve) => {
         sub.once("data", resolve);
       });
     };
@@ -207,7 +209,7 @@ describeDevMoonbeam("Subscription - Reverted transaction", (context) => {
     await context.createBlock(rawTx);
 
     const data = await new Promise((resolve) => {
-      let result = null;
+      let result: Log = null;
       subscription.once("data", (d) => (result = d));
       setTimeout(() => resolve(result), 1000);
       // wait for 1 second to make sure a notification would have time to arrive.

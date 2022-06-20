@@ -1,8 +1,10 @@
 import "@moonbeam-network/api-augment";
+
 import { expect } from "chai";
-import { describeDevMoonbeam } from "../../util/setup-dev-tests";
-import { customWeb3Request } from "../../util/providers";
+
 import { alith, ALITH_PRIVATE_KEY } from "../../util/accounts";
+import { customWeb3Request } from "../../util/providers";
+import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 
 describeDevMoonbeam("Contract - Excessive memory allocation", (context) => {
   it("should fail with OOG", async () => {

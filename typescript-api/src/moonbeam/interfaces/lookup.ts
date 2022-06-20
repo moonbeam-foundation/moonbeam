@@ -223,7 +223,7 @@ export default {
     _enum: ["Free", "Reserved"],
   },
   /**
-   * Lookup30: pallet_parachain_staking::pallet::Event<T>
+   * Lookup30: parachain_staking::pallet::Event<T>
    */
   ParachainStakingEvent: {
     _enum: {
@@ -409,14 +409,14 @@ export default {
     },
   },
   /**
-   * Lookup32: pallet_parachain_staking::delegation_requests::CancelledScheduledRequest<Balance>
+   * Lookup32: parachain_staking::delegation_requests::CancelledScheduledRequest<Balance>
    */
   ParachainStakingDelegationRequestsCancelledScheduledRequest: {
     whenExecutable: "u32",
     action: "ParachainStakingDelegationRequestsDelegationAction",
   },
   /**
-   * Lookup33: pallet_parachain_staking::delegation_requests::DelegationAction<Balance>
+   * Lookup33: parachain_staking::delegation_requests::DelegationAction<Balance>
    */
   ParachainStakingDelegationRequestsDelegationAction: {
     _enum: {
@@ -425,7 +425,7 @@ export default {
     },
   },
   /**
-   * Lookup34: pallet_parachain_staking::types::DelegatorAdded<B>
+   * Lookup34: parachain_staking::types::DelegatorAdded<B>
    */
   ParachainStakingDelegatorAdded: {
     _enum: {
@@ -1624,7 +1624,7 @@ export default {
     },
   },
   /**
-   * Lookup131: pallet_xcm_transactor::pallet::Event<T>
+   * Lookup131: xcm_transactor::pallet::Event<T>
    */
   XcmTransactorEvent: {
     _enum: {
@@ -1659,7 +1659,7 @@ export default {
     },
   },
   /**
-   * Lookup132: pallet_xcm_transactor::pallet::RemoteTransactInfoWithMaxWeight
+   * Lookup132: xcm_transactor::pallet::RemoteTransactInfoWithMaxWeight
    */
   XcmTransactorRemoteTransactInfoWithMaxWeight: {
     transactExtraWeight: "u64",
@@ -1813,12 +1813,8 @@ export default {
    * Lookup157: sp_trie::storage_proof::StorageProof
    */
   SpTrieStorageProof: {
-    trieNodes: "BTreeSet",
+    trieNodes: "BTreeSet<Bytes>",
   },
-  /**
-   * Lookup158: BTreeSet<T>
-   */
-  BTreeSet: "BTreeSet<Bytes>",
   /**
    * Lookup159:
    * cumulus_pallet_parachain_system::relay_state_snapshot::MessagingStateSnapshot
@@ -2021,14 +2017,14 @@ export default {
   },
   /**
    * Lookup196:
-   * pallet_parachain_staking::types::ParachainBondConfig[account::AccountId20](account::AccountId20)
+   * parachain_staking::types::ParachainBondConfig[account::AccountId20](account::AccountId20)
    */
   ParachainStakingParachainBondConfig: {
     account: "AccountId20",
     percent: "Percent",
   },
   /**
-   * Lookup197: pallet_parachain_staking::types::RoundInfo<BlockNumber>
+   * Lookup197: parachain_staking::types::RoundInfo<BlockNumber>
    */
   ParachainStakingRoundInfo: {
     current: "u32",
@@ -2036,7 +2032,7 @@ export default {
     length: "u32",
   },
   /**
-   * Lookup198: pallet_parachain_staking::types::Nominator2<account::AccountId20, Balance>
+   * Lookup198: parachain_staking::types::Nominator2<account::AccountId20, Balance>
    */
   ParachainStakingNominator2: {
     delegations: "ParachainStakingSetOrderedSetBond",
@@ -2048,12 +2044,12 @@ export default {
   },
   /**
    * Lookup199:
-   * pallet_parachain_staking::set::OrderedSet<pallet_parachain_staking::types::Bond<account::AccountId20,
+   * parachain_staking::set::OrderedSet<parachain_staking::types::Bond<account::AccountId20,
    * Balance>>
    */
   ParachainStakingSetOrderedSetBond: "Vec<ParachainStakingBond>",
   /**
-   * Lookup200: pallet_parachain_staking::types::Bond<account::AccountId20, Balance>
+   * Lookup200: parachain_staking::types::Bond<account::AccountId20, Balance>
    */
   ParachainStakingBond: {
     owner: "AccountId20",
@@ -2061,11 +2057,11 @@ export default {
   },
   /**
    * Lookup202:
-   * pallet_parachain_staking::set::OrderedSet[account::AccountId20](account::AccountId20)
+   * parachain_staking::set::OrderedSet[account::AccountId20](account::AccountId20)
    */
   ParachainStakingSetOrderedSetAccountId20: "Vec<AccountId20>",
   /**
-   * Lookup203: pallet_parachain_staking::types::DelegatorStatus
+   * Lookup203: parachain_staking::types::DelegatorStatus
    */
   ParachainStakingDelegatorStatus: {
     _enum: {
@@ -2074,7 +2070,7 @@ export default {
     },
   },
   /**
-   * Lookup204: pallet_parachain_staking::types::Delegator<account::AccountId20, Balance>
+   * Lookup204: parachain_staking::types::Delegator<account::AccountId20, Balance>
    */
   ParachainStakingDelegator: {
     id: "AccountId20",
@@ -2084,7 +2080,7 @@ export default {
     status: "ParachainStakingDelegatorStatus",
   },
   /**
-   * Lookup205: pallet_parachain_staking::types::CollatorCandidate<account::AccountId20, Balance>
+   * Lookup205: parachain_staking::types::CollatorCandidate<account::AccountId20, Balance>
    */
   ParachainStakingCollatorCandidate: {
     id: "AccountId20",
@@ -2098,14 +2094,14 @@ export default {
     state: "ParachainStakingCollatorStatus",
   },
   /**
-   * Lookup207: pallet_parachain_staking::types::CandidateBondLessRequest<Balance>
+   * Lookup207: parachain_staking::types::CandidateBondLessRequest<Balance>
    */
   ParachainStakingCandidateBondLessRequest: {
     amount: "u128",
     whenExecutable: "u32",
   },
   /**
-   * Lookup208: pallet_parachain_staking::types::CollatorStatus
+   * Lookup208: parachain_staking::types::CollatorStatus
    */
   ParachainStakingCollatorStatus: {
     _enum: {
@@ -2115,7 +2111,7 @@ export default {
     },
   },
   /**
-   * Lookup209: pallet_parachain_staking::types::CandidateMetadata<Balance>
+   * Lookup209: parachain_staking::types::CandidateMetadata<Balance>
    */
   ParachainStakingCandidateMetadata: {
     bond: "u128",
@@ -2130,14 +2126,14 @@ export default {
     status: "ParachainStakingCollatorStatus",
   },
   /**
-   * Lookup210: pallet_parachain_staking::types::CapacityStatus
+   * Lookup210: parachain_staking::types::CapacityStatus
    */
   ParachainStakingCapacityStatus: {
     _enum: ["Full", "Empty", "Partial"],
   },
   /**
    * Lookup212:
-   * pallet_parachain_staking::delegation_requests::ScheduledRequest<account::AccountId20,
+   * parachain_staking::delegation_requests::ScheduledRequest<account::AccountId20,
    * Balance>
    */
   ParachainStakingDelegationRequestsScheduledRequest: {
@@ -2146,14 +2142,14 @@ export default {
     action: "ParachainStakingDelegationRequestsDelegationAction",
   },
   /**
-   * Lookup213: pallet_parachain_staking::types::Delegations<account::AccountId20, Balance>
+   * Lookup213: parachain_staking::types::Delegations<account::AccountId20, Balance>
    */
   ParachainStakingDelegations: {
     delegations: "Vec<ParachainStakingBond>",
     total: "u128",
   },
   /**
-   * Lookup214: pallet_parachain_staking::types::Collator2<account::AccountId20, Balance>
+   * Lookup214: parachain_staking::types::Collator2<account::AccountId20, Balance>
    */
   ParachainStakingCollator2: {
     id: "AccountId20",
@@ -2166,7 +2162,7 @@ export default {
     state: "ParachainStakingCollatorStatus",
   },
   /**
-   * Lookup216: pallet_parachain_staking::types::CollatorSnapshot<account::AccountId20, Balance>
+   * Lookup216: parachain_staking::types::CollatorSnapshot<account::AccountId20, Balance>
    */
   ParachainStakingCollatorSnapshot: {
     bond: "u128",
@@ -2174,7 +2170,7 @@ export default {
     total: "u128",
   },
   /**
-   * Lookup217: pallet_parachain_staking::types::DelayedPayout<Balance>
+   * Lookup217: parachain_staking::types::DelayedPayout<Balance>
    */
   ParachainStakingDelayedPayout: {
     roundIssuance: "u128",
@@ -2182,39 +2178,43 @@ export default {
     collatorCommission: "Perbill",
   },
   /**
-   * Lookup218: pallet_parachain_staking::inflation::InflationInfo<Balance>
+   * Lookup218: parachain_staking::inflation::InflationInfo<Balance>
    */
   ParachainStakingInflationInflationInfo: {
-    expect: "ParachainStakingInflationRangeU128",
-    annual: "ParachainStakingInflationRangePerbill",
-    round: "ParachainStakingInflationRangePerbill",
+    expect: {
+      min: "u128",
+      ideal: "u128",
+      max: "u128",
+    },
+    annual: {
+      min: "Perbill",
+      ideal: "Perbill",
+      max: "Perbill",
+    },
+    round: {
+      min: "Perbill",
+      ideal: "Perbill",
+      max: "Perbill",
+    },
   },
   /**
-   * Lookup219: pallet_parachain_staking::inflation::Range<T>
-   */
-  ParachainStakingInflationRangeU128: {
-    min: "u128",
-    ideal: "u128",
-    max: "u128",
-  },
-  /**
-   * Lookup220: pallet_parachain_staking::inflation::Range<sp_arithmetic::per_things::Perbill>
-   */
-  ParachainStakingInflationRangePerbill: {
-    min: "Perbill",
-    ideal: "Perbill",
-    max: "Perbill",
-  },
-  /**
-   * Lookup221: pallet_parachain_staking::pallet::Call<T>
+   * Lookup221: parachain_staking::pallet::Call<T>
    */
   ParachainStakingCall: {
     _enum: {
       set_staking_expectations: {
-        expectations: "ParachainStakingInflationRangeU128",
+        expectations: {
+          min: "u128",
+          ideal: "u128",
+          max: "u128",
+        },
       },
       set_inflation: {
-        schedule: "ParachainStakingInflationRangePerbill",
+        schedule: {
+          min: "Perbill",
+          ideal: "Perbill",
+          max: "Perbill",
+        },
       },
       set_parachain_bond_account: {
         _alias: {
@@ -2305,7 +2305,7 @@ export default {
     },
   },
   /**
-   * Lookup222: pallet_parachain_staking::pallet::Error<T>
+   * Lookup222: parachain_staking::pallet::Error<T>
    */
   ParachainStakingError: {
     _enum: [
@@ -3740,7 +3740,7 @@ export default {
     },
   },
   /**
-   * Lookup350: pallet_xcm_transactor::pallet::Call<T>
+   * Lookup350: xcm_transactor::pallet::Call<T>
    */
   XcmTransactorCall: {
     _enum: {
@@ -4603,7 +4603,7 @@ export default {
     ],
   },
   /**
-   * Lookup479: pallet_xcm_transactor::pallet::Error<T>
+   * Lookup479: xcm_transactor::pallet::Error<T>
    */
   XcmTransactorError: {
     _enum: [

@@ -1,10 +1,11 @@
 import "@moonbeam-network/api-augment";
+
 import { expect } from "chai";
 
+import { alith, baltathar } from "../../util/accounts";
+import { customWeb3Request } from "../../util/providers";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { createTransfer } from "../../util/transactions";
-import { customWeb3Request } from "../../util/providers";
-import { alith, baltathar } from "../../util/accounts";
 
 describeDevMoonbeam("Ethereum Transaction - Initial Nonce", (context) => {
   it("should be at 0 before using it", async function () {

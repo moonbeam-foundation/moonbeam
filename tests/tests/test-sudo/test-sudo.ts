@@ -1,9 +1,12 @@
+import "@moonbeam-network/api-augment";
+
 import { expect } from "chai";
-import { describeDevMoonbeam } from "../../util/setup-dev-tests";
-import { verifyLatestBlockFees } from "../../util/block";
-import { createTransfer } from "../../util/transactions";
+
 import { alith, ALITH_GENESIS_BALANCE, baltathar } from "../../util/accounts";
+import { verifyLatestBlockFees } from "../../util/block";
 import { DEFAULT_GENESIS_BALANCE, ZERO_ADDRESS } from "../../util/constants";
+import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+import { createTransfer } from "../../util/transactions";
 
 describeDevMoonbeam("Sudo - successful setParachainBondAccount", (context) => {
   it("should be able to call sudo with the right account", async function () {
@@ -98,6 +101,6 @@ describeDevMoonbeam("Sudo - Only sudo account - test gas", (context) => {
       )
     );
 
-    await verifyLatestBlockFees(context, expect);
+    await verifyLatestBlockFees(context);
   });
 });

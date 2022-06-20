@@ -1,8 +1,10 @@
+import "@moonbeam-network/api-augment";
+
 import { expect } from "chai";
 
-import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { alith, generateKeyingPair } from "../../util/accounts";
-import { DEFAULT_GENESIS_BALANCE, GLMR } from "../../util/constants";
+import { GLMR } from "../../util/constants";
+import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 
 describeDevMoonbeam("Polkadot API - Header", (context) => {
   it("should return genesis block", async function () {
@@ -75,9 +77,8 @@ describeDevMoonbeam("Polkadot API - Transfers", (context) => {
 
   it("should appear in events", async function () {
     const signedBlock = await context.polkadotApi.rpc.chain.getBlock();
-    const allRecords = (await context.polkadotApi.query.system.events.at(
-      signedBlock.block.header.hash
-    )) as any;
+    const apiAt = await context.polkadotApi.at(signedBlock.block.header.hash);
+    const allRecords = await apiAt.query.system.events();
 
     // map between the extrinsics and events
     signedBlock.block.extrinsics.forEach((_, index) => {

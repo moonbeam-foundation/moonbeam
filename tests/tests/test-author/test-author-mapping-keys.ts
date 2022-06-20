@@ -1,8 +1,11 @@
 import "@moonbeam-network/api-augment";
+
 import { expect } from "chai";
-import { describeDevMoonbeam } from "../../util/setup-dev-tests";
-import { getBlockExtrinsic } from "../../util/block";
+
 import { charleth, dorothy } from "../../util/accounts";
+import { getBlockExtrinsic } from "../../util/block";
+import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+
 const debug = require("debug")("test:author-mapping");
 
 // Keys used to set author-mapping in the tests
