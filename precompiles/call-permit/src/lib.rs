@@ -144,7 +144,8 @@ where
 			.write(Address(from))
 			.write(Address(to))
 			.write(value)
-			.write(Bytes(data))
+			// bytes are encoded as the keccak_256 of the content
+			.write(H256::from(keccak_256(&data)))
 			.write(gaslimit)
 			.write(nonce)
 			.write(deadline)
