@@ -1455,6 +1455,12 @@
 <span id="1450">1450</span>
 <span id="1451">1451</span>
 <span id="1452">1452</span>
+<span id="1453">1453</span>
+<span id="1454">1454</span>
+<span id="1455">1455</span>
+<span id="1456">1456</span>
+<span id="1457">1457</span>
+<span id="1458">1458</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -2264,6 +2270,8 @@
 	<span class="ident">Balances</span> <span class="op">=</span> <span class="number">5</span>,
 	<span class="doccomment">/// Allow extrinsic related to AuthorMapping.</span>
 	<span class="ident">AuthorMapping</span> <span class="op">=</span> <span class="number">6</span>,
+	<span class="doccomment">/// Allow extrinsic related to IdentityJudgement.</span>
+	<span class="ident">IdentityJudgement</span> <span class="op">=</span> <span class="number">7</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">ProxyType</span> {
@@ -2307,6 +2315,10 @@
 			),
 			<span class="ident">ProxyType::Balances</span> =&gt; <span class="macro">matches!</span>(<span class="ident">c</span>, <span class="ident">Call::Balances</span>(..) <span class="op">|</span> <span class="ident">Call::Utility</span>(..)),
 			<span class="ident">ProxyType::AuthorMapping</span> =&gt; <span class="macro">matches!</span>(<span class="ident">c</span>, <span class="ident">Call::AuthorMapping</span>(..)),
+			<span class="ident">ProxyType::IdentityJudgement</span> =&gt; <span class="macro">matches!</span>(
+				<span class="ident">c</span>,
+				<span class="ident">Call::Identity</span>(<span class="ident">pallet_identity::Call::provide_judgement</span> { .. }) <span class="op">|</span> <span class="ident">Call::Utility</span>(..)
+			),
 		}
 	}
 
