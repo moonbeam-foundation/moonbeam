@@ -62,13 +62,13 @@ pub type NoncesStorage = StorageMap<
 	ValueQuery,
 >;
 
-/// EIP2612 permit typehash.
+/// EIP712 permit typehash.
 pub const PERMIT_TYPEHASH: [u8; 32] = keccak256!(
 	"CallPermit(address from,address to,uint256 value,bytes data,uint64 gaslimit\
 ,uint256 nonce,uint256 deadline)"
 );
 
-/// EIP2612 permit domain used to compute an individualized domain separator.
+/// EIP712 permit domain used to compute an individualized domain separator.
 const PERMIT_DOMAIN: [u8; 32] = keccak256!(
 	"EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
 );
