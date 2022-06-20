@@ -20,9 +20,9 @@ use crate::pallet::{
 	BalanceOf, CandidateInfo, Config, DelegationScheduledRequests, DelegatorState, Error, Event,
 	Pallet, Round, RoundIndex, Total,
 };
-use crate::Delegator;
+use crate::{Delegator, DELEGATOR_LOCK_IDENTIFIER};
 use frame_support::ensure;
-use frame_support::traits::{Get, ReservableCurrency};
+use frame_support::traits::{Get, LockableCurrency, ReservableCurrency, WithdrawReasons};
 use frame_support::{dispatch::DispatchResultWithPostInfo, RuntimeDebug};
 use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
@@ -247,6 +247,16 @@ impl<T: Config> Pallet<T> {
 
 				// remove delegation from collator state delegations
 				Self::delegator_leaves_candidate(collator.clone(), delegator.clone(), amount)?;
+				if state.total > 0u32.into() {
+					T::Currency::set_lock(
+						DELEGATOR_LOCK_IDENTIFIER,
+						&delegator,
+						state.total,
+						WithdrawReasons::all(),
+					);
+				} else {
+					T::Currency::remove_lock(DELEGATOR_LOCK_IDENTIFIER, &delegator);
+				}
 				Self::deposit_event(Event::DelegationRevoked {
 					delegator: delegator.clone(),
 					candidate: collator.clone(),
@@ -473,6 +483,17 @@ impl<T: Config> Pallet<T> {
 			// remove the scheduled request, since it is fulfilled
 			scheduled_requests.remove(request_idx).action.amount();
 			updated_scheduled_requests.push((collator, scheduled_requests));
+		}
+
+		if state.total > 0u32.into() {
+			T::Currency::set_lock(
+				DELEGATOR_LOCK_IDENTIFIER,
+				&delegator,
+				state.total,
+				WithdrawReasons::all(),
+			);
+		} else {
+			T::Currency::remove_lock(DELEGATOR_LOCK_IDENTIFIER, &delegator);
 		}
 
 		updated_scheduled_requests

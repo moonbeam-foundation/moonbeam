@@ -1407,8 +1407,6 @@ pub mod pallet {
 		) -> DispatchResult {
 			let mut state = <CandidateInfo<T>>::get(&candidate).ok_or(Error::<T>::CandidateDNE)?;
 			state.rm_delegation_if_exists::<T>(&candidate, delegator.clone(), amount)?;
-			// TODO: this one is a bit tricky... where does this touch DelegatorState?
-			T::Currency::unreserve(&delegator, amount);
 			let new_total_locked = <Total<T>>::get().saturating_sub(amount);
 			<Total<T>>::put(new_total_locked);
 			let new_total = state.total_counted;
