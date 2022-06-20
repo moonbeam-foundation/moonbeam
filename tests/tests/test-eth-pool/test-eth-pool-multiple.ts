@@ -1,9 +1,11 @@
 import "@moonbeam-network/api-augment";
+
 import { expect } from "chai";
+import { Transaction } from "web3-core";
+
 import { customWeb3Request } from "../../util/providers";
 import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 import { createContract } from "../../util/transactions";
-import { Transaction } from "web3-core";
 
 /*
   At rpc-level, there is no interface for retrieving emulated pending transactions - emulated
@@ -20,7 +22,7 @@ describeDevMoonbeamAllEthTxTypes("EthPool - Multiple pending transactions", (con
 
   before("Setup: Sending 10 transactions", async function () {
     txHashes = await Promise.all(
-      new Array(10).map(async (_, i) => {
+      new Array(10).fill(0).map(async (_, i) => {
         const { rawTx } = await createContract(context, "TestContract", { nonce: i });
         return (await customWeb3Request(context.web3, "eth_sendRawTransaction", [rawTx])).result;
       })
@@ -37,7 +39,7 @@ describeDevMoonbeamAllEthTxTypes("EthPool - Multiple pending transactions", (con
     ).map((response) => response.result as Transaction);
 
     expect(txs).to.be.lengthOf(10);
-    for (let i; i < 10; i++) {
+    for (let i = 0; i < 10; i++) {
       expect(txs[i].hash).to.be.equal(txHashes[i]);
     }
   });
@@ -52,7 +54,7 @@ describeDevMoonbeamAllEthTxTypes("EthPool - Multiple pending transactions", (con
     ).map((response) => response.result as Transaction);
 
     expect(txs).to.be.lengthOf(10);
-    for (let i; i < 10; i++) {
+    for (let i = 0; i < 10; i++) {
       expect(txs[i].blockNumber).to.be.null;
       expect(txs[i].transactionIndex).to.be.null;
     }
@@ -64,7 +66,7 @@ describeDevMoonbeamAllEthTxTypes("EthPool - Multiple produced transactions", (co
 
   before("Setup: Sending 10 transactions", async function () {
     txHashes = await Promise.all(
-      new Array(10).map(async (_, i) => {
+      new Array(10).fill(0).map(async (_, i) => {
         const { rawTx } = await createContract(context, "TestContract", { nonce: i });
         return (await customWeb3Request(context.web3, "eth_sendRawTransaction", [rawTx])).result;
       })
@@ -83,7 +85,7 @@ describeDevMoonbeamAllEthTxTypes("EthPool - Multiple produced transactions", (co
     ).map((response) => response.result as Transaction);
 
     expect(txs).to.be.lengthOf(10);
-    for (let i; i < 10; i++) {
+    for (let i = 0; i < 10; i++) {
       expect(txs[i].hash).to.be.equal(txHashes[i]);
     }
   });
@@ -98,7 +100,7 @@ describeDevMoonbeamAllEthTxTypes("EthPool - Multiple produced transactions", (co
     ).map((response) => response.result as Transaction);
 
     expect(txs).to.be.lengthOf(10);
-    for (let i; i < 10; i++) {
+    for (let i = 0; i < 10; i++) {
       expect(txs[i].blockNumber).to.not.be.null;
     }
   });
@@ -113,9 +115,9 @@ describeDevMoonbeamAllEthTxTypes("EthPool - Multiple produced transactions", (co
     ).map((response) => response.result as Transaction);
 
     expect(txs).to.be.lengthOf(10);
-    for (let i; i < 10; i++) {
+    for (let i = 0; i < 10; i++) {
       expect(txs[i].hash).to.be.equal(txHashes[i]);
-      expect(txs[i].transactionIndex).to.equal(i);
+      expect(BigInt(txs[i].transactionIndex)).to.equal(BigInt(i));
     }
   });
 });

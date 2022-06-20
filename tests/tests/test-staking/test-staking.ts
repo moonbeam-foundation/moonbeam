@@ -1,22 +1,23 @@
-import "@polkadot/api-augment";
 import "@moonbeam-network/api-augment";
+
+import { u128 } from "@polkadot/types";
 import {
-  SpRuntimeDispatchError,
   FrameSupportWeightsDispatchInfo,
   FrameSystemEventRecord,
+  SpRuntimeDispatchError,
 } from "@polkadot/types/lookup";
+import { IEvent } from "@polkadot/types/types";
 import { expect } from "chai";
+
+import { alith, baltathar, ethan } from "../../util/accounts";
 import {
   DEFAULT_GENESIS_MAPPING,
   DEFAULT_GENESIS_STAKING,
-  MIN_GLMR_STAKING,
-  MIN_GLMR_DELEGATOR,
   GLMR,
+  MIN_GLMR_DELEGATOR,
+  MIN_GLMR_STAKING,
 } from "../../util/constants";
 import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
-import { IEvent } from "@polkadot/types/types";
-import { u128 } from "@polkadot/types";
-import { alith, baltathar, ethan } from "../../util/accounts";
 
 describeDevMoonbeam("Staking - Genesis", (context) => {
   it("should match collator reserved bond reserved", async function () {
@@ -32,7 +33,7 @@ describeDevMoonbeam("Staking - Genesis", (context) => {
 
   it("should have collator state as defined in the specs", async function () {
     const collator = await context.polkadotApi.query.parachainStaking.candidateInfo(alith.address);
-    expect(collator.toHuman()["status"]).equal("Active");
+    expect(collator.unwrap().status.toString()).equal("Active");
   });
 
   it("should have inflation matching specs", async function () {
@@ -53,15 +54,15 @@ describeDevMoonbeam("Staking - Genesis", (context) => {
     expect(inflationInfo["expect"]["min"].toBigInt()).to.eq(100_000n * GLMR);
     expect(inflationInfo["expect"]["ideal"].toBigInt()).to.eq(200_000n * GLMR);
     expect(inflationInfo["expect"]["max"].toBigInt()).to.eq(500_000n * GLMR);
-    expect(inflationInfo.toHuman()["annual"]["min"]).to.eq("4.00%");
-    expect(inflationInfo.toHuman()["annual"]["ideal"]).to.eq("5.00%");
-    expect(inflationInfo.toHuman()["annual"]["max"]).to.eq("5.00%");
-    expect(inflationInfo.toHuman()["round"]["min"]).to.eq("0.00%");
-    expect(Number(inflationInfo["round"]["min"])).to.eq(8949); // 4% / blocks per year * 10^9
-    expect(inflationInfo.toHuman()["round"]["ideal"]).to.eq("0.00%");
-    expect(Number(inflationInfo["round"]["ideal"])).to.eq(11132); // 5% / blocks per year * 10^9
-    expect(inflationInfo.toHuman()["round"]["max"]).to.eq("0.00%");
-    expect(Number(inflationInfo["round"]["max"])).to.eq(11132); // 5% / blocks per year * 10^9
+    expect(inflationInfo.annual.min.toHuman()).to.eq("4.00%");
+    expect(inflationInfo.annual.ideal.toHuman()).to.eq("5.00%");
+    expect(inflationInfo.annual.max.toHuman()).to.eq("5.00%");
+    expect(inflationInfo.round.min.toHuman()).to.eq("0.00%");
+    expect(inflationInfo.round.min.toNumber()).to.eq(8949); // 4% / blocks per year * 10^9
+    expect(inflationInfo.round.ideal.toHuman()).to.eq("0.00%");
+    expect(inflationInfo.round.ideal.toNumber()).to.eq(11132); // 5% / blocks per year * 10^9
+    expect(inflationInfo.round.max.toHuman()).to.eq("0.00%");
+    expect(inflationInfo.round.max.toNumber()).to.eq(11132); // 5% / blocks per year * 10^9
   });
 });
 
@@ -990,7 +991,7 @@ async function getRewardedEventsAt(
     if (context.polkadotApi.events.parachainStaking.Rewarded.is(event.event)) {
       rewardedEvents.push({
         account: event.event.data[0].toString(),
-        amount: event.event.data[1],
+        amount: event.event.data[1] as any,
       });
     }
   }

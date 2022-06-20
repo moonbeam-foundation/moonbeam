@@ -1,4 +1,5 @@
-import { expect } from "chai";
+import "@moonbeam-network/api-augment";
+
 import { generateKeyingPair } from "../util/accounts";
 import { customWeb3Request } from "../util/providers";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";

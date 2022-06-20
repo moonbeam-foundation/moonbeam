@@ -1,11 +1,12 @@
-import Web3 from "web3";
 import { ApiPromise, WsProvider } from "@polkadot/api";
-import { typesBundlePre900 } from "../../moonbeam-types-bundle";
-import { JsonRpcResponse } from "web3-core-helpers";
 import { ethers } from "ethers";
+import Web3 from "web3";
+import { Log } from "web3-core";
+import { JsonRpcResponse } from "web3-core-helpers";
 import { Subscription as Web3Subscription } from "web3-core-subscriptions";
 import { BlockHeader } from "web3-eth";
-import { Log } from "web3-core";
+
+import { typesBundlePre900 } from "moonbeam-types-bundle";
 import { alith, ALITH_PRIVATE_KEY } from "./accounts";
 import { MIN_GAS_PRICE } from "./constants";
 

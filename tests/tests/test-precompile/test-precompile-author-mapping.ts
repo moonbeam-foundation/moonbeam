@@ -1,18 +1,19 @@
 import "@moonbeam-network/api-augment";
+
+import { u8aToHex } from "@polkadot/util";
+import { KeyringPair } from "@substrate/txwrapper-core";
 import { expect } from "chai";
-import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 import { ethers } from "ethers";
+
+import { alith, generateKeyingPair } from "../../util/accounts";
+import { DEFAULT_GENESIS_MAPPING, PRECOMPILE_AUTHOR_MAPPING_ADDRESS } from "../../util/constants";
 import { getCompiled } from "../../util/contracts";
+import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 import {
   ALITH_TRANSACTION_TEMPLATE,
   createContract,
   createTransaction,
 } from "../../util/transactions";
-import { u8aToHex } from "@polkadot/util";
-
-import { DEFAULT_GENESIS_MAPPING, PRECOMPILE_AUTHOR_MAPPING_ADDRESS } from "../../util/constants";
-import { alith, generateKeyingPair } from "../../util/accounts";
-import { KeyringPair } from "@substrate/txwrapper-core";
 
 const AUTHOR_MAPPING_CONTRACT = getCompiled("AuthorMapping");
 const AUTHOR_MAPPING_INTERFACE = new ethers.utils.Interface(AUTHOR_MAPPING_CONTRACT.contract.abi);

@@ -1,9 +1,9 @@
 import "@moonbeam-network/api-augment";
+
 import { expect } from "chai";
-import { TREASURY_ACCOUNT } from "../../util/constants";
-import { describeDevMoonbeam } from "../../util/setup-dev-tests";
-import { createTransfer } from "../../util/transactions";
+
 import { baltathar } from "../../util/accounts";
+import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
 
 describeDevMoonbeam(
   "Substrate Length Fees - Transaction (Moonbase)",
@@ -80,7 +80,7 @@ describeDevMoonbeam(
 // define our tests here so we can DRY.
 // each test submits some txn then measures and returns the fees charged.
 
-const testBalanceTransfer = async (context) => {
+const testBalanceTransfer = async (context: DevTestContext) => {
   let initialBalance = (
     await context.polkadotApi.query.system.account(baltathar.address)
   ).data.free.toBigInt();
@@ -98,7 +98,7 @@ const testBalanceTransfer = async (context) => {
   return fee;
 };
 
-const testRuntimeUpgrade = async (context) => {
+const testRuntimeUpgrade = async (context: DevTestContext) => {
   const initialBalance = (
     await context.polkadotApi.query.system.account(baltathar.address)
   ).data.free.toBigInt();

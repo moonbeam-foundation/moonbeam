@@ -1,7 +1,9 @@
+import "@moonbeam-network/api-augment";
+
 import { expect } from "chai";
-import Keyring from "@polkadot/keyring";
-import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+
 import { alith, baltathar, charleth, dorothy, ethan } from "../../util/accounts";
+import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 
 describeDevMoonbeam("Treasury proposal #1", (context) => {
   it("should not be able to be approved by a non-council member", async function () {

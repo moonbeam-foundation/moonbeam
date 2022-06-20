@@ -1,14 +1,16 @@
 import "@moonbeam-network/api-augment";
+
 import { expect } from "chai";
-import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
+
+import { alith, baltathar, charleth } from "../../util/accounts";
+import { PRECOMPILE_NATIVE_ERC20_ADDRESS } from "../../util/constants";
 import { web3EthCall } from "../../util/providers";
+import { describeDevMoonbeamAllEthTxTypes, DevTestContext } from "../../util/setup-dev-tests";
 import {
   ALITH_TRANSACTION_TEMPLATE,
   BALTATHAR_TRANSACTION_TEMPLATE,
   createTransaction,
 } from "../../util/transactions";
-import { PRECOMPILE_NATIVE_ERC20_ADDRESS } from "../../util/constants";
-import { alith, baltathar, charleth } from "../../util/accounts";
 
 const SELECTORS = {
   balanceOf: "70a08231",
@@ -21,13 +23,13 @@ const SELECTORS = {
   logTransfer: "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
 };
 
-async function getBalance(context, blockHeight, address) {
+async function getBalance(context: DevTestContext, blockHeight: number, address: string) {
   const blockHash = await context.polkadotApi.rpc.chain.getBlockHash(blockHeight);
   const account = await context.polkadotApi.query.system.account.at(blockHash, address);
   return account.data.free;
 }
 
-async function sendApprove(context, spender, amount) {
+async function sendApprove(context: DevTestContext, spender: string, amount: string) {
   const fromData = alith.address.slice(2).padStart(64, "0").toLowerCase();
   const spenderData = spender.slice(2).padStart(64, "0").toLowerCase();
 
@@ -50,7 +52,12 @@ async function sendApprove(context, spender, amount) {
   expect(receipt.logs[0].topics[2]).to.eq(`0x${spenderData}`);
 }
 
-async function checkAllowance(context, owner, spender, amount) {
+async function checkAllowance(
+  context: DevTestContext,
+  owner: string,
+  spender: string,
+  amount: string
+) {
   const ownerData = owner.slice(2).padStart(64, "0");
   const spenderData = spender.slice(2).padStart(64, "0");
 
@@ -71,8 +78,8 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - ERC20 Native", (context) => {
       data: `0x${SELECTORS.balanceOf}${address}`,
     });
 
-    let amount = await getBalance(context, 0, alith.address);
-    amount = "0x" + amount.toHex().slice(2).padStart(64, "0");
+    const amount =
+      "0x" + (await getBalance(context, 0, alith.address)).toHex().slice(2).padStart(64, "0");
     expect(request.result).equals(amount);
   });
 
@@ -116,11 +123,13 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - ERC20 Native", (context) => {
 
     const fees = receipt.gasUsed * 1_000_000_000;
 
-    expect(BigInt(await getBalance(context, 1, alith.address))).to.equal(
-      BigInt(await getBalance(context, 0, alith.address)) - BigInt(`0x${amount}`) - BigInt(fees)
+    expect((await getBalance(context, 1, alith.address)).toBigInt()).to.equal(
+      (await getBalance(context, 0, alith.address)).toBigInt() -
+        BigInt(`0x${amount}`) -
+        BigInt(fees)
     );
-    expect(BigInt(await getBalance(context, 1, charleth.address))).to.equal(
-      BigInt(await getBalance(context, 0, charleth.address)) + BigInt(`0x${amount}`)
+    expect((await getBalance(context, 1, charleth.address)).toBigInt()).to.equal(
+      (await getBalance(context, 0, charleth.address)).toBigInt() + BigInt(`0x${amount}`)
     );
   });
 });
@@ -158,11 +167,11 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - ERC20 Native", (context) => {
       expect(receipt.status).to.equal(true);
     }
 
-    expect(BigInt(await getBalance(context, 2, alith.address))).to.equal(
-      BigInt(await getBalance(context, 1, alith.address)) - BigInt(`0x${transferAmount}`)
+    expect((await getBalance(context, 2, alith.address)).toBigInt()).to.equal(
+      (await getBalance(context, 1, alith.address)).toBigInt() - BigInt(`0x${transferAmount}`)
     );
-    expect(BigInt(await getBalance(context, 2, charleth.address))).to.equal(
-      BigInt(await getBalance(context, 1, charleth.address)) + BigInt(`0x${transferAmount}`)
+    expect((await getBalance(context, 2, charleth.address)).toBigInt()).to.equal(
+      (await getBalance(context, 1, charleth.address)).toBigInt() + BigInt(`0x${transferAmount}`)
     );
 
     const newAllowedAmount = (
@@ -196,11 +205,11 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - ERC20", (context) => {
       expect(receipt.status).to.equal(false); // transfer fails because it is not allowed that much
     }
 
-    expect(BigInt(await getBalance(context, 2, alith.address))).to.equal(
-      BigInt(await getBalance(context, 1, alith.address))
+    expect((await getBalance(context, 2, alith.address)).toBigInt()).to.equal(
+      (await getBalance(context, 1, alith.address)).toBigInt()
     );
-    expect(BigInt(await getBalance(context, 2, charleth.address))).to.equal(
-      BigInt(await getBalance(context, 1, charleth.address))
+    expect((await getBalance(context, 2, charleth.address)).toBigInt()).to.equal(
+      (await getBalance(context, 1, charleth.address)).toBigInt()
     );
 
     await checkAllowance(context, alith.address, baltathar.address, allowedAmount);

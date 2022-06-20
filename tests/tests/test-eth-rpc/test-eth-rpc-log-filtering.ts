@@ -1,13 +1,15 @@
 import "@moonbeam-network/api-augment";
+
 import { expect } from "chai";
-import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
-import { customWeb3Request } from "../../util/providers";
-import { createContract } from "../../util/transactions";
 import { TransactionReceipt } from "web3-core";
+
 import { alith } from "../../util/accounts";
+import { customWeb3Request } from "../../util/providers";
+import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
+import { createContract } from "../../util/transactions";
 
 describeDevMoonbeamAllEthTxTypes("Ethereum RPC - Filtering non-matching logs", (context) => {
-  let non_matching_cases = null;
+  let non_matching_cases: ReturnType<typeof getNonMatchingCases> = null;
   function getNonMatchingCases(receipt: TransactionReceipt) {
     return [
       // Non-existant address.

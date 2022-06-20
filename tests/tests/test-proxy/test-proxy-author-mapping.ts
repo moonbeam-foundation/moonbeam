@@ -1,11 +1,12 @@
 import "@moonbeam-network/api-augment";
-import { expect } from "chai";
-import { alith, baltathar, BALTATHAR_SESSION_ADDRESS } from "../../util/accounts";
 
-import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+import { expect } from "chai";
+
+import { alith, baltathar, BALTATHAR_SESSION_ADDRESS } from "../../util/accounts";
+import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
 
 export async function getMappingInfo(
-  context,
+  context: DevTestContext,
   authorId: string
 ): Promise<{ account: string; deposit: BigInt }> {
   const mapping = await context.polkadotApi.query.authorMapping.mappingWithDeposit(authorId);

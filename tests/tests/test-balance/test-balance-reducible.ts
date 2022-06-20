@@ -1,10 +1,12 @@
 import "@moonbeam-network/api-augment";
-import { expect } from "chai";
-import type { SubmittableExtrinsic } from "@polkadot/api/promise/types";
-import { describeDevMoonbeam } from "../../util/setup-dev-tests";
-import { blake2AsHex } from "@polkadot/util-crypto";
-import { alith, ALITH_GENESIS_BALANCE, generateKeyingPair } from "../../util/accounts";
 
+import { blake2AsHex } from "@polkadot/util-crypto";
+import { expect } from "chai";
+
+import { alith, ALITH_GENESIS_BALANCE, generateKeyingPair } from "../../util/accounts";
+import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+
+import type { SubmittableExtrinsic } from "@polkadot/api/promise/types";
 describeDevMoonbeam("Reducible Balance", (context) => {
   const randomAccount = generateKeyingPair();
   it("should show the reducible balanced when some amount is locked", async function () {

@@ -1,7 +1,8 @@
 import { expect } from "chai";
-import { createTransfer } from "../../util/transactions";
-import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+
 import { baltathar } from "../../util/accounts";
+import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+import { createTransfer } from "../../util/transactions";
 
 describeDevMoonbeam("Transaction Index", (context) => {
   before("Setup: Create block with transaction", async () => {

@@ -1,20 +1,16 @@
 import "@moonbeam-network/api-augment";
-import { expect } from "chai";
-import { verifyLatestBlockFees } from "../../util/block";
 
+import { expect } from "chai";
+
+import { alith, ALITH_GENESIS_BALANCE, generateKeyingPair } from "../../util/accounts";
+import { verifyLatestBlockFees } from "../../util/block";
+import { customWeb3Request } from "../../util/providers";
 import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 import {
-  createTransfer,
-  createTransaction,
   ALITH_TRANSACTION_TEMPLATE,
+  createTransaction,
+  createTransfer,
 } from "../../util/transactions";
-import { customWeb3Request } from "../../util/providers";
-import {
-  alith,
-  ALITH_GENESIS_BALANCE,
-  ALITH_PRIVATE_KEY,
-  generateKeyingPair,
-} from "../../util/accounts";
 
 describeDevMoonbeamAllEthTxTypes("Balance transfer cost", (context) => {
   const randomAccount = generateKeyingPair();
@@ -68,7 +64,7 @@ describeDevMoonbeamAllEthTxTypes("Balance transfer - fees", (context) => {
     await context.createBlock(createTransfer(context, randomAccount.address, 512));
   });
   it("should check latest block fees", async function () {
-    await verifyLatestBlockFees(context, expect, BigInt(512));
+    await verifyLatestBlockFees(context, BigInt(512));
   });
 });
 
