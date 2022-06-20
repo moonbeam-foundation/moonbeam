@@ -1,18 +1,21 @@
+import "@moonbeam-network/api-augment";
+
+import { u128 } from "@polkadot/types";
+import { BN, bnToHex, numberToHex, stringToHex } from "@polkadot/util";
 import { expect } from "chai";
-import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
-import { web3EthCall } from "../../util/providers";
-import { BN, bnToHex, stringToHex, numberToHex } from "@polkadot/util";
-import { getCompiled } from "../../util/contracts";
 import { ethers } from "ethers";
+
+import { alith, baltathar, charleth } from "../../util/accounts";
+import { mockAssetBalance } from "../../util/assets";
+import { getCompiled } from "../../util/contracts";
+import { web3EthCall } from "../../util/providers";
+import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 import {
   ALITH_TRANSACTION_TEMPLATE,
   BALTATHAR_TRANSACTION_TEMPLATE,
   createContract,
   createTransaction,
 } from "../../util/transactions";
-import { mockAssetBalance } from "../../util/assets";
-import { alith, baltathar, BALTATHAR_PRIVATE_KEY, charleth } from "../../util/accounts";
-import { u128 } from "@polkadot/types";
 
 const ADDRESS_ERC20 = "0xFfFFfFff1FcaCBd218EDc0EbA20Fc2308C778080";
 const ASSET_ID = new BN("42259045809535163221576417993425387648");

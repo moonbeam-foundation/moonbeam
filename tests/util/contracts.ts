@@ -1,11 +1,11 @@
-import { customWeb3Request } from "./providers";
-import { TransactionReceipt } from "web3-core";
-import { AbiItem } from "web3-utils";
-import { Contract } from "web3-eth-contract";
 import Web3 from "web3";
+import { TransactionReceipt } from "web3-core";
+import { Contract } from "web3-eth-contract";
+import { AbiItem } from "web3-utils";
 
 import { contractSources } from "../contracts/sources";
 import { alith, ALITH_PRIVATE_KEY } from "./accounts";
+import { customWeb3Request } from "./providers";
 
 export interface Compiled {
   byteCode: string;

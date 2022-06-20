@@ -1,4 +1,7 @@
+import "@moonbeam-network/api-augment";
+
 import { expect } from "chai";
+
 import { customWeb3Request } from "../util/providers";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 import { createContract, createContractExecution } from "../util/transactions";
@@ -23,7 +26,7 @@ describeDevMoonbeam("Trace filter - Concurrency", (context) => {
   // It will start a slow query (taking 1s) and will try to execute a fast one after to see if it
   // goes through or wait for the first one to finish
   it.skip("should allow concurrent execution", async function () {
-    const queryRange = async (range, index) => {
+    const queryRange = async (range: number, index: number) => {
       const start = Date.now();
       await customWeb3Request(context.web3, "trace_filter", [
         {

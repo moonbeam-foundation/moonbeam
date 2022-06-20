@@ -7,6 +7,7 @@ import type {
   Bytes,
   Compact,
   Option,
+  Struct,
   U256,
   U8aFixed,
   Vec,
@@ -17,7 +18,7 @@ import type {
   u64,
   u8,
 } from "@polkadot/types-codec";
-import type { AnyNumber, ITuple } from "@polkadot/types-codec/types";
+import type { AnyNumber, IMethod, ITuple } from "@polkadot/types-codec/types";
 import type {
   AccountId20,
   Call,
@@ -44,8 +45,6 @@ import type {
   PalletIdentityBitFlags,
   PalletIdentityIdentityInfo,
   PalletIdentityJudgement,
-  ParachainStakingInflationRangePerbill,
-  ParachainStakingInflationRangeU128,
   SpRuntimeMultiSignature,
   XcmV0OriginKind,
   XcmV1MultiLocation,
@@ -831,7 +830,7 @@ declare module "@polkadot/api-base/types/submittable" {
        */
       addAssociation: AugmentedSubmittable<
         (
-          authorId: NimbusPrimitivesNimbusCryptoPublic | string | Uint8Array
+          nimbusId: NimbusPrimitivesNimbusCryptoPublic | string | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [NimbusPrimitivesNimbusCryptoPublic]
       >;
@@ -843,20 +842,17 @@ declare module "@polkadot/api-base/types/submittable" {
        */
       clearAssociation: AugmentedSubmittable<
         (
-          authorId: NimbusPrimitivesNimbusCryptoPublic | string | Uint8Array
+          nimbusId: NimbusPrimitivesNimbusCryptoPublic | string | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [NimbusPrimitivesNimbusCryptoPublic]
       >;
       /**
-       * Add association and set session keys
+       * Remove your Mapping.
+       *
+       * This is useful when you are no longer an author and would like to
+       * re-claim your security deposit.
        */
-      registerKeys: AugmentedSubmittable<
-        (
-          authorId: NimbusPrimitivesNimbusCryptoPublic | string | Uint8Array,
-          keys: NimbusPrimitivesNimbusCryptoPublic | string | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [NimbusPrimitivesNimbusCryptoPublic, NimbusPrimitivesNimbusCryptoPublic]
-      >;
+      removeKeys: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
       /**
        * Set association and session keys at once.
        *
@@ -865,28 +861,20 @@ declare module "@polkadot/api-base/types/submittable" {
        * `update_association` which is kept now for backwards compatibility reasons.
        */
       setKeys: AugmentedSubmittable<
-        (
-          oldAuthorId: NimbusPrimitivesNimbusCryptoPublic | string | Uint8Array,
-          newAuthorId: NimbusPrimitivesNimbusCryptoPublic | string | Uint8Array,
-          newKeys: NimbusPrimitivesNimbusCryptoPublic | string | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [
-          NimbusPrimitivesNimbusCryptoPublic,
-          NimbusPrimitivesNimbusCryptoPublic,
-          NimbusPrimitivesNimbusCryptoPublic
-        ]
+        (keys: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [Bytes]
       >;
       /**
        * Change your Mapping.
        *
        * This is useful for normal key rotation or for when switching from one
        * physical collator machine to another. No new security deposit is
-       * required. This sets keys to new_author_id.into() by default.
+       * required. This sets keys to new_nimbus_id.into() by default.
        */
       updateAssociation: AugmentedSubmittable<
         (
-          oldAuthorId: NimbusPrimitivesNimbusCryptoPublic | string | Uint8Array,
-          newAuthorId: NimbusPrimitivesNimbusCryptoPublic | string | Uint8Array
+          oldNimbusId: NimbusPrimitivesNimbusCryptoPublic | string | Uint8Array,
+          newNimbusId: NimbusPrimitivesNimbusCryptoPublic | string | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [NimbusPrimitivesNimbusCryptoPublic, NimbusPrimitivesNimbusCryptoPublic]
       >;
@@ -1142,7 +1130,7 @@ declare module "@polkadot/api-base/types/submittable" {
        */
       execute: AugmentedSubmittable<
         (
-          proposal: Call | { callIndex?: any; args?: any } | string | Uint8Array,
+          proposal: Call | IMethod | string | Uint8Array,
           lengthBound: Compact<u32> | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [Call, Compact<u32>]
@@ -1182,7 +1170,7 @@ declare module "@polkadot/api-base/types/submittable" {
       propose: AugmentedSubmittable<
         (
           threshold: Compact<u32> | AnyNumber | Uint8Array,
-          proposal: Call | { callIndex?: any; args?: any } | string | Uint8Array,
+          proposal: Call | IMethod | string | Uint8Array,
           lengthBound: Compact<u32> | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [Compact<u32>, Call, Compact<u32>]
@@ -3223,8 +3211,9 @@ declare module "@polkadot/api-base/types/submittable" {
       >;
       /**
        * Request to leave the set of delegators. If successful, the caller is
-       * scheduled to be allowed to exit. Success forbids future delegator
-       * actions until the request is invoked or cancelled.
+       * scheduled to be allowed to exit via a [DelegationAction::Revoke]
+       * towards all existing delegations. Success forbids future delegation
+       * requests until the request is invoked or cancelled.
        */
       scheduleLeaveDelegators: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
       /**
@@ -3260,12 +3249,22 @@ declare module "@polkadot/api-base/types/submittable" {
       setInflation: AugmentedSubmittable<
         (
           schedule:
-            | ParachainStakingInflationRangePerbill
+            | ({
+                readonly min: Perbill;
+                readonly ideal: Perbill;
+                readonly max: Perbill;
+              } & Struct)
             | { min?: any; ideal?: any; max?: any }
             | string
             | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [ParachainStakingInflationRangePerbill]
+        [
+          {
+            readonly min: Perbill;
+            readonly ideal: Perbill;
+            readonly max: Perbill;
+          } & Struct
+        ]
       >;
       /**
        * Set the account that will hold funds set aside for parachain bond
@@ -3288,12 +3287,22 @@ declare module "@polkadot/api-base/types/submittable" {
       setStakingExpectations: AugmentedSubmittable<
         (
           expectations:
-            | ParachainStakingInflationRangeU128
+            | ({
+                readonly min: u128;
+                readonly ideal: u128;
+                readonly max: u128;
+              } & Struct)
             | { min?: any; ideal?: any; max?: any }
             | string
             | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [ParachainStakingInflationRangeU128]
+        [
+          {
+            readonly min: u128;
+            readonly ideal: u128;
+            readonly max: u128;
+          } & Struct
+        ]
       >;
       /**
        * Set the total number of collator candidates selected per round
@@ -3433,8 +3442,10 @@ declare module "@polkadot/api-base/types/submittable" {
        * Transfer some assets from the local chain to the sovereign account of a
        * destination chain and forward a notification XCM.
        *
-       * Fee payment on the destination side is made from the first asset listed
-       * in the `assets` vector.
+       * Fee payment on the destination side is made from the asset in the
+       * `assets` vector of index `fee_asset_item`, up to enough to pay for
+       * `weight_limit` of weight. If more weight is needed than `weight_limit`,
+       * then the operation will fail and the assets send may be at risk.
        *
        * - `origin`: Must be capable of withdrawing the `assets` and executing XCM.
        * - `dest`: Destination context for the assets. Will typically be
@@ -3472,8 +3483,10 @@ declare module "@polkadot/api-base/types/submittable" {
       /**
        * Teleport some assets from the local chain to some destination chain.
        *
-       * Fee payment on the destination side is made from the first asset listed
-       * in the `assets` vector.
+       * Fee payment on the destination side is made from the asset in the
+       * `assets` vector of index `fee_asset_item`, up to enough to pay for
+       * `weight_limit` of weight. If more weight is needed than `weight_limit`,
+       * then the operation will fail and the assets send may be at risk.
        *
        * - `origin`: Must be capable of withdrawing the `assets` and executing XCM.
        * - `dest`: Destination context for the assets. Will typically be
@@ -3512,9 +3525,10 @@ declare module "@polkadot/api-base/types/submittable" {
        * Transfer some assets from the local chain to the sovereign account of a
        * destination chain and forward a notification XCM.
        *
-       * Fee payment on the destination side is made from the first asset listed
-       * in the `assets` vector and fee-weight is calculated locally and thus
-       * remote weights are assumed to be equal to local weights.
+       * Fee payment on the destination side is made from the asset in the
+       * `assets` vector of index `fee_asset_item`. The weight limit for fees is
+       * not provided and thus is unlimited, with all fees taken as needed from
+       * the asset.
        *
        * - `origin`: Must be capable of withdrawing the `assets` and executing XCM.
        * - `dest`: Destination context for the assets. Will typically be
@@ -3546,9 +3560,10 @@ declare module "@polkadot/api-base/types/submittable" {
       /**
        * Teleport some assets from the local chain to some destination chain.
        *
-       * Fee payment on the destination side is made from the first asset listed
-       * in the `assets` vector and fee-weight is calculated locally and thus
-       * remote weights are assumed to be equal to local weights.
+       * Fee payment on the destination side is made from the asset in the
+       * `assets` vector of index `fee_asset_item`. The weight limit for fees is
+       * not provided and thus is unlimited, with all fees taken as needed from
+       * the asset.
        *
        * - `origin`: Must be capable of withdrawing the `assets` and executing XCM.
        * - `dest`: Destination context for the assets. Will typically be
@@ -3763,7 +3778,7 @@ declare module "@polkadot/api-base/types/submittable" {
         (
           real: AccountId20 | string | Uint8Array,
           forceProxyType: Option<MoonbaseRuntimeProxyType> | null | object | string | Uint8Array,
-          call: Call | { callIndex?: any; args?: any } | string | Uint8Array
+          call: Call | IMethod | string | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [AccountId20, Option<MoonbaseRuntimeProxyType>, Call]
       >;
@@ -3796,7 +3811,7 @@ declare module "@polkadot/api-base/types/submittable" {
           delegate: AccountId20 | string | Uint8Array,
           real: AccountId20 | string | Uint8Array,
           forceProxyType: Option<MoonbaseRuntimeProxyType> | null | object | string | Uint8Array,
-          call: Call | { callIndex?: any; args?: any } | string | Uint8Array
+          call: Call | IMethod | string | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [AccountId20, AccountId20, Option<MoonbaseRuntimeProxyType>, Call]
       >;
@@ -4053,9 +4068,7 @@ declare module "@polkadot/api-base/types/submittable" {
        * # </weight>
        */
       sudo: AugmentedSubmittable<
-        (
-          call: Call | { callIndex?: any; args?: any } | string | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
+        (call: Call | IMethod | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
         [Call]
       >;
       /**
@@ -4076,7 +4089,7 @@ declare module "@polkadot/api-base/types/submittable" {
       sudoAs: AugmentedSubmittable<
         (
           who: AccountId20 | string | Uint8Array,
-          call: Call | { callIndex?: any; args?: any } | string | Uint8Array
+          call: Call | IMethod | string | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [AccountId20, Call]
       >;
@@ -4096,7 +4109,7 @@ declare module "@polkadot/api-base/types/submittable" {
        */
       sudoUncheckedWeight: AugmentedSubmittable<
         (
-          call: Call | { callIndex?: any; args?: any } | string | Uint8Array,
+          call: Call | IMethod | string | Uint8Array,
           weight: u64 | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [Call, u64]
@@ -4305,7 +4318,7 @@ declare module "@polkadot/api-base/types/submittable" {
        */
       execute: AugmentedSubmittable<
         (
-          proposal: Call | { callIndex?: any; args?: any } | string | Uint8Array,
+          proposal: Call | IMethod | string | Uint8Array,
           lengthBound: Compact<u32> | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [Call, Compact<u32>]
@@ -4345,7 +4358,7 @@ declare module "@polkadot/api-base/types/submittable" {
       propose: AugmentedSubmittable<
         (
           threshold: Compact<u32> | AnyNumber | Uint8Array,
-          proposal: Call | { callIndex?: any; args?: any } | string | Uint8Array,
+          proposal: Call | IMethod | string | Uint8Array,
           lengthBound: Compact<u32> | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [Compact<u32>, Call, Compact<u32>]
@@ -4540,7 +4553,7 @@ declare module "@polkadot/api-base/types/submittable" {
       asDerivative: AugmentedSubmittable<
         (
           index: u16 | AnyNumber | Uint8Array,
-          call: Call | { callIndex?: any; args?: any } | string | Uint8Array
+          call: Call | IMethod | string | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [u16, Call]
       >;
@@ -4570,7 +4583,7 @@ declare module "@polkadot/api-base/types/submittable" {
        */
       batch: AugmentedSubmittable<
         (
-          calls: Vec<Call> | (Call | { callIndex?: any; args?: any } | string | Uint8Array)[]
+          calls: Vec<Call> | (Call | IMethod | string | Uint8Array)[]
         ) => SubmittableExtrinsic<ApiType>,
         [Vec<Call>]
       >;
@@ -4595,7 +4608,7 @@ declare module "@polkadot/api-base/types/submittable" {
        */
       batchAll: AugmentedSubmittable<
         (
-          calls: Vec<Call> | (Call | { callIndex?: any; args?: any } | string | Uint8Array)[]
+          calls: Vec<Call> | (Call | IMethod | string | Uint8Array)[]
         ) => SubmittableExtrinsic<ApiType>,
         [Vec<Call>]
       >;
@@ -4626,7 +4639,7 @@ declare module "@polkadot/api-base/types/submittable" {
             | { PolkadotXcm: any }
             | string
             | Uint8Array,
-          call: Call | { callIndex?: any; args?: any } | string | Uint8Array
+          call: Call | IMethod | string | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [MoonbaseRuntimeOriginCaller, Call]
       >;
@@ -4779,6 +4792,15 @@ declare module "@polkadot/api-base/types/submittable" {
         [AccountId20, u16]
       >;
       /**
+       * Remove the fee per second of an asset on its reserve chain
+       */
+      removeFeePerSecond: AugmentedSubmittable<
+        (
+          assetLocation: XcmVersionedMultiLocation | { V0: any } | { V1: any } | string | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [XcmVersionedMultiLocation]
+      >;
+      /**
        * Remove the transact info of a location
        */
       removeTransactInfo: AugmentedSubmittable<
@@ -4788,16 +4810,31 @@ declare module "@polkadot/api-base/types/submittable" {
         [XcmVersionedMultiLocation]
       >;
       /**
+       * Set the fee per second of an asset on its reserve chain
+       */
+      setFeePerSecond: AugmentedSubmittable<
+        (
+          assetLocation:
+            | XcmVersionedMultiLocation
+            | { V0: any }
+            | { V1: any }
+            | string
+            | Uint8Array,
+          feePerSecond: u128 | AnyNumber | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [XcmVersionedMultiLocation, u128]
+      >;
+      /**
        * Change the transact info of a location
        */
       setTransactInfo: AugmentedSubmittable<
         (
           location: XcmVersionedMultiLocation | { V0: any } | { V1: any } | string | Uint8Array,
           transactExtraWeight: u64 | AnyNumber | Uint8Array,
-          feePerSecond: u128 | AnyNumber | Uint8Array,
-          maxWeight: u64 | AnyNumber | Uint8Array
+          maxWeight: u64 | AnyNumber | Uint8Array,
+          transactExtraWeightSigned: Option<u64> | null | object | string | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [XcmVersionedMultiLocation, u64, u128, u64]
+        [XcmVersionedMultiLocation, u64, u64, Option<u64>]
       >;
       /**
        * Transact the inner call through a derivative account in a destination
@@ -4841,6 +4878,44 @@ declare module "@polkadot/api-base/types/submittable" {
           innerCall: Bytes | string | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [MoonbaseRuntimeXcmConfigTransactors, u16, XcmVersionedMultiLocation, u64, Bytes]
+      >;
+      /**
+       * Transact the call through the a signed origin in this chain that should
+       * be converted to a transaction dispatch account in the destination chain
+       * by any method implemented in the destination chains runtime
+       *
+       * This time we are giving the currency as a currencyId instead of multilocation
+       */
+      transactThroughSigned: AugmentedSubmittable<
+        (
+          dest: XcmVersionedMultiLocation | { V0: any } | { V1: any } | string | Uint8Array,
+          feeCurrencyId:
+            | MoonbaseRuntimeXcmConfigCurrencyId
+            | { SelfReserve: any }
+            | { ForeignAsset: any }
+            | { LocalAssetReserve: any }
+            | string
+            | Uint8Array,
+          destWeight: u64 | AnyNumber | Uint8Array,
+          call: Bytes | string | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [XcmVersionedMultiLocation, MoonbaseRuntimeXcmConfigCurrencyId, u64, Bytes]
+      >;
+      /**
+       * Transact the call through the a signed origin in this chain that should
+       * be converted to a transaction dispatch account in the destination chain
+       * by any method implemented in the destination chains runtime
+       *
+       * This time we are giving the currency as a multilocation instead of currencyId
+       */
+      transactThroughSignedMultilocation: AugmentedSubmittable<
+        (
+          dest: XcmVersionedMultiLocation | { V0: any } | { V1: any } | string | Uint8Array,
+          feeLocation: XcmVersionedMultiLocation | { V0: any } | { V1: any } | string | Uint8Array,
+          destWeight: u64 | AnyNumber | Uint8Array,
+          call: Bytes | string | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [XcmVersionedMultiLocation, XcmVersionedMultiLocation, u64, Bytes]
       >;
       /**
        * Transact the call through the sovereign account in a destination chain,

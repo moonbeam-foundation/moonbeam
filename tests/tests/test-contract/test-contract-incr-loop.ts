@@ -1,5 +1,7 @@
 import "@moonbeam-network/api-augment";
+
 import { expect } from "chai";
+
 import { verifyLatestBlockFees } from "../../util/block";
 import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 import { createContract, createContractExecution } from "../../util/transactions";
@@ -38,6 +40,6 @@ describeDevMoonbeamAllEthTxTypes("Contract loop increment - check fees", (contex
         contractCall: contract.methods.incr(),
       })
     );
-    await verifyLatestBlockFees(context, expect);
+    await verifyLatestBlockFees(context);
   });
 });

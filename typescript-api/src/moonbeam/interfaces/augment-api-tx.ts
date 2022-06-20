@@ -7,6 +7,7 @@ import type {
   Bytes,
   Compact,
   Option,
+  Struct,
   U256,
   U8aFixed,
   Vec,
@@ -17,7 +18,7 @@ import type {
   u64,
   u8,
 } from "@polkadot/types-codec";
-import type { AnyNumber, ITuple } from "@polkadot/types-codec/types";
+import type { AnyNumber, IMethod, ITuple } from "@polkadot/types-codec/types";
 import type {
   AccountId20,
   Call,
@@ -44,8 +45,6 @@ import type {
   PalletIdentityBitFlags,
   PalletIdentityIdentityInfo,
   PalletIdentityJudgement,
-  ParachainStakingInflationRangePerbill,
-  ParachainStakingInflationRangeU128,
   SpRuntimeMultiSignature,
   XcmV0OriginKind,
   XcmV1MultiLocation,
@@ -1142,7 +1141,7 @@ declare module "@polkadot/api-base/types/submittable" {
        */
       execute: AugmentedSubmittable<
         (
-          proposal: Call | { callIndex?: any; args?: any } | string | Uint8Array,
+          proposal: Call | IMethod | string | Uint8Array,
           lengthBound: Compact<u32> | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [Call, Compact<u32>]
@@ -1182,7 +1181,7 @@ declare module "@polkadot/api-base/types/submittable" {
       propose: AugmentedSubmittable<
         (
           threshold: Compact<u32> | AnyNumber | Uint8Array,
-          proposal: Call | { callIndex?: any; args?: any } | string | Uint8Array,
+          proposal: Call | IMethod | string | Uint8Array,
           lengthBound: Compact<u32> | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [Compact<u32>, Call, Compact<u32>]
@@ -3260,12 +3259,22 @@ declare module "@polkadot/api-base/types/submittable" {
       setInflation: AugmentedSubmittable<
         (
           schedule:
-            | ParachainStakingInflationRangePerbill
+            | ({
+                readonly min: Perbill;
+                readonly ideal: Perbill;
+                readonly max: Perbill;
+              } & Struct)
             | { min?: any; ideal?: any; max?: any }
             | string
             | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [ParachainStakingInflationRangePerbill]
+        [
+          {
+            readonly min: Perbill;
+            readonly ideal: Perbill;
+            readonly max: Perbill;
+          } & Struct
+        ]
       >;
       /**
        * Set the account that will hold funds set aside for parachain bond
@@ -3288,12 +3297,22 @@ declare module "@polkadot/api-base/types/submittable" {
       setStakingExpectations: AugmentedSubmittable<
         (
           expectations:
-            | ParachainStakingInflationRangeU128
+            | ({
+                readonly min: u128;
+                readonly ideal: u128;
+                readonly max: u128;
+              } & Struct)
             | { min?: any; ideal?: any; max?: any }
             | string
             | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [ParachainStakingInflationRangeU128]
+        [
+          {
+            readonly min: u128;
+            readonly ideal: u128;
+            readonly max: u128;
+          } & Struct
+        ]
       >;
       /**
        * Set the total number of collator candidates selected per round
@@ -3763,7 +3782,7 @@ declare module "@polkadot/api-base/types/submittable" {
         (
           real: AccountId20 | string | Uint8Array,
           forceProxyType: Option<MoonbeamRuntimeProxyType> | null | object | string | Uint8Array,
-          call: Call | { callIndex?: any; args?: any } | string | Uint8Array
+          call: Call | IMethod | string | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [AccountId20, Option<MoonbeamRuntimeProxyType>, Call]
       >;
@@ -3796,7 +3815,7 @@ declare module "@polkadot/api-base/types/submittable" {
           delegate: AccountId20 | string | Uint8Array,
           real: AccountId20 | string | Uint8Array,
           forceProxyType: Option<MoonbeamRuntimeProxyType> | null | object | string | Uint8Array,
-          call: Call | { callIndex?: any; args?: any } | string | Uint8Array
+          call: Call | IMethod | string | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [AccountId20, AccountId20, Option<MoonbeamRuntimeProxyType>, Call]
       >;
@@ -4218,7 +4237,7 @@ declare module "@polkadot/api-base/types/submittable" {
        */
       execute: AugmentedSubmittable<
         (
-          proposal: Call | { callIndex?: any; args?: any } | string | Uint8Array,
+          proposal: Call | IMethod | string | Uint8Array,
           lengthBound: Compact<u32> | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [Call, Compact<u32>]
@@ -4258,7 +4277,7 @@ declare module "@polkadot/api-base/types/submittable" {
       propose: AugmentedSubmittable<
         (
           threshold: Compact<u32> | AnyNumber | Uint8Array,
-          proposal: Call | { callIndex?: any; args?: any } | string | Uint8Array,
+          proposal: Call | IMethod | string | Uint8Array,
           lengthBound: Compact<u32> | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [Compact<u32>, Call, Compact<u32>]
@@ -4453,7 +4472,7 @@ declare module "@polkadot/api-base/types/submittable" {
       asDerivative: AugmentedSubmittable<
         (
           index: u16 | AnyNumber | Uint8Array,
-          call: Call | { callIndex?: any; args?: any } | string | Uint8Array
+          call: Call | IMethod | string | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [u16, Call]
       >;
@@ -4483,7 +4502,7 @@ declare module "@polkadot/api-base/types/submittable" {
        */
       batch: AugmentedSubmittable<
         (
-          calls: Vec<Call> | (Call | { callIndex?: any; args?: any } | string | Uint8Array)[]
+          calls: Vec<Call> | (Call | IMethod | string | Uint8Array)[]
         ) => SubmittableExtrinsic<ApiType>,
         [Vec<Call>]
       >;
@@ -4508,7 +4527,7 @@ declare module "@polkadot/api-base/types/submittable" {
        */
       batchAll: AugmentedSubmittable<
         (
-          calls: Vec<Call> | (Call | { callIndex?: any; args?: any } | string | Uint8Array)[]
+          calls: Vec<Call> | (Call | IMethod | string | Uint8Array)[]
         ) => SubmittableExtrinsic<ApiType>,
         [Vec<Call>]
       >;
@@ -4539,7 +4558,7 @@ declare module "@polkadot/api-base/types/submittable" {
             | { PolkadotXcm: any }
             | string
             | Uint8Array,
-          call: Call | { callIndex?: any; args?: any } | string | Uint8Array
+          call: Call | IMethod | string | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [MoonbeamRuntimeOriginCaller, Call]
       >;

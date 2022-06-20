@@ -55,7 +55,7 @@ import type {
   JustificationNotification,
   ReportedRoundStates,
 } from "@polkadot/types/interfaces/grandpa";
-import type { MmrLeafProof } from "@polkadot/types/interfaces/mmr";
+import type { MmrLeafBatchProof, MmrLeafProof } from "@polkadot/types/interfaces/mmr";
 import type { StorageKind } from "@polkadot/types/interfaces/offchain";
 import type { FeeDetails, RuntimeDispatchInfo } from "@polkadot/types/interfaces/payment";
 import type { RpcMethods } from "@polkadot/types/interfaces/rpc";
@@ -710,13 +710,22 @@ declare module "@polkadot/rpc-core/types/jsonrpc" {
     };
     mmr: {
       /**
+       * Generate MMR proof for the given leaf indices.
+       */
+      generateBatchProof: AugmentedRpc<
+        (
+          leafIndices: Vec<u64> | (u64 | AnyNumber | Uint8Array)[],
+          at?: BlockHash | string | Uint8Array
+        ) => Observable<MmrLeafProof>
+      >;
+      /**
        * Generate MMR proof for given leaf index.
        */
       generateProof: AugmentedRpc<
         (
           leafIndex: u64 | AnyNumber | Uint8Array,
           at?: BlockHash | string | Uint8Array
-        ) => Observable<MmrLeafProof>
+        ) => Observable<MmrLeafBatchProof>
       >;
     };
     net: {

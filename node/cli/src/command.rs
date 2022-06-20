@@ -360,12 +360,8 @@ pub fn run() -> Result<()> {
 						service::MoonriverExecutor,
 					>(&mut config, false)?;
 
-					let aux_revert = Box::new(move |client, _, blocks| {
-						sc_finality_grandpa::revert(client, blocks)?;
-						Ok(())
-					});
 					Ok((
-						cmd.run(params.client, params.backend, Some(aux_revert)),
+						cmd.run(params.client, params.backend, None),
 						params.task_manager,
 					))
 				}),
@@ -376,12 +372,8 @@ pub fn run() -> Result<()> {
 						service::MoonbeamExecutor,
 					>(&mut config, false)?;
 
-					let aux_revert = Box::new(move |client, _, blocks| {
-						sc_finality_grandpa::revert(client, blocks)?;
-						Ok(())
-					});
 					Ok((
-						cmd.run(params.client, params.backend, Some(aux_revert)),
+						cmd.run(params.client, params.backend, None),
 						params.task_manager,
 					))
 				}),
@@ -392,12 +384,8 @@ pub fn run() -> Result<()> {
 						service::MoonbaseExecutor,
 					>(&mut config, false)?;
 
-					let aux_revert = Box::new(move |client, _, blocks| {
-						sc_finality_grandpa::revert(client, blocks)?;
-						Ok(())
-					});
 					Ok((
-						cmd.run(params.client, params.backend, Some(aux_revert)),
+						cmd.run(params.client, params.backend, None),
 						params.task_manager,
 					))
 				}),

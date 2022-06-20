@@ -1,27 +1,29 @@
-import "@polkadot/api-augment";
 import { ApiPromise } from "@polkadot/api";
-import { ethers } from "ethers";
-import { provideWeb3Api, provideEthersApi, providePolkadotApi, EnhancedWeb3 } from "./providers";
-import { DEBUG_MODE } from "./constants";
-import { HttpProvider } from "web3-core";
-import fs from "fs";
+import "@polkadot/api-augment";
 import chalk from "chalk";
+import { ethers } from "ethers";
+import { sha256 } from "ethers/lib/utils";
+import fs from "fs";
+import { HttpProvider } from "web3-core";
+
+import { KeyringPair } from "@polkadot/keyring/types";
+import { DEBUG_MODE } from "./constants";
 import {
   getRuntimeWasm,
   NodePorts,
-  ParaTestOptions,
   ParachainPorts,
+  ParaTestOptions,
   startParachainNodes,
   stopParachainNodes,
 } from "./para-node";
-import { KeyringPair } from "@substrate/txwrapper-core";
-import { sha256 } from "ethers/lib/utils";
+import { EnhancedWeb3, provideEthersApi, providePolkadotApi, provideWeb3Api } from "./providers";
+
 const debug = require("debug")("test:setup");
 
 export interface ParaTestContext {
   createWeb3: (protocol?: "ws" | "http") => Promise<EnhancedWeb3>;
   createEthers: () => Promise<ethers.providers.JsonRpcProvider>;
-  createPolkadotApiParachain: (parachainNumber) => Promise<ApiPromise>;
+  createPolkadotApiParachain: (parachainNumber: number) => Promise<ApiPromise>;
   createPolkadotApiParachains: () => Promise<ApiPromise>;
   createPolkadotApiRelaychains: () => Promise<ApiPromise>;
   waitBlocks: (count: number) => Promise<number>; // return current block when the promise resolves
@@ -154,8 +156,11 @@ export function describeParachain(
           return apiPromises[0];
         };
 
-        let pendingPromises = [];
-        const subBlocks = async (api) => {
+        let pendingCallbacks: {
+          blockNumber: number;
+          resolve: (blockNumber: number) => void;
+        }[] = [];
+        const subBlocks = async (api: ApiPromise) => {
           return api.rpc.chain.subscribeNewHeads(async (header) => {
             context.blockNumber = header.number.toNumber();
             if (context.blockNumber == 0) {
@@ -164,12 +169,12 @@ export function describeParachain(
               );
             }
 
-            let i = pendingPromises.length;
+            let i = pendingCallbacks.length;
             while (i--) {
-              const pendingPromise = pendingPromises[i];
-              if (pendingPromise.blockNumber <= context.blockNumber) {
-                pendingPromises.splice(i, 1);
-                pendingPromise.resolve(context.blockNumber);
+              const pendingCallback = pendingCallbacks[i];
+              if (pendingCallback.blockNumber <= context.blockNumber) {
+                pendingCallbacks.splice(i, 1);
+                pendingCallback.resolve(context.blockNumber);
               }
             }
           });
@@ -180,7 +185,7 @@ export function describeParachain(
 
         context.waitBlocks = async (count: number) => {
           return new Promise<number>((resolve) => {
-            pendingPromises.push({
+            pendingCallbacks.push({
               blockNumber: context.blockNumber + count,
               resolve,
             });

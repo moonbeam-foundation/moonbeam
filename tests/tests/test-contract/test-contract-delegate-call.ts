@@ -1,12 +1,14 @@
 import "@moonbeam-network/api-augment";
+
 import { expect } from "chai";
-import { Contract } from "web3-eth-contract";
 import { ethers } from "ethers";
+import { Contract } from "web3-eth-contract";
+
+import { alith } from "../../util/accounts";
+import { getCompiled } from "../../util/contracts";
+import { customWeb3Request } from "../../util/providers";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { createContract } from "../../util/transactions";
-import { customWeb3Request } from "../../util/providers";
-import { getCompiled } from "../../util/contracts";
-import { alith } from "../../util/accounts";
 
 describeDevMoonbeam("Delegate Call", (context) => {
   it("should work for normal smart contract", async function () {
