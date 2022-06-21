@@ -1400,7 +1400,7 @@ impl<
 	{
 		if let Some(reserve) = additional_reserve {
 			ensure!(
-				T::Currency::free_balance(&self.id.clone().into()) < reserve.into(),
+				T::Currency::free_balance(&self.id.clone().into()) >= reserve.into(),
 				Error::<T>::InsufficientBalance,
 			);
 
