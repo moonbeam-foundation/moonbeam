@@ -6945,6 +6945,34 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-ethereum-xcm"
+version = "1.0.0-dev"
+dependencies = [
+ "ethereum",
+ "ethereum-types",
+ "fp-ethereum",
+ "fp-evm",
+ "fp-rpc",
+ "fp-self-contained",
+ "frame-support",
+ "frame-system",
+ "hex",
+ "libsecp256k1 0.7.0",
+ "pallet-balances",
+ "pallet-evm",
+ "pallet-timestamp",
+ "parity-scale-codec",
+ "rlp",
+ "scale-info",
+ "serde",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "xcm-primitives",
+]
+
+[[package]]
 name = "pallet-evm"
 version = "6.0.0-dev"
 source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.23#f019c1b68e85f444994e6a4accb2a048d20e6243"
