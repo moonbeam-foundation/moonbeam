@@ -18,7 +18,8 @@
 
 use crate::{
 	set::OrderedSet, BalanceOf, BottomDelegations, CandidateInfo, Config, DelegatorState, Error,
-	Event, Pallet, Round, RoundIndex, TopDelegations, Total, DELEGATOR_LOCK_IDENTIFIER,
+	Event, Pallet, Round, RoundIndex, TopDelegations, Total, COLLATOR_LOCK_IDENTIFIER,
+	DELEGATOR_LOCK_IDENTIFIER,
 };
 use frame_support::{
 	pallet_prelude::*,
@@ -411,10 +412,16 @@ impl<
 	where
 		BalanceOf<T>: From<Balance>,
 	{
-		T::Currency::reserve(&who, more.into())?;
+        ensure!(T::Currency::free_balance(&who) < more.into(), Error::<T>::InsufficientBalance);
 		let new_total = <Total<T>>::get().saturating_add(more.into());
 		<Total<T>>::put(new_total);
 		self.bond = self.bond.saturating_add(more);
+        T::Currency::set_lock(
+            COLLATOR_LOCK_IDENTIFIER,
+            &who.clone(),
+            self.bond.into(),
+            WithdrawReasons::all(),
+        );
 		self.total_counted = self.total_counted.saturating_add(more);
 		<Pallet<T>>::deposit_event(Event::CandidateBondedMore {
 			candidate: who.clone(),
@@ -463,12 +470,17 @@ impl<
 			request.when_executable <= <Round<T>>::get().current,
 			Error::<T>::PendingCandidateRequestNotDueYet
 		);
-		T::Currency::unreserve(&who, request.amount.into());
 		let new_total_staked = <Total<T>>::get().saturating_sub(request.amount.into());
 		<Total<T>>::put(new_total_staked);
 		// Arithmetic assumptions are self.bond > less && self.bond - less > CollatorMinBond
 		// (assumptions enforced by `schedule_bond_less`; if storage corrupts, must re-verify)
 		self.bond = self.bond.saturating_sub(request.amount);
+        T::Currency::set_lock(
+            COLLATOR_LOCK_IDENTIFIER,
+            &who.clone(),
+            self.bond.into(),
+            WithdrawReasons::all(),
+        );
 		self.total_counted = self.total_counted.saturating_sub(request.amount);
 		let event = Event::CandidateBondedLess {
 			candidate: who.clone().into(),
@@ -647,11 +659,6 @@ impl<
 				.total
 				.saturating_sub(lowest_bottom_to_be_kicked.amount);
 			// update delegator state
-			// unreserve kicked bottom
-			T::Currency::unreserve(
-				&lowest_bottom_to_be_kicked.owner,
-				lowest_bottom_to_be_kicked.amount,
-			);
 			// total staked is updated via propagation of lowest bottom delegation amount prior
 			// to call
 			let mut delegator_state = <DelegatorState<T>>::get(&lowest_bottom_to_be_kicked.owner)
