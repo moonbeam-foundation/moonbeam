@@ -289,7 +289,7 @@ impl<T: Config> Pallet<T> {
 							);
 							let mut collator_info = <CandidateInfo<T>>::get(&collator)
 								.ok_or(<Error<T>>::CandidateDNE)?;
-                            state.adjust_bond_lock::<T>(None)?;
+							state.adjust_bond_lock::<T>(None)?;
 							// need to go into decrease_delegation
 							let in_top = collator_info.decrease_delegation::<T>(
 								&collator,

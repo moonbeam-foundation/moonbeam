@@ -110,8 +110,7 @@ pub mod pallet {
 		/// Overarching event type
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		/// The currency type
-		type Currency: Currency<Self::AccountId>
-			+ LockableCurrency<Self::AccountId>;
+		type Currency: Currency<Self::AccountId> + LockableCurrency<Self::AccountId>;
 		/// The origin for monetary governance
 		type MonetaryGovernanceOrigin: EnsureOrigin<Self::Origin>;
 		/// Minimum number of blocks per round
@@ -1179,7 +1178,8 @@ pub mod pallet {
 				T::Currency::free_balance(&delegator) >= amount,
 				Error::<T>::InsufficientBalance
 			);
-			let mut delegator_state = if let Some(mut state) = <DelegatorState<T>>::get(&delegator) {
+			let mut delegator_state = if let Some(mut state) = <DelegatorState<T>>::get(&delegator)
+			{
 				// delegation after first
 				ensure!(
 					amount >= T::MinDelegation::get(),
@@ -1223,7 +1223,7 @@ pub mod pallet {
 				},
 			)?;
 			delegator_state.adjust_bond_lock::<T>(Some(amount))?; // TODO: causes redundant free_balance check
-			// only is_some if kicked the lowest bottom as a consequence of this new delegation
+													  // only is_some if kicked the lowest bottom as a consequence of this new delegation
 			let net_total_increase = if let Some(less) = less_total_staked {
 				amount.saturating_sub(less)
 			} else {
