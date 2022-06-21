@@ -643,7 +643,7 @@ pub mod pallet {
 			// Initialize the candidates
 			for &(ref candidate, balance) in &self.candidates {
 				assert!(
-					T::Currency::free_balance(candidate) >= balance,
+					<Pallet<T>>::get_collator_stakable_free_balance(candidate) >= balance,
 					"Account does not have enough balance to bond as a candidate."
 				);
 				candidate_count = candidate_count.saturating_add(1u32);
@@ -662,7 +662,7 @@ pub mod pallet {
 			// Initialize the delegations
 			for &(ref delegator, ref target, balance) in &self.delegations {
 				assert!(
-					T::Currency::free_balance(delegator) >= balance,
+					<Pallet<T>>::get_delegator_stakable_free_balance(delegator) >= balance,
 					"Account does not have enough balance to place delegation."
 				);
 				let cd_count = if let Some(x) = col_delegator_count.get(target) {
@@ -903,6 +903,10 @@ pub mod pallet {
 					amount: bond
 				}),
 				Error::<T>::CandidateExists
+			);
+			ensure!(
+				Self::get_collator_stakable_free_balance(&acc) >= bond,
+				Error::<T>::InsufficientBalance,
 			);
 			T::Currency::set_lock(COLLATOR_LOCK_IDENTIFIER, &acc, bond, WithdrawReasons::all());
 			let candidate = CandidateMetadata::new(bond);
@@ -1175,7 +1179,7 @@ pub mod pallet {
 			let delegator = ensure_signed(origin)?;
 			// check that caller can reserve the amount before any changes to storage
 			ensure!(
-				T::Currency::free_balance(&delegator) >= amount,
+				Self::get_delegator_stakable_free_balance(&delegator) >= amount,
 				Error::<T>::InsufficientBalance
 			);
 			let mut delegator_state = if let Some(mut state) = <DelegatorState<T>>::get(&delegator)
@@ -1366,6 +1370,22 @@ pub mod pallet {
 		}
 		pub fn is_selected_candidate(acc: &T::AccountId) -> bool {
 			<SelectedCandidates<T>>::get().binary_search(acc).is_ok()
+		}
+		/// Returns an account's free balance which is not locked in delegation staking
+		pub fn get_delegator_stakable_free_balance(acc: &T::AccountId) -> BalanceOf<T> {
+			let mut balance = T::Currency::free_balance(acc);
+			if let Some(state) = <DelegatorState<T>>::get(acc) {
+				balance -= state.total;
+			}
+			balance
+		}
+		/// Returns an account's free balance which is not locked in collator staking
+		pub fn get_collator_stakable_free_balance(acc: &T::AccountId) -> BalanceOf<T> {
+			let mut balance = T::Currency::free_balance(acc);
+			if let Some(info) = <CandidateInfo<T>>::get(acc) {
+				balance -= info.bond;
+			}
+			balance
 		}
 		/// Caller must ensure candidate is active before calling
 		pub(crate) fn update_active(candidate: T::AccountId, total: BalanceOf<T>) {

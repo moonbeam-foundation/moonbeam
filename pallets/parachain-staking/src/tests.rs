@@ -5693,8 +5693,8 @@ fn multiple_delegations() {
 					.len(),
 				4usize
 			);
-			assert_eq!(Balances::reserved_balance(&6), 40);
-			assert_eq!(Balances::reserved_balance(&7), 90);
+			assert_eq!(Balances::locks(&6)[0].amount, 40);
+			assert_eq!(Balances::locks(&7)[0].amount, 90);
 			assert_eq!(Balances::free_balance(&6), 60);
 			assert_eq!(Balances::free_balance(&7), 10);
 			roll_to(40);
@@ -9069,5 +9069,18 @@ fn test_hotfix_remove_delegation_requests_exited_candidates_errors_when_candidat
 				),
 				<Error<Test>>::CandidateNotLeaving,
 			);
+		});
+}
+
+#[test]
+fn test_cant_lock_same_funds_twice() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20)])
+		.with_candidates(vec![(1, 20), (2, 20), (3, 20)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(ParachainStaking::delegate(Origin::signed(4), 1, 10, 0, 0));
+			assert_ok!(ParachainStaking::delegate(Origin::signed(4), 2, 10, 0, 0));
+			assert_ok!(ParachainStaking::delegate(Origin::signed(4), 3, 10, 0, 0));
 		});
 }

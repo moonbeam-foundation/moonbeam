@@ -23,7 +23,7 @@ use crate::{
 };
 use frame_support::{
 	pallet_prelude::*,
-	traits::{tokens::WithdrawReasons, Currency, LockableCurrency},
+	traits::{tokens::WithdrawReasons, LockableCurrency},
 };
 use parity_scale_codec::{Decode, Encode};
 use sp_runtime::{
@@ -413,7 +413,7 @@ impl<
 		BalanceOf<T>: From<Balance>,
 	{
 		ensure!(
-			T::Currency::free_balance(&who) < more.into(),
+			<Pallet<T>>::get_collator_stakable_free_balance(&who) >= more.into(),
 			Error::<T>::InsufficientBalance
 		);
 		let new_total = <Total<T>>::get().saturating_add(more.into());
@@ -1400,7 +1400,8 @@ impl<
 	{
 		if let Some(reserve) = additional_reserve {
 			ensure!(
-				T::Currency::free_balance(&self.id.clone().into()) >= reserve.into(),
+				<Pallet<T>>::get_delegator_stakable_free_balance(&self.id.clone().into())
+					>= reserve.into(),
 				Error::<T>::InsufficientBalance,
 			);
 
