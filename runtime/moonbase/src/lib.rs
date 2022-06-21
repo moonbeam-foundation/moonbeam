@@ -654,7 +654,6 @@ impl fp_rpc::ConvertTransaction<opaque::UncheckedExtrinsic> for TransactionConve
 impl pallet_ethereum::Config for Runtime {
 	type Event = Event;
 	type StateRoot = pallet_ethereum::IntermediateStateRoot<Self>;
-	type XcmEthereumOrigin = pallet_ethereum::EnsureXcmEthereumTransaction;
 }
 
 parameter_types! {
