@@ -633,6 +633,12 @@ impl pallet_ethereum::Config for Runtime {
 	type StateRoot = pallet_ethereum::IntermediateStateRoot<Self>;
 }
 
+impl pallet_ethereum_xcm::Config for Runtime {
+	type InvalidEvmTransactionError = pallet_ethereum::InvalidTransactionWrapper;
+	type ValidatedTransaction = pallet_ethereum::ValidatedTransaction<Self>;
+	type XcmEthereumOrigin = frame_system::EnsureNever<H160>;
+}
+
 impl cumulus_pallet_parachain_system::Config for Runtime {
 	type Event = Event;
 	type OnSystemEvent = ();
@@ -1087,6 +1093,7 @@ construct_runtime! {
 		EVM: pallet_evm::{Pallet, Config, Call, Storage, Event<T>} = 51,
 		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Origin, Config} = 52,
 		BaseFee: pallet_base_fee::{Pallet, Call, Storage, Config<T>, Event} = 53,
+		EthereumXcm: pallet_ethereum_xcm::{Pallet, Call, Origin} = 54,
 
 		// Governance stuff.
 		Scheduler: pallet_scheduler::{Pallet, Storage, Event<T>, Call} = 60,
