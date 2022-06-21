@@ -23,12 +23,14 @@ describeSmokeSuite(`Verify orbiters`, { wssUrl, relayWssUrl }, (context) => {
   let counterForCollatorsPool: u32 = null;
 
   before("Setup api & retrieve data", async function () {
+    const runtimeVersion = await context.polkadotApi.runtimeVersion.specVersion.toNumber();
     atBlockNumber = (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber();
     apiAt = await context.polkadotApi.at(
       await context.polkadotApi.rpc.chain.getBlockHash(atBlockNumber)
     );
     collatorsPools = await apiAt.query.moonbeamOrbiters.collatorsPool.entries();
-    registeredOrbiters = await apiAt.query.moonbeamOrbiters.registeredOrbiter.entries();
+    registeredOrbiters =
+      runtimeVersion >= 1605 ? await apiAt.query.moonbeamOrbiters.registeredOrbiter.entries() : [];
     counterForCollatorsPool = await apiAt.query.moonbeamOrbiters.counterForCollatorsPool();
   });
 
@@ -62,19 +64,28 @@ describeSmokeSuite(`Verify orbiters`, { wssUrl, relayWssUrl }, (context) => {
 
   it("should be registered if in a pool", async function () {
     for (const orbiterPool of collatorsPools) {
-      const collator = orbiterPool[0].toHex().slice(-40);
+      const collator = `0x${orbiterPool[0].toHex().slice(-40)}`;
       const pool = orbiterPool[1].unwrap();
       const orbiterRegisteredAccounts = registeredOrbiters.map(
         (o) => `0x${o[0].toHex().slice(-40)}`
       );
       if (pool.maybeCurrentOrbiter.isSome) {
         const selectedOrbiter = pool.maybeCurrentOrbiter.unwrap().accountId.toHex();
+        const isRemoved = pool.maybeCurrentOrbiter.unwrap().removed.isTrue;
         const poolOrbiters = pool.orbiters.map((o) => o.toHex());
 
-        expect(
-          poolOrbiters,
-          `Selected orbiter ${selectedOrbiter} is not in the pool ${collator} orbiters`
-        ).to.include(selectedOrbiter);
+        if (isRemoved) {
+          expect(
+            poolOrbiters,
+            `Selected orbiter ${selectedOrbiter} is removed but ` +
+              `still in the pool ${collator} orbiters`
+          ).to.not.include(selectedOrbiter);
+        } else {
+          expect(
+            poolOrbiters,
+            `Selected orbiter ${selectedOrbiter} is not in the pool ${collator} orbiters`
+          ).to.include(selectedOrbiter);
+        }
 
         expect(
           orbiterRegisteredAccounts,
