@@ -35,3 +35,6 @@ pub use origin_conversion::*;
 
 mod transactor_traits;
 pub use transactor_traits::*;
+
+mod ethereum_xcm;
+pub use ethereum_xcm::*;

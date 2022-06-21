@@ -15,6 +15,8 @@ hex = { version = "0.4", default-features = false }
 log = "0.4"
 serde = { version = "1.0.101", optional = true, default-features = false, features = [ "derive" ] }
 sha3 = { version = "0.8", default-features = false }
+ethereum = { version = "0.12.0", default-features = false, features = ["with-codec"] }
+ethereum-types = { version = "0.13.1", default-features = false }
 
 # Substrate
 frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
