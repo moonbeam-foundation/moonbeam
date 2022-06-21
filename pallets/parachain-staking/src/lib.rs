@@ -81,7 +81,7 @@ pub mod pallet {
 	use crate::{set::OrderedSet, traits::*, types::*, InflationInfo, Range, WeightInfo};
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{
-		tokens::WithdrawReasons, Currency, Get, Imbalance, LockableCurrency,
+		tokens::WithdrawReasons, Currency, Get, Imbalance, LockableCurrency, ReservableCurrency,
 	};
 	use frame_system::pallet_prelude::*;
 	use parity_scale_codec::Decode;
@@ -110,7 +110,9 @@ pub mod pallet {
 		/// Overarching event type
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		/// The currency type
-		type Currency: Currency<Self::AccountId> + LockableCurrency<Self::AccountId>;
+		type Currency: Currency<Self::AccountId>
+			+ ReservableCurrency<Self::AccountId>
+			+ LockableCurrency<Self::AccountId>;
 		/// The origin for monetary governance
 		type MonetaryGovernanceOrigin: EnsureOrigin<Self::Origin>;
 		/// Minimum number of blocks per round

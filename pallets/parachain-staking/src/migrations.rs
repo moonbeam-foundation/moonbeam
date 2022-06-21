@@ -814,3 +814,50 @@ impl<T: Config> OnRuntimeUpgrade for PurgeStaleStorage<T> {
 		Ok(())
 	}
 }
+
+/// Migration to convert currency reserves to locks
+pub struct ConvertReservesToLocks<T>(PhantomData<T>);
+impl<T: Config> OnRuntimeUpgrade for ConvertReservesToLocks<T> {
+	fn on_runtime_upgrade() -> Weight {
+		use frame_support::traits::{LockableCurrency, ReservableCurrency, WithdrawReasons};
+		use crate::COLLATOR_LOCK_IDENTIFIER;
+
+		let (mut num_reads, mut num_writes) = (0, 0);
+
+		for (mut account, mut delegator_state) in <DelegatorState<T>>::iter() {
+			let reserved = delegator_state.total;
+			let remaining = T::Currency::unreserve(&account, reserved);
+			assert_eq!(remaining, 0u32.into());
+
+			delegator_state.adjust_bond_lock::<T>(None);
+		}
+
+		for (mut account, mut candidate_info) in <CandidateInfo<T>>::iter() {
+			let reserved = candidate_info.bond;
+			let remaining = T::Currency::unreserve(&account, reserved);
+			assert_eq!(remaining, 0u32.into());
+
+			T::Currency::set_lock(COLLATOR_LOCK_IDENTIFIER, &account, reserved, WithdrawReasons::all());
+		}
+
+		// TODO: properly tally
+		T::DbWeight::get().reads(num_reads) + T::DbWeight::get().writes(num_writes)
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade() -> Result<(), &'static str> {
+		// TODO:
+		// * ensure each account has the expected amount reserved
+		// * query total accounts touched
+		// * ensure currency issuance is unchanged
+		// * sample some accounts
+		// * ?
+		Ok(())
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade() -> Result<(), &'static str> {
+		// TODO:
+		Ok(())
+	}
+}
