@@ -7221,6 +7221,7 @@ dependencies = [
  "hex",
  "libsecp256k1 0.7.0",
  "pallet-balances",
+ "pallet-ethereum",
  "pallet-evm",
  "pallet-timestamp",
  "parity-scale-codec",

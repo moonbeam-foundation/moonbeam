@@ -15,14 +15,14 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use super::*;
-use fp_xcm::{
-	EthereumXcmFee, EthereumXcmTransaction, EthereumXcmTransactionV1, ManualEthereumXcmFee,
-};
 use frame_support::{
 	assert_noop,
 	weights::{Pays, PostDispatchInfo},
 };
 use sp_runtime::{DispatchError, DispatchErrorWithPostInfo};
+use xcm_primitives::{
+	EthereumXcmFee, EthereumXcmTransaction, EthereumXcmTransactionV1, ManualEthereumXcmFee,
+};
 
 // 	pragma solidity ^0.6.6;
 // 	contract Test {
@@ -212,7 +212,7 @@ fn test_transact_xcm_validation_works() {
 			EthereumXcm::transact(
 				RawOrigin::XcmEthereumTransaction(alice.address).into(),
 				EthereumXcmTransaction::V1(EthereumXcmTransactionV1 {
-					fee_payment: EthereumXcmFee::Manual(fp_xcm::ManualEthereumXcmFee {
+					fee_payment: EthereumXcmFee::Manual(xcm_primitives::ManualEthereumXcmFee {
 						gas_price: Some(U256::from(0)),
 						max_fee_per_gas: None,
 						max_priority_fee_per_gas: None,
