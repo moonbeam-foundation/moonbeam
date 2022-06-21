@@ -64,19 +64,27 @@ describeSmokeSuite(`Verify orbiters`, { wssUrl, relayWssUrl }, (context) => {
 
   it("should be registered if in a pool", async function () {
     for (const orbiterPool of collatorsPools) {
-      const collator = orbiterPool[0].toHex().slice(-40);
+      const collator = `0x${orbiterPool[0].toHex().slice(-40)}`;
       const pool = orbiterPool[1].unwrap();
       const orbiterRegisteredAccounts = registeredOrbiters.map(
         (o) => `0x${o[0].toHex().slice(-40)}`
       );
       if (pool.maybeCurrentOrbiter.isSome) {
         const selectedOrbiter = pool.maybeCurrentOrbiter.unwrap().accountId.toHex();
+        const isRemoved = pool.maybeCurrentOrbiter.unwrap().removed.isTrue;
         const poolOrbiters = pool.orbiters.map((o) => o.toHex());
 
-        expect(
-          poolOrbiters,
-          `Selected orbiter ${selectedOrbiter} is not in the pool ${collator} orbiters`
-        ).to.include(selectedOrbiter);
+        if (isRemoved) {
+          expect(
+            poolOrbiters,
+            `Selected orbiter ${selectedOrbiter} is removed but still in the pool ${collator} orbiters`
+          ).to.not.include(selectedOrbiter);
+        } else {
+          expect(
+            poolOrbiters,
+            `Selected orbiter ${selectedOrbiter} is not in the pool ${collator} orbiters`
+          ).to.include(selectedOrbiter);
+        }
 
         expect(
           orbiterRegisteredAccounts,
