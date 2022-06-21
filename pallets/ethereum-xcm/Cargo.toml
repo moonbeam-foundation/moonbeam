@@ -39,6 +39,8 @@ pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam
 
 [dev-dependencies]
 pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.23"}
+pallet-ethereum = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.23"}
+
 hex = "0.4.3"
 # Parity
 libsecp256k1 = { version = "0.7", features = ["static-context", "hmac"] }
