@@ -1,0 +1,82 @@
+[package]
+name = "pallet-ethereum-xcm"
+version = "1.0.0-dev"
+authors = ["Parity Technologies <admin@parity.io>"]
+edition = "2021"
+license = "Apache-2.0"
+description = "Xcm Transact compatibility for pallet-etherum."
+repository = "https://github.com/paritytech/frontier/"
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
+
+[dependencies]
+ethereum = { version = "0.12.0", default-features = false, features = ["with-codec"] }
+serde = { version = "1.0.137", optional = true }
+
+# Parity
+codec = { package = "parity-scale-codec", version = "3.0.0", default-features = false }
+ethereum-types = { version = "0.13.1", default-features = false }
+rlp = { version = "0.5", default-features = false }
+scale-info = { version = "2.1.2", default-features = false, features = ["derive"] }
+
+# Substrate
+sp-io = { version = "6.0.0", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
+sp-runtime = { version = "6.0.0", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
+sp-std = { version = "4.0.0", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
+# Substrate FRAME
+frame-support = { version = "4.0.0-dev", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
+frame-system = { version = "4.0.0-dev", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
+pallet-timestamp = { version = "4.0.0-dev", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
+
+# Frontier
+fp-ethereum = { git = "https://github.com/purestake/frontier", branch = "transact-xcm-2-0.9.20", default-features = false}
+fp-evm = { git = "https://github.com/purestake/frontier", branch = "transact-xcm-2-0.9.20", default-features = false}
+fp-rpc = { git = "https://github.com/purestake/frontier", branch = "transact-xcm-2-0.9.20", default-features = false}
+fp-self-contained = { git = "https://github.com/purestake/frontier", branch = "transact-xcm-2-0.9.20", default-features = false}
+xcm-primitives = { path = "../../primitives/xcm/", default-features = false }
+pallet-evm = { git = "https://github.com/purestake/frontier", branch = "transact-xcm-2-0.9.20", default-features = false }
+
+[dev-dependencies]
+pallet-evm = { git = "https://github.com/purestake/frontier", branch = "transact-xcm-2-0.9.20"}
+hex = "0.4.3"
+# Parity
+libsecp256k1 = { version = "0.7", features = ["static-context", "hmac"] }
+# Substrate
+sp-core = { version = "6.0.0", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20" }
+# Substrate FRAME
+pallet-balances = { version = "4.0.0-dev", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20" }
+
+[features]
+default = ["std"]
+std = [
+	"ethereum/std",
+	"serde",
+	# Parity
+	"codec/std",
+	"ethereum-types/std",
+	"rlp/std",
+	"scale-info/std",
+	# Substrate
+	"sp-io/std",
+	"sp-runtime/std",
+	"sp-std/std",
+	# Substrate FRAME
+	"frame-support/std",
+	"frame-system/std",
+	"pallet-timestamp/std",
+	# Frontier
+	"fp-ethereum/std",
+	"fp-evm/std",
+	"fp-rpc/std",
+	"fp-self-contained/std",
+	"xcm-primitives/std",
+	"pallet-evm/std",
+]
+runtime-benchmarks = [
+	"frame-support/runtime-benchmarks",
+	"frame-system/runtime-benchmarks",
+	"pallet-timestamp/runtime-benchmarks",
+	"pallet-evm/runtime-benchmarks",
+]
+try-runtime = ["frame-support/try-runtime"]
