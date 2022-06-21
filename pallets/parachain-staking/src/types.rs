@@ -18,9 +18,12 @@
 
 use crate::{
 	set::OrderedSet, BalanceOf, BottomDelegations, CandidateInfo, Config, DelegatorState, Error,
-	Event, Pallet, Round, RoundIndex, TopDelegations, Total,
+	Event, Pallet, Round, RoundIndex, TopDelegations, Total, DELEGATOR_LOCK_IDENTIFIER,
 };
-use frame_support::{pallet_prelude::*, traits::ReservableCurrency};
+use frame_support::{
+	pallet_prelude::*,
+	traits::{tokens::WithdrawReasons, Currency, LockableCurrency},
+};
 use parity_scale_codec::{Decode, Encode};
 use sp_runtime::{
 	traits::{AtLeast32BitUnsigned, Saturating, Zero},
@@ -654,7 +657,7 @@ impl<
 			let mut delegator_state = <DelegatorState<T>>::get(&lowest_bottom_to_be_kicked.owner)
 				.expect("Delegation existence => DelegatorState existence");
 			let leaving = delegator_state.delegations.0.len() == 1usize;
-			delegator_state.rm_delegation(candidate);
+			delegator_state.rm_delegation::<T>(candidate);
 			<Pallet<T>>::delegation_remove_request_with_state(
 				&candidate,
 				&lowest_bottom_to_be_kicked.owner,
@@ -1288,7 +1291,11 @@ impl<
 	}
 	// Return Some(remaining balance), must be more than MinDelegatorStk
 	// Return None if delegation not found
-	pub fn rm_delegation(&mut self, collator: &AccountId) -> Option<Balance> {
+	pub fn rm_delegation<T: Config>(&mut self, collator: &AccountId) -> Option<Balance>
+	where
+		BalanceOf<T>: From<Balance>,
+		T::AccountId: From<AccountId>,
+	{
 		let mut amt: Option<Balance> = None;
 		let delegations = self
 			.delegations
@@ -1306,6 +1313,8 @@ impl<
 		if let Some(balance) = amt {
 			self.delegations = OrderedSet::from(delegations);
 			self.total = self.total.saturating_sub(balance);
+			self.adjust_bond_lock::<T>(None)
+				.expect("Decreasing lock cannot fail, qed");
 			Some(self.total)
 		} else {
 			None
@@ -1330,10 +1339,11 @@ impl<
 				let before_amount: BalanceOf<T> = x.amount.into();
 				x.amount = x.amount.saturating_add(amount);
 				self.total = self.total.saturating_add(amount);
+				self.adjust_bond_lock::<T>(Some(amount))?;
 				// update collator state delegation
 				let mut collator_state =
 					<CandidateInfo<T>>::get(&candidate_id).ok_or(Error::<T>::CandidateDNE)?;
-				T::Currency::reserve(&self.id.clone().into(), balance_amt)?;
+				self.adjust_bond_lock::<T>(Some(amount))?;
 				let before = collator_state.total_counted;
 				let in_top = collator_state.increase_delegation::<T>(
 					&candidate_id,
@@ -1360,6 +1370,47 @@ impl<
 			}
 		}
 		Err(Error::<T>::DelegationDNE.into())
+	}
+
+	/// Updates the bond locks for this delegator.
+	///
+	/// This will take the current self.total and ensure that a lock of the same amount is applied
+	/// and will also ensure that the account has at least `additional_reserve` in free balance.
+	///
+	/// `additional_reserve` should reflect the change to the amount that should be locked if
+	/// positive, 0 otherwise (e.g. `min(0, change_in_total_bond)`). This is necessary because it is
+	/// not possible to query the amount that is locked for a given lock id.
+	pub fn adjust_bond_lock<T: Config>(
+		&mut self,
+		additional_reserve: Option<Balance>,
+	) -> DispatchResult
+	where
+		BalanceOf<T>: From<Balance>,
+		T::AccountId: From<AccountId>,
+	{
+		if let Some(reserve) = additional_reserve {
+			ensure!(
+				T::Currency::free_balance(&self.id.clone().into()) < reserve.into(),
+				Error::<T>::InsufficientBalance,
+			);
+
+			// additional sanity check: shouldn't ever want to reserve more than total
+			if reserve < self.total {
+				log::warn!("LOGIC ERROR: request to reserve more than bond total");
+			}
+		}
+
+		if self.total.is_zero() {
+			T::Currency::remove_lock(DELEGATOR_LOCK_IDENTIFIER, &self.id.clone().into());
+		} else {
+			T::Currency::set_lock(
+				DELEGATOR_LOCK_IDENTIFIER,
+				&self.id.clone().into(),
+				self.total.into(),
+				WithdrawReasons::all(),
+			);
+		}
+		Ok(())
 	}
 
 	/// Retrieves the bond amount that a delegator has provided towards a collator.

@@ -20,9 +20,9 @@ use crate::pallet::{
 	BalanceOf, CandidateInfo, Config, DelegationScheduledRequests, DelegatorState, Error, Event,
 	Pallet, Round, RoundIndex, Total,
 };
-use crate::{Delegator, DELEGATOR_LOCK_IDENTIFIER};
+use crate::Delegator;
 use frame_support::ensure;
-use frame_support::traits::{Get, LockableCurrency, ReservableCurrency, WithdrawReasons};
+use frame_support::traits::Get;
 use frame_support::{dispatch::DispatchResultWithPostInfo, RuntimeDebug};
 use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
@@ -243,20 +243,11 @@ impl<T: Config> Pallet<T> {
 				state.less_total = state.less_total.saturating_sub(amount);
 
 				// remove delegation from delegator state
-				state.rm_delegation(&collator);
+				state.rm_delegation::<T>(&collator);
 
 				// remove delegation from collator state delegations
 				Self::delegator_leaves_candidate(collator.clone(), delegator.clone(), amount)?;
-				if state.total > 0u32.into() {
-					T::Currency::set_lock(
-						DELEGATOR_LOCK_IDENTIFIER,
-						&delegator,
-						state.total,
-						WithdrawReasons::all(),
-					);
-				} else {
-					T::Currency::remove_lock(DELEGATOR_LOCK_IDENTIFIER, &delegator);
-				}
+				state.adjust_bond_lock::<T>(None)?;
 				Self::deposit_event(Event::DelegationRevoked {
 					delegator: delegator.clone(),
 					candidate: collator.clone(),
@@ -298,7 +289,7 @@ impl<T: Config> Pallet<T> {
 							);
 							let mut collator_info = <CandidateInfo<T>>::get(&collator)
 								.ok_or(<Error<T>>::CandidateDNE)?;
-							T::Currency::unreserve(&delegator, amount);
+                            state.adjust_bond_lock::<T>(None)?;
 							// need to go into decrease_delegation
 							let in_top = collator_info.decrease_delegation::<T>(
 								&collator,
@@ -438,7 +429,7 @@ impl<T: Config> Pallet<T> {
 		delegator: T::AccountId,
 		delegation_count: u32,
 	) -> DispatchResultWithPostInfo {
-		let state = <DelegatorState<T>>::get(&delegator).ok_or(<Error<T>>::DelegatorDNE)?;
+		let mut state = <DelegatorState<T>>::get(&delegator).ok_or(<Error<T>>::DelegatorDNE)?;
 		ensure!(
 			delegation_count >= (state.delegations.0.len() as u32),
 			Error::<T>::TooLowDelegationCountToLeaveDelegators
@@ -485,16 +476,7 @@ impl<T: Config> Pallet<T> {
 			updated_scheduled_requests.push((collator, scheduled_requests));
 		}
 
-		if state.total > 0u32.into() {
-			T::Currency::set_lock(
-				DELEGATOR_LOCK_IDENTIFIER,
-				&delegator,
-				state.total,
-				WithdrawReasons::all(),
-			);
-		} else {
-			T::Currency::remove_lock(DELEGATOR_LOCK_IDENTIFIER, &delegator);
-		}
+		state.adjust_bond_lock::<T>(None)?;
 
 		updated_scheduled_requests
 			.into_iter()

@@ -7387,7 +7387,9 @@ fn split_candidate_state_kicks_extra_bottom_delegators_to_exit() {
 			<Total<Test>>::put(330);
 			assert!(ParachainStaking::is_delegator(&11));
 			assert!(ParachainStaking::is_delegator(&12));
-			crate::migrations::SplitCandidateStateToDecreasePoV::<Test>::on_runtime_upgrade();
+			// TODO: why are we doing a runtime upgrade here?
+			assert!(false, "Fixme");
+			// crate::migrations::SplitCandidateStateToDecreasePoV::<Test>::on_runtime_upgrade();
 			assert_event_emitted!(Event::DelegationKicked {
 				delegator: 11,
 				candidate: 1,
@@ -7573,7 +7575,9 @@ fn split_candidate_state_kicks_extra_bottom_delegations_without_exit() {
 			<Total<Test>>::put(350);
 			assert!(ParachainStaking::is_delegator(&11));
 			assert!(ParachainStaking::is_delegator(&12));
-			crate::migrations::SplitCandidateStateToDecreasePoV::<Test>::on_runtime_upgrade();
+			// TODO: why are we doing a runtime upgrade here?
+			assert!(false, "Fixme");
+			// crate::migrations::SplitCandidateStateToDecreasePoV::<Test>::on_runtime_upgrade();
 			assert_event_emitted!(Event::DelegationKicked {
 				delegator: 11,
 				candidate: 1,
@@ -7688,7 +7692,9 @@ fn split_candidate_state_migrates_empty_delegations_correctly() {
 				};
 				<CandidateState<Test>>::insert(&i, old_candidate_state);
 			}
-			crate::migrations::SplitCandidateStateToDecreasePoV::<Test>::on_runtime_upgrade();
+			// TODO: why are we doing a runtime upgrade here?
+			assert!(false, "Fixme");
+			// crate::migrations::SplitCandidateStateToDecreasePoV::<Test>::on_runtime_upgrade();
 			for i in 1..5 {
 				let top_delegations = <TopDelegations<Test>>::get(&i).unwrap();
 				assert_eq!(top_delegations.total, 0);
@@ -7738,7 +7744,9 @@ fn split_candidate_state_migrates_partial_top_delegations_correctly() {
 				};
 				<CandidateState<Test>>::insert(&i, old_candidate_state);
 			}
-			crate::migrations::SplitCandidateStateToDecreasePoV::<Test>::on_runtime_upgrade();
+			// TODO: why are we doing a runtime upgrade here?
+			assert!(false, "Fixme");
+			// crate::migrations::SplitCandidateStateToDecreasePoV::<Test>::on_runtime_upgrade();
 			for i in 1..3 {
 				let top_delegations = <TopDelegations<Test>>::get(&i).unwrap();
 				assert_eq!(top_delegations.total, 20);
@@ -7817,7 +7825,9 @@ fn split_candidate_state_migrates_full_top_delegations_correctly() {
 				};
 				<CandidateState<Test>>::insert(&i, old_candidate_state);
 			}
-			crate::migrations::SplitCandidateStateToDecreasePoV::<Test>::on_runtime_upgrade();
+			// TODO: why are we doing a runtime upgrade here?
+			assert!(false, "Fixme");
+			// crate::migrations::SplitCandidateStateToDecreasePoV::<Test>::on_runtime_upgrade();
 			for i in 1..3 {
 				let top_delegations = <TopDelegations<Test>>::get(&i).unwrap();
 				assert_eq!(top_delegations.total, 40);
@@ -7926,7 +7936,9 @@ fn split_candidate_state_migrates_full_top_partial_bottom_delegations_correctly(
 				};
 				<CandidateState<Test>>::insert(&i, old_candidate_state);
 			}
-			crate::migrations::SplitCandidateStateToDecreasePoV::<Test>::on_runtime_upgrade();
+			// TODO: why are we doing a runtime upgrade here?
+			assert!(false, "Fixme");
+			// crate::migrations::SplitCandidateStateToDecreasePoV::<Test>::on_runtime_upgrade();
 			for i in 1..3 {
 				let top_delegations = <TopDelegations<Test>>::get(&i).unwrap();
 				assert_eq!(top_delegations.total, 70);
@@ -8061,7 +8073,9 @@ fn split_candidate_state_migrates_full_top_and_bottom_delegations_correctly() {
 				};
 				<CandidateState<Test>>::insert(&i, old_candidate_state);
 			}
-			crate::migrations::SplitCandidateStateToDecreasePoV::<Test>::on_runtime_upgrade();
+			// TODO: why are we doing a runtime upgrade here?
+			assert!(false, "Fixme");
+			// crate::migrations::SplitCandidateStateToDecreasePoV::<Test>::on_runtime_upgrade();
 			for i in 1..3 {
 				let top_delegations = <TopDelegations<Test>>::get(&i).unwrap();
 				assert_eq!(top_delegations.total, 70);

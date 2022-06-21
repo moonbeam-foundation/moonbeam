@@ -81,7 +81,7 @@ pub mod pallet {
 	use crate::{set::OrderedSet, traits::*, types::*, InflationInfo, Range, WeightInfo};
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{
-		tokens::WithdrawReasons, Currency, Get, Imbalance, LockableCurrency, ReservableCurrency,
+		tokens::WithdrawReasons, Currency, Get, Imbalance, LockableCurrency,
 	};
 	use frame_system::pallet_prelude::*;
 	use parity_scale_codec::Decode;
@@ -111,7 +111,6 @@ pub mod pallet {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		/// The currency type
 		type Currency: Currency<Self::AccountId>
-			+ ReservableCurrency<Self::AccountId>
 			+ LockableCurrency<Self::AccountId>;
 		/// The origin for monetary governance
 		type MonetaryGovernanceOrigin: EnsureOrigin<Self::Origin>;
@@ -974,7 +973,7 @@ pub mod pallet {
 						Collator state has a record of this delegation. Therefore, 
 						Delegator state also has a record. qed.",
 				);
-				if let Some(remaining) = delegator.rm_delegation(&candidate) {
+				if let Some(remaining) = delegator.rm_delegation::<T>(&candidate) {
 					Self::delegation_remove_request_with_state(
 						&candidate,
 						&bond.owner,
@@ -1176,14 +1175,11 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let delegator = ensure_signed(origin)?;
 			// check that caller can reserve the amount before any changes to storage
-			// TODO: is this check still appropriate?
-			// TODO: also, we don't want delegator and collator locks to overlap -- they should be
-			// cummulative
 			ensure!(
-				T::Currency::can_reserve(&delegator, amount),
+				T::Currency::free_balance(&delegator) >= amount,
 				Error::<T>::InsufficientBalance
 			);
-			let delegator_state = if let Some(mut state) = <DelegatorState<T>>::get(&delegator) {
+			let mut delegator_state = if let Some(mut state) = <DelegatorState<T>>::get(&delegator) {
 				// delegation after first
 				ensure!(
 					amount >= T::MinDelegation::get(),
@@ -1226,12 +1222,7 @@ pub mod pallet {
 					amount,
 				},
 			)?;
-			T::Currency::set_lock(
-				DELEGATOR_LOCK_IDENTIFIER,
-				&delegator,
-				delegator_state.total,
-				WithdrawReasons::all(),
-			);
+			delegator_state.adjust_bond_lock::<T>(Some(amount))?; // TODO: causes redundant free_balance check
 			// only is_some if kicked the lowest bottom as a consequence of this new delegation
 			let net_total_increase = if let Some(less) = less_total_staked {
 				amount.saturating_sub(less)
