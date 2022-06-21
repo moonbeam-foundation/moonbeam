@@ -77,7 +77,8 @@ describeSmokeSuite(`Verify orbiters`, { wssUrl, relayWssUrl }, (context) => {
         if (isRemoved) {
           expect(
             poolOrbiters,
-            `Selected orbiter ${selectedOrbiter} is removed but still in the pool ${collator} orbiters`
+            `Selected orbiter ${selectedOrbiter} is removed but ` +
+              `still in the pool ${collator} orbiters`
           ).to.not.include(selectedOrbiter);
         } else {
           expect(
