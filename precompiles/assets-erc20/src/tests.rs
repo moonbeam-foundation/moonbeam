@@ -220,7 +220,7 @@ fn approve() {
 						.write(U256::from(500))
 						.build(),
 				)
-				.expect_cost(30832756u64)
+				.expect_cost(31253756u64)
 				.expect_log(
 					LogsBuilder::new(Account::ForeignAssetId(0u128).into()).log3(
 						SELECTOR_LOG_APPROVAL,
@@ -262,7 +262,7 @@ fn approve_saturating() {
 						.write(U256::MAX)
 						.build(),
 				)
-				.expect_cost(30832756u64)
+				.expect_cost(31253756u64)
 				.expect_log(
 					LogsBuilder::new(Account::ForeignAssetId(0u128).into()).log3(
 						SELECTOR_LOG_APPROVAL,
@@ -392,7 +392,7 @@ fn transfer() {
 						.write(U256::from(400))
 						.build(),
 				)
-				.expect_cost(44001756u64) // 1 weight => 1 gas in mock
+				.expect_cost(44055756u64) // 1 weight => 1 gas in mock
 				.expect_log(
 					LogsBuilder::new(Account::ForeignAssetId(0u128).into()).log3(
 						SELECTOR_LOG_TRANSFER,
@@ -519,7 +519,7 @@ fn transfer_from() {
 						.write(U256::from(400))
 						.build(),
 				)
-				.expect_cost(56268756u64) // 1 weight => 1 gas in mock
+				.expect_cost(55282756u64) // 1 weight => 1 gas in mock
 				.expect_log(
 					LogsBuilder::new(Account::ForeignAssetId(0u128).into()).log3(
 						SELECTOR_LOG_TRANSFER,
@@ -598,7 +598,7 @@ fn transfer_from_non_incremental_approval() {
 						.write(U256::from(500))
 						.build(),
 				)
-				.expect_cost(30832756u64)
+				.expect_cost(31253756u64)
 				.expect_log(
 					LogsBuilder::new(Account::ForeignAssetId(0u128).into()).log3(
 						SELECTOR_LOG_APPROVAL,
@@ -622,7 +622,7 @@ fn transfer_from_non_incremental_approval() {
 						.write(U256::from(300))
 						.build(),
 				)
-				.expect_cost(62796756u64)
+				.expect_cost(62037756u64)
 				.expect_log(
 					LogsBuilder::new(Account::ForeignAssetId(0u128).into()).log3(
 						SELECTOR_LOG_APPROVAL,
@@ -735,7 +735,7 @@ fn transfer_from_self() {
 						.write(U256::from(400))
 						.build(),
 				)
-				.expect_cost(44001756u64) // 1 weight => 1 gas in mock
+				.expect_cost(44055756u64) // 1 weight => 1 gas in mock
 				.expect_log(
 					LogsBuilder::new(Account::ForeignAssetId(0u128).into()).log3(
 						SELECTOR_LOG_TRANSFER,
@@ -907,7 +907,7 @@ fn mint_local_assets() {
 						.write(U256::from(400))
 						.build(),
 				)
-				.expect_cost(26633756u64) // 1 weight => 1 gas in mock
+				.expect_cost(25994756u64) // 1 weight => 1 gas in mock
 				.expect_log(LogsBuilder::new(Account::LocalAssetId(0u128).into()).log3(
 					SELECTOR_LOG_TRANSFER,
 					Account::Zero,
@@ -967,7 +967,7 @@ fn burn_local_assets() {
 						.write(U256::from(400))
 						.build(),
 				)
-				.expect_cost(30049756u64) // 1 weight => 1 gas in mock
+				.expect_cost(30796756u64) // 1 weight => 1 gas in mock
 				.expect_log(LogsBuilder::new(Account::LocalAssetId(0u128).into()).log3(
 					SELECTOR_LOG_TRANSFER,
 					Account::Alice,
@@ -1026,7 +1026,7 @@ fn freeze_local_assets() {
 						.write(Address(Account::Bob.into()))
 						.build(),
 				)
-				.expect_cost(18309000u64) // 1 weight => 1 gas in mock
+				.expect_cost(18381000u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
 				.execute_returns(EvmDataWriter::new().write(true).build());
 
@@ -1084,7 +1084,7 @@ fn thaw_local_assets() {
 						.write(Address(Account::Bob.into()))
 						.build(),
 				)
-				.expect_cost(18309000u64) // 1 weight => 1 gas in mock
+				.expect_cost(18381000u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
 				.execute_returns(EvmDataWriter::new().write(true).build());
 
@@ -1096,7 +1096,7 @@ fn thaw_local_assets() {
 						.write(Address(Account::Bob.into()))
 						.build(),
 				)
-				.expect_cost(18290000u64) // 1 weight => 1 gas in mock
+				.expect_cost(18215000u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
 				.execute_returns(EvmDataWriter::new().write(true).build());
 
@@ -1109,7 +1109,7 @@ fn thaw_local_assets() {
 						.write(U256::from(400))
 						.build(),
 				)
-				.expect_cost(44001756u64) // 1 weight => 1 gas in mock
+				.expect_cost(44055756u64) // 1 weight => 1 gas in mock
 				.expect_log(LogsBuilder::new(Account::LocalAssetId(0u128).into()).log3(
 					SELECTOR_LOG_TRANSFER,
 					Account::Bob,
@@ -1154,7 +1154,7 @@ fn freeze_asset_local_asset() {
 					Account::LocalAssetId(0u128),
 					EvmDataWriter::new_with_selector(Action::FreezeAsset).build(),
 				)
-				.expect_cost(14744000u64) // 1 weight => 1 gas in mock
+				.expect_cost(14885000u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
 				.execute_returns(EvmDataWriter::new().write(true).build());
 
@@ -1210,7 +1210,7 @@ fn thaw_asset_local_assets() {
 					Account::LocalAssetId(0u128),
 					EvmDataWriter::new_with_selector(Action::FreezeAsset).build(),
 				)
-				.expect_cost(14744000u64) // 1 weight => 1 gas in mock
+				.expect_cost(14885000u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
 				.execute_returns(EvmDataWriter::new().write(true).build());
 
@@ -1220,7 +1220,7 @@ fn thaw_asset_local_assets() {
 					Account::LocalAssetId(0u128),
 					EvmDataWriter::new_with_selector(Action::ThawAsset).build(),
 				)
-				.expect_cost(14833000u64) // 1 weight => 1 gas in mock
+				.expect_cost(14834000u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
 				.execute_returns(EvmDataWriter::new().write(true).build());
 
@@ -1233,7 +1233,7 @@ fn thaw_asset_local_assets() {
 						.write(U256::from(400))
 						.build(),
 				)
-				.expect_cost(44001756u64) // 1 weight => 1 gas in mock
+				.expect_cost(44055756u64) // 1 weight => 1 gas in mock
 				.expect_log(LogsBuilder::new(Account::LocalAssetId(0u128).into()).log3(
 					SELECTOR_LOG_TRANSFER,
 					Account::Bob,
@@ -1274,7 +1274,7 @@ fn transfer_ownership_local_assets() {
 						.write(Address(Account::Bob.into()))
 						.build(),
 				)
-				.expect_cost(16654000u64) // 1 weight => 1 gas in mock
+				.expect_cost(16033000u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
 				.execute_returns(EvmDataWriter::new().write(true).build());
 
@@ -1302,7 +1302,7 @@ fn transfer_ownership_local_assets() {
 						.write(Address(Account::Alice.into()))
 						.build(),
 				)
-				.expect_cost(16654000u64) // 1 weight => 1 gas in mock
+				.expect_cost(16033000u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
 				.execute_returns(EvmDataWriter::new().write(true).build());
 		});
@@ -1340,7 +1340,7 @@ fn set_team_local_assets() {
 						.write(Address(Account::Bob.into()))
 						.build(),
 				)
-				.expect_cost(15351000u64) // 1 weight => 1 gas in mock
+				.expect_cost(14344000u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
 				.execute_returns(EvmDataWriter::new().write(true).build());
 
@@ -1370,7 +1370,7 @@ fn set_team_local_assets() {
 						.write(U256::from(400))
 						.build(),
 				)
-				.expect_cost(26633756u64) // 1 weight => 1 gas in mock
+				.expect_cost(25994756u64) // 1 weight => 1 gas in mock
 				.expect_log(LogsBuilder::new(Account::LocalAssetId(0u128).into()).log3(
 					SELECTOR_LOG_TRANSFER,
 					Account::Zero,
@@ -1425,7 +1425,7 @@ fn set_metadata() {
 						.write::<u8>(12)
 						.build(),
 				)
-				.expect_cost(27654000u64) // 1 weight => 1 gas in mock
+				.expect_cost(27805000u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
 				.execute_returns(EvmDataWriter::new().write(true).build());
 
@@ -1497,7 +1497,7 @@ fn clear_metadata() {
 						.write::<u8>(12)
 						.build(),
 				)
-				.expect_cost(27654000u64) // 1 weight => 1 gas in mock
+				.expect_cost(27805000u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
 				.execute_returns(EvmDataWriter::new().write(true).build());
 
@@ -1507,7 +1507,7 @@ fn clear_metadata() {
 					Account::LocalAssetId(0u128),
 					EvmDataWriter::new_with_selector(Action::ClearMetadata).build(),
 				)
-				.expect_cost(27710000u64) // 1 weight => 1 gas in mock
+				.expect_cost(28466000u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
 				.execute_returns(EvmDataWriter::new().write(true).build());
 
@@ -1608,7 +1608,7 @@ fn permit_valid() {
 						.write(H256::from(rs.s.b32()))
 						.build(),
 				)
-				.expect_cost(30831000u64)
+				.expect_cost(31252000u64)
 				.expect_log(
 					LogsBuilder::new(Account::ForeignAssetId(0u128).into()).log3(
 						SELECTOR_LOG_APPROVAL,
@@ -1718,7 +1718,7 @@ fn permit_valid_named_asset() {
 						.write(H256::from(rs.s.b32()))
 						.build(),
 				)
-				.expect_cost(30831000u64)
+				.expect_cost(31252000u64)
 				.expect_log(
 					LogsBuilder::new(Account::ForeignAssetId(0u128).into()).log3(
 						SELECTOR_LOG_APPROVAL,
@@ -2197,7 +2197,7 @@ fn permit_valid_with_metamask_signed_data() {
 						.write(H256::from(s_real))
 						.build(),
 				)
-				.expect_cost(30831000u64)
+				.expect_cost(31252000u64)
 				.expect_log(
 					LogsBuilder::new(Account::ForeignAssetId(1u128).into()).log3(
 						SELECTOR_LOG_APPROVAL,
