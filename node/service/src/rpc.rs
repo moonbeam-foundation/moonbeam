@@ -158,8 +158,8 @@ where
 	use moonbeam_rpc_debug::{Debug, DebugServer};
 	use moonbeam_rpc_trace::{Trace, TraceServer};
 	use moonbeam_rpc_txpool::{TxPool, TxPoolServer};
-	use pallet_transaction_payment_rpc::{TransactionPaymentApiServer, TransactionPaymentRpc};
-	use substrate_frame_rpc_system::{SystemApiServer, SystemRpc};
+	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApiServer};
+	use substrate_frame_rpc_system::{System, SystemApiServer};
 
 	let mut io = RpcModule::new(());
 	let FullDeps {
@@ -182,8 +182,8 @@ where
 		block_data_cache,
 	} = deps;
 
-	io.merge(SystemRpc::new(Arc::clone(&client), Arc::clone(&pool), deny_unsafe).into_rpc())?;
-	io.merge(TransactionPaymentRpc::new(Arc::clone(&client)).into_rpc())?;
+	io.merge(System::new(Arc::clone(&client), Arc::clone(&pool), deny_unsafe).into_rpc())?;
+	io.merge(TransactionPayment::new(Arc::clone(&client)).into_rpc())?;
 
 	// TODO: are we supporting signing?
 	let signers = Vec::new();

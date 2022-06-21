@@ -1518,7 +1518,7 @@ fn asset_erc20_precompiles_transfer() {
 						.write(U256::from(400 * GLMR))
 						.build(),
 				)
-				.expect_cost(23516u64)
+				.expect_cost(23518u64)
 				.expect_log(LogsBuilder::new(asset_precompile_address.into()).log3(
 					SELECTOR_LOG_TRANSFER,
 					H160::from(ALICE),
@@ -1569,7 +1569,7 @@ fn asset_erc20_precompiles_approve() {
 						.write(U256::from(400 * GLMR))
 						.build(),
 				)
-				.expect_cost(13989)
+				.expect_cost(14006)
 				.expect_log(LogsBuilder::new(asset_precompile_address.into()).log3(
 					SELECTOR_LOG_APPROVAL,
 					H160::from(ALICE),
@@ -1589,7 +1589,7 @@ fn asset_erc20_precompiles_approve() {
 						.write(U256::from(400 * GLMR))
 						.build(),
 				)
-				.expect_cost(29006)
+				.expect_cost(28967)
 				.expect_log(LogsBuilder::new(asset_precompile_address.into()).log3(
 					SELECTOR_LOG_TRANSFER,
 					H160::from(ALICE),
@@ -1640,7 +1640,7 @@ fn asset_erc20_precompiles_mint_burn() {
 						.write(U256::from(1000 * GLMR))
 						.build(),
 				)
-				.expect_cost(12821)
+				.expect_cost(12795)
 				.expect_log(LogsBuilder::new(asset_precompile_address.into()).log3(
 					SELECTOR_LOG_TRANSFER,
 					H160::default(),
@@ -1666,7 +1666,7 @@ fn asset_erc20_precompiles_mint_burn() {
 						.write(U256::from(500 * GLMR))
 						.build(),
 				)
-				.expect_cost(12957)
+				.expect_cost(12987)
 				.expect_log(LogsBuilder::new(asset_precompile_address.into()).log3(
 					SELECTOR_LOG_TRANSFER,
 					H160::from(BOB),
@@ -1710,7 +1710,7 @@ fn asset_erc20_precompiles_freeze_thaw_account() {
 						.write(EvmAddress(ALICE.into()))
 						.build(),
 				)
-				.expect_cost(6732)
+				.expect_cost(6735)
 				.expect_no_logs()
 				.execute_returns(EvmDataWriter::new().write(true).build());
 
@@ -1729,7 +1729,7 @@ fn asset_erc20_precompiles_freeze_thaw_account() {
 						.write(EvmAddress(ALICE.into()))
 						.build(),
 				)
-				.expect_cost(6731)
+				.expect_cost(6728)
 				.expect_no_logs()
 				.execute_returns(EvmDataWriter::new().write(true).build());
 
@@ -1764,7 +1764,7 @@ fn asset_erc20_precompiles_freeze_thaw_asset() {
 					asset_precompile_address,
 					EvmDataWriter::new_with_selector(AssetAction::FreezeAsset).build(),
 				)
-				.expect_cost(5589)
+				.expect_cost(5595)
 				.expect_no_logs()
 				.execute_returns(EvmDataWriter::new().write(true).build());
 
@@ -1818,7 +1818,7 @@ fn asset_erc20_precompiles_freeze_transfer_ownership() {
 						.write(EvmAddress(BOB.into()))
 						.build(),
 				)
-				.expect_cost(6666)
+				.expect_cost(6641)
 				.expect_no_logs()
 				.execute_returns(EvmDataWriter::new().write(true).build());
 
@@ -1860,7 +1860,7 @@ fn asset_erc20_precompiles_freeze_set_team() {
 						.write(EvmAddress(BOB.into()))
 						.build(),
 				)
-				.expect_cost(5614)
+				.expect_cost(5573)
 				.expect_no_logs()
 				.execute_returns(EvmDataWriter::new().write(true).build());
 
@@ -1983,7 +1983,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 						.write(U256::from(400 * GLMR))
 						.build(),
 				)
-				.expect_cost(23516)
+				.expect_cost(23518)
 				.expect_log(LogsBuilder::new(asset_precompile_address.into()).log3(
 					SELECTOR_LOG_TRANSFER,
 					H160::from(ALICE),
@@ -2047,7 +2047,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						.write(U256::from(400 * GLMR))
 						.build(),
 				)
-				.expect_cost(13989)
+				.expect_cost(14006)
 				.expect_log(LogsBuilder::new(asset_precompile_address.into()).log3(
 					SELECTOR_LOG_APPROVAL,
 					H160::from(ALICE),
@@ -2067,7 +2067,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						.write(U256::from(400 * GLMR))
 						.build(),
 				)
-				.expect_cost(29006)
+				.expect_cost(28967)
 				.expect_log(LogsBuilder::new(asset_precompile_address.into()).log3(
 					SELECTOR_LOG_TRANSFER,
 					H160::from(ALICE),
