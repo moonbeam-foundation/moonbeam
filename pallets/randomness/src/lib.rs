@@ -284,6 +284,19 @@ pub mod pallet {
 		}
 	}
 
+	/// Including this in on_finalize ensures the required inherent was called
+	fn set_babe_randomness_results_inherent_included<T: Config>() {
+		let expected_relay_time = RelayTimeInfo {
+			relay_block_number: T::BabeDataGetter::get_relay_block_number(),
+			relay_epoch_index: T::BabeDataGetter::get_relay_epoch_index(),
+		};
+		assert_eq!(
+			expected_relay_time,
+			RelayTime::<T>::get(),
+			"set_babe_randomness_results_inherent must be included or block is invalid"
+		);
+	}
+
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
 		// Set this block's randomness using the VRF output, verified by the VrfInput put in
@@ -294,6 +307,9 @@ pub mod pallet {
 		}
 		// Set next block's VRF input in storage
 		fn on_finalize(_now: BlockNumberFor<T>) {
+			// Panics if set_babe_randomness_results inherent was not included
+			set_babe_randomness_results_inherent_included::<T>();
+
 			// Necessary because required data is killed in `ParachainSystem::on_initialize`
 			// which may happen before the VRF output is verified in the next block on_initialize
 			vrf::set_input::<T>();

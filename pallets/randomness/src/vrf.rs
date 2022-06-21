@@ -41,6 +41,7 @@ pub struct VrfInput<SlotNumber, RelayHash> {
 }
 
 /// Set vrf input in storage and log warning if either of the values did NOT change
+/// Called in previous block's `on_finalize`
 pub(crate) fn set_input<T: Config>() {
 	let input = T::VrfInputGetter::get_vrf_input();
 	if let Some(last_vrf_input) = <CurrentVrfInput<T>>::take() {
@@ -113,5 +114,5 @@ pub(crate) fn set_output<T: Config>() -> Weight {
 			log::warn!("Could not read local VRF randomness from the relay");
 		}
 	}
-	T::DbWeight::get().read + 2 * T::DbWeight::get().write
+	T::DbWeight::get().read // TODO: update weight
 }

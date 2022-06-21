@@ -1093,11 +1093,13 @@ fn relay_chain_state_proof() -> RelayChainStateProof {
 
 pub struct BabeDataGetter;
 impl pallet_randomness::GetBabeData<BlockNumber, u64, Option<Hash>> for BabeDataGetter {
+	// Tolerate panic here because only ever called in inherent (so can be omitted)
 	fn get_relay_block_number() -> BlockNumber {
 		ParachainSystem::validation_data()
 			.expect("set in `set_validation_data`inherent => available before on_initialize")
 			.relay_parent_number
 	}
+	// Tolerate panic here because only ever called in inherent (so can be omitted)
 	fn get_relay_epoch_index() -> u64 {
 		relay_chain_state_proof()
 			.read_optional_entry(relay_chain::well_known_keys::EPOCH_INDEX)
@@ -1105,6 +1107,11 @@ impl pallet_randomness::GetBabeData<BlockNumber, u64, Option<Hash>> for BabeData
 			.flatten()
 			.expect("expected to be able to read epoch index from relay chain state proof")
 	}
+	// TODO: check if Parent_block_randomness
+	// TODO: need tests to ensure integrity between relay chain version
+	// -> smoke test that ensures value can be read for all relay chain versions
+	// (make jira ticket): extend request to be fulfilled later
+	// (only succeeds if past due and not available)
 	fn get_current_block_randomness() -> Option<Hash> {
 		relay_chain_state_proof()
 			.read_optional_entry(relay_chain::well_known_keys::CURRENT_BLOCK_RANDOMNESS)
