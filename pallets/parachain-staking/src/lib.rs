@@ -1224,7 +1224,7 @@ pub mod pallet {
 			)?;
 			// TODO: causes redundant free_balance check
 			delegator_state.adjust_bond_lock::<T>(Some(amount))?;
-													  // only is_some if kicked the lowest bottom as a consequence of this new delegation
+			// only is_some if kicked the lowest bottom as a consequence of this new delegation
 			let net_total_increase = if let Some(less) = less_total_staked {
 				amount.saturating_sub(less)
 			} else {
