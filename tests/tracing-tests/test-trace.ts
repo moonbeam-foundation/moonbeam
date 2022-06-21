@@ -717,45 +717,40 @@ describeDevMoonbeam(
   true
 );
 
-describeDevMoonbeam(
-  "Raw trace limits",
-  (context) => {
-    it("it should not trace call that would produce too big responses", async function () {
-      this.timeout(50000);
-      const { contract: contract, rawTx } = await createContract(context, "TracingHeavy");
-      await context.createBlock({ transactions: [rawTx] });
+describeDevMoonbeam("Raw trace limits", (context) => {
+  it("it should not trace call that would produce too big responses", async function () {
+    this.timeout(50000);
+    const { contract: contract, rawTx } = await createContract(context, "TracingHeavy");
+    await context.createBlock(rawTx);
 
-      const contractInterface = new ethers.utils.Interface(
-        (await getCompiled("TracingHeavy")).contract.abi
-      );
+    const contractInterface = new ethers.utils.Interface(
+      (await getCompiled("TracingHeavy")).contract.abi
+    );
 
-      let callTx = await context.web3.eth.accounts.signTransaction(
-        {
-          from: GENESIS_ACCOUNT,
-          to: contract.options.address,
-          gas: "0x800000",
-          value: "0x00",
-          data: contractInterface.encodeFunctionData("steps", [
-            100, // number of storage modified
-            1000, // numbers of simple steps (that will have 100 storage items in trace)
-          ]),
-        },
-        GENESIS_ACCOUNT_PRIVATE_KEY
-      );
+    let callTx = await context.web3.eth.accounts.signTransaction(
+      {
+        from: alith.address,
+        to: contract.options.address,
+        gas: "0x800000",
+        value: "0x00",
+        data: contractInterface.encodeFunctionData("steps", [
+          100, // number of storage modified
+          1000, // numbers of simple steps (that will have 100 storage items in trace)
+        ]),
+      },
+      ALITH_PRIVATE_KEY
+    );
 
-      const data = await customWeb3Request(context.web3, "eth_sendRawTransaction", [
-        callTx.rawTransaction,
-      ]);
-      await context.createBlock();
-      let trace = await customWeb3Request(context.web3, "debug_traceTransaction", [data.result]);
+    const data = await customWeb3Request(context.web3, "eth_sendRawTransaction", [
+      callTx.rawTransaction,
+    ]);
+    await context.createBlock();
+    let trace = await customWeb3Request(context.web3, "debug_traceTransaction", [data.result]);
 
-      expect(trace.error).to.deep.eq({
-        code: -32603,
-        message: "replayed transaction generated too much data. \
+    expect(trace.error).to.deep.eq({
+      code: -32603,
+      message: "replayed transaction generated too much data. \
 try disabling memory or storage?",
-      });
     });
-  },
-  "Legacy",
-  true
-);
+  });
+});
