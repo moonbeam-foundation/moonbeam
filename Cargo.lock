@@ -14647,6 +14647,8 @@ dependencies = [
 name = "xcm-primitives"
 version = "0.1.0"
 dependencies = [
+ "ethereum",
+ "ethereum-types",
  "frame-support",
  "frame-system",
  "hex",
