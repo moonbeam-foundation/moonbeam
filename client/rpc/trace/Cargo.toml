@@ -36,7 +36,7 @@ sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v
 sp-transaction-pool = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20" }
 
 # Frontier
-fc-consensus = { git = "https://github.com/purestake/frontier", branch = "girazoki-xcm-call-polkadot-changes" }
-fc-rpc = { git = "https://github.com/purestake/frontier", branch = "girazoki-xcm-call-polkadot-changes", features = [ "rpc_binary_search_estimate" ] }
-fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "girazoki-xcm-call-polkadot-changes" }
-fp-rpc = { git = "https://github.com/purestake/frontier", branch = "girazoki-xcm-call-polkadot-changes" }
+fc-consensus = { git = "https://github.com/purestake/frontier", branch = "transact-xcm-2-0.9.20" }
+fc-rpc = { git = "https://github.com/purestake/frontier", branch = "transact-xcm-2-0.9.20", features = [ "rpc_binary_search_estimate" ] }
+fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "transact-xcm-2-0.9.20" }
+fp-rpc = { git = "https://github.com/purestake/frontier", branch = "transact-xcm-2-0.9.20" }

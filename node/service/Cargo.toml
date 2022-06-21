@@ -90,15 +90,15 @@ substrate-frame-rpc-system = { git = "https://github.com/paritytech/substrate", 
 substrate-prometheus-endpoint = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20" }
 
 # Frontier
-fc-consensus = { git = "https://github.com/purestake/frontier", branch = "girazoki-xcm-call-polkadot-changes" }
-fc-db = { git = "https://github.com/purestake/frontier", branch = "girazoki-xcm-call-polkadot-changes" }
-fc-mapping-sync = { git = "https://github.com/purestake/frontier", branch = "girazoki-xcm-call-polkadot-changes" }
-fc-rpc = { git = "https://github.com/purestake/frontier", branch = "girazoki-xcm-call-polkadot-changes", features = [ "rpc_binary_search_estimate" ] }
-fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "girazoki-xcm-call-polkadot-changes" }
-fp-consensus = { git = "https://github.com/purestake/frontier", branch = "girazoki-xcm-call-polkadot-changes" }
-fp-rpc = { git = "https://github.com/purestake/frontier", branch = "girazoki-xcm-call-polkadot-changes" }
-fp-storage = { git = "https://github.com/purestake/frontier", branch = "girazoki-xcm-call-polkadot-changes" }
-pallet-ethereum = { git = "https://github.com/purestake/frontier", branch = "girazoki-xcm-call-polkadot-changes" }
+fc-consensus = { git = "https://github.com/purestake/frontier", branch = "transact-xcm-2-0.9.20" }
+fc-db = { git = "https://github.com/purestake/frontier", branch = "transact-xcm-2-0.9.20" }
+fc-mapping-sync = { git = "https://github.com/purestake/frontier", branch = "transact-xcm-2-0.9.20" }
+fc-rpc = { git = "https://github.com/purestake/frontier", branch = "transact-xcm-2-0.9.20", features = [ "rpc_binary_search_estimate" ] }
+fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "transact-xcm-2-0.9.20" }
+fp-consensus = { git = "https://github.com/purestake/frontier", branch = "transact-xcm-2-0.9.20" }
+fp-rpc = { git = "https://github.com/purestake/frontier", branch = "transact-xcm-2-0.9.20" }
+fp-storage = { git = "https://github.com/purestake/frontier", branch = "transact-xcm-2-0.9.20" }
+pallet-ethereum = { git = "https://github.com/purestake/frontier", branch = "transact-xcm-2-0.9.20" }
 
 # Cumulus / Nimbus
 cumulus-client-cli = { git = "https://github.com/purestake/cumulus", branch = "girazoki-xcm-call-polkadot-changes" }

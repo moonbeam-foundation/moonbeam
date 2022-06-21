@@ -24,8 +24,8 @@ sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v
 
 
 # Frontier
-fp-evm = { git = "https://github.com/purestake/frontier", branch = "girazoki-xcm-call-polkadot-changes", default-features = false }
-pallet-evm = { git = "https://github.com/purestake/frontier", branch = "girazoki-xcm-call-polkadot-changes", default-features = false }
+fp-evm = { git = "https://github.com/purestake/frontier", branch = "transact-xcm-2-0.9.20", default-features = false }
+pallet-evm = { git = "https://github.com/purestake/frontier", branch = "transact-xcm-2-0.9.20", default-features = false }
 
 # Cumulus
 cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "girazoki-xcm-call-polkadot-changes", default-features = false }
