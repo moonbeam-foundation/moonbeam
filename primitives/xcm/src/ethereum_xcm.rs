@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use parity_scale_codec::{Decode, Encode};
 use ethereum::{
 	AccessList, AccessListItem, EIP1559Transaction, EIP2930Transaction, LegacyTransaction,
 	TransactionAction, TransactionSignature, TransactionV2,
 };
 use ethereum_types::{H160, H256, U256};
+use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
 use sp_std::vec::Vec;
 

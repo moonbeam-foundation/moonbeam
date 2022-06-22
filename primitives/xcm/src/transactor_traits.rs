@@ -1,4 +1,3 @@
-
 // Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -14,8 +13,8 @@
 
 // You should have received a copy of the GNU General Public License
 
-use xcm::latest::MultiLocation;
 use sp_std::vec::Vec;
+use xcm::latest::MultiLocation;
 
 // The utility calls that need to be implemented as part of
 // this pallet

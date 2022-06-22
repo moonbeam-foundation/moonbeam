@@ -16,7 +16,7 @@
 
 //! # Ethereum Xcm pallet
 //!
-//! The Xcm Ethereum pallet is a bridge for Xcm Transact to Ethereum pallet 
+//! The Xcm Ethereum pallet is a bridge for Xcm Transact to Ethereum pallet
 
 // Ensure we're `no_std` when compiling for Wasm.
 #![cfg_attr(not(feature = "std"), no_std)]
@@ -28,11 +28,8 @@ mod mock;
 mod tests;
 
 use ethereum_types::H160;
-use fp_ethereum::{ValidatedTransaction, TransactionData};
-use fp_evm::{
-	CheckEvmTransaction, CheckEvmTransactionConfig,
-	InvalidEvmTransactionError,
-};
+use fp_ethereum::{TransactionData, ValidatedTransaction};
+use fp_evm::{CheckEvmTransaction, CheckEvmTransactionConfig, InvalidEvmTransactionError};
 #[cfg(feature = "try-runtime")]
 use frame_support::traits::OnRuntimeUpgradeHelpersExt;
 use frame_support::{
@@ -44,10 +41,7 @@ use frame_support::{
 };
 use frame_system::pallet_prelude::OriginFor;
 use pallet_evm::{FeeCalculator, GasWeightMapping};
-use sp_runtime::{
-	traits::UniqueSaturatedInto,
-	RuntimeDebug,
-};
+use sp_runtime::{traits::UniqueSaturatedInto, RuntimeDebug};
 use sp_std::{marker::PhantomData, prelude::*};
 
 pub use ethereum::{
@@ -78,7 +72,7 @@ impl<O: Into<Result<RawOrigin, O>> + From<RawOrigin>> EnsureOrigin<O>
 {
 	type Success = H160;
 	fn try_origin(o: O) -> Result<Self::Success, O> {
-        o.into().map(|o| match o {
+		o.into().map(|o| match o {
 			RawOrigin::XcmEthereumTransaction(id) => id,
 		})
 	}
@@ -98,9 +92,9 @@ pub mod pallet {
 	#[pallet::config]
 	pub trait Config: frame_system::Config + pallet_timestamp::Config + pallet_evm::Config {
 		/// Invalid transaction error
-        type InvalidEvmTransactionError: From<InvalidEvmTransactionError>;
+		type InvalidEvmTransactionError: From<InvalidEvmTransactionError>;
 		/// Handler for applying an already validated transaction
-        type ValidatedTransaction: ValidatedTransaction;
+		type ValidatedTransaction: ValidatedTransaction;
 		/// Origin for xcm transact
 		type XcmEthereumOrigin: EnsureOrigin<Self::Origin, Success = H160>;
 	}
