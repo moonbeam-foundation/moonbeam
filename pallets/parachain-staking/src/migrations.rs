@@ -822,7 +822,10 @@ impl<T: Config> OnRuntimeUpgrade for ConvertReservesToLocks<T> {
 		use frame_support::traits::{LockableCurrency, ReservableCurrency, WithdrawReasons};
 		use crate::COLLATOR_LOCK_IDENTIFIER;
 
+		log::info!(target: "ConvertReservesToLocks", "starting on_runtime_upgrade()...");
+
 		let (mut num_reads, mut num_writes) = (0, 0);
+		let (mut num_delegators, mut num_collators) = (0, 0);
 
 		for (mut account, mut delegator_state) in <DelegatorState<T>>::iter() {
 			let reserved = delegator_state.total;
@@ -830,7 +833,11 @@ impl<T: Config> OnRuntimeUpgrade for ConvertReservesToLocks<T> {
 			assert_eq!(remaining, 0u32.into());
 
 			delegator_state.adjust_bond_lock::<T>(None);
+
+			num_delegators += 1;
 		}
+
+		log::info!(target: "ConvertReservesToLocks", "migrated {} delegators", num_delegators);
 
 		for (mut account, mut candidate_info) in <CandidateInfo<T>>::iter() {
 			let reserved = candidate_info.bond;
@@ -838,7 +845,12 @@ impl<T: Config> OnRuntimeUpgrade for ConvertReservesToLocks<T> {
 			assert_eq!(remaining, 0u32.into());
 
 			T::Currency::set_lock(COLLATOR_LOCK_IDENTIFIER, &account, reserved, WithdrawReasons::all());
+
+			num_collators += 1;
 		}
+
+		log::info!(target: "ConvertReservesToLocks", "migrated {} collators", num_delegators);
+
 
 		// TODO: properly tally
 		T::DbWeight::get().reads(num_reads) + T::DbWeight::get().writes(num_writes)
