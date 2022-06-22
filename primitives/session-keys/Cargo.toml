@@ -13,6 +13,7 @@ scale-info = { version = "2.0", default-features = false, features = [ "derive" 
 sp-application-crypto = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
 sp-consensus-babe = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
 sp-inherents = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
+sp-keystore = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false, optional = true }
 sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
 
 [features]
@@ -26,4 +27,5 @@ std = [
 	"sp-consensus-babe/std",
 	"sp-inherents/std",
 	"sp-runtime/std",
+	"sp-keystore",
 ]

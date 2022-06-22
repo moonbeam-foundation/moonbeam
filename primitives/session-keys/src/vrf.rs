@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! VRF Key type, which is sr25519
+//! VRF Key type
 use nimbus_primitives::NimbusId;
 use sp_application_crypto::{sr25519, KeyTypeId, UncheckedFrom};
 use sp_consensus_babe::{Slot, Transcript};
+#[cfg(feature = "std")]
+use sp_keystore::vrf::{VRFTranscriptData, VRFTranscriptValue};
 use sp_runtime::{BoundToRuntimeAppPublic, ConsensusEngineId};
 
 /// Make VRF transcript from the VrfInput
@@ -26,6 +28,24 @@ pub fn make_transcript<Hash: AsRef<[u8]>>(slot: Slot, storage_root: Hash) -> Tra
 	transcript.append_u64(b"relay slot number", *slot);
 	transcript.append_message(b"relay storage root", storage_root.as_ref());
 	transcript
+}
+
+/// Make a VRF transcript data container
+#[cfg(feature = "std")]
+pub fn make_transcript_data<Hash: AsRef<[u8]>>(
+	slot: Slot,
+	storage_root: Hash,
+) -> VRFTranscriptData {
+	VRFTranscriptData {
+		label: &VRF_ENGINE_ID,
+		items: vec![
+			("relay slot number", VRFTranscriptValue::U64(*slot)),
+			(
+				"relay storage root",
+				VRFTranscriptValue::Bytes(storage_root.as_ref().to_vec()),
+			),
+		],
+	}
 }
 
 /// Struct to implement `BoundToRuntimeAppPublic` by assigning Public = VrfId

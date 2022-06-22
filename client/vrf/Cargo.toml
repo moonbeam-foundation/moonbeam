@@ -8,6 +8,38 @@ repository = "https://github.com/PureStake/moonbeam/"
 version = "0.1.0"
 
 [dependencies]
-futures = { version = "0.3.1", features = [ "compat" ] }
-serde = { version = "1.0", features = [ "derive" ] }
-serde_json = "1.0"
+# Substrate deps
+sc-client-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
+sc-consensus = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
+sc-consensus-manual-seal = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
+sp-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
+sp-application-crypto = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
+sp-block-builder = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
+sp-blockchain = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
+sp-consensus = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
+sp-consensus-babe = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
+sp-consensus-vrf = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
+sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
+sp-inherents = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
+sp-keystore = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
+sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
+substrate-prometheus-endpoint = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
+
+# Polkadot dependencies
+polkadot-client = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.20", default-features = false }
+
+# Cumulus dependencies
+cumulus-client-consensus-common = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.20", default-features = false }
+cumulus-primitives-core = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.20", default-features = false }
+cumulus-primitives-parachain-inherent = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.20", default-features = false }
+
+# Moonbeam
+session-keys-primitives = { path = "../../primitives/session-keys" }
+
+# Other deps
+async-trait = "0.1"
+codec = { package = "parity-scale-codec", version = "3.0.0", features = [ "derive" ] }
+futures = { version = "0.3.8", features = [ "compat" ] }
+log = "0.4"
+parking_lot = "0.12"
+tracing = "0.1.22"
