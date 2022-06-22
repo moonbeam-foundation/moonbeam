@@ -10,6 +10,7 @@ import {
   OVERRIDE_RUNTIME_PATH,
   RELAY_BINARY_PATH,
   RELAY_CHAIN_NODE_NAMES,
+  RELAY_LOG,
 } from "./constants";
 
 const debug = require("debug")("test:para-node");
@@ -381,9 +382,11 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
             process.env.FORCE_COMPILED_WASM
               ? `--wasm-execution=compiled`
               : `--wasm-execution=interpreted-i-know-what-i-do`,
-            "--log=parachain::candidate-backing=trace,parachain::candidate-selection=trace," +
-              "parachain::pvf=trace,parachain::collator-protocol=trace," +
-              "parachain::provisioner=trace",
+            RELAY_LOG
+              ? `--log=${RELAY_LOG}`
+              : "--log=parachain::candidate-backing=trace,parachain::candidate-selection=trace," +
+                "parachain::pvf=trace,parachain::collator-protocol=trace," +
+                "parachain::provisioner=trace",
           ],
         };
       }),
