@@ -19,7 +19,7 @@ import { describeParachain } from "../util/setup-para-tests";
 const RUNTIME_NAME = process.env.RUNTIME_NAME as "moonbeam" | "moonbase" | "moonriver";
 const SPEC_FILE = process.env.SPEC_FILE;
 const PARA_ID = process.env.PARA_ID && parseInt(process.env.PARA_ID);
-const SKIP_INTERMEDIATE_RUNTIME = !!process.env.SKIP_INTERMEDIATE_RUNTIME;
+const SKIP_INTERMEDIATE_RUNTIME = process.env.SKIP_INTERMEDIATE_RUNTIME == "true";
 
 if (!RUNTIME_NAME) {
   console.error(`Missing RUNTIME_NAME (ex: moonbeam)`);
