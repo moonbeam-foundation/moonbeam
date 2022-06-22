@@ -1,9 +1,12 @@
 import "@moonbeam-network/api-augment";
+
+import { u32 } from "@polkadot/types-codec";
 import { expect } from "chai";
-import { GLMR, PROPOSAL_AMOUNT } from "../../util/constants";
-import { describeDevMoonbeam } from "../../util/setup-dev-tests";
-import { notePreimage } from "../../util/governance";
+
 import { alith } from "../../util/accounts";
+import { GLMR, PROPOSAL_AMOUNT } from "../../util/constants";
+import { notePreimage } from "../../util/governance";
+import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 
 describeDevMoonbeam("Democracy - proposing a vote", (context) => {
   let encodedHash: string;
@@ -51,7 +54,7 @@ describeDevMoonbeam("Democracy - proposing a vote", (context) => {
 
 describeDevMoonbeam("Democracy - Seconding a proposal", (context) => {
   let encodedHash: string;
-  let launchPeriod;
+  let launchPeriod: u32;
 
   before("Setup genesis account for substrate", async () => {
     //launchPeriod
@@ -93,7 +96,7 @@ describeDevMoonbeam("Democracy - Seconding a proposal", (context) => {
 
 describeDevMoonbeam("Democracy - Seconding a proposal", (context) => {
   let encodedHash: string;
-  let launchPeriod;
+  let launchPeriod: u32;
 
   before("Setup genesis account for substrate", async () => {
     //launchPeriod

@@ -1,11 +1,12 @@
 import { ApiPromise } from "@polkadot/api";
 import { ApiTypes, SubmittableExtrinsic } from "@polkadot/api/types";
-import { PalletDemocracyReferendumInfo } from "@polkadot/types/lookup";
 import { KeyringPair } from "@polkadot/keyring/types";
+import { PalletDemocracyReferendumInfo } from "@polkadot/types/lookup";
 import { blake2AsHex } from "@polkadot/util-crypto";
 import { expect } from "chai";
+
 import { alith, baltathar, charleth, dorothy } from "./accounts";
-import { DevTestContext } from "./setup-dev-tests";
+import { TestContext } from "./context";
 
 export const COUNCIL_MEMBERS = [baltathar, charleth, dorothy];
 export const COUNCIL_THRESHOLD = Math.ceil((COUNCIL_MEMBERS.length * 2) / 3);
@@ -18,7 +19,7 @@ export const notePreimage = async <
   Call extends SubmittableExtrinsic<ApiType>,
   ApiType extends ApiTypes
 >(
-  context: DevTestContext,
+  context: TestContext,
   proposal: Call,
   account: KeyringPair
 ): Promise<string> => {
@@ -32,7 +33,7 @@ export const notePreimage = async <
 
 // Creates the Council Proposal and fast track it before executing it
 export const instantFastTrack = async (
-  context: DevTestContext,
+  context: TestContext,
   proposalHash: string,
   { votingPeriod, delayPeriod } = { votingPeriod: 2, delayPeriod: 0 }
 ) => {
@@ -53,7 +54,7 @@ export const execCouncilProposal = async <
   Call extends SubmittableExtrinsic<ApiType>,
   ApiType extends ApiTypes
 >(
-  context: DevTestContext,
+  context: TestContext,
   polkadotCall: Call,
   voters: KeyringPair[] = COUNCIL_MEMBERS,
   threshold: number = COUNCIL_THRESHOLD
@@ -99,7 +100,7 @@ export const execTechnicalCommitteeProposal = async <
   Call extends SubmittableExtrinsic<ApiType>,
   ApiType extends ApiTypes
 >(
-  context: DevTestContext,
+  context: TestContext,
   polkadotCall: Call,
   voters: KeyringPair[] = TECHNICAL_COMMITTEE_MEMBERS,
   threshold: number = TECHNICAL_COMMITTEE_THRESHOLD

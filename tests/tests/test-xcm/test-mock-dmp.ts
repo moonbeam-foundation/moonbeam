@@ -1,11 +1,13 @@
 import "@moonbeam-network/api-augment";
-import { expect } from "chai";
-import { BN, u8aToHex } from "@polkadot/util";
 
-import { describeDevMoonbeam } from "../../util/setup-dev-tests";
-import { customWeb3Request } from "../../util/providers";
+import { BN, u8aToHex } from "@polkadot/util";
+import { expect } from "chai";
+
 import { alith } from "../../util/accounts";
 import { RELAY_SOURCE_LOCATION } from "../../util/assets";
+import { customWeb3Request } from "../../util/providers";
+import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+
 import type { XcmVersionedXcm } from "@polkadot/types/lookup";
 
 // Twelve decimal places in the moonbase relay chain's token

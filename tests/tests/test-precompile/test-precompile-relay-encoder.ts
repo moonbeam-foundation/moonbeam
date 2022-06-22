@@ -1,11 +1,13 @@
 import "@moonbeam-network/api-augment";
+
 import { expect } from "chai";
-import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
-import { customWeb3Request, web3EthCall } from "../../util/providers";
 import { ethers } from "ethers";
+
+import { ALITH_SESSION_ADDRESS, BALTATHAR_SESSION_ADDRESS } from "../../util/accounts";
+import { PRECOMPILE_RELAY_ENCODER_ADDRESS } from "../../util/constants";
 import { getCompiled } from "../../util/contracts";
-import { alith, ALITH_SESSION_ADDRESS, BALTATHAR_SESSION_ADDRESS } from "../../util/accounts";
-import { MIN_GAS_PRICE, PRECOMPILE_RELAY_ENCODER_ADDRESS } from "../../util/constants";
+import { web3EthCall } from "../../util/providers";
+import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 
 const RELAY_ENCODER_CONTRACT = getCompiled("RelayEncoderInstance");
 const RELAY_ENCODER_INTERFACE = new ethers.utils.Interface(RELAY_ENCODER_CONTRACT.contract.abi);

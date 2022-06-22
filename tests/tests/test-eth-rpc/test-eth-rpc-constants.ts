@@ -1,4 +1,5 @@
 import { expect } from "chai";
+
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 
 describeDevMoonbeam("RPC Constants", (context) => {

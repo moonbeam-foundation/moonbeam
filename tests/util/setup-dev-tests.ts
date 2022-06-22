@@ -1,81 +1,36 @@
 import { ApiPromise } from "@polkadot/api";
-import { JsonRpcResponse } from "web3-core-helpers";
-import type { BlockHash } from "@polkadot/types/interfaces/chain/types";
 import { ApiTypes, SubmittableExtrinsic } from "@polkadot/api/types";
-import { cryptoWaitReady } from "@polkadot/util-crypto";
-import { RegistryError } from "@polkadot/types/types";
 import { EventRecord } from "@polkadot/types/interfaces";
-
+import { RegistryError } from "@polkadot/types/types";
+import { ChildProcess } from "child_process";
 import { ethers } from "ethers";
-import { startMoonbeamDevNode, RuntimeChain } from "./dev-node";
+import { HttpProvider } from "web3-core";
+
+import { alith } from "./accounts";
+import { createAndFinalizeBlock } from "./block";
+import { DEBUG_MODE, SPAWNING_TIME } from "./constants";
+import { BlockCreation, EthTransactionType, TestContext } from "./context";
+import { RuntimeChain, startMoonbeamDevNode } from "./dev-node";
 import {
-  provideWeb3Api,
+  customWeb3Request,
+  EnhancedWeb3,
   provideEthersApi,
   providePolkadotApi,
-  EnhancedWeb3,
-  customWeb3Request,
+  provideWeb3Api,
 } from "./providers";
-import { ChildProcess } from "child_process";
-import { createAndFinalizeBlock } from "./block";
-import { SPAWNING_TIME, DEBUG_MODE } from "./constants";
-import { HttpProvider } from "web3-core";
 import { extractError, ExtrinsicCreation } from "./substrate-rpc";
-import { alith } from "./accounts";
 
+import type { BlockHash } from "@polkadot/types/interfaces/chain/types";
 const debug = require("debug")("test:setup");
 
-export interface BlockCreation {
-  parentHash?: BlockHash;
-  finalize?: boolean;
-}
-
-export interface BlockCreationResponse<
-  ApiType extends ApiTypes,
-  Call extends SubmittableExtrinsic<ApiType> | string | (SubmittableExtrinsic<ApiType> | string)[]
-> {
-  block: {
-    duration: number;
-    hash: BlockHash;
-  };
-  result: Call extends (string | SubmittableExtrinsic<ApiType>)[]
-    ? ExtrinsicCreation[]
-    : ExtrinsicCreation;
-}
-
-export interface DevTestContext {
-  createWeb3: (protocol?: "ws" | "http") => Promise<EnhancedWeb3>;
-  createEthers: () => Promise<ethers.providers.JsonRpcProvider>;
+export interface DevTestContext extends TestContext {
   createPolkadotApi: () => Promise<ApiPromise>;
-
-  createBlock<
-    ApiType extends ApiTypes,
-    Call extends
-      | SubmittableExtrinsic<ApiType>
-      | Promise<SubmittableExtrinsic<ApiType>>
-      | string
-      | Promise<string>,
-    Calls extends Call | Call[]
-  >(
-    transactions?: Calls,
-    options?: BlockCreation
-  ): Promise<
-    BlockCreationResponse<ApiType, Calls extends Call[] ? Awaited<Call>[] : Awaited<Call>>
-  >;
-
-  // We also provided singleton providers for simplicity
-  web3: EnhancedWeb3;
-  ethers: ethers.providers.JsonRpcProvider;
-  polkadotApi: ApiPromise;
-  rpcPort: number;
-  ethTransactionType?: EthTransactionType;
 }
 
 interface InternalDevTestContext extends DevTestContext {
   _polkadotApis: ApiPromise[];
   _web3Providers: HttpProvider[];
 }
-
-type EthTransactionType = "Legacy" | "EIP2930" | "EIP1559";
 
 export function describeDevMoonbeam(
   title: string,

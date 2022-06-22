@@ -1,9 +1,10 @@
 import "@moonbeam-network/api-augment";
+
 import { expect } from "chai";
 
-import { createContract } from "../../util/transactions";
-import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { customWeb3Request } from "../../util/providers";
+import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+import { createContract } from "../../util/transactions";
 
 describeDevMoonbeam("TxPool - Genesis", (context) => {
   it("should be empty", async function () {

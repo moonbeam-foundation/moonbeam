@@ -1,13 +1,15 @@
+import { ChildProcess, spawn } from "child_process";
 import tcpPortUsed from "tcp-port-used";
-import { spawn, ChildProcess } from "child_process";
+
 import {
   BINARY_PATH,
   DISPLAY_LOG,
+  ETHAPI_CMD,
   MOONBEAM_LOG,
   SPAWNING_TIME,
-  ETHAPI_CMD,
   WASM_RUNTIME_OVERRIDES,
 } from "./constants";
+
 const debug = require("debug")("test:dev-node");
 
 export async function findAvailablePorts() {
@@ -129,7 +131,7 @@ export async function startMoonbeamDevNode(
     process.exit(1);
   });
 
-  const binaryLogs = [];
+  const binaryLogs: any[] = [];
   await new Promise<void>((resolve) => {
     const timer = setTimeout(() => {
       console.error(`\x1b[31m Failed to start Moonbeam Test Node.\x1b[0m`);
@@ -139,7 +141,7 @@ export async function startMoonbeamDevNode(
       throw new Error("Failed to launch node");
     }, SPAWNING_TIME - 2000);
 
-    const onData = async (chunk) => {
+    const onData = async (chunk: any) => {
       if (DISPLAY_LOG) {
         console.log(chunk.toString());
       }

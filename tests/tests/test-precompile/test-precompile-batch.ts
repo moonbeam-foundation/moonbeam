@@ -1,10 +1,12 @@
 import "@moonbeam-network/api-augment";
+
 import { expect } from "chai";
-import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
-import { customWeb3Request } from "../../util/providers";
 import { ethers } from "ethers";
-import { getCompiled } from "../../util/contracts";
+
 import { alith, ALITH_PRIVATE_KEY, baltathar, charleth } from "../../util/accounts";
+import { getCompiled } from "../../util/contracts";
+import { customWeb3Request } from "../../util/providers";
+import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 
 describeDevMoonbeamAllEthTxTypes("Batch - All functions should consume the same gas", (context) => {
   it("should consume the same gas", async function () {

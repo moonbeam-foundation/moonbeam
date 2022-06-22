@@ -1,13 +1,14 @@
 import "@moonbeam-network/api-augment";
+
 import { expect } from "chai";
 
-import { createContract } from "../../util/transactions";
-import { describeDevMoonbeam } from "../../util/setup-dev-tests";
-import { customWeb3Request } from "../../util/providers";
 import { alith } from "../../util/accounts";
+import { customWeb3Request } from "../../util/providers";
+import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+import { createContract } from "../../util/transactions";
 
 describeDevMoonbeam("TxPool - Future Ethereum transaction", (context) => {
-  let txHash;
+  let txHash: string;
   before("Setup: Create transaction", async () => {
     const { rawTx } = await createContract(context, "TestContract", {
       gas: 1048576,

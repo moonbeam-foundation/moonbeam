@@ -1,9 +1,11 @@
 import "@moonbeam-network/api-augment";
+
 import { expect } from "chai";
 import { ethers } from "ethers";
-import { describeDevMoonbeam } from "../../util/setup-dev-tests";
-import { getCompiled } from "../../util/contracts";
+
 import { ALITH_PRIVATE_KEY } from "../../util/accounts";
+import { getCompiled } from "../../util/contracts";
+import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 
 describeDevMoonbeam("Ethers.js", (context) => {
   it("should get correct network ids", async function () {

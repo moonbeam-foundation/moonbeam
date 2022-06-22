@@ -9,7 +9,7 @@ import { alith, ALITH_PRIVATE_KEY } from "../../util/accounts";
 
 describeDevMoonbeam("Ethereum Transaction - Large Transaction", (context) => {
   // function to generate a junk transaction with a specified data size
-  const generateLargeTxn = async (size) => {
+  const generateLargeTxn = async (size: number) => {
     const byte = "FF";
     const data = "0x" + byte.repeat(size);
 
