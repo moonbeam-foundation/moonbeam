@@ -33,13 +33,11 @@ use sp_runtime::{
 };
 
 use super::*;
+use pallet_ethereum::IntermediateStateRoot;
 use sp_runtime::{
 	traits::DispatchInfoOf,
-	transaction_validity::{
-		TransactionValidity, TransactionValidityError,
-	},
+	transaction_validity::{TransactionValidity, TransactionValidityError},
 };
-use pallet_ethereum::IntermediateStateRoot;
 
 pub type SignedExtra = (frame_system::CheckSpecVersion<Test>,);
 
@@ -233,9 +231,9 @@ impl fp_self_contained::SelfContainedCall for Call {
 	) -> Option<sp_runtime::DispatchResultWithInfo<sp_runtime::traits::PostDispatchInfoOf<Self>>> {
 		use sp_runtime::traits::Dispatchable as _;
 		match self {
-			call @ Call::Ethereum(pallet_ethereum::Call::transact { .. }) => {
-				Some(call.dispatch(Origin::from(pallet_ethereum::RawOrigin::EthereumTransaction(info))))
-			}
+			call @ Call::Ethereum(pallet_ethereum::Call::transact { .. }) => Some(call.dispatch(
+				Origin::from(pallet_ethereum::RawOrigin::EthereumTransaction(info)),
+			)),
 			_ => None,
 		}
 	}

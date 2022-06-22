@@ -1490,37 +1490,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "crowdloan-rewards-precompiles"
-version = "0.6.0"
-dependencies = [
- "cumulus-pallet-parachain-system",
- "cumulus-primitives-core",
- "cumulus-primitives-parachain-inherent",
- "cumulus-test-relay-sproof-builder",
- "derive_more",
- "fp-evm",
- "frame-support",
- "frame-system",
- "log",
- "num_enum",
- "pallet-balances",
- "pallet-crowdloan-rewards",
- "pallet-evm",
- "pallet-scheduler",
- "pallet-timestamp",
- "parity-scale-codec",
- "precompile-utils",
- "rustc-hex",
- "scale-info",
- "serde",
- "sha3 0.9.1",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
 name = "crunchy"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5345,7 +5314,6 @@ name = "moonbase-runtime"
 version = "0.8.4"
 dependencies = [
  "account",
- "crowdloan-rewards-precompiles",
  "cumulus-pallet-dmp-queue",
  "cumulus-pallet-parachain-system",
  "cumulus-pallet-xcm",
@@ -5374,6 +5342,7 @@ dependencies = [
  "moonbeam-relay-encoder",
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
+ "moonbeam-runtime-common",
  "nimbus-primitives",
  "orml-traits",
  "orml-xcm-support",
@@ -5382,31 +5351,37 @@ dependencies = [
  "pallet-assets",
  "pallet-author-inherent",
  "pallet-author-mapping",
- "pallet-author-mapping-precompiles",
  "pallet-author-slot-filter",
  "pallet-balances",
  "pallet-base-fee",
  "pallet-collective",
  "pallet-crowdloan-rewards",
  "pallet-democracy",
- "pallet-democracy-precompiles",
  "pallet-ethereum",
  "pallet-ethereum-chain-id",
  "pallet-ethereum-xcm",
  "pallet-evm",
- "pallet-evm-precompile-assets-erc20",
+ "pallet-evm-precompile-author-mapping",
  "pallet-evm-precompile-balances-erc20",
  "pallet-evm-precompile-batch",
  "pallet-evm-precompile-blake2",
  "pallet-evm-precompile-bn128",
+ "pallet-evm-precompile-crowdloan-rewards",
+ "pallet-evm-precompile-democracy",
  "pallet-evm-precompile-dispatch",
  "pallet-evm-precompile-modexp",
+ "pallet-evm-precompile-parachain-staking",
+ "pallet-evm-precompile-relay-encoder",
  "pallet-evm-precompile-sha3fips",
  "pallet-evm-precompile-simple",
+ "pallet-evm-precompile-xcm-transactor",
+ "pallet-evm-precompile-xtokens",
+ "pallet-evm-precompileset-assets-erc20",
  "pallet-identity",
  "pallet-maintenance-mode",
  "pallet-migrations",
  "pallet-moonbeam-orbiters",
+ "pallet-parachain-staking",
  "pallet-proxy",
  "pallet-proxy-genesis-companion",
  "pallet-randomness-collective-flip",
@@ -5419,17 +5394,14 @@ dependencies = [
  "pallet-treasury",
  "pallet-utility",
  "pallet-xcm",
+ "pallet-xcm-transactor",
  "parachain-info",
- "parachain-staking",
- "parachain-staking-precompiles",
  "parity-scale-codec",
  "polkadot-core-primitives",
  "polkadot-parachain",
  "polkadot-runtime-parachains",
  "precompile-utils",
- "relay-encoder-precompiles",
  "rlp",
- "runtime-common",
  "scale-info",
  "serde",
  "session-keys-primitives",
@@ -5454,9 +5426,6 @@ dependencies = [
  "xcm-executor",
  "xcm-primitives",
  "xcm-simulator",
- "xcm-transactor",
- "xcm-transactor-precompiles",
- "xtokens-precompiles",
 ]
 
 [[package]]
@@ -5496,7 +5465,6 @@ dependencies = [
  "polkadot-primitives",
  "polkadot-service",
  "sc-cli",
- "sc-finality-grandpa",
  "sc-service",
  "sc-telemetry",
  "sc-tracing",
@@ -5602,12 +5570,12 @@ dependencies = [
  "frame-support",
  "frame-system",
  "kusama-runtime",
+ "pallet-evm-precompile-relay-encoder",
  "pallet-proxy",
  "pallet-staking",
  "pallet-utility",
  "parity-scale-codec",
  "polkadot-runtime",
- "relay-encoder-precompiles",
  "rococo-runtime",
  "sp-runtime",
  "sp-std",
@@ -5786,7 +5754,6 @@ name = "moonbeam-runtime"
 version = "0.8.4"
 dependencies = [
  "account",
- "crowdloan-rewards-precompiles",
  "cumulus-pallet-dmp-queue",
  "cumulus-pallet-parachain-system",
  "cumulus-pallet-xcm",
@@ -5815,6 +5782,7 @@ dependencies = [
  "moonbeam-relay-encoder",
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
+ "moonbeam-runtime-common",
  "nimbus-primitives",
  "orml-traits",
  "orml-xcm-support",
@@ -5823,31 +5791,37 @@ dependencies = [
  "pallet-assets",
  "pallet-author-inherent",
  "pallet-author-mapping",
- "pallet-author-mapping-precompiles",
  "pallet-author-slot-filter",
  "pallet-balances",
  "pallet-base-fee",
  "pallet-collective",
  "pallet-crowdloan-rewards",
  "pallet-democracy",
- "pallet-democracy-precompiles",
  "pallet-ethereum",
  "pallet-ethereum-chain-id",
  "pallet-ethereum-xcm",
  "pallet-evm",
- "pallet-evm-precompile-assets-erc20",
+ "pallet-evm-precompile-author-mapping",
  "pallet-evm-precompile-balances-erc20",
  "pallet-evm-precompile-batch",
  "pallet-evm-precompile-blake2",
  "pallet-evm-precompile-bn128",
+ "pallet-evm-precompile-crowdloan-rewards",
+ "pallet-evm-precompile-democracy",
  "pallet-evm-precompile-dispatch",
  "pallet-evm-precompile-modexp",
+ "pallet-evm-precompile-parachain-staking",
+ "pallet-evm-precompile-relay-encoder",
  "pallet-evm-precompile-sha3fips",
  "pallet-evm-precompile-simple",
+ "pallet-evm-precompile-xcm-transactor",
+ "pallet-evm-precompile-xtokens",
+ "pallet-evm-precompileset-assets-erc20",
  "pallet-identity",
  "pallet-maintenance-mode",
  "pallet-migrations",
  "pallet-moonbeam-orbiters",
+ "pallet-parachain-staking",
  "pallet-proxy",
  "pallet-proxy-genesis-companion",
  "pallet-randomness-collective-flip",
@@ -5859,17 +5833,14 @@ dependencies = [
  "pallet-treasury",
  "pallet-utility",
  "pallet-xcm",
+ "pallet-xcm-transactor",
  "parachain-info",
- "parachain-staking",
- "parachain-staking-precompiles",
  "parity-scale-codec",
  "polkadot-core-primitives",
  "polkadot-parachain",
  "polkadot-runtime-parachains",
  "precompile-utils",
- "relay-encoder-precompiles",
  "rlp",
- "runtime-common",
  "scale-info",
  "serde",
  "session-keys-primitives",
@@ -5893,9 +5864,31 @@ dependencies = [
  "xcm-executor",
  "xcm-primitives",
  "xcm-simulator",
- "xcm-transactor",
- "xcm-transactor-precompiles",
- "xtokens-precompiles",
+]
+
+[[package]]
+name = "moonbeam-runtime-common"
+version = "0.8.0-dev"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "impl-trait-for-tuples",
+ "log",
+ "pallet-asset-manager",
+ "pallet-author-inherent",
+ "pallet-author-mapping",
+ "pallet-author-slot-filter",
+ "pallet-base-fee",
+ "pallet-collective",
+ "pallet-evm",
+ "pallet-migrations",
+ "pallet-parachain-staking",
+ "pallet-scheduler",
+ "pallet-xcm-transactor",
+ "sp-core",
+ "sp-runtime",
+ "sp-std",
+ "xcm",
 ]
 
 [[package]]
@@ -5958,10 +5951,10 @@ dependencies = [
  "nix",
  "pallet-author-inherent",
  "pallet-ethereum",
+ "pallet-parachain-staking",
  "pallet-sudo",
  "pallet-transaction-payment-rpc",
  "pallet-transaction-payment-rpc-runtime-api",
- "parachain-staking",
  "parity-scale-codec",
  "parking_lot 0.12.1",
  "polkadot-cli",
@@ -5979,7 +5972,6 @@ dependencies = [
  "sc-consensus",
  "sc-consensus-manual-seal",
  "sc-executor",
- "sc-finality-grandpa",
  "sc-informant",
  "sc-network",
  "sc-rpc",
@@ -6032,7 +6024,6 @@ name = "moonriver-runtime"
 version = "0.8.4"
 dependencies = [
  "account",
- "crowdloan-rewards-precompiles",
  "cumulus-pallet-dmp-queue",
  "cumulus-pallet-parachain-system",
  "cumulus-pallet-xcm",
@@ -6061,6 +6052,7 @@ dependencies = [
  "moonbeam-relay-encoder",
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
+ "moonbeam-runtime-common",
  "nimbus-primitives",
  "orml-traits",
  "orml-xcm-support",
@@ -6069,31 +6061,37 @@ dependencies = [
  "pallet-assets",
  "pallet-author-inherent",
  "pallet-author-mapping",
- "pallet-author-mapping-precompiles",
  "pallet-author-slot-filter",
  "pallet-balances",
  "pallet-base-fee",
  "pallet-collective",
  "pallet-crowdloan-rewards",
  "pallet-democracy",
- "pallet-democracy-precompiles",
  "pallet-ethereum",
  "pallet-ethereum-chain-id",
  "pallet-ethereum-xcm",
  "pallet-evm",
- "pallet-evm-precompile-assets-erc20",
+ "pallet-evm-precompile-author-mapping",
  "pallet-evm-precompile-balances-erc20",
  "pallet-evm-precompile-batch",
  "pallet-evm-precompile-blake2",
  "pallet-evm-precompile-bn128",
+ "pallet-evm-precompile-crowdloan-rewards",
+ "pallet-evm-precompile-democracy",
  "pallet-evm-precompile-dispatch",
  "pallet-evm-precompile-modexp",
+ "pallet-evm-precompile-parachain-staking",
+ "pallet-evm-precompile-relay-encoder",
  "pallet-evm-precompile-sha3fips",
  "pallet-evm-precompile-simple",
+ "pallet-evm-precompile-xcm-transactor",
+ "pallet-evm-precompile-xtokens",
+ "pallet-evm-precompileset-assets-erc20",
  "pallet-identity",
  "pallet-maintenance-mode",
  "pallet-migrations",
  "pallet-moonbeam-orbiters",
+ "pallet-parachain-staking",
  "pallet-proxy",
  "pallet-proxy-genesis-companion",
  "pallet-randomness-collective-flip",
@@ -6105,17 +6103,14 @@ dependencies = [
  "pallet-treasury",
  "pallet-utility",
  "pallet-xcm",
+ "pallet-xcm-transactor",
  "parachain-info",
- "parachain-staking",
- "parachain-staking-precompiles",
  "parity-scale-codec",
  "polkadot-core-primitives",
  "polkadot-parachain",
  "polkadot-runtime-parachains",
  "precompile-utils",
- "relay-encoder-precompiles",
  "rlp",
- "runtime-common",
  "scale-info",
  "serde",
  "session-keys-primitives",
@@ -6140,9 +6135,6 @@ dependencies = [
  "xcm-executor",
  "xcm-primitives",
  "xcm-simulator",
- "xcm-transactor",
- "xcm-transactor-precompiles",
- "xtokens-precompiles",
 ]
 
 [[package]]
@@ -6762,33 +6754,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-author-mapping-precompiles"
-version = "0.2.0"
-dependencies = [
- "derive_more",
- "fp-evm",
- "frame-support",
- "frame-system",
- "hex-literal",
- "log",
- "nimbus-primitives",
- "num_enum",
- "pallet-author-mapping",
- "pallet-balances",
- "pallet-evm",
- "pallet-scheduler",
- "pallet-timestamp",
- "parity-scale-codec",
- "precompile-utils",
- "scale-info",
- "serde",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
 name = "pallet-author-slot-filter"
 version = "0.9.0"
 source = "git+https://github.com/purestake/nimbus?branch=girazoki-xcm-call-polkadot-changes#ec4d39f6325115c78ccb051cd01ae50ed2224204"
@@ -7100,32 +7065,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-democracy-precompiles"
-version = "0.2.0"
-dependencies = [
- "derive_more",
- "fp-evm",
- "frame-support",
- "frame-system",
- "hex-literal",
- "log",
- "num_enum",
- "pallet-balances",
- "pallet-democracy",
- "pallet-evm",
- "pallet-scheduler",
- "pallet-timestamp",
- "parity-scale-codec",
- "precompile-utils",
- "scale-info",
- "serde",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
 name = "pallet-election-provider-multi-phase"
 version = "4.0.0-dev"
 source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.20#563f4820d8f36d256ada7ea3fef46b2e94c4cd5a"
@@ -7262,28 +7201,26 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-evm-precompile-assets-erc20"
-version = "0.1.0"
+name = "pallet-evm-precompile-author-mapping"
+version = "0.2.0"
 dependencies = [
  "derive_more",
  "fp-evm",
  "frame-support",
  "frame-system",
  "hex-literal",
- "libsecp256k1 0.7.0",
  "log",
+ "nimbus-primitives",
  "num_enum",
- "pallet-assets",
+ "pallet-author-mapping",
  "pallet-balances",
  "pallet-evm",
+ "pallet-scheduler",
  "pallet-timestamp",
  "parity-scale-codec",
- "paste",
  "precompile-utils",
  "scale-info",
  "serde",
- "sha3 0.8.2",
- "slices",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -7365,6 +7302,63 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-evm-precompile-crowdloan-rewards"
+version = "0.6.0"
+dependencies = [
+ "cumulus-pallet-parachain-system",
+ "cumulus-primitives-core",
+ "cumulus-primitives-parachain-inherent",
+ "cumulus-test-relay-sproof-builder",
+ "derive_more",
+ "fp-evm",
+ "frame-support",
+ "frame-system",
+ "log",
+ "num_enum",
+ "pallet-balances",
+ "pallet-crowdloan-rewards",
+ "pallet-evm",
+ "pallet-scheduler",
+ "pallet-timestamp",
+ "parity-scale-codec",
+ "precompile-utils",
+ "rustc-hex",
+ "scale-info",
+ "serde",
+ "sha3 0.9.1",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-evm-precompile-democracy"
+version = "0.2.0"
+dependencies = [
+ "derive_more",
+ "fp-evm",
+ "frame-support",
+ "frame-system",
+ "hex-literal",
+ "log",
+ "num_enum",
+ "pallet-balances",
+ "pallet-democracy",
+ "pallet-evm",
+ "pallet-scheduler",
+ "pallet-timestamp",
+ "parity-scale-codec",
+ "precompile-utils",
+ "scale-info",
+ "serde",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-evm-precompile-dispatch"
 version = "2.0.0-dev"
 source = "git+https://github.com/purestake/frontier?branch=transact-xcm-2-0.9.20#3718ddefc75406ffe8627316efd457ccc0f1f696"
@@ -7384,6 +7378,61 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-evm-precompile-parachain-staking"
+version = "1.0.0"
+dependencies = [
+ "derive_more",
+ "fp-evm",
+ "frame-support",
+ "frame-system",
+ "log",
+ "num_enum",
+ "pallet-balances",
+ "pallet-evm",
+ "pallet-parachain-staking",
+ "pallet-timestamp",
+ "parity-scale-codec",
+ "precompile-utils",
+ "rustc-hex",
+ "scale-info",
+ "serde",
+ "sha3 0.9.1",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-evm-precompile-relay-encoder"
+version = "0.1.0"
+dependencies = [
+ "cumulus-pallet-parachain-system",
+ "cumulus-primitives-core",
+ "derive_more",
+ "fp-evm",
+ "frame-support",
+ "frame-system",
+ "hex-literal",
+ "log",
+ "num_enum",
+ "pallet-balances",
+ "pallet-evm",
+ "pallet-staking",
+ "pallet-timestamp",
+ "parity-scale-codec",
+ "precompile-utils",
+ "rustc-hex",
+ "scale-info",
+ "serde",
+ "sha3 0.9.1",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-evm-precompile-sha3fips"
 version = "2.0.0-dev"
 source = "git+https://github.com/purestake/frontier?branch=transact-xcm-2-0.9.20#3718ddefc75406ffe8627316efd457ccc0f1f696"
@@ -7400,6 +7449,102 @@ dependencies = [
  "fp-evm",
  "ripemd",
  "sp-io",
+]
+
+[[package]]
+name = "pallet-evm-precompile-xcm-transactor"
+version = "0.1.0"
+dependencies = [
+ "cumulus-primitives-core",
+ "derive_more",
+ "evm",
+ "fp-evm",
+ "frame-support",
+ "frame-system",
+ "log",
+ "num_enum",
+ "orml-traits",
+ "pallet-balances",
+ "pallet-evm",
+ "pallet-timestamp",
+ "pallet-xcm",
+ "pallet-xcm-transactor",
+ "parity-scale-codec",
+ "precompile-utils",
+ "rustc-hex",
+ "scale-info",
+ "serde",
+ "sha3 0.9.1",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "xcm",
+ "xcm-builder",
+ "xcm-executor",
+ "xcm-primitives",
+]
+
+[[package]]
+name = "pallet-evm-precompile-xtokens"
+version = "0.1.0"
+dependencies = [
+ "cumulus-primitives-core",
+ "derive_more",
+ "fp-evm",
+ "frame-support",
+ "frame-system",
+ "log",
+ "num_enum",
+ "orml-traits",
+ "orml-xtokens",
+ "pallet-balances",
+ "pallet-evm",
+ "pallet-timestamp",
+ "pallet-xcm",
+ "parity-scale-codec",
+ "precompile-utils",
+ "rustc-hex",
+ "scale-info",
+ "serde",
+ "sha3 0.9.1",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "xcm",
+ "xcm-builder",
+ "xcm-executor",
+ "xcm-primitives",
+]
+
+[[package]]
+name = "pallet-evm-precompileset-assets-erc20"
+version = "0.1.0"
+dependencies = [
+ "derive_more",
+ "fp-evm",
+ "frame-support",
+ "frame-system",
+ "hex-literal",
+ "libsecp256k1 0.7.0",
+ "log",
+ "num_enum",
+ "pallet-assets",
+ "pallet-balances",
+ "pallet-evm",
+ "pallet-timestamp",
+ "parity-scale-codec",
+ "paste",
+ "precompile-utils",
+ "scale-info",
+ "serde",
+ "sha3 0.8.2",
+ "slices",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -7652,6 +7797,27 @@ dependencies = [
  "sp-runtime",
  "sp-staking",
  "sp-std",
+]
+
+[[package]]
+name = "pallet-parachain-staking"
+version = "3.0.0"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "nimbus-primitives",
+ "pallet-balances",
+ "parity-scale-codec",
+ "scale-info",
+ "serde",
+ "similar-asserts",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "substrate-fixed",
 ]
 
 [[package]]
@@ -7979,6 +8145,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-xcm-transactor"
+version = "0.1.0"
+dependencies = [
+ "cumulus-primitives-core",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "orml-traits",
+ "pallet-balances",
+ "pallet-timestamp",
+ "pallet-xcm",
+ "parity-scale-codec",
+ "scale-info",
+ "serde",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "xcm",
+ "xcm-builder",
+ "xcm-executor",
+ "xcm-primitives",
+]
+
+[[package]]
 name = "parachain-info"
 version = "0.1.0"
 source = "git+https://github.com/purestake/cumulus?branch=girazoki-xcm-call-polkadot-changes#909d2d7b847a0c29f622d5cd28a0df00a37c82e4"
@@ -7989,53 +8181,6 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "serde",
-]
-
-[[package]]
-name = "parachain-staking"
-version = "3.0.0"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "log",
- "nimbus-primitives",
- "pallet-balances",
- "parity-scale-codec",
- "scale-info",
- "serde",
- "similar-asserts",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
- "substrate-fixed",
-]
-
-[[package]]
-name = "parachain-staking-precompiles"
-version = "1.0.0"
-dependencies = [
- "derive_more",
- "fp-evm",
- "frame-support",
- "frame-system",
- "log",
- "num_enum",
- "pallet-balances",
- "pallet-evm",
- "pallet-timestamp",
- "parachain-staking",
- "parity-scale-codec",
- "precompile-utils",
- "rustc-hex",
- "scale-info",
- "serde",
- "sha3 0.9.1",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
 ]
 
 [[package]]
@@ -10117,35 +10262,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "relay-encoder-precompiles"
-version = "0.1.0"
-dependencies = [
- "cumulus-pallet-parachain-system",
- "cumulus-primitives-core",
- "derive_more",
- "fp-evm",
- "frame-support",
- "frame-system",
- "hex-literal",
- "log",
- "num_enum",
- "pallet-balances",
- "pallet-evm",
- "pallet-staking",
- "pallet-timestamp",
- "parity-scale-codec",
- "precompile-utils",
- "rustc-hex",
- "scale-info",
- "serde",
- "sha3 0.9.1",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
 name = "remote-externalities"
 version = "0.10.0-dev"
 source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.20#563f4820d8f36d256ada7ea3fef46b2e94c4cd5a"
@@ -10336,31 +10452,6 @@ checksum = "ffc936cf8a7ea60c58f030fd36a612a48f440610214dc54bc36431f9ea0c3efb"
 dependencies = [
  "libc",
  "winapi 0.3.9",
-]
-
-[[package]]
-name = "runtime-common"
-version = "0.8.0-dev"
-dependencies = [
- "frame-support",
- "frame-system",
- "impl-trait-for-tuples",
- "log",
- "pallet-asset-manager",
- "pallet-author-inherent",
- "pallet-author-mapping",
- "pallet-author-slot-filter",
- "pallet-base-fee",
- "pallet-collective",
- "pallet-evm",
- "pallet-migrations",
- "pallet-scheduler",
- "parachain-staking",
- "sp-core",
- "sp-runtime",
- "sp-std",
- "xcm",
- "xcm-transactor",
 ]
 
 [[package]]
@@ -14648,99 +14739,6 @@ dependencies = [
  "sp-std",
  "xcm",
  "xcm-executor",
-]
-
-[[package]]
-name = "xcm-transactor"
-version = "0.1.0"
-dependencies = [
- "cumulus-primitives-core",
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "log",
- "orml-traits",
- "pallet-balances",
- "pallet-timestamp",
- "pallet-xcm",
- "parity-scale-codec",
- "scale-info",
- "serde",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
- "xcm",
- "xcm-builder",
- "xcm-executor",
- "xcm-primitives",
-]
-
-[[package]]
-name = "xcm-transactor-precompiles"
-version = "0.1.0"
-dependencies = [
- "cumulus-primitives-core",
- "derive_more",
- "evm",
- "fp-evm",
- "frame-support",
- "frame-system",
- "log",
- "num_enum",
- "orml-traits",
- "pallet-balances",
- "pallet-evm",
- "pallet-timestamp",
- "pallet-xcm",
- "parity-scale-codec",
- "precompile-utils",
- "rustc-hex",
- "scale-info",
- "serde",
- "sha3 0.9.1",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
- "xcm",
- "xcm-builder",
- "xcm-executor",
- "xcm-primitives",
- "xcm-transactor",
-]
-
-[[package]]
-name = "xtokens-precompiles"
-version = "0.1.0"
-dependencies = [
- "cumulus-primitives-core",
- "derive_more",
- "fp-evm",
- "frame-support",
- "frame-system",
- "log",
- "num_enum",
- "orml-traits",
- "orml-xtokens",
- "pallet-balances",
- "pallet-evm",
- "pallet-timestamp",
- "pallet-xcm",
- "parity-scale-codec",
- "precompile-utils",
- "rustc-hex",
- "scale-info",
- "serde",
- "sha3 0.9.1",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
- "xcm",
- "xcm-builder",
- "xcm-executor",
- "xcm-primitives",
 ]
 
 [[package]]

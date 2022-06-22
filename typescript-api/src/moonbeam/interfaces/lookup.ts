@@ -1813,12 +1813,8 @@ export default {
    * Lookup157: sp_trie::storage_proof::StorageProof
    */
   SpTrieStorageProof: {
-    trieNodes: "BTreeSet",
+    trieNodes: "BTreeSet<Bytes>",
   },
-  /**
-   * Lookup158: BTreeSet<T>
-   */
-  BTreeSet: "BTreeSet<Bytes>",
   /**
    * Lookup159:
    * cumulus_pallet_parachain_system::relay_state_snapshot::MessagingStateSnapshot
@@ -2185,25 +2181,21 @@ export default {
    * Lookup218: parachain_staking::inflation::InflationInfo<Balance>
    */
   ParachainStakingInflationInflationInfo: {
-    expect: "ParachainStakingInflationRangeU128",
-    annual: "ParachainStakingInflationRangePerbill",
-    round: "ParachainStakingInflationRangePerbill",
-  },
-  /**
-   * Lookup219: parachain_staking::inflation::Range<T>
-   */
-  ParachainStakingInflationRangeU128: {
-    min: "u128",
-    ideal: "u128",
-    max: "u128",
-  },
-  /**
-   * Lookup220: parachain_staking::inflation::Range<sp_arithmetic::per_things::Perbill>
-   */
-  ParachainStakingInflationRangePerbill: {
-    min: "Perbill",
-    ideal: "Perbill",
-    max: "Perbill",
+    expect: {
+      min: "u128",
+      ideal: "u128",
+      max: "u128",
+    },
+    annual: {
+      min: "Perbill",
+      ideal: "Perbill",
+      max: "Perbill",
+    },
+    round: {
+      min: "Perbill",
+      ideal: "Perbill",
+      max: "Perbill",
+    },
   },
   /**
    * Lookup221: parachain_staking::pallet::Call<T>
@@ -2211,10 +2203,18 @@ export default {
   ParachainStakingCall: {
     _enum: {
       set_staking_expectations: {
-        expectations: "ParachainStakingInflationRangeU128",
+        expectations: {
+          min: "u128",
+          ideal: "u128",
+          max: "u128",
+        },
       },
       set_inflation: {
-        schedule: "ParachainStakingInflationRangePerbill",
+        schedule: {
+          min: "Perbill",
+          ideal: "Perbill",
+          max: "Perbill",
+        },
       },
       set_parachain_bond_account: {
         _alias: {

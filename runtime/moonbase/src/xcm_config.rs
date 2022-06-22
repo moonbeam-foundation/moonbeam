@@ -19,11 +19,11 @@
 
 use super::{
 	AccountId, AssetId, AssetManager, Assets, Balance, Balances, Call, DealWithFees, Event,
-	LocalAssets, Origin, ParachainInfo, ParachainSystem, PolkadotXcm, Runtime, Treasury,
-	WeightToFee, XcmpQueue, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	LocalAssets, Origin, ParachainInfo, ParachainSystem, PolkadotXcm, Runtime, Treasury, XcmpQueue,
+	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 
-use pallet_evm_precompile_assets_erc20::AccountIdAssetIdConversion;
+use pallet_evm_precompileset_assets_erc20::AccountIdAssetIdConversion;
 use sp_runtime::traits::Hash as THash;
 
 use frame_support::{
@@ -45,7 +45,7 @@ use xcm_builder::{
 };
 
 use xcm::latest::prelude::*;
-use xcm_executor::traits::{JustTry, CallDispatcher};
+use xcm_executor::traits::{CallDispatcher, JustTry};
 
 use orml_xcm_support::MultiNativeAsset;
 use xcm_primitives::{
@@ -254,10 +254,10 @@ pub type XcmFeesToAccount = xcm_primitives::XcmFeesToAccount<
 	XcmFeesAccount,
 >;
 
-use sp_runtime::DispatchErrorWithPostInfo;
-use sp_runtime::traits::PostDispatchInfoOf;
 use frame_system::RawOrigin;
-runtime_common::impl_moonbeam_xcm_call!();
+use sp_runtime::traits::PostDispatchInfoOf;
+use sp_runtime::DispatchErrorWithPostInfo;
+moonbeam_runtime_common::impl_moonbeam_xcm_call!();
 
 pub struct XcmExecutorConfig;
 impl xcm_executor::Config for XcmExecutorConfig {
@@ -280,7 +280,13 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	// When we receive a non-reserve asset, we use AssetManager to fetch how many
 	// units per second we should charge
 	type Trader = (
-		UsingComponents<WeightToFee, SelfReserve, AccountId, Balances, DealWithFees<Runtime>>,
+		UsingComponents<
+			<Runtime as pallet_transaction_payment::Config>::WeightToFee,
+			SelfReserve,
+			AccountId,
+			Balances,
+			DealWithFees<Runtime>,
+		>,
 		FirstAssetTrader<AssetType, AssetManager, XcmFeesToAccount>,
 	);
 	type ResponseHandler = PolkadotXcm;
@@ -512,7 +518,7 @@ impl XcmTransact for Transactors {
 	}
 }
 
-impl xcm_transactor::Config for Runtime {
+impl pallet_xcm_transactor::Config for Runtime {
 	type Event = Event;
 	type Balance = Balance;
 	type Transactor = Transactors;
@@ -529,5 +535,5 @@ impl xcm_transactor::Config for Runtime {
 	type BaseXcmWeight = BaseXcmWeight;
 	type AssetTransactor = AssetTransactors;
 	type ReserveProvider = AbsoluteAndRelativeReserve<SelfLocationAbsolute>;
-	type WeightInfo = xcm_transactor::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = pallet_xcm_transactor::weights::SubstrateWeight<Runtime>;
 }

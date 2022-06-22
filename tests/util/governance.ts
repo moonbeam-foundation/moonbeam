@@ -2,9 +2,9 @@ import { ApiTypes, SubmittableExtrinsic } from "@polkadot/api/types";
 import { KeyringPair } from "@polkadot/keyring/types";
 import { blake2AsHex } from "@polkadot/util-crypto";
 import { expect } from "chai";
+
 import { alith, baltathar, charleth, dorothy } from "./accounts";
 import { DevTestContext } from "./setup-dev-tests";
-import { createBlockWithExtrinsic } from "./substrate-rpc";
 
 export const COUNCIL_MEMBERS = [baltathar, charleth, dorothy];
 export const COUNCIL_THRESHOLD = Math.ceil((COUNCIL_MEMBERS.length * 2) / 3);

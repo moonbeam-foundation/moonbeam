@@ -1,34 +1,28 @@
 import "@moonbeam-network/api-augment";
-import { expect } from "chai";
-import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
-import { customWeb3Request } from "../../util/providers";
-import { createBlockWithExtrinsic } from "../../util/substrate-rpc";
 
 import {
   BN,
-  hexToU8a,
   bnToHex,
-  u8aToHex,
-  stringToHex,
+  hexToU8a,
   numberToHex,
+  stringToHex,
+  u8aToHex,
   u8aToString,
 } from "@polkadot/util";
-import { getCompiled } from "../../util/contracts";
+import { expect } from "chai";
 import { ethers } from "ethers";
+
+import { alith, baltathar, charleth } from "../../util/accounts";
+import { registerLocalAssetWithMeta } from "../../util/assets";
+import { getCompiled } from "../../util/contracts";
+import { customWeb3Request } from "../../util/providers";
+import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 import {
   ALITH_TRANSACTION_TEMPLATE,
   BALTATHAR_TRANSACTION_TEMPLATE,
   createContract,
   createTransaction,
 } from "../../util/transactions";
-import {
-  alith,
-  ALITH_PRIVATE_KEY,
-  baltathar,
-  BALTATHAR_PRIVATE_KEY,
-  charleth,
-} from "../../util/accounts";
-import { registerLocalAssetWithMeta } from "../../util/assets";
 
 const SELECTORS = {
   balanceOf: "70a08231",

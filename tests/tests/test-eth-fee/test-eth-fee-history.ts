@@ -1,16 +1,17 @@
 import "@moonbeam-network/api-augment";
-import { ethers } from "ethers";
-import { expect } from "chai";
 
-import { customWeb3Request } from "../../util/providers";
-import { getCompiled } from "../../util/contracts";
-import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
+import { expect } from "chai";
+import { ethers } from "ethers";
+
 import { alith, ALITH_PRIVATE_KEY } from "../../util/accounts";
+import { getCompiled } from "../../util/contracts";
+import { customWeb3Request } from "../../util/providers";
+import { describeDevMoonbeamAllEthTxTypes, DevTestContext } from "../../util/setup-dev-tests";
 
 // We use ethers library in this test as apparently web3js's types are not fully EIP-1559
 // compliant yet.
 describeDevMoonbeamAllEthTxTypes("Fee History", (context) => {
-  async function sendTransaction(context, payload: any) {
+  async function sendTransaction(context: DevTestContext, payload: any) {
     let signer = new ethers.Wallet(ALITH_PRIVATE_KEY, context.ethers);
     // Ethers internally matches the locally calculated transaction hash against the one
     // returned as a response.
@@ -19,7 +20,7 @@ describeDevMoonbeamAllEthTxTypes("Fee History", (context) => {
     return tx;
   }
 
-  function get_percentile(percentile, array) {
+  function get_percentile(percentile: number, array: number[]) {
     array.sort(function (a, b) {
       return a - b;
     });
@@ -31,7 +32,12 @@ describeDevMoonbeamAllEthTxTypes("Fee History", (context) => {
     }
   }
 
-  async function createBlocks(block_count, reward_percentiles, priority_fees, max_fee_per_gas) {
+  async function createBlocks(
+    block_count: number,
+    reward_percentiles: number[],
+    priority_fees: number[],
+    max_fee_per_gas: string
+  ) {
     const contractData = await getCompiled("TestContract");
     let nonce = await context.web3.eth.getTransactionCount(alith.address);
     for (var b = 0; b < block_count; b++) {

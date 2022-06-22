@@ -1,5 +1,7 @@
 import "@moonbeam-network/api-augment";
+
 import { expect } from "chai";
+
 import { baltathar } from "../../util/accounts";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { createTransfer } from "../../util/transactions";
@@ -30,6 +32,7 @@ describeDevMoonbeam(
     });
   },
   "Legacy",
+  "moonbase",
   false
 );
 
@@ -76,6 +79,7 @@ describeDevMoonbeam(
     });
   },
   "EIP2930",
+  "moonbase",
   false
 );
 
@@ -123,5 +127,6 @@ describeDevMoonbeam(
     });
   },
   "EIP1559",
+  "moonbase",
   false
 );

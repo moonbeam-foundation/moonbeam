@@ -1,5 +1,5 @@
 [package]
-name = "parachain-staking"
+name = "pallet-parachain-staking"
 authors = [ "PureStake" ]
 description = "parachain staking pallet for collator selection and reward distribution"
 edition = "2021"

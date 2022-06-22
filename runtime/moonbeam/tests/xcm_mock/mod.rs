@@ -193,4 +193,4 @@ pub type AssetManager = pallet_asset_manager::Pallet<parachain::Runtime>;
 pub type XTokens = orml_xtokens::Pallet<parachain::Runtime>;
 pub type RelayBalances = pallet_balances::Pallet<relay_chain::Runtime>;
 pub type ParaBalances = pallet_balances::Pallet<parachain::Runtime>;
-pub type XcmTransactor = xcm_transactor::Pallet<parachain::Runtime>;
+pub type XcmTransactor = pallet_xcm_transactor::Pallet<parachain::Runtime>;

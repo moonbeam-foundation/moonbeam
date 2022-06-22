@@ -1,5 +1,5 @@
 [package]
-name = "pallet-author-mapping-precompiles"
+name = "pallet-evm-precompile-author-mapping"
 authors = [ "PureStake" ]
 description = "A Precompile to make pallet-author-mapping accessible to pallet-evm"
 edition = "2021"

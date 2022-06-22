@@ -1,5 +1,5 @@
 [package]
-name = "parachain-staking-precompiles"
+name = "pallet-evm-precompile-parachain-staking"
 authors = [ "PureStake" ]
 description = "A Precompile to make parachain staking accessible to pallet-evm"
 edition = "2021"
@@ -11,7 +11,7 @@ num_enum = { version = "0.5.3", default-features = false }
 rustc-hex = { version = "2.0.1", default-features = false }
 
 # Moonbeam
-parachain-staking = { path = "../../pallets/parachain-staking", default-features = false }
+pallet-parachain-staking = { path = "../../pallets/parachain-staking", default-features = false }
 precompile-utils = { path = "../utils", default-features = false }
 
 # Substrate
@@ -48,7 +48,7 @@ std = [
 	"fp-evm/std",
 	"frame-support/std",
 	"frame-system/std",
-	"parachain-staking/std",
+	"pallet-parachain-staking/std",
 	"precompile-utils/std",
 	"sp-core/std",
 	"sp-std/std",

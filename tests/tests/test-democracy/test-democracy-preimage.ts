@@ -1,11 +1,12 @@
 import "@moonbeam-network/api-augment";
-import { expect } from "chai";
-import { MICROGLMR } from "../../util/constants";
-import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+
 import { blake2AsHex } from "@polkadot/util-crypto";
-import { createBlockWithExtrinsic } from "../../util/substrate-rpc";
-import { notePreimage } from "../../util/governance";
+import { expect } from "chai";
+
 import { alith } from "../../util/accounts";
+import { MICROGLMR } from "../../util/constants";
+import { notePreimage } from "../../util/governance";
+import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 
 describeDevMoonbeam("Democracy - Preimage", (context) => {
   it("should be notable", async function () {

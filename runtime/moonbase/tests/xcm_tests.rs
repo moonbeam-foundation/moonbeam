@@ -2264,14 +2264,6 @@ fn transact_through_signed_multilocation_para_to_para() {
 	MockNet::reset();
 	let mut ancestry = MultiLocation::parent();
 
-	let account_test = hex::decode("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac").unwrap();
-	let multilocation =  MultiLocation::new(1, X2(Parachain(2023), AccountKey20 {
-		network: NetworkId::Any,
-		key: account_test.try_into().unwrap()
-	}));
-
-	let account = xcm_primitives::Account20Hash::<parachain::AccountId>::convert_ref(multilocation);
-	println!("account {:?}", account);
 	let para_b_location = MultiLocation::new(1, X1(Parachain(2)));
 
 	let para_b_balances = MultiLocation::new(1, X2(Parachain(2), PalletInstance(1u8)));

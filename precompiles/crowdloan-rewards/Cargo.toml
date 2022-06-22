@@ -1,5 +1,5 @@
 [package]
-name = "crowdloan-rewards-precompiles"
+name = "pallet-evm-precompile-crowdloan-rewards"
 authors = [ "PureStake" ]
 description = "A Precompile to make crowdloan rewards accessible to pallet-evm"
 edition = "2021"

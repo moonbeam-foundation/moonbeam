@@ -1,5 +1,5 @@
 [package]
-name = "xtokens-precompiles"
+name = "pallet-evm-precompile-xtokens"
 authors = [ "PureStake" ]
 description = "A Precompile to make xtokens accessible to pallet-evm"
 edition = "2021"
