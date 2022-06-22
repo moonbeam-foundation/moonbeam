@@ -2,7 +2,6 @@ import "@polkadot/api-augment";
 import "@moonbeam-network/api-augment";
 import { BN } from "@polkadot/util";
 import { u128, u32 } from "@polkadot/types";
-import { AccountId20 } from "@polkadot/types/interfaces";
 import { ApiPromise } from "@polkadot/api";
 import { expect } from "chai";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
@@ -11,20 +10,24 @@ const debug = require("debug")("smoke:staking");
 const wssUrl = process.env.WSS_URL || null;
 const relayWssUrl = process.env.RELAY_WSS_URL || null;
 
-describeSmokeSuite(`Verify staking rewards`, { wssUrl, relayWssUrl }, function (context) {
-  it("rewards are given as expected", async function () {
-    this.timeout(500000);
-    const atBlockNumber = (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber();
-    await assertRewardsAtRoundBefore(context.polkadotApi, atBlockNumber);
+if (!process.env.SKIP_BLOCK_CONSISTENCY_TESTS) {
+  describeSmokeSuite(`Verify staking rewards`, { wssUrl, relayWssUrl }, function (context) {
+    it("rewards are given as expected", async function () {
+      this.timeout(500000);
+      const atBlockNumber = process.env.BLOCK_NUMBER
+        ? parseInt(process.env.BLOCK_NUMBER)
+        : (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber();
+      await assertRewardsAtRoundBefore(context.polkadotApi, atBlockNumber);
+    });
   });
-});
+}
 
 async function assertRewardsAtRoundBefore(api: ApiPromise, nowBlockNumber: number) {
   const nowBlockHash = await api.rpc.chain.getBlockHash(nowBlockNumber);
   const nowRound = await (await api.at(nowBlockHash)).query.parachainStaking.round();
-  const previousRoundBlock = nowRound.first.subn(1);
+  const previousRoundBlock = nowRound.first.subn(1).toNumber();
 
-  await assertRewardsAt(api, previousRoundBlock.toNumber());
+  await assertRewardsAt(api, previousRoundBlock);
 }
 
 async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
@@ -48,7 +51,10 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
   while (true) {
     const blockHash = await api.rpc.chain.getBlockHash(iterOriginalRoundBlock);
     const round = await (await api.at(blockHash)).query.parachainStaking.round();
-    if (round.current.eq(originalRoundNumber)) {
+    if (
+      round.current.eq(originalRoundNumber) ||
+      iterOriginalRoundBlock.sub(round.length).toNumber() < 0
+    ) {
       break;
     }
 
@@ -61,12 +67,12 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
   const apiAtOriginal = await api.at(originalRoundPriorBlockHash);
 
   debug(`
-now     ${nowRound.current.toString()} (${nowBlockNumber} / ${nowBlockHash.toHex()})
-round   ${originalRoundNumber.toString()} (prior round last block \
-${originalRoundPriorBlock} / ${originalRoundPriorBlockHash.toHex()})
-paid in ${nowRoundNumber.toString()} (first block \
-${nowRoundFirstBlock.toNumber()} / ${nowRoundFirstBlockHash.toHex()} / prior \
-${priorRewardedBlockHash.toHex()})`);
+  now     ${nowRound.current.toString()} (${nowBlockNumber} / ${nowBlockHash.toHex()})
+  round   ${originalRoundNumber.toString()} (prior round last block \
+  ${originalRoundPriorBlock} / ${originalRoundPriorBlockHash.toHex()})
+  paid in ${nowRoundNumber.toString()} (first block \
+  ${nowRoundFirstBlock.toNumber()} / ${nowRoundFirstBlockHash.toHex()} / prior \
+  ${priorRewardedBlockHash.toHex()})`);
 
   // collect info about staked value from collators and delegators
   const apiAtPriorRewarded = await api.at(priorRewardedBlockHash);
@@ -91,7 +97,7 @@ ${priorRewardedBlockHash.toHex()})`);
       accountId
     );
 
-    const collatorInfo = {
+    const collatorInfo: StakedValueData = {
       id: collatorId,
       bond,
       total,
@@ -116,12 +122,21 @@ ${priorRewardedBlockHash.toHex()})`);
       };
     }
 
-    expect(topDelegations.size).to.equal(
-      Object.keys(collatorInfo.delegators).length,
-      `delegator count mismatch ${topDelegations.size} != ${
-        Object.keys(collatorInfo.delegators).length
-      } for round ${originalRoundNumber.toString()}`
-    );
+    for (const topDelegation of topDelegations) {
+      if (!Object.keys(collatorInfo.delegators).includes(topDelegation)) {
+        throw new Error(
+          `${topDelegation} is missing from collatorInfo ` +
+            `for round ${originalRoundNumber.toString()}`
+        );
+      }
+    }
+    for (const delegator of Object.keys(collatorInfo.delegators)) {
+      if (!topDelegations.has(delegator as any)) {
+        throw new Error(
+          `${delegator} is missing from topDelegations for round ${originalRoundNumber.toString()}`
+        );
+      }
+    }
 
     stakedValue[collatorId] = collatorInfo;
   }
@@ -165,7 +180,7 @@ ${priorRewardedBlockHash.toHex()})`);
     }
     // only deduct parachainBondReward if it was transferred (event must exist)
     if (apiAtRewarded.events.parachainStaking.ReservedForParachainBond.is(event)) {
-      reservedForParachainBond = event.data[1];
+      reservedForParachainBond = event.data[1] as any;
       break;
     }
   }
@@ -176,8 +191,8 @@ ${priorRewardedBlockHash.toHex()})`);
       expect(
         parachainBondReward.eq(reservedForParachainBond),
         `parachain bond amount does not match \
-        ${parachainBondReward.toString()} != ${reservedForParachainBond.toString()} \
-        for round ${originalRoundNumber.toString()}`
+          ${parachainBondReward.toString()} != ${reservedForParachainBond.toString()} \
+          for round ${originalRoundNumber.toString()}`
       ).to.be.true;
       return totalRoundIssuance.sub(parachainBondReward);
     }
@@ -191,8 +206,8 @@ ${priorRewardedBlockHash.toHex()})`);
   expect(
     delayedPayout.totalStakingReward.eq(totalStakingReward),
     `reward amounts do not match \
-    ${delayedPayout.totalStakingReward.toString()} != ${totalStakingReward.toString()} \
-    for round ${originalRoundNumber.toString()}`
+      ${delayedPayout.totalStakingReward.toString()} != ${totalStakingReward.toString()} \
+      for round ${originalRoundNumber.toString()}`
   ).to.be.true;
 
   // verify rewards
@@ -286,7 +301,7 @@ async function assertRewardedEventsAtBlock(
   const apiAtBlock = await api.at(nowRoundRewardBlockHash);
 
   debug(`> block ${rewardedBlockNumber} (${nowRoundRewardBlockHash})`);
-  const rewards = {};
+  const rewards: { [key: `0x${string}`]: { account: string; amount: u128 } } = {};
   const blockEvents = await apiAtBlock.query.system.events();
   let rewardCount = 0;
   for (const { phase, event } of blockEvents) {
@@ -298,7 +313,7 @@ async function assertRewardedEventsAtBlock(
       rewardCount++;
       rewards[event.data[0].toHex()] = {
         account: event.data[0].toHex(),
-        amount: event.data[1],
+        amount: event.data[1] as u128,
       };
     }
   }
@@ -307,11 +322,11 @@ async function assertRewardedEventsAtBlock(
   let delegationReward: BN = new BN(0);
   let collatorInfo: any = {};
   let rewarded = {
-    collator: null,
+    collator: null as `0x${string}`,
     delegators: new Set<string>(),
   };
 
-  for (const accountId of Object.keys(rewards)) {
+  for (const accountId of Object.keys(rewards) as `0x${string}`[]) {
     if (collators.has(accountId)) {
       // collator is always paid first so this is guaranteed to execute first
       collatorInfo = stakedValue[accountId];
@@ -364,14 +379,16 @@ function assertEqualWithAccount(a: BN, b: BN, account: string) {
 
 type Rewarded = { collator: `0x${string}` | null; delegators: Set<string> };
 
+type StakedValueData = {
+  id: string;
+  bond: u128;
+  total: u128;
+  points: u32;
+  delegators: { [key: string]: { id: string; amount: u128 } };
+};
+
 type StakedValue = {
-  [key: string]: {
-    id: string;
-    bond: u128;
-    total: u128;
-    points: u32;
-    delegators: { [key: string]: { id: string; amount: u128 } };
-  };
+  [key: string]: StakedValueData;
 };
 
 class Perthing {

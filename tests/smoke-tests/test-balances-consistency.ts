@@ -1,7 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { ApiDecoration } from "@polkadot/api/types";
 import type { FrameSystemAccountInfo } from "@polkadot/types/lookup";
-import { StorageKey, Option, u128 } from "@polkadot/types";
+import chalk from "chalk";
 import { expect } from "chai";
 import { printTokens } from "../util/logging";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
@@ -251,30 +251,38 @@ describeSmokeSuite(`Verify balances consistency`, { wssUrl, relayWssUrl }, (cont
         p[v.accountId].total += Object.keys(v.reserved).reduce((p, key) => p + v.reserved[key], 0n);
         p[v.accountId].reserved = { ...p[v.accountId].reserved, ...v.reserved };
         return p;
-      }, {});
+      }, {} as { [key: string]: { total: bigint; reserved: { [key: string]: bigint } } });
 
     debug(`Retrieved ${Object.keys(expectedReserveByAccount).length} deposits`);
+
+    const failedExpectations = [];
 
     for (const accountId of Object.keys(accounts)) {
       let reserved = accounts[accountId].data.reserved.toBigInt();
       const expectedReserve = expectedReserveByAccount[accountId]?.total || 0n;
 
-      expect(reserved).to.equal(
-        expectedReserve,
-        `${accountId} (reserved: ${reserved} vs expected: ${expectedReserve})\n (${Object.keys(
-          expectedReserveByAccount[accountId]?.reserved || {}
-        )
-          .map(
-            (key) =>
-              `${key}: ${printTokens(
-                context.polkadotApi,
-                expectedReserveByAccount[accountId].reserved[key]
-              )}`
-          )
-          .join(` - `)})`
-      );
+      if (reserved != expectedReserve) {
+        failedExpectations.push(
+          `${accountId} (reserved: ${reserved} vs expected: ${expectedReserve})\n` +
+            `        (${Object.keys(expectedReserveByAccount[accountId]?.reserved || {})
+              .map(
+                (key) =>
+                  `${key}: ${printTokens(
+                    context.polkadotApi,
+                    expectedReserveByAccount[accountId].reserved[key]
+                  )}`
+              )
+              .join(` - `)})`
+        );
+      }
     }
-    debug(`Verified ${Object.keys(accounts).length} total reserved balance`);
+
+    if (failedExpectations.length > 0) {
+      console.log(chalk.red(failedExpectations.join("\n")));
+      expect(failedExpectations.length, "Failed accounts reserves").to.equal(0);
+    }
+
+    debug(`Verified ${Object.keys(accounts).length} total reserved balance (at #${atBlockNumber})`);
   });
 
   it("should match total supply", async function () {

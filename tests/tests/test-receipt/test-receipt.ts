@@ -1,5 +1,8 @@
 import "@moonbeam-network/api-augment";
+
 import { expect } from "chai";
+import { Contract } from "web3-eth-contract";
+
 import { alith, baltathar } from "../../util/accounts";
 import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 import {
@@ -9,8 +12,8 @@ import {
 } from "../../util/transactions";
 
 describeDevMoonbeamAllEthTxTypes("Receipt - Contract", (context) => {
-  let txHash;
-  let eventContract;
+  let txHash: string;
+  let eventContract: Contract;
   before("Setup: Create block with contract", async () => {
     const { contract, rawTx } = await createContract(context, "SingleEventContract", {
       from: alith.address,

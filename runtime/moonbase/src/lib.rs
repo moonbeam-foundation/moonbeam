@@ -791,6 +791,8 @@ pub enum ProxyType {
 	Balances = 5,
 	/// Allow extrinsic related to AuthorMapping.
 	AuthorMapping = 6,
+	/// Allow extrinsic related to IdentityJudgement.
+	IdentityJudgement = 7,
 }
 
 impl Default for ProxyType {
@@ -834,6 +836,10 @@ impl InstanceFilter<Call> for ProxyType {
 			),
 			ProxyType::Balances => matches!(c, Call::Balances(..) | Call::Utility(..)),
 			ProxyType::AuthorMapping => matches!(c, Call::AuthorMapping(..)),
+			ProxyType::IdentityJudgement => matches!(
+				c,
+				Call::Identity(pallet_identity::Call::provide_judgement { .. }) | Call::Utility(..)
+			),
 		}
 	}
 

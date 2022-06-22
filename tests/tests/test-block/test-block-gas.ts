@@ -1,10 +1,11 @@
 import "@moonbeam-network/api-augment";
+
 import { expect } from "chai";
-import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 
 import { EXTRINSIC_GAS_LIMIT } from "../../util/constants";
-import { createContract } from "../../util/transactions";
 import { customWeb3Request } from "../../util/providers";
+import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
+import { createContract } from "../../util/transactions";
 
 describeDevMoonbeamAllEthTxTypes("Block Gas - Limit", (context) => {
   it("should be allowed to the max block gas", async function () {

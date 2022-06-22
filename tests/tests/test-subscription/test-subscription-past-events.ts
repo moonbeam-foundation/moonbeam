@@ -1,12 +1,15 @@
 import "@moonbeam-network/api-augment";
+
 import { expect } from "chai";
-import { createContract } from "../../util/transactions";
-import { describeDevMoonbeam } from "../../util/setup-dev-tests";
-import { web3Subscribe } from "../../util/providers";
+import { Log } from "web3-core";
+
 import { ALITH_CONTRACT_ADDRESSES } from "../../util/accounts";
+import { EnhancedWeb3, web3Subscribe } from "../../util/providers";
+import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+import { createContract } from "../../util/transactions";
 
 describeDevMoonbeam("Subscription - Past Events", (context) => {
-  let web3Ws;
+  let web3Ws: EnhancedWeb3;
 
   before("Setup: Create 4 blocks with transfer", async () => {
     web3Ws = await context.createWeb3("ws");
@@ -34,7 +37,7 @@ describeDevMoonbeam("Subscription - Past Events", (context) => {
     });
 
     const data = await new Promise((resolve) => {
-      const data = [];
+      const data: Log[] = [];
       subscription.on("data", function (d: any) {
         data.push(d);
         if (data.length == 4) resolve(data);
@@ -52,7 +55,7 @@ describeDevMoonbeam("Subscription - Past Events", (context) => {
     });
 
     const data = await new Promise((resolve) => {
-      const data = [];
+      const data: Log[] = [];
       subscription.on("data", function (d: any) {
         data.push(d);
         if (data.length == 1) resolve(data);
@@ -71,7 +74,7 @@ describeDevMoonbeam("Subscription - Past Events", (context) => {
     });
 
     const data = await new Promise((resolve) => {
-      const data = [];
+      const data: Log[] = [];
       subscription.on("data", function (d: any) {
         data.push(d);
         if (data.length == 1) resolve(data);
@@ -96,7 +99,7 @@ describeDevMoonbeam("Subscription - Past Events", (context) => {
     });
 
     const data = await new Promise((resolve) => {
-      const data = [];
+      const data: Log[] = [];
       subscription.on("data", function (d: any) {
         data.push(d);
         if (data.length == 4) resolve(data);

@@ -1,12 +1,13 @@
 import "@moonbeam-network/api-augment";
-import { expect } from "chai";
-import { describeDevMoonbeam } from "../../util/setup-dev-tests";
-import { GLMR } from "../../util/constants";
-import { BN } from "@polkadot/util";
+
 import { u128 } from "@polkadot/types";
+import { BN } from "@polkadot/util";
+import { expect } from "chai";
 
 import { alith, baltathar, generateKeyingPair } from "../../util/accounts";
 import { mockAssetBalance } from "../../util/assets";
+import { GLMR } from "../../util/constants";
+import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 
 const ARBITRARY_ASSET_ID = 42259045809535163221576417993425387648n;
 const ARBITRARY_TRANSFER_AMOUNT = 10000000000000n;

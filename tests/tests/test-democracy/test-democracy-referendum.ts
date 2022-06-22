@@ -1,9 +1,11 @@
 import "@moonbeam-network/api-augment";
+
 import { expect } from "chai";
-import { GLMR, VOTE_AMOUNT, ZERO_ADDRESS } from "../../util/constants";
-import { describeDevMoonbeam } from "../../util/setup-dev-tests";
-import { notePreimage, instantFastTrack } from "../../util/governance";
+
 import { alith } from "../../util/accounts";
+import { GLMR, VOTE_AMOUNT, ZERO_ADDRESS } from "../../util/constants";
+import { instantFastTrack, notePreimage } from "../../util/governance";
+import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 
 describeDevMoonbeam("Democracy - Referendum", (context) => {
   let encodedHash: string;
