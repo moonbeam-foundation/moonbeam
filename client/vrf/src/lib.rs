@@ -18,6 +18,7 @@
 
 pub mod digest;
 
+use crate::digest::PreDigest;
 use cumulus_client_consensus_common::{
 	ParachainBlockImport, ParachainCandidate, ParachainConsensus,
 };
@@ -28,7 +29,6 @@ use log::{debug, info, warn};
 // };
 use parking_lot::Mutex;
 use sc_consensus::{BlockImport, BlockImportParams};
-use schnorrkel::{keys::PublicKey, vrf::VRFInOut};
 use session_keys_primitives::{make_transcript, make_transcript_data, VrfId, VRF_KEY_ID};
 use sp_api::{ApiExt, BlockId, ProvideRuntimeApi};
 use sp_application_crypto::{AppKey, ByteArray, CryptoTypePublicPair};
@@ -36,6 +36,7 @@ use sp_consensus::{
 	BlockOrigin, EnableProofRecording, Environment, ProofRecording, Proposal, Proposer,
 };
 use sp_consensus_babe::Slot;
+use sp_consensus_vrf::schnorrkel::{PublicKey, VRFOutput, VRFProof};
 use sp_inherents::{CreateInherentDataProviders, InherentData, InherentDataProvider};
 use sp_keystore::{SyncCryptoStore, SyncCryptoStorePtr};
 use sp_runtime::{
@@ -49,6 +50,10 @@ const LOG_TARGET: &str = "signing-vrf";
 
 /// Returns VRF pre-digest which includes an output signing the input info
 // TODO: get VrfInput via runtime API before calling this in client
+// TODO: get key via runtime API that gets it using the NimbusId that the client is using and the
+// KeysLookup in the runtime
+// TODO: where will this be called, in the client while authoring?
+// `nimbus_consensus::produce_candidate` seems like place where the PreDigest needs to be added
 pub fn vrf_predigest<Hash: AsRef<[u8]> + Clone>(
 	relay_slot_number: Slot,
 	relay_storage_root: Hash,
@@ -57,41 +62,25 @@ pub fn vrf_predigest<Hash: AsRef<[u8]> + Clone>(
 ) -> Option<crate::digest::PreDigest> {
 	let transcript = make_transcript(relay_slot_number, relay_storage_root.clone());
 	let transcript_data = make_transcript_data(relay_slot_number, relay_storage_root);
-	let result =
+	let try_sign =
 		SyncCryptoStore::sr25519_vrf_sign(&**keystore, VrfId::ID, key.as_ref(), transcript_data);
-	if let Ok(Some(signature)) = result {
-		let public = PublicKey::from_bytes(&authority_id.to_raw_vec()).ok()?;
-		// TODO: refactor this
-		let inout = match signature.output.attach_input_hash(&public, transcript) {
-			Ok(inout) => inout,
-			Err(_) => return None,
-		};
-		return Some(PreDigest {
+	if let Ok(Some(signature)) = try_sign {
+		let public = PublicKey::from_bytes(&key.to_raw_vec()).ok()?;
+		if signature
+			.output
+			.attach_input_hash(&public, transcript)
+			.is_err()
+		{
+			// signature cannot be validated using key and transcript
+			return None;
+		}
+		// TODO: verify we only need this output, the VrfId, and the VrfInput to validate or will
+		// need to add fields to PreDigest
+		Some(PreDigest {
 			vrf_output: VRFOutput(signature.output),
 			vrf_proof: VRFProof(signature.proof),
-		});
+		})
+	} else {
+		None
 	}
-	None
-}
-
-/// Grabs any available VRF key from the keystore.
-/// This may be useful in situations where you expect exactly one key
-/// and intend to perform an operation with it regardless of whether it is
-/// expected to be eligible.
-fn first_available_key(keystore: &dyn SyncCryptoStore) -> Option<CryptoTypePublicPair> {
-	// Get all the available keys
-	let available_keys = SyncCryptoStore::keys(keystore, VRF_KEY_ID)
-		.expect("keystore should return the keys it has");
-
-	// Print a more helpful message than "not eligible" when there are no keys at all.
-	if available_keys.is_empty() {
-		warn!(
-			target: LOG_TARGET,
-			//TODO: find the first available Nimbus key if VRF available_keys is empty?
-			"🔏 No Vrf keys available. Consider using your Nimbus key as a VRF key."
-		);
-		return None;
-	}
-
-	Some(available_keys[0].clone())
 }
