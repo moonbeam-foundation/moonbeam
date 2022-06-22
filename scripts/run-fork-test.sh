@@ -19,6 +19,23 @@ export RELAY_BINARY_PATH=$ROOT_FOLDER/moonbeam/binaries/polkadot;
 export SPEC_FILE=$ROOT_FOLDER/states/${NETWORK}-state.mod.json
 export NODE_OPTIONS=--max-old-space-size=16000
 
+echo "=========== Variables ==========="
+echo "RUNTIME_NAME: ${RUNTIME_NAME}"
+echo "NETWORK: ${NETWORK}"
+echo "PORT_PREFIX: ${PORT_PREFIX}"
+echo "ROOT_FOLDER: ${ROOT_FOLDER}"
+echo "GIT_TAG: ${GIT_TAG}"
+echo "SKIP_INTERMEDIATE_RUNTIME: ${SKIP_INTERMEDIATE_RUNTIME}"
+echo "FORCE_COMPILED_WASM: ${FORCE_COMPILED_WASM}"
+echo "SINGLE_PARACHAIN_NODE: ${SINGLE_PARACHAIN_NODE}"
+echo "SKIP_DOWNLOAD: ${SKIP_DOWNLOAD}"
+echo "SKIP_COMPILATION: ${SKIP_COMPILATION}"
+echo "BINARY_PATH: ${BINARY_PATH}"
+echo "RELAY_BINARY_PATH: ${RELAY_BINARY_PATH}"
+echo "SPEC_FILE: ${SPEC_FILE}"
+echo "NODE_OPTIONS: ${NODE_OPTIONS}"
+echo "================================"
+
 if [[ $PARA_ID == "" ]]; then
     if [[ $NETWORK == "moonbeam" ]]; then
         export PARA_ID=2004
