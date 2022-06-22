@@ -10,7 +10,7 @@ import fs from "fs";
 import { HttpProvider } from "web3-core";
 
 import { DEBUG_MODE } from "./constants";
-import { cancelReferendaWithCouncil, execCouncilProposal } from "./governance";
+import { cancelReferendaWithCouncil, executeProposalWithCouncil } from "./governance";
 import {
   getRuntimeWasm,
   NodePorts,
@@ -20,13 +20,14 @@ import {
   stopParachainNodes,
 } from "./para-node";
 import { EnhancedWeb3, provideEthersApi, providePolkadotApi, provideWeb3Api } from "./providers";
-import { TestContext } from "./context";
 
 const debug = require("debug")("test:setup");
 
 const PORT_PREFIX = (process.env.PORT_PREFIX && parseInt(process.env.PORT_PREFIX)) || 19;
 
-export interface ParaTestContext extends TestContext {
+export interface ParaTestContext {
+  createWeb3: (protocol?: "ws" | "http") => Promise<EnhancedWeb3>;
+  createEthers: () => Promise<ethers.providers.JsonRpcProvider>;
   createPolkadotApiParachain: (parachainNumber: number) => Promise<ApiPromise>;
   createPolkadotApiParachains: () => Promise<ApiPromise>;
   createPolkadotApiRelaychains: () => Promise<ApiPromise>;
@@ -40,6 +41,8 @@ export interface ParaTestContext extends TestContext {
   blockNumber: number;
 
   // We also provided singleton providers for simplicity
+  web3: EnhancedWeb3;
+  ethers: ethers.providers.JsonRpcProvider;
   polkadotApiParaone: ApiPromise;
 }
 
@@ -184,7 +187,6 @@ export function describeParachain(
         };
 
         context.polkadotApiParaone = await context.createPolkadotApiParachains();
-        context.polkadotApi = context.polkadotApiParaone; // for test convenience
         subBlocks(context.polkadotApiParaone);
 
         context.waitBlocks = async (count: number) => {
@@ -260,7 +262,7 @@ export function describeParachain(
                   process.stdout.write(`Vote for upgrade already in referendum, cancelling it.\n`);
                   await cancelReferendaWithCouncil(api, referendaIndex);
                 }
-                await execCouncilProposal(context, proposal);
+                await executeProposalWithCouncil(api, encodedHash);
 
                 // Needs to retrieve nonce after those governance calls
                 nonce = (await api.rpc.system.accountNextIndex(from.address)).toNumber();

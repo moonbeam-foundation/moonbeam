@@ -60,7 +60,7 @@ if [[ $SKIP_DOWNLOAD != true ]]
 then
     # Clone moonbeam repo & building
     echo "Cloning repository..."
-    git clone --depth 1 -b $GIT_TAG https://github.com/purestake/moonbeam
+    git clone -b $GIT_TAG https://github.com/purestake/moonbeam
     cd $ROOT_FOLDER/moonbeam
     mkdir binaries
 

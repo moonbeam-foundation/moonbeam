@@ -6,7 +6,7 @@ import { blake2AsHex } from "@polkadot/util-crypto";
 import { expect } from "chai";
 
 import { alith, baltathar, charleth, dorothy } from "./accounts";
-import { TestContext } from "./context";
+import { DevTestContext } from "./setup-dev-tests";
 
 export const COUNCIL_MEMBERS = [baltathar, charleth, dorothy];
 export const COUNCIL_THRESHOLD = Math.ceil((COUNCIL_MEMBERS.length * 2) / 3);
@@ -15,11 +15,14 @@ export const TECHNICAL_COMMITTEE_THRESHOLD = Math.ceil(
   (TECHNICAL_COMMITTEE_MEMBERS.length * 2) / 3
 );
 
+// TODO: Refactor to support both instant sealing and parachain environment
+// (using a waitOrCreateNextBlock common function)
+
 export const notePreimage = async <
   Call extends SubmittableExtrinsic<ApiType>,
   ApiType extends ApiTypes
 >(
-  context: TestContext,
+  context: DevTestContext,
   proposal: Call,
   account: KeyringPair
 ): Promise<string> => {
@@ -33,7 +36,7 @@ export const notePreimage = async <
 
 // Creates the Council Proposal and fast track it before executing it
 export const instantFastTrack = async (
-  context: TestContext,
+  context: DevTestContext,
   proposalHash: string,
   { votingPeriod, delayPeriod } = { votingPeriod: 2, delayPeriod: 0 }
 ) => {
@@ -54,7 +57,7 @@ export const execCouncilProposal = async <
   Call extends SubmittableExtrinsic<ApiType>,
   ApiType extends ApiTypes
 >(
-  context: TestContext,
+  context: DevTestContext,
   polkadotCall: Call,
   voters: KeyringPair[] = COUNCIL_MEMBERS,
   threshold: number = COUNCIL_THRESHOLD
@@ -100,7 +103,7 @@ export const execTechnicalCommitteeProposal = async <
   Call extends SubmittableExtrinsic<ApiType>,
   ApiType extends ApiTypes
 >(
-  context: TestContext,
+  context: DevTestContext,
   polkadotCall: Call,
   voters: KeyringPair[] = TECHNICAL_COMMITTEE_MEMBERS,
   threshold: number = TECHNICAL_COMMITTEE_THRESHOLD
