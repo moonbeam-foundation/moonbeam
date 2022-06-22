@@ -3,7 +3,6 @@ import { ApiTypes, SubmittableExtrinsic } from "@polkadot/api/types";
 import { EventRecord } from "@polkadot/types/interfaces";
 import { RegistryError } from "@polkadot/types/types";
 import { ChildProcess } from "child_process";
-import { ethers } from "ethers";
 import { HttpProvider } from "web3-core";
 
 import { alith } from "./accounts";
@@ -13,14 +12,12 @@ import { BlockCreation, EthTransactionType, TestContext } from "./context";
 import { RuntimeChain, startMoonbeamDevNode } from "./dev-node";
 import {
   customWeb3Request,
-  EnhancedWeb3,
   provideEthersApi,
   providePolkadotApi,
   provideWeb3Api,
 } from "./providers";
 import { extractError, ExtrinsicCreation } from "./substrate-rpc";
 
-import type { BlockHash } from "@polkadot/types/interfaces/chain/types";
 const debug = require("debug")("test:setup");
 
 export interface DevTestContext extends TestContext {
