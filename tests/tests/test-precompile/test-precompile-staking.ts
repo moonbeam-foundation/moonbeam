@@ -35,7 +35,6 @@ const SELECTORS = {
   nominator_nomination_count: "dae5659b",
   delegation_request_is_pending: "192e1db3",
   candidate_exit_is_pending: "eb613b8a",
-  delegator_exit_is_pending: "dc3ec64b",
 };
 
 async function isSelectedCandidate(context: DevTestContext, address: string) {
@@ -160,41 +159,6 @@ describeDevMoonbeamAllEthTxTypes("Staking - Collator Leaving", (context) => {
     );
 
     const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
-    expect(receipt.status).to.equal(true);
-    console.log(receipt);
-  });
-});
-
-describeDevMoonbeamAllEthTxTypes("Staking - Delegator Leaving", (context) => {
-  before("add ethan to delegators", async () => {
-    const { result } = await sendPrecompileTx(
-      context,
-      PRECOMPILE_PARACHAIN_STAKING_ADDRESS,
-      SELECTORS,
-      ethan.address,
-      ETHAN_PRIVATE_KEY,
-      "nominate",
-      [alith.address, numberToHex(Number(MIN_GLMR_STAKING)), "0x0", "0x0"]
-    );
-
-    const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
-    expect(receipt.status).to.equal(true);
-  });
-
-  it("should successfully call delegator_exit_is_pending on ethan", async function () {
-    const txResult = await sendPrecompileTx(
-      context,
-      PRECOMPILE_PARACHAIN_STAKING_ADDRESS,
-      SELECTORS,
-      ethan.address,
-      ETHAN_PRIVATE_KEY,
-      "delegator_exit_is_pending",
-      [ethan.address]
-    );
-
-    console.log(txResult);
-    const receipt = await context.web3.eth.getTransactionReceipt(txResult.result.hash);
-    console.log(receipt);
     expect(receipt.status).to.equal(true);
     console.log(receipt);
   });
