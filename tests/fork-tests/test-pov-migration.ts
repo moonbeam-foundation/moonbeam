@@ -49,8 +49,24 @@ const allRuntimes = child_process
   .execSync(`git tag -l -n 'runtime-[0-9]*' | cut -d' ' -f 1 | cut -d'-' -f 2 | sort -n`)
   .toString()
   .split("\n")
+  .filter((s) => !!s)
   .map((s) => parseInt(s.trim()))
   .filter((runtime) => runtime != localVersion);
+
+// Filter only latest minor version for each major (excluding current major)
+const currentMajor = Math.floor(localVersion / 100);
+const allPreviousMajorRuntimes = Object.values(
+  allRuntimes.reduce((p, v) => {
+    const major = Math.floor(v / 100);
+    if (major == currentMajor) {
+      return p;
+    }
+    if (!p[major] || v > p[major]) {
+      p[major] = v;
+    }
+    return p;
+  }, {} as { [index: number]: number })
+);
 
 describeParachain(
   `Runtime upgrade on forked ${RUNTIME_NAME}`,
@@ -80,8 +96,7 @@ describeParachain(
       );
 
       if (!SKIP_INTERMEDIATE_RUNTIME) {
-        // For each runtime already released, we do the upgrade if
-        for (const runtime of allRuntimes) {
+        for (const runtime of allPreviousMajorRuntimes) {
           if (runtime > currentVersion.specVersion.toNumber()) {
             console.log(`Found already released runtime not deployed: ${runtime}`);
             await context.upgradeRuntime(alith, RUNTIME_NAME, `runtime-${runtime}`, {

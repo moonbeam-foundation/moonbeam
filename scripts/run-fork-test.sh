@@ -8,15 +8,15 @@ export NETWORK=${NETWORK:-"moonbeam"} #moonbase-alpha for alphanet
 export PORT_PREFIX=${PORT_PREFIX:-"51"}
 export ROOT_FOLDER=${ROOT_FOLDER:-"/data"}
 export GIT_TAG=${GIT_TAG:-"master"}
-export SKIP_INTERMEDIATE_RUNTIME=${SKIP_INTERMEDIATE_RUNTIME:-true}
+export SKIP_INTERMEDIATE_RUNTIME=${SKIP_INTERMEDIATE_RUNTIME:-false}
 export FORCE_COMPILED_WASM=${FORCE_COMPILED_WASM:-true}
 export SINGLE_PARACHAIN_NODE=${SINGLE_PARACHAIN_NODE:-true}
 export SKIP_DOWNLOAD=${SKIP_DOWNLOAD:-false}
 export SKIP_COMPILATION=${SKIP_COMPILATION:-false}
 
-
 export BINARY_PATH=$ROOT_FOLDER/moonbeam/binaries/moonbeam;
 export RELAY_BINARY_PATH=$ROOT_FOLDER/moonbeam/binaries/polkadot;
+export SPEC_FILE=$ROOT_FOLDER/states/${NETWORK}-state.mod.json
 export NODE_OPTIONS=--max-old-space-size=16000
 
 if [[ $PARA_ID == "" ]]; then
@@ -69,29 +69,30 @@ then
     ## Build the runtime to test
     echo "Building $GIT_TAG $RUNTIME_NAME runtime... (5 minutes)"
     cd $ROOT_FOLDER/moonbeam
+    git checkout $GIT_TAG
     cargo build --release -p ${RUNTIME_NAME}-runtime
 
     echo "Preparing tests... (3 minutes)"
     cd $ROOT_FOLDER/moonbeam/moonbeam-types-bundle
-    npm install
+    npm ci
     cd $ROOT_FOLDER/moonbeam/tools
-    npm install
+    npm ci
 
     cd $ROOT_FOLDER/moonbeam/tests
     git fetch origin crystalin-fork-test-preparation:crystalin-fork-test-preparation
     git checkout crystalin-fork-test-preparation
-    npm install
+    npm ci
 fi;
 
 
 # Modify state
 cd $ROOT_FOLDER/moonbeam/tests
 echo "Customizing $NETWORK forked state..."
-export SPEC_FILE=$ROOT_FOLDER/states/${NETWORK}-state.mod.json
 node_modules/.bin/ts-node state-modifier.ts $ROOT_FOLDER/states/${NETWORK}-state.json
 
 # Run the node
 echo "Running nodes..."
+cd $ROOT_FOLDER/moonbeam/tests
 ./node_modules/.bin/ts-node spawn-fork-node.ts 2>&1 > spawn-node.log &
 PID=$!
 
