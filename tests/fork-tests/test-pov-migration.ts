@@ -68,6 +68,10 @@ const allPreviousMajorRuntimes = Object.values(
   }, {} as { [index: number]: number })
 );
 
+console.log(`SKIP_INTERMEDIATE_RUNTIME: ${SKIP_INTERMEDIATE_RUNTIME}`);
+console.log(`Local version: ${localVersion}`);
+console.log(allPreviousMajorRuntimes.map((r) => `  - ${r}`).join("\n"));
+
 describeParachain(
   `Runtime upgrade on forked ${RUNTIME_NAME}`,
   {
@@ -96,6 +100,13 @@ describeParachain(
       );
 
       if (!SKIP_INTERMEDIATE_RUNTIME) {
+        // We pick each latest major runtime before current local version
+        console.log(`currentMajor: ${currentMajor}`);
+        console.log(
+          allPreviousMajorRuntimes.length,
+          allPreviousMajorRuntimes.map((r) => `  - ${r}`).join("\n")
+        );
+
         for (const runtime of allPreviousMajorRuntimes) {
           if (runtime > currentVersion.specVersion.toNumber()) {
             console.log(`Found already released runtime not deployed: ${runtime}`);
