@@ -351,8 +351,8 @@ fn transfer_through_evm_to_stake() {
 					0u32
 				),
 				DispatchError::Module(ModuleError {
-					index: 3,
-					error: [2, 0, 0, 0],
+					index: 12,
+					error: [8, 0, 0, 0],
 					message: Some("InsufficientBalance")
 				})
 			);
@@ -422,17 +422,17 @@ fn reward_block_authors() {
 				run_to_block(x, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			}
 			// no rewards doled out yet
-			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1_000 * UNIT,);
-			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * UNIT,);
+			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 2_000 * UNIT,);
+			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 1_000 * UNIT,);
 			run_to_block(1200, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
-				1113666666584000000000,
+				2113666666584000000000,
 			);
 			assert_eq!(
 				Balances::free_balance(AccountId::from(BOB)),
-				541333333292000000000,
+				1041333333292000000000,
 			);
 		});
 }
@@ -467,18 +467,18 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 				run_to_block(x, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			}
 			// no rewards doled out yet
-			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1_000 * UNIT,);
-			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * UNIT,);
+			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 2_000 * UNIT,);
+			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 1_000 * UNIT,);
 			assert_eq!(Balances::free_balance(AccountId::from(CHARLIE)), UNIT,);
 			run_to_block(1200, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
-				1082693333281650000000,
+				2082693333281650000000,
 			);
 			assert_eq!(
 				Balances::free_balance(AccountId::from(BOB)),
-				525841666640825000000,
+				1025841666640825000000,
 			);
 			// 30% reserved for parachain bond
 			assert_eq!(
