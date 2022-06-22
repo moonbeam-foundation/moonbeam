@@ -1,3 +1,0 @@
-(function() {var implementors = {};
-implementors["pallet_evm_precompile_batch"] = [{"text":"impl&lt;Runtime&gt; <a class=\"trait\" href=\"precompile_utils/trait.StatefulPrecompile.html\" title=\"trait precompile_utils::StatefulPrecompile\">StatefulPrecompile</a> for <a class=\"struct\" href=\"pallet_evm_precompile_batch/struct.BatchPrecompile.html\" title=\"struct pallet_evm_precompile_batch::BatchPrecompile\">BatchPrecompile</a>&lt;Runtime&gt; <span class=\"where fmt-newline\">where<br>&nbsp;&nbsp;&nbsp;&nbsp;Runtime: Config,&nbsp;</span>","synthetic":false,"types":["pallet_evm_precompile_batch::BatchPrecompile"]}];
-if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

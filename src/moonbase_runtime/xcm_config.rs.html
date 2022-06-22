@@ -533,6 +533,9 @@
 <span id="528">528</span>
 <span id="529">529</span>
 <span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -638,6 +641,8 @@
 	<span class="ident">SiblingParachainConvertsVia</span><span class="op">&lt;</span><span class="ident">polkadot_parachain::primitives::Sibling</span>, <span class="ident">AccountId</span><span class="op">&gt;</span>,
 	<span class="comment">// If we receive a MultiLocation of type AccountKey20, just generate a native account</span>
 	<span class="ident">AccountKey20Aliases</span><span class="op">&lt;</span><span class="ident">RelayNetwork</span>, <span class="ident">AccountId</span><span class="op">&gt;</span>,
+	<span class="comment">// The rest of multilocations convert via hashing it</span>
+	<span class="ident">xcm_primitives::Account20Hash</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>,
 );
 
 <span class="comment">// The non-reserve fungible transactor type</span>
@@ -758,6 +763,7 @@
 <span class="comment">// Allow paid executions</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">XcmBarrier</span> <span class="op">=</span> (
 	<span class="ident">TakeWeightCredit</span>,
+	<span class="ident">xcm_primitives::AllowDescendOriginFromLocal</span><span class="op">&lt;</span><span class="ident">Everything</span><span class="op">&gt;</span>,
 	<span class="ident">AllowTopLevelPaidExecutionFrom</span><span class="op">&lt;</span><span class="ident">Everything</span><span class="op">&gt;</span>,
 	<span class="ident">AllowKnownQueryResponses</span><span class="op">&lt;</span><span class="ident">PolkadotXcm</span><span class="op">&gt;</span>,
 	<span class="comment">// Subscriptions for version tracking are OK.</span>

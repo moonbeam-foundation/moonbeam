@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["xcm_primitives"] = [{"text":"impl&lt;T:&nbsp;Contains&lt;MultiLocation&gt;&gt; ShouldExecute for <a class=\"struct\" href=\"xcm_primitives/struct.AllowDescendOriginFromLocal.html\" title=\"struct xcm_primitives::AllowDescendOriginFromLocal\">AllowDescendOriginFromLocal</a>&lt;T&gt;","synthetic":false,"types":["xcm_primitives::AllowDescendOriginFromLocal"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
