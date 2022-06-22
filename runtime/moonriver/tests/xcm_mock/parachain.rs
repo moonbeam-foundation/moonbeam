@@ -324,6 +324,13 @@ parameter_types! {
 		)
 	};
 }
+
+use frame_system::RawOrigin;
+use sp_runtime::traits::PostDispatchInfoOf;
+use sp_runtime::DispatchErrorWithPostInfo;
+use xcm_executor::traits::CallDispatcher;
+moonbeam_runtime_common::impl_moonbeam_xcm_call!();
+
 pub struct XcmConfig;
 impl Config for XcmConfig {
 	type Call = Call;
@@ -350,6 +357,7 @@ impl Config for XcmConfig {
 	type SubscriptionService = PolkadotXcm;
 	type AssetTrap = PolkadotXcm;
 	type AssetClaims = PolkadotXcm;
+	type CallDispatcher = MoonbeamCall;
 }
 
 impl cumulus_pallet_xcm::Config for Runtime {
@@ -855,6 +863,12 @@ impl pallet_timestamp::Config for Runtime {
 	type WeightInfo = ();
 }
 
+use sp_core::U256;
+
+parameter_types! {
+	pub BlockGasLimit: U256 = U256::max_value();
+}
+
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
 	type GasWeightMapping = ();
@@ -870,7 +884,7 @@ impl pallet_evm::Config for Runtime {
 	type PrecompilesType = ();
 	type PrecompilesValue = ();
 	type ChainId = ();
-	type BlockGasLimit = ();
+	type BlockGasLimit = BlockGasLimit;
 	type OnChargeTransaction = ();
 	type BlockHashMapping = pallet_evm::SubstrateBlockHashMapping<Self>;
 	type FindAuthor = ();
@@ -927,6 +941,17 @@ impl xcm_primitives::UtilityEncodeCall for MockTransactors {
 	}
 }
 
+impl pallet_ethereum::Config for Runtime {
+	type Event = Event;
+	type StateRoot = pallet_ethereum::IntermediateStateRoot<Self>;
+}
+
+impl pallet_ethereum_xcm::Config for Runtime {
+	type InvalidEvmTransactionError = pallet_ethereum::InvalidTransactionWrapper;
+	type ValidatedTransaction = pallet_ethereum::ValidatedTransaction<Self>;
+	type XcmEthereumOrigin = frame_system::EnsureNever<sp_core::H160>;
+}
+
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
 type Block = frame_system::mocking::MockBlock<Runtime>;
 
@@ -952,6 +977,8 @@ construct_runtime!(
 
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage},
 		EVM: pallet_evm::{Pallet, Call, Storage, Config, Event<T>},
+		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Origin, Config},
+		EthereumXcm: pallet_ethereum_xcm::{Pallet, Call, Origin},
 	}
 );
 
