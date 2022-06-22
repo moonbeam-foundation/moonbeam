@@ -415,6 +415,37 @@ pub mod pallet {
 		fn on_initialize(n: T::BlockNumber) -> Weight {
 			let mut weight = T::WeightInfo::base_on_initialize();
 
+			let next_migration_prefix = <ReserveToLockMigrationStep<T>>::get();
+			if next_migration_prefix < 16 {
+				let prefix: char = match next_migration_prefix {
+					0..=9 => (48 + next_migration_prefix).into(),
+					10..=16 => (87 + next_migration_prefix).into(),
+					_ => panic!("unreachable"),
+				};
+
+				let delegator_state_prefix = "abcd";
+				let mut prefix_key = delegator_state_prefix.as_bytes().to_vec();
+				prefix_key.push(prefix as u8);
+				for (mut account, mut delegator_state) in <DelegatorState<T>>::iter_from(prefix_key) {
+					let reserved = delegator_state.total;
+					let remaining = T::Currency::unreserve(&account, reserved);
+					assert_eq!(remaining, 0u32.into());
+
+					delegator_state.adjust_bond_lock::<T>(None);
+				}
+
+				let collator_state_prefix = "ABCD";
+				let mut prefix_key = collator_state_prefix.as_bytes().to_vec();
+				prefix_key.push(prefix as u8);
+				for (mut account, mut candidate_info) in <CandidateInfo<T>>::iter_from(prefix_key) {
+					let reserved = candidate_info.bond;
+					let remaining = T::Currency::unreserve(&account, reserved);
+					assert_eq!(remaining, 0u32.into());
+
+					T::Currency::set_lock(COLLATOR_LOCK_IDENTIFIER, &account, reserved, WithdrawReasons::all());
+				}
+			}
+
 			let mut round = <Round<T>>::get();
 			if round.should_update(n) {
 				// mutate round
@@ -617,6 +648,10 @@ pub mod pallet {
 		RewardPoint,
 		ValueQuery,
 	>;
+
+	#[pallet::storage]
+	/// Temporary storage to track multi-block reserve -> lock migration.
+	pub type ReserveToLockMigrationStep<T: Config> = StorageValue<_, u8, ValueQuery>;
 
 	#[pallet::genesis_config]
 	pub struct GenesisConfig<T: Config> {
