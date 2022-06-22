@@ -14393,6 +14393,7 @@ dependencies = [
  "scale-info",
  "serde",
  "sha3 0.8.2",
+ "sp-io",
  "sp-runtime",
  "sp-std",
  "xcm",

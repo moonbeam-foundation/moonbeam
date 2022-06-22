@@ -39,6 +39,7 @@ use moonbase_runtime::{
 	Precompiles, Runtime, System, XTokens, XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 	LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
+use precompile_utils::testing::MockHandle;
 
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
