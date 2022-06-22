@@ -22,6 +22,8 @@ const debug = require("debug")("test:setup");
 
 export interface DevTestContext extends TestContext {
   createPolkadotApi: () => Promise<ApiPromise>;
+  rpcPort: number;
+  ethTransactionType?: EthTransactionType;
 }
 
 interface InternalDevTestContext extends DevTestContext {

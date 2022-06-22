@@ -47,6 +47,4 @@ export interface TestContext {
   web3: EnhancedWeb3;
   ethers: ethers.providers.JsonRpcProvider;
   polkadotApi: ApiPromise;
-  rpcPort: number;
-  ethTransactionType?: EthTransactionType;
 }

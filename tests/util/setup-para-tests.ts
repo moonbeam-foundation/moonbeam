@@ -40,8 +40,6 @@ export interface ParaTestContext extends TestContext {
   blockNumber: number;
 
   // We also provided singleton providers for simplicity
-  web3: EnhancedWeb3;
-  ethers: ethers.providers.JsonRpcProvider;
   polkadotApiParaone: ApiPromise;
 }
 
@@ -186,6 +184,7 @@ export function describeParachain(
         };
 
         context.polkadotApiParaone = await context.createPolkadotApiParachains();
+        context.polkadotApi = context.polkadotApiParaone; // for test convenience
         subBlocks(context.polkadotApiParaone);
 
         context.waitBlocks = async (count: number) => {
