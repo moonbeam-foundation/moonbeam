@@ -60,6 +60,8 @@ impl<T: Config> OnRuntimeUpgrade for AddAccountIdToNimbusLookup<T> {
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade() -> Result<(), &'static str> {
 		use frame_support::traits::OnRuntimeUpgradeHelpersExt;
+		use sp_std::vec::Vec;
+
 		let mut nimbus_set: Vec<NimbusId> = Vec::new();
 		for (nimbus_id, info) in <MappingWithDeposit<T>>::iter() {
 			if !nimbus_set.contains(&nimbus_id) {
