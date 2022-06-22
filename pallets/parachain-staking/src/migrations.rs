@@ -849,7 +849,7 @@ impl<T: Config> OnRuntimeUpgrade for ConvertReservesToLocks<T> {
 			num_collators += 1;
 		}
 
-		log::info!(target: "ConvertReservesToLocks", "migrated {} collators", num_delegators);
+		log::info!(target: "ConvertReservesToLocks", "migrated {} collators", num_collators);
 
 
 		// TODO: properly tally
