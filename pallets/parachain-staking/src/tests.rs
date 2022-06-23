@@ -8676,6 +8676,115 @@ mod jit_migrate_reserve_to_locks_tests {
 			});
 	}
 
+	#[test]
+	fn test_unmigrated_reserve_doesnt_interfere_with_delegator_bond_more() {
+		ExtBuilder::default()
+			.with_balances(vec![(1, 100), (2, 100)])
+			.with_candidates(vec![(1, 20)])
+			.with_delegations(vec![(2, 1, 51)]) // will result in reserve of > half free_balance
+			.build()
+			.execute_with(|| {
+				crate::mock::unmigrate_delegator_from_lock_to_reserve(2);
+				assert_eq!(Balances::reserved_balance(2), 51);
+				assert_eq!(
+					crate::mock::query_lock_amount(2, DELEGATOR_LOCK_IDENTIFIER),
+					None
+				);
+				assert_eq!(<DelegatorReserveToLockMigrations<Test>>::get(2), false);
+
+				assert_ok!(ParachainStaking::delegator_bond_more(
+					Origin::signed(2),
+					1,
+					49
+				));
+				assert_eq!(Balances::reserved_balance(2), 0);
+				assert_eq!(
+					crate::mock::query_lock_amount(2, DELEGATOR_LOCK_IDENTIFIER),
+					Some(100)
+				);
+				assert_eq!(<DelegatorReserveToLockMigrations<Test>>::get(2), true);
+			});
+	}
+
+	#[test]
+	fn test_unmigrated_reserve_doesnt_allow_excess_delegation() {
+		ExtBuilder::default()
+			.with_balances(vec![(1, 100), (2, 100)])
+			.with_candidates(vec![(1, 20)])
+			.with_delegations(vec![(2, 1, 99)])
+			.build()
+			.execute_with(|| {
+				crate::mock::unmigrate_delegator_from_lock_to_reserve(2);
+				assert_eq!(Balances::reserved_balance(2), 99);
+				assert_eq!(
+					crate::mock::query_lock_amount(2, DELEGATOR_LOCK_IDENTIFIER),
+					None
+				);
+				assert_eq!(<DelegatorReserveToLockMigrations<Test>>::get(2), false);
+
+				// TODO: why does this give me a useless array comparison error?
+				/*
+				assert_noop!(
+					ParachainStaking::delegator_bond_more(Origin::signed(2), 1, 99),
+					DispatchError::Module(ModuleError {
+						index: 2,
+						error: [8, 0, 0, 0],
+						message: Some("InsufficientBalance")
+					})
+				);
+				*/
+
+				// TODO: confirm error (see above)
+				assert!(ParachainStaking::delegator_bond_more(Origin::signed(2), 1, 99).is_err());
+
+				// TODO: is this desired behavior?
+				// should migrate even though it failed
+				assert_eq!(Balances::reserved_balance(2), 0);
+				assert_eq!(
+					crate::mock::query_lock_amount(2, DELEGATOR_LOCK_IDENTIFIER),
+					Some(99),
+				);
+				assert_eq!(<DelegatorReserveToLockMigrations<Test>>::get(2), true);
+			});
+	}
+
+	#[test]
+	fn test_unmigrated_reserve_doesnt_allow_excess_candidate_bond() {
+		ExtBuilder::default()
+			.with_balances(vec![(1, 100)])
+			.with_candidates(vec![(1, 99)])
+			.build()
+			.execute_with(|| {
+				crate::mock::unmigrate_collator_from_lock_to_reserve(1);
+				assert_eq!(Balances::reserved_balance(1), 99);
+				assert_eq!(
+					crate::mock::query_lock_amount(1, COLLATOR_LOCK_IDENTIFIER),
+					None
+				);
+				assert_eq!(<CollatorReserveToLockMigrations<Test>>::get(1), false);
+
+				// TODO: why does this give me a useless array comparison error?
+				/*
+				assert_noop!(
+					ParachainStaking::candidate_bond_more(Origin::signed(1), 99),
+					<Error<Test>>::InsufficientBalance,
+				);
+				*/
+
+				// TODO: confirm error (see above)
+				assert!(ParachainStaking::candidate_bond_more(Origin::signed(1), 99).is_err());
+
+				// TODO: is this desired behavior?
+				// should migrate even though it failed
+				assert_eq!(Balances::reserved_balance(1), 0);
+				assert_eq!(
+					crate::mock::query_lock_amount(1, COLLATOR_LOCK_IDENTIFIER),
+					Some(99),
+				);
+				assert_eq!(<CollatorReserveToLockMigrations<Test>>::get(1), true);
+			});
+	}
+
 	// TODO: more test ideas
 	//     * more candidate_bond_more scenarios?
 	//     * cancelling bond changes - triggers or no?

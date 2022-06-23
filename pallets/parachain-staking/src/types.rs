@@ -412,6 +412,7 @@ impl<
 	where
 		BalanceOf<T>: From<Balance>,
 	{
+		<Pallet<T>>::jit_ensure_collator_reserve_migrated(&who.clone())?;
 		ensure!(
 			<Pallet<T>>::get_collator_stakable_free_balance(&who) >= more.into(),
 			Error::<T>::InsufficientBalance
@@ -419,7 +420,6 @@ impl<
 		let new_total = <Total<T>>::get().saturating_add(more.into());
 		<Total<T>>::put(new_total);
 		self.bond = self.bond.saturating_add(more);
-		<Pallet<T>>::jit_ensure_collator_reserve_migrated(&who.clone())?;
 		T::Currency::set_lock(
 			COLLATOR_LOCK_IDENTIFIER,
 			&who.clone(),

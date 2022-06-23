@@ -1398,7 +1398,7 @@ pub mod pallet {
 			// if not, this should not subtract `state.total`
 			let mut balance = T::Currency::free_balance(acc);
 			if let Some(state) = <DelegatorState<T>>::get(acc) {
-				balance -= state.total;
+				balance = balance.saturating_sub(state.total);
 			}
 			balance
 		}
@@ -1406,7 +1406,7 @@ pub mod pallet {
 		pub fn get_collator_stakable_free_balance(acc: &T::AccountId) -> BalanceOf<T> {
 			let mut balance = T::Currency::free_balance(acc);
 			if let Some(info) = <CandidateInfo<T>>::get(acc) {
-				balance -= info.bond;
+				balance = balance.saturating_sub(info.bond);
 			}
 			balance
 		}
