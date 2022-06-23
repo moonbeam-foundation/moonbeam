@@ -83,6 +83,8 @@ pub mod pallet {
 	use frame_support::traits::{
 		tokens::WithdrawReasons, Currency, Get, Imbalance, LockableCurrency, ReservableCurrency,
 	};
+	
+	use frame_support::sp_io::hashing::twox_128;
 	use frame_system::pallet_prelude::*;
 	use parity_scale_codec::Decode;
 	use sp_runtime::{
@@ -415,36 +417,57 @@ pub mod pallet {
 		fn on_initialize(n: T::BlockNumber) -> Weight {
 			let mut weight = T::WeightInfo::base_on_initialize();
 
-			let next_migration_prefix = <ReserveToLockMigrationStep<T>>::get();
-			if next_migration_prefix < 16 {
-				let prefix: char = match next_migration_prefix {
-					0..=9 => (48 + next_migration_prefix).into(),
-					10..=16 => (87 + next_migration_prefix).into(),
-					_ => panic!("unreachable"),
-				};
+			// Is there a better way to get the pallet name ?
+			// Or maybe use a storage set during the migration for that ?
+			let pallet_hash = twox_128(b"ParachainStaking");
+			let delegator_state_hash = twox_128(b"DelegatorState");
+			let candidate_info_hash = twox_128(b"CandidateInfo");
 
-				let delegator_state_prefix = "abcd";
-				let mut prefix_key = delegator_state_prefix.as_bytes().to_vec();
-				prefix_key.push(prefix as u8);
-				for (mut account, mut delegator_state) in <DelegatorState<T>>::iter_from(prefix_key) {
-					let reserved = delegator_state.total;
-					let remaining = T::Currency::unreserve(&account, reserved);
-					assert_eq!(remaining, 0u32.into());
+			// ReserveToLockMigrationStep should set to [0, 1, .., 15] during migration
+			// Additionally it can contain value > 16 to delay the initial migration block
+			// to avoid adding PoV to runtime migration block: [0, 1, .., 15, 99]
+			//
+			// 1 value will be process at each block, during the on_initialize
+			// The value correspond to a range of 16 prefixes being appended to 
+			// the delegator_state_prefix in order to process 1/16th of the whole list
+			
+			let mut migration_steps = <ReserveToLockMigrationStep<T>>::get();
+			match migration_steps.pop() {
+				Some(next_migration_prefix) if next_migration_prefix < 16 => {
+					let low_range = next_migration_prefix * 16;
+					let high_range = (next_migration_prefix + 1) * 16;
+					for postfix in low_range..high_range {
+						let mut migration_key = [0u8; 33];
+						migration_key[..16].copy_from_slice(&pallet_hash);
+						migration_key[16..].copy_from_slice(&delegator_state_hash);
+						migration_key[32] = postfix;
 
-					delegator_state.adjust_bond_lock::<T>(None);
+						for (account, mut delegator_state) in <DelegatorState<T>>::iter_from(migration_key.to_vec()) {
+							let reserved = delegator_state.total;
+							let remaining = T::Currency::unreserve(&account, reserved);
+							assert_eq!(remaining, 0u32.into());
+
+							delegator_state.adjust_bond_lock::<T>(None);
+						}
+
+						migration_key[..16].copy_from_slice(&pallet_hash);
+						migration_key[16..].copy_from_slice(&candidate_info_hash);
+						for (account, candidate_info) in <CandidateInfo<T>>::iter_from(migration_key.to_vec()) {
+							let reserved = candidate_info.bond;
+							let remaining = T::Currency::unreserve(&account, reserved);
+							assert_eq!(remaining, 0u32.into());
+
+							T::Currency::set_lock(COLLATOR_LOCK_IDENTIFIER, &account, reserved, WithdrawReasons::all());
+						}
+					}
+				},
+				Some(_) => { 
+					migration_steps.pop();
+					<ReserveToLockMigrationStep<T>>::put(&migration_steps);
 				}
-
-				let collator_state_prefix = "ABCD";
-				let mut prefix_key = collator_state_prefix.as_bytes().to_vec();
-				prefix_key.push(prefix as u8);
-				for (mut account, mut candidate_info) in <CandidateInfo<T>>::iter_from(prefix_key) {
-					let reserved = candidate_info.bond;
-					let remaining = T::Currency::unreserve(&account, reserved);
-					assert_eq!(remaining, 0u32.into());
-
-					T::Currency::set_lock(COLLATOR_LOCK_IDENTIFIER, &account, reserved, WithdrawReasons::all());
-				}
+				None => {},
 			}
+			
 
 			let mut round = <Round<T>>::get();
 			if round.should_update(n) {
@@ -651,7 +674,7 @@ pub mod pallet {
 
 	#[pallet::storage]
 	/// Temporary storage to track multi-block reserve -> lock migration.
-	pub type ReserveToLockMigrationStep<T: Config> = StorageValue<_, u8, ValueQuery>;
+	pub type ReserveToLockMigrationStep<T: Config> = StorageValue<_, Vec<u8>, ValueQuery>;
 
 	#[pallet::genesis_config]
 	pub struct GenesisConfig<T: Config> {
