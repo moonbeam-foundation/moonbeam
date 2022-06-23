@@ -1351,11 +1351,11 @@ impl<
 				let before_amount: BalanceOf<T> = x.amount.into();
 				x.amount = x.amount.saturating_add(amount);
 				self.total = self.total.saturating_add(amount);
+				<Pallet<T>>::jit_ensure_delegator_reserve_migrated(&delegator_id.clone())?;
 				self.adjust_bond_lock::<T>(Some(amount))?;
 				// update collator state delegation
 				let mut collator_state =
 					<CandidateInfo<T>>::get(&candidate_id).ok_or(Error::<T>::CandidateDNE)?;
-				self.adjust_bond_lock::<T>(Some(amount))?;
 				let before = collator_state.total_counted;
 				let in_top = collator_state.increase_delegation::<T>(
 					&candidate_id,
