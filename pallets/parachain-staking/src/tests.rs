@@ -4260,7 +4260,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 					selected_collators_number: 5,
 					total_balance: 130,
 				},
-				Event::Rewarded {
+				Even::Rewarded {
 					account: 1,
 					rewards: 24,
 				},
@@ -8516,15 +8516,50 @@ mod jit_migrate_reserve_to_locks_tests {
 			});
 	}
 
+	#[test]
+	fn test_delegator_leave_delegators_unreserves() {
+		ExtBuilder::default()
+			.with_balances(vec![(1, 100), (2, 100), (3, 100)])
+			.with_candidates(vec![(1, 50), (2, 50)])
+			.with_delegations(vec![(3, 1, 20), (3, 2, 20)])
+			.build()
+			.execute_with(|| {
+				crate::mock::unmigrate_delegator_from_lock_to_reserve(3);
+				assert_eq!(Balances::reserved_balance(3), 40);
+				assert_eq!(crate::mock::query_lock_amount(3, DELEGATOR_LOCK_IDENTIFIER), None);
+				assert_eq!(<DelegatorReserveToLockMigrations<Test>>::get(3), false);
+
+				assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(3)));
+
+				// should be a no-op until executed
+				assert_eq!(Balances::reserved_balance(3), 40);
+				assert_eq!(crate::mock::query_lock_amount(3, DELEGATOR_LOCK_IDENTIFIER), None);
+				assert_eq!(<DelegatorReserveToLockMigrations<Test>>::get(3), false);
+
+				// should fail to execute and not migrate (waiting period hasn't ellapsed yet)
+				assert_noop!(
+					ParachainStaking::execute_leave_delegators(Origin::signed(3), 3, 2),
+					<Error<Test>>::DelegatorCannotLeaveYet,
+				);
+				assert_eq!(Balances::reserved_balance(3), 40);
+				assert_eq!(crate::mock::query_lock_amount(3, DELEGATOR_LOCK_IDENTIFIER), None);
+				assert_eq!(<DelegatorReserveToLockMigrations<Test>>::get(3), false);
+
+				roll_to(10);
+
+				assert_ok!(ParachainStaking::execute_leave_delegators(Origin::signed(3), 3, 2));
+				assert_eq!(Balances::reserved_balance(3), 0);
+				assert_eq!(crate::mock::query_lock_amount(3, DELEGATOR_LOCK_IDENTIFIER), None);
+				assert_eq!(<DelegatorReserveToLockMigrations<Test>>::get(3), true);
+			});
+	}
+
 	// TODO: more test ideas
 	//     * more candidate_bond_more scenarios?
-	//     * delegator_bond_more triggers JIT
-	//     * delegator_bond_less triggers JIT
 	//     * cancelling bond changes - triggers or no?
 	//     * leave candidates then come back - leave should trigger (?) come back should be migrated
 	//     * leave all delegators then come back - leaving should trigger (?) rejoining should be
 	//       migrated
-	//     * leave delegator triggers JIT
 	//     * IMPORTANT: test that reserved currency that hasn't been migrated yet doesn't count
 	//       against the liquidity checks for bonding more
 	//     * other tests around lquidity checks (can't bond_more if not enough unlocked amount, etc)
