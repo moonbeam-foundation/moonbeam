@@ -4260,7 +4260,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 					selected_collators_number: 5,
 					total_balance: 130,
 				},
-				Even::Rewarded {
+				Event::Rewarded {
 					account: 1,
 					rewards: 24,
 				},
