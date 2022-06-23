@@ -17,7 +17,8 @@
 //! Test utilities
 use crate as pallet_parachain_staking;
 use crate::{pallet, AwardedPts, Config, InflationInfo, Points, Range,
-DelegatorReserveToLockMigrations, DELEGATOR_LOCK_IDENTIFIER, DelegatorState };
+DelegatorReserveToLockMigrations, DELEGATOR_LOCK_IDENTIFIER, COLLATOR_LOCK_IDENTIFIER,
+CandidateInfo, DelegatorState, CollatorReserveToLockMigrations };
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{Everything, GenesisBuild, OnFinalize, OnInitialize, ReservableCurrency,
@@ -425,6 +426,18 @@ pub(crate) fn unmigrate_delegator_from_lock_to_reserve(account_id: u64) {
 
 	if let Some(delegator_state) = <DelegatorState<Test>>::get(&account_id) {
 		Balances::reserve(&account_id, delegator_state.total);
+	}
+}
+
+
+/// fn to reverse-migrate a collator account from locks back to reserve.
+/// This is used to test the reserve -> lock migration.
+pub(crate) fn unmigrate_collator_from_lock_to_reserve(account_id: u64) {
+	<CollatorReserveToLockMigrations<Test>>::remove(&account_id);
+	Balances::remove_lock(COLLATOR_LOCK_IDENTIFIER, &account_id);
+
+	if let Some(collator_state) = <CandidateInfo<Test>>::get(&account_id) {
+		Balances::reserve(&account_id, collator_state.bond);
 	}
 }
 

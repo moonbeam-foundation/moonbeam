@@ -30,7 +30,8 @@ use crate::{
 	assert_eq_events, assert_eq_last_events, assert_event_emitted, assert_last_event,
 	assert_tail_eq, set::OrderedSet, AtStake, Bond, BottomDelegations, CandidateInfo,
 	CandidateMetadata, CandidatePool, CapacityStatus, CollatorStatus, DelegationScheduledRequests,
-	Delegations, DelegatorAdded, Error, Event, Range, TopDelegations,
+	Delegations, DelegatorAdded, Error, Event, Range, TopDelegations, COLLATOR_LOCK_IDENTIFIER,
+	DELEGATOR_LOCK_IDENTIFIER,
 };
 use frame_support::{assert_noop, assert_ok};
 use sp_runtime::{traits::Zero, DispatchError, ModuleError, Perbill, Percent};
@@ -8244,8 +8245,6 @@ fn test_hotfix_remove_delegation_requests_exited_candidates_errors_when_candidat
 
 #[test]
 fn test_basic_jit_reserve_to_lock_migration_works() {
-
-
 	ExtBuilder::default()
 		.with_balances(vec![(1, 100), (2, 100)])
 		.with_candidates(vec![(1, 25)])
@@ -8253,10 +8252,20 @@ fn test_basic_jit_reserve_to_lock_migration_works() {
 		.build()
 		.execute_with(|| {
 			// initially should use locks, not reserves
-			assert_eq!(Balances::reserved_balance(&2), 0);
+			assert_eq!(Balances::reserved_balance(1), 0);
+			assert_eq!(crate::mock::query_lock_amount(1, COLLATOR_LOCK_IDENTIFIER), Some(25));
+
+			assert_eq!(Balances::reserved_balance(2), 0);
+			assert_eq!(crate::mock::query_lock_amount(2, DELEGATOR_LOCK_IDENTIFIER), Some(30));
 
 			// now "unmigrate" back to reserves
+			crate::mock::unmigrate_collator_from_lock_to_reserve(1);
+			assert_eq!(Balances::reserved_balance(1), 25);
+			assert_eq!(crate::mock::query_lock_amount(1, COLLATOR_LOCK_IDENTIFIER), None);
+
 			crate::mock::unmigrate_delegator_from_lock_to_reserve(2);
-			assert_eq!(Balances::reserved_balance(&2), 30);
+			assert_eq!(Balances::reserved_balance(2), 30);
+			assert_eq!(crate::mock::query_lock_amount(2, DELEGATOR_LOCK_IDENTIFIER), None);
+
 		});
 }
