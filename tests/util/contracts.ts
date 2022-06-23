@@ -1,11 +1,11 @@
-import { customWeb3Request } from "./providers";
-import { TransactionReceipt } from "web3-core";
-import { AbiItem } from "web3-utils";
-import { Contract } from "web3-eth-contract";
 import Web3 from "web3";
+import { TransactionReceipt } from "web3-core";
+import { Contract } from "web3-eth-contract";
+import { AbiItem } from "web3-utils";
 
-import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY } from "./constants";
 import { contractSources } from "../contracts/sources";
+import { alith, ALITH_PRIVATE_KEY } from "./accounts";
+import { customWeb3Request } from "./providers";
 
 export interface Compiled {
   byteCode: string;
@@ -14,40 +14,21 @@ export interface Compiled {
 }
 
 const contracts: { [name: string]: Compiled } = {};
-const contractObs: { [name: string]: ((Compiled) => void)[] } = {};
-export async function getCompiled(name: string): Promise<Compiled> {
+export function getCompiled(name: string): Compiled {
   if (!contractSources[name]) {
     throw new Error(`Contract name (${name}) doesn't exist in test suite`);
   }
-  if (contracts[name]) {
-    return contracts[name];
+  if (!contracts[name]) {
+    try {
+      contracts[name] = require(`../contracts/compiled/${name}.json`);
+    } catch (e) {
+      throw new Error(
+        `Contract name ${name} is not compiled. Please run 'npm run pre-build-contracts`
+      );
+    }
   }
-  const promise = new Promise<Compiled>((resolve) => {
-    const shouldLoad = !contractObs[name];
-    if (!contractObs[name]) {
-      contractObs[name] = [];
-    }
-    contractObs[name].push(resolve);
-    if (shouldLoad) {
-      // Will load the contract async and callback all the promise waiting for this contract.
-      setImmediate(() => {
-        try {
-          contracts[name] = require(`../contracts/compiled/${name}.json`);
-        } catch (e) {
-          throw new Error(
-            `Contract name ${name} is not compiled. Please run 'npm run pre-build-contracts`
-          );
-        }
 
-        // Call back all the pending promises and clear the list.
-        contractObs[name].forEach((resolvePending) => {
-          resolvePending(contracts[name]);
-        });
-        delete contractObs[name];
-      });
-    }
-  });
-  return promise;
+  return contracts[name];
 }
 
 // Deploy and instantiate a contract with manuel seal
@@ -55,8 +36,8 @@ export async function deployContractManualSeal(
   web3: Web3,
   contractByteCode: string,
   contractABI: AbiItem[],
-  account: string = GENESIS_ACCOUNT,
-  privateKey: string = GENESIS_ACCOUNT_PRIVATE_KEY
+  account: string = alith.address,
+  privateKey: string = ALITH_PRIVATE_KEY
 ): Promise<Contract> {
   const tx = await web3.eth.accounts.signTransaction(
     {

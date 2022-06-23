@@ -44,7 +44,8 @@ use xcm::latest::{
 };
 use xcm_builder::{
 	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
-	AllowTopLevelPaidExecutionFrom, ConvertedConcreteAssetId, EnsureXcmOrigin, FixedWeightBounds,
+	AllowTopLevelPaidExecutionFrom, AsPrefixedGeneralIndex, ConvertedConcreteAssetId,
+	CurrencyAdapter as XcmCurrencyAdapter, EnsureXcmOrigin, FixedRateOfFungible, FixedWeightBounds,
 	FungiblesAdapter, LocationInverter, ParentAsSuperuser, ParentIsPreset, RelayChainAsNative,
 	SiblingParachainAsNative, SiblingParachainConvertsVia, SignedAccountKey20AsNative,
 	SovereignSignedViaLocation, TakeWeightCredit,
@@ -196,7 +197,7 @@ parameter_types! {
 }
 
 // Instructing how incoming xcm assets will be handled
-pub type FungiblesTransactor = FungiblesAdapter<
+pub type ForeignFungiblesTransactor = FungiblesAdapter<
 	// Use this fungibles implementation:
 	Assets,
 	// Use this currency when it is a fungible asset matching the given location or name:
@@ -218,10 +219,49 @@ pub type FungiblesTransactor = FungiblesAdapter<
 	(),
 >;
 
-// These will be our transactors
-// Local assets not enabled
-// GLMR not enabled
-pub type AssetTransactors = FungiblesTransactor;
+pub type LocalAssetTransactor = XcmCurrencyAdapter<
+	// Use this currency:
+	Balances,
+	// Use this currency when it is a fungible asset matching any of the locations in
+	// SelfReserveRepresentations
+	xcm_builder::IsConcrete<SelfReserve>,
+	// We can convert the MultiLocations with our converter above:
+	LocationToAccountId,
+	// Our chain's account ID type (we can't get away without mentioning it explicitly):
+	AccountId,
+	// We dont allow teleport
+	(),
+>;
+
+/// Means for transacting local assets besides the native currency on this chain.
+pub type LocalFungiblesTransactor = FungiblesAdapter<
+	// Use this fungibles implementation:
+	LocalAssets,
+	// Use this currency when it is a fungible asset matching the given location or name:
+	(
+		ConvertedConcreteAssetId<
+			AssetId,
+			Balance,
+			AsPrefixedGeneralIndex<LocalAssetsPalletLocation, AssetId, JustTry>,
+			JustTry,
+		>,
+	),
+	// Convert an XCM MultiLocation into a local account id:
+	LocationToAccountId,
+	// Our chain's account ID type (we can't get away without mentioning it explicitly):
+	AccountId,
+	// We dont want to allow teleporting assets
+	Nothing,
+	// The account to use for tracking teleports.
+	(),
+>;
+
+// We use all transactors
+pub type AssetTransactors = (
+	LocalAssetTransactor,
+	ForeignFungiblesTransactor,
+	LocalFungiblesTransactor,
+);
 pub type XcmRouter = super::ParachainXcmRouter<MsgQueue>;
 
 pub type Barrier = (
@@ -269,7 +309,7 @@ parameter_types! {
 			PalletInstance(<Balances as PalletInfoAccess>::index() as u8)
 		)
 	};
-	pub LocalAssetsPalletLocationNewReanchor: MultiLocation = MultiLocation {
+	pub LocalAssetsPalletLocation: MultiLocation = MultiLocation {
 		parents:0,
 		interior: Junctions::X1(
 			PalletInstance(<LocalAssets as PalletInfoAccess>::index() as u8)
@@ -290,8 +330,14 @@ impl Config for XcmConfig {
 	type LocationInverter = LocationInverter<Ancestry>;
 	type Barrier = Barrier;
 	type Weigher = FixedWeightBounds<UnitWeightCost, Call, MaxInstructions>;
-	type Trader = (xcm_primitives::FirstAssetTrader<AssetType, AssetManager, XcmFeesToAccount_>,);
-
+	// We use two traders
+	// When we receive the self-reserve asset,
+	// When we receive a non-reserve asset, we use AssetManager to fetch how many
+	// units per second we should charge
+	type Trader = (
+		FixedRateOfFungible<ParaTokensPerSecond, ()>,
+		xcm_primitives::FirstAssetTrader<AssetType, AssetManager, XcmFeesToAccount_>,
+	);
 	type ResponseHandler = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;
 	type AssetTrap = PolkadotXcm;
@@ -325,9 +371,8 @@ where
 				Some(multi)
 			}
 			CurrencyId::ForeignAsset(asset) => AssetXConverter::reverse_ref(asset).ok(),
-			// Even if we instruct how to convert, the transactor is not enabled
 			CurrencyId::LocalAssetReserve(asset) => {
-				let mut location = LocalAssetsPalletLocationNewReanchor::get();
+				let mut location = LocalAssetsPalletLocation::get();
 				location.push_interior(Junction::GeneralIndex(asset)).ok();
 				Some(location)
 			}
@@ -746,8 +791,8 @@ impl pallet_asset_manager::LocalAssetIdCreator<Runtime> for LocalAssetIdCreator 
 		// Our means of converting a local asset counter to an assetId
 		// We basically hash (local asset counter)
 		let mut result: [u8; 16] = [0u8; 16];
-		let to_hash = local_asset_counter.encode();
-		let hash: H256 = to_hash.using_encoded(<Runtime as frame_system::Config>::Hashing::hash);
+		let hash: H256 =
+			local_asset_counter.using_encoded(<Runtime as frame_system::Config>::Hashing::hash);
 		result.copy_from_slice(&hash.as_fixed_bytes()[0..16]);
 		u128::from_le_bytes(result)
 	}
@@ -769,7 +814,7 @@ impl pallet_asset_manager::Config for Runtime {
 	type WeightInfo = ();
 }
 
-impl xcm_transactor::Config for Runtime {
+impl pallet_xcm_transactor::Config for Runtime {
 	type Event = Event;
 	type Balance = Balance;
 	type Transactor = MockTransactors;
@@ -806,7 +851,7 @@ impl pallet_evm::Config for Runtime {
 	type CallOrigin = pallet_evm::EnsureAddressRoot<AccountId>;
 	type WithdrawOrigin = pallet_evm::EnsureAddressNever<AccountId>;
 
-	type AddressMapping = runtime_common::IntoAddressMapping;
+	type AddressMapping = moonbeam_runtime_common::IntoAddressMapping;
 	type Currency = Balances;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
 
@@ -891,7 +936,7 @@ construct_runtime!(
 		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin},
 		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>},
 		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>},
-		XcmTransactor: xcm_transactor::{Pallet, Call, Storage, Event<T>},
+		XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Storage, Event<T>},
 		Treasury: pallet_treasury::{Pallet, Storage, Config, Event<T>, Call},
 		LocalAssets: pallet_assets::<Instance1>::{Pallet, Call, Storage, Event<T>},
 

@@ -1,5 +1,8 @@
+import "@moonbeam-network/api-augment";
+
 import { expect } from "chai";
-import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
+
+import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 import { createContract, createContractExecution } from "../../util/transactions";
 
 [
@@ -19,15 +22,13 @@ import { createContract, createContractExecution } from "../../util/transactions
   describeDevMoonbeamAllEthTxTypes("Contract loop", (context) => {
     it(`should consume ${gas} for ${loop} loop`, async function () {
       const { contract, rawTx } = await createContract(context, "FiniteLoopContract");
-      await context.createBlock({ transactions: [rawTx] });
-      await context.createBlock({
-        transactions: [
-          await createContractExecution(context, {
-            contract,
-            contractCall: contract.methods.incr(loop),
-          }),
-        ],
-      });
+      await context.createBlock(rawTx);
+      await context.createBlock(
+        createContractExecution(context, {
+          contract,
+          contractCall: contract.methods.incr(loop),
+        })
+      );
 
       expect(await contract.methods.count().call()).to.eq(loop.toString());
 

@@ -24,6 +24,7 @@
 
 use cli_opt::{EthApi as EthApiCmd, RpcConfig};
 use fc_consensus::FrontierBlockImport;
+use fc_db::DatabaseSource;
 use fc_rpc_core::types::{FeeHistoryCache, FilterPool};
 use futures::StreamExt;
 use maplit::hashmap;
@@ -49,7 +50,6 @@ use cumulus_relay_chain_inprocess_interface::build_inprocess_relay_chain;
 use cumulus_relay_chain_interface::{RelayChainError, RelayChainInterface};
 use nimbus_consensus::NimbusManualSealConsensusDataProvider;
 use nimbus_consensus::{BuildNimbusConsensusParams, NimbusConsensus};
-use nimbus_primitives::NimbusId;
 use sc_executor::{NativeElseWasmExecutor, NativeExecutionDispatch};
 use sc_network::NetworkService;
 use sc_service::config::PrometheusConfig;
@@ -186,7 +186,7 @@ impl IdentifyVariant for Box<dyn ChainSpec> {
 	}
 }
 
-pub fn frontier_database_dir(config: &Configuration) -> std::path::PathBuf {
+pub fn frontier_database_dir(config: &Configuration, path: &str) -> std::path::PathBuf {
 	let config_dir = config
 		.base_path
 		.as_ref()
@@ -194,7 +194,7 @@ pub fn frontier_database_dir(config: &Configuration) -> std::path::PathBuf {
 		.unwrap_or_else(|| {
 			BasePath::from_project("", "", "moonbeam").config_dir(config.chain_spec.id())
 		});
-	config_dir.join("frontier").join("db")
+	config_dir.join("frontier").join(path)
 }
 
 // TODO This is copied from frontier. It should be imported instead after
@@ -202,9 +202,22 @@ pub fn frontier_database_dir(config: &Configuration) -> std::path::PathBuf {
 pub fn open_frontier_backend(config: &Configuration) -> Result<Arc<fc_db::Backend<Block>>, String> {
 	Ok(Arc::new(fc_db::Backend::<Block>::new(
 		&fc_db::DatabaseSettings {
-			source: fc_db::DatabaseSettingsSrc::RocksDb {
-				path: frontier_database_dir(&config),
-				cache_size: 0,
+			source: match config.database {
+				DatabaseSource::RocksDb { .. } => DatabaseSource::RocksDb {
+					path: frontier_database_dir(config, "db"),
+					cache_size: 0,
+				},
+				DatabaseSource::ParityDb { .. } => DatabaseSource::ParityDb {
+					path: frontier_database_dir(config, "paritydb"),
+				},
+				DatabaseSource::Auto { .. } => DatabaseSource::Auto {
+					rocksdb_path: frontier_database_dir(config, "db"),
+					paritydb_path: frontier_database_dir(config, "paritydb"),
+					cache_size: 0,
+				},
+				_ => {
+					return Err("Supported db sources: `rocksdb` | `paritydb` | `auto`".to_string())
+				}
 			},
 		},
 	)?))
@@ -429,7 +442,7 @@ where
 async fn start_node_impl<RuntimeApi, Executor, BIC>(
 	parachain_config: Configuration,
 	polkadot_config: Configuration,
-	id: polkadot_primitives::v0::Id,
+	id: polkadot_primitives::v2::Id,
 	rpc_config: RpcConfig,
 	build_consensus: BIC,
 ) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi, Executor>>)>
@@ -549,8 +562,8 @@ where
 	let block_data_cache = Arc::new(fc_rpc::EthBlockDataCacheTask::new(
 		task_manager.spawn_handle(),
 		overrides.clone(),
-		rpc_config.eth_log_block_cache as u64,
-		rpc_config.eth_statuses_cache as u64,
+		rpc_config.eth_log_block_cache,
+		rpc_config.eth_statuses_cache,
 		prometheus_registry.clone(),
 	));
 
@@ -685,7 +698,7 @@ where
 pub async fn start_node<RuntimeApi, Executor>(
 	parachain_config: Configuration,
 	polkadot_config: Configuration,
-	id: polkadot_primitives::v0::Id,
+	id: polkadot_primitives::v2::Id,
 	rpc_config: RpcConfig,
 ) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi, Executor>>)>
 where
@@ -720,7 +733,7 @@ where
 			);
 			proposer_factory.set_soft_deadline(SOFT_DEADLINE_PERCENT);
 
-			let provider = move |_, (relay_parent, validation_data, author_id)| {
+			let provider = move |_, (relay_parent, validation_data, _author_id)| {
 				let relay_chain_interface = relay_chain_interface.clone();
 				async move {
 					let parachain_inherent =
@@ -740,7 +753,7 @@ where
 						)
 					})?;
 
-					let author = nimbus_primitives::InherentDataProvider::<NimbusId>(author_id);
+					let author = nimbus_primitives::InherentDataProvider;
 
 					Ok((time, parachain_inherent, author))
 				}
@@ -967,8 +980,8 @@ where
 	let block_data_cache = Arc::new(fc_rpc::EthBlockDataCacheTask::new(
 		task_manager.spawn_handle(),
 		overrides.clone(),
-		rpc_config.eth_log_block_cache as u64,
-		rpc_config.eth_statuses_cache as u64,
+		rpc_config.eth_log_block_cache,
+		rpc_config.eth_statuses_cache,
 		prometheus_registry,
 	));
 

@@ -241,20 +241,12 @@ impl<R> PrecompileSet for Precompiles<R>
 where
 	Erc20BalancesPrecompile<R, NativeErc20Metadata>: Precompile,
 {
-	fn execute(
-		&self,
-		address: H160,
-		input: &[u8],
-		target_gas: Option<u64>,
-		context: &Context,
-		is_static: bool,
-	) -> Option<EvmResult<PrecompileOutput>> {
-		match address {
-			a if a == hash(PRECOMPILE_ADDRESS) => {
-				Some(Erc20BalancesPrecompile::<R, NativeErc20Metadata>::execute(
-					input, target_gas, context, is_static,
-				))
-			}
+	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<EvmResult<PrecompileOutput>> {
+		match handle.code_address() {
+			a if a == hash(PRECOMPILE_ADDRESS) => Some(Erc20BalancesPrecompile::<
+				R,
+				NativeErc20Metadata,
+			>::execute(handle)),
 			_ => None,
 		}
 	}

@@ -214,7 +214,8 @@ pub mod pallet {
 		PendingDelegationRequestDNE,
 		PendingDelegationRequestAlreadyExists,
 		PendingDelegationRequestNotDueYet,
-		CannotDelegateLessThanLowestBottomWhenBottomIsFull,
+		CannotDelegateLessThanOrEqualToLowestBottomWhenFull,
+		PendingDelegationRevoke,
 	}
 
 	#[pallet::event]
@@ -968,15 +969,18 @@ pub mod pallet {
 						Delegator state also has a record. qed.",
 				);
 				if let Some(remaining) = delegator.rm_delegation(&candidate) {
+					Self::delegation_remove_request_with_state(
+						&candidate,
+						&bond.owner,
+						&mut delegator,
+					);
+
 					if remaining.is_zero() {
+						// we do not remove the scheduled delegation requests from other collators
+						// since it is assumed that they were removed incrementally before only the
+						// last delegation was left.
 						<DelegatorState<T>>::remove(&bond.owner);
 					} else {
-						Self::delegation_remove_request_with_state(
-							&candidate,
-							&bond.owner,
-							&mut delegator,
-						)
-						.ok(); // ignore DNE error
 						<DelegatorState<T>>::insert(&bond.owner, delegator);
 					}
 				}
@@ -1000,6 +1004,7 @@ pub mod pallet {
 			// return stake to collator
 			T::Currency::unreserve(&candidate, state.bond);
 			<CandidateInfo<T>>::remove(&candidate);
+			<DelegationScheduledRequests<T>>::remove(&candidate);
 			<TopDelegations<T>>::remove(&candidate);
 			<BottomDelegations<T>>::remove(&candidate);
 			let new_total_staked = <Total<T>>::get().saturating_sub(total_backing);
@@ -1148,8 +1153,6 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			candidate: T::AccountId,
 			amount: BalanceOf<T>,
-			// will_be_in_top: bool // weight hint
-			// look into returning weight in DispatchResult
 			candidate_delegation_count: u32,
 			delegation_count: u32,
 		) -> DispatchResultWithPostInfo {
@@ -1160,7 +1163,6 @@ pub mod pallet {
 				Error::<T>::InsufficientBalance
 			);
 			let delegator_state = if let Some(mut state) = <DelegatorState<T>>::get(&delegator) {
-				ensure!(state.is_active(), Error::<T>::CannotDelegateIfLeaving);
 				// delegation after first
 				ensure!(
 					amount >= T::MinDelegation::get(),
@@ -1224,21 +1226,12 @@ pub mod pallet {
 			Ok(().into())
 		}
 		#[pallet::weight(<T as Config>::WeightInfo::schedule_leave_delegators())]
-		/// Request to leave the set of delegators. If successful, the caller is scheduled
-		/// to be allowed to exit. Success forbids future delegator actions until the request is
-		/// invoked or cancelled.
+		/// Request to leave the set of delegators. If successful, the caller is scheduled to be
+		/// allowed to exit via a [DelegationAction::Revoke] towards all existing delegations.
+		/// Success forbids future delegation requests until the request is invoked or cancelled.
 		pub fn schedule_leave_delegators(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
-			let acc = ensure_signed(origin)?;
-			let mut state = <DelegatorState<T>>::get(&acc).ok_or(Error::<T>::DelegatorDNE)?;
-			ensure!(!state.is_leaving(), Error::<T>::DelegatorAlreadyLeaving);
-			let (now, when) = state.schedule_leave::<T>();
-			<DelegatorState<T>>::insert(&acc, state);
-			Self::deposit_event(Event::DelegatorExitScheduled {
-				round: now,
-				delegator: acc,
-				scheduled_exit: when,
-			});
-			Ok(().into())
+			let delegator = ensure_signed(origin)?;
+			Self::delegator_schedule_revoke_all(delegator)
 		}
 		#[pallet::weight(<T as Config>::WeightInfo::execute_leave_delegators(*delegation_count))]
 		/// Execute the right to exit the set of delegators and revoke all ongoing delegations.
@@ -1248,41 +1241,14 @@ pub mod pallet {
 			delegation_count: u32,
 		) -> DispatchResultWithPostInfo {
 			ensure_signed(origin)?;
-			let state = <DelegatorState<T>>::get(&delegator).ok_or(Error::<T>::DelegatorDNE)?;
-			state.can_execute_leave::<T>(delegation_count)?;
-			for bond in state.delegations.0 {
-				if let Err(error) = Self::delegator_leaves_candidate(
-					bond.owner.clone(),
-					delegator.clone(),
-					bond.amount,
-				) {
-					log::warn!(
-						"STORAGE CORRUPTED \nDelegator leaving collator failed with error: {:?}",
-						error
-					);
-				}
-			}
-			<DelegatorState<T>>::remove(&delegator);
-			Self::deposit_event(Event::DelegatorLeft {
-				delegator: delegator,
-				unstaked_amount: state.total,
-			});
-			Ok(().into())
+			Self::delegator_execute_scheduled_revoke_all(delegator, delegation_count)
 		}
 		#[pallet::weight(<T as Config>::WeightInfo::cancel_leave_delegators())]
 		/// Cancel a pending request to exit the set of delegators. Success clears the pending exit
 		/// request (thereby resetting the delay upon another `leave_delegators` call).
 		pub fn cancel_leave_delegators(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			let delegator = ensure_signed(origin)?;
-			// ensure delegator state exists
-			let mut state = <DelegatorState<T>>::get(&delegator).ok_or(Error::<T>::DelegatorDNE)?;
-			// ensure state is leaving
-			ensure!(state.is_leaving(), Error::<T>::DelegatorDNE);
-			// cancel exit request
-			state.cancel_leave();
-			<DelegatorState<T>>::insert(&delegator, state);
-			Self::deposit_event(Event::DelegatorExitCancelled { delegator });
-			Ok(().into())
+			Self::delegator_cancel_scheduled_revoke_all(delegator)
 		}
 
 		#[pallet::weight(<T as Config>::WeightInfo::schedule_revoke_delegation())]
@@ -1304,6 +1270,10 @@ pub mod pallet {
 			more: BalanceOf<T>,
 		) -> DispatchResultWithPostInfo {
 			let delegator = ensure_signed(origin)?;
+			ensure!(
+				!Self::delegation_request_revoke_exists(&candidate, &delegator),
+				Error::<T>::PendingDelegationRevoke
+			);
 			let mut state = <DelegatorState<T>>::get(&delegator).ok_or(Error::<T>::DelegatorDNE)?;
 			state.increase_delegation::<T>(candidate.clone(), more)?;
 			Ok(().into())
@@ -1339,6 +1309,34 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let delegator = ensure_signed(origin)?;
 			Self::delegation_cancel_request(candidate, delegator)
+		}
+
+		/// Hotfix to remove existing empty entries for candidates that have left.
+		#[pallet::weight(
+			T::DbWeight::get().reads_writes(2 * candidates.len() as u64, candidates.len() as u64)
+		)]
+		pub fn hotfix_remove_delegation_requests_exited_candidates(
+			origin: OriginFor<T>,
+			candidates: Vec<T::AccountId>,
+		) -> DispatchResult {
+			ensure_signed(origin)?;
+			ensure!(candidates.len() < 100, <Error<T>>::InsufficientBalance);
+			for candidate in &candidates {
+				ensure!(
+					<CandidateInfo<T>>::get(&candidate).is_none(),
+					<Error<T>>::CandidateNotLeaving
+				);
+				ensure!(
+					<DelegationScheduledRequests<T>>::get(&candidate).is_empty(),
+					<Error<T>>::CandidateNotLeaving
+				);
+			}
+
+			for candidate in candidates {
+				<DelegationScheduledRequests<T>>::remove(candidate);
+			}
+
+			Ok(().into())
 		}
 	}
 
@@ -1529,7 +1527,9 @@ pub mod pallet {
 					for Bond { owner, amount } in state.delegations {
 						let percent = Perbill::from_rational(amount, state.total);
 						let due = percent * amt_due;
-						mint(due, owner.clone());
+						if !due.is_zero() {
+							mint(due, owner.clone());
+						}
 					}
 				}
 

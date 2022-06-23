@@ -68,7 +68,7 @@ pub fn keccak256(input: TokenStream) -> TokenStream {
 /// }
 /// ```
 ///
-/// Extanded to:
+/// Extended to:
 ///
 /// ```rust
 /// #[repr(u32)]

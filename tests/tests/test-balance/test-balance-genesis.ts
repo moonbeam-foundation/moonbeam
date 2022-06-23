@@ -1,12 +1,14 @@
+import "@moonbeam-network/api-augment";
+
 import { expect } from "chai";
 
-import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_BALANCE } from "../../util/constants";
+import { alith, ALITH_GENESIS_BALANCE } from "../../util/accounts";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 
 describeDevMoonbeam("Balance genesis", (context) => {
   it("should be accessible through web3", async function () {
-    expect(await context.web3.eth.getBalance(GENESIS_ACCOUNT, 0)).to.equal(
-      GENESIS_ACCOUNT_BALANCE.toString()
+    expect(await context.web3.eth.getBalance(alith.address, 0)).to.equal(
+      ALITH_GENESIS_BALANCE.toString()
     );
   });
 
@@ -14,8 +16,8 @@ describeDevMoonbeam("Balance genesis", (context) => {
     const genesisHash = await context.polkadotApi.rpc.chain.getBlockHash(0);
     const account = (await context.polkadotApi.query.system.account.at(
       genesisHash,
-      GENESIS_ACCOUNT
+      alith.address
     )) as any;
-    expect(account.data.free.toString()).to.equal(GENESIS_ACCOUNT_BALANCE.toString());
+    expect(account.data.free.toString()).to.equal(ALITH_GENESIS_BALANCE.toString());
   });
 });

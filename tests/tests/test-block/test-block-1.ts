@@ -1,5 +1,8 @@
+import "@moonbeam-network/api-augment";
+
 import { expect } from "chai";
-import { COLLATOR_ACCOUNT } from "../../util/constants";
+
+import { alith } from "../../util/accounts";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 
 describeDevMoonbeam("Block 1", (context) => {
@@ -23,7 +26,7 @@ describeDevMoonbeam("Block 1", (context) => {
   it("should contain block information", async function () {
     const block = await context.web3.eth.getBlock("latest");
     expect(block).to.include({
-      author: COLLATOR_ACCOUNT.toLowerCase(), // web3 doesn't checksum
+      author: alith.address.toLocaleLowerCase(), // web3 doesn't checksum
       difficulty: "0",
       extraData: "0x",
       gasLimit: 15000000,

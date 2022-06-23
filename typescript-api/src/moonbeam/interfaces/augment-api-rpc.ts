@@ -32,6 +32,7 @@ import type {
   ContractInstantiateResult,
   InstantiateRequest,
 } from "@polkadot/types/interfaces/contracts";
+import type { BlockStats } from "@polkadot/types/interfaces/dev";
 import type { CreatedBlock } from "@polkadot/types/interfaces/engine";
 import type {
   EthAccount,
@@ -54,7 +55,7 @@ import type {
   JustificationNotification,
   ReportedRoundStates,
 } from "@polkadot/types/interfaces/grandpa";
-import type { MmrLeafProof } from "@polkadot/types/interfaces/mmr";
+import type { MmrLeafBatchProof, MmrLeafProof } from "@polkadot/types/interfaces/mmr";
 import type { StorageKind } from "@polkadot/types/interfaces/offchain";
 import type { FeeDetails, RuntimeDispatchInfo } from "@polkadot/types/interfaces/payment";
 import type { RpcMethods } from "@polkadot/types/interfaces/rpc";
@@ -73,6 +74,7 @@ import type {
   StorageData,
 } from "@polkadot/types/interfaces/runtime";
 import type {
+  MigrationStatusResult,
   ReadProof,
   RuntimeVersion,
   TraceBlockResponse,
@@ -330,6 +332,14 @@ declare module "@polkadot/rpc-core/types/jsonrpc" {
             | Uint8Array,
           at?: BlockHash | string | Uint8Array
         ) => Observable<CodeUploadResult>
+      >;
+    };
+    dev: {
+      /**
+       * Reexecute the specified `block_hash` and gather statistics while doing so
+       */
+      getBlockStats: AugmentedRpc<
+        (at: Hash | string | Uint8Array) => Observable<Option<BlockStats>>
       >;
     };
     engine: {
@@ -700,13 +710,22 @@ declare module "@polkadot/rpc-core/types/jsonrpc" {
     };
     mmr: {
       /**
+       * Generate MMR proof for the given leaf indices.
+       */
+      generateBatchProof: AugmentedRpc<
+        (
+          leafIndices: Vec<u64> | (u64 | AnyNumber | Uint8Array)[],
+          at?: BlockHash | string | Uint8Array
+        ) => Observable<MmrLeafProof>
+      >;
+      /**
        * Generate MMR proof for given leaf index.
        */
       generateProof: AugmentedRpc<
         (
           leafIndex: u64 | AnyNumber | Uint8Array,
           at?: BlockHash | string | Uint8Array
-        ) => Observable<MmrLeafProof>
+        ) => Observable<MmrLeafBatchProof>
       >;
     };
     net: {
@@ -958,6 +977,12 @@ declare module "@polkadot/rpc-core/types/jsonrpc" {
           storageKeys: Option<Text> | null | object | string | Uint8Array,
           methods: Option<Text> | null | object | string | Uint8Array
         ) => Observable<TraceBlockResponse>
+      >;
+      /**
+       * Check current migration state
+       */
+      trieMigrationStatus: AugmentedRpc<
+        (at?: BlockHash | string | Uint8Array) => Observable<MigrationStatusResult>
       >;
     };
     syncstate: {

@@ -9,12 +9,21 @@ declare module "@polkadot/api-base/types/errors" {
       AssetAlreadyExists: AugmentedError<ApiType>;
       AssetDoesNotExist: AugmentedError<ApiType>;
       ErrorCreatingAsset: AugmentedError<ApiType>;
+      ErrorDestroyingAsset: AugmentedError<ApiType>;
+      LocalAssetLimitReached: AugmentedError<ApiType>;
+      NonExistentLocalAsset: AugmentedError<ApiType>;
+      NotSufficientDeposit: AugmentedError<ApiType>;
+      TooLowNumAssetsWeightHint: AugmentedError<ApiType>;
       /**
        * Generic error
        */
       [key: string]: AugmentedError<ApiType>;
     };
     assets: {
+      /**
+       * The asset-account already exists.
+       */
+      AlreadyExists: AugmentedError<ApiType>;
       /**
        * Invalid metadata given.
        */
@@ -28,10 +37,6 @@ declare module "@polkadot/api-base/types/errors" {
        */
       BalanceLow: AugmentedError<ApiType>;
       /**
-       * Balance should be non-zero.
-       */
-      BalanceZero: AugmentedError<ApiType>;
-      /**
        * The origin account is frozen.
        */
       Frozen: AugmentedError<ApiType>;
@@ -44,12 +49,21 @@ declare module "@polkadot/api-base/types/errors" {
        */
       MinBalanceZero: AugmentedError<ApiType>;
       /**
+       * The account to alter does not exist.
+       */
+      NoAccount: AugmentedError<ApiType>;
+      /**
+       * The asset-account doesn't have an associated deposit.
+       */
+      NoDeposit: AugmentedError<ApiType>;
+      /**
        * The signing account has no permission to do the operation.
        */
       NoPermission: AugmentedError<ApiType>;
       /**
-       * No provider reference exists to allow a non-zero balance of a
-       * non-self-sufficient asset.
+       * Unable to increment the consumer reference counters on the account.
+       * Either no provider reference exists to allow a non-zero balance of a
+       * non-self-sufficient asset, or the maximum number of consumers has been reached.
        */
       NoProvider: AugmentedError<ApiType>;
       /**
@@ -60,6 +74,10 @@ declare module "@polkadot/api-base/types/errors" {
        * The given asset ID is unknown.
        */
       Unknown: AugmentedError<ApiType>;
+      /**
+       * The operation would result in funds being burned.
+       */
+      WouldBurn: AugmentedError<ApiType>;
       /**
        * The source account would not survive the transfer and it needs to stay alive.
        */
@@ -101,9 +119,25 @@ declare module "@polkadot/api-base/types/errors" {
        */
       CannotAffordSecurityDeposit: AugmentedError<ApiType>;
       /**
+       * Failed to decode T::Keys for `set_keys`
+       */
+      DecodeKeysFailed: AugmentedError<ApiType>;
+      /**
+       * Failed to decode NimbusId for `set_keys`
+       */
+      DecodeNimbusFailed: AugmentedError<ApiType>;
+      /**
        * The association can't be cleared because it belongs to another account.
        */
       NotYourAssociation: AugmentedError<ApiType>;
+      /**
+       * No existing NimbusId can be found for the account
+       */
+      OldAuthorIdNotFound: AugmentedError<ApiType>;
+      /**
+       * Keys have wrong size
+       */
+      WrongKeySize: AugmentedError<ApiType>;
       /**
        * Generic error
        */
@@ -436,6 +470,10 @@ declare module "@polkadot/api-base/types/errors" {
        */
       InvalidNonce: AugmentedError<ApiType>;
       /**
+       * Maximum address count exceeded
+       */
+      MaxAddressCountExceeded: AugmentedError<ApiType>;
+      /**
        * Calculating total payment overflowed
        */
       PaymentOverflow: AugmentedError<ApiType>;
@@ -518,6 +556,74 @@ declare module "@polkadot/api-base/types/errors" {
        */
       [key: string]: AugmentedError<ApiType>;
     };
+    localAssets: {
+      /**
+       * The asset-account already exists.
+       */
+      AlreadyExists: AugmentedError<ApiType>;
+      /**
+       * Invalid metadata given.
+       */
+      BadMetadata: AugmentedError<ApiType>;
+      /**
+       * Invalid witness data given.
+       */
+      BadWitness: AugmentedError<ApiType>;
+      /**
+       * Account balance must be greater than or equal to the transfer amount.
+       */
+      BalanceLow: AugmentedError<ApiType>;
+      /**
+       * The origin account is frozen.
+       */
+      Frozen: AugmentedError<ApiType>;
+      /**
+       * The asset ID is already taken.
+       */
+      InUse: AugmentedError<ApiType>;
+      /**
+       * Minimum balance should be non-zero.
+       */
+      MinBalanceZero: AugmentedError<ApiType>;
+      /**
+       * The account to alter does not exist.
+       */
+      NoAccount: AugmentedError<ApiType>;
+      /**
+       * The asset-account doesn't have an associated deposit.
+       */
+      NoDeposit: AugmentedError<ApiType>;
+      /**
+       * The signing account has no permission to do the operation.
+       */
+      NoPermission: AugmentedError<ApiType>;
+      /**
+       * Unable to increment the consumer reference counters on the account.
+       * Either no provider reference exists to allow a non-zero balance of a
+       * non-self-sufficient asset, or the maximum number of consumers has been reached.
+       */
+      NoProvider: AugmentedError<ApiType>;
+      /**
+       * No approval exists that would allow the transfer.
+       */
+      Unapproved: AugmentedError<ApiType>;
+      /**
+       * The given asset ID is unknown.
+       */
+      Unknown: AugmentedError<ApiType>;
+      /**
+       * The operation would result in funds being burned.
+       */
+      WouldBurn: AugmentedError<ApiType>;
+      /**
+       * The source account would not survive the transfer and it needs to stay alive.
+       */
+      WouldDie: AugmentedError<ApiType>;
+      /**
+       * Generic error
+       */
+      [key: string]: AugmentedError<ApiType>;
+    };
     maintenanceMode: {
       /**
        * The chain cannot enter maintenance mode because it is already in maintenance mode
@@ -527,6 +633,49 @@ declare module "@polkadot/api-base/types/errors" {
        * The chain cannot resume normal operation because it is not in maintenance mode
        */
       NotInMaintenanceMode: AugmentedError<ApiType>;
+      /**
+       * Generic error
+       */
+      [key: string]: AugmentedError<ApiType>;
+    };
+    moonbeamOrbiters: {
+      /**
+       * The collator is already added in orbiters program.
+       */
+      CollatorAlreadyAdded: AugmentedError<ApiType>;
+      /**
+       * This collator is not in orbiters program.
+       */
+      CollatorNotFound: AugmentedError<ApiType>;
+      /**
+       * There are already too many orbiters associated with this collator.
+       */
+      CollatorPoolTooLarge: AugmentedError<ApiType>;
+      /**
+       * There are more collator pools than the number specified in the parameter.
+       */
+      CollatorsPoolCountTooLow: AugmentedError<ApiType>;
+      /**
+       * The minimum deposit required to register as an orbiter has not yet been
+       * included in the onchain storage
+       */
+      MinOrbiterDepositNotSet: AugmentedError<ApiType>;
+      /**
+       * This orbiter is already associated with this collator.
+       */
+      OrbiterAlreadyInPool: AugmentedError<ApiType>;
+      /**
+       * This orbiter has not made a deposit
+       */
+      OrbiterDepositNotFound: AugmentedError<ApiType>;
+      /**
+       * This orbiter is not found
+       */
+      OrbiterNotFound: AugmentedError<ApiType>;
+      /**
+       * The orbiter is still at least in one pool
+       */
+      OrbiterStillInAPool: AugmentedError<ApiType>;
       /**
        * Generic error
        */
@@ -543,7 +692,7 @@ declare module "@polkadot/api-base/types/errors" {
       CandidateExists: AugmentedError<ApiType>;
       CandidateNotLeaving: AugmentedError<ApiType>;
       CannotDelegateIfLeaving: AugmentedError<ApiType>;
-      CannotDelegateLessThanLowestBottomWhenBottomIsFull: AugmentedError<ApiType>;
+      CannotDelegateLessThanOrEqualToLowestBottomWhenFull: AugmentedError<ApiType>;
       CannotGoOnlineIfLeaving: AugmentedError<ApiType>;
       CannotSetBelowMin: AugmentedError<ApiType>;
       DelegationBelowMin: AugmentedError<ApiType>;
@@ -566,6 +715,7 @@ declare module "@polkadot/api-base/types/errors" {
       PendingDelegationRequestAlreadyExists: AugmentedError<ApiType>;
       PendingDelegationRequestDNE: AugmentedError<ApiType>;
       PendingDelegationRequestNotDueYet: AugmentedError<ApiType>;
+      PendingDelegationRevoke: AugmentedError<ApiType>;
       RoundLengthMustBeAtLeastTotalSelectedCollators: AugmentedError<ApiType>;
       TooLowCandidateCountToLeaveCandidates: AugmentedError<ApiType>;
       TooLowCandidateCountWeightHintCancelLeaveCandidates: AugmentedError<ApiType>;
@@ -860,6 +1010,10 @@ declare module "@polkadot/api-base/types/errors" {
     };
     xcmpQueue: {
       /**
+       * Bad overweight index.
+       */
+      BadOverweightIndex: AugmentedError<ApiType>;
+      /**
        * Bad XCM data.
        */
       BadXcm: AugmentedError<ApiType>;
@@ -871,6 +1025,10 @@ declare module "@polkadot/api-base/types/errors" {
        * Failed to send XCM message.
        */
       FailedToSend: AugmentedError<ApiType>;
+      /**
+       * Provided weight is possibly not enough to execute the message.
+       */
+      WeightOverLimit: AugmentedError<ApiType>;
       /**
        * Generic error
        */
@@ -885,12 +1043,15 @@ declare module "@polkadot/api-base/types/errors" {
       DestinationNotInvertible: AugmentedError<ApiType>;
       DispatchWeightBiggerThanTotalWeight: AugmentedError<ApiType>;
       ErrorSending: AugmentedError<ApiType>;
+      FailedMultiLocationToJunction: AugmentedError<ApiType>;
+      FeePerSecondNotSet: AugmentedError<ApiType>;
       IndexAlreadyClaimed: AugmentedError<ApiType>;
       InvalidDest: AugmentedError<ApiType>;
       MaxWeightTransactReached: AugmentedError<ApiType>;
       NotCrossChainTransfer: AugmentedError<ApiType>;
       NotCrossChainTransferableCurrency: AugmentedError<ApiType>;
       NotOwner: AugmentedError<ApiType>;
+      SignedTransactNotAllowedForDestination: AugmentedError<ApiType>;
       TransactorInfoNotSet: AugmentedError<ApiType>;
       UnableToWithdrawAsset: AugmentedError<ApiType>;
       UnclaimedIndex: AugmentedError<ApiType>;
@@ -908,6 +1069,10 @@ declare module "@polkadot/api-base/types/errors" {
        */
       AssetHasNoReserve: AugmentedError<ApiType>;
       /**
+       * The specified index does not exist in a MultiAssets struct.
+       */
+      AssetIndexNonExistent: AugmentedError<ApiType>;
+      /**
        * The version of the `Versioned` value used is not able to be interpreted.
        */
       BadVersion: AugmentedError<ApiType>;
@@ -920,17 +1085,21 @@ declare module "@polkadot/api-base/types/errors" {
        */
       DestinationNotInvertible: AugmentedError<ApiType>;
       /**
-       * The fee MultiAsset is of different type than the asset to transfer.
+       * We tried sending distinct asset and fee but they have different reserve chains.
        */
-      DistincAssetAndFeeId: AugmentedError<ApiType>;
+      DistinctReserveForAssetAndFee: AugmentedError<ApiType>;
       /**
-       * The fee amount was zero when the fee specification extrinsic is being used.
+       * Fee is not enough.
        */
-      FeeCannotBeZero: AugmentedError<ApiType>;
+      FeeNotEnough: AugmentedError<ApiType>;
       /**
        * Could not get ancestry of asset reserve location.
        */
       InvalidAncestry: AugmentedError<ApiType>;
+      /**
+       * The MultiAsset is invalid.
+       */
+      InvalidAsset: AugmentedError<ApiType>;
       /**
        * Invalid transfer destination.
        */
@@ -944,9 +1113,13 @@ declare module "@polkadot/api-base/types/errors" {
        */
       NotCrossChainTransferableCurrency: AugmentedError<ApiType>;
       /**
-       * Not fungible asset.
+       * Not supported MultiLocation
        */
-      NotFungible: AugmentedError<ApiType>;
+      NotSupportedMultiLocation: AugmentedError<ApiType>;
+      /**
+       * The number of assets to be sent is over the maximum.
+       */
+      TooManyAssetsBeingSent: AugmentedError<ApiType>;
       /**
        * The message's weight could not be determined.
        */
@@ -955,6 +1128,14 @@ declare module "@polkadot/api-base/types/errors" {
        * XCM execution failed.
        */
       XcmExecutionFailed: AugmentedError<ApiType>;
+      /**
+       * The transfering asset amount is zero.
+       */
+      ZeroAmount: AugmentedError<ApiType>;
+      /**
+       * The fee is zero.
+       */
+      ZeroFee: AugmentedError<ApiType>;
       /**
        * Generic error
        */

@@ -115,7 +115,7 @@ pub fn para_ext(para_id: u32) -> sp_io::TestExternalities {
 	let mut evm_accounts = BTreeMap::new();
 	evm_accounts.insert(
 		evm_account(),
-		pallet_evm::GenesisAccount {
+		fp_evm::GenesisAccount {
 			nonce: U256::from(INITIAL_EVM_NONCE),
 			balance: U256::from(INITIAL_EVM_BALANCE),
 			storage: Default::default(),
@@ -196,4 +196,4 @@ pub type AssetManager = pallet_asset_manager::Pallet<parachain::Runtime>;
 pub type XTokens = orml_xtokens::Pallet<parachain::Runtime>;
 pub type RelayBalances = pallet_balances::Pallet<relay_chain::Runtime>;
 pub type ParaBalances = pallet_balances::Pallet<parachain::Runtime>;
-pub type XcmTransactor = xcm_transactor::Pallet<parachain::Runtime>;
+pub type XcmTransactor = pallet_xcm_transactor::Pallet<parachain::Runtime>;

@@ -1,8 +1,7 @@
-import { Keyring } from "@polkadot/api";
 import { expect } from "chai";
 import child_process from "child_process";
+import { alith } from "../../util/accounts";
 
-import { ALITH_PRIV_KEY } from "../../util/constants";
 import { describeParachain } from "../../util/setup-para-tests";
 
 // This test will run on local until the new runtime is available
@@ -61,8 +60,6 @@ describeParachain(
         // Expected to take 10 blocks for upgrade + 4 blocks to check =>
         // ~200000 + init 60000 + error marging 140000
         this.timeout(400000);
-        const keyring = new Keyring({ type: "ethereum" });
-        const alith = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
 
         const currentVersion = await (
           (await context.polkadotApiParaone.query.system.lastRuntimeUpgrade()) as any

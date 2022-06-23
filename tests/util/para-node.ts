@@ -1,8 +1,9 @@
-import tcpPortUsed from "tcp-port-used";
-import path from "path";
-import fs from "fs";
 import child_process from "child_process";
+import fs from "fs";
+import path from "path";
 import { killAll, run } from "polkadot-launch";
+import tcpPortUsed from "tcp-port-used";
+
 import {
   BINARY_PATH,
   DISPLAY_LOG,
@@ -10,6 +11,7 @@ import {
   RELAY_BINARY_PATH,
   RELAY_CHAIN_NODE_NAMES,
 } from "./constants";
+
 const debug = require("debug")("test:para-node");
 
 export async function findAvailablePorts(parachainCount: number = 1) {
@@ -94,9 +96,9 @@ export interface NodePorts {
   wsPort: number;
 }
 
-const RUNTIME_DIRECTORY = "runtimes";
-const BINARY_DIRECTORY = "binaries";
-const SPECS_DIRECTORY = "specs";
+const RUNTIME_DIRECTORY = process.env.RUNTIME_DIRECTORY || "runtimes";
+const BINARY_DIRECTORY = process.env.BINARY_DIRECTORY || "binaries";
+const SPECS_DIRECTORY = process.env.SPECS_DIRECTORY || "specs";
 
 // Downloads the runtime and return the filepath
 export async function getRuntimeWasm(
@@ -104,6 +106,10 @@ export async function getRuntimeWasm(
   runtimeTag: string
 ): Promise<string> {
   const runtimePath = path.join(RUNTIME_DIRECTORY, `${runtimeName}-${runtimeTag}.wasm`);
+
+  if (!fs.existsSync(RUNTIME_DIRECTORY)) {
+    fs.mkdirSync(RUNTIME_DIRECTORY, { recursive: true });
+  }
 
   if (runtimeTag == "local") {
     const builtRuntimePath = path.join(
@@ -176,7 +182,7 @@ export async function getMoonbeamDockerBinary(binaryTag: string): Promise<string
 
     console.log(`     Missing ${binaryPath} locally, downloading it...`);
     child_process.execSync(`mkdir -p ${path.dirname(binaryPath)} && \
-        docker create --name moonbeam-tmp ${dockerImage} && \
+        docker create --pull always --name moonbeam-tmp ${dockerImage} && \
         docker cp moonbeam-tmp:/moonbeam/moonbeam ${binaryPath} && \
         docker rm moonbeam-tmp`);
     console.log(`${binaryPath} downloaded !`);
@@ -194,7 +200,8 @@ export async function getRawSpecsFromTag(
 
     child_process.execSync(
       `mkdir -p ${path.dirname(specPath)} && ` +
-        `${binaryPath} build-spec --chain moonbase-local --raw > ${specPath}`
+        `${binaryPath} build-spec --chain moonbase-local ` +
+        `--raw --disable-default-bootnode > ${specPath}`
     );
   }
   return specPath;
@@ -208,14 +215,15 @@ export async function generateRawSpecs(
   if (!fs.existsSync(specPath)) {
     child_process.execSync(
       `mkdir -p ${path.dirname(specPath)} && ` +
-        `${binaryPath} build-spec --chain moonbase-local --raw > ${specPath}`
+        `${binaryPath} build-spec --chain moonbase-local ` +
+        `--raw --disable-default-bootnode > ${specPath}`
     );
   }
   return specPath;
 }
 
 // log listeners to kill at the end;
-const logListener = [];
+const logListener: child_process.ChildProcessWithoutNullStreams[] = [];
 
 // This will start a parachain node, only 1 at a time (check every 100ms).
 // This will prevent race condition on the findAvailablePorts which uses the PID of the process
@@ -244,7 +252,12 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
   const ports = await findAvailablePorts(numberOfParachains);
 
   //Build hrmpChannels, all connected to first parachain
-  const hrmpChannels = [];
+  const hrmpChannels: {
+    sender: number;
+    recipient: number;
+    maxCapacity: number;
+    maxMessageSize: number;
+  }[] = [];
   new Array(numberOfParachains - 1).fill(0).forEach((_, i) => {
     hrmpChannels.push({
       sender: 1000,
@@ -326,7 +339,7 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
       },
     },
   };
-  const genesis = RELAY_GENESIS_PER_VERSION[options?.relaychain?.binary] || {};
+  const genesis = (RELAY_GENESIS_PER_VERSION as any)[options?.relaychain?.binary] || {};
   // Build launchConfig
   const launchConfig = {
     relaychain: {
@@ -338,6 +351,7 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
           port: ports[i].p2pPort,
           rpcPort: ports[i].rpcPort,
           wsPort: ports[i].wsPort,
+          flags: ["--wasm-execution=interpreted-i-know-what-i-do"],
         };
       }),
       genesis,
@@ -356,11 +370,13 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
               "--log=info,rpc=info,evm=trace,ethereum=trace,author=trace",
               "--unsafe-rpc-external",
               "--execution=wasm",
+              "--wasm-execution=interpreted-i-know-what-i-do",
               "--no-prometheus",
               "--no-telemetry",
               "--rpc-cors=all",
               "--",
               "--execution=wasm",
+              "--wasm-execution=interpreted-i-know-what-i-do",
               "--no-mdns",
               "--no-prometheus",
               "--no-telemetry",
@@ -379,11 +395,13 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
               "--log=info,rpc=info,evm=trace,ethereum=trace,author=trace",
               "--unsafe-rpc-external",
               "--execution=wasm",
+              "--wasm-execution=interpreted-i-know-what-i-do",
               "--no-prometheus",
               "--no-telemetry",
               "--rpc-cors=all",
               "--",
               "--execution=wasm",
+              "--wasm-execution=interpreted-i-know-what-i-do",
               "--no-mdns",
               "--no-prometheus",
               "--no-telemetry",
@@ -396,7 +414,7 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
         ],
       };
     }),
-    simpleParachains: [],
+    simpleParachains: [] as any[],
     hrmpChannels: hrmpChannels,
     finalization: true,
   };

@@ -1,3 +1,5 @@
+import "@polkadot/api-augment";
+
 import { ApiPromise } from "@polkadot/api";
 import {
   BlockHash,
@@ -6,38 +8,31 @@ import {
   Extrinsic,
   RuntimeDispatchInfo,
 } from "@polkadot/types/interfaces";
-import type { Block } from "@polkadot/types/interfaces/runtime/types";
-import type { TxWithEvent } from "@polkadot/api-derive/types";
-import Debug from "debug";
+import { FrameSystemEventRecord } from "@polkadot/types/lookup";
+import { expect } from "chai";
+
 import { WEIGHT_PER_GAS } from "./constants";
 import { DevTestContext } from "./setup-dev-tests";
-import { FrameSystemEventRecord } from "@polkadot/types/lookup";
-const debug = Debug("blocks");
-import "@polkadot/api-augment";
 
+import type { Block } from "@polkadot/types/interfaces/runtime/types";
+import type { TxWithEvent } from "@polkadot/api-derive/types";
+const debug = require("debug")("test:blocks");
 export async function createAndFinalizeBlock(
   api: ApiPromise,
-  parentHash?: BlockHash,
+  parentHash?: string,
   finalize: boolean = true
 ): Promise<{
   duration: number;
-  hash: BlockHash;
+  hash: string;
 }> {
   const startTime: number = Date.now();
-  let hash = undefined;
-  try {
-    if (parentHash == undefined) {
-      hash = (await api.rpc.engine.createBlock(true, finalize)).toJSON()["hash"];
-    } else {
-      hash = (await api.rpc.engine.createBlock(true, finalize, parentHash)).toJSON()["hash"];
-    }
-  } catch (e) {
-    console.log("ERROR DURING BLOCK FINALIZATION", e);
-  }
+  const block = parentHash
+    ? await api.rpc.engine.createBlock(true, finalize, parentHash)
+    : await api.rpc.engine.createBlock(true, finalize);
 
   return {
     duration: Date.now() - startTime,
-    hash,
+    hash: block.get("hash").toString(),
   };
 }
 
@@ -51,9 +46,9 @@ export interface BlockDetails {
 }
 
 export function mapExtrinsics(
-  extrinsics: Extrinsic[] | any,
-  records: FrameSystemEventRecord[] | any,
-  fees?: RuntimeDispatchInfo[] | any
+  extrinsics: Extrinsic[],
+  records: FrameSystemEventRecord[],
+  fees?: RuntimeDispatchInfo[]
 ): TxWithEventAndFee[] {
   return extrinsics.map((extrinsic, index): TxWithEventAndFee => {
     let dispatchError: DispatchError | undefined;
@@ -133,7 +128,6 @@ export const verifyBlockFees = async (
   context: DevTestContext,
   fromBlockNumber: number,
   toBlockNumber: number,
-  expect,
   expectedBalanceDiff: bigint
 ) => {
   const api = context.polkadotApi;
@@ -293,10 +287,36 @@ export const verifyBlockFees = async (
 
 export const verifyLatestBlockFees = async (
   context: DevTestContext,
-  expect,
   expectedBalanceDiff: bigint = BigInt(0)
 ) => {
   const signedBlock = await context.polkadotApi.rpc.chain.getBlock();
   const blockNumber = Number(signedBlock.block.header.number);
-  return verifyBlockFees(context, blockNumber, blockNumber, expect, expectedBalanceDiff);
+  return verifyBlockFees(context, blockNumber, blockNumber, expectedBalanceDiff);
+};
+
+export const getBlockExtrinsic = async (
+  api: ApiPromise,
+  blockHash: string | BlockHash,
+  section: string,
+  method: string
+) => {
+  const apiAt = await api.at(blockHash);
+  const [{ block }, records] = await Promise.all([
+    api.rpc.chain.getBlock(blockHash),
+    apiAt.query.system.events(),
+  ]);
+  const extIndex = block.extrinsics.findIndex(
+    (ext) => ext.method.section == section && ext.method.method == method
+  );
+  const extrinsic = extIndex > -1 ? block.extrinsics[extIndex] : null;
+
+  const events = records
+    .filter(({ phase }) => phase.isApplyExtrinsic && phase.asApplyExtrinsic.eq(extIndex))
+    .map(({ event }) => event);
+  const resultEvent = events.find(
+    (event) =>
+      event.section === "system" &&
+      (event.method === "ExtrinsicSuccess" || event.method === "ExtrinsicFailed")
+  );
+  return { block, extrinsic, events, resultEvent };
 };
