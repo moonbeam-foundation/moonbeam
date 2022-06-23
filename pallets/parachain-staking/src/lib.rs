@@ -981,7 +981,7 @@ pub mod pallet {
 				Error::<T>::TooLowCandidateDelegationCountToLeaveCandidates
 			);
 			state.can_leave::<T>()?;
-			let return_stake = |bond: Bond<T::AccountId, BalanceOf<T>>| {
+			let return_stake = |bond: Bond<T::AccountId, BalanceOf<T>>| -> DispatchResult {
 				// remove delegation from delegator state
 				let mut delegator = DelegatorState::<T>::get(&bond.owner).expect(
 					"Collator state and delegator state are consistent. 
@@ -990,7 +990,7 @@ pub mod pallet {
 				);
 
 				// TODO: review -- there are 3 cases below to consider WRT locks
-				jit_ensure_delegator_reserve_migrated(&bond.owner)?;
+				Self::jit_ensure_delegator_reserve_migrated(&bond.owner)?;
 
 				if let Some(remaining) = delegator.rm_delegation::<T>(&candidate) {
 					Self::delegation_remove_request_with_state(
@@ -1020,6 +1020,7 @@ pub mod pallet {
 					// balance, so we ensure the lock is cleared
 					T::Currency::remove_lock(DELEGATOR_LOCK_IDENTIFIER, &bond.owner);
 				}
+				Ok(())
 			};
 			// total backing stake is at least the candidate self bond
 			let mut total_backing = state.bond;
@@ -1027,18 +1028,18 @@ pub mod pallet {
 			let top_delegations =
 				<TopDelegations<T>>::take(&candidate).expect("CandidateInfo existence checked");
 			for bond in top_delegations.delegations {
-				return_stake(bond);
+				return_stake(bond)?;
 			}
 			total_backing = total_backing.saturating_add(top_delegations.total);
 			// return all bottom delegations
 			let bottom_delegations =
 				<BottomDelegations<T>>::take(&candidate).expect("CandidateInfo existence checked");
 			for bond in bottom_delegations.delegations {
-				return_stake(bond);
+				return_stake(bond)?;
 			}
 			total_backing = total_backing.saturating_add(bottom_delegations.total);
 			// return stake to collator
-			jit_ensure_collator_reserve_migrated(&candidate)?;
+			Self::jit_ensure_collator_reserve_migrated(&candidate)?;
 			T::Currency::remove_lock(COLLATOR_LOCK_IDENTIFIER, &candidate);
 			<CandidateInfo<T>>::remove(&candidate);
 			<DelegationScheduledRequests<T>>::remove(&candidate);
@@ -1221,6 +1222,7 @@ pub mod pallet {
 					}),
 					Error::<T>::AlreadyDelegatedCandidate
 				);
+				Self::jit_ensure_delegator_reserve_migrated(&delegator)?;
 				state
 			} else {
 				// first delegation
@@ -1243,7 +1245,6 @@ pub mod pallet {
 					amount,
 				},
 			)?;
-			jit_ensure_delegator_reserve_migrated(&candidate)?;
 			// TODO: causes redundant free_balance check
 			delegator_state.adjust_bond_lock::<T>(Some(amount))?;
 			// only is_some if kicked the lowest bottom as a consequence of this new delegation
