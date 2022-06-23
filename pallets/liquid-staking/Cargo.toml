@@ -30,6 +30,8 @@ pallet-balances = { git = "https://github.com/purestake/substrate", branch = "mo
 sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18" }
 
 [features]
+transferable-shares = []
+
 default = [ "std" ]
 std = [
 	"frame-benchmarking/std",
