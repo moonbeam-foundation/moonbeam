@@ -8335,12 +8335,71 @@ mod jit_migrate_reserve_to_locks_tests {
 
 	}
 
+	#[test]
+	fn test_candidate_bond_more_triggers_jit() {
+		ExtBuilder::default()
+			.with_balances(vec![(1, 100)])
+			.with_candidates(vec![(1, 20)])
+			.build()
+			.execute_with(|| {
+				crate::mock::unmigrate_collator_from_lock_to_reserve(1);
+				assert_eq!(Balances::reserved_balance(1), 20);
+				assert_eq!(crate::mock::query_lock_amount(1, COLLATOR_LOCK_IDENTIFIER), None);
+				assert_eq!(<CollatorReserveToLockMigrations<Test>>::get(1), false);
+
+				assert_ok!(ParachainStaking::candidate_bond_more(Origin::signed(1), 30));
+				assert_eq!(Balances::reserved_balance(1), 0);
+				assert_eq!(crate::mock::query_lock_amount(1, COLLATOR_LOCK_IDENTIFIER), Some(50));
+				assert_eq!(<CollatorReserveToLockMigrations<Test>>::get(1), true);
+			});
+	}
+
+	#[test]
+	fn test_candidate_bond_less_triggers_jit() {
+		ExtBuilder::default()
+			.with_balances(vec![(1, 100)])
+			.with_candidates(vec![(1, 50)])
+			.build()
+			.execute_with(|| {
+				crate::mock::unmigrate_collator_from_lock_to_reserve(1);
+				assert_eq!(Balances::reserved_balance(1), 50);
+				assert_eq!(crate::mock::query_lock_amount(1, COLLATOR_LOCK_IDENTIFIER), None);
+				assert_eq!(<CollatorReserveToLockMigrations<Test>>::get(1), false);
+
+				assert_ok!(ParachainStaking::schedule_candidate_bond_less(Origin::signed(1), 5));
+
+				// should be a no-op until executed
+				assert_eq!(Balances::reserved_balance(1), 50);
+				assert_eq!(crate::mock::query_lock_amount(1, COLLATOR_LOCK_IDENTIFIER), None);
+				assert_eq!(<CollatorReserveToLockMigrations<Test>>::get(1), false);
+
+				// should fail to execute and not migrate (waiting period hasn't ellapsed yet)
+				assert_noop!(
+					ParachainStaking::execute_candidate_bond_less(Origin::signed(1), 1),
+					<Error<Test>>::PendingCandidateRequestNotDueYet,
+				);
+				assert_eq!(Balances::reserved_balance(1), 50);
+				assert_eq!(crate::mock::query_lock_amount(1, COLLATOR_LOCK_IDENTIFIER), None);
+				assert_eq!(<CollatorReserveToLockMigrations<Test>>::get(1), false);
+
+				roll_to(10);
+
+				assert_ok!(ParachainStaking::execute_candidate_bond_less(Origin::signed(1), 1));
+				assert_eq!(Balances::reserved_balance(1), 0);
+				assert_eq!(crate::mock::query_lock_amount(1, COLLATOR_LOCK_IDENTIFIER), Some(45));
+				assert_eq!(<CollatorReserveToLockMigrations<Test>>::get(1), true);
+			});
+	}
+
 	// TODO: more test ideas
-	//     * bond_more triggers JIT
-	//     * bond_less triggers JIT
+	//     * more candidate_bond_more scenarios?
+	//     * delegator_bond_more triggers JIT
+	//     * delegator_bond_less triggers JIT
 	//     * cancelling bond changes - triggers or no?
 	//     * leave candidates then come back - leave should trigger (?) come back should be migrated
 	//     * leave all delegators then come back - leaving should trigger (?) rejoining should be
 	//       migrated
 	//     * leave delegator triggers JIT
+	//     * IMPORTANT: test that reserved currency that hasn't been migrated yet doesn't count
+	//       against the liquidity checks for bonding more
 }
