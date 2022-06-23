@@ -36,6 +36,10 @@
 <span id="31">31</span>
 <span id="32">32</span>
 <span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -62,11 +66,15 @@
 	<span class="kw">type</span> <span class="ident">Response</span> <span class="op">=</span> <span class="ident">TransactionTrace</span>;
 
 	<span class="kw">fn</span> <span class="ident">format</span>(<span class="ident">listener</span>: <span class="ident">Listener</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">TransactionTrace</span><span class="op">&gt;</span> {
-		<span class="prelude-val">Some</span>(<span class="ident">TransactionTrace::Raw</span> {
-			<span class="ident">step_logs</span>: <span class="ident">listener</span>.<span class="ident">step_logs</span>,
-			<span class="ident">gas</span>: <span class="ident">listener</span>.<span class="ident">final_gas</span>.<span class="ident">into</span>(),
-			<span class="ident">return_value</span>: <span class="ident">listener</span>.<span class="ident">return_value</span>,
-		})
+		<span class="kw">if</span> <span class="ident">listener</span>.<span class="ident">remaining_memory_usage</span>.<span class="ident">is_none</span>() {
+			<span class="prelude-val">None</span>
+		} <span class="kw">else</span> {
+			<span class="prelude-val">Some</span>(<span class="ident">TransactionTrace::Raw</span> {
+				<span class="ident">step_logs</span>: <span class="ident">listener</span>.<span class="ident">step_logs</span>,
+				<span class="ident">gas</span>: <span class="ident">listener</span>.<span class="ident">final_gas</span>.<span class="ident">into</span>(),
+				<span class="ident">return_value</span>: <span class="ident">listener</span>.<span class="ident">return_value</span>,
+			})
+		}
 	}
 }
 </code></pre></div>

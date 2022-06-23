@@ -289,6 +289,11 @@
 <span id="284">284</span>
 <span id="285">285</span>
 <span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -475,6 +480,11 @@
 	<span class="doccomment">/// Size in bytes of the LRU cache for transactions statuses data.</span>
 	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">default_value</span> <span class="op">=</span> <span class="string">&quot;300000000&quot;</span>)]</span>
 	<span class="kw">pub</span> <span class="ident">eth_statuses_cache</span>: <span class="ident">usize</span>,
+
+	<span class="doccomment">/// Size in bytes of data a raw tracing request is allowed to use.</span>
+	<span class="doccomment">/// Bound the size of memory, stack and storage data.</span>
+	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">default_value</span> <span class="op">=</span> <span class="string">&quot;20000000&quot;</span>)]</span>
+	<span class="kw">pub</span> <span class="ident">tracing_raw_max_memory_usage</span>: <span class="ident">usize</span>,
 
 	<span class="doccomment">/// Maximum number of logs in a query.</span>
 	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">default_value</span> <span class="op">=</span> <span class="string">&quot;10000&quot;</span>)]</span>

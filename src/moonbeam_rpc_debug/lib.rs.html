@@ -594,6 +594,14 @@
 <span id="589">589</span>
 <span id="590">590</span>
 <span id="591">591</span>
+<span id="592">592</span>
+<span id="593">593</span>
+<span id="594">594</span>
+<span id="595">595</span>
+<span id="596">596</span>
+<span id="597">597</span>
+<span id="598">598</span>
+<span id="599">599</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -752,6 +760,7 @@
 		<span class="ident">frontier_backend</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">fc_db::Backend</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 		<span class="ident">permit_pool</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Semaphore</span><span class="op">&gt;</span>,
 		<span class="ident">overrides</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">OverrideHandle</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+		<span class="ident">raw_max_memory_usage</span>: <span class="ident">usize</span>,
 	) -&gt; (<span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> ()<span class="op">&gt;</span>, <span class="ident">DebugRequester</span>) {
 		<span class="kw">let</span> (<span class="ident">tx</span>, <span class="kw-2">mut</span> <span class="ident">rx</span>): (<span class="ident">DebugRequester</span>, <span class="kw">_</span>) <span class="op">=</span>
 			<span class="ident">sc_utils::mpsc::tracing_unbounded</span>(<span class="string">&quot;debug-requester&quot;</span>);
@@ -781,6 +790,7 @@
 											<span class="ident">transaction_hash</span>,
 											<span class="ident">params</span>,
 											<span class="ident">overrides</span>.<span class="ident">clone</span>(),
+											<span class="ident">raw_max_memory_usage</span>,
 										)
 									})
 									.<span class="kw">await</span>
@@ -1022,6 +1032,7 @@
 		<span class="ident">transaction_hash</span>: <span class="ident">H256</span>,
 		<span class="ident">params</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">TraceParams</span><span class="op">&gt;</span>,
 		<span class="ident">overrides</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">OverrideHandle</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+		<span class="ident">raw_max_memory_usage</span>: <span class="ident">usize</span>,
 	) -&gt; <span class="ident">RpcResult</span><span class="op">&lt;</span><span class="ident">Response</span><span class="op">&gt;</span> {
 		<span class="kw">let</span> (<span class="ident">tracer_input</span>, <span class="ident">trace_type</span>) <span class="op">=</span> <span class="ident"><span class="self">Self</span>::handle_params</span>(<span class="ident">params</span>)<span class="question-mark">?</span>;
 
@@ -1143,11 +1154,16 @@
 							<span class="ident">disable_storage</span>,
 							<span class="ident">disable_memory</span>,
 							<span class="ident">disable_stack</span>,
+							<span class="ident">raw_max_memory_usage</span>,
 						);
 						<span class="ident">proxy</span>.<span class="ident">using</span>(<span class="ident">f</span>)<span class="question-mark">?</span>;
 						<span class="prelude-val">Ok</span>(<span class="ident">Response::Single</span>(
-							<span class="ident">moonbeam_client_evm_tracing::formatters::Raw::format</span>(<span class="ident">proxy</span>)
-								.<span class="ident">ok_or</span>(<span class="ident">internal_err</span>(<span class="string">&quot;Fail to format proxy&quot;</span>))<span class="question-mark">?</span>,
+							<span class="ident">moonbeam_client_evm_tracing::formatters::Raw::format</span>(<span class="ident">proxy</span>).<span class="ident">ok_or</span>(
+								<span class="ident">internal_err</span>(
+									<span class="string">&quot;replayed transaction generated too much data. \
+								try disabling memory or storage?&quot;</span>,
+								),
+							)<span class="question-mark">?</span>,
 						))
 					}
 					<span class="ident">single::TraceType::CallList</span> =&gt; {
