@@ -420,66 +420,7 @@ pub mod pallet {
 		fn on_initialize(n: T::BlockNumber) -> Weight {
 			let mut weight = T::WeightInfo::base_on_initialize();
 
-			// Is there a better way to get the pallet name ?
-			// Or maybe use a storage set during the migration for that ?
-			let pallet_hash = twox_128(b"ParachainStaking");
-			let delegator_state_hash = twox_128(b"DelegatorState");
-			let candidate_info_hash = twox_128(b"CandidateInfo");
-
-			// ReserveToLockMigrationStep should set to [0, 1, .., 15] during migration
-			// Additionally it can contain value > 16 to delay the initial migration block
-			// to avoid adding PoV to runtime migration block: [0, 1, .., 15, 99]
-			//
-			// 1 value will be process at each block, during the on_initialize
-			// The value correspond to a range of 16 prefixes being appended to
-			// the delegator_state_prefix in order to process 1/16th of the whole list
-			//
-			// It is expected with usual delegator count of 15000 to have around 1000
-			// delegator processed each time
-			let mut migration_steps = <ReserveToLockMigrationStep<T>>::get();
-			match migration_steps.pop() {
-				Some(next_migration_prefix) if next_migration_prefix < 16 => {
-					let low_range = next_migration_prefix * 16;
-					let high_range = (next_migration_prefix + 1) * 16;
-					for postfix in low_range..high_range {
-						let mut migration_key = [0u8; 33];
-						migration_key[..16].copy_from_slice(&pallet_hash);
-						migration_key[16..].copy_from_slice(&delegator_state_hash);
-						migration_key[32] = postfix;
-
-						for (account, mut delegator_state) in
-							<DelegatorState<T>>::iter_from(migration_key.to_vec())
-						{
-							let reserved = delegator_state.total;
-							let remaining = T::Currency::unreserve(&account, reserved);
-							assert_eq!(remaining, 0u32.into());
-
-							delegator_state.adjust_bond_lock::<T>(None);
-						}
-
-						migration_key[16..].copy_from_slice(&candidate_info_hash);
-						for (account, candidate_info) in
-							<CandidateInfo<T>>::iter_from(migration_key.to_vec())
-						{
-							let reserved = candidate_info.bond;
-							let remaining = T::Currency::unreserve(&account, reserved);
-							assert_eq!(remaining, 0u32.into());
-
-							T::Currency::set_lock(
-								COLLATOR_LOCK_IDENTIFIER,
-								&account,
-								reserved,
-								WithdrawReasons::all(),
-							);
-						}
-					}
-				}
-				Some(_) => {
-					migration_steps.pop();
-					<ReserveToLockMigrationStep<T>>::put(&migration_steps);
-				}
-				None => {}
-			}
+			weight += Self::handle_reserve_to_lock_migration();
 
 			let mut round = <Round<T>>::get();
 			if round.should_update(n) {
@@ -1778,6 +1719,74 @@ pub mod pallet {
 					bond
 				})
 				.collect()
+		}
+
+		/// Performs a migration from using reserves (ReservableCurrency) to locks
+		/// (LockableCurrency) in small chunks once-per-block.
+		fn handle_reserve_to_lock_migration() -> Weight {
+
+			// Is there a better way to get the pallet name ?
+			// Or maybe use a storage set during the migration for that ?
+			let pallet_hash = twox_128(b"ParachainStaking");
+			let delegator_state_hash = twox_128(b"DelegatorState");
+			let candidate_info_hash = twox_128(b"CandidateInfo");
+
+			// ReserveToLockMigrationStep should set to [0, 1, .., 15] during migration
+			// Additionally it can contain value > 16 to delay the initial migration block
+			// to avoid adding PoV to runtime migration block: [0, 1, .., 15, 99]
+			//
+			// 1 value will be process at each block, during the on_initialize
+			// The value correspond to a range of 16 prefixes being appended to
+			// the delegator_state_prefix in order to process 1/16th of the whole list
+			//
+			// It is expected with usual delegator count of 15000 to have around 1000
+			// delegator processed each time
+			let mut migration_steps = <ReserveToLockMigrationStep<T>>::get();
+			match migration_steps.pop() {
+				Some(next_migration_prefix) if next_migration_prefix < 16 => {
+					let low_range = next_migration_prefix * 16;
+					let high_range = (next_migration_prefix + 1) * 16;
+					for postfix in low_range..high_range {
+						let mut migration_key = [0u8; 33];
+						migration_key[..16].copy_from_slice(&pallet_hash);
+						migration_key[16..].copy_from_slice(&delegator_state_hash);
+						migration_key[32] = postfix;
+
+						for (account, mut delegator_state) in
+							<DelegatorState<T>>::iter_from(migration_key.to_vec())
+						{
+							let reserved = delegator_state.total;
+							let remaining = T::Currency::unreserve(&account, reserved);
+							assert_eq!(remaining, 0u32.into());
+
+							delegator_state.adjust_bond_lock::<T>(None);
+						}
+
+						migration_key[16..].copy_from_slice(&candidate_info_hash);
+						for (account, candidate_info) in
+							<CandidateInfo<T>>::iter_from(migration_key.to_vec())
+						{
+							let reserved = candidate_info.bond;
+							let remaining = T::Currency::unreserve(&account, reserved);
+							assert_eq!(remaining, 0u32.into());
+
+							T::Currency::set_lock(
+								COLLATOR_LOCK_IDENTIFIER,
+								&account,
+								reserved,
+								WithdrawReasons::all(),
+							);
+						}
+					}
+				}
+				Some(_) => {
+					migration_steps.pop();
+					<ReserveToLockMigrationStep<T>>::put(&migration_steps);
+				}
+				None => {}
+			}
+
+			0u32.into()
 		}
 	}
 
