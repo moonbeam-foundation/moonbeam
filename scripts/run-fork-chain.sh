@@ -127,31 +127,4 @@ fi
 # Run the node
 echo "Running nodes..."
 cd $ROOT_FOLDER/moonbeam/tests
-./node_modules/.bin/ts-node spawn-fork-node.ts 2>&1 > spawn-node.log &
-PID=$!
-
-# Wait for the node to start
-echo "Waiting nodes... (10 minutes)"
-sleep 5
-( tail -f -n0 spawn-node.log & ) | grep -q 'POLKADOT LAUNCH COMPLETE'
-
-export RELAY_WSS_URL=ws://localhost:51002
-export WSS_URL=ws://localhost:51102
-# Run the fork test (without spawning the node using DEBUG_MODE)
-echo "Running fork tests... (10 minutes)"
-SUCCESS_UPGRADE=false
-DEBUG_MODE=true DEBUG=test:setup* npm run fork-test && SUCCESS_UPGRADE=true || \
-  "Failed to do runtime upgrade"
-
-if [[ $SUCCESS_UPGRADE == "true" ]]
-then
-    echo "Running smoke tests... (10 minutes)"
-    SKIP_BLOCK_CONSISTENCY_TESTS=true SKIP_RELAY_TESTS=true DEBUG=smoke:* npm run smoke-test
-fi
-
-echo "Retrieving runtime stats..."
-cd $ROOT_FOLDER/moonbeam/tools
-node_modules/.bin/ts-node extract-migration-logs.ts --log ../tests/51102.log
-
-echo "Done !!"
-[[ $SUCCESS_UPGRADE == "true" ]] && exit 0 || exit 1
+./node_modules/.bin/ts-node spawn-fork-node.ts 2>&1 > spawn-node.log
