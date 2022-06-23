@@ -430,7 +430,9 @@ pub mod pallet {
 			// 1 value will be process at each block, during the on_initialize
 			// The value correspond to a range of 16 prefixes being appended to 
 			// the delegator_state_prefix in order to process 1/16th of the whole list
-			
+			//
+			// It is expected with usual delegator count of 15000 to have around 1000
+			// delegator processed each time
 			let mut migration_steps = <ReserveToLockMigrationStep<T>>::get();
 			match migration_steps.pop() {
 				Some(next_migration_prefix) if next_migration_prefix < 16 => {
