@@ -81,7 +81,7 @@ pub mod pallet {
 	use crate::{set::OrderedSet, traits::*, types::*, InflationInfo, Range, WeightInfo};
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{
-		tokens::WithdrawReasons, Contains, Currency, Get, Imbalance, LockableCurrency,
+		tokens::WithdrawReasons, Contains, Currency, Get, Imbalance, IsSubType, LockableCurrency,
 		ReservableCurrency,
 	};
 
@@ -1781,10 +1781,13 @@ pub mod pallet {
 		}
 	}
 
-	impl<T: Config> Contains<T::Call> for Pallet<T> {
+	impl<T: Config> Contains<T::Call> for Pallet<T>
+	where
+		T::Call: IsSubType<Call<T>>,
+	{
 		fn contains(call: &T::Call) -> bool {
-			match call {
-				T::Call::ParachainStaking(_) => <ReserveToLockMigrationStep<T>>::get().len() > 0,
+			match IsSubType::<Call<T>>::is_sub_type(call) {
+				Some(_) => <ReserveToLockMigrationStep<T>>::get().len() > 0,
 				_ => T::NormalCallFilter::contains(call),
 			}
 		}

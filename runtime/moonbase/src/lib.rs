@@ -944,6 +944,7 @@ impl Contains<Call> for NormalFilter {
 				pallet_xcm::Call::force_default_xcm_version { .. } => true,
 				_ => false,
 			},
+			_ => true,
 		}
 	}
 }
