@@ -679,6 +679,7 @@ impl pallet_parachain_staking::OnNewRound for OnNewRound {
 impl pallet_parachain_staking::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
+	type NormalCallFilter = NormalFilter;
 	type MonetaryGovernanceOrigin = EnsureRoot<AccountId>;
 	/// Minimum round length is 2 minutes (10 * 12 second block times)
 	type MinBlocksPerRound = ConstU32<10>;
@@ -943,7 +944,6 @@ impl Contains<Call> for NormalFilter {
 				pallet_xcm::Call::force_default_xcm_version { .. } => true,
 				_ => false,
 			},
-			_ => true,
 		}
 	}
 }
@@ -1022,7 +1022,7 @@ impl OffchainWorker<BlockNumber> for MaintenanceHooks {
 
 impl pallet_maintenance_mode::Config for Runtime {
 	type Event = Event;
-	type NormalCallFilter = NormalFilter;
+	type NormalCallFilter = ParachainStaking;
 	type MaintenanceCallFilter = MaintenanceFilter;
 	type MaintenanceOrigin =
 		pallet_collective::EnsureProportionAtLeast<AccountId, TechCommitteeInstance, 2, 3>;

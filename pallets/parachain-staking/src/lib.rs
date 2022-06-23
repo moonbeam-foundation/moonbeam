@@ -81,9 +81,10 @@ pub mod pallet {
 	use crate::{set::OrderedSet, traits::*, types::*, InflationInfo, Range, WeightInfo};
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{
-		tokens::WithdrawReasons, Currency, Get, Imbalance, LockableCurrency, ReservableCurrency,
+		tokens::WithdrawReasons, Contains, Currency, Get, Imbalance, LockableCurrency,
+		ReservableCurrency,
 	};
-	
+
 	use frame_support::sp_io::hashing::twox_128;
 	use frame_system::pallet_prelude::*;
 	use parity_scale_codec::Decode;
@@ -179,6 +180,8 @@ pub mod pallet {
 		type OnNewRound: OnNewRound;
 		/// Weight information for extrinsics in this pallet.
 		type WeightInfo: WeightInfo;
+		/// The call filter to be used during the migration
+		type NormalCallFilter: Contains<Self::Call>;
 	}
 
 	#[pallet::error]
@@ -428,7 +431,7 @@ pub mod pallet {
 			// to avoid adding PoV to runtime migration block: [0, 1, .., 15, 99]
 			//
 			// 1 value will be process at each block, during the on_initialize
-			// The value correspond to a range of 16 prefixes being appended to 
+			// The value correspond to a range of 16 prefixes being appended to
 			// the delegator_state_prefix in order to process 1/16th of the whole list
 			//
 			// It is expected with usual delegator count of 15000 to have around 1000
@@ -444,7 +447,9 @@ pub mod pallet {
 						migration_key[16..].copy_from_slice(&delegator_state_hash);
 						migration_key[32] = postfix;
 
-						for (account, mut delegator_state) in <DelegatorState<T>>::iter_from(migration_key.to_vec()) {
+						for (account, mut delegator_state) in
+							<DelegatorState<T>>::iter_from(migration_key.to_vec())
+						{
 							let reserved = delegator_state.total;
 							let remaining = T::Currency::unreserve(&account, reserved);
 							assert_eq!(remaining, 0u32.into());
@@ -453,22 +458,28 @@ pub mod pallet {
 						}
 
 						migration_key[16..].copy_from_slice(&candidate_info_hash);
-						for (account, candidate_info) in <CandidateInfo<T>>::iter_from(migration_key.to_vec()) {
+						for (account, candidate_info) in
+							<CandidateInfo<T>>::iter_from(migration_key.to_vec())
+						{
 							let reserved = candidate_info.bond;
 							let remaining = T::Currency::unreserve(&account, reserved);
 							assert_eq!(remaining, 0u32.into());
 
-							T::Currency::set_lock(COLLATOR_LOCK_IDENTIFIER, &account, reserved, WithdrawReasons::all());
+							T::Currency::set_lock(
+								COLLATOR_LOCK_IDENTIFIER,
+								&account,
+								reserved,
+								WithdrawReasons::all(),
+							);
 						}
 					}
-				},
-				Some(_) => { 
+				}
+				Some(_) => {
 					migration_steps.pop();
 					<ReserveToLockMigrationStep<T>>::put(&migration_steps);
 				}
-				None => {},
+				None => {}
 			}
-			
 
 			let mut round = <Round<T>>::get();
 			if round.should_update(n) {
@@ -1767,6 +1778,15 @@ pub mod pallet {
 					bond
 				})
 				.collect()
+		}
+	}
+
+	impl<T: Config> Contains<T::Call> for Pallet<T> {
+		fn contains(call: &T::Call) -> bool {
+			match call {
+				T::Call::ParachainStaking(_) => <ReserveToLockMigrationStep<T>>::get().len() > 0,
+				_ => T::NormalCallFilter::contains(call),
+			}
 		}
 	}
 
