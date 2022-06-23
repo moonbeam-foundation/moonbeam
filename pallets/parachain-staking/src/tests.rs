@@ -8241,3 +8241,22 @@ fn test_hotfix_remove_delegation_requests_exited_candidates_errors_when_candidat
 			);
 		});
 }
+
+#[test]
+fn test_basic_jit_reserve_to_lock_migration_works() {
+
+
+	ExtBuilder::default()
+		.with_balances(vec![(1, 100), (2, 100)])
+		.with_candidates(vec![(1, 25)])
+		.with_delegations(vec![(2, 1, 30)])
+		.build()
+		.execute_with(|| {
+			// initially should use locks, not reserves
+			assert_eq!(Balances::reserved_balance(&2), 0);
+
+			// now "unmigrate" back to reserves
+			crate::mock::unmigrate_delegator_from_lock_to_reserve(2);
+			assert_eq!(Balances::reserved_balance(&2), 30);
+		});
+}

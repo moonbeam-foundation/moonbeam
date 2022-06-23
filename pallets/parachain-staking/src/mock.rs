@@ -16,10 +16,12 @@
 
 //! Test utilities
 use crate as pallet_parachain_staking;
-use crate::{pallet, AwardedPts, Config, InflationInfo, Points, Range};
+use crate::{pallet, AwardedPts, Config, InflationInfo, Points, Range,
+DelegatorReserveToLockMigrations, DELEGATOR_LOCK_IDENTIFIER, DelegatorState };
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Everything, GenesisBuild, OnFinalize, OnInitialize},
+	traits::{Everything, GenesisBuild, OnFinalize, OnInitialize, ReservableCurrency,
+	LockableCurrency, LockIdentifier},
 	weights::Weight,
 };
 use sp_core::H256;
@@ -403,6 +405,27 @@ macro_rules! assert_event_not_emitted {
 pub(crate) fn set_author(round: u32, acc: u64, pts: u32) {
 	<Points<Test>>::mutate(round, |p| *p += pts);
 	<AwardedPts<Test>>::mutate(round, acc, |p| *p += pts);
+}
+
+/// fn to query the lock amount
+pub(crate) fn query_lock_amount(account_id: u64, id: LockIdentifier) -> Option<Balance> {
+	for lock in Balances::locks(&account_id) {
+		if lock.id == id {
+			return Some(lock.amount);
+		}
+	}
+	None
+}
+
+/// fn to reverse-migrate a delegator account from locks back to reserve.
+/// This is used to test the reserve -> lock migration.
+pub(crate) fn unmigrate_delegator_from_lock_to_reserve(account_id: u64) {
+	<DelegatorReserveToLockMigrations<Test>>::remove(&account_id);
+	Balances::remove_lock(DELEGATOR_LOCK_IDENTIFIER, &account_id);
+
+	if let Some(delegator_state) = <DelegatorState<Test>>::get(&account_id) {
+		Balances::reserve(&account_id, delegator_state.total);
+	}
 }
 
 #[test]
