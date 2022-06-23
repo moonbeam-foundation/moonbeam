@@ -694,7 +694,7 @@ pub mod pallet {
 					cd_count,
 					dd_count,
 				) {
-					log::warn!("Delegate failed in genesis with error {:?}", error);
+					panic!("Delegate failed in genesis with error {:?}", error);
 				} else {
 					if let Some(x) = col_delegator_count.get_mut(target) {
 						*x = x.saturating_add(1u32);
@@ -1394,6 +1394,8 @@ pub mod pallet {
 		}
 		/// Returns an account's free balance which is not locked in delegation staking
 		pub fn get_delegator_stakable_free_balance(acc: &T::AccountId) -> BalanceOf<T> {
+			// TODO: may need to check if this has been migrated here.
+			// if not, this should not subtract `state.total`
 			let mut balance = T::Currency::free_balance(acc);
 			if let Some(state) = <DelegatorState<T>>::get(acc) {
 				balance -= state.total;

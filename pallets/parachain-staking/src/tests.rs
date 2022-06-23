@@ -8309,7 +8309,7 @@ mod jit_migrate_reserve_to_locks_tests {
 	}
 
 	#[test]
-	fn test_delegate_migrates_account() {
+	fn test_non_first_delegate_migrates_account() {
 		ExtBuilder::default()
 			.with_balances(vec![(1, 100), (2, 100), (3, 100)])
 			.with_candidates(vec![(1, 25), (2, 25)])
@@ -8318,6 +8318,7 @@ mod jit_migrate_reserve_to_locks_tests {
 			.execute_with(|| {
 				// 3 is initially a delegator to 1
 				assert!(ParachainStaking::delegator_state(3).is_some());
+				assert_eq!(<DelegatorReserveToLockMigrations<Test>>::get(3), true);
 
 				// unmigrate so that delegator needs JIT
 				crate::mock::unmigrate_delegator_from_lock_to_reserve(3);
@@ -8327,9 +8328,19 @@ mod jit_migrate_reserve_to_locks_tests {
 
 				// now delegate and expect JIT to kick in
 				assert_ok!(ParachainStaking::delegate(Origin::signed(3), 2, 15, 1, 1));
+				assert_eq!(crate::mock::query_lock_amount(3, DELEGATOR_LOCK_IDENTIFIER), Some(25));
 				assert_eq!(<DelegatorReserveToLockMigrations<Test>>::get(3), true);
 
 			});
 
 	}
+
+	// TODO: more test ideas
+	//     * bond_more triggers JIT
+	//     * bond_less triggers JIT
+	//     * cancelling bond changes - triggers or no?
+	//     * leave candidates then come back - leave should trigger (?) come back should be migrated
+	//     * leave all delegators then come back - leaving should trigger (?) rejoining should be
+	//       migrated
+	//     * leave delegator triggers JIT
 }
