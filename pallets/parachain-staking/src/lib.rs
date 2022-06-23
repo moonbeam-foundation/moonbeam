@@ -450,7 +450,6 @@ pub mod pallet {
 							delegator_state.adjust_bond_lock::<T>(None);
 						}
 
-						migration_key[..16].copy_from_slice(&pallet_hash);
 						migration_key[16..].copy_from_slice(&candidate_info_hash);
 						for (account, candidate_info) in <CandidateInfo<T>>::iter_from(migration_key.to_vec()) {
 							let reserved = candidate_info.bond;
