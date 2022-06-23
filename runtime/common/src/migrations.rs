@@ -42,9 +42,8 @@ use pallet_base_fee::Config as BaseFeeConfig;
 use pallet_migrations::{GetMigrations, Migration};
 use pallet_parachain_staking::{
 	migrations::{
-		IncreaseMaxDelegationsPerCandidate, PatchIncorrectDelegationSums, PurgeStaleStorage,
-		SplitDelegatorStateIntoDelegationScheduledRequests,
-		ConvertReservesToLocks,
+		ConvertReservesToLocks, IncreaseMaxDelegationsPerCandidate, PatchIncorrectDelegationSums,
+		PurgeStaleStorage, SplitDelegatorStateIntoDelegationScheduledRequests,
 	},
 	Config as ParachainStakingConfig,
 };
@@ -701,7 +700,6 @@ where
 
 			// planned in runtime 1600
 			Box::new(migration_author_mapping_add_account_id_to_nimbus_lookup),
-
 			// planned in runtime 1700
 			Box::new(migration_parachain_staking_convert_reserves_to_locks),
 		]
