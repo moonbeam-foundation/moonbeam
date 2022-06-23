@@ -8247,6 +8247,7 @@ mod jit_migrate_reserve_to_locks_tests {
 	use super::*;
 	use crate::{
 		DELEGATOR_LOCK_IDENTIFIER, COLLATOR_LOCK_IDENTIFIER,
+		DelegatorReserveToLockMigrations, CollatorReserveToLockMigrations,
 	};
 
 	#[test]
@@ -8260,19 +8261,75 @@ mod jit_migrate_reserve_to_locks_tests {
 				// initially should use locks, not reserves
 				assert_eq!(Balances::reserved_balance(1), 0);
 				assert_eq!(crate::mock::query_lock_amount(1, COLLATOR_LOCK_IDENTIFIER), Some(25));
+				assert_eq!(<CollatorReserveToLockMigrations<Test>>::get(1), true);
 
 				assert_eq!(Balances::reserved_balance(2), 0);
 				assert_eq!(crate::mock::query_lock_amount(2, DELEGATOR_LOCK_IDENTIFIER), Some(30));
+				assert_eq!(<DelegatorReserveToLockMigrations<Test>>::get(2), true);
 
 				// now "unmigrate" back to reserves
 				crate::mock::unmigrate_collator_from_lock_to_reserve(1);
 				assert_eq!(Balances::reserved_balance(1), 25);
 				assert_eq!(crate::mock::query_lock_amount(1, COLLATOR_LOCK_IDENTIFIER), None);
+				assert_eq!(<CollatorReserveToLockMigrations<Test>>::get(1), false);
 
 				crate::mock::unmigrate_delegator_from_lock_to_reserve(2);
 				assert_eq!(Balances::reserved_balance(2), 30);
 				assert_eq!(crate::mock::query_lock_amount(2, DELEGATOR_LOCK_IDENTIFIER), None);
+				assert_eq!(<DelegatorReserveToLockMigrations<Test>>::get(2), false);
 
 			});
+	}
+
+	#[test]
+	fn test_first_delegation_sets_migrations_storage() {
+		ExtBuilder::default()
+			.with_balances(vec![(1, 100), (2, 100)])
+			.with_candidates(vec![(1, 25)])
+			.build()
+			.execute_with(|| {
+				assert_eq!(<DelegatorReserveToLockMigrations<Test>>::get(2), false);
+
+				assert_ok!(ParachainStaking::delegate(Origin::signed(2), 1, 15, 0, 0));
+				assert_eq!(<DelegatorReserveToLockMigrations<Test>>::get(2), true);
+			});
+	}
+
+	#[test]
+	fn test_join_candidates_sets_migrations_storage() {
+		ExtBuilder::default()
+			.with_balances(vec![(1, 100)])
+			.build()
+			.execute_with(|| {
+				assert_eq!(<CollatorReserveToLockMigrations<Test>>::get(1), false);
+
+				assert_ok!(ParachainStaking::join_candidates(Origin::signed(1), 10, 0));
+				assert_eq!(<CollatorReserveToLockMigrations<Test>>::get(1), true);
+			});
+	}
+
+	#[test]
+	fn test_delegate_migrates_account() {
+		ExtBuilder::default()
+			.with_balances(vec![(1, 100), (2, 100), (3, 100)])
+			.with_candidates(vec![(1, 25), (2, 25)])
+			.with_delegations(vec![(3, 1, 10)])
+			.build()
+			.execute_with(|| {
+				// 3 is initially a delegator to 1
+				assert!(ParachainStaking::delegator_state(3).is_some());
+
+				// unmigrate so that delegator needs JIT
+				crate::mock::unmigrate_delegator_from_lock_to_reserve(3);
+				assert_eq!(Balances::reserved_balance(3), 10);
+				assert_eq!(crate::mock::query_lock_amount(3, DELEGATOR_LOCK_IDENTIFIER), None);
+				assert_eq!(<DelegatorReserveToLockMigrations<Test>>::get(3), false);
+
+				// now delegate and expect JIT to kick in
+				assert_ok!(ParachainStaking::delegate(Origin::signed(3), 2, 15, 1, 1));
+				assert_eq!(<DelegatorReserveToLockMigrations<Test>>::get(3), true);
+
+			});
+
 	}
 }
