@@ -16,13 +16,17 @@
 
 //! Test utilities
 use crate as pallet_parachain_staking;
-use crate::{pallet, AwardedPts, Config, InflationInfo, Points, Range,
-DelegatorReserveToLockMigrations, DELEGATOR_LOCK_IDENTIFIER, COLLATOR_LOCK_IDENTIFIER,
-CandidateInfo, DelegatorState, CollatorReserveToLockMigrations };
+use crate::{
+	pallet, AwardedPts, CandidateInfo, CollatorReserveToLockMigrations, Config,
+	DelegatorReserveToLockMigrations, DelegatorState, InflationInfo, Points, Range,
+	COLLATOR_LOCK_IDENTIFIER, DELEGATOR_LOCK_IDENTIFIER,
+};
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Everything, GenesisBuild, OnFinalize, OnInitialize, ReservableCurrency,
-	LockableCurrency, LockIdentifier},
+	traits::{
+		Everything, GenesisBuild, LockIdentifier, LockableCurrency, OnFinalize, OnInitialize,
+		ReservableCurrency,
+	},
 	weights::Weight,
 };
 use sp_core::H256;
@@ -429,7 +433,6 @@ pub(crate) fn unmigrate_delegator_from_lock_to_reserve(account_id: u64) {
 	}
 }
 
-
 /// fn to reverse-migrate a collator account from locks back to reserve.
 /// This is used to test the reserve -> lock migration.
 pub(crate) fn unmigrate_collator_from_lock_to_reserve(account_id: u64) {
@@ -461,9 +464,15 @@ fn geneses() {
 		.execute_with(|| {
 			assert!(System::events().is_empty());
 			// collators
-			assert_eq!(ParachainStaking::get_collator_stakable_free_balance(&1), 500);
+			assert_eq!(
+				ParachainStaking::get_collator_stakable_free_balance(&1),
+				500
+			);
 			assert!(ParachainStaking::is_candidate(&1));
-			assert_eq!(ParachainStaking::get_collator_stakable_free_balance(&2), 100);
+			assert_eq!(
+				ParachainStaking::get_collator_stakable_free_balance(&2),
+				100
+			);
 			assert!(ParachainStaking::is_candidate(&2));
 			// delegators
 			for x in 3..7 {
@@ -475,11 +484,17 @@ fn geneses() {
 				assert!(!ParachainStaking::is_delegator(&x));
 			}
 			// no delegator staking locks
-			assert_eq!(ParachainStaking::get_delegator_stakable_free_balance(&7), 100);
+			assert_eq!(
+				ParachainStaking::get_delegator_stakable_free_balance(&7),
+				100
+			);
 			assert_eq!(ParachainStaking::get_delegator_stakable_free_balance(&8), 9);
 			assert_eq!(ParachainStaking::get_delegator_stakable_free_balance(&9), 4);
 			// no collator staking locks
-			assert_eq!(ParachainStaking::get_collator_stakable_free_balance(&7), 100);
+			assert_eq!(
+				ParachainStaking::get_collator_stakable_free_balance(&7),
+				100
+			);
 			assert_eq!(ParachainStaking::get_collator_stakable_free_balance(&8), 9);
 			assert_eq!(ParachainStaking::get_collator_stakable_free_balance(&9), 4);
 		});
@@ -517,7 +532,10 @@ fn geneses() {
 			// delegators
 			for x in 6..11 {
 				assert!(ParachainStaking::is_delegator(&x));
-				assert_eq!(ParachainStaking::get_delegator_stakable_free_balance(&x), 90);
+				assert_eq!(
+					ParachainStaking::get_delegator_stakable_free_balance(&x),
+					90
+				);
 				// assert_eq!(Balances::reserved_balance(&x), 10);
 			}
 		});

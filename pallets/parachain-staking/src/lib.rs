@@ -923,7 +923,7 @@ pub mod pallet {
 			T::Currency::set_lock(COLLATOR_LOCK_IDENTIFIER, &acc, bond, WithdrawReasons::all());
 			let candidate = CandidateMetadata::new(bond);
 			<CandidateInfo<T>>::insert(&acc, candidate);
-            <CollatorReserveToLockMigrations<T>>::insert(&acc, true);
+			<CollatorReserveToLockMigrations<T>>::insert(&acc, true);
 			let empty_delegations: Delegations<T::AccountId, BalanceOf<T>> = Default::default();
 			// insert empty top delegations
 			<TopDelegations<T>>::insert(&acc, empty_delegations.clone());
@@ -1258,7 +1258,7 @@ pub mod pallet {
 			<Total<T>>::put(new_total_locked);
 			<CandidateInfo<T>>::insert(&candidate, state);
 			<DelegatorState<T>>::insert(&delegator, delegator_state);
-            <DelegatorReserveToLockMigrations<T>>::insert(&delegator, true);
+			<DelegatorReserveToLockMigrations<T>>::insert(&delegator, true);
 			Self::deposit_event(Event::Delegation {
 				delegator: delegator,
 				locked_amount: amount,

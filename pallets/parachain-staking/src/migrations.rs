@@ -819,8 +819,8 @@ impl<T: Config> OnRuntimeUpgrade for PurgeStaleStorage<T> {
 pub struct ConvertReservesToLocks<T>(PhantomData<T>);
 impl<T: Config> OnRuntimeUpgrade for ConvertReservesToLocks<T> {
 	fn on_runtime_upgrade() -> Weight {
-		use frame_support::traits::{LockableCurrency, ReservableCurrency, WithdrawReasons};
 		use crate::COLLATOR_LOCK_IDENTIFIER;
+		use frame_support::traits::{LockableCurrency, ReservableCurrency, WithdrawReasons};
 
 		log::info!(target: "ConvertReservesToLocks", "starting on_runtime_upgrade()...");
 
@@ -844,13 +844,17 @@ impl<T: Config> OnRuntimeUpgrade for ConvertReservesToLocks<T> {
 			let remaining = T::Currency::unreserve(&account, reserved);
 			assert_eq!(remaining, 0u32.into());
 
-			T::Currency::set_lock(COLLATOR_LOCK_IDENTIFIER, &account, reserved, WithdrawReasons::all());
+			T::Currency::set_lock(
+				COLLATOR_LOCK_IDENTIFIER,
+				&account,
+				reserved,
+				WithdrawReasons::all(),
+			);
 
 			num_collators += 1;
 		}
 
 		log::info!(target: "ConvertReservesToLocks", "migrated {} collators", num_collators);
-
 
 		// TODO: properly tally
 		T::DbWeight::get().reads(num_reads) + T::DbWeight::get().writes(num_writes)
