@@ -769,6 +769,7 @@ where
 				keystore,
 				skip_prediction: force_authoring,
 				create_inherent_data_providers: provider,
+				additional_digests_provider: (),// TODO: replace with Vrf Digest provider
 			}))
 		},
 	)

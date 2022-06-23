@@ -26,7 +26,7 @@ fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-pol
 pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.20", default-features = false }
 
 # Nimbus
-nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.20", default-features = false }
+nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "amar-cherrypick-digest-provider", default-features = false }
 
 [dev-dependencies]
 derive_more = "0.99"

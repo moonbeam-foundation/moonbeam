@@ -30,9 +30,6 @@ use sp_runtime::RuntimeDebug;
 /// VRF output
 type Randomness = schnorrkel::Randomness;
 
-/// Put the predigest here, or consider putting both of these objects into VrfInput?
-///
-
 /// VRF inputs from the relay chain
 /// Both inputs are expected to change every block
 #[derive(Default, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]

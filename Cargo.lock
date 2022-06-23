@@ -6315,7 +6315,7 @@ dependencies = [
 [[package]]
 name = "nimbus-consensus"
 version = "0.9.0"
-source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.20#888afc92cf008677e02966ad4a0934ffa21e0516"
+source = "git+https://github.com/purestake/nimbus?branch=amar-cherrypick-digest-provider#52eb4c45eb79f5f485036e738d44a21abfa3935c"
 dependencies = [
  "async-trait",
  "cumulus-client-consensus-common",
@@ -6346,7 +6346,7 @@ dependencies = [
 [[package]]
 name = "nimbus-primitives"
 version = "0.9.0"
-source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.20#888afc92cf008677e02966ad4a0934ffa21e0516"
+source = "git+https://github.com/purestake/nimbus?branch=amar-cherrypick-digest-provider#52eb4c45eb79f5f485036e738d44a21abfa3935c"
 dependencies = [
  "async-trait",
  "frame-benchmarking",
@@ -6734,7 +6734,7 @@ dependencies = [
 [[package]]
 name = "pallet-author-inherent"
 version = "0.9.0"
-source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.20#888afc92cf008677e02966ad4a0934ffa21e0516"
+source = "git+https://github.com/purestake/nimbus?branch=amar-cherrypick-digest-provider#52eb4c45eb79f5f485036e738d44a21abfa3935c"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6774,7 +6774,7 @@ dependencies = [
 [[package]]
 name = "pallet-author-slot-filter"
 version = "0.9.0"
-source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.20#888afc92cf008677e02966ad4a0934ffa21e0516"
+source = "git+https://github.com/purestake/nimbus?branch=amar-cherrypick-digest-provider#52eb4c45eb79f5f485036e738d44a21abfa3935c"
 dependencies = [
  "frame-benchmarking",
  "frame-support",

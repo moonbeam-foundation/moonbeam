@@ -52,7 +52,6 @@ const LOG_TARGET: &str = "signing-vrf";
 // TODO: get VrfInput via runtime API before calling this in client
 // TODO: get key via runtime API that gets it using the NimbusId that the client is using and the
 // KeysLookup in the runtime
-// TODO: where will this be called, in the client while authoring?
 // `nimbus_consensus::produce_candidate` seems like place where the PreDigest needs to be added
 pub fn vrf_predigest<Hash: AsRef<[u8]> + Clone>(
 	relay_slot_number: Slot,
@@ -81,6 +80,7 @@ pub fn vrf_predigest<Hash: AsRef<[u8]> + Clone>(
 			vrf_proof: VRFProof(signature.proof),
 		})
 	} else {
+        // Either `key` not found in keystore (if None returned) or an Err if something else failed
 		None
 	}
 }
