@@ -26,31 +26,20 @@ use sp_std::vec::Vec;
 #[derive(Clone, Debug, Eq, PartialEq, Encode, Decode, TypeInfo)]
 /// Manually sets a gas fee.
 pub struct ManualEthereumXcmFee {
-	/// Legacy or Eip-2930
+	/// Legacy or Eip-2930, all fee will be used.
 	pub gas_price: Option<U256>,
-	/// Eip-1559
+	/// Eip-1559, must be at least the on-chain base fee at the time of applying the xcm
+	/// and will use up to the defined value. 
 	pub max_fee_per_gas: Option<U256>,
-	/// Eip-1559
-	pub max_priority_fee_per_gas: Option<U256>,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode, TypeInfo)]
-/// Authomatic gas fee based on the current on-chain values.
-/// Will always produce an Eip-1559 transaction.
-pub enum AutoEthereumXcmFee {
-	/// base_fee_per_gas = BaseFee
-	Low,
-	/// max_fee_per_gas = 2 * BaseFee, max_priority_fee_per_gas = BaseFee
-	Medium,
-	/// max_fee_per_gas = 3 * BaseFee, max_priority_fee_per_gas = 2 * BaseFee
-	High,
 }
 
 /// Xcm transact's Ethereum transaction configurable fee.
 #[derive(Clone, Debug, Eq, PartialEq, Encode, Decode, TypeInfo)]
 pub enum EthereumXcmFee {
+	/// Manually set gas fee.
 	Manual(ManualEthereumXcmFee),
-	Auto(AutoEthereumXcmFee),
+	/// Use the on-chain base fee at the time of processing the xcm.
+	Auto,
 }
 
 /// Xcm transact's Ethereum transaction.
@@ -107,29 +96,15 @@ impl XcmToEthereum for EthereumXcmTransactionV1 {
 				.collect::<Vec<AccessListItem>>()
 		};
 
-		let (gas_price, max_fee, max_priority_fee) = match &self.fee_payment {
+		let (gas_price, max_fee) = match &self.fee_payment {
 			EthereumXcmFee::Manual(fee_config) => (
 				fee_config.gas_price,
 				fee_config.max_fee_per_gas,
-				fee_config.max_priority_fee_per_gas,
 			),
-			EthereumXcmFee::Auto(auto_mode) => {
-				let (max_fee, max_priority_fee) = match auto_mode {
-					AutoEthereumXcmFee::Low => (Some(base_fee), None),
-					AutoEthereumXcmFee::Medium => (
-						Some(base_fee.saturating_mul(U256::from(2u64))),
-						Some(base_fee),
-					),
-					AutoEthereumXcmFee::High => (
-						Some(base_fee.saturating_mul(U256::from(3u64))),
-						Some(base_fee.saturating_mul(U256::from(2u64))),
-					),
-				};
-				(None, max_fee, max_priority_fee)
-			}
+			EthereumXcmFee::Auto => (None, Some(base_fee))
 		};
-		match (gas_price, max_fee, max_priority_fee) {
-			(Some(gas_price), None, None) => {
+		match (gas_price, max_fee) {
+			(Some(gas_price), None) => {
 				// Legacy or Eip-2930
 				if let Some(ref access_list) = self.access_list {
 					// Eip-2930
@@ -159,13 +134,13 @@ impl XcmToEthereum for EthereumXcmTransactionV1 {
 					}))
 				}
 			}
-			(None, Some(max_fee), _) => {
+			(None, Some(max_fee)) => {
 				// Eip-1559
 				Some(TransactionV2::EIP1559(EIP1559Transaction {
 					chain_id: 0,
 					nonce,
 					max_fee_per_gas: max_fee,
-					max_priority_fee_per_gas: max_priority_fee.unwrap_or_else(U256::zero),
+					max_priority_fee_per_gas: U256::zero(),
 					gas_limit: self.gas_limit,
 					action: self.action,
 					value: self.value,
@@ -189,11 +164,11 @@ impl XcmToEthereum for EthereumXcmTransactionV1 {
 mod tests {
 	use super::*;
 	#[test]
-	fn test_into_ethereum_tx_with_low_fee() {
+	fn test_into_ethereum_tx_with_auto_fee() {
 		let xcm_transaction = EthereumXcmTransactionV1 {
 			gas_limit: U256::from(1),
-			fee_payment: EthereumXcmFee::Auto(AutoEthereumXcmFee::Low),
-			action: TransactionAction::Create,
+			fee_payment: EthereumXcmFee::Auto,
+			action: TransactionAction::Call(H160::default()),
 			value: U256::from(0),
 			input: vec![1u8],
 			access_list: None,
@@ -204,9 +179,9 @@ mod tests {
 			chain_id: 0,
 			nonce,
 			max_fee_per_gas: base_fee,
-			max_priority_fee_per_gas: U256::from(0),
+			max_priority_fee_per_gas: U256::zero(),
 			gas_limit: U256::from(1),
-			action: TransactionAction::Create,
+			action: TransactionAction::Call(H160::default()),
 			value: U256::from(0),
 			input: vec![1u8],
 			access_list: vec![],
@@ -221,71 +196,6 @@ mod tests {
 		);
 	}
 
-	#[test]
-	fn test_into_ethereum_tx_with_medium_fee() {
-		let xcm_transaction = EthereumXcmTransactionV1 {
-			gas_limit: U256::from(1),
-			fee_payment: EthereumXcmFee::Auto(AutoEthereumXcmFee::Medium),
-			action: TransactionAction::Create,
-			value: U256::from(0),
-			input: vec![1u8],
-			access_list: None,
-		};
-		let nonce = U256::from(0);
-		let base_fee = U256::from(1);
-		let expected_tx = Some(TransactionV2::EIP1559(EIP1559Transaction {
-			chain_id: 0,
-			nonce,
-			max_fee_per_gas: base_fee * 2,
-			max_priority_fee_per_gas: base_fee,
-			gas_limit: U256::from(1),
-			action: TransactionAction::Create,
-			value: U256::from(0),
-			input: vec![1u8],
-			access_list: vec![],
-			odd_y_parity: true,
-			r: H256::from_low_u64_be(1u64),
-			s: H256::from_low_u64_be(1u64),
-		}));
-
-		assert_eq!(
-			xcm_transaction.into_transaction_v2(base_fee, nonce),
-			expected_tx
-		);
-	}
-
-	#[test]
-	fn test_into_ethereum_tx_with_high_fee() {
-		let xcm_transaction = EthereumXcmTransactionV1 {
-			gas_limit: U256::from(1),
-			fee_payment: EthereumXcmFee::Auto(AutoEthereumXcmFee::High),
-			action: TransactionAction::Create,
-			value: U256::from(0),
-			input: vec![1u8],
-			access_list: None,
-		};
-		let nonce = U256::from(0);
-		let base_fee = U256::from(1);
-		let expected_tx = Some(TransactionV2::EIP1559(EIP1559Transaction {
-			chain_id: 0,
-			nonce,
-			max_fee_per_gas: base_fee * 3,
-			max_priority_fee_per_gas: base_fee * 2,
-			gas_limit: U256::from(1),
-			action: TransactionAction::Create,
-			value: U256::from(0),
-			input: vec![1u8],
-			access_list: vec![],
-			odd_y_parity: true,
-			r: H256::from_low_u64_be(1u64),
-			s: H256::from_low_u64_be(1u64),
-		}));
-
-		assert_eq!(
-			xcm_transaction.into_transaction_v2(base_fee, nonce),
-			expected_tx
-		);
-	}
 	#[test]
 	fn test_legacy() {
 		let xcm_transaction = EthereumXcmTransactionV1 {
@@ -293,9 +203,8 @@ mod tests {
 			fee_payment: EthereumXcmFee::Manual(ManualEthereumXcmFee {
 				gas_price: Some(U256::from(1)),
 				max_fee_per_gas: None,
-				max_priority_fee_per_gas: None,
 			}),
-			action: TransactionAction::Create,
+			action: TransactionAction::Call(H160::default()),
 			value: U256::from(0),
 			input: vec![1u8],
 			access_list: None,
@@ -306,7 +215,7 @@ mod tests {
 			nonce,
 			gas_price,
 			gas_limit: U256::from(1),
-			action: TransactionAction::Create,
+			action: TransactionAction::Call(H160::default()),
 			value: U256::from(0),
 			input: vec![1u8],
 			signature: TransactionSignature::new(42, rs_id(), rs_id()).unwrap(),
@@ -334,9 +243,8 @@ mod tests {
 			fee_payment: EthereumXcmFee::Manual(ManualEthereumXcmFee {
 				gas_price: Some(U256::from(1)),
 				max_fee_per_gas: None,
-				max_priority_fee_per_gas: None,
 			}),
-			action: TransactionAction::Create,
+			action: TransactionAction::Call(H160::default()),
 			value: U256::from(0),
 			input: vec![1u8],
 			access_list: access_list.clone(),
@@ -349,7 +257,7 @@ mod tests {
 			nonce,
 			gas_price,
 			gas_limit: U256::from(1),
-			action: TransactionAction::Create,
+			action: TransactionAction::Call(H160::default()),
 			value: U256::from(0),
 			input: vec![1u8],
 			access_list: from_tuple_to_access_list(&access_list.unwrap()),
