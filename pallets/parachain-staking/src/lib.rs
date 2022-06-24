@@ -694,7 +694,7 @@ pub mod pallet {
 					cd_count,
 					dd_count,
 				) {
-					panic!("Delegate failed in genesis with error {:?}", error);
+					log::warn!("Delegate failed in genesis with error {:?}", error);
 				} else {
 					if let Some(x) = col_delegator_count.get_mut(target) {
 						*x = x.saturating_add(1u32);
