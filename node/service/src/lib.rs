@@ -50,6 +50,7 @@ use cumulus_relay_chain_inprocess_interface::build_inprocess_relay_chain;
 use cumulus_relay_chain_interface::{RelayChainError, RelayChainInterface};
 use nimbus_consensus::NimbusManualSealConsensusDataProvider;
 use nimbus_consensus::{BuildNimbusConsensusParams, NimbusConsensus};
+use nimbus_primitives::{DigestsProvider, NimbusId};
 use sc_executor::{NativeElseWasmExecutor, NativeExecutionDispatch};
 use sc_network::NetworkService;
 use sc_service::config::PrometheusConfig;
@@ -77,6 +78,27 @@ pub type HostFunctions = (
 	frame_benchmarking::benchmarking::HostFunctions,
 	moonbeam_primitives_ext::moonbeam_ext::HostFunctions,
 );
+
+// should live in the node near the code where it is used...
+pub struct InherentDigestProvider;
+// client needs to implement it somehow in order to access keystore and pass it in
+
+impl DigestsProvider<NimbusId, Hash> for InherentDigestProvider {
+	// TODO: is there way to do this without allocating a vec?
+	// idea: [DigestItem; 1] and then change nimbus to ignore it if it matches a hardcoded value that
+	// represents us not returning a digest
+	type Digests = Vec<sp_runtime::generic::DigestItem>;
+	fn provide_digests(&self, id: NimbusId, parent: Hash) -> Self::Digests {
+		// get the inputs to `vrf_digest` via runtime API
+		// -> use VrfKeyLookup to get VrfId from NimbusId
+		// -> get vrf input
+		// call `vrf_digest::<H>()`
+		// need to use moonbeam_vrf:::{PreDigest, CompatibleDigestItem};
+		// use sp_runtime::generic::DigestItem
+		// vec![DigestItem::vrf_pre_digest(vrf_pre_digest)]
+		Vec::new()
+	}
+}
 
 #[cfg(feature = "moonbeam-native")]
 pub struct MoonbeamExecutor;

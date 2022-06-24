@@ -13,25 +13,12 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+//! VRF Runtime API
 
-//! Primitives for session keys
-#![cfg_attr(not(feature = "std"), no_std)]
-
-pub mod inherent;
-pub mod runtime_api;
-pub mod vrf;
-pub use inherent::*;
-pub use runtime_api::*;
-pub use vrf::*;
-
-/// A Trait to lookup keys from AuthorIds
-pub trait KeysLookup<AuthorId, Keys> {
-	fn lookup_keys(author: &AuthorId) -> Option<Keys>;
-}
-
-// A dummy impl used in simple tests
-impl<AuthorId, Keys> KeysLookup<AuthorId, Keys> for () {
-	fn lookup_keys(_: &AuthorId) -> Option<Keys> {
-		None
+sp_api::decl_runtime_apis! {
+	pub trait VrfRuntimeApi {
+		fn get_relay_slot_number() -> sp_consensus_babe::Slot;
+		fn get_relay_storage_root() -> Block::Hash;
+		fn vrf_key_lookup(nimbus_id: nimbus_primitives::NimbusId) -> Option<crate::VrfId>;
 	}
 }

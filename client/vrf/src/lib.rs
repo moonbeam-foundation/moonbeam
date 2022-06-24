@@ -18,35 +18,12 @@
 
 pub mod digest;
 
-use crate::digest::PreDigest;
-use cumulus_client_consensus_common::{
-	ParachainBlockImport, ParachainCandidate, ParachainConsensus,
-};
-use cumulus_primitives_core::{relay_chain::v2::Hash as PHash, ParaId, PersistedValidationData};
-use log::{debug, info, warn};
-// use nimbus_primitives::{
-// 	AuthorFilterAPI, CompatibleDigestItem, NimbusApi, NimbusId, VRF_KEY_ID,
-// };
-use parking_lot::Mutex;
-use sc_consensus::{BlockImport, BlockImportParams};
-use session_keys_primitives::{make_transcript, make_transcript_data, VrfId, VRF_KEY_ID};
-use sp_api::{ApiExt, BlockId, ProvideRuntimeApi};
-use sp_application_crypto::{AppKey, ByteArray, CryptoTypePublicPair};
-use sp_consensus::{
-	BlockOrigin, EnableProofRecording, Environment, ProofRecording, Proposal, Proposer,
-};
+pub use crate::digest::PreDigest;
+use session_keys_primitives::{make_transcript, make_transcript_data, VrfId};
+use sp_application_crypto::{AppKey, ByteArray};
 use sp_consensus_babe::Slot;
 use sp_consensus_vrf::schnorrkel::{PublicKey, VRFOutput, VRFProof};
-use sp_inherents::{CreateInherentDataProviders, InherentData, InherentDataProvider};
 use sp_keystore::{SyncCryptoStore, SyncCryptoStorePtr};
-use sp_runtime::{
-	traits::{Block as BlockT, Header as HeaderT},
-	DigestItem,
-};
-use std::convert::TryInto;
-use std::{marker::PhantomData, sync::Arc, time::Duration};
-
-const LOG_TARGET: &str = "signing-vrf";
 
 /// Returns VRF pre-digest which includes an output signing the input info
 // TODO: get VrfInput via runtime API before calling this in client
@@ -80,7 +57,7 @@ pub fn vrf_predigest<Hash: AsRef<[u8]> + Clone>(
 			vrf_proof: VRFProof(signature.proof),
 		})
 	} else {
-        // Either `key` not found in keystore (if None returned) or an Err if something else failed
+		// Either `key` not found in keystore (if None returned) or an Err if something else failed
 		None
 	}
 }

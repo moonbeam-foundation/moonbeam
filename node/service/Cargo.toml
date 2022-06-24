@@ -41,6 +41,7 @@ moonbeam-rpc-primitives-debug = { path = "../../primitives/rpc/debug" }
 moonbeam-rpc-primitives-txpool = { path = "../../primitives/rpc/txpool" }
 moonbeam-rpc-trace = { path = "../../client/rpc/trace" }
 moonbeam-rpc-txpool = { path = "../../client/rpc/txpool" }
+moonbeam-vrf = { path = "../../client/vrf" }
 pallet-parachain-staking = { path = "../../pallets/parachain-staking" }
 session-keys-primitives = { path = "../../primitives/session-keys" }
 

@@ -5931,6 +5931,7 @@ dependencies = [
  "moonbeam-rpc-trace",
  "moonbeam-rpc-txpool",
  "moonbeam-runtime",
+ "moonbeam-vrf",
  "moonriver-runtime",
  "nimbus-consensus",
  "nimbus-primitives",
@@ -6002,32 +6003,13 @@ dependencies = [
 name = "moonbeam-vrf"
 version = "0.1.0"
 dependencies = [
- "async-trait",
- "cumulus-client-consensus-common",
- "cumulus-primitives-core",
- "cumulus-primitives-parachain-inherent",
- "futures 0.3.21",
- "log",
  "parity-scale-codec",
- "parking_lot 0.12.0",
- "polkadot-client",
- "sc-client-api",
- "sc-consensus",
- "sc-consensus-manual-seal",
  "session-keys-primitives",
- "sp-api",
  "sp-application-crypto",
- "sp-block-builder",
- "sp-blockchain",
- "sp-consensus",
  "sp-consensus-babe",
  "sp-consensus-vrf",
- "sp-core",
- "sp-inherents",
  "sp-keystore",
  "sp-runtime",
- "substrate-prometheus-endpoint",
- "tracing",
 ]
 
 [[package]]
@@ -11920,6 +11902,7 @@ dependencies = [
  "nimbus-primitives",
  "parity-scale-codec",
  "scale-info",
+ "sp-api",
  "sp-application-crypto",
  "sp-consensus-babe",
  "sp-inherents",
