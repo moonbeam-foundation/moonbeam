@@ -1387,18 +1387,18 @@ impl<
 	/// This will take the current self.total and ensure that a lock of the same amount is applied
 	/// and will also ensure that the account has at least `additional_reserve` in free balance.
 	///
-	/// `additional_reserve` should reflect the change to the amount that should be locked if
+	/// `additional_required_balance` should reflect the change to the amount that should be locked if
 	/// positive, 0 otherwise (e.g. `min(0, change_in_total_bond)`). This is necessary because it is
 	/// not possible to query the amount that is locked for a given lock id.
 	pub fn adjust_bond_lock<T: Config>(
 		&mut self,
-		additional_reserve: Option<Balance>,
+		additional_required_balance: Option<Balance>,
 	) -> DispatchResult
 	where
 		BalanceOf<T>: From<Balance>,
 		T::AccountId: From<AccountId>,
 	{
-		if let Some(reserve) = additional_reserve {
+		if let Some(reserve) = additional_required_balance {
 			ensure!(
 				<Pallet<T>>::get_delegator_stakable_free_balance(&self.id.clone().into())
 					>= reserve.into(),
