@@ -1,5 +1,5 @@
 [package]
-name = "liquid-staking"
+name = "pallet-liquid-staking"
 authors = [ "PureStake" ]
 description = "Reimplementation of parachain staking using multi-level shares strategy"
 edition = "2018"
