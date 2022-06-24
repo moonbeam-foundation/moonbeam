@@ -1280,6 +1280,151 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
   });
 });
 
+describeDevMoonbeam("Mock XCM - receive horizontal transact", (context) => {
+  let transferredBalance;
+  let DescendOriginAddress;
+  let sendingAddress;
+  let random: KeyringPair;
+
+  before("Should receive transact action with DescendOrigin", async function () {
+    const allones = "0x0101010101010101010101010101010101010101";
+    sendingAddress = allones;
+    random = generateKeyingPair();
+    const derivedMultiLocation = context.polkadotApi.createType(
+      "MultiLocation",
+      JSON.parse(
+        `{\
+            "parents": 1,\
+            "interior": {\
+              "X2": [\
+                { "Parachain": 1 },\
+                { "AccountKey20": \
+                  {\
+                    "network": "Any",\
+                    "key": "${allones}"\
+                  } \
+                }\
+              ]\
+            }\
+          }`
+      )
+    );
+
+    const toHash = new Uint8Array([
+      ...new Uint8Array([32]),
+      ...new TextEncoder().encode("multiloc"),
+      ...derivedMultiLocation.toU8a(),
+    ]);
+
+    DescendOriginAddress = u8aToHex(context.polkadotApi.registry.hash(toHash).slice(0, 20));
+
+    transferredBalance = 1000000000000000000n;
+
+    await context.createBlock(
+      context.polkadotApi.tx.balances.transfer(DescendOriginAddress, transferredBalance)
+    );
+    const balance = (
+      (await context.polkadotApi.query.system.account(DescendOriginAddress)) as any
+    ).data.free.toBigInt();
+    expect(balance).to.eq(transferredBalance);
+  });
+
+  it("Should receive transact and should be able to execute ", async function () {
+    // Get Pallet balances index
+    const metadata = await context.polkadotApi.rpc.state.getMetadata();
+    const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
+      (pallet) => {
+        return pallet.name === "Balances";
+      }
+    ).index;
+
+    const transferCall = context.polkadotApi.tx.balances.transfer(
+      random.address,
+      transferredBalance / 10n
+    );
+    const transferCallEncoded = transferCall?.method.toHex();
+    // We are going to test that we can receive a transact operation from parachain 1
+    // using descendOrigin first
+    const xcmMessage = {
+      V2: [
+        {
+          DescendOrigin: {
+            X1: {
+              AccountKey20: {
+                network: "Any",
+                key: sendingAddress,
+              },
+            },
+          },
+        },
+        {
+          WithdrawAsset: [
+            {
+              id: {
+                Concrete: {
+                  parents: 0,
+                  interior: {
+                    X1: { PalletInstance: balancesPalletIndex },
+                  },
+                },
+              },
+              fun: { Fungible: transferredBalance / 2n },
+            },
+          ],
+        },
+        {
+          BuyExecution: {
+            fees: {
+              id: {
+                Concrete: {
+                  parents: 0,
+                  interior: {
+                    X1: { PalletInstance: balancesPalletIndex },
+                  },
+                },
+              },
+              fun: { Fungible: transferredBalance / 2n },
+            },
+            weightLimit: { Limited: new BN(4000000000) },
+          },
+        },
+        {
+          Transact: {
+            originType: "SovereignAccount",
+            requireWeightAtMost: new BN(1000000000),
+            call: {
+              encoded: transferCallEncoded,
+            },
+          },
+        },
+      ],
+    };
+    const xcmpFormat: XcmpMessageFormat = context.polkadotApi.createType(
+      "XcmpMessageFormat",
+      "ConcatenatedVersionedXcm"
+    ) as any;
+
+    const receivedMessage: XcmVersionedXcm = context.polkadotApi.createType(
+      "XcmVersionedXcm",
+      xcmMessage
+    ) as any;
+
+    const totalMessage = [...xcmpFormat.toU8a(), ...receivedMessage.toU8a()];
+    // Send RPC call to inject XCM message
+    // We will set a specific message knowing that it should mint the statemint asset
+    await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [1, totalMessage]);
+
+    // Create a block in which the XCM will be executed
+    await context.createBlock();
+
+    // Make sure the state has ALITH's foreign parachain tokens
+    const testAccountBalance = (
+      await context.polkadotApi.query.system.account(random.address)
+    ).data.free.toBigInt();
+
+    expect(testAccountBalance).to.eq(transferredBalance / 10n);
+  });
+});
 describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
   it("Should test that XCMP is executed randomized and until exhausted", async function () {
     this.timeout(120000);
