@@ -425,9 +425,15 @@ fn geneses() {
 		.execute_with(|| {
 			assert!(System::events().is_empty());
 			// collators
-			assert_eq!(ParachainStaking::get_collator_stakable_free_balance(&1), 500);
+			assert_eq!(
+				ParachainStaking::get_collator_stakable_free_balance(&1),
+				500
+			);
 			assert!(ParachainStaking::is_candidate(&1));
-			assert_eq!(ParachainStaking::get_collator_stakable_free_balance(&2), 100);
+			assert_eq!(
+				ParachainStaking::get_collator_stakable_free_balance(&2),
+				100
+			);
 			assert!(ParachainStaking::is_candidate(&2));
 			// delegators
 			for x in 3..7 {
@@ -439,11 +445,17 @@ fn geneses() {
 				assert!(!ParachainStaking::is_delegator(&x));
 			}
 			// no delegator staking locks
-			assert_eq!(ParachainStaking::get_delegator_stakable_free_balance(&7), 100);
+			assert_eq!(
+				ParachainStaking::get_delegator_stakable_free_balance(&7),
+				100
+			);
 			assert_eq!(ParachainStaking::get_delegator_stakable_free_balance(&8), 9);
 			assert_eq!(ParachainStaking::get_delegator_stakable_free_balance(&9), 4);
 			// no collator staking locks
-			assert_eq!(ParachainStaking::get_collator_stakable_free_balance(&7), 100);
+			assert_eq!(
+				ParachainStaking::get_collator_stakable_free_balance(&7),
+				100
+			);
 			assert_eq!(ParachainStaking::get_collator_stakable_free_balance(&8), 9);
 			assert_eq!(ParachainStaking::get_collator_stakable_free_balance(&9), 4);
 		});
@@ -481,7 +493,10 @@ fn geneses() {
 			// delegators
 			for x in 6..11 {
 				assert!(ParachainStaking::is_delegator(&x));
-				assert_eq!(ParachainStaking::get_delegator_stakable_free_balance(&x), 90);
+				assert_eq!(
+					ParachainStaking::get_delegator_stakable_free_balance(&x),
+					90
+				);
 				// assert_eq!(Balances::reserved_balance(&x), 10);
 			}
 		});
