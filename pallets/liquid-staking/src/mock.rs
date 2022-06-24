@@ -21,6 +21,7 @@ use {
 		construct_runtime, parameter_types,
 		traits::{ConstU128, ConstU16, ConstU32, ConstU64, Everything, Hooks},
 	},
+	num_traits::Num,
 	sp_core::H256,
 	sp_runtime::{
 		testing::Header,
@@ -124,6 +125,14 @@ impl pallet::Config for Runtime {
 
 pub fn balance(who: &AccountId) -> Balance {
 	Balances::usable_balance(who)
+}
+
+pub fn round_down<T: Num + Copy>(value: T, increment: T) -> T {
+	if (value % increment).is_zero() {
+		value
+	} else {
+		(value / increment) * increment
+	}
 }
 
 pub(crate) struct ExtBuilder {

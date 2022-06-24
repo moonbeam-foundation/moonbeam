@@ -36,7 +36,16 @@ pub(crate) fn distribute_rewards<T: Config>(
 	collator: T::AccountId,
 	value: T::Balance,
 ) -> Result<(), Error<T>> {
-	// Compute rewards distribution.
+	// Rewards distribution is done in the following order :
+	// 1. Distribute to reserve.
+	// 2. Distribute delegator MC rewards, since it implies some rounding.
+	// 3. Distribute delegator AC rewards with dust from 1.
+	// 4. Distribute collator AC rewards, since it implies some rounding.
+	//    It is done after 2 as we want rewards to be distributed among all delegators
+	//    according to the pre-reward repartition.
+	// 5. Distribute collator MC rewards, with dust from 3.
+
+	// Compute rewards distribution between collator and delegators.
 	let reserve_rewards = T::RewardsReserveCommission::get() * value;
 	let shared_rewards = value
 		.checked_sub(&reserve_rewards)
@@ -46,63 +55,39 @@ pub(crate) fn distribute_rewards<T: Config>(
 		.checked_sub(&collator_rewards)
 		.ok_or(Error::MathUnderflow)?;
 
-	// Mint new currency for reserve.
+	// 1. Distribute to reserve.
 	T::Currency::deposit_creating(&T::ReserveAccount::get(), reserve_rewards);
 
-	// Compute staking rewards.
-	// All rewards must be computed before being distributed for calculations
-	// to not be impacted by other distributions.
-	let (delegators_mc_rewards, delegators_rewards_per_share, delegators_ac_rewards) =
-		compute_delegators_rewards::<T>(collator.clone(), delegators_rewards)?;
-
-	let (collator_mc_rewards, collator_ac_rewards_in_shares) =
-		compute_collator_rewards::<T>(collator.clone(), collator_rewards)?;
-
-	// Distribute staking rewards.
-	// Distributing collator AC rewards must be done in shares and thus
-	// the total staked should not have been changed yet, which is changed when
-	// distributing delegators AC rewards.
-
-	// - Collator manual claim
-	// Rewards are directly minted in collator account.
-	if !collator_mc_rewards.is_zero() {
-		T::Currency::deposit_creating(&collator, collator_mc_rewards);
-	}
-
-	// - Collator auto compounding
-	let collator_ac_rewards = if collator_ac_rewards_in_shares.is_zero() {
-		Zero::zero()
-	} else {
-		let collator_ac_rewards = pools::auto_compounding::add_shares::<T>(
-			collator.clone(),
-			collator.clone(),
-			collator_ac_rewards_in_shares,
-		)?;
-		T::Currency::deposit_creating(&T::StakingAccount::get(), collator_ac_rewards);
-		collator_ac_rewards
-	};
-
-	// All delegators rewards are managed by the staking pallet:
-	// - Auto compounding : increase total staked
-	// - Manual claim : in manual claim system handled by the pallet
+	// 2 + 3. All rewards are held by the staking pallet.
 	T::Currency::deposit_creating(&T::StakingAccount::get(), delegators_rewards);
 
-	// - Delegators manual claim
-	// TODO: Should be safe to wrap around.
-	if !delegators_rewards_per_share.is_zero() {
-		let counter = ManualClaimSharesRewardCounter::<T>::get(&collator);
-		let counter = counter
-			.checked_add(&delegators_rewards_per_share)
-			.ok_or(Error::MathOverflow)?;
-		ManualClaimSharesRewardCounter::<T>::insert(&collator, counter);
-	}
+	// 2. Distribute delegator MC rewards, since it implies some rounding.
+	let delegators_mc_rewards =
+		compute_delegators_mc_rewards_before_rounding(&collator, delegators_rewards)?;
+	let delegators_mc_rewards = distribute_delegators_mc_rewards(&collator, delegators_mc_rewards)?;
 
-	// - Delegators auto compounding
-	if !delegators_ac_rewards.is_zero() {
-		pools::auto_compounding::share_stake_among_holders(&collator, delegators_ac_rewards)?;
-	}
+	// 3. Distribute delegator AC rewards with dust from 1.
+	let delegators_ac_rewards = delegators_rewards
+		.checked_sub(&delegators_mc_rewards)
+		.ok_or(Error::MathUnderflow)?;
 
-	// - Update candidate stake
+	distribute_delegators_ac_rewards(&collator, delegators_ac_rewards)?;
+
+	// 4. Distribute collator AC rewards, since it implies some rounding.
+	//    It is done after 2 as we want rewards to be distributed among all delegators
+	//    according to the pre-reward repartition.
+	let collator_ac_rewards =
+		compute_collator_ac_rewards_before_rounding(&collator, collator_rewards)?;
+	let collator_ac_rewards = distribute_collator_ac_rewards(&collator, collator_ac_rewards)?;
+
+	// 5. Distribute collator MC rewards, with dust from 3.
+	let collator_mc_rewards = collator_rewards
+		.checked_sub(&collator_ac_rewards)
+		.ok_or(Error::MathUnderflow)?;
+
+	distribute_collator_mc_rewards(&collator, collator_mc_rewards)?;
+
+	// Update candidate stake
 	let additional_stake = collator_ac_rewards
 		.checked_add(&delegators_ac_rewards)
 		.ok_or(Error::MathOverflow)?;
@@ -112,6 +97,7 @@ pub(crate) fn distribute_rewards<T: Config>(
 
 	pools::check_candidate_consistency::<T>(&collator)?;
 
+	// Emit final events.
 	Pallet::<T>::deposit_event(Event::<T>::RewardedCollator {
 		collator: collator.clone(),
 		auto_compounding_rewards: collator_ac_rewards,
@@ -127,97 +113,123 @@ pub(crate) fn distribute_rewards<T: Config>(
 	Ok(())
 }
 
-fn compute_delegators_rewards<T: Config>(
-	collator: T::AccountId,
-	value: T::Balance,
-) -> Result<(T::Balance, T::Balance, T::Balance), Error<T>> {
-	// Rewards must be split according to repartition between
-	// AutoCompounding and ManualClaim shares.
-	//
-	// Distributing the manual claim rewards will lead to rounding since rewards are
-	// stored per share, while auto compounding rewards will not be rounded since we
-	// simply increase the total staked by auto compounding shares.
-	//
-	// Thus, we compute first the manual claim rewards and give the rounding
-	// error as auto compounding rewards.
-
-	let total_stake = pools::candidates::stake::<T>(&collator);
-	let mc_stake = ManualClaimSharesTotalStaked::<T>::get(&collator);
+// Split delegators rewards between MC and AC (before MC rounding)
+fn compute_delegators_mc_rewards_before_rounding<T: Config>(
+	collator: &T::AccountId,
+	delegators_rewards: T::Balance,
+) -> Result<T::Balance, Error<T>> {
+	let total_stake = pools::candidates::stake::<T>(collator);
+	let mc_stake = ManualClaimSharesTotalStaked::<T>::get(collator);
 
 	if mc_stake.is_zero() {
-		Ok((Zero::zero(), Zero::zero(), value))
+		Ok(Zero::zero())
 	} else {
-		let mc_rewards = value
+		Ok(delegators_rewards
 			.mul_div(mc_stake, total_stake)
-			.ok_or(Error::MathOverflow)?;
-
-		let rewards_per_share = mc_rewards
-			.checked_div(&ManualClaimSharesSupply::<T>::get(&collator))
-			.ok_or(Error::NoOneIsStaking)?;
-
-		let mc_rewards = rewards_per_share
-			.checked_mul(&ManualClaimSharesSupply::<T>::get(&collator))
-			.ok_or(Error::MathOverflow)?;
-
-		let ac_rewards = value.checked_sub(&mc_rewards).ok_or(Error::MathUnderflow)?;
-
-		Ok((mc_rewards, rewards_per_share, ac_rewards))
+			.ok_or(Error::MathOverflow)?)
 	}
 }
 
-fn compute_collator_rewards<T: Config>(
-	collator: T::AccountId,
-	value: T::Balance,
-) -> Result<(T::Balance, T::Balance), Error<T>> {
-	// Rewards must be split according to repartition between
-	// AutoCompounding and ManualClaim shares.
-	//
-	// Since manual claim rewards will be minted directly to the collator account
-	// then there is no rounding. However distributing their auto compounding
-	// rewards require to mint new shares, which may lead to rounding to have
-	// an integer amount of shares.
-	//
-	// Thus, we compute first the auto compounding rewards and give the rounding
-	// error as manual claim rewards.
+// Distribute delegators MC rewards.
+// Return the amount really distributed (after rounding).
+fn distribute_delegators_mc_rewards<T: Config>(
+	collator: &T::AccountId,
+	mc_rewards: T::Balance,
+) -> Result<T::Balance, Error<T>> {
+	if mc_rewards.is_zero() {
+		Ok(Zero::zero())
+	} else {
+		let rewards_per_share = mc_rewards
+			.checked_div(&ManualClaimSharesSupply::<T>::get(collator))
+			.ok_or(Error::NoOneIsStaking)?;
 
-	let mc_stake = if !ManualClaimSharesSupply::<T>::get(&collator).is_zero() {
-		pools::manual_claim::stake(&collator, &collator)?
+		// Compute total after per-share rounding.
+		let mc_rewards = rewards_per_share
+			.checked_mul(&ManualClaimSharesSupply::<T>::get(collator))
+			.ok_or(Error::MathOverflow)?;
+
+		// TODO: Should be safe to wrap around.
+		if !rewards_per_share.is_zero() {
+			let counter = ManualClaimSharesRewardCounter::<T>::get(collator);
+			let counter = counter
+				.checked_add(&rewards_per_share)
+				.ok_or(Error::MathOverflow)?;
+			ManualClaimSharesRewardCounter::<T>::insert(collator, counter);
+		}
+
+		Ok(mc_rewards)
+	}
+}
+
+// Distribute delegators AC rewards.
+fn distribute_delegators_ac_rewards<T: Config>(
+	collator: &T::AccountId,
+	ac_rewards: T::Balance,
+) -> Result<(), Error<T>> {
+	if !ac_rewards.is_zero() {
+		pools::auto_compounding::share_stake_among_holders(collator, ac_rewards)?;
+	}
+
+	Ok(())
+}
+
+// Split collator rewards between MC and AC (before AC rounding)
+fn compute_collator_ac_rewards_before_rounding<T: Config>(
+	collator: &T::AccountId,
+	collator_rewards: T::Balance,
+) -> Result<T::Balance, Error<T>> {
+	let mc_stake = if !ManualClaimSharesSupply::<T>::get(collator).is_zero() {
+		pools::manual_claim::stake(collator, collator)?
 	} else {
 		Zero::zero()
 	};
 
-	let ac_stake = if !AutoCompoundingSharesSupply::<T>::get(&collator).is_zero() {
-		pools::auto_compounding::stake(&collator, &collator)?
+	let ac_stake = if !AutoCompoundingSharesSupply::<T>::get(collator).is_zero() {
+		pools::auto_compounding::stake(collator, collator)?
 	} else {
 		Zero::zero()
 	};
 
 	let sum_stake = mc_stake.checked_add(&ac_stake).ok_or(Error::MathOverflow)?;
 
-	let ac_rewards = value
+	let ac_rewards = collator_rewards
 		.mul_div(ac_stake, sum_stake)
 		.ok_or(Error::MathOverflow)?;
 
-	let (ac_shares, ac_rewards) = if !ac_rewards.is_zero() {
-		// Rewards are staked automatically.
-		// Not staked dust is moved to manual rewards distribution.
-		let ac_shares = pools::auto_compounding::stake_to_shares::<T>(&collator, ac_rewards)?;
+	Ok(ac_rewards)
+}
 
-		if !ac_shares.is_zero() {
-			(
-				ac_shares,
-				pools::auto_compounding::shares_to_stake::<T>(&collator, ac_shares)?,
-			)
-		} else {
-			(Zero::zero(), Zero::zero())
-		}
+// Distribute collator AC rewards.
+// Return the amount really distributed (after rounding).
+fn distribute_collator_ac_rewards<T: Config>(
+	collator: &T::AccountId,
+	ac_rewards: T::Balance,
+) -> Result<T::Balance, Error<T>> {
+	if ac_rewards.is_zero() {
+		Ok(Zero::zero())
 	} else {
-		(Zero::zero(), Zero::zero())
-	};
+		let ac_shares = pools::auto_compounding::stake_to_shares::<T>(collator, ac_rewards)?;
 
-	let mc_rewards = value.checked_sub(&ac_rewards).ok_or(Error::MathUnderflow)?;
+		let ac_rewards = pools::auto_compounding::add_shares::<T>(
+			collator.clone(),
+			collator.clone(),
+			ac_shares,
+		)?;
+		T::Currency::deposit_creating(&T::StakingAccount::get(), ac_rewards);
+		Ok(ac_rewards)
+	}
+}
 
-	Ok((mc_rewards, ac_shares))
+// Distribute collator MC rewards.
+fn distribute_collator_mc_rewards<T: Config>(
+	collator: &T::AccountId,
+	mc_rewards: T::Balance,
+) -> Result<(), Error<T>> {
+	if !mc_rewards.is_zero() {
+		T::Currency::deposit_creating(collator, mc_rewards);
+	}
+
+	Ok(())
 }
 
 /// Convert an annual inflation to a block inflation

@@ -836,7 +836,10 @@ pub mod pallet {
 			recipient: T::AccountId,
 			shares: T::Balance,
 		) -> DispatchResultWithPostInfo {
-			ensure!(cfg!(feature = "transferable-shares"), Error::<T>::DisabledFeature);
+			ensure!(
+				cfg!(feature = "transferable-shares"),
+				Error::<T>::DisabledFeature
+			);
 
 			let sender = ensure_signed(origin)?;
 			ensure!(!Zero::is_zero(&shares), Error::<T>::StakeMustBeNonZero);
@@ -870,7 +873,10 @@ pub mod pallet {
 			recipient: T::AccountId,
 			shares: T::Balance,
 		) -> DispatchResultWithPostInfo {
-			ensure!(cfg!(feature = "transferable-shares"), Error::<T>::DisabledFeature);
+			ensure!(
+				cfg!(feature = "transferable-shares"),
+				Error::<T>::DisabledFeature
+			);
 
 			let sender = ensure_signed(origin)?;
 			ensure!(!Zero::is_zero(&shares), Error::<T>::StakeMustBeNonZero);

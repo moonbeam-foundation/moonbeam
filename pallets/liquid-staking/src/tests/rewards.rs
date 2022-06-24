@@ -34,12 +34,34 @@ fn auto_compound_candidate_only() {
 			assert_eq!(balance(&ACCOUNT_STAKING), 10 * MEGA);
 
 			let rewards = 1 * MEGA;
+			let rewards_delegator = rewards * 5 / 10; // 50%;
+
 			assert_ok!(crate::rewards::distribute_rewards::<Runtime>(
 				ACCOUNT_CANDIDATE_1,
 				rewards
 			));
-			// assert_eq!(balance(&ACCOUNT_CANDIDATE_1), 990_000_000_000);
-			// assert_eq!(balance(&ACCOUNT_STAKING), 10_000_000_000);
+
+			// Distributing delegators AC rewards change the value of an AC share.
+			// Collator AC rewards are distributed after delegator AC rewards to not give the collator
+			// more shares which would give them a bigger part.
+			let new_ac_share_value =
+				crate::pools::auto_compounding::shares_to_stake::<Runtime>(&ACCOUNT_CANDIDATE_1, 1)
+					.unwrap();
+			// Distributing AC rewards have rounding.
+			let rewards_collator = rewards * 2 / 10; // 20%
+			let rewards_collator_ac_in_shares = rewards_collator / new_ac_share_value;
+			let rewards_collator_ac = rewards_collator_ac_in_shares * new_ac_share_value;
+			let rewards_collator_mc = rewards_collator - rewards_collator_ac;
+
+			assert_eq!(balance(&ACCOUNT_RESERVE), rewards * 3 / 10);
+			assert_eq!(
+				balance(&ACCOUNT_CANDIDATE_1),
+				1 * PETA - 10 * MEGA + rewards_collator_mc
+			);
+			assert_eq!(
+				balance(&ACCOUNT_STAKING),
+				10 * MEGA + rewards_collator_ac + rewards_delegator
+			);
 
 			assert_eq_events!(vec![
 				Event::StakedAutoCompounding {
@@ -63,30 +85,30 @@ fn auto_compound_candidate_only() {
 				Event::StakedAutoCompounding {
 					candidate: ACCOUNT_CANDIDATE_1,
 					delegator: ACCOUNT_CANDIDATE_1,
-					shares: rewards * 2 / 10_000, // stake/share ratio
-					stake: rewards * 2 / 10,
+					shares: rewards_collator_ac_in_shares,
+					stake: rewards_collator_ac,
 				},
-				// Delegators rewards
+				// Update total stake following AC reward distribution.
 				Event::IncreasedStake {
 					candidate: ACCOUNT_CANDIDATE_1,
-					stake: rewards * 7 / 10,
+					stake: rewards_delegator + rewards_collator_ac,
 				},
 				Event::UpdatedCandidatePosition {
 					candidate: ACCOUNT_CANDIDATE_1,
-					stake: 10 * MEGA + rewards * 7 / 10,
-					self_delegation: 10 * MEGA + rewards * 7 / 10,
+					stake: 10 * MEGA + rewards_delegator + rewards_collator_ac,
+					self_delegation: 10 * MEGA + rewards_delegator + rewards_collator_ac,
 					before: Some(0),
 					after: Some(0),
 				},
 				// Final events
 				Event::RewardedCollator {
 					collator: ACCOUNT_CANDIDATE_1,
-					auto_compounding_rewards: rewards * 2 / 10,
-					manual_claim_rewards: 0,
+					auto_compounding_rewards: rewards_collator_ac,
+					manual_claim_rewards: rewards_collator_mc,
 				},
 				Event::RewardedDelegators {
 					collator: ACCOUNT_CANDIDATE_1,
-					auto_compounding_rewards: rewards * 5 / 10,
+					auto_compounding_rewards: rewards_delegator,
 					manual_claim_rewards: 0,
 				},
 			]);
@@ -109,8 +131,13 @@ fn manual_claim_candidate_only() {
 			ACCOUNT_CANDIDATE_1,
 			rewards
 		));
-		// assert_eq!(balance(&ACCOUNT_CANDIDATE_1), 990_000_000_000);
-		// assert_eq!(balance(&ACCOUNT_STAKING), 10_000_000_000);
+
+		assert_eq!(balance(&ACCOUNT_RESERVE), rewards * 3 / 10);
+		assert_eq!(
+			balance(&ACCOUNT_CANDIDATE_1),
+			1 * PETA - 10 * MEGA + (rewards * 2 / 10)
+		);
+		assert_eq!(balance(&ACCOUNT_STAKING), 10 * MEGA + (rewards * 5 / 10));
 
 		assert_eq_events!(vec![
 			Event::StakedManualClaim {
@@ -140,6 +167,136 @@ fn manual_claim_candidate_only() {
 				collator: ACCOUNT_CANDIDATE_1,
 				auto_compounding_rewards: 0,
 				manual_claim_rewards: rewards * 5 / 10,
+			},
+		]);
+	});
+}
+
+#[test]
+fn mixed_candidate_only() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_ok!(LiquidStaking::stake_manual_claim(
+			Origin::signed(ACCOUNT_CANDIDATE_1),
+			ACCOUNT_CANDIDATE_1,
+			SharesOrStake::Shares(10_000)
+		));
+		assert_ok!(LiquidStaking::stake_auto_compounding(
+			Origin::signed(ACCOUNT_CANDIDATE_1),
+			ACCOUNT_CANDIDATE_1,
+			SharesOrStake::Shares(30_000)
+		));
+		
+		assert_eq!(balance(&ACCOUNT_CANDIDATE_1), 1 * PETA - 40 * MEGA);
+		assert_eq!(balance(&ACCOUNT_STAKING), 40 * MEGA);
+
+		let rewards = 1 * MEGA;
+		let rewards_reserve = rewards * 3 / 10;
+
+		let shared_rewards = rewards - rewards_reserve;
+		let rewards_delegator = rewards * 5 / 10; // 50%
+
+		// Distributing MC rewards have rounding.
+		let rewards_delegator_mc = round_down(rewards_delegator * 1 / 4, 10_000); // 25% MC
+		let rewards_delegator_ac = rewards_delegator - rewards_delegator_mc;
+
+		assert_ok!(crate::rewards::distribute_rewards::<Runtime>(
+			ACCOUNT_CANDIDATE_1,
+			rewards
+		));
+
+		// Distributing delegators AC rewards change the value of an AC share.
+		// Collator AC rewards are distributed after delegator AC rewards to not give the collator
+		// more shares which would give them a bigger part.
+
+		// Distributing AC rewards have rounding.
+		let rewards_collator = shared_rewards - rewards_delegator; // 20%
+		let rewards_collator_ac_in_shares = crate::pools::auto_compounding::stake_to_shares::<
+			Runtime,
+		>(&ACCOUNT_CANDIDATE_1, rewards_collator * 3 / 4)
+		.unwrap(); // 75% AC
+		let rewards_collator_ac = crate::pools::auto_compounding::shares_to_stake::<Runtime>(
+			&ACCOUNT_CANDIDATE_1,
+			rewards_collator_ac_in_shares,
+		)
+		.unwrap();
+		let rewards_collator_mc = rewards_collator - rewards_collator_ac;
+
+		assert_eq!(balance(&ACCOUNT_RESERVE), rewards * 3 / 10);
+		assert_eq!(
+			balance(&ACCOUNT_CANDIDATE_1),
+			1 * PETA - 40 * MEGA + rewards_collator_mc
+		);
+		assert_eq!(
+			balance(&ACCOUNT_STAKING),
+			40 * MEGA + rewards_collator_ac + rewards_delegator
+		);
+
+		assert_eq_events!(vec![
+			Event::StakedManualClaim {
+				candidate: ACCOUNT_CANDIDATE_1,
+				delegator: ACCOUNT_CANDIDATE_1,
+				shares: 10_000,
+				stake: 10 * MEGA,
+			},
+			Event::IncreasedStake {
+				candidate: ACCOUNT_CANDIDATE_1,
+				stake: 10 * MEGA,
+			},
+			Event::UpdatedCandidatePosition {
+				candidate: ACCOUNT_CANDIDATE_1,
+				stake: 10 * MEGA,
+				self_delegation: 10 * MEGA,
+				before: None,
+				after: Some(0)
+			},
+			// ------
+			Event::StakedAutoCompounding {
+				candidate: ACCOUNT_CANDIDATE_1,
+				delegator: ACCOUNT_CANDIDATE_1,
+				shares: 30_000,
+				stake: 30 * MEGA,
+			},
+			Event::IncreasedStake {
+				candidate: ACCOUNT_CANDIDATE_1,
+				stake: 30 * MEGA,
+			},
+			Event::UpdatedCandidatePosition {
+				candidate: ACCOUNT_CANDIDATE_1,
+				stake: 40 * MEGA,
+				self_delegation: 40 * MEGA,
+				before: Some(0),
+				after: Some(0)
+			},
+			// ------
+			// Colator rewards
+			Event::StakedAutoCompounding {
+				candidate: ACCOUNT_CANDIDATE_1,
+				delegator: ACCOUNT_CANDIDATE_1,
+				shares: rewards_collator_ac_in_shares,
+				stake: rewards_collator_ac,
+			},
+			// Update total stake following AC reward distribution.
+			Event::IncreasedStake {
+				candidate: ACCOUNT_CANDIDATE_1,
+				stake: rewards_collator_ac + rewards_delegator_ac,
+			},
+			Event::UpdatedCandidatePosition {
+				candidate: ACCOUNT_CANDIDATE_1,
+				stake: 40 * MEGA + rewards_collator_ac + rewards_delegator_ac,
+				self_delegation: 40 * MEGA + rewards_collator_ac + rewards_delegator_ac,
+				before: Some(0),
+				after: Some(0),
+			},
+			// Final events
+			Event::RewardedCollator {
+				collator: ACCOUNT_CANDIDATE_1,
+				auto_compounding_rewards: rewards_collator_ac,
+				manual_claim_rewards: rewards_collator_mc,
+			},
+			Event::RewardedDelegators {
+				collator: ACCOUNT_CANDIDATE_1,
+				auto_compounding_rewards: rewards_delegator_ac,
+				manual_claim_rewards: rewards_delegator_mc,
 			},
 		]);
 	});
