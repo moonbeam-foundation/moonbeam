@@ -1929,4 +1929,21 @@ export const contractSources: { [key: string]: string } = {
 
       event SubcallFailed(uint256 index);
     }`,
+  TracingHeavy: `
+    pragma solidity ^0.8.0;
+
+    contract TracingHeavy { 
+      function steps(uint store_steps, uint op_steps) external {
+          while (store_steps != 0) {
+            assembly {
+              sstore(store_steps, store_steps)
+            }
+            store_steps--;
+          }
+    
+          while(op_steps != 0) {
+            op_steps--;
+          }
+      }
+    }`,
 };
