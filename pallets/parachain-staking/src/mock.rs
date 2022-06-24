@@ -429,7 +429,7 @@ pub(crate) fn unmigrate_delegator_from_lock_to_reserve(account_id: u64) {
 	Balances::remove_lock(DELEGATOR_LOCK_IDENTIFIER, &account_id);
 
 	if let Some(delegator_state) = <DelegatorState<Test>>::get(&account_id) {
-		Balances::reserve(&account_id, delegator_state.total);
+		Balances::reserve(&account_id, delegator_state.total).expect("reserve() failed");
 	}
 }
 
@@ -440,7 +440,7 @@ pub(crate) fn unmigrate_collator_from_lock_to_reserve(account_id: u64) {
 	Balances::remove_lock(COLLATOR_LOCK_IDENTIFIER, &account_id);
 
 	if let Some(collator_state) = <CandidateInfo<Test>>::get(&account_id) {
-		Balances::reserve(&account_id, collator_state.bond);
+		Balances::reserve(&account_id, collator_state.bond).expect("reserve() failed");
 	}
 }
 
