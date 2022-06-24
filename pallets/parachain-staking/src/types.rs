@@ -1406,8 +1406,9 @@ impl<
 			);
 
 			// additional sanity check: shouldn't ever want to reserve more than total
-			if reserve < self.total {
+			if reserve > self.total {
 				log::warn!("LOGIC ERROR: request to reserve more than bond total");
+				return Err(DispatchError::Other("Invalid additional_required_balance"));
 			}
 		}
 
