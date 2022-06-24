@@ -8800,10 +8800,15 @@ mod jit_migrate_reserve_to_locks_tests {
 				);
 				assert_eq!(<CollatorReserveToLockMigrations<Test>>::get(1), false);
 
-				assert_ok!(ParachainStaking::schedule_candidate_bond_less(Origin::signed(1), 1));
-				assert_ok!(ParachainStaking::cancel_candidate_bond_less(Origin::signed(1)));
+				assert_ok!(ParachainStaking::schedule_candidate_bond_less(
+					Origin::signed(1),
+					1
+				));
+				assert_ok!(ParachainStaking::cancel_candidate_bond_less(
+					Origin::signed(1)
+				));
 
-                // should remain unmigrated
+				// should remain unmigrated
 				assert_eq!(Balances::reserved_balance(1), 20);
 				assert_eq!(
 					crate::mock::query_lock_amount(1, COLLATOR_LOCK_IDENTIFIER),
