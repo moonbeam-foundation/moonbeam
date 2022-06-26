@@ -428,7 +428,7 @@ fn reward_block_authors() {
 			// no rewards doled out yet
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
-				100_000 * GLMR,
+				200_000 * GLMR,
 			);
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 50_000 * GLMR,);
 			run_to_block(3600, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
@@ -476,7 +476,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 			// no rewards doled out yet
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
-				100_000 * GLMR,
+				200_000 * GLMR,
 			);
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 50_000 * GLMR,);
 			assert_eq!(Balances::free_balance(AccountId::from(CHARLIE)), 100 * GLMR,);
