@@ -11,7 +11,6 @@ import { expect } from "chai";
 
 import { alith, baltathar, ethan } from "../../util/accounts";
 import {
-  DEFAULT_GENESIS_MAPPING,
   DEFAULT_GENESIS_STAKING,
   GLMR,
   MIN_GLMR_DELEGATOR,
@@ -20,10 +19,16 @@ import {
 import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
 
 describeDevMoonbeam("Staking - Genesis", (context) => {
-  it("should match collator reserved bond reserved", async function () {
-    const account = await context.polkadotApi.query.system.account(alith.address);
-    const expectedReserved = DEFAULT_GENESIS_STAKING + DEFAULT_GENESIS_MAPPING;
-    expect(account.data.reserved.toString()).to.equal(expectedReserved.toString());
+  it("should match collator locked bond ", async function () {
+    const locks = await context.polkadotApi.query.balances.locks(alith.address);
+    const expectedLocked = DEFAULT_GENESIS_STAKING;
+    expect(
+      locks
+        .filter((l) => l.id.toHuman() == "ColStake")
+        .reduce((p, v) => p + v.amount.toBigInt(), 0n)
+        .toString(),
+      `Wrong locks: \n ${locks.map((lock) => `${lock.id.toHuman()}: ${lock.amount}`).join("\n")}\n`
+    ).to.equal(expectedLocked.toString());
   });
 
   it("should include collator from the specs", async function () {

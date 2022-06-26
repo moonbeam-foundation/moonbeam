@@ -126,7 +126,7 @@ describeDevMoonbeamAllEthTxTypes("Staking - Join Candidates", (context) => {
     );
 
     expect(Number((await isCandidate(context, ethan.address)).result)).to.equal(1);
-    await verifyLatestBlockFees(context, MIN_GLMR_STAKING);
+    await verifyLatestBlockFees(context, 0n);
   });
 });
 

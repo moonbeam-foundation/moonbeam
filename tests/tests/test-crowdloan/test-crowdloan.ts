@@ -6,7 +6,7 @@ import { expect } from "chai";
 import Web3 from "web3";
 import { Account } from "web3-core";
 
-import { alith, ALITH_GENESIS_BALANCE, baltathar, generateKeyingPair } from "../../util/accounts";
+import { alith, ALITH_GENESIS_FREE_BALANCE, ALITH_GENESIS_TRANSFERABLE_BALANCE, baltathar, generateKeyingPair } from "../../util/accounts";
 import { verifyLatestBlockFees } from "../../util/block";
 import { DEFAULT_GENESIS_BALANCE, GLMR } from "../../util/constants";
 import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
@@ -130,10 +130,10 @@ describeDevMoonbeam("Crowdloan", (context) => {
 
     // check balances
     expect(
-      BigInt(await context.web3.eth.getBalance(alith.address)) - ALITH_GENESIS_BALANCE
+      BigInt(await context.web3.eth.getBalance(alith.address)) - ALITH_GENESIS_TRANSFERABLE_BALANCE
     ).to.equal(claimed - claimFee); // reduce the claim fee part;
     const account = await context.polkadotApi.query.system.account(alith.address);
-    expect(account.data.free.toBigInt() - ALITH_GENESIS_BALANCE).to.equal(claimed - claimFee);
+    expect(account.data.free.toBigInt() - ALITH_GENESIS_FREE_BALANCE).to.equal(claimed - claimFee);
   });
 });
 
@@ -426,7 +426,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
 });
 
 describeDevMoonbeam("Crowdloan", (context) => {
-  before("Setup genesis account for substrate", async () => {});
+  before("Setup genesis account for substrate", async () => { });
 
   it("should be able to initialize through democracy", async function () {
     const calls = [];
@@ -493,7 +493,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
 });
 
 describeDevMoonbeam("Crowdloan", (context) => {
-  before("Setup genesis account for substrate", async () => {});
+  before("Setup genesis account for substrate", async () => { });
 
   it("should be able to burn the dust", async function () {
     await context.createBlock(

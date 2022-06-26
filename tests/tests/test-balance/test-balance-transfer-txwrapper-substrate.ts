@@ -15,7 +15,7 @@ import { getRegistryBase } from "@substrate/txwrapper-core/lib/core/metadata";
 import { methods as substrateMethods } from "@substrate/txwrapper-substrate";
 import { expect } from "chai";
 
-import { alith, generateKeyingPair } from "../../util/accounts";
+import { alith, ALITH_GENESIS_LOCK_BALANCE, generateKeyingPair } from "../../util/accounts";
 import { verifyLatestBlockFees } from "../../util/block";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { rpcToLocalNode } from "../../util/transactions";
@@ -117,10 +117,9 @@ describeDevMoonbeam("Balance transfer - txwrapper", (context) => {
 
   it("should reflect balance identically on polkadot/web3", async function () {
     const block1Hash = await context.polkadotApi.rpc.chain.getBlockHash(1);
+    const balance = await (await context.polkadotApi.at(block1Hash)).query.system.account(alith.address);
     expect(await context.web3.eth.getBalance(alith.address, 1)).to.equal(
-      (
-        await (await context.polkadotApi.at(block1Hash)).query.system.account(alith.address)
-      ).data.free.toString()
+      (balance.data.free.toBigInt() - ALITH_GENESIS_LOCK_BALANCE).toString()
     );
   });
   it("should check fees", async function () {

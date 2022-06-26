@@ -2,14 +2,15 @@ import "@moonbeam-network/api-augment";
 
 import { expect } from "chai";
 
-import { alith, ALITH_GENESIS_BALANCE, baltathar } from "../../util/accounts";
+import { alith, ALITH_GENESIS_FREE_BALANCE, ALITH_GENESIS_LOCK_BALANCE, ALITH_GENESIS_TRANSFERABLE_BALANCE, baltathar } from "../../util/accounts";
+import { MIN_GAS_PRICE } from "../../util/constants";
 import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 import { createTransfer } from "../../util/transactions";
 
 describeDevMoonbeamAllEthTxTypes("Existential Deposit", (context) => {
   it("should be disabled (no reaped account on 0 balance)", async function () {
     await context.createBlock(
-      createTransfer(context, baltathar.address, ALITH_GENESIS_BALANCE - 21000n * 1_000_000_000n, {
+      createTransfer(context, baltathar.address, ALITH_GENESIS_TRANSFERABLE_BALANCE - 21000n * MIN_GAS_PRICE, {
         from: alith.address,
         gas: 21000,
       })
@@ -25,7 +26,7 @@ describeDevMoonbeamAllEthTxTypes("Existential Deposit", (context) => {
       createTransfer(
         context,
         baltathar.address,
-        ALITH_GENESIS_BALANCE - 1n - 21000n * 1_000_000_000n,
+        ALITH_GENESIS_TRANSFERABLE_BALANCE - 1n - 21000n * 1_000_000_000n,
         {
           from: alith.address,
           gas: 21000,
