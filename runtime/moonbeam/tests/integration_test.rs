@@ -356,8 +356,8 @@ fn transfer_through_evm_to_stake() {
 					2u32
 				),
 				DispatchError::Module(ModuleError {
-					index: 10,
-					error: [2, 0, 0, 0],
+					index: 20,
+					error: [8, 0, 0, 0],
 					message: Some("InsufficientBalance")
 				})
 			);
@@ -430,16 +430,16 @@ fn reward_block_authors() {
 				Balances::free_balance(AccountId::from(ALICE)),
 				200_000 * GLMR,
 			);
-			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 50_000 * GLMR,);
+			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 100_000 * GLMR,);
 			run_to_block(3600, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
-				111366666658400000000000,
+				211366666658400000000000,
 			);
 			assert_eq!(
 				Balances::free_balance(AccountId::from(BOB)),
-				54133333329200000000000,
+				104133333329200000000000,
 			);
 		});
 }
@@ -478,17 +478,17 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 				Balances::free_balance(AccountId::from(ALICE)),
 				200_000 * GLMR,
 			);
-			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 50_000 * GLMR,);
+			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 100_000 * GLMR,);
 			assert_eq!(Balances::free_balance(AccountId::from(CHARLIE)), 100 * GLMR,);
 			run_to_block(3600, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
-				108269333328165000000000,
+				208269333328165000000000,
 			);
 			assert_eq!(
 				Balances::free_balance(AccountId::from(BOB)),
-				52584166664082500000000,
+				102584166664082500000000,
 			);
 			// 30% reserved for parachain bond
 			assert_eq!(
