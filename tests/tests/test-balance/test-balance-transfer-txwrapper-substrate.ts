@@ -117,7 +117,9 @@ describeDevMoonbeam("Balance transfer - txwrapper", (context) => {
 
   it("should reflect balance identically on polkadot/web3", async function () {
     const block1Hash = await context.polkadotApi.rpc.chain.getBlockHash(1);
-    const balance = await (await context.polkadotApi.at(block1Hash)).query.system.account(alith.address);
+    const balance = await (
+      await context.polkadotApi.at(block1Hash)
+    ).query.system.account(alith.address);
     expect(await context.web3.eth.getBalance(alith.address, 1)).to.equal(
       (balance.data.free.toBigInt() - ALITH_GENESIS_LOCK_BALANCE).toString()
     );

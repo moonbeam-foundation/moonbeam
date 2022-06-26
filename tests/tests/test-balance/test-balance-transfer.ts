@@ -2,7 +2,12 @@ import "@moonbeam-network/api-augment";
 
 import { expect } from "chai";
 
-import { alith, ALITH_GENESIS_FREE_BALANCE, ALITH_GENESIS_LOCK_BALANCE, ALITH_GENESIS_TRANSFERABLE_BALANCE, generateKeyingPair } from "../../util/accounts";
+import {
+  alith,
+  ALITH_GENESIS_LOCK_BALANCE,
+  ALITH_GENESIS_TRANSFERABLE_BALANCE,
+  generateKeyingPair,
+} from "../../util/accounts";
 import { verifyLatestBlockFees } from "../../util/block";
 import { customWeb3Request } from "../../util/providers";
 import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
@@ -51,9 +56,11 @@ describeDevMoonbeamAllEthTxTypes("Balance transfer", (context) => {
   it("should reflect balance identically on polkadot/web3", async function () {
     const block1Hash = await context.polkadotApi.rpc.chain.getBlockHash(1);
     expect(await context.web3.eth.getBalance(alith.address, 1)).to.equal(
-      ((
-        await (await context.polkadotApi.at(block1Hash)).query.system.account(alith.address)
-      ).data.free.toBigInt() - ALITH_GENESIS_LOCK_BALANCE).toString()
+      (
+        (
+          await (await context.polkadotApi.at(block1Hash)).query.system.account(alith.address)
+        ).data.free.toBigInt() - ALITH_GENESIS_LOCK_BALANCE
+      ).toString()
     );
   });
 });

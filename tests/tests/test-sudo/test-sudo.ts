@@ -58,7 +58,7 @@ describeDevMoonbeam("Sudo - fail if no funds in sudo", (context) => {
     } catch (e) {
       expect(e.toString()).to.eq(
         "RpcError: 1010: Invalid Transaction: Inability " +
-        "to pay some fees , e.g. account balance too low"
+          "to pay some fees , e.g. account balance too low"
       );
     }
     //check parachainBondInfo
@@ -88,7 +88,7 @@ describeDevMoonbeam("Sudo - Only sudo account", (context) => {
     // check balance diff (should not be null for a failed extrinsic)
     expect(
       BigInt(await context.web3.eth.getBalance(baltathar.address, 1)) - DEFAULT_GENESIS_BALANCE !==
-      0n
+        0n
     ).to.equal(true);
   });
 });
