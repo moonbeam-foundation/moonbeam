@@ -240,7 +240,7 @@ describeDevMoonbeam("Staking - Locks", (context) => {
       1,
       `Unexpected number of locks: ${locks.map((l) => l.id.toHuman().toString()).join(` - `)}`
     );
-    expect(locks[0].amount.toBigInt()).to.be.equal(DELEGATE_AMOUNT);
+    expect(locks[0].amount.toBigInt(), `Unexpected amount for lock`).to.be.equal(DELEGATE_AMOUNT);
     expect(locks[0].id.toHuman().toString()).to.be.equal("DelStake");
   });
 });
@@ -259,6 +259,6 @@ describeDevMoonbeam("Staking - Locks", (context) => {
       `Unexpected number of locks: ${locks.map((l) => l.id.toHuman().toString()).join(` - `)}`
     );
     expect(locks[0].amount.toBigInt()).to.be.equal(MIN_GLMR_STAKING);
-    expect(locks[0].id.toHuman().toString()).to.be.equal("DelStake");
+    expect(locks[0].id.toHuman().toString()).to.be.equal("ColStake");
   });
 });
