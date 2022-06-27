@@ -395,7 +395,8 @@ where
 		input.expect_arguments(2)?;
 
 		let to: H160 = input.read::<Address>()?.into();
-		let amount = input.read::<BalanceOf<Runtime, Instance>>()?;
+		let amount: U256 = input.read()?;
+		let amount = Self::u256_to_amount(amount)?;
 
 		// Build call with origin.
 		{
@@ -438,7 +439,8 @@ where
 		input.expect_arguments(3)?;
 		let from: H160 = input.read::<Address>()?.into();
 		let to: H160 = input.read::<Address>()?.into();
-		let amount = input.read::<BalanceOf<Runtime, Instance>>()?;
+		let amount: U256 = input.read()?;
+		let amount = Self::u256_to_amount(amount)?;
 
 		{
 			let caller: Runtime::AccountId =
@@ -554,7 +556,8 @@ where
 		input.expect_arguments(2)?;
 
 		let to: H160 = input.read::<Address>()?.into();
-		let amount = input.read::<BalanceOf<Runtime, Instance>>()?;
+		let amount: U256 = input.read()?;
+		let amount = Self::u256_to_amount(amount)?;
 
 		// Build call with origin.
 		{
@@ -601,7 +604,8 @@ where
 		input.expect_arguments(2)?;
 
 		let to: H160 = input.read::<Address>()?.into();
-		let amount = input.read::<BalanceOf<Runtime, Instance>>()?;
+		let amount: U256 = input.read()?;
+		let amount = Self::u256_to_amount(amount)?;
 
 		// Build call with origin.
 		{
@@ -882,5 +886,11 @@ where
 
 		// Build output.
 		Ok(succeed(EvmDataWriter::new().write(true).build()))
+	}
+
+	fn u256_to_amount(value: U256) -> EvmResult<BalanceOf<Runtime, Instance>> {
+		value
+			.try_into()
+			.map_err(|_| revert("amount is too large for balance type"))
 	}
 }
