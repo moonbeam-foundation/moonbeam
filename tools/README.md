@@ -249,3 +249,18 @@ found 55 total commits in https://github.com/paritytech/substrate/compare/polkad
   (paritytech/substrate#9085) Enforce pub calls in pallets
   (paritytech/substrate#8912) staking/election: prolonged era and emergency mode for governance submission.
 ```
+
+## Download binary
+
+Using `npm run get-binary...` it is possible to retrieve a binary from github builds or releases.
+Ex:
+
+```
+npm run get-binary -- --tag v0.24.0
+```
+
+or
+
+```
+npm run get-binary -- --tag sha-a9e8dfc1
+```

@@ -20,10 +20,8 @@ use super::*;
 use codec::{Decode, Encode, MaxEncodedLen};
 use frame_support::traits::Everything;
 use frame_support::{construct_runtime, pallet_prelude::*, parameter_types};
-use pallet_evm::{
-	AddressMapping, EnsureAddressNever, EnsureAddressRoot, Precompile, PrecompileSet,
-};
-use precompile_utils::revert;
+use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot};
+use precompile_utils::precompile_set::*;
 use serde::{Deserialize, Serialize};
 use sp_core::H160;
 use sp_core::H256;
@@ -168,28 +166,16 @@ impl pallet_balances::Config for Runtime {
 	type WeightInfo = ();
 }
 
-#[derive(Debug, Clone, Copy)]
-pub struct TestPrecompiles<R>(PhantomData<R>);
-
-impl<R> PrecompileSet for TestPrecompiles<R>
-where
-	BatchPrecompile<R>: Precompile,
-{
-	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<EvmResult<PrecompileOutput>> {
-		match handle.code_address() {
-			a if a == Account::Precompile.into() => Some(BatchPrecompile::<R>::execute(handle)),
-			a if a == Account::Revert.into() => Some(EvmResult::Err(revert("revert"))),
-			_ => None,
-		}
-	}
-
-	fn is_precompile(&self, address: H160) -> bool {
-		address == Account::Precompile.into()
-	}
-}
+pub type TestPrecompiles<R> = PrecompileSetBuilder<
+	R,
+	(
+		PrecompileAt<AddressU64<1>, BatchPrecompile<R>, LimitRecursionTo<1>>,
+		RevertPrecompile<AddressU64<2>>,
+	),
+>;
 
 parameter_types! {
-	pub PrecompilesValue: TestPrecompiles<Runtime> = TestPrecompiles(Default::default());
+	pub PrecompilesValue: TestPrecompiles<Runtime> = TestPrecompiles::new();
 }
 
 impl pallet_evm::Config for Runtime {

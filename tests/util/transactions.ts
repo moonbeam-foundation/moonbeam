@@ -1,16 +1,17 @@
-import * as RLP from "rlp";
-import { getCompiled } from "./contracts";
-import { Contract } from "web3-eth-contract";
-import fetch from "node-fetch";
-import { DevTestContext } from "./setup-dev-tests";
-import { customWeb3Request } from "./providers";
-// Ethers is used to handle post-london transactions
-import { ethers } from "ethers";
 import { AccessListish } from "@ethersproject/transactions";
+import { ethers } from "ethers";
+import fetch from "node-fetch";
+import * as RLP from "rlp";
+import { Contract } from "web3-eth-contract";
+
+import { alith, ALITH_PRIVATE_KEY, baltathar, BALTATHAR_PRIVATE_KEY } from "./accounts";
+import { getCompiled } from "./contracts";
+import { customWeb3Request } from "./providers";
+import { DevTestContext } from "./setup-dev-tests";
+
+// Ethers is used to handle post-london transactions
 import type { ApiPromise } from "@polkadot/api";
 import type { SubmittableExtrinsic } from "@polkadot/api/promise/types";
-import { alith, ALITH_PRIVATE_KEY, baltathar, BALTATHAR_PRIVATE_KEY } from "./accounts";
-
 const debug = require("debug")("test:transaction");
 
 export interface TransactionOptions {
@@ -64,7 +65,7 @@ export const createTransaction = async (
 
   const maxFeePerGas = options.maxFeePerGas || 1_000_000_000;
   const accessList = options.accessList || [];
-  const nonce = options.nonce || context.web3.eth.getTransactionCount(from, "pending");
+  const nonce = options.nonce || (await context.web3.eth.getTransactionCount(from, "pending"));
 
   let data, rawTransaction;
   if (isLegacy) {
@@ -318,7 +319,7 @@ export const sendAllStreamAndWaitLast = async (
         Promise.all(
           chunk.map((tx) => {
             return new Promise(async (resolve, reject) => {
-              let unsub;
+              let unsub: () => void;
               const timer = setTimeout(() => {
                 reject(`timed out`);
                 unsub();

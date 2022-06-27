@@ -239,11 +239,20 @@ fn test_orbiter_register_ok() {
 		.with_min_orbiter_deposit(10_000)
 		.build()
 		.execute_with(|| {
+			assert!(MoonbeamOrbiters::orbiter(1).is_none());
 			assert_ok!(MoonbeamOrbiters::orbiter_register(Origin::signed(1)),);
-			System::assert_last_event(
+			assert!(MoonbeamOrbiters::orbiter(1).is_some());
+			System::assert_has_event(
 				pallet_balances::Event::<Test>::Reserved {
 					who: 1,
 					amount: 10_000,
+				}
+				.into(),
+			);
+			System::assert_last_event(
+				Event::<Test>::OrbiterRegistered {
+					account: 1,
+					deposit: 10_000,
 				}
 				.into(),
 			);
@@ -281,6 +290,16 @@ fn test_orbiter_unregister() {
 			);
 
 			// Try to unregister an orbiter with right hint, should success
+			assert!(MoonbeamOrbiters::orbiter(2).is_some());
 			assert_ok!(MoonbeamOrbiters::orbiter_unregister(Origin::signed(2), 1),);
+			assert!(MoonbeamOrbiters::orbiter(2).is_none());
+			System::assert_has_event(
+				pallet_balances::Event::<Test>::Unreserved {
+					who: 2,
+					amount: 10_000,
+				}
+				.into(),
+			);
+			System::assert_last_event(Event::<Test>::OrbiterUnregistered { account: 2 }.into());
 		});
 }

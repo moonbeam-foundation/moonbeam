@@ -19,19 +19,28 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use frame_support::{
-	traits::{tokens::fungibles::Mutate, Get, OriginTrait},
+	ensure,
+	traits::{tokens::fungibles::Mutate, Contains, Get, OriginTrait},
 	weights::{constants::WEIGHT_PER_SECOND, Weight},
 };
 use orml_traits::location::{RelativeReserveProvider, Reserve};
+use parity_scale_codec::Encode;
+use sp_io::hashing::blake2_256;
 use sp_runtime::traits::Zero;
 use sp_std::{borrow::Borrow, vec::Vec};
 use sp_std::{convert::TryInto, marker::PhantomData};
 use xcm::latest::{
-	AssetId as xcmAssetId, Error as XcmError, Fungibility, Junction::AccountKey20, Junctions::*,
+	prelude::{BuyExecution, DescendOrigin, WithdrawAsset},
+	AssetId as xcmAssetId, Error as XcmError, Fungibility,
+	Junction::AccountKey20,
+	Junctions::*,
 	MultiAsset, MultiLocation, NetworkId,
+	WeightLimit::{Limited, Unlimited},
+	Xcm,
 };
+
 use xcm_builder::TakeRevenue;
-use xcm_executor::traits::{MatchesFungibles, WeightTrader};
+use xcm_executor::traits::{Convert, MatchesFungibles, ShouldExecute, WeightTrader};
 
 /// Converter struct implementing `AssetIdConversion` converting a numeric asset ID
 /// (must be `TryFrom/TryInto<u128>`) into a MultiLocation Value and vice versa through
@@ -341,6 +350,78 @@ impl<
 				target: "xcm",
 				"take revenue failed matching fungible"
 			),
+		}
+	}
+}
+
+// Struct that converts a given MultiLocation into a 20 bytes account id by hashing
+// with blake2_256 and taking the first 20 bytes
+pub struct Account20Hash<AccountId>(PhantomData<AccountId>);
+impl<AccountId: From<[u8; 20]> + Into<[u8; 20]> + Clone> Convert<MultiLocation, AccountId>
+	for Account20Hash<AccountId>
+{
+	fn convert_ref(location: impl Borrow<MultiLocation>) -> Result<AccountId, ()> {
+		let hash: [u8; 32] = ("multiloc", location.borrow())
+			.borrow()
+			.using_encoded(blake2_256);
+		let mut account_id = [0u8; 20];
+		account_id.copy_from_slice(&hash[0..20]);
+		Ok(account_id.into())
+	}
+
+	fn reverse_ref(_: impl Borrow<AccountId>) -> Result<MultiLocation, ()> {
+		Err(())
+	}
+}
+
+/// Allows execution from `origin` if it is contained in `T` (i.e. `T::Contains(origin)`) taking
+/// payments into account and if it starts with DescendOrigin.
+///
+/// Only allows for `DescendOrigin` + `WithdrawAsset`, + `BuyExecution`
+pub struct AllowDescendOriginFromLocal<T>(PhantomData<T>);
+impl<T: Contains<MultiLocation>> ShouldExecute for AllowDescendOriginFromLocal<T> {
+	fn should_execute<Call>(
+		origin: &MultiLocation,
+		message: &mut Xcm<Call>,
+		max_weight: Weight,
+		_weight_credit: &mut Weight,
+	) -> Result<(), ()> {
+		log::trace!(
+			target: "xcm::barriers",
+			"AllowTopLevelPaidExecutionFromLocal origin:
+			{:?}, message: {:?}, max_weight: {:?}, weight_credit: {:?}",
+			origin, message, max_weight, _weight_credit,
+		);
+		ensure!(T::contains(origin), ());
+		let mut iter = message.0.iter_mut();
+		// Make sure the first instruction is DescendOrigin
+		iter.next()
+			.filter(|instruction| matches!(instruction, DescendOrigin(_)))
+			.ok_or(())?;
+
+		// Then WithdrawAsset
+		iter.next()
+			.filter(|instruction| matches!(instruction, WithdrawAsset(_)))
+			.ok_or(())?;
+
+		// Then BuyExecution
+		let i = iter.next().ok_or(())?;
+		match i {
+			BuyExecution {
+				weight_limit: Limited(ref mut weight),
+				..
+			} if *weight >= max_weight => {
+				*weight = max_weight;
+				Ok(())
+			}
+			BuyExecution {
+				ref mut weight_limit,
+				..
+			} if weight_limit == &Unlimited => {
+				*weight_limit = Limited(max_weight);
+				Ok(())
+			}
+			_ => Err(()),
 		}
 	}
 }

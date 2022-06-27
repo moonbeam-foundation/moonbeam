@@ -1,9 +1,11 @@
 import "@moonbeam-network/api-augment";
+
 import { expect } from "chai";
+import * as RLP from "rlp";
+
+import { alith } from "../../util/accounts";
 import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 import { createTransaction } from "../../util/transactions";
-import * as RLP from "rlp";
-import { alith } from "../../util/accounts";
 
 const DEPLOYED_BYTECODE = "0x60006000fd";
 

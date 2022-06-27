@@ -1,19 +1,16 @@
 import "@moonbeam-network/api-augment";
+
 import { expect } from "chai";
-import { customWeb3Request, web3Subscribe } from "../../util/providers";
 import { BlockHeader } from "web3-eth";
 
+import { alith, baltathar } from "../../util/accounts";
+import { customWeb3Request, web3Subscribe } from "../../util/providers";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { createTransfer } from "../../util/transactions";
-import { alith, baltathar } from "../../util/accounts";
 
 describeDevMoonbeam("Subscription", (context) => {
-  let web3Ws;
-  before("Setup: Create empty block", async () => {
-    web3Ws = await context.createWeb3("ws");
-  });
-
   it("should return a valid subscriptionId", async function () {
+    const web3Ws = await context.createWeb3("ws");
     const subscription = web3Subscribe(web3Ws, "newBlockHeaders");
     const subscriptionId = await new Promise((resolve) => subscription.once("connected", resolve));
 
@@ -23,13 +20,9 @@ describeDevMoonbeam("Subscription", (context) => {
 });
 
 describeDevMoonbeam("Subscription - Block headers", (context) => {
-  let web3Ws;
-  before("Setup: Create empty block", async () => {
-    web3Ws = await context.createWeb3("ws");
-  });
-
   it("should send notification on new block", async function () {
     this.timeout(10000);
+    const web3Ws = await context.createWeb3("ws");
     const subscription = web3Subscribe(web3Ws, "newBlockHeaders");
     await new Promise((resolve) => subscription.once("connected", resolve));
 
@@ -58,13 +51,9 @@ describeDevMoonbeam("Subscription - Block headers", (context) => {
 });
 
 describeDevMoonbeam("Subscription - Pending transactions", (context) => {
-  let web3Ws;
-  before("Setup: Create empty block", async () => {
-    web3Ws = await context.createWeb3("ws");
-  });
-
   // TODO: Inspect why it requires to produce a block to receive the notification
   it.skip("should send notification on new transaction", async function () {
+    const web3Ws = await context.createWeb3("ws");
     const subscription = web3Subscribe(web3Ws, "pendingTransactions");
     await new Promise((resolve) => subscription.once("connected", resolve));
 

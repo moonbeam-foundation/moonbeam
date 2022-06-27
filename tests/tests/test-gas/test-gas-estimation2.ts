@@ -1,9 +1,9 @@
 import "@moonbeam-network/api-augment";
+
 import { expect, use as chaiUse } from "chai";
 import chaiAsPromised from "chai-as-promised";
 
 import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
-
 import { createContract } from "../../util/transactions";
 
 chaiUse(chaiAsPromised);

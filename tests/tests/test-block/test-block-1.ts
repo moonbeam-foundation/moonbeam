@@ -1,5 +1,7 @@
 import "@moonbeam-network/api-augment";
+
 import { expect } from "chai";
+
 import { alith } from "../../util/accounts";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 

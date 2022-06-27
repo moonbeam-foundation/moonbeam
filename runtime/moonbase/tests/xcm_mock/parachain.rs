@@ -86,7 +86,7 @@ impl frame_system::Config for Runtime {
 	type OnNewAccount = ();
 	type OnKilledAccount = ();
 	type DbWeight = ();
-	type BaseCallFilter = Nothing;
+	type BaseCallFilter = Everything;
 	type SystemWeightInfo = ();
 	type SS58Prefix = ();
 	type OnSetCode = ();
@@ -167,6 +167,8 @@ pub type LocationToAccountId = (
 	// Sibling parachain origins convert to AccountId via the `ParaId::into`.
 	SiblingParachainConvertsVia<Sibling, AccountId>,
 	AccountKey20Aliases<RelayNetwork, AccountId>,
+	// The rest of multilocations convert via hashing it
+	xcm_primitives::Account20Hash<AccountId>,
 );
 
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
@@ -265,10 +267,12 @@ pub type AssetTransactors = (
 	ForeignFungiblesTransactor,
 	LocalFungiblesTransactor,
 );
+
 pub type XcmRouter = super::ParachainXcmRouter<MsgQueue>;
 
 pub type Barrier = (
 	TakeWeightCredit,
+	xcm_primitives::AllowDescendOriginFromLocal<Everything>,
 	AllowTopLevelPaidExecutionFrom<Everything>,
 	// Expected responses are OK.
 	AllowKnownQueryResponses<PolkadotXcm>,
@@ -830,7 +834,7 @@ impl pallet_asset_manager::Config for Runtime {
 	type WeightInfo = ();
 }
 
-impl xcm_transactor::Config for Runtime {
+impl pallet_xcm_transactor::Config for Runtime {
 	type Event = Event;
 	type Balance = Balance;
 	type Transactor = MockTransactors;
@@ -867,7 +871,7 @@ impl pallet_evm::Config for Runtime {
 	type CallOrigin = pallet_evm::EnsureAddressRoot<AccountId>;
 	type WithdrawOrigin = pallet_evm::EnsureAddressNever<AccountId>;
 
-	type AddressMapping = runtime_common::IntoAddressMapping;
+	type AddressMapping = moonbeam_runtime_common::IntoAddressMapping;
 	type Currency = Balances;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
 
@@ -952,7 +956,7 @@ construct_runtime!(
 		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin},
 		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>},
 		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>},
-		XcmTransactor: xcm_transactor::{Pallet, Call, Storage, Event<T>},
+		XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Storage, Event<T>},
 		Treasury: pallet_treasury::{Pallet, Storage, Config, Event<T>, Call},
 		LocalAssets: pallet_assets::<Instance1>::{Pallet, Call, Storage, Event<T>},
 

@@ -1,8 +1,8 @@
 import { expect } from "chai";
+
+import { alith } from "../../util/accounts";
 import { ZERO_ADDRESS } from "../../util/constants";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
-import { createBlockWithExtrinsic } from "../../util/substrate-rpc";
-import { alith } from "../../util/accounts";
 
 const TWENTY_PERCENT = 20;
 const TWENTY_PERCENT_STRING = "20.00%";

@@ -40,21 +40,21 @@ use pallet_author_slot_filter::migration::EligibleRatioToEligiblityCount;
 use pallet_author_slot_filter::Config as AuthorSlotFilterConfig;
 use pallet_base_fee::Config as BaseFeeConfig;
 use pallet_migrations::{GetMigrations, Migration};
-use parachain_staking::{
+use pallet_parachain_staking::{
 	migrations::{
 		IncreaseMaxDelegationsPerCandidate, PatchIncorrectDelegationSums, PurgeStaleStorage,
 		SplitCandidateStateToDecreasePoV, SplitDelegatorStateIntoDelegationScheduledRequests,
 	},
 	Config as ParachainStakingConfig,
 };
+#[cfg(feature = "xcm-support")]
+use pallet_xcm_transactor::{
+	migrations::TransactSignedWeightAndFeePerSecond, Config as XcmTransactorConfig,
+};
 use sp_runtime::Permill;
 use sp_std::{marker::PhantomData, prelude::*};
 #[cfg(feature = "xcm-support")]
 use xcm::latest::MultiLocation;
-#[cfg(feature = "xcm-support")]
-use xcm_transactor::{
-	migrations::TransactSignedWeightAndFeePerSecond, Config as XcmTransactorConfig,
-};
 
 /// This module acts as a registry where each migration is defined. Each migration should implement
 /// the "Migration" trait declared in the pallet-migrations crate.
@@ -131,7 +131,7 @@ impl<T: ParachainStakingConfig> Migration for ParachainStakingPatchIncorrectDele
 	}
 }
 
-/// Staking split delegator state into [parachain_staking::DelegatorScheduledRequests]
+/// Staking split delegator state into [pallet_parachain_staking::DelegatorScheduledRequests]
 pub struct ParachainStakingSplitDelegatorStateIntoDelegationScheduledRequests<T>(PhantomData<T>);
 impl<T: ParachainStakingConfig> Migration
 	for ParachainStakingSplitDelegatorStateIntoDelegationScheduledRequests<T>
@@ -635,7 +635,7 @@ pub struct CommonMigrations<Runtime, Council, Tech>(PhantomData<(Runtime, Counci
 impl<Runtime, Council, Tech> GetMigrations for CommonMigrations<Runtime, Council, Tech>
 where
 	Runtime: pallet_author_mapping::Config,
-	Runtime: parachain_staking::Config,
+	Runtime: pallet_parachain_staking::Config,
 	Runtime: pallet_scheduler::Config,
 	Runtime: pallet_base_fee::Config,
 	Runtime: AuthorSlotFilterConfig,
@@ -710,7 +710,8 @@ pub struct XcmMigrations<Runtime>(PhantomData<Runtime>);
 #[cfg(feature = "xcm-support")]
 impl<Runtime> GetMigrations for XcmMigrations<Runtime>
 where
-	Runtime: xcm_transactor::Config + pallet_migrations::Config + pallet_asset_manager::Config,
+	Runtime:
+		pallet_xcm_transactor::Config + pallet_migrations::Config + pallet_asset_manager::Config,
 	<Runtime as pallet_asset_manager::Config>::ForeignAssetType:
 		Into<Option<MultiLocation>> + From<MultiLocation>,
 {
