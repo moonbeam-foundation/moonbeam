@@ -26,7 +26,7 @@ use ethereum_types::{Bloom, H160, H256};
 
 use frame_support::{
 	dispatch::GetStorageVersion,
-	storage::migration::{get_storage_value, put_storage_value, remove_storage_prefix},
+	storage::migration::{get_storage_value, put_storage_value, take_storage_value},
 	traits::{Get, OnRuntimeUpgrade, PalletInfoAccess},
 	weights::Weight,
 };
@@ -511,7 +511,11 @@ impl<T: EthereumConfig> OnRuntimeUpgrade for EthereumPending<T> {
 			.unwrap_or_default();
 		if !current_value.is_empty() {
 			// Kill the `Pending` storage if not empty.
-			remove_storage_prefix(module, item, &[]);
+			let _ = take_storage_value::<Vec<(TransactionV2, TransactionStatus, ReceiptV3)>>(
+				module,
+				item,
+				&[],
+			);
 			weight = weight.saturating_add(db_weights.write);
 		}
 		weight
