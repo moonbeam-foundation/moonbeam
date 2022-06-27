@@ -30,7 +30,7 @@ use sp_keystore::{SyncCryptoStore, SyncCryptoStorePtr};
 // TODO: get key via runtime API that gets it using the NimbusId that the client is using and the
 // KeysLookup in the runtime
 // `nimbus_consensus::produce_candidate` seems like place where the PreDigest needs to be added
-pub fn vrf_predigest<Hash: AsRef<[u8]> + Clone>(
+pub fn vrf_pre_digest<Hash: AsRef<[u8]> + Clone>(
 	relay_slot_number: Slot,
 	relay_storage_root: Hash,
 	key: VrfId,

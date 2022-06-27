@@ -48,6 +48,7 @@ use cumulus_primitives_parachain_inherent::{
 };
 use cumulus_relay_chain_inprocess_interface::build_inprocess_relay_chain;
 use cumulus_relay_chain_interface::{RelayChainError, RelayChainInterface};
+use moonbeam_vrf::digest::CompatibleDigestItem;
 use nimbus_consensus::NimbusManualSealConsensusDataProvider;
 use nimbus_consensus::{BuildNimbusConsensusParams, NimbusConsensus};
 use nimbus_primitives::{DigestsProvider, NimbusId};
@@ -782,6 +783,23 @@ where
 					Ok((time, parachain_inherent, author, randomness))
 				}
 			};
+			// must be defined here to access client runtime API in this function
+			// type Digests = Option<DigestItem> should work
+			let additional_digests_provider =  |nimbus_id: nimbus_primitives::NimbusId, parent: Hash| -> Option<sp_runtime::generic::DigestItem> {
+				let relay_slot_number: polkadot_primitives::v2::Slot = todo!(); // get using runtime API
+				let relay_storage_root: Hash = todo!(); // get using runtime API
+				let key: session_keys_primitives::VrfId = todo!(); // get using runtime API VrfKeyLookup
+				if let Some(vrf_pre_digest) = moonbeam_vrf::vrf_pre_digest::<Hash>(
+					relay_slot_number,
+					relay_storage_root,
+					key,
+					&*&keystore,
+				) {
+					Some(CompatibleDigestItem::vrf_pre_digest(vrf_pre_digest))
+				} else {
+					None
+				}
+			};
 
 			Ok(NimbusConsensus::build(BuildNimbusConsensusParams {
 				para_id: id,
@@ -791,7 +809,7 @@ where
 				keystore,
 				skip_prediction: force_authoring,
 				create_inherent_data_providers: provider,
-				additional_digests_provider: (),// TODO: replace with Vrf Digest provider
+				additional_digests_provider,
 			}))
 		},
 	)
