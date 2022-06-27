@@ -40,10 +40,10 @@ describeDevMoonbeam("Author Mapping - simple association", (context) => {
     expect(await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS)).to.eq(null);
     expect(
       (await context.polkadotApi.query.system.account(alith.address)).data.free.toBigInt()
-    ).to.eq(1207825819614629174706176n);
+    ).to.eq(DEFAULT_GENESIS_BALANCE - DEFAULT_GENESIS_MAPPING);
     expect(
       (await context.polkadotApi.query.system.account(alith.address)).data.reserved.toBigInt()
-    ).to.eq(DEFAULT_GENESIS_MAPPING + DEFAULT_GENESIS_STAKING);
+    ).to.eq(DEFAULT_GENESIS_MAPPING);
   });
 
   it("should succeed in adding an association", async function () {
@@ -62,13 +62,14 @@ describeDevMoonbeam("Author Mapping - simple association", (context) => {
     expect(context.polkadotApi.events.system.ExtrinsicSuccess.is(events[7].event)).to.be.true;
 
     // check association
+    const transactionCost = 25611452000376n;
     expect((await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS)).account).to.eq(alith.address);
     expect(
       (await context.polkadotApi.query.system.account(alith.address)).data.free.toBigInt()
-    ).to.eq(1207725819589017722705800n);
+    ).to.eq(DEFAULT_GENESIS_BALANCE - 2n * DEFAULT_GENESIS_MAPPING - transactionCost);
     expect(
       (await context.polkadotApi.query.system.account(alith.address)).data.reserved.toBigInt()
-    ).to.eq(2n * DEFAULT_GENESIS_MAPPING + DEFAULT_GENESIS_STAKING);
+    ).to.eq(2n * DEFAULT_GENESIS_MAPPING);
   });
 });
 
@@ -200,7 +201,7 @@ describeDevMoonbeam("Author Mapping - double registration", (context) => {
       context.polkadotApi.tx.authorMapping.addAssociation(BALTATHAR_SESSION_ADDRESS)
     );
     expect((await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS)).account).to.eq(alith.address);
-    const expectedReservecBalance = 2n * DEFAULT_GENESIS_MAPPING + DEFAULT_GENESIS_STAKING;
+    const expectedReservecBalance = 2n * DEFAULT_GENESIS_MAPPING;
     expect(
       (await context.polkadotApi.query.system.account(alith.address)).data.free.toBigInt()
     ).to.eq(DEFAULT_GENESIS_BALANCE - expectedReservecBalance - fee);
@@ -225,7 +226,7 @@ describeDevMoonbeam("Author Mapping - double registration", (context) => {
     //check that both are registered
     expect((await getMappingInfo(context, CHARLETH_SESSION_ADDRESS)).account).to.eq(alith.address);
     expect((await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS)).account).to.eq(alith.address);
-    const expectedReservecBalance = 3n * DEFAULT_GENESIS_MAPPING + DEFAULT_GENESIS_STAKING;
+    const expectedReservecBalance = 3n * DEFAULT_GENESIS_MAPPING;
     expect(
       (await context.polkadotApi.query.system.account(alith.address)).data.free.toBigInt()
     ).to.eq(genesisAccountBalanceBefore - DEFAULT_GENESIS_MAPPING - fee);

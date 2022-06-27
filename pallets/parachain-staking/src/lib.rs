@@ -510,6 +510,16 @@ pub mod pallet {
 	pub(crate) type CandidateInfo<T: Config> =
 		StorageMap<_, Twox64Concat, T::AccountId, CandidateMetadata<BalanceOf<T>>, OptionQuery>;
 
+	#[pallet::storage]
+	/// Temporary storage item to track whether a given delegator's reserve has been migrated.
+	pub(crate) type DelegatorReserveToLockMigrations<T: Config> =
+		StorageMap<_, Twox64Concat, T::AccountId, bool, ValueQuery>;
+
+	#[pallet::storage]
+	/// Temporary storage item to track whether a given collator's reserve has been migrated.
+	pub(crate) type CollatorReserveToLockMigrations<T: Config> =
+		StorageMap<_, Twox64Concat, T::AccountId, bool, ValueQuery>;
+
 	/// Stores outstanding delegation requests per collator.
 	#[pallet::storage]
 	#[pallet::getter(fn delegation_scheduled_requests)]
@@ -913,6 +923,7 @@ pub mod pallet {
 			T::Currency::set_lock(COLLATOR_LOCK_IDENTIFIER, &acc, bond, WithdrawReasons::all());
 			let candidate = CandidateMetadata::new(bond);
 			<CandidateInfo<T>>::insert(&acc, candidate);
+			<CollatorReserveToLockMigrations<T>>::insert(&acc, true);
 			let empty_delegations: Delegations<T::AccountId, BalanceOf<T>> = Default::default();
 			// insert empty top delegations
 			<TopDelegations<T>>::insert(&acc, empty_delegations.clone());
@@ -971,13 +982,17 @@ pub mod pallet {
 				Error::<T>::TooLowCandidateDelegationCountToLeaveCandidates
 			);
 			state.can_leave::<T>()?;
-			let return_stake = |bond: Bond<T::AccountId, BalanceOf<T>>| {
+			let return_stake = |bond: Bond<T::AccountId, BalanceOf<T>>| -> DispatchResult {
 				// remove delegation from delegator state
 				let mut delegator = DelegatorState::<T>::get(&bond.owner).expect(
 					"Collator state and delegator state are consistent. 
 						Collator state has a record of this delegation. Therefore, 
 						Delegator state also has a record. qed.",
 				);
+
+				// TODO: review -- there are 3 cases below to consider WRT locks
+				Self::jit_ensure_delegator_reserve_migrated(&bond.owner)?;
+
 				if let Some(remaining) = delegator.rm_delegation::<T>(&candidate) {
 					Self::delegation_remove_request_with_state(
 						&candidate,
@@ -1006,6 +1021,7 @@ pub mod pallet {
 					// balance, so we ensure the lock is cleared
 					T::Currency::remove_lock(DELEGATOR_LOCK_IDENTIFIER, &bond.owner);
 				}
+				Ok(())
 			};
 			// total backing stake is at least the candidate self bond
 			let mut total_backing = state.bond;
@@ -1013,17 +1029,18 @@ pub mod pallet {
 			let top_delegations =
 				<TopDelegations<T>>::take(&candidate).expect("CandidateInfo existence checked");
 			for bond in top_delegations.delegations {
-				return_stake(bond);
+				return_stake(bond)?;
 			}
 			total_backing = total_backing.saturating_add(top_delegations.total);
 			// return all bottom delegations
 			let bottom_delegations =
 				<BottomDelegations<T>>::take(&candidate).expect("CandidateInfo existence checked");
 			for bond in bottom_delegations.delegations {
-				return_stake(bond);
+				return_stake(bond)?;
 			}
 			total_backing = total_backing.saturating_add(bottom_delegations.total);
 			// return stake to collator
+			Self::jit_ensure_collator_reserve_migrated(&candidate)?;
 			T::Currency::remove_lock(COLLATOR_LOCK_IDENTIFIER, &candidate);
 			<CandidateInfo<T>>::remove(&candidate);
 			<DelegationScheduledRequests<T>>::remove(&candidate);
@@ -1206,6 +1223,7 @@ pub mod pallet {
 					}),
 					Error::<T>::AlreadyDelegatedCandidate
 				);
+				Self::jit_ensure_delegator_reserve_migrated(&delegator)?;
 				state
 			} else {
 				// first delegation
@@ -1240,6 +1258,7 @@ pub mod pallet {
 			<Total<T>>::put(new_total_locked);
 			<CandidateInfo<T>>::insert(&candidate, state);
 			<DelegatorState<T>>::insert(&delegator, delegator_state);
+			<DelegatorReserveToLockMigrations<T>>::insert(&delegator, true);
 			Self::deposit_event(Event::Delegation {
 				delegator: delegator,
 				locked_amount: amount,
@@ -1375,9 +1394,11 @@ pub mod pallet {
 		}
 		/// Returns an account's free balance which is not locked in delegation staking
 		pub fn get_delegator_stakable_free_balance(acc: &T::AccountId) -> BalanceOf<T> {
+			// TODO: may need to check if this has been migrated here.
+			// if not, this should not subtract `state.total`
 			let mut balance = T::Currency::free_balance(acc);
 			if let Some(state) = <DelegatorState<T>>::get(acc) {
-				balance -= state.total;
+				balance = balance.saturating_sub(state.total);
 			}
 			balance
 		}
@@ -1385,7 +1406,7 @@ pub mod pallet {
 		pub fn get_collator_stakable_free_balance(acc: &T::AccountId) -> BalanceOf<T> {
 			let mut balance = T::Currency::free_balance(acc);
 			if let Some(info) = <CandidateInfo<T>>::get(acc) {
-				balance -= info.bond;
+				balance = balance.saturating_sub(info.bond);
 			}
 			balance
 		}
@@ -1708,6 +1729,52 @@ pub mod pallet {
 					bond
 				})
 				.collect()
+		}
+
+		/// Temporary JIT migration of a single delegator's reserve -> lock. This will query
+		/// whether or not the given delegator has been migrated and migrate it if not. This should
+		/// be removeable once all on-chain delegators have been migrated.
+		pub(crate) fn jit_ensure_delegator_reserve_migrated(
+			delegator: &T::AccountId,
+		) -> DispatchResult {
+			let is_migrated = <DelegatorReserveToLockMigrations<T>>::get(&delegator);
+			if !is_migrated {
+				let delegator_state =
+					<DelegatorState<T>>::get(&delegator).ok_or(Error::<T>::DelegatorDNE)?;
+				let reserved = delegator_state.total;
+				let _remaining = T::Currency::unreserve(&delegator, reserved);
+				T::Currency::set_lock(
+					DELEGATOR_LOCK_IDENTIFIER,
+					&delegator,
+					reserved,
+					WithdrawReasons::all(),
+				);
+				<DelegatorReserveToLockMigrations<T>>::insert(&delegator, true);
+			}
+			Ok(())
+		}
+
+		/// Temporary JIT migration of a single collator's reserve -> lock. This will query
+		/// whether or not the given collator has been migrated and migrate it if not. This should
+		/// be removeable once all on-chain collators have been migrated.
+		pub(crate) fn jit_ensure_collator_reserve_migrated(
+			collator: &T::AccountId,
+		) -> DispatchResult {
+			let is_migrated = <CollatorReserveToLockMigrations<T>>::get(&collator);
+			if !is_migrated {
+				let collator_info =
+					<CandidateInfo<T>>::get(&collator).ok_or(Error::<T>::CandidateDNE)?;
+				let reserved = collator_info.bond;
+				let _remaining = T::Currency::unreserve(&collator, reserved);
+				T::Currency::set_lock(
+					COLLATOR_LOCK_IDENTIFIER,
+					&collator,
+					reserved,
+					WithdrawReasons::all(),
+				);
+				<CollatorReserveToLockMigrations<T>>::insert(&collator, true);
+			}
+			Ok(())
 		}
 	}
 

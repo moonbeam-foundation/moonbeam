@@ -412,6 +412,7 @@ impl<
 	where
 		BalanceOf<T>: From<Balance>,
 	{
+		<Pallet<T>>::jit_ensure_collator_reserve_migrated(&who.clone())?;
 		ensure!(
 			<Pallet<T>>::get_collator_stakable_free_balance(&who) >= more.into(),
 			Error::<T>::InsufficientBalance
@@ -478,6 +479,7 @@ impl<
 		// Arithmetic assumptions are self.bond > less && self.bond - less > CollatorMinBond
 		// (assumptions enforced by `schedule_bond_less`; if storage corrupts, must re-verify)
 		self.bond = self.bond.saturating_sub(request.amount);
+		<Pallet<T>>::jit_ensure_collator_reserve_migrated(&who.clone())?;
 		T::Currency::set_lock(
 			COLLATOR_LOCK_IDENTIFIER,
 			&who.clone(),
@@ -1349,11 +1351,11 @@ impl<
 				let before_amount: BalanceOf<T> = x.amount.into();
 				x.amount = x.amount.saturating_add(amount);
 				self.total = self.total.saturating_add(amount);
+				<Pallet<T>>::jit_ensure_delegator_reserve_migrated(&delegator_id.clone())?;
 				self.adjust_bond_lock::<T>(Some(amount))?;
 				// update collator state delegation
 				let mut collator_state =
 					<CandidateInfo<T>>::get(&candidate_id).ok_or(Error::<T>::CandidateDNE)?;
-				self.adjust_bond_lock::<T>(Some(amount))?;
 				let before = collator_state.total_counted;
 				let in_top = collator_state.increase_delegation::<T>(
 					&candidate_id,

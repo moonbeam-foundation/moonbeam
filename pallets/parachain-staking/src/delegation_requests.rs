@@ -247,6 +247,7 @@ impl<T: Config> Pallet<T> {
 
 				// remove delegation from collator state delegations
 				Self::delegator_leaves_candidate(collator.clone(), delegator.clone(), amount)?;
+				Self::jit_ensure_delegator_reserve_migrated(&delegator)?;
 				state.adjust_bond_lock::<T>(None)?;
 				Self::deposit_event(Event::DelegationRevoked {
 					delegator: delegator.clone(),
@@ -289,6 +290,7 @@ impl<T: Config> Pallet<T> {
 							);
 							let mut collator_info = <CandidateInfo<T>>::get(&collator)
 								.ok_or(<Error<T>>::CandidateDNE)?;
+							Self::jit_ensure_delegator_reserve_migrated(&delegator)?;
 							state.adjust_bond_lock::<T>(None)?;
 							// need to go into decrease_delegation
 							let in_top = collator_info.decrease_delegation::<T>(
@@ -476,6 +478,12 @@ impl<T: Config> Pallet<T> {
 			updated_scheduled_requests.push((collator, scheduled_requests));
 		}
 
+		// TODO: reveiew -- we're about to leave, so this is mostly extra work (extra writes)
+		Self::jit_ensure_delegator_reserve_migrated(&delegator)?;
+
+		// set state.total so that state.adjust_bond_lock will remove lock
+		let unstaked_amount = state.total;
+		state.total = 0u32.into();
 		state.adjust_bond_lock::<T>(None)?;
 
 		updated_scheduled_requests
@@ -486,7 +494,7 @@ impl<T: Config> Pallet<T> {
 
 		Self::deposit_event(Event::DelegatorLeft {
 			delegator: delegator.clone(),
-			unstaked_amount: state.total,
+			unstaked_amount,
 		});
 		<DelegatorState<T>>::remove(&delegator);
 
