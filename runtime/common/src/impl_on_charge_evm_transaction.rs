@@ -17,6 +17,7 @@
 #[macro_export]
 macro_rules! impl_on_charge_evm_transaction {
 	{} => {
+		use sp_runtime::traits::UniqueSaturatedInto as _;
 		type CurrencyAccountId<T> = <T as frame_system::Config>::AccountId;
 
 		type BalanceFor<T> =
@@ -35,6 +36,7 @@ macro_rules! impl_on_charge_evm_transaction {
 			PositiveImbalanceFor<T>: Imbalance<BalanceFor<T>, Opposite = NegativeImbalanceFor<T>>,
 			NegativeImbalanceFor<T>: Imbalance<BalanceFor<T>, Opposite = PositiveImbalanceFor<T>>,
 			OU: OnUnbalanced<NegativeImbalanceFor<T>>,
+			U256: UniqueSaturatedInto<BalanceFor<T>>,
 		{
 			type LiquidityInfo = Option<NegativeImbalanceFor<T>>;
 

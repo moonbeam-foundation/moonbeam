@@ -74,7 +74,7 @@ use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{
 		BlakeTwo256, Block as BlockT, DispatchInfoOf, Dispatchable, IdentityLookup,
-		PostDispatchInfoOf,
+		PostDispatchInfoOf, UniqueSaturatedInto,
 	},
 	transaction_validity::{
 		InvalidTransaction, TransactionSource, TransactionValidity, TransactionValidityError,
@@ -392,7 +392,6 @@ where
 		Inner::find_author(digests).map(Into::into)
 	}
 }
-
 runtime_common::impl_on_charge_evm_transaction!();
 
 impl pallet_evm::Config for Runtime {
