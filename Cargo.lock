@@ -5854,6 +5854,8 @@ dependencies = [
 name = "moonbeam-runtime-common"
 version = "0.8.0-dev"
 dependencies = [
+ "ethereum",
+ "ethereum-types",
  "frame-support",
  "frame-system",
  "impl-trait-for-tuples",
@@ -5864,6 +5866,7 @@ dependencies = [
  "pallet-author-slot-filter",
  "pallet-base-fee",
  "pallet-collective",
+ "pallet-ethereum",
  "pallet-evm",
  "pallet-migrations",
  "pallet-parachain-staking",

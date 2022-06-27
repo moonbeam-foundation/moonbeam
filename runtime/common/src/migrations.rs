@@ -17,10 +17,15 @@
 //! # Migrations
 
 #[cfg(feature = "try-runtime")]
+use ethereum::{
+	EIP1559ReceiptData, EIP1559Transaction, ReceiptV3, TransactionAction, TransactionV2,
+};
+use ethereum_types::{Bloom, H160, H256};
+
 use frame_support::traits::OnRuntimeUpgradeHelpersExt;
 use frame_support::{
 	dispatch::GetStorageVersion,
-	storage::migration::get_storage_value,
+	storage::migration::{get_storage_value, put_storage_value, remove_storage_prefix},
 	traits::{Get, OnRuntimeUpgrade, PalletInfoAccess},
 	weights::Weight,
 };
@@ -39,6 +44,8 @@ use pallet_author_mapping::{
 use pallet_author_slot_filter::migration::EligibleRatioToEligiblityCount;
 use pallet_author_slot_filter::Config as AuthorSlotFilterConfig;
 use pallet_base_fee::Config as BaseFeeConfig;
+use pallet_ethereum::{Config as EthereumConfig, TransactionStatus};
+
 use pallet_migrations::{GetMigrations, Migration};
 use pallet_parachain_staking::{
 	migrations::{
@@ -51,6 +58,7 @@ use pallet_parachain_staking::{
 use pallet_xcm_transactor::{
 	migrations::TransactSignedWeightAndFeePerSecond, Config as XcmTransactorConfig,
 };
+use sp_core::U256;
 use sp_runtime::Permill;
 use sp_std::{marker::PhantomData, prelude::*};
 #[cfg(feature = "xcm-support")]
@@ -420,6 +428,139 @@ impl<T: BaseFeeConfig> Migration for MigrateBaseFeePerGas<T> {
 	}
 }
 
+/// Kill pallet-ethereum `Pending` storage `on_runtime_upgrade`.
+pub struct EthereumPending<T>(PhantomData<T>);
+impl<T: EthereumConfig> OnRuntimeUpgrade for EthereumPending<T> {
+	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade() -> Result<(), &'static str> {
+		let module: &[u8] = b"Ethereum";
+		// Before the upgrade, we fill the storage with some value.
+		let item: &[u8] = b"Pending";
+		let value = get_storage_value::<Vec<(TransactionV2, TransactionStatus, ReceiptV3)>>(
+			module,
+			item,
+			&[],
+		)
+		.unwrap_or_default();
+		if value.is_empty() {
+			// Make sure we fill storage with some data in cases we are testing over a height
+			// at which `Pending` is empty.
+			let transaction = TransactionV2::EIP1559(EIP1559Transaction {
+				chain_id: 0,
+				nonce: U256::zero(),
+				max_fee_per_gas: U256::zero(),
+				max_priority_fee_per_gas: U256::zero(),
+				gas_limit: U256::zero(),
+				action: TransactionAction::Call(H160::default()),
+				value: U256::from(0),
+				input: vec![],
+				access_list: vec![],
+				odd_y_parity: true,
+				r: H256::default(),
+				s: H256::default(),
+			});
+			let status = TransactionStatus {
+				transaction_hash: H256::default(),
+				transaction_index: 0,
+				from: H160::default(),
+				to: None,
+				contract_address: None,
+				logs: vec![],
+				logs_bloom: Bloom::default(),
+			};
+			let receipt = ReceiptV3::EIP1559(EIP1559ReceiptData {
+				status_code: 0,
+				used_gas: U256::zero(),
+				logs_bloom: Bloom::default(),
+				logs: vec![],
+			});
+			let new_value = vec![(transaction, status, receipt)];
+			// Fill the storage item with some value.
+			put_storage_value(module, item, &[], new_value);
+			// Make sure the storage item holds the new value.
+			let value = get_storage_value::<Vec<(TransactionV2, TransactionStatus, ReceiptV3)>>(
+				module,
+				item,
+				&[],
+			)
+			.unwrap_or_default();
+			assert_eq!(value.len(), 1);
+			// Store the temp helper value.
+			Self::set_temp_storage(false, "pending_is_empty");
+		} else {
+			// Store the temp helper value.
+			Self::set_temp_storage(false, "pending_is_empty");
+		}
+		Ok(())
+	}
+
+	fn on_runtime_upgrade() -> Weight {
+		let module: &[u8] = b"Ethereum";
+		let item: &[u8] = b"Pending";
+
+		let db_weights = T::DbWeight::get();
+		let mut weight: Weight = 1 * db_weights.read;
+
+		let current_value =
+			get_storage_value::<Vec<(TransactionV2, TransactionStatus, ReceiptV3)>>(
+				module,
+				item,
+				&[],
+			)
+			.unwrap_or_default();
+		if !current_value.is_empty() {
+			// Kill the `Pending` storage if not empty.
+			remove_storage_prefix(module, item, &[]);
+			weight = weight.saturating_add(db_weights.write);
+		}
+		weight
+	}
+
+	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade() -> Result<(), &'static str> {
+		let _ = Self::get_temp_storage::<bool>("pending_is_empty")
+			.expect("`pending_is_empty` temp storage was set.");
+
+		let module: &[u8] = b"Ethereum";
+		let item: &[u8] = b"Pending";
+		let value = get_storage_value::<Vec<(TransactionV2, TransactionStatus, ReceiptV3)>>(
+			module,
+			item,
+			&[],
+		);
+		// Verify the storage was killed.
+		assert_eq!(value, None);
+		Ok(())
+	}
+}
+
+pub struct MigrateEthereumPending<T>(PhantomData<T>);
+// This is not strictly a migration, just an `on_runtime_upgrade` alternative to open a democracy
+// proposal to set this values through an extrinsic.
+impl<T: EthereumConfig> Migration for MigrateEthereumPending<T> {
+	fn friendly_name(&self) -> &str {
+		"MM_Ethereum_Pending"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		EthereumPending::<T>::on_runtime_upgrade()
+	}
+
+	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<(), &'static str> {
+		EthereumPending::<T>::pre_upgrade()
+	}
+
+	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self) -> Result<(), &'static str> {
+		EthereumPending::<T>::post_upgrade()
+	}
+}
+
 // #[cfg(feature = "xcm-support")]
 // pub struct XcmTransactorMaxTransactWeight<T>(PhantomData<T>);
 // #[cfg(feature = "xcm-support")]
@@ -638,6 +779,7 @@ where
 	Runtime: pallet_parachain_staking::Config,
 	Runtime: pallet_scheduler::Config,
 	Runtime: pallet_base_fee::Config,
+	Runtime: pallet_ethereum::Config,
 	Runtime: AuthorSlotFilterConfig,
 	Council: GetStorageVersion + PalletInfoAccess + 'static,
 	Tech: GetStorageVersion + PalletInfoAccess + 'static,
@@ -675,6 +817,8 @@ where
 		// 	);
 		let migration_author_mapping_add_account_id_to_nimbus_lookup =
 			AuthorMappingAddAccountIdToNimbusLookup::<Runtime>(Default::default());
+		let migration_pallet_ethereum_pending =
+			MigrateEthereumPending::<Runtime>(Default::default());
 		vec![
 			// completed in runtime 800
 			// Box::new(migration_author_mapping_twox_to_blake),
@@ -700,6 +844,8 @@ where
 
 			// planned in runtime 1600
 			Box::new(migration_author_mapping_add_account_id_to_nimbus_lookup),
+			// planned in runtime 1606
+			Box::new(migration_pallet_ethereum_pending),
 		]
 	}
 }
