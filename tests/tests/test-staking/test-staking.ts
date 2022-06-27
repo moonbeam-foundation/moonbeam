@@ -10,6 +10,7 @@ import { IEvent } from "@polkadot/types/types";
 import { expect } from "chai";
 
 import { alith, baltathar, ethan } from "../../util/accounts";
+import { jumpToRound, setRoundLength, shortcutToRound } from "../../util/block";
 import {
   DEFAULT_GENESIS_STAKING,
   GLMR,
@@ -138,7 +139,8 @@ describeDevMoonbeam("Staking - Join Candidates", (context) => {
     expect(candidateState.status.isLeaving).to.be.true;
 
     const whenRound = candidateState.status.asLeaving.toNumber();
-    await jumpToRound(context, whenRound - 1);
+
+    await shortcutToRound(context, whenRound - 1);
 
     await context.createBlock(
       context.polkadotApi.tx.parachainStaking
@@ -152,7 +154,7 @@ describeDevMoonbeam("Staking - Join Candidates", (context) => {
     );
     expect(extrinsicResult).to.equal("CandidateCannotLeaveYet");
 
-    await jumpToRound(context, whenRound);
+    await shortcutToRound(context, whenRound);
     await context.createBlock(
       context.polkadotApi.tx.parachainStaking
         .executeLeaveCandidates(ethan.address, candidateState.delegationCount)
@@ -240,7 +242,7 @@ describeDevMoonbeam("Staking - Join Delegators", (context) => {
     expect(revokeRequest).to.not.be.undefined;
 
     const whenRound = revokeRequest.whenExecutable.toNumber();
-    await jumpToRound(context, whenRound - 1);
+    await shortcutToRound(context, whenRound - 1);
 
     await context.createBlock(
       context.polkadotApi.tx.parachainStaking
@@ -254,7 +256,7 @@ describeDevMoonbeam("Staking - Join Delegators", (context) => {
     );
     expect(extrinsicResult).to.equal("DelegatorCannotLeaveYet");
 
-    await jumpToRound(context, whenRound);
+    await shortcutToRound(context, whenRound);
     await context.createBlock(
       context.polkadotApi.tx.parachainStaking
         .executeLeaveDelegators(ethan.address, delegatorState.delegations.length)
@@ -373,7 +375,7 @@ describeDevMoonbeam("Staking - Delegation Requests", (context) => {
     expect(delegationRequests.toJSON()).to.not.be.empty;
 
     // jump to a round before the actual executable Round
-    await jumpToRound(context, delegationRequests[0].whenExecutable.toNumber() - 1);
+    await shortcutToRound(context, delegationRequests[0].whenExecutable.toNumber() - 1);
 
     // execute revoke
 
@@ -427,7 +429,7 @@ describeDevMoonbeam("Staking - Delegation Requests", (context) => {
     expect(delegationRequests.toJSON()).to.not.be.empty;
 
     // jump to executable Round
-    await jumpToRound(context, delegationRequests[0].whenExecutable.toNumber());
+    await shortcutToRound(context, delegationRequests[0].whenExecutable.toNumber());
 
     // execute revoke
     await context.createBlock(
@@ -535,7 +537,7 @@ describeDevMoonbeam("Staking - Delegation Requests", (context) => {
     expect(delegationRequests.toJSON()).to.not.be.empty;
 
     // jump to a round before the actual executable Round
-    await jumpToRound(context, delegationRequests[0].whenExecutable.toNumber() - 1);
+    await shortcutToRound(context, delegationRequests[0].whenExecutable.toNumber() - 1);
 
     // execute bond less
 
@@ -592,7 +594,7 @@ describeDevMoonbeam("Staking - Delegation Requests", (context) => {
     expect(delegationRequests).to.not.be.empty;
 
     // jump to executable Round
-    await jumpToRound(context, delegationRequests[0].whenExecutable.toNumber());
+    await shortcutToRound(context, delegationRequests[0].whenExecutable.toNumber());
 
     // execute bond less
     await context.createBlock(
@@ -646,7 +648,7 @@ describeDevMoonbeam("Staking - Delegation Requests", (context) => {
     const collatorState = await context.polkadotApi.query.parachainStaking.candidateInfo(
       baltathar.address
     );
-    await jumpToRound(context, collatorState.unwrap().status.asLeaving.toNumber());
+    await shortcutToRound(context, collatorState.unwrap().status.asLeaving.toNumber());
 
     await context.createBlock(
       context.polkadotApi.tx.parachainStaking
@@ -692,7 +694,7 @@ describeDevMoonbeam("Staking - Delegation Requests", (context) => {
       (req) => req.delegator.eq(ethan.address) && req.action.isRevoke
     );
     expect(revokeRequest).to.not.be.undefined;
-    await jumpToRound(context, revokeRequest.whenExecutable.toNumber());
+    await shortcutToRound(context, revokeRequest.whenExecutable.toNumber());
 
     const block = await context.createBlock(
       context.polkadotApi.tx.parachainStaking
@@ -816,13 +818,15 @@ describeDevMoonbeam("Staking - Rewards", (context) => {
   const BOND_AMOUNT = MIN_GLMR_STAKING + EXTRA_BOND_AMOUNT;
 
   beforeEach("should successfully call delegate on Alith", async () => {
+    // Set round length to 10 blocks;
+    await setRoundLength(context, 10);
     await context.createBlock(
       context.polkadotApi.tx.parachainStaking
         .delegate(alith.address, BOND_AMOUNT, 0, 0)
         .signAsync(ethan)
     );
     const currentRound = await context.polkadotApi.query.parachainStaking.round();
-    await jumpToRound(context, currentRound.current.addn(1).toNumber());
+    await shortcutToRound(context, currentRound.current.addn(1).toNumber());
   });
 
   afterEach("should clean up delegation requests", async () => {
@@ -841,8 +845,9 @@ describeDevMoonbeam("Staking - Rewards", (context) => {
 
     const rewardDelay = context.polkadotApi.consts.parachainStaking.rewardPaymentDelay;
     const currentRound = (await context.polkadotApi.query.parachainStaking.round()).current;
-    const blockHash = await jumpToRound(context, currentRound.add(rewardDelay).toNumber());
-    let rewardedEvents = await getRewardedEventsAt(context, blockHash);
+    await jumpToRound(context, currentRound.add(rewardDelay).toNumber());
+    const blockHash = await context.polkadotApi.rpc.chain.getBlockHash();
+    let rewardedEvents = await getRewardedEventsAt(context, blockHash.toString());
 
     expect(
       rewardedEvents.some(({ account }) => account == ethan.address),
@@ -859,8 +864,9 @@ describeDevMoonbeam("Staking - Rewards", (context) => {
 
     const rewardDelay = context.polkadotApi.consts.parachainStaking.rewardPaymentDelay;
     const currentRound = (await context.polkadotApi.query.parachainStaking.round()).current;
-    const blockHash = await jumpToRound(context, currentRound.add(rewardDelay).addn(1).toNumber());
-    let rewardedEvents = await getRewardedEventsAt(context, blockHash);
+    await shortcutToRound(context, currentRound.add(rewardDelay).addn(1).toNumber());
+    const blockHash = await context.polkadotApi.rpc.chain.getBlockHash();
+    let rewardedEvents = await getRewardedEventsAt(context, blockHash.toString());
     expect(
       rewardedEvents.some(({ account }) => account == ethan.address),
       "delegator was incorrectly rewarded"
@@ -878,9 +884,10 @@ describeDevMoonbeam("Staking - Rewards", (context) => {
 
     const rewardDelay = context.polkadotApi.consts.parachainStaking.rewardPaymentDelay;
     const currentRound = (await context.polkadotApi.query.parachainStaking.round()).current;
-    const blockHash = await jumpToRound(context, currentRound.add(rewardDelay).addn(1).toNumber());
+    await jumpToRound(context, currentRound.add(rewardDelay).addn(1).toNumber());
 
-    let rewardedEvents = await getRewardedEventsAt(context, blockHash);
+    const blockHash = await context.polkadotApi.rpc.chain.getBlockHash();
+    let rewardedEvents = await getRewardedEventsAt(context, blockHash.toString());
     expect(
       rewardedEvents.some(({ account }) => account == ethan.address),
       "delegator was incorrectly rewarded"
@@ -901,8 +908,9 @@ describeDevMoonbeam("Staking - Rewards", (context) => {
 
     const rewardDelay = context.polkadotApi.consts.parachainStaking.rewardPaymentDelay;
     const currentRound = (await context.polkadotApi.query.parachainStaking.round()).current;
-    const blockHash = await jumpToRound(context, currentRound.add(rewardDelay).addn(1).toNumber());
-    let rewardedEvents = await getRewardedEventsAt(context, blockHash);
+    await jumpToRound(context, currentRound.add(rewardDelay).addn(1).toNumber());
+    const blockHash = await context.polkadotApi.rpc.chain.getBlockHash();
+    let rewardedEvents = await getRewardedEventsAt(context, blockHash.toString());
     let rewardedEthan = rewardedEvents.find(({ account }) => account == ethan.address);
     let rewardedBalathar = rewardedEvents.find(({ account }) => account == baltathar.address);
     expect(rewardedEthan).is.not.undefined;
@@ -914,19 +922,6 @@ describeDevMoonbeam("Staking - Rewards", (context) => {
     ).is.true;
   });
 });
-
-async function jumpToRound(context: DevTestContext, round: Number): Promise<string | null> {
-  let lastBlockHash = null;
-  while (true) {
-    const currentRound = (
-      await context.polkadotApi.query.parachainStaking.round()
-    ).current.toNumber();
-    if (currentRound == round) {
-      return lastBlockHash;
-    }
-    lastBlockHash = (await context.createBlock()).block.hash.toString();
-  }
-}
 
 async function getExtrinsicResult(
   context: DevTestContext,

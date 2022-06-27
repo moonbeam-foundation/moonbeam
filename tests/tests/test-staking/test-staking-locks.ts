@@ -10,6 +10,7 @@ import {
 } from "../../util/governance";
 import { GLMR } from "../../util/constants";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+import { jumpToRound, shortcutRounds } from "../../util/block";
 
 describeDevMoonbeam("Staking - Locks", (context) => {
   const randomAccount = generateKeyingPair();
@@ -96,5 +97,56 @@ describeDevMoonbeam("Staking - Locks", (context) => {
     );
     expect(result.successful).to.be.true;
     expect(result.events.find(({ event: { method } }) => method == "Voted")).to.not.be.undefined;
+  });
+});
+
+describeDevMoonbeam("Staking - Locks", (context) => {
+  const randomAccount = generateKeyingPair();
+
+  before("Setup account balance", async function () {
+    await context.createBlock(
+      context.polkadotApi.tx.balances.transfer(randomAccount.address, 101n * GLMR)
+    );
+    await context.createBlock(
+      context.polkadotApi.tx.parachainStaking
+        .delegate(alith.address, 100n * GLMR, 10, 10)
+        .signAsync(randomAccount)
+    );
+  });
+
+  it("should be unlocked only after executing revoke delegation", async function () {
+    this.timeout(50000);
+    await context.createBlock(
+      context.polkadotApi.tx.parachainStaking
+        .scheduleRevokeDelegation(alith.address)
+        .signAsync(randomAccount)
+    );
+
+    // Additional check
+    const locks = await context.polkadotApi.query.balances.locks(randomAccount.address);
+    expect(locks[0].id.toHuman().toString()).to.be.equal("DelStake");
+
+    // Fast track 2 next rounds
+    const rewardDelay = context.polkadotApi.consts.parachainStaking.rewardPaymentDelay;
+    console.log(
+      (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber(),
+      (await context.polkadotApi.query.parachainStaking.round()).toJSON(),
+      rewardDelay
+    );
+    await shortcutRounds(context, rewardDelay.toNumber());
+    console.log(
+      (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber(),
+      (await context.polkadotApi.query.parachainStaking.round()).toJSON(),
+      rewardDelay
+    );
+
+    await context.createBlock(
+      context.polkadotApi.tx.parachainStaking
+        .executeDelegationRequest(randomAccount.address, alith.address)
+        .signAsync(randomAccount)
+    );
+
+    const newLocks = await context.polkadotApi.query.balances.locks(randomAccount.address);
+    expect(newLocks.length).to.be.equal(0, "Lock should have been removed after executing revoke");
   });
 });
