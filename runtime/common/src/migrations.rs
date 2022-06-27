@@ -435,7 +435,6 @@ impl<T: EthereumConfig> OnRuntimeUpgrade for EthereumPending<T> {
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade() -> Result<(), &'static str> {
 		let module: &[u8] = b"Ethereum";
-		// Before the upgrade, we fill the storage with some value.
 		let item: &[u8] = b"Pending";
 		let value = get_storage_value::<Vec<(TransactionV2, TransactionStatus, ReceiptV3)>>(
 			module,
