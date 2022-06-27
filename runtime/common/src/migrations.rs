@@ -19,14 +19,15 @@
 #[cfg(feature = "try-runtime")]
 use frame_support::traits::OnRuntimeUpgradeHelpersExt;
 
-use ethereum::{
-	EIP1559ReceiptData, EIP1559Transaction, ReceiptV3, TransactionAction, TransactionV2,
-};
+#[cfg(feature = "try-runtime")]
+use ethereum::{EIP1559ReceiptData, EIP1559Transaction, TransactionAction};
+use ethereum::{ReceiptV3, TransactionV2};
+#[cfg(feature = "try-runtime")]
 use ethereum_types::{Bloom, H160, H256};
 
 use frame_support::{
 	dispatch::GetStorageVersion,
-	storage::migration::{get_storage_value, put_storage_value, take_storage_value},
+	storage::migration::{get_storage_value, take_storage_value},
 	traits::{Get, OnRuntimeUpgrade, PalletInfoAccess},
 	weights::Weight,
 };
@@ -59,6 +60,7 @@ use pallet_parachain_staking::{
 use pallet_xcm_transactor::{
 	migrations::TransactSignedWeightAndFeePerSecond, Config as XcmTransactorConfig,
 };
+#[cfg(feature = "try-runtime")]
 use sp_core::U256;
 use sp_runtime::Permill;
 use sp_std::{marker::PhantomData, prelude::*};
@@ -477,7 +479,7 @@ impl<T: EthereumConfig> OnRuntimeUpgrade for EthereumPending<T> {
 			});
 			let new_value = vec![(transaction, status, receipt)];
 			// Fill the storage item with some value.
-			put_storage_value(module, item, &[], new_value);
+			frame_support::storage::migration::put_storage_value(module, item, &[], new_value);
 			// Make sure the storage item holds the new value.
 			let value = get_storage_value::<Vec<(TransactionV2, TransactionStatus, ReceiptV3)>>(
 				module,
