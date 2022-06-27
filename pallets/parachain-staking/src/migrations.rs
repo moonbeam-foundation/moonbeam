@@ -814,4 +814,3 @@ impl<T: Config> OnRuntimeUpgrade for PurgeStaleStorage<T> {
 		Ok(())
 	}
 }
-

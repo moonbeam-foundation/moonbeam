@@ -18,8 +18,7 @@
 
 use crate::{
 	set::OrderedSet, BalanceOf, BottomDelegations, CandidateInfo, Config, DelegatorState, Error,
-	Event, Pallet, Round, RoundIndex, TopDelegations, Total, COLLATOR_LOCK_ID,
-	DELEGATOR_LOCK_ID,
+	Event, Pallet, Round, RoundIndex, TopDelegations, Total, COLLATOR_LOCK_ID, DELEGATOR_LOCK_ID,
 };
 use frame_support::{
 	pallet_prelude::*,

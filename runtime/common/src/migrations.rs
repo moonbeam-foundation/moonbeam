@@ -42,8 +42,8 @@ use pallet_base_fee::Config as BaseFeeConfig;
 use pallet_migrations::{GetMigrations, Migration};
 use pallet_parachain_staking::{
 	migrations::{
-		IncreaseMaxDelegationsPerCandidate, PatchIncorrectDelegationSums,
-		PurgeStaleStorage, SplitDelegatorStateIntoDelegationScheduledRequests,
+		IncreaseMaxDelegationsPerCandidate, PatchIncorrectDelegationSums, PurgeStaleStorage,
+		SplitDelegatorStateIntoDelegationScheduledRequests,
 	},
 	Config as ParachainStakingConfig,
 };
