@@ -8,7 +8,7 @@ import { expectOk } from "../../util/expect";
 import { jumpToRound } from ".";
 
 describeDevMoonbeam("Staking - Rewards - no scheduled requests", (context) => {
-  before("should scheduleLeaveDelegators", async () => {
+  before("should delegate", async () => {
     await expectOk(
       context.createBlock([
         context.polkadotApi.tx.sudo
@@ -21,7 +21,7 @@ describeDevMoonbeam("Staking - Rewards - no scheduled requests", (context) => {
     );
   });
 
-  it("should reward full amount", async function () {
+  it("should reward full amount", async () => {
     const rewardDelay = context.polkadotApi.consts.parachainStaking.rewardPaymentDelay;
     const currentRound = (await context.polkadotApi.query.parachainStaking.round()).current;
     const blockHash = await jumpToRound(context, currentRound.add(rewardDelay).addn(1).toNumber());
@@ -62,7 +62,7 @@ describeDevMoonbeam("Staking - Rewards - scheduled leave request", (context) => 
     );
   });
 
-  it("should not reward", async function () {
+  it("should not reward", async () => {
     const rewardDelay = context.polkadotApi.consts.parachainStaking.rewardPaymentDelay;
     const currentRound = (await context.polkadotApi.query.parachainStaking.round()).current;
     const blockHash = await jumpToRound(context, currentRound.add(rewardDelay).addn(1).toNumber());
@@ -106,7 +106,7 @@ describeDevMoonbeam("Staking - Rewards - scheduled revoke request", (context) =>
     );
   });
 
-  it("should not reward", async function () {
+  it("should not reward", async () => {
     const rewardDelay = context.polkadotApi.consts.parachainStaking.rewardPaymentDelay;
     const currentRound = (await context.polkadotApi.query.parachainStaking.round()).current;
     const blockHash = await jumpToRound(context, currentRound.add(rewardDelay).addn(1).toNumber());
@@ -156,7 +156,7 @@ describeDevMoonbeam("Staking - Rewards - scheduled bond decrease request", (cont
     );
   });
 
-  it("should reward less than baltathar", async function () {
+  it("should reward less than baltathar", async () => {
     const rewardDelay = context.polkadotApi.consts.parachainStaking.rewardPaymentDelay;
     const currentRound = (await context.polkadotApi.query.parachainStaking.round()).current;
     const blockHash = await jumpToRound(context, currentRound.add(rewardDelay).addn(1).toNumber());
