@@ -29,7 +29,7 @@ describeDevMoonbeam("Ethereum Transaction - Large Transaction", (context) => {
   const max_size = (EXTRINSIC_GAS_LIMIT - 21000) / 16 - 2000;
 
   it("should accept txns up to known size", async function () {
-    expect(max_size).to.equal(808875); // our max Ethereum TXN size in bytes
+    expect(max_size).to.equal(808973); // our max Ethereum TXN size in bytes
 
     const tx = await generateLargeTxn(max_size);
     const { result } = await context.createBlock(tx);
