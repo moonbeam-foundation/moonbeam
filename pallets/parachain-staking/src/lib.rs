@@ -1394,8 +1394,6 @@ pub mod pallet {
 		}
 		/// Returns an account's free balance which is not locked in delegation staking
 		pub fn get_delegator_stakable_free_balance(acc: &T::AccountId) -> BalanceOf<T> {
-			// TODO: may need to check if this has been migrated here.
-			// if not, this should not subtract `state.total`
 			let mut balance = T::Currency::free_balance(acc);
 			if let Some(state) = <DelegatorState<T>>::get(acc) {
 				balance = balance.saturating_sub(state.total);
