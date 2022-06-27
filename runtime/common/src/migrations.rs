@@ -17,12 +17,13 @@
 //! # Migrations
 
 #[cfg(feature = "try-runtime")]
+use frame_support::traits::OnRuntimeUpgradeHelpersExt;
+
 use ethereum::{
 	EIP1559ReceiptData, EIP1559Transaction, ReceiptV3, TransactionAction, TransactionV2,
 };
 use ethereum_types::{Bloom, H160, H256};
 
-use frame_support::traits::OnRuntimeUpgradeHelpersExt;
 use frame_support::{
 	dispatch::GetStorageVersion,
 	storage::migration::{get_storage_value, put_storage_value, remove_storage_prefix},
