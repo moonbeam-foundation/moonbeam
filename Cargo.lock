@@ -1220,29 +1220,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "cli-table"
-version = "0.4.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "84ed8652883003051b558c7f650be7668e68f73c9ef6574ba0be9119a2fec9d3"
-dependencies = [
- "cli-table-derive",
- "csv",
- "termcolor",
- "unicode-width",
-]
-
-[[package]]
-name = "cli-table-derive"
-version = "0.4.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "efe942512e068e15991cbcef4e8182884555febbb21b5b4faf5dd5561850141a"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
 name = "coarsetime"
 version = "0.1.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5444,7 +5421,6 @@ dependencies = [
  "moonbeam-service",
  "nimbus-primitives",
  "parity-scale-codec",
- "perf-test",
  "polkadot-cli",
  "polkadot-parachain",
  "polkadot-primitives",
@@ -8367,50 +8343,6 @@ name = "percent-encoding"
 version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d4fd5641d01c8f18a23da7b6fe29298ff4b55afcccdf78973b24cf3175fee32e"
-
-[[package]]
-name = "perf-test"
-version = "0.1.0"
-dependencies = [
- "async-io",
- "clap 3.1.6",
- "cli-table",
- "cumulus-primitives-parachain-inherent",
- "ethereum",
- "fc-consensus",
- "fc-rpc",
- "fp-evm",
- "fp-rpc",
- "futures 0.3.21",
- "hex",
- "libsecp256k1 0.6.0",
- "log",
- "moonbase-runtime",
- "moonbeam-cli-opt",
- "moonbeam-service",
- "nimbus-primitives",
- "pallet-ethereum",
- "rlp",
- "sc-basic-authorship",
- "sc-cli",
- "sc-client-api",
- "sc-client-db",
- "sc-consensus-manual-seal",
- "sc-executor",
- "sc-rpc",
- "sc-service",
- "sc-transaction-pool",
- "serde",
- "serde_json",
- "sha3 0.8.2",
- "sp-api",
- "sp-core",
- "sp-externalities",
- "sp-keystore",
- "sp-runtime",
- "sp-state-machine",
- "sp-timestamp",
-]
 
 [[package]]
 name = "pest"
