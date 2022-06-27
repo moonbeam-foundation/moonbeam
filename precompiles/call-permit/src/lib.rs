@@ -160,8 +160,14 @@ where
 		keccak_256(&pre_digest)
 	}
 
+	pub fn dispatch_inherent_cost() -> u64 {
+		3_000 // cost of ECRecover precompile for reference
+			+ RuntimeHelper::<Runtime>::db_read_gas_cost() * 2 // we read nonce and timestamp
+			+ RuntimeHelper::<Runtime>::db_write_gas_cost() // we write nonce
+	}
+
 	fn dispatch(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		handle.record_cost(Self::dispatch_inherent_cost())?;
 
 		// PARSE INPUT
 		let mut input = handle.read_input()?;

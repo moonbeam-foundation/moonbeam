@@ -31,19 +31,9 @@ fn precompiles() -> TestPrecompiles<Runtime> {
 	PrecompilesValue::get()
 }
 
-// fn evm_call(from: impl Into<H160>, input: Vec<u8>) -> EvmCall<Runtime> {
-// 	EvmCall::call {
-// 		source: from.into(),
-// 		target: Precompile.into(),
-// 		input,
-// 		value: U256::zero(), // No value sent in EVM
-// 		gas_limit: u64::max_value(),
-// 		max_fee_per_gas: 0.into(),
-// 		max_priority_fee_per_gas: Some(U256::zero()),
-// 		nonce: None, // Use the next nonce
-// 		access_list: Vec::new(),
-// 	}
-// }
+fn dispatch_cost() -> u64 {
+	CallPermitPrecompile::<Runtime>::dispatch_inherent_cost()
+}
 
 #[test]
 fn selectors() {
@@ -146,8 +136,8 @@ fn valid_permit_returns() {
 						],
 					}
 				})
-				.with_target_gas(Some(call_cost + 100_000))
-				.expect_cost(call_cost + 13)
+				.with_target_gas(Some(call_cost + 100_000 + dispatch_cost()))
+				.expect_cost(call_cost + 13 + dispatch_cost())
 				.expect_log(LogsBuilder::new(Bob.into()).log1(H256::repeat_byte(0x11), vec![]))
 				.execute_returns(b"TEST".to_vec());
 		})
@@ -245,8 +235,8 @@ fn valid_permit_reverts() {
 						logs: vec![],
 					}
 				})
-				.with_target_gas(Some(call_cost + 100_000))
-				.expect_cost(call_cost + 13)
+				.with_target_gas(Some(call_cost + 100_000 + dispatch_cost()))
+				.expect_cost(call_cost + 13 + dispatch_cost())
 				.expect_no_logs()
 				.execute_reverts(|x| x == b"TEST".to_vec());
 		})
@@ -312,8 +302,8 @@ fn invalid_permit_nonce() {
 						.build(),
 				)
 				.with_subcall_handle(move |_| panic!("should not perform subcall"))
-				.with_target_gas(Some(call_cost + 100_000))
-				.expect_cost(0)
+				.with_target_gas(Some(call_cost + 100_000 + dispatch_cost()))
+				.expect_cost(dispatch_cost())
 				.execute_reverts(|x| x == b"invalid permit");
 		})
 }
@@ -378,8 +368,8 @@ fn invalid_permit_gas_limit_too_low() {
 						.build(),
 				)
 				.with_subcall_handle(move |_| panic!("should not perform subcall"))
-				.with_target_gas(Some(call_cost + 99_999))
-				.expect_cost(0)
+				.with_target_gas(Some(call_cost + 99_999 + dispatch_cost()))
+				.expect_cost(dispatch_cost())
 				.execute_reverts(|x| x == b"gaslimit is too low to dispatch provided call");
 		})
 }
@@ -444,8 +434,8 @@ fn invalid_permit_gas_limit_overflow() {
 						.build(),
 				)
 				.with_subcall_handle(move |_| panic!("should not perform subcall"))
-				.with_target_gas(Some(100_000))
-				.expect_cost(0)
+				.with_target_gas(Some(100_000 + dispatch_cost()))
+				.expect_cost(dispatch_cost())
 				.execute_reverts(|x| x == b"call require too much gas (u64 overflow)");
 		})
 }
@@ -668,8 +658,8 @@ fn valid_permit_returns_with_metamask_signed_data() {
 						],
 					}
 				})
-				.with_target_gas(Some(call_cost + 100_000))
-				.expect_cost(call_cost + 13)
+				.with_target_gas(Some(call_cost + 100_000 + dispatch_cost()))
+				.expect_cost(call_cost + 13 + dispatch_cost())
 				.expect_log(LogsBuilder::new(Bob.into()).log1(H256::repeat_byte(0x11), vec![]))
 				.execute_returns(b"TEST".to_vec());
 		})
