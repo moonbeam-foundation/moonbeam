@@ -2209,3 +2209,62 @@ fn permit_valid_with_metamask_signed_data() {
 				.execute_returns(vec![]);
 		});
 }
+
+#[test]
+fn transfer_amount_overflow() {
+	ExtBuilder::default()
+		.with_balances(vec![(Account::Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(ForeignAssets::force_create(
+				Origin::root(),
+				0u128,
+				Account::Alice.into(),
+				true,
+				1
+			));
+			assert_ok!(ForeignAssets::mint(
+				Origin::signed(Account::Alice),
+				0u128,
+				Account::Alice.into(),
+				1000
+			));
+
+			precompiles()
+				.prepare_test(
+					Account::Alice,
+					Account::ForeignAssetId(0u128),
+					EvmDataWriter::new_with_selector(Action::Transfer)
+						.write(Address(Account::Bob.into()))
+						.write(U256::from(u128::MAX) + 1)
+						.build(),
+				)
+				.expect_cost(1756u64) // 1 weight => 1 gas in mock
+				.expect_no_logs()
+				.execute_reverts(|e| e == b"amount is too large for balance type");
+
+			precompiles()
+				.prepare_test(
+					Account::Bob,
+					Account::ForeignAssetId(0u128),
+					EvmDataWriter::new_with_selector(Action::BalanceOf)
+						.write(Address(Account::Bob.into()))
+						.build(),
+				)
+				.expect_cost(0) // TODO: Test db read/write costs
+				.expect_no_logs()
+				.execute_returns(EvmDataWriter::new().write(U256::from(0)).build());
+
+			precompiles()
+				.prepare_test(
+					Account::Alice,
+					Account::ForeignAssetId(0u128),
+					EvmDataWriter::new_with_selector(Action::BalanceOf)
+						.write(Address(Account::Alice.into()))
+						.build(),
+				)
+				.expect_cost(0) // TODO: Test db read/write costs
+				.expect_no_logs()
+				.execute_returns(EvmDataWriter::new().write(U256::from(1000)).build());
+		});
+}

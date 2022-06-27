@@ -242,7 +242,8 @@ where
 		input.expect_arguments(2)?;
 
 		let proposal_hash = input.read::<H256>()?.into();
-		let amount = input.read::<BalanceOf<Runtime>>()?;
+		let amount: U256 = input.read()?;
+		let amount = Self::u256_to_amount(amount)?;
 
 		log::trace!(
 			target: "democracy-precompile",
@@ -291,7 +292,8 @@ where
 
 		let ref_index = input.read()?;
 		let aye = input.read()?;
-		let balance = input.read()?;
+		let amount: U256 = input.read()?;
+		let balance = Self::u256_to_amount(amount)?;
 		let conviction = input
 			.read::<u8>()?
 			.try_into()
@@ -348,7 +350,8 @@ where
 			.read::<u8>()?
 			.try_into()
 			.map_err(|_| revert("Conviction must be an integer in the range 0-6"))?;
-		let balance = input.read()?;
+		let amount: U256 = input.read()?;
+		let balance = Self::u256_to_amount(amount)?;
 
 		log::trace!(target: "democracy-precompile",
 			"Delegating vote to {:?} with balance {:?} and {:?}",
@@ -429,5 +432,11 @@ where
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
 		Ok(succeed([]))
+	}
+
+	fn u256_to_amount(value: U256) -> EvmResult<BalanceOf<Runtime>> {
+		value
+			.try_into()
+			.map_err(|_| revert("amount is too large for balance type"))
 	}
 }
