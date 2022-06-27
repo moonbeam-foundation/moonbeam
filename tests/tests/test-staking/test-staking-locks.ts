@@ -203,6 +203,7 @@ describeDevMoonbeam("Staking - Locks", (context) => {
   let maxDelegationsPerDelegator: bigint;
 
   before("Setup candidate & delegations", async function () {
+    this.timeout(12000);
     maxDelegationsPerDelegator =
       context.polkadotApi.consts.parachainStaking.maxDelegationsPerDelegator.toBigInt();
     randomCandidates = new Array(Number(maxDelegationsPerDelegator))

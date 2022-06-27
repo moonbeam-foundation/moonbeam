@@ -16,6 +16,7 @@ describeDevMoonbeam("Staking Consts - MaxDelegationsPerDelegator", (context) => 
   let overMaxDelegationsPerDelegator: bigint;
 
   before("Setup candidate & delegations", async function () {
+    this.timeout(12000);
     maxDelegationsPerDelegator =
       context.polkadotApi.consts.parachainStaking.maxDelegationsPerDelegator.toBigInt();
     overMaxDelegationsPerDelegator = maxDelegationsPerDelegator + 1n;
@@ -61,6 +62,7 @@ describeDevMoonbeam("Staking Consts - MaxDelegationsPerDelegator", (context) => 
   });
 
   it("should not be exceeded", async function () {
+    this.timeout(12000);
     const { result } = await context.createBlock(
       context.polkadotApi.tx.parachainStaking
         .delegate(alith.address, DELEGATE_AMOUNT, 1, maxDelegationsPerDelegator + 1n)
