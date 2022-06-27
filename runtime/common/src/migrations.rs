@@ -525,7 +525,7 @@ impl<T: EthereumConfig> OnRuntimeUpgrade for EthereumPending<T> {
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade() -> Result<(), &'static str> {
 		let _ = Self::get_temp_storage::<bool>("pending_is_empty")
-			.expect("`pending_is_empty` temp storage was set.");
+			.expect("`pending_is_empty` temp storage was not set.");
 
 		let module: &[u8] = b"Ethereum";
 		let item: &[u8] = b"Pending";
