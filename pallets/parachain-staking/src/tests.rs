@@ -8247,7 +8247,7 @@ mod jit_migrate_reserve_to_locks_tests {
 	use super::*;
 	use crate::{
 		CollatorReserveToLockMigrations, DelegatorReserveToLockMigrations,
-		COLLATOR_LOCK_IDENTIFIER, DELEGATOR_LOCK_IDENTIFIER,
+		COLLATOR_LOCK_ID, DELEGATOR_LOCK_ID,
 	};
 
 	#[test]
@@ -8261,14 +8261,14 @@ mod jit_migrate_reserve_to_locks_tests {
 				// initially should use locks, not reserves
 				assert_eq!(Balances::reserved_balance(1), 0);
 				assert_eq!(
-					crate::mock::query_lock_amount(1, COLLATOR_LOCK_IDENTIFIER),
+					crate::mock::query_lock_amount(1, COLLATOR_LOCK_ID),
 					Some(25)
 				);
 				assert_eq!(<CollatorReserveToLockMigrations<Test>>::get(1), true);
 
 				assert_eq!(Balances::reserved_balance(2), 0);
 				assert_eq!(
-					crate::mock::query_lock_amount(2, DELEGATOR_LOCK_IDENTIFIER),
+					crate::mock::query_lock_amount(2, DELEGATOR_LOCK_ID),
 					Some(30)
 				);
 				assert_eq!(<DelegatorReserveToLockMigrations<Test>>::get(2), true);
@@ -8277,7 +8277,7 @@ mod jit_migrate_reserve_to_locks_tests {
 				crate::mock::unmigrate_collator_from_lock_to_reserve(1);
 				assert_eq!(Balances::reserved_balance(1), 25);
 				assert_eq!(
-					crate::mock::query_lock_amount(1, COLLATOR_LOCK_IDENTIFIER),
+					crate::mock::query_lock_amount(1, COLLATOR_LOCK_ID),
 					None
 				);
 				assert_eq!(<CollatorReserveToLockMigrations<Test>>::get(1), false);
@@ -8285,7 +8285,7 @@ mod jit_migrate_reserve_to_locks_tests {
 				crate::mock::unmigrate_delegator_from_lock_to_reserve(2);
 				assert_eq!(Balances::reserved_balance(2), 30);
 				assert_eq!(
-					crate::mock::query_lock_amount(2, DELEGATOR_LOCK_IDENTIFIER),
+					crate::mock::query_lock_amount(2, DELEGATOR_LOCK_ID),
 					None
 				);
 				assert_eq!(<DelegatorReserveToLockMigrations<Test>>::get(2), false);
@@ -8335,7 +8335,7 @@ mod jit_migrate_reserve_to_locks_tests {
 				crate::mock::unmigrate_delegator_from_lock_to_reserve(3);
 				assert_eq!(Balances::reserved_balance(3), 10);
 				assert_eq!(
-					crate::mock::query_lock_amount(3, DELEGATOR_LOCK_IDENTIFIER),
+					crate::mock::query_lock_amount(3, DELEGATOR_LOCK_ID),
 					None
 				);
 				assert_eq!(<DelegatorReserveToLockMigrations<Test>>::get(3), false);
@@ -8343,7 +8343,7 @@ mod jit_migrate_reserve_to_locks_tests {
 				// now delegate and expect JIT to kick in
 				assert_ok!(ParachainStaking::delegate(Origin::signed(3), 2, 15, 1, 1));
 				assert_eq!(
-					crate::mock::query_lock_amount(3, DELEGATOR_LOCK_IDENTIFIER),
+					crate::mock::query_lock_amount(3, DELEGATOR_LOCK_ID),
 					Some(25)
 				);
 				assert_eq!(<DelegatorReserveToLockMigrations<Test>>::get(3), true);
@@ -8360,7 +8360,7 @@ mod jit_migrate_reserve_to_locks_tests {
 				crate::mock::unmigrate_collator_from_lock_to_reserve(1);
 				assert_eq!(Balances::reserved_balance(1), 20);
 				assert_eq!(
-					crate::mock::query_lock_amount(1, COLLATOR_LOCK_IDENTIFIER),
+					crate::mock::query_lock_amount(1, COLLATOR_LOCK_ID),
 					None
 				);
 				assert_eq!(<CollatorReserveToLockMigrations<Test>>::get(1), false);
@@ -8368,7 +8368,7 @@ mod jit_migrate_reserve_to_locks_tests {
 				assert_ok!(ParachainStaking::candidate_bond_more(Origin::signed(1), 30));
 				assert_eq!(Balances::reserved_balance(1), 0);
 				assert_eq!(
-					crate::mock::query_lock_amount(1, COLLATOR_LOCK_IDENTIFIER),
+					crate::mock::query_lock_amount(1, COLLATOR_LOCK_ID),
 					Some(50)
 				);
 				assert_eq!(<CollatorReserveToLockMigrations<Test>>::get(1), true);
@@ -8385,7 +8385,7 @@ mod jit_migrate_reserve_to_locks_tests {
 				crate::mock::unmigrate_collator_from_lock_to_reserve(1);
 				assert_eq!(Balances::reserved_balance(1), 50);
 				assert_eq!(
-					crate::mock::query_lock_amount(1, COLLATOR_LOCK_IDENTIFIER),
+					crate::mock::query_lock_amount(1, COLLATOR_LOCK_ID),
 					None
 				);
 				assert_eq!(<CollatorReserveToLockMigrations<Test>>::get(1), false);
@@ -8398,7 +8398,7 @@ mod jit_migrate_reserve_to_locks_tests {
 				// should be a no-op until executed
 				assert_eq!(Balances::reserved_balance(1), 50);
 				assert_eq!(
-					crate::mock::query_lock_amount(1, COLLATOR_LOCK_IDENTIFIER),
+					crate::mock::query_lock_amount(1, COLLATOR_LOCK_ID),
 					None
 				);
 				assert_eq!(<CollatorReserveToLockMigrations<Test>>::get(1), false);
@@ -8410,7 +8410,7 @@ mod jit_migrate_reserve_to_locks_tests {
 				);
 				assert_eq!(Balances::reserved_balance(1), 50);
 				assert_eq!(
-					crate::mock::query_lock_amount(1, COLLATOR_LOCK_IDENTIFIER),
+					crate::mock::query_lock_amount(1, COLLATOR_LOCK_ID),
 					None
 				);
 				assert_eq!(<CollatorReserveToLockMigrations<Test>>::get(1), false);
@@ -8423,7 +8423,7 @@ mod jit_migrate_reserve_to_locks_tests {
 				));
 				assert_eq!(Balances::reserved_balance(1), 0);
 				assert_eq!(
-					crate::mock::query_lock_amount(1, COLLATOR_LOCK_IDENTIFIER),
+					crate::mock::query_lock_amount(1, COLLATOR_LOCK_ID),
 					Some(45)
 				);
 				assert_eq!(<CollatorReserveToLockMigrations<Test>>::get(1), true);
@@ -8441,7 +8441,7 @@ mod jit_migrate_reserve_to_locks_tests {
 				crate::mock::unmigrate_delegator_from_lock_to_reserve(2);
 				assert_eq!(Balances::reserved_balance(2), 20);
 				assert_eq!(
-					crate::mock::query_lock_amount(2, DELEGATOR_LOCK_IDENTIFIER),
+					crate::mock::query_lock_amount(2, DELEGATOR_LOCK_ID),
 					None
 				);
 				assert_eq!(<DelegatorReserveToLockMigrations<Test>>::get(2), false);
@@ -8453,7 +8453,7 @@ mod jit_migrate_reserve_to_locks_tests {
 				));
 				assert_eq!(Balances::reserved_balance(2), 0);
 				assert_eq!(
-					crate::mock::query_lock_amount(2, DELEGATOR_LOCK_IDENTIFIER),
+					crate::mock::query_lock_amount(2, DELEGATOR_LOCK_ID),
 					Some(50)
 				);
 				assert_eq!(<DelegatorReserveToLockMigrations<Test>>::get(2), true);
@@ -8471,7 +8471,7 @@ mod jit_migrate_reserve_to_locks_tests {
 				crate::mock::unmigrate_delegator_from_lock_to_reserve(2);
 				assert_eq!(Balances::reserved_balance(2), 20);
 				assert_eq!(
-					crate::mock::query_lock_amount(2, DELEGATOR_LOCK_IDENTIFIER),
+					crate::mock::query_lock_amount(2, DELEGATOR_LOCK_ID),
 					None
 				);
 				assert_eq!(<DelegatorReserveToLockMigrations<Test>>::get(2), false);
@@ -8485,7 +8485,7 @@ mod jit_migrate_reserve_to_locks_tests {
 				// should be a no-op until executed
 				assert_eq!(Balances::reserved_balance(2), 20);
 				assert_eq!(
-					crate::mock::query_lock_amount(2, DELEGATOR_LOCK_IDENTIFIER),
+					crate::mock::query_lock_amount(2, DELEGATOR_LOCK_ID),
 					None
 				);
 				assert_eq!(<DelegatorReserveToLockMigrations<Test>>::get(2), false);
@@ -8497,7 +8497,7 @@ mod jit_migrate_reserve_to_locks_tests {
 				);
 				assert_eq!(Balances::reserved_balance(2), 20);
 				assert_eq!(
-					crate::mock::query_lock_amount(2, DELEGATOR_LOCK_IDENTIFIER),
+					crate::mock::query_lock_amount(2, DELEGATOR_LOCK_ID),
 					None
 				);
 				assert_eq!(<DelegatorReserveToLockMigrations<Test>>::get(2), false);
@@ -8511,7 +8511,7 @@ mod jit_migrate_reserve_to_locks_tests {
 				));
 				assert_eq!(Balances::reserved_balance(2), 0);
 				assert_eq!(
-					crate::mock::query_lock_amount(2, DELEGATOR_LOCK_IDENTIFIER),
+					crate::mock::query_lock_amount(2, DELEGATOR_LOCK_ID),
 					Some(15)
 				);
 				assert_eq!(<DelegatorReserveToLockMigrations<Test>>::get(2), true);
@@ -8529,7 +8529,7 @@ mod jit_migrate_reserve_to_locks_tests {
 				crate::mock::unmigrate_delegator_from_lock_to_reserve(2);
 				assert_eq!(Balances::reserved_balance(2), 20);
 				assert_eq!(
-					crate::mock::query_lock_amount(2, DELEGATOR_LOCK_IDENTIFIER),
+					crate::mock::query_lock_amount(2, DELEGATOR_LOCK_ID),
 					None
 				);
 				assert_eq!(<DelegatorReserveToLockMigrations<Test>>::get(2), false);
@@ -8542,7 +8542,7 @@ mod jit_migrate_reserve_to_locks_tests {
 				// should be a no-op until executed
 				assert_eq!(Balances::reserved_balance(2), 20);
 				assert_eq!(
-					crate::mock::query_lock_amount(2, DELEGATOR_LOCK_IDENTIFIER),
+					crate::mock::query_lock_amount(2, DELEGATOR_LOCK_ID),
 					None
 				);
 				assert_eq!(<DelegatorReserveToLockMigrations<Test>>::get(2), false);
@@ -8554,7 +8554,7 @@ mod jit_migrate_reserve_to_locks_tests {
 				);
 				assert_eq!(Balances::reserved_balance(2), 20);
 				assert_eq!(
-					crate::mock::query_lock_amount(2, DELEGATOR_LOCK_IDENTIFIER),
+					crate::mock::query_lock_amount(2, DELEGATOR_LOCK_ID),
 					None
 				);
 				assert_eq!(<DelegatorReserveToLockMigrations<Test>>::get(2), false);
@@ -8568,7 +8568,7 @@ mod jit_migrate_reserve_to_locks_tests {
 				));
 				assert_eq!(Balances::reserved_balance(2), 0);
 				assert_eq!(
-					crate::mock::query_lock_amount(2, DELEGATOR_LOCK_IDENTIFIER),
+					crate::mock::query_lock_amount(2, DELEGATOR_LOCK_ID),
 					None
 				);
 				assert_eq!(<DelegatorReserveToLockMigrations<Test>>::get(2), true);
@@ -8586,7 +8586,7 @@ mod jit_migrate_reserve_to_locks_tests {
 				crate::mock::unmigrate_delegator_from_lock_to_reserve(3);
 				assert_eq!(Balances::reserved_balance(3), 40);
 				assert_eq!(
-					crate::mock::query_lock_amount(3, DELEGATOR_LOCK_IDENTIFIER),
+					crate::mock::query_lock_amount(3, DELEGATOR_LOCK_ID),
 					None
 				);
 				assert_eq!(<DelegatorReserveToLockMigrations<Test>>::get(3), false);
@@ -8599,7 +8599,7 @@ mod jit_migrate_reserve_to_locks_tests {
 				// should be a no-op until executed
 				assert_eq!(Balances::reserved_balance(3), 40);
 				assert_eq!(
-					crate::mock::query_lock_amount(3, DELEGATOR_LOCK_IDENTIFIER),
+					crate::mock::query_lock_amount(3, DELEGATOR_LOCK_ID),
 					None
 				);
 				assert_eq!(<DelegatorReserveToLockMigrations<Test>>::get(3), false);
@@ -8613,7 +8613,7 @@ mod jit_migrate_reserve_to_locks_tests {
 				));
 				assert_eq!(Balances::reserved_balance(3), 0);
 				assert_eq!(
-					crate::mock::query_lock_amount(3, DELEGATOR_LOCK_IDENTIFIER),
+					crate::mock::query_lock_amount(3, DELEGATOR_LOCK_ID),
 					Some(20)
 				);
 				assert_eq!(<DelegatorReserveToLockMigrations<Test>>::get(3), true);
@@ -8631,7 +8631,7 @@ mod jit_migrate_reserve_to_locks_tests {
 				crate::mock::unmigrate_delegator_from_lock_to_reserve(3);
 				assert_eq!(Balances::reserved_balance(3), 40);
 				assert_eq!(
-					crate::mock::query_lock_amount(3, DELEGATOR_LOCK_IDENTIFIER),
+					crate::mock::query_lock_amount(3, DELEGATOR_LOCK_ID),
 					None
 				);
 				assert_eq!(<DelegatorReserveToLockMigrations<Test>>::get(3), false);
@@ -8643,7 +8643,7 @@ mod jit_migrate_reserve_to_locks_tests {
 				// should be a no-op until executed
 				assert_eq!(Balances::reserved_balance(3), 40);
 				assert_eq!(
-					crate::mock::query_lock_amount(3, DELEGATOR_LOCK_IDENTIFIER),
+					crate::mock::query_lock_amount(3, DELEGATOR_LOCK_ID),
 					None
 				);
 				assert_eq!(<DelegatorReserveToLockMigrations<Test>>::get(3), false);
@@ -8655,7 +8655,7 @@ mod jit_migrate_reserve_to_locks_tests {
 				);
 				assert_eq!(Balances::reserved_balance(3), 40);
 				assert_eq!(
-					crate::mock::query_lock_amount(3, DELEGATOR_LOCK_IDENTIFIER),
+					crate::mock::query_lock_amount(3, DELEGATOR_LOCK_ID),
 					None
 				);
 				assert_eq!(<DelegatorReserveToLockMigrations<Test>>::get(3), false);
@@ -8669,7 +8669,7 @@ mod jit_migrate_reserve_to_locks_tests {
 				));
 				assert_eq!(Balances::reserved_balance(3), 0);
 				assert_eq!(
-					crate::mock::query_lock_amount(3, DELEGATOR_LOCK_IDENTIFIER),
+					crate::mock::query_lock_amount(3, DELEGATOR_LOCK_ID),
 					None
 				);
 				assert_eq!(<DelegatorReserveToLockMigrations<Test>>::get(3), true);
@@ -8687,7 +8687,7 @@ mod jit_migrate_reserve_to_locks_tests {
 				crate::mock::unmigrate_delegator_from_lock_to_reserve(2);
 				assert_eq!(Balances::reserved_balance(2), 51);
 				assert_eq!(
-					crate::mock::query_lock_amount(2, DELEGATOR_LOCK_IDENTIFIER),
+					crate::mock::query_lock_amount(2, DELEGATOR_LOCK_ID),
 					None
 				);
 				assert_eq!(<DelegatorReserveToLockMigrations<Test>>::get(2), false);
@@ -8699,7 +8699,7 @@ mod jit_migrate_reserve_to_locks_tests {
 				));
 				assert_eq!(Balances::reserved_balance(2), 0);
 				assert_eq!(
-					crate::mock::query_lock_amount(2, DELEGATOR_LOCK_IDENTIFIER),
+					crate::mock::query_lock_amount(2, DELEGATOR_LOCK_ID),
 					Some(100)
 				);
 				assert_eq!(<DelegatorReserveToLockMigrations<Test>>::get(2), true);
@@ -8717,7 +8717,7 @@ mod jit_migrate_reserve_to_locks_tests {
 				crate::mock::unmigrate_delegator_from_lock_to_reserve(2);
 				assert_eq!(Balances::reserved_balance(2), 99);
 				assert_eq!(
-					crate::mock::query_lock_amount(2, DELEGATOR_LOCK_IDENTIFIER),
+					crate::mock::query_lock_amount(2, DELEGATOR_LOCK_ID),
 					None
 				);
 				assert_eq!(<DelegatorReserveToLockMigrations<Test>>::get(2), false);
@@ -8741,7 +8741,7 @@ mod jit_migrate_reserve_to_locks_tests {
 				// should migrate even though it failed
 				assert_eq!(Balances::reserved_balance(2), 0);
 				assert_eq!(
-					crate::mock::query_lock_amount(2, DELEGATOR_LOCK_IDENTIFIER),
+					crate::mock::query_lock_amount(2, DELEGATOR_LOCK_ID),
 					Some(99),
 				);
 				assert_eq!(<DelegatorReserveToLockMigrations<Test>>::get(2), true);
@@ -8758,7 +8758,7 @@ mod jit_migrate_reserve_to_locks_tests {
 				crate::mock::unmigrate_collator_from_lock_to_reserve(1);
 				assert_eq!(Balances::reserved_balance(1), 99);
 				assert_eq!(
-					crate::mock::query_lock_amount(1, COLLATOR_LOCK_IDENTIFIER),
+					crate::mock::query_lock_amount(1, COLLATOR_LOCK_ID),
 					None
 				);
 				assert_eq!(<CollatorReserveToLockMigrations<Test>>::get(1), false);
@@ -8778,7 +8778,7 @@ mod jit_migrate_reserve_to_locks_tests {
 				// should migrate even though it failed
 				assert_eq!(Balances::reserved_balance(1), 0);
 				assert_eq!(
-					crate::mock::query_lock_amount(1, COLLATOR_LOCK_IDENTIFIER),
+					crate::mock::query_lock_amount(1, COLLATOR_LOCK_ID),
 					Some(99),
 				);
 				assert_eq!(<CollatorReserveToLockMigrations<Test>>::get(1), true);
@@ -8795,7 +8795,7 @@ mod jit_migrate_reserve_to_locks_tests {
 				crate::mock::unmigrate_collator_from_lock_to_reserve(1);
 				assert_eq!(Balances::reserved_balance(1), 20);
 				assert_eq!(
-					crate::mock::query_lock_amount(1, COLLATOR_LOCK_IDENTIFIER),
+					crate::mock::query_lock_amount(1, COLLATOR_LOCK_ID),
 					None
 				);
 				assert_eq!(<CollatorReserveToLockMigrations<Test>>::get(1), false);
@@ -8811,7 +8811,7 @@ mod jit_migrate_reserve_to_locks_tests {
 				// should remain unmigrated
 				assert_eq!(Balances::reserved_balance(1), 20);
 				assert_eq!(
-					crate::mock::query_lock_amount(1, COLLATOR_LOCK_IDENTIFIER),
+					crate::mock::query_lock_amount(1, COLLATOR_LOCK_ID),
 					None,
 				);
 				assert_eq!(<CollatorReserveToLockMigrations<Test>>::get(1), false);

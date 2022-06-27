@@ -819,7 +819,7 @@ impl<T: Config> OnRuntimeUpgrade for PurgeStaleStorage<T> {
 pub struct ConvertReservesToLocks<T>(PhantomData<T>);
 impl<T: Config> OnRuntimeUpgrade for ConvertReservesToLocks<T> {
 	fn on_runtime_upgrade() -> Weight {
-		use crate::COLLATOR_LOCK_IDENTIFIER;
+		use crate::COLLATOR_LOCK_ID;
 		use frame_support::traits::{LockableCurrency, ReservableCurrency, WithdrawReasons};
 
 		log::info!(target: "ConvertReservesToLocks", "starting on_runtime_upgrade()...");
@@ -845,7 +845,7 @@ impl<T: Config> OnRuntimeUpgrade for ConvertReservesToLocks<T> {
 			assert_eq!(remaining, 0u32.into());
 
 			T::Currency::set_lock(
-				COLLATOR_LOCK_IDENTIFIER,
+				COLLATOR_LOCK_ID,
 				&account,
 				reserved,
 				WithdrawReasons::all(),

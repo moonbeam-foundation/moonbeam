@@ -101,8 +101,8 @@ pub mod pallet {
 	pub type BalanceOf<T> =
 		<<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
 
-	pub const COLLATOR_LOCK_IDENTIFIER: [u8; 8] = *b"ColStake";
-	pub const DELEGATOR_LOCK_IDENTIFIER: [u8; 8] = *b"DelStake";
+	pub const COLLATOR_LOCK_ID: [u8; 8] = *b"stkngcol";
+	pub const DELEGATOR_LOCK_ID: [u8; 8] = *b"stkngdel";
 
 	/// Configuration trait of this pallet.
 	#[pallet::config]
@@ -920,7 +920,7 @@ pub mod pallet {
 				Self::get_collator_stakable_free_balance(&acc) >= bond,
 				Error::<T>::InsufficientBalance,
 			);
-			T::Currency::set_lock(COLLATOR_LOCK_IDENTIFIER, &acc, bond, WithdrawReasons::all());
+			T::Currency::set_lock(COLLATOR_LOCK_ID, &acc, bond, WithdrawReasons::all());
 			let candidate = CandidateMetadata::new(bond);
 			<CandidateInfo<T>>::insert(&acc, candidate);
 			<CollatorReserveToLockMigrations<T>>::insert(&acc, true);
@@ -1005,12 +1005,12 @@ pub mod pallet {
 						// since it is assumed that they were removed incrementally before only the
 						// last delegation was left.
 						<DelegatorState<T>>::remove(&bond.owner);
-						T::Currency::remove_lock(DELEGATOR_LOCK_IDENTIFIER, &bond.owner);
+						T::Currency::remove_lock(DELEGATOR_LOCK_ID, &bond.owner);
 					} else {
 						<DelegatorState<T>>::insert(&bond.owner, delegator);
 						// update locked balance to match adjusted total staked
 						T::Currency::set_lock(
-							DELEGATOR_LOCK_IDENTIFIER,
+							DELEGATOR_LOCK_ID,
 							&bond.owner,
 							remaining,
 							WithdrawReasons::all(),
@@ -1019,7 +1019,7 @@ pub mod pallet {
 				} else {
 					// TODO: review. we assume here that this delegator has no remaining staked
 					// balance, so we ensure the lock is cleared
-					T::Currency::remove_lock(DELEGATOR_LOCK_IDENTIFIER, &bond.owner);
+					T::Currency::remove_lock(DELEGATOR_LOCK_ID, &bond.owner);
 				}
 				Ok(())
 			};
@@ -1041,7 +1041,7 @@ pub mod pallet {
 			total_backing = total_backing.saturating_add(bottom_delegations.total);
 			// return stake to collator
 			Self::jit_ensure_collator_reserve_migrated(&candidate)?;
-			T::Currency::remove_lock(COLLATOR_LOCK_IDENTIFIER, &candidate);
+			T::Currency::remove_lock(COLLATOR_LOCK_ID, &candidate);
 			<CandidateInfo<T>>::remove(&candidate);
 			<DelegationScheduledRequests<T>>::remove(&candidate);
 			<TopDelegations<T>>::remove(&candidate);
@@ -1744,7 +1744,7 @@ pub mod pallet {
 				let reserved = delegator_state.total;
 				let _remaining = T::Currency::unreserve(&delegator, reserved);
 				T::Currency::set_lock(
-					DELEGATOR_LOCK_IDENTIFIER,
+					DELEGATOR_LOCK_ID,
 					&delegator,
 					reserved,
 					WithdrawReasons::all(),
@@ -1767,7 +1767,7 @@ pub mod pallet {
 				let reserved = collator_info.bond;
 				let _remaining = T::Currency::unreserve(&collator, reserved);
 				T::Currency::set_lock(
-					COLLATOR_LOCK_IDENTIFIER,
+					COLLATOR_LOCK_ID,
 					&collator,
 					reserved,
 					WithdrawReasons::all(),

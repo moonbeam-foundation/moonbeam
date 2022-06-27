@@ -18,8 +18,8 @@
 
 use crate::{
 	set::OrderedSet, BalanceOf, BottomDelegations, CandidateInfo, Config, DelegatorState, Error,
-	Event, Pallet, Round, RoundIndex, TopDelegations, Total, COLLATOR_LOCK_IDENTIFIER,
-	DELEGATOR_LOCK_IDENTIFIER,
+	Event, Pallet, Round, RoundIndex, TopDelegations, Total, COLLATOR_LOCK_ID,
+	DELEGATOR_LOCK_ID,
 };
 use frame_support::{
 	pallet_prelude::*,
@@ -421,7 +421,7 @@ impl<
 		<Total<T>>::put(new_total);
 		self.bond = self.bond.saturating_add(more);
 		T::Currency::set_lock(
-			COLLATOR_LOCK_IDENTIFIER,
+			COLLATOR_LOCK_ID,
 			&who.clone(),
 			self.bond.into(),
 			WithdrawReasons::all(),
@@ -481,7 +481,7 @@ impl<
 		self.bond = self.bond.saturating_sub(request.amount);
 		<Pallet<T>>::jit_ensure_collator_reserve_migrated(&who.clone())?;
 		T::Currency::set_lock(
-			COLLATOR_LOCK_IDENTIFIER,
+			COLLATOR_LOCK_ID,
 			&who.clone(),
 			self.bond.into(),
 			WithdrawReasons::all(),
@@ -1415,10 +1415,10 @@ impl<
 		}
 
 		if self.total.is_zero() {
-			T::Currency::remove_lock(DELEGATOR_LOCK_IDENTIFIER, &self.id.clone().into());
+			T::Currency::remove_lock(DELEGATOR_LOCK_ID, &self.id.clone().into());
 		} else {
 			T::Currency::set_lock(
-				DELEGATOR_LOCK_IDENTIFIER,
+				DELEGATOR_LOCK_ID,
 				&self.id.clone().into(),
 				self.total.into(),
 				WithdrawReasons::all(),
