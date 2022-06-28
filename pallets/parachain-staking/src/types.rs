@@ -1389,9 +1389,6 @@ impl<
 			self.delegations = OrderedSet::from(delegations);
 			self.total_sub::<T>(balance)
 				.expect("Decreasing lock cannot fail, qed");
-			// self.total = self.total.saturating_sub(balance)
-			// self.adjust_bond_lock::<T>(None)
-			// 	.expect("Decreasing lock cannot fail, qed");
 			Some(self.total)
 		} else {
 			None
@@ -1415,13 +1412,11 @@ impl<
 			if x.owner == candidate {
 				let before_amount: BalanceOf<T> = x.amount.into();
 				x.amount = x.amount.saturating_add(amount);
-				// self.total = self.total.saturating_add(amount);
 				self.total_add_if::<T, _>(amount, |_| {
 					<Pallet<T>>::jit_ensure_delegator_reserve_migrated(&delegator_id.clone())?;
 					Ok(())
 				})?;
 
-				// self.adjust_bond_lock::<T>(Some(amount))?;
 				// update collator state delegation
 				let mut collator_state =
 					<CandidateInfo<T>>::get(&candidate_id).ok_or(Error::<T>::CandidateDNE)?;
@@ -1463,7 +1458,6 @@ impl<
 	/// not possible to query the amount that is locked for a given lock id.
 	pub fn adjust_bond_lock<T: Config>(
 		&mut self,
-		// additional_required_balance: Option<Balance>,
 		additional_required_balance: BondAdjust<Balance>,
 	) -> DispatchResult
 	where
