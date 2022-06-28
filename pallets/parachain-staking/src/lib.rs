@@ -1399,7 +1399,7 @@ pub mod pallet {
 			ensure_signed(origin)?;
 			ensure!(delegators.len() < 100, <Error<T>>::InsufficientBalance);
 			for delegator in &delegators {
-				Self::jit_ensure_delegator_reserve_migrated(&delegator); // ignore error
+				let _ = Self::jit_ensure_delegator_reserve_migrated(&delegator); // ignore error
 			}
 
 			Ok(().into())
@@ -1423,7 +1423,7 @@ pub mod pallet {
 			ensure_signed(origin)?;
 			ensure!(collators.len() < 100, <Error<T>>::InsufficientBalance);
 			for collator in &collators {
-				Self::jit_ensure_collator_reserve_migrated(&collator); // ignore error
+				let _ = Self::jit_ensure_collator_reserve_migrated(&collator); // ignore error
 			}
 
 			Ok(().into())
