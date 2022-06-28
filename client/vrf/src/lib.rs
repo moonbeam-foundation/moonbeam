@@ -19,18 +19,51 @@
 pub mod digest;
 
 pub use crate::digest::PreDigest;
-use session_keys_primitives::{make_transcript, make_transcript_data, VrfId};
+use nimbus_primitives::NimbusId;
+use session_keys_primitives::{make_transcript, make_transcript_data, VrfApi, VrfId};
 use sp_application_crypto::{AppKey, ByteArray};
 use sp_consensus_babe::Slot;
 use sp_consensus_vrf::schnorrkel::{PublicKey, VRFOutput, VRFProof};
 use sp_keystore::{SyncCryptoStore, SyncCryptoStorePtr};
 
-/// Returns VRF pre-digest which includes an output signing the input info
-// TODO: get VrfInput via runtime API before calling this in client
-// TODO: get key via runtime API that gets it using the NimbusId that the client is using and the
-// KeysLookup in the runtime
-// `nimbus_consensus::produce_candidate` seems like place where the PreDigest needs to be added
-pub fn vrf_pre_digest<Hash: AsRef<[u8]> + Clone>(
+/// Uses the runtime API to get the VRF inputs and sign them with the VRF key that
+/// corresponds to the authoring NimbusId
+pub fn vrf_pre_digest<B, C>(
+	client: &C,
+	keystore: &SyncCryptoStorePtr,
+	nimbus_id: NimbusId,
+	parent: sp_core::H256,
+) -> Option<sp_runtime::generic::DigestItem>
+where
+	B: sp_runtime::traits::Block<Hash = sp_core::H256>,
+	C: sp_api::ProvideRuntimeApi<B>,
+	C::Api: VrfApi<B>,
+{
+	let at = sp_api::BlockId::Hash(parent);
+	let relay_slot_number: polkadot_primitives::v2::Slot = client
+		.runtime_api()
+		.get_relay_slot_number(&at)
+		.expect("api error");
+	let relay_storage_root: sp_core::H256 = client
+		.runtime_api()
+		.get_relay_storage_root(&at)
+		.expect("api error");
+	let key: VrfId = client
+		.runtime_api()
+		.vrf_key_lookup(&at, nimbus_id)
+		.expect("api error")?;
+	let vrf_pre_digest =
+		sign_vrf::<sp_core::H256>(relay_slot_number, relay_storage_root, key, &keystore)?;
+	Some(crate::digest::CompatibleDigestItem::vrf_pre_digest(
+		vrf_pre_digest,
+	))
+}
+
+/// Signs the VrfInput using the private key corresponding to the input `key` public key
+/// to be found in the input keystore
+/// Returns None if key not found in keystore or if signature output cannot be validated by input
+/// If successful, returns Some(VRF pre-digest)
+fn sign_vrf<Hash: AsRef<[u8]> + Clone>(
 	relay_slot_number: Slot,
 	relay_storage_root: Hash,
 	key: VrfId,
@@ -50,8 +83,6 @@ pub fn vrf_pre_digest<Hash: AsRef<[u8]> + Clone>(
 			// signature cannot be validated using key and transcript
 			return None;
 		}
-		// TODO: verify we only need this output, the VrfId, and the VrfInput to validate or will
-		// need to add fields to PreDigest
 		Some(PreDigest {
 			vrf_output: VRFOutput(signature.output),
 			vrf_proof: VRFProof(signature.proof),

@@ -6005,11 +6005,15 @@ dependencies = [
 name = "moonbeam-vrf"
 version = "0.1.0"
 dependencies = [
+ "nimbus-primitives",
  "parity-scale-codec",
+ "polkadot-primitives",
  "session-keys-primitives",
+ "sp-api",
  "sp-application-crypto",
  "sp-consensus-babe",
  "sp-consensus-vrf",
+ "sp-core",
  "sp-keystore",
  "sp-runtime",
 ]

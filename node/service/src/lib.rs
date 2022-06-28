@@ -48,7 +48,6 @@ use cumulus_primitives_parachain_inherent::{
 };
 use cumulus_relay_chain_inprocess_interface::build_inprocess_relay_chain;
 use cumulus_relay_chain_interface::{RelayChainError, RelayChainInterface};
-use moonbeam_vrf::digest::CompatibleDigestItem;
 use nimbus_consensus::NimbusManualSealConsensusDataProvider;
 use nimbus_consensus::{BuildNimbusConsensusParams, NimbusConsensus};
 use sc_executor::{NativeElseWasmExecutor, NativeExecutionDispatch};
@@ -768,7 +767,7 @@ where
 				nimbus_id: nimbus_primitives::NimbusId,
 				parent: Hash
 			| -> Option<sp_runtime::generic::DigestItem> {
-				vrf_pre_digest::<Block, FullClient<RuntimeApi, Executor>>(
+				moonbeam_vrf::vrf_pre_digest::<Block, FullClient<RuntimeApi, Executor>>(
 					&client_clone,
 					&keystore_clone,
 					nimbus_id,
@@ -789,38 +788,6 @@ where
 		},
 	)
 	.await
-}
-
-fn vrf_pre_digest<B: sp_runtime::traits::Block<Hash = sp_core::H256>, C>(
-	client: &C,
-	keystore: &sp_keystore::SyncCryptoStorePtr,
-	nimbus_id: nimbus_primitives::NimbusId,
-	parent: Hash,
-) -> Option<sp_runtime::generic::DigestItem>
-where
-	C: sp_api::ProvideRuntimeApi<B>,
-	C::Api: VrfApi<B>,
-{
-	let at = sp_api::BlockId::Hash(parent);
-	let relay_slot_number: polkadot_primitives::v2::Slot = client
-		.runtime_api()
-		.get_relay_slot_number(&at)
-		.expect("api error");
-	let relay_storage_root: Hash = client
-		.runtime_api()
-		.get_relay_storage_root(&at)
-		.expect("api error");
-	let key: session_keys_primitives::VrfId = client
-		.runtime_api()
-		.vrf_key_lookup(&at, nimbus_id)
-		.expect("api error")?;
-	let vrf_pre_digest = moonbeam_vrf::vrf_pre_digest::<Hash>(
-		relay_slot_number,
-		relay_storage_root,
-		key,
-		&keystore,
-	)?;
-	Some(CompatibleDigestItem::vrf_pre_digest(vrf_pre_digest))
 }
 
 /// Builds a new development service. This service uses manual seal, and mocks
