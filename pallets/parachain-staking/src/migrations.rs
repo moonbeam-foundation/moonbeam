@@ -131,13 +131,11 @@ impl<T: Config> OnRuntimeUpgrade for SplitDelegatorStateIntoDelegationScheduledR
 					});
 				}
 
-				let new_state = Delegator {
-					id: old_state.id,
-					delegations: old_state.delegations,
-					total: old_state.total,
-					less_total: old_state.requests.less_total,
-					status: old_state.status,
-				};
+				let mut new_state = Delegator::default_with_total(old_state.id, old_state.total);
+				new_state.delegations = old_state.delegations;
+				new_state.less_total = old_state.requests.less_total;
+				new_state.status = old_state.status;
+
 				Some(new_state)
 			},
 		);
@@ -828,11 +826,11 @@ impl<T: Config> OnRuntimeUpgrade for ConvertReservesToLocks<T> {
 		let (mut num_delegators, mut num_collators) = (0, 0);
 
 		for (mut account, mut delegator_state) in <DelegatorState<T>>::iter() {
-			let reserved = delegator_state.total;
+			let reserved = delegator_state.total();
 			let remaining = T::Currency::unreserve(&account, reserved);
 			assert_eq!(remaining, 0u32.into());
 
-			delegator_state.adjust_bond_lock::<T>(None);
+			delegator_state.adjust_bond_lock::<T>(crate::BondAdjust::Decrease);
 
 			num_delegators += 1;
 		}
@@ -844,12 +842,7 @@ impl<T: Config> OnRuntimeUpgrade for ConvertReservesToLocks<T> {
 			let remaining = T::Currency::unreserve(&account, reserved);
 			assert_eq!(remaining, 0u32.into());
 
-			T::Currency::set_lock(
-				COLLATOR_LOCK_ID,
-				&account,
-				reserved,
-				WithdrawReasons::all(),
-			);
+			T::Currency::set_lock(COLLATOR_LOCK_ID, &account, reserved, WithdrawReasons::all());
 
 			num_collators += 1;
 		}

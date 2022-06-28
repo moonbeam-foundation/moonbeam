@@ -18,8 +18,7 @@
 
 use crate::{
 	set::OrderedSet, BalanceOf, BottomDelegations, CandidateInfo, Config, DelegatorState, Error,
-	Event, Pallet, Round, RoundIndex, TopDelegations, Total, COLLATOR_LOCK_ID,
-	DELEGATOR_LOCK_ID,
+	Event, Pallet, Round, RoundIndex, TopDelegations, Total, COLLATOR_LOCK_ID, DELEGATOR_LOCK_ID,
 };
 use frame_support::{
 	pallet_prelude::*,
@@ -1226,7 +1225,7 @@ pub struct Delegator<AccountId, Balance> {
 	/// All current delegations
 	pub delegations: OrderedSet<Bond<AccountId, Balance>>,
 	/// Total balance locked for this delegator
-	pub total: Balance,
+	total: Balance,
 	/// Sum of pending revocation amounts + bond less amounts
 	pub less_total: Balance,
 	/// Status for this delegator
@@ -1288,6 +1287,70 @@ impl<
 		}
 	}
 
+	pub fn default_with_total(id: AccountId, amount: Balance) -> Self {
+		Delegator {
+			id,
+			total: amount,
+			delegations: OrderedSet::from(vec![]),
+			less_total: Balance::zero(),
+			status: DelegatorStatus::Active,
+		}
+	}
+
+	pub fn total(&self) -> Balance {
+		self.total
+	}
+
+	pub fn total_add_if<T, F>(&mut self, amount: Balance, check: F) -> DispatchResult
+	where
+		T: Config,
+		T::AccountId: From<AccountId>,
+		BalanceOf<T>: From<Balance>,
+		F: Fn(Balance) -> DispatchResult,
+	{
+		let total = self.total.saturating_add(amount);
+		check(total)?;
+		self.total = total;
+		self.adjust_bond_lock::<T>(BondAdjust::Increase(amount))?;
+		Ok(())
+	}
+
+	pub fn total_sub_if<T, F>(&mut self, amount: Balance, check: F) -> DispatchResult
+	where
+		T: Config,
+		T::AccountId: From<AccountId>,
+		BalanceOf<T>: From<Balance>,
+		F: Fn(Balance) -> DispatchResult,
+	{
+		let total = self.total.saturating_sub(amount);
+		check(total)?;
+		self.total = total;
+		self.adjust_bond_lock::<T>(BondAdjust::Decrease)?;
+		Ok(())
+	}
+
+	pub fn total_add<T, F>(&mut self, amount: Balance) -> DispatchResult
+	where
+		T: Config,
+		T::AccountId: From<AccountId>,
+		BalanceOf<T>: From<Balance>,
+	{
+		self.total = self.total.saturating_add(amount);
+		self.adjust_bond_lock::<T>(BondAdjust::Increase(amount))?;
+		Ok(())
+	}
+
+	pub fn total_sub<T>(&mut self, amount: Balance) -> DispatchResult
+	where
+		T: Config,
+		T::AccountId: From<AccountId>,
+		BalanceOf<T>: From<Balance>,
+	{
+		self.total = self.total.saturating_sub(amount);
+		self.adjust_bond_lock::<T>(BondAdjust::Decrease)?;
+		Ok(())
+	}
+
 	pub fn is_active(&self) -> bool {
 		matches!(self.status, DelegatorStatus::Active)
 	}
@@ -1324,9 +1387,11 @@ impl<
 			.collect();
 		if let Some(balance) = amt {
 			self.delegations = OrderedSet::from(delegations);
-			self.total = self.total.saturating_sub(balance);
-			self.adjust_bond_lock::<T>(None)
+			self.total_sub::<T>(balance)
 				.expect("Decreasing lock cannot fail, qed");
+			// self.total = self.total.saturating_sub(balance)
+			// self.adjust_bond_lock::<T>(None)
+			// 	.expect("Decreasing lock cannot fail, qed");
 			Some(self.total)
 		} else {
 			None
@@ -1350,9 +1415,13 @@ impl<
 			if x.owner == candidate {
 				let before_amount: BalanceOf<T> = x.amount.into();
 				x.amount = x.amount.saturating_add(amount);
-				self.total = self.total.saturating_add(amount);
-				<Pallet<T>>::jit_ensure_delegator_reserve_migrated(&delegator_id.clone())?;
-				self.adjust_bond_lock::<T>(Some(amount))?;
+				// self.total = self.total.saturating_add(amount);
+				self.total_add_if::<T, _>(amount, |_| {
+					<Pallet<T>>::jit_ensure_delegator_reserve_migrated(&delegator_id.clone())?;
+					Ok(())
+				})?;
+
+				// self.adjust_bond_lock::<T>(Some(amount))?;
 				// update collator state delegation
 				let mut collator_state =
 					<CandidateInfo<T>>::get(&candidate_id).ok_or(Error::<T>::CandidateDNE)?;
@@ -1394,25 +1463,29 @@ impl<
 	/// not possible to query the amount that is locked for a given lock id.
 	pub fn adjust_bond_lock<T: Config>(
 		&mut self,
-		additional_required_balance: Option<Balance>,
+		// additional_required_balance: Option<Balance>,
+		additional_required_balance: BondAdjust<Balance>,
 	) -> DispatchResult
 	where
 		BalanceOf<T>: From<Balance>,
 		T::AccountId: From<AccountId>,
 	{
-		if let Some(reserve) = additional_required_balance {
-			ensure!(
-				<Pallet<T>>::get_delegator_stakable_free_balance(&self.id.clone().into())
-					>= reserve.into(),
-				Error::<T>::InsufficientBalance,
-			);
+		match additional_required_balance {
+			BondAdjust::Increase(amount) => {
+				ensure!(
+					<Pallet<T>>::get_delegator_stakable_free_balance(&self.id.clone().into())
+						>= amount.into(),
+					Error::<T>::InsufficientBalance,
+				);
 
-			// additional sanity check: shouldn't ever want to reserve more than total
-			if reserve > self.total {
-				log::warn!("LOGIC ERROR: request to reserve more than bond total");
-				return Err(DispatchError::Other("Invalid additional_required_balance"));
+				// additional sanity check: shouldn't ever want to reserve more than total
+				if amount > self.total {
+					log::warn!("LOGIC ERROR: request to reserve more than bond total");
+					return Err(DispatchError::Other("Invalid additional_required_balance"));
+				}
 			}
-		}
+			BondAdjust::Decrease => (), // do nothing on decrease
+		};
 
 		if self.total.is_zero() {
 			T::Currency::remove_lock(DELEGATOR_LOCK_ID, &self.id.clone().into());
@@ -1607,4 +1680,9 @@ impl<A: Decode> Default for ParachainBondConfig<A> {
 			percent: Percent::zero(),
 		}
 	}
+}
+
+pub enum BondAdjust<Balance> {
+	Increase(Balance),
+	Decrease,
 }

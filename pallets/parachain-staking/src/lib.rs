@@ -1247,7 +1247,7 @@ pub mod pallet {
 				},
 			)?;
 			// TODO: causes redundant free_balance check
-			delegator_state.adjust_bond_lock::<T>(Some(amount))?;
+			delegator_state.adjust_bond_lock::<T>(BondAdjust::Increase(amount))?;
 			// only is_some if kicked the lowest bottom as a consequence of this new delegation
 			let net_total_increase = if let Some(less) = less_total_staked {
 				amount.saturating_sub(less)
@@ -1398,7 +1398,7 @@ pub mod pallet {
 			// if not, this should not subtract `state.total`
 			let mut balance = T::Currency::free_balance(acc);
 			if let Some(state) = <DelegatorState<T>>::get(acc) {
-				balance = balance.saturating_sub(state.total);
+				balance = balance.saturating_sub(state.total());
 			}
 			balance
 		}
@@ -1741,7 +1741,7 @@ pub mod pallet {
 			if !is_migrated {
 				let delegator_state =
 					<DelegatorState<T>>::get(&delegator).ok_or(Error::<T>::DelegatorDNE)?;
-				let reserved = delegator_state.total;
+				let reserved = delegator_state.total();
 				let _remaining = T::Currency::unreserve(&delegator, reserved);
 				T::Currency::set_lock(
 					DELEGATOR_LOCK_ID,

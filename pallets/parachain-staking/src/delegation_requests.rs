@@ -140,7 +140,7 @@ impl<T: Config> Pallet<T> {
 		);
 
 		// Net Total is total after pending orders are executed
-		let net_total = state.total.saturating_sub(state.less_total);
+		let net_total = state.total().saturating_sub(state.less_total);
 		// Net Total is always >= MinDelegatorStk
 		let max_subtracted_amount = net_total.saturating_sub(T::MinDelegatorStk::get().into());
 		ensure!(
@@ -232,7 +232,10 @@ impl<T: Config> Pallet<T> {
 					true
 				} else {
 					ensure!(
-						state.total.saturating_sub(T::MinDelegatorStk::get().into()) >= amount,
+						state
+							.total()
+							.saturating_sub(T::MinDelegatorStk::get().into())
+							>= amount,
 						<Error<T>>::DelegatorBondBelowMin
 					);
 					false
@@ -248,7 +251,7 @@ impl<T: Config> Pallet<T> {
 				// remove delegation from collator state delegations
 				Self::delegator_leaves_candidate(collator.clone(), delegator.clone(), amount)?;
 				Self::jit_ensure_delegator_reserve_migrated(&delegator)?;
-				state.adjust_bond_lock::<T>(None)?;
+				// state.adjust_bond_lock::<T>(None)?; // DO WE NEED IT?
 				Self::deposit_event(Event::DelegationRevoked {
 					delegator: delegator.clone(),
 					candidate: collator.clone(),
@@ -278,20 +281,25 @@ impl<T: Config> Pallet<T> {
 						return if bond.amount > amount {
 							let amount_before: BalanceOf<T> = bond.amount.into();
 							bond.amount = bond.amount.saturating_sub(amount);
-							state.total = state.total.saturating_sub(amount);
-							let new_total: BalanceOf<T> = state.total.into();
-							ensure!(
-								new_total >= T::MinDelegation::get(),
-								<Error<T>>::DelegationBelowMin
-							);
-							ensure!(
-								new_total >= T::MinDelegatorStk::get(),
-								<Error<T>>::DelegatorBondBelowMin
-							);
 							let mut collator_info = <CandidateInfo<T>>::get(&collator)
 								.ok_or(<Error<T>>::CandidateDNE)?;
-							Self::jit_ensure_delegator_reserve_migrated(&delegator)?;
-							state.adjust_bond_lock::<T>(None)?;
+
+							state.total_sub_if::<T, _>(amount, |total| {
+								let new_total: BalanceOf<T> = total.into();
+								ensure!(
+									new_total >= T::MinDelegation::get(),
+									<Error<T>>::DelegationBelowMin
+								);
+								ensure!(
+									new_total >= T::MinDelegatorStk::get(),
+									<Error<T>>::DelegatorBondBelowMin
+								);
+
+								Self::jit_ensure_delegator_reserve_migrated(&delegator)?;
+
+								Ok(())
+							})?;
+
 							// need to go into decrease_delegation
 							let in_top = collator_info.decrease_delegation::<T>(
 								&collator,
@@ -482,9 +490,10 @@ impl<T: Config> Pallet<T> {
 		Self::jit_ensure_delegator_reserve_migrated(&delegator)?;
 
 		// set state.total so that state.adjust_bond_lock will remove lock
-		let unstaked_amount = state.total;
-		state.total = 0u32.into();
-		state.adjust_bond_lock::<T>(None)?;
+		let unstaked_amount = state.total();
+		state.total_sub::<T>(unstaked_amount)?;
+		// state.total = 0u32.into();
+		// state.adjust_bond_lock::<T>(None)?;
 
 		updated_scheduled_requests
 			.into_iter()
