@@ -21,8 +21,7 @@ use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
 use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
 pub use session_keys_primitives::make_transcript;
-use session_keys_primitives::{KeysLookup, VrfId, VRF_ENGINE_ID, VRF_INOUT_CONTEXT};
-use sp_consensus_babe::digests::PreDigest;
+use session_keys_primitives::{KeysLookup, PreDigest, VrfId, VRF_ENGINE_ID, VRF_INOUT_CONTEXT};
 use sp_consensus_vrf::schnorrkel;
 use sp_core::crypto::ByteArray;
 use sp_runtime::RuntimeDebug;
@@ -93,8 +92,10 @@ pub(crate) fn set_output<T: Config>() -> Weight {
 	let vrf_output: Randomness = maybe_pre_digest
 		.and_then(|digest| {
 			digest
-				.vrf_output()
-				.and_then(|vrf_output| vrf_output.0.attach_input_hash(&pubkey, transcript).ok())
+				.vrf_output
+				.0
+				.attach_input_hash(&pubkey, transcript)
+				.ok()
 				.map(|inout| inout.make_bytes(&VRF_INOUT_CONTEXT))
 		})
 		.expect("VRF output encoded in pre-runtime digest must be valid");

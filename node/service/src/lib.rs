@@ -58,7 +58,6 @@ use sc_service::{
 	TFullBackend, TFullClient, TaskManager,
 };
 use sc_telemetry::{Telemetry, TelemetryHandle, TelemetryWorker, TelemetryWorkerHandle};
-use session_keys_primitives::VrfApi;
 use sp_api::ConstructRuntimeApi;
 use sp_blockchain::HeaderBackend;
 use sp_keystore::SyncCryptoStorePtr;

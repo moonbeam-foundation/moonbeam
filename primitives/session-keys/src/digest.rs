@@ -15,8 +15,8 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! VRF pre digest object and conversion to DigestItem
-use codec::{Decode, Encode};
-use session_keys_primitives::{VrfSignature, VRF_ENGINE_ID};
+use crate::vrf::{VrfSignature, VRF_ENGINE_ID};
+use parity_scale_codec::{Decode, Encode};
 use sp_consensus_vrf::schnorrkel::{VRFOutput, VRFProof};
 use sp_runtime::{generic::DigestItem, RuntimeDebug};
 

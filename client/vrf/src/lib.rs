@@ -16,11 +16,8 @@
 
 //! VRF client primitives for client-side verification
 
-pub mod digest;
-
-pub use crate::digest::PreDigest;
 use nimbus_primitives::NimbusId;
-use session_keys_primitives::{make_transcript, make_transcript_data, VrfApi, VrfId};
+use session_keys_primitives::{make_transcript, make_transcript_data, PreDigest, VrfApi, VrfId};
 use sp_application_crypto::{AppKey, ByteArray};
 use sp_consensus_babe::Slot;
 use sp_consensus_vrf::schnorrkel::{PublicKey, VRFOutput, VRFProof};
@@ -54,9 +51,7 @@ where
 		.vrf_key_lookup(&at, nimbus_id)
 		.expect("api error")?;
 	let vrf_pre_digest = sign_vrf(relay_slot_number, relay_storage_root, key, &keystore)?;
-	Some(crate::digest::CompatibleDigestItem::vrf_pre_digest(
-		vrf_pre_digest,
-	))
+	Some(session_keys_primitives::digest::CompatibleDigestItem::vrf_pre_digest(vrf_pre_digest))
 }
 
 /// Signs the VrfInput using the private key corresponding to the input `key` public key
@@ -68,7 +63,7 @@ fn sign_vrf(
 	relay_storage_root: H256,
 	key: VrfId,
 	keystore: &SyncCryptoStorePtr,
-) -> Option<crate::digest::PreDigest> {
+) -> Option<PreDigest> {
 	let transcript = make_transcript(relay_slot_number, relay_storage_root.clone());
 	let transcript_data = make_transcript_data(relay_slot_number, relay_storage_root);
 	let try_sign =

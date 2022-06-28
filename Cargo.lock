@@ -11913,6 +11913,7 @@ dependencies = [
  "sp-api",
  "sp-application-crypto",
  "sp-consensus-babe",
+ "sp-consensus-vrf",
  "sp-inherents",
  "sp-keystore",
  "sp-runtime",
