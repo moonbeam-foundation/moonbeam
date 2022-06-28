@@ -8252,26 +8252,50 @@ mod jit_migrate_reserve_to_locks_tests {
 
 	pub fn ensure_delegator_unmigrated(account_id: u64, balance: u128) {
 		assert_eq!(Balances::reserved_balance(account_id), balance);
-		assert_eq!(crate::mock::query_lock_amount(account_id, DELEGATOR_LOCK_ID), None);
-		assert_eq!(<DelegatorReserveToLockMigrations<Test>>::get(account_id), false);
+		assert_eq!(
+			crate::mock::query_lock_amount(account_id, DELEGATOR_LOCK_ID),
+			None
+		);
+		assert_eq!(
+			<DelegatorReserveToLockMigrations<Test>>::get(account_id),
+			false
+		);
 	}
 
 	pub fn ensure_delegator_migrated(account_id: u64, balance: u128) {
 		assert_eq!(Balances::reserved_balance(account_id), 0);
-		assert_eq!(crate::mock::query_lock_amount(account_id, DELEGATOR_LOCK_ID), Some(balance));
-		assert_eq!(<DelegatorReserveToLockMigrations<Test>>::get(account_id), true);
+		assert_eq!(
+			crate::mock::query_lock_amount(account_id, DELEGATOR_LOCK_ID),
+			Some(balance)
+		);
+		assert_eq!(
+			<DelegatorReserveToLockMigrations<Test>>::get(account_id),
+			true
+		);
 	}
 
 	pub fn ensure_collator_unmigrated(account_id: u64, balance: u128) {
 		assert_eq!(Balances::reserved_balance(account_id), balance);
-		assert_eq!(crate::mock::query_lock_amount(account_id, COLLATOR_LOCK_ID), None);
-		assert_eq!(<CollatorReserveToLockMigrations<Test>>::get(account_id), false);
+		assert_eq!(
+			crate::mock::query_lock_amount(account_id, COLLATOR_LOCK_ID),
+			None
+		);
+		assert_eq!(
+			<CollatorReserveToLockMigrations<Test>>::get(account_id),
+			false
+		);
 	}
 
 	pub fn ensure_collator_migrated(account_id: u64, balance: u128) {
 		assert_eq!(Balances::reserved_balance(account_id), 0);
-		assert_eq!(crate::mock::query_lock_amount(account_id, COLLATOR_LOCK_ID), Some(balance));
-		assert_eq!(<CollatorReserveToLockMigrations<Test>>::get(account_id), true);
+		assert_eq!(
+			crate::mock::query_lock_amount(account_id, COLLATOR_LOCK_ID),
+			Some(balance)
+		);
+		assert_eq!(
+			<CollatorReserveToLockMigrations<Test>>::get(account_id),
+			true
+		);
 	}
 
 	#[test]
@@ -8778,7 +8802,12 @@ mod jit_migrate_reserve_to_locks_tests {
 				ensure_delegator_unmigrated(2, 50);
 				ensure_delegator_unmigrated(3, 25);
 
-				assert_ok!(ParachainStaking::hotfix_migrate_delegators_from_reserve_to_locks(Origin::signed(2), vec![2, 3]));
+				assert_ok!(
+					ParachainStaking::hotfix_migrate_delegators_from_reserve_to_locks(
+						Origin::signed(2),
+						vec![2, 3]
+					)
+				);
 
 				ensure_delegator_migrated(2, 50);
 				ensure_delegator_migrated(3, 25);
@@ -8800,12 +8829,16 @@ mod jit_migrate_reserve_to_locks_tests {
 				ensure_collator_unmigrated(2, 25);
 				ensure_collator_unmigrated(3, 30);
 
-				assert_ok!(ParachainStaking::hotfix_migrate_collators_from_reserve_to_locks(Origin::signed(1), vec![1, 2, 3]));
+				assert_ok!(
+					ParachainStaking::hotfix_migrate_collators_from_reserve_to_locks(
+						Origin::signed(1),
+						vec![1, 2, 3]
+					)
+				);
 
 				ensure_collator_migrated(1, 20);
 				ensure_collator_migrated(2, 25);
 				ensure_collator_migrated(3, 30);
-
 			});
 	}
 
@@ -8816,8 +8849,18 @@ mod jit_migrate_reserve_to_locks_tests {
 			.build()
 			.execute_with(|| {
 				// shouldn't fail
-				assert_ok!(ParachainStaking::hotfix_migrate_delegators_from_reserve_to_locks(Origin::signed(2), vec![1]));
-				assert_ok!(ParachainStaking::hotfix_migrate_collators_from_reserve_to_locks(Origin::signed(2), vec![1]));
+				assert_ok!(
+					ParachainStaking::hotfix_migrate_delegators_from_reserve_to_locks(
+						Origin::signed(2),
+						vec![1]
+					)
+				);
+				assert_ok!(
+					ParachainStaking::hotfix_migrate_collators_from_reserve_to_locks(
+						Origin::signed(2),
+						vec![1]
+					)
+				);
 			});
 	}
 
@@ -8836,8 +8879,18 @@ mod jit_migrate_reserve_to_locks_tests {
 				ensure_delegator_unmigrated(2, 25);
 
 				// shouldn't fail
-				assert_ok!(ParachainStaking::hotfix_migrate_delegators_from_reserve_to_locks(Origin::signed(3), vec![1]));
-				assert_ok!(ParachainStaking::hotfix_migrate_collators_from_reserve_to_locks(Origin::signed(3), vec![2]));
+				assert_ok!(
+					ParachainStaking::hotfix_migrate_delegators_from_reserve_to_locks(
+						Origin::signed(3),
+						vec![1]
+					)
+				);
+				assert_ok!(
+					ParachainStaking::hotfix_migrate_collators_from_reserve_to_locks(
+						Origin::signed(3),
+						vec![2]
+					)
+				);
 
 				// both should remain unmigrated
 				ensure_collator_unmigrated(1, 20);
@@ -8859,15 +8912,35 @@ mod jit_migrate_reserve_to_locks_tests {
 				ensure_collator_unmigrated(1, 20);
 				ensure_delegator_unmigrated(2, 25);
 
-				assert_ok!(ParachainStaking::hotfix_migrate_collators_from_reserve_to_locks(Origin::signed(3), vec![1]));
-				assert_ok!(ParachainStaking::hotfix_migrate_delegators_from_reserve_to_locks(Origin::signed(3), vec![2]));
+				assert_ok!(
+					ParachainStaking::hotfix_migrate_collators_from_reserve_to_locks(
+						Origin::signed(3),
+						vec![1]
+					)
+				);
+				assert_ok!(
+					ParachainStaking::hotfix_migrate_delegators_from_reserve_to_locks(
+						Origin::signed(3),
+						vec![2]
+					)
+				);
 
 				ensure_collator_migrated(1, 20);
 				ensure_delegator_migrated(2, 25);
 
 				// migrate again, should be ok
-				assert_ok!(ParachainStaking::hotfix_migrate_collators_from_reserve_to_locks(Origin::signed(3), vec![1]));
-				assert_ok!(ParachainStaking::hotfix_migrate_delegators_from_reserve_to_locks(Origin::signed(3), vec![2]));
+				assert_ok!(
+					ParachainStaking::hotfix_migrate_collators_from_reserve_to_locks(
+						Origin::signed(3),
+						vec![1]
+					)
+				);
+				assert_ok!(
+					ParachainStaking::hotfix_migrate_delegators_from_reserve_to_locks(
+						Origin::signed(3),
+						vec![2]
+					)
+				);
 
 				// still migrated
 				ensure_collator_migrated(1, 20);
@@ -8890,8 +8963,18 @@ mod jit_migrate_reserve_to_locks_tests {
 				ensure_delegator_unmigrated(2, 25);
 
 				// migrating self
-				assert_ok!(ParachainStaking::hotfix_migrate_collators_from_reserve_to_locks(Origin::signed(1), vec![1]));
-				assert_ok!(ParachainStaking::hotfix_migrate_delegators_from_reserve_to_locks(Origin::signed(2), vec![2]));
+				assert_ok!(
+					ParachainStaking::hotfix_migrate_collators_from_reserve_to_locks(
+						Origin::signed(1),
+						vec![1]
+					)
+				);
+				assert_ok!(
+					ParachainStaking::hotfix_migrate_delegators_from_reserve_to_locks(
+						Origin::signed(2),
+						vec![2]
+					)
+				);
 
 				ensure_collator_migrated(1, 20);
 				ensure_delegator_migrated(2, 25);
@@ -8913,8 +8996,18 @@ mod jit_migrate_reserve_to_locks_tests {
 				ensure_delegator_unmigrated(2, 25);
 
 				// 3 (not delegating or collating) can migrate
-				assert_ok!(ParachainStaking::hotfix_migrate_collators_from_reserve_to_locks(Origin::signed(3), vec![1]));
-				assert_ok!(ParachainStaking::hotfix_migrate_delegators_from_reserve_to_locks(Origin::signed(3), vec![2]));
+				assert_ok!(
+					ParachainStaking::hotfix_migrate_collators_from_reserve_to_locks(
+						Origin::signed(3),
+						vec![1]
+					)
+				);
+				assert_ok!(
+					ParachainStaking::hotfix_migrate_delegators_from_reserve_to_locks(
+						Origin::signed(3),
+						vec![2]
+					)
+				);
 
 				ensure_collator_migrated(1, 20);
 				ensure_delegator_migrated(2, 25);
@@ -8936,7 +9029,10 @@ mod jit_migrate_reserve_to_locks_tests {
 				ensure_delegator_unmigrated(2, 25);
 
 				assert_noop!(
-					ParachainStaking::hotfix_migrate_collators_from_reserve_to_locks(Origin::signed(3), vec![1; 100]),
+					ParachainStaking::hotfix_migrate_collators_from_reserve_to_locks(
+						Origin::signed(3),
+						vec![1; 100]
+					),
 					DispatchError::Module(ModuleError {
 						index: 2,
 						error: [8, 0, 0, 0],
@@ -8944,7 +9040,10 @@ mod jit_migrate_reserve_to_locks_tests {
 					})
 				);
 				assert_noop!(
-					ParachainStaking::hotfix_migrate_delegators_from_reserve_to_locks(Origin::signed(3), vec![2; 100]),
+					ParachainStaking::hotfix_migrate_delegators_from_reserve_to_locks(
+						Origin::signed(3),
+						vec![2; 100]
+					),
 					DispatchError::Module(ModuleError {
 						index: 2,
 						error: [8, 0, 0, 0],
@@ -8957,8 +9056,18 @@ mod jit_migrate_reserve_to_locks_tests {
 				ensure_delegator_unmigrated(2, 25);
 
 				// migrating same collator/delegator 99 times should be fine, though
-				assert_ok!(ParachainStaking::hotfix_migrate_collators_from_reserve_to_locks(Origin::signed(3), vec![1; 99]));
-				assert_ok!(ParachainStaking::hotfix_migrate_delegators_from_reserve_to_locks(Origin::signed(3), vec![2; 99]));
+				assert_ok!(
+					ParachainStaking::hotfix_migrate_collators_from_reserve_to_locks(
+						Origin::signed(3),
+						vec![1; 99]
+					)
+				);
+				assert_ok!(
+					ParachainStaking::hotfix_migrate_delegators_from_reserve_to_locks(
+						Origin::signed(3),
+						vec![2; 99]
+					)
+				);
 
 				// migrated at least once
 				ensure_collator_migrated(1, 20);
