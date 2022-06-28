@@ -24,8 +24,8 @@ sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v
 
 
 # Frontier
-fp-evm = { git = "https://github.com/purestake/frontier-private", branch = "perm-runtime-1606", default-features = false }
-pallet-evm = { git = "https://github.com/purestake/frontier-private", branch = "perm-runtime-1606", default-features = false }
+fp-evm = { git = "https://github.com/purestake/frontier", branch = "perm-runtime-1606", default-features = false }
+pallet-evm = { git = "https://github.com/purestake/frontier", branch = "perm-runtime-1606", default-features = false }
 
 # Cumulus
 cumulus-primitives-core = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.20", default-features = false }

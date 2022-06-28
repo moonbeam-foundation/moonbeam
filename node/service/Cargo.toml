@@ -90,15 +90,15 @@ substrate-frame-rpc-system = { git = "https://github.com/paritytech/substrate", 
 substrate-prometheus-endpoint = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20" }
 
 # Frontier
-fc-consensus = { git = "https://github.com/purestake/frontier-private", branch = "perm-runtime-1606" }
-fc-db = { git = "https://github.com/purestake/frontier-private", branch = "perm-runtime-1606" }
-fc-mapping-sync = { git = "https://github.com/purestake/frontier-private", branch = "perm-runtime-1606" }
-fc-rpc = { git = "https://github.com/purestake/frontier-private", branch = "perm-runtime-1606", features = [ "rpc_binary_search_estimate" ] }
-fc-rpc-core = { git = "https://github.com/purestake/frontier-private", branch = "perm-runtime-1606" }
-fp-consensus = { git = "https://github.com/purestake/frontier-private", branch = "perm-runtime-1606" }
-fp-rpc = { git = "https://github.com/purestake/frontier-private", branch = "perm-runtime-1606" }
-fp-storage = { git = "https://github.com/purestake/frontier-private", branch = "perm-runtime-1606" }
-pallet-ethereum = { git = "https://github.com/purestake/frontier-private", branch = "perm-runtime-1606" }
+fc-consensus = { git = "https://github.com/purestake/frontier", branch = "perm-runtime-1606" }
+fc-db = { git = "https://github.com/purestake/frontier", branch = "perm-runtime-1606" }
+fc-mapping-sync = { git = "https://github.com/purestake/frontier", branch = "perm-runtime-1606" }
+fc-rpc = { git = "https://github.com/purestake/frontier", branch = "perm-runtime-1606", features = [ "rpc_binary_search_estimate" ] }
+fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "perm-runtime-1606" }
+fp-consensus = { git = "https://github.com/purestake/frontier", branch = "perm-runtime-1606" }
+fp-rpc = { git = "https://github.com/purestake/frontier", branch = "perm-runtime-1606" }
+fp-storage = { git = "https://github.com/purestake/frontier", branch = "perm-runtime-1606" }
+pallet-ethereum = { git = "https://github.com/purestake/frontier", branch = "perm-runtime-1606" }
 
 # Cumulus / Nimbus
 cumulus-client-cli = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.20" }
