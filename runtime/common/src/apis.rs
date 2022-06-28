@@ -414,24 +414,14 @@ macro_rules! impl_runtime_apis_plus_common {
 
 			impl session_keys_primitives::VrfApi<Block> for Runtime {
 				fn get_relay_slot_number() -> cumulus_primitives_core::relay_chain::v2::Slot {
-					use pallet_randomness::GetVrfInput;
-					// <pallet_randomness::Pallet<Runtime> as pallet_randomness::GetVrfInput<
-					// 	pallet_randomness::VrfInput<
-					// 		cumulus_primitives_core::relay_chain::v2::Slot,
-					// 		<Block as BlockT>::Hash
-					// 	>
-					// >>::get_vrf_input().slot_number
-					// <Randomness::VrfInputGetter as GetVrfInput<
-					// 	pallet_randomness::VrfInput<
-					// 		cumulus_primitives_core::relay_chain::v2::Slot,
-					// 		<Block as BlockT>::Hash
-					// 	>
-					// >>::get_vrf_input().slot_number
-					VrfInputGetter::get_vrf_input().slot_number
+					pallet_randomness::Pallet::<Self>::current_vrf_input()
+						.expect("Expected VrfInput to be set")
+						.slot_number
 				}
 				fn get_relay_storage_root() -> <Block as BlockT>::Hash {
-					use pallet_randomness::GetVrfInput;
-					VrfInputGetter::get_vrf_input().storage_root
+					pallet_randomness::Pallet::<Self>::current_vrf_input()
+						.expect("Expected VrfInput to be set")
+						.storage_root
 				}
 				fn vrf_key_lookup(
 					nimbus_id: nimbus_primitives::NimbusId

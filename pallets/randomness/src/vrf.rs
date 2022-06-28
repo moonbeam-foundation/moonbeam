@@ -20,6 +20,8 @@ use frame_support::{pallet_prelude::Weight, traits::Get};
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
 use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
+#[cfg(feature = "std")]
+use serde::{Deserialize, Serialize};
 pub use session_keys_primitives::make_transcript;
 use session_keys_primitives::{KeysLookup, PreDigest, VrfId, VRF_ENGINE_ID, VRF_INOUT_CONTEXT};
 use sp_consensus_vrf::schnorrkel;
@@ -29,9 +31,10 @@ use sp_runtime::RuntimeDebug;
 /// VRF output
 type Randomness = schnorrkel::Randomness;
 
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
+#[derive(Default, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
 /// VRF inputs from the relay chain
 /// Both inputs are expected to change every block
-#[derive(Default, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
 pub struct VrfInput<SlotNumber, RelayHash> {
 	/// Relay block slot number
 	pub slot_number: SlotNumber,
@@ -60,8 +63,7 @@ pub(crate) fn set_input<T: Config>() {
 
 /// Returns weight consumed in `on_initialize`
 pub(crate) fn set_output<T: Config>() -> Weight {
-	// first block will be just default if it is not set, 0 input is default
-	let input = <CurrentVrfInput<T>>::get().unwrap_or_default();
+	let input = <CurrentVrfInput<T>>::get().expect("VrfInput must be set to verify VrfOutput");
 	let mut block_author_vrf_id: Option<VrfId> = None;
 	let maybe_pre_digest: Option<PreDigest> = <frame_system::Pallet<T>>::digest()
 		.logs

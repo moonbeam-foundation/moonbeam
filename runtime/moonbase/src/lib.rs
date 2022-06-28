@@ -1113,11 +1113,6 @@ impl pallet_randomness::GetBabeData<BlockNumber, u64, Option<Hash>> for BabeData
 			.flatten()
 			.expect("expected to be able to read epoch index from relay chain state proof")
 	}
-	// TODO: check if Parent_block_randomness
-	// TODO: need tests to ensure integrity between relay chain version
-	// -> smoke test that ensures value can be read for all relay chain versions
-	// (make jira ticket): extend request to be fulfilled later
-	// (only succeeds if past due and not available)
 	fn get_current_block_randomness() -> Option<Hash> {
 		relay_chain_state_proof()
 			.read_optional_entry(relay_chain::well_known_keys::CURRENT_BLOCK_RANDOMNESS)
@@ -1214,7 +1209,7 @@ construct_runtime! {
 		BaseFee: pallet_base_fee::{Pallet, Call, Storage, Config<T>, Event} = 35,
 		LocalAssets: pallet_assets::<Instance1>::{Pallet, Call, Storage, Event<T>} = 36,
 		MoonbeamOrbiters: pallet_moonbeam_orbiters::{Pallet, Call, Storage, Event<T>} = 37,
-		Randomness: pallet_randomness::{Pallet, Call, Storage, Event<T>} = 38,
+		Randomness: pallet_randomness::{Pallet, Call, Storage, Config<T>, Event<T>} = 38,
 	}
 }
 
