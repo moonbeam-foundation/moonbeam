@@ -51,7 +51,6 @@ use cumulus_relay_chain_interface::{RelayChainError, RelayChainInterface};
 use moonbeam_vrf::digest::CompatibleDigestItem;
 use nimbus_consensus::NimbusManualSealConsensusDataProvider;
 use nimbus_consensus::{BuildNimbusConsensusParams, NimbusConsensus};
-use nimbus_primitives::{DigestsProvider, NimbusId};
 use sc_executor::{NativeElseWasmExecutor, NativeExecutionDispatch};
 use sc_network::NetworkService;
 use sc_service::config::PrometheusConfig;
@@ -80,27 +79,6 @@ pub type HostFunctions = (
 	frame_benchmarking::benchmarking::HostFunctions,
 	moonbeam_primitives_ext::moonbeam_ext::HostFunctions,
 );
-
-// should live in the node near the code where it is used...
-pub struct InherentDigestProvider;
-// client needs to implement it somehow in order to access keystore and pass it in
-
-impl DigestsProvider<NimbusId, Hash> for InherentDigestProvider {
-	// TODO: is there way to do this without allocating a vec?
-	// idea: [DigestItem; 1] and then change nimbus to ignore it if it matches a hardcoded value that
-	// represents us not returning a digest
-	type Digests = Vec<sp_runtime::generic::DigestItem>;
-	fn provide_digests(&self, id: NimbusId, parent: Hash) -> Self::Digests {
-		// get the inputs to `vrf_digest` via runtime API
-		// -> use VrfKeyLookup to get VrfId from NimbusId
-		// -> get vrf input
-		// call `vrf_digest::<H>()`
-		// need to use moonbeam_vrf:::{PreDigest, CompatibleDigestItem};
-		// use sp_runtime::generic::DigestItem
-		// vec![DigestItem::vrf_pre_digest(vrf_pre_digest)]
-		Vec::new()
-	}
-}
 
 #[cfg(feature = "moonbeam-native")]
 pub struct MoonbeamExecutor;
@@ -473,8 +451,8 @@ async fn start_node_impl<RuntimeApi, Executor, BIC>(
 where
 	RuntimeApi:
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
-	RuntimeApi::RuntimeApi: RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>
-		+ VrfApi<Block>,
+	RuntimeApi::RuntimeApi:
+		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
 	Executor: NativeExecutionDispatch + 'static,
 	BIC: FnOnce(
 		Arc<TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>>,
@@ -729,7 +707,7 @@ where
 	RuntimeApi:
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
 	RuntimeApi::RuntimeApi:
-		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>> + VrfApi<Block>,
+		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
 	Executor: NativeExecutionDispatch + 'static,
 {
 	start_node_impl(
@@ -784,24 +762,18 @@ where
 					Ok((time, parachain_inherent, author, randomness))
 				}
 			};
-			let current_client = client.clone();
-			let current_keystore = keystore.clone();
+			let client_clone = client.clone();
+			let keystore_clone = keystore.clone();
 			let additional_digests_provider = move |
 				nimbus_id: nimbus_primitives::NimbusId,
 				parent: Hash
 			| -> Option<sp_runtime::generic::DigestItem> {
-				use sp_api::ProvideRuntimeApi;
-				let api = current_client.runtime_api();
-				let relay_slot_number: polkadot_primitives::v2::Slot = api.get_relay_slot_number();
-				let relay_storage_root: Hash = api.get_relay_storage_root();
-				let key: session_keys_primitives::VrfId = api.vrf_key_lookup(nimbus_id)?;
-				let vrf_pre_digest = moonbeam_vrf::vrf_pre_digest::<Hash>(
-					relay_slot_number,
-					relay_storage_root,
-					key,
-					&*&current_keystore,
-				)?;
-				Some(CompatibleDigestItem::vrf_pre_digest(vrf_pre_digest))
+				vrf_pre_digest::<Block, FullClient<RuntimeApi, Executor>>(
+					&client_clone,
+					&keystore_clone,
+					nimbus_id,
+					parent,
+				)
 			};
 
 			Ok(NimbusConsensus::build(BuildNimbusConsensusParams {
@@ -817,6 +789,38 @@ where
 		},
 	)
 	.await
+}
+
+fn vrf_pre_digest<B: sp_runtime::traits::Block<Hash = sp_core::H256>, C>(
+	client: &C,
+	keystore: &sp_keystore::SyncCryptoStorePtr,
+	nimbus_id: nimbus_primitives::NimbusId,
+	parent: Hash,
+) -> Option<sp_runtime::generic::DigestItem>
+where
+	C: sp_api::ProvideRuntimeApi<B>,
+	C::Api: VrfApi<B>,
+{
+	let at = sp_api::BlockId::Hash(parent);
+	let relay_slot_number: polkadot_primitives::v2::Slot = client
+		.runtime_api()
+		.get_relay_slot_number(&at)
+		.expect("api error");
+	let relay_storage_root: Hash = client
+		.runtime_api()
+		.get_relay_storage_root(&at)
+		.expect("api error");
+	let key: session_keys_primitives::VrfId = client
+		.runtime_api()
+		.vrf_key_lookup(&at, nimbus_id)
+		.expect("api error")?;
+	let vrf_pre_digest = moonbeam_vrf::vrf_pre_digest::<Hash>(
+		relay_slot_number,
+		relay_storage_root,
+		key,
+		&keystore,
+	)?;
+	Some(CompatibleDigestItem::vrf_pre_digest(vrf_pre_digest))
 }
 
 /// Builds a new development service. This service uses manual seal, and mocks
