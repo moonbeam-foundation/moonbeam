@@ -25,7 +25,7 @@ describeDevMoonbeam("Staking - Genesis", (context) => {
     const expectedLocked = DEFAULT_GENESIS_STAKING;
     expect(
       locks
-        .filter((l) => l.id.toHuman() == "ColStake")
+        .filter((l) => l.id.toHuman() == "stkngcol")
         .reduce((p, v) => p + v.amount.toBigInt(), 0n)
         .toString(),
       `Wrong locks: \n ${locks.map((lock) => `${lock.id.toHuman()}: ${lock.amount}`).join("\n")}\n`

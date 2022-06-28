@@ -33,7 +33,7 @@ describeDevMoonbeam("Staking - Locks", (context) => {
     expect(result.successful).to.be.true;
     expect(locks.length).to.be.equal(1, "Missing lock");
     expect(locks[0].amount.toBigInt()).to.be.equal(DELEGATE_AMOUNT);
-    expect(locks[0].id.toHuman().toString()).to.be.equal("DelStake");
+    expect(locks[0].id.toHuman().toString()).to.be.equal("stkngdel");
   });
 });
 
@@ -125,7 +125,7 @@ describeDevMoonbeam("Staking - Locks", (context) => {
 
     // Additional check
     const locks = await context.polkadotApi.query.balances.locks(randomAccount.address);
-    expect(locks[0].id.toHuman().toString()).to.be.equal("DelStake");
+    expect(locks[0].id.toHuman().toString()).to.be.equal("stkngdel");
 
     // Fast track 2 next rounds
     const rewardDelay = context.polkadotApi.consts.parachainStaking.rewardPaymentDelay;
@@ -193,7 +193,7 @@ describeDevMoonbeam("Staking - Locks", (context) => {
     const locks = await context.polkadotApi.query.balances.locks(randomAccount.address);
     expect(locks.length).to.be.equal(1, "Missing lock");
     expect(locks[0].amount.toBigInt()).to.be.equal(DELEGATE_AMOUNT);
-    expect(locks[0].id.toHuman().toString()).to.be.equal("DelStake");
+    expect(locks[0].id.toHuman().toString()).to.be.equal("stkngdel");
   });
 });
 
@@ -259,7 +259,7 @@ describeDevMoonbeam("Staking - Locks", (context) => {
     const locks = await context.polkadotApi.query.balances.locks(randomAccount.address);
     expect(locks.length).to.be.equal(1, "Missing lock");
     expect(locks[0].amount.toBigInt()).to.be.equal(DELEGATE_AMOUNT * maxDelegationsPerDelegator);
-    expect(locks[0].id.toHuman().toString()).to.be.equal("DelStake");
+    expect(locks[0].id.toHuman().toString()).to.be.equal("stkngdel");
   });
 });
 
@@ -298,7 +298,7 @@ describeDevMoonbeam("Staking - Locks", (context) => {
 
   it("should increase for additional delegations", async function () {
     const locks = await context.polkadotApi.query.balances.locks(randomAccount.address);
-    expect(locks[0].id.toHuman().toString()).to.be.equal("DelStake");
+    expect(locks[0].id.toHuman().toString()).to.be.equal("stkngdel");
     expect(locks[0].amount.toBigInt(), `Unexpected amount for lock`).to.be.equal(
       2n * DELEGATE_AMOUNT
     );
@@ -319,6 +319,6 @@ describeDevMoonbeam("Staking - Locks", (context) => {
       `Unexpected number of locks: ${locks.map((l) => l.id.toHuman().toString()).join(` - `)}`
     );
     expect(locks[0].amount.toBigInt()).to.be.equal(MIN_GLMR_STAKING);
-    expect(locks[0].id.toHuman().toString()).to.be.equal("ColStake");
+    expect(locks[0].id.toHuman().toString()).to.be.equal("stkngcol");
   });
 });
