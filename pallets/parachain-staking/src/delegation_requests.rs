@@ -492,8 +492,6 @@ impl<T: Config> Pallet<T> {
 		// set state.total so that state.adjust_bond_lock will remove lock
 		let unstaked_amount = state.total();
 		state.total_sub::<T>(unstaked_amount)?;
-		// state.total = 0u32.into();
-		// state.adjust_bond_lock::<T>(None)?;
 
 		updated_scheduled_requests
 			.into_iter()
