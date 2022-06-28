@@ -6083,7 +6083,7 @@ dependencies = [
 [[package]]
 name = "nimbus-consensus"
 version = "0.9.0"
-source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.23#2acb2a1d09af475780eed1963f82a111bdcbd4ef"
+source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.23#a773712b33d66da3fb4f825615a9380c3014b2ad"
 dependencies = [
  "async-trait",
  "cumulus-client-consensus-common",
@@ -6114,7 +6114,7 @@ dependencies = [
 [[package]]
 name = "nimbus-primitives"
 version = "0.9.0"
-source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.23#2acb2a1d09af475780eed1963f82a111bdcbd4ef"
+source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.23#a773712b33d66da3fb4f825615a9380c3014b2ad"
 dependencies = [
  "async-trait",
  "frame-benchmarking",
@@ -6403,7 +6403,7 @@ dependencies = [
 [[package]]
 name = "orml-traits"
 version = "0.4.1-dev"
-source = "git+https://github.com/purestake/open-runtime-module-library?branch=moonbeam-polkadot-v0.9.23#542a9292a414bb8feafebac7284cdf1fe1eb409b"
+source = "git+https://github.com/purestake/open-runtime-module-library?branch=moonbeam-polkadot-v0.9.23#599ae0ec7186fd4e1bc2be1b4a0493bfda685c76"
 dependencies = [
  "frame-support",
  "impl-trait-for-tuples",
@@ -6421,7 +6421,7 @@ dependencies = [
 [[package]]
 name = "orml-utilities"
 version = "0.4.1-dev"
-source = "git+https://github.com/purestake/open-runtime-module-library?branch=moonbeam-polkadot-v0.9.23#542a9292a414bb8feafebac7284cdf1fe1eb409b"
+source = "git+https://github.com/purestake/open-runtime-module-library?branch=moonbeam-polkadot-v0.9.23#599ae0ec7186fd4e1bc2be1b4a0493bfda685c76"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -6435,7 +6435,7 @@ dependencies = [
 [[package]]
 name = "orml-xcm-support"
 version = "0.4.1-dev"
-source = "git+https://github.com/purestake/open-runtime-module-library?branch=moonbeam-polkadot-v0.9.23#542a9292a414bb8feafebac7284cdf1fe1eb409b"
+source = "git+https://github.com/purestake/open-runtime-module-library?branch=moonbeam-polkadot-v0.9.23#599ae0ec7186fd4e1bc2be1b4a0493bfda685c76"
 dependencies = [
  "frame-support",
  "orml-traits",
@@ -6449,7 +6449,7 @@ dependencies = [
 [[package]]
 name = "orml-xtokens"
 version = "0.4.1-dev"
-source = "git+https://github.com/purestake/open-runtime-module-library?branch=moonbeam-polkadot-v0.9.23#542a9292a414bb8feafebac7284cdf1fe1eb409b"
+source = "git+https://github.com/purestake/open-runtime-module-library?branch=moonbeam-polkadot-v0.9.23#599ae0ec7186fd4e1bc2be1b4a0493bfda685c76"
 dependencies = [
  "cumulus-primitives-core",
  "frame-support",
@@ -6518,7 +6518,7 @@ dependencies = [
 [[package]]
 name = "pallet-author-inherent"
 version = "0.9.0"
-source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.23#2acb2a1d09af475780eed1963f82a111bdcbd4ef"
+source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.23#a773712b33d66da3fb4f825615a9380c3014b2ad"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6558,7 +6558,7 @@ dependencies = [
 [[package]]
 name = "pallet-author-slot-filter"
 version = "0.9.0"
-source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.23#2acb2a1d09af475780eed1963f82a111bdcbd4ef"
+source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.23#a773712b33d66da3fb4f825615a9380c3014b2ad"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6827,7 +6827,7 @@ dependencies = [
 [[package]]
 name = "pallet-crowdloan-rewards"
 version = "0.6.0"
-source = "git+https://github.com/purestake/crowdloan-rewards?branch=moonbeam-polkadot-v0.9.23#658b06c4432b44b91a64a160ff87dba6718599e8"
+source = "git+https://github.com/purestake/crowdloan-rewards?branch=moonbeam-polkadot-v0.9.23#9447c7075bf606c815cd8acd5d4f54579dc33de5"
 dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
