@@ -51,8 +51,8 @@ pub(crate) fn set_input<T: Config>() {
 		{
 			log::warn!(
 				"VRF on_initialize: storage root or slot number did not change between \
-            current and last block. Nimbus would've panicked if slot number did not change \
-            so probably storage root did not change."
+			current and last block. Nimbus would've panicked if slot number did not change \
+			so probably storage root did not change."
 			);
 		}
 	}
@@ -62,7 +62,6 @@ pub(crate) fn set_input<T: Config>() {
 /// Returns weight consumed in `on_initialize`
 pub(crate) fn set_output<T: Config>() -> Weight {
 	// first block will be just default if it is not set, 0 input is default
-	// TODO: client will need to sign CurrentVrfInput::get().unwrap_or_default() with vrf keys
 	let input = <CurrentVrfInput<T>>::get().unwrap_or_default();
 	let mut block_author_vrf_id: Option<VrfId> = None;
 	let maybe_pre_digest: Option<PreDigest> = <frame_system::Pallet<T>>::digest()

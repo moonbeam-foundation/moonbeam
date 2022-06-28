@@ -86,12 +86,6 @@ pub struct RelayTimeInfo<BlockNumber, EpochIndex> {
 	pub relay_epoch_index: EpochIndex,
 }
 
-// randomness is unknown but predictable
-// upon request creation, add storage item with babe_value: None
-// EpochRequests epoch_number => struct { Option<randomness>, num_requests }
-//  (also needs to track number of requests and once 0, remove)
-// in inherent, check if storage item for epoch and set value to it and if none, don't set value (only set when a new epoch)
-
 #[derive(PartialEq, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
 #[scale_info(skip_type_params(T))]
 /// Input arguments to request randomness
@@ -219,7 +213,7 @@ impl<T: Config> Request<T> {
 				KeepAlive,
 			)
 			.expect("just unreserved deposit + fee => excess must be transferrable");
-		} // TODO: else should log warning or emit event that no refund happened???
+		} // TODO: else should log warning or emit event that no refund happened?
 	}
 }
 

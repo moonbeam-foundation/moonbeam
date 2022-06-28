@@ -24,6 +24,7 @@ use session_keys_primitives::{make_transcript, make_transcript_data, VrfApi, Vrf
 use sp_application_crypto::{AppKey, ByteArray};
 use sp_consensus_babe::Slot;
 use sp_consensus_vrf::schnorrkel::{PublicKey, VRFOutput, VRFProof};
+use sp_core::H256;
 use sp_keystore::{SyncCryptoStore, SyncCryptoStorePtr};
 
 /// Uses the runtime API to get the VRF inputs and sign them with the VRF key that
@@ -32,7 +33,7 @@ pub fn vrf_pre_digest<B, C>(
 	client: &C,
 	keystore: &SyncCryptoStorePtr,
 	nimbus_id: NimbusId,
-	parent: sp_core::H256,
+	parent: H256,
 ) -> Option<sp_runtime::generic::DigestItem>
 where
 	B: sp_runtime::traits::Block<Hash = sp_core::H256>,
@@ -44,7 +45,7 @@ where
 		.runtime_api()
 		.get_relay_slot_number(&at)
 		.expect("api error");
-	let relay_storage_root: sp_core::H256 = client
+	let relay_storage_root: H256 = client
 		.runtime_api()
 		.get_relay_storage_root(&at)
 		.expect("api error");
@@ -52,8 +53,7 @@ where
 		.runtime_api()
 		.vrf_key_lookup(&at, nimbus_id)
 		.expect("api error")?;
-	let vrf_pre_digest =
-		sign_vrf::<sp_core::H256>(relay_slot_number, relay_storage_root, key, &keystore)?;
+	let vrf_pre_digest = sign_vrf(relay_slot_number, relay_storage_root, key, &keystore)?;
 	Some(crate::digest::CompatibleDigestItem::vrf_pre_digest(
 		vrf_pre_digest,
 	))
@@ -63,9 +63,9 @@ where
 /// to be found in the input keystore
 /// Returns None if key not found in keystore or if signature output cannot be validated by input
 /// If successful, returns Some(VRF pre-digest)
-fn sign_vrf<Hash: AsRef<[u8]> + Clone>(
+fn sign_vrf(
 	relay_slot_number: Slot,
-	relay_storage_root: Hash,
+	relay_storage_root: H256,
 	key: VrfId,
 	keystore: &SyncCryptoStorePtr,
 ) -> Option<crate::digest::PreDigest> {
