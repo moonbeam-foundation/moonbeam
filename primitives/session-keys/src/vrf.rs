@@ -89,6 +89,14 @@ sp_application_crypto::with_pair! {
 	pub type VrfPair = vrf_crypto::Pair;
 }
 
+sp_api::decl_runtime_apis! {
+	pub trait VrfApi {
+		fn get_relay_slot_number() -> sp_consensus_babe::Slot;
+		fn get_relay_storage_root() -> Block::Hash;
+		fn vrf_key_lookup(nimbus_id: nimbus_primitives::NimbusId) -> Option<crate::VrfId>;
+	}
+}
+
 #[test]
 fn nimbus_to_vrf_id() {
 	for x in 0u8..10u8 {

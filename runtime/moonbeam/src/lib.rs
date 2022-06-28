@@ -29,7 +29,8 @@
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use account::AccountId20;
-use cumulus_pallet_parachain_system::RelaychainBlockNumberProvider;
+use cumulus_pallet_parachain_system::{RelayChainStateProof, RelaychainBlockNumberProvider};
+use cumulus_primitives_core::relay_chain::{self, v2::Slot};
 use fp_rpc::TransactionStatus;
 
 // Re-export required by get! macro.
@@ -1073,6 +1074,88 @@ impl pallet_moonbeam_orbiters::Config for Runtime {
 	type WeightInfo = pallet_moonbeam_orbiters::weights::SubstrateWeight<Runtime>;
 }
 
+/// Only callable after `set_validation_data` is called which forms this proof the same way
+fn relay_chain_state_proof() -> RelayChainStateProof {
+	let relay_storage_root = ParachainSystem::validation_data()
+		.expect("set in `set_validation_data`")
+		.relay_parent_storage_root;
+	let relay_chain_state =
+		ParachainSystem::relay_state_proof().expect("set in `set_validation_data`");
+	RelayChainStateProof::new(ParachainInfo::get(), relay_storage_root, relay_chain_state)
+		.expect("Invalid relay chain state proof, already constructed in `set_validation_data`")
+}
+
+pub struct BabeDataGetter;
+impl pallet_randomness::GetBabeData<BlockNumber, u64, Option<Hash>> for BabeDataGetter {
+	// Tolerate panic here because only ever called in inherent (so can be omitted)
+	fn get_relay_block_number() -> BlockNumber {
+		ParachainSystem::validation_data()
+			.expect("set in `set_validation_data`inherent => available before on_initialize")
+			.relay_parent_number
+	}
+	// Tolerate panic here because only ever called in inherent (so can be omitted)
+	fn get_relay_epoch_index() -> u64 {
+		relay_chain_state_proof()
+			.read_optional_entry(relay_chain::well_known_keys::EPOCH_INDEX)
+			.ok()
+			.flatten()
+			.expect("expected to be able to read epoch index from relay chain state proof")
+	}
+	// TODO: check if Parent_block_randomness
+	// TODO: need tests to ensure integrity between relay chain version
+	// -> smoke test that ensures value can be read for all relay chain versions
+	// (make jira ticket): extend request to be fulfilled later
+	// (only succeeds if past due and not available)
+	fn get_current_block_randomness() -> Option<Hash> {
+		relay_chain_state_proof()
+			.read_optional_entry(relay_chain::well_known_keys::CURRENT_BLOCK_RANDOMNESS)
+			.ok()
+			.flatten()
+	}
+	fn get_one_epoch_ago_randomness() -> Option<Hash> {
+		relay_chain_state_proof()
+			.read_optional_entry(relay_chain::well_known_keys::ONE_EPOCH_AGO_RANDOMNESS)
+			.ok()
+			.flatten()
+	}
+	fn get_two_epochs_ago_randomness() -> Option<Hash> {
+		relay_chain_state_proof()
+			.read_optional_entry(relay_chain::well_known_keys::TWO_EPOCHS_AGO_RANDOMNESS)
+			.ok()
+			.flatten()
+	}
+}
+
+pub struct VrfInputGetter;
+impl pallet_randomness::GetVrfInput<pallet_randomness::VrfInput<Slot, Hash>> for VrfInputGetter {
+	fn get_vrf_input() -> pallet_randomness::VrfInput<Slot, Hash> {
+		pallet_randomness::VrfInput {
+			slot_number: relay_chain_state_proof()
+				.read_slot()
+				.expect("CheckInherents reads slot from state proof QED"),
+			storage_root: ParachainSystem::validation_data()
+				.expect("set in `set_validation_data`inherent => available before on_initialize")
+				.relay_parent_storage_root,
+		}
+	}
+}
+
+// TODO: set reasonable params
+parameter_types! {
+	pub const RandomnessRequestDeposit: u128 = 10;
+	pub const ExpirationDelay: BlockNumber = 100;
+}
+impl pallet_randomness::Config for Runtime {
+	type Event = Event;
+	type AddressMapping = moonbeam_runtime_common::IntoAddressMapping;
+	type ReserveCurrency = Balances;
+	type BabeDataGetter = BabeDataGetter;
+	type VrfInputGetter = VrfInputGetter;
+	type VrfKeyLookup = AuthorMapping;
+	type Deposit = RandomnessRequestDeposit;
+	type ExpirationDelay = ExpirationDelay;
+}
+
 construct_runtime! {
 	pub enum Runtime where
 		Block = Block,
@@ -1140,6 +1223,9 @@ construct_runtime! {
 		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>} = 106,
 		XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Storage, Event<T>} = 107,
 		LocalAssets: pallet_assets::<Instance1>::{Pallet, Call, Storage, Event<T>} = 108,
+
+		// Randomness
+		Randomness: pallet_randomness::{Pallet, Call, Storage, Event<T>} = 120,
 	}
 }
 

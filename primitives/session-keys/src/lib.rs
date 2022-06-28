@@ -18,10 +18,8 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 pub mod inherent;
-pub mod runtime_api;
 pub mod vrf;
 pub use inherent::*;
-pub use runtime_api::*;
 pub use vrf::*;
 
 /// A Trait to lookup keys from AuthorIds

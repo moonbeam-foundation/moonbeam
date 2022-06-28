@@ -60,6 +60,7 @@ use sc_service::{
 	TFullBackend, TFullClient, TaskManager,
 };
 use sc_telemetry::{Telemetry, TelemetryHandle, TelemetryWorker, TelemetryWorkerHandle};
+use session_keys_primitives::VrfApi;
 use sp_api::ConstructRuntimeApi;
 use sp_blockchain::HeaderBackend;
 use sp_keystore::SyncCryptoStorePtr;
@@ -296,8 +297,8 @@ where
 	Client: From<Arc<crate::FullClient<RuntimeApi, Executor>>>,
 	RuntimeApi:
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
-	RuntimeApi::RuntimeApi:
-		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
+	RuntimeApi::RuntimeApi: RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>
+		+ VrfApi<Block>,
 	Executor: NativeExecutionDispatch + 'static,
 {
 	config.keystore = sc_service::config::KeystoreConfig::InMemory;
@@ -361,8 +362,8 @@ pub fn new_partial<RuntimeApi, Executor>(
 where
 	RuntimeApi:
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
-	RuntimeApi::RuntimeApi:
-		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
+	RuntimeApi::RuntimeApi: RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>
+		+ VrfApi<Block>,
 	Executor: NativeExecutionDispatch + 'static,
 {
 	set_prometheus_registry(config)?;
@@ -472,8 +473,8 @@ async fn start_node_impl<RuntimeApi, Executor, BIC>(
 where
 	RuntimeApi:
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
-	RuntimeApi::RuntimeApi:
-		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
+	RuntimeApi::RuntimeApi: RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>
+		+ VrfApi<Block>,
 	Executor: NativeExecutionDispatch + 'static,
 	BIC: FnOnce(
 		Arc<TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>>,
@@ -728,7 +729,7 @@ where
 	RuntimeApi:
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
 	RuntimeApi::RuntimeApi:
-		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
+		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>> + VrfApi<Block>,
 	Executor: NativeExecutionDispatch + 'static,
 {
 	start_node_impl(
@@ -783,22 +784,24 @@ where
 					Ok((time, parachain_inherent, author, randomness))
 				}
 			};
-			// must be defined here to access client runtime API in this function
-			// type Digests = Option<DigestItem> should work
-			let additional_digests_provider =  |nimbus_id: nimbus_primitives::NimbusId, parent: Hash| -> Option<sp_runtime::generic::DigestItem> {
-				let relay_slot_number: polkadot_primitives::v2::Slot = todo!(); // get using runtime API
-				let relay_storage_root: Hash = todo!(); // get using runtime API
-				let key: session_keys_primitives::VrfId = todo!(); // get using runtime API VrfKeyLookup
-				if let Some(vrf_pre_digest) = moonbeam_vrf::vrf_pre_digest::<Hash>(
+			let current_client = client.clone();
+			let current_keystore = keystore.clone();
+			let additional_digests_provider = move |
+				nimbus_id: nimbus_primitives::NimbusId,
+				parent: Hash
+			| -> Option<sp_runtime::generic::DigestItem> {
+				use sp_api::ProvideRuntimeApi;
+				let api = current_client.runtime_api();
+				let relay_slot_number: polkadot_primitives::v2::Slot = api.get_relay_slot_number();
+				let relay_storage_root: Hash = api.get_relay_storage_root();
+				let key: session_keys_primitives::VrfId = api.vrf_key_lookup(nimbus_id)?;
+				let vrf_pre_digest = moonbeam_vrf::vrf_pre_digest::<Hash>(
 					relay_slot_number,
 					relay_storage_root,
 					key,
-					&*&keystore,
-				) {
-					Some(CompatibleDigestItem::vrf_pre_digest(vrf_pre_digest))
-				} else {
-					None
-				}
+					&*&current_keystore,
+				)?;
+				Some(CompatibleDigestItem::vrf_pre_digest(vrf_pre_digest))
 			};
 
 			Ok(NimbusConsensus::build(BuildNimbusConsensusParams {
@@ -827,8 +830,8 @@ pub fn new_dev<RuntimeApi, Executor>(
 where
 	RuntimeApi:
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
-	RuntimeApi::RuntimeApi:
-		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
+	RuntimeApi::RuntimeApi: RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>
+		+ VrfApi<Block>,
 	Executor: NativeExecutionDispatch + 'static,
 {
 	use async_io::Timer;

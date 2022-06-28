@@ -14,7 +14,7 @@ sp-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v
 sp-application-crypto = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
 sp-consensus-babe = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
 sp-inherents = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
-sp-keystore = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false, optional = true }
+sp-keystore = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", optional = true, default-features = false }
 sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
 
 [features]
@@ -28,6 +28,6 @@ std = [
 	"sp-application-crypto/std",
 	"sp-consensus-babe/std",
 	"sp-inherents/std",
-	"sp-runtime/std",
 	"sp-keystore",
+	"sp-runtime/std",
 ]
