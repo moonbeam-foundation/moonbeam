@@ -14,20 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+use frame_support::{ensure, traits::Contains, weights::Weight};
 /// Allows execution from `origin` if it is contained in `T` (i.e. `T::Contains(origin)`) taking
 /// payments into account and if it starts with DescendOrigin.
 ///
 /// Only allows for `DescendOrigin` + `WithdrawAsset`, + `BuyExecution`
-
 use sp_std::marker::PhantomData;
-use frame_support::{
-	ensure,
-	traits::Contains,
-	weights::Weight,
-};
 use xcm::latest::{
 	prelude::{BuyExecution, DescendOrigin, WithdrawAsset},
-    MultiLocation,
+	MultiLocation,
 	WeightLimit::{Limited, Unlimited},
 	Xcm,
 };

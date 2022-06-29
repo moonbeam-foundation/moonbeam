@@ -22,7 +22,6 @@ use xcm::latest::MultiLocation;
 
 use xcm_executor::traits::Convert;
 
-
 // Struct that converts a given MultiLocation into a 20 bytes account id by hashing
 // with blake2_256 and taking the first 20 bytes
 pub struct Account20Hash<AccountId>(PhantomData<AccountId>);

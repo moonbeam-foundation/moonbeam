@@ -14,16 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use frame_support::{
-	traits::{Get, OriginTrait},
-};
+use frame_support::traits::{Get, OriginTrait};
 use orml_traits::location::{RelativeReserveProvider, Reserve};
 use sp_std::{convert::TryInto, marker::PhantomData};
-use xcm::latest::{
-	Junction::AccountKey20,
-	Junctions::*,
-	MultiAsset, MultiLocation, NetworkId,
-};
+use xcm::latest::{Junction::AccountKey20, Junctions::*, MultiAsset, MultiLocation, NetworkId};
 
 /// Instructs how to convert a 20 byte accountId into a MultiLocation
 pub struct AccountIdToMultiLocation<AccountId>(sp_std::marker::PhantomData<AccountId>);

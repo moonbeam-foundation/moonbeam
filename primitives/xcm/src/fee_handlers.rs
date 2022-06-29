@@ -27,8 +27,7 @@ use frame_support::{
 use sp_runtime::traits::Zero;
 use sp_std::marker::PhantomData;
 use xcm::latest::{
-	AssetId as xcmAssetId, Error as XcmError, Fungibility,
-	MultiAsset, MultiLocation,
+	AssetId as xcmAssetId, Error as XcmError, Fungibility, MultiAsset, MultiLocation,
 };
 
 use xcm_builder::TakeRevenue;
