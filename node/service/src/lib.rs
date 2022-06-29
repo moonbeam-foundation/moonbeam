@@ -954,7 +954,9 @@ where
 							raw_horizontal_messages: hrmp_xcm_receiver.drain().collect(),
 						};
 
-						Ok((time, mocked_parachain))
+						let randomness = session_keys_primitives::InherentDataProvider;
+
+						Ok((time, mocked_parachain, randomness))
 					}
 				},
 			}),
