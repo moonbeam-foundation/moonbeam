@@ -9077,7 +9077,7 @@ mod jit_migrate_reserve_to_locks_tests {
 
 	#[test]
 	fn test_bumping_bottom_delegator_doesnt_leave_reserve() {
-        use crate::DelegatorState;
+		use crate::DelegatorState;
 
 		ExtBuilder::default()
 			.with_balances(vec![
@@ -9129,17 +9129,17 @@ mod jit_migrate_reserve_to_locks_tests {
 					crate::mock::MaxBottomDelegationsPerCandidate::get(),
 				);
 
-                // top and bottom delegations are full. now make sure the bottommost is unmigrated
+				// top and bottom delegations are full. now make sure the bottommost is unmigrated
 				crate::mock::unmigrate_delegator_from_lock_to_reserve(8);
 				ensure_delegator_unmigrated(8, 17);
 				assert!(<DelegatorState<Test>>::get(8).is_some());
 
-                // delegate with delegator 9 and kick delegator 8 out
-                assert_ok!(ParachainStaking::delegate(Origin::signed(9), 100, 18, 8, 0));
+				// delegate with delegator 9 and kick delegator 8 out
+				assert_ok!(ParachainStaking::delegate(Origin::signed(9), 100, 18, 8, 0));
 
-                // 18 should have no reserved balance and should not be delegating
+				// 18 should have no reserved balance and should not be delegating
 				assert!(<DelegatorState<Test>>::get(8).is_none());
-                assert_eq!(Balances::reserved_balance(8), 0);
+				assert_eq!(Balances::reserved_balance(8), 0);
 			});
 	}
 
