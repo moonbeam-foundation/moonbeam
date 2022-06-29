@@ -712,11 +712,11 @@ describeDevMoonbeam(
 describeDevMoonbeam("Raw trace limits", (context) => {
   it("it should not trace call that would produce too big responses", async function () {
     this.timeout(50000);
-    const { contract: contract, rawTx } = await createContract(context, "TracerFilter");
+    const { contract: contract, rawTx } = await createContract(context, "TraceFilter", {}, [false]);
     await context.createBlock(rawTx);
 
     const contractInterface = new ethers.utils.Interface(
-      (await getCompiled("TracerFilter")).contract.abi
+      (await getCompiled("TraceFilter")).contract.abi
     );
 
     let callTx = await context.web3.eth.accounts.signTransaction(
