@@ -918,7 +918,7 @@ where
 		let additional_digests_provider = move |nimbus_id: nimbus_primitives::NimbusId,
 		                                        parent: Hash|
 		      -> Option<sp_runtime::generic::DigestItem> {
-			moonbeam_vrf::mock_vrf_pre_digest::<Block, FullClient<RuntimeApi, Executor>>(
+			moonbeam_vrf::vrf_pre_digest::<Block, FullClient<RuntimeApi, Executor>>(
 				&client_clone,
 				&keystore_clone,
 				nimbus_id,
