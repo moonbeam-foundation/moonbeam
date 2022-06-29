@@ -185,6 +185,11 @@ pub struct RunCmd {
 	#[clap(long, default_value = "300000000")]
 	pub eth_statuses_cache: usize,
 
+	/// Size in bytes of data a raw tracing request is allowed to use.
+	/// Bound the size of memory, stack and storage data.
+	#[clap(long, default_value = "20000000")]
+	pub tracing_raw_max_memory_usage: usize,
+
 	/// Maximum number of logs in a query.
 	#[clap(long, default_value = "10000")]
 	pub max_past_logs: u32,

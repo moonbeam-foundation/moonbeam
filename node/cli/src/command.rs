@@ -746,6 +746,7 @@ pub fn run() -> Result<()> {
 					fee_history_limit: cli.run.fee_history_limit,
 					max_past_logs: cli.run.max_past_logs,
 					relay_chain_rpc_url: cli.run.base.relay_chain_rpc_url,
+					tracing_raw_max_memory_usage: cli.run.tracing_raw_max_memory_usage,
 				};
 
 				// If dev service was requested, start up manual or instant seal.
