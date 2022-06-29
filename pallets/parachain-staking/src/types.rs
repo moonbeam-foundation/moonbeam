@@ -1225,7 +1225,7 @@ pub struct Delegator<AccountId, Balance> {
 	/// All current delegations
 	pub delegations: OrderedSet<Bond<AccountId, Balance>>,
 	/// Total balance locked for this delegator
-	total: Balance,	// probably will make it public anyway due to JSON fields
+	pub total: Balance,
 	/// Sum of pending revocation amounts + bond less amounts
 	pub less_total: Balance,
 	/// Status for this delegator

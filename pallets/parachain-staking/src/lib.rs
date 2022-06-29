@@ -1380,6 +1380,54 @@ pub mod pallet {
 
 			Ok(().into())
 		}
+
+		/// Hotfix to migrate a delegator's reserve to a lock. For any given delegator in the
+		/// provided list:
+		/// * this fn is idempotent
+		/// * is safe to call if the delegator doesn't exist
+		/// * is safe to call if the delegator has been migrated
+		/// * is safe to call if the delegator is a collator (this is a no-op)
+		#[pallet::weight(
+			// TODO
+			T::DbWeight::get().reads_writes(999 * delegators.len() as u64, 999 * delegators.len() as
+											u64)
+		)]
+		pub fn hotfix_migrate_delegators_from_reserve_to_locks(
+			origin: OriginFor<T>,
+			delegators: Vec<T::AccountId>,
+		) -> DispatchResult {
+			ensure_signed(origin)?;
+			ensure!(delegators.len() < 100, <Error<T>>::InsufficientBalance);
+			for delegator in &delegators {
+				let _ = Self::jit_ensure_delegator_reserve_migrated(&delegator); // ignore error
+			}
+
+			Ok(().into())
+		}
+
+		/// Hotfix to migrate a collator's reserve to a lock. For any given collator in the
+		/// provided list:
+		/// * this fn is idempotent
+		/// * is safe to call if the collator doesn't exist
+		/// * is safe to call if the collator has been migrated
+		/// * is safe to call if the collator is a collator (this is a no-op)
+		#[pallet::weight(
+			// TODO
+			T::DbWeight::get().reads_writes(999 * collators.len() as u64, 999 * collators.len() as
+											u64)
+		)]
+		pub fn hotfix_migrate_collators_from_reserve_to_locks(
+			origin: OriginFor<T>,
+			collators: Vec<T::AccountId>,
+		) -> DispatchResult {
+			ensure_signed(origin)?;
+			ensure!(collators.len() < 100, <Error<T>>::InsufficientBalance);
+			for collator in &collators {
+				let _ = Self::jit_ensure_collator_reserve_migrated(&collator); // ignore error
+			}
+
+			Ok(().into())
+		}
 	}
 
 	impl<T: Config> Pallet<T> {
@@ -1394,8 +1442,6 @@ pub mod pallet {
 		}
 		/// Returns an account's free balance which is not locked in delegation staking
 		pub fn get_delegator_stakable_free_balance(acc: &T::AccountId) -> BalanceOf<T> {
-			// TODO: may need to check if this has been migrated here.
-			// if not, this should not subtract `state.total`
 			let mut balance = T::Currency::free_balance(acc);
 			if let Some(state) = <DelegatorState<T>>::get(acc) {
 				balance = balance.saturating_sub(state.total());

@@ -42,8 +42,8 @@ use pallet_base_fee::Config as BaseFeeConfig;
 use pallet_migrations::{GetMigrations, Migration};
 use pallet_parachain_staking::{
 	migrations::{
-		ConvertReservesToLocks, IncreaseMaxDelegationsPerCandidate, PatchIncorrectDelegationSums,
-		PurgeStaleStorage, SplitDelegatorStateIntoDelegationScheduledRequests,
+		IncreaseMaxDelegationsPerCandidate, PatchIncorrectDelegationSums, PurgeStaleStorage,
+		SplitDelegatorStateIntoDelegationScheduledRequests,
 	},
 	Config as ParachainStakingConfig,
 };
@@ -606,28 +606,6 @@ impl<T: pallet_scheduler::Config> Migration for SchedulerMigrationV3<T> {
 	}
 }
 
-/// Convert staking reserves to locks
-pub struct ParachainStakingConvertStakingToLocks<T>(PhantomData<T>);
-impl<T: ParachainStakingConfig> Migration for ParachainStakingConvertStakingToLocks<T> {
-	fn friendly_name(&self) -> &str {
-		"MM_Parachain_Staking_Convert_Reserves_To_Locks"
-	}
-
-	fn migrate(&self, _available_weight: Weight) -> Weight {
-		ConvertReservesToLocks::<T>::on_runtime_upgrade()
-	}
-
-	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade(&self) -> Result<(), &'static str> {
-		ConvertReservesToLocks::<T>::pre_upgrade()
-	}
-
-	#[cfg(feature = "try-runtime")]
-	fn post_upgrade(&self) -> Result<(), &'static str> {
-		ConvertReservesToLocks::<T>::post_upgrade()
-	}
-}
-
 pub struct CommonMigrations<Runtime, Council, Tech>(PhantomData<(Runtime, Council, Tech)>);
 
 impl<Runtime, Council, Tech> GetMigrations for CommonMigrations<Runtime, Council, Tech>
@@ -673,8 +651,6 @@ where
 		// 	);
 		let migration_author_mapping_add_account_id_to_nimbus_lookup =
 			AuthorMappingAddAccountIdToNimbusLookup::<Runtime>(Default::default());
-		let migration_parachain_staking_convert_reserves_to_locks =
-			ParachainStakingConvertStakingToLocks::<Runtime>(Default::default());
 		vec![
 			// completed in runtime 800
 			// Box::new(migration_author_mapping_twox_to_blake),
@@ -700,8 +676,6 @@ where
 
 			// planned in runtime 1600
 			Box::new(migration_author_mapping_add_account_id_to_nimbus_lookup),
-			// planned in runtime 1700
-			Box::new(migration_parachain_staking_convert_reserves_to_locks),
 		]
 	}
 }

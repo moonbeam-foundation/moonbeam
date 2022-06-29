@@ -870,3 +870,4 @@ impl<T: Config> OnRuntimeUpgrade for ConvertReservesToLocks<T> {
 		Ok(())
 	}
 }
+
