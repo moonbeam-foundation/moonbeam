@@ -318,12 +318,6 @@ parameter_types! {
 
 }
 
-use frame_system::RawOrigin;
-use sp_runtime::traits::PostDispatchInfoOf;
-use sp_runtime::DispatchErrorWithPostInfo;
-use xcm_executor::traits::CallDispatcher;
-moonbeam_runtime_common::impl_moonbeam_xcm_call!();
-
 pub struct XcmConfig;
 impl Config for XcmConfig {
 	type Call = Call;
@@ -349,7 +343,7 @@ impl Config for XcmConfig {
 	type SubscriptionService = PolkadotXcm;
 	type AssetTrap = PolkadotXcm;
 	type AssetClaims = PolkadotXcm;
-	type CallDispatcher = MoonbeamCall;
+	type CallDispatcher = Call;
 }
 
 impl cumulus_pallet_xcm::Config for Runtime {
@@ -935,12 +929,6 @@ impl pallet_ethereum::Config for Runtime {
 	type StateRoot = pallet_ethereum::IntermediateStateRoot<Self>;
 }
 
-impl pallet_ethereum_xcm::Config for Runtime {
-	type InvalidEvmTransactionError = xcm_primitives::XcmInvalidTransactionWrapper;
-	type ValidatedTransaction = pallet_ethereum::ValidatedTransaction<Self>;
-	type XcmEthereumOrigin = frame_system::EnsureNever<sp_core::H160>;
-}
-
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
 type Block = frame_system::mocking::MockBlock<Runtime>;
 
@@ -967,7 +955,6 @@ construct_runtime!(
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage},
 		EVM: pallet_evm::{Pallet, Call, Storage, Config, Event<T>},
 		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Origin, Config},
-		EthereumXcm: pallet_ethereum_xcm::{Pallet, Call, Origin},
 	}
 );
 
