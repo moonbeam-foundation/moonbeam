@@ -24,10 +24,14 @@ impl super::ResponseFormatter for Formatter {
 	type Response = TransactionTrace;
 
 	fn format(listener: Listener) -> Option<TransactionTrace> {
-		Some(TransactionTrace::Raw {
-			step_logs: listener.step_logs,
-			gas: listener.final_gas.into(),
-			return_value: listener.return_value,
-		})
+		if listener.remaining_memory_usage.is_none() {
+			None
+		} else {
+			Some(TransactionTrace::Raw {
+				step_logs: listener.step_logs,
+				gas: listener.final_gas.into(),
+				return_value: listener.return_value,
+			})
+		}
 	}
 }

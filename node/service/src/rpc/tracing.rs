@@ -98,6 +98,7 @@ where
 			Arc::clone(&params.frontier_backend),
 			Arc::clone(&permit_pool),
 			Arc::clone(&params.overrides),
+			rpc_config.tracing_raw_max_memory_usage,
 		);
 		(Some(debug_task), Some(debug_requester))
 	} else {
