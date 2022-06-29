@@ -14,16 +14,16 @@ describeDevMoonbeam("Subscription - Past Events", (context) => {
   before("Setup: Create 4 blocks with transfer", async () => {
     web3Ws = await context.createWeb3("ws");
 
-    const { rawTx: rawTx1 } = await createContract(context, "SingleEventContract", {
+    const { rawTx: rawTx1 } = await createContract(context, "EventEmitter", {
       nonce: 0,
     });
-    const { rawTx: rawTx2 } = await createContract(context, "SingleEventContract", {
+    const { rawTx: rawTx2 } = await createContract(context, "EventEmitter", {
       nonce: 1,
     });
-    const { rawTx: rawTx3 } = await createContract(context, "SingleEventContract", {
+    const { rawTx: rawTx3 } = await createContract(context, "EventEmitter", {
       nonce: 2,
     });
-    const { rawTx: rawTx4 } = await createContract(context, "SingleEventContract", {
+    const { rawTx: rawTx4 } = await createContract(context, "EventEmitter", {
       nonce: 3,
     });
 

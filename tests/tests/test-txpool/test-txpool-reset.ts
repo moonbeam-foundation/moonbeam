@@ -17,7 +17,7 @@ describeDevMoonbeam("TxPool - Genesis", (context) => {
 
 describeDevMoonbeam("TxPool - New block", (context) => {
   before("Setup: Create transaction and empty block", async () => {
-    const { rawTx } = await createContract(context, "TestContract", {
+    const { rawTx } = await createContract(context, "MultiplyBy7", {
       gas: 1048576,
     });
     await context.createBlock(rawTx);

@@ -13,13 +13,13 @@ describeDevMoonbeam("Trace filter - Gas Loop", (context) => {
     blockNumber?: number;
     expectedGas: number;
   }[] = [
-    { count: 0, expectedGas: 21630 },
-    { count: 100, expectedGas: 108242 },
-    { count: 1000, expectedGas: 670654 },
+    { count: 0, expectedGas: 21652 },
+    { count: 100, expectedGas: 108264 },
+    { count: 1000, expectedGas: 670676 },
   ];
 
   before("Setup: Create 4 blocks with 1 contract loop execution each", async function () {
-    const { contract, rawTx } = await createContract(context, "FiniteLoopContract");
+    const { contract, rawTx } = await createContract(context, "Looper");
     await context.createBlock(rawTx);
 
     // For each loop, create a block with the contract execution.
@@ -30,7 +30,7 @@ describeDevMoonbeam("Trace filter - Gas Loop", (context) => {
       const { result } = await context.createBlock(
         createContractExecution(context, {
           contract,
-          contractCall: contract.methods.incr(loop.count),
+          contractCall: contract.methods.incrementalLoop(loop.count),
         })
       );
       loop.txHash = result.hash;
@@ -39,7 +39,7 @@ describeDevMoonbeam("Trace filter - Gas Loop", (context) => {
   });
 
   it("should return 21630 gasUsed for 0 loop", async function () {
-    const { rawTx } = await createContract(context, "FiniteLoopContract");
+    const { rawTx } = await createContract(context, "Looper");
     await context.createBlock(rawTx);
 
     const trace = await customWeb3Request(context.web3, "trace_filter", [
@@ -56,7 +56,7 @@ describeDevMoonbeam("Trace filter - Gas Loop", (context) => {
   });
 
   it("should return 245542 gasUsed for 100 loop", async function () {
-    const { rawTx } = await createContract(context, "FiniteLoopContract");
+    const { rawTx } = await createContract(context, "Looper");
     await context.createBlock(rawTx);
 
     const trace = await customWeb3Request(context.web3, "trace_filter", [
@@ -74,7 +74,7 @@ describeDevMoonbeam("Trace filter - Gas Loop", (context) => {
 
   it("should return 2068654 gasUsed for 1000 loop", async function () {
     this.timeout(12000);
-    const { rawTx } = await createContract(context, "FiniteLoopContract");
+    const { rawTx } = await createContract(context, "Looper");
     await context.createBlock(rawTx);
 
     const trace = await customWeb3Request(context.web3, "trace_filter", [
