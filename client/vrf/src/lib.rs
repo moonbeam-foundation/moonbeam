@@ -38,7 +38,7 @@ where
 	C::Api: VrfApi<B>,
 {
 	let at = sp_api::BlockId::Hash(parent);
-	let relay_slot_number: polkadot_primitives::v2::Slot = client
+	let relay_slot_number: Slot = client
 		.runtime_api()
 		.get_relay_slot_number(&at)
 		.expect("api error");
@@ -46,6 +46,30 @@ where
 		.runtime_api()
 		.get_relay_storage_root(&at)
 		.expect("api error");
+	let key: VrfId = client
+		.runtime_api()
+		.vrf_key_lookup(&at, nimbus_id)
+		.expect("api error")?;
+	let vrf_pre_digest = sign_vrf(relay_slot_number, relay_storage_root, key, &keystore)?;
+	Some(session_keys_primitives::digest::CompatibleDigestItem::vrf_pre_digest(vrf_pre_digest))
+}
+
+/// Uses the runtime API to get mock VRF inputs and sign them with the VRF key that
+/// corresponds to the authoring NimbusId
+pub fn mock_vrf_pre_digest<B, C>(
+	client: &C,
+	keystore: &SyncCryptoStorePtr,
+	nimbus_id: NimbusId,
+	parent: H256,
+) -> Option<sp_runtime::generic::DigestItem>
+where
+	B: sp_runtime::traits::Block<Hash = sp_core::H256>,
+	C: sp_api::ProvideRuntimeApi<B>,
+	C::Api: VrfApi<B>,
+{
+	let at = sp_api::BlockId::Hash(parent);
+	let relay_slot_number: Slot = Slot::default();
+	let relay_storage_root = parent;
 	let key: VrfId = client
 		.runtime_api()
 		.vrf_key_lookup(&at, nimbus_id)

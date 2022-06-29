@@ -913,6 +913,19 @@ where
 		let (hrmp_xcm_sender, hrmp_xcm_receiver) = flume::bounded::<(ParaId, Vec<u8>)>(100);
 		xcm_senders = Some((downward_xcm_sender, hrmp_xcm_sender));
 
+		let client_clone = client.clone();
+		let keystore_clone = keystore_container.sync_keystore().clone();
+		let additional_digests_provider = move |nimbus_id: nimbus_primitives::NimbusId,
+		                                        parent: Hash|
+		      -> Option<sp_runtime::generic::DigestItem> {
+			moonbeam_vrf::mock_vrf_pre_digest::<Block, FullClient<RuntimeApi, Executor>>(
+				&client_clone,
+				&keystore_clone,
+				nimbus_id,
+				parent,
+			)
+		};
+
 		task_manager.spawn_essential_handle().spawn_blocking(
 			"authorship_task",
 			Some("block-authoring"),
@@ -926,6 +939,7 @@ where
 				consensus_data_provider: Some(Box::new(NimbusManualSealConsensusDataProvider {
 					keystore: keystore_container.sync_keystore(),
 					client: client.clone(),
+					additional_digests_provider,
 				})),
 				create_inherent_data_providers: move |block: H256, ()| {
 					let current_para_block = client_set_aside_for_cidp
