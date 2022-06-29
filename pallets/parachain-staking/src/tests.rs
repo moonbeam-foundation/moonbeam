@@ -9151,6 +9151,49 @@ mod jit_migrate_reserve_to_locks_tests {
 			});
 	}
 
+	#[test]
+	fn test_hotfix_fees_are_known() {
+		use frame_support::{
+			dispatch::GetDispatchInfo,
+			weights::Weight,
+		};
+
+		ExtBuilder::default().build().execute_with(|| {
+
+			// test hotfix_migrate_delegators_from_reserve_to_locks with a few samples...
+			let test_with_num_delegators = |num_delegators: usize, expected_weight: u64| {
+				let call = crate::Call::hotfix_migrate_delegators_from_reserve_to_locks::<Test> {
+					delegators: vec![Default::default(); num_delegators],
+				};
+				let info = call.get_dispatch_info();
+				assert_eq!(info.weight, expected_weight as Weight);
+			};
+			test_with_num_delegators(0, 50_000_000u64);
+			test_with_num_delegators(1, 150_000_000u64);
+			test_with_num_delegators(10, 1_050_000_000u64);
+			test_with_num_delegators(99, 9_950_000_000u64);
+
+			// can't call with 10000, but the weight fn still ramps up this high
+			test_with_num_delegators(10000, 1_000_050_000_000u64);
+
+			// test hotfix_migrate_collators_from_reserve_to_locks with a few samples...
+			let test_with_num_collators = |num_collators: usize, expected_weight: u64| {
+				let call = crate::Call::hotfix_migrate_collators_from_reserve_to_locks::<Test> {
+					collators: vec![Default::default(); num_collators],
+				};
+				let info = call.get_dispatch_info();
+				assert_eq!(info.weight, expected_weight as Weight);
+			};
+			test_with_num_collators(0, 50_000_000u64);
+			test_with_num_collators(1, 150_000_000u64);
+			test_with_num_collators(10, 1_050_000_000u64);
+			test_with_num_collators(99, 9_950_000_000u64);
+
+			// can't call with 10000, but the weight fn still ramps up this high
+			test_with_num_collators(10000, 1_000_050_000_000u64);
+		})
+	}
+
 	// TODO: more test ideas
 	//     * more candidate_bond_more scenarios?
 	//     * cancelling bond changes - triggers or no?

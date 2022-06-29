@@ -1377,10 +1377,23 @@ pub mod pallet {
 		/// * is safe to call if the delegator doesn't exist
 		/// * is safe to call if the delegator has been migrated
 		/// * is safe to call if the delegator is a collator (this is a no-op)
+		///
+		/// weight calculation:
+		///   reads:
+		///    * DelegatorReserveToLockMigrations
+		///    * DelegatorState
+		///   writes:
+		///    * unreserve()
+		///    * set_lock()
+		///    * DelegatorReserveToLockMigrations
+		///   other: 50M flat weight + 100M weight per item
 		#[pallet::weight(
-			// TODO
-			T::DbWeight::get().reads_writes(999 * delegators.len() as u64, 999 * delegators.len() as
-											u64)
+			T::DbWeight::get().reads_writes(
+				2 * delegators.len() as u64,
+				3 * delegators.len() as u64
+			)
+			.saturating_add((delegators.len() as Weight).saturating_mul(100_000_000 as Weight))
+			.saturating_add(50_000_000 as Weight)
 		)]
 		pub fn hotfix_migrate_delegators_from_reserve_to_locks(
 			origin: OriginFor<T>,
@@ -1401,10 +1414,23 @@ pub mod pallet {
 		/// * is safe to call if the collator doesn't exist
 		/// * is safe to call if the collator has been migrated
 		/// * is safe to call if the collator is a collator (this is a no-op)
+		///
+		/// weight calculation:
+		///   reads:
+		///    * CollatorReserveToLockMigrations
+		///    * CandidateInfo
+		///   writes:
+		///    * unreserve()
+		///    * set_lock()
+		///    * CollatorReserveToLockMigrations
+		///   other: 50M flat weight + 100M weight per item
 		#[pallet::weight(
-			// TODO
-			T::DbWeight::get().reads_writes(999 * collators.len() as u64, 999 * collators.len() as
-											u64)
+			T::DbWeight::get().reads_writes(
+				2 * collators.len() as u64,
+				3 * collators.len() as u64
+			)
+			.saturating_add((collators.len() as Weight).saturating_mul(100_000_000 as Weight))
+			.saturating_add(50_000_000 as Weight)
 		)]
 		pub fn hotfix_migrate_collators_from_reserve_to_locks(
 			origin: OriginFor<T>,
