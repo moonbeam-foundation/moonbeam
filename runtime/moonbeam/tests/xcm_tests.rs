@@ -1913,7 +1913,7 @@ fn transact_through_signed_multilocation() {
 
 	// Let's construct the Junction that we will append with DescendOrigin
 	let signed_origin: Junctions = X1(AccountKey20 {
-		network: NetworkId::Any,
+		network: parachain::RelayNetwork::get(),
 		key: PARAALICE,
 	});
 

@@ -78,17 +78,20 @@ where
 }
 
 /// Instructs how to convert a 20 byte accountId into a MultiLocation
-pub struct AccountIdToMultiLocation<AccountId>(sp_std::marker::PhantomData<AccountId>);
-impl<AccountId> sp_runtime::traits::Convert<AccountId, MultiLocation>
-	for AccountIdToMultiLocation<AccountId>
+pub struct AccountIdToMultiLocation<AccountId, Network>(
+	sp_std::marker::PhantomData<(AccountId, Network)>,
+);
+impl<AccountId, Network> sp_runtime::traits::Convert<AccountId, MultiLocation>
+	for AccountIdToMultiLocation<AccountId, Network>
 where
 	AccountId: Into<[u8; 20]>,
+	Network: Get<NetworkId>,
 {
 	fn convert(account: AccountId) -> MultiLocation {
 		MultiLocation {
 			parents: 0,
 			interior: X1(AccountKey20 {
-				network: NetworkId::Any,
+				network: Network::get(),
 				key: account.into(),
 			}),
 		}
