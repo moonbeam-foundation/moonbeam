@@ -34,7 +34,7 @@ pub fn para_a_account() -> AccountId32 {
 }
 
 pub fn para_a_account_20() -> parachain::AccountId {
-	ParaId::from(1).into_account()
+	ParaId::from(1).into_account_truncating()
 }
 
 pub fn evm_account() -> H160 {

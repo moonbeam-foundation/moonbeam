@@ -936,7 +936,7 @@ impl pallet_ethereum::Config for Runtime {
 }
 
 impl pallet_ethereum_xcm::Config for Runtime {
-	type InvalidEvmTransactionError = pallet_ethereum::InvalidTransactionWrapper;
+	type InvalidEvmTransactionError = xcm_primitives::XcmInvalidTransactionWrapper;
 	type ValidatedTransaction = pallet_ethereum::ValidatedTransaction<Self>;
 	type XcmEthereumOrigin = frame_system::EnsureNever<sp_core::H160>;
 }

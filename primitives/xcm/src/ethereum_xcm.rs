@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use parity_scale_codec::{Decode, Encode};
 use ethereum::{
 	AccessList, AccessListItem, EIP1559Transaction, EIP2930Transaction, LegacyTransaction,
 	TransactionAction, TransactionSignature, TransactionV2,
 };
 use ethereum_types::{H160, H256, U256};
+use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
 use sp_std::vec::Vec;
 
@@ -29,7 +29,7 @@ pub struct ManualEthereumXcmFee {
 	/// Legacy or Eip-2930, all fee will be used.
 	pub gas_price: Option<U256>,
 	/// Eip-1559, must be at least the on-chain base fee at the time of applying the xcm
-	/// and will use up to the defined value. 
+	/// and will use up to the defined value.
 	pub max_fee_per_gas: Option<U256>,
 }
 
@@ -97,11 +97,10 @@ impl XcmToEthereum for EthereumXcmTransactionV1 {
 		};
 
 		let (gas_price, max_fee) = match &self.fee_payment {
-			EthereumXcmFee::Manual(fee_config) => (
-				fee_config.gas_price,
-				fee_config.max_fee_per_gas,
-			),
-			EthereumXcmFee::Auto => (None, Some(base_fee))
+			EthereumXcmFee::Manual(fee_config) => {
+				(fee_config.gas_price, fee_config.max_fee_per_gas)
+			}
+			EthereumXcmFee::Auto => (None, Some(base_fee)),
 		};
 		match (gas_price, max_fee) {
 			(Some(gas_price), None) => {
@@ -156,6 +155,49 @@ impl XcmToEthereum for EthereumXcmTransactionV1 {
 				}))
 			}
 			_ => return None,
+		}
+	}
+}
+
+// TODO: remove and use pallet_ethereum::InvalidTransactionWrapper once merged
+use fp_evm::InvalidEvmTransactionError;
+use sp_runtime::transaction_validity::InvalidTransaction;
+pub struct XcmInvalidTransactionWrapper(InvalidTransaction);
+
+impl From<InvalidEvmTransactionError> for XcmInvalidTransactionWrapper {
+	fn from(validation_error: InvalidEvmTransactionError) -> Self {
+		match validation_error {
+			InvalidEvmTransactionError::GasLimitTooLow => {
+				XcmInvalidTransactionWrapper(InvalidTransaction::Payment)
+			}
+			InvalidEvmTransactionError::GasLimitTooHigh => {
+				XcmInvalidTransactionWrapper(InvalidTransaction::Payment)
+			}
+			InvalidEvmTransactionError::GasPriceTooLow => {
+				XcmInvalidTransactionWrapper(InvalidTransaction::Payment)
+			}
+			InvalidEvmTransactionError::PriorityFeeTooHigh => {
+				XcmInvalidTransactionWrapper(InvalidTransaction::Custom(
+					pallet_ethereum::TransactionValidationError::MaxFeePerGasTooLow as u8,
+				))
+			}
+			InvalidEvmTransactionError::BalanceTooLow => {
+				XcmInvalidTransactionWrapper(InvalidTransaction::Payment)
+			}
+			InvalidEvmTransactionError::TxNonceTooLow => {
+				XcmInvalidTransactionWrapper(InvalidTransaction::Stale)
+			}
+			InvalidEvmTransactionError::TxNonceTooHigh => {
+				XcmInvalidTransactionWrapper(InvalidTransaction::Future)
+			}
+			InvalidEvmTransactionError::InvalidPaymentInput => {
+				XcmInvalidTransactionWrapper(InvalidTransaction::Payment)
+			}
+			InvalidEvmTransactionError::InvalidChainId => {
+				XcmInvalidTransactionWrapper(InvalidTransaction::Custom(
+					pallet_ethereum::TransactionValidationError::InvalidChainId as u8,
+				))
+			}
 		}
 	}
 }

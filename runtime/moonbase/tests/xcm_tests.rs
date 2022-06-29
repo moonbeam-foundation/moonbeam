@@ -2440,9 +2440,7 @@ fn transact_through_signed_multilocation_para_to_para_ethereum() {
 	let eth_tx =
 		xcm_primitives::EthereumXcmTransaction::V1(xcm_primitives::EthereumXcmTransactionV1 {
 			gas_limit: U256::from(21000),
-			fee_payment: xcm_primitives::EthereumXcmFee::Auto(
-				xcm_primitives::AutoEthereumXcmFee::Low,
-			),
+			fee_payment: xcm_primitives::EthereumXcmFee::Auto,
 			action: pallet_ethereum::TransactionAction::Call(PARAALICE.into()),
 			value: U256::from(100),
 			input: vec![],

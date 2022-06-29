@@ -246,11 +246,11 @@ pub type XcmFeesToAccount = xcm_primitives::XcmFeesToAccount<
 	XcmFeesAccount,
 >;
 
-use sp_runtime::DispatchErrorWithPostInfo;
-use sp_runtime::traits::PostDispatchInfoOf;
 use frame_system::RawOrigin;
+use sp_runtime::traits::PostDispatchInfoOf;
+use sp_runtime::DispatchErrorWithPostInfo;
 use xcm_executor::traits::CallDispatcher;
-runtime_common::impl_moonbeam_xcm_call!();
+moonbeam_runtime_common::impl_moonbeam_xcm_call!();
 
 pub struct XcmExecutorConfig;
 impl xcm_executor::Config for XcmExecutorConfig {
