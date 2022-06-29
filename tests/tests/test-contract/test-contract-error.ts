@@ -9,7 +9,7 @@ import { createContract, createContractExecution } from "../../util/transactions
 
 describeDevMoonbeamAllEthTxTypes("Contract loop error", (context) => {
   it("should return OutOfGas on inifinite loop call", async function () {
-    const { contract, rawTx } = await createContract(context, "InfiniteContract");
+    const { contract, rawTx } = await createContract(context, "Looper");
     await context.createBlock(rawTx);
 
     await contract.methods
@@ -26,7 +26,7 @@ describeDevMoonbeamAllEthTxTypes("Contract loop error", (context) => {
 
 describeDevMoonbeamAllEthTxTypes("Contract loop error", (context) => {
   it("should fail with OutOfGas on infinite loop transaction", async function () {
-    const { contract, rawTx } = await createContract(context, "InfiniteContract");
+    const { contract, rawTx } = await createContract(context, "Looper");
     const infiniteTx = createContractExecution(
       context,
       {
@@ -47,7 +47,7 @@ describeDevMoonbeamAllEthTxTypes("Contract loop error", (context) => {
 
 describeDevMoonbeamAllEthTxTypes("Contract loop error - check fees", (context) => {
   it("should fail with OutOfGas on infinite loop transaction - check fees", async function () {
-    const { contract, rawTx } = await createContract(context, "InfiniteContract");
+    const { contract, rawTx } = await createContract(context, "Looper");
     const infiniteTx = await createContractExecution(
       context,
       {

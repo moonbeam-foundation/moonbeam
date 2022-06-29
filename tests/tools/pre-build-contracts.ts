@@ -1,16 +1,20 @@
 import solc from "solc";
+import chalk from "chalk";
 import fs from "fs/promises";
-import { contractSources } from "../contracts/sources";
+import path from "path";
 import { Compiled } from "../util/contracts";
 
+let sourceByReference = {} as { [ref: string]: string };
+let refByContract = {} as { [contract: string]: string };
+
 function getImports(dependency: string) {
-  if (contractSources[dependency]) {
-    return { contents: contractSources[dependency] };
+  if (sourceByReference[dependency]) {
+    return { contents: sourceByReference[dependency] };
   }
   return { error: "Source not found" };
 }
 
-function compileSolidity(contractContent: string, contractName: string): Compiled {
+function compileSolidity(contractContent: string): { [name: string]: Compiled } {
   const result = JSON.parse(
     solc.compile(
       JSON.stringify({
@@ -31,36 +35,94 @@ function compileSolidity(contractContent: string, contractName: string): Compile
       { import: getImports }
     )
   );
-  const contract = result.contracts["main.sol"][contractName];
-  return {
-    byteCode: "0x" + contract.evm.bytecode.object,
-    contract,
-    sourceCode: contractContent,
-  };
+  if (!result.contracts) {
+    console.log(result);
+    throw result;
+  }
+  return Object.keys(result.contracts["main.sol"]).reduce((p, contractName) => {
+    p[contractName] = {
+      byteCode: "0x" + result.contracts["main.sol"][contractName].evm.bytecode.object,
+      contract: result.contracts["main.sol"][contractName],
+      sourceCode: contractContent,
+    };
+    return p;
+  }, {} as { [name: string]: Compiled });
 }
 
 // Shouldn't be run concurrently with the same 'name'
-async function compile(name: string): Promise<Compiled> {
-  if (!contractSources[name])
-    throw new Error(`Contract name (${name}) doesn't exist in test suite`);
+async function compile(fileRef: string): Promise<{ [name: string]: Compiled }> {
+  const soliditySource = sourceByReference[fileRef];
+  if (!soliditySource) {
+    throw new Error(`Missing solidity file: ${fileRef}`);
+  }
+  const compiledContracts = compileSolidity(soliditySource);
 
-  const contractCompiled = compileSolidity(contractSources[name], name);
-  let compiled = JSON.stringify(contractCompiled);
-  await fs.mkdir(`contracts/compiled`, { recursive: true });
-  await fs.writeFile(`./contracts/compiled/${name}.json`, compiled, {
-    flag: "w",
-  });
-  console.log("New compiled contract file has been saved!");
-  return contractCompiled;
+  console.debug(`Processing file: ${fileRef}`);
+  await Promise.all(
+    Object.keys(compiledContracts).map(async (contractName) => {
+      if (refByContract[contractName]) {
+        console.warn(
+          chalk.red(
+            `Contract ${contractName} already exist from ` +
+              `${refByContract[contractName]}. ` +
+              `Erasing previous version`
+          )
+        );
+      }
+      await fs.mkdir(`contracts/compiled`, { recursive: true });
+      await fs.writeFile(
+        `./contracts/compiled/${contractName}.json`,
+        JSON.stringify(compiledContracts[contractName]),
+        {
+          flag: "w",
+        }
+      );
+      console.log(`  - ${chalk.green(`${contractName}.json`)} file has been saved!`);
+      refByContract[contractName] = fileRef;
+    })
+  );
+  return compiledContracts;
 }
 
 const main = async () => {
-  for (let name of Object.keys(contractSources)) {
-    console.log(`Compiling ${name}`);
+  const precompilesPath = path.join(__dirname, "../../precompiles");
+  // Order is important so precompiles are available first
+  const contractSourcePaths = [
+    ...(await fs.readdir(precompilesPath)).map((filename) => ({
+      filepath: path.join(precompilesPath, filename),
+      // Solidity import removes the "../../.." when searching for imports
+      importPath: /precompiles.*/.exec(path.join(precompilesPath, filename))[0],
+    })),
+    {
+      filepath: path.join(__dirname, "../contracts/solidity"),
+      importPath: "", // Reference in contracts are local
+    },
+  ];
+
+  for (const contractPath of contractSourcePaths) {
+    const contracts = (await fs.readdir(contractPath.filepath)).filter((filename) =>
+      filename.endsWith(".sol")
+    );
+    for (let filename of contracts) {
+      sourceByReference[path.join(contractPath.importPath, filename)] = (
+        await fs.readFile(path.join(contractPath.filepath, filename))
+      ).toString();
+    }
+  }
+
+  // Compile contracts
+  for (const ref of Object.keys(sourceByReference)) {
     try {
-      await compile(name);
+      await compile(ref);
     } catch (e) {
-      console.log(`Can't process contract ${name}: ${e.msg || e}`);
+      console.log(`Failed to compile: ${ref}`);
+      if (e.errors) {
+        e.errors.forEach((error) => {
+          console.log(error.formattedMessage);
+        });
+      } else {
+        console.log(e);
+      }
       process.exit(1);
     }
   }
