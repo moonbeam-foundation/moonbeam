@@ -9075,6 +9075,74 @@ mod jit_migrate_reserve_to_locks_tests {
 			});
 	}
 
+	#[test]
+	fn test_bumping_bottom_delegator_doesnt_leave_reserve() {
+		use crate::DelegatorState;
+
+		ExtBuilder::default()
+			.with_balances(vec![
+				(100, 100),
+				(1, 100),
+				(2, 100),
+				(3, 100),
+				(4, 100),
+				(5, 100),
+				(6, 100),
+				(7, 100),
+				(8, 100),
+				(9, 100),
+			])
+			.with_candidates(vec![(100, 20)])
+			// delegate candidate 100 enough to fill top and bottom delegations
+			.with_delegations(vec![
+				(1, 100, 25),
+				(2, 100, 24),
+				(3, 100, 23),
+				(4, 100, 22),
+				(5, 100, 21),
+				(6, 100, 20),
+				(7, 100, 19),
+				(8, 100, 17),
+			])
+			.build()
+			.execute_with(|| {
+				assert_eq!(
+					crate::mock::MaxTopDelegationsPerCandidate::get(),
+					4u32,
+					"Test will fail if MaxTopDelegationsPerCandidate is changed"
+				);
+				assert_eq!(
+					crate::mock::MaxBottomDelegationsPerCandidate::get(),
+					4u32,
+					"Test will fail if MaxBottomDelegationsPerCandidate is changed"
+				);
+
+				let top = <TopDelegations<Test>>::get(100).expect("100 is collating");
+				assert_eq!(
+					top.delegations.len() as u32,
+					crate::mock::MaxTopDelegationsPerCandidate::get(),
+				);
+
+				let bottom = <BottomDelegations<Test>>::get(100).expect("100 is collating");
+				assert_eq!(
+					bottom.delegations.len() as u32,
+					crate::mock::MaxBottomDelegationsPerCandidate::get(),
+				);
+
+				// top and bottom delegations are full. now make sure the bottommost is unmigrated
+				crate::mock::unmigrate_delegator_from_lock_to_reserve(8);
+				ensure_delegator_unmigrated(8, 17);
+				assert!(<DelegatorState<Test>>::get(8).is_some());
+
+				// delegate with delegator 9 and kick delegator 8 out
+				assert_ok!(ParachainStaking::delegate(Origin::signed(9), 100, 18, 8, 0));
+
+				// 18 should have no reserved balance and should not be delegating
+				assert!(<DelegatorState<Test>>::get(8).is_none());
+				assert_eq!(Balances::reserved_balance(8), 0);
+			});
+	}
+
 	// TODO: more test ideas
 	//     * more candidate_bond_more scenarios?
 	//     * cancelling bond changes - triggers or no?
