@@ -136,7 +136,7 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 						get_from_seed::<NimbusId>("Alice"),
 						1_000 * UNIT,
 					),
-					// Bob -> Baltithar
+					// Bob -> Baltathar
 					(
 						AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
 						get_from_seed::<NimbusId>("Bob"),
@@ -145,6 +145,7 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 				],
 				// Delegations
 				vec![],
+				// Endowed: Alith, Baltathar, Charleth and Dorothy
 				vec![
 					AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
 					AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
