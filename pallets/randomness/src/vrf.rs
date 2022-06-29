@@ -23,7 +23,7 @@ use scale_info::TypeInfo;
 #[cfg(feature = "std")]
 use serde::{Deserialize, Serialize};
 pub use session_keys_primitives::make_transcript;
-use session_keys_primitives::{KeysLookup, PreDigest, VrfId, VRF_ENGINE_ID};
+use session_keys_primitives::{KeysLookup, PreDigest, VrfId, VRF_ENGINE_ID, VRF_INOUT_CONTEXT};
 use sp_consensus_vrf::schnorrkel;
 use sp_core::crypto::ByteArray;
 use sp_runtime::RuntimeDebug;
@@ -65,7 +65,7 @@ pub(crate) fn set_input<T: Config>() {
 pub(crate) fn set_output<T: Config>() -> Weight {
 	let input = <CurrentVrfInput<T>>::get().expect("VrfInput must be set to verify VrfOutput");
 	let mut block_author_vrf_id: Option<VrfId> = None;
-	let maybe_pre_digest: Option<PreDigest> = <frame_system::Pallet<T>>::digest()
+	let pre_digest: PreDigest = <frame_system::Pallet<T>>::digest()
 		.logs
 		.iter()
 		.filter_map(|s| s.as_pre_runtime())
@@ -85,21 +85,19 @@ pub(crate) fn set_output<T: Config>() -> Weight {
 				None
 			}
 		})
-		.next();
+		.next()
+		.expect("VRF PreDigest must be decoded from the digests");
 	let block_author_vrf_id =
 		block_author_vrf_id.expect("VrfId encoded in pre-runtime digest must be valid");
 	let pubkey = schnorrkel::PublicKey::from_bytes(block_author_vrf_id.as_slice())
 		.expect("Expect VrfId to be valid schnorrkel public key");
 	let transcript = make_transcript::<T::Hash>(input.slot_number, input.storage_root);
-	let vrf_output: Randomness = maybe_pre_digest
-		.and_then(|digest| {
-			digest
-				.vrf_output
-				.0
-				.attach_input_hash(&pubkey, transcript)
-				.ok()
-				.map(|inout| inout.as_output_bytes().clone())
-		})
+	let vrf_output: Randomness = pre_digest
+		.vrf_output
+		.0
+		.attach_input_hash(&pubkey, transcript)
+		.ok()
+		.map(|inout| inout.make_bytes(&VRF_INOUT_CONTEXT))
 		.expect("VRF output encoded in pre-runtime digest must be valid");
 	let raw_randomness_output = T::Hash::decode(&mut &vrf_output[..]).ok();
 	if raw_randomness_output.is_none() {
