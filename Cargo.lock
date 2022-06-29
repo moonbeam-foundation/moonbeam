@@ -5827,7 +5827,6 @@ dependencies = [
  "pallet-democracy",
  "pallet-ethereum",
  "pallet-ethereum-chain-id",
- "pallet-ethereum-xcm",
  "pallet-evm",
  "pallet-evm-precompile-author-mapping",
  "pallet-evm-precompile-balances-erc20",
