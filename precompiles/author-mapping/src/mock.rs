@@ -20,6 +20,7 @@ use codec::{Decode, Encode, MaxEncodedLen};
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{EqualPrivilegeOnly, Everything},
+	weights::Weight,
 };
 use frame_system::EnsureRoot;
 use pallet_evm::{
@@ -27,7 +28,7 @@ use pallet_evm::{
 };
 use scale_info::TypeInfo;
 use serde::{Deserialize, Serialize};
-use sp_core::{H160, H256};
+use sp_core::{H160, H256, U256};
 use sp_io;
 use sp_runtime::{
 	testing::Header,
@@ -163,13 +164,26 @@ impl pallet_balances::Config for Runtime {
 	type WeightInfo = ();
 }
 
+pub const WEIGHT_PER_GAS: u64 = 20_000;
+
+pub struct GasWeightMapping;
+impl pallet_evm::GasWeightMapping for GasWeightMapping {
+	fn gas_to_weight(gas: u64) -> Weight {
+		gas.saturating_mul(WEIGHT_PER_GAS)
+	}
+	fn weight_to_gas(weight: Weight) -> u64 {
+		u64::try_from(weight.wrapping_div(WEIGHT_PER_GAS)).unwrap_or(u32::MAX as u64)
+	}
+}
+
 parameter_types! {
+	pub BlockGasLimit: U256 = U256::from(15_000_000);
 	pub const PrecompilesValue: Precompiles<Runtime> = Precompiles(PhantomData);
 }
 
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
-	type GasWeightMapping = ();
+	type GasWeightMapping = GasWeightMapping;
 	type CallOrigin = EnsureAddressRoot<Account>;
 	type WithdrawOrigin = EnsureAddressNever<Account>;
 	type AddressMapping = Account;
@@ -180,7 +194,7 @@ impl pallet_evm::Config for Runtime {
 	type PrecompilesValue = PrecompilesValue;
 	type ChainId = ();
 	type OnChargeTransaction = ();
-	type BlockGasLimit = ();
+	type BlockGasLimit = BlockGasLimit;
 	type BlockHashMapping = SubstrateBlockHashMapping<Self>;
 	type FindAuthor = ();
 }
