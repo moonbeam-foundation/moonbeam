@@ -24,15 +24,6 @@ export function expectEVMResult<T extends Errors, Type extends keyof T>(
     ({ event: { section, method } }) => section == "ethereum" && method == "Executed"
   ).event.data[3] as EvmCoreErrorExitReason;
 
-  console.log(
-    JSON.stringify(
-      events.find(({ event: { section, method } }) => section == "ethereum" && method == "Executed")
-        .event,
-      null,
-      2
-    )
-  );
-
   expect(ethereumResult.type, `Invalid EVM Execution`).to.equal(resultType);
   if (reason) {
     if (ethereumResult.isError) {

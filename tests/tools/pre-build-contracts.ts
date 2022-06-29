@@ -36,7 +36,6 @@ function compileSolidity(contractContent: string): { [name: string]: Compiled } 
     )
   );
   if (!result.contracts) {
-    console.log(result);
     throw result;
   }
   return Object.keys(result.contracts["main.sol"]).reduce((p, contractName) => {

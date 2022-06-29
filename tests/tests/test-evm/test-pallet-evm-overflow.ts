@@ -33,8 +33,6 @@ describeDevMoonbeam("Pallet EVM - Transfering", (context) => {
       )
     );
 
-    events.map((e) => console.log(`${e.event.section.toString()} - ${e.event.method.toString()}`));
-
     expect(
       events.find(
         ({ event: { section, method } }) => section == "system" && method == "ExtrinsicSuccess"
