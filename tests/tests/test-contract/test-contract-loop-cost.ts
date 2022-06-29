@@ -8,25 +8,25 @@ import { createContract, createContractExecution } from "../../util/transactions
 [
   {
     loop: 1,
-    gas: 44189,
+    gas: 44211,
   },
   {
     loop: 500,
-    gas: 367054,
+    gas: 367076,
   },
   {
     loop: 600,
-    gas: 431754,
+    gas: 431776,
   },
 ].forEach(({ loop, gas }) => {
   describeDevMoonbeamAllEthTxTypes("Contract loop", (context) => {
     it(`should consume ${gas} for ${loop} loop`, async function () {
-      const { contract, rawTx } = await createContract(context, "FiniteLoopContract");
+      const { contract, rawTx } = await createContract(context, "Looper");
       await context.createBlock(rawTx);
       await context.createBlock(
         createContractExecution(context, {
           contract,
-          contractCall: contract.methods.incr(loop),
+          contractCall: contract.methods.incrementalLoop(loop),
         })
       );
 
