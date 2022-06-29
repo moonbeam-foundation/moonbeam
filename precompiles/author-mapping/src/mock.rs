@@ -20,7 +20,6 @@ use codec::{Decode, Encode, MaxEncodedLen};
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{EqualPrivilegeOnly, Everything},
-	weights::Weight,
 };
 use frame_system::EnsureRoot;
 use pallet_evm::{
@@ -164,26 +163,14 @@ impl pallet_balances::Config for Runtime {
 	type WeightInfo = ();
 }
 
-pub const WEIGHT_PER_GAS: u64 = 20_000;
-
-pub struct GasWeightMapping;
-impl pallet_evm::GasWeightMapping for GasWeightMapping {
-	fn gas_to_weight(gas: u64) -> Weight {
-		gas.saturating_mul(WEIGHT_PER_GAS)
-	}
-	fn weight_to_gas(weight: Weight) -> u64 {
-		u64::try_from(weight.wrapping_div(WEIGHT_PER_GAS)).unwrap_or(u32::MAX as u64)
-	}
-}
-
 parameter_types! {
-	pub BlockGasLimit: U256 = U256::from(15_000_000);
+	pub BlockGasLimit: U256 = U256::max_value();
 	pub const PrecompilesValue: Precompiles<Runtime> = Precompiles(PhantomData);
 }
 
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
-	type GasWeightMapping = GasWeightMapping;
+	type GasWeightMapping = ();
 	type CallOrigin = EnsureAddressRoot<Account>;
 	type WithdrawOrigin = EnsureAddressNever<Account>;
 	type AddressMapping = Account;
