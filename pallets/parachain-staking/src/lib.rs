@@ -990,9 +990,6 @@ pub mod pallet {
 						Delegator state also has a record. qed.",
 				);
 
-				// TODO: review -- there are 3 cases below to consider WRT locks
-				Self::jit_ensure_delegator_reserve_migrated(&bond.owner)?;
-
 				if let Some(remaining) = delegator.rm_delegation::<T>(&candidate) {
 					Self::delegation_remove_request_with_state(
 						&candidate,
@@ -1008,13 +1005,6 @@ pub mod pallet {
 						T::Currency::remove_lock(DELEGATOR_LOCK_ID, &bond.owner);
 					} else {
 						<DelegatorState<T>>::insert(&bond.owner, delegator);
-						// update locked balance to match adjusted total staked
-						T::Currency::set_lock(
-							DELEGATOR_LOCK_ID,
-							&bond.owner,
-							remaining,
-							WithdrawReasons::all(),
-						);
 					}
 				} else {
 					// TODO: review. we assume here that this delegator has no remaining staked

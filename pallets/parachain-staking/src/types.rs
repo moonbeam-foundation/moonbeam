@@ -681,6 +681,7 @@ impl<
 				unstaked_amount: lowest_bottom_to_be_kicked.amount,
 			});
 			if leaving {
+				// TODO: need to unlock here? we didn't unreserve previously...
 				<DelegatorState<T>>::remove(&lowest_bottom_to_be_kicked.owner);
 				Pallet::<T>::deposit_event(Event::DelegatorLeft {
 					delegator: lowest_bottom_to_be_kicked.owner,
