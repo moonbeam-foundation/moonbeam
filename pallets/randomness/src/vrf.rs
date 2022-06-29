@@ -23,7 +23,7 @@ use scale_info::TypeInfo;
 #[cfg(feature = "std")]
 use serde::{Deserialize, Serialize};
 pub use session_keys_primitives::make_transcript;
-use session_keys_primitives::{KeysLookup, PreDigest, VrfId, VRF_ENGINE_ID, VRF_INOUT_CONTEXT};
+use session_keys_primitives::{KeysLookup, PreDigest, VrfId, VRF_ENGINE_ID};
 use sp_consensus_vrf::schnorrkel;
 use sp_core::crypto::ByteArray;
 use sp_runtime::RuntimeDebug;
@@ -98,12 +98,12 @@ pub(crate) fn set_output<T: Config>() -> Weight {
 				.0
 				.attach_input_hash(&pubkey, transcript)
 				.ok()
-				.map(|inout| inout.make_bytes(&VRF_INOUT_CONTEXT))
+				.map(|inout| inout.as_output_bytes().clone())
 		})
 		.expect("VRF output encoded in pre-runtime digest must be valid");
 	let raw_randomness_output = T::Hash::decode(&mut &vrf_output[..]).ok();
 	if raw_randomness_output.is_none() {
-		log::warn!("Could not decode VRF output from Hash Type");
+		log::warn!("Could not decode VRF output bytes into Hash Type");
 	}
 	LocalVrfOutput::<T>::put(raw_randomness_output);
 	// Supply randomness result
