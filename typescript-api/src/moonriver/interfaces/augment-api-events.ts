@@ -40,6 +40,7 @@ import type {
   PalletDemocracyVoteThreshold,
   ParachainStakingDelegationRequestsCancelledScheduledRequest,
   ParachainStakingDelegatorAdded,
+  SessionKeysPrimitivesVrfVrfCryptoPublic,
   SpRuntimeDispatchError,
   XcmTransactorRemoteTransactInfoWithMaxWeight,
   XcmV1MultiAsset,
@@ -285,52 +286,52 @@ declare module "@polkadot/api-base/types/events" {
     };
     authorMapping: {
       /**
-       * An NimbusId has been de-registered, and its AccountId mapping removed.
+       * A NimbusId has been registered and mapped to an AccountId.
        */
-      AuthorDeRegistered: AugmentedEvent<
+      KeysRegistered: AugmentedEvent<
         ApiType,
         [
-          authorId: NimbusPrimitivesNimbusCryptoPublic,
+          nimbusId: NimbusPrimitivesNimbusCryptoPublic,
           accountId: AccountId20,
-          keys_: NimbusPrimitivesNimbusCryptoPublic
+          keys_: SessionKeysPrimitivesVrfVrfCryptoPublic
         ],
         {
-          authorId: NimbusPrimitivesNimbusCryptoPublic;
+          nimbusId: NimbusPrimitivesNimbusCryptoPublic;
           accountId: AccountId20;
-          keys_: NimbusPrimitivesNimbusCryptoPublic;
+          keys_: SessionKeysPrimitivesVrfVrfCryptoPublic;
         }
       >;
       /**
-       * A NimbusId has been registered and mapped to an AccountId.
+       * An NimbusId has been de-registered, and its AccountId mapping removed.
        */
-      AuthorRegistered: AugmentedEvent<
+      KeysRemoved: AugmentedEvent<
         ApiType,
         [
-          authorId: NimbusPrimitivesNimbusCryptoPublic,
+          nimbusId: NimbusPrimitivesNimbusCryptoPublic,
           accountId: AccountId20,
-          keys_: NimbusPrimitivesNimbusCryptoPublic
+          keys_: SessionKeysPrimitivesVrfVrfCryptoPublic
         ],
         {
-          authorId: NimbusPrimitivesNimbusCryptoPublic;
+          nimbusId: NimbusPrimitivesNimbusCryptoPublic;
           accountId: AccountId20;
-          keys_: NimbusPrimitivesNimbusCryptoPublic;
+          keys_: SessionKeysPrimitivesVrfVrfCryptoPublic;
         }
       >;
       /**
        * An NimbusId has been registered, replacing a previous registration and
        * its mapping.
        */
-      AuthorRotated: AugmentedEvent<
+      KeysRotated: AugmentedEvent<
         ApiType,
         [
-          newAuthorId: NimbusPrimitivesNimbusCryptoPublic,
+          newNimbusId: NimbusPrimitivesNimbusCryptoPublic,
           accountId: AccountId20,
-          newKeys: NimbusPrimitivesNimbusCryptoPublic
+          newKeys: SessionKeysPrimitivesVrfVrfCryptoPublic
         ],
         {
-          newAuthorId: NimbusPrimitivesNimbusCryptoPublic;
+          newNimbusId: NimbusPrimitivesNimbusCryptoPublic;
           accountId: AccountId20;
-          newKeys: NimbusPrimitivesNimbusCryptoPublic;
+          newKeys: SessionKeysPrimitivesVrfVrfCryptoPublic;
         }
       >;
       /**
@@ -1069,6 +1070,14 @@ declare module "@polkadot/api-base/types/events" {
         { collator: AccountId20; orbiter: AccountId20 }
       >;
       /**
+       * An orbiter has registered
+       */
+      OrbiterRegistered: AugmentedEvent<
+        ApiType,
+        [account: AccountId20, deposit: u128],
+        { account: AccountId20; deposit: u128 }
+      >;
+      /**
        * Paid the orbiter account the balance as liquid rewards.
        */
       OrbiterRewarded: AugmentedEvent<
@@ -1080,6 +1089,14 @@ declare module "@polkadot/api-base/types/events" {
         ApiType,
         [collator: AccountId20, oldOrbiter: Option<AccountId20>, newOrbiter: Option<AccountId20>],
         { collator: AccountId20; oldOrbiter: Option<AccountId20>; newOrbiter: Option<AccountId20> }
+      >;
+      /**
+       * An orbiter has unregistered
+       */
+      OrbiterUnregistered: AugmentedEvent<
+        ApiType,
+        [account: AccountId20],
+        { account: AccountId20 }
       >;
       /**
        * Generic event
@@ -1623,6 +1640,24 @@ declare module "@polkadot/api-base/types/events" {
         { result: Result<Null, SpRuntimeDispatchError> }
       >;
       /**
+       * A proxy was removed.
+       */
+      ProxyRemoved: AugmentedEvent<
+        ApiType,
+        [
+          delegator: AccountId20,
+          delegatee: AccountId20,
+          proxyType: MoonriverRuntimeProxyType,
+          delay: u32
+        ],
+        {
+          delegator: AccountId20;
+          delegatee: AccountId20;
+          proxyType: MoonriverRuntimeProxyType;
+          delay: u32;
+        }
+      >;
+      /**
        * Generic event
        */
       [key: string]: AugmentedEvent<ApiType>;
@@ -1875,6 +1910,22 @@ declare module "@polkadot/api-base/types/events" {
     xcmTransactor: {
       DeRegisteredDerivative: AugmentedEvent<ApiType, [index: u16], { index: u16 }>;
       /**
+       * Set dest fee per second
+       */
+      DestFeePerSecondChanged: AugmentedEvent<
+        ApiType,
+        [location: XcmV1MultiLocation, feePerSecond: u128],
+        { location: XcmV1MultiLocation; feePerSecond: u128 }
+      >;
+      /**
+       * Remove dest fee per second
+       */
+      DestFeePerSecondRemoved: AugmentedEvent<
+        ApiType,
+        [location: XcmV1MultiLocation],
+        { location: XcmV1MultiLocation }
+      >;
+      /**
        * Registered a derivative index for an account id.
        */
       RegisteredDerivative: AugmentedEvent<
@@ -1889,6 +1940,14 @@ declare module "@polkadot/api-base/types/events" {
         ApiType,
         [accountId: AccountId20, dest: XcmV1MultiLocation, call: Bytes, index: u16],
         { accountId: AccountId20; dest: XcmV1MultiLocation; call: Bytes; index: u16 }
+      >;
+      /**
+       * Transacted the call through a signed account in a destination chain.
+       */
+      TransactedSigned: AugmentedEvent<
+        ApiType,
+        [feePayer: AccountId20, dest: XcmV1MultiLocation, call: Bytes],
+        { feePayer: AccountId20; dest: XcmV1MultiLocation; call: Bytes }
       >;
       /**
        * Transacted the call through the sovereign account in a destination chain.
