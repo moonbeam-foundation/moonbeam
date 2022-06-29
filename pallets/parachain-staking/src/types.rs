@@ -1323,6 +1323,7 @@ impl<
 			.collect();
 		if let Some(balance) = amt {
 			self.delegations = OrderedSet::from(delegations);
+			let _ = <Pallet<T>>::jit_ensure_delegator_reserve_migrated(&self.id.clone().into());
 			self.total = self.total.saturating_sub(balance);
 			self.adjust_bond_lock::<T>(None)
 				.expect("Decreasing lock cannot fail, qed");
