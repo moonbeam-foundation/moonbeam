@@ -188,7 +188,6 @@ std = [
 	"pallet-ethereum-chain-id/std",
 	"pallet-ethereum/std",
 	"pallet-ethereum-xcm/std",
-	"pallet-evm-precompile-assets-erc20/std",
 	"pallet-evm-precompile-author-mapping/std",
 	"pallet-evm-precompile-balances-erc20/std",
 	"pallet-evm-precompile-batch/std",
