@@ -2576,7 +2576,9 @@ fn delegator_bond_more_updates_delegator_state() {
 		.build()
 		.execute_with(|| {
 			assert_eq!(
-				ParachainStaking::delegator_state(2).expect("exists").total(),
+				ParachainStaking::delegator_state(2)
+					.expect("exists")
+					.total(),
 				10
 			);
 			assert_ok!(ParachainStaking::delegator_bond_more(
@@ -2585,7 +2587,9 @@ fn delegator_bond_more_updates_delegator_state() {
 				5
 			));
 			assert_eq!(
-				ParachainStaking::delegator_state(2).expect("exists").total(),
+				ParachainStaking::delegator_state(2)
+					.expect("exists")
+					.total(),
 				15
 			);
 		});
@@ -3439,7 +3443,9 @@ fn execute_delegator_bond_less_updates_delegator_state() {
 		.build()
 		.execute_with(|| {
 			assert_eq!(
-				ParachainStaking::delegator_state(2).expect("exists").total(),
+				ParachainStaking::delegator_state(2)
+					.expect("exists")
+					.total(),
 				10
 			);
 			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
@@ -3454,7 +3460,9 @@ fn execute_delegator_bond_less_updates_delegator_state() {
 				1
 			));
 			assert_eq!(
-				ParachainStaking::delegator_state(2).expect("exists").total(),
+				ParachainStaking::delegator_state(2)
+					.expect("exists")
+					.total(),
 				5
 			);
 		});
