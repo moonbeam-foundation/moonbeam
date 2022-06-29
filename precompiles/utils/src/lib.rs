@@ -21,8 +21,8 @@ extern crate alloc;
 
 use crate::alloc::borrow::ToOwned;
 use fp_evm::{
-	Context, ExitError, ExitReason, ExitRevert, ExitSucceed, PrecompileFailure, PrecompileHandle,
-	PrecompileOutput, Transfer,
+	Context, ExitError, ExitRevert, ExitSucceed, PrecompileFailure, PrecompileHandle,
+	PrecompileOutput,
 };
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
@@ -35,7 +35,10 @@ use sp_std::{marker::PhantomData, vec, vec::Vec};
 mod data;
 
 pub use data::{Address, Bytes, EvmData, EvmDataReader, EvmDataWriter};
+pub use fp_evm::Precompile;
 pub use precompile_utils_macro::{generate_function_selector, keccak256};
+
+pub mod precompile_set;
 
 #[cfg(feature = "testing")]
 pub mod testing;
@@ -49,6 +52,12 @@ pub type EvmResult<T = ()> = Result<T, PrecompileFailure>;
 /// Trait similar to `fp_evm::Precompile` but with a `&self` parameter to manage some
 /// state (this state is only kept in a single transaction and is lost afterward).
 pub trait StatefulPrecompile {
+	/// Instanciate the precompile.
+	/// Will be called once when building the PrecompileSet at the start of each
+	/// Ethereum transaction.
+	fn new() -> Self;
+
+	/// Execute the precompile with a reference to its state.
 	fn execute(&self, handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput>;
 }
 
