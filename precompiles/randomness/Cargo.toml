@@ -35,8 +35,8 @@ hex-literal = "0.3.4"
 serde = "1.0.100"
 
 # Moonbeam
-session-keys-primitives = { path = "../../primitives/session-keys" }
 pallet-author-mapping = { path = "../../pallets/author-mapping" }
+session-keys-primitives = { path = "../../primitives/session-keys" }
 
 # Substrate
 pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20" }
