@@ -30,7 +30,7 @@ use crate::{
 	assert_eq_events, assert_eq_last_events, assert_event_emitted, assert_last_event,
 	assert_tail_eq, set::OrderedSet, AtStake, Bond, BottomDelegations, CandidateInfo,
 	CandidateMetadata, CandidatePool, CapacityStatus, CollatorStatus, DelegationScheduledRequests,
-	Delegations, DelegatorAdded, Error, Event, Range, TopDelegations,
+	Delegations, DelegatorAdded, Error, Event, Range, TopDelegations, DELEGATOR_LOCK_ID,
 };
 use frame_support::{assert_noop, assert_ok};
 use sp_runtime::{traits::Zero, DispatchError, ModuleError, Perbill, Percent};
@@ -8250,12 +8250,58 @@ fn test_hotfix_remove_delegation_requests_exited_candidates_errors_when_candidat
 		});
 }
 
+#[test]
+fn locking_zero_amount_is_ignored() {
+	use frame_support::traits::{LockableCurrency, WithdrawReasons};
+
+	// this test demonstrates the behavior of pallet Balance's `LockableCurrency` implementation of
+	// `set_locks()` when an amount of 0 is provided: it is a no-op
+
+	ExtBuilder::default()
+		.with_balances(vec![(1, 100)])
+		.build()
+		.execute_with(|| {
+			assert_eq!(crate::mock::query_lock_amount(1, DELEGATOR_LOCK_ID), None);
+
+			Balances::set_lock(DELEGATOR_LOCK_ID, &1, 1, WithdrawReasons::all());
+			assert_eq!(crate::mock::query_lock_amount(1, DELEGATOR_LOCK_ID), Some(1));
+
+			Balances::set_lock(DELEGATOR_LOCK_ID, &1, 0, WithdrawReasons::all());
+			// Note that we tried to call `set_lock(0)` and it ignored it, we still have our lock
+			assert_eq!(crate::mock::query_lock_amount(1, DELEGATOR_LOCK_ID), Some(1));
+
+		});
+}
+
+#[test]
+fn revoke_last_removes_lock() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 100), (2, 100), (3, 100)])
+		.with_candidates(vec![(1, 25), (2, 25)])
+		.with_delegations(vec![(3, 1, 30), (3, 2, 25)])
+		.build()
+		.execute_with(|| {
+			assert_eq!(crate::mock::query_lock_amount(3, DELEGATOR_LOCK_ID), Some(55));
+
+			// schedule and remove one...
+			assert_ok!(ParachainStaking::schedule_revoke_delegation(Origin::signed(3), 1));
+			roll_to_round_begin(3);
+			assert_ok!(ParachainStaking::execute_delegation_request(Origin::signed(3), 3, 1));
+			assert_eq!(crate::mock::query_lock_amount(3, DELEGATOR_LOCK_ID), Some(25));
+
+			// schedule and remove the other...
+			assert_ok!(ParachainStaking::schedule_revoke_delegation(Origin::signed(3), 2));
+			roll_to_round_begin(5);
+			assert_ok!(ParachainStaking::execute_delegation_request(Origin::signed(3), 3, 2));
+			assert_eq!(crate::mock::query_lock_amount(3, DELEGATOR_LOCK_ID), None);
+		});
+}
+
 mod jit_migrate_reserve_to_locks_tests {
 
 	use super::*;
 	use crate::{
 		CollatorReserveToLockMigrations, DelegatorReserveToLockMigrations, COLLATOR_LOCK_ID,
-		DELEGATOR_LOCK_ID,
 	};
 
 	pub fn ensure_delegator_unmigrated(account_id: u64, balance: u128) {
@@ -9188,6 +9234,35 @@ mod jit_migrate_reserve_to_locks_tests {
 			// can't call with 10000, but the weight fn still ramps up this high
 			test_with_num_collators(10000, 1_000_050_000_000u64);
 		})
+	}
+
+	#[test]
+	fn revoke_last_on_unmigrated_removes_lock_and_reserve() {
+		ExtBuilder::default()
+			.with_balances(vec![(1, 100), (2, 100), (3, 100)])
+			.with_candidates(vec![(1, 25), (2, 25)])
+			.with_delegations(vec![(3, 1, 30), (3, 2, 25)])
+			.build()
+			.execute_with(|| {
+				assert_eq!(crate::mock::query_lock_amount(3, DELEGATOR_LOCK_ID), Some(55));
+
+				// schedule and remove one...
+				assert_ok!(ParachainStaking::schedule_revoke_delegation(Origin::signed(3), 1));
+				roll_to_round_begin(3);
+				assert_ok!(ParachainStaking::execute_delegation_request(Origin::signed(3), 3, 1));
+				assert_eq!(crate::mock::query_lock_amount(3, DELEGATOR_LOCK_ID), Some(25));
+
+				// now pretend we are unmigrated...
+				crate::mock::unmigrate_delegator_from_lock_to_reserve(3);
+				ensure_delegator_unmigrated(3, 25);
+
+				// schedule and remove the last...
+				assert_ok!(ParachainStaking::schedule_revoke_delegation(Origin::signed(3), 2));
+				roll_to_round_begin(5);
+				assert_ok!(ParachainStaking::execute_delegation_request(Origin::signed(3), 3, 2));
+				assert_eq!(crate::mock::query_lock_amount(3, DELEGATOR_LOCK_ID), None);
+				assert_eq!(Balances::reserved_balance(&3), 0);
+			});
 	}
 
 	// TODO: more test ideas

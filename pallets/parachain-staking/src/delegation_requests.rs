@@ -260,7 +260,6 @@ impl<T: Config> Pallet<T> {
 
 				<DelegationScheduledRequests<T>>::insert(collator, scheduled_requests);
 				if leaving {
-					// TODO: need to unlock here? we didn't unreserve previously...
 					<DelegatorState<T>>::remove(&delegator);
 					Self::deposit_event(Event::DelegatorLeft {
 						delegator,
