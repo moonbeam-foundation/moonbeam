@@ -250,8 +250,6 @@ impl<T: Config> Pallet<T> {
 
 				// remove delegation from collator state delegations
 				Self::delegator_leaves_candidate(collator.clone(), delegator.clone(), amount)?;
-				Self::jit_ensure_delegator_reserve_migrated(&delegator)?;
-				// state.adjust_bond_lock::<T>(None)?; // This is already done in rm_delegation, do we need it?
 				Self::deposit_event(Event::DelegationRevoked {
 					delegator: delegator.clone(),
 					candidate: collator.clone(),
