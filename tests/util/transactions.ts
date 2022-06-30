@@ -119,8 +119,6 @@ export const createTransaction = async (
         type: 2,
       };
     }
-    console.log("to show data");
-    console.log(data);
     rawTransaction = await signer.signTransaction(data);
   }
 
