@@ -41,7 +41,7 @@ describeDevMoonbeamAllEthTxTypes("Ethereum RPC - Filtering non-matching logs", (
     ];
   }
   before("Setup: Create block with transfer", async () => {
-    const { rawTx } = await createContract(context, "SingleEventContract", {
+    const { rawTx } = await createContract(context, "EventEmitter", {
       from: alith.address,
     });
     const { result } = await context.createBlock(rawTx);

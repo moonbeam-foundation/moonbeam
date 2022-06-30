@@ -103,6 +103,8 @@ pub type LocationToAccountId = (
 	SiblingParachainConvertsVia<polkadot_parachain::primitives::Sibling, AccountId>,
 	// If we receive a MultiLocation of type AccountKey20, just generate a native account
 	AccountKey20Aliases<RelayNetwork, AccountId>,
+	// The rest of multilocations convert via hashing it
+	xcm_primitives::Account20Hash<AccountId>,
 );
 
 // The non-reserve fungible transactor type
@@ -223,6 +225,7 @@ pub type XcmWeigher = FixedWeightBounds<UnitWeightCost, Call, MaxInstructions>;
 // Allow paid executions
 pub type XcmBarrier = (
 	TakeWeightCredit,
+	xcm_primitives::AllowDescendOriginFromLocal<Everything>,
 	AllowTopLevelPaidExecutionFrom<Everything>,
 	AllowKnownQueryResponses<PolkadotXcm>,
 	// Subscriptions for version tracking are OK.

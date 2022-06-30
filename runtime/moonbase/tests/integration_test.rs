@@ -39,6 +39,7 @@ use moonbase_runtime::{
 	Precompiles, Runtime, System, XTokens, XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 	LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
+use precompile_utils::testing::MockHandle;
 
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
@@ -2491,7 +2492,7 @@ fn precompile_existence() {
 		let precompiles = Precompiles::new();
 		let precompile_addresses: std::collections::BTreeSet<_> = vec![
 			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2050, 2051, 2052, 2053, 2054,
-			2055, 2056,
+			2055, 2056, 2058,
 		]
 		.into_iter()
 		.map(H160::from_low_u64_be)

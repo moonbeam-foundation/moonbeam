@@ -18,7 +18,9 @@ use proc_macro::TokenStream;
 use proc_macro2::Literal;
 use quote::{quote, quote_spanned};
 use sha3::{Digest, Keccak256};
-use syn::{parse_macro_input, spanned::Spanned, Expr, ExprLit, Ident, ItemEnum, Lit, LitStr};
+use syn::{
+	parse_macro_input, spanned::Spanned, Attribute, Expr, ExprLit, Ident, ItemEnum, Lit, LitStr,
+};
 
 struct Bytes(Vec<u8>);
 
@@ -93,6 +95,7 @@ pub fn generate_function_selector(_: TokenStream, input: TokenStream) -> TokenSt
 
 	let mut ident_expressions: Vec<Ident> = vec![];
 	let mut variant_expressions: Vec<Expr> = vec![];
+	let mut variant_attrs: Vec<Vec<Attribute>> = vec![];
 	for variant in variants {
 		match variant.discriminant {
 			Some((_, Expr::Lit(ExprLit { lit, .. }))) => {
@@ -104,6 +107,7 @@ pub fn generate_function_selector(_: TokenStream, input: TokenStream) -> TokenSt
 						lit: Lit::Verbatim(Literal::u32_suffixed(selector)),
 						attrs: Default::default(),
 					}));
+					variant_attrs.push(variant.attrs);
 				} else {
 					return quote_spanned! {
 						lit.span() => compile_error("Expected literal string");
@@ -132,6 +136,7 @@ pub fn generate_function_selector(_: TokenStream, input: TokenStream) -> TokenSt
 		#[repr(u32)]
 		#vis #enum_token #ident {
 			#(
+				#(#variant_attrs)*
 				#ident_expressions = #variant_expressions,
 			)*
 		}
