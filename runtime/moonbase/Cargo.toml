@@ -266,6 +266,7 @@ runtime-benchmarks = [
 	"pallet-balances/runtime-benchmarks",
 	"pallet-collective/runtime-benchmarks",
 	"pallet-crowdloan-rewards/runtime-benchmarks",
+	"pallet-ethereum-xcm/runtime-benchmarks",
 	"pallet-ethereum/runtime-benchmarks",
 	"pallet-moonbeam-orbiters/runtime-benchmarks",
 	"pallet-parachain-staking/runtime-benchmarks",
@@ -275,7 +276,6 @@ runtime-benchmarks = [
 	"pallet-xcm/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
 	"xcm-builder/runtime-benchmarks",
-	"pallet-ethereum-xcm/runtime-benchmarks",
 ]
 try-runtime = [
 	"frame-executive/try-runtime",
