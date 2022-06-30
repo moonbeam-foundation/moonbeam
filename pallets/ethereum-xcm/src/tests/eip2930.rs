@@ -42,7 +42,6 @@ fn xcm_evm_transfer_eip_2930_transaction(destination: H160, value: U256) -> Ethe
 		fee_payment: EthereumXcmFee::Manual(ManualEthereumXcmFee {
 			gas_price: Some(U256::from(1)),
 			max_fee_per_gas: None,
-			max_priority_fee_per_gas: None,
 		}),
 		gas_limit: U256::from(0x100000),
 		action: ethereum::TransactionAction::Call(destination),
@@ -59,7 +58,6 @@ fn xcm_evm_call_eip_2930_transaction(destination: H160, input: Vec<u8>) -> Ether
 		fee_payment: EthereumXcmFee::Manual(ManualEthereumXcmFee {
 			gas_price: Some(U256::from(1)),
 			max_fee_per_gas: None,
-			max_priority_fee_per_gas: None,
 		}),
 		gas_limit: U256::from(0x100000),
 		action: ethereum::TransactionAction::Call(destination),
@@ -76,7 +74,6 @@ fn xcm_erc20_creation_eip_2930_transaction() -> EthereumXcmTransaction {
 		fee_payment: EthereumXcmFee::Manual(ManualEthereumXcmFee {
 			gas_price: Some(U256::from(1)),
 			max_fee_per_gas: None,
-			max_priority_fee_per_gas: None,
 		}),
 		gas_limit: U256::from(0x100000),
 		action: ethereum::TransactionAction::Create,
@@ -218,7 +215,6 @@ fn test_transact_xcm_validation_works() {
 					fee_payment: EthereumXcmFee::Manual(xcm_primitives::ManualEthereumXcmFee {
 						gas_price: Some(U256::from(0)),
 						max_fee_per_gas: None,
-						max_priority_fee_per_gas: None,
 					}),
 					gas_limit: U256::from(0x100000),
 					action: ethereum::TransactionAction::Call(bob.address),

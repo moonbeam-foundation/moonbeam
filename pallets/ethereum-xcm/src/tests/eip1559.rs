@@ -20,9 +20,7 @@ use frame_support::{
 	weights::{Pays, PostDispatchInfo},
 };
 use sp_runtime::{DispatchError, DispatchErrorWithPostInfo};
-use xcm_primitives::{
-	AutoEthereumXcmFee, EthereumXcmFee, EthereumXcmTransaction, EthereumXcmTransactionV1,
-};
+use xcm_primitives::{EthereumXcmFee, EthereumXcmTransaction, EthereumXcmTransactionV1};
 
 // 	pragma solidity ^0.6.6;
 // 	contract Test {
@@ -37,7 +35,7 @@ const CONTRACT: &str = "608060405234801561001057600080fd5b5061011380610020600039
 
 fn xcm_evm_transfer_eip_1559_transaction(destination: H160, value: U256) -> EthereumXcmTransaction {
 	EthereumXcmTransaction::V1(EthereumXcmTransactionV1 {
-		fee_payment: EthereumXcmFee::Auto(AutoEthereumXcmFee::Low),
+		fee_payment: EthereumXcmFee::Auto,
 		gas_limit: U256::from(0x100000),
 		action: ethereum::TransactionAction::Call(destination),
 		value,
@@ -48,7 +46,7 @@ fn xcm_evm_transfer_eip_1559_transaction(destination: H160, value: U256) -> Ethe
 
 fn xcm_evm_call_eip_1559_transaction(destination: H160, input: Vec<u8>) -> EthereumXcmTransaction {
 	EthereumXcmTransaction::V1(EthereumXcmTransactionV1 {
-		fee_payment: EthereumXcmFee::Auto(AutoEthereumXcmFee::Low),
+		fee_payment: EthereumXcmFee::Auto,
 		gas_limit: U256::from(0x100000),
 		action: ethereum::TransactionAction::Call(destination),
 		value: U256::zero(),
@@ -59,7 +57,7 @@ fn xcm_evm_call_eip_1559_transaction(destination: H160, input: Vec<u8>) -> Ether
 
 fn xcm_erc20_creation_eip_1559_transaction() -> EthereumXcmTransaction {
 	EthereumXcmTransaction::V1(EthereumXcmTransactionV1 {
-		fee_payment: EthereumXcmFee::Auto(AutoEthereumXcmFee::Low),
+		fee_payment: EthereumXcmFee::Auto,
 
 		gas_limit: U256::from(0x100000),
 		action: ethereum::TransactionAction::Create,
@@ -202,7 +200,6 @@ fn test_transact_xcm_validation_works() {
 					fee_payment: EthereumXcmFee::Manual(xcm_primitives::ManualEthereumXcmFee {
 						gas_price: Some(U256::from(0)),
 						max_fee_per_gas: None,
-						max_priority_fee_per_gas: None,
 					}),
 					gas_limit: U256::from(0x100000),
 					action: ethereum::TransactionAction::Call(bob.address),
