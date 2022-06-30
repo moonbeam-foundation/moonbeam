@@ -9800,6 +9800,7 @@ dependencies = [
  "fp-evm",
  "frame-support",
  "frame-system",
+ "hex",
  "hex-literal",
  "impl-trait-for-tuples",
  "log",
@@ -9812,6 +9813,7 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-std",
+ "tiny-keccak",
  "xcm",
 ]
 

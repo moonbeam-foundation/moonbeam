@@ -41,19 +41,19 @@ mod tests;
 #[derive(Debug, PartialEq)]
 pub enum Action {
 	RequestBabeRandomnessCurrentBlock =
-		"request_babe_randomness_current_block(address,uint256,uint64,bytes32,uint64)",
+		"requestBabeRandomnessCurrentBlock(address,uint256,uint64,bytes32,uint64)",
 	RequestBabeRandomnessOneEpochAgo =
-		"request_babe_randomness_one_epoch_ago(address,uint256,uint64,bytes32,uint64)",
+		"requestBabeRandomnessOneEpochAgo(address,uint256,uint64,bytes32,uint64)",
 	RequestBabeRandomnessTwoEpochsAgo =
-		"request_babe_randomness_two_epochs_ago(address,uint256,uint64,bytes32,uint64)",
-	RequestLocalRandomness = "request_local_randomness(address,uint256,uint64,bytes32,uint64)",
-	FulfillRequest = "fulfill_request(uint64)",
-	IncreaseRequestFee = "increase_request_fee(uint64)",
-	ExecuteRequestExpiration = "execute_request_expiration(uint64)",
-	InstantBabeRandomnessCurrentBlock = "instant_babe_randomness_current_block(uint64,bytes32)",
-	InstantBabeRandomnessOneEpochAgo = "instant_babe_randomness_one_epoch_ago(uint64,bytes32)",
-	InstantBabeRandomnessTwoEpochsAgo = "instant_babe_randomness_two_epochs_ago(uint64,bytes32)",
-	InstantLocalRandomness = "instant_local_randomness(uint64,bytes32)",
+		"requestBabeRandomnessTwoEpochsAgo(address,uint256,uint64,bytes32,uint64)",
+	RequestLocalRandomness = "requestLocalRandomness(address,uint256,uint64,bytes32,uint64)",
+	FulfillRequest = "fulfillRequest(uint64)",
+	IncreaseRequestFee = "increaseRequestFee(uint64)",
+	ExecuteRequestExpiration = "executeRequestExpiration(uint64)",
+	InstantBabeRandomnessCurrentBlock = "instantBabeRandomnessCurrentBlock(uint64,bytes32)",
+	InstantBabeRandomnessOneEpochAgo = "instantBabeRandomnessOneEpochAgo(uint64,bytes32)",
+	InstantBabeRandomnessTwoEpochsAgo = "instantBabeRandomnessTwoEpochsAgo(uint64,bytes32)",
+	InstantLocalRandomness = "instantLocalRandomness(uint64,bytes32)",
 }
 
 pub const FULFILLMENT_ESTIMATED_COST: u64 = 1000u64; // TODO: get real value from benchmarking

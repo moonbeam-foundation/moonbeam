@@ -33,6 +33,7 @@ use sp_core::{H160, H256, U256};
 use sp_std::{marker::PhantomData, vec, vec::Vec};
 
 mod data;
+pub mod solidity;
 
 pub use data::{Address, Bytes, EvmData, EvmDataReader, EvmDataWriter};
 pub use fp_evm::Precompile;
