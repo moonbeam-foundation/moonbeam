@@ -32,7 +32,7 @@ use precompile_utils::{
 	revert, succeed, Address, EvmData, EvmDataReader, EvmDataWriter, EvmResult, FunctionModifier,
 	PrecompileHandleExt, RuntimeHelper,
 };
-use sp_core::H160;
+use sp_core::{H160, U256};
 use sp_std::{convert::TryInto, fmt::Debug, marker::PhantomData, vec::Vec};
 
 type BalanceOf<Runtime> = <<Runtime as pallet_parachain_staking::Config>::Currency as Currency<
@@ -111,7 +111,7 @@ pub struct ParachainStakingWrapper<Runtime>(PhantomData<Runtime>);
 impl<Runtime> pallet_evm::Precompile for ParachainStakingWrapper<Runtime>
 where
 	Runtime: pallet_parachain_staking::Config + pallet_evm::Config,
-	BalanceOf<Runtime>: EvmData,
+	BalanceOf<Runtime>: TryFrom<U256> + TryInto<u128> + EvmData,
 	Runtime::AccountId: Into<H160>,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
@@ -239,7 +239,7 @@ where
 impl<Runtime> ParachainStakingWrapper<Runtime>
 where
 	Runtime: pallet_parachain_staking::Config + pallet_evm::Config,
-	BalanceOf<Runtime>: EvmData,
+	BalanceOf<Runtime>: TryFrom<U256> + TryInto<u128> + EvmData,
 	Runtime::AccountId: Into<H160>,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
