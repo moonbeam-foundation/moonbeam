@@ -36,6 +36,7 @@ serde = "1.0.100"
 
 # Moonbeam
 pallet-author-mapping = { path = "../../pallets/author-mapping" }
+precompile-utils = { path = "../utils", features = [ "testing" ] }
 session-keys-primitives = { path = "../../primitives/session-keys" }
 
 # Substrate
