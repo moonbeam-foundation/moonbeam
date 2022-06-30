@@ -200,7 +200,6 @@ pub struct Erc20BalancesPrecompile<Runtime, Metadata: Erc20Metadata, Instance: '
 	PhantomData<(Runtime, Metadata, Instance)>,
 );
 
-// TODO: Migrate to precompile_utils::Precompile.
 impl<Runtime, Metadata, Instance> Precompile
 	for Erc20BalancesPrecompile<Runtime, Metadata, Instance>
 where
