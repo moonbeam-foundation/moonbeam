@@ -215,10 +215,11 @@ import type {
   PolkadotCorePrimitivesInboundHrmpMessage,
   PolkadotCorePrimitivesOutboundHrmpMessage,
   PolkadotParachainPrimitivesXcmpMessageFormat,
-  PolkadotPrimitivesV1AbridgedHostConfiguration,
-  PolkadotPrimitivesV1AbridgedHrmpChannel,
-  PolkadotPrimitivesV1PersistedValidationData,
-  PolkadotPrimitivesV1UpgradeRestriction,
+  PolkadotPrimitivesV2AbridgedHostConfiguration,
+  PolkadotPrimitivesV2AbridgedHrmpChannel,
+  PolkadotPrimitivesV2PersistedValidationData,
+  PolkadotPrimitivesV2UpgradeRestriction,
+  SessionKeysPrimitivesVrfVrfCryptoPublic,
   SpCoreEcdsaSignature,
   SpCoreEd25519Signature,
   SpCoreSr25519Public,
@@ -231,6 +232,7 @@ import type {
   SpRuntimeModuleError,
   SpRuntimeMultiSignature,
   SpRuntimeTokenError,
+  SpRuntimeTransactionalError,
   SpTrieStorageProof,
   SpVersionRuntimeVersion,
   XcmDoubleEncoded,
@@ -490,10 +492,11 @@ declare module "@polkadot/types/types/registry" {
     PolkadotCorePrimitivesInboundHrmpMessage: PolkadotCorePrimitivesInboundHrmpMessage;
     PolkadotCorePrimitivesOutboundHrmpMessage: PolkadotCorePrimitivesOutboundHrmpMessage;
     PolkadotParachainPrimitivesXcmpMessageFormat: PolkadotParachainPrimitivesXcmpMessageFormat;
-    PolkadotPrimitivesV1AbridgedHostConfiguration: PolkadotPrimitivesV1AbridgedHostConfiguration;
-    PolkadotPrimitivesV1AbridgedHrmpChannel: PolkadotPrimitivesV1AbridgedHrmpChannel;
-    PolkadotPrimitivesV1PersistedValidationData: PolkadotPrimitivesV1PersistedValidationData;
-    PolkadotPrimitivesV1UpgradeRestriction: PolkadotPrimitivesV1UpgradeRestriction;
+    PolkadotPrimitivesV2AbridgedHostConfiguration: PolkadotPrimitivesV2AbridgedHostConfiguration;
+    PolkadotPrimitivesV2AbridgedHrmpChannel: PolkadotPrimitivesV2AbridgedHrmpChannel;
+    PolkadotPrimitivesV2PersistedValidationData: PolkadotPrimitivesV2PersistedValidationData;
+    PolkadotPrimitivesV2UpgradeRestriction: PolkadotPrimitivesV2UpgradeRestriction;
+    SessionKeysPrimitivesVrfVrfCryptoPublic: SessionKeysPrimitivesVrfVrfCryptoPublic;
     SpCoreEcdsaSignature: SpCoreEcdsaSignature;
     SpCoreEd25519Signature: SpCoreEd25519Signature;
     SpCoreSr25519Public: SpCoreSr25519Public;
@@ -506,6 +509,7 @@ declare module "@polkadot/types/types/registry" {
     SpRuntimeModuleError: SpRuntimeModuleError;
     SpRuntimeMultiSignature: SpRuntimeMultiSignature;
     SpRuntimeTokenError: SpRuntimeTokenError;
+    SpRuntimeTransactionalError: SpRuntimeTransactionalError;
     SpTrieStorageProof: SpTrieStorageProof;
     SpVersionRuntimeVersion: SpVersionRuntimeVersion;
     XcmDoubleEncoded: XcmDoubleEncoded;
