@@ -159,49 +159,6 @@ impl XcmToEthereum for EthereumXcmTransactionV1 {
 	}
 }
 
-// TODO: remove and use pallet_ethereum::InvalidTransactionWrapper once merged
-use fp_evm::InvalidEvmTransactionError;
-use sp_runtime::transaction_validity::InvalidTransaction;
-pub struct XcmInvalidTransactionWrapper(InvalidTransaction);
-
-impl From<InvalidEvmTransactionError> for XcmInvalidTransactionWrapper {
-	fn from(validation_error: InvalidEvmTransactionError) -> Self {
-		match validation_error {
-			InvalidEvmTransactionError::GasLimitTooLow => {
-				XcmInvalidTransactionWrapper(InvalidTransaction::Payment)
-			}
-			InvalidEvmTransactionError::GasLimitTooHigh => {
-				XcmInvalidTransactionWrapper(InvalidTransaction::Payment)
-			}
-			InvalidEvmTransactionError::GasPriceTooLow => {
-				XcmInvalidTransactionWrapper(InvalidTransaction::Payment)
-			}
-			InvalidEvmTransactionError::PriorityFeeTooHigh => {
-				XcmInvalidTransactionWrapper(InvalidTransaction::Custom(
-					pallet_ethereum::TransactionValidationError::MaxFeePerGasTooLow as u8,
-				))
-			}
-			InvalidEvmTransactionError::BalanceTooLow => {
-				XcmInvalidTransactionWrapper(InvalidTransaction::Payment)
-			}
-			InvalidEvmTransactionError::TxNonceTooLow => {
-				XcmInvalidTransactionWrapper(InvalidTransaction::Stale)
-			}
-			InvalidEvmTransactionError::TxNonceTooHigh => {
-				XcmInvalidTransactionWrapper(InvalidTransaction::Future)
-			}
-			InvalidEvmTransactionError::InvalidPaymentInput => {
-				XcmInvalidTransactionWrapper(InvalidTransaction::Payment)
-			}
-			InvalidEvmTransactionError::InvalidChainId => {
-				XcmInvalidTransactionWrapper(InvalidTransaction::Custom(
-					pallet_ethereum::TransactionValidationError::InvalidChainId as u8,
-				))
-			}
-		}
-	}
-}
-
 #[cfg(test)]
 mod tests {
 	use super::*;

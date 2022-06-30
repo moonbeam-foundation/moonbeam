@@ -15715,13 +15715,11 @@ version = "0.1.0"
 dependencies = [
  "ethereum",
  "ethereum-types",
- "fp-evm",
  "frame-support",
  "frame-system",
  "hex",
  "log",
  "orml-traits",
- "pallet-ethereum",
  "parity-scale-codec",
  "scale-info",
  "serde",
