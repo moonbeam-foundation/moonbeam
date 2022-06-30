@@ -9153,13 +9153,9 @@ mod jit_migrate_reserve_to_locks_tests {
 
 	#[test]
 	fn test_hotfix_fees_are_known() {
-		use frame_support::{
-			dispatch::GetDispatchInfo,
-			weights::Weight,
-		};
+		use frame_support::{dispatch::GetDispatchInfo, weights::Weight};
 
 		ExtBuilder::default().build().execute_with(|| {
-
 			// test hotfix_migrate_delegators_from_reserve_to_locks with a few samples...
 			let test_with_num_delegators = |num_delegators: usize, expected_weight: u64| {
 				let call = crate::Call::hotfix_migrate_delegators_from_reserve_to_locks::<Test> {
