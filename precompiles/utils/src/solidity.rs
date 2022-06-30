@@ -123,7 +123,7 @@ mod tests {
 
 	#[test]
 	fn test_selectors_are_parsed() {
-		let actual = get_selectors("solidity_test.sol")
+		let actual = get_selectors("tests/solidity_test.sol")
 			.into_iter()
 			.collect::<Vec<_>>();
 		let expected = vec![
