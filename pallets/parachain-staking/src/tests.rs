@@ -8265,12 +8265,17 @@ fn locking_zero_amount_is_ignored() {
 			assert_eq!(crate::mock::query_lock_amount(1, DELEGATOR_LOCK_ID), None);
 
 			Balances::set_lock(DELEGATOR_LOCK_ID, &1, 1, WithdrawReasons::all());
-			assert_eq!(crate::mock::query_lock_amount(1, DELEGATOR_LOCK_ID), Some(1));
+			assert_eq!(
+				crate::mock::query_lock_amount(1, DELEGATOR_LOCK_ID),
+				Some(1)
+			);
 
 			Balances::set_lock(DELEGATOR_LOCK_ID, &1, 0, WithdrawReasons::all());
 			// Note that we tried to call `set_lock(0)` and it ignored it, we still have our lock
-			assert_eq!(crate::mock::query_lock_amount(1, DELEGATOR_LOCK_ID), Some(1));
-
+			assert_eq!(
+				crate::mock::query_lock_amount(1, DELEGATOR_LOCK_ID),
+				Some(1)
+			);
 		});
 }
 
@@ -8282,18 +8287,38 @@ fn revoke_last_removes_lock() {
 		.with_delegations(vec![(3, 1, 30), (3, 2, 25)])
 		.build()
 		.execute_with(|| {
-			assert_eq!(crate::mock::query_lock_amount(3, DELEGATOR_LOCK_ID), Some(55));
+			assert_eq!(
+				crate::mock::query_lock_amount(3, DELEGATOR_LOCK_ID),
+				Some(55)
+			);
 
 			// schedule and remove one...
-			assert_ok!(ParachainStaking::schedule_revoke_delegation(Origin::signed(3), 1));
+			assert_ok!(ParachainStaking::schedule_revoke_delegation(
+				Origin::signed(3),
+				1
+			));
 			roll_to_round_begin(3);
-			assert_ok!(ParachainStaking::execute_delegation_request(Origin::signed(3), 3, 1));
-			assert_eq!(crate::mock::query_lock_amount(3, DELEGATOR_LOCK_ID), Some(25));
+			assert_ok!(ParachainStaking::execute_delegation_request(
+				Origin::signed(3),
+				3,
+				1
+			));
+			assert_eq!(
+				crate::mock::query_lock_amount(3, DELEGATOR_LOCK_ID),
+				Some(25)
+			);
 
 			// schedule and remove the other...
-			assert_ok!(ParachainStaking::schedule_revoke_delegation(Origin::signed(3), 2));
+			assert_ok!(ParachainStaking::schedule_revoke_delegation(
+				Origin::signed(3),
+				2
+			));
 			roll_to_round_begin(5);
-			assert_ok!(ParachainStaking::execute_delegation_request(Origin::signed(3), 3, 2));
+			assert_ok!(ParachainStaking::execute_delegation_request(
+				Origin::signed(3),
+				3,
+				2
+			));
 			assert_eq!(crate::mock::query_lock_amount(3, DELEGATOR_LOCK_ID), None);
 		});
 }
@@ -9245,22 +9270,42 @@ mod jit_migrate_reserve_to_locks_tests {
 			.with_delegations(vec![(3, 1, 30), (3, 2, 25)])
 			.build()
 			.execute_with(|| {
-				assert_eq!(crate::mock::query_lock_amount(3, DELEGATOR_LOCK_ID), Some(55));
+				assert_eq!(
+					crate::mock::query_lock_amount(3, DELEGATOR_LOCK_ID),
+					Some(55)
+				);
 
 				// schedule and remove one...
-				assert_ok!(ParachainStaking::schedule_revoke_delegation(Origin::signed(3), 1));
+				assert_ok!(ParachainStaking::schedule_revoke_delegation(
+					Origin::signed(3),
+					1
+				));
 				roll_to_round_begin(3);
-				assert_ok!(ParachainStaking::execute_delegation_request(Origin::signed(3), 3, 1));
-				assert_eq!(crate::mock::query_lock_amount(3, DELEGATOR_LOCK_ID), Some(25));
+				assert_ok!(ParachainStaking::execute_delegation_request(
+					Origin::signed(3),
+					3,
+					1
+				));
+				assert_eq!(
+					crate::mock::query_lock_amount(3, DELEGATOR_LOCK_ID),
+					Some(25)
+				);
 
 				// now pretend we are unmigrated...
 				crate::mock::unmigrate_delegator_from_lock_to_reserve(3);
 				ensure_delegator_unmigrated(3, 25);
 
 				// schedule and remove the last...
-				assert_ok!(ParachainStaking::schedule_revoke_delegation(Origin::signed(3), 2));
+				assert_ok!(ParachainStaking::schedule_revoke_delegation(
+					Origin::signed(3),
+					2
+				));
 				roll_to_round_begin(5);
-				assert_ok!(ParachainStaking::execute_delegation_request(Origin::signed(3), 3, 2));
+				assert_ok!(ParachainStaking::execute_delegation_request(
+					Origin::signed(3),
+					3,
+					2
+				));
 				assert_eq!(crate::mock::query_lock_amount(3, DELEGATOR_LOCK_ID), None);
 				assert_eq!(Balances::reserved_balance(&3), 0);
 			});
