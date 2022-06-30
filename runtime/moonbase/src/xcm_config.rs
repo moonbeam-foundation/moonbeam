@@ -24,7 +24,10 @@ use super::{
 };
 
 use pallet_evm_precompileset_assets_erc20::AccountIdAssetIdConversion;
-use sp_runtime::{traits::{Hash as THash, PostDispatchInfoOf}, DispatchErrorWithPostInfo};
+use sp_runtime::{
+	traits::{Hash as THash, PostDispatchInfoOf},
+	DispatchErrorWithPostInfo,
+};
 
 use frame_support::{
 	parameter_types,
@@ -45,7 +48,7 @@ use xcm_builder::{
 };
 
 use xcm::latest::prelude::*;
-use xcm_executor::traits::{JustTry, CallDispatcher};
+use xcm_executor::traits::{CallDispatcher, JustTry};
 
 use orml_xcm_support::MultiNativeAsset;
 use xcm_primitives::{
