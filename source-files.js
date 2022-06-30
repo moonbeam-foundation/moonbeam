@@ -32,6 +32,7 @@ sourcesIndex["pallet_ethereum_chain_id"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["pallet_evm_precompile_author_mapping"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["pallet_evm_precompile_balances_erc20"] = {"name":"","files":["eip2612.rs","lib.rs"]};
 sourcesIndex["pallet_evm_precompile_batch"] = {"name":"","files":["lib.rs"]};
+sourcesIndex["pallet_evm_precompile_call_permit"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["pallet_evm_precompile_crowdloan_rewards"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["pallet_evm_precompile_democracy"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["pallet_evm_precompile_parachain_staking"] = {"name":"","files":["lib.rs"]};
