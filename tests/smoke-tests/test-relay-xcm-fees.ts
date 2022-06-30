@@ -4,12 +4,14 @@ import type { FrameSystemAccountInfo } from "@polkadot/types/lookup";
 import { expect } from "chai";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 import { MultiLocation } from "@polkadot/types/interfaces";
+import { it } from "mocha";
 const debug = require("debug")("smoke:treasury");
 
 const wssUrl = process.env.WSS_URL || null;
 const relayWssUrl = process.env.RELAY_WSS_URL || null;
 
 describeSmokeSuite(`Verify XCM weight fees for relay`, { wssUrl, relayWssUrl }, (context) => {
+  const conditionalIt = process.env.SKIP_RELAY_TESTS ? it.skip : it;
   const accounts: { [account: string]: FrameSystemAccountInfo } = {};
 
   let atBlockNumber: number = 0;
@@ -29,7 +31,7 @@ describeSmokeSuite(`Verify XCM weight fees for relay`, { wssUrl, relayWssUrl }, 
     );
   });
 
-  it("should have value over relay expected fees", async function () {
+  conditionalIt("should have value over relay expected fees", async function () {
     // Load data
     const relayRuntime = context.relayApi.runtimeVersion.specName.toString();
     const relayMultiLocation: MultiLocation = context.polkadotApi.createType(

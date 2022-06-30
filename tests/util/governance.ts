@@ -1,5 +1,7 @@
+import { ApiPromise } from "@polkadot/api";
 import { ApiTypes, SubmittableExtrinsic } from "@polkadot/api/types";
 import { KeyringPair } from "@polkadot/keyring/types";
+import { PalletDemocracyReferendumInfo } from "@polkadot/types/lookup";
 import { blake2AsHex } from "@polkadot/util-crypto";
 import { expect } from "chai";
 
@@ -12,6 +14,9 @@ export const TECHNICAL_COMMITTEE_MEMBERS = [alith, baltathar];
 export const TECHNICAL_COMMITTEE_THRESHOLD = Math.ceil(
   (TECHNICAL_COMMITTEE_MEMBERS.length * 2) / 3
 );
+
+// TODO: Refactor to support both instant sealing and parachain environment
+// (using a waitOrCreateNextBlock common function)
 
 export const notePreimage = async <
   Call extends SubmittableExtrinsic<ApiType>,
@@ -138,4 +143,63 @@ export const execTechnicalCommitteeProposal = async <
       .signAsync(baltathar)
   );
   return closeResult;
+};
+
+export const executeProposalWithCouncil = async (api: ApiPromise, encodedHash: string) => {
+  let nonce = (await api.rpc.system.accountNextIndex(alith.address)).toNumber();
+  let referendumNextIndex = (await api.query.democracy.referendumCount()).toNumber();
+
+  // process.stdout.write(
+  //   `Sending council motion (${encodedHash} ` +
+  //     `[threashold: 1, expected referendum: ${referendumNextIndex}])...`
+  // );
+  let external = api.tx.democracy.externalProposeMajority(encodedHash);
+  let fastTrack = api.tx.democracy.fastTrack(encodedHash, 1, 0);
+  const voteAmount = 1n * 10n ** BigInt(api.registry.chainDecimals[0]);
+
+  process.stdout.write(`Sending motion + fast-track + vote for ${encodedHash}...`);
+  await Promise.all([
+    api.tx.councilCollective
+      .propose(1, external, external.length)
+      .signAndSend(alith, { nonce: nonce++ }),
+    api.tx.techCommitteeCollective
+      .propose(1, fastTrack, fastTrack.length)
+      .signAndSend(alith, { nonce: nonce++ }),
+    api.tx.democracy
+      .vote(referendumNextIndex, {
+        Standard: {
+          balance: voteAmount,
+          vote: { aye: true, conviction: 1 },
+        },
+      })
+      .signAndSend(alith, { nonce: nonce++ }),
+  ]);
+  process.stdout.write(`✅\n`);
+
+  process.stdout.write(`Waiting for referendum [${referendumNextIndex}] to be executed...`);
+  let referenda: PalletDemocracyReferendumInfo = null;
+  while (!referenda) {
+    referenda = (await api.query.democracy.referendumInfoOf.entries())
+      .find(
+        (ref) =>
+          ref[1].unwrap().isFinished &&
+          api.registry.createType("u32", ref[0].toU8a().slice(-4)).toNumber() == referendumNextIndex
+      )?.[1]
+      .unwrap();
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+  }
+  process.stdout.write(`${referenda.asFinished.approved ? `✅` : `❌`} \n`);
+  if (!referenda.asFinished.approved) {
+    process.exit(1);
+  }
+};
+
+export const cancelReferendaWithCouncil = async (api: ApiPromise, refIndex: number) => {
+  const proposal = api.tx.democracy.cancelReferendum(refIndex);
+  const encodedProposal = proposal.method.toHex();
+  const encodedHash = blake2AsHex(encodedProposal);
+
+  let nonce = (await api.rpc.system.accountNextIndex(alith.address)).toNumber();
+  await api.tx.democracy.notePreimage(encodedProposal).signAndSend(alith, { nonce: nonce++ });
+  await executeProposalWithCouncil(api, encodedHash);
 };

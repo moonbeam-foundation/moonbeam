@@ -1,10 +1,11 @@
 import "@moonbeam-network/api-augment";
 
 import { expect } from "chai";
+import { expectEVMResult } from "../../util/eth-transactions";
 
 import { web3EthCall } from "../../util/providers";
-import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
-import { createContract } from "../../util/transactions";
+import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
+import { createContract, createContractExecution } from "../../util/transactions";
 
 describeDevMoonbeamAllEthTxTypes("Precompiles - ripemd160 ", (context) => {
   it("should be valid", async function () {
@@ -19,16 +20,21 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - ripemd160 ", (context) => {
   });
 });
 
-describeDevMoonbeamAllEthTxTypes("Precompiles - ripemd160 ", (context) => {
+describeDevMoonbeam("Precompiles - ripemd160 ", (context) => {
   it("should be accessible from a smart contract", async function () {
-    const { rawTx } = await createContract(context, "HashRipmd160");
+    // Deploy the contract
+    const { contract, rawTx } = await createContract(context, "HasherChecker");
     await context.createBlock(rawTx);
 
-    // Because the call to ripemd160 is in the constructor of HashRipmd160, verifying the code
-    // is enough
-    expect(await context.web3.eth.getCode("0xc01ee7f10ea4af4673cfff62710e1d7792aba8f3")).equals(
-      "0x6080604052600080fdfea26469706673582212202a18a661fdf5ea3600714f19a16e1681d5c651e" +
-        "3b23f5a55166c1372b7f4119b64736f6c63430008030033"
+    // Execute the contract ripemd160 call
+    const { result } = await context.createBlock(
+      createContractExecution(context, {
+        contract,
+        contractCall: contract.methods.ripemd160Check(),
+      })
     );
+
+    // Verify the result
+    expectEVMResult(result.events, "Succeed");
   });
 });
