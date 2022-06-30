@@ -24,7 +24,6 @@ members = [
 	"runtime/moonbase",
 	"runtime/moonbeam",
 	"runtime/moonriver",
-	"pallets/ethereum-xcm"
 ]
 
 # make sure dev builds with backtrace do
