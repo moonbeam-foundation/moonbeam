@@ -2168,6 +2168,7 @@ fn execute_leave_delegators_unreserves_balance() {
 				ParachainStaking::get_delegator_stakable_free_balance(&2),
 				10
 			);
+			assert_eq!(crate::mock::query_lock_amount(2, DELEGATOR_LOCK_ID), None);
 		});
 }
 

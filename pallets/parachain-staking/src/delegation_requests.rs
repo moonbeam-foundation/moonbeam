@@ -503,7 +503,6 @@ impl<T: Config> Pallet<T> {
 			delegator: delegator.clone(),
 			unstaked_amount,
 		});
-		// TODO: need to unlock here? we didn't unreserve previously...
 		<DelegatorState<T>>::remove(&delegator);
 
 		Ok(().into())
