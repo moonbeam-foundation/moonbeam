@@ -62,7 +62,7 @@ export const createTransaction = async (
   const from = options.from || alith.address;
   const privateKey = options.privateKey !== undefined ? options.privateKey : ALITH_PRIVATE_KEY;
 
-  // Instead of hardcoding the hard limit, we estimate and hardcode
+  // Instead of hardcoding the gas limit, we estimate the gas
   const gas =
     options.gas ||
     (await context.web3.eth.estimateGas({
