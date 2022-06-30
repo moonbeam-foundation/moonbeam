@@ -9,7 +9,7 @@ import {
   notePreimage,
 } from "../../util/governance";
 import { GLMR, MIN_GLMR_STAKING } from "../../util/constants";
-import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
 import { shortcutRounds } from "../../util/block";
 import { KeyringPair } from "@polkadot/keyring/types";
 
@@ -320,5 +320,71 @@ describeDevMoonbeam("Staking - Locks", (context) => {
     );
     expect(locks[0].amount.toBigInt()).to.be.equal(MIN_GLMR_STAKING);
     expect(locks[0].id.toHuman().toString()).to.be.equal("stkngcol");
+  });
+});
+
+const testFeesForHotfixExtrinsicWithNumDelegators = async (
+  context: DevTestContext,
+  numDelegators: number
+) => {
+  let initialBalance = (
+    await context.polkadotApi.query.system.account(baltathar.address)
+  ).data.free.toBigInt();
+
+  let accountIds = Array<string>(numDelegators).fill(alith.address);
+
+  await context.createBlock(
+    (context.polkadotApi.tx.parachainStaking as any)
+      .hotfixMigrateDelegatorsFromReserveToLocks(accountIds)
+      .signAsync(baltathar)
+  );
+
+  let afterBalance = (
+    await context.polkadotApi.query.system.account(baltathar.address)
+  ).data.free.toBigInt();
+
+  const fee = initialBalance - afterBalance;
+  return fee;
+};
+
+const testFeesForHotfixExtrinsicWithNumCollators = async (
+  context: DevTestContext,
+  numCollators: number
+) => {
+  let initialBalance = (
+    await context.polkadotApi.query.system.account(baltathar.address)
+  ).data.free.toBigInt();
+
+  let accountIds = Array<string>(numCollators).fill(alith.address);
+
+  await context.createBlock(
+    (context.polkadotApi.tx.parachainStaking as any)
+      .hotfixMigrateCollatorsFromReserveToLocks(accountIds)
+      .signAsync(baltathar)
+  );
+
+  let afterBalance = (
+    await context.polkadotApi.query.system.account(baltathar.address)
+  ).data.free.toBigInt();
+
+  const fee = initialBalance - afterBalance;
+  return fee;
+};
+
+describeDevMoonbeam("Staking - Locks Hotfix Migration Extrinsics", (context) => {
+  it("should have known fees", async function () {
+    expect(await testFeesForHotfixExtrinsicWithNumDelegators(context, 1)).to.equal(
+      31_365_001_520_875n
+    );
+    expect(await testFeesForHotfixExtrinsicWithNumDelegators(context, 100)).to.equal(
+      2_260_838_427_118_245n
+    );
+
+    expect(await testFeesForHotfixExtrinsicWithNumCollators(context, 1)).to.equal(
+      31_364_718_122_481n
+    );
+    expect(await testFeesForHotfixExtrinsicWithNumCollators(context, 100)).to.equal(
+      2_260_812_893_113_203n
+    );
   });
 });
