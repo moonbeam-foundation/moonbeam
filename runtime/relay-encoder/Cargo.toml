@@ -21,7 +21,7 @@ sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkad
 sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
 
 # Cumulus
-cumulus-primitives-core = { git = "https://github.com/4meta5/cumulus", branch = "amar-cherrypick-insert-epoch-in-relay-sproof", default-features = false }
+cumulus-primitives-core = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.20", default-features = false }
 
 [dev-dependencies]
 frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20" }
