@@ -532,7 +532,8 @@ where
 		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
 		input.expect_arguments(2)?;
-		let bond: BalanceOf<Runtime> = input.read()?;
+		let amount: U256 = input.read()?;
+		let bond = Self::u256_to_amount(amount)?;
 		let candidate_count = input.read()?;
 
 		// Build call with origin.
@@ -648,7 +649,8 @@ where
 		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
 		input.expect_arguments(1)?;
-		let more: BalanceOf<Runtime> = input.read()?;
+		let amount: U256 = input.read()?;
+		let more = Self::u256_to_amount(amount)?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -667,7 +669,8 @@ where
 		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
 		input.expect_arguments(1)?;
-		let less: BalanceOf<Runtime> = input.read()?;
+		let amount: U256 = input.read()?;
+		let less = Self::u256_to_amount(amount)?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -722,7 +725,8 @@ where
 		// Read input.
 		input.expect_arguments(4)?;
 		let candidate = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
-		let amount: BalanceOf<Runtime> = input.read()?;
+		let amount: U256 = input.read()?;
+		let amount = Self::u256_to_amount(amount)?;
 		let candidate_delegation_count = input.read()?;
 		let delegation_count = input.read()?;
 
@@ -823,7 +827,8 @@ where
 		input.expect_arguments(2)?;
 		let candidate = input.read::<Address>()?.0;
 		let candidate = Runtime::AddressMapping::into_account_id(candidate);
-		let more: BalanceOf<Runtime> = input.read()?;
+		let amount: U256 = input.read()?;
+		let more = Self::u256_to_amount(amount)?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -845,7 +850,8 @@ where
 		input.expect_arguments(2)?;
 		let candidate = input.read::<Address>()?.0;
 		let candidate = Runtime::AddressMapping::into_account_id(candidate);
-		let less: BalanceOf<Runtime> = input.read()?;
+		let amount: U256 = input.read()?;
+		let less = Self::u256_to_amount(amount)?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -902,5 +908,11 @@ where
 
 		// Return call information
 		Ok((Some(origin).into(), call))
+	}
+
+	fn u256_to_amount(value: U256) -> EvmResult<BalanceOf<Runtime>> {
+		value
+			.try_into()
+			.map_err(|_| revert("amount is too large for balance type"))
 	}
 }
