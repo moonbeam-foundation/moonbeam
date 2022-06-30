@@ -129,7 +129,7 @@ impl XcmToEthereum for EthereumXcmTransactionV1 {
 						action: self.action,
 						value: self.value,
 						input: self.input.clone(),
-						signature: TransactionSignature::new(42, rs_id(), rs_id()).unwrap(), // TODO
+						signature: TransactionSignature::new(42, rs_id(), rs_id())?,
 					}))
 				}
 			}
