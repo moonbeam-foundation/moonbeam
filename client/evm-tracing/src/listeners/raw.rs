@@ -35,6 +35,7 @@ pub struct Listener {
 	pub step_logs: Vec<RawStepLog>,
 	pub return_value: Vec<u8>,
 	pub final_gas: u64,
+	pub remaining_memory_usage: Option<usize>,
 }
 
 #[derive(Debug)]
@@ -64,11 +65,17 @@ struct Step {
 }
 
 impl Listener {
-	pub fn new(disable_storage: bool, disable_memory: bool, disable_stack: bool) -> Self {
+	pub fn new(
+		disable_storage: bool,
+		disable_memory: bool,
+		disable_stack: bool,
+		raw_max_memory_usage: usize,
+	) -> Self {
 		Self {
 			disable_storage,
 			disable_memory,
 			disable_stack,
+			remaining_memory_usage: Some(raw_max_memory_usage),
 
 			step_logs: vec![],
 			return_value: vec![],
@@ -155,22 +162,32 @@ impl Listener {
 						memory: if self.disable_memory {
 							None
 						} else {
-							Some(
-								memory
-									.expect("memory data to not be filtered out")
-									.data
-									.clone(),
-							)
+							let memory = memory.expect("memory data to not be filtered out");
+
+							self.remaining_memory_usage = self
+								.remaining_memory_usage
+								.and_then(|inner| inner.checked_sub(memory.data.len()));
+
+							if self.remaining_memory_usage.is_none() {
+								return;
+							}
+
+							Some(memory.data.clone())
 						},
 						stack: if self.disable_stack {
 							None
 						} else {
-							Some(
-								stack
-									.expect("stack data to not be filtered out")
-									.data
-									.clone(),
-							)
+							let stack = stack.expect("stack data to not be filtered out");
+
+							self.remaining_memory_usage = self
+								.remaining_memory_usage
+								.and_then(|inner| inner.checked_sub(stack.data.len()));
+
+							if self.remaining_memory_usage.is_none() {
+								return;
+							}
+
+							Some(stack.data.clone())
 						},
 					});
 				}
@@ -200,6 +217,15 @@ impl Listener {
 						let storage = if self.disable_storage {
 							None
 						} else {
+							self.remaining_memory_usage =
+								self.remaining_memory_usage.and_then(|inner| {
+									inner.checked_sub(context.storage_cache.len() * 64)
+								});
+
+							if self.remaining_memory_usage.is_none() {
+								return;
+							}
+
 							Some(context.storage_cache.clone())
 						};
 
@@ -293,6 +319,10 @@ impl Listener {
 
 impl ListenerT for Listener {
 	fn event(&mut self, event: Event) {
+		if self.remaining_memory_usage.is_none() {
+			return;
+		}
+
 		match event {
 			Event::Gasometer(e) => self.gasometer_event(e),
 			Event::Runtime(e) => self.runtime_event(e),

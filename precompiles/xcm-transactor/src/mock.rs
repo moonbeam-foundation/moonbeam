@@ -28,7 +28,7 @@ use pallet_evm::{
 };
 use scale_info::TypeInfo;
 use serde::{Deserialize, Serialize};
-use sp_core::H256;
+use sp_core::{H256, U256};
 use sp_io;
 use sp_runtime::{
 	testing::Header,
@@ -246,6 +246,7 @@ pub fn precompile_address() -> H160 {
 }
 
 parameter_types! {
+	pub BlockGasLimit: U256 = U256::max_value();
 	pub const PrecompilesValue: TestPrecompiles<Runtime> = TestPrecompiles(PhantomData);
 }
 
@@ -274,7 +275,7 @@ impl pallet_evm::Config for Runtime {
 	type PrecompilesType = TestPrecompiles<Self>;
 	type ChainId = ();
 	type OnChargeTransaction = ();
-	type BlockGasLimit = ();
+	type BlockGasLimit = BlockGasLimit;
 	type BlockHashMapping = pallet_evm::SubstrateBlockHashMapping<Self>;
 	type FindAuthor = ();
 }

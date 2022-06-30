@@ -147,6 +147,7 @@ where
 		frontier_backend: Arc<fc_db::Backend<B>>,
 		permit_pool: Arc<Semaphore>,
 		overrides: Arc<OverrideHandle<B>>,
+		raw_max_memory_usage: usize,
 	) -> (impl Future<Output = ()>, DebugRequester) {
 		let (tx, mut rx): (DebugRequester, _) =
 			sc_utils::mpsc::tracing_unbounded("debug-requester");
@@ -176,6 +177,7 @@ where
 											transaction_hash,
 											params,
 											overrides.clone(),
+											raw_max_memory_usage,
 										)
 									})
 									.await
@@ -417,6 +419,7 @@ where
 		transaction_hash: H256,
 		params: Option<TraceParams>,
 		overrides: Arc<OverrideHandle<B>>,
+		raw_max_memory_usage: usize,
 	) -> RpcResult<Response> {
 		let (tracer_input, trace_type) = Self::handle_params(params)?;
 
@@ -538,11 +541,16 @@ where
 							disable_storage,
 							disable_memory,
 							disable_stack,
+							raw_max_memory_usage,
 						);
 						proxy.using(f)?;
 						Ok(Response::Single(
-							moonbeam_client_evm_tracing::formatters::Raw::format(proxy)
-								.ok_or(internal_err("Fail to format proxy"))?,
+							moonbeam_client_evm_tracing::formatters::Raw::format(proxy).ok_or(
+								internal_err(
+									"replayed transaction generated too much data. \
+								try disabling memory or storage?",
+								),
+							)?,
 						))
 					}
 					single::TraceType::CallList => {
