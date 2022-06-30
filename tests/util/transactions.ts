@@ -55,13 +55,21 @@ export const createTransaction = async (
   const isEip2930 = context.ethTransactionType === "EIP2930";
   const isEip1559 = context.ethTransactionType === "EIP1559";
 
-  const gas = options.gas || 12_000_000;
   const gasPrice = options.gasPrice !== undefined ? options.gasPrice : 1_000_000_000;
   const maxPriorityFeePerGas =
     options.maxPriorityFeePerGas !== undefined ? options.maxPriorityFeePerGas : 0;
   const value = options.value !== undefined ? options.value : "0x00";
   const from = options.from || alith.address;
   const privateKey = options.privateKey !== undefined ? options.privateKey : ALITH_PRIVATE_KEY;
+
+  // Instead of hardcoding the hard limit, we estimate and hardcode
+  const gas =
+    options.gas ||
+    (await context.web3.eth.estimateGas({
+      from: from,
+      to: options.to,
+      data: options.data,
+    }));
 
   const maxFeePerGas = options.maxFeePerGas || 1_000_000_000;
   const accessList = options.accessList || [];
@@ -111,6 +119,8 @@ export const createTransaction = async (
         type: 2,
       };
     }
+    console.log("to show data");
+    console.log(data);
     rawTransaction = await signer.signTransaction(data);
   }
 
@@ -165,6 +175,7 @@ export async function createContract(
   const contractCompiled = getCompiled(contractName);
   const from = options.from !== undefined ? options.from : alith.address;
   const nonce = options.nonce || (await context.web3.eth.getTransactionCount(from));
+
   const contractAddress =
     "0x" +
     context.web3.utils
