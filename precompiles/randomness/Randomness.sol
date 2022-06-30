@@ -9,7 +9,7 @@ interface Randomness {
     /// @param gas_limit Gas limit for the subcall that provides randomness
     /// @param salt Salt to be mixed with raw randomness to get output
     /// @param block_number Relay chain block for which randomness is requested
-    /// Selector: 79df4b9c TODO
+    /// Selector: c92142bc
     function requestBabeRandomnessCurrentBlock(
         address refund_address,
         uint256 fee,
@@ -23,7 +23,7 @@ interface Randomness {
     /// @param gas_limit Gas limit for the subcall that provides randomness
     /// @param salt Salt to be mixed with raw randomness to get output
     /// @param epoch_index Relay chain epoch index for which randomness is requested
-    /// Selector: 79df4b9c TODO
+    /// Selector: 73257347
     function requestBabeRandomnessOneEpochAgo(
         address refund_address,
         uint256 fee,
@@ -37,7 +37,7 @@ interface Randomness {
     /// @param gas_limit Gas limit for the subcall that provides randomness
     /// @param salt Salt to be mixed with raw randomness to get output
     /// @param epoch_index Relay chain epoch for which randomness is requested
-    /// Selector: 79df4b9c TODO
+    /// Selector: 8ef48c72
     function requestBabeRandomnessTwoEpochsAgo(
         address refund_address,
         uint256 fee,
@@ -51,7 +51,7 @@ interface Randomness {
     /// @param gas_limit Gas limit for the subcall that provides randomness
     /// @param salt Salt to be mixed with raw randomness to get output
     /// @param block_number Parachain block for which randomness is requested
-    /// Selector: 79df4b9c TODO
+    /// Selector: 3dbc0d19
     function requestLocalRandomness(
         address refund_address,
         uint256 fee,
@@ -61,37 +61,37 @@ interface Randomness {
     ) external;
 
     /// @param request_id Request to be fulfilled by caller
-    /// Selector: 79df4b9c TODO
+    /// Selector: b5983332
     function fulfillRequest(uint64 request_id) external;
 
     /// @param request_id Request to be increased fee by caller
-    /// Selector: 79df4b9c TODO
+    /// Selector: f35d8354
     function increaseRequestFee(uint64 request_id) external;
 
     /// @param request_id Request to be purged by caller
-    /// Selector: 79df4b9c TODO
+    /// Selector: 536b9ef1
     function executeRequestExpiration(uint64 request_id) external;
 
     /// @param gas_limit Gas limit for the subcall that provides randomness
     /// @param salt Salt to be mixed with raw randomness to get output
-    /// Selector: 79df4b9c TODO
+    /// Selector: b0ea3938
     function instantBabeRandomnessCurrentBlock(uint64 gas_limit, bytes32 salt)
         external;
 
     /// @param gas_limit Gas limit for the subcall that provides randomness
     /// @param salt Salt to be mixed with raw randomness to get output
-    /// Selector: 79df4b9c TODO
+    /// Selector: 0cd3aa4a
     function instantBabeRandomnessOneEpochAgo(uint64 gas_limit, bytes32 salt)
         external;
 
     /// @param gas_limit Gas limit for the subcall that provides randomness
     /// @param salt Salt to be mixed with raw randomness to get output
-    /// Selector: 79df4b9c TODO
+    /// Selector: bc88ee5f
     function instantBabeRandomnessTwoEpochsAgo(uint64 gas_limit, bytes32 salt)
         external;
 
     /// @param gas_limit Gas limit for the subcall that provides randomness
     /// @param salt Salt to be mixed with raw randomness to get output
-    /// Selector: 79df4b9c TODO
+    /// Selector: f71c715f
     function instantLocalRandomness(uint64 gas_limit, bytes32 salt) external;
 }

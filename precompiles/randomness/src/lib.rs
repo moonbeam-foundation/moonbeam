@@ -34,8 +34,8 @@ use sp_std::{fmt::Debug, marker::PhantomData};
 
 // #[cfg(test)]
 // mod mock;
-// #[cfg(test)]
-// mod tests;
+#[cfg(test)]
+mod tests;
 
 #[precompile_utils::generate_function_selector]
 #[derive(Debug, PartialEq)]
