@@ -106,17 +106,17 @@ pallet-evm-precompile-sha3fips = { git = "https://github.com/purestake/frontier"
 pallet-evm-precompile-simple = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.20", default-features = false }
 
 # Cumulus / Nimbus
-cumulus-pallet-dmp-queue = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.20", default-features = false }
-cumulus-pallet-parachain-system = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.20", default-features = false }
-cumulus-pallet-xcm = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.20", default-features = false }
-cumulus-pallet-xcmp-queue = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.20", default-features = false }
-cumulus-primitives-core = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.20", default-features = false }
-cumulus-primitives-timestamp = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.20", default-features = false }
-cumulus-primitives-utility = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.20", default-features = false }
+cumulus-pallet-dmp-queue = { git = "https://github.com/4meta5/cumulus", branch = "amar-cherrypick-insert-epoch-in-relay-sproof", default-features = false }
+cumulus-pallet-parachain-system = { git = "https://github.com/4meta5/cumulus", branch = "amar-cherrypick-insert-epoch-in-relay-sproof", default-features = false }
+cumulus-pallet-xcm = { git = "https://github.com/4meta5/cumulus", branch = "amar-cherrypick-insert-epoch-in-relay-sproof", default-features = false }
+cumulus-pallet-xcmp-queue = { git = "https://github.com/4meta5/cumulus", branch = "amar-cherrypick-insert-epoch-in-relay-sproof", default-features = false }
+cumulus-primitives-core = { git = "https://github.com/4meta5/cumulus", branch = "amar-cherrypick-insert-epoch-in-relay-sproof", default-features = false }
+cumulus-primitives-timestamp = { git = "https://github.com/4meta5/cumulus", branch = "amar-cherrypick-insert-epoch-in-relay-sproof", default-features = false }
+cumulus-primitives-utility = { git = "https://github.com/4meta5/cumulus", branch = "amar-cherrypick-insert-epoch-in-relay-sproof", default-features = false }
 nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "amar-cherrypick-digest-provider", default-features = false }
 pallet-author-inherent = { git = "https://github.com/purestake/nimbus", branch = "amar-cherrypick-digest-provider", default-features = false }
 pallet-author-slot-filter = { git = "https://github.com/purestake/nimbus", branch = "amar-cherrypick-digest-provider", default-features = false }
-parachain-info = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.20", default-features = false }
+parachain-info = { git = "https://github.com/4meta5/cumulus", branch = "amar-cherrypick-insert-epoch-in-relay-sproof", default-features = false }
 
 # Polkadot / XCM
 orml-traits = { git = "https://github.com/purestake/open-runtime-module-library", branch = "moonbeam-polkadot-v0.9.20", default-features = false }
@@ -139,8 +139,8 @@ hex = "0.4"
 rlp = "0.5"
 sha3 = "0.9"
 
-cumulus-primitives-parachain-inherent = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.20", default-features = false }
-cumulus-test-relay-sproof-builder = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.20", default-features = false }
+cumulus-primitives-parachain-inherent = { git = "https://github.com/4meta5/cumulus", branch = "amar-cherrypick-insert-epoch-in-relay-sproof", default-features = false }
+cumulus-test-relay-sproof-builder = { git = "https://github.com/4meta5/cumulus", branch = "amar-cherrypick-insert-epoch-in-relay-sproof", default-features = false }
 
 polkadot-runtime-parachains = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.20" }
 xcm-simulator = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.20" }

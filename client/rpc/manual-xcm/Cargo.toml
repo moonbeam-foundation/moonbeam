@@ -17,4 +17,4 @@ parity-scale-codec = "3.0.0"
 tokio = { version = "1.12.0", features = [ "sync", "time" ] }
 xcm = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.20", default-features = false }
 
-cumulus-primitives-core = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.20" }
+cumulus-primitives-core = { git = "https://github.com/4meta5/cumulus", branch = "amar-cherrypick-insert-epoch-in-relay-sproof" }

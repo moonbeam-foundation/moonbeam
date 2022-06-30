@@ -45,7 +45,7 @@ scale-info = { version = "2.0", features = [ "derive" ] }
 sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20" }
 
 # Cumulus
-cumulus-primitives-core = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.20" }
+cumulus-primitives-core = { git = "https://github.com/4meta5/cumulus", branch = "amar-cherrypick-insert-epoch-in-relay-sproof" }
 
 # Polkadot
 orml-traits = { git = "https://github.com/purestake/open-runtime-module-library", branch = "moonbeam-polkadot-v0.9.20" }

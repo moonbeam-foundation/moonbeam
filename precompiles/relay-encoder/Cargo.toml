@@ -28,7 +28,7 @@ fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-pol
 pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.20", default-features = false }
 
 # Cumulus
-cumulus-primitives-core = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.20", default-features = false }
+cumulus-primitives-core = { git = "https://github.com/4meta5/cumulus", branch = "amar-cherrypick-insert-epoch-in-relay-sproof", default-features = false }
 
 [dev-dependencies]
 derive_more = "0.99"
@@ -46,7 +46,7 @@ scale-info = { version = "2.0", default-features = false, features = [ "derive" 
 sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
 
 # Cumulus
-cumulus-pallet-parachain-system = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.20" }
+cumulus-pallet-parachain-system = { git = "https://github.com/4meta5/cumulus", branch = "amar-cherrypick-insert-epoch-in-relay-sproof" }
 
 [features]
 default = [ "std" ]
