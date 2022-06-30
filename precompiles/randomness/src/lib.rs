@@ -46,8 +46,8 @@ pub enum Action {
 		"request_babe_randomness_one_epoch_ago(address,uint256,uint64,bytes32,uint64)",
 	RequestBabeRandomnessTwoEpochsAgo =
 		"request_babe_randomness_two_epochs_ago(address,uint256,uint64,bytes32,uint64)",
-	RequestLocalRandomness = "request_local_randomness(address,uint256,uint64,bytes32,uint256)",
-	FulfillRequest = "fulfill_request(address,address)",
+	RequestLocalRandomness = "request_local_randomness(address,uint256,uint64,bytes32,uint64)",
+	FulfillRequest = "fulfill_request(uint64)",
 	IncreaseRequestFee = "increase_request_fee(uint64)",
 	ExecuteRequestExpiration = "execute_request_expiration(uint64)",
 	InstantBabeRandomnessCurrentBlock = "instant_babe_randomness_current_block(uint64,bytes32)",
