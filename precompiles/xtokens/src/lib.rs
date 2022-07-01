@@ -26,10 +26,7 @@ use frame_support::{
 	traits::Get,
 };
 use pallet_evm::{AddressMapping, Precompile};
-use precompile_utils::{
-	revert, succeed, Address, EvmData, EvmDataReader, EvmDataWriter, EvmResult, FunctionModifier,
-	PrecompileHandleExt, RuntimeHelper,
-};
+use precompile_utils::prelude::*;
 use sp_core::{H160, U256};
 use sp_std::{
 	boxed::Box,
@@ -54,7 +51,7 @@ pub type MaxAssetsForTransfer<Runtime> = <Runtime as orml_xtokens::Config>::MaxA
 
 pub type CurrencyIdOf<Runtime> = <Runtime as orml_xtokens::Config>::CurrencyId;
 
-#[precompile_utils::generate_function_selector]
+#[generate_function_selector]
 #[derive(Debug, PartialEq)]
 pub enum Action {
 	Transfer = "transfer(address,uint256,(uint8,bytes[]),uint64)",

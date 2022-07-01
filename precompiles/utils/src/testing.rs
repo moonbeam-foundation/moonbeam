@@ -14,12 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use super::*;
-use core::assert_matches::assert_matches;
-use fp_evm::{
-	ExitReason, ExitSucceed, PrecompileOutput, PrecompileResult, PrecompileSet, Transfer,
+use {
+	core::assert_matches::assert_matches,
+	fp_evm::{
+		Context, ExitError, ExitReason, ExitSucceed, Log, PrecompileFailure, PrecompileHandle,
+		PrecompileOutput, PrecompileResult, PrecompileSet, Transfer,
+	},
+	sp_core::{H160, H256, U256},
+	sp_std::boxed::Box,
 };
-use sp_std::boxed::Box;
 
 pub struct Subcall {
 	pub address: H160,
@@ -68,20 +71,6 @@ impl MockHandle {
 			is_static: false,
 		}
 	}
-
-	// pub fn with_gas_limit(gas_limit: u64) -> Self {
-	// 	Self {
-	// 		gas_limit,
-	// 		gas_used: 0,
-	// 		logs: vec![],
-	// 		subcall_handle: None,
-	// 	}
-	// }
-
-	// pub fn with_subcall_handle(mut self, handle: Option<SubcallHandle>) -> Self {
-	// 	self.subcall_handle = handle;
-	// 	self
-	// }
 }
 
 impl PrecompileHandle for MockHandle {
@@ -97,7 +86,7 @@ impl PrecompileHandle for MockHandle {
 		context: &Context,
 	) -> (ExitReason, Vec<u8>) {
 		if self
-			.record_cost(super::call_cost(
+			.record_cost(crate::costs::call_cost(
 				context.apparent_value,
 				&evm::Config::london(),
 			))
