@@ -127,6 +127,7 @@ interface Democracy {
         uint256 conviction
     ) external;
 
+    /// Remove a vote for a referendum.
     /// Selector: 3f68fde4
     ///
     /// @dev Locks get complex when votes are removed. See pallet-democracy's docs for details.
