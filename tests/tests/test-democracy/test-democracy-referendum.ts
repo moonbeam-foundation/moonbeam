@@ -106,29 +106,40 @@ describeDevMoonbeam("Democracy - Referendum", (context) => {
     // transfer funds into a new account so we know there will be no locks/reserves/etc
     const randomAccount = generateKeyingPair();
 
-    await context.createBlock(
+    const {
+      result: { events: events0 },
+    } = await context.createBlock(
       context.polkadotApi.tx.balances.transfer(randomAccount.address, 100_000_000_000_000_000_000n)
     );
+
+    console.log("transfer txn results:");
+    console.log(events0);
 
     expect(
       (await context.polkadotApi.query.system.account(randomAccount.address)).data.free.toBigInt()
     ).to.equal(100_000_000_000_000_000_000n);
 
-    await context.polkadotApi.tx.parachainStaking.delegate(
-      alith.address,
-      90_000_000_000_000_000_000n,
-      0,
-      0,
-    )
-    .signAndSend(randomAccount);
+    const result = await context.createBlock(
 
-    await context.polkadotApi.tx.democracy.vote(0, {
-      Standard: { balance: 90_000_000_000_000_000_000n, vote: { aye: false, conviction: 1 } },
-    })
-    .signAndSend(randomAccount);
+      context.polkadotApi.tx.parachainStaking.delegate(
+        alith.address,
+        90_000_000_000_000_000_000n,
+        0,
+        0,
+      )
+      .signAsync(randomAccount),
 
-    await context.createBlock();
+      /* TODO: needs proposal etc. first
+      context.polkadotApi.tx.democracy.vote(0, {
+        Standard: { balance: 90_000_000_000_000_000_000n, vote: { aye: false, conviction: 1 } },
+      })
+      .signAsync(randomAccount),
+      */
+    );
 
+    console.log(result);
+
+    /*
     // TODO: ensure both voting and staking occurred (e.g. through their respective pallets)
 
     // ensure we have both locks
@@ -138,5 +149,6 @@ describeDevMoonbeam("Democracy - Referendum", (context) => {
     expect(locks[0].id.toHuman().toString()).to.be.equal("stkngdel");
     expect(locks[1].amount.toBigInt()).to.be.equal(90_000_000_000_000_000_000n);
     expect(locks[1].id.toHuman().toString()).to.be.equal("fixme_something_about_voting");
+    */
   });
 });
