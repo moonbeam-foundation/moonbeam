@@ -24,7 +24,7 @@ use crate::{
 use evm::ExitReason;
 use fp_evm::{ExitRevert, ExitSucceed};
 use libsecp256k1::{sign, Message, SecretKey};
-use precompile_utils::{call_cost, testing::*, Address, Bytes, EvmDataWriter, LogsBuilder};
+use precompile_utils::{costs::call_cost, prelude::*, testing::*};
 use sp_core::{H160, H256, U256};
 
 fn precompiles() -> TestPrecompiles<Runtime> {
@@ -131,14 +131,12 @@ fn valid_permit_returns() {
 						reason: ExitReason::Succeed(ExitSucceed::Returned),
 						output: b"TEST".to_vec(),
 						cost: 13,
-						logs: vec![
-							LogsBuilder::new(Bob.into()).log1(H256::repeat_byte(0x11), vec![])
-						],
+						logs: vec![log1(Bob, H256::repeat_byte(0x11), vec![])],
 					}
 				})
 				.with_target_gas(Some(call_cost + 100_000 + dispatch_cost()))
 				.expect_cost(call_cost + 13 + dispatch_cost())
-				.expect_log(LogsBuilder::new(Bob.into()).log1(H256::repeat_byte(0x11), vec![]))
+				.expect_log(log1(Bob, H256::repeat_byte(0x11), vec![]))
 				.execute_returns(b"TEST".to_vec());
 		})
 }
@@ -653,14 +651,12 @@ fn valid_permit_returns_with_metamask_signed_data() {
 						reason: ExitReason::Succeed(ExitSucceed::Returned),
 						output: b"TEST".to_vec(),
 						cost: 13,
-						logs: vec![
-							LogsBuilder::new(Bob.into()).log1(H256::repeat_byte(0x11), vec![])
-						],
+						logs: vec![log1(Bob, H256::repeat_byte(0x11), vec![])],
 					}
 				})
 				.with_target_gas(Some(call_cost + 100_000 + dispatch_cost()))
 				.expect_cost(call_cost + 13 + dispatch_cost())
-				.expect_log(LogsBuilder::new(Bob.into()).log1(H256::repeat_byte(0x11), vec![]))
+				.expect_log(log1(Bob, H256::repeat_byte(0x11), vec![]))
 				.execute_returns(b"TEST".to_vec());
 		})
 }
