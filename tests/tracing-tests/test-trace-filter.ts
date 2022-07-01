@@ -18,14 +18,14 @@ describeDevMoonbeam("Trace filter - Contract creation ", (context) => {
     const { contract, rawTx } = await createContract(context, "TraceFilter", {}, [false]);
     await context.createBlock(rawTx);
 
-    const { rawTx: rawTx2 } = await createContract(context, "TraceFilter", { gas: 90_000 }, [true],);
+    const { rawTx: rawTx2 } = await createContract(context, "TraceFilter", { gas: 90_000 }, [true]);
 
     await context.createBlock([rawTx2]);
 
     const { rawTx: rawTx3 } = await createContract(context, "TraceFilter", {}, [false]);
     const { rawTx: rawTx4 } = await createContract(context, "TraceFilter", { nonce: 3 }, [false]);
     await context.createBlock([rawTx3, rawTx4]);
-  
+
     await context.createBlock(
       createContractExecution(context, {
         contract,
