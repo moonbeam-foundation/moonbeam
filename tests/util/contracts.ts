@@ -1,9 +1,10 @@
 import Web3 from "web3";
+import fs from "fs";
+import path from "path";
 import { TransactionReceipt } from "web3-core";
 import { Contract } from "web3-eth-contract";
 import { AbiItem } from "web3-utils";
 
-import { contractSources } from "../contracts/sources";
 import { alith, ALITH_PRIVATE_KEY } from "./accounts";
 import { customWeb3Request } from "./providers";
 
@@ -13,9 +14,16 @@ export interface Compiled {
   sourceCode: string;
 }
 
+export function getAllContracts(): string[] {
+  const contractsPath = path.join(__dirname, `../contracts/compiled/`);
+  const contracts = fs.readdirSync(contractsPath);
+  // Register all the contract code
+  return contracts.map((contract) => path.basename(contract, ".json"));
+}
+
 const contracts: { [name: string]: Compiled } = {};
 export function getCompiled(name: string): Compiled {
-  if (!contractSources[name]) {
+  if (!fs.existsSync(path.join(__dirname, `../contracts/compiled/${name}.json`))) {
     throw new Error(`Contract name (${name}) doesn't exist in test suite`);
   }
   if (!contracts[name]) {

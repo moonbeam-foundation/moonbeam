@@ -62,7 +62,7 @@ describeDevMoonbeam("Filter Block API - Polling", (context) => {
 
 describeDevMoonbeamAllEthTxTypes("Filter Block API - Polling", (context) => {
   it("should support filtering created contract", async function () {
-    const { rawTx } = await createContract(context, "SingleEventContract");
+    const { rawTx } = await createContract(context, "EventEmitter");
     const { result } = await context.createBlock(rawTx);
 
     const receipt = await context.web3.eth.getTransactionReceipt(result.hash);

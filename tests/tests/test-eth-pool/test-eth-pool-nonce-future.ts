@@ -10,7 +10,7 @@ import { createContract, createTransfer } from "../../util/transactions";
 describeDevMoonbeamAllEthTxTypes("EthPool - Future Ethereum transaction", (context) => {
   let txHash: string;
   before("Setup: Create a block with transaction", async () => {
-    const { rawTx } = await createContract(context, "TestContract", {
+    const { rawTx } = await createContract(context, "MultiplyBy7", {
       nonce: 1,
     });
     const { result } = await context.createBlock(rawTx);
@@ -33,7 +33,7 @@ describeDevMoonbeamAllEthTxTypes("EthPool - Future Ethereum transaction", (conte
 describeDevMoonbeamAllEthTxTypes("EthPool - Future Ethereum transaction", (context) => {
   let txHash: string;
   before("Setup: Create a block with transaction", async () => {
-    const { rawTx } = await createContract(context, "TestContract", {
+    const { rawTx } = await createContract(context, "MultiplyBy7", {
       nonce: 1,
     });
     const { result } = await context.createBlock(rawTx);

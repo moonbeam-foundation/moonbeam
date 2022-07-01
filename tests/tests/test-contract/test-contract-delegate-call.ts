@@ -14,20 +14,15 @@ describeDevMoonbeam("Delegate Call", (context) => {
   it("should work for normal smart contract", async function () {
     this.timeout(10000);
 
-    const { contract: contractProxy, rawTx } = await createContract(context, "TestCallList");
+    const { contract: contractProxy, rawTx } = await createContract(context, "Proxy");
     await context.createBlock(rawTx);
 
-    const { contract: contractDummy, rawTx: rawTx2 } = await createContract(
-      context,
-      "TestContract"
-    );
+    const { contract: contractDummy, rawTx: rawTx2 } = await createContract(context, "MultiplyBy7");
     await context.createBlock(rawTx2);
 
-    const proxyInterface = new ethers.utils.Interface(
-      (await getCompiled("TestCallList")).contract.abi
-    );
+    const proxyInterface = new ethers.utils.Interface((await getCompiled("Proxy")).contract.abi);
     const dummyInterface = new ethers.utils.Interface(
-      (await getCompiled("TestContract")).contract.abi
+      (await getCompiled("MultiplyBy7")).contract.abi
     );
 
     const tx_call = await customWeb3Request(context.web3, "eth_call", [
@@ -73,11 +68,11 @@ describeDevMoonbeam("DELEGATECALL for precompiles", (context) => {
     "000000000000000000000000000000000000"; // padding
 
   before("Setup delecateCall contract", async () => {
-    const contractDetails = await createContract(context, "TestCallList");
+    const contractDetails = await createContract(context, "Proxy");
     contractProxy = contractDetails.contract;
     await context.createBlock(contractDetails.rawTx);
 
-    proxyInterface = new ethers.utils.Interface((await getCompiled("TestCallList")).contract.abi);
+    proxyInterface = new ethers.utils.Interface((await getCompiled("Proxy")).contract.abi);
   });
 
   for (const precompilePrefix of ALLOWED_PRECOMPILE_PREFIXES) {
@@ -110,7 +105,7 @@ describeDevMoonbeam("DELEGATECALL for precompiles", (context) => {
         },
       ]);
 
-      expect(tx_call.result).to.equal(DELEGATECALL_FORDIDDEN_MESSAGE);
+      expect(tx_call.result, `Call should be forbidden`).to.equal(DELEGATECALL_FORDIDDEN_MESSAGE);
     });
   }
 });

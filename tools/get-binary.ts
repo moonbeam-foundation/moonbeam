@@ -44,8 +44,14 @@ export async function getMoonbeamBinary(binaryTag: string, binaryPath: string): 
       `https://github.com/PureStake/moonbeam/releases/download/${binaryTag}/moonbeam`,
       binaryPath
     );
-  } else {
+  } else if (binaryTag.startsWith(`sha`)) {
     return getDockerBuildBinary(`purestake/moonbeam:${binaryTag}`, binaryPath);
+  } else if (/^[0-9]/g.test(binaryTag)) {
+    // sha given without prefix
+    return getDockerBuildBinary(`purestake/moonbeam:sha-${binaryTag}`, binaryPath);
+  } else {
+    const sha = child_process.execSync(`git rev-list -n 1 ${binaryTag}`).toString();
+    return getDockerBuildBinary(`purestake/moonbeam:sha-${sha.slice(0, 8)}`, binaryPath);
   }
 }
 
