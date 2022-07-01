@@ -2318,7 +2318,7 @@ fn transfer_from_overflow() {
 				)
 				.expect_cost(1756u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
-				.execute_reverts(|e| e == b"value too big for for u128");
+				.execute_reverts(|e| e == b"value too big for u128");
 		});
 }
 
