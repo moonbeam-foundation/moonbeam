@@ -19,7 +19,7 @@
 mod common;
 use common::*;
 
-use precompile_utils::{testing::*, Address as EvmAddress, EvmDataWriter, LogsBuilder};
+use precompile_utils::{prelude::*, testing::*};
 
 use fp_evm::Context;
 use frame_support::{
@@ -849,7 +849,7 @@ fn is_contributor_via_precompile() {
 					ALICE,
 					crowdloan_precompile_address,
 					EvmDataWriter::new_with_selector(CrowdloanAction::IsContributor)
-						.write(EvmAddress(BOB.into()))
+						.write(Address(BOB.into()))
 						.build(),
 				)
 				.expect_cost(1000)
@@ -862,7 +862,7 @@ fn is_contributor_via_precompile() {
 					ALICE,
 					crowdloan_precompile_address,
 					EvmDataWriter::new_with_selector(CrowdloanAction::IsContributor)
-						.write(EvmAddress(CHARLIE.into()))
+						.write(Address(CHARLIE.into()))
 						.build(),
 				)
 				.expect_cost(1000)
@@ -932,7 +932,7 @@ fn reward_info_via_precompile() {
 					ALICE,
 					crowdloan_precompile_address,
 					EvmDataWriter::new_with_selector(CrowdloanAction::RewardInfo)
-						.write(EvmAddress(AccountId::from(CHARLIE).into()))
+						.write(Address(AccountId::from(CHARLIE).into()))
 						.build(),
 				)
 				.expect_cost(1000)
@@ -1110,7 +1110,7 @@ fn asset_erc20_precompiles_supply_and_balance() {
 					ALICE,
 					asset_precompile_address,
 					EvmDataWriter::new_with_selector(AssetAction::BalanceOf)
-						.write(EvmAddress(ALICE.into()))
+						.write(Address(ALICE.into()))
 						.build(),
 				)
 				.expect_cost(1000)
@@ -1142,12 +1142,13 @@ fn asset_erc20_precompiles_transfer() {
 					ALICE,
 					asset_precompile_address,
 					EvmDataWriter::new_with_selector(AssetAction::Transfer)
-						.write(EvmAddress(BOB.into()))
+						.write(Address(BOB.into()))
 						.write(U256::from(400 * UNIT))
 						.build(),
 				)
 				.expect_cost(23518u64)
-				.expect_log(LogsBuilder::new(asset_precompile_address.into()).log3(
+				.expect_log(log3(
+					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
 					H160::from(ALICE),
 					H160::from(BOB),
@@ -1161,7 +1162,7 @@ fn asset_erc20_precompiles_transfer() {
 					BOB,
 					asset_precompile_address,
 					EvmDataWriter::new_with_selector(AssetAction::BalanceOf)
-						.write(EvmAddress(BOB.into()))
+						.write(Address(BOB.into()))
 						.build(),
 				)
 				.expect_cost(1000)
@@ -1193,12 +1194,13 @@ fn asset_erc20_precompiles_approve() {
 					ALICE,
 					asset_precompile_address,
 					EvmDataWriter::new_with_selector(AssetAction::Approve)
-						.write(EvmAddress(BOB.into()))
+						.write(Address(BOB.into()))
 						.write(U256::from(400 * UNIT))
 						.build(),
 				)
 				.expect_cost(14006)
-				.expect_log(LogsBuilder::new(asset_precompile_address.into()).log3(
+				.expect_log(log3(
+					asset_precompile_address,
 					SELECTOR_LOG_APPROVAL,
 					H160::from(ALICE),
 					H160::from(BOB),
@@ -1212,13 +1214,14 @@ fn asset_erc20_precompiles_approve() {
 					BOB,
 					asset_precompile_address,
 					EvmDataWriter::new_with_selector(AssetAction::TransferFrom)
-						.write(EvmAddress(ALICE.into()))
-						.write(EvmAddress(CHARLIE.into()))
+						.write(Address(ALICE.into()))
+						.write(Address(CHARLIE.into()))
 						.write(U256::from(400 * UNIT))
 						.build(),
 				)
 				.expect_cost(28967)
-				.expect_log(LogsBuilder::new(asset_precompile_address.into()).log3(
+				.expect_log(log3(
+					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
 					H160::from(ALICE),
 					H160::from(CHARLIE),
@@ -1232,7 +1235,7 @@ fn asset_erc20_precompiles_approve() {
 					CHARLIE,
 					asset_precompile_address,
 					EvmDataWriter::new_with_selector(AssetAction::BalanceOf)
-						.write(EvmAddress(CHARLIE.into()))
+						.write(Address(CHARLIE.into()))
 						.build(),
 				)
 				.expect_cost(1000)
@@ -1264,12 +1267,13 @@ fn asset_erc20_precompiles_mint_burn() {
 					ALICE,
 					asset_precompile_address,
 					EvmDataWriter::new_with_selector(AssetAction::Mint)
-						.write(EvmAddress(BOB.into()))
+						.write(Address(BOB.into()))
 						.write(U256::from(1000 * UNIT))
 						.build(),
 				)
 				.expect_cost(12795)
-				.expect_log(LogsBuilder::new(asset_precompile_address.into()).log3(
+				.expect_log(log3(
+					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
 					H160::default(),
 					H160::from(BOB),
@@ -1290,12 +1294,13 @@ fn asset_erc20_precompiles_mint_burn() {
 					ALICE,
 					asset_precompile_address,
 					EvmDataWriter::new_with_selector(AssetAction::Burn)
-						.write(EvmAddress(BOB.into()))
+						.write(Address(BOB.into()))
 						.write(U256::from(500 * UNIT))
 						.build(),
 				)
 				.expect_cost(12987)
-				.expect_log(LogsBuilder::new(asset_precompile_address.into()).log3(
+				.expect_log(log3(
+					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
 					H160::from(BOB),
 					H160::default(),
@@ -1335,7 +1340,7 @@ fn asset_erc20_precompiles_freeze_thaw_account() {
 					ALICE,
 					asset_precompile_address,
 					EvmDataWriter::new_with_selector(AssetAction::Freeze)
-						.write(EvmAddress(ALICE.into()))
+						.write(Address(ALICE.into()))
 						.build(),
 				)
 				.expect_cost(6735)
@@ -1354,7 +1359,7 @@ fn asset_erc20_precompiles_freeze_thaw_account() {
 					ALICE,
 					asset_precompile_address,
 					EvmDataWriter::new_with_selector(AssetAction::Thaw)
-						.write(EvmAddress(ALICE.into()))
+						.write(Address(ALICE.into()))
 						.build(),
 				)
 				.expect_cost(6728)
@@ -1438,7 +1443,7 @@ fn asset_erc20_precompiles_freeze_transfer_ownership() {
 					ALICE,
 					asset_precompile_address,
 					EvmDataWriter::new_with_selector(AssetAction::TransferOwnership)
-						.write(EvmAddress(BOB.into()))
+						.write(Address(BOB.into()))
 						.build(),
 				)
 				.expect_cost(6641)
@@ -1470,9 +1475,9 @@ fn asset_erc20_precompiles_freeze_set_team() {
 					ALICE,
 					asset_precompile_address,
 					EvmDataWriter::new_with_selector(AssetAction::SetTeam)
-						.write(EvmAddress(BOB.into()))
-						.write(EvmAddress(BOB.into()))
-						.write(EvmAddress(BOB.into()))
+						.write(Address(BOB.into()))
+						.write(Address(BOB.into()))
+						.write(Address(BOB.into()))
 						.build(),
 				)
 				.expect_cost(5573)
@@ -1548,7 +1553,7 @@ fn xcm_asset_erc20_precompiles_supply_and_balance() {
 					ALICE,
 					asset_precompile_address,
 					EvmDataWriter::new_with_selector(AssetAction::BalanceOf)
-						.write(EvmAddress(ALICE.into()))
+						.write(Address(ALICE.into()))
 						.build(),
 				)
 				.expect_cost(1000)
@@ -1592,12 +1597,13 @@ fn xcm_asset_erc20_precompiles_transfer() {
 					ALICE,
 					asset_precompile_address,
 					EvmDataWriter::new_with_selector(AssetAction::Transfer)
-						.write(EvmAddress(BOB.into()))
+						.write(Address(BOB.into()))
 						.write(U256::from(400 * UNIT))
 						.build(),
 				)
 				.expect_cost(23518)
-				.expect_log(LogsBuilder::new(asset_precompile_address.into()).log3(
+				.expect_log(log3(
+					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
 					H160::from(ALICE),
 					H160::from(BOB),
@@ -1611,7 +1617,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 					BOB,
 					asset_precompile_address,
 					EvmDataWriter::new_with_selector(AssetAction::BalanceOf)
-						.write(EvmAddress(BOB.into()))
+						.write(Address(BOB.into()))
 						.build(),
 				)
 				.expect_cost(1000)
@@ -1655,12 +1661,13 @@ fn xcm_asset_erc20_precompiles_approve() {
 					ALICE,
 					asset_precompile_address,
 					EvmDataWriter::new_with_selector(AssetAction::Approve)
-						.write(EvmAddress(BOB.into()))
+						.write(Address(BOB.into()))
 						.write(U256::from(400 * UNIT))
 						.build(),
 				)
 				.expect_cost(14006)
-				.expect_log(LogsBuilder::new(asset_precompile_address.into()).log3(
+				.expect_log(log3(
+					asset_precompile_address,
 					SELECTOR_LOG_APPROVAL,
 					H160::from(ALICE),
 					H160::from(BOB),
@@ -1674,13 +1681,14 @@ fn xcm_asset_erc20_precompiles_approve() {
 					BOB,
 					asset_precompile_address,
 					EvmDataWriter::new_with_selector(AssetAction::TransferFrom)
-						.write(EvmAddress(ALICE.into()))
-						.write(EvmAddress(CHARLIE.into()))
+						.write(Address(ALICE.into()))
+						.write(Address(CHARLIE.into()))
 						.write(U256::from(400 * UNIT))
 						.build(),
 				)
 				.expect_cost(28967)
-				.expect_log(LogsBuilder::new(asset_precompile_address.into()).log3(
+				.expect_log(log3(
+					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
 					H160::from(ALICE),
 					H160::from(CHARLIE),
@@ -1694,7 +1702,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 					CHARLIE,
 					asset_precompile_address,
 					EvmDataWriter::new_with_selector(AssetAction::BalanceOf)
-						.write(EvmAddress(CHARLIE.into()))
+						.write(Address(CHARLIE.into()))
 						.build(),
 				)
 				.expect_cost(1000)
@@ -1750,7 +1758,7 @@ fn xtokens_precompiles_transfer() {
 					ALICE,
 					xtokens_precompile_address,
 					EvmDataWriter::new_with_selector(XtokensAction::Transfer)
-						.write(EvmAddress(asset_precompile_address.into()))
+						.write(Address(asset_precompile_address.into()))
 						.write(U256::from(500_000_000_000_000u128))
 						.write(destination.clone())
 						.write(U256::from(4000000))
@@ -1844,7 +1852,7 @@ fn xtokens_precompiles_transfer_native() {
 					ALICE,
 					xtokens_precompile_address,
 					EvmDataWriter::new_with_selector(XtokensAction::Transfer)
-						.write(EvmAddress(asset_precompile_address))
+						.write(Address(asset_precompile_address))
 						.write(U256::from(500 * UNIT))
 						.write(destination.clone())
 						.write(U256::from(4000000))
@@ -1892,7 +1900,7 @@ fn xtokens_precompile_transfer_local_asset() {
 					ALICE,
 					xtokens_precompile_address,
 					EvmDataWriter::new_with_selector(XtokensAction::Transfer)
-						.write(EvmAddress(asset_precompile_address))
+						.write(Address(asset_precompile_address))
 						.write(U256::from(500 * UNIT))
 						.write(destination.clone())
 						.write(U256::from(4000000))
