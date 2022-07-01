@@ -15,9 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 use cumulus_primitives_core::ParaId;
 use cumulus_primitives_core::XcmpMessageFormat;
-use futures::{future::BoxFuture, FutureExt as _};
-use jsonrpc_core::Result as RpcResult;
-use jsonrpc_derive::rpc;
+use jsonrpsee::{core::RpcResult, proc_macros::rpc};
 use parity_scale_codec::Encode;
 use xcm::latest::prelude::*;
 
@@ -25,12 +23,13 @@ use xcm::latest::prelude::*;
 /// parachain-enabled runtime. This allows testing XCM logic in a controlled way in integration
 /// tests.
 #[rpc(server)]
+#[jsonrpsee::core::async_trait]
 pub trait ManualXcmApi {
 	/// Inject a downward xcm message - A message that comes from the relay chain.
 	/// You may provide an arbitrary message, or if you provide an emtpy byte array,
 	/// Then a default message (DOT transfer down to ALITH) will be injected
-	#[rpc(name = "xcm_injectDownwardMessage")]
-	fn inject_downward_message(&self, message: Vec<u8>) -> BoxFuture<'static, RpcResult<()>>;
+	#[method(name = "xcm_injectDownwardMessage")]
+	async fn inject_downward_message(&self, message: Vec<u8>) -> RpcResult<()>;
 
 	/// Inject an HRMP message - A message that comes from a dedicated channel to a sibling
 	/// parachain.
@@ -43,12 +42,8 @@ pub trait ManualXcmApi {
 	/// The method accepts a sending paraId and a bytearray representing an arbitrary message as
 	/// parameters. If you provide an emtpy byte array, then a default message representing a
 	/// transfer of the sending paraId's native token will be injected.
-	#[rpc(name = "xcm_injectHrmpMessage")]
-	fn inject_hrmp_message(
-		&self,
-		sender: ParaId,
-		message: Vec<u8>,
-	) -> BoxFuture<'static, RpcResult<()>>;
+	#[method(name = "xcm_injectHrmpMessage")]
+	async fn inject_hrmp_message(&self, sender: ParaId, message: Vec<u8>) -> RpcResult<()>;
 }
 
 pub struct ManualXcm {
@@ -56,17 +51,60 @@ pub struct ManualXcm {
 	pub hrmp_message_channel: flume::Sender<(ParaId, Vec<u8>)>,
 }
 
-impl ManualXcmApi for ManualXcm {
-	fn inject_downward_message(&self, msg: Vec<u8>) -> BoxFuture<'static, RpcResult<()>> {
+#[jsonrpsee::core::async_trait]
+impl ManualXcmApiServer for ManualXcm {
+	async fn inject_downward_message(&self, msg: Vec<u8>) -> RpcResult<()> {
 		let downward_message_channel = self.downward_message_channel.clone();
-		async move {
-			// If no message is supplied, inject a default one.
-			let msg = if msg.is_empty() {
-				xcm::VersionedXcm::<()>::V2(Xcm(vec![
-					ReserveAssetDeposited((Parent, 10000000000000).into()),
+		// If no message is supplied, inject a default one.
+		let msg = if msg.is_empty() {
+			xcm::VersionedXcm::<()>::V2(Xcm(vec![
+				ReserveAssetDeposited((Parent, 10000000000000).into()),
+				ClearOrigin,
+				BuyExecution {
+					fees: (Parent, 10000000000000).into(),
+					weight_limit: Limited(4_000_000_000),
+				},
+				DepositAsset {
+					assets: All.into(),
+					max_assets: 1,
+					beneficiary: MultiLocation::new(
+						0,
+						X1(AccountKey20 {
+							network: Any,
+							key: hex_literal::hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"),
+						}),
+					),
+				},
+			]))
+			.encode()
+		} else {
+			msg
+		};
+
+		// Push the message to the shared channel where it will be queued up
+		// to be injected in to an upcoming block.
+		downward_message_channel
+			.send_async(msg)
+			.await
+			.map_err(|err| internal_err(err.to_string()))?;
+
+		Ok(())
+	}
+
+	async fn inject_hrmp_message(&self, sender: ParaId, msg: Vec<u8>) -> RpcResult<()> {
+		let hrmp_message_channel = self.hrmp_message_channel.clone();
+
+		// If no message is supplied, inject a default one.
+		let msg = if msg.is_empty() {
+			let mut mes = XcmpMessageFormat::ConcatenatedVersionedXcm.encode();
+			mes.append(
+				&mut (xcm::VersionedXcm::<()>::V2(Xcm(vec![
+					ReserveAssetDeposited(
+						((Parent, Parachain(sender.into())), 10000000000000).into(),
+					),
 					ClearOrigin,
 					BuyExecution {
-						fees: (Parent, 10000000000000).into(),
+						fees: ((Parent, Parachain(sender.into())), 10000000000000).into(),
 						weight_limit: Limited(4_000_000_000),
 					},
 					DepositAsset {
@@ -81,83 +119,32 @@ impl ManualXcmApi for ManualXcm {
 						),
 					},
 				]))
-				.encode()
-			} else {
-				msg
-			};
+				.encode()),
+			);
+			mes
+		} else {
+			msg
+		};
 
-			// Push the message to the shared channel where it will be queued up
-			// to be injected in to an upcoming block.
-			downward_message_channel
-				.send_async(msg)
-				.await
-				.map_err(|err| internal_err(err))?;
+		// Push the message to the shared channel where it will be queued up
+		// to be injected in to an upcoming block.
+		hrmp_message_channel
+			.send_async((sender, msg))
+			.await
+			.map_err(|err| internal_err(err.to_string()))?;
 
-			Ok(())
-		}
-		.boxed()
-	}
-
-	fn inject_hrmp_message(
-		&self,
-		sender: ParaId,
-		msg: Vec<u8>,
-	) -> BoxFuture<'static, RpcResult<()>> {
-		let hrmp_message_channel = self.hrmp_message_channel.clone();
-
-		async move {
-			// If no message is supplied, inject a default one.
-			let msg = if msg.is_empty() {
-				let mut mes = XcmpMessageFormat::ConcatenatedVersionedXcm.encode();
-				mes.append(
-					&mut (xcm::VersionedXcm::<()>::V2(Xcm(vec![
-						ReserveAssetDeposited(
-							((Parent, Parachain(sender.into())), 10000000000000).into(),
-						),
-						ClearOrigin,
-						BuyExecution {
-							fees: ((Parent, Parachain(sender.into())), 10000000000000).into(),
-							weight_limit: Limited(4_000_000_000),
-						},
-						DepositAsset {
-							assets: All.into(),
-							max_assets: 1,
-							beneficiary: MultiLocation::new(
-								0,
-								X1(AccountKey20 {
-									network: Any,
-									key: hex_literal::hex!(
-										"f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"
-									),
-								}),
-							),
-						},
-					]))
-					.encode()),
-				);
-				mes
-			} else {
-				msg
-			};
-
-			// Push the message to the shared channel where it will be queued up
-			// to be injected in to an upcoming block.
-			hrmp_message_channel
-				.send_async((sender, msg))
-				.await
-				.map_err(|err| internal_err(err))?;
-
-			Ok(())
-		}
-		.boxed()
+		Ok(())
 	}
 }
 
 // This bit cribbed from frontier.
-pub fn internal_err<T: ToString>(message: T) -> jsonrpc_core::Error {
-	jsonrpc_core::Error {
-		code: jsonrpc_core::ErrorCode::InternalError,
-		message: message.to_string(),
-		data: None,
-	}
+pub fn internal_err<T: AsRef<str>>(message: T) -> jsonrpsee::core::Error {
+	jsonrpsee::core::Error::Call(jsonrpsee::types::error::CallError::Custom(
+		jsonrpsee::types::error::ErrorObject::borrowed(
+			jsonrpsee::types::error::INTERNAL_ERROR_CODE,
+			&message,
+			None,
+		)
+		.into_owned(),
+	))
 }

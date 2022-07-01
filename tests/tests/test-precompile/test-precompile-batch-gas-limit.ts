@@ -4,7 +4,6 @@ import { expect } from "chai";
 import { ethers } from "ethers";
 
 import { alith, ALITH_PRIVATE_KEY, generateKeyingPair } from "../../util/accounts";
-import { GLMR } from "../../util/constants";
 import { customWeb3Request } from "../../util/providers";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 
@@ -12,7 +11,9 @@ import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 // https://docs.soliditylang.org/en/latest/types.html#conversions-between-elementary-types
 describeDevMoonbeam("Precompile Batch - Overflowing gasLimit", (context) => {
   const randomAccount = generateKeyingPair();
-  it("should get truncated and valid", async function () {
+  // This case can no longer be tested from frontier 0.9.23 because it is no longer possible to
+  // enter a gas_limit that exceeds 65% of the block.
+  it.skip("should get truncated and valid", async function () {
     // We are creating a fake function to override the argument type from uint64 to uint256
     const batchInterface = new ethers.utils.Interface([
       "function batchAll(address[], uint256[], bytes[], uint64[])",

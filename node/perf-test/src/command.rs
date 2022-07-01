@@ -179,8 +179,6 @@ where
 			}),
 		);
 
-		let subscription_task_executor =
-			sc_rpc::SubscriptionTaskExecutor::new(task_manager.spawn_handle());
 		let overrides = rpc::overrides_handle(client.clone());
 
 		let fee_history_limit = 2048;
@@ -215,7 +213,7 @@ where
 			let overrides = overrides.clone();
 			let block_data_cache = block_data_cache.clone();
 
-			Box::new(move |deny_unsafe, _| {
+			move |deny_unsafe, subscription_task_executor| {
 				let deps = rpc::FullDeps {
 					client: client.clone(),
 					pool: pool.clone(),
@@ -235,10 +233,9 @@ where
 					overrides: overrides.clone(),
 					block_data_cache: block_data_cache.clone(),
 				};
-				#[allow(unused_mut)]
-				let mut io = rpc::create_full(deps, subscription_task_executor.clone());
-				Ok(io)
-			})
+
+				rpc::create_full(deps, subscription_task_executor, None).map_err(Into::into)
+			}
 		};
 
 		let _rpc_handlers = sc_service::spawn_tasks(sc_service::SpawnTasksParams {
@@ -247,7 +244,7 @@ where
 			keystore: keystore_container.sync_keystore(),
 			task_manager: &mut task_manager,
 			transaction_pool: transaction_pool.clone(),
-			rpc_extensions_builder,
+			rpc_builder: Box::new(rpc_extensions_builder),
 			backend,
 			system_rpc_tx,
 			config,

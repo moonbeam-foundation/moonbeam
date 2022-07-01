@@ -28,10 +28,7 @@ use fp_evm::{PrecompileHandle, PrecompileOutput};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use frame_support::traits::{Currency, Get};
 use pallet_evm::AddressMapping;
-use precompile_utils::{
-	revert, succeed, Address, EvmData, EvmDataReader, EvmDataWriter, EvmResult, FunctionModifier,
-	PrecompileHandleExt, RuntimeHelper,
-};
+use precompile_utils::prelude::*;
 use sp_core::H160;
 use sp_std::{convert::TryInto, fmt::Debug, marker::PhantomData, vec::Vec};
 
@@ -39,7 +36,7 @@ type BalanceOf<Runtime> = <<Runtime as pallet_parachain_staking::Config>::Curren
 	<Runtime as frame_system::Config>::AccountId,
 >>::Balance;
 
-#[precompile_utils::generate_function_selector]
+#[generate_function_selector]
 #[derive(Debug, PartialEq)]
 enum Action {
 	// DEPRECATED

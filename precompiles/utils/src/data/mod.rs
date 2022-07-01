@@ -14,15 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::{revert, EvmResult};
-
-use alloc::borrow::ToOwned;
-use core::{any::type_name, ops::Range};
-use impl_trait_for_tuples::impl_for_tuples;
-use sp_core::{H160, H256, U256};
-use sp_std::{convert::TryInto, vec, vec::Vec};
-
 pub mod xcm;
+
+use {
+	crate::{revert, EvmResult},
+	alloc::borrow::ToOwned,
+	core::{any::type_name, ops::Range},
+	impl_trait_for_tuples::impl_for_tuples,
+	sp_core::{H160, H256, U256},
+	sp_std::{convert::TryInto, vec, vec::Vec},
+};
 
 /// The `address` type of Solidity.
 /// H160 could represent 2 types of data (bytes20 and address) that are not encoded the same way.
@@ -419,24 +420,18 @@ macro_rules! impl_evmdata_for_uints {
 		$(
 			impl EvmData for $uint {
 				fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
-					let range = reader.move_cursor(32)?;
+					let value256: U256 = reader.read()?;
 
-					let data = reader
-						.input
-						.get(range)
-						.ok_or_else(|| revert(alloc::format!(
-							"tried to parse {} out of bounds", core::any::type_name::<Self>()
-						)))?;
-
-					let mut buffer = [0u8; core::mem::size_of::<Self>()];
-					buffer.copy_from_slice(&data[32 - core::mem::size_of::<Self>()..]);
-					Ok(Self::from_be_bytes(buffer))
+					value256
+						.try_into()
+						.map_err(|_| revert(alloc::format!(
+							"value too big for {}",
+							core::any::type_name::<Self>()
+						)))
 				}
 
 				fn write(writer: &mut EvmDataWriter, value: Self) {
-					let mut buffer = [0u8; 32];
-					buffer[32 - core::mem::size_of::<Self>()..].copy_from_slice(&value.to_be_bytes());
-					writer.data.extend_from_slice(&buffer);
+					U256::write(writer, value.into());
 				}
 
 				fn has_static_size() -> bool {
@@ -447,32 +442,7 @@ macro_rules! impl_evmdata_for_uints {
 	};
 }
 
-impl_evmdata_for_uints!(u16, u32, u64, u128,);
-
-// The implementation for u8 is specific, for performance reasons.
-impl EvmData for u8 {
-	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
-		let range = reader.move_cursor(32)?;
-
-		let data = reader
-			.input
-			.get(range)
-			.ok_or_else(|| revert("tried to parse u64 out of bounds"))?;
-
-		Ok(data[31])
-	}
-
-	fn write(writer: &mut EvmDataWriter, value: Self) {
-		let mut buffer = [0u8; 32];
-		buffer[31] = value;
-
-		writer.data.extend_from_slice(&buffer);
-	}
-
-	fn has_static_size() -> bool {
-		true
-	}
-}
+impl_evmdata_for_uints!(u8, u16, u32, u64, u128,);
 
 impl EvmData for bool {
 	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
