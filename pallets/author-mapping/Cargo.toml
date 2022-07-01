@@ -19,11 +19,7 @@ sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkad
 sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23", default-features = false }
 
 # Nimbus
-<<<<<<< HEAD
-nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "amar-cherrypick-digest-provider", default-features = false }
-=======
 nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.23", default-features = false }
->>>>>>> master
 
 session-keys-primitives = { path = "../../primitives/session-keys", default-features = false }
 
