@@ -1211,7 +1211,7 @@ construct_runtime! {
 		BaseFee: pallet_base_fee::{Pallet, Call, Storage, Config<T>, Event} = 35,
 		LocalAssets: pallet_assets::<Instance1>::{Pallet, Call, Storage, Event<T>} = 36,
 		MoonbeamOrbiters: pallet_moonbeam_orbiters::{Pallet, Call, Storage, Event<T>} = 37,
-		Randomness: pallet_randomness::{Pallet, Call, Storage, Config<T>, Event<T>} = 38,
+		Randomness: pallet_randomness::{Pallet, Call, Storage, Config<T>, Event<T>, Inherent} = 38,
 	}
 }
 
