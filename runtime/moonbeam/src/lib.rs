@@ -1099,7 +1099,9 @@ impl pallet_randomness::GetBabeData<BlockNumber, u64, Option<Hash>> for BabeData
 			.read_optional_entry(relay_chain::well_known_keys::EPOCH_INDEX)
 			.ok()
 			.flatten()
-			.expect("expected to be able to read epoch index from relay chain state proof")
+			.unwrap_or_default()
+		// TODO: add back panic, only removing for testing now
+		//.expect("expected to be able to read epoch index from relay chain state proof")
 	}
 	fn get_current_block_randomness() -> Option<Hash> {
 		relay_chain_state_proof()

@@ -24,10 +24,10 @@ extern crate alloc;
 use fp_evm::{
 	Context, ExitReason, ExitSucceed, Log, Precompile, PrecompileHandle, PrecompileOutput,
 };
-use pallet_randomness::BalanceOf;
+use pallet_randomness::{BalanceOf, GetBabeData};
 use precompile_utils::{
-	call_cost, error, keccak256, revert, Address, EvmDataWriter, EvmResult, FunctionModifier,
-	LogExt, LogsBuilder, PrecompileHandleExt,
+	call_cost, error, keccak256, revert, succeed, Address, EvmDataWriter, EvmResult,
+	FunctionModifier, LogExt, LogsBuilder, PrecompileHandleExt, RuntimeHelper,
 };
 use sp_core::{H160, H256, U256};
 use sp_std::{fmt::Debug, marker::PhantomData};
@@ -40,6 +40,8 @@ mod tests;
 #[precompile_utils::generate_function_selector]
 #[derive(Debug, PartialEq)]
 pub enum Action {
+	RelayBlockNumber = "relayBlockNumber()",
+	RelayEpochIndex = "relayEpochIndex()",
 	RequestBabeRandomnessCurrentBlock =
 		"requestBabeRandomnessCurrentBlock(address,uint256,uint64,bytes32,uint64)",
 	RequestBabeRandomnessOneEpochAgo =
@@ -167,6 +169,8 @@ where
 		handle.check_function_modifier(FunctionModifier::NonPayable)?;
 
 		match selector {
+			Action::RelayBlockNumber => Self::relay_block_number(handle),
+			Action::RelayEpochIndex => Self::relay_epoch_index(handle),
 			Action::RequestBabeRandomnessCurrentBlock => {
 				Self::request_babe_randomness_current_block(handle)
 			}
@@ -200,6 +204,22 @@ where
 	<Runtime as frame_system::Config>::BlockNumber: From<u32>,
 	BalanceOf<Runtime>: TryFrom<U256> + Into<U256>,
 {
+	fn relay_block_number(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let relay_block_number =
+			<Runtime as pallet_randomness::Config>::BabeDataGetter::get_relay_epoch_index();
+		Ok(succeed(
+			EvmDataWriter::new().write(relay_block_number).build(),
+		))
+	}
+	fn relay_epoch_index(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let relay_epoch_index =
+			<Runtime as pallet_randomness::Config>::BabeDataGetter::get_relay_epoch_index();
+		Ok(succeed(
+			EvmDataWriter::new().write(relay_epoch_index).build(),
+		))
+	}
 	/// Make request for babe randomness current block
 	fn request_babe_randomness_current_block(
 		handle: &mut impl PrecompileHandle,

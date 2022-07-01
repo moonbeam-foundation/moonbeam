@@ -350,12 +350,6 @@ pub mod pallet {
 
 	// Public functions for precompile usage only
 	impl<T: Config> Pallet<T> {
-		/// Returns the next block VRF input
-		/// Must be called in block instead of `VrfInput` which is not updated until `on_finalize`
-		/// with the next block's VRF input
-		pub fn next_block_vrf_input() -> VrfInput<Slot, T::Hash> {
-			T::VrfInputGetter::get_vrf_input()
-		}
 		pub fn request_randomness(request: Request<T>) -> DispatchResult {
 			ensure!(
 				!request.can_be_fulfilled(),

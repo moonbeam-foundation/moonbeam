@@ -30,6 +30,12 @@ fn test_solidity_interface_has_all_implemented_selectors() {
 		.cloned()
 		.collect::<HashSet<_>>();
 
+	assert_eq!(Action::RelayBlockNumber as u32, 0xedfec347);
+	assert!(selectors.contains(&(Action::RelayBlockNumber as u32)));
+
+	assert_eq!(Action::RelayEpochIndex as u32, 0x81797566);
+	assert!(selectors.contains(&(Action::RelayEpochIndex as u32)));
+
 	assert_eq!(Action::RequestBabeRandomnessCurrentBlock as u32, 0xc4921133);
 	assert!(selectors.contains(&(Action::RequestBabeRandomnessCurrentBlock as u32)));
 

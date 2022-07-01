@@ -3,10 +3,9 @@ pragma solidity >=0.8.0;
 
 interface Randomness {
     /// Function without params
+    /// Selector: f7af8d91
     function fnNoArgs() external;
 
-    /// @dev Interface for all randomness consumers
-    ///
     /// @param refund_address Address to refund with fee less cost of subcall
     /// Selector: c4921133
     function fnOneArg(
