@@ -851,7 +851,7 @@ pub fn run() -> Result<()> {
 					.map(|r| r.0)
 					.map_err(Into::into),
 					#[cfg(feature = "moonbase-native")]
-					_ => service::start_moonbase_node::<
+					_ => service::start_node::<
 						service::moonbase_runtime::RuntimeApi,
 						service::MoonbaseExecutor,
 					>(config, polkadot_config, id, rpc_config)

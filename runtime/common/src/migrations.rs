@@ -47,6 +47,7 @@ use pallet_parachain_staking::{
 	},
 	Config as ParachainStakingConfig,
 };
+use pallet_randomness::{migrations::InitializeVrfInput, Config as RandomnessConfig};
 #[cfg(feature = "xcm-support")]
 use pallet_xcm_transactor::{
 	migrations::TransactSignedWeightAndFeePerSecond, Config as XcmTransactorConfig,
@@ -58,6 +59,30 @@ use xcm::latest::MultiLocation;
 
 /// This module acts as a registry where each migration is defined. Each migration should implement
 /// the "Migration" trait declared in the pallet-migrations crate.
+
+/// A moonbeam migration wrapping the similarly named migration in pallet-randomness
+pub struct RandomnessInitializeVrfInput<T>(PhantomData<T>);
+impl<T: RandomnessConfig> Migration for RandomnessInitializeVrfInput<T> {
+	fn friendly_name(&self) -> &str {
+		"MM_Author_Mapping_InitializeVrfInput"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		InitializeVrfInput::<T>::on_runtime_upgrade()
+	}
+
+	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<(), &'static str> {
+		InitializeVrfInput::<T>::pre_upgrade()
+	}
+
+	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self) -> Result<(), &'static str> {
+		InitializeVrfInput::<T>::post_upgrade()
+	}
+}
 
 /// A moonbeam migration wrapping the similarly named migration in pallet-author-mapping
 pub struct AuthorMappingAddAccountIdToNimbusLookup<T>(PhantomData<T>);
@@ -639,6 +664,7 @@ where
 	Runtime: pallet_scheduler::Config,
 	Runtime: pallet_base_fee::Config,
 	Runtime: AuthorSlotFilterConfig,
+	Runtime: RandomnessConfig,
 	Council: GetStorageVersion + PalletInfoAccess + 'static,
 	Tech: GetStorageVersion + PalletInfoAccess + 'static,
 {
@@ -675,6 +701,8 @@ where
 		// 	);
 		let migration_author_mapping_add_account_id_to_nimbus_lookup =
 			AuthorMappingAddAccountIdToNimbusLookup::<Runtime>(Default::default());
+		let migration_randomness_initialize_vrf_input =
+			RandomnessInitializeVrfInput::<Runtime>(Default::default());
 		vec![
 			// completed in runtime 800
 			// Box::new(migration_author_mapping_twox_to_blake),
@@ -700,6 +728,8 @@ where
 
 			// planned in runtime 1600
 			Box::new(migration_author_mapping_add_account_id_to_nimbus_lookup),
+			// planned in runtime 1700
+			Box::new(migration_randomness_initialize_vrf_input),
 		]
 	}
 }
