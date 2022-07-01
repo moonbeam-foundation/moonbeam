@@ -28,10 +28,6 @@ describeDevMoonbeam("Block genesis", (context) => {
 
     expect(block.transactions).to.be.a("array").empty;
     expect(block.uncles).to.be.a("array").empty;
-    expect((block as any).sealFields).to.eql([
-      "0x0000000000000000000000000000000000000000000000000000000000000000",
-      "0x0000000000000000",
-    ]);
     expect(block.hash).to.be.a("string").lengthOf(66);
     expect(block.parentHash).to.be.a("string").lengthOf(66);
     expect(block.timestamp).to.be.a("number");
