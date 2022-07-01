@@ -306,16 +306,18 @@ pub mod pallet {
 		}
 	}
 
-	/// Including this in on_finalize ensures the required inherent was called
+	/// Including this in on_finalize ensures the required inherent was included
 	fn set_babe_randomness_results_inherent_included<T: Config>() {
 		let expected_relay_time = RelayTimeInfo {
 			relay_block_number: T::BabeDataGetter::get_relay_block_number(),
 			relay_epoch_index: T::BabeDataGetter::get_relay_epoch_index(),
 		};
+		let actual_relay_time = RelayTime::<T>::get();
 		assert_eq!(
-			expected_relay_time,
-			RelayTime::<T>::get(),
-			"set_babe_randomness_results_inherent must be included or block is invalid"
+			expected_relay_time, actual_relay_time,
+			"set_babe_randomness_results_inherent must be included or block is invalid, \
+			expected {:?} != actual {:?}",
+			expected_relay_time, actual_relay_time
 		);
 	}
 

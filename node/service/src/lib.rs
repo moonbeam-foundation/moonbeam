@@ -50,6 +50,7 @@ use cumulus_relay_chain_inprocess_interface::build_inprocess_relay_chain;
 use cumulus_relay_chain_interface::{RelayChainError, RelayChainInterface};
 use nimbus_consensus::NimbusManualSealConsensusDataProvider;
 use nimbus_consensus::{BuildNimbusConsensusParams, NimbusConsensus};
+use nimbus_primitives::NimbusId;
 use sc_executor::{NativeElseWasmExecutor, NativeExecutionDispatch};
 use sc_network::NetworkService;
 use sc_service::config::PrometheusConfig;
@@ -762,10 +763,8 @@ where
 			};
 			let client_clone = client.clone();
 			let keystore_clone = keystore.clone();
-			let additional_digests_provider = move |
-				nimbus_id: nimbus_primitives::NimbusId,
-				parent: Hash
-			| -> Option<sp_runtime::generic::DigestItem> {
+			let additional_digests_provider = move |nimbus_id: NimbusId, parent: Hash|
+				-> Option<sp_runtime::generic::DigestItem> {
 				moonbeam_vrf::vrf_pre_digest::<Block, FullClient<RuntimeApi, Executor>>(
 					&client_clone,
 					&keystore_clone,
@@ -793,7 +792,7 @@ where
 /// the parachain inherent.
 pub fn new_dev<RuntimeApi, Executor>(
 	mut config: Configuration,
-	_author_id: Option<nimbus_primitives::NimbusId>,
+	_author_id: Option<NimbusId>,
 	sealing: cli_opt::Sealing,
 	rpc_config: RpcConfig,
 ) -> Result<TaskManager, ServiceError>
@@ -915,16 +914,15 @@ where
 
 		let client_clone = client.clone();
 		let keystore_clone = keystore_container.sync_keystore().clone();
-		let additional_digests_provider = move |nimbus_id: nimbus_primitives::NimbusId,
-		                                        parent: Hash|
-		      -> Option<sp_runtime::generic::DigestItem> {
-			moonbeam_vrf::vrf_pre_digest::<Block, FullClient<RuntimeApi, Executor>>(
-				&client_clone,
-				&keystore_clone,
-				nimbus_id,
-				parent,
-			)
-		};
+		let additional_digests_provider =
+			move |nimbus_id: NimbusId, parent: Hash| -> Option<sp_runtime::generic::DigestItem> {
+				moonbeam_vrf::vrf_pre_digest::<Block, FullClient<RuntimeApi, Executor>>(
+					&client_clone,
+					&keystore_clone,
+					nimbus_id,
+					parent,
+				)
+			};
 
 		task_manager.spawn_essential_handle().spawn_blocking(
 			"authorship_task",
