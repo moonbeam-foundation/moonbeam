@@ -26,8 +26,16 @@ macro_rules! impl_moonbeam_xcm_call {
 			) -> Result<PostDispatchInfoOf<Call>, DispatchErrorWithPostInfo<PostDispatchInfoOf<Call>>> {
 				if let Ok(raw_origin) = TryInto::<RawOrigin<AccountId>>::try_into(origin.clone().caller) {
 					match (call.clone(), raw_origin) {
-						(Call::EthereumXcm(pallet_ethereum_xcm::Call::transact { .. }), RawOrigin::Signed(account_id)) => {
-							return Call::dispatch(call, pallet_ethereum_xcm::Origin::XcmEthereumTransaction(account_id.into()).into());
+						(
+							Call::EthereumXcm(pallet_ethereum_xcm::Call::transact { .. }),
+							RawOrigin::Signed(account_id)
+						) => {
+							return Call::dispatch(
+								call,
+								pallet_ethereum_xcm::Origin::XcmEthereumTransaction(
+									account_id.into()
+								).into()
+							);
 						},
 						_ => {}
 					}
