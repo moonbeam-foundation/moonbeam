@@ -873,11 +873,51 @@ impl pallet_proxy::Config for Runtime {
 	type AnnouncementDepositFactor = ConstU128<{ currency::deposit(0, 56) }>;
 }
 
+/// A moonbeam migration wrapping the similarly named migration in pallet-randomness
+pub struct RandomnessInitializeVrfInput<T>(sp_std::marker::PhantomData<T>);
+impl<T: pallet_randomness::Config> pallet_migrations::Migration
+	for RandomnessInitializeVrfInput<T>
+{
+	fn friendly_name(&self) -> &str {
+		"MM_Randomness_InitializeVrfInput"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		pallet_randomness::migrations::InitializeVrfInput::<T>::on_runtime_upgrade()
+	}
+
+	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<(), &'static str> {
+		pallet_randomness::migrations::InitializeVrfInput::<T>::pre_upgrade()
+	}
+
+	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self) -> Result<(), &'static str> {
+		pallet_randomness::migrations::InitializeVrfInput::<T>::post_upgrade()
+	}
+}
+
+pub struct TemporaryMigrations<T>(sp_std::marker::PhantomData<T>);
+
+impl<T: pallet_randomness::Config> pallet_migrations::GetMigrations for TemporaryMigrations<T> {
+	fn get_migrations() -> Vec<Box<dyn pallet_migrations::Migration>> {
+		let migration_randomness_initialize_vrf_input =
+			RandomnessInitializeVrfInput::<T>(Default::default());
+		vec![
+			// planned in runtime 1700
+			Box::new(migration_randomness_initialize_vrf_input),
+		]
+	}
+}
+
 impl pallet_migrations::Config for Runtime {
 	type Event = Event;
 	// TODO wire up our correct list of migrations here. Maybe this shouldn't be in
 	// `moonbeam_runtime_common`.
 	type MigrationsList = (
+		TemporaryMigrations<Runtime>,
 		moonbeam_runtime_common::migrations::CommonMigrations<
 			Runtime,
 			CouncilCollective,
@@ -1256,6 +1296,25 @@ pub type Executive = frame_executive::Executive<
 // }
 // ```
 moonbeam_runtime_common::impl_runtime_apis_plus_common! {
+	impl session_keys_primitives::VrfApi<Block> for Runtime {
+		fn get_relay_slot_number() -> cumulus_primitives_core::relay_chain::v2::Slot {
+			pallet_randomness::Pallet::<Self>::current_vrf_input()
+				.expect("Expected VrfInput to be set")
+				.slot_number
+		}
+		fn get_relay_storage_root() -> <Block as BlockT>::Hash {
+			pallet_randomness::Pallet::<Self>::current_vrf_input()
+				.expect("Expected VrfInput to be set")
+				.storage_root
+		}
+		fn vrf_key_lookup(
+			nimbus_id: nimbus_primitives::NimbusId
+		) -> Option<session_keys_primitives::VrfId> {
+			use session_keys_primitives::KeysLookup;
+			AuthorMapping::lookup_keys(&nimbus_id)
+		}
+	}
+
 	impl sp_transaction_pool::runtime_api::TaggedTransactionQueue<Block> for Runtime {
 		fn validate_transaction(
 			source: TransactionSource,
