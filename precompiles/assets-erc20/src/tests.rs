@@ -21,7 +21,7 @@ use crate::{eip2612::Eip2612, mock::*, *};
 
 use hex_literal::hex;
 use libsecp256k1::{sign, Message, SecretKey};
-use precompile_utils::{testing::*, EvmDataWriter, LogsBuilder};
+use precompile_utils::testing::*;
 use sha3::{Digest, Keccak256};
 use sp_core::H256;
 
@@ -221,14 +221,13 @@ fn approve() {
 						.build(),
 				)
 				.expect_cost(30832756u64)
-				.expect_log(
-					LogsBuilder::new(Account::ForeignAssetId(0u128).into()).log3(
-						SELECTOR_LOG_APPROVAL,
-						Account::Alice,
-						Account::Bob,
-						EvmDataWriter::new().write(U256::from(500)).build(),
-					),
-				)
+				.expect_log(log3(
+					Account::ForeignAssetId(0u128),
+					SELECTOR_LOG_APPROVAL,
+					Account::Alice,
+					Account::Bob,
+					EvmDataWriter::new().write(U256::from(500)).build(),
+				))
 				.execute_returns(EvmDataWriter::new().write(true).build());
 		});
 }
@@ -263,14 +262,13 @@ fn approve_saturating() {
 						.build(),
 				)
 				.expect_cost(30832756u64)
-				.expect_log(
-					LogsBuilder::new(Account::ForeignAssetId(0u128).into()).log3(
-						SELECTOR_LOG_APPROVAL,
-						Account::Alice,
-						Account::Bob,
-						EvmDataWriter::new().write(U256::MAX).build(),
-					),
-				)
+				.expect_log(log3(
+					Account::ForeignAssetId(0u128),
+					SELECTOR_LOG_APPROVAL,
+					Account::Alice,
+					Account::Bob,
+					EvmDataWriter::new().write(U256::MAX).build(),
+				))
 				.execute_returns(EvmDataWriter::new().write(true).build());
 
 			precompiles()
@@ -393,14 +391,13 @@ fn transfer() {
 						.build(),
 				)
 				.expect_cost(44001756u64) // 1 weight => 1 gas in mock
-				.expect_log(
-					LogsBuilder::new(Account::ForeignAssetId(0u128).into()).log3(
-						SELECTOR_LOG_TRANSFER,
-						Account::Alice,
-						Account::Bob,
-						EvmDataWriter::new().write(U256::from(400)).build(),
-					),
-				)
+				.expect_log(log3(
+					Account::ForeignAssetId(0u128),
+					SELECTOR_LOG_TRANSFER,
+					Account::Alice,
+					Account::Bob,
+					EvmDataWriter::new().write(U256::from(400)).build(),
+				))
 				.execute_returns(EvmDataWriter::new().write(true).build());
 
 			precompiles()
@@ -520,14 +517,13 @@ fn transfer_from() {
 						.build(),
 				)
 				.expect_cost(56268756u64) // 1 weight => 1 gas in mock
-				.expect_log(
-					LogsBuilder::new(Account::ForeignAssetId(0u128).into()).log3(
-						SELECTOR_LOG_TRANSFER,
-						Account::Alice,
-						Account::Charlie,
-						EvmDataWriter::new().write(U256::from(400)).build(),
-					),
-				)
+				.expect_log(log3(
+					Account::ForeignAssetId(0u128),
+					SELECTOR_LOG_TRANSFER,
+					Account::Alice,
+					Account::Charlie,
+					EvmDataWriter::new().write(U256::from(400)).build(),
+				))
 				.execute_returns(EvmDataWriter::new().write(true).build());
 
 			precompiles()
@@ -599,14 +595,13 @@ fn transfer_from_non_incremental_approval() {
 						.build(),
 				)
 				.expect_cost(30832756u64)
-				.expect_log(
-					LogsBuilder::new(Account::ForeignAssetId(0u128).into()).log3(
-						SELECTOR_LOG_APPROVAL,
-						Account::Alice,
-						Account::Bob,
-						EvmDataWriter::new().write(U256::from(500)).build(),
-					),
-				)
+				.expect_log(log3(
+					Account::ForeignAssetId(0u128),
+					SELECTOR_LOG_APPROVAL,
+					Account::Alice,
+					Account::Bob,
+					EvmDataWriter::new().write(U256::from(500)).build(),
+				))
 				.execute_returns(EvmDataWriter::new().write(true).build());
 
 			// We then approve 300. Non-incremental, so this is
@@ -623,14 +618,13 @@ fn transfer_from_non_incremental_approval() {
 						.build(),
 				)
 				.expect_cost(62796756u64)
-				.expect_log(
-					LogsBuilder::new(Account::ForeignAssetId(0u128).into()).log3(
-						SELECTOR_LOG_APPROVAL,
-						Account::Alice,
-						Account::Bob,
-						EvmDataWriter::new().write(U256::from(300)).build(),
-					),
-				)
+				.expect_log(log3(
+					Account::ForeignAssetId(0u128),
+					SELECTOR_LOG_APPROVAL,
+					Account::Alice,
+					Account::Bob,
+					EvmDataWriter::new().write(U256::from(300)).build(),
+				))
 				.execute_returns(EvmDataWriter::new().write(true).build());
 
 			// This should fail, as now the new approved quantity is 300
@@ -736,14 +730,13 @@ fn transfer_from_self() {
 						.build(),
 				)
 				.expect_cost(44001756u64) // 1 weight => 1 gas in mock
-				.expect_log(
-					LogsBuilder::new(Account::ForeignAssetId(0u128).into()).log3(
-						SELECTOR_LOG_TRANSFER,
-						Account::Alice,
-						Account::Bob,
-						EvmDataWriter::new().write(U256::from(400)).build(),
-					),
-				)
+				.expect_log(log3(
+					Account::ForeignAssetId(0u128),
+					SELECTOR_LOG_TRANSFER,
+					Account::Alice,
+					Account::Bob,
+					EvmDataWriter::new().write(U256::from(400)).build(),
+				))
 				.execute_returns(EvmDataWriter::new().write(true).build());
 
 			precompiles()
@@ -908,7 +901,8 @@ fn mint_local_assets() {
 						.build(),
 				)
 				.expect_cost(26633756u64) // 1 weight => 1 gas in mock
-				.expect_log(LogsBuilder::new(Account::LocalAssetId(0u128).into()).log3(
+				.expect_log(log3(
+					Account::LocalAssetId(0u128),
 					SELECTOR_LOG_TRANSFER,
 					Account::Zero,
 					Account::Bob,
@@ -968,7 +962,8 @@ fn burn_local_assets() {
 						.build(),
 				)
 				.expect_cost(30049756u64) // 1 weight => 1 gas in mock
-				.expect_log(LogsBuilder::new(Account::LocalAssetId(0u128).into()).log3(
+				.expect_log(log3(
+					Account::LocalAssetId(0u128),
 					SELECTOR_LOG_TRANSFER,
 					Account::Alice,
 					Account::Zero,
@@ -1110,7 +1105,8 @@ fn thaw_local_assets() {
 						.build(),
 				)
 				.expect_cost(44001756u64) // 1 weight => 1 gas in mock
-				.expect_log(LogsBuilder::new(Account::LocalAssetId(0u128).into()).log3(
+				.expect_log(log3(
+					Account::LocalAssetId(0u128),
 					SELECTOR_LOG_TRANSFER,
 					Account::Bob,
 					Account::Alice,
@@ -1234,7 +1230,8 @@ fn thaw_asset_local_assets() {
 						.build(),
 				)
 				.expect_cost(44001756u64) // 1 weight => 1 gas in mock
-				.expect_log(LogsBuilder::new(Account::LocalAssetId(0u128).into()).log3(
+				.expect_log(log3(
+					Account::LocalAssetId(0u128),
 					SELECTOR_LOG_TRANSFER,
 					Account::Bob,
 					Account::Alice,
@@ -1371,7 +1368,8 @@ fn set_team_local_assets() {
 						.build(),
 				)
 				.expect_cost(26633756u64) // 1 weight => 1 gas in mock
-				.expect_log(LogsBuilder::new(Account::LocalAssetId(0u128).into()).log3(
+				.expect_log(log3(
+					Account::LocalAssetId(0u128),
 					SELECTOR_LOG_TRANSFER,
 					Account::Zero,
 					Account::Bob,
@@ -1609,14 +1607,13 @@ fn permit_valid() {
 						.build(),
 				)
 				.expect_cost(30831000u64)
-				.expect_log(
-					LogsBuilder::new(Account::ForeignAssetId(0u128).into()).log3(
-						SELECTOR_LOG_APPROVAL,
-						Account::Alice,
-						Account::Bob,
-						EvmDataWriter::new().write(U256::from(500)).build(),
-					),
-				)
+				.expect_log(log3(
+					Account::ForeignAssetId(0u128),
+					SELECTOR_LOG_APPROVAL,
+					Account::Alice,
+					Account::Bob,
+					EvmDataWriter::new().write(U256::from(500)).build(),
+				))
 				.execute_returns(vec![]);
 
 			precompiles()
@@ -1719,14 +1716,13 @@ fn permit_valid_named_asset() {
 						.build(),
 				)
 				.expect_cost(30831000u64)
-				.expect_log(
-					LogsBuilder::new(Account::ForeignAssetId(0u128).into()).log3(
-						SELECTOR_LOG_APPROVAL,
-						Account::Alice,
-						Account::Bob,
-						EvmDataWriter::new().write(U256::from(500)).build(),
-					),
-				)
+				.expect_log(log3(
+					Account::ForeignAssetId(0u128),
+					SELECTOR_LOG_APPROVAL,
+					Account::Alice,
+					Account::Bob,
+					EvmDataWriter::new().write(U256::from(500)).build(),
+				))
 				.execute_returns(vec![]);
 
 			precompiles()
@@ -2198,14 +2194,210 @@ fn permit_valid_with_metamask_signed_data() {
 						.build(),
 				)
 				.expect_cost(30831000u64)
-				.expect_log(
-					LogsBuilder::new(Account::ForeignAssetId(1u128).into()).log3(
-						SELECTOR_LOG_APPROVAL,
-						Account::Alice,
-						Account::Bob,
-						EvmDataWriter::new().write(U256::from(1000)).build(),
-					),
-				)
+				.expect_log(log3(
+					Account::ForeignAssetId(1u128),
+					SELECTOR_LOG_APPROVAL,
+					Account::Alice,
+					Account::Bob,
+					EvmDataWriter::new().write(U256::from(1000)).build(),
+				))
 				.execute_returns(vec![]);
+		});
+}
+
+#[test]
+fn transfer_amount_overflow() {
+	ExtBuilder::default()
+		.with_balances(vec![(Account::Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(ForeignAssets::force_create(
+				Origin::root(),
+				0u128,
+				Account::Alice.into(),
+				true,
+				1
+			));
+			assert_ok!(ForeignAssets::mint(
+				Origin::signed(Account::Alice),
+				0u128,
+				Account::Alice.into(),
+				1000
+			));
+
+			precompiles()
+				.prepare_test(
+					Account::Alice,
+					Account::ForeignAssetId(0u128),
+					EvmDataWriter::new_with_selector(Action::Transfer)
+						.write(Address(Account::Bob.into()))
+						.write(U256::from(u128::MAX) + 1)
+						.build(),
+				)
+				.expect_cost(1756u64) // 1 weight => 1 gas in mock
+				.expect_no_logs()
+				.execute_reverts(|e| e == b"value too big for u128");
+
+			precompiles()
+				.prepare_test(
+					Account::Bob,
+					Account::ForeignAssetId(0u128),
+					EvmDataWriter::new_with_selector(Action::BalanceOf)
+						.write(Address(Account::Bob.into()))
+						.build(),
+				)
+				.expect_cost(0) // TODO: Test db read/write costs
+				.expect_no_logs()
+				.execute_returns(EvmDataWriter::new().write(U256::from(0)).build());
+
+			precompiles()
+				.prepare_test(
+					Account::Alice,
+					Account::ForeignAssetId(0u128),
+					EvmDataWriter::new_with_selector(Action::BalanceOf)
+						.write(Address(Account::Alice.into()))
+						.build(),
+				)
+				.expect_cost(0) // TODO: Test db read/write costs
+				.expect_no_logs()
+				.execute_returns(EvmDataWriter::new().write(U256::from(1000)).build());
+		});
+}
+
+#[test]
+fn transfer_from_overflow() {
+	ExtBuilder::default()
+		.with_balances(vec![(Account::Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(ForeignAssets::force_create(
+				Origin::root(),
+				0u128,
+				Account::Alice.into(),
+				true,
+				1
+			));
+			assert_ok!(ForeignAssets::mint(
+				Origin::signed(Account::Alice),
+				0u128,
+				Account::Alice.into(),
+				1000
+			));
+
+			precompiles()
+				.prepare_test(
+					Account::Alice,
+					Account::ForeignAssetId(0u128),
+					EvmDataWriter::new_with_selector(Action::Approve)
+						.write(Address(Account::Bob.into()))
+						.write(U256::from(500))
+						.build(),
+				)
+				.execute_some();
+
+			precompiles()
+				.prepare_test(
+					Account::Alice,
+					Account::ForeignAssetId(0u128),
+					EvmDataWriter::new_with_selector(Action::Approve)
+						.write(Address(Account::Bob.into()))
+						.write(U256::from(500))
+						.build(),
+				)
+				.execute_some();
+
+			precompiles()
+				.prepare_test(
+					Account::Bob, // Bob is the one sending transferFrom!
+					Account::ForeignAssetId(0u128),
+					EvmDataWriter::new_with_selector(Action::TransferFrom)
+						.write(Address(Account::Alice.into()))
+						.write(Address(Account::Charlie.into()))
+						.write(U256::from(u128::MAX) + 1)
+						.build(),
+				)
+				.expect_cost(1756u64) // 1 weight => 1 gas in mock
+				.expect_no_logs()
+				.execute_reverts(|e| e == b"value too big for u128");
+		});
+}
+
+#[test]
+fn mint_overflow() {
+	ExtBuilder::default()
+		.with_balances(vec![(Account::Alice, 1000), (Account::Bob, 2500)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(LocalAssets::force_create(
+				Origin::root(),
+				0u128,
+				Account::Alice.into(),
+				true,
+				1
+			));
+			assert_ok!(LocalAssets::force_set_metadata(
+				Origin::root(),
+				0u128,
+				b"TestToken".to_vec(),
+				b"Test".to_vec(),
+				12,
+				false
+			));
+
+			precompiles()
+				.prepare_test(
+					Account::Alice,
+					Account::LocalAssetId(0u128),
+					EvmDataWriter::new_with_selector(Action::Mint)
+						.write(Address(Account::Bob.into()))
+						.write(U256::from(u128::MAX) + 1)
+						.build(),
+				)
+				.expect_cost(1756u64) // 1 weight => 1 gas in mock
+				.expect_no_logs()
+				.execute_reverts(|e| e == b"value too big for u128");
+		});
+}
+
+#[test]
+fn burn_overflow() {
+	ExtBuilder::default()
+		.with_balances(vec![(Account::Alice, 1000), (Account::Bob, 2500)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(LocalAssets::force_create(
+				Origin::root(),
+				0u128,
+				Account::Alice.into(),
+				true,
+				1
+			));
+			assert_ok!(LocalAssets::force_set_metadata(
+				Origin::root(),
+				0u128,
+				b"TestToken".to_vec(),
+				b"Test".to_vec(),
+				12,
+				false
+			));
+			assert_ok!(LocalAssets::mint(
+				Origin::signed(Account::Alice),
+				0u128,
+				Account::Alice.into(),
+				1000
+			));
+
+			precompiles()
+				.prepare_test(
+					Account::Alice,
+					Account::LocalAssetId(0u128),
+					EvmDataWriter::new_with_selector(Action::Burn)
+						.write(Address(Account::Alice.into()))
+						.write(U256::from(u128::MAX) + 1)
+						.build(),
+				)
+				.expect_cost(1756u64) // 1 weight => 1 gas in mock
+				.expect_no_logs()
+				.execute_reverts(|e| e == b"value too big for u128");
 		});
 }
