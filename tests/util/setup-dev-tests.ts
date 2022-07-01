@@ -213,7 +213,6 @@ export function describeDevMoonbeam(
                   )
                   ?.phase?.asApplyExtrinsic?.toNumber()
               : blockData.block.extrinsics.findIndex((ext) => ext.hash.toHex() == result.hash);
-
           // We retrieve the events associated with the extrinsic
           const events = allRecords.filter(
             ({ phase }) =>

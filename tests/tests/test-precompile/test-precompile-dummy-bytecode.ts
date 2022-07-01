@@ -66,11 +66,11 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - precompiles dummy bytecode", (co
 
     const { result } = await context.createBlock(
       createTransaction(context, {
+        gas: 12000000,
         data: "0x",
         to: contractAddress,
       })
     );
-
     const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
 
     expect(receipt.status).to.equal(false);

@@ -22,6 +22,7 @@ describeDevMoonbeam("Ethereum Transaction - Large Transaction", (context) => {
       gasLimit: EXTRINSIC_GAS_LIMIT,
       gasPrice: 1_000_000_000,
       data: data,
+      nonce: await context.web3.eth.getTransactionCount(alith.address)
     });
   };
 
