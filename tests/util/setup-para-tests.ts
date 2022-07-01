@@ -1,13 +1,16 @@
-import { ApiPromise } from "@polkadot/api";
 import "@polkadot/api-augment";
+
+import { ApiPromise } from "@polkadot/api";
+import { KeyringPair } from "@polkadot/keyring/types";
+import { blake2AsHex } from "@polkadot/util-crypto";
 import chalk from "chalk";
 import { ethers } from "ethers";
 import { sha256 } from "ethers/lib/utils";
 import fs from "fs";
 import { HttpProvider } from "web3-core";
 
-import { KeyringPair } from "@polkadot/keyring/types";
 import { DEBUG_MODE } from "./constants";
+import { cancelReferendaWithCouncil, executeProposalWithCouncil } from "./governance";
 import {
   getRuntimeWasm,
   NodePorts,
@@ -20,6 +23,8 @@ import { EnhancedWeb3, provideEthersApi, providePolkadotApi, provideWeb3Api } fr
 
 const debug = require("debug")("test:setup");
 
+const PORT_PREFIX = (process.env.PORT_PREFIX && parseInt(process.env.PORT_PREFIX)) || 19;
+
 export interface ParaTestContext {
   createWeb3: (protocol?: "ws" | "http") => Promise<EnhancedWeb3>;
   createEthers: () => Promise<ethers.providers.JsonRpcProvider>;
@@ -31,7 +36,7 @@ export interface ParaTestContext {
     from: KeyringPair,
     runtimeName: "moonbase" | "moonriver" | "moonbeam",
     runtimeVersion: string,
-    waitMigration?: boolean
+    options?: { waitMigration?: boolean; useGovernance?: boolean }
   ) => Promise<number>;
   blockNumber: number;
 
@@ -59,7 +64,7 @@ export function describeParachain(
 ) {
   describe(title, function () {
     // Set timeout to 5000 for all tests.
-    this.timeout(300000);
+    this.timeout("spec" in options.parachain ? 3600000 : 300000);
 
     // The context is initialized empty to allow passing a reference
     // and to be filled once the node information is retrieved
@@ -67,7 +72,6 @@ export function describeParachain(
 
     // Making sure the Moonbeam node has started
     before("Starting Moonbeam Test Node", async function () {
-      this.timeout(300000);
       try {
         const init = !DEBUG_MODE
           ? await startParachainNodes(options)
@@ -77,9 +81,9 @@ export function describeParachain(
                   parachainId: 1000,
                   ports: [
                     {
-                      p2pPort: 19931,
-                      wsPort: 19933,
-                      rpcPort: 19932,
+                      p2pPort: PORT_PREFIX * 1000 + 100,
+                      wsPort: PORT_PREFIX * 1000 + 102,
+                      rpcPort: PORT_PREFIX * 1000 + 101,
                     },
                   ],
                 },
@@ -92,6 +96,7 @@ export function describeParachain(
         context._polkadotApiParachains = [];
         context._polkadotApiRelaychains = [];
         context._web3Providers = [];
+        context.blockNumber = 0;
 
         context.createWeb3 = async (protocol: "ws" | "http" = "http") => {
           const provider =
@@ -168,6 +173,7 @@ export function describeParachain(
                 `Start listening for new blocks. Production will start in ${chalk.red(`1 minute`)}`
               );
             }
+            debug(`New block: #${context.blockNumber}`);
 
             let i = pendingCallbacks.length;
             while (i--) {
@@ -186,7 +192,7 @@ export function describeParachain(
         context.waitBlocks = async (count: number) => {
           return new Promise<number>((resolve) => {
             pendingCallbacks.push({
-              blockNumber: context.blockNumber + count,
+              blockNumber: (context.blockNumber || 0) + count,
               resolve,
             });
           });
@@ -195,16 +201,20 @@ export function describeParachain(
         context.upgradeRuntime = async (
           from: KeyringPair,
           runtimeName: "moonbase" | "moonriver" | "moonbeam",
-          runtimeVersion: string,
-          waitMigration: boolean = true
+          runtimeVersion: "local" | string,
+          { waitMigration = true, useGovernance = false } = {
+            waitMigration: true,
+            useGovernance: false,
+          }
         ) => {
+          const api = context.polkadotApiParaone;
           return new Promise<number>(async (resolve, reject) => {
             try {
               const code = fs
                 .readFileSync(await getRuntimeWasm(runtimeName, runtimeVersion))
                 .toString();
 
-              const existingCode = await context.polkadotApiParaone.rpc.state.getStorage(":code");
+              const existingCode = await api.rpc.state.getStorage(":code");
               if (existingCode.toString() == code) {
                 reject(
                   `Runtime upgrade with same code: ${existingCode.toString().slice(0, 20)} vs ${code
@@ -213,95 +223,93 @@ export function describeParachain(
                 );
               }
 
-              let nonce = (
-                await context.polkadotApiParaone.rpc.system.accountNextIndex(from.address)
-              ).toNumber();
+              let nonce = (await api.rpc.system.accountNextIndex(from.address)).toNumber();
 
-              process.stdout.write(
-                `Sending sudo.setCode (${sha256(Buffer.from(code))} [~${Math.floor(
-                  code.length / 1024
-                )} kb])...`
-              );
-              const unsubSetCode = await context.polkadotApiParaone.tx.sudo
-                .sudoUncheckedWeight(
-                  await context.polkadotApiParaone.tx.system.setCodeWithoutChecks(code),
-                  1
-                )
-                .signAndSend(from, { nonce: nonce++ }, async (result) => {
-                  if (result.isInBlock) {
-                    unsubSetCode();
-                    // ==== This is not supported anymore :/ ===
-                    // if (runtimeVersion == "local") {
-                    //   // This is a trick. We set the lastRuntimeUpgrade version to a number lower
-                    //   // at the block right before it gets applied, otherwise it gets reverted to
-                    //   // the original version (not sure why).
-                    //   // This is require when developping and the runtime version hasn't been
-                    //   // increased. As using the same runtime version prevents the migration
-                    //   // to happen
-                    //   await context.waitBlocks(2);
+              if (useGovernance) {
+                // We just prepare the proposals
+                let proposal = api.tx.parachainSystem.authorizeUpgrade(blake2AsHex(code));
+                let encodedProposal = proposal.method.toHex();
+                let encodedHash = blake2AsHex(encodedProposal);
 
-                    //   const lastRuntimeUpgrade =
-                    //     (await context.polkadotApiParaone.query.system.lastRuntimeUpgrade())
-                    //     as any;
-                    //   process.stdout.write(
-                    //     `Overriding on-chain current runtime ${lastRuntimeUpgrade
-                    //       .unwrap()
-                    //       .specVersion.toNumber()} to ${
-                    //       lastRuntimeUpgrade.unwrap().specVersion.toNumber() - 1
-                    //     }`
-                    //   );
-                    //   context.polkadotApiParaone.tx.sudo
-                    //     .sudo(
-                    //       await context.polkadotApiParaone.tx.system.setStorage([
-                    //         [
-                    //           context.polkadotApiParaone.query.system.lastRuntimeUpgrade.key(),
-                    //           `0x${Buffer.from(
-                    //             context.polkadotApiParaone.registry
-                    //               .createType(
-                    //                 "Compact<u32>",
-                    //                 lastRuntimeUpgrade.unwrap().specVersion.toNumber() - 2
-                    //               )
-                    //               .toU8a()
-                    //           ).toString("hex")}${lastRuntimeUpgrade.toHex().slice(6)}`,
-                    //         ],
-                    //       ])
-                    //     )
-                    //     .signAndSend(from, { nonce: nonce++ });
-                    //   process.stdout.write(`✅\n`);
-                    // }
-                  }
-                });
-              process.stdout.write(`✅\n`);
+                // Check if already in governance
+                const preImageExists = await api.query.democracy.preimages(encodedHash);
+                if (preImageExists.isSome && preImageExists.unwrap().isAvailable) {
+                  process.stdout.write(`Preimage ${encodedHash} already exists !\n`);
+                } else {
+                  process.stdout.write(
+                    `Registering preimage (${sha256(Buffer.from(code))} [~${Math.floor(
+                      code.length / 1024
+                    )} kb])...`
+                  );
+                  await api.tx.democracy
+                    .notePreimage(encodedProposal)
+                    .signAndSend(from, { nonce: nonce++ });
+                  process.stdout.write(`✅\n`);
+                }
+
+                // Check if already in referendum
+                const referendum = await api.query.democracy.referendumInfoOf.entries();
+                const referendaIndex = referendum
+                  .filter(
+                    (ref) =>
+                      ref[1].unwrap().isOngoing &&
+                      ref[1].unwrap().asOngoing.proposalHash.toHex() == encodedHash
+                  )
+                  .map((ref) =>
+                    api.registry.createType("u32", ref[0].toU8a().slice(-4)).toNumber()
+                  )?.[0];
+                if (referendaIndex !== null && referendaIndex !== undefined) {
+                  process.stdout.write(`Vote for upgrade already in referendum, cancelling it.\n`);
+                  await cancelReferendaWithCouncil(api, referendaIndex);
+                }
+                await executeProposalWithCouncil(api, encodedHash);
+
+                // Needs to retrieve nonce after those governance calls
+                nonce = (await api.rpc.system.accountNextIndex(from.address)).toNumber();
+                process.stdout.write(`Enacting authorized upgrade...`);
+                await api.tx.parachainSystem
+                  .enactAuthorizedUpgrade(code)
+                  .signAndSend(from, { nonce: nonce++ });
+                process.stdout.write(`✅\n`);
+              } else {
+                process.stdout.write(
+                  `Sending sudo.setCode (${sha256(Buffer.from(code))} [~${Math.floor(
+                    code.length / 1024
+                  )} kb])...`
+                );
+                await api.tx.sudo
+                  .sudoUncheckedWeight(await api.tx.system.setCodeWithoutChecks(code), 1)
+                  .signAndSend(from, { nonce: nonce++ });
+                process.stdout.write(`✅\n`);
+              }
 
               process.stdout.write(`Waiting to apply new runtime (${chalk.red(`~4min`)})...`);
               let isInitialVersion = true;
-              const unsub = await context.polkadotApiParaone.rpc.state.subscribeRuntimeVersion(
-                async (version) => {
-                  if (!isInitialVersion) {
-                    const blockNumber = context.blockNumber;
-                    console.log(
-                      `✅ [${version.implName}-${version.specVersion} ${existingCode
+              const unsub = await api.rpc.state.subscribeRuntimeVersion(async (version) => {
+                if (!isInitialVersion) {
+                  const blockNumber = context.blockNumber;
+                  console.log(
+                    `✅ [${version.implName}-${version.specVersion} ${existingCode
+                      .toString()
+                      .slice(0, 6)}...] [#${blockNumber}]`
+                  );
+                  unsub();
+                  const newCode = await api.rpc.state.getStorage(":code");
+                  if (newCode.toString() != code) {
+                    reject(
+                      `Unexpected new code: ${newCode.toString().slice(0, 20)} vs ${code
                         .toString()
-                        .slice(0, 6)}...] [#${blockNumber}]`
+                        .slice(0, 20)}`
                     );
-                    unsub();
-                    const newCode = await context.polkadotApiParaone.rpc.state.getStorage(":code");
-                    if (newCode.toString() != code) {
-                      reject(
-                        `Unexpected new code: ${newCode.toString().slice(0, 20)} vs ${code
-                          .toString()
-                          .slice(0, 20)}`
-                      );
-                    }
-                    if (waitMigration) {
-                      // Wait for next block to have the new runtime applied
-                      await context.waitBlocks(1);
-                    }
-                    resolve(blockNumber);
                   }
-                  isInitialVersion = false;
+                  if (waitMigration) {
+                    // Wait for next block to have the new runtime applied
+                    await context.waitBlocks(1);
+                  }
+                  resolve(blockNumber);
                 }
-              );
+                isInitialVersion = false;
+              });
             } catch (e) {
               console.error(`Failed to setCode`);
               reject(e);

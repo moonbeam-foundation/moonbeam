@@ -78,6 +78,7 @@ export async function startMoonbeamDevNode(
       ? `--wasm-execution=compiled`
       : `--wasm-execution=interpreted-i-know-what-i-do`,
     ETHAPI_CMD != "" ? `${ETHAPI_CMD}` : `--ethapi=txpool`,
+    `--no-hardware-benchmarks`,
     `--no-telemetry`,
     `--no-prometheus`,
     `--force-authoring`,

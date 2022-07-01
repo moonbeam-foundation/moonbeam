@@ -6,6 +6,8 @@ import type {
   BitVec,
   Bool,
   Bytes,
+  F32,
+  F64,
   I128,
   I16,
   I256,
@@ -26,6 +28,8 @@ import type {
   U8,
   USize,
   bool,
+  f32,
+  f64,
   i128,
   i16,
   i256,
@@ -100,6 +104,7 @@ import type {
   BeefyId,
   BeefyNextAuthoritySet,
   BeefyPayload,
+  BeefyPayloadId,
   BeefySignedCommitment,
   MmrRootHash,
   ValidatorSetId,
@@ -301,6 +306,7 @@ import type {
   EthBlock,
   EthBloom,
   EthCallRequest,
+  EthFeeHistory,
   EthFilter,
   EthFilterAddress,
   EthFilterChanges,
@@ -1198,6 +1204,7 @@ declare module "@polkadot/types/types/registry" {
     BeefyKey: BeefyKey;
     BeefyNextAuthoritySet: BeefyNextAuthoritySet;
     BeefyPayload: BeefyPayload;
+    BeefyPayloadId: BeefyPayloadId;
     BeefySignedCommitment: BeefySignedCommitment;
     Bid: Bid;
     Bidder: Bidder;
@@ -1417,6 +1424,7 @@ declare module "@polkadot/types/types/registry" {
     EthereumAddress: EthereumAddress;
     EthereumLookupSource: EthereumLookupSource;
     EthereumSignature: EthereumSignature;
+    EthFeeHistory: EthFeeHistory;
     EthFilter: EthFilter;
     EthFilterAddress: EthFilterAddress;
     EthFilterChanges: EthFilterChanges;
@@ -1481,6 +1489,10 @@ declare module "@polkadot/types/types/registry" {
     ExtrinsicsWeight: ExtrinsicsWeight;
     ExtrinsicUnknown: ExtrinsicUnknown;
     ExtrinsicV4: ExtrinsicV4;
+    f32: f32;
+    F32: F32;
+    f64: f64;
+    F64: F64;
     FeeDetails: FeeDetails;
     Fixed128: Fixed128;
     Fixed64: Fixed64;

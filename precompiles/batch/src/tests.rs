@@ -26,7 +26,7 @@ use evm::ExitReason;
 use fp_evm::{ExitError, ExitRevert, ExitSucceed};
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_evm::Call as EvmCall;
-use precompile_utils::{call_cost, testing::*, Address, Bytes, EvmDataWriter, LogExt, LogsBuilder};
+use precompile_utils::{costs::call_cost, prelude::*, testing::*};
 use sp_core::{H160, H256, U256};
 
 fn precompiles() -> TestPrecompiles<Runtime> {
@@ -187,9 +187,7 @@ fn batch_returns(
 						reason: ExitReason::Succeed(ExitSucceed::Returned),
 						output: Vec::new(),
 						cost: 13,
-						logs: vec![
-							LogsBuilder::new(Bob.into()).log1(H256::repeat_byte(0x11), vec![])
-						],
+						logs: vec![log1(Bob, H256::repeat_byte(0x11), vec![])],
 					}
 				}
 				a if a == Charlie.into() => {
@@ -215,9 +213,7 @@ fn batch_returns(
 						reason: ExitReason::Succeed(ExitSucceed::Returned),
 						output: Vec::new(),
 						cost: 17,
-						logs: vec![
-							LogsBuilder::new(Charlie.into()).log1(H256::repeat_byte(0x22), vec![])
-						],
+						logs: vec![log1(Charlie, H256::repeat_byte(0x22), vec![])],
 					}
 				}
 				_ => panic!("unexpected subcall"),
@@ -230,9 +226,9 @@ fn batch_returns(
 fn batch_some_returns() {
 	ExtBuilder::default().build().execute_with(|| {
 		batch_returns(&precompiles(), Action::BatchSome)
-			.expect_log(LogsBuilder::new(Bob.into()).log1(H256::repeat_byte(0x11), vec![]))
+			.expect_log(log1(Bob, H256::repeat_byte(0x11), vec![]))
 			.expect_log(log_subcall_succeeded(Precompile, 0))
-			.expect_log(LogsBuilder::new(Charlie.into()).log1(H256::repeat_byte(0x22), vec![]))
+			.expect_log(log1(Charlie, H256::repeat_byte(0x22), vec![]))
 			.expect_log(log_subcall_succeeded(Precompile, 1))
 			.execute_returns(Vec::new())
 	})
@@ -242,9 +238,9 @@ fn batch_some_returns() {
 fn batch_some_until_failure_returns() {
 	ExtBuilder::default().build().execute_with(|| {
 		batch_returns(&precompiles(), Action::BatchSomeUntilFailure)
-			.expect_log(LogsBuilder::new(Bob.into()).log1(H256::repeat_byte(0x11), vec![]))
+			.expect_log(log1(Bob, H256::repeat_byte(0x11), vec![]))
 			.expect_log(log_subcall_succeeded(Precompile, 0))
-			.expect_log(LogsBuilder::new(Charlie.into()).log1(H256::repeat_byte(0x22), vec![]))
+			.expect_log(log1(Charlie, H256::repeat_byte(0x22), vec![]))
 			.expect_log(log_subcall_succeeded(Precompile, 1))
 			.execute_returns(Vec::new())
 	})
@@ -254,9 +250,9 @@ fn batch_some_until_failure_returns() {
 fn batch_all_returns() {
 	ExtBuilder::default().build().execute_with(|| {
 		batch_returns(&precompiles(), Action::BatchAll)
-			.expect_log(LogsBuilder::new(Bob.into()).log1(H256::repeat_byte(0x11), vec![]))
+			.expect_log(log1(Bob, H256::repeat_byte(0x11), vec![]))
 			.expect_log(log_subcall_succeeded(Precompile, 0))
-			.expect_log(LogsBuilder::new(Charlie.into()).log1(H256::repeat_byte(0x22), vec![]))
+			.expect_log(log1(Charlie, H256::repeat_byte(0x22), vec![]))
 			.expect_log(log_subcall_succeeded(Precompile, 1))
 			.execute_returns(Vec::new())
 	})
@@ -410,9 +406,7 @@ fn batch_incomplete(
 						reason: ExitReason::Succeed(ExitSucceed::Returned),
 						output: Vec::new(),
 						cost: 13,
-						logs: vec![
-							LogsBuilder::new(Bob.into()).log1(H256::repeat_byte(0x11), vec![])
-						],
+						logs: vec![log1(Bob, H256::repeat_byte(0x11), vec![])],
 					}
 				}
 				a if a == Charlie.into() => {
@@ -464,9 +458,7 @@ fn batch_incomplete(
 						reason: ExitReason::Succeed(ExitSucceed::Returned),
 						output: Vec::new(),
 						cost: 19,
-						logs: vec![
-							LogsBuilder::new(Alice.into()).log1(H256::repeat_byte(0x33), vec![])
-						],
+						logs: vec![log1(Alice, H256::repeat_byte(0x33), vec![])],
 					}
 				}
 				_ => panic!("unexpected subcall"),
@@ -480,10 +472,10 @@ fn batch_some_incomplete() {
 		let (_, total_call_cost) = costs();
 
 		batch_incomplete(&precompiles(), Action::BatchSome)
-			.expect_log(LogsBuilder::new(Bob.into()).log1(H256::repeat_byte(0x11), vec![]))
+			.expect_log(log1(Bob, H256::repeat_byte(0x11), vec![]))
 			.expect_log(log_subcall_succeeded(Precompile, 0))
 			.expect_log(log_subcall_failed(Precompile, 1))
-			.expect_log(LogsBuilder::new(Alice.into()).log1(H256::repeat_byte(0x33), vec![]))
+			.expect_log(log1(Alice, H256::repeat_byte(0x33), vec![]))
 			.expect_log(log_subcall_succeeded(Precompile, 2))
 			.expect_cost(13 + 17 + 19 + total_call_cost * 3)
 			.execute_returns(Vec::new())
@@ -496,7 +488,7 @@ fn batch_some_until_failure_incomplete() {
 		let (_, total_call_cost) = costs();
 
 		batch_incomplete(&precompiles(), Action::BatchSomeUntilFailure)
-			.expect_log(LogsBuilder::new(Bob.into()).log1(H256::repeat_byte(0x11), vec![]))
+			.expect_log(log1(Bob, H256::repeat_byte(0x11), vec![]))
 			.expect_log(log_subcall_succeeded(Precompile, 0))
 			.expect_log(log_subcall_failed(Precompile, 1))
 			.expect_cost(13 + 17 + total_call_cost * 2)
