@@ -27,9 +27,6 @@ pub mod precompile_set;
 pub mod substrate;
 
 #[cfg(feature = "testing")]
-pub mod solidity;
-
-#[cfg(feature = "testing")]
 pub mod testing;
 
 #[cfg(test)]

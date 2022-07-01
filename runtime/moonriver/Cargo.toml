@@ -21,6 +21,7 @@ account = { path = "../../primitives/account/", default-features = false }
 moonbeam-core-primitives = { path = "../../core-primitives", default-features = false }
 moonbeam-relay-encoder = { path = "../relay-encoder", default-features = false }
 moonbeam-runtime-common = { path = "../common", default-features = false, features = [ "xcm-support" ] }
+pallet-randomness = { path = "../../pallets/randomness", default-features = false }
 precompile-utils = { path = "../../precompiles/utils", default-features = false }
 session-keys-primitives = { path = "../../primitives/session-keys", default-features = false }
 xcm-primitives = { path = "../../primitives/xcm/", default-features = false }
@@ -204,6 +205,7 @@ std = [
 	"pallet-proxy-genesis-companion/std",
 	"pallet-proxy/std",
 	"pallet-randomness-collective-flip/std",
+	"pallet-randomness/std",
 	"pallet-scheduler/std",
 	"pallet-society/std",
 	"pallet-timestamp/std",

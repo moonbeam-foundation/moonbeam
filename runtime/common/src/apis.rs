@@ -412,6 +412,25 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 			}
 
+			impl session_keys_primitives::VrfApi<Block> for Runtime {
+				fn get_relay_slot_number() -> cumulus_primitives_core::relay_chain::v2::Slot {
+					pallet_randomness::Pallet::<Self>::current_vrf_input()
+						.expect("Expected VrfInput to be set")
+						.slot_number
+				}
+				fn get_relay_storage_root() -> <Block as BlockT>::Hash {
+					pallet_randomness::Pallet::<Self>::current_vrf_input()
+						.expect("Expected VrfInput to be set")
+						.storage_root
+				}
+				fn vrf_key_lookup(
+					nimbus_id: nimbus_primitives::NimbusId
+				) -> Option<session_keys_primitives::VrfId> {
+					use session_keys_primitives::KeysLookup;
+					AuthorMapping::lookup_keys(&nimbus_id)
+				}
+			}
+
 			#[cfg(feature = "runtime-benchmarks")]
 			impl frame_benchmarking::Benchmark<Block> for Runtime {
 
