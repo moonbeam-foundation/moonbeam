@@ -65,7 +65,7 @@ describeDevMoonbeam("Author Mapping - simple association", (context) => {
     expect((await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS)).account).to.eq(alith.address);
     expect(
       (await context.polkadotApi.query.system.account(alith.address)).data.free.toBigInt()
-    ).to.eq(1207725819589017722705800n);
+    ).to.eq(1207725819590977972705800n);
     expect(
       (await context.polkadotApi.query.system.account(alith.address)).data.reserved.toBigInt()
     ).to.eq(2n * DEFAULT_GENESIS_MAPPING + DEFAULT_GENESIS_STAKING);
@@ -92,7 +92,7 @@ describeDevMoonbeam("Author Mapping - Fail to reassociate alice", (context) => {
     //check state
     expect(
       (await context.polkadotApi.query.system.account(baltathar.address)).data.free.toBigInt()
-    ).to.eq(1208925819589017722705800n);
+    ).to.eq(1208925819590977972705800n);
     expect(
       (await context.polkadotApi.query.system.account(baltathar.address)).data.reserved.toBigInt()
     ).to.eq(0n);

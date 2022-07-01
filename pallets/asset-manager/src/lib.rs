@@ -680,7 +680,7 @@ pub mod pallet {
 	impl<T: Config> Pallet<T> {
 		/// The account ID of AssetManager
 		pub fn account_id() -> T::AccountId {
-			PALLET_ID.into_account()
+			PALLET_ID.into_account_truncating()
 		}
 	}
 }

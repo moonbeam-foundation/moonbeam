@@ -83,7 +83,7 @@ fn transfer_self_reserve_works() {
 						.write(U256::from(4000000u32))
 						.build(),
 				)
-				.expect_cost(3000)
+				.expect_cost(2000)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 
@@ -386,7 +386,7 @@ fn transfer_multi_asset_self_reserve_works() {
 						.write(U256::from(4000000u32))
 						.build(),
 				)
-				.expect_cost(3000)
+				.expect_cost(2000)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 
@@ -434,7 +434,7 @@ fn transfer_multi_asset_self_reserve_with_fee_works() {
 						.write(U256::from(4000000u32))
 						.build(),
 				)
-				.expect_cost(3000)
+				.expect_cost(2000)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 
