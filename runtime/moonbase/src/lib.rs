@@ -874,11 +874,51 @@ impl pallet_proxy::Config for Runtime {
 	type AnnouncementDepositFactor = ConstU128<{ currency::deposit(0, 56) }>;
 }
 
+/// A moonbeam migration wrapping the similarly named migration in pallet-randomness
+pub struct RandomnessInitializeVrfInput<T>(sp_std::marker::PhantomData<T>);
+impl<T: pallet_randomness::Config> pallet_migrations::Migration
+	for RandomnessInitializeVrfInput<T>
+{
+	fn friendly_name(&self) -> &str {
+		"MM_Randomness_InitializeVrfInput"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		pallet_randomness::migrations::InitializeVrfInput::<T>::on_runtime_upgrade()
+	}
+
+	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<(), &'static str> {
+		pallet_randomness::migrations::InitializeVrfInput::<T>::pre_upgrade()
+	}
+
+	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self) -> Result<(), &'static str> {
+		pallet_randomness::migrations::InitializeVrfInput::<T>::post_upgrade()
+	}
+}
+
+pub struct TempMigrations<T>(sp_std::marker::PhantomData<T>);
+
+impl<T: pallet_randomness::Config> pallet_migrations::GetMigrations for TempMigrations<T> {
+	fn get_migrations() -> Vec<Box<dyn pallet_migrations::Migration>> {
+		let migration_randomness_initialize_vrf_input =
+			RandomnessInitializeVrfInput::<T>(Default::default());
+		vec![
+			// planned in runtime 1700
+			Box::new(migration_randomness_initialize_vrf_input),
+		]
+	}
+}
+
 impl pallet_migrations::Config for Runtime {
 	type Event = Event;
 	// TODO wire up our correct list of migrations here. Maybe this shouldn't be in
 	// `moonbeam_runtime_common`.
 	type MigrationsList = (
+		TempMigrations<Runtime>,
 		moonbeam_runtime_common::migrations::CommonMigrations<
 			Runtime,
 			CouncilCollective,

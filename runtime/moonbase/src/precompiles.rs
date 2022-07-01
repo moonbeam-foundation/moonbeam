@@ -115,8 +115,8 @@ pub type MoonbasePrecompiles<R> = PrecompileSetBuilder<
 				PrecompileAt<AddressU64<2054>, XcmTransactorWrapper<R>>,
 				PrecompileAt<AddressU64<2055>, AuthorMappingWrapper<R>>,
 				PrecompileAt<AddressU64<2056>, BatchPrecompile<R>, LimitRecursionTo<2>>,
-				PrecompileAt<AddressU64<2057>, RandomnessWrapper<R>>,
-				PrecompileAt<AddressU64<2058>, CallPermitPrecompile<R>>,
+				PrecompileAt<AddressU64<2057>, CallPermitPrecompile<R>>,
+				PrecompileAt<AddressU64<2058>, RandomnessWrapper<R>>,
 			),
 		>,
 		// Prefixed precompile sets (XC20)
