@@ -58,14 +58,14 @@ pub type CurrencyIdOf<Runtime> = <Runtime as orml_xtokens::Config>::CurrencyId;
 #[derive(Debug, PartialEq)]
 pub enum Action {
 	Transfer = "transfer(address,uint256,(uint8,bytes[]),uint64)",
-	TransferWithFee = "transfer_with_fee(address,uint256,uint256,(uint8,bytes[]),uint64)",
-	TransferMultiAsset = "transfer_multiasset((uint8,bytes[]),uint256,(uint8,bytes[]),uint64)",
+	TransferWithFee = "transferWithFee(address,uint256,uint256,(uint8,bytes[]),uint64)",
+	TransferMultiAsset = "transferMultiasset((uint8,bytes[]),uint256,(uint8,bytes[]),uint64)",
 	TransferMultiAssetWithFee =
-		"transfer_multiasset_with_fee((uint8,bytes[]),uint256,uint256,(uint8,bytes[]),uint64)",
+		"transferMultiassetWithFee((uint8,bytes[]),uint256,uint256,(uint8,bytes[]),uint64)",
 	TransferMultiCurrencies =
-		"transfer_multi_currencies((address,uint256)[],uint32,(uint8,bytes[]),uint64)",
+		"transferMultiCurrencies((address,uint256)[],uint32,(uint8,bytes[]),uint64)",
 	TransferMultiAssets =
-		"transfer_multi_assets(((uint8,bytes[]),uint256)[],uint32,(uint8,bytes[]),uint64)",
+		"transferMultiAssets(((uint8,bytes[]),uint256)[],uint32,(uint8,bytes[]),uint64)",
 }
 
 /// A precompile to wrap the functionality from xtokens

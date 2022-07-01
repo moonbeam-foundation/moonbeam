@@ -50,20 +50,20 @@ type DemocracyOf<Runtime> = pallet_democracy::Pallet<Runtime>;
 #[precompile_utils::generate_function_selector]
 #[derive(Debug, PartialEq)]
 enum Action {
-	PublicPropCount = "public_prop_count()",
-	DepositOf = "deposit_of(uint256)",
-	LowestUnbaked = "lowest_unbaked()",
-	OngoingReferendumInfo = "ongoing_referendum_info(uint256)",
-	FinishedReferendumInfo = "finished_referendum_info(uint256)",
+	PublicPropCount = "publicPropCount()",
+	DepositOf = "depositOf(uint256)",
+	LowestUnbaked = "lowestUnbaked()",
+	OngoingReferendumInfo = "ongoingReferendumInfo(uint256)",
+	FinishedReferendumInfo = "finishedReferendumInfo(uint256)",
 	Propose = "propose(bytes32,uint256)",
 	Second = "second(uint256,uint256)",
-	StandardVote = "standard_vote(uint256,bool,uint256,uint256)",
-	RemoveVote = "remove_vote(uint256)",
+	StandardVote = "standardVote(uint256,bool,uint256,uint256)",
+	RemoveVote = "removeVote(uint256)",
 	Delegate = "delegate(address,uint256,uint256)",
-	UnDelegate = "un_delegate()",
+	UnDelegate = "unDelegate()",
 	Unlock = "unlock(address)",
-	NotePreimage = "note_preimage(bytes)",
-	NoteImminentPreimage = "note_imminent_preimage(bytes)",
+	NotePreimage = "notePreimage(bytes)",
+	NoteImminentPreimage = "noteImminentPreimage(bytes)",
 }
 
 /// A precompile to wrap the functionality from pallet democracy.

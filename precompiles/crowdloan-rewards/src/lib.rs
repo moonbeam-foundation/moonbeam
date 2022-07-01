@@ -50,10 +50,10 @@ pub type BalanceOf<Runtime> =
 #[precompile_utils::generate_function_selector]
 #[derive(Debug, PartialEq)]
 pub enum Action {
-	IsContributor = "is_contributor(address)",
-	RewardInfo = "reward_info(address)",
+	IsContributor = "isContributor(address)",
+	RewardInfo = "rewardInfo(address)",
 	Claim = "claim()",
-	UpdateRewardAddress = "update_reward_address(address)",
+	UpdateRewardAddress = "updateRewardAddress(address)",
 }
 
 /// A precompile to wrap the functionality from pallet_crowdloan_rewards.

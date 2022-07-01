@@ -36,11 +36,11 @@ mod tests;
 #[precompile_utils::generate_function_selector]
 #[derive(Debug, PartialEq)]
 pub enum Action {
-	AddAssociation = "add_association(bytes32)",
-	UpdateAssociation = "update_association(bytes32,bytes32)",
-	ClearAssociation = "clear_association(bytes32)",
-	RemoveKeys = "remove_keys()",
-	SetKeys = "set_keys(bytes)",
+	AddAssociation = "addAssociation(bytes32)",
+	UpdateAssociation = "updateAssociation(bytes32,bytes32)",
+	ClearAssociation = "clearAssociation(bytes32)",
+	RemoveKeys = "removeKeys()",
+	SetKeys = "setKeys(bytes)",
 }
 
 /// A precompile to wrap the functionality from pallet author mapping.

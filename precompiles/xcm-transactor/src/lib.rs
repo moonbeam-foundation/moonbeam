@@ -48,17 +48,17 @@ pub type CurrencyIdOf<Runtime> = <Runtime as pallet_xcm_transactor::Config>::Cur
 #[precompile_utils::generate_function_selector]
 #[derive(Debug, PartialEq)]
 pub enum Action {
-	IndexToAccount = "index_to_account(uint16)",
+	IndexToAccount = "indexToAccount(uint16)",
 	// DEPRECATED
-	TransactInfo = "transact_info((uint8,bytes[]))",
+	TransactInfo = "transactInfo((uint8,bytes[]))",
 	TransactThroughDerivativeMultiLocation =
-		"transact_through_derivative_multilocation(uint8,uint16,(uint8,bytes[]),uint64,bytes)",
-	TransactThroughDerivative = "transact_through_derivative(uint8,uint16,address,uint64,bytes)",
-	TransactInfoWithSigned = "transact_info_with_signed((uint8,bytes[]))",
-	FeePerSecond = "fee_per_second((uint8,bytes[]))",
+		"transactThroughDerivativeMultilocation(uint8,uint16,(uint8,bytes[]),uint64,bytes)",
+	TransactThroughDerivative = "transactThroughDerivative(uint8,uint16,address,uint64,bytes)",
+	TransactInfoWithSigned = "transactInfoWithSigned((uint8,bytes[]))",
+	FeePerSecond = "feePerSecond((uint8,bytes[]))",
 	TransactThroughSignedMultiLocation =
-		"transact_through_signed_multilocation((uint8,bytes[]),(uint8,bytes[]),uint64,bytes)",
-	TransactThroughSigned = "transact_through_signed((uint8,bytes[]),address,uint64,bytes)",
+		"transactThroughSignedMultilocation((uint8,bytes[]),(uint8,bytes[]),uint64,bytes)",
+	TransactThroughSigned = "transactThroughSigned((uint8,bytes[]),address,uint64,bytes)",
 }
 
 /// A precompile to wrap the functionality from xcm transactor

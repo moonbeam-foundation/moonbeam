@@ -30,18 +30,14 @@ interface CallPermit {
         bytes32 s
     ) external returns (bytes memory output);
 
-    /**
-     * @dev Returns the current nonce for given owner.
-     * A permit must have this nonce to be consumed, which will
-     * increase the nonce by one.
-     * Selector: 0x7ecebe00
-     */
+    /// @dev Returns the current nonce for given owner.
+    /// A permit must have this nonce to be consumed, which will
+    /// increase the nonce by one.
+    /// Selector: 7ecebe00
     function nonces(address owner) external view returns (uint256);
 
-    /**
-     * @dev Returns the EIP712 domain separator. It is used to avoid replay
-     * attacks accross assets or other similar EIP712 message structures.
-     * Selector: 0x3644e515
-     */
+    /// @dev Returns the EIP712 domain separator. It is used to avoid replay
+    /// attacks accross assets or other similar EIP712 message structures.
+    /// Selector: 3644e515
     function DOMAIN_SEPARATOR() external view returns (bytes32);
 }
