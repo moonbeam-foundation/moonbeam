@@ -189,6 +189,11 @@ pub mod pallet {
 	pub(crate) type RelayTime<T: Config> =
 		StorageValue<_, RelayTimeInfo<T::BlockNumber, u64>, ValueQuery>;
 
+	/// Ensures the mandatory inherent was included in the block
+	#[pallet::storage]
+	#[pallet::getter(fn inherent_included)]
+	pub(crate) type InherentIncluded<T: Config> = StorageValue<_, ()>;
+
 	/// Snapshot of randomness to fulfill all requests that are for the same raw randomness
 	/// Removed once $value.request_count == 0
 	#[pallet::storage]
@@ -275,6 +280,7 @@ pub mod pallet {
 				relay_block_number,
 				relay_epoch_index,
 			});
+			<InherentIncluded<T>>::put(());
 
 			Ok(Pays::No.into())
 		}
@@ -306,21 +312,6 @@ pub mod pallet {
 		}
 	}
 
-	/// Including this in on_finalize ensures the required inherent was included
-	fn set_babe_randomness_results_inherent_included<T: Config>() {
-		let expected_relay_time = RelayTimeInfo {
-			relay_block_number: T::BabeDataGetter::get_relay_block_number(),
-			relay_epoch_index: T::BabeDataGetter::get_relay_epoch_index(),
-		};
-		let actual_relay_time = RelayTime::<T>::get();
-		assert_eq!(
-			expected_relay_time, actual_relay_time,
-			"set_babe_randomness_results_inherent must be included or block is invalid, \
-			expected {:?} != actual {:?}",
-			expected_relay_time, actual_relay_time
-		);
-	}
-
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
 		// Set this block's randomness using the VRF output, verified by the VrfInput put in
@@ -332,7 +323,10 @@ pub mod pallet {
 		// Set next block's VRF input in storage
 		fn on_finalize(_now: BlockNumberFor<T>) {
 			// Panics if set_babe_randomness_results inherent was not included
-			set_babe_randomness_results_inherent_included::<T>();
+			assert!(
+				<InherentIncluded<T>>::take().is_some(),
+				"Mandatory randomness inherent not included; InherentIncluded storage item is empty"
+			);
 
 			// Necessary because required data is killed in `ParachainSystem::on_initialize`
 			// which may happen before the VRF output is verified in the next block on_initialize

@@ -39,10 +39,10 @@ fn test_solidity_interface_has_all_implemented_selectors() {
 	assert_eq!(Action::RequestBabeRandomnessCurrentBlock as u32, 0xc4921133);
 	assert!(selectors.contains(&(Action::RequestBabeRandomnessCurrentBlock as u32)));
 
-	assert_eq!(Action::RequestBabeRandomnessOneEpochAgo as u32, 0x67ea837e);
+	assert_eq!(Action::RequestBabeRandomnessOneEpochAgo as u32, 0xbbc9e95f);
 	assert!(selectors.contains(&(Action::RequestBabeRandomnessOneEpochAgo as u32)));
 
-	assert_eq!(Action::RequestBabeRandomnessTwoEpochsAgo as u32, 0xd6b423d9);
+	assert_eq!(Action::RequestBabeRandomnessTwoEpochsAgo as u32, 0x25b14a0b);
 	assert!(selectors.contains(&(Action::RequestBabeRandomnessTwoEpochsAgo as u32)));
 
 	assert_eq!(Action::RequestLocalRandomness as u32, 0xb4a11763);
