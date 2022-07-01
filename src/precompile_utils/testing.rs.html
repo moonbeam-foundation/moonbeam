@@ -382,17 +382,6 @@
 <span id="377">377</span>
 <span id="378">378</span>
 <span id="379">379</span>
-<span id="380">380</span>
-<span id="381">381</span>
-<span id="382">382</span>
-<span id="383">383</span>
-<span id="384">384</span>
-<span id="385">385</span>
-<span id="386">386</span>
-<span id="387">387</span>
-<span id="388">388</span>
-<span id="389">389</span>
-<span id="390">390</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -409,12 +398,15 @@
 <span class="comment">// You should have received a copy of the GNU General Public License</span>
 <span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 
-<span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">core::assert_matches::assert_matches</span>;
-<span class="kw">use</span> <span class="ident">fp_evm</span>::{
-	<span class="ident">ExitReason</span>, <span class="ident">ExitSucceed</span>, <span class="ident">PrecompileOutput</span>, <span class="ident">PrecompileResult</span>, <span class="ident">PrecompileSet</span>, <span class="ident">Transfer</span>,
+<span class="kw">use</span> {
+	<span class="ident">core::assert_matches::assert_matches</span>,
+	<span class="ident">fp_evm</span>::{
+		<span class="ident">Context</span>, <span class="ident">ExitError</span>, <span class="ident">ExitReason</span>, <span class="ident">ExitSucceed</span>, <span class="ident">Log</span>, <span class="ident">PrecompileFailure</span>, <span class="ident">PrecompileHandle</span>,
+		<span class="ident">PrecompileOutput</span>, <span class="ident">PrecompileResult</span>, <span class="ident">PrecompileSet</span>, <span class="ident">Transfer</span>,
+	},
+	<span class="ident">sp_core</span>::{<span class="ident">H160</span>, <span class="ident">H256</span>, <span class="ident">U256</span>},
+	<span class="ident">sp_std::boxed::Box</span>,
 };
-<span class="kw">use</span> <span class="ident">sp_std::boxed::Box</span>;
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Subcall</span> {
 	<span class="kw">pub</span> <span class="ident">address</span>: <span class="ident">H160</span>,
@@ -463,20 +455,6 @@
 			<span class="ident">is_static</span>: <span class="bool-val">false</span>,
 		}
 	}
-
-	<span class="comment">// pub fn with_gas_limit(gas_limit: u64) -&gt; Self {</span>
-	<span class="comment">// 	Self {</span>
-	<span class="comment">// 		gas_limit,</span>
-	<span class="comment">// 		gas_used: 0,</span>
-	<span class="comment">// 		logs: vec![],</span>
-	<span class="comment">// 		subcall_handle: None,</span>
-	<span class="comment">// 	}</span>
-	<span class="comment">// }</span>
-
-	<span class="comment">// pub fn with_subcall_handle(mut self, handle: Option&lt;SubcallHandle&gt;) -&gt; Self {</span>
-	<span class="comment">// 	self.subcall_handle = handle;</span>
-	<span class="comment">// 	self</span>
-	<span class="comment">// }</span>
 }
 
 <span class="kw">impl</span> <span class="ident">PrecompileHandle</span> <span class="kw">for</span> <span class="ident">MockHandle</span> {
@@ -492,7 +470,7 @@
 		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
 	) -&gt; (<span class="ident">ExitReason</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) {
 		<span class="kw">if</span> <span class="self">self</span>
-			.<span class="ident">record_cost</span>(<span class="ident"><span class="kw">super</span>::call_cost</span>(
+			.<span class="ident">record_cost</span>(<span class="ident"><span class="kw">crate</span>::costs::call_cost</span>(
 				<span class="ident">context</span>.<span class="ident">apparent_value</span>,
 				<span class="kw-2">&amp;</span><span class="ident">evm::Config::london</span>(),
 			))

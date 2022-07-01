@@ -906,9 +906,6 @@
 <span id="901">901</span>
 <span id="902">902</span>
 <span id="903">903</span>
-<span id="904">904</span>
-<span id="905">905</span>
-<span id="906">906</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -939,10 +936,7 @@
 <span class="kw">use</span> <span class="ident">frame_support::dispatch</span>::{<span class="ident">Dispatchable</span>, <span class="ident">GetDispatchInfo</span>, <span class="ident">PostDispatchInfo</span>};
 <span class="kw">use</span> <span class="ident">frame_support::traits</span>::{<span class="ident">Currency</span>, <span class="ident">Get</span>};
 <span class="kw">use</span> <span class="ident">pallet_evm::AddressMapping</span>;
-<span class="kw">use</span> <span class="ident">precompile_utils</span>::{
-	<span class="ident">revert</span>, <span class="ident">succeed</span>, <span class="ident">Address</span>, <span class="ident">EvmData</span>, <span class="ident">EvmDataReader</span>, <span class="ident">EvmDataWriter</span>, <span class="ident">EvmResult</span>, <span class="ident">FunctionModifier</span>,
-	<span class="ident">PrecompileHandleExt</span>, <span class="ident">RuntimeHelper</span>,
-};
+<span class="kw">use</span> <span class="ident">precompile_utils::prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">sp_core::H160</span>;
 <span class="kw">use</span> <span class="ident">sp_std</span>::{<span class="ident">convert::TryInto</span>, <span class="ident">fmt::Debug</span>, <span class="ident">marker::PhantomData</span>, <span class="ident">vec::Vec</span>};
 
@@ -950,7 +944,7 @@
 	<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::AccountId</span>,
 <span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::Balance</span>;
 
-<span class="attribute">#[<span class="ident">precompile_utils::generate_function_selector</span>]</span>
+<span class="attribute">#[<span class="ident">generate_function_selector</span>]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">enum</span> <span class="ident">Action</span> {
 	<span class="comment">// DEPRECATED</span>

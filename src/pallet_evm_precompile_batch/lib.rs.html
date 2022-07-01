@@ -251,7 +251,6 @@
 <span id="246">246</span>
 <span id="247">247</span>
 <span id="248">248</span>
-<span id="249">249</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -276,10 +275,7 @@
 <span class="kw">use</span> <span class="ident">fp_evm</span>::{
 	<span class="ident">Context</span>, <span class="ident">Log</span>, <span class="ident">Precompile</span>, <span class="ident">PrecompileFailure</span>, <span class="ident">PrecompileHandle</span>, <span class="ident">PrecompileOutput</span>, <span class="ident">Transfer</span>,
 };
-<span class="kw">use</span> <span class="ident">precompile_utils</span>::{
-	<span class="ident">call_cost</span>, <span class="ident">keccak256</span>, <span class="ident">revert</span>, <span class="ident">succeed</span>, <span class="ident">Address</span>, <span class="ident">Bytes</span>, <span class="ident">EvmDataWriter</span>, <span class="ident">EvmResult</span>,
-	<span class="ident">FunctionModifier</span>, <span class="ident">LogExt</span>, <span class="ident">LogsBuilder</span>, <span class="ident">PrecompileHandleExt</span>,
-};
+<span class="kw">use</span> <span class="ident">precompile_utils</span>::{<span class="ident">costs::call_cost</span>, <span class="ident">prelude</span>::<span class="kw-2">*</span>};
 <span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">H160</span>, <span class="ident">U256</span>};
 <span class="kw">use</span> <span class="ident">sp_std</span>::{<span class="ident">iter::repeat</span>, <span class="ident">marker::PhantomData</span>, <span class="ident">vec</span>, <span class="ident">vec::Vec</span>};
 
@@ -288,7 +284,7 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
-<span class="attribute">#[<span class="ident">precompile_utils::generate_function_selector</span>]</span>
+<span class="attribute">#[<span class="ident">generate_function_selector</span>]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Action</span> {
 	<span class="ident">BatchSome</span> <span class="op">=</span> <span class="string">&quot;batchSome(address[],uint256[],bytes[],uint64[])&quot;</span>,
@@ -300,14 +296,16 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LOG_SUBCALL_FAILED</span>: [<span class="ident">u8</span>; <span class="number">32</span>] <span class="op">=</span> <span class="macro">keccak256!</span>(<span class="string">&quot;SubcallFailed(uint256)&quot;</span>);
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">log_subcall_succeeded</span>(<span class="ident">address</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; <span class="ident">Log</span> {
-	<span class="ident">LogsBuilder::new</span>(<span class="ident">address</span>.<span class="ident">into</span>()).<span class="ident">log1</span>(
+	<span class="ident">log1</span>(
+		<span class="ident">address</span>,
 		<span class="ident">LOG_SUBCALL_SUCCEEDED</span>,
 		<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">U256::from</span>(<span class="ident">index</span>)).<span class="ident">build</span>(),
 	)
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">log_subcall_failed</span>(<span class="ident">address</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; <span class="ident">Log</span> {
-	<span class="ident">LogsBuilder::new</span>(<span class="ident">address</span>.<span class="ident">into</span>()).<span class="ident">log1</span>(
+	<span class="ident">log1</span>(
+		<span class="ident">address</span>,
 		<span class="ident">LOG_SUBCALL_FAILED</span>,
 		<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">U256::from</span>(<span class="ident">index</span>)).<span class="ident">build</span>(),
 	)

@@ -558,9 +558,6 @@
 <span id="553">553</span>
 <span id="554">554</span>
 <span id="555">555</span>
-<span id="556">556</span>
-<span id="557">557</span>
-<span id="558">558</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -595,10 +592,7 @@
 	<span class="ident">Instance2</span>, <span class="ident">Instance3</span>, <span class="ident">Instance4</span>, <span class="ident">Instance5</span>, <span class="ident">Instance6</span>, <span class="ident">Instance7</span>, <span class="ident">Instance8</span>, <span class="ident">Instance9</span>,
 };
 <span class="kw">use</span> <span class="ident">pallet_evm::AddressMapping</span>;
-<span class="kw">use</span> <span class="ident">precompile_utils</span>::{
-	<span class="ident">keccak256</span>, <span class="ident">revert</span>, <span class="ident">succeed</span>, <span class="ident">Address</span>, <span class="ident">Bytes</span>, <span class="ident">EvmDataReader</span>, <span class="ident">EvmDataWriter</span>, <span class="ident">EvmResult</span>,
-	<span class="ident">FunctionModifier</span>, <span class="ident">LogExt</span>, <span class="ident">LogsBuilder</span>, <span class="ident">PrecompileHandleExt</span>, <span class="ident">RuntimeHelper</span>,
-};
+<span class="kw">use</span> <span class="ident">precompile_utils::prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">H160</span>, <span class="ident">U256</span>};
 <span class="kw">use</span> <span class="ident">sp_std</span>::{
 	<span class="ident">convert</span>::{<span class="ident">TryFrom</span>, <span class="ident">TryInto</span>},
@@ -720,7 +714,7 @@
 	<span class="ident">ValueQuery</span>,
 <span class="op">&gt;</span>;
 
-<span class="attribute">#[<span class="ident">precompile_utils::generate_function_selector</span>]</span>
+<span class="attribute">#[<span class="ident">generate_function_selector</span>]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Action</span> {
 	<span class="ident">TotalSupply</span> <span class="op">=</span> <span class="string">&quot;totalSupply()&quot;</span>,
@@ -901,14 +895,14 @@
 			<span class="ident">ApprovesStorage</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="ident">caller</span>, <span class="ident">spender</span>, <span class="ident">amount</span>);
 		}
 
-		<span class="ident">LogsBuilder::new</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">address</span>)
-			.<span class="ident">log3</span>(
-				<span class="ident">SELECTOR_LOG_APPROVAL</span>,
-				<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>,
-				<span class="ident">spender</span>,
-				<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">amount</span>).<span class="ident">build</span>(),
-			)
-			.<span class="ident">record</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>;
+		<span class="ident">log3</span>(
+			<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">address</span>,
+			<span class="ident">SELECTOR_LOG_APPROVAL</span>,
+			<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>,
+			<span class="ident">spender</span>,
+			<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">amount</span>).<span class="ident">build</span>(),
+		)
+		.<span class="ident">record</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>;
 
 		<span class="comment">// Build output.</span>
 		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>(<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="bool-val">true</span>).<span class="ident">build</span>()))
@@ -941,14 +935,14 @@
 			)<span class="question-mark">?</span>;
 		}
 
-		<span class="ident">LogsBuilder::new</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">address</span>)
-			.<span class="ident">log3</span>(
-				<span class="ident">SELECTOR_LOG_TRANSFER</span>,
-				<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>,
-				<span class="ident">to</span>,
-				<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">amount</span>).<span class="ident">build</span>(),
-			)
-			.<span class="ident">record</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>;
+		<span class="ident">log3</span>(
+			<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">address</span>,
+			<span class="ident">SELECTOR_LOG_TRANSFER</span>,
+			<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>,
+			<span class="ident">to</span>,
+			<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">amount</span>).<span class="ident">build</span>(),
+		)
+		.<span class="ident">record</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>;
 
 		<span class="comment">// Build output.</span>
 		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>(<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="bool-val">true</span>).<span class="ident">build</span>()))
@@ -1003,14 +997,14 @@
 			)<span class="question-mark">?</span>;
 		}
 
-		<span class="ident">LogsBuilder::new</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">address</span>)
-			.<span class="ident">log3</span>(
-				<span class="ident">SELECTOR_LOG_TRANSFER</span>,
-				<span class="ident">from</span>,
-				<span class="ident">to</span>,
-				<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">amount</span>).<span class="ident">build</span>(),
-			)
-			.<span class="ident">record</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>;
+		<span class="ident">log3</span>(
+			<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">address</span>,
+			<span class="ident">SELECTOR_LOG_TRANSFER</span>,
+			<span class="ident">from</span>,
+			<span class="ident">to</span>,
+			<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">amount</span>).<span class="ident">build</span>(),
+		)
+		.<span class="ident">record</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>;
 
 		<span class="comment">// Build output.</span>
 		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>(<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="bool-val">true</span>).<span class="ident">build</span>()))
@@ -1068,15 +1062,15 @@
 			},
 		)<span class="question-mark">?</span>;
 
-		<span class="ident">LogsBuilder::new</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">address</span>)
-			.<span class="ident">log2</span>(
-				<span class="ident">SELECTOR_LOG_DEPOSIT</span>,
-				<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>,
-				<span class="ident">EvmDataWriter::new</span>()
-					.<span class="ident">write</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">apparent_value</span>)
-					.<span class="ident">build</span>(),
-			)
-			.<span class="ident">record</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>;
+		<span class="ident">log2</span>(
+			<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">address</span>,
+			<span class="ident">SELECTOR_LOG_DEPOSIT</span>,
+			<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>,
+			<span class="ident">EvmDataWriter::new</span>()
+				.<span class="ident">write</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">apparent_value</span>)
+				.<span class="ident">build</span>(),
+		)
+		.<span class="ident">record</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>([]))
 	}
@@ -1102,13 +1096,13 @@
 			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">revert</span>(<span class="string">&quot;trying to withdraw more than owned&quot;</span>));
 		}
 
-		<span class="ident">LogsBuilder::new</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">address</span>)
-			.<span class="ident">log2</span>(
-				<span class="ident">SELECTOR_LOG_WITHDRAWAL</span>,
-				<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>,
-				<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">withdrawn_amount</span>).<span class="ident">build</span>(),
-			)
-			.<span class="ident">record</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>;
+		<span class="ident">log2</span>(
+			<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">address</span>,
+			<span class="ident">SELECTOR_LOG_WITHDRAWAL</span>,
+			<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>,
+			<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">withdrawn_amount</span>).<span class="ident">build</span>(),
+		)
+		.<span class="ident">record</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>([]))
 	}

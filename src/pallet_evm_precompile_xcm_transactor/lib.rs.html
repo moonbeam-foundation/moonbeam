@@ -364,9 +364,6 @@
 <span id="359">359</span>
 <span id="360">360</span>
 <span id="361">361</span>
-<span id="362">362</span>
-<span id="363">363</span>
-<span id="364">364</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -392,10 +389,7 @@
 <span class="kw">use</span> <span class="ident">frame_support::dispatch</span>::{<span class="ident">Dispatchable</span>, <span class="ident">GetDispatchInfo</span>, <span class="ident">PostDispatchInfo</span>};
 <span class="kw">use</span> <span class="ident">pallet_evm</span>::{<span class="ident">AddressMapping</span>, <span class="ident">PrecompileOutput</span>};
 <span class="kw">use</span> <span class="ident">pallet_xcm_transactor::RemoteTransactInfoWithMaxWeight</span>;
-<span class="kw">use</span> <span class="ident">precompile_utils</span>::{
-	<span class="ident">revert</span>, <span class="ident">succeed</span>, <span class="ident">Address</span>, <span class="ident">Bytes</span>, <span class="ident">EvmDataWriter</span>, <span class="ident">EvmResult</span>, <span class="ident">FunctionModifier</span>,
-	<span class="ident">PrecompileHandleExt</span>, <span class="ident">RuntimeHelper</span>,
-};
+<span class="kw">use</span> <span class="ident">precompile_utils::prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">sp_core::H160</span>;
 <span class="kw">use</span> <span class="ident">sp_std</span>::{
 	<span class="ident">boxed::Box</span>,
@@ -414,7 +408,7 @@
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">TransactorOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_xcm_transactor::Config</span><span class="op">&gt;</span><span class="ident">::Transactor</span>;
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">CurrencyIdOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_xcm_transactor::Config</span><span class="op">&gt;</span><span class="ident">::CurrencyId</span>;
 
-<span class="attribute">#[<span class="ident">precompile_utils::generate_function_selector</span>]</span>
+<span class="attribute">#[<span class="ident">generate_function_selector</span>]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Action</span> {
 	<span class="ident">IndexToAccount</span> <span class="op">=</span> <span class="string">&quot;index_to_account(uint16)&quot;</span>,

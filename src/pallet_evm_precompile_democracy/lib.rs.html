@@ -433,9 +433,6 @@
 <span id="428">428</span>
 <span id="429">429</span>
 <span id="430">430</span>
-<span id="431">431</span>
-<span id="432">432</span>
-<span id="433">433</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -462,10 +459,7 @@
 <span class="kw">use</span> <span class="ident">frame_support::traits::Currency</span>;
 <span class="kw">use</span> <span class="ident">pallet_democracy</span>::{<span class="ident">AccountVote</span>, <span class="ident">Call</span> <span class="kw">as</span> <span class="ident">DemocracyCall</span>, <span class="ident">Vote</span>};
 <span class="kw">use</span> <span class="ident">pallet_evm</span>::{<span class="ident">AddressMapping</span>, <span class="ident">Precompile</span>};
-<span class="kw">use</span> <span class="ident">precompile_utils</span>::{
-	<span class="ident">revert</span>, <span class="ident">succeed</span>, <span class="ident">Address</span>, <span class="ident">Bytes</span>, <span class="ident">EvmData</span>, <span class="ident">EvmDataWriter</span>, <span class="ident">EvmResult</span>, <span class="ident">FunctionModifier</span>,
-	<span class="ident">PrecompileHandleExt</span>, <span class="ident">RuntimeHelper</span>,
-};
+<span class="kw">use</span> <span class="ident">precompile_utils::prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">H160</span>, <span class="ident">H256</span>, <span class="ident">U256</span>};
 <span class="kw">use</span> <span class="ident">sp_std</span>::{
 	<span class="ident">convert</span>::{<span class="ident">TryFrom</span>, <span class="ident">TryInto</span>},
@@ -485,7 +479,7 @@
 
 <span class="kw">type</span> <span class="ident">DemocracyOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">pallet_democracy::Pallet</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
 
-<span class="attribute">#[<span class="ident">precompile_utils::generate_function_selector</span>]</span>
+<span class="attribute">#[<span class="ident">generate_function_selector</span>]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">enum</span> <span class="ident">Action</span> {
 	<span class="ident">PublicPropCount</span> <span class="op">=</span> <span class="string">&quot;public_prop_count()&quot;</span>,

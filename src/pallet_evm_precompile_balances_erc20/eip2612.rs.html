@@ -331,14 +331,14 @@
 			<span class="ident">ApprovesStorage</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="ident">owner</span>, <span class="ident">spender</span>, <span class="ident">amount</span>);
 		}
 
-		<span class="ident">LogsBuilder::new</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">address</span>)
-			.<span class="ident">log3</span>(
-				<span class="ident">SELECTOR_LOG_APPROVAL</span>,
-				<span class="ident">owner</span>,
-				<span class="ident">spender</span>,
-				<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">value</span>).<span class="ident">build</span>(),
-			)
-			.<span class="ident">record</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>;
+		<span class="ident">log3</span>(
+			<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">address</span>,
+			<span class="ident">SELECTOR_LOG_APPROVAL</span>,
+			<span class="ident">owner</span>,
+			<span class="ident">spender</span>,
+			<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">value</span>).<span class="ident">build</span>(),
+		)
+		.<span class="ident">record</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>([]))
 	}

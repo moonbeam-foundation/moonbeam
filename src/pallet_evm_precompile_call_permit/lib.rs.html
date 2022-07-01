@@ -279,9 +279,6 @@
 <span id="274">274</span>
 <span id="275">275</span>
 <span id="276">276</span>
-<span id="277">277</span>
-<span id="278">278</span>
-<span id="279">279</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is 	part of Moonbeam.</span>
 
@@ -311,10 +308,7 @@
 	<span class="ident">traits</span>::{<span class="ident">Get</span>, <span class="ident">StorageInstance</span>},
 	<span class="ident">Blake2_128Concat</span>,
 };
-<span class="kw">use</span> <span class="ident">precompile_utils</span>::{
-	<span class="ident">call_cost</span>, <span class="ident">keccak256</span>, <span class="ident">revert</span>, <span class="ident">succeed</span>, <span class="ident">Address</span>, <span class="ident">Bytes</span>, <span class="ident">EvmDataWriter</span>, <span class="ident">EvmResult</span>,
-	<span class="ident">FunctionModifier</span>, <span class="ident">PrecompileHandleExt</span>, <span class="ident">RuntimeHelper</span>,
-};
+<span class="kw">use</span> <span class="ident">precompile_utils</span>::{<span class="ident">costs::call_cost</span>, <span class="ident">prelude</span>::<span class="kw-2">*</span>};
 <span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">H160</span>, <span class="ident">H256</span>, <span class="ident">U256</span>};
 <span class="kw">use</span> <span class="ident">sp_io::hashing::keccak_256</span>;
 <span class="kw">use</span> <span class="ident">sp_std::vec::Vec</span>;
@@ -357,7 +351,7 @@
 	<span class="string">&quot;EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)&quot;</span>
 );
 
-<span class="attribute">#[<span class="ident">precompile_utils::generate_function_selector</span>]</span>
+<span class="attribute">#[<span class="ident">generate_function_selector</span>]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Action</span> {
 	<span class="ident">Dispatch</span> <span class="op">=</span> <span class="string">&quot;dispatch(address,address,uint256,bytes,uint64,uint256,uint8,bytes32,bytes32)&quot;</span>,
