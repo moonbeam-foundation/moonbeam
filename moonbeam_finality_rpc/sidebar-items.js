@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["MoonbeamFinality",""]],"trait":[["MoonbeamFinalityApi","An RPC endpoint to check for finality of blocks and transactions in Moonbeam"]]});
+initSidebarItems({"struct":[["MoonbeamFinality",""]],"trait":[["MoonbeamFinalityApiServer","Server trait implementation for the `MoonbeamFinalityApi` RPC API."]]});

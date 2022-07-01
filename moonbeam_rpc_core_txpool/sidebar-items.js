@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Summary",""],["Transaction",""],["TxPoolResult",""]],"trait":[["GetT",""],["TxPool",""],["TxPoolServer",""]],"type":[["TransactionMap",""]]});
+initSidebarItems({"struct":[["Summary",""],["Transaction",""],["TxPoolResult",""]],"trait":[["GetT",""],["TxPoolServer","Server trait implementation for the `TxPool` RPC API."]],"type":[["TransactionMap",""]]});

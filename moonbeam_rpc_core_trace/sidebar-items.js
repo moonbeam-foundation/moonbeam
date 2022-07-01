@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["FilterRequest",""]],"trait":[["Trace",""],["TraceServer",""]]});
+initSidebarItems({"struct":[["FilterRequest",""]],"trait":[["TraceServer","Server trait implementation for the `Trace` RPC API."]]});
