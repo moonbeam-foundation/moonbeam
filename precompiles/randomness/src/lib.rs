@@ -25,10 +25,7 @@ use fp_evm::{
 	Context, ExitReason, ExitSucceed, Log, Precompile, PrecompileHandle, PrecompileOutput,
 };
 use pallet_randomness::{BalanceOf, GetBabeData};
-use precompile_utils::{
-	call_cost, error, keccak256, revert, succeed, Address, EvmDataWriter, EvmResult,
-	FunctionModifier, LogExt, LogsBuilder, PrecompileHandleExt, RuntimeHelper,
-};
+use precompile_utils::{costs::call_cost, prelude::*};
 use sp_core::{H160, H256, U256};
 use sp_std::{fmt::Debug, marker::PhantomData};
 
@@ -37,7 +34,7 @@ use sp_std::{fmt::Debug, marker::PhantomData};
 #[cfg(test)]
 mod tests;
 
-#[precompile_utils::generate_function_selector]
+#[generate_function_selector]
 #[derive(Debug, PartialEq)]
 pub enum Action {
 	RelayBlockNumber = "relayBlockNumber()",
@@ -63,11 +60,11 @@ pub const LOG_SUBCALL_SUCCEEDED: [u8; 32] = keccak256!("SubcallSucceeded");
 pub const LOG_SUBCALL_FAILED: [u8; 32] = keccak256!("SubcallFailed");
 
 pub fn log_subcall_succeeded(address: impl Into<H160>) -> Log {
-	LogsBuilder::new(address.into()).log0(LOG_SUBCALL_SUCCEEDED)
+	log0(address, LOG_SUBCALL_SUCCEEDED)
 }
 
 pub fn log_subcall_failed(address: impl Into<H160>) -> Log {
-	LogsBuilder::new(address.into()).log0(LOG_SUBCALL_FAILED)
+	log0(address, LOG_SUBCALL_FAILED)
 }
 
 /// Reverts if fees and gas_limit are not sufficient to make subcall and cleanup
