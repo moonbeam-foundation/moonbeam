@@ -60,14 +60,14 @@ interface Randomness {
     /// @param fee Amount to set aside to pay for the subcall
     /// @param gas_limit Gas limit for the subcall that provides randomness
     /// @param salt Salt to be mixed with raw randomness to get output
-    /// @param relay_block_number Parachain block for which randomness is requested
+    /// @param block_number Parachain block for which randomness is requested
     /// Selector: b4a11763
     function requestLocalRandomness(
         address refund_address,
         uint256 fee,
         uint64 gas_limit,
         bytes32 salt,
-        uint64 relay_block_number
+        uint64 block_number
     ) external;
 
     /// @param request_id Request to be fulfilled by caller
