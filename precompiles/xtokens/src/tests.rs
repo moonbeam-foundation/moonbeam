@@ -20,7 +20,7 @@ use crate::mock::{
 };
 use crate::{Action, Currency, EvmMultiAsset};
 use orml_xtokens::Event as XtokensEvent;
-use precompile_utils::{testing::*, Address, EvmDataWriter};
+use precompile_utils::{prelude::*, testing::*};
 use sp_core::U256;
 use sp_runtime::traits::Convert;
 use xcm::latest::{

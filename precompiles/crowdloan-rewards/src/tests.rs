@@ -23,7 +23,7 @@ use crate::Action;
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_crowdloan_rewards::{Call as CrowdloanCall, Event as CrowdloanEvent};
 use pallet_evm::Call as EvmCall;
-use precompile_utils::{testing::*, Address, EvmDataWriter};
+use precompile_utils::{prelude::*, testing::*};
 use sha3::{Digest, Keccak256};
 use sp_core::{H160, U256};
 

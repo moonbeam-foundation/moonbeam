@@ -6,6 +6,7 @@ export const MOONBEAM_LOG = process.env.MOONBEAM_LOG || "info";
 
 export const BINARY_PATH = process.env.BINARY_PATH || `../target/release/moonbeam`;
 export const RELAY_BINARY_PATH = process.env.RELAY_BINARY_PATH || `../target/release/polkadot`;
+export const RELAY_LOG = process.env.RELAY_LOG;
 
 // Is undefined by default as the path is dependent of the runtime.
 export const OVERRIDE_RUNTIME_PATH = process.env["OVERRIDE_RUNTIME_PATH"] || undefined;

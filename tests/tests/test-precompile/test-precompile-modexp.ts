@@ -1,19 +1,24 @@
 import "@moonbeam-network/api-augment";
 
-import { expect } from "chai";
+import { expectEVMResult } from "../../util/eth-transactions";
 
-import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
-import { createContract } from "../../util/transactions";
+import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+import { createContract, createContractExecution } from "../../util/transactions";
 
-describeDevMoonbeamAllEthTxTypes("Precompiles - ModExp", (context) => {
+describeDevMoonbeam("Precompiles - modexp", (context) => {
   it("should be accessible from a smart contract", async function () {
-    // See also the ModExp unit tests at
-    // github.com/paritytech/frontier/blob/378221a4/frame/evm/precompile/modexp/src/lib.rs#L101
-    const { rawTx } = await createContract(context, "ModularCheck");
-    const { result } = await context.createBlock(rawTx);
+    const { contract, rawTx } = await createContract(context, "HasherChecker");
+    await context.createBlock(rawTx);
 
-    // The contract should deploy successfully and the receipt should show success.
-    const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
-    expect(receipt.status).to.be.true;
+    // Execute the contract modexp call
+    const { result } = await context.createBlock(
+      createContractExecution(context, {
+        contract,
+        contractCall: contract.methods.modExpChecker(),
+      })
+    );
+
+    // Verify the result
+    expectEVMResult(result.events, "Succeed");
   });
 });

@@ -447,6 +447,7 @@ async fn start_node_impl<RuntimeApi, Executor, BIC>(
 	polkadot_config: Configuration,
 	id: polkadot_primitives::v2::Id,
 	rpc_config: RpcConfig,
+	hwbench: Option<sc_sysinfo::HwBench>,
 	build_consensus: BIC,
 ) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi, Executor>>)>
 where
@@ -635,6 +636,19 @@ where
 		telemetry: telemetry.as_mut(),
 	})?;
 
+	if let Some(hwbench) = hwbench {
+		sc_sysinfo::print_hwbench(&hwbench);
+
+		if let Some(ref mut telemetry) = telemetry {
+			let telemetry_handle = telemetry.handle();
+			task_manager.spawn_handle().spawn(
+				"telemetry_hwbench",
+				None,
+				sc_sysinfo::initialize_hwbench_telemetry(telemetry_handle, hwbench),
+			);
+		}
+	}
+
 	let announce_block = {
 		let network = network.clone();
 		Arc::new(move |hash, data| network.announce_block(hash, data))
@@ -704,6 +718,7 @@ pub async fn start_node<RuntimeApi, Executor>(
 	polkadot_config: Configuration,
 	id: polkadot_primitives::v2::Id,
 	rpc_config: RpcConfig,
+	hwbench: Option<sc_sysinfo::HwBench>,
 ) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi, Executor>>)>
 where
 	RuntimeApi:
@@ -717,6 +732,7 @@ where
 		polkadot_config,
 		id,
 		rpc_config,
+		hwbench,
 		|
 			client,
 			prometheus_registry,
@@ -784,6 +800,7 @@ pub fn new_dev<RuntimeApi, Executor>(
 	_author_id: Option<nimbus_primitives::NimbusId>,
 	sealing: cli_opt::Sealing,
 	rpc_config: RpcConfig,
+	hwbench: Option<sc_sysinfo::HwBench>,
 ) -> Result<TaskManager, ServiceError>
 where
 	RuntimeApi:
@@ -809,7 +826,7 @@ where
 			(
 				block_import,
 				filter_pool,
-				telemetry,
+				mut telemetry,
 				_telemetry_worker_handle,
 				frontier_backend,
 				fee_history_cache,
@@ -1048,7 +1065,20 @@ where
 		telemetry: None,
 	})?;
 
-	println!("Development Service Ready");
+	if let Some(hwbench) = hwbench {
+		sc_sysinfo::print_hwbench(&hwbench);
+
+		if let Some(ref mut telemetry) = telemetry {
+			let telemetry_handle = telemetry.handle();
+			task_manager.spawn_handle().spawn(
+				"telemetry_hwbench",
+				None,
+				sc_sysinfo::initialize_hwbench_telemetry(telemetry_handle, hwbench),
+			);
+		}
+	}
+
+	log::info!("Development Service Ready");
 
 	network_starter.start_network();
 	Ok(task_manager)

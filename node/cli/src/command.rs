@@ -732,6 +732,15 @@ pub fn run() -> Result<()> {
 		None => {
 			let runner = cli.create_runner(&(*cli.run).normalize())?;
 			runner.run_node_until_exit(|config| async move {
+				let hwbench = if !cli.run.no_hardware_benchmarks {
+					config.database.path().map(|database_path| {
+						let _ = std::fs::create_dir_all(&database_path);
+						sc_sysinfo::gather_hwbench(Some(database_path))
+					})
+				} else {
+					None
+				};
+
 				let extension = chain_spec::Extensions::try_get(&*config.chain_spec);
 				let para_id = extension.map(|e| e.para_id);
 				let id = ParaId::from(cli.run.parachain_id.clone().or(para_id).unwrap_or(1000));
@@ -773,19 +782,19 @@ pub fn run() -> Result<()> {
 						spec if spec.is_moonriver() => service::new_dev::<
 							service::moonriver_runtime::RuntimeApi,
 							service::MoonriverExecutor,
-						>(config, author_id, cli.run.sealing, rpc_config)
+						>(config, author_id, cli.run.sealing, rpc_config, hwbench)
 						.map_err(Into::into),
 						#[cfg(feature = "moonbeam-native")]
 						spec if spec.is_moonbeam() => service::new_dev::<
 							service::moonbeam_runtime::RuntimeApi,
 							service::MoonbeamExecutor,
-						>(config, author_id, cli.run.sealing, rpc_config)
+						>(config, author_id, cli.run.sealing, rpc_config, hwbench)
 						.map_err(Into::into),
 						#[cfg(feature = "moonbase-native")]
 						_ => service::new_dev::<
 							service::moonbase_runtime::RuntimeApi,
 							service::MoonbaseExecutor,
-						>(config, author_id, cli.run.sealing, rpc_config)
+						>(config, author_id, cli.run.sealing, rpc_config, hwbench)
 						.map_err(Into::into),
 						#[cfg(not(feature = "moonbase-native"))]
 						_ => panic!("invalid chain spec"),
@@ -842,7 +851,7 @@ pub fn run() -> Result<()> {
 					spec if spec.is_moonriver() => service::start_node::<
 						service::moonriver_runtime::RuntimeApi,
 						service::MoonriverExecutor,
-					>(config, polkadot_config, id, rpc_config)
+					>(config, polkadot_config, id, rpc_config, hwbench)
 					.await
 					.map(|r| r.0)
 					.map_err(Into::into),
@@ -850,7 +859,7 @@ pub fn run() -> Result<()> {
 					spec if spec.is_moonbeam() => service::start_node::<
 						service::moonbeam_runtime::RuntimeApi,
 						service::MoonbeamExecutor,
-					>(config, polkadot_config, id, rpc_config)
+					>(config, polkadot_config, id, rpc_config, hwbench)
 					.await
 					.map(|r| r.0)
 					.map_err(Into::into),
@@ -858,7 +867,7 @@ pub fn run() -> Result<()> {
 					_ => service::start_node::<
 						service::moonbase_runtime::RuntimeApi,
 						service::MoonbaseExecutor,
-					>(config, polkadot_config, id, rpc_config)
+					>(config, polkadot_config, id, rpc_config, hwbench)
 					.await
 					.map(|r| r.0)
 					.map_err(Into::into),

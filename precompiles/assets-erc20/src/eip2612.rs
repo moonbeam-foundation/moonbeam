@@ -232,15 +232,14 @@ where
 			asset_id, handle, owner, spender, value,
 		)?;
 
-		let log_builder = LogsBuilder::new(address);
-		log_builder
-			.log3(
-				SELECTOR_LOG_APPROVAL,
-				owner,
-				spender,
-				EvmDataWriter::new().write(value).build(),
-			)
-			.record(handle)?;
+		log3(
+			address,
+			SELECTOR_LOG_APPROVAL,
+			owner,
+			spender,
+			EvmDataWriter::new().write(value).build(),
+		)
+		.record(handle)?;
 
 		Ok(succeed([]))
 	}
