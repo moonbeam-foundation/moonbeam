@@ -201,7 +201,7 @@ where
 impl<Runtime> RandomnessWrapper<Runtime>
 where
 	Runtime: pallet_randomness::Config + pallet_evm::Config + pallet_base_fee::Config,
-	<Runtime as frame_system::Config>::BlockNumber: TryInto<u64> + From<u32>,
+	<Runtime as frame_system::Config>::BlockNumber: TryInto<u64> + TryFrom<u64>,
 	BalanceOf<Runtime>: TryFrom<U256> + Into<U256>,
 {
 	fn relay_block_number(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
@@ -235,14 +235,24 @@ where
 			.map_err(|_| revert("amount is too large for provided balance type"))?;
 		let gas_limit = input.read::<u64>()?;
 		let salt = input.read::<H256>()?;
-		let block_number = input.read::<u32>()?.into();
+		let blocks_after_current = input.read::<u64>()?;
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let relay_block_number: u64 =
+			<Runtime as pallet_randomness::Config>::BabeDataGetter::get_relay_block_number()
+				.try_into()
+				.map_err(|_| revert("block number overflowed u64"))?;
+		let requested_block_number = blocks_after_current
+			.checked_add(relay_block_number)
+			.ok_or(error("addition result overflowed u64"))?
+			.try_into()
+			.map_err(|_| revert("u64 addition result overflowed block number type"))?;
 		let request = pallet_randomness::Request {
 			refund_address,
 			contract_address,
 			fee,
 			gas_limit,
 			salt: salt.into(),
-			info: pallet_randomness::RequestType::BabeCurrentBlock(block_number),
+			info: pallet_randomness::RequestType::BabeCurrentBlock(requested_block_number),
 		};
 		pallet_randomness::Pallet::<Runtime>::request_randomness(request)
 			.map_err(|e| error(alloc::format!("{:?}", e)))?;
@@ -331,14 +341,23 @@ where
 			.map_err(|_| revert("amount is too large for provided balance type"))?;
 		let gas_limit = input.read::<u64>()?;
 		let salt = input.read::<H256>()?;
-		let block_number = input.read::<u32>()?.into();
+		let blocks_after_current = input.read::<u64>()?;
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let current_block_number: u64 = <frame_system::Pallet<Runtime>>::block_number()
+			.try_into()
+			.map_err(|_| revert("block number overflowed u64"))?;
+		let requested_block_number = blocks_after_current
+			.checked_add(current_block_number)
+			.ok_or(error("addition result overflowed u64"))?
+			.try_into()
+			.map_err(|_| revert("u64 addition result overflowed block number type"))?;
 		let request = pallet_randomness::Request {
 			refund_address,
 			contract_address,
 			fee,
 			gas_limit,
 			salt: salt.into(),
-			info: pallet_randomness::RequestType::Local(block_number),
+			info: pallet_randomness::RequestType::Local(requested_block_number),
 		};
 		pallet_randomness::Pallet::<Runtime>::request_randomness(request)
 			.map_err(|e| error(alloc::format!("{:?}", e)))?;

@@ -323,10 +323,11 @@ pub mod pallet {
 		// Set next block's VRF input in storage
 		fn on_finalize(_now: BlockNumberFor<T>) {
 			// Panics if set_babe_randomness_results inherent was not included
-			assert!(
-				<InherentIncluded<T>>::take().is_some(),
-				"Mandatory randomness inherent not included; InherentIncluded storage item is empty"
-			);
+			// TODO: revert and uncomment this panic to ensure mandatory inherent is always included
+			// assert!(
+			// 	<InherentIncluded<T>>::take().is_some(),
+			// 	"Mandatory randomness inherent not included; InherentIncluded storage item is empty"
+			// );
 
 			// Necessary because required data is killed in `ParachainSystem::on_initialize`
 			// which may happen before the VRF output is verified in the next block on_initialize
