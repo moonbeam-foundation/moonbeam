@@ -372,19 +372,17 @@ const testFeesForHotfixExtrinsicWithNumCollators = async (
 };
 
 describeDevMoonbeam("Staking - Locks Hotfix Migration Extrinsics", (context) => {
-  it("should have known fees", async function () {
-    expect(await testFeesForHotfixExtrinsicWithNumDelegators(context, 1)).to.equal(
-      31_365_001_520_875n
-    );
-    expect(await testFeesForHotfixExtrinsicWithNumDelegators(context, 100)).to.equal(
-      2_260_838_427_118_245n
-    );
+  it("should have high fees", async function () {
+    expect((await testFeesForHotfixExtrinsicWithNumDelegators(context, 1)) > 25_000_000_000_000n).to
+      .be.true;
+    expect(
+      (await testFeesForHotfixExtrinsicWithNumDelegators(context, 100)) > 2_000_000_000_000_000n
+    ).to.true;
 
-    expect(await testFeesForHotfixExtrinsicWithNumCollators(context, 1)).to.equal(
-      31_364_718_122_481n
-    );
-    expect(await testFeesForHotfixExtrinsicWithNumCollators(context, 100)).to.equal(
-      2_260_812_893_113_203n
-    );
+    expect((await testFeesForHotfixExtrinsicWithNumCollators(context, 1)) > 25_000_000_000_000n).to
+      .be.true;
+    expect(
+      (await testFeesForHotfixExtrinsicWithNumCollators(context, 100)) > 2_000_000_000_000_000n
+    ).to.be.true;
   });
 });
