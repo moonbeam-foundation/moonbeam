@@ -29,9 +29,9 @@ export const printEvents = async (api: ApiPromise, blockHash: string) => {
     txsWithEvents
       .map(
         ({ extrinsic, events }, i) =>
-          `  [${i}]: ${extrinsic.method.section.toString()}. ${extrinsic.method.method.toString()}\n  - 0x${Buffer.from(
-            extrinsic.data
-          ).toString("hex")}\n${events
+          `  [${i}]: ${extrinsic.method.section.toString()}. ` +
+          `${extrinsic.method.method.toString()}\n` +
+          `  - 0x${Buffer.from(extrinsic.data).toString("hex")}\n${events
             .map(
               (event) =>
                 `    * ${event.section.toString()}.${event.method.toString()}:\n${event.data
