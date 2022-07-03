@@ -144,14 +144,14 @@ where
 			ApprovesStorage::<Runtime, Instance>::insert(owner, spender, amount);
 		}
 
-		LogsBuilder::new(handle.context().address)
-			.log3(
-				SELECTOR_LOG_APPROVAL,
-				owner,
-				spender,
-				EvmDataWriter::new().write(value).build(),
-			)
-			.record(handle)?;
+		log3(
+			handle.context().address,
+			SELECTOR_LOG_APPROVAL,
+			owner,
+			spender,
+			EvmDataWriter::new().write(value).build(),
+		)
+		.record(handle)?;
 
 		Ok(succeed([]))
 	}

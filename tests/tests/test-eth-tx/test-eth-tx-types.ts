@@ -43,12 +43,7 @@ describeDevMoonbeam(
       // Accesslist mock data, it doesn't matter.
       await context.createBlock(
         createTransfer(context, baltathar.address, 512, {
-          accessList: [
-            [
-              "0x0000000000000000000000000000000000000000",
-              ["0x0000000000000000000000000000000000000000000000000000000000000000"],
-            ],
-          ],
+          accessList: [],
         })
       );
 
@@ -60,21 +55,16 @@ describeDevMoonbeam(
         chainId: 1281,
         nonce: 0,
         gasPrice: 1000000000,
-        gasLimit: 12000000,
+        gasLimit: 21000,
         action: {
           call: baltathar.address.toLowerCase(),
         },
         value: 512,
         input: "0x",
-        accessList: [
-          {
-            address: "0x0000000000000000000000000000000000000000",
-            storageKeys: ["0x0000000000000000000000000000000000000000000000000000000000000000"],
-          },
-        ],
-        oddYParity: true,
-        r: "0xb18ae6b035dfdf47954130cc9fa74ce051a59500d569b78a9b5e30d97e821682",
-        s: "0x3fc8aa94a1e068a9463b3ece33efc98a199e3f72f15cb9707a133425e9448cb1",
+        accessList: [],
+        oddYParity: false,
+        r: "0x6d61b9498e1ddcfa490ef3cb45d0152ad328f7f61d69e61d901a21eab86814c0",
+        s: "0x716b528435345a640bd31a94e699b10440e418ff0edf62a2874091a682459084",
       });
     });
   },
@@ -90,12 +80,7 @@ describeDevMoonbeam(
       // Accesslist mock data, it doesn't matter.
       await context.createBlock(
         createTransfer(context, baltathar.address, 512, {
-          accessList: [
-            [
-              "0x0000000000000000000000000000000000000000",
-              ["0x0000000000000000000000000000000000000000000000000000000000000000"],
-            ],
-          ],
+          accessList: [],
         })
       );
 
@@ -108,21 +93,16 @@ describeDevMoonbeam(
         nonce: 0,
         maxPriorityFeePerGas: 0,
         maxFeePerGas: 1000000000,
-        gasLimit: 12000000,
+        gasLimit: 21000,
         action: {
           call: baltathar.address.toLowerCase(),
         },
         value: 512,
         input: "0x",
-        accessList: [
-          {
-            address: "0x0000000000000000000000000000000000000000",
-            storageKeys: ["0x0000000000000000000000000000000000000000000000000000000000000000"],
-          },
-        ],
+        accessList: [],
         oddYParity: false,
-        r: "0xf631af2a9504e6a87764310814c00a9260ba328da571008d60f4f770f43bee5d",
-        s: "0x016d1aaa3dcff84a35e7fcf5947738de786fdbac8270c438710bda917fdcb96f",
+        r: "0xff6a476d2d8d7b0a23fcb3f1471d1ddd4dec7f3803db7f769aa1ce2575e493ac",
+        s: "0x4ebec202edd10edfcee87927090105b95d8b58f80550cdf4eda20327f3377ca6",
       });
     });
   },

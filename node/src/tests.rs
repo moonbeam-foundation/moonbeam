@@ -172,6 +172,7 @@ fn export_genesis_state() {
 	assert_eq!(expected, hex::encode(output.stdout.as_slice()))
 }
 
+#[ignore]
 #[test]
 #[cfg(unix)]
 fn export_current_state() {

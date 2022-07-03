@@ -10,11 +10,7 @@ import {
   CHARLETH_SESSION_ADDRESS,
   generateKeyingPair,
 } from "../../util/accounts";
-import {
-  DEFAULT_GENESIS_BALANCE,
-  DEFAULT_GENESIS_MAPPING,
-  DEFAULT_GENESIS_STAKING,
-} from "../../util/constants";
+import { DEFAULT_GENESIS_BALANCE, DEFAULT_GENESIS_MAPPING, GLMR } from "../../util/constants";
 import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
 
 async function getMappingInfo(
@@ -62,11 +58,10 @@ describeDevMoonbeam("Author Mapping - simple association", (context) => {
     expect(context.polkadotApi.events.system.ExtrinsicSuccess.is(events[7].event)).to.be.true;
 
     // check association
-    const transactionCost = 25611452000376n;
     expect((await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS)).account).to.eq(alith.address);
     expect(
-      (await context.polkadotApi.query.system.account(alith.address)).data.free.toBigInt()
-    ).to.eq(DEFAULT_GENESIS_BALANCE - 2n * DEFAULT_GENESIS_MAPPING - transactionCost);
+      (await context.polkadotApi.query.system.account(alith.address)).data.free.toBigInt() / GLMR
+    ).to.eq((DEFAULT_GENESIS_BALANCE - 2n * DEFAULT_GENESIS_MAPPING) / GLMR);
     expect(
       (await context.polkadotApi.query.system.account(alith.address)).data.reserved.toBigInt()
     ).to.eq(2n * DEFAULT_GENESIS_MAPPING);
@@ -93,7 +88,7 @@ describeDevMoonbeam("Author Mapping - Fail to reassociate alice", (context) => {
     //check state
     expect(
       (await context.polkadotApi.query.system.account(baltathar.address)).data.free.toBigInt()
-    ).to.eq(1208925819589017722705800n);
+    ).to.eq(1208925819590977972705800n);
     expect(
       (await context.polkadotApi.query.system.account(baltathar.address)).data.reserved.toBigInt()
     ).to.eq(0n);
