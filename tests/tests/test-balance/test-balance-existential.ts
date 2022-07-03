@@ -2,39 +2,45 @@ import "@moonbeam-network/api-augment";
 
 import { expect } from "chai";
 
-import { alith, baltathar, generateKeyingPair } from "../../util/accounts";
-import { GLMR } from "../../util/constants";
+import { Account } from "web3-core";
+import { alith, baltathar } from "../../util/accounts";
+import { GLMR, MIN_GAS_PRICE } from "../../util/constants";
 import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 import { createTransfer } from "../../util/transactions";
 
 describeDevMoonbeamAllEthTxTypes("Existential Deposit", (context) => {
-  const randomAccount = generateKeyingPair();
+  let randomWeb3Account: Account;
   it("setup accounts", async function () {
-    await context.createBlock(
-      createTransfer(context, randomAccount.address, 10n * GLMR, {
+    randomWeb3Account = context.web3.eth.accounts.create("random");
+    const { result, block } = await context.createBlock(
+      createTransfer(context, randomWeb3Account.address, 10n * GLMR, {
         from: alith.address,
         gas: 21000,
       })
     );
+    expect(result.successful, result.error?.name).to.be.true;
   });
 
   it("should be disabled (no reaped account on 0 balance)", async function () {
-    await context.createBlock(
-      createTransfer(context, alith.address, 10n * GLMR, {
-        from: randomAccount.address,
+    const { block, result } = await context.createBlock(
+      createTransfer(context, alith.address, 10n * GLMR - 21000n * MIN_GAS_PRICE, {
+        from: randomWeb3Account.address,
+        privateKey: randomWeb3Account.privateKey,
         gas: 21000,
       })
     );
-    expect(parseInt(await context.web3.eth.getBalance(randomAccount.address))).to.eq(0);
-    expect(await context.web3.eth.getTransactionCount(randomAccount.address)).to.eq(1);
+    expect(result.successful, result.error?.name).to.be.true;
+    expect(parseInt(await context.web3.eth.getBalance(randomWeb3Account.address))).to.eq(0);
+    expect(await context.web3.eth.getTransactionCount(randomWeb3Account.address)).to.eq(1);
   });
 });
 
 describeDevMoonbeamAllEthTxTypes("Existential Deposit", (context) => {
-  const randomAccount = generateKeyingPair();
+  let randomWeb3Account: Account;
   it("setup accounts", async function () {
+    randomWeb3Account = context.web3.eth.accounts.create("random");
     await context.createBlock(
-      createTransfer(context, randomAccount.address, 10n * GLMR, {
+      createTransfer(context, randomWeb3Account.address, 10n * GLMR, {
         from: alith.address,
         gas: 21000,
       })
@@ -44,12 +50,13 @@ describeDevMoonbeamAllEthTxTypes("Existential Deposit", (context) => {
   it("should be disabled (no reaped account on tiny balance - 1)", async function () {
     await context.createBlock(
       createTransfer(context, baltathar.address, 10n * GLMR - 1n - 21000n * 1_000_000_000n, {
-        from: randomAccount.address,
+        from: randomWeb3Account.address,
+        privateKey: randomWeb3Account.privateKey,
         gas: 21000,
       })
     );
-    expect(parseInt(await context.web3.eth.getBalance(randomAccount.address))).to.eq(1);
-    expect(await context.web3.eth.getTransactionCount(randomAccount.address)).to.eq(1);
+    expect(parseInt(await context.web3.eth.getBalance(randomWeb3Account.address))).to.eq(1);
+    expect(await context.web3.eth.getTransactionCount(randomWeb3Account.address)).to.eq(1);
   });
 });
 
