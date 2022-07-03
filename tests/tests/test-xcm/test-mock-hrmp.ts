@@ -2109,16 +2109,8 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM", (context)
   let contractDeployed;
 
   before("Should receive transact action with DescendOrigin and deploy", async function () {
-    const { contract, rawTx } = await createContract(context, "TestContractIncr");
+    const { contract, rawTx } = await createContract(context, "Incrementor");
     await context.createBlock(rawTx);
-    /*await context.createBlock(
-      createContractExecution(context, {
-        contract,
-        contractCall: contract.methods.incr(),
-      })
-    );
-    contractDeployed = contract;
-    expect(await contract.methods.count().call()).to.eq("1");*/
 
     contractDeployed = contract;
 
