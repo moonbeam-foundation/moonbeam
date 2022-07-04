@@ -27,7 +27,7 @@ mod mock;
 #[cfg(all(feature = "std", test))]
 mod tests;
 
-use ethereum_types::H160;
+use ethereum_types::{H160, U256};
 use fp_ethereum::{TransactionData, ValidatedTransaction};
 use fp_evm::{CheckEvmTransaction, CheckEvmTransactionConfig, InvalidEvmTransactionError};
 #[cfg(feature = "try-runtime")]
@@ -37,7 +37,7 @@ use frame_support::{
 	dispatch::DispatchResultWithPostInfo,
 	scale_info::TypeInfo,
 	traits::{EnsureOrigin, Get},
-	weights::{Pays, PostDispatchInfo},
+	weights::{Pays, PostDispatchInfo, Weight},
 };
 use frame_system::pallet_prelude::OriginFor;
 use pallet_evm::{FeeCalculator, GasWeightMapping};
@@ -97,6 +97,8 @@ pub mod pallet {
 		type ValidatedTransaction: ValidatedTransaction;
 		/// Origin for xcm transact
 		type XcmEthereumOrigin: EnsureOrigin<Self::Origin, Success = H160>;
+		/// Maximum Weight reserved for xcm in a block
+		type ReservedXcmpWeight: Get<Weight>;
 	}
 
 	#[pallet::pallet]
@@ -135,7 +137,11 @@ pub mod pallet {
 				let _ = CheckEvmTransaction::<T::InvalidEvmTransactionError>::new(
 					CheckEvmTransactionConfig {
 						evm_config: T::config(),
-						block_gas_limit: T::BlockGasLimit::get(),
+						block_gas_limit: U256::from(
+							<T as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
+								T::ReservedXcmpWeight::get(),
+							),
+						),
 						base_fee,
 						chain_id: 0u64,
 						is_transactional: true,
