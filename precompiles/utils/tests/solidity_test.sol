@@ -7,32 +7,41 @@ interface SolidityTest {
 
     /// @dev Interface for all randomness consumers
     ///
-    /// @param refund_address Address to refund with fee less cost of subcall
+    /// @param arg0 Arg0 Description
     /// Selector: c4921133
-    function fnOneArg(address refund_address) external;
+    function fnOneArg(address arg0) external;
 
-    /// @param refund_address Address to refund
-    /// @param fee Amount to set aside to pay for the subcall
+    /// @param arg0 Arg0 Description
+    /// @param arg1 Arg1 Description
     /// Selector: 67ea837e
-    function fnTwoArgs(address refund_address, uint256 fee) external;
+    function fnTwoArgs(address arg0, uint256 arg1) external;
 
-    /// @param gas_limit Gas limit for the subcall that provides randomness
-    /// @param epoch_index Relay chain epoch for which randomness is requested
+    /// @param arg0 Arg0 Description
+    /// @param arg1 Arg1 Description
     /// Selector: d6b423d9
-    function fnSameArgs(uint64 gas_limit, uint64 epoch_index) external;
+    function fnSameArgs(uint64 arg0, uint64 arg1) external;
 
-    /// @param request_id Request to be fulfilled by caller
+    /// @param arg0 Arg0 Description
     /// Selector: b9904a86
-    function fnOneArgSameLine(uint64 request_id) external;
+    function fnOneArgSameLine(uint64 arg0) external;
 
-    /// @param gas_limit Gas limit for the subcall that provides randomness
-    /// @param salt Salt to be mixed with raw randomness to get output
+    /// @param arg0 Arg0 Description
+    /// @param arg1 Arg1 Description
     /// Selector: 28f0c44e
-    function fnTwoArgsSameLine(uint64 gas_limit, bytes32 salt) external;
+    function fnTwoArgsSameLine(uint64 arg0, bytes32 arg1) external;
 
-    /// @param gas_limit Gas limit for the subcall that provides randomness
-    /// @param salt Salt to be mixed with raw randomness to get output
-    /// Selector: 28f0c44e
-    function fnTwoArgsSameLineExternalSplit(uint64 gas_limit, bytes32 salt)
-        external;
+    /// @param arg0 Arg0 Description
+    /// @param arg1 Arg1 Description
+    /// Selector: 06f0c1ce
+    function fnTwoArgsSameLineExternalSplit(uint64 arg0, bytes32 arg1) external;
+
+    /// @param arg0 Arg0 Description
+    /// @param arg1 Arg1 Description
+    /// @param arg2 Arg2 Description
+    /// Selector: 18001a4e
+    function fnMemoryArrayArgs(
+        address[] memory arg0,
+        uint256[] memory arg1,
+        bytes[] arg2,
+    ) external;
 }
