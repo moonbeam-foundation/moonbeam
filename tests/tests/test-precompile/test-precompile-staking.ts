@@ -34,6 +34,7 @@ const SELECTORS = {
   collator_nomination_count: "0ad6a7be",
   nominator_nomination_count: "dae5659b",
   delegation_request_is_pending: "192e1db3",
+  candidate_exit_is_pending: "eb613b8a",
 };
 
 async function isSelectedCandidate(context: DevTestContext, address: string) {
@@ -127,6 +128,39 @@ describeDevMoonbeamAllEthTxTypes("Staking - Join Candidates", (context) => {
 
     expect(Number((await isCandidate(context, ethan.address)).result)).to.equal(1);
     await verifyLatestBlockFees(context, MIN_GLMR_STAKING);
+  });
+});
+
+describeDevMoonbeamAllEthTxTypes("Staking - Collator Leaving", (context) => {
+  before("add ethan to candidates", async () => {
+    const { result } = await sendPrecompileTx(
+      context,
+      PRECOMPILE_PARACHAIN_STAKING_ADDRESS,
+      SELECTORS,
+      ethan.address,
+      ETHAN_PRIVATE_KEY,
+      "join_candidates",
+      [numberToHex(Number(MIN_GLMR_STAKING)), numberToHex(1)]
+    );
+
+    const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
+    expect(receipt.status).to.equal(true);
+  });
+
+  it("should successfully call candidate_exit_is_pending on ethan", async function () {
+    const { result } = await sendPrecompileTx(
+      context,
+      PRECOMPILE_PARACHAIN_STAKING_ADDRESS,
+      SELECTORS,
+      ethan.address,
+      ETHAN_PRIVATE_KEY,
+      "candidate_exit_is_pending",
+      [ethan.address]
+    );
+
+    const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
+    expect(receipt.status).to.equal(true);
+    console.log(receipt);
   });
 });
 
