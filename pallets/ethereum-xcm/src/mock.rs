@@ -179,10 +179,15 @@ impl pallet_ethereum::Config for Test {
 	type StateRoot = IntermediateStateRoot<Self>;
 }
 
+parameter_types! {
+	pub ReservedXcmpWeight: Weight = u64::max_value();
+}
+
 impl crate::Config for Test {
 	type InvalidEvmTransactionError = pallet_ethereum::InvalidTransactionWrapper;
 	type ValidatedTransaction = pallet_ethereum::ValidatedTransaction<Self>;
 	type XcmEthereumOrigin = crate::EnsureXcmEthereumTransaction;
+	type ReservedXcmpWeight = ReservedXcmpWeight;
 }
 
 impl fp_self_contained::SelfContainedCall for Call {
