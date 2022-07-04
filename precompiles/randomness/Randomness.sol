@@ -4,60 +4,66 @@ pragma solidity >=0.8.0;
 interface Randomness {
     /// @dev Interface for all randomness consumers
     ///
+    /// @dev Get relay block number
+    /// @return The relay block number
+    /// Selector: edfec347
+    function relayBlockNumber() external view returns (uint64);
+
+    /// @dev Get relay epoch index
+    /// @return The relay epoch index
+    /// Selector: 81797566
+    function relayEpochIndex() external view returns (uint64);
+
     /// @param refund_address Address to refund with fee less cost of subcall
     /// @param fee Amount to set aside to pay for the subcall
     /// @param gas_limit Gas limit for the subcall that provides randomness
     /// @param salt Salt to be mixed with raw randomness to get output
-    /// @param block_number Relay chain block for which randomness is requested
+    /// @param num_blocks Number of relay chain blocks in the future the request is for
     /// Selector: c4921133
     function requestBabeRandomnessCurrentBlock(
         address refund_address,
         uint256 fee,
         uint64 gas_limit,
         bytes32 salt,
-        uint64 block_number
+        uint64 num_blocks
     ) external;
 
     /// @param refund_address Address to refund
     /// @param fee Amount to set aside to pay for the subcall
     /// @param gas_limit Gas limit for the subcall that provides randomness
     /// @param salt Salt to be mixed with raw randomness to get output
-    /// @param epoch_index Relay chain epoch index for which randomness is requested
-    /// Selector: 67ea837e
+    /// Selector: bbc9e95f
     function requestBabeRandomnessOneEpochAgo(
         address refund_address,
         uint256 fee,
         uint64 gas_limit,
-        bytes32 salt,
-        uint64 epoch_index
+        bytes32 salt
     ) external;
 
     /// @param refund_address Address to refund
     /// @param fee Amount to set aside to pay for the subcall
     /// @param gas_limit Gas limit for the subcall that provides randomness
     /// @param salt Salt to be mixed with raw randomness to get output
-    /// @param epoch_index Relay chain epoch for which randomness is requested
-    /// Selector: d6b423d9
+    /// Selector: 25b14a0b
     function requestBabeRandomnessTwoEpochsAgo(
         address refund_address,
         uint256 fee,
         uint64 gas_limit,
-        bytes32 salt,
-        uint64 epoch_index
+        bytes32 salt
     ) external;
 
     /// @param refund_address Address to refund
     /// @param fee Amount to set aside to pay for the subcall
     /// @param gas_limit Gas limit for the subcall that provides randomness
     /// @param salt Salt to be mixed with raw randomness to get output
-    /// @param block_number Parachain block for which randomness is requested
+    /// @param num_blocks Number of blocks in the future the request is for
     /// Selector: b4a11763
     function requestLocalRandomness(
         address refund_address,
         uint256 fee,
         uint64 gas_limit,
         bytes32 salt,
-        uint64 block_number
+        uint64 num_blocks
     ) external;
 
     /// @param request_id Request to be fulfilled by caller

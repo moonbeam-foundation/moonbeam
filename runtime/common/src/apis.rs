@@ -238,6 +238,7 @@ macro_rules! impl_runtime_apis_plus_common {
 						None
 					};
 					let is_transactional = false;
+					let validate = true;
 					<Runtime as pallet_evm::Config>::Runner::call(
 						from,
 						to,
@@ -247,8 +248,9 @@ macro_rules! impl_runtime_apis_plus_common {
 						max_fee_per_gas,
 						max_priority_fee_per_gas,
 						nonce,
-						Vec::new(),
+						access_list.unwrap_or_default(),
 						is_transactional,
+						validate,
 						config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
 					).map_err(|err| err.error.into())
 				}
@@ -272,6 +274,7 @@ macro_rules! impl_runtime_apis_plus_common {
 						None
 					};
 					let is_transactional = false;
+					let validate = true;
 					#[allow(clippy::or_fun_call)] // suggestion not helpful here
 					<Runtime as pallet_evm::Config>::Runner::create(
 						from,
@@ -281,8 +284,9 @@ macro_rules! impl_runtime_apis_plus_common {
 						max_fee_per_gas,
 						max_priority_fee_per_gas,
 						nonce,
-						Vec::new(),
+						access_list.unwrap_or_default(),
 						is_transactional,
+						validate,
 						config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
 					).map_err(|err| err.error.into())
 				}
@@ -409,25 +413,6 @@ macro_rules! impl_runtime_apis_plus_common {
 					header: &<Block as BlockT>::Header
 				) -> cumulus_primitives_core::CollationInfo {
 					ParachainSystem::collect_collation_info(header)
-				}
-			}
-
-			impl session_keys_primitives::VrfApi<Block> for Runtime {
-				fn get_relay_slot_number() -> cumulus_primitives_core::relay_chain::v2::Slot {
-					pallet_randomness::Pallet::<Self>::current_vrf_input()
-						.expect("Expected VrfInput to be set")
-						.slot_number
-				}
-				fn get_relay_storage_root() -> <Block as BlockT>::Hash {
-					pallet_randomness::Pallet::<Self>::current_vrf_input()
-						.expect("Expected VrfInput to be set")
-						.storage_root
-				}
-				fn vrf_key_lookup(
-					nimbus_id: nimbus_primitives::NimbusId
-				) -> Option<session_keys_primitives::VrfId> {
-					use session_keys_primitives::KeysLookup;
-					AuthorMapping::lookup_keys(&nimbus_id)
 				}
 			}
 

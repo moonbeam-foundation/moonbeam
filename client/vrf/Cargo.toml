@@ -10,19 +10,19 @@ version = "0.1.0"
 [dependencies]
 # Substrate
 codec = { package = "parity-scale-codec", version = "3.0.0", features = [ "derive" ] }
-sp-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20" }
-sp-application-crypto = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
-sp-consensus-babe = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
-sp-consensus-vrf = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
-sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20" }
-sp-keystore = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
-sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
+sp-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
+sp-application-crypto = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23", default-features = false }
+sp-consensus-babe = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23", default-features = false }
+sp-consensus-vrf = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23", default-features = false }
+sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
+sp-keystore = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23", default-features = false }
+sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23", default-features = false }
 
 # Moonbeam
 session-keys-primitives = { path = "../../primitives/session-keys" }
 
 # Nimbus
-nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "amar-cherrypick-digest-provider" }
+nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.23" }
 
 # Polkadot
-polkadot-primitives = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.20" }
+polkadot-primitives = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.23" }

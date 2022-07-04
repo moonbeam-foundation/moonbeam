@@ -24,11 +24,8 @@ extern crate alloc;
 use fp_evm::{
 	Context, ExitReason, ExitSucceed, Log, Precompile, PrecompileHandle, PrecompileOutput,
 };
-use pallet_randomness::BalanceOf;
-use precompile_utils::{
-	call_cost, error, keccak256, revert, Address, EvmDataWriter, EvmResult, FunctionModifier,
-	LogExt, LogsBuilder, PrecompileHandleExt,
-};
+use pallet_randomness::{BalanceOf, GetBabeData};
+use precompile_utils::{costs::call_cost, prelude::*};
 use sp_core::{H160, H256, U256};
 use sp_std::{fmt::Debug, marker::PhantomData};
 
@@ -37,15 +34,17 @@ use sp_std::{fmt::Debug, marker::PhantomData};
 #[cfg(test)]
 mod tests;
 
-#[precompile_utils::generate_function_selector]
+#[generate_function_selector]
 #[derive(Debug, PartialEq)]
 pub enum Action {
+	RelayBlockNumber = "relayBlockNumber()",
+	RelayEpochIndex = "relayEpochIndex()",
 	RequestBabeRandomnessCurrentBlock =
 		"requestBabeRandomnessCurrentBlock(address,uint256,uint64,bytes32,uint64)",
 	RequestBabeRandomnessOneEpochAgo =
-		"requestBabeRandomnessOneEpochAgo(address,uint256,uint64,bytes32,uint64)",
+		"requestBabeRandomnessOneEpochAgo(address,uint256,uint64,bytes32)",
 	RequestBabeRandomnessTwoEpochsAgo =
-		"requestBabeRandomnessTwoEpochsAgo(address,uint256,uint64,bytes32,uint64)",
+		"requestBabeRandomnessTwoEpochsAgo(address,uint256,uint64,bytes32)",
 	RequestLocalRandomness = "requestLocalRandomness(address,uint256,uint64,bytes32,uint64)",
 	FulfillRequest = "fulfillRequest(uint64)",
 	IncreaseRequestFee = "increaseRequestFee(uint64)",
@@ -61,11 +60,11 @@ pub const LOG_SUBCALL_SUCCEEDED: [u8; 32] = keccak256!("SubcallSucceeded");
 pub const LOG_SUBCALL_FAILED: [u8; 32] = keccak256!("SubcallFailed");
 
 pub fn log_subcall_succeeded(address: impl Into<H160>) -> Log {
-	LogsBuilder::new(address.into()).log0(LOG_SUBCALL_SUCCEEDED)
+	log0(address, LOG_SUBCALL_SUCCEEDED)
 }
 
 pub fn log_subcall_failed(address: impl Into<H160>) -> Log {
-	LogsBuilder::new(address.into()).log0(LOG_SUBCALL_FAILED)
+	log0(address, LOG_SUBCALL_FAILED)
 }
 
 /// Reverts if fees and gas_limit are not sufficient to make subcall and cleanup
@@ -167,6 +166,8 @@ where
 		handle.check_function_modifier(FunctionModifier::NonPayable)?;
 
 		match selector {
+			Action::RelayBlockNumber => Self::relay_block_number(handle),
+			Action::RelayEpochIndex => Self::relay_epoch_index(handle),
 			Action::RequestBabeRandomnessCurrentBlock => {
 				Self::request_babe_randomness_current_block(handle)
 			}
@@ -197,9 +198,27 @@ where
 impl<Runtime> RandomnessWrapper<Runtime>
 where
 	Runtime: pallet_randomness::Config + pallet_evm::Config + pallet_base_fee::Config,
-	<Runtime as frame_system::Config>::BlockNumber: From<u32>,
+	<Runtime as frame_system::Config>::BlockNumber: TryInto<u64> + TryFrom<u64>,
 	BalanceOf<Runtime>: TryFrom<U256> + Into<U256>,
 {
+	fn relay_block_number(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let relay_block_number: u64 =
+			<Runtime as pallet_randomness::Config>::BabeDataGetter::get_relay_block_number()
+				.try_into()
+				.map_err(|_| revert("storage value is too large for provided block number type"))?;
+		Ok(succeed(
+			EvmDataWriter::new().write(relay_block_number).build(),
+		))
+	}
+	fn relay_epoch_index(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let relay_epoch_index =
+			<Runtime as pallet_randomness::Config>::BabeDataGetter::get_relay_epoch_index();
+		Ok(succeed(
+			EvmDataWriter::new().write(relay_epoch_index).build(),
+		))
+	}
 	/// Make request for babe randomness current block
 	fn request_babe_randomness_current_block(
 		handle: &mut impl PrecompileHandle,
@@ -213,14 +232,24 @@ where
 			.map_err(|_| revert("amount is too large for provided balance type"))?;
 		let gas_limit = input.read::<u64>()?;
 		let salt = input.read::<H256>()?;
-		let block_number = input.read::<u32>()?.into();
+		let blocks_after_current = input.read::<u64>()?;
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let relay_block_number: u64 =
+			<Runtime as pallet_randomness::Config>::BabeDataGetter::get_relay_block_number()
+				.try_into()
+				.map_err(|_| revert("block number overflowed u64"))?;
+		let requested_block_number = blocks_after_current
+			.checked_add(relay_block_number)
+			.ok_or(error("addition result overflowed u64"))?
+			.try_into()
+			.map_err(|_| revert("u64 addition result overflowed block number type"))?;
 		let request = pallet_randomness::Request {
 			refund_address,
 			contract_address,
 			fee,
 			gas_limit,
 			salt: salt.into(),
-			info: pallet_randomness::RequestType::BabeCurrentBlock(block_number),
+			info: pallet_randomness::RequestType::BabeCurrentBlock(requested_block_number),
 		};
 		pallet_randomness::Pallet::<Runtime>::request_randomness(request)
 			.map_err(|e| error(alloc::format!("{:?}", e)))?;
@@ -243,14 +272,18 @@ where
 			.map_err(|_| revert("amount is too large for provided balance type"))?;
 		let gas_limit = input.read::<u64>()?;
 		let salt = input.read::<H256>()?;
-		let epoch_index = input.read::<u64>()?;
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let next_epoch_index =
+			<Runtime as pallet_randomness::Config>::BabeDataGetter::get_relay_epoch_index()
+				.checked_add(1u64)
+				.ok_or(error("Epoch Index (u64) overflowed"))?;
 		let request = pallet_randomness::Request {
 			refund_address,
 			contract_address,
 			fee,
 			gas_limit,
 			salt: salt.into(),
-			info: pallet_randomness::RequestType::BabeOneEpochAgo(epoch_index),
+			info: pallet_randomness::RequestType::BabeOneEpochAgo(next_epoch_index),
 		};
 		pallet_randomness::Pallet::<Runtime>::request_randomness(request)
 			.map_err(|e| error(alloc::format!("{:?}", e)))?;
@@ -273,14 +306,18 @@ where
 			.map_err(|_| revert("amount is too large for provided balance type"))?;
 		let gas_limit = input.read::<u64>()?;
 		let salt = input.read::<H256>()?;
-		let epoch_index = input.read::<u64>()?;
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let next_epoch_index =
+			<Runtime as pallet_randomness::Config>::BabeDataGetter::get_relay_epoch_index()
+				.checked_add(1u64)
+				.ok_or(error("Epoch Index (u64) overflowed"))?;
 		let request = pallet_randomness::Request {
 			refund_address,
 			contract_address,
 			fee,
 			gas_limit,
 			salt: salt.into(),
-			info: pallet_randomness::RequestType::BabeTwoEpochsAgo(epoch_index),
+			info: pallet_randomness::RequestType::BabeTwoEpochsAgo(next_epoch_index),
 		};
 		pallet_randomness::Pallet::<Runtime>::request_randomness(request)
 			.map_err(|e| error(alloc::format!("{:?}", e)))?;
@@ -301,14 +338,23 @@ where
 			.map_err(|_| revert("amount is too large for provided balance type"))?;
 		let gas_limit = input.read::<u64>()?;
 		let salt = input.read::<H256>()?;
-		let block_number = input.read::<u32>()?.into();
+		let blocks_after_current = input.read::<u64>()?;
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let current_block_number: u64 = <frame_system::Pallet<Runtime>>::block_number()
+			.try_into()
+			.map_err(|_| revert("block number overflowed u64"))?;
+		let requested_block_number = blocks_after_current
+			.checked_add(current_block_number)
+			.ok_or(error("addition result overflowed u64"))?
+			.try_into()
+			.map_err(|_| revert("u64 addition result overflowed block number type"))?;
 		let request = pallet_randomness::Request {
 			refund_address,
 			contract_address,
 			fee,
 			gas_limit,
 			salt: salt.into(),
-			info: pallet_randomness::RequestType::Local(block_number),
+			info: pallet_randomness::RequestType::Local(requested_block_number),
 		};
 		pallet_randomness::Pallet::<Runtime>::request_randomness(request)
 			.map_err(|e| error(alloc::format!("{:?}", e)))?;

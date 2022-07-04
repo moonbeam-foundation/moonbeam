@@ -43,8 +43,8 @@ impl InherentError {
 	}
 }
 
-/// The InherentIdentifier to set the vrf input
-pub const INHERENT_IDENTIFIER: InherentIdentifier = *b"vrfinput";
+/// The InherentIdentifier to set the babe randomness results
+pub const INHERENT_IDENTIFIER: InherentIdentifier = *b"baberand";
 
 /// A bare minimum inherent data provider that provides no real data.
 /// The inherent is simply used as a way to kick off some computation
@@ -68,9 +68,9 @@ impl sp_inherents::InherentDataProvider for InherentDataProvider {
 			return None;
 		}
 
-		// All errors with the author inherent are fatal
+		// All errors with the randomness inherent are fatal
 		Some(Err(Error::Application(Box::from(String::from(
-			"Error processing dummy vrf inherent",
+			"Error processing dummy randomness inherent",
 		)))))
 	}
 }

@@ -50,6 +50,7 @@ use cumulus_relay_chain_inprocess_interface::build_inprocess_relay_chain;
 use cumulus_relay_chain_interface::{RelayChainError, RelayChainInterface};
 use nimbus_consensus::NimbusManualSealConsensusDataProvider;
 use nimbus_consensus::{BuildNimbusConsensusParams, NimbusConsensus};
+use nimbus_primitives::NimbusId;
 use sc_executor::{NativeElseWasmExecutor, NativeExecutionDispatch};
 use sc_network::NetworkService;
 use sc_service::config::PrometheusConfig;
@@ -344,6 +345,9 @@ where
 {
 	set_prometheus_registry(config)?;
 
+	// Use ethereum style for subscription ids
+	config.rpc_id_provider = Some(Box::new(fc_rpc::EthereumSubIdProvider));
+
 	let telemetry = config
 		.telemetry_endpoints
 		.clone()
@@ -444,6 +448,7 @@ async fn start_node_impl<RuntimeApi, Executor, BIC>(
 	polkadot_config: Configuration,
 	id: polkadot_primitives::v2::Id,
 	rpc_config: RpcConfig,
+	hwbench: Option<sc_sysinfo::HwBench>,
 	build_consensus: BIC,
 ) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi, Executor>>)>
 where
@@ -494,6 +499,7 @@ where
 		&parachain_config,
 		telemetry_worker_handle,
 		&mut task_manager,
+		None,
 	)
 	.map_err(|e| match e {
 		RelayChainError::ServiceError(polkadot_service::Error::Sub(x)) => x,
@@ -520,8 +526,6 @@ where
 			warp_sync: None,
 		})?;
 
-	let subscription_task_executor =
-		sc_rpc::SubscriptionTaskExecutor::new(task_manager.spawn_handle());
 	let overrides = crate::rpc::overrides_handle(client.clone());
 	let fee_history_limit = rpc_config.fee_history_limit;
 
@@ -571,7 +575,7 @@ where
 	// save param `relay_chain_rpc_url` to be able to use it later.
 	let relay_chain_rpc_url = rpc_config.relay_chain_rpc_url.clone();
 
-	let rpc_extensions_builder = {
+	let rpc_builder = {
 		let client = client.clone();
 		let pool = transaction_pool.clone();
 		let network = network.clone();
@@ -584,7 +588,7 @@ where
 		let fee_history_cache = fee_history_cache.clone();
 		let block_data_cache = block_data_cache.clone();
 
-		Box::new(move |deny_unsafe, _| {
+		move |deny_unsafe, subscription_task_executor| {
 			let deps = rpc::FullDeps {
 				backend: backend.clone(),
 				client: client.clone(),
@@ -604,22 +608,24 @@ where
 				block_data_cache: block_data_cache.clone(),
 				overrides: overrides.clone(),
 			};
-			#[allow(unused_mut)]
-			let mut io = rpc::create_full(deps, subscription_task_executor.clone());
 			if ethapi_cmd.contains(&EthApiCmd::Debug) || ethapi_cmd.contains(&EthApiCmd::Trace) {
-				rpc::tracing::extend_with_tracing(
-					client.clone(),
-					tracing_requesters.clone(),
-					rpc_config.ethapi_trace_max_count,
-					&mut io,
-				);
+				rpc::create_full(
+					deps,
+					subscription_task_executor,
+					Some(crate::rpc::TracingConfig {
+						tracing_requesters: tracing_requesters.clone(),
+						trace_filter_max_count: rpc_config.ethapi_trace_max_count,
+					}),
+				)
+				.map_err(Into::into)
+			} else {
+				rpc::create_full(deps, subscription_task_executor, None).map_err(Into::into)
 			}
-			Ok(io)
-		})
+		}
 	};
 
 	sc_service::spawn_tasks(sc_service::SpawnTasksParams {
-		rpc_extensions_builder,
+		rpc_builder: Box::new(rpc_builder),
 		client: client.clone(),
 		transaction_pool: transaction_pool.clone(),
 		task_manager: &mut task_manager,
@@ -630,6 +636,19 @@ where
 		system_rpc_tx,
 		telemetry: telemetry.as_mut(),
 	})?;
+
+	if let Some(hwbench) = hwbench {
+		sc_sysinfo::print_hwbench(&hwbench);
+
+		if let Some(ref mut telemetry) = telemetry {
+			let telemetry_handle = telemetry.handle();
+			task_manager.spawn_handle().spawn(
+				"telemetry_hwbench",
+				None,
+				sc_sysinfo::initialize_hwbench_telemetry(telemetry_handle, hwbench),
+			);
+		}
+	}
 
 	let announce_block = {
 		let network = network.clone();
@@ -700,6 +719,7 @@ pub async fn start_node<RuntimeApi, Executor>(
 	polkadot_config: Configuration,
 	id: polkadot_primitives::v2::Id,
 	rpc_config: RpcConfig,
+	hwbench: Option<sc_sysinfo::HwBench>,
 ) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi, Executor>>)>
 where
 	RuntimeApi:
@@ -713,6 +733,7 @@ where
 		polkadot_config,
 		id,
 		rpc_config,
+		hwbench,
 		|
 			client,
 			prometheus_registry,
@@ -762,10 +783,8 @@ where
 			};
 			let client_clone = client.clone();
 			let keystore_clone = keystore.clone();
-			let additional_digests_provider = move |
-				nimbus_id: nimbus_primitives::NimbusId,
-				parent: Hash
-			| -> Option<sp_runtime::generic::DigestItem> {
+			let additional_digests_provider = move |nimbus_id: NimbusId, parent: Hash|
+				-> Option<sp_runtime::generic::DigestItem> {
 				moonbeam_vrf::vrf_pre_digest::<Block, FullClient<RuntimeApi, Executor>>(
 					&client_clone,
 					&keystore_clone,
@@ -793,9 +812,10 @@ where
 /// the parachain inherent.
 pub fn new_dev<RuntimeApi, Executor>(
 	mut config: Configuration,
-	_author_id: Option<nimbus_primitives::NimbusId>,
+	_author_id: Option<NimbusId>,
 	sealing: cli_opt::Sealing,
 	rpc_config: RpcConfig,
+	hwbench: Option<sc_sysinfo::HwBench>,
 ) -> Result<TaskManager, ServiceError>
 where
 	RuntimeApi:
@@ -821,7 +841,7 @@ where
 			(
 				block_import,
 				filter_pool,
-				telemetry,
+				mut telemetry,
 				_telemetry_worker_handle,
 				frontier_backend,
 				fee_history_cache,
@@ -849,8 +869,6 @@ where
 	}
 
 	let prometheus_registry = config.prometheus_registry().cloned();
-	let subscription_task_executor =
-		sc_rpc::SubscriptionTaskExecutor::new(task_manager.spawn_handle());
 	let overrides = crate::rpc::overrides_handle(client.clone());
 	let fee_history_limit = rpc_config.fee_history_limit;
 	let mut command_sink = None;
@@ -915,16 +933,15 @@ where
 
 		let client_clone = client.clone();
 		let keystore_clone = keystore_container.sync_keystore().clone();
-		let additional_digests_provider = move |nimbus_id: nimbus_primitives::NimbusId,
-		                                        parent: Hash|
-		      -> Option<sp_runtime::generic::DigestItem> {
-			moonbeam_vrf::vrf_pre_digest::<Block, FullClient<RuntimeApi, Executor>>(
-				&client_clone,
-				&keystore_clone,
-				nimbus_id,
-				parent,
-			)
-		};
+		let additional_digests_provider =
+			move |nimbus_id: NimbusId, parent: Hash| -> Option<sp_runtime::generic::DigestItem> {
+				moonbeam_vrf::vrf_pre_digest::<Block, FullClient<RuntimeApi, Executor>>(
+					&client_clone,
+					&keystore_clone,
+					nimbus_id,
+					parent,
+				)
+			};
 
 		task_manager.spawn_essential_handle().spawn_blocking(
 			"authorship_task",
@@ -1017,7 +1034,7 @@ where
 		prometheus_registry,
 	));
 
-	let rpc_extensions_builder = {
+	let rpc_builder = {
 		let client = client.clone();
 		let pool = transaction_pool.clone();
 		let backend = backend.clone();
@@ -1028,7 +1045,7 @@ where
 		let fee_history_cache = fee_history_cache.clone();
 		let block_data_cache = block_data_cache.clone();
 
-		Box::new(move |deny_unsafe, _| {
+		move |deny_unsafe, subscription_task_executor| {
 			let deps = rpc::FullDeps {
 				backend: backend.clone(),
 				client: client.clone(),
@@ -1048,18 +1065,21 @@ where
 				overrides: overrides.clone(),
 				block_data_cache: block_data_cache.clone(),
 			};
-			#[allow(unused_mut)]
-			let mut io = rpc::create_full(deps, subscription_task_executor.clone());
+
 			if ethapi_cmd.contains(&EthApiCmd::Debug) || ethapi_cmd.contains(&EthApiCmd::Trace) {
-				rpc::tracing::extend_with_tracing(
-					client.clone(),
-					tracing_requesters.clone(),
-					rpc_config.ethapi_trace_max_count,
-					&mut io,
-				);
+				rpc::create_full(
+					deps,
+					subscription_task_executor,
+					Some(crate::rpc::TracingConfig {
+						tracing_requesters: tracing_requesters.clone(),
+						trace_filter_max_count: rpc_config.ethapi_trace_max_count,
+					}),
+				)
+				.map_err(Into::into)
+			} else {
+				rpc::create_full(deps, subscription_task_executor, None).map_err(Into::into)
 			}
-			Ok(io)
-		})
+		}
 	};
 
 	let _rpc_handlers = sc_service::spawn_tasks(sc_service::SpawnTasksParams {
@@ -1068,12 +1088,25 @@ where
 		keystore: keystore_container.sync_keystore(),
 		task_manager: &mut task_manager,
 		transaction_pool,
-		rpc_extensions_builder,
+		rpc_builder: Box::new(rpc_builder),
 		backend,
 		system_rpc_tx,
 		config,
 		telemetry: None,
 	})?;
+
+	if let Some(hwbench) = hwbench {
+		sc_sysinfo::print_hwbench(&hwbench);
+
+		if let Some(ref mut telemetry) = telemetry {
+			let telemetry_handle = telemetry.handle();
+			task_manager.spawn_handle().spawn(
+				"telemetry_hwbench",
+				None,
+				sc_sysinfo::initialize_hwbench_telemetry(telemetry_handle, hwbench),
+			);
+		}
+	}
 
 	log::info!("Development Service Ready");
 
@@ -1214,12 +1247,16 @@ mod tests {
 			wasm_runtime_overrides: Default::default(),
 			execution_strategies: Default::default(),
 			rpc_http: None,
+			rpc_id_provider: None,
 			rpc_ipc: None,
 			rpc_ws: None,
 			rpc_ws_max_connections: None,
 			rpc_cors: None,
 			rpc_methods: Default::default(),
 			rpc_max_payload: None,
+			rpc_max_request_size: None,
+			rpc_max_response_size: None,
+			rpc_max_subs_per_conn: None,
 			ws_max_out_buffer_capacity: None,
 			prometheus_config: None,
 			telemetry_endpoints: None,

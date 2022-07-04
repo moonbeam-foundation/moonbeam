@@ -16,12 +16,15 @@
 
 //! Encoding of XCM types for solidity
 
-use crate::{revert, Bytes, EvmData, EvmDataReader, EvmDataWriter, EvmResult};
-
-use frame_support::ensure;
-use sp_std::vec::Vec;
-use xcm::latest::{Junction, Junctions, MultiLocation, NetworkId};
-
+use {
+	crate::{
+		data::{Bytes, EvmData, EvmDataReader, EvmDataWriter},
+		revert, EvmResult,
+	},
+	frame_support::ensure,
+	sp_std::vec::Vec,
+	xcm::latest::{Junction, Junctions, MultiLocation, NetworkId},
+};
 // Function to convert network id to bytes
 // We don't implement EVMData here as these bytes will be appended only
 // to certain Junction variants

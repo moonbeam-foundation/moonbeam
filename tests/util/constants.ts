@@ -6,6 +6,7 @@ export const MOONBEAM_LOG = process.env.MOONBEAM_LOG || "info";
 
 export const BINARY_PATH = process.env.BINARY_PATH || `../target/release/moonbeam`;
 export const RELAY_BINARY_PATH = process.env.RELAY_BINARY_PATH || `../target/release/polkadot`;
+export const RELAY_LOG = process.env.RELAY_LOG;
 
 // Is undefined by default as the path is dependent of the runtime.
 export const OVERRIDE_RUNTIME_PATH = process.env["OVERRIDE_RUNTIME_PATH"] || undefined;
@@ -39,8 +40,8 @@ export const BLOCK_TX_LIMIT = GAS_PER_SECOND * 0.5;
 
 // Current implementation is limiting block transactions to 75% of the block gas limit
 export const BLOCK_TX_GAS_LIMIT = BLOCK_TX_LIMIT * 0.75;
-// 125_000_000 Weight per extrinsics
-export const EXTRINSIC_BASE_COST = 125_000_000 / GAS_PER_WEIGHT;
+// 85_800_000 Weight per extrinsics
+export const EXTRINSIC_BASE_COST = 85_800_000 / GAS_PER_WEIGHT;
 
 // Maximum extrinsic weight is taken from the max allowed transaction weight per block,
 // minus the block initialization (10%) and minus the extrinsic base cost.
