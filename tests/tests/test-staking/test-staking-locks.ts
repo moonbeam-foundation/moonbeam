@@ -250,7 +250,7 @@ describeDevMoonbeam("Staking - Locks", (context) => {
   let maxDelegationsPerDelegator: bigint;
 
   before("Setup candidate & delegations", async function () {
-    this.timeout(12000);
+    this.timeout(20000);
     maxDelegationsPerDelegator =
       context.polkadotApi.consts.parachainStaking.maxDelegationsPerDelegator.toBigInt();
     randomCandidates = new Array(Number(maxDelegationsPerDelegator))
@@ -357,7 +357,7 @@ describeDevMoonbeam("Staking - Locks", (context) => {
   let additionalDelegators: KeyringPair[];
 
   before("Setup candidate & delegations", async function () {
-    this.timeout(10000);
+    this.timeout(20000);
     // Create the delegators to fill the lists
     additionalDelegators = new Array(
       context.polkadotApi.consts.parachainStaking.maxTopDelegationsPerCandidate.toNumber() +
@@ -376,7 +376,7 @@ describeDevMoonbeam("Staking - Locks", (context) => {
   });
 
   it("should get removed when bumped out of bottom list", async function () {
-    this.timeout(10000);
+    this.timeout(20000);
     await context.createBlock(
       context.polkadotApi.tx.parachainStaking
         .delegate(alith.address, MIN_GLMR_STAKING, 1, 1)
@@ -408,7 +408,7 @@ describeDevMoonbeam("Staking - Locks", (context) => {
   let topDelegators: KeyringPair[];
 
   before("Setup candidate & delegations", async function () {
-    this.timeout(10000);
+    this.timeout(20000);
     // Create the delegators to fill the lists
     bottomDelegators = new Array(
       context.polkadotApi.consts.parachainStaking.maxBottomDelegationsPerCandidate.toNumber()
@@ -431,7 +431,7 @@ describeDevMoonbeam("Staking - Locks", (context) => {
   });
 
   it("should be set for bottom and top list delegators", async function () {
-    this.timeout(10000);
+    this.timeout(20000);
     await context.createBlock(
       [...topDelegators].map((account, i) =>
         context.polkadotApi.tx.parachainStaking
