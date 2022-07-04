@@ -2,7 +2,7 @@ import "@moonbeam-network/api-augment";
 
 import { expect } from "chai";
 
-import { alith, generateKeyingPair } from "../../util/accounts";
+import { alith, generateKeyringPair } from "../../util/accounts";
 import { GLMR, VOTE_AMOUNT, ZERO_ADDRESS } from "../../util/constants";
 import { instantFastTrack, notePreimage } from "../../util/governance";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
@@ -100,7 +100,7 @@ describeDevMoonbeam("Democracy - Referendum", (context) => {
 
 describeDevMoonbeam("Democracy - Referendum", (context) => {
   let encodedHash: string;
-  const randomAccount = generateKeyingPair();
+  const randomAccount = generateKeyringPair();
 
   before("Setup a vote & random account & delegation", async () => {
     // notePreimage

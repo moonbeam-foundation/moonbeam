@@ -2,7 +2,7 @@ import "@moonbeam-network/api-augment";
 
 import { expect } from "chai";
 
-import { alith, generateKeyingPair } from "../../util/accounts";
+import { alith, generateKeyringPair } from "../../util/accounts";
 import { GLMR, MIN_GLMR_STAKING } from "../../util/constants";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { KeyringPair } from "@polkadot/keyring/types";
@@ -10,7 +10,7 @@ import { KeyringPair } from "@polkadot/keyring/types";
 const DELEGATE_AMOUNT = 100n * GLMR;
 
 describeDevMoonbeam("Staking Consts - MaxDelegationsPerDelegator", (context) => {
-  const randomAccount = generateKeyingPair();
+  const randomAccount = generateKeyringPair();
   let randomCandidates: KeyringPair[];
   let maxDelegationsPerDelegator: bigint;
   let overMaxDelegationsPerDelegator: bigint;
@@ -23,7 +23,7 @@ describeDevMoonbeam("Staking Consts - MaxDelegationsPerDelegator", (context) => 
 
     randomCandidates = new Array(Number(overMaxDelegationsPerDelegator))
       .fill(0)
-      .map(() => generateKeyingPair());
+      .map(() => generateKeyringPair());
 
     let alithNonce = await context.web3.eth.getTransactionCount(alith.address);
     await context.createBlock([

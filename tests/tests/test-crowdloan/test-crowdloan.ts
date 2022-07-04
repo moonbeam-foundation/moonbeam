@@ -11,7 +11,7 @@ import {
   ALITH_GENESIS_FREE_BALANCE,
   ALITH_GENESIS_TRANSFERABLE_BALANCE,
   baltathar,
-  generateKeyingPair,
+  generateKeyringPair,
 } from "../../util/accounts";
 import { verifyLatestBlockFees } from "../../util/block";
 import { DEFAULT_GENESIS_BALANCE, GLMR } from "../../util/constants";
@@ -535,8 +535,8 @@ describeDevMoonbeam("Crowdloan", (context) => {
 });
 
 describeDevMoonbeam("Crowdloan", (context) => {
-  const relayAccount = generateKeyingPair("ed25519");
-  const toAssociateAccount = generateKeyingPair();
+  const relayAccount = generateKeyringPair("ed25519");
+  const toAssociateAccount = generateKeyringPair();
 
   it("should be able to associate identity", async function () {
     await context.createBlock(
@@ -629,10 +629,10 @@ describeDevMoonbeam("Crowdloan", (context) => {
 });
 
 describeDevMoonbeam("Crowdloan", (context) => {
-  const relayAccount = generateKeyingPair("ed25519");
-  const relayAccount2 = generateKeyingPair("ed25519");
-  const firstAccount = generateKeyingPair();
-  const toAssociateAccount = generateKeyingPair();
+  const relayAccount = generateKeyringPair("ed25519");
+  const relayAccount2 = generateKeyringPair("ed25519");
+  const firstAccount = generateKeyringPair();
+  const toAssociateAccount = generateKeyringPair();
 
   it("should be able to change reward address with relay keys", async function () {
     await context.createBlock(
@@ -695,7 +695,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
 });
 
 describeDevMoonbeam("Crowdloan", (context) => {
-  const toUpdateAccount = generateKeyingPair();
+  const toUpdateAccount = generateKeyringPair();
 
   it("should be able to update reward address", async function () {
     await context.createBlock(

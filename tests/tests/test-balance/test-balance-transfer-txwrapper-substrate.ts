@@ -15,7 +15,7 @@ import { getRegistryBase } from "@substrate/txwrapper-core/lib/core/metadata";
 import { methods as substrateMethods } from "@substrate/txwrapper-substrate";
 import { expect } from "chai";
 
-import { alith, ALITH_GENESIS_LOCK_BALANCE, generateKeyingPair } from "../../util/accounts";
+import { alith, ALITH_GENESIS_LOCK_BALANCE, generateKeyringPair } from "../../util/accounts";
 import { verifyLatestBlockFees } from "../../util/block";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { rpcToLocalNode } from "../../util/transactions";
@@ -46,7 +46,7 @@ export function signWith(
 }
 
 describeDevMoonbeam("Balance transfer - txwrapper", (context) => {
-  const randomAccount = generateKeyingPair();
+  const randomAccount = generateKeyringPair();
   before("Create block with transfer to test account of 512", async function () {
     // txwrapper takes more time to initiate :/
     this.timeout(10000);

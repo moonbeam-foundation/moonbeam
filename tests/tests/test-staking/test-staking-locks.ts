@@ -2,7 +2,7 @@ import "@moonbeam-network/api-augment";
 
 import { expect } from "chai";
 
-import { alith, baltathar, generateKeyingPair } from "../../util/accounts";
+import { alith, baltathar, generateKeyringPair } from "../../util/accounts";
 import {
   execCouncilProposal,
   execTechnicalCommitteeProposal,
@@ -15,7 +15,7 @@ import { KeyringPair } from "@polkadot/keyring/types";
 
 const DELEGATE_AMOUNT = 100n * GLMR;
 describeDevMoonbeam("Staking - Locks", (context) => {
-  const randomAccount = generateKeyingPair();
+  const randomAccount = generateKeyringPair();
 
   before("Setup account balance", async function () {
     await context.createBlock(
@@ -38,7 +38,7 @@ describeDevMoonbeam("Staking - Locks", (context) => {
 });
 
 describeDevMoonbeam("Staking - Locks", (context) => {
-  const randomAccount = generateKeyingPair();
+  const randomAccount = generateKeyringPair();
 
   before("Setup account balance & delegation", async function () {
     await context.createBlock(
@@ -62,7 +62,7 @@ describeDevMoonbeam("Staking - Locks", (context) => {
 });
 
 describeDevMoonbeam("Staking - Locks", (context) => {
-  const randomAccount = generateKeyingPair();
+  const randomAccount = generateKeyringPair();
 
   before("Setup account balance & delegation", async function () {
     await context.createBlock(
@@ -86,7 +86,7 @@ describeDevMoonbeam("Staking - Locks", (context) => {
 });
 
 describeDevMoonbeam("Staking - Locks", (context) => {
-  const randomAccount = generateKeyingPair();
+  const randomAccount = generateKeyringPair();
 
   before("Setup account balance & staking", async function () {
     await context.createBlock(
@@ -127,7 +127,7 @@ describeDevMoonbeam("Staking - Locks", (context) => {
 });
 
 describeDevMoonbeam("Staking - Locks", (context) => {
-  const randomAccount = generateKeyingPair();
+  const randomAccount = generateKeyringPair();
 
   before("Setup account balance", async function () {
     await context.createBlock(
@@ -154,7 +154,7 @@ describeDevMoonbeam("Staking - Locks", (context) => {
 });
 
 describeDevMoonbeam("Staking - Locks", (context) => {
-  const randomAccount = generateKeyingPair();
+  const randomAccount = generateKeyringPair();
 
   before("Setup account balance", async function () {
     await context.createBlock(
@@ -190,7 +190,7 @@ describeDevMoonbeam("Staking - Locks", (context) => {
 });
 
 describeDevMoonbeam("Staking - Locks", (context) => {
-  const randomAccount = generateKeyingPair();
+  const randomAccount = generateKeyringPair();
 
   before("Setup candidate & delegations", async function () {
     await context.createBlock([
@@ -245,7 +245,7 @@ describeDevMoonbeam("Staking - Locks", (context) => {
 });
 
 describeDevMoonbeam("Staking - Locks", (context) => {
-  const randomAccount = generateKeyingPair();
+  const randomAccount = generateKeyringPair();
   let randomCandidates: KeyringPair[];
   let maxDelegationsPerDelegator: bigint;
 
@@ -255,7 +255,7 @@ describeDevMoonbeam("Staking - Locks", (context) => {
       context.polkadotApi.consts.parachainStaking.maxDelegationsPerDelegator.toBigInt();
     randomCandidates = new Array(Number(maxDelegationsPerDelegator))
       .fill(0)
-      .map(() => generateKeyingPair());
+      .map(() => generateKeyringPair());
 
     let alithNonce = await context.web3.eth.getTransactionCount(alith.address);
     await context.createBlock([
@@ -311,7 +311,7 @@ describeDevMoonbeam("Staking - Locks", (context) => {
 });
 
 describeDevMoonbeam("Staking - Locks", (context) => {
-  const randomAccount = generateKeyingPair();
+  const randomAccount = generateKeyringPair();
 
   before("Setup candidate & delegations", async function () {
     await context.createBlock([
@@ -353,17 +353,18 @@ describeDevMoonbeam("Staking - Locks", (context) => {
 });
 
 describeDevMoonbeam("Staking - Locks", (context) => {
-  const randomAccount = generateKeyingPair();
+  const randomAccount = generateKeyringPair();
   let additionalDelegators: KeyringPair[];
 
   before("Setup candidate & delegations", async function () {
+    this.timeout(10000);
     // Create the delegators to fill the lists
     additionalDelegators = new Array(
       context.polkadotApi.consts.parachainStaking.maxTopDelegationsPerCandidate.toNumber() +
         context.polkadotApi.consts.parachainStaking.maxBottomDelegationsPerCandidate.toNumber()
     )
       .fill(0)
-      .map(() => generateKeyingPair());
+      .map(() => generateKeyringPair());
 
     await context.createBlock(
       [randomAccount, ...additionalDelegators].map((account, i) =>
@@ -407,17 +408,18 @@ describeDevMoonbeam("Staking - Locks", (context) => {
   let topDelegators: KeyringPair[];
 
   before("Setup candidate & delegations", async function () {
+    this.timeout(10000);
     // Create the delegators to fill the lists
     bottomDelegators = new Array(
       context.polkadotApi.consts.parachainStaking.maxBottomDelegationsPerCandidate.toNumber()
     )
       .fill(0)
-      .map(() => generateKeyingPair());
+      .map(() => generateKeyringPair());
     topDelegators = new Array(
       context.polkadotApi.consts.parachainStaking.maxTopDelegationsPerCandidate.toNumber()
     )
       .fill(0)
-      .map(() => generateKeyingPair());
+      .map(() => generateKeyringPair());
 
     await context.createBlock(
       [...bottomDelegators, ...topDelegators].map((account, i) =>

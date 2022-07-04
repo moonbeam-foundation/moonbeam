@@ -8,7 +8,7 @@ import {
   baltathar,
   BALTATHAR_SESSION_ADDRESS,
   CHARLETH_SESSION_ADDRESS,
-  generateKeyingPair,
+  generateKeyringPair,
 } from "../../util/accounts";
 import { DEFAULT_GENESIS_BALANCE, DEFAULT_GENESIS_MAPPING, GLMR } from "../../util/constants";
 import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
@@ -118,7 +118,7 @@ describeDevMoonbeam("Author Mapping - Fail to reassociate alice", (context) => {
 
 describeDevMoonbeam("Author Mapping - Fail without deposit", (context) => {
   before("setup association", async function () {
-    const rando = generateKeyingPair();
+    const rando = generateKeyringPair();
     expect(
       (await context.polkadotApi.query.system.account(rando.address)).data.free.toBigInt()
     ).to.eq(0n);

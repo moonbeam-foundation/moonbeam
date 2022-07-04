@@ -6,7 +6,7 @@ import {
   alith,
   ALITH_GENESIS_LOCK_BALANCE,
   ALITH_GENESIS_TRANSFERABLE_BALANCE,
-  generateKeyingPair,
+  generateKeyringPair,
 } from "../../util/accounts";
 import { verifyLatestBlockFees } from "../../util/block";
 import { customWeb3Request } from "../../util/providers";
@@ -18,7 +18,7 @@ import {
 } from "../../util/transactions";
 
 describeDevMoonbeamAllEthTxTypes("Balance transfer cost", (context) => {
-  const randomAccount = generateKeyingPair();
+  const randomAccount = generateKeyringPair();
   it("should cost 21000 * 1_000_000_000", async function () {
     await context.createBlock(createTransfer(context, randomAccount.address, 0));
 
@@ -29,7 +29,7 @@ describeDevMoonbeamAllEthTxTypes("Balance transfer cost", (context) => {
 });
 
 describeDevMoonbeamAllEthTxTypes("Balance transfer", (context) => {
-  const randomAccount = generateKeyingPair();
+  const randomAccount = generateKeyringPair();
   before("Create block with transfer to test account of 512", async () => {
     await customWeb3Request(context.web3, "eth_sendRawTransaction", [
       await createTransfer(context, randomAccount.address, 512),
@@ -66,7 +66,7 @@ describeDevMoonbeamAllEthTxTypes("Balance transfer", (context) => {
 });
 
 describeDevMoonbeamAllEthTxTypes("Balance transfer - fees", (context) => {
-  const randomAccount = generateKeyingPair();
+  const randomAccount = generateKeyringPair();
   before("Create block with transfer to test account of 512", async () => {
     await context.createBlock(createTransfer(context, randomAccount.address, 512));
   });
@@ -79,7 +79,7 @@ describeDevMoonbeam(
   "Balance transfer - EIP1559 fees",
   (context) => {
     it("should handle max_fee_per_gas", async function () {
-      const randomAccount = generateKeyingPair();
+      const randomAccount = generateKeyringPair();
       const preBalance = BigInt(await context.web3.eth.getBalance(alith.address));
       // With this configuration no priority fee will be used, as the max_fee_per_gas is exactly the
       // base fee. Expect the balances to reflect this case.
@@ -109,7 +109,7 @@ describeDevMoonbeam(
   "Balance transfer - EIP1559 fees",
   (context) => {
     it("should use partial max_priority_fee_per_gas", async function () {
-      const randomAccount = generateKeyingPair();
+      const randomAccount = generateKeyringPair();
       const preBalance = BigInt(await context.web3.eth.getBalance(alith.address));
       // With this configuration only half of the priority fee will be used, as the max_fee_per_gas
       // is 2GWEI and the base fee is 1GWEI.

@@ -85,7 +85,7 @@ export const goliath = keyringEth.addFromUri(GOLIATH_PRIVATE_KEY);
 export const gerald = keyringEth.addFromUri(GERALD_PRIVATE_KEY);
 
 let accountSeed = 10000;
-export function generateKeyingPair(type: "ethereum" | "sr25519" | "ed25519" = "ethereum") {
+export function generateKeyringPair(type: "ethereum" | "sr25519" | "ed25519" = "ethereum") {
   const privateKey = `0xDEADBEEF${(accountSeed++).toString(16).padStart(56, "0")}`;
   if (type == "sr25519") {
     return keyringSr25519.addFromUri(privateKey);
