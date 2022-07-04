@@ -3,7 +3,7 @@ pragma solidity >=0.8.0;
 
 /// @title Solidity test file
 interface SolidityTest {
-    /// Function without params
+    /// @dev Function without params and no selector
     function fnNoArgs() external;
 
     /// @dev Function info
