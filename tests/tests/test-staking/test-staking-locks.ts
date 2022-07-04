@@ -375,6 +375,7 @@ describeDevMoonbeam("Staking - Locks", (context) => {
   });
 
   it("should get removed when bumped out of bottom list", async function () {
+    this.timeout(10000);
     await context.createBlock(
       context.polkadotApi.tx.parachainStaking
         .delegate(alith.address, MIN_GLMR_STAKING, 1, 1)
@@ -428,6 +429,7 @@ describeDevMoonbeam("Staking - Locks", (context) => {
   });
 
   it("should be set for bottom and top list delegators", async function () {
+    this.timeout(10000);
     await context.createBlock(
       [...topDelegators].map((account, i) =>
         context.polkadotApi.tx.parachainStaking
