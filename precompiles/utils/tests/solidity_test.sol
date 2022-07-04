@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity >=0.8.0;
 
-/// @title Solidity test file
+/// @title Solidity test file with incorrectly defined selectors
 interface SolidityTest {
     /// @dev Function without params and no selector
     function fnNoArgs() external;
