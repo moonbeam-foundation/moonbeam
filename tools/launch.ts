@@ -313,6 +313,7 @@ async function start() {
     }
   }
 
+  console.log(paraIds)
   if (argv["parachain-runtime"]) {
     const sha = child_process.execSync(`git rev-list -1 ${argv["parachain-runtime"]}`);
     if (!sha) {
@@ -481,6 +482,8 @@ async function start() {
       node.port = startingPort + 100 + i * 100 + index * 10;
       node.rpcPort = startingPort + 101 + i * 100 + index * 10;
       node.wsPort = startingPort + 102 + i * 100 + index * 10;
+
+      node.flags.unshift("--parachain-id=" +  paraIds[i]);
     });
 
     launchConfig.parachains.push(parachainConfig);
