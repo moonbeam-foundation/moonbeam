@@ -51,6 +51,8 @@ pub type MaxAssetsForTransfer<Runtime> = <Runtime as orml_xtokens::Config>::MaxA
 
 pub type CurrencyIdOf<Runtime> = <Runtime as orml_xtokens::Config>::CurrencyId;
 
+pub const ARRAY_LIMIT: usize = 512;
+
 #[generate_function_selector]
 #[derive(Debug, PartialEq)]
 pub enum Action {
@@ -270,7 +272,8 @@ where
 	) -> EvmResult<PrecompileOutput> {
 		let mut input = handle.read_input()?;
 		input.expect_arguments(4)?;
-		let non_mapped_currencies: Vec<Currency> = input.read::<Vec<Currency>>()?;
+		let non_mapped_currencies: BoundedVec<Currency, ARRAY_LIMIT> = input.read()?;
+		let non_mapped_currencies = non_mapped_currencies.0;
 		let max_assets = MaxAssetsForTransfer::<Runtime>::get();
 
 		// We check this here so that we avoid iterating over the vec
@@ -332,7 +335,8 @@ where
 	fn transfer_multi_assets(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		let mut input = handle.read_input()?;
 		input.expect_arguments(4)?;
-		let assets: Vec<EvmMultiAsset> = input.read::<Vec<EvmMultiAsset>>()?;
+		let assets: BoundedVec<EvmMultiAsset, ARRAY_LIMIT> = input.read()?;
+		let assets = assets.0;
 		let max_assets = MaxAssetsForTransfer::<Runtime>::get();
 
 		// We check this here so that we avoid iterating over the vec

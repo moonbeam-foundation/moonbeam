@@ -24,7 +24,7 @@ use fp_evm::{
 };
 use precompile_utils::{costs::call_cost, prelude::*};
 use sp_core::{H160, U256};
-use sp_std::{iter::repeat, marker::PhantomData, vec, vec::Vec};
+use sp_std::{iter::repeat, marker::PhantomData, vec};
 
 #[cfg(test)]
 mod mock;
@@ -42,6 +42,7 @@ pub enum Action {
 pub const LOG_SUBCALL_SUCCEEDED: [u8; 32] = keccak256!("SubcallSucceeded(uint256)");
 pub const LOG_SUBCALL_FAILED: [u8; 32] = keccak256!("SubcallFailed(uint256)");
 pub const CALL_DATA_LIMIT: usize = 2usize.pow(16);
+pub const ARRAY_LIMIT: usize = 512;
 
 pub fn log_subcall_succeeded(address: impl Into<H160>, index: usize) -> Log {
 	log1(
@@ -84,15 +85,19 @@ where
 {
 	fn batch(handle: &mut impl PrecompileHandle, action: Action) -> EvmResult<PrecompileOutput> {
 		let mut input = handle.read_input()?;
-		let addresses: Vec<Address> = input.read()?;
-		let values: Vec<U256> = input.read()?;
-		let calls_data: Vec<BoundedBytes<CALL_DATA_LIMIT>> = input.read()?;
-		let gas_limits: Vec<u64> = input.read()?;
+		let addresses: BoundedVec<Address, ARRAY_LIMIT> = input.read()?;
+		let values: BoundedVec<U256, ARRAY_LIMIT> = input.read()?;
+		let calls_data: BoundedVec<BoundedBytes<CALL_DATA_LIMIT>, ARRAY_LIMIT> = input.read()?;
+		let gas_limits: BoundedVec<u64, ARRAY_LIMIT> = input.read()?;
 
-		let addresses = addresses.into_iter().enumerate();
-		let values = values.into_iter().map(|x| Some(x)).chain(repeat(None));
-		let calls_data = calls_data.into_iter().map(|x| Some(x)).chain(repeat(None));
-		let gas_limits = gas_limits.into_iter().map(|x|
+		let addresses = addresses.0.into_iter().enumerate();
+		let values = values.0.into_iter().map(|x| Some(x)).chain(repeat(None));
+		let calls_data = calls_data
+			.0
+			.into_iter()
+			.map(|x| Some(x))
+			.chain(repeat(None));
+		let gas_limits = gas_limits.0.into_iter().map(|x|
 			// x = 0 => forward all remaining gas
 			if x == 0 {
 				None

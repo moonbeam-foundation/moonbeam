@@ -62,6 +62,7 @@ pub trait StakeEncodeCall {
 }
 
 pub const REWARD_DESTINATION_SIZE_LIMIT: usize = 2usize.pow(16);
+pub const ARRAY_LIMIT: usize = 512;
 
 #[generate_function_selector]
 #[derive(Debug, PartialEq)]
@@ -212,9 +213,10 @@ where
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		let mut input = handle.read_input()?;
-		let nominated_as_h256: Vec<H256> = input.read()?;
+		let nominated_as_h256: BoundedVec<H256, ARRAY_LIMIT> = input.read()?;
 
 		let nominated: Vec<AccountId32> = nominated_as_h256
+			.0
 			.iter()
 			.map(|&add| {
 				let as_bytes: [u8; 32] = add.into();

@@ -469,60 +469,6 @@ impl EvmData for bool {
 	}
 }
 
-impl<T: EvmData> EvmData for Vec<T> {
-	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
-		let mut inner_reader = reader.read_pointer()?;
-
-		let array_size: usize = inner_reader
-			.read::<U256>()
-			.map_err(|_| revert("tried to parse array length out of bounds"))?
-			.try_into()
-			.map_err(|_| revert("array length is too large"))?;
-
-		let mut array = vec![];
-
-		let mut item_reader = EvmDataReader {
-			input: inner_reader
-				.input
-				.get(32..)
-				.ok_or_else(|| revert("try to read array items out of bound"))?,
-			cursor: 0,
-		};
-
-		for _ in 0..array_size {
-			array.push(item_reader.read()?);
-		}
-
-		Ok(array)
-	}
-
-	fn write(writer: &mut EvmDataWriter, value: Self) {
-		let mut inner_writer = EvmDataWriter::new().write(U256::from(value.len()));
-
-		for inner in value {
-			// Any offset in items are relative to the start of the item instead of the
-			// start of the array. However if there is offseted data it must but appended after
-			// all items (offsets) are written. We thus need to rely on `compute_offsets` to do
-			// that, and must store a "shift" to correct the offsets.
-			let shift = inner_writer.data.len();
-			let item_writer = EvmDataWriter::new().write(inner);
-
-			inner_writer = inner_writer.write_raw_bytes(&item_writer.data);
-			for mut offset_datum in item_writer.offset_data {
-				offset_datum.offset_shift += 32;
-				offset_datum.offset_position += shift;
-				inner_writer.offset_data.push(offset_datum);
-			}
-		}
-
-		writer.write_pointer(inner_writer.build());
-	}
-
-	fn has_static_size() -> bool {
-		false
-	}
-}
-
 impl EvmData for Bytes {
 	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
 		Ok(Bytes(BoundedBytes::<{ usize::MAX }>::read(reader)?.0))
@@ -586,6 +532,83 @@ impl<const MAX_LENGTH: usize> EvmData for BoundedBytes<MAX_LENGTH> {
 				.write_raw_bytes(&value)
 				.build(),
 		);
+	}
+
+	fn has_static_size() -> bool {
+		false
+	}
+}
+
+impl<T: EvmData> EvmData for Vec<T> {
+	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
+		BoundedVec::<T, { usize::MAX }>::read(reader).map(|x| x.0)
+	}
+
+	fn write(writer: &mut EvmDataWriter, value: Self) {
+		BoundedVec::<T, { usize::MAX }>::write(writer, BoundedVec(value))
+	}
+
+	fn has_static_size() -> bool {
+		false
+	}
+}
+
+/// Wrapper around a Vec that provides a max length bound on read.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct BoundedVec<T, const MAX_LENGTH: usize>(pub Vec<T>);
+
+impl<T: EvmData, const MAX_LENGTH: usize> EvmData for BoundedVec<T, MAX_LENGTH> {
+	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
+		let mut inner_reader = reader.read_pointer()?;
+
+		let array_size: usize = inner_reader
+			.read::<U256>()
+			.map_err(|_| revert("tried to parse array length out of bounds"))?
+			.try_into()
+			.map_err(|_| revert("array length is too large"))?;
+
+		if array_size > MAX_LENGTH {
+			return Err(revert("array length is too large"));
+		}
+
+		let mut array = vec![];
+
+		let mut item_reader = EvmDataReader {
+			input: inner_reader
+				.input
+				.get(32..)
+				.ok_or_else(|| revert("try to read array items out of bound"))?,
+			cursor: 0,
+		};
+
+		for _ in 0..array_size {
+			array.push(item_reader.read()?);
+		}
+
+		Ok(BoundedVec(array))
+	}
+
+	fn write(writer: &mut EvmDataWriter, value: Self) {
+		let value = value.0;
+		let mut inner_writer = EvmDataWriter::new().write(U256::from(value.len()));
+
+		for inner in value {
+			// Any offset in items are relative to the start of the item instead of the
+			// start of the array. However if there is offseted data it must but appended after
+			// all items (offsets) are written. We thus need to rely on `compute_offsets` to do
+			// that, and must store a "shift" to correct the offsets.
+			let shift = inner_writer.data.len();
+			let item_writer = EvmDataWriter::new().write(inner);
+
+			inner_writer = inner_writer.write_raw_bytes(&item_writer.data);
+			for mut offset_datum in item_writer.offset_data {
+				offset_datum.offset_shift += 32;
+				offset_datum.offset_position += shift;
+				inner_writer.offset_data.push(offset_datum);
+			}
+		}
+
+		writer.write_pointer(inner_writer.build());
 	}
 
 	fn has_static_size() -> bool {
