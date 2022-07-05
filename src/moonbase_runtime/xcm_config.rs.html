@@ -536,6 +536,14 @@
 <span id="531">531</span>
 <span id="532">532</span>
 <span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -562,7 +570,10 @@
 };
 
 <span class="kw">use</span> <span class="ident">pallet_evm_precompileset_assets_erc20::AccountIdAssetIdConversion</span>;
-<span class="kw">use</span> <span class="ident">sp_runtime::traits::Hash</span> <span class="kw">as</span> <span class="ident">THash</span>;
+<span class="kw">use</span> <span class="ident">sp_runtime</span>::{
+	<span class="ident">traits</span>::{<span class="ident">Hash</span> <span class="kw">as</span> <span class="ident">THash</span>, <span class="ident">PostDispatchInfoOf</span>},
+	<span class="ident">DispatchErrorWithPostInfo</span>,
+};
 
 <span class="kw">use</span> <span class="ident">frame_support</span>::{
 	<span class="ident">parameter_types</span>,
@@ -570,7 +581,7 @@
 	<span class="ident">weights::Weight</span>,
 };
 
-<span class="kw">use</span> <span class="ident">frame_system::EnsureRoot</span>;
+<span class="kw">use</span> <span class="ident">frame_system</span>::{<span class="ident">EnsureRoot</span>, <span class="ident">RawOrigin</span>};
 <span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">H160</span>, <span class="ident">H256</span>};
 
 <span class="kw">use</span> <span class="ident">xcm_builder</span>::{
@@ -583,7 +594,7 @@
 };
 
 <span class="kw">use</span> <span class="ident">xcm::latest::prelude</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">xcm_executor::traits::JustTry</span>;
+<span class="kw">use</span> <span class="ident">xcm_executor::traits</span>::{<span class="ident">CallDispatcher</span>, <span class="ident">JustTry</span>};
 
 <span class="kw">use</span> <span class="ident">orml_xcm_support::MultiNativeAsset</span>;
 <span class="kw">use</span> <span class="ident">xcm_primitives</span>::{
@@ -792,6 +803,10 @@
 	<span class="ident">XcmFeesAccount</span>,
 <span class="op">&gt;</span>;
 
+<span class="comment">// Our implementation of the Moonbeam Call</span>
+<span class="comment">// Attachs the right origin in case the call is made to pallet-ethereum-xcm</span>
+<span class="macro">moonbeam_runtime_common::impl_moonbeam_xcm_call!</span>();
+
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">XcmExecutorConfig</span>;
 <span class="kw">impl</span> <span class="ident">xcm_executor::Config</span> <span class="kw">for</span> <span class="ident">XcmExecutorConfig</span> {
 	<span class="kw">type</span> <span class="ident">Call</span> <span class="op">=</span> <span class="ident">Call</span>;
@@ -826,6 +841,7 @@
 	<span class="kw">type</span> <span class="ident">SubscriptionService</span> <span class="op">=</span> <span class="ident">PolkadotXcm</span>;
 	<span class="kw">type</span> <span class="ident">AssetTrap</span> <span class="op">=</span> <span class="ident">PolkadotXcm</span>;
 	<span class="kw">type</span> <span class="ident">AssetClaims</span> <span class="op">=</span> <span class="ident">PolkadotXcm</span>;
+	<span class="kw">type</span> <span class="ident">CallDispatcher</span> <span class="op">=</span> <span class="ident">MoonbeamCall</span>;
 }
 
 <span class="kw">type</span> <span class="ident">XcmExecutor</span> <span class="op">=</span> <span class="ident">xcm_executor::XcmExecutor</span><span class="op">&lt;</span><span class="ident">XcmExecutorConfig</span><span class="op">&gt;</span>;

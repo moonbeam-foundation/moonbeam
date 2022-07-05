@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["moonbase_runtime"] = [{"text":"impl CallDispatcher&lt;<a class=\"enum\" href=\"moonbase_runtime/enum.Call.html\" title=\"enum moonbase_runtime::Call\">Call</a>&gt; for <a class=\"struct\" href=\"moonbase_runtime/xcm_config/struct.MoonbeamCall.html\" title=\"struct moonbase_runtime::xcm_config::MoonbeamCall\">MoonbeamCall</a>","synthetic":false,"types":["moonbase_runtime::xcm_config::MoonbeamCall"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
