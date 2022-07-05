@@ -302,7 +302,7 @@ describeDevMoonbeam("Staking - Locks", (context) => {
       Number(maxDelegationsPerDelegator),
       "Missing delegation"
     );
-    // Only 1 over the 2 delegations has been revoked
+    // We should gave locked DELEGATE_AMOUNT * maxDelegationsPerDelegator
     const locks = await context.polkadotApi.query.balances.locks(randomAccount.address);
     expect(locks.length).to.be.equal(1, "Missing lock");
     expect(locks[0].amount.toBigInt()).to.be.equal(DELEGATE_AMOUNT * maxDelegationsPerDelegator);
