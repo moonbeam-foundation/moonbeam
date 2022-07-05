@@ -16,10 +16,17 @@
 
 //! Test utilities
 use crate as pallet_parachain_staking;
-use crate::{pallet, AwardedPts, Config, InflationInfo, Points, Range};
+use crate::{
+	pallet, AwardedPts, CandidateInfo, CollatorReserveToLockMigrations, Config,
+	DelegatorReserveToLockMigrations, DelegatorState, InflationInfo, Points, Range,
+	COLLATOR_LOCK_ID, DELEGATOR_LOCK_ID,
+};
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Everything, GenesisBuild, OnFinalize, OnInitialize},
+	traits::{
+		Everything, GenesisBuild, LockIdentifier, LockableCurrency, OnFinalize, OnInitialize,
+		ReservableCurrency,
+	},
 	weights::Weight,
 };
 use sp_core::H256;
@@ -405,6 +412,38 @@ pub(crate) fn set_author(round: u32, acc: u64, pts: u32) {
 	<AwardedPts<Test>>::mutate(round, acc, |p| *p += pts);
 }
 
+/// fn to query the lock amount
+pub(crate) fn query_lock_amount(account_id: u64, id: LockIdentifier) -> Option<Balance> {
+	for lock in Balances::locks(&account_id) {
+		if lock.id == id {
+			return Some(lock.amount);
+		}
+	}
+	None
+}
+
+/// fn to reverse-migrate a delegator account from locks back to reserve.
+/// This is used to test the reserve -> lock migration.
+pub(crate) fn unmigrate_delegator_from_lock_to_reserve(account_id: u64) {
+	<DelegatorReserveToLockMigrations<Test>>::remove(&account_id);
+	Balances::remove_lock(DELEGATOR_LOCK_ID, &account_id);
+
+	if let Some(delegator_state) = <DelegatorState<Test>>::get(&account_id) {
+		Balances::reserve(&account_id, delegator_state.total()).expect("reserve() failed");
+	}
+}
+
+/// fn to reverse-migrate a collator account from locks back to reserve.
+/// This is used to test the reserve -> lock migration.
+pub(crate) fn unmigrate_collator_from_lock_to_reserve(account_id: u64) {
+	<CollatorReserveToLockMigrations<Test>>::remove(&account_id);
+	Balances::remove_lock(COLLATOR_LOCK_ID, &account_id);
+
+	if let Some(collator_state) = <CandidateInfo<Test>>::get(&account_id) {
+		Balances::reserve(&account_id, collator_state.bond).expect("reserve() failed");
+	}
+}
+
 #[test]
 fn geneses() {
 	ExtBuilder::default()
@@ -425,28 +464,45 @@ fn geneses() {
 		.execute_with(|| {
 			assert!(System::events().is_empty());
 			// collators
-			assert_eq!(Balances::reserved_balance(&1), 500);
-			assert_eq!(Balances::free_balance(&1), 500);
+			assert_eq!(
+				ParachainStaking::get_collator_stakable_free_balance(&1),
+				500
+			);
+			assert_eq!(query_lock_amount(1, COLLATOR_LOCK_ID), Some(500));
 			assert!(ParachainStaking::is_candidate(&1));
-			assert_eq!(Balances::reserved_balance(&2), 200);
-			assert_eq!(Balances::free_balance(&2), 100);
+			assert_eq!(query_lock_amount(2, COLLATOR_LOCK_ID), Some(200));
+			assert_eq!(
+				ParachainStaking::get_collator_stakable_free_balance(&2),
+				100
+			);
 			assert!(ParachainStaking::is_candidate(&2));
 			// delegators
 			for x in 3..7 {
 				assert!(ParachainStaking::is_delegator(&x));
-				assert_eq!(Balances::free_balance(&x), 0);
-				assert_eq!(Balances::reserved_balance(&x), 100);
+				assert_eq!(ParachainStaking::get_delegator_stakable_free_balance(&x), 0);
+				assert_eq!(query_lock_amount(x, DELEGATOR_LOCK_ID), Some(100));
 			}
 			// uninvolved
 			for x in 7..10 {
 				assert!(!ParachainStaking::is_delegator(&x));
 			}
-			assert_eq!(Balances::free_balance(&7), 100);
-			assert_eq!(Balances::reserved_balance(&7), 0);
-			assert_eq!(Balances::free_balance(&8), 9);
-			assert_eq!(Balances::reserved_balance(&8), 0);
-			assert_eq!(Balances::free_balance(&9), 4);
-			assert_eq!(Balances::reserved_balance(&9), 0);
+			// no delegator staking locks
+			assert_eq!(query_lock_amount(7, DELEGATOR_LOCK_ID), None);
+			assert_eq!(
+				ParachainStaking::get_delegator_stakable_free_balance(&7),
+				100
+			);
+			assert_eq!(query_lock_amount(8, DELEGATOR_LOCK_ID), None);
+			assert_eq!(ParachainStaking::get_delegator_stakable_free_balance(&8), 9);
+			assert_eq!(query_lock_amount(9, DELEGATOR_LOCK_ID), None);
+			assert_eq!(ParachainStaking::get_delegator_stakable_free_balance(&9), 4);
+			// no collator staking locks
+			assert_eq!(
+				ParachainStaking::get_collator_stakable_free_balance(&7),
+				100
+			);
+			assert_eq!(ParachainStaking::get_collator_stakable_free_balance(&8), 9);
+			assert_eq!(ParachainStaking::get_collator_stakable_free_balance(&9), 4);
 		});
 	ExtBuilder::default()
 		.with_balances(vec![
@@ -475,17 +531,20 @@ fn geneses() {
 			// collators
 			for x in 1..5 {
 				assert!(ParachainStaking::is_candidate(&x));
-				assert_eq!(Balances::free_balance(&x), 80);
-				assert_eq!(Balances::reserved_balance(&x), 20);
+				assert_eq!(query_lock_amount(x, COLLATOR_LOCK_ID), Some(20));
+				assert_eq!(ParachainStaking::get_collator_stakable_free_balance(&x), 80);
 			}
 			assert!(ParachainStaking::is_candidate(&5));
-			assert_eq!(Balances::free_balance(&5), 90);
-			assert_eq!(Balances::reserved_balance(&5), 10);
+			assert_eq!(query_lock_amount(5, COLLATOR_LOCK_ID), Some(10));
+			assert_eq!(ParachainStaking::get_collator_stakable_free_balance(&5), 90);
 			// delegators
 			for x in 6..11 {
 				assert!(ParachainStaking::is_delegator(&x));
-				assert_eq!(Balances::free_balance(&x), 90);
-				assert_eq!(Balances::reserved_balance(&x), 10);
+				assert_eq!(query_lock_amount(x, DELEGATOR_LOCK_ID), Some(10));
+				assert_eq!(
+					ParachainStaking::get_delegator_stakable_free_balance(&x),
+					90
+				);
 			}
 		});
 }

@@ -6,7 +6,7 @@ import { BN, u8aToHex, hexToU8a } from "@polkadot/util";
 import { expect } from "chai";
 import { ChaChaRng } from "randchacha";
 
-import { alith, baltathar, generateKeyingPair } from "../../util/accounts";
+import { alith, baltathar, generateKeyringPair } from "../../util/accounts";
 import { PARA_2000_SOURCE_LOCATION } from "../../util/assets";
 import { customWeb3Request } from "../../util/providers";
 import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
@@ -446,7 +446,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer of DEV", (context) =
   let sovereignAddress: string;
 
   before("Should send DEV to the parachain sovereign", async function () {
-    random = generateKeyingPair();
+    random = generateKeyringPair();
     paraId = context.polkadotApi.createType("ParaId", 2000) as any;
     sovereignAddress = u8aToHex(
       new Uint8Array([...new TextEncoder().encode("sibl"), ...paraId.toU8a()])
@@ -564,7 +564,7 @@ describeDevMoonbeam(
     let sovereignAddress: string;
 
     before("Should send DEV to the parachain sovereign", async function () {
-      random = generateKeyingPair();
+      random = generateKeyringPair();
       paraId = context.polkadotApi.createType("ParaId", 2000) as any;
       sovereignAddress = u8aToHex(
         new Uint8Array([...new TextEncoder().encode("sibl"), ...paraId.toU8a()])
@@ -1292,7 +1292,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact", (context) => {
   before("Should receive transact action with DescendOrigin", async function () {
     const allones = "0x0101010101010101010101010101010101010101";
     sendingAddress = allones;
-    random = generateKeyingPair();
+    random = generateKeyringPair();
     const derivedMultiLocation = context.polkadotApi.createType(
       "MultiLocation",
       JSON.parse(

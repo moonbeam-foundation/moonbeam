@@ -2,13 +2,13 @@ import "@moonbeam-network/api-augment";
 
 import { expect } from "chai";
 
-import { alith, generateKeyingPair } from "../../util/accounts";
+import { alith, generateKeyringPair } from "../../util/accounts";
 import { mapExtrinsics } from "../../util/block";
 import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 import { createTransfer } from "../../util/transactions";
 
 describeDevMoonbeamAllEthTxTypes("Balance - Extrinsic", (context) => {
-  const randomAccount = generateKeyingPair();
+  const randomAccount = generateKeyringPair();
   it("should emit ethereum/transfer events", async function () {
     await context.createBlock(createTransfer(context, randomAccount.address, 512));
 

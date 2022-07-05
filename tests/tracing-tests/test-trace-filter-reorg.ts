@@ -1,13 +1,13 @@
 import "@moonbeam-network/api-augment";
 
-import { generateKeyingPair } from "../util/accounts";
+import { generateKeyringPair } from "../util/accounts";
 import { customWeb3Request } from "../util/providers";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 import { createTransfer } from "../util/transactions";
 
 describeDevMoonbeam("Trace filter reorg", (context) => {
   it("succesfully reorg", async function () {
-    const randomAccount = generateKeyingPair();
+    const randomAccount = generateKeyringPair();
     this.timeout(150000000);
 
     // Create a first base block.
