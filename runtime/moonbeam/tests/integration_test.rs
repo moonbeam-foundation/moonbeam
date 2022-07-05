@@ -2643,13 +2643,13 @@ fn evm_revert_substrate_events() {
 				target: batch_precompile_address,
 				input: EvmDataWriter::new_with_selector(BatchAction::BatchAll)
 					.write(vec![Address(BOB.into()), Address(batch_precompile_address)])
-					.write(vec![U256::from(100 * GLMR), U256::zero()])
+					.write(vec![U256::from(1 * GLMR), U256::zero()])
 					.write::<Vec<Bytes>>(vec![])
 					.write::<Vec<U256>>(vec![])
 					.build(),
 				value: U256::zero(), // No value sent in EVM
 				gas_limit: 500_000,
-				max_fee_per_gas: U256::from(1 * GIGAWEI),
+				max_fee_per_gas: U256::from(100 * GIGAWEI),
 				max_priority_fee_per_gas: None,
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),
