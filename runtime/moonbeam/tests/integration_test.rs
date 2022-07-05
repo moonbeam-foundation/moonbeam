@@ -2631,7 +2631,7 @@ fn base_fee_should_default_to_associate_type_value() {
 #[test]
 fn evm_revert_substrate_events() {
 	ExtBuilder::default()
-		.with_balances(vec![(AccountId::from(ALICE), 1_000 * UNIT)])
+		.with_balances(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
 		.build()
 		.execute_with(|| {
 			let batch_precompile_address = H160::from_low_u64_be(2056);
@@ -2643,7 +2643,7 @@ fn evm_revert_substrate_events() {
 				target: batch_precompile_address,
 				input: EvmDataWriter::new_with_selector(BatchAction::BatchAll)
 					.write(vec![Address(BOB.into()), Address(batch_precompile_address)])
-					.write(vec![U256::from(1 * UNIT), U256::zero()])
+					.write(vec![U256::from(1 * GLMR), U256::zero()])
 					.write::<Vec<Bytes>>(vec![])
 					.write::<Vec<U256>>(vec![])
 					.build(),
@@ -2671,7 +2671,7 @@ fn evm_revert_substrate_events() {
 #[test]
 fn evm_success_keeps_substrate_events() {
 	ExtBuilder::default()
-		.with_balances(vec![(AccountId::from(ALICE), 1_000 * UNIT)])
+		.with_balances(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
 		.build()
 		.execute_with(|| {
 			let batch_precompile_address = H160::from_low_u64_be(2056);
@@ -2681,7 +2681,7 @@ fn evm_success_keeps_substrate_events() {
 				target: batch_precompile_address,
 				input: EvmDataWriter::new_with_selector(BatchAction::BatchAll)
 					.write(vec![Address(BOB.into())])
-					.write(vec![U256::from(1 * UNIT)])
+					.write(vec![U256::from(1 * GLMR)])
 					.write::<Vec<Bytes>>(vec![])
 					.write::<Vec<U256>>(vec![])
 					.build(),
