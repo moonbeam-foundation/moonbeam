@@ -22,12 +22,10 @@ use frame_support::pallet;
 
 pub use pallet::*;
 
-pub mod instant;
 pub mod migrations;
 pub mod traits;
 pub mod types;
 pub mod vrf;
-pub use instant::*;
 pub use traits::*;
 pub use types::*;
 pub use vrf::VrfInput;
@@ -410,7 +408,7 @@ pub mod pallet {
 			new_fee: BalanceOf<T>,
 		) -> DispatchResult {
 			let mut request = <Requests<T>>::get(id).ok_or(Error::<T>::RequestDNE)?;
-			// fulfill randomness request
+			// Increase randomness request fee
 			request.increase_fee(caller, new_fee)?;
 			<Requests<T>>::insert(id, request);
 			Self::deposit_event(Event::RequestFeeIncreased { id, new_fee });
