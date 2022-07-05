@@ -93,12 +93,12 @@ pub mod pallet {
 	#[pallet::error]
 	pub enum Error<T> {
 		RequestCounterOverflowed,
+		RequestFeeOverflowed,
 		InsufficientDeposit,
 		CannotRequestPastRandomness,
 		RequestDNE,
 		RequestCannotYetBeFulfilled,
 		OnlyRequesterCanIncreaseFee,
-		NewFeeMustBeGreaterThanOldFee,
 		RequestHasNotExpired,
 		RequestExecutionOOG,
 		InstantRandomnessNotAvailable,
@@ -405,11 +405,11 @@ pub mod pallet {
 		pub fn increase_request_fee(
 			caller: &H160,
 			id: RequestId,
-			new_fee: BalanceOf<T>,
+			fee_increase: BalanceOf<T>,
 		) -> DispatchResult {
 			let mut request = <Requests<T>>::get(id).ok_or(Error::<T>::RequestDNE)?;
 			// Increase randomness request fee
-			request.increase_fee(caller, new_fee)?;
+			let new_fee = request.increase_fee(caller, fee_increase)?;
 			<Requests<T>>::insert(id, request);
 			Self::deposit_event(Event::RequestFeeIncreased { id, new_fee });
 			Ok(())

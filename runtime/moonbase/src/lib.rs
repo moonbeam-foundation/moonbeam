@@ -634,6 +634,13 @@ impl pallet_ethereum::Config for Runtime {
 	type StateRoot = pallet_ethereum::IntermediateStateRoot<Self>;
 }
 
+impl pallet_ethereum_xcm::Config for Runtime {
+	type InvalidEvmTransactionError = pallet_ethereum::InvalidTransactionWrapper;
+	type ValidatedTransaction = pallet_ethereum::ValidatedTransaction<Self>;
+	type XcmEthereumOrigin = pallet_ethereum_xcm::EnsureXcmEthereumTransaction;
+	type ReservedXcmpWeight = ReservedXcmpWeight;
+}
+
 parameter_types! {
 	pub const ReservedXcmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT / 4;
 	pub const ReservedDmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT / 4;
@@ -1250,7 +1257,8 @@ construct_runtime! {
 		BaseFee: pallet_base_fee::{Pallet, Call, Storage, Config<T>, Event} = 35,
 		LocalAssets: pallet_assets::<Instance1>::{Pallet, Call, Storage, Event<T>} = 36,
 		MoonbeamOrbiters: pallet_moonbeam_orbiters::{Pallet, Call, Storage, Event<T>} = 37,
-		Randomness: pallet_randomness::{Pallet, Call, Storage, Config<T>, Event<T>, Inherent} = 38,
+		EthereumXcm: pallet_ethereum_xcm::{Pallet, Call, Origin} = 38,
+		Randomness: pallet_randomness::{Pallet, Call, Storage, Config<T>, Event<T>, Inherent} = 39,
 	}
 }
 

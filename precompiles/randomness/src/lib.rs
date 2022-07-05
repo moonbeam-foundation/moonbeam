@@ -47,7 +47,7 @@ pub enum Action {
 		"requestBabeRandomnessTwoEpochsAgo(address,uint256,uint64,bytes32)",
 	RequestLocalRandomness = "requestLocalRandomness(address,uint256,uint64,bytes32,uint64)",
 	FulfillRequest = "fulfillRequest(uint64)",
-	IncreaseRequestFee = "increaseRequestFee(uint64)",
+	IncreaseRequestFee = "increaseRequestFee(uint64,uint256)",
 	ExecuteRequestExpiration = "executeRequestExpiration(uint64)",
 }
 
@@ -403,14 +403,14 @@ where
 	fn increase_request_fee(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		let mut input = handle.read_input()?;
 		let request_id = input.read::<u64>()?;
-		let new_fee: BalanceOf<Runtime> = input
+		let fee_increase: BalanceOf<Runtime> = input
 			.read::<U256>()?
 			.try_into()
 			.map_err(|_| revert("amount is too large for provided balance type"))?;
 		pallet_randomness::Pallet::<Runtime>::increase_request_fee(
 			&handle.context().caller,
 			request_id,
-			new_fee,
+			fee_increase,
 		)
 		.map_err(|e| error(alloc::format!("{:?}", e)))?;
 		Ok(PrecompileOutput {

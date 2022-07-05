@@ -14,25 +14,20 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-#![cfg_attr(not(feature = "std"), no_std)]
+use frame_support::assert_ok;
 
-use sp_core::H160;
+use crate::{mock::*, RawOrigin};
+use ethereum_types::{H160, H256, U256};
 
-mod apis;
-mod impl_moonbeam_xcm_call;
-mod impl_on_charge_evm_transaction;
-mod impl_self_contained_call;
-pub mod migrations;
+mod eip1559;
+mod eip2930;
+mod legacy;
 
-//TODO maybe this should be upstreamed into Frontier.
-
-/// And ipmlementation of Frontier's AddressMapping trait for Moonbeam Accounts.
-/// This is basically identical to Frontier's own IdentityAddressMapping, but it works for any type
-/// that is Into<H160> like AccountId20 for example.
-pub struct IntoAddressMapping;
-
-impl<T: From<H160>> pallet_evm::AddressMapping<T> for IntoAddressMapping {
-	fn into_account_id(address: H160) -> T {
-		address.into()
-	}
-}
+// This ERC-20 contract mints the maximum amount of tokens to the contract creator.
+// pragma solidity ^0.5.0;`
+// import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v2.5.1/contracts/token\
+// /ERC20/ERC20.sol";
+// contract MyToken is ERC20 {
+//	 constructor() public { _mint(msg.sender, 2**256 - 1); }
+// }
+pub const ERC20_CONTRACT_BYTECODE: &str = include_str!("./res/erc20_contract_bytecode.txt");

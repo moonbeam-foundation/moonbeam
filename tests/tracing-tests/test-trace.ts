@@ -398,7 +398,7 @@ describeDevMoonbeam(
       ]);
       let res = traceTx.result;
       // Fields
-      expect(Object.keys(res)).to.deep.equal([
+      expect(Object.keys(res).sort()).to.deep.equal([
         "calls",
         "from",
         "gas",
@@ -437,7 +437,7 @@ describeDevMoonbeam(
 
       let res = traceTx.result;
       // Fields
-      expect(Object.keys(res)).to.deep.equal([
+      expect(Object.keys(res).sort()).to.deep.equal([
         "from",
         "gas",
         "gasUsed",
@@ -487,7 +487,7 @@ describeDevMoonbeam(
       expect(block.transactions.length).to.be.equal(traceTx.result.length);
       traceTx.result.forEach((trace: { [key: string]: any }) => {
         expect(trace.calls.length).to.be.equal(1);
-        expect(Object.keys(trace)).to.deep.equal([
+        expect(Object.keys(trace).sort()).to.deep.equal([
           "calls",
           "from",
           "gas",
@@ -507,7 +507,7 @@ describeDevMoonbeam(
       expect(block.transactions.length).to.be.equal(traceTx.result.length);
       traceTx.result.forEach((trace: { [key: string]: any }) => {
         expect(trace.calls.length).to.be.equal(1);
-        expect(Object.keys(trace)).to.deep.equal([
+        expect(Object.keys(trace).sort()).to.deep.equal([
           "calls",
           "from",
           "gas",
