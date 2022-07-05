@@ -1413,8 +1413,7 @@ impl<
 				let before_amount: BalanceOf<T> = x.amount.into();
 				x.amount = x.amount.saturating_add(amount);
 				self.total_add_if::<T, _>(amount, |_| {
-					<Pallet<T>>::jit_ensure_delegator_reserve_migrated(&delegator_id.clone())?;
-					Ok(())
+					<Pallet<T>>::jit_ensure_delegator_reserve_migrated(&delegator_id.clone())
 				})?;
 
 				// update collator state delegation
