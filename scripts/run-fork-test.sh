@@ -8,12 +8,14 @@ export NETWORK=${NETWORK:-"moonbeam"} #moonbase-alpha for alphanet
 export PORT_PREFIX=${PORT_PREFIX:-"51"}
 export ROOT_FOLDER=${ROOT_FOLDER:-"/data"}
 export GIT_TAG=${GIT_TAG:-"master"}
+export GIT_TEST_TAG=${GIT_TEST_TAG:-$GIT_TAG}
 export SKIP_INTERMEDIATE_RUNTIME=${SKIP_INTERMEDIATE_RUNTIME:-false}
 export FORCE_COMPILED_WASM=${FORCE_COMPILED_WASM:-true}
 export SINGLE_PARACHAIN_NODE=${SINGLE_PARACHAIN_NODE:-true}
 export SKIP_DOWNLOAD=${SKIP_DOWNLOAD:-false}
 export SKIP_COMPILATION=${SKIP_COMPILATION:-false}
 export SKIP_STATE_MODIFICATION=${SKIP_STATE_MODIFICATION:-false}
+export KEEP_RUNNING=${KEEP_RUNNING:-false}
 
 export BINARY_PATH=${BINARY_PATH:-$ROOT_FOLDER/moonbeam/binaries/moonbeam};
 export RELAY_BINARY_PATH=${RELAY_BINARY_PATH:-$ROOT_FOLDER/moonbeam/binaries/polkadot};
@@ -26,12 +28,14 @@ echo "NETWORK: ${NETWORK}"
 echo "PORT_PREFIX: ${PORT_PREFIX}"
 echo "ROOT_FOLDER: ${ROOT_FOLDER}"
 echo "GIT_TAG: ${GIT_TAG}"
+echo "GIT_TEST_TAG: ${GIT_TEST_TAG}"
 echo "SKIP_INTERMEDIATE_RUNTIME: ${SKIP_INTERMEDIATE_RUNTIME}"
 echo "FORCE_COMPILED_WASM: ${FORCE_COMPILED_WASM}"
 echo "SINGLE_PARACHAIN_NODE: ${SINGLE_PARACHAIN_NODE}"
 echo "SKIP_DOWNLOAD: ${SKIP_DOWNLOAD}"
 echo "SKIP_COMPILATION: ${SKIP_COMPILATION}"
 echo "SKIP_STATE_MODIFICATION: ${SKIP_STATE_MODIFICATION}"
+echo "KEEP_RUNNING: ${KEEP_RUNNING}"
 echo "BINARY_PATH: ${BINARY_PATH}"
 echo "RELAY_BINARY_PATH: ${RELAY_BINARY_PATH}"
 echo "SPEC_FILE: ${SPEC_FILE}"
@@ -104,6 +108,11 @@ then
     git checkout $GIT_TAG
     cargo build --release -p ${RUNTIME_NAME}-runtime
 
+    if [[ $BINARY_PATH == "target/release/moonbeam" ]]
+    then
+        cargo build --release -p moonbeam
+    fi
+
     echo "Preparing tests... (3 minutes)"
     cd $ROOT_FOLDER/moonbeam/moonbeam-types-bundle
     npm ci
@@ -111,7 +120,7 @@ then
     npm ci
 
     cd $ROOT_FOLDER/moonbeam/tests
-    git checkout crystalin-fork-test-preparation
+    git checkout $GIT_TEST_TAG
     npm ci
 fi
 
@@ -152,6 +161,15 @@ fi
 echo "Retrieving runtime stats..."
 cd $ROOT_FOLDER/moonbeam/tools
 node_modules/.bin/ts-node extract-migration-logs.ts --log ../tests/51102.log
+
+if [[ $KEEP_RUNNING == "true "]]
+then
+    echo "Keep running forever..."
+    while true
+    do
+        sleep 10
+    done
+fi 
 
 echo "Done !!"
 [[ $SUCCESS_UPGRADE == "true" ]] && exit 0 || exit 1
