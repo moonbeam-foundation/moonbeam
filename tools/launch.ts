@@ -243,7 +243,6 @@ const retrieveBinaryFromDocker = async (binaryPath: string, dockerImage: string)
         docker rm moonbeam-tmp`);
     console.log(`${binaryPath} downloaded !`);
   }
-  console.log;
 };
 
 async function start() {
