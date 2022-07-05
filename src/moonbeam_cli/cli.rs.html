@@ -300,10 +300,6 @@
 <span id="295">295</span>
 <span id="296">296</span>
 <span id="297">297</span>
-<span id="298">298</span>
-<span id="299">299</span>
-<span id="300">300</span>
-<span id="301">301</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -327,7 +323,6 @@
 
 <span class="kw">use</span> <span class="ident">clap::Parser</span>;
 <span class="kw">use</span> <span class="ident">cli_opt</span>::{<span class="ident">account_key::GenerateAccountKey</span>, <span class="ident">EthApi</span>, <span class="ident">Sealing</span>};
-<span class="kw">use</span> <span class="ident">perf_test::PerfCmd</span>;
 <span class="kw">use</span> <span class="ident">sc_cli</span>::{<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">CliError</span>, <span class="ident">SubstrateCli</span>};
 <span class="kw">use</span> <span class="ident">service::chain_spec</span>;
 <span class="kw">use</span> <span class="ident">std::path::PathBuf</span>;
@@ -363,9 +358,6 @@
 
 	<span class="doccomment">/// Revert the chain to a previous state.</span>
 	<span class="ident">Revert</span>(<span class="ident">sc_cli::RevertCmd</span>),
-
-	<span class="doccomment">/// Run hardware performance tests.</span>
-	<span class="ident">PerfTest</span>(<span class="ident">PerfCmd</span>),
 
 	<span class="doccomment">/// Sub-commands concerned with benchmarking.</span>
 	<span class="doccomment">/// The pallet benchmarking moved to the `pallet` sub-command.</span>
