@@ -1450,7 +1450,7 @@ impl<
 	/// Updates the bond locks for this delegator.
 	///
 	/// This will take the current self.total and ensure that a lock of the same amount is applied
-	/// and will also ensure that the account has at least `additional_reserve` in free balance.
+	/// and when increasing the bond lock will also ensure that the account has enough free balance.
 	///
 	/// `additional_required_balance` should reflect the change to the amount that should be locked if
 	/// positive, 0 otherwise (e.g. `min(0, change_in_total_bond)`). This is necessary because it is
