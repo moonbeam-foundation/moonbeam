@@ -9096,6 +9096,8 @@ mod jit_migrate_reserve_to_locks_tests {
 
 	#[test]
 	fn test_hotfix_migrations_have_limit() {
+		use crate::tests::DispatchError::Other;
+
 		ExtBuilder::default()
 			.with_balances(vec![(1, 100), (2, 100), (3, 100)])
 			.with_candidates(vec![(1, 20)])
@@ -9113,22 +9115,14 @@ mod jit_migrate_reserve_to_locks_tests {
 						Origin::signed(3),
 						vec![1; 100]
 					),
-					DispatchError::Module(ModuleError {
-						index: 2,
-						error: [8, 0, 0, 0],
-						message: Some("InsufficientBalance")
-					})
+					Other("Exceeded max allowed collators."),
 				);
 				assert_noop!(
 					ParachainStaking::hotfix_migrate_delegators_from_reserve_to_locks(
 						Origin::signed(3),
 						vec![2; 100]
 					),
-					DispatchError::Module(ModuleError {
-						index: 2,
-						error: [8, 0, 0, 0],
-						message: Some("InsufficientBalance")
-					})
+					Other("Exceeded max allowed delegators."),
 				);
 
 				// remain unmigrated

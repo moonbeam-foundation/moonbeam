@@ -1400,7 +1400,10 @@ pub mod pallet {
 			delegators: Vec<T::AccountId>,
 		) -> DispatchResult {
 			ensure_signed(origin)?;
-			ensure!(delegators.len() < 100, <Error<T>>::InsufficientBalance);
+			ensure!(
+				delegators.len() < 100,
+				DispatchError::Other("Exceeded max allowed delegators.")
+			);
 			for delegator in &delegators {
 				let _ = Self::jit_ensure_delegator_reserve_migrated(&delegator); // ignore error
 			}
@@ -1437,7 +1440,10 @@ pub mod pallet {
 			collators: Vec<T::AccountId>,
 		) -> DispatchResult {
 			ensure_signed(origin)?;
-			ensure!(collators.len() < 100, <Error<T>>::InsufficientBalance);
+			ensure!(
+				collators.len() < 100,
+				DispatchError::Other("Exceeded max allowed collators.")
+			);
 			for collator in &collators {
 				let _ = Self::jit_ensure_collator_reserve_migrated(&collator); // ignore error
 			}
