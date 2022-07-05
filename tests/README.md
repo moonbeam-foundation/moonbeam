@@ -173,7 +173,7 @@ Also the exported state needs to be modified using the state-modifier.ts script.
 You can run the full process using the docker image:
 
 ```
-docker run -e GIT_TAG=perm-runtime-1605 -e NETWORK=moonriver -e RUNTIME_NAME=moonriver purestake/moonbeam-fork-tests:0.0.1
+docker run -e GIT_TAG=perm-runtime-1605 -e NETWORK=moonriver -e RUNTIME_NAME=moonriver purestake/moonbeam-fork-tests:0.0.5
 ```
 
 or locally (for debugging pruposes) with the script:
@@ -222,5 +222,5 @@ PARA_ID=2023 PORT_PREFIX=51 ./node_modules/.bin/ts-node spawn-fork-node.ts
 ### Generating moonbeam-fork-test image
 
 ```
-docker build ./scripts -t purestake/moonbeam-fork-tests:0.0.1 -f docker/moonbeam-fork-tests.Dockerfile
+docker build ./scripts -t purestake/moonbeam-fork-tests:0.0.5 -f docker/moonbeam-fork-tests.Dockerfile
 ```
