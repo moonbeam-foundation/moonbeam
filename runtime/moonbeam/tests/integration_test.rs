@@ -2631,7 +2631,7 @@ fn base_fee_should_default_to_associate_type_value() {
 #[test]
 fn evm_revert_substrate_events() {
 	ExtBuilder::default()
-		.with_balances(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
+		.with_balances(vec![(AccountId::from(ALICE), 100_000 * GLMR)])
 		.build()
 		.execute_with(|| {
 			let batch_precompile_address = H160::from_low_u64_be(2056);
@@ -2671,7 +2671,7 @@ fn evm_revert_substrate_events() {
 #[test]
 fn evm_success_keeps_substrate_events() {
 	ExtBuilder::default()
-		.with_balances(vec![(AccountId::from(ALICE), 1_000 * GLMR)])
+		.with_balances(vec![(AccountId::from(ALICE), 100_000 * GLMR)])
 		.build()
 		.execute_with(|| {
 			let batch_precompile_address = H160::from_low_u64_be(2056);
