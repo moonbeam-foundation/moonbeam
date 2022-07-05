@@ -131,10 +131,13 @@ impl<T: Config> OnRuntimeUpgrade for SplitDelegatorStateIntoDelegationScheduledR
 					});
 				}
 
-				let mut new_state = Delegator::default_with_total(old_state.id, old_state.total);
-				new_state.delegations = old_state.delegations;
-				new_state.less_total = old_state.requests.less_total;
-				new_state.status = old_state.status;
+				let new_state = Delegator {
+					id: old_state.id,
+					delegations: old_state.delegations,
+					total: old_state.total,
+					less_total: old_state.requests.less_total,
+					status: old_state.status,
+				};
 
 				Some(new_state)
 			},
