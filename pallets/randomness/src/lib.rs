@@ -22,12 +22,10 @@ use frame_support::pallet;
 
 pub use pallet::*;
 
-pub mod instant;
 pub mod migrations;
 pub mod traits;
 pub mod types;
 pub mod vrf;
-pub use instant::*;
 pub use traits::*;
 pub use types::*;
 pub use vrf::VrfInput;
@@ -95,12 +93,12 @@ pub mod pallet {
 	#[pallet::error]
 	pub enum Error<T> {
 		RequestCounterOverflowed,
+		RequestFeeOverflowed,
 		InsufficientDeposit,
 		CannotRequestPastRandomness,
 		RequestDNE,
 		RequestCannotYetBeFulfilled,
 		OnlyRequesterCanIncreaseFee,
-		NewFeeMustBeGreaterThanOldFee,
 		RequestHasNotExpired,
 		RequestExecutionOOG,
 		InstantRandomnessNotAvailable,
@@ -407,11 +405,11 @@ pub mod pallet {
 		pub fn increase_request_fee(
 			caller: &H160,
 			id: RequestId,
-			new_fee: BalanceOf<T>,
+			fee_increase: BalanceOf<T>,
 		) -> DispatchResult {
 			let mut request = <Requests<T>>::get(id).ok_or(Error::<T>::RequestDNE)?;
-			// fulfill randomness request
-			request.increase_fee(caller, new_fee)?;
+			// Increase randomness request fee
+			let new_fee = request.increase_fee(caller, fee_increase)?;
 			<Requests<T>>::insert(id, request);
 			Self::deposit_event(Event::RequestFeeIncreased { id, new_fee });
 			Ok(())
