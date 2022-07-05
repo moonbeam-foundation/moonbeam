@@ -24,7 +24,7 @@ export const notePreimage = async <
 >(
   context: DevTestContext,
   proposal: Call,
-  account: KeyringPair
+  account: KeyringPair = alith
 ): Promise<string> => {
   const encodedProposal = proposal.method.toHex() || "";
   await context.createBlock(
@@ -35,11 +35,16 @@ export const notePreimage = async <
 };
 
 // Creates the Council Proposal and fast track it before executing it
-export const instantFastTrack = async (
+export const instantFastTrack = async <
+  Call extends SubmittableExtrinsic<ApiType>,
+  ApiType extends ApiTypes
+>(
   context: DevTestContext,
-  proposalHash: string,
+  proposal: string | Call,
   { votingPeriod, delayPeriod } = { votingPeriod: 2, delayPeriod: 0 }
-) => {
+): Promise<string> => {
+  const proposalHash =
+    typeof proposal == "string" ? proposal : await notePreimage(context, proposal);
   await execCouncilProposal(
     context,
     context.polkadotApi.tx.democracy.externalProposeMajority(proposalHash)
@@ -48,6 +53,7 @@ export const instantFastTrack = async (
     context,
     context.polkadotApi.tx.democracy.fastTrack(proposalHash, votingPeriod, delayPeriod)
   );
+  return proposalHash;
 };
 
 // Creates the Council Proposal
