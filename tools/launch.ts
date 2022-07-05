@@ -242,7 +242,8 @@ const retrieveBinaryFromDocker = async (binaryPath: string, dockerImage: string)
         docker cp moonbeam-tmp:/moonbeam/moonbeam ${parachainPath} && \
         docker rm moonbeam-tmp`);
     console.log(`${binaryPath} downloaded !`);
-  }console.log
+  }
+  console.log;
 };
 
 async function start() {
@@ -352,7 +353,7 @@ async function start() {
       }
       // If it is an array, push the position at which we are
       else if (Array.isArray(argv["parachain-chain"])) {
-        parachainsChains.push(argv["parachain-chain"] || parachains[parachainName].chain);
+        parachainsChains.push(argv["parachain-chain"][i] || parachains[parachainName].chain);
       }
       // Else, push the value to the first parachain if it exists, else the default
       else {
@@ -481,8 +482,6 @@ async function start() {
       node.port = startingPort + 100 + i * 100 + index * 10;
       node.rpcPort = startingPort + 101 + i * 100 + index * 10;
       node.wsPort = startingPort + 102 + i * 100 + index * 10;
-      // Prepend para id
-      node.flags.unshift("--parachain-id=" +  paraIds[i]);
     });
 
     launchConfig.parachains.push(parachainConfig);
