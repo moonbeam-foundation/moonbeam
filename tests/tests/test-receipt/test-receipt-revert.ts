@@ -7,7 +7,7 @@ import { createContract } from "../../util/transactions";
 
 describeDevMoonbeamAllEthTxTypes("Receipt - Revert", (context) => {
   it("should generate a receipt", async function () {
-    const { rawTx } = await createContract(context, "FailContract");
+    const { rawTx } = await createContract(context, "FailingConstructor");
     const { result } = await context.createBlock(rawTx);
     const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
 
