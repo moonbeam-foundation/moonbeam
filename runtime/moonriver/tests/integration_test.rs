@@ -421,7 +421,10 @@ fn reward_block_authors() {
 				run_to_block(x, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			}
 			// no rewards doled out yet
-			assert_eq!(Balances::usable_balance(AccountId::from(ALICE)), 1_000 * MOVR,);
+			assert_eq!(
+				Balances::usable_balance(AccountId::from(ALICE)),
+				1_000 * MOVR,
+			);
 			assert_eq!(Balances::usable_balance(AccountId::from(BOB)), 500 * MOVR,);
 			run_to_block(1200, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			// rewards minted and distributed
@@ -466,7 +469,10 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 				run_to_block(x, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			}
 			// no rewards doled out yet
-			assert_eq!(Balances::usable_balance(AccountId::from(ALICE)), 1_000 * MOVR,);
+			assert_eq!(
+				Balances::usable_balance(AccountId::from(ALICE)),
+				1_000 * MOVR,
+			);
 			assert_eq!(Balances::usable_balance(AccountId::from(BOB)), 500 * MOVR,);
 			assert_eq!(Balances::usable_balance(AccountId::from(CHARLIE)), MOVR,);
 			run_to_block(1200, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
