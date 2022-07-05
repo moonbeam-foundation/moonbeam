@@ -410,7 +410,7 @@ pub mod pallet {
 			new_fee: BalanceOf<T>,
 		) -> DispatchResult {
 			let mut request = <Requests<T>>::get(id).ok_or(Error::<T>::RequestDNE)?;
-			// fulfill randomness request
+			// Increase randomness request fee
 			request.increase_fee(caller, new_fee)?;
 			<Requests<T>>::insert(id, request);
 			Self::deposit_event(Event::RequestFeeIncreased { id, new_fee });
