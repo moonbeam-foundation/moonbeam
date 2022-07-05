@@ -23,18 +23,24 @@ use std::{
 
 use tiny_keccak::Hasher;
 
+/// Represents a declared function within a solidity file
 #[derive(Clone, Default)]
 pub struct SolidityFunction {
-	name: String,
-	args: Vec<String>,
-	docs_selector: String,
+	/// Function name
+	pub name: String,
+	/// List of function parameter types
+	pub args: Vec<String>,
+	/// The declared selector in the file
+	pub docs_selector: String,
 }
 
 impl SolidityFunction {
+	/// Returns the representative signature for the solidity function
 	pub fn signature(&self) -> String {
 		format!("{}({})", self.name, self.args.join(","))
 	}
 
+	/// Computes the selector code for the solidity function
 	pub fn compute_selector(&self) -> u32 {
 		let sig = self.signature();
 		let mut hasher = tiny_keccak::Keccak::v256();
@@ -46,11 +52,13 @@ impl SolidityFunction {
 		u32::from_be_bytes(buf)
 	}
 
+	/// Computes the selector code as a hex string for the solidity function
 	pub fn compute_selector_hex(&self) -> String {
 		format!("{:0>8x}", self.compute_selector())
 	}
 }
 
+/// Returns a list of [SolidityFunction] defined in a solidity file
 pub fn get_selectors(filename: &str) -> Vec<SolidityFunction> {
 	let file = File::open(filename).expect("failed opening file");
 	get_selectors_from_reader(file)

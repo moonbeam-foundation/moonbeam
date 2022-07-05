@@ -71,3 +71,17 @@ fn test_solidity_interface_has_all_selectors_implemented() {
 		}
 	}
 }
+
+#[test]
+fn test_solidity_interface_has_all_selectors_correctly_documented() {
+	for solidity_fn in solidity::get_selectors("Randomness.sol") {
+		let expected = solidity_fn.compute_selector_hex();
+		let actual = solidity_fn.docs_selector.clone();
+		assert_eq!(
+			expected,
+			actual,
+			"documented selector for '{}' did not match",
+			solidity_fn.signature()
+		)
+	}
+}
