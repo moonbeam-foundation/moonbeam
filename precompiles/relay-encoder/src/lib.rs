@@ -61,6 +61,8 @@ pub trait StakeEncodeCall {
 	fn encode_call(call: AvailableStakeCalls) -> Vec<u8>;
 }
 
+pub const REWARD_DESTINATION_SIZE_LIMIT: usize = 2usize.pow(16);
+
 #[generate_function_selector]
 #[derive(Debug, PartialEq)]
 enum Action {
@@ -309,8 +311,8 @@ impl Into<RewardDestination<AccountId32>> for RewardDestinationWrapper {
 
 impl EvmData for RewardDestinationWrapper {
 	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
-		let reward_destination = reader.read::<Bytes>()?;
-		let reward_destination_bytes = reward_destination.as_bytes();
+		let reward_destination = reader.read::<BoundedBytes<REWARD_DESTINATION_SIZE_LIMIT>>()?;
+		let reward_destination_bytes = reward_destination.0;
 		ensure!(
 			reward_destination_bytes.len() > 0,
 			revert("Reward destinations cannot be empty")

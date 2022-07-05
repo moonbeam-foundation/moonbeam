@@ -70,6 +70,8 @@ const PERMIT_DOMAIN: [u8; 32] = keccak256!(
 	"EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
 );
 
+pub const CALL_DATA_LIMIT: usize = 2usize.pow(16);
+
 #[generate_function_selector]
 #[derive(Debug, PartialEq)]
 pub enum Action {
@@ -171,7 +173,7 @@ where
 		let from = input.read::<Address>()?.0;
 		let to = input.read::<Address>()?.0;
 		let value: U256 = input.read()?;
-		let data = input.read::<Bytes>()?.0;
+		let data = input.read::<BoundedBytes<CALL_DATA_LIMIT>>()?.0;
 		let gas_limit: u64 = input.read()?;
 		let deadline: U256 = input.read()?;
 		let v: u8 = input.read()?;

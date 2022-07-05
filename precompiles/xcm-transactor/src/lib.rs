@@ -42,6 +42,8 @@ mod tests;
 pub type TransactorOf<Runtime> = <Runtime as pallet_xcm_transactor::Config>::Transactor;
 pub type CurrencyIdOf<Runtime> = <Runtime as pallet_xcm_transactor::Config>::CurrencyId;
 
+pub const CALL_DATA_LIMIT: usize = 2usize.pow(16);
+
 #[generate_function_selector]
 #[derive(Debug, PartialEq)]
 pub enum Action {
@@ -214,7 +216,7 @@ where
 		let weight: u64 = input.read::<u64>()?;
 
 		// inner call
-		let inner_call = input.read::<Bytes>()?;
+		let inner_call = input.read::<BoundedBytes<CALL_DATA_LIMIT>>()?;
 
 		// Depending on the Runtime, this might involve a DB read. This is not the case in
 		// moonbeam, as we are using IdentityMapping
@@ -252,7 +254,7 @@ where
 		let weight: u64 = input.read::<u64>()?;
 
 		// inner call
-		let inner_call = input.read::<Bytes>()?;
+		let inner_call = input.read::<BoundedBytes<CALL_DATA_LIMIT>>()?;
 
 		let to_account = Runtime::AddressMapping::into_account_id(to_address);
 
@@ -298,7 +300,7 @@ where
 		let weight: u64 = input.read::<u64>()?;
 
 		// call
-		let call = input.read::<Bytes>()?;
+		let call = input.read::<BoundedBytes<CALL_DATA_LIMIT>>()?;
 
 		// Depending on the Runtime, this might involve a DB read. This is not the case in
 		// moonbeam, as we are using IdentityMapping
@@ -342,7 +344,7 @@ where
 		let weight: u64 = input.read::<u64>()?;
 
 		// call
-		let call = input.read::<Bytes>()?;
+		let call = input.read::<BoundedBytes<CALL_DATA_LIMIT>>()?;
 
 		// Depending on the Runtime, this might involve a DB read. This is not the case in
 		// moonbeam, as we are using IdentityMapping

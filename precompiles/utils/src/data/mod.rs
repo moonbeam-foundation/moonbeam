@@ -80,6 +80,10 @@ impl Into<Vec<u8>> for Bytes {
 	}
 }
 
+/// Same as `Bytes` but with an additional length bound on read.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct BoundedBytes<const MAX_LENGTH: usize>(pub Vec<u8>);
+
 /// Wrapper around an EVM input slice, helping to parse it.
 /// Provide functions to parse common types.
 #[derive(Clone, Copy, Debug)]
@@ -521,6 +525,20 @@ impl<T: EvmData> EvmData for Vec<T> {
 
 impl EvmData for Bytes {
 	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
+		Ok(Bytes(BoundedBytes::<{ usize::MAX }>::read(reader)?.0))
+	}
+
+	fn write(writer: &mut EvmDataWriter, value: Self) {
+		BoundedBytes::<{ usize::MAX }>::write(writer, BoundedBytes(value.0));
+	}
+
+	fn has_static_size() -> bool {
+		false
+	}
+}
+
+impl<const MAX_LENGTH: usize> EvmData for BoundedBytes<MAX_LENGTH> {
+	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
 		let mut inner_reader = reader.read_pointer()?;
 
 		// Read bytes/string size.
@@ -529,6 +547,10 @@ impl EvmData for Bytes {
 			.map_err(|_| revert("tried to parse bytes/string length out of bounds"))?
 			.try_into()
 			.map_err(|_| revert("bytes/string length is too large"))?;
+
+		if array_size > MAX_LENGTH {
+			return Err(revert("bytes/string length is too large"));
+		}
 
 		// Get valid range over the bytes data.
 		let range = inner_reader.move_cursor(array_size)?;

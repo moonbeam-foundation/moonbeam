@@ -51,6 +51,9 @@ pub const SELECTOR_LOG_TRANSFER: [u8; 32] = keccak256!("Transfer(address,address
 /// Solidity selector of the Approval log, which is the Keccak of the Log signature.
 pub const SELECTOR_LOG_APPROVAL: [u8; 32] = keccak256!("Approval(address,address,uint256)");
 
+/// Length limit of strings (symbol and name).
+pub const STRING_LIMIT: usize = 128;
+
 /// Alias for the Balance type for the provided Runtime and Instance.
 pub type BalanceOf<Runtime, Instance = ()> = <Runtime as pallet_assets::Config<Instance>>::Balance;
 
@@ -832,9 +835,9 @@ where
 		let mut input = handle.read_input()?;
 		input.expect_arguments(3)?;
 
-		let name: Bytes = input.read::<Bytes>()?.into();
-		let symbol: Bytes = input.read::<Bytes>()?.into();
-		let decimals: u8 = input.read::<u8>()?.into();
+		let name: BoundedBytes<STRING_LIMIT> = input.read()?;
+		let symbol: BoundedBytes<STRING_LIMIT> = input.read()?;
+		let decimals: u8 = input.read()?;
 
 		// Build call with origin.
 		{
@@ -846,8 +849,8 @@ where
 				Some(origin).into(),
 				pallet_assets::Call::<Runtime, Instance>::set_metadata {
 					id: asset_id,
-					name: name.into(),
-					symbol: symbol.into(),
+					name: name.0,
+					symbol: symbol.0,
 					decimals,
 				},
 			)?;

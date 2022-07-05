@@ -44,6 +44,8 @@ type BalanceOf<Runtime> = <<Runtime as pallet_democracy::Config>::Currency as Cu
 
 type DemocracyOf<Runtime> = pallet_democracy::Pallet<Runtime>;
 
+pub const ENCODED_PROPOSAL_SIZE_LIMIT: usize = 2usize.pow(16);
+
 #[generate_function_selector]
 #[derive(Debug, PartialEq)]
 enum Action {
@@ -396,7 +398,8 @@ where
 
 	fn note_preimage(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		let mut input = handle.read_input()?;
-		let encoded_proposal: Vec<u8> = input.read::<Bytes>()?.into();
+		let encoded_proposal: Vec<u8> =
+			input.read::<BoundedBytes<ENCODED_PROPOSAL_SIZE_LIMIT>>()?.0;
 
 		log::trace!(
 			target: "democracy-precompile",
@@ -413,7 +416,8 @@ where
 
 	fn note_imminent_preimage(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		let mut input = handle.read_input()?;
-		let encoded_proposal: Vec<u8> = input.read::<Bytes>()?.into();
+		let encoded_proposal: Vec<u8> =
+			input.read::<BoundedBytes<ENCODED_PROPOSAL_SIZE_LIMIT>>()?.0;
 
 		log::trace!(
 			target: "democracy-precompile",

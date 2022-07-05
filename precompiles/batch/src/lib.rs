@@ -41,6 +41,7 @@ pub enum Action {
 
 pub const LOG_SUBCALL_SUCCEEDED: [u8; 32] = keccak256!("SubcallSucceeded(uint256)");
 pub const LOG_SUBCALL_FAILED: [u8; 32] = keccak256!("SubcallFailed(uint256)");
+pub const CALL_DATA_LIMIT: usize = 2usize.pow(16);
 
 pub fn log_subcall_succeeded(address: impl Into<H160>, index: usize) -> Log {
 	log1(
@@ -85,7 +86,7 @@ where
 		let mut input = handle.read_input()?;
 		let addresses: Vec<Address> = input.read()?;
 		let values: Vec<U256> = input.read()?;
-		let calls_data: Vec<Bytes> = input.read()?;
+		let calls_data: Vec<BoundedBytes<CALL_DATA_LIMIT>> = input.read()?;
 		let gas_limits: Vec<u64> = input.read()?;
 
 		let addresses = addresses.into_iter().enumerate();
@@ -110,7 +111,7 @@ where
 		{
 			let address = address.0;
 			let value = value.unwrap_or(U256::zero());
-			let call_data = call_data.unwrap_or(Bytes(vec![])).0;
+			let call_data = call_data.unwrap_or(BoundedBytes(vec![])).0;
 
 			let sub_context = Context {
 				caller: handle.context().caller,

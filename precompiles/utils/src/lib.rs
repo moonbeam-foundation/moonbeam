@@ -88,7 +88,7 @@ pub trait StatefulPrecompile {
 pub mod prelude {
 	pub use {
 		crate::{
-			data::{Address, Bytes, EvmData, EvmDataReader, EvmDataWriter},
+			data::{Address, BoundedBytes, Bytes, EvmData, EvmDataReader, EvmDataWriter},
 			error,
 			handle::PrecompileHandleExt,
 			logs::{log0, log1, log2, log3, log4, LogExt},
