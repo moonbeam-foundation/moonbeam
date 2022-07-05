@@ -21,7 +21,6 @@
 
 use clap::Parser;
 use cli_opt::{account_key::GenerateAccountKey, EthApi, Sealing};
-use perf_test::PerfCmd;
 use sc_cli::{Error as CliError, SubstrateCli};
 use service::chain_spec;
 use std::path::PathBuf;
@@ -57,9 +56,6 @@ pub enum Subcommand {
 
 	/// Revert the chain to a previous state.
 	Revert(sc_cli::RevertCmd),
-
-	/// Run hardware performance tests.
-	PerfTest(PerfCmd),
 
 	/// Sub-commands concerned with benchmarking.
 	/// The pallet benchmarking moved to the `pallet` sub-command.

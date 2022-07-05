@@ -475,52 +475,6 @@ pub fn run() -> Result<()> {
 
 			Ok(())
 		}
-		Some(Subcommand::PerfTest(cmd)) => {
-			if let Some(_) = cmd.shared_params.base_path {
-				log::warn!("base_path is overwritten by working_dir in perf-test");
-			}
-
-			let mut working_dir = cmd.working_dir.clone();
-			working_dir.push("perf_test");
-			if working_dir.exists() {
-				eprintln!("test subdir {:?} exists, please remove", working_dir);
-				std::process::exit(1);
-			}
-
-			let mut cmd: perf_test::PerfCmd = cmd.clone();
-			cmd.shared_params.base_path = Some(working_dir.clone());
-
-			let runner = cli.create_runner(&cmd)?;
-			let chain_spec = &runner.config().chain_spec;
-			match chain_spec {
-				#[cfg(feature = "moonbeam-native")]
-				spec if spec.is_moonbeam() => runner.sync_run(|config| {
-					cmd.run::<service::moonbeam_runtime::RuntimeApi, service::MoonbeamExecutor>(
-						&cmd, config,
-					)
-				}),
-				#[cfg(feature = "moonriver-native")]
-				spec if spec.is_moonriver() => runner.sync_run(|config| {
-					cmd.run::<service::moonriver_runtime::RuntimeApi, service::MoonriverExecutor>(
-						&cmd, config,
-					)
-				}),
-				#[cfg(feature = "moonbase-native")]
-				spec if spec.is_moonbase() => runner.sync_run(|config| {
-					cmd.run::<service::moonbase_runtime::RuntimeApi, service::MoonbaseExecutor>(
-						&cmd, config,
-					)
-				}),
-				_ => {
-					panic!("invalid chain spec");
-				}
-			}?;
-
-			log::debug!("removing temp perf_test dir {:?}", working_dir);
-			std::fs::remove_dir_all(working_dir)?;
-
-			Ok(())
-		}
 		Some(Subcommand::Benchmark(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 
