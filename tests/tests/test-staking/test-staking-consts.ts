@@ -69,6 +69,6 @@ describeDevMoonbeam("Staking Consts - MaxDelegationsPerDelegator", (context) => 
         .signAsync(randomAccount)
     );
     expect(result.successful).to.be.false;
-    expect(result.error.name.toString()).to.be.equal("ExceedMaxDelegationsPerDelegator");
+    expect(result.error.name).to.be.equal("ExceedMaxDelegationsPerDelegator");
   });
 });
