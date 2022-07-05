@@ -643,6 +643,22 @@
 <span id="638">638</span>
 <span id="639">639</span>
 <span id="640">640</span>
+<span id="641">641</span>
+<span id="642">642</span>
+<span id="643">643</span>
+<span id="644">644</span>
+<span id="645">645</span>
+<span id="646">646</span>
+<span id="647">647</span>
+<span id="648">648</span>
+<span id="649">649</span>
+<span id="650">650</span>
+<span id="651">651</span>
+<span id="652">652</span>
+<span id="653">653</span>
+<span id="654">654</span>
+<span id="655">655</span>
+<span id="656">656</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -667,7 +683,7 @@
 };
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::Delegator</span>;
 <span class="kw">use</span> <span class="ident">frame_support::ensure</span>;
-<span class="kw">use</span> <span class="ident">frame_support::traits</span>::{<span class="ident">Get</span>, <span class="ident">ReservableCurrency</span>};
+<span class="kw">use</span> <span class="ident">frame_support::traits::Get</span>;
 <span class="kw">use</span> <span class="ident">frame_support</span>::{<span class="ident">dispatch::DispatchResultWithPostInfo</span>, <span class="ident">RuntimeDebug</span>};
 <span class="kw">use</span> <span class="ident">parity_scale_codec</span>::{<span class="ident">Decode</span>, <span class="ident">Encode</span>};
 <span class="kw">use</span> <span class="ident">scale_info::TypeInfo</span>;
@@ -785,7 +801,7 @@
 		);
 
 		<span class="comment">// Net Total is total after pending orders are executed</span>
-		<span class="kw">let</span> <span class="ident">net_total</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">total</span>.<span class="ident">saturating_sub</span>(<span class="ident">state</span>.<span class="ident">less_total</span>);
+		<span class="kw">let</span> <span class="ident">net_total</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">total</span>().<span class="ident">saturating_sub</span>(<span class="ident">state</span>.<span class="ident">less_total</span>);
 		<span class="comment">// Net Total is always &gt;= MinDelegatorStk</span>
 		<span class="kw">let</span> <span class="ident">max_subtracted_amount</span> <span class="op">=</span> <span class="ident">net_total</span>.<span class="ident">saturating_sub</span>(<span class="ident">T::MinDelegatorStk::get</span>().<span class="ident">into</span>());
 		<span class="macro">ensure!</span>(
@@ -877,7 +893,10 @@
 					<span class="bool-val">true</span>
 				} <span class="kw">else</span> {
 					<span class="macro">ensure!</span>(
-						<span class="ident">state</span>.<span class="ident">total</span>.<span class="ident">saturating_sub</span>(<span class="ident">T::MinDelegatorStk::get</span>().<span class="ident">into</span>()) <span class="op">&gt;</span><span class="op">=</span> <span class="ident">amount</span>,
+						<span class="ident">state</span>
+							.<span class="ident">total</span>()
+							.<span class="ident">saturating_sub</span>(<span class="ident">T::MinDelegatorStk::get</span>().<span class="ident">into</span>())
+							<span class="op">&gt;</span><span class="op">=</span> <span class="ident">amount</span>,
 						<span class="op">&lt;</span><span class="ident">Error</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::DelegatorBondBelowMin</span>
 					);
 					<span class="bool-val">false</span>
@@ -888,7 +907,7 @@
 				<span class="ident">state</span>.<span class="ident">less_total</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">less_total</span>.<span class="ident">saturating_sub</span>(<span class="ident">amount</span>);
 
 				<span class="comment">// remove delegation from delegator state</span>
-				<span class="ident">state</span>.<span class="ident">rm_delegation</span>(<span class="kw-2">&amp;</span><span class="ident">collator</span>);
+				<span class="ident">state</span>.<span class="ident">rm_delegation</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="ident">collator</span>);
 
 				<span class="comment">// remove delegation from collator state delegations</span>
 				<span class="ident"><span class="self">Self</span>::delegator_leaves_candidate</span>(<span class="ident">collator</span>.<span class="ident">clone</span>(), <span class="ident">delegator</span>.<span class="ident">clone</span>(), <span class="ident">amount</span>)<span class="question-mark">?</span>;
@@ -921,19 +940,25 @@
 						<span class="kw">return</span> <span class="kw">if</span> <span class="ident">bond</span>.<span class="ident">amount</span> <span class="op">&gt;</span> <span class="ident">amount</span> {
 							<span class="kw">let</span> <span class="ident">amount_before</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">bond</span>.<span class="ident">amount</span>.<span class="ident">into</span>();
 							<span class="ident">bond</span>.<span class="ident">amount</span> <span class="op">=</span> <span class="ident">bond</span>.<span class="ident">amount</span>.<span class="ident">saturating_sub</span>(<span class="ident">amount</span>);
-							<span class="ident">state</span>.<span class="ident">total</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">total</span>.<span class="ident">saturating_sub</span>(<span class="ident">amount</span>);
-							<span class="kw">let</span> <span class="ident">new_total</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">total</span>.<span class="ident">into</span>();
-							<span class="macro">ensure!</span>(
-								<span class="ident">new_total</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">T::MinDelegation::get</span>(),
-								<span class="op">&lt;</span><span class="ident">Error</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::DelegationBelowMin</span>
-							);
-							<span class="macro">ensure!</span>(
-								<span class="ident">new_total</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">T::MinDelegatorStk::get</span>(),
-								<span class="op">&lt;</span><span class="ident">Error</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::DelegatorBondBelowMin</span>
-							);
 							<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">collator_info</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">CandidateInfo</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">collator</span>)
 								.<span class="ident">ok_or</span>(<span class="op">&lt;</span><span class="ident">Error</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::CandidateDNE</span>)<span class="question-mark">?</span>;
-							<span class="ident">T::Currency::unreserve</span>(<span class="kw-2">&amp;</span><span class="ident">delegator</span>, <span class="ident">amount</span>);
+
+							<span class="ident">state</span>.<span class="ident">total_sub_if</span>::<span class="op">&lt;</span><span class="ident">T</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="ident">amount</span>, <span class="op">|</span><span class="ident">total</span><span class="op">|</span> {
+								<span class="kw">let</span> <span class="ident">new_total</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">total</span>.<span class="ident">into</span>();
+								<span class="macro">ensure!</span>(
+									<span class="ident">new_total</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">T::MinDelegation::get</span>(),
+									<span class="op">&lt;</span><span class="ident">Error</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::DelegationBelowMin</span>
+								);
+								<span class="macro">ensure!</span>(
+									<span class="ident">new_total</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">T::MinDelegatorStk::get</span>(),
+									<span class="op">&lt;</span><span class="ident">Error</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::DelegatorBondBelowMin</span>
+								);
+
+								<span class="ident"><span class="self">Self</span>::jit_ensure_delegator_reserve_migrated</span>(<span class="kw-2">&amp;</span><span class="ident">delegator</span>)<span class="question-mark">?</span>;
+
+								<span class="prelude-val">Ok</span>(())
+							})<span class="question-mark">?</span>;
+
 							<span class="comment">// need to go into decrease_delegation</span>
 							<span class="kw">let</span> <span class="ident">in_top</span> <span class="op">=</span> <span class="ident">collator_info</span>.<span class="ident">decrease_delegation</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(
 								<span class="kw-2">&amp;</span><span class="ident">collator</span>,
@@ -1073,7 +1098,7 @@
 		<span class="ident">delegator</span>: <span class="ident">T::AccountId</span>,
 		<span class="ident">delegation_count</span>: <span class="ident">u32</span>,
 	) -&gt; <span class="ident">DispatchResultWithPostInfo</span> {
-		<span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">DelegatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">delegator</span>).<span class="ident">ok_or</span>(<span class="op">&lt;</span><span class="ident">Error</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::DelegatorDNE</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">DelegatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">delegator</span>).<span class="ident">ok_or</span>(<span class="op">&lt;</span><span class="ident">Error</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::DelegatorDNE</span>)<span class="question-mark">?</span>;
 		<span class="macro">ensure!</span>(
 			<span class="ident">delegation_count</span> <span class="op">&gt;</span><span class="op">=</span> (<span class="ident">state</span>.<span class="ident">delegations</span>.<span class="number">0</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>),
 			<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::TooLowDelegationCountToLeaveDelegators</span>
@@ -1120,6 +1145,13 @@
 			<span class="ident">updated_scheduled_requests</span>.<span class="ident">push</span>((<span class="ident">collator</span>, <span class="ident">scheduled_requests</span>));
 		}
 
+		<span class="comment">// TODO: reveiew -- we&#39;re about to leave, so this is mostly extra work (extra writes)</span>
+		<span class="ident"><span class="self">Self</span>::jit_ensure_delegator_reserve_migrated</span>(<span class="kw-2">&amp;</span><span class="ident">delegator</span>)<span class="question-mark">?</span>;
+
+		<span class="comment">// set state.total so that state.adjust_bond_lock will remove lock</span>
+		<span class="kw">let</span> <span class="ident">unstaked_amount</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">total</span>();
+		<span class="ident">state</span>.<span class="ident">total_sub</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">unstaked_amount</span>)<span class="question-mark">?</span>;
+
 		<span class="ident">updated_scheduled_requests</span>
 			.<span class="ident">into_iter</span>()
 			.<span class="ident">for_each</span>(<span class="op">|</span>(<span class="ident">collator</span>, <span class="ident">scheduled_requests</span>)<span class="op">|</span> {
@@ -1128,7 +1160,7 @@
 
 		<span class="ident"><span class="self">Self</span>::deposit_event</span>(<span class="ident">Event::DelegatorLeft</span> {
 			<span class="ident">delegator</span>: <span class="ident">delegator</span>.<span class="ident">clone</span>(),
-			<span class="ident">unstaked_amount</span>: <span class="ident">state</span>.<span class="ident">total</span>,
+			<span class="ident">unstaked_amount</span>,
 		});
 		<span class="op">&lt;</span><span class="ident">DelegatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::remove</span>(<span class="kw-2">&amp;</span><span class="ident">delegator</span>);
 

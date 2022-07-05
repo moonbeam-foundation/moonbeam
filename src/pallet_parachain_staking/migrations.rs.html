@@ -817,6 +817,9 @@
 <span id="812">812</span>
 <span id="813">813</span>
 <span id="814">814</span>
+<span id="815">815</span>
+<span id="816">816</span>
+<span id="817">817</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -957,6 +960,7 @@
 					<span class="ident">less_total</span>: <span class="ident">old_state</span>.<span class="ident">requests</span>.<span class="ident">less_total</span>,
 					<span class="ident">status</span>: <span class="ident">old_state</span>.<span class="ident">status</span>,
 				};
+
 				<span class="prelude-val">Some</span>(<span class="ident">new_state</span>)
 			},
 		);
@@ -1173,173 +1177,175 @@
 	}
 }
 
-<span class="doccomment">/// Migration to split CandidateState and minimize unnecessary storage reads</span>
-<span class="doccomment">/// for PoV optimization</span>
-<span class="doccomment">/// This assumes Config::MaxTopDelegationsPerCandidate == OldConfig::MaxDelegatorsPerCandidate</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SplitCandidateStateToDecreasePoV</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">OnRuntimeUpgrade</span> <span class="kw">for</span> <span class="ident">SplitCandidateStateToDecreasePoV</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-	<span class="kw">fn</span> <span class="ident">on_runtime_upgrade</span>() -&gt; <span class="ident">Weight</span> {
-		<span class="kw">let</span> <span class="ident">pallet_prefix</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;ParachainStaking&quot;</span>;
-		<span class="kw">let</span> <span class="ident">storage_item_prefix</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;CandidateState&quot;</span>;
-		<span class="comment">// Read all the data into memory.</span>
-		<span class="comment">// https://crates.parity.io/frame_support/storage/migration/fn.storage_key_iter.html</span>
-		<span class="kw">let</span> <span class="ident">stored_data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">storage_key_iter</span>::<span class="op">&lt;</span>
-			<span class="ident">T::AccountId</span>,
-			<span class="ident">CollatorCandidate</span><span class="op">&lt;</span><span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-			<span class="ident">Twox64Concat</span>,
-		<span class="op">&gt;</span>(<span class="ident">pallet_prefix</span>, <span class="ident">storage_item_prefix</span>)
-		.<span class="ident">collect</span>();
-		<span class="kw">let</span> <span class="ident">migrated_count</span>: <span class="ident">Weight</span> <span class="op">=</span> <span class="ident">stored_data</span>
-			.<span class="ident">len</span>()
-			.<span class="ident">try_into</span>()
-			.<span class="ident">expect</span>(<span class="string">&quot;There are between 0 and 2**64 mappings stored.&quot;</span>);
-		<span class="comment">// Now remove the old storage</span>
-		<span class="comment">// https://crates.parity.io/frame_support/storage/migration/fn.remove_storage_prefix.html</span>
-		<span class="ident">remove_storage_prefix</span>(<span class="ident">pallet_prefix</span>, <span class="ident">storage_item_prefix</span>, <span class="kw-2">&amp;</span>[]);
-		<span class="comment">// Assert that old storage is empty</span>
-		<span class="macro">assert!</span>(<span class="ident">storage_key_iter</span>::<span class="op">&lt;</span>
-			<span class="ident">T::AccountId</span>,
-			<span class="ident">CollatorCandidate</span><span class="op">&lt;</span><span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-			<span class="ident">Twox64Concat</span>,
-		<span class="op">&gt;</span>(<span class="ident">pallet_prefix</span>, <span class="ident">storage_item_prefix</span>)
-		.<span class="ident">next</span>()
-		.<span class="ident">is_none</span>());
-		<span class="kw">for</span> (<span class="ident">account</span>, <span class="ident">state</span>) <span class="kw">in</span> <span class="ident">stored_data</span> {
-			<span class="comment">// all delegations are stored greatest to least post migration</span>
-			<span class="comment">// but bottom delegations were least to greatest pre migration</span>
-			<span class="kw">let</span> <span class="ident">new_bottom_delegations</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Bond</span><span class="op">&lt;</span><span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span>
-				<span class="kw">if</span> <span class="ident">state</span>.<span class="ident">bottom_delegations</span>.<span class="ident">len</span>()
-					<span class="op">&gt;</span> <span class="ident">T::MaxBottomDelegationsPerCandidate::get</span>() <span class="kw">as</span> <span class="ident">usize</span>
+<span class="comment">/*
+/// Migration to split CandidateState and minimize unnecessary storage reads
+/// for PoV optimization
+/// This assumes Config::MaxTopDelegationsPerCandidate == OldConfig::MaxDelegatorsPerCandidate
+pub struct SplitCandidateStateToDecreasePoV&lt;T&gt;(PhantomData&lt;T&gt;);
+impl&lt;T: Config&gt; OnRuntimeUpgrade for SplitCandidateStateToDecreasePoV&lt;T&gt; {
+	fn on_runtime_upgrade() -&gt; Weight {
+		let pallet_prefix: &amp;[u8] = b&quot;ParachainStaking&quot;;
+		let storage_item_prefix: &amp;[u8] = b&quot;CandidateState&quot;;
+		// Read all the data into memory.
+		// https://crates.parity.io/frame_support/storage/migration/fn.storage_key_iter.html
+		let stored_data: Vec&lt;_&gt; = storage_key_iter::&lt;
+			T::AccountId,
+			CollatorCandidate&lt;T::AccountId, BalanceOf&lt;T&gt;&gt;,
+			Twox64Concat,
+		&gt;(pallet_prefix, storage_item_prefix)
+		.collect();
+		let migrated_count: Weight = stored_data
+			.len()
+			.try_into()
+			.expect(&quot;There are between 0 and 2**64 mappings stored.&quot;);
+		// Now remove the old storage
+		// https://crates.parity.io/frame_support/storage/migration/fn.remove_storage_prefix.html
+		remove_storage_prefix(pallet_prefix, storage_item_prefix, &amp;[]);
+		// Assert that old storage is empty
+		assert!(storage_key_iter::&lt;
+			T::AccountId,
+			CollatorCandidate&lt;T::AccountId, BalanceOf&lt;T&gt;&gt;,
+			Twox64Concat,
+		&gt;(pallet_prefix, storage_item_prefix)
+		.next()
+		.is_none());
+		for (account, state) in stored_data {
+			// all delegations are stored greatest to least post migration
+			// but bottom delegations were least to greatest pre migration
+			let new_bottom_delegations: Vec&lt;Bond&lt;T::AccountId, BalanceOf&lt;T&gt;&gt;&gt; =
+				if state.bottom_delegations.len()
+					&gt; T::MaxBottomDelegationsPerCandidate::get() as usize
 				{
-					<span class="comment">// if actual length &gt; max bottom delegations, revoke the bottom actual - max</span>
-					<span class="kw">let</span> <span class="ident">rest</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">bottom_delegations</span>.<span class="ident">len</span>()
-						<span class="op">-</span> <span class="ident">T::MaxBottomDelegationsPerCandidate::get</span>() <span class="kw">as</span> <span class="ident">usize</span>;
-					<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">total_less</span> <span class="op">=</span> <span class="ident">BalanceOf</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::zero</span>();
-					<span class="ident">state</span>.<span class="ident">bottom_delegations</span>.<span class="ident">iter</span>().<span class="ident">take</span>(<span class="ident">rest</span>).<span class="ident">for_each</span>(
-						<span class="op">|</span><span class="ident">Bond</span> { <span class="ident">owner</span>, <span class="ident">amount</span> }<span class="op">|</span> {
-							<span class="ident">total_less</span> <span class="op">=</span> <span class="ident">total_less</span>.<span class="ident">saturating_add</span>(<span class="kw-2">*</span><span class="ident">amount</span>);
-							<span class="comment">// update delegator state</span>
-							<span class="comment">// unreserve kicked bottom</span>
-							<span class="ident">T::Currency::unreserve</span>(<span class="kw-2">&amp;</span><span class="ident">owner</span>, <span class="kw-2">*</span><span class="ident">amount</span>);
-							<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">delegator_state</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">DelegatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">owner</span>)
-								.<span class="ident">expect</span>(<span class="string">&quot;Delegation existence =&gt; DelegatorState existence&quot;</span>);
-							<span class="kw">let</span> <span class="ident">leaving</span> <span class="op">=</span> <span class="ident">delegator_state</span>.<span class="ident">delegations</span>.<span class="number">0</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1usize</span>;
-							<span class="ident">delegator_state</span>.<span class="ident">rm_delegation</span>(<span class="kw-2">&amp;</span><span class="ident">account</span>);
-							<span class="ident">Pallet</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::deposit_event</span>(<span class="ident">Event::DelegationKicked</span> {
-								<span class="ident">delegator</span>: <span class="ident">owner</span>.<span class="ident">clone</span>(),
-								<span class="ident">candidate</span>: <span class="ident">account</span>.<span class="ident">clone</span>(),
-								<span class="ident">unstaked_amount</span>: <span class="kw-2">*</span><span class="ident">amount</span>,
+					// if actual length &gt; max bottom delegations, revoke the bottom actual - max
+					let rest = state.bottom_delegations.len()
+						- T::MaxBottomDelegationsPerCandidate::get() as usize;
+					let mut total_less = BalanceOf::&lt;T&gt;::zero();
+					state.bottom_delegations.iter().take(rest).for_each(
+						|Bond { owner, amount }| {
+							total_less = total_less.saturating_add(*amount);
+							// update delegator state
+							// unreserve kicked bottom
+							T::Currency::unreserve(&amp;owner, *amount);
+							let mut delegator_state = &lt;DelegatorState&lt;T&gt;&gt;::get(&amp;owner)
+								.expect(&quot;Delegation existence =&gt; DelegatorState existence&quot;);
+							let leaving = delegator_state.delegations.0.len() == 1usize;
+							delegator_state.rm_delegation::&lt;T&gt;(&amp;account);
+							Pallet::&lt;T&gt;::deposit_event(Event::DelegationKicked {
+								delegator: owner.clone(),
+								candidate: account.clone(),
+								unstaked_amount: *amount,
 							});
-							<span class="kw">if</span> <span class="ident">leaving</span> {
-								<span class="op">&lt;</span><span class="ident">DelegatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::remove</span>(<span class="kw-2">&amp;</span><span class="ident">owner</span>);
-								<span class="ident">Pallet</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::deposit_event</span>(<span class="ident">Event::DelegatorLeft</span> {
-									<span class="ident">delegator</span>: <span class="ident">owner</span>.<span class="ident">clone</span>(),
-									<span class="ident">unstaked_amount</span>: <span class="kw-2">*</span><span class="ident">amount</span>,
+							if leaving {
+								&lt;DelegatorState&lt;T&gt;&gt;::remove(&amp;owner);
+								Pallet::&lt;T&gt;::deposit_event(Event::DelegatorLeft {
+									delegator: owner.clone(),
+									unstaked_amount: *amount,
 								});
-							} <span class="kw">else</span> {
-								<span class="op">&lt;</span><span class="ident">DelegatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="kw-2">&amp;</span><span class="ident">owner</span>, <span class="ident">delegator_state</span>);
+							} else {
+								&lt;DelegatorState&lt;T&gt;&gt;::insert(&amp;owner, delegator_state);
 							}
 						},
 					);
-					<span class="kw">let</span> <span class="ident">new_total</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Total</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>() <span class="op">-</span> <span class="ident">total_less</span>;
-					<span class="op">&lt;</span><span class="ident">Total</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::put</span>(<span class="ident">new_total</span>);
-					<span class="ident">state</span>
-						.<span class="ident">bottom_delegations</span>
-						.<span class="ident">into_iter</span>()
-						.<span class="ident">rev</span>()
-						.<span class="ident">take</span>(<span class="ident">T::MaxBottomDelegationsPerCandidate::get</span>() <span class="kw">as</span> <span class="ident">usize</span>)
-						.<span class="ident">collect</span>()
-				} <span class="kw">else</span> {
-					<span class="ident">state</span>.<span class="ident">bottom_delegations</span>.<span class="ident">into_iter</span>().<span class="ident">rev</span>().<span class="ident">collect</span>()
+					let new_total = &lt;Total&lt;T&gt;&gt;::get() - total_less;
+					&lt;Total&lt;T&gt;&gt;::put(new_total);
+					state
+						.bottom_delegations
+						.into_iter()
+						.rev()
+						.take(T::MaxBottomDelegationsPerCandidate::get() as usize)
+						.collect()
+				} else {
+					state.bottom_delegations.into_iter().rev().collect()
 				};
-			<span class="kw">let</span> <span class="ident">lowest_top_delegation_amount</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">state</span>.<span class="ident">top_delegations</span>.<span class="ident">is_empty</span>() {
-				<span class="ident">BalanceOf</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::zero</span>()
-			} <span class="kw">else</span> {
-				<span class="ident">state</span>.<span class="ident">top_delegations</span>[<span class="ident">state</span>.<span class="ident">top_delegations</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>].<span class="ident">amount</span>
+			let lowest_top_delegation_amount = if state.top_delegations.is_empty() {
+				BalanceOf::&lt;T&gt;::zero()
+			} else {
+				state.top_delegations[state.top_delegations.len() - 1].amount
 			};
-			<span class="kw">let</span> <span class="ident">highest_bottom_delegation_amount</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">new_bottom_delegations</span>.<span class="ident">is_empty</span>() {
-				<span class="ident">BalanceOf</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::zero</span>()
-			} <span class="kw">else</span> {
-				<span class="ident">new_bottom_delegations</span>[<span class="number">0</span>].<span class="ident">amount</span>
+			let highest_bottom_delegation_amount = if new_bottom_delegations.is_empty() {
+				BalanceOf::&lt;T&gt;::zero()
+			} else {
+				new_bottom_delegations[0].amount
 			};
-			<span class="comment">// start here,</span>
-			<span class="kw">let</span> <span class="ident">lowest_bottom_delegation_amount</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">new_bottom_delegations</span>.<span class="ident">is_empty</span>() {
-				<span class="ident">BalanceOf</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::zero</span>()
-			} <span class="kw">else</span> {
-				<span class="ident">new_bottom_delegations</span>[<span class="ident">new_bottom_delegations</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>].<span class="ident">amount</span>
+			// start here,
+			let lowest_bottom_delegation_amount = if new_bottom_delegations.is_empty() {
+				BalanceOf::&lt;T&gt;::zero()
+			} else {
+				new_bottom_delegations[new_bottom_delegations.len() - 1].amount
 			};
-			<span class="kw">let</span> <span class="ident">top_capacity</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">state</span>.<span class="ident">top_delegations</span> {
-				<span class="ident">x</span> <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">T::MaxTopDelegationsPerCandidate::get</span>() =&gt; {
-					<span class="ident">CapacityStatus::Full</span>
+			let top_capacity = match &amp;state.top_delegations {
+				x if x.len() as u32 &gt;= T::MaxTopDelegationsPerCandidate::get() =&gt; {
+					CapacityStatus::Full
 				}
-				<span class="ident">x</span> <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">is_empty</span>() =&gt; <span class="ident">CapacityStatus::Empty</span>,
-				<span class="kw">_</span> =&gt; <span class="ident">CapacityStatus::Partial</span>,
+				x if x.is_empty() =&gt; CapacityStatus::Empty,
+				_ =&gt; CapacityStatus::Partial,
 			};
-			<span class="kw">let</span> <span class="ident">bottom_capacity</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">new_bottom_delegations</span> {
-				<span class="ident">x</span> <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">T::MaxBottomDelegationsPerCandidate::get</span>() =&gt; {
-					<span class="ident">CapacityStatus::Full</span>
+			let bottom_capacity = match &amp;new_bottom_delegations {
+				x if x.len() as u32 &gt;= T::MaxBottomDelegationsPerCandidate::get() =&gt; {
+					CapacityStatus::Full
 				}
-				<span class="ident">x</span> <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">is_empty</span>() =&gt; <span class="ident">CapacityStatus::Empty</span>,
-				<span class="kw">_</span> =&gt; <span class="ident">CapacityStatus::Partial</span>,
+				x if x.is_empty() =&gt; CapacityStatus::Empty,
+				_ =&gt; CapacityStatus::Partial,
 			};
-			<span class="kw">let</span> <span class="ident">metadata</span> <span class="op">=</span> <span class="ident">CandidateMetadata</span> {
-				<span class="ident">bond</span>: <span class="ident">state</span>.<span class="ident">bond</span>,
-				<span class="ident">delegation_count</span>: <span class="ident">state</span>.<span class="ident">top_delegations</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>
-					<span class="op">+</span> <span class="ident">new_bottom_delegations</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>,
-				<span class="ident">total_counted</span>: <span class="ident">state</span>.<span class="ident">total_counted</span>,
-				<span class="ident">lowest_top_delegation_amount</span>,
-				<span class="ident">highest_bottom_delegation_amount</span>,
-				<span class="ident">lowest_bottom_delegation_amount</span>,
-				<span class="ident">top_capacity</span>,
-				<span class="ident">bottom_capacity</span>,
-				<span class="ident">request</span>: <span class="ident">state</span>.<span class="ident">request</span>,
-				<span class="ident">status</span>: <span class="ident">state</span>.<span class="ident">state</span>,
+			let metadata = CandidateMetadata {
+				bond: state.bond,
+				delegation_count: state.top_delegations.len() as u32
+					+ new_bottom_delegations.len() as u32,
+				total_counted: state.total_counted,
+				lowest_top_delegation_amount,
+				highest_bottom_delegation_amount,
+				lowest_bottom_delegation_amount,
+				top_capacity,
+				bottom_capacity,
+				request: state.request,
+				status: state.state,
 			};
-			<span class="op">&lt;</span><span class="ident">CandidateInfo</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="kw-2">&amp;</span><span class="ident">account</span>, <span class="ident">metadata</span>);
-			<span class="kw">let</span> <span class="ident">top_delegations</span> <span class="op">=</span> <span class="ident">Delegations</span> {
-				<span class="ident">total</span>: <span class="ident">state</span>.<span class="ident">total_counted</span> <span class="op">-</span> <span class="ident">state</span>.<span class="ident">bond</span>,
-				<span class="ident">delegations</span>: <span class="ident">state</span>.<span class="ident">top_delegations</span>,
+			&lt;CandidateInfo&lt;T&gt;&gt;::insert(&amp;account, metadata);
+			let top_delegations = Delegations {
+				total: state.total_counted - state.bond,
+				delegations: state.top_delegations,
 			};
-			<span class="op">&lt;</span><span class="ident">TopDelegations</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="kw-2">&amp;</span><span class="ident">account</span>, <span class="ident">top_delegations</span>);
-			<span class="kw">let</span> <span class="ident">bottom_delegations</span> <span class="op">=</span> <span class="ident">Delegations</span> {
-				<span class="ident">total</span>: <span class="ident">new_bottom_delegations</span>
-					.<span class="ident">iter</span>()
-					.<span class="ident">fold</span>(<span class="ident">BalanceOf</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::zero</span>(), <span class="op">|</span><span class="ident">acc</span>, <span class="ident">b</span><span class="op">|</span> <span class="ident">acc</span> <span class="op">+</span> <span class="ident">b</span>.<span class="ident">amount</span>),
-				<span class="ident">delegations</span>: <span class="ident">new_bottom_delegations</span>,
+			&lt;TopDelegations&lt;T&gt;&gt;::insert(&amp;account, top_delegations);
+			let bottom_delegations = Delegations {
+				total: new_bottom_delegations
+					.iter()
+					.fold(BalanceOf::&lt;T&gt;::zero(), |acc, b| acc + b.amount),
+				delegations: new_bottom_delegations,
 			};
-			<span class="op">&lt;</span><span class="ident">BottomDelegations</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="kw-2">&amp;</span><span class="ident">account</span>, <span class="ident">bottom_delegations</span>);
+			&lt;BottomDelegations&lt;T&gt;&gt;::insert(&amp;account, bottom_delegations);
 		}
-		<span class="kw">let</span> <span class="ident">weight</span> <span class="op">=</span> <span class="ident">T::DbWeight::get</span>();
-		<span class="ident">migrated_count</span>.<span class="ident">saturating_mul</span>(<span class="number">3</span> <span class="op">*</span> <span class="ident">weight</span>.<span class="ident">write</span> <span class="op">+</span> <span class="ident">weight</span>.<span class="ident">read</span>)
+		let weight = T::DbWeight::get();
+		migrated_count.saturating_mul(3 * weight.write + weight.read)
 	}
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">pre_upgrade</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-		<span class="comment">// get delegation count for all candidates to check consistency</span>
-		<span class="kw">for</span> (<span class="ident">account</span>, <span class="ident">state</span>) <span class="kw">in</span> <span class="op">&lt;</span><span class="ident">CandidateState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::iter</span>() {
-			<span class="comment">// insert top + bottom into some temp map?</span>
-			<span class="kw">let</span> <span class="ident">total_delegation_count</span> <span class="op">=</span>
-				<span class="ident">state</span>.<span class="ident">top_delegations</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span> <span class="op">+</span> <span class="ident">state</span>.<span class="ident">bottom_delegations</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>;
-			<span class="ident"><span class="self">Self</span>::set_temp_storage</span>(
-				<span class="ident">total_delegation_count</span>,
-				<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Candidate{:?}DelegationCount&quot;</span>, <span class="ident">account</span>)[..],
+	#[cfg(feature = &quot;try-runtime&quot;)]
+	fn pre_upgrade() -&gt; Result&lt;(), &amp;&#39;static str&gt; {
+		// get delegation count for all candidates to check consistency
+		for (account, state) in &lt;CandidateState&lt;T&gt;&gt;::iter() {
+			// insert top + bottom into some temp map?
+			let total_delegation_count =
+				state.top_delegations.len() as u32 + state.bottom_delegations.len() as u32;
+			Self::set_temp_storage(
+				total_delegation_count,
+				&amp;format!(&quot;Candidate{:?}DelegationCount&quot;, account)[..],
 			);
 		}
-		<span class="prelude-val">Ok</span>(())
+		Ok(())
 	}
 
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">post_upgrade</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-		<span class="comment">// check that top + bottom are the same as the expected (stored in temp)</span>
-		<span class="kw">for</span> (<span class="ident">account</span>, <span class="ident">state</span>) <span class="kw">in</span> <span class="op">&lt;</span><span class="ident">CandidateInfo</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::iter</span>() {
-			<span class="kw">let</span> <span class="ident">expected_count</span>: <span class="ident">u32</span> <span class="op">=</span>
-				<span class="ident"><span class="self">Self</span>::get_temp_storage</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Candidate{:?}DelegationCount&quot;</span>, <span class="ident">account</span>)[..])
-					.<span class="ident">expect</span>(<span class="string">&quot;qed&quot;</span>);
-			<span class="kw">let</span> <span class="ident">actual_count</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">delegation_count</span>;
-			<span class="macro">assert_eq!</span>(<span class="ident">expected_count</span>, <span class="ident">actual_count</span>);
+	#[cfg(feature = &quot;try-runtime&quot;)]
+	fn post_upgrade() -&gt; Result&lt;(), &amp;&#39;static str&gt; {
+		// check that top + bottom are the same as the expected (stored in temp)
+		for (account, state) in &lt;CandidateInfo&lt;T&gt;&gt;::iter() {
+			let expected_count: u32 =
+				Self::get_temp_storage(&amp;format!(&quot;Candidate{:?}DelegationCount&quot;, account)[..])
+					.expect(&quot;qed&quot;);
+			let actual_count = state.delegation_count;
+			assert_eq!(expected_count, actual_count);
 		}
-		<span class="prelude-val">Ok</span>(())
+		Ok(())
 	}
 }
+*/</span>
 
 <span class="doccomment">/// Migration to properly increase maximum delegations per collator</span>
 <span class="doccomment">/// The logic may be used to recompute the top and bottom delegations whenever</span>
