@@ -1311,8 +1311,7 @@ impl<
 		let total = self.total.saturating_add(amount);
 		check(total)?;
 		self.total = total;
-		self.adjust_bond_lock::<T>(BondAdjust::Increase(amount))?;
-		Ok(())
+		self.adjust_bond_lock::<T>(BondAdjust::Increase(amount))
 	}
 
 	pub fn total_sub_if<T, F>(&mut self, amount: Balance, check: F) -> DispatchResult
