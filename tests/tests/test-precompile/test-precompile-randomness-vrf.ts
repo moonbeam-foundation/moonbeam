@@ -274,7 +274,7 @@ describeDevMoonbeam("Precompile Randomness - fulfill request - valid request", (
 });
 
 describeDevMoonbeam("Precompile Randomness - increase request fee - missing request", (context) => {
-  it.skip("should fail with Error", async function () {
+  it("should fail with Error", async function () {
     const { result } = await context.createBlock(
       createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
@@ -306,7 +306,7 @@ describeDevMoonbeam("Precompile Randomness - increase request fee - valid reques
     expectEVMResult(result.events, "Succeed", "Returned");
   });
 
-  it.skip("should succeed with Returned", async function () {
+  it("should succeed with Returned", async function () {
     const { result } = await context.createBlock(
       createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
@@ -338,12 +338,12 @@ describeDevMoonbeam("Precompile Randomness - increase request fee - lower fee", 
     expectEVMResult(result.events, "Succeed", "Returned");
   });
 
-  it.skip("should fail with Error", async function () {
+  it("should fail with Error", async function () {
     const { result } = await context.createBlock(
       createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
         to: PRECOMPILE_RANDOMNESS_ADDRESS,
-        data: RANDOMNESS_INTERFACE.encodeFunctionData("increaseRequestFee", [0, 10n]),
+        data: RANDOMNESS_INTERFACE.encodeFunctionData("increaseRequestFee", [0, 1n]),
       })
     );
 
@@ -372,7 +372,7 @@ describeDevMoonbeam(
       expectEVMResult(result.events, "Succeed", "Returned");
     });
 
-    it.skip("should fail with Error", async function () {
+    it("should fail with Error", async function () {
       const { result } = await context.createBlock(
         createTransaction(context, {
           ...BALTATHAR_TRANSACTION_TEMPLATE,
@@ -476,75 +476,3 @@ describeDevMoonbeam(
     });
   }
 );
-
-describeDevMoonbeam("Precompile Randomness - instant babe randomness current block", (context) => {
-  it.skip("should succeed with Returned", async function () {
-    const { result } = await context.createBlock(
-      createTransaction(context, {
-        ...ALITH_TRANSACTION_TEMPLATE,
-        to: PRECOMPILE_RANDOMNESS_ADDRESS,
-        data: RANDOMNESS_INTERFACE.encodeFunctionData("instantBabeRandomnessCurrentBlock", [
-          1_000_000,
-          new Array(32).fill(0x1f),
-        ]),
-      })
-    );
-
-    expectEVMResult(result.events, "Succeed", "Returned");
-  });
-});
-
-describeDevMoonbeam("Precompile Randomness - instant babe randomness one epoch ago", (context) => {
-  it.skip("should succeed with Returned", async function () {
-    const { result } = await context.createBlock(
-      createTransaction(context, {
-        ...ALITH_TRANSACTION_TEMPLATE,
-        to: PRECOMPILE_RANDOMNESS_ADDRESS,
-        data: RANDOMNESS_INTERFACE.encodeFunctionData("instantBabeRandomnessOneEpochAgo", [
-          1_000_000,
-          new Array(32).fill(0x1f),
-        ]),
-      })
-    );
-
-    expectEVMResult(result.events, "Succeed", "Returned");
-  });
-});
-
-describeDevMoonbeam("Precompile Randomness - instant babe randomness two epochs ago", (context) => {
-  it.skip("should succeed with Returned", async function () {
-    const { result } = await context.createBlock(
-      createTransaction(context, {
-        ...ALITH_TRANSACTION_TEMPLATE,
-        to: PRECOMPILE_RANDOMNESS_ADDRESS,
-        data: RANDOMNESS_INTERFACE.encodeFunctionData("instantBabeRandomnessTwoEpochsAgo", [
-          1_000_000,
-          new Array(32).fill(0x1f),
-        ]),
-      })
-    );
-
-    expectEVMResult(result.events, "Succeed", "Returned");
-  });
-});
-
-describeDevMoonbeam("Precompile Randomness - instant local randomness", (context) => {
-  it("should succeed with Returned", async function () {
-    const { result } = await context.createBlock(
-      createTransaction(context, {
-        ...ALITH_TRANSACTION_TEMPLATE,
-        to: PRECOMPILE_RANDOMNESS_ADDRESS,
-        data: RANDOMNESS_INTERFACE.encodeFunctionData("instantLocalRandomness", [
-          1_000_000,
-          new Array(32).fill(0x1f),
-        ]),
-      })
-    );
-
-    expectEVMResult(result.events, "Succeed", "Returned");
-  });
-});
-
-function printEvents(events: any) {
-  events.map(({ event }) => console.log(event.toHuman()));
-}

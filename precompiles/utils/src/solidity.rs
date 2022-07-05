@@ -95,7 +95,7 @@ fn get_selectors_from_reader<R: Read>(reader: R) -> Vec<SolidityFunction> {
 		let line = line.expect("failed unwrapping line").trim().to_string();
 		// identify declared selector
 		if line.starts_with("/// Selector: ") && matches!(stage, Stage::Start) {
-			solidity_fn.docs_selector = line.replace("/// Selector: ", "").to_string()
+			solidity_fn.docs_selector = line.replace("/// Selector: ", "").to_string();
 		}
 
 		// skip comments
