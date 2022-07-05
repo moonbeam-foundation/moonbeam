@@ -338,7 +338,7 @@ describeDevMoonbeam("Precompile Randomness - increase request fee - lower fee", 
     expectEVMResult(result.events, "Succeed", "Returned");
   });
 
-  it("should fail with Error", async function () {
+  it.skip("should fail with Error", async function () {
     const { result } = await context.createBlock(
       createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
