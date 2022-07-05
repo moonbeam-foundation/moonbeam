@@ -254,9 +254,9 @@ where
 		let gas_limit = input.read::<u64>()?;
 		let salt = input.read::<H256>()?;
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let next_epoch_index =
+		let two_epochs_later =
 			<Runtime as pallet_randomness::Config>::BabeDataGetter::get_relay_epoch_index()
-				.checked_add(1u64)
+				.checked_add(2u64)
 				.ok_or(error("Epoch Index (u64) overflowed"))?;
 		let request = pallet_randomness::Request {
 			refund_address,
@@ -264,7 +264,7 @@ where
 			fee,
 			gas_limit,
 			salt: salt.into(),
-			info: pallet_randomness::RequestType::BabeOneEpochAgo(next_epoch_index),
+			info: pallet_randomness::RequestType::BabeOneEpochAgo(two_epochs_later),
 		};
 		pallet_randomness::Pallet::<Runtime>::request_randomness(request)
 			.map_err(|e| error(alloc::format!("{:?}", e)))?;
@@ -288,9 +288,9 @@ where
 		let gas_limit = input.read::<u64>()?;
 		let salt = input.read::<H256>()?;
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let next_epoch_index =
+		let three_epochs_later =
 			<Runtime as pallet_randomness::Config>::BabeDataGetter::get_relay_epoch_index()
-				.checked_add(1u64)
+				.checked_add(3u64)
 				.ok_or(error("Epoch Index (u64) overflowed"))?;
 		let request = pallet_randomness::Request {
 			refund_address,
@@ -298,7 +298,7 @@ where
 			fee,
 			gas_limit,
 			salt: salt.into(),
-			info: pallet_randomness::RequestType::BabeTwoEpochsAgo(next_epoch_index),
+			info: pallet_randomness::RequestType::BabeTwoEpochsAgo(three_epochs_later),
 		};
 		pallet_randomness::Pallet::<Runtime>::request_randomness(request)
 			.map_err(|e| error(alloc::format!("{:?}", e)))?;

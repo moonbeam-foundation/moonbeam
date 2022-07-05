@@ -65,7 +65,10 @@ pub(crate) fn set_input<T: Config>() {
 pub(crate) fn set_output<T: Config>() -> Weight {
 	let input = <CurrentVrfInput<T>>::get().expect("VrfInput must be set to verify VrfOutput");
 	let mut block_author_vrf_id: Option<VrfId> = None;
-	let pre_digest: PreDigest = <frame_system::Pallet<T>>::digest()
+	let PreDigest {
+		vrf_output,
+		vrf_proof,
+	} = <frame_system::Pallet<T>>::digest()
 		.logs
 		.iter()
 		.filter_map(|s| s.as_pre_runtime())
@@ -92,9 +95,14 @@ pub(crate) fn set_output<T: Config>() -> Weight {
 	let pubkey = schnorrkel::PublicKey::from_bytes(block_author_vrf_id.as_slice())
 		.expect("Expect VrfId to be valid schnorrkel public key");
 	let transcript = make_transcript::<T::Hash>(input.slot_number, input.storage_root);
-	let vrf_output: Randomness = pre_digest
-		.vrf_output
-		.0
+	// NOTE: this is verified by the client when importing the block, before
+	// execution. we don't run the verification again here to avoid slowing
+	// down the runtime.
+	// TODO: verify by the client when importing the block
+	debug_assert!(pubkey
+		.vrf_verify(transcript.clone(), &vrf_output, &vrf_proof)
+		.is_ok());
+	let vrf_output: Randomness = vrf_output
 		.attach_input_hash(&pubkey, transcript)
 		.ok()
 		.map(|inout| inout.make_bytes(&VRF_INOUT_CONTEXT))
