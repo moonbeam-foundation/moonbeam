@@ -22,10 +22,12 @@ use frame_support::pallet;
 
 pub use pallet::*;
 
+pub mod instant;
 pub mod migrations;
 pub mod traits;
 pub mod types;
 pub mod vrf;
+pub use instant::*;
 pub use traits::*;
 pub use types::*;
 pub use vrf::VrfInput;

@@ -49,6 +49,10 @@ pub enum Action {
 	FulfillRequest = "fulfillRequest(uint64)",
 	IncreaseRequestFee = "increaseRequestFee(uint64)",
 	ExecuteRequestExpiration = "executeRequestExpiration(uint64)",
+	InstantBabeRandomnessCurrentBlock = "instantBabeRandomnessCurrentBlock(uint64,bytes32)",
+	InstantBabeRandomnessOneEpochAgo = "instantBabeRandomnessOneEpochAgo(uint64,bytes32)",
+	InstantBabeRandomnessTwoEpochsAgo = "instantBabeRandomnessTwoEpochsAgo(uint64,bytes32)",
+	InstantLocalRandomness = "instantLocalRandomness(uint64,bytes32)",
 }
 
 pub const FULFILLMENT_ESTIMATED_COST: u64 = 1000u64; // TODO: get real value from benchmarking
@@ -67,25 +71,26 @@ pub fn log_subcall_failed(address: impl Into<H160>) -> Log {
 fn ensure_can_provide_randomness<Runtime>(
 	code_address: H160,
 	gas_limit: u64,
-	request_fee: BalanceOf<Runtime>,
-	clean_up_cost: u64,
+	request_fee: Option<BalanceOf<Runtime>>,
+	clean_up_cost: Option<u64>,
 ) -> EvmResult<()>
 where
 	Runtime: pallet_randomness::Config + pallet_evm::Config + pallet_base_fee::Config,
 	BalanceOf<Runtime>: Into<U256>,
 {
-	// assert fee > gasLimit * base_fee
-	let gas_limit_as_u256: U256 = gas_limit.into();
-	if let Some(gas_limit_times_base_fee) =
-		gas_limit_as_u256.checked_mul(pallet_base_fee::Pallet::<Runtime>::base_fee_per_gas())
-	{
-		if gas_limit_times_base_fee >= request_fee.into() {
+	if let Some(fee) = request_fee {
+		// assert fee / base_fee > gasLimit
+		let fee_as_u256: U256 = fee.into();
+		// TODO: should this be as_u64 which panics?
+		let fees_available: u64 = fee_as_u256
+			.checked_div(pallet_base_fee::Pallet::<Runtime>::base_fee_per_gas())
+			.unwrap_or_default()
+			.low_u64();
+		if gas_limit >= fees_available {
 			return Err(revert(
 				"Gas limit at current price must be less than fees allotted",
 			));
 		}
-	} else {
-		return Err(revert("Gas limit times base fee overflowed U256"));
 	}
 	let log_cost = log_subcall_failed(code_address)
 		.compute_cost()
@@ -93,7 +98,11 @@ where
 	// Cost of the call itself that the batch precompile must pay.
 	let call_cost = call_cost(U256::zero(), <Runtime as pallet_evm::Config>::config());
 	// assert gasLimit > overhead cost
-	let overhead = call_cost + log_cost + clean_up_cost;
+	let overhead = if let Some(estimated_clean_up_cost) = clean_up_cost {
+		call_cost + log_cost + estimated_clean_up_cost
+	} else {
+		call_cost + log_cost
+	};
 	if gas_limit <= overhead {
 		return Err(revert("Gas limit must exceed overhead call cost"));
 	}
@@ -172,6 +181,16 @@ where
 			Action::FulfillRequest => Self::fulfill_request(handle),
 			Action::IncreaseRequestFee => Self::increase_request_fee(handle),
 			Action::ExecuteRequestExpiration => Self::execute_request_expiration(handle),
+			Action::InstantBabeRandomnessCurrentBlock => {
+				Self::instant_babe_randomness_current_block(handle)
+			}
+			Action::InstantBabeRandomnessOneEpochAgo => {
+				Self::instant_babe_randomness_one_epoch_ago(handle)
+			}
+			Action::InstantBabeRandomnessTwoEpochsAgo => {
+				Self::instant_babe_randomness_two_epochs_ago(handle)
+			}
+			Action::InstantLocalRandomness => Self::instant_local_randomness(handle),
 		}
 	}
 }
@@ -359,8 +378,8 @@ where
 		ensure_can_provide_randomness::<Runtime>(
 			handle.code_address(),
 			request.gas_limit,
-			request.fee,
-			FULFILLMENT_ESTIMATED_COST,
+			Some(request.fee),
+			Some(FULFILLMENT_ESTIMATED_COST),
 		)?;
 		// get gas before subcall
 		let before_remaining_gas = handle.remaining_gas();
@@ -430,6 +449,80 @@ where
 			request_id,
 		)
 		.map_err(|e| error(alloc::format!("{:?}", e)))?;
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			output: Default::default(),
+		})
+	}
+	/// Provides most recent babe randomness current block to caller by invoking subcall
+	fn instant_babe_randomness_current_block(
+		handle: &mut impl PrecompileHandle,
+	) -> EvmResult<PrecompileOutput> {
+		let mut input = handle.read_input()?;
+		let gas_limit = input.read::<u64>()?;
+		let salt = input.read::<H256>()?.into();
+		// check that randomness can be provided
+		ensure_can_provide_randomness::<Runtime>(handle.code_address(), gas_limit, None, None)?;
+		// get randomness from pallet
+		let randomness = pallet_randomness::instant_current_block_randomness::<Runtime>(salt)
+			.map_err(|e| error(alloc::format!("{:?}", e)))?;
+		// make subcall
+		provide_randomness(handle, gas_limit, handle.context().caller, H256(randomness))?;
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			output: Default::default(),
+		})
+	}
+	/// Provides most recent babe randomness one epoch ago to caller by invoking subcall
+	fn instant_babe_randomness_one_epoch_ago(
+		handle: &mut impl PrecompileHandle,
+	) -> EvmResult<PrecompileOutput> {
+		let mut input = handle.read_input()?;
+		let gas_limit = input.read::<u64>()?;
+		let salt = input.read::<H256>()?.into();
+		// check that randomness can be provided
+		ensure_can_provide_randomness::<Runtime>(handle.code_address(), gas_limit, None, None)?;
+		// get randomness from pallet
+		let randomness = pallet_randomness::instant_one_epoch_ago_randomness::<Runtime>(salt)
+			.map_err(|e| error(alloc::format!("{:?}", e)))?;
+		// make subcall
+		provide_randomness(handle, gas_limit, handle.context().caller, H256(randomness))?;
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			output: Default::default(),
+		})
+	}
+	/// Provides most recent babe randomness two epochs ago to caller by invoking subcall
+	fn instant_babe_randomness_two_epochs_ago(
+		handle: &mut impl PrecompileHandle,
+	) -> EvmResult<PrecompileOutput> {
+		let mut input = handle.read_input()?;
+		let gas_limit = input.read::<u64>()?;
+		let salt = input.read::<H256>()?.into();
+		// check that randomness can be provided
+		ensure_can_provide_randomness::<Runtime>(handle.code_address(), gas_limit, None, None)?;
+		// get randomness from pallet
+		let randomness = pallet_randomness::instant_two_epochs_ago_randomness::<Runtime>(salt)
+			.map_err(|e| error(alloc::format!("{:?}", e)))?;
+		// make subcall
+		provide_randomness(handle, gas_limit, handle.context().caller, H256(randomness))?;
+		Ok(PrecompileOutput {
+			exit_status: ExitSucceed::Returned,
+			output: Default::default(),
+		})
+	}
+	/// Provides local randomness to caller by invoking subcall on behalf of caller
+	fn instant_local_randomness(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		let mut input = handle.read_input()?;
+		let gas_limit = input.read::<u64>()?;
+		let salt = input.read::<H256>()?.into();
+		// check that randomness can be provided
+		ensure_can_provide_randomness::<Runtime>(handle.code_address(), gas_limit, None, None)?;
+		// get randomness from pallet
+		let randomness = pallet_randomness::instant_local_randomness::<Runtime>(salt)
+			.map_err(|e| error(alloc::format!("{:?}", e)))?;
+		// make subcall
+		provide_randomness(handle, gas_limit, handle.context().caller, H256(randomness))?;
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
 			output: Default::default(),

@@ -77,4 +77,27 @@ interface Randomness {
     /// @param request_id Request to be purged by caller
     /// Selector: 8fcdcc49
     function executeRequestExpiration(uint64 request_id) external;
+
+    /// @param gas_limit Gas limit for the subcall that provides randomness
+    /// @param salt Salt to be mixed with raw randomness to get output
+    /// Selector: 28f0c44e
+    function instantBabeRandomnessCurrentBlock(uint64 gas_limit, bytes32 salt)
+        external;
+
+    /// @param gas_limit Gas limit for the subcall that provides randomness
+    /// @param salt Salt to be mixed with raw randomness to get output
+    /// Selector: cde3e7d1
+    function instantBabeRandomnessOneEpochAgo(uint64 gas_limit, bytes32 salt)
+        external;
+
+    /// @param gas_limit Gas limit for the subcall that provides randomness
+    /// @param salt Salt to be mixed with raw randomness to get output
+    /// Selector: 1ac580b9
+    function instantBabeRandomnessTwoEpochsAgo(uint64 gas_limit, bytes32 salt)
+        external;
+
+    /// @param gas_limit Gas limit for the subcall that provides randomness
+    /// @param salt Salt to be mixed with raw randomness to get output
+    /// Selector: cb1abe60
+    function instantLocalRandomness(uint64 gas_limit, bytes32 salt) external;
 }
