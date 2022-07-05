@@ -18,7 +18,8 @@ describeDevMoonbeam("Trace filter - Contract creation ", (context) => {
     const { contract, rawTx } = await createContract(context, "TraceFilter", {}, [false]);
     await context.createBlock(rawTx);
 
-    const { rawTx: rawTx2 } = await createContract(context, "TraceFilter", {}, [true]);
+    const { rawTx: rawTx2 } = await createContract(context, "TraceFilter", { gas: 90_000 }, [true]);
+
     await context.createBlock([rawTx2]);
 
     const { rawTx: rawTx3 } = await createContract(context, "TraceFilter", {}, [false]);
@@ -50,7 +51,7 @@ describeDevMoonbeam("Trace filter - Contract creation ", (context) => {
     expect(response.result[0].action).to.include({
       creationMethod: "create",
       from: ALITH_ADDRESS,
-      gas: "0xb5c13a",
+      gas: "0x6bdea",
       value: "0x0",
     });
     expect(response.result[0].result).to.include({
@@ -81,7 +82,7 @@ describeDevMoonbeam("Trace filter - Contract creation ", (context) => {
     expect(response.result.length).to.equal(1);
     expect(response.result[0].action.creationMethod).to.equal("create");
     expect(response.result[0].action.from).to.equal(ALITH_ADDRESS);
-    expect(response.result[0].action.gas).to.equal("0xb5c2c8");
+    expect(response.result[0].action.gas).to.equal("0x758");
     expect(response.result[0].action.init).to.be.a("string");
     expect(response.result[0].action.value).to.equal("0x0");
     expect(response.result[0].blockHash).to.be.a("string");

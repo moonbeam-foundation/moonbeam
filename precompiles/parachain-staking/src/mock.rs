@@ -27,7 +27,7 @@ use pallet_evm::{
 };
 use pallet_parachain_staking::{AwardedPts, InflationInfo, Points, Range};
 use serde::{Deserialize, Serialize};
-use sp_core::{H160, H256};
+use sp_core::{H160, H256, U256};
 use sp_io;
 use sp_runtime::{
 	testing::Header,
@@ -189,6 +189,7 @@ where
 }
 
 parameter_types! {
+	pub BlockGasLimit: U256 = U256::max_value();
 	pub PrecompilesValue: TestPrecompiles<Runtime> = TestPrecompiles(Default::default());
 }
 
@@ -205,10 +206,9 @@ impl pallet_evm::Config for Runtime {
 	type PrecompilesValue = PrecompilesValue;
 	type ChainId = ();
 	type OnChargeTransaction = ();
-	type BlockGasLimit = ();
+	type BlockGasLimit = BlockGasLimit;
 	type BlockHashMapping = pallet_evm::SubstrateBlockHashMapping<Self>;
 	type FindAuthor = ();
-	type WeightInfo = ();
 }
 
 parameter_types! {

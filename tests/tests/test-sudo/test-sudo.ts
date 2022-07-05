@@ -2,7 +2,7 @@ import "@moonbeam-network/api-augment";
 
 import { expect } from "chai";
 
-import { alith, ALITH_GENESIS_BALANCE, baltathar } from "../../util/accounts";
+import { alith, ALITH_GENESIS_TRANSFERABLE_BALANCE, baltathar } from "../../util/accounts";
 import { verifyLatestBlockFees } from "../../util/block";
 import { DEFAULT_GENESIS_BALANCE, ZERO_ADDRESS } from "../../util/constants";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
@@ -29,7 +29,7 @@ describeDevMoonbeam("Sudo - successful setParachainBondAccount", (context) => {
     expect(context.polkadotApi.events.system.ExtrinsicSuccess.is(events[4].event)).to.be.true;
     // check balance diff (diff should be null for sudo - funds are sent back)
     expect(await context.web3.eth.getBalance(alith.address, 1)).to.equal(
-      ALITH_GENESIS_BALANCE.toString()
+      ALITH_GENESIS_TRANSFERABLE_BALANCE.toString()
     );
   });
 });

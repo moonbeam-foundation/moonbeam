@@ -4,7 +4,7 @@ import { u128 } from "@polkadot/types";
 import { BN, hexToU8a } from "@polkadot/util";
 import { expect } from "chai";
 
-import { alith, baltathar, charleth, generateKeyingPair } from "../../util/accounts";
+import { alith, baltathar, charleth, generateKeyringPair } from "../../util/accounts";
 import { mockAssetBalance, RELAY_SOURCE_LOCATION } from "../../util/assets";
 import { GLMR } from "../../util/constants";
 import { execTechnicalCommitteeProposal } from "../../util/governance";
@@ -35,7 +35,7 @@ describeDevMoonbeam("Maintenance Mode - Filter", (context) => {
   });
 
   it("should allow EVM extrinsic from sudo", async function () {
-    const randomAccount = generateKeyingPair();
+    const randomAccount = generateKeyringPair();
     const {
       result: { successful },
     } = await context.createBlock(

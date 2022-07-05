@@ -35,6 +35,7 @@ macro_rules! impl_on_charge_evm_transaction {
 			PositiveImbalanceFor<T>: Imbalance<BalanceFor<T>, Opposite = NegativeImbalanceFor<T>>,
 			NegativeImbalanceFor<T>: Imbalance<BalanceFor<T>, Opposite = PositiveImbalanceFor<T>>,
 			OU: OnUnbalanced<NegativeImbalanceFor<T>>,
+			U256: UniqueSaturatedInto<BalanceFor<T>>
 		{
 			type LiquidityInfo = Option<NegativeImbalanceFor<T>>;
 

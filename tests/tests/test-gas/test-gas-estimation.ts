@@ -63,6 +63,13 @@ describeDevMoonbeamAllEthTxTypes("Estimate Gas - Multiply", (context) => {
 describeDevMoonbeamAllEthTxTypes("Estimate Gas - Contract estimation", (context) => {
   const contractNames = getAllContracts();
 
+  before("Init build block", async function () {
+    // Estimation for storage need to happen in a block > than genesis.
+    // Otherwise contracts that uses block number as storage will remove instead of storing
+    // (as block.number == H256::default).
+    await context.createBlock();
+  });
+
   it("should have at least 1 contract to estimate", async function () {
     expect(contractNames).length.to.be.at.least(1);
   });

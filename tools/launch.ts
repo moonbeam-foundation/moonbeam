@@ -592,6 +592,7 @@ const parachainTemplate = {
       flags: [
         "--unsafe-rpc-external",
         "--unsafe-ws-external",
+        "--rpc-methods=Unsafe",
         "--rpc-cors=all",
         "--",
         "--execution=wasm",
@@ -605,6 +606,7 @@ const parachainTemplate = {
       flags: [
         "--unsafe-rpc-external",
         "--unsafe-ws-external",
+        "--rpc-methods=Unsafe",
         "--rpc-cors=all",
         "--",
         "--execution=wasm",

@@ -27,10 +27,7 @@ use frame_support::{
 	traits::{Get, StorageInstance},
 	Blake2_128Concat,
 };
-use precompile_utils::{
-	call_cost, keccak256, revert, succeed, Address, Bytes, EvmDataWriter, EvmResult,
-	FunctionModifier, PrecompileHandleExt, RuntimeHelper,
-};
+use precompile_utils::{costs::call_cost, prelude::*};
 use sp_core::{H160, H256, U256};
 use sp_io::hashing::keccak_256;
 use sp_std::vec::Vec;
@@ -73,7 +70,7 @@ const PERMIT_DOMAIN: [u8; 32] = keccak256!(
 	"EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
 );
 
-#[precompile_utils::generate_function_selector]
+#[generate_function_selector]
 #[derive(Debug, PartialEq)]
 pub enum Action {
 	Dispatch = "dispatch(address,address,uint256,bytes,uint64,uint256,uint8,bytes32,bytes32)",

@@ -7,7 +7,7 @@ jobs:
   enforce-noteworthiness-label:
     runs-on: ubuntu-latest
     steps:
-      - uses: yogevbd/enforce-label-action@2.2.0
+      - uses: yogevbd/enforce-label-action@2.2.2
         with:
           REQUIRED_LABELS_ANY: "B0-silent,B5-clientnoteworthy,B7-runtimenoteworthy"
           REQUIRED_LABELS_ALL: ""
@@ -15,7 +15,7 @@ jobs:
   enforce-auditability-label:
     runs-on: ubuntu-latest
     steps:
-      - uses: yogevbd/enforce-label-action@2.2.0
+      - uses: yogevbd/enforce-label-action@2.2.2
         with:
           REQUIRED_LABELS_ANY: "D1-audited👍,D5-nicetohaveaudit⚠️,D9-needsaudit👮,D2-notlive,D3-trivial"
           REQUIRED_LABELS_ALL: ""
