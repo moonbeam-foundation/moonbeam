@@ -14,69 +14,68 @@ interface Randomness {
     /// Selector: 81797566
     function relayEpochIndex() external view returns (uint64);
 
-    /// @param refund_address Address to refund with fee less cost of subcall
+    /// @param refundAddress Address to refund with fee less cost of subcall
     /// @param fee Amount to set aside to pay for the subcall
-    /// @param gas_limit Gas limit for the subcall that provides randomness
+    /// @param gasLimit Gas limit for the subcall that provides randomness
     /// @param salt Salt to be mixed with raw randomness to get output
-    /// @param num_blocks Number of relay chain blocks in the future the request is for
+    /// @param numBlocks Number of relay chain blocks in the future the request is for
     /// Selector: c4921133
     function requestBabeRandomnessCurrentBlock(
-        address refund_address,
+        address refundAddress,
         uint256 fee,
-        uint64 gas_limit,
+        uint64 gasLimit,
         bytes32 salt,
-        uint64 num_blocks
+        uint64 numBlocks
     ) external;
 
-    /// @param refund_address Address to refund
+    /// @param refundAddress Address to refund
     /// @param fee Amount to set aside to pay for the subcall
-    /// @param gas_limit Gas limit for the subcall that provides randomness
+    /// @param gasLimit Gas limit for the subcall that provides randomness
     /// @param salt Salt to be mixed with raw randomness to get output
     /// Selector: bbc9e95f
     function requestBabeRandomnessOneEpochAgo(
-        address refund_address,
+        address refundAddress,
         uint256 fee,
-        uint64 gas_limit,
+        uint64 gasLimit,
         bytes32 salt
     ) external;
 
-    /// @param refund_address Address to refund
+    /// @param refundAddress Address to refund
     /// @param fee Amount to set aside to pay for the subcall
-    /// @param gas_limit Gas limit for the subcall that provides randomness
+    /// @param gasLimit Gas limit for the subcall that provides randomness
     /// @param salt Salt to be mixed with raw randomness to get output
     /// Selector: 25b14a0b
     function requestBabeRandomnessTwoEpochsAgo(
-        address refund_address,
+        address refundAddress,
         uint256 fee,
-        uint64 gas_limit,
+        uint64 gasLimit,
         bytes32 salt
     ) external;
 
-    /// @param refund_address Address to refund
+    /// @param refundAddress Address to refund
     /// @param fee Amount to set aside to pay for the subcall
-    /// @param gas_limit Gas limit for the subcall that provides randomness
+    /// @param gasLimit Gas limit for the subcall that provides randomness
     /// @param salt Salt to be mixed with raw randomness to get output
-    /// @param num_blocks Number of blocks in the future the request is for
+    /// @param numBlocks Number of blocks in the future the request is for
     /// Selector: b4a11763
     function requestLocalRandomness(
-        address refund_address,
+        address refundAddress,
         uint256 fee,
-        uint64 gas_limit,
+        uint64 gasLimit,
         bytes32 salt,
-        uint64 num_blocks
+        uint64 numBlocks
     ) external;
 
-    /// @param request_id Request to be fulfilled by caller
+    /// @param requestId Request to be fulfilled by caller
     /// Selector: b9904a86
-    function fulfillRequest(uint64 request_id) external;
+    function fulfillRequest(uint64 requestId) external;
 
-    /// @param request_id Request to be increased fee by caller
-    /// @param fee_increase Amount to increase fee
+    /// @param requestId Request to be increased fee by caller
+    /// @param feeIncrease Amount to increase fee
     /// Selector: 6a5b3380
-    function increaseRequestFee(uint64 request_id, uint256 fee_increase)
-        external;
+    function increaseRequestFee(uint64 requestId, uint256 feeIncrease) external;
 
-    /// @param request_id Request to be purged by caller
+    /// @param requestId Request to be purged by caller
     /// Selector: 8fcdcc49
-    function executeRequestExpiration(uint64 request_id) external;
+    function executeRequestExpiration(uint64 requestId) external;
 }
