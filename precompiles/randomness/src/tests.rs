@@ -51,7 +51,7 @@ fn test_solidity_interface_has_all_implemented_selectors() {
 	assert_eq!(Action::FulfillRequest as u32, 0xb9904a86);
 	assert!(selectors.contains(&(Action::FulfillRequest as u32)));
 
-	assert_eq!(Action::IncreaseRequestFee as u32, 0x40ebb605);
+	assert_eq!(Action::IncreaseRequestFee as u32, 0x6a5b3380);
 	assert!(selectors.contains(&(Action::IncreaseRequestFee as u32)));
 
 	assert_eq!(Action::ExecuteRequestExpiration as u32, 0x8fcdcc49);

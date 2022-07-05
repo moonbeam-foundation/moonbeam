@@ -71,8 +71,10 @@ interface Randomness {
     function fulfillRequest(uint64 request_id) external;
 
     /// @param request_id Request to be increased fee by caller
-    /// Selector: 40ebb605
-    function increaseRequestFee(uint64 request_id) external;
+    /// @param fee_increase Amount to increase fee
+    /// Selector: 6a5b3380
+    function increaseRequestFee(uint64 request_id, uint256 fee_increase)
+        external;
 
     /// @param request_id Request to be purged by caller
     /// Selector: 8fcdcc49

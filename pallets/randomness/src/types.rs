@@ -21,7 +21,7 @@ use frame_support::pallet_prelude::*;
 use frame_support::traits::{Currency, ExistenceRequirement::KeepAlive, ReservableCurrency};
 use pallet_evm::AddressMapping;
 use sp_core::{H160, H256};
-use sp_runtime::traits::{CheckedSub, Saturating};
+use sp_runtime::traits::{CheckedAdd, CheckedSub, Saturating};
 
 #[derive(PartialEq, Copy, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
 #[scale_info(skip_type_params(T))]
@@ -265,20 +265,26 @@ impl<T: Config> RequestState<T> {
 			randomness,
 		})
 	}
-	pub fn increase_fee(&mut self, caller: &H160, new_fee: BalanceOf<T>) -> DispatchResult {
+	pub fn increase_fee(
+		&mut self,
+		caller: &H160,
+		fee_increase: BalanceOf<T>,
+	) -> Result<BalanceOf<T>, DispatchError> {
 		ensure!(
 			caller == &self.request.contract_address,
 			Error::<T>::OnlyRequesterCanIncreaseFee
 		);
-		let to_reserve = new_fee
-			.checked_sub(&self.request.fee)
-			.ok_or(Error::<T>::NewFeeMustBeGreaterThanOldFee)?;
+		let new_fee = self
+			.request
+			.fee
+			.checked_add(&fee_increase)
+			.ok_or(Error::<T>::RequestFeeOverflowed)?;
 		T::ReserveCurrency::reserve(
 			&T::AddressMapping::into_account_id(caller.clone()),
-			to_reserve,
+			fee_increase,
 		)?;
 		self.request.fee = new_fee;
-		Ok(())
+		Ok(new_fee)
 	}
 	/// Unreserve deposit + fee from contract_address
 	/// Transfer fee to caller
