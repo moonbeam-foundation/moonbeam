@@ -81,7 +81,8 @@ pub mod pallet {
 	use crate::{set::OrderedSet, traits::*, types::*, InflationInfo, Range, WeightInfo};
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{
-		tokens::WithdrawReasons, Currency, Get, Imbalance, LockableCurrency, ReservableCurrency,
+		tokens::WithdrawReasons, Currency, Get, Imbalance, LockIdentifier, LockableCurrency,
+		ReservableCurrency,
 	};
 	use frame_system::pallet_prelude::*;
 	use parity_scale_codec::Decode;
@@ -101,8 +102,8 @@ pub mod pallet {
 	pub type BalanceOf<T> =
 		<<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
 
-	pub const COLLATOR_LOCK_ID: [u8; 8] = *b"stkngcol";
-	pub const DELEGATOR_LOCK_ID: [u8; 8] = *b"stkngdel";
+	pub const COLLATOR_LOCK_ID: LockIdentifier = *b"stkngcol";
+	pub const DELEGATOR_LOCK_ID: LockIdentifier = *b"stkngdel";
 
 	/// Configuration trait of this pallet.
 	#[pallet::config]
