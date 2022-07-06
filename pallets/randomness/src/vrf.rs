@@ -15,7 +15,9 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! VRF logic
-use crate::{Config, CurrentVrfInput, LocalVrfOutput, RandomnessResults, RequestType};
+use crate::{
+	Config, CurrentVrfInput, IsFirstBlock, LocalVrfOutput, RandomnessResults, RequestType,
+};
 use frame_support::{pallet_prelude::Weight, traits::Get};
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
 use parity_scale_codec::Decode;
@@ -51,6 +53,12 @@ pub(crate) fn set_input<T: Config>() {
 /// Returns weight consumed in `on_initialize`
 pub(crate) fn set_output<T: Config>() -> Weight {
 	let input = <CurrentVrfInput<T>>::get().expect("VrfInput must be set to verify VrfOutput");
+	// Do not set the output in the first block (genesis or runtime upgrade)
+	// because we do not have any output
+	if <IsFirstBlock<T>>::take().is_none() {
+		<IsFirstBlock<T>>::put(());
+		return 0;
+	}
 	let mut block_author_vrf_id: Option<VrfId> = None;
 	let PreDigest {
 		vrf_output,
@@ -86,9 +94,7 @@ pub(crate) fn set_output<T: Config>() -> Weight {
 	let pubkey = schnorrkel::PublicKey::from_bytes(block_author_vrf_id.as_slice())
 		.expect("Expect VrfId to be valid schnorrkel public key");
 	let transcript = make_transcript::<T::Hash>(input.slot_number, input.storage_root);
-	// NOTE: this is verified by the client when importing the block, before
-	// execution. we don't run the verification again here to avoid slowing
-	// down the runtime.
+	// NOTE: this is verified by the BlockExecutor when executing the block
 	debug_assert!(pubkey
 		.vrf_verify(transcript.clone(), &vrf_output, &vrf_proof)
 		.is_ok());

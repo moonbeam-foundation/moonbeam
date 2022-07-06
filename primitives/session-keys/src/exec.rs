@@ -78,12 +78,12 @@ where
 			storage_root,
 		} = I::get_vrf_input();
 		let transcript = make_transcript::<H256>(slot_number, storage_root);
-		if pubkey
-			.vrf_verify(transcript, &vrf_output, &vrf_proof)
-			.is_err()
-		{
-			panic!("VRF verification failed");
-		}
+		assert!(
+			pubkey
+				.vrf_verify(transcript, &vrf_output, &vrf_proof)
+				.is_ok(),
+			"VRF signature verification failed"
+		);
 		// pass to inner executor
 		B::execute_block(Block::new(header, extrinsics));
 	}

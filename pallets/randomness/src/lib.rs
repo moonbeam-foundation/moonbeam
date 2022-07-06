@@ -201,6 +201,11 @@ pub mod pallet {
 	#[pallet::getter(fn inherent_included)]
 	pub(crate) type InherentIncluded<T: Config> = StorageValue<_, ()>;
 
+	/// Records whether this is the first block (genesis or runtime upgrade)
+	#[pallet::storage]
+	#[pallet::getter(fn is_first_block)]
+	pub(crate) type IsFirstBlock<T: Config> = StorageValue<_, ()>;
+
 	/// Snapshot of randomness to fulfill all requests that are for the same raw randomness
 	/// Removed once $value.request_count == 0
 	#[pallet::storage]
