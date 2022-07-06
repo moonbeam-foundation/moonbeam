@@ -52,7 +52,7 @@ construct_runtime!(
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		AuthorMapping: pallet_author_mapping::{Pallet, Call, Storage, Config<T>, Event<T>},
-		Randomness: pallet_randomness::{Pallet, Storage, Config<T>, Event<T>},
+		Randomness: pallet_randomness::{Pallet, Storage, Event<T>, Inherent},
 	}
 );
 

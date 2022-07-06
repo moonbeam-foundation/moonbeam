@@ -88,7 +88,7 @@ pub(crate) fn set_output<T: Config>() -> Weight {
 			}
 		})
 		.next()
-		.expect("VRF PreDigest must be decoded from the digests");
+		.expect("VRF PreDigest was not included in the digests (check rand key is in keystore)");
 	let block_author_vrf_id =
 		block_author_vrf_id.expect("VrfId encoded in pre-runtime digest must be valid");
 	let pubkey = schnorrkel::PublicKey::from_bytes(block_author_vrf_id.as_slice())

@@ -57,7 +57,7 @@ construct_runtime!(
 		AuthorMapping: pallet_author_mapping::{Pallet, Call, Storage, Config<T>, Event<T>},
 		Evm: pallet_evm::{Pallet, Call, Storage, Event<T>},
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
-		Randomness: pallet_randomness::{Pallet, Storage, Config<T>, Event<T>},
+		Randomness: pallet_randomness::{Pallet, Storage, Event<T>, Inherent},
 	}
 );
 
