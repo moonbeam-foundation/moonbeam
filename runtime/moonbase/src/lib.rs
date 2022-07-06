@@ -1278,11 +1278,19 @@ pub type Executive = frame_executive::Executive<
 moonbeam_runtime_common::impl_runtime_apis_plus_common! {
 	impl session_keys_primitives::VrfApi<Block> for Runtime {
 		fn get_relay_slot_number() -> cumulus_primitives_core::relay_chain::v2::Slot {
+			// TODO: remove in future runtime upgrade along with storage item
+			if pallet_randomness::Pallet::<Self>::not_first_block().is_none() {
+				return Default::default();
+			}
 			pallet_randomness::Pallet::<Self>::current_vrf_input()
 				.expect("Expected VrfInput to be set")
 				.slot_number
 		}
 		fn get_relay_storage_root() -> <Block as BlockT>::Hash {
+			// TODO: remove in future runtime upgrade along with storage item
+			if pallet_randomness::Pallet::<Self>::not_first_block().is_none() {
+				return Default::default();
+			}
 			pallet_randomness::Pallet::<Self>::current_vrf_input()
 				.expect("Expected VrfInput to be set")
 				.storage_root
