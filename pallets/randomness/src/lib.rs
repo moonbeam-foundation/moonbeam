@@ -22,7 +22,6 @@ use frame_support::pallet;
 
 pub use pallet::*;
 
-pub mod migrations;
 pub mod types;
 pub mod vrf;
 pub use types::*;
@@ -213,27 +212,6 @@ pub mod pallet {
 	pub(crate) type RandomnessResults<T: Config> =
 		StorageMap<_, Twox64Concat, RequestType<T>, RandomnessResult<T::Hash>>;
 
-	#[pallet::genesis_config]
-	pub struct GenesisConfig<T: Config> {
-		pub genesis_vrf_input: VrfInput<Slot, T::Hash>,
-	}
-
-	#[cfg(feature = "std")]
-	impl<T: Config> Default for GenesisConfig<T> {
-		fn default() -> Self {
-			Self {
-				genesis_vrf_input: Default::default(),
-			}
-		}
-	}
-
-	#[pallet::genesis_build]
-	impl<T: Config> GenesisBuild<T> for GenesisConfig<T> {
-		fn build(&self) {
-			CurrentVrfInput::<T>::put(self.genesis_vrf_input.clone())
-		}
-	}
-
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		/// Populates the `RandomnessResults` that are due this block with the raw values
@@ -343,14 +321,6 @@ pub mod pallet {
 			// Necessary because required data is killed in `ParachainSystem::on_initialize`
 			// which may happen before the VRF output is verified in the next block on_initialize
 			vrf::set_input::<T>();
-		}
-	}
-
-	impl<T: Config> GetVrfInput<VrfInput<Slot, T::Hash>> for Pallet<T> {
-		/// To get the most recent VRF input stored in this pallet
-		/// Panics if value not set
-		fn get_vrf_input() -> VrfInput<Slot, T::Hash> {
-			CurrentVrfInput::<T>::get().expect("Expected VRF input to be set in storage")
 		}
 	}
 
