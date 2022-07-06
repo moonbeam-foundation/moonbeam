@@ -44,9 +44,9 @@ describeDevMoonbeam("Polkadot API - Transfers", (context) => {
   it("should appear in extrinsics", async function () {
     const signedBlock = await context.polkadotApi.rpc.chain.getBlock();
 
-    // Expecting 4 extrinsics so far:
-    // timestamp, author, the parachain validation data and the balances transfer.
-    expect(signedBlock.block.extrinsics).to.be.of.length(4);
+    // Expecting 5 extrinsics so far:
+    // timestamp, author, the parachain validation data, randomness, and the balances transfer.
+    expect(signedBlock.block.extrinsics).to.be.of.length(5);
 
     signedBlock.block.extrinsics.forEach((ex, index) => {
       const {
