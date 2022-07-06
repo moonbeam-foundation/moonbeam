@@ -138,6 +138,7 @@ impl<T: Config> OnRuntimeUpgrade for SplitDelegatorStateIntoDelegationScheduledR
 					less_total: old_state.requests.less_total,
 					status: old_state.status,
 				};
+
 				Some(new_state)
 			},
 		);
@@ -354,6 +355,7 @@ impl<T: Config> OnRuntimeUpgrade for PatchIncorrectDelegationSums<T> {
 	}
 }
 
+/*
 /// Migration to split CandidateState and minimize unnecessary storage reads
 /// for PoV optimization
 /// This assumes Config::MaxTopDelegationsPerCandidate == OldConfig::MaxDelegatorsPerCandidate
@@ -405,7 +407,7 @@ impl<T: Config> OnRuntimeUpgrade for SplitCandidateStateToDecreasePoV<T> {
 							let mut delegator_state = <DelegatorState<T>>::get(&owner)
 								.expect("Delegation existence => DelegatorState existence");
 							let leaving = delegator_state.delegations.0.len() == 1usize;
-							delegator_state.rm_delegation(&account);
+							delegator_state.rm_delegation::<T>(&account);
 							Pallet::<T>::deposit_event(Event::DelegationKicked {
 								delegator: owner.clone(),
 								candidate: account.clone(),
@@ -521,6 +523,7 @@ impl<T: Config> OnRuntimeUpgrade for SplitCandidateStateToDecreasePoV<T> {
 		Ok(())
 	}
 }
+*/
 
 /// Migration to properly increase maximum delegations per collator
 /// The logic may be used to recompute the top and bottom delegations whenever
