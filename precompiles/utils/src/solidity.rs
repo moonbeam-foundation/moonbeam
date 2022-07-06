@@ -257,7 +257,10 @@ mod tests {
 			(
 				String::from("b2c9f1a3"),
 				String::from("550c1a4e"),
-				String::from("fnCustomArgsMultiple((uint8,bytes[]),(address[],uint256[],bytes[]),bytes[],uint64)"),
+				String::from(
+					"fnCustomArgsMultiple((uint8,bytes[]),(address[],uint256[],bytes[])".to_owned()
+						+ ",bytes[],uint64)",
+				),
 			),
 		];
 		assert_eq!(expected, actual);
