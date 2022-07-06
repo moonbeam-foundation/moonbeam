@@ -73,16 +73,16 @@ fn no_selector_exists_but_length_is_right() {
 #[test]
 fn selectors() {
 	assert_eq!(Action::Delegate as u32, 0x0185921e);
-	assert_eq!(Action::DepositOf as u32, 0xa30305e9);
-	assert_eq!(Action::FinishedReferendumInfo as u32, 0xb1fd383f);
-	assert_eq!(Action::LowestUnbaked as u32, 0x0388f282);
-	assert_eq!(Action::OngoingReferendumInfo as u32, 0x8b93d11a);
+	assert_eq!(Action::DepositOf as u32, 0x4767142d);
+	assert_eq!(Action::FinishedReferendumInfo as u32, 0x07df495b);
+	assert_eq!(Action::LowestUnbaked as u32, 0xd49dccf0);
+	assert_eq!(Action::OngoingReferendumInfo as u32, 0xe5a18359);
 	assert_eq!(Action::Propose as u32, 0x7824e7d1);
-	assert_eq!(Action::PublicPropCount as u32, 0x56fdf547);
-	assert_eq!(Action::RemoveVote as u32, 0x2042f50b);
+	assert_eq!(Action::PublicPropCount as u32, 0x31305462);
+	assert_eq!(Action::RemoveVote as u32, 0x3f68fde4);
 	assert_eq!(Action::Second as u32, 0xc7a76601);
-	assert_eq!(Action::StandardVote as u32, 0x3f3c21cc);
-	assert_eq!(Action::UnDelegate as u32, 0xcb37b8ea);
+	assert_eq!(Action::StandardVote as u32, 0x6cd18b0d);
+	assert_eq!(Action::UnDelegate as u32, 0x1eef225c);
 	assert_eq!(Action::Unlock as u32, 0x2f6c493c);
 
 	//TODO also test logs once we have them

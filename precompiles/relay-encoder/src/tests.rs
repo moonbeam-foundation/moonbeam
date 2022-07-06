@@ -33,16 +33,16 @@ fn precompiles() -> TestPrecompiles<Runtime> {
 
 #[test]
 fn test_selector_enum() {
-	assert_eq!(Action::EncodeBond as u32, 0x31627376);
-	assert_eq!(Action::EncodeBondExtra as u32, 0x49def326);
-	assert_eq!(Action::EncodeUnbond as u32, 0x2cd61217);
-	assert_eq!(Action::EncodeWithdrawUnbonded as u32, 0x2d220331);
-	assert_eq!(Action::EncodeValidate as u32, 0x3a0d803a);
-	assert_eq!(Action::EncodeNominate as u32, 0xa7cb124b);
-	assert_eq!(Action::EncodeChill as u32, 0xbc4b2187);
-	assert_eq!(Action::EncodeSetPayee as u32, 0x9801b147);
-	assert_eq!(Action::EncodeSetController as u32, 0x7a8f48c2);
-	assert_eq!(Action::EncodeRebond as u32, 0xadd6b3bf);
+	assert_eq!(Action::EncodeBond as u32, 0xa82948d4);
+	assert_eq!(Action::EncodeBondExtra as u32, 0x813667a0);
+	assert_eq!(Action::EncodeUnbond as u32, 0x51b14e57);
+	assert_eq!(Action::EncodeWithdrawUnbonded as u32, 0xd5ad108e);
+	assert_eq!(Action::EncodeValidate as u32, 0xbb64ca0c);
+	assert_eq!(Action::EncodeNominate as u32, 0xd2ea7b08);
+	assert_eq!(Action::EncodeChill as u32, 0xb5eaac43);
+	assert_eq!(Action::EncodeSetPayee as u32, 0x414be337);
+	assert_eq!(Action::EncodeSetController as u32, 0x07f7c6dc);
+	assert_eq!(Action::EncodeRebond as u32, 0x0922ee17);
 }
 
 #[test]

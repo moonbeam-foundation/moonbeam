@@ -30,13 +30,13 @@ fn precompiles() -> TestPrecompiles<Runtime> {
 
 #[test]
 fn test_selector_enum() {
-	assert_eq!(Action::IndexToAccount as u32, 0x71b0edfa);
-	assert_eq!(Action::TransactInfo as u32, 0xf87f493f);
+	assert_eq!(Action::IndexToAccount as u32, 0x3fdc4f36);
+	assert_eq!(Action::TransactInfo as u32, 0xd07d87c3);
 	assert_eq!(
 		Action::TransactThroughDerivativeMultiLocation as u32,
-		0x9f89f03e
+		0x94a63c54
 	);
-	assert_eq!(Action::TransactThroughDerivative as u32, 0x267d4062);
+	assert_eq!(Action::TransactThroughDerivative as u32, 0x02ae072d);
 }
 
 #[test]

@@ -51,7 +51,6 @@ interface RelayEncoder {
     /// @param comission: Comission of the validator as partsPerBillion
     /// @param blocked: Whether or not the validator is accepting more nominations
     /// @returns The bytes associated with the encoded call
-    /// selector: 3a0d803a
     function encodeValidate(uint256 comission, bool blocked)
         external
         pure

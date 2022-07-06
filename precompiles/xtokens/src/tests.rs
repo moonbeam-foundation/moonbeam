@@ -34,10 +34,10 @@ fn precompiles() -> TestPrecompiles<Runtime> {
 #[test]
 fn test_selector_enum() {
 	assert_eq!(Action::Transfer as u32, 0xb9f813ff);
-	assert_eq!(Action::TransferMultiAsset as u32, 0xb38c60fa);
-	assert_eq!(Action::TransferMultiCurrencies as u32, 0x8a362d5c);
-	assert_eq!(Action::TransferWithFee as u32, 0x94f69115);
-	assert_eq!(Action::TransferMultiAssetWithFee as u32, 0x89a570fc);
+	assert_eq!(Action::TransferMultiAsset as u32, 0xb4f76f96);
+	assert_eq!(Action::TransferMultiCurrencies as u32, 0xab946323);
+	assert_eq!(Action::TransferWithFee as u32, 0x3e506ef0);
+	assert_eq!(Action::TransferMultiAssetWithFee as u32, 0x150c016a);
 }
 
 #[test]

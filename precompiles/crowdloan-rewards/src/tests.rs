@@ -47,10 +47,10 @@ fn evm_call(input: Vec<u8>) -> EvmCall<Runtime> {
 
 #[test]
 fn test_selector_enum() {
-	assert_eq!(Action::IsContributor as u32, 0x53440c90);
-	assert_eq!(Action::RewardInfo as u32, 0x76f70249);
+	assert_eq!(Action::IsContributor as u32, 0x1d0d35f5);
+	assert_eq!(Action::RewardInfo as u32, 0xcbecf6b5);
 	assert_eq!(Action::Claim as u32, 0x4e71d92d);
-	assert_eq!(Action::UpdateRewardAddress as u32, 0xaaac61d6);
+	assert_eq!(Action::UpdateRewardAddress as u32, 0x944dd5a2);
 }
 
 #[test]

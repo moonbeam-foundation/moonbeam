@@ -30,7 +30,7 @@ interface Xtokens {
     /// @param amount The amount of tokens we want to transfer
     /// @param destination The Multilocation to which we want to send the tokens
     /// @param destination The weight we want to buy in the destination chain
-    /// Selector: b45c9d71
+    /// Selector: b9f813ff
     function transfer(
         address currencyAddress,
         uint256 amount,
@@ -45,7 +45,7 @@ interface Xtokens {
     /// @param amount The amount of tokens we want to transfer
     /// @param destination The Multilocation to which we want to send the tokens
     /// @param destination The weight we want to buy in the destination chain
-    /// Selector: b2b82283
+    /// Selector: 3e506ef0
     function transferWithFee(
         address currencyAddress,
         uint256 amount,
@@ -62,7 +62,7 @@ interface Xtokens {
     /// @param amount The amount of tokens we want to transfer
     /// @param destination The Multilocation to which we want to send the tokens
     /// @param destination The weight we want to buy in the destination chain
-    /// Selector: db2dec40
+    /// Selector: b4f76f96
     function transferMultiasset(
         Multilocation memory asset,
         uint256 amount,
@@ -78,7 +78,7 @@ interface Xtokens {
     /// @param amount The amount of tokens we want to transfer
     /// @param destination The Multilocation to which we want to send the tokens
     /// @param destination The weight we want to buy in the destination chain
-    /// Selector: e82fd96a
+    /// Selector: 150c016a
     function transferMultiassetWithFee(
         Multilocation memory asset,
         uint256 amount,
@@ -94,7 +94,7 @@ interface Xtokens {
     /// @param feeItem Which of the currencies to be used as fee
     /// @param destination The Multilocation to which we want to send the tokens
     /// @param weight The weight we want to buy in the destination chain
-    /// Selector: f3f61d3d
+    /// Selector: ab946323
     function transferMultiCurrencies(
         Currency[] memory currencies,
         uint32 feeItem,
