@@ -50,7 +50,11 @@ where
 			.filter_map(|s| s.as_pre_runtime())
 			.filter_map(|(id, mut data)| {
 				if id == VRF_ENGINE_ID {
-					PreDigest::decode(&mut data).ok()
+					if let Ok(vrf_digest) = PreDigest::decode(&mut data) {
+						Some(vrf_digest)
+					} else {
+						panic!("failed to decode VRF PreDigest");
+					}
 				} else {
 					if id == NIMBUS_ENGINE_ID {
 						let nimbus_id = NimbusId::decode(&mut data)
@@ -64,7 +68,7 @@ where
 				}
 			})
 			.next()
-			.expect("VRF PreDigest must be decoded from the digests");
+			.expect("VRF PreDigest not found in pre-runtime digests");
 		let block_author_vrf_id =
 			block_author_vrf_id.expect("VrfId encoded in pre-runtime digest must be valid");
 		let pubkey = schnorrkel::PublicKey::from_bytes(block_author_vrf_id.as_slice())

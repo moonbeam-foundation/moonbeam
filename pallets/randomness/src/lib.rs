@@ -45,6 +45,9 @@ pub trait GetBabeData<BlockNumber, EpochIndex, Randomness> {
 	fn get_two_epochs_ago_randomness() -> Randomness;
 }
 
+// declare pallet account and remove ReservableCurrency
+// look at pallet-treasury
+
 #[pallet]
 pub mod pallet {
 	use super::*;

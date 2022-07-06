@@ -61,7 +61,11 @@ pub(crate) fn set_output<T: Config>() -> Weight {
 		.filter_map(|s| s.as_pre_runtime())
 		.filter_map(|(id, mut data)| {
 			if id == VRF_ENGINE_ID {
-				PreDigest::decode(&mut data).ok()
+				if let Ok(vrf_digest) = PreDigest::decode(&mut data) {
+					Some(vrf_digest)
+				} else {
+					panic!("failed to decode VRF PreDigest");
+				}
 			} else {
 				if id == NIMBUS_ENGINE_ID {
 					let nimbus_id = NimbusId::decode(&mut data)
@@ -94,9 +98,6 @@ pub(crate) fn set_output<T: Config>() -> Weight {
 		.map(|inout| inout.make_bytes(&VRF_INOUT_CONTEXT))
 		.expect("VRF output encoded in pre-runtime digest must be valid");
 	let raw_randomness_output = T::Hash::decode(&mut &vrf_output[..]).ok();
-	if raw_randomness_output.is_none() {
-		log::warn!("Could not decode VRF output bytes into Hash Type");
-	}
 	LocalVrfOutput::<T>::put(raw_randomness_output);
 	// Supply randomness result
 	let local_vrf_this_block = RequestType::Local(frame_system::Pallet::<T>::block_number());
@@ -105,7 +106,7 @@ pub(crate) fn set_output<T: Config>() -> Weight {
 			results.randomness = Some(randomness);
 			RandomnessResults::<T>::insert(local_vrf_this_block, results);
 		} else {
-			log::warn!("Could not read local VRF randomness from the relay");
+			log::warn!("Could not decode VRF output bytes into Hash Type");
 		}
 	}
 	T::DbWeight::get().read // TODO: update weight
