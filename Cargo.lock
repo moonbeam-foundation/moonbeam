@@ -11651,16 +11651,20 @@ name = "session-keys-primitives"
 version = "0.1.0"
 dependencies = [
  "async-trait",
+ "frame-support",
  "nimbus-primitives",
  "parity-scale-codec",
  "scale-info",
+ "serde",
  "sp-api",
  "sp-application-crypto",
  "sp-consensus-babe",
  "sp-consensus-vrf",
+ "sp-core",
  "sp-inherents",
  "sp-keystore",
  "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]

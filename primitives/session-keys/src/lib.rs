@@ -18,9 +18,11 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 pub mod digest;
+pub mod exec;
 pub mod inherent;
 pub mod vrf;
 pub use digest::*;
+pub use exec::*;
 pub use inherent::*;
 pub use vrf::*;
 

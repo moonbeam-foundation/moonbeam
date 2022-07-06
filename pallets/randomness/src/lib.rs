@@ -23,12 +23,9 @@ use frame_support::pallet;
 pub use pallet::*;
 
 pub mod migrations;
-pub mod traits;
 pub mod types;
 pub mod vrf;
-pub use traits::*;
 pub use types::*;
-pub use vrf::VrfInput;
 
 // pub mod weights;
 // use weights::WeightInfo;
@@ -39,6 +36,15 @@ mod mock;
 #[cfg(test)]
 mod tests;
 
+/// Read babe randomness info from the relay chain state proof
+pub trait GetBabeData<BlockNumber, EpochIndex, Randomness> {
+	fn get_relay_block_number() -> BlockNumber;
+	fn get_relay_epoch_index() -> EpochIndex;
+	fn get_current_block_randomness() -> Randomness;
+	fn get_one_epoch_ago_randomness() -> Randomness;
+	fn get_two_epochs_ago_randomness() -> Randomness;
+}
+
 #[pallet]
 pub mod pallet {
 	use super::*;
@@ -48,7 +54,9 @@ pub mod pallet {
 	use frame_system::pallet_prelude::*;
 	use nimbus_primitives::NimbusId;
 	use pallet_evm::AddressMapping;
-	use session_keys_primitives::{InherentError, KeysLookup, VrfId, INHERENT_IDENTIFIER};
+	use session_keys_primitives::{
+		GetVrfInput, InherentError, KeysLookup, VrfId, VrfInput, INHERENT_IDENTIFIER,
+	};
 	use sp_consensus_babe::Slot;
 	use sp_core::{H160, H256};
 	use sp_runtime::traits::Saturating;
@@ -329,6 +337,14 @@ pub mod pallet {
 			// Necessary because required data is killed in `ParachainSystem::on_initialize`
 			// which may happen before the VRF output is verified in the next block on_initialize
 			vrf::set_input::<T>();
+		}
+	}
+
+	impl<T: Config> GetVrfInput<VrfInput<Slot, T::Hash>> for Pallet<T> {
+		/// To get the most recent VRF input stored in this pallet
+		/// Panics if value not set
+		fn get_vrf_input() -> VrfInput<Slot, T::Hash> {
+			CurrentVrfInput::<T>::get().expect("Expected VRF input to be set in storage")
 		}
 	}
 

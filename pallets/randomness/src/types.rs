@@ -14,9 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::{
-	traits::GetBabeData, BalanceOf, Config, Error, Event, Pallet, RandomnessResults, RequestId,
-};
+use crate::{BalanceOf, Config, Error, Event, GetBabeData, Pallet, RandomnessResults, RequestId};
 use frame_support::pallet_prelude::*;
 use frame_support::traits::{Currency, ExistenceRequirement::KeepAlive, ReservableCurrency};
 use pallet_evm::AddressMapping;

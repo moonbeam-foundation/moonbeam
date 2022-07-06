@@ -1182,9 +1182,11 @@ impl pallet_randomness::GetBabeData<BlockNumber, u64, Option<Hash>> for BabeData
 }
 
 pub struct VrfInputGetter;
-impl pallet_randomness::GetVrfInput<pallet_randomness::VrfInput<Slot, Hash>> for VrfInputGetter {
-	fn get_vrf_input() -> pallet_randomness::VrfInput<Slot, Hash> {
-		pallet_randomness::VrfInput {
+impl session_keys_primitives::GetVrfInput<session_keys_primitives::VrfInput<Slot, Hash>>
+	for VrfInputGetter
+{
+	fn get_vrf_input() -> session_keys_primitives::VrfInput<Slot, Hash> {
+		session_keys_primitives::VrfInput {
 			slot_number: relay_chain_state_proof()
 				.read_slot()
 				.expect("CheckInherents reads slot from state proof QED"),
@@ -1428,7 +1430,11 @@ impl cumulus_pallet_parachain_system::CheckInherents<Block> for CheckInherents {
 // Nimbus's Executive wrapper allows relay validators to verify the seal digest
 cumulus_pallet_parachain_system::register_validate_block!(
 	Runtime = Runtime,
-	BlockExecutor = pallet_author_inherent::BlockExecutor::<Runtime, Executive>,
+	BlockExecutor = session_keys_primitives::BlockExecutor<
+		pallet_author_inherent::BlockExecutor::<Runtime, Executive>,
+		AuthorMapping,
+		Randomness,
+	>,
 	CheckInherents = CheckInherents,
 );
 

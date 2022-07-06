@@ -16,11 +16,31 @@
 
 //! VRF Key type
 use nimbus_primitives::NimbusId;
+use parity_scale_codec::{Decode, Encode};
+use scale_info::TypeInfo;
+#[cfg(feature = "std")]
+use serde::{Deserialize, Serialize};
 use sp_application_crypto::{sr25519, KeyTypeId, UncheckedFrom};
 use sp_consensus_babe::{Slot, Transcript};
 #[cfg(feature = "std")]
 use sp_keystore::vrf::{VRFTranscriptData, VRFTranscriptValue};
-use sp_runtime::{BoundToRuntimeAppPublic, ConsensusEngineId};
+use sp_runtime::{BoundToRuntimeAppPublic, ConsensusEngineId, RuntimeDebug};
+
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
+#[derive(Default, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
+/// VRF inputs from the relay chain
+/// Both inputs are expected to change every block
+pub struct VrfInput<SlotNumber, RelayHash> {
+	/// Relay block slot number
+	pub slot_number: SlotNumber,
+	/// Relay block storage root
+	pub storage_root: RelayHash,
+}
+
+/// Read VRF input from the relay chain state proof
+pub trait GetVrfInput<Input> {
+	fn get_vrf_input() -> Input;
+}
 
 /// Make VRF transcript from the VrfInput
 pub fn make_transcript<Hash: AsRef<[u8]>>(slot: Slot, storage_root: Hash) -> Transcript {

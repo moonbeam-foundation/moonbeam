@@ -15,10 +15,6 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Migrations
-
-// TODO: migration to set initial value to VrfInput::default()
-// would this happen (on_runtime_upgrade) before the runtime API to sign the VRF?
-use crate::vrf::VrfInput;
 use crate::{Config, CurrentVrfInput};
 use frame_support::{
 	pallet_prelude::PhantomData,
@@ -27,6 +23,7 @@ use frame_support::{
 };
 #[cfg(feature = "try-runtime")]
 use scale_info::prelude::format;
+use session_keys_primitives::VrfInput;
 
 /// Set initial CurrentVrfInput value to VrfInput::default() for the first block
 pub struct InitializeVrfInput<T>(PhantomData<T>);

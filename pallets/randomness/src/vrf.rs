@@ -15,32 +15,19 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! VRF logic
-use crate::{Config, CurrentVrfInput, GetVrfInput, LocalVrfOutput, RandomnessResults, RequestType};
+use crate::{Config, CurrentVrfInput, LocalVrfOutput, RandomnessResults, RequestType};
 use frame_support::{pallet_prelude::Weight, traits::Get};
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
-use parity_scale_codec::{Decode, Encode};
-use scale_info::TypeInfo;
-#[cfg(feature = "std")]
-use serde::{Deserialize, Serialize};
+use parity_scale_codec::Decode;
 pub use session_keys_primitives::make_transcript;
-use session_keys_primitives::{KeysLookup, PreDigest, VrfId, VRF_ENGINE_ID, VRF_INOUT_CONTEXT};
+use session_keys_primitives::{
+	GetVrfInput, KeysLookup, PreDigest, VrfId, VRF_ENGINE_ID, VRF_INOUT_CONTEXT,
+};
 use sp_consensus_vrf::schnorrkel;
 use sp_core::crypto::ByteArray;
-use sp_runtime::RuntimeDebug;
 
 /// VRF output
 type Randomness = schnorrkel::Randomness;
-
-#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-#[derive(Default, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
-/// VRF inputs from the relay chain
-/// Both inputs are expected to change every block
-pub struct VrfInput<SlotNumber, RelayHash> {
-	/// Relay block slot number
-	pub slot_number: SlotNumber,
-	/// Relay block storage root
-	pub storage_root: RelayHash,
-}
 
 /// Set vrf input in storage and log warning if either of the values did NOT change
 /// Called in previous block's `on_finalize`
@@ -98,7 +85,6 @@ pub(crate) fn set_output<T: Config>() -> Weight {
 	// NOTE: this is verified by the client when importing the block, before
 	// execution. we don't run the verification again here to avoid slowing
 	// down the runtime.
-	// TODO: verify by the client when importing the block
 	debug_assert!(pubkey
 		.vrf_verify(transcript.clone(), &vrf_output, &vrf_proof)
 		.is_ok());

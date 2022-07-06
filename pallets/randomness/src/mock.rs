@@ -26,7 +26,7 @@ use nimbus_primitives::NimbusId;
 use pallet_evm::AddressMapping;
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use serde::{Deserialize, Serialize};
-use session_keys_primitives::VrfId;
+use session_keys_primitives::{GetVrfInput, VrfId, VrfInput};
 use sp_consensus_babe::Slot;
 use sp_core::{H160, H256};
 use sp_runtime::{
@@ -177,7 +177,7 @@ impl pallet_author_mapping::Config for Test {
 }
 
 pub struct BabeDataGetter;
-impl crate::traits::GetBabeData<BlockNumber, u64, Option<H256>> for BabeDataGetter {
+impl crate::GetBabeData<BlockNumber, u64, Option<H256>> for BabeDataGetter {
 	fn get_relay_block_number() -> BlockNumber {
 		1u64
 	}
@@ -196,7 +196,7 @@ impl crate::traits::GetBabeData<BlockNumber, u64, Option<H256>> for BabeDataGett
 }
 
 pub struct VrfInputGetter;
-impl crate::traits::GetVrfInput<VrfInput<Slot, H256>> for VrfInputGetter {
+impl GetVrfInput<VrfInput<Slot, H256>> for VrfInputGetter {
 	fn get_vrf_input() -> VrfInput<Slot, H256> {
 		VrfInput::default()
 	}
