@@ -56,6 +56,20 @@ pub enum Action {
 	TransactThroughSignedMultiLocation =
 		"transactThroughSignedMultilocation((uint8,bytes[]),(uint8,bytes[]),uint64,bytes)",
 	TransactThroughSigned = "transactThroughSigned((uint8,bytes[]),address,uint64,bytes)",
+
+	// deprecated
+	DeprecatedIndexToAccount = "index_to_account(uint16)",
+	DeprecatedTransactInfo = "transact_info((uint8,bytes[]))",
+	DeprecatedTransactThroughDerivativeMultiLocation =
+		"transact_through_derivative_multilocation(uint8,uint16,(uint8,bytes[]),uint64,bytes)",
+	DeprecatedTransactThroughDerivative =
+		"transact_through_derivative(uint8,uint16,address,uint64,bytes)",
+	DeprecatedTransactInfoWithSigned = "transact_info_with_signed((uint8,bytes[]))",
+	DeprecatedFeePerSecond = "fee_per_second((uint8,bytes[]))",
+	DeprecatedTransactThroughSignedMultiLocation =
+		"transact_through_signed_multilocation((uint8,bytes[]),(uint8,bytes[]),uint64,bytes)",
+	DeprecatedTransactThroughSigned =
+		"transact_through_signed((uint8,bytes[]),address,uint64,bytes)",
 }
 
 /// A precompile to wrap the functionality from xcm transactor
@@ -75,27 +89,41 @@ where
 		let selector = handle.read_selector()?;
 
 		handle.check_function_modifier(match selector {
-			Action::TransactThroughDerivativeMultiLocation | Action::TransactThroughDerivative => {
-				FunctionModifier::NonPayable
-			}
+			Action::TransactThroughDerivativeMultiLocation
+			| Action::TransactThroughDerivative
+			| Action::DeprecatedTransactThroughDerivativeMultiLocation
+			| Action::DeprecatedTransactThroughDerivative => FunctionModifier::NonPayable,
 			_ => FunctionModifier::View,
 		})?;
 
 		match selector {
 			// Check for accessor methods first. These return results immediately
-			Action::IndexToAccount => Self::account_index(handle),
+			Action::IndexToAccount | Action::DeprecatedIndexToAccount => {
+				Self::account_index(handle)
+			}
 			// DEPRECATED
-			Action::TransactInfo => Self::transact_info(handle),
-			Action::TransactInfoWithSigned => Self::transact_info_with_signed(handle),
-			Action::FeePerSecond => Self::fee_per_second(handle),
-			Action::TransactThroughDerivativeMultiLocation => {
+			Action::TransactInfo | Action::DeprecatedTransactInfo => Self::transact_info(handle),
+			Action::TransactInfoWithSigned
+			| Action::DeprecatedTransactThroughDerivativeMultiLocation => {
+				Self::transact_info_with_signed(handle)
+			}
+			Action::FeePerSecond | Action::DeprecatedTransactThroughDerivative => {
+				Self::fee_per_second(handle)
+			}
+			Action::TransactThroughDerivativeMultiLocation
+			| Action::DeprecatedTransactInfoWithSigned => {
 				Self::transact_through_derivative_multilocation(handle)
 			}
-			Action::TransactThroughDerivative => Self::transact_through_derivative(handle),
-			Action::TransactThroughSignedMultiLocation => {
+			Action::TransactThroughDerivative | Action::DeprecatedFeePerSecond => {
+				Self::transact_through_derivative(handle)
+			}
+			Action::TransactThroughSignedMultiLocation
+			| Action::DeprecatedTransactThroughSignedMultiLocation => {
 				Self::transact_through_signed_multilocation(handle)
 			}
-			Action::TransactThroughSigned => Self::transact_through_signed(handle),
+			Action::TransactThroughSigned | Action::DeprecatedTransactThroughSigned => {
+				Self::transact_through_signed(handle)
+			}
 		}
 	}
 }

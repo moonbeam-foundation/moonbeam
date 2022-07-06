@@ -51,6 +51,11 @@ pub enum Action {
 	RewardInfo = "rewardInfo(address)",
 	Claim = "claim()",
 	UpdateRewardAddress = "updateRewardAddress(address)",
+
+	// deprecated
+	DeprecatedIsContributor = "is_contributor(address)",
+	DeprecatedRewardInfo = "reward_info(address)",
+	DeprecatedUpdateRewardAddress = "update_reward_address(address)",
 }
 
 /// A precompile to wrap the functionality from pallet_crowdloan_rewards.
@@ -68,16 +73,20 @@ where
 		let selector = handle.read_selector()?;
 
 		handle.check_function_modifier(match selector {
-			Action::Claim | Action::UpdateRewardAddress => FunctionModifier::NonPayable,
+			Action::Claim | Action::UpdateRewardAddress | Action::DeprecatedUpdateRewardAddress => {
+				FunctionModifier::NonPayable
+			}
 			_ => FunctionModifier::View,
 		})?;
 
 		match selector {
 			// Check for accessor methods first. These return results immediately
-			Action::IsContributor => Self::is_contributor(handle),
-			Action::RewardInfo => Self::reward_info(handle),
+			Action::IsContributor | Action::DeprecatedIsContributor => Self::is_contributor(handle),
+			Action::RewardInfo | Action::DeprecatedRewardInfo => Self::reward_info(handle),
 			Action::Claim => Self::claim(handle),
-			Action::UpdateRewardAddress => Self::update_reward_address(handle),
+			Action::UpdateRewardAddress | Action::DeprecatedUpdateRewardAddress => {
+				Self::update_reward_address(handle)
+			}
 		}
 	}
 }

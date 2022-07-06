@@ -93,6 +93,47 @@ enum Action {
 	DelegatorBondMore = "delegatorBondMore(address,uint256)",
 	ExecuteDelegationRequest = "executeDelegationRequest(address,address)",
 	CancelDelegationRequest = "cancelDelegationRequest(address)",
+
+	// deprecated
+	DeprecatedMinNomination = "min_nomination()",
+	DeprecatedMinDelegation = "min_delegation()",
+	DeprecatedCandidateCount = "candidate_count()",
+	DeprecatedCollatorNominationCount = "collator_nomination_count(address)",
+	DeprecatedNominatorNominationCount = "nominator_nomination_count(address)",
+	DeprecatedCandidateDelegationCount = "candidate_delegation_count(address)",
+	DeprecatedDelegatorDelegationCount = "delegator_delegation_count(address)",
+	DeprecatedSelectedCandidates = "selected_candidates()",
+	DeprecatedIsNominator = "is_nominator(address)",
+	DeprecatedIsDelegator = "is_delegator(address)",
+	DeprecatedIsCandidate = "is_candidate(address)",
+	DeprecatedIsSelectedCandidate = "is_selected_candidate(address)",
+	DeprecatedDelegationRequestIsPending = "delegation_request_is_pending(address,address)",
+	DeprecatedCandidateExitIsPending = "candidate_exit_is_pending(address)",
+	DeprecatedCandidateRequestIsPending = "candidate_request_is_pending(address)",
+	DeprecatedJoinCandidates = "join_candidates(uint256,uint256)",
+	DeprecatedLeaveCandidates = "leave_candidates(uint256)",
+	DeprecatedScheduleLeaveCandidates = "schedule_leave_candidates(uint256)",
+	DeprecatedExecuteLeaveCandidates = "execute_leave_candidates(address,uint256)",
+	DeprecatedCancelLeaveCandidates = "cancel_leave_candidates(uint256)",
+	DeprecatedGoOffline = "go_offline()",
+	DeprecatedGoOnline = "go_online()",
+	DeprecatedCandidateBondLess = "candidate_bond_less(uint256)",
+	DeprecatedScheduleCandidateBondLess = "schedule_candidate_bond_less(uint256)",
+	DeprecatedCandidateBondMore = "candidate_bond_more(uint256)",
+	DeprecatedExecuteCandidateBondLess = "execute_candidate_bond_less(address)",
+	DeprecatedCancelCandidateBondLess = "cancel_candidate_bond_less()",
+	DeprecatedLeaveNominators = "leave_nominators(uint256)",
+	DeprecatedScheduleLeaveDelegators = "schedule_leave_delegators()",
+	DeprecatedExecuteLeaveDelegators = "execute_leave_delegators(address,uint256)",
+	DeprecatedCancelLeaveDelegators = "cancel_leave_delegators()",
+	DeprecatedRevokeNomination = "revoke_nomination(address)",
+	DeprecatedScheduleRevokeDelegation = "schedule_revoke_delegation(address)",
+	DeprecatedNominatorBondLess = "nominator_bond_less(address,uint256)",
+	DeprecatedScheduleDelegatorBondLess = "schedule_delegator_bond_less(address,uint256)",
+	DeprecatedNominatorBondMore = "nominator_bond_more(address,uint256)",
+	DeprecatedDelegatorBondMore = "delegator_bond_more(address,uint256)",
+	DeprecatedExecuteDelegationRequest = "execute_delegation_request(address,address)",
+	DeprecatedCancelDelegationRequest = "cancel_delegation_request(address)",
 }
 
 /// A precompile to wrap the functionality from parachain_staking.
@@ -135,7 +176,22 @@ where
 			| Action::SelectedCandidates
 			| Action::DelegationRequestIsPending
 			| Action::CandidateExitIsPending
-			| Action::CandidateRequestIsPending => FunctionModifier::View,
+			| Action::CandidateRequestIsPending
+			| Action::DeprecatedIsNominator
+			| Action::DeprecatedIsDelegator
+			| Action::DeprecatedIsCandidate
+			| Action::DeprecatedIsSelectedCandidate
+			| Action::DeprecatedMinNomination
+			| Action::DeprecatedMinDelegation
+			| Action::DeprecatedCandidateCount
+			| Action::DeprecatedCollatorNominationCount
+			| Action::DeprecatedNominatorNominationCount
+			| Action::DeprecatedCandidateDelegationCount
+			| Action::DeprecatedDelegatorDelegationCount
+			| Action::DeprecatedSelectedCandidates
+			| Action::DeprecatedDelegationRequestIsPending
+			| Action::DeprecatedCandidateExitIsPending
+			| Action::DeprecatedCandidateRequestIsPending => FunctionModifier::View,
 			// Non-payables
 			Action::JoinCandidates
 			| Action::LeaveCandidates
@@ -162,68 +218,164 @@ where
 			| Action::NominatorBondMore
 			| Action::DelegatorBondMore
 			| Action::ExecuteDelegationRequest
-			| Action::CancelDelegationRequest => FunctionModifier::NonPayable,
+			| Action::CancelDelegationRequest
+			| Action::DeprecatedJoinCandidates
+			| Action::DeprecatedLeaveCandidates
+			| Action::DeprecatedScheduleLeaveCandidates
+			| Action::DeprecatedExecuteLeaveCandidates
+			| Action::DeprecatedCancelLeaveCandidates
+			| Action::DeprecatedGoOffline
+			| Action::DeprecatedGoOnline
+			| Action::DeprecatedCandidateBondLess
+			| Action::DeprecatedScheduleCandidateBondLess
+			| Action::DeprecatedCandidateBondMore
+			| Action::DeprecatedExecuteCandidateBondLess
+			| Action::DeprecatedCancelCandidateBondLess
+			| Action::DeprecatedLeaveNominators
+			| Action::DeprecatedScheduleLeaveDelegators
+			| Action::DeprecatedExecuteLeaveDelegators
+			| Action::DeprecatedCancelLeaveDelegators
+			| Action::DeprecatedRevokeNomination
+			| Action::DeprecatedScheduleRevokeDelegation
+			| Action::DeprecatedNominatorBondLess
+			| Action::DeprecatedScheduleDelegatorBondLess
+			| Action::DeprecatedNominatorBondMore
+			| Action::DeprecatedDelegatorBondMore
+			| Action::DeprecatedExecuteDelegationRequest
+			| Action::DeprecatedCancelDelegationRequest => FunctionModifier::NonPayable,
 		})?;
 
 		// Return early if storage getter; return (origin, call) if dispatchable
 		let (origin, call) = match selector {
 			// DEPRECATED
-			Action::MinNomination => return Self::min_delegation(handle),
-			Action::MinDelegation => return Self::min_delegation(handle),
+			Action::MinNomination | Action::DeprecatedMinNomination => {
+				return Self::min_delegation(handle)
+			}
+			Action::MinDelegation | Action::DeprecatedMinDelegation => {
+				return Self::min_delegation(handle)
+			}
 			Action::Points => return Self::points(handle),
-			Action::CandidateCount => return Self::candidate_count(handle),
+			Action::CandidateCount | Action::DeprecatedCandidateCount => {
+				return Self::candidate_count(handle)
+			}
 			Action::Round => return Self::round(handle),
 			// DEPRECATED
-			Action::CollatorNominationCount => return Self::candidate_delegation_count(handle),
+			Action::CollatorNominationCount | Action::DeprecatedCollatorNominationCount => {
+				return Self::candidate_delegation_count(handle)
+			}
 			// DEPRECATED
-			Action::NominatorNominationCount => return Self::delegator_delegation_count(handle),
-			Action::CandidateDelegationCount => return Self::candidate_delegation_count(handle),
-			Action::DelegatorDelegationCount => return Self::delegator_delegation_count(handle),
-			Action::SelectedCandidates => return Self::selected_candidates(handle),
+			Action::NominatorNominationCount | Action::DeprecatedNominatorNominationCount => {
+				return Self::delegator_delegation_count(handle)
+			}
+			Action::CandidateDelegationCount | Action::DeprecatedCandidateDelegationCount => {
+				return Self::candidate_delegation_count(handle)
+			}
+			Action::DelegatorDelegationCount | Action::DeprecatedDelegatorDelegationCount => {
+				return Self::delegator_delegation_count(handle)
+			}
+			Action::SelectedCandidates | Action::DeprecatedSelectedCandidates => {
+				return Self::selected_candidates(handle)
+			}
 			// DEPRECATED
-			Action::IsNominator => return Self::is_delegator(handle),
-			Action::IsDelegator => return Self::is_delegator(handle),
-			Action::IsCandidate => return Self::is_candidate(handle),
-			Action::IsSelectedCandidate => return Self::is_selected_candidate(handle),
-			Action::DelegationRequestIsPending => {
+			Action::IsNominator | Action::DeprecatedIsNominator => {
+				return Self::is_delegator(handle)
+			}
+			Action::IsDelegator | Action::DeprecatedIsDelegator => {
+				return Self::is_delegator(handle)
+			}
+			Action::IsCandidate | Action::DeprecatedIsCandidate => {
+				return Self::is_candidate(handle)
+			}
+			Action::IsSelectedCandidate | Action::DeprecatedIsSelectedCandidate => {
+				return Self::is_selected_candidate(handle)
+			}
+			Action::DelegationRequestIsPending | Action::DeprecatedDelegationRequestIsPending => {
 				return Self::delegation_request_is_pending(handle)
 			}
-			Action::CandidateExitIsPending => return Self::candidate_exit_is_pending(handle),
-			Action::CandidateRequestIsPending => return Self::candidate_request_is_pending(handle),
+			Action::CandidateExitIsPending | Action::DeprecatedCandidateExitIsPending => {
+				return Self::candidate_exit_is_pending(handle)
+			}
+			Action::CandidateRequestIsPending | Action::DeprecatedCandidateRequestIsPending => {
+				return Self::candidate_request_is_pending(handle)
+			}
 			// runtime methods (dispatchables)
-			Action::JoinCandidates => Self::join_candidates(handle)?,
+			Action::JoinCandidates | Action::DeprecatedJoinCandidates => {
+				Self::join_candidates(handle)?
+			}
 			// DEPRECATED
-			Action::LeaveCandidates => Self::schedule_leave_candidates(handle)?,
-			Action::ScheduleLeaveCandidates => Self::schedule_leave_candidates(handle)?,
-			Action::ExecuteLeaveCandidates => Self::execute_leave_candidates(handle)?,
-			Action::CancelLeaveCandidates => Self::cancel_leave_candidates(handle)?,
-			Action::GoOffline => Self::go_offline(handle)?,
-			Action::GoOnline => Self::go_online(handle)?,
+			Action::LeaveCandidates | Action::DeprecatedLeaveCandidates => {
+				Self::schedule_leave_candidates(handle)?
+			}
+			Action::ScheduleLeaveCandidates | Action::DeprecatedScheduleLeaveCandidates => {
+				Self::schedule_leave_candidates(handle)?
+			}
+			Action::ExecuteLeaveCandidates | Action::DeprecatedExecuteLeaveCandidates => {
+				Self::execute_leave_candidates(handle)?
+			}
+			Action::CancelLeaveCandidates | Action::DeprecatedCancelLeaveCandidates => {
+				Self::cancel_leave_candidates(handle)?
+			}
+			Action::GoOffline | Action::DeprecatedGoOffline => Self::go_offline(handle)?,
+			Action::GoOnline | Action::DeprecatedGoOnline => Self::go_online(handle)?,
 			// DEPRECATED
-			Action::CandidateBondLess => Self::schedule_candidate_bond_less(handle)?,
-			Action::ScheduleCandidateBondLess => Self::schedule_candidate_bond_less(handle)?,
-			Action::CandidateBondMore => Self::candidate_bond_more(handle)?,
-			Action::ExecuteCandidateBondLess => Self::execute_candidate_bond_less(handle)?,
-			Action::CancelCandidateBondLess => Self::cancel_candidate_bond_less(handle)?,
+			Action::CandidateBondLess | Action::DeprecatedCandidateBondLess => {
+				Self::schedule_candidate_bond_less(handle)?
+			}
+			Action::ScheduleCandidateBondLess | Action::DeprecatedScheduleCandidateBondLess => {
+				Self::schedule_candidate_bond_less(handle)?
+			}
+			Action::CandidateBondMore | Action::DeprecatedCandidateBondMore => {
+				Self::candidate_bond_more(handle)?
+			}
+			Action::ExecuteCandidateBondLess | Action::DeprecatedExecuteCandidateBondLess => {
+				Self::execute_candidate_bond_less(handle)?
+			}
+			Action::CancelCandidateBondLess | Action::DeprecatedCancelCandidateBondLess => {
+				Self::cancel_candidate_bond_less(handle)?
+			}
 			// DEPRECATED
 			Action::Nominate => Self::delegate(handle)?,
 			Action::Delegate => Self::delegate(handle)?,
 			// DEPRECATED
-			Action::LeaveNominators => Self::schedule_leave_delegators(handle)?,
-			Action::ScheduleLeaveDelegators => Self::schedule_leave_delegators(handle)?,
-			Action::ExecuteLeaveDelegators => Self::execute_leave_delegators(handle)?,
-			Action::CancelLeaveDelegators => Self::cancel_leave_delegators(handle)?,
+			Action::LeaveNominators | Action::DeprecatedLeaveNominators => {
+				Self::schedule_leave_delegators(handle)?
+			}
+			Action::ScheduleLeaveDelegators | Action::DeprecatedScheduleLeaveDelegators => {
+				Self::schedule_leave_delegators(handle)?
+			}
+			Action::ExecuteLeaveDelegators | Action::DeprecatedExecuteLeaveDelegators => {
+				Self::execute_leave_delegators(handle)?
+			}
+			Action::CancelLeaveDelegators | Action::DeprecatedCancelLeaveDelegators => {
+				Self::cancel_leave_delegators(handle)?
+			}
 			// DEPRECATED
-			Action::RevokeNomination => Self::schedule_revoke_delegation(handle)?,
-			Action::ScheduleRevokeDelegation => Self::schedule_revoke_delegation(handle)?,
+			Action::RevokeNomination | Action::DeprecatedRevokeNomination => {
+				Self::schedule_revoke_delegation(handle)?
+			}
+			Action::ScheduleRevokeDelegation | Action::DeprecatedScheduleRevokeDelegation => {
+				Self::schedule_revoke_delegation(handle)?
+			}
 			// DEPRECATED
-			Action::NominatorBondLess => Self::schedule_delegator_bond_less(handle)?,
-			Action::ScheduleDelegatorBondLess => Self::schedule_delegator_bond_less(handle)?,
+			Action::NominatorBondLess | Action::DeprecatedNominatorBondLess => {
+				Self::schedule_delegator_bond_less(handle)?
+			}
+			Action::ScheduleDelegatorBondLess | Action::DeprecatedScheduleDelegatorBondLess => {
+				Self::schedule_delegator_bond_less(handle)?
+			}
 			// DEPRECATED
-			Action::NominatorBondMore => Self::delegator_bond_more(handle)?,
-			Action::DelegatorBondMore => Self::delegator_bond_more(handle)?,
-			Action::ExecuteDelegationRequest => Self::execute_delegation_request(handle)?,
-			Action::CancelDelegationRequest => Self::cancel_delegation_request(handle)?,
+			Action::NominatorBondMore | Action::DeprecatedNominatorBondMore => {
+				Self::delegator_bond_more(handle)?
+			}
+			Action::DelegatorBondMore | Action::DeprecatedDelegatorBondMore => {
+				Self::delegator_bond_more(handle)?
+			}
+			Action::ExecuteDelegationRequest | Action::DeprecatedExecuteDelegationRequest => {
+				Self::execute_delegation_request(handle)?
+			}
+			Action::CancelDelegationRequest | Action::DeprecatedCancelDelegationRequest => {
+				Self::cancel_delegation_request(handle)?
+			}
 		};
 
 		// Dispatch call (if enough gas).

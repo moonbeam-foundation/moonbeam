@@ -74,6 +74,18 @@ enum Action {
 	EncodeSetPayee = "encodeSetPayee(bytes)",
 	EncodeSetController = "encodeSetController(uint256)",
 	EncodeRebond = "encodeRebond(uint256)",
+
+	// deprecated
+	DeprecatedEncodeBond = "encode_bond(uint256,uint256,bytes)",
+	DeprecatedEncodeBondExtra = "encode_bond_extra(uint256)",
+	DeprecatedEncodeUnbond = "encode_unbond(uint256)",
+	DeprecatedEncodeWithdrawUnbonded = "encode_withdraw_unbonded(uint32)",
+	DeprecatedEncodeValidate = "encode_validate(uint256,bool)",
+	DeprecatedEncodeNominate = "encode_nominate(uint256[])",
+	DeprecatedEncodeChill = "encode_chill()",
+	DeprecatedEncodeSetPayee = "encode_set_payee(bytes)",
+	DeprecatedEncodeSetController = "encode_set_controller(uint256)",
+	DeprecatedEncodeRebond = "encode_rebond(uint256)",
 }
 
 /// A precompile to provide relay stake calls encoding through evm
@@ -97,16 +109,28 @@ where
 		// https://docs.soliditylang.org/en/v0.8.0/abi-spec.html#function-selector
 		match selector {
 			// Storage Accessors
-			Action::EncodeBond => Self::encode_bond(handle),
-			Action::EncodeBondExtra => Self::encode_bond_extra(handle),
-			Action::EncodeUnbond => Self::encode_unbond(handle),
-			Action::EncodeWithdrawUnbonded => Self::encode_withdraw_unbonded(handle),
-			Action::EncodeValidate => Self::encode_validate(handle),
-			Action::EncodeNominate => Self::encode_nominate(handle),
-			Action::EncodeChill => Self::encode_chill(handle),
-			Action::EncodeSetPayee => Self::encode_set_payee(handle),
-			Action::EncodeSetController => Self::encode_set_controller(handle),
-			Action::EncodeRebond => Self::encode_rebond(handle),
+			Action::EncodeBond | Action::DeprecatedEncodeBond => Self::encode_bond(handle),
+			Action::EncodeBondExtra | Action::DeprecatedEncodeBondExtra => {
+				Self::encode_bond_extra(handle)
+			}
+			Action::EncodeUnbond | Action::DeprecatedEncodeUnbond => Self::encode_unbond(handle),
+			Action::EncodeWithdrawUnbonded | Action::DeprecatedEncodeWithdrawUnbonded => {
+				Self::encode_withdraw_unbonded(handle)
+			}
+			Action::EncodeValidate | Action::DeprecatedEncodeValidate => {
+				Self::encode_validate(handle)
+			}
+			Action::EncodeNominate | Action::DeprecatedEncodeNominate => {
+				Self::encode_nominate(handle)
+			}
+			Action::EncodeChill | Action::DeprecatedEncodeChill => Self::encode_chill(handle),
+			Action::EncodeSetPayee | Action::DeprecatedEncodeSetPayee => {
+				Self::encode_set_payee(handle)
+			}
+			Action::EncodeSetController | Action::DeprecatedEncodeSetController => {
+				Self::encode_set_controller(handle)
+			}
+			Action::EncodeRebond | Action::DeprecatedEncodeRebond => Self::encode_rebond(handle),
 		}
 	}
 }

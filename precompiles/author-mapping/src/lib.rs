@@ -41,6 +41,13 @@ pub enum Action {
 	ClearAssociation = "clearAssociation(bytes32)",
 	RemoveKeys = "removeKeys()",
 	SetKeys = "setKeys(bytes)",
+
+	// deprecated
+	DeprecatedAddAssociation = "add_association(bytes32)",
+	DeprecatedUpdateAssociation = "update_association(bytes32,bytes32)",
+	DeprecatedClearAssociation = "clear_association(bytes32)",
+	DeprecatedRemoveKeys = "remove_keys()",
+	DeprecatedSetKeys = "set_keys(bytes)",
 }
 
 /// A precompile to wrap the functionality from pallet author mapping.
@@ -63,11 +70,17 @@ where
 
 		match selector {
 			// Dispatchables
-			Action::AddAssociation => Self::add_association(handle),
-			Action::UpdateAssociation => Self::update_association(handle),
-			Action::ClearAssociation => Self::clear_association(handle),
-			Action::RemoveKeys => Self::remove_keys(handle),
-			Action::SetKeys => Self::set_keys(handle),
+			Action::AddAssociation | Action::DeprecatedAddAssociation => {
+				Self::add_association(handle)
+			}
+			Action::UpdateAssociation | Action::DeprecatedUpdateAssociation => {
+				Self::update_association(handle)
+			}
+			Action::ClearAssociation | Action::DeprecatedClearAssociation => {
+				Self::clear_association(handle)
+			}
+			Action::RemoveKeys | Action::DeprecatedRemoveKeys => Self::remove_keys(handle),
+			Action::SetKeys | Action::DeprecatedSetKeys => Self::set_keys(handle),
 		}
 	}
 }
