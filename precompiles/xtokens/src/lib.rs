@@ -22,7 +22,6 @@
 use fp_evm::{PrecompileHandle, PrecompileOutput};
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
-	ensure,
 	traits::Get,
 };
 use pallet_evm::{AddressMapping, Precompile};
@@ -284,14 +283,16 @@ where
 		input.expect_arguments(4)?;
 		let non_mapped_currencies: BoundedVec<Currency, GetMaxAssets<Runtime>> = input.read()?;
 		let non_mapped_currencies = non_mapped_currencies.into_vec();
-		let max_assets = MaxAssetsForTransfer::<Runtime>::get();
 
-		// We check this here so that we avoid iterating over the vec
-		// if the len is more than the max permitted
-		ensure!(
-			max_assets >= non_mapped_currencies.len(),
-			revert("More than max number of assets given")
-		);
+		// Now checked using BoundedVec.
+		// TODO: Improve error message customization.
+
+		// // We check this here so that we avoid iterating over the vec
+		// // if the len is more than the max permitted
+		// ensure!(
+		// 	max_assets >= non_mapped_currencies.len(),
+		// 	revert("More than max number of assets given")
+		// );
 
 		let fee_item: u32 = input.read::<u32>()?;
 
@@ -347,14 +348,16 @@ where
 		input.expect_arguments(4)?;
 		let assets: BoundedVec<EvmMultiAsset, GetMaxAssets<Runtime>> = input.read()?;
 		let assets = assets.into_vec();
-		let max_assets = MaxAssetsForTransfer::<Runtime>::get();
 
-		// We check this here so that we avoid iterating over the vec
-		// if the len is more than the max permitted
-		ensure!(
-			max_assets >= assets.len(),
-			revert("More than max number of assets given")
-		);
+		// Now checked using BoundedVec.
+		// TODO: Improve error message customization.
+
+		// // We check this here so that we avoid iterating over the vec
+		// // if the len is more than the max permitted
+		// ensure!(
+		// 	max_assets >= assets.len(),
+		// 	revert("More than max number of assets given")
+		// );
 
 		let fee_item: u32 = input.read::<u32>()?;
 
