@@ -55,7 +55,7 @@ pub mod pallet {
 	use nimbus_primitives::NimbusId;
 	use pallet_evm::AddressMapping;
 	use session_keys_primitives::{
-		GetVrfInput, InherentError, KeysLookup, VrfId, VrfInput, INHERENT_IDENTIFIER,
+		GetVrfInput, InherentError, IsFirstBlock, KeysLookup, VrfId, VrfInput, INHERENT_IDENTIFIER,
 	};
 	use sp_consensus_babe::Slot;
 	use sp_core::{H160, H256};
@@ -203,8 +203,8 @@ pub mod pallet {
 
 	/// Records whether this is the first block (genesis or runtime upgrade)
 	#[pallet::storage]
-	#[pallet::getter(fn is_first_block)]
-	pub(crate) type IsFirstBlock<T: Config> = StorageValue<_, ()>;
+	#[pallet::getter(fn not_first_block)]
+	pub type NotFirstBlock<T: Config> = StorageValue<_, ()>;
 
 	/// Snapshot of randomness to fulfill all requests that are for the same raw randomness
 	/// Removed once $value.request_count == 0
@@ -351,6 +351,12 @@ pub mod pallet {
 		/// Panics if value not set
 		fn get_vrf_input() -> VrfInput<Slot, T::Hash> {
 			CurrentVrfInput::<T>::get().expect("Expected VRF input to be set in storage")
+		}
+	}
+
+	impl<T: Config> IsFirstBlock for Pallet<T> {
+		fn is_first_block() -> bool {
+			<NotFirstBlock<T>>::get().is_none()
 		}
 	}
 

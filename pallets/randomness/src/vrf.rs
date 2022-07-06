@@ -16,7 +16,7 @@
 
 //! VRF logic
 use crate::{
-	Config, CurrentVrfInput, IsFirstBlock, LocalVrfOutput, RandomnessResults, RequestType,
+	Config, CurrentVrfInput, LocalVrfOutput, NotFirstBlock, RandomnessResults, RequestType,
 };
 use frame_support::{pallet_prelude::Weight, traits::Get};
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
@@ -52,13 +52,13 @@ pub(crate) fn set_input<T: Config>() {
 
 /// Returns weight consumed in `on_initialize`
 pub(crate) fn set_output<T: Config>() -> Weight {
-	let input = <CurrentVrfInput<T>>::get().expect("VrfInput must be set to verify VrfOutput");
 	// Do not set the output in the first block (genesis or runtime upgrade)
 	// because we do not have any input for author to sign (which would be set in last block)
-	if <IsFirstBlock<T>>::get().is_none() {
-		<IsFirstBlock<T>>::put(());
-		return 0;
+	if <NotFirstBlock<T>>::get().is_none() {
+		<NotFirstBlock<T>>::put(());
+		return T::DbWeight::get().read + T::DbWeight::get().write;
 	}
+	let input = <CurrentVrfInput<T>>::get().expect("VrfInput must be set to verify VrfOutput");
 	let mut block_author_vrf_id: Option<VrfId> = None;
 	let PreDigest {
 		vrf_output,

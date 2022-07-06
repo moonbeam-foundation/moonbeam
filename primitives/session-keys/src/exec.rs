@@ -27,6 +27,10 @@ use sp_consensus_babe::Slot;
 use sp_consensus_vrf::schnorrkel;
 use sp_core::H256;
 
+pub trait IsFirstBlock {
+	fn is_first_block() -> bool;
+}
+
 pub struct BlockExecutor<B, K, I>(sp_std::marker::PhantomData<(B, K, I)>);
 
 impl<Block, B, K, I> ExecuteBlock<Block> for BlockExecutor<B, K, I>
@@ -34,11 +38,15 @@ where
 	Block: BlockT,
 	B: ExecuteBlock<Block>,
 	K: KeysLookup<NimbusId, VrfId>,
-	I: GetVrfInput<VrfInput<Slot, H256>>,
+	I: GetVrfInput<VrfInput<Slot, H256>> + IsFirstBlock,
 {
 	fn execute_block(block: Block) {
 		let (header, extrinsics) = block.deconstruct();
-
+		if <I as IsFirstBlock>::is_first_block() {
+			// pass to inner executor
+			B::execute_block(Block::new(header, extrinsics));
+			return;
+		}
 		let mut block_author_vrf_id: Option<VrfId> = None;
 		let PreDigest {
 			vrf_output,
@@ -76,7 +84,7 @@ where
 		let VrfInput {
 			slot_number,
 			storage_root,
-		} = I::get_vrf_input();
+		} = <I as GetVrfInput<_>>::get_vrf_input();
 		let transcript = make_transcript::<H256>(slot_number, storage_root);
 		assert!(
 			pubkey
