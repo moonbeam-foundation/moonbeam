@@ -54,8 +54,8 @@ pub(crate) fn set_input<T: Config>() {
 pub(crate) fn set_output<T: Config>() -> Weight {
 	let input = <CurrentVrfInput<T>>::get().expect("VrfInput must be set to verify VrfOutput");
 	// Do not set the output in the first block (genesis or runtime upgrade)
-	// because we do not have any output
-	if <IsFirstBlock<T>>::take().is_none() {
+	// because we do not have any input for author to sign (which would be set in last block)
+	if <IsFirstBlock<T>>::get().is_none() {
 		<IsFirstBlock<T>>::put(());
 		return 0;
 	}
