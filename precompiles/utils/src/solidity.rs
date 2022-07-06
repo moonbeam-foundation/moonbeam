@@ -17,11 +17,27 @@
 //! Utility module to interact with solidity file.
 
 use std::{
+	collections::HashMap,
 	fs::File,
 	io::{BufRead, BufReader, Read},
 };
 
 use tiny_keccak::Hasher;
+
+/// Represents a declared function within a solidity file
+#[derive(Clone, Default, Debug)]
+pub struct SolidityStruct {
+	/// Function name
+	pub name: String,
+	/// List of function parameter types
+	pub params: Vec<String>,
+}
+
+impl SolidityStruct {
+	pub fn signature(&self) -> String {
+		format!("({})", self.params.join(","))
+	}
+}
 
 /// Represents a declared function within a solidity file
 #[derive(Clone, Default)]
@@ -68,6 +84,8 @@ fn get_selectors_from_reader<R: Read>(reader: R) -> Vec<SolidityFunction> {
 	#[derive(Clone, Copy)]
 	enum Stage {
 		Start,
+		Struct,
+		StructParams,
 		FnName,
 		Args,
 	}
@@ -87,6 +105,8 @@ fn get_selectors_from_reader<R: Read>(reader: R) -> Vec<SolidityFunction> {
 
 	let reader = BufReader::new(reader);
 	let mut functions = vec![];
+	let mut custom_types = HashMap::new();
+	let mut solidity_struct = SolidityStruct::default();
 
 	let mut stage = Stage::Start;
 	let mut pair = Pair::First;
@@ -109,6 +129,31 @@ fn get_selectors_from_reader<R: Read>(reader: R) -> Vec<SolidityFunction> {
 				continue;
 			}
 			match (stage, pair, word) {
+				// parse custom type structs
+				(Stage::Start, Pair::First, "struct") => {
+					stage = Stage::Struct;
+					pair.next();
+				}
+				(Stage::Struct, Pair::Second, _) => {
+					solidity_struct.name = word.to_string();
+					stage = Stage::StructParams;
+					pair.next();
+				}
+				(Stage::StructParams, Pair::First, "{") => (),
+				(Stage::StructParams, Pair::First, "}") => {
+					custom_types.insert(solidity_struct.name.clone(), solidity_struct);
+					stage = Stage::Start;
+					solidity_struct = SolidityStruct::default();
+				}
+				(Stage::StructParams, Pair::First, _) => {
+					solidity_struct.params.push(word.to_string());
+					pair.next();
+				}
+				(Stage::StructParams, Pair::Second, _) => {
+					pair.next();
+				}
+
+				// parse function
 				(Stage::Start, Pair::First, "function") => {
 					stage = Stage::FnName;
 					pair.next();
@@ -125,7 +170,11 @@ fn get_selectors_from_reader<R: Read>(reader: R) -> Vec<SolidityFunction> {
 					solidity_fn = SolidityFunction::default()
 				}
 				(Stage::Args, Pair::First, _) => {
-					solidity_fn.args.push(word.to_string());
+					let mut arg = word.to_string();
+					if let Some(t) = custom_types.get(&arg) {
+						arg = t.signature()
+					}
+					solidity_fn.args.push(arg);
 					pair.next();
 				}
 				(Stage::Args, Pair::Second, "memory") => (),
@@ -198,6 +247,16 @@ mod tests {
 				String::from("a19a07e1"),
 				String::from("18001a4e"),
 				String::from("fnMemoryArrayArgs(address[],uint256[],bytes[])"),
+			),
+			(
+				String::from("f29f96de"),
+				String::from("d8af1a4e"),
+				String::from("fnCustomArgs((uint8,bytes[]),bytes[],uint64)"),
+			),
+			(
+				String::from("b2c9f1a3"),
+				String::from("550c1a4e"),
+				String::from("fnCustomArgsMultiple((uint8,bytes[]),(address[],uint256[],bytes[]),bytes[],uint64)"),
 			),
 		];
 		assert_eq!(expected, actual);
