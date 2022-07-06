@@ -55,7 +55,7 @@ pub mod pallet {
 	use nimbus_primitives::NimbusId;
 	use pallet_evm::AddressMapping;
 	use session_keys_primitives::{
-		GetVrfInput, InherentError, IsFirstBlock, KeysLookup, VrfId, VrfInput, INHERENT_IDENTIFIER,
+		GetVrfInput, InherentError, KeysLookup, VrfId, VrfInput, INHERENT_IDENTIFIER,
 	};
 	use sp_consensus_babe::Slot;
 	use sp_core::{H160, H256};
@@ -351,12 +351,6 @@ pub mod pallet {
 		/// Panics if value not set
 		fn get_vrf_input() -> VrfInput<Slot, T::Hash> {
 			CurrentVrfInput::<T>::get().expect("Expected VRF input to be set in storage")
-		}
-	}
-
-	impl<T: Config> IsFirstBlock for Pallet<T> {
-		fn is_first_block() -> bool {
-			<NotFirstBlock<T>>::get().is_none()
 		}
 	}
 

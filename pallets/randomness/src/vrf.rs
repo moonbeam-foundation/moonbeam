@@ -94,10 +94,13 @@ pub(crate) fn set_output<T: Config>() -> Weight {
 	let pubkey = schnorrkel::PublicKey::from_bytes(block_author_vrf_id.as_slice())
 		.expect("Expect VrfId to be valid schnorrkel public key");
 	let transcript = make_transcript::<T::Hash>(input.slot_number, input.storage_root);
-	// NOTE: this is verified by the BlockExecutor when executing the block
-	debug_assert!(pubkey
-		.vrf_verify(transcript.clone(), &vrf_output, &vrf_proof)
-		.is_ok());
+	// Verify VRF output + proof using input transcript and VrfId
+	assert!(
+		pubkey
+			.vrf_verify(transcript.clone(), &vrf_output, &vrf_proof)
+			.is_ok(),
+		"VRF signature verification failed"
+	);
 	let vrf_output: Randomness = vrf_output
 		.attach_input_hash(&pubkey, transcript)
 		.ok()
