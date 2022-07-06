@@ -70,11 +70,11 @@ fn no_selector_exists_but_length_is_right() {
 
 #[test]
 fn selectors() {
-	assert_eq!(Action::AddAssociation as u32, 0xaa5ac585);
-	assert_eq!(Action::UpdateAssociation as u32, 0xd9cef879);
-	assert_eq!(Action::ClearAssociation as u32, 0x7354c91d);
-	assert_eq!(Action::RemoveKeys as u32, 0x3b6c4284);
-	assert_eq!(Action::SetKeys as u32, 0xbcb24ddc);
+	assert_eq!(Action::AddAssociation as u32, 0xef8b6cd8);
+	assert_eq!(Action::UpdateAssociation as u32, 0x25a39da5);
+	assert_eq!(Action::ClearAssociation as u32, 0x448b54d6);
+	assert_eq!(Action::RemoveKeys as u32, 0xa36fee17);
+	assert_eq!(Action::SetKeys as u32, 0xf1ec919c);
 }
 
 #[test]
