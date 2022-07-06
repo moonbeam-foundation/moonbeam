@@ -24,16 +24,17 @@ use std::{
 
 use tiny_keccak::Hasher;
 
-/// Represents a declared function within a solidity file
-#[derive(Clone, Default, Debug)]
+/// Represents a declared custom type struct within a solidity file
+#[derive(Clone, Default)]
 pub struct SolidityStruct {
-	/// Function name
+	/// Struct name
 	pub name: String,
-	/// List of function parameter types
+	/// List of parameter types
 	pub params: Vec<String>,
 }
 
 impl SolidityStruct {
+	/// Returns the representative signature for the solidity struct
 	pub fn signature(&self) -> String {
 		format!("({})", self.params.join(","))
 	}
