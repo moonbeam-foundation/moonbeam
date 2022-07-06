@@ -14,11 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::{
-	traits::GetBabeData, BalanceOf, Config, Error, Event, Pallet, RandomnessResults, RequestId,
-};
+use crate::{BalanceOf, Config, Error, Event, GetBabeData, Pallet, RandomnessResults, RequestId};
 use frame_support::pallet_prelude::*;
-use frame_support::traits::{Currency, ExistenceRequirement::KeepAlive, ReservableCurrency};
+use frame_support::traits::{Currency, ExistenceRequirement::KeepAlive};
 use pallet_evm::AddressMapping;
 use sp_core::{H160, H256};
 use sp_runtime::traits::{CheckedAdd, CheckedSub, Saturating};
@@ -183,37 +181,25 @@ impl<T: Config> Request<T> {
 		caller: &H160,
 		cost_of_execution: BalanceOf<T>,
 	) {
-		// unreserve deposit and fee before refund
-		let amt_to_unreserve = deposit.saturating_add(self.fee);
-		let contract_address = T::AddressMapping::into_account_id(self.contract_address.clone());
-		let amt_not_unreserved = T::ReserveCurrency::unreserve(&contract_address, amt_to_unreserve);
-		let amt_unreserved = amt_to_unreserve.saturating_sub(amt_not_unreserved);
-		let refundable_amount = if amt_unreserved < self.fee {
-			// EDGE CASE: amount unreserved is not equal to deposit + fee
-			// If the amount unreserved is less than the `fee`, we use the entire amount unreserved
-			// to refund caller of fulfill. The `deposit` acts as a safety margin for the refund.
-			amt_unreserved
-		} else {
-			self.fee
-		};
+		let refundable_amount = deposit.saturating_add(self.fee);
 		if let Some(excess) = refundable_amount.checked_sub(&cost_of_execution) {
-			// refund cost_of_execution to caller of `fulfill`
-			T::ReserveCurrency::transfer(
-				&contract_address,
-				&T::AddressMapping::into_account_id(caller.clone()),
-				cost_of_execution,
-				KeepAlive,
-			)
-			.expect("just unreserved deposit + fee => cost_of_execution must be transferrable");
-			// refund excess to refund address
-			T::ReserveCurrency::transfer(
-				&contract_address,
+			// send excess to refund address
+			T::Currency::transfer(
+				&T::ReserveAccount::get(),
 				&T::AddressMapping::into_account_id(self.refund_address),
 				excess,
 				KeepAlive,
 			)
-			.expect("just unreserved deposit + fee => excess must be transferrable");
-		} // TODO: else should log warning or emit event that no refund happened?
+			.expect("excess should be transferrable");
+		}
+		// refund cost_of_execution to caller of `fulfill`
+		T::Currency::transfer(
+			&T::ReserveAccount::get(),
+			&T::AddressMapping::into_account_id(caller.clone()),
+			cost_of_execution,
+			KeepAlive,
+		)
+		.expect("cost_of_execution should be transferrable");
 	}
 }
 
@@ -279,14 +265,12 @@ impl<T: Config> RequestState<T> {
 			.fee
 			.checked_add(&fee_increase)
 			.ok_or(Error::<T>::RequestFeeOverflowed)?;
-		T::ReserveCurrency::reserve(
-			&T::AddressMapping::into_account_id(caller.clone()),
-			fee_increase,
-		)?;
+		let caller = T::AddressMapping::into_account_id(caller.clone());
+		T::Currency::transfer(&caller, &T::ReserveAccount::get(), fee_increase, KeepAlive)?;
 		self.request.fee = new_fee;
 		Ok(new_fee)
 	}
-	/// Unreserve deposit + fee from contract_address
+	/// Transfer deposit back to contract_address
 	/// Transfer fee to caller
 	pub fn execute_expiration(&self, caller: &T::AccountId) -> DispatchResult {
 		ensure!(
@@ -295,12 +279,21 @@ impl<T: Config> RequestState<T> {
 		);
 		let contract_address =
 			T::AddressMapping::into_account_id(self.request.contract_address.clone());
-		T::ReserveCurrency::unreserve(
+		// TODO: is it worth optimizing when caller == contract_address to do one transfer here
+		T::Currency::transfer(
+			&T::ReserveAccount::get(),
 			&contract_address,
-			self.deposit.saturating_add(self.request.fee),
-		);
-		T::ReserveCurrency::transfer(&contract_address, caller, self.request.fee, KeepAlive)
-			.expect("just unreserved deposit + fee => fee must be transferrable");
+			self.deposit,
+			KeepAlive,
+		)
+		.expect("expect transferrable deposit + fee, transferring deposit");
+		T::Currency::transfer(
+			&T::ReserveAccount::get(),
+			caller,
+			self.request.fee,
+			KeepAlive,
+		)
+		.expect("expect transferrable deposit + fee, transferring fee");
 		Ok(())
 	}
 }

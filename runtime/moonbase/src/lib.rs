@@ -1182,9 +1182,11 @@ impl pallet_randomness::GetBabeData<BlockNumber, u64, Option<Hash>> for BabeData
 }
 
 pub struct VrfInputGetter;
-impl pallet_randomness::GetVrfInput<pallet_randomness::VrfInput<Slot, Hash>> for VrfInputGetter {
-	fn get_vrf_input() -> pallet_randomness::VrfInput<Slot, Hash> {
-		pallet_randomness::VrfInput {
+impl session_keys_primitives::GetVrfInput<session_keys_primitives::VrfInput<Slot, Hash>>
+	for VrfInputGetter
+{
+	fn get_vrf_input() -> session_keys_primitives::VrfInput<Slot, Hash> {
+		session_keys_primitives::VrfInput {
 			slot_number: relay_chain_state_proof()
 				.read_slot()
 				.expect("CheckInherents reads slot from state proof QED"),
@@ -1192,6 +1194,15 @@ impl pallet_randomness::GetVrfInput<pallet_randomness::VrfInput<Slot, Hash>> for
 				.expect("set in `set_validation_data`inherent => available before on_initialize")
 				.relay_parent_storage_root,
 		}
+	}
+}
+
+pub struct ReserveAccount;
+impl Get<AccountId20> for ReserveAccount {
+	fn get() -> AccountId20 {
+		use pallet_evm::AddressMapping;
+		// harcoded precompile address
+		moonbeam_runtime_common::IntoAddressMapping::into_account_id(H160::from_low_u64_be(2057))
 	}
 }
 
@@ -1203,10 +1214,11 @@ parameter_types! {
 impl pallet_randomness::Config for Runtime {
 	type Event = Event;
 	type AddressMapping = moonbeam_runtime_common::IntoAddressMapping;
-	type ReserveCurrency = Balances;
+	type Currency = Balances;
 	type BabeDataGetter = BabeDataGetter;
 	type VrfInputGetter = VrfInputGetter;
 	type VrfKeyLookup = AuthorMapping;
+	type ReserveAccount = ReserveAccount;
 	type Deposit = RandomnessRequestDeposit;
 	type ExpirationDelay = ExpirationDelay;
 }

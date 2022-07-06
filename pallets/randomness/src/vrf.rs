@@ -15,32 +15,21 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! VRF logic
-use crate::{Config, CurrentVrfInput, GetVrfInput, LocalVrfOutput, RandomnessResults, RequestType};
+use crate::{
+	Config, CurrentVrfInput, LocalVrfOutput, NotFirstBlock, RandomnessResults, RequestType,
+};
 use frame_support::{pallet_prelude::Weight, traits::Get};
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
-use parity_scale_codec::{Decode, Encode};
-use scale_info::TypeInfo;
-#[cfg(feature = "std")]
-use serde::{Deserialize, Serialize};
+use parity_scale_codec::Decode;
 pub use session_keys_primitives::make_transcript;
-use session_keys_primitives::{KeysLookup, PreDigest, VrfId, VRF_ENGINE_ID, VRF_INOUT_CONTEXT};
+use session_keys_primitives::{
+	GetVrfInput, KeysLookup, PreDigest, VrfId, VRF_ENGINE_ID, VRF_INOUT_CONTEXT,
+};
 use sp_consensus_vrf::schnorrkel;
 use sp_core::crypto::ByteArray;
-use sp_runtime::RuntimeDebug;
 
 /// VRF output
 type Randomness = schnorrkel::Randomness;
-
-#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-#[derive(Default, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
-/// VRF inputs from the relay chain
-/// Both inputs are expected to change every block
-pub struct VrfInput<SlotNumber, RelayHash> {
-	/// Relay block slot number
-	pub slot_number: SlotNumber,
-	/// Relay block storage root
-	pub storage_root: RelayHash,
-}
 
 /// Set vrf input in storage and log warning if either of the values did NOT change
 /// Called in previous block's `on_finalize`
@@ -63,15 +52,28 @@ pub(crate) fn set_input<T: Config>() {
 
 /// Returns weight consumed in `on_initialize`
 pub(crate) fn set_output<T: Config>() -> Weight {
+	// Do not set the output in the first block (genesis or runtime upgrade)
+	// because we do not have any input for author to sign (which would be set in last block)
+	if <NotFirstBlock<T>>::get().is_none() {
+		<NotFirstBlock<T>>::put(());
+		return T::DbWeight::get().read + T::DbWeight::get().write;
+	}
 	let input = <CurrentVrfInput<T>>::get().expect("VrfInput must be set to verify VrfOutput");
 	let mut block_author_vrf_id: Option<VrfId> = None;
-	let pre_digest: PreDigest = <frame_system::Pallet<T>>::digest()
+	let PreDigest {
+		vrf_output,
+		vrf_proof,
+	} = <frame_system::Pallet<T>>::digest()
 		.logs
 		.iter()
 		.filter_map(|s| s.as_pre_runtime())
 		.filter_map(|(id, mut data)| {
 			if id == VRF_ENGINE_ID {
-				PreDigest::decode(&mut data).ok()
+				if let Ok(vrf_digest) = PreDigest::decode(&mut data) {
+					Some(vrf_digest)
+				} else {
+					panic!("failed to decode VRF PreDigest");
+				}
 			} else {
 				if id == NIMBUS_ENGINE_ID {
 					let nimbus_id = NimbusId::decode(&mut data)
@@ -92,17 +94,19 @@ pub(crate) fn set_output<T: Config>() -> Weight {
 	let pubkey = schnorrkel::PublicKey::from_bytes(block_author_vrf_id.as_slice())
 		.expect("Expect VrfId to be valid schnorrkel public key");
 	let transcript = make_transcript::<T::Hash>(input.slot_number, input.storage_root);
-	let vrf_output: Randomness = pre_digest
-		.vrf_output
-		.0
+	// Verify VRF output + proof using input transcript and VrfId
+	assert!(
+		pubkey
+			.vrf_verify(transcript.clone(), &vrf_output, &vrf_proof)
+			.is_ok(),
+		"VRF signature verification failed"
+	);
+	let vrf_output: Randomness = vrf_output
 		.attach_input_hash(&pubkey, transcript)
 		.ok()
 		.map(|inout| inout.make_bytes(&VRF_INOUT_CONTEXT))
 		.expect("VRF output encoded in pre-runtime digest must be valid");
 	let raw_randomness_output = T::Hash::decode(&mut &vrf_output[..]).ok();
-	if raw_randomness_output.is_none() {
-		log::warn!("Could not decode VRF output bytes into Hash Type");
-	}
 	LocalVrfOutput::<T>::put(raw_randomness_output);
 	// Supply randomness result
 	let local_vrf_this_block = RequestType::Local(frame_system::Pallet::<T>::block_number());
@@ -111,7 +115,7 @@ pub(crate) fn set_output<T: Config>() -> Weight {
 			results.randomness = Some(randomness);
 			RandomnessResults::<T>::insert(local_vrf_this_block, results);
 		} else {
-			log::warn!("Could not read local VRF randomness from the relay");
+			log::warn!("Could not decode VRF output bytes into Hash Type");
 		}
 	}
 	T::DbWeight::get().read // TODO: update weight

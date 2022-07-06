@@ -356,8 +356,8 @@ fn transfer_through_evm_to_stake() {
 					2u32
 				),
 				DispatchError::Module(ModuleError {
-					index: 10,
-					error: [2, 0, 0, 0],
+					index: 20,
+					error: [8, 0, 0, 0],
 					message: Some("InsufficientBalance")
 				})
 			);
@@ -427,18 +427,21 @@ fn reward_block_authors() {
 			}
 			// no rewards doled out yet
 			assert_eq!(
-				Balances::free_balance(AccountId::from(ALICE)),
+				Balances::usable_balance(AccountId::from(ALICE)),
 				100_000 * GLMR,
 			);
-			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 50_000 * GLMR,);
+			assert_eq!(
+				Balances::usable_balance(AccountId::from(BOB)),
+				50_000 * GLMR,
+			);
 			run_to_block(3600, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			// rewards minted and distributed
 			assert_eq!(
-				Balances::free_balance(AccountId::from(ALICE)),
+				Balances::usable_balance(AccountId::from(ALICE)),
 				111366666658400000000000,
 			);
 			assert_eq!(
-				Balances::free_balance(AccountId::from(BOB)),
+				Balances::usable_balance(AccountId::from(BOB)),
 				54133333329200000000000,
 			);
 		});
@@ -475,24 +478,30 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 			}
 			// no rewards doled out yet
 			assert_eq!(
-				Balances::free_balance(AccountId::from(ALICE)),
+				Balances::usable_balance(AccountId::from(ALICE)),
 				100_000 * GLMR,
 			);
-			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 50_000 * GLMR,);
-			assert_eq!(Balances::free_balance(AccountId::from(CHARLIE)), 100 * GLMR,);
+			assert_eq!(
+				Balances::usable_balance(AccountId::from(BOB)),
+				50_000 * GLMR,
+			);
+			assert_eq!(
+				Balances::usable_balance(AccountId::from(CHARLIE)),
+				100 * GLMR,
+			);
 			run_to_block(3600, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			// rewards minted and distributed
 			assert_eq!(
-				Balances::free_balance(AccountId::from(ALICE)),
+				Balances::usable_balance(AccountId::from(ALICE)),
 				108269333328165000000000,
 			);
 			assert_eq!(
-				Balances::free_balance(AccountId::from(BOB)),
+				Balances::usable_balance(AccountId::from(BOB)),
 				52584166664082500000000,
 			);
 			// 30% reserved for parachain bond
 			assert_eq!(
-				Balances::free_balance(AccountId::from(CHARLIE)),
+				Balances::usable_balance(AccountId::from(CHARLIE)),
 				4751500000000000000000,
 			);
 		});
