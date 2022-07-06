@@ -64,6 +64,9 @@ describeDevMoonbeam("Polkadot API - Transfers", (context) => {
           expect(message.substring(0, 42)).to.eq(`authorInherent.kickOffAuthorshipValidation`);
           break;
         case 3:
+          expect(message.toLocaleLowerCase()).to.eq(`randomness.setbaberandomnessresults()`);
+          break;
+        case 4:
           expect(message.toLocaleLowerCase()).to.eq(
             `balances.transfer(${randomAccount.address.toLocaleLowerCase()}, 2000000000000000000)`
           );
@@ -89,19 +92,21 @@ describeDevMoonbeam("Polkadot API - Transfers", (context) => {
         .map(({ event }) => event);
 
       switch (index) {
-        // First 3 events:
+        // First 4 events:
         // timestamp.set:: system.ExtrinsicSuccess
         // parachainUpgrade.setValidationData:: system.ExtrinsicSuccess
         // authorInherent.setAuthor:: system.ExtrinsicSuccess
+        // randomness.setBabeRandomnessResults:: system.ExtrinsicSuccess
         case 0:
         case 1:
         case 2:
+        case 3:
           expect(events).to.be.of.length(1);
           expect(context.polkadotApi.events.system.ExtrinsicSuccess.is(events[0])).to.be.true;
           break;
-        // Fourth event: balances.transfer:: system.NewAccount, balances.Endowed, balances.Transfer,
+        // Fifth event: balances.transfer:: system.NewAccount, balances.Endowed, balances.Transfer,
         // system.ExtrinsicSuccess
-        case 3:
+        case 4:
           console.log(events.map((e) => `${e.section}.${e.method}`).join(" - "));
           expect(events).to.be.of.length(9);
           expect(context.polkadotApi.events.system.NewAccount.is(events[1])).to.be.true;
