@@ -324,6 +324,7 @@ parameter_types! {
 		)
 	};
 }
+
 pub struct XcmConfig;
 impl Config for XcmConfig {
 	type Call = Call;
@@ -350,6 +351,7 @@ impl Config for XcmConfig {
 	type SubscriptionService = PolkadotXcm;
 	type AssetTrap = PolkadotXcm;
 	type AssetClaims = PolkadotXcm;
+	type CallDispatcher = Call;
 }
 
 impl cumulus_pallet_xcm::Config for Runtime {
@@ -406,8 +408,8 @@ parameter_types! {
 }
 
 parameter_type_with_key! {
-	pub ParachainMinFee: |_location: MultiLocation| -> u128 {
-		u128::MAX
+	pub ParachainMinFee: |_location: MultiLocation| -> Option<u128> {
+		Some(u128::MAX)
 	};
 }
 
@@ -855,6 +857,12 @@ impl pallet_timestamp::Config for Runtime {
 	type WeightInfo = ();
 }
 
+use sp_core::U256;
+
+parameter_types! {
+	pub BlockGasLimit: U256 = U256::max_value();
+}
+
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
 	type GasWeightMapping = ();
@@ -870,11 +878,10 @@ impl pallet_evm::Config for Runtime {
 	type PrecompilesType = ();
 	type PrecompilesValue = ();
 	type ChainId = ();
-	type BlockGasLimit = ();
+	type BlockGasLimit = BlockGasLimit;
 	type OnChargeTransaction = ();
 	type BlockHashMapping = pallet_evm::SubstrateBlockHashMapping<Self>;
 	type FindAuthor = ();
-	type WeightInfo = ();
 }
 
 pub struct NormalFilter;
@@ -928,6 +935,11 @@ impl xcm_primitives::UtilityEncodeCall for MockTransactors {
 	}
 }
 
+impl pallet_ethereum::Config for Runtime {
+	type Event = Event;
+	type StateRoot = pallet_ethereum::IntermediateStateRoot<Self>;
+}
+
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
 type Block = frame_system::mocking::MockBlock<Runtime>;
 
@@ -953,6 +965,7 @@ construct_runtime!(
 
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage},
 		EVM: pallet_evm::{Pallet, Call, Storage, Config, Event<T>},
+		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Origin, Config},
 	}
 );
 

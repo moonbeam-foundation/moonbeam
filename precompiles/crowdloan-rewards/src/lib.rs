@@ -25,10 +25,7 @@ use frame_support::{
 	traits::Currency,
 };
 use pallet_evm::AddressMapping;
-use precompile_utils::{
-	revert, succeed, Address, EvmDataWriter, EvmResult, FunctionModifier, PrecompileHandleExt,
-	RuntimeHelper,
-};
+use precompile_utils::prelude::*;
 
 use sp_core::{H160, U256};
 use sp_std::{
@@ -47,7 +44,7 @@ pub type BalanceOf<Runtime> =
 		<Runtime as frame_system::Config>::AccountId,
 	>>::Balance;
 
-#[precompile_utils::generate_function_selector]
+#[generate_function_selector]
 #[derive(Debug, PartialEq)]
 pub enum Action {
 	IsContributor = "isContributor(address)",

@@ -269,6 +269,10 @@ impl sc_client_api::BlockBackend<Block> for Client {
 	) -> sp_blockchain::Result<bool> {
 		match_client!(self, has_indexed_transaction(hash))
 	}
+
+	fn requires_full_sync(&self) -> bool {
+		match_client!(self, requires_full_sync())
+	}
 }
 
 impl sc_client_api::StorageProvider<Block, crate::FullBackend> for Client {

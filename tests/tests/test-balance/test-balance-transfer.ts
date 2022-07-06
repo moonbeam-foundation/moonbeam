@@ -2,7 +2,12 @@ import "@moonbeam-network/api-augment";
 
 import { expect } from "chai";
 
-import { alith, ALITH_GENESIS_BALANCE, generateKeyingPair } from "../../util/accounts";
+import {
+  alith,
+  ALITH_GENESIS_LOCK_BALANCE,
+  ALITH_GENESIS_TRANSFERABLE_BALANCE,
+  generateKeyringPair,
+} from "../../util/accounts";
 import { verifyLatestBlockFees } from "../../util/block";
 import { customWeb3Request } from "../../util/providers";
 import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
@@ -13,24 +18,24 @@ import {
 } from "../../util/transactions";
 
 describeDevMoonbeamAllEthTxTypes("Balance transfer cost", (context) => {
-  const randomAccount = generateKeyingPair();
+  const randomAccount = generateKeyringPair();
   it("should cost 21000 * 1_000_000_000", async function () {
     await context.createBlock(createTransfer(context, randomAccount.address, 0));
 
     expect(await context.web3.eth.getBalance(alith.address, 1)).to.equal(
-      (ALITH_GENESIS_BALANCE - 21000n * 1_000_000_000n).toString()
+      (ALITH_GENESIS_TRANSFERABLE_BALANCE - 21000n * 1_000_000_000n).toString()
     );
   });
 });
 
 describeDevMoonbeamAllEthTxTypes("Balance transfer", (context) => {
-  const randomAccount = generateKeyingPair();
+  const randomAccount = generateKeyringPair();
   before("Create block with transfer to test account of 512", async () => {
     await customWeb3Request(context.web3, "eth_sendRawTransaction", [
       await createTransfer(context, randomAccount.address, 512),
     ]);
     expect(await context.web3.eth.getBalance(alith.address, "pending")).to.equal(
-      (ALITH_GENESIS_BALANCE - 512n - 21000n * 1_000_000_000n).toString()
+      (ALITH_GENESIS_TRANSFERABLE_BALANCE - 512n - 21000n * 1_000_000_000n).toString()
     );
     expect(await context.web3.eth.getBalance(randomAccount.address, "pending")).to.equal("512");
     await context.createBlock();
@@ -39,7 +44,7 @@ describeDevMoonbeamAllEthTxTypes("Balance transfer", (context) => {
   it("should decrease from account", async function () {
     // 21000 covers the cost of the transaction
     expect(await context.web3.eth.getBalance(alith.address, 1)).to.equal(
-      (ALITH_GENESIS_BALANCE - 512n - 21000n * 1_000_000_000n).toString()
+      (ALITH_GENESIS_TRANSFERABLE_BALANCE - 512n - 21000n * 1_000_000_000n).toString()
     );
   });
 
@@ -52,14 +57,16 @@ describeDevMoonbeamAllEthTxTypes("Balance transfer", (context) => {
     const block1Hash = await context.polkadotApi.rpc.chain.getBlockHash(1);
     expect(await context.web3.eth.getBalance(alith.address, 1)).to.equal(
       (
-        await (await context.polkadotApi.at(block1Hash)).query.system.account(alith.address)
-      ).data.free.toString()
+        (
+          await (await context.polkadotApi.at(block1Hash)).query.system.account(alith.address)
+        ).data.free.toBigInt() - ALITH_GENESIS_LOCK_BALANCE
+      ).toString()
     );
   });
 });
 
 describeDevMoonbeamAllEthTxTypes("Balance transfer - fees", (context) => {
-  const randomAccount = generateKeyingPair();
+  const randomAccount = generateKeyringPair();
   before("Create block with transfer to test account of 512", async () => {
     await context.createBlock(createTransfer(context, randomAccount.address, 512));
   });
@@ -72,7 +79,7 @@ describeDevMoonbeam(
   "Balance transfer - EIP1559 fees",
   (context) => {
     it("should handle max_fee_per_gas", async function () {
-      const randomAccount = generateKeyingPair();
+      const randomAccount = generateKeyringPair();
       const preBalance = BigInt(await context.web3.eth.getBalance(alith.address));
       // With this configuration no priority fee will be used, as the max_fee_per_gas is exactly the
       // base fee. Expect the balances to reflect this case.
@@ -102,7 +109,7 @@ describeDevMoonbeam(
   "Balance transfer - EIP1559 fees",
   (context) => {
     it("should use partial max_priority_fee_per_gas", async function () {
-      const randomAccount = generateKeyingPair();
+      const randomAccount = generateKeyringPair();
       const preBalance = BigInt(await context.web3.eth.getBalance(alith.address));
       // With this configuration only half of the priority fee will be used, as the max_fee_per_gas
       // is 2GWEI and the base fee is 1GWEI.

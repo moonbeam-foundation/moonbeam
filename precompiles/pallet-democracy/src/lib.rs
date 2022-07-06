@@ -24,10 +24,7 @@ use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use frame_support::traits::Currency;
 use pallet_democracy::{AccountVote, Call as DemocracyCall, Vote};
 use pallet_evm::{AddressMapping, Precompile};
-use precompile_utils::{
-	revert, succeed, Address, Bytes, EvmData, EvmDataWriter, EvmResult, FunctionModifier,
-	PrecompileHandleExt, RuntimeHelper,
-};
+use precompile_utils::prelude::*;
 use sp_core::{H160, H256, U256};
 use sp_std::{
 	convert::{TryFrom, TryInto},
@@ -47,7 +44,7 @@ type BalanceOf<Runtime> = <<Runtime as pallet_democracy::Config>::Currency as Cu
 
 type DemocracyOf<Runtime> = pallet_democracy::Pallet<Runtime>;
 
-#[precompile_utils::generate_function_selector]
+#[generate_function_selector]
 #[derive(Debug, PartialEq)]
 enum Action {
 	PublicPropCount = "publicPropCount()",

@@ -23,10 +23,7 @@ use fp_evm::PrecompileHandle;
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use pallet_evm::{AddressMapping, PrecompileOutput};
 use pallet_xcm_transactor::RemoteTransactInfoWithMaxWeight;
-use precompile_utils::{
-	revert, succeed, Address, Bytes, EvmDataWriter, EvmResult, FunctionModifier,
-	PrecompileHandleExt, RuntimeHelper,
-};
+use precompile_utils::prelude::*;
 use sp_core::H160;
 use sp_std::{
 	boxed::Box,
@@ -45,7 +42,7 @@ mod tests;
 pub type TransactorOf<Runtime> = <Runtime as pallet_xcm_transactor::Config>::Transactor;
 pub type CurrencyIdOf<Runtime> = <Runtime as pallet_xcm_transactor::Config>::CurrencyId;
 
-#[precompile_utils::generate_function_selector]
+#[generate_function_selector]
 #[derive(Debug, PartialEq)]
 pub enum Action {
 	IndexToAccount = "indexToAccount(uint16)",

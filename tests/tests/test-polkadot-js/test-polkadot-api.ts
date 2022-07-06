@@ -2,7 +2,7 @@ import "@moonbeam-network/api-augment";
 
 import { expect } from "chai";
 
-import { alith, generateKeyingPair } from "../../util/accounts";
+import { alith, generateKeyringPair } from "../../util/accounts";
 import { GLMR } from "../../util/constants";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 
@@ -30,7 +30,7 @@ describeDevMoonbeam("Polkadot API", (context) => {
 });
 
 describeDevMoonbeam("Polkadot API - Transfers", (context) => {
-  const randomAccount = generateKeyingPair();
+  const randomAccount = generateKeyringPair();
   before("Setup: Create empty block with balance.transfer", async () => {
     await context.createBlock(
       context.polkadotApi.tx.balances.transfer(randomAccount.address, 2n * GLMR)

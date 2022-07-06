@@ -1,4 +1,4 @@
-import "@polkadot/api-augment";
+import "@moonbeam-network/api-augment";
 
 import { ApiPromise } from "@polkadot/api";
 import {
@@ -276,13 +276,13 @@ export const verifyBlockFees = async (
   expect(fromPreSupply.toBigInt() - toSupply.toBigInt()).to.eq(sumBlockBurnt);
 
   // Log difference in supply, we should be equal to the burnt fees
-  debug(
-    `  supply diff: ${(fromPreSupply.toBigInt() - toSupply.toBigInt())
-      .toString()
-      .padStart(30, " ")}`
-  );
-  debug(`  burnt fees : ${sumBlockBurnt.toString().padStart(30, " ")}`);
-  debug(`  total fees : ${sumBlockFees.toString().padStart(30, " ")}`);
+  // debug(
+  //   `  supply diff: ${(fromPreSupply.toBigInt() - toSupply.toBigInt())
+  //     .toString()
+  //     .padStart(30, " ")}`
+  // );
+  // debug(`  burnt fees : ${sumBlockBurnt.toString().padStart(30, " ")}`);
+  // debug(`  total fees : ${sumBlockFees.toString().padStart(30, " ")}`);
 };
 
 export const verifyLatestBlockFees = async (
@@ -320,3 +320,71 @@ export const getBlockExtrinsic = async (
   );
   return { block, extrinsic, events, resultEvent };
 };
+
+export async function setRoundLength(context: DevTestContext, length: number) {
+  const currentHeader = await context.polkadotApi.rpc.chain.getHeader();
+  const startingRound = await context.polkadotApi.query.parachainStaking.round();
+
+  if (currentHeader.number.toNumber() >= startingRound.first.toNumber() + length) {
+    throw new Error("Test should not set length of round lower to current round past block length");
+  }
+  const newRound = context.polkadotApi.registry.createType(
+    '{"current":"u32","first":"u32","length":"u32"}',
+    {
+      first: startingRound.first.toNumber(),
+      current: startingRound.current.toNumber(),
+      length: length,
+    }
+  );
+  await context.createBlock(
+    context.polkadotApi.tx.sudo.sudo(
+      context.polkadotApi.tx.system.setStorage([
+        [context.polkadotApi.query.parachainStaking.round.key(), newRound.toHex()],
+      ])
+    )
+  );
+}
+
+export async function shortcutRound(context: DevTestContext) {
+  const currentHeader = await context.polkadotApi.rpc.chain.getHeader();
+  const startingRound = await context.polkadotApi.query.parachainStaking.round();
+
+  await setRoundLength(
+    context,
+    currentHeader.number.toNumber() - startingRound.first.toNumber() + 1
+  );
+  await context.createBlock();
+  // The length is copied from previous round so we need to restore it
+  await setRoundLength(context, startingRound.length.toNumber());
+}
+
+export async function shortcutRounds(context: DevTestContext, roundCount: number) {
+  for (let i = 0; i < roundCount; i++) {
+    await shortcutRound(context);
+  }
+}
+
+export async function shortcutToRound(context: DevTestContext, round: number) {
+  while (true) {
+    const currentRound = (
+      await context.polkadotApi.query.parachainStaking.round()
+    ).current.toNumber();
+    if (currentRound == round) {
+      return;
+    }
+    await shortcutRound(context);
+  }
+}
+
+export async function jumpToRound(context: DevTestContext, round: Number): Promise<string | null> {
+  let lastBlockHash = null;
+  while (true) {
+    const currentRound = (
+      await context.polkadotApi.query.parachainStaking.round()
+    ).current.toNumber();
+    if (currentRound == round) {
+      return lastBlockHash;
+    }
+    lastBlockHash = (await context.createBlock()).block.hash.toString();
+  }
+}

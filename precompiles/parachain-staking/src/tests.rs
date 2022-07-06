@@ -23,7 +23,7 @@ use crate::Action;
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_evm::Call as EvmCall;
 use pallet_parachain_staking::Event as StakingEvent;
-use precompile_utils::{testing::*, Address, EvmDataWriter};
+use precompile_utils::{prelude::*, testing::*};
 use sp_core::U256;
 
 fn precompiles() -> TestPrecompiles<Runtime> {

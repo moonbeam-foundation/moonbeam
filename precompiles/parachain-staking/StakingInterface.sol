@@ -115,15 +115,6 @@ interface ParachainStaking {
         view
         returns (bool);
 
-    /// @dev Whether there exists a pending exit for delegator
-    /// Selector: 117b0bff
-    /// @param delegator the delegator that made the exit request
-    /// @return Whether a pending exit exists for delegator
-    function delegatorExitIsPending(address delegator)
-        external
-        view
-        returns (bool);
-
     /// @dev Whether there exists a pending exit for candidate
     /// Selector: 43443682
     /// @param candidate the candidate for which the exit request was made
@@ -242,10 +233,12 @@ interface ParachainStaking {
     /// @param nominatorNominationCount The number of active nominations to be revoked by caller
     function leaveNominators(uint256 nominatorNominationCount) external;
 
+    /// DEPRECATED, schedule individual revokes instead
     /// @dev Request to leave the set of delegators
     /// Selector: f939dadb
     function scheduleLeaveDelegators() external;
 
+    /// DEPRECATED, execute individual revokes instead
     /// @dev Execute request to leave the set of delegators and revoke all delegations
     /// Selector: fb1e2bf9
     /// @param delegator The leaving delegator
@@ -255,6 +248,7 @@ interface ParachainStaking {
         uint256 delegatorDelegationCount
     ) external;
 
+    /// DEPRECATED, cancel individual revokes instead
     /// @dev Cancel request to leave the set of delegators
     /// Selector: f7421284
     function cancelLeaveDelegators() external;
