@@ -19,11 +19,14 @@ pub mod xcm;
 use {
 	crate::{revert, EvmResult},
 	alloc::borrow::ToOwned,
-	core::{any::type_name, ops::Range},
+	core::{any::type_name, marker::PhantomData, ops::Range},
+	frame_support::traits::{ConstU32, Get},
 	impl_trait_for_tuples::impl_for_tuples,
 	sp_core::{H160, H256, U256},
 	sp_std::{convert::TryInto, vec, vec::Vec},
 };
+
+type ConstU32Max = ConstU32<{ u32::MAX }>;
 
 /// The `address` type of Solidity.
 /// H160 could represent 2 types of data (bytes20 and address) that are not encoded the same way.
@@ -82,7 +85,16 @@ impl Into<Vec<u8>> for Bytes {
 
 /// Same as `Bytes` but with an additional length bound on read.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct BoundedBytes<const MAX_LENGTH: usize>(pub Vec<u8>);
+pub struct BoundedBytes<S> {
+	inner: Vec<u8>,
+	_phantom: PhantomData<S>,
+}
+
+impl<S> BoundedBytes<S> {
+	pub fn into_vec(self) -> Vec<u8> {
+		self.inner
+	}
+}
 
 /// Wrapper around an EVM input slice, helping to parse it.
 /// Provide functions to parse common types.
@@ -471,11 +483,17 @@ impl EvmData for bool {
 
 impl EvmData for Bytes {
 	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
-		Ok(Bytes(BoundedBytes::<{ usize::MAX }>::read(reader)?.0))
+		Ok(Bytes(BoundedBytes::<ConstU32Max>::read(reader)?.into_vec()))
 	}
 
 	fn write(writer: &mut EvmDataWriter, value: Self) {
-		BoundedBytes::<{ usize::MAX }>::write(writer, BoundedBytes(value.0));
+		BoundedBytes::<ConstU32Max>::write(
+			writer,
+			BoundedBytes {
+				inner: value.0,
+				_phantom: PhantomData,
+			},
+		);
 	}
 
 	fn has_static_size() -> bool {
@@ -483,7 +501,7 @@ impl EvmData for Bytes {
 	}
 }
 
-impl<const MAX_LENGTH: usize> EvmData for BoundedBytes<MAX_LENGTH> {
+impl<S: Get<u32>> EvmData for BoundedBytes<S> {
 	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
 		let mut inner_reader = reader.read_pointer()?;
 
@@ -494,7 +512,7 @@ impl<const MAX_LENGTH: usize> EvmData for BoundedBytes<MAX_LENGTH> {
 			.try_into()
 			.map_err(|_| revert("bytes/string length is too large"))?;
 
-		if array_size > MAX_LENGTH {
+		if array_size > S::get() as usize {
 			return Err(revert("bytes/string length is too large"));
 		}
 
@@ -506,13 +524,17 @@ impl<const MAX_LENGTH: usize> EvmData for BoundedBytes<MAX_LENGTH> {
 			.get(range)
 			.ok_or_else(|| revert("tried to parse bytes/string out of bounds"))?;
 
-		let bytes = Self(data.to_owned());
+		let bytes = Self {
+			inner: data.to_owned(),
+			_phantom: PhantomData,
+		};
 
 		Ok(bytes)
 	}
 
 	fn write(writer: &mut EvmDataWriter, value: Self) {
-		let length = value.0.len();
+		let value = value.into_vec();
+		let length = value.len();
 
 		// Pad the data.
 		// Leave it as is if a multiple of 32, otherwise pad to next
@@ -523,7 +545,7 @@ impl<const MAX_LENGTH: usize> EvmData for BoundedBytes<MAX_LENGTH> {
 			_ => (chunks + 1) * 32,
 		};
 
-		let mut value = value.0.to_vec();
+		let mut value = value.to_vec();
 		value.resize(padded_size, 0);
 
 		writer.write_pointer(
@@ -541,11 +563,17 @@ impl<const MAX_LENGTH: usize> EvmData for BoundedBytes<MAX_LENGTH> {
 
 impl<T: EvmData> EvmData for Vec<T> {
 	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
-		BoundedVec::<T, { usize::MAX }>::read(reader).map(|x| x.0)
+		BoundedVec::<T, ConstU32Max>::read(reader).map(|x| x.into_vec())
 	}
 
 	fn write(writer: &mut EvmDataWriter, value: Self) {
-		BoundedVec::<T, { usize::MAX }>::write(writer, BoundedVec(value))
+		BoundedVec::<T, ConstU32Max>::write(
+			writer,
+			BoundedVec {
+				inner: value,
+				_phantom: PhantomData,
+			},
+		)
 	}
 
 	fn has_static_size() -> bool {
@@ -555,9 +583,18 @@ impl<T: EvmData> EvmData for Vec<T> {
 
 /// Wrapper around a Vec that provides a max length bound on read.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct BoundedVec<T, const MAX_LENGTH: usize>(pub Vec<T>);
+pub struct BoundedVec<T, S> {
+	inner: Vec<T>,
+	_phantom: PhantomData<S>,
+}
 
-impl<T: EvmData, const MAX_LENGTH: usize> EvmData for BoundedVec<T, MAX_LENGTH> {
+impl<T, S: Get<u32>> BoundedVec<T, S> {
+	pub fn into_vec(self) -> Vec<T> {
+		self.inner
+	}
+}
+
+impl<T: EvmData, S: Get<u32>> EvmData for BoundedVec<T, S> {
 	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
 		let mut inner_reader = reader.read_pointer()?;
 
@@ -567,7 +604,7 @@ impl<T: EvmData, const MAX_LENGTH: usize> EvmData for BoundedVec<T, MAX_LENGTH> 
 			.try_into()
 			.map_err(|_| revert("array length is too large"))?;
 
-		if array_size > MAX_LENGTH {
+		if array_size > S::get() as usize {
 			return Err(revert("array length is too large"));
 		}
 
@@ -585,11 +622,14 @@ impl<T: EvmData, const MAX_LENGTH: usize> EvmData for BoundedVec<T, MAX_LENGTH> 
 			array.push(item_reader.read()?);
 		}
 
-		Ok(BoundedVec(array))
+		Ok(BoundedVec {
+			inner: array,
+			_phantom: PhantomData,
+		})
 	}
 
 	fn write(writer: &mut EvmDataWriter, value: Self) {
-		let value = value.0;
+		let value = value.into_vec();
 		let mut inner_writer = EvmDataWriter::new().write(U256::from(value.len()));
 
 		for inner in value {

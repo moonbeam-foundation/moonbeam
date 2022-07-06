@@ -21,7 +21,7 @@
 
 use fp_evm::{PrecompileHandle, PrecompileOutput};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
-use frame_support::traits::Currency;
+use frame_support::traits::{ConstU32, Currency};
 use pallet_democracy::{AccountVote, Call as DemocracyCall, Vote};
 use pallet_evm::{AddressMapping, Precompile};
 use precompile_utils::prelude::*;
@@ -44,7 +44,8 @@ type BalanceOf<Runtime> = <<Runtime as pallet_democracy::Config>::Currency as Cu
 
 type DemocracyOf<Runtime> = pallet_democracy::Pallet<Runtime>;
 
-pub const ENCODED_PROPOSAL_SIZE_LIMIT: usize = 2usize.pow(16);
+pub const ENCODED_PROPOSAL_SIZE_LIMIT: u32 = 2u32.pow(16);
+type GetEncodedProposalSizeLimit = ConstU32<ENCODED_PROPOSAL_SIZE_LIMIT>;
 
 #[generate_function_selector]
 #[derive(Debug, PartialEq)]
@@ -398,8 +399,9 @@ where
 
 	fn note_preimage(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		let mut input = handle.read_input()?;
-		let encoded_proposal: Vec<u8> =
-			input.read::<BoundedBytes<ENCODED_PROPOSAL_SIZE_LIMIT>>()?.0;
+		let encoded_proposal: Vec<u8> = input
+			.read::<BoundedBytes<GetEncodedProposalSizeLimit>>()?
+			.into_vec();
 
 		log::trace!(
 			target: "democracy-precompile",
@@ -416,8 +418,9 @@ where
 
 	fn note_imminent_preimage(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		let mut input = handle.read_input()?;
-		let encoded_proposal: Vec<u8> =
-			input.read::<BoundedBytes<ENCODED_PROPOSAL_SIZE_LIMIT>>()?.0;
+		let encoded_proposal: Vec<u8> = input
+			.read::<BoundedBytes<GetEncodedProposalSizeLimit>>()?
+			.into_vec();
 
 		log::trace!(
 			target: "democracy-precompile",

@@ -24,6 +24,7 @@ use fp_evm::{Precompile, PrecompileHandle, PrecompileOutput};
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
 	ensure,
+	traits::ConstU32,
 };
 use pallet_staking::RewardDestination;
 use precompile_utils::prelude::*;
@@ -61,8 +62,10 @@ pub trait StakeEncodeCall {
 	fn encode_call(call: AvailableStakeCalls) -> Vec<u8>;
 }
 
-pub const REWARD_DESTINATION_SIZE_LIMIT: usize = 2usize.pow(16);
-pub const ARRAY_LIMIT: usize = 512;
+pub const REWARD_DESTINATION_SIZE_LIMIT: u32 = 2u32.pow(16);
+pub const ARRAY_LIMIT: u32 = 512;
+type GetArrayLimit = ConstU32<ARRAY_LIMIT>;
+type GetRewardDestinationSizeLimit = ConstU32<REWARD_DESTINATION_SIZE_LIMIT>;
 
 #[generate_function_selector]
 #[derive(Debug, PartialEq)]
@@ -213,10 +216,10 @@ where
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		let mut input = handle.read_input()?;
-		let nominated_as_h256: BoundedVec<H256, ARRAY_LIMIT> = input.read()?;
+		let nominated_as_h256: BoundedVec<H256, GetArrayLimit> = input.read()?;
 
 		let nominated: Vec<AccountId32> = nominated_as_h256
-			.0
+			.into_vec()
 			.iter()
 			.map(|&add| {
 				let as_bytes: [u8; 32] = add.into();
@@ -313,8 +316,8 @@ impl Into<RewardDestination<AccountId32>> for RewardDestinationWrapper {
 
 impl EvmData for RewardDestinationWrapper {
 	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
-		let reward_destination = reader.read::<BoundedBytes<REWARD_DESTINATION_SIZE_LIMIT>>()?;
-		let reward_destination_bytes = reward_destination.0;
+		let reward_destination = reader.read::<BoundedBytes<GetRewardDestinationSizeLimit>>()?;
+		let reward_destination_bytes = reward_destination.into_vec();
 		ensure!(
 			reward_destination_bytes.len() > 0,
 			revert("Reward destinations cannot be empty")

@@ -52,7 +52,7 @@ pub const SELECTOR_LOG_TRANSFER: [u8; 32] = keccak256!("Transfer(address,address
 pub const SELECTOR_LOG_APPROVAL: [u8; 32] = keccak256!("Approval(address,address,uint256)");
 
 /// Length limit of strings (symbol and name).
-pub const STRING_LIMIT: usize = 128;
+type GetAssetsStringLimit<R, I> = <R as pallet_assets::Config<I>>::StringLimit;
 
 /// Alias for the Balance type for the provided Runtime and Instance.
 pub type BalanceOf<Runtime, Instance = ()> = <Runtime as pallet_assets::Config<Instance>>::Balance;
@@ -835,8 +835,8 @@ where
 		let mut input = handle.read_input()?;
 		input.expect_arguments(3)?;
 
-		let name: BoundedBytes<STRING_LIMIT> = input.read()?;
-		let symbol: BoundedBytes<STRING_LIMIT> = input.read()?;
+		let name: BoundedBytes<GetAssetsStringLimit<Runtime, Instance>> = input.read()?;
+		let symbol: BoundedBytes<GetAssetsStringLimit<Runtime, Instance>> = input.read()?;
 		let decimals: u8 = input.read()?;
 
 		// Build call with origin.
@@ -849,8 +849,8 @@ where
 				Some(origin).into(),
 				pallet_assets::Call::<Runtime, Instance>::set_metadata {
 					id: asset_id,
-					name: name.0,
-					symbol: symbol.0,
+					name: name.into_vec(),
+					symbol: symbol.into_vec(),
 					decimals,
 				},
 			)?;

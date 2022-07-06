@@ -20,7 +20,10 @@
 #![feature(assert_matches)]
 
 use fp_evm::PrecompileHandle;
-use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
+use frame_support::{
+	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
+	traits::ConstU32,
+};
 use pallet_evm::{AddressMapping, PrecompileOutput};
 use pallet_xcm_transactor::RemoteTransactInfoWithMaxWeight;
 use precompile_utils::prelude::*;
@@ -42,7 +45,8 @@ mod tests;
 pub type TransactorOf<Runtime> = <Runtime as pallet_xcm_transactor::Config>::Transactor;
 pub type CurrencyIdOf<Runtime> = <Runtime as pallet_xcm_transactor::Config>::CurrencyId;
 
-pub const CALL_DATA_LIMIT: usize = 2usize.pow(16);
+pub const CALL_DATA_LIMIT: u32 = 2u32.pow(16);
+type GetDataLimit = ConstU32<CALL_DATA_LIMIT>;
 
 #[generate_function_selector]
 #[derive(Debug, PartialEq)]
@@ -216,7 +220,7 @@ where
 		let weight: u64 = input.read::<u64>()?;
 
 		// inner call
-		let inner_call = input.read::<BoundedBytes<CALL_DATA_LIMIT>>()?;
+		let inner_call = input.read::<BoundedBytes<GetDataLimit>>()?.into_vec();
 
 		// Depending on the Runtime, this might involve a DB read. This is not the case in
 		// moonbeam, as we are using IdentityMapping
@@ -227,7 +231,7 @@ where
 				index,
 				fee_location: Box::new(xcm::VersionedMultiLocation::V1(fee_multilocation)),
 				dest_weight: weight,
-				inner_call: inner_call.0,
+				inner_call,
 			};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -254,7 +258,7 @@ where
 		let weight: u64 = input.read::<u64>()?;
 
 		// inner call
-		let inner_call = input.read::<BoundedBytes<CALL_DATA_LIMIT>>()?;
+		let inner_call = input.read::<BoundedBytes<GetDataLimit>>()?.into_vec();
 
 		let to_account = Runtime::AddressMapping::into_account_id(to_address);
 
@@ -273,7 +277,7 @@ where
 			index,
 			currency_id,
 			dest_weight: weight,
-			inner_call: inner_call.0,
+			inner_call: inner_call,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -300,7 +304,7 @@ where
 		let weight: u64 = input.read::<u64>()?;
 
 		// call
-		let call = input.read::<BoundedBytes<CALL_DATA_LIMIT>>()?;
+		let call = input.read::<BoundedBytes<GetDataLimit>>()?.into_vec();
 
 		// Depending on the Runtime, this might involve a DB read. This is not the case in
 		// moonbeam, as we are using IdentityMapping
@@ -309,7 +313,7 @@ where
 			dest: Box::new(xcm::VersionedMultiLocation::V1(dest)),
 			fee_location: Box::new(xcm::VersionedMultiLocation::V1(fee_multilocation)),
 			dest_weight: weight,
-			call: call.0,
+			call,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -344,7 +348,7 @@ where
 		let weight: u64 = input.read::<u64>()?;
 
 		// call
-		let call = input.read::<BoundedBytes<CALL_DATA_LIMIT>>()?;
+		let call = input.read::<BoundedBytes<GetDataLimit>>()?.into_vec();
 
 		// Depending on the Runtime, this might involve a DB read. This is not the case in
 		// moonbeam, as we are using IdentityMapping
@@ -353,7 +357,7 @@ where
 			dest: Box::new(xcm::VersionedMultiLocation::V1(dest)),
 			fee_currency_id: currency_id,
 			dest_weight: weight,
-			call: call.0,
+			call,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
