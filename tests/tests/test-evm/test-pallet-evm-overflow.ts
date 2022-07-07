@@ -3,7 +3,7 @@ import "@moonbeam-network/api-augment";
 import { expect } from "chai";
 import { ethers } from "ethers";
 
-import { alith, ALITH_PRIVATE_KEY, generateKeyingPair } from "../../util/accounts";
+import { alith, ALITH_PRIVATE_KEY, generateKeyringPair } from "../../util/accounts";
 import { GLMR } from "../../util/constants";
 import { getCompiled } from "../../util/contracts";
 import { customWeb3Request } from "../../util/providers";
@@ -13,7 +13,7 @@ import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 // A signed call cannot make a transfer directly in pallet_evm
 
 describeDevMoonbeam("Pallet EVM - Transfering", (context) => {
-  const randomAccount = generateKeyingPair();
+  const randomAccount = generateKeyringPair();
   it("should not overflow", async function () {
     const {
       result: { events },

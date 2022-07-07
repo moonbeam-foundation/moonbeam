@@ -5,7 +5,7 @@ import { KeyringPair } from "@substrate/txwrapper-core";
 import { expect } from "chai";
 import { ethers } from "ethers";
 
-import { alith, generateKeyingPair } from "../../util/accounts";
+import { alith, generateKeyringPair } from "../../util/accounts";
 import { DEFAULT_GENESIS_MAPPING, PRECOMPILE_AUTHOR_MAPPING_ADDRESS } from "../../util/constants";
 import { getCompiled } from "../../util/contracts";
 import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
@@ -20,7 +20,7 @@ const AUTHOR_MAPPING_INTERFACE = new ethers.utils.Interface(AUTHOR_MAPPING_CONTR
 
 describeDevMoonbeamAllEthTxTypes("Precompiles - author mapping", (context) => {
   it("allows to add association", async function () {
-    const mappingAccount = generateKeyingPair("sr25519");
+    const mappingAccount = generateKeyringPair("sr25519");
     const { rawTx } = await createContract(context, "AuthorMapping");
     await context.createBlock(rawTx);
 
@@ -49,8 +49,8 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - author mapping", (context) => {
   let firstMappingAccount: KeyringPair;
   let secondMappingAccount: KeyringPair;
   before("First add association", async () => {
-    firstMappingAccount = generateKeyingPair("sr25519");
-    secondMappingAccount = generateKeyingPair("sr25519");
+    firstMappingAccount = generateKeyringPair("sr25519");
+    secondMappingAccount = generateKeyringPair("sr25519");
     // Add association
     await context.createBlock(
       context.polkadotApi.tx.authorMapping.addAssociation(firstMappingAccount.publicKey)
@@ -99,7 +99,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - author mapping", (context) => {
 describeDevMoonbeamAllEthTxTypes("Precompiles - author mapping", (context) => {
   let mappingAccount: KeyringPair;
   before("First add association", async () => {
-    mappingAccount = generateKeyingPair("sr25519");
+    mappingAccount = generateKeyringPair("sr25519");
     // Add association
 
     await context.createBlock(
