@@ -40,10 +40,12 @@ where
 	C::Api: VrfApi<B>,
 {
 	let at = sp_api::BlockId::Hash(parent);
-	let relay_slot_number: Slot = client.runtime_api().get_relay_slot_number(&at).ok()?;
-	let relay_storage_root: H256 = client.runtime_api().get_relay_storage_root(&at).ok()?;
+	let runtime_api = client.runtime_api();
+
+	let relay_slot_number: Slot = runtime_api.get_relay_slot_number(&at).ok()?;
+	let relay_storage_root: H256 = runtime_api.get_relay_storage_root(&at).ok()?;
 	// one ? for API error, another for None returned by API.
-	let key: VrfId = client.runtime_api().vrf_key_lookup(&at, nimbus_id).ok()??;
+	let key: VrfId = runtime_api.vrf_key_lookup(&at, nimbus_id).ok()??;
 	let vrf_pre_digest = sign_vrf(relay_slot_number, relay_storage_root, key, &keystore)?;
 	Some(session_keys_primitives::digest::CompatibleDigestItem::vrf_pre_digest(vrf_pre_digest))
 }
