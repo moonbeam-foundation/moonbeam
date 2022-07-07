@@ -203,7 +203,8 @@ pub trait UnitsToWeightRatio<AssetType> {
 #[cfg(test)]
 mod test {
 	use super::*;
-	use xcm::latest::{AssetId, Junctions, Fungibility};
+	use xcm::latest::{AssetId, Junction, Junctions, Fungibility};
+    use xcm_executor::Assets;
 
 	impl UnitsToWeightRatio<MultiLocation> for () {
 		fn payment_is_supported(_asset_type: MultiLocation) -> bool { true }
@@ -215,10 +216,10 @@ mod test {
 	}
 
 	#[test]
-	fn test() {
+	fn test_buy_weight_accounts_weight_properly() {
 		let amount = 1000u128;
 
-		let mut payment = xcm_executor::Assets::new();
+		let mut payment = Assets::new();
 		payment.subsume(MultiAsset {
 			id: AssetId::Concrete(MultiLocation {
 				parents: 0u8,
@@ -232,4 +233,41 @@ mod test {
 		assert!(unused.is_empty());
 		assert_eq!(trader.0, 1000u64);
 	}
+
+    #[test]
+    fn cant_mint_when_calling_buy_weight_with_different_types() {
+
+		let mut trader: FirstAssetTrader<MultiLocation, (), ()> = FirstAssetTrader::new();
+
+        // first buy_weight in one asset with a small amount
+        let mut asset_one_payment = Assets::new();
+		asset_one_payment.subsume(MultiAsset {
+			id: AssetId::Concrete(MultiLocation {
+				parents: 0u8,
+				interior: Junctions::X1(Junction::Parachain(1000)),
+			}),
+			fun: Fungibility::Fungible(100u128),
+		});
+        let buy_one_results = trader.buy_weight(100u32 as Weight, asset_one_payment.clone())
+            .expect("can buy weight");
+        assert_eq!(buy_one_results.fungible.len(), 0);
+
+        // then buy_weight in a second asset with a larger amount
+        let mut asset_two_payment = xcm_executor::Assets::new();
+		asset_two_payment.subsume(MultiAsset {
+			id: AssetId::Concrete(MultiLocation {
+				parents: 0u8,
+				interior: Junctions::X1(Junction::Parachain(1001)),
+			}),
+			fun: Fungibility::Fungible(10_000u128),
+		});
+        let buy_two_results = trader.buy_weight(10_000u32 as Weight, asset_two_payment.clone())
+            .expect("can buy weight again"); // TODO: this should fail!
+        assert_eq!(buy_two_results.fungible.len(), 0);
+
+        let result = trader.refund_weight(9_999u32 as Weight);
+
+        // TODO: assert about weight refunded and FirstAssetTrader's state
+    }
+
 }
