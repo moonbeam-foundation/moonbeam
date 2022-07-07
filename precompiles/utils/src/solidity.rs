@@ -16,13 +16,12 @@
 
 //! Utility module to interact with solidity file.
 
+use sp_io::hashing::keccak_256;
 use std::{
 	collections::HashMap,
 	fs::File,
 	io::{BufRead, BufReader, Read},
 };
-
-use tiny_keccak::Hasher;
 
 /// Represents a declared custom type struct within a solidity file
 #[derive(Clone, Default)]
@@ -59,11 +58,7 @@ impl SolidityFunction {
 
 	/// Computes the selector code for the solidity function
 	pub fn compute_selector(&self) -> u32 {
-		let sig = self.signature();
-		let mut hasher = tiny_keccak::Keccak::v256();
-		hasher.update(sig.as_bytes());
-		let mut output = [0u8; 32];
-		hasher.finalize(&mut output);
+		let output = keccak_256(self.signature().as_bytes());
 		let mut buf = [0u8; 4];
 		buf.clone_from_slice(&output[..4]);
 		u32::from_be_bytes(buf)

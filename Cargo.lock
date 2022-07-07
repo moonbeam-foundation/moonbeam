@@ -9539,7 +9539,6 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-std",
- "tiny-keccak",
  "xcm",
 ]
 
