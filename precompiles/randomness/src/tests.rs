@@ -24,7 +24,7 @@ use crate::Action;
 // use crate::mock::*;
 
 #[test]
-fn test_solidity_interface_has_all_implemented_selectors() {
+fn test_all_actions_are_implemented_in_solidity_interface() {
 	let selectors = solidity::get_selectors("Randomness.sol")
 		.into_iter()
 		.map(|sf| sf.compute_selector())
@@ -59,8 +59,15 @@ fn test_solidity_interface_has_all_implemented_selectors() {
 }
 
 #[test]
-fn test_solidity_interface_has_all_selectors_implemented() {
+fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
 	for solidity_fn in solidity::get_selectors("Randomness.sol") {
+		assert_eq!(
+			solidity_fn.compute_selector_hex(),
+			solidity_fn.docs_selector,
+			"documented selector for '{}' did not match",
+			solidity_fn.signature()
+		);
+
 		let selector = solidity_fn.compute_selector();
 		if Action::try_from(selector).is_err() {
 			panic!(
@@ -69,19 +76,5 @@ fn test_solidity_interface_has_all_selectors_implemented() {
 				solidity_fn.signature()
 			)
 		}
-	}
-}
-
-#[test]
-fn test_solidity_interface_has_all_selectors_correctly_documented() {
-	for solidity_fn in solidity::get_selectors("Randomness.sol") {
-		let expected = solidity_fn.compute_selector_hex();
-		let actual = solidity_fn.docs_selector.clone();
-		assert_eq!(
-			expected,
-			actual,
-			"documented selector for '{}' did not match",
-			solidity_fn.signature()
-		)
 	}
 }
