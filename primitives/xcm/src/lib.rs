@@ -174,7 +174,6 @@ impl<
 					let unused = payment
 						.checked_sub(required)
 						.map_err(|_| XcmError::TooExpensive)?;
-					self.0 = self.0.saturating_add(weight);
 
 					// In case the asset matches the one the trader already stored before, add
 					// to later refund
@@ -199,8 +198,10 @@ impl<
 					if let Some(new_asset) = new_asset {
 						self.0 = self.0.saturating_add(weight);
 						self.1 = Some(new_asset);
+						return Ok(unused);
+					} else {
+						return Err(XcmError::NotWithdrawable);
 					};
-					return Ok(unused);
 				} else {
 					return Err(XcmError::TooExpensive);
 				};
