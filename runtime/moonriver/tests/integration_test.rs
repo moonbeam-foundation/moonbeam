@@ -2615,7 +2615,7 @@ fn evm_success_keeps_substrate_events() {
 					.build(),
 				value: U256::zero(), // No value sent in EVM
 				gas_limit: 500_000,
-				max_fee_per_gas: U256::from(1 * MOVR),
+				max_fee_per_gas: U256::from(1 * GIGAWEI),
 				max_priority_fee_per_gas: None,
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),
