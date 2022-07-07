@@ -147,8 +147,8 @@ describeDevMoonbeam("Precompile Randomness - request local randomness - in past"
   });
 });
 
-describeDevMoonbeam("Precompile Randomness - request local randomness - wrong fee", (context) => {
-  it.skip("should fail with Error", async function () {
+describeDevMoonbeam("Precompile Randomness - request local randomness - low gas fee", (context) => {
+  it("should succeed", async function () {
     const blockNumber = await context.polkadotApi.query.system.number();
     const { result } = await context.createBlock(
       createTransaction(context, {
@@ -157,16 +157,40 @@ describeDevMoonbeam("Precompile Randomness - request local randomness - wrong fe
         data: RANDOMNESS_INTERFACE.encodeFunctionData("requestLocalRandomness", [
           alith.address,
           0n,
-          1,
+          1_000_000,
           new Array(32).fill(0x1f),
           blockNumber.addn(1).toNumber(),
         ]),
       })
     );
 
-    expectEVMResult(result.events, "Error", "Other");
+    expectEVMResult(result.events, "Succeed", "Returned");
   });
 });
+
+describeDevMoonbeam(
+  "Precompile Randomness - request local randomness - low gas limit",
+  (context) => {
+    it("should succeed", async function () {
+      const blockNumber = await context.polkadotApi.query.system.number();
+      const { result } = await context.createBlock(
+        createTransaction(context, {
+          ...ALITH_TRANSACTION_TEMPLATE,
+          to: PRECOMPILE_RANDOMNESS_ADDRESS,
+          data: RANDOMNESS_INTERFACE.encodeFunctionData("requestLocalRandomness", [
+            alith.address,
+            1n * GLMR,
+            0,
+            new Array(32).fill(0x1f),
+            blockNumber.addn(1).toNumber(),
+          ]),
+        })
+      );
+
+      expectEVMResult(result.events, "Succeed", "Returned");
+    });
+  }
+);
 
 describeDevMoonbeam("Precompile Randomness - request local randomness", (context) => {
   it("should succeed with Returned", async function () {
@@ -241,6 +265,70 @@ describeDevMoonbeam("Precompile Randomness - fulfill request - request in future
   });
 });
 
+describeDevMoonbeam("Precompile Randomness - fulfill request - low gas fee", (context) => {
+  before("request randomness", async function () {
+    const blockNumber = await context.polkadotApi.query.system.number();
+    const { result } = await context.createBlock(
+      createTransaction(context, {
+        ...ALITH_TRANSACTION_TEMPLATE,
+        to: PRECOMPILE_RANDOMNESS_ADDRESS,
+        data: RANDOMNESS_INTERFACE.encodeFunctionData("requestLocalRandomness", [
+          alith.address,
+          0n,
+          1_000_000,
+          new Array(32).fill(0x1f),
+          blockNumber.addn(1).toNumber(),
+        ]),
+      })
+    );
+    expectEVMResult(result.events, "Succeed", "Returned");
+  });
+
+  it("should revert", async function () {
+    const { result } = await context.createBlock(
+      createTransaction(context, {
+        ...ALITH_TRANSACTION_TEMPLATE,
+        to: PRECOMPILE_RANDOMNESS_ADDRESS,
+        data: RANDOMNESS_INTERFACE.encodeFunctionData("fulfillRequest", [0]),
+      })
+    );
+
+    expectEVMResult(result.events, "Revert", "Reverted");
+  });
+});
+
+describeDevMoonbeam("Precompile Randomness - fulfill request - low gas limit", (context) => {
+  before("request randomness", async function () {
+    const blockNumber = await context.polkadotApi.query.system.number();
+    const { result } = await context.createBlock(
+      createTransaction(context, {
+        ...ALITH_TRANSACTION_TEMPLATE,
+        to: PRECOMPILE_RANDOMNESS_ADDRESS,
+        data: RANDOMNESS_INTERFACE.encodeFunctionData("requestLocalRandomness", [
+          alith.address,
+          1n * GLMR,
+          0,
+          new Array(32).fill(0x1f),
+          blockNumber.addn(1).toNumber(),
+        ]),
+      })
+    );
+    expectEVMResult(result.events, "Succeed", "Returned");
+  });
+
+  it("should revert", async function () {
+    const { result } = await context.createBlock(
+      createTransaction(context, {
+        ...ALITH_TRANSACTION_TEMPLATE,
+        to: PRECOMPILE_RANDOMNESS_ADDRESS,
+        data: RANDOMNESS_INTERFACE.encodeFunctionData("fulfillRequest", [0]),
+      })
+    );
+
+    expectEVMResult(result.events, "Revert", "Reverted");
+  });
+});
+
 describeDevMoonbeam("Precompile Randomness - fulfill request - valid request", (context) => {
   before("request randomness", async function () {
     const blockNumber = await context.polkadotApi.query.system.number();
@@ -287,70 +375,6 @@ describeDevMoonbeam("Precompile Randomness - increase request fee - missing requ
   });
 });
 
-describeDevMoonbeam("Precompile Randomness - increase request fee - valid request", (context) => {
-  before("request randomness", async function () {
-    const blockNumber = await context.polkadotApi.query.system.number();
-    const { result } = await context.createBlock(
-      createTransaction(context, {
-        ...ALITH_TRANSACTION_TEMPLATE,
-        to: PRECOMPILE_RANDOMNESS_ADDRESS,
-        data: RANDOMNESS_INTERFACE.encodeFunctionData("requestLocalRandomness", [
-          alith.address,
-          1n * GLMR,
-          1_000_000,
-          new Array(32).fill(0x1f),
-          blockNumber.addn(1).toNumber(),
-        ]),
-      })
-    );
-    expectEVMResult(result.events, "Succeed", "Returned");
-  });
-
-  it("should succeed with Returned", async function () {
-    const { result } = await context.createBlock(
-      createTransaction(context, {
-        ...ALITH_TRANSACTION_TEMPLATE,
-        to: PRECOMPILE_RANDOMNESS_ADDRESS,
-        data: RANDOMNESS_INTERFACE.encodeFunctionData("increaseRequestFee", [0, 2n * GLMR]),
-      })
-    );
-
-    expectEVMResult(result.events, "Succeed", "Returned");
-  });
-});
-
-describeDevMoonbeam("Precompile Randomness - increase request fee - lower fee", (context) => {
-  before("request randomness", async function () {
-    const blockNumber = await context.polkadotApi.query.system.number();
-    const { result } = await context.createBlock(
-      createTransaction(context, {
-        ...ALITH_TRANSACTION_TEMPLATE,
-        to: PRECOMPILE_RANDOMNESS_ADDRESS,
-        data: RANDOMNESS_INTERFACE.encodeFunctionData("requestLocalRandomness", [
-          alith.address,
-          1n * GLMR,
-          1_000_000,
-          new Array(32).fill(0x1f),
-          blockNumber.addn(1).toNumber(),
-        ]),
-      })
-    );
-    expectEVMResult(result.events, "Succeed", "Returned");
-  });
-
-  it.skip("should fail with Error", async function () {
-    const { result } = await context.createBlock(
-      createTransaction(context, {
-        ...ALITH_TRANSACTION_TEMPLATE,
-        to: PRECOMPILE_RANDOMNESS_ADDRESS,
-        data: RANDOMNESS_INTERFACE.encodeFunctionData("increaseRequestFee", [0, 1n]),
-      })
-    );
-
-    expectEVMResult(result.events, "Error", "Other");
-  });
-});
-
 describeDevMoonbeam(
   "Precompile Randomness - increase request fee - different requester",
   (context) => {
@@ -385,6 +409,38 @@ describeDevMoonbeam(
     });
   }
 );
+
+describeDevMoonbeam("Precompile Randomness - increase request fee - valid request", (context) => {
+  before("request randomness", async function () {
+    const blockNumber = await context.polkadotApi.query.system.number();
+    const { result } = await context.createBlock(
+      createTransaction(context, {
+        ...ALITH_TRANSACTION_TEMPLATE,
+        to: PRECOMPILE_RANDOMNESS_ADDRESS,
+        data: RANDOMNESS_INTERFACE.encodeFunctionData("requestLocalRandomness", [
+          alith.address,
+          1n * GLMR,
+          1_000_000,
+          new Array(32).fill(0x1f),
+          blockNumber.addn(1).toNumber(),
+        ]),
+      })
+    );
+    expectEVMResult(result.events, "Succeed", "Returned");
+  });
+
+  it("should succeed with Returned", async function () {
+    const { result } = await context.createBlock(
+      createTransaction(context, {
+        ...ALITH_TRANSACTION_TEMPLATE,
+        to: PRECOMPILE_RANDOMNESS_ADDRESS,
+        data: RANDOMNESS_INTERFACE.encodeFunctionData("increaseRequestFee", [0, 10n]),
+      })
+    );
+
+    expectEVMResult(result.events, "Succeed", "Returned");
+  });
+});
 
 describeDevMoonbeam(
   "Precompile Randomness - execute request expiration - missing request",
