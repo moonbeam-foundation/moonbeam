@@ -16,6 +16,7 @@ export SKIP_DOWNLOAD=${SKIP_DOWNLOAD:-false}
 export SKIP_COMPILATION=${SKIP_COMPILATION:-false}
 export SKIP_STATE_MODIFICATION=${SKIP_STATE_MODIFICATION:-false}
 export KEEP_RUNNING=${KEEP_RUNNING:-false}
+export USE_LOCAL_CLIENT=${USE_LOCAL_CLIENT:-false}
 
 export BINARY_PATH=${BINARY_PATH:-$ROOT_FOLDER/moonbeam/binaries/moonbeam};
 export RELAY_BINARY_PATH=${RELAY_BINARY_PATH:-$ROOT_FOLDER/moonbeam/binaries/polkadot};
@@ -36,6 +37,7 @@ echo "SKIP_DOWNLOAD: ${SKIP_DOWNLOAD}"
 echo "SKIP_COMPILATION: ${SKIP_COMPILATION}"
 echo "SKIP_STATE_MODIFICATION: ${SKIP_STATE_MODIFICATION}"
 echo "KEEP_RUNNING: ${KEEP_RUNNING}"
+echo "USE_LOCAL_CLIENT: ${USE_LOCAL_CLIENT}"
 echo "BINARY_PATH: ${BINARY_PATH}"
 echo "RELAY_BINARY_PATH: ${RELAY_BINARY_PATH}"
 echo "SPEC_FILE: ${SPEC_FILE}"
@@ -74,7 +76,7 @@ then
     MOONBEAM_CLIENT_TAG=`curl -s https://api.github.com/repos/purestake/moonbeam/releases | jq -r '.[] | .tag_name' | grep '^v' | head -1`
     POLKADOT_CLIENT_TAG=`curl -s https://api.github.com/repos/paritytech/polkadot/releases | jq -r '.[] | .tag_name' | grep '^v' | head -1`
 
-    if [[ ! -f $BINARY_PATH && $BINARY_PATH != "target/release/moonbeam" ]]
+    if [[ ! -f $BINARY_PATH && $USE_LOCAL_CLIENT != "true" ]]
     then
         echo "Downloading moonbeam ${MOONBEAM_CLIENT_TAG}"
         wget -q https://github.com/PureStake/moonbeam/releases/download/${MOONBEAM_CLIENT_TAG}/moonbeam \
@@ -103,9 +105,10 @@ then
     git checkout $GIT_TAG
     cargo build --release -p ${RUNTIME_NAME}-runtime
 
-    if [[ $BINARY_PATH == "target/release/moonbeam" ]]
+    if [[ $USE_LOCAL_CLIENT == "true" ]]
     then
         cargo build --release -p moonbeam
+        cp target/release/moonbeam $BINARY_PATH
     fi
 
     echo "Preparing tests... (3 minutes)"
