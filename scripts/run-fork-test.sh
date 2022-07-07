@@ -164,7 +164,7 @@ echo "Retrieving runtime stats..."
 cd $ROOT_FOLDER/moonbeam/tools
 node_modules/.bin/ts-node extract-migration-logs.ts --log ../tests/51102.log
 
-if [[ $KEEP_RUNNING == "true "]]
+if [[ $KEEP_RUNNING == "true " ]]
 then
     echo "Keep running forever..."
     while true
