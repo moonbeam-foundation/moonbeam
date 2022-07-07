@@ -199,3 +199,37 @@ pub trait UnitsToWeightRatio<AssetType> {
 	// Get units per second from asset type
 	fn get_units_per_second(asset_type: AssetType) -> Option<u128>;
 }
+
+#[cfg(test)]
+mod test {
+	use super::*;
+	use xcm::latest::{AssetId, Junctions, Fungibility};
+
+	impl UnitsToWeightRatio<MultiLocation> for () {
+		fn payment_is_supported(asset_type: MultiLocation) -> bool { true }
+		fn get_units_per_second(asset_type: MultiLocation) -> Option<u128> {
+			// return WEIGHT_PER_SECOND to cancel the division out in buy_weight()
+			// this should make weight and payment amounts directly comparable
+			Some(WEIGHT_PER_SECOND as u128)
+		}
+	}
+
+	#[test]
+	fn test() {
+		let amount = 1000u128;
+
+		let mut payment = xcm_executor::Assets::new();
+		payment.subsume(MultiAsset {
+			id: AssetId::Concrete(MultiLocation {
+				parents: 0u8,
+				interior: Junctions::Here,
+			}),
+			fun: Fungibility::Fungible(amount),
+		});
+
+		let mut trader: FirstAssetTrader<MultiLocation, (), ()> = FirstAssetTrader::new();
+		let unused = trader.buy_weight(amount as Weight, payment.clone()).expect("can buy weight");
+		assert!(unused.is_empty());
+		assert_eq!(trader.0, 1000u64);
+	}
+}
