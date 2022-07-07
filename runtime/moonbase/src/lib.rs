@@ -173,7 +173,7 @@ pub mod opaque {
 pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbase"),
 	impl_name: create_runtime_str!("moonbase"),
-	authoring_version: 3,
+	authoring_version: 4,
 	spec_version: 1700,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
@@ -880,51 +880,11 @@ impl pallet_proxy::Config for Runtime {
 	type AnnouncementDepositFactor = ConstU128<{ currency::deposit(0, 56) }>;
 }
 
-/// A moonbeam migration wrapping the similarly named migration in pallet-randomness
-pub struct RandomnessInitializeVrfInput<T>(sp_std::marker::PhantomData<T>);
-impl<T: pallet_randomness::Config> pallet_migrations::Migration
-	for RandomnessInitializeVrfInput<T>
-{
-	fn friendly_name(&self) -> &str {
-		"MM_Randomness_InitializeVrfInput"
-	}
-
-	fn migrate(&self, _available_weight: Weight) -> Weight {
-		pallet_randomness::migrations::InitializeVrfInput::<T>::on_runtime_upgrade()
-	}
-
-	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
-	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade(&self) -> Result<(), &'static str> {
-		pallet_randomness::migrations::InitializeVrfInput::<T>::pre_upgrade()
-	}
-
-	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
-	#[cfg(feature = "try-runtime")]
-	fn post_upgrade(&self) -> Result<(), &'static str> {
-		pallet_randomness::migrations::InitializeVrfInput::<T>::post_upgrade()
-	}
-}
-
-pub struct TemporaryMigrations<T>(sp_std::marker::PhantomData<T>);
-
-impl<T: pallet_randomness::Config> pallet_migrations::GetMigrations for TemporaryMigrations<T> {
-	fn get_migrations() -> Vec<Box<dyn pallet_migrations::Migration>> {
-		let migration_randomness_initialize_vrf_input =
-			RandomnessInitializeVrfInput::<T>(Default::default());
-		vec![
-			// planned in runtime 1700
-			Box::new(migration_randomness_initialize_vrf_input),
-		]
-	}
-}
-
 impl pallet_migrations::Config for Runtime {
 	type Event = Event;
 	// TODO wire up our correct list of migrations here. Maybe this shouldn't be in
 	// `moonbeam_runtime_common`.
 	type MigrationsList = (
-		TemporaryMigrations<Runtime>,
 		moonbeam_runtime_common::migrations::CommonMigrations<
 			Runtime,
 			CouncilCollective,
@@ -1157,9 +1117,7 @@ impl pallet_randomness::GetBabeData<BlockNumber, u64, Option<Hash>> for BabeData
 			.read_optional_entry(relay_chain::well_known_keys::EPOCH_INDEX)
 			.ok()
 			.flatten()
-			.unwrap_or_default()
-		// TODO: add back panic, only removing for testing now
-		//.expect("expected to be able to read epoch index from relay chain state proof")
+			.expect("expected to be able to read epoch index from relay chain state proof")
 	}
 	fn get_current_block_randomness() -> Option<Hash> {
 		relay_chain_state_proof()
@@ -1182,9 +1140,11 @@ impl pallet_randomness::GetBabeData<BlockNumber, u64, Option<Hash>> for BabeData
 }
 
 pub struct VrfInputGetter;
-impl pallet_randomness::GetVrfInput<pallet_randomness::VrfInput<Slot, Hash>> for VrfInputGetter {
-	fn get_vrf_input() -> pallet_randomness::VrfInput<Slot, Hash> {
-		pallet_randomness::VrfInput {
+impl session_keys_primitives::GetVrfInput<session_keys_primitives::VrfInput<Slot, Hash>>
+	for VrfInputGetter
+{
+	fn get_vrf_input() -> session_keys_primitives::VrfInput<Slot, Hash> {
+		session_keys_primitives::VrfInput {
 			slot_number: relay_chain_state_proof()
 				.read_slot()
 				.expect("CheckInherents reads slot from state proof QED"),
@@ -1192,6 +1152,15 @@ impl pallet_randomness::GetVrfInput<pallet_randomness::VrfInput<Slot, Hash>> for
 				.expect("set in `set_validation_data`inherent => available before on_initialize")
 				.relay_parent_storage_root,
 		}
+	}
+}
+
+pub struct ReserveAccount;
+impl Get<AccountId20> for ReserveAccount {
+	fn get() -> AccountId20 {
+		use pallet_evm::AddressMapping;
+		// harcoded precompile address
+		moonbeam_runtime_common::IntoAddressMapping::into_account_id(H160::from_low_u64_be(2057))
 	}
 }
 
@@ -1203,10 +1172,11 @@ parameter_types! {
 impl pallet_randomness::Config for Runtime {
 	type Event = Event;
 	type AddressMapping = moonbeam_runtime_common::IntoAddressMapping;
-	type ReserveCurrency = Balances;
+	type Currency = Balances;
 	type BabeDataGetter = BabeDataGetter;
 	type VrfInputGetter = VrfInputGetter;
 	type VrfKeyLookup = AuthorMapping;
+	type ReserveAccount = ReserveAccount;
 	type Deposit = RandomnessRequestDeposit;
 	type ExpirationDelay = ExpirationDelay;
 }
@@ -1258,7 +1228,7 @@ construct_runtime! {
 		LocalAssets: pallet_assets::<Instance1>::{Pallet, Call, Storage, Event<T>} = 36,
 		MoonbeamOrbiters: pallet_moonbeam_orbiters::{Pallet, Call, Storage, Event<T>} = 37,
 		EthereumXcm: pallet_ethereum_xcm::{Pallet, Call, Origin} = 38,
-		Randomness: pallet_randomness::{Pallet, Call, Storage, Config<T>, Event<T>, Inherent} = 39,
+		Randomness: pallet_randomness::{Pallet, Call, Storage, Event<T>, Inherent} = 39,
 	}
 }
 
@@ -1306,11 +1276,19 @@ pub type Executive = frame_executive::Executive<
 moonbeam_runtime_common::impl_runtime_apis_plus_common! {
 	impl session_keys_primitives::VrfApi<Block> for Runtime {
 		fn get_relay_slot_number() -> cumulus_primitives_core::relay_chain::v2::Slot {
+			// TODO: remove in future runtime upgrade along with storage item
+			if pallet_randomness::Pallet::<Self>::not_first_block().is_none() {
+				return Default::default();
+			}
 			pallet_randomness::Pallet::<Self>::current_vrf_input()
 				.expect("Expected VrfInput to be set")
 				.slot_number
 		}
 		fn get_relay_storage_root() -> <Block as BlockT>::Hash {
+			// TODO: remove in future runtime upgrade along with storage item
+			if pallet_randomness::Pallet::<Self>::not_first_block().is_none() {
+				return Default::default();
+			}
 			pallet_randomness::Pallet::<Self>::current_vrf_input()
 				.expect("Expected VrfInput to be set")
 				.storage_root

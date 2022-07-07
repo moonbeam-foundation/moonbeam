@@ -41,15 +41,15 @@ where
 	let relay_slot_number: Slot = client
 		.runtime_api()
 		.get_relay_slot_number(&at)
-		.expect("api error");
+		.expect("API error getting relay slot number");
 	let relay_storage_root: H256 = client
 		.runtime_api()
 		.get_relay_storage_root(&at)
-		.expect("api error");
+		.expect("API error getting relay storage root");
 	let key: VrfId = client
 		.runtime_api()
 		.vrf_key_lookup(&at, nimbus_id)
-		.expect("api error")?;
+		.expect("API error getting VrfId from NimbusId")?;
 	let vrf_pre_digest = sign_vrf(relay_slot_number, relay_storage_root, key, &keystore)?;
 	Some(session_keys_primitives::digest::CompatibleDigestItem::vrf_pre_digest(vrf_pre_digest))
 }

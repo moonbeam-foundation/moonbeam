@@ -26,7 +26,7 @@ use nimbus_primitives::NimbusId;
 use pallet_evm::AddressMapping;
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use serde::{Deserialize, Serialize};
-use session_keys_primitives::VrfId;
+use session_keys_primitives::{GetVrfInput, VrfId, VrfInput};
 use sp_consensus_babe::Slot;
 use sp_core::{H160, H256};
 use sp_runtime::{
@@ -52,7 +52,7 @@ construct_runtime!(
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		AuthorMapping: pallet_author_mapping::{Pallet, Call, Storage, Config<T>, Event<T>},
-		Randomness: pallet_randomness::{Pallet, Storage, Config<T>, Event<T>},
+		Randomness: pallet_randomness::{Pallet, Call, Storage, Event<T>, Inherent},
 	}
 );
 
@@ -151,7 +151,7 @@ impl frame_system::Config for Test {
 }
 
 parameter_types! {
-	pub const ExistentialDeposit: u128 = 1;
+	pub const ExistentialDeposit: u128 = 0;
 }
 impl pallet_balances::Config for Test {
 	type MaxReserves = ();
@@ -177,7 +177,7 @@ impl pallet_author_mapping::Config for Test {
 }
 
 pub struct BabeDataGetter;
-impl crate::traits::GetBabeData<BlockNumber, u64, Option<H256>> for BabeDataGetter {
+impl crate::GetBabeData<BlockNumber, u64, Option<H256>> for BabeDataGetter {
 	fn get_relay_block_number() -> BlockNumber {
 		1u64
 	}
@@ -196,7 +196,7 @@ impl crate::traits::GetBabeData<BlockNumber, u64, Option<H256>> for BabeDataGett
 }
 
 pub struct VrfInputGetter;
-impl crate::traits::GetVrfInput<VrfInput<Slot, H256>> for VrfInputGetter {
+impl GetVrfInput<VrfInput<Slot, H256>> for VrfInputGetter {
 	fn get_vrf_input() -> VrfInput<Slot, H256> {
 		VrfInput::default()
 	}
@@ -205,14 +205,16 @@ impl crate::traits::GetVrfInput<VrfInput<Slot, H256>> for VrfInputGetter {
 parameter_types! {
 	pub const Deposit: u128 = 10;
 	pub const ExpirationDelay: u32 = 5;
+	pub const PrecompileAccount: Account = Account::Precompile;
 }
 impl Config for Test {
 	type Event = Event;
 	type AddressMapping = Account;
-	type ReserveCurrency = Balances;
+	type Currency = Balances;
 	type BabeDataGetter = BabeDataGetter;
 	type VrfInputGetter = VrfInputGetter;
 	type VrfKeyLookup = AuthorMapping;
+	type ReserveAccount = PrecompileAccount;
 	type Deposit = Deposit;
 	type ExpirationDelay = ExpirationDelay;
 	//type WeightToFee = ();

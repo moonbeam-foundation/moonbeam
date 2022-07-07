@@ -6,7 +6,7 @@ edition = "2018"
 version = "0.1.0"
 
 [dependencies]
-#frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23", optional = true, default-features = false }
+frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23", optional = true, default-features = false }
 frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23", default-features = false }
 frame-system = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23", default-features = false }
 log = "0.4"
@@ -34,6 +34,7 @@ pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "p
 [features]
 default = [ "std" ]
 std = [
+	"frame-benchmarking/std",
 	"frame-support/std",
 	"frame-system/std",
 	"nimbus-primitives/std",
@@ -51,5 +52,5 @@ std = [
 	"sp-runtime/std",
 	"sp-std/std",
 ]
-# runtime-benchmarks = [ "frame-benchmarking" ]
+runtime-benchmarks = [ "frame-benchmarking" ]
 # try-runtime = [ "frame-support/try-runtime" ]

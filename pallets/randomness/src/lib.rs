@@ -22,13 +22,11 @@ use frame_support::pallet;
 
 pub use pallet::*;
 
-pub mod migrations;
-pub mod traits;
+#[cfg(any(test, feature = "runtime-benchmarks"))]
+mod benchmarks;
 pub mod types;
 pub mod vrf;
-pub use traits::*;
 pub use types::*;
-pub use vrf::VrfInput;
 
 // pub mod weights;
 // use weights::WeightInfo;
@@ -39,16 +37,27 @@ mod mock;
 #[cfg(test)]
 mod tests;
 
+/// Read babe randomness info from the relay chain state proof
+pub trait GetBabeData<BlockNumber, EpochIndex, Randomness> {
+	fn get_relay_block_number() -> BlockNumber;
+	fn get_relay_epoch_index() -> EpochIndex;
+	fn get_current_block_randomness() -> Randomness;
+	fn get_one_epoch_ago_randomness() -> Randomness;
+	fn get_two_epochs_ago_randomness() -> Randomness;
+}
+
 #[pallet]
 pub mod pallet {
 	use super::*;
 	// use crate::WeightInfo;
 	use frame_support::pallet_prelude::*;
-	use frame_support::traits::{Currency, ReservableCurrency};
+	use frame_support::traits::{Currency, ExistenceRequirement::KeepAlive};
 	use frame_system::pallet_prelude::*;
 	use nimbus_primitives::NimbusId;
 	use pallet_evm::AddressMapping;
-	use session_keys_primitives::{InherentError, KeysLookup, VrfId, INHERENT_IDENTIFIER};
+	use session_keys_primitives::{
+		GetVrfInput, InherentError, KeysLookup, VrfId, VrfInput, INHERENT_IDENTIFIER,
+	};
 	use sp_consensus_babe::Slot;
 	use sp_core::{H160, H256};
 	use sp_runtime::traits::Saturating;
@@ -57,9 +66,8 @@ pub mod pallet {
 	/// Request identifier, unique per request for randomness
 	pub type RequestId = u64;
 
-	pub type BalanceOf<T> = <<T as Config>::ReserveCurrency as Currency<
-		<T as frame_system::Config>::AccountId,
-	>>::Balance;
+	pub type BalanceOf<T> =
+		<<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
 
 	#[pallet::pallet]
 	#[pallet::without_storage_info]
@@ -73,13 +81,15 @@ pub mod pallet {
 		/// Address mapping to convert from H160 to AccountId
 		type AddressMapping: AddressMapping<Self::AccountId>;
 		/// Currency in which the security deposit will be taken.
-		type ReserveCurrency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
+		type Currency: Currency<Self::AccountId>;
 		/// Get the BABE data from the runtime
 		type BabeDataGetter: GetBabeData<Self::BlockNumber, u64, Option<Self::Hash>>;
 		/// Get the VRF input from the runtime
 		type VrfInputGetter: GetVrfInput<VrfInput<Slot, Self::Hash>>;
 		/// Takes NimbusId to return VrfId
 		type VrfKeyLookup: KeysLookup<NimbusId, VrfId>;
+		/// Account to hold all reserved funds
+		type ReserveAccount: Get<Self::AccountId>;
 		#[pallet::constant]
 		/// The amount that should be taken as a security deposit when requesting randomness.
 		type Deposit: Get<BalanceOf<Self>>;
@@ -192,33 +202,17 @@ pub mod pallet {
 	#[pallet::getter(fn inherent_included)]
 	pub(crate) type InherentIncluded<T: Config> = StorageValue<_, ()>;
 
+	/// Records whether this is the first block (genesis or runtime upgrade)
+	#[pallet::storage]
+	#[pallet::getter(fn not_first_block)]
+	pub type NotFirstBlock<T: Config> = StorageValue<_, ()>;
+
 	/// Snapshot of randomness to fulfill all requests that are for the same raw randomness
 	/// Removed once $value.request_count == 0
 	#[pallet::storage]
 	#[pallet::getter(fn randomness_results)]
 	pub(crate) type RandomnessResults<T: Config> =
 		StorageMap<_, Twox64Concat, RequestType<T>, RandomnessResult<T::Hash>>;
-
-	#[pallet::genesis_config]
-	pub struct GenesisConfig<T: Config> {
-		pub genesis_vrf_input: VrfInput<Slot, T::Hash>,
-	}
-
-	#[cfg(feature = "std")]
-	impl<T: Config> Default for GenesisConfig<T> {
-		fn default() -> Self {
-			Self {
-				genesis_vrf_input: Default::default(),
-			}
-		}
-	}
-
-	#[pallet::genesis_build]
-	impl<T: Config> GenesisBuild<T> for GenesisConfig<T> {
-		fn build(&self) {
-			CurrentVrfInput::<T>::put(self.genesis_vrf_input.clone())
-		}
-	}
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
@@ -352,9 +346,10 @@ pub mod pallet {
 			let total_to_reserve = T::Deposit::get().saturating_add(request.fee);
 			let contract_address =
 				T::AddressMapping::into_account_id(request.contract_address.clone());
-			T::ReserveCurrency::can_reserve(&contract_address, total_to_reserve)
-				.then(|| true)
-				.ok_or(Error::<T>::InsufficientDeposit)?;
+			ensure!(
+				T::Currency::free_balance(&contract_address) >= total_to_reserve,
+				Error::<T>::InsufficientDeposit
+			);
 			// get new request ID
 			let request_id = <RequestCount<T>>::get();
 			let next_id = request_id
@@ -369,7 +364,13 @@ pub mod pallet {
 			} else {
 				<RandomnessResults<T>>::insert(&request.info, RandomnessResult::new());
 			}
-			T::ReserveCurrency::reserve(&contract_address, total_to_reserve)?;
+			// send deposit to reserve account
+			T::Currency::transfer(
+				&contract_address,
+				&T::ReserveAccount::get(),
+				total_to_reserve,
+				KeepAlive,
+			)?;
 			// insert request
 			<RequestCount<T>>::put(next_id);
 			request.emit_randomness_requested_event(request_id);

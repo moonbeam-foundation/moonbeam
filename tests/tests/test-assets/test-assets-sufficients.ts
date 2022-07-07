@@ -4,7 +4,7 @@ import { u128 } from "@polkadot/types";
 import { BN } from "@polkadot/util";
 import { expect } from "chai";
 
-import { alith, baltathar, generateKeyingPair } from "../../util/accounts";
+import { alith, baltathar, generateKeyringPair } from "../../util/accounts";
 import { mockAssetBalance } from "../../util/assets";
 import { GLMR } from "../../util/constants";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
@@ -16,7 +16,7 @@ describeDevMoonbeam(
   "Pallet Assets - Sufficient tests: is_sufficient to true",
   (context) => {
     let assetId: u128;
-    const freshAccount = generateKeyingPair();
+    const freshAccount = generateKeyringPair();
 
     before("Setup contract and mock balance", async () => {
       assetId = context.polkadotApi.createType("u128", ARBITRARY_ASSET_ID);
@@ -153,7 +153,7 @@ describeDevMoonbeam(
   "Pallet Assets - Sufficient tests: is_sufficient to true",
   (context) => {
     let assetId: u128;
-    const freshAccount = generateKeyingPair();
+    const freshAccount = generateKeyringPair();
 
     before("Setup contract and mock balance", async () => {
       assetId = context.polkadotApi.createType("u128", ARBITRARY_ASSET_ID);
@@ -277,7 +277,7 @@ describeDevMoonbeam(
   "Pallet Assets - Sufficient tests: is_sufficient to false",
   (context) => {
     let assetId: u128;
-    const freshAccount = generateKeyingPair();
+    const freshAccount = generateKeyringPair();
 
     before("Setup contract and mock balance", async () => {
       assetId = context.polkadotApi.createType("u128", ARBITRARY_ASSET_ID);

@@ -26,8 +26,8 @@ use crate::Action;
 #[test]
 fn test_solidity_interface_has_all_implemented_selectors() {
 	let selectors = solidity::get_selectors("Randomness.sol")
-		.keys()
-		.cloned()
+		.into_iter()
+		.map(|sf| sf.compute_selector())
 		.collect::<HashSet<_>>();
 
 	assert_eq!(Action::RelayBlockNumber as u32, 0xedfec347);
@@ -60,12 +60,28 @@ fn test_solidity_interface_has_all_implemented_selectors() {
 
 #[test]
 fn test_solidity_interface_has_all_selectors_implemented() {
-	for (selector, fn_name) in solidity::get_selectors("Randomness.sol") {
+	for solidity_fn in solidity::get_selectors("Randomness.sol") {
+		let selector = solidity_fn.compute_selector();
 		if Action::try_from(selector).is_err() {
 			panic!(
 				"failed decoding selector 0x{:x} => '{}' as Action",
-				selector, fn_name
+				selector,
+				solidity_fn.signature()
 			)
 		}
+	}
+}
+
+#[test]
+fn test_solidity_interface_has_all_selectors_correctly_documented() {
+	for solidity_fn in solidity::get_selectors("Randomness.sol") {
+		let expected = solidity_fn.compute_selector_hex();
+		let actual = solidity_fn.docs_selector.clone();
+		assert_eq!(
+			expected,
+			actual,
+			"documented selector for '{}' did not match",
+			solidity_fn.signature()
+		)
 	}
 }

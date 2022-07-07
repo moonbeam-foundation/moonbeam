@@ -57,7 +57,7 @@ construct_runtime!(
 		AuthorMapping: pallet_author_mapping::{Pallet, Call, Storage, Config<T>, Event<T>},
 		Evm: pallet_evm::{Pallet, Call, Storage, Event<T>},
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
-		Randomness: pallet_randomness::{Pallet, Storage, Config<T>, Event<T>},
+		Randomness: pallet_randomness::{Pallet, Call, Storage, Event<T>, Inherent},
 	}
 );
 
@@ -156,7 +156,7 @@ impl frame_system::Config for Runtime {
 }
 
 parameter_types! {
-	pub const ExistentialDeposit: u128 = 1;
+	pub const ExistentialDeposit: u128 = 0;
 }
 impl pallet_balances::Config for Runtime {
 	type MaxReserves = ();
@@ -256,14 +256,16 @@ impl pallet_randomness::traits::GetVrfInput<VrfInput<Slot, H256>> for VrfInputGe
 parameter_types! {
 	pub const Deposit: u128 = 10;
 	pub const ExpirationDelay: u32 = 5;
+	pub const PrecompileAccount: Account = Account::Precompile;
 }
 impl Config for Runtime {
 	type Event = Event;
 	type AddressMapping = Account;
-	type ReserveCurrency = Balances;
+	type Currency = Balances;
 	type BabeDataGetter = BabeDataGetter;
 	type VrfInputGetter = VrfInputGetter;
 	type VrfKeyLookup = AuthorMapping;
+	type ReserveAccount = PrecompileAccount;
 	type Deposit = Deposit;
 	type ExpirationDelay = ExpirationDelay;
 	//type WeightToFee = ();

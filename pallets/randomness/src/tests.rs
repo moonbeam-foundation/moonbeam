@@ -127,23 +127,23 @@ fn request_reserves_deposit_and_fee() {
 		.with_balances(vec![(Account::Alice, 60)])
 		.build()
 		.execute_with(|| {
-			assert_eq!(Balances::reserved_balance(&Account::Alice), 0);
+			assert_eq!(Balances::free_balance(&Account::Precompile), 0);
 			assert_eq!(Balances::free_balance(&Account::Alice), 60);
 			let request = build_default_request(RequestType::BabeCurrentBlock(16u64));
 			assert_ok!(Randomness::request_randomness(request));
-			assert_eq!(Balances::reserved_balance(&Account::Alice), 15);
+			assert_eq!(Balances::free_balance(&Account::Precompile), 15);
 			assert_eq!(Balances::free_balance(&Account::Alice), 45);
 			let request = build_default_request(RequestType::BabeOneEpochAgo(16u64));
 			assert_ok!(Randomness::request_randomness(request));
-			assert_eq!(Balances::reserved_balance(&Account::Alice), 30);
+			assert_eq!(Balances::free_balance(&Account::Precompile), 30);
 			assert_eq!(Balances::free_balance(&Account::Alice), 30);
 			let request = build_default_request(RequestType::BabeTwoEpochsAgo(16u64));
 			assert_ok!(Randomness::request_randomness(request));
-			assert_eq!(Balances::reserved_balance(&Account::Alice), 45);
+			assert_eq!(Balances::free_balance(&Account::Precompile), 45);
 			assert_eq!(Balances::free_balance(&Account::Alice), 15);
 			let request = build_default_request(RequestType::Local(16u64));
 			assert_ok!(Randomness::request_randomness(request));
-			assert_eq!(Balances::reserved_balance(&Account::Alice), 60);
+			assert_eq!(Balances::free_balance(&Account::Precompile), 60);
 			assert_eq!(Balances::free_balance(&Account::Alice), 0);
 		});
 }
@@ -378,10 +378,29 @@ fn request_randomness_increments_randomness_result() {
 
 // PREPARE FULFILLMENT
 
+// #[test]
+// fn prepare_fulfillment_fails_before_can_be_fulfilled() {
+
+// }
+
+// #[test]
+// fn prepare_fulfillment_uses_randomness_result_without_changing_count() {
+
+// }
+
 // FINISH FULFILLMENT
+
+// finish fulfillment decrements randomness result and will remove it if last
+// test both cases separately
 
 // INCREASE REQUEST FEE
 
+// increase request fee updates the request fee
+
 // EXECUTE REQUEST EXPIRATION
+
+// execute request expiration fails before expired
+
+// execute request expiration succeeds
 
 // ON INITIALIZE LOGIC AND HOOKS

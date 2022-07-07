@@ -1,0 +1,221 @@
+{
+  "byteCode": "0x",
+  "contract": {
+    "abi": [
+      {
+        "inputs": [
+          { "internalType": "uint64", "name": "requestId", "type": "uint64" }
+        ],
+        "name": "executeRequestExpiration",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "uint64", "name": "requestId", "type": "uint64" }
+        ],
+        "name": "fulfillRequest",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "uint64", "name": "requestId", "type": "uint64" },
+          {
+            "internalType": "uint256",
+            "name": "feeIncrease",
+            "type": "uint256"
+          }
+        ],
+        "name": "increaseRequestFee",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "relayBlockNumber",
+        "outputs": [{ "internalType": "uint64", "name": "", "type": "uint64" }],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "relayEpochIndex",
+        "outputs": [{ "internalType": "uint64", "name": "", "type": "uint64" }],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "refundAddress",
+            "type": "address"
+          },
+          { "internalType": "uint256", "name": "fee", "type": "uint256" },
+          { "internalType": "uint64", "name": "gasLimit", "type": "uint64" },
+          { "internalType": "bytes32", "name": "salt", "type": "bytes32" },
+          { "internalType": "uint64", "name": "numBlocks", "type": "uint64" }
+        ],
+        "name": "requestBabeRandomnessCurrentBlock",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "refundAddress",
+            "type": "address"
+          },
+          { "internalType": "uint256", "name": "fee", "type": "uint256" },
+          { "internalType": "uint64", "name": "gasLimit", "type": "uint64" },
+          { "internalType": "bytes32", "name": "salt", "type": "bytes32" }
+        ],
+        "name": "requestBabeRandomnessOneEpochAgo",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "refundAddress",
+            "type": "address"
+          },
+          { "internalType": "uint256", "name": "fee", "type": "uint256" },
+          { "internalType": "uint64", "name": "gasLimit", "type": "uint64" },
+          { "internalType": "bytes32", "name": "salt", "type": "bytes32" }
+        ],
+        "name": "requestBabeRandomnessTwoEpochsAgo",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "refundAddress",
+            "type": "address"
+          },
+          { "internalType": "uint256", "name": "fee", "type": "uint256" },
+          { "internalType": "uint64", "name": "gasLimit", "type": "uint64" },
+          { "internalType": "bytes32", "name": "salt", "type": "bytes32" },
+          { "internalType": "uint64", "name": "numBlocks", "type": "uint64" }
+        ],
+        "name": "requestLocalRandomness",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      }
+    ],
+    "devdoc": {
+      "kind": "dev",
+      "methods": {
+        "executeRequestExpiration(uint64)": {
+          "params": {
+            "requestId": "Request to be purged by caller Selector: 8fcdcc49"
+          }
+        },
+        "fulfillRequest(uint64)": {
+          "params": {
+            "requestId": "Request to be fulfilled by caller Selector: b9904a86"
+          }
+        },
+        "increaseRequestFee(uint64,uint256)": {
+          "params": {
+            "feeIncrease": "Amount to increase fee Selector: 6a5b3380",
+            "requestId": "Request to be increased fee by caller"
+          }
+        },
+        "relayBlockNumber()": {
+          "details": "Interface for all randomness consumersGet relay block number",
+          "returns": { "_0": "The relay block number Selector: edfec347" }
+        },
+        "relayEpochIndex()": {
+          "details": "Get relay epoch index",
+          "returns": { "_0": "The relay epoch index Selector: 81797566" }
+        },
+        "requestBabeRandomnessCurrentBlock(address,uint256,uint64,bytes32,uint64)": {
+          "params": {
+            "fee": "Amount to set aside to pay for the subcall",
+            "gasLimit": "Gas limit for the subcall that provides randomness",
+            "numBlocks": "Number of relay chain blocks in the future the request is for Selector: c4921133",
+            "refundAddress": "Address to refund with fee less cost of subcall",
+            "salt": "Salt to be mixed with raw randomness to get output"
+          }
+        },
+        "requestBabeRandomnessOneEpochAgo(address,uint256,uint64,bytes32)": {
+          "params": {
+            "fee": "Amount to set aside to pay for the subcall",
+            "gasLimit": "Gas limit for the subcall that provides randomness",
+            "refundAddress": "Address to refund",
+            "salt": "Salt to be mixed with raw randomness to get output Selector: bbc9e95f"
+          }
+        },
+        "requestBabeRandomnessTwoEpochsAgo(address,uint256,uint64,bytes32)": {
+          "params": {
+            "fee": "Amount to set aside to pay for the subcall",
+            "gasLimit": "Gas limit for the subcall that provides randomness",
+            "refundAddress": "Address to refund",
+            "salt": "Salt to be mixed with raw randomness to get output Selector: 25b14a0b"
+          }
+        },
+        "requestLocalRandomness(address,uint256,uint64,bytes32,uint64)": {
+          "params": {
+            "fee": "Amount to set aside to pay for the subcall",
+            "gasLimit": "Gas limit for the subcall that provides randomness",
+            "numBlocks": "Number of blocks in the future the request is for Selector: b4a11763",
+            "refundAddress": "Address to refund",
+            "salt": "Salt to be mixed with raw randomness to get output"
+          }
+        }
+      },
+      "version": 1
+    },
+    "evm": {
+      "assembly": "",
+      "bytecode": {
+        "functionDebugData": {},
+        "generatedSources": [],
+        "linkReferences": {},
+        "object": "",
+        "opcodes": "",
+        "sourceMap": ""
+      },
+      "deployedBytecode": {
+        "functionDebugData": {},
+        "generatedSources": [],
+        "immutableReferences": {},
+        "linkReferences": {},
+        "object": "",
+        "opcodes": "",
+        "sourceMap": ""
+      },
+      "gasEstimates": null,
+      "legacyAssembly": null,
+      "methodIdentifiers": {
+        "executeRequestExpiration(uint64)": "8fcdcc49",
+        "fulfillRequest(uint64)": "b9904a86",
+        "increaseRequestFee(uint64,uint256)": "6a5b3380",
+        "relayBlockNumber()": "edfec347",
+        "relayEpochIndex()": "81797566",
+        "requestBabeRandomnessCurrentBlock(address,uint256,uint64,bytes32,uint64)": "c4921133",
+        "requestBabeRandomnessOneEpochAgo(address,uint256,uint64,bytes32)": "bbc9e95f",
+        "requestBabeRandomnessTwoEpochsAgo(address,uint256,uint64,bytes32)": "25b14a0b",
+        "requestLocalRandomness(address,uint256,uint64,bytes32,uint64)": "b4a11763"
+      }
+    },
+    "ewasm": { "wasm": "" },
+    "metadata": "{\"compiler\":{\"version\":\"0.8.11+commit.d7f03943\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"requestId\",\"type\":\"uint64\"}],\"name\":\"executeRequestExpiration\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"requestId\",\"type\":\"uint64\"}],\"name\":\"fulfillRequest\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"requestId\",\"type\":\"uint64\"},{\"internalType\":\"uint256\",\"name\":\"feeIncrease\",\"type\":\"uint256\"}],\"name\":\"increaseRequestFee\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"relayBlockNumber\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"relayEpochIndex\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"refundAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"internalType\":\"uint64\",\"name\":\"gasLimit\",\"type\":\"uint64\"},{\"internalType\":\"bytes32\",\"name\":\"salt\",\"type\":\"bytes32\"},{\"internalType\":\"uint64\",\"name\":\"numBlocks\",\"type\":\"uint64\"}],\"name\":\"requestBabeRandomnessCurrentBlock\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"refundAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"internalType\":\"uint64\",\"name\":\"gasLimit\",\"type\":\"uint64\"},{\"internalType\":\"bytes32\",\"name\":\"salt\",\"type\":\"bytes32\"}],\"name\":\"requestBabeRandomnessOneEpochAgo\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"refundAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"internalType\":\"uint64\",\"name\":\"gasLimit\",\"type\":\"uint64\"},{\"internalType\":\"bytes32\",\"name\":\"salt\",\"type\":\"bytes32\"}],\"name\":\"requestBabeRandomnessTwoEpochsAgo\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"refundAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"internalType\":\"uint64\",\"name\":\"gasLimit\",\"type\":\"uint64\"},{\"internalType\":\"bytes32\",\"name\":\"salt\",\"type\":\"bytes32\"},{\"internalType\":\"uint64\",\"name\":\"numBlocks\",\"type\":\"uint64\"}],\"name\":\"requestLocalRandomness\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"executeRequestExpiration(uint64)\":{\"params\":{\"requestId\":\"Request to be purged by caller Selector: 8fcdcc49\"}},\"fulfillRequest(uint64)\":{\"params\":{\"requestId\":\"Request to be fulfilled by caller Selector: b9904a86\"}},\"increaseRequestFee(uint64,uint256)\":{\"params\":{\"feeIncrease\":\"Amount to increase fee Selector: 6a5b3380\",\"requestId\":\"Request to be increased fee by caller\"}},\"relayBlockNumber()\":{\"details\":\"Interface for all randomness consumersGet relay block number\",\"returns\":{\"_0\":\"The relay block number Selector: edfec347\"}},\"relayEpochIndex()\":{\"details\":\"Get relay epoch index\",\"returns\":{\"_0\":\"The relay epoch index Selector: 81797566\"}},\"requestBabeRandomnessCurrentBlock(address,uint256,uint64,bytes32,uint64)\":{\"params\":{\"fee\":\"Amount to set aside to pay for the subcall\",\"gasLimit\":\"Gas limit for the subcall that provides randomness\",\"numBlocks\":\"Number of relay chain blocks in the future the request is for Selector: c4921133\",\"refundAddress\":\"Address to refund with fee less cost of subcall\",\"salt\":\"Salt to be mixed with raw randomness to get output\"}},\"requestBabeRandomnessOneEpochAgo(address,uint256,uint64,bytes32)\":{\"params\":{\"fee\":\"Amount to set aside to pay for the subcall\",\"gasLimit\":\"Gas limit for the subcall that provides randomness\",\"refundAddress\":\"Address to refund\",\"salt\":\"Salt to be mixed with raw randomness to get output Selector: bbc9e95f\"}},\"requestBabeRandomnessTwoEpochsAgo(address,uint256,uint64,bytes32)\":{\"params\":{\"fee\":\"Amount to set aside to pay for the subcall\",\"gasLimit\":\"Gas limit for the subcall that provides randomness\",\"refundAddress\":\"Address to refund\",\"salt\":\"Salt to be mixed with raw randomness to get output Selector: 25b14a0b\"}},\"requestLocalRandomness(address,uint256,uint64,bytes32,uint64)\":{\"params\":{\"fee\":\"Amount to set aside to pay for the subcall\",\"gasLimit\":\"Gas limit for the subcall that provides randomness\",\"numBlocks\":\"Number of blocks in the future the request is for Selector: b4a11763\",\"refundAddress\":\"Address to refund\",\"salt\":\"Salt to be mixed with raw randomness to get output\"}}},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"main.sol\":\"Randomness\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"main.sol\":{\"keccak256\":\"0x3b7f3008a4cdde1d0c77b341a8bed66edfdc4f25274a330b85b53a2a5452597a\",\"license\":\"GPL-3.0-only\",\"urls\":[\"bzz-raw://bb676ecb02b76612fe748ad233bd3f87723cb645ec4509c25493db770dbe4a40\",\"dweb:/ipfs/QmU7HNWEXS7PCwzFRfGV4mHMpMw6f1eBEuMRvkc7F9UToB\"]}},\"version\":1}",
+    "storageLayout": { "storage": [], "types": null },
+    "userdoc": { "kind": "user", "methods": {}, "version": 1 }
+  },
+  "sourceCode": "// SPDX-License-Identifier: GPL-3.0-only\npragma solidity >=0.8.0;\n\ninterface Randomness {\n    /// @dev Interface for all randomness consumers\n    ///\n    /// @dev Get relay block number\n    /// @return The relay block number\n    /// Selector: edfec347\n    function relayBlockNumber() external view returns (uint64);\n\n    /// @dev Get relay epoch index\n    /// @return The relay epoch index\n    /// Selector: 81797566\n    function relayEpochIndex() external view returns (uint64);\n\n    /// @param refundAddress Address to refund with fee less cost of subcall\n    /// @param fee Amount to set aside to pay for the subcall\n    /// @param gasLimit Gas limit for the subcall that provides randomness\n    /// @param salt Salt to be mixed with raw randomness to get output\n    /// @param numBlocks Number of relay chain blocks in the future the request is for\n    /// Selector: c4921133\n    function requestBabeRandomnessCurrentBlock(\n        address refundAddress,\n        uint256 fee,\n        uint64 gasLimit,\n        bytes32 salt,\n        uint64 numBlocks\n    ) external;\n\n    /// @param refundAddress Address to refund\n    /// @param fee Amount to set aside to pay for the subcall\n    /// @param gasLimit Gas limit for the subcall that provides randomness\n    /// @param salt Salt to be mixed with raw randomness to get output\n    /// Selector: bbc9e95f\n    function requestBabeRandomnessOneEpochAgo(\n        address refundAddress,\n        uint256 fee,\n        uint64 gasLimit,\n        bytes32 salt\n    ) external;\n\n    /// @param refundAddress Address to refund\n    /// @param fee Amount to set aside to pay for the subcall\n    /// @param gasLimit Gas limit for the subcall that provides randomness\n    /// @param salt Salt to be mixed with raw randomness to get output\n    /// Selector: 25b14a0b\n    function requestBabeRandomnessTwoEpochsAgo(\n        address refundAddress,\n        uint256 fee,\n        uint64 gasLimit,\n        bytes32 salt\n    ) external;\n\n    /// @param refundAddress Address to refund\n    /// @param fee Amount to set aside to pay for the subcall\n    /// @param gasLimit Gas limit for the subcall that provides randomness\n    /// @param salt Salt to be mixed with raw randomness to get output\n    /// @param numBlocks Number of blocks in the future the request is for\n    /// Selector: b4a11763\n    function requestLocalRandomness(\n        address refundAddress,\n        uint256 fee,\n        uint64 gasLimit,\n        bytes32 salt,\n        uint64 numBlocks\n    ) external;\n\n    /// @param requestId Request to be fulfilled by caller\n    /// Selector: b9904a86\n    function fulfillRequest(uint64 requestId) external;\n\n    /// @param requestId Request to be increased fee by caller\n    /// @param feeIncrease Amount to increase fee\n    /// Selector: 6a5b3380\n    function increaseRequestFee(uint64 requestId, uint256 feeIncrease) external;\n\n    /// @param requestId Request to be purged by caller\n    /// Selector: 8fcdcc49\n    function executeRequestExpiration(uint64 requestId) external;\n}\n"
+}
