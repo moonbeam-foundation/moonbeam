@@ -22,6 +22,8 @@ use frame_support::pallet;
 
 pub use pallet::*;
 
+#[cfg(any(test, feature = "runtime-benchmarks"))]
+mod benchmarks;
 pub mod types;
 pub mod vrf;
 pub use types::*;
