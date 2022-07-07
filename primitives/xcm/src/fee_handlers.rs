@@ -92,7 +92,7 @@ impl<
 					let unused = payment
 						.checked_sub(required)
 						.map_err(|_| XcmError::TooExpensive)?;
-					self.0 = self.0.saturating_add(weight);
+					self.0 = self.0.saturating_add(weight); // XXX: should do all sanity checks first
 
 					// In case the asset matches the one the trader already stored before, add
 					// to later refund
@@ -115,7 +115,7 @@ impl<
 
 					// Due to the trait bound, we can only refund one asset.
 					if let Some(new_asset) = new_asset {
-						self.0 = self.0.saturating_add(weight);
+						self.0 = self.0.saturating_add(weight); // XXX: this is duplicated
 						self.1 = Some(new_asset);
 					};
 					return Ok(unused);
@@ -135,11 +135,12 @@ impl<
 			let amount = units_per_second * (weight as u128) / (WEIGHT_PER_SECOND as u128);
 			self.1 = Some((
 				id.clone(),
-				prev_amount.saturating_sub(amount),
+				prev_amount.saturating_sub(amount), // XXX: should handle this going negative
 				units_per_second,
 			));
 			Some(MultiAsset {
-				fun: Fungibility::Fungible(amount),
+				fun: Fungibility::Fungible(amount), // XXX: amount should be checked 
+                                                    // XXX: also, can't be 0 or will panic in debug
 				id: xcmAssetId::Concrete(id.clone()),
 			})
 		} else {
