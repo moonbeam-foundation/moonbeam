@@ -124,8 +124,8 @@ impl<
 				units_per_second,
 			));
 			Some(MultiAsset {
-				fun: Fungibility::Fungible(amount), // XXX: amount should be checked 
-													// XXX: also, can't be 0 or will panic in debug
+				fun: Fungibility::Fungible(amount), // XXX: amount should be checked
+				// XXX: also, can't be 0 or will panic in debug
 				id: xcmAssetId::Concrete(id.clone()),
 			})
 		} else {
@@ -189,11 +189,13 @@ pub trait UnitsToWeightRatio<AssetType> {
 #[cfg(test)]
 mod test {
 	use super::*;
-	use xcm::latest::{AssetId, Junction, Junctions, Fungibility};
+	use xcm::latest::{AssetId, Fungibility, Junction, Junctions};
 	use xcm_executor::Assets;
 
 	impl UnitsToWeightRatio<MultiLocation> for () {
-		fn payment_is_supported(_asset_type: MultiLocation) -> bool { true }
+		fn payment_is_supported(_asset_type: MultiLocation) -> bool {
+			true
+		}
 		fn get_units_per_second(_asset_type: MultiLocation) -> Option<u128> {
 			// return WEIGHT_PER_SECOND to cancel the division out in buy_weight()
 			// this should make weight and payment amounts directly comparable
@@ -215,7 +217,8 @@ mod test {
 		});
 
 		let mut trader: FirstAssetTrader<MultiLocation, (), ()> = FirstAssetTrader::new();
-		let unused = trader.buy_weight(amount as Weight, payment.clone())
+		let unused = trader
+			.buy_weight(amount as Weight, payment.clone())
 			.expect("can buy weight once");
 		assert!(unused.is_empty());
 		assert_eq!(trader.0, 1000u64);
@@ -223,7 +226,6 @@ mod test {
 
 	#[test]
 	fn cant_call_buy_weight_twice() {
-
 		let mut trader: FirstAssetTrader<MultiLocation, (), ()> = FirstAssetTrader::new();
 
 		// should be able to buy once
@@ -235,14 +237,21 @@ mod test {
 			}),
 			fun: Fungibility::Fungible(100u128),
 		});
-		let buy_one_results = trader.buy_weight(100u32 as Weight, asset_one_payment.clone())
+		let buy_one_results = trader
+			.buy_weight(100u32 as Weight, asset_one_payment.clone())
 			.expect("can buy weight once");
 		assert_eq!(buy_one_results.fungible.len(), 0); // no unused amount
 		assert_eq!(trader.0, 100u64);
-		assert_eq!(trader.1, Some((
-					MultiLocation { parents: 0u8, interior: Junctions::X1(Junction::Parachain(1000)) },
-					100,
-					WEIGHT_PER_SECOND as u128))
+		assert_eq!(
+			trader.1,
+			Some((
+				MultiLocation {
+					parents: 0u8,
+					interior: Junctions::X1(Junction::Parachain(1000))
+				},
+				100,
+				WEIGHT_PER_SECOND as u128
+			))
 		);
 
 		// but not twice
@@ -261,12 +270,16 @@ mod test {
 
 		// state should be unchanged
 		assert_eq!(trader.0, 100u64);
-		assert_eq!(trader.1, Some((
-					MultiLocation { parents: 0u8, interior: Junctions::X1(Junction::Parachain(1000)) },
-					100,
-					WEIGHT_PER_SECOND as u128))
+		assert_eq!(
+			trader.1,
+			Some((
+				MultiLocation {
+					parents: 0u8,
+					interior: Junctions::X1(Junction::Parachain(1000))
+				},
+				100,
+				WEIGHT_PER_SECOND as u128
+			))
 		);
-
 	}
-
 }
