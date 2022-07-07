@@ -74,7 +74,7 @@ then
     MOONBEAM_CLIENT_TAG=`curl -s https://api.github.com/repos/purestake/moonbeam/releases | jq -r '.[] | .tag_name' | grep '^v' | head -1`
     POLKADOT_CLIENT_TAG=`curl -s https://api.github.com/repos/paritytech/polkadot/releases | jq -r '.[] | .tag_name' | grep '^v' | head -1`
 
-    if [[ ! -f $BINARY_PATH ]]
+    if [[ ! -f $BINARY_PATH && $BINARY_PATH != "target/release/moonbeam" ]]
     then
         echo "Downloading moonbeam ${MOONBEAM_CLIENT_TAG}"
         wget -q https://github.com/PureStake/moonbeam/releases/download/${MOONBEAM_CLIENT_TAG}/moonbeam \
@@ -89,11 +89,6 @@ then
             -O $RELAY_BINARY_PATH
         chmod uog+x $RELAY_BINARY_PATH
     fi
-
-    echo " - moonbeam binary: $BINARY_PATH"
-    echo "   - $($BINARY_PATH --version)"
-    echo " - polkadot binary: $RELAY_BINARY_PATH"
-    echo "   - $($RELAY_BINARY_PATH --version)"
 
     echo "Retrieving ${NETWORK} state... (few minutes)"
     wget -q https://s3.us-east-2.amazonaws.com/snapshots.moonbeam.network/${NETWORK}/latest/${NETWORK}-state.json \
@@ -124,6 +119,10 @@ then
     npm ci
 fi
 
+echo " - moonbeam binary: $BINARY_PATH"
+echo "   - $($BINARY_PATH --version)"
+echo " - polkadot binary: $RELAY_BINARY_PATH"
+echo "   - $($RELAY_BINARY_PATH --version)"
 
 if [[ $SKIP_STATE_MODIFICATION != true ]]
 then
