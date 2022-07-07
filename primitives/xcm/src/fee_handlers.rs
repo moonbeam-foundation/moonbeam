@@ -85,6 +85,13 @@ impl<
 						return Ok(payment);
 					}
 
+					// can only call one time
+					if self.1.is_some() {
+						// TODO: better error
+						return Err(XcmError::NotWithdrawable);
+					}
+					assert_eq!(self.0, 0);
+
 					let required = MultiAsset {
 						fun: Fungibility::Fungible(amount),
 						id: xcmAssetId::Concrete(id.clone()),
@@ -92,32 +99,10 @@ impl<
 					let unused = payment
 						.checked_sub(required)
 						.map_err(|_| XcmError::TooExpensive)?;
-					self.0 = self.0.saturating_add(weight); // XXX: should do all sanity checks first
 
-					// In case the asset matches the one the trader already stored before, add
-					// to later refund
+					self.0 = weight;
+					self.1 = Some((id, amount, units_per_second));
 
-					// Else we are always going to subtract the weight if we can, but we latter do
-					// not refund it
-
-					// In short, we only refund on the asset the trader first successfully was able
-					// to pay for an execution
-					let new_asset = match self.1.clone() {
-						Some((prev_id, prev_amount, units_per_second)) => {
-							if prev_id == id.clone() {
-								Some((id, prev_amount.saturating_add(amount), units_per_second))
-							} else {
-								None
-							}
-						}
-						None => Some((id, amount, units_per_second)),
-					};
-
-					// Due to the trait bound, we can only refund one asset.
-					if let Some(new_asset) = new_asset {
-						self.0 = self.0.saturating_add(weight); // XXX: this is duplicated
-						self.1 = Some(new_asset);
-					};
 					return Ok(unused);
 				} else {
 					return Err(XcmError::TooExpensive);
