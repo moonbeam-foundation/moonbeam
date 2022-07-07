@@ -206,8 +206,8 @@ mod test {
 	use xcm::latest::{AssetId, Junctions, Fungibility};
 
 	impl UnitsToWeightRatio<MultiLocation> for () {
-		fn payment_is_supported(asset_type: MultiLocation) -> bool { true }
-		fn get_units_per_second(asset_type: MultiLocation) -> Option<u128> {
+		fn payment_is_supported(_asset_type: MultiLocation) -> bool { true }
+		fn get_units_per_second(_asset_type: MultiLocation) -> Option<u128> {
 			// return WEIGHT_PER_SECOND to cancel the division out in buy_weight()
 			// this should make weight and payment amounts directly comparable
 			Some(WEIGHT_PER_SECOND as u128)
