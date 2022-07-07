@@ -56,6 +56,13 @@ impl<
 		weight: Weight,
 		payment: xcm_executor::Assets,
 	) -> Result<xcm_executor::Assets, XcmError> {
+		// can only call one time
+		if self.1.is_some() {
+			// TODO: better error
+			return Err(XcmError::NotWithdrawable);
+		}
+
+		assert_eq!(self.0, 0);
 		let first_asset = payment
 			.clone()
 			.fungible_assets_iter()
@@ -84,13 +91,6 @@ impl<
 					if amount.is_zero() {
 						return Ok(payment);
 					}
-
-					// can only call one time
-					if self.1.is_some() {
-						// TODO: better error
-						return Err(XcmError::NotWithdrawable);
-					}
-					assert_eq!(self.0, 0);
 
 					let required = MultiAsset {
 						fun: Fungibility::Fungible(amount),
