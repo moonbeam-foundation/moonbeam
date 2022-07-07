@@ -125,7 +125,7 @@ impl<
 			));
 			Some(MultiAsset {
 				fun: Fungibility::Fungible(amount), // XXX: amount should be checked 
-                                                    // XXX: also, can't be 0 or will panic in debug
+													// XXX: also, can't be 0 or will panic in debug
 				id: xcmAssetId::Concrete(id.clone()),
 			})
 		} else {
@@ -190,7 +190,7 @@ pub trait UnitsToWeightRatio<AssetType> {
 mod test {
 	use super::*;
 	use xcm::latest::{AssetId, Junction, Junctions, Fungibility};
-    use xcm_executor::Assets;
+	use xcm_executor::Assets;
 
 	impl UnitsToWeightRatio<MultiLocation> for () {
 		fn payment_is_supported(_asset_type: MultiLocation) -> bool { true }
@@ -215,18 +215,19 @@ mod test {
 		});
 
 		let mut trader: FirstAssetTrader<MultiLocation, (), ()> = FirstAssetTrader::new();
-		let unused = trader.buy_weight(amount as Weight, payment.clone()).expect("can buy weight");
+		let unused = trader.buy_weight(amount as Weight, payment.clone())
+			.expect("can buy weight once");
 		assert!(unused.is_empty());
 		assert_eq!(trader.0, 1000u64);
 	}
 
-    #[test]
-    fn cant_mint_when_calling_buy_weight_with_different_types() {
+	#[test]
+	fn cant_call_buy_weight_twice() {
 
 		let mut trader: FirstAssetTrader<MultiLocation, (), ()> = FirstAssetTrader::new();
 
-        // first buy_weight in one asset with a small amount
-        let mut asset_one_payment = Assets::new();
+		// should be able to buy once
+		let mut asset_one_payment = Assets::new();
 		asset_one_payment.subsume(MultiAsset {
 			id: AssetId::Concrete(MultiLocation {
 				parents: 0u8,
@@ -234,12 +235,18 @@ mod test {
 			}),
 			fun: Fungibility::Fungible(100u128),
 		});
-        let buy_one_results = trader.buy_weight(100u32 as Weight, asset_one_payment.clone())
-            .expect("can buy weight");
-        assert_eq!(buy_one_results.fungible.len(), 0);
+		let buy_one_results = trader.buy_weight(100u32 as Weight, asset_one_payment.clone())
+			.expect("can buy weight once");
+		assert_eq!(buy_one_results.fungible.len(), 0); // no unused amount
+		assert_eq!(trader.0, 100u64);
+		assert_eq!(trader.1, Some((
+					MultiLocation { parents: 0u8, interior: Junctions::X1(Junction::Parachain(1000)) },
+					100,
+					WEIGHT_PER_SECOND as u128))
+		);
 
-        // then buy_weight in a second asset with a larger amount
-        let mut asset_two_payment = xcm_executor::Assets::new();
+		// but not twice
+		let mut asset_two_payment = xcm_executor::Assets::new();
 		asset_two_payment.subsume(MultiAsset {
 			id: AssetId::Concrete(MultiLocation {
 				parents: 0u8,
@@ -247,13 +254,19 @@ mod test {
 			}),
 			fun: Fungibility::Fungible(10_000u128),
 		});
-        let buy_two_results = trader.buy_weight(10_000u32 as Weight, asset_two_payment.clone())
-            .expect("can buy weight again"); // TODO: this should fail!
-        assert_eq!(buy_two_results.fungible.len(), 0);
+		assert_eq!(
+			trader.buy_weight(10_000u32 as Weight, asset_two_payment.clone()),
+			Err(XcmError::NotWithdrawable),
+		);
 
-        let result = trader.refund_weight(9_999u32 as Weight);
+		// state should be unchanged
+		assert_eq!(trader.0, 100u64);
+		assert_eq!(trader.1, Some((
+					MultiLocation { parents: 0u8, interior: Junctions::X1(Junction::Parachain(1000)) },
+					100,
+					WEIGHT_PER_SECOND as u128))
+		);
 
-        // TODO: assert about weight refunded and FirstAssetTrader's state
-    }
+	}
 
 }
