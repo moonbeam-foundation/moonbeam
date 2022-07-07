@@ -17,9 +17,10 @@
 #![cfg(feature = "runtime-benchmarks")]
 
 //! Benchmarking
-use crate::{BalanceOf, Config, Pallet, RandomnessResults, Request, RequestType};
+use crate::{BalanceOf, Call, Config, Pallet, RandomnessResults, Request, RequestType};
 use frame_benchmarking::{benchmarks, impl_benchmark_test_suite, Zero};
 use frame_support::traits::{Currency, Get};
+use frame_system::RawOrigin;
 use pallet_evm::AddressMapping;
 use sp_core::{H160, H256};
 use sp_runtime::traits::One;
@@ -32,6 +33,22 @@ fn fund_user<T: Config>(user: H160, fee: BalanceOf<T>) {
 }
 
 benchmarks! {
+	set_babe_randomness_results {}: _(RawOrigin::None)
+	verify { }
+
+	// set_output {
+	// 	// needs to be 2nd block to reflect expected costs every block
+	// 	crate::vrf::set_input::<T>();
+	// 	crate::vrf::set_output::<T>();
+	// 	crate::vrf::set_input::<T>();
+	// }: {
+	// 	// TODO: how to mock digests to insert Vrf PreDigest into digests
+	// 	let mut digests = frame_system::Pallet::<T>::digests().unwrap();
+	// 	// next push the expected PreDigest into the digests
+	// 	crate::vrf::set_output::<T>();
+	// }
+	// verify {}
+
 	request_randomness {
 		let fee = <<T as Config>::Deposit as Get<BalanceOf<T>>>::get();
 		fund_user::<T>(H160::default(), fee);

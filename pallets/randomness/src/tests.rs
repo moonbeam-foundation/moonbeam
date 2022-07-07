@@ -378,10 +378,29 @@ fn request_randomness_increments_randomness_result() {
 
 // PREPARE FULFILLMENT
 
+// #[test]
+// fn prepare_fulfillment_fails_before_can_be_fulfilled() {
+
+// }
+
+// #[test]
+// fn prepare_fulfillment_uses_randomness_result_without_changing_count() {
+
+// }
+
 // FINISH FULFILLMENT
+
+// finish fulfillment decrements randomness result and will remove it if last
+// test both cases separately
 
 // INCREASE REQUEST FEE
 
+// increase request fee updates the request fee
+
 // EXECUTE REQUEST EXPIRATION
+
+// execute request expiration fails before expired
+
+// execute request expiration succeeds
 
 // ON INITIALIZE LOGIC AND HOOKS
