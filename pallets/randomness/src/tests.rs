@@ -413,15 +413,89 @@ fn request_randomness_increments_randomness_result() {
 
 // PREPARE FULFILLMENT
 
-// #[test]
-// fn prepare_fulfillment_fails_before_can_be_fulfilled() {
+#[test]
+fn prepare_fulfillment_for_local_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(ALICE, 30)])
+		.build()
+		.execute_with(|| {
+			let request = Request {
+				refund_address: BOB.into(),
+				contract_address: ALICE.into(),
+				fee: 5,
+				gas_limit: 100u64,
+				salt: H256::default(),
+				info: RequestType::Local(16u64),
+			};
+			assert_ok!(Randomness::request_randomness(request));
+			System::set_block_number(16u64);
+			let mut result =
+				crate::pallet::RandomnessResults::<Test>::get(RequestType::Local(16u64)).unwrap();
+			result.randomness = Some(H256::default());
+			crate::pallet::RandomnessResults::<Test>::insert(RequestType::Local(16u64), result);
+			assert_ok!(Randomness::prepare_fulfillment(0u64));
+		});
+}
 
-// }
+#[test]
+fn prepare_fulfillment_fails_before_can_be_fulfilled() {
+	ExtBuilder::default()
+		.with_balances(vec![(ALICE, 30)])
+		.build()
+		.execute_with(|| {
+			let request = Request {
+				refund_address: BOB.into(),
+				contract_address: ALICE.into(),
+				fee: 5,
+				gas_limit: 100u64,
+				salt: H256::default(),
+				info: RequestType::Local(16u64),
+			};
+			assert_ok!(Randomness::request_randomness(request.clone()));
+			assert_ok!(Randomness::request_randomness(request));
+			assert_noop!(
+				Randomness::prepare_fulfillment(0u64),
+				Error::<Test>::RequestCannotYetBeFulfilled
+			);
+		});
+}
 
-// #[test]
-// fn prepare_fulfillment_uses_randomness_result_without_changing_count() {
+#[test]
+fn prepare_fulfillment_fails_if_request_dne() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_noop!(
+			Randomness::prepare_fulfillment(0u64),
+			Error::<Test>::RequestDNE
+		);
+	});
+}
 
-// }
+#[test]
+fn prepare_fulfillment_uses_randomness_result_without_updating_count() {
+	ExtBuilder::default()
+		.with_balances(vec![(ALICE, 30)])
+		.build()
+		.execute_with(|| {
+			let request = Request {
+				refund_address: BOB.into(),
+				contract_address: ALICE.into(),
+				fee: 5,
+				gas_limit: 100u64,
+				salt: H256::default(),
+				info: RequestType::Local(16u64),
+			};
+			assert_ok!(Randomness::request_randomness(request));
+			System::set_block_number(16u64);
+			let mut pre_result =
+				crate::pallet::RandomnessResults::<Test>::get(RequestType::Local(16u64)).unwrap();
+			pre_result.randomness = Some(H256::default());
+			crate::pallet::RandomnessResults::<Test>::insert(RequestType::Local(16u64), pre_result);
+			assert_ok!(Randomness::prepare_fulfillment(0u64));
+			let post_result =
+				crate::pallet::RandomnessResults::<Test>::get(RequestType::Local(16u64)).unwrap();
+			assert_eq!(post_result.request_count, 1);
+		});
+}
 
 // FINISH FULFILLMENT
 
