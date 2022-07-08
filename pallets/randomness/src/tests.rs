@@ -497,6 +497,14 @@ fn prepare_fulfillment_uses_randomness_result_without_updating_count() {
 		});
 }
 
+#[test]
+fn set_babe_randomness_results_is_mandatory() {
+	use frame_support::weights::{DispatchClass, GetDispatchInfo};
+
+	let info = crate::Call::<Test>::set_babe_randomness_results {}.get_dispatch_info();
+	assert_eq!(info.class, DispatchClass::Mandatory);
+}
+
 // FINISH FULFILLMENT
 
 // finish fulfillment decrements randomness result and will remove it if last
