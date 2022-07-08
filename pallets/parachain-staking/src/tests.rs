@@ -8900,6 +8900,7 @@ fn test_delegation_request_exists_returns_true_when_revoke_exists() {
 		});
 }
 
+#[test]
 fn test_delegation_request_revoke_exists_returns_false_when_nothing_exists() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 25)])
@@ -9007,6 +9008,7 @@ fn test_hotfix_remove_delegation_requests_exited_candidates_cleans_up_only_speci
 		});
 }
 
+#[test]
 fn test_hotfix_remove_delegation_requests_exited_candidates_errors_when_requests_not_empty() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20)])
@@ -9037,6 +9039,7 @@ fn test_hotfix_remove_delegation_requests_exited_candidates_errors_when_requests
 		});
 }
 
+#[test]
 fn test_hotfix_remove_delegation_requests_exited_candidates_errors_when_candidate_not_exited() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20)])
