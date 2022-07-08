@@ -50,8 +50,8 @@ pub trait GetBabeData<BlockNumber, EpochIndex, Randomness> {
 pub mod pallet {
 	use super::*;
 	// use crate::WeightInfo;
-	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{Currency, ExistenceRequirement::KeepAlive};
+	use frame_support::{pallet_prelude::*, PalletId};
 	use frame_system::pallet_prelude::*;
 	use nimbus_primitives::NimbusId;
 	use pallet_evm::AddressMapping;
@@ -60,8 +60,11 @@ pub mod pallet {
 	};
 	use sp_consensus_babe::Slot;
 	use sp_core::{H160, H256};
-	use sp_runtime::traits::Saturating;
+	use sp_runtime::traits::{AccountIdConversion, Saturating};
 	use sp_std::{convert::TryInto, vec::Vec};
+
+	/// The Randomness's pallet id
+	pub const PALLET_ID: PalletId = PalletId(*b"moonrand");
 
 	/// Request identifier, unique per request for randomness
 	pub type RequestId = u64;
@@ -88,8 +91,6 @@ pub mod pallet {
 		type VrfInputGetter: GetVrfInput<VrfInput<Slot, Self::Hash>>;
 		/// Takes NimbusId to return VrfId
 		type VrfKeyLookup: KeysLookup<NimbusId, VrfId>;
-		/// Account to hold all reserved funds
-		type ReserveAccount: Get<Self::AccountId>;
 		#[pallet::constant]
 		/// The amount that should be taken as a security deposit when requesting randomness.
 		type Deposit: Get<BalanceOf<Self>>;
@@ -327,6 +328,14 @@ pub mod pallet {
 
 	// Utility function
 	impl<T: Config> Pallet<T> {
+		pub fn account_id() -> T::AccountId {
+			PALLET_ID.into_account_truncating()
+		}
+		pub fn total_locked() -> BalanceOf<T> {
+			// free balance is usable balance for the pallet account as it is not controlled
+			// by anyone so will never be locked
+			T::Currency::free_balance(&Self::account_id())
+		}
 		pub(crate) fn concat_and_hash(a: T::Hash, b: H256) -> [u8; 32] {
 			let mut s = Vec::new();
 			s.extend_from_slice(a.as_ref());
@@ -353,7 +362,7 @@ pub mod pallet {
 			// send deposit to reserve account
 			T::Currency::transfer(
 				&contract_address,
-				&T::ReserveAccount::get(),
+				&Self::account_id(),
 				total_to_reserve,
 				KeepAlive,
 			)?;

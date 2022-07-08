@@ -185,7 +185,7 @@ impl<T: Config> Request<T> {
 		if let Some(excess) = refundable_amount.checked_sub(&cost_of_execution) {
 			// send excess to refund address
 			T::Currency::transfer(
-				&T::ReserveAccount::get(),
+				&Pallet::<T>::account_id(),
 				&T::AddressMapping::into_account_id(self.refund_address),
 				excess,
 				KeepAlive,
@@ -194,7 +194,7 @@ impl<T: Config> Request<T> {
 		}
 		// refund cost_of_execution to caller of `fulfill`
 		T::Currency::transfer(
-			&T::ReserveAccount::get(),
+			&Pallet::<T>::account_id(),
 			&T::AddressMapping::into_account_id(caller.clone()),
 			cost_of_execution,
 			KeepAlive,
@@ -266,7 +266,7 @@ impl<T: Config> RequestState<T> {
 			.checked_add(&fee_increase)
 			.ok_or(Error::<T>::RequestFeeOverflowed)?;
 		let caller = T::AddressMapping::into_account_id(caller.clone());
-		T::Currency::transfer(&caller, &T::ReserveAccount::get(), fee_increase, KeepAlive)?;
+		T::Currency::transfer(&caller, &Pallet::<T>::account_id(), fee_increase, KeepAlive)?;
 		self.request.fee = new_fee;
 		Ok(new_fee)
 	}
@@ -281,14 +281,14 @@ impl<T: Config> RequestState<T> {
 			T::AddressMapping::into_account_id(self.request.contract_address.clone());
 		// TODO: is it worth optimizing when caller == contract_address to do one transfer here
 		T::Currency::transfer(
-			&T::ReserveAccount::get(),
+			&Pallet::<T>::account_id(),
 			&contract_address,
 			self.deposit,
 			KeepAlive,
 		)
 		.expect("expect transferrable deposit + fee, transferring deposit");
 		T::Currency::transfer(
-			&T::ReserveAccount::get(),
+			&Pallet::<T>::account_id(),
 			caller,
 			self.request.fee,
 			KeepAlive,

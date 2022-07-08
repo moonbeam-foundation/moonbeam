@@ -18,13 +18,16 @@
 use crate::mock::*;
 use crate::*;
 use frame_support::{assert_noop, assert_ok};
-use sp_core::H256;
+use sp_core::{H160, H256};
+
+pub const ALICE: H160 = H160::repeat_byte(0xAA);
+pub const BOB: H160 = H160::repeat_byte(0xBB);
 
 /// Helps test same effects for all 4 variants of RequestType
 fn build_default_request(info: RequestType<Test>) -> Request<Test> {
 	Request {
-		refund_address: Account::Bob.into(),
-		contract_address: Account::Alice.into(),
+		refund_address: BOB,
+		contract_address: ALICE,
 		fee: 5,
 		gas_limit: 100u64,
 		salt: H256::default(),
@@ -37,7 +40,7 @@ fn build_default_request(info: RequestType<Test>) -> Request<Test> {
 #[test]
 fn cannot_make_request_already_fulfillable() {
 	ExtBuilder::default()
-		.with_balances(vec![(Account::Alice, 15)])
+		.with_balances(vec![(ALICE, 15)])
 		.build()
 		.execute_with(|| {
 			let request = build_default_request(RequestType::BabeCurrentBlock(0u64));
@@ -66,7 +69,7 @@ fn cannot_make_request_already_fulfillable() {
 #[test]
 fn cannot_make_request_with_less_than_deposit() {
 	ExtBuilder::default()
-		.with_balances(vec![(Account::Alice, 9)])
+		.with_balances(vec![(ALICE, 9)])
 		.build()
 		.execute_with(|| {
 			let request = build_default_request(RequestType::BabeCurrentBlock(16u64));
@@ -111,7 +114,7 @@ fn cannot_make_request_with_less_than_deposit() {
 #[test]
 fn cannot_make_request_with_less_than_deposit_plus_fee() {
 	ExtBuilder::default()
-		.with_balances(vec![(Account::Alice, 14)])
+		.with_balances(vec![(ALICE, 14)])
 		.build()
 		.execute_with(|| {
 			let request = build_default_request(RequestType::BabeCurrentBlock(16u64));
@@ -156,34 +159,34 @@ fn cannot_make_request_with_less_than_deposit_plus_fee() {
 #[test]
 fn request_reserves_deposit_and_fee() {
 	ExtBuilder::default()
-		.with_balances(vec![(Account::Alice, 60)])
+		.with_balances(vec![(ALICE, 60)])
 		.build()
 		.execute_with(|| {
-			assert_eq!(Balances::usable_balance(&Account::Precompile), 0);
-			assert_eq!(Balances::usable_balance(&Account::Alice), 60);
+			assert_eq!(Randomness::total_locked(), 0);
+			assert_eq!(Balances::free_balance(&ALICE), 60);
 			let request = build_default_request(RequestType::BabeCurrentBlock(16u64));
 			assert_ok!(Randomness::request_randomness(request));
-			assert_eq!(Balances::usable_balance(&Account::Precompile), 15);
-			assert_eq!(Balances::usable_balance(&Account::Alice), 45);
+			assert_eq!(Randomness::total_locked(), 15);
+			assert_eq!(Balances::free_balance(&ALICE), 45);
 			let request = build_default_request(RequestType::BabeOneEpochAgo(16u64));
 			assert_ok!(Randomness::request_randomness(request));
-			assert_eq!(Balances::usable_balance(&Account::Precompile), 30);
-			assert_eq!(Balances::usable_balance(&Account::Alice), 30);
+			assert_eq!(Randomness::total_locked(), 30);
+			assert_eq!(Balances::free_balance(&ALICE), 30);
 			let request = build_default_request(RequestType::BabeTwoEpochsAgo(16u64));
 			assert_ok!(Randomness::request_randomness(request));
-			assert_eq!(Balances::usable_balance(&Account::Precompile), 45);
-			assert_eq!(Balances::usable_balance(&Account::Alice), 15);
+			assert_eq!(Randomness::total_locked(), 45);
+			assert_eq!(Balances::free_balance(&ALICE), 15);
 			let request = build_default_request(RequestType::Local(16u64));
 			assert_ok!(Randomness::request_randomness(request));
-			assert_eq!(Balances::usable_balance(&Account::Precompile), 60);
-			assert_eq!(Balances::usable_balance(&Account::Alice), 0);
+			assert_eq!(Randomness::total_locked(), 60);
+			assert_eq!(Balances::free_balance(&ALICE), 0);
 		});
 }
 
 #[test]
 fn request_babe_current_block_randomness_increments_request_counter() {
 	ExtBuilder::default()
-		.with_balances(vec![(Account::Alice, 60)])
+		.with_balances(vec![(ALICE, 60)])
 		.build()
 		.execute_with(|| {
 			let request = build_default_request(RequestType::BabeCurrentBlock(16u64));
@@ -205,7 +208,7 @@ fn request_babe_current_block_randomness_increments_request_counter() {
 #[test]
 fn request_babe_current_block_randomness_inserts_request_state() {
 	ExtBuilder::default()
-		.with_balances(vec![(Account::Alice, 60)])
+		.with_balances(vec![(ALICE, 60)])
 		.build()
 		.execute_with(|| {
 			let request = build_default_request(RequestType::BabeCurrentBlock(16u64));
@@ -260,12 +263,12 @@ fn request_babe_current_block_randomness_inserts_request_state() {
 #[test]
 fn request_babe_current_block_randomness_emits_event() {
 	ExtBuilder::default()
-		.with_balances(vec![(Account::Alice, 15)])
+		.with_balances(vec![(ALICE, 15)])
 		.build()
 		.execute_with(|| {
 			let request = Request {
-				refund_address: Account::Bob.into(),
-				contract_address: Account::Alice.into(),
+				refund_address: BOB.into(),
+				contract_address: ALICE.into(),
 				fee: 5,
 				gas_limit: 100u64,
 				salt: H256::default(),
@@ -274,8 +277,8 @@ fn request_babe_current_block_randomness_emits_event() {
 			assert_ok!(Randomness::request_randomness(request));
 			assert_event_emitted!(crate::Event::RandomnessRequestedCurrentBlock {
 				id: 0,
-				refund_address: Account::Bob.into(),
-				contract_address: Account::Alice.into(),
+				refund_address: BOB.into(),
+				contract_address: ALICE.into(),
 				fee: 5,
 				gas_limit: 100u64,
 				salt: H256::default(),
@@ -287,12 +290,12 @@ fn request_babe_current_block_randomness_emits_event() {
 #[test]
 fn request_babe_one_epoch_ago_randomness_emits_event() {
 	ExtBuilder::default()
-		.with_balances(vec![(Account::Alice, 15)])
+		.with_balances(vec![(ALICE, 15)])
 		.build()
 		.execute_with(|| {
 			let request = Request {
-				refund_address: Account::Bob.into(),
-				contract_address: Account::Alice.into(),
+				refund_address: BOB.into(),
+				contract_address: ALICE.into(),
 				fee: 5,
 				gas_limit: 100u64,
 				salt: H256::default(),
@@ -301,8 +304,8 @@ fn request_babe_one_epoch_ago_randomness_emits_event() {
 			assert_ok!(Randomness::request_randomness(request));
 			assert_event_emitted!(crate::Event::RandomnessRequestedBabeOneEpochAgo {
 				id: 0,
-				refund_address: Account::Bob.into(),
-				contract_address: Account::Alice.into(),
+				refund_address: BOB.into(),
+				contract_address: ALICE.into(),
 				fee: 5,
 				gas_limit: 100u64,
 				salt: H256::default(),
@@ -314,12 +317,12 @@ fn request_babe_one_epoch_ago_randomness_emits_event() {
 #[test]
 fn request_babe_two_epochs_ago_randomness_emits_event() {
 	ExtBuilder::default()
-		.with_balances(vec![(Account::Alice, 15)])
+		.with_balances(vec![(ALICE, 15)])
 		.build()
 		.execute_with(|| {
 			let request = Request {
-				refund_address: Account::Bob.into(),
-				contract_address: Account::Alice.into(),
+				refund_address: BOB.into(),
+				contract_address: ALICE.into(),
 				fee: 5,
 				gas_limit: 100u64,
 				salt: H256::default(),
@@ -328,8 +331,8 @@ fn request_babe_two_epochs_ago_randomness_emits_event() {
 			assert_ok!(Randomness::request_randomness(request));
 			assert_event_emitted!(crate::Event::RandomnessRequestedBabeTwoEpochsAgo {
 				id: 0,
-				refund_address: Account::Bob.into(),
-				contract_address: Account::Alice.into(),
+				refund_address: BOB.into(),
+				contract_address: ALICE.into(),
 				fee: 5,
 				gas_limit: 100u64,
 				salt: H256::default(),
@@ -341,12 +344,12 @@ fn request_babe_two_epochs_ago_randomness_emits_event() {
 #[test]
 fn request_local_randomness_emits_event() {
 	ExtBuilder::default()
-		.with_balances(vec![(Account::Alice, 15)])
+		.with_balances(vec![(ALICE, 15)])
 		.build()
 		.execute_with(|| {
 			let request = Request {
-				refund_address: Account::Bob.into(),
-				contract_address: Account::Alice.into(),
+				refund_address: BOB.into(),
+				contract_address: ALICE.into(),
 				fee: 5,
 				gas_limit: 100u64,
 				salt: H256::default(),
@@ -355,8 +358,8 @@ fn request_local_randomness_emits_event() {
 			assert_ok!(Randomness::request_randomness(request));
 			assert_event_emitted!(crate::Event::RandomnessRequestedLocal {
 				id: 0,
-				refund_address: Account::Bob.into(),
-				contract_address: Account::Alice.into(),
+				refund_address: BOB.into(),
+				contract_address: ALICE.into(),
 				fee: 5,
 				gas_limit: 100u64,
 				salt: H256::default(),
@@ -368,12 +371,12 @@ fn request_local_randomness_emits_event() {
 #[test]
 fn request_randomness_adds_new_randomness_result() {
 	ExtBuilder::default()
-		.with_balances(vec![(Account::Alice, 15)])
+		.with_balances(vec![(ALICE, 15)])
 		.build()
 		.execute_with(|| {
 			let request = Request {
-				refund_address: Account::Bob.into(),
-				contract_address: Account::Alice.into(),
+				refund_address: BOB.into(),
+				contract_address: ALICE.into(),
 				fee: 5,
 				gas_limit: 100u64,
 				salt: H256::default(),
@@ -389,12 +392,12 @@ fn request_randomness_adds_new_randomness_result() {
 #[test]
 fn request_randomness_increments_randomness_result() {
 	ExtBuilder::default()
-		.with_balances(vec![(Account::Alice, 30)])
+		.with_balances(vec![(ALICE, 30)])
 		.build()
 		.execute_with(|| {
 			let request = Request {
-				refund_address: Account::Bob.into(),
-				contract_address: Account::Alice.into(),
+				refund_address: BOB.into(),
+				contract_address: ALICE.into(),
 				fee: 5,
 				gas_limit: 100u64,
 				salt: H256::default(),

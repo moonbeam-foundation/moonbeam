@@ -23,9 +23,7 @@ use frame_support::{
 	weights::Weight,
 };
 use nimbus_primitives::NimbusId;
-use pallet_evm::AddressMapping;
-use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
-use serde::{Deserialize, Serialize};
+use pallet_evm::IdentityAddressMapping;
 use session_keys_primitives::{GetVrfInput, VrfId, VrfInput};
 use sp_consensus_babe::Slot;
 use sp_core::{H160, H256};
@@ -36,6 +34,7 @@ use sp_runtime::{
 };
 use sp_std::convert::{TryFrom, TryInto};
 
+pub type AccountId = H160;
 pub type Balance = u128;
 pub type BlockNumber = u64;
 
@@ -56,66 +55,6 @@ construct_runtime!(
 	}
 );
 
-// FRom https://github.com/PureStake/moonbeam/pull/518. Merge to common once is merged
-#[derive(
-	Eq,
-	PartialEq,
-	Ord,
-	PartialOrd,
-	Clone,
-	Encode,
-	Decode,
-	Debug,
-	MaxEncodedLen,
-	Serialize,
-	Deserialize,
-	derive_more::Display,
-	scale_info::TypeInfo,
-)]
-pub enum Account {
-	Alice,
-	Bob,
-	Charlie,
-	Bogus,
-	Precompile,
-}
-
-impl Default for Account {
-	fn default() -> Self {
-		Self::Bogus
-	}
-}
-
-impl Into<H160> for Account {
-	fn into(self) -> H160 {
-		match self {
-			Account::Alice => H160::repeat_byte(0xAA),
-			Account::Bob => H160::repeat_byte(0xBB),
-			Account::Charlie => H160::repeat_byte(0xCC),
-			Account::Bogus => H160::repeat_byte(0xDD),
-			Account::Precompile => H160::from_low_u64_be(1),
-		}
-	}
-}
-
-impl AddressMapping<Account> for Account {
-	fn into_account_id(h160_account: H160) -> Account {
-		match h160_account {
-			a if a == H160::repeat_byte(0xAA) => Self::Alice,
-			a if a == H160::repeat_byte(0xBB) => Self::Bob,
-			a if a == H160::repeat_byte(0xCC) => Self::Charlie,
-			a if a == H160::from_low_u64_be(1) => Self::Precompile,
-			_ => Self::Bogus,
-		}
-	}
-}
-
-impl From<H160> for Account {
-	fn from(x: H160) -> Account {
-		Account::into_account_id(x)
-	}
-}
-
 parameter_types! {
 	pub const BlockHashCount: u64 = 250;
 	pub const MaximumBlockWeight: Weight = 1024;
@@ -132,7 +71,7 @@ impl frame_system::Config for Test {
 	type Call = Call;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
-	type AccountId = Account;
+	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
 	type Header = Header;
 	type Event = Event;
@@ -205,16 +144,14 @@ impl GetVrfInput<VrfInput<Slot, H256>> for VrfInputGetter {
 parameter_types! {
 	pub const Deposit: u128 = 10;
 	pub const ExpirationDelay: u32 = 5;
-	pub const PrecompileAccount: Account = Account::Precompile;
 }
 impl Config for Test {
 	type Event = Event;
-	type AddressMapping = Account;
+	type AddressMapping = IdentityAddressMapping;
 	type Currency = Balances;
 	type BabeDataGetter = BabeDataGetter;
 	type VrfInputGetter = VrfInputGetter;
 	type VrfKeyLookup = AuthorMapping;
-	type ReserveAccount = PrecompileAccount;
 	type Deposit = Deposit;
 	type ExpirationDelay = ExpirationDelay;
 	//type WeightToFee = ();
@@ -254,9 +191,9 @@ macro_rules! assert_event_emitted {
 /// Externality builder for pallet randomness mock runtime
 pub(crate) struct ExtBuilder {
 	/// Balance amounts per AccountId
-	balances: Vec<(Account, Balance)>,
+	balances: Vec<(AccountId, Balance)>,
 	/// AuthorId -> AccountId mappings
-	mappings: Vec<(NimbusId, Account)>,
+	mappings: Vec<(NimbusId, AccountId)>,
 }
 
 impl Default for ExtBuilder {
@@ -270,13 +207,13 @@ impl Default for ExtBuilder {
 
 impl ExtBuilder {
 	#[allow(dead_code)]
-	pub(crate) fn with_balances(mut self, balances: Vec<(Account, Balance)>) -> Self {
+	pub(crate) fn with_balances(mut self, balances: Vec<(AccountId, Balance)>) -> Self {
 		self.balances = balances;
 		self
 	}
 
 	#[allow(dead_code)]
-	pub(crate) fn with_mappings(mut self, mappings: Vec<(NimbusId, Account)>) -> Self {
+	pub(crate) fn with_mappings(mut self, mappings: Vec<(NimbusId, AccountId)>) -> Self {
 		self.mappings = mappings;
 		self
 	}

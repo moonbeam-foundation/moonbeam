@@ -1155,20 +1155,6 @@ impl session_keys_primitives::GetVrfInput<session_keys_primitives::VrfInput<Slot
 	}
 }
 
-pub struct ReserveAccount;
-impl Get<AccountId20> for ReserveAccount {
-	fn get() -> AccountId20 {
-		use pallet_evm::AddressMapping;
-		// harcoded precompile address
-		moonbeam_runtime_common::IntoAddressMapping::into_account_id(H160::from_low_u64_be(2057))
-	}
-}
-
-// TODO: set reasonable params
-parameter_types! {
-	pub const RandomnessRequestDeposit: u128 = 10;
-	pub const ExpirationDelay: BlockNumber = 100;
-}
 impl pallet_randomness::Config for Runtime {
 	type Event = Event;
 	type AddressMapping = moonbeam_runtime_common::IntoAddressMapping;
@@ -1176,9 +1162,8 @@ impl pallet_randomness::Config for Runtime {
 	type BabeDataGetter = BabeDataGetter;
 	type VrfInputGetter = VrfInputGetter;
 	type VrfKeyLookup = AuthorMapping;
-	type ReserveAccount = ReserveAccount;
-	type Deposit = RandomnessRequestDeposit;
-	type ExpirationDelay = ExpirationDelay;
+	type Deposit = ConstU128<{ 10 * currency::UNIT * currency::SUPPLY_FACTOR }>;
+	type ExpirationDelay = ConstU32<{ 7 * DAYS }>;
 }
 
 construct_runtime! {
