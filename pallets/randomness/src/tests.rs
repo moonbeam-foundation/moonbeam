@@ -72,22 +72,38 @@ fn cannot_make_request_with_less_than_deposit() {
 			let request = build_default_request(RequestType::BabeCurrentBlock(16u64));
 			assert_noop!(
 				Randomness::request_randomness(request),
-				Error::<Test>::InsufficientDeposit
+				sp_runtime::DispatchError::Module(sp_runtime::ModuleError {
+					index: 1,
+					error: [2, 0, 0, 0],
+					message: Some("InsufficientBalance")
+				})
 			);
 			let request = build_default_request(RequestType::BabeOneEpochAgo(16u64));
 			assert_noop!(
 				Randomness::request_randomness(request),
-				Error::<Test>::InsufficientDeposit
+				sp_runtime::DispatchError::Module(sp_runtime::ModuleError {
+					index: 1,
+					error: [2, 0, 0, 0],
+					message: Some("InsufficientBalance")
+				})
 			);
 			let request = build_default_request(RequestType::BabeTwoEpochsAgo(16u64));
 			assert_noop!(
 				Randomness::request_randomness(request),
-				Error::<Test>::InsufficientDeposit
+				sp_runtime::DispatchError::Module(sp_runtime::ModuleError {
+					index: 1,
+					error: [2, 0, 0, 0],
+					message: Some("InsufficientBalance")
+				})
 			);
 			let request = build_default_request(RequestType::Local(16u64));
 			assert_noop!(
 				Randomness::request_randomness(request),
-				Error::<Test>::InsufficientDeposit
+				sp_runtime::DispatchError::Module(sp_runtime::ModuleError {
+					index: 1,
+					error: [2, 0, 0, 0],
+					message: Some("InsufficientBalance")
+				})
 			);
 		});
 }
@@ -101,22 +117,38 @@ fn cannot_make_request_with_less_than_deposit_plus_fee() {
 			let request = build_default_request(RequestType::BabeCurrentBlock(16u64));
 			assert_noop!(
 				Randomness::request_randomness(request),
-				Error::<Test>::InsufficientDeposit
+				sp_runtime::DispatchError::Module(sp_runtime::ModuleError {
+					index: 1,
+					error: [2, 0, 0, 0],
+					message: Some("InsufficientBalance")
+				})
 			);
 			let request = build_default_request(RequestType::BabeOneEpochAgo(16u64));
 			assert_noop!(
 				Randomness::request_randomness(request),
-				Error::<Test>::InsufficientDeposit
+				sp_runtime::DispatchError::Module(sp_runtime::ModuleError {
+					index: 1,
+					error: [2, 0, 0, 0],
+					message: Some("InsufficientBalance")
+				})
 			);
 			let request = build_default_request(RequestType::BabeTwoEpochsAgo(16u64));
 			assert_noop!(
 				Randomness::request_randomness(request),
-				Error::<Test>::InsufficientDeposit
+				sp_runtime::DispatchError::Module(sp_runtime::ModuleError {
+					index: 1,
+					error: [2, 0, 0, 0],
+					message: Some("InsufficientBalance")
+				})
 			);
 			let request = build_default_request(RequestType::Local(16u64));
 			assert_noop!(
 				Randomness::request_randomness(request),
-				Error::<Test>::InsufficientDeposit
+				sp_runtime::DispatchError::Module(sp_runtime::ModuleError {
+					index: 1,
+					error: [2, 0, 0, 0],
+					message: Some("InsufficientBalance")
+				})
 			);
 		});
 }

@@ -104,7 +104,6 @@ pub mod pallet {
 	pub enum Error<T> {
 		RequestCounterOverflowed,
 		RequestFeeOverflowed,
-		InsufficientDeposit,
 		CannotRequestPastRandomness,
 		RequestDNE,
 		RequestCannotYetBeFulfilled,
@@ -346,15 +345,18 @@ pub mod pallet {
 			let total_to_reserve = T::Deposit::get().saturating_add(request.fee);
 			let contract_address =
 				T::AddressMapping::into_account_id(request.contract_address.clone());
-			ensure!(
-				T::Currency::free_balance(&contract_address) >= total_to_reserve,
-				Error::<T>::InsufficientDeposit
-			);
 			// get new request ID
 			let request_id = <RequestCount<T>>::get();
 			let next_id = request_id
 				.checked_add(1u64)
 				.ok_or(Error::<T>::RequestCounterOverflowed)?;
+			// send deposit to reserve account
+			T::Currency::transfer(
+				&contract_address,
+				&T::ReserveAccount::get(),
+				total_to_reserve,
+				KeepAlive,
+			)?;
 			if let Some(existing_randomness_snapshot) = <RandomnessResults<T>>::take(&request.info)
 			{
 				<RandomnessResults<T>>::insert(
@@ -364,13 +366,6 @@ pub mod pallet {
 			} else {
 				<RandomnessResults<T>>::insert(&request.info, RandomnessResult::new());
 			}
-			// send deposit to reserve account
-			T::Currency::transfer(
-				&contract_address,
-				&T::ReserveAccount::get(),
-				total_to_reserve,
-				KeepAlive,
-			)?;
 			// insert request
 			<RequestCount<T>>::put(next_id);
 			request.emit_randomness_requested_event(request_id);
