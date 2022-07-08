@@ -13,9 +13,18 @@ on:
 
 jobs:
   ####### Build runtimes with srtool #######
-
+docker run -i --rm \
+  -e PACKAGE=moonbase-runtime \
+  -e CARGO_NET_GIT_FETCH_WITH_CLI=true \
+  -e RUN_DIR=runtime/moonbase \
+  -v $PWD:/build \
+  -v /home/$USER/srtool/.ssh:/root/.ssh \
+  -v /home/$USER/srtool/entrypoint.sh:/srtool/entrypoint.sh \
+  --entrypoint /srtool/entrypoint.sh \
+  paritytech/srtool:1.57.0
+  
   build-srtool-runtimes:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     strategy:
       matrix:
         chain: ["moonbase", "moonriver", "moonbeam"]
@@ -28,6 +37,8 @@ jobs:
       - name: Srtool build
         id: srtool_build
         uses: chevdor/srtool-actions@v0.4.0
+        env:
+          PACKAGE: "${{ matrix.chain }}-runtime -e CARGO_NET_GIT_FETCH_WITH_CLI=true -v /home/$USER/srtool/.ssh:/root/.ssh -v /home/$USER/srtool/entrypoint.sh:/srtool/entrypoint.sh --entrypoint /srtool/entrypoint.sh"
         with:
           chain: ${{ matrix.chain }}
           tag: 1.57.0
