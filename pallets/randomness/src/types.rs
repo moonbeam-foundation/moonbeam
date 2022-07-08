@@ -25,7 +25,7 @@ use sp_runtime::traits::{CheckedAdd, CheckedSub, Saturating};
 
 #[derive(PartialEq, Copy, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
 #[scale_info(skip_type_params(T))]
-/// Shared request info, a subset of `RequestType`
+/// Shared request info, a subset of `RequestInfo`
 pub enum RequestType<T: Config> {
 	/// Babe per relay chain block
 	BabeCurrentBlock(T::BlockNumber),
@@ -131,6 +131,22 @@ pub struct Request<T: Config> {
 }
 
 impl<T: Config> Request<T> {
+	pub fn is_expired(&self) -> DispatchResult {
+		let expired = match self.info {
+			RequestInfo::BabeCurrentBlock(_, expires) => {
+				RelayTime::<T>::get().relay_block_number >= expires
+			}
+			RequestInfo::BabeOneEpochAgo(_, expires) => {
+				RelayTime::<T>::get().relay_epoch_index >= expires
+			}
+			RequestInfo::BabeTwoEpochsAgo(_, expires) => {
+				RelayTime::<T>::get().relay_epoch_index >= expires
+			}
+			RequestInfo::Local(_, expires) => frame_system::Pallet::<T>::block_number() >= expires,
+		};
+		ensure!(expired, Error::<T>::RequestHasNotExpired);
+		Ok(())
+	}
 	pub fn validate(&mut self) -> DispatchResult {
 		ensure!(
 			!self.can_be_fulfilled(),
@@ -354,19 +370,7 @@ impl<T: Config> RequestState<T> {
 	/// Transfer deposit back to contract_address
 	/// Transfer fee to caller
 	pub fn execute_expiration(&self, caller: &T::AccountId) -> DispatchResult {
-		let request_has_expired = match self.request.info {
-			RequestInfo::BabeCurrentBlock(_, expires) => {
-				RelayTime::<T>::get().relay_block_number >= expires
-			}
-			RequestInfo::BabeOneEpochAgo(_, expires) => {
-				RelayTime::<T>::get().relay_epoch_index >= expires
-			}
-			RequestInfo::BabeTwoEpochsAgo(_, expires) => {
-				RelayTime::<T>::get().relay_epoch_index >= expires
-			}
-			RequestInfo::Local(_, expires) => frame_system::Pallet::<T>::block_number() >= expires,
-		};
-		ensure!(request_has_expired, Error::<T>::RequestHasNotExpired);
+		self.request.is_expired()?;
 		let contract_address =
 			T::AddressMapping::into_account_id(self.request.contract_address.clone());
 		// TODO: is it worth optimizing when caller == contract_address to do one transfer here

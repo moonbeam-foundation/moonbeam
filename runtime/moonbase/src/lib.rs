@@ -1163,7 +1163,7 @@ impl pallet_randomness::Config for Runtime {
 	type VrfInputGetter = VrfInputGetter;
 	type VrfKeyLookup = AuthorMapping;
 	type Deposit = ConstU128<{ 1 * currency::UNIT * currency::SUPPLY_FACTOR }>;
-	type ExpirationDelay = ConstU32<{ 10_000 }>;
+	type ExpirationDelay = ConstU32<10_000>;
 	type WeightInfo = pallet_randomness::weights::SubstrateWeight<Runtime>;
 }
 
