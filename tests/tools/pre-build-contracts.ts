@@ -83,6 +83,17 @@ async function compile(fileRef: string): Promise<{ [name: string]: Compiled }> {
   return compiledContracts;
 }
 
+async function getFiles(dir) {
+  const subdirs = await fs.readdir(dir);
+  const files = await Promise.all(
+    subdirs.map(async (subdir) => {
+      const res = path.resolve(dir, subdir);
+      return (await fs.stat(res)).isDirectory() ? getFiles(res) : res;
+    })
+  );
+  return files.reduce((a, f) => a.concat(f), []);
+}
+
 const main = async () => {
   const precompilesPath = path.join(__dirname, "../../precompiles");
   // Order is important so precompiles are available first
@@ -99,13 +110,14 @@ const main = async () => {
   ];
 
   for (const contractPath of contractSourcePaths) {
-    const contracts = (await fs.readdir(contractPath.filepath)).filter((filename) =>
+    const contracts = (await getFiles(contractPath.filepath)).filter((filename) =>
       filename.endsWith(".sol")
     );
-    for (let filename of contracts) {
-      sourceByReference[path.join(contractPath.importPath, filename)] = (
-        await fs.readFile(path.join(contractPath.filepath, filename))
-      ).toString();
+    for (let filepath of contracts) {
+      const ref = filepath
+        .replace(contractPath.filepath, contractPath.importPath)
+        .replace(/^\//, "");
+      sourceByReference[ref] = (await fs.readFile(filepath)).toString();
     }
   }
 
