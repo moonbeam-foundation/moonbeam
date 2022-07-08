@@ -2,7 +2,7 @@ import "@moonbeam-network/api-augment";
 
 import { KeyringPair } from "@polkadot/keyring/types";
 import { ParaId, XcmpMessageFormat } from "@polkadot/types/interfaces";
-import { BN, u8aToHex, hexToU8a } from "@polkadot/util";
+import { BN, u8aToHex } from "@polkadot/util";
 import { expect } from "chai";
 import { ChaChaRng } from "randchacha";
 
@@ -13,8 +13,7 @@ import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests"
 
 import type { XcmVersionedXcm } from "@polkadot/types/lookup";
 
-import { createContract, createContractExecution } from "../../util/transactions";
-import { deriveAddress } from "@substrate/txwrapper-core";
+import { createContract } from "../../util/transactions";
 
 const FOREIGN_TOKEN = 1_000_000_000_000n;
 
