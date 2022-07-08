@@ -24,7 +24,7 @@ pub const ALICE: H160 = H160::repeat_byte(0xAA);
 pub const BOB: H160 = H160::repeat_byte(0xBB);
 
 /// Helps test same effects for all 4 variants of RequestType
-fn build_default_request(info: RequestType<Test>) -> Request<Test> {
+fn build_default_request(info: RequestInfo<Test>) -> Request<Test> {
 	Request {
 		refund_address: BOB,
 		contract_address: ALICE,
@@ -43,22 +43,22 @@ fn cannot_make_request_already_fulfillable() {
 		.with_balances(vec![(ALICE, 15)])
 		.build()
 		.execute_with(|| {
-			let request = build_default_request(RequestType::BabeCurrentBlock(0u64));
+			let request = build_default_request(RequestInfo::BabeCurrentBlock(0u64, 20u64));
 			assert_noop!(
 				Randomness::request_randomness(request),
 				Error::<Test>::CannotRequestPastRandomness
 			);
-			let request = build_default_request(RequestType::BabeOneEpochAgo(0u64));
+			let request = build_default_request(RequestInfo::BabeOneEpochAgo(0u64, 20u64));
 			assert_noop!(
 				Randomness::request_randomness(request),
 				Error::<Test>::CannotRequestPastRandomness
 			);
-			let request = build_default_request(RequestType::BabeTwoEpochsAgo(0u64));
+			let request = build_default_request(RequestInfo::BabeTwoEpochsAgo(0u64, 20u64));
 			assert_noop!(
 				Randomness::request_randomness(request),
 				Error::<Test>::CannotRequestPastRandomness
 			);
-			let request = build_default_request(RequestType::Local(0u64));
+			let request = build_default_request(RequestInfo::Local(0u64, 21u64));
 			assert_noop!(
 				Randomness::request_randomness(request),
 				Error::<Test>::CannotRequestPastRandomness
@@ -72,12 +72,12 @@ fn cannot_make_request_fulfillable_past_expiry() {
 		.with_balances(vec![(ALICE, 15)])
 		.build()
 		.execute_with(|| {
-			let request = build_default_request(RequestType::Local(21u64));
+			let request = build_default_request(RequestInfo::Local(21u64, 21u64));
 			assert_noop!(
 				Randomness::request_randomness(request),
 				Error::<Test>::CannotRequestRandomnessAfterExpirationDelay
 			);
-			let request = build_default_request(RequestType::Local(21u64));
+			let request = build_default_request(RequestInfo::Local(21u64, 21u64));
 			assert_noop!(
 				Randomness::request_randomness(request),
 				Error::<Test>::CannotRequestRandomnessAfterExpirationDelay
@@ -91,7 +91,7 @@ fn cannot_make_request_with_less_than_deposit() {
 		.with_balances(vec![(ALICE, 9)])
 		.build()
 		.execute_with(|| {
-			let request = build_default_request(RequestType::BabeCurrentBlock(16u64));
+			let request = build_default_request(RequestInfo::BabeCurrentBlock(16u64, 20u64));
 			assert_noop!(
 				Randomness::request_randomness(request),
 				sp_runtime::DispatchError::Module(sp_runtime::ModuleError {
@@ -100,7 +100,7 @@ fn cannot_make_request_with_less_than_deposit() {
 					message: Some("InsufficientBalance")
 				})
 			);
-			let request = build_default_request(RequestType::BabeOneEpochAgo(16u64));
+			let request = build_default_request(RequestInfo::BabeOneEpochAgo(16u64, 20u64));
 			assert_noop!(
 				Randomness::request_randomness(request),
 				sp_runtime::DispatchError::Module(sp_runtime::ModuleError {
@@ -109,7 +109,7 @@ fn cannot_make_request_with_less_than_deposit() {
 					message: Some("InsufficientBalance")
 				})
 			);
-			let request = build_default_request(RequestType::BabeTwoEpochsAgo(16u64));
+			let request = build_default_request(RequestInfo::BabeTwoEpochsAgo(16u64, 20u64));
 			assert_noop!(
 				Randomness::request_randomness(request),
 				sp_runtime::DispatchError::Module(sp_runtime::ModuleError {
@@ -118,7 +118,7 @@ fn cannot_make_request_with_less_than_deposit() {
 					message: Some("InsufficientBalance")
 				})
 			);
-			let request = build_default_request(RequestType::Local(16u64));
+			let request = build_default_request(RequestInfo::Local(16u64, 21u64));
 			assert_noop!(
 				Randomness::request_randomness(request),
 				sp_runtime::DispatchError::Module(sp_runtime::ModuleError {
@@ -136,7 +136,7 @@ fn cannot_make_request_with_less_than_deposit_plus_fee() {
 		.with_balances(vec![(ALICE, 14)])
 		.build()
 		.execute_with(|| {
-			let request = build_default_request(RequestType::BabeCurrentBlock(16u64));
+			let request = build_default_request(RequestInfo::BabeCurrentBlock(16u64, 20u64));
 			assert_noop!(
 				Randomness::request_randomness(request),
 				sp_runtime::DispatchError::Module(sp_runtime::ModuleError {
@@ -145,7 +145,7 @@ fn cannot_make_request_with_less_than_deposit_plus_fee() {
 					message: Some("InsufficientBalance")
 				})
 			);
-			let request = build_default_request(RequestType::BabeOneEpochAgo(16u64));
+			let request = build_default_request(RequestInfo::BabeOneEpochAgo(16u64, 20u64));
 			assert_noop!(
 				Randomness::request_randomness(request),
 				sp_runtime::DispatchError::Module(sp_runtime::ModuleError {
@@ -154,7 +154,7 @@ fn cannot_make_request_with_less_than_deposit_plus_fee() {
 					message: Some("InsufficientBalance")
 				})
 			);
-			let request = build_default_request(RequestType::BabeTwoEpochsAgo(16u64));
+			let request = build_default_request(RequestInfo::BabeTwoEpochsAgo(16u64, 20u64));
 			assert_noop!(
 				Randomness::request_randomness(request),
 				sp_runtime::DispatchError::Module(sp_runtime::ModuleError {
@@ -163,7 +163,7 @@ fn cannot_make_request_with_less_than_deposit_plus_fee() {
 					message: Some("InsufficientBalance")
 				})
 			);
-			let request = build_default_request(RequestType::Local(16u64));
+			let request = build_default_request(RequestInfo::Local(16u64, 21u64));
 			assert_noop!(
 				Randomness::request_randomness(request),
 				sp_runtime::DispatchError::Module(sp_runtime::ModuleError {
@@ -183,19 +183,19 @@ fn request_reserves_deposit_and_fee() {
 		.execute_with(|| {
 			assert_eq!(Randomness::total_locked(), 0);
 			assert_eq!(Balances::free_balance(&ALICE), 60);
-			let request = build_default_request(RequestType::BabeCurrentBlock(16u64));
+			let request = build_default_request(RequestInfo::BabeCurrentBlock(16u64, 20u64));
 			assert_ok!(Randomness::request_randomness(request));
 			assert_eq!(Randomness::total_locked(), 15);
 			assert_eq!(Balances::free_balance(&ALICE), 45);
-			let request = build_default_request(RequestType::BabeOneEpochAgo(16u64));
+			let request = build_default_request(RequestInfo::BabeOneEpochAgo(16u64, 20u64));
 			assert_ok!(Randomness::request_randomness(request));
 			assert_eq!(Randomness::total_locked(), 30);
 			assert_eq!(Balances::free_balance(&ALICE), 30);
-			let request = build_default_request(RequestType::BabeTwoEpochsAgo(16u64));
+			let request = build_default_request(RequestInfo::BabeTwoEpochsAgo(16u64, 20u64));
 			assert_ok!(Randomness::request_randomness(request));
 			assert_eq!(Randomness::total_locked(), 45);
 			assert_eq!(Balances::free_balance(&ALICE), 15);
-			let request = build_default_request(RequestType::Local(16u64));
+			let request = build_default_request(RequestInfo::Local(16u64, 21u64));
 			assert_ok!(Randomness::request_randomness(request));
 			assert_eq!(Randomness::total_locked(), 60);
 			assert_eq!(Balances::free_balance(&ALICE), 0);
@@ -208,17 +208,17 @@ fn request_babe_current_block_randomness_increments_request_counter() {
 		.with_balances(vec![(ALICE, 60)])
 		.build()
 		.execute_with(|| {
-			let request = build_default_request(RequestType::BabeCurrentBlock(16u64));
+			let request = build_default_request(RequestInfo::BabeCurrentBlock(16u64, 20u64));
 			assert_eq!(Randomness::request_count(), 0);
 			assert_ok!(Randomness::request_randomness(request));
 			assert_eq!(Randomness::request_count(), 1);
-			let request = build_default_request(RequestType::BabeOneEpochAgo(16u64));
+			let request = build_default_request(RequestInfo::BabeOneEpochAgo(16u64, 20u64));
 			assert_ok!(Randomness::request_randomness(request));
 			assert_eq!(Randomness::request_count(), 2);
-			let request = build_default_request(RequestType::BabeTwoEpochsAgo(16u64));
+			let request = build_default_request(RequestInfo::BabeTwoEpochsAgo(16u64, 20u64));
 			assert_ok!(Randomness::request_randomness(request));
 			assert_eq!(Randomness::request_count(), 3);
-			let request = build_default_request(RequestType::Local(16u64));
+			let request = build_default_request(RequestInfo::Local(16u64, 21u64));
 			assert_ok!(Randomness::request_randomness(request));
 			assert_eq!(Randomness::request_count(), 4);
 		});
@@ -230,7 +230,7 @@ fn request_babe_current_block_randomness_inserts_request_state() {
 		.with_balances(vec![(ALICE, 60)])
 		.build()
 		.execute_with(|| {
-			let request = build_default_request(RequestType::BabeCurrentBlock(16u64));
+			let request = build_default_request(RequestInfo::BabeCurrentBlock(16u64, 20u64));
 			assert_eq!(Randomness::requests(0), None);
 			assert_ok!(Randomness::request_randomness(request.clone()));
 			assert_eq!(
@@ -238,10 +238,9 @@ fn request_babe_current_block_randomness_inserts_request_state() {
 				Some(RequestState {
 					request,
 					deposit: 10,
-					expires: Expiration::Block(20),
 				})
 			);
-			let request = build_default_request(RequestType::BabeOneEpochAgo(16u64));
+			let request = build_default_request(RequestInfo::BabeOneEpochAgo(16u64, 20u64));
 			assert_eq!(Randomness::requests(1), None);
 			assert_ok!(Randomness::request_randomness(request.clone()));
 			assert_eq!(
@@ -249,10 +248,9 @@ fn request_babe_current_block_randomness_inserts_request_state() {
 				Some(RequestState {
 					request,
 					deposit: 10,
-					expires: Expiration::Epoch(20),
 				})
 			);
-			let request = build_default_request(RequestType::BabeTwoEpochsAgo(16u64));
+			let request = build_default_request(RequestInfo::BabeTwoEpochsAgo(16u64, 20u64));
 			assert_eq!(Randomness::requests(2), None);
 			assert_ok!(Randomness::request_randomness(request.clone()));
 			assert_eq!(
@@ -260,10 +258,9 @@ fn request_babe_current_block_randomness_inserts_request_state() {
 				Some(RequestState {
 					request,
 					deposit: 10,
-					expires: Expiration::Epoch(20),
 				})
 			);
-			let request = build_default_request(RequestType::Local(16u64));
+			let request = build_default_request(RequestInfo::Local(16u64, 21u64));
 			assert_eq!(Randomness::requests(3), None);
 			assert_ok!(Randomness::request_randomness(request.clone()));
 			assert_eq!(
@@ -271,7 +268,6 @@ fn request_babe_current_block_randomness_inserts_request_state() {
 				Some(RequestState {
 					request,
 					deposit: 10,
-					expires: Expiration::Block(21),
 				})
 			);
 		});
@@ -291,7 +287,7 @@ fn request_babe_current_block_randomness_emits_event() {
 				fee: 5,
 				gas_limit: 100u64,
 				salt: H256::default(),
-				info: RequestType::BabeCurrentBlock(16u64),
+				info: RequestInfo::BabeCurrentBlock(16u64, 21u64),
 			};
 			assert_ok!(Randomness::request_randomness(request));
 			assert_event_emitted!(crate::Event::RandomnessRequestedCurrentBlock {
@@ -318,7 +314,7 @@ fn request_babe_one_epoch_ago_randomness_emits_event() {
 				fee: 5,
 				gas_limit: 100u64,
 				salt: H256::default(),
-				info: RequestType::BabeOneEpochAgo(16u64),
+				info: RequestInfo::BabeOneEpochAgo(16u64, 21u64),
 			};
 			assert_ok!(Randomness::request_randomness(request));
 			assert_event_emitted!(crate::Event::RandomnessRequestedBabeOneEpochAgo {
@@ -345,7 +341,7 @@ fn request_babe_two_epochs_ago_randomness_emits_event() {
 				fee: 5,
 				gas_limit: 100u64,
 				salt: H256::default(),
-				info: RequestType::BabeTwoEpochsAgo(16u64),
+				info: RequestInfo::BabeTwoEpochsAgo(16u64, 21u64),
 			};
 			assert_ok!(Randomness::request_randomness(request));
 			assert_event_emitted!(crate::Event::RandomnessRequestedBabeTwoEpochsAgo {
@@ -372,7 +368,7 @@ fn request_local_randomness_emits_event() {
 				fee: 5,
 				gas_limit: 100u64,
 				salt: H256::default(),
-				info: RequestType::Local(16u64),
+				info: RequestInfo::Local(16u64, 21u64),
 			};
 			assert_ok!(Randomness::request_randomness(request));
 			assert_event_emitted!(crate::Event::RandomnessRequestedLocal {
@@ -399,7 +395,7 @@ fn request_randomness_adds_new_randomness_result() {
 				fee: 5,
 				gas_limit: 100u64,
 				salt: H256::default(),
-				info: RequestType::Local(16u64),
+				info: RequestInfo::Local(16u64, 21u64),
 			};
 			assert_ok!(Randomness::request_randomness(request));
 			let result = Randomness::randomness_results(RequestType::Local(16u64)).unwrap();
@@ -420,7 +416,7 @@ fn request_randomness_increments_randomness_result() {
 				fee: 5,
 				gas_limit: 100u64,
 				salt: H256::default(),
-				info: RequestType::Local(16u64),
+				info: RequestInfo::Local(16u64, 21u64),
 			};
 			assert_ok!(Randomness::request_randomness(request.clone()));
 			assert_ok!(Randomness::request_randomness(request));
@@ -444,7 +440,7 @@ fn prepare_fulfillment_for_local_works() {
 				fee: 5,
 				gas_limit: 100u64,
 				salt: H256::default(),
-				info: RequestType::Local(16u64),
+				info: RequestInfo::Local(16u64, 21u64),
 			};
 			assert_ok!(Randomness::request_randomness(request));
 			System::set_block_number(16u64);
@@ -468,7 +464,7 @@ fn prepare_fulfillment_fails_before_can_be_fulfilled() {
 				fee: 5,
 				gas_limit: 100u64,
 				salt: H256::default(),
-				info: RequestType::Local(16u64),
+				info: RequestInfo::Local(16u64, 21u64),
 			};
 			assert_ok!(Randomness::request_randomness(request.clone()));
 			assert_ok!(Randomness::request_randomness(request));
@@ -501,7 +497,7 @@ fn prepare_fulfillment_uses_randomness_result_without_updating_count() {
 				fee: 5,
 				gas_limit: 100u64,
 				salt: H256::default(),
-				info: RequestType::Local(16u64),
+				info: RequestInfo::Local(16u64, 21u64),
 			};
 			assert_ok!(Randomness::request_randomness(request));
 			System::set_block_number(16u64);

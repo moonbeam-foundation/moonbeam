@@ -366,13 +366,14 @@ pub mod pallet {
 				total_to_reserve,
 				KeepAlive,
 			)?;
-			if let Some(existing_randomness_snapshot) = <RandomnessResults<T>>::take(&info) {
+			let info_key: RequestType<T> = info.into();
+			if let Some(existing_randomness_snapshot) = <RandomnessResults<T>>::take(&info_key) {
 				<RandomnessResults<T>>::insert(
-					&info,
+					&info_key,
 					existing_randomness_snapshot.increment_request_count::<T>()?,
 				);
 			} else {
-				<RandomnessResults<T>>::insert(&info, RandomnessResult::new());
+				<RandomnessResults<T>>::insert(&info_key, RandomnessResult::new());
 			}
 			// insert request
 			<RequestCount<T>>::put(next_id);
@@ -397,9 +398,10 @@ pub mod pallet {
 			cost_of_execution: BalanceOf<T>,
 		) {
 			request.finish_fulfill(deposit, caller, cost_of_execution);
-			if let Some(result) = RandomnessResults::<T>::take(&request.info) {
+			let info_key: RequestType<T> = request.info.into();
+			if let Some(result) = RandomnessResults::<T>::take(&info_key) {
 				if let Some(new_result) = result.decrement_request_count() {
-					RandomnessResults::<T>::insert(&request.info, new_result);
+					RandomnessResults::<T>::insert(&info_key, new_result);
 				} // else RandomnessResult is removed from storage
 			}
 			<Requests<T>>::remove(id);
@@ -425,9 +427,10 @@ pub mod pallet {
 			let request = <Requests<T>>::get(id).ok_or(Error::<T>::RequestDNE)?;
 			let caller = T::AddressMapping::into_account_id(caller.clone());
 			request.execute_expiration(&caller)?;
-			if let Some(result) = RandomnessResults::<T>::take(&request.request.info) {
+			let info_key: RequestType<T> = request.request.info.into();
+			if let Some(result) = RandomnessResults::<T>::take(&info_key) {
 				if let Some(new_result) = result.decrement_request_count() {
-					RandomnessResults::<T>::insert(&request.request.info, new_result);
+					RandomnessResults::<T>::insert(&info_key, new_result);
 				} // else RandomnessResult is removed from storage
 			}
 			<Requests<T>>::remove(id);

@@ -25,8 +25,7 @@ use sp_runtime::traits::{CheckedAdd, CheckedSub, Saturating};
 
 #[derive(PartialEq, Copy, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
 #[scale_info(skip_type_params(T))]
-/// Type of request
-/// Represents a request for the most recent randomness of this type at or after the inner time
+/// Shared request info, a subset of `RequestType`
 pub enum RequestType<T: Config> {
 	/// Babe per relay chain block
 	BabeCurrentBlock(T::BlockNumber),
@@ -36,6 +35,33 @@ pub enum RequestType<T: Config> {
 	BabeTwoEpochsAgo(u64),
 	/// Local per parachain block VRF output
 	Local(T::BlockNumber),
+}
+
+#[derive(PartialEq, Copy, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
+#[scale_info(skip_type_params(T))]
+/// Type of request
+/// Represents a request for the most recent randomness at or after the inner first field
+/// Expiration is second inner field
+pub enum RequestInfo<T: Config> {
+	/// Babe per relay chain block
+	BabeCurrentBlock(T::BlockNumber, T::BlockNumber),
+	/// Babe one epoch ago
+	BabeOneEpochAgo(u64, u64),
+	/// Babe two epochs ago
+	BabeTwoEpochsAgo(u64, u64),
+	/// Local per parachain block VRF output
+	Local(T::BlockNumber, T::BlockNumber),
+}
+
+impl<T: Config> From<RequestInfo<T>> for RequestType<T> {
+	fn from(other: RequestInfo<T>) -> RequestType<T> {
+		match other {
+			RequestInfo::BabeCurrentBlock(block, _) => RequestType::BabeCurrentBlock(block),
+			RequestInfo::BabeOneEpochAgo(epoch, _) => RequestType::BabeOneEpochAgo(epoch),
+			RequestInfo::BabeTwoEpochsAgo(epoch, _) => RequestType::BabeTwoEpochsAgo(epoch),
+			RequestInfo::Local(block, _) => RequestType::Local(block),
+		}
+	}
 }
 
 #[derive(PartialEq, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
@@ -101,68 +127,75 @@ pub struct Request<T: Config> {
 	/// Salt to use once randomness is ready
 	pub salt: H256,
 	/// Details regarding request type
-	pub info: RequestType<T>,
+	pub info: RequestInfo<T>,
 }
 
 impl<T: Config> Request<T> {
-	pub fn validate(&self) -> Result<Expiration<T::BlockNumber>, DispatchError> {
+	pub fn validate(&mut self) -> DispatchResult {
 		ensure!(
 			!self.can_be_fulfilled(),
 			Error::<T>::CannotRequestPastRandomness
 		);
-		let (due_before_expiry, expires) = match self.info {
-			RequestType::BabeCurrentBlock(block) => {
+		let due_before_expiry = match self.info {
+			RequestInfo::BabeCurrentBlock(block, expires) => {
 				// assumes 1 relay per para block
 				let expiring_relay_block = RelayTime::<T>::get()
 					.relay_block_number
 					.saturating_add(T::ExpirationDelay::get().into());
-				(
-					block < expiring_relay_block,
-					Expiration::Block(expiring_relay_block),
-				)
+				if expires != expiring_relay_block {
+					log::warn!("Input expiration not equal to expected expiration so overwritten");
+					self.info = RequestInfo::BabeCurrentBlock(block, expiring_relay_block);
+				}
+				block < expiring_relay_block
 			}
-			RequestType::BabeOneEpochAgo(epoch) => {
+			RequestInfo::BabeOneEpochAgo(epoch, expires) => {
 				let expiring_relay_epoch_index = RelayTime::<T>::get()
 					.relay_epoch_index
 					.saturating_add(T::ExpirationDelay::get().into());
-				(
-					epoch < expiring_relay_epoch_index,
-					Expiration::Epoch(expiring_relay_epoch_index),
-				)
+				if expires != expiring_relay_epoch_index {
+					log::warn!("Input expiration not equal to expected expiration so overwritten");
+					self.info = RequestInfo::BabeOneEpochAgo(epoch, expiring_relay_epoch_index);
+				}
+				epoch < expiring_relay_epoch_index
 			}
-			RequestType::BabeTwoEpochsAgo(epoch) => {
+			RequestInfo::BabeTwoEpochsAgo(epoch, expires) => {
 				let expiring_relay_epoch_index = RelayTime::<T>::get()
 					.relay_epoch_index
 					.saturating_add(T::ExpirationDelay::get().into());
-				(
-					epoch < expiring_relay_epoch_index,
-					Expiration::Epoch(expiring_relay_epoch_index),
-				)
+				if expires != expiring_relay_epoch_index {
+					log::warn!("Input expiration not equal to expected expiration so overwritten");
+					self.info = RequestInfo::BabeTwoEpochsAgo(epoch, expiring_relay_epoch_index);
+				}
+				epoch < expiring_relay_epoch_index
 			}
-			RequestType::Local(block) => {
-				let expires = frame_system::Pallet::<T>::block_number()
+			RequestInfo::Local(block, expires) => {
+				let expiring_block_number = frame_system::Pallet::<T>::block_number()
 					.saturating_add(T::ExpirationDelay::get().into());
-				(block < expires, Expiration::Block(expires))
+				if expires != expiring_block_number {
+					log::warn!("Input expiration not equal to expected expiration so overwritten");
+					self.info = RequestInfo::Local(block, expiring_block_number);
+				}
+				block < expiring_block_number
 			}
 		};
 		ensure!(
 			due_before_expiry,
 			Error::<T>::CannotRequestRandomnessAfterExpirationDelay
 		);
-		Ok(expires)
+		Ok(())
 	}
 	pub fn can_be_fulfilled(&self) -> bool {
 		match self.info {
-			RequestType::BabeCurrentBlock(block) => {
+			RequestInfo::BabeCurrentBlock(block, _) => {
 				block <= T::BabeDataGetter::get_relay_block_number()
 			}
-			RequestType::BabeOneEpochAgo(epoch) => {
+			RequestInfo::BabeOneEpochAgo(epoch, _) => {
 				epoch <= T::BabeDataGetter::get_relay_epoch_index()
 			}
-			RequestType::BabeTwoEpochsAgo(epoch) => {
+			RequestInfo::BabeTwoEpochsAgo(epoch, _) => {
 				epoch <= T::BabeDataGetter::get_relay_epoch_index()
 			}
-			RequestType::Local(block) => block <= frame_system::Pallet::<T>::block_number(),
+			RequestInfo::Local(block, _) => block <= frame_system::Pallet::<T>::block_number(),
 		}
 	}
 	fn get_randomness(&self) -> Result<T::Hash, DispatchError> {
@@ -170,7 +203,8 @@ impl<T: Config> Request<T> {
 			self.can_be_fulfilled(),
 			Error::<T>::RequestCannotYetBeFulfilled
 		);
-		let randomness = <RandomnessResults<T>>::get(&self.info)
+		let info_key: RequestType<T> = self.info.clone().into();
+		let randomness = <RandomnessResults<T>>::get(&info_key)
 			// hitting this error is a bug because a RandomnessResult should exist if request exists
 			.ok_or(Error::<T>::RandomnessResultDNE)?
 			.randomness
@@ -181,25 +215,29 @@ impl<T: Config> Request<T> {
 	}
 	pub(crate) fn emit_randomness_requested_event(&self, id: RequestId) {
 		let event = match self.info {
-			RequestType::BabeCurrentBlock(block) => Event::<T>::RandomnessRequestedCurrentBlock {
-				id,
-				refund_address: self.refund_address.clone(),
-				contract_address: self.contract_address.clone(),
-				fee: self.fee,
-				gas_limit: self.gas_limit,
-				salt: self.salt,
-				earliest_block: block,
-			},
-			RequestType::BabeOneEpochAgo(index) => Event::<T>::RandomnessRequestedBabeOneEpochAgo {
-				id,
-				refund_address: self.refund_address.clone(),
-				contract_address: self.contract_address.clone(),
-				fee: self.fee,
-				gas_limit: self.gas_limit,
-				salt: self.salt,
-				earliest_epoch: index,
-			},
-			RequestType::BabeTwoEpochsAgo(index) => {
+			RequestInfo::BabeCurrentBlock(block, _) => {
+				Event::<T>::RandomnessRequestedCurrentBlock {
+					id,
+					refund_address: self.refund_address.clone(),
+					contract_address: self.contract_address.clone(),
+					fee: self.fee,
+					gas_limit: self.gas_limit,
+					salt: self.salt,
+					earliest_block: block,
+				}
+			}
+			RequestInfo::BabeOneEpochAgo(index, _) => {
+				Event::<T>::RandomnessRequestedBabeOneEpochAgo {
+					id,
+					refund_address: self.refund_address.clone(),
+					contract_address: self.contract_address.clone(),
+					fee: self.fee,
+					gas_limit: self.gas_limit,
+					salt: self.salt,
+					earliest_epoch: index,
+				}
+			}
+			RequestInfo::BabeTwoEpochsAgo(index, _) => {
 				Event::<T>::RandomnessRequestedBabeTwoEpochsAgo {
 					id,
 					refund_address: self.refund_address.clone(),
@@ -210,7 +248,7 @@ impl<T: Config> Request<T> {
 					earliest_epoch: index,
 				}
 			}
-			RequestType::Local(block) => Event::<T>::RandomnessRequestedLocal {
+			RequestInfo::Local(block, _) => Event::<T>::RandomnessRequestedLocal {
 				id,
 				refund_address: self.refund_address.clone(),
 				contract_address: self.contract_address.clone(),
@@ -252,35 +290,12 @@ impl<T: Config> Request<T> {
 }
 
 #[derive(PartialEq, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
-pub enum Expiration<BlockNumber> {
-	Block(BlockNumber),
-	Epoch(u64),
-}
-
-impl<B: Copy> Expiration<B> {
-	fn epoch(&self) -> u64 {
-		match self {
-			Expiration::Block(_) => panic!("Cannot access epoch when expiration is block type"),
-			Expiration::Epoch(epoch) => *epoch,
-		}
-	}
-	fn block(&self) -> B {
-		match self {
-			Expiration::Block(block) => *block,
-			Expiration::Epoch(_) => panic!("Cannot access block when expiration is epoch type"),
-		}
-	}
-}
-
-#[derive(PartialEq, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
 #[scale_info(skip_type_params(T))]
 pub struct RequestState<T: Config> {
 	/// Underlying request
 	pub request: Request<T>,
 	/// Deposit taken for making request (stored in case config changes)
 	pub deposit: BalanceOf<T>,
-	/// Expiration block or epoch index depending on request type
-	pub expires: Expiration<T::BlockNumber>,
 }
 
 #[derive(PartialEq, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
@@ -296,12 +311,11 @@ pub struct FulfillArgs<T: Config> {
 }
 
 impl<T: Config> RequestState<T> {
-	pub(crate) fn new(request: Request<T>) -> Result<RequestState<T>, DispatchError> {
-		let expires = request.validate()?;
+	pub(crate) fn new(mut request: Request<T>) -> Result<RequestState<T>, DispatchError> {
+		request.validate()?;
 		Ok(RequestState {
 			request,
 			deposit: T::Deposit::get(),
-			expires,
 		})
 	}
 	/// Returns Ok(FulfillArgs) if successful
@@ -341,18 +355,16 @@ impl<T: Config> RequestState<T> {
 	/// Transfer fee to caller
 	pub fn execute_expiration(&self, caller: &T::AccountId) -> DispatchResult {
 		let request_has_expired = match self.request.info {
-			RequestType::BabeCurrentBlock(_) => {
-				RelayTime::<T>::get().relay_block_number >= self.expires.block()
+			RequestInfo::BabeCurrentBlock(_, expires) => {
+				RelayTime::<T>::get().relay_block_number >= expires
 			}
-			RequestType::BabeOneEpochAgo(_) => {
-				RelayTime::<T>::get().relay_epoch_index >= self.expires.epoch()
+			RequestInfo::BabeOneEpochAgo(_, expires) => {
+				RelayTime::<T>::get().relay_epoch_index >= expires
 			}
-			RequestType::BabeTwoEpochsAgo(_) => {
-				RelayTime::<T>::get().relay_epoch_index >= self.expires.epoch()
+			RequestInfo::BabeTwoEpochsAgo(_, expires) => {
+				RelayTime::<T>::get().relay_epoch_index >= expires
 			}
-			RequestType::Local(_) => {
-				frame_system::Pallet::<T>::block_number() >= self.expires.block()
-			}
+			RequestInfo::Local(_, expires) => frame_system::Pallet::<T>::block_number() >= expires,
 		};
 		ensure!(request_has_expired, Error::<T>::RequestHasNotExpired);
 		let contract_address =

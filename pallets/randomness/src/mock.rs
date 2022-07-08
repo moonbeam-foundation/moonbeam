@@ -154,7 +154,7 @@ impl Config for Test {
 	type VrfKeyLookup = AuthorMapping;
 	type Deposit = Deposit;
 	type ExpirationDelay = ExpirationDelay;
-	//type WeightToFee = ();
+	type WeightInfo = ();
 }
 
 pub(crate) fn events() -> Vec<pallet::Event<Test>> {

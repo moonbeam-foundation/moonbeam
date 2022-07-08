@@ -24,6 +24,8 @@ extern crate alloc;
 use fp_evm::{
 	Context, ExitReason, ExitSucceed, Log, Precompile, PrecompileHandle, PrecompileOutput,
 };
+use frame_support::sp_runtime::traits::Saturating;
+use frame_support::traits::Get;
 use pallet_randomness::{BalanceOf, GetBabeData};
 use precompile_utils::{costs::call_cost, prelude::*};
 use sp_core::{H160, H256, U256};
@@ -224,13 +226,21 @@ where
 			.ok_or(error("addition result overflowed u64"))?
 			.try_into()
 			.map_err(|_| revert("u64 addition result overflowed block number type"))?;
+		// assumes 1 relay per para block
+		// if incorrect, is overwritten by pallet
+		let expiring_relay_block = pallet_randomness::Pallet::<Runtime>::relay_time()
+			.relay_block_number
+			.saturating_add(<Runtime as pallet_randomness::Config>::ExpirationDelay::get().into());
 		let request = pallet_randomness::Request {
 			refund_address,
 			contract_address,
 			fee,
 			gas_limit,
 			salt: salt.into(),
-			info: pallet_randomness::RequestType::BabeCurrentBlock(requested_block_number),
+			info: pallet_randomness::RequestInfo::BabeCurrentBlock(
+				requested_block_number,
+				expiring_relay_block,
+			),
 		};
 		pallet_randomness::Pallet::<Runtime>::request_randomness(request)
 			.map_err(|e| error(alloc::format!("{:?}", e)))?;
@@ -258,13 +268,19 @@ where
 			<Runtime as pallet_randomness::Config>::BabeDataGetter::get_relay_epoch_index()
 				.checked_add(2u64)
 				.ok_or(error("Epoch Index (u64) overflowed"))?;
+		let expiring_relay_epoch_index = pallet_randomness::Pallet::<Runtime>::relay_time()
+			.relay_epoch_index
+			.saturating_add(<Runtime as pallet_randomness::Config>::ExpirationDelay::get().into());
 		let request = pallet_randomness::Request {
 			refund_address,
 			contract_address,
 			fee,
 			gas_limit,
 			salt: salt.into(),
-			info: pallet_randomness::RequestType::BabeOneEpochAgo(two_epochs_later),
+			info: pallet_randomness::RequestInfo::BabeOneEpochAgo(
+				two_epochs_later,
+				expiring_relay_epoch_index,
+			),
 		};
 		pallet_randomness::Pallet::<Runtime>::request_randomness(request)
 			.map_err(|e| error(alloc::format!("{:?}", e)))?;
@@ -292,13 +308,19 @@ where
 			<Runtime as pallet_randomness::Config>::BabeDataGetter::get_relay_epoch_index()
 				.checked_add(3u64)
 				.ok_or(error("Epoch Index (u64) overflowed"))?;
+		let expiring_relay_epoch_index = pallet_randomness::Pallet::<Runtime>::relay_time()
+			.relay_epoch_index
+			.saturating_add(<Runtime as pallet_randomness::Config>::ExpirationDelay::get().into());
 		let request = pallet_randomness::Request {
 			refund_address,
 			contract_address,
 			fee,
 			gas_limit,
 			salt: salt.into(),
-			info: pallet_randomness::RequestType::BabeTwoEpochsAgo(three_epochs_later),
+			info: pallet_randomness::RequestInfo::BabeTwoEpochsAgo(
+				three_epochs_later,
+				expiring_relay_epoch_index,
+			),
 		};
 		pallet_randomness::Pallet::<Runtime>::request_randomness(request)
 			.map_err(|e| error(alloc::format!("{:?}", e)))?;
@@ -329,13 +351,18 @@ where
 			.ok_or(error("addition result overflowed u64"))?
 			.try_into()
 			.map_err(|_| revert("u64 addition result overflowed block number type"))?;
+		let expiring_block_number = frame_system::Pallet::<Runtime>::block_number()
+			.saturating_add(<Runtime as pallet_randomness::Config>::ExpirationDelay::get().into());
 		let request = pallet_randomness::Request {
 			refund_address,
 			contract_address,
 			fee,
 			gas_limit,
 			salt: salt.into(),
-			info: pallet_randomness::RequestType::Local(requested_block_number),
+			info: pallet_randomness::RequestInfo::Local(
+				requested_block_number,
+				expiring_block_number,
+			),
 		};
 		pallet_randomness::Pallet::<Runtime>::request_randomness(request)
 			.map_err(|e| error(alloc::format!("{:?}", e)))?;
