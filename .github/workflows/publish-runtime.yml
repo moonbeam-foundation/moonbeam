@@ -13,6 +13,7 @@ on:
 
 jobs:
   ####### Build runtimes with srtool #######
+
   build-srtool-runtimes:
     runs-on: self-hosted
     strategy:
