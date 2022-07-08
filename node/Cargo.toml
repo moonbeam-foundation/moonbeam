@@ -48,3 +48,9 @@ runtime-benchmarks = [
 	"pallet-xcm/runtime-benchmarks",
 	"xcm-builder/runtime-benchmarks",
 ]
+
+moonbase-runtime-benchmarks = [
+	"moonbeam-cli/moonbase-runtime-benchmarks",
+	"pallet-xcm/runtime-benchmarks",
+	"xcm-builder/runtime-benchmarks",
+]

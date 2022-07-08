@@ -28,10 +28,9 @@ pub mod types;
 pub mod vrf;
 pub use types::*;
 
-// pub mod weights;
-// use weights::WeightInfo;
-// #[cfg(any(test, feature = "runtime-benchmarks"))]
-// mod benchmarks;
+pub mod weights;
+use weights::WeightInfo;
+
 #[cfg(test)]
 mod mock;
 #[cfg(test)]
@@ -49,7 +48,6 @@ pub trait GetBabeData<BlockNumber, EpochIndex, Randomness> {
 #[pallet]
 pub mod pallet {
 	use super::*;
-	// use crate::WeightInfo;
 	use frame_support::traits::{Currency, ExistenceRequirement::KeepAlive};
 	use frame_support::{pallet_prelude::*, PalletId};
 	use frame_system::pallet_prelude::*;
@@ -97,8 +95,8 @@ pub mod pallet {
 		#[pallet::constant]
 		/// Requests expire and can be purged from storage after this many blocks/epochs
 		type ExpirationDelay: Get<u32>;
-		// /// Weight information for extrinsics in this pallet.
-		// type WeightInfo: WeightInfo;
+		/// Weight information for extrinsics in this pallet.
+		type WeightInfo: WeightInfo;
 	}
 
 	#[pallet::error]
