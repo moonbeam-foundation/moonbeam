@@ -13,16 +13,6 @@ on:
 
 jobs:
   ####### Build runtimes with srtool #######
-docker run -i --rm \
-  -e PACKAGE=moonbase-runtime \
-  -e CARGO_NET_GIT_FETCH_WITH_CLI=true \
-  -e RUN_DIR=runtime/moonbase \
-  -v $PWD:/build \
-  -v /home/$USER/srtool/.ssh:/root/.ssh \
-  -v /home/$USER/srtool/entrypoint.sh:/srtool/entrypoint.sh \
-  --entrypoint /srtool/entrypoint.sh \
-  paritytech/srtool:1.57.0
-  
   build-srtool-runtimes:
     runs-on: self-hosted
     strategy:
