@@ -11,7 +11,7 @@ import { strict as assert } from "node:assert";
 const exec = util.promisify(execProcess);
 
 async function main() {
-  const argv = (await yargs(process.argv.slice(2))
+  const argv = yargs(process.argv.slice(2))
     .usage("Usage: $0")
     .version("1.0.0")
     .command("view", "view a PoV analysis", (yargs) => {
@@ -61,7 +61,7 @@ async function main() {
         .demandOption(["pallet", "benchmark", "params"]);
     })
     .demandCommand()
-    .strict().argv) as any;
+    .strict().argv as any;
 
   const [command] = argv._;
 
