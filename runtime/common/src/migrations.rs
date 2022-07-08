@@ -43,7 +43,7 @@ use pallet_migrations::{GetMigrations, Migration};
 use pallet_parachain_staking::{
 	migrations::{
 		IncreaseMaxDelegationsPerCandidate, PatchIncorrectDelegationSums, PurgeStaleStorage,
-		SplitCandidateStateToDecreasePoV, SplitDelegatorStateIntoDelegationScheduledRequests,
+		SplitDelegatorStateIntoDelegationScheduledRequests,
 	},
 	Config as ParachainStakingConfig,
 };
@@ -154,30 +154,6 @@ impl<T: ParachainStakingConfig> Migration
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade(&self) -> Result<(), &'static str> {
 		SplitDelegatorStateIntoDelegationScheduledRequests::<T>::post_upgrade()
-	}
-}
-
-/// Staking split candidate state
-pub struct ParachainStakingSplitCandidateState<T>(PhantomData<T>);
-impl<T: ParachainStakingConfig> Migration for ParachainStakingSplitCandidateState<T> {
-	fn friendly_name(&self) -> &str {
-		"MM_Parachain_Staking_Split_Candidate_State"
-	}
-
-	fn migrate(&self, _available_weight: Weight) -> Weight {
-		SplitCandidateStateToDecreasePoV::<T>::on_runtime_upgrade()
-	}
-
-	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
-	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade(&self) -> Result<(), &'static str> {
-		SplitCandidateStateToDecreasePoV::<T>::pre_upgrade()
-	}
-
-	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
-	#[cfg(feature = "try-runtime")]
-	fn post_upgrade(&self) -> Result<(), &'static str> {
-		SplitCandidateStateToDecreasePoV::<T>::post_upgrade()
 	}
 }
 

@@ -24,7 +24,10 @@ use super::{
 };
 
 use pallet_evm_precompileset_assets_erc20::AccountIdAssetIdConversion;
-use sp_runtime::traits::Hash as THash;
+use sp_runtime::{
+	traits::{Hash as THash, PostDispatchInfoOf},
+	DispatchErrorWithPostInfo,
+};
 
 use frame_support::{
 	parameter_types,
@@ -32,7 +35,7 @@ use frame_support::{
 	weights::Weight,
 };
 
-use frame_system::EnsureRoot;
+use frame_system::{EnsureRoot, RawOrigin};
 use sp_core::{H160, H256};
 
 use xcm_builder::{
@@ -45,7 +48,7 @@ use xcm_builder::{
 };
 
 use xcm::latest::prelude::*;
-use xcm_executor::traits::JustTry;
+use xcm_executor::traits::{CallDispatcher, JustTry};
 
 use orml_xcm_support::MultiNativeAsset;
 use xcm_primitives::{
@@ -254,6 +257,10 @@ pub type XcmFeesToAccount = xcm_primitives::XcmFeesToAccount<
 	XcmFeesAccount,
 >;
 
+// Our implementation of the Moonbeam Call
+// Attachs the right origin in case the call is made to pallet-ethereum-xcm
+moonbeam_runtime_common::impl_moonbeam_xcm_call!();
+
 pub struct XcmExecutorConfig;
 impl xcm_executor::Config for XcmExecutorConfig {
 	type Call = Call;
@@ -288,6 +295,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type SubscriptionService = PolkadotXcm;
 	type AssetTrap = PolkadotXcm;
 	type AssetClaims = PolkadotXcm;
+	type CallDispatcher = MoonbeamCall;
 }
 
 type XcmExecutor = xcm_executor::XcmExecutor<XcmExecutorConfig>;
@@ -453,8 +461,8 @@ parameter_types! {
 }
 
 parameter_type_with_key! {
-	pub ParachainMinFee: |_location: MultiLocation| -> u128 {
-		u128::MAX
+	pub ParachainMinFee: |_location: MultiLocation| -> Option<u128> {
+		Some(u128::MAX)
 	};
 }
 

@@ -6,7 +6,13 @@ import { expect } from "chai";
 import Web3 from "web3";
 import { Account } from "web3-core";
 
-import { alith, ALITH_GENESIS_BALANCE, baltathar, generateKeyingPair } from "../../util/accounts";
+import {
+  alith,
+  ALITH_GENESIS_FREE_BALANCE,
+  ALITH_GENESIS_TRANSFERABLE_BALANCE,
+  baltathar,
+  generateKeyringPair,
+} from "../../util/accounts";
 import { verifyLatestBlockFees } from "../../util/block";
 import { DEFAULT_GENESIS_BALANCE, GLMR } from "../../util/constants";
 import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
@@ -130,10 +136,10 @@ describeDevMoonbeam("Crowdloan", (context) => {
 
     // check balances
     expect(
-      BigInt(await context.web3.eth.getBalance(alith.address)) - ALITH_GENESIS_BALANCE
+      BigInt(await context.web3.eth.getBalance(alith.address)) - ALITH_GENESIS_TRANSFERABLE_BALANCE
     ).to.equal(claimed - claimFee); // reduce the claim fee part;
     const account = await context.polkadotApi.query.system.account(alith.address);
-    expect(account.data.free.toBigInt() - ALITH_GENESIS_BALANCE).to.equal(claimed - claimFee);
+    expect(account.data.free.toBigInt() - ALITH_GENESIS_FREE_BALANCE).to.equal(claimed - claimFee);
   });
 });
 
@@ -529,8 +535,8 @@ describeDevMoonbeam("Crowdloan", (context) => {
 });
 
 describeDevMoonbeam("Crowdloan", (context) => {
-  const relayAccount = generateKeyingPair("ed25519");
-  const toAssociateAccount = generateKeyingPair();
+  const relayAccount = generateKeyringPair("ed25519");
+  const toAssociateAccount = generateKeyringPair();
 
   it("should be able to associate identity", async function () {
     await context.createBlock(
@@ -623,10 +629,10 @@ describeDevMoonbeam("Crowdloan", (context) => {
 });
 
 describeDevMoonbeam("Crowdloan", (context) => {
-  const relayAccount = generateKeyingPair("ed25519");
-  const relayAccount2 = generateKeyingPair("ed25519");
-  const firstAccount = generateKeyingPair();
-  const toAssociateAccount = generateKeyingPair();
+  const relayAccount = generateKeyringPair("ed25519");
+  const relayAccount2 = generateKeyringPair("ed25519");
+  const firstAccount = generateKeyringPair();
+  const toAssociateAccount = generateKeyringPair();
 
   it("should be able to change reward address with relay keys", async function () {
     await context.createBlock(
@@ -689,7 +695,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
 });
 
 describeDevMoonbeam("Crowdloan", (context) => {
-  const toUpdateAccount = generateKeyingPair();
+  const toUpdateAccount = generateKeyringPair();
 
   it("should be able to update reward address", async function () {
     await context.createBlock(

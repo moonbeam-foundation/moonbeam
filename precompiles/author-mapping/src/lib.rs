@@ -23,7 +23,7 @@ use fp_evm::{PrecompileHandle, PrecompileOutput};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use pallet_author_mapping::Call as AuthorMappingCall;
 use pallet_evm::{AddressMapping, Precompile};
-use precompile_utils::{succeed, EvmResult, FunctionModifier, PrecompileHandleExt, RuntimeHelper};
+use precompile_utils::prelude::*;
 use sp_core::crypto::UncheckedFrom;
 use sp_core::H256;
 use sp_std::{fmt::Debug, marker::PhantomData};
@@ -33,7 +33,7 @@ mod mock;
 #[cfg(test)]
 mod tests;
 
-#[precompile_utils::generate_function_selector]
+#[generate_function_selector]
 #[derive(Debug, PartialEq)]
 pub enum Action {
 	AddAssociation = "add_association(bytes32)",
@@ -46,7 +46,6 @@ pub enum Action {
 /// A precompile to wrap the functionality from pallet author mapping.
 pub struct AuthorMappingWrapper<Runtime>(PhantomData<Runtime>);
 
-// TODO: Migrate to precompile_utils::Precompile.
 impl<Runtime> Precompile for AuthorMappingWrapper<Runtime>
 where
 	Runtime: pallet_author_mapping::Config + pallet_evm::Config + frame_system::Config,

@@ -14,12 +14,18 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use super::*;
-use crate::data::xcm::{network_id_from_bytes, network_id_to_bytes};
-use hex_literal::hex;
-use sp_core::{H256, U256};
-use sp_std::convert::TryInto;
-use xcm::latest::{Junction, Junctions, NetworkId};
+use {
+	crate::{
+		data::xcm::{network_id_from_bytes, network_id_to_bytes},
+		prelude::*,
+	},
+	fp_evm::PrecompileFailure,
+	hex_literal::hex,
+	pallet_evm::Context,
+	sp_core::{H160, H256, U256},
+	sp_std::convert::TryInto,
+	xcm::latest::{Junction, Junctions, NetworkId},
+};
 
 fn u256_repeat_byte(byte: u8) -> U256 {
 	let value = H256::repeat_byte(byte);
@@ -675,7 +681,7 @@ impl EvmData for MultiLocation {
 	}
 }
 
-#[crate::generate_function_selector]
+#[generate_function_selector]
 #[derive(Debug, PartialEq)]
 pub enum Action {
 	TransferMultiAsset = "transfer_multiasset((uint8,bytes[]),uint256,(uint8,bytes[]),uint64)",

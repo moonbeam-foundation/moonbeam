@@ -3,14 +3,14 @@ import "@moonbeam-network/api-augment";
 import { expect } from "chai";
 import { ethers } from "ethers";
 
-import { generateKeyingPair } from "../../util/accounts";
+import { generateKeyringPair } from "../../util/accounts";
 import { getCompiled } from "../../util/contracts";
 import { expectEVMResult } from "../../util/eth-transactions";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { createTransaction } from "../../util/transactions";
 
 describeDevMoonbeam("Precompile ERC20 - Transfering through precompile", (context) => {
-  const randomAccount = generateKeyingPair();
+  const randomAccount = generateKeyringPair();
   // TODO: Remove once v0.9.23 with frontier
   it.skip("should not allow overflowing the value", async function () {
     const batchInterface = new ethers.utils.Interface((await getCompiled("Batch")).contract.abi);

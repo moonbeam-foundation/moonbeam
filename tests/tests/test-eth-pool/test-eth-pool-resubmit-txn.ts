@@ -1,12 +1,12 @@
 import { expect } from "chai";
 
-import { generateKeyingPair } from "../../util/accounts";
+import { generateKeyringPair } from "../../util/accounts";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { createTransfer } from "../../util/transactions";
 
 describeDevMoonbeam("Resubmit transations", (context) => {
   it.skip("should allow resubmitting with higher gas", async function () {
-    const randomAccount = generateKeyingPair();
+    const randomAccount = generateKeyringPair();
     const optionsLowGas = { nonce: 0, gasPrice: 0 };
     const optionsHighGas = { nonce: 0, gasPrice: 1 };
 
@@ -21,7 +21,7 @@ describeDevMoonbeam("Resubmit transations", (context) => {
 
 describeDevMoonbeam("Resubmit transations", (context) => {
   it.skip("should ignore resubmitting with lower gas", async function () {
-    const randomAccount = generateKeyingPair();
+    const randomAccount = generateKeyringPair();
     const optionsLowGas = { nonce: 0, gasPrice: 0 };
     const optionsHighGas = { nonce: 0, gasPrice: 1 };
 
@@ -36,7 +36,7 @@ describeDevMoonbeam("Resubmit transations", (context) => {
 
 describeDevMoonbeam("Resubmit transations", (context) => {
   it.skip("should allow cancelling transaction", async function () {
-    const randomAccount = generateKeyingPair();
+    const randomAccount = generateKeyringPair();
     // gas price should trump limit
     const optionsLowGas = { nonce: 0, gasPrice: 0, gas: 0xfffff };
     const optionsHighGas = { nonce: 0, gasPrice: 1, gas: 0x10000 };
@@ -52,7 +52,7 @@ describeDevMoonbeam("Resubmit transations", (context) => {
 
 describeDevMoonbeam("Resubmit transations", (context) => {
   it.skip("should pick highest gas price from many transactions", async function () {
-    const randomAccount = generateKeyingPair();
+    const randomAccount = generateKeyringPair();
     const optionsHighGas = { nonce: 0, gasPrice: 100 }; // gas price should trump limit
 
     let transactions = [];
