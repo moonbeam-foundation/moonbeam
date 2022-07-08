@@ -2475,6 +2475,108 @@ fn transact_through_signed_multilocation_para_to_para_ethereum() {
 	});
 }
 
+// Let's register 2 assets
+#[test]
+fn receive_several_assets_from_relay() {
+	MockNet::reset();
+
+	let asset_1_mult = MultiLocation::parent();
+	let asset_2_mult = MultiLocation::new(1, X1(PalletInstance(3u8)));
+	let source_location = parachain::AssetType::Xcm(MultiLocation::parent());
+	let source_id: parachain::AssetId = source_location.clone().into();
+	let source_location_2 = parachain::AssetType::Xcm(MultiLocation::new(1, X1(PalletInstance(3u8))));
+	let source_id_2: parachain::AssetId = source_location_2.clone().into();
+	let asset_metadata = parachain::AssetMetadata {
+		name: b"RelayToken".to_vec(),
+		symbol: b"Relay".to_vec(),
+		decimals: 12,
+	};
+	// register relay asset in parachain A
+	ParaA::execute_with(|| {
+		assert_ok!(AssetManager::register_foreign_asset(
+			parachain::Origin::root(),
+			source_location.clone(),
+			asset_metadata.clone(),
+			1u128,
+			true
+		));
+		assert_ok!(AssetManager::set_asset_units_per_second(
+			parachain::Origin::root(),
+			source_location,
+			1_000_000_000_000u128,
+			0
+		));
+
+		assert_ok!(AssetManager::register_foreign_asset(
+			parachain::Origin::root(),
+			source_location_2.clone(),
+			asset_metadata,
+			1u128,
+			true
+		));
+		assert_ok!(AssetManager::set_asset_units_per_second(
+			parachain::Origin::root(),
+			source_location_2,
+			1_000_000_000_000u128,
+			1
+		));
+	});
+
+	// Encode the call. System remark
+	let mut encoded: Vec<u8> = Vec::new();
+	let index = <parachain::Runtime as frame_system::Config>::PalletInfo::index::<
+		parachain::Utility,
+	>()
+	.unwrap() as u8;
+
+	encoded.push(index);
+
+	// Then call bytes
+	let mut call_bytes = pallet_utility::Call::<parachain::Runtime>::batch {
+		calls: vec![]
+	}
+	.encode();
+	encoded.append(&mut call_bytes);
+
+
+	let message = xcm::VersionedXcm::<()>::V2(Xcm(vec![
+		ReserveAssetDeposited(vec![(asset_1_mult.clone(), 1_000_000_000_000u128).into(), (asset_2_mult.clone(), 1_000_000_000_000u128).into()].into()),
+		BuyExecution {
+			fees: (asset_1_mult, 1_000_000_000_000u128).into(),
+			weight_limit: Limited(5_000_000_000u64),
+		},
+		BuyExecution {
+			fees: (asset_2_mult, 1_000_000_000_000u128).into(),
+			weight_limit: Limited(5_000_000_000u64),
+		},
+		Transact {
+			origin_type: OriginKind::SovereignAccount,
+			require_weight_at_most: 1_000_000_000u64,
+			call: encoded.into()
+		},
+		DepositAsset {
+			assets: All.into(),
+			max_assets: 2,
+			beneficiary: MultiLocation::new(
+				0,
+				X1(AccountKey20 {
+					network: Any,
+					key: PARAALICE,
+				}),
+			),
+		},
+	]));
+
+	Relay::execute_with(|| {
+		assert_ok!(RelayChainPalletXcm::send(
+			relay_chain::Origin::root(),
+			Box::new(MultiLocation::new(0, X1(Parachain(1))).into()),
+			Box::new(message),
+		));
+	});
+
+}
+
 use parity_scale_codec::{Decode, Encode};
 use sp_io::hashing::blake2_256;
 

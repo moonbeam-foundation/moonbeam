@@ -862,6 +862,13 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type WeightInfo = ();
 }
 
+impl pallet_utility::Config for Runtime {
+	type Event = Event;
+	type Call = Call;
+	type PalletsOrigin = OriginCaller;
+	type WeightInfo = pallet_utility::weights::SubstrateWeight<Runtime>;
+}
+
 parameter_types! {
 	pub const MinimumPeriod: u64 = 1000;
 }
@@ -993,6 +1000,7 @@ construct_runtime!(
 		EVM: pallet_evm::{Pallet, Call, Storage, Config, Event<T>},
 		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Origin, Config},
 		EthereumXcm: pallet_ethereum_xcm::{Pallet, Call, Origin},
+		Utility: pallet_utility::{Pallet, Call, Event}
 	}
 );
 
