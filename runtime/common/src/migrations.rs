@@ -1,4 +1,4 @@
-// Copyright 2019-2020 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -40,19 +40,21 @@ use pallet_author_slot_filter::migration::EligibleRatioToEligiblityCount;
 use pallet_author_slot_filter::Config as AuthorSlotFilterConfig;
 use pallet_base_fee::Config as BaseFeeConfig;
 use pallet_migrations::{GetMigrations, Migration};
-use parachain_staking::{
+use pallet_parachain_staking::{
 	migrations::{
 		IncreaseMaxDelegationsPerCandidate, PatchIncorrectDelegationSums, PurgeStaleStorage,
 		SplitCandidateStateToDecreasePoV, SplitDelegatorStateIntoDelegationScheduledRequests,
 	},
 	Config as ParachainStakingConfig,
 };
+#[cfg(feature = "xcm-support")]
+use pallet_xcm_transactor::{
+	migrations::TransactSignedWeightAndFeePerSecond, Config as XcmTransactorConfig,
+};
 use sp_runtime::Permill;
 use sp_std::{marker::PhantomData, prelude::*};
 #[cfg(feature = "xcm-support")]
 use xcm::latest::MultiLocation;
-#[cfg(feature = "xcm-support")]
-use xcm_transactor::{migrations::MaxTransactWeight, Config as XcmTransactorConfig};
 
 /// This module acts as a registry where each migration is defined. Each migration should implement
 /// the "Migration" trait declared in the pallet-migrations crate.
@@ -129,7 +131,7 @@ impl<T: ParachainStakingConfig> Migration for ParachainStakingPatchIncorrectDele
 	}
 }
 
-/// Staking split delegator state into [parachain_staking::DelegatorScheduledRequests]
+/// Staking split delegator state into [pallet_parachain_staking::DelegatorScheduledRequests]
 pub struct ParachainStakingSplitDelegatorStateIntoDelegationScheduledRequests<T>(PhantomData<T>);
 impl<T: ParachainStakingConfig> Migration
 	for ParachainStakingSplitDelegatorStateIntoDelegationScheduledRequests<T>
@@ -418,28 +420,53 @@ impl<T: BaseFeeConfig> Migration for MigrateBaseFeePerGas<T> {
 	}
 }
 
+// #[cfg(feature = "xcm-support")]
+// pub struct XcmTransactorMaxTransactWeight<T>(PhantomData<T>);
+// #[cfg(feature = "xcm-support")]
+// impl<T: XcmTransactorConfig> Migration for XcmTransactorMaxTransactWeight<T> {
+// 	fn friendly_name(&self) -> &str {
+// 		"MM_Xcm_Transactor_MaxTransactWeight"
+// 	}
+
+// 	fn migrate(&self, _available_weight: Weight) -> Weight {
+// 		MaxTransactWeight::<T>::on_runtime_upgrade()
+// 	}
+
+// 	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+// 	#[cfg(feature = "try-runtime")]
+// 	fn pre_upgrade(&self) -> Result<(), &'static str> {
+// 		MaxTransactWeight::<T>::pre_upgrade()
+// 	}
+
+// 	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+// 	#[cfg(feature = "try-runtime")]
+// 	fn post_upgrade(&self) -> Result<(), &'static str> {
+// 		MaxTransactWeight::<T>::post_upgrade()
+// 	}
+// }
+
 #[cfg(feature = "xcm-support")]
-pub struct XcmTransactorMaxTransactWeight<T>(PhantomData<T>);
+pub struct XcmTransactorTransactSignedWeightAndFeePerSecond<T>(PhantomData<T>);
 #[cfg(feature = "xcm-support")]
-impl<T: XcmTransactorConfig> Migration for XcmTransactorMaxTransactWeight<T> {
+impl<T: XcmTransactorConfig> Migration for XcmTransactorTransactSignedWeightAndFeePerSecond<T> {
 	fn friendly_name(&self) -> &str {
-		"MM_Xcm_Transactor_MaxTransactWeight"
+		"MM_Xcm_Transactor_TransactSignedWeightAndFeePerSecond"
 	}
 
 	fn migrate(&self, _available_weight: Weight) -> Weight {
-		MaxTransactWeight::<T>::on_runtime_upgrade()
+		TransactSignedWeightAndFeePerSecond::<T>::on_runtime_upgrade()
 	}
 
 	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade(&self) -> Result<(), &'static str> {
-		MaxTransactWeight::<T>::pre_upgrade()
+		TransactSignedWeightAndFeePerSecond::<T>::pre_upgrade()
 	}
 
 	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade(&self) -> Result<(), &'static str> {
-		MaxTransactWeight::<T>::post_upgrade()
+		TransactSignedWeightAndFeePerSecond::<T>::post_upgrade()
 	}
 }
 
@@ -608,7 +635,7 @@ pub struct CommonMigrations<Runtime, Council, Tech>(PhantomData<(Runtime, Counci
 impl<Runtime, Council, Tech> GetMigrations for CommonMigrations<Runtime, Council, Tech>
 where
 	Runtime: pallet_author_mapping::Config,
-	Runtime: parachain_staking::Config,
+	Runtime: pallet_parachain_staking::Config,
 	Runtime: pallet_scheduler::Config,
 	Runtime: pallet_base_fee::Config,
 	Runtime: AuthorSlotFilterConfig,
@@ -638,14 +665,14 @@ where
 		// TODO: this is a lot of allocation to do upon every get() call. this *should* be avoided
 		// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review
 
-		let migration_author_slot_filter_eligible_ratio_to_eligibility_count =
-			AuthorSlotFilterEligibleRatioToEligiblityCount::<Runtime>(Default::default());
-		let migration_author_mapping_add_keys_to_registration_info =
-			AuthorMappingAddKeysToRegistrationInfo::<Runtime>(Default::default());
-		let staking_delegator_state_requests =
-			ParachainStakingSplitDelegatorStateIntoDelegationScheduledRequests::<Runtime>(
-				Default::default(),
-			);
+		// let migration_author_slot_filter_eligible_ratio_to_eligibility_count =
+		// 	AuthorSlotFilterEligibleRatioToEligiblityCount::<Runtime>(Default::default());
+		// let migration_author_mapping_add_keys_to_registration_info =
+		// 	AuthorMappingAddKeysToRegistrationInfo::<Runtime>(Default::default());
+		// let staking_delegator_state_requests =
+		// 	ParachainStakingSplitDelegatorStateIntoDelegationScheduledRequests::<Runtime>(
+		// 		Default::default(),
+		// 	);
 		let migration_author_mapping_add_account_id_to_nimbus_lookup =
 			AuthorMappingAddAccountIdToNimbusLookup::<Runtime>(Default::default());
 		vec![
@@ -666,9 +693,12 @@ where
 			// Box::new(migration_parachain_staking_patch_incorrect_delegation_sums),
 			// completed in runtime 1300
 			// Box::new(migration_base_fee),
-			Box::new(migration_author_slot_filter_eligible_ratio_to_eligibility_count),
-			Box::new(migration_author_mapping_add_keys_to_registration_info),
-			Box::new(staking_delegator_state_requests),
+			// completed in runtime 1500
+			// Box::new(migration_author_slot_filter_eligible_ratio_to_eligibility_count),
+			// Box::new(migration_author_mapping_add_keys_to_registration_info),
+			// Box::new(staking_delegator_state_requests),
+
+			// planned in runtime 1600
 			Box::new(migration_author_mapping_add_account_id_to_nimbus_lookup),
 		]
 	}
@@ -680,7 +710,8 @@ pub struct XcmMigrations<Runtime>(PhantomData<Runtime>);
 #[cfg(feature = "xcm-support")]
 impl<Runtime> GetMigrations for XcmMigrations<Runtime>
 where
-	Runtime: xcm_transactor::Config + pallet_migrations::Config + pallet_asset_manager::Config,
+	Runtime:
+		pallet_xcm_transactor::Config + pallet_migrations::Config + pallet_asset_manager::Config,
 	<Runtime as pallet_asset_manager::Config>::ForeignAssetType:
 		Into<Option<MultiLocation>> + From<MultiLocation>,
 {
@@ -705,6 +736,9 @@ where
 		// TODO: this is a lot of allocation to do upon every get() call. this *should* be avoided
 		// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review
 
+		let xcm_transactor_transact_signed =
+			XcmTransactorTransactSignedWeightAndFeePerSecond::<Runtime>(Default::default());
+
 		vec![
 			// completed in runtime 1201
 			// Box::new(xcm_transactor_max_weight),
@@ -716,6 +750,9 @@ where
 			// Box::new(asset_manager_populate_asset_type_id_storage),
 			// completed in runtime 1300
 			// Box::new(xcm_supported_assets),
+
+			// planned in runtime 1600
+			Box::new(xcm_transactor_transact_signed),
 		]
 	}
 }

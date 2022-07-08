@@ -186,25 +186,26 @@ where
 	// Translated from
 	// https://github.com/Uniswap/v2-core/blob/master/contracts/UniswapV2ERC20.sol#L81
 	pub(crate) fn permit(
-		address: H160,
 		asset_id: AssetIdOf<Runtime, Instance>,
-		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
+		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
-		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		let owner: H160 = input.read::<Address>(gasometer)?.into();
-		let spender: H160 = input.read::<Address>(gasometer)?.into();
-		let value: U256 = input.read(gasometer)?;
-		let deadline: U256 = input.read(gasometer)?;
-		let v: u8 = input.read(gasometer)?;
-		let r: H256 = input.read(gasometer)?;
-		let s: H256 = input.read(gasometer)?;
+		let mut input = handle.read_input()?;
+		let owner: H160 = input.read::<Address>()?.into();
+		let spender: H160 = input.read::<Address>()?.into();
+		let value: U256 = input.read()?;
+		let deadline: U256 = input.read()?;
+		let v: u8 = input.read()?;
+		let r: H256 = input.read()?;
+		let s: H256 = input.read()?;
+
+		let address = handle.code_address();
 
 		// pallet_timestamp is in ms while Ethereum use second timestamps.
 		let timestamp: U256 = (pallet_timestamp::Pallet::<Runtime>::get()).into() / 1000;
 
-		ensure!(deadline >= timestamp, gasometer.revert("permit expired"));
+		ensure!(deadline >= timestamp, revert("permit expired"));
 
 		let nonce = NoncesStorage::<Instance>::get(address, owner);
 
@@ -217,68 +218,57 @@ where
 		sig[64] = v;
 
 		let signer = sp_io::crypto::secp256k1_ecdsa_recover(&sig, &permit)
-			.map_err(|_| gasometer.revert("invalid permit"))?;
+			.map_err(|_| revert("invalid permit"))?;
 		let signer = H160::from(H256::from_slice(keccak_256(&signer).as_slice()));
 
 		ensure!(
 			signer != H160::zero() && signer == owner,
-			gasometer.revert("invalid permit")
+			revert("invalid permit")
 		);
 
 		NoncesStorage::<Instance>::insert(address, owner, nonce + U256::one());
 
 		Erc20AssetsPrecompileSet::<Runtime, IsLocal, Instance>::approve_inner(
-			asset_id, gasometer, owner, spender, value,
+			asset_id, handle, owner, spender, value,
 		)?;
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			cost: gasometer.used_gas(),
-			output: vec![],
-			logs: LogsBuilder::new(address)
-				.log3(
-					SELECTOR_LOG_APPROVAL,
-					owner,
-					spender,
-					EvmDataWriter::new().write(value).build(),
-				)
-				.build(),
-		})
+		log3(
+			address,
+			SELECTOR_LOG_APPROVAL,
+			owner,
+			spender,
+			EvmDataWriter::new().write(value).build(),
+		)
+		.record(handle)?;
+
+		Ok(succeed([]))
 	}
 
 	pub(crate) fn nonces(
-		address: H160,
-		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
+		_asset_id: AssetIdOf<Runtime, Instance>,
+		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
-		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		let owner: H160 = input.read::<Address>(gasometer)?.into();
+		let mut input = handle.read_input()?;
+		let owner: H160 = input.read::<Address>()?.into();
 
-		let nonce = NoncesStorage::<Instance>::get(address, owner);
+		let nonce = NoncesStorage::<Instance>::get(handle.code_address(), owner);
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			cost: gasometer.used_gas(),
-			output: EvmDataWriter::new().write(nonce).build(),
-			logs: vec![],
-		})
+		Ok(succeed(EvmDataWriter::new().write(nonce).build()))
 	}
 
 	pub(crate) fn domain_separator(
-		address: H160,
 		asset_id: AssetIdOf<Runtime, Instance>,
-		gasometer: &mut Gasometer,
+		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
-		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		let domain_separator: H256 = Self::compute_domain_separator(address, asset_id).into();
+		let domain_separator: H256 =
+			Self::compute_domain_separator(handle.code_address(), asset_id).into();
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			cost: gasometer.used_gas(),
-			output: EvmDataWriter::new().write(domain_separator).build(),
-			logs: vec![],
-		})
+		Ok(succeed(
+			EvmDataWriter::new().write(domain_separator).build(),
+		))
 	}
 }

@@ -13,9 +13,9 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
-use futures::{future::BoxFuture, FutureExt, SinkExt, StreamExt};
-use jsonrpc_core::Result as RpcResult;
-pub use moonbeam_rpc_core_debug::{Debug as DebugT, DebugServer, TraceParams};
+use futures::{SinkExt, StreamExt};
+use jsonrpsee::core::RpcResult;
+pub use moonbeam_rpc_core_debug::{DebugServer, TraceParams};
 
 use tokio::{
 	self,
@@ -62,73 +62,64 @@ impl Debug {
 	}
 }
 
-impl DebugT for Debug {
+#[jsonrpsee::core::async_trait]
+impl DebugServer for Debug {
 	/// Handler for `debug_traceTransaction` request. Communicates with the service-defined task
 	/// using channels.
-	fn trace_transaction(
+	async fn trace_transaction(
 		&self,
 		transaction_hash: H256,
 		params: Option<TraceParams>,
-	) -> BoxFuture<'static, RpcResult<single::TransactionTrace>> {
+	) -> RpcResult<single::TransactionTrace> {
 		let mut requester = self.requester.clone();
 
-		async move {
-			let (tx, rx) = oneshot::channel();
-			// Send a message from the rpc handler to the service level task.
-			requester
-				.send(((RequesterInput::Transaction(transaction_hash), params), tx))
-				.await
-				.map_err(|err| {
-					internal_err(format!(
-						"failed to send request to debug service : {:?}",
-						err
-					))
-				})?;
+		let (tx, rx) = oneshot::channel();
+		// Send a message from the rpc handler to the service level task.
+		requester
+			.send(((RequesterInput::Transaction(transaction_hash), params), tx))
+			.await
+			.map_err(|err| {
+				internal_err(format!(
+					"failed to send request to debug service : {:?}",
+					err
+				))
+			})?;
 
-			// Receive a message from the service level task and send the rpc response.
-			rx.await
-				.map_err(|err| {
-					internal_err(format!("debug service dropped the channel : {:?}", err))
-				})?
-				.map(|res| match res {
-					Response::Single(res) => res,
-					_ => unreachable!(),
-				})
-		}
-		.boxed()
+		// Receive a message from the service level task and send the rpc response.
+		rx.await
+			.map_err(|err| internal_err(format!("debug service dropped the channel : {:?}", err)))?
+			.map(|res| match res {
+				Response::Single(res) => res,
+				_ => unreachable!(),
+			})
 	}
 
-	fn trace_block(
+	async fn trace_block(
 		&self,
 		id: RequestBlockId,
 		params: Option<TraceParams>,
-	) -> BoxFuture<'static, RpcResult<Vec<single::TransactionTrace>>> {
+	) -> RpcResult<Vec<single::TransactionTrace>> {
 		let mut requester = self.requester.clone();
 
-		async move {
-			let (tx, rx) = oneshot::channel();
-			// Send a message from the rpc handler to the service level task.
-			requester
-				.send(((RequesterInput::Block(id), params), tx))
-				.await
-				.map_err(|err| {
-					internal_err(format!(
-						"failed to send request to debug service : {:?}",
-						err
-					))
-				})?;
+		let (tx, rx) = oneshot::channel();
+		// Send a message from the rpc handler to the service level task.
+		requester
+			.send(((RequesterInput::Block(id), params), tx))
+			.await
+			.map_err(|err| {
+				internal_err(format!(
+					"failed to send request to debug service : {:?}",
+					err
+				))
+			})?;
 
-			// Receive a message from the service level task and send the rpc response.
-			rx.await
-				.map_err(|err| {
-					internal_err(format!("debug service dropped the channel : {:?}", err))
-				})?
-				.map(|res| match res {
-					Response::Block(res) => res,
-					_ => unreachable!(),
-				})
-		}
-		.boxed()
+		// Receive a message from the service level task and send the rpc response.
+		rx.await
+			.map_err(|err| internal_err(format!("debug service dropped the channel : {:?}", err)))?
+			.map(|res| match res {
+				Response::Block(res) => res,
+				_ => unreachable!(),
+			})
 	}
 }
 
@@ -156,6 +147,7 @@ where
 		frontier_backend: Arc<fc_db::Backend<B>>,
 		permit_pool: Arc<Semaphore>,
 		overrides: Arc<OverrideHandle<B>>,
+		raw_max_memory_usage: usize,
 	) -> (impl Future<Output = ()>, DebugRequester) {
 		let (tx, mut rx): (DebugRequester, _) =
 			sc_utils::mpsc::tracing_unbounded("debug-requester");
@@ -185,6 +177,7 @@ where
 											transaction_hash,
 											params,
 											overrides.clone(),
+											raw_max_memory_usage,
 										)
 									})
 									.await
@@ -426,6 +419,7 @@ where
 		transaction_hash: H256,
 		params: Option<TraceParams>,
 		overrides: Arc<OverrideHandle<B>>,
+		raw_max_memory_usage: usize,
 	) -> RpcResult<Response> {
 		let (tracer_input, trace_type) = Self::handle_params(params)?;
 
@@ -547,11 +541,16 @@ where
 							disable_storage,
 							disable_memory,
 							disable_stack,
+							raw_max_memory_usage,
 						);
 						proxy.using(f)?;
 						Ok(Response::Single(
-							moonbeam_client_evm_tracing::formatters::Raw::format(proxy)
-								.ok_or(internal_err("Fail to format proxy"))?,
+							moonbeam_client_evm_tracing::formatters::Raw::format(proxy).ok_or(
+								internal_err(
+									"replayed transaction generated too much data. \
+								try disabling memory or storage?",
+								),
+							)?,
 						))
 					}
 					single::TraceType::CallList => {

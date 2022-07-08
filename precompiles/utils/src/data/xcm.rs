@@ -16,12 +16,15 @@
 
 //! Encoding of XCM types for solidity
 
-use crate::{Bytes, EvmData, EvmDataReader, EvmDataWriter, EvmResult, Gasometer};
-
-use frame_support::ensure;
-use sp_std::vec::Vec;
-use xcm::latest::{Junction, Junctions, MultiLocation, NetworkId};
-
+use {
+	crate::{
+		data::{Bytes, EvmData, EvmDataReader, EvmDataWriter},
+		revert, EvmResult,
+	},
+	frame_support::ensure,
+	sp_std::vec::Vec,
+	xcm::latest::{Junction, Junctions, MultiLocation, NetworkId},
+};
 // Function to convert network id to bytes
 // We don't implement EVMData here as these bytes will be appended only
 // to certain Junction variants
@@ -55,101 +58,95 @@ pub(crate) fn network_id_to_bytes(network_id: NetworkId) -> Vec<u8> {
 }
 
 // Function to convert bytes to networkId
-pub(crate) fn network_id_from_bytes(
-	gasometer: &mut Gasometer,
-	encoded_bytes: Vec<u8>,
-) -> EvmResult<NetworkId> {
-	ensure!(
-		encoded_bytes.len() > 0,
-		gasometer.revert("Junctions cannot be empty")
-	);
+pub(crate) fn network_id_from_bytes(encoded_bytes: Vec<u8>) -> EvmResult<NetworkId> {
+	ensure!(encoded_bytes.len() > 0, revert("Junctions cannot be empty"));
 	let mut encoded_network_id = EvmDataReader::new(&encoded_bytes);
 
-	let network_selector = encoded_network_id.read_raw_bytes(gasometer, 1)?;
+	let network_selector = encoded_network_id.read_raw_bytes(1)?;
 
 	match network_selector[0] {
 		0 => Ok(NetworkId::Any),
 		1 => Ok(NetworkId::Named(
-			encoded_network_id.read_till_end(gasometer)?.to_vec(),
+			encoded_network_id.read_till_end()?.to_vec(),
 		)),
 		2 => Ok(NetworkId::Polkadot),
 		3 => Ok(NetworkId::Kusama),
-		_ => Err(gasometer.revert("Non-valid Network Id")),
+		_ => Err(revert("Non-valid Network Id")),
 	}
 }
 
 impl EvmData for Junction {
-	fn read(reader: &mut EvmDataReader, gasometer: &mut Gasometer) -> EvmResult<Self> {
-		let junction = reader.read::<Bytes>(gasometer)?;
+	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
+		let junction = reader.read::<Bytes>()?;
 		let junction_bytes = junction.as_bytes();
 
 		ensure!(
 			junction_bytes.len() > 0,
-			gasometer.revert("Junctions cannot be empty")
+			revert("Junctions cannot be empty")
 		);
 
 		// For simplicity we use an EvmReader here
 		let mut encoded_junction = EvmDataReader::new(&junction_bytes);
 
 		// We take the first byte
-		let enum_selector = encoded_junction.read_raw_bytes(gasometer, 1)?;
+		let enum_selector = encoded_junction.read_raw_bytes(1)?;
 
 		// The firs byte selects the enum variant
 		match enum_selector[0] {
 			0 => {
 				// In the case of Junction::Parachain, we need 4 additional bytes
 				let mut data: [u8; 4] = Default::default();
-				data.copy_from_slice(&encoded_junction.read_raw_bytes(gasometer, 4)?);
+				data.copy_from_slice(&encoded_junction.read_raw_bytes(4)?);
 				let para_id = u32::from_be_bytes(data);
 				Ok(Junction::Parachain(para_id))
 			}
 			1 => {
 				// In the case of Junction::AccountId32, we need 32 additional bytes plus NetworkId
 				let mut account: [u8; 32] = Default::default();
-				account.copy_from_slice(&encoded_junction.read_raw_bytes(gasometer, 32)?);
+				account.copy_from_slice(&encoded_junction.read_raw_bytes(32)?);
 
-				let network = encoded_junction.read_till_end(gasometer)?.to_vec();
+				let network = encoded_junction.read_till_end()?.to_vec();
 				Ok(Junction::AccountId32 {
-					network: network_id_from_bytes(gasometer, network)?,
+					network: network_id_from_bytes(network)?,
 					id: account,
 				})
 			}
 			2 => {
 				// In the case of Junction::AccountIndex64, we need 8 additional bytes plus NetworkId
 				let mut index: [u8; 8] = Default::default();
-				index.copy_from_slice(&encoded_junction.read_raw_bytes(gasometer, 8)?);
+				index.copy_from_slice(&encoded_junction.read_raw_bytes(8)?);
 				// Now we read the network
-				let network = encoded_junction.read_till_end(gasometer)?.to_vec();
+				let network = encoded_junction.read_till_end()?.to_vec();
 				Ok(Junction::AccountIndex64 {
-					network: network_id_from_bytes(gasometer, network)?,
+					network: network_id_from_bytes(network)?,
 					index: u64::from_be_bytes(index),
 				})
 			}
 			3 => {
 				// In the case of Junction::AccountKey20, we need 20 additional bytes plus NetworkId
 				let mut account: [u8; 20] = Default::default();
-				account.copy_from_slice(&encoded_junction.read_raw_bytes(gasometer, 20)?);
+				account.copy_from_slice(&encoded_junction.read_raw_bytes(20)?);
 
-				let network = encoded_junction.read_till_end(gasometer)?.to_vec();
+				let network = encoded_junction.read_till_end()?.to_vec();
 				Ok(Junction::AccountKey20 {
-					network: network_id_from_bytes(gasometer, network)?,
+					network: network_id_from_bytes(network)?,
 					key: account,
 				})
 			}
 			4 => Ok(Junction::PalletInstance(
-				encoded_junction.read_raw_bytes(gasometer, 1)?[0],
+				encoded_junction.read_raw_bytes(1)?[0],
 			)),
 			5 => {
 				// In the case of Junction::GeneralIndex, we need 16 additional bytes
 				let mut general_index: [u8; 16] = Default::default();
-				general_index.copy_from_slice(&encoded_junction.read_raw_bytes(gasometer, 16)?);
+				general_index.copy_from_slice(&encoded_junction.read_raw_bytes(16)?);
 				Ok(Junction::GeneralIndex(u128::from_be_bytes(general_index)))
 			}
 			6 => Ok(Junction::GeneralKey(
-				encoded_junction.read_till_end(gasometer)?.to_vec(),
+				encoded_junction.read_till_end()?.to_vec(),
 			)),
 			7 => Ok(Junction::OnlyChild),
-			_ => Err(gasometer.revert("No selector for this")),
+			_ => Err(revert("No selector for this")),
 		}
 	}
 
@@ -211,13 +208,13 @@ impl EvmData for Junction {
 }
 
 impl EvmData for Junctions {
-	fn read(reader: &mut EvmDataReader, gasometer: &mut Gasometer) -> EvmResult<Self> {
-		let junctions_bytes: Vec<Junction> = reader.read(gasometer)?;
+	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
+		let junctions_bytes: Vec<Junction> = reader.read()?;
 		let mut junctions = Junctions::Here;
 		for item in junctions_bytes {
 			junctions
 				.push(item)
-				.map_err(|_| gasometer.revert("overflow when reading junctions"))?;
+				.map_err(|_| revert("overflow when reading junctions"))?;
 		}
 
 		Ok(junctions)
@@ -234,8 +231,8 @@ impl EvmData for Junctions {
 }
 
 impl EvmData for MultiLocation {
-	fn read(reader: &mut EvmDataReader, gasometer: &mut Gasometer) -> EvmResult<Self> {
-		let (parents, interior) = reader.read(gasometer)?;
+	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
+		let (parents, interior) = reader.read()?;
 
 		Ok(MultiLocation { parents, interior })
 	}

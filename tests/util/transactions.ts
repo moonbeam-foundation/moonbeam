@@ -1,16 +1,15 @@
-import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY } from "./constants";
-import Web3 from "web3";
-import * as RLP from "rlp";
-import { getCompiled } from "./contracts";
-import { Contract } from "web3-eth-contract";
-import fetch from "node-fetch";
-import { Event } from "@polkadot/types/interfaces";
-import { DevTestContext } from "./setup-dev-tests";
-import { customWeb3Request } from "./providers";
-// Ethers is used to handle post-london transactions
-import { ethers } from "ethers";
 import { AccessListish } from "@ethersproject/transactions";
-import { createBlockWithExtrinsic } from "./substrate-rpc";
+import { ethers } from "ethers";
+import fetch from "node-fetch";
+import * as RLP from "rlp";
+import { Contract } from "web3-eth-contract";
+
+import { alith, ALITH_PRIVATE_KEY, baltathar, BALTATHAR_PRIVATE_KEY } from "./accounts";
+import { getCompiled } from "./contracts";
+import { customWeb3Request } from "./providers";
+import { DevTestContext } from "./setup-dev-tests";
+
+// Ethers is used to handle post-london transactions
 import type { ApiPromise } from "@polkadot/api";
 import type { SubmittableExtrinsic } from "@polkadot/api/promise/types";
 const debug = require("debug")("test:transaction");
@@ -24,18 +23,28 @@ export interface TransactionOptions {
   gasPrice?: string | number;
   maxFeePerGas?: string | number;
   maxPriorityFeePerGas?: string | number;
-  value?: string | number | BigInt;
+  value?: string | number;
   data?: string;
   accessList?: AccessListish; // AccessList | Array<[string, Array<string>]>
 }
 
-export const GENESIS_TRANSACTION: TransactionOptions = {
-  from: GENESIS_ACCOUNT,
-  privateKey: GENESIS_ACCOUNT_PRIVATE_KEY,
+export const TRANSACTION_TEMPLATE: TransactionOptions = {
   nonce: null,
   gas: 12_000_000,
   gasPrice: 1_000_000_000,
   value: "0x00",
+};
+
+export const ALITH_TRANSACTION_TEMPLATE: TransactionOptions = {
+  ...TRANSACTION_TEMPLATE,
+  from: alith.address,
+  privateKey: ALITH_PRIVATE_KEY,
+};
+
+export const BALTATHAR_TRANSACTION_TEMPLATE: TransactionOptions = {
+  ...TRANSACTION_TEMPLATE,
+  from: baltathar.address,
+  privateKey: BALTATHAR_PRIVATE_KEY,
 };
 
 export const createTransaction = async (
@@ -46,18 +55,25 @@ export const createTransaction = async (
   const isEip2930 = context.ethTransactionType === "EIP2930";
   const isEip1559 = context.ethTransactionType === "EIP1559";
 
-  const gas = options.gas || 12_000_000;
   const gasPrice = options.gasPrice !== undefined ? options.gasPrice : 1_000_000_000;
   const maxPriorityFeePerGas =
     options.maxPriorityFeePerGas !== undefined ? options.maxPriorityFeePerGas : 0;
   const value = options.value !== undefined ? options.value : "0x00";
-  const from = options.from || GENESIS_ACCOUNT;
-  const privateKey =
-    options.privateKey !== undefined ? options.privateKey : GENESIS_ACCOUNT_PRIVATE_KEY;
+  const from = options.from || alith.address;
+  const privateKey = options.privateKey !== undefined ? options.privateKey : ALITH_PRIVATE_KEY;
+
+  // Instead of hardcoding the gas limit, we estimate the gas
+  const gas =
+    options.gas ||
+    (await context.web3.eth.estimateGas({
+      from: from,
+      to: options.to,
+      data: options.data,
+    }));
 
   const maxFeePerGas = options.maxFeePerGas || 1_000_000_000;
   const accessList = options.accessList || [];
-  const nonce = options.nonce || context.web3.eth.getTransactionCount(from, "pending");
+  const nonce = options.nonce || (await context.web3.eth.getTransactionCount(from, "pending"));
 
   let data, rawTransaction;
   if (isLegacy) {
@@ -136,9 +152,13 @@ export const createTransfer = async (
   context: DevTestContext,
   to: string,
   value: number | string | BigInt,
-  options: TransactionOptions = GENESIS_TRANSACTION
+  options: TransactionOptions = ALITH_TRANSACTION_TEMPLATE
 ): Promise<string> => {
-  return await createTransaction(context, { ...options, value, to });
+  return await createTransaction(context, {
+    ...options,
+    value: value.toString(),
+    to,
+  });
 };
 
 // Will create the transaction to deploy a contract.
@@ -147,12 +167,13 @@ export const createTransfer = async (
 export async function createContract(
   context: DevTestContext,
   contractName: string,
-  options: TransactionOptions = GENESIS_TRANSACTION,
+  options: TransactionOptions = ALITH_TRANSACTION_TEMPLATE,
   contractArguments: any[] = []
 ): Promise<{ rawTx: string; contract: Contract; contractAddress: string }> {
-  const contractCompiled = await getCompiled(contractName);
-  const from = options.from !== undefined ? options.from : GENESIS_ACCOUNT;
+  const contractCompiled = getCompiled(contractName);
+  const from = options.from !== undefined ? options.from : alith.address;
   const nonce = options.nonce || (await context.web3.eth.getTransactionCount(from));
+
   const contractAddress =
     "0x" +
     context.web3.utils
@@ -186,7 +207,7 @@ export async function createContractExecution(
     contract: Contract;
     contractCall: any;
   },
-  options: TransactionOptions = GENESIS_TRANSACTION
+  options: TransactionOptions = ALITH_TRANSACTION_TEMPLATE
 ) {
   const rawTx = await createTransaction(context, {
     ...options,
@@ -233,7 +254,7 @@ export async function sendPrecompileTx(
   from: string,
   privateKey: string,
   selector: string,
-  parameters: `0x${string}`[]
+  parameters: string[]
 ) {
   let data: string;
   if (selectors[selector]) {
@@ -245,19 +266,17 @@ export async function sendPrecompileTx(
     data += para.slice(2).padStart(64, "0");
   });
 
-  const tx = await createTransaction(context, {
-    from,
-    privateKey,
-    value: "0x0",
-    gas: "0x200000",
-    gasPrice: GENESIS_TRANSACTION.gasPrice,
-    to: precompileContractAddress,
-    data,
-  });
-
-  return context.createBlock({
-    transactions: [tx],
-  });
+  return context.createBlock(
+    createTransaction(context, {
+      from,
+      privateKey,
+      value: "0x0",
+      gas: "0x200000",
+      gasPrice: ALITH_TRANSACTION_TEMPLATE.gasPrice,
+      to: precompileContractAddress,
+      data,
+    })
+  );
 }
 
 const GAS_PRICE = "0x" + (1_000_000_000).toString(16);
@@ -280,7 +299,7 @@ export async function callPrecompile(
 
   return await customWeb3Request(context.web3, "eth_call", [
     {
-      from: GENESIS_ACCOUNT,
+      from: alith.address,
       value: "0x0",
       gas: "0x10000",
       gasPrice: GAS_PRICE,
@@ -288,13 +307,6 @@ export async function callPrecompile(
       data,
     },
   ]);
-}
-
-/// Sign and send Substrate transaction and then create a block.
-/// Will provide events emited by the transaction to check if they match what is expected.
-export async function substrateTransaction(context, sender, polkadotCall): Promise<Event[]> {
-  const { events } = await createBlockWithExtrinsic(context, sender, polkadotCall);
-  return events;
 }
 
 export const sendAllStreamAndWaitLast = async (
@@ -316,7 +328,7 @@ export const sendAllStreamAndWaitLast = async (
         Promise.all(
           chunk.map((tx) => {
             return new Promise(async (resolve, reject) => {
-              let unsub;
+              let unsub: () => void;
               const timer = setTimeout(() => {
                 reject(`timed out`);
                 unsub();

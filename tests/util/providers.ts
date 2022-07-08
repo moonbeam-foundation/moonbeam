@@ -1,12 +1,14 @@
-import Web3 from "web3";
 import { ApiPromise, WsProvider } from "@polkadot/api";
-import { typesBundlePre900 } from "../../moonbeam-types-bundle";
-import { JsonRpcResponse } from "web3-core-helpers";
 import { ethers } from "ethers";
-import { GENESIS_ACCOUNT_PRIVATE_KEY } from "./constants";
+import Web3 from "web3";
+import { Log } from "web3-core";
+import { JsonRpcResponse } from "web3-core-helpers";
 import { Subscription as Web3Subscription } from "web3-core-subscriptions";
 import { BlockHeader } from "web3-eth";
-import { Log } from "web3-core";
+
+import { typesBundlePre900 } from "moonbeam-types-bundle";
+import { alith, ALITH_PRIVATE_KEY } from "./accounts";
+import { MIN_GAS_PRICE } from "./constants";
 
 export async function customWeb3Request(web3: Web3, method: string, params: any[]) {
   return new Promise<JsonRpcResponse>((resolve, reject) => {
@@ -32,6 +34,31 @@ export async function customWeb3Request(web3: Web3, method: string, params: any[
       }
     );
   });
+}
+
+export interface Web3EthCallOptions {
+  from?: string | number;
+  to: string;
+  value?: number | string | bigint;
+  gas?: number | string;
+  gasPrice?: number | string | bigint;
+  maxPriorityFeePerGas?: number | string | bigint;
+  maxFeePerGas?: number | string | bigint;
+  data?: string;
+  nonce?: number;
+}
+
+export async function web3EthCall(web3: Web3, options: Web3EthCallOptions) {
+  return await customWeb3Request(web3, "eth_call", [
+    {
+      from: options.from == undefined ? options.from : alith.address,
+      value: options.value,
+      gas: options.gas == undefined ? options.gas : 256000,
+      gasPrice: options.gas == undefined ? options.gas : `0x${MIN_GAS_PRICE}`,
+      to: options.to,
+      data: options.data,
+    },
+  ]);
 }
 
 // Extra type because web3 is not well typed
@@ -62,7 +89,7 @@ export const provideWeb3Api = async (port: number, protocol: "ws" | "http" = "ht
       : new Web3(`http://localhost:${port}`);
 
   // Adding genesis account for convenience
-  web3.eth.accounts.wallet.add(GENESIS_ACCOUNT_PRIVATE_KEY);
+  web3.eth.accounts.wallet.add(ALITH_PRIVATE_KEY);
 
   // Hack to add customRequest method.
   (web3 as any).customRequest = (method: string, params: any[]) =>

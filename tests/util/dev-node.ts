@@ -1,13 +1,15 @@
+import { ChildProcess, spawn } from "child_process";
 import tcpPortUsed from "tcp-port-used";
-import { spawn, ChildProcess } from "child_process";
+
 import {
   BINARY_PATH,
   DISPLAY_LOG,
+  ETHAPI_CMD,
   MOONBEAM_LOG,
   SPAWNING_TIME,
-  ETHAPI_CMD,
   WASM_RUNTIME_OVERRIDES,
 } from "./constants";
+
 const debug = require("debug")("test:dev-node");
 
 export async function findAvailablePorts() {
@@ -37,6 +39,8 @@ export async function findAvailablePorts() {
   };
 }
 
+export type RuntimeChain = "moonbase" | "moonriver" | "moonbeam";
+
 // Stores if the node has already started.
 // It is used when a test file contains multiple describeDevMoonbeam. Those are
 // executed within the same PID and so would generate a race condition if started
@@ -45,7 +49,10 @@ let nodeStarted = false;
 
 // This will start a moonbeam dev node, only 1 at a time (check every 100ms).
 // This will prevent race condition on the findAvailablePorts which uses the PID of the process
-export async function startMoonbeamDevNode(withWasm?: boolean): Promise<{
+export async function startMoonbeamDevNode(
+  withWasm?: boolean,
+  runtime: RuntimeChain = "moonbase"
+): Promise<{
   p2pPort: number;
   rpcPort: number;
   wsPort: number;
@@ -67,17 +74,25 @@ export async function startMoonbeamDevNode(withWasm?: boolean): Promise<{
   const cmd = BINARY_PATH;
   let args = [
     withWasm ? `--execution=Wasm` : `--execution=Native`, // Faster execution using native
+    process.env.FORCE_COMPILED_WASM
+      ? `--wasm-execution=compiled`
+      : `--wasm-execution=interpreted-i-know-what-i-do`,
     ETHAPI_CMD != "" ? `${ETHAPI_CMD}` : `--ethapi=txpool`,
+    `--no-hardware-benchmarks`,
     `--no-telemetry`,
     `--no-prometheus`,
-    `--dev`,
+    `--force-authoring`,
+    `--rpc-cors=all`,
+    `--alice`,
+    `--chain=${runtime}-dev`,
     `--sealing=manual`,
+    `--in-peers=0`,
+    `--out-peers=0`,
     `-l${MOONBEAM_LOG}`,
     `--port=${p2pPort}`,
     `--rpc-port=${rpcPort}`,
     `--ws-port=${wsPort}`,
     `--tmp`,
-    `--wasm-execution=interpreted-i-know-what-i-do`,
   ];
   if (WASM_RUNTIME_OVERRIDES != "") {
     args.push(`--wasm-runtime-overrides=${WASM_RUNTIME_OVERRIDES}`);
@@ -117,7 +132,7 @@ export async function startMoonbeamDevNode(withWasm?: boolean): Promise<{
     process.exit(1);
   });
 
-  const binaryLogs = [];
+  const binaryLogs: any[] = [];
   await new Promise<void>((resolve) => {
     const timer = setTimeout(() => {
       console.error(`\x1b[31m Failed to start Moonbeam Test Node.\x1b[0m`);
@@ -127,7 +142,7 @@ export async function startMoonbeamDevNode(withWasm?: boolean): Promise<{
       throw new Error("Failed to launch node");
     }, SPAWNING_TIME - 2000);
 
-    const onData = async (chunk) => {
+    const onData = async (chunk: any) => {
       if (DISPLAY_LOG) {
         console.log(chunk.toString());
       }

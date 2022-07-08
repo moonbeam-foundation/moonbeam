@@ -23,7 +23,7 @@ use frame_support::{construct_runtime, parameter_types, traits::Everything};
 use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet};
 use scale_info::TypeInfo;
 use serde::{Deserialize, Serialize};
-use sp_core::{H160, H256};
+use sp_core::{H160, H256, U256};
 use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
@@ -172,7 +172,8 @@ impl pallet_balances::Config for Runtime {
 }
 
 parameter_types! {
-	pub const PrecompilesValue: Precompiles<Runtime> = Precompiles(PhantomData);
+		pub BlockGasLimit: U256 = U256::max_value();
+		pub const PrecompilesValue: Precompiles<Runtime> = Precompiles(PhantomData);
 }
 
 impl pallet_evm::Config for Runtime {
@@ -188,10 +189,9 @@ impl pallet_evm::Config for Runtime {
 	type PrecompilesValue = PrecompilesValue;
 	type ChainId = ();
 	type OnChargeTransaction = ();
-	type BlockGasLimit = ();
+	type BlockGasLimit = BlockGasLimit;
 	type BlockHashMapping = pallet_evm::SubstrateBlockHashMapping<Self>;
 	type FindAuthor = ();
-	type WeightInfo = ();
 }
 
 // Configure a mock runtime to test the pallet.
@@ -241,20 +241,12 @@ impl<R> PrecompileSet for Precompiles<R>
 where
 	Erc20BalancesPrecompile<R, NativeErc20Metadata>: Precompile,
 {
-	fn execute(
-		&self,
-		address: H160,
-		input: &[u8],
-		target_gas: Option<u64>,
-		context: &Context,
-		is_static: bool,
-	) -> Option<EvmResult<PrecompileOutput>> {
-		match address {
-			a if a == hash(PRECOMPILE_ADDRESS) => {
-				Some(Erc20BalancesPrecompile::<R, NativeErc20Metadata>::execute(
-					input, target_gas, context, is_static,
-				))
-			}
+	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<EvmResult<PrecompileOutput>> {
+		match handle.code_address() {
+			a if a == hash(PRECOMPILE_ADDRESS) => Some(Erc20BalancesPrecompile::<
+				R,
+				NativeErc20Metadata,
+			>::execute(handle)),
 			_ => None,
 		}
 	}

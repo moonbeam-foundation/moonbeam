@@ -1,17 +1,20 @@
+import "@moonbeam-network/api-augment";
+
 import { expect } from "chai";
-import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
-import { createContract } from "../../util/transactions";
 import { Contract } from "web3-eth-contract";
 
+import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
+import { createContract } from "../../util/transactions";
+
 describeDevMoonbeamAllEthTxTypes("Contract creation", (context) => {
-  let testContract: Contract;
+  let multiplyBy7: Contract;
   let testContractTx: string;
 
   before("Setup: Create the contract", async function () {
-    const { contract, rawTx } = await createContract(context, "TestContract");
-    const { txResults } = await context.createBlock({ transactions: [rawTx] });
-    testContract = contract;
-    testContractTx = txResults[0].result;
+    const { contract, rawTx } = await createContract(context, "MultiplyBy7");
+    const { result } = await context.createBlock(rawTx);
+    multiplyBy7 = contract;
+    testContractTx = result.hash;
   });
 
   it("should appear in the block transaction list", async () => {
@@ -26,7 +29,7 @@ describeDevMoonbeamAllEthTxTypes("Contract creation", (context) => {
   });
 
   it("should provide callable methods", async function () {
-    expect(await testContract.methods.multiply(3).call()).to.equal("21");
+    expect(await multiplyBy7.methods.multiply(3).call()).to.equal("21");
   });
 
   // TODO: when web3 supports eip1559 and eip2930, this test should be adapted
@@ -34,8 +37,8 @@ describeDevMoonbeamAllEthTxTypes("Contract creation", (context) => {
     // Create a fake contract based on origin deployed contract.
     // It make the multiply method supposed to have 0 arguments
     const contract = new context.web3.eth.Contract(
-      [{ ...testContract.options.jsonInterface[0], inputs: [] }],
-      testContract.options.address
+      [{ ...multiplyBy7.options.jsonInterface[0], inputs: [] }],
+      multiplyBy7.options.address
     );
     await contract.methods
       .multiply()
@@ -43,7 +46,7 @@ describeDevMoonbeamAllEthTxTypes("Contract creation", (context) => {
       .then(() => {
         return Promise.reject({ message: "Execution succeeded but should have failed" });
       })
-      .catch((err) =>
+      .catch((err: { message: string }) =>
         expect(err.message).to.equal(
           `Returned error: VM Exception while processing transaction: revert`
         )
@@ -57,14 +60,14 @@ describeDevMoonbeamAllEthTxTypes("Contract creation", (context) => {
     const contract = new context.web3.eth.Contract(
       [
         {
-          ...testContract.options.jsonInterface[0],
+          ...multiplyBy7.options.jsonInterface[0],
           inputs: [
             { internalType: "uint256", name: "a", type: "uint256" },
             { internalType: "uint256", name: "b", type: "uint256" },
           ],
         },
       ],
-      testContract.options.address
+      multiplyBy7.options.address
     );
 
     await contract.methods
@@ -73,7 +76,7 @@ describeDevMoonbeamAllEthTxTypes("Contract creation", (context) => {
       .then(() => {
         return Promise.reject({ message: "Execution succeeded but should have failed" });
       })
-      .catch((err) =>
+      .catch((err: { message: string }) =>
         expect(err.message).to.equal(
           `Returned error: VM Exception while processing transaction: revert`
         )
@@ -86,7 +89,7 @@ describeDevMoonbeamAllEthTxTypes("Contract creation", (context) => {
     const contract = new context.web3.eth.Contract(
       [
         {
-          ...testContract.options.jsonInterface[0],
+          ...multiplyBy7.options.jsonInterface[0],
           inputs: [
             {
               internalType: "address",
@@ -96,7 +99,7 @@ describeDevMoonbeamAllEthTxTypes("Contract creation", (context) => {
           ],
         },
       ],
-      testContract.options.address
+      multiplyBy7.options.address
     );
     await contract.methods
       .multiply("0x0123456789012345678901234567890123456789")
@@ -104,7 +107,7 @@ describeDevMoonbeamAllEthTxTypes("Contract creation", (context) => {
       .then(() => {
         return Promise.reject({ message: "Execution succeeded but should have failed" });
       })
-      .catch((err) =>
+      .catch((err: { message: string }) =>
         expect(err.message).to.equal(
           `Returned error: VM Exception while processing transaction: revert`
         )

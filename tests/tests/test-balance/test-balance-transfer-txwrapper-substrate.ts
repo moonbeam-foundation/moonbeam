@@ -1,19 +1,24 @@
 // As inspired by https://github.com/paritytech/txwrapper/blob/master/examples/polkadot.ts
 // This flow is used by some exchange partners like kraken
+import "@moonbeam-network/api-augment";
 
-import { expect } from "chai";
+import { EXTRINSIC_VERSION } from "@polkadot/types/extrinsic/v4/Extrinsic";
+import {
+  createMetadata,
+  getSpecTypes,
+  KeyringPair,
+  OptionsWithMeta,
+  TypeRegistry,
+} from "@substrate/txwrapper-core";
+import { createSignedTx, createSigningPayload } from "@substrate/txwrapper-core/lib/core/construct";
+import { getRegistryBase } from "@substrate/txwrapper-core/lib/core/metadata";
 import { methods as substrateMethods } from "@substrate/txwrapper-substrate";
-import { createMetadata, KeyringPair, OptionsWithMeta } from "@substrate/txwrapper-core";
-import { Keyring } from "@polkadot/api";
-import { getRegistry } from "@substrate/txwrapper-registry";
+import { expect } from "chai";
 
-import { GENESIS_ACCOUNT, GENESIS_ACCOUNT_PRIVATE_KEY, TEST_ACCOUNT } from "../../util/constants";
-
+import { alith, generateKeyingPair } from "../../util/accounts";
+import { verifyLatestBlockFees } from "../../util/block";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { rpcToLocalNode } from "../../util/transactions";
-import { EXTRINSIC_VERSION } from "@polkadot/types/extrinsic/v4/Extrinsic";
-import { createSignedTx, createSigningPayload } from "@substrate/txwrapper-core/lib/core/construct";
-import { verifyLatestBlockFees } from "../../util/block";
 
 /**
  * Signing function. Implement this on the OFFLINE signing device.
@@ -41,6 +46,7 @@ export function signWith(
 }
 
 describeDevMoonbeam("Balance transfer - txwrapper", (context) => {
+  const randomAccount = generateKeyingPair();
   before("Create block with transfer to test account of 512", async function () {
     // txwrapper takes more time to initiate :/
     this.timeout(10000);
@@ -59,25 +65,29 @@ describeDevMoonbeam("Balance transfer - txwrapper", (context) => {
       rpcToLocalNode(context.rpcPort, "state_getRuntimeVersion"),
     ]);
 
-    const registry = getRegistry({
-      chainName: "Moonriver",
-      specName,
-      specVersion,
+    const registry = getRegistryBase({
+      chainProperties: {
+        ss58Format: 1285,
+        tokenDecimals: 18,
+        tokenSymbol: "MOVR",
+      },
+      specTypes: getSpecTypes(new TypeRegistry(), "Moonriver", specName, specVersion),
       metadataRpc,
     });
+
     const unsigned = substrateMethods.balances.transfer(
       {
-        dest: TEST_ACCOUNT,
+        dest: randomAccount.address,
         value: 512,
       },
       {
-        address: GENESIS_ACCOUNT,
+        address: alith.address,
         blockHash,
         blockNumber: registry.createType("BlockNumber", block.header.number).toNumber(),
         eraPeriod: 64,
         genesisHash,
         metadataRpc,
-        nonce: 0, // Assuming this is Gerald's first tx on the chain
+        nonce: 0, // Assuming this is Alith's first tx on the chain
         specVersion,
         tip: 0,
         transactionVersion,
@@ -89,9 +99,7 @@ describeDevMoonbeam("Balance transfer - txwrapper", (context) => {
     );
 
     const signingPayload = createSigningPayload(unsigned, { registry });
-    const keyring = new Keyring({ type: "ethereum" });
-    const genesis = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
-    const signature = signWith(genesis, signingPayload, {
+    const signature = signWith(alith, signingPayload, {
       metadataRpc,
       registry,
     });
@@ -103,19 +111,19 @@ describeDevMoonbeam("Balance transfer - txwrapper", (context) => {
   });
 
   it("should increase to account", async function () {
-    expect(await context.web3.eth.getBalance(TEST_ACCOUNT, 0)).to.equal("0");
-    expect(await context.web3.eth.getBalance(TEST_ACCOUNT, 1)).to.equal("512");
+    expect(await context.web3.eth.getBalance(randomAccount.address, 0)).to.equal("0");
+    expect(await context.web3.eth.getBalance(randomAccount.address, 1)).to.equal("512");
   });
 
   it("should reflect balance identically on polkadot/web3", async function () {
     const block1Hash = await context.polkadotApi.rpc.chain.getBlockHash(1);
-    expect(await context.web3.eth.getBalance(GENESIS_ACCOUNT, 1)).to.equal(
+    expect(await context.web3.eth.getBalance(alith.address, 1)).to.equal(
       (
-        (await context.polkadotApi.query.system.account.at(block1Hash, GENESIS_ACCOUNT)) as any
+        await (await context.polkadotApi.at(block1Hash)).query.system.account(alith.address)
       ).data.free.toString()
     );
   });
   it("should check fees", async function () {
-    await verifyLatestBlockFees(context, expect, BigInt(512));
+    await verifyLatestBlockFees(context, BigInt(512));
   });
 });

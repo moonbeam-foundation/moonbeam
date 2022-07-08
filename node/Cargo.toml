@@ -20,14 +20,15 @@ moonbeam-service = { path = "service", default-features = false }
 [dev-dependencies]
 assert_cmd = "0.12"
 hex = "0.4.3"
-nix = "0.17"
+nix = "0.23"
 serde = { version = "1.0.101", features = [ "derive" ] }
 serde_json = "1.0"
 tempfile = "3.2.0"
+tracing-core = "=0.1.26"
 
 # Benchmarking
-pallet-xcm = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.20" }
-xcm-builder = { git = "https://github.com/paritytech/polkadot", branch = "release-v0.9.20" }
+pallet-xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.23" }
+xcm-builder = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.23" }
 
 [features]
 default = [ "moonbase-native", "moonbeam-native", "moonriver-native" ]
@@ -44,12 +45,6 @@ test-spec = []
 
 runtime-benchmarks = [
 	"moonbeam-cli/runtime-benchmarks",
-	"pallet-xcm/runtime-benchmarks",
-	"xcm-builder/runtime-benchmarks",
-]
-
-moonbase-runtime-benchmarks = [
-	"moonbeam-cli/moonbase-runtime-benchmarks",
 	"pallet-xcm/runtime-benchmarks",
 	"xcm-builder/runtime-benchmarks",
 ]

@@ -17,7 +17,7 @@
 #![cfg(feature = "runtime-benchmarks")]
 
 //! Benchmarking
-use crate::{BalanceOf, Call, Config, Pallet};
+use crate::{keys_wrapper, BalanceOf, Call, Config, Pallet};
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
 use frame_support::{
 	assert_ok,
@@ -79,14 +79,19 @@ benchmarks! {
 		assert_eq!(Pallet::<T>::account_id_of(&first_id), None);
 	}
 
-	register_keys {
+	remove_keys {
 		let caller = create_funded_user::<T>();
 		let id = nimbus_id(1u8);
-		let key: T::Keys = nimbus_id(2u8).into();
-	}: _(RawOrigin::Signed(caller.clone()), (id.clone(), key.clone()))
+		let keys: T::Keys = nimbus_id(3u8).into();
+		assert_ok!(Pallet::<T>::set_keys(
+				RawOrigin::Signed(caller.clone()).into(),
+				keys_wrapper::<T>(id.clone(), keys.clone()),
+			)
+		);
+	}: _(RawOrigin::Signed(caller.clone()))
 	verify {
-		assert_eq!(Pallet::<T>::account_id_of(&id), Some(caller));
-		assert_eq!(Pallet::<T>::keys_of(&id), Some(key));
+		assert_eq!(Pallet::<T>::account_id_of(&id), None);
+		assert_eq!(Pallet::<T>::nimbus_id_of(&caller), None);
 	}
 
 	set_keys {
@@ -95,15 +100,16 @@ benchmarks! {
 		let first_keys: T::Keys = nimbus_id(3u8).into();
 		let second_id = nimbus_id(2u8);
 		let second_keys: T::Keys = nimbus_id(3u8).into();
-		assert_ok!(Pallet::<T>::register_keys(
+		// we benchmark set_keys after already calling set_keys because
+		// key rotation is more common than initially setting them
+		assert_ok!(Pallet::<T>::set_keys(
 				RawOrigin::Signed(caller.clone()).into(),
-				(first_id.clone(),
+				keys_wrapper::<T>(first_id.clone(),
 				first_keys.clone()),
 			)
 		);
-	}: _(RawOrigin::Signed(caller.clone()),
-		(second_id.clone(),
-		second_keys.clone())) verify {
+	}: _(RawOrigin::Signed(caller.clone()), keys_wrapper::<T>(second_id.clone(), second_keys.clone())
+		) verify {
 		assert_eq!(Pallet::<T>::account_id_of(&first_id), None);
 		assert_eq!(Pallet::<T>::keys_of(&first_id), None);
 		assert_eq!(Pallet::<T>::account_id_of(&second_id), Some(caller));

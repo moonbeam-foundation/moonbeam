@@ -113,7 +113,7 @@ jobs:
         run: |
           ls /tmp/bin/ec-linux-amd64 || \
           cd /tmp && \
-          wget https://github.com/editorconfig-checker/editorconfig-checker/releases/download/2.1.0/ec-linux-amd64.tar.gz && \
+          wget https://github.com/editorconfig-checker/editorconfig-checker/releases/download/2.5.0/ec-linux-amd64.tar.gz && \
           tar xvf ec-linux-amd64.tar.gz && \
           chmod +x bin/ec-linux-amd64
       - name: Check files
@@ -128,10 +128,10 @@ jobs:
         uses: actions/checkout@v2
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
-      - name: Use Node.js 14.x
+      - name: Use Node.js 16.x
         uses: actions/setup-node@v2
         with:
-          node-version: 14.x
+          node-version: 16.x
       - name: Check with Prettier
         run: npx prettier --check --ignore-path .prettierignore '**/*.(yml|js|ts|json)'
 
@@ -338,20 +338,20 @@ jobs:
         with:
           name: moonbeam
           path: build
-      - name: Use Node.js 14.x
+      - name: Use Node.js 16.x
         uses: actions/setup-node@v2
         with:
-          node-version: 14.x
+          node-version: 16.x
       - name: Typescript integration tests (against dev service)
         run: |
           chmod uog+x build/moonbeam
 
           ####  Preparing the repository
           cd moonbeam-types-bundle
-          npm install
+          npm ci
           npm run build
           cd ../tests
-          npm install
+          npm ci
           cd ..
 
           #### Retrieving docker image as base to run tests
@@ -393,6 +393,7 @@ jobs:
           if [[ $FILECOUNT -eq 0 ]]; then
             echo "All package-lock.json files are valid"
           else
+            git diff --cached
             echo "The following package-lock.json files have uncommitted changes"
             echo $DIFF_INDEX | grep package-lock.json
             false
@@ -411,10 +412,10 @@ jobs:
         with:
           name: moonbeam
           path: build
-      - name: Use Node.js 14.x
+      - name: Use Node.js 16.x
         uses: actions/setup-node@v2
         with:
-          node-version: 14.x
+          node-version: 16.x
       - name: Get tracing runtimes
         run: |
           ./scripts/build-last-tracing-runtime.sh ${{ needs.set-tags.outputs.git_branch }}
@@ -425,14 +426,15 @@ jobs:
           BINARY_PATH: ../build/moonbeam
           ETHAPI_CMD: --ethapi=txpool,debug,trace
           FORCE_WASM_EXECUTION: true
+          FORCE_COMPILED_WASM: true
           WASM_RUNTIME_OVERRIDES: moonbase-overrides
         run: |
           chmod uog+x build/moonbeam
           cd moonbeam-types-bundle
-          npm install
+          npm ci
           npm run build
           cd ../tests
-          npm install
+          npm ci
           node_modules/.bin/mocha --exit --parallel -j 2 -r ts-node/register 'tracing-tests/**/test-*.ts'
 
   typescript-para-tests:
@@ -461,10 +463,10 @@ jobs:
           docker create -ti --name dummy $DOCKER_TAG bash
           docker cp dummy:/usr/local/bin/polkadot build/polkadot
           docker rm -f dummy
-      - name: Use Node.js 14.x
+      - name: Use Node.js 16.x
         uses: actions/setup-node@v2
         with:
-          node-version: 14.x
+          node-version: 16.x
       - name: Typescript integration tests (against dev service)
         env:
           OVERRIDE_RUNTIME_PATH: ./runtimes
@@ -477,9 +479,9 @@ jobs:
 
           ####  Preparing the repository
           cd moonbeam-types-bundle
-          npm install
+          npm ci
           cd ../tests
-          npm install
+          npm ci
           cd ..
 
           POLKADOT_REPO=${{ needs.set-tags.outputs.polkadot_repo }}

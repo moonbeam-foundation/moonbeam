@@ -512,7 +512,11 @@ benchmarks! {
 		)?;
 	}: _(RawOrigin::Signed(caller.clone()))
 	verify {
-		assert!(Pallet::<T>::delegator_state(&caller).unwrap().is_leaving());
+		assert!(
+			Pallet::<T>::delegation_scheduled_requests(&collator)
+				.iter()
+				.any(|r| r.delegator == caller && matches!(r.action, DelegationAction::Revoke(_)))
+		);
 	}
 
 	execute_leave_delegators {

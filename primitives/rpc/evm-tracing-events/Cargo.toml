@@ -12,14 +12,14 @@ environmental = { version = "1.1.2", default-features = false }
 
 # Substrate
 codec = { package = "parity-scale-codec", version = "3.0.0", default-features = false }
-sp-runtime-interface = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20", default-features = false }
+sp-runtime-interface = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23", default-features = false }
 
 # Ethereum
 ethereum = { version = "0.12.0", default-features = false, features = [ "with-codec" ] }
 ethereum-types = { version = "0.13.1", default-features = false }
-evm = { version = "0.35.0", default-features = false, features = [ "with-codec" ] }
-evm-gasometer = { version = "0.35.0", default-features = false }
-evm-runtime = { version = "0.35.0", default-features = false }
+evm = { git = "https://github.com/rust-blockchain/evm", branch = "master", default-features = false, features = [ "with-codec" ] }
+evm-gasometer = { git = "https://github.com/rust-blockchain/evm", branch = "master", default-features = false }
+evm-runtime = { git = "https://github.com/rust-blockchain/evm", branch = "master", default-features = false }
 
 [features]
 default = [ "std" ]

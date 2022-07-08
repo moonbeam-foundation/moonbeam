@@ -4,19 +4,19 @@ authors = [ "PureStake" ]
 edition = "2021"
 homepage = "https://moonbeam.network"
 license = "GPL-3.0-only"
-version = "0.23.0"
+version = "0.24.0"
 
 [dependencies]
+bip32 = { git = "https://github.com/purestake/crates", branch = "bip32-v0.4.0-fix", default-features = false, features = [ "bip39" ] }
 clap = { version = "3.1", features = [ "derive" ] }
 libsecp256k1 = "0.6"
 primitive-types = "0.11.0"
 sha3 = "0.9"
 tiny-bip39 = "0.8"
-tiny-hderive = "0.3.0"
 url = "2.2.2"
 
 # Moonbeam
 account = { path = "../../primitives/account" }
 
 # Substrate
-sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20" }
+sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }

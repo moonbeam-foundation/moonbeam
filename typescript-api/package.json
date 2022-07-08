@@ -1,6 +1,6 @@
 {
   "name": "@moonbeam-network/api-augment",
-  "version": "0.0.1-beta.5",
+  "version": "0.1606.2",
   "private": true,
   "description": "Moonbeam types augment for @polkadot/api",
   "author": "PureStake",
@@ -18,6 +18,7 @@
     "generate": "npm run load:meta && npm run generate:defs && npm run generate:meta",
     "postgenerate": "npm run pretty",
     "load:meta": "npm run load:meta:moonbase && npm run load:meta:moonriver && npm run load:meta:moonbeam",
+    "load:meta:local": "curl -s -H \"Content-Type: application/json\" -d '{\"id\":\"1\", \"jsonrpc\":\"2.0\", \"method\": \"state_getMetadata\", \"params\":[]}' http://localhost:9933 > metadata-moonbase.json",
     "load:meta:moonbase": "curl -s -H \"Content-Type: application/json\" -d '{\"id\":\"1\", \"jsonrpc\":\"2.0\", \"method\": \"state_getMetadata\", \"params\":[]}' https://rpc.api.moonbase.moonbeam.network > metadata-moonbase.json",
     "load:meta:moonriver": "curl -s -H \"Content-Type: application/json\" -d '{\"id\":\"1\", \"jsonrpc\":\"2.0\", \"method\": \"state_getMetadata\", \"params\":[]}' https://rpc.api.moonriver.moonbeam.network > metadata-moonriver.json",
     "load:meta:moonbeam": "curl -s -H \"Content-Type: application/json\" -d '{\"id\":\"1\", \"jsonrpc\":\"2.0\", \"method\": \"state_getMetadata\", \"params\":[]}' https://rpc.api.moonbeam.network > metadata-moonbeam.json",
@@ -26,9 +27,9 @@
     "generate:defs:moonriver": "ts-node --skip-project node_modules/.bin/polkadot-types-from-defs --package @moonbeam/api-augment/moonriver/interfaces --input ./src/moonriver/interfaces --endpoint ./metadata-moonriver.json",
     "generate:defs:moonbeam": "ts-node --skip-project node_modules/.bin/polkadot-types-from-defs --package @moonbeam/api-augment/moonbeam/interfaces --input ./src/moonbeam/interfaces --endpoint ./metadata-moonbeam.json",
     "generate:meta": "npm run generate:meta:moonbase && npm run generate:meta:moonriver && npm run generate:meta:moonbeam",
-    "generate:meta:moonbase": "ts-node --skip-project node_modules/.bin/polkadot-types-from-chain --endpoint ./metadata-moonbase.json --output ./src/moonbase/interfaces",
-    "generate:meta:moonriver": "ts-node --skip-project node_modules/.bin/polkadot-types-from-chain --endpoint ./metadata-moonriver.json --output ./src/moonriver/interfaces",
-    "generate:meta:moonbeam": "ts-node --skip-project node_modules/.bin/polkadot-types-from-chain --endpoint ./metadata-moonbeam.json --output ./src/moonbeam/interfaces",
+    "generate:meta:moonbase": "ts-node --skip-project node_modules/.bin/polkadot-types-from-chain --endpoint ./metadata-moonbase.json --package @moonbeam/api-augment/moonbeam/interfaces --output ./src/moonbase/interfaces",
+    "generate:meta:moonriver": "ts-node --skip-project node_modules/.bin/polkadot-types-from-chain --endpoint ./metadata-moonriver.json --package @moonbeam/api-augment/moonbeam/interfaces --output ./src/moonriver/interfaces",
+    "generate:meta:moonbeam": "ts-node --skip-project node_modules/.bin/polkadot-types-from-chain --endpoint ./metadata-moonbeam.json --package @moonbeam/api-augment/moonbeam/interfaces --output ./src/moonbeam/interfaces",    
     "prebuild": "rimraf build",
     "build": "tsc -b --verbose",
     "postbuild": "node ./scripts/postbuild.js",
@@ -86,12 +87,12 @@
     "jsdocSingleLineComment": false
   },
   "devDependencies": {
-    "@polkadot/api": "^8.3.1",
-    "@polkadot/typegen": "^8.3.1",
-    "prettier": "^2.6.2",
+    "@polkadot/api": "^8.10.1",
+    "@polkadot/typegen": "^8.10.1",
+    "prettier": "^2.7.1",
     "prettier-plugin-jsdoc": "^0.3.38",
     "rimraf": "^3.0.2",
-    "ts-node": "^10.7.0",
-    "typescript": "^4.6.4"
+    "ts-node": "^10.8.1",
+    "typescript": "^4.7.3"
   }
 }

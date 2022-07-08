@@ -3,12 +3,15 @@ import { ApiDecoration } from "@polkadot/api/types";
 import type { FrameSystemAccountInfo } from "@polkadot/types/lookup";
 import { expect } from "chai";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
+import { MultiLocation } from "@polkadot/types/interfaces";
+import { it } from "mocha";
 const debug = require("debug")("smoke:treasury");
 
 const wssUrl = process.env.WSS_URL || null;
 const relayWssUrl = process.env.RELAY_WSS_URL || null;
 
 describeSmokeSuite(`Verify XCM weight fees for relay`, { wssUrl, relayWssUrl }, (context) => {
+  const conditionalIt = process.env.SKIP_RELAY_TESTS ? it.skip : it;
   const accounts: { [account: string]: FrameSystemAccountInfo } = {};
 
   let atBlockNumber: number = 0;
@@ -28,12 +31,13 @@ describeSmokeSuite(`Verify XCM weight fees for relay`, { wssUrl, relayWssUrl }, 
     );
   });
 
-  it("should have value over relay expected fees", async function () {
+  conditionalIt("should have value over relay expected fees", async function () {
     // Load data
-    const transactInfos = await apiAt.query.xcmTransactor.transactInfoWithWeightLimit.entries();
-
     const relayRuntime = context.relayApi.runtimeVersion.specName.toString();
-    console.log(relayRuntime);
+    const relayMultiLocation: MultiLocation = context.polkadotApi.createType(
+      "MultiLocation",
+      JSON.parse('{ "parents": 1, "interior": "Here" }')
+    );
 
     const units = relayRuntime.startsWith("polkadot")
       ? 10_000_000_000n
@@ -57,23 +61,35 @@ describeSmokeSuite(`Verify XCM weight fees for relay`, { wssUrl, relayWssUrl }, 
 
     const relayBaseWeight =
       relayApiAt.consts.system.blockWeights.perClass.normal.baseExtrinsic.toBigInt();
+
     const expectedFeePerSecond = (coef * seconds) / relayBaseWeight;
 
-    expect(transactInfos.length, "Missing transactInfoWithWeightLimit data").to.be.at.least(1);
-    for (const transactInfo of transactInfos) {
-      const feePerSecond = transactInfo[1].unwrap().feePerSecond.toBigInt();
-      expect(
-        feePerSecond >= expectedFeePerSecond,
-        `failed check: feePerSecond: ${feePerSecond} > expected ${expectedFeePerSecond}`
-      ).to.be.true;
-      expect(
-        // Conservative approach to allow up to 2 time the fees
-        feePerSecond < expectedFeePerSecond * 2n,
-        `failed check: feePerSecond: ${feePerSecond} < expected ${expectedFeePerSecond * 2n}`
-      ).to.be.true;
+    const parachainRuntime = context.polkadotApi.runtimeVersion.specVersion.toNumber();
+
+    let feePerSecondValueForRelay;
+    if (parachainRuntime >= 1600) {
+      feePerSecondValueForRelay = (
+        (await apiAt.query.xcmTransactor.destinationAssetFeePerSecond(relayMultiLocation)) as any
+      ).unwrap();
+    } else {
+      feePerSecondValueForRelay = (
+        await apiAt.query.xcmTransactor.transactInfoWithWeightLimit(relayMultiLocation)
+      ).unwrap().feePerSecond;
     }
+    expect(
+      feePerSecondValueForRelay.toBigInt() >= expectedFeePerSecond,
+      `failed check: feePerSecond: ${feePerSecondValueForRelay} > expected ${expectedFeePerSecond}`
+    ).to.be.true;
+    expect(
+      // Conservative approach to allow up to 2 time the fees
+      feePerSecondValueForRelay.toBigInt() < expectedFeePerSecond * 2n,
+      `failed check: feePerSecond: ${feePerSecondValueForRelay} < expected ${
+        expectedFeePerSecond * 2n
+      }`
+    ).to.be.true;
+
     debug(
-      `Verified feePerSecond for ${transactInfos.length} transactInfos ` +
+      `Verified feePerSecond for ${relayMultiLocation} transactInfos ` +
         `within relay base weight range`
     );
   });

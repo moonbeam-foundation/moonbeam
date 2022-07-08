@@ -14,20 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use std::assert_matches::assert_matches;
-
 use crate::mock::{
-	events, evm_test_context, precompile_address, roll_to, Call, Crowdloan, ExtBuilder, Origin,
-	PrecompilesValue, Runtime, TestAccount::Alice, TestAccount::Bob, TestAccount::Charlie,
-	TestPrecompiles,
+	events, roll_to,
+	Account::{Alice, Bob, Charlie, Precompile},
+	Call, Crowdloan, ExtBuilder, Origin, PrecompilesValue, Runtime, TestPrecompiles,
 };
-use crate::{Action, PrecompileOutput};
-use fp_evm::PrecompileFailure;
+use crate::Action;
 use frame_support::{assert_ok, dispatch::Dispatchable};
-use num_enum::TryFromPrimitive;
 use pallet_crowdloan_rewards::{Call as CrowdloanCall, Event as CrowdloanEvent};
-use pallet_evm::{Call as EvmCall, ExitSucceed, PrecompileSet};
-use precompile_utils::{Address, EvmDataWriter};
+use pallet_evm::Call as EvmCall;
+use precompile_utils::{prelude::*, testing::*};
 use sha3::{Digest, Keccak256};
 use sp_core::{H160, U256};
 
@@ -38,7 +34,7 @@ fn precompiles() -> TestPrecompiles<Runtime> {
 fn evm_call(input: Vec<u8>) -> EvmCall<Runtime> {
 	EvmCall::call {
 		source: Alice.into(),
-		target: precompile_address(),
+		target: Precompile.into(),
 		input,
 		value: U256::zero(), // No value sent in EVM
 		gas_limit: u64::max_value(),
@@ -51,65 +47,28 @@ fn evm_call(input: Vec<u8>) -> EvmCall<Runtime> {
 
 #[test]
 fn test_selector_enum() {
-	let mut buffer = [0u8; 4];
-	buffer.copy_from_slice(&Keccak256::digest(b"is_contributor(address)")[0..4]);
-	assert_eq!(
-		Action::try_from_primitive(u32::from_be_bytes(buffer)).unwrap(),
-		Action::IsContributor,
-	);
-	buffer.copy_from_slice(&Keccak256::digest(b"claim()")[0..4]);
-	assert_eq!(
-		Action::try_from_primitive(u32::from_be_bytes(buffer)).unwrap(),
-		Action::Claim,
-	);
-	buffer.copy_from_slice(&Keccak256::digest(b"reward_info(address)")[0..4]);
-	assert_eq!(
-		Action::try_from_primitive(u32::from_be_bytes(buffer)).unwrap(),
-		Action::RewardInfo,
-	);
-	buffer.copy_from_slice(&Keccak256::digest(b"update_reward_address(address)")[0..4]);
-	assert_eq!(
-		Action::try_from_primitive(u32::from_be_bytes(buffer)).unwrap(),
-		Action::UpdateRewardAddress,
-	);
+	assert_eq!(Action::IsContributor as u32, 0x53440c90);
+	assert_eq!(Action::RewardInfo as u32, 0x76f70249);
+	assert_eq!(Action::Claim as u32, 0x4e71d92d);
+	assert_eq!(Action::UpdateRewardAddress as u32, 0xaaac61d6);
 }
 
 #[test]
 fn selector_less_than_four_bytes() {
 	ExtBuilder::default().build().execute_with(|| {
 		// This selector is only three bytes long when four are required.
-		let bogus_selector = vec![1u8, 2u8, 3u8];
-
-		assert_matches!(
-			precompiles().execute(
-				precompile_address(),
-				&bogus_selector,
-				None,
-				&evm_test_context(),
-				false,
-			),
-			Some(Err(PrecompileFailure::Revert { output, ..}))
-				if output == b"tried to parse selector out of bounds"
-		);
+		precompiles()
+			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8])
+			.execute_reverts(|output| output == b"tried to parse selector out of bounds");
 	});
 }
 
 #[test]
 fn no_selector_exists_but_length_is_right() {
 	ExtBuilder::default().build().execute_with(|| {
-		let bogus_selector = vec![1u8, 2u8, 3u8, 4u8];
-
-		assert_matches!(
-			precompiles().execute(
-				precompile_address(),
-				&bogus_selector,
-				None,
-				&evm_test_context(),
-				false,
-			),
-			Some(Err(PrecompileFailure::Revert { output, ..}))
-				if output == b"unknown selector",
-		);
+		precompiles()
+			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8, 4u8])
+			.execute_reverts(|output| output == b"unknown selector");
 	});
 }
 
@@ -119,29 +78,17 @@ fn is_contributor_returns_false() {
 		.with_balances(vec![(Alice.into(), 1000)])
 		.build()
 		.execute_with(|| {
-			let input = EvmDataWriter::new_with_selector(Action::IsContributor)
-				.write(Address(H160::from(Alice)))
-				.build();
-
-			// Expected result is one
-			let expected_one_result = Some(Ok(PrecompileOutput {
-				exit_status: ExitSucceed::Returned,
-				output: EvmDataWriter::new().write(false).build(),
-				cost: Default::default(),
-				logs: Default::default(),
-			}));
-
-			// Assert that no props have been opened.
-			assert_eq!(
-				precompiles().execute(
-					precompile_address(),
-					&input,
-					None,
-					&evm_test_context(),
-					false
-				),
-				expected_one_result
-			);
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile,
+					EvmDataWriter::new_with_selector(Action::IsContributor)
+						.write(Address(H160::from(Alice)))
+						.build(),
+				)
+				.expect_cost(0) // TODO: Test db read/write costs
+				.expect_no_logs()
+				.execute_returns(EvmDataWriter::new().write(false).build());
 		});
 }
 
@@ -170,26 +117,18 @@ fn is_contributor_returns_true() {
 				init_block + VESTING
 			));
 
-			let input = EvmDataWriter::new_with_selector(Action::IsContributor)
-				.write(Address(H160::from(Alice)))
-				.build();
-
 			// Assert that no props have been opened.
-			assert_eq!(
-				precompiles().execute(
-					precompile_address(),
-					&input,
-					None,
-					&evm_test_context(),
-					false
-				),
-				Some(Ok(PrecompileOutput {
-					exit_status: ExitSucceed::Returned,
-					output: EvmDataWriter::new().write(true).build(),
-					cost: Default::default(),
-					logs: Default::default(),
-				}))
-			);
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile,
+					EvmDataWriter::new_with_selector(Action::IsContributor)
+						.write(Address(H160::from(Alice)))
+						.build(),
+				)
+				.expect_cost(0) // TODO: Test db read/write costs
+				.expect_no_logs()
+				.execute_returns(EvmDataWriter::new().write(true).build());
 		});
 }
 
@@ -258,29 +197,23 @@ fn reward_info_works() {
 
 			roll_to(5);
 
-			let input = EvmDataWriter::new_with_selector(Action::RewardInfo)
-				.write(Address(H160::from(Alice)))
-				.build();
-
 			// Assert that no props have been opened.
-			assert_eq!(
-				precompiles().execute(
-					precompile_address(),
-					&input,
-					None,
-					&evm_test_context(),
-					false
-				),
-				Some(Ok(PrecompileOutput {
-					exit_status: ExitSucceed::Returned,
-					output: EvmDataWriter::new()
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile,
+					EvmDataWriter::new_with_selector(Action::RewardInfo)
+						.write(Address(H160::from(Alice)))
+						.build(),
+				)
+				.expect_cost(0) // TODO: Test db read/write costs
+				.expect_no_logs()
+				.execute_returns(
+					EvmDataWriter::new()
 						.write(U256::from(50u64))
 						.write(U256::from(10u64))
 						.build(),
-					cost: Default::default(),
-					logs: Default::default(),
-				}))
-			);
+				);
 		});
 }
 
@@ -338,16 +271,8 @@ fn test_bound_checks_for_address_parsing() {
 			let mut input = Keccak256::digest(b"update_reward_address(address)")[0..4].to_vec();
 			input.extend_from_slice(&[1u8; 4]); // incomplete data
 
-			assert_matches!(
-				precompiles().execute(
-					precompile_address(),
-					&input,
-					None,
-					&evm_test_context(),
-					false
-				),
-				Some(Err(PrecompileFailure::Revert { output, ..}))
-				if output == b"input doesn't match expected length",
-			);
+			precompiles()
+				.prepare_test(Alice, Precompile, input)
+				.execute_reverts(|output| output == b"input doesn't match expected length")
 		})
 }

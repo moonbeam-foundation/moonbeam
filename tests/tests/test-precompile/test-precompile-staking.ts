@@ -1,30 +1,17 @@
+import "@moonbeam-network/api-augment";
+
+import { numberToHex } from "@polkadot/util";
 import { expect } from "chai";
-import Keyring from "@polkadot/keyring";
-import {
-  DEFAULT_GENESIS_MAPPING,
-  DEFAULT_GENESIS_STAKING,
-  COLLATOR_ACCOUNT,
-  ETHAN_PRIVKEY,
-  MIN_GLMR_STAKING,
-  ETHAN,
-  ALITH,
-  MIN_GLMR_NOMINATOR,
-  GENESIS_ACCOUNT,
-  ALITH_PRIV_KEY,
-} from "../../util/constants";
-import { blake2AsHex, randomAsHex } from "@polkadot/util-crypto";
+
+import { alith, ethan, ETHAN_PRIVATE_KEY } from "../../util/accounts";
+import { verifyLatestBlockFees } from "../../util/block";
+import { MIN_GLMR_STAKING, PRECOMPILE_PARACHAIN_STAKING_ADDRESS } from "../../util/constants";
 import {
   describeDevMoonbeam,
   describeDevMoonbeamAllEthTxTypes,
   DevTestContext,
 } from "../../util/setup-dev-tests";
-import { numberToHex, stringToHex } from "@polkadot/util";
-import Web3 from "web3";
-import { customWeb3Request } from "../../util/providers";
 import { callPrecompile, sendPrecompileTx } from "../../util/transactions";
-import { verifyLatestBlockFees } from "../../util/block";
-
-const ADDRESS_STAKING = "0x0000000000000000000000000000000000000800";
 
 const SELECTORS = {
   candidate_bond_less: "289b6ba7",
@@ -47,24 +34,47 @@ const SELECTORS = {
   collator_nomination_count: "0ad6a7be",
   nominator_nomination_count: "dae5659b",
   delegation_request_is_pending: "192e1db3",
+  candidate_exit_is_pending: "eb613b8a",
 };
 
 async function isSelectedCandidate(context: DevTestContext, address: string) {
-  return await callPrecompile(context, ADDRESS_STAKING, SELECTORS, "is_selected_candidate", [
-    address,
-  ]);
+  return await callPrecompile(
+    context,
+    PRECOMPILE_PARACHAIN_STAKING_ADDRESS,
+    SELECTORS,
+    "is_selected_candidate",
+    [address]
+  );
 }
 
 async function IsDelegator(context: DevTestContext, address: string) {
-  return await callPrecompile(context, ADDRESS_STAKING, SELECTORS, "is_delegator", [address]);
+  return await callPrecompile(
+    context,
+    PRECOMPILE_PARACHAIN_STAKING_ADDRESS,
+    SELECTORS,
+    "is_delegator",
+    [address]
+  );
 }
 
 async function isCandidate(context: DevTestContext, address: string) {
-  return await callPrecompile(context, ADDRESS_STAKING, SELECTORS, "is_candidate", [address]);
+  return await callPrecompile(
+    context,
+    PRECOMPILE_PARACHAIN_STAKING_ADDRESS,
+    SELECTORS,
+    "is_candidate",
+    [address]
+  );
 }
 
 async function candidateCount(context: DevTestContext) {
-  return await callPrecompile(context, ADDRESS_STAKING, SELECTORS, "candidate_count", []);
+  return await callPrecompile(
+    context,
+    PRECOMPILE_PARACHAIN_STAKING_ADDRESS,
+    SELECTORS,
+    "candidate_count",
+    []
+  );
 }
 
 async function delegationRequestIsPending(
@@ -74,7 +84,7 @@ async function delegationRequestIsPending(
 ) {
   return await callPrecompile(
     context,
-    ADDRESS_STAKING,
+    PRECOMPILE_PARACHAIN_STAKING_ADDRESS,
     SELECTORS,
     "delegation_request_is_pending",
     [delegatorAddress, collatorAddress]
@@ -83,7 +93,7 @@ async function delegationRequestIsPending(
 
 describeDevMoonbeam("Staking - Genesis", (context) => {
   it("should include collator from the specs", async function () {
-    expect(Number((await isSelectedCandidate(context, COLLATOR_ACCOUNT)).result)).to.equal(1);
+    expect(Number((await isSelectedCandidate(context, alith.address)).result)).to.equal(1);
   });
   it("should have one collator", async function () {
     expect(Number((await candidateCount(context)).result)).to.equal(1);
@@ -91,52 +101,85 @@ describeDevMoonbeam("Staking - Genesis", (context) => {
 });
 
 describeDevMoonbeamAllEthTxTypes("Staking - Join Candidates", (context) => {
-  it("should successfully call joinCandidates on ETHAN", async function () {
-    const block = await sendPrecompileTx(
+  it("should successfully call joinCandidates on ethan", async function () {
+    const { result } = await sendPrecompileTx(
       context,
-      ADDRESS_STAKING,
+      PRECOMPILE_PARACHAIN_STAKING_ADDRESS,
       SELECTORS,
-      ETHAN,
-      ETHAN_PRIVKEY,
+      ethan.address,
+      ETHAN_PRIVATE_KEY,
       "join_candidates",
       [numberToHex(Number(MIN_GLMR_STAKING)), numberToHex(1)]
     );
 
-    const receipt = await context.web3.eth.getTransactionReceipt(block.txResults[0].result);
+    const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
     expect(receipt.status).to.equal(true);
 
-    let candidatesAfter = await context.polkadotApi.query.parachainStaking.candidatePool();
-    expect((candidatesAfter.toJSON() as { owner: string; amount: string }[]).length).to.equal(
-      2,
-      "New candidate should have been added"
-    );
-    expect((candidatesAfter.toJSON() as { owner: string; amount: string }[])[1].owner).to.equal(
-      ETHAN,
+    const candidatesAfter = await context.polkadotApi.query.parachainStaking.candidatePool();
+    expect(candidatesAfter.length).to.equal(2, "New candidate should have been added");
+    expect(candidatesAfter[1].owner.toString()).to.equal(
+      ethan.address,
       "New candidate ethan should have been added"
     );
-    expect((candidatesAfter.toJSON() as { owner: string; amount: string }[])[1].amount).to.equal(
-      "0x000000000000003635c9adc5dea00000",
+    expect(candidatesAfter[1].amount.toBigInt()).to.equal(
+      1000000000000000000000n,
       "new candidate ethan should have been added (wrong amount)"
     );
 
-    expect(Number((await isCandidate(context, ETHAN)).result)).to.equal(1);
-    await verifyLatestBlockFees(context, expect, MIN_GLMR_STAKING);
+    expect(Number((await isCandidate(context, ethan.address)).result)).to.equal(1);
+    await verifyLatestBlockFees(context, MIN_GLMR_STAKING);
+  });
+});
+
+describeDevMoonbeamAllEthTxTypes("Staking - Collator Leaving", (context) => {
+  before("add ethan to candidates", async () => {
+    const { result } = await sendPrecompileTx(
+      context,
+      PRECOMPILE_PARACHAIN_STAKING_ADDRESS,
+      SELECTORS,
+      ethan.address,
+      ETHAN_PRIVATE_KEY,
+      "join_candidates",
+      [numberToHex(Number(MIN_GLMR_STAKING)), numberToHex(1)]
+    );
+
+    const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
+    expect(receipt.status).to.equal(true);
+  });
+
+  it("should successfully call candidate_exit_is_pending on ethan", async function () {
+    const { result } = await sendPrecompileTx(
+      context,
+      PRECOMPILE_PARACHAIN_STAKING_ADDRESS,
+      SELECTORS,
+      ethan.address,
+      ETHAN_PRIVATE_KEY,
+      "candidate_exit_is_pending",
+      [ethan.address]
+    );
+
+    const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
+    expect(receipt.status).to.equal(true);
+    console.log(receipt);
   });
 });
 
 describeDevMoonbeamAllEthTxTypes("Staking - Join Delegators", (context) => {
-  beforeEach("should successfully call delegate for ETHAN to ALITH", async function () {
-    await sendPrecompileTx(context, ADDRESS_STAKING, SELECTORS, ETHAN, ETHAN_PRIVKEY, "nominate", [
-      ALITH,
-      numberToHex(Number(MIN_GLMR_STAKING)),
-      "0x0",
-      "0x0",
-    ]);
+  beforeEach("should successfully call delegate for ethan.address to ALITH", async function () {
+    await sendPrecompileTx(
+      context,
+      PRECOMPILE_PARACHAIN_STAKING_ADDRESS,
+      SELECTORS,
+      ethan.address,
+      ETHAN_PRIVATE_KEY,
+      "nominate",
+      [alith.address, numberToHex(Number(MIN_GLMR_STAKING)), "0x0", "0x0"]
+    );
   });
 
   it("should have successfully delegated ALITH", async function () {
     const delegatorsAfter = (
-      (await context.polkadotApi.query.parachainStaking.delegatorState(ETHAN)) as any
+      (await context.polkadotApi.query.parachainStaking.delegatorState(ethan.address)) as any
     ).unwrap();
     expect(
       (
@@ -144,36 +187,40 @@ describeDevMoonbeamAllEthTxTypes("Staking - Join Delegators", (context) => {
           delegations: { owner: string; amount: string }[];
         }
       ).delegations[0].owner
-    ).to.equal(ALITH, "delegation didn't go through");
+    ).to.equal(alith.address, "delegation didn't go through");
     expect(delegatorsAfter.status.toString()).equal("Active");
   });
 });
 
 describeDevMoonbeamAllEthTxTypes("Staking - Join Delegators", (context) => {
-  let ethan;
-  before("should successfully call delegate for ETHAN to ALITH", async function () {
-    const keyring = new Keyring({ type: "ethereum" });
-    ethan = await keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
-
-    // Delegate ETHAN->ALITH
-    await sendPrecompileTx(context, ADDRESS_STAKING, SELECTORS, ETHAN, ETHAN_PRIVKEY, "nominate", [
-      ALITH,
-      numberToHex(Number(MIN_GLMR_STAKING)),
-      "0x0",
-      "0x0",
-    ]);
+  before("should successfully call delegate for ethan.address to ALITH", async function () {
+    // Delegate ethan.address->ALITH
+    await sendPrecompileTx(
+      context,
+      PRECOMPILE_PARACHAIN_STAKING_ADDRESS,
+      SELECTORS,
+      ethan.address,
+      ETHAN_PRIVATE_KEY,
+      "nominate",
+      [alith.address, numberToHex(Number(MIN_GLMR_STAKING)), "0x0", "0x0"]
+    );
   });
 
   it("should verify delegation pending requests", async function () {
-    expect(Number((await delegationRequestIsPending(context, ETHAN, ALITH)).result)).to.equal(0);
+    expect(
+      Number((await delegationRequestIsPending(context, ethan.address, alith.address)).result)
+    ).to.equal(0);
 
     // Schedule Revoke
-    await context.polkadotApi.tx.parachainStaking
-      .scheduleRevokeDelegation(ALITH)
-      .signAndSend(ethan);
-    await context.createBlock();
+    await context.createBlock(
+      context.polkadotApi.tx.parachainStaking
+        .scheduleRevokeDelegation(alith.address)
+        .signAsync(ethan)
+    );
 
     // Check that there exists a pending request
-    expect(Number((await delegationRequestIsPending(context, ETHAN, ALITH)).result)).to.equal(1);
+    expect(
+      Number((await delegationRequestIsPending(context, ethan.address, alith.address)).result)
+    ).to.equal(1);
   });
 });

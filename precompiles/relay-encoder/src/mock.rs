@@ -32,7 +32,7 @@ use sp_runtime::{
 	Perbill,
 };
 
-pub type AccountId = TestAccount;
+pub type AccountId = Account;
 pub type Balance = u128;
 pub type BlockNumber = u64;
 
@@ -70,39 +70,48 @@ construct_runtime!(
 	derive_more::Display,
 	scale_info::TypeInfo,
 )]
-pub enum TestAccount {
+pub enum Account {
 	Alice,
 	Bob,
 	Charlie,
 	Bogus,
+	Precompile,
 }
 
-impl Default for TestAccount {
+impl Default for Account {
 	fn default() -> Self {
 		Self::Bogus
 	}
 }
 
-impl AddressMapping<TestAccount> for TestAccount {
-	fn into_account_id(h160_account: H160) -> TestAccount {
+impl Into<H160> for Account {
+	fn into(self) -> H160 {
+		match self {
+			Account::Alice => H160::repeat_byte(0xAA),
+			Account::Bob => H160::repeat_byte(0xBB),
+			Account::Charlie => H160::repeat_byte(0xCC),
+			Account::Bogus => H160::repeat_byte(0xDD),
+			Account::Precompile => H160::from_low_u64_be(1),
+		}
+	}
+}
+
+impl AddressMapping<Account> for Account {
+	fn into_account_id(h160_account: H160) -> Account {
 		match h160_account {
 			a if a == H160::repeat_byte(0xAA) => Self::Alice,
 			a if a == H160::repeat_byte(0xBB) => Self::Bob,
 			a if a == H160::repeat_byte(0xCC) => Self::Charlie,
+			a if a == H160::from_low_u64_be(1) => Self::Precompile,
 			_ => Self::Bogus,
 		}
 	}
 }
 
-impl From<H160> for TestAccount {
-	fn from(x: H160) -> TestAccount {
-		TestAccount::into_account_id(x)
+impl From<H160> for Account {
+	fn from(x: H160) -> Account {
+		Account::into_account_id(x)
 	}
-}
-
-/// The relay encoder precompile is available at address one in the mock runtime.
-pub fn precompile_address() -> H160 {
-	H160::from_low_u64_be(1)
 }
 
 parameter_types! {
@@ -118,7 +127,7 @@ impl frame_system::Config for Runtime {
 	type Call = Call;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
-	type AccountId = TestAccount;
+	type AccountId = Account;
 	type Lookup = IdentityLookup<Self::AccountId>;
 	type Header = Header;
 	type Event = Event;
@@ -173,40 +182,31 @@ impl<R> PrecompileSet for TestPrecompiles<R>
 where
 	RelayEncoderWrapper<R, test_relay_runtime::TestEncoder>: Precompile,
 {
-	fn execute(
-		&self,
-		address: H160,
-		input: &[u8],
-		target_gas: Option<u64>,
-		context: &Context,
-		is_static: bool,
-	) -> Option<EvmResult<PrecompileOutput>> {
-		match address {
-			a if a == precompile_address() => Some(RelayEncoderWrapper::<
-				R,
-				test_relay_runtime::TestEncoder,
-			>::execute(
-				input, target_gas, context, is_static
-			)),
+	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<EvmResult<PrecompileOutput>> {
+		match handle.code_address() {
+			a if a == H160::from_low_u64_be(1) => {
+				Some(RelayEncoderWrapper::<R, test_relay_runtime::TestEncoder>::execute(handle))
+			}
 			_ => None,
 		}
 	}
 
 	fn is_precompile(&self, address: H160) -> bool {
-		address == precompile_address()
+		address == H160::from_low_u64_be(1)
 	}
 }
 
 parameter_types! {
+	pub BlockGasLimit: U256 = U256::max_value();
 	pub const PrecompilesValue: TestPrecompiles<Runtime> = TestPrecompiles(PhantomData);
 }
 
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
 	type GasWeightMapping = ();
-	type CallOrigin = EnsureAddressRoot<TestAccount>;
-	type WithdrawOrigin = EnsureAddressNever<TestAccount>;
-	type AddressMapping = TestAccount;
+	type CallOrigin = EnsureAddressRoot<Account>;
+	type WithdrawOrigin = EnsureAddressNever<Account>;
+	type AddressMapping = Account;
 	type Currency = Balances;
 	type Event = Event;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
@@ -214,10 +214,9 @@ impl pallet_evm::Config for Runtime {
 	type PrecompilesType = TestPrecompiles<Self>;
 	type ChainId = ();
 	type OnChargeTransaction = ();
-	type BlockGasLimit = ();
+	type BlockGasLimit = BlockGasLimit;
 	type BlockHashMapping = SubstrateBlockHashMapping<Self>;
 	type FindAuthor = ();
-	type WeightInfo = ();
 }
 
 parameter_types! {
@@ -268,16 +267,5 @@ impl ExtBuilder {
 		let mut ext = sp_io::TestExternalities::new(t);
 		ext.execute_with(|| System::set_block_number(1));
 		ext
-	}
-}
-
-// Helper function to give a simple evm context suitable for tests.
-// We can remove this once https://github.com/rust-blockchain/evm/pull/35
-// is in our dependency graph.
-pub fn evm_test_context() -> fp_evm::Context {
-	fp_evm::Context {
-		address: Default::default(),
-		caller: Default::default(),
-		apparent_value: From::from(0),
 	}
 }

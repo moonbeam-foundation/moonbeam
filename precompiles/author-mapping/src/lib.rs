@@ -19,13 +19,11 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![feature(assert_matches)]
 
-use fp_evm::{Context, ExitSucceed, PrecompileOutput};
+use fp_evm::{PrecompileHandle, PrecompileOutput};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
-use nimbus_primitives::NimbusId;
 use pallet_author_mapping::Call as AuthorMappingCall;
-use pallet_evm::AddressMapping;
-use pallet_evm::Precompile;
-use precompile_utils::{EvmDataReader, EvmResult, FunctionModifier, Gasometer, RuntimeHelper};
+use pallet_evm::{AddressMapping, Precompile};
+use precompile_utils::prelude::*;
 use sp_core::crypto::UncheckedFrom;
 use sp_core::H256;
 use sp_std::{fmt::Debug, marker::PhantomData};
@@ -35,14 +33,14 @@ mod mock;
 #[cfg(test)]
 mod tests;
 
-#[precompile_utils::generate_function_selector]
+#[generate_function_selector]
 #[derive(Debug, PartialEq)]
 pub enum Action {
 	AddAssociation = "add_association(bytes32)",
 	UpdateAssociation = "update_association(bytes32,bytes32)",
 	ClearAssociation = "clear_association(bytes32)",
-	RegisterKeys = "register_keys(bytes32,bytes32)",
-	SetKeys = "set_keys(bytes32,bytes32)",
+	RemoveKeys = "remove_keys()",
+	SetKeys = "set_keys(bytes)",
 }
 
 /// A precompile to wrap the functionality from pallet author mapping.
@@ -56,29 +54,20 @@ where
 	Runtime::Call: From<AuthorMappingCall<Runtime>>,
 	Runtime::Hash: From<H256>,
 {
-	fn execute(
-		input: &[u8], //Reminder this is big-endian
-		target_gas: Option<u64>,
-		context: &Context,
-		is_static: bool,
-	) -> EvmResult<PrecompileOutput> {
+	fn execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		log::trace!(target: "author-mapping-precompile", "In author mapping wrapper");
 
-		let mut gasometer = Gasometer::new(target_gas);
-		let gasometer = &mut gasometer;
+		let selector = handle.read_selector()?;
 
-		let (mut input, selector) = EvmDataReader::new_with_selector(gasometer, input)?;
-		let input = &mut input;
-
-		gasometer.check_function_modifier(context, is_static, FunctionModifier::NonPayable)?;
+		handle.check_function_modifier(FunctionModifier::NonPayable)?;
 
 		match selector {
 			// Dispatchables
-			Action::AddAssociation => Self::add_association(input, gasometer, context),
-			Action::UpdateAssociation => Self::update_association(input, gasometer, context),
-			Action::ClearAssociation => Self::clear_association(input, gasometer, context),
-			Action::RegisterKeys => Self::register_keys(input, gasometer, context),
-			Action::SetKeys => Self::set_keys(input, gasometer, context),
+			Action::AddAssociation => Self::add_association(handle),
+			Action::UpdateAssociation => Self::update_association(handle),
+			Action::ClearAssociation => Self::clear_association(handle),
+			Action::RemoveKeys => Self::remove_keys(handle),
+			Action::SetKeys => Self::set_keys(handle),
 		}
 	}
 }
@@ -92,165 +81,93 @@ where
 	Runtime::Hash: From<H256>,
 {
 	// The dispatchable wrappers are next. They dispatch a Substrate inner Call.
-	fn add_association(
-		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
-		context: &Context,
-	) -> EvmResult<PrecompileOutput> {
-		// Bound check
-		input.expect_arguments(gasometer, 1)?;
+	fn add_association(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		let mut input = handle.read_input()?;
 
-		let nimbus_id =
-			sp_core::sr25519::Public::unchecked_from(input.read::<H256>(gasometer)?).into();
+		// Bound check
+		input.expect_arguments(1)?;
+
+		let nimbus_id = sp_core::sr25519::Public::unchecked_from(input.read::<H256>()?).into();
 
 		log::trace!(
 			target: "author-mapping-precompile",
 			"Associating author id {:?}", nimbus_id
 		);
 
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = AuthorMappingCall::<Runtime>::add_association {
-			author_id: nimbus_id,
-		};
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let call = AuthorMappingCall::<Runtime>::add_association { nimbus_id };
 
-		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			cost: gasometer.used_gas(),
-			output: Default::default(),
-			logs: Default::default(),
-		})
+		Ok(succeed([]))
 	}
 
-	fn update_association(
-		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
-		context: &Context,
-	) -> EvmResult<PrecompileOutput> {
+	fn update_association(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		let mut input = handle.read_input()?;
 		// Bound check
-		input.expect_arguments(gasometer, 2)?;
+		input.expect_arguments(2)?;
 
-		let old_nimbus_id =
-			sp_core::sr25519::Public::unchecked_from(input.read::<H256>(gasometer)?).into();
-		let new_nimbus_id =
-			sp_core::sr25519::Public::unchecked_from(input.read::<H256>(gasometer)?).into();
+		let old_nimbus_id = sp_core::sr25519::Public::unchecked_from(input.read::<H256>()?).into();
+		let new_nimbus_id = sp_core::sr25519::Public::unchecked_from(input.read::<H256>()?).into();
 
 		log::trace!(
 			target: "author-mapping-precompile",
 			"Updating author id {:?} for {:?}", old_nimbus_id, new_nimbus_id
 		);
 
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = AuthorMappingCall::<Runtime>::update_association {
-			old_author_id: old_nimbus_id,
-			new_author_id: new_nimbus_id,
+			old_nimbus_id,
+			new_nimbus_id,
 		};
 
-		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			cost: gasometer.used_gas(),
-			output: Default::default(),
-			logs: Default::default(),
-		})
+		Ok(succeed([]))
 	}
 
-	fn clear_association(
-		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
-		context: &Context,
-	) -> EvmResult<PrecompileOutput> {
+	fn clear_association(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		let mut input = handle.read_input()?;
 		// Bound check
-		input.expect_arguments(gasometer, 1)?;
-		let nimbus_id =
-			sp_core::sr25519::Public::unchecked_from(input.read::<H256>(gasometer)?).into();
+		input.expect_arguments(1)?;
+		let nimbus_id = sp_core::sr25519::Public::unchecked_from(input.read::<H256>()?).into();
 
 		log::trace!(
 			target: "author-mapping-precompile",
 			"Clearing author id {:?}", nimbus_id
 		);
 
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = AuthorMappingCall::<Runtime>::clear_association {
-			author_id: nimbus_id,
-		};
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let call = AuthorMappingCall::<Runtime>::clear_association { nimbus_id };
 
-		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			cost: gasometer.used_gas(),
-			output: Default::default(),
-			logs: Default::default(),
-		})
+		Ok(succeed([]))
 	}
 
-	fn register_keys(
-		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
-		context: &Context,
-	) -> EvmResult<PrecompileOutput> {
-		// Bound check
-		input.expect_arguments(gasometer, 2)?;
-		let nimbus_id =
-			sp_core::sr25519::Public::unchecked_from(input.read::<H256>(gasometer)?).into();
-		let keys_as_nimbus_id: NimbusId =
-			sp_core::sr25519::Public::unchecked_from(input.read::<H256>(gasometer)?).into();
-		let keys: <Runtime as pallet_author_mapping::Config>::Keys = keys_as_nimbus_id.into();
-
+	fn remove_keys(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		log::trace!(
 			target: "author-mapping-precompile",
-			"Adding full association with author id {:?} keys {:?}", nimbus_id, keys
+			"Removing keys"
 		);
 
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = AuthorMappingCall::<Runtime>::register_keys {
-			keys: (nimbus_id, keys),
-		};
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let call = AuthorMappingCall::<Runtime>::remove_keys {};
 
-		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			cost: gasometer.used_gas(),
-			output: Default::default(),
-			logs: Default::default(),
-		})
+		Ok(succeed([]))
 	}
 
-	fn set_keys(
-		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
-		context: &Context,
-	) -> EvmResult<PrecompileOutput> {
-		input.expect_arguments(gasometer, 2)?;
-		let new_author_id =
-			sp_core::sr25519::Public::unchecked_from(input.read::<H256>(gasometer)?).into();
-		let new_keys_as_nimbus_id: NimbusId =
-			sp_core::sr25519::Public::unchecked_from(input.read::<H256>(gasometer)?).into();
-		let new_keys: <Runtime as pallet_author_mapping::Config>::Keys =
-			new_keys_as_nimbus_id.into();
-
-		log::trace!(
-			target: "author-mapping-precompile",
-			"Setting keys: new author id {:?} new keys {:?}",
-			new_author_id, new_keys
-		);
-
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+	fn set_keys(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = AuthorMappingCall::<Runtime>::set_keys {
-			keys: (new_author_id, new_keys),
+			// Taking all input minus selector (4 bytes)
+			keys: handle.input()[4..].to_vec(),
 		};
 
-		RuntimeHelper::<Runtime>::try_dispatch(Some(origin).into(), call, gasometer)?;
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			cost: gasometer.used_gas(),
-			output: Default::default(),
-			logs: Default::default(),
-		})
+		Ok(succeed([]))
 	}
 }

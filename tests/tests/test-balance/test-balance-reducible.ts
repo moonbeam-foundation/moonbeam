@@ -1,23 +1,18 @@
-import Keyring from "@polkadot/keyring";
-import { expect } from "chai";
-import {
-  GENESIS_ACCOUNT,
-  GENESIS_ACCOUNT_BALANCE,
-  GENESIS_ACCOUNT_PRIVATE_KEY,
-  TEST_ACCOUNT,
-} from "../../util/constants";
-import type { SubmittableExtrinsic } from "@polkadot/api/promise/types";
-import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+import "@moonbeam-network/api-augment";
+
 import { blake2AsHex } from "@polkadot/util-crypto";
+import { expect } from "chai";
 
+import { alith, ALITH_GENESIS_BALANCE, generateKeyingPair } from "../../util/accounts";
+import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+
+import type { SubmittableExtrinsic } from "@polkadot/api/promise/types";
 describeDevMoonbeam("Reducible Balance", (context) => {
+  const randomAccount = generateKeyingPair();
   it("should show the reducible balanced when some amount is locked", async function () {
-    const keyring = new Keyring({ type: "ethereum" });
-    const genesisAccount = await keyring.addFromUri(GENESIS_ACCOUNT_PRIVATE_KEY, null, "ethereum");
-
     // Balance should be untouched
-    expect(await context.web3.eth.getBalance(GENESIS_ACCOUNT)).to.equal(
-      GENESIS_ACCOUNT_BALANCE.toString()
+    expect(await context.web3.eth.getBalance(alith.address)).to.equal(
+      ALITH_GENESIS_BALANCE.toString()
     );
 
     // Grab existential deposit
@@ -25,37 +20,27 @@ describeDevMoonbeam("Reducible Balance", (context) => {
 
     // Let's lock some funds by doing a public referendum proposal
     let lock_amount = (await context.polkadotApi.consts.democracy.minimumDeposit) as any;
-    const proposal = context.polkadotApi.tx.balances.setBalance(TEST_ACCOUNT, 100, 100);
+    const proposal = context.polkadotApi.tx.balances.setBalance(randomAccount.address, 100, 100);
 
     // We encode the proposal
     let encodedProposal = (proposal as SubmittableExtrinsic)?.method.toHex() || "";
     let encodedHash = blake2AsHex(encodedProposal);
 
     // Submit the pre-image
-    await context.polkadotApi.tx.democracy
-      .notePreimage(encodedProposal)
-      .signAndSend(genesisAccount);
-
-    await context.createBlock();
+    await context.createBlock(context.polkadotApi.tx.democracy.notePreimage(encodedProposal));
 
     // Record balance
-    let beforeBalance = await context.web3.eth.getBalance(GENESIS_ACCOUNT);
+    let beforeBalance = await context.web3.eth.getBalance(alith.address);
 
     // Fees
     const fee = (
-      await context.polkadotApi.tx.democracy
-        .propose(encodedHash, lock_amount)
-        .paymentInfo(genesisAccount)
+      await context.polkadotApi.tx.democracy.propose(encodedHash, lock_amount).paymentInfo(alith)
     ).partialFee as any;
 
     // Propose
-    await context.polkadotApi.tx.democracy
-      .propose(encodedHash, lock_amount)
-      .signAndSend(genesisAccount);
+    await context.createBlock(context.polkadotApi.tx.democracy.propose(encodedHash, lock_amount));
 
-    await context.createBlock();
-
-    expect(await context.web3.eth.getBalance(GENESIS_ACCOUNT)).to.equal(
+    expect(await context.web3.eth.getBalance(alith.address)).to.equal(
       (
         BigInt(beforeBalance) -
         BigInt(lock_amount) +
