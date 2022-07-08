@@ -41,7 +41,6 @@ std = [
 	"pallet-evm/std",
 	"parity-scale-codec/std",
 	"scale-info/std",
-	#"frame-benchmarking/std",
 	"serde",
 	"session-keys-primitives/std",
 	"sp-application-crypto/std",
