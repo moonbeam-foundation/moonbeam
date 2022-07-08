@@ -32,7 +32,7 @@ jobs:
           PACKAGE: "${{ matrix.chain }}-runtime -e CARGO_NET_GIT_FETCH_WITH_CLI=true -v /home/$USER/srtool/.ssh:/root/.ssh -v /home/$USER/srtool/entrypoint.sh:/srtool/entrypoint.sh --entrypoint /srtool/entrypoint.sh"
         with:
           chain: ${{ matrix.chain }}
-          tag: 1.57.0
+          tag: 1.62.0
       - name: Summary
         run: |
           echo '${{ steps.srtool_build.outputs.json }}' | jq . > ${{ matrix.chain }}-srtool-digest.json
