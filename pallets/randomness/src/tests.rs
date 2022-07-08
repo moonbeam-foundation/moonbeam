@@ -67,6 +67,25 @@ fn cannot_make_request_already_fulfillable() {
 }
 
 #[test]
+fn cannot_make_request_fulfillable_past_expiry() {
+	ExtBuilder::default()
+		.with_balances(vec![(ALICE, 15)])
+		.build()
+		.execute_with(|| {
+			let request = build_default_request(RequestType::Local(21u64));
+			assert_noop!(
+				Randomness::request_randomness(request),
+				Error::<Test>::CannotRequestRandomnessAfterExpirationDelay
+			);
+			let request = build_default_request(RequestType::Local(21u64));
+			assert_noop!(
+				Randomness::request_randomness(request),
+				Error::<Test>::CannotRequestRandomnessAfterExpirationDelay
+			);
+		});
+}
+
+#[test]
 fn cannot_make_request_with_less_than_deposit() {
 	ExtBuilder::default()
 		.with_balances(vec![(ALICE, 9)])
@@ -219,7 +238,7 @@ fn request_babe_current_block_randomness_inserts_request_state() {
 				Some(RequestState {
 					request,
 					deposit: 10,
-					expires: 6,
+					expires: Expiration::Block(20),
 				})
 			);
 			let request = build_default_request(RequestType::BabeOneEpochAgo(16u64));
@@ -230,7 +249,7 @@ fn request_babe_current_block_randomness_inserts_request_state() {
 				Some(RequestState {
 					request,
 					deposit: 10,
-					expires: 6,
+					expires: Expiration::Epoch(20),
 				})
 			);
 			let request = build_default_request(RequestType::BabeTwoEpochsAgo(16u64));
@@ -241,7 +260,7 @@ fn request_babe_current_block_randomness_inserts_request_state() {
 				Some(RequestState {
 					request,
 					deposit: 10,
-					expires: 6,
+					expires: Expiration::Epoch(20),
 				})
 			);
 			let request = build_default_request(RequestType::Local(16u64));
@@ -252,7 +271,7 @@ fn request_babe_current_block_randomness_inserts_request_state() {
 				Some(RequestState {
 					request,
 					deposit: 10,
-					expires: 6,
+					expires: Expiration::Block(21),
 				})
 			);
 		});

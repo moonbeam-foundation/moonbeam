@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::{BalanceOf, Config, Error, Event, GetBabeData, Pallet, RandomnessResults, RequestId};
+use crate::{
+	BalanceOf, Config, Error, Event, GetBabeData, Pallet, RandomnessResults, RelayTime, RequestId,
+};
 use frame_support::pallet_prelude::*;
 use frame_support::traits::{Currency, ExistenceRequirement::KeepAlive};
 use pallet_evm::AddressMapping;
@@ -103,6 +105,52 @@ pub struct Request<T: Config> {
 }
 
 impl<T: Config> Request<T> {
+	pub fn validate(&self) -> Result<Expiration<T::BlockNumber>, DispatchError> {
+		ensure!(
+			!self.can_be_fulfilled(),
+			Error::<T>::CannotRequestPastRandomness
+		);
+		let (due_before_expiry, expires) = match self.info {
+			RequestType::BabeCurrentBlock(block) => {
+				// assumes 1 relay per para block
+				let expiring_relay_block = RelayTime::<T>::get()
+					.relay_block_number
+					.saturating_add(T::ExpirationDelay::get().into());
+				(
+					block < expiring_relay_block,
+					Expiration::Block(expiring_relay_block),
+				)
+			}
+			RequestType::BabeOneEpochAgo(epoch) => {
+				let expiring_relay_epoch_index = RelayTime::<T>::get()
+					.relay_epoch_index
+					.saturating_add(T::ExpirationDelay::get().into());
+				(
+					epoch < expiring_relay_epoch_index,
+					Expiration::Epoch(expiring_relay_epoch_index),
+				)
+			}
+			RequestType::BabeTwoEpochsAgo(epoch) => {
+				let expiring_relay_epoch_index = RelayTime::<T>::get()
+					.relay_epoch_index
+					.saturating_add(T::ExpirationDelay::get().into());
+				(
+					epoch < expiring_relay_epoch_index,
+					Expiration::Epoch(expiring_relay_epoch_index),
+				)
+			}
+			RequestType::Local(block) => {
+				let expires = frame_system::Pallet::<T>::block_number()
+					.saturating_add(T::ExpirationDelay::get().into());
+				(block < expires, Expiration::Block(expires))
+			}
+		};
+		ensure!(
+			due_before_expiry,
+			Error::<T>::CannotRequestRandomnessAfterExpirationDelay
+		);
+		Ok(expires)
+	}
 	pub fn can_be_fulfilled(&self) -> bool {
 		match self.info {
 			RequestType::BabeCurrentBlock(block) => {
@@ -204,14 +252,35 @@ impl<T: Config> Request<T> {
 }
 
 #[derive(PartialEq, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
+pub enum Expiration<BlockNumber> {
+	Block(BlockNumber),
+	Epoch(u64),
+}
+
+impl<B: Copy> Expiration<B> {
+	fn epoch(&self) -> u64 {
+		match self {
+			Expiration::Block(_) => panic!("Cannot access epoch when expiration is block type"),
+			Expiration::Epoch(epoch) => *epoch,
+		}
+	}
+	fn block(&self) -> B {
+		match self {
+			Expiration::Block(block) => *block,
+			Expiration::Epoch(_) => panic!("Cannot access block when expiration is epoch type"),
+		}
+	}
+}
+
+#[derive(PartialEq, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
 #[scale_info(skip_type_params(T))]
 pub struct RequestState<T: Config> {
 	/// Underlying request
 	pub request: Request<T>,
 	/// Deposit taken for making request (stored in case config changes)
 	pub deposit: BalanceOf<T>,
-	/// All requests expire `T::ExpirationDelay` blocks after they are made
-	pub expires: T::BlockNumber,
+	/// Expiration block or epoch index depending on request type
+	pub expires: Expiration<T::BlockNumber>,
 }
 
 #[derive(PartialEq, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
@@ -227,15 +296,13 @@ pub struct FulfillArgs<T: Config> {
 }
 
 impl<T: Config> RequestState<T> {
-	pub(crate) fn new(request: Request<T>) -> RequestState<T> {
-		let expires =
-			frame_system::Pallet::<T>::block_number().saturating_add(T::ExpirationDelay::get());
-		// TODO: check that request.info.when is before `expires` (how to do it with EpochIndex)
-		RequestState {
+	pub(crate) fn new(request: Request<T>) -> Result<RequestState<T>, DispatchError> {
+		let expires = request.validate()?;
+		Ok(RequestState {
 			request,
 			deposit: T::Deposit::get(),
 			expires,
-		}
+		})
 	}
 	/// Returns Ok(FulfillArgs) if successful
 	/// This should be called before the callback
@@ -273,10 +340,21 @@ impl<T: Config> RequestState<T> {
 	/// Transfer deposit back to contract_address
 	/// Transfer fee to caller
 	pub fn execute_expiration(&self, caller: &T::AccountId) -> DispatchResult {
-		ensure!(
-			frame_system::Pallet::<T>::block_number() >= self.expires,
-			Error::<T>::RequestHasNotExpired
-		);
+		let request_has_expired = match self.request.info {
+			RequestType::BabeCurrentBlock(_) => {
+				RelayTime::<T>::get().relay_block_number >= self.expires.block()
+			}
+			RequestType::BabeOneEpochAgo(_) => {
+				RelayTime::<T>::get().relay_epoch_index >= self.expires.epoch()
+			}
+			RequestType::BabeTwoEpochsAgo(_) => {
+				RelayTime::<T>::get().relay_epoch_index >= self.expires.epoch()
+			}
+			RequestType::Local(_) => {
+				frame_system::Pallet::<T>::block_number() >= self.expires.block()
+			}
+		};
+		ensure!(request_has_expired, Error::<T>::RequestHasNotExpired);
 		let contract_address =
 			T::AddressMapping::into_account_id(self.request.contract_address.clone());
 		// TODO: is it worth optimizing when caller == contract_address to do one transfer here

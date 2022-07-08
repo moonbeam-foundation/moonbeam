@@ -143,7 +143,7 @@ impl GetVrfInput<VrfInput<Slot, H256>> for VrfInputGetter {
 
 parameter_types! {
 	pub const Deposit: u128 = 10;
-	pub const ExpirationDelay: u32 = 5;
+	pub const ExpirationDelay: u32 = 20;
 }
 impl Config for Test {
 	type Event = Event;

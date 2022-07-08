@@ -95,8 +95,8 @@ pub mod pallet {
 		/// The amount that should be taken as a security deposit when requesting randomness.
 		type Deposit: Get<BalanceOf<Self>>;
 		#[pallet::constant]
-		/// Requests expire and can be purged from storage after this many blocks
-		type ExpirationDelay: Get<Self::BlockNumber>;
+		/// Requests expire and can be purged from storage after this many blocks/epochs
+		type ExpirationDelay: Get<u32>;
 		// /// Weight information for extrinsics in this pallet.
 		// type WeightInfo: WeightInfo;
 	}
@@ -106,6 +106,7 @@ pub mod pallet {
 		RequestCounterOverflowed,
 		RequestFeeOverflowed,
 		CannotRequestPastRandomness,
+		CannotRequestRandomnessAfterExpirationDelay,
 		RequestDNE,
 		RequestCannotYetBeFulfilled,
 		OnlyRequesterCanIncreaseFee,
@@ -347,13 +348,14 @@ pub mod pallet {
 	// Public functions for precompile usage only
 	impl<T: Config> Pallet<T> {
 		pub fn request_randomness(request: Request<T>) -> DispatchResult {
-			ensure!(
-				!request.can_be_fulfilled(),
-				Error::<T>::CannotRequestPastRandomness
+			let request = RequestState::new(request)?;
+			let (fee, contract_address, info) = (
+				request.request.fee,
+				request.request.contract_address,
+				request.request.info.clone(),
 			);
-			let total_to_reserve = T::Deposit::get().saturating_add(request.fee);
-			let contract_address =
-				T::AddressMapping::into_account_id(request.contract_address.clone());
+			let total_to_reserve = T::Deposit::get().saturating_add(fee);
+			let contract_address = T::AddressMapping::into_account_id(contract_address);
 			// get new request ID
 			let request_id = <RequestCount<T>>::get();
 			let next_id = request_id
@@ -366,19 +368,18 @@ pub mod pallet {
 				total_to_reserve,
 				KeepAlive,
 			)?;
-			if let Some(existing_randomness_snapshot) = <RandomnessResults<T>>::take(&request.info)
-			{
+			if let Some(existing_randomness_snapshot) = <RandomnessResults<T>>::take(&info) {
 				<RandomnessResults<T>>::insert(
-					&request.info,
+					&info,
 					existing_randomness_snapshot.increment_request_count::<T>()?,
 				);
 			} else {
-				<RandomnessResults<T>>::insert(&request.info, RandomnessResult::new());
+				<RandomnessResults<T>>::insert(&info, RandomnessResult::new());
 			}
 			// insert request
 			<RequestCount<T>>::put(next_id);
-			request.emit_randomness_requested_event(request_id);
-			<Requests<T>>::insert(request_id, RequestState::new(request));
+			request.request.emit_randomness_requested_event(request_id);
+			<Requests<T>>::insert(request_id, request);
 			Ok(())
 		}
 		/// Prepare fulfillment
