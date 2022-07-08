@@ -28,10 +28,9 @@ pub mod types;
 pub mod vrf;
 pub use types::*;
 
-// pub mod weights;
-// use weights::WeightInfo;
-// #[cfg(any(test, feature = "runtime-benchmarks"))]
-// mod benchmarks;
+pub mod weights;
+use weights::WeightInfo;
+
 #[cfg(test)]
 mod mock;
 #[cfg(test)]
@@ -97,8 +96,8 @@ pub mod pallet {
 		#[pallet::constant]
 		/// Requests expire and can be purged from storage after this many blocks
 		type ExpirationDelay: Get<Self::BlockNumber>;
-		// /// Weight information for extrinsics in this pallet.
-		// type WeightInfo: WeightInfo;
+		/// Weight information for extrinsics in this pallet.
+		type WeightInfo: WeightInfo;
 	}
 
 	#[pallet::error]
