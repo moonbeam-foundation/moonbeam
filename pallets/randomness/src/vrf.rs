@@ -115,8 +115,9 @@ pub(crate) fn set_output<T: Config>() -> Weight {
 			results.randomness = Some(randomness);
 			RandomnessResults::<T>::insert(local_vrf_this_block, results);
 		} else {
-			log::warn!("Could not decode VRF output bytes into Hash Type");
+			log::warn!("Failed to fill VRF randomness results this block");
 		}
 	}
-	T::DbWeight::get().read // TODO: update weight
+	// reads + writes + margin_of_safety = 10_000
+	6 * T::DbWeight::get().read + 2 * T::DbWeight::get().write + 10_000 // TODO: update weight
 }

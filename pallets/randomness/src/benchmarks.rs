@@ -36,22 +36,20 @@ benchmarks! {
 	set_babe_randomness_results {}: _(RawOrigin::None)
 	verify { }
 
+	// // TODO: need to produce Vrf PreDigest using authoring NimbusId and insert both into digests
 	// set_output {
 	// 	// needs to be 2nd block to reflect expected costs every block
 	// 	crate::vrf::set_input::<T>();
 	// 	crate::vrf::set_output::<T>();
 	// 	crate::vrf::set_input::<T>();
 	// }: {
-	// 	// TODO: how to mock digests to insert Vrf PreDigest into digests
-	// 	let mut digests = frame_system::Pallet::<T>::digests().unwrap();
-	// 	// next push the expected PreDigest into the digests
 	// 	crate::vrf::set_output::<T>();
 	// }
 	// verify {}
 
 	request_randomness {
-		let fee = <<T as Config>::Deposit as Get<BalanceOf<T>>>::get();
-		fund_user::<T>(H160::default(), fee);
+		let more = <<T as Config>::Deposit as Get<BalanceOf<T>>>::get();
+		fund_user::<T>(H160::default(), more);
 	}: {
 		let result = Pallet::<T>::request_randomness(Request {
 			refund_address: H160::default(),
@@ -69,8 +67,8 @@ benchmarks! {
 	}
 
 	prepare_fulfillment {
-		let fee = <<T as Config>::Deposit as Get<BalanceOf<T>>>::get();
-		fund_user::<T>(H160::default(), fee);
+		let more = <<T as Config>::Deposit as Get<BalanceOf<T>>>::get();
+		fund_user::<T>(H160::default(), more);
 		let result = Pallet::<T>::request_randomness(Request {
 			refund_address: H160::default(),
 			contract_address: H160::default(),
@@ -79,19 +77,19 @@ benchmarks! {
 			salt: H256::default(),
 			info: RequestType::Local(10u32.into())
 		});
-	}: {
 		let mut result = <RandomnessResults<T>>::get(RequestType::Local(10u32.into())).unwrap();
 		result.randomness = Some(Default::default());
 		RandomnessResults::<T>::insert(RequestType::Local(10u32.into()), result);
 		frame_system::Pallet::<T>::set_block_number(10u32.into());
+	}: {
 		let result = Pallet::<T>::prepare_fulfillment(0u64);
 		assert!(result.is_ok(), "Prepare Fulfillment Failed");
 	}
 	verify { }
 
 	finish_fulfillment {
-		let fee = <<T as Config>::Deposit as Get<BalanceOf<T>>>::get();
-		fund_user::<T>(H160::default(), fee);
+		let more = <<T as Config>::Deposit as Get<BalanceOf<T>>>::get();
+		fund_user::<T>(H160::default(), more);
 		let result = Pallet::<T>::request_randomness(Request {
 			refund_address: H160::default(),
 			contract_address: H160::default(),
@@ -114,14 +112,14 @@ benchmarks! {
 			gas_limit: 100u64,
 			salt: H256::default(),
 			info: RequestType::Local(10u32.into())
-		}, fee, &H160::default(), BalanceOf::<T>::zero());
+		}, more, &H160::default(), BalanceOf::<T>::zero());
 		assert!(Pallet::<T>::requests(0u64).is_none());
 	}
 	verify { }
 
 	increase_fee {
-		let fee = <<T as Config>::Deposit as Get<BalanceOf<T>>>::get();
-		fund_user::<T>(H160::default(), fee);
+		let more = <<T as Config>::Deposit as Get<BalanceOf<T>>>::get();
+		fund_user::<T>(H160::default(), more);
 		let result = Pallet::<T>::request_randomness(Request {
 			refund_address: H160::default(),
 			contract_address: H160::default(),
@@ -137,8 +135,8 @@ benchmarks! {
 	verify { }
 
 	execute_request_expiration {
-		let fee = <<T as Config>::Deposit as Get<BalanceOf<T>>>::get();
-		fund_user::<T>(H160::default(), fee);
+		let more = <<T as Config>::Deposit as Get<BalanceOf<T>>>::get();
+		fund_user::<T>(H160::default(), more);
 		let result = Pallet::<T>::request_randomness(Request {
 			refund_address: H160::default(),
 			contract_address: H160::default(),
@@ -147,8 +145,8 @@ benchmarks! {
 			salt: H256::default(),
 			info: RequestType::Local(10u32.into())
 		});
-	}: {
 		frame_system::Pallet::<T>::set_block_number(10u32.into());
+	}: {
 		let result = Pallet::<T>::execute_request_expiration(&H160::default(), 0u64);
 		assert!(result.is_ok(), "Execute Expiration Failed");
 	}

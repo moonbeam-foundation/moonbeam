@@ -237,7 +237,7 @@ pub mod pallet {
 						results.randomness = Some(randomness);
 						<RandomnessResults<T>>::insert(babe_current_this_block, results);
 					} else {
-						log::warn!("Could not read BABE current block randomness from the relay");
+						log::warn!("Failed to fill BABE randomness results");
 					}
 				}
 			}
@@ -254,7 +254,7 @@ pub mod pallet {
 						results.randomness = Some(randomness);
 						<RandomnessResults<T>>::insert(babe_one_epoch_ago_this_block, results);
 					} else {
-						log::warn!("Could not read BABE one epoch ago randomness from the relay");
+						log::warn!("Failed to fill BABE one epoch ago randomness results");
 					}
 				}
 				if let Some(mut results) =
@@ -264,7 +264,7 @@ pub mod pallet {
 						results.randomness = Some(randomness);
 						<RandomnessResults<T>>::insert(babe_two_epochs_ago_this_block, results);
 					} else {
-						log::warn!("Could not read BABE two epochs ago randomness from the relay");
+						log::warn!("Failed to fill BABE two epochs ago randomness results");
 					}
 				}
 			}
