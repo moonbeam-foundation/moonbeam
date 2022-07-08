@@ -1949,7 +1949,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM", (context)
   before("Should receive transact action with DescendOrigin", async function () {
     const allones = "0x0101010101010101010101010101010101010101";
     sendingAddress = allones;
-    random = generateKeyingPair();
+    random = generateKeyringPair();
     const derivedMultiLocation = context.polkadotApi.createType(
       "MultiLocation",
       JSON.parse(
@@ -2116,7 +2116,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM", (context)
 
     const allones = "0x0101010101010101010101010101010101010101";
     sendingAddress = allones;
-    random = generateKeyingPair();
+    random = generateKeyringPair();
     const derivedMultiLocation = context.polkadotApi.createType(
       "MultiLocation",
       JSON.parse(
