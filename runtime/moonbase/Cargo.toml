@@ -303,3 +303,5 @@ try-runtime = [
 	"pallet-society/try-runtime",
 	"pallet-timestamp/try-runtime",
 ]
+
+moonbase-runtime-benchmarks = []
