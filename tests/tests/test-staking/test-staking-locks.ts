@@ -217,6 +217,8 @@ describeDevMoonbeam("Staking - Locks - execute revoke", (context) => {
   });
 
   it("should be unlocked only after executing revoke delegation", async function () {
+    this.timeout(20000);
+
     const lock = await context.polkadotApi.query.balances.locks(randomAccount.address);
     expect(lock.length).to.be.equal(1, "Lock should have been added");
 
@@ -250,6 +252,8 @@ describeDevMoonbeam("Staking - Locks - multiple delegations single revoke", (con
   const randomAccount = generateKeyringPair();
 
   before("setup candidate & delegations", async function () {
+    this.timeout(20000);
+
     await expectOk(
       context.createBlock([
         context.polkadotApi.tx.sudo.sudo(
@@ -441,6 +445,8 @@ describeDevMoonbeam("Staking - Locks - bottom delegator removed", (context) => {
   let additionalDelegators: KeyringPair[];
 
   before("setup candidate & delegations", async function () {
+    this.timeout(20000);
+
     // Create the delegators to fill the lists
     additionalDelegators = new Array(
       context.polkadotApi.consts.parachainStaking.maxTopDelegationsPerCandidate.toNumber() +
@@ -499,6 +505,8 @@ describeDevMoonbeam("Staking - Locks - bottom and top delegations", (context) =>
   let topDelegators: KeyringPair[];
 
   before("setup candidate & delegations", async function () {
+    this.timeout(20000);
+
     // Create the delegators to fill the lists
     bottomDelegators = new Array(
       context.polkadotApi.consts.parachainStaking.maxBottomDelegationsPerCandidate.toNumber()
