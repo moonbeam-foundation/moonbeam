@@ -16,15 +16,12 @@
 
 //! # Migrations
 
-#[cfg(feature = "try-runtime")]
-use frame_support::traits::OnRuntimeUpgradeHelpersExt;
 use frame_support::{
 	dispatch::GetStorageVersion,
 	storage::migration::get_storage_value,
 	traits::{Get, OnRuntimeUpgrade, PalletInfoAccess},
 	weights::Weight,
 };
-#[cfg(feature = "xcm-support")]
 use pallet_asset_manager::{
 	migrations::{
 		ChangeStateminePrefixes, PopulateAssetTypeIdStorage, PopulateSupportedFeePaymentAssets,
@@ -47,13 +44,11 @@ use pallet_parachain_staking::{
 	},
 	Config as ParachainStakingConfig,
 };
-#[cfg(feature = "xcm-support")]
 use pallet_xcm_transactor::{
 	migrations::TransactSignedWeightAndFeePerSecond, Config as XcmTransactorConfig,
 };
 use sp_runtime::Permill;
 use sp_std::{marker::PhantomData, prelude::*};
-#[cfg(feature = "xcm-support")]
 use xcm::latest::MultiLocation;
 
 /// This module acts as a registry where each migration is defined. Each migration should implement
@@ -421,9 +416,7 @@ impl<T: BaseFeeConfig> Migration for MigrateBaseFeePerGas<T> {
 // 	}
 // }
 
-#[cfg(feature = "xcm-support")]
 pub struct XcmTransactorTransactSignedWeightAndFeePerSecond<T>(PhantomData<T>);
-#[cfg(feature = "xcm-support")]
 impl<T: XcmTransactorConfig> Migration for XcmTransactorTransactSignedWeightAndFeePerSecond<T> {
 	fn friendly_name(&self) -> &str {
 		"MM_Xcm_Transactor_TransactSignedWeightAndFeePerSecond"
@@ -445,10 +438,7 @@ impl<T: XcmTransactorConfig> Migration for XcmTransactorTransactSignedWeightAndF
 		TransactSignedWeightAndFeePerSecond::<T>::post_upgrade()
 	}
 }
-
-#[cfg(feature = "xcm-support")]
 pub struct AssetManagerUnitsWithAssetType<T>(PhantomData<T>);
-#[cfg(feature = "xcm-support")]
 impl<T: AssetManagerConfig> Migration for AssetManagerUnitsWithAssetType<T> {
 	fn friendly_name(&self) -> &str {
 		"MM_Asset_Manager_UnitsWithAssetType"
@@ -471,9 +461,7 @@ impl<T: AssetManagerConfig> Migration for AssetManagerUnitsWithAssetType<T> {
 	}
 }
 
-#[cfg(feature = "xcm-support")]
 pub struct AssetManagerPopulateAssetTypeIdStorage<T>(PhantomData<T>);
-#[cfg(feature = "xcm-support")]
 impl<T: AssetManagerConfig> Migration for AssetManagerPopulateAssetTypeIdStorage<T> {
 	fn friendly_name(&self) -> &str {
 		"MM_Asset_Manager_PopulateAssetTypeIdStorage"
@@ -496,11 +484,9 @@ impl<T: AssetManagerConfig> Migration for AssetManagerPopulateAssetTypeIdStorage
 	}
 }
 
-#[cfg(feature = "xcm-support")]
 pub struct AssetManagerChangeStateminePrefixes<T, StatemineParaIdInfo, StatemineAssetsPalletInfo>(
 	PhantomData<(T, StatemineParaIdInfo, StatemineAssetsPalletInfo)>,
 );
-#[cfg(feature = "xcm-support")]
 impl<T, StatemineParaIdInfo, StatemineAssetsPalletInfo> Migration
 	for AssetManagerChangeStateminePrefixes<T, StatemineParaIdInfo, StatemineAssetsPalletInfo>
 where
@@ -533,10 +519,7 @@ where
 		ChangeStateminePrefixes::<T, StatemineParaIdInfo, StatemineAssetsPalletInfo>::post_upgrade()
 	}
 }
-
-#[cfg(feature = "xcm-support")]
 pub struct XcmPaymentSupportedAssets<T>(PhantomData<T>);
-#[cfg(feature = "xcm-support")]
 impl<T: AssetManagerConfig> Migration for XcmPaymentSupportedAssets<T> {
 	fn friendly_name(&self) -> &str {
 		"MM_Xcm_Payment_Supported_Assets"
@@ -649,8 +632,8 @@ where
 		// 	ParachainStakingSplitDelegatorStateIntoDelegationScheduledRequests::<Runtime>(
 		// 		Default::default(),
 		// 	);
-		let migration_author_mapping_add_account_id_to_nimbus_lookup =
-			AuthorMappingAddAccountIdToNimbusLookup::<Runtime>(Default::default());
+		// let migration_author_mapping_add_account_id_to_nimbus_lookup =
+		//	AuthorMappingAddAccountIdToNimbusLookup::<Runtime>(Default::default());
 		vec![
 			// completed in runtime 800
 			// Box::new(migration_author_mapping_twox_to_blake),
@@ -663,59 +646,6 @@ where
 			// Box::new(migration_parachain_staking_increase_max_delegations_per_candidate),
 			// completed in runtime 1201
 			// Box::new(migration_parachain_staking_split_candidate_state),
-			// completed in runtime 1300
-			// Box::new(migration_scheduler_v3),
-			// completed in runtime 1300
-			// Box::new(migration_parachain_staking_patch_incorrect_delegation_sums),
-			// completed in runtime 1300
-			// Box::new(migration_base_fee),
-			// completed in runtime 1500
-			// Box::new(migration_author_slot_filter_eligible_ratio_to_eligibility_count),
-			// Box::new(migration_author_mapping_add_keys_to_registration_info),
-			// Box::new(staking_delegator_state_requests),
-
-			// planned in runtime 1600
-			Box::new(migration_author_mapping_add_account_id_to_nimbus_lookup),
-		]
-	}
-}
-
-#[cfg(feature = "xcm-support")]
-pub struct XcmMigrations<Runtime>(PhantomData<Runtime>);
-
-#[cfg(feature = "xcm-support")]
-impl<Runtime> GetMigrations for XcmMigrations<Runtime>
-where
-	Runtime:
-		pallet_xcm_transactor::Config + pallet_migrations::Config + pallet_asset_manager::Config,
-	<Runtime as pallet_asset_manager::Config>::ForeignAssetType:
-		Into<Option<MultiLocation>> + From<MultiLocation>,
-{
-	fn get_migrations() -> Vec<Box<dyn Migration>> {
-		// let xcm_transactor_max_weight =
-		// 	XcmTransactorMaxTransactWeight::<Runtime>(Default::default());
-
-		// let asset_manager_units_with_asset_type =
-		// 	AssetManagerUnitsWithAssetType::<Runtime>(Default::default());
-
-		// let asset_manager_populate_asset_type_id_storage =
-		// 	AssetManagerPopulateAssetTypeIdStorage::<Runtime>(Default::default());
-
-		// let asset_manager_change_statemine_prefixes = AssetManagerChangeStateminePrefixes::<
-		// 	Runtime,
-		// 	StatemineParaIdInfo,
-		// 	StatemineAssetsInstanceInfo,
-		// >(Default::default());
-
-		// let xcm_supported_assets = XcmPaymentSupportedAssets::<Runtime>(Default::default());
-
-		// TODO: this is a lot of allocation to do upon every get() call. this *should* be avoided
-		// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review
-
-		let xcm_transactor_transact_signed =
-			XcmTransactorTransactSignedWeightAndFeePerSecond::<Runtime>(Default::default());
-
-		vec![
 			// completed in runtime 1201
 			// Box::new(xcm_transactor_max_weight),
 			// completed in runtime 1201
@@ -725,10 +655,22 @@ where
 			// completed in runtime 1201
 			// Box::new(asset_manager_populate_asset_type_id_storage),
 			// completed in runtime 1300
+			// Box::new(migration_scheduler_v3),
+			// completed in runtime 1300
+			// Box::new(migration_parachain_staking_patch_incorrect_delegation_sums),
+			// completed in runtime 1300
+			// Box::new(migration_base_fee),
+			// completed in runtime 1300
 			// Box::new(xcm_supported_assets),
+			// completed in runtime 1500
+			// Box::new(migration_author_slot_filter_eligible_ratio_to_eligibility_count),
+			// Box::new(migration_author_mapping_add_keys_to_registration_info),
+			// Box::new(staking_delegator_state_requests),
 
 			// planned in runtime 1600
-			Box::new(xcm_transactor_transact_signed),
+			// Box::new(migration_author_mapping_add_account_id_to_nimbus_lookup),
+			// planned in runtime 1600
+			// Box::new(xcm_transactor_transact_signed),
 		]
 	}
 }
