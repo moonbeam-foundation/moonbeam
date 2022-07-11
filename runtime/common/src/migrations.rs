@@ -687,9 +687,9 @@ where
 			// Box::new(migration_author_mapping_add_keys_to_registration_info),
 			// Box::new(staking_delegator_state_requests),
 
-			// planned in runtime 1600
+			// completed in runtime 1600
 			// Box::new(migration_author_mapping_add_account_id_to_nimbus_lookup),
-			// planned in runtime 1600
+			// completed in runtime 1600
 			// Box::new(xcm_transactor_transact_signed),
 		]
 	}
