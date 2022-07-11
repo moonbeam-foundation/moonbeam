@@ -12,7 +12,7 @@ import { GLMR, MIN_GLMR_STAKING, MIN_GLMR_DELEGATOR } from "../../util/constants
 import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
 import { KeyringPair } from "@polkadot/keyring/types";
 import { expectOk } from "../../util/expect";
-import { jumpRounds, jumpToRound } from ".";
+import { jumpRounds } from "../../util/block";
 import { ExtrinsicCreation } from "../../util/substrate-rpc";
 
 describeDevMoonbeam("Staking - Locks - join delegators", (context) => {
