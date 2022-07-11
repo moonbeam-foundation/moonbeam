@@ -634,6 +634,24 @@ where
 		// 	);
 		// let migration_author_mapping_add_account_id_to_nimbus_lookup =
 		//	AuthorMappingAddAccountIdToNimbusLookup::<Runtime>(Default::default());
+
+		// let xcm_transactor_max_weight =
+		// 	XcmTransactorMaxTransactWeight::<Runtime>(Default::default());
+
+		// let asset_manager_units_with_asset_type =
+		// 	AssetManagerUnitsWithAssetType::<Runtime>(Default::default());
+
+		// let asset_manager_populate_asset_type_id_storage =
+		// 	AssetManagerPopulateAssetTypeIdStorage::<Runtime>(Default::default());
+
+		// let asset_manager_change_statemine_prefixes = AssetManagerChangeStateminePrefixes::<
+		// 	Runtime,
+		// 	StatemineParaIdInfo,
+		// 	StatemineAssetsInstanceInfo,
+		// >(Default::default());
+
+		// let xcm_supported_assets = XcmPaymentSupportedAssets::<Runtime>(Default::default());
+
 		vec![
 			// completed in runtime 800
 			// Box::new(migration_author_mapping_twox_to_blake),
