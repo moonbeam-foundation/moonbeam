@@ -16,55 +16,28 @@
 
 //! VRF Key type
 use nimbus_primitives::NimbusId;
-use parity_scale_codec::{Decode, Encode};
-use scale_info::TypeInfo;
-#[cfg(feature = "std")]
-use serde::{Deserialize, Serialize};
 use sp_application_crypto::{sr25519, KeyTypeId, UncheckedFrom};
-use sp_consensus_babe::{Slot, Transcript};
+use sp_consensus_babe::Transcript;
 #[cfg(feature = "std")]
 use sp_keystore::vrf::{VRFTranscriptData, VRFTranscriptValue};
-use sp_runtime::{BoundToRuntimeAppPublic, ConsensusEngineId, RuntimeDebug};
-
-#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-#[derive(Default, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
-/// VRF inputs from the relay chain
-/// Both inputs are expected to change every block
-pub struct VrfInput<SlotNumber, RelayHash> {
-	/// Relay block slot number
-	pub slot_number: SlotNumber,
-	/// Relay block storage root
-	pub storage_root: RelayHash,
-}
-
-/// Read VRF input from the relay chain state proof
-pub trait GetVrfInput<Input> {
-	fn get_vrf_input() -> Input;
-}
+use sp_runtime::{BoundToRuntimeAppPublic, ConsensusEngineId};
 
 /// Make VRF transcript from the VrfInput
-pub fn make_transcript<Hash: AsRef<[u8]>>(slot: Slot, storage_root: Hash) -> Transcript {
+pub fn make_transcript<Hash: AsRef<[u8]>>(last_vrf_output: Hash) -> Transcript {
 	let mut transcript = Transcript::new(&VRF_ENGINE_ID);
-	transcript.append_u64(b"relay slot number", *slot);
-	transcript.append_message(b"relay storage root", storage_root.as_ref());
+	transcript.append_message(b"last vrf output", last_vrf_output.as_ref());
 	transcript
 }
 
 /// Make a VRF transcript data container
 #[cfg(feature = "std")]
-pub fn make_transcript_data<Hash: AsRef<[u8]>>(
-	slot: Slot,
-	storage_root: Hash,
-) -> VRFTranscriptData {
+pub fn make_transcript_data<Hash: AsRef<[u8]>>(last_vrf_output: Hash) -> VRFTranscriptData {
 	VRFTranscriptData {
 		label: &VRF_ENGINE_ID,
-		items: vec![
-			("relay slot number", VRFTranscriptValue::U64(*slot)),
-			(
-				"relay storage root",
-				VRFTranscriptValue::Bytes(storage_root.as_ref().to_vec()),
-			),
-		],
+		items: vec![(
+			"last vrf output",
+			VRFTranscriptValue::Bytes(last_vrf_output.as_ref().to_vec()),
+		)],
 	}
 }
 
@@ -111,8 +84,7 @@ sp_application_crypto::with_pair! {
 
 sp_api::decl_runtime_apis! {
 	pub trait VrfApi {
-		fn get_relay_slot_number() -> sp_consensus_babe::Slot;
-		fn get_relay_storage_root() -> Block::Hash;
+		fn get_last_vrf_output() -> Block::Hash;
 		fn vrf_key_lookup(nimbus_id: nimbus_primitives::NimbusId) -> Option<crate::VrfId>;
 	}
 }

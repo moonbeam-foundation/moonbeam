@@ -92,7 +92,7 @@ describeDevMoonbeam(
       expect(
         result.events.find(
           ({ event: { section, method } }) =>
-            section === "randomness" && method === "RandomnessRequestedBabeOneEpochAgo"
+            section === "randomness" && method === "RandomnessRequestedBabeEpoch"
         )
       ).to.exist;
     });

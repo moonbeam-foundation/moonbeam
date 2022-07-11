@@ -37,12 +37,9 @@ mod mock;
 mod tests;
 
 /// Read babe randomness info from the relay chain state proof
-pub trait GetBabeData<BlockNumber, EpochIndex, Randomness> {
-	fn get_relay_block_number() -> BlockNumber;
+pub trait GetBabeData<EpochIndex, Randomness> {
 	fn get_relay_epoch_index() -> EpochIndex;
-	fn get_current_block_randomness() -> Randomness;
-	fn get_one_epoch_ago_randomness() -> Randomness;
-	fn get_two_epochs_ago_randomness() -> Randomness;
+	fn get_epoch_randomness() -> Randomness;
 }
 
 #[pallet]
@@ -53,10 +50,7 @@ pub mod pallet {
 	use frame_system::pallet_prelude::*;
 	use nimbus_primitives::NimbusId;
 	use pallet_evm::AddressMapping;
-	use session_keys_primitives::{
-		GetVrfInput, InherentError, KeysLookup, VrfId, VrfInput, INHERENT_IDENTIFIER,
-	};
-	use sp_consensus_babe::Slot;
+	use session_keys_primitives::{InherentError, KeysLookup, VrfId, INHERENT_IDENTIFIER};
 	use sp_core::{H160, H256};
 	use sp_runtime::traits::{AccountIdConversion, Saturating};
 	use sp_std::{convert::TryInto, vec::Vec};
@@ -84,9 +78,7 @@ pub mod pallet {
 		/// Currency in which the security deposit will be taken.
 		type Currency: Currency<Self::AccountId>;
 		/// Get the BABE data from the runtime
-		type BabeDataGetter: GetBabeData<Self::BlockNumber, u64, Option<Self::Hash>>;
-		/// Get the VRF input from the runtime
-		type VrfInputGetter: GetVrfInput<VrfInput<Slot, Self::Hash>>;
+		type BabeDataGetter: GetBabeData<u64, Option<Self::Hash>>;
 		/// Takes NimbusId to return VrfId
 		type VrfKeyLookup: KeysLookup<NimbusId, VrfId>;
 		#[pallet::constant]
@@ -127,7 +119,7 @@ pub mod pallet {
 			salt: H256,
 			earliest_block: T::BlockNumber,
 		},
-		RandomnessRequestedBabeOneEpochAgo {
+		RandomnessRequestedBabeEpoch {
 			id: RequestId,
 			refund_address: H160,
 			contract_address: H160,
@@ -177,24 +169,15 @@ pub mod pallet {
 	pub type RequestCount<T: Config> = StorageValue<_, RequestId, ValueQuery>;
 
 	/// Current local per-block VRF randomness
-	/// Set in `on_initialize`, before it will contain the randomness for this block
+	/// Set in `on_initialize`
 	#[pallet::storage]
 	#[pallet::getter(fn local_vrf_output)]
 	pub type LocalVrfOutput<T: Config> = StorageValue<_, Option<T::Hash>, ValueQuery>;
 
-	/// Current VRF input
-	/// Set in `on_finalize` of last block
-	/// Used in `on_initialize` of current block to validate VRF output
+	/// Relay epoch
 	#[pallet::storage]
-	#[pallet::getter(fn current_vrf_input)]
-	pub(crate) type CurrentVrfInput<T: Config> = StorageValue<_, VrfInput<Slot, T::Hash>>;
-
-	/// Relay time information to determine when to update randomness results based on when
-	/// epoch and relay block change
-	#[pallet::storage]
-	#[pallet::getter(fn relay_time)]
-	pub(crate) type RelayTime<T: Config> =
-		StorageValue<_, RelayTimeInfo<T::BlockNumber, u64>, ValueQuery>;
+	#[pallet::getter(fn relay_epoch)]
+	pub(crate) type RelayEpoch<T: Config> = StorageValue<_, u64, ValueQuery>;
 
 	/// Ensures the mandatory inherent was included in the block
 	#[pallet::storage]
@@ -226,51 +209,23 @@ pub mod pallet {
 		pub fn set_babe_randomness_results(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			ensure_none(origin)?;
 
-			let last_relay_time = <RelayTime<T>>::get();
-			// populate the `RandomnessResults` for BABE current block randomness
-			let relay_block_number = T::BabeDataGetter::get_relay_block_number();
-			if relay_block_number > last_relay_time.relay_block_number {
-				let babe_current_this_block = RequestType::BabeCurrentBlock(relay_block_number);
-				if let Some(mut results) = <RandomnessResults<T>>::get(&babe_current_this_block) {
-					if let Some(randomness) = T::BabeDataGetter::get_current_block_randomness() {
-						results.randomness = Some(randomness);
-						<RandomnessResults<T>>::insert(babe_current_this_block, results);
-					} else {
-						log::warn!("Failed to fill BABE randomness results");
-					}
-				}
-			}
+			let last_relay_epoch_index = <RelayEpoch<T>>::get();
 			// populate the `RandomnessResults` for BABE epoch randomness (1 and 2 ago)
 			let relay_epoch_index = T::BabeDataGetter::get_relay_epoch_index();
-			if relay_epoch_index > last_relay_time.relay_epoch_index {
-				let babe_one_epoch_ago_this_block = RequestType::BabeOneEpochAgo(relay_epoch_index);
-				let babe_two_epochs_ago_this_block =
-					RequestType::BabeOneEpochAgo(relay_epoch_index);
+			if relay_epoch_index > last_relay_epoch_index {
+				let babe_one_epoch_ago_this_block = RequestType::BabeEpoch(relay_epoch_index);
 				if let Some(mut results) =
 					<RandomnessResults<T>>::get(&babe_one_epoch_ago_this_block)
 				{
-					if let Some(randomness) = T::BabeDataGetter::get_one_epoch_ago_randomness() {
+					if let Some(randomness) = T::BabeDataGetter::get_epoch_randomness() {
 						results.randomness = Some(randomness);
 						<RandomnessResults<T>>::insert(babe_one_epoch_ago_this_block, results);
 					} else {
 						log::warn!("Failed to fill BABE one epoch ago randomness results");
 					}
 				}
-				if let Some(mut results) =
-					<RandomnessResults<T>>::get(&babe_two_epochs_ago_this_block)
-				{
-					if let Some(randomness) = T::BabeDataGetter::get_two_epochs_ago_randomness() {
-						results.randomness = Some(randomness);
-						<RandomnessResults<T>>::insert(babe_two_epochs_ago_this_block, results);
-					} else {
-						log::warn!("Failed to fill BABE two epochs ago randomness results");
-					}
-				}
 			}
-			<RelayTime<T>>::put(RelayTimeInfo {
-				relay_block_number,
-				relay_epoch_index,
-			});
+			<RelayEpoch<T>>::put(relay_epoch_index);
 			<InherentIncluded<T>>::put(());
 
 			Ok(Pays::No.into())
@@ -318,10 +273,6 @@ pub mod pallet {
 				<InherentIncluded<T>>::take().is_some(),
 				"Mandatory randomness inherent not included; InherentIncluded storage item is empty"
 			);
-
-			// Necessary because required data is killed in `ParachainSystem::on_initialize`
-			// which may happen before the VRF output is verified in the next block on_initialize
-			vrf::set_input::<T>();
 		}
 	}
 

@@ -1104,13 +1104,7 @@ fn relay_chain_state_proof() -> RelayChainStateProof {
 }
 
 pub struct BabeDataGetter;
-impl pallet_randomness::GetBabeData<BlockNumber, u64, Option<Hash>> for BabeDataGetter {
-	// Tolerate panic here because only ever called in inherent (so can be omitted)
-	fn get_relay_block_number() -> BlockNumber {
-		ParachainSystem::validation_data()
-			.expect("set in `set_validation_data`inherent => available before on_initialize")
-			.relay_parent_number
-	}
+impl pallet_randomness::GetBabeData<u64, Option<Hash>> for BabeDataGetter {
 	// Tolerate panic here because only ever called in inherent (so can be omitted)
 	fn get_relay_epoch_index() -> u64 {
 		relay_chain_state_proof()
@@ -1119,39 +1113,11 @@ impl pallet_randomness::GetBabeData<BlockNumber, u64, Option<Hash>> for BabeData
 			.flatten()
 			.expect("expected to be able to read epoch index from relay chain state proof")
 	}
-	fn get_current_block_randomness() -> Option<Hash> {
-		relay_chain_state_proof()
-			.read_optional_entry(relay_chain::well_known_keys::CURRENT_BLOCK_RANDOMNESS)
-			.ok()
-			.flatten()
-	}
-	fn get_one_epoch_ago_randomness() -> Option<Hash> {
+	fn get_epoch_randomness() -> Option<Hash> {
 		relay_chain_state_proof()
 			.read_optional_entry(relay_chain::well_known_keys::ONE_EPOCH_AGO_RANDOMNESS)
 			.ok()
 			.flatten()
-	}
-	fn get_two_epochs_ago_randomness() -> Option<Hash> {
-		relay_chain_state_proof()
-			.read_optional_entry(relay_chain::well_known_keys::TWO_EPOCHS_AGO_RANDOMNESS)
-			.ok()
-			.flatten()
-	}
-}
-
-pub struct VrfInputGetter;
-impl session_keys_primitives::GetVrfInput<session_keys_primitives::VrfInput<Slot, Hash>>
-	for VrfInputGetter
-{
-	fn get_vrf_input() -> session_keys_primitives::VrfInput<Slot, Hash> {
-		session_keys_primitives::VrfInput {
-			slot_number: relay_chain_state_proof()
-				.read_slot()
-				.expect("CheckInherents reads slot from state proof QED"),
-			storage_root: ParachainSystem::validation_data()
-				.expect("set in `set_validation_data`inherent => available before on_initialize")
-				.relay_parent_storage_root,
-		}
 	}
 }
 
@@ -1160,7 +1126,6 @@ impl pallet_randomness::Config for Runtime {
 	type AddressMapping = moonbeam_runtime_common::IntoAddressMapping;
 	type Currency = Balances;
 	type BabeDataGetter = BabeDataGetter;
-	type VrfInputGetter = VrfInputGetter;
 	type VrfKeyLookup = AuthorMapping;
 	type Deposit = ConstU128<{ 1 * currency::UNIT * currency::SUPPLY_FACTOR }>;
 	type ExpirationDelay = ConstU32<10_000>;
@@ -1261,23 +1226,13 @@ pub type Executive = frame_executive::Executive<
 // ```
 moonbeam_runtime_common::impl_runtime_apis_plus_common! {
 	impl session_keys_primitives::VrfApi<Block> for Runtime {
-		fn get_relay_slot_number() -> cumulus_primitives_core::relay_chain::v2::Slot {
+		fn get_last_vrf_output() -> <Block as BlockT>::Hash {
 			// TODO: remove in future runtime upgrade along with storage item
 			if pallet_randomness::Pallet::<Self>::not_first_block().is_none() {
 				return Default::default();
 			}
-			pallet_randomness::Pallet::<Self>::current_vrf_input()
-				.expect("Expected VrfInput to be set")
-				.slot_number
-		}
-		fn get_relay_storage_root() -> <Block as BlockT>::Hash {
-			// TODO: remove in future runtime upgrade along with storage item
-			if pallet_randomness::Pallet::<Self>::not_first_block().is_none() {
-				return Default::default();
-			}
-			pallet_randomness::Pallet::<Self>::current_vrf_input()
-				.expect("Expected VrfInput to be set")
-				.storage_root
+			pallet_randomness::Pallet::<Self>::last_vrf_output()
+				.expect("Expected last VrfOutput to be set")
 		}
 		fn vrf_key_lookup(
 			nimbus_id: nimbus_primitives::NimbusId

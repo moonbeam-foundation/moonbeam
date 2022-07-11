@@ -55,10 +55,6 @@ interface Randomness {
         RequestStatus status;
     }
 
-    /// Return the current relay block number
-    /// Selector: edfec347
-    function relayBlockNumber() external view returns (uint64);
-
     /// Return the current relay epoch index
     /// @dev An epoch represents real time and not a block number
     /// @dev Currently, it cannot be longer than:

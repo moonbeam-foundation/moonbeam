@@ -15,40 +15,17 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! VRF logic
-use crate::{
-	Config, CurrentVrfInput, LocalVrfOutput, NotFirstBlock, RandomnessResults, RequestType,
-};
+use crate::{Config, LocalVrfOutput, NotFirstBlock, RandomnessResults, RequestType};
 use frame_support::{pallet_prelude::Weight, traits::Get};
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
 use parity_scale_codec::Decode;
 pub use session_keys_primitives::make_transcript;
-use session_keys_primitives::{
-	GetVrfInput, KeysLookup, PreDigest, VrfId, VRF_ENGINE_ID, VRF_INOUT_CONTEXT,
-};
+use session_keys_primitives::{KeysLookup, PreDigest, VrfId, VRF_ENGINE_ID, VRF_INOUT_CONTEXT};
 use sp_consensus_vrf::schnorrkel;
 use sp_core::crypto::ByteArray;
 
 /// VRF output
 type Randomness = schnorrkel::Randomness;
-
-/// Set vrf input in storage and log warning if either of the values did NOT change
-/// Called in previous block's `on_finalize`
-pub(crate) fn set_input<T: Config>() {
-	let input = T::VrfInputGetter::get_vrf_input();
-	if let Some(last_vrf_input) = <CurrentVrfInput<T>>::take() {
-		// logs if input uniqueness assumptions are violated (no reuse of vrf inputs)
-		if last_vrf_input.storage_root == input.storage_root
-			|| last_vrf_input.slot_number == input.slot_number
-		{
-			log::warn!(
-				"VRF on_initialize: storage root or slot number did not change between \
-			current and last block. Nimbus would've panicked if slot number did not change \
-			so probably storage root did not change."
-			);
-		}
-	}
-	<CurrentVrfInput<T>>::put(input);
-}
 
 /// Returns weight consumed in `on_initialize`
 pub(crate) fn set_output<T: Config>() -> Weight {
@@ -58,7 +35,8 @@ pub(crate) fn set_output<T: Config>() -> Weight {
 		<NotFirstBlock<T>>::put(());
 		return T::DbWeight::get().read + T::DbWeight::get().write;
 	}
-	let input = <CurrentVrfInput<T>>::get().expect("VrfInput must be set to verify VrfOutput");
+	// TODO: change the input to just the previous VRF
+	// TODO: migration to set input in the first block
 	let mut block_author_vrf_id: Option<VrfId> = None;
 	let PreDigest {
 		vrf_output,
@@ -93,7 +71,8 @@ pub(crate) fn set_output<T: Config>() -> Weight {
 		block_author_vrf_id.expect("VrfId encoded in pre-runtime digest must be valid");
 	let pubkey = schnorrkel::PublicKey::from_bytes(block_author_vrf_id.as_slice())
 		.expect("Expect VrfId to be valid schnorrkel public key");
-	let transcript = make_transcript::<T::Hash>(input.slot_number, input.storage_root);
+	// VRF input is the previous VRF output
+	let transcript = make_transcript::<T::Hash>(LocalVrfOutput::<T>::get().unwrap_or_default());
 	// Verify VRF output + proof using input transcript and VrfId
 	assert!(
 		pubkey
@@ -118,6 +97,7 @@ pub(crate) fn set_output<T: Config>() -> Weight {
 			log::warn!("Failed to fill VRF randomness results this block");
 		}
 	}
-	// reads + writes + margin_of_safety = 10_000
-	6 * T::DbWeight::get().read + 2 * T::DbWeight::get().write + 10_000 // TODO: update weight
+	// TODO: benchmark to fix this weight
+	// reads + writes + margin_of_safety = 5_000_000_000
+	6 * T::DbWeight::get().read + 2 * T::DbWeight::get().write + 5_000_000_000
 }

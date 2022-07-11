@@ -30,20 +30,11 @@ fn test_all_actions_are_implemented_in_solidity_interface() {
 		.map(|sf| sf.compute_selector())
 		.collect::<HashSet<_>>();
 
-	assert_eq!(Action::RelayBlockNumber as u32, 0xedfec347);
-	assert!(selectors.contains(&(Action::RelayBlockNumber as u32)));
-
 	assert_eq!(Action::RelayEpochIndex as u32, 0x81797566);
 	assert!(selectors.contains(&(Action::RelayEpochIndex as u32)));
 
-	assert_eq!(Action::RequestBabeRandomnessCurrentBlock as u32, 0xc4921133);
-	assert!(selectors.contains(&(Action::RequestBabeRandomnessCurrentBlock as u32)));
-
-	assert_eq!(Action::RequestBabeRandomnessOneEpochAgo as u32, 0xbbc9e95f);
-	assert!(selectors.contains(&(Action::RequestBabeRandomnessOneEpochAgo as u32)));
-
-	assert_eq!(Action::RequestBabeRandomnessTwoEpochsAgo as u32, 0x25b14a0b);
-	assert!(selectors.contains(&(Action::RequestBabeRandomnessTwoEpochsAgo as u32)));
+	assert_eq!(Action::RequestBabeRandomness as u32, 0xbbc9e95f);
+	assert!(selectors.contains(&(Action::RequestBabeRandomness as u32)));
 
 	assert_eq!(Action::RequestLocalRandomness as u32, 0xb4a11763);
 	assert!(selectors.contains(&(Action::RequestLocalRandomness as u32)));

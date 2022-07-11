@@ -19,7 +19,6 @@
 use nimbus_primitives::NimbusId;
 use session_keys_primitives::{make_transcript, make_transcript_data, PreDigest, VrfApi, VrfId};
 use sp_application_crypto::{AppKey, ByteArray};
-use sp_consensus_babe::Slot;
 use sp_consensus_vrf::schnorrkel::{PublicKey, VRFOutput, VRFProof};
 use sp_core::H256;
 use sp_keystore::{SyncCryptoStore, SyncCryptoStorePtr};
@@ -42,11 +41,10 @@ where
 	let at = sp_api::BlockId::Hash(parent);
 	let runtime_api = client.runtime_api();
 
-	let relay_slot_number: Slot = runtime_api.get_relay_slot_number(&at).ok()?;
-	let relay_storage_root: H256 = runtime_api.get_relay_storage_root(&at).ok()?;
+	let last_vrf_output = runtime_api.get_last_vrf_output(&at).ok()?;
 	// one ? for API error, another for None returned by API.
 	let key: VrfId = runtime_api.vrf_key_lookup(&at, nimbus_id).ok()??;
-	let vrf_pre_digest = sign_vrf(relay_slot_number, relay_storage_root, key, &keystore)?;
+	let vrf_pre_digest = sign_vrf(last_vrf_output, key, &keystore)?;
 	Some(session_keys_primitives::digest::CompatibleDigestItem::vrf_pre_digest(vrf_pre_digest))
 }
 
@@ -54,14 +52,9 @@ where
 /// to be found in the input keystore
 /// Returns None if key not found in keystore or if signature output cannot be validated by input
 /// If successful, returns Some(VRF pre-digest)
-fn sign_vrf(
-	relay_slot_number: Slot,
-	relay_storage_root: H256,
-	key: VrfId,
-	keystore: &SyncCryptoStorePtr,
-) -> Option<PreDigest> {
-	let transcript = make_transcript(relay_slot_number, relay_storage_root.clone());
-	let transcript_data = make_transcript_data(relay_slot_number, relay_storage_root);
+fn sign_vrf(last_vrf_output: H256, key: VrfId, keystore: &SyncCryptoStorePtr) -> Option<PreDigest> {
+	let transcript = make_transcript(last_vrf_output.clone());
+	let transcript_data = make_transcript_data(last_vrf_output);
 	let try_sign =
 		SyncCryptoStore::sr25519_vrf_sign(&**keystore, VrfId::ID, key.as_ref(), transcript_data);
 	if let Ok(Some(signature)) = try_sign {

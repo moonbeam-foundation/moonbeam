@@ -170,19 +170,10 @@ impl pallet_author_mapping::Config for Runtime {
 
 pub struct BabeDataGetter;
 impl pallet_randomness::traits::GetBabeData<BlockNumber, u64, Option<H256>> for BabeDataGetter {
-	fn get_relay_block_number() -> BlockNumber {
-		1u64
-	}
 	fn get_relay_epoch_index() -> u64 {
 		1u64
 	}
-	fn get_current_block_randomness() -> Option<H256> {
-		None
-	}
-	fn get_one_epoch_ago_randomness() -> Option<H256> {
-		None
-	}
-	fn get_two_epochs_ago_randomness() -> Option<H256> {
+	fn get_epoch_randomness() -> Option<H256> {
 		None
 	}
 }

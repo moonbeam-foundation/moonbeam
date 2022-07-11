@@ -39,14 +39,8 @@ mod tests;
 #[generate_function_selector]
 #[derive(Debug, PartialEq)]
 pub enum Action {
-	RelayBlockNumber = "relayBlockNumber()",
 	RelayEpochIndex = "relayEpochIndex()",
-	RequestBabeRandomnessCurrentBlock =
-		"requestBabeRandomnessCurrentBlock(address,uint256,uint64,bytes32,uint64)",
-	RequestBabeRandomnessOneEpochAgo =
-		"requestBabeRandomnessOneEpochAgo(address,uint256,uint64,bytes32)",
-	RequestBabeRandomnessTwoEpochsAgo =
-		"requestBabeRandomnessTwoEpochsAgo(address,uint256,uint64,bytes32)",
+	RequestBabeRandomness = "requestBabeRandomness(address,uint256,uint64,bytes32)",
 	RequestLocalRandomness = "requestLocalRandomness(address,uint256,uint64,bytes32,uint64)",
 	FulfillRequest = "fulfillRequest(uint64)",
 	IncreaseRequestFee = "increaseRequestFee(uint64,uint256)",
@@ -159,17 +153,8 @@ where
 		handle.check_function_modifier(FunctionModifier::NonPayable)?;
 
 		match selector {
-			Action::RelayBlockNumber => Self::relay_block_number(handle),
 			Action::RelayEpochIndex => Self::relay_epoch_index(handle),
-			Action::RequestBabeRandomnessCurrentBlock => {
-				Self::request_babe_randomness_current_block(handle)
-			}
-			Action::RequestBabeRandomnessOneEpochAgo => {
-				Self::request_babe_randomness_one_epoch_ago(handle)
-			}
-			Action::RequestBabeRandomnessTwoEpochsAgo => {
-				Self::request_babe_randomness_two_epochs_ago(handle)
-			}
+			Action::RequestBabeRandomness => Self::request_babe_randomness(handle),
 			Action::RequestLocalRandomness => Self::request_local_randomness(handle),
 			Action::FulfillRequest => Self::fulfill_request(handle),
 			Action::IncreaseRequestFee => Self::increase_request_fee(handle),
@@ -184,16 +169,6 @@ where
 	<Runtime as frame_system::Config>::BlockNumber: TryInto<u64> + TryFrom<u64>,
 	BalanceOf<Runtime>: TryFrom<U256> + Into<U256>,
 {
-	fn relay_block_number(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let relay_block_number: u64 =
-			<Runtime as pallet_randomness::Config>::BabeDataGetter::get_relay_block_number()
-				.try_into()
-				.map_err(|_| revert("storage value is too large for provided block number type"))?;
-		Ok(succeed(
-			EvmDataWriter::new().write(relay_block_number).build(),
-		))
-	}
 	fn relay_epoch_index(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let relay_epoch_index =
@@ -202,63 +177,8 @@ where
 			EvmDataWriter::new().write(relay_epoch_index).build(),
 		))
 	}
-	/// Make request for babe randomness current block
-	fn request_babe_randomness_current_block(
-		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<PrecompileOutput> {
-		let mut input = handle.read_input()?;
-		let contract_address = handle.context().caller;
-		let refund_address = input.read::<Address>()?.0;
-		let fee: BalanceOf<Runtime> = input
-			.read::<U256>()?
-			.try_into()
-			.map_err(|_| revert("amount is too large for provided balance type"))?;
-		let gas_limit = input.read::<u64>()?;
-		let num_words = input
-			.read::<u32>()?
-			.try_into()
-			.map_err(|_| revert("number of words is too large for provided u8 type"))?;
-		let salt = input.read::<H256>()?;
-		let blocks_after_current = input.read::<u64>()?;
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let relay_block_number: u64 =
-			<Runtime as pallet_randomness::Config>::BabeDataGetter::get_relay_block_number()
-				.try_into()
-				.map_err(|_| revert("block number overflowed u64"))?;
-		let requested_block_number = blocks_after_current
-			.checked_add(relay_block_number)
-			.ok_or(error("addition result overflowed u64"))?
-			.try_into()
-			.map_err(|_| revert("u64 addition result overflowed block number type"))?;
-		// assumes 1 relay per para block
-		// if incorrect, is overwritten by pallet
-		let expiring_relay_block = pallet_randomness::Pallet::<Runtime>::relay_time()
-			.relay_block_number
-			.saturating_add(<Runtime as pallet_randomness::Config>::ExpirationDelay::get().into());
-		let request = pallet_randomness::Request {
-			refund_address,
-			contract_address,
-			fee,
-			gas_limit,
-			num_words,
-			salt,
-			info: pallet_randomness::RequestInfo::BabeCurrentBlock(
-				requested_block_number,
-				expiring_relay_block,
-			),
-		};
-		pallet_randomness::Pallet::<Runtime>::request_randomness(request)
-			.map_err(|e| error(alloc::format!("{:?}", e)))?;
-
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: Default::default(),
-		})
-	}
 	/// Make request for babe randomness one epoch ago
-	fn request_babe_randomness_one_epoch_ago(
-		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<PrecompileOutput> {
+	fn request_babe_randomness(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		let mut input = handle.read_input()?;
 		let contract_address = handle.context().caller;
 		let refund_address = input.read::<Address>()?.0;
@@ -277,8 +197,7 @@ where
 			<Runtime as pallet_randomness::Config>::BabeDataGetter::get_relay_epoch_index()
 				.checked_add(2u64)
 				.ok_or(error("Epoch Index (u64) overflowed"))?;
-		let expiring_relay_epoch_index = pallet_randomness::Pallet::<Runtime>::relay_time()
-			.relay_epoch_index
+		let expiring_relay_epoch_index = pallet_randomness::Pallet::<Runtime>::relay_epoch()
 			.saturating_add(<Runtime as pallet_randomness::Config>::ExpirationDelay::get().into());
 		let request = pallet_randomness::Request {
 			refund_address,
@@ -287,53 +206,8 @@ where
 			gas_limit,
 			num_words,
 			salt: salt.into(),
-			info: pallet_randomness::RequestInfo::BabeOneEpochAgo(
+			info: pallet_randomness::RequestInfo::BabeEpoch(
 				two_epochs_later,
-				expiring_relay_epoch_index,
-			),
-		};
-		pallet_randomness::Pallet::<Runtime>::request_randomness(request)
-			.map_err(|e| error(alloc::format!("{:?}", e)))?;
-
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: Default::default(),
-		})
-	}
-	/// Make request for babe randomness two epochs ago
-	fn request_babe_randomness_two_epochs_ago(
-		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<PrecompileOutput> {
-		let mut input = handle.read_input()?;
-		let contract_address = handle.context().caller;
-		let refund_address = input.read::<Address>()?.0;
-		let fee: BalanceOf<Runtime> = input
-			.read::<U256>()?
-			.try_into()
-			.map_err(|_| revert("amount is too large for provided balance type"))?;
-		let gas_limit = input.read::<u64>()?;
-		let num_words = input
-			.read::<u32>()?
-			.try_into()
-			.map_err(|_| revert("number of words is too large for provided u8 type"))?;
-		let salt = input.read::<H256>()?;
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let three_epochs_later =
-			<Runtime as pallet_randomness::Config>::BabeDataGetter::get_relay_epoch_index()
-				.checked_add(3u64)
-				.ok_or(error("Epoch Index (u64) overflowed"))?;
-		let expiring_relay_epoch_index = pallet_randomness::Pallet::<Runtime>::relay_time()
-			.relay_epoch_index
-			.saturating_add(<Runtime as pallet_randomness::Config>::ExpirationDelay::get().into());
-		let request = pallet_randomness::Request {
-			refund_address,
-			contract_address,
-			fee,
-			gas_limit,
-			num_words,
-			salt: salt.into(),
-			info: pallet_randomness::RequestInfo::BabeTwoEpochsAgo(
-				three_epochs_later,
 				expiring_relay_epoch_index,
 			),
 		};

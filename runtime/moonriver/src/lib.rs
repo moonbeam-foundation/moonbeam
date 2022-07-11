@@ -1190,10 +1190,7 @@ pub type Executive = frame_executive::Executive<
 // ```
 moonbeam_runtime_common::impl_runtime_apis_plus_common! {
 	impl session_keys_primitives::VrfApi<Block> for Runtime {
-		fn get_relay_slot_number() -> cumulus_primitives_core::relay_chain::v2::Slot {
-			Default::default()
-		}
-		fn get_relay_storage_root() -> <Block as BlockT>::Hash {
+		fn get_last_vrf_output() -> <Block as BlockT>::Hash {
 			Default::default()
 		}
 		fn vrf_key_lookup(

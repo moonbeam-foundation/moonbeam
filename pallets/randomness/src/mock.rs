@@ -24,8 +24,7 @@ use frame_support::{
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::IdentityAddressMapping;
-use session_keys_primitives::{GetVrfInput, VrfId, VrfInput};
-use sp_consensus_babe::Slot;
+use session_keys_primitives::VrfId;
 use sp_core::{H160, H256};
 use sp_runtime::{
 	testing::Header,
@@ -116,28 +115,12 @@ impl pallet_author_mapping::Config for Test {
 }
 
 pub struct BabeDataGetter;
-impl crate::GetBabeData<BlockNumber, u64, Option<H256>> for BabeDataGetter {
-	fn get_relay_block_number() -> BlockNumber {
-		1u64
-	}
+impl crate::GetBabeData<u64, Option<H256>> for BabeDataGetter {
 	fn get_relay_epoch_index() -> u64 {
 		1u64
 	}
-	fn get_current_block_randomness() -> Option<H256> {
+	fn get_epoch_randomness() -> Option<H256> {
 		None
-	}
-	fn get_one_epoch_ago_randomness() -> Option<H256> {
-		None
-	}
-	fn get_two_epochs_ago_randomness() -> Option<H256> {
-		None
-	}
-}
-
-pub struct VrfInputGetter;
-impl GetVrfInput<VrfInput<Slot, H256>> for VrfInputGetter {
-	fn get_vrf_input() -> VrfInput<Slot, H256> {
-		VrfInput::default()
 	}
 }
 
@@ -150,7 +133,6 @@ impl Config for Test {
 	type AddressMapping = IdentityAddressMapping;
 	type Currency = Balances;
 	type BabeDataGetter = BabeDataGetter;
-	type VrfInputGetter = VrfInputGetter;
 	type VrfKeyLookup = AuthorMapping;
 	type Deposit = Deposit;
 	type ExpirationDelay = ExpirationDelay;

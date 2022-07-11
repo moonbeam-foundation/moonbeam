@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
-	BalanceOf, Config, Error, Event, GetBabeData, Pallet, RandomnessResults, RelayTime, RequestId,
+	BalanceOf, Config, Error, Event, GetBabeData, Pallet, RandomnessResults, RelayEpoch, RequestId,
 };
 use frame_support::pallet_prelude::*;
 use frame_support::traits::{Currency, ExistenceRequirement::KeepAlive};
@@ -27,12 +27,8 @@ use sp_runtime::traits::{CheckedAdd, CheckedSub, Saturating};
 #[scale_info(skip_type_params(T))]
 /// Shared request info, a subset of `RequestInfo`
 pub enum RequestType<T: Config> {
-	/// Babe per relay chain block
-	BabeCurrentBlock(T::BlockNumber),
 	/// Babe one epoch ago
-	BabeOneEpochAgo(u64),
-	/// Babe two epochs ago
-	BabeTwoEpochsAgo(u64),
+	BabeEpoch(u64),
 	/// Local per parachain block VRF output
 	Local(T::BlockNumber),
 }
@@ -43,12 +39,8 @@ pub enum RequestType<T: Config> {
 /// Represents a request for the most recent randomness at or after the inner first field
 /// Expiration is second inner field
 pub enum RequestInfo<T: Config> {
-	/// Babe per relay chain block
-	BabeCurrentBlock(T::BlockNumber, T::BlockNumber),
 	/// Babe one epoch ago
-	BabeOneEpochAgo(u64, u64),
-	/// Babe two epochs ago
-	BabeTwoEpochsAgo(u64, u64),
+	BabeEpoch(u64, u64),
 	/// Local per parachain block VRF output
 	Local(T::BlockNumber, T::BlockNumber),
 }
@@ -56,9 +48,7 @@ pub enum RequestInfo<T: Config> {
 impl<T: Config> From<RequestInfo<T>> for RequestType<T> {
 	fn from(other: RequestInfo<T>) -> RequestType<T> {
 		match other {
-			RequestInfo::BabeCurrentBlock(block, _) => RequestType::BabeCurrentBlock(block),
-			RequestInfo::BabeOneEpochAgo(epoch, _) => RequestType::BabeOneEpochAgo(epoch),
-			RequestInfo::BabeTwoEpochsAgo(epoch, _) => RequestType::BabeTwoEpochsAgo(epoch),
+			RequestInfo::BabeEpoch(epoch, _) => RequestType::BabeEpoch(epoch),
 			RequestInfo::Local(block, _) => RequestType::Local(block),
 		}
 	}
@@ -105,13 +95,6 @@ impl<Hash: Clone> RandomnessResult<Hash> {
 	}
 }
 
-#[derive(Default, PartialEq, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
-/// Relay time information
-pub struct RelayTimeInfo<BlockNumber, EpochIndex> {
-	pub relay_block_number: BlockNumber,
-	pub relay_epoch_index: EpochIndex,
-}
-
 #[derive(PartialEq, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
 #[scale_info(skip_type_params(T))]
 /// Input arguments to request randomness
@@ -135,15 +118,7 @@ pub struct Request<T: Config> {
 impl<T: Config> Request<T> {
 	pub fn is_expired(&self) -> DispatchResult {
 		let expired = match self.info {
-			RequestInfo::BabeCurrentBlock(_, expires) => {
-				RelayTime::<T>::get().relay_block_number >= expires
-			}
-			RequestInfo::BabeOneEpochAgo(_, expires) => {
-				RelayTime::<T>::get().relay_epoch_index >= expires
-			}
-			RequestInfo::BabeTwoEpochsAgo(_, expires) => {
-				RelayTime::<T>::get().relay_epoch_index >= expires
-			}
+			RequestInfo::BabeEpoch(_, expires) => RelayEpoch::<T>::get() >= expires,
 			RequestInfo::Local(_, expires) => frame_system::Pallet::<T>::block_number() >= expires,
 		};
 		ensure!(expired, Error::<T>::RequestHasNotExpired);
@@ -155,34 +130,12 @@ impl<T: Config> Request<T> {
 			Error::<T>::CannotRequestPastRandomness
 		);
 		let due_before_expiry = match self.info {
-			RequestInfo::BabeCurrentBlock(block, expires) => {
-				// assumes 1 relay per para block
-				let expiring_relay_block = RelayTime::<T>::get()
-					.relay_block_number
-					.saturating_add(T::ExpirationDelay::get().into());
-				if expires != expiring_relay_block {
-					log::warn!("Input expiration not equal to expected expiration so overwritten");
-					self.info = RequestInfo::BabeCurrentBlock(block, expiring_relay_block);
-				}
-				block < expiring_relay_block
-			}
-			RequestInfo::BabeOneEpochAgo(epoch, expires) => {
-				let expiring_relay_epoch_index = RelayTime::<T>::get()
-					.relay_epoch_index
-					.saturating_add(T::ExpirationDelay::get().into());
+			RequestInfo::BabeEpoch(epoch, expires) => {
+				let expiring_relay_epoch_index =
+					RelayEpoch::<T>::get().saturating_add(T::ExpirationDelay::get().into());
 				if expires != expiring_relay_epoch_index {
 					log::warn!("Input expiration not equal to expected expiration so overwritten");
-					self.info = RequestInfo::BabeOneEpochAgo(epoch, expiring_relay_epoch_index);
-				}
-				epoch < expiring_relay_epoch_index
-			}
-			RequestInfo::BabeTwoEpochsAgo(epoch, expires) => {
-				let expiring_relay_epoch_index = RelayTime::<T>::get()
-					.relay_epoch_index
-					.saturating_add(T::ExpirationDelay::get().into());
-				if expires != expiring_relay_epoch_index {
-					log::warn!("Input expiration not equal to expected expiration so overwritten");
-					self.info = RequestInfo::BabeTwoEpochsAgo(epoch, expiring_relay_epoch_index);
+					self.info = RequestInfo::BabeEpoch(epoch, expiring_relay_epoch_index);
 				}
 				epoch < expiring_relay_epoch_index
 			}
@@ -204,15 +157,7 @@ impl<T: Config> Request<T> {
 	}
 	pub fn can_be_fulfilled(&self) -> bool {
 		match self.info {
-			RequestInfo::BabeCurrentBlock(block, _) => {
-				block <= T::BabeDataGetter::get_relay_block_number()
-			}
-			RequestInfo::BabeOneEpochAgo(epoch, _) => {
-				epoch <= T::BabeDataGetter::get_relay_epoch_index()
-			}
-			RequestInfo::BabeTwoEpochsAgo(epoch, _) => {
-				epoch <= T::BabeDataGetter::get_relay_epoch_index()
-			}
+			RequestInfo::BabeEpoch(epoch, _) => epoch <= T::BabeDataGetter::get_relay_epoch_index(),
 			RequestInfo::Local(block, _) => block <= frame_system::Pallet::<T>::block_number(),
 		}
 	}
@@ -233,39 +178,15 @@ impl<T: Config> Request<T> {
 	}
 	pub(crate) fn emit_randomness_requested_event(&self, id: RequestId) {
 		let event = match self.info {
-			RequestInfo::BabeCurrentBlock(block, _) => {
-				Event::<T>::RandomnessRequestedCurrentBlock {
-					id,
-					refund_address: self.refund_address.clone(),
-					contract_address: self.contract_address.clone(),
-					fee: self.fee,
-					gas_limit: self.gas_limit,
-					salt: self.salt,
-					earliest_block: block,
-				}
-			}
-			RequestInfo::BabeOneEpochAgo(index, _) => {
-				Event::<T>::RandomnessRequestedBabeOneEpochAgo {
-					id,
-					refund_address: self.refund_address.clone(),
-					contract_address: self.contract_address.clone(),
-					fee: self.fee,
-					gas_limit: self.gas_limit,
-					salt: self.salt,
-					earliest_epoch: index,
-				}
-			}
-			RequestInfo::BabeTwoEpochsAgo(index, _) => {
-				Event::<T>::RandomnessRequestedBabeTwoEpochsAgo {
-					id,
-					refund_address: self.refund_address.clone(),
-					contract_address: self.contract_address.clone(),
-					fee: self.fee,
-					gas_limit: self.gas_limit,
-					salt: self.salt,
-					earliest_epoch: index,
-				}
-			}
+			RequestInfo::BabeEpoch(index, _) => Event::<T>::RandomnessRequestedBabeEpoch {
+				id,
+				refund_address: self.refund_address.clone(),
+				contract_address: self.contract_address.clone(),
+				fee: self.fee,
+				gas_limit: self.gas_limit,
+				salt: self.salt,
+				earliest_epoch: index,
+			},
 			RequestInfo::Local(block, _) => Event::<T>::RandomnessRequestedLocal {
 				id,
 				refund_address: self.refund_address.clone(),
