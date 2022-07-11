@@ -116,7 +116,7 @@ impl pallet_author_mapping::Config for Test {
 
 pub struct BabeDataGetter;
 impl crate::GetBabeData<u64, Option<H256>> for BabeDataGetter {
-	fn get_relay_epoch_index() -> u64 {
+	fn get_epoch_index() -> u64 {
 		1u64
 	}
 	fn get_epoch_randomness() -> Option<H256> {
@@ -126,7 +126,10 @@ impl crate::GetBabeData<u64, Option<H256>> for BabeDataGetter {
 
 parameter_types! {
 	pub const Deposit: u128 = 10;
-	pub const ExpirationDelay: u32 = 20;
+	pub const MaxBlockDelay: u32 = 20;
+	pub const MaxEpochDelay: u32 = 20;
+	pub const MinBlockDelay: u32 = 2;
+	pub const MinEpochDelay: u32 = 2;
 }
 impl Config for Test {
 	type Event = Event;
@@ -135,6 +138,8 @@ impl Config for Test {
 	type BabeDataGetter = BabeDataGetter;
 	type VrfKeyLookup = AuthorMapping;
 	type Deposit = Deposit;
+	type MinBlockDelay = MinBlockDelay;
+	type MinEpochDelay = MinEpochDelay;
 	type ExpirationDelay = ExpirationDelay;
 	type WeightInfo = ();
 }

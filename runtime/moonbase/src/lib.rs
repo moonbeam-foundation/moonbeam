@@ -1106,7 +1106,7 @@ fn relay_chain_state_proof() -> RelayChainStateProof {
 pub struct BabeDataGetter;
 impl pallet_randomness::GetBabeData<u64, Option<Hash>> for BabeDataGetter {
 	// Tolerate panic here because only ever called in inherent (so can be omitted)
-	fn get_relay_epoch_index() -> u64 {
+	fn get_epoch_index() -> u64 {
 		relay_chain_state_proof()
 			.read_optional_entry(relay_chain::well_known_keys::EPOCH_INDEX)
 			.ok()

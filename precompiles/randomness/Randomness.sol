@@ -57,7 +57,7 @@ interface Randomness {
 
     /// Return the current relay epoch index
     /// @dev An epoch represents real time and not a block number
-    /// @dev Currently, it cannot be longer than:
+    /// @dev Currently, time between epoch changes cannot be longer than:
     /// @dev  - Kusama/Westend/Rococo: 600 relay blocks (1 hour)
     /// @dev  - Polkadot: 2400 relay blocks (4 hours)
     /// Selector: 81797566

@@ -39,6 +39,7 @@ mod tests;
 #[generate_function_selector]
 #[derive(Debug, PartialEq)]
 pub enum Action {
+	// add num words input
 	RelayEpochIndex = "relayEpochIndex()",
 	RequestBabeRandomness = "requestBabeRandomness(address,uint256,uint64,bytes32)",
 	RequestLocalRandomness = "requestLocalRandomness(address,uint256,uint64,bytes32,uint64)",
@@ -172,7 +173,7 @@ where
 	fn relay_epoch_index(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let relay_epoch_index =
-			<Runtime as pallet_randomness::Config>::BabeDataGetter::get_relay_epoch_index();
+			<Runtime as pallet_randomness::Config>::BabeDataGetter::get_epoch_index();
 		Ok(succeed(
 			EvmDataWriter::new().write(relay_epoch_index).build(),
 		))
@@ -194,7 +195,7 @@ where
 		let salt = input.read::<H256>()?;
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let two_epochs_later =
-			<Runtime as pallet_randomness::Config>::BabeDataGetter::get_relay_epoch_index()
+			<Runtime as pallet_randomness::Config>::BabeDataGetter::get_epoch_index()
 				.checked_add(2u64)
 				.ok_or(error("Epoch Index (u64) overflowed"))?;
 		let expiring_relay_epoch_index = pallet_randomness::Pallet::<Runtime>::relay_epoch()

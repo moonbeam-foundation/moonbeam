@@ -38,7 +38,7 @@ mod tests;
 
 /// Read babe randomness info from the relay chain state proof
 pub trait GetBabeData<EpochIndex, Randomness> {
-	fn get_relay_epoch_index() -> EpochIndex;
+	fn get_epoch_index() -> EpochIndex;
 	fn get_epoch_randomness() -> Randomness;
 }
 
@@ -85,8 +85,19 @@ pub mod pallet {
 		/// The amount that should be taken as a security deposit when requesting randomness.
 		type Deposit: Get<BalanceOf<Self>>;
 		#[pallet::constant]
-		/// Requests expire and can be purged from storage after this many blocks/epochs
-		type ExpirationDelay: Get<u32>;
+		/// Local per-block VRF requests must be at least this many blocks after the block in which
+		/// they were requested
+		type MinBlockDelay: Get<Self::BlockNumber>;
+		#[pallet::constant]
+		/// Babe requests must be at least this many epochs after the epoch in which
+		/// they were requested
+		type MinEpochDelay: Get<u64>;
+		#[pallet::constant]
+		/// Babe requests expire and can be purged from storage after this many blocks/epochs
+		type MaxEpochDelay: Get<u64>;
+		#[pallet::constant]
+		/// Local requests expire and can be purged from storage after this many blocks/epochs
+		type MaxBlockDelay: Get<Self::BlockNumber>;
 		/// Weight information for extrinsics in this pallet.
 		type WeightInfo: WeightInfo;
 	}
@@ -96,13 +107,12 @@ pub mod pallet {
 		RequestCounterOverflowed,
 		RequestFeeOverflowed,
 		CannotRequestPastRandomness,
-		CannotRequestRandomnessAfterExpirationDelay,
+		CannotRequestRandomnessAfterMaxDelay,
+		CannotRequestRandomnessBeforeMinDelay,
 		RequestDNE,
 		RequestCannotYetBeFulfilled,
 		OnlyRequesterCanIncreaseFee,
 		RequestHasNotExpired,
-		RequestExecutionOOG,
-		InstantRandomnessNotAvailable,
 		RandomnessResultDNE,
 		RandomnessResultNotFilled,
 	}
@@ -110,30 +120,13 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
-		RandomnessRequestedCurrentBlock {
-			id: RequestId,
-			refund_address: H160,
-			contract_address: H160,
-			fee: BalanceOf<T>,
-			gas_limit: u64,
-			salt: H256,
-			earliest_block: T::BlockNumber,
-		},
 		RandomnessRequestedBabeEpoch {
 			id: RequestId,
 			refund_address: H160,
 			contract_address: H160,
 			fee: BalanceOf<T>,
 			gas_limit: u64,
-			salt: H256,
-			earliest_epoch: u64,
-		},
-		RandomnessRequestedBabeTwoEpochsAgo {
-			id: RequestId,
-			refund_address: H160,
-			contract_address: H160,
-			fee: BalanceOf<T>,
-			gas_limit: u64,
+			num_words: u8,
 			salt: H256,
 			earliest_epoch: u64,
 		},
@@ -143,6 +136,7 @@ pub mod pallet {
 			contract_address: H160,
 			fee: BalanceOf<T>,
 			gas_limit: u64,
+			num_words: u8,
 			salt: H256,
 			earliest_block: T::BlockNumber,
 		},
@@ -211,7 +205,7 @@ pub mod pallet {
 
 			let last_relay_epoch_index = <RelayEpoch<T>>::get();
 			// populate the `RandomnessResults` for BABE epoch randomness (1 and 2 ago)
-			let relay_epoch_index = T::BabeDataGetter::get_relay_epoch_index();
+			let relay_epoch_index = T::BabeDataGetter::get_epoch_index();
 			if relay_epoch_index > last_relay_epoch_index {
 				let babe_one_epoch_ago_this_block = RequestType::BabeEpoch(relay_epoch_index);
 				if let Some(mut results) =

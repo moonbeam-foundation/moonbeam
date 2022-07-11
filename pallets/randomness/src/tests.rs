@@ -66,12 +66,12 @@ fn cannot_make_request_fulfillable_past_expiry() {
 			let request = build_default_request(RequestInfo::Local(21u64, 21u64));
 			assert_noop!(
 				Randomness::request_randomness(request),
-				Error::<Test>::CannotRequestRandomnessAfterExpirationDelay
+				Error::<Test>::CannotRequestRandomnessAfterMaxDelay
 			);
 			let request = build_default_request(RequestInfo::Local(21u64, 21u64));
 			assert_noop!(
 				Randomness::request_randomness(request),
-				Error::<Test>::CannotRequestRandomnessAfterExpirationDelay
+				Error::<Test>::CannotRequestRandomnessAfterMaxDelay
 			);
 		});
 }
@@ -218,6 +218,7 @@ fn request_babe_one_epoch_ago_randomness_emits_event() {
 				contract_address: ALICE.into(),
 				fee: 5,
 				gas_limit: 100u64,
+				num_words: 1u8,
 				salt: H256::default(),
 				earliest_epoch: 16u64,
 			});
@@ -246,6 +247,7 @@ fn request_local_randomness_emits_event() {
 				contract_address: ALICE.into(),
 				fee: 5,
 				gas_limit: 100u64,
+				num_words: 1u8,
 				salt: H256::default(),
 				earliest_block: 16u64,
 			});

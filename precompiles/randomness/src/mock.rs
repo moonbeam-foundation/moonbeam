@@ -169,8 +169,8 @@ impl pallet_author_mapping::Config for Runtime {
 }
 
 pub struct BabeDataGetter;
-impl pallet_randomness::traits::GetBabeData<BlockNumber, u64, Option<H256>> for BabeDataGetter {
-	fn get_relay_epoch_index() -> u64 {
+impl pallet_randomness::traits::GetBabeData<u64, Option<H256>> for BabeDataGetter {
+	fn get_epoch_index() -> u64 {
 		1u64
 	}
 	fn get_epoch_randomness() -> Option<H256> {
@@ -178,26 +178,24 @@ impl pallet_randomness::traits::GetBabeData<BlockNumber, u64, Option<H256>> for 
 	}
 }
 
-pub struct VrfInputGetter;
-impl pallet_randomness::traits::GetVrfInput<VrfInput<Slot, H256>> for VrfInputGetter {
-	fn get_vrf_input() -> VrfInput<Slot, H256> {
-		VrfInput::default()
-	}
-}
-
 parameter_types! {
 	pub const Deposit: u128 = 10;
-	pub const ExpirationDelay: u32 = 5;
+	pub const MaxBlockDelay: u32 = 5;
+	pub const MaxEpochDelay: u32 = 5;
+	pub const MinBlockDelay: u32 = 2;
+	pub const MinEpochDelay: u32 = 2;
 }
 impl Config for Runtime {
 	type Event = Event;
 	type AddressMapping = IdentityAddressMapping;
 	type Currency = Balances;
 	type BabeDataGetter = BabeDataGetter;
-	type VrfInputGetter = VrfInputGetter;
 	type VrfKeyLookup = AuthorMapping;
 	type Deposit = Deposit;
-	type ExpirationDelay = ExpirationDelay;
+	type MinBlockDelay = MinBlockDelay;
+	type MinEpochDelay = MinEpochDelay;
+	type MaxBlockDelay = MaxBlockDelay;
+	type MaxEpochDelay = MaxEpochDelay;
 	type WeightInfo = ();
 }
 

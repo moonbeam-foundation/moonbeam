@@ -22,6 +22,7 @@ use frame_support::traits::{Currency, ExistenceRequirement::KeepAlive};
 use pallet_evm::AddressMapping;
 use sp_core::{H160, H256};
 use sp_runtime::traits::{CheckedAdd, CheckedSub, Saturating};
+use sp_std::vec::Vec;
 
 #[derive(PartialEq, Copy, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
 #[scale_info(skip_type_params(T))]
@@ -129,36 +130,58 @@ impl<T: Config> Request<T> {
 			!self.can_be_fulfilled(),
 			Error::<T>::CannotRequestPastRandomness
 		);
-		let due_before_expiry = match self.info {
-			RequestInfo::BabeEpoch(epoch, expires) => {
-				let expiring_relay_epoch_index =
-					RelayEpoch::<T>::get().saturating_add(T::ExpirationDelay::get().into());
-				if expires != expiring_relay_epoch_index {
+		let (due_before_expiry, due_after_min_delay) = match self.info {
+			RequestInfo::BabeEpoch(epoch_due, expires) => {
+				let current_relay_epoch = RelayEpoch::<T>::get();
+				// TODO: distinction between ExpirationDelay and MaxDelay, maxdelay is check
+				// expiration delay is what we use to write
+				let max_epoch_index = current_relay_epoch.saturating_add(T::MaxEpochDelay::get());
+				if expires != max_epoch_index {
 					log::warn!("Input expiration not equal to expected expiration so overwritten");
-					self.info = RequestInfo::BabeEpoch(epoch, expiring_relay_epoch_index);
+					self.info = RequestInfo::BabeEpoch(epoch_due, expiring_relay_epoch_index);
 				}
-				epoch < expiring_relay_epoch_index
+				(
+					epoch_due <= expiring_relay_epoch_index,
+					epoch_due
+						>= current_relay_epoch
+							.checked_add(T::MinEpochDelay::get())
+							.ok_or(Error::<T>::CannotRequestRandomnessBeforeMinDelay)?,
+				)
 			}
-			RequestInfo::Local(block, expires) => {
-				let expiring_block_number = frame_system::Pallet::<T>::block_number()
-					.saturating_add(T::ExpirationDelay::get().into());
+			RequestInfo::Local(block_due, expires) => {
+				let current_block = frame_system::Pallet::<T>::block_number();
+				let expiring_block_number = current_block.saturating_add(T::MaxBlockDelay::get());
 				if expires != expiring_block_number {
 					log::warn!("Input expiration not equal to expected expiration so overwritten");
-					self.info = RequestInfo::Local(block, expiring_block_number);
+					self.info = RequestInfo::Local(block_due, expiring_block_number);
 				}
-				block < expiring_block_number
+				(
+					block_due <= expiring_block_number,
+					block_due
+						>= current_block
+							.checked_add(&T::MinBlockDelay::get())
+							.ok_or(Error::<T>::CannotRequestRandomnessBeforeMinDelay)?,
+				)
 			}
 		};
 		ensure!(
 			due_before_expiry,
-			Error::<T>::CannotRequestRandomnessAfterExpirationDelay
+			Error::<T>::CannotRequestRandomnessAfterMaxDelay
+		);
+		ensure!(
+			due_after_min_delay,
+			Error::<T>::CannotRequestRandomnessBeforeMinDelay
 		);
 		Ok(())
 	}
 	pub fn can_be_fulfilled(&self) -> bool {
 		match self.info {
-			RequestInfo::BabeEpoch(epoch, _) => epoch <= T::BabeDataGetter::get_relay_epoch_index(),
-			RequestInfo::Local(block, _) => block <= frame_system::Pallet::<T>::block_number(),
+			RequestInfo::BabeEpoch(epoch_due, _) => {
+				epoch_due <= T::BabeDataGetter::get_epoch_index()
+			}
+			RequestInfo::Local(block_due, _) => {
+				block_due <= frame_system::Pallet::<T>::block_number()
+			}
 		}
 	}
 	fn get_randomness(&self) -> Result<T::Hash, DispatchError> {
@@ -184,6 +207,7 @@ impl<T: Config> Request<T> {
 				contract_address: self.contract_address.clone(),
 				fee: self.fee,
 				gas_limit: self.gas_limit,
+				num_words: self.num_words,
 				salt: self.salt,
 				earliest_epoch: index,
 			},
@@ -193,6 +217,7 @@ impl<T: Config> Request<T> {
 				contract_address: self.contract_address.clone(),
 				fee: self.fee,
 				gas_limit: self.gas_limit,
+				num_words: self.num_words,
 				salt: self.salt,
 				earliest_block: block,
 			},
