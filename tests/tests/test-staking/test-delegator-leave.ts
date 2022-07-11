@@ -5,7 +5,7 @@ import { MIN_GLMR_STAKING, MIN_GLMR_DELEGATOR } from "../../util/constants";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { alith, baltathar, ethan } from "../../util/accounts";
 import { expectOk } from "../../util/expect";
-import { jumpToRound } from "../../util/block";
+import { jumpRounds } from "../../util/block";
 
 describeDevMoonbeam("Staking - Delegator Leave Schedule - already scheduled", (context) => {
   before("should delegate", async () => {
@@ -92,8 +92,7 @@ describeDevMoonbeam("Staking - Delegator Leave Execute - before round delay", (c
     );
 
     const leaveDelay = context.polkadotApi.consts.parachainStaking.leaveDelegatorsDelay;
-    const currentRound = (await context.polkadotApi.query.parachainStaking.round()).current;
-    await jumpToRound(context, currentRound.add(leaveDelay).subn(1).toNumber());
+    await jumpRounds(context, leaveDelay.subn(1).toNumber());
   });
 
   it("should fail", async () => {
@@ -126,8 +125,7 @@ describeDevMoonbeam("Staking - Delegator Leave - exact round delay", (context) =
     );
 
     const leaveDelay = context.polkadotApi.consts.parachainStaking.leaveDelegatorsDelay;
-    const currentRound = (await context.polkadotApi.query.parachainStaking.round()).current;
-    await jumpToRound(context, currentRound.add(leaveDelay).toNumber());
+    await jumpRounds(context, leaveDelay.toNumber());
   });
 
   it("should succeed", async () => {
@@ -178,8 +176,7 @@ describeDevMoonbeam(
       );
 
       const leaveDelay = context.polkadotApi.consts.parachainStaking.leaveDelegatorsDelay;
-      const currentRound = (await context.polkadotApi.query.parachainStaking.round()).current;
-      await jumpToRound(context, currentRound.add(leaveDelay).addn(5).toNumber());
+      await jumpRounds(context, leaveDelay.addn(5).toNumber());
     });
 
     it("should succeed", async () => {
@@ -238,8 +235,7 @@ describeDevMoonbeam(
         )
       );
       const leaveDelay = context.polkadotApi.consts.parachainStaking.leaveDelegatorsDelay;
-      const currentRound = (await context.polkadotApi.query.parachainStaking.round()).current;
-      await jumpToRound(context, currentRound.add(leaveDelay).addn(1).toNumber());
+      await jumpRounds(context, leaveDelay.addn(1).toNumber());
 
       // cancel single request
       await expectOk(
@@ -289,8 +285,7 @@ describeDevMoonbeam("Staking - Delegator Leave Cancel - manually reschedule revo
       )
     );
     const leaveDelay = context.polkadotApi.consts.parachainStaking.leaveDelegatorsDelay;
-    const currentRound = (await context.polkadotApi.query.parachainStaking.round()).current;
-    await jumpToRound(context, currentRound.add(leaveDelay).addn(1).toNumber());
+    await jumpRounds(context, leaveDelay.addn(1).toNumber());
 
     // cancel single revoke request
     await expectOk(
@@ -361,8 +356,7 @@ describeDevMoonbeam("Staking - Delegator Leave Execute - revoke manually cancell
       )
     );
     const leaveDelay = context.polkadotApi.consts.parachainStaking.leaveDelegatorsDelay;
-    const currentRound = (await context.polkadotApi.query.parachainStaking.round()).current;
-    await jumpToRound(context, currentRound.add(leaveDelay).addn(1).toNumber());
+    await jumpRounds(context, leaveDelay.addn(1).toNumber());
 
     // cancel single revoke request
     await expectOk(
@@ -415,8 +409,7 @@ describeDevMoonbeam(
         )
       );
       const leaveDelay = context.polkadotApi.consts.parachainStaking.leaveDelegatorsDelay;
-      const currentRound = (await context.polkadotApi.query.parachainStaking.round()).current;
-      await jumpToRound(context, currentRound.add(leaveDelay).addn(1).toNumber());
+      await jumpRounds(context, leaveDelay.addn(1).toNumber());
 
       // cancel single revoke request
       await expectOk(
@@ -435,8 +428,7 @@ describeDevMoonbeam(
             .signAsync(ethan)
         )
       );
-      const newCurrentRound = (await context.polkadotApi.query.parachainStaking.round()).current;
-      await jumpToRound(context, newCurrentRound.add(leaveDelay).addn(1).toNumber());
+      await jumpRounds(context, leaveDelay.addn(1).toNumber());
     });
 
     it("should succeed", async () => {

@@ -4,7 +4,7 @@ import { expect } from "chai";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { alith, ethan } from "../../util/accounts";
 import { expectOk } from "../../util/expect";
-import { jumpToRound } from "../../util/block";
+import { jumpRounds } from "../../util/block";
 import { MIN_GLMR_STAKING } from "../../util/constants";
 
 describeDevMoonbeam("Staking - Candidate Leave Schedule - hint too low", (context) => {
@@ -99,8 +99,7 @@ describeDevMoonbeam("Staking - Candidate Leave Execute - before round delay", (c
     );
 
     const leaveDelay = context.polkadotApi.consts.parachainStaking.leaveDelegatorsDelay;
-    const currentRound = (await context.polkadotApi.query.parachainStaking.round()).current;
-    await jumpToRound(context, currentRound.add(leaveDelay).subn(1).toNumber());
+    await jumpRounds(context, leaveDelay.subn(1).toNumber());
   });
 
   it("should fail", async () => {
@@ -132,8 +131,7 @@ describeDevMoonbeam("Staking - Candidate Leave Execute - exact round delay", (co
       )
     );
     const leaveDelay = context.polkadotApi.consts.parachainStaking.leaveDelegatorsDelay;
-    const currentRound = (await context.polkadotApi.query.parachainStaking.round()).current;
-    await jumpToRound(context, currentRound.add(leaveDelay).toNumber());
+    await jumpRounds(context, leaveDelay.toNumber());
   });
 
   it("should succeed", async () => {
@@ -180,8 +178,7 @@ describeDevMoonbeam("Staking - Candidate Leave Execute - after round delay", (co
     );
 
     const leaveDelay = context.polkadotApi.consts.parachainStaking.leaveDelegatorsDelay;
-    const currentRound = (await context.polkadotApi.query.parachainStaking.round()).current;
-    await jumpToRound(context, currentRound.add(leaveDelay).addn(5).toNumber());
+    await jumpRounds(context, leaveDelay.addn(5).toNumber());
   });
 
   it("should succeed", async () => {

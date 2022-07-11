@@ -2,7 +2,6 @@ import { expect } from "chai";
 
 import { alith } from "../../util/accounts";
 import { ZERO_ADDRESS } from "../../util/constants";
-import { expectOk } from "../../util/expect";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 
 const TWENTY_PERCENT = 20;
@@ -17,11 +16,12 @@ describeDevMoonbeam("Staking - Parachain Bond - set bond account", (context) => 
 
   it("should be changeable to alith address", async function () {
     // should be able to register the genesis account for reward
-    await context.createBlock(
+    const { result } = await context.createBlock(
       context.polkadotApi.tx.sudo.sudo(
         context.polkadotApi.tx.parachainStaking.setParachainBondAccount(alith.address)
       )
     );
+    expect(result.successful).to.be.true;
 
     const parachainBondInfo = await context.polkadotApi.query.parachainStaking.parachainBondInfo();
     expect(parachainBondInfo.account.toString()).to.equal(alith.address);
@@ -43,11 +43,13 @@ describeDevMoonbeam("Staking - Parachain Bond - no sudo on setParachainBondAccou
 describeDevMoonbeam("Staking - Parachain Bond - setParachainBondReservePercent", (context) => {
   it("should be able set the parachain bond reserve percent with sudo", async function () {
     // should be able to register the genesis account
-    await context.createBlock(
+    const { result } = await context.createBlock(
       context.polkadotApi.tx.sudo.sudo(
         context.polkadotApi.tx.parachainStaking.setParachainBondReservePercent(TWENTY_PERCENT)
       )
     );
+    expect(result.successful).to.be.true;
+
     const parachainBondInfo = await context.polkadotApi.query.parachainStaking.parachainBondInfo();
     expect(parachainBondInfo.toHuman()["account"]).to.equal(ZERO_ADDRESS);
     expect(parachainBondInfo.toHuman()["percent"]).to.equal(TWENTY_PERCENT_STRING);

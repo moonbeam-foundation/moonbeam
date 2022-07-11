@@ -5,7 +5,7 @@ import { MIN_GLMR_DELEGATOR, MIN_GLMR_STAKING } from "../../util/constants";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { alith, baltathar, ethan } from "../../util/accounts";
 import { expectOk } from "../../util/expect";
-import { jumpToRound } from "../../util/block";
+import { jumpToRound, jumpRounds } from "../../util/block";
 
 const numberToHex = (n: BigInt): string => `0x${n.toString(16).padStart(32, "0")}`;
 
@@ -722,12 +722,8 @@ describeDevMoonbeam("Staking - Delegation Scheduled Requests - delegator leave",
       )
     );
 
-    const currentRound = (
-      await context.polkadotApi.query.parachainStaking.round()
-    ).current.toNumber();
     const roundDelay = context.polkadotApi.consts.parachainStaking.leaveDelegatorsDelay.toNumber();
-    const whenExecutable = currentRound + roundDelay;
-    await jumpToRound(context, whenExecutable);
+    await jumpRounds(context, roundDelay);
   });
 
   it("should remove complete scheduled requests across multiple candidates", async () => {

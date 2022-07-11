@@ -1,7 +1,7 @@
 import "@polkadot/api-augment";
 import "@moonbeam-network/api-augment";
 import { expect } from "chai";
-import { DEFAULT_GENESIS_MAPPING, DEFAULT_GENESIS_STAKING, GLMR } from "../../util/constants";
+import { DEFAULT_GENESIS_STAKING, GLMR } from "../../util/constants";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { alith } from "../../util/accounts";
 

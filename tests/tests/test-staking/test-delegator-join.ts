@@ -5,7 +5,6 @@ import { MIN_GLMR_STAKING, MIN_GLMR_DELEGATOR } from "../../util/constants";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { alith, baltathar, charleth, ethan } from "../../util/accounts";
 import { expectOk } from "../../util/expect";
-import { jumpToRound } from "../../util/block";
 
 describeDevMoonbeam("Staking - Delegator Join - bond less than min", (context) => {
   it("should fail", async () => {

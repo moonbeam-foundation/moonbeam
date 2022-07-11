@@ -5,7 +5,7 @@ import { MIN_GLMR_STAKING } from "../../util/constants";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { alith, baltathar, ethan } from "../../util/accounts";
 import { expectOk } from "../../util/expect";
-import { jumpToRound } from "../../util/block";
+import { jumpRounds } from "../../util/block";
 
 describeDevMoonbeam("Staking - Rewards - no scheduled requests", (context) => {
   before("should delegate", async () => {
@@ -23,8 +23,7 @@ describeDevMoonbeam("Staking - Rewards - no scheduled requests", (context) => {
 
   it("should reward full amount", async () => {
     const rewardDelay = context.polkadotApi.consts.parachainStaking.rewardPaymentDelay;
-    const currentRound = (await context.polkadotApi.query.parachainStaking.round()).current;
-    const blockHash = await jumpToRound(context, currentRound.add(rewardDelay).addn(1).toNumber());
+    const blockHash = await jumpRounds(context, rewardDelay.addn(1).toNumber());
     const allEvents = await (await context.polkadotApi.at(blockHash)).query.system.events();
     const rewardedEvents = allEvents.reduce((acc, event) => {
       if (context.polkadotApi.events.parachainStaking.Rewarded.is(event.event)) {
@@ -64,8 +63,7 @@ describeDevMoonbeam("Staking - Rewards - scheduled leave request", (context) => 
 
   it("should not reward", async () => {
     const rewardDelay = context.polkadotApi.consts.parachainStaking.rewardPaymentDelay;
-    const currentRound = (await context.polkadotApi.query.parachainStaking.round()).current;
-    const blockHash = await jumpToRound(context, currentRound.add(rewardDelay).addn(1).toNumber());
+    const blockHash = await jumpRounds(context, rewardDelay.addn(1).toNumber());
     const allEvents = await (await context.polkadotApi.at(blockHash)).query.system.events();
     const rewardedEvents = allEvents.reduce((acc, event) => {
       if (context.polkadotApi.events.parachainStaking.Rewarded.is(event.event)) {
@@ -108,8 +106,7 @@ describeDevMoonbeam("Staking - Rewards - scheduled revoke request", (context) =>
 
   it("should not reward", async () => {
     const rewardDelay = context.polkadotApi.consts.parachainStaking.rewardPaymentDelay;
-    const currentRound = (await context.polkadotApi.query.parachainStaking.round()).current;
-    const blockHash = await jumpToRound(context, currentRound.add(rewardDelay).addn(1).toNumber());
+    const blockHash = await jumpRounds(context, rewardDelay.addn(1).toNumber());
     const allEvents = await (await context.polkadotApi.at(blockHash)).query.system.events();
     const rewardedEvents = allEvents.reduce((acc, event) => {
       if (context.polkadotApi.events.parachainStaking.Rewarded.is(event.event)) {
@@ -158,8 +155,7 @@ describeDevMoonbeam("Staking - Rewards - scheduled bond decrease request", (cont
 
   it("should reward less than baltathar", async () => {
     const rewardDelay = context.polkadotApi.consts.parachainStaking.rewardPaymentDelay;
-    const currentRound = (await context.polkadotApi.query.parachainStaking.round()).current;
-    const blockHash = await jumpToRound(context, currentRound.add(rewardDelay).addn(1).toNumber());
+    const blockHash = await jumpRounds(context, rewardDelay.addn(1).toNumber());
     const allEvents = await (await context.polkadotApi.at(blockHash)).query.system.events();
     const rewardedEvents = allEvents.reduce((acc, event) => {
       if (context.polkadotApi.events.parachainStaking.Rewarded.is(event.event)) {
