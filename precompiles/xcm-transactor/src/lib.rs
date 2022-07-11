@@ -103,18 +103,15 @@ where
 			}
 			// DEPRECATED
 			Action::TransactInfo | Action::DeprecatedTransactInfo => Self::transact_info(handle),
-			Action::TransactInfoWithSigned
-			| Action::DeprecatedTransactThroughDerivativeMultiLocation => {
+			Action::TransactInfoWithSigned | Action::DeprecatedTransactInfoWithSigned => {
 				Self::transact_info_with_signed(handle)
 			}
-			Action::FeePerSecond | Action::DeprecatedTransactThroughDerivative => {
-				Self::fee_per_second(handle)
-			}
+			Action::FeePerSecond | Action::DeprecatedFeePerSecond => Self::fee_per_second(handle),
 			Action::TransactThroughDerivativeMultiLocation
-			| Action::DeprecatedTransactInfoWithSigned => {
+			| Action::DeprecatedTransactThroughDerivativeMultiLocation => {
 				Self::transact_through_derivative_multilocation(handle)
 			}
-			Action::TransactThroughDerivative | Action::DeprecatedFeePerSecond => {
+			Action::TransactThroughDerivative | Action::DeprecatedTransactThroughDerivative => {
 				Self::transact_through_derivative(handle)
 			}
 			Action::TransactThroughSignedMultiLocation
