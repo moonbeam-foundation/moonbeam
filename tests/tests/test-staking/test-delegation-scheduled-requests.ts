@@ -5,7 +5,7 @@ import { MIN_GLMR_DELEGATOR, MIN_GLMR_STAKING } from "../../util/constants";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { alith, baltathar, ethan } from "../../util/accounts";
 import { expectOk } from "../../util/expect";
-import { jumpToRound } from ".";
+import { jumpToRound } from "../../util/block";
 
 const numberToHex = (n: BigInt): string => `0x${n.toString(16).padStart(32, "0")}`;
 

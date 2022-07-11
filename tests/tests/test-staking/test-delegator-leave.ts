@@ -5,7 +5,7 @@ import { MIN_GLMR_STAKING, MIN_GLMR_DELEGATOR } from "../../util/constants";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { alith, baltathar, ethan } from "../../util/accounts";
 import { expectOk } from "../../util/expect";
-import { jumpToRound } from ".";
+import { jumpToRound } from "../../util/block";
 
 describeDevMoonbeam("Staking - Delegator Leave Schedule - already scheduled", (context) => {
   before("should delegate", async () => {

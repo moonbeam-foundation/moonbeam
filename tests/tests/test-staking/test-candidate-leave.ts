@@ -4,7 +4,7 @@ import { expect } from "chai";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { alith, ethan } from "../../util/accounts";
 import { expectOk } from "../../util/expect";
-import { jumpToRound } from ".";
+import { jumpToRound } from "../../util/block";
 import { MIN_GLMR_STAKING } from "../../util/constants";
 
 describeDevMoonbeam("Staking - Candidate Leave Schedule - hint too low", (context) => {

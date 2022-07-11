@@ -5,17 +5,17 @@ import { DEFAULT_GENESIS_MAPPING, DEFAULT_GENESIS_STAKING, GLMR } from "../../ut
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { alith } from "../../util/accounts";
 
-describeDevMoonbeam("Staking - Genesis2", (context) => {
+describeDevMoonbeam("Staking - Genesis", (context) => {
   it("should match collator locked bond", async function () {
     const locks = await context.polkadotApi.query.balances.locks(alith.address);
     const expectedLocked = DEFAULT_GENESIS_STAKING;
-    // expect(
-    //   locks
-    //     .filter((l) => l.id.toHuman() == "ColStake")
-    //     .reduce((p, v) => p + v.amount.toBigInt(), 0n)
-    //     .toString(),
-    //   `Wrong locks: \n ${locks.map((lock) => `${lock.id.toHuman()}: ${lock.amount}`).join("\n")}\n`
-    // ).to.equal(expectedLocked.toString());
+    expect(
+      locks
+        .filter((l) => l.id.toHuman() === "stkngcol")
+        .reduce((p, v) => p + v.amount.toBigInt(), 0n)
+        .toString(),
+      `Wrong locks: \n ${locks.map((lock) => `${lock.id.toHuman()}: ${lock.amount}`).join("\n")}\n`
+    ).to.equal(expectedLocked.toString());
   });
 
   it("should include collator from the specs", async function () {
