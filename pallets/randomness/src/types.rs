@@ -124,6 +124,8 @@ pub struct Request<T: Config> {
 	pub fee: BalanceOf<T>,
 	/// Gas limit for subcall
 	pub gas_limit: u64,
+	/// Number of random outputs requested
+	pub num_words: u8,
 	/// Salt to use once randomness is ready
 	pub salt: H256,
 	/// Details regarding request type
@@ -323,7 +325,7 @@ pub struct FulfillArgs<T: Config> {
 	/// Deposit for request
 	pub deposit: BalanceOf<T>,
 	/// Randomness
-	pub randomness: [u8; 32],
+	pub randomness: Vec<[u8; 32]>,
 }
 
 impl<T: Config> RequestState<T> {
@@ -339,8 +341,9 @@ impl<T: Config> RequestState<T> {
 	pub fn prepare_fulfill(&self) -> Result<FulfillArgs<T>, DispatchError> {
 		// get the randomness corresponding to the request
 		let randomness: T::Hash = self.request.get_randomness()?;
-		// compute random output using salt
-		let randomness = Pallet::<T>::concat_and_hash(randomness, self.request.salt);
+		// compute random output(s) using salt
+		let randomness =
+			Pallet::<T>::concat_and_hash(randomness, self.request.salt, self.request.num_words);
 		// No event emitted until fulfillment is complete
 		Ok(FulfillArgs {
 			request: self.request.clone(),

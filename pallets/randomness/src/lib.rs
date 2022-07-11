@@ -335,11 +335,16 @@ pub mod pallet {
 			// by anyone so will never be locked
 			T::Currency::free_balance(&Self::account_id())
 		}
-		pub(crate) fn concat_and_hash(a: T::Hash, b: H256) -> [u8; 32] {
-			let mut s = Vec::new();
-			s.extend_from_slice(a.as_ref());
-			s.extend_from_slice(b.as_ref());
-			sp_io::hashing::blake2_256(&s)
+		pub(crate) fn concat_and_hash(a: T::Hash, b: H256, index: u8) -> Vec<[u8; 32]> {
+			let mut output: Vec<[u8; 32]> = Vec::new();
+			for i in 0u8..index {
+				let mut s = Vec::new();
+				s.extend_from_slice(a.as_ref());
+				s.extend_from_slice(b.as_ref());
+				s.extend_from_slice(&[i]);
+				output.push(sp_io::hashing::blake2_256(&s))
+			}
+			output
 		}
 	}
 

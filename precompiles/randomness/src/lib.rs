@@ -108,7 +108,7 @@ fn provide_randomness(
 	handle: &mut impl PrecompileHandle,
 	gas_limit: u64,
 	contract: H160,
-	randomness: H256,
+	randomness: Vec<H256>,
 ) -> EvmResult<()> {
 	let (reason, _) = handle.call(
 		contract,
@@ -214,6 +214,10 @@ where
 			.try_into()
 			.map_err(|_| revert("amount is too large for provided balance type"))?;
 		let gas_limit = input.read::<u64>()?;
+		let num_words = input
+			.read::<u32>()?
+			.try_into()
+			.map_err(|_| revert("number of words is too large for provided u8 type"))?;
 		let salt = input.read::<H256>()?;
 		let blocks_after_current = input.read::<u64>()?;
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
@@ -236,7 +240,8 @@ where
 			contract_address,
 			fee,
 			gas_limit,
-			salt: salt.into(),
+			num_words,
+			salt,
 			info: pallet_randomness::RequestInfo::BabeCurrentBlock(
 				requested_block_number,
 				expiring_relay_block,
@@ -262,6 +267,10 @@ where
 			.try_into()
 			.map_err(|_| revert("amount is too large for provided balance type"))?;
 		let gas_limit = input.read::<u64>()?;
+		let num_words = input
+			.read::<u32>()?
+			.try_into()
+			.map_err(|_| revert("number of words is too large for provided u8 type"))?;
 		let salt = input.read::<H256>()?;
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let two_epochs_later =
@@ -276,6 +285,7 @@ where
 			contract_address,
 			fee,
 			gas_limit,
+			num_words,
 			salt: salt.into(),
 			info: pallet_randomness::RequestInfo::BabeOneEpochAgo(
 				two_epochs_later,
@@ -302,6 +312,10 @@ where
 			.try_into()
 			.map_err(|_| revert("amount is too large for provided balance type"))?;
 		let gas_limit = input.read::<u64>()?;
+		let num_words = input
+			.read::<u32>()?
+			.try_into()
+			.map_err(|_| revert("number of words is too large for provided u8 type"))?;
 		let salt = input.read::<H256>()?;
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let three_epochs_later =
@@ -316,6 +330,7 @@ where
 			contract_address,
 			fee,
 			gas_limit,
+			num_words,
 			salt: salt.into(),
 			info: pallet_randomness::RequestInfo::BabeTwoEpochsAgo(
 				three_epochs_later,
@@ -340,6 +355,10 @@ where
 			.try_into()
 			.map_err(|_| revert("amount is too large for provided balance type"))?;
 		let gas_limit = input.read::<u64>()?;
+		let num_words = input
+			.read::<u32>()?
+			.try_into()
+			.map_err(|_| revert("number of words is too large for provided u8 type"))?;
 		let salt = input.read::<H256>()?;
 		let blocks_after_current = input.read::<u64>()?;
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
@@ -358,6 +377,7 @@ where
 			contract_address,
 			fee,
 			gas_limit,
+			num_words,
 			salt: salt.into(),
 			info: pallet_randomness::RequestInfo::Local(
 				requested_block_number,
@@ -391,12 +411,13 @@ where
 		)?;
 		// get gas before subcall
 		let before_remaining_gas = handle.remaining_gas();
-		// make subcall
+		// TODO: change subcall to take variable input Vec<[u8; 32]>
+		// or should we make the vec.len() number of subcalls?
 		provide_randomness(
 			handle,
 			request.gas_limit,
 			request.contract_address.clone().into(),
-			H256(randomness),
+			randomness.into_iter().map(|x| H256(x)).collect(),
 		)?;
 		// get gas after subcall
 		let after_remaining_gas = handle.remaining_gas();
