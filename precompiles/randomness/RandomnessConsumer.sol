@@ -106,15 +106,15 @@ abstract contract RandomnessConsumer {
      * @dev associated with the randomness. (It is triggered via a call to
      * @dev rawFulfillRandomness, below.)
      *
-     * @param requestId The Id initially returned by requestRandomness
-     * @param randomWords the VRF output expanded to the requested number of words
+     * @param requestId The Id initially returned by requestLocalVRFRandomWords or requestRelayBabeEpochRandomWords
+     * @param randomWords The VRF output expanded to the requested number of words
      */
     function fulfillRandomWords(uint256 requestId, uint256[] memory randomWords)
         internal
         virtual;
 
-    // rawFulfillRandomness is called by VRFCoordinator when it receives a valid VRF
-    // proof. rawFulfillRandomness then calls fulfillRandomness, after validating
+    // rawFulfillRandomness is called by Randomness Precompile when the executeFulfillement
+    // is called. rawFulfillRandomness then calls fulfillRandomness, after validating
     // the origin of the call
     function rawFulfillRandomWords(
         uint256 requestId,
