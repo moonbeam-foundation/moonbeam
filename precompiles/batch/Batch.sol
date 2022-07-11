@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity >=0.8.0;
 
+/// @title Batch precompile
+/// Allows to perform multiple calls throught one call to the precompile.
+/// Can be used by EOA to do multiple calls in a single transaction.
+/// Address: 0x0000000000000000000000000000000000000808
 interface Batch {
     /// @dev Batch multiple calls into a single transaction.
-    /// All calls are performed from the address calling this precompile, as
-    /// if it was called as a DELEGATECALL (which is normally not possible by
-    /// an EOA address).
+    /// All calls are performed from the address calling this precompile.
     ///
     /// In case of one subcall reverting following subcalls will still be attempted.
     ///
@@ -25,9 +27,7 @@ interface Batch {
     ) external;
 
     /// @dev Batch multiple calls into a single transaction.
-    /// All calls are performed from the address calling this precompile, as
-    /// if it was called as a DELEGATECALL (which is normally not possible by
-    /// an EOA address).
+    /// All calls are performed from the address calling this precompile.
     ///
     /// In case of one subcall reverting, no more subcalls will be executed but
     /// the batch transaction will succeed. Use batchAll to revert on any subcall revert.
@@ -48,9 +48,7 @@ interface Batch {
     ) external;
 
     /// @dev Batch multiple calls into a single transaction.
-    /// All calls are performed from the address calling this precompile, as
-    /// if it was called as a DELEGATECALL (which is normally not possible by
-    /// an EOA address).
+    /// All calls are performed from the address calling this precompile.
     ///
     /// In case of one subcall reverting, the entire batch will revert.
     ///
