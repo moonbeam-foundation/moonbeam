@@ -137,9 +137,9 @@ interface Randomness {
     function fulfillRequest(uint256 requestId) external;
 
     /// @param requestId Request receiving the additional fees
-    /// @param feesIncrease Amount to increase
+    /// @param feeIncrease Amount to increase
     /// Selector: d0408a7f
-    function increaseRequestFees(uint256 requestId, uint256 feesIncrease)
+    function increaseRequestFee(uint256 requestId, uint256 feeIncrease)
         external;
 
     /// @param requestId Request to be purged

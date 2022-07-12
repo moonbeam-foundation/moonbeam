@@ -19,11 +19,11 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
     /// @notice The lottery doesn't accept additional participants
     error TooManyParticipants(uint256 value, uint256 required);
 
-    /// @notice There are not enough fees to start the lottery
-    error NotEnoughFees(uint256 value, uint256 required);
+    /// @notice There are not enough fee to start the lottery
+    error NotEnoughFee(uint256 value, uint256 required);
 
-    /// @notice The provided fees to participate doesn't match the required amount
-    error InvalidParticipationFees(uint256 value, uint256 required);
+    /// @notice The provided fee to participate doesn't match the required amount
+    error InvalidParticipationFee(uint256 value, uint256 required);
 
     /// @notice Event sent when a winner is awarded
     /// @param winner The participant getting awarded
@@ -44,15 +44,15 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
     /// @dev so XXX is a safe default for this example contract. Test and adjust
     /// @dev this limit based on the size of the request and the processing of the
     /// @dev callback request in the fulfillRandomWords() function.
-    /// @dev The fees paid to start the lottery needs to be sufficient to pay for the gas limit
+    /// @dev The fee paid to start the lottery needs to be sufficient to pay for the gas limit
     uint64 FULFILLMENT_GAS_LIMIT = 100000; // TODO: fill XXX
 
-    /// @notice The minimum fees needed to start the lottery
-    /// @dev This does not guarantee that there will be enough fees to pay for the
+    /// @notice The minimum fee needed to start the lottery
+    /// @dev This does not guarantee that there will be enough fee to pay for the
     /// @dev gas used by the fulfillment. Ideally it should be over-estimated
     /// @dev considering possible fluctuation of the gas price.
-    /// @dev Additional fees will be refunded to the caller
-    uint256 MIN_FEES = FULFILLMENT_GAS_LIMIT * 1 gwei;
+    /// @dev Additional fee will be refunded to the caller
+    uint256 MIN_FEE = FULFILLMENT_GAS_LIMIT * 1 gwei;
 
     /// @notice The number of winners
     /// @dev This number corresponds to how many random words will requested
@@ -76,8 +76,8 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
     /// @dev (See Randomness.sol for more details)
     uint256 public MAX_PARTICIPANTS = 20;
 
-    /// @notice The fees needed to participate in the lottery. Will go into the jackpot
-    uint256 PARTICIPATION_FEES = 1 ether;
+    /// @notice The fee needed to participate in the lottery. Will go into the jackpot
+    uint256 PARTICIPATION_FEE = 1 ether;
 
     /// @notice A string used to allow having different salt that other contracts
     bytes32 public SALT_PREFIX = "my_demo_salt_change_me";
@@ -115,8 +115,8 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
         }
 
         //each player is compelled to add a certain ETH to join
-        if (msg.value != PARTICIPATION_FEES) {
-            revert InvalidParticipationFees(msg.value, MIN_FEES);
+        if (msg.value != PARTICIPATION_FEE) {
+            revert InvalidParticipationFee(msg.value, MIN_FEE);
         }
         participants.push(msg.sender);
         jackpot += msg.value;
@@ -140,8 +140,8 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
         }
 
         uint256 fee = msg.value;
-        if (fee < MIN_FEES) {
-            revert NotEnoughFees(fee, MIN_FEES);
+        if (fee < MIN_FEE) {
+            revert NotEnoughFee(fee, MIN_FEE);
         }
 
         /// Requesting NUM_WINNERS random words with a delay of DELAY_BLOCKS blocks
@@ -157,11 +157,11 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
         );
     }
 
-    /// @notice Allows to increase the fees associated with the request
+    /// @notice Allows to increase the fee associated with the request
     /// @dev This is needed if the gas price increase significantly before
     /// @dev the request is fulfilled
-    function increaseRequestFees() external payable {
-        randomness.increaseRequestFees(requestId, msg.value);
+    function increaseRequestFee() external payable {
+        randomness.increaseRequestFee(requestId, msg.value);
     }
 
     function pickWinners(uint256[] memory randomWords) internal {

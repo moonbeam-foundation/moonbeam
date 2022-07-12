@@ -24,7 +24,7 @@ pragma solidity ^0.8.4;
  * @dev see (Randomness.sol for a description of each function and their arguments).
  *
  * @dev Once the request has been registered and the minimum delay is passed, the
- * @dev request then can be executed (for 0 fees) by anyone. it will call your
+ * @dev request then can be executed (for 0 fee) by anyone. it will call your
  * @dev contract's fulfillRandomWords method.
  *
  * @dev The randomness argument to fulfillRandomWords is a set of random words
