@@ -26,7 +26,7 @@ use fp_evm::{
 };
 use frame_support::sp_runtime::traits::Saturating;
 use frame_support::traits::Get;
-use pallet_randomness::{BalanceOf, GetBabeData};
+use pallet_randomness::{BalanceOf, GetBabeData, Pallet, Request, RequestInfo, RequestState};
 use precompile_utils::{costs::call_cost, prelude::*};
 use sp_core::{H160, H256, U256};
 use sp_std::{fmt::Debug, marker::PhantomData, vec::Vec};
@@ -185,94 +185,89 @@ where
 	}
 	fn get_request_status(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		let request_id = handle.read_input()?.read::<u64>()?;
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let status = if let Some(pallet_randomness::RequestState { request, .. }) =
-			pallet_randomness::Pallet::<Runtime>::requests(request_id)
-		{
-			if request.is_expired() {
-				3u32 // EXPIRED
-			} else if request.can_be_fulfilled() {
-				2u32 // READY
+		// record cost of 2 DB reads
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost() * 2)?;
+		let status =
+			if let Some(RequestState { request, .. }) = Pallet::<Runtime>::requests(request_id) {
+				if request.is_expired() {
+					3u32 // EXPIRED
+				} else if request.can_be_fulfilled() {
+					2u32 // READY
+				} else {
+					1u32 // PENDING
+				}
 			} else {
-				1u32 // PENDING
-			}
-		} else {
-			0u32 // DOES NOT EXIST
-		};
+				0u32 // DOES NOT EXIST
+			};
 		Ok(succeed(EvmDataWriter::new().write(status).build()))
 	}
 	fn get_request(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		let request_id = handle.read_input()?.read::<u64>()?;
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		if let Some(pallet_randomness::RequestState { request, .. }) =
-			pallet_randomness::Pallet::<Runtime>::requests(request_id)
-		{
-			let status = if request.is_expired() {
-				3u32 // EXPIRED
-			} else if request.can_be_fulfilled() {
-				2u32 // READY
-			} else {
-				1u32 // PENDING
-			};
-			let (
-				randomness_source,
-				fulfillment_block,
-				fulfillment_epoch,
-				expiration_block,
-				expiration_epoch,
-				request_status,
-			) = match request.info {
-				pallet_randomness::RequestInfo::BabeEpoch(epoch_due, epoch_expired) => {
-					(
-						1u32, // RandomnessSource::RelayBabeEpoch
-						0u64,
-						epoch_due,
-						0u64,
-						epoch_expired,
-						status,
-					)
-				}
-				pallet_randomness::RequestInfo::Local(block_due, block_expired) => {
-					(
-						0u32, // RandomnessSource::LocalVRF
-						block_due
-							.try_into()
-							.map_err(|_| revert("block number overflowed u32"))?,
-						0u64,
-						block_expired
-							.try_into()
-							.map_err(|_| revert("block number overflowed u32"))?,
-						0u64,
-						status,
-					)
-				}
-			};
-			let (refund_address, contract_address, fee): (Address, Address, U256) = (
-				request.refund_address.into(),
-				request.contract_address.into(),
-				request.fee.into(),
-			);
-			let writer = EvmDataWriter::new()
-				.write(request_id)
-				.write(refund_address)
-				.write(contract_address)
-				.write(fee)
-				.write(request.gas_limit)
-				.write(request.salt)
-				.write(request.num_words)
-				.write(randomness_source)
-				.write(fulfillment_block)
-				.write(fulfillment_epoch)
-				.write(expiration_block)
-				.write(expiration_epoch)
-				.write(request_status)
-				.build();
-			Ok(succeed(writer))
+		// record cost of 2 DB reads
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost() * 2)?;
+		let RequestState { request, .. } =
+			Pallet::<Runtime>::requests(request_id).ok_or(error("Request Does Not Exist"))?;
+		let status = if request.is_expired() {
+			3u32 // EXPIRED
+		} else if request.can_be_fulfilled() {
+			2u32 // READY
 		} else {
-			Err(error("Request Does Not Exist"))
-		}
+			1u32 // PENDING
+		};
+		let (
+			randomness_source,
+			fulfillment_block,
+			fulfillment_epoch,
+			expiration_block,
+			expiration_epoch,
+			request_status,
+		) = match request.info {
+			RequestInfo::BabeEpoch(epoch_due, epoch_expired) => {
+				(
+					1u32, // RandomnessSource::RelayBabeEpoch
+					0u64,
+					epoch_due,
+					0u64,
+					epoch_expired,
+					status,
+				)
+			}
+			RequestInfo::Local(block_due, block_expired) => {
+				(
+					0u32, // RandomnessSource::LocalVRF
+					block_due
+						.try_into()
+						.map_err(|_| revert("block number overflowed u32"))?,
+					0u64,
+					block_expired
+						.try_into()
+						.map_err(|_| revert("block number overflowed u32"))?,
+					0u64,
+					status,
+				)
+			}
+		};
+		let (refund_address, contract_address, fee): (Address, Address, U256) = (
+			request.refund_address.into(),
+			request.contract_address.into(),
+			request.fee.into(),
+		);
+		let writer = EvmDataWriter::new()
+			.write(request_id)
+			.write(refund_address)
+			.write(contract_address)
+			.write(fee)
+			.write(request.gas_limit)
+			.write(request.salt)
+			.write(request.num_words)
+			.write(randomness_source)
+			.write(fulfillment_block)
+			.write(fulfillment_epoch)
+			.write(expiration_block)
+			.write(expiration_epoch)
+			.write(request_status)
+			.build();
+		Ok(succeed(writer))
 	}
 	/// Make request for babe randomness one epoch ago
 	fn request_babe_randomness(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
@@ -291,23 +286,19 @@ where
 			<Runtime as pallet_randomness::Config>::BabeDataGetter::get_epoch_index()
 				.checked_add(2u64)
 				.ok_or(error("Epoch Index (u64) overflowed"))?;
-		let expiring_relay_epoch_index = pallet_randomness::Pallet::<Runtime>::relay_epoch()
-			.saturating_add(
-				<Runtime as pallet_randomness::Config>::EpochExpirationDelay::get().into(),
-			);
-		let request = pallet_randomness::Request {
+		let expiring_relay_epoch_index = Pallet::<Runtime>::relay_epoch().saturating_add(
+			<Runtime as pallet_randomness::Config>::EpochExpirationDelay::get().into(),
+		);
+		let request = Request {
 			refund_address,
 			contract_address,
 			fee,
 			gas_limit,
 			num_words,
 			salt,
-			info: pallet_randomness::RequestInfo::BabeEpoch(
-				two_epochs_later,
-				expiring_relay_epoch_index,
-			),
+			info: RequestInfo::BabeEpoch(two_epochs_later, expiring_relay_epoch_index),
 		};
-		pallet_randomness::Pallet::<Runtime>::request_randomness(request)
+		Pallet::<Runtime>::request_randomness(request)
 			.map_err(|e| error(alloc::format!("{:?}", e)))?;
 
 		Ok(PrecompileOutput {
@@ -340,19 +331,16 @@ where
 		let expiring_block_number = frame_system::Pallet::<Runtime>::block_number().saturating_add(
 			<Runtime as pallet_randomness::Config>::BlockExpirationDelay::get().into(),
 		);
-		let request = pallet_randomness::Request {
+		let request = Request {
 			refund_address,
 			contract_address,
 			fee,
 			gas_limit,
 			num_words,
 			salt,
-			info: pallet_randomness::RequestInfo::Local(
-				requested_block_number,
-				expiring_block_number,
-			),
+			info: RequestInfo::Local(requested_block_number, expiring_block_number),
 		};
-		pallet_randomness::Pallet::<Runtime>::request_randomness(request)
+		Pallet::<Runtime>::request_randomness(request)
 			.map_err(|e| error(alloc::format!("{:?}", e)))?;
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
@@ -368,7 +356,7 @@ where
 			request,
 			deposit,
 			randomness,
-		} = pallet_randomness::Pallet::<Runtime>::prepare_fulfillment(request_id)
+		} = Pallet::<Runtime>::prepare_fulfillment(request_id)
 			.map_err(|e| error(alloc::format!("{:?}", e)))?;
 		// check that randomness can be provided
 		ensure_can_provide_randomness::<Runtime>(
@@ -401,7 +389,7 @@ where
 		// refund cost of execution to caller
 		// refund excess fee to the refund_address
 		// remove request state
-		pallet_randomness::Pallet::<Runtime>::finish_fulfillment(
+		Pallet::<Runtime>::finish_fulfillment(
 			request_id,
 			request,
 			deposit,
@@ -421,12 +409,8 @@ where
 			.read::<U256>()?
 			.try_into()
 			.map_err(|_| revert("amount is too large for provided balance type"))?;
-		pallet_randomness::Pallet::<Runtime>::increase_request_fee(
-			&handle.context().caller,
-			request_id,
-			fee_increase,
-		)
-		.map_err(|e| error(alloc::format!("{:?}", e)))?;
+		Pallet::<Runtime>::increase_request_fee(&handle.context().caller, request_id, fee_increase)
+			.map_err(|e| error(alloc::format!("{:?}", e)))?;
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
 			output: Default::default(),
@@ -439,11 +423,8 @@ where
 	) -> EvmResult<PrecompileOutput> {
 		let mut input = handle.read_input()?;
 		let request_id = input.read::<u64>()?;
-		pallet_randomness::Pallet::<Runtime>::execute_request_expiration(
-			&handle.context().caller,
-			request_id,
-		)
-		.map_err(|e| error(alloc::format!("{:?}", e)))?;
+		Pallet::<Runtime>::execute_request_expiration(&handle.context().caller, request_id)
+			.map_err(|e| error(alloc::format!("{:?}", e)))?;
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
 			output: Default::default(),

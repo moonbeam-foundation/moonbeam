@@ -321,7 +321,7 @@ impl<T: Config> RequestState<T> {
 	}
 	/// Transfer deposit back to contract_address
 	/// Transfer fee to caller
-	pub fn execute_expiration(&self, caller: &T::AccountId) -> DispatchResult {	
+	pub fn execute_expiration(&self, caller: &T::AccountId) -> DispatchResult {
 		ensure!(self.request.is_expired(), Error::<T>::RequestHasNotExpired);
 		let contract_address =
 			T::AddressMapping::into_account_id(self.request.contract_address.clone());

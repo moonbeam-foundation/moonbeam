@@ -1236,7 +1236,7 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common! {
 			if pallet_randomness::Pallet::<Self>::not_first_block().is_none() {
 				return Default::default();
 			}
-			pallet_randomness::Pallet::<Self>::last_vrf_output()
+			pallet_randomness::Pallet::<Self>::local_vrf_output()
 				.expect("Expected last VrfOutput to be set")
 		}
 		fn vrf_key_lookup(
