@@ -160,7 +160,6 @@ describeDevMoonbeamAllEthTxTypes("Staking - Collator Leaving", (context) => {
 
     const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
     expect(receipt.status).to.equal(true);
-    console.log(receipt);
   });
 });
 
