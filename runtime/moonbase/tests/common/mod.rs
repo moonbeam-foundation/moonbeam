@@ -17,21 +17,20 @@
 #![allow(dead_code)]
 
 use cumulus_primitives_parachain_inherent::ParachainInherentData;
+use fp_evm::GenesisAccount;
 use frame_support::{
 	assert_ok,
 	dispatch::Dispatchable,
 	traits::{GenesisBuild, OnFinalize, OnInitialize},
 };
-use frame_system::InitKind;
+use moonbase_runtime::{asset_config::AssetRegistrarMetadata, xcm_config::AssetType};
 pub use moonbase_runtime::{
 	currency::{GIGAWEI, SUPPLY_FACTOR, UNIT, WEI},
 	AccountId, AssetId, AssetManager, Assets, AuthorInherent, Balance, Balances, Call,
-	CrowdloanRewards, Ethereum, Event, Executive, FixedGasPrice, InflationInfo, ParachainStaking,
-	Range, Runtime, System, TransactionConverter, UncheckedExtrinsic, WEEKS,
+	CrowdloanRewards, Ethereum, Event, Executive, FixedGasPrice, InflationInfo, LocalAssets,
+	ParachainStaking, Range, Runtime, System, TransactionConverter, UncheckedExtrinsic, WEEKS,
 };
-use moonbase_runtime::{AssetRegistrarMetadata, AssetType};
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
-use pallet_evm::GenesisAccount;
 use sp_core::{Encode, H160};
 use sp_runtime::{Digest, DigestItem, Perbill};
 
@@ -65,11 +64,11 @@ pub fn run_to_block(n: u32, author: Option<NimbusId>) {
 				let pre_digest = Digest {
 					logs: vec![DigestItem::PreRuntime(NIMBUS_ENGINE_ID, author.encode())],
 				};
+				System::reset_events();
 				System::initialize(
 					&(System::block_number() + 1),
 					&System::parent_hash(),
 					&pre_digest,
-					InitKind::Full,
 				);
 			}
 			None => {
@@ -88,17 +87,6 @@ pub fn last_event() -> Event {
 	System::events().pop().expect("Event expected").event
 }
 
-// Helper function to give a simple evm context suitable for tests.
-// We can remove this once https://github.com/rust-blockchain/evm/pull/35
-// is in our dependency graph.
-pub fn evm_test_context() -> fp_evm::Context {
-	fp_evm::Context {
-		address: Default::default(),
-		caller: Default::default(),
-		apparent_value: From::from(0),
-	}
-}
-
 // Test struct with the purpose of initializing xcm assets
 #[derive(Clone)]
 pub struct XcmAssetInitialization {
@@ -111,8 +99,8 @@ pub struct XcmAssetInitialization {
 pub struct ExtBuilder {
 	// endowed accounts with balances
 	balances: Vec<(AccountId, Balance)>,
-	// [asset, Vec<Account, Balance>]
-	assets: Vec<(AssetId, Vec<(AccountId, Balance)>)>,
+	// [asset, Vec<Account, Balance>, owner]
+	local_assets: Vec<(AssetId, Vec<(AccountId, Balance)>, AccountId)>,
 	// [collator, amount]
 	collators: Vec<(AccountId, Balance)>,
 	// [delegator, collator, nomination_amount]
@@ -137,7 +125,7 @@ impl Default for ExtBuilder {
 		ExtBuilder {
 			balances: vec![],
 			delegations: vec![],
-			assets: vec![],
+			local_assets: vec![],
 			collators: vec![],
 			inflation: InflationInfo {
 				expect: Range {
@@ -189,8 +177,11 @@ impl ExtBuilder {
 		self
 	}
 
-	pub fn with_assets(mut self, assets: Vec<(AssetId, Vec<(AccountId, Balance)>)>) -> Self {
-		self.assets = assets;
+	pub fn with_local_assets(
+		mut self,
+		local_assets: Vec<(AssetId, Vec<(AccountId, Balance)>, AccountId)>,
+	) -> Self {
+		self.local_assets = local_assets;
 		self
 	}
 
@@ -231,7 +222,7 @@ impl ExtBuilder {
 		.assimilate_storage(&mut t)
 		.unwrap();
 
-		parachain_staking::GenesisConfig::<Runtime> {
+		pallet_parachain_staking::GenesisConfig::<Runtime> {
 			candidates: self.collators,
 			delegations: self.delegations,
 			inflation_config: self.inflation,
@@ -289,21 +280,21 @@ impl ExtBuilder {
 
 		let mut ext = sp_io::TestExternalities::new(t);
 
-		let assets = self.assets.clone();
+		let local_assets = self.local_assets.clone();
 		let xcm_assets = self.xcm_assets.clone();
 
 		ext.execute_with(|| {
-			// If any assets specified, we create them here
-			for (asset_id, balances) in assets.clone() {
-				Assets::force_create(root_origin(), asset_id, ALICE.into(), true, 1).unwrap();
+			// If any local assets specified, we create them here
+			for (asset_id, balances, owner) in local_assets.clone() {
+				LocalAssets::force_create(root_origin(), asset_id, owner, true, 1).unwrap();
 				for (account, balance) in balances {
-					Assets::mint(origin_of(ALICE.into()), asset_id, account, balance).unwrap();
+					LocalAssets::mint(origin_of(owner.into()), asset_id, account, balance).unwrap();
 				}
 			}
 			// If any xcm assets specified, we register them here
 			for xcm_asset_initialization in xcm_assets {
 				let asset_id: AssetId = xcm_asset_initialization.asset_type.clone().into();
-				AssetManager::register_asset(
+				AssetManager::register_foreign_asset(
 					root_origin(),
 					xcm_asset_initialization.asset_type,
 					xcm_asset_initialization.metadata,

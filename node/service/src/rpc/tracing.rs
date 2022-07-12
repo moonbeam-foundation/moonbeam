@@ -16,45 +16,14 @@
 
 use super::*;
 
-use moonbeam_rpc_debug::DebugHandler;
-use moonbeam_rpc_debug::{Debug, DebugRequester, DebugServer};
-use moonbeam_rpc_trace::{
-	CacheRequester as TraceFilterCacheRequester, CacheTask, Trace, TraceServer,
-};
+use moonbeam_rpc_debug::{DebugHandler, DebugRequester};
+use moonbeam_rpc_trace::{CacheRequester as TraceFilterCacheRequester, CacheTask};
 use tokio::sync::Semaphore;
 
 #[derive(Clone)]
 pub struct RpcRequesters {
 	pub debug: Option<DebugRequester>,
 	pub trace: Option<TraceFilterCacheRequester>,
-}
-
-pub fn extend_with_tracing<C, BE>(
-	client: Arc<C>,
-	requesters: RpcRequesters,
-	trace_filter_max_count: u32,
-	io: &mut jsonrpc_core::IoHandler<sc_rpc::Metadata>,
-) where
-	BE: Backend<Block> + 'static,
-	BE::State: StateBackend<BlakeTwo256>,
-	BE::Blockchain: BlockchainBackend<Block>,
-	C: ProvideRuntimeApi<Block> + StorageProvider<Block, BE> + AuxStore,
-	C: BlockchainEvents<Block>,
-	C: HeaderBackend<Block> + HeaderMetadata<Block, Error = BlockChainError> + 'static,
-	C: Send + Sync + 'static,
-	C::Api: RuntimeApiCollection<StateBackend = BE::State>,
-{
-	if let Some(trace_filter_requester) = requesters.trace {
-		io.extend_with(TraceServer::to_delegate(Trace::new(
-			client,
-			trace_filter_requester,
-			trace_filter_max_count,
-		)));
-	}
-
-	if let Some(debug_requester) = requesters.debug {
-		io.extend_with(DebugServer::to_delegate(Debug::new(debug_requester)));
-	}
 }
 
 // Spawn the tasks that are required to run a Moonbeam tracing node.
@@ -64,6 +33,7 @@ pub fn spawn_tracing_tasks<B, C, BE>(
 ) -> RpcRequesters
 where
 	C: ProvideRuntimeApi<B> + BlockOf,
+	C: StorageProvider<B, BE>,
 	C: HeaderBackend<B> + HeaderMetadata<B, Error = BlockChainError> + 'static,
 	C: BlockchainEvents<B>,
 	C: Send + Sync + 'static,
@@ -83,6 +53,7 @@ where
 				Arc::clone(&params.substrate_backend),
 				Duration::from_secs(rpc_config.ethapi_trace_cache_duration),
 				Arc::clone(&permit_pool),
+				Arc::clone(&params.overrides),
 			);
 			(Some(trace_filter_task), Some(trace_filter_requester))
 		} else {
@@ -95,6 +66,8 @@ where
 			Arc::clone(&params.substrate_backend),
 			Arc::clone(&params.frontier_backend),
 			Arc::clone(&permit_pool),
+			Arc::clone(&params.overrides),
+			rpc_config.tracing_raw_max_memory_usage,
 		);
 		(Some(debug_task), Some(debug_requester))
 	} else {

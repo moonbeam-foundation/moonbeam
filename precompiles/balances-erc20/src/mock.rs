@@ -23,19 +23,27 @@ use frame_support::{construct_runtime, parameter_types, traits::Everything};
 use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet};
 use scale_info::TypeInfo;
 use serde::{Deserialize, Serialize};
-use sp_core::{H160, H256};
+use sp_core::{H160, H256, U256};
 use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 };
-
-pub const PRECOMPILE_ADDRESS: u64 = 1;
 
 pub type AccountId = Account;
 pub type Balance = u128;
 pub type BlockNumber = u64;
 pub type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
 pub type Block = frame_system::mocking::MockBlock<Runtime>;
+
+pub const PRECOMPILE_ADDRESS: u64 = 1;
+
+/// To test EIP2612 permits we need to have cryptographic accounts.
+pub const ALICE_PUBLIC_KEY: [u8; 20] =
+	hex_literal::hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac");
+
+/// To test EIP2612 permits we need to have cryptographic accounts.
+pub const ALICE_SECRET_KEY: [u8; 32] =
+	hex_literal::hex!("5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133");
 
 /// A simple account type.
 #[derive(
@@ -70,7 +78,7 @@ impl Default for Account {
 impl AddressMapping<Account> for Account {
 	fn into_account_id(h160_account: H160) -> Account {
 		match h160_account {
-			a if a == H160::repeat_byte(0xAA) => Self::Alice,
+			a if a == H160::from(&ALICE_PUBLIC_KEY) => Self::Alice,
 			a if a == H160::repeat_byte(0xBB) => Self::Bob,
 			a if a == H160::repeat_byte(0xCC) => Self::Charlie,
 			a if a == H160::from_low_u64_be(PRECOMPILE_ADDRESS) => Self::Precompile,
@@ -82,7 +90,7 @@ impl AddressMapping<Account> for Account {
 impl From<Account> for H160 {
 	fn from(x: Account) -> H160 {
 		match x {
-			Account::Alice => H160::repeat_byte(0xAA),
+			Account::Alice => H160::from(&ALICE_PUBLIC_KEY),
 			Account::Bob => H160::repeat_byte(0xBB),
 			Account::Charlie => H160::repeat_byte(0xCC),
 			Account::Precompile => H160::from_low_u64_be(PRECOMPILE_ADDRESS),
@@ -133,6 +141,7 @@ impl frame_system::Config for Runtime {
 	type BlockLength = ();
 	type SS58Prefix = SS58Prefix;
 	type OnSetCode = ();
+	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 
 parameter_types! {
@@ -163,7 +172,8 @@ impl pallet_balances::Config for Runtime {
 }
 
 parameter_types! {
-	pub const PrecompilesValue: Precompiles<Runtime> = Precompiles(PhantomData);
+		pub BlockGasLimit: U256 = U256::max_value();
+		pub const PrecompilesValue: Precompiles<Runtime> = Precompiles(PhantomData);
 }
 
 impl pallet_evm::Config for Runtime {
@@ -179,7 +189,7 @@ impl pallet_evm::Config for Runtime {
 	type PrecompilesValue = PrecompilesValue;
 	type ChainId = ();
 	type OnChargeTransaction = ();
-	type BlockGasLimit = ();
+	type BlockGasLimit = BlockGasLimit;
 	type BlockHashMapping = pallet_evm::SubstrateBlockHashMapping<Self>;
 	type FindAuthor = ();
 }
@@ -194,6 +204,7 @@ construct_runtime!(
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		Evm: pallet_evm::{Pallet, Call, Storage, Event<T>},
+		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
 	}
 );
 
@@ -230,20 +241,12 @@ impl<R> PrecompileSet for Precompiles<R>
 where
 	Erc20BalancesPrecompile<R, NativeErc20Metadata>: Precompile,
 {
-	fn execute(
-		&self,
-		address: H160,
-		input: &[u8],
-		target_gas: Option<u64>,
-		context: &Context,
-		is_static: bool,
-	) -> Option<EvmResult<PrecompileOutput>> {
-		match address {
-			a if a == hash(PRECOMPILE_ADDRESS) => {
-				Some(Erc20BalancesPrecompile::<R, NativeErc20Metadata>::execute(
-					input, target_gas, context, is_static,
-				))
-			}
+	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<EvmResult<PrecompileOutput>> {
+		match handle.code_address() {
+			a if a == hash(PRECOMPILE_ADDRESS) => Some(Erc20BalancesPrecompile::<
+				R,
+				NativeErc20Metadata,
+			>::execute(handle)),
 			_ => None,
 		}
 	}

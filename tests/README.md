@@ -9,6 +9,12 @@ It is written in typescript, using Mocha/Chai as Test framework.
 Each group will start a dev service with the
 [development spec](../node/service/src/chain_spec) before executing the tests.
 
+## Test categories
+
+- `test`: Tests expected to run by spawning a new dev node (~1-2 minutes)
+- `para-test`: Tests spawning a complete relay+para network (~5-20 minutes)
+- `smoke-test`: Tests veryfing the data (consistency) on an existing chain (~5-20 minutes)
+
 ## Installation
 
 ```
@@ -27,7 +33,39 @@ and to print more information:
 npm run test-with-logs
 ```
 
-# Running a parachain test
+# Smoke tests
+
+## Adding smoke tests
+
+Smoke test should only contains consistency/state checks.
+
+Testing the consistency is usually simple:
+
+- When you have redundant information: Verify they match:  
+  `totalIssuance == sum(accounts.map(acc => acc.free + acc.reserved))`
+- When you have conditional state: Verify the condition is valid:  
+  `parachainStaking.topDelegations.each(top => top.length <= parachainStaking.maxTopDelegationsPerCandidate)`
+- When you expect specific state: Verify it exists:  
+  `assets.assets.length > 0` or `maintenanceMode.maintenanceMode == false`)
+
+Smoke tests should **never** send an extrinsic to modify the state.  
+They should be split by pallet and only need 1 `describeSmokeSuite` per file.
+
+## Running smoke tests
+
+In order to use smoke tests, you need to provide a blockchain:
+
+```
+WSS_URL=wss://localhost:9944 npm run smoke-test
+```
+
+You can debug specific smoke test with `debug` library using prefix `smoke:*`:
+
+```
+DEBUG=smoke:* WSS_URL=wss://localhost:9944 npm run smoke-test
+```
+
+# Parachain test
 
 Either use script or use parachain testing framework.
 
@@ -123,3 +161,66 @@ are the ports used by the debug node.
 A VSCode test allow to quickly run the `test-single` test in debug mode. To run another test,
 change the command in the `package.json`. Note that you should restart the node after running
 one test file.
+
+## Fork Tests
+
+Those tests are intended to run using an exported state from an existing network.  
+They require to specify the exported state, the runtime name and the parachain id.  
+Also the exported state needs to be modified using the state-modifier.ts script.
+
+### End to end script (automated)
+
+You can run the full process using the docker image:
+
+```
+docker run -e GIT_TAG=perm-runtime-1605 -e NETWORK=moonriver -e RUNTIME_NAME=moonriver purestake/moonbeam-fork-tests:0.0.1
+```
+
+or locally (for debugging pruposes) with the script:
+
+```
+ROOT_FOLDER=/tmp/moonbeam-states GIT_TAG=perm-runtime-1604 NETWORK=moonbase-alpha RUNTIME_NAME=moobase ./scripts/run-fork-test.sh
+```
+
+Where `ROOT_FOLDER` should be an empty folder
+
+### Retrieving exported state (manual step 1)
+
+```
+mkdir -p ~/projects/moonbeam-states
+for network in moonbase-alpha moonriver moonbeam; do wget https://s3.us-east-2.amazonaws.com/snapshots.moonbeam.network/${network}/latest/${network}-state.json -O ~/projects/moonbeam-states/${network}-state.json; done
+```
+
+### Modifying exported state (manual step 2)
+
+```
+for network in moonbase-alpha moonriver moonbeam; do node_modules/.bin/ts-node state-modifier.ts ~/projects/moonbeam-states/${network}-state.json; done
+```
+
+### Executing the tests (manual step 3a)
+
+Here is an exemple of the command to run:
+
+```
+SKIP_INTERMEDIATE_RUNTIME=true RUNTIME_NAME=moonbeam SPEC_FILE=~/projects/moonbeam-states/moonbeam-state.mod.json PARA_ID=2004 PORT_PREFIX=51 npm run fork-test
+
+SKIP_INTERMEDIATE_RUNTIME=true RUNTIME_NAME=moonbase SPEC_FILE=~/projects/moonbeam-states/moonbase-alpha-state.mod.json PARA_ID=1000 PORT_PREFIX=52 npm run fork-test
+
+SKIP_INTERMEDIATE_RUNTIME=true RUNTIME_NAME=moonriver SPEC_FILE=~/projects/moonbeam-states/moonriver-state.mod.json PARA_ID=2023 PORT_PREFIX=53 npm run fork-test
+```
+
+### Starting the node separately
+
+If you want to inspect the forkned network or keep it running after the tests
+
+```
+PARA_ID=2004 PORT_PREFIX=51 ./node_modules/.bin/ts-node spawn-fork-node.ts
+PARA_ID=1000 PORT_PREFIX=51 ./node_modules/.bin/ts-node spawn-fork-node.ts
+PARA_ID=2023 PORT_PREFIX=51 ./node_modules/.bin/ts-node spawn-fork-node.ts
+```
+
+### Generating moonbeam-fork-test image
+
+```
+docker build ./scripts -t purestake/moonbeam-fork-tests:0.0.1 -f docker/moonbeam-fork-tests.Dockerfile
+```

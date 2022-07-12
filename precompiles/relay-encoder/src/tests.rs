@@ -13,24 +13,17 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
-
-use std::assert_matches::assert_matches;
-
 use crate::mock::{
-	evm_test_context, precompile_address, ExtBuilder, PrecompilesValue, Runtime,
-	TestAccount::Alice, TestPrecompiles,
+	Account::{Alice, Precompile},
+	ExtBuilder, PrecompilesValue, Runtime, TestPrecompiles,
 };
 use crate::test_relay_runtime::TestEncoder;
+use crate::AvailableStakeCalls;
 use crate::StakeEncodeCall;
 use crate::*;
-use crate::{AvailableStakeCalls, PrecompileOutput};
-use fp_evm::PrecompileFailure;
-use num_enum::TryFromPrimitive;
-use pallet_evm::{ExitSucceed, PrecompileSet};
 use pallet_staking::RewardDestination;
 use pallet_staking::ValidatorPrefs;
-use precompile_utils::{Bytes, EvmDataWriter};
-use sha3::{Digest, Keccak256};
+use precompile_utils::testing::*;
 use sp_core::{H256, U256};
 use sp_runtime::Perbill;
 
@@ -40,113 +33,33 @@ fn precompiles() -> TestPrecompiles<Runtime> {
 
 #[test]
 fn test_selector_enum() {
-	let mut buffer = [0u8; 4];
-	buffer.copy_from_slice(&Keccak256::digest(b"encode_bond(uint256,uint256,bytes)")[0..4]);
-
-	assert_eq!(
-		Action::try_from_primitive(u32::from_be_bytes(buffer)).unwrap(),
-		Action::EncodeBond,
-	);
-	buffer.copy_from_slice(&Keccak256::digest(b"encode_bond_extra(uint256)")[0..4]);
-
-	assert_eq!(
-		Action::try_from_primitive(u32::from_be_bytes(buffer)).unwrap(),
-		Action::EncodeBondExtra,
-	);
-
-	buffer.copy_from_slice(&Keccak256::digest(b"encode_chill()")[0..4]);
-
-	assert_eq!(
-		Action::try_from_primitive(u32::from_be_bytes(buffer)).unwrap(),
-		Action::EncodeChill,
-	);
-
-	buffer.copy_from_slice(&Keccak256::digest(b"encode_nominate(uint256[])")[0..4]);
-
-	assert_eq!(
-		Action::try_from_primitive(u32::from_be_bytes(buffer)).unwrap(),
-		Action::EncodeNominate,
-	);
-
-	buffer.copy_from_slice(&Keccak256::digest(b"encode_rebond(uint256)")[0..4]);
-
-	assert_eq!(
-		Action::try_from_primitive(u32::from_be_bytes(buffer)).unwrap(),
-		Action::EncodeRebond,
-	);
-
-	buffer.copy_from_slice(&Keccak256::digest(b"encode_set_controller(uint256)")[0..4]);
-
-	assert_eq!(
-		Action::try_from_primitive(u32::from_be_bytes(buffer)).unwrap(),
-		Action::EncodeSetController,
-	);
-
-	buffer.copy_from_slice(&Keccak256::digest(b"encode_set_payee(bytes)")[0..4]);
-
-	assert_eq!(
-		Action::try_from_primitive(u32::from_be_bytes(buffer)).unwrap(),
-		Action::EncodeSetPayee,
-	);
-
-	buffer.copy_from_slice(&Keccak256::digest(b"encode_unbond(uint256)")[0..4]);
-
-	assert_eq!(
-		Action::try_from_primitive(u32::from_be_bytes(buffer)).unwrap(),
-		Action::EncodeUnbond,
-	);
-
-	buffer.copy_from_slice(&Keccak256::digest(b"encode_validate(uint256,bool)")[0..4]);
-
-	assert_eq!(
-		Action::try_from_primitive(u32::from_be_bytes(buffer)).unwrap(),
-		Action::EncodeValidate,
-	);
-
-	buffer.copy_from_slice(&Keccak256::digest(b"encode_withdraw_unbonded(uint32)")[0..4]);
-
-	assert_eq!(
-		Action::try_from_primitive(u32::from_be_bytes(buffer)).unwrap(),
-		Action::EncodeWithdrawUnbonded,
-	);
+	assert_eq!(Action::EncodeBond as u32, 0x31627376);
+	assert_eq!(Action::EncodeBondExtra as u32, 0x49def326);
+	assert_eq!(Action::EncodeUnbond as u32, 0x2cd61217);
+	assert_eq!(Action::EncodeWithdrawUnbonded as u32, 0x2d220331);
+	assert_eq!(Action::EncodeValidate as u32, 0x3a0d803a);
+	assert_eq!(Action::EncodeNominate as u32, 0xa7cb124b);
+	assert_eq!(Action::EncodeChill as u32, 0xbc4b2187);
+	assert_eq!(Action::EncodeSetPayee as u32, 0x9801b147);
+	assert_eq!(Action::EncodeSetController as u32, 0x7a8f48c2);
+	assert_eq!(Action::EncodeRebond as u32, 0xadd6b3bf);
 }
 
 #[test]
 fn selector_less_than_four_bytes() {
 	ExtBuilder::default().build().execute_with(|| {
-		// This selector is only three bytes long when four are required.
-		let bogus_selector = vec![1u8, 2u8, 3u8];
-
-		assert_matches!(
-			precompiles().execute(
-				precompile_address(),
-				&bogus_selector,
-				None,
-				&evm_test_context(),
-				false,
-			),
-			Some(Err(PrecompileFailure::Revert { output, .. }))
-			if &output == b"tried to parse selector out of bounds"
-		);
+		precompiles()
+			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8])
+			.execute_reverts(|output| output == b"tried to parse selector out of bounds");
 	});
 }
 
 #[test]
 fn no_selector_exists_but_length_is_right() {
 	ExtBuilder::default().build().execute_with(|| {
-		let bogus_selector = vec![1u8, 2u8, 3u8, 4u8];
-
-		assert_matches!(
-			precompiles().execute(
-				precompile_address(),
-				&bogus_selector,
-				None,
-				&evm_test_context(),
-				false,
-			),
-			Some(Err(PrecompileFailure::Revert { output, ..}))
-			if &output == b"unknown selector"
-		);
+		precompiles()
+			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8, 4u8])
+			.execute_reverts(|output| output == b"unknown selector");
 	});
 }
 
@@ -156,40 +69,30 @@ fn test_encode_bond() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let controller_address: H256 = [1u8; 32].into();
-			let amount: U256 = 100u32.into();
-
-			let input_data = EvmDataWriter::new_with_selector(Action::EncodeBond)
-				.write(controller_address)
-				.write(amount)
-				.write(RewardDestinationWrapper(RewardDestination::Controller))
-				.build();
-
-			let expected_bytes: Bytes = TestEncoder::encode_call(AvailableStakeCalls::Bond(
-				[1u8; 32].into(),
-				100u32.into(),
-				RewardDestination::Controller,
-			))
-			.as_slice()
-			.into();
-
-			let expected_result = Some(Ok(PrecompileOutput {
-				exit_status: ExitSucceed::Returned,
-				output: EvmDataWriter::new().write(expected_bytes).build(),
-				cost: Default::default(),
-				logs: Default::default(),
-			}));
-
-			assert_eq!(
-				precompiles().execute(
-					precompile_address(),
-					&input_data,
-					None,
-					&evm_test_context(),
-					false
-				),
-				expected_result
-			);
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile,
+					EvmDataWriter::new_with_selector(Action::EncodeBond)
+						.write(H256::from([1u8; 32]))
+						.write(U256::from(100))
+						.write(RewardDestinationWrapper(RewardDestination::Controller))
+						.build(),
+				)
+				.expect_cost(0) // TODO: Test db read/write costs
+				.expect_no_logs()
+				.execute_returns(
+					EvmDataWriter::new()
+						.write(Bytes::from(
+							TestEncoder::encode_call(AvailableStakeCalls::Bond(
+								[1u8; 32].into(),
+								100u32.into(),
+								RewardDestination::Controller,
+							))
+							.as_slice(),
+						))
+						.build(),
+				);
 		});
 }
 
@@ -199,33 +102,24 @@ fn test_encode_bond_more() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let amount: U256 = 100u32.into();
-			let input_data = EvmDataWriter::new_with_selector(Action::EncodeBondExtra)
-				.write(amount)
-				.build();
-
-			let expected_bytes: Bytes =
-				TestEncoder::encode_call(AvailableStakeCalls::BondExtra(100u32.into()))
-					.as_slice()
-					.into();
-
-			let expected_result = Some(Ok(PrecompileOutput {
-				exit_status: ExitSucceed::Returned,
-				output: EvmDataWriter::new().write(expected_bytes).build(),
-				cost: Default::default(),
-				logs: Default::default(),
-			}));
-
-			assert_eq!(
-				precompiles().execute(
-					precompile_address(),
-					&input_data,
-					None,
-					&evm_test_context(),
-					false
-				),
-				expected_result
-			);
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile,
+					EvmDataWriter::new_with_selector(Action::EncodeBondExtra)
+						.write(U256::from(100))
+						.build(),
+				)
+				.expect_cost(0) // TODO: Test db read/write costs
+				.expect_no_logs()
+				.execute_returns(
+					EvmDataWriter::new()
+						.write(Bytes::from(
+							TestEncoder::encode_call(AvailableStakeCalls::BondExtra(100u32.into()))
+								.as_slice(),
+						))
+						.build(),
+				);
 		});
 }
 
@@ -235,29 +129,21 @@ fn test_encode_chill() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let input_data = EvmDataWriter::new_with_selector(Action::EncodeChill).build();
-
-			let expected_bytes: Bytes = TestEncoder::encode_call(AvailableStakeCalls::Chill)
-				.as_slice()
-				.into();
-
-			let expected_result = Some(Ok(PrecompileOutput {
-				exit_status: ExitSucceed::Returned,
-				output: EvmDataWriter::new().write(expected_bytes).build(),
-				cost: Default::default(),
-				logs: Default::default(),
-			}));
-
-			assert_eq!(
-				precompiles().execute(
-					precompile_address(),
-					&input_data,
-					None,
-					&evm_test_context(),
-					false
-				),
-				expected_result
-			);
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile,
+					EvmDataWriter::new_with_selector(Action::EncodeChill).build(),
+				)
+				.expect_cost(0) // TODO: Test db read/write costs
+				.expect_no_logs()
+				.execute_returns(
+					EvmDataWriter::new()
+						.write(Bytes::from(
+							TestEncoder::encode_call(AvailableStakeCalls::Chill).as_slice(),
+						))
+						.build(),
+				);
 		});
 }
 
@@ -267,37 +153,27 @@ fn test_encode_nominate() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let array: Vec<H256> = vec![[1u8; 32].into(), [2u8; 32].into()];
-
-			let input_data = EvmDataWriter::new_with_selector(Action::EncodeNominate)
-				.write(array)
-				.build();
-
-			let expected_bytes: Bytes =
-				TestEncoder::encode_call(AvailableStakeCalls::Nominate(vec![
-					[1u8; 32].into(),
-					[2u8; 32].into(),
-				]))
-				.as_slice()
-				.into();
-
-			let expected_result = Some(Ok(PrecompileOutput {
-				exit_status: ExitSucceed::Returned,
-				output: EvmDataWriter::new().write(expected_bytes).build(),
-				cost: Default::default(),
-				logs: Default::default(),
-			}));
-
-			assert_eq!(
-				precompiles().execute(
-					precompile_address(),
-					&input_data,
-					None,
-					&evm_test_context(),
-					false
-				),
-				expected_result
-			);
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile,
+					EvmDataWriter::new_with_selector(Action::EncodeNominate)
+						.write(vec![H256::from([1u8; 32]), H256::from([2u8; 32])])
+						.build(),
+				)
+				.expect_cost(0) // TODO: Test db read/write costs
+				.expect_no_logs()
+				.execute_returns(
+					EvmDataWriter::new()
+						.write(Bytes::from(
+							TestEncoder::encode_call(AvailableStakeCalls::Nominate(vec![
+								[1u8; 32].into(),
+								[2u8; 32].into(),
+							]))
+							.as_slice(),
+						))
+						.build(),
+				);
 		});
 }
 
@@ -307,34 +183,24 @@ fn test_encode_rebond() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let amount: U256 = 100u32.into();
-
-			let input_data = EvmDataWriter::new_with_selector(Action::EncodeRebond)
-				.write(amount)
-				.build();
-
-			let expected_bytes: Bytes =
-				TestEncoder::encode_call(AvailableStakeCalls::Rebond(100u128))
-					.as_slice()
-					.into();
-
-			let expected_result = Some(Ok(PrecompileOutput {
-				exit_status: ExitSucceed::Returned,
-				output: EvmDataWriter::new().write(expected_bytes).build(),
-				cost: Default::default(),
-				logs: Default::default(),
-			}));
-
-			assert_eq!(
-				precompiles().execute(
-					precompile_address(),
-					&input_data,
-					None,
-					&evm_test_context(),
-					false
-				),
-				expected_result
-			);
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile,
+					EvmDataWriter::new_with_selector(Action::EncodeRebond)
+						.write(U256::from(100))
+						.build(),
+				)
+				.expect_cost(0) // TODO: Test db read/write costs
+				.expect_no_logs()
+				.execute_returns(
+					EvmDataWriter::new()
+						.write(Bytes::from(
+							TestEncoder::encode_call(AvailableStakeCalls::Rebond(100u128))
+								.as_slice(),
+						))
+						.build(),
+				);
 		});
 }
 
@@ -344,34 +210,26 @@ fn test_encode_set_controller() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let controller: H256 = [1u8; 32].into();
-
-			let input_data = EvmDataWriter::new_with_selector(Action::EncodeSetController)
-				.write(controller)
-				.build();
-
-			let expected_bytes: Bytes =
-				TestEncoder::encode_call(AvailableStakeCalls::SetController([1u8; 32].into()))
-					.as_slice()
-					.into();
-
-			let expected_result = Some(Ok(PrecompileOutput {
-				exit_status: ExitSucceed::Returned,
-				output: EvmDataWriter::new().write(expected_bytes).build(),
-				cost: Default::default(),
-				logs: Default::default(),
-			}));
-
-			assert_eq!(
-				precompiles().execute(
-					precompile_address(),
-					&input_data,
-					None,
-					&evm_test_context(),
-					false
-				),
-				expected_result
-			);
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile,
+					EvmDataWriter::new_with_selector(Action::EncodeSetController)
+						.write(H256::from([1u8; 32]))
+						.build(),
+				)
+				.expect_cost(0) // TODO: Test db read/write costs
+				.expect_no_logs()
+				.execute_returns(
+					EvmDataWriter::new()
+						.write(Bytes::from(
+							TestEncoder::encode_call(AvailableStakeCalls::SetController(
+								[1u8; 32].into(),
+							))
+							.as_slice(),
+						))
+						.build(),
+				)
 		});
 }
 
@@ -381,33 +239,26 @@ fn test_encode_set_payee() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let input_data = EvmDataWriter::new_with_selector(Action::EncodeSetPayee)
-				.write(RewardDestinationWrapper(RewardDestination::Controller))
-				.build();
-
-			let expected_bytes: Bytes = TestEncoder::encode_call(AvailableStakeCalls::SetPayee(
-				RewardDestination::Controller,
-			))
-			.as_slice()
-			.into();
-
-			let expected_result = Some(Ok(PrecompileOutput {
-				exit_status: ExitSucceed::Returned,
-				output: EvmDataWriter::new().write(expected_bytes).build(),
-				cost: Default::default(),
-				logs: Default::default(),
-			}));
-
-			assert_eq!(
-				precompiles().execute(
-					precompile_address(),
-					&input_data,
-					None,
-					&evm_test_context(),
-					false
-				),
-				expected_result
-			);
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile,
+					EvmDataWriter::new_with_selector(Action::EncodeSetPayee)
+						.write(RewardDestinationWrapper(RewardDestination::Controller))
+						.build(),
+				)
+				.expect_cost(0) // TODO: Test db read/write costs
+				.expect_no_logs()
+				.execute_returns(
+					EvmDataWriter::new()
+						.write(Bytes::from(
+							TestEncoder::encode_call(AvailableStakeCalls::SetPayee(
+								RewardDestination::Controller,
+							))
+							.as_slice(),
+						))
+						.build(),
+				);
 		});
 }
 
@@ -417,36 +268,24 @@ fn test_encode_unbond() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let amount: U256 = 100u32.into();
-
-			let input_data = EvmDataWriter::new_with_selector(Action::EncodeUnbond)
-				.write(amount)
-				.build();
-
-			let expected_bytes: Bytes =
-				TestEncoder::encode_call(AvailableStakeCalls::Unbond(100u32.into()))
-					.as_slice()
-					.into();
-
-			// Expected result is one
-			let expected_result = Some(Ok(PrecompileOutput {
-				exit_status: ExitSucceed::Returned,
-				output: EvmDataWriter::new().write(expected_bytes).build(),
-				cost: Default::default(),
-				logs: Default::default(),
-			}));
-
-			// Assert that no props have been opened.
-			assert_eq!(
-				precompiles().execute(
-					precompile_address(),
-					&input_data,
-					None,
-					&evm_test_context(),
-					false
-				),
-				expected_result
-			);
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile,
+					EvmDataWriter::new_with_selector(Action::EncodeUnbond)
+						.write(U256::from(100))
+						.build(),
+				)
+				.expect_cost(0) // TODO: Test db read/write costs
+				.expect_no_logs()
+				.execute_returns(
+					EvmDataWriter::new()
+						.write(Bytes::from(
+							TestEncoder::encode_call(AvailableStakeCalls::Unbond(100u32.into()))
+								.as_slice(),
+						))
+						.build(),
+				);
 		});
 }
 
@@ -456,41 +295,30 @@ fn test_encode_validate() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let amount: U256 = 100u32.into();
-			let blocked = true;
-
-			let input_data = EvmDataWriter::new_with_selector(Action::EncodeValidate)
-				.write(amount)
-				.write(blocked)
-				.build();
-
-			let expected_bytes: Bytes =
-				TestEncoder::encode_call(AvailableStakeCalls::Validate(ValidatorPrefs {
-					commission: Perbill::from_parts(100u32.into()),
-					blocked: true,
-				}))
-				.as_slice()
-				.into();
-
-			// Expected result is one
-			let expected_result = Some(Ok(PrecompileOutput {
-				exit_status: ExitSucceed::Returned,
-				output: EvmDataWriter::new().write(expected_bytes).build(),
-				cost: Default::default(),
-				logs: Default::default(),
-			}));
-
-			// Assert that no props have been opened.
-			assert_eq!(
-				precompiles().execute(
-					precompile_address(),
-					&input_data,
-					None,
-					&evm_test_context(),
-					false
-				),
-				expected_result
-			);
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile,
+					EvmDataWriter::new_with_selector(Action::EncodeValidate)
+						.write(U256::from(100))
+						.write(true)
+						.build(),
+				)
+				.expect_cost(0) // TODO: Test db read/write costs
+				.expect_no_logs()
+				.execute_returns(
+					EvmDataWriter::new()
+						.write(Bytes::from(
+							TestEncoder::encode_call(AvailableStakeCalls::Validate(
+								ValidatorPrefs {
+									commission: Perbill::from_parts(100u32.into()),
+									blocked: true,
+								},
+							))
+							.as_slice(),
+						))
+						.build(),
+				);
 		});
 }
 
@@ -500,34 +328,25 @@ fn test_encode_withdraw_unbonded() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let amount: U256 = 100u32.into();
-
-			let input_data = EvmDataWriter::new_with_selector(Action::EncodeWithdrawUnbonded)
-				.write(amount)
-				.build();
-
-			// Ethereum style
-			let expected_bytes: Bytes =
-				TestEncoder::encode_call(AvailableStakeCalls::WithdrawUnbonded(100u32.into()))
-					.as_slice()
-					.into();
-
-			let expected_result = Some(Ok(PrecompileOutput {
-				exit_status: ExitSucceed::Returned,
-				output: EvmDataWriter::new().write(expected_bytes).build(),
-				cost: Default::default(),
-				logs: Default::default(),
-			}));
-
-			assert_eq!(
-				precompiles().execute(
-					precompile_address(),
-					&input_data,
-					None,
-					&evm_test_context(),
-					false
-				),
-				expected_result
-			);
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile,
+					EvmDataWriter::new_with_selector(Action::EncodeWithdrawUnbonded)
+						.write(U256::from(100))
+						.build(),
+				)
+				.expect_cost(0) // TODO: Test db read/write costs
+				.expect_no_logs()
+				.execute_returns(
+					EvmDataWriter::new()
+						.write(Bytes::from(
+							TestEncoder::encode_call(AvailableStakeCalls::WithdrawUnbonded(
+								100u32.into(),
+							))
+							.as_slice(),
+						))
+						.build(),
+				);
 		});
 }

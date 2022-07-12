@@ -68,7 +68,7 @@ impl From<[u8; 20]> for AccountId20 {
 }
 
 impl Into<[u8; 20]> for AccountId20 {
-	fn into(self: Self) -> [u8; 20] {
+	fn into(self) -> [u8; 20] {
 		self.0
 	}
 }
@@ -80,7 +80,7 @@ impl From<H160> for AccountId20 {
 }
 
 impl Into<H160> for AccountId20 {
-	fn into(self: Self) -> H160 {
+	fn into(self) -> H160 {
 		H160(self.0)
 	}
 }

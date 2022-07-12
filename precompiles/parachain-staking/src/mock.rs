@@ -22,10 +22,12 @@ use frame_support::{
 	traits::{Everything, GenesisBuild, OnFinalize, OnInitialize},
 	weights::Weight,
 };
-use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet};
-use parachain_staking::{AwardedPts, InflationInfo, Points, Range};
+use pallet_evm::{
+	AddressMapping, EnsureAddressNever, EnsureAddressRoot, Precompile, PrecompileSet,
+};
+use pallet_parachain_staking::{AwardedPts, InflationInfo, Points, Range};
 use serde::{Deserialize, Serialize};
-use sp_core::{H160, H256};
+use sp_core::{H160, H256, U256};
 use sp_io;
 use sp_runtime::{
 	testing::Header,
@@ -33,7 +35,7 @@ use sp_runtime::{
 	Perbill, Percent,
 };
 
-pub type AccountId = TestAccount;
+pub type AccountId = Account;
 pub type Balance = u128;
 pub type BlockNumber = u64;
 
@@ -50,7 +52,7 @@ construct_runtime!(
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		Evm: pallet_evm::{Pallet, Call, Storage, Event<T>},
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
-		ParachainStaking: parachain_staking::{Pallet, Call, Storage, Config<T>, Event<T>},
+		ParachainStaking: pallet_parachain_staking::{Pallet, Call, Storage, Config<T>, Event<T>},
 	}
 );
 
@@ -70,44 +72,47 @@ construct_runtime!(
 	derive_more::Display,
 	scale_info::TypeInfo,
 )]
-pub enum TestAccount {
+pub enum Account {
 	Alice,
 	Bob,
 	Charlie,
 	Bogus,
+	Precompile,
 }
 
-impl Default for TestAccount {
+impl Default for Account {
 	fn default() -> Self {
 		Self::Bogus
 	}
 }
 
-impl AddressMapping<TestAccount> for TestAccount {
-	fn into_account_id(h160_account: H160) -> TestAccount {
+impl Into<H160> for Account {
+	fn into(self) -> H160 {
+		match self {
+			Account::Alice => H160::repeat_byte(0xAA),
+			Account::Bob => H160::repeat_byte(0xBB),
+			Account::Charlie => H160::repeat_byte(0xCC),
+			Account::Bogus => H160::repeat_byte(0xDD),
+			Account::Precompile => H160::from_low_u64_be(1),
+		}
+	}
+}
+
+impl AddressMapping<Account> for Account {
+	fn into_account_id(h160_account: H160) -> Account {
 		match h160_account {
 			a if a == H160::repeat_byte(0xAA) => Self::Alice,
 			a if a == H160::repeat_byte(0xBB) => Self::Bob,
 			a if a == H160::repeat_byte(0xCC) => Self::Charlie,
+			a if a == H160::from_low_u64_be(1) => Self::Precompile,
 			_ => Self::Bogus,
 		}
 	}
 }
 
-impl TestAccount {
-	pub(crate) fn to_h160(&self) -> H160 {
-		match self {
-			Self::Alice => H160::repeat_byte(0xAA),
-			Self::Bob => H160::repeat_byte(0xBB),
-			Self::Charlie => H160::repeat_byte(0xCC),
-			Self::Bogus => Default::default(),
-		}
-	}
-}
-
-impl From<H160> for TestAccount {
-	fn from(x: H160) -> TestAccount {
-		TestAccount::into_account_id(x)
+impl From<H160> for Account {
+	fn from(x: H160) -> Account {
+		Account::into_account_id(x)
 	}
 }
 
@@ -142,6 +147,7 @@ impl frame_system::Config for Runtime {
 	type BlockLength = ();
 	type SS58Prefix = SS58Prefix;
 	type OnSetCode = ();
+	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 parameter_types! {
 	pub const ExistentialDeposit: u128 = 1;
@@ -170,18 +176,9 @@ impl<R> PrecompileSet for TestPrecompiles<R>
 where
 	ParachainStakingWrapper<R>: Precompile,
 {
-	fn execute(
-		&self,
-		address: H160,
-		input: &[u8],
-		target_gas: Option<u64>,
-		context: &Context,
-		is_static: bool,
-	) -> Option<EvmResult<PrecompileOutput>> {
-		match address {
-			a if a == precompile_address() => Some(ParachainStakingWrapper::<R>::execute(
-				input, target_gas, context, is_static,
-			)),
+	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<EvmResult<PrecompileOutput>> {
+		match handle.code_address() {
+			a if a == precompile_address() => Some(ParachainStakingWrapper::<R>::execute(handle)),
 			_ => None,
 		}
 	}
@@ -192,6 +189,7 @@ where
 }
 
 parameter_types! {
+	pub BlockGasLimit: U256 = U256::max_value();
 	pub PrecompilesValue: TestPrecompiles<Runtime> = TestPrecompiles(Default::default());
 }
 
@@ -208,7 +206,7 @@ impl pallet_evm::Config for Runtime {
 	type PrecompilesValue = PrecompilesValue;
 	type ChainId = ();
 	type OnChargeTransaction = ();
-	type BlockGasLimit = ();
+	type BlockGasLimit = BlockGasLimit;
 	type BlockHashMapping = pallet_evm::SubstrateBlockHashMapping<Self>;
 	type FindAuthor = ();
 }
@@ -242,7 +240,7 @@ parameter_types! {
 	pub const MinDelegatorStk: u128 = 5;
 	pub const MinDelegation: u128 = 3;
 }
-impl parachain_staking::Config for Runtime {
+impl pallet_parachain_staking::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
 	type MonetaryGovernanceOrigin = frame_system::EnsureRoot<AccountId>;
@@ -264,6 +262,8 @@ impl parachain_staking::Config for Runtime {
 	type MinCandidateStk = MinCollatorStk;
 	type MinDelegatorStk = MinDelegatorStk;
 	type MinDelegation = MinDelegation;
+	type OnCollatorPayout = ();
+	type OnNewRound = ();
 	type WeightInfo = ();
 }
 
@@ -342,7 +342,7 @@ impl ExtBuilder {
 		}
 		.assimilate_storage(&mut t)
 		.expect("Pallet balances storage can be assimilated");
-		parachain_staking::GenesisConfig::<Runtime> {
+		pallet_parachain_staking::GenesisConfig::<Runtime> {
 			candidates: self.collators,
 			delegations: self.delegations,
 			inflation_config: self.inflation,
@@ -357,7 +357,7 @@ impl ExtBuilder {
 }
 
 // Sets the same storage changes as EventHandler::note_author impl
-pub(crate) fn set_points(round: u32, acc: TestAccount, pts: u32) {
+pub(crate) fn set_points(round: u32, acc: Account, pts: u32) {
 	<Points<Runtime>>::mutate(round, |p| *p += pts);
 	<AwardedPts<Runtime>>::mutate(round, acc, |p| *p += pts);
 }
@@ -374,20 +374,16 @@ pub(crate) fn roll_to(n: u64) {
 	}
 }
 
+/// Rolls block-by-block to the beginning of the specified round.
+/// This will complete the block in which the round change occurs.
+pub(crate) fn roll_to_round_begin(round: u64) {
+	let block = (round - 1) * DefaultBlocksPerRound::get() as u64;
+	roll_to(block)
+}
+
 pub(crate) fn events() -> Vec<Event> {
 	System::events()
 		.into_iter()
 		.map(|r| r.event)
 		.collect::<Vec<_>>()
-}
-
-// Helper function to give a simple evm context suitable for tests.
-// We can remove this once https://github.com/rust-blockchain/evm/pull/35
-// is in our dependency graph.
-pub fn evm_test_context() -> fp_evm::Context {
-	fp_evm::Context {
-		address: Default::default(),
-		caller: Default::default(),
-		apparent_value: From::from(0),
-	}
 }

@@ -14,20 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use std::assert_matches::assert_matches;
-
 use crate::mock::{
-	events, evm_test_context, precompile_address, roll_to, Call, Crowdloan, ExtBuilder, Origin,
-	PrecompilesValue, Runtime, TestAccount::Alice, TestAccount::Bob, TestAccount::Charlie,
-	TestPrecompiles,
+	events, roll_to,
+	Account::{Alice, Bob, Charlie, Precompile},
+	Call, Crowdloan, ExtBuilder, Origin, PrecompilesValue, Runtime, TestPrecompiles,
 };
-use crate::{Action, PrecompileOutput};
-use fp_evm::PrecompileFailure;
+use crate::Action;
 use frame_support::{assert_ok, dispatch::Dispatchable};
-use num_enum::TryFromPrimitive;
 use pallet_crowdloan_rewards::{Call as CrowdloanCall, Event as CrowdloanEvent};
-use pallet_evm::{Call as EvmCall, ExitSucceed, PrecompileSet};
-use precompile_utils::{Address, EvmDataWriter};
+use pallet_evm::Call as EvmCall;
+use precompile_utils::{prelude::*, testing::*};
 use sha3::{Digest, Keccak256};
 use sp_core::{H160, U256};
 
@@ -38,7 +34,7 @@ fn precompiles() -> TestPrecompiles<Runtime> {
 fn evm_call(input: Vec<u8>) -> EvmCall<Runtime> {
 	EvmCall::call {
 		source: Alice.into(),
-		target: precompile_address(),
+		target: Precompile.into(),
 		input,
 		value: U256::zero(), // No value sent in EVM
 		gas_limit: u64::max_value(),
@@ -51,104 +47,55 @@ fn evm_call(input: Vec<u8>) -> EvmCall<Runtime> {
 
 #[test]
 fn test_selector_enum() {
-	let mut buffer = [0u8; 4];
-	buffer.copy_from_slice(&Keccak256::digest(b"is_contributor(address)")[0..4]);
-	assert_eq!(
-		Action::try_from_primitive(u32::from_be_bytes(buffer)).unwrap(),
-		Action::IsContributor,
-	);
-	buffer.copy_from_slice(&Keccak256::digest(b"claim()")[0..4]);
-	assert_eq!(
-		Action::try_from_primitive(u32::from_be_bytes(buffer)).unwrap(),
-		Action::Claim,
-	);
-	buffer.copy_from_slice(&Keccak256::digest(b"reward_info(address)")[0..4]);
-	assert_eq!(
-		Action::try_from_primitive(u32::from_be_bytes(buffer)).unwrap(),
-		Action::RewardInfo,
-	);
-	buffer.copy_from_slice(&Keccak256::digest(b"update_reward_address(address)")[0..4]);
-	assert_eq!(
-		Action::try_from_primitive(u32::from_be_bytes(buffer)).unwrap(),
-		Action::UpdateRewardAddress,
-	);
+	assert_eq!(Action::IsContributor as u32, 0x53440c90);
+	assert_eq!(Action::RewardInfo as u32, 0x76f70249);
+	assert_eq!(Action::Claim as u32, 0x4e71d92d);
+	assert_eq!(Action::UpdateRewardAddress as u32, 0xaaac61d6);
 }
 
 #[test]
 fn selector_less_than_four_bytes() {
 	ExtBuilder::default().build().execute_with(|| {
 		// This selector is only three bytes long when four are required.
-		let bogus_selector = vec![1u8, 2u8, 3u8];
-
-		assert_matches!(
-			precompiles().execute(
-				precompile_address(),
-				&bogus_selector,
-				None,
-				&evm_test_context(),
-				false,
-			),
-			Some(Err(PrecompileFailure::Revert { output, ..}))
-				if output == b"tried to parse selector out of bounds"
-		);
+		precompiles()
+			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8])
+			.execute_reverts(|output| output == b"tried to parse selector out of bounds");
 	});
 }
 
 #[test]
 fn no_selector_exists_but_length_is_right() {
 	ExtBuilder::default().build().execute_with(|| {
-		let bogus_selector = vec![1u8, 2u8, 3u8, 4u8];
-
-		assert_matches!(
-			precompiles().execute(
-				precompile_address(),
-				&bogus_selector,
-				None,
-				&evm_test_context(),
-				false,
-			),
-			Some(Err(PrecompileFailure::Revert { output, ..}))
-				if output == b"unknown selector",
-		);
+		precompiles()
+			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8, 4u8])
+			.execute_reverts(|output| output == b"unknown selector");
 	});
 }
 
 #[test]
 fn is_contributor_returns_false() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
+		.with_balances(vec![(Alice.into(), 1000)])
 		.build()
 		.execute_with(|| {
-			let input = EvmDataWriter::new_with_selector(Action::IsContributor)
-				.write(Address(H160::from(Alice)))
-				.build();
-
-			// Expected result is one
-			let expected_one_result = Some(Ok(PrecompileOutput {
-				exit_status: ExitSucceed::Returned,
-				output: EvmDataWriter::new().write(false).build(),
-				cost: Default::default(),
-				logs: Default::default(),
-			}));
-
-			// Assert that no props have been opened.
-			assert_eq!(
-				precompiles().execute(
-					precompile_address(),
-					&input,
-					None,
-					&evm_test_context(),
-					false
-				),
-				expected_one_result
-			);
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile,
+					EvmDataWriter::new_with_selector(Action::IsContributor)
+						.write(Address(H160::from(Alice)))
+						.build(),
+				)
+				.expect_cost(0) // TODO: Test db read/write costs
+				.expect_no_logs()
+				.execute_returns(EvmDataWriter::new().write(false).build());
 		});
 }
 
 #[test]
 fn is_contributor_returns_true() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
+		.with_balances(vec![(Alice.into(), 1000)])
 		.with_crowdloan_pot(100u32.into())
 		.build()
 		.execute_with(|| {
@@ -159,8 +106,8 @@ fn is_contributor_returns_true() {
 			let init_block = Crowdloan::init_vesting_block();
 			assert_ok!(Call::Crowdloan(CrowdloanCall::initialize_reward_vec {
 				rewards: vec![
-					([1u8; 32], Some(Alice), 50u32.into()),
-					([2u8; 32], Some(Bob), 50u32.into()),
+					([1u8; 32], Some(Alice.into()), 50u32.into()),
+					([2u8; 32], Some(Bob.into()), 50u32.into()),
 				]
 			})
 			.dispatch(Origin::root()));
@@ -170,33 +117,25 @@ fn is_contributor_returns_true() {
 				init_block + VESTING
 			));
 
-			let input = EvmDataWriter::new_with_selector(Action::IsContributor)
-				.write(Address(H160::from(Alice)))
-				.build();
-
 			// Assert that no props have been opened.
-			assert_eq!(
-				precompiles().execute(
-					precompile_address(),
-					&input,
-					None,
-					&evm_test_context(),
-					false
-				),
-				Some(Ok(PrecompileOutput {
-					exit_status: ExitSucceed::Returned,
-					output: EvmDataWriter::new().write(true).build(),
-					cost: Default::default(),
-					logs: Default::default(),
-				}))
-			);
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile,
+					EvmDataWriter::new_with_selector(Action::IsContributor)
+						.write(Address(H160::from(Alice)))
+						.build(),
+				)
+				.expect_cost(0) // TODO: Test db read/write costs
+				.expect_no_logs()
+				.execute_returns(EvmDataWriter::new().write(true).build());
 		});
 }
 
 #[test]
 fn claim_works() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
+		.with_balances(vec![(Alice.into(), 1000)])
 		.with_crowdloan_pot(100u32.into())
 		.build()
 		.execute_with(|| {
@@ -207,8 +146,8 @@ fn claim_works() {
 			let init_block = Crowdloan::init_vesting_block();
 			assert_ok!(Call::Crowdloan(CrowdloanCall::initialize_reward_vec {
 				rewards: vec![
-					([1u8; 32].into(), Some(Alice), 50u32.into()),
-					([2u8; 32].into(), Some(Bob), 50u32.into()),
+					([1u8; 32].into(), Some(Alice.into()), 50u32.into()),
+					([2u8; 32].into(), Some(Bob.into()), 50u32.into()),
 				]
 			})
 			.dispatch(Origin::root()));
@@ -225,7 +164,7 @@ fn claim_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(input)).dispatch(Origin::root()));
 
-			let expected: crate::mock::Event = CrowdloanEvent::RewardsPaid(Alice, 25).into();
+			let expected: crate::mock::Event = CrowdloanEvent::RewardsPaid(Alice.into(), 25).into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -234,7 +173,7 @@ fn claim_works() {
 #[test]
 fn reward_info_works() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
+		.with_balances(vec![(Alice.into(), 1000)])
 		.with_crowdloan_pot(100u32.into())
 		.build()
 		.execute_with(|| {
@@ -245,8 +184,8 @@ fn reward_info_works() {
 			let init_block = Crowdloan::init_vesting_block();
 			assert_ok!(Call::Crowdloan(CrowdloanCall::initialize_reward_vec {
 				rewards: vec![
-					([1u8; 32].into(), Some(Alice), 50u32.into()),
-					([2u8; 32].into(), Some(Bob), 50u32.into()),
+					([1u8; 32].into(), Some(Alice.into()), 50u32.into()),
+					([2u8; 32].into(), Some(Bob.into()), 50u32.into()),
 				]
 			})
 			.dispatch(Origin::root()));
@@ -258,36 +197,30 @@ fn reward_info_works() {
 
 			roll_to(5);
 
-			let input = EvmDataWriter::new_with_selector(Action::RewardInfo)
-				.write(Address(H160::from(Alice)))
-				.build();
-
 			// Assert that no props have been opened.
-			assert_eq!(
-				precompiles().execute(
-					precompile_address(),
-					&input,
-					None,
-					&evm_test_context(),
-					false
-				),
-				Some(Ok(PrecompileOutput {
-					exit_status: ExitSucceed::Returned,
-					output: EvmDataWriter::new()
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile,
+					EvmDataWriter::new_with_selector(Action::RewardInfo)
+						.write(Address(H160::from(Alice)))
+						.build(),
+				)
+				.expect_cost(0) // TODO: Test db read/write costs
+				.expect_no_logs()
+				.execute_returns(
+					EvmDataWriter::new()
 						.write(U256::from(50u64))
 						.write(U256::from(10u64))
 						.build(),
-					cost: Default::default(),
-					logs: Default::default(),
-				}))
-			);
+				);
 		});
 }
 
 #[test]
 fn update_reward_address_works() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
+		.with_balances(vec![(Alice.into(), 1000)])
 		.with_crowdloan_pot(100u32.into())
 		.build()
 		.execute_with(|| {
@@ -298,8 +231,8 @@ fn update_reward_address_works() {
 			let init_block = Crowdloan::init_vesting_block();
 			assert_ok!(Call::Crowdloan(CrowdloanCall::initialize_reward_vec {
 				rewards: vec![
-					([1u8; 32].into(), Some(Alice), 50u32.into()),
-					([2u8; 32].into(), Some(Bob), 50u32.into()),
+					([1u8; 32].into(), Some(Alice.into()), 50u32.into()),
+					([2u8; 32].into(), Some(Bob.into()), 50u32.into()),
 				]
 			})
 			.dispatch(Origin::root()));
@@ -319,35 +252,27 @@ fn update_reward_address_works() {
 			assert_ok!(Call::Evm(evm_call(input)).dispatch(Origin::root()));
 
 			let expected: crate::mock::Event =
-				CrowdloanEvent::RewardAddressUpdated(Alice, Charlie).into();
+				CrowdloanEvent::RewardAddressUpdated(Alice.into(), Charlie.into()).into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 			// Assert storage is correctly moved
-			assert!(Crowdloan::accounts_payable(Alice).is_none());
-			assert!(Crowdloan::accounts_payable(Charlie).is_some());
+			assert!(Crowdloan::accounts_payable(H160::from(Alice)).is_none());
+			assert!(Crowdloan::accounts_payable(H160::from(Charlie)).is_some());
 		});
 }
 
 #[test]
 fn test_bound_checks_for_address_parsing() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
+		.with_balances(vec![(Alice.into(), 1000)])
 		.with_crowdloan_pot(100u32.into())
 		.build()
 		.execute_with(|| {
 			let mut input = Keccak256::digest(b"update_reward_address(address)")[0..4].to_vec();
 			input.extend_from_slice(&[1u8; 4]); // incomplete data
 
-			assert_matches!(
-				precompiles().execute(
-					precompile_address(),
-					&input,
-					None,
-					&evm_test_context(),
-					false
-				),
-				Some(Err(PrecompileFailure::Revert { output, ..}))
-				if output == b"input doesn't match expected length",
-			);
+			precompiles()
+				.prepare_test(Alice, Precompile, input)
+				.execute_reverts(|output| output == b"input doesn't match expected length")
 		})
 }

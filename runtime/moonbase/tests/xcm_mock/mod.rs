@@ -17,9 +17,8 @@
 pub mod parachain;
 pub mod relay_chain;
 pub mod statemint_like;
-
 use cumulus_primitives_core::ParaId;
-use polkadot_parachain::primitives::AccountIdConversion;
+use sp_runtime::traits::AccountIdConversion;
 use sp_runtime::AccountId32;
 use xcm_simulator::{decl_test_network, decl_test_parachain, decl_test_relay_chain};
 
@@ -30,7 +29,11 @@ pub const PARAALICE: [u8; 20] = [1u8; 20];
 pub const RELAYALICE: AccountId32 = AccountId32::new([0u8; 32]);
 
 pub fn para_a_account() -> AccountId32 {
-	ParaId::from(1).into_account()
+	ParaId::from(1).into_account_truncating()
+}
+
+pub fn para_a_account_20() -> parachain::AccountId {
+	ParaId::from(1).into_account_truncating()
 }
 
 pub fn evm_account() -> H160 {
@@ -115,7 +118,7 @@ pub fn para_ext(para_id: u32) -> sp_io::TestExternalities {
 	let mut evm_accounts = BTreeMap::new();
 	evm_accounts.insert(
 		evm_account(),
-		pallet_evm::GenesisAccount {
+		fp_evm::GenesisAccount {
 			nonce: U256::from(INITIAL_EVM_NONCE),
 			balance: U256::from(INITIAL_EVM_BALANCE),
 			storage: Default::default(),
@@ -187,10 +190,13 @@ pub type StatemintChainPalletXcm = pallet_xcm::Pallet<statemint_like::Runtime>;
 pub type StatemintAssets = pallet_assets::Pallet<statemint_like::Runtime>;
 
 pub type ParachainPalletXcm = pallet_xcm::Pallet<parachain::Runtime>;
-pub type Assets = pallet_assets::Pallet<parachain::Runtime>;
+pub type Assets = pallet_assets::Pallet<parachain::Runtime, parachain::ForeignAssetInstance>;
+pub type LocalAssets = pallet_assets::Pallet<parachain::Runtime, parachain::LocalAssetInstance>;
+
+pub type Balances = pallet_balances::Pallet<parachain::Runtime>;
 pub type Treasury = pallet_treasury::Pallet<parachain::Runtime>;
 pub type AssetManager = pallet_asset_manager::Pallet<parachain::Runtime>;
 pub type XTokens = orml_xtokens::Pallet<parachain::Runtime>;
 pub type RelayBalances = pallet_balances::Pallet<relay_chain::Runtime>;
 pub type ParaBalances = pallet_balances::Pallet<parachain::Runtime>;
-pub type XcmTransactor = xcm_transactor::Pallet<parachain::Runtime>;
+pub type XcmTransactor = pallet_xcm_transactor::Pallet<parachain::Runtime>;

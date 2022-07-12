@@ -21,6 +21,22 @@
         "type": "function"
       },
       {
+        "inputs": [],
+        "name": "remove_keys",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "bytes", "name": "keys", "type": "bytes" }
+        ],
+        "name": "set_keys",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
         "inputs": [
           {
             "internalType": "bytes32",
@@ -48,6 +64,7 @@
         "clear_association(bytes32)": {
           "params": { "nimbus_id": "The nimbusId to be cleared" }
         },
+        "set_keys(bytes)": { "params": { "keys": "The new session keys" } },
         "update_association(bytes32,bytes32)": {
           "params": {
             "new_nimbus_id": "The new nimbusId to be associated",
@@ -55,7 +72,7 @@
           }
         }
       },
-      "title": "Pallet AuthorMapping Interface The interface through which solidity contracts will interact with pallet-author.mapping",
+      "title": "Pallet AuthorMapping Interface The interface through which solidity contracts will interact with pallet-author.mapping Address :    0x0000000000000000000000000000000000000807",
       "version": 1
     },
     "evm": {
@@ -82,21 +99,25 @@
       "methodIdentifiers": {
         "add_association(bytes32)": "aa5ac585",
         "clear_association(bytes32)": "7354c91d",
+        "remove_keys()": "3b6c4284",
+        "set_keys(bytes)": "bcb24ddc",
         "update_association(bytes32,bytes32)": "d9cef879"
       }
     },
     "ewasm": { "wasm": "" },
-    "metadata": "{\"compiler\":{\"version\":\"0.8.10+commit.fc410830\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"nimbus_id\",\"type\":\"bytes32\"}],\"name\":\"add_association\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"nimbus_id\",\"type\":\"bytes32\"}],\"name\":\"clear_association\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"old_nimbus_id\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"new_nimbus_id\",\"type\":\"bytes32\"}],\"name\":\"update_association\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"add_association(bytes32)\":{\"params\":{\"nimbus_id\":\"The nimbusId to be associated\"}},\"clear_association(bytes32)\":{\"params\":{\"nimbus_id\":\"The nimbusId to be cleared\"}},\"update_association(bytes32,bytes32)\":{\"params\":{\"new_nimbus_id\":\"The new nimbusId to be associated\",\"old_nimbus_id\":\"The old nimbusId to be replaced\"}}},\"title\":\"Pallet AuthorMapping Interface The interface through which solidity contracts will interact with pallet-author.mapping\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"add_association(bytes32)\":{\"notice\":\"Add association Selector: aa5ac585   \"},\"clear_association(bytes32)\":{\"notice\":\"Clear existing associationg Selector: 7354c91d\"},\"update_association(bytes32,bytes32)\":{\"notice\":\"Update existing association Selector: d9cef879\"}},\"version\":1}},\"settings\":{\"compilationTarget\":{\"main.sol\":\"AuthorMapping\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"main.sol\":{\"keccak256\":\"0xc4e97f608af8bc5ff49b3f43e1e3014fc00bedc0fda5f33c8a807b467097995c\",\"urls\":[\"bzz-raw://240a3a86196164e168ce024af0e5d94592e7f16e512785353964e6e1d1e4f79f\",\"dweb:/ipfs/QmXZGwpd4dFYkcfhhgpM7jAhfqYnm3szvbH4h7xQkD2gL8\"]}},\"version\":1}",
+    "metadata": "{\"compiler\":{\"version\":\"0.8.11+commit.d7f03943\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"nimbus_id\",\"type\":\"bytes32\"}],\"name\":\"add_association\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"nimbus_id\",\"type\":\"bytes32\"}],\"name\":\"clear_association\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"remove_keys\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"keys\",\"type\":\"bytes\"}],\"name\":\"set_keys\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"old_nimbus_id\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"new_nimbus_id\",\"type\":\"bytes32\"}],\"name\":\"update_association\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"add_association(bytes32)\":{\"params\":{\"nimbus_id\":\"The nimbusId to be associated\"}},\"clear_association(bytes32)\":{\"params\":{\"nimbus_id\":\"The nimbusId to be cleared\"}},\"set_keys(bytes)\":{\"params\":{\"keys\":\"The new session keys\"}},\"update_association(bytes32,bytes32)\":{\"params\":{\"new_nimbus_id\":\"The new nimbusId to be associated\",\"old_nimbus_id\":\"The old nimbusId to be replaced\"}}},\"title\":\"Pallet AuthorMapping Interface The interface through which solidity contracts will interact with pallet-author.mapping Address :    0x0000000000000000000000000000000000000807\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"add_association(bytes32)\":{\"notice\":\"Add association Selector: aa5ac585\"},\"clear_association(bytes32)\":{\"notice\":\"Clear existing association Selector: 7354c91d\"},\"remove_keys()\":{\"notice\":\"Remove keys Selector: 3b6c4284\"},\"set_keys(bytes)\":{\"notice\":\"Set keys Selector: bcb24ddc\"},\"update_association(bytes32,bytes32)\":{\"notice\":\"Update existing association Selector: d9cef879\"}},\"version\":1}},\"settings\":{\"compilationTarget\":{\"main.sol\":\"AuthorMapping\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"main.sol\":{\"keccak256\":\"0x72e9576fd1c0deecbdbef4b5649da42d7cb4b487ba7f9dd766dc8526353a52a8\",\"license\":\"GPL-3.0-only\",\"urls\":[\"bzz-raw://678fe86166cf7a8af1cd3c1fc04ae56db0639fd2fa0317022b767ca657176a85\",\"dweb:/ipfs/QmZaWnDsANKyjBkb9yYasAudDrszENQ73a4REnCQQ6o5EE\"]}},\"version\":1}",
     "storageLayout": { "storage": [], "types": null },
     "userdoc": {
       "kind": "user",
       "methods": {
         "add_association(bytes32)": {
-          "notice": "Add association Selector: aa5ac585   "
+          "notice": "Add association Selector: aa5ac585"
         },
         "clear_association(bytes32)": {
-          "notice": "Clear existing associationg Selector: 7354c91d"
+          "notice": "Clear existing association Selector: 7354c91d"
         },
+        "remove_keys()": { "notice": "Remove keys Selector: 3b6c4284" },
+        "set_keys(bytes)": { "notice": "Set keys Selector: bcb24ddc" },
         "update_association(bytes32,bytes32)": {
           "notice": "Update existing association Selector: d9cef879"
         }
@@ -104,5 +125,5 @@
       "version": 1
     }
   },
-  "sourceCode": "\n    pragma solidity >=0.8.0;\n\n    /**\n     * @title Pallet AuthorMapping Interface\n     *\n     * The interface through which solidity contracts will interact with pallet-author.mapping\n     */\n    interface AuthorMapping {\n        /**\n         * Add association\n         * Selector: aa5ac585   \n         *\n         * @param nimbus_id The nimbusId to be associated\n         */\n        function add_association(bytes32 nimbus_id) external;\n\n        /**\n         * Update existing association\n         * Selector: d9cef879\n         *\n         * @param old_nimbus_id The old nimbusId to be replaced\n         * @param new_nimbus_id The new nimbusId to be associated\n         */\n        function update_association(bytes32 old_nimbus_id, bytes32 new_nimbus_id) external;\n\n        /**\n         * Clear existing associationg\n         * Selector: 7354c91d\n         *\n         * @param nimbus_id The nimbusId to be cleared\n         */\n        function clear_association(bytes32 nimbus_id) external;\n    }\n\n\n    contract AuthorMappingInstance is AuthorMapping {\n\n        /// The Xtokens wrapper at the known pre-compile address.\n        AuthorMapping public author_mapping = AuthorMapping(0x0000000000000000000000000000000000000807);\n\n            function add_association(\n                bytes32 nimbus_id\n            ) override external {\n                author_mapping.add_association(nimbus_id);\n            }\n            function update_association(\n                bytes32 old_nimbus_id,\n                bytes32 new_nimbus_id\n            ) override external {\n                author_mapping.update_association(old_nimbus_id, new_nimbus_id);\n            }\n            function clear_association(\n                bytes32 nimbus_id\n            ) override external {\n                author_mapping.clear_association(nimbus_id);\n            }\n    }"
+  "sourceCode": "// SPDX-License-Identifier: GPL-3.0-only\npragma solidity >=0.8.0;\n\n/**\n * @title Pallet AuthorMapping Interface\n *\n * The interface through which solidity contracts will interact with pallet-author.mapping\n * Address :    0x0000000000000000000000000000000000000807\n */\n\ninterface AuthorMapping {\n    /**\n     * Add association\n     * Selector: aa5ac585\n     *\n     * @param nimbus_id The nimbusId to be associated\n     */\n    function add_association(bytes32 nimbus_id) external;\n\n    /**\n     * Update existing association\n     * Selector: d9cef879\n     *\n     * @param old_nimbus_id The old nimbusId to be replaced\n     * @param new_nimbus_id The new nimbusId to be associated\n     */\n    function update_association(bytes32 old_nimbus_id, bytes32 new_nimbus_id)\n        external;\n\n    /**\n     * Clear existing association\n     * Selector: 7354c91d\n     *\n     * @param nimbus_id The nimbusId to be cleared\n     */\n    function clear_association(bytes32 nimbus_id) external;\n\n    /**\n     * Remove keys\n     * Selector: 3b6c4284\n     *\n     */\n    function remove_keys() external;\n\n    /**\n     * Set keys\n     * Selector: bcb24ddc\n     *\n     * @param keys The new session keys\n     */\n    function set_keys(bytes memory keys) external;\n}\n"
 }

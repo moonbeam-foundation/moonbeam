@@ -1,42 +1,38 @@
+import "@moonbeam-network/api-augment";
+
 import { ApiPromise } from "@polkadot/api";
 import {
   BlockHash,
   DispatchError,
   DispatchInfo,
-  EventRecord,
   Extrinsic,
   RuntimeDispatchInfo,
 } from "@polkadot/types/interfaces";
-import type { Block } from "@polkadot/types/interfaces/runtime/types";
-import type { TxWithEvent } from "@polkadot/api-derive/types";
-import Debug from "debug";
+import { FrameSystemEventRecord } from "@polkadot/types/lookup";
+import { expect } from "chai";
+
 import { WEIGHT_PER_GAS } from "./constants";
 import { DevTestContext } from "./setup-dev-tests";
-const debug = Debug("blocks");
 
+import type { Block } from "@polkadot/types/interfaces/runtime/types";
+import type { TxWithEvent } from "@polkadot/api-derive/types";
+const debug = require("debug")("test:blocks");
 export async function createAndFinalizeBlock(
   api: ApiPromise,
-  parentHash?: BlockHash,
+  parentHash?: string,
   finalize: boolean = true
 ): Promise<{
   duration: number;
-  hash: BlockHash;
+  hash: string;
 }> {
   const startTime: number = Date.now();
-  let hash = undefined;
-  try {
-    if (parentHash == undefined) {
-      hash = (await api.rpc.engine.createBlock(true, finalize)).toJSON()["hash"];
-    } else {
-      hash = (await api.rpc.engine.createBlock(true, finalize, parentHash)).toJSON()["hash"];
-    }
-  } catch (e) {
-    console.log("ERROR DURING BLOCK FINALIZATION", e);
-  }
+  const block = parentHash
+    ? await api.rpc.engine.createBlock(true, finalize, parentHash)
+    : await api.rpc.engine.createBlock(true, finalize);
 
   return {
     duration: Date.now() - startTime,
-    hash,
+    hash: block.get("hash").toString(),
   };
 }
 
@@ -51,7 +47,7 @@ export interface BlockDetails {
 
 export function mapExtrinsics(
   extrinsics: Extrinsic[],
-  records: EventRecord[],
+  records: FrameSystemEventRecord[],
   fees?: RuntimeDispatchInfo[]
 ): TxWithEventAndFee[] {
   return extrinsics.map((extrinsic, index): TxWithEventAndFee => {
@@ -63,26 +59,29 @@ export function mapExtrinsics(
       .map(({ event }) => {
         if (event.section === "system") {
           if (event.method === "ExtrinsicSuccess") {
-            dispatchInfo = event.data[0] as DispatchInfo;
+            dispatchInfo = event.data[0] as any as DispatchInfo;
           } else if (event.method === "ExtrinsicFailed") {
-            dispatchError = event.data[0] as DispatchError;
-            dispatchInfo = event.data[1] as DispatchInfo;
+            dispatchError = event.data[0] as any as DispatchError;
+            dispatchInfo = event.data[1] as any as DispatchInfo;
           }
         }
 
-        return event;
+        return event as any;
       });
 
     return { dispatchError, dispatchInfo, events, extrinsic, fee: fees ? fees[index] : undefined };
   });
 }
 
-const getBlockDetails = async (api: ApiPromise, blockHash: BlockHash): Promise<BlockDetails> => {
+const getBlockDetails = async (
+  api: ApiPromise,
+  blockHash: BlockHash | string | any
+): Promise<BlockDetails> => {
   debug(`Querying ${blockHash}`);
 
   const [{ block }, records] = await Promise.all([
     api.rpc.chain.getBlock(blockHash),
-    api.query.system.events.at(blockHash),
+    await (await api.at(blockHash)).query.system.events(),
   ]);
 
   const fees = await Promise.all(
@@ -94,7 +93,7 @@ const getBlockDetails = async (api: ApiPromise, blockHash: BlockHash): Promise<B
   return {
     block,
     txWithEvents,
-  } as BlockDetails;
+  } as any as BlockDetails;
 };
 
 export interface BlockRangeOption {
@@ -129,7 +128,6 @@ export const verifyBlockFees = async (
   context: DevTestContext,
   fromBlockNumber: number,
   toBlockNumber: number,
-  expect,
   expectedBalanceDiff: bigint
 ) => {
   const api = context.polkadotApi;
@@ -140,12 +138,14 @@ export const verifyBlockFees = async (
 
   // Get from block hash and totalSupply
   const fromPreBlockHash = (await api.rpc.chain.getBlockHash(fromBlockNumber - 1)).toString();
-  const fromPreSupply = await (await api.at(fromPreBlockHash)).query.balances.totalIssuance();
+  const fromPreSupply = (await (
+    await api.at(fromPreBlockHash)
+  ).query.balances.totalIssuance()) as any;
   let previousBlockHash = fromPreBlockHash;
 
   // Get to block hash and totalSupply
   const toBlockHash = (await api.rpc.chain.getBlockHash(toBlockNumber)).toString();
-  const toSupply = await (await api.at(toBlockHash)).query.balances.totalIssuance();
+  const toSupply = (await (await api.at(toBlockHash)).query.balances.totalIssuance()) as any;
 
   // fetch block information for all blocks in the range
   await exploreBlockRange(
@@ -230,18 +230,17 @@ export const verifyBlockFees = async (
                 : extrinsic.signer.toString();
 
               // Get balance of the origin account both before and after extrinsic execution
-              const fromBalance = await (
+              const fromBalance = (await (
                 await api.at(previousBlockHash)
-              ).query.system.account(origin);
-              const toBalance = await (
+              ).query.system.account(origin)) as any;
+              const toBalance = (await (
                 await api.at(blockDetails.block.hash)
-              ).query.system.account(origin);
+              ).query.system.account(origin)) as any;
 
               expect(txFees.toString()).to.eq(
                 (
-                  fromBalance.data.free.toBigInt() -
-                  toBalance.data.free.toBigInt() -
-                  expectedBalanceDiff
+                  (((fromBalance.data.free.toBigInt() as any) -
+                    toBalance.data.free.toBigInt()) as any) - expectedBalanceDiff
                 ).toString()
               );
             }
@@ -277,21 +276,71 @@ export const verifyBlockFees = async (
   expect(fromPreSupply.toBigInt() - toSupply.toBigInt()).to.eq(sumBlockBurnt);
 
   // Log difference in supply, we should be equal to the burnt fees
-  debug(
-    `  supply diff: ${(fromPreSupply.toBigInt() - toSupply.toBigInt())
-      .toString()
-      .padStart(30, " ")}`
-  );
-  debug(`  burnt fees : ${sumBlockBurnt.toString().padStart(30, " ")}`);
-  debug(`  total fees : ${sumBlockFees.toString().padStart(30, " ")}`);
+  // debug(
+  //   `  supply diff: ${(fromPreSupply.toBigInt() - toSupply.toBigInt())
+  //     .toString()
+  //     .padStart(30, " ")}`
+  // );
+  // debug(`  burnt fees : ${sumBlockBurnt.toString().padStart(30, " ")}`);
+  // debug(`  total fees : ${sumBlockFees.toString().padStart(30, " ")}`);
 };
 
 export const verifyLatestBlockFees = async (
   context: DevTestContext,
-  expect,
   expectedBalanceDiff: bigint = BigInt(0)
 ) => {
   const signedBlock = await context.polkadotApi.rpc.chain.getBlock();
   const blockNumber = Number(signedBlock.block.header.number);
-  return verifyBlockFees(context, blockNumber, blockNumber, expect, expectedBalanceDiff);
+  return verifyBlockFees(context, blockNumber, blockNumber, expectedBalanceDiff);
 };
+
+export const getBlockExtrinsic = async (
+  api: ApiPromise,
+  blockHash: string | BlockHash,
+  section: string,
+  method: string
+) => {
+  const apiAt = await api.at(blockHash);
+  const [{ block }, records] = await Promise.all([
+    api.rpc.chain.getBlock(blockHash),
+    apiAt.query.system.events(),
+  ]);
+  const extIndex = block.extrinsics.findIndex(
+    (ext) => ext.method.section == section && ext.method.method == method
+  );
+  const extrinsic = extIndex > -1 ? block.extrinsics[extIndex] : null;
+
+  const events = records
+    .filter(({ phase }) => phase.isApplyExtrinsic && phase.asApplyExtrinsic.eq(extIndex))
+    .map(({ event }) => event);
+  const resultEvent = events.find(
+    (event) =>
+      event.section === "system" &&
+      (event.method === "ExtrinsicSuccess" || event.method === "ExtrinsicFailed")
+  );
+  return { block, extrinsic, events, resultEvent };
+};
+
+export async function jumpToRound(context: DevTestContext, round: Number): Promise<string | null> {
+  let lastBlockHash = null;
+  while (true) {
+    const currentRound = (
+      await context.polkadotApi.query.parachainStaking.round()
+    ).current.toNumber();
+    if (currentRound === round) {
+      return lastBlockHash;
+    } else if (currentRound > round) {
+      return null;
+    }
+
+    lastBlockHash = (await context.createBlock()).block.hash.toString();
+  }
+}
+
+export async function jumpRounds(context: DevTestContext, count: Number): Promise<string | null> {
+  const round = (await context.polkadotApi.query.parachainStaking.round()).current
+    .addn(count.valueOf())
+    .toNumber();
+
+  return jumpToRound(context, round);
+}
