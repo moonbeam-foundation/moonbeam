@@ -140,7 +140,10 @@ impl Config for Test {
 	type Deposit = Deposit;
 	type MinBlockDelay = MinBlockDelay;
 	type MinEpochDelay = MinEpochDelay;
-	type ExpirationDelay = ExpirationDelay;
+	type MaxBlockDelay = MaxBlockDelay;
+	type MaxEpochDelay = MaxEpochDelay;
+	type BlockExpirationDelay = MaxBlockDelay;
+	type EpochExpirationDelay = MaxEpochDelay;
 	type WeightInfo = ();
 }
 

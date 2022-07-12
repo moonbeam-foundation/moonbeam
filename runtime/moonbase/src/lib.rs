@@ -1128,7 +1128,12 @@ impl pallet_randomness::Config for Runtime {
 	type BabeDataGetter = BabeDataGetter;
 	type VrfKeyLookup = AuthorMapping;
 	type Deposit = ConstU128<{ 1 * currency::UNIT * currency::SUPPLY_FACTOR }>;
-	type ExpirationDelay = ConstU32<10_000>;
+	type MinBlockDelay = ConstU32<2>;
+	type MinEpochDelay = ConstU64<2>;
+	type MaxBlockDelay = ConstU32<10_000>;
+	type MaxEpochDelay = ConstU64<10_000>;
+	type BlockExpirationDelay = ConstU32<10_000>;
+	type EpochExpirationDelay = ConstU64<10_000>;
 	type WeightInfo = pallet_randomness::weights::SubstrateWeight<Runtime>;
 }
 
@@ -1231,7 +1236,7 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common! {
 			if pallet_randomness::Pallet::<Self>::not_first_block().is_none() {
 				return Default::default();
 			}
-			pallet_randomness::Pallet::<Self>::last_vrf_output()
+			pallet_randomness::Pallet::<Self>::local_vrf_output()
 				.expect("Expected last VrfOutput to be set")
 		}
 		fn vrf_key_lookup(

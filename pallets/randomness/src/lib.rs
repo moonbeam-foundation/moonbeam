@@ -93,11 +93,19 @@ pub mod pallet {
 		/// they were requested
 		type MinEpochDelay: Get<u64>;
 		#[pallet::constant]
-		/// Babe requests expire and can be purged from storage after this many blocks/epochs
+		/// Babe requests must be at most this many epochs after the epoch in which
+		/// they were requested
 		type MaxEpochDelay: Get<u64>;
 		#[pallet::constant]
-		/// Local requests expire and can be purged from storage after this many blocks/epochs
+		/// Local per-block VRF requests must be at most this many blocks after the block in which
+		/// they were requested
 		type MaxBlockDelay: Get<Self::BlockNumber>;
+		#[pallet::constant]
+		/// Local requests expire and can be purged from storage after this many blocks/epochs
+		type BlockExpirationDelay: Get<Self::BlockNumber>;
+		#[pallet::constant]
+		/// Babe requests expire and can be purged from storage after this many blocks/epochs
+		type EpochExpirationDelay: Get<u64>;
 		/// Weight information for extrinsics in this pallet.
 		type WeightInfo: WeightInfo;
 	}

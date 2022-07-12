@@ -63,12 +63,12 @@ fn cannot_make_request_fulfillable_past_expiry() {
 		.with_balances(vec![(ALICE, 15)])
 		.build()
 		.execute_with(|| {
-			let request = build_default_request(RequestInfo::Local(21u64, 21u64));
+			let request = build_default_request(RequestInfo::Local(22u64, 21u64));
 			assert_noop!(
 				Randomness::request_randomness(request),
 				Error::<Test>::CannotRequestRandomnessAfterMaxDelay
 			);
-			let request = build_default_request(RequestInfo::Local(21u64, 21u64));
+			let request = build_default_request(RequestInfo::BabeEpoch(22u64, 21u64));
 			assert_noop!(
 				Randomness::request_randomness(request),
 				Error::<Test>::CannotRequestRandomnessAfterMaxDelay

@@ -69,7 +69,7 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
     /// @notice The number of winners
     /// @dev This number corresponds to how many random words will requested
     /// @dev Cannot exceed MAX_RANDOM_WORDS
-    uint32 public NUM_WINNERS = 2;
+    uint8 public NUM_WINNERS = 2;
 
     /// @notice The number of block before the request can be fulfilled
     /// @dev The MIN_DELAY_BLOCKS provides a minimum number that is safe enough for
@@ -121,7 +121,7 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
         /// We check we haven't started the randomness request yet
         if (
             randomness.getRequestStatus(requestId) !=
-            Randomness.RequestStatus.DoNotExist
+            Randomness.RequestStatus.DoesNotExist
         ) {
             revert WaitingFulfillment();
         }
@@ -138,7 +138,7 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
         /// We check we haven't started the randomness request yet
         if (
             randomness.getRequestStatus(requestId) !=
-            Randomness.RequestStatus.DoNotExist
+            Randomness.RequestStatus.DoesNotExist
         ) {
             revert WaitingFulfillment();
         }

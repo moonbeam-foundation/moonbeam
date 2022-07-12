@@ -117,13 +117,21 @@ pub struct Request<T: Config> {
 }
 
 impl<T: Config> Request<T> {
-	pub fn is_expired(&self) -> DispatchResult {
-		let expired = match self.info {
+	pub fn is_expired(&self) -> bool {
+		match self.info {
 			RequestInfo::BabeEpoch(_, expires) => RelayEpoch::<T>::get() >= expires,
 			RequestInfo::Local(_, expires) => frame_system::Pallet::<T>::block_number() >= expires,
-		};
-		ensure!(expired, Error::<T>::RequestHasNotExpired);
-		Ok(())
+		}
+	}
+	pub fn can_be_fulfilled(&self) -> bool {
+		match self.info {
+			RequestInfo::BabeEpoch(epoch_due, _) => {
+				epoch_due <= T::BabeDataGetter::get_epoch_index()
+			}
+			RequestInfo::Local(block_due, _) => {
+				block_due <= frame_system::Pallet::<T>::block_number()
+			}
+		}
 	}
 	pub fn validate(&mut self) -> DispatchResult {
 		ensure!(
@@ -132,31 +140,36 @@ impl<T: Config> Request<T> {
 		);
 		let (due_before_expiry, due_after_min_delay) = match self.info {
 			RequestInfo::BabeEpoch(epoch_due, expires) => {
-				let current_relay_epoch = RelayEpoch::<T>::get();
-				// TODO: distinction between ExpirationDelay and MaxDelay, maxdelay is check
-				// expiration delay is what we use to write
-				let max_epoch_index = current_relay_epoch.saturating_add(T::MaxEpochDelay::get());
-				if expires != max_epoch_index {
+				let current_epoch_index = RelayEpoch::<T>::get();
+				let expiring_epoch_index =
+					current_epoch_index.saturating_add(T::EpochExpirationDelay::get());
+				if expires != expiring_epoch_index {
 					log::warn!("Input expiration not equal to expected expiration so overwritten");
-					self.info = RequestInfo::BabeEpoch(epoch_due, expiring_relay_epoch_index);
+					self.info = RequestInfo::BabeEpoch(epoch_due, expiring_epoch_index);
 				}
 				(
-					epoch_due <= expiring_relay_epoch_index,
 					epoch_due
-						>= current_relay_epoch
+						<= current_epoch_index
+							.checked_add(T::MaxEpochDelay::get())
+							.ok_or(Error::<T>::CannotRequestRandomnessAfterMaxDelay)?,
+					epoch_due
+						>= current_epoch_index
 							.checked_add(T::MinEpochDelay::get())
 							.ok_or(Error::<T>::CannotRequestRandomnessBeforeMinDelay)?,
 				)
 			}
 			RequestInfo::Local(block_due, expires) => {
 				let current_block = frame_system::Pallet::<T>::block_number();
-				let expiring_block_number = current_block.saturating_add(T::MaxBlockDelay::get());
-				if expires != expiring_block_number {
+				let expiring_block = current_block.saturating_add(T::BlockExpirationDelay::get());
+				if expires != expiring_block {
 					log::warn!("Input expiration not equal to expected expiration so overwritten");
-					self.info = RequestInfo::Local(block_due, expiring_block_number);
+					self.info = RequestInfo::Local(block_due, expiring_block);
 				}
 				(
-					block_due <= expiring_block_number,
+					block_due
+						<= current_block
+							.checked_add(&T::MaxBlockDelay::get())
+							.ok_or(Error::<T>::CannotRequestRandomnessAfterMaxDelay)?,
 					block_due
 						>= current_block
 							.checked_add(&T::MinBlockDelay::get())
@@ -173,16 +186,6 @@ impl<T: Config> Request<T> {
 			Error::<T>::CannotRequestRandomnessBeforeMinDelay
 		);
 		Ok(())
-	}
-	pub fn can_be_fulfilled(&self) -> bool {
-		match self.info {
-			RequestInfo::BabeEpoch(epoch_due, _) => {
-				epoch_due <= T::BabeDataGetter::get_epoch_index()
-			}
-			RequestInfo::Local(block_due, _) => {
-				block_due <= frame_system::Pallet::<T>::block_number()
-			}
-		}
 	}
 	fn get_randomness(&self) -> Result<T::Hash, DispatchError> {
 		ensure!(
@@ -319,7 +322,7 @@ impl<T: Config> RequestState<T> {
 	/// Transfer deposit back to contract_address
 	/// Transfer fee to caller
 	pub fn execute_expiration(&self, caller: &T::AccountId) -> DispatchResult {
-		self.request.is_expired()?;
+		ensure!(self.request.is_expired(), Error::<T>::RequestHasNotExpired);
 		let contract_address =
 			T::AddressMapping::into_account_id(self.request.contract_address.clone());
 		// TODO: is it worth optimizing when caller == contract_address to do one transfer here

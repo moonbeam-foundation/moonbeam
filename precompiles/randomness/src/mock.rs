@@ -196,6 +196,8 @@ impl Config for Runtime {
 	type MinEpochDelay = MinEpochDelay;
 	type MaxBlockDelay = MaxBlockDelay;
 	type MaxEpochDelay = MaxEpochDelay;
+	type BlockExpirationDelay = MaxBlockDelay;
+	type EpochExpirationDelay = MaxEpochDelay;
 	type WeightInfo = ();
 }
 
