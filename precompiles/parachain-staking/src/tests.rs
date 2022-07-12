@@ -23,7 +23,7 @@ use crate::Action;
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_evm::Call as EvmCall;
 use pallet_parachain_staking::Event as StakingEvent;
-use precompile_utils::{prelude::*, testing::*};
+use precompile_utils::{prelude::*, solidity, testing::*};
 use sp_core::U256;
 
 fn precompiles() -> TestPrecompiles<Runtime> {
@@ -1506,4 +1506,29 @@ fn cancel_delegator_bonded_less_works() {
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
+}
+
+#[test]
+fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
+	for file in ["StakingInterface.sol"] {
+		for solidity_fn in solidity::get_selectors(file) {
+			assert_eq!(
+				solidity_fn.compute_selector_hex(),
+				solidity_fn.docs_selector,
+				"documented selector for '{}' did not match for file '{}'",
+				solidity_fn.signature(),
+				file,
+			);
+
+			let selector = solidity_fn.compute_selector();
+			if Action::try_from(selector).is_err() {
+				panic!(
+					"failed decoding selector 0x{:x} => '{}' as Action for file '{}'",
+					selector,
+					solidity_fn.signature(),
+					file,
+				)
+			}
+		}
+	}
 }

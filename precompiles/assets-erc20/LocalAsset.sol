@@ -54,7 +54,7 @@ interface LocalAsset {
         external returns (bool);
 
     /// @dev Specify the name, symbol and decimals of your asset
-    /// Selector: 4af77f93
+    /// Selector: 37d2c2f4
     /// @param name string The name of the asset
     /// @param symbol string The symbol of the asset
     /// @param decimals uint8 The number of decimals of your asset

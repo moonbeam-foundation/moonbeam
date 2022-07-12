@@ -109,7 +109,7 @@ interface Xtokens {
     /// @param feeItem Which of the currencies to be used as fee
     /// @param destination The Multilocation to which we want to send the tokens
     /// @param weight The weight we want to buy in the destination chain
-    /// Selector: db1f049c
+    /// Selector: 797b45fd
     function transferMultiAssets(
         MultiAsset[] memory assets,
         uint32 feeItem,

@@ -34,7 +34,7 @@ interface XcmTransactor {
         );
 
     /// Get transact info of a multilocation
-    /// Selector: 070c0cec
+    /// Selector: b689e20c
     /// @param multilocation The location for which we want to know the transact info
     /// @return transactExtraWeight The extra weight involved in the XCM message of using derivative
     /// @return transactExtraWeightSigned The extra weight involved in the XCM message of using signed
@@ -49,7 +49,7 @@ interface XcmTransactor {
         );
 
     /// Get fee per second charged in its reserve chain for an asset
-    /// Selector: 63f7d0c0
+    /// Selector: 906c9990
     /// @param multilocation The asset location for which we want to know the fee per second value
     /// @return feePerSecond The fee per second that the reserve chain charges for this asset
     function feePerSecond(Multilocation memory multilocation)
@@ -92,7 +92,7 @@ interface XcmTransactor {
     ) external;
 
     /// Transact through XCM using fee based on its multilocation through signed origins
-    /// Selector: f834cc5a
+    /// Selector: 71d31587
     /// @dev No token is burnt before sending the message. The caller must ensure the destination
     /// is able to undertand the DescendOrigin message, and create a unique account from which
     /// dispatch the call
@@ -109,7 +109,7 @@ interface XcmTransactor {
     ) external;
 
     /// Transact through XCM using fee based on its erc20 address through signed origins
-    /// Selector: 1bb3b94c
+    /// Selector: 42ca339d
     /// @dev No token is burnt before sending the message. The caller must ensure the destination
     /// is able to undertand the DescendOrigin message, and create a unique account from which
     /// dispatch the call
