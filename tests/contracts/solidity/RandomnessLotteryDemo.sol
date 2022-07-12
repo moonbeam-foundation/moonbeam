@@ -104,7 +104,7 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
         requestId = 0;
     }
 
-    function participate() public payable {
+    function participate() external payable {
         /// We retrieve the status of the request to know if it is
         /// pending fulfillment
         Randomness.Request memory request = randomness.getRequest(requestId);
@@ -155,6 +155,13 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
             NUM_WINNERS,
             DELAY_BLOCKS
         );
+    }
+
+    /// @notice Allows to increase the fees associated with the request
+    /// @dev This is needed if the gas price increase significantly before
+    /// @dev the request is fulfilled
+    function increaseRequestFees() external payable {
+        randomness.increaseRequestFees(requestId, msg.value);
     }
 
     function pickWinners(uint256[] memory randomWords) internal {
