@@ -4,9 +4,9 @@ pragma solidity >=0.8.0;
 /// @dev Maximum number of random words being requested
 uint32 constant MAX_RANDOM_WORDS = 100;
 /// @dev Minimum number of blocks before a request can be fulfilled
-uint32 constant MIN_DELAY_BLOCKS = 1;
+uint32 constant MIN_DELAY_BLOCKS = 2;
 /// @dev Maximum number of blocks before a request can be fulfilled
-uint32 constant MAX_DELAY_BLOCKS = 10_000;
+uint32 constant MAX_DELAY_BLOCKS = 2000;
 
 interface Randomness {
     /// @notice The status of the request

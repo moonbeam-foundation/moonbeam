@@ -85,15 +85,7 @@ pragma solidity ^0.8.4;
  * @dev there is one honest collator.
  */
 abstract contract RandomnessConsumer {
-    error OnlyCoordinatorCanFulfill(address have, address want);
-    address private immutable vrfCoordinator;
-
-    /**
-     * @param _vrfCoordinator address of VRFCoordinator contract
-     */
-    constructor(address _vrfCoordinator) {
-        vrfCoordinator = _vrfCoordinator;
-    }
+    error OnlyRandomnessPrecompileCanFulfill(address have, address want);
 
     /**
      * @notice fulfillRandomness handles the VRF response. Your contract must
@@ -120,8 +112,11 @@ abstract contract RandomnessConsumer {
         uint256 requestId,
         uint256[] memory randomWords
     ) external {
-        if (msg.sender != vrfCoordinator) {
-            revert OnlyCoordinatorCanFulfill(msg.sender, vrfCoordinator);
+        if (msg.sender != 0x0000000000000000000000000000000000000809) {
+            revert OnlyRandomnessPrecompileCanFulfill(
+                msg.sender,
+                0x0000000000000000000000000000000000000809
+            );
         }
         fulfillRandomWords(requestId, randomWords);
     }
