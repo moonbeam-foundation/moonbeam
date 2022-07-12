@@ -10,10 +10,12 @@ uint32 constant MAX_DELAY_BLOCKS = 2000;
 
 interface Randomness {
     /// @notice The status of the request
+    /// @param DoesNotExist The request doesn't exist
     /// @param Pending The request cannot be fulfilled yet
     /// @param Ready The request is ready to be fulfilled
     /// @param Expired The request has expired
     enum RequestStatus {
+        DoesNotExist,
         Pending,
         Ready,
         Expired

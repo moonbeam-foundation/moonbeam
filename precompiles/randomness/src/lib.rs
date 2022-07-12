@@ -29,7 +29,7 @@ use frame_support::traits::Get;
 use pallet_randomness::{BalanceOf, GetBabeData};
 use precompile_utils::{costs::call_cost, prelude::*};
 use sp_core::{H160, H256, U256};
-use sp_std::{fmt::Debug, marker::PhantomData};
+use sp_std::{fmt::Debug, marker::PhantomData, vec::Vec};
 
 // #[cfg(test)]
 // mod mock;
@@ -40,6 +40,7 @@ mod tests;
 #[derive(Debug, PartialEq)]
 pub enum Action {
 	RelayEpochIndex = "relayEpochIndex()",
+	GetRequestStatus = "getRequestStatus(uint64)",
 	GetRequest = "getRequest(uint64)",
 	RequestRelayBabeEpochRandomWords =
 		"requestRelayBabeEpochRandomWords(address,uint256,uint64,bytes32,uint8)",
@@ -157,6 +158,7 @@ where
 
 		match selector {
 			Action::RelayEpochIndex => Self::relay_epoch_index(handle),
+			Action::GetRequestStatus => Self::get_request_status(handle),
 			Action::GetRequest => Self::get_request(handle),
 			Action::RequestRelayBabeEpochRandomWords => Self::request_babe_randomness(handle),
 			Action::RequestLocalVRFRandomWords => Self::request_local_randomness(handle),
@@ -181,18 +183,46 @@ where
 			EvmDataWriter::new().write(relay_epoch_index).build(),
 		))
 	}
-	fn get_request(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+	fn get_request_status(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		let request_id = handle.read_input()?.read::<u64>()?;
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let status = if let Some(pallet_randomness::RequestState { request, .. }) =
+			pallet_randomness::Pallet::<Runtime>::requests(request_id)
+		{
+			if request.is_expired() {
+				3u32 // EXPIRED
+			} else if request.can_be_fulfilled() {
+				2u32 // READY
+			} else {
+				1u32 // PENDING
+			}
+		} else {
+			0u32 // DOES NOT EXIST
+		};
+		Ok(succeed(EvmDataWriter::new().write(status).build()))
+	}
+	fn get_request(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		let request_id = handle.read_input()?.read::<u64>()?;
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		if let Some(pallet_randomness::RequestState { request, .. }) =
 			pallet_randomness::Pallet::<Runtime>::requests(request_id)
 		{
+			let status = if request.is_expired() {
+				3u32 // EXPIRED
+			} else if request.can_be_fulfilled() {
+				2u32 // READY
+			} else {
+				1u32 // PENDING
+			};
 			let (
 				randomness_source,
 				fulfillment_block,
 				fulfillment_epoch,
 				expiration_block,
 				expiration_epoch,
+				request_status,
 			) = match request.info {
 				pallet_randomness::RequestInfo::BabeEpoch(epoch_due, epoch_expired) => {
 					(
@@ -201,6 +231,7 @@ where
 						epoch_due,
 						0u64,
 						epoch_expired,
+						status,
 					)
 				}
 				pallet_randomness::RequestInfo::Local(block_due, block_expired) => {
@@ -214,6 +245,7 @@ where
 							.try_into()
 							.map_err(|_| revert("block number overflowed u32"))?,
 						0u64,
+						status,
 					)
 				}
 			};
@@ -235,6 +267,7 @@ where
 				.write(fulfillment_epoch)
 				.write(expiration_block)
 				.write(expiration_epoch)
+				.write(request_status)
 				.build();
 			Ok(succeed(writer))
 		} else {
