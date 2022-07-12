@@ -67,6 +67,16 @@ interface Randomness {
     /// Selector: 81797566
     function relayEpochIndex() external view returns (uint64);
 
+    /// @notice Returns the request status
+    /// @param requestId The id of the request to check
+    /// @return status Status of the request
+    /// Selector: d8a4676f
+    function getRequestStatus(uint256 requestId)
+        external
+        view
+        returns (RequestStatus status);
+
+    /// @notice Returns the request or revert
     /// @param requestId The id of the request to check
     /// @return request The request
     /// Selector: c58343ef
