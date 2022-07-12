@@ -63,8 +63,9 @@ interface Randomness {
     /// Selector: 81797566
     function relayEpochIndex() external view returns (uint64);
 
+    /// @notice Returns the request or a empty request with request.id == 0 if not found
     /// @param requestId The id of the request to check
-    /// @return request The request
+    /// @return request The request. If none request are found, all the request field will be 0x00
     /// Selector: c58343ef
     function getRequest(uint256 requestId)
         external
