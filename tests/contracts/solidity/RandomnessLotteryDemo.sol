@@ -31,6 +31,18 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
     /// @param amount The amount being awarded
     event Awarded(address indexed winner, uint256 randomWord, uint256 amount);
 
+    /// @notice Event sent when the lottery started
+    /// @param participantCount The number of participants
+    /// @param jackpot The total jackpot
+    /// @param requestId The pseudo-random request id
+    event Started(uint256 participantCount, uint256 jackpot, uint256 requestId);
+
+    /// @notice Event sent when the lottery ends
+    /// @param participantCount The number of participants
+    /// @param jackpot The total jackpot
+    /// @param winnerCount The number of winners
+    event Ended(uint256 participantCount, uint256 jackpot, uint256 winnerCount);
+
     /// @notice The status of lottery
     /// @param OpenForRegistration Participants can register to get a chance to win
     /// @param RollingNumbers The lottery has requested the random words and is waiting for them
@@ -101,7 +113,8 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
     constructor() RandomnessConsumer() {
         owner = msg.sender;
         globalRequestCount = 0;
-        requestId = 0;
+        /// Set the requestId to uint256::max to ensure it is not already existing
+        requestId = 2**256 - 1;
     }
 
     function participate() external payable {
@@ -153,6 +166,7 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
             NUM_WINNERS,
             DELAY_BLOCKS
         );
+        emit Started(participants.length, jackpot, requestId);
     }
 
     /// @notice Allows to increase the fee associated with the request
@@ -172,6 +186,7 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
         /// The amount distributed to each winner
         /// The left-over is kept for the next lottery
         uint256 amountAwarded = jackpot / totalWinners;
+        emit Ended(participants.length, jackpot, totalWinners);
 
         for (uint32 i = 0; i < amountAwarded; i++) {
             /// This is safe to index randomWords with i because we requested
