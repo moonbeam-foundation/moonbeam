@@ -105,12 +105,11 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
     }
 
     function participate() external payable {
-        /// We retrieve the status of the request to know if it is
-        /// pending fulfillment
-        Randomness.Request memory request = randomness.getRequest(requestId);
-
-        /// If the request.id is 0, it means the request doesn't exist
-        if (request.id != 0) {
+        /// We check we haven't started the randomness request yet
+        if (
+            randomness.getRequestStatus(requestId) !=
+            Randomness.RequestStatus.DoNotExist
+        ) {
             revert WaitingFulfillment();
         }
 
@@ -123,12 +122,11 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
     }
 
     function startLottery() external payable onlyOwner {
-        /// We retrieve the status of the request to know if it is
-        /// pending fulfillment
-        Randomness.Request memory request = randomness.getRequest(requestId);
-
-        /// If the request.id is 0, it means the request doesn't exist
-        if (request.id != 0) {
+        /// We check we haven't started the randomness request yet
+        if (
+            randomness.getRequestStatus(requestId) !=
+            Randomness.RequestStatus.DoNotExist
+        ) {
             revert WaitingFulfillment();
         }
 
@@ -164,6 +162,7 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
         randomness.increaseRequestFee(requestId, msg.value);
     }
 
+    /// @dev This function is called only by the fulfillment callback
     function pickWinners(uint256[] memory randomWords) internal {
         /// Get the total number of winners to select
         uint256 totalWinners = NUM_WINNERS < participants.length

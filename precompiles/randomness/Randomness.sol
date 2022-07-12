@@ -10,10 +10,12 @@ uint32 constant MAX_DELAY_BLOCKS = 2000;
 
 interface Randomness {
     /// @notice The status of the request
+    /// @param DoNotExist The request doesn't exist
     /// @param Pending The request cannot be fulfilled yet
     /// @param Ready The request is ready to be fulfilled
     /// @param Expired The request has expired
     enum RequestStatus {
+        DoNotExist,
         Pending,
         Ready,
         Expired
@@ -63,9 +65,18 @@ interface Randomness {
     /// Selector: 81797566
     function relayEpochIndex() external view returns (uint64);
 
-    /// @notice Returns the request or a empty request with request.id == 0 if not found
+    /// @notice Returns the request status
     /// @param requestId The id of the request to check
-    /// @return request The request. If none request are found, all the request field will be 0x00
+    /// @return status Status of the request
+    /// Selector: d8a4676f
+    function getRequestStatus(uint256 requestId)
+        external
+        view
+        returns (RequestStatus status);
+
+    /// @notice Returns the request or revert
+    /// @param requestId The id of the request to check
+    /// @return request The request
     /// Selector: c58343ef
     function getRequest(uint256 requestId)
         external
