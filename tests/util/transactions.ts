@@ -73,7 +73,10 @@ export const createTransaction = async (
 
   const maxFeePerGas = options.maxFeePerGas || 1_000_000_000;
   const accessList = options.accessList || [];
-  const nonce = options.nonce || (await context.web3.eth.getTransactionCount(from, "pending"));
+  const nonce =
+    options.nonce !== undefined
+      ? options.nonce
+      : await context.web3.eth.getTransactionCount(from, "pending");
 
   let data, rawTransaction;
   if (isLegacy) {
