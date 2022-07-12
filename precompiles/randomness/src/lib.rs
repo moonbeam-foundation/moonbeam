@@ -39,13 +39,15 @@ mod tests;
 #[generate_function_selector]
 #[derive(Debug, PartialEq)]
 pub enum Action {
-	// add num words input
 	RelayEpochIndex = "relayEpochIndex()",
-	RequestBabeRandomness = "requestBabeRandomness(address,uint256,uint64,bytes32)",
-	RequestLocalRandomness = "requestLocalRandomness(address,uint256,uint64,bytes32,uint64)",
+	GetRequest = "getRequest(uint64)",
+	RequestRelayBabeEpochRandomWords =
+		"requestRelayBabeEpochRandomWords(address,uint256,uint64,bytes32,uint8)",
+	RequestLocalVRFRandomWords =
+		"requestLocalVRFRandomWords(address,uint256,uint64,bytes32,uint8,uint64)",
 	FulfillRequest = "fulfillRequest(uint64)",
 	IncreaseRequestFee = "increaseRequestFee(uint64,uint256)",
-	ExecuteRequestExpiration = "executeRequestExpiration(uint64)",
+	PurgeExpiredRequest = "purgeExpiredRequest(uint64)",
 }
 
 pub const FULFILLMENT_ESTIMATED_COST: u64 = 1000u64; // TODO: get real value from benchmarking
@@ -155,11 +157,12 @@ where
 
 		match selector {
 			Action::RelayEpochIndex => Self::relay_epoch_index(handle),
-			Action::RequestBabeRandomness => Self::request_babe_randomness(handle),
-			Action::RequestLocalRandomness => Self::request_local_randomness(handle),
+			Action::GetRequest => Self::get_request(handle),
+			Action::RequestRelayBabeEpochRandomWords => Self::request_babe_randomness(handle),
+			Action::RequestLocalVRFRandomWords => Self::request_local_randomness(handle),
 			Action::FulfillRequest => Self::fulfill_request(handle),
 			Action::IncreaseRequestFee => Self::increase_request_fee(handle),
-			Action::ExecuteRequestExpiration => Self::execute_request_expiration(handle),
+			Action::PurgeExpiredRequest => Self::execute_request_expiration(handle),
 		}
 	}
 }
@@ -178,6 +181,66 @@ where
 			EvmDataWriter::new().write(relay_epoch_index).build(),
 		))
 	}
+	fn get_request(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let request_id = handle.read_input()?.read::<u64>()?;
+		if let Some(pallet_randomness::RequestState { request, .. }) =
+			pallet_randomness::Pallet::<Runtime>::requests(request_id)
+		{
+			let (
+				randomness_source,
+				fulfillment_block,
+				fulfillment_epoch,
+				expiration_block,
+				expiration_epoch,
+			) = match request.info {
+				pallet_randomness::RequestInfo::BabeEpoch(epoch_due, epoch_expired) => {
+					(
+						1u32, // RandomnessSource::RelayBabeEpoch
+						0u64,
+						epoch_due,
+						0u64,
+						epoch_expired,
+					)
+				}
+				pallet_randomness::RequestInfo::Local(block_due, block_expired) => {
+					(
+						0u32, // RandomnessSource::LocalVRF
+						block_due
+							.try_into()
+							.map_err(|_| revert("block number overflowed u32"))?,
+						0u64,
+						block_expired
+							.try_into()
+							.map_err(|_| revert("block number overflowed u32"))?,
+						0u64,
+					)
+				}
+			};
+			let (refund_address, contract_address, fee): (Address, Address, U256) = (
+				request.refund_address.into(),
+				request.contract_address.into(),
+				request.fee.into(),
+			);
+			let writer = EvmDataWriter::new()
+				.write(request_id)
+				.write(refund_address)
+				.write(contract_address)
+				.write(fee)
+				.write(request.gas_limit)
+				.write(request.salt)
+				.write(request.num_words)
+				.write(randomness_source)
+				.write(fulfillment_block)
+				.write(fulfillment_epoch)
+				.write(expiration_block)
+				.write(expiration_epoch)
+				.build();
+			Ok(succeed(writer))
+		} else {
+			Err(error("Request Does Not Exist"))
+		}
+	}
 	/// Make request for babe randomness one epoch ago
 	fn request_babe_randomness(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		let mut input = handle.read_input()?;
@@ -188,25 +251,24 @@ where
 			.try_into()
 			.map_err(|_| revert("amount is too large for provided balance type"))?;
 		let gas_limit = input.read::<u64>()?;
-		let num_words = input
-			.read::<u32>()?
-			.try_into()
-			.map_err(|_| revert("number of words is too large for provided u8 type"))?;
 		let salt = input.read::<H256>()?;
+		let num_words = input.read::<u8>()?;
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let two_epochs_later =
 			<Runtime as pallet_randomness::Config>::BabeDataGetter::get_epoch_index()
 				.checked_add(2u64)
 				.ok_or(error("Epoch Index (u64) overflowed"))?;
 		let expiring_relay_epoch_index = pallet_randomness::Pallet::<Runtime>::relay_epoch()
-			.saturating_add(<Runtime as pallet_randomness::Config>::ExpirationDelay::get().into());
+			.saturating_add(
+				<Runtime as pallet_randomness::Config>::EpochExpirationDelay::get().into(),
+			);
 		let request = pallet_randomness::Request {
 			refund_address,
 			contract_address,
 			fee,
 			gas_limit,
 			num_words,
-			salt: salt.into(),
+			salt,
 			info: pallet_randomness::RequestInfo::BabeEpoch(
 				two_epochs_later,
 				expiring_relay_epoch_index,
@@ -230,11 +292,8 @@ where
 			.try_into()
 			.map_err(|_| revert("amount is too large for provided balance type"))?;
 		let gas_limit = input.read::<u64>()?;
-		let num_words = input
-			.read::<u32>()?
-			.try_into()
-			.map_err(|_| revert("number of words is too large for provided u8 type"))?;
 		let salt = input.read::<H256>()?;
+		let num_words = input.read::<u8>()?;
 		let blocks_after_current = input.read::<u64>()?;
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let current_block_number: u64 = <frame_system::Pallet<Runtime>>::block_number()
@@ -245,15 +304,16 @@ where
 			.ok_or(error("addition result overflowed u64"))?
 			.try_into()
 			.map_err(|_| revert("u64 addition result overflowed block number type"))?;
-		let expiring_block_number = frame_system::Pallet::<Runtime>::block_number()
-			.saturating_add(<Runtime as pallet_randomness::Config>::ExpirationDelay::get().into());
+		let expiring_block_number = frame_system::Pallet::<Runtime>::block_number().saturating_add(
+			<Runtime as pallet_randomness::Config>::BlockExpirationDelay::get().into(),
+		);
 		let request = pallet_randomness::Request {
 			refund_address,
 			contract_address,
 			fee,
 			gas_limit,
 			num_words,
-			salt: salt.into(),
+			salt,
 			info: pallet_randomness::RequestInfo::Local(
 				requested_block_number,
 				expiring_block_number,
@@ -286,8 +346,6 @@ where
 		)?;
 		// get gas before subcall
 		let before_remaining_gas = handle.remaining_gas();
-		// TODO: change subcall to take variable input Vec<[u8; 32]>
-		// or should we make the vec.len() number of subcalls?
 		provide_randomness(
 			handle,
 			request.gas_limit,

@@ -6,7 +6,7 @@ uint32 constant MAX_RANDOM_WORDS = 100;
 /// @dev Minimum number of blocks before a request can be fulfilled
 uint32 constant MIN_DELAY_BLOCKS = 1;
 /// @dev Maximum number of blocks before a request can be fulfilled
-uint32 constant MAX_DELAY_BLOCKS = 10000;
+uint32 constant MAX_DELAY_BLOCKS = 10_000;
 
 interface Randomness {
     /// @notice The status of the request
@@ -38,7 +38,8 @@ interface Randomness {
     /// @param randomnessSource The type of randomness source used to generate the random words
     /// @param fulfillmentBlock The parachain block number at which the request can be fulfilled (for LocalVRF only)
     /// @param fulfillmentEpochIndex The relay epoch index at which the request can be fulfilled (for RelayBabeEpoch)
-    /// @param expirationBlock The parachain block number at which the request expires
+    /// @param expirationBlock The parachain block number at which the request expires (for LocalVRF only)
+    /// @param expirationEpochIndex The relay epoch index at which the request expires (for RelayBabeEpoch)
     /// @param status The current status of the request
     struct Request {
         uint256 id;
@@ -52,6 +53,7 @@ interface Randomness {
         uint32 fulfillmentBlock;
         uint32 fulfillmentEpochIndex;
         uint32 expirationBlock;
+        uint32 expirationEpochIndex;
         RequestStatus status;
     }
 
@@ -97,7 +99,7 @@ interface Randomness {
         uint256 fee,
         uint64 gasLimit,
         bytes32 salt,
-        uint64 numWords,
+        uint8 numWords,
         uint64 delay
     ) external returns (uint256);
 
@@ -127,7 +129,7 @@ interface Randomness {
         uint256 fee,
         uint64 gasLimit,
         bytes32 salt,
-        uint64 numWords
+        uint8 numWords
     ) external returns (uint256);
 
     /// @dev fulFill the request which will call the contract method "fulfillRandomWords"

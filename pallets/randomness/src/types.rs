@@ -132,31 +132,36 @@ impl<T: Config> Request<T> {
 		);
 		let (due_before_expiry, due_after_min_delay) = match self.info {
 			RequestInfo::BabeEpoch(epoch_due, expires) => {
-				let current_relay_epoch = RelayEpoch::<T>::get();
-				// TODO: distinction between ExpirationDelay and MaxDelay, maxdelay is check
-				// expiration delay is what we use to write
-				let max_epoch_index = current_relay_epoch.saturating_add(T::MaxEpochDelay::get());
-				if expires != max_epoch_index {
+				let current_epoch_index = RelayEpoch::<T>::get();
+				let expiring_epoch_index =
+					current_epoch_index.saturating_add(T::EpochExpirationDelay::get());
+				if expires != expiring_epoch_index {
 					log::warn!("Input expiration not equal to expected expiration so overwritten");
-					self.info = RequestInfo::BabeEpoch(epoch_due, expiring_relay_epoch_index);
+					self.info = RequestInfo::BabeEpoch(epoch_due, expiring_epoch_index);
 				}
 				(
-					epoch_due <= expiring_relay_epoch_index,
 					epoch_due
-						>= current_relay_epoch
+						<= current_epoch_index
+							.checked_add(T::MaxEpochDelay::get())
+							.ok_or(Error::<T>::CannotRequestRandomnessAfterMaxDelay)?,
+					epoch_due
+						>= current_epoch_index
 							.checked_add(T::MinEpochDelay::get())
 							.ok_or(Error::<T>::CannotRequestRandomnessBeforeMinDelay)?,
 				)
 			}
 			RequestInfo::Local(block_due, expires) => {
 				let current_block = frame_system::Pallet::<T>::block_number();
-				let expiring_block_number = current_block.saturating_add(T::MaxBlockDelay::get());
-				if expires != expiring_block_number {
+				let expiring_block = current_block.saturating_add(T::BlockExpirationDelay::get());
+				if expires != expiring_block {
 					log::warn!("Input expiration not equal to expected expiration so overwritten");
-					self.info = RequestInfo::Local(block_due, expiring_block_number);
+					self.info = RequestInfo::Local(block_due, expiring_block);
 				}
 				(
-					block_due <= expiring_block_number,
+					block_due
+						<= current_block
+							.checked_add(&T::MaxBlockDelay::get())
+							.ok_or(Error::<T>::CannotRequestRandomnessAfterMaxDelay)?,
 					block_due
 						>= current_block
 							.checked_add(&T::MinBlockDelay::get())
