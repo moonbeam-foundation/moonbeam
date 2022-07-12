@@ -184,9 +184,11 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
             address payable winner = payable(participants[index]);
             delete participants[index];
             emit Awarded(winner, randomWord, amountAwarded);
+            jackpot -= amountAwarded;
             winner.transfer(amountAwarded);
         }
         delete participants;
+        requestId = 0;
     }
 
     function fulfillRandomWords(
