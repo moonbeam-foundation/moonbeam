@@ -17,6 +17,12 @@ interface SolidityTest {
         bytes[] p2;
     }
 
+    /// A composed custom type
+    struct CustomArg2 {
+        CustomArg0 p0;  
+        CustomArg1[] p1;
+    }
+
     /// @dev Function without params and no selector
     function fnNoArgs() external;
 
@@ -62,6 +68,22 @@ interface SolidityTest {
 
     /// @param arg0 Arg0 Description
     /// @param arg1 Arg1 Description
+    /// Selector: 1ea61a4e
+    function fnCalldataArgs(
+        string calldata arg0,
+        bytes[] arg1,
+    ) external;
+
+    /// @param arg0 Arg0 Description
+    /// @param arg1 Arg1 Description
+    /// Selector: 9f066a4e
+    function fnStorageArgs(
+        string storage arg0,
+        bytes[] arg1,
+    ) external;
+
+    /// @param arg0 Arg0 Description
+    /// @param arg1 Arg1 Description
     /// @param arg2 Arg2 Description
     /// Selector: d8af1a4e
     function fnCustomArgs(
@@ -80,5 +102,29 @@ interface SolidityTest {
         CustomArg1 memory arg1,
         bytes[] arg2,
         uint64 arg3, 
+    ) external;
+
+    /// @param arg0 Arg0 Description
+    /// @param arg1 Arg1 Description
+    /// Selector: 77af1a40
+    function fnCustomArrayArgs(
+        CustomArg0[] memory arg0,
+        bytes[] arg1,
+    ) external;
+
+    /// @param arg0 Arg0 Description
+    /// @param arg1 Arg1 Description
+    /// Selector: 80af0a40
+    function fnCustomComposedArg(
+        CustomArg2 memory arg0,
+        uint64 arg1,
+    ) external;
+
+    /// @param arg0 Arg0 Description
+    /// @param arg1 Arg1 Description
+    /// Selector: 97baa040
+    function fnCustomComposedArrayArg(
+        CustomArg2[] memory arg0,
+        uint64 arg1,
     ) external;
 }

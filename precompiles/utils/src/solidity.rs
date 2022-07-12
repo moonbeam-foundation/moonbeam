@@ -24,7 +24,7 @@ use std::{
 };
 
 /// Represents a declared custom type struct within a solidity file
-#[derive(Clone, Default)]
+#[derive(Clone, Default, Debug)]
 pub struct SolidityStruct {
 	/// Struct name
 	pub name: String,
@@ -72,8 +72,22 @@ impl SolidityFunction {
 
 /// Returns a list of [SolidityFunction] defined in a solidity file
 pub fn get_selectors(filename: &str) -> Vec<SolidityFunction> {
-	let file = File::open(filename).expect("failed opening file");
+	let file = File::open(filename)
+		.unwrap_or_else(|e| panic!("failed opening file '{}': {}", filename, e));
 	get_selectors_from_reader(file)
+}
+
+/// Attempts to lookup a custom struct and returns its primitive signature
+fn try_lookup_custom_type(word: &str, custom_types: &HashMap<String, SolidityStruct>) -> String {
+	if word.ends_with("[]") {
+		if let Some(t) = custom_types.get(&word[..word.len() - 2]) {
+			return format!("{}[]", t.signature());
+		}
+	} else if let Some(t) = custom_types.get(word) {
+		return t.signature();
+	}
+
+	word.to_string()
 }
 
 fn get_selectors_from_reader<R: Read>(reader: R) -> Vec<SolidityFunction> {
@@ -142,7 +156,8 @@ fn get_selectors_from_reader<R: Read>(reader: R) -> Vec<SolidityFunction> {
 					solidity_struct = SolidityStruct::default();
 				}
 				(Stage::StructParams, Pair::First, _) => {
-					solidity_struct.params.push(word.to_string());
+					let param = try_lookup_custom_type(&word, &custom_types);
+					solidity_struct.params.push(param);
 					pair.next();
 				}
 				(Stage::StructParams, Pair::Second, _) => {
@@ -167,13 +182,12 @@ fn get_selectors_from_reader<R: Read>(reader: R) -> Vec<SolidityFunction> {
 				}
 				(Stage::Args, Pair::First, _) => {
 					let mut arg = word.to_string();
-					if let Some(t) = custom_types.get(&arg) {
-						arg = t.signature()
-					}
+					arg = try_lookup_custom_type(&arg, &custom_types);
+
 					solidity_fn.args.push(arg);
 					pair.next();
 				}
-				(Stage::Args, Pair::Second, "memory") => (),
+				(Stage::Args, Pair::Second, "memory" | "calldata" | "storage") => (),
 				(Stage::Args, Pair::Second, _) => pair.next(),
 				_ => {
 					stage = Stage::Start;
@@ -245,6 +259,16 @@ mod tests {
 				String::from("fnMemoryArrayArgs(address[],uint256[],bytes[])"),
 			),
 			(
+				String::from("ec26cf1c"),
+				String::from("1ea61a4e"),
+				String::from("fnCalldataArgs(string,bytes[])"),
+			),
+			(
+				String::from("d779295d"),
+				String::from("9f066a4e"),
+				String::from("fnStorageArgs(string,bytes[])"),
+			),
+			(
 				String::from("f29f96de"),
 				String::from("d8af1a4e"),
 				String::from("fnCustomArgs((uint8,bytes[]),bytes[],uint64)"),
@@ -253,8 +277,29 @@ mod tests {
 				String::from("b2c9f1a3"),
 				String::from("550c1a4e"),
 				String::from(
-					"fnCustomArgsMultiple((uint8,bytes[]),(address[],uint256[],bytes[])".to_owned()
-						+ ",bytes[],uint64)",
+					"fnCustomArgsMultiple((uint8,bytes[]),(address[],uint256[],bytes[]),bytes[],\
+					uint64)",
+				),
+			),
+			(
+				String::from("d5363eee"),
+				String::from("77af1a40"),
+				String::from("fnCustomArrayArgs((uint8,bytes[])[],bytes[])"),
+			),
+			(
+				String::from("b82da727"),
+				String::from("80af0a40"),
+				String::from(
+					"fnCustomComposedArg(((uint8,bytes[]),\
+				(address[],uint256[],bytes[])[]),uint64)",
+				),
+			),
+			(
+				String::from("586a2193"),
+				String::from("97baa040"),
+				String::from(
+					"fnCustomComposedArrayArg(((uint8,bytes[]),\
+				(address[],uint256[],bytes[])[])[],uint64)",
 				),
 			),
 		];
