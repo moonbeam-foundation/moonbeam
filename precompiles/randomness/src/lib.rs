@@ -154,9 +154,12 @@ where
 
 		let selector = handle.read_selector()?;
 
-		// No funds are transferred to the precompile address.
-		// Transfers will directly be made on behalf of the user by the precompile.
-		handle.check_function_modifier(FunctionModifier::NonPayable)?;
+		handle.check_function_modifier(match selector {
+			Action::RelayEpochIndex | Action::GetRequestStatus | Action::GetRequest => {
+				FunctionModifier::View
+			}
+			_ => FunctionModifier::NonPayable,
+		})?;
 
 		match selector {
 			Action::RelayEpochIndex => Self::relay_epoch_index(handle),
