@@ -13,8 +13,10 @@ import {
   CHARLETH_PRIVATE_KEY,
 } from "../../util/accounts";
 import {
+  CONTRACT_RANDOMNESS_STATUS_DOES_NOT_EXISTS,
   CONTRACT_RANDOMNESS_STATUS_PENDING,
   CONTRACT_RANDOMNESS_STATUS_READY,
+  GLMR,
   PRECOMPILE_RANDOMNESS_ADDRESS,
 } from "../../util/constants";
 import { getCompiled } from "../../util/contracts";
@@ -73,6 +75,10 @@ describeDevMoonbeam("Randomness VRF - Lottery Demo", (context) => {
     );
     expectEVMResult(result.events, "Succeed");
   });
+
+  it("should have a jackpot of 3 tokens", async function () {
+    expect(await lotteryContract.methods.jackpot().call()).to.equal((3n * GLMR).toString());
+  });
 });
 
 describeDevMoonbeam("Randomness VRF - Lottery Demo", (context) => {
@@ -126,15 +132,6 @@ describeDevMoonbeam("Randomness VRF - Lottery Demo", (context) => {
 
   it("should succeed to fulfill after the delay", async function () {
     await context.createBlock();
-    await context.createBlock();
-    const randomnessContract = new context.web3.eth.Contract(
-      RANDOMNESS_CONTRACT_JSON.contract.abi,
-      PRECOMPILE_RANDOMNESS_ADDRESS
-    );
-
-    expect(await randomnessContract.methods.getRequestStatus(0).call()).to.equal(
-      CONTRACT_RANDOMNESS_STATUS_READY.toString()
-    );
 
     const { result } = await context.createBlock(
       createTransaction(context, {
@@ -144,5 +141,47 @@ describeDevMoonbeam("Randomness VRF - Lottery Demo", (context) => {
       })
     );
     expectEVMResult(result.events, "Succeed");
+  });
+});
+
+describeDevMoonbeam("Randomness VRF - Fulfilling Lottery Demo", (context) => {
+  let lotteryContract: Contract;
+  let randomnessContract: Contract;
+  before("setup lottery contract", async function () {
+    lotteryContract = await setupLotteryWithParticipants(context);
+    randomnessContract = new context.web3.eth.Contract(
+      RANDOMNESS_CONTRACT_JSON.contract.abi,
+      PRECOMPILE_RANDOMNESS_ADDRESS
+    );
+    await context.createBlock(
+      createTransaction(context, {
+        ...ALITH_TRANSACTION_TEMPLATE,
+        to: lotteryContract.options.address,
+        data: LOTTERY_INTERFACE.encodeFunctionData("startLottery", []),
+        value: Web3.utils.toWei("1", "ether"),
+      })
+    );
+    await context.createBlock();
+    await context.createBlock();
+    await context.createBlock(
+      createTransaction(context, {
+        ...ALITH_TRANSACTION_TEMPLATE,
+        to: PRECOMPILE_RANDOMNESS_ADDRESS,
+        data: RANDOMNESS_INTERFACE.encodeFunctionData("fulfillRequest", [0]),
+      })
+    );
+  });
+
+  it("should remove the request", async function () {
+    expect(await randomnessContract.methods.getRequestStatus(0).call()).to.equal(
+      CONTRACT_RANDOMNESS_STATUS_DOES_NOT_EXISTS.toString()
+    );
+
+    const randomnessRequests = await context.polkadotApi.query.randomness.requests.entries();
+    expect(randomnessRequests.length).to.equal(0);
+  });
+
+  it("should reset the jackpot", async function () {
+    expect(await lotteryContract.methods.jackpot().call()).to.equal("0");
   });
 });
