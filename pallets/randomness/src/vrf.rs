@@ -31,9 +31,10 @@ type Randomness = schnorrkel::Randomness;
 pub(crate) fn set_output<T: Config>() -> Weight {
 	// Do not set the output in the first block (genesis or runtime upgrade)
 	// because we do not have any input for author to sign (which would be set in last block)
-	if <NotFirstBlock<T>>::get().is_none() {
-		<NotFirstBlock<T>>::put(());
-		return T::DbWeight::get().read + T::DbWeight::get().write;
+	if NotFirstBlock::<T>::get().is_none() {
+		NotFirstBlock::<T>::put(());
+		LocalVrfOutput::<T>::put(Some(T::Hash::default()));
+		return T::DbWeight::get().read + (T::DbWeight::get().write * 2);
 	}
 	// TODO: change the input to just the previous VRF
 	// TODO: migration to set input in the first block
