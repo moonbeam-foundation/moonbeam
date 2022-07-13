@@ -784,7 +784,7 @@ where
 			let client_clone = client.clone();
 			let keystore_clone = keystore.clone();
 			let additional_digests_provider = move |nimbus_id: NimbusId, parent: Hash|
-				-> Option<sp_runtime::generic::DigestItem> {
+				-> sp_runtime::generic::DigestItem {
 				moonbeam_vrf::vrf_pre_digest::<Block, FullClient<RuntimeApi, Executor>>(
 					&client_clone,
 					&keystore_clone,
@@ -934,7 +934,7 @@ where
 		let client_clone = client.clone();
 		let keystore_clone = keystore_container.sync_keystore().clone();
 		let additional_digests_provider =
-			move |nimbus_id: NimbusId, parent: Hash| -> Option<sp_runtime::generic::DigestItem> {
+			move |nimbus_id: NimbusId, parent: Hash| -> sp_runtime::generic::DigestItem {
 				moonbeam_vrf::vrf_pre_digest::<Block, FullClient<RuntimeApi, Executor>>(
 					&client_clone,
 					&keystore_clone,

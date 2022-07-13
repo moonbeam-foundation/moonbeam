@@ -29,7 +29,7 @@
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use cumulus_pallet_parachain_system::{RelayChainStateProof, RelaychainBlockNumberProvider};
-use cumulus_primitives_core::relay_chain::{self, v2::Slot};
+use cumulus_primitives_core::relay_chain;
 use fp_rpc::TransactionStatus;
 
 use account::AccountId20;

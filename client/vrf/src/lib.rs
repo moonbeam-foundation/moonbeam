@@ -25,14 +25,12 @@ use sp_keystore::{SyncCryptoStore, SyncCryptoStorePtr};
 
 /// Uses the runtime API to get the VRF inputs and sign them with the VRF key that
 /// corresponds to the authoring NimbusId.
-/// Returns None if the API doesn't exist, meaning we're interacting with a runtime made
-/// before the introduction of this feature.
 pub fn vrf_pre_digest<B, C>(
 	client: &C,
 	keystore: &SyncCryptoStorePtr,
 	nimbus_id: NimbusId,
 	parent: H256,
-) -> Option<sp_runtime::generic::DigestItem>
+) -> sp_runtime::generic::DigestItem
 where
 	B: sp_runtime::traits::Block<Hash = sp_core::H256>,
 	C: sp_api::ProvideRuntimeApi<B>,
@@ -41,38 +39,47 @@ where
 	let at = sp_api::BlockId::Hash(parent);
 	let runtime_api = client.runtime_api();
 
-	let last_vrf_output = runtime_api.get_last_vrf_output(&at).ok()?;
-	// one ? for API error, another for None returned by API.
-	let key: VrfId = runtime_api.vrf_key_lookup(&at, nimbus_id).ok()??;
-	let vrf_pre_digest = sign_vrf(last_vrf_output, key, &keystore)?;
-	Some(session_keys_primitives::digest::CompatibleDigestItem::vrf_pre_digest(vrf_pre_digest))
+	let last_vrf_output = runtime_api.get_last_vrf_output(&at).ok().expect(
+		"Runtime API not implemented; Runtime must be upgraded \
+			new client is not backwards compatible with old runtimes",
+	);
+	let key: VrfId = runtime_api
+		.vrf_key_lookup(&at, nimbus_id)
+		.ok()
+		.expect(
+			"Runtime API: Failed to look up author's VRF key \
+		new client is not backwards compatible with old runtimes",
+		)
+		.expect("No VRF key associated with author's NimbusId in VrfKeyLookup");
+	let vrf_pre_digest = sign_vrf(last_vrf_output, key, &keystore);
+	session_keys_primitives::digest::CompatibleDigestItem::vrf_pre_digest(vrf_pre_digest)
 }
 
 /// Signs the VrfInput using the private key corresponding to the input `key` public key
 /// to be found in the input keystore
-/// Returns None if key not found in keystore or if signature output cannot be validated by input
-/// If successful, returns Some(VRF pre-digest)
-fn sign_vrf(last_vrf_output: H256, key: VrfId, keystore: &SyncCryptoStorePtr) -> Option<PreDigest> {
+fn sign_vrf(last_vrf_output: H256, key: VrfId, keystore: &SyncCryptoStorePtr) -> PreDigest {
 	let transcript = make_transcript(last_vrf_output.clone());
 	let transcript_data = make_transcript_data(last_vrf_output);
 	let try_sign =
 		SyncCryptoStore::sr25519_vrf_sign(&**keystore, VrfId::ID, key.as_ref(), transcript_data);
-	if let Ok(Some(signature)) = try_sign {
-		let public = PublicKey::from_bytes(&key.to_raw_vec()).ok()?;
-		if signature
-			.output
-			.attach_input_hash(&public, transcript)
-			.is_err()
-		{
-			// signature cannot be validated using key and transcript
-			return None;
+	match try_sign {
+		Ok(Some(signature)) => {
+			let public = PublicKey::from_bytes(&key.to_raw_vec())
+				.ok()
+				.expect("Failed to convert VRF key to sp_consensus_vrf::PublicKey");
+			if signature
+				.output
+				.attach_input_hash(&public, transcript)
+				.is_err()
+			{
+				panic!("VRF signature cannot be validated using key and transcript");
+			}
+			PreDigest {
+				vrf_output: VRFOutput(signature.output),
+				vrf_proof: VRFProof(signature.proof),
+			}
 		}
-		Some(PreDigest {
-			vrf_output: VRFOutput(signature.output),
-			vrf_proof: VRFProof(signature.proof),
-		})
-	} else {
-		// Either `key` not found in keystore (if None returned) or an Err if something else failed
-		None
+		Ok(None) => panic!("VRF key not found in keystore"),
+		_ => panic!("VRF signing failed, add code to propagate error if you see this"),
 	}
 }
