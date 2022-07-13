@@ -139,7 +139,7 @@ describeDevMoonbeam("Randomness VRF - Lottery Demo", (context) => {
     const { result } = await context.createBlock(
       createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
-        to: lotteryContract.options.address,
+        to: PRECOMPILE_RANDOMNESS_ADDRESS,
         data: RANDOMNESS_INTERFACE.encodeFunctionData("fulfillRequest", [0]),
       })
     );
