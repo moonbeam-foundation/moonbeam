@@ -106,6 +106,7 @@ where
 /// caller must call `ensure_can_provide_randomness` before calling this function
 fn provide_randomness(
 	handle: &mut impl PrecompileHandle,
+	request_id: u64,
 	gas_limit: u64,
 	contract: H160,
 	request_id: u64,
@@ -375,6 +376,7 @@ where
 		let before_remaining_gas = handle.remaining_gas();
 		provide_randomness(
 			handle,
+			request_id,
 			request.gas_limit,
 			request.contract_address.clone().into(),
 			request_id,
