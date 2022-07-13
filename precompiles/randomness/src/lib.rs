@@ -106,6 +106,7 @@ where
 /// caller must call `ensure_can_provide_randomness` before calling this function
 fn provide_randomness(
 	handle: &mut impl PrecompileHandle,
+	request_id: u64,
 	gas_limit: u64,
 	contract: H160,
 	randomness: Vec<H256>,
@@ -116,6 +117,7 @@ fn provide_randomness(
 		EvmDataWriter::new()
 			// callback function selector: keccak256("rawFulfillRandomWords(uint256,uint256[])")
 			.write(0x1fe543e3_u32)
+			.write(request_id)
 			.write(randomness)
 			.build(),
 		Some(gas_limit),
@@ -373,6 +375,7 @@ where
 		let before_remaining_gas = handle.remaining_gas();
 		provide_randomness(
 			handle,
+			request_id,
 			request.gas_limit,
 			request.contract_address.clone().into(),
 			randomness.into_iter().map(|x| H256(x)).collect(),
