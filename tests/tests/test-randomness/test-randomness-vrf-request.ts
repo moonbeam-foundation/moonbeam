@@ -4,7 +4,12 @@ import { expect } from "chai";
 import { ethers } from "ethers";
 
 import { alith } from "../../util/accounts";
-import { GLMR, PRECOMPILE_RANDOMNESS_ADDRESS } from "../../util/constants";
+import {
+  CONTRACT_RANDOMNESS_STATUS_DOES_NOT_EXISTS,
+  CONTRACT_RANDOMNESS_STATUS_PENDING,
+  GLMR,
+  PRECOMPILE_RANDOMNESS_ADDRESS,
+} from "../../util/constants";
 import { getCompiled } from "../../util/contracts";
 import { expectEVMResult } from "../../util/eth-transactions";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
@@ -262,7 +267,9 @@ describeDevMoonbeam("Randomness VRF - Requesting a random number", (context) => 
       })
     );
 
-    expect(await randomnessContract.methods.getRequestStatus(0).call()).to.equal("1");
+    expect(await randomnessContract.methods.getRequestStatus(0).call()).to.equal(
+      CONTRACT_RANDOMNESS_STATUS_PENDING.toString()
+    );
   });
 });
 
@@ -273,6 +280,8 @@ describeDevMoonbeam("Randomness VRF - Requesting an invalid random number", (con
       PRECOMPILE_RANDOMNESS_ADDRESS
     );
 
-    expect(await randomnessContract.methods.getRequestStatus(0).call()).to.equal("0");
+    expect(await randomnessContract.methods.getRequestStatus(0).call()).to.equal(
+      CONTRACT_RANDOMNESS_STATUS_DOES_NOT_EXISTS.toString()
+    );
   });
 });
