@@ -1,10 +1,11 @@
 import "@moonbeam-network/api-augment";
 
 import { KeyringPair } from "@polkadot/keyring/types";
-import { ParaId, XcmpMessageFormat, MessagingStateSnapshot } from "@polkadot/types/interfaces";
+import { ParaId, XcmpMessageFormat, MessagingStateSnapshot, H256 } from "@polkadot/types/interfaces";
 import { BN, u8aToHex } from "@polkadot/util";
 import { expect } from "chai";
 import { ChaChaRng } from "randchacha";
+import { xxhashAsU8a } from "@polkadot/util-crypto";
 
 import { alith, baltathar, generateKeyringPair } from "../../util/accounts";
 import { PARA_2000_SOURCE_LOCATION } from "../../util/assets";
@@ -2278,7 +2279,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal suspend", (context) => {
     console.log(totalMessage)
      // Send RPC call to inject XCM message
     // We will set a specific message knowing that it should mint the statemint asset
-    await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [1, totalMessage]);
+    await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [2023, totalMessage]);
 
     // Create a block in which the XCM will be executed
     await context.createBlock();
@@ -2314,7 +2315,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal suspend", (context) => {
     const destination = {
       V1: {
         parents: 1,
-        interior: { X1: { Parachain: 1 } }
+        interior: { X1: { Parachain: 2023 } }
       }
     };
 
@@ -2324,26 +2325,14 @@ describeDevMoonbeam("Mock XCM - receive horizontal suspend", (context) => {
     ) as any;
 
     const relevantMessageState = {
-      dmqMqcHead: "0x0000000000000000000000000000000000000000000000000000000000000000",
       relayDispatchQueueSize: [0, 0],
-      ingressChannels: [
-        2000,
-        {
-          maxCapacity: 1000,
-          maxTotalSize: 102400,
-          maxMessageSize: 102400,
-          msgCount: 0,
-          totalSize: 0,
-          mqcHead: null
-        }
-      ],
       egressChannels: [
         [
-          2000,
+          2023,
           {
-            maxCapacity: 1000,
-            maxTotalSize: 102400,
-            maxMessageSize: 102400,
+            maxCapacity: 8,
+            maxTotalSize: 8192,
+            maxMessageSize: 32768,
             msgCount: 0,
             totalSize: 0,
             mqcHead: null
@@ -2352,26 +2341,72 @@ describeDevMoonbeam("Mock XCM - receive horizontal suspend", (context) => {
       ] 
     }
     const stateToInsert: MessagingStateSnapshot = context.polkadotApi.createType(
-      "CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot",
+      "MessagingStateSnapshot",
       relevantMessageState
     ) as any;
-    console.log(u8aToHex(stateToInsert.toU8a()));
 
+    const head = "0x1bb0c495253779da3a0317df342d547f7fadf752336dea0d7d7956347f584d2c";
+    const HeadHash: H256 = context.polkadotApi.createType(
+      "H256",
+      head
+    ) as any;
+
+    const ingressChannels = [
+      [
+        2023,
+        {
+          maxCapacity: 8,
+          maxTotalSize: 8192,
+          // this value will define the length of the pages
+          // we want to test there is no limit in pages
+          maxMessageSize: 4,
+          msgCount: 0,
+          totalSize: 0,
+          mqcHead: null
+        }
+      ]
+    ] ;
+
+    const ingressChannelsCreated: H256 = context.polkadotApi.createType(
+      "Vec<MessagingStateSnapshotEgressEntry>",
+      ingressChannels
+    ) as any;
+
+    const totalMessage = [...HeadHash.toU8a(), ...stateToInsert.toU8a(), ...ingressChannelsCreated.toU8a()];
+
+    console.log(u8aToHex(new Uint8Array(totalMessage)))
+
+    // Get keys to modify balance
+    let module = xxhashAsU8a(new TextEncoder().encode("ParachainSystem"), 128);
+    let account_key = xxhashAsU8a(new TextEncoder().encode("RelevantMessagingState"), 128);
+    let overallKey = new Uint8Array([
+      ...module,
+      ...account_key
+    ]);
     // We also need to trick parachain-system to pretend there exists
     // an open channel with para id 1. 
 
-    for (let i =0; i<3; i++) {
+    for (let i =0; i<100; i++) {
       await context.createBlock(
-      context.polkadotApi.tx.sudo.sudo(
-        context.polkadotApi.tx.polkadotXcm.send(
-          versionedMult,
-          messageToSend
+        context.polkadotApi.tx.sudo.sudo(
+          context.polkadotApi.tx.utility.batchAll([
+
+          context.polkadotApi.tx.system.setStorage([
+            [u8aToHex(overallKey), u8aToHex(new Uint8Array(totalMessage))],
+          ])
+          ,
+          context.polkadotApi.tx.polkadotXcm.send(
+             versionedMult,
+             messageToSend
+          )
+          ]
         )
-      )
-    );
+      
+      )  )
     }
 
-    let queuedMessages = await context.polkadotApi.query.xcmpQueue.outboundXcmpMessages(1, null);
-    console.log(queuedMessages)
+    let queuedMessages = await (await context.polkadotApi.query.xcmpQueue.outboundXcmpMessages.entries());
+    console.log("queued")
+    console.log(queuedMessages.length)
   });
 });
