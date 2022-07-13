@@ -7,6 +7,7 @@ import { alith } from "../../util/accounts";
 import {
   CONTRACT_RANDOMNESS_STATUS_DOES_NOT_EXISTS,
   CONTRACT_RANDOMNESS_STATUS_PENDING,
+  CONTRACT_RANDOMNESS_STATUS_READY,
   GLMR,
   PRECOMPILE_RANDOMNESS_ADDRESS,
 } from "../../util/constants";
@@ -120,6 +121,20 @@ describeDevMoonbeam("Randomness VRF - Requesting a random number", (context) => 
       (await context.polkadotApi.query.randomness.requests.entries()) as any
     )[0][1].unwrap().request;
     expect(request.info.isLocal).to.be.true;
+  });
+
+  it("should be have a fulfillment block of 3", async function () {
+    const request = (
+      (await context.polkadotApi.query.randomness.requests.entries()) as any
+    )[0][1].unwrap().request;
+    expect(request.info.asLocal[0].toBigInt()).to.be.equal(3n);
+  });
+
+  it("should be have a expiration block of 10001", async function () {
+    const request = (
+      (await context.polkadotApi.query.randomness.requests.entries()) as any
+    )[0][1].unwrap().request;
+    expect(request.info.asLocal[1].toBigInt()).to.be.equal(10001n);
   });
 });
 
@@ -252,6 +267,8 @@ describeDevMoonbeam("Randomness VRF - Requesting a random number", (context) => 
       PRECOMPILE_RANDOMNESS_ADDRESS
     );
 
+    const delayBlocks = 4;
+
     await context.createBlock(
       createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
@@ -261,14 +278,52 @@ describeDevMoonbeam("Randomness VRF - Requesting a random number", (context) => 
           1n * GLMR, // fee
           100_000n, // gas limit
           SIMPLE_SALT,
-          100, // number of random words
-          2, // future blocks
+          1, // number of random words
+          delayBlocks, // future blocks
         ]),
       })
     );
 
+    for (let i = 0; i < delayBlocks - 1; i++) {
+      await context.createBlock();
+    }
+
     expect(await randomnessContract.methods.getRequestStatus(0).call()).to.equal(
       CONTRACT_RANDOMNESS_STATUS_PENDING.toString()
+    );
+  });
+});
+
+describeDevMoonbeam("Randomness VRF - Requesting a random number", (context) => {
+  it("should be marked as ready after delay has passed", async function () {
+    const randomnessContract = new context.web3.eth.Contract(
+      RANDOMNESS_CONTRACT_JSON.contract.abi,
+      PRECOMPILE_RANDOMNESS_ADDRESS
+    );
+
+    const delayBlocks = 3;
+
+    await context.createBlock(
+      createTransaction(context, {
+        ...ALITH_TRANSACTION_TEMPLATE,
+        to: PRECOMPILE_RANDOMNESS_ADDRESS,
+        data: RANDOMNESS_INTERFACE.encodeFunctionData("requestLocalVRFRandomWords", [
+          alith.address, // refund address
+          1n * GLMR, // fee
+          100_000n, // gas limit
+          SIMPLE_SALT,
+          1, // number of random words
+          delayBlocks, // future blocks
+        ]),
+      })
+    );
+
+    for (let i = 0; i < delayBlocks; i++) {
+      await context.createBlock();
+    }
+
+    expect(await randomnessContract.methods.getRequestStatus(0).call()).to.equal(
+      CONTRACT_RANDOMNESS_STATUS_READY.toString()
     );
   });
 });

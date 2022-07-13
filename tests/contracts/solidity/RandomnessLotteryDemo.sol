@@ -57,14 +57,14 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
     /// @dev this limit based on the size of the request and the processing of the
     /// @dev callback request in the fulfillRandomWords() function.
     /// @dev The fee paid to start the lottery needs to be sufficient to pay for the gas limit
-    uint64 FULFILLMENT_GAS_LIMIT = 100000; // TODO: fill XXX
+    uint64 public FULFILLMENT_GAS_LIMIT = 100000; // TODO: fill XXX
 
     /// @notice The minimum fee needed to start the lottery
     /// @dev This does not guarantee that there will be enough fee to pay for the
     /// @dev gas used by the fulfillment. Ideally it should be over-estimated
     /// @dev considering possible fluctuation of the gas price.
     /// @dev Additional fee will be refunded to the caller
-    uint256 MIN_FEE = FULFILLMENT_GAS_LIMIT * 1 gwei;
+    uint256 public MIN_FEE = FULFILLMENT_GAS_LIMIT * 1 gwei;
 
     /// @notice The number of winners
     /// @dev This number corresponds to how many random words will requested
@@ -89,7 +89,7 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
     uint256 public MAX_PARTICIPANTS = 20;
 
     /// @notice The fee needed to participate in the lottery. Will go into the jackpot
-    uint256 PARTICIPATION_FEE = 1 ether;
+    uint256 public PARTICIPATION_FEE = 1 ether;
 
     /// @notice A string used to allow having different salt that other contracts
     bytes32 public SALT_PREFIX = "my_demo_salt_change_me";
