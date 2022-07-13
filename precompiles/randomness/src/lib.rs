@@ -114,9 +114,8 @@ fn provide_randomness(
 	let (reason, _) = handle.call(
 		contract,
 		None,
-		EvmDataWriter::new()
-			// callback function selector: keccak256("rawFulfillRandomWords(uint256,uint256[])")
-			.write(0x1fe543e3_u32)
+		// callback function selector: keccak256("rawFulfillRandomWords(uint256,uint256[])")
+		EvmDataWriter::new_with_selector(0x1fe543e3_u32)
 			.write(request_id)
 			.write(randomness)
 			.build(),
