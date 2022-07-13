@@ -5,17 +5,21 @@ import Web3 from "web3";
 import { Contract } from "web3-eth-contract";
 
 import {
+  alith,
   ALITH_ADDRESS,
+  ALITH_GENESIS_FREE_BALANCE,
   ALITH_PRIVATE_KEY,
+  baltathar,
   BALTATHAR_ADDRESS,
   BALTATHAR_PRIVATE_KEY,
+  charleth,
   CHARLETH_ADDRESS,
   CHARLETH_PRIVATE_KEY,
 } from "../../util/accounts";
 import {
   CONTRACT_RANDOMNESS_STATUS_DOES_NOT_EXISTS,
   CONTRACT_RANDOMNESS_STATUS_PENDING,
-  CONTRACT_RANDOMNESS_STATUS_READY,
+  DEFAULT_GENESIS_BALANCE,
   GLMR,
   PRECOMPILE_RANDOMNESS_ADDRESS,
 } from "../../util/constants";
@@ -186,5 +190,23 @@ describeDevMoonbeam("Randomness VRF - Fulfilling Lottery Demo", (context) => {
 
   it("should reset the jackpot", async function () {
     expect(await lotteryContract.methods.jackpot().call()).to.equal("0");
+  });
+
+  it("should reward balthazar and charleth", async function () {
+    expect(
+      (
+        await context.polkadotApi.query.system.account(baltathar.address.toString())
+      ).data.free.toBigInt() > DEFAULT_GENESIS_BALANCE
+    ).to.be.false;
+    expect(
+      (
+        await context.polkadotApi.query.system.account(charleth.address.toString())
+      ).data.free.toBigInt() > DEFAULT_GENESIS_BALANCE
+    ).to.be.true;
+    expect(
+      (
+        await context.polkadotApi.query.system.account(alith.address.toString())
+      ).data.free.toBigInt() > ALITH_GENESIS_FREE_BALANCE
+    ).to.be.true;
   });
 });
