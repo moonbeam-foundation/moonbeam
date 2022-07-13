@@ -299,12 +299,14 @@ where
 			salt,
 			info: RequestInfo::BabeEpoch(two_epochs_later, expiring_relay_epoch_index),
 		};
-		Pallet::<Runtime>::request_randomness(request)
-			.map_err(|e| error(alloc::format!("{:?}", e)))?;
+
+		let request_id: U256 = Pallet::<Runtime>::request_randomness(request)
+			.map_err(|e| error(alloc::format!("{:?}", e)))?
+			.into();
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
-			output: Default::default(),
+			output: EvmDataWriter::new().write(request_id).build(),
 		})
 	}
 	/// Make request for local VRF randomness
@@ -341,11 +343,14 @@ where
 			salt,
 			info: RequestInfo::Local(requested_block_number, expiring_block_number),
 		};
-		Pallet::<Runtime>::request_randomness(request)
-			.map_err(|e| error(alloc::format!("{:?}", e)))?;
+
+		let request_id: U256 = Pallet::<Runtime>::request_randomness(request)
+			.map_err(|e| error(alloc::format!("{:?}", e)))?
+			.into();
+
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
-			output: Default::default(),
+			output: EvmDataWriter::new().write(request_id).build(),
 		})
 	}
 	/// Fulfill a randomness request due to be fulfilled
