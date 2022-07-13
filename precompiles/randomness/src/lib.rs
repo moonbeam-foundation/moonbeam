@@ -108,6 +108,7 @@ fn provide_randomness(
 	handle: &mut impl PrecompileHandle,
 	gas_limit: u64,
 	contract: H160,
+	request_id: u64,
 	randomness: Vec<H256>,
 ) -> EvmResult<()> {
 	let (reason, _) = handle.call(
@@ -116,6 +117,7 @@ fn provide_randomness(
 		EvmDataWriter::new()
 			// callback function selector: keccak256("rawFulfillRandomWords(uint256,uint256[])")
 			.write(0x1fe543e3_u32)
+			.write(request_id)
 			.write(randomness)
 			.build(),
 		Some(gas_limit),
@@ -375,6 +377,7 @@ where
 			handle,
 			request.gas_limit,
 			request.contract_address.clone().into(),
+			request_id,
 			randomness.into_iter().map(|x| H256(x)).collect(),
 		)?;
 		// get gas after subcall
