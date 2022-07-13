@@ -113,6 +113,7 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
     constructor() RandomnessConsumer() {
         owner = msg.sender;
         globalRequestCount = 0;
+        jackpot = 0;
         /// Set the requestId to uint256::max to ensure it is not already existing
         requestId = 2**256 - 1;
     }
@@ -151,8 +152,9 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
         }
 
         uint256 fee = msg.value;
-        if (fee < MIN_FEE) {
-            revert NotEnoughFee(fee, MIN_FEE);
+        uint256 requiredDeposit = 1000000000000000000; // TODO replace with randomness.requiredDeposit();
+        if (fee < MIN_FEE + requiredDeposit) {
+            revert NotEnoughFee(fee, MIN_FEE + requiredDeposit);
         }
 
         /// Requesting NUM_WINNERS random words with a delay of DELAY_BLOCKS blocks
@@ -160,7 +162,7 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
         /// globalRequestCount is used as salt to be unique for each request
         requestId = randomness.requestLocalVRFRandomWords(
             msg.sender,
-            fee,
+            fee - requiredDeposit,
             FULFILLMENT_GAS_LIMIT,
             SALT_PREFIX ^ bytes32(globalRequestCount++),
             NUM_WINNERS,
@@ -187,8 +189,7 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
         /// The left-over is kept for the next lottery
         uint256 amountAwarded = jackpot / totalWinners;
         emit Ended(participants.length, jackpot, totalWinners);
-
-        for (uint32 i = 0; i < amountAwarded; i++) {
+        for (uint32 i = 0; i < totalWinners; i++) {
             /// This is safe to index randomWords with i because we requested
             /// NUM_WINNERS random words
             uint256 randomWord = randomWords[i];

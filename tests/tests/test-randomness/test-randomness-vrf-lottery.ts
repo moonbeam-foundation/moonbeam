@@ -158,7 +158,8 @@ describeDevMoonbeam("Randomness VRF - Fulfilling Lottery Demo", (context) => {
         ...ALITH_TRANSACTION_TEMPLATE,
         to: lotteryContract.options.address,
         data: LOTTERY_INTERFACE.encodeFunctionData("startLottery", []),
-        value: Web3.utils.toWei("1", "ether"),
+        // 1 Ether for the fees + 1 Ether for the deposit
+        value: Web3.utils.toWei("2", "ether"),
       })
     );
     await context.createBlock();

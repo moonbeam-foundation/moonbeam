@@ -7,6 +7,8 @@ uint32 constant MAX_RANDOM_WORDS = 100;
 uint32 constant MIN_DELAY_BLOCKS = 2;
 /// @dev Maximum number of blocks before a request can be fulfilled
 uint32 constant MAX_DELAY_BLOCKS = 2000;
+/// @dev The deposit amount needed to request random words. There is 1 deposit per request
+uint256 constant REQUEST_DEPOSIT_AMOUNT = 1000000000000000000;
 
 interface Randomness {
     /// @notice The status of the request
@@ -66,6 +68,11 @@ interface Randomness {
     /// @dev  - Polkadot: 2400 relay blocks (4 hours)
     /// Selector: 81797566
     function relayEpochIndex() external view returns (uint64);
+
+    /// Return the deposit required to perform a request
+    /// @dev Each request will need a deposit.
+    /// Selector: fb7cfdd7
+    function requiredDeposit() external view returns (uint256);
 
     /// @notice Returns the request status
     /// @param requestId The id of the request to check
