@@ -415,6 +415,45 @@ impl EvmData for U256 {
 	}
 }
 
+impl<T> EvmData for Option<T> where T: EvmData{
+	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
+		let range = reader.move_cursor(8)?;
+
+		let data = reader
+			.input
+			.get(range)
+			.ok_or_else(|| revert("tried to parse u8 out of bounds"))?;
+
+		let data = <[u8; 1]>::try_from(data).map_err(|_| revert("failed parsing u8 out of bounds"))?;
+		let option = u8::from_be_bytes(data);
+		match option {
+			0 => Ok(None),
+			1 => {
+				let wrapped_data = T::read(reader)?;
+				Ok(Some(wrapped_data))
+			},
+			_ => Err(revert("invalid bytecode for Option")),
+		}
+	}
+
+	fn write(writer: &mut EvmDataWriter, value: Self) {
+		match value {
+			None => {
+				writer.data.extend_from_slice(&0u8.to_be_bytes());
+			},
+			Some(wrapped_value) => {
+				writer.data.extend_from_slice(&1u8.to_be_bytes());
+				
+				T::write(writer, wrapped_value);
+			}
+		}
+	}
+
+	fn has_static_size() -> bool {
+		true
+	}
+}
+
 macro_rules! impl_evmdata_for_uints {
 	($($uint:ty, )*) => {
 		$(

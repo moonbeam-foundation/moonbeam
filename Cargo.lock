@@ -7199,6 +7199,35 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-evm-precompile-proxy"
+version = "0.1.0"
+dependencies = [
+ "cumulus-pallet-parachain-system",
+ "cumulus-primitives-core",
+ "derive_more",
+ "fp-evm",
+ "frame-support",
+ "frame-system",
+ "hex-literal",
+ "log",
+ "num_enum",
+ "pallet-balances",
+ "pallet-evm",
+ "pallet-proxy",
+ "pallet-timestamp",
+ "parity-scale-codec",
+ "precompile-utils",
+ "rustc-hex",
+ "scale-info",
+ "serde",
+ "sha3 0.9.1",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-evm-precompile-relay-encoder"
 version = "0.1.0"
 dependencies = [

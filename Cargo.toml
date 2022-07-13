@@ -18,6 +18,7 @@ members = [
 	"precompiles/crowdloan-rewards",
 	"precompiles/pallet-democracy",
 	"precompiles/parachain-staking",
+	"precompiles/proxy",
 	"precompiles/relay-encoder",
 	"precompiles/utils/macro",
 	"precompiles/xcm-transactor",
