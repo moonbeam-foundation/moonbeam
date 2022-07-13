@@ -113,8 +113,11 @@ fn provide_randomness(
 	let (reason, _) = handle.call(
 		contract,
 		None,
-		// TODO: need function selector
-		EvmDataWriter::new().write(randomness).build(),
+		EvmDataWriter::new()
+			// callback function selector: keccak256("rawFulfillRandomWords(uint256,uint256[])")
+			.write(0x1fe543e3_u32)
+			.write(randomness)
+			.build(),
 		Some(gas_limit),
 		false,
 		&Context {
