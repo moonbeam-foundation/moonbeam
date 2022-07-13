@@ -42,15 +42,15 @@ mod tests;
 #[derive(Debug, PartialEq)]
 pub enum Action {
 	RelayEpochIndex = "relayEpochIndex()",
-	GetRequestStatus = "getRequestStatus(uint64)",
-	GetRequest = "getRequest(uint64)",
+	GetRequestStatus = "getRequestStatus(uint256)",
+	GetRequest = "getRequest(uint256)",
 	RequestRelayBabeEpochRandomWords =
 		"requestRelayBabeEpochRandomWords(address,uint256,uint64,bytes32,uint8)",
 	RequestLocalVRFRandomWords =
 		"requestLocalVRFRandomWords(address,uint256,uint64,bytes32,uint8,uint64)",
-	FulfillRequest = "fulfillRequest(uint64)",
-	IncreaseRequestFee = "increaseRequestFee(uint64,uint256)",
-	PurgeExpiredRequest = "purgeExpiredRequest(uint64)",
+	FulfillRequest = "fulfillRequest(uint256)",
+	IncreaseRequestFee = "increaseRequestFee(uint256,uint256)",
+	PurgeExpiredRequest = "purgeExpiredRequest(uint256)",
 }
 
 pub const FULFILLMENT_ESTIMATED_COST: u64 = 1000u64; // TODO: get real value from benchmarking
@@ -155,9 +155,12 @@ where
 
 		let selector = handle.read_selector()?;
 
-		// No funds are transferred to the precompile address.
-		// Transfers will directly be made on behalf of the user by the precompile.
-		handle.check_function_modifier(FunctionModifier::NonPayable)?;
+		handle.check_function_modifier(match selector {
+			Action::RelayEpochIndex | Action::GetRequestStatus | Action::GetRequest => {
+				FunctionModifier::View
+			}
+			_ => FunctionModifier::NonPayable,
+		})?;
 
 		match selector {
 			Action::RelayEpochIndex => Self::relay_epoch_index(handle),
@@ -187,7 +190,7 @@ where
 		))
 	}
 	fn get_request_status(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let request_id = handle.read_input()?.read::<u64>()?;
+		let request_id = handle.read_input()?.read::<U256>()?.low_u64();
 		// record cost of 2 DB reads
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost() * 2)?;
 		let status =
@@ -205,7 +208,7 @@ where
 		Ok(succeed(EvmDataWriter::new().write(status).build()))
 	}
 	fn get_request(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let request_id = handle.read_input()?.read::<u64>()?;
+		let request_id = handle.read_input()?.read::<U256>()?.low_u64();
 		// record cost of 2 DB reads
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost() * 2)?;
 		let RequestState { request, .. } =
@@ -297,12 +300,14 @@ where
 			salt,
 			info: RequestInfo::BabeEpoch(two_epochs_later, expiring_relay_epoch_index),
 		};
-		Pallet::<Runtime>::request_randomness(request)
-			.map_err(|e| error(alloc::format!("{:?}", e)))?;
+
+		let request_id: U256 = Pallet::<Runtime>::request_randomness(request)
+			.map_err(|e| error(alloc::format!("{:?}", e)))?
+			.into();
 
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
-			output: Default::default(),
+			output: EvmDataWriter::new().write(request_id).build(),
 		})
 	}
 	/// Make request for local VRF randomness
@@ -339,17 +344,20 @@ where
 			salt,
 			info: RequestInfo::Local(requested_block_number, expiring_block_number),
 		};
-		Pallet::<Runtime>::request_randomness(request)
-			.map_err(|e| error(alloc::format!("{:?}", e)))?;
+
+		let request_id: U256 = Pallet::<Runtime>::request_randomness(request)
+			.map_err(|e| error(alloc::format!("{:?}", e)))?
+			.into();
+
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
-			output: Default::default(),
+			output: EvmDataWriter::new().write(request_id).build(),
 		})
 	}
 	/// Fulfill a randomness request due to be fulfilled
 	fn fulfill_request(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		let mut input = handle.read_input()?;
-		let request_id = input.read::<u64>()?;
+		let request_id = input.read::<U256>()?.low_u64();
 		// read all the inputs
 		let pallet_randomness::FulfillArgs {
 			request,
@@ -403,7 +411,7 @@ where
 	/// Increase the fee used to refund fulfillment of the request
 	fn increase_request_fee(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		let mut input = handle.read_input()?;
-		let request_id = input.read::<u64>()?;
+		let request_id = input.read::<U256>()?.low_u64();
 		let fee_increase: BalanceOf<Runtime> = input
 			.read::<U256>()?
 			.try_into()
@@ -421,7 +429,7 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
 		let mut input = handle.read_input()?;
-		let request_id = input.read::<u64>()?;
+		let request_id = input.read::<U256>()?.low_u64();
 		Pallet::<Runtime>::execute_request_expiration(&handle.context().caller, request_id)
 			.map_err(|e| error(alloc::format!("{:?}", e)))?;
 		Ok(PrecompileOutput {

@@ -128,7 +128,7 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
 
         //each player is compelled to add a certain ETH to join
         if (msg.value != PARTICIPATION_FEE) {
-            revert InvalidParticipationFee(msg.value, MIN_FEE);
+            revert InvalidParticipationFee(msg.value, PARTICIPATION_FEE);
         }
         participants.push(msg.sender);
         jackpot += msg.value;

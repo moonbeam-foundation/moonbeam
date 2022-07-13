@@ -303,7 +303,7 @@ pub mod pallet {
 
 	// Public functions for precompile usage only
 	impl<T: Config> Pallet<T> {
-		pub fn request_randomness(request: Request<T>) -> DispatchResult {
+		pub fn request_randomness(request: Request<T>) -> Result<u64, sp_runtime::DispatchError> {
 			let request = RequestState::new(request)?;
 			let (fee, contract_address, info) = (
 				request.request.fee,
@@ -337,7 +337,7 @@ pub mod pallet {
 			<RequestCount<T>>::put(next_id);
 			request.request.emit_randomness_requested_event(request_id);
 			<Requests<T>>::insert(request_id, request);
-			Ok(())
+			Ok(request_id)
 		}
 		/// Prepare fulfillment
 		/// Returns all arguments needed for fulfillment
