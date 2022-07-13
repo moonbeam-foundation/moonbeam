@@ -1,7 +1,7 @@
 import "@moonbeam-network/api-augment";
 
 import { KeyringPair } from "@polkadot/keyring/types";
-import { ParaId, XcmpMessageFormat } from "@polkadot/types/interfaces";
+import { ParaId, XcmpMessageFormat, MessagingStateSnapshot } from "@polkadot/types/interfaces";
 import { BN, u8aToHex } from "@polkadot/util";
 import { expect } from "chai";
 import { ChaChaRng } from "randchacha";
@@ -11,7 +11,7 @@ import { PARA_2000_SOURCE_LOCATION } from "../../util/assets";
 import { customWeb3Request } from "../../util/providers";
 import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
 
-import type { XcmVersionedXcm } from "@polkadot/types/lookup";
+import type { XcmVersionedXcm, XcmVersionedMultiLocation } from "@polkadot/types/lookup";
 
 import { createContract } from "../../util/transactions";
 
@@ -2258,5 +2258,120 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM", (context)
     await context.createBlock();
 
     expect(await contractDeployed.methods.count().call()).to.eq("1");
+  });
+});
+
+
+describeDevMoonbeam("Mock XCM - receive horizontal suspend", (context) => {
+
+  before("Should receive a suspend channel", async function () {
+    // We first simulate a reception for suspending a channel from parachain 1
+    const xcmpFormat: XcmpMessageFormat = context.polkadotApi.createType(
+      "XcmpMessageFormat",
+      "Signals"
+    ) as any;
+    const receivedMessage = context.polkadotApi.createType(
+      "u8",
+      0
+    ) as any;
+    const totalMessage = [...xcmpFormat.toU8a(), ...receivedMessage.toU8a()];
+    console.log(totalMessage)
+     // Send RPC call to inject XCM message
+    // We will set a specific message knowing that it should mint the statemint asset
+    await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [1, totalMessage]);
+
+    // Create a block in which the XCM will be executed
+    await context.createBlock();
+
+    let status = await context.polkadotApi.query.xcmpQueue.outboundXcmpStatus();
+    expect(status[0].state.isSuspended).to.be.true
+  });
+
+  it.only("It should push messages, and should enqueue them in xcmp outbound queue", async function () {
+    // TARGET 100 messages
+    // We want to check there is no visible limit on these
+
+    // Fragments are grouped together and stored in a message
+    // It is this message that we are going to store
+    // The easiest way to test it create a single message every block, with no other messages to append
+
+    // We can create these with sudo
+    // The simplest message should do it
+    const xcmMessage = {
+      V2: [
+        { ClearOrigin: null as any },
+      ]
+    }
+    const xcmpFormat: XcmpMessageFormat = context.polkadotApi.createType(
+      "XcmpMessageFormat",
+      "ConcatenatedVersionedXcm"
+    ) as any;
+    const messageToSend: XcmVersionedXcm = context.polkadotApi.createType(
+      "XcmVersionedXcm",
+      xcmMessage
+    ) as any;
+
+    const destination = {
+      V1: {
+        parents: 1,
+        interior: { X1: { Parachain: 1 } }
+      }
+    };
+
+    const versionedMult: XcmVersionedMultiLocation = context.polkadotApi.createType(
+      "XcmVersionedMultiLocation",
+      destination
+    ) as any;
+
+    const relevantMessageState = {
+      dmqMqcHead: "0x0000000000000000000000000000000000000000000000000000000000000000",
+      relayDispatchQueueSize: [0, 0],
+      ingressChannels: [
+        2000,
+        {
+          maxCapacity: 1000,
+          maxTotalSize: 102400,
+          maxMessageSize: 102400,
+          msgCount: 0,
+          totalSize: 0,
+          mqcHead: null
+        }
+      ],
+      egressChannels: [
+        [
+          2000,
+          {
+            maxCapacity: 1000,
+            maxTotalSize: 102400,
+            maxMessageSize: 102400,
+            msgCount: 0,
+            totalSize: 0,
+            mqcHead: null
+          }
+        ]
+      ] 
+    }
+    const stateToInsert: MessagingStateSnapshot = context.polkadotApi.createType(
+      "CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot",
+      relevantMessageState
+    ) as any;
+    console.log(u8aToHex(stateToInsert.toU8a()));
+
+    // We also need to trick parachain-system to pretend there exists
+    // an open channel with para id 1. 
+
+    for (let i =0; i<3; i++) {
+      await context.createBlock(
+      context.polkadotApi.tx.sudo.sudo(
+        context.polkadotApi.tx.polkadotXcm.send(
+          versionedMult,
+          messageToSend
+        )
+      )
+    );
+    }
+
+    let queuedMessages = await context.polkadotApi.query.xcmpQueue.outboundXcmpMessages(1, null);
+    console.log(queuedMessages)
   });
 });
