@@ -40,15 +40,15 @@ mod tests;
 #[derive(Debug, PartialEq)]
 pub enum Action {
 	RelayEpochIndex = "relayEpochIndex()",
-	GetRequestStatus = "getRequestStatus(uint64)",
-	GetRequest = "getRequest(uint64)",
+	GetRequestStatus = "getRequestStatus(uint256)",
+	GetRequest = "getRequest(uint256)",
 	RequestRelayBabeEpochRandomWords =
 		"requestRelayBabeEpochRandomWords(address,uint256,uint64,bytes32,uint8)",
 	RequestLocalVRFRandomWords =
 		"requestLocalVRFRandomWords(address,uint256,uint64,bytes32,uint8,uint64)",
-	FulfillRequest = "fulfillRequest(uint64)",
-	IncreaseRequestFee = "increaseRequestFee(uint64,uint256)",
-	PurgeExpiredRequest = "purgeExpiredRequest(uint64)",
+	FulfillRequest = "fulfillRequest(uint256)",
+	IncreaseRequestFee = "increaseRequestFee(uint256,uint256)",
+	PurgeExpiredRequest = "purgeExpiredRequest(uint256)",
 }
 
 pub const FULFILLMENT_ESTIMATED_COST: u64 = 1000u64; // TODO: get real value from benchmarking
@@ -184,35 +184,35 @@ where
 		))
 	}
 	fn get_request_status(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let request_id = handle.read_input()?.read::<u64>()?;
+		let request_id = handle.read_input()?.read::<U256>()?.low_u64();
 		// record cost of 2 DB reads
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost() * 2)?;
 		let status =
 			if let Some(RequestState { request, .. }) = Pallet::<Runtime>::requests(request_id) {
 				if request.is_expired() {
-					3u32 // EXPIRED
+					3u8 // EXPIRED
 				} else if request.can_be_fulfilled() {
-					2u32 // READY
+					2u8 // READY
 				} else {
-					1u32 // PENDING
+					1u8 // PENDING
 				}
 			} else {
-				0u32 // DOES NOT EXIST
+				0u8 // DOES NOT EXIST
 			};
 		Ok(succeed(EvmDataWriter::new().write(status).build()))
 	}
 	fn get_request(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let request_id = handle.read_input()?.read::<u64>()?;
+		let request_id = handle.read_input()?.read::<U256>()?.low_u64();
 		// record cost of 2 DB reads
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost() * 2)?;
 		let RequestState { request, .. } =
 			Pallet::<Runtime>::requests(request_id).ok_or(error("Request Does Not Exist"))?;
 		let status = if request.is_expired() {
-			3u32 // EXPIRED
+			3u8 // EXPIRED
 		} else if request.can_be_fulfilled() {
-			2u32 // READY
+			2u8 // READY
 		} else {
-			1u32 // PENDING
+			1u8 // PENDING
 		};
 		let (
 			randomness_source,
@@ -350,7 +350,7 @@ where
 	/// Fulfill a randomness request due to be fulfilled
 	fn fulfill_request(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		let mut input = handle.read_input()?;
-		let request_id = input.read::<u64>()?;
+		let request_id = input.read::<U256>()?.low_u64();
 		// read all the inputs
 		let pallet_randomness::FulfillArgs {
 			request,
@@ -404,7 +404,7 @@ where
 	/// Increase the fee used to refund fulfillment of the request
 	fn increase_request_fee(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		let mut input = handle.read_input()?;
-		let request_id = input.read::<u64>()?;
+		let request_id = input.read::<U256>()?.low_u64();
 		let fee_increase: BalanceOf<Runtime> = input
 			.read::<U256>()?
 			.try_into()
@@ -422,7 +422,7 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
 		let mut input = handle.read_input()?;
-		let request_id = input.read::<u64>()?;
+		let request_id = input.read::<U256>()?.low_u64();
 		Pallet::<Runtime>::execute_request_expiration(&handle.context().caller, request_id)
 			.map_err(|e| error(alloc::format!("{:?}", e)))?;
 		Ok(PrecompileOutput {
