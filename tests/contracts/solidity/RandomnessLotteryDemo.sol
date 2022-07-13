@@ -22,6 +22,9 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
     /// @notice There are not enough fee to start the lottery
     error NotEnoughFee(uint256 value, uint256 required);
 
+    /// @notice The deposit given is too low
+    error DepositTooLow(uint256 value, uint256 required);
+
     /// @notice The provided fee to participate doesn't match the required amount
     error InvalidParticipationFee(uint256 value, uint256 required);
 
@@ -110,7 +113,14 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
     /// @notice the owner of the contract
     address owner;
 
-    constructor() RandomnessConsumer() {
+    constructor() payable RandomnessConsumer() {
+        /// Because this contract can only perform 1 random request at a time,
+        /// We only need to have 1 required deposit.
+        uint256 requiredDeposit = 1000000000000000000; // TODO replace with randomness.requiredDeposit();
+        if (msg.value < requiredDeposit) {
+            revert DepositTooLow(msg.value, requiredDeposit);
+        }
+
         owner = msg.sender;
         globalRequestCount = 0;
         jackpot = 0;
@@ -152,9 +162,19 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
         }
 
         uint256 fee = msg.value;
+        if (fee < MIN_FEE) {
+            revert NotEnoughFee(fee, MIN_FEE);
+        }
+
+        /// We verify there is enough balance on the contract to pay for the deposit.
+        /// This would fail only if the deposit amount required is changed in the
+        /// Randomness Precompile.
         uint256 requiredDeposit = 1000000000000000000; // TODO replace with randomness.requiredDeposit();
-        if (fee < MIN_FEE + requiredDeposit) {
-            revert NotEnoughFee(fee, MIN_FEE + requiredDeposit);
+        if (address(this).balance < jackpot + requiredDeposit) {
+            revert DepositTooLow(
+                address(this).balance - jackpot,
+                requiredDeposit
+            );
         }
 
         /// Requesting NUM_WINNERS random words with a delay of DELAY_BLOCKS blocks
@@ -162,7 +182,7 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
         /// globalRequestCount is used as salt to be unique for each request
         requestId = randomness.requestLocalVRFRandomWords(
             msg.sender,
-            fee - requiredDeposit,
+            fee,
             FULFILLMENT_GAS_LIMIT,
             SALT_PREFIX ^ bytes32(globalRequestCount++),
             NUM_WINNERS,

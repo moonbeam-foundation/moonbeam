@@ -35,7 +35,10 @@ const RANDOMNESS_CONTRACT_JSON = getCompiled("Randomness");
 const RANDOMNESS_INTERFACE = new ethers.utils.Interface(RANDOMNESS_CONTRACT_JSON.contract.abi);
 
 const setupLotteryWithParticipants = async (context: DevTestContext) => {
-  const { contract, rawTx } = await createContract(context, "RandomnessLotteryDemo");
+  const { contract, rawTx } = await createContract(context, "RandomnessLotteryDemo", {
+    ...ALITH_TRANSACTION_TEMPLATE,
+    value: Web3.utils.toWei("1", "ether"),
+  });
   await context.createBlock(rawTx);
 
   // Adds participants
@@ -158,8 +161,7 @@ describeDevMoonbeam("Randomness VRF - Fulfilling Lottery Demo", (context) => {
         ...ALITH_TRANSACTION_TEMPLATE,
         to: lotteryContract.options.address,
         data: LOTTERY_INTERFACE.encodeFunctionData("startLottery", []),
-        // 1 Ether for the fees + 1 Ether for the deposit
-        value: Web3.utils.toWei("2", "ether"),
+        value: Web3.utils.toWei("1", "ether"),
       })
     );
     await context.createBlock();
