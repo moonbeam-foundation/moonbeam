@@ -303,8 +303,10 @@ pub mod pallet {
 
 	// Public functions for precompile usage only
 	impl<T: Config> Pallet<T> {
-		pub fn request_randomness(request: Request<T>) -> Result<u64, sp_runtime::DispatchError> {
-			let request = RequestState::new(request)?;
+		pub fn request_randomness(
+			request: Request<BalanceOf<T>, RequestType<T>>,
+		) -> Result<RequestId, sp_runtime::DispatchError> {
+			let request = RequestState::new(request.into())?;
 			let (fee, contract_address, info) = (
 				request.request.fee,
 				request.request.contract_address,
@@ -350,7 +352,7 @@ pub mod pallet {
 		/// Caller MUST ensure `id` corresponds to `request` or there will be side effects
 		pub fn finish_fulfillment(
 			id: RequestId,
-			request: Request<T>,
+			request: Request<BalanceOf<T>, RequestInfo<T>>,
 			deposit: BalanceOf<T>,
 			caller: &H160,
 			cost_of_execution: BalanceOf<T>,

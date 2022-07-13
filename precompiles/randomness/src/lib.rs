@@ -24,9 +24,9 @@ extern crate alloc;
 use fp_evm::{
 	Context, ExitReason, ExitSucceed, Log, Precompile, PrecompileHandle, PrecompileOutput,
 };
-use frame_support::sp_runtime::traits::Saturating;
-use frame_support::traits::Get;
-use pallet_randomness::{BalanceOf, GetBabeData, Pallet, Request, RequestInfo, RequestState};
+use pallet_randomness::{
+	BalanceOf, GetBabeData, Pallet, Request, RequestInfo, RequestState, RequestType,
+};
 use precompile_utils::{costs::call_cost, prelude::*};
 use sp_core::{H160, H256, U256};
 use sp_std::{fmt::Debug, marker::PhantomData, vec::Vec};
@@ -288,9 +288,6 @@ where
 			<Runtime as pallet_randomness::Config>::BabeDataGetter::get_epoch_index()
 				.checked_add(2u64)
 				.ok_or(error("Epoch Index (u64) overflowed"))?;
-		let expiring_relay_epoch_index = Pallet::<Runtime>::relay_epoch().saturating_add(
-			<Runtime as pallet_randomness::Config>::EpochExpirationDelay::get().into(),
-		);
 		let request = Request {
 			refund_address,
 			contract_address,
@@ -298,7 +295,7 @@ where
 			gas_limit,
 			num_words,
 			salt,
-			info: RequestInfo::BabeEpoch(two_epochs_later, expiring_relay_epoch_index),
+			info: RequestType::BabeEpoch(two_epochs_later),
 		};
 
 		let request_id: U256 = Pallet::<Runtime>::request_randomness(request)
@@ -332,9 +329,6 @@ where
 			.ok_or(error("addition result overflowed u64"))?
 			.try_into()
 			.map_err(|_| revert("u64 addition result overflowed block number type"))?;
-		let expiring_block_number = frame_system::Pallet::<Runtime>::block_number().saturating_add(
-			<Runtime as pallet_randomness::Config>::BlockExpirationDelay::get().into(),
-		);
 		let request = Request {
 			refund_address,
 			contract_address,
@@ -342,7 +336,7 @@ where
 			gas_limit,
 			num_words,
 			salt,
-			info: RequestInfo::Local(requested_block_number, expiring_block_number),
+			info: RequestType::Local(requested_block_number),
 		};
 
 		let request_id: U256 = Pallet::<Runtime>::request_randomness(request)

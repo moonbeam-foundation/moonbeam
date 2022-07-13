@@ -46,6 +46,23 @@ pub enum RequestInfo<T: Config> {
 	Local(T::BlockNumber, T::BlockNumber),
 }
 
+impl<T: Config> From<RequestType<T>> for RequestInfo<T> {
+	fn from(other: RequestType<T>) -> RequestInfo<T> {
+		// add expiration
+		match other {
+			RequestType::BabeEpoch(epoch) => RequestInfo::BabeEpoch(
+				epoch,
+				RelayEpoch::<T>::get().saturating_add(T::EpochExpirationDelay::get()),
+			),
+			RequestType::Local(block) => RequestInfo::Local(
+				block,
+				frame_system::Pallet::<T>::block_number()
+					.saturating_add(T::BlockExpirationDelay::get()),
+			),
+		}
+	}
+}
+
 impl<T: Config> From<RequestInfo<T>> for RequestType<T> {
 	fn from(other: RequestInfo<T>) -> RequestType<T> {
 		match other {
@@ -97,15 +114,14 @@ impl<Hash: Clone> RandomnessResult<Hash> {
 }
 
 #[derive(PartialEq, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
-#[scale_info(skip_type_params(T))]
 /// Input arguments to request randomness
-pub struct Request<T: Config> {
+pub struct Request<Balance, Info> {
 	/// Fee is returned to this account upon execution
 	pub refund_address: H160,
 	/// Contract that consumes the randomness
 	pub contract_address: H160,
 	/// Fee to pay for execution
-	pub fee: BalanceOf<T>,
+	pub fee: Balance,
 	/// Gas limit for subcall
 	pub gas_limit: u64,
 	/// Number of random outputs requested
@@ -113,10 +129,26 @@ pub struct Request<T: Config> {
 	/// Salt to use once randomness is ready
 	pub salt: H256,
 	/// Details regarding request type
-	pub info: RequestInfo<T>,
+	pub info: Info,
 }
 
-impl<T: Config> Request<T> {
+impl<T: Config> From<Request<BalanceOf<T>, RequestType<T>>>
+	for Request<BalanceOf<T>, RequestInfo<T>>
+{
+	fn from(other: Request<BalanceOf<T>, RequestType<T>>) -> Request<BalanceOf<T>, RequestInfo<T>> {
+		Request {
+			refund_address: other.refund_address,
+			contract_address: other.contract_address,
+			fee: other.fee,
+			gas_limit: other.gas_limit,
+			num_words: other.num_words,
+			salt: other.salt,
+			info: other.info.into(),
+		}
+	}
+}
+
+impl<T: Config> Request<BalanceOf<T>, RequestInfo<T>> {
 	pub fn is_expired(&self) -> bool {
 		match self.info {
 			RequestInfo::BabeEpoch(_, expires) => RelayEpoch::<T>::get() >= expires,
@@ -138,15 +170,9 @@ impl<T: Config> Request<T> {
 			!self.can_be_fulfilled(),
 			Error::<T>::CannotRequestPastRandomness
 		);
-		let (due_before_expiry, due_after_min_delay) = match self.info {
-			RequestInfo::BabeEpoch(epoch_due, expires) => {
+		let (due_before_max_delay, due_after_min_delay) = match self.info {
+			RequestInfo::BabeEpoch(epoch_due, _) => {
 				let current_epoch_index = RelayEpoch::<T>::get();
-				let expiring_epoch_index =
-					current_epoch_index.saturating_add(T::EpochExpirationDelay::get());
-				if expires != expiring_epoch_index {
-					log::warn!("Input expiration not equal to expected expiration so overwritten");
-					self.info = RequestInfo::BabeEpoch(epoch_due, expiring_epoch_index);
-				}
 				(
 					epoch_due
 						<= current_epoch_index
@@ -158,13 +184,8 @@ impl<T: Config> Request<T> {
 							.ok_or(Error::<T>::CannotRequestRandomnessBeforeMinDelay)?,
 				)
 			}
-			RequestInfo::Local(block_due, expires) => {
+			RequestInfo::Local(block_due, _) => {
 				let current_block = frame_system::Pallet::<T>::block_number();
-				let expiring_block = current_block.saturating_add(T::BlockExpirationDelay::get());
-				if expires != expiring_block {
-					log::warn!("Input expiration not equal to expected expiration so overwritten");
-					self.info = RequestInfo::Local(block_due, expiring_block);
-				}
 				(
 					block_due
 						<= current_block
@@ -178,7 +199,7 @@ impl<T: Config> Request<T> {
 			}
 		};
 		ensure!(
-			due_before_expiry,
+			due_before_max_delay,
 			Error::<T>::CannotRequestRandomnessAfterMaxDelay
 		);
 		ensure!(
@@ -262,7 +283,7 @@ impl<T: Config> Request<T> {
 #[scale_info(skip_type_params(T))]
 pub struct RequestState<T: Config> {
 	/// Underlying request
-	pub request: Request<T>,
+	pub request: Request<BalanceOf<T>, RequestInfo<T>>,
 	/// Deposit taken for making request (stored in case config changes)
 	pub deposit: BalanceOf<T>,
 }
@@ -272,7 +293,7 @@ pub struct RequestState<T: Config> {
 /// Data required to make the subcallback and finish fulfilling the request
 pub struct FulfillArgs<T: Config> {
 	/// Original request
-	pub request: Request<T>,
+	pub request: Request<BalanceOf<T>, RequestInfo<T>>,
 	/// Deposit for request
 	pub deposit: BalanceOf<T>,
 	/// Randomness
@@ -280,7 +301,9 @@ pub struct FulfillArgs<T: Config> {
 }
 
 impl<T: Config> RequestState<T> {
-	pub(crate) fn new(mut request: Request<T>) -> Result<RequestState<T>, DispatchError> {
+	pub(crate) fn new(
+		mut request: Request<BalanceOf<T>, RequestInfo<T>>,
+	) -> Result<RequestState<T>, DispatchError> {
 		request.validate()?;
 		Ok(RequestState {
 			request,
