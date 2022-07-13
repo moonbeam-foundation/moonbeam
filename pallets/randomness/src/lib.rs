@@ -201,9 +201,9 @@ pub mod pallet {
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		/// Populates the `RandomnessResults` that are due this block with the raw values
-		/// This inherent is a workaround to run code in every block after
-		/// `ParachainSystem::set_validation_data` but before all extrinsics.
-		/// the relevant storage item to validate the VRF output in this pallet's `on_initialize`
+		// This inherent is a workaround to run code in every block after
+		// `ParachainSystem::set_validation_data` but before all extrinsics.
+		// the relevant storage item to validate the VRF output in this pallet's `on_initialize`
 		// This should go into on_post_inherents when it is ready
 		// https://github.com/paritytech/substrate/pull/10128
 		// TODO: weight

@@ -187,7 +187,7 @@ impl<T: Config> Request<T> {
 		);
 		Ok(())
 	}
-	fn get_randomness(&self) -> Result<T::Hash, DispatchError> {
+	fn get_random_words(&self) -> Result<Vec<[u8; 32]>, DispatchError> {
 		ensure!(
 			self.can_be_fulfilled(),
 			Error::<T>::RequestCannotYetBeFulfilled
@@ -200,7 +200,9 @@ impl<T: Config> Request<T> {
 			// hitting this error is a bug because a RandomnessResult should be updated if request
 			// can be fulfilled
 			.ok_or(Error::<T>::RandomnessResultNotFilled)?;
-		Ok(randomness)
+		// compute random output(s) using salt
+		let random_words = Pallet::<T>::concat_and_hash(randomness, self.salt, self.num_words);
+		Ok(random_words)
 	}
 	pub(crate) fn emit_randomness_requested_event(&self, id: RequestId) {
 		let event = match self.info {
@@ -288,11 +290,8 @@ impl<T: Config> RequestState<T> {
 	/// Returns Ok(FulfillArgs) if successful
 	/// This should be called before the callback
 	pub fn prepare_fulfill(&self) -> Result<FulfillArgs<T>, DispatchError> {
-		// get the randomness corresponding to the request
-		let randomness: T::Hash = self.request.get_randomness()?;
-		// compute random output(s) using salt
-		let randomness =
-			Pallet::<T>::concat_and_hash(randomness, self.request.salt, self.request.num_words);
+		// get the random words corresponding to the request
+		let randomness = self.request.get_random_words()?;
 		// No event emitted until fulfillment is complete
 		Ok(FulfillArgs {
 			request: self.request.clone(),

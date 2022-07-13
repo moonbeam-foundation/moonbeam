@@ -113,6 +113,7 @@ fn provide_randomness(
 	let (reason, _) = handle.call(
 		contract,
 		None,
+		// TODO: need function selector
 		EvmDataWriter::new().write(randomness).build(),
 		Some(gas_limit),
 		false,
