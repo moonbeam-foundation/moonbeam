@@ -33,6 +33,8 @@ use sp_std::{fmt::Debug, marker::PhantomData, vec::Vec};
 
 // #[cfg(test)]
 // mod mock;
+mod solidity_types;
+use solidity_types::*;
 #[cfg(test)]
 mod tests;
 
@@ -190,14 +192,14 @@ where
 		let status =
 			if let Some(RequestState { request, .. }) = Pallet::<Runtime>::requests(request_id) {
 				if request.is_expired() {
-					3u32 // EXPIRED
+					RequestStatus::Expired
 				} else if request.can_be_fulfilled() {
-					2u32 // READY
+					RequestStatus::Ready
 				} else {
-					1u32 // PENDING
+					RequestStatus::Pending
 				}
 			} else {
-				0u32 // DOES NOT EXIST
+				RequestStatus::DoesNotExist
 			};
 		Ok(succeed(EvmDataWriter::new().write(status).build()))
 	}
@@ -208,11 +210,11 @@ where
 		let RequestState { request, .. } =
 			Pallet::<Runtime>::requests(request_id).ok_or(error("Request Does Not Exist"))?;
 		let status = if request.is_expired() {
-			3u32 // EXPIRED
+			RequestStatus::Expired
 		} else if request.can_be_fulfilled() {
-			2u32 // READY
+			RequestStatus::Ready
 		} else {
-			1u32 // PENDING
+			RequestStatus::Pending
 		};
 		let (
 			randomness_source,
@@ -222,30 +224,26 @@ where
 			expiration_epoch,
 			request_status,
 		) = match request.info {
-			RequestInfo::BabeEpoch(epoch_due, epoch_expired) => {
-				(
-					1u32, // RandomnessSource::RelayBabeEpoch
-					0u64,
-					epoch_due,
-					0u64,
-					epoch_expired,
-					status,
-				)
-			}
-			RequestInfo::Local(block_due, block_expired) => {
-				(
-					0u32, // RandomnessSource::LocalVRF
-					block_due
-						.try_into()
-						.map_err(|_| revert("block number overflowed u32"))?,
-					0u64,
-					block_expired
-						.try_into()
-						.map_err(|_| revert("block number overflowed u32"))?,
-					0u64,
-					status,
-				)
-			}
+			RequestInfo::BabeEpoch(epoch_due, epoch_expired) => (
+				RandomnessSource::RelayBabeEpoch,
+				0u64,
+				epoch_due,
+				0u64,
+				epoch_expired,
+				status,
+			),
+			RequestInfo::Local(block_due, block_expired) => (
+				RandomnessSource::LocalVRF,
+				block_due
+					.try_into()
+					.map_err(|_| revert("block number overflowed u32"))?,
+				0u64,
+				block_expired
+					.try_into()
+					.map_err(|_| revert("block number overflowed u32"))?,
+				0u64,
+				status,
+			),
 		};
 		let (refund_address, contract_address, fee): (Address, Address, U256) = (
 			request.refund_address.into(),

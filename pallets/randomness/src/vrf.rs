@@ -36,8 +36,6 @@ pub(crate) fn set_output<T: Config>() -> Weight {
 		LocalVrfOutput::<T>::put(Some(T::Hash::default()));
 		return T::DbWeight::get().read + (T::DbWeight::get().write * 2);
 	}
-	// TODO: change the input to just the previous VRF
-	// TODO: migration to set input in the first block
 	let mut block_author_vrf_id: Option<VrfId> = None;
 	let PreDigest {
 		vrf_output,
