@@ -784,13 +784,13 @@ where
 			let client_clone = client.clone();
 			let keystore_clone = keystore.clone();
 			let additional_digests_provider = move |nimbus_id: NimbusId, parent: Hash|
-				-> sp_runtime::generic::DigestItem {
-				moonbeam_vrf::vrf_pre_digest::<Block, FullClient<RuntimeApi, Executor>>(
+				-> Option<sp_runtime::generic::DigestItem> {
+				Some(moonbeam_vrf::vrf_pre_digest::<Block, FullClient<RuntimeApi, Executor>>(
 					&client_clone,
 					&keystore_clone,
 					nimbus_id,
 					parent,
-				)
+				))
 			};
 
 			Ok(NimbusConsensus::build(BuildNimbusConsensusParams {
@@ -934,13 +934,11 @@ where
 		let client_clone = client.clone();
 		let keystore_clone = keystore_container.sync_keystore().clone();
 		let additional_digests_provider =
-			move |nimbus_id: NimbusId, parent: Hash| -> sp_runtime::generic::DigestItem {
-				moonbeam_vrf::vrf_pre_digest::<Block, FullClient<RuntimeApi, Executor>>(
-					&client_clone,
-					&keystore_clone,
-					nimbus_id,
-					parent,
-				)
+			move |nimbus_id: NimbusId, parent: Hash| -> Option<sp_runtime::generic::DigestItem> {
+				Some(moonbeam_vrf::vrf_pre_digest::<
+					Block,
+					FullClient<RuntimeApi, Executor>,
+				>(&client_clone, &keystore_clone, nimbus_id, parent))
 			};
 
 		task_manager.spawn_essential_handle().spawn_blocking(
