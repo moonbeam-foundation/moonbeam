@@ -1452,6 +1452,13 @@
 <span id="1447">1447</span>
 <span id="1448">1448</span>
 <span id="1449">1449</span>
+<span id="1450">1450</span>
+<span id="1451">1451</span>
+<span id="1452">1452</span>
+<span id="1453">1453</span>
+<span id="1454">1454</span>
+<span id="1455">1455</span>
+<span id="1456">1456</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -2401,6 +2408,13 @@
 			<span class="ident">Call::PolkadotXcm</span>(<span class="ident">method</span>) =&gt; <span class="kw">match</span> <span class="ident">method</span> {
 				<span class="ident">pallet_xcm::Call::force_default_xcm_version</span> { .. } =&gt; <span class="bool-val">true</span>,
 				<span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
+			},
+			<span class="comment">// We filter anonymous proxy as they make &quot;reserve&quot; inconsistent</span>
+			<span class="comment">// See: https://github.com/paritytech/substrate/blob/37cca710eed3dadd4ed5364c7686608f5175cce1/frame/proxy/src/lib.rs#L270 // editorconfig-checker-disable-line</span>
+			<span class="ident">Call::Proxy</span>(<span class="ident">method</span>) =&gt; <span class="kw">match</span> <span class="ident">method</span> {
+				<span class="ident">pallet_proxy::Call::anonymous</span> { .. } =&gt; <span class="bool-val">false</span>,
+				<span class="ident">pallet_proxy::Call::kill_anonymous</span> { .. } =&gt; <span class="bool-val">false</span>,
+				<span class="kw">_</span> =&gt; <span class="bool-val">true</span>,
 			},
 			<span class="comment">// We filter for now transact through signed</span>
 			<span class="ident">Call::XcmTransactor</span>(<span class="ident">method</span>) =&gt; <span class="kw">match</span> <span class="ident">method</span> {
