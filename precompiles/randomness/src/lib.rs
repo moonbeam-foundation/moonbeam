@@ -194,7 +194,11 @@ where
 		))
 	}
 	fn get_request_status(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let request_id = handle.read_input()?.read::<U256>()?.low_u64();
+		let request_id: u64 = handle
+			.read_input()?
+			.read::<U256>()?
+			.try_into()
+			.map_err(|_| error("Input RequestId overflows u64 type set in Pallet"))?;
 		// record cost of 2 DB reads
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost() * 2)?;
 		let status =
@@ -212,7 +216,11 @@ where
 		Ok(succeed(EvmDataWriter::new().write(status).build()))
 	}
 	fn get_request(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let request_id = handle.read_input()?.read::<U256>()?.low_u64();
+		let request_id: u64 = handle
+			.read_input()?
+			.read::<U256>()?
+			.try_into()
+			.map_err(|_| error("Input RequestId overflows u64 type set in Pallet"))?;
 		// record cost of 2 DB reads
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost() * 2)?;
 		let RequestState { request, .. } =
@@ -355,7 +363,10 @@ where
 	/// Fulfill a randomness request due to be fulfilled
 	fn fulfill_request(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		let mut input = handle.read_input()?;
-		let request_id = input.read::<U256>()?.low_u64();
+		let request_id: u64 = input
+			.read::<U256>()?
+			.try_into()
+			.map_err(|_| error("Input RequestId overflows u64 type set in Pallet"))?;
 		// read all the inputs
 		let pallet_randomness::FulfillArgs {
 			request,
@@ -410,7 +421,10 @@ where
 	/// Increase the fee used to refund fulfillment of the request
 	fn increase_request_fee(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		let mut input = handle.read_input()?;
-		let request_id = input.read::<U256>()?.low_u64();
+		let request_id: u64 = input
+			.read::<U256>()?
+			.try_into()
+			.map_err(|_| error("Input RequestId overflows u64 type set in Pallet"))?;
 		let fee_increase: BalanceOf<Runtime> = input
 			.read::<U256>()?
 			.try_into()
@@ -428,7 +442,10 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
 		let mut input = handle.read_input()?;
-		let request_id = input.read::<U256>()?.low_u64();
+		let request_id: u64 = input
+			.read::<U256>()?
+			.try_into()
+			.map_err(|_| error("Input RequestId overflows u64 type set in Pallet"))?;
 		Pallet::<Runtime>::execute_request_expiration(&handle.context().caller, request_id)
 			.map_err(|e| error(alloc::format!("{:?}", e)))?;
 		Ok(PrecompileOutput {
