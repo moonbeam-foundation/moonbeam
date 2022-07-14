@@ -16,6 +16,7 @@ export function mockHrmpChannelExistanceTx(
   maxTotalSize: Number,
   maxMessageSize: Number
 ) {
+  // This constructs the relevant state to be inserted
   const relevantMessageState = {
     dmqMqcHead: "0x0000000000000000000000000000000000000000000000000000000000000000",
     relayDispatchQueueSize: [0, 0],
@@ -53,7 +54,7 @@ export function mockHrmpChannelExistanceTx(
       relevantMessageState
     ) as any;
 
-  // Get keys to modify balance
+  // Get keys to modify state
   let module = xxhashAsU8a(new TextEncoder().encode("ParachainSystem"), 128);
   let account_key = xxhashAsU8a(new TextEncoder().encode("RelevantMessagingState"), 128);
 

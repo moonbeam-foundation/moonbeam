@@ -1,11 +1,8 @@
 import "@moonbeam-network/api-augment";
 
 import { KeyringPair } from "@polkadot/keyring/types";
-import {
-  ParaId,
-  XcmpMessageFormat,
-} from "@polkadot/types/interfaces";
-import { BN, u8aToHex} from "@polkadot/util";
+import { ParaId, XcmpMessageFormat } from "@polkadot/types/interfaces";
+import { BN, u8aToHex } from "@polkadot/util";
 import { expect } from "chai";
 import { ChaChaRng } from "randchacha";
 
@@ -16,10 +13,7 @@ import { mockHrmpChannelExistanceTx } from "../../util/xcm";
 
 import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
 
-import type {
-  XcmVersionedXcm,
-  XcmVersionedMultiLocation,
-} from "@polkadot/types/lookup";
+import type { XcmVersionedXcm, XcmVersionedMultiLocation } from "@polkadot/types/lookup";
 
 import { createContract } from "../../util/transactions";
 
@@ -2270,6 +2264,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM", (context)
 });
 
 describeDevMoonbeam("Mock XCM - receive horizontal suspend", (context) => {
+  const suspendedPara = 2023;
   before("Should receive a suspend channel", async function () {
     // We first simulate a reception for suspending a channel from parachain 1
     const xcmpFormat: XcmpMessageFormat = context.polkadotApi.createType(
@@ -2280,11 +2275,12 @@ describeDevMoonbeam("Mock XCM - receive horizontal suspend", (context) => {
     const totalMessage = [...xcmpFormat.toU8a(), ...receivedMessage.toU8a()];
     // Send RPC call to inject XCM message
     // We will set a specific message knowing that it should mint the statemint asset
-    await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [2023, totalMessage]);
+    await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [suspendedPara, totalMessage]);
 
     // Create a block in which the XCM will be executed
     await context.createBlock();
 
+    // assert channel with para 2023 is suspended
     let status = await context.polkadotApi.query.xcmpQueue.outboundXcmpStatus();
     expect(status[0].state.isSuspended).to.be.true;
   });
@@ -2311,7 +2307,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal suspend", (context) => {
     const destination = {
       V1: {
         parents: 1,
-        interior: { X1: { Parachain: 2023 } },
+        interior: { X1: { Parachain: suspendedPara } },
       },
     };
 
@@ -2322,7 +2318,10 @@ describeDevMoonbeam("Mock XCM - receive horizontal suspend", (context) => {
 
     // We also need to trick parachain-system to pretend there exists
     // an open channel with para id 2023.
-    let paraHrmpMockerTx = mockHrmpChannelExistanceTx(context, 2023, 8, 8192, 4);
+    // For channel params, we set the default in all of them except for the maxMessageSize
+    // We select MaxMessageSize = 4 because ClearOrigin involves 4 bytes
+    // This makes sure that each message is enqued in a different page
+    let paraHrmpMockerTx = mockHrmpChannelExistanceTx(context, suspendedPara, 8, 8192, 4);
 
     // Test for numMessages
     let numMessages = 100;
