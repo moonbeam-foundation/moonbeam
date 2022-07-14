@@ -29,7 +29,7 @@ use pallet_randomness::{
 };
 use precompile_utils::{costs::call_cost, prelude::*};
 use sp_core::{H160, H256, U256};
-use sp_std::{fmt::Debug, marker::PhantomData, vec::Vec};
+use sp_std::{fmt::Debug, marker::PhantomData, vec, vec::Vec};
 
 // #[cfg(test)]
 // mod mock;
@@ -53,16 +53,16 @@ pub enum Action {
 	PurgeExpiredRequest = "purgeExpiredRequest(uint256)",
 }
 
-pub const FULFILLMENT_ESTIMATED_COST: u64 = 1000u64; // TODO: get real value from benchmarking
-pub const LOG_SUBCALL_SUCCEEDED: [u8; 32] = keccak256!("SubcallSucceeded");
-pub const LOG_SUBCALL_FAILED: [u8; 32] = keccak256!("SubcallFailed");
+pub const FULFILLMENT_OVERHEAD_ESTIMATED_COST: u64 = 1000u64; // TODO: get real value from benchmarking
+pub const LOG_FULFILLMENT_SUCCEEDED: [u8; 32] = keccak256!("FulFillmentSucceeded()");
+pub const LOG_FULFILLMENT_FAILED: [u8; 32] = keccak256!("FulFillmentFailed()");
 
-pub fn log_subcall_succeeded(address: impl Into<H160>) -> Log {
-	log0(address, LOG_SUBCALL_SUCCEEDED)
+pub fn log_fulfillment_succeeded(address: impl Into<H160>) -> Log {
+	log1(address, LOG_FULFILLMENT_SUCCEEDED, vec![])
 }
 
-pub fn log_subcall_failed(address: impl Into<H160>) -> Log {
-	log0(address, LOG_SUBCALL_FAILED)
+pub fn log_fulfillment_failed(address: impl Into<H160>) -> Log {
+	log1(address, LOG_FULFILLMENT_FAILED, vec![])
 }
 
 /// Reverts if fees and gas_limit are not sufficient to make subcall and cleanup
@@ -89,7 +89,7 @@ where
 	} else {
 		return Err(revert("Gas limit times base fee overflowed U256"));
 	}
-	let log_cost = log_subcall_failed(code_address)
+	let log_cost = log_fulfillment_failed(code_address)
 		.compute_cost()
 		.map_err(|_| revert("failed to compute log cost"))?;
 	// Cost of the call itself that the batch precompile must pay.
@@ -131,12 +131,12 @@ fn provide_randomness(
 	// We reserved enough gas so this should not OOG.
 	match reason {
 		ExitReason::Revert(_) | ExitReason::Error(_) => {
-			let log = log_subcall_failed(handle.code_address());
+			let log = log_fulfillment_failed(handle.code_address());
 			handle.record_log_costs(&[&log])?;
 			log.record(handle)?
 		}
 		ExitReason::Succeed(_) => {
-			let log = log_subcall_succeeded(handle.code_address());
+			let log = log_fulfillment_succeeded(handle.code_address());
 			handle.record_log_costs(&[&log])?;
 			log.record(handle)?
 		}
@@ -368,7 +368,7 @@ where
 			handle.code_address(),
 			request.gas_limit,
 			request.fee,
-			FULFILLMENT_ESTIMATED_COST,
+			FULFILLMENT_OVERHEAD_ESTIMATED_COST,
 		)?;
 		// get gas before subcall
 		let before_remaining_gas = handle.remaining_gas();

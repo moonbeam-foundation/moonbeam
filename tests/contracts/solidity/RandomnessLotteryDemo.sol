@@ -22,6 +22,9 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
     /// @notice There are not enough fee to start the lottery
     error NotEnoughFee(uint256 value, uint256 required);
 
+    /// @notice The deposit given is too low
+    error DepositTooLow(uint256 value, uint256 required);
+
     /// @notice The provided fee to participate doesn't match the required amount
     error InvalidParticipationFee(uint256 value, uint256 required);
 
@@ -110,9 +113,17 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
     /// @notice the owner of the contract
     address owner;
 
-    constructor() RandomnessConsumer() {
+    constructor() payable RandomnessConsumer() {
+        /// Because this contract can only perform 1 random request at a time,
+        /// We only need to have 1 required deposit.
+        uint256 requiredDeposit = 1000000000000000000; // TODO replace with randomness.requiredDeposit();
+        if (msg.value < requiredDeposit) {
+            revert DepositTooLow(msg.value, requiredDeposit);
+        }
+
         owner = msg.sender;
         globalRequestCount = 0;
+        jackpot = 0;
         /// Set the requestId to uint256::max to ensure it is not already existing
         requestId = 2**256 - 1;
     }
@@ -155,6 +166,17 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
             revert NotEnoughFee(fee, MIN_FEE);
         }
 
+        /// We verify there is enough balance on the contract to pay for the deposit.
+        /// This would fail only if the deposit amount required is changed in the
+        /// Randomness Precompile.
+        uint256 requiredDeposit = 1000000000000000000; // TODO replace with randomness.requiredDeposit();
+        if (address(this).balance < jackpot + requiredDeposit) {
+            revert DepositTooLow(
+                address(this).balance - jackpot,
+                requiredDeposit
+            );
+        }
+
         /// Requesting NUM_WINNERS random words with a delay of DELAY_BLOCKS blocks
         /// Refund after fulfillment will go back to the caller of this function
         /// globalRequestCount is used as salt to be unique for each request
@@ -187,8 +209,7 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
         /// The left-over is kept for the next lottery
         uint256 amountAwarded = jackpot / totalWinners;
         emit Ended(participants.length, jackpot, totalWinners);
-
-        for (uint32 i = 0; i < amountAwarded; i++) {
+        for (uint32 i = 0; i < totalWinners; i++) {
             /// This is safe to index randomWords with i because we requested
             /// NUM_WINNERS random words
             uint256 randomWord = randomWords[i];

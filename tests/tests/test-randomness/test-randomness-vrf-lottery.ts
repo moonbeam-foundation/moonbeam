@@ -2,21 +2,27 @@ import "@moonbeam-network/api-augment";
 import { expect } from "chai";
 import { ethers } from "ethers";
 import Web3 from "web3";
+import { TransactionReceipt } from "web3-core";
 import { Contract } from "web3-eth-contract";
 
 import {
+  alith,
   ALITH_ADDRESS,
+  ALITH_GENESIS_FREE_BALANCE,
   ALITH_PRIVATE_KEY,
+  baltathar,
   BALTATHAR_ADDRESS,
   BALTATHAR_PRIVATE_KEY,
+  charleth,
   CHARLETH_ADDRESS,
   CHARLETH_PRIVATE_KEY,
 } from "../../util/accounts";
 import {
   CONTRACT_RANDOMNESS_STATUS_DOES_NOT_EXISTS,
   CONTRACT_RANDOMNESS_STATUS_PENDING,
-  CONTRACT_RANDOMNESS_STATUS_READY,
+  DEFAULT_GENESIS_BALANCE,
   GLMR,
+  MILLIGLMR,
   PRECOMPILE_RANDOMNESS_ADDRESS,
 } from "../../util/constants";
 import { getCompiled } from "../../util/contracts";
@@ -29,13 +35,16 @@ import {
   TRANSACTION_TEMPLATE,
 } from "../../util/transactions";
 
-const LOTTERY_CONTRACT = getCompiled("RandomnessLotteryDemo");
-const LOTTERY_INTERFACE = new ethers.utils.Interface(LOTTERY_CONTRACT.contract.abi);
+const LOTTERY_CONTRACT_JSON = getCompiled("RandomnessLotteryDemo");
+const LOTTERY_INTERFACE = new ethers.utils.Interface(LOTTERY_CONTRACT_JSON.contract.abi);
 const RANDOMNESS_CONTRACT_JSON = getCompiled("Randomness");
 const RANDOMNESS_INTERFACE = new ethers.utils.Interface(RANDOMNESS_CONTRACT_JSON.contract.abi);
 
 const setupLotteryWithParticipants = async (context: DevTestContext) => {
-  const { contract, rawTx } = await createContract(context, "RandomnessLotteryDemo");
+  const { contract, rawTx } = await createContract(context, "RandomnessLotteryDemo", {
+    ...ALITH_TRANSACTION_TEMPLATE,
+    value: Web3.utils.toWei("1", "ether"),
+  });
   await context.createBlock(rawTx);
 
   // Adds participants
@@ -147,6 +156,7 @@ describeDevMoonbeam("Randomness VRF - Lottery Demo", (context) => {
 describeDevMoonbeam("Randomness VRF - Fulfilling Lottery Demo", (context) => {
   let lotteryContract: Contract;
   let randomnessContract: Contract;
+  let fulFillReceipt: TransactionReceipt;
   before("setup lottery contract", async function () {
     lotteryContract = await setupLotteryWithParticipants(context);
     randomnessContract = new context.web3.eth.Contract(
@@ -163,13 +173,53 @@ describeDevMoonbeam("Randomness VRF - Fulfilling Lottery Demo", (context) => {
     );
     await context.createBlock();
     await context.createBlock();
-    await context.createBlock(
+    const {
+      result: { hash },
+    } = await context.createBlock(
       createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
         to: PRECOMPILE_RANDOMNESS_ADDRESS,
         data: RANDOMNESS_INTERFACE.encodeFunctionData("fulfillRequest", [0]),
       })
     );
+
+    fulFillReceipt = await context.web3.eth.getTransactionReceipt(hash);
+  });
+  it("should have 4 events", async function () {
+    expect(fulFillReceipt.logs.length).to.equal(4);
+  });
+
+  it("should emit the Ended log first", async function () {
+    const log = LOTTERY_INTERFACE.parseLog(fulFillReceipt.logs[0]);
+    expect(log.name).to.equal("Ended");
+    expect(log.args.participantCount.toBigInt()).to.equal(3n);
+    expect(log.args.jackpot.toBigInt()).to.equal(3n * GLMR);
+    expect(log.args.winnerCount.toBigInt()).to.equal(2n);
+  });
+
+  it("should emit 2 Awarded events. One for each winner", async function () {
+    // First Awarded event is for Charleth
+    const log1 = LOTTERY_INTERFACE.parseLog(fulFillReceipt.logs[1]);
+    expect(log1.name).to.equal("Awarded");
+    expect(log1.args.winner).to.equal(charleth.address);
+    expect(log1.args.randomWord.toHexString()).to.equal(
+      "0xefb5d3fd7f0afcbebf6c983d4e480100c71395f721e2f3bfdf1c281938947d28"
+    );
+    expect(log1.args.amount.toBigInt()).to.equal(1500n * MILLIGLMR);
+
+    // Second Awarded event is for Alith
+    const log2 = LOTTERY_INTERFACE.parseLog(fulFillReceipt.logs[2]);
+    expect(log2.name).to.equal("Awarded");
+    expect(log2.args.winner).to.equal(alith.address);
+    expect(log2.args.randomWord.toHexString()).to.equal(
+      "0xe89db6687fdfcd8523439fa5384e889e028e8fcc1de0ead9f1ba50d5a5aecff8"
+    );
+    expect(log2.args.amount.toBigInt()).to.equal(1500n * MILLIGLMR);
+  });
+
+  it("should emit the FulFillmentSucceeded event last", async function () {
+    const log = RANDOMNESS_INTERFACE.parseLog(fulFillReceipt.logs[3]);
+    expect(log.name).to.equal("FulFillmentSucceeded");
   });
 
   it("should remove the request", async function () {
@@ -183,5 +233,23 @@ describeDevMoonbeam("Randomness VRF - Fulfilling Lottery Demo", (context) => {
 
   it("should reset the jackpot", async function () {
     expect(await lotteryContract.methods.jackpot().call()).to.equal("0");
+  });
+
+  it("should reward balthazar and charleth", async function () {
+    expect(
+      (
+        await context.polkadotApi.query.system.account(baltathar.address.toString())
+      ).data.free.toBigInt() > DEFAULT_GENESIS_BALANCE
+    ).to.be.false;
+    expect(
+      (
+        await context.polkadotApi.query.system.account(charleth.address.toString())
+      ).data.free.toBigInt() > DEFAULT_GENESIS_BALANCE
+    ).to.be.true;
+    expect(
+      (
+        await context.polkadotApi.query.system.account(alith.address.toString())
+      ).data.free.toBigInt() > ALITH_GENESIS_FREE_BALANCE
+    ).to.be.true;
   });
 });
