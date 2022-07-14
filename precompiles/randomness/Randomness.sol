@@ -11,6 +11,11 @@ uint32 constant MAX_DELAY_BLOCKS = 2000;
 uint256 constant REQUEST_DEPOSIT_AMOUNT = 1000000000000000000;
 
 interface Randomness {
+    /// @notice Event emitted when the request has been successfully executed
+    event FulFillmentSucceeded();
+    /// @notice Event emitted when the request has failed to execute fulfillment
+    event FulFillmentFailed();
+
     /// @notice The status of the request
     /// @param DoesNotExist The request doesn't exist
     /// @param Pending The request cannot be fulfilled yet
