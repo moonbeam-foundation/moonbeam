@@ -11,7 +11,7 @@ import {
 import Tree from "merkle-patricia-tree";
 import { Receipt } from "eth-object";
 import { encode } from "eth-util-lite";
-import { promisfy } from "promisfy";
+import { promisify } from "util";
 
 describeDevMoonbeam("Receipt root - With events", (context) => {
   before("Setup: Create block with multiple transaction types", async () => {
@@ -78,8 +78,8 @@ describeDevMoonbeam("Receipt root - With events", (context) => {
             let siblingPath = encode(index);
             let serializedReceipt = Receipt.fromRpc(innerReceipt);
             serializedReceipt = serializedReceipt.serialize();
-
-            return promisfy(tree.put, tree)(siblingPath, serializedReceipt);
+            let promisified = promisify(tree.put).bind(tree);
+            return promisified(siblingPath, serializedReceipt);
         })
     );
     // Onchain receipt root == Offchain receipt root
