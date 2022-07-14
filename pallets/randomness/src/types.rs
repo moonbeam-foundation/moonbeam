@@ -89,7 +89,7 @@ impl<Hash: Clone> RandomnessResult<Hash> {
 		}
 	}
 	/// Increment request count
-	pub fn increment_request_count<T: Config>(&self) -> Self {
+	pub fn increment_request_count(&self) -> Self {
 		let new_request_count = self.request_count.saturating_add(1u64);
 		RandomnessResult {
 			randomness: self.randomness.clone(),

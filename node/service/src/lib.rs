@@ -783,7 +783,7 @@ where
 			};
 			let client_clone = client.clone();
 			let keystore_clone = keystore.clone();
-			let additional_digests_provider = move |nimbus_id: NimbusId, parent: Hash|
+			let maybe_provide_vrf_digest = move |nimbus_id: NimbusId, parent: Hash|
 				-> Option<sp_runtime::generic::DigestItem> {
 				moonbeam_vrf::vrf_pre_digest::<Block, FullClient<RuntimeApi, Executor>>(
 					&client_clone,
@@ -801,7 +801,7 @@ where
 				keystore,
 				skip_prediction: force_authoring,
 				create_inherent_data_providers: provider,
-				additional_digests_provider,
+				additional_digests_provider: maybe_provide_vrf_digest,
 			}))
 		},
 	)
@@ -933,7 +933,7 @@ where
 
 		let client_clone = client.clone();
 		let keystore_clone = keystore_container.sync_keystore().clone();
-		let additional_digests_provider =
+		let maybe_provide_vrf_digest =
 			move |nimbus_id: NimbusId, parent: Hash| -> Option<sp_runtime::generic::DigestItem> {
 				moonbeam_vrf::vrf_pre_digest::<Block, FullClient<RuntimeApi, Executor>>(
 					&client_clone,
@@ -956,7 +956,7 @@ where
 				consensus_data_provider: Some(Box::new(NimbusManualSealConsensusDataProvider {
 					keystore: keystore_container.sync_keystore(),
 					client: client.clone(),
-					additional_digests_provider,
+					additional_digests_provider: maybe_provide_vrf_digest,
 				})),
 				create_inherent_data_providers: move |block: H256, ()| {
 					let current_para_block = client_set_aside_for_cidp

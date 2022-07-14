@@ -84,17 +84,15 @@ pub(crate) fn set_output<T: Config>() -> Weight {
 		.ok()
 		.map(|inout| inout.make_bytes(&VRF_INOUT_CONTEXT))
 		.expect("VRF output encoded in pre-runtime digest must be valid");
-	let raw_randomness_output = T::Hash::decode(&mut &vrf_output[..]).ok();
-	LocalVrfOutput::<T>::put(raw_randomness_output);
+	let randomness_output = T::Hash::decode(&mut &vrf_output[..])
+		.ok()
+		.expect("VRF output bytes can be decode into T::Hash");
+	LocalVrfOutput::<T>::put(Some(randomness_output));
 	// Supply randomness result
 	let local_vrf_this_block = RequestType::Local(frame_system::Pallet::<T>::block_number());
 	if let Some(mut results) = RandomnessResults::<T>::get(&local_vrf_this_block) {
-		if let Some(randomness) = raw_randomness_output {
-			results.randomness = Some(randomness);
-			RandomnessResults::<T>::insert(local_vrf_this_block, results);
-		} else {
-			log::warn!("Failed to fill VRF randomness results this block");
-		}
+		results.randomness = Some(randomness_output);
+		RandomnessResults::<T>::insert(local_vrf_this_block, results);
 	}
 	// TODO: benchmark to fix this weight
 	// reads + writes + margin_of_safety = 5_000_000_000

@@ -219,7 +219,11 @@ pub mod pallet {
 						results.randomness = Some(randomness);
 						<RandomnessResults<T>>::insert(babe_one_epoch_ago_this_block, results);
 					} else {
-						log::warn!("Failed to fill BABE one epoch ago randomness results");
+						log::warn!(
+							"Failed to fill BABE epoch randomness results \
+							REQUIRE HOTFIX TO FILL EPOCH RANDOMNESS RESULTS FOR EPOCH {:?}",
+							relay_epoch_index
+						);
 					}
 				}
 			}
@@ -286,12 +290,13 @@ pub mod pallet {
 		}
 		pub(crate) fn concat_and_hash(a: T::Hash, b: H256, index: u8) -> Vec<[u8; 32]> {
 			let mut output: Vec<[u8; 32]> = Vec::new();
+			let mut s = Vec::new();
 			for i in 0u8..index {
-				let mut s = Vec::new();
 				s.extend_from_slice(a.as_ref());
 				s.extend_from_slice(b.as_ref());
 				s.extend_from_slice(&[i]);
-				output.push(sp_io::hashing::blake2_256(&s))
+				output.push(sp_io::hashing::blake2_256(&s));
+				s.clear();
 			}
 			output
 		}
@@ -326,7 +331,7 @@ pub mod pallet {
 			if let Some(existing_randomness_snapshot) = <RandomnessResults<T>>::take(&info_key) {
 				<RandomnessResults<T>>::insert(
 					&info_key,
-					existing_randomness_snapshot.increment_request_count::<T>(),
+					existing_randomness_snapshot.increment_request_count(),
 				);
 			} else {
 				<RandomnessResults<T>>::insert(&info_key, RandomnessResult::new());

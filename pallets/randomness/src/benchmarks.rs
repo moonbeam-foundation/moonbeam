@@ -37,7 +37,8 @@ fn fund_user<T: Config>(user: H160, fee: BalanceOf<T>) {
 
 benchmarks! {
 	// TODO: causes panic:
-	// Thread 'main' panicked at 'set in `set_validation_data`inherent => available before on_initialize', runtime/moonbase/src/lib.rs:1111
+	// Thread 'main' panicked at 'set in `set_validation_data`inherent => available before
+	// on_initialize', runtime/moonbase/src/lib.rs:1111
 	// set_babe_randomness_results {}: _(RawOrigin::None)
 	// verify { }
 
