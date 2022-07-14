@@ -948,6 +948,12 @@ impl Contains<Call> for NormalFilter {
 				pallet_xcm::Call::force_default_xcm_version { .. } => true,
 				_ => false,
 			},
+			// We filter anonymous proxy as they make "reserve" inconsistent
+			Call::Proxy(method) => match method {
+				pallet_assets::Call::anonymous { .. } => false,
+				pallet_assets::Call::kill_anonymous { .. } => false,
+				_ => true,
+			},
 			// We filter for now transact through signed
 			Call::XcmTransactor(method) => match method {
 				pallet_xcm_transactor::Call::transact_through_signed_multilocation { .. } => false,

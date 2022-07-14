@@ -946,6 +946,12 @@ impl Contains<Call> for NormalFilter {
 				pallet_xcm::Call::force_default_xcm_version { .. } => true,
 				_ => false,
 			},
+			// We filter anonymous proxy as they make "reserve" inconsistent
+			Call::Proxy(method) => match method {
+				pallet_assets::Call::anonymous { .. } => false,
+				pallet_assets::Call::kill_anonymous { .. } => false,
+				_ => true,
+			},
 			_ => true,
 		}
 	}
