@@ -39,20 +39,15 @@ fn build_default_request(info: RequestType<Test>) -> Request<BalanceOf<Test>, Re
 // REQUEST RANDOMNESS
 
 #[test]
-fn cannot_make_request_already_fulfillable() {
+fn cannot_make_local_request_already_fulfillable() {
 	ExtBuilder::default()
 		.with_balances(vec![(ALICE, 15)])
 		.build()
 		.execute_with(|| {
-			let request = build_default_request(RequestType::BabeEpoch(0u64));
-			assert_noop!(
-				Randomness::request_randomness(request),
-				Error::<Test>::CannotRequestPastRandomness
-			);
 			let request = build_default_request(RequestType::Local(0u64));
 			assert_noop!(
 				Randomness::request_randomness(request),
-				Error::<Test>::CannotRequestPastRandomness
+				Error::<Test>::CannotRequestRandomnessBeforeMinDelay
 			);
 		});
 }
@@ -64,11 +59,6 @@ fn cannot_make_request_fulfillable_past_expiry() {
 		.build()
 		.execute_with(|| {
 			let request = build_default_request(RequestType::Local(22u64));
-			assert_noop!(
-				Randomness::request_randomness(request),
-				Error::<Test>::CannotRequestRandomnessAfterMaxDelay
-			);
-			let request = build_default_request(RequestType::BabeEpoch(22u64));
 			assert_noop!(
 				Randomness::request_randomness(request),
 				Error::<Test>::CannotRequestRandomnessAfterMaxDelay

@@ -1128,10 +1128,9 @@ impl pallet_randomness::Config for Runtime {
 	type BabeDataGetter = BabeDataGetter;
 	type VrfKeyLookup = AuthorMapping;
 	type Deposit = ConstU128<{ 1 * currency::UNIT * currency::SUPPLY_FACTOR }>;
+	type MaxRandomWords = ConstU8<100>;
 	type MinBlockDelay = ConstU32<2>;
-	type MinEpochDelay = ConstU64<2>;
-	type MaxBlockDelay = ConstU32<10_000>;
-	type MaxEpochDelay = ConstU64<10_000>;
+	type MaxBlockDelay = ConstU32<2_000>;
 	type BlockExpirationDelay = ConstU32<10_000>;
 	type EpochExpirationDelay = ConstU64<10_000>;
 	type WeightInfo = pallet_randomness::weights::SubstrateWeight<Runtime>;

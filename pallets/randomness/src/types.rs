@@ -167,45 +167,30 @@ impl<T: Config> Request<BalanceOf<T>, RequestInfo<T>> {
 	}
 	pub fn validate(&mut self) -> DispatchResult {
 		ensure!(
-			!self.can_be_fulfilled(),
-			Error::<T>::CannotRequestPastRandomness
+			self.num_words <= T::MaxRandomWords::get(),
+			Error::<T>::CannotRequestMoreWordsThanMax
 		);
-		let (due_before_max_delay, due_after_min_delay) = match self.info {
-			RequestInfo::BabeEpoch(epoch_due, _) => {
-				let current_epoch_index = RelayEpoch::<T>::get();
-				(
-					epoch_due
-						<= current_epoch_index
-							.checked_add(T::MaxEpochDelay::get())
-							.ok_or(Error::<T>::CannotRequestRandomnessAfterMaxDelay)?,
-					epoch_due
-						>= current_epoch_index
-							.checked_add(T::MinEpochDelay::get())
-							.ok_or(Error::<T>::CannotRequestRandomnessBeforeMinDelay)?,
-				)
-			}
+		ensure!(self.num_words >= 1u8, Error::<T>::MustRequestAtLeastOneWord);
+		match self.info {
 			RequestInfo::Local(block_due, _) => {
 				let current_block = frame_system::Pallet::<T>::block_number();
-				(
+				ensure!(
 					block_due
 						<= current_block
 							.checked_add(&T::MaxBlockDelay::get())
 							.ok_or(Error::<T>::CannotRequestRandomnessAfterMaxDelay)?,
+					Error::<T>::CannotRequestRandomnessAfterMaxDelay
+				);
+				ensure!(
 					block_due
 						>= current_block
 							.checked_add(&T::MinBlockDelay::get())
 							.ok_or(Error::<T>::CannotRequestRandomnessBeforeMinDelay)?,
-				)
+					Error::<T>::CannotRequestRandomnessBeforeMinDelay
+				);
 			}
-		};
-		ensure!(
-			due_before_max_delay,
-			Error::<T>::CannotRequestRandomnessAfterMaxDelay
-		);
-		ensure!(
-			due_after_min_delay,
-			Error::<T>::CannotRequestRandomnessBeforeMinDelay
-		);
+			_ => (), // not necessary because epoch delay is not an input to precompile
+		}
 		Ok(())
 	}
 	fn get_random_words(&self) -> Result<Vec<[u8; 32]>, DispatchError> {
