@@ -315,7 +315,6 @@ pub mod pallet {
 			let next_id = request_id
 				.checked_add(1u64)
 				.ok_or(Error::<T>::RequestCounterOverflowed)?;
-			let new_snapshot = existing_randomness_snapshot.increment_request_count::<T>()?;
 			// send deposit to reserve account
 			T::Currency::transfer(
 				&contract_address,
@@ -325,7 +324,10 @@ pub mod pallet {
 			)?;
 			let info_key: RequestType<T> = info.into();
 			if let Some(existing_randomness_snapshot) = <RandomnessResults<T>>::take(&info_key) {
-				<RandomnessResults<T>>::insert(&info_key, new_snapshot);
+				<RandomnessResults<T>>::insert(
+					&info_key,
+					existing_randomness_snapshot.increment_request_count::<T>(),
+				);
 			} else {
 				<RandomnessResults<T>>::insert(&info_key, RandomnessResult::new());
 			}

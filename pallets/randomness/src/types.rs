@@ -89,15 +89,12 @@ impl<Hash: Clone> RandomnessResult<Hash> {
 		}
 	}
 	/// Increment request count
-	pub fn increment_request_count<T: Config>(&self) -> Result<Self, DispatchError> {
-		let new_request_count = self
-			.request_count
-			.checked_add(1u64)
-			.ok_or(Error::<T>::RequestCounterOverflowed)?;
-		Ok(RandomnessResult {
+	pub fn increment_request_count<T: Config>(&self) -> Self {
+		let new_request_count = self.request_count.saturating_add(1u64);
+		RandomnessResult {
 			randomness: self.randomness.clone(),
 			request_count: new_request_count,
-		})
+		}
 	}
 	/// Returns whether successfully decremented
 	/// Failure implies the randomness result should be removed from storage
