@@ -2294,7 +2294,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal suspend", (context) => {
     expect(status[0].state.isSuspended).to.be.true;
   });
 
-  it.only("It should push messages, and should enqueue them in xcmp outbound queue", async function () {
+  it("It should push messages, and should enqueue them in xcmp outbound queue", async function () {
     // TARGET 100 messages
     // We want to check there is no visible limit on these
 
