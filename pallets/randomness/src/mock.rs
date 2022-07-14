@@ -126,10 +126,9 @@ impl crate::GetBabeData<u64, Option<H256>> for BabeDataGetter {
 
 parameter_types! {
 	pub const Deposit: u128 = 10;
-	pub const MaxBlockDelay: u32 = 20;
-	pub const MaxEpochDelay: u32 = 20;
+	pub const MaxRandomWords: u8 = 1;
 	pub const MinBlockDelay: u32 = 2;
-	pub const MinEpochDelay: u32 = 2;
+	pub const MaxBlockDelay: u32 = 20;
 }
 impl Config for Test {
 	type Event = Event;
@@ -138,12 +137,11 @@ impl Config for Test {
 	type BabeDataGetter = BabeDataGetter;
 	type VrfKeyLookup = AuthorMapping;
 	type Deposit = Deposit;
+	type MaxRandomWords = MaxRandomWords;
 	type MinBlockDelay = MinBlockDelay;
-	type MinEpochDelay = MinEpochDelay;
 	type MaxBlockDelay = MaxBlockDelay;
-	type MaxEpochDelay = MaxEpochDelay;
 	type BlockExpirationDelay = MaxBlockDelay;
-	type EpochExpirationDelay = MaxEpochDelay;
+	type EpochExpirationDelay = MaxBlockDelay;
 	type WeightInfo = ();
 }
 

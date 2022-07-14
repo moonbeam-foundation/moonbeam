@@ -109,7 +109,6 @@ fn provide_randomness(
 	request_id: u64,
 	gas_limit: u64,
 	contract: H160,
-	request_id: u64,
 	randomness: Vec<H256>,
 ) -> EvmResult<()> {
 	let (reason, _) = handle.call(
@@ -378,7 +377,6 @@ where
 			request_id,
 			request.gas_limit,
 			request.contract_address.clone().into(),
-			request_id,
 			randomness.into_iter().map(|x| H256(x)).collect(),
 		)?;
 		// get gas after subcall

@@ -82,20 +82,15 @@ pub mod pallet {
 		/// Takes NimbusId to return VrfId
 		type VrfKeyLookup: KeysLookup<NimbusId, VrfId>;
 		#[pallet::constant]
+		/// Maximum number of random words that can be requested per request
+		type MaxRandomWords: Get<u8>;
+		#[pallet::constant]
 		/// The amount that should be taken as a security deposit when requesting randomness.
 		type Deposit: Get<BalanceOf<Self>>;
 		#[pallet::constant]
 		/// Local per-block VRF requests must be at least this many blocks after the block in which
 		/// they were requested
 		type MinBlockDelay: Get<Self::BlockNumber>;
-		#[pallet::constant]
-		/// Babe requests must be at least this many epochs after the epoch in which
-		/// they were requested
-		type MinEpochDelay: Get<u64>;
-		#[pallet::constant]
-		/// Babe requests must be at most this many epochs after the epoch in which
-		/// they were requested
-		type MaxEpochDelay: Get<u64>;
 		#[pallet::constant]
 		/// Local per-block VRF requests must be at most this many blocks after the block in which
 		/// they were requested
@@ -114,7 +109,8 @@ pub mod pallet {
 	pub enum Error<T> {
 		RequestCounterOverflowed,
 		RequestFeeOverflowed,
-		CannotRequestPastRandomness,
+		MustRequestAtLeastOneWord,
+		CannotRequestMoreWordsThanMax,
 		CannotRequestRandomnessAfterMaxDelay,
 		CannotRequestRandomnessBeforeMinDelay,
 		RequestDNE,
