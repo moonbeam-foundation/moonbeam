@@ -1,8 +1,13 @@
 import "@moonbeam-network/api-augment";
 
 import { KeyringPair } from "@polkadot/keyring/types";
-import { ParaId, XcmpMessageFormat, MessagingStateSnapshot, H256 } from "@polkadot/types/interfaces";
-import { BN, u8aToHex } from "@polkadot/util";
+import {
+  ParaId,
+  XcmpMessageFormat,
+  MessagingStateSnapshot,
+  H256,
+} from "@polkadot/types/interfaces";
+import { BN, u8aToHex, hexToU8a } from "@polkadot/util";
 import { expect } from "chai";
 import { ChaChaRng } from "randchacha";
 import { xxhashAsU8a } from "@polkadot/util-crypto";
@@ -10,9 +15,15 @@ import { xxhashAsU8a } from "@polkadot/util-crypto";
 import { alith, baltathar, generateKeyringPair } from "../../util/accounts";
 import { PARA_2000_SOURCE_LOCATION } from "../../util/assets";
 import { customWeb3Request } from "../../util/providers";
+import { mockHrmpChannelExistanceTx } from "../../util/xcm";
+
 import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
 
-import type { XcmVersionedXcm, XcmVersionedMultiLocation } from "@polkadot/types/lookup";
+import type {
+  XcmVersionedXcm,
+  XcmVersionedMultiLocation,
+  CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot,
+} from "@polkadot/types/lookup";
 
 import { createContract } from "../../util/transactions";
 
@@ -2262,22 +2273,17 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM", (context)
   });
 });
 
-
 describeDevMoonbeam("Mock XCM - receive horizontal suspend", (context) => {
-
   before("Should receive a suspend channel", async function () {
     // We first simulate a reception for suspending a channel from parachain 1
     const xcmpFormat: XcmpMessageFormat = context.polkadotApi.createType(
       "XcmpMessageFormat",
       "Signals"
     ) as any;
-    const receivedMessage = context.polkadotApi.createType(
-      "u8",
-      0
-    ) as any;
+    const receivedMessage = context.polkadotApi.createType("u8", 0) as any;
     const totalMessage = [...xcmpFormat.toU8a(), ...receivedMessage.toU8a()];
-    console.log(totalMessage)
-     // Send RPC call to inject XCM message
+    console.log(totalMessage);
+    // Send RPC call to inject XCM message
     // We will set a specific message knowing that it should mint the statemint asset
     await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [2023, totalMessage]);
 
@@ -2285,7 +2291,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal suspend", (context) => {
     await context.createBlock();
 
     let status = await context.polkadotApi.query.xcmpQueue.outboundXcmpStatus();
-    expect(status[0].state.isSuspended).to.be.true
+    expect(status[0].state.isSuspended).to.be.true;
   });
 
   it.only("It should push messages, and should enqueue them in xcmp outbound queue", async function () {
@@ -2299,10 +2305,8 @@ describeDevMoonbeam("Mock XCM - receive horizontal suspend", (context) => {
     // We can create these with sudo
     // The simplest message should do it
     const xcmMessage = {
-      V2: [
-        { ClearOrigin: null as any },
-      ]
-    }
+      V2: [{ ClearOrigin: null as any }],
+    };
     const xcmpFormat: XcmpMessageFormat = context.polkadotApi.createType(
       "XcmpMessageFormat",
       "ConcatenatedVersionedXcm"
@@ -2315,8 +2319,8 @@ describeDevMoonbeam("Mock XCM - receive horizontal suspend", (context) => {
     const destination = {
       V1: {
         parents: 1,
-        interior: { X1: { Parachain: 2023 } }
-      }
+        interior: { X1: { Parachain: 2023 } },
+      },
     };
 
     const versionedMult: XcmVersionedMultiLocation = context.polkadotApi.createType(
@@ -2324,89 +2328,27 @@ describeDevMoonbeam("Mock XCM - receive horizontal suspend", (context) => {
       destination
     ) as any;
 
-    const relevantMessageState = {
-      relayDispatchQueueSize: [0, 0],
-      egressChannels: [
-        [
-          2023,
-          {
-            maxCapacity: 8,
-            maxTotalSize: 8192,
-            maxMessageSize: 32768,
-            msgCount: 0,
-            totalSize: 0,
-            mqcHead: null
-          }
-        ]
-      ] 
-    }
-    const stateToInsert: MessagingStateSnapshot = context.polkadotApi.createType(
-      "MessagingStateSnapshot",
-      relevantMessageState
-    ) as any;
-
-    const head = "0x1bb0c495253779da3a0317df342d547f7fadf752336dea0d7d7956347f584d2c";
-    const HeadHash: H256 = context.polkadotApi.createType(
-      "H256",
-      head
-    ) as any;
-
-    const ingressChannels = [
-      [
-        2023,
-        {
-          maxCapacity: 8,
-          maxTotalSize: 8192,
-          // this value will define the length of the pages
-          // we want to test there is no limit in pages
-          maxMessageSize: 4,
-          msgCount: 0,
-          totalSize: 0,
-          mqcHead: null
-        }
-      ]
-    ] ;
-
-    const ingressChannelsCreated: H256 = context.polkadotApi.createType(
-      "Vec<MessagingStateSnapshotEgressEntry>",
-      ingressChannels
-    ) as any;
-
-    const totalMessage = [...HeadHash.toU8a(), ...stateToInsert.toU8a(), ...ingressChannelsCreated.toU8a()];
-
-    console.log(u8aToHex(new Uint8Array(totalMessage)))
-
-    // Get keys to modify balance
-    let module = xxhashAsU8a(new TextEncoder().encode("ParachainSystem"), 128);
-    let account_key = xxhashAsU8a(new TextEncoder().encode("RelevantMessagingState"), 128);
-    let overallKey = new Uint8Array([
-      ...module,
-      ...account_key
-    ]);
     // We also need to trick parachain-system to pretend there exists
-    // an open channel with para id 1. 
+    // an open channel with para id 2023.
+    let paraHrmpMockerTx = mockHrmpChannelExistanceTx(context, 2023, 8, 8192, 4);
 
-    for (let i =0; i<100; i++) {
+    // Test for numMessages
+    let numMessages = 100;
+
+    for (let i = 0; i < numMessages; i++) {
       await context.createBlock(
         context.polkadotApi.tx.sudo.sudo(
           context.polkadotApi.tx.utility.batchAll([
-
-          context.polkadotApi.tx.system.setStorage([
-            [u8aToHex(overallKey), u8aToHex(new Uint8Array(totalMessage))],
+            paraHrmpMockerTx,
+            context.polkadotApi.tx.polkadotXcm.send(versionedMult, messageToSend),
           ])
-          ,
-          context.polkadotApi.tx.polkadotXcm.send(
-             versionedMult,
-             messageToSend
-          )
-          ]
         )
-      
-      )  )
+      );
     }
 
-    let queuedMessages = await (await context.polkadotApi.query.xcmpQueue.outboundXcmpMessages.entries());
-    console.log("queued")
-    console.log(queuedMessages.length)
+    // expect that queued messages is equal to the number of sent messages
+    let queuedMessages =
+      await await context.polkadotApi.query.xcmpQueue.outboundXcmpMessages.entries();
+    expect(queuedMessages.length).to.eq(numMessages);
   });
 });
