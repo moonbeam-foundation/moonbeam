@@ -4,13 +4,10 @@ import { KeyringPair } from "@polkadot/keyring/types";
 import {
   ParaId,
   XcmpMessageFormat,
-  MessagingStateSnapshot,
-  H256,
 } from "@polkadot/types/interfaces";
-import { BN, u8aToHex, hexToU8a } from "@polkadot/util";
+import { BN, u8aToHex} from "@polkadot/util";
 import { expect } from "chai";
 import { ChaChaRng } from "randchacha";
-import { xxhashAsU8a } from "@polkadot/util-crypto";
 
 import { alith, baltathar, generateKeyringPair } from "../../util/accounts";
 import { PARA_2000_SOURCE_LOCATION } from "../../util/assets";
@@ -22,7 +19,6 @@ import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests"
 import type {
   XcmVersionedXcm,
   XcmVersionedMultiLocation,
-  CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot,
 } from "@polkadot/types/lookup";
 
 import { createContract } from "../../util/transactions";
@@ -2306,10 +2302,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal suspend", (context) => {
     const xcmMessage = {
       V2: [{ ClearOrigin: null as any }],
     };
-    const xcmpFormat: XcmpMessageFormat = context.polkadotApi.createType(
-      "XcmpMessageFormat",
-      "ConcatenatedVersionedXcm"
-    ) as any;
+
     const messageToSend: XcmVersionedXcm = context.polkadotApi.createType(
       "XcmVersionedXcm",
       xcmMessage
