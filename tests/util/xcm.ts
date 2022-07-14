@@ -4,6 +4,7 @@ import { xxhashAsU8a } from "@polkadot/util-crypto";
 import { DevTestContext } from "./setup-dev-tests";
 import {
   CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot,
+  XcmVersionedXcm,
 } from "@polkadot/types/lookup";
 
 // Creates and returns the tx that overrides the paraHRMP existence
