@@ -58,6 +58,7 @@ benchmarks! {
 			contract_address: H160::default(),
 			fee: BalanceOf::<T>::zero(),
 			gas_limit: 100u64,
+			num_words: 1,
 			salt: H256::default(),
 			info: RequestType::Local(10u32.into())
 		});
@@ -76,6 +77,7 @@ benchmarks! {
 			contract_address: H160::default(),
 			fee: BalanceOf::<T>::zero(),
 			gas_limit: 100u64,
+			num_words: 1,
 			salt: H256::default(),
 			info: RequestType::Local(10u32.into())
 		});
@@ -97,6 +99,7 @@ benchmarks! {
 			contract_address: H160::default(),
 			fee: BalanceOf::<T>::zero(),
 			gas_limit: 100u64,
+			num_words: 1,
 			salt: H256::default(),
 			info: RequestType::Local(10u32.into())
 		});
@@ -112,8 +115,9 @@ benchmarks! {
 			contract_address: H160::default(),
 			fee: BalanceOf::<T>::zero(),
 			gas_limit: 100u64,
+			num_words: 1,
 			salt: H256::default(),
-			info: RequestType::Local(10u32.into())
+			info: RequestType::Local(10u32.into()).into()
 		}, more, &H160::default(), BalanceOf::<T>::zero());
 		assert!(Pallet::<T>::requests(0u64).is_none());
 	}
@@ -127,8 +131,9 @@ benchmarks! {
 			contract_address: H160::default(),
 			fee: BalanceOf::<T>::zero(),
 			gas_limit: 100u64,
+			num_words: 1,
 			salt: H256::default(),
-			info: RequestType::Local(10u32.into())
+			info: RequestType::Local(10u32.into()).into()
 		});
 	}: {
 		let result = Pallet::<T>::increase_request_fee(&H160::default(), 0u64, BalanceOf::<T>::one());
@@ -147,6 +152,7 @@ benchmarks! {
 			contract_address: H160::default(),
 			fee: BalanceOf::<T>::zero(),
 			gas_limit: 100u64,
+			num_words: 1,
 			salt: H256::default(),
 			info: RequestType::Local(10u32.into())
 		});
