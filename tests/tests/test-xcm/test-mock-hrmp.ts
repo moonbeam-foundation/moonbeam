@@ -16,6 +16,7 @@ import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests"
 import type { XcmVersionedXcm, XcmVersionedMultiLocation } from "@polkadot/types/lookup";
 
 import { createContract } from "../../util/transactions";
+import { expectOk } from "../../util/expect";
 
 const FOREIGN_TOKEN = 1_000_000_000_000n;
 
@@ -2327,14 +2328,14 @@ describeDevMoonbeam("Mock XCM - receive horizontal suspend", (context) => {
     const numMessages = 100;
 
     for (let i = 0; i < numMessages; i++) {
-      await context.createBlock(
+      await expectOk(context.createBlock(
         context.polkadotApi.tx.sudo.sudo(
           context.polkadotApi.tx.utility.batchAll([
             paraHrmpMockerTx,
             context.polkadotApi.tx.polkadotXcm.send(versionedMult, messageToSend),
           ])
         )
-      );
+      ));
     }
 
     // expect that queued messages is equal to the number of sent messages
