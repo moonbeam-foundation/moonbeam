@@ -16,25 +16,25 @@
 
 //! Test utilities
 use crate::ProxyWrapper;
-use sp_runtime::codec::{Decode, Encode, MaxEncodedLen};
+use fp_evm::{Precompile, PrecompileHandle, PrecompileOutput, PrecompileSet};
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::Everything,
+	traits::{Everything, InstanceFilter},
 };
-use fp_evm::{Precompile, PrecompileHandle, PrecompileSet, PrecompileOutput};
 use pallet_evm::{
 	AddressMapping, EnsureAddressNever, EnsureAddressRoot, SubstrateBlockHashMapping,
 };
+use precompile_utils::EvmResult;
 use scale_info::TypeInfo;
 use serde::{Deserialize, Serialize};
 use sp_core::{H160, H256, U256};
 use sp_io;
+use sp_runtime::codec::{Decode, Encode, MaxEncodedLen};
 use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 };
-use sp_std::{marker::PhantomData};
-use precompile_utils::EvmResult;
+use sp_std::marker::PhantomData;
 
 pub type AccountId = Account;
 pub type Balance = u128;
@@ -164,8 +164,6 @@ impl pallet_balances::Config for Runtime {
 	type WeightInfo = ();
 }
 
-
-
 #[derive(Default)]
 pub struct TestPrecompiles<R>(PhantomData<R>);
 
@@ -237,21 +235,53 @@ parameter_types! {
 	pub const InstantAllowed: bool = false;
 }
 
-impl pallet_proxy::Config for Runtime {
-	type Event = Event;
-    type Call = Call;
-    type Currency = Balances;
-    type ProxyType = ();
-    type ProxyDepositBase = ();
-    type ProxyDepositFactor = ();
-    type MaxProxies = ();
-    type WeightInfo = ();
-    type MaxPending = ();
-    type CallHasher = BlakeTwo256;
-    type AnnouncementDepositBase = ();
-    type AnnouncementDepositFactor = ();
+#[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Decode, MaxEncodedLen, Encode, Clone, TypeInfo)]
+pub enum ProxyType {
+	All,
+	Something,
+	None,
 }
 
+impl std::default::Default for ProxyType {
+	fn default() -> Self {
+		ProxyType::All
+	}
+}
+
+impl InstanceFilter<Call> for ProxyType {
+	fn filter(&self, _: &Call) -> bool {
+		true
+	}
+
+	fn is_superset(&self, _o: &Self) -> bool {
+		true
+	}
+}
+
+impl From<u32> for ProxyType {
+	fn from(t: u32) -> Self {
+        match t {
+			0 => ProxyType::All,
+			1 => ProxyType::Something,
+			_ => ProxyType::None,
+		}
+    }
+}
+
+impl pallet_proxy::Config for Runtime {
+	type Event = Event;
+	type Call = Call;
+	type Currency = Balances;
+	type ProxyType = ProxyType;
+	type ProxyDepositBase = ();
+	type ProxyDepositFactor = ();
+	type MaxProxies = ();
+	type WeightInfo = ();
+	type MaxPending = ();
+	type CallHasher = BlakeTwo256;
+	type AnnouncementDepositBase = ();
+	type AnnouncementDepositFactor = ();
+}
 
 /// Build test externalities, prepopulated with data for testing democracy precompiles
 pub(crate) struct ExtBuilder {
@@ -261,9 +291,7 @@ pub(crate) struct ExtBuilder {
 
 impl Default for ExtBuilder {
 	fn default() -> ExtBuilder {
-		ExtBuilder {
-			balances: vec![],
-		}
+		ExtBuilder { balances: vec![] }
 	}
 }
 

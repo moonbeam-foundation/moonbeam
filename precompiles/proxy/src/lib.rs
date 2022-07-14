@@ -24,7 +24,7 @@ use pallet_evm::AddressMapping;
 use pallet_proxy::Call as ProxyCall;
 use precompile_utils::data::{Address, Bytes};
 use precompile_utils::prelude::*;
-use sp_core::{H160, H256};
+use sp_core::{Decode, H160, H256};
 use sp_std::{fmt::Debug, marker::PhantomData};
 
 #[cfg(test)]
@@ -65,7 +65,6 @@ where
 	Runtime: pallet_proxy::Config + pallet_evm::Config + frame_system::Config,
 	<<Runtime as pallet_proxy::Config>::Call as Dispatchable>::Origin:
 		From<Option<Runtime::AccountId>>,
-	<Runtime as pallet_proxy::Config>::Call: From<Vec<u8>>,
 	<Runtime as pallet_proxy::Config>::ProxyType: From<u32>,
 	<<Runtime as pallet_proxy::Config>::CallHasher as Hash>::Output: From<H256>,
 	<Runtime as frame_system::Config>::Call:
@@ -73,6 +72,7 @@ where
 	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin:
 		From<Option<Runtime::AccountId>>,
 	<Runtime as frame_system::Config>::Call: From<ProxyCall<Runtime>>,
+	<Runtime as frame_system::Config>::Call: Decode,
 {
 	fn execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		let selector = handle.read_selector()?;
@@ -106,7 +106,6 @@ where
 	Runtime: pallet_proxy::Config + pallet_evm::Config + frame_system::Config,
 	<<Runtime as pallet_proxy::Config>::Call as Dispatchable>::Origin:
 		From<Option<Runtime::AccountId>>,
-	<Runtime as pallet_proxy::Config>::Call: From<Vec<u8>>,
 	<Runtime as pallet_proxy::Config>::ProxyType: From<u32>,
 	<<Runtime as pallet_proxy::Config>::CallHasher as Hash>::Output: From<H256>,
 	<Runtime as frame_system::Config>::Call:
@@ -114,7 +113,20 @@ where
 	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin:
 		From<Option<Runtime::AccountId>>,
 	<Runtime as frame_system::Config>::Call: From<ProxyCall<Runtime>>,
+	<Runtime as frame_system::Config>::Call: Decode,
 {
+	fn decode_call(
+		input: &mut EvmDataReader,
+	) -> Result<Box<<Runtime as pallet_proxy::Config>::Call>, PrecompileFailure> {
+		let wrapped_call: Vec<u8> = input.read::<Bytes>()?.into();
+		let mut decoded_call: xcm::DoubleEncoded<<Runtime as frame_system::Config>::Call> =
+			wrapped_call.into();
+		decoded_call
+			.take_decoded()
+			.map(|c| Box::new(c.into()))
+			.map_err(|_| revert("failed decoding call"))
+	}
+
 	/// Dispatch the given call from an account that the sender is authorised for through add_proxy.
 	/// Removes any corresponding announcement(s).
 	/// The dispatch origin for this call must be Signed.
@@ -128,13 +140,19 @@ where
 		input.expect_arguments(2)?;
 
 		let real: H160 = input.read::<Address>()?.into();
-		let wrapped_call: Vec<u8> = input.read::<Bytes>()?.into();
+		// let wrapped_call: Vec<u8> = input.read::<Bytes>()?.into();
+		let wrapped_call = Self::decode_call(&mut input)?;
+
+		// let mut decoded_call: xcm::DoubleEncoded<<Runtime as frame_system::Config>::Call> = wrapped_call.into();
+		// let decoded_call = decoded_call.take_decoded().map_err(|_| revert("failed decoding call"))?;
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = ProxyCall::<Runtime>::proxy {
 			real: Runtime::AddressMapping::into_account_id(real),
 			force_proxy_type: None,
-			call: Box::new(wrapped_call.into()),
+			call: wrapped_call,
+			// call: Box::new(decoded_call.into()),
+			// call: Box::new(wrapped_call.into()),
 		}
 		.into();
 
@@ -155,13 +173,13 @@ where
 
 		let real: H160 = input.read::<Address>()?.into();
 		let force_proxy_type = input.read::<u32>()?.into();
-		let wrapped_call: Vec<u8> = input.read::<Bytes>()?.into();
+		let wrapped_call = Self::decode_call(&mut input)?;
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = ProxyCall::<Runtime>::proxy {
 			real: Runtime::AddressMapping::into_account_id(real),
 			force_proxy_type: Some(force_proxy_type),
-			call: Box::new(wrapped_call.into()),
+			call: wrapped_call,
 		}
 		.into();
 
@@ -389,14 +407,14 @@ where
 
 		let delegate: H160 = input.read::<Address>()?.into();
 		let real: H160 = input.read::<Address>()?.into();
-		let wrapped_call: Vec<u8> = input.read::<Bytes>()?.into();
+		let wrapped_call = Self::decode_call(&mut input)?;
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = ProxyCall::<Runtime>::proxy_announced {
 			delegate: Runtime::AddressMapping::into_account_id(delegate),
 			real: Runtime::AddressMapping::into_account_id(real),
 			force_proxy_type: None,
-			call: Box::new(wrapped_call.into()),
+			call: wrapped_call,
 		}
 		.into();
 
@@ -419,14 +437,14 @@ where
 		let delegate: H160 = input.read::<Address>()?.into();
 		let real: H160 = input.read::<Address>()?.into();
 		let force_proxy_type = input.read::<u32>()?.into();
-		let wrapped_call: Vec<u8> = input.read::<Bytes>()?.into();
+		let wrapped_call = Self::decode_call(&mut input)?;
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = ProxyCall::<Runtime>::proxy_announced {
 			delegate: Runtime::AddressMapping::into_account_id(delegate),
 			real: Runtime::AddressMapping::into_account_id(real),
 			force_proxy_type: Some(force_proxy_type),
-			call: Box::new(wrapped_call.into()),
+			call: wrapped_call,
 		}
 		.into();
 
