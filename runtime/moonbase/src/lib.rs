@@ -949,8 +949,8 @@ impl Contains<Call> for NormalFilter {
 			// We filter anonymous proxy as they make "reserve" inconsistent
 			// See: https://github.com/paritytech/substrate/blob/37cca710eed3dadd4ed5364c7686608f5175cce1/frame/proxy/src/lib.rs#L270 // editorconfig-checker-disable-line
 			Call::Proxy(method) => match method {
-				pallet_assets::Call::anonymous { .. } => false,
-				pallet_assets::Call::kill_anonymous { .. } => false,
+				pallet_proxy::Call::anonymous { .. } => false,
+				pallet_proxy::Call::kill_anonymous { .. } => false,
 				_ => true,
 			},
 			_ => true,
