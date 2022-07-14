@@ -2282,7 +2282,6 @@ describeDevMoonbeam("Mock XCM - receive horizontal suspend", (context) => {
     ) as any;
     const receivedMessage = context.polkadotApi.createType("u8", 0) as any;
     const totalMessage = [...xcmpFormat.toU8a(), ...receivedMessage.toU8a()];
-    console.log(totalMessage);
     // Send RPC call to inject XCM message
     // We will set a specific message knowing that it should mint the statemint asset
     await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [2023, totalMessage]);
