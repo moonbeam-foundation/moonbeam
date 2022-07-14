@@ -2,8 +2,9 @@ import { u8aToHex } from "@polkadot/util";
 import { xxhashAsU8a } from "@polkadot/util-crypto";
 
 import { DevTestContext } from "./setup-dev-tests";
-
-import type { CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot } from "@polkadot/types/lookup";
+import {
+  CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot,
+} from "@polkadot/types/lookup";
 
 // Creates and returns the tx that overrides the paraHRMP existence
 // This needs to be inserted at every block in which you are willing to test

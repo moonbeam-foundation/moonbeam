@@ -2292,7 +2292,8 @@ describeDevMoonbeam("Mock XCM - receive horizontal suspend", (context) => {
 
     // Fragments are grouped together and stored in a message
     // It is this message that we are going to store
-    // The easiest way to test it create a single message every block, with no other messages to append
+    // The easiest way to test it create a single message every block,
+    // with no other messages to append
 
     // We can create these with sudo
     // The simplest message should do it
@@ -2328,14 +2329,16 @@ describeDevMoonbeam("Mock XCM - receive horizontal suspend", (context) => {
     const numMessages = 100;
 
     for (let i = 0; i < numMessages; i++) {
-      await expectOk(context.createBlock(
-        context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.utility.batchAll([
-            paraHrmpMockerTx,
-            context.polkadotApi.tx.polkadotXcm.send(versionedMult, messageToSend),
-          ])
+      await expectOk(
+        context.createBlock(
+          context.polkadotApi.tx.sudo.sudo(
+            context.polkadotApi.tx.utility.batchAll([
+              paraHrmpMockerTx,
+              context.polkadotApi.tx.polkadotXcm.send(versionedMult, messageToSend),
+            ])
+          )
         )
-      ));
+      );
     }
 
     // expect that queued messages is equal to the number of sent messages
