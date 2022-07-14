@@ -2342,8 +2342,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal suspend", (context) => {
     }
 
     // expect that queued messages is equal to the number of sent messages
-    const queuedMessages =
-      await await context.polkadotApi.query.xcmpQueue.outboundXcmpMessages.entries();
+    const queuedMessages = await context.polkadotApi.query.xcmpQueue.outboundXcmpMessages.entries();
     expect(queuedMessages).to.have.lengthOf(numMessages);
   });
 });
