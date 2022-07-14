@@ -24,7 +24,7 @@ use pallet_evm::AddressMapping;
 use pallet_proxy::Call as ProxyCall;
 use precompile_utils::data::{Address, Bytes};
 use precompile_utils::prelude::*;
-use sp_core::H256;
+use sp_core::{H160, H256};
 use sp_std::{fmt::Debug, marker::PhantomData};
 
 #[cfg(test)]
@@ -35,16 +35,18 @@ mod tests;
 #[generate_function_selector]
 #[derive(Debug, PartialEq)]
 pub enum Action {
-	Proxy = "proxy(address,bytes[],bytes[])",
+	Proxy = "proxy(address,bytes[])",
+	ProxyForceType = "proxyForceType(address,uint32,bytes[])",
 	AddProxy = "addProxy(address,uint32,uint32)",
 	RemoveProxy = "removeProxy(address,uint32,uint32)",
 	RemoveProxies = "removeProxies()",
-	Anonymous = "anonymous(uint32,uint32,uint16)",
+	Anonymous = "createAnonymous(uint32,uint32,uint16)",
 	KillAnonymous = "killAnonymous(address,uint32,uint16,uint32,uint32)",
 	Announce = "announce(address,bytes32)",
 	RemoveAnnouncement = "removeAnnouncement(address,bytes32)",
 	RejectAnnouncement = "rejectAnnouncement(address,bytes32)",
-	ProxyAnnounced = "proxyAnnounced(address,address,uint64,bytes[]])",
+	ProxyAnnounced = "proxyAnnounced(address,address,uint64,bytes[])",
+	ProxyForceTypeAnnounced = "proxyForceTypeAnnounced(address,address,uint64,bytes[])",
 }
 
 type DispatchCall<Runtime> = Result<
@@ -63,10 +65,9 @@ where
 	Runtime: pallet_proxy::Config + pallet_evm::Config + frame_system::Config,
 	<<Runtime as pallet_proxy::Config>::Call as Dispatchable>::Origin:
 		From<Option<Runtime::AccountId>>,
+	<Runtime as pallet_proxy::Config>::Call: From<Vec<u8>>,
 	<Runtime as pallet_proxy::Config>::ProxyType: From<u32>,
-	Box<<Runtime as pallet_proxy::Config>::Call>: From<Bytes>,
 	<<Runtime as pallet_proxy::Config>::CallHasher as Hash>::Output: From<H256>,
-	<Runtime as frame_system::Config>::AccountId: From<Address>,
 	<Runtime as frame_system::Config>::Call:
 		Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin:
@@ -81,6 +82,7 @@ where
 
 		let (call, origin) = match selector {
 			Action::Proxy => Self::proxy(handle),
+			Action::ProxyForceType => Self::proxy_force_type(handle),
 			Action::AddProxy => Self::add_proxy(handle),
 			Action::RemoveProxy => Self::remove_proxy(handle),
 			Action::RemoveProxies => Self::remove_proxies(handle),
@@ -90,9 +92,10 @@ where
 			Action::RemoveAnnouncement => Self::remove_announcement(handle),
 			Action::RejectAnnouncement => Self::reject_announcement(handle),
 			Action::ProxyAnnounced => Self::proxy_announced(handle),
+			Action::ProxyForceTypeAnnounced => Self::proxy_force_type_announced(handle),
 		}?;
 
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
 
 		Ok(succeed([]))
 	}
@@ -103,10 +106,9 @@ where
 	Runtime: pallet_proxy::Config + pallet_evm::Config + frame_system::Config,
 	<<Runtime as pallet_proxy::Config>::Call as Dispatchable>::Origin:
 		From<Option<Runtime::AccountId>>,
+	<Runtime as pallet_proxy::Config>::Call: From<Vec<u8>>,
 	<Runtime as pallet_proxy::Config>::ProxyType: From<u32>,
-	Box<<Runtime as pallet_proxy::Config>::Call>: From<Bytes>,
 	<<Runtime as pallet_proxy::Config>::CallHasher as Hash>::Output: From<H256>,
-	<Runtime as frame_system::Config>::AccountId: From<Address>,
 	<Runtime as frame_system::Config>::Call:
 		Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin:
@@ -116,24 +118,50 @@ where
 	/// Dispatch the given call from an account that the sender is authorised for through add_proxy.
 	/// Removes any corresponding announcement(s).
 	/// The dispatch origin for this call must be Signed.
+	/// The most permissive proxy type is used to check for this call.
+	///
+	/// Parameters:
+	/// * real: The account that the proxy will make a call on behalf of.
+	/// * call: The call to be made by the real account.
+	fn proxy(handle: &mut impl PrecompileHandle) -> DispatchCall<Runtime> {
+		let mut input = handle.read_input()?;
+		input.expect_arguments(2)?;
+
+		let real: H160 = input.read::<Address>()?.into();
+		let wrapped_call: Vec<u8> = input.read::<Bytes>()?.into();
+
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let call = ProxyCall::<Runtime>::proxy {
+			real: Runtime::AddressMapping::into_account_id(real),
+			force_proxy_type: None,
+			call: Box::new(wrapped_call.into()),
+		}
+		.into();
+
+		Ok((call, origin))
+	}
+
+	/// Dispatch the given call from an account that the sender is authorised for through add_proxy.
+	/// Removes any corresponding announcement(s).
+	/// The dispatch origin for this call must be Signed.
 	///
 	/// Parameters:
 	/// * real: The account that the proxy will make a call on behalf of.
 	/// * force_proxy_type: Specify the exact proxy type to be used and checked for this call.
 	/// * call: The call to be made by the real account.
-	fn proxy(handle: &mut impl PrecompileHandle) -> DispatchCall<Runtime> {
+	fn proxy_force_type(handle: &mut impl PrecompileHandle) -> DispatchCall<Runtime> {
 		let mut input = handle.read_input()?;
 		input.expect_arguments(3)?;
 
-		let real = input.read::<Address>()?.into();
-		let force_proxy_type = input.read::<Option<u32>>()?.map(|t| t.into());
-		let wrapped_call = input.read::<Bytes>()?.into();
+		let real: H160 = input.read::<Address>()?.into();
+		let force_proxy_type = input.read::<u32>()?.into();
+		let wrapped_call: Vec<u8> = input.read::<Bytes>()?.into();
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = ProxyCall::<Runtime>::proxy {
-			real,
-			force_proxy_type,
-			call: wrapped_call,
+			real: Runtime::AddressMapping::into_account_id(real),
+			force_proxy_type: Some(force_proxy_type),
+			call: Box::new(wrapped_call.into()),
 		}
 		.into();
 
@@ -151,13 +179,13 @@ where
 		let mut input = handle.read_input()?;
 		input.expect_arguments(3)?;
 
-		let delegate = input.read::<Address>()?.into();
+		let delegate: H160 = input.read::<Address>()?.into();
 		let proxy_type = input.read::<u32>()?.into();
 		let delay = input.read::<u32>()?.into();
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = ProxyCall::<Runtime>::add_proxy {
-			delegate,
+			delegate: Runtime::AddressMapping::into_account_id(delegate),
 			proxy_type,
 			delay,
 		}
@@ -177,13 +205,13 @@ where
 		let mut input = handle.read_input()?;
 		input.expect_arguments(3)?;
 
-		let delegate = input.read::<Address>()?.into();
+		let delegate: H160 = input.read::<Address>()?.into();
 		let proxy_type = input.read::<u32>()?.into();
 		let delay = input.read::<u32>()?.into();
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = ProxyCall::<Runtime>::remove_proxy {
-			delegate,
+			delegate: Runtime::AddressMapping::into_account_id(delegate),
 			proxy_type,
 			delay,
 		}
@@ -250,7 +278,7 @@ where
 		let mut input = handle.read_input()?;
 		input.expect_arguments(5)?;
 
-		let spawner = input.read::<Address>()?.into();
+		let spawner: H160 = input.read::<Address>()?.into();
 		let proxy_type = input.read::<u32>()?.into();
 		let index = input.read::<u16>()?.into();
 		let height = input.read::<u32>()?.into();
@@ -258,7 +286,7 @@ where
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = ProxyCall::<Runtime>::kill_anonymous {
-			spawner,
+			spawner: Runtime::AddressMapping::into_account_id(spawner),
 			proxy_type,
 			index,
 			height,
@@ -284,11 +312,15 @@ where
 		let mut input = handle.read_input()?;
 		input.expect_arguments(2)?;
 
-		let real = input.read::<Address>()?.into();
+		let real: H160 = input.read::<Address>()?.into();
 		let call_hash = input.read::<H256>()?.into();
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = ProxyCall::<Runtime>::announce { real, call_hash }.into();
+		let call = ProxyCall::<Runtime>::announce {
+			real: Runtime::AddressMapping::into_account_id(real),
+			call_hash,
+		}
+		.into();
 
 		Ok((call, origin))
 	}
@@ -305,11 +337,15 @@ where
 		let mut input = handle.read_input()?;
 		input.expect_arguments(2)?;
 
-		let real = input.read::<Address>()?.into();
+		let real: H160 = input.read::<Address>()?.into();
 		let call_hash = input.read::<H256>()?.into();
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = ProxyCall::<Runtime>::remove_announcement { real, call_hash }.into();
+		let call = ProxyCall::<Runtime>::remove_announcement {
+			real: Runtime::AddressMapping::into_account_id(real),
+			call_hash,
+		}
+		.into();
 
 		Ok((call, origin))
 	}
@@ -326,13 +362,41 @@ where
 		let mut input = handle.read_input()?;
 		input.expect_arguments(2)?;
 
-		let delegate = input.read::<Address>()?.into();
+		let delegate: H160 = input.read::<Address>()?.into();
 		let call_hash = input.read::<H256>()?.into();
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = ProxyCall::<Runtime>::reject_announcement {
-			delegate,
+			delegate: Runtime::AddressMapping::into_account_id(delegate),
 			call_hash,
+		}
+		.into();
+
+		Ok((call, origin))
+	}
+
+	/// Dispatch the given call from an account that the sender is authorised for through add_proxy.
+	/// Removes any corresponding announcement(s).
+	/// The dispatch origin for this call must be Signed.
+	///
+	/// Parameters:
+	/// * delegate: The account that previously announced the call.
+	/// * real: The account that the proxy will make a call on behalf of.
+	/// * call: The call to be made by the real account.
+	fn proxy_announced(handle: &mut impl PrecompileHandle) -> DispatchCall<Runtime> {
+		let mut input = handle.read_input()?;
+		input.expect_arguments(3)?;
+
+		let delegate: H160 = input.read::<Address>()?.into();
+		let real: H160 = input.read::<Address>()?.into();
+		let wrapped_call: Vec<u8> = input.read::<Bytes>()?.into();
+
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let call = ProxyCall::<Runtime>::proxy_announced {
+			delegate: Runtime::AddressMapping::into_account_id(delegate),
+			real: Runtime::AddressMapping::into_account_id(real),
+			force_proxy_type: None,
+			call: Box::new(wrapped_call.into()),
 		}
 		.into();
 
@@ -348,21 +412,21 @@ where
 	/// * real: The account that the proxy will make a call on behalf of.
 	/// * force_proxy_type: Specify the exact proxy type to be used and checked for this call.
 	/// * call: The call to be made by the real account.
-	fn proxy_announced(handle: &mut impl PrecompileHandle) -> DispatchCall<Runtime> {
+	fn proxy_force_type_announced(handle: &mut impl PrecompileHandle) -> DispatchCall<Runtime> {
 		let mut input = handle.read_input()?;
 		input.expect_arguments(4)?;
 
-		let delegate = input.read::<Address>()?.into();
-		let real = input.read::<Address>()?.into();
-		let force_proxy_type = input.read::<Option<u32>>()?.map(|t| t.into());
-		let wrapped_call = input.read::<Bytes>()?.into();
+		let delegate: H160 = input.read::<Address>()?.into();
+		let real: H160 = input.read::<Address>()?.into();
+		let force_proxy_type = input.read::<u32>()?.into();
+		let wrapped_call: Vec<u8> = input.read::<Bytes>()?.into();
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = ProxyCall::<Runtime>::proxy_announced {
-			delegate,
-			real,
-			force_proxy_type,
-			call: wrapped_call,
+			delegate: Runtime::AddressMapping::into_account_id(delegate),
+			real: Runtime::AddressMapping::into_account_id(real),
+			force_proxy_type: Some(force_proxy_type),
+			call: Box::new(wrapped_call.into()),
 		}
 		.into();
 
