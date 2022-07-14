@@ -82,11 +82,11 @@ pub mod pallet {
 		/// Takes NimbusId to return VrfId
 		type VrfKeyLookup: KeysLookup<NimbusId, VrfId>;
 		#[pallet::constant]
-		/// Maximum number of random words that can be requested per request
-		type MaxRandomWords: Get<u8>;
-		#[pallet::constant]
 		/// The amount that should be taken as a security deposit when requesting randomness.
 		type Deposit: Get<BalanceOf<Self>>;
+		#[pallet::constant]
+		/// Maximum number of random words that can be requested per request
+		type MaxRandomWords: Get<u8>;
 		#[pallet::constant]
 		/// Local per-block VRF requests must be at least this many blocks after the block in which
 		/// they were requested
