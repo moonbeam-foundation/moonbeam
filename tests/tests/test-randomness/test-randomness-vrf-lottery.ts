@@ -67,7 +67,22 @@ const setupLotteryWithParticipants = async (context: DevTestContext) => {
   return contract;
 };
 
-describeDevMoonbeam("Randomness VRF - Lottery Demo", (context) => {
+describeDevMoonbeam("Randomness VRF - Preparing Lottery Demo", (context) => {
+  let lotteryContract: Contract;
+  before("setup lottery contract", async function () {
+    lotteryContract = await setupLotteryWithParticipants(context);
+  });
+
+  it("should have a jackpot of 3 tokens", async function () {
+    expect(await lotteryContract.methods.jackpot().call()).to.equal((3n * GLMR).toString());
+  });
+
+  it("should be open for registrations", async function () {
+    expect(await lotteryContract.methods.status().call()).to.equal("0");
+  });
+});
+
+describeDevMoonbeam("Randomness VRF - Starting the Lottery Demo", (context) => {
   let lotteryContract: Contract;
   before("setup lottery contract", async function () {
     lotteryContract = await setupLotteryWithParticipants(context);
@@ -83,10 +98,6 @@ describeDevMoonbeam("Randomness VRF - Lottery Demo", (context) => {
       })
     );
     expectEVMResult(result.events, "Succeed");
-  });
-
-  it("should have a jackpot of 3 tokens", async function () {
-    expect(await lotteryContract.methods.jackpot().call()).to.equal((3n * GLMR).toString());
   });
 });
 
@@ -122,6 +133,10 @@ describeDevMoonbeam("Randomness VRF - Lottery Demo", (context) => {
       })
     );
     expectEVMResult(result.events, "Revert");
+  });
+
+  it("should be rolling the numbers", async function () {
+    expect(await lotteryContract.methods.status().call()).to.equal("1");
   });
 });
 
@@ -251,5 +266,9 @@ describeDevMoonbeam("Randomness VRF - Fulfilling Lottery Demo", (context) => {
         await context.polkadotApi.query.system.account(alith.address.toString())
       ).data.free.toBigInt() > ALITH_GENESIS_FREE_BALANCE
     ).to.be.true;
+  });
+
+  it("should be back to open for registrations", async function () {
+    expect(await lotteryContract.methods.status().call()).to.equal("0");
   });
 });

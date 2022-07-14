@@ -49,9 +49,11 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
     /// @notice The status of lottery
     /// @param OpenForRegistration Participants can register to get a chance to win
     /// @param RollingNumbers The lottery has requested the random words and is waiting for them
+    /// @param Expired The lottery has been rolling numbers for too long. The randomness has expired
     enum LotteryStatus {
         OpenForRegistration,
-        RollingNumbers
+        RollingNumbers,
+        Expired
     }
 
     /// @notice The gas limit allowed to be used for the fulfillment
@@ -126,6 +128,22 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
         jackpot = 0;
         /// Set the requestId to uint256::max to ensure it is not already existing
         requestId = 2**256 - 1;
+    }
+
+    function status() external view returns (LotteryStatus) {
+        Randomness.RequestStatus requestStatus = randomness.getRequestStatus(
+            requestId
+        );
+        if (requestStatus == Randomness.RequestStatus.DoesNotExist) {
+            return LotteryStatus.OpenForRegistration;
+        }
+        if (
+            requestStatus == Randomness.RequestStatus.Pending ||
+            requestStatus == Randomness.RequestStatus.Ready
+        ) {
+            return LotteryStatus.RollingNumbers;
+        }
+        return LotteryStatus.Expired;
     }
 
     function participate() external payable {
