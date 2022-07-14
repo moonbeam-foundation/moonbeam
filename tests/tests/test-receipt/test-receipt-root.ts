@@ -59,7 +59,7 @@ describeDevMoonbeam(
         const receipt = await context.web3.eth.getTransactionReceipt(txHash);
         receipts.push(receipt);
       }
-      // Verify we work with 3 receipts
+      // Verify we work with 6 receipts
       expect(receipts.length).to.be.eq(6);
       // Verify we have a receipt of each type
       expect(receipts[0].type).to.be.eq("0x0");
