@@ -95,8 +95,6 @@ interface Proxy {
     /// @param real the account that the proxy will make a call on behalf of
     /// @param callHash the hash of the call to be made by the real account
     ///	transaction, will generally be zero
-    /// @param delay The announcement period required of the initial proxy, will generally be zero
-    /// @custom:selector aa11bbcc
     function announce(address real, bytes[] calldata callHash) external;
 
     /// @dev Remove a given announcement
