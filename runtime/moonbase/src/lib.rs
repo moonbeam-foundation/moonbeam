@@ -884,14 +884,11 @@ impl pallet_migrations::Config for Runtime {
 	type Event = Event;
 	// TODO wire up our correct list of migrations here. Maybe this shouldn't be in
 	// `moonbeam_runtime_common`.
-	type MigrationsList = (
-		moonbeam_runtime_common::migrations::CommonMigrations<
-			Runtime,
-			CouncilCollective,
-			TechCommitteeCollective,
-		>,
-		moonbeam_runtime_common::migrations::XcmMigrations<Runtime>,
-	);
+	type MigrationsList = moonbeam_runtime_common::migrations::CommonMigrations<
+		Runtime,
+		CouncilCollective,
+		TechCommitteeCollective,
+	>;
 }
 
 /// Maintenance mode Call filter

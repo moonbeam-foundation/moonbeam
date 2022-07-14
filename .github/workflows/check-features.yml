@@ -1,0 +1,26 @@
+name: Check rarely used build features
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  check:
+    name: check features
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v1
+      - name: Setup Rust toolchain
+        run: rustup show
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-check-features-${{ hashFiles('**/Cargo.lock') }}
+      - name: cargo check
+        run: cargo check --features try-runtime,runtime-benchmarks

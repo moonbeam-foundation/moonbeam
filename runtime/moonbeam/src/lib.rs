@@ -126,7 +126,7 @@ pub mod currency {
 
 	pub const TRANSACTION_BYTE_FEE: Balance = 1 * GIGAWEI * SUPPLY_FACTOR;
 	pub const STORAGE_BYTE_FEE: Balance = 100 * MICROGLMR * SUPPLY_FACTOR;
-	pub const WEIGHT_FEE: Balance = 100 * KILOWEI * SUPPLY_FACTOR;
+	pub const WEIGHT_FEE: Balance = 50 * KILOWEI * SUPPLY_FACTOR;
 
 	pub const fn deposit(items: u32, bytes: u32) -> Balance {
 		items as Balance * 100 * MILLIGLMR * SUPPLY_FACTOR + (bytes as Balance) * STORAGE_BYTE_FEE
@@ -885,14 +885,11 @@ impl pallet_proxy::Config for Runtime {
 
 impl pallet_migrations::Config for Runtime {
 	type Event = Event;
-	type MigrationsList = (
-		moonbeam_runtime_common::migrations::CommonMigrations<
-			Runtime,
-			CouncilCollective,
-			TechCommitteeCollective,
-		>,
-		moonbeam_runtime_common::migrations::XcmMigrations<Runtime>,
-	);
+	type MigrationsList = moonbeam_runtime_common::migrations::CommonMigrations<
+		Runtime,
+		CouncilCollective,
+		TechCommitteeCollective,
+	>;
 }
 
 /// Maintenance mode Call filter

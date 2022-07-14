@@ -75,9 +75,10 @@ where
 		let selector = handle.read_selector()?;
 
 		handle.check_function_modifier(match selector {
-			Action::TransactThroughDerivativeMultiLocation | Action::TransactThroughDerivative => {
-				FunctionModifier::NonPayable
-			}
+			Action::TransactThroughDerivativeMultiLocation
+			| Action::TransactThroughDerivative
+			| Action::TransactThroughSignedMultiLocation
+			| Action::TransactThroughSigned => FunctionModifier::NonPayable,
 			_ => FunctionModifier::View,
 		})?;
 
