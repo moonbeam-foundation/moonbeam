@@ -19,7 +19,10 @@
 //! Benchmarking
 use crate::{BalanceOf, Call, Config, Pallet, RandomnessResults, Request, RequestType};
 use frame_benchmarking::{benchmarks, impl_benchmark_test_suite, Zero};
-use frame_support::traits::{Currency, Get};
+use frame_support::{
+	dispatch::DispatchResult,
+	traits::{Currency, Get},
+};
 use frame_system::RawOrigin;
 use pallet_evm::AddressMapping;
 use sp_core::{H160, H256};
@@ -137,13 +140,10 @@ benchmarks! {
 		});
 	}: {
 		let result = Pallet::<T>::increase_request_fee(&H160::default(), 0u64, BalanceOf::<T>::one());
-		assert!(result.is_ok(), "Increase Request Fee Failed");
+		assert_eq!(result, DispatchResult::Ok(()));
 	}
 	verify { }
 
-	/*
-	 * TODO: fails because of:
-	 * Thread 'main' panicked at 'Execute Expiration Failed', /home/stephen/dev/purestake/moonbeam/pallets/randomness/src/benchmarks.rs:153
 	execute_request_expiration {
 		let more = <<T as Config>::Deposit as Get<BalanceOf<T>>>::get();
 		fund_user::<T>(H160::default(), more);
@@ -156,13 +156,12 @@ benchmarks! {
 			salt: H256::default(),
 			info: RequestType::Local(10u32.into())
 		});
-		frame_system::Pallet::<T>::set_block_number(10u32.into());
+		frame_system::Pallet::<T>::set_block_number(10_001u32.into());
 	}: {
 		let result = Pallet::<T>::execute_request_expiration(&H160::default(), 0u64);
-		assert!(result.is_ok(), "Execute Expiration Failed");
+		assert_eq!(result, DispatchResult::Ok(()));
 	}
 	verify { }
-	*/
 }
 
 #[cfg(test)]
