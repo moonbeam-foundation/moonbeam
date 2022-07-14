@@ -33,10 +33,10 @@ use sp_std::{fmt::Debug, marker::PhantomData, vec, vec::Vec};
 
 // #[cfg(test)]
 // mod mock;
+// #[cfg(test)]
+// mod tests;
 mod solidity_types;
 use solidity_types::*;
-#[cfg(test)]
-mod tests;
 
 #[generate_function_selector]
 #[derive(Debug, PartialEq)]
