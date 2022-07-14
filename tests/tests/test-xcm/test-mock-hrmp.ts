@@ -2281,7 +2281,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal suspend", (context) => {
     await context.createBlock();
 
     // assert channel with para 2023 is suspended
-    let status = await context.polkadotApi.query.xcmpQueue.outboundXcmpStatus();
+    const status = await context.polkadotApi.query.xcmpQueue.outboundXcmpStatus();
     expect(status[0].state.isSuspended).to.be.true;
   });
 
@@ -2321,10 +2321,10 @@ describeDevMoonbeam("Mock XCM - receive horizontal suspend", (context) => {
     // For channel params, we set the default in all of them except for the maxMessageSize
     // We select MaxMessageSize = 4 because ClearOrigin involves 4 bytes
     // This makes sure that each message is enqued in a different page
-    let paraHrmpMockerTx = mockHrmpChannelExistanceTx(context, suspendedPara, 8, 8192, 4);
+    const paraHrmpMockerTx = mockHrmpChannelExistanceTx(context, suspendedPara, 8, 8192, 4);
 
     // Test for numMessages
-    let numMessages = 100;
+    const numMessages = 100;
 
     for (let i = 0; i < numMessages; i++) {
       await context.createBlock(
@@ -2338,7 +2338,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal suspend", (context) => {
     }
 
     // expect that queued messages is equal to the number of sent messages
-    let queuedMessages =
+    const queuedMessages =
       await await context.polkadotApi.query.xcmpQueue.outboundXcmpMessages.entries();
     expect(queuedMessages.length).to.eq(numMessages);
   });
