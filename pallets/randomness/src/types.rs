@@ -154,9 +154,7 @@ impl<T: Config> Request<BalanceOf<T>, RequestInfo<T>> {
 	}
 	pub fn can_be_fulfilled(&self) -> bool {
 		match self.info {
-			RequestInfo::BabeEpoch(epoch_due, _) => {
-				epoch_due <= T::BabeDataGetter::get_epoch_index()
-			}
+			RequestInfo::BabeEpoch(epoch_due, _) => epoch_due <= RelayEpoch::<T>::get(),
 			RequestInfo::Local(block_due, _) => {
 				block_due <= frame_system::Pallet::<T>::block_number()
 			}

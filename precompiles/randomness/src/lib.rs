@@ -299,7 +299,9 @@ where
 		let gas_limit = input.read::<u64>()?;
 		let salt = input.read::<H256>()?;
 		let num_words = input.read::<u8>()?;
-		handle.record_cost(REQUEST_RANDOMNESS_ESTIMATED_COST)?;
+		handle.record_cost(
+			REQUEST_RANDOMNESS_ESTIMATED_COST + RuntimeHelper::<Runtime>::db_read_gas_cost(),
+		)?;
 		let two_epochs_later =
 			<Runtime as pallet_randomness::Config>::BabeDataGetter::get_epoch_index()
 				.checked_add(2u64)
@@ -336,7 +338,9 @@ where
 		let salt = input.read::<H256>()?;
 		let num_words = input.read::<u8>()?;
 		let blocks_after_current = input.read::<u64>()?;
-		handle.record_cost(REQUEST_RANDOMNESS_ESTIMATED_COST)?;
+		handle.record_cost(
+			REQUEST_RANDOMNESS_ESTIMATED_COST + RuntimeHelper::<Runtime>::db_read_gas_cost(),
+		)?;
 		let current_block_number: u64 = <frame_system::Pallet<Runtime>>::block_number()
 			.try_into()
 			.map_err(|_| revert("block number overflowed u64"))?;
