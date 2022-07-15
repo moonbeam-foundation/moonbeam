@@ -17,13 +17,12 @@
 #![cfg(feature = "runtime-benchmarks")]
 
 //! Benchmarking
-use crate::{BalanceOf, Call, Config, Pallet, RandomnessResults, Request, RequestType};
+use crate::{BalanceOf, Config, Pallet, RandomnessResults, Request, RequestType};
 use frame_benchmarking::{benchmarks, impl_benchmark_test_suite, Zero};
 use frame_support::{
 	dispatch::DispatchResult,
 	traits::{Currency, Get},
 };
-use frame_system::RawOrigin;
 use pallet_evm::AddressMapping;
 use sp_core::{H160, H256};
 use sp_runtime::traits::One;
