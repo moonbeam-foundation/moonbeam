@@ -27,9 +27,7 @@ mod benchmarks;
 pub mod types;
 pub mod vrf;
 pub use types::*;
-
 pub mod weights;
-use weights::WeightInfo;
 
 #[cfg(test)]
 mod mock;
@@ -101,8 +99,6 @@ pub mod pallet {
 		#[pallet::constant]
 		/// Babe requests expire and can be purged from storage after this many blocks/epochs
 		type EpochExpirationDelay: Get<u64>;
-		/// Weight information for extrinsics in this pallet.
-		type WeightInfo: WeightInfo;
 	}
 
 	#[pallet::error]

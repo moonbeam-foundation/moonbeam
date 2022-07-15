@@ -142,7 +142,6 @@ impl Config for Test {
 	type MaxBlockDelay = MaxBlockDelay;
 	type BlockExpirationDelay = MaxBlockDelay;
 	type EpochExpirationDelay = MaxBlockDelay;
-	type WeightInfo = ();
 }
 
 pub(crate) fn events() -> Vec<pallet::Event<Test>> {

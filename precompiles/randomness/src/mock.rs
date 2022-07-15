@@ -193,12 +193,9 @@ impl Config for Runtime {
 	type VrfKeyLookup = AuthorMapping;
 	type Deposit = Deposit;
 	type MinBlockDelay = MinBlockDelay;
-	type MinEpochDelay = MinEpochDelay;
 	type MaxBlockDelay = MaxBlockDelay;
-	type MaxEpochDelay = MaxEpochDelay;
 	type BlockExpirationDelay = MaxBlockDelay;
 	type EpochExpirationDelay = MaxEpochDelay;
-	type WeightInfo = ();
 }
 
 pub(crate) fn events() -> Vec<pallet::Event<Runtime>> {

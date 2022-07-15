@@ -50,6 +50,8 @@ use pallet_evm_precompileset_assets_erc20::{
 	AccountIdAssetIdConversion, Action as AssetAction, SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER,
 };
 
+use pallet_evm::GasWeightMapping;
+use pallet_randomness::weights::WeightInfo;
 use pallet_transaction_payment::Multiplier;
 use parity_scale_codec::Encode;
 use sha3::{Digest, Keccak256};
@@ -59,6 +61,33 @@ use sp_runtime::{
 	DispatchError, ModuleError, TokenError,
 };
 use xcm::latest::prelude::*;
+
+#[test]
+fn verify_randomness_precompile_gas_constants() {
+	let weight_to_gas = |weight| {
+		<moonbase_runtime::Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(weight)
+	};
+	use pallet_evm_precompile_randomness::{
+		EXECUTE_EXPIRATION_ESTIMATED_COST, FULFILLMENT_OVERHEAD_ESTIMATED_COST,
+		INCREASE_REQUEST_FEE_ESTIMATED_COST, REQUEST_RANDOMNESS_ESTIMATED_COST,
+	};
+	assert_eq!(
+		weight_to_gas(<()>::request_randomness()),
+		REQUEST_RANDOMNESS_ESTIMATED_COST
+	);
+	assert_eq!(
+		weight_to_gas(<()>::prepare_fulfillment() + <()>::finish_fulfillment()),
+		FULFILLMENT_OVERHEAD_ESTIMATED_COST
+	);
+	assert_eq!(
+		weight_to_gas(<()>::increase_fee()),
+		INCREASE_REQUEST_FEE_ESTIMATED_COST
+	);
+	assert_eq!(
+		weight_to_gas(<()>::execute_request_expiration()),
+		EXECUTE_EXPIRATION_ESTIMATED_COST
+	);
+}
 
 #[test]
 fn xcmp_queue_controller_origin_is_root() {
