@@ -40,11 +40,19 @@ const LOTTERY_INTERFACE = new ethers.utils.Interface(LOTTERY_CONTRACT_JSON.contr
 const RANDOMNESS_CONTRACT_JSON = getCompiled("Randomness");
 const RANDOMNESS_INTERFACE = new ethers.utils.Interface(RANDOMNESS_CONTRACT_JSON.contract.abi);
 
+const RANDOMNESS_SOURCE_LOCAL_VRF = "0";
+const RANDOMNESS_SOURCE_BABE_EPOCH = "1";
+
 const setupLotteryWithParticipants = async (context: DevTestContext) => {
-  const { contract, rawTx } = await createContract(context, "RandomnessLotteryDemo", {
-    ...ALITH_TRANSACTION_TEMPLATE,
-    value: Web3.utils.toWei("1", "ether"),
-  });
+  const { contract, rawTx } = await createContract(
+    context,
+    "RandomnessLotteryDemo",
+    {
+      ...ALITH_TRANSACTION_TEMPLATE,
+      value: Web3.utils.toWei("1", "ether"),
+    },
+    [RANDOMNESS_SOURCE_LOCAL_VRF]
+  );
   await context.createBlock(rawTx);
 
   // Adds participants

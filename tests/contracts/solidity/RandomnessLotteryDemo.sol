@@ -76,12 +76,12 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
     /// @dev Cannot exceed MAX_RANDOM_WORDS
     uint8 public NUM_WINNERS = 2;
 
-    /// @notice The number of block before the request can be fulfilled
-    /// @dev The MIN_DELAY_BLOCKS provides a minimum number that is safe enough for
+    /// @notice The number of block before the request can be fulfilled (for Local VRF randomness)
+    /// @dev The MIN_VRF_BLOCKS_DELAY provides a minimum number that is safe enough for
     /// @dev games with low economical value at stake.
     /// @dev Increasing the delay reduces slightly the probability (already very low)
     /// @dev of a collator being able to predict the pseudo-random number
-    uint32 public DELAY_BLOCKS = MIN_DELAY_BLOCKS;
+    uint32 public VRF_BLOCKS_DELAY = MIN_VRF_BLOCKS_DELAY;
 
     /// @notice The minimum number of participants to start the lottery
     uint256 public MIN_PARTICIPANTS = 3;
@@ -115,7 +115,13 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
     /// @notice the owner of the contract
     address owner;
 
-    constructor() payable RandomnessConsumer() {
+    /// @notice Which randomness source to use
+    Randomness.RandomnessSource randomnessSource;
+
+    constructor(Randomness.RandomnessSource source)
+        payable
+        RandomnessConsumer()
+    {
         /// Because this contract can only perform 1 random request at a time,
         /// We only need to have 1 required deposit.
         uint256 requiredDeposit = 1000000000000000000; // TODO replace with randomness.requiredDeposit();
@@ -123,6 +129,7 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
             revert DepositTooLow(msg.value, requiredDeposit);
         }
 
+        randomnessSource = source;
         owner = msg.sender;
         globalRequestCount = 0;
         jackpot = 0;
@@ -195,18 +202,32 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
             );
         }
 
-        /// Requesting NUM_WINNERS random words with a delay of DELAY_BLOCKS blocks
-        /// Refund after fulfillment will go back to the caller of this function
-        /// globalRequestCount is used as salt to be unique for each request
-        requestId = randomness.requestLocalVRFRandomWords(
-            msg.sender,
-            fee,
-            FULFILLMENT_GAS_LIMIT,
-            SALT_PREFIX ^ bytes32(globalRequestCount++),
-            NUM_WINNERS,
-            DELAY_BLOCKS
-        );
-        emit Started(participants.length, jackpot, requestId);
+        if (randomnessSource == Randomness.RandomnessSource.LocalVRF) {
+            /// Requesting NUM_WINNERS random words using Local VRF Randomness
+            /// with a delay of VRF_BLOCKS_DELAY blocks
+            /// Refund after fulfillment will go back to the caller of this function
+            /// globalRequestCount is used as salt to be unique for each request
+            requestId = randomness.requestLocalVRFRandomWords(
+                msg.sender,
+                fee,
+                FULFILLMENT_GAS_LIMIT,
+                SALT_PREFIX ^ bytes32(globalRequestCount++),
+                NUM_WINNERS,
+                VRF_BLOCKS_DELAY
+            );
+        } else {
+            /// Requesting NUM_WINNERS random words using Babe Epoch Randomness
+            /// Babe Epoch Randomness requires a longer delay (depending on the relaychain)
+            /// Refund after fulfillment will go back to the caller of this function
+            /// globalRequestCount is used as salt to be unique for each request
+            requestId = randomness.requestRelayBabeEpochRandomWords(
+                msg.sender,
+                fee,
+                FULFILLMENT_GAS_LIMIT,
+                SALT_PREFIX ^ bytes32(globalRequestCount++),
+                NUM_WINNERS
+            );
+        }
     }
 
     /// @notice Allows to increase the fee associated with the request

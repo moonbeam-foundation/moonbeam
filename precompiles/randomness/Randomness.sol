@@ -3,10 +3,10 @@ pragma solidity >=0.8.0;
 
 /// @dev Maximum number of random words being requested
 uint32 constant MAX_RANDOM_WORDS = 100;
-/// @dev Minimum number of blocks before a request can be fulfilled
-uint32 constant MIN_DELAY_BLOCKS = 2;
-/// @dev Maximum number of blocks before a request can be fulfilled
-uint32 constant MAX_DELAY_BLOCKS = 2000;
+/// @dev Minimum number of blocks before a request can be fulfilled for Local VRF Request
+uint32 constant MIN_VRF_BLOCKS_DELAY = 2;
+/// @dev Maximum number of blocks before a request can be fulfilled for Local VRF Request
+uint32 constant MAX_VRF_BLOCKS_DELAY = 2000;
 /// @dev The deposit amount needed to request random words. There is 1 deposit per request
 uint256 constant REQUEST_DEPOSIT_AMOUNT = 1000000000000000000;
 
