@@ -3,7 +3,6 @@ pragma solidity >=0.8.0;
 
 /// @title Solidity test file with incorrectly defined selectors
 interface SolidityTest {
-
     /// A custom type
     struct CustomArg0 {
         uint8 p0;
@@ -12,7 +11,7 @@ interface SolidityTest {
 
     /// A custom type
     struct CustomArg1 {
-        address[] p0;  
+        address[] p0;
         uint256[] p1;
         bytes[] p2;
     }
@@ -57,7 +56,7 @@ interface SolidityTest {
     function fnMemoryArrayArgs(
         address[] memory arg0,
         uint256[] memory arg1,
-        bytes[] arg2,
+        bytes[] memory arg2
     ) external;
 
     /// @param arg0 Arg0 Description
@@ -66,8 +65,8 @@ interface SolidityTest {
     /// Selector: d8af1a4e
     function fnCustomArgs(
         CustomArg0 memory arg0,
-        bytes[] arg1,
-        uint64 arg2, 
+        bytes[] memory arg1,
+        uint64 arg2
     ) external;
 
     /// @param arg0 Arg0 Description
@@ -78,7 +77,7 @@ interface SolidityTest {
     function fnCustomArgsMultiple(
         CustomArg0 memory arg0,
         CustomArg1 memory arg1,
-        bytes[] arg2,
-        uint64 arg3, 
+        bytes[] memory arg2,
+        uint64 arg3
     ) external;
 }
