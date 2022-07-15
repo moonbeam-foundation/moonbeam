@@ -53,11 +53,11 @@ pub enum Action {
 	PurgeExpiredRequest = "purgeExpiredRequest(uint256)",
 }
 
-/// Weight to Fee
-pub const REQUEST_RANDOMNESS_ESTIMATED_COST: u64 = 26342;
-pub const FULFILLMENT_OVERHEAD_ESTIMATED_COST: u64 = 23461;
-pub const INCREASE_REQUEST_FEE_ESTIMATED_COST: u64 = 16737;
-pub const EXECUTE_EXPIRATION_ESTIMATED_COST: u64 = 21993;
+// Tests to verify equal to weight_to_gas(weight) in runtime integration tests
+pub const REQUEST_RANDOMNESS_ESTIMATED_COST: u64 = 26325;
+pub const FULFILLMENT_OVERHEAD_ESTIMATED_COST: u64 = 24545;
+pub const INCREASE_REQUEST_FEE_ESTIMATED_COST: u64 = 16718;
+pub const EXECUTE_EXPIRATION_ESTIMATED_COST: u64 = 21989;
 pub const LOG_FULFILLMENT_SUCCEEDED: [u8; 32] = keccak256!("FulFillmentSucceeded()");
 pub const LOG_FULFILLMENT_FAILED: [u8; 32] = keccak256!("FulFillmentFailed()");
 

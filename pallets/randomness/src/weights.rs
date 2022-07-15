@@ -67,7 +67,7 @@ pub trait WeightInfo {
 }
 
 /// Weights for pallet_randomness using the Substrate node and recommended hardware.
-pub struct SubstrateWeight<T>(PhantomData<T>);
+pub struct SubstrateWeight<T>(pub PhantomData<T>);
 impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: Randomness RequestCount (r:1 w:1)
 	// Storage: System Account (r:2 w:2)

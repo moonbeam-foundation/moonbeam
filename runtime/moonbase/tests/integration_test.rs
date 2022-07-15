@@ -42,16 +42,19 @@ use moonbase_runtime::{
 use precompile_utils::testing::MockHandle;
 
 use nimbus_primitives::NimbusId;
+use pallet_evm::GasWeightMapping;
 use pallet_evm::PrecompileSet;
 use pallet_evm_precompile_author_mapping::Action as AuthorMappingAction;
 use pallet_evm_precompile_crowdloan_rewards::Action as CrowdloanAction;
+use pallet_evm_precompile_randomness::{
+	EXECUTE_EXPIRATION_ESTIMATED_COST, FULFILLMENT_OVERHEAD_ESTIMATED_COST,
+	INCREASE_REQUEST_FEE_ESTIMATED_COST, REQUEST_RANDOMNESS_ESTIMATED_COST,
+};
 use pallet_evm_precompile_xtokens::Action as XtokensAction;
 use pallet_evm_precompileset_assets_erc20::{
 	AccountIdAssetIdConversion, Action as AssetAction, SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER,
 };
-
-use pallet_evm::GasWeightMapping;
-use pallet_randomness::weights::WeightInfo;
+use pallet_randomness::weights::{SubstrateWeight, WeightInfo};
 use pallet_transaction_payment::Multiplier;
 use parity_scale_codec::Encode;
 use sha3::{Digest, Keccak256};
@@ -67,24 +70,21 @@ fn verify_randomness_precompile_gas_constants() {
 	let weight_to_gas = |weight| {
 		<moonbase_runtime::Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(weight)
 	};
-	use pallet_evm_precompile_randomness::{
-		EXECUTE_EXPIRATION_ESTIMATED_COST, FULFILLMENT_OVERHEAD_ESTIMATED_COST,
-		INCREASE_REQUEST_FEE_ESTIMATED_COST, REQUEST_RANDOMNESS_ESTIMATED_COST,
-	};
+	type Weight = SubstrateWeight<moonbase_runtime::Runtime>;
 	assert_eq!(
-		weight_to_gas(<()>::request_randomness()),
+		weight_to_gas(Weight::request_randomness()),
 		REQUEST_RANDOMNESS_ESTIMATED_COST
 	);
 	assert_eq!(
-		weight_to_gas(<()>::prepare_fulfillment() + <()>::finish_fulfillment()),
+		weight_to_gas(Weight::prepare_fulfillment() + Weight::finish_fulfillment()),
 		FULFILLMENT_OVERHEAD_ESTIMATED_COST
 	);
 	assert_eq!(
-		weight_to_gas(<()>::increase_fee()),
+		weight_to_gas(Weight::increase_fee()),
 		INCREASE_REQUEST_FEE_ESTIMATED_COST
 	);
 	assert_eq!(
-		weight_to_gas(<()>::execute_request_expiration()),
+		weight_to_gas(Weight::execute_request_expiration()),
 		EXECUTE_EXPIRATION_ESTIMATED_COST
 	);
 }
