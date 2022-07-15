@@ -61,7 +61,7 @@ benchmarks! {
 			contract_address: H160::default(),
 			fee: BalanceOf::<T>::zero(),
 			gas_limit: 100u64,
-			num_words: 1,
+			num_words: 100u8,
 			salt: H256::default(),
 			info: RequestType::Local(10u32.into())
 		});
@@ -80,7 +80,7 @@ benchmarks! {
 			contract_address: H160::default(),
 			fee: BalanceOf::<T>::zero(),
 			gas_limit: 100u64,
-			num_words: 1,
+			num_words: 100u8,
 			salt: H256::default(),
 			info: RequestType::Local(10u32.into())
 		});
@@ -102,7 +102,7 @@ benchmarks! {
 			contract_address: H160::default(),
 			fee: BalanceOf::<T>::zero(),
 			gas_limit: 100u64,
-			num_words: 1,
+			num_words: 100u8,
 			salt: H256::default(),
 			info: RequestType::Local(10u32.into())
 		});
@@ -118,7 +118,7 @@ benchmarks! {
 			contract_address: H160::default(),
 			fee: BalanceOf::<T>::zero(),
 			gas_limit: 100u64,
-			num_words: 1,
+			num_words: 100u8,
 			salt: H256::default(),
 			info: RequestType::Local(10u32.into()).into()
 		}, more, &H160::default(), BalanceOf::<T>::zero());
@@ -134,7 +134,7 @@ benchmarks! {
 			contract_address: H160::default(),
 			fee: BalanceOf::<T>::zero(),
 			gas_limit: 100u64,
-			num_words: 1,
+			num_words: 100u8,
 			salt: H256::default(),
 			info: RequestType::Local(10u32.into()).into()
 		});
@@ -152,7 +152,7 @@ benchmarks! {
 			contract_address: H160::default(),
 			fee: BalanceOf::<T>::zero(),
 			gas_limit: 100u64,
-			num_words: 1,
+			num_words: 100u8,
 			salt: H256::default(),
 			info: RequestType::Local(10u32.into())
 		});

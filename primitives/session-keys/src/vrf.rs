@@ -84,7 +84,7 @@ sp_application_crypto::with_pair! {
 
 sp_api::decl_runtime_apis! {
 	pub trait VrfApi {
-		fn get_last_vrf_output() -> Block::Hash;
+		fn get_last_vrf_output() -> Option<Block::Hash>;
 		fn vrf_key_lookup(nimbus_id: nimbus_primitives::NimbusId) -> Option<crate::VrfId>;
 	}
 }

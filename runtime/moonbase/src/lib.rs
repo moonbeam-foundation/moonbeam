@@ -1233,13 +1233,12 @@ pub type Executive = frame_executive::Executive<
 // ```
 moonbeam_runtime_common::impl_runtime_apis_plus_common! {
 	impl session_keys_primitives::VrfApi<Block> for Runtime {
-		fn get_last_vrf_output() -> <Block as BlockT>::Hash {
+		fn get_last_vrf_output() -> Option<<Block as BlockT>::Hash> {
 			// TODO: remove in future runtime upgrade along with storage item
 			if pallet_randomness::Pallet::<Self>::not_first_block().is_none() {
-				return Default::default();
+				return None;
 			}
 			pallet_randomness::Pallet::<Self>::local_vrf_output()
-				.expect("Expected last VrfOutput to be set")
 		}
 		fn vrf_key_lookup(
 			nimbus_id: nimbus_primitives::NimbusId

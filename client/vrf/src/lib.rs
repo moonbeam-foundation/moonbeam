@@ -39,7 +39,8 @@ where
 	let at = sp_api::BlockId::Hash(parent);
 	let runtime_api = client.runtime_api();
 
-	let last_vrf_output = runtime_api.get_last_vrf_output(&at).ok()?;
+	// first ? for runtime API, second ? for if last vrf output is not available
+	let last_vrf_output = runtime_api.get_last_vrf_output(&at).ok()??;
 	// first ? for runtime API, second ? for not VRF key associated with NimbusId
 	let key: VrfId = runtime_api.vrf_key_lookup(&at, nimbus_id).ok()??;
 	let vrf_pre_digest = sign_vrf(last_vrf_output, key, &keystore)?;

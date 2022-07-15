@@ -67,7 +67,7 @@ pub trait WeightInfo {
 }
 
 /// Weights for pallet_randomness using the Substrate node and recommended hardware.
-pub struct SubstrateWeight<T>(PhantomData<T>);
+pub struct SubstrateWeight<T>(pub PhantomData<T>);
 impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: Randomness RequestCount (r:1 w:1)
 	// Storage: System Account (r:2 w:2)
@@ -75,7 +75,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: Randomness Requests (r:0 w:1)
 	#[rustfmt::skip]
 	fn request_randomness() -> Weight {
-		(58_567_000 as Weight)
+		(58_126_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(4 as Weight))
 			.saturating_add(T::DbWeight::get().writes(5 as Weight))
 	}
@@ -83,7 +83,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: Randomness RandomnessResults (r:1 w:0)
 	#[rustfmt::skip]
 	fn prepare_fulfillment() -> Weight {
-		(13_724_000 as Weight)
+		(42_051_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
 	}
 	// Storage: System Account (r:2 w:2)
@@ -91,7 +91,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: Randomness Requests (r:0 w:1)
 	#[rustfmt::skip]
 	fn finish_fulfillment() -> Weight {
-		(47_816_000 as Weight)
+		(46_585_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(3 as Weight))
 			.saturating_add(T::DbWeight::get().writes(4 as Weight))
 	}
@@ -99,7 +99,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: System Account (r:2 w:2)
 	#[rustfmt::skip]
 	fn increase_fee() -> Weight {
-		(43_439_000 as Weight)
+		(42_952_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(3 as Weight))
 			.saturating_add(T::DbWeight::get().writes(3 as Weight))
 	}
@@ -108,7 +108,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: Randomness RandomnessResults (r:1 w:1)
 	#[rustfmt::skip]
 	fn execute_request_expiration() -> Weight {
-		(49_833_000 as Weight)
+		(49_749_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(4 as Weight))
 			.saturating_add(T::DbWeight::get().writes(4 as Weight))
 	}
@@ -122,7 +122,7 @@ impl WeightInfo for () {
 	// Storage: Randomness Requests (r:0 w:1)
 	#[rustfmt::skip]
 	fn request_randomness() -> Weight {
-		(58_567_000 as Weight)
+		(58_126_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(4 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(5 as Weight))
 	}
@@ -130,7 +130,7 @@ impl WeightInfo for () {
 	// Storage: Randomness RandomnessResults (r:1 w:0)
 	#[rustfmt::skip]
 	fn prepare_fulfillment() -> Weight {
-		(13_724_000 as Weight)
+		(42_051_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
 	}
 	// Storage: System Account (r:2 w:2)
@@ -138,7 +138,7 @@ impl WeightInfo for () {
 	// Storage: Randomness Requests (r:0 w:1)
 	#[rustfmt::skip]
 	fn finish_fulfillment() -> Weight {
-		(47_816_000 as Weight)
+		(46_585_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(3 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(4 as Weight))
 	}
@@ -146,7 +146,7 @@ impl WeightInfo for () {
 	// Storage: System Account (r:2 w:2)
 	#[rustfmt::skip]
 	fn increase_fee() -> Weight {
-		(43_439_000 as Weight)
+		(42_952_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(3 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(3 as Weight))
 	}
@@ -155,7 +155,7 @@ impl WeightInfo for () {
 	// Storage: Randomness RandomnessResults (r:1 w:1)
 	#[rustfmt::skip]
 	fn execute_request_expiration() -> Weight {
-		(49_833_000 as Weight)
+		(49_749_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(4 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(4 as Weight))
 	}
