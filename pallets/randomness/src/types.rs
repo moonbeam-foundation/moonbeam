@@ -98,6 +98,9 @@ impl<Hash: Clone> RandomnessResult<Hash> {
 	/// Failure implies the randomness result should be removed from storage
 	pub fn decrement_request_count(&self) -> Option<Self> {
 		if let Some(new_request_count) = self.request_count.checked_sub(1u64) {
+			if new_request_count == 0u64 {
+				return None;
+			}
 			Some(RandomnessResult {
 				randomness: self.randomness.clone(),
 				request_count: new_request_count,

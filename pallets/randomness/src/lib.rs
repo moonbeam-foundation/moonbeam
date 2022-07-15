@@ -258,10 +258,9 @@ pub mod pallet {
 
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
-		// Set this block's randomness using the VRF output, verified by the VrfInput put in
-		// storage in the previous block's `on_initialize`
+		// Set this block's randomness using the VRF output
 		fn on_initialize(_now: BlockNumberFor<T>) -> Weight {
-			// Set and validate VRF output using input put in storage last block's `on_finalize`
+			// Set and validate VRF output
 			vrf::set_output::<T>()
 		}
 		// Set next block's VRF input in storage
