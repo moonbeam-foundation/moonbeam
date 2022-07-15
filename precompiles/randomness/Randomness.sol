@@ -37,7 +37,7 @@ interface Randomness {
     }
 
     /// @notice The request details
-    /// @param id The id of the request
+    /// @param id The id of the request (is always < 2**64)
     /// @param refundAddress The address receiving the left-over fees after the fulfillment
     /// @param contractAddress The address of the contract being called back during fulfillment
     /// @param fee The amount to set aside to pay for the fulfillment
@@ -80,7 +80,7 @@ interface Randomness {
     function requiredDeposit() external view returns (uint256);
 
     /// @notice Returns the request status
-    /// @param requestId The id of the request to check
+    /// @param requestId The id of the request to check (must be < 2**64)
     /// @return status Status of the request
     /// Selector: d8a4676f
     function getRequestStatus(uint256 requestId)
@@ -89,7 +89,7 @@ interface Randomness {
         returns (RequestStatus status);
 
     /// @notice Returns the request or revert
-    /// @param requestId The id of the request to check
+    /// @param requestId The id of the request to check (must be < 2**64)
     /// @return request The request
     /// Selector: c58343ef
     function getRequest(uint256 requestId)
@@ -158,17 +158,17 @@ interface Randomness {
 
     /// @dev fulFill the request which will call the contract method "fulfillRandomWords"
     /// @dev Fees of the caller are refunded if the request is fulfillable
-    /// @param requestId Request to be fulfilled
+    /// @param requestId Request to be fulfilled (must be < 2**64)
     /// Selector: 9a91eb0d
     function fulfillRequest(uint256 requestId) external;
 
-    /// @param requestId Request receiving the additional fees
+    /// @param requestId Request receiving the additional fees (must be < 2**64)
     /// @param feeIncrease Amount to increase
     /// Selector: d0408a7f
     function increaseRequestFee(uint256 requestId, uint256 feeIncrease)
         external;
 
-    /// @param requestId Request to be purged
+    /// @param requestId Request to be purged (must be < 2**64)
     /// Selector: 1d26cbab
     function purgeExpiredRequest(uint256 requestId) external;
 }

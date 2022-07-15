@@ -126,8 +126,8 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
         owner = msg.sender;
         globalRequestCount = 0;
         jackpot = 0;
-        /// Set the requestId to uint256::max to ensure it is not already existing
-        requestId = 2**256 - 1;
+        /// Set the requestId to the maximum allowed value by the precompile (64 bits)
+        requestId = 2**64 - 1;
     }
 
     function status() external view returns (LotteryStatus) {
