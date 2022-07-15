@@ -16,7 +16,6 @@
 
 //! Test utilities
 use crate::ProxyWrapper;
-use fp_evm::{Precompile, PrecompileHandle, PrecompileOutput, PrecompileSet};
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{Everything, InstanceFilter},
@@ -24,7 +23,9 @@ use frame_support::{
 use pallet_evm::{
 	AddressMapping, EnsureAddressNever, EnsureAddressRoot, SubstrateBlockHashMapping,
 };
-use precompile_utils::EvmResult;
+use precompile_utils::precompile_set::{
+	AddressU64, LimitRecursionTo, PrecompileAt, PrecompileSetBuilder,
+};
 use scale_info::TypeInfo;
 use serde::{Deserialize, Serialize};
 use sp_core::{H160, H256, U256};
@@ -34,7 +35,6 @@ use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 };
-use sp_std::marker::PhantomData;
 
 pub type AccountId = Account;
 pub type Balance = u128;
@@ -104,7 +104,6 @@ impl From<Account> for H160 {
 	}
 }
 
-// Configure a mock runtime to test the pallet.
 construct_runtime!(
 	pub enum Runtime where
 		Block = Block,
@@ -164,34 +163,15 @@ impl pallet_balances::Config for Runtime {
 	type WeightInfo = ();
 }
 
-#[derive(Default)]
-pub struct TestPrecompiles<R>(PhantomData<R>);
-
-impl<R> PrecompileSet for TestPrecompiles<R>
-where
-	ProxyWrapper<R>: Precompile,
-{
-	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<EvmResult<PrecompileOutput>> {
-		match handle.code_address() {
-			a if a == hash(PRECOMPILE_ADDRESS) => Some(ProxyWrapper::<R>::execute(handle)),
-			_ => None,
-		}
-	}
-
-	fn is_precompile(&self, address: H160) -> bool {
-		address == hash(PRECOMPILE_ADDRESS)
-	}
-}
-
-fn hash(a: u64) -> H160 {
-	H160::from_low_u64_be(a)
-}
+pub type TestPrecompiles<R> = PrecompileSetBuilder<
+	R,
+	(PrecompileAt<AddressU64<PRECOMPILE_ADDRESS>, ProxyWrapper<R>, LimitRecursionTo<1>>,),
+>;
 
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::max_value();
-	pub const PrecompilesValue: TestPrecompiles<Runtime> = TestPrecompiles(PhantomData);
+	pub PrecompilesValue: TestPrecompiles<Runtime> = TestPrecompiles::new();
 }
-
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
 	type GasWeightMapping = ();
@@ -213,7 +193,6 @@ impl pallet_evm::Config for Runtime {
 parameter_types! {
 	pub const MinimumPeriod: u64 = 5;
 }
-
 impl pallet_timestamp::Config for Runtime {
 	type Moment = u64;
 	type OnTimestampSet = ();
@@ -221,25 +200,12 @@ impl pallet_timestamp::Config for Runtime {
 	type WeightInfo = ();
 }
 
-parameter_types! {
-	pub const LaunchPeriod: BlockNumber = 10;
-	pub const VotingPeriod: BlockNumber = 10;
-	pub const VoteLockingPeriod: BlockNumber = 10;
-	pub const FastTrackVotingPeriod: BlockNumber = 5;
-	pub const EnactmentPeriod: BlockNumber = 10;
-	pub const CooloffPeriod: BlockNumber = 10;
-	pub const MinimumDeposit: Balance = 10;
-	pub const MaxVotes: u32 = 10;
-	pub const MaxProposals: u32 = 10;
-	pub const PreimageByteDeposit: Balance = 10;
-	pub const InstantAllowed: bool = false;
-}
-
+#[repr(u8)]
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Decode, MaxEncodedLen, Encode, Clone, TypeInfo)]
 pub enum ProxyType {
-	All,
-	Something,
-	None,
+	All = 0,
+	Something = 1,
+	None = 2,
 }
 
 impl std::default::Default for ProxyType {
@@ -258,26 +224,35 @@ impl InstanceFilter<Call> for ProxyType {
 	}
 }
 
-impl From<u32> for ProxyType {
-	fn from(t: u32) -> Self {
-        match t {
-			0 => ProxyType::All,
-			1 => ProxyType::Something,
-			_ => ProxyType::None,
+impl TryFrom<u8> for ProxyType {
+	type Error = &'static str;
+
+	fn try_from(t: u8) -> Result<Self, Self::Error> {
+		match t {
+			0 => Ok(ProxyType::All),
+			1 => Ok(ProxyType::Something),
+			2 => Ok(ProxyType::None),
+			_ => Err("invalid ProxyType u8"),
 		}
-    }
+	}
 }
 
+parameter_types! {
+	pub const ProxyDepositBase: u64 = 100;
+	pub const ProxyDepositFactor: u64 = 1;
+	pub const MaxProxies: u32 = 5;
+	pub const MaxPending: u32 = 5;
+}
 impl pallet_proxy::Config for Runtime {
 	type Event = Event;
 	type Call = Call;
 	type Currency = Balances;
 	type ProxyType = ProxyType;
-	type ProxyDepositBase = ();
-	type ProxyDepositFactor = ();
-	type MaxProxies = ();
+	type ProxyDepositBase = ProxyDepositBase;
+	type ProxyDepositFactor = ProxyDepositFactor;
+	type MaxProxies = MaxProxies;
 	type WeightInfo = ();
-	type MaxPending = ();
+	type MaxPending = MaxPending;
 	type CallHasher = BlakeTwo256;
 	type AnnouncementDepositBase = ();
 	type AnnouncementDepositFactor = ();
