@@ -67,6 +67,7 @@ describeDevMoonbeam("Mock XCM - downward transfer with non-triggered error handl
     // But since there is no error, and the deposit is on the error handler, the assets will be trapped
     const xcmMessage = {
       V2: [
+        // Pretend relay assets were transferred to the sovereign
         {
           ReserveAssetDeposited: [
             {
@@ -82,6 +83,7 @@ describeDevMoonbeam("Mock XCM - downward transfer with non-triggered error handl
             },
           ],
         },
+        // Buy execution power
         {
           BuyExecution: {
             fees: {
@@ -98,9 +100,11 @@ describeDevMoonbeam("Mock XCM - downward transfer with non-triggered error handl
             weightLimit: { Limited: new BN(4000000000) },
           },
         },
+        // Set an error handler that fires if there is any error during the execution
         {
           SetErrorHandler: [
             {
+              // Deposit any existing asset in holding into alith
               DepositAsset: {
                 assets: { Wild: "All" },
                 maxAssets: new BN(1),
@@ -122,7 +126,6 @@ describeDevMoonbeam("Mock XCM - downward transfer with non-triggered error handl
 
     const totalMessage = [...receivedMessage.toU8a()];
     // Send RPC call to inject XCM message
-    // You can provide a message, but if you don't a downward transfer is the default
     await customWeb3Request(context.web3, "xcm_injectDownwardMessage", [totalMessage]);
 
     // Create a block in which the XCM will be executed
@@ -183,6 +186,7 @@ describeDevMoonbeam("Mock XCM - downward transfer with triggered error handler",
     // As a consequence the trapped assets will be entirely credited
     const xcmMessage = {
       V2: [
+        // Pretend relay assets were transferred to the sovereign
         {
           ReserveAssetDeposited: [
             {
@@ -198,6 +202,7 @@ describeDevMoonbeam("Mock XCM - downward transfer with triggered error handler",
             },
           ],
         },
+        // Buy execution power
         {
           BuyExecution: {
             fees: {
@@ -214,9 +219,11 @@ describeDevMoonbeam("Mock XCM - downward transfer with triggered error handler",
             weightLimit: { Limited: new BN(4000000000) },
           },
         },
+        // Set an error handler that fires if there is any error during the execution
         {
           SetErrorHandler: [
             {
+              // Deposit any existing asset in holding into alith
               DepositAsset: {
                 assets: { Wild: "All" },
                 maxAssets: new BN(1),
@@ -228,7 +235,7 @@ describeDevMoonbeam("Mock XCM - downward transfer with triggered error handler",
             },
           ],
         },
-        // This forces an error
+        // Fire the error handler. This forces an error
         {
           Trap: 0,
         },
@@ -243,7 +250,6 @@ describeDevMoonbeam("Mock XCM - downward transfer with triggered error handler",
     const totalMessage = [...receivedMessage.toU8a()];
 
     // Send RPC call to inject XCM message
-    // You can provide a message, but if you don't a downward transfer is the default
     await customWeb3Request(context.web3, "xcm_injectDownwardMessage", [totalMessage]);
 
     // Create a block in which the XCM will be executed
@@ -305,6 +311,7 @@ describeDevMoonbeam("Mock XCM - downward transfer with always triggered appendix
     // As a consequence the trapped assets will be entirely credited
     const xcmMessage = {
       V2: [
+        // Pretend relay assets were transferred to the sovereign
         {
           ReserveAssetDeposited: [
             {
@@ -320,6 +327,7 @@ describeDevMoonbeam("Mock XCM - downward transfer with always triggered appendix
             },
           ],
         },
+        // Buy execution power
         {
           BuyExecution: {
             fees: {
@@ -336,8 +344,10 @@ describeDevMoonbeam("Mock XCM - downward transfer with always triggered appendix
             weightLimit: { Limited: new BN(4000000000) },
           },
         },
+        // Set an appendix to be executed after the XCM message is executed. No matter if errors
         {
           SetAppendix: [
+            // Deposit any existing asset in holding into alith
             {
               DepositAsset: {
                 assets: { Wild: "All" },
@@ -360,7 +370,6 @@ describeDevMoonbeam("Mock XCM - downward transfer with always triggered appendix
 
     const totalMessage = [...receivedMessage.toU8a()];
     // Send RPC call to inject XCM message
-    // You can provide a message, but if you don't a downward transfer is the default
     await customWeb3Request(context.web3, "xcm_injectDownwardMessage", [totalMessage]);
 
     // Create a block in which the XCM will be executed
@@ -420,8 +429,10 @@ describeDevMoonbeam("Mock XCM - downward transfer with always triggered appendix
   it("Should make sure Alith receives 10 dot with appendix and without error", async function () {
     // BuyExecution does not charge for fees because we registered it for not doing so
     // As a consequence the trapped assets will be entirely credited
+    // The goal is to show appendix runs even if there is an error
     const xcmMessage = {
       V2: [
+        // Pretend relay assets were transferred to the sovereign
         {
           ReserveAssetDeposited: [
             {
@@ -437,6 +448,7 @@ describeDevMoonbeam("Mock XCM - downward transfer with always triggered appendix
             },
           ],
         },
+        // Buy execution power
         {
           BuyExecution: {
             fees: {
@@ -453,9 +465,11 @@ describeDevMoonbeam("Mock XCM - downward transfer with always triggered appendix
             weightLimit: { Limited: new BN(4000000000) },
           },
         },
+        // Set an appendix to be executed after the XCM message is executed. No matter if errors
         {
           SetAppendix: [
             {
+              // Deposit any existing asset in holding into alith
               DepositAsset: {
                 assets: { Wild: "All" },
                 maxAssets: new BN(1),
@@ -467,6 +481,8 @@ describeDevMoonbeam("Mock XCM - downward transfer with always triggered appendix
             },
           ],
         },
+        // Fire the error handler. This forces an error
+
         {
           Trap: 0,
         },
@@ -480,7 +496,6 @@ describeDevMoonbeam("Mock XCM - downward transfer with always triggered appendix
 
     const totalMessage = [...receivedMessage.toU8a()];
     // Send RPC call to inject XCM message
-    // You can provide a message, but if you don't a downward transfer is the default
     await customWeb3Request(context.web3, "xcm_injectDownwardMessage", [totalMessage]);
 
     // Create a block in which the XCM will be executed
@@ -538,8 +553,12 @@ describeDevMoonbeam("Mock XCM - downward transfer claim trapped assets", (contex
 
     // BuyExecution does not charge for fees because we registered it for not doing so
     // But since there is no error, and the deposit is on the error handler, the assets will be trapped
+    // Goal is to trapp assets, so that later can be claimed
+    // Since we only BuyExecution, but we do not do anything with the assets after that,
+    // they are trapped
     const xcmMessage = {
       V2: [
+        // Pretend relay assets were transferred to the sovereign
         {
           ReserveAssetDeposited: [
             {
@@ -555,6 +574,7 @@ describeDevMoonbeam("Mock XCM - downward transfer claim trapped assets", (contex
             },
           ],
         },
+        // Buy execution power
         {
           BuyExecution: {
             fees: {
@@ -571,20 +591,6 @@ describeDevMoonbeam("Mock XCM - downward transfer claim trapped assets", (contex
             weightLimit: { Limited: new BN(4000000000) },
           },
         },
-        {
-          SetErrorHandler: [
-            {
-              DepositAsset: {
-                assets: { Wild: "All" },
-                maxAssets: new BN(1),
-                beneficiary: {
-                  parents: 0,
-                  interior: { X1: { AccountKey20: { network: "Any", key: alith.address } } },
-                },
-              },
-            },
-          ],
-        },
       ],
     };
 
@@ -595,7 +601,6 @@ describeDevMoonbeam("Mock XCM - downward transfer claim trapped assets", (contex
 
     const totalMessage = [...receivedMessage.toU8a()];
     // Send RPC call to inject XCM message
-    // You can provide a message, but if you don't a downward transfer is the default
     await customWeb3Request(context.web3, "xcm_injectDownwardMessage", [totalMessage]);
 
     // Create a block in which the XCM will be executed
@@ -615,6 +620,9 @@ describeDevMoonbeam("Mock XCM - downward transfer claim trapped assets", (contex
     // As a consequence the trapped assets will be entirely credited
     const xcmMessage = {
       V2: [
+        // Claim assets that were previously trapped
+        // assets: the assets that were trapped
+        // ticket: the version of the assets (xcm version)
         {
           ClaimAsset: {
             assets: [
@@ -637,6 +645,7 @@ describeDevMoonbeam("Mock XCM - downward transfer claim trapped assets", (contex
             },
           },
         },
+        // Buy execution power
         {
           BuyExecution: {
             fees: {
@@ -653,6 +662,7 @@ describeDevMoonbeam("Mock XCM - downward transfer claim trapped assets", (contex
             weightLimit: { Limited: new BN(4000000000) },
           },
         },
+        // Deposit assets, this time correctly, on Alith
         {
           DepositAsset: {
             assets: { Wild: "All" },
@@ -672,8 +682,8 @@ describeDevMoonbeam("Mock XCM - downward transfer claim trapped assets", (contex
     ) as any;
 
     const totalMessage = [...receivedMessage.toU8a()];
+
     // Send RPC call to inject XCM message
-    // You can provide a message, but if you don't a downward transfer is the default
     await customWeb3Request(context.web3, "xcm_injectDownwardMessage", [totalMessage]);
 
     // Create a block in which the XCM will be executed
