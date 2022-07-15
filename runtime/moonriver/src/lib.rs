@@ -1194,8 +1194,8 @@ pub type Executive = frame_executive::Executive<
 // ```
 moonbeam_runtime_common::impl_runtime_apis_plus_common! {
 	impl session_keys_primitives::VrfApi<Block> for Runtime {
-		fn get_last_vrf_output() -> <Block as BlockT>::Hash {
-			Default::default()
+		fn get_last_vrf_output() -> Option<<Block as BlockT>::Hash> {
+			None
 		}
 		fn vrf_key_lookup(
 			nimbus_id: nimbus_primitives::NimbusId
