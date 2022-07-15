@@ -13,8 +13,13 @@ import {
 } from "../../util/constants";
 import { getCompiled } from "../../util/contracts";
 import { expectEVMResult } from "../../util/eth-transactions";
+import { printEvents } from "../../util/logging";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
-import { ALITH_TRANSACTION_TEMPLATE, createTransaction } from "../../util/transactions";
+import {
+  ALITH_TRANSACTION_TEMPLATE,
+  BALTATHAR_TRANSACTION_TEMPLATE,
+  createTransaction,
+} from "../../util/transactions";
 
 const RANDOMNESS_CONTRACT_JSON = getCompiled("Randomness");
 const RANDOMNESS_INTERFACE = new ethers.utils.Interface(RANDOMNESS_CONTRACT_JSON.contract.abi);
@@ -329,7 +334,7 @@ describeDevMoonbeam("Randomness VRF - Requesting a random number", (context) => 
 });
 
 describeDevMoonbeam("Randomness VRF - Requesting an invalid random number", (context) => {
-  it("should be marked as pending before the end of the delay", async function () {
+  it("should be marked as does not exists", async function () {
     const randomnessContract = new context.web3.eth.Contract(
       RANDOMNESS_CONTRACT_JSON.contract.abi,
       PRECOMPILE_RANDOMNESS_ADDRESS
@@ -340,3 +345,149 @@ describeDevMoonbeam("Randomness VRF - Requesting an invalid random number", (con
     );
   });
 });
+
+describeDevMoonbeam("Randomness VRF - Fulfilling a random request", (context) => {
+  before("setup the request", async function () {
+    await context.createBlock(
+      createTransaction(context, {
+        ...ALITH_TRANSACTION_TEMPLATE,
+        to: PRECOMPILE_RANDOMNESS_ADDRESS,
+        data: RANDOMNESS_INTERFACE.encodeFunctionData("requestLocalVRFRandomWords", [
+          alith.address, // refund address
+          1n * GLMR, // fee
+          100_000n, // gas limit
+          SIMPLE_SALT,
+          1, // number of random words
+          2, // future blocks
+        ]),
+      })
+    );
+    await context.createBlock();
+    await context.createBlock();
+
+    await context.createBlock(
+      createTransaction(context, {
+        ...ALITH_TRANSACTION_TEMPLATE,
+        to: PRECOMPILE_RANDOMNESS_ADDRESS,
+        data: RANDOMNESS_INTERFACE.encodeFunctionData("fulfillRequest", [0]),
+      })
+    );
+  });
+
+  it("should remove the request", async function () {
+    const randomnessRequests = await context.polkadotApi.query.randomness.requests.entries();
+    expect(randomnessRequests.length).to.equal(0);
+  });
+
+  it("should remove the randomness results", async function () {
+    const randomnessResults =
+      await context.polkadotApi.query.randomness.randomnessResults.entries();
+    expect(randomnessResults.length).to.equal(0);
+  });
+});
+
+describeDevMoonbeam(
+  "Randomness VRF - Requesting 2 random requests at same block/delay",
+  (context) => {
+    before("setup the request", async function () {
+      await context.createBlock(
+        createTransaction(context, {
+          ...ALITH_TRANSACTION_TEMPLATE,
+          to: PRECOMPILE_RANDOMNESS_ADDRESS,
+          data: RANDOMNESS_INTERFACE.encodeFunctionData("requestLocalVRFRandomWords", [
+            alith.address, // refund address
+            1n * GLMR, // fee
+            100_000n, // gas limit
+            SIMPLE_SALT,
+            1, // number of random words
+            3, // future blocks
+          ]),
+        })
+      );
+      await context.createBlock(
+        createTransaction(context, {
+          ...ALITH_TRANSACTION_TEMPLATE,
+          to: PRECOMPILE_RANDOMNESS_ADDRESS,
+          data: RANDOMNESS_INTERFACE.encodeFunctionData("requestLocalVRFRandomWords", [
+            alith.address, // refund address
+            1n * GLMR, // fee
+            100_000n, // gas limit
+            SIMPLE_SALT,
+            1, // number of random words
+            2, // future blocks
+          ]),
+        })
+      );
+      // printEvents(context.polkadotApi);
+    });
+
+    it("should create 2 requests", async function () {
+      const randomnessRequests = await context.polkadotApi.query.randomness.requests.entries();
+      // console.log(randomnessRequests);
+      expect(randomnessRequests.length).to.equal(2);
+    });
+
+    it("should have 1 random result", async function () {
+      const randomnessResults =
+        await context.polkadotApi.query.randomness.randomnessResults.entries();
+      expect(randomnessResults.length).to.equal(1);
+    });
+  }
+);
+
+describeDevMoonbeam(
+  "Randomness VRF - Fulfilling one of the 2 random requests at same block/delay",
+  (context) => {
+    before("setup the request", async function () {
+      await context.createBlock(
+        createTransaction(context, {
+          ...ALITH_TRANSACTION_TEMPLATE,
+          to: PRECOMPILE_RANDOMNESS_ADDRESS,
+          data: RANDOMNESS_INTERFACE.encodeFunctionData("requestLocalVRFRandomWords", [
+            alith.address, // refund address
+            1n * GLMR, // fee
+            100_000n, // gas limit
+            SIMPLE_SALT,
+            1, // number of random words
+            3, // future blocks
+          ]),
+        })
+      );
+      await context.createBlock(
+        createTransaction(context, {
+          ...ALITH_TRANSACTION_TEMPLATE,
+          to: PRECOMPILE_RANDOMNESS_ADDRESS,
+          data: RANDOMNESS_INTERFACE.encodeFunctionData("requestLocalVRFRandomWords", [
+            alith.address, // refund address
+            1n * GLMR, // fee
+            100_000n, // gas limit
+            SIMPLE_SALT,
+            1, // number of random words
+            2, // future blocks
+          ]),
+        })
+      );
+      await context.createBlock();
+      await context.createBlock();
+
+      await context.createBlock(
+        createTransaction(context, {
+          ...ALITH_TRANSACTION_TEMPLATE,
+          to: PRECOMPILE_RANDOMNESS_ADDRESS,
+          data: RANDOMNESS_INTERFACE.encodeFunctionData("fulfillRequest", [0]),
+        })
+      );
+    });
+
+    it("should keep the 2nd request", async function () {
+      const randomnessRequests = await context.polkadotApi.query.randomness.requests.entries();
+      expect(randomnessRequests.length).to.equal(1);
+    });
+
+    it("should keep the randomness results", async function () {
+      const randomnessResults =
+        await context.polkadotApi.query.randomness.randomnessResults.entries();
+      expect(randomnessResults.length).to.equal(1);
+    });
+  }
+);
