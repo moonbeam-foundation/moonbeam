@@ -24,8 +24,6 @@ extern crate alloc;
 use fp_evm::{
 	Context, ExitReason, ExitSucceed, Log, Precompile, PrecompileHandle, PrecompileOutput,
 };
-use pallet_evm::GasWeightMapping;
-use pallet_randomness::weights::WeightInfo;
 use pallet_randomness::{
 	BalanceOf, GetBabeData, Pallet, Request, RequestInfo, RequestState, RequestType,
 };
@@ -56,8 +54,10 @@ pub enum Action {
 }
 
 /// Weight to Fee
-pub const FULFILLMENT_OVERHEAD_ESTIMATED_COST: u64 = 1000u64; // TODO: get real value from benchmarking
-															  // steps: (1) do it raw in precompile (2) move it to tests and use constants instead
+pub const REQUEST_RANDOMNESS_ESTIMATED_COST: u64 = 26342;
+pub const FULFILLMENT_OVERHEAD_ESTIMATED_COST: u64 = 23461;
+pub const INCREASE_REQUEST_FEE_ESTIMATED_COST: u64 = 16737;
+pub const EXECUTE_EXPIRATION_ESTIMATED_COST: u64 = 21993;
 pub const LOG_FULFILLMENT_SUCCEEDED: [u8; 32] = keccak256!("FulFillmentSucceeded()");
 pub const LOG_FULFILLMENT_FAILED: [u8; 32] = keccak256!("FulFillmentFailed()");
 
@@ -299,11 +299,7 @@ where
 		let gas_limit = input.read::<u64>()?;
 		let salt = input.read::<H256>()?;
 		let num_words = input.read::<u8>()?;
-		handle.record_cost(
-			<Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
-				<Runtime as pallet_randomness::Config>::WeightInfo::request_randomness(),
-			),
-		)?;
+		handle.record_cost(REQUEST_RANDOMNESS_ESTIMATED_COST)?;
 		let two_epochs_later =
 			<Runtime as pallet_randomness::Config>::BabeDataGetter::get_epoch_index()
 				.checked_add(2u64)
@@ -340,11 +336,7 @@ where
 		let salt = input.read::<H256>()?;
 		let num_words = input.read::<u8>()?;
 		let blocks_after_current = input.read::<u64>()?;
-		handle.record_cost(
-			<Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
-				<Runtime as pallet_randomness::Config>::WeightInfo::request_randomness(),
-			),
-		)?;
+		handle.record_cost(REQUEST_RANDOMNESS_ESTIMATED_COST)?;
 		let current_block_number: u64 = <frame_system::Pallet<Runtime>>::block_number()
 			.try_into()
 			.map_err(|_| revert("block number overflowed u64"))?;
@@ -386,22 +378,12 @@ where
 			randomness,
 		} = Pallet::<Runtime>::prepare_fulfillment(request_id)
 			.map_err(|e| error(alloc::format!("{:?}", e)))?;
-		// TODO: replace with const FULFILLMENT_OVERHEAD and verify in tests it matches this
-		let fulfillment_overhead =
-			<Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
-				<Runtime as pallet_randomness::Config>::WeightInfo::prepare_fulfillment(),
-			)
-			.saturating_add(
-				<Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
-					<Runtime as pallet_randomness::Config>::WeightInfo::finish_fulfillment(),
-				),
-			);
 		// check that randomness can be provided
 		ensure_can_provide_randomness::<Runtime>(
 			handle.code_address(),
 			request.gas_limit,
 			request.fee,
-			fulfillment_overhead, // TODO: fix see above comment
+			FULFILLMENT_OVERHEAD_ESTIMATED_COST,
 		)?;
 		// get gas before subcall
 		let before_remaining_gas = handle.remaining_gas();
@@ -451,11 +433,7 @@ where
 			.read::<U256>()?
 			.try_into()
 			.map_err(|_| revert("amount is too large for provided balance type"))?;
-		handle.record_cost(
-			<Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
-				<Runtime as pallet_randomness::Config>::WeightInfo::increase_fee(),
-			),
-		)?;
+		handle.record_cost(INCREASE_REQUEST_FEE_ESTIMATED_COST)?;
 		Pallet::<Runtime>::increase_request_fee(&handle.context().caller, request_id, fee_increase)
 			.map_err(|e| error(alloc::format!("{:?}", e)))?;
 		Ok(PrecompileOutput {
@@ -473,11 +451,7 @@ where
 			.read::<U256>()?
 			.try_into()
 			.map_err(|_| error("Input RequestId overflows u64 type set in Pallet"))?;
-		handle.record_cost(
-			<Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
-				<Runtime as pallet_randomness::Config>::WeightInfo::execute_request_expiration(),
-			),
-		)?;
+		handle.record_cost(EXECUTE_EXPIRATION_ESTIMATED_COST)?;
 		Pallet::<Runtime>::execute_request_expiration(&handle.context().caller, request_id)
 			.map_err(|e| error(alloc::format!("{:?}", e)))?;
 		Ok(PrecompileOutput {
