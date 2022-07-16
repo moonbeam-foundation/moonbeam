@@ -321,70 +321,26 @@ export const getBlockExtrinsic = async (
   return { block, extrinsic, events, resultEvent };
 };
 
-export async function setRoundLength(context: DevTestContext, length: number) {
-  const currentHeader = await context.polkadotApi.rpc.chain.getHeader();
-  const startingRound = await context.polkadotApi.query.parachainStaking.round();
-
-  if (currentHeader.number.toNumber() >= startingRound.first.toNumber() + length) {
-    throw new Error("Test should not set length of round lower to current round past block length");
-  }
-  const newRound = context.polkadotApi.registry.createType(
-    '{"current":"u32","first":"u32","length":"u32"}',
-    {
-      first: startingRound.first.toNumber(),
-      current: startingRound.current.toNumber(),
-      length: length,
-    }
-  );
-  await context.createBlock(
-    context.polkadotApi.tx.sudo.sudo(
-      context.polkadotApi.tx.system.setStorage([
-        [context.polkadotApi.query.parachainStaking.round.key(), newRound.toHex()],
-      ])
-    )
-  );
-}
-
-export async function shortcutRound(context: DevTestContext) {
-  const currentHeader = await context.polkadotApi.rpc.chain.getHeader();
-  const startingRound = await context.polkadotApi.query.parachainStaking.round();
-
-  await setRoundLength(
-    context,
-    currentHeader.number.toNumber() - startingRound.first.toNumber() + 1
-  );
-  await context.createBlock();
-  // The length is copied from previous round so we need to restore it
-  await setRoundLength(context, startingRound.length.toNumber());
-}
-
-export async function shortcutRounds(context: DevTestContext, roundCount: number) {
-  for (let i = 0; i < roundCount; i++) {
-    await shortcutRound(context);
-  }
-}
-
-export async function shortcutToRound(context: DevTestContext, round: number) {
-  while (true) {
-    const currentRound = (
-      await context.polkadotApi.query.parachainStaking.round()
-    ).current.toNumber();
-    if (currentRound == round) {
-      return;
-    }
-    await shortcutRound(context);
-  }
-}
-
 export async function jumpToRound(context: DevTestContext, round: Number): Promise<string | null> {
   let lastBlockHash = null;
   while (true) {
     const currentRound = (
       await context.polkadotApi.query.parachainStaking.round()
     ).current.toNumber();
-    if (currentRound == round) {
+    if (currentRound === round) {
       return lastBlockHash;
+    } else if (currentRound > round) {
+      return null;
     }
+
     lastBlockHash = (await context.createBlock()).block.hash.toString();
   }
+}
+
+export async function jumpRounds(context: DevTestContext, count: Number): Promise<string | null> {
+  const round = (await context.polkadotApi.query.parachainStaking.round()).current
+    .addn(count.valueOf())
+    .toNumber();
+
+  return jumpToRound(context, round);
 }

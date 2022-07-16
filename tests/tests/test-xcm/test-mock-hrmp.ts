@@ -2,19 +2,21 @@ import "@moonbeam-network/api-augment";
 
 import { KeyringPair } from "@polkadot/keyring/types";
 import { ParaId, XcmpMessageFormat } from "@polkadot/types/interfaces";
-import { BN, u8aToHex, hexToU8a } from "@polkadot/util";
+import { BN, u8aToHex } from "@polkadot/util";
 import { expect } from "chai";
 import { ChaChaRng } from "randchacha";
 
 import { alith, baltathar, generateKeyringPair } from "../../util/accounts";
 import { PARA_2000_SOURCE_LOCATION } from "../../util/assets";
 import { customWeb3Request } from "../../util/providers";
+import { mockHrmpChannelExistanceTx } from "../../util/xcm";
+
 import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
 
-import type { XcmVersionedXcm } from "@polkadot/types/lookup";
+import type { XcmVersionedXcm, XcmVersionedMultiLocation } from "@polkadot/types/lookup";
 
-import { createContract, createContractExecution } from "../../util/transactions";
-import { deriveAddress } from "@substrate/txwrapper-core";
+import { createContract } from "../../util/transactions";
+import { expectOk } from "../../util/expect";
 
 const FOREIGN_TOKEN = 1_000_000_000_000n;
 
@@ -1949,7 +1951,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM", (context)
   before("Should receive transact action with DescendOrigin", async function () {
     const allones = "0x0101010101010101010101010101010101010101";
     sendingAddress = allones;
-    random = generateKeyingPair();
+    random = generateKeyringPair();
     const derivedMultiLocation = context.polkadotApi.createType(
       "MultiLocation",
       JSON.parse(
@@ -2116,7 +2118,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM", (context)
 
     const allones = "0x0101010101010101010101010101010101010101";
     sendingAddress = allones;
-    random = generateKeyingPair();
+    random = generateKeyringPair();
     const derivedMultiLocation = context.polkadotApi.createType(
       "MultiLocation",
       JSON.parse(
@@ -2259,5 +2261,88 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM", (context)
     await context.createBlock();
 
     expect(await contractDeployed.methods.count().call()).to.eq("1");
+  });
+});
+
+describeDevMoonbeam("Mock XCM - receive horizontal suspend", (context) => {
+  const suspendedPara = 2023;
+  before("Should receive a suspend channel", async function () {
+    // We first simulate a reception for suspending a channel from parachain 1
+    const xcmpFormat: XcmpMessageFormat = context.polkadotApi.createType(
+      "XcmpMessageFormat",
+      "Signals"
+    ) as any;
+    const receivedMessage = context.polkadotApi.createType("u8", 0) as any;
+    const totalMessage = [...xcmpFormat.toU8a(), ...receivedMessage.toU8a()];
+    // Send RPC call to inject XCM message
+    // We will set a specific message knowing that it should mint the statemint asset
+    await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [suspendedPara, totalMessage]);
+
+    // Create a block in which the XCM will be executed
+    await context.createBlock();
+
+    // assert channel with para 2023 is suspended
+    const status = await context.polkadotApi.query.xcmpQueue.outboundXcmpStatus();
+    expect(status[0].state.isSuspended).to.be.true;
+  });
+
+  it("should push messages, and enqueue them in xcmp outbound queue", async function () {
+    // TARGET 100 messages
+    // We want to check there is no visible limit on these
+
+    // Fragments are grouped together and stored in a message
+    // It is this message that we are going to store
+    // The easiest way to test it create a single message every block,
+    // with no other messages to append
+
+    // We can create these with sudo
+    // The simplest message should do it
+    const xcmMessage = {
+      V2: [{ ClearOrigin: null as any }],
+    };
+
+    const messageToSend: XcmVersionedXcm = context.polkadotApi.createType(
+      "XcmVersionedXcm",
+      xcmMessage
+    ) as any;
+
+    const destination = {
+      V1: {
+        parents: 1,
+        interior: { X1: { Parachain: suspendedPara } },
+      },
+    };
+
+    const versionedMult: XcmVersionedMultiLocation = context.polkadotApi.createType(
+      "XcmVersionedMultiLocation",
+      destination
+    ) as any;
+
+    // We also need to trick parachain-system to pretend there exists
+    // an open channel with para id 2023.
+    // For channel params, we set the default in all of them except for the maxMessageSize
+    // We select MaxMessageSize = 4 because ClearOrigin involves 4 bytes
+    // This makes sure that each message is enqued in a different page
+    const paraHrmpMockerTx = mockHrmpChannelExistanceTx(context, suspendedPara, 8, 8192, 4);
+
+    // Test for numMessages
+    const numMessages = 100;
+
+    for (let i = 0; i < numMessages; i++) {
+      await expectOk(
+        context.createBlock(
+          context.polkadotApi.tx.sudo.sudo(
+            context.polkadotApi.tx.utility.batchAll([
+              paraHrmpMockerTx,
+              context.polkadotApi.tx.polkadotXcm.send(versionedMult, messageToSend),
+            ])
+          )
+        )
+      );
+    }
+
+    // expect that queued messages is equal to the number of sent messages
+    const queuedMessages = await context.polkadotApi.query.xcmpQueue.outboundXcmpMessages.entries();
+    expect(queuedMessages).to.have.lengthOf(numMessages);
   });
 });
