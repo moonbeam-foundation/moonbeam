@@ -2,15 +2,23 @@ import "@moonbeam-network/api-augment";
 
 import { expect } from "chai";
 
-import { baltathar } from "../../util/accounts";
+import { ALITH_PRIVATE_KEY, baltathar } from "../../util/accounts";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
-import { createTransfer } from "../../util/transactions";
+import { createTransaction, createTransfer } from "../../util/transactions";
 
 describeDevMoonbeam(
   "Ethereum Transaction - Legacy",
   (context) => {
     it("should contain valid legacy Ethereum data", async function () {
-      await context.createBlock(createTransfer(context, baltathar.address, 512));
+      await context.createBlock(
+        createTransaction(context, {
+          privateKey: ALITH_PRIVATE_KEY,
+          to: baltathar.address,
+          gas: 12_000_000,
+          gasPrice: 1_000_000_000,
+          value: 512,
+        })
+      );
 
       const signedBlock = await context.polkadotApi.rpc.chain.getBlock();
       let extrinsic = signedBlock.block.extrinsics.find((ex) => ex.method.section == "ethereum")
@@ -19,14 +27,14 @@ describeDevMoonbeam(
       expect(extrinsic.asLegacy.toJSON()).to.deep.equal({
         nonce: 0,
         gasPrice: 1000000000,
-        gasLimit: 500000,
+        gasLimit: 12000000,
         action: { call: baltathar.address.toLowerCase() },
         value: 512,
         input: "0x",
         signature: {
           v: 2597,
-          r: "0xcf557dd84876e395aa34349e050c72e4af7f18a3e1307f165883f909175ad9e4",
-          s: "0x67b34284e732937f030ddbf6ce0bdedea92f11c764b1b461167c890e661089cf",
+          r: "0x440c713c1ea8ced9edacac8a33baa89411dca31af33b5c6e2c8e4a3c95112ab4",
+          s: "0x17c303f32862b65034da593cc0fb1178c915ef7a0b9c221ff3b7d00647b208fb",
         },
       });
     });
