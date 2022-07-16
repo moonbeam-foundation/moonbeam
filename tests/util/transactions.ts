@@ -30,7 +30,7 @@ export interface TransactionOptions {
 
 export const TRANSACTION_TEMPLATE: TransactionOptions = {
   nonce: null,
-  gas: 12_000_000,
+  gas: 500_000,
   gasPrice: 1_000_000_000,
   value: "0x00",
 };

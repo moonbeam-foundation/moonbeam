@@ -19,14 +19,14 @@ describeDevMoonbeam(
       expect(extrinsic.asLegacy.toJSON()).to.deep.equal({
         nonce: 0,
         gasPrice: 1000000000,
-        gasLimit: 12000000,
+        gasLimit: 500000,
         action: { call: baltathar.address.toLowerCase() },
         value: 512,
         input: "0x",
         signature: {
           v: 2597,
-          r: "0x440c713c1ea8ced9edacac8a33baa89411dca31af33b5c6e2c8e4a3c95112ab4",
-          s: "0x17c303f32862b65034da593cc0fb1178c915ef7a0b9c221ff3b7d00647b208fb",
+          r: "0xcf557dd84876e395aa34349e050c72e4af7f18a3e1307f165883f909175ad9e4",
+          s: "0x67b34284e732937f030ddbf6ce0bdedea92f11c764b1b461167c890e661089cf",
         },
       });
     });
