@@ -18,7 +18,7 @@
 
 use sp_io::hashing::keccak_256;
 use std::{
-	collections::{HashMap, HashSet},
+	collections::HashMap,
 	fs::File,
 	io::{BufRead, BufReader, Read},
 };
