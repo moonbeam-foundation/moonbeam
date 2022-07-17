@@ -53,7 +53,8 @@ describeDevMoonbeam(
         ),
       ]);
 
-      const randomessResults = await context.polkadotApi.query.randomness.randomnessResults.entries();
+      const randomessResults =
+        await context.polkadotApi.query.randomness.randomnessResults.entries();
       expect(randomessResults).to.be.length(1);
       const randomessResult = randomessResults[0][1] as Option<PalletRandomnessRandomnessResult>;
       expect(randomessResult.unwrap().requestCount.toNumber()).to.equal(4);
