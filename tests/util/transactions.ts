@@ -170,7 +170,7 @@ export const createTransfer = async (
 export async function createContract(
   context: DevTestContext,
   contractName: string,
-  options: TransactionOptions = ALITH_TRANSACTION_TEMPLATE,
+  options: TransactionOptions = { ...ALITH_TRANSACTION_TEMPLATE, gas: 5_000_000 },
   contractArguments: any[] = []
 ): Promise<{ rawTx: string; contract: Contract; contractAddress: string }> {
   const contractCompiled = getCompiled(contractName);
