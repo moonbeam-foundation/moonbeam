@@ -18,7 +18,7 @@
 
 use sp_io::hashing::keccak_256;
 use std::{
-	collections::HashMap,
+	collections::{HashMap, HashSet},
 	fs::File,
 	io::{BufRead, BufReader, Read},
 };
@@ -30,12 +30,18 @@ pub struct SolidityStruct {
 	pub name: String,
 	/// List of parameter types
 	pub params: Vec<String>,
+	/// Is struct an enum
+	pub is_enum: bool,
 }
 
 impl SolidityStruct {
 	/// Returns the representative signature for the solidity struct
 	pub fn signature(&self) -> String {
-		format!("({})", self.params.join(","))
+		if self.is_enum {
+			"uint8".to_string()
+		} else {
+			format!("({})", self.params.join(","))
+		}
 	}
 }
 
@@ -99,6 +105,7 @@ fn get_selectors_from_reader<R: Read>(reader: R) -> Vec<SolidityFunction> {
 	#[derive(Clone, Copy)]
 	enum Stage {
 		Start,
+		Enum,
 		Struct,
 		StructParams,
 		FnName,
@@ -129,8 +136,8 @@ fn get_selectors_from_reader<R: Read>(reader: R) -> Vec<SolidityFunction> {
 	for line in reader.lines() {
 		let line = line.expect("failed unwrapping line").trim().to_string();
 		// identify declared selector
-		if line.starts_with("/// Selector: ") && matches!(stage, Stage::Start) {
-			solidity_fn.docs_selector = line.replace("/// Selector: ", "").to_string();
+		if line.starts_with("/// @custom:selector ") && matches!(stage, Stage::Start) {
+			solidity_fn.docs_selector = line.replace("/// @custom:selector ", "").to_string();
 		}
 
 		// skip comments
@@ -144,6 +151,24 @@ fn get_selectors_from_reader<R: Read>(reader: R) -> Vec<SolidityFunction> {
 				continue;
 			}
 			match (stage, pair, word) {
+				// parse custom type enums
+				(Stage::Start, Pair::First, "enum") => {
+					stage = Stage::Enum;
+					pair.next();
+				}
+				(Stage::Enum, Pair::Second, _) => {
+					custom_types.insert(
+						word.to_string(),
+						SolidityStruct {
+							name: word.to_string(),
+							is_enum: true,
+							params: vec![],
+						},
+					);
+					stage = Stage::Start;
+					pair = Pair::First;
+				}
+
 				// parse custom type structs
 				(Stage::Start, Pair::First, "struct") => {
 					stage = Stage::Struct;
@@ -279,6 +304,11 @@ mod tests {
 				String::from("fnCustomArgs((uint8,bytes[]),bytes[],uint64)"),
 			),
 			(
+				String::from("d751d651"),
+				String::from("e8af1642"),
+				String::from("fnEnumArgs(uint8,uint64)"),
+			),
+			(
 				String::from("b2c9f1a3"),
 				String::from("550c1a4e"),
 				String::from(
@@ -308,6 +338,7 @@ mod tests {
 				),
 			),
 		];
+
 		assert_eq!(expected, actual);
 	}
 }
