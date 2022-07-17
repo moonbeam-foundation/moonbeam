@@ -91,8 +91,14 @@ where
 		handle.check_function_modifier(match selector {
 			Action::TransactThroughDerivativeMultiLocation
 			| Action::TransactThroughDerivative
+			| Action::TransactThroughSignedMultiLocation
+			| Action::TransactThroughSigned 
 			| Action::DeprecatedTransactThroughDerivativeMultiLocation
-			| Action::DeprecatedTransactThroughDerivative => FunctionModifier::NonPayable,
+			| Action::DeprecatedTransactThroughDerivative
+			| Action::DeprecatedTransactThroughSignedMultiLocation
+			| Action::DeprecatedTransactThroughSigned  => FunctionModifier::NonPayable,
+			| Action::TransactThroughSignedMultiLocation
+			| Action::TransactThroughSigned => FunctionModifier::NonPayable,
 			_ => FunctionModifier::View,
 		})?;
 

@@ -885,14 +885,11 @@ impl pallet_proxy::Config for Runtime {
 
 impl pallet_migrations::Config for Runtime {
 	type Event = Event;
-	type MigrationsList = (
-		moonbeam_runtime_common::migrations::CommonMigrations<
-			Runtime,
-			CouncilCollective,
-			TechCommitteeCollective,
-		>,
-		moonbeam_runtime_common::migrations::XcmMigrations<Runtime>,
-	);
+	type MigrationsList = moonbeam_runtime_common::migrations::CommonMigrations<
+		Runtime,
+		CouncilCollective,
+		TechCommitteeCollective,
+	>;
 }
 
 /// Maintenance mode Call filter
@@ -950,6 +947,13 @@ impl Contains<Call> for NormalFilter {
 			Call::PolkadotXcm(method) => match method {
 				pallet_xcm::Call::force_default_xcm_version { .. } => true,
 				_ => false,
+			},
+			// We filter anonymous proxy as they make "reserve" inconsistent
+			// See: https://github.com/paritytech/substrate/blob/37cca710eed3dadd4ed5364c7686608f5175cce1/frame/proxy/src/lib.rs#L270 // editorconfig-checker-disable-line
+			Call::Proxy(method) => match method {
+				pallet_proxy::Call::anonymous { .. } => false,
+				pallet_proxy::Call::kill_anonymous { .. } => false,
+				_ => true,
 			},
 			// We filter for now transact through signed
 			Call::XcmTransactor(method) => match method {
