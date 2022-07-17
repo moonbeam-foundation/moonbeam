@@ -1,8 +1,7 @@
-import "@moonbeam-network/api-augment";
+import "@moonbeam-network/api-augment/moonbase";
 import { u8aToHex } from "@polkadot/util";
 import { expect } from "chai";
 import { ethers } from "ethers";
-
 import { alith } from "../../util/accounts";
 import {
   CONTRACT_RANDOMNESS_STATUS_DOES_NOT_EXISTS,
@@ -13,13 +12,8 @@ import {
 } from "../../util/constants";
 import { getCompiled } from "../../util/contracts";
 import { expectEVMResult } from "../../util/eth-transactions";
-import { printEvents } from "../../util/logging";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
-import {
-  ALITH_TRANSACTION_TEMPLATE,
-  BALTATHAR_TRANSACTION_TEMPLATE,
-  createTransaction,
-} from "../../util/transactions";
+import { ALITH_TRANSACTION_TEMPLATE, createTransaction } from "../../util/transactions";
 
 const RANDOMNESS_CONTRACT_JSON = getCompiled("Randomness");
 const RANDOMNESS_INTERFACE = new ethers.utils.Interface(RANDOMNESS_CONTRACT_JSON.contract.abi);

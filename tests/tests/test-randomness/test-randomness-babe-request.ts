@@ -1,8 +1,7 @@
 import "@moonbeam-network/api-augment";
-import { bnToHex, u8aToHex } from "@polkadot/util";
+import { u8aToHex } from "@polkadot/util";
 import { expect } from "chai";
 import { ethers } from "ethers";
-
 import { alith } from "../../util/accounts";
 import {
   CONTRACT_RANDOMNESS_STATUS_DOES_NOT_EXISTS,
