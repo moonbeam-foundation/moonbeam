@@ -50,6 +50,7 @@ const setupLotteryWithParticipants = async (context: DevTestContext) => {
     {
       ...ALITH_TRANSACTION_TEMPLATE,
       value: Web3.utils.toWei("1", "ether"),
+      gas: 5_000_000,
     },
     [RANDOMNESS_SOURCE_LOCAL_VRF]
   );
@@ -140,7 +141,7 @@ describeDevMoonbeam("Randomness VRF - Lottery Demo", (context) => {
         data: RANDOMNESS_INTERFACE.encodeFunctionData("fulfillRequest", [0]),
       })
     );
-    expectEVMResult(result.events, "Revert");
+    expectEVMResult(result.events, "Error");
   });
 
   it("should be rolling the numbers", async function () {
@@ -258,7 +259,7 @@ describeDevMoonbeam("Randomness VRF - Fulfilling Lottery Demo", (context) => {
     expect(await lotteryContract.methods.jackpot().call()).to.equal("0");
   });
 
-  it("should reward balthazar and charleth", async function () {
+  it("should reward alith and charleth", async function () {
     expect(
       (
         await context.polkadotApi.query.system.account(baltathar.address.toString())
