@@ -1,11 +1,11 @@
 import "@moonbeam-network/api-augment/moonbase";
+import { PalletRandomnessRandomnessResult } from "@polkadot/types/lookup";
 import { bnToHex } from "@polkadot/util";
 import { expect } from "chai";
 import { ethers } from "ethers";
 import Web3 from "web3";
 import { TransactionReceipt } from "web3-core";
 import { Contract } from "web3-eth-contract";
-
 import {
   alith,
   ALITH_ADDRESS,
@@ -28,7 +28,6 @@ import {
 } from "../../util/constants";
 import { getCompiled } from "../../util/contracts";
 import { expectEVMResult } from "../../util/eth-transactions";
-import { printEvents } from "../../util/logging";
 import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
 import {
   ALITH_TRANSACTION_TEMPLATE,
@@ -37,8 +36,6 @@ import {
   createTransaction,
   TRANSACTION_TEMPLATE,
 } from "../../util/transactions";
-
-import { PalletRandomnessRandomnessResult } from "@polkadot/types/lookup";
 
 const LOTTERY_CONTRACT_JSON = getCompiled("RandomnessLotteryDemo");
 const LOTTERY_INTERFACE = new ethers.utils.Interface(LOTTERY_CONTRACT_JSON.contract.abi);
@@ -220,10 +217,6 @@ describeDevMoonbeam("Randomness Babe - Lottery Demo", (context) => {
         data: RANDOMNESS_INTERFACE.encodeFunctionData("fulfillRequest", [0]),
       }),
     ]);
-    await printEvents(
-      context.polkadotApi,
-      (await context.polkadotApi.rpc.chain.getBlockHash()).toString()
-    );
 
     expectEVMResult(result[1].events, "Succeed");
   });

@@ -1,8 +1,7 @@
 import "@moonbeam-network/api-augment";
-import { bnToHex, u8aToHex } from "@polkadot/util";
+import { u8aToHex } from "@polkadot/util";
 import { expect } from "chai";
 import { ethers } from "ethers";
-
 import { alith } from "../../util/accounts";
 import {
   CONTRACT_RANDOMNESS_STATUS_DOES_NOT_EXISTS,
@@ -72,66 +71,57 @@ describeDevMoonbeam("Randomness Babe - Requesting a random number", (context) =>
   });
 
   it("should store the salt", async function () {
-    const request = (
-      (await context.polkadotApi.query.randomness.requests.entries()) as any
-    )[0][1].unwrap().request;
+    const request = ((await context.polkadotApi.query.randomness.requests.entries()) as any)[0][1].unwrap()
+      .request;
     expect(request.salt.toHex()).to.equal(u8aToHex(SIMPLE_SALT));
   });
 
   it("should store the refundAddress", async function () {
-    const request = (
-      (await context.polkadotApi.query.randomness.requests.entries()) as any
-    )[0][1].unwrap().request;
+    const request = ((await context.polkadotApi.query.randomness.requests.entries()) as any)[0][1].unwrap()
+      .request;
     expect(request.refundAddress.toHex()).to.equal(alith.address.toLocaleLowerCase());
   });
 
   // This is a bit weird as we are calling the precompile from a non smart-contract
   it("should store the contractAddress", async function () {
-    const request = (
-      (await context.polkadotApi.query.randomness.requests.entries()) as any
-    )[0][1].unwrap().request;
+    const request = ((await context.polkadotApi.query.randomness.requests.entries()) as any)[0][1].unwrap()
+      .request;
     expect(request.contractAddress.toHex()).to.equal(alith.address.toLocaleLowerCase());
   });
 
   it("should store the fee", async function () {
-    const request = (
-      (await context.polkadotApi.query.randomness.requests.entries()) as any
-    )[0][1].unwrap().request;
+    const request = ((await context.polkadotApi.query.randomness.requests.entries()) as any)[0][1].unwrap()
+      .request;
     expect(request.fee.toBigInt()).to.equal(1n * GLMR);
   });
 
   it("should store the gasLimit", async function () {
-    const request = (
-      (await context.polkadotApi.query.randomness.requests.entries()) as any
-    )[0][1].unwrap().request;
+    const request = ((await context.polkadotApi.query.randomness.requests.entries()) as any)[0][1].unwrap()
+      .request;
     expect(request.gasLimit.toBigInt()).to.equal(100_000n);
   });
 
   it("should store the numWords", async function () {
-    const request = (
-      (await context.polkadotApi.query.randomness.requests.entries()) as any
-    )[0][1].unwrap().request;
+    const request = ((await context.polkadotApi.query.randomness.requests.entries()) as any)[0][1].unwrap()
+      .request;
     expect(request.numWords.toBigInt()).to.equal(1n);
   });
 
   it("should be considered a babe type", async function () {
-    const request = (
-      (await context.polkadotApi.query.randomness.requests.entries()) as any
-    )[0][1].unwrap().request;
+    const request = ((await context.polkadotApi.query.randomness.requests.entries()) as any)[0][1].unwrap()
+      .request;
     expect(request.info.isBabeEpoch).to.be.true;
   });
 
   it("should have a fulfillment delay of 2 epochs", async function () {
-    const request = (
-      (await context.polkadotApi.query.randomness.requests.entries()) as any
-    )[0][1].unwrap().request;
+    const request = ((await context.polkadotApi.query.randomness.requests.entries()) as any)[0][1].unwrap()
+      .request;
     expect(request.info.asBabeEpoch[0].toBigInt()).to.be.equal(2n);
   });
 
   it("should have an expiration delay of 10001 epochs", async function () {
-    const request = (
-      (await context.polkadotApi.query.randomness.requests.entries()) as any
-    )[0][1].unwrap().request;
+    const request = ((await context.polkadotApi.query.randomness.requests.entries()) as any)[0][1].unwrap()
+      .request;
     expect(request.info.asBabeEpoch[1].toBigInt()).to.be.equal(10000n);
   });
 });

@@ -1,8 +1,7 @@
-import "@moonbeam-network/api-augment";
+import "@moonbeam-network/api-augment/moonbase";
 import { u8aToHex } from "@polkadot/util";
 import { expect } from "chai";
 import { ethers } from "ethers";
-
 import { alith } from "../../util/accounts";
 import {
   CONTRACT_RANDOMNESS_STATUS_DOES_NOT_EXISTS,
@@ -13,13 +12,8 @@ import {
 } from "../../util/constants";
 import { getCompiled } from "../../util/contracts";
 import { expectEVMResult } from "../../util/eth-transactions";
-import { printEvents } from "../../util/logging";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
-import {
-  ALITH_TRANSACTION_TEMPLATE,
-  BALTATHAR_TRANSACTION_TEMPLATE,
-  createTransaction,
-} from "../../util/transactions";
+import { ALITH_TRANSACTION_TEMPLATE, createTransaction } from "../../util/transactions";
 
 const RANDOMNESS_CONTRACT_JSON = getCompiled("Randomness");
 const RANDOMNESS_INTERFACE = new ethers.utils.Interface(RANDOMNESS_CONTRACT_JSON.contract.abi);
@@ -79,66 +73,57 @@ describeDevMoonbeam("Randomness VRF - Requesting a random number", (context) => 
   });
 
   it("should store the salt", async function () {
-    const request = (
-      (await context.polkadotApi.query.randomness.requests.entries()) as any
-    )[0][1].unwrap().request;
+    const request = ((await context.polkadotApi.query.randomness.requests.entries()) as any)[0][1].unwrap()
+      .request;
     expect(request.salt.toHex()).to.equal(u8aToHex(SIMPLE_SALT));
   });
 
   it("should store the refundAddress", async function () {
-    const request = (
-      (await context.polkadotApi.query.randomness.requests.entries()) as any
-    )[0][1].unwrap().request;
+    const request = ((await context.polkadotApi.query.randomness.requests.entries()) as any)[0][1].unwrap()
+      .request;
     expect(request.refundAddress.toHex()).to.equal(alith.address.toLocaleLowerCase());
   });
 
   // This is a bit weird as we are calling the precompile from a non smart-contract
   it("should store the contractAddress", async function () {
-    const request = (
-      (await context.polkadotApi.query.randomness.requests.entries()) as any
-    )[0][1].unwrap().request;
+    const request = ((await context.polkadotApi.query.randomness.requests.entries()) as any)[0][1].unwrap()
+      .request;
     expect(request.contractAddress.toHex()).to.equal(alith.address.toLocaleLowerCase());
   });
 
   it("should store the fee", async function () {
-    const request = (
-      (await context.polkadotApi.query.randomness.requests.entries()) as any
-    )[0][1].unwrap().request;
+    const request = ((await context.polkadotApi.query.randomness.requests.entries()) as any)[0][1].unwrap()
+      .request;
     expect(request.fee.toBigInt()).to.equal(1n * GLMR);
   });
 
   it("should store the gasLimit", async function () {
-    const request = (
-      (await context.polkadotApi.query.randomness.requests.entries()) as any
-    )[0][1].unwrap().request;
+    const request = ((await context.polkadotApi.query.randomness.requests.entries()) as any)[0][1].unwrap()
+      .request;
     expect(request.gasLimit.toBigInt()).to.equal(100_000n);
   });
 
   it("should store the numWords", async function () {
-    const request = (
-      (await context.polkadotApi.query.randomness.requests.entries()) as any
-    )[0][1].unwrap().request;
+    const request = ((await context.polkadotApi.query.randomness.requests.entries()) as any)[0][1].unwrap()
+      .request;
     expect(request.numWords.toBigInt()).to.equal(1n);
   });
 
   it("should be considered a local vrf type", async function () {
-    const request = (
-      (await context.polkadotApi.query.randomness.requests.entries()) as any
-    )[0][1].unwrap().request;
+    const request = ((await context.polkadotApi.query.randomness.requests.entries()) as any)[0][1].unwrap()
+      .request;
     expect(request.info.isLocal).to.be.true;
   });
 
   it("should have a fulfillment block of 3", async function () {
-    const request = (
-      (await context.polkadotApi.query.randomness.requests.entries()) as any
-    )[0][1].unwrap().request;
+    const request = ((await context.polkadotApi.query.randomness.requests.entries()) as any)[0][1].unwrap()
+      .request;
     expect(request.info.asLocal[0].toBigInt()).to.be.equal(3n);
   });
 
   it("should have an expiration block of 10001", async function () {
-    const request = (
-      (await context.polkadotApi.query.randomness.requests.entries()) as any
-    )[0][1].unwrap().request;
+    const request = ((await context.polkadotApi.query.randomness.requests.entries()) as any)[0][1].unwrap()
+      .request;
     expect(request.info.asLocal[1].toBigInt()).to.be.equal(10001n);
   });
 });
@@ -380,8 +365,7 @@ describeDevMoonbeam("Randomness VRF - Fulfilling a random request", (context) =>
   });
 
   it("should remove the randomness results", async function () {
-    const randomnessResults =
-      await context.polkadotApi.query.randomness.randomnessResults.entries();
+    const randomnessResults = await context.polkadotApi.query.randomness.randomnessResults.entries();
     expect(randomnessResults.length).to.equal(0);
   });
 });
@@ -428,8 +412,7 @@ describeDevMoonbeam(
     });
 
     it("should have 1 random result", async function () {
-      const randomnessResults =
-        await context.polkadotApi.query.randomness.randomnessResults.entries();
+      const randomnessResults = await context.polkadotApi.query.randomness.randomnessResults.entries();
       expect(randomnessResults.length).to.equal(1);
     });
   }
@@ -485,8 +468,7 @@ describeDevMoonbeam(
     });
 
     it("should keep the randomness results", async function () {
-      const randomnessResults =
-        await context.polkadotApi.query.randomness.randomnessResults.entries();
+      const randomnessResults = await context.polkadotApi.query.randomness.randomnessResults.entries();
       expect(randomnessResults.length).to.equal(1);
     });
   }
