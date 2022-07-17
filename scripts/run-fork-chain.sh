@@ -113,6 +113,8 @@ then
     npm ci
     cd $ROOT_FOLDER/moonbeam/tools
     npm ci
+    cd $ROOT_FOLDER/moonbeam/tests
+    npm ci
 fi
 
 echo " - moonbeam binary: $BINARY_PATH"
