@@ -92,13 +92,14 @@ where
 			Action::TransactThroughDerivativeMultiLocation
 			| Action::TransactThroughDerivative
 			| Action::TransactThroughSignedMultiLocation
-			| Action::TransactThroughSigned 
+			| Action::TransactThroughSigned
 			| Action::DeprecatedTransactThroughDerivativeMultiLocation
 			| Action::DeprecatedTransactThroughDerivative
 			| Action::DeprecatedTransactThroughSignedMultiLocation
-			| Action::DeprecatedTransactThroughSigned  => FunctionModifier::NonPayable,
-			| Action::TransactThroughSignedMultiLocation
-			| Action::TransactThroughSigned => FunctionModifier::NonPayable,
+			| Action::DeprecatedTransactThroughSigned => FunctionModifier::NonPayable,
+			Action::TransactThroughSignedMultiLocation | Action::TransactThroughSigned => {
+				FunctionModifier::NonPayable
+			}
 			_ => FunctionModifier::View,
 		})?;
 
