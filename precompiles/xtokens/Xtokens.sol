@@ -3,7 +3,7 @@ pragma solidity >=0.8.0;
 
 /// @title Xtokens Interface
 /// The interface through which solidity contracts will interact with xtokens pallet
-/// Address :    0x0000000000000000000000000000000000000804
+/// @custom:address 0x0000000000000000000000000000000000000804
 interface Xtokens {
     // A multilocation is defined by its number of parents and the encoded junctions (interior)
     struct Multilocation {
@@ -30,7 +30,7 @@ interface Xtokens {
     /// @param amount The amount of tokens we want to transfer
     /// @param destination The Multilocation to which we want to send the tokens
     /// @param destination The weight we want to buy in the destination chain
-    /// Selector: b9f813ff
+    /// @custom:selector b9f813ff
     function transfer(
         address currencyAddress,
         uint256 amount,
@@ -45,7 +45,7 @@ interface Xtokens {
     /// @param amount The amount of tokens we want to transfer
     /// @param destination The Multilocation to which we want to send the tokens
     /// @param destination The weight we want to buy in the destination chain
-    /// Selector: 3e506ef0
+    /// @custom:selector 3e506ef0
     function transferWithFee(
         address currencyAddress,
         uint256 amount,
@@ -62,7 +62,7 @@ interface Xtokens {
     /// @param amount The amount of tokens we want to transfer
     /// @param destination The Multilocation to which we want to send the tokens
     /// @param destination The weight we want to buy in the destination chain
-    /// Selector: b4f76f96
+    /// @custom:selector b4f76f96
     function transferMultiasset(
         Multilocation memory asset,
         uint256 amount,
@@ -78,7 +78,7 @@ interface Xtokens {
     /// @param amount The amount of tokens we want to transfer
     /// @param destination The Multilocation to which we want to send the tokens
     /// @param destination The weight we want to buy in the destination chain
-    /// Selector: 150c016a
+    /// @custom:selector 150c016a
     function transferMultiassetWithFee(
         Multilocation memory asset,
         uint256 amount,
@@ -94,7 +94,7 @@ interface Xtokens {
     /// @param feeItem Which of the currencies to be used as fee
     /// @param destination The Multilocation to which we want to send the tokens
     /// @param weight The weight we want to buy in the destination chain
-    /// Selector: ab946323
+    /// @custom:selector ab946323
     function transferMultiCurrencies(
         Currency[] memory currencies,
         uint32 feeItem,
@@ -109,7 +109,7 @@ interface Xtokens {
     /// @param feeItem Which of the currencies to be used as fee
     /// @param destination The Multilocation to which we want to send the tokens
     /// @param weight The weight we want to buy in the destination chain
-    /// Selector: 797b45fd
+    /// @custom:selector 797b45fd
     function transferMultiAssets(
         MultiAsset[] memory assets,
         uint32 feeItem,

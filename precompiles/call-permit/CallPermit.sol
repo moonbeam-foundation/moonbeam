@@ -17,7 +17,7 @@ interface CallPermit {
     /// @param r R part of the signature.
     /// @param s S part of the signature.
     /// @return output Output of the call.
-    /// Selector: b5ea0966
+    /// @custom:selector b5ea0966
     function dispatch(
         address from,
         address to,
@@ -33,11 +33,11 @@ interface CallPermit {
     /// @dev Returns the current nonce for given owner.
     /// A permit must have this nonce to be consumed, which will
     /// increase the nonce by one.
-    /// Selector: 7ecebe00
+    /// @custom:selector 7ecebe00
     function nonces(address owner) external view returns (uint256);
 
     /// @dev Returns the EIP712 domain separator. It is used to avoid replay
     /// attacks accross assets or other similar EIP712 message structures.
-    /// Selector: 3644e515
+    /// @custom:selector 3644e515
     function DOMAIN_SEPARATOR() external view returns (bytes32);
 }

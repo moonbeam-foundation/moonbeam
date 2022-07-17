@@ -6,7 +6,7 @@ pragma solidity ^0.8.0;
 interface Permit {
     /// @dev Consumes an approval permit.
     /// Anyone can call this function for a permit.
-    /// Selector: d505accf
+    /// @custom:selector d505accf
     /// @param owner Owner of the tokens issuing the permit
     /// @param spender Address whose allowance will be increased.
     /// @param value Allowed value.
@@ -27,11 +27,11 @@ interface Permit {
     /// @dev Returns the current nonce for given owner.
     /// A permit must have this nonce to be consumed, which will
     /// increase the nonce by one.
-    /// Selector: 7ecebe00
+    /// @custom:selector 7ecebe00
     function nonces(address owner) external view returns (uint256);
 
     /// @dev Returns the EIP712 domain separator. It is used to avoid replay
     /// attacks accross assets or other similar EIP712 message structures.
-    /// Selector: 3644e515
+    /// @custom:selector 3644e515
     function DOMAIN_SEPARATOR() external view returns (bytes32);
 }

@@ -27,21 +27,21 @@ contract PoliticalPartyDao {
     /// @dev Contribute funds to the dao and specify your initial vote
     ///
     /// @param vote Whether you support the referendum (true).
-    /// Selector: 40656963
+    /// @custom:selector 40656963
     function contribute(bool vote) external payable {}
 
     /// @dev Change your currently registered vote in the contract
-    /// Selector: bc55efbf
+    /// @custom:selector bc55efbf
     function changeVote() external {}
 
     /// @dev Withdraw your tokens after the referendum finishes.
-    /// Selector: 3ccfd60b
+    /// @custom:selector 3ccfd60b
     function withdraw() external {}
 
     /// @dev Allows a user who is unhappy with the status of the internal party vote to withdraw tokens.
     /// However there is a 10% penalty for being fickle. The 10% of tokens that remain in the DAO
     /// are jsut locked here forever. A real-life impl could explicitly burn or redistribute.
-    /// Selector: 2fc54f73
+    /// @custom:selector 2fc54f73
     function withdrawEarly() external {
         // Does this actually help explore the democracy interface? If not, don't implement it.
     }

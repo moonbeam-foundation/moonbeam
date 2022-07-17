@@ -4,16 +4,16 @@ pragma solidity >=0.8.0;
 /// @title Pallet AuthorMapping Interface
 ///
 /// The interface through which solidity contracts will interact with pallet-author.mapping
-/// Address :    0x0000000000000000000000000000000000000807
+/// @custom:address 0x0000000000000000000000000000000000000807
 interface AuthorMapping {
     /// @dev Add association
-    /// Selector: ef8b6cd8
+    /// @custom:selector ef8b6cd8
     ///
     /// @param nimbusId The nimbusId to be associated
     function addAssociation(bytes32 nimbusId) external;
 
     /// @dev Update existing association
-    /// Selector: 25a39da5
+    /// @custom:selector 25a39da5
     ///
     /// @param oldNimbusId The old nimbusId to be replaced
     /// @param newNimbusId The new nimbusId to be associated
@@ -21,18 +21,18 @@ interface AuthorMapping {
         external;
 
     /// @dev Clear existing association
-    /// Selector: 448b54d6
+    /// @custom:selector 448b54d6
     ///
     /// @param nimbusId The nimbusId to be cleared
     function clearAssociation(bytes32 nimbusId) external;
 
     /// @dev Remove keys
-    /// Selector: a36fee17
+    /// @custom:selector a36fee17
     ///
     function removeKeys() external;
 
     /// @dev Set keys
-    /// Selector: f1ec919c
+    /// @custom:selector f1ec919c
     ///
     /// @param keys The new session keys
     function setKeys(bytes memory keys) external;

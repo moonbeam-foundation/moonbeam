@@ -3,7 +3,7 @@ pragma solidity >=0.8.0;
 
 /// @title Xcm Transactor Interface
 /// The interface through which solidity contracts will interact with xcm transactor pallet
-/// Address :    0x0000000000000000000000000000000000000806
+/// @custom:address 0x0000000000000000000000000000000000000806
 interface XcmTransactor {
     // A multilocation is defined by its number of parents and the encoded junctions (interior)
     struct Multilocation {
@@ -12,14 +12,14 @@ interface XcmTransactor {
     }
 
     /// Get index of an account in xcm transactor
-    /// Selector: 3fdc4f36
+    /// @custom:selector 3fdc4f36
     /// @param index The index of which we want to retrieve the account
     /// @return owner The owner of the derivative index
     function indexToAccount(uint16 index) external view returns (address owner);
 
     /// DEPRECATED, replaced by transactInfoWithSigned
     /// Get transact info of a multilocation
-    /// Selector: d07d87c3
+    /// @custom:selector d07d87c3
     /// @param multilocation The location for which we want to know the transact info
     /// @return transactExtraWeight The extra weight involved in the XCM message of using derivative
     /// @return feePerSecond The amount of fee charged for a second of execution in the dest
@@ -34,7 +34,7 @@ interface XcmTransactor {
         );
 
     /// Get transact info of a multilocation
-    /// Selector: b689e20c
+    /// @custom:selector b689e20c
     /// @param multilocation The location for which we want to know the transact info
     /// @return transactExtraWeight The extra weight involved in the XCM message of using derivative
     /// @return transactExtraWeightSigned The extra weight involved in the XCM message of using signed
@@ -49,7 +49,7 @@ interface XcmTransactor {
         );
 
     /// Get fee per second charged in its reserve chain for an asset
-    /// Selector: 906c9990
+    /// @custom:selector 906c9990
     /// @param multilocation The asset location for which we want to know the fee per second value
     /// @return feePerSecond The fee per second that the reserve chain charges for this asset
     function feePerSecond(Multilocation memory multilocation)
@@ -58,7 +58,7 @@ interface XcmTransactor {
         returns (uint256 feePerSecond);
 
     /// Transact through XCM using fee based on its multilocation
-    /// Selector: 94a63c54
+    /// @custom:selector 94a63c54
     /// @dev The token transfer burns/transfers the corresponding amount before sending
     /// @param transactor The transactor to be used
     /// @param index The index to be used
@@ -75,7 +75,7 @@ interface XcmTransactor {
     ) external;
 
     /// Transact through XCM using fee based on its currencyId
-    /// Selector: 02ae072d
+    /// @custom:selector 02ae072d
     /// @dev The token transfer burns/transfers the corresponding amount before sending
     /// @param transactor The transactor to be used
     /// @param index The index to be used
@@ -92,7 +92,7 @@ interface XcmTransactor {
     ) external;
 
     /// Transact through XCM using fee based on its multilocation through signed origins
-    /// Selector: 71d31587
+    /// @custom:selector 71d31587
     /// @dev No token is burnt before sending the message. The caller must ensure the destination
     /// is able to undertand the DescendOrigin message, and create a unique account from which
     /// dispatch the call
@@ -109,7 +109,7 @@ interface XcmTransactor {
     ) external;
 
     /// Transact through XCM using fee based on its erc20 address through signed origins
-    /// Selector: 42ca339d
+    /// @custom:selector 42ca339d
     /// @dev No token is burnt before sending the message. The caller must ensure the destination
     /// is able to undertand the DescendOrigin message, and create a unique account from which
     /// dispatch the call
