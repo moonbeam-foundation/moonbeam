@@ -1,4 +1,4 @@
-import "@moonbeam-network/api-augment";
+import "@moonbeam-network/api-augment/moonbase";
 import { bnToHex } from "@polkadot/util";
 import { expect } from "chai";
 import { ethers } from "ethers";
@@ -38,6 +38,8 @@ import {
   TRANSACTION_TEMPLATE,
 } from "../../util/transactions";
 
+import { PalletRandomnessRandomnessResult } from "@polkadot/types/lookup";
+
 const LOTTERY_CONTRACT_JSON = getCompiled("RandomnessLotteryDemo");
 const LOTTERY_INTERFACE = new ethers.utils.Interface(LOTTERY_CONTRACT_JSON.contract.abi);
 const RANDOMNESS_CONTRACT_JSON = getCompiled("Randomness");
@@ -53,6 +55,7 @@ const setupLotteryWithParticipants = async (context: DevTestContext) => {
     {
       ...ALITH_TRANSACTION_TEMPLATE,
       value: Web3.utils.toWei("1", "ether"),
+      gas: 5_000_000,
     },
     [RANDOMNESS_SOURCE_BABE_EPOCH]
   );
@@ -76,6 +79,46 @@ const setupLotteryWithParticipants = async (context: DevTestContext) => {
     );
   }
   return contract;
+};
+
+// Uses sudo (alith) to set relayEpoch to +2 and randomnessResult to the desired value
+const fakeBabeResultTransaction = async (
+  context: DevTestContext,
+  value?: PalletRandomnessRandomnessResult
+) => {
+  const fakeRandomResult = context.polkadotApi.registry.createType(
+    "Option<PalletRandomnessRandomnessResult>",
+    value || {
+      requestCount: 1,
+      randomness: "0xb1ffdd4a26e0f2a2fd1e0862a1c9be422c66dddd68257306ed55dc7bd9dce647",
+    }
+  );
+  // console.log(
+  //   context.polkadotApi.query.randomness.randomnessResults.key({ BabeEpoch: 2 }).toString()
+  // );
+  // console.log(await context.polkadotApi.query.randomness.randomnessResults.entries());
+  // console.log(
+  //   (await context.polkadotApi.query.randomness.randomnessResults({ BabeEpoch: 2 })).toHex()
+  // );
+  // console.log(fakeRandomResult.toHex());
+
+  return context.polkadotApi.tx.sudo
+    .sudo(
+      context.polkadotApi.tx.system.setStorage([
+        [
+          context.polkadotApi.query.randomness.relayEpoch.key().toString(),
+          bnToHex(((await context.polkadotApi.query.randomness.relayEpoch()) as any).addn(2), {
+            bitLength: 64,
+            isLe: true,
+          }),
+        ],
+        [
+          context.polkadotApi.query.randomness.randomnessResults.key({ BabeEpoch: 2 }).toString(),
+          fakeRandomResult.toHex(),
+        ],
+      ])
+    )
+    .signAsync(alith);
 };
 
 describeDevMoonbeam("Randomness Babe - Preparing Lottery Demo", (context) => {
@@ -167,23 +210,10 @@ describeDevMoonbeam("Randomness Babe - Lottery Demo", (context) => {
 
   it("should succeed to fulfill after the delay", async function () {
     await context.createBlock();
-    let nonce = await context.web3.eth.getTransactionCount(alith.address);
 
     const { result } = await context.createBlock([
       // Faking relay epoch + 2 in randomness storage
-      context.polkadotApi.tx.sudo
-        .sudo(
-          context.polkadotApi.tx.system.setStorage([
-            [
-              context.polkadotApi.query.randomness.relayEpoch.key().toString(),
-              bnToHex(((await context.polkadotApi.query.randomness.relayEpoch()) as any).addn(20), {
-                bitLength: 64,
-                isLe: true,
-              }),
-            ],
-          ])
-        )
-        .signAsync(alith),
+      fakeBabeResultTransaction(context),
       createTransaction(context, {
         ...BALTATHAR_TRANSACTION_TEMPLATE,
         to: PRECOMPILE_RANDOMNESS_ADDRESS,
@@ -217,33 +247,17 @@ describeDevMoonbeam("Randomness Babe - Fulfilling Lottery Demo", (context) => {
         value: Web3.utils.toWei("1", "ether"),
       })
     );
-    await context.createBlock();
-    await context.createBlock();
-    const {
-      result: [{}, { hash }],
-    } = await context.createBlock([
+
+    const { result } = await context.createBlock([
       // Faking relay epoch + 2 in randomness storage
-      context.polkadotApi.tx.sudo
-        .sudo(
-          context.polkadotApi.tx.system.setStorage([
-            [
-              context.polkadotApi.query.randomness.relayEpoch.key().toString(),
-              bnToHex(((await context.polkadotApi.query.randomness.relayEpoch()) as any).addn(2), {
-                bitLength: 64,
-                isLe: true,
-              }),
-            ],
-          ])
-        )
-        .signAsync(alith),
+      fakeBabeResultTransaction(context),
       createTransaction(context, {
-        ...ALITH_TRANSACTION_TEMPLATE,
+        ...BALTATHAR_TRANSACTION_TEMPLATE, // mus use baltathar or put correct nonce for alith
         to: PRECOMPILE_RANDOMNESS_ADDRESS,
         data: RANDOMNESS_INTERFACE.encodeFunctionData("fulfillRequest", [0]),
       }),
     ]);
-
-    fulFillReceipt = await context.web3.eth.getTransactionReceipt(hash);
+    fulFillReceipt = await context.web3.eth.getTransactionReceipt(result[1].hash);
   });
   it("should have 4 events", async function () {
     expect(fulFillReceipt.logs.length).to.equal(4);
@@ -258,12 +272,12 @@ describeDevMoonbeam("Randomness Babe - Fulfilling Lottery Demo", (context) => {
   });
 
   it("should emit 2 Awarded events. One for each winner", async function () {
-    // First Awarded event is for Charleth
+    // First Awarded event is for Baltathar
     const log1 = LOTTERY_INTERFACE.parseLog(fulFillReceipt.logs[1]);
     expect(log1.name).to.equal("Awarded");
-    expect(log1.args.winner).to.equal(charleth.address);
+    expect(log1.args.winner).to.equal(baltathar.address);
     expect(log1.args.randomWord.toHexString()).to.equal(
-      "0xefb5d3fd7f0afcbebf6c983d4e480100c71395f721e2f3bfdf1c281938947d28"
+      "0xa5c69b7b2ac07e832d146e756e894cfca317b1343e31b8c4f7d737627e192c7e"
     );
     expect(log1.args.amount.toBigInt()).to.equal(1500n * MILLIGLMR);
 
@@ -272,7 +286,7 @@ describeDevMoonbeam("Randomness Babe - Fulfilling Lottery Demo", (context) => {
     expect(log2.name).to.equal("Awarded");
     expect(log2.args.winner).to.equal(alith.address);
     expect(log2.args.randomWord.toHexString()).to.equal(
-      "0xe89db6687fdfcd8523439fa5384e889e028e8fcc1de0ead9f1ba50d5a5aecff8"
+      "0xaa4a904196f3ecd68f4b47538598455194bba71c9201d12b20712507323e6d0b"
     );
     expect(log2.args.amount.toBigInt()).to.equal(1500n * MILLIGLMR);
   });
@@ -295,17 +309,17 @@ describeDevMoonbeam("Randomness Babe - Fulfilling Lottery Demo", (context) => {
     expect(await lotteryContract.methods.jackpot().call()).to.equal("0");
   });
 
-  it("should reward balthazar and charleth", async function () {
+  it("should reward balthazar and alith", async function () {
     expect(
       (
         await context.polkadotApi.query.system.account(baltathar.address.toString())
       ).data.free.toBigInt() > DEFAULT_GENESIS_BALANCE
-    ).to.be.false;
+    ).to.be.true;
     expect(
       (
         await context.polkadotApi.query.system.account(charleth.address.toString())
       ).data.free.toBigInt() > DEFAULT_GENESIS_BALANCE
-    ).to.be.true;
+    ).to.be.false;
     expect(
       (
         await context.polkadotApi.query.system.account(alith.address.toString())
