@@ -30,7 +30,7 @@ export interface TransactionOptions {
 
 export const TRANSACTION_TEMPLATE: TransactionOptions = {
   nonce: null,
-  gas: 12_000_000,
+  gas: 500_000,
   gasPrice: 1_000_000_000,
   value: "0x00",
 };
@@ -170,7 +170,7 @@ export const createTransfer = async (
 export async function createContract(
   context: DevTestContext,
   contractName: string,
-  options: TransactionOptions = ALITH_TRANSACTION_TEMPLATE,
+  options: TransactionOptions = { ...ALITH_TRANSACTION_TEMPLATE, gas: 5_000_000 },
   contractArguments: any[] = []
 ): Promise<{ rawTx: string; contract: Contract; contractAddress: string }> {
   const contractCompiled = getCompiled(contractName);
