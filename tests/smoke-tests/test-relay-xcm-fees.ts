@@ -59,7 +59,8 @@ describeSmokeSuite(`Verify XCM weight fees for relay`, { wssUrl, relayWssUrl }, 
         : units / 100n;
     const coef = cent / 10n;
 
-    const relayBaseWeight = relayApiAt.consts.system.blockWeights.perClass.normal.baseExtrinsic.toBigInt();
+    const relayBaseWeight =
+      relayApiAt.consts.system.blockWeights.perClass.normal.baseExtrinsic.toBigInt();
 
     const expectedFeePerSecond = (coef * seconds) / relayBaseWeight;
 
@@ -67,13 +68,13 @@ describeSmokeSuite(`Verify XCM weight fees for relay`, { wssUrl, relayWssUrl }, 
 
     let feePerSecondValueForRelay;
     if (parachainRuntime >= 1600) {
-      feePerSecondValueForRelay = ((await apiAt.query.xcmTransactor.destinationAssetFeePerSecond(
-        relayMultiLocation
-      )) as any).unwrap();
+      feePerSecondValueForRelay = (
+        (await apiAt.query.xcmTransactor.destinationAssetFeePerSecond(relayMultiLocation)) as any
+      ).unwrap();
     } else {
-      feePerSecondValueForRelay = ((await apiAt.query.xcmTransactor.transactInfoWithWeightLimit(
-        relayMultiLocation
-      )) as any).unwrap().feePerSecond;
+      feePerSecondValueForRelay = (
+        (await apiAt.query.xcmTransactor.transactInfoWithWeightLimit(relayMultiLocation)) as any
+      ).unwrap().feePerSecond;
     }
     expect(
       feePerSecondValueForRelay.toBigInt() >= expectedFeePerSecond,
