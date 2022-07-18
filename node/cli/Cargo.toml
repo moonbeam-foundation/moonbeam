@@ -56,3 +56,5 @@ try-runtime = [
 	"try-runtime-cli",
 ]
 wasmtime = [ "sc-cli/wasmtime" ]
+
+moonbase-runtime-benchmarks = [ "service/moonbase-runtime-benchmarks" ]

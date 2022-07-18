@@ -5091,6 +5091,7 @@ dependencies = [
  "pallet-evm-precompile-dispatch",
  "pallet-evm-precompile-modexp",
  "pallet-evm-precompile-parachain-staking",
+ "pallet-evm-precompile-randomness",
  "pallet-evm-precompile-relay-encoder",
  "pallet-evm-precompile-sha3fips",
  "pallet-evm-precompile-simple",
@@ -5104,6 +5105,7 @@ dependencies = [
  "pallet-parachain-staking",
  "pallet-proxy",
  "pallet-proxy-genesis-companion",
+ "pallet-randomness",
  "pallet-randomness-collective-flip",
  "pallet-scheduler",
  "pallet-society",
@@ -5597,6 +5599,7 @@ dependencies = [
  "pallet-evm",
  "pallet-migrations",
  "pallet-parachain-staking",
+ "pallet-randomness",
  "pallet-scheduler",
  "pallet-xcm-transactor",
  "sp-core",
@@ -5658,6 +5661,7 @@ dependencies = [
  "moonbeam-rpc-trace",
  "moonbeam-rpc-txpool",
  "moonbeam-runtime",
+ "moonbeam-vrf",
  "moonriver-runtime",
  "nimbus-consensus",
  "nimbus-primitives",
@@ -5698,6 +5702,7 @@ dependencies = [
  "sc-transaction-pool-api",
  "serde",
  "serde_json",
+ "session-keys-primitives",
  "sha3 0.9.1",
  "sp-api",
  "sp-block-builder",
@@ -5724,6 +5729,22 @@ dependencies = [
  "tokio",
  "trie-root 0.15.2",
  "xcm",
+]
+
+[[package]]
+name = "moonbeam-vrf"
+version = "0.1.0"
+dependencies = [
+ "nimbus-primitives",
+ "parity-scale-codec",
+ "polkadot-primitives",
+ "session-keys-primitives",
+ "sp-api",
+ "sp-application-crypto",
+ "sp-consensus-vrf",
+ "sp-core",
+ "sp-keystore",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -6052,7 +6073,7 @@ dependencies = [
 [[package]]
 name = "nimbus-consensus"
 version = "0.9.0"
-source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.23#a773712b33d66da3fb4f825615a9380c3014b2ad"
+source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.23#d553864f7f970de6b5a291b90910e89e2d2b7524"
 dependencies = [
  "async-trait",
  "cumulus-client-consensus-common",
@@ -6083,7 +6104,7 @@ dependencies = [
 [[package]]
 name = "nimbus-primitives"
 version = "0.9.0"
-source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.23#a773712b33d66da3fb4f825615a9380c3014b2ad"
+source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.23#d553864f7f970de6b5a291b90910e89e2d2b7524"
 dependencies = [
  "async-trait",
  "frame-benchmarking",
@@ -6487,7 +6508,7 @@ dependencies = [
 [[package]]
 name = "pallet-author-inherent"
 version = "0.9.0"
-source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.23#a773712b33d66da3fb4f825615a9380c3014b2ad"
+source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.23#d553864f7f970de6b5a291b90910e89e2d2b7524"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6527,7 +6548,7 @@ dependencies = [
 [[package]]
 name = "pallet-author-slot-filter"
 version = "0.9.0"
-source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.23#a773712b33d66da3fb4f825615a9380c3014b2ad"
+source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.23#d553864f7f970de6b5a291b90910e89e2d2b7524"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -7199,6 +7220,36 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-evm-precompile-randomness"
+version = "0.1.0"
+dependencies = [
+ "derive_more",
+ "fp-evm",
+ "frame-support",
+ "frame-system",
+ "hex-literal",
+ "log",
+ "nimbus-primitives",
+ "num_enum",
+ "pallet-author-mapping",
+ "pallet-balances",
+ "pallet-base-fee",
+ "pallet-evm",
+ "pallet-randomness",
+ "pallet-scheduler",
+ "pallet-timestamp",
+ "parity-scale-codec",
+ "precompile-utils",
+ "scale-info",
+ "serde",
+ "session-keys-primitives",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-evm-precompile-relay-encoder"
 version = "0.1.0"
 dependencies = [
@@ -7658,6 +7709,30 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
+]
+
+[[package]]
+name = "pallet-randomness"
+version = "0.1.0"
+dependencies = [
+ "derive_more",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "nimbus-primitives",
+ "pallet-author-mapping",
+ "pallet-balances",
+ "pallet-evm",
+ "parity-scale-codec",
+ "scale-info",
+ "serde",
+ "session-keys-primitives",
+ "sp-consensus-vrf",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -9448,6 +9523,7 @@ dependencies = [
  "fp-evm",
  "frame-support",
  "frame-system",
+ "hex",
  "hex-literal",
  "impl-trait-for-tuples",
  "log",
@@ -11571,11 +11647,20 @@ dependencies = [
 name = "session-keys-primitives"
 version = "0.1.0"
 dependencies = [
+ "async-trait",
+ "frame-support",
  "nimbus-primitives",
  "parity-scale-codec",
  "scale-info",
+ "sp-api",
  "sp-application-crypto",
+ "sp-consensus-babe",
+ "sp-consensus-vrf",
+ "sp-core",
+ "sp-inherents",
+ "sp-keystore",
  "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]

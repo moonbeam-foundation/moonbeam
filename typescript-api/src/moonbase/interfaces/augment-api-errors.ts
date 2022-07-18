@@ -462,6 +462,14 @@ declare module "@polkadot/api-base/types/errors" {
        */
       FeeOverflow: AugmentedError<ApiType>;
       /**
+       * Gas limit is too high.
+       */
+      GasLimitTooHigh: AugmentedError<ApiType>;
+      /**
+       * Gas limit is too low.
+       */
+      GasLimitTooLow: AugmentedError<ApiType>;
+      /**
        * Gas price is too low.
        */
       GasPriceTooLow: AugmentedError<ApiType>;
@@ -470,13 +478,13 @@ declare module "@polkadot/api-base/types/errors" {
        */
       InvalidNonce: AugmentedError<ApiType>;
       /**
-       * Maximum address count exceeded
-       */
-      MaxAddressCountExceeded: AugmentedError<ApiType>;
-      /**
        * Calculating total payment overflowed
        */
       PaymentOverflow: AugmentedError<ApiType>;
+      /**
+       * Undefined error.
+       */
+      Undefined: AugmentedError<ApiType>;
       /**
        * Withdraw fee failed
        */
@@ -868,6 +876,24 @@ declare module "@polkadot/api-base/types/errors" {
        */
       [key: string]: AugmentedError<ApiType>;
     };
+    randomness: {
+      CannotRequestMoreWordsThanMax: AugmentedError<ApiType>;
+      CannotRequestRandomnessAfterMaxDelay: AugmentedError<ApiType>;
+      CannotRequestRandomnessBeforeMinDelay: AugmentedError<ApiType>;
+      MustRequestAtLeastOneWord: AugmentedError<ApiType>;
+      OnlyRequesterCanIncreaseFee: AugmentedError<ApiType>;
+      RandomnessResultDNE: AugmentedError<ApiType>;
+      RandomnessResultNotFilled: AugmentedError<ApiType>;
+      RequestCannotYetBeFulfilled: AugmentedError<ApiType>;
+      RequestCounterOverflowed: AugmentedError<ApiType>;
+      RequestDNE: AugmentedError<ApiType>;
+      RequestFeeOverflowed: AugmentedError<ApiType>;
+      RequestHasNotExpired: AugmentedError<ApiType>;
+      /**
+       * Generic error
+       */
+      [key: string]: AugmentedError<ApiType>;
+    };
     scheduler: {
       /**
        * Failed to schedule a call
@@ -990,6 +1016,10 @@ declare module "@polkadot/api-base/types/errors" {
        */
       InvalidIndex: AugmentedError<ApiType>;
       /**
+       * Proposal has not been approved.
+       */
+      ProposalNotApproved: AugmentedError<ApiType>;
+      /**
        * Too many approvals in the queue.
        */
       TooManyApprovals: AugmentedError<ApiType>;
@@ -1104,6 +1134,10 @@ declare module "@polkadot/api-base/types/errors" {
        * Invalid transfer destination.
        */
       InvalidDest: AugmentedError<ApiType>;
+      /**
+       * MinXcmFee not registered for certain reserve location
+       */
+      MinXcmFeeNotDefined: AugmentedError<ApiType>;
       /**
        * Not cross-chain transfer.
        */

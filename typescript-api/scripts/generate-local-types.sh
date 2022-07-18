@@ -19,10 +19,11 @@ PID=$!
 
 echo "Waiting node...(5s)"
 sleep 1
-( tail -f -n0 /tmp/node-start.log & ) | grep -q 'Listening for new connections'
+( tail -f -n0 /tmp/node-start.log & ) | grep -q 'new connection'
 
 echo "Generating types...(10s)"
 sleep 1
+npm run load:meta
 npm run load:meta:local
 npm run generate:defs
 npm run generate:meta

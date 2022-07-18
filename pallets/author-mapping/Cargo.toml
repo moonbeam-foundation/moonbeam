@@ -7,7 +7,7 @@ version = "2.0.5"
 
 [dependencies]
 log = { version = "0.4", default-features = false }
-serde = { version = "1.0.101", optional = true }
+serde = { version = "1.0.124", optional = true }
 
 # Substrate
 frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23", optional = true, default-features = false }

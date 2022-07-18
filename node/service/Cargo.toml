@@ -40,7 +40,9 @@ moonbeam-rpc-primitives-debug = { path = "../../primitives/rpc/debug" }
 moonbeam-rpc-primitives-txpool = { path = "../../primitives/rpc/txpool" }
 moonbeam-rpc-trace = { path = "../../client/rpc/trace" }
 moonbeam-rpc-txpool = { path = "../../client/rpc/txpool" }
+moonbeam-vrf = { path = "../../client/vrf" }
 pallet-parachain-staking = { path = "../../pallets/parachain-staking" }
+session-keys-primitives = { path = "../../primitives/session-keys" }
 
 # Moonbeam runtimes
 moonbase-runtime = { path = "../../runtime/moonbase", optional = true }
@@ -179,4 +181,11 @@ runtime-benchmarks = [
 try-runtime = [
 	"moonbase-runtime",
 	"moonbase-runtime/try-runtime",
+]
+
+moonbase-runtime-benchmarks = [
+	"moonbase-native",
+	"moonbase-runtime/moonbase-runtime-benchmarks",
+	"moonbase-runtime/runtime-benchmarks",
+	"pallet-ethereum/runtime-benchmarks",
 ]
