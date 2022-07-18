@@ -454,7 +454,7 @@ where
 	}
 
 	fn has_static_size() -> bool {
-		true
+		false
 	}
 }
 
