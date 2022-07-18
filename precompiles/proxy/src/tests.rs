@@ -17,11 +17,12 @@
 use crate::{
 	mock::{
 		Account::{Alice, Bob, Charlie, Precompile},
-		Call, Event, ExtBuilder, Origin, PrecompilesValue, ProxyType, Runtime,
+		Call, Event, ExtBuilder, Origin, PrecompilesValue, ProxyType, Runtime, Balances,
 	},
 	Action,
 };
 use frame_support::{assert_ok, dispatch::Dispatchable};
+use pallet_balances::Call as BalanceCall;
 use pallet_proxy::{
 	Call as ProxyCall, Event as ProxyEvent, Pallet as ProxyPallet, ProxyDefinition,
 };
@@ -383,5 +384,62 @@ fn test_remove_proxies_succeeds_when_no_proxy_exists() {
 
 			let proxies = <ProxyPallet<Runtime>>::proxies(Alice).0;
 			assert_eq!(proxies, vec![])
+		})
+}
+
+use parity_scale_codec::Encode;
+
+#[test]
+fn test_proxy() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000), (Bob, 1000)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
+				delegate: Bob,
+				proxy_type: ProxyType::All,
+				delay: 0u64,
+			})
+			.dispatch(Origin::signed(Alice)));
+
+			let call = Call::Balances(BalanceCall::transfer {
+				dest: Charlie,
+				value: 1000u128,
+			});
+			let mut call_bytes:Vec<u8> =
+				call.encode();
+			let mut decoded_call: xcm::DoubleEncoded<<Runtime as frame_system::Config>::Call> =
+			call_bytes.into();
+
+			let bob: H160 = Bob.into();
+			let alice: H160 = Alice.into();
+			let wc: Vec<u8> = decoded_call.encode();
+			PrecompilesValue::get()
+				.prepare_test(
+					Bob,
+					Precompile,
+					EvmDataWriter::new_with_selector(Action::Proxy)
+						.write::<Address>(alice.into())
+						.write(wc)
+						.build(),
+				)
+				.execute_returns2(vec![]);
+			println!("{:?}", crate::mock::events());
+			assert_event_emitted!(Event::Proxy(ProxyEvent::ProxyAdded {
+				delegator: Alice,
+				delegatee: Bob,
+				proxy_type: ProxyType::Something,
+				delay: 1,
+			}));
+
+			let proxies = <ProxyPallet<Runtime>>::proxies(Alice).0;
+			assert_eq!(
+				proxies,
+				vec![ProxyDefinition {
+					delegate: Bob,
+					proxy_type: ProxyType::Something,
+					delay: 1,
+				}],
+			)
 		})
 }
