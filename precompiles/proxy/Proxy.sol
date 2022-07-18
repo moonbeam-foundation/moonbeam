@@ -34,7 +34,7 @@ interface Proxy {
     /// @param call the call to be made by the real account
     function proxyForceType(
         address real,
-        uint32 forceProxyType,
+        ProxyType forceProxyType,
         bytes[] calldata call
     ) external;
 
@@ -45,7 +45,7 @@ interface Proxy {
     /// @param delay the announcement period required of the initial proxy, will generally be zero
     function addProxy(
         address delegate,
-        uint32 proxyType,
+        ProxyType proxyType,
         uint32 delay
     ) external;
 
@@ -56,7 +56,7 @@ interface Proxy {
     /// @param delay The announcement period required of the initial proxy, will generally be zero
     function removeProxy(
         address delegate,
-        uint32 proxyType,
+        ProxyType proxyType,
         uint32 delay
     ) external;
 
@@ -69,21 +69,19 @@ interface Proxy {
     /// @param real the account that the proxy will make a call on behalf of
     /// @param callHash the hash of the call to be made by the real account
     ///	transaction, will generally be zero
-    function announce(address real, bytes[] calldata callHash) external;
+    function announce(address real, bytes32 callHash) external;
 
     /// @dev Remove a given announcement
     /// @custom:selector 4400aae3
     /// @param real the account that the proxy will make a call on behalf of
     /// @param callHash the hash of the call to be made by the real account
-    function removeAnnouncement(address real, bytes[] calldata callHash)
-        external;
+    function removeAnnouncement(address real, bytes32 callHash) external;
 
     /// @dev Remove the given announcement of a delegate
     /// @param delegate account that previously announced the call
     /// @param callHash the hash of the call to be made
     /// @custom:selector e508ff89
-    function rejectAnnouncement(address delegate, bytes[] calldata callHash)
-        external;
+    function rejectAnnouncement(address delegate, bytes32 callHash) external;
 
     /// @dev Dispatch the given call from an account that the sender is authorised for through
     /// addProxy. Removes any corresponding announcement(s)
@@ -108,7 +106,7 @@ interface Proxy {
     function proxyForceTypeAnnounced(
         address delegate,
         address real,
-        uint32 forceProxyType,
+        ProxyType forceProxyType,
         bytes[] calldata call
     ) external;
 }
