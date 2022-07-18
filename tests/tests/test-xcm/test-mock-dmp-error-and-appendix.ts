@@ -84,12 +84,12 @@ describeDevMoonbeam("Mock XCM - downward transfer with non-triggered error handl
                 },
               },
             },
-          ]
+          ],
         },
         // Execute an arbitrary valid instruction that would trigger the ErrorHandler otherwise
         {
-          ClearOrigin: null
-        }
+          ClearOrigin: null,
+        },
       ],
     };
 
