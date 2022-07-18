@@ -1,39 +1,21 @@
+import "@moonbeam-network/api-augment";
+
 import { expect } from "chai";
-import Keyring from "@polkadot/keyring";
-import {
-  ALITH_PRIV_KEY,
-  DOROTHY,
-  DOROTHY_PRIV_KEY,
-  ETHAN,
-  ETHAN_PRIVKEY,
-  GLMR,
-  VOTE_AMOUNT,
-} from "../../util/constants";
+
+import { dorothy, ethan } from "../../util/accounts";
+import { GLMR, VOTE_AMOUNT } from "../../util/constants";
+import { execCouncilProposal, execTechnicalCommitteeProposal } from "../../util/governance";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
-import {
-  execFromTwoThirdsOfCouncil,
-  execFromAllMembersOfTechCommittee,
-} from "../../util/governance";
-import { createBlockWithExtrinsic } from "../../util/substrate-rpc";
 
-const keyring = new Keyring({ type: "ethereum" });
 const proposalHash = "0xf3d039875302d49d52fb1af6877a2c46bc55b004afb8130f94dd9d0489ca3185";
-
-let alith;
-let dorothy;
-let ethan;
 
 describeDevMoonbeam("Proxing governance", (context) => {
   before("Create accounts and fast-tracking referundum", async () => {
-    alith = await keyring.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
-    dorothy = await keyring.addFromUri(DOROTHY_PRIV_KEY, null, "ethereum");
-    ethan = await keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
-
-    await execFromTwoThirdsOfCouncil(
+    await execCouncilProposal(
       context,
       context.polkadotApi.tx.democracy.externalProposeMajority(proposalHash)
     );
-    await execFromAllMembersOfTechCommittee(
+    await execTechnicalCommitteeProposal(
       context,
       context.polkadotApi.tx.democracy.fastTrack(proposalHash, 5, 0)
     );
@@ -41,40 +23,49 @@ describeDevMoonbeam("Proxing governance", (context) => {
 
   it("should be able to vote on behalf of the delegate account", async function () {
     // Verify that one referundum is triggered
-    let referendumCount = (await context.polkadotApi.query.democracy.referendumCount()) as any;
+    let referendumCount = await context.polkadotApi.query.democracy.referendumCount();
     expect(referendumCount.toBigInt()).to.equal(1n);
 
     // Dorothy add proxy right to ethan for governance only
-    await context.polkadotApi.tx.proxy.addProxy(ETHAN, "Governance", 0).signAndSend(dorothy);
-    await context.createBlock();
+    await context.createBlock(
+      context.polkadotApi.tx.proxy.addProxy(ethan.address, "Governance", 0).signAsync(dorothy)
+    );
 
     // Ethan vote as Dorothy
-    const voteCall = context.polkadotApi.tx.democracy.vote(0, {
-      Standard: { balance: VOTE_AMOUNT, vote: { aye: true, conviction: 1 } },
-    });
-
     const dorothyPreBalance = (
-      (await context.polkadotApi.query.system.account(DOROTHY)) as any
+      await context.polkadotApi.query.system.account(dorothy.address)
     ).data.free.toBigInt();
-    const ext = context.polkadotApi.tx.proxy.proxy(DOROTHY, "Governance", voteCall);
-    const { events } = await createBlockWithExtrinsic(context, ethan, ext);
+
+    const {
+      result: { events },
+    } = await context.createBlock(
+      context.polkadotApi.tx.proxy
+        .proxy(
+          dorothy.address,
+          "Governance",
+          context.polkadotApi.tx.democracy.vote(0, {
+            Standard: { balance: VOTE_AMOUNT, vote: { aye: true, conviction: 1 } },
+          })
+        )
+        .signAsync(ethan)
+    );
 
     // Check events
-    expect(context.polkadotApi.events.proxy.ProxyExecuted.is(events[2] as any)).to.be.true;
-    expect(context.polkadotApi.events.democracy.Voted.is(events[1] as any)).to.be.true;
-    expect(events[2].data[0].toString()).to.equal("Ok");
-    expect(context.polkadotApi.events.treasury.Deposit.is(events[4] as any)).to.be.true;
-    expect(context.polkadotApi.events.system.ExtrinsicSuccess.is(events[5] as any)).to.be.true;
+    expect(context.polkadotApi.events.proxy.ProxyExecuted.is(events[2].event)).to.be.true;
+    expect(context.polkadotApi.events.democracy.Voted.is(events[1].event)).to.be.true;
+    expect(events[2].event.data[0].toString()).to.equal("Ok");
+    expect(context.polkadotApi.events.treasury.Deposit.is(events[4].event)).to.be.true;
+    expect(context.polkadotApi.events.system.ExtrinsicSuccess.is(events[5].event)).to.be.true;
 
     // Verify that dorothy hasn't paid for the transaction but the vote locked her tokens
-    let dorothyAccountData = (await context.polkadotApi.query.system.account(DOROTHY)) as any;
+    let dorothyAccountData = await context.polkadotApi.query.system.account(dorothy.address);
     expect(dorothyAccountData.data.free.toBigInt()).to.equal(dorothyPreBalance);
     expect(dorothyAccountData.data.miscFrozen.toBigInt()).to.equal(VOTE_AMOUNT);
 
     // Verify that vote is registered
     const referendumInfoOf = (
-      (await context.polkadotApi.query.democracy.referendumInfoOf(0)) as any
-    ).unwrap() as any;
+      await context.polkadotApi.query.democracy.referendumInfoOf(0)
+    ).unwrap();
     const onGoing = referendumInfoOf.asOngoing;
 
     expect(onGoing.proposalHash.toHex()).to.equal(proposalHash);

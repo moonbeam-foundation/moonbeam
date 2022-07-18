@@ -50,18 +50,26 @@ describeSmokeSuite(`Verify staking consistency`, { wssUrl, relayWssUrl }, (conte
     candidatePool = await apiAt.query.parachainStaking.candidatePool();
     allTopDelegations = await apiAt.query.parachainStaking.topDelegations.entries();
 
-    delegatorsPerCandidates = allDelegatorState.reduce((p, state) => {
-      for (const delegation of state[1].unwrap().delegations) {
-        if (!p[delegation.owner.toHex()]) {
-          p[delegation.owner.toHex()] = [];
+    delegatorsPerCandidates = allDelegatorState.reduce(
+      (p, state) => {
+        for (const delegation of state[1].unwrap().delegations) {
+          if (!p[delegation.owner.toHex()]) {
+            p[delegation.owner.toHex()] = [];
+          }
+          p[delegation.owner.toHex()].push({
+            delegator: `0x${state[0].toHex().slice(-40)}`,
+            delegation,
+          });
         }
-        p[delegation.owner.toHex()].push({
-          delegator: `0x${state[0].toHex().slice(-40)}`,
-          delegation,
-        });
+        return p;
+      },
+      {} as {
+        [key: `0x${string}`]: {
+          delegator: `0x${string}`;
+          delegation: ParachainStakingBond;
+        }[];
       }
-      return p;
-    }, {});
+    );
   });
 
   it("candidate totalCounted matches top X delegations", async function () {
@@ -194,14 +202,14 @@ describeSmokeSuite(`Verify staking consistency`, { wssUrl, relayWssUrl }, (conte
     if (specVersion < 1500) {
       for (const state of allDelegatorState) {
         const delegator = `0x${state[0].toHex().slice(-40)}`;
-        const totalRequestAmount = Array.from(state[1].unwrap().requests.requests.values()).reduce(
-          (p, v) => p + v.amount.toBigInt(),
-          0n
-        );
+        const totalRequestAmount = Array.from(
+          (state[1] as any).unwrap().requests.requests.values()
+        ).reduce((p, v: any) => p + v.amount.toBigInt(), 0n);
 
-        expect(state[1].unwrap().requests.lessTotal.toBigInt(), `delegator: ${delegator}`).to.equal(
-          totalRequestAmount
-        );
+        expect(
+          (state[1] as any).unwrap().requests.lessTotal.toBigInt(),
+          `delegator: ${delegator}`
+        ).to.equal(totalRequestAmount);
         checks++;
       }
     }

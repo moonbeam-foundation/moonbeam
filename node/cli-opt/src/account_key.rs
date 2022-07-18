@@ -14,12 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+use bip32::{
+	Error as Bip32Error, ExtendedPrivateKey, PrivateKey as PrivateKeyT, PrivateKeyBytes,
+	PublicKey as PublicKeyT, PublicKeyBytes,
+};
 use bip39::{Language, Mnemonic, MnemonicType, Seed};
 use clap::Parser;
 use libsecp256k1::{PublicKey, SecretKey};
 use primitive_types::H256;
 use sp_runtime::traits::IdentifyAccount;
-use tiny_hderive::bip32::ExtendedPrivKey;
 
 #[derive(Debug, Parser)]
 pub struct GenerateAccountKey {
@@ -50,15 +53,20 @@ impl GenerateAccountKey {
 
 		// Retrieves the seed from the mnemonic
 		let seed = Seed::new(&mnemonic, "");
-
-		// Generate the derivation path from the account-index
 		let derivation_path = format!("m/44'/60'/0'/0/{}", self.account_index.unwrap_or(0));
-
-		// Derives the private key from
-		let ext = ExtendedPrivKey::derive(seed.as_bytes(), derivation_path.as_str())
-			.expect("invalid derivation path");
-		let private_key =
-			SecretKey::parse_slice(&ext.secret()).expect("invalid extended private key");
+		let private_key = if let Some(private_key) =
+			derivation_path.parse().ok().and_then(|derivation_path| {
+				let extended = ExtendedPrivateKey::<Secp256k1SecretKey>::derive_from_path(
+					&seed,
+					&derivation_path,
+				)
+				.expect("invalid extended private key");
+				Some(extended.private_key().0)
+			}) {
+			private_key
+		} else {
+			panic!("invalid extended private key");
+		};
 
 		// Retrieves the public key
 		let public_key = PublicKey::from_secret_key(&private_key);
@@ -71,5 +79,52 @@ impl GenerateAccountKey {
 		println!("Mnemonic:     {}", mnemonic.phrase());
 		println!("Private Key:  {:?}", H256::from(private_key.serialize()));
 		println!("Path:         {}", derivation_path);
+	}
+}
+
+// `libsecp256k1::PublicKey` wrapped type
+pub struct Secp256k1PublicKey(pub PublicKey);
+// `libsecp256k1::Secret`  wrapped type
+pub struct Secp256k1SecretKey(pub SecretKey);
+
+impl PublicKeyT for Secp256k1PublicKey {
+	fn from_bytes(bytes: PublicKeyBytes) -> Result<Self, Bip32Error> {
+		let public = PublicKey::parse_compressed(&bytes).map_err(|_| return Bip32Error::Decode)?;
+		Ok(Self(public))
+	}
+
+	fn to_bytes(&self) -> PublicKeyBytes {
+		self.0.serialize_compressed()
+	}
+
+	fn derive_child(&self, other: PrivateKeyBytes) -> Result<Self, Bip32Error> {
+		let mut child = self.0.clone();
+		let secret = SecretKey::parse(&other).map_err(|_| return Bip32Error::Decode)?;
+		let _ = child.tweak_add_assign(&secret);
+		Ok(Self(child))
+	}
+}
+
+impl PrivateKeyT for Secp256k1SecretKey {
+	type PublicKey = Secp256k1PublicKey;
+
+	fn from_bytes(bytes: &PrivateKeyBytes) -> Result<Self, Bip32Error> {
+		let secret = SecretKey::parse(&bytes).map_err(|_| return Bip32Error::Decode)?;
+		Ok(Self(secret))
+	}
+
+	fn to_bytes(&self) -> PrivateKeyBytes {
+		self.0.serialize()
+	}
+
+	fn derive_child(&self, other: PrivateKeyBytes) -> Result<Self, Bip32Error> {
+		let mut child = self.0.clone();
+		let secret = SecretKey::parse(&other).map_err(|_| return Bip32Error::Decode)?;
+		let _ = child.tweak_add_assign(&secret);
+		Ok(Self(child))
+	}
+
+	fn public_key(&self) -> Self::PublicKey {
+		Secp256k1PublicKey(PublicKey::from_secret_key(&self.0))
 	}
 }

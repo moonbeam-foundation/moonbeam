@@ -18,9 +18,12 @@
 
 use crate::{
 	set::OrderedSet, BalanceOf, BottomDelegations, CandidateInfo, Config, DelegatorState, Error,
-	Event, Pallet, Round, RoundIndex, TopDelegations, Total,
+	Event, Pallet, Round, RoundIndex, TopDelegations, Total, COLLATOR_LOCK_ID, DELEGATOR_LOCK_ID,
 };
-use frame_support::{pallet_prelude::*, traits::ReservableCurrency};
+use frame_support::{
+	pallet_prelude::*,
+	traits::{tokens::WithdrawReasons, LockableCurrency},
+};
 use parity_scale_codec::{Decode, Encode};
 use sp_runtime::{
 	traits::{AtLeast32BitUnsigned, Saturating, Zero},
@@ -408,10 +411,20 @@ impl<
 	where
 		BalanceOf<T>: From<Balance>,
 	{
-		T::Currency::reserve(&who, more.into())?;
+		<Pallet<T>>::jit_ensure_collator_reserve_migrated(&who.clone())?;
+		ensure!(
+			<Pallet<T>>::get_collator_stakable_free_balance(&who) >= more.into(),
+			Error::<T>::InsufficientBalance
+		);
 		let new_total = <Total<T>>::get().saturating_add(more.into());
 		<Total<T>>::put(new_total);
 		self.bond = self.bond.saturating_add(more);
+		T::Currency::set_lock(
+			COLLATOR_LOCK_ID,
+			&who.clone(),
+			self.bond.into(),
+			WithdrawReasons::all(),
+		);
 		self.total_counted = self.total_counted.saturating_add(more);
 		<Pallet<T>>::deposit_event(Event::CandidateBondedMore {
 			candidate: who.clone(),
@@ -460,12 +473,18 @@ impl<
 			request.when_executable <= <Round<T>>::get().current,
 			Error::<T>::PendingCandidateRequestNotDueYet
 		);
-		T::Currency::unreserve(&who, request.amount.into());
 		let new_total_staked = <Total<T>>::get().saturating_sub(request.amount.into());
 		<Total<T>>::put(new_total_staked);
 		// Arithmetic assumptions are self.bond > less && self.bond - less > CollatorMinBond
 		// (assumptions enforced by `schedule_bond_less`; if storage corrupts, must re-verify)
 		self.bond = self.bond.saturating_sub(request.amount);
+		<Pallet<T>>::jit_ensure_collator_reserve_migrated(&who.clone())?;
+		T::Currency::set_lock(
+			COLLATOR_LOCK_ID,
+			&who.clone(),
+			self.bond.into(),
+			WithdrawReasons::all(),
+		);
 		self.total_counted = self.total_counted.saturating_sub(request.amount);
 		let event = Event::CandidateBondedLess {
 			candidate: who.clone().into(),
@@ -644,17 +663,12 @@ impl<
 				.total
 				.saturating_sub(lowest_bottom_to_be_kicked.amount);
 			// update delegator state
-			// unreserve kicked bottom
-			T::Currency::unreserve(
-				&lowest_bottom_to_be_kicked.owner,
-				lowest_bottom_to_be_kicked.amount,
-			);
 			// total staked is updated via propagation of lowest bottom delegation amount prior
 			// to call
 			let mut delegator_state = <DelegatorState<T>>::get(&lowest_bottom_to_be_kicked.owner)
 				.expect("Delegation existence => DelegatorState existence");
 			let leaving = delegator_state.delegations.0.len() == 1usize;
-			delegator_state.rm_delegation(candidate);
+			delegator_state.rm_delegation::<T>(candidate);
 			<Pallet<T>>::delegation_remove_request_with_state(
 				&candidate,
 				&lowest_bottom_to_be_kicked.owner,
@@ -1273,6 +1287,69 @@ impl<
 		}
 	}
 
+	pub fn default_with_total(id: AccountId, amount: Balance) -> Self {
+		Delegator {
+			id,
+			total: amount,
+			delegations: OrderedSet::from(vec![]),
+			less_total: Balance::zero(),
+			status: DelegatorStatus::Active,
+		}
+	}
+
+	pub fn total(&self) -> Balance {
+		self.total
+	}
+
+	pub fn total_add_if<T, F>(&mut self, amount: Balance, check: F) -> DispatchResult
+	where
+		T: Config,
+		T::AccountId: From<AccountId>,
+		BalanceOf<T>: From<Balance>,
+		F: Fn(Balance) -> DispatchResult,
+	{
+		let total = self.total.saturating_add(amount);
+		check(total)?;
+		self.total = total;
+		self.adjust_bond_lock::<T>(BondAdjust::Increase(amount))
+	}
+
+	pub fn total_sub_if<T, F>(&mut self, amount: Balance, check: F) -> DispatchResult
+	where
+		T: Config,
+		T::AccountId: From<AccountId>,
+		BalanceOf<T>: From<Balance>,
+		F: Fn(Balance) -> DispatchResult,
+	{
+		let total = self.total.saturating_sub(amount);
+		check(total)?;
+		self.total = total;
+		self.adjust_bond_lock::<T>(BondAdjust::Decrease)?;
+		Ok(())
+	}
+
+	pub fn total_add<T, F>(&mut self, amount: Balance) -> DispatchResult
+	where
+		T: Config,
+		T::AccountId: From<AccountId>,
+		BalanceOf<T>: From<Balance>,
+	{
+		self.total = self.total.saturating_add(amount);
+		self.adjust_bond_lock::<T>(BondAdjust::Increase(amount))?;
+		Ok(())
+	}
+
+	pub fn total_sub<T>(&mut self, amount: Balance) -> DispatchResult
+	where
+		T: Config,
+		T::AccountId: From<AccountId>,
+		BalanceOf<T>: From<Balance>,
+	{
+		self.total = self.total.saturating_sub(amount);
+		self.adjust_bond_lock::<T>(BondAdjust::Decrease)?;
+		Ok(())
+	}
+
 	pub fn is_active(&self) -> bool {
 		matches!(self.status, DelegatorStatus::Active)
 	}
@@ -1288,7 +1365,11 @@ impl<
 	}
 	// Return Some(remaining balance), must be more than MinDelegatorStk
 	// Return None if delegation not found
-	pub fn rm_delegation(&mut self, collator: &AccountId) -> Option<Balance> {
+	pub fn rm_delegation<T: Config>(&mut self, collator: &AccountId) -> Option<Balance>
+	where
+		BalanceOf<T>: From<Balance>,
+		T::AccountId: From<AccountId>,
+	{
 		let mut amt: Option<Balance> = None;
 		let delegations = self
 			.delegations
@@ -1305,7 +1386,9 @@ impl<
 			.collect();
 		if let Some(balance) = amt {
 			self.delegations = OrderedSet::from(delegations);
-			self.total = self.total.saturating_sub(balance);
+			let _ = <Pallet<T>>::jit_ensure_delegator_reserve_migrated(&self.id.clone().into());
+			self.total_sub::<T>(balance)
+				.expect("Decreasing lock cannot fail, qed");
 			Some(self.total)
 		} else {
 			None
@@ -1329,11 +1412,13 @@ impl<
 			if x.owner == candidate {
 				let before_amount: BalanceOf<T> = x.amount.into();
 				x.amount = x.amount.saturating_add(amount);
-				self.total = self.total.saturating_add(amount);
+				self.total_add_if::<T, _>(amount, |_| {
+					<Pallet<T>>::jit_ensure_delegator_reserve_migrated(&delegator_id.clone())
+				})?;
+
 				// update collator state delegation
 				let mut collator_state =
 					<CandidateInfo<T>>::get(&candidate_id).ok_or(Error::<T>::CandidateDNE)?;
-				T::Currency::reserve(&self.id.clone().into(), balance_amt)?;
 				let before = collator_state.total_counted;
 				let in_top = collator_state.increase_delegation::<T>(
 					&candidate_id,
@@ -1360,6 +1445,52 @@ impl<
 			}
 		}
 		Err(Error::<T>::DelegationDNE.into())
+	}
+
+	/// Updates the bond locks for this delegator.
+	///
+	/// This will take the current self.total and ensure that a lock of the same amount is applied
+	/// and when increasing the bond lock will also ensure that the account has enough free balance.
+	///
+	/// `additional_required_balance` should reflect the change to the amount that should be locked if
+	/// positive, 0 otherwise (e.g. `min(0, change_in_total_bond)`). This is necessary because it is
+	/// not possible to query the amount that is locked for a given lock id.
+	pub fn adjust_bond_lock<T: Config>(
+		&mut self,
+		additional_required_balance: BondAdjust<Balance>,
+	) -> DispatchResult
+	where
+		BalanceOf<T>: From<Balance>,
+		T::AccountId: From<AccountId>,
+	{
+		match additional_required_balance {
+			BondAdjust::Increase(amount) => {
+				ensure!(
+					<Pallet<T>>::get_delegator_stakable_free_balance(&self.id.clone().into())
+						>= amount.into(),
+					Error::<T>::InsufficientBalance,
+				);
+
+				// additional sanity check: shouldn't ever want to lock more than total
+				if amount > self.total {
+					log::warn!("LOGIC ERROR: request to reserve more than bond total");
+					return Err(DispatchError::Other("Invalid additional_required_balance"));
+				}
+			}
+			BondAdjust::Decrease => (), // do nothing on decrease
+		};
+
+		if self.total.is_zero() {
+			T::Currency::remove_lock(DELEGATOR_LOCK_ID, &self.id.clone().into());
+		} else {
+			T::Currency::set_lock(
+				DELEGATOR_LOCK_ID,
+				&self.id.clone().into(),
+				self.total.into(),
+				WithdrawReasons::all(),
+			);
+		}
+		Ok(())
 	}
 
 	/// Retrieves the bond amount that a delegator has provided towards a collator.
@@ -1542,4 +1673,9 @@ impl<A: Decode> Default for ParachainBondConfig<A> {
 			percent: Percent::zero(),
 		}
 	}
+}
+
+pub enum BondAdjust<Balance> {
+	Increase(Balance),
+	Decrease,
 }

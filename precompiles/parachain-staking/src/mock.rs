@@ -25,9 +25,9 @@ use frame_support::{
 use pallet_evm::{
 	AddressMapping, EnsureAddressNever, EnsureAddressRoot, Precompile, PrecompileSet,
 };
-use parachain_staking::{AwardedPts, InflationInfo, Points, Range};
+use pallet_parachain_staking::{AwardedPts, InflationInfo, Points, Range};
 use serde::{Deserialize, Serialize};
-use sp_core::{H160, H256};
+use sp_core::{H160, H256, U256};
 use sp_io;
 use sp_runtime::{
 	testing::Header,
@@ -52,7 +52,7 @@ construct_runtime!(
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		Evm: pallet_evm::{Pallet, Call, Storage, Event<T>},
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
-		ParachainStaking: parachain_staking::{Pallet, Call, Storage, Config<T>, Event<T>},
+		ParachainStaking: pallet_parachain_staking::{Pallet, Call, Storage, Config<T>, Event<T>},
 	}
 );
 
@@ -189,6 +189,7 @@ where
 }
 
 parameter_types! {
+	pub BlockGasLimit: U256 = U256::max_value();
 	pub PrecompilesValue: TestPrecompiles<Runtime> = TestPrecompiles(Default::default());
 }
 
@@ -205,10 +206,9 @@ impl pallet_evm::Config for Runtime {
 	type PrecompilesValue = PrecompilesValue;
 	type ChainId = ();
 	type OnChargeTransaction = ();
-	type BlockGasLimit = ();
+	type BlockGasLimit = BlockGasLimit;
 	type BlockHashMapping = pallet_evm::SubstrateBlockHashMapping<Self>;
 	type FindAuthor = ();
-	type WeightInfo = ();
 }
 
 parameter_types! {
@@ -240,7 +240,7 @@ parameter_types! {
 	pub const MinDelegatorStk: u128 = 5;
 	pub const MinDelegation: u128 = 3;
 }
-impl parachain_staking::Config for Runtime {
+impl pallet_parachain_staking::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
 	type MonetaryGovernanceOrigin = frame_system::EnsureRoot<AccountId>;
@@ -342,7 +342,7 @@ impl ExtBuilder {
 		}
 		.assimilate_storage(&mut t)
 		.expect("Pallet balances storage can be assimilated");
-		parachain_staking::GenesisConfig::<Runtime> {
+		pallet_parachain_staking::GenesisConfig::<Runtime> {
 			candidates: self.collators,
 			delegations: self.delegations,
 			inflation_config: self.inflation,

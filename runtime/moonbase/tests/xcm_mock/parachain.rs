@@ -86,7 +86,7 @@ impl frame_system::Config for Runtime {
 	type OnNewAccount = ();
 	type OnKilledAccount = ();
 	type DbWeight = ();
-	type BaseCallFilter = Nothing;
+	type BaseCallFilter = Everything;
 	type SystemWeightInfo = ();
 	type SS58Prefix = ();
 	type OnSetCode = ();
@@ -167,6 +167,8 @@ pub type LocationToAccountId = (
 	// Sibling parachain origins convert to AccountId via the `ParaId::into`.
 	SiblingParachainConvertsVia<Sibling, AccountId>,
 	AccountKey20Aliases<RelayNetwork, AccountId>,
+	// The rest of multilocations convert via hashing it
+	xcm_primitives::Account20Hash<AccountId>,
 );
 
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
@@ -265,10 +267,12 @@ pub type AssetTransactors = (
 	ForeignFungiblesTransactor,
 	LocalFungiblesTransactor,
 );
+
 pub type XcmRouter = super::ParachainXcmRouter<MsgQueue>;
 
 pub type Barrier = (
 	TakeWeightCredit,
+	xcm_primitives::AllowDescendOriginFromLocal<Everything>,
 	AllowTopLevelPaidExecutionFrom<Everything>,
 	// Expected responses are OK.
 	AllowKnownQueryResponses<PolkadotXcm>,
@@ -328,6 +332,13 @@ parameter_types! {
 		)
 	};
 }
+
+use frame_system::RawOrigin;
+use sp_runtime::traits::PostDispatchInfoOf;
+use sp_runtime::DispatchErrorWithPostInfo;
+use xcm_executor::traits::CallDispatcher;
+moonbeam_runtime_common::impl_moonbeam_xcm_call!();
+
 pub struct XcmConfig;
 impl Config for XcmConfig {
 	type Call = Call;
@@ -354,6 +365,7 @@ impl Config for XcmConfig {
 	type SubscriptionService = PolkadotXcm;
 	type AssetTrap = PolkadotXcm;
 	type AssetClaims = PolkadotXcm;
+	type CallDispatcher = MoonbeamCall;
 }
 
 impl cumulus_pallet_xcm::Config for Runtime {
@@ -410,8 +422,8 @@ parameter_types! {
 }
 
 parameter_type_with_key! {
-	pub ParachainMinFee: |_location: MultiLocation| -> u128 {
-		u128::MAX
+	pub ParachainMinFee: |_location: MultiLocation| -> Option<u128> {
+		Some(u128::MAX)
 	};
 }
 
@@ -830,7 +842,7 @@ impl pallet_asset_manager::Config for Runtime {
 	type WeightInfo = ();
 }
 
-impl xcm_transactor::Config for Runtime {
+impl pallet_xcm_transactor::Config for Runtime {
 	type Event = Event;
 	type Balance = Balance;
 	type Transactor = MockTransactors;
@@ -860,6 +872,12 @@ impl pallet_timestamp::Config for Runtime {
 	type WeightInfo = ();
 }
 
+use sp_core::U256;
+
+parameter_types! {
+	pub BlockGasLimit: U256 = U256::max_value();
+}
+
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
 	type GasWeightMapping = ();
@@ -867,7 +885,7 @@ impl pallet_evm::Config for Runtime {
 	type CallOrigin = pallet_evm::EnsureAddressRoot<AccountId>;
 	type WithdrawOrigin = pallet_evm::EnsureAddressNever<AccountId>;
 
-	type AddressMapping = runtime_common::IntoAddressMapping;
+	type AddressMapping = moonbeam_runtime_common::IntoAddressMapping;
 	type Currency = Balances;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
 
@@ -875,11 +893,10 @@ impl pallet_evm::Config for Runtime {
 	type PrecompilesType = ();
 	type PrecompilesValue = ();
 	type ChainId = ();
-	type BlockGasLimit = ();
+	type BlockGasLimit = BlockGasLimit;
 	type OnChargeTransaction = ();
 	type BlockHashMapping = pallet_evm::SubstrateBlockHashMapping<Self>;
 	type FindAuthor = ();
-	type WeightInfo = ();
 }
 
 pub struct NormalFilter;
@@ -933,6 +950,22 @@ impl xcm_primitives::UtilityEncodeCall for MockTransactors {
 	}
 }
 
+impl pallet_ethereum::Config for Runtime {
+	type Event = Event;
+	type StateRoot = pallet_ethereum::IntermediateStateRoot<Self>;
+}
+
+parameter_types! {
+	pub ReservedXcmpWeight: Weight = u64::max_value();
+}
+
+impl pallet_ethereum_xcm::Config for Runtime {
+	type InvalidEvmTransactionError = pallet_ethereum::InvalidTransactionWrapper;
+	type ValidatedTransaction = pallet_ethereum::ValidatedTransaction<Self>;
+	type XcmEthereumOrigin = pallet_ethereum_xcm::EnsureXcmEthereumTransaction;
+	type ReservedXcmpWeight = ReservedXcmpWeight;
+}
+
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
 type Block = frame_system::mocking::MockBlock<Runtime>;
 
@@ -952,13 +985,14 @@ construct_runtime!(
 		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin},
 		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>},
 		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>},
-		XcmTransactor: xcm_transactor::{Pallet, Call, Storage, Event<T>},
+		XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Storage, Event<T>},
 		Treasury: pallet_treasury::{Pallet, Storage, Config, Event<T>, Call},
 		LocalAssets: pallet_assets::<Instance1>::{Pallet, Call, Storage, Event<T>},
 
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage},
 		EVM: pallet_evm::{Pallet, Call, Storage, Config, Event<T>},
-
+		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Origin, Config},
+		EthereumXcm: pallet_ethereum_xcm::{Pallet, Call, Origin},
 	}
 );
 

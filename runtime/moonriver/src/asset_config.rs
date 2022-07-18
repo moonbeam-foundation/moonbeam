@@ -23,7 +23,7 @@ use super::{
 	LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 
-use pallet_evm_precompile_assets_erc20::AccountIdAssetIdConversion;
+use pallet_evm_precompileset_assets_erc20::AccountIdAssetIdConversion;
 use sp_runtime::traits::Hash as THash;
 
 use frame_support::{

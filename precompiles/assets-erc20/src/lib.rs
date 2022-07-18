@@ -28,10 +28,7 @@ use frame_support::{
 	sp_runtime::traits::StaticLookup,
 };
 use pallet_evm::{AddressMapping, PrecompileSet};
-use precompile_utils::{
-	keccak256, revert, succeed, Address, Bytes, EvmData, EvmDataWriter, EvmResult,
-	FunctionModifier, LogExt, LogsBuilder, PrecompileHandleExt, RuntimeHelper,
-};
+use precompile_utils::prelude::*;
 use sp_runtime::traits::Bounded;
 use sp_std::vec::Vec;
 
@@ -64,7 +61,7 @@ pub type AssetIdOf<Runtime, Instance = ()> = <Runtime as pallet_assets::Config<I
 pub type IsLocal = ConstBool<true>;
 pub type IsForeign = ConstBool<false>;
 
-#[precompile_utils::generate_function_selector]
+#[generate_function_selector]
 #[derive(Debug, PartialEq)]
 pub enum Action {
 	TotalSupply = "totalSupply()",
@@ -119,6 +116,18 @@ pub trait AccountIdAssetIdConversion<Account, AssetId> {
 pub struct Erc20AssetsPrecompileSet<Runtime, IsLocal, Instance: 'static = ()>(
 	PhantomData<(Runtime, IsLocal, Instance)>,
 );
+
+impl<T, U, V> Clone for Erc20AssetsPrecompileSet<T, U, V> {
+	fn clone(&self) -> Self {
+		Self(PhantomData)
+	}
+}
+
+impl<T, U, V> Default for Erc20AssetsPrecompileSet<T, U, V> {
+	fn default() -> Self {
+		Self(PhantomData)
+	}
+}
 
 impl<Runtime, IsLocal, Instance> PrecompileSet
 	for Erc20AssetsPrecompileSet<Runtime, IsLocal, Instance>
@@ -318,14 +327,14 @@ where
 
 		Self::approve_inner(asset_id, handle, handle.context().caller, spender, amount)?;
 
-		LogsBuilder::new(handle.context().address)
-			.log3(
-				SELECTOR_LOG_APPROVAL,
-				handle.context().caller,
-				spender,
-				EvmDataWriter::new().write(amount).build(),
-			)
-			.record(handle)?;
+		log3(
+			handle.context().address,
+			SELECTOR_LOG_APPROVAL,
+			handle.context().caller,
+			spender,
+			EvmDataWriter::new().write(amount).build(),
+		)
+		.record(handle)?;
 
 		// Build output.
 		Ok(succeed(EvmDataWriter::new().write(true).build()))
@@ -402,14 +411,14 @@ where
 			)?;
 		}
 
-		LogsBuilder::new(handle.context().address)
-			.log3(
-				SELECTOR_LOG_TRANSFER,
-				handle.context().caller,
-				to,
-				EvmDataWriter::new().write(amount).build(),
-			)
-			.record(handle)?;
+		log3(
+			handle.context().address,
+			SELECTOR_LOG_TRANSFER,
+			handle.context().caller,
+			to,
+			EvmDataWriter::new().write(amount).build(),
+		)
+		.record(handle)?;
 
 		// Build output.
 		Ok(succeed(EvmDataWriter::new().write(true).build()))
@@ -461,14 +470,14 @@ where
 			}
 		}
 
-		LogsBuilder::new(handle.context().address)
-			.log3(
-				SELECTOR_LOG_TRANSFER,
-				from,
-				to,
-				EvmDataWriter::new().write(amount).build(),
-			)
-			.record(handle)?;
+		log3(
+			handle.context().address,
+			SELECTOR_LOG_TRANSFER,
+			from,
+			to,
+			EvmDataWriter::new().write(amount).build(),
+		)
+		.record(handle)?;
 
 		// Build output.
 		Ok(succeed(EvmDataWriter::new().write(true).build()))
@@ -561,14 +570,14 @@ where
 			)?;
 		}
 
-		LogsBuilder::new(handle.context().address)
-			.log3(
-				SELECTOR_LOG_TRANSFER,
-				H160::default(),
-				to,
-				EvmDataWriter::new().write(amount).build(),
-			)
-			.record(handle)?;
+		log3(
+			handle.context().address,
+			SELECTOR_LOG_TRANSFER,
+			H160::default(),
+			to,
+			EvmDataWriter::new().write(amount).build(),
+		)
+		.record(handle)?;
 
 		// Build output.
 		Ok(succeed(EvmDataWriter::new().write(true).build()))
@@ -608,14 +617,14 @@ where
 			)?;
 		}
 
-		LogsBuilder::new(handle.context().address)
-			.log3(
-				SELECTOR_LOG_TRANSFER,
-				to,
-				H160::default(),
-				EvmDataWriter::new().write(amount).build(),
-			)
-			.record(handle)?;
+		log3(
+			handle.context().address,
+			SELECTOR_LOG_TRANSFER,
+			to,
+			H160::default(),
+			EvmDataWriter::new().write(amount).build(),
+		)
+		.record(handle)?;
 
 		// Build output.
 		Ok(succeed(EvmDataWriter::new().write(true).build()))

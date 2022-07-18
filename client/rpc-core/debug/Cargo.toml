@@ -10,12 +10,10 @@ version = "0.1.0"
 [dependencies]
 ethereum-types = "0.13.1"
 futures = { version = "0.3", features = [ "compat" ] }
-jsonrpc-core = "18.0.0"
-jsonrpc-core-client = "18.0.0"
-jsonrpc-derive = "18.0.0"
+jsonrpsee = { version = "0.13.0", default-features = false, features = [ "macros", "server" ] }
 moonbeam-client-evm-tracing = { path = "../../evm-tracing" }
 moonbeam-rpc-core-types = { path = "../types" }
 serde = { version = "1.0", features = [ "derive" ] }
 serde_json = "1.0"
 
-sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.20" }
+sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }

@@ -1,12 +1,15 @@
-import { expect } from "chai";
-import { TEST_ACCOUNT } from "../../util/constants";
-import { web3Subscribe } from "../../util/providers";
+import "@moonbeam-network/api-augment";
 
+import { expect } from "chai";
+import { Log } from "web3-core";
+
+import { alith, ALITH_CONTRACT_ADDRESSES } from "../../util/accounts";
+import { EnhancedWeb3, web3Subscribe } from "../../util/providers";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { createContract } from "../../util/transactions";
 
 describeDevMoonbeam("Subscription - Logs", (context) => {
-  let web3Ws;
+  let web3Ws: EnhancedWeb3;
   before("Setup: Create empty block", async () => {
     web3Ws = await context.createWeb3("ws");
   });
@@ -22,10 +25,8 @@ describeDevMoonbeam("Subscription - Logs", (context) => {
       subscription.once("data", resolve);
     });
 
-    const { rawTx } = await createContract(context, "SingleEventContract");
-    await context.createBlock({
-      transactions: [rawTx],
-    });
+    const { rawTx } = await createContract(context, "EventEmitter");
+    await context.createBlock(rawTx);
 
     const data = await dataPromise;
     subscription.unsubscribe();
@@ -47,28 +48,28 @@ describeDevMoonbeam("Subscription - Logs", (context) => {
 describeDevMoonbeam("Subscription - Logs", (context) => {
   let web3Ws;
 
-  let subSingleAddPromise;
-  let subMultiAddPromise;
-  let subTopicPromise;
-  let subTopicWildcardPromise;
-  let subTopicListPromise;
-  let subTopicCondPromise;
-  let subTopicMultiCondPromise;
-  let subTopicWildAndCondPromise;
+  let subSingleAddPromise: Promise<Log>;
+  let subMultiAddPromise: Promise<Log>;
+  let subTopicPromise: Promise<Log>;
+  let subTopicWildcardPromise: Promise<Log>;
+  let subTopicListPromise: Promise<Log>;
+  let subTopicCondPromise: Promise<Log>;
+  let subTopicMultiCondPromise: Promise<Log>;
+  let subTopicWildAndCondPromise: Promise<Log>;
 
   before("Setup: Create all subs and a block with transfer", async () => {
     web3Ws = await context.createWeb3("ws");
 
     const subSingleAdd = web3Subscribe(web3Ws, "logs", {
-      address: "0xC2Bf5F29a4384b1aB0C063e1c666f02121B6084a",
+      address: ALITH_CONTRACT_ADDRESSES[0],
     });
 
     const subMultiAdd = web3Subscribe(web3Ws, "logs", {
       address: [
-        "0xF8cef78E923919054037a1D03662bBD884fF4edf",
-        "0x42e2EE7Ba8975c473157634Ac2AF4098190fc741",
-        "0x5c4242beB94dE30b922f57241f1D02f36e906915",
-        "0xC2Bf5F29a4384b1aB0C063e1c666f02121B6084a",
+        ALITH_CONTRACT_ADDRESSES[3],
+        ALITH_CONTRACT_ADDRESSES[2],
+        ALITH_CONTRACT_ADDRESSES[1],
+        ALITH_CONTRACT_ADDRESSES[0],
       ],
     });
 
@@ -77,20 +78,20 @@ describeDevMoonbeam("Subscription - Logs", (context) => {
     });
 
     const subTopicWildcard = web3Subscribe(web3Ws, "logs", {
-      topics: [null, "0x0000000000000000000000006be02d1d3665660d22ff9624b7be0551ee1ac91b"],
+      topics: [null, "0x000000000000000000000000f24ff3a9cf04c71dbc94d0b566f7a27b94566cac"],
     });
 
     const subTopicList = web3Subscribe(web3Ws, "logs", {
       topics: [
         ["0x0040d54d5e5b097202376b55bcbaaedd2ee468ce4496f1d30030c4e5308bf94d"],
-        ["0x0000000000000000000000006be02d1d3665660d22ff9624b7be0551ee1ac91b"],
+        ["0x000000000000000000000000f24ff3a9cf04c71dbc94d0b566f7a27b94566cac"],
       ],
     });
 
     const subTopicCond = web3Subscribe(web3Ws, "logs", {
       topics: [
         "0x0040d54d5e5b097202376b55bcbaaedd2ee468ce4496f1d30030c4e5308bf94d",
-        ["0x0000000000000000000000006be02d1d3665660d22ff9624b7be0551ee1ac91b"],
+        ["0x000000000000000000000000f24ff3a9cf04c71dbc94d0b566f7a27b94566cac"],
       ],
     });
 
@@ -99,7 +100,7 @@ describeDevMoonbeam("Subscription - Logs", (context) => {
         "0x0040d54d5e5b097202376b55bcbaaedd2ee468ce4496f1d30030c4e5308bf94d",
         [
           "0x0000000000000000000000000000000000000000000000000000000000000000",
-          "0x0000000000000000000000006be02d1d3665660d22ff9624b7be0551ee1ac91b",
+          "0x000000000000000000000000f24ff3a9cf04c71dbc94d0b566f7a27b94566cac",
         ],
       ],
     });
@@ -108,7 +109,7 @@ describeDevMoonbeam("Subscription - Logs", (context) => {
       topics: [
         null,
         [
-          "0x0000000000000000000000006be02d1d3665660d22ff9624b7be0551ee1ac91b",
+          "0x000000000000000000000000f24ff3a9cf04c71dbc94d0b566f7a27b94566cac",
           "0x0000000000000000000000000000000000000000000000000000000000000000",
         ],
         null,
@@ -132,8 +133,8 @@ describeDevMoonbeam("Subscription - Logs", (context) => {
       })
     );
 
-    const subData = (sub) => {
-      return new Promise((resolve) => {
+    const subData = (sub: ReturnType<typeof web3Subscribe>) => {
+      return new Promise<Log>((resolve) => {
         sub.once("data", resolve);
       });
     };
@@ -147,10 +148,8 @@ describeDevMoonbeam("Subscription - Logs", (context) => {
     subTopicMultiCondPromise = subData(subTopicMultiCond);
     subTopicWildAndCondPromise = subData(subTopicWildAndCond);
 
-    const { rawTx } = await createContract(context, "SingleEventContract");
-    await context.createBlock({
-      transactions: [rawTx],
-    });
+    const { rawTx } = await createContract(context, "EventEmitter");
+    await context.createBlock(rawTx);
   });
 
   it("should be able to filter by address", async function () {
@@ -204,15 +203,13 @@ describeDevMoonbeam("Subscription - Reverted transaction", (context) => {
     });
 
     // Expected to fail because of not enough fund to pay the deployment
-    const { rawTx } = await createContract(context, "SingleEventContract", {
-      from: TEST_ACCOUNT,
+    const { rawTx } = await createContract(context, "EventEmitter", {
+      from: alith.address,
     });
-    await context.createBlock({
-      transactions: [rawTx],
-    });
+    await context.createBlock(rawTx);
 
     const data = await new Promise((resolve) => {
-      let result = null;
+      let result: Log = null;
       subscription.once("data", (d) => (result = d));
       setTimeout(() => resolve(result), 1000);
       // wait for 1 second to make sure a notification would have time to arrive.

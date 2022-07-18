@@ -32,10 +32,7 @@ use pallet_balances::pallet::{
 	Instance2, Instance3, Instance4, Instance5, Instance6, Instance7, Instance8, Instance9,
 };
 use pallet_evm::AddressMapping;
-use precompile_utils::{
-	keccak256, revert, succeed, Address, Bytes, EvmDataReader, EvmDataWriter, EvmResult,
-	FunctionModifier, LogExt, LogsBuilder, PrecompileHandleExt, RuntimeHelper,
-};
+use precompile_utils::prelude::*;
 use sp_core::{H160, U256};
 use sp_std::{
 	convert::{TryFrom, TryInto},
@@ -157,7 +154,7 @@ pub type NoncesStorage<Instance> = StorageMap<
 	ValueQuery,
 >;
 
-#[precompile_utils::generate_function_selector]
+#[generate_function_selector]
 #[derive(Debug, PartialEq)]
 pub enum Action {
 	TotalSupply = "totalSupply()",
@@ -200,7 +197,6 @@ pub struct Erc20BalancesPrecompile<Runtime, Metadata: Erc20Metadata, Instance: '
 	PhantomData<(Runtime, Metadata, Instance)>,
 );
 
-// TODO: Migrate to precompile_utils::Precompile.
 impl<Runtime, Metadata, Instance> Precompile
 	for Erc20BalancesPrecompile<Runtime, Metadata, Instance>
 where
@@ -339,14 +335,14 @@ where
 			ApprovesStorage::<Runtime, Instance>::insert(caller, spender, amount);
 		}
 
-		LogsBuilder::new(handle.context().address)
-			.log3(
-				SELECTOR_LOG_APPROVAL,
-				handle.context().caller,
-				spender,
-				EvmDataWriter::new().write(amount).build(),
-			)
-			.record(handle)?;
+		log3(
+			handle.context().address,
+			SELECTOR_LOG_APPROVAL,
+			handle.context().caller,
+			spender,
+			EvmDataWriter::new().write(amount).build(),
+		)
+		.record(handle)?;
 
 		// Build output.
 		Ok(succeed(EvmDataWriter::new().write(true).build()))
@@ -379,14 +375,14 @@ where
 			)?;
 		}
 
-		LogsBuilder::new(handle.context().address)
-			.log3(
-				SELECTOR_LOG_TRANSFER,
-				handle.context().caller,
-				to,
-				EvmDataWriter::new().write(amount).build(),
-			)
-			.record(handle)?;
+		log3(
+			handle.context().address,
+			SELECTOR_LOG_TRANSFER,
+			handle.context().caller,
+			to,
+			EvmDataWriter::new().write(amount).build(),
+		)
+		.record(handle)?;
 
 		// Build output.
 		Ok(succeed(EvmDataWriter::new().write(true).build()))
@@ -441,14 +437,14 @@ where
 			)?;
 		}
 
-		LogsBuilder::new(handle.context().address)
-			.log3(
-				SELECTOR_LOG_TRANSFER,
-				from,
-				to,
-				EvmDataWriter::new().write(amount).build(),
-			)
-			.record(handle)?;
+		log3(
+			handle.context().address,
+			SELECTOR_LOG_TRANSFER,
+			from,
+			to,
+			EvmDataWriter::new().write(amount).build(),
+		)
+		.record(handle)?;
 
 		// Build output.
 		Ok(succeed(EvmDataWriter::new().write(true).build()))
@@ -506,15 +502,15 @@ where
 			},
 		)?;
 
-		LogsBuilder::new(handle.context().address)
-			.log2(
-				SELECTOR_LOG_DEPOSIT,
-				handle.context().caller,
-				EvmDataWriter::new()
-					.write(handle.context().apparent_value)
-					.build(),
-			)
-			.record(handle)?;
+		log2(
+			handle.context().address,
+			SELECTOR_LOG_DEPOSIT,
+			handle.context().caller,
+			EvmDataWriter::new()
+				.write(handle.context().apparent_value)
+				.build(),
+		)
+		.record(handle)?;
 
 		Ok(succeed([]))
 	}
@@ -540,13 +536,13 @@ where
 			return Err(revert("trying to withdraw more than owned"));
 		}
 
-		LogsBuilder::new(handle.context().address)
-			.log2(
-				SELECTOR_LOG_WITHDRAWAL,
-				handle.context().caller,
-				EvmDataWriter::new().write(withdrawn_amount).build(),
-			)
-			.record(handle)?;
+		log2(
+			handle.context().address,
+			SELECTOR_LOG_WITHDRAWAL,
+			handle.context().caller,
+			EvmDataWriter::new().write(withdrawn_amount).build(),
+		)
+		.record(handle)?;
 
 		Ok(succeed([]))
 	}

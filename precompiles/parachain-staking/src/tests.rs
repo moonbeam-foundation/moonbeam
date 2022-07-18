@@ -22,8 +22,8 @@ use crate::mock::{
 use crate::Action;
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_evm::Call as EvmCall;
-use parachain_staking::Event as StakingEvent;
-use precompile_utils::{testing::*, Address, EvmDataWriter};
+use pallet_parachain_staking::Event as StakingEvent;
+use precompile_utils::{prelude::*, testing::*};
 use sp_core::U256;
 
 fn precompiles() -> TestPrecompiles<Runtime> {
@@ -1053,7 +1053,7 @@ fn nominate_works() {
 				delegator: Bob,
 				locked_amount: 1_000,
 				candidate: Alice,
-				delegator_position: parachain_staking::DelegatorAdded::AddedToTop {
+				delegator_position: pallet_parachain_staking::DelegatorAdded::AddedToTop {
 					new_total: 2_000,
 				},
 			}
@@ -1086,7 +1086,7 @@ fn delegate_works() {
 				delegator: Bob,
 				locked_amount: 1_000,
 				candidate: Alice,
-				delegator_position: parachain_staking::DelegatorAdded::AddedToTop {
+				delegator_position: pallet_parachain_staking::DelegatorAdded::AddedToTop {
 					new_total: 2_000,
 				},
 			}
@@ -1462,9 +1462,9 @@ fn cancel_revoke_delegation_works() {
 			let expected: crate::mock::Event = StakingEvent::CancelledDelegationRequest {
 				delegator: Bob,
 				collator: Alice,
-				cancelled_request: parachain_staking::CancelledScheduledRequest {
+				cancelled_request: pallet_parachain_staking::CancelledScheduledRequest {
 					when_executable: 3,
-					action: parachain_staking::DelegationAction::Revoke(1_000),
+					action: pallet_parachain_staking::DelegationAction::Revoke(1_000),
 				},
 			}
 			.into();
@@ -1497,9 +1497,9 @@ fn cancel_delegator_bonded_less_works() {
 			let expected: crate::mock::Event = StakingEvent::CancelledDelegationRequest {
 				delegator: Bob,
 				collator: Alice,
-				cancelled_request: parachain_staking::CancelledScheduledRequest {
+				cancelled_request: pallet_parachain_staking::CancelledScheduledRequest {
 					when_executable: 3,
-					action: parachain_staking::DelegationAction::Decrease(500),
+					action: pallet_parachain_staking::DelegationAction::Decrease(500),
 				},
 			}
 			.into();

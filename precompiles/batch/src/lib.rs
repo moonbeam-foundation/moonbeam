@@ -22,10 +22,7 @@ use evm::{ExitError, ExitReason};
 use fp_evm::{
 	Context, Log, Precompile, PrecompileFailure, PrecompileHandle, PrecompileOutput, Transfer,
 };
-use precompile_utils::{
-	call_cost, keccak256, revert, succeed, Address, Bytes, EvmDataWriter, EvmResult,
-	FunctionModifier, LogExt, LogsBuilder, PrecompileHandleExt,
-};
+use precompile_utils::{costs::call_cost, prelude::*};
 use sp_core::{H160, U256};
 use sp_std::{iter::repeat, marker::PhantomData, vec, vec::Vec};
 
@@ -34,7 +31,7 @@ mod mock;
 #[cfg(test)]
 mod tests;
 
-#[precompile_utils::generate_function_selector]
+#[generate_function_selector]
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Action {
 	BatchSome = "batchSome(address[],uint256[],bytes[],uint64[])",
@@ -46,20 +43,23 @@ pub const LOG_SUBCALL_SUCCEEDED: [u8; 32] = keccak256!("SubcallSucceeded(uint256
 pub const LOG_SUBCALL_FAILED: [u8; 32] = keccak256!("SubcallFailed(uint256)");
 
 pub fn log_subcall_succeeded(address: impl Into<H160>, index: usize) -> Log {
-	LogsBuilder::new(address.into()).log1(
+	log1(
+		address,
 		LOG_SUBCALL_SUCCEEDED,
 		EvmDataWriter::new().write(U256::from(index)).build(),
 	)
 }
 
 pub fn log_subcall_failed(address: impl Into<H160>, index: usize) -> Log {
-	LogsBuilder::new(address.into()).log1(
+	log1(
+		address,
 		LOG_SUBCALL_FAILED,
 		EvmDataWriter::new().write(U256::from(index)).build(),
 	)
 }
 
 /// Batch precompile.
+#[derive(Debug, Clone)]
 pub struct BatchPrecompile<Runtime>(PhantomData<Runtime>);
 
 impl<Runtime> Precompile for BatchPrecompile<Runtime>
@@ -73,8 +73,7 @@ where
 		// Transfers will directly be made on the behalf of the user by the precompile.
 		handle.check_function_modifier(FunctionModifier::NonPayable)?;
 
-		let res = Self::batch(handle, selector);
-		res
+		Self::batch(handle, selector)
 	}
 }
 
