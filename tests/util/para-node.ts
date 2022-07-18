@@ -410,6 +410,7 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
                 "collation_generation=trace,filtering=trace",
               "--unsafe-rpc-external",
               "--execution=wasm",
+              "--pruning=archive",
               "--no-hardware-benchmarks",
               process.env.FORCE_COMPILED_WASM
                 ? `--wasm-execution=compiled`
@@ -419,6 +420,7 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
               "--rpc-cors=all",
               "--",
               "--execution=wasm",
+              "--pruning=archive",
               "--no-hardware-benchmarks",
               process.env.FORCE_COMPILED_WASM
                 ? `--wasm-execution=compiled`
@@ -443,6 +445,7 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
                 "collation_generation=trace,author=trace,filtering=trace",
               "--unsafe-rpc-external",
               "--execution=wasm",
+              "--pruning=archive",
               "--wasm-execution=interpreted-i-know-what-i-do",
               "--no-hardware-benchmarks",
               "--no-prometheus",
@@ -450,6 +453,7 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
               "--rpc-cors=all",
               "--",
               "--execution=wasm",
+              "--pruning=archive",
               "--wasm-execution=interpreted-i-know-what-i-do",
               "--no-hardware-benchmarks",
               "--no-mdns",
@@ -511,7 +515,7 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
       (_, reject) =>
         (raceTimer = setTimeout(
           () => reject(new Error("timeout")),
-          "spec" in options.parachain ? 12000000 : 60000
+          "spec" in options.parachain ? 120000000 : 60000
         ))
     ),
   ]);
