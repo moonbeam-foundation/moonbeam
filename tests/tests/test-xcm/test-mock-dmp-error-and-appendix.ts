@@ -31,9 +31,10 @@ describeDevMoonbeam("Mock XCM - downward transfer with non-triggered error handl
     expect(registeredAsset.owner.toHex()).to.eq(palletId.toLowerCase());
   });
 
-  it("Should make sure that Alith does not receive 10 dot because there is no error", async function () {
+  it("Should make sure that Alith does not receive 10 dot without error", async function () {
     // BuyExecution does not charge for fees because we registered it for not doing so
-    // But since there is no error, and the deposit is on the error handler, the assets will be trapped
+    // But since there is no error, and the deposit is on the error handler, the assets
+    // will be trapped
     const xcmMessage = {
       V2: [
         // Pretend relay assets were transferred to the sovereign
@@ -66,10 +67,10 @@ describeDevMoonbeam("Mock XCM - downward transfer with non-triggered error handl
               },
               fun: { Fungible: 10n * RELAY_TOKEN },
             },
-            weightLimit: { Limited: new BN(4000000000) },
+            weightLimit: { Limited: new BN(500000000) },
           },
         },
-        // Set an error handler that fires if there is any error during the execution
+        // Set an error handler that fires if there is any error after setting the ErrorHandler
         {
           SetErrorHandler: [
             {
@@ -83,8 +84,12 @@ describeDevMoonbeam("Mock XCM - downward transfer with non-triggered error handl
                 },
               },
             },
-          ],
+          ]
         },
+        // Execute an arbitrary valid instruction that would trigger the ErrorHandler otherwise
+        {
+          ClearOrigin: null
+        }
       ],
     };
 
@@ -160,7 +165,7 @@ describeDevMoonbeam("Mock XCM - downward transfer with triggered error handler",
               },
               fun: { Fungible: 10n * RELAY_TOKEN },
             },
-            weightLimit: { Limited: new BN(4000000000) },
+            weightLimit: { Limited: new BN(500000000) },
           },
         },
         // Set an error handler that fires if there is any error during the execution
@@ -260,7 +265,7 @@ describeDevMoonbeam("Mock XCM - downward transfer with always triggered appendix
               },
               fun: { Fungible: 10n * RELAY_TOKEN },
             },
-            weightLimit: { Limited: new BN(4000000000) },
+            weightLimit: { Limited: new BN(400000000) },
           },
         },
         // Set an appendix to be executed after the XCM message is executed. No matter if errors
@@ -356,7 +361,7 @@ describeDevMoonbeam("Mock XCM - downward transfer with always triggered appendix
               },
               fun: { Fungible: 10n * RELAY_TOKEN },
             },
-            weightLimit: { Limited: new BN(4000000000) },
+            weightLimit: { Limited: new BN(500000000) },
           },
         },
         // Set an appendix to be executed after the XCM message is executed. No matter if errors
@@ -376,7 +381,6 @@ describeDevMoonbeam("Mock XCM - downward transfer with always triggered appendix
           ],
         },
         // Fire the error handler. This forces an error
-
         {
           Trap: 0,
         },
@@ -421,7 +425,8 @@ describeDevMoonbeam("Mock XCM - downward transfer claim trapped assets", (contex
     expect(registeredAsset.owner.toHex()).to.eq(palletId.toLowerCase());
 
     // BuyExecution does not charge for fees because we registered it for not doing so
-    // But since there is no error, and the deposit is on the error handler, the assets will be trapped
+    // But since there is no error, and the deposit is on the error handler, the assets
+    // will be trapped.
     // Goal is to trapp assets, so that later can be claimed
     // Since we only BuyExecution, but we do not do anything with the assets after that,
     // they are trapped
@@ -457,7 +462,7 @@ describeDevMoonbeam("Mock XCM - downward transfer claim trapped assets", (contex
               },
               fun: { Fungible: 10n * RELAY_TOKEN },
             },
-            weightLimit: { Limited: new BN(4000000000) },
+            weightLimit: { Limited: new BN(200000000) },
           },
         },
       ],
@@ -528,7 +533,7 @@ describeDevMoonbeam("Mock XCM - downward transfer claim trapped assets", (contex
               },
               fun: { Fungible: 10n * RELAY_TOKEN },
             },
-            weightLimit: { Limited: new BN(4000000000) },
+            weightLimit: { Limited: new BN(300000000) },
           },
         },
         // Deposit assets, this time correctly, on Alith
