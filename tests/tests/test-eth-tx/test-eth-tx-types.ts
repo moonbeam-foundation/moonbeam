@@ -2,15 +2,23 @@ import "@moonbeam-network/api-augment";
 
 import { expect } from "chai";
 
-import { baltathar } from "../../util/accounts";
+import { ALITH_PRIVATE_KEY, baltathar } from "../../util/accounts";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
-import { createTransfer } from "../../util/transactions";
+import { createTransaction, createTransfer } from "../../util/transactions";
 
 describeDevMoonbeam(
   "Ethereum Transaction - Legacy",
   (context) => {
     it("should contain valid legacy Ethereum data", async function () {
-      await context.createBlock(createTransfer(context, baltathar.address, 512));
+      await context.createBlock(
+        createTransaction(context, {
+          privateKey: ALITH_PRIVATE_KEY,
+          to: baltathar.address,
+          gas: 12_000_000,
+          gasPrice: 1_000_000_000,
+          value: 512,
+        })
+      );
 
       const signedBlock = await context.polkadotApi.rpc.chain.getBlock();
       let extrinsic = signedBlock.block.extrinsics.find((ex) => ex.method.section == "ethereum")

@@ -4,7 +4,7 @@ authors = [ "PureStake" ]
 edition = "2021"
 homepage = "https://moonbeam.network"
 license = "GPL-3.0-only"
-version = "0.24.0"
+version = "0.25.0"
 
 [dependencies]
 bip32 = { git = "https://github.com/purestake/crates", branch = "bip32-v0.4.0-fix", default-features = false, features = [ "bip39" ] }

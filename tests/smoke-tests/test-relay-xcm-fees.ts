@@ -73,7 +73,7 @@ describeSmokeSuite(`Verify XCM weight fees for relay`, { wssUrl, relayWssUrl }, 
       ).unwrap();
     } else {
       feePerSecondValueForRelay = (
-        await apiAt.query.xcmTransactor.transactInfoWithWeightLimit(relayMultiLocation)
+        (await apiAt.query.xcmTransactor.transactInfoWithWeightLimit(relayMultiLocation)) as any
       ).unwrap().feePerSecond;
     }
     expect(

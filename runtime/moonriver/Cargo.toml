@@ -20,7 +20,7 @@ smallvec = "1.8.0"
 account = { path = "../../primitives/account/", default-features = false }
 moonbeam-core-primitives = { path = "../../core-primitives", default-features = false }
 moonbeam-relay-encoder = { path = "../relay-encoder", default-features = false }
-moonbeam-runtime-common = { path = "../common", default-features = false, features = [ "xcm-support" ] }
+moonbeam-runtime-common = { path = "../common", default-features = false }
 precompile-utils = { path = "../../precompiles/utils", default-features = false }
 session-keys-primitives = { path = "../../primitives/session-keys", default-features = false }
 xcm-primitives = { path = "../../primitives/xcm/", default-features = false }
@@ -249,6 +249,7 @@ runtime-wasm = []
 on-chain-release-build = [ "sp-api/disable-logging" ]
 
 runtime-benchmarks = [
+	"cumulus-pallet-parachain-system/runtime-benchmarks",
 	"frame-benchmarking",
 	"frame-support/runtime-benchmarks",
 	"frame-system-benchmarking",

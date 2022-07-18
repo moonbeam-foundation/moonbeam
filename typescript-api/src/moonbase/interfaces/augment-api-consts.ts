@@ -2,13 +2,12 @@
 /* eslint-disable */
 
 import type { ApiTypes } from "@polkadot/api-base/types";
-import type { Bytes, Option, Vec, bool, u128, u16, u32, u64, u8 } from "@polkadot/types-codec";
+import type { Bytes, Option, bool, u128, u16, u32, u64, u8 } from "@polkadot/types-codec";
 import type { Codec } from "@polkadot/types-codec/types";
 import type { Perbill, Percent, Permill } from "@polkadot/types/interfaces/runtime";
 import type {
   FrameSupportPalletId,
   FrameSupportWeightsRuntimeDbWeight,
-  FrameSupportWeightsWeightToFeeCoefficient,
   FrameSystemLimitsBlockLength,
   FrameSystemLimitsBlockWeights,
   SpVersionRuntimeVersion,
@@ -358,6 +357,39 @@ declare module "@polkadot/api-base/types/consts" {
        */
       [key: string]: Codec;
     };
+    randomness: {
+      /**
+       * Local requests expire and can be purged from storage after this many
+       * blocks/epochs
+       */
+      blockExpirationDelay: u32 & AugmentedConst<ApiType>;
+      /**
+       * The amount that should be taken as a security deposit when requesting randomness.
+       */
+      deposit: u128 & AugmentedConst<ApiType>;
+      /**
+       * Babe requests expire and can be purged from storage after this many blocks/epochs
+       */
+      epochExpirationDelay: u64 & AugmentedConst<ApiType>;
+      /**
+       * Local per-block VRF requests must be at most this many blocks after the
+       * block in which they were requested
+       */
+      maxBlockDelay: u32 & AugmentedConst<ApiType>;
+      /**
+       * Maximum number of random words that can be requested per request
+       */
+      maxRandomWords: u8 & AugmentedConst<ApiType>;
+      /**
+       * Local per-block VRF requests must be at least this many blocks after
+       * the block in which they were requested
+       */
+      minBlockDelay: u32 & AugmentedConst<ApiType>;
+      /**
+       * Generic const
+       */
+      [key: string]: Codec;
+    };
     scheduler: {
       /**
        * The maximum weight that may be scheduled per block for any
@@ -425,10 +457,6 @@ declare module "@polkadot/api-base/types/consts" {
     };
     transactionPayment: {
       /**
-       * The polynomial that is applied in order to derive fee from length.
-       */
-      lengthToFee: Vec<FrameSupportWeightsWeightToFeeCoefficient> & AugmentedConst<ApiType>;
-      /**
        * A fee mulitplier for `Operational` extrinsics to compute "virtual tip"
        * to boost their `priority`
        *
@@ -453,10 +481,6 @@ declare module "@polkadot/api-base/types/consts" {
        * also amplify the impact of tips applied to `Operational` transactions.
        */
       operationalFeeMultiplier: u8 & AugmentedConst<ApiType>;
-      /**
-       * The polynomial that is applied in order to derive fee from weight.
-       */
-      weightToFee: Vec<FrameSupportWeightsWeightToFeeCoefficient> & AugmentedConst<ApiType>;
       /**
        * Generic const
        */

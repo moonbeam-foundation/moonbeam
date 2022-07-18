@@ -4,7 +4,7 @@ authors = [ "PureStake" ]
 edition = "2021"
 homepage = "https://moonbeam.network"
 license = "GPL-3.0-only"
-version = "0.24.0"
+version = "0.25.0"
 
 [dependencies]
 ansi_term = "0.12.1"
@@ -40,7 +40,9 @@ moonbeam-rpc-primitives-debug = { path = "../../primitives/rpc/debug" }
 moonbeam-rpc-primitives-txpool = { path = "../../primitives/rpc/txpool" }
 moonbeam-rpc-trace = { path = "../../client/rpc/trace" }
 moonbeam-rpc-txpool = { path = "../../client/rpc/txpool" }
+moonbeam-vrf = { path = "../../client/vrf" }
 pallet-parachain-staking = { path = "../../pallets/parachain-staking" }
+session-keys-primitives = { path = "../../primitives/session-keys" }
 
 # Moonbeam runtimes
 moonbase-runtime = { path = "../../runtime/moonbase", optional = true }
@@ -179,4 +181,11 @@ runtime-benchmarks = [
 try-runtime = [
 	"moonbase-runtime",
 	"moonbase-runtime/try-runtime",
+]
+
+moonbase-runtime-benchmarks = [
+	"moonbase-native",
+	"moonbase-runtime/moonbase-runtime-benchmarks",
+	"moonbase-runtime/runtime-benchmarks",
+	"pallet-ethereum/runtime-benchmarks",
 ]

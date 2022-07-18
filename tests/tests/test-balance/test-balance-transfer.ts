@@ -1,11 +1,13 @@
 import "@moonbeam-network/api-augment";
 
 import { expect } from "chai";
+import Web3 from "web3";
 
 import {
   alith,
   ALITH_GENESIS_LOCK_BALANCE,
   ALITH_GENESIS_TRANSFERABLE_BALANCE,
+  baltathar,
   generateKeyringPair,
 } from "../../util/accounts";
 import { verifyLatestBlockFees } from "../../util/block";
@@ -72,6 +74,19 @@ describeDevMoonbeamAllEthTxTypes("Balance transfer - fees", (context) => {
   });
   it("should check latest block fees", async function () {
     await verifyLatestBlockFees(context, BigInt(512));
+  });
+});
+
+describeDevMoonbeam("Balance transfer - Multiple transfers", (context) => {
+  it("should be successful", async function () {
+    const { result } = await context.createBlock([
+      createTransfer(context, baltathar.address, 10n ** 18n, { nonce: 0 }),
+      createTransfer(context, baltathar.address, 10n ** 18n, { nonce: 1 }),
+      createTransfer(context, baltathar.address, 10n ** 18n, { nonce: 2 }),
+      createTransfer(context, baltathar.address, 10n ** 18n, { nonce: 3 }),
+    ]);
+    console.log(result);
+    expect(result.filter((r) => r.successful)).to.be.length(4);
   });
 });
 
