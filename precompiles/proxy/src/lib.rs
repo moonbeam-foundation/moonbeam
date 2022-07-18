@@ -78,9 +78,7 @@ where
 {
 	fn execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		let selector = handle.read_selector()?;
-		handle.check_function_modifier(match selector {
-			_ => FunctionModifier::NonPayable,
-		})?;
+		handle.check_function_modifier(FunctionModifier::NonPayable)?;
 
 		let (call, origin) = match selector {
 			Action::Proxy => Self::proxy(handle),
@@ -140,19 +138,13 @@ where
 		input.expect_arguments(2)?;
 
 		let real: H160 = input.read::<Address>()?.into();
-		// let wrapped_call: Vec<u8> = input.read::<Bytes>()?.into();
 		let wrapped_call = Self::decode_call(&mut input)?;
-
-		// let mut decoded_call: xcm::DoubleEncoded<<Runtime as frame_system::Config>::Call> = wrapped_call.into();
-		// let decoded_call = decoded_call.take_decoded().map_err(|_| revert("failed decoding call"))?;
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = ProxyCall::<Runtime>::proxy {
 			real: Runtime::AddressMapping::into_account_id(real),
 			force_proxy_type: None,
 			call: wrapped_call,
-			// call: Box::new(decoded_call.into()),
-			// call: Box::new(wrapped_call.into()),
 		}
 		.into();
 
