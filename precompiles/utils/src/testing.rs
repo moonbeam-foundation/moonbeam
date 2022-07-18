@@ -311,15 +311,6 @@ impl<'p, P: PrecompileSet> PrecompilesTester<'p, P> {
 		self.assert_optionals();
 	}
 
-	/// Execute the precompile set and check it returns provided output.
-	pub fn execute_returns2(mut self, output: Vec<u8>) {
-		let res = self.execute();
-		println!("{:?}", res);
-		if let Some(Err(PrecompileFailure::Revert { output, ..})) = res {
-			println!(">> {:?}", std::str::from_utf8(&output));
-		};
-	}
-
 	/// Execute the precompile set and check if it reverts.
 	/// Take a closure allowing to perform custom matching on the output.
 	pub fn execute_reverts(mut self, check: impl Fn(&[u8]) -> bool) {

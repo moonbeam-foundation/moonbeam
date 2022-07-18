@@ -22,15 +22,19 @@ use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use frame_support::sp_runtime::traits::Hash;
 use pallet_evm::AddressMapping;
 use pallet_proxy::Call as ProxyCall;
+use parity_scale_codec::{Decode, DecodeLimit};
 use precompile_utils::data::{Address, Bytes};
 use precompile_utils::prelude::*;
-use sp_core::{Decode, H160, H256};
+use sp_core::{H160, H256};
 use sp_std::{fmt::Debug, marker::PhantomData};
 
 #[cfg(test)]
 mod mock;
 #[cfg(test)]
 mod tests;
+
+/// Max recursion depth to enforce while decoding an extrinsic call.
+const MAX_CALL_DECODE_DEPTH: u32 = 8;
 
 #[generate_function_selector]
 #[derive(Debug, PartialEq)]
@@ -115,12 +119,12 @@ where
 		input: &mut EvmDataReader,
 	) -> Result<Box<<Runtime as pallet_proxy::Config>::Call>, PrecompileFailure> {
 		let wrapped_call: Vec<u8> = input.read::<Bytes>()?.into();
-		let mut decoded_call: xcm::DoubleEncoded<<Runtime as frame_system::Config>::Call> =
-			wrapped_call.into();
-		decoded_call
-			.take_decoded()
-			.map(|c| Box::new(c.into()))
-			.map_err(|_| revert("failed decoding call"))
+		<Runtime as frame_system::Config>::Call::decode_all_with_depth_limit(
+			MAX_CALL_DECODE_DEPTH,
+			&mut &wrapped_call[..],
+		)
+		.map(|c| Box::new(c.into()))
+		.map_err(|_| revert("failed decoding wrapped call"))
 	}
 
 	/// Dispatch the given call from an account that the sender is authorised for through add_proxy.
