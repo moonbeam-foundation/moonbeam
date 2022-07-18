@@ -27,10 +27,10 @@ substrate-prometheus-endpoint = { git = "https://github.com/paritytech/substrate
 try-runtime-cli = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23", optional = true }
 
 # Cumulus / Nimbus
-cumulus-client-cli = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.23" }
-cumulus-client-service = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.23" }
-cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.23" }
-nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.23" }
+cumulus-client-cli = { git = "https://github.com/purestake/cumulus", branch = "girazoki-investigation" }
+cumulus-client-service = { git = "https://github.com/purestake/cumulus", branch = "girazoki-investigation" }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "girazoki-investigation" }
+nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "girazoki-investigation" }
 
 # Polkadot
 polkadot-cli = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.23" }

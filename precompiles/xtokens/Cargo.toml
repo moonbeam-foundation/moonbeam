@@ -26,7 +26,7 @@ frame-system = { git = "https://github.com/paritytech/substrate", branch = "polk
 pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.23", default-features = false }
 
 # Polkadot / XCM
-orml-xtokens = { git = "https://github.com/purestake/open-runtime-module-library", branch = "moonbeam-polkadot-v0.9.23", default-features = false }
+orml-xtokens = { git = "https://github.com/purestake/open-runtime-module-library", branch = "girazoki-investigation", default-features = false }
 xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.23", default-features = false }
 
 [dev-dependencies]
@@ -45,10 +45,10 @@ scale-info = { version = "2.0", features = [ "derive" ] }
 sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
 
 # Cumulus
-cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.23" }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "girazoki-investigation" }
 
 # Polkadot
-orml-traits = { git = "https://github.com/purestake/open-runtime-module-library", branch = "moonbeam-polkadot-v0.9.23" }
+orml-traits = { git = "https://github.com/purestake/open-runtime-module-library", branch = "girazoki-investigation" }
 pallet-xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.23" }
 xcm-builder = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.23" }
 xcm-executor = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.23" }

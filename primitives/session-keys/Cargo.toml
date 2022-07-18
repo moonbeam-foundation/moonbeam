@@ -8,7 +8,7 @@ version = "0.1.0"
 [dependencies]
 async-trait = { version = "0.1", optional = true }
 frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23", default-features = false }
-nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.23", default-features = false }
+nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "girazoki-investigation", default-features = false }
 parity-scale-codec = { version = "3.0.0", default-features = false, features = [ "derive" ] }
 scale-info = { version = "2.0", default-features = false, features = [ "derive" ] }
 sp-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23", default-features = false }

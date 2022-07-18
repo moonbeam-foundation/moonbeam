@@ -1511,7 +1511,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-cli"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.23#a8637639267afc5bacf0288c038bc6d28acd73aa"
+source = "git+https://github.com/purestake/cumulus?branch=girazoki-investigation#285022cb6f036a8cef408d9123ee0637d754350f"
 dependencies = [
  "clap 3.1.18",
  "sc-cli",
@@ -1522,11 +1522,11 @@ dependencies = [
 [[package]]
 name = "cumulus-client-collator"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.23#a8637639267afc5bacf0288c038bc6d28acd73aa"
+source = "git+https://github.com/purestake/cumulus?branch=girazoki-investigation#285022cb6f036a8cef408d9123ee0637d754350f"
 dependencies = [
  "cumulus-client-consensus-common",
  "cumulus-client-network",
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=girazoki-investigation)",
  "cumulus-relay-chain-interface",
  "futures 0.3.21",
  "parity-scale-codec",
@@ -1546,7 +1546,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-consensus-common"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.23#a8637639267afc5bacf0288c038bc6d28acd73aa"
+source = "git+https://github.com/purestake/cumulus?branch=girazoki-investigation#285022cb6f036a8cef408d9123ee0637d754350f"
 dependencies = [
  "async-trait",
  "cumulus-relay-chain-interface",
@@ -1567,11 +1567,11 @@ dependencies = [
 [[package]]
 name = "cumulus-client-consensus-relay-chain"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.23#a8637639267afc5bacf0288c038bc6d28acd73aa"
+source = "git+https://github.com/purestake/cumulus?branch=girazoki-investigation#285022cb6f036a8cef408d9123ee0637d754350f"
 dependencies = [
  "async-trait",
  "cumulus-client-consensus-common",
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=girazoki-investigation)",
  "cumulus-relay-chain-interface",
  "futures 0.3.21",
  "parking_lot 0.12.1",
@@ -1591,7 +1591,7 @@ dependencies = [
 [[package]]
 name = "cumulus-client-network"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.23#a8637639267afc5bacf0288c038bc6d28acd73aa"
+source = "git+https://github.com/purestake/cumulus?branch=girazoki-investigation#285022cb6f036a8cef408d9123ee0637d754350f"
 dependencies = [
  "async-trait",
  "cumulus-relay-chain-interface",
@@ -1616,9 +1616,9 @@ dependencies = [
 [[package]]
 name = "cumulus-client-pov-recovery"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.23#a8637639267afc5bacf0288c038bc6d28acd73aa"
+source = "git+https://github.com/purestake/cumulus?branch=girazoki-investigation#285022cb6f036a8cef408d9123ee0637d754350f"
 dependencies = [
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=girazoki-investigation)",
  "cumulus-relay-chain-interface",
  "futures 0.3.21",
  "futures-timer",
@@ -1640,13 +1640,13 @@ dependencies = [
 [[package]]
 name = "cumulus-client-service"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.23#a8637639267afc5bacf0288c038bc6d28acd73aa"
+source = "git+https://github.com/purestake/cumulus?branch=girazoki-investigation#285022cb6f036a8cef408d9123ee0637d754350f"
 dependencies = [
  "cumulus-client-cli",
  "cumulus-client-collator",
  "cumulus-client-consensus-common",
  "cumulus-client-pov-recovery",
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=girazoki-investigation)",
  "cumulus-relay-chain-interface",
  "parity-scale-codec",
  "parking_lot 0.12.1",
@@ -1670,9 +1670,9 @@ dependencies = [
 [[package]]
 name = "cumulus-pallet-dmp-queue"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.23#a8637639267afc5bacf0288c038bc6d28acd73aa"
+source = "git+https://github.com/purestake/cumulus?branch=girazoki-investigation#285022cb6f036a8cef408d9123ee0637d754350f"
 dependencies = [
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=girazoki-investigation)",
  "frame-support",
  "frame-system",
  "log",
@@ -1688,11 +1688,11 @@ dependencies = [
 [[package]]
 name = "cumulus-pallet-parachain-system"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.23#a8637639267afc5bacf0288c038bc6d28acd73aa"
+source = "git+https://github.com/purestake/cumulus?branch=girazoki-investigation#285022cb6f036a8cef408d9123ee0637d754350f"
 dependencies = [
  "cumulus-pallet-parachain-system-proc-macro",
- "cumulus-primitives-core",
- "cumulus-primitives-parachain-inherent",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=girazoki-investigation)",
+ "cumulus-primitives-parachain-inherent 0.1.0 (git+https://github.com/purestake/cumulus?branch=girazoki-investigation)",
  "environmental",
  "frame-support",
  "frame-system",
@@ -1718,7 +1718,7 @@ dependencies = [
 [[package]]
 name = "cumulus-pallet-parachain-system-proc-macro"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.23#a8637639267afc5bacf0288c038bc6d28acd73aa"
+source = "git+https://github.com/purestake/cumulus?branch=girazoki-investigation#285022cb6f036a8cef408d9123ee0637d754350f"
 dependencies = [
  "proc-macro-crate",
  "proc-macro2",
@@ -1729,9 +1729,9 @@ dependencies = [
 [[package]]
 name = "cumulus-pallet-xcm"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.23#a8637639267afc5bacf0288c038bc6d28acd73aa"
+source = "git+https://github.com/purestake/cumulus?branch=girazoki-investigation#285022cb6f036a8cef408d9123ee0637d754350f"
 dependencies = [
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=girazoki-investigation)",
  "frame-support",
  "frame-system",
  "parity-scale-codec",
@@ -1746,9 +1746,9 @@ dependencies = [
 [[package]]
 name = "cumulus-pallet-xcmp-queue"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.23#a8637639267afc5bacf0288c038bc6d28acd73aa"
+source = "git+https://github.com/purestake/cumulus?branch=girazoki-investigation#285022cb6f036a8cef408d9123ee0637d754350f"
 dependencies = [
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=girazoki-investigation)",
  "frame-support",
  "frame-system",
  "log",
@@ -1759,6 +1759,22 @@ dependencies = [
  "sp-std",
  "xcm",
  "xcm-executor",
+]
+
+[[package]]
+name = "cumulus-primitives-core"
+version = "0.1.0"
+source = "git+https://github.com/purestake/cumulus?branch=girazoki-investigation#285022cb6f036a8cef408d9123ee0637d754350f"
+dependencies = [
+ "frame-support",
+ "parity-scale-codec",
+ "polkadot-core-primitives",
+ "polkadot-parachain",
+ "polkadot-primitives",
+ "sp-api",
+ "sp-runtime",
+ "sp-std",
+ "sp-trie",
 ]
 
 [[package]]
@@ -1780,12 +1796,12 @@ dependencies = [
 [[package]]
 name = "cumulus-primitives-parachain-inherent"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.23#a8637639267afc5bacf0288c038bc6d28acd73aa"
+source = "git+https://github.com/purestake/cumulus?branch=girazoki-investigation#285022cb6f036a8cef408d9123ee0637d754350f"
 dependencies = [
  "async-trait",
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=girazoki-investigation)",
  "cumulus-relay-chain-interface",
- "cumulus-test-relay-sproof-builder",
+ "cumulus-test-relay-sproof-builder 0.1.0 (git+https://github.com/purestake/cumulus?branch=girazoki-investigation)",
  "parity-scale-codec",
  "sc-client-api",
  "scale-info",
@@ -1801,11 +1817,25 @@ dependencies = [
 ]
 
 [[package]]
-name = "cumulus-primitives-timestamp"
+name = "cumulus-primitives-parachain-inherent"
 version = "0.1.0"
 source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.23#a8637639267afc5bacf0288c038bc6d28acd73aa"
 dependencies = [
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.23)",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-inherents",
+ "sp-std",
+ "sp-trie",
+]
+
+[[package]]
+name = "cumulus-primitives-timestamp"
+version = "0.1.0"
+source = "git+https://github.com/purestake/cumulus?branch=girazoki-investigation#285022cb6f036a8cef408d9123ee0637d754350f"
+dependencies = [
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=girazoki-investigation)",
  "futures 0.3.21",
  "parity-scale-codec",
  "sp-inherents",
@@ -1816,9 +1846,9 @@ dependencies = [
 [[package]]
 name = "cumulus-primitives-utility"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.23#a8637639267afc5bacf0288c038bc6d28acd73aa"
+source = "git+https://github.com/purestake/cumulus?branch=girazoki-investigation#285022cb6f036a8cef408d9123ee0637d754350f"
 dependencies = [
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=girazoki-investigation)",
  "frame-support",
  "parity-scale-codec",
  "polkadot-core-primitives",
@@ -1833,10 +1863,10 @@ dependencies = [
 [[package]]
 name = "cumulus-relay-chain-inprocess-interface"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.23#a8637639267afc5bacf0288c038bc6d28acd73aa"
+source = "git+https://github.com/purestake/cumulus?branch=girazoki-investigation#285022cb6f036a8cef408d9123ee0637d754350f"
 dependencies = [
  "async-trait",
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=girazoki-investigation)",
  "cumulus-relay-chain-interface",
  "futures 0.3.21",
  "futures-timer",
@@ -1864,10 +1894,10 @@ dependencies = [
 [[package]]
 name = "cumulus-relay-chain-interface"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.23#a8637639267afc5bacf0288c038bc6d28acd73aa"
+source = "git+https://github.com/purestake/cumulus?branch=girazoki-investigation#285022cb6f036a8cef408d9123ee0637d754350f"
 dependencies = [
  "async-trait",
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=girazoki-investigation)",
  "derive_more",
  "futures 0.3.21",
  "jsonrpsee-core",
@@ -1888,11 +1918,11 @@ dependencies = [
 [[package]]
 name = "cumulus-relay-chain-rpc-interface"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.23#a8637639267afc5bacf0288c038bc6d28acd73aa"
+source = "git+https://github.com/purestake/cumulus?branch=girazoki-investigation#285022cb6f036a8cef408d9123ee0637d754350f"
 dependencies = [
  "async-trait",
  "backoff",
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=girazoki-investigation)",
  "cumulus-relay-chain-interface",
  "futures 0.3.21",
  "futures-timer",
@@ -1914,9 +1944,22 @@ dependencies = [
 [[package]]
 name = "cumulus-test-relay-sproof-builder"
 version = "0.1.0"
+source = "git+https://github.com/purestake/cumulus?branch=girazoki-investigation#285022cb6f036a8cef408d9123ee0637d754350f"
+dependencies = [
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=girazoki-investigation)",
+ "parity-scale-codec",
+ "polkadot-primitives",
+ "sp-runtime",
+ "sp-state-machine",
+ "sp-std",
+]
+
+[[package]]
+name = "cumulus-test-relay-sproof-builder"
+version = "0.1.0"
 source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.23#a8637639267afc5bacf0288c038bc6d28acd73aa"
 dependencies = [
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.23)",
  "parity-scale-codec",
  "polkadot-primitives",
  "sp-runtime",
@@ -4852,7 +4895,7 @@ dependencies = [
 name = "manual-xcm-rpc"
 version = "0.1.0"
 dependencies = [
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=girazoki-investigation)",
  "flume",
  "futures 0.3.21",
  "hex-literal",
@@ -5037,11 +5080,11 @@ dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-pallet-xcm",
  "cumulus-pallet-xcmp-queue",
- "cumulus-primitives-core",
- "cumulus-primitives-parachain-inherent",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=girazoki-investigation)",
+ "cumulus-primitives-parachain-inherent 0.1.0 (git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.23)",
  "cumulus-primitives-timestamp",
  "cumulus-primitives-utility",
- "cumulus-test-relay-sproof-builder",
+ "cumulus-test-relay-sproof-builder 0.1.0 (git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.23)",
  "evm-tracing-events",
  "fp-evm",
  "fp-rpc",
@@ -5175,7 +5218,7 @@ dependencies = [
  "clap 3.1.18",
  "cumulus-client-cli",
  "cumulus-client-service",
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=girazoki-investigation)",
  "frame-benchmarking-cli",
  "log",
  "moonbeam-cli-opt",
@@ -5289,7 +5332,7 @@ dependencies = [
 name = "moonbeam-relay-encoder"
 version = "0.1.0"
 dependencies = [
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=girazoki-investigation)",
  "frame-support",
  "frame-system",
  "kusama-runtime",
@@ -5475,11 +5518,11 @@ dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-pallet-xcm",
  "cumulus-pallet-xcmp-queue",
- "cumulus-primitives-core",
- "cumulus-primitives-parachain-inherent",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=girazoki-investigation)",
+ "cumulus-primitives-parachain-inherent 0.1.0 (git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.23)",
  "cumulus-primitives-timestamp",
  "cumulus-primitives-utility",
- "cumulus-test-relay-sproof-builder",
+ "cumulus-test-relay-sproof-builder 0.1.0 (git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.23)",
  "evm-tracing-events",
  "fp-evm",
  "fp-rpc",
@@ -5623,12 +5666,12 @@ dependencies = [
  "cumulus-client-consensus-relay-chain",
  "cumulus-client-network",
  "cumulus-client-service",
- "cumulus-primitives-core",
- "cumulus-primitives-parachain-inherent",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=girazoki-investigation)",
+ "cumulus-primitives-parachain-inherent 0.1.0 (git+https://github.com/purestake/cumulus?branch=girazoki-investigation)",
  "cumulus-relay-chain-inprocess-interface",
  "cumulus-relay-chain-interface",
  "cumulus-relay-chain-rpc-interface",
- "cumulus-test-relay-sproof-builder",
+ "cumulus-test-relay-sproof-builder 0.1.0 (git+https://github.com/purestake/cumulus?branch=girazoki-investigation)",
  "derive_more",
  "exit-future",
  "fc-consensus",
@@ -5764,11 +5807,11 @@ dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-pallet-xcm",
  "cumulus-pallet-xcmp-queue",
- "cumulus-primitives-core",
- "cumulus-primitives-parachain-inherent",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=girazoki-investigation)",
+ "cumulus-primitives-parachain-inherent 0.1.0 (git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.23)",
  "cumulus-primitives-timestamp",
  "cumulus-primitives-utility",
- "cumulus-test-relay-sproof-builder",
+ "cumulus-test-relay-sproof-builder 0.1.0 (git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.23)",
  "evm-tracing-events",
  "fp-evm",
  "fp-rpc",
@@ -6073,12 +6116,12 @@ dependencies = [
 [[package]]
 name = "nimbus-consensus"
 version = "0.9.0"
-source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.23#d553864f7f970de6b5a291b90910e89e2d2b7524"
+source = "git+https://github.com/purestake/nimbus?branch=girazoki-investigation#1e1da38fae8d7139502ddd8739743ed1afa920b3"
 dependencies = [
  "async-trait",
  "cumulus-client-consensus-common",
- "cumulus-primitives-core",
- "cumulus-primitives-parachain-inherent",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=girazoki-investigation)",
+ "cumulus-primitives-parachain-inherent 0.1.0 (git+https://github.com/purestake/cumulus?branch=girazoki-investigation)",
  "futures 0.3.21",
  "log",
  "nimbus-primitives",
@@ -6104,7 +6147,7 @@ dependencies = [
 [[package]]
 name = "nimbus-primitives"
 version = "0.9.0"
-source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.23#d553864f7f970de6b5a291b90910e89e2d2b7524"
+source = "git+https://github.com/purestake/nimbus?branch=girazoki-investigation#1e1da38fae8d7139502ddd8739743ed1afa920b3"
 dependencies = [
  "async-trait",
  "frame-benchmarking",
@@ -6393,7 +6436,7 @@ dependencies = [
 [[package]]
 name = "orml-traits"
 version = "0.4.1-dev"
-source = "git+https://github.com/purestake/open-runtime-module-library?branch=moonbeam-polkadot-v0.9.23#599ae0ec7186fd4e1bc2be1b4a0493bfda685c76"
+source = "git+https://github.com/purestake/open-runtime-module-library?branch=girazoki-investigation#794da47385a00e58511698f0512ffcef80581253"
 dependencies = [
  "frame-support",
  "impl-trait-for-tuples",
@@ -6411,7 +6454,7 @@ dependencies = [
 [[package]]
 name = "orml-utilities"
 version = "0.4.1-dev"
-source = "git+https://github.com/purestake/open-runtime-module-library?branch=moonbeam-polkadot-v0.9.23#599ae0ec7186fd4e1bc2be1b4a0493bfda685c76"
+source = "git+https://github.com/purestake/open-runtime-module-library?branch=girazoki-investigation#794da47385a00e58511698f0512ffcef80581253"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -6425,7 +6468,7 @@ dependencies = [
 [[package]]
 name = "orml-xcm-support"
 version = "0.4.1-dev"
-source = "git+https://github.com/purestake/open-runtime-module-library?branch=moonbeam-polkadot-v0.9.23#599ae0ec7186fd4e1bc2be1b4a0493bfda685c76"
+source = "git+https://github.com/purestake/open-runtime-module-library?branch=girazoki-investigation#794da47385a00e58511698f0512ffcef80581253"
 dependencies = [
  "frame-support",
  "orml-traits",
@@ -6439,9 +6482,9 @@ dependencies = [
 [[package]]
 name = "orml-xtokens"
 version = "0.4.1-dev"
-source = "git+https://github.com/purestake/open-runtime-module-library?branch=moonbeam-polkadot-v0.9.23#599ae0ec7186fd4e1bc2be1b4a0493bfda685c76"
+source = "git+https://github.com/purestake/open-runtime-module-library?branch=girazoki-investigation#794da47385a00e58511698f0512ffcef80581253"
 dependencies = [
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=girazoki-investigation)",
  "frame-support",
  "frame-system",
  "orml-traits",
@@ -6508,7 +6551,7 @@ dependencies = [
 [[package]]
 name = "pallet-author-inherent"
 version = "0.9.0"
-source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.23#d553864f7f970de6b5a291b90910e89e2d2b7524"
+source = "git+https://github.com/purestake/nimbus?branch=girazoki-investigation#1e1da38fae8d7139502ddd8739743ed1afa920b3"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6548,7 +6591,7 @@ dependencies = [
 [[package]]
 name = "pallet-author-slot-filter"
 version = "0.9.0"
-source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.23#d553864f7f970de6b5a291b90910e89e2d2b7524"
+source = "git+https://github.com/purestake/nimbus?branch=girazoki-investigation#1e1da38fae8d7139502ddd8739743ed1afa920b3"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6817,11 +6860,11 @@ dependencies = [
 [[package]]
 name = "pallet-crowdloan-rewards"
 version = "0.6.0"
-source = "git+https://github.com/purestake/crowdloan-rewards?branch=moonbeam-polkadot-v0.9.23#9447c7075bf606c815cd8acd5d4f54579dc33de5"
+source = "git+https://github.com/purestake/crowdloan-rewards?branch=girazoki-investigation#82c5ee0ce79027c41d65126730d20bd5e3ecce1a"
 dependencies = [
  "cumulus-pallet-parachain-system",
- "cumulus-primitives-core",
- "cumulus-primitives-parachain-inherent",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=girazoki-investigation)",
+ "cumulus-primitives-parachain-inherent 0.1.0 (git+https://github.com/purestake/cumulus?branch=girazoki-investigation)",
  "ed25519-dalek",
  "frame-benchmarking",
  "frame-support",
@@ -7122,9 +7165,9 @@ name = "pallet-evm-precompile-crowdloan-rewards"
 version = "0.6.0"
 dependencies = [
  "cumulus-pallet-parachain-system",
- "cumulus-primitives-core",
- "cumulus-primitives-parachain-inherent",
- "cumulus-test-relay-sproof-builder",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=girazoki-investigation)",
+ "cumulus-primitives-parachain-inherent 0.1.0 (git+https://github.com/purestake/cumulus?branch=girazoki-investigation)",
+ "cumulus-test-relay-sproof-builder 0.1.0 (git+https://github.com/purestake/cumulus?branch=girazoki-investigation)",
  "derive_more",
  "fp-evm",
  "frame-support",
@@ -7254,7 +7297,7 @@ name = "pallet-evm-precompile-relay-encoder"
 version = "0.1.0"
 dependencies = [
  "cumulus-pallet-parachain-system",
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=girazoki-investigation)",
  "derive_more",
  "fp-evm",
  "frame-support",
@@ -7301,7 +7344,7 @@ dependencies = [
 name = "pallet-evm-precompile-xcm-transactor"
 version = "0.1.0"
 dependencies = [
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=girazoki-investigation)",
  "derive_more",
  "evm",
  "fp-evm",
@@ -7335,7 +7378,7 @@ dependencies = [
 name = "pallet-evm-precompile-xtokens"
 version = "0.1.0"
 dependencies = [
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=girazoki-investigation)",
  "derive_more",
  "fp-evm",
  "frame-support",
@@ -7486,7 +7529,7 @@ dependencies = [
 name = "pallet-maintenance-mode"
 version = "0.1.0"
 dependencies = [
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=girazoki-investigation)",
  "frame-support",
  "frame-system",
  "log",
@@ -8015,7 +8058,7 @@ dependencies = [
 name = "pallet-xcm-transactor"
 version = "0.1.0"
 dependencies = [
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=girazoki-investigation)",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
@@ -8040,9 +8083,9 @@ dependencies = [
 [[package]]
 name = "parachain-info"
 version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.23#a8637639267afc5bacf0288c038bc6d28acd73aa"
+source = "git+https://github.com/purestake/cumulus?branch=girazoki-investigation#285022cb6f036a8cef408d9123ee0637d754350f"
 dependencies = [
- "cumulus-primitives-core",
+ "cumulus-primitives-core 0.1.0 (git+https://github.com/purestake/cumulus?branch=girazoki-investigation)",
  "frame-support",
  "frame-system",
  "parity-scale-codec",
