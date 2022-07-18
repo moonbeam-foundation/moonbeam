@@ -7,6 +7,7 @@ import { expect } from "chai";
 
 import { alith, baltathar, generateKeyringPair } from "../../util/accounts";
 import { PARA_2000_SOURCE_LOCATION } from "../../util/assets";
+import { registerForeignAsset } from "../../util/xcm";
 import { customWeb3Request } from "../../util/providers";
 
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
@@ -57,39 +58,14 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
 
   before("Should Register an asset and set unit per sec", async function () {
     // registerForeignAsset
-    const {
-      result: { events: eventsRegister },
-    } = await context.createBlock(
-      context.polkadotApi.tx.sudo.sudo(
-        context.polkadotApi.tx.assetManager.registerForeignAsset(
-          PARA_2000_SOURCE_LOCATION,
-          assetMetadata,
-          new BN(1),
-          true
-        )
-      )
+    const { registeredAssetId, events, registeredAsset } = await registerForeignAsset(
+      context,
+      PARA_2000_SOURCE_LOCATION,
+      assetMetadata
     );
-    // Look for assetId in events
-    assetId = eventsRegister
-      .find(({ event: { section } }) => section.toString() === "assetManager")
-      .event.data[0].toHex()
-      .replace(/,/g, "");
-
-    // setAssetUnitsPerSecond
-    const {
-      result: { events },
-    } = await context.createBlock(
-      context.polkadotApi.tx.sudo.sudo(
-        context.polkadotApi.tx.assetManager.setAssetUnitsPerSecond(PARA_2000_SOURCE_LOCATION, 0, 0)
-      )
-    );
+    assetId = registeredAssetId;
     expect(events[1].event.method.toString()).to.eq("UnitsPerSecondChanged");
     expect(events[4].event.method.toString()).to.eq("ExtrinsicSuccess");
-
-    // check asset in storage
-    const registeredAsset = (
-      (await context.polkadotApi.query.assets.asset(assetId)) as any
-    ).unwrap();
     expect(registeredAsset.owner.toHex()).to.eq(palletId.toLowerCase());
   });
 
@@ -117,40 +93,14 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
 
   before("Should Register an asset and set unit per sec", async function () {
     // registerForeignAsset
-    // We register statemine with the new prefix
-    const {
-      result: { events: eventsRegister },
-    } = await context.createBlock(
-      context.polkadotApi.tx.sudo.sudo(
-        context.polkadotApi.tx.assetManager.registerForeignAsset(
-          STATEMINT_LOCATION,
-          assetMetadata,
-          new BN(1),
-          true
-        )
-      )
+    const { registeredAssetId, events, registeredAsset } = await registerForeignAsset(
+      context,
+      STATEMINT_LOCATION,
+      assetMetadata
     );
-    // Look for assetId in events
-    assetId = eventsRegister
-      .find(({ event: { section } }) => section.toString() === "assetManager")
-      .event.data[0].toHex()
-      .replace(/,/g, "");
-
-    // setAssetUnitsPerSecond
-    const {
-      result: { events },
-    } = await context.createBlock(
-      context.polkadotApi.tx.sudo.sudo(
-        context.polkadotApi.tx.assetManager.setAssetUnitsPerSecond(STATEMINT_LOCATION, 0, 0)
-      )
-    );
+    assetId = registeredAssetId;
     expect(events[1].event.method.toString()).to.eq("UnitsPerSecondChanged");
     expect(events[4].event.method.toString()).to.eq("ExtrinsicSuccess");
-
-    // check asset in storage
-    const registeredAsset = (
-      (await context.polkadotApi.query.assets.asset(assetId)) as any
-    ).unwrap();
     expect(registeredAsset.owner.toHex()).to.eq(palletId.toLowerCase());
   });
 
@@ -240,39 +190,14 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
 
   before("Should Register an asset and set unit per sec", async function () {
     // registerForeignAsset
-    const {
-      result: { events: eventsRegister },
-    } = await context.createBlock(
-      context.polkadotApi.tx.sudo.sudo(
-        context.polkadotApi.tx.assetManager.registerForeignAsset(
-          STATEMINT_LOCATION,
-          assetMetadata,
-          new BN(1),
-          true
-        )
-      )
+    const { registeredAssetId, events, registeredAsset } = await registerForeignAsset(
+      context,
+      STATEMINT_LOCATION,
+      assetMetadata
     );
-    // Look for assetId in events
-    assetId = eventsRegister
-      .find(({ event: { section } }) => section.toString() === "assetManager")
-      .event.data[0].toHex()
-      .replace(/,/g, "");
-
-    // setAssetUnitsPerSecond
-    const {
-      result: { events },
-    } = await context.createBlock(
-      context.polkadotApi.tx.sudo.sudo(
-        context.polkadotApi.tx.assetManager.setAssetUnitsPerSecond(STATEMINT_LOCATION, 0, 0)
-      )
-    );
+    assetId = registeredAssetId;
     expect(events[1].event.method.toString()).to.eq("UnitsPerSecondChanged");
     expect(events[4].event.method.toString()).to.eq("ExtrinsicSuccess");
-
-    // check asset in storage
-    const registeredAsset = (
-      (await context.polkadotApi.query.assets.asset(assetId)) as any
-    ).unwrap();
     expect(registeredAsset.owner.toHex()).to.eq(palletId.toLowerCase());
   });
 
@@ -779,69 +704,21 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
   before(
     "Should Register two asset from same para but set unit per sec for one",
     async function () {
-      // registerAsset Asset 0
-      // We register statemine with the new prefix
+      // registerForeignAsset 0
+      const { registeredAssetId: registeredAssetIdZero, registeredAsset: registeredAssetZero } =
+        await registerForeignAsset(context, STATEMINT_LOCATION, assetMetadata);
+      assetIdZero = registeredAssetIdZero;
+      // registerForeignAsset 1
       const {
-        result: { events: eventsRegisterZero },
-      } = await context.createBlock(
-        context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.assetManager.registerForeignAsset(
-            STATEMINT_LOCATION,
-            assetMetadata,
-            new BN(1),
-            true
-          )
-        )
-      );
-      // Look for assetId in events
-      assetIdZero = eventsRegisterZero
-        .find(({ event: { section } }) => section.toString() === "assetManager")
-        .event.data[0].toHex()
-        .replace(/,/g, "");
+        registeredAssetId: registeredAssetIdOne,
+        events,
+        registeredAsset: registeredAssetOne,
+      } = await registerForeignAsset(context, STATEMINT_ASSET_ONE_LOCATION, assetMetadata, 0, 1);
+      assetIdOne = registeredAssetIdOne;
 
-      // registerAsset Asset 1
-      // We register statemine with the new prefix
-      const {
-        result: { events: eventsRegisterOne },
-      } = await context.createBlock(
-        context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.assetManager.registerForeignAsset(
-            STATEMINT_ASSET_ONE_LOCATION,
-            assetMetadata,
-            new BN(1),
-            true
-          )
-        )
-      );
-      // Look for assetId in events
-      assetIdOne = eventsRegisterOne
-        .find(({ event: { section } }) => section.toString() === "assetManager")
-        .event.data[0].toHex()
-        .replace(/,/g, "");
-
-      // setAssetUnitsPerSecond.We only set it for statemintLocationAssetOne
-      const {
-        result: { events },
-      } = await context.createBlock(
-        context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.assetManager.setAssetUnitsPerSecond(
-            STATEMINT_ASSET_ONE_LOCATION,
-            0,
-            0
-          )
-        )
-      );
       expect(events[1].event.method.toString()).to.eq("UnitsPerSecondChanged");
       expect(events[4].event.method.toString()).to.eq("ExtrinsicSuccess");
-
-      // check assets in storage
-      const registeredAssetZero = (
-        (await context.polkadotApi.query.assets.asset(assetIdZero)) as any
-      ).unwrap();
       expect(registeredAssetZero.owner.toHex()).to.eq(palletId.toLowerCase());
-      const registeredAssetOne = (
-        (await context.polkadotApi.query.assets.asset(assetIdZero)) as any
-      ).unwrap();
       expect(registeredAssetOne.owner.toHex()).to.eq(palletId.toLowerCase());
     }
   );
@@ -1119,34 +996,17 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
 });
 
 describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
-  let assetIdZero: string;
+  let assetId: string;
 
   before("Should register one asset without setting units per second", async function () {
-    // registerAsset Asset 0
-    // We register statemine with the new prefix
-    const {
-      result: { events: eventsRegisterZero },
-    } = await context.createBlock(
-      context.polkadotApi.tx.sudo.sudo(
-        context.polkadotApi.tx.assetManager.registerForeignAsset(
-          STATEMINT_LOCATION,
-          assetMetadata,
-          new BN(1),
-          true
-        )
-      )
+    // registerForeignAsset
+    const { registeredAssetId, events, registeredAsset } = await registerForeignAsset(
+      context,
+      STATEMINT_LOCATION,
+      assetMetadata
     );
-    // Look for assetId in events
-    assetIdZero = eventsRegisterZero
-      .find(({ event: { section } }) => section.toString() === "assetManager")
-      .event.data[0].toHex()
-      .replace(/,/g, "");
-
-    // check assets in storage
-    const registeredAssetZero = (
-      (await context.polkadotApi.query.assets.asset(assetIdZero)) as any
-    ).unwrap();
-    expect(registeredAssetZero.owner.toHex()).to.eq(palletId.toLowerCase());
+    assetId = registeredAssetId;
+    expect(registeredAsset.owner.toHex()).to.eq(palletId.toLowerCase());
   });
 
   it("Should not receive 10 asset 0 tokens because fee not supported ", async function () {
@@ -1216,7 +1076,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
 
     // Make sure the state has ALITH's foreign parachain tokens
     let alithAssetZeroBalance = (await context.polkadotApi.query.assets.account(
-      assetIdZero,
+      assetId,
       alith.address
     )) as any;
 

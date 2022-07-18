@@ -4,7 +4,8 @@ import { BN } from "@polkadot/util";
 import { expect } from "chai";
 
 import { alith } from "../../util/accounts";
-import { RELAY_SOURCE_LOCATION } from "../../util/assets";
+import { RELAY_SOURCE_LOCATION, relayAssetMetadata } from "../../util/assets";
+import { registerForeignAsset } from "../../util/xcm";
 import { customWeb3Request } from "../../util/providers";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 
@@ -13,51 +14,19 @@ const RELAY_TOKEN = 1_000_000_000_000n;
 
 const palletId = "0x6D6f646c617373746d6E67720000000000000000";
 
-const assetMetadata = {
-  name: "DOT",
-  symbol: "DOT",
-  decimals: new BN(12),
-  isFrozen: false,
-};
-
 describeDevMoonbeam("Mock XCM - receive downward transfer", (context) => {
   let assetId: string;
 
   before("Should Register an asset and set unit per sec", async function () {
     // registerForeignAsset
-    const {
-      result: { events: eventsRegister },
-    } = await context.createBlock(
-      context.polkadotApi.tx.sudo.sudo(
-        context.polkadotApi.tx.assetManager.registerForeignAsset(
-          RELAY_SOURCE_LOCATION,
-          assetMetadata,
-          new BN(1),
-          true
-        )
-      )
+    const { registeredAssetId, events, registeredAsset } = await registerForeignAsset(
+      context,
+      RELAY_SOURCE_LOCATION,
+      relayAssetMetadata
     );
-    // Look for assetId in events
-    assetId = eventsRegister
-      .find(({ event: { section } }) => section.toString() === "assetManager")
-      .event.data[0].toHex()
-      .replace(/,/g, "");
-
-    // setAssetUnitsPerSecond
-    const {
-      result: { events },
-    } = await context.createBlock(
-      context.polkadotApi.tx.sudo.sudo(
-        context.polkadotApi.tx.assetManager.setAssetUnitsPerSecond(RELAY_SOURCE_LOCATION, 0, 0)
-      )
-    );
+    assetId = registeredAssetId;
     expect(events[1].event.method.toString()).to.eq("UnitsPerSecondChanged");
     expect(events[4].event.method.toString()).to.eq("ExtrinsicSuccess");
-
-    // check asset in storage
-    const registeredAsset = (
-      (await context.polkadotApi.query.assets.asset(assetId)) as any
-    ).unwrap();
     expect(registeredAsset.owner.toHex()).to.eq(palletId.toLowerCase());
   });
 
