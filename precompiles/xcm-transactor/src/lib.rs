@@ -97,9 +97,6 @@ where
 			| Action::DeprecatedTransactThroughDerivative
 			| Action::DeprecatedTransactThroughSignedMultiLocation
 			| Action::DeprecatedTransactThroughSigned => FunctionModifier::NonPayable,
-			Action::TransactThroughSignedMultiLocation | Action::TransactThroughSigned => {
-				FunctionModifier::NonPayable
-			}
 			_ => FunctionModifier::View,
 		})?;
 
