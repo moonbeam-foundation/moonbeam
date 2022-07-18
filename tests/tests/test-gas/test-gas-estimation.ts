@@ -126,10 +126,12 @@ describeDevMoonbeamAllEthTxTypes("Estimate Gas - Contract estimation", (context)
 
 describeDevMoonbeamAllEthTxTypes("Estimate Gas - Contract estimation", (context) => {
   it(`evm should return invalid opcode`, async function () {
-    let estimate = await customWeb3Request(context.web3, "eth_estimateGas", [{
-      from: alith.address,
-      data: "0xe4"
-    }]);
+    let estimate = await customWeb3Request(context.web3, "eth_estimateGas", [
+      {
+        from: alith.address,
+        data: "0xe4",
+      },
+    ]);
     expect((estimate.error as any).message).to.equal("evm error: InvalidCode(Opcode(228))");
   });
 });
