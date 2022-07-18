@@ -2,7 +2,7 @@
 name = "moonbeam-cli"
 authors = [ "PureStake" ]
 edition = "2021"
-version = "0.24.0"
+version = "0.25.0"
 
 [dependencies]
 clap = { version = "3.1", features = [ "derive" ] }
@@ -56,3 +56,5 @@ try-runtime = [
 	"try-runtime-cli",
 ]
 wasmtime = [ "sc-cli/wasmtime" ]
+
+moonbase-runtime-benchmarks = [ "service/moonbase-runtime-benchmarks" ]

@@ -208,8 +208,7 @@ export function describeDevMoonbeam(
                       phase.isApplyExtrinsic &&
                       section == "ethereum" &&
                       method == "Executed" &&
-                      data[3].toString() &&
-                      result.hash
+                      data[2].toString() == result.hash
                   )
                   ?.phase?.asApplyExtrinsic?.toNumber()
               : blockData.block.extrinsics.findIndex((ext) => ext.hash.toHex() == result.hash);
@@ -218,15 +217,15 @@ export function describeDevMoonbeam(
             ({ phase }) =>
               phase.isApplyExtrinsic && phase.asApplyExtrinsic.toNumber() === extrinsicIndex
           );
-          const failed = extractError(events);
+          const failure = extractError(events);
           return {
             extrinsic: extrinsicIndex >= 0 ? blockData.block.extrinsics[extrinsicIndex] : null,
             events,
             error:
-              failed &&
-              ((failed.isModule && context.polkadotApi.registry.findMetaError(failed.asModule)) ||
-                ({ name: failed.toString() } as RegistryError)),
-            successful: !failed,
+              failure &&
+              ((failure.isModule && context.polkadotApi.registry.findMetaError(failure.asModule)) ||
+                ({ name: failure.toString() } as RegistryError)),
+            successful: extrinsicIndex !== undefined && !failure,
             hash: result.hash,
           };
         });

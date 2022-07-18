@@ -69,10 +69,14 @@ describeDevMoonbeam("TxPool - Ethereum Contract Call", (context) => {
 
     txHash = (
       await customWeb3Request(context.web3, "eth_sendRawTransaction", [
-        await createContractExecution(context, {
-          contract,
-          contractCall: contract.methods.multiply(5),
-        }),
+        await createContractExecution(
+          context,
+          {
+            contract,
+            contractCall: contract.methods.multiply(5),
+          },
+          { gas: 12000000 }
+        ),
       ])
     ).result;
   });

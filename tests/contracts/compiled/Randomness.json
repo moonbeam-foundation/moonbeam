@@ -1,0 +1,324 @@
+{
+  "byteCode": "0x",
+  "contract": {
+    "abi": [
+      {
+        "anonymous": false,
+        "inputs": [],
+        "name": "FulFillmentFailed",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [],
+        "name": "FulFillmentSucceeded",
+        "type": "event"
+      },
+      {
+        "inputs": [
+          { "internalType": "uint256", "name": "requestId", "type": "uint256" }
+        ],
+        "name": "fulfillRequest",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "uint256", "name": "requestId", "type": "uint256" }
+        ],
+        "name": "getRequest",
+        "outputs": [
+          {
+            "components": [
+              { "internalType": "uint256", "name": "id", "type": "uint256" },
+              {
+                "internalType": "address",
+                "name": "refundAddress",
+                "type": "address"
+              },
+              {
+                "internalType": "address",
+                "name": "contractAddress",
+                "type": "address"
+              },
+              { "internalType": "uint256", "name": "fee", "type": "uint256" },
+              {
+                "internalType": "uint256",
+                "name": "gasLimit",
+                "type": "uint256"
+              },
+              { "internalType": "bytes32", "name": "salt", "type": "bytes32" },
+              {
+                "internalType": "uint32",
+                "name": "numWords",
+                "type": "uint32"
+              },
+              {
+                "internalType": "enum Randomness.RandomnessSource",
+                "name": "randomnessSource",
+                "type": "uint8"
+              },
+              {
+                "internalType": "uint32",
+                "name": "fulfillmentBlock",
+                "type": "uint32"
+              },
+              {
+                "internalType": "uint32",
+                "name": "fulfillmentEpochIndex",
+                "type": "uint32"
+              },
+              {
+                "internalType": "uint32",
+                "name": "expirationBlock",
+                "type": "uint32"
+              },
+              {
+                "internalType": "uint32",
+                "name": "expirationEpochIndex",
+                "type": "uint32"
+              },
+              {
+                "internalType": "enum Randomness.RequestStatus",
+                "name": "status",
+                "type": "uint8"
+              }
+            ],
+            "internalType": "struct Randomness.Request",
+            "name": "request",
+            "type": "tuple"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "uint256", "name": "requestId", "type": "uint256" }
+        ],
+        "name": "getRequestStatus",
+        "outputs": [
+          {
+            "internalType": "enum Randomness.RequestStatus",
+            "name": "status",
+            "type": "uint8"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "uint256", "name": "requestId", "type": "uint256" },
+          {
+            "internalType": "uint256",
+            "name": "feeIncrease",
+            "type": "uint256"
+          }
+        ],
+        "name": "increaseRequestFee",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "uint256", "name": "requestId", "type": "uint256" }
+        ],
+        "name": "purgeExpiredRequest",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "relayEpochIndex",
+        "outputs": [{ "internalType": "uint64", "name": "", "type": "uint64" }],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "refundAddress",
+            "type": "address"
+          },
+          { "internalType": "uint256", "name": "fee", "type": "uint256" },
+          { "internalType": "uint64", "name": "gasLimit", "type": "uint64" },
+          { "internalType": "bytes32", "name": "salt", "type": "bytes32" },
+          { "internalType": "uint8", "name": "numWords", "type": "uint8" },
+          { "internalType": "uint64", "name": "delay", "type": "uint64" }
+        ],
+        "name": "requestLocalVRFRandomWords",
+        "outputs": [
+          { "internalType": "uint256", "name": "", "type": "uint256" }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "refundAddress",
+            "type": "address"
+          },
+          { "internalType": "uint256", "name": "fee", "type": "uint256" },
+          { "internalType": "uint64", "name": "gasLimit", "type": "uint64" },
+          { "internalType": "bytes32", "name": "salt", "type": "bytes32" },
+          { "internalType": "uint8", "name": "numWords", "type": "uint8" }
+        ],
+        "name": "requestRelayBabeEpochRandomWords",
+        "outputs": [
+          { "internalType": "uint256", "name": "", "type": "uint256" }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "requiredDeposit",
+        "outputs": [
+          { "internalType": "uint256", "name": "", "type": "uint256" }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      }
+    ],
+    "devdoc": {
+      "kind": "dev",
+      "methods": {
+        "fulfillRequest(uint256)": {
+          "details": "fulFill the request which will call the contract method \"fulfillRandomWords\"Fees of the caller are refunded if the request is fulfillable",
+          "params": {
+            "requestId": "Request to be fulfilled (must be < 2**64) Selector: 9a91eb0d"
+          }
+        },
+        "getRequest(uint256)": {
+          "params": {
+            "requestId": "The id of the request to check (must be < 2**64)"
+          },
+          "returns": { "request": "The request Selector: c58343ef" }
+        },
+        "getRequestStatus(uint256)": {
+          "params": {
+            "requestId": "The id of the request to check (must be < 2**64)"
+          },
+          "returns": { "status": "Status of the request Selector: d8a4676f" }
+        },
+        "increaseRequestFee(uint256,uint256)": {
+          "params": {
+            "feeIncrease": "Amount to increase Selector: d0408a7f",
+            "requestId": "Request receiving the additional fees (must be < 2**64)"
+          }
+        },
+        "purgeExpiredRequest(uint256)": {
+          "params": {
+            "requestId": "Request to be purged (must be < 2**64) Selector: 1d26cbab"
+          }
+        },
+        "relayEpochIndex()": {
+          "details": "An epoch represents real time and not a block numberCurrently, time between epoch changes cannot be longer than:- Kusama/Westend/Rococo: 600 relay blocks (1 hour)- Polkadot: 2400 relay blocks (4 hours) Selector: 81797566"
+        },
+        "requestLocalVRFRandomWords(address,uint256,uint64,bytes32,uint8,uint64)": {
+          "details": "This is using pseudo-random VRF executed by the collator at the fulfillmentWarning:The collator in charge of producing the block at fulfillment can decide to skipproducing the block in order to have a different random word generated by the nextcollator, at the cost of a block reward. It is therefore economically viable to usethis randomness source only if the financial reward at stake is lower than the blockreward.In order to reduce the risk of a collator being able to predict the random wordswhen the request is performed, it is possible to increase the delay to multiple blocksThe higher the delay is, the less likely the collator will be able to know whichcollator will be in charge of fulfilling the request.Fulfillment is manual and can be executed by anyone (for free) after the given delay",
+          "params": {
+            "delay": "The number of blocks until the request can be fulfilled (between MIN_DELAY_BLOCKS and MAX_DELAY_BLOCKS)",
+            "fee": "The amount to set aside to pay for the fulfillment",
+            "gasLimit": "The gas limit to use for the fulfillment",
+            "numWords": "The number of random words requested (from 1 to MAX_RANDOM_WORDS)",
+            "refundAddress": "The address receiving the left-over fees after the fulfillment",
+            "salt": "A string being mixed with the randomness seed to obtain different random words"
+          },
+          "returns": {
+            "_0": "requestId The id of the request requestLocalVRFRandomWords Selector: 4c9c81a8"
+          }
+        },
+        "requestRelayBabeEpochRandomWords(address,uint256,uint64,bytes32,uint8)": {
+          "details": "The random words are generated from the hash of the all the VRF provided by therelaychain validator during 1 epoch.It requires a delay of at least 1 epoch after the current epoch to be unpredictableat the time the request is performed.Warning:The validator (on the relaychain) of the last block of an epoch can decide to skipproducing the block in order to choose the previous generated epoch random numberat the cost of a relaychain block rewards. It is therefore economically viable to usethis randomness source only if the financial reward at stake is lower than the relaychainblock reward.(see https://crates.parity.io/pallet_babe/struct.RandomnessFromOneEpochAgo.html)Fulfillment is manual and can be executed by anyone (for free) atthe beginning of the 2nd relay epoch following the current one",
+          "params": {
+            "fee": "Amount to set aside to pay for the fulfillment. Those fees are taken from the contract",
+            "gasLimit": "Gas limit for the fulfillment",
+            "numWords": "Number of random words to be returned (limited to MAX_RANDOM_WORDS)",
+            "refundAddress": "The address receiving the left-over fees after the fulfillment",
+            "salt": "Salt to be mixed with raw randomness to get output"
+          },
+          "returns": {
+            "_0": "requestId The id of the request Selector: bd063318"
+          }
+        },
+        "requiredDeposit()": {
+          "details": "Each request will need a deposit. Selector: fb7cfdd7"
+        }
+      },
+      "version": 1
+    },
+    "evm": {
+      "assembly": "",
+      "bytecode": {
+        "functionDebugData": {},
+        "generatedSources": [],
+        "linkReferences": {},
+        "object": "",
+        "opcodes": "",
+        "sourceMap": ""
+      },
+      "deployedBytecode": {
+        "functionDebugData": {},
+        "generatedSources": [],
+        "immutableReferences": {},
+        "linkReferences": {},
+        "object": "",
+        "opcodes": "",
+        "sourceMap": ""
+      },
+      "gasEstimates": null,
+      "legacyAssembly": null,
+      "methodIdentifiers": {
+        "fulfillRequest(uint256)": "9a91eb0d",
+        "getRequest(uint256)": "c58343ef",
+        "getRequestStatus(uint256)": "d8a4676f",
+        "increaseRequestFee(uint256,uint256)": "d0408a7f",
+        "purgeExpiredRequest(uint256)": "1d26cbab",
+        "relayEpochIndex()": "81797566",
+        "requestLocalVRFRandomWords(address,uint256,uint64,bytes32,uint8,uint64)": "9478430c",
+        "requestRelayBabeEpochRandomWords(address,uint256,uint64,bytes32,uint8)": "33c14a63",
+        "requiredDeposit()": "fb7cfdd7"
+      }
+    },
+    "ewasm": { "wasm": "" },
+    "metadata": "{\"compiler\":{\"version\":\"0.8.11+commit.d7f03943\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[],\"name\":\"FulFillmentFailed\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[],\"name\":\"FulFillmentSucceeded\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"requestId\",\"type\":\"uint256\"}],\"name\":\"fulfillRequest\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"requestId\",\"type\":\"uint256\"}],\"name\":\"getRequest\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"refundAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"contractAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"gasLimit\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"salt\",\"type\":\"bytes32\"},{\"internalType\":\"uint32\",\"name\":\"numWords\",\"type\":\"uint32\"},{\"internalType\":\"enum Randomness.RandomnessSource\",\"name\":\"randomnessSource\",\"type\":\"uint8\"},{\"internalType\":\"uint32\",\"name\":\"fulfillmentBlock\",\"type\":\"uint32\"},{\"internalType\":\"uint32\",\"name\":\"fulfillmentEpochIndex\",\"type\":\"uint32\"},{\"internalType\":\"uint32\",\"name\":\"expirationBlock\",\"type\":\"uint32\"},{\"internalType\":\"uint32\",\"name\":\"expirationEpochIndex\",\"type\":\"uint32\"},{\"internalType\":\"enum Randomness.RequestStatus\",\"name\":\"status\",\"type\":\"uint8\"}],\"internalType\":\"struct Randomness.Request\",\"name\":\"request\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"requestId\",\"type\":\"uint256\"}],\"name\":\"getRequestStatus\",\"outputs\":[{\"internalType\":\"enum Randomness.RequestStatus\",\"name\":\"status\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"requestId\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"feeIncrease\",\"type\":\"uint256\"}],\"name\":\"increaseRequestFee\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"requestId\",\"type\":\"uint256\"}],\"name\":\"purgeExpiredRequest\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"relayEpochIndex\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"refundAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"internalType\":\"uint64\",\"name\":\"gasLimit\",\"type\":\"uint64\"},{\"internalType\":\"bytes32\",\"name\":\"salt\",\"type\":\"bytes32\"},{\"internalType\":\"uint8\",\"name\":\"numWords\",\"type\":\"uint8\"},{\"internalType\":\"uint64\",\"name\":\"delay\",\"type\":\"uint64\"}],\"name\":\"requestLocalVRFRandomWords\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"refundAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"internalType\":\"uint64\",\"name\":\"gasLimit\",\"type\":\"uint64\"},{\"internalType\":\"bytes32\",\"name\":\"salt\",\"type\":\"bytes32\"},{\"internalType\":\"uint8\",\"name\":\"numWords\",\"type\":\"uint8\"}],\"name\":\"requestRelayBabeEpochRandomWords\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"requiredDeposit\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"fulfillRequest(uint256)\":{\"details\":\"fulFill the request which will call the contract method \\\"fulfillRandomWords\\\"Fees of the caller are refunded if the request is fulfillable\",\"params\":{\"requestId\":\"Request to be fulfilled (must be < 2**64) Selector: 9a91eb0d\"}},\"getRequest(uint256)\":{\"params\":{\"requestId\":\"The id of the request to check (must be < 2**64)\"},\"returns\":{\"request\":\"The request Selector: c58343ef\"}},\"getRequestStatus(uint256)\":{\"params\":{\"requestId\":\"The id of the request to check (must be < 2**64)\"},\"returns\":{\"status\":\"Status of the request Selector: d8a4676f\"}},\"increaseRequestFee(uint256,uint256)\":{\"params\":{\"feeIncrease\":\"Amount to increase Selector: d0408a7f\",\"requestId\":\"Request receiving the additional fees (must be < 2**64)\"}},\"purgeExpiredRequest(uint256)\":{\"params\":{\"requestId\":\"Request to be purged (must be < 2**64) Selector: 1d26cbab\"}},\"relayEpochIndex()\":{\"details\":\"An epoch represents real time and not a block numberCurrently, time between epoch changes cannot be longer than:- Kusama/Westend/Rococo: 600 relay blocks (1 hour)- Polkadot: 2400 relay blocks (4 hours) Selector: 81797566\"},\"requestLocalVRFRandomWords(address,uint256,uint64,bytes32,uint8,uint64)\":{\"details\":\"This is using pseudo-random VRF executed by the collator at the fulfillmentWarning:The collator in charge of producing the block at fulfillment can decide to skipproducing the block in order to have a different random word generated by the nextcollator, at the cost of a block reward. It is therefore economically viable to usethis randomness source only if the financial reward at stake is lower than the blockreward.In order to reduce the risk of a collator being able to predict the random wordswhen the request is performed, it is possible to increase the delay to multiple blocksThe higher the delay is, the less likely the collator will be able to know whichcollator will be in charge of fulfilling the request.Fulfillment is manual and can be executed by anyone (for free) after the given delay\",\"params\":{\"delay\":\"The number of blocks until the request can be fulfilled (between MIN_DELAY_BLOCKS and MAX_DELAY_BLOCKS)\",\"fee\":\"The amount to set aside to pay for the fulfillment\",\"gasLimit\":\"The gas limit to use for the fulfillment\",\"numWords\":\"The number of random words requested (from 1 to MAX_RANDOM_WORDS)\",\"refundAddress\":\"The address receiving the left-over fees after the fulfillment\",\"salt\":\"A string being mixed with the randomness seed to obtain different random words\"},\"returns\":{\"_0\":\"requestId The id of the request requestLocalVRFRandomWords Selector: 4c9c81a8\"}},\"requestRelayBabeEpochRandomWords(address,uint256,uint64,bytes32,uint8)\":{\"details\":\"The random words are generated from the hash of the all the VRF provided by therelaychain validator during 1 epoch.It requires a delay of at least 1 epoch after the current epoch to be unpredictableat the time the request is performed.Warning:The validator (on the relaychain) of the last block of an epoch can decide to skipproducing the block in order to choose the previous generated epoch random numberat the cost of a relaychain block rewards. It is therefore economically viable to usethis randomness source only if the financial reward at stake is lower than the relaychainblock reward.(see https://crates.parity.io/pallet_babe/struct.RandomnessFromOneEpochAgo.html)Fulfillment is manual and can be executed by anyone (for free) atthe beginning of the 2nd relay epoch following the current one\",\"params\":{\"fee\":\"Amount to set aside to pay for the fulfillment. Those fees are taken from the contract\",\"gasLimit\":\"Gas limit for the fulfillment\",\"numWords\":\"Number of random words to be returned (limited to MAX_RANDOM_WORDS)\",\"refundAddress\":\"The address receiving the left-over fees after the fulfillment\",\"salt\":\"Salt to be mixed with raw randomness to get output\"},\"returns\":{\"_0\":\"requestId The id of the request Selector: bd063318\"}},\"requiredDeposit()\":{\"details\":\"Each request will need a deposit. Selector: fb7cfdd7\"}},\"version\":1},\"userdoc\":{\"events\":{\"FulFillmentFailed()\":{\"notice\":\"Event emitted when the request has failed to execute fulfillment\"},\"FulFillmentSucceeded()\":{\"notice\":\"Event emitted when the request has been successfully executed\"}},\"kind\":\"user\",\"methods\":{\"getRequest(uint256)\":{\"notice\":\"Returns the request or revert\"},\"getRequestStatus(uint256)\":{\"notice\":\"Returns the request status\"},\"relayEpochIndex()\":{\"notice\":\"Return the current relay epoch index\"},\"requestLocalVRFRandomWords(address,uint256,uint64,bytes32,uint8,uint64)\":{\"notice\":\"Request random words generated from the parachain VRF\"},\"requestRelayBabeEpochRandomWords(address,uint256,uint64,bytes32,uint8)\":{\"notice\":\"Request random words generated from the relaychain Babe consensus\"},\"requiredDeposit()\":{\"notice\":\"Return the deposit required to perform a request\"}},\"version\":1}},\"settings\":{\"compilationTarget\":{\"main.sol\":\"Randomness\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"main.sol\":{\"keccak256\":\"0x4a9c5b6746c5c85660a078d3b1f7ebdf8185630ccd31cab26a59372717907ba0\",\"license\":\"GPL-3.0-only\",\"urls\":[\"bzz-raw://ea0d29c24e65a74e99c976548bbb7c3d15fa99a57e31bd65a4f26c813181fc4a\",\"dweb:/ipfs/QmNU17ur1Gxny4dekCBLrswfymydjKaggMrdCc38NLaQv8\"]}},\"version\":1}",
+    "storageLayout": { "storage": [], "types": null },
+    "userdoc": {
+      "events": {
+        "FulFillmentFailed()": {
+          "notice": "Event emitted when the request has failed to execute fulfillment"
+        },
+        "FulFillmentSucceeded()": {
+          "notice": "Event emitted when the request has been successfully executed"
+        }
+      },
+      "kind": "user",
+      "methods": {
+        "getRequest(uint256)": { "notice": "Returns the request or revert" },
+        "getRequestStatus(uint256)": { "notice": "Returns the request status" },
+        "relayEpochIndex()": {
+          "notice": "Return the current relay epoch index"
+        },
+        "requestLocalVRFRandomWords(address,uint256,uint64,bytes32,uint8,uint64)": {
+          "notice": "Request random words generated from the parachain VRF"
+        },
+        "requestRelayBabeEpochRandomWords(address,uint256,uint64,bytes32,uint8)": {
+          "notice": "Request random words generated from the relaychain Babe consensus"
+        },
+        "requiredDeposit()": {
+          "notice": "Return the deposit required to perform a request"
+        }
+      },
+      "version": 1
+    }
+  },
+  "sourceCode": "// SPDX-License-Identifier: GPL-3.0-only\npragma solidity >=0.8.0;\n\n/// @dev Maximum number of random words being requested\nuint32 constant MAX_RANDOM_WORDS = 100;\n/// @dev Minimum number of blocks before a request can be fulfilled for Local VRF Request\nuint32 constant MIN_VRF_BLOCKS_DELAY = 2;\n/// @dev Maximum number of blocks before a request can be fulfilled for Local VRF Request\nuint32 constant MAX_VRF_BLOCKS_DELAY = 2000;\n/// @dev The deposit amount needed to request random words. There is 1 deposit per request\nuint256 constant REQUEST_DEPOSIT_AMOUNT = 1000000000000000000;\n\ninterface Randomness {\n    /// @notice Event emitted when the request has been successfully executed\n    event FulFillmentSucceeded();\n    /// @notice Event emitted when the request has failed to execute fulfillment\n    event FulFillmentFailed();\n\n    /// @notice The status of the request\n    /// @param DoesNotExist The request doesn't exist\n    /// @param Pending The request cannot be fulfilled yet\n    /// @param Ready The request is ready to be fulfilled\n    /// @param Expired The request has expired\n    enum RequestStatus {\n        DoesNotExist,\n        Pending,\n        Ready,\n        Expired\n    }\n\n    /// @notice The type of randomness source\n    /// @param LocalVRF Randomness VRF using the parachain material as seed\n    /// @param RelayBabeEpoch Randomness VRF using relay material from previous epoch\n    enum RandomnessSource {\n        LocalVRF,\n        RelayBabeEpoch\n    }\n\n    /// @notice The request details\n    /// @param id The id of the request (is always < 2**64)\n    /// @param refundAddress The address receiving the left-over fees after the fulfillment\n    /// @param contractAddress The address of the contract being called back during fulfillment\n    /// @param fee The amount to set aside to pay for the fulfillment\n    /// @param gasLimit The gas limit to use for the fulfillment\n    /// @param salt A string being mixed with the randomness seed to obtain different random words\n    /// @param numWords The number of random words requested (from 1 to MAX_RANDOM_WORDS)\n    /// @param randomnessSource The type of randomness source used to generate the random words\n    /// @param fulfillmentBlock The parachain block number at which the request can be fulfilled (for LocalVRF only)\n    /// @param fulfillmentEpochIndex The relay epoch index at which the request can be fulfilled (for RelayBabeEpoch)\n    /// @param expirationBlock The parachain block number at which the request expires (for LocalVRF only)\n    /// @param expirationEpochIndex The relay epoch index at which the request expires (for RelayBabeEpoch)\n    /// @param status The current status of the request\n    struct Request {\n        uint256 id;\n        address refundAddress;\n        address contractAddress;\n        uint256 fee;\n        uint256 gasLimit;\n        bytes32 salt;\n        uint32 numWords;\n        RandomnessSource randomnessSource;\n        uint32 fulfillmentBlock;\n        uint32 fulfillmentEpochIndex;\n        uint32 expirationBlock;\n        uint32 expirationEpochIndex;\n        RequestStatus status;\n    }\n\n    /// Return the current relay epoch index\n    /// @dev An epoch represents real time and not a block number\n    /// @dev Currently, time between epoch changes cannot be longer than:\n    /// @dev  - Kusama/Westend/Rococo: 600 relay blocks (1 hour)\n    /// @dev  - Polkadot: 2400 relay blocks (4 hours)\n    /// Selector: 81797566\n    function relayEpochIndex() external view returns (uint64);\n\n    /// Return the deposit required to perform a request\n    /// @dev Each request will need a deposit.\n    /// Selector: fb7cfdd7\n    function requiredDeposit() external view returns (uint256);\n\n    /// @notice Returns the request status\n    /// @param requestId The id of the request to check (must be < 2**64)\n    /// @return status Status of the request\n    /// Selector: d8a4676f\n    function getRequestStatus(uint256 requestId)\n        external\n        view\n        returns (RequestStatus status);\n\n    /// @notice Returns the request or revert\n    /// @param requestId The id of the request to check (must be < 2**64)\n    /// @return request The request\n    /// Selector: c58343ef\n    function getRequest(uint256 requestId)\n        external\n        view\n        returns (Request memory request);\n\n    /// @notice Request random words generated from the parachain VRF\n    /// @dev This is using pseudo-random VRF executed by the collator at the fulfillment\n    /// @dev Warning:\n    /// @dev The collator in charge of producing the block at fulfillment can decide to skip\n    /// @dev producing the block in order to have a different random word generated by the next\n    /// @dev collator, at the cost of a block reward. It is therefore economically viable to use\n    /// @dev this randomness source only if the financial reward at stake is lower than the block\n    /// @dev reward.\n    /// @dev In order to reduce the risk of a collator being able to predict the random words\n    /// @dev when the request is performed, it is possible to increase the delay to multiple blocks\n    /// @dev The higher the delay is, the less likely the collator will be able to know which\n    /// @dev collator will be in charge of fulfilling the request.\n    /// @dev Fulfillment is manual and can be executed by anyone (for free) after the given delay\n    /// @param refundAddress The address receiving the left-over fees after the fulfillment\n    /// @param fee The amount to set aside to pay for the fulfillment\n    /// @param gasLimit The gas limit to use for the fulfillment\n    /// @param salt A string being mixed with the randomness seed to obtain different random words\n    /// @param numWords The number of random words requested (from 1 to MAX_RANDOM_WORDS)\n    /// @param delay The number of blocks until the request can be fulfilled (between MIN_DELAY_BLOCKS and MAX_DELAY_BLOCKS)\n    /// @return requestId The id of the request requestLocalVRFRandomWords\n    /// Selector: 4c9c81a8\n    function requestLocalVRFRandomWords(\n        address refundAddress,\n        uint256 fee,\n        uint64 gasLimit,\n        bytes32 salt,\n        uint8 numWords,\n        uint64 delay\n    ) external returns (uint256);\n\n    /// @notice Request random words generated from the relaychain Babe consensus\n    /// @dev The random words are generated from the hash of the all the VRF provided by the\n    /// @dev relaychain validator during 1 epoch.\n    /// @dev It requires a delay of at least 1 epoch after the current epoch to be unpredictable\n    /// @dev at the time the request is performed.\n    /// @dev Warning:\n    /// @dev The validator (on the relaychain) of the last block of an epoch can decide to skip\n    /// @dev producing the block in order to choose the previous generated epoch random number\n    /// @dev at the cost of a relaychain block rewards. It is therefore economically viable to use\n    /// @dev this randomness source only if the financial reward at stake is lower than the relaychain\n    /// @dev block reward.\n    /// @dev (see https://crates.parity.io/pallet_babe/struct.RandomnessFromOneEpochAgo.html)\n    /// @dev Fulfillment is manual and can be executed by anyone (for free) at\n    /// @dev the beginning of the 2nd relay epoch following the current one\n    /// @param refundAddress The address receiving the left-over fees after the fulfillment\n    /// @param fee Amount to set aside to pay for the fulfillment. Those fees are taken from the contract\n    /// @param gasLimit Gas limit for the fulfillment\n    /// @param salt Salt to be mixed with raw randomness to get output\n    /// @param numWords Number of random words to be returned (limited to MAX_RANDOM_WORDS)\n    /// @return requestId The id of the request\n    /// Selector: bd063318\n    function requestRelayBabeEpochRandomWords(\n        address refundAddress,\n        uint256 fee,\n        uint64 gasLimit,\n        bytes32 salt,\n        uint8 numWords\n    ) external returns (uint256);\n\n    /// @dev fulFill the request which will call the contract method \"fulfillRandomWords\"\n    /// @dev Fees of the caller are refunded if the request is fulfillable\n    /// @param requestId Request to be fulfilled (must be < 2**64)\n    /// Selector: 9a91eb0d\n    function fulfillRequest(uint256 requestId) external;\n\n    /// @param requestId Request receiving the additional fees (must be < 2**64)\n    /// @param feeIncrease Amount to increase\n    /// Selector: d0408a7f\n    function increaseRequestFee(uint256 requestId, uint256 feeIncrease)\n        external;\n\n    /// @param requestId Request to be purged (must be < 2**64)\n    /// Selector: 1d26cbab\n    function purgeExpiredRequest(uint256 requestId) external;\n}\n"
+}

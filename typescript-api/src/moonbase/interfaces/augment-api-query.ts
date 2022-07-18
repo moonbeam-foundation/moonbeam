@@ -65,34 +65,37 @@ import type {
   PalletIdentityRegistrarInfo,
   PalletIdentityRegistration,
   PalletMoonbeamOrbitersCollatorPoolInfo,
+  PalletParachainStakingBond,
+  PalletParachainStakingCandidateMetadata,
+  PalletParachainStakingCollator2,
+  PalletParachainStakingCollatorCandidate,
+  PalletParachainStakingCollatorSnapshot,
+  PalletParachainStakingDelayedPayout,
+  PalletParachainStakingDelegationRequestsScheduledRequest,
+  PalletParachainStakingDelegations,
+  PalletParachainStakingDelegator,
+  PalletParachainStakingInflationInflationInfo,
+  PalletParachainStakingNominator2,
+  PalletParachainStakingParachainBondConfig,
+  PalletParachainStakingRoundInfo,
+  PalletParachainStakingSetOrderedSetBond,
   PalletProxyAnnouncement,
   PalletProxyProxyDefinition,
+  PalletRandomnessRandomnessResult,
+  PalletRandomnessRequestState,
+  PalletRandomnessRequestType,
   PalletSchedulerScheduledV3,
   PalletTransactionPaymentReleases,
   PalletTreasuryProposal,
   PalletXcmQueryStatus,
+  PalletXcmTransactorRemoteTransactInfoWithMaxWeight,
   PalletXcmVersionMigrationStage,
-  ParachainStakingBond,
-  ParachainStakingCandidateMetadata,
-  ParachainStakingCollator2,
-  ParachainStakingCollatorCandidate,
-  ParachainStakingCollatorSnapshot,
-  ParachainStakingDelayedPayout,
-  ParachainStakingDelegationRequestsScheduledRequest,
-  ParachainStakingDelegations,
-  ParachainStakingDelegator,
-  ParachainStakingInflationInflationInfo,
-  ParachainStakingNominator2,
-  ParachainStakingParachainBondConfig,
-  ParachainStakingRoundInfo,
-  ParachainStakingSetOrderedSetBond,
   PolkadotCorePrimitivesOutboundHrmpMessage,
   PolkadotPrimitivesV2AbridgedHostConfiguration,
   PolkadotPrimitivesV2PersistedValidationData,
   PolkadotPrimitivesV2UpgradeRestriction,
   SpRuntimeDigest,
   SpTrieStorageProof,
-  XcmTransactorRemoteTransactInfoWithMaxWeight,
   XcmV1MultiLocation,
   XcmVersionedMultiLocation,
 } from "@polkadot/types/lookup";
@@ -913,7 +916,7 @@ declare module "@polkadot/api-base/types/storage" {
         (
           arg1: u32 | AnyNumber | Uint8Array,
           arg2: AccountId20 | string | Uint8Array
-        ) => Observable<ParachainStakingCollatorSnapshot>,
+        ) => Observable<PalletParachainStakingCollatorSnapshot>,
         [u32, AccountId20]
       > &
         QueryableStorageEntry<ApiType, [u32, AccountId20]>;
@@ -934,7 +937,9 @@ declare module "@polkadot/api-base/types/storage" {
        */
       bottomDelegations: AugmentedQuery<
         ApiType,
-        (arg: AccountId20 | string | Uint8Array) => Observable<Option<ParachainStakingDelegations>>,
+        (
+          arg: AccountId20 | string | Uint8Array
+        ) => Observable<Option<PalletParachainStakingDelegations>>,
         [AccountId20]
       > &
         QueryableStorageEntry<ApiType, [AccountId20]>;
@@ -946,14 +951,18 @@ declare module "@polkadot/api-base/types/storage" {
         ApiType,
         (
           arg: AccountId20 | string | Uint8Array
-        ) => Observable<Option<ParachainStakingCandidateMetadata>>,
+        ) => Observable<Option<PalletParachainStakingCandidateMetadata>>,
         [AccountId20]
       > &
         QueryableStorageEntry<ApiType, [AccountId20]>;
       /**
        * The pool of collator candidates, each with their total backing stake
        */
-      candidatePool: AugmentedQuery<ApiType, () => Observable<Vec<ParachainStakingBond>>, []> &
+      candidatePool: AugmentedQuery<
+        ApiType,
+        () => Observable<Vec<PalletParachainStakingBond>>,
+        []
+      > &
         QueryableStorageEntry<ApiType, []>;
       /**
        * DEPRECATED Get collator candidate state associated with an account if
@@ -963,7 +972,7 @@ declare module "@polkadot/api-base/types/storage" {
         ApiType,
         (
           arg: AccountId20 | string | Uint8Array
-        ) => Observable<Option<ParachainStakingCollatorCandidate>>,
+        ) => Observable<Option<PalletParachainStakingCollatorCandidate>>,
         [AccountId20]
       > &
         QueryableStorageEntry<ApiType, [AccountId20]>;
@@ -973,12 +982,24 @@ declare module "@polkadot/api-base/types/storage" {
       collatorCommission: AugmentedQuery<ApiType, () => Observable<Perbill>, []> &
         QueryableStorageEntry<ApiType, []>;
       /**
+       * Temporary storage item to track whether a given collator's reserve has
+       * been migrated.
+       */
+      collatorReserveToLockMigrations: AugmentedQuery<
+        ApiType,
+        (arg: AccountId20 | string | Uint8Array) => Observable<bool>,
+        [AccountId20]
+      > &
+        QueryableStorageEntry<ApiType, [AccountId20]>;
+      /**
        * DEPRECATED in favor of CandidateState Get collator state associated
        * with an account if account is collating else None
        */
       collatorState2: AugmentedQuery<
         ApiType,
-        (arg: AccountId20 | string | Uint8Array) => Observable<Option<ParachainStakingCollator2>>,
+        (
+          arg: AccountId20 | string | Uint8Array
+        ) => Observable<Option<PalletParachainStakingCollator2>>,
         [AccountId20]
       > &
         QueryableStorageEntry<ApiType, [AccountId20]>;
@@ -987,7 +1008,9 @@ declare module "@polkadot/api-base/types/storage" {
        */
       delayedPayouts: AugmentedQuery<
         ApiType,
-        (arg: u32 | AnyNumber | Uint8Array) => Observable<Option<ParachainStakingDelayedPayout>>,
+        (
+          arg: u32 | AnyNumber | Uint8Array
+        ) => Observable<Option<PalletParachainStakingDelayedPayout>>,
         [u32]
       > &
         QueryableStorageEntry<ApiType, [u32]>;
@@ -998,7 +1021,17 @@ declare module "@polkadot/api-base/types/storage" {
         ApiType,
         (
           arg: AccountId20 | string | Uint8Array
-        ) => Observable<Vec<ParachainStakingDelegationRequestsScheduledRequest>>,
+        ) => Observable<Vec<PalletParachainStakingDelegationRequestsScheduledRequest>>,
+        [AccountId20]
+      > &
+        QueryableStorageEntry<ApiType, [AccountId20]>;
+      /**
+       * Temporary storage item to track whether a given delegator's reserve has
+       * been migrated.
+       */
+      delegatorReserveToLockMigrations: AugmentedQuery<
+        ApiType,
+        (arg: AccountId20 | string | Uint8Array) => Observable<bool>,
         [AccountId20]
       > &
         QueryableStorageEntry<ApiType, [AccountId20]>;
@@ -1007,7 +1040,9 @@ declare module "@polkadot/api-base/types/storage" {
        */
       delegatorState: AugmentedQuery<
         ApiType,
-        (arg: AccountId20 | string | Uint8Array) => Observable<Option<ParachainStakingDelegator>>,
+        (
+          arg: AccountId20 | string | Uint8Array
+        ) => Observable<Option<PalletParachainStakingDelegator>>,
         [AccountId20]
       > &
         QueryableStorageEntry<ApiType, [AccountId20]>;
@@ -1016,7 +1051,7 @@ declare module "@polkadot/api-base/types/storage" {
        */
       inflationConfig: AugmentedQuery<
         ApiType,
-        () => Observable<ParachainStakingInflationInflationInfo>,
+        () => Observable<PalletParachainStakingInflationInflationInfo>,
         []
       > &
         QueryableStorageEntry<ApiType, []>;
@@ -1026,7 +1061,9 @@ declare module "@polkadot/api-base/types/storage" {
        */
       nominatorState2: AugmentedQuery<
         ApiType,
-        (arg: AccountId20 | string | Uint8Array) => Observable<Option<ParachainStakingNominator2>>,
+        (
+          arg: AccountId20 | string | Uint8Array
+        ) => Observable<Option<PalletParachainStakingNominator2>>,
         [AccountId20]
       > &
         QueryableStorageEntry<ApiType, [AccountId20]>;
@@ -1035,7 +1072,7 @@ declare module "@polkadot/api-base/types/storage" {
        */
       parachainBondInfo: AugmentedQuery<
         ApiType,
-        () => Observable<ParachainStakingParachainBondConfig>,
+        () => Observable<PalletParachainStakingParachainBondConfig>,
         []
       > &
         QueryableStorageEntry<ApiType, []>;
@@ -1051,7 +1088,7 @@ declare module "@polkadot/api-base/types/storage" {
       /**
        * Current round index and next round scheduled transition
        */
-      round: AugmentedQuery<ApiType, () => Observable<ParachainStakingRoundInfo>, []> &
+      round: AugmentedQuery<ApiType, () => Observable<PalletParachainStakingRoundInfo>, []> &
         QueryableStorageEntry<ApiType, []>;
       /**
        * The collator candidates selected for the current round
@@ -1072,7 +1109,9 @@ declare module "@polkadot/api-base/types/storage" {
        */
       topDelegations: AugmentedQuery<
         ApiType,
-        (arg: AccountId20 | string | Uint8Array) => Observable<Option<ParachainStakingDelegations>>,
+        (
+          arg: AccountId20 | string | Uint8Array
+        ) => Observable<Option<PalletParachainStakingDelegations>>,
         [AccountId20]
       > &
         QueryableStorageEntry<ApiType, [AccountId20]>;
@@ -1397,6 +1436,64 @@ declare module "@polkadot/api-base/types/storage" {
         [AccountId20]
       > &
         QueryableStorageEntry<ApiType, [AccountId20]>;
+      /**
+       * Generic query
+       */
+      [key: string]: QueryableStorageEntry<ApiType>;
+    };
+    randomness: {
+      /**
+       * Ensures the mandatory inherent was included in the block
+       */
+      inherentIncluded: AugmentedQuery<ApiType, () => Observable<Option<Null>>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /**
+       * Current local per-block VRF randomness Set in `on_initialize`
+       */
+      localVrfOutput: AugmentedQuery<ApiType, () => Observable<Option<H256>>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /**
+       * Records whether this is the first block (genesis or runtime upgrade)
+       */
+      notFirstBlock: AugmentedQuery<ApiType, () => Observable<Option<Null>>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /**
+       * Snapshot of randomness to fulfill all requests that are for the same
+       * raw randomness Removed once $value.request_count == 0
+       */
+      randomnessResults: AugmentedQuery<
+        ApiType,
+        (
+          arg:
+            | PalletRandomnessRequestType
+            | { BabeEpoch: any }
+            | { Local: any }
+            | string
+            | Uint8Array
+        ) => Observable<Option<PalletRandomnessRandomnessResult>>,
+        [PalletRandomnessRequestType]
+      > &
+        QueryableStorageEntry<ApiType, [PalletRandomnessRequestType]>;
+      /**
+       * Relay epoch
+       */
+      relayEpoch: AugmentedQuery<ApiType, () => Observable<u64>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /**
+       * Number of randomness requests made so far, used to generate the next
+       * request's uid
+       */
+      requestCount: AugmentedQuery<ApiType, () => Observable<u64>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /**
+       * Randomness requests not yet fulfilled or purged
+       */
+      requests: AugmentedQuery<
+        ApiType,
+        (arg: u64 | AnyNumber | Uint8Array) => Observable<Option<PalletRandomnessRequestState>>,
+        [u64]
+      > &
+        QueryableStorageEntry<ApiType, [u64]>;
       /**
        * Generic query
        */
@@ -1808,7 +1905,7 @@ declare module "@polkadot/api-base/types/storage" {
         ApiType,
         (
           arg: XcmV1MultiLocation | { parents?: any; interior?: any } | string | Uint8Array
-        ) => Observable<Option<XcmTransactorRemoteTransactInfoWithMaxWeight>>,
+        ) => Observable<Option<PalletXcmTransactorRemoteTransactInfoWithMaxWeight>>,
         [XcmV1MultiLocation]
       > &
         QueryableStorageEntry<ApiType, [XcmV1MultiLocation]>;

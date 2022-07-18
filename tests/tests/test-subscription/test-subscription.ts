@@ -29,7 +29,7 @@ describeDevMoonbeam("Subscription - Block headers", (context) => {
     const promise = new Promise<BlockHeader>((resolve) => {
       subscription.once("data", resolve);
     });
-    await context.createBlock(createTransfer(context, baltathar.address, 0));
+    await context.createBlock(createTransfer(context, baltathar.address, 0, { gas: 12000000 }));
     const data = await promise;
     subscription.unsubscribe();
 
