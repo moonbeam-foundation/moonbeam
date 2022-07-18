@@ -5,6 +5,7 @@ import chaiAsPromised from "chai-as-promised";
 import { ethers } from "ethers";
 import { TransactionReceipt } from "web3-core";
 import { Contract } from "web3-eth-contract";
+import { customWeb3Request } from "../../util/providers";
 
 import { alith, faith } from "../../util/accounts";
 import { getAllContracts, getCompiled } from "../../util/contracts";
@@ -121,6 +122,16 @@ describeDevMoonbeamAllEthTxTypes("Estimate Gas - Contract estimation", (context)
       expect(receipt.status).to.equal(creationResult == "Succeed");
     });
   }
+});
+
+describeDevMoonbeamAllEthTxTypes("Estimate Gas - Contract estimation", (context) => {
+  it(`evm should return invalid opcode`, async function () {
+    let estimate = await customWeb3Request(context.web3, "eth_estimateGas", [{
+      from: alith.address,
+      data: "0xe4"
+    }]);
+    expect((estimate.error as any).message).to.equal("evm error: InvalidCode(Opcode(228))");
+  });
 });
 
 describeDevMoonbeamAllEthTxTypes("Estimate Gas - Handle Gas price", (context) => {
