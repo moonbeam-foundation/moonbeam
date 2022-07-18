@@ -36,6 +36,10 @@
 <span id="31">31</span>
 <span id="32">32</span>
 <span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -55,7 +59,11 @@
 <span class="doccomment">//! Primitives for session keys</span>
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>), <span class="ident">no_std</span>)]</span>
 
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">digest</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">inherent</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">vrf</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">digest</span>::<span class="kw-2">*</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">inherent</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">vrf</span>::<span class="kw-2">*</span>;
 
 <span class="doccomment">/// A Trait to lookup keys from AuthorIds</span>

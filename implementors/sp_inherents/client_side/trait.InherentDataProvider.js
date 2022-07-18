@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["session_keys_primitives"] = [{"text":"impl InherentDataProvider for <a class=\"struct\" href=\"session_keys_primitives/inherent/struct.InherentDataProvider.html\" title=\"struct session_keys_primitives::inherent::InherentDataProvider\">InherentDataProvider</a>","synthetic":false,"types":["session_keys_primitives::inherent::InherentDataProvider"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

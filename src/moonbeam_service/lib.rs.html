@@ -1250,6 +1250,36 @@
 <span id="1245">1245</span>
 <span id="1246">1246</span>
 <span id="1247">1247</span>
+<span id="1248">1248</span>
+<span id="1249">1249</span>
+<span id="1250">1250</span>
+<span id="1251">1251</span>
+<span id="1252">1252</span>
+<span id="1253">1253</span>
+<span id="1254">1254</span>
+<span id="1255">1255</span>
+<span id="1256">1256</span>
+<span id="1257">1257</span>
+<span id="1258">1258</span>
+<span id="1259">1259</span>
+<span id="1260">1260</span>
+<span id="1261">1261</span>
+<span id="1262">1262</span>
+<span id="1263">1263</span>
+<span id="1264">1264</span>
+<span id="1265">1265</span>
+<span id="1266">1266</span>
+<span id="1267">1267</span>
+<span id="1268">1268</span>
+<span id="1269">1269</span>
+<span id="1270">1270</span>
+<span id="1271">1271</span>
+<span id="1272">1272</span>
+<span id="1273">1273</span>
+<span id="1274">1274</span>
+<span id="1275">1275</span>
+<span id="1276">1276</span>
+<span id="1277">1277</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -1302,6 +1332,7 @@
 <span class="kw">use</span> <span class="ident">cumulus_relay_chain_interface</span>::{<span class="ident">RelayChainError</span>, <span class="ident">RelayChainInterface</span>};
 <span class="kw">use</span> <span class="ident">nimbus_consensus::NimbusManualSealConsensusDataProvider</span>;
 <span class="kw">use</span> <span class="ident">nimbus_consensus</span>::{<span class="ident">BuildNimbusConsensusParams</span>, <span class="ident">NimbusConsensus</span>};
+<span class="kw">use</span> <span class="ident">nimbus_primitives::NimbusId</span>;
 <span class="kw">use</span> <span class="ident">sc_executor</span>::{<span class="ident">NativeElseWasmExecutor</span>, <span class="ident">NativeExecutionDispatch</span>};
 <span class="kw">use</span> <span class="ident">sc_network::NetworkService</span>;
 <span class="kw">use</span> <span class="ident">sc_service::config::PrometheusConfig</span>;
@@ -2027,8 +2058,21 @@
 
 					<span class="kw">let</span> <span class="ident">author</span> <span class="op">=</span> <span class="ident">nimbus_primitives::InherentDataProvider</span>;
 
-					<span class="prelude-val">Ok</span>((<span class="ident">time</span>, <span class="ident">parachain_inherent</span>, <span class="ident">author</span>))
+					<span class="kw">let</span> <span class="ident">randomness</span> <span class="op">=</span> <span class="ident">session_keys_primitives::InherentDataProvider</span>;
+
+					<span class="prelude-val">Ok</span>((<span class="ident">time</span>, <span class="ident">parachain_inherent</span>, <span class="ident">author</span>, <span class="ident">randomness</span>))
 				}
+			};
+			<span class="kw">let</span> <span class="ident">client_clone</span> <span class="op">=</span> <span class="ident">client</span>.<span class="ident">clone</span>();
+			<span class="kw">let</span> <span class="ident">keystore_clone</span> <span class="op">=</span> <span class="ident">keystore</span>.<span class="ident">clone</span>();
+			<span class="kw">let</span> <span class="ident">maybe_provide_vrf_digest</span> <span class="op">=</span> <span class="kw">move</span> <span class="op">|</span><span class="ident">nimbus_id</span>: <span class="ident">NimbusId</span>, <span class="ident">parent</span>: <span class="ident">Hash</span><span class="op">|</span>
+				-&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">sp_runtime::generic::DigestItem</span><span class="op">&gt;</span> {
+				<span class="ident">moonbeam_vrf::vrf_pre_digest</span>::<span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">FullClient</span><span class="op">&lt;</span><span class="ident">RuntimeApi</span>, <span class="ident">Executor</span><span class="op">&gt;</span><span class="op">&gt;</span>(
+					<span class="kw-2">&amp;</span><span class="ident">client_clone</span>,
+					<span class="kw-2">&amp;</span><span class="ident">keystore_clone</span>,
+					<span class="ident">nimbus_id</span>,
+					<span class="ident">parent</span>,
+				)
 			};
 
 			<span class="prelude-val">Ok</span>(<span class="ident">NimbusConsensus::build</span>(<span class="ident">BuildNimbusConsensusParams</span> {
@@ -2039,6 +2083,7 @@
 				<span class="ident">keystore</span>,
 				<span class="ident">skip_prediction</span>: <span class="ident">force_authoring</span>,
 				<span class="ident">create_inherent_data_providers</span>: <span class="ident">provider</span>,
+				<span class="ident">additional_digests_provider</span>: <span class="ident">maybe_provide_vrf_digest</span>,
 			}))
 		},
 	)
@@ -2049,7 +2094,7 @@
 <span class="doccomment">/// the parachain inherent.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_dev</span><span class="op">&lt;</span><span class="ident">RuntimeApi</span>, <span class="ident">Executor</span><span class="op">&gt;</span>(
 	<span class="kw-2">mut</span> <span class="ident">config</span>: <span class="ident">Configuration</span>,
-	<span class="ident">_author_id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">nimbus_primitives::NimbusId</span><span class="op">&gt;</span>,
+	<span class="ident">_author_id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NimbusId</span><span class="op">&gt;</span>,
 	<span class="ident">sealing</span>: <span class="ident">cli_opt::Sealing</span>,
 	<span class="ident">rpc_config</span>: <span class="ident">RpcConfig</span>,
 	<span class="ident">hwbench</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">sc_sysinfo::HwBench</span><span class="op">&gt;</span>,
@@ -2168,6 +2213,18 @@
 		<span class="kw">let</span> (<span class="ident">hrmp_xcm_sender</span>, <span class="ident">hrmp_xcm_receiver</span>) <span class="op">=</span> <span class="ident">flume::bounded</span>::<span class="op">&lt;</span>(<span class="ident">ParaId</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>)<span class="op">&gt;</span>(<span class="number">100</span>);
 		<span class="ident">xcm_senders</span> <span class="op">=</span> <span class="prelude-val">Some</span>((<span class="ident">downward_xcm_sender</span>, <span class="ident">hrmp_xcm_sender</span>));
 
+		<span class="kw">let</span> <span class="ident">client_clone</span> <span class="op">=</span> <span class="ident">client</span>.<span class="ident">clone</span>();
+		<span class="kw">let</span> <span class="ident">keystore_clone</span> <span class="op">=</span> <span class="ident">keystore_container</span>.<span class="ident">sync_keystore</span>().<span class="ident">clone</span>();
+		<span class="kw">let</span> <span class="ident">maybe_provide_vrf_digest</span> <span class="op">=</span>
+			<span class="kw">move</span> <span class="op">|</span><span class="ident">nimbus_id</span>: <span class="ident">NimbusId</span>, <span class="ident">parent</span>: <span class="ident">Hash</span><span class="op">|</span> -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">sp_runtime::generic::DigestItem</span><span class="op">&gt;</span> {
+				<span class="ident">moonbeam_vrf::vrf_pre_digest</span>::<span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">FullClient</span><span class="op">&lt;</span><span class="ident">RuntimeApi</span>, <span class="ident">Executor</span><span class="op">&gt;</span><span class="op">&gt;</span>(
+					<span class="kw-2">&amp;</span><span class="ident">client_clone</span>,
+					<span class="kw-2">&amp;</span><span class="ident">keystore_clone</span>,
+					<span class="ident">nimbus_id</span>,
+					<span class="ident">parent</span>,
+				)
+			};
+
 		<span class="ident">task_manager</span>.<span class="ident">spawn_essential_handle</span>().<span class="ident">spawn_blocking</span>(
 			<span class="string">&quot;authorship_task&quot;</span>,
 			<span class="prelude-val">Some</span>(<span class="string">&quot;block-authoring&quot;</span>),
@@ -2181,6 +2238,7 @@
 				<span class="ident">consensus_data_provider</span>: <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="ident">NimbusManualSealConsensusDataProvider</span> {
 					<span class="ident">keystore</span>: <span class="ident">keystore_container</span>.<span class="ident">sync_keystore</span>(),
 					<span class="ident">client</span>: <span class="ident">client</span>.<span class="ident">clone</span>(),
+					<span class="ident">additional_digests_provider</span>: <span class="ident">maybe_provide_vrf_digest</span>,
 				})),
 				<span class="ident">create_inherent_data_providers</span>: <span class="kw">move</span> <span class="op">|</span><span class="ident">block</span>: <span class="ident">H256</span>, ()<span class="op">|</span> {
 					<span class="kw">let</span> <span class="ident">current_para_block</span> <span class="op">=</span> <span class="ident">client_set_aside_for_cidp</span>
@@ -2209,7 +2267,9 @@
 							<span class="ident">raw_horizontal_messages</span>: <span class="ident">hrmp_xcm_receiver</span>.<span class="ident">drain</span>().<span class="ident">collect</span>(),
 						};
 
-						<span class="prelude-val">Ok</span>((<span class="ident">time</span>, <span class="ident">mocked_parachain</span>))
+						<span class="kw">let</span> <span class="ident">randomness</span> <span class="op">=</span> <span class="ident">session_keys_primitives::InherentDataProvider</span>;
+
+						<span class="prelude-val">Ok</span>((<span class="ident">time</span>, <span class="ident">mocked_parachain</span>, <span class="ident">randomness</span>))
 					}
 				},
 			}),

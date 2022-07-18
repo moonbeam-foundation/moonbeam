@@ -389,6 +389,8 @@
 <span id="384">384</span>
 <span id="385">385</span>
 <span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -437,6 +439,7 @@
 	<span class="op">+</span> <span class="ident">nimbus_primitives::NimbusApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>
 	<span class="op">+</span> <span class="ident">nimbus_primitives::AuthorFilterAPI</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">nimbus_primitives::NimbusId</span><span class="op">&gt;</span>
 	<span class="op">+</span> <span class="ident">cumulus_primitives_core::CollectCollationInfo</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>
+	<span class="op">+</span> <span class="ident">session_keys_primitives::VrfApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>
 <span class="kw">where</span>
 	<span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">sp_api::ApiExt</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::StateBackend</span>: <span class="ident">sp_api::StateBackend</span><span class="op">&lt;</span><span class="ident">BlakeTwo256</span><span class="op">&gt;</span>,
 {
@@ -458,7 +461,8 @@
 		<span class="op">+</span> <span class="ident">moonbeam_rpc_primitives_txpool::TxPoolRuntimeApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>
 		<span class="op">+</span> <span class="ident">nimbus_primitives::NimbusApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>
 		<span class="op">+</span> <span class="ident">nimbus_primitives::AuthorFilterAPI</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">nimbus_primitives::NimbusId</span><span class="op">&gt;</span>
-		<span class="op">+</span> <span class="ident">cumulus_primitives_core::CollectCollationInfo</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>,
+		<span class="op">+</span> <span class="ident">cumulus_primitives_core::CollectCollationInfo</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>
+		<span class="op">+</span> <span class="ident">session_keys_primitives::VrfApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>,
 	<span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">sp_api::ApiExt</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::StateBackend</span>: <span class="ident">sp_api::StateBackend</span><span class="op">&lt;</span><span class="ident">BlakeTwo256</span><span class="op">&gt;</span>,
 {
 }

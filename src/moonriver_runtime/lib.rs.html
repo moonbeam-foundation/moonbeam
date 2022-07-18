@@ -1464,6 +1464,18 @@
 <span id="1459">1459</span>
 <span id="1460">1460</span>
 <span id="1461">1461</span>
+<span id="1462">1462</span>
+<span id="1463">1463</span>
+<span id="1464">1464</span>
+<span id="1465">1465</span>
+<span id="1466">1466</span>
+<span id="1467">1467</span>
+<span id="1468">1468</span>
+<span id="1469">1469</span>
+<span id="1470">1470</span>
+<span id="1471">1471</span>
+<span id="1472">1472</span>
+<span id="1473">1473</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -2659,6 +2671,18 @@
 <span class="comment">// }</span>
 <span class="comment">// ```</span>
 <span class="macro">moonbeam_runtime_common::impl_runtime_apis_plus_common!</span> {
+	<span class="kw">impl</span> <span class="ident">session_keys_primitives::VrfApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
+		<span class="kw">fn</span> <span class="ident">get_last_vrf_output</span>() -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Hash</span><span class="op">&gt;</span> {
+			<span class="prelude-val">None</span>
+		}
+		<span class="kw">fn</span> <span class="ident">vrf_key_lookup</span>(
+			<span class="ident">nimbus_id</span>: <span class="ident">nimbus_primitives::NimbusId</span>
+		) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">session_keys_primitives::VrfId</span><span class="op">&gt;</span> {
+			<span class="kw">use</span> <span class="ident">session_keys_primitives::KeysLookup</span>;
+			<span class="ident">AuthorMapping::lookup_keys</span>(<span class="kw-2">&amp;</span><span class="ident">nimbus_id</span>)
+		}
+	}
+
 	<span class="kw">impl</span> <span class="ident">sp_transaction_pool::runtime_api::TaggedTransactionQueue</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
 		<span class="kw">fn</span> <span class="ident">validate_transaction</span>(
 			<span class="ident">source</span>: <span class="ident">TransactionSource</span>,

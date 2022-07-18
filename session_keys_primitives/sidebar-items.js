@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["vrf","VRF Key type, which is sr25519"]],"trait":[["KeysLookup","A Trait to lookup keys from AuthorIds"]]});
+initSidebarItems({"mod":[["digest","VRF pre digest object and conversion to DigestItem"],["inherent",""],["vrf","VRF Key type"]],"trait":[["KeysLookup","A Trait to lookup keys from AuthorIds"]]});

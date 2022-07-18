@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["session_keys_primitives"] = [{"text":"impl IsFatalError for <a class=\"enum\" href=\"session_keys_primitives/inherent/enum.InherentError.html\" title=\"enum session_keys_primitives::inherent::InherentError\">InherentError</a>","synthetic":false,"types":["session_keys_primitives::inherent::InherentError"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

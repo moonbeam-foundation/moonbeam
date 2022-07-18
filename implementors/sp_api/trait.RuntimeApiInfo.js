@@ -1,4 +1,5 @@
 (function() {var implementors = {};
 implementors["moonbeam_rpc_primitives_debug"] = [{"text":"impl&lt;Block:&nbsp;BlockT&gt; RuntimeApiInfo for dyn <a class=\"trait\" href=\"moonbeam_rpc_primitives_debug/trait.DebugRuntimeApi.html\" title=\"trait moonbeam_rpc_primitives_debug::DebugRuntimeApi\">DebugRuntimeApi</a>&lt;Block&gt;","synthetic":false,"types":[]}];
 implementors["moonbeam_rpc_primitives_txpool"] = [{"text":"impl&lt;Block:&nbsp;BlockT&gt; RuntimeApiInfo for dyn <a class=\"trait\" href=\"moonbeam_rpc_primitives_txpool/trait.TxPoolRuntimeApi.html\" title=\"trait moonbeam_rpc_primitives_txpool::TxPoolRuntimeApi\">TxPoolRuntimeApi</a>&lt;Block&gt;","synthetic":false,"types":[]}];
+implementors["session_keys_primitives"] = [{"text":"impl&lt;Block:&nbsp;BlockT&gt; RuntimeApiInfo for dyn <a class=\"trait\" href=\"session_keys_primitives/vrf/trait.VrfApi.html\" title=\"trait session_keys_primitives::vrf::VrfApi\">VrfApi</a>&lt;Block&gt;","synthetic":false,"types":[]}];
 if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

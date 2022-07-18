@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["vrf_pre_digest","Uses the runtime API to get the VRF inputs and sign them with the VRF key that corresponds to the authoring NimbusId."]]});
