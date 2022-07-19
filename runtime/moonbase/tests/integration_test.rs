@@ -66,11 +66,6 @@ use sp_runtime::{
 use xcm::latest::prelude::*;
 
 #[test]
-fn verify_randomness_recursion_limit() {
-	// verify Randomness recursion limit is 2 for safety purposes
-}
-
-#[test]
 fn verify_randomness_precompile_gas_constants() {
 	let weight_to_gas = |weight| {
 		<moonbase_runtime::Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(weight)
