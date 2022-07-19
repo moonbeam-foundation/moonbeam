@@ -15,6 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use super::*;
+use crate::tests::ERC20_CONTRACT_BYTECODE;
 use frame_support::{
 	assert_noop,
 	weights::{Pays, PostDispatchInfo},
@@ -44,7 +45,7 @@ const CONTRACT: &str = "608060405234801561001057600080fd5b5061011380610020600039
 fn xcm_evm_transfer_eip_1559_transaction(destination: H160, value: U256) -> EthereumXcmTransaction {
 	EthereumXcmTransaction::V1(EthereumXcmTransactionV1 {
 		fee_payment: EthereumXcmFee::Auto,
-		gas_limit: U256::from(0x100000),
+		gas_limit: U256::from(0x5208),
 		action: ethereum::TransactionAction::Call(destination),
 		value,
 		input: vec![],
@@ -186,21 +187,7 @@ fn test_transact_xcm_validation_works() {
 	let bob = &pairs[1];
 
 	ext.execute_with(|| {
-		// Not enough balance fails to validate.
-		assert_noop!(
-			EthereumXcm::transact(
-				RawOrigin::XcmEthereumTransaction(alice.address).into(),
-				xcm_evm_transfer_eip_1559_transaction(bob.address, U256::MAX),
-			),
-			DispatchErrorWithPostInfo {
-				post_info: PostDispatchInfo {
-					actual_weight: Some(0),
-					pays_fee: Pays::Yes,
-				},
-				error: DispatchError::Other("Failed to validate ethereum transaction"),
-			}
-		);
-		// Not enough base fee fails to validate.
+		// Not enough gas limit to cover the transaction cost.
 		assert_noop!(
 			EthereumXcm::transact(
 				RawOrigin::XcmEthereumTransaction(alice.address).into(),
@@ -209,7 +196,7 @@ fn test_transact_xcm_validation_works() {
 						gas_price: Some(U256::from(0)),
 						max_fee_per_gas: None,
 					}),
-					gas_limit: U256::from(0x100000),
+					gas_limit: U256::from(0x5207),
 					action: ethereum::TransactionAction::Call(bob.address),
 					value: U256::from(1),
 					input: vec![],
