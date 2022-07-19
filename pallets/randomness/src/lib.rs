@@ -353,15 +353,17 @@ pub mod pallet {
 			caller: &H160,
 			cost_of_execution: BalanceOf<T>,
 		) {
-			request.finish_fulfill(deposit, caller, cost_of_execution);
-			let info_key: RequestType<T> = request.info.into();
-			if let Some(result) = RandomnessResults::<T>::take(&info_key) {
-				if let Some(new_result) = result.decrement_request_count() {
-					RandomnessResults::<T>::insert(&info_key, new_result);
-				} // else RandomnessResult is removed from storage
-			}
-			<Requests<T>>::remove(id);
-			Self::deposit_event(Event::RequestFulfilled { id });
+			// only ever fulfill a request once
+			if <Requests<T>>::take(id).is_some() {
+				request.finish_fulfill(deposit, caller, cost_of_execution);
+				let info_key: RequestType<T> = request.info.into();
+				if let Some(result) = RandomnessResults::<T>::take(&info_key) {
+					if let Some(new_result) = result.decrement_request_count() {
+						RandomnessResults::<T>::insert(&info_key, new_result);
+					} // else RandomnessResult is removed from storage
+				}
+				Self::deposit_event(Event::RequestFulfilled { id });
+			} // else do nothing so will not change storage if recursive fulfill
 		}
 		/// Increase fee associated with request
 		pub fn increase_request_fee(
