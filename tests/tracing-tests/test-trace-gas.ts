@@ -31,7 +31,7 @@ describeDevMoonbeam("Trace filter - Gas Loop", (context) => {
         createContractExecution(context, {
           contract,
           contractCall: contract.methods.incrementalLoop(loop.count),
-        })
+        }, { gas: 3_000_000 })
       );
       loop.txHash = result.hash;
       loop.blockNumber = i + 2;
@@ -74,7 +74,7 @@ describeDevMoonbeam("Trace filter - Gas Loop", (context) => {
 
   it("should return 2068654 gasUsed for 1000 loop", async function () {
     this.timeout(12000);
-    const { rawTx } = await createContract(context, "Looper");
+    const { rawTx } = await createContract(context, "Looper", { gas: 3_000_000 });
     await context.createBlock(rawTx);
 
     const trace = await customWeb3Request(context.web3, "trace_filter", [
