@@ -26,7 +26,7 @@ use parity_scale_codec::{Decode, DecodeLimit};
 use precompile_utils::data::{Address, Bytes};
 use precompile_utils::prelude::*;
 use sp_core::{H160, H256};
-use sp_std::{fmt::Debug, marker::PhantomData};
+use sp_std::{boxed::Box, fmt::Debug, marker::PhantomData, vec::Vec};
 
 #[cfg(test)]
 mod mock;

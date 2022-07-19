@@ -5091,6 +5091,7 @@ dependencies = [
  "pallet-evm-precompile-dispatch",
  "pallet-evm-precompile-modexp",
  "pallet-evm-precompile-parachain-staking",
+ "pallet-evm-precompile-proxy",
  "pallet-evm-precompile-randomness",
  "pallet-evm-precompile-relay-encoder",
  "pallet-evm-precompile-sha3fips",

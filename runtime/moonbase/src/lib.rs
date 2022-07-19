@@ -859,6 +859,24 @@ impl InstanceFilter<Call> for ProxyType {
 	}
 }
 
+impl TryFrom<u8> for ProxyType {
+	type Error = &'static str;
+
+	fn try_from(value: u8) -> Result<Self, Self::Error> {
+		match value {
+			0 => Ok(ProxyType::Any),
+			1 => Ok(ProxyType::NonTransfer),
+			2 => Ok(ProxyType::Governance),
+			3 => Ok(ProxyType::Staking),
+			4 => Ok(ProxyType::CancelProxy),
+			5 => Ok(ProxyType::Balances),
+			6 => Ok(ProxyType::AuthorMapping),
+			7 => Ok(ProxyType::IdentityJudgement),
+			_ => Err("unable to decode ProxyType from provided value"),
+		}
+	}
+}
+
 impl pallet_proxy::Config for Runtime {
 	type Event = Event;
 	type Call = Call;
@@ -1515,5 +1533,30 @@ mod tests {
 			),
 			50
 		);
+	}
+
+	#[test]
+	fn test_proxy_type_can_be_decoded_from_valid_values() {
+		let test_cases = vec![
+			// (input, expected)
+			(0u8, ProxyType::Any),
+			(1, ProxyType::NonTransfer),
+			(2, ProxyType::Governance),
+			(3, ProxyType::Staking),
+			(4, ProxyType::CancelProxy),
+			(5, ProxyType::Balances),
+			(6, ProxyType::AuthorMapping),
+			(7, ProxyType::IdentityJudgement),
+		];
+
+		for (input, expected) in test_cases {
+			let actual = ProxyType::try_from(input);
+			assert_eq!(
+				Ok(expected),
+				actual,
+				"failed decoding ProxyType for value '{}'",
+				input
+			);
+		}
 	}
 }
