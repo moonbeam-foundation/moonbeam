@@ -1851,7 +1851,12 @@ pub mod pallet {
 	/// * 20 points to the block producer for producing a block in the chain
 	impl<T: Config> nimbus_primitives::EventHandler<T::AccountId> for Pallet<T> {
 		fn note_author(author: T::AccountId) {
-			let now = <Round<T>>::get().current;
+			let mut round = <Round<T>>::get();
+			let now = if round.should_update() {
+				round.current.saturating_add(1u64)
+			} else {
+				round.current
+			};
 			let score_plus_20 = <AwardedPts<T>>::get(now, &author).saturating_add(20);
 			<AwardedPts<T>>::insert(now, author, score_plus_20);
 			<Points<T>>::mutate(now, |x| *x = x.saturating_add(20));
