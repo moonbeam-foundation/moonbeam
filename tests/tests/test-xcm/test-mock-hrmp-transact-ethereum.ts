@@ -339,32 +339,32 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (call)", (c
   });
 });
 
-const assetMetadata = {
-  name: "FOREIGN",
-  symbol: "FOREIGN",
-  decimals: new BN(12),
-  isFrozen: false,
-};
-const statemint_para_id = 1001;
-const statemint_assets_pallet_instance = 50;
-const palletId = "0x6D6f646c617373746d6E67720000000000000000";
-
-const ASSET_MULTILOCATION = {
-  parents: 1,
-  interior: {
-    X3: [
-      { Parachain: statemint_para_id },
-      { PalletInstance: statemint_assets_pallet_instance },
-      { GeneralIndex: 0 },
-    ],
-  },
-};
-
-const STATEMINT_LOCATION = {
-  Xcm: ASSET_MULTILOCATION,
-};
-
 describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (asset fee)", (context) => {
+  const assetMetadata = {
+    name: "FOREIGN",
+    symbol: "FOREIGN",
+    decimals: new BN(12),
+    isFrozen: false,
+  };
+  const statemint_para_id = 1001;
+  const statemint_assets_pallet_instance = 50;
+  const palletId = "0x6D6f646c617373746d6E67720000000000000000";
+
+  const ASSET_MULTILOCATION = {
+    parents: 1,
+    interior: {
+      X3: [
+        { Parachain: statemint_para_id },
+        { PalletInstance: statemint_assets_pallet_instance },
+        { GeneralIndex: 0 },
+      ],
+    },
+  };
+
+  const STATEMINT_LOCATION = {
+    Xcm: ASSET_MULTILOCATION,
+  };
+
   let assetId: string;
   let sendingAddress;
   let descendedAddress: string;
