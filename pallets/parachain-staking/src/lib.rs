@@ -1851,9 +1851,9 @@ pub mod pallet {
 	/// * 20 points to the block producer for producing a block in the chain
 	impl<T: Config> nimbus_primitives::EventHandler<T::AccountId> for Pallet<T> {
 		fn note_author(author: T::AccountId) {
-			let mut round = <Round<T>>::get();
-			let now = if round.should_update() {
-				round.current.saturating_add(1u64)
+			let round = <Round<T>>::get();
+			let now = if round.should_update(frame_system::Pallet::<T>::block_number()) {
+				round.current.saturating_add(1u32)
 			} else {
 				round.current
 			};
