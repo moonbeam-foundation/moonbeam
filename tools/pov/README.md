@@ -40,7 +40,7 @@ my_bench {
 2. Invoke the script
 
 ```
-ts-node scripts/pov/index.ts run \
+ts-node tools/pov/index.ts run \
   --pallet "pallet_foobar" \
   --benchmark "my_bench" \
   --params '10,1 50,5 100,10' \
