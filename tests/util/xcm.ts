@@ -115,11 +115,11 @@ export async function registerForeignAsset(
 }
 
 export function descendOriginFromAllOnes(context: DevTestContext) {
-    const allones = "0x0101010101010101010101010101010101010101";
-    const derivedMultiLocation = context.polkadotApi.createType(
-      "MultiLocation",
-      JSON.parse(
-        `{\
+  const allones = "0x0101010101010101010101010101010101010101";
+  const derivedMultiLocation = context.polkadotApi.createType(
+    "MultiLocation",
+    JSON.parse(
+      `{\
               "parents": 1,\
               "interior": {\
                 "X2": [\
@@ -133,14 +133,17 @@ export function descendOriginFromAllOnes(context: DevTestContext) {
                 ]\
               }\
             }`
-      )
-    );
+    )
+  );
 
-    const toHash = new Uint8Array([
-      ...new Uint8Array([32]),
-      ...new TextEncoder().encode("multiloc"),
-      ...derivedMultiLocation.toU8a(),
-    ]);
+  const toHash = new Uint8Array([
+    ...new Uint8Array([32]),
+    ...new TextEncoder().encode("multiloc"),
+    ...derivedMultiLocation.toU8a(),
+  ]);
 
-    return { originAddress: allones, descendOriginAddress: u8aToHex(context.polkadotApi.registry.hash(toHash).slice(0, 20))};
+  return {
+    originAddress: allones,
+    descendOriginAddress: u8aToHex(context.polkadotApi.registry.hash(toHash).slice(0, 20)),
+  };
 }
