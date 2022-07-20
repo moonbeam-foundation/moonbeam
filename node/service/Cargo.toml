@@ -50,46 +50,46 @@ moonbeam-runtime = { path = "../../runtime/moonbeam", optional = true }
 moonriver-runtime = { path = "../../runtime/moonriver", optional = true }
 
 # Substrate
-frame-system-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
-pallet-transaction-payment-rpc = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
-pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
+frame-system-rpc-runtime-api = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.23" }
+pallet-transaction-payment-rpc = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.23" }
+pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.23" }
 parity-scale-codec = "3.0.0"
-sc-basic-authorship = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
-sc-chain-spec = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
-sc-cli = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23", features = [ "wasmtime" ] }
-sc-client-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
-sc-client-db = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
-sc-consensus = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
-sc-consensus-manual-seal = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
-sc-executor = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23", features = [ "wasmtime" ] }
-sc-finality-grandpa = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
-sc-informant = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
-sc-network = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
-sc-rpc = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
-sc-rpc-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
-sc-service = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
-sc-sysinfo = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
-sc-telemetry = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
-sc-tracing = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
-sc-transaction-pool = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
-sc-transaction-pool-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
-sp-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
-sp-block-builder = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
-sp-blockchain = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
-sp-consensus = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
-sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
-sp-inherents = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
-sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
-sp-keystore = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
-sp-offchain = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
-sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
-sp-session = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
-sp-storage = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
-sp-timestamp = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
-sp-transaction-pool = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
-sp-trie = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
-substrate-frame-rpc-system = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
-substrate-prometheus-endpoint = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
+sc-basic-authorship = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.23" }
+sc-chain-spec = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.23" }
+sc-cli = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.23", features = [ "wasmtime" ] }
+sc-client-api = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.23" }
+sc-client-db = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.23" }
+sc-consensus = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.23" }
+sc-consensus-manual-seal = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.23" }
+sc-executor = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.23", features = [ "wasmtime" ] }
+sc-finality-grandpa = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.23" }
+sc-informant = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.23" }
+sc-network = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.23" }
+sc-rpc = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.23" }
+sc-rpc-api = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.23" }
+sc-service = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.23" }
+sc-sysinfo = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.23" }
+sc-telemetry = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.23" }
+sc-tracing = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.23" }
+sc-transaction-pool = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.23" }
+sc-transaction-pool-api = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.23" }
+sp-api = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.23" }
+sp-block-builder = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.23" }
+sp-blockchain = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.23" }
+sp-consensus = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.23" }
+sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.23" }
+sp-inherents = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.23" }
+sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.23" }
+sp-keystore = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.23" }
+sp-offchain = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.23" }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.23" }
+sp-session = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.23" }
+sp-storage = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.23" }
+sp-timestamp = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.23" }
+sp-transaction-pool = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.23" }
+sp-trie = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.23" }
+substrate-frame-rpc-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.23" }
+substrate-prometheus-endpoint = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.23" }
 
 # Frontier
 fc-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.23" }
@@ -128,8 +128,8 @@ polkadot-service = { git = "https://github.com/purestake/polkadot", branch = "mo
 xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.23", default-features = false }
 
 # Benchmarking
-frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
-frame-benchmarking-cli = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
+frame-benchmarking = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.23" }
+frame-benchmarking-cli = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.23" }
 
 [dev-dependencies]
 assert_cmd = "0.12"
@@ -141,12 +141,12 @@ rand = "0.7.3"
 polkadot-runtime-common = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.23" }
 
 # Substrate dev-dependencies
-pallet-sudo = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
-substrate-test-client = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
-substrate-test-runtime-client = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
+pallet-sudo = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.23" }
+substrate-test-client = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.23" }
+substrate-test-runtime-client = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.23" }
 
 [build-dependencies]
-substrate-build-script-utils = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
+substrate-build-script-utils = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.23" }
 
 [features]
 default = [
