@@ -1,5 +1,6 @@
 import { u8aToHex, BN } from "@polkadot/util";
 import { xxhashAsU8a } from "@polkadot/util-crypto";
+import { generateKeyringPair } from "./accounts";
 
 import { DevTestContext } from "./setup-dev-tests";
 import {
@@ -111,4 +112,35 @@ export async function registerForeignAsset(
     events,
     registeredAsset,
   };
+}
+
+export function descendOriginFromAllOnes(context: DevTestContext) {
+    const allones = "0x0101010101010101010101010101010101010101";
+    const derivedMultiLocation = context.polkadotApi.createType(
+      "MultiLocation",
+      JSON.parse(
+        `{\
+              "parents": 1,\
+              "interior": {\
+                "X2": [\
+                  { "Parachain": 1 },\
+                  { "AccountKey20": \
+                    {\
+                      "network": "Any",\
+                      "key": "${allones}"\
+                    } \
+                  }\
+                ]\
+              }\
+            }`
+      )
+    );
+
+    const toHash = new Uint8Array([
+      ...new Uint8Array([32]),
+      ...new TextEncoder().encode("multiloc"),
+      ...derivedMultiLocation.toU8a(),
+    ]);
+
+    return { originAddress: allones, descendOriginAddress: u8aToHex(context.polkadotApi.registry.hash(toHash).slice(0, 20))};
 }
