@@ -1059,7 +1059,7 @@ fn execute_leave_candidates_removes_candidate_state() {
 				1,
 				0
 			));
-			assert!(ParachainStaking::candidate_state(1).is_none());
+			assert!(ParachainStaking::candidate_info(1).is_none());
 		});
 }
 
@@ -1099,7 +1099,7 @@ fn execute_leave_candidates_removes_pending_delegation_requests() {
 				1,
 				1
 			));
-			assert!(ParachainStaking::candidate_state(1).is_none());
+			assert!(ParachainStaking::candidate_info(1).is_none());
 			assert!(
 				!ParachainStaking::delegation_scheduled_requests(&1)
 					.iter()
