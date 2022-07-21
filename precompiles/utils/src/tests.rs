@@ -878,8 +878,12 @@ fn network_id_decoder_works() {
 	);
 
 	assert_eq!(
-		network_id_from_bytes(network_id_to_bytes(NetworkId::Named(b"myname".to_vec()))),
-		Ok(NetworkId::Named(b"myname".to_vec()))
+		network_id_from_bytes(network_id_to_bytes(NetworkId::Named(
+			b"myname".to_vec().try_into().expect("name not too long")
+		))),
+		Ok(NetworkId::Named(
+			b"myname".to_vec().try_into().expect("name not too long")
+		))
 	);
 
 	assert_eq!(

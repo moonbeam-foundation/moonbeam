@@ -33,7 +33,7 @@ use fp_evm::{CheckEvmTransaction, CheckEvmTransactionConfig, InvalidEvmTransacti
 #[cfg(feature = "try-runtime")]
 use frame_support::traits::OnRuntimeUpgradeHelpersExt;
 use frame_support::{
-	codec::{Decode, Encode},
+	codec::{Decode, Encode, MaxEncodedLen},
 	dispatch::DispatchResultWithPostInfo,
 	scale_info::TypeInfo,
 	traits::{EnsureOrigin, Get},
@@ -51,7 +51,7 @@ pub use ethereum::{
 pub use fp_rpc::TransactionStatus;
 pub use xcm_primitives::{EthereumXcmTransaction, XcmToEthereum};
 
-#[derive(PartialEq, Eq, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
+#[derive(PartialEq, Eq, Clone, Encode, Decode, RuntimeDebug, TypeInfo, MaxEncodedLen)]
 pub enum RawOrigin {
 	XcmEthereumTransaction(H160),
 }

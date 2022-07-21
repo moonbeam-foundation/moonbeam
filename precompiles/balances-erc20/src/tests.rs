@@ -597,13 +597,17 @@ fn deposit(data: Vec<u8>) {
 						amount: 500
 					}),
 					// Log is correctly emited.
-					Event::Evm(pallet_evm::Event::Log(log2(
-						Precompile,
-						SELECTOR_LOG_DEPOSIT,
-						Account::Alice,
-						EvmDataWriter::new().write(U256::from(500)).build(),
-					))),
-					Event::Evm(pallet_evm::Event::Executed(Account::Precompile.into())),
+					Event::Evm(pallet_evm::Event::Log {
+						log: log2(
+							Precompile,
+							SELECTOR_LOG_DEPOSIT,
+							Account::Alice,
+							EvmDataWriter::new().write(U256::from(500)).build(),
+						)
+					}),
+					Event::Evm(pallet_evm::Event::Executed {
+						address: Account::Precompile.into()
+					}),
 				]
 			);
 
@@ -688,9 +692,9 @@ fn deposit_zero() {
 
 			assert_eq!(
 				events(),
-				vec![Event::Evm(pallet_evm::Event::ExecutedFailed(
-					Account::Precompile.into()
-				)),]
+				vec![Event::Evm(pallet_evm::Event::ExecutedFailed {
+					address: Account::Precompile.into()
+				}),]
 			);
 
 			// Check precompile balance is still 0.
