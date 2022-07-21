@@ -20,6 +20,8 @@
 use fp_evm::{Precompile, PrecompileFailure, PrecompileHandle, PrecompileOutput};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use frame_support::sp_runtime::traits::Hash;
+use frame_support::traits::ConstU32;
+use frame_support::BoundedVec;
 use pallet_evm::AddressMapping;
 use pallet_proxy::Call as ProxyCall;
 use parity_scale_codec::{Decode, DecodeLimit};
@@ -35,6 +37,11 @@ mod tests;
 
 /// Max recursion depth to enforce while decoding an extrinsic call.
 const MAX_CALL_DECODE_DEPTH: u32 = 8;
+
+/// Max call bytes limit.
+const MAX_CALL_BOUNDED_LENGTH: u32 = 2u32.pow(16);
+
+type GetCallLengthLimit = ConstU32<MAX_CALL_BOUNDED_LENGTH>;
 
 #[generate_function_selector]
 #[derive(Debug, PartialEq)]
@@ -116,7 +123,7 @@ where
 	fn decode_call(
 		input: &mut EvmDataReader,
 	) -> Result<Box<<Runtime as pallet_proxy::Config>::Call>, PrecompileFailure> {
-		let wrapped_call: Vec<u8> = input.read::<Bytes>()?.into();
+		let wrapped_call: BoundedVec<u8, GetCallLengthLimit> = input.read()?;
 		<Runtime as frame_system::Config>::Call::decode_all_with_depth_limit(
 			MAX_CALL_DECODE_DEPTH,
 			&mut &wrapped_call[..],
