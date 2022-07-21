@@ -16,6 +16,7 @@ pallet-asset-manager = { path = "../../pallets/asset-manager", default-features 
 pallet-author-mapping = { path = "../../pallets/author-mapping", default-features = false }
 pallet-migrations = { path = "../../pallets/migrations", default-features = false }
 pallet-parachain-staking = { path = "../../pallets/parachain-staking", default-features = false }
+pallet-randomness = { path = "../../pallets/randomness", default-features = false }
 pallet-xcm-transactor = { path = "../../pallets/xcm-transactor", default-features = false }
 
 # Substrate
@@ -48,6 +49,7 @@ std = [
 	"pallet-evm/std",
 	"pallet-migrations/std",
 	"pallet-parachain-staking/std",
+	"pallet-randomness/std",
 	"pallet-scheduler/std",
 	"pallet-xcm-transactor/std",
 	"sp-core/std",

@@ -6,6 +6,7 @@ edition = "2021"
 version = "0.1.0"
 
 [dependencies]
+hex = { version = "0.4.3", default-features = false }
 impl-trait-for-tuples = "0.2.2"
 log = "0.4"
 num_enum = { version = "0.5.3", default-features = false }
