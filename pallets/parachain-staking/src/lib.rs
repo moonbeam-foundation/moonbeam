@@ -92,6 +92,12 @@ pub mod pallet {
 	};
 	use sp_std::{collections::btree_map::BTreeMap, prelude::*};
 
+	/// Return current block author without passing any input
+	/// TODO: bring in from Nimbus once changes pulled in
+	pub trait GetAuthor<AccountId> {
+		fn get_author() -> AccountId;
+	}
+
 	/// Pallet for parachain staking
 	#[pallet::pallet]
 	#[pallet::without_storage_info]
@@ -170,6 +176,8 @@ pub mod pallet {
 		/// Minimum stake for any registered on-chain account to be a delegator
 		#[pallet::constant]
 		type MinDelegatorStk: Get<BalanceOf<Self>>;
+		/// Get the current block author
+		type GetAuthor: GetAuthor<Self::AccountId>;
 		/// Handler to notify the runtime when a collator is paid.
 		/// If you don't need it, you can specify the type `()`.
 		type OnCollatorPayout: OnCollatorPayout<Self::AccountId, BalanceOf<Self>>;
@@ -446,6 +454,9 @@ pub mod pallet {
 			weight = weight.saturating_add(Self::handle_delayed_payouts(round.current));
 
 			weight
+		}
+		fn on_finalize(_n: T::BlockNumber) {
+			Self::note_author(T::GetAuthor::get_author());
 		}
 	}
 
@@ -1849,7 +1860,7 @@ pub mod pallet {
 
 	/// Add reward points to block authors:
 	/// * 20 points to the block producer for producing a block in the chain
-	impl<T: Config> nimbus_primitives::EventHandler<T::AccountId> for Pallet<T> {
+	impl<T: Config> Pallet<T> {
 		fn note_author(author: T::AccountId) {
 			let now = <Round<T>>::get().current;
 			let score_plus_20 = <AwardedPts<T>>::get(now, &author).saturating_add(20);
