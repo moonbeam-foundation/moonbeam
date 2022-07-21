@@ -57,12 +57,10 @@ where
 		From<Option<Runtime::AccountId>>,
 	<Runtime as pallet_proxy::Config>::ProxyType: TryFrom<u8>,
 	<Runtime as frame_system::Config>::Call:
-	Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
+		Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin:
-	From<Option<Runtime::AccountId>>,
-	// <<Runtime as pallet_proxy::Config>::CallHasher as Hash>::Output: From<H256>,
+		From<Option<Runtime::AccountId>>,
 	<Runtime as frame_system::Config>::Call: From<ProxyCall<Runtime>>,
-	// <Runtime as frame_system::Config>::Call: Decode,
 {
 	fn execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		let selector = handle.read_selector()?;
@@ -82,15 +80,15 @@ where
 
 impl<Runtime> ProxyWrapper<Runtime>
 where
-Runtime: pallet_proxy::Config + pallet_evm::Config + frame_system::Config,
-<<Runtime as pallet_proxy::Config>::Call as Dispatchable>::Origin:
-	From<Option<Runtime::AccountId>>,
-<Runtime as pallet_proxy::Config>::ProxyType: TryFrom<u8>,
-<Runtime as frame_system::Config>::Call:
-Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
-<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin:
-From<Option<Runtime::AccountId>>,
-<Runtime as frame_system::Config>::Call: From<ProxyCall<Runtime>>,
+	Runtime: pallet_proxy::Config + pallet_evm::Config + frame_system::Config,
+	<<Runtime as pallet_proxy::Config>::Call as Dispatchable>::Origin:
+		From<Option<Runtime::AccountId>>,
+	<Runtime as pallet_proxy::Config>::ProxyType: TryFrom<u8>,
+	<Runtime as frame_system::Config>::Call:
+		Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
+	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin:
+		From<Option<Runtime::AccountId>>,
+	<Runtime as frame_system::Config>::Call: From<ProxyCall<Runtime>>,
 {
 	/// Register a proxy account for the sender that is able to make calls on its behalf.
 	/// The dispatch origin for this call must be Signed.
