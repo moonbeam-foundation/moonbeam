@@ -659,6 +659,52 @@
 <span id="654">654</span>
 <span id="655">655</span>
 <span id="656">656</span>
+<span id="657">657</span>
+<span id="658">658</span>
+<span id="659">659</span>
+<span id="660">660</span>
+<span id="661">661</span>
+<span id="662">662</span>
+<span id="663">663</span>
+<span id="664">664</span>
+<span id="665">665</span>
+<span id="666">666</span>
+<span id="667">667</span>
+<span id="668">668</span>
+<span id="669">669</span>
+<span id="670">670</span>
+<span id="671">671</span>
+<span id="672">672</span>
+<span id="673">673</span>
+<span id="674">674</span>
+<span id="675">675</span>
+<span id="676">676</span>
+<span id="677">677</span>
+<span id="678">678</span>
+<span id="679">679</span>
+<span id="680">680</span>
+<span id="681">681</span>
+<span id="682">682</span>
+<span id="683">683</span>
+<span id="684">684</span>
+<span id="685">685</span>
+<span id="686">686</span>
+<span id="687">687</span>
+<span id="688">688</span>
+<span id="689">689</span>
+<span id="690">690</span>
+<span id="691">691</span>
+<span id="692">692</span>
+<span id="693">693</span>
+<span id="694">694</span>
+<span id="695">695</span>
+<span id="696">696</span>
+<span id="697">697</span>
+<span id="698">698</span>
+<span id="699">699</span>
+<span id="700">700</span>
+<span id="701">701</span>
+<span id="702">702</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -681,7 +727,7 @@
 	<span class="ident">BalanceOf</span>, <span class="ident">CandidateInfo</span>, <span class="ident">Config</span>, <span class="ident">DelegationScheduledRequests</span>, <span class="ident">DelegatorState</span>, <span class="ident">Error</span>, <span class="ident">Event</span>,
 	<span class="ident">Pallet</span>, <span class="ident">Round</span>, <span class="ident">RoundIndex</span>, <span class="ident">Total</span>,
 };
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::Delegator</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Delegator</span>, <span class="ident">DelegatorStatus</span>};
 <span class="kw">use</span> <span class="ident">frame_support::ensure</span>;
 <span class="kw">use</span> <span class="ident">frame_support::traits::Get</span>;
 <span class="kw">use</span> <span class="ident">frame_support</span>::{<span class="ident">dispatch::DispatchResultWithPostInfo</span>, <span class="ident">RuntimeDebug</span>};
@@ -1003,6 +1049,13 @@
 		<span class="kw">let</span> <span class="ident">now</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Round</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>().<span class="ident">current</span>;
 		<span class="kw">let</span> <span class="ident">when</span> <span class="op">=</span> <span class="ident">now</span>.<span class="ident">saturating_add</span>(<span class="ident">T::LeaveDelegatorsDelay::get</span>());
 
+		<span class="comment">// lazy migration for DelegatorStatus::Leaving</span>
+		<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
+		<span class="kw">if</span> <span class="macro">matches!</span>(<span class="ident">state</span>.<span class="ident">status</span>, <span class="ident">DelegatorStatus::Leaving</span>(<span class="kw">_</span>)) {
+			<span class="ident">state</span>.<span class="ident">status</span> <span class="op">=</span> <span class="ident">DelegatorStatus::Active</span>;
+			<span class="op">&lt;</span><span class="ident">DelegatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="ident">delegator</span>.<span class="ident">clone</span>(), <span class="ident">state</span>.<span class="ident">clone</span>());
+		}
+
 		<span class="comment">// it is assumed that a multiple delegations to the same collator does not exist, else this</span>
 		<span class="comment">// will cause a bug - the last duplicate delegation update will be the only one applied.</span>
 		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">existing_revoke_count</span> <span class="op">=</span> <span class="number">0</span>;
@@ -1059,6 +1112,15 @@
 		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">DelegatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">delegator</span>).<span class="ident">ok_or</span>(<span class="op">&lt;</span><span class="ident">Error</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::DelegatorDNE</span>)<span class="question-mark">?</span>;
 		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">updated_scheduled_requests</span> <span class="op">=</span> <span class="macro">vec!</span>[];
 
+		<span class="comment">// backwards compatible handling for DelegatorStatus::Leaving</span>
+		<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
+		<span class="kw">if</span> <span class="macro">matches!</span>(<span class="ident">state</span>.<span class="ident">status</span>, <span class="ident">DelegatorStatus::Leaving</span>(<span class="kw">_</span>)) {
+			<span class="ident">state</span>.<span class="ident">status</span> <span class="op">=</span> <span class="ident">DelegatorStatus::Active</span>;
+			<span class="op">&lt;</span><span class="ident">DelegatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="ident">delegator</span>.<span class="ident">clone</span>(), <span class="ident">state</span>.<span class="ident">clone</span>());
+			<span class="ident"><span class="self">Self</span>::deposit_event</span>(<span class="ident">Event::DelegatorExitCancelled</span> { <span class="ident">delegator</span> });
+			<span class="kw">return</span> <span class="prelude-val">Ok</span>(().<span class="ident">into</span>());
+		}
+
 		<span class="comment">// pre-validate that all delegations have a Revoke request.</span>
 		<span class="kw">for</span> <span class="ident">bond</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">state</span>.<span class="ident">delegations</span>.<span class="number">0</span> {
 			<span class="kw">let</span> <span class="ident">collator</span> <span class="op">=</span> <span class="ident">bond</span>.<span class="ident">owner</span>.<span class="ident">clone</span>();
@@ -1104,6 +1166,36 @@
 			<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::TooLowDelegationCountToLeaveDelegators</span>
 		);
 		<span class="kw">let</span> <span class="ident">now</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Round</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>().<span class="ident">current</span>;
+
+		<span class="comment">// backwards compatible handling for DelegatorStatus::Leaving</span>
+		<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
+		<span class="kw">if</span> <span class="kw">let</span> <span class="ident">DelegatorStatus::Leaving</span>(<span class="ident">when</span>) <span class="op">=</span> <span class="ident">state</span>.<span class="ident">status</span> {
+			<span class="macro">ensure!</span>(
+				<span class="op">&lt;</span><span class="ident">Round</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>().<span class="ident">current</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">when</span>,
+				<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::DelegatorCannotLeaveYet</span>
+			);
+
+			<span class="kw">for</span> <span class="ident">bond</span> <span class="kw">in</span> <span class="ident">state</span>.<span class="ident">delegations</span>.<span class="number">0</span>.<span class="ident">clone</span>() {
+				<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>) <span class="op">=</span> <span class="ident"><span class="self">Self</span>::delegator_leaves_candidate</span>(
+					<span class="ident">bond</span>.<span class="ident">owner</span>.<span class="ident">clone</span>(),
+					<span class="ident">delegator</span>.<span class="ident">clone</span>(),
+					<span class="ident">bond</span>.<span class="ident">amount</span>,
+				) {
+					<span class="macro">log::warn!</span>(
+						<span class="string">&quot;STORAGE CORRUPTED \nDelegator leaving collator failed with error: {:?}&quot;</span>,
+						<span class="ident">error</span>
+					);
+				}
+
+				<span class="ident"><span class="self">Self</span>::delegation_remove_request_with_state</span>(<span class="kw-2">&amp;</span><span class="ident">bond</span>.<span class="ident">owner</span>, <span class="kw-2">&amp;</span><span class="ident">delegator</span>, <span class="kw-2">&amp;mut</span> <span class="ident">state</span>);
+			}
+			<span class="op">&lt;</span><span class="ident">DelegatorState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::remove</span>(<span class="kw-2">&amp;</span><span class="ident">delegator</span>);
+			<span class="ident"><span class="self">Self</span>::deposit_event</span>(<span class="ident">Event::DelegatorLeft</span> {
+				<span class="ident">delegator</span>,
+				<span class="ident">unstaked_amount</span>: <span class="ident">state</span>.<span class="ident">total</span>,
+			});
+			<span class="kw">return</span> <span class="prelude-val">Ok</span>(().<span class="ident">into</span>());
+		}
 
 		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">validated_scheduled_requests</span> <span class="op">=</span> <span class="macro">vec!</span>[];
 		<span class="comment">// pre-validate that all delegations have a Revoke request that can be executed now.</span>
