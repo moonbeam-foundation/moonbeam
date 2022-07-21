@@ -192,11 +192,13 @@ fn compute_collator_ac_rewards_before_rounding<T: Config>(
 
 	let sum_stake = mc_stake.checked_add(&ac_stake).ok_or(Error::MathOverflow)?;
 
-	let ac_rewards = collator_rewards
-		.mul_div(ac_stake, sum_stake)
-		.ok_or(Error::MathOverflow)?;
-
-	Ok(ac_rewards)
+	if sum_stake.is_zero() {
+		Ok(Zero::zero())
+	} else {
+		collator_rewards
+			.mul_div(ac_stake, sum_stake)
+			.ok_or(Error::MathOverflow)
+	}
 }
 
 // Distribute collator AC rewards.
