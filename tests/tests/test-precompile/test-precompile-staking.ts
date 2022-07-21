@@ -2,16 +2,28 @@ import "@moonbeam-network/api-augment";
 
 import { numberToHex } from "@polkadot/util";
 import { expect } from "chai";
+import { ethers } from "ethers";
 
 import { alith, ethan, ETHAN_PRIVATE_KEY } from "../../util/accounts";
 import { verifyLatestBlockFees } from "../../util/block";
 import { MIN_GLMR_STAKING, PRECOMPILE_PARACHAIN_STAKING_ADDRESS } from "../../util/constants";
+import { getCompiled } from "../../util/contracts";
 import {
   describeDevMoonbeam,
   describeDevMoonbeamAllEthTxTypes,
   DevTestContext,
 } from "../../util/setup-dev-tests";
-import { callPrecompile, sendPrecompileTx } from "../../util/transactions";
+import {
+  callPrecompile,
+  createTransaction,
+  ETHAN_TRANSACTION_TEMPLATE,
+  sendPrecompileTx,
+} from "../../util/transactions";
+
+const PARACHAIN_STAKING_CONTRACT = getCompiled("ParachainStaking");
+const PARACHAIN_STAKING_INTERFACE = new ethers.utils.Interface(
+  PARACHAIN_STAKING_CONTRACT.contract.abi
+);
 
 const SELECTORS = {
   candidate_bond_less: "289b6ba7",
@@ -24,15 +36,10 @@ const SELECTORS = {
   join_candidates: "0a1bff60",
   leave_candidates: "72b02a31",
   leave_delegators: "b71d2153",
-  min_nomination: "c9f593b2",
-  nominate: "49df6eb3",
-  nominator_bond_less: "f6a52569",
-  nominator_bond_more: "971d44c8",
-  revoke_nomination: "4b65c34b",
+  min_delegation: "c9f593b2",
+  delegate: "829f5ee3",
   points: "9799b4e7",
   candidate_count: "4b1c4c29",
-  collator_nomination_count: "0ad6a7be",
-  nominator_nomination_count: "dae5659b",
   delegation_request_is_pending: "192e1db3",
   candidate_exit_is_pending: "eb613b8a",
 };
@@ -165,14 +172,17 @@ describeDevMoonbeamAllEthTxTypes("Staking - Collator Leaving", (context) => {
 
 describeDevMoonbeamAllEthTxTypes("Staking - Join Delegators", (context) => {
   beforeEach("should successfully call delegate for ethan.address to ALITH", async function () {
-    await sendPrecompileTx(
-      context,
-      PRECOMPILE_PARACHAIN_STAKING_ADDRESS,
-      SELECTORS,
-      ethan.address,
-      ETHAN_PRIVATE_KEY,
-      "nominate",
-      [alith.address, numberToHex(Number(MIN_GLMR_STAKING)), "0x0", "0x0"]
+    await context.createBlock(
+      createTransaction(context, {
+        ...ETHAN_TRANSACTION_TEMPLATE,
+        to: PRECOMPILE_PARACHAIN_STAKING_ADDRESS,
+        data: PARACHAIN_STAKING_INTERFACE.encodeFunctionData("delegate", [
+          alith.address,
+          MIN_GLMR_STAKING,
+          0,
+          0,
+        ]),
+      })
     );
   });
 
@@ -194,14 +204,17 @@ describeDevMoonbeamAllEthTxTypes("Staking - Join Delegators", (context) => {
 describeDevMoonbeamAllEthTxTypes("Staking - Join Delegators", (context) => {
   before("should successfully call delegate for ethan.address to ALITH", async function () {
     // Delegate ethan.address->ALITH
-    await sendPrecompileTx(
-      context,
-      PRECOMPILE_PARACHAIN_STAKING_ADDRESS,
-      SELECTORS,
-      ethan.address,
-      ETHAN_PRIVATE_KEY,
-      "nominate",
-      [alith.address, numberToHex(Number(MIN_GLMR_STAKING)), "0x0", "0x0"]
+    await context.createBlock(
+      createTransaction(context, {
+        ...ETHAN_TRANSACTION_TEMPLATE,
+        to: PRECOMPILE_PARACHAIN_STAKING_ADDRESS,
+        data: PARACHAIN_STAKING_INTERFACE.encodeFunctionData("delegate", [
+          alith.address,
+          MIN_GLMR_STAKING,
+          0,
+          0,
+        ]),
+      })
     );
   });
 
