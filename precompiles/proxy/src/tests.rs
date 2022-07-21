@@ -22,11 +22,9 @@ use crate::{
 	Action,
 };
 use frame_support::{assert_ok, dispatch::Dispatchable};
-use pallet_balances::{Call as BalancesCall, Event as BalancesEvent};
 use pallet_proxy::{
 	Call as ProxyCall, Event as ProxyEvent, Pallet as ProxyPallet, ProxyDefinition,
 };
-use parity_scale_codec::Encode;
 use precompile_utils::{assert_event_emitted, prelude::*, testing::*};
 use sp_core::H160;
 use std::str::from_utf8;
@@ -51,16 +49,9 @@ fn test_unimplemented_selector_reverts() {
 
 #[test]
 fn test_selectors_match_with_actions() {
-	assert_eq!(Action::Proxy as u32, 0x93cb5160);
-	assert_eq!(Action::ProxyForceType as u32, 0x56d1b8f3);
 	assert_eq!(Action::AddProxy as u32, 0x74a34dd3);
 	assert_eq!(Action::RemoveProxy as u32, 0xfef3f708);
 	assert_eq!(Action::RemoveProxies as u32, 0x14a5b5fa);
-	assert_eq!(Action::Announce as u32, 0x67002de9);
-	assert_eq!(Action::RemoveAnnouncement as u32, 0x7dd11b98);
-	assert_eq!(Action::RejectAnnouncement as u32, 0x6a5ee060);
-	assert_eq!(Action::ProxyAnnounced as u32, 0x8a53f3f5);
-	assert_eq!(Action::ProxyForceTypeAnnounced as u32, 0xc466224d);
 }
 
 #[test]
@@ -385,73 +376,5 @@ fn test_remove_proxies_succeeds_when_no_proxy_exists() {
 
 			let proxies = <ProxyPallet<Runtime>>::proxies(Alice).0;
 			assert_eq!(proxies, vec![])
-		})
-}
-
-#[test]
-fn test_proxy_call_fails_without_proxied_account() {
-	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000), (Bob, 1000)])
-		.build()
-		.execute_with(|| {
-			// make a proxy call from Bob to transfer funds from Alice to Charlie
-			let call = Call::Balances(BalancesCall::transfer {
-				dest: Charlie,
-				value: 10u128,
-			});
-			let call_bytes: Vec<u8> = call.encode();
-
-			let alice: H160 = Alice.into();
-			PrecompilesValue::get()
-				.prepare_test(
-					Bob,
-					Precompile,
-					EvmDataWriter::new_with_selector(Action::Proxy)
-						.write::<Address>(alice.into())
-						.write::<Bytes>(Bytes(call_bytes))
-						.build(),
-				)
-				.execute_reverts(|output| from_utf8(&output).unwrap().contains("NotProxy"));
-		})
-}
-
-#[test]
-fn test_proxy_call_works_with_proxied_account() {
-	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000), (Bob, 1000)])
-		.build()
-		.execute_with(|| {
-			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
-				delegate: Bob,
-				proxy_type: ProxyType::All,
-				delay: 0u64,
-			})
-			.dispatch(Origin::signed(Alice)));
-
-			// make a proxy call from Bob to transfer funds from Alice to Charlie
-			let call = Call::Balances(BalancesCall::transfer {
-				dest: Charlie,
-				value: 10u128,
-			});
-			let call_bytes: Vec<u8> = call.encode();
-
-			let alice: H160 = Alice.into();
-			PrecompilesValue::get()
-				.prepare_test(
-					Bob,
-					Precompile,
-					EvmDataWriter::new_with_selector(Action::Proxy)
-						.write::<Address>(alice.into())
-						.write::<Bytes>(Bytes(call_bytes))
-						.build(),
-				)
-				.execute_returns(vec![]);
-
-			assert_event_emitted!(Event::Proxy(ProxyEvent::ProxyExecuted { result: Ok(()) }));
-			assert_event_emitted!(Event::Balances(BalancesEvent::Transfer {
-				from: Alice,
-				to: Charlie,
-				amount: 10u128,
-			}));
 		})
 }
