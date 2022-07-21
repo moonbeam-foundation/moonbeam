@@ -401,6 +401,7 @@ pub mod pallet {
 		TryingToLeaveTooSoon,
 		InconsistentState,
 		UnsufficientSharesForTransfer,
+		CandidateTransferingOwnSharesForbidden,
 	}
 
 	#[pallet::call]
@@ -844,6 +845,11 @@ pub mod pallet {
 			let sender = ensure_signed(origin)?;
 			ensure!(!Zero::is_zero(&shares), Error::<T>::StakeMustBeNonZero);
 
+			ensure!(
+				sender != candidate,
+				Error::<T>::CandidateTransferingOwnSharesForbidden
+			);
+
 			let sender_new_shares = AutoCompoundingShares::<T>::get(&candidate, &sender)
 				.checked_sub(&shares)
 				.ok_or(Error::<T>::UnsufficientSharesForTransfer)?;
@@ -880,6 +886,11 @@ pub mod pallet {
 
 			let sender = ensure_signed(origin)?;
 			ensure!(!Zero::is_zero(&shares), Error::<T>::StakeMustBeNonZero);
+
+			ensure!(
+				sender != candidate,
+				Error::<T>::CandidateTransferingOwnSharesForbidden
+			);
 
 			let sender_new_shares = ManualClaimShares::<T>::get(&candidate, &sender)
 				.checked_sub(&shares)
