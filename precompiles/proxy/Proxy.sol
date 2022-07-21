@@ -18,26 +18,6 @@ interface Proxy {
         IdentityJudgement
     }
 
-    /// @dev Dispatch the given call from an account that the sender is authorised for through
-    /// addProxy. Removes any corresponding announcement(s)
-    /// @custom:selector 93cb5160
-    /// @param real the account that the proxy will make a call on behalf of
-    /// @param call the call to be made by the real account
-    function proxy(address real, bytes[] calldata call) external;
-
-    /// @dev Dispatch the given call from an account that the sender is authorised for through
-    /// addProxy. Removes any corresponding announcement(s)
-    /// Exact proxy type is used and checked for this call
-    /// @custom:selector aec65df0
-    /// @param real the account that the proxy will make a call on behalf of
-    /// @param forceProxyType the exact ProxyType to be used and checked for this call
-    /// @param call the call to be made by the real account
-    function proxyForceType(
-        address real,
-        ProxyType forceProxyType,
-        bytes[] calldata call
-    ) external;
-
     /// @dev Register a proxy account for the sender that is able to make calls on its behalf
     /// @custom:selector ac69400b
     /// @param delegate the account that the caller would like to make a proxy
@@ -63,50 +43,4 @@ interface Proxy {
     /// @dev Unregister all proxy accounts for the sender
     /// @custom:selector 14a5b5fa
     function removeProxies() external;
-
-    /// @dev Publish the hash of a proxy-call that will be made in the future
-    /// @custom:selector 32cf4272
-    /// @param real the account that the proxy will make a call on behalf of
-    /// @param callHash the hash of the call to be made by the real account
-    ///	transaction, will generally be zero
-    function announce(address real, bytes32 callHash) external;
-
-    /// @dev Remove a given announcement
-    /// @custom:selector 4400aae3
-    /// @param real the account that the proxy will make a call on behalf of
-    /// @param callHash the hash of the call to be made by the real account
-    function removeAnnouncement(address real, bytes32 callHash) external;
-
-    /// @dev Remove the given announcement of a delegate
-    /// @param delegate account that previously announced the call
-    /// @param callHash the hash of the call to be made
-    /// @custom:selector e508ff89
-    function rejectAnnouncement(address delegate, bytes32 callHash) external;
-
-    /// @dev Dispatch the given call from an account that the sender is authorised for through
-    /// addProxy. Removes any corresponding announcement(s)
-    /// @custom:selector 8a53f3f5
-    /// @param delegate the account that previously announced the call
-    /// @param real the account that the proxy will make a call on behalf of
-    /// @param call the call to be made by the real account
-    function proxyAnnounced(
-        address delegate,
-        address real,
-        bytes[] calldata call
-    ) external;
-
-    /// @dev Dispatch the given call from an account that the sender is authorised for through
-    /// addProxy. Removes any corresponding announcement(s)
-    /// Exact proxy type is used and checked for this call
-    /// @custom:selector af97d7af
-    /// @param delegate the account that previously announced the call
-    /// @param real the account that the proxy will make a call on behalf of
-    /// @param forceProxyType the exact ProxyType to be used and checked for this call
-    /// @param call the call to be made by the real account
-    function proxyForceTypeAnnounced(
-        address delegate,
-        address real,
-        ProxyType forceProxyType,
-        bytes[] calldata call
-    ) external;
 }
