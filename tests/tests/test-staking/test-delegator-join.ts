@@ -165,8 +165,7 @@ describeDevMoonbeam("Staking - Delegator Join - valid request", (context) => {
       ],
       id: ethan.address,
       lessTotal: 0,
-      status: { active: null },
-      total: numberToHex(MIN_GLMR_DELEGATOR),
+      status: "Active"
     });
   });
 });
