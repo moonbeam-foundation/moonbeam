@@ -13,18 +13,14 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
-
-use super::*;
-
-use crate::tests::ERC20_CONTRACT_BYTECODE;
 use crate::{mock::*, RawOrigin};
-use ethereum_types::{H160, H256, U256};
+use ethereum_types::{H160, U256};
 use frame_support::{
 	assert_noop, assert_ok,
 	weights::{Pays, PostDispatchInfo},
 };
 use sp_runtime::{DispatchError, DispatchErrorWithPostInfo};
-use xcm_primitives::{EthereumXcmFee, EthereumXcmTransaction, EthereumXcmTransactionV2};
+use xcm_primitives::{EthereumXcmTransaction, EthereumXcmTransactionV2};
 
 // 	pragma solidity ^0.6.6;
 // 	contract Test {
@@ -70,7 +66,7 @@ fn xcm_erc20_creation_eip_1559_transaction() -> EthereumXcmTransaction {
 		gas_limit: U256::from(0x100000),
 		action: ethereum::TransactionAction::Create,
 		value: U256::zero(),
-		input: hex::decode(ERC20_CONTRACT_BYTECODE.trim_end()).unwrap(),
+		input: hex::decode(CONTRACT).unwrap(),
 		access_list: None,
 	})
 }
