@@ -124,7 +124,6 @@ const testRuntimeUpgrade = async (context: DevTestContext) => {
 
 describeDevMoonbeam("Substrate Length Fees - Ethereum txn Interaction", (context) => {
   it("should not charge length fee for precompile from Ethereum txn", async () => {
-
     // we use modexp here because it allows us to send large-ish transactions
     const MODEXP_PRECOMPILE_ADDRESS = "0x0000000000000000000000000000000000000005";
 
@@ -146,13 +145,13 @@ describeDevMoonbeam("Substrate Length Fees - Ethereum txn Interaction", (context
         value: "0x00",
         nonce: 0,
         data:
-          "0x0000000000000000000000000000000000000000000000000000000000000004" // base
-          + "0000000000000000000000000000000000000000000000000000000000000004" // exp
-          + "0000000000000000000000000000000000000000000000000000000000000004" // mod
-          + "0".repeat(2048) // 2048 hex nibbles -> 1024 bytes
-          + "0".repeat(2048)
-          + "0".repeat(2048),
-      }, 
+          "0x0000000000000000000000000000000000000000000000000000000000000004" + // base
+          "0000000000000000000000000000000000000000000000000000000000000004" + // exp
+          "0000000000000000000000000000000000000000000000000000000000000004" + // mod
+          "0".repeat(2048) + // 2048 hex nibbles -> 1024 bytes
+          "0".repeat(2048) +
+          "0".repeat(2048),
+      },
       ALITH_PRIVATE_KEY
     );
 
@@ -173,7 +172,7 @@ describeDevMoonbeam("Substrate Length Fees - Ethereum txn Interaction", (context
     // conclusion: the LengthToFee modifier is NOT involved
 
     const expected = 33908;
-    expect(receipt.gasUsed).to.equal(expected); 
+    expect(receipt.gasUsed).to.equal(expected);
 
     // furthermore, we can account for the entire fee:
     const non_zero_byte_fee = 3 * 16;
