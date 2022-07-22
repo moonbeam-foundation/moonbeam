@@ -5,8 +5,8 @@ pragma solidity >=0.8.0;
 /// @title The interface through which solidity contracts will interact with the Proxy pallet
 /// @custom:address 0x000000000000000000000000000000000000080b
 interface Proxy {
-    /// @dev Defines the proxy permission types that may be combined via `|` operator
-    /// The values start at `0` and are represented as `uint32`
+    /// @dev Defines the proxy permission types.
+    /// The values start at `0` (most permissive) and are represented as `uint8`
     enum ProxyType {
         Any,
         NonTransfer,
