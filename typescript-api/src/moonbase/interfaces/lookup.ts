@@ -4019,7 +4019,10 @@ export default {
    * Lookup370: pallet_parachain_staking::types::DelegatorStatus
    */
   PalletParachainStakingDelegatorStatus: {
-    _enum: ["Active"],
+    _enum: {
+      Active: "Null",
+      Leaving: "u32",
+    },
   },
   /**
    * Lookup371: pallet_parachain_staking::types::Delegator<account::AccountId20, Balance>
