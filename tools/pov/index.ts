@@ -284,6 +284,22 @@ async function view(input: string, output: string, open: boolean) {
             },
             options: {
               responsive: true,
+              scales: {
+                x: {
+                  title: {
+                    display: true,
+                    text: "Parameter Groups",
+                    font: { weight: "bold" }
+                  }
+                },
+                y: {
+                  title: {
+                    display: true,
+                    text: "Size (bytes)",
+                    font: { weight: "bold" }
+                  }
+                }
+              },
               plugins: {
                 legend: {
                   position: 'top',
@@ -321,6 +337,22 @@ async function view(input: string, output: string, open: boolean) {
             },
             options: {
               responsive: true,
+              scales: {
+                x: {
+                  title: {
+                    display: true,
+                    text: "Parameter Groups",
+                    font: { weight: "bold" }
+                  }
+                },
+                y: {
+                  title: {
+                    display: true,
+                    text: "Counts",
+                    font: { weight: "bold" }
+                  }
+                }
+              },
               plugins: {
                 legend: {
                   position: 'top',
@@ -354,6 +386,22 @@ async function view(input: string, output: string, open: boolean) {
             },
             options: {
               responsive: true,
+              scales: {
+                x: {
+                  title: {
+                    display: true,
+                    text: "Parameter Groups",
+                    font: { weight: "bold" }
+                  }
+                },
+                y: {
+                  title: {
+                    display: true,
+                    text: "Time (nanoseconds)",
+                    font: { weight: "bold" }
+                  }
+                }
+              },
               plugins: {
                 legend: {
                   position: 'top',
