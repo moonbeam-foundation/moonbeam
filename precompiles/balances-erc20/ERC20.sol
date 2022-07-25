@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.8.0;
 
 /**
  * @title ERC20 interface
@@ -130,7 +130,7 @@ interface WrappedNativeCurrency {
    * @dev Provide compatibility for contracts that expect wETH design.
    * Does nothing.
    * Selector: 2e1a7d4d
-   * @param Amount to withdraw/unwrap.
+   * @param value uint256 The amount to withdraw/unwrap.
    */
   function withdraw(uint256 value) external;
 

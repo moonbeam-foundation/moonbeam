@@ -17,6 +17,13 @@
 //! Primitives for session keys
 #![cfg_attr(not(feature = "std"), no_std)]
 
+pub mod digest;
+pub mod inherent;
+pub mod vrf;
+pub use digest::*;
+pub use inherent::*;
+pub use vrf::*;
+
 /// A Trait to lookup keys from AuthorIds
 pub trait KeysLookup<AuthorId, Keys> {
 	fn lookup_keys(author: &AuthorId) -> Option<Keys>;

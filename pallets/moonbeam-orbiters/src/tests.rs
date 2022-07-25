@@ -181,6 +181,45 @@ fn test_collator_remove_orbiter() {
 }
 
 #[test]
+fn test_collator_remove_orbiter_then_add_orbiter() {
+	ExtBuilder::default()
+		.with_balances(vec![(2, 20_000), (3, 20_000)])
+		.with_min_orbiter_deposit(10_000)
+		.build()
+		.execute_with(|| {
+			// Add a collator to the orbiter program
+			assert_ok!(MoonbeamOrbiters::add_collator(Origin::root(), 1),);
+			// Register an orbiter
+			assert_ok!(MoonbeamOrbiters::orbiter_register(Origin::signed(2)),);
+			assert_ok!(MoonbeamOrbiters::collator_add_orbiter(Origin::signed(1), 2),);
+
+			// Try to remove an orbiter to a collator pool, should success
+			assert_ok!(MoonbeamOrbiters::collator_remove_orbiter(
+				Origin::signed(1),
+				2
+			),);
+			System::assert_last_event(
+				Event::<Test>::OrbiterLeaveCollatorPool {
+					collator: 1,
+					orbiter: 2,
+				}
+				.into(),
+			);
+
+			// Try to register another orbiter, should success
+			assert_ok!(MoonbeamOrbiters::orbiter_register(Origin::signed(3)),);
+			assert_ok!(MoonbeamOrbiters::collator_add_orbiter(Origin::signed(1), 3),);
+			System::assert_last_event(
+				Event::<Test>::OrbiterJoinCollatorPool {
+					collator: 1,
+					orbiter: 3,
+				}
+				.into(),
+			);
+		});
+}
+
+#[test]
 fn test_orbiter_register_fail_if_insufficient_balance() {
 	ExtBuilder::default()
 		.with_min_orbiter_deposit(10_000)
@@ -200,11 +239,20 @@ fn test_orbiter_register_ok() {
 		.with_min_orbiter_deposit(10_000)
 		.build()
 		.execute_with(|| {
+			assert!(MoonbeamOrbiters::orbiter(1).is_none());
 			assert_ok!(MoonbeamOrbiters::orbiter_register(Origin::signed(1)),);
-			System::assert_last_event(
+			assert!(MoonbeamOrbiters::orbiter(1).is_some());
+			System::assert_has_event(
 				pallet_balances::Event::<Test>::Reserved {
 					who: 1,
 					amount: 10_000,
+				}
+				.into(),
+			);
+			System::assert_last_event(
+				Event::<Test>::OrbiterRegistered {
+					account: 1,
+					deposit: 10_000,
 				}
 				.into(),
 			);
@@ -242,6 +290,16 @@ fn test_orbiter_unregister() {
 			);
 
 			// Try to unregister an orbiter with right hint, should success
+			assert!(MoonbeamOrbiters::orbiter(2).is_some());
 			assert_ok!(MoonbeamOrbiters::orbiter_unregister(Origin::signed(2), 1),);
+			assert!(MoonbeamOrbiters::orbiter(2).is_none());
+			System::assert_has_event(
+				pallet_balances::Event::<Test>::Unreserved {
+					who: 2,
+					amount: 10_000,
+				}
+				.into(),
+			);
+			System::assert_last_event(Event::<Test>::OrbiterUnregistered { account: 2 }.into());
 		});
 }

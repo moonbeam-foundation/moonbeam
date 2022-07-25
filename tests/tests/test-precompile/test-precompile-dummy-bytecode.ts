@@ -1,9 +1,11 @@
+import "@moonbeam-network/api-augment";
+
 import { expect } from "chai";
-import { GENESIS_ACCOUNT } from "../../util/constants";
-import { customWeb3Request } from "../../util/providers";
-import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
-import { createContract, createTransaction } from "../../util/transactions";
 import * as RLP from "rlp";
+
+import { alith } from "../../util/accounts";
+import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
+import { createTransaction } from "../../util/transactions";
 
 const DEPLOYED_BYTECODE = "0x60006000fd";
 
@@ -43,18 +45,16 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - precompiles dummy bytecode", (co
   it("should revert when dummy bytecode is called", async function () {
     // we deploy a new contract with the same bytecode to be able to
     // execute the bytecode instead of executing a precompile.
-    const createTx = await createTransaction(context, {
-      data: INIT_CODE,
-    });
-
-    await context.createBlock({
-      transactions: [createTx],
-    });
+    await context.createBlock(
+      createTransaction(context, {
+        data: INIT_CODE,
+      })
+    );
 
     const contractAddress =
       "0x" +
       context.web3.utils
-        .sha3(RLP.encode([GENESIS_ACCOUNT, 0]) as any)
+        .sha3(RLP.encode([alith.address, 0]) as any)
         .slice(12)
         .substring(14);
 
@@ -63,16 +63,15 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - precompiles dummy bytecode", (co
     expect(code).to.equal(DEPLOYED_BYTECODE);
 
     // try to call contract (with empty data, shouldn't matter)
-    const callTx = await createTransaction(context, {
-      data: "0x",
-      to: contractAddress,
-    });
 
-    const block = await context.createBlock({
-      transactions: [callTx],
-    });
-
-    const receipt = await context.web3.eth.getTransactionReceipt(block.txResults[0].result);
+    const { result } = await context.createBlock(
+      createTransaction(context, {
+        gas: 12000000,
+        data: "0x",
+        to: contractAddress,
+      })
+    );
+    const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
 
     expect(receipt.status).to.equal(false);
     // 21006 = call cost + 2*PUSH cost

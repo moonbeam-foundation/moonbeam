@@ -1,4 +1,4 @@
-// Copyright 2019-2021 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -14,9 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 use fc_rpc::frontier_backend_client::{self, is_canon};
-use futures::{future::BoxFuture, FutureExt as _};
-use jsonrpc_core::Result as RpcResult;
-use jsonrpc_derive::rpc;
+use jsonrpsee::{core::RpcResult, proc_macros::rpc};
 use sp_core::H256;
 use std::{marker::PhantomData, sync::Arc};
 //TODO ideally we wouldn't depend on BlockId here. Can we change frontier
@@ -31,13 +29,13 @@ use sp_runtime::traits::Block;
 pub trait MoonbeamFinalityApi {
 	/// Reports whether a Substrate or Ethereum block is finalized.
 	/// Returns false if the block is not found.
-	#[rpc(name = "moon_isBlockFinalized")]
-	fn is_block_finalized(&self, block_hash: H256) -> BoxFuture<'static, RpcResult<bool>>;
+	#[method(name = "moon_isBlockFinalized")]
+	fn is_block_finalized(&self, block_hash: H256) -> RpcResult<bool>;
 
 	/// Reports whether an Ethereum transaction is finalized.
 	/// Returns false if the transaction is not found
-	#[rpc(name = "moon_isTxFinalized")]
-	fn is_tx_finalized(&self, tx_hash: H256) -> BoxFuture<'static, RpcResult<bool>>;
+	#[method(name = "moon_isTxFinalized")]
+	fn is_tx_finalized(&self, tx_hash: H256) -> RpcResult<bool>;
 }
 
 pub struct MoonbeamFinality<B: Block, C> {
@@ -56,34 +54,31 @@ impl<B: Block, C> MoonbeamFinality<B, C> {
 	}
 }
 
-impl<B, C> MoonbeamFinalityApi for MoonbeamFinality<B, C>
+impl<B, C> MoonbeamFinalityApiServer for MoonbeamFinality<B, C>
 where
 	B: Block<Hash = H256>,
 	C: HeaderBackend<B> + Send + Sync + 'static,
 {
-	fn is_block_finalized(&self, raw_hash: H256) -> BoxFuture<'static, RpcResult<bool>> {
+	fn is_block_finalized(&self, raw_hash: H256) -> RpcResult<bool> {
 		let backend = self.backend.clone();
 		let client = self.client.clone();
-		async move { is_block_finalized_inner::<B, C>(&backend, &client, raw_hash) }.boxed()
+		is_block_finalized_inner::<B, C>(&backend, &client, raw_hash)
 	}
 
-	fn is_tx_finalized(&self, tx_hash: H256) -> BoxFuture<'static, RpcResult<bool>> {
+	fn is_tx_finalized(&self, tx_hash: H256) -> RpcResult<bool> {
 		let backend = self.backend.clone();
 		let client = self.client.clone();
-		async move {
-			if let Some((ethereum_block_hash, _ethereum_index)) =
-				frontier_backend_client::load_transactions::<B, C>(
-					&client,
-					backend.as_ref(),
-					tx_hash,
-					true,
-				)? {
-				is_block_finalized_inner::<B, C>(&backend, &client, ethereum_block_hash)
-			} else {
-				Ok(false)
-			}
+		if let Some((ethereum_block_hash, _ethereum_index)) =
+			frontier_backend_client::load_transactions::<B, C>(
+				&client,
+				backend.as_ref(),
+				tx_hash,
+				true,
+			)? {
+			is_block_finalized_inner::<B, C>(&backend, &client, ethereum_block_hash)
+		} else {
+			Ok(false)
 		}
-		.boxed()
 	}
 }
 

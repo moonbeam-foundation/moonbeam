@@ -16,7 +16,7 @@
 
 //! Test utilities
 use super::*;
-use crate::{self as xcm_transactor};
+use crate as pallet_xcm_transactor;
 use frame_support::{construct_runtime, parameter_types};
 use frame_support::{traits::PalletInfo as PalletInfoTrait, weights::Weight};
 use frame_system::EnsureRoot;
@@ -53,7 +53,7 @@ construct_runtime!(
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
-		XcmTransactor: xcm_transactor::{Pallet, Call, Event<T>},
+		XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Event<T>},
 	}
 );
 
@@ -176,7 +176,7 @@ impl sp_runtime::traits::Convert<u64, MultiLocation> for AccountIdToMultiLocatio
 	fn convert(_account: u64) -> MultiLocation {
 		let as_h160: H160 = H160::repeat_byte(0xAA);
 		MultiLocation::new(
-			1,
+			0,
 			Junctions::X1(AccountKey20 {
 				network: NetworkId::Any,
 				key: as_h160.as_fixed_bytes().clone(),

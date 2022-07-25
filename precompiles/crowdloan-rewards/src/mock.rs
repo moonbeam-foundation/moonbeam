@@ -32,13 +32,14 @@ use frame_support::{
 use frame_system::{EnsureSigned, RawOrigin};
 use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet};
 use serde::{Deserialize, Serialize};
-use sp_core::H256;
+use sp_core::{H256, U256};
 use sp_io;
 use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 	Perbill,
 };
+
 pub type AccountId = H160;
 pub type Balance = u128;
 pub type BlockNumber = u64;
@@ -80,7 +81,7 @@ construct_runtime!(
 	derive_more::Display,
 	scale_info::TypeInfo,
 )]
-pub enum TestAccount {
+pub enum Account {
 	Alice,
 	Bob,
 	Charlie,
@@ -99,20 +100,20 @@ impl<T: From<H160>> AddressMapping<T> for IntoAddressMapping {
 	}
 }
 
-impl Default for TestAccount {
+impl Default for Account {
 	fn default() -> Self {
 		Self::Bogus
 	}
 }
 
-impl From<TestAccount> for H160 {
-	fn from(value: TestAccount) -> H160 {
+impl From<Account> for H160 {
+	fn from(value: Account) -> H160 {
 		match value {
-			TestAccount::Alice => H160::repeat_byte(0xAA),
-			TestAccount::Bob => H160::repeat_byte(0xBB),
-			TestAccount::Charlie => H160::repeat_byte(0xCC),
-			TestAccount::Precompile => H160::from_low_u64_be(PRECOMPILE_ADDRESS),
-			TestAccount::Bogus => Default::default(),
+			Account::Alice => H160::repeat_byte(0xAA),
+			Account::Bob => H160::repeat_byte(0xBB),
+			Account::Charlie => H160::repeat_byte(0xCC),
+			Account::Precompile => H160::from_low_u64_be(PRECOMPILE_ADDRESS),
+			Account::Bogus => Default::default(),
 		}
 	}
 }
@@ -177,11 +178,6 @@ impl pallet_balances::Config for Runtime {
 	type WeightInfo = ();
 }
 
-/// The crowdloan precompile is available at address one in the mock runtime.
-pub fn precompile_address() -> H160 {
-	H160::from_low_u64_be(1)
-}
-
 #[derive(Debug, Clone, Copy)]
 pub struct TestPrecompiles<R>(PhantomData<R>);
 
@@ -189,28 +185,22 @@ impl<R> PrecompileSet for TestPrecompiles<R>
 where
 	CrowdloanRewardsWrapper<R>: Precompile,
 {
-	fn execute(
-		&self,
-		address: H160,
-		input: &[u8],
-		target_gas: Option<u64>,
-		context: &Context,
-		is_static: bool,
-	) -> Option<EvmResult<PrecompileOutput>> {
-		match address {
-			a if a == precompile_address() => Some(CrowdloanRewardsWrapper::<R>::execute(
-				input, target_gas, context, is_static,
-			)),
+	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<EvmResult<PrecompileOutput>> {
+		match handle.code_address() {
+			a if a == Account::Precompile.into() => {
+				Some(CrowdloanRewardsWrapper::<R>::execute(handle))
+			}
 			_ => None,
 		}
 	}
 
 	fn is_precompile(&self, address: H160) -> bool {
-		address == precompile_address()
+		address == Account::Precompile.into()
 	}
 }
 
 parameter_types! {
+	pub BlockGasLimit: U256 = U256::max_value();
 	pub const PrecompilesValue: TestPrecompiles<Runtime> = TestPrecompiles(PhantomData);
 }
 
@@ -227,10 +217,9 @@ impl pallet_evm::Config for Runtime {
 	type PrecompilesType = TestPrecompiles<Self>;
 	type ChainId = ();
 	type OnChargeTransaction = ();
-	type BlockGasLimit = ();
+	type BlockGasLimit = BlockGasLimit;
 	type BlockHashMapping = pallet_evm::SubstrateBlockHashMapping<Self>;
 	type FindAuthor = ();
-	type WeightInfo = ();
 }
 
 parameter_types! {
@@ -366,15 +355,4 @@ pub(crate) fn events() -> Vec<Event> {
 		.into_iter()
 		.map(|r| r.event)
 		.collect::<Vec<_>>()
-}
-
-// Helper function to give a simple evm context suitable for tests.
-// We can remove this once https://github.com/rust-blockchain/evm/pull/35
-// is in our dependency graph.
-pub fn evm_test_context() -> fp_evm::Context {
-	fp_evm::Context {
-		address: Default::default(),
-		caller: Default::default(),
-		apparent_value: From::from(0),
-	}
 }

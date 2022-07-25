@@ -1,4 +1,7 @@
+import "@moonbeam-network/api-augment";
+
 import { expect } from "chai";
+
 import { customWeb3Request } from "../../util/providers";
 import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 import { createContract } from "../../util/transactions";
@@ -59,10 +62,10 @@ describeDevMoonbeam("Filter Block API - Polling", (context) => {
 
 describeDevMoonbeamAllEthTxTypes("Filter Block API - Polling", (context) => {
   it("should support filtering created contract", async function () {
-    const { contract, rawTx } = await createContract(context, "SingleEventContract");
-    const { txResults } = await context.createBlock({ transactions: [rawTx] });
+    const { rawTx } = await createContract(context, "EventEmitter");
+    const { result } = await context.createBlock(rawTx);
 
-    const receipt = await context.web3.eth.getTransactionReceipt(txResults[0].result);
+    const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
 
     const createFilter = await customWeb3Request(context.web3, "eth_newFilter", [
       {

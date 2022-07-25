@@ -195,11 +195,13 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 
 				fn account_basic(address: H160) -> EVMAccount {
-					EVM::account_basic(&address)
+					let (account, _) = EVM::account_basic(&address);
+					account
 				}
 
 				fn gas_price() -> U256 {
-					<Runtime as pallet_evm::Config>::FeeCalculator::min_gas_price()
+					let (gas_price, _) = <Runtime as pallet_evm::Config>::FeeCalculator::min_gas_price();
+					gas_price
 				}
 
 				fn account_code_at(address: H160) -> Vec<u8> {
@@ -236,6 +238,7 @@ macro_rules! impl_runtime_apis_plus_common {
 						None
 					};
 					let is_transactional = false;
+					let validate = true;
 					<Runtime as pallet_evm::Config>::Runner::call(
 						from,
 						to,
@@ -245,10 +248,11 @@ macro_rules! impl_runtime_apis_plus_common {
 						max_fee_per_gas,
 						max_priority_fee_per_gas,
 						nonce,
-						Vec::new(),
+						access_list.unwrap_or_default(),
 						is_transactional,
+						validate,
 						config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
-					).map_err(|err| err.into())
+					).map_err(|err| err.error.into())
 				}
 
 				fn create(
@@ -270,6 +274,7 @@ macro_rules! impl_runtime_apis_plus_common {
 						None
 					};
 					let is_transactional = false;
+					let validate = true;
 					#[allow(clippy::or_fun_call)] // suggestion not helpful here
 					<Runtime as pallet_evm::Config>::Runner::create(
 						from,
@@ -279,10 +284,11 @@ macro_rules! impl_runtime_apis_plus_common {
 						max_fee_per_gas,
 						max_priority_fee_per_gas,
 						nonce,
-						Vec::new(),
+						access_list.unwrap_or_default(),
 						is_transactional,
+						validate,
 						config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
-					).map_err(|err| err.into())
+					).map_err(|err| err.error.into())
 				}
 
 				fn current_transaction_statuses() -> Option<Vec<TransactionStatus>> {
@@ -372,7 +378,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					// Because the staking solution calculates the next staking set at the beginning
 					// of the first block in the new round, the only way to accurately predict the
 					// authors is to compute the selection during prediction.
-					if parachain_staking::Pallet::<Self>::round().should_update(block_number) {
+					if pallet_parachain_staking::Pallet::<Self>::round().should_update(block_number) {
 						// get author account id
 						use nimbus_primitives::AccountLookup;
 						let author_account_id = if let Some(account) =
@@ -385,7 +391,7 @@ macro_rules! impl_runtime_apis_plus_common {
 						// predict eligibility post-selection by computing selection results now
 						let (eligible, _) =
 							pallet_author_slot_filter::compute_pseudo_random_subset::<Self>(
-								parachain_staking::Pallet::<Self>::compute_top_candidates(),
+								pallet_parachain_staking::Pallet::<Self>::compute_top_candidates(),
 								&slot
 							);
 						eligible.contains(&author_account_id)
@@ -421,14 +427,16 @@ macro_rules! impl_runtime_apis_plus_common {
 					use frame_support::traits::StorageInfoTrait;
 					use frame_system_benchmarking::Pallet as SystemBench;
 					use pallet_crowdloan_rewards::Pallet as PalletCrowdloanRewardsBench;
-					use parachain_staking::Pallet as ParachainStakingBench;
+					use pallet_parachain_staking::Pallet as ParachainStakingBench;
 					use pallet_author_mapping::Pallet as PalletAuthorMappingBench;
 					use pallet_author_slot_filter::Pallet as PalletAuthorSlotFilter;
 					use pallet_moonbeam_orbiters::Pallet as PalletMoonbeamOrbiters;
-					#[cfg(feature = "moonbase-runtime-benchmarks")]
+					use pallet_author_inherent::Pallet as PalletAuthorInherent;
 					use pallet_asset_manager::Pallet as PalletAssetManagerBench;
+					use pallet_xcm_transactor::Pallet as XcmTransactorBench;
+
 					#[cfg(feature = "moonbase-runtime-benchmarks")]
-					use xcm_transactor::Pallet as XcmTransactorBench;
+					use pallet_randomness::Pallet as RandomnessBench;
 
 					let mut list = Vec::<BenchmarkList>::new();
 
@@ -438,10 +446,12 @@ macro_rules! impl_runtime_apis_plus_common {
 					list_benchmark!(list, extra, pallet_author_mapping, PalletAuthorMappingBench::<Runtime>);
 					list_benchmark!(list, extra, pallet_author_slot_filter, PalletAuthorSlotFilter::<Runtime>);
 					list_benchmark!(list, extra, pallet_moonbeam_orbiters, PalletMoonbeamOrbiters::<Runtime>);
-					#[cfg(feature = "moonbase-runtime-benchmarks")]
+					list_benchmark!(list, extra, pallet_author_inherent, PalletAuthorInherent::<Runtime>);
 					list_benchmark!(list, extra, pallet_asset_manager, PalletAssetManagerBench::<Runtime>);
-					#[cfg(feature = "moonbase-runtime-benchmarks")]
 					list_benchmark!(list, extra, xcm_transactor, XcmTransactorBench::<Runtime>);
+
+					#[cfg(feature = "moonbase-runtime-benchmarks")]
+					list_benchmark!(list, extra, pallet_randomness, RandomnessBench::<Runtime>);
 
 					let storage_info = AllPalletsWithSystem::storage_info();
 
@@ -459,14 +469,16 @@ macro_rules! impl_runtime_apis_plus_common {
 					impl frame_system_benchmarking::Config for Runtime {}
 
 					use pallet_crowdloan_rewards::Pallet as PalletCrowdloanRewardsBench;
-					use parachain_staking::Pallet as ParachainStakingBench;
+					use pallet_parachain_staking::Pallet as ParachainStakingBench;
 					use pallet_author_mapping::Pallet as PalletAuthorMappingBench;
 					use pallet_author_slot_filter::Pallet as PalletAuthorSlotFilter;
 					use pallet_moonbeam_orbiters::Pallet as PalletMoonbeamOrbiters;
-					#[cfg(feature = "moonbase-runtime-benchmarks")]
+					use pallet_author_inherent::Pallet as PalletAuthorInherent;
 					use pallet_asset_manager::Pallet as PalletAssetManagerBench;
+					use pallet_xcm_transactor::Pallet as XcmTransactorBench;
+
 					#[cfg(feature = "moonbase-runtime-benchmarks")]
-					use xcm_transactor::Pallet as XcmTransactorBench;
+					use pallet_randomness::Pallet as RandomnessBench;
 
 					let whitelist: Vec<TrackedStorageKey> = vec![
 						// Block Number
@@ -515,6 +527,10 @@ macro_rules! impl_runtime_apis_plus_common {
 						hex_literal::hex!(  "a686a3043d0adcf2fa655e57bc595a78"
 											"13792e785168f725b60e2969c7fc2552")
 							.to_vec().into(),
+						// ParachainInfo ParachainId
+						hex_literal::hex!(  "0d715f2646c8f85767b5d2764bb27826"
+											"04a74d81251e398fd8a0a4d55023bb3f")
+							.to_vec().into(),
 
 					];
 
@@ -552,19 +568,31 @@ macro_rules! impl_runtime_apis_plus_common {
 						pallet_moonbeam_orbiters,
 						PalletMoonbeamOrbiters::<Runtime>
 					);
-					#[cfg(feature = "moonbase-runtime-benchmarks")]
+					add_benchmark!(
+						params,
+						batches,
+						pallet_author_inherent,
+						PalletAuthorInherent::<Runtime>
+					);
 					add_benchmark!(
 						params,
 						batches,
 						pallet_asset_manager,
 						PalletAssetManagerBench::<Runtime>
 					);
-					#[cfg(feature = "moonbase-runtime-benchmarks")]
 					add_benchmark!(
 						params,
 						batches,
 						xcm_transactor,
 						XcmTransactorBench::<Runtime>
+					);
+
+					#[cfg(feature = "moonbase-runtime-benchmarks")]
+					add_benchmark!(
+						params,
+						batches,
+						pallet_randomness,
+						RandomnessBench::<Runtime>
 					);
 
 					if batches.is_empty() {

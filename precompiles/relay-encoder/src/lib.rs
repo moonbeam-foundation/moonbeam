@@ -20,17 +20,13 @@
 #![cfg_attr(test, feature(assert_matches))]
 
 use cumulus_primitives_core::relay_chain;
-use fp_evm::{Context, ExitSucceed, PrecompileOutput};
+use fp_evm::{Precompile, PrecompileHandle, PrecompileOutput};
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
 	ensure,
 };
-use pallet_evm::Precompile;
 use pallet_staking::RewardDestination;
-use precompile_utils::{
-	Bytes, EvmData, EvmDataReader, EvmDataWriter, EvmResult, FunctionModifier, Gasometer,
-	RuntimeHelper,
-};
+use precompile_utils::prelude::*;
 use sp_core::{H256, U256};
 use sp_runtime::AccountId32;
 use sp_runtime::Perbill;
@@ -65,7 +61,7 @@ pub trait StakeEncodeCall {
 	fn encode_call(call: AvailableStakeCalls) -> Vec<u8>;
 }
 
-#[precompile_utils::generate_function_selector]
+#[generate_function_selector]
 #[derive(Debug, PartialEq)]
 enum Action {
 	EncodeBond = "encode_bond(uint256,uint256,bytes)",
@@ -83,25 +79,17 @@ enum Action {
 /// A precompile to provide relay stake calls encoding through evm
 pub struct RelayEncoderWrapper<Runtime, RelayRuntime>(PhantomData<(Runtime, RelayRuntime)>);
 
+// TODO: Migrate to precompile_utils::Precompile.
 impl<Runtime, RelayRuntime> Precompile for RelayEncoderWrapper<Runtime, RelayRuntime>
 where
 	RelayRuntime: StakeEncodeCall,
 	Runtime: pallet_evm::Config,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 {
-	fn execute(
-		input: &[u8], //Reminder this is big-endian
-		target_gas: Option<u64>,
-		context: &Context,
-		is_static: bool,
-	) -> EvmResult<PrecompileOutput> {
-		let mut gasometer = Gasometer::new(target_gas);
-		let gasometer = &mut gasometer;
+	fn execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		let selector = handle.read_selector()?;
 
-		let (mut input, selector) = EvmDataReader::new_with_selector(gasometer, input)?;
-		let input = &mut input;
-
-		gasometer.check_function_modifier(context, is_static, FunctionModifier::View)?;
+		handle.check_function_modifier(FunctionModifier::View)?;
 
 		// Parse the function selector
 		// These are the four-byte function selectors calculated from the RelayEncoder.sol
@@ -109,16 +97,16 @@ where
 		// https://docs.soliditylang.org/en/v0.8.0/abi-spec.html#function-selector
 		match selector {
 			// Storage Accessors
-			Action::EncodeBond => Self::encode_bond(input, gasometer),
-			Action::EncodeBondExtra => Self::encode_bond_extra(input, gasometer),
-			Action::EncodeUnbond => Self::encode_unbond(input, gasometer),
-			Action::EncodeWithdrawUnbonded => Self::encode_withdraw_unbonded(input, gasometer),
-			Action::EncodeValidate => Self::encode_validate(input, gasometer),
-			Action::EncodeNominate => Self::encode_nominate(input, gasometer),
-			Action::EncodeChill => Self::encode_chill(input, gasometer),
-			Action::EncodeSetPayee => Self::encode_set_payee(input, gasometer),
-			Action::EncodeSetController => Self::encode_set_controller(input, gasometer),
-			Action::EncodeRebond => Self::encode_rebond(input, gasometer),
+			Action::EncodeBond => Self::encode_bond(handle),
+			Action::EncodeBondExtra => Self::encode_bond_extra(handle),
+			Action::EncodeUnbond => Self::encode_unbond(handle),
+			Action::EncodeWithdrawUnbonded => Self::encode_withdraw_unbonded(handle),
+			Action::EncodeValidate => Self::encode_validate(handle),
+			Action::EncodeNominate => Self::encode_nominate(handle),
+			Action::EncodeChill => Self::encode_chill(handle),
+			Action::EncodeSetPayee => Self::encode_set_payee(handle),
+			Action::EncodeSetController => Self::encode_set_controller(handle),
+			Action::EncodeRebond => Self::encode_rebond(handle),
 		}
 	}
 }
@@ -129,19 +117,17 @@ where
 	Runtime: pallet_evm::Config,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 {
-	fn encode_bond(
-		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
-	) -> EvmResult<PrecompileOutput> {
-		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+	fn encode_bond(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		input.expect_arguments(gasometer, 4)?;
+		let mut input = handle.read_input()?;
+		input.expect_arguments(4)?;
 
-		let address: [u8; 32] = input.read::<H256>(gasometer)?.into();
-		let amount: U256 = input.read(gasometer)?;
-		let relay_amount = u256_to_relay_amount(gasometer, amount)?;
+		let address: [u8; 32] = input.read::<H256>()?.into();
+		let amount: U256 = input.read()?;
+		let relay_amount = u256_to_relay_amount(amount)?;
 
-		let reward_destination = input.read::<RewardDestinationWrapper>(gasometer)?.into();
+		let reward_destination = input.read::<RewardDestinationWrapper>()?.into();
 		let encoded: Bytes = RelayRuntime::encode_call(AvailableStakeCalls::Bond(
 			address.into(),
 			relay_amount,
@@ -150,91 +136,63 @@ where
 		.as_slice()
 		.into();
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			cost: gasometer.used_gas(),
-			output: EvmDataWriter::new().write(encoded).build(),
-			logs: Default::default(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(encoded).build()))
 	}
 
-	fn encode_bond_extra(
-		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
-	) -> EvmResult<PrecompileOutput> {
-		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+	fn encode_bond_extra(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		input.expect_arguments(gasometer, 1)?;
-		let amount: U256 = input.read(gasometer)?;
-		let relay_amount = u256_to_relay_amount(gasometer, amount)?;
+		let mut input = handle.read_input()?;
+		input.expect_arguments(1)?;
+		let amount: U256 = input.read()?;
+		let relay_amount = u256_to_relay_amount(amount)?;
 		let encoded: Bytes =
 			RelayRuntime::encode_call(AvailableStakeCalls::BondExtra(relay_amount))
 				.as_slice()
 				.into();
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			cost: gasometer.used_gas(),
-			output: EvmDataWriter::new().write(encoded).build(),
-			logs: Default::default(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(encoded).build()))
 	}
 
-	fn encode_unbond(
-		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
-	) -> EvmResult<PrecompileOutput> {
-		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+	fn encode_unbond(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		input.expect_arguments(gasometer, 1)?;
+		let mut input = handle.read_input()?;
+		input.expect_arguments(1)?;
 
-		let amount: U256 = input.read(gasometer)?;
-		let relay_amount = u256_to_relay_amount(gasometer, amount)?;
+		let amount: U256 = input.read()?;
+		let relay_amount = u256_to_relay_amount(amount)?;
 
 		let encoded: Bytes = RelayRuntime::encode_call(AvailableStakeCalls::Unbond(relay_amount))
 			.as_slice()
 			.into();
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			cost: gasometer.used_gas(),
-			output: EvmDataWriter::new().write(encoded).build(),
-			logs: Default::default(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(encoded).build()))
 	}
 
-	fn encode_withdraw_unbonded(
-		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
-	) -> EvmResult<PrecompileOutput> {
-		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+	fn encode_withdraw_unbonded(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		input.expect_arguments(gasometer, 1)?;
+		let mut input = handle.read_input()?;
+		input.expect_arguments(1)?;
 
-		let num_slashing_spans: u32 = input.read(gasometer)?;
+		let num_slashing_spans: u32 = input.read()?;
 		let encoded: Bytes =
 			RelayRuntime::encode_call(AvailableStakeCalls::WithdrawUnbonded(num_slashing_spans))
 				.as_slice()
 				.into();
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			cost: gasometer.used_gas(),
-			output: EvmDataWriter::new().write(encoded).build(),
-			logs: Default::default(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(encoded).build()))
 	}
 
-	fn encode_validate(
-		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
-	) -> EvmResult<PrecompileOutput> {
-		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+	fn encode_validate(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		input.expect_arguments(gasometer, 2)?;
+		let mut input = handle.read_input()?;
+		input.expect_arguments(2)?;
 
-		let parst_per_billion: u32 = input.read(gasometer)?;
-		let blocked: bool = input.read(gasometer)?;
+		let parst_per_billion: u32 = input.read()?;
+		let blocked: bool = input.read()?;
 		let fraction = Perbill::from_parts(parst_per_billion);
 		let encoded: Bytes = RelayRuntime::encode_call(AvailableStakeCalls::Validate(
 			pallet_staking::ValidatorPrefs {
@@ -245,21 +203,14 @@ where
 		.as_slice()
 		.into();
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			cost: gasometer.used_gas(),
-			output: EvmDataWriter::new().write(encoded).build(),
-			logs: Default::default(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(encoded).build()))
 	}
 
-	fn encode_nominate(
-		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
-	) -> EvmResult<PrecompileOutput> {
-		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+	fn encode_nominate(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		let nominated_as_h256: Vec<H256> = input.read(gasometer)?;
+		let mut input = handle.read_input()?;
+		let nominated_as_h256: Vec<H256> = input.read()?;
 
 		let nominated: Vec<AccountId32> = nominated_as_h256
 			.iter()
@@ -272,108 +223,72 @@ where
 			.as_slice()
 			.into();
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			cost: gasometer.used_gas(),
-			output: EvmDataWriter::new().write(encoded).build(),
-			logs: Default::default(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(encoded).build()))
 	}
 
-	fn encode_chill(
-		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
-	) -> EvmResult<PrecompileOutput> {
-		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+	fn encode_chill(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		input.expect_arguments(gasometer, 0)?;
+		let input = handle.read_input()?;
+		input.expect_arguments(0)?;
 
 		let encoded: Bytes = RelayRuntime::encode_call(AvailableStakeCalls::Chill)
 			.as_slice()
 			.into();
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			cost: gasometer.used_gas(),
-			output: EvmDataWriter::new().write(encoded).build(),
-			logs: Default::default(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(encoded).build()))
 	}
 
-	fn encode_set_payee(
-		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
-	) -> EvmResult<PrecompileOutput> {
-		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+	fn encode_set_payee(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		input.expect_arguments(gasometer, 2)?;
+		let mut input = handle.read_input()?;
+		input.expect_arguments(2)?;
 
-		let reward_destination = input.read::<RewardDestinationWrapper>(gasometer)?.into();
+		let reward_destination = input.read::<RewardDestinationWrapper>()?.into();
 
 		let encoded: Bytes =
 			RelayRuntime::encode_call(AvailableStakeCalls::SetPayee(reward_destination))
 				.as_slice()
 				.into();
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			cost: gasometer.used_gas(),
-			output: EvmDataWriter::new().write(encoded).build(),
-			logs: Default::default(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(encoded).build()))
 	}
 
-	fn encode_set_controller(
-		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
-	) -> EvmResult<PrecompileOutput> {
-		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+	fn encode_set_controller(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		let controller: [u8; 32] = input.read::<H256>(gasometer)?.into();
+		let mut input = handle.read_input()?;
+		let controller: [u8; 32] = input.read::<H256>()?.into();
 
 		let encoded: Bytes =
 			RelayRuntime::encode_call(AvailableStakeCalls::SetController(controller.into()))
 				.as_slice()
 				.into();
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			cost: gasometer.used_gas(),
-			output: EvmDataWriter::new().write(encoded).build(),
-			logs: Default::default(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(encoded).build()))
 	}
 
-	fn encode_rebond(
-		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
-	) -> EvmResult<PrecompileOutput> {
-		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+	fn encode_rebond(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		input.expect_arguments(gasometer, 1)?;
+		let mut input = handle.read_input()?;
+		input.expect_arguments(1)?;
 
-		let amount: U256 = input.read(gasometer)?;
-		let relay_amount = u256_to_relay_amount(gasometer, amount)?;
+		let amount: U256 = input.read()?;
+		let relay_amount = u256_to_relay_amount(amount)?;
 		let encoded: Bytes = RelayRuntime::encode_call(AvailableStakeCalls::Rebond(relay_amount))
 			.as_slice()
 			.into();
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			cost: gasometer.used_gas(),
-			output: EvmDataWriter::new().write(encoded).build(),
-			logs: Default::default(),
-		})
+		Ok(succeed(EvmDataWriter::new().write(encoded).build()))
 	}
 }
 
-pub fn u256_to_relay_amount(
-	gasometer: &mut Gasometer,
-	value: U256,
-) -> EvmResult<relay_chain::Balance> {
+pub fn u256_to_relay_amount(value: U256) -> EvmResult<relay_chain::Balance> {
 	value
 		.try_into()
-		.map_err(|_| gasometer.revert("amount is too large for provided balance type"))
+		.map_err(|_| revert("amount is too large for provided balance type"))
 }
 
 // A wrapper to be able to implement here the EvmData reader
@@ -393,31 +308,31 @@ impl Into<RewardDestination<AccountId32>> for RewardDestinationWrapper {
 }
 
 impl EvmData for RewardDestinationWrapper {
-	fn read(reader: &mut EvmDataReader, gasometer: &mut Gasometer) -> EvmResult<Self> {
-		let reward_destination = reader.read::<Bytes>(gasometer)?;
+	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
+		let reward_destination = reader.read::<Bytes>()?;
 		let reward_destination_bytes = reward_destination.as_bytes();
 		ensure!(
 			reward_destination_bytes.len() > 0,
-			gasometer.revert("Reward destinations cannot be empty")
+			revert("Reward destinations cannot be empty")
 		);
 		// For simplicity we use an EvmReader here
 		let mut encoded_reward_destination = EvmDataReader::new(&reward_destination_bytes);
 
 		// We take the first byte
-		let enum_selector = encoded_reward_destination.read_raw_bytes(gasometer, 1)?;
+		let enum_selector = encoded_reward_destination.read_raw_bytes(1)?;
 		// The firs byte selects the enum variant
 		match enum_selector[0] {
 			0u8 => Ok(RewardDestinationWrapper(RewardDestination::Staked)),
 			1u8 => Ok(RewardDestinationWrapper(RewardDestination::Stash)),
 			2u8 => Ok(RewardDestinationWrapper(RewardDestination::Controller)),
 			3u8 => {
-				let address = encoded_reward_destination.read::<H256>(gasometer)?;
+				let address = encoded_reward_destination.read::<H256>()?;
 				Ok(RewardDestinationWrapper(RewardDestination::Account(
 					address.as_fixed_bytes().clone().into(),
 				)))
 			}
 			4u8 => Ok(RewardDestinationWrapper(RewardDestination::None)),
-			_ => Err(gasometer.revert("Not available enum")),
+			_ => Err(revert("Not available enum")),
 		}
 	}
 

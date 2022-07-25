@@ -66,6 +66,9 @@ impl<AccountId> Default for CollatorPoolInfo<AccountId> {
 
 impl<AccountId: Clone + PartialEq> CollatorPoolInfo<AccountId> {
 	pub(super) fn add_orbiter(&mut self, orbiter: AccountId) {
+		if self.next_orbiter > self.orbiters.len() as u32 {
+			self.next_orbiter = 0;
+		}
 		self.orbiters.insert(self.next_orbiter as usize, orbiter);
 		self.next_orbiter += 1;
 	}
