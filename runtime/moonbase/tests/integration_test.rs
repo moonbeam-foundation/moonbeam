@@ -42,15 +42,20 @@ use moonbase_runtime::{
 use precompile_utils::testing::MockHandle;
 
 use nimbus_primitives::NimbusId;
+use pallet_evm::GasWeightMapping;
 use pallet_evm::PrecompileSet;
 use pallet_evm_precompile_author_mapping::Action as AuthorMappingAction;
 use pallet_evm_precompile_batch::Action as BatchAction;
 use pallet_evm_precompile_crowdloan_rewards::Action as CrowdloanAction;
+use pallet_evm_precompile_randomness::{
+	EXECUTE_EXPIRATION_ESTIMATED_COST, FULFILLMENT_OVERHEAD_ESTIMATED_COST,
+	INCREASE_REQUEST_FEE_ESTIMATED_COST, REQUEST_RANDOMNESS_ESTIMATED_COST,
+};
 use pallet_evm_precompile_xtokens::Action as XtokensAction;
 use pallet_evm_precompileset_assets_erc20::{
 	AccountIdAssetIdConversion, Action as AssetAction, SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER,
 };
-
+use pallet_randomness::weights::{SubstrateWeight, WeightInfo};
 use pallet_transaction_payment::Multiplier;
 use parity_scale_codec::Encode;
 use sha3::{Digest, Keccak256};
@@ -60,6 +65,30 @@ use sp_runtime::{
 	DispatchError, ModuleError, TokenError,
 };
 use xcm::latest::prelude::*;
+
+#[test]
+fn verify_randomness_precompile_gas_constants() {
+	let weight_to_gas = |weight| {
+		<moonbase_runtime::Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(weight)
+	};
+	type Weight = SubstrateWeight<moonbase_runtime::Runtime>;
+	assert_eq!(
+		weight_to_gas(Weight::request_randomness()),
+		REQUEST_RANDOMNESS_ESTIMATED_COST
+	);
+	assert_eq!(
+		weight_to_gas(Weight::prepare_fulfillment() + Weight::finish_fulfillment()),
+		FULFILLMENT_OVERHEAD_ESTIMATED_COST
+	);
+	assert_eq!(
+		weight_to_gas(Weight::increase_fee()),
+		INCREASE_REQUEST_FEE_ESTIMATED_COST
+	);
+	assert_eq!(
+		weight_to_gas(Weight::execute_request_expiration()),
+		EXECUTE_EXPIRATION_ESTIMATED_COST
+	);
+}
 
 #[test]
 fn xcmp_queue_controller_origin_is_root() {
@@ -2507,7 +2536,7 @@ fn precompile_existence() {
 		let precompiles = Precompiles::new();
 		let precompile_addresses: std::collections::BTreeSet<_> = vec![
 			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2050, 2051, 2052, 2053, 2054,
-			2055, 2056, 2058,
+			2055, 2056, 2057, 2058,
 		]
 		.into_iter()
 		.map(H160::from_low_u64_be)

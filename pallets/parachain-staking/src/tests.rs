@@ -30,7 +30,8 @@ use crate::{
 	assert_eq_events, assert_eq_last_events, assert_event_emitted, assert_last_event,
 	assert_tail_eq, set::OrderedSet, AtStake, Bond, BottomDelegations, CandidateInfo,
 	CandidateMetadata, CandidatePool, CapacityStatus, CollatorStatus, DelegationScheduledRequests,
-	Delegations, DelegatorAdded, Error, Event, Range, TopDelegations, DELEGATOR_LOCK_ID,
+	Delegations, DelegatorAdded, DelegatorState, DelegatorStatus, Error, Event, Range,
+	TopDelegations, DELEGATOR_LOCK_ID,
 };
 use frame_support::{assert_noop, assert_ok};
 use sp_runtime::{traits::Zero, DispatchError, ModuleError, Perbill, Percent};
@@ -2329,6 +2330,41 @@ fn cannot_execute_leave_delegators_before_delay() {
 }
 
 #[test]
+fn cannot_execute_leave_delegators_if_single_delegation_revoke_manually_cancelled() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 20), (3, 30)])
+		.with_candidates(vec![(1, 30), (3, 30)])
+		.with_delegations(vec![(2, 1, 10), (2, 3, 10)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(
+				2
+			)));
+			assert_ok!(ParachainStaking::cancel_delegation_request(
+				Origin::signed(2),
+				3
+			));
+			roll_to(10);
+			assert_noop!(
+				ParachainStaking::execute_leave_delegators(Origin::signed(2), 2, 2),
+				Error::<Test>::DelegatorNotLeaving
+			);
+			// can execute after manually scheduling revoke, and the round delay after which
+			// all revokes can be executed
+			assert_ok!(ParachainStaking::schedule_revoke_delegation(
+				Origin::signed(2),
+				3
+			));
+			roll_to(20);
+			assert_ok!(ParachainStaking::execute_leave_delegators(
+				Origin::signed(2),
+				2,
+				2
+			));
+		});
+}
+
+#[test]
 fn insufficient_execute_leave_delegators_weight_hint_fails() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20), (6, 20)])
@@ -2410,6 +2446,36 @@ fn cancel_leave_delegators_updates_delegator_state() {
 			let delegator =
 				ParachainStaking::delegator_state(&2).expect("just cancelled exit so exists");
 			assert!(delegator.is_active());
+		});
+}
+
+#[test]
+fn cannot_cancel_leave_delegators_if_single_delegation_revoke_manually_cancelled() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 20), (3, 30)])
+		.with_candidates(vec![(1, 30), (3, 30)])
+		.with_delegations(vec![(2, 1, 10), (2, 3, 10)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(
+				2
+			)));
+			assert_ok!(ParachainStaking::cancel_delegation_request(
+				Origin::signed(2),
+				3
+			));
+			roll_to(10);
+			assert_noop!(
+				ParachainStaking::cancel_leave_delegators(Origin::signed(2)),
+				Error::<Test>::DelegatorNotLeaving
+			);
+			// can execute after manually scheduling revoke, without waiting for round delay after
+			// which all revokes can be executed
+			assert_ok!(ParachainStaking::schedule_revoke_delegation(
+				Origin::signed(2),
+				3
+			));
+			assert_ok!(ParachainStaking::cancel_leave_delegators(Origin::signed(2)));
 		});
 }
 
@@ -9385,4 +9451,121 @@ mod jit_migrate_reserve_to_locks_tests {
 	//       against the liquidity checks for bonding more
 	//     * other tests around lquidity checks (can't bond_more if not enough unlocked amount, etc)
 	//     * request cancellation
+}
+#[allow(deprecated)]
+#[test]
+fn test_delegator_with_deprecated_status_leaving_can_schedule_leave_delegators_as_fix() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 40)])
+		.with_candidates(vec![(1, 20)])
+		.with_delegations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			<DelegatorState<Test>>::mutate(2, |value| {
+				value.as_mut().map(|mut state| {
+					state.status = DelegatorStatus::Leaving(2);
+				})
+			});
+			let state = <DelegatorState<Test>>::get(2);
+			assert!(matches!(state.unwrap().status, DelegatorStatus::Leaving(_)));
+
+			assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(
+				2
+			)));
+			assert!(<DelegationScheduledRequests<Test>>::get(1)
+				.iter()
+				.any(|r| r.delegator == 2 && matches!(r.action, DelegationAction::Revoke(_))));
+			assert_last_event!(MetaEvent::ParachainStaking(Event::DelegatorExitScheduled {
+				round: 1,
+				delegator: 2,
+				scheduled_exit: 3
+			}));
+
+			let state = <DelegatorState<Test>>::get(2);
+			assert!(matches!(state.unwrap().status, DelegatorStatus::Active));
+		});
+}
+
+#[allow(deprecated)]
+#[test]
+fn test_delegator_with_deprecated_status_leaving_can_cancel_leave_delegators_as_fix() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 40)])
+		.with_candidates(vec![(1, 20)])
+		.with_delegations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			<DelegatorState<Test>>::mutate(2, |value| {
+				value.as_mut().map(|mut state| {
+					state.status = DelegatorStatus::Leaving(2);
+				})
+			});
+			let state = <DelegatorState<Test>>::get(2);
+			assert!(matches!(state.unwrap().status, DelegatorStatus::Leaving(_)));
+
+			assert_ok!(ParachainStaking::cancel_leave_delegators(Origin::signed(2)));
+			assert_last_event!(MetaEvent::ParachainStaking(Event::DelegatorExitCancelled {
+				delegator: 2
+			}));
+
+			let state = <DelegatorState<Test>>::get(2);
+			assert!(matches!(state.unwrap().status, DelegatorStatus::Active));
+		});
+}
+
+#[allow(deprecated)]
+#[test]
+fn test_delegator_with_deprecated_status_leaving_can_execute_leave_delegators_as_fix() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 40)])
+		.with_candidates(vec![(1, 20)])
+		.with_delegations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			<DelegatorState<Test>>::mutate(2, |value| {
+				value.as_mut().map(|mut state| {
+					state.status = DelegatorStatus::Leaving(2);
+				})
+			});
+			let state = <DelegatorState<Test>>::get(2);
+			assert!(matches!(state.unwrap().status, DelegatorStatus::Leaving(_)));
+
+			roll_to(10);
+			assert_ok!(ParachainStaking::execute_leave_delegators(
+				Origin::signed(2),
+				2,
+				1
+			));
+			assert_event_emitted!(Event::DelegatorLeft {
+				delegator: 2,
+				unstaked_amount: 10
+			});
+
+			let state = <DelegatorState<Test>>::get(2);
+			assert!(state.is_none());
+		});
+}
+
+#[allow(deprecated)]
+#[test]
+fn test_delegator_with_deprecated_status_leaving_cannot_execute_leave_delegators_early_no_fix() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 40)])
+		.with_candidates(vec![(1, 20)])
+		.with_delegations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			<DelegatorState<Test>>::mutate(2, |value| {
+				value.as_mut().map(|mut state| {
+					state.status = DelegatorStatus::Leaving(2);
+				})
+			});
+			let state = <DelegatorState<Test>>::get(2);
+			assert!(matches!(state.unwrap().status, DelegatorStatus::Leaving(_)));
+
+			assert_noop!(
+				ParachainStaking::execute_leave_delegators(Origin::signed(2), 2, 1),
+				Error::<Test>::DelegatorCannotLeaveYet
+			);
+		});
 }

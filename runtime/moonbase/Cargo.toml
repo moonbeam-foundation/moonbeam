@@ -20,7 +20,7 @@ smallvec = "1.8.0"
 account = { path = "../../primitives/account/", default-features = false }
 moonbeam-core-primitives = { path = "../../core-primitives", default-features = false }
 moonbeam-relay-encoder = { path = "../relay-encoder", default-features = false }
-moonbeam-runtime-common = { path = "../common", default-features = false, features = [ "xcm-support" ] }
+moonbeam-runtime-common = { path = "../common", default-features = false }
 precompile-utils = { path = "../../precompiles/utils", default-features = false }
 session-keys-primitives = { path = "../../primitives/session-keys", default-features = false }
 xcm-primitives = { path = "../../primitives/xcm/", default-features = false }
@@ -36,6 +36,7 @@ pallet-migrations = { path = "../../pallets/migrations", default-features = fals
 pallet-moonbeam-orbiters = { path = "../../pallets/moonbeam-orbiters", default-features = false }
 pallet-parachain-staking = { path = "../../pallets/parachain-staking", default-features = false }
 pallet-proxy-genesis-companion = { path = "../../pallets/proxy-genesis-companion", default-features = false }
+pallet-randomness = { path = "../../pallets/randomness", default-features = false }
 pallet-xcm-transactor = { path = "../../pallets/xcm-transactor", default-features = false }
 
 # Moonbeam precompiles
@@ -46,6 +47,7 @@ pallet-evm-precompile-call-permit = { path = "../../precompiles/call-permit", de
 pallet-evm-precompile-crowdloan-rewards = { path = "../../precompiles/crowdloan-rewards", default-features = false }
 pallet-evm-precompile-democracy = { path = "../../precompiles/pallet-democracy", default-features = false }
 pallet-evm-precompile-parachain-staking = { path = "../../precompiles/parachain-staking", default-features = false }
+pallet-evm-precompile-randomness = { path = "../../precompiles/randomness", default-features = false }
 pallet-evm-precompile-relay-encoder = { path = "../../precompiles/relay-encoder", default-features = false }
 pallet-evm-precompile-xcm-transactor = { path = "../../precompiles/xcm-transactor", default-features = false }
 pallet-evm-precompile-xtokens = { path = "../../precompiles/xtokens", default-features = false }
@@ -196,6 +198,7 @@ std = [
 	"pallet-evm-precompile-call-permit/std",
 	"pallet-evm-precompile-democracy/std",
 	"pallet-evm-precompile-parachain-staking/std",
+	"pallet-evm-precompile-randomness/std",
 	"pallet-evm-precompile-xcm-transactor/std",
 	"pallet-evm-precompile-xtokens/std",
 	"pallet-evm-precompileset-assets-erc20/std",
@@ -208,6 +211,7 @@ std = [
 	"pallet-proxy-genesis-companion/std",
 	"pallet-proxy/std",
 	"pallet-randomness-collective-flip/std",
+	"pallet-randomness/std",
 	"pallet-scheduler/std",
 	"pallet-society/std",
 	"pallet-sudo/std",
@@ -256,6 +260,7 @@ runtime-wasm = []
 on-chain-release-build = [ "sp-api/disable-logging" ]
 
 runtime-benchmarks = [
+	"cumulus-pallet-parachain-system/runtime-benchmarks",
 	"frame-benchmarking",
 	"frame-support/runtime-benchmarks",
 	"frame-system-benchmarking",
@@ -272,6 +277,7 @@ runtime-benchmarks = [
 	"pallet-ethereum/runtime-benchmarks",
 	"pallet-moonbeam-orbiters/runtime-benchmarks",
 	"pallet-parachain-staking/runtime-benchmarks",
+	"pallet-randomness/runtime-benchmarks",
 	"pallet-society/runtime-benchmarks",
 	"pallet-timestamp/runtime-benchmarks",
 	"pallet-xcm-transactor/runtime-benchmarks",
@@ -298,3 +304,5 @@ try-runtime = [
 	"pallet-society/try-runtime",
 	"pallet-timestamp/try-runtime",
 ]
+
+moonbase-runtime-benchmarks = []

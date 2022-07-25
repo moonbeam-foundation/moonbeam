@@ -22,14 +22,14 @@ export const PARA_1001_SOURCE_LOCATION = {
   Xcm: { parents: 1, interior: { X1: { Parachain: 1001 } } },
 };
 
-interface AssetMetadata {
+export interface AssetMetadata {
   name: string;
   symbol: string;
   decimals: BN;
   isFrozen: boolean;
 }
 
-const relayAssetMetadata: AssetMetadata = {
+export const relayAssetMetadata: AssetMetadata = {
   name: "DOT",
   symbol: "DOT",
   decimals: new BN(12),

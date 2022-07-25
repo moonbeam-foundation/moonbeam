@@ -86,7 +86,8 @@ describeSmokeSuite(`Verify balances consistency`, { wssUrl, relayWssUrl }, (cont
       localAssetDeposits,
       namedReserves,
       locks,
-      stakingMigrations,
+      delegatorStakingMigrations,
+      collatorStakingMigrations,
     ] = await Promise.all([
       apiAt.query.proxy.proxies.entries(),
       apiAt.query.proxy.announcements.entries(),
@@ -109,14 +110,30 @@ describeSmokeSuite(`Verify balances consistency`, { wssUrl, relayWssUrl }, (cont
       specVersion >= 1700 && specVersion < 1800
         ? apiAt.query.parachainStaking.delegatorReserveToLockMigrations.entries()
         : [],
+      specVersion >= 1700 && specVersion < 1800
+        ? apiAt.query.parachainStaking.collatorReserveToLockMigrations.entries()
+        : [],
     ]);
 
-    const stakingMigrationAccounts = stakingMigrations.reduce((p, migration: any) => {
-      if (migration[1].isTrue) {
-        p[`0x${migration[0].toHex().slice(-40)}`] = true;
-      }
-      return p;
-    }, {} as any) as { [account: string]: boolean };
+    const delegatorStakingMigrationAccounts = delegatorStakingMigrations.reduce(
+      (p, migration: any) => {
+        if (migration[1].isTrue) {
+          p[`0x${migration[0].toHex().slice(-40)}`] = true;
+        }
+        return p;
+      },
+      {} as any
+    ) as { [account: string]: boolean };
+
+    const collatorStakingMigrationAccounts = collatorStakingMigrations.reduce(
+      (p, migration: any) => {
+        if (migration[1].isTrue) {
+          p[`0x${migration[0].toHex().slice(-40)}`] = true;
+        }
+        return p;
+      },
+      {} as any
+    ) as { [account: string]: boolean };
 
     const expectedReserveByAccount: {
       [accountId: string]: { total: bigint; reserved: { [key: string]: bigint } };
@@ -148,7 +165,8 @@ describeSmokeSuite(`Verify balances consistency`, { wssUrl, relayWssUrl }, (cont
       candidateInfo
         .map((candidate) =>
           // Support the case of the migration in 1700
-          specVersion < 1700 || !stakingMigrationAccounts[`0x${candidate[0].toHex().slice(-40)}`]
+          specVersion < 1700 ||
+          !collatorStakingMigrationAccounts[`0x${candidate[0].toHex().slice(-40)}`]
             ? {
                 accountId: `0x${candidate[0].toHex().slice(-40)}`,
                 reserved: {
@@ -162,7 +180,8 @@ describeSmokeSuite(`Verify balances consistency`, { wssUrl, relayWssUrl }, (cont
       delegatorState
         .map((delegator) =>
           // Support the case of the migration in 1700
-          specVersion < 1700 || !stakingMigrationAccounts[`0x${delegator[0].toHex().slice(-40)}`]
+          specVersion < 1700 ||
+          !delegatorStakingMigrationAccounts[`0x${delegator[0].toHex().slice(-40)}`]
             ? {
                 accountId: `0x${delegator[0].toHex().slice(-40)}`,
                 reserved: {
@@ -313,7 +332,8 @@ describeSmokeSuite(`Verify balances consistency`, { wssUrl, relayWssUrl }, (cont
       candidateInfo
         .map((candidate) =>
           // Support the case of the migration in 1700
-          specVersion >= 1800 || stakingMigrationAccounts[`0x${candidate[0].toHex().slice(-40)}`]
+          specVersion >= 1800 ||
+          collatorStakingMigrationAccounts[`0x${candidate[0].toHex().slice(-40)}`]
             ? {
                 accountId: `0x${candidate[0].toHex().slice(-40)}`,
                 locks: {
@@ -327,7 +347,8 @@ describeSmokeSuite(`Verify balances consistency`, { wssUrl, relayWssUrl }, (cont
       delegatorState
         .map((delegator) =>
           // Support the case of the migration in 1700
-          specVersion >= 1800 || stakingMigrationAccounts[`0x${delegator[0].toHex().slice(-40)}`]
+          specVersion >= 1800 ||
+          delegatorStakingMigrationAccounts[`0x${delegator[0].toHex().slice(-40)}`]
             ? {
                 accountId: `0x${delegator[0].toHex().slice(-40)}`,
                 locks: {

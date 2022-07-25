@@ -46,6 +46,7 @@ import type {
   PalletIdentityIdentityInfo,
   PalletIdentityJudgement,
   SpRuntimeMultiSignature,
+  XcmPrimitivesEthereumXcmEthereumXcmTransaction,
   XcmV0OriginKind,
   XcmV1MultiLocation,
   XcmV2WeightLimit,
@@ -1856,6 +1857,25 @@ declare module "@polkadot/api-base/types/submittable" {
        */
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
     };
+    ethereumXcm: {
+      /**
+       * Xcm Transact an Ethereum transaction.
+       */
+      transact: AugmentedSubmittable<
+        (
+          xcmTransaction:
+            | XcmPrimitivesEthereumXcmEthereumXcmTransaction
+            | { V1: any }
+            | string
+            | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [XcmPrimitivesEthereumXcmEthereumXcmTransaction]
+      >;
+      /**
+       * Generic tx
+       */
+      [key: string]: SubmittableExtrinsicFunction<ApiType>;
+    };
     evm: {
       /**
        * Issue an EVM call operation. This is similar to a message call
@@ -1934,14 +1954,6 @@ declare module "@polkadot/api-base/types/submittable" {
           Option<U256>,
           Vec<ITuple<[H160, Vec<H256>]>>
         ]
-      >;
-      /**
-       * Increment `sufficients` for existing accounts having a nonzero `nonce`
-       * but zero `sufficients` value.
-       */
-      hotfixIncAccountSufficients: AugmentedSubmittable<
-        (addresses: Vec<H160> | (H160 | string | Uint8Array)[]) => SubmittableExtrinsic<ApiType>,
-        [Vec<H160>]
       >;
       /**
        * Withdraw balance from EVM into currency/balances pallet.
@@ -3175,6 +3187,61 @@ declare module "@polkadot/api-base/types/submittable" {
        */
       goOnline: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
       /**
+       * Hotfix to migrate a collator's reserve to a lock. For any given
+       * collator in the provided list:
+       *
+       * - This fn is idempotent
+       * - Is safe to call if the collator doesn't exist
+       * - Is safe to call if the collator has been migrated
+       * - Is safe to call if the collator is a collator (this is a no-op)
+       *
+       * Weight calculation: reads:
+       *
+       * - CollatorReserveToLockMigrations
+       * - CandidateInfo writes:
+       * - Unreserve()
+       * - Set_lock()
+       * - CollatorReserveToLockMigrations other: 50M flat weight + 100M weight per item
+       */
+      hotfixMigrateCollatorsFromReserveToLocks: AugmentedSubmittable<
+        (
+          collators: Vec<AccountId20> | (AccountId20 | string | Uint8Array)[]
+        ) => SubmittableExtrinsic<ApiType>,
+        [Vec<AccountId20>]
+      >;
+      /**
+       * Hotfix to migrate a delegator's reserve to a lock. For any given
+       * delegator in the provided list:
+       *
+       * - This fn is idempotent
+       * - Is safe to call if the delegator doesn't exist
+       * - Is safe to call if the delegator has been migrated
+       * - Is safe to call if the delegator is a collator (this is a no-op)
+       *
+       * Weight calculation: reads:
+       *
+       * - DelegatorReserveToLockMigrations
+       * - DelegatorState writes:
+       * - Unreserve()
+       * - Set_lock()
+       * - DelegatorReserveToLockMigrations other: 50M flat weight + 100M weight per item
+       */
+      hotfixMigrateDelegatorsFromReserveToLocks: AugmentedSubmittable<
+        (
+          delegators: Vec<AccountId20> | (AccountId20 | string | Uint8Array)[]
+        ) => SubmittableExtrinsic<ApiType>,
+        [Vec<AccountId20>]
+      >;
+      /**
+       * Hotfix to remove existing empty entries for candidates that have left.
+       */
+      hotfixRemoveDelegationRequestsExitedCandidates: AugmentedSubmittable<
+        (
+          candidates: Vec<AccountId20> | (AccountId20 | string | Uint8Array)[]
+        ) => SubmittableExtrinsic<ApiType>,
+        [Vec<AccountId20>]
+      >;
+      /**
        * Join the set of collator candidates
        */
       joinCandidates: AugmentedSubmittable<
@@ -3621,6 +3688,7 @@ declare module "@polkadot/api-base/types/submittable" {
             | "CancelProxy"
             | "Balances"
             | "AuthorMapping"
+            | "IdentityJudgement"
             | number
             | Uint8Array,
           delay: u32 | AnyNumber | Uint8Array
@@ -3702,6 +3770,7 @@ declare module "@polkadot/api-base/types/submittable" {
             | "CancelProxy"
             | "Balances"
             | "AuthorMapping"
+            | "IdentityJudgement"
             | number
             | Uint8Array,
           delay: u32 | AnyNumber | Uint8Array,
@@ -3745,6 +3814,7 @@ declare module "@polkadot/api-base/types/submittable" {
             | "CancelProxy"
             | "Balances"
             | "AuthorMapping"
+            | "IdentityJudgement"
             | number
             | Uint8Array,
           index: u16 | AnyNumber | Uint8Array,
@@ -3918,12 +3988,23 @@ declare module "@polkadot/api-base/types/submittable" {
             | "CancelProxy"
             | "Balances"
             | "AuthorMapping"
+            | "IdentityJudgement"
             | number
             | Uint8Array,
           delay: u32 | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [AccountId20, MoonbaseRuntimeProxyType, u32]
       >;
+      /**
+       * Generic tx
+       */
+      [key: string]: SubmittableExtrinsicFunction<ApiType>;
+    };
+    randomness: {
+      /**
+       * Populates the `RandomnessResults` that are due this block with the raw values
+       */
+      setBabeRandomnessResults: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
       /**
        * Generic tx
        */
@@ -4530,6 +4611,32 @@ declare module "@polkadot/api-base/types/submittable" {
         [Compact<u32>]
       >;
       /**
+       * Force a previously approved proposal to be removed from the approval
+       * queue. The original deposit will no longer be returned.
+       *
+       * May only be called from `T::RejectOrigin`.
+       *
+       * - `proposal_id`: The index of a proposal
+       *
+       * # <weight>
+       *
+       * - Complexity: O(A) where `A` is the number of approvals
+       * - Db reads and writes: `Approvals`
+       *
+       * # </weight>
+       *
+       * Errors:
+       *
+       * - `ProposalNotApproved`: The `proposal_id` supplied was not found in the
+       *   approval queue, i.e., the proposal has not been approved. This could
+       *   also mean the proposal does not exist altogether, thus there is no
+       *   way it would have been approved in the first place.
+       */
+      removeApproval: AugmentedSubmittable<
+        (proposalId: Compact<u32> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [Compact<u32>]
+      >;
+      /**
        * Generic tx
        */
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
@@ -4637,11 +4744,37 @@ declare module "@polkadot/api-base/types/submittable" {
             | { TechCommitteeCollective: any }
             | { CumulusXcm: any }
             | { PolkadotXcm: any }
+            | { EthereumXcm: any }
             | string
             | Uint8Array,
           call: Call | IMethod | string | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [MoonbaseRuntimeOriginCaller, Call]
+      >;
+      /**
+       * Send a batch of dispatch calls. Unlike `batch`, it allows errors and
+       * won't interrupt.
+       *
+       * May be called from any origin.
+       *
+       * - `calls`: The calls to be dispatched from the same origin. The number of
+       *   call must not exceed the constant: `batched_calls_limit` (available
+       *   in constant metadata).
+       *
+       * If origin is root then call are dispatch without checking origin
+       * filter. (This includes bypassing `frame_system::Config::BaseCallFilter`).
+       *
+       * # <weight>
+       *
+       * - Complexity: O(C) where C is the number of calls to be batched.
+       *
+       * # </weight>
+       */
+      forceBatch: AugmentedSubmittable<
+        (
+          calls: Vec<Call> | (Call | IMethod | string | Uint8Array)[]
+        ) => SubmittableExtrinsic<ApiType>,
+        [Vec<Call>]
       >;
       /**
        * Generic tx

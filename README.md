@@ -14,7 +14,7 @@ Docker images are published for every tagged release. Learn more with `moonbeam 
 
 ```bash
 # Join the public testnet
-docker run --network="host" purestake/moonbeam:v0.24.0 --chain alphanet
+docker run --network="host" purestake/moonbeam:v0.25.0 --chain alphanet
 ```
 
 You can find more detailed instructions to [run a full node in our TestNet](https://docs.moonbeam.network/node-operators/networks/full-node/)
@@ -27,7 +27,7 @@ service.
 
 ```bash
 # Run a dev service node
-docker run --network="host" purestake/moonbeam:v0.24.0 --dev
+docker run --network="host" purestake/moonbeam:v0.25.0 --dev
 ```
 
 For more information, see our detailed instructions to [run a development node](https://docs.moonbeam.network/getting-started/local-node/setting-up-a-node/)
@@ -38,10 +38,10 @@ The command above will start the node in instant seal mode. It creates a block w
 
 ```bash
 # Author a block every 6 seconds.
-docker run --network="host" purestake/moonbeam:v0.24.0 --dev --sealing 6000
+docker run --network="host" purestake/moonbeam:v0.25.0 --dev --sealing 6000
 
 # Manually control the block authorship and finality
-docker run --network="host" purestake/moonbeam:v0.24.0 --dev --sealing manual
+docker run --network="host" purestake/moonbeam:v0.25.0 --dev --sealing manual
 ```
 
 ### Prefunded Development Addresses
@@ -185,6 +185,8 @@ The following pallets are stored in `pallets/`. They are designed for Moonbeam's
 - _Ethereum Chain Id_: A place to store the chain id for each Moonbeam network
 - _Author Inherent_: Allows block authors to include their identity in a block via an inherent
 - _Parachain Staking_: Minimal staking pallet that selects collators by total amount at stake
+
+When modifying the git repository for these dependencies, a tool called [diener](https://github.com/bkchr/diener) can be used to replace the git URL and branch for each reference in all `Cargo.toml` files with a single command. This alleviates a lot of the repetitive modifications necessary when changing dependency versions.
 
 ## Rustdocs
 

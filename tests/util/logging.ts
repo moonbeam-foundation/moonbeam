@@ -16,7 +16,8 @@ export const printTokens = (api: ApiPromise, tokens: bigint, decimals = 2, pad =
     .padStart(pad)} ${api.registry.chainTokens[0]}`;
 };
 
-export const printEvents = async (api: ApiPromise, blockHash: string) => {
+export const printEvents = async (api: ApiPromise, blockHash?: string) => {
+  blockHash = blockHash != undefined ? blockHash : (await api.rpc.chain.getBlockHash()).toString();
   const apiAt = await api.at(blockHash);
   const { block } = await api.rpc.chain.getBlock(blockHash);
   const allRecords = (await apiAt.query.system.events()) as any;

@@ -1,0 +1,78 @@
+// Copyright 2019-2022 PureStake Inc.
+// This file is part of Moonbeam.
+
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+
+//! Solidity types for randomness precompile.
+use precompile_utils::prelude::*;
+
+pub enum RequestStatus {
+	DoesNotExist,
+	Pending,
+	Ready,
+	Expired,
+}
+
+pub enum RandomnessSource {
+	LocalVRF,
+	RelayBabeEpoch,
+}
+
+impl EvmData for RequestStatus {
+	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
+		match reader.read()? {
+			0u8 => Ok(RequestStatus::DoesNotExist),
+			1u8 => Ok(RequestStatus::Pending),
+			2u8 => Ok(RequestStatus::Ready),
+			3u8 => Ok(RequestStatus::Expired),
+			_ => Err(revert("Not available enum")),
+		}
+	}
+
+	fn write(writer: &mut EvmDataWriter, value: Self) {
+		let encoded: u8 = match value {
+			RequestStatus::DoesNotExist => 0u8,
+			RequestStatus::Pending => 1u8,
+			RequestStatus::Ready => 2u8,
+			RequestStatus::Expired => 3u8,
+		};
+		EvmData::write(writer, encoded);
+	}
+
+	fn has_static_size() -> bool {
+		true
+	}
+}
+
+impl EvmData for RandomnessSource {
+	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
+		match reader.read()? {
+			0u8 => Ok(RandomnessSource::LocalVRF),
+			1u8 => Ok(RandomnessSource::RelayBabeEpoch),
+			_ => Err(revert("Not available enum")),
+		}
+	}
+
+	fn write(writer: &mut EvmDataWriter, value: Self) {
+		let encoded: u8 = match value {
+			RandomnessSource::LocalVRF => 0u8,
+			RandomnessSource::RelayBabeEpoch => 1u8,
+		};
+		EvmData::write(writer, encoded);
+	}
+
+	fn has_static_size() -> bool {
+		true
+	}
+}

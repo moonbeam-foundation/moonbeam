@@ -12,11 +12,12 @@ impl-trait-for-tuples = "0.2.1"
 log = "0.4"
 
 # Moonbeam
-pallet-asset-manager = { path = "../../pallets/asset-manager", optional = true, default-features = false }
+pallet-asset-manager = { path = "../../pallets/asset-manager", default-features = false }
 pallet-author-mapping = { path = "../../pallets/author-mapping", default-features = false }
 pallet-migrations = { path = "../../pallets/migrations", default-features = false }
 pallet-parachain-staking = { path = "../../pallets/parachain-staking", default-features = false }
-pallet-xcm-transactor = { path = "../../pallets/xcm-transactor", optional = true, default-features = false }
+pallet-randomness = { path = "../../pallets/randomness", default-features = false }
+pallet-xcm-transactor = { path = "../../pallets/xcm-transactor", default-features = false }
 
 # Substrate
 frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23", default-features = false }
@@ -36,7 +37,7 @@ pallet-author-inherent = { git = "https://github.com/purestake/nimbus", branch =
 pallet-author-slot-filter = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.23", default-features = false }
 
 # Polkadot
-xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.23", optional = true, default-features = false }
+xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.23", default-features = false }
 
 [features]
 std = [
@@ -48,6 +49,7 @@ std = [
 	"pallet-evm/std",
 	"pallet-migrations/std",
 	"pallet-parachain-staking/std",
+	"pallet-randomness/std",
 	"pallet-scheduler/std",
 	"pallet-xcm-transactor/std",
 	"sp-core/std",
@@ -59,4 +61,3 @@ try-runtime = [
 	"frame-support/try-runtime",
 	"pallet-migrations/try-runtime",
 ]
-xcm-support = [ "pallet-asset-manager", "pallet-xcm-transactor", "xcm" ]
