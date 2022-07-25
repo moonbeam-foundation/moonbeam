@@ -16,6 +16,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+pub(crate) mod calls;
 pub mod mul_div;
 pub mod pools;
 pub mod rewards;
@@ -32,21 +33,15 @@ use frame_support::pallet;
 #[pallet]
 pub mod pallet {
 	use {
-		super::{mul_div, pools, rewards},
+		crate::{calls::Calls, mul_div, pools, rewards},
 		frame_support::{
 			pallet_prelude::*,
 			storage::types::Key,
-			traits::{
-				tokens::{Balance, ExistenceRequirement},
-				Currency, ReservableCurrency,
-			},
+			traits::{tokens::Balance, Currency, ReservableCurrency},
 			transactional,
 		},
 		frame_system::pallet_prelude::*,
-		sp_runtime::{
-			traits::{CheckedAdd, CheckedSub, Zero},
-			Perbill,
-		},
+		sp_runtime::Perbill,
 		sp_std::collections::btree_set::BTreeSet,
 	};
 
@@ -68,17 +63,17 @@ pub mod pallet {
 	#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 	#[derive(RuntimeDebug, PartialEq, Eq, Encode, Decode, Clone, TypeInfo)]
 	pub struct ExecuteLeavingQuery<C, B> {
-		candidate: C,
-		delegator: C,
-		at_block: B,
+		pub candidate: C,
+		pub delegator: C,
+		pub at_block: B,
 	}
 
 	/// Identifier used when canceling a pending leaving request.
 	#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 	#[derive(RuntimeDebug, PartialEq, Eq, Encode, Decode, Clone, TypeInfo)]
 	pub struct CancelLeavingQuery<C, B> {
-		candidate: C,
-		at_block: B,
+		pub candidate: C,
+		pub at_block: B,
 	}
 
 	/// Liquid Staking pallet.
@@ -416,44 +411,7 @@ pub mod pallet {
 			candidate: T::AccountId,
 			quantity: SharesOrStake<T::Balance>,
 		) -> DispatchResultWithPostInfo {
-			let delegator = ensure_signed(origin)?;
-
-			let shares = match quantity {
-				SharesOrStake::Shares(shares) => shares,
-				SharesOrStake::Stake(stake) => {
-					pools::manual_claim::stake_to_shares_or_init::<T>(&candidate, &stake)?
-				}
-			};
-
-			ensure!(!Zero::is_zero(&shares), Error::<T>::StakeMustBeNonZero);
-
-			// It is important to automatically claim rewards before updating
-			// the amount of shares since pending rewards are stored per share.
-			let rewards =
-				pools::manual_claim::claim_rewards::<T>(candidate.clone(), delegator.clone())?;
-			if !Zero::is_zero(&rewards) {
-				T::Currency::transfer(
-					&T::StakingAccount::get(),
-					&delegator,
-					rewards,
-					ExistenceRequirement::KeepAlive,
-				)?;
-			}
-
-			let stake =
-				pools::manual_claim::add_shares::<T>(candidate.clone(), delegator.clone(), shares)?;
-			pools::candidates::add_stake::<T>(candidate.clone(), stake)?;
-
-			pools::check_candidate_consistency::<T>(&candidate)?;
-
-			T::Currency::transfer(
-				&delegator,
-				&T::StakingAccount::get(),
-				stake,
-				ExistenceRequirement::KeepAlive,
-			)?;
-
-			Ok(().into())
+			Calls::<T>::stake_manual_claim(origin, candidate, quantity)
 		}
 
 		/// Unstake towards candidate the provided amount of stake (Currency) in "Manual Claim" mode.
@@ -466,37 +424,7 @@ pub mod pallet {
 			candidate: T::AccountId,
 			quantity: SharesOrStake<T::Balance>,
 		) -> DispatchResultWithPostInfo {
-			let delegator = ensure_signed(origin)?;
-
-			let shares = match quantity {
-				SharesOrStake::Shares(shares) => shares,
-				SharesOrStake::Stake(stake) => {
-					pools::manual_claim::stake_to_shares::<T>(&candidate, &stake)?
-				}
-			};
-
-			ensure!(!Zero::is_zero(&shares), Error::<T>::StakeMustBeNonZero);
-
-			// It is important to automatically claim rewards before updating
-			// the amount of shares since pending rewards are stored per share.
-			let rewards =
-				pools::manual_claim::claim_rewards::<T>(candidate.clone(), delegator.clone())?;
-			if !Zero::is_zero(&rewards) {
-				T::Currency::transfer(
-					&T::StakingAccount::get(),
-					&delegator,
-					rewards,
-					ExistenceRequirement::KeepAlive,
-				)?;
-			}
-
-			let stake =
-				pools::manual_claim::sub_shares::<T>(candidate.clone(), delegator.clone(), shares)?;
-			pools::leaving::register_leaving::<T>(candidate.clone(), delegator, stake)?;
-
-			pools::check_candidate_consistency::<T>(&candidate)?;
-
-			Ok(().into())
+			Calls::<T>::unstake_manual_claim(origin, candidate, quantity)
 		}
 
 		/// Stake towards candidate the provided amount of stake (Currency) in "Auto Compounding"
@@ -508,34 +436,7 @@ pub mod pallet {
 			candidate: T::AccountId,
 			quantity: SharesOrStake<T::Balance>,
 		) -> DispatchResultWithPostInfo {
-			let delegator = ensure_signed(origin)?;
-
-			let shares = match quantity {
-				SharesOrStake::Shares(shares) => shares,
-				SharesOrStake::Stake(stake) => {
-					pools::auto_compounding::stake_to_shares_or_init::<T>(&candidate, stake)?
-				}
-			};
-
-			ensure!(!Zero::is_zero(&shares), Error::<T>::StakeMustBeNonZero);
-
-			let stake = pools::auto_compounding::add_shares::<T>(
-				candidate.clone(),
-				delegator.clone(),
-				shares,
-			)?;
-			pools::candidates::add_stake::<T>(candidate.clone(), stake)?;
-
-			pools::check_candidate_consistency::<T>(&candidate)?;
-
-			T::Currency::transfer(
-				&delegator,
-				&T::StakingAccount::get(),
-				stake,
-				ExistenceRequirement::KeepAlive,
-			)?;
-
-			Ok(().into())
+			Calls::<T>::stake_auto_compounding(origin, candidate, quantity)
 		}
 
 		/// Untake towards candidate the provided amount of stake (Currency) in "Auto Compounding"
@@ -547,27 +448,7 @@ pub mod pallet {
 			candidate: T::AccountId,
 			quantity: SharesOrStake<T::Balance>,
 		) -> DispatchResultWithPostInfo {
-			let delegator = ensure_signed(origin)?;
-
-			let shares = match quantity {
-				SharesOrStake::Shares(shares) => shares,
-				SharesOrStake::Stake(stake) => {
-					pools::auto_compounding::stake_to_shares::<T>(&candidate, stake)?
-				}
-			};
-
-			ensure!(!Zero::is_zero(&shares), Error::<T>::StakeMustBeNonZero);
-
-			let stake = pools::auto_compounding::sub_shares::<T>(
-				candidate.clone(),
-				delegator.clone(),
-				shares,
-			)?;
-			// Leaving still count as staked.
-			// pools::candidates::sub_stake::<T>(candidate.clone(), stake)?;
-			pools::leaving::register_leaving::<T>(candidate, delegator, stake)?;
-
-			Ok(().into())
+			Calls::<T>::unstake_auto_compounding(origin, candidate, quantity)
 		}
 
 		/// Convert ManualClaim shares to AutoCompounding shares.
@@ -580,54 +461,7 @@ pub mod pallet {
 			candidate: T::AccountId,
 			quantity: SharesOrStake<T::Balance>,
 		) -> DispatchResultWithPostInfo {
-			let delegator = ensure_signed(origin)?;
-
-			let mc_shares = match quantity {
-				SharesOrStake::Shares(shares) => shares,
-				SharesOrStake::Stake(stake) => {
-					pools::manual_claim::stake_to_shares::<T>(&candidate, &stake)?
-				}
-			};
-
-			ensure!(!Zero::is_zero(&mc_shares), Error::<T>::StakeMustBeNonZero);
-
-			// It is important to automatically claim rewards before updating
-			// the amount of shares since pending rewards are stored per share.
-			let rewards =
-				pools::manual_claim::claim_rewards::<T>(candidate.clone(), delegator.clone())?;
-			if !Zero::is_zero(&rewards) {
-				T::Currency::transfer(
-					&T::StakingAccount::get(),
-					&delegator,
-					rewards,
-					ExistenceRequirement::KeepAlive,
-				)?;
-			}
-
-			// Shares convertion.
-			let mc_stake = pools::manual_claim::sub_shares::<T>(
-				candidate.clone(),
-				delegator.clone(),
-				mc_shares,
-			)?;
-
-			let ac_shares =
-				pools::auto_compounding::stake_to_shares_or_init::<T>(&candidate, mc_stake)?;
-			let ac_stake = pools::auto_compounding::add_shares::<T>(
-				candidate.clone(),
-				delegator.clone(),
-				ac_shares,
-			)?;
-
-			// Deal with dust, which is shared among all AutoCompound share holders.
-			let diff_stake = mc_stake
-				.checked_sub(&ac_stake)
-				.ok_or(Error::<T>::MathUnderflow)?;
-			pools::auto_compounding::share_stake_among_holders::<T>(&candidate, diff_stake)?;
-
-			pools::check_candidate_consistency::<T>(&candidate)?;
-
-			Ok(().into())
+			Calls::<T>::convert_manual_claim_to_auto_compounding(origin, candidate, quantity)
 		}
 
 		/// Convert AutoCompounding shares to ManualClaim shares.
@@ -640,55 +474,7 @@ pub mod pallet {
 			candidate: T::AccountId,
 			quantity: SharesOrStake<T::Balance>,
 		) -> DispatchResultWithPostInfo {
-			let delegator = ensure_signed(origin)?;
-
-			let ac_shares = match quantity {
-				SharesOrStake::Shares(shares) => shares,
-				SharesOrStake::Stake(stake) => {
-					pools::auto_compounding::stake_to_shares::<T>(&candidate, stake)?
-				}
-			};
-
-			ensure!(!Zero::is_zero(&ac_shares), Error::<T>::StakeMustBeNonZero);
-
-			// It is important to automatically claim rewards before updating
-			// the amount of shares since pending rewards are stored per share.
-			let rewards =
-				pools::manual_claim::claim_rewards::<T>(candidate.clone(), delegator.clone())?;
-			if !Zero::is_zero(&rewards) {
-				T::Currency::transfer(
-					&T::StakingAccount::get(),
-					&delegator,
-					rewards,
-					ExistenceRequirement::KeepAlive,
-				)?;
-			}
-
-			// Shares convertion.
-			let ac_stake = pools::manual_claim::sub_shares::<T>(
-				candidate.clone(),
-				delegator.clone(),
-				ac_shares,
-			)?;
-
-			let mc_shares =
-				pools::auto_compounding::stake_to_shares_or_init::<T>(&candidate, ac_stake)?;
-			let mc_stake = pools::auto_compounding::add_shares::<T>(
-				candidate.clone(),
-				delegator.clone(),
-				mc_shares,
-			)?;
-
-			// Deal with dust, which is shared among all AutoCompound share holders.
-			let diff_stake = mc_stake
-				.checked_sub(&ac_stake)
-				.ok_or(Error::<T>::MathUnderflow)?;
-
-			pools::auto_compounding::share_stake_among_holders::<T>(&candidate, diff_stake)?;
-
-			pools::check_candidate_consistency::<T>(&candidate)?;
-
-			Ok(().into())
+			Calls::<T>::convert_auto_compounding_to_manual_claim(origin, candidate, quantity)
 		}
 
 		/// Claim pending manual rewards for this candidate.
@@ -698,20 +484,7 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			candidate: T::AccountId,
 		) -> DispatchResultWithPostInfo {
-			let delegator = ensure_signed(origin)?;
-			let rewards =
-				pools::manual_claim::claim_rewards::<T>(candidate.clone(), delegator.clone())?;
-
-			if !Zero::is_zero(&rewards) {
-				T::Currency::transfer(
-					&T::StakingAccount::get(),
-					&delegator,
-					rewards,
-					ExistenceRequirement::KeepAlive,
-				)?;
-			}
-
-			Ok(().into())
+			Calls::<T>::claim_manual_rewards(origin, candidate)
 		}
 
 		/// Claim pending manual rewards for this candidate.
@@ -720,13 +493,7 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			candidates: Vec<T::AccountId>,
 		) -> DispatchResultWithPostInfo {
-			for candidate in candidates {
-				// Each claim is transactional, but it is not important if
-				// some claims succeed then another one fails.
-				Self::claim_manual_rewards(origin.clone(), candidate)?;
-			}
-
-			Ok(().into())
+			Calls::<T>::batch_claim_manual_rewards(origin, candidates)
 		}
 
 		/// Execute leaving requests if the Leaving delay have elapsed.
@@ -734,29 +501,10 @@ pub mod pallet {
 		#[pallet::weight(0)]
 		#[transactional]
 		pub fn execute_leaving(
-			_origin: OriginFor<T>,
+			origin: OriginFor<T>,
 			requests: Vec<ExecuteLeavingQuery<T::AccountId, T::BlockNumber>>,
 		) -> DispatchResultWithPostInfo {
-			for request in requests {
-				let released = pools::leaving::execute_leaving::<T>(
-					request.candidate.clone(),
-					request.delegator.clone(),
-					request.at_block,
-				)?;
-
-				pools::candidates::sub_stake::<T>(request.candidate.clone(), released)?;
-
-				T::Currency::transfer(
-					&T::StakingAccount::get(),
-					&request.delegator,
-					released,
-					ExistenceRequirement::KeepAlive,
-				)?;
-
-				pools::check_candidate_consistency::<T>(&request.candidate)?;
-			}
-
-			Ok(().into())
+			Calls::<T>::execute_leaving(origin, requests)
 		}
 
 		/// Cancel leaving requests that have not been executed yet.
@@ -769,64 +517,7 @@ pub mod pallet {
 			requests: Vec<CancelLeavingQuery<T::AccountId, T::BlockNumber>>,
 			put_in_auto_compound: bool,
 		) -> DispatchResultWithPostInfo {
-			let delegator = ensure_signed(origin)?;
-
-			for request in requests {
-				let canceled_stake = pools::leaving::cancel_leaving::<T>(
-					request.candidate.clone(),
-					delegator.clone(),
-					request.at_block,
-				)?;
-
-				if canceled_stake.is_zero() {
-					continue;
-				}
-
-				let inserted_stake = if put_in_auto_compound {
-					let shares = pools::auto_compounding::stake_to_shares_or_init::<T>(
-						&request.candidate,
-						canceled_stake,
-					)?;
-
-					if !Zero::is_zero(&shares) {
-						pools::auto_compounding::add_shares::<T>(
-							request.candidate.clone(),
-							delegator.clone(),
-							shares,
-						)?
-					} else {
-						Zero::zero()
-					}
-				} else {
-					let shares = pools::manual_claim::stake_to_shares_or_init::<T>(
-						&request.candidate,
-						&canceled_stake,
-					)?;
-
-					if !Zero::is_zero(&shares) {
-						pools::manual_claim::add_shares::<T>(
-							request.candidate.clone(),
-							delegator.clone(),
-							shares,
-						)?
-					} else {
-						Zero::zero()
-					}
-				};
-
-				let dust_stake = canceled_stake
-					.checked_sub(&inserted_stake)
-					.ok_or(Error::<T>::MathUnderflow)?;
-
-				pools::auto_compounding::share_stake_among_holders::<T>(
-					&request.candidate,
-					dust_stake,
-				)?;
-
-				pools::check_candidate_consistency::<T>(&request.candidate)?;
-			}
-
-			Ok(().into())
+			Calls::<T>::cancel_leaving(origin, requests, put_in_auto_compound)
 		}
 
 		#[pallet::weight(0)]
@@ -837,38 +528,7 @@ pub mod pallet {
 			recipient: T::AccountId,
 			shares: T::Balance,
 		) -> DispatchResultWithPostInfo {
-			ensure!(
-				cfg!(feature = "transferable-shares"),
-				Error::<T>::DisabledFeature
-			);
-
-			let sender = ensure_signed(origin)?;
-			ensure!(!Zero::is_zero(&shares), Error::<T>::StakeMustBeNonZero);
-
-			ensure!(
-				sender != candidate,
-				Error::<T>::CandidateTransferingOwnSharesForbidden
-			);
-
-			let sender_new_shares = AutoCompoundingShares::<T>::get(&candidate, &sender)
-				.checked_sub(&shares)
-				.ok_or(Error::<T>::UnsufficientSharesForTransfer)?;
-
-			let recipient_new_shares = AutoCompoundingShares::<T>::get(&candidate, &recipient)
-				.checked_add(&shares)
-				.ok_or(Error::<T>::MathOverflow)?;
-
-			AutoCompoundingShares::<T>::insert(&candidate, &sender, sender_new_shares);
-			AutoCompoundingShares::<T>::insert(&candidate, &recipient, recipient_new_shares);
-
-			Self::deposit_event(Event::TransferedAutoCompounding {
-				candidate,
-				sender,
-				recipient,
-				shares,
-			});
-
-			Ok(().into())
+			Calls::<T>::transfer_auto_compounding(origin, candidate, recipient, shares)
 		}
 
 		#[pallet::weight(0)]
@@ -879,62 +539,7 @@ pub mod pallet {
 			recipient: T::AccountId,
 			shares: T::Balance,
 		) -> DispatchResultWithPostInfo {
-			ensure!(
-				cfg!(feature = "transferable-shares"),
-				Error::<T>::DisabledFeature
-			);
-
-			let sender = ensure_signed(origin)?;
-			ensure!(!Zero::is_zero(&shares), Error::<T>::StakeMustBeNonZero);
-
-			ensure!(
-				sender != candidate,
-				Error::<T>::CandidateTransferingOwnSharesForbidden
-			);
-
-			let sender_new_shares = ManualClaimShares::<T>::get(&candidate, &sender)
-				.checked_sub(&shares)
-				.ok_or(Error::<T>::UnsufficientSharesForTransfer)?;
-
-			let recipient_new_shares = ManualClaimShares::<T>::get(&candidate, &recipient)
-				.checked_add(&shares)
-				.ok_or(Error::<T>::MathOverflow)?;
-
-			// It is important to automatically claim rewards before updating
-			// the amount of shares since pending rewards are stored per share.
-			let sender_rewards =
-				pools::manual_claim::claim_rewards::<T>(candidate.clone(), sender.clone())?;
-			if !Zero::is_zero(&sender_rewards) {
-				T::Currency::transfer(
-					&T::StakingAccount::get(),
-					&sender,
-					sender_rewards,
-					ExistenceRequirement::KeepAlive,
-				)?;
-			}
-
-			let recipient_rewards =
-				pools::manual_claim::claim_rewards::<T>(candidate.clone(), recipient.clone())?;
-			if !Zero::is_zero(&recipient_rewards) {
-				T::Currency::transfer(
-					&T::StakingAccount::get(),
-					&recipient,
-					recipient_rewards,
-					ExistenceRequirement::KeepAlive,
-				)?;
-			}
-
-			ManualClaimShares::<T>::insert(&candidate, &sender, sender_new_shares);
-			ManualClaimShares::<T>::insert(&candidate, &recipient, recipient_new_shares);
-
-			Self::deposit_event(Event::TransferedManualClaim {
-				candidate,
-				sender,
-				recipient,
-				shares,
-			});
-
-			Ok(().into())
+			Calls::<T>::transfer_manual_claim(origin, candidate, recipient, shares)
 		}
 	}
 

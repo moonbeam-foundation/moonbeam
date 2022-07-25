@@ -32,6 +32,8 @@ sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-pol
 
 [features]
 transferable-shares = []
+lockable-shares = [ "transferable-shares" ]
+democracy-throught-staking = [ "lockable-shares" ]
 
 default = [ "std" ]
 std = [
