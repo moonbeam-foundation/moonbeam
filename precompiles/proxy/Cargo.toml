@@ -44,7 +44,6 @@ sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0
 [features]
 default = [ "std" ]
 std = [
-	"cumulus-primitives-core/std",
 	"fp-evm/std",
 	"frame-support/std",
 	"frame-system/std",
