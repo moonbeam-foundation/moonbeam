@@ -132,30 +132,40 @@ pub fn inherent_benchmark_data() -> Result<InherentData> {
 	use cumulus_primitives_core::PersistedValidationData;
 	use cumulus_primitives_parachain_inherent::ParachainInherentData;
 
+	let sproof_builder = RelayStateSproofBuilder::default();
     let (relay_parent_storage_root, relay_chain_state) =
-        RelayStateSproofBuilder::default().into_state_root_and_proof();
+        sproof_builder.into_state_root_and_proof();
+
+	log::warn!("building inherent data...");
 
     let vfp = PersistedValidationData {
         relay_parent_number: 0u32,
         relay_parent_storage_root,
         ..Default::default()
     };
-    let parachain_inherent_data = ParachainInherentData {
-        validation_data: vfp,
-        relay_chain_state: relay_chain_state,
-        downward_messages: Default::default(),
-        horizontal_messages: Default::default(),
-    };
 
-	let mut inherent_data = InherentData::default();
-
-	parachain_inherent_data.provide_inherent_data(&mut inherent_data)
-		.expect("provide_inherent_data() failed");
+	let mut inherent_data = {
+		let mut inherent_data = InherentData::default();
+		let system_inherent_data = ParachainInherentData {
+			validation_data: vfp.clone(),
+			relay_chain_state: relay_chain_state,
+			downward_messages: Default::default(),
+			horizontal_messages: Default::default(),
+		};
+		inherent_data
+			.put_data(
+				cumulus_primitives_parachain_inherent::INHERENT_IDENTIFIER,
+				&system_inherent_data,
+			)
+			.expect("failed to put VFP inherent");
+		inherent_data
+	};
 
 	let d = Duration::from_millis(0);
 	let timestamp = sp_timestamp::InherentDataProvider::new(d.into());
 	timestamp
 		.provide_inherent_data(&mut inherent_data)
 		.map_err(|e| format!("creating inherent data: {:?}", e))?;
+
 	Ok(inherent_data)
 }

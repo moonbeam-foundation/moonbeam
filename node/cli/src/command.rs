@@ -36,7 +36,7 @@ use sc_service::{
 use service::{chain_spec, frontier_database_dir, IdentifyVariant};
 use sp_core::hexdisplay::HexDisplay;
 use sp_runtime::traits::{AccountIdConversion, Block as _};
-use std::{io::Write, net::SocketAddr};
+use std::{io::Write, net::SocketAddr, sync::Arc};
 
 fn load_spec(
 	id: &str,
@@ -619,13 +619,13 @@ pub fn run() -> Result<()> {
 							service::moonbase_runtime::RuntimeApi,
 							service::MoonbaseExecutor,
 						>(&mut config, false)?;
-						let ext_builder = BenchmarkExtrinsicBuilder::new(
+						let ext_builder = service::command_helper::BenchmarkExtrinsicBuilder::new(
 							params.client.clone());
 
 						cmd.run(
 							config,
 							params.client,
-							inherent_benchmark_data()?,
+							service::command_helper::inherent_benchmark_data()?,
 							Arc::new(ext_builder),
 						)
 					});

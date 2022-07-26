@@ -5612,6 +5612,7 @@ dependencies = [
 name = "moonbeam-service"
 version = "0.25.0"
 dependencies = [
+ "account",
  "ansi_term",
  "assert_cmd",
  "async-io",
@@ -5623,6 +5624,7 @@ dependencies = [
  "cumulus-client-consensus-relay-chain",
  "cumulus-client-network",
  "cumulus-client-service",
+ "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
  "cumulus-primitives-parachain-inherent",
  "cumulus-relay-chain-inprocess-interface",
@@ -5642,6 +5644,7 @@ dependencies = [
  "fp-storage",
  "frame-benchmarking",
  "frame-benchmarking-cli",
+ "frame-system",
  "frame-system-rpc-runtime-api",
  "futures 0.3.21",
  "hex-literal",
@@ -5670,6 +5673,7 @@ dependencies = [
  "pallet-ethereum",
  "pallet-parachain-staking",
  "pallet-sudo",
+ "pallet-transaction-payment",
  "pallet-transaction-payment-rpc",
  "pallet-transaction-payment-rpc-runtime-api",
  "parity-scale-codec",
@@ -5711,6 +5715,7 @@ dependencies = [
  "sp-core",
  "sp-inherents",
  "sp-io",
+ "sp-keyring",
  "sp-keystore",
  "sp-offchain",
  "sp-runtime",
