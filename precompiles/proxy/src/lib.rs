@@ -17,10 +17,11 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![feature(assert_matches)]
 
-use fp_evm::{Precompile, PrecompileFailure, PrecompileHandle, PrecompileOutput};
+use fp_evm::{Precompile, PrecompileHandle, PrecompileOutput};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use pallet_evm::AddressMapping;
 use pallet_proxy::Call as ProxyCall;
+use pallet_proxy::Pallet as ProxyPallet;
 use precompile_utils::data::Address;
 use precompile_utils::prelude::*;
 use sp_core::H160;
@@ -37,15 +38,8 @@ pub enum Action {
 	AddProxy = "addProxy(address,uint8,uint32)",
 	RemoveProxy = "removeProxy(address,uint8,uint32)",
 	RemoveProxies = "removeProxies()",
+	IsProxy = "isProxy(address,uint8)",
 }
-
-type DispatchCall<Runtime> = Result<
-	(
-		ProxyCall<Runtime>,
-		<Runtime as frame_system::Config>::AccountId,
-	),
-	PrecompileFailure,
->;
 
 /// A precompile to wrap the functionality from pallet-proxy.
 pub struct ProxyWrapper<Runtime>(PhantomData<Runtime>);
@@ -66,15 +60,12 @@ where
 		let selector = handle.read_selector()?;
 		handle.check_function_modifier(FunctionModifier::NonPayable)?;
 
-		let (call, origin) = match selector {
+		match selector {
 			Action::AddProxy => Self::add_proxy(handle),
 			Action::RemoveProxy => Self::remove_proxy(handle),
 			Action::RemoveProxies => Self::remove_proxies(handle),
-		}?;
-
-		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
-
-		Ok(succeed([]))
+			Action::IsProxy => Self::is_proxy(handle),
+		}
 	}
 }
 
@@ -97,7 +88,7 @@ where
 	/// * delegate: The account that the caller would like to make a proxy.
 	/// * proxy_type: The permissions allowed for this proxy account.
 	/// * delay: The announcement period required of the initial proxy. Will generally be zero.
-	fn add_proxy(handle: &mut impl PrecompileHandle) -> DispatchCall<Runtime> {
+	fn add_proxy(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		let mut input = handle.read_input()?;
 		input.expect_arguments(3)?;
 
@@ -116,7 +107,9 @@ where
 		}
 		.into();
 
-		Ok((call, origin))
+		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(succeed([]))
 	}
 
 	/// Unregister a proxy account for the sender.
@@ -126,7 +119,7 @@ where
 	/// * delegate: The account that the caller would like to remove as a proxy.
 	/// * proxy_type: The permissions currently enabled for the removed proxy account.
 	/// * delay: The announcement period required of the initial proxy. Will generally be zero.
-	fn remove_proxy(handle: &mut impl PrecompileHandle) -> DispatchCall<Runtime> {
+	fn remove_proxy(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		let mut input = handle.read_input()?;
 		input.expect_arguments(3)?;
 
@@ -145,17 +138,47 @@ where
 		}
 		.into();
 
-		Ok((call, origin))
+		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(succeed([]))
 	}
 
 	/// Unregister all proxy accounts for the sender.
 	/// The dispatch origin for this call must be Signed.
 	/// WARNING: This may be called on accounts created by anonymous, however if done, then the
 	/// unreserved fees will be inaccessible. All access to this account will be lost.
-	fn remove_proxies(handle: &mut impl PrecompileHandle) -> DispatchCall<Runtime> {
+	fn remove_proxies(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = ProxyCall::<Runtime>::remove_proxies {}.into();
 
-		Ok((call, origin))
+		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(succeed([]))
+	}
+
+	/// Checks if the caller is a proxy account for the real account with a given proxy type
+	///
+	/// Parameters:
+	/// * real: The real account that the caller is maybe a proxy for
+	/// * proxyType: The permissions allowed for the proxy caller
+	fn is_proxy(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		let mut input = handle.read_input()?;
+		input.expect_arguments(2)?;
+
+		let real: H160 = input.read::<Address>()?.into();
+		let real = Runtime::AddressMapping::into_account_id(real);
+		let proxy_type: Runtime::ProxyType = input
+			.read::<u8>()?
+			.try_into()
+			.map_err(|_| revert("failed decoding proxy_type"))?;
+
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+
+		let is_proxy = ProxyPallet::<Runtime>::proxies(real)
+			.0
+			.iter()
+			.any(|pd| pd.delegate == origin && pd.proxy_type == proxy_type);
+
+		Ok(succeed(EvmDataWriter::new().write(is_proxy).build()))
 	}
 }

@@ -20,9 +20,9 @@ interface Proxy {
 
     /// @dev Register a proxy account for the sender that is able to make calls on its behalf
     /// @custom:selector ac69400b
-    /// @param delegate the account that the caller would like to make a proxy
-    /// @param proxyType the permissions allowed for this proxy account
-    /// @param delay the announcement period required of the initial proxy, will generally be zero
+    /// @param delegate The account that the caller would like to make a proxy
+    /// @param proxyType The permissions allowed for this proxy account
+    /// @param delay The announcement period required of the initial proxy, will generally be zero
     function addProxy(
         address delegate,
         ProxyType proxyType,
@@ -43,4 +43,10 @@ interface Proxy {
     /// @dev Unregister all proxy accounts for the sender
     /// @custom:selector 14a5b5fa
     function removeProxies() external;
+
+    /// @dev Checks if the caller is a proxy account for the real account with a given proxy type
+    /// @custom:selector f71c3873
+    /// @param real The real account that the caller is maybe a proxy for
+    /// @param proxyType The permissions allowed for the proxy caller
+    function isProxy(address real, ProxyType proxyType) external;
 }

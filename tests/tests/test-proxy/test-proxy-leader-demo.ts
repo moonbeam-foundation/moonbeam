@@ -2,13 +2,9 @@ import "@moonbeam-network/api-augment";
 import { expect } from "chai";
 import { ethers } from "ethers";
 import Web3 from "web3";
-import { TransactionReceipt } from "web3-core";
 import { Contract } from "web3-eth-contract";
 import {
-  alith,
   ALITH_ADDRESS,
-  ALITH_GENESIS_FREE_BALANCE,
-  ALITH_PRIVATE_KEY,
   baltathar,
   BALTATHAR_ADDRESS,
   BALTATHAR_PRIVATE_KEY,
@@ -19,16 +15,7 @@ import {
   DOROTHY_ADDRESS,
   DOROTHY_PRIVATE_KEY,
 } from "../../util/accounts";
-import {
-  CONTRACT_RANDOMNESS_STATUS_DOES_NOT_EXISTS,
-  CONTRACT_RANDOMNESS_STATUS_PENDING,
-  DEFAULT_GENESIS_BALANCE,
-  GLMR,
-  MILLIGLMR,
-  MIN_GLMR_DELEGATOR,
-  PRECOMPILE_RANDOMNESS_ADDRESS,
-  VOTE_AMOUNT,
-} from "../../util/constants";
+import { GLMR, MIN_GLMR_DELEGATOR } from "../../util/constants";
 import { getCompiled } from "../../util/contracts";
 import { expectEVMResult } from "../../util/eth-transactions";
 import { expectOk } from "../../util/expect";
@@ -44,9 +31,6 @@ import {
 
 const LEADER_CONTRACT_JSON = getCompiled("ProxyLeaderDemo");
 const LEADER_INTERFACE = new ethers.utils.Interface(LEADER_CONTRACT_JSON.contract.abi);
-const PROXY_CONTRACT_JSON = getCompiled("ProxyInterface");
-const PROXY_INTERFACE = new ethers.utils.Interface(PROXY_CONTRACT_JSON.contract.abi);
-
 
 const setupPoolWithParticipants = async (context: DevTestContext) => {
   const { contract, rawTx } = await createContract(context, "ProxyLeaderDemo", {
@@ -291,7 +275,6 @@ describeDevMoonbeam("Proxy Leader Demo - Winners", (context) => {
   });
 
   it("should setup proxy types for contract address", async function () {
-    PROXY_INTERFACE
     const proxies = await context.polkadotApi.query.proxy.proxies(leaderContract.options.address);
     expect(proxies[0].toJSON()).to.deep.equal([
       {
