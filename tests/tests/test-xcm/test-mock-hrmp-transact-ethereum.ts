@@ -7,7 +7,7 @@ import { expect } from "chai";
 
 import { generateKeyringPair } from "../../util/accounts";
 import { customWeb3Request } from "../../util/providers";
-import { descendOriginFromAllOnes, registerForeignAsset } from "../../util/xcm";
+import { descendOriginFromAddress, registerForeignAsset } from "../../util/xcm";
 
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 
@@ -24,7 +24,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (transfer)"
   let random: KeyringPair;
 
   before("Should receive transact action with DescendOrigin", async function () {
-    const { originAddress, descendOriginAddress } = descendOriginFromAllOnes(context);
+    const { originAddress, descendOriginAddress } = descendOriginFromAddress(context);
     sendingAddress = originAddress;
     descendAddress = descendOriginAddress;
     random = generateKeyringPair();
@@ -197,7 +197,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (call)", (c
 
     contractDeployed = contract;
 
-    const { originAddress, descendOriginAddress } = descendOriginFromAllOnes(context);
+    const { originAddress, descendOriginAddress } = descendOriginFromAddress(context);
     sendingAddress = originAddress;
     random = generateKeyringPair();
     transferredBalance = 10_000_000_000_000_000_000n;
@@ -379,7 +379,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (asset fee)
 
     contractDeployed = contract;
 
-    const { originAddress, descendOriginAddress } = descendOriginFromAllOnes(context);
+    const { originAddress, descendOriginAddress } = descendOriginFromAddress(context);
     sendingAddress = originAddress;
     descendedAddress = descendOriginAddress;
     random = generateKeyringPair();

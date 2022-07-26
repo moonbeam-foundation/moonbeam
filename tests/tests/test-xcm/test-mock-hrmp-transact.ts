@@ -7,7 +7,7 @@ import { expect } from "chai";
 
 import { generateKeyringPair } from "../../util/accounts";
 import { customWeb3Request } from "../../util/providers";
-import { descendOriginFromAllOnes } from "../../util/xcm";
+import { descendOriginFromAddress } from "../../util/xcm";
 
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 
@@ -21,7 +21,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact", (context) => {
   let random: KeyringPair;
 
   before("Should receive transact action with DescendOrigin", async function () {
-    const { originAddress, descendOriginAddress } = descendOriginFromAllOnes(context);
+    const { originAddress, descendOriginAddress } = descendOriginFromAddress(context);
     sendingAddress = originAddress;
     random = generateKeyringPair();
     transferredBalance = 10_000_000_000_000_000_000n;

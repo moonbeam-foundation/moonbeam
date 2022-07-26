@@ -114,8 +114,8 @@ export async function registerForeignAsset(
   };
 }
 
-export function descendOriginFromAllOnes(context: DevTestContext) {
-  const allones = "0x0101010101010101010101010101010101010101";
+export function descendOriginFromAddress(context: DevTestContext, address?: string) {
+  const originAddress = address != null ? address : "0x0101010101010101010101010101010101010101";
   const derivedMultiLocation = context.polkadotApi.createType(
     "MultiLocation",
     JSON.parse(
@@ -127,7 +127,7 @@ export function descendOriginFromAllOnes(context: DevTestContext) {
                   { "AccountKey20": \
                     {\
                       "network": "Any",\
-                      "key": "${allones}"\
+                      "key": "${originAddress}"\
                     } \
                   }\
                 ]\
@@ -143,7 +143,7 @@ export function descendOriginFromAllOnes(context: DevTestContext) {
   ]);
 
   return {
-    originAddress: allones,
+    originAddress,
     descendOriginAddress: u8aToHex(context.polkadotApi.registry.hash(toHash).slice(0, 20)),
   };
 }
