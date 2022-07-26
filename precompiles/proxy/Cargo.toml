@@ -41,9 +41,6 @@ pallet-timestamp = { git = "https://github.com/paritytech/substrate", branch = "
 scale-info = { version = "2.0", default-features = false, features = [ "derive" ] }
 sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23", default-features = false }
 
-# Cumulus
-cumulus-pallet-parachain-system = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.23" }
-
 [features]
 default = [ "std" ]
 std = [
