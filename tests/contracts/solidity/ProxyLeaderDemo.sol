@@ -8,10 +8,61 @@ contract ProxyLeaderDemo {
     /// @notice The Proxy Precompile Interface
     Proxy public proxy = Proxy(0x000000000000000000000000000000000000080b);
 
-    /// @notice Event sent when a voting session starts
-    event VotingStarted(uint256 votingRound);
+    /// @notice The pool doesn't accept additional participants
+    /// @param value The value that was given
+    /// @param required The value that was expected
+    error TooManyParticipants(uint256 value, uint256 required);
+
+    /// @notice The participant is already in pool
+    /// @param who The account address already in pool
+    error AlreadyInPool(address who);
+
+    /// @notice The participant is not in pool
+    /// @param who The account address not in pool
+    error NotInPool(address who);
+
+    /// @notice There is not enough fee to join the pool
+    /// @param value The value that was given
+    /// @param required The value that was expected
+    error NotEnoughFee(uint256 value, uint256 required);
+
+    /// @notice The pool doesn't have enough participants to start
+    /// @param value The value that was given
+    /// @param required The value that was expected
+    error NotEnoughParticipants(uint256 value, uint256 required);
+
+    /// @notice The voting has already been started
+    error VotingAlreadyInProgress();
+
+    /// @notice The voting has not been started
+    error VotingNotInProgress();
 
     /// @notice Event sent when a voting session ends
+    /// @param votingRound The current voting round
+    error AlreadyVoted(uint256 votingRound);
+
+    /// @notice Event sent when an address joins the pool
+    /// @param who The account that joined the pool
+    /// @param pledgedAmount The amount pledged
+    event JoinedPool(address indexed who, uint256 pledgedAmount);
+
+    /// @notice Event sent when an address leaves the pool
+    /// @param who The account that left the pool
+    /// @param pledgedAmount The amount that was previously pledged
+    event LeftPool(address indexed who, uint256 pledgedAmount);
+
+    /// @notice Event sent when a voting session starts
+    /// @param votingRound The current voting round
+    event VotingStarted(uint256 votingRound);
+
+    /// @notice Event sent when a vote is registered
+    /// @param who The account that voted
+    event Voted(address who);
+
+    /// @notice Event sent when a voting session ends
+    /// @param votingRound The current voting round
+    /// @param votingRound The current voting round
+    /// @param votingRound The current voting round
     event VotingEnded(
         uint256 votingRound,
         address winnerStaker,
@@ -27,75 +78,6 @@ contract ProxyLeaderDemo {
     /// @param delegate The account that is now no longer a proxy account
     /// @param proxyType The proxy type that was removed
     event ProxyRemoved(address indexed delegate, Proxy.ProxyType proxyType);
-
-    /// @notice The voting has already been started
-    error VotingAlreadyInProgress();
-
-    /// @notice The voting has not been started
-    error VotingNotInProgress();
-
-    /// @notice Event sent when a voting session ends
-    error AlreadyVoted(uint256 votingRound);
-
-    /// @notice Event sent when an address joins the pool
-    /// @param who The account that joined the pool
-    /// @param pledgedAmount The amount pledged
-    event JoinedPool(address indexed who, uint256 pledgedAmount);
-
-    /// @notice Event sent when an address leaves the pool
-    /// @param who The account that left the pool
-    /// @param pledgedAmount The amount that was previously pledged
-    event LeftPool(address indexed who, uint256 pledgedAmount);
-
-    /// @notice The pool doesn't have enough participants to start
-    error NotEnoughParticipants(uint256 value, uint256 required);
-
-    /// @notice The pool doesn't accept additional participants
-    error TooManyParticipants(uint256 value, uint256 required);
-
-    /// @notice The participant is already in pool
-    error AlreadyInPool(address who);
-
-    /// @notice The participant is not in pool
-    error NotInPool(address who);
-
-    /// @notice There are not enough fee to join the pool
-    error NotEnoughFee(uint256 value, uint256 required);
-
-    /// @notice The minimum number of participants required in pool
-    uint256 public MIN_PARTICIPANTS = 3;
-
-    /// @notice The maximum number of participants allowed in thge pool
-    /// @dev This is merely to limit the size of the participants array under a single uint8
-    uint256 public MAX_PARTICIPANTS = 255;
-
-    /// @notice The fee needed to participate in the pool
-    uint256 public PARTICIPATION_FEE = 1 ether;
-
-    /// @notice The current voting round
-    /// @dev This is used to keep track of votes given per voting round
-    uint256 public votingRound;
-
-    /// @notice true, if voting is in progress
-    bool isVoting = false;
-
-    /// @notice The current staker
-    address public staker;
-
-    /// @notice The current governor
-    address public governor;
-
-    /// @notice The current amount of token at stake
-    uint256 public staked;
-
-    /// @notice The current amount of token used in council
-    uint256 public governance;
-
-    /// @notice The current amount of freely avilable tokens
-    uint256 public totalPooled;
-
-    /// @notice the owner of the contract
-    address owner;
 
     /// @notice The type of proxy role
     /// @param Governor Allowed to perform both council voting and staking operations
@@ -115,27 +97,67 @@ contract ProxyLeaderDemo {
         uint256 pledgedAmount;
     }
 
+    /// @notice The minimum number of participants required in pool
+    uint256 public MIN_PARTICIPANTS = 3;
+
+    /// @notice The maximum number of participants allowed in thge pool
+    /// @dev This is merely to limit the size of the participants array under a single uint8
+    uint256 public MAX_PARTICIPANTS = 255;
+
+    /// @notice The minimum fee needed to participate in the pool
+    uint256 public MIN_PARTICIPATION_FEE = 1 ether;
+
+    /// @notice The current voting round
+    /// @dev This is used to keep track of votes given/received per voting round
+    uint256 public votingRound;
+
+    /// @notice true, if voting is in progress, false otherwise
+    bool public isVoting;
+
+    /// @notice The current governor
+    address public governor;
+
+    /// @notice The current staker
+    address public staker;
+
+    /// @notice The total pooled amount
+    uint256 public pooledAmount;
+
     /// @notice The addresses of all participants
     /// @dev Used to iterate over all participants and compute the winner
-    address[] public participantKeys;
+    address[] participantKeys;
 
     /// @notice The participants with their pledged amount and index in the keys array
-    mapping(address => uint256) public participants;
-    // mapping(address => Participant) public participants;
+    /// @dev The key index is used to quickly remove the address from the `participantKeys` array
+    mapping(address => Participant) participants;
 
-    mapping(uint256 => mapping(RoleType => mapping(address => uint256))) votesReceived;
+    /// @notice Tracks per voting round, if a given participant has already voted
     mapping(uint256 => mapping(address => bool)) votesGiven;
+
+    /// @notice Tracks per voting round, per role type, the total votes a participant has received
+    mapping(uint256 => mapping(RoleType => mapping(address => uint256))) votesReceived;
+
+    /// @notice The owner of the contract
+    address owner;
 
     constructor() {
         owner = msg.sender;
         staker = address(0);
         governor = address(0);
         votingRound = 0;
-        totalPooled = 0;
+        isVoting = false;
+    }
+
+    function getParticipants() public view returns (address[] memory) {
+        return participantKeys;
+    }
+
+    function canVote(address who) public view returns (bool) {
+        return participants[who].isValid && !votesGiven[votingRound][who];
     }
 
     /// @notice Join the pool of participants
-    /// @dev Each participant stakes a minimum of PARTICIPATION_FEE
+    /// @dev Each participant stakes a minimum of MIN_PARTICIPATION_FEE
     /// @dev The pool can have a maximum of MAX_PARTICIPANTS
     function joinPool() external payable {
         address sender = msg.sender;
@@ -150,17 +172,17 @@ contract ProxyLeaderDemo {
                 MAX_PARTICIPANTS
             );
         }
-        if (amount < PARTICIPATION_FEE) {
-            revert NotEnoughFee(amount, PARTICIPATION_FEE);
+        if (amount < MIN_PARTICIPATION_FEE) {
+            revert NotEnoughFee(amount, MIN_PARTICIPATION_FEE);
         }
 
+        pooledAmount += amount;
         participants[sender] = Participant(
             true,
             uint8(participantKeys.length),
             amount
         );
         participantKeys.push(sender);
-        totalPooled += amount;
 
         emit JoinedPool(sender, amount);
     }
@@ -193,8 +215,9 @@ contract ProxyLeaderDemo {
             staker = address(0);
         }
 
-        totalPooled -= participant.pledgedAmount;
         sender.transfer(participant.pledgedAmount);
+        pooledAmount -= participant.pledgedAmount;
+
         emit LeftPool(sender, participant.pledgedAmount);
     }
 
@@ -218,8 +241,8 @@ contract ProxyLeaderDemo {
     }
 
     /// @notice Ends a voting round
-    /// @dev The participant to receive maximum votes in each role category is made the Staker and
-    /// @dev the Governor, respectively. A single participant is allowed posses both roles
+    /// @dev The participant receiving maximum votes in each role category is made the Governor and
+    /// @dev the Staker, respectively. A single participant is allowed posses both roles
     function endVoting() external onlyOwner {
         if (!isVoting) {
             revert VotingNotInProgress();
@@ -265,10 +288,10 @@ contract ProxyLeaderDemo {
             emit ProxyRemoved(staker, Proxy.ProxyType.Staking);
         }
 
-        proxy.addProxy(winnerGovernor, Proxy.ProxyType.Governance, 1);
-        emit ProxyAdded(winnerGovernor, Proxy.ProxyType.Staking);
+        proxy.addProxy(winnerGovernor, Proxy.ProxyType.Governance, 0);
+        emit ProxyAdded(winnerGovernor, Proxy.ProxyType.Governance);
 
-        proxy.addProxy(winnerStaker, Proxy.ProxyType.Staking, 1);
+        proxy.addProxy(winnerStaker, Proxy.ProxyType.Staking, 0);
         emit ProxyAdded(winnerStaker, Proxy.ProxyType.Staking);
 
         governor = winnerGovernor;
@@ -307,6 +330,8 @@ contract ProxyLeaderDemo {
         votesGiven[votingRound][sender] = true;
         votesReceived[votingRound][RoleType.Governor][governorCandidate] += 1;
         votesReceived[votingRound][RoleType.Staker][stakerCandidate] += 1;
+
+        emit Voted(sender);
     }
 
     modifier onlyOwner() {
