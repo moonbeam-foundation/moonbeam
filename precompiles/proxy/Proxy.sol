@@ -44,9 +44,9 @@ interface Proxy {
     /// @custom:selector 14a5b5fa
     function removeProxies() external;
 
-    /// @dev Checks if the caller is a proxy account for the real account with a given proxy type
+    /// @dev Checks if the caller has an account proxied with a given proxy type
     /// @custom:selector f71c3873
-    /// @param real The real account that the caller is maybe a proxy for
-    /// @param proxyType The permissions allowed for the proxy caller
-    function isProxy(address real, ProxyType proxyType) external;
+    /// @param delegate The account that the caller has maybe proxied
+    /// @param proxyType The permissions allowed for the proxy
+    function isProxy(address delegate, ProxyType proxyType) external;
 }

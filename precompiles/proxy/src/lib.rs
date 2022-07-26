@@ -156,11 +156,11 @@ where
 		Ok(succeed([]))
 	}
 
-	/// Checks if the caller is a proxy account for the real account with a given proxy type
+	/// Checks if the caller has an account proxied with a given proxy type
 	///
 	/// Parameters:
-	/// * real: The real account that the caller is maybe a proxy for
-	/// * proxyType: The permissions allowed for the proxy caller
+	/// * delegate: The account that the caller has maybe proxied
+	/// * proxyType: The permissions allowed for the proxy
 	fn is_proxy(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		let mut input = handle.read_input()?;
 		input.expect_arguments(2)?;
@@ -174,10 +174,10 @@ where
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
-		let is_proxy = ProxyPallet::<Runtime>::proxies(real)
+		let is_proxy = ProxyPallet::<Runtime>::proxies(origin)
 			.0
 			.iter()
-			.any(|pd| pd.delegate == origin && pd.proxy_type == proxy_type);
+			.any(|pd| pd.delegate == real && pd.proxy_type == proxy_type);
 
 		Ok(succeed(EvmDataWriter::new().write(is_proxy).build()))
 	}

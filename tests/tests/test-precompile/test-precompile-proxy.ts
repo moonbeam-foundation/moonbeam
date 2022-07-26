@@ -6,11 +6,7 @@ import { ALITH_ADDRESS, BALTATHAR_ADDRESS, CHARLETH_ADDRESS } from "../../util/a
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { getCompiled } from "../../util/contracts";
 import { ethers } from "ethers";
-import {
-  ALITH_TRANSACTION_TEMPLATE,
-  BALTATHAR_TRANSACTION_TEMPLATE,
-  createTransaction,
-} from "../../util/transactions";
+import { ALITH_TRANSACTION_TEMPLATE, createTransaction } from "../../util/transactions";
 import {
   CONTRACT_PROXY_TYPE_GOVERNANCE,
   CONTRACT_PROXY_TYPE_STAKING,
@@ -237,10 +233,10 @@ describeDevMoonbeam("Precompile - Proxy - is proxy", (context) => {
   it("should successfully call", async () => {
     const { result } = await context.createBlock(
       createTransaction(context, {
-        ...BALTATHAR_TRANSACTION_TEMPLATE,
+        ...ALITH_TRANSACTION_TEMPLATE,
         to: PRECOMPILE_PROXY_ADDRESS,
         data: PROXY_INTERFACE.encodeFunctionData("isProxy", [
-          ALITH_ADDRESS,
+          BALTATHAR_ADDRESS,
           CONTRACT_PROXY_TYPE_STAKING,
         ]),
       })
