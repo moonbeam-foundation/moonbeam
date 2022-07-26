@@ -851,61 +851,6 @@
 <span id="846">846</span>
 <span id="847">847</span>
 <span id="848">848</span>
-<span id="849">849</span>
-<span id="850">850</span>
-<span id="851">851</span>
-<span id="852">852</span>
-<span id="853">853</span>
-<span id="854">854</span>
-<span id="855">855</span>
-<span id="856">856</span>
-<span id="857">857</span>
-<span id="858">858</span>
-<span id="859">859</span>
-<span id="860">860</span>
-<span id="861">861</span>
-<span id="862">862</span>
-<span id="863">863</span>
-<span id="864">864</span>
-<span id="865">865</span>
-<span id="866">866</span>
-<span id="867">867</span>
-<span id="868">868</span>
-<span id="869">869</span>
-<span id="870">870</span>
-<span id="871">871</span>
-<span id="872">872</span>
-<span id="873">873</span>
-<span id="874">874</span>
-<span id="875">875</span>
-<span id="876">876</span>
-<span id="877">877</span>
-<span id="878">878</span>
-<span id="879">879</span>
-<span id="880">880</span>
-<span id="881">881</span>
-<span id="882">882</span>
-<span id="883">883</span>
-<span id="884">884</span>
-<span id="885">885</span>
-<span id="886">886</span>
-<span id="887">887</span>
-<span id="888">888</span>
-<span id="889">889</span>
-<span id="890">890</span>
-<span id="891">891</span>
-<span id="892">892</span>
-<span id="893">893</span>
-<span id="894">894</span>
-<span id="895">895</span>
-<span id="896">896</span>
-<span id="897">897</span>
-<span id="898">898</span>
-<span id="899">899</span>
-<span id="900">900</span>
-<span id="901">901</span>
-<span id="902">902</span>
-<span id="903">903</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -947,21 +892,13 @@
 <span class="attribute">#[<span class="ident">generate_function_selector</span>]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">enum</span> <span class="ident">Action</span> {
-	<span class="comment">// DEPRECATED</span>
-	<span class="ident">MinNomination</span> <span class="op">=</span> <span class="string">&quot;min_nomination()&quot;</span>,
 	<span class="ident">MinDelegation</span> <span class="op">=</span> <span class="string">&quot;min_delegation()&quot;</span>,
 	<span class="ident">Points</span> <span class="op">=</span> <span class="string">&quot;points(uint256)&quot;</span>,
 	<span class="ident">CandidateCount</span> <span class="op">=</span> <span class="string">&quot;candidate_count()&quot;</span>,
 	<span class="ident">Round</span> <span class="op">=</span> <span class="string">&quot;round()&quot;</span>,
-	<span class="comment">// DEPRECATED</span>
-	<span class="ident">CollatorNominationCount</span> <span class="op">=</span> <span class="string">&quot;collator_nomination_count(address)&quot;</span>,
-	<span class="comment">// DEPRECATED</span>
-	<span class="ident">NominatorNominationCount</span> <span class="op">=</span> <span class="string">&quot;nominator_nomination_count(address)&quot;</span>,
 	<span class="ident">CandidateDelegationCount</span> <span class="op">=</span> <span class="string">&quot;candidate_delegation_count(address)&quot;</span>,
 	<span class="ident">DelegatorDelegationCount</span> <span class="op">=</span> <span class="string">&quot;delegator_delegation_count(address)&quot;</span>,
 	<span class="ident">SelectedCandidates</span> <span class="op">=</span> <span class="string">&quot;selected_candidates()&quot;</span>,
-	<span class="comment">// DEPRECATED</span>
-	<span class="ident">IsNominator</span> <span class="op">=</span> <span class="string">&quot;is_nominator(address)&quot;</span>,
 	<span class="ident">IsDelegator</span> <span class="op">=</span> <span class="string">&quot;is_delegator(address)&quot;</span>,
 	<span class="ident">IsCandidate</span> <span class="op">=</span> <span class="string">&quot;is_candidate(address)&quot;</span>,
 	<span class="ident">IsSelectedCandidate</span> <span class="op">=</span> <span class="string">&quot;is_selected_candidate(address)&quot;</span>,
@@ -969,35 +906,21 @@
 	<span class="ident">CandidateExitIsPending</span> <span class="op">=</span> <span class="string">&quot;candidate_exit_is_pending(address)&quot;</span>,
 	<span class="ident">CandidateRequestIsPending</span> <span class="op">=</span> <span class="string">&quot;candidate_request_is_pending(address)&quot;</span>,
 	<span class="ident">JoinCandidates</span> <span class="op">=</span> <span class="string">&quot;join_candidates(uint256,uint256)&quot;</span>,
-	<span class="comment">// DEPRECATED</span>
-	<span class="ident">LeaveCandidates</span> <span class="op">=</span> <span class="string">&quot;leave_candidates(uint256)&quot;</span>,
 	<span class="ident">ScheduleLeaveCandidates</span> <span class="op">=</span> <span class="string">&quot;schedule_leave_candidates(uint256)&quot;</span>,
 	<span class="ident">ExecuteLeaveCandidates</span> <span class="op">=</span> <span class="string">&quot;execute_leave_candidates(address,uint256)&quot;</span>,
 	<span class="ident">CancelLeaveCandidates</span> <span class="op">=</span> <span class="string">&quot;cancel_leave_candidates(uint256)&quot;</span>,
 	<span class="ident">GoOffline</span> <span class="op">=</span> <span class="string">&quot;go_offline()&quot;</span>,
 	<span class="ident">GoOnline</span> <span class="op">=</span> <span class="string">&quot;go_online()&quot;</span>,
-	<span class="comment">// DEPRECATED</span>
-	<span class="ident">CandidateBondLess</span> <span class="op">=</span> <span class="string">&quot;candidate_bond_less(uint256)&quot;</span>,
 	<span class="ident">ScheduleCandidateBondLess</span> <span class="op">=</span> <span class="string">&quot;schedule_candidate_bond_less(uint256)&quot;</span>,
 	<span class="ident">CandidateBondMore</span> <span class="op">=</span> <span class="string">&quot;candidate_bond_more(uint256)&quot;</span>,
 	<span class="ident">ExecuteCandidateBondLess</span> <span class="op">=</span> <span class="string">&quot;execute_candidate_bond_less(address)&quot;</span>,
 	<span class="ident">CancelCandidateBondLess</span> <span class="op">=</span> <span class="string">&quot;cancel_candidate_bond_less()&quot;</span>,
-	<span class="comment">// DEPRECATED</span>
-	<span class="ident">Nominate</span> <span class="op">=</span> <span class="string">&quot;nominate(address,uint256,uint256,uint256)&quot;</span>,
 	<span class="ident">Delegate</span> <span class="op">=</span> <span class="string">&quot;delegate(address,uint256,uint256,uint256)&quot;</span>,
-	<span class="comment">// DEPRECATED</span>
-	<span class="ident">LeaveNominators</span> <span class="op">=</span> <span class="string">&quot;leave_nominators(uint256)&quot;</span>,
 	<span class="ident">ScheduleLeaveDelegators</span> <span class="op">=</span> <span class="string">&quot;schedule_leave_delegators()&quot;</span>,
 	<span class="ident">ExecuteLeaveDelegators</span> <span class="op">=</span> <span class="string">&quot;execute_leave_delegators(address,uint256)&quot;</span>,
 	<span class="ident">CancelLeaveDelegators</span> <span class="op">=</span> <span class="string">&quot;cancel_leave_delegators()&quot;</span>,
-	<span class="comment">// DEPRECATED</span>
-	<span class="ident">RevokeNomination</span> <span class="op">=</span> <span class="string">&quot;revoke_nomination(address)&quot;</span>,
 	<span class="ident">ScheduleRevokeDelegation</span> <span class="op">=</span> <span class="string">&quot;schedule_revoke_delegation(address)&quot;</span>,
-	<span class="comment">// DEPRECATED</span>
-	<span class="ident">NominatorBondLess</span> <span class="op">=</span> <span class="string">&quot;nominator_bond_less(address,uint256)&quot;</span>,
 	<span class="ident">ScheduleDelegatorBondLess</span> <span class="op">=</span> <span class="string">&quot;schedule_delegator_bond_less(address,uint256)&quot;</span>,
-	<span class="comment">// DEPRECATED</span>
-	<span class="ident">NominatorBondMore</span> <span class="op">=</span> <span class="string">&quot;nominator_bond_more(address,uint256)&quot;</span>,
 	<span class="ident">DelegatorBondMore</span> <span class="op">=</span> <span class="string">&quot;delegator_bond_more(address,uint256)&quot;</span>,
 	<span class="ident">ExecuteDelegationRequest</span> <span class="op">=</span> <span class="string">&quot;execute_delegation_request(address,address)&quot;</span>,
 	<span class="ident">CancelDelegationRequest</span> <span class="op">=</span> <span class="string">&quot;cancel_delegation_request(address)&quot;</span>,
@@ -1027,17 +950,13 @@
 
 		<span class="ident">handle</span>.<span class="ident">check_function_modifier</span>(<span class="kw">match</span> <span class="ident">selector</span> {
 			<span class="comment">// Views</span>
-			<span class="ident">Action::IsNominator</span>
-			<span class="op">|</span> <span class="ident">Action::IsDelegator</span>
+			<span class="ident">Action::IsDelegator</span>
 			<span class="op">|</span> <span class="ident">Action::IsCandidate</span>
 			<span class="op">|</span> <span class="ident">Action::IsSelectedCandidate</span>
-			<span class="op">|</span> <span class="ident">Action::MinNomination</span>
 			<span class="op">|</span> <span class="ident">Action::MinDelegation</span>
 			<span class="op">|</span> <span class="ident">Action::Points</span>
 			<span class="op">|</span> <span class="ident">Action::CandidateCount</span>
 			<span class="op">|</span> <span class="ident">Action::Round</span>
-			<span class="op">|</span> <span class="ident">Action::CollatorNominationCount</span>
-			<span class="op">|</span> <span class="ident">Action::NominatorNominationCount</span>
 			<span class="op">|</span> <span class="ident">Action::CandidateDelegationCount</span>
 			<span class="op">|</span> <span class="ident">Action::DelegatorDelegationCount</span>
 			<span class="op">|</span> <span class="ident">Action::SelectedCandidates</span>
@@ -1046,28 +965,21 @@
 			<span class="op">|</span> <span class="ident">Action::CandidateRequestIsPending</span> =&gt; <span class="ident">FunctionModifier::View</span>,
 			<span class="comment">// Non-payables</span>
 			<span class="ident">Action::JoinCandidates</span>
-			<span class="op">|</span> <span class="ident">Action::LeaveCandidates</span>
 			<span class="op">|</span> <span class="ident">Action::ScheduleLeaveCandidates</span>
 			<span class="op">|</span> <span class="ident">Action::ExecuteLeaveCandidates</span>
 			<span class="op">|</span> <span class="ident">Action::CancelLeaveCandidates</span>
 			<span class="op">|</span> <span class="ident">Action::GoOffline</span>
 			<span class="op">|</span> <span class="ident">Action::GoOnline</span>
-			<span class="op">|</span> <span class="ident">Action::CandidateBondLess</span>
 			<span class="op">|</span> <span class="ident">Action::ScheduleCandidateBondLess</span>
 			<span class="op">|</span> <span class="ident">Action::CandidateBondMore</span>
 			<span class="op">|</span> <span class="ident">Action::ExecuteCandidateBondLess</span>
 			<span class="op">|</span> <span class="ident">Action::CancelCandidateBondLess</span>
-			<span class="op">|</span> <span class="ident">Action::Nominate</span>
 			<span class="op">|</span> <span class="ident">Action::Delegate</span>
-			<span class="op">|</span> <span class="ident">Action::LeaveNominators</span>
 			<span class="op">|</span> <span class="ident">Action::ScheduleLeaveDelegators</span>
 			<span class="op">|</span> <span class="ident">Action::ExecuteLeaveDelegators</span>
 			<span class="op">|</span> <span class="ident">Action::CancelLeaveDelegators</span>
-			<span class="op">|</span> <span class="ident">Action::RevokeNomination</span>
 			<span class="op">|</span> <span class="ident">Action::ScheduleRevokeDelegation</span>
-			<span class="op">|</span> <span class="ident">Action::NominatorBondLess</span>
 			<span class="op">|</span> <span class="ident">Action::ScheduleDelegatorBondLess</span>
-			<span class="op">|</span> <span class="ident">Action::NominatorBondMore</span>
 			<span class="op">|</span> <span class="ident">Action::DelegatorBondMore</span>
 			<span class="op">|</span> <span class="ident">Action::ExecuteDelegationRequest</span>
 			<span class="op">|</span> <span class="ident">Action::CancelDelegationRequest</span> =&gt; <span class="ident">FunctionModifier::NonPayable</span>,
@@ -1075,21 +987,13 @@
 
 		<span class="comment">// Return early if storage getter; return (origin, call) if dispatchable</span>
 		<span class="kw">let</span> (<span class="ident">origin</span>, <span class="ident">call</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">selector</span> {
-			<span class="comment">// DEPRECATED</span>
-			<span class="ident">Action::MinNomination</span> =&gt; <span class="kw">return</span> <span class="ident"><span class="self">Self</span>::min_delegation</span>(<span class="ident">handle</span>),
 			<span class="ident">Action::MinDelegation</span> =&gt; <span class="kw">return</span> <span class="ident"><span class="self">Self</span>::min_delegation</span>(<span class="ident">handle</span>),
 			<span class="ident">Action::Points</span> =&gt; <span class="kw">return</span> <span class="ident"><span class="self">Self</span>::points</span>(<span class="ident">handle</span>),
 			<span class="ident">Action::CandidateCount</span> =&gt; <span class="kw">return</span> <span class="ident"><span class="self">Self</span>::candidate_count</span>(<span class="ident">handle</span>),
 			<span class="ident">Action::Round</span> =&gt; <span class="kw">return</span> <span class="ident"><span class="self">Self</span>::round</span>(<span class="ident">handle</span>),
-			<span class="comment">// DEPRECATED</span>
-			<span class="ident">Action::CollatorNominationCount</span> =&gt; <span class="kw">return</span> <span class="ident"><span class="self">Self</span>::candidate_delegation_count</span>(<span class="ident">handle</span>),
-			<span class="comment">// DEPRECATED</span>
-			<span class="ident">Action::NominatorNominationCount</span> =&gt; <span class="kw">return</span> <span class="ident"><span class="self">Self</span>::delegator_delegation_count</span>(<span class="ident">handle</span>),
 			<span class="ident">Action::CandidateDelegationCount</span> =&gt; <span class="kw">return</span> <span class="ident"><span class="self">Self</span>::candidate_delegation_count</span>(<span class="ident">handle</span>),
 			<span class="ident">Action::DelegatorDelegationCount</span> =&gt; <span class="kw">return</span> <span class="ident"><span class="self">Self</span>::delegator_delegation_count</span>(<span class="ident">handle</span>),
 			<span class="ident">Action::SelectedCandidates</span> =&gt; <span class="kw">return</span> <span class="ident"><span class="self">Self</span>::selected_candidates</span>(<span class="ident">handle</span>),
-			<span class="comment">// DEPRECATED</span>
-			<span class="ident">Action::IsNominator</span> =&gt; <span class="kw">return</span> <span class="ident"><span class="self">Self</span>::is_delegator</span>(<span class="ident">handle</span>),
 			<span class="ident">Action::IsDelegator</span> =&gt; <span class="kw">return</span> <span class="ident"><span class="self">Self</span>::is_delegator</span>(<span class="ident">handle</span>),
 			<span class="ident">Action::IsCandidate</span> =&gt; <span class="kw">return</span> <span class="ident"><span class="self">Self</span>::is_candidate</span>(<span class="ident">handle</span>),
 			<span class="ident">Action::IsSelectedCandidate</span> =&gt; <span class="kw">return</span> <span class="ident"><span class="self">Self</span>::is_selected_candidate</span>(<span class="ident">handle</span>),
@@ -1100,35 +1004,21 @@
 			<span class="ident">Action::CandidateRequestIsPending</span> =&gt; <span class="kw">return</span> <span class="ident"><span class="self">Self</span>::candidate_request_is_pending</span>(<span class="ident">handle</span>),
 			<span class="comment">// runtime methods (dispatchables)</span>
 			<span class="ident">Action::JoinCandidates</span> =&gt; <span class="ident"><span class="self">Self</span>::join_candidates</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>,
-			<span class="comment">// DEPRECATED</span>
-			<span class="ident">Action::LeaveCandidates</span> =&gt; <span class="ident"><span class="self">Self</span>::schedule_leave_candidates</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>,
 			<span class="ident">Action::ScheduleLeaveCandidates</span> =&gt; <span class="ident"><span class="self">Self</span>::schedule_leave_candidates</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>,
 			<span class="ident">Action::ExecuteLeaveCandidates</span> =&gt; <span class="ident"><span class="self">Self</span>::execute_leave_candidates</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>,
 			<span class="ident">Action::CancelLeaveCandidates</span> =&gt; <span class="ident"><span class="self">Self</span>::cancel_leave_candidates</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>,
 			<span class="ident">Action::GoOffline</span> =&gt; <span class="ident"><span class="self">Self</span>::go_offline</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>,
 			<span class="ident">Action::GoOnline</span> =&gt; <span class="ident"><span class="self">Self</span>::go_online</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>,
-			<span class="comment">// DEPRECATED</span>
-			<span class="ident">Action::CandidateBondLess</span> =&gt; <span class="ident"><span class="self">Self</span>::schedule_candidate_bond_less</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>,
 			<span class="ident">Action::ScheduleCandidateBondLess</span> =&gt; <span class="ident"><span class="self">Self</span>::schedule_candidate_bond_less</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>,
 			<span class="ident">Action::CandidateBondMore</span> =&gt; <span class="ident"><span class="self">Self</span>::candidate_bond_more</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>,
 			<span class="ident">Action::ExecuteCandidateBondLess</span> =&gt; <span class="ident"><span class="self">Self</span>::execute_candidate_bond_less</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>,
 			<span class="ident">Action::CancelCandidateBondLess</span> =&gt; <span class="ident"><span class="self">Self</span>::cancel_candidate_bond_less</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>,
-			<span class="comment">// DEPRECATED</span>
-			<span class="ident">Action::Nominate</span> =&gt; <span class="ident"><span class="self">Self</span>::delegate</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>,
 			<span class="ident">Action::Delegate</span> =&gt; <span class="ident"><span class="self">Self</span>::delegate</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>,
-			<span class="comment">// DEPRECATED</span>
-			<span class="ident">Action::LeaveNominators</span> =&gt; <span class="ident"><span class="self">Self</span>::schedule_leave_delegators</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>,
 			<span class="ident">Action::ScheduleLeaveDelegators</span> =&gt; <span class="ident"><span class="self">Self</span>::schedule_leave_delegators</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>,
 			<span class="ident">Action::ExecuteLeaveDelegators</span> =&gt; <span class="ident"><span class="self">Self</span>::execute_leave_delegators</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>,
 			<span class="ident">Action::CancelLeaveDelegators</span> =&gt; <span class="ident"><span class="self">Self</span>::cancel_leave_delegators</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>,
-			<span class="comment">// DEPRECATED</span>
-			<span class="ident">Action::RevokeNomination</span> =&gt; <span class="ident"><span class="self">Self</span>::schedule_revoke_delegation</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>,
 			<span class="ident">Action::ScheduleRevokeDelegation</span> =&gt; <span class="ident"><span class="self">Self</span>::schedule_revoke_delegation</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>,
-			<span class="comment">// DEPRECATED</span>
-			<span class="ident">Action::NominatorBondLess</span> =&gt; <span class="ident"><span class="self">Self</span>::schedule_delegator_bond_less</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>,
 			<span class="ident">Action::ScheduleDelegatorBondLess</span> =&gt; <span class="ident"><span class="self">Self</span>::schedule_delegator_bond_less</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>,
-			<span class="comment">// DEPRECATED</span>
-			<span class="ident">Action::NominatorBondMore</span> =&gt; <span class="ident"><span class="self">Self</span>::delegator_bond_more</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>,
 			<span class="ident">Action::DelegatorBondMore</span> =&gt; <span class="ident"><span class="self">Self</span>::delegator_bond_more</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>,
 			<span class="ident">Action::ExecuteDelegationRequest</span> =&gt; <span class="ident"><span class="self">Self</span>::execute_delegation_request</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>,
 			<span class="ident">Action::CancelDelegationRequest</span> =&gt; <span class="ident"><span class="self">Self</span>::cancel_delegation_request</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>,
