@@ -1,12 +1,13 @@
 import { u8aToHex, BN } from "@polkadot/util";
 import { xxhashAsU8a } from "@polkadot/util-crypto";
-import { generateKeyringPair } from "./accounts";
+import { customWeb3Request } from "./providers";
 
 import { DevTestContext } from "./setup-dev-tests";
 import {
   CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot,
   XcmVersionedXcm,
 } from "@polkadot/types/lookup";
+import { XcmpMessageFormat } from "@polkadot/types/interfaces";
 
 import { AssetMetadata } from "./assets";
 
@@ -146,4 +147,46 @@ export function descendOriginFromAddress(context: DevTestContext, address?: stri
     originAddress,
     descendOriginAddress: u8aToHex(context.polkadotApi.registry.hash(toHash).slice(0, 20)),
   };
+}
+export interface RawXcmMessage {
+  type: string;
+  payload: any;
+}
+
+export function buildXcmpMessage(
+  context: DevTestContext,
+  message: RawXcmMessage,
+  format: string = "ConcatenatedVersionedXcm"
+): number[] {
+  const xcmpFormat: XcmpMessageFormat = context.polkadotApi.createType(
+    "XcmpMessageFormat",
+    format
+  ) as any;
+  const receivedMessage: XcmVersionedXcm = context.polkadotApi.createType(
+    message.type,
+    message.payload
+  ) as any;
+
+  return [...xcmpFormat.toU8a(), ...receivedMessage.toU8a()];
+}
+
+export async function injectHrmpMessage(
+  context: DevTestContext,
+  paraId: number,
+  message?: RawXcmMessage
+) {
+  let totalMessage = message != null ? buildXcmpMessage(context, message) : [];
+  // Send RPC call to inject XCM message
+  // We will set a specific message knowing that it should mint the statemint asset
+  await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [paraId, totalMessage]);
+}
+
+export async function injectHrmpMessageAndSeal(
+  context: DevTestContext,
+  paraId: number,
+  message?: RawXcmMessage
+) {
+  await injectHrmpMessage(context, paraId, message);
+  // Create a block in which the XCM will be executed
+  await context.createBlock();
 }
