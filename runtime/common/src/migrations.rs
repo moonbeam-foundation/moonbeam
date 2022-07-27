@@ -41,7 +41,7 @@ use pallet_base_fee::Config as BaseFeeConfig;
 use pallet_migrations::{GetMigrations, Migration};
 use pallet_parachain_staking::{
 	migrations::{
-		IncreaseMaxDelegationsPerCandidate, PatchIncorrectDelegationSums, PurgeStaleStorage,
+		PatchIncorrectDelegationSums, PurgeStaleStorage,
 		SplitDelegatorStateIntoDelegationScheduledRequests,
 	},
 	Config as ParachainStakingConfig,
@@ -151,32 +151,6 @@ impl<T: ParachainStakingConfig> Migration
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade(&self) -> Result<(), &'static str> {
 		SplitDelegatorStateIntoDelegationScheduledRequests::<T>::post_upgrade()
-	}
-}
-
-/// Staking increase max counted delegations per collator candidate
-pub struct ParachainStakingIncreaseMaxDelegationsPerCandidate<T>(PhantomData<T>);
-impl<T: ParachainStakingConfig> Migration
-	for ParachainStakingIncreaseMaxDelegationsPerCandidate<T>
-{
-	fn friendly_name(&self) -> &str {
-		"MM_Parachain_Staking_IncreaseMaxDelegationsPerCandidate_v2"
-	}
-
-	fn migrate(&self, _available_weight: Weight) -> Weight {
-		IncreaseMaxDelegationsPerCandidate::<T>::on_runtime_upgrade()
-	}
-
-	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
-	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade(&self) -> Result<(), &'static str> {
-		IncreaseMaxDelegationsPerCandidate::<T>::pre_upgrade()
-	}
-
-	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
-	#[cfg(feature = "try-runtime")]
-	fn post_upgrade(&self) -> Result<(), &'static str> {
-		IncreaseMaxDelegationsPerCandidate::<T>::post_upgrade()
 	}
 }
 
