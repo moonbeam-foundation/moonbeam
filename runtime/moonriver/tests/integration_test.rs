@@ -149,14 +149,14 @@ fn verify_pallet_prefixes() {
 				pallet_name: b"Balances".to_vec(),
 				storage_name: b"Account".to_vec(),
 				prefix: prefix(b"Balances", b"Account"),
-				max_values: Some(300_000),
+				max_values: None,
 				max_size: Some(100),
 			},
 			StorageInfo {
 				pallet_name: b"Balances".to_vec(),
 				storage_name: b"Locks".to_vec(),
 				prefix: prefix(b"Balances", b"Locks"),
-				max_values: Some(300_000),
+				max_values: None,
 				max_size: Some(1287),
 			},
 			StorageInfo {
@@ -1515,7 +1515,7 @@ fn asset_erc20_precompiles_transfer() {
 						.write(U256::from(400 * MOVR))
 						.build(),
 				)
-				.expect_cost(23518u64)
+				.expect_cost(23652u64)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1567,7 +1567,7 @@ fn asset_erc20_precompiles_approve() {
 						.write(U256::from(400 * MOVR))
 						.build(),
 				)
-				.expect_cost(14006)
+				.expect_cost(14211)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_APPROVAL,
@@ -1588,7 +1588,7 @@ fn asset_erc20_precompiles_approve() {
 						.write(U256::from(400 * MOVR))
 						.build(),
 				)
-				.expect_cost(28967)
+				.expect_cost(29230)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1640,7 +1640,7 @@ fn asset_erc20_precompiles_mint_burn() {
 						.write(U256::from(1000 * MOVR))
 						.build(),
 				)
-				.expect_cost(12795)
+				.expect_cost(12988)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1667,7 +1667,7 @@ fn asset_erc20_precompiles_mint_burn() {
 						.write(U256::from(500 * MOVR))
 						.build(),
 				)
-				.expect_cost(12987)
+				.expect_cost(13164)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1712,7 +1712,7 @@ fn asset_erc20_precompiles_freeze_thaw_account() {
 						.write(Address(ALICE.into()))
 						.build(),
 				)
-				.expect_cost(6735)
+				.expect_cost(6866)
 				.expect_no_logs()
 				.execute_returns(EvmDataWriter::new().write(true).build());
 
@@ -1731,7 +1731,7 @@ fn asset_erc20_precompiles_freeze_thaw_account() {
 						.write(Address(ALICE.into()))
 						.build(),
 				)
-				.expect_cost(6728)
+				.expect_cost(6860)
 				.expect_no_logs()
 				.execute_returns(EvmDataWriter::new().write(true).build());
 
@@ -1766,7 +1766,7 @@ fn asset_erc20_precompiles_freeze_thaw_asset() {
 					asset_precompile_address,
 					EvmDataWriter::new_with_selector(AssetAction::FreezeAsset).build(),
 				)
-				.expect_cost(5595)
+				.expect_cost(5726)
 				.expect_no_logs()
 				.execute_returns(EvmDataWriter::new().write(true).build());
 
@@ -1783,7 +1783,7 @@ fn asset_erc20_precompiles_freeze_thaw_asset() {
 					asset_precompile_address,
 					EvmDataWriter::new_with_selector(AssetAction::ThawAsset).build(),
 				)
-				.expect_cost(5593)
+				.expect_cost(5741)
 				.expect_no_logs()
 				.execute_returns(EvmDataWriter::new().write(true).build());
 
@@ -1820,7 +1820,7 @@ fn asset_erc20_precompiles_freeze_transfer_ownership() {
 						.write(Address(BOB.into()))
 						.build(),
 				)
-				.expect_cost(6641)
+				.expect_cost(6794)
 				.expect_no_logs()
 				.execute_returns(EvmDataWriter::new().write(true).build());
 
@@ -1862,7 +1862,7 @@ fn asset_erc20_precompiles_freeze_set_team() {
 						.write(Address(BOB.into()))
 						.build(),
 				)
-				.expect_cost(5573)
+				.expect_cost(5721)
 				.expect_no_logs()
 				.execute_returns(EvmDataWriter::new().write(true).build());
 
@@ -1983,7 +1983,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 						.write(U256::from(400 * MOVR))
 						.build(),
 				)
-				.expect_cost(23518)
+				.expect_cost(23652)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -2047,7 +2047,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						.write(U256::from(400 * MOVR))
 						.build(),
 				)
-				.expect_cost(14006)
+				.expect_cost(14211)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_APPROVAL,
@@ -2068,7 +2068,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						.write(U256::from(400 * MOVR))
 						.build(),
 				)
-				.expect_cost(28967)
+				.expect_cost(29230)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
