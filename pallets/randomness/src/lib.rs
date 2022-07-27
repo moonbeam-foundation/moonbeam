@@ -15,6 +15,32 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Randomness pallet
+//!
+//! TODO: more documentation
+//!
+//! Inputs and Outputs
+//!
+//! In each block, there are two VRF signature operations which occur:
+//! * VRF transcript signing in client and inclusion via inherent
+//! * VRF output verification in runtime
+//!
+//! In both cases, the previous block's VRF output is used in a Merlin transcript to produce a
+//! signature which becomes the current block's new output. So the output for block `n` is used as
+//! the input for block `n+1`.
+//!
+//! See https://crates.parity.io/sp_consensus_babe/struct.Transcript.html for more details about
+//! transcripts.
+//!
+//! On the client side, the block author follows this process:
+//! * the client will generate a transcript from the previous block's output
+//! * the transcript is signed
+//! * this signature is made available to the runtime via an inherent
+//!
+//! The runtime then sets the the output for the current block to the signature as such:
+//! * the runtime constructs the same transcript as above from the previous block's output
+//! * the block author's pubkey is used to verify the signature inherent against the transcript
+//!     * if invalid, the block import will fail
+//! * the output for the current block is set as the signature
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
