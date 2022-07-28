@@ -1413,7 +1413,7 @@ impl<
 			if x.owner == candidate {
 				let before_amount: BalanceOf<T> = x.amount.into();
 				x.amount = x.amount.saturating_add(amount);
-                self.total_add_if::<T, _>(amount, |_| Ok(()));
+				self.total_add_if::<T, _>(amount, |_| Ok(()));
 
 				// update collator state delegation
 				let mut collator_state =
