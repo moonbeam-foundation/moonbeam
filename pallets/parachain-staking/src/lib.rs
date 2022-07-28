@@ -1248,6 +1248,41 @@ pub mod pallet {
 			Self::delegator_cancel_scheduled_revoke_all(delegator)
 		}
 
+		/// Schedule a [DelegationAction::Revoke] towards all current delegations.
+		/// Upon successful execution of all revokes, the account leaves the set of delegators.
+		///
+		/// Note: Any future delegation request will not have the revoke scheduled.
+		#[pallet::weight(<T as Config>::WeightInfo::schedule_revoke_all_delegations(delegation_count))]
+		pub fn schedule_revoke_all_delegations(
+			origin: OriginFor<T>,
+			delegation_count: u32,
+		) -> DispatchResultWithPostInfo {
+			let delegator = ensure_signed(origin)?;
+			Self::delegator_schedule_revoke_all(delegator)
+		}
+
+		/// Execute all scheduled [DelegationAction::Revoke] requests.
+		/// If all delegations are revoked, the account leaves the set of delegators.
+		#[pallet::weight(<T as Config>::WeightInfo::execute_revoke_all_delegations(delegation_count))]
+		pub fn execute_revoke_all_delegations(
+			origin: OriginFor<T>,
+			delegator: T::AccountId,
+			delegation_count: u32,
+		) -> DispatchResultWithPostInfo {
+			ensure_signed(origin)?;
+			Self::delegator_execute_scheduled_revoke_all(delegator, delegation_count)
+		}
+
+		/// Cancels all previously scheduled [DelegationAction::Revoke] requests.
+		#[pallet::weight(<T as Config>::WeightInfo::cancel_revoke_all_delegations(delegation_count))]
+		pub fn cancel_revoke_all_delegations(
+			origin: OriginFor<T>,
+			delegation_count: u32,
+		) -> DispatchResultWithPostInfo {
+			let delegator = ensure_signed(origin)?;
+			Self::delegator_cancel_scheduled_revoke_all(delegator)
+		}
+
 		#[pallet::weight(<T as Config>::WeightInfo::schedule_revoke_delegation())]
 		/// Request to revoke an existing delegation. If successful, the delegation is scheduled
 		/// to be allowed to be revoked via the `execute_delegation_request` extrinsic.

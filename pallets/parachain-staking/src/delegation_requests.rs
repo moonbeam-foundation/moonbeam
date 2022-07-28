@@ -336,8 +336,13 @@ impl<T: Config> Pallet<T> {
 	/// The last fulfilled request causes the delegator to leave the set of delegators.
 	pub(crate) fn delegator_schedule_revoke_all(
 		delegator: T::AccountId,
+		delegation_count: Option<u32>,
 	) -> DispatchResultWithPostInfo {
 		let mut state = <DelegatorState<T>>::get(&delegator).ok_or(<Error<T>>::DelegatorDNE)?;
+		ensure!(
+			delegation_count >= (state.delegations.0.len() as u32),
+			Error::<T>::TooLowDelegationCountToLeaveDelegators
+		);
 		let mut updated_scheduled_requests = vec![];
 		let now = <Round<T>>::get().current;
 		let when = now.saturating_add(T::LeaveDelegatorsDelay::get());
@@ -401,8 +406,15 @@ impl<T: Config> Pallet<T> {
 	/// executed in the current round, for this function to succeed.
 	pub(crate) fn delegator_cancel_scheduled_revoke_all(
 		delegator: T::AccountId,
+		delegation_count: Option<u32>,
 	) -> DispatchResultWithPostInfo {
 		let mut state = <DelegatorState<T>>::get(&delegator).ok_or(<Error<T>>::DelegatorDNE)?;
+		if let Some(delegation_count) = delegation_count {
+			ensure!(
+				delegation_count >= (state.delegations.0.len() as u32),
+				Error::<T>::TooLowDelegationCountToLeaveDelegators
+			);
+		}
 		let mut updated_scheduled_requests = vec![];
 
 		// backwards compatible handling for DelegatorStatus::Leaving
