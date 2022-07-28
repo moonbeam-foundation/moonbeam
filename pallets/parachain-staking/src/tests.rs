@@ -4182,12 +4182,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			];
 			expected.append(&mut new);
 			assert_eq_events!(expected.clone());
-			// 1 + 15 + 16 = 32
 			assert_eq!(Balances::free_balance(&11), 32);
-			// ~ set block author as 1 for all blocks this round
-			// set_author(3, 1, 100);
-			// set_author(4, 1, 100);
-			// set_author(5, 1, 100);
 			// 1. ensure delegators are paid for 2 rounds after they leave
 			assert_noop!(
 				ParachainStaking::schedule_leave_delegators(Origin::signed(66)),
@@ -4379,8 +4374,6 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				Origin::root(),
 				Percent::from_percent(50)
 			));
-			// 6 won't be paid for this round because they left already
-			// set_author(6, 1, 100);
 			roll_to(35);
 			// keep paying 6
 			let mut new3 = vec![
@@ -5235,8 +5228,6 @@ fn payout_distribution_to_solo_collators() {
 				},
 			];
 			assert_eq_events!(expected.clone());
-			// ~ set block author as 1 for all blocks this round
-			// set_author(2, 1, 100);
 			roll_to(14);
 			set_author(2);
 			roll_to(16);
@@ -5413,11 +5404,6 @@ fn payout_distribution_to_solo_collators() {
 			set_author(4);
 			roll_to(28);
 			set_author(5);
-			// set_author(6, 1, 20);
-			// set_author(6, 2, 20);
-			// set_author(6, 3, 20);
-			// set_author(6, 4, 20);
-			// set_author(6, 5, 20);
 			roll_to(39);
 			// pay 20% issuance for all collators
 			let mut new2 = vec![
@@ -5968,8 +5954,6 @@ fn payouts_follow_delegation_changes() {
 				},
 			];
 			assert_eq_events!(expected.clone());
-			// ~ set block author as 1 for all blocks this round
-			// set_author(2, 1, 100);
 			roll_to(16);
 			// distribute total issuance to collator 1 and its delegators 6, 7, 19
 			let mut new = vec![
@@ -6070,11 +6054,6 @@ fn payouts_follow_delegation_changes() {
 			];
 			expected.append(&mut new);
 			assert_eq_events!(expected.clone());
-			// ~ set block author as 1 for all blocks this round
-			// set_author(3, 1, 100);
-			// set_author(4, 1, 100);
-			// set_author(5, 1, 100);
-			// set_author(6, 1, 100);
 			// 1. ensure delegators are paid for 2 rounds after they leave
 			assert_noop!(
 				ParachainStaking::schedule_leave_delegators(Origin::signed(66)),
@@ -6204,8 +6183,6 @@ fn payouts_follow_delegation_changes() {
 			];
 			expected.append(&mut new2);
 			assert_eq_events!(expected.clone());
-			// 6 won't be paid for this round because they left already
-			// set_author(7, 1, 100);
 			roll_to(35);
 			// keep paying 6
 			let mut new3 = vec![
@@ -6881,12 +6858,6 @@ fn no_rewards_paid_until_after_reward_payment_delay() {
 			roll_one_block();
 			set_author(4);
 			roll_to_round_begin(2);
-			// payouts for round 1
-			// set_author(1, 1, 1);
-			// set_author(1, 2, 1);
-			// set_author(1, 3, 1);
-			// set_author(1, 4, 1);
-			// set_author(1, 4, 1);
 			let mut expected = vec![
 				Event::CollatorChosen {
 					round: 2,

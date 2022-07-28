@@ -731,6 +731,7 @@ impl pallet_parachain_staking::Config for Runtime {
 	type MinDelegation = ConstU128<{ 5 * currency::MOVR * currency::SUPPLY_FACTOR }>;
 	/// Minimum stake required to be reserved to be a delegator
 	type MinDelegatorStk = ConstU128<{ 5 * currency::MOVR * currency::SUPPLY_FACTOR }>;
+	type BlockAuthor = AuthorInherent;
 	type OnCollatorPayout = OnCollatorPayout;
 	type OnNewRound = OnNewRound;
 	type WeightInfo = pallet_parachain_staking::weights::SubstrateWeight<Runtime>;
