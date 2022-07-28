@@ -75,7 +75,7 @@ describeSmokeSuite(`Verify balances consistency`, { wssUrl, relayWssUrl }, (cont
       candidateInfo,
       delegatorState,
       identities,
-      subItentities,
+      subIdentities,
       democracyDeposits,
       democracyVotes,
       preimages,
@@ -195,19 +195,18 @@ describeSmokeSuite(`Verify balances consistency`, { wssUrl, relayWssUrl }, (cont
         accountId: `0x${identity[0].toHex().slice(-40)}`,
         reserved: {
           identity: identity[1].unwrap().deposit.toBigInt(),
-          judgements: identity[1].unwrap().judgements.map((judgement) => {
-              return judgement[1].isFeePaid ? judgement[1].asFeePaid.toBigInt() : 0n;
-            })
-            .reduce((prev, curr) => {
-              return prev ? prev + curr : curr;
-            }, undefined)
+          requestJudgements: identity[1]
+            .unwrap()
+            .judgements.reduce(
+              (acc, value) => acc + ((value[1].isFeePaid && value[1].asFeePaid.toBigInt()) || 0n),
+              0n
+            ),
         },
       })),
-      subItentities.map((subIdentity) => ({
+      subIdentities.map((subIdentity) => ({
         accountId: `0x${subIdentity[0].toHex().slice(-40)}`,
         reserved: {
           identity: subIdentity[1][0].toBigInt(),
-          // TODO: judgements here too?
         },
       })),
       Object.values(
