@@ -409,6 +409,13 @@ macro_rules! assert_event_not_emitted {
 	};
 }
 
+// Old `set_author` function for manually setting points
+#[allow(dead_code)]
+pub(crate) fn set_points(round: u32, acc: u64, pts: u32) {
+	<Points<Test>>::mutate(round, |p| *p += pts);
+	<AwardedPts<Test>>::mutate(round, acc, |p| *p += pts);
+}
+
 // Set the block author until called again
 pub(crate) fn set_author(acc: u64) {
 	block_author::BlockAuthor::<Test>::put(acc);

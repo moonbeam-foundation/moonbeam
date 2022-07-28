@@ -4077,6 +4077,10 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			roll_to(16);
 			// distribute total issuance to collator 1 and its delegators 6, 7, 19
 			let mut new = vec![
+				Event::ReservedForParachainBond {
+					account: 11,
+					value: 15,
+				},
 				Event::CollatorChosen {
 					round: 3,
 					collator_account: 1,
@@ -4108,9 +4112,25 @@ fn parachain_bond_inflation_reserve_matches_config() {
 					selected_collators_number: 5,
 					total_balance: 140,
 				},
+				Event::Rewarded {
+					account: 1,
+					rewards: 20,
+				},
+				Event::Rewarded {
+					account: 6,
+					rewards: 5,
+				},
+				Event::Rewarded {
+					account: 7,
+					rewards: 5,
+				},
+				Event::Rewarded {
+					account: 10,
+					rewards: 5,
+				},
 				Event::ReservedForParachainBond {
 					account: 11,
-					value: 15,
+					value: 16,
 				},
 				Event::CollatorChosen {
 					round: 4,
@@ -4145,7 +4165,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				},
 				Event::Rewarded {
 					account: 1,
-					rewards: 20,
+					rewards: 21,
 				},
 				Event::Rewarded {
 					account: 6,
@@ -4162,7 +4182,8 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			];
 			expected.append(&mut new);
 			assert_eq_events!(expected.clone());
-			assert_eq!(Balances::free_balance(&11), 16);
+			// 1 + 15 + 16 = 32
+			assert_eq!(Balances::free_balance(&11), 32);
 			// ~ set block author as 1 for all blocks this round
 			// set_author(3, 1, 100);
 			// set_author(4, 1, 100);
@@ -4228,23 +4249,23 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				},
 				Event::Rewarded {
 					account: 1,
-					rewards: 21,
+					rewards: 22,
 				},
 				Event::Rewarded {
 					account: 6,
-					rewards: 5,
+					rewards: 6,
 				},
 				Event::Rewarded {
 					account: 7,
-					rewards: 5,
+					rewards: 6,
 				},
 				Event::Rewarded {
 					account: 10,
-					rewards: 5,
+					rewards: 6,
 				},
 				Event::ReservedForParachainBond {
 					account: 11,
-					value: 16,
+					value: 17,
 				},
 				Event::CollatorChosen {
 					round: 6,
@@ -4279,7 +4300,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				},
 				Event::Rewarded {
 					account: 1,
-					rewards: 22,
+					rewards: 24,
 				},
 				Event::Rewarded {
 					account: 6,
@@ -4305,7 +4326,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				},
 				Event::ReservedForParachainBond {
 					account: 11,
-					value: 17,
+					value: 18,
 				},
 				Event::CollatorChosen {
 					round: 7,
@@ -4353,7 +4374,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			];
 			expected.append(&mut new2);
 			assert_eq_events!(expected.clone());
-			assert_eq!(Balances::free_balance(&11), 65);
+			assert_eq!(Balances::free_balance(&11), 83);
 			assert_ok!(ParachainStaking::set_parachain_bond_reserve_percent(
 				Origin::root(),
 				Percent::from_percent(50)
@@ -4369,7 +4390,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				},
 				Event::ReservedForParachainBond {
 					account: 11,
-					value: 30,
+					value: 32,
 				},
 				Event::CollatorChosen {
 					round: 8,
@@ -4404,7 +4425,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				},
 				Event::Rewarded {
 					account: 1,
-					rewards: 20,
+					rewards: 21,
 				},
 				Event::Rewarded {
 					account: 7,
@@ -4417,14 +4438,14 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			];
 			expected.append(&mut new3);
 			assert_eq_events!(expected.clone());
-			assert_eq!(Balances::free_balance(&11), 95);
+			assert_eq!(Balances::free_balance(&11), 115);
 			//set_author(7, 1, 100);
 			roll_to(40);
 			// no more paying 6
 			let mut new4 = vec![
 				Event::ReservedForParachainBond {
 					account: 11,
-					value: 31,
+					value: 33,
 				},
 				Event::CollatorChosen {
 					round: 9,
@@ -4459,7 +4480,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				},
 				Event::Rewarded {
 					account: 1,
-					rewards: 22,
+					rewards: 23,
 				},
 				Event::Rewarded {
 					account: 7,
@@ -4472,7 +4493,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			];
 			expected.append(&mut new4);
 			assert_eq_events!(expected.clone());
-			assert_eq!(Balances::free_balance(&11), 126);
+			assert_eq!(Balances::free_balance(&11), 148);
 			//set_author(8, 1, 100);
 			assert_ok!(ParachainStaking::delegate(Origin::signed(8), 1, 10, 10, 10));
 			roll_to(45);
@@ -4486,7 +4507,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				},
 				Event::ReservedForParachainBond {
 					account: 11,
-					value: 33,
+					value: 35,
 				},
 				Event::CollatorChosen {
 					round: 10,
@@ -4521,7 +4542,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				},
 				Event::Rewarded {
 					account: 1,
-					rewards: 23,
+					rewards: 24,
 				},
 				Event::Rewarded {
 					account: 7,
@@ -4534,7 +4555,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			];
 			expected.append(&mut new5);
 			assert_eq_events!(expected.clone());
-			assert_eq!(Balances::free_balance(&11), 159);
+			assert_eq!(Balances::free_balance(&11), 183);
 			//set_author(9, 1, 100);
 			//set_author(10, 1, 100);
 			roll_to(50);
@@ -4542,7 +4563,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			let mut new6 = vec![
 				Event::ReservedForParachainBond {
 					account: 11,
-					value: 35,
+					value: 36,
 				},
 				Event::CollatorChosen {
 					round: 11,
@@ -4577,7 +4598,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				},
 				Event::Rewarded {
 					account: 1,
-					rewards: 24,
+					rewards: 26,
 				},
 				Event::Rewarded {
 					account: 7,
@@ -4590,13 +4611,13 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			];
 			expected.append(&mut new6);
 			assert_eq_events!(expected.clone());
-			assert_eq!(Balances::free_balance(&11), 194);
+			assert_eq!(Balances::free_balance(&11), 219);
 			roll_to(55);
 			// new delegation is rewarded, 2 rounds after joining (`RewardPaymentDelay` is 2)
 			let mut new7 = vec![
 				Event::ReservedForParachainBond {
 					account: 11,
-					value: 36,
+					value: 38,
 				},
 				Event::CollatorChosen {
 					round: 12,
@@ -4631,24 +4652,24 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				},
 				Event::Rewarded {
 					account: 1,
-					rewards: 24,
+					rewards: 25,
 				},
 				Event::Rewarded {
 					account: 7,
-					rewards: 4,
+					rewards: 5,
 				},
 				Event::Rewarded {
 					account: 10,
-					rewards: 4,
+					rewards: 5,
 				},
 				Event::Rewarded {
 					account: 8,
-					rewards: 4,
+					rewards: 5,
 				},
 			];
 			expected.append(&mut new7);
 			assert_eq_events!(expected);
-			assert_eq!(Balances::free_balance(&11), 230);
+			assert_eq!(Balances::free_balance(&11), 257);
 		});
 }
 
@@ -4759,6 +4780,10 @@ fn paid_collator_commission_matches_config() {
 					selected_collators_number: 2,
 					total_balance: 80,
 				},
+				Event::Rewarded {
+					account: 4,
+					rewards: 6,
+				},
 				Event::CollatorChosen {
 					round: 5,
 					collator_account: 1,
@@ -4777,15 +4802,15 @@ fn paid_collator_commission_matches_config() {
 				},
 				Event::Rewarded {
 					account: 4,
-					rewards: 14,
+					rewards: 18,
 				},
 				Event::Rewarded {
 					account: 5,
-					rewards: 5,
+					rewards: 6,
 				},
 				Event::Rewarded {
 					account: 6,
-					rewards: 5,
+					rewards: 6,
 				},
 			];
 			expected.append(&mut new2);
@@ -5212,6 +5237,8 @@ fn payout_distribution_to_solo_collators() {
 			assert_eq_events!(expected.clone());
 			// ~ set block author as 1 for all blocks this round
 			// set_author(2, 1, 100);
+			roll_to(14);
+			set_author(2);
 			roll_to(16);
 			// pay total issuance to 1
 			let mut new = vec![
@@ -5246,6 +5273,10 @@ fn payout_distribution_to_solo_collators() {
 					selected_collators_number: 5,
 					total_balance: 400,
 				},
+				Event::Rewarded {
+					account: 1,
+					rewards: 76,
+				},
 				Event::CollatorChosen {
 					round: 4,
 					collator_account: 1,
@@ -5279,14 +5310,11 @@ fn payout_distribution_to_solo_collators() {
 				},
 				Event::Rewarded {
 					account: 1,
-					rewards: 305,
+					rewards: 309,
 				},
 			];
 			expected.append(&mut new);
 			assert_eq_events!(expected.clone());
-			roll_to(14);
-			set_author(2);
-			roll_to(16);
 			set_author(1);
 			// ~ set block author as 2 for 2 blocks this round
 			//set_author(4, 2, 40);
@@ -5324,6 +5352,14 @@ fn payout_distribution_to_solo_collators() {
 					selected_collators_number: 5,
 					total_balance: 400,
 				},
+				Event::Rewarded {
+					account: 1,
+					rewards: 259,
+				},
+				Event::Rewarded {
+					account: 2,
+					rewards: 65,
+				},
 				Event::CollatorChosen {
 					round: 6,
 					collator_account: 1,
@@ -5357,11 +5393,11 @@ fn payout_distribution_to_solo_collators() {
 				},
 				Event::Rewarded {
 					account: 1,
-					rewards: 192,
+					rewards: 272,
 				},
 				Event::Rewarded {
 					account: 2,
-					rewards: 128,
+					rewards: 68,
 				},
 			];
 			expected.append(&mut new1);
@@ -5416,6 +5452,10 @@ fn payout_distribution_to_solo_collators() {
 					selected_collators_number: 5,
 					total_balance: 400,
 				},
+				Event::Rewarded {
+					account: 1,
+					rewards: 357,
+				},
 				Event::CollatorChosen {
 					round: 8,
 					collator_account: 1,
@@ -5449,23 +5489,19 @@ fn payout_distribution_to_solo_collators() {
 				},
 				Event::Rewarded {
 					account: 5,
-					rewards: 67,
+					rewards: 150,
 				},
 				Event::Rewarded {
 					account: 3,
-					rewards: 67,
+					rewards: 75,
 				},
 				Event::Rewarded {
 					account: 4,
-					rewards: 67,
+					rewards: 75,
 				},
 				Event::Rewarded {
 					account: 1,
-					rewards: 67,
-				},
-				Event::Rewarded {
-					account: 2,
-					rewards: 67,
+					rewards: 75,
 				},
 			];
 			expected.append(&mut new2);
@@ -5968,6 +6004,22 @@ fn payouts_follow_delegation_changes() {
 					selected_collators_number: 5,
 					total_balance: 140,
 				},
+				Event::Rewarded {
+					account: 1,
+					rewards: 6,
+				},
+				Event::Rewarded {
+					account: 6,
+					rewards: 2,
+				},
+				Event::Rewarded {
+					account: 7,
+					rewards: 2,
+				},
+				Event::Rewarded {
+					account: 10,
+					rewards: 2,
+				},
 				Event::CollatorChosen {
 					round: 4,
 					collator_account: 1,
@@ -6078,7 +6130,7 @@ fn payouts_follow_delegation_changes() {
 				},
 				Event::Rewarded {
 					account: 1,
-					rewards: 27,
+					rewards: 28,
 				},
 				Event::Rewarded {
 					account: 6,
@@ -6233,7 +6285,7 @@ fn payouts_follow_delegation_changes() {
 				},
 				Event::Rewarded {
 					account: 1,
-					rewards: 31,
+					rewards: 32,
 				},
 				Event::Rewarded {
 					account: 7,
@@ -6340,7 +6392,7 @@ fn payouts_follow_delegation_changes() {
 				},
 				Event::Rewarded {
 					account: 1,
-					rewards: 39,
+					rewards: 40,
 				},
 				Event::Rewarded {
 					account: 7,
@@ -6390,7 +6442,7 @@ fn payouts_follow_delegation_changes() {
 				},
 				Event::Rewarded {
 					account: 1,
-					rewards: 41,
+					rewards: 42,
 				},
 				Event::Rewarded {
 					account: 7,
@@ -6935,6 +6987,7 @@ fn no_rewards_paid_until_after_reward_payment_delay() {
 // #[test]
 // fn deferred_payment_storage_items_are_cleaned_up() {
 // 	use crate::*;
+//  use crate::mock::set_points;
 
 // 	// this test sets up two collators, gives them points in round one, and focuses on the
 // 	// storage over the next several blocks to show that it is properly cleaned up
@@ -6945,17 +6998,13 @@ fn no_rewards_paid_until_after_reward_payment_delay() {
 // 		.build()
 // 		.execute_with(|| {
 // 			let mut round: u32 = 1;
-// 			set_author(1);
-// 			roll_to_round_begin(round.into());
-// 			// set_author(round, 1, 1);
-// 			// set_author(round, 2, 1);
+// 			set_points(round, 1, 1);
+// 			set_points(round, 2, 1);
 
 // 			// reflects genesis?
 // 			assert!(<AtStake<Test>>::contains_key(round, 1));
 // 			assert!(<AtStake<Test>>::contains_key(round, 2));
 
-// 			roll_to_round_end(round.into());
-// 			set_author(2);
 // 			round = 2;
 // 			roll_to_round_begin(round.into());
 // 			let mut expected = vec![
@@ -7116,6 +7165,7 @@ fn no_rewards_paid_until_after_reward_payment_delay() {
 // #[test]
 // fn deferred_payment_steady_state_event_flow() {
 // 	use frame_support::traits::{Currency, ExistenceRequirement, WithdrawReasons};
+//  use crate::mock::set_points;
 
 // 	// this test "flows" through a number of rounds, asserting that certain things do/don't happen
 // 	// once the staking pallet is in a "steady state" (specifically, once we are past the first few
@@ -7155,10 +7205,10 @@ fn no_rewards_paid_until_after_reward_payment_delay() {
 // 		.execute_with(|| {
 // 			// convenience to set the round points consistently
 // 			let set_round_points = |round: u64| {
-// 				set_author(round as u32, 1, 1);
-// 				set_author(round as u32, 2, 1);
-// 				set_author(round as u32, 3, 1);
-// 				set_author(round as u32, 4, 1);
+// 				set_points(round as u32, 1, 1);
+// 				set_points(round as u32, 2, 1);
+// 				set_points(round as u32, 3, 1);
+// 				set_points(round as u32, 4, 1);
 // 			};
 
 // 			// grab initial issuance -- we will reset it before round issuance is calculated so that
