@@ -450,7 +450,7 @@ pub mod pallet {
 			weight
 		}
 		fn on_finalize(_n: T::BlockNumber) {
-			Self::note_author(T::BlockAuthor::get());
+			Self::award_points_to_block_author();
 		}
 	}
 
@@ -1855,7 +1855,8 @@ pub mod pallet {
 	/// Add reward points to block authors:
 	/// * 20 points to the block producer for producing a block in the chain
 	impl<T: Config> Pallet<T> {
-		fn note_author(author: T::AccountId) {
+		fn award_points_to_block_author() {
+			let author = T::BlockAuthor::get();
 			let now = <Round<T>>::get().current;
 			let score_plus_20 = <AwardedPts<T>>::get(now, &author).saturating_add(20);
 			<AwardedPts<T>>::insert(now, author, score_plus_20);
