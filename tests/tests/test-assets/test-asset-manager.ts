@@ -25,7 +25,7 @@ describeDevMoonbeam("XCM - asset manager - foreign asset", (context) => {
       relayAssetMetadata
     );
     expect(events[1].event.method.toString()).to.eq("UnitsPerSecondChanged");
-    expect(events[4].event.method.toString()).to.eq("ExtrinsicSuccess");
+    expect(events[5].event.method.toString()).to.eq("ExtrinsicSuccess");
     expect(registeredAsset.owner.toString()).to.eq(palletId);
 
     await verifyLatestBlockFees(context);
@@ -78,7 +78,7 @@ describeDevMoonbeam("XCM - asset manager - Change existing asset", (context) => 
     );
     assetId = registeredAssetId;
     expect(events[1].event.method.toString()).to.eq("UnitsPerSecondChanged");
-    expect(events[4].event.method.toString()).to.eq("ExtrinsicSuccess");
+    expect(events[5].event.method.toString()).to.eq("ExtrinsicSuccess");
     expect(registeredAsset.owner.toString()).to.eq(palletId);
 
     await verifyLatestBlockFees(context);
@@ -136,7 +136,7 @@ describeDevMoonbeam("XCM - asset manager - Remove asset from supported", (contex
     );
     assetId = registeredAssetId;
     expect(events[1].event.method.toString()).to.eq("UnitsPerSecondChanged");
-    expect(events[4].event.method.toString()).to.eq("ExtrinsicSuccess");
+    expect(events[5].event.method.toString()).to.eq("ExtrinsicSuccess");
     expect(registeredAsset.owner.toString()).to.eq(palletId);
 
     await verifyLatestBlockFees(context);
@@ -182,7 +182,7 @@ describeDevMoonbeam("XCM - asset manager - destroy foreign asset", (context) => 
     );
     assetId = registeredAssetId;
     expect(events[1].event.method.toString()).to.eq("UnitsPerSecondChanged");
-    expect(events[4].event.method.toString()).to.eq("ExtrinsicSuccess");
+    expect(events[5].event.method.toString()).to.eq("ExtrinsicSuccess");
     expect(registeredAsset.owner.toString()).to.eq(palletId);
 
     await verifyLatestBlockFees(context);

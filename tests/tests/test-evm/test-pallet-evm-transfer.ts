@@ -26,7 +26,7 @@ describeDevMoonbeam("Pallet EVM - call", (context) => {
         []
       )
     );
-    expect(events[5].event.method).to.eq("ExtrinsicFailed");
+    expect(events[6].event.method).to.eq("ExtrinsicFailed");
     expect(await context.web3.eth.getBalance(baltathar.address)).to.equal(
       DEFAULT_GENESIS_BALANCE.toString()
     );
