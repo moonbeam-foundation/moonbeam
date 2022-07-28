@@ -92,12 +92,6 @@ pub mod pallet {
 	};
 	use sp_std::{collections::btree_map::BTreeMap, prelude::*};
 
-	/// Return current block author without passing any input
-	/// TODO: bring in from Nimbus once changes pulled in
-	pub trait GetAuthor<AccountId> {
-		fn get_author() -> AccountId;
-	}
-
 	/// Pallet for parachain staking
 	#[pallet::pallet]
 	#[pallet::without_storage_info]
@@ -177,7 +171,7 @@ pub mod pallet {
 		#[pallet::constant]
 		type MinDelegatorStk: Get<BalanceOf<Self>>;
 		/// Get the current block author
-		type GetAuthor: GetAuthor<Self::AccountId>;
+		type BlockAuthor: Get<Self::AccountId>;
 		/// Handler to notify the runtime when a collator is paid.
 		/// If you don't need it, you can specify the type `()`.
 		type OnCollatorPayout: OnCollatorPayout<Self::AccountId, BalanceOf<Self>>;
@@ -456,7 +450,7 @@ pub mod pallet {
 			weight
 		}
 		fn on_finalize(_n: T::BlockNumber) {
-			Self::note_author(T::GetAuthor::get_author());
+			Self::note_author(T::BlockAuthor::get());
 		}
 	}
 

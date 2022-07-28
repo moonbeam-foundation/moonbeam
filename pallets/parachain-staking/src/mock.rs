@@ -54,6 +54,7 @@ construct_runtime!(
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		ParachainStaking: pallet_parachain_staking::{Pallet, Call, Storage, Config<T>, Event<T>},
+		BlockAuthor: block_author::{Pallet, Storage},
 	}
 );
 
@@ -104,6 +105,7 @@ impl pallet_balances::Config for Test {
 	type AccountStore = System;
 	type WeightInfo = ();
 }
+impl block_author::Config for Test {}
 parameter_types! {
 	pub const MinBlocksPerRound: u32 = 3;
 	pub const DefaultBlocksPerRound: u32 = 5;
@@ -145,6 +147,7 @@ impl Config for Test {
 	type MinCandidateStk = MinCollatorStk;
 	type MinDelegatorStk = MinDelegatorStk;
 	type MinDelegation = MinDelegation;
+	type BlockAuthor = BlockAuthor;
 	type OnCollatorPayout = ();
 	type OnNewRound = ();
 	type WeightInfo = ();
@@ -406,10 +409,9 @@ macro_rules! assert_event_not_emitted {
 	};
 }
 
-// Same storage changes as EventHandler::note_author impl
-pub(crate) fn set_author(round: u32, acc: u64, pts: u32) {
-	<Points<Test>>::mutate(round, |p| *p += pts);
-	<AwardedPts<Test>>::mutate(round, acc, |p| *p += pts);
+// Set the block author until called again
+pub(crate) fn set_author(acc: u64) {
+	block_author::BlockAuthor::<Test>::put(acc);
 }
 
 /// fn to query the lock amount
@@ -547,6 +549,30 @@ fn geneses() {
 				);
 			}
 		});
+}
+
+#[frame_support::pallet]
+pub mod block_author {
+	use super::*;
+	use frame_support::pallet_prelude::*;
+	use frame_support::traits::Get;
+
+	#[pallet::config]
+	pub trait Config: frame_system::Config {}
+
+	#[pallet::pallet]
+	#[pallet::generate_store(pub(super) trait Store)]
+	pub struct Pallet<T>(_);
+
+	#[pallet::storage]
+	#[pallet::getter(fn block_author)]
+	pub(super) type BlockAuthor<T> = StorageValue<_, AccountId, ValueQuery>;
+
+	impl<T: Config> Get<AccountId> for Pallet<T> {
+		fn get() -> AccountId {
+			<BlockAuthor<T>>::get()
+		}
+	}
 }
 
 #[test]
