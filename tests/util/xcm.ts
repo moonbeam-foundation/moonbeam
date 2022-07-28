@@ -1,11 +1,14 @@
-import { u8aToHex } from "@polkadot/util";
+import { u8aToHex, BN } from "@polkadot/util";
 import { xxhashAsU8a } from "@polkadot/util-crypto";
+import { generateKeyringPair } from "./accounts";
 
 import { DevTestContext } from "./setup-dev-tests";
 import {
   CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot,
   XcmVersionedXcm,
 } from "@polkadot/types/lookup";
+
+import { AssetMetadata } from "./assets";
 
 // Creates and returns the tx that overrides the paraHRMP existence
 // This needs to be inserted at every block in which you are willing to test
@@ -65,4 +68,82 @@ export function mockHrmpChannelExistanceTx(
   return context.polkadotApi.tx.system.setStorage([
     [u8aToHex(overallKey), u8aToHex(stateToInsert.toU8a())],
   ]);
+}
+
+export async function registerForeignAsset(
+  context: DevTestContext,
+  asset: any,
+  metadata: AssetMetadata,
+  unitsPerSecond?: number,
+  numAssetsWeightHint?: number
+) {
+  unitsPerSecond = unitsPerSecond != null ? unitsPerSecond : 0;
+  const {
+    result: { events: eventsRegister },
+  } = await context.createBlock(
+    context.polkadotApi.tx.sudo.sudo(
+      context.polkadotApi.tx.assetManager.registerForeignAsset(asset, metadata, new BN(1), true)
+    )
+  );
+  // Look for assetId in events
+  const registeredAssetId = eventsRegister
+    .find(({ event: { section } }) => section.toString() === "assetManager")
+    .event.data[0].toHex()
+    .replace(/,/g, "");
+
+  // setAssetUnitsPerSecond
+  const {
+    result: { events },
+  } = await context.createBlock(
+    context.polkadotApi.tx.sudo.sudo(
+      context.polkadotApi.tx.assetManager.setAssetUnitsPerSecond(
+        asset,
+        unitsPerSecond,
+        numAssetsWeightHint
+      )
+    )
+  );
+  // check asset in storage
+  const registeredAsset = (
+    (await context.polkadotApi.query.assets.asset(registeredAssetId)) as any
+  ).unwrap();
+  return {
+    registeredAssetId,
+    events,
+    registeredAsset,
+  };
+}
+
+export function descendOriginFromAddress(context: DevTestContext, address?: string) {
+  const originAddress = address != null ? address : "0x0101010101010101010101010101010101010101";
+  const derivedMultiLocation = context.polkadotApi.createType(
+    "MultiLocation",
+    JSON.parse(
+      `{\
+              "parents": 1,\
+              "interior": {\
+                "X2": [\
+                  { "Parachain": 1 },\
+                  { "AccountKey20": \
+                    {\
+                      "network": "Any",\
+                      "key": "${originAddress}"\
+                    } \
+                  }\
+                ]\
+              }\
+            }`
+    )
+  );
+
+  const toHash = new Uint8Array([
+    ...new Uint8Array([32]),
+    ...new TextEncoder().encode("multiloc"),
+    ...derivedMultiLocation.toU8a(),
+  ]);
+
+  return {
+    originAddress,
+    descendOriginAddress: u8aToHex(context.polkadotApi.registry.hash(toHash).slice(0, 20)),
+  };
 }

@@ -6073,7 +6073,7 @@ dependencies = [
 [[package]]
 name = "nimbus-consensus"
 version = "0.9.0"
-source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.23#d553864f7f970de6b5a291b90910e89e2d2b7524"
+source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.23#51eaa2cdc905c8f2cbf6d468c82e194d91e13ffc"
 dependencies = [
  "async-trait",
  "cumulus-client-consensus-common",
@@ -6104,7 +6104,7 @@ dependencies = [
 [[package]]
 name = "nimbus-primitives"
 version = "0.9.0"
-source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.23#d553864f7f970de6b5a291b90910e89e2d2b7524"
+source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.23#51eaa2cdc905c8f2cbf6d468c82e194d91e13ffc"
 dependencies = [
  "async-trait",
  "frame-benchmarking",
@@ -6508,7 +6508,7 @@ dependencies = [
 [[package]]
 name = "pallet-author-inherent"
 version = "0.9.0"
-source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.23#d553864f7f970de6b5a291b90910e89e2d2b7524"
+source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.23#51eaa2cdc905c8f2cbf6d468c82e194d91e13ffc"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6548,7 +6548,7 @@ dependencies = [
 [[package]]
 name = "pallet-author-slot-filter"
 version = "0.9.0"
-source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.23#d553864f7f970de6b5a291b90910e89e2d2b7524"
+source = "git+https://github.com/purestake/nimbus?branch=moonbeam-polkadot-v0.9.23#51eaa2cdc905c8f2cbf6d468c82e194d91e13ffc"
 dependencies = [
  "frame-benchmarking",
  "frame-support",

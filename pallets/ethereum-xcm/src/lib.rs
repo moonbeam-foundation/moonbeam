@@ -40,7 +40,7 @@ use frame_support::{
 	weights::{Pays, PostDispatchInfo, Weight},
 };
 use frame_system::pallet_prelude::OriginFor;
-use pallet_evm::{FeeCalculator, GasWeightMapping};
+use pallet_evm::GasWeightMapping;
 use sp_runtime::{traits::UniqueSaturatedInto, RuntimeDebug};
 use sp_std::{marker::PhantomData, prelude::*};
 
@@ -117,7 +117,8 @@ pub mod pallet {
 		/// Xcm Transact an Ethereum transaction.
 		#[pallet::weight(<T as pallet_evm::Config>::GasWeightMapping::gas_to_weight({
 			match xcm_transaction {
-				EthereumXcmTransaction::V1(v1_tx) =>  v1_tx.gas_limit.unique_saturated_into()
+				EthereumXcmTransaction::V1(v1_tx) =>  v1_tx.gas_limit.unique_saturated_into(),
+				EthereumXcmTransaction::V2(v2_tx) =>  v2_tx.gas_limit.unique_saturated_into()
 			}
 		}))]
 		pub fn transact(
@@ -126,11 +127,10 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let source = T::XcmEthereumOrigin::ensure_origin(origin)?;
 
-			let (base_fee, base_fee_weight) = T::FeeCalculator::min_gas_price();
 			let (who, account_weight) = pallet_evm::Pallet::<T>::account_basic(&source);
 
 			let transaction: Option<Transaction> =
-				xcm_transaction.into_transaction_v2(base_fee, who.nonce);
+				xcm_transaction.into_transaction_v2(U256::zero(), who.nonce);
 			if let Some(transaction) = transaction {
 				let transaction_data: TransactionData = (&transaction).into();
 
@@ -142,18 +142,18 @@ pub mod pallet {
 								T::ReservedXcmpWeight::get(),
 							),
 						),
-						base_fee,
+						base_fee: U256::zero(),
 						chain_id: 0u64,
 						is_transactional: true,
 					},
 					transaction_data.into(),
 				)
+				// We only validate the gas limit against the evm transaction cost.
+				// No need to validate fee payment, as it is handled by the xcm executor.
 				.validate_in_block_for(&who)
-				.and_then(|v| v.with_base_fee())
-				.and_then(|v| v.with_balance_for(&who))
 				.map_err(|_| sp_runtime::DispatchErrorWithPostInfo {
 					post_info: PostDispatchInfo {
-						actual_weight: Some(base_fee_weight.saturating_add(account_weight)),
+						actual_weight: Some(account_weight),
 						pays_fee: Pays::Yes,
 					},
 					error: sp_runtime::DispatchError::Other(
@@ -165,7 +165,7 @@ pub mod pallet {
 			} else {
 				Err(sp_runtime::DispatchErrorWithPostInfo {
 					post_info: PostDispatchInfo {
-						actual_weight: Some(base_fee_weight.saturating_add(account_weight)),
+						actual_weight: Some(account_weight),
 						pays_fee: Pays::Yes,
 					},
 					error: sp_runtime::DispatchError::Other(
