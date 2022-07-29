@@ -34,7 +34,7 @@
 //! On the client side, the block author follows this process:
 //! * the client will generate a transcript from the previous block's output
 //! * the transcript is signed
-//! * this signature is made available to the runtime via an inherent
+//! * this output is inserted into the frame-system digests to be retrieved in `on_initialize` for verification
 //!
 //! The runtime then sets the the output for the current block to the signature as such:
 //! * the runtime constructs the same transcript as above from the previous block's output
