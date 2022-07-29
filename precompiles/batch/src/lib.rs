@@ -43,7 +43,7 @@ pub enum Action {
 pub const LOG_SUBCALL_SUCCEEDED: [u8; 32] = keccak256!("SubcallSucceeded(uint256)");
 pub const LOG_SUBCALL_FAILED: [u8; 32] = keccak256!("SubcallFailed(uint256)");
 pub const CALL_DATA_LIMIT: u32 = 2u32.pow(16);
-pub const ARRAY_LIMIT: u32 = 512;
+pub const ARRAY_LIMIT: u32 = 2u32.pow(9);
 
 type GetCallDataLimit = ConstU32<CALL_DATA_LIMIT>;
 type GetArrayLimit = ConstU32<ARRAY_LIMIT>;
