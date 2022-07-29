@@ -1,6 +1,6 @@
 {
   "name": "@moonbeam-network/api-augment",
-  "version": "0.1700.0",
+  "version": "0.1701.0",
   "private": true,
   "description": "Moonbeam types augment for @polkadot/api",
   "author": "PureStake",
@@ -29,7 +29,7 @@
     "generate:meta": "npm run generate:meta:moonbase && npm run generate:meta:moonriver && npm run generate:meta:moonbeam",
     "generate:meta:moonbase": "ts-node --skip-project node_modules/.bin/polkadot-types-from-chain --endpoint ./metadata-moonbase.json --package @moonbeam/api-augment/moonbeam/interfaces --output ./src/moonbase/interfaces",
     "generate:meta:moonriver": "ts-node --skip-project node_modules/.bin/polkadot-types-from-chain --endpoint ./metadata-moonriver.json --package @moonbeam/api-augment/moonbeam/interfaces --output ./src/moonriver/interfaces",
-    "generate:meta:moonbeam": "ts-node --skip-project node_modules/.bin/polkadot-types-from-chain --endpoint ./metadata-moonbeam.json --package @moonbeam/api-augment/moonbeam/interfaces --output ./src/moonbeam/interfaces",    
+    "generate:meta:moonbeam": "ts-node --skip-project node_modules/.bin/polkadot-types-from-chain --endpoint ./metadata-moonbeam.json --package @moonbeam/api-augment/moonbeam/interfaces --output ./src/moonbeam/interfaces",
     "prebuild": "rimraf build",
     "build": "tsc -b --verbose",
     "postbuild": "node ./scripts/postbuild.js",
