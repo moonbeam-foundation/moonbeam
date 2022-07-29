@@ -40,7 +40,7 @@
 //! * the runtime constructs the same transcript as above from the previous block's output
 //! * the block author's pubkey is used to verify the signature inherent against the transcript
 //!     * if invalid, the block import will fail
-//! * the output for the current block is set as the signature
+//! * the output for the current block is created from the signature
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
