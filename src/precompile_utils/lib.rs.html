@@ -109,6 +109,17 @@
 <span id="104">104</span>
 <span id="105">105</span>
 <span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -152,6 +163,7 @@
 };
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">data</span>;
+<span class="kw">use</span> <span class="ident">data</span>::{<span class="ident">Bytes</span>, <span class="ident">EvmDataWriter</span>};
 
 <span class="comment">// pub use data::{Address, Bytes, EvmData, EvmDataReader, EvmDataWriter};</span>
 <span class="comment">// pub use fp_evm::Precompile;</span>
@@ -168,11 +180,21 @@
 	}
 }
 
+<span class="doccomment">/// Generic error to build abi-encoded revert output.</span>
+<span class="doccomment">/// See: https://docs.soliditylang.org/en/latest/control-structures.html?highlight=revert#revert</span>
+<span class="attribute">#[<span class="ident">precompile_utils_macro::generate_function_selector</span>]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Error</span> {
+	<span class="ident">Generic</span> <span class="op">=</span> <span class="string">&quot;Error(string)&quot;</span>,
+}
+
 <span class="attribute">#[<span class="ident">must_use</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">revert</span>(<span class="ident">output</span>: <span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>) -&gt; <span class="ident">PrecompileFailure</span> {
 	<span class="ident">PrecompileFailure::Revert</span> {
 		<span class="ident">exit_status</span>: <span class="ident">ExitRevert::Reverted</span>,
-		<span class="ident">output</span>: <span class="ident">output</span>.<span class="ident">as_ref</span>().<span class="ident">to_owned</span>(),
+		<span class="ident">output</span>: <span class="ident">EvmDataWriter::new_with_selector</span>(<span class="ident">Error::Generic</span>)
+			.<span class="ident">write</span>::<span class="op">&lt;</span><span class="ident">Bytes</span><span class="op">&gt;</span>(<span class="ident">Bytes</span>(<span class="ident">output</span>.<span class="ident">as_ref</span>().<span class="ident">to_owned</span>()))
+			.<span class="ident">build</span>(),
 	}
 }
 

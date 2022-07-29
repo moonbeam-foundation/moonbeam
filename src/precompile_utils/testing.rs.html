@@ -382,6 +382,18 @@
 <span id="377">377</span>
 <span id="378">378</span>
 <span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -667,6 +679,18 @@
 		<span class="ident">res</span>
 	}
 
+	<span class="kw">fn</span> <span class="ident">decode_revert_message</span>(<span class="ident">encoded</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
+		<span class="kw">let</span> <span class="ident">encoded_len</span> <span class="op">=</span> <span class="ident">encoded</span>.<span class="ident">len</span>();
+		<span class="comment">// selector 4 + offset 32 + string length 32</span>
+		<span class="kw">if</span> <span class="ident">encoded_len</span> <span class="op">&gt;</span> <span class="number">68</span> {
+			<span class="kw">let</span> <span class="ident">message_len</span> <span class="op">=</span> <span class="ident">encoded</span>[<span class="number">36</span>..<span class="number">68</span>].<span class="ident">iter</span>().<span class="ident">sum</span>::<span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>();
+			<span class="kw">if</span> <span class="ident">encoded_len</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">68</span> <span class="op">+</span> <span class="ident">message_len</span> <span class="kw">as</span> <span class="ident">usize</span> {
+				<span class="kw">return</span> <span class="kw-2">&amp;</span><span class="ident">encoded</span>[<span class="number">68</span>..<span class="number">68</span> <span class="op">+</span> <span class="ident">message_len</span> <span class="kw">as</span> <span class="ident">usize</span>];
+			}
+		}
+		<span class="string">b&quot;decode_revert_message: error&quot;</span>
+	}
+
 	<span class="doccomment">/// Execute the precompile set and expect some precompile to have been executed, regardless of the</span>
 	<span class="doccomment">/// result.</span>
 	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">execute_some</span>(<span class="kw-2">mut</span> <span class="self">self</span>) {
@@ -702,7 +726,7 @@
 		<span class="macro">assert_matches!</span>(
 			<span class="ident">res</span>,
 			<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">PrecompileFailure::Revert</span> { <span class="ident">output</span>, ..}))
-				<span class="kw">if</span> <span class="ident">check</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>)
+				<span class="kw">if</span> <span class="ident">check</span>(<span class="ident"><span class="self">Self</span>::decode_revert_message</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>))
 		);
 		<span class="self">self</span>.<span class="ident">assert_optionals</span>();
 	}
