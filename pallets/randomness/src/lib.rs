@@ -36,7 +36,7 @@
 //! * the transcript is signed
 //! * this output is inserted into the frame-system digests to be retrieved in `on_initialize` for verification
 //!
-//! The runtime then sets the the output for the current block to the signature as such:
+//! The runtime then sets the output for the current block to the signature as such:
 //! * the runtime constructs the same transcript as above from the previous block's output
 //! * the block author's pubkey is used to verify the signature inherent against the transcript
 //!     * if invalid, it will panic in `on_initialize` so the block will be invalid
