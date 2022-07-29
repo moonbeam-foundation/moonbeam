@@ -41,6 +41,7 @@ use fp_evm::{
 };
 
 pub mod data;
+use data::{Bytes, EvmDataWriter};
 
 // pub use data::{Address, Bytes, EvmData, EvmDataReader, EvmDataWriter};
 // pub use fp_evm::Precompile;
@@ -57,11 +58,21 @@ pub fn error<T: Into<alloc::borrow::Cow<'static, str>>>(text: T) -> PrecompileFa
 	}
 }
 
+/// Generic error to build abi-encoded revert output.
+/// See: https://docs.soliditylang.org/en/latest/control-structures.html?highlight=revert#revert
+#[precompile_utils_macro::generate_function_selector]
+#[derive(Debug, PartialEq)]
+pub enum Error {
+	Generic = "Error(string)",
+}
+
 #[must_use]
 pub fn revert(output: impl AsRef<[u8]>) -> PrecompileFailure {
 	PrecompileFailure::Revert {
 		exit_status: ExitRevert::Reverted,
-		output: output.as_ref().to_owned(),
+		output: EvmDataWriter::new_with_selector(Error::Generic)
+			.write::<Bytes>(Bytes(output.as_ref().to_owned()))
+			.build(),
 	}
 }
 
