@@ -39,7 +39,7 @@
 //! The runtime then sets the the output for the current block to the signature as such:
 //! * the runtime constructs the same transcript as above from the previous block's output
 //! * the block author's pubkey is used to verify the signature inherent against the transcript
-//!     * if invalid, the block import will fail
+//!     * if invalid, it will panic in `on_initialize` so the block will be invalid
 //! * the output for the current block is created from the signature
 
 #![cfg_attr(not(feature = "std"), no_std)]
