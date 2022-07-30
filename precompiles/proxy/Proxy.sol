@@ -19,7 +19,7 @@ interface Proxy {
     }
 
     /// @dev Register a proxy account for the sender that is able to make calls on its behalf
-    /// @custom:selector ac69400b
+    /// @custom:selector 74a34dd3
     /// @param delegate The account that the caller would like to make a proxy
     /// @param proxyType The permissions allowed for this proxy account
     /// @param delay The announcement period required of the initial proxy, will generally be zero
@@ -30,7 +30,7 @@ interface Proxy {
     ) external;
 
     /// @dev Register a proxy account for the sender that is able to make calls on its behalf
-    /// @custom:selector 78a804c5
+    /// @custom:selector fef3f708
     /// @param delegate The account that the caller would like to remove as a proxy
     /// @param proxyType The permissions currently enabled for the removed proxy account
     /// @param delay The announcement period required of the initial proxy, will generally be zero
