@@ -738,7 +738,7 @@ fn claim_via_precompile() {
 		.execute_with(|| {
 			// set parachain inherent data
 			set_parachain_inherent_data();
-			run_to_block(1, NimbusId::from_slice(&ALICE_NIMBUS).unwrap());
+			run_to_block(2, NimbusId::from_slice(&ALICE_NIMBUS).unwrap());
 			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
