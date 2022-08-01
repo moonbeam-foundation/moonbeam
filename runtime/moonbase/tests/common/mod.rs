@@ -57,6 +57,7 @@ pub fn run_to_block(n: u32, author: Option<NimbusId>) {
 		// Finalize the previous block
 		Ethereum::on_finalize(System::block_number());
 		AuthorInherent::on_finalize(System::block_number());
+		ParachainStaking::on_finalize(System::block_number());
 
 		// Set the new block number and author
 		match author {
