@@ -289,12 +289,12 @@ fn round_immediately_jumps_if_current_duration_exceeds_new_blocks_per_round() {
 			}));
 			assert_ok!(ParachainStaking::set_blocks_per_round(Origin::root(), 5u32));
 			roll_to(18);
-			assert_event_emitted!(Event::NewRound {
+			assert_last_event!(MetaEvent::ParachainStaking(Event::NewRound {
 				starting_block: 18,
 				round: 3,
 				selected_collators_number: 1,
 				total_balance: 20
-			});
+			}));
 		});
 }
 
@@ -4033,8 +4033,6 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				Origin::root(),
 				11
 			));
-			// ~ set block author as 1 for all blocks this round
-			set_author(1);
 			roll_to(8);
 			// chooses top TotalSelectedCandidates (5), in order
 			let mut expected = vec![
@@ -4073,15 +4071,11 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			];
 			assert_eq_events!(expected.clone());
 			assert_eq!(Balances::free_balance(&11), 1);
-			roll_to(10);
-			set_author(1);
+			// ~ set block author as 1 for all blocks this round
+			set_author(2, 1, 100);
 			roll_to(16);
 			// distribute total issuance to collator 1 and its delegators 6, 7, 19
 			let mut new = vec![
-				Event::ReservedForParachainBond {
-					account: 11,
-					value: 15,
-				},
 				Event::CollatorChosen {
 					round: 3,
 					collator_account: 1,
@@ -4113,25 +4107,9 @@ fn parachain_bond_inflation_reserve_matches_config() {
 					selected_collators_number: 5,
 					total_balance: 140,
 				},
-				Event::Rewarded {
-					account: 1,
-					rewards: 20,
-				},
-				Event::Rewarded {
-					account: 6,
-					rewards: 5,
-				},
-				Event::Rewarded {
-					account: 7,
-					rewards: 5,
-				},
-				Event::Rewarded {
-					account: 10,
-					rewards: 5,
-				},
 				Event::ReservedForParachainBond {
 					account: 11,
-					value: 16,
+					value: 15,
 				},
 				Event::CollatorChosen {
 					round: 4,
@@ -4166,7 +4144,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				},
 				Event::Rewarded {
 					account: 1,
-					rewards: 21,
+					rewards: 20,
 				},
 				Event::Rewarded {
 					account: 6,
@@ -4183,7 +4161,11 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			];
 			expected.append(&mut new);
 			assert_eq_events!(expected.clone());
-			assert_eq!(Balances::free_balance(&11), 32);
+			assert_eq!(Balances::free_balance(&11), 16);
+			// ~ set block author as 1 for all blocks this round
+			set_author(3, 1, 100);
+			set_author(4, 1, 100);
+			set_author(5, 1, 100);
 			// 1. ensure delegators are paid for 2 rounds after they leave
 			assert_noop!(
 				ParachainStaking::schedule_leave_delegators(Origin::signed(66)),
@@ -4192,8 +4174,6 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(
 				6
 			)));
-			roll_to(24);
-			set_author(1);
 			// fast forward to block in which delegator 6 exit executes
 			roll_to(25);
 			assert_ok!(ParachainStaking::execute_leave_delegators(
@@ -4245,23 +4225,23 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				},
 				Event::Rewarded {
 					account: 1,
-					rewards: 22,
+					rewards: 21,
 				},
 				Event::Rewarded {
 					account: 6,
-					rewards: 6,
+					rewards: 5,
 				},
 				Event::Rewarded {
 					account: 7,
-					rewards: 6,
+					rewards: 5,
 				},
 				Event::Rewarded {
 					account: 10,
-					rewards: 6,
+					rewards: 5,
 				},
 				Event::ReservedForParachainBond {
 					account: 11,
-					value: 17,
+					value: 16,
 				},
 				Event::CollatorChosen {
 					round: 6,
@@ -4296,7 +4276,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				},
 				Event::Rewarded {
 					account: 1,
-					rewards: 24,
+					rewards: 22,
 				},
 				Event::Rewarded {
 					account: 6,
@@ -4322,7 +4302,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				},
 				Event::ReservedForParachainBond {
 					account: 11,
-					value: 18,
+					value: 17,
 				},
 				Event::CollatorChosen {
 					round: 7,
@@ -4370,11 +4350,13 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			];
 			expected.append(&mut new2);
 			assert_eq_events!(expected.clone());
-			assert_eq!(Balances::free_balance(&11), 83);
+			assert_eq!(Balances::free_balance(&11), 65);
 			assert_ok!(ParachainStaking::set_parachain_bond_reserve_percent(
 				Origin::root(),
 				Percent::from_percent(50)
 			));
+			// 6 won't be paid for this round because they left already
+			set_author(6, 1, 100);
 			roll_to(35);
 			// keep paying 6
 			let mut new3 = vec![
@@ -4384,7 +4366,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				},
 				Event::ReservedForParachainBond {
 					account: 11,
-					value: 32,
+					value: 30,
 				},
 				Event::CollatorChosen {
 					round: 8,
@@ -4419,7 +4401,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				},
 				Event::Rewarded {
 					account: 1,
-					rewards: 21,
+					rewards: 20,
 				},
 				Event::Rewarded {
 					account: 7,
@@ -4432,13 +4414,14 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			];
 			expected.append(&mut new3);
 			assert_eq_events!(expected.clone());
-			assert_eq!(Balances::free_balance(&11), 115);
+			assert_eq!(Balances::free_balance(&11), 95);
+			set_author(7, 1, 100);
 			roll_to(40);
 			// no more paying 6
 			let mut new4 = vec![
 				Event::ReservedForParachainBond {
 					account: 11,
-					value: 33,
+					value: 31,
 				},
 				Event::CollatorChosen {
 					round: 9,
@@ -4473,7 +4456,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				},
 				Event::Rewarded {
 					account: 1,
-					rewards: 23,
+					rewards: 22,
 				},
 				Event::Rewarded {
 					account: 7,
@@ -4486,7 +4469,8 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			];
 			expected.append(&mut new4);
 			assert_eq_events!(expected.clone());
-			assert_eq!(Balances::free_balance(&11), 148);
+			assert_eq!(Balances::free_balance(&11), 126);
+			set_author(8, 1, 100);
 			assert_ok!(ParachainStaking::delegate(Origin::signed(8), 1, 10, 10, 10));
 			roll_to(45);
 			// new delegation is not rewarded yet
@@ -4499,7 +4483,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				},
 				Event::ReservedForParachainBond {
 					account: 11,
-					value: 35,
+					value: 33,
 				},
 				Event::CollatorChosen {
 					round: 10,
@@ -4534,7 +4518,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				},
 				Event::Rewarded {
 					account: 1,
-					rewards: 24,
+					rewards: 23,
 				},
 				Event::Rewarded {
 					account: 7,
@@ -4547,13 +4531,15 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			];
 			expected.append(&mut new5);
 			assert_eq_events!(expected.clone());
-			assert_eq!(Balances::free_balance(&11), 183);
+			assert_eq!(Balances::free_balance(&11), 159);
+			set_author(9, 1, 100);
+			set_author(10, 1, 100);
 			roll_to(50);
 			// new delegation is still not rewarded yet
 			let mut new6 = vec![
 				Event::ReservedForParachainBond {
 					account: 11,
-					value: 36,
+					value: 35,
 				},
 				Event::CollatorChosen {
 					round: 11,
@@ -4588,7 +4574,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				},
 				Event::Rewarded {
 					account: 1,
-					rewards: 26,
+					rewards: 24,
 				},
 				Event::Rewarded {
 					account: 7,
@@ -4601,13 +4587,13 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			];
 			expected.append(&mut new6);
 			assert_eq_events!(expected.clone());
-			assert_eq!(Balances::free_balance(&11), 219);
+			assert_eq!(Balances::free_balance(&11), 194);
 			roll_to(55);
 			// new delegation is rewarded, 2 rounds after joining (`RewardPaymentDelay` is 2)
 			let mut new7 = vec![
 				Event::ReservedForParachainBond {
 					account: 11,
-					value: 38,
+					value: 36,
 				},
 				Event::CollatorChosen {
 					round: 12,
@@ -4642,24 +4628,24 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				},
 				Event::Rewarded {
 					account: 1,
-					rewards: 25,
+					rewards: 24,
 				},
 				Event::Rewarded {
 					account: 7,
-					rewards: 5,
+					rewards: 4,
 				},
 				Event::Rewarded {
 					account: 10,
-					rewards: 5,
+					rewards: 4,
 				},
 				Event::Rewarded {
 					account: 8,
-					rewards: 5,
+					rewards: 4,
 				},
 			];
 			expected.append(&mut new7);
 			assert_eq_events!(expected);
-			assert_eq!(Balances::free_balance(&11), 257);
+			assert_eq!(Balances::free_balance(&11), 230);
 		});
 }
 
@@ -4709,7 +4695,6 @@ fn paid_collator_commission_matches_config() {
 			roll_to(9);
 			assert_ok!(ParachainStaking::delegate(Origin::signed(5), 4, 10, 10, 10));
 			assert_ok!(ParachainStaking::delegate(Origin::signed(6), 4, 10, 10, 10));
-			set_author(4);
 			roll_to(11);
 			let mut new = vec![
 				Event::JoinedCollatorCandidates {
@@ -4749,6 +4734,7 @@ fn paid_collator_commission_matches_config() {
 			expected.append(&mut new);
 			assert_eq_events!(expected.clone());
 			// only reward author with id 4
+			set_author(3, 4, 100);
 			roll_to(21);
 			// 20% of 10 is commission + due_portion (0) = 2 + 4 = 6
 			// all delegator payouts are 10-2 = 8 * stake_pct
@@ -4768,10 +4754,6 @@ fn paid_collator_commission_matches_config() {
 					round: 4,
 					selected_collators_number: 2,
 					total_balance: 80,
-				},
-				Event::Rewarded {
-					account: 4,
-					rewards: 6,
 				},
 				Event::CollatorChosen {
 					round: 5,
@@ -5186,8 +5168,6 @@ fn payout_distribution_to_solo_collators() {
 		.with_candidates(vec![(1, 100), (2, 90), (3, 80), (4, 70), (5, 60), (6, 50)])
 		.build()
 		.execute_with(|| {
-			roll_to(4);
-			set_author(1);
 			roll_to(8);
 			// should choose top TotalCandidatesSelected (5), in order
 			let mut expected = vec![
@@ -5224,8 +5204,8 @@ fn payout_distribution_to_solo_collators() {
 				},
 			];
 			assert_eq_events!(expected.clone());
-			roll_to(14);
-			set_author(2);
+			// ~ set block author as 1 for all blocks this round
+			set_author(2, 1, 100);
 			roll_to(16);
 			// pay total issuance to 1
 			let mut new = vec![
@@ -5260,10 +5240,6 @@ fn payout_distribution_to_solo_collators() {
 					selected_collators_number: 5,
 					total_balance: 400,
 				},
-				Event::Rewarded {
-					account: 1,
-					rewards: 76,
-				},
 				Event::CollatorChosen {
 					round: 4,
 					collator_account: 1,
@@ -5297,13 +5273,15 @@ fn payout_distribution_to_solo_collators() {
 				},
 				Event::Rewarded {
 					account: 1,
-					rewards: 309,
+					rewards: 305,
 				},
 			];
 			expected.append(&mut new);
 			assert_eq_events!(expected.clone());
-			set_author(1);
+			// ~ set block author as 1 for 3 blocks this round
+			set_author(4, 1, 60);
 			// ~ set block author as 2 for 2 blocks this round
+			set_author(4, 2, 40);
 			roll_to(26);
 			// pay 60% total issuance to 1 and 40% total issuance to 2
 			let mut new1 = vec![
@@ -5338,14 +5316,6 @@ fn payout_distribution_to_solo_collators() {
 					selected_collators_number: 5,
 					total_balance: 400,
 				},
-				Event::Rewarded {
-					account: 1,
-					rewards: 259,
-				},
-				Event::Rewarded {
-					account: 2,
-					rewards: 65,
-				},
 				Event::CollatorChosen {
 					round: 6,
 					collator_account: 1,
@@ -5379,26 +5349,21 @@ fn payout_distribution_to_solo_collators() {
 				},
 				Event::Rewarded {
 					account: 1,
-					rewards: 272,
+					rewards: 192,
 				},
 				Event::Rewarded {
 					account: 2,
-					rewards: 68,
+					rewards: 128,
 				},
 			];
 			expected.append(&mut new1);
 			assert_eq_events!(expected.clone());
 			// ~ each collator produces 1 block this round
-			roll_to(24);
-			set_author(1);
-			roll_to(25);
-			set_author(2);
-			roll_to(26);
-			set_author(3);
-			roll_to(27);
-			set_author(4);
-			roll_to(28);
-			set_author(5);
+			set_author(6, 1, 20);
+			set_author(6, 2, 20);
+			set_author(6, 3, 20);
+			set_author(6, 4, 20);
+			set_author(6, 5, 20);
 			roll_to(39);
 			// pay 20% issuance for all collators
 			let mut new2 = vec![
@@ -5433,10 +5398,6 @@ fn payout_distribution_to_solo_collators() {
 					selected_collators_number: 5,
 					total_balance: 400,
 				},
-				Event::Rewarded {
-					account: 1,
-					rewards: 357,
-				},
 				Event::CollatorChosen {
 					round: 8,
 					collator_account: 1,
@@ -5470,19 +5431,23 @@ fn payout_distribution_to_solo_collators() {
 				},
 				Event::Rewarded {
 					account: 5,
-					rewards: 150,
+					rewards: 67,
 				},
 				Event::Rewarded {
 					account: 3,
-					rewards: 75,
+					rewards: 67,
 				},
 				Event::Rewarded {
 					account: 4,
-					rewards: 75,
+					rewards: 67,
 				},
 				Event::Rewarded {
 					account: 1,
-					rewards: 75,
+					rewards: 67,
+				},
+				Event::Rewarded {
+					account: 2,
+					rewards: 67,
 				},
 			];
 			expected.append(&mut new2);
@@ -5911,8 +5876,6 @@ fn payouts_follow_delegation_changes() {
 		])
 		.build()
 		.execute_with(|| {
-			roll_to(4);
-			set_author(1);
 			roll_to(8);
 			// chooses top TotalSelectedCandidates (5), in order
 			let mut expected = vec![
@@ -5949,6 +5912,8 @@ fn payouts_follow_delegation_changes() {
 				},
 			];
 			assert_eq_events!(expected.clone());
+			// ~ set block author as 1 for all blocks this round
+			set_author(2, 1, 100);
 			roll_to(16);
 			// distribute total issuance to collator 1 and its delegators 6, 7, 19
 			let mut new = vec![
@@ -5982,22 +5947,6 @@ fn payouts_follow_delegation_changes() {
 					round: 3,
 					selected_collators_number: 5,
 					total_balance: 140,
-				},
-				Event::Rewarded {
-					account: 1,
-					rewards: 6,
-				},
-				Event::Rewarded {
-					account: 6,
-					rewards: 2,
-				},
-				Event::Rewarded {
-					account: 7,
-					rewards: 2,
-				},
-				Event::Rewarded {
-					account: 10,
-					rewards: 2,
 				},
 				Event::CollatorChosen {
 					round: 4,
@@ -6049,6 +5998,11 @@ fn payouts_follow_delegation_changes() {
 			];
 			expected.append(&mut new);
 			assert_eq_events!(expected.clone());
+			// ~ set block author as 1 for all blocks this round
+			set_author(3, 1, 100);
+			set_author(4, 1, 100);
+			set_author(5, 1, 100);
+			set_author(6, 1, 100);
 			// 1. ensure delegators are paid for 2 rounds after they leave
 			assert_noop!(
 				ParachainStaking::schedule_leave_delegators(Origin::signed(66)),
@@ -6104,7 +6058,7 @@ fn payouts_follow_delegation_changes() {
 				},
 				Event::Rewarded {
 					account: 1,
-					rewards: 28,
+					rewards: 27,
 				},
 				Event::Rewarded {
 					account: 6,
@@ -6178,6 +6132,8 @@ fn payouts_follow_delegation_changes() {
 			];
 			expected.append(&mut new2);
 			assert_eq_events!(expected.clone());
+			// 6 won't be paid for this round because they left already
+			set_author(7, 1, 100);
 			roll_to(35);
 			// keep paying 6
 			let mut new3 = vec![
@@ -6257,7 +6213,7 @@ fn payouts_follow_delegation_changes() {
 				},
 				Event::Rewarded {
 					account: 1,
-					rewards: 32,
+					rewards: 31,
 				},
 				Event::Rewarded {
 					account: 7,
@@ -6270,6 +6226,7 @@ fn payouts_follow_delegation_changes() {
 			];
 			expected.append(&mut new3);
 			assert_eq_events!(expected.clone());
+			set_author(8, 1, 100);
 			roll_to(40);
 			// no more paying 6
 			let mut new4 = vec![
@@ -6319,6 +6276,7 @@ fn payouts_follow_delegation_changes() {
 			];
 			expected.append(&mut new4);
 			assert_eq_events!(expected.clone());
+			set_author(9, 1, 100);
 			assert_ok!(ParachainStaking::delegate(Origin::signed(8), 1, 10, 10, 10));
 			roll_to(45);
 			// new delegation is not rewarded yet
@@ -6362,7 +6320,7 @@ fn payouts_follow_delegation_changes() {
 				},
 				Event::Rewarded {
 					account: 1,
-					rewards: 40,
+					rewards: 39,
 				},
 				Event::Rewarded {
 					account: 7,
@@ -6375,6 +6333,7 @@ fn payouts_follow_delegation_changes() {
 			];
 			expected.append(&mut new5);
 			assert_eq_events!(expected.clone());
+			set_author(10, 1, 100);
 			roll_to(50);
 			// new delegation not rewarded yet
 			let mut new6 = vec![
@@ -6411,7 +6370,7 @@ fn payouts_follow_delegation_changes() {
 				},
 				Event::Rewarded {
 					account: 1,
-					rewards: 42,
+					rewards: 41,
 				},
 				Event::Rewarded {
 					account: 7,
@@ -6842,14 +6801,13 @@ fn no_rewards_paid_until_after_reward_payment_delay() {
 		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20)])
 		.build()
 		.execute_with(|| {
-			set_author(1);
-			roll_one_block();
-			set_author(2);
-			roll_one_block();
-			set_author(3);
-			roll_one_block();
-			set_author(4);
 			roll_to_round_begin(2);
+			// payouts for round 1
+			set_author(1, 1, 1);
+			set_author(1, 2, 1);
+			set_author(1, 3, 1);
+			set_author(1, 4, 1);
+			set_author(1, 4, 1);
 			let mut expected = vec![
 				Event::CollatorChosen {
 					round: 2,
@@ -6921,7 +6879,7 @@ fn no_rewards_paid_until_after_reward_payment_delay() {
 			roll_one_block();
 			expected.push(Event::Rewarded {
 				account: 4,
-				rewards: 1,
+				rewards: 2,
 			});
 			assert_eq_events!(expected);
 
@@ -6946,394 +6904,390 @@ fn no_rewards_paid_until_after_reward_payment_delay() {
 		});
 }
 
-// Test not designed for new block reward system, can be brought back in follow up
-// #[test]
-// fn deferred_payment_storage_items_are_cleaned_up() {
-// 	use crate::*;
-//  use crate::mock::set_points;
+#[test]
+fn deferred_payment_storage_items_are_cleaned_up() {
+	use crate::*;
 
-// 	// this test sets up two collators, gives them points in round one, and focuses on the
-// 	// storage over the next several blocks to show that it is properly cleaned up
+	// this test sets up two collators, gives them points in round one, and focuses on the
+	// storage over the next several blocks to show that it is properly cleaned up
 
-// 	ExtBuilder::default()
-// 		.with_balances(vec![(1, 20), (2, 20)])
-// 		.with_candidates(vec![(1, 20), (2, 20)])
-// 		.build()
-// 		.execute_with(|| {
-// 			let mut round: u32 = 1;
-// 			set_points(round, 1, 1);
-// 			set_points(round, 2, 1);
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 20)])
+		.with_candidates(vec![(1, 20), (2, 20)])
+		.build()
+		.execute_with(|| {
+			let mut round: u32 = 1;
+			set_author(round, 1, 1);
+			set_author(round, 2, 1);
 
-// 			// reflects genesis?
-// 			assert!(<AtStake<Test>>::contains_key(round, 1));
-// 			assert!(<AtStake<Test>>::contains_key(round, 2));
+			// reflects genesis?
+			assert!(<AtStake<Test>>::contains_key(round, 1));
+			assert!(<AtStake<Test>>::contains_key(round, 2));
 
-// 			round = 2;
-// 			roll_to_round_begin(round.into());
-// 			let mut expected = vec![
-// 				Event::CollatorChosen {
-// 					round: round,
-// 					collator_account: 1,
-// 					total_exposed_amount: 20,
-// 				},
-// 				Event::CollatorChosen {
-// 					round: round,
-// 					collator_account: 2,
-// 					total_exposed_amount: 20,
-// 				},
-// 				Event::NewRound {
-// 					starting_block: 5,
-// 					round: round,
-// 					selected_collators_number: 2,
-// 					total_balance: 40,
-// 				},
-// 			];
-// 			assert_eq_events!(expected);
+			round = 2;
+			roll_to_round_begin(round.into());
+			let mut expected = vec![
+				Event::CollatorChosen {
+					round: round,
+					collator_account: 1,
+					total_exposed_amount: 20,
+				},
+				Event::CollatorChosen {
+					round: round,
+					collator_account: 2,
+					total_exposed_amount: 20,
+				},
+				Event::NewRound {
+					starting_block: 5,
+					round: round,
+					selected_collators_number: 2,
+					total_balance: 40,
+				},
+			];
+			assert_eq_events!(expected);
 
-// 			// we should have AtStake snapshots as soon as we start a round...
-// 			assert!(<AtStake<Test>>::contains_key(2, 1));
-// 			assert!(<AtStake<Test>>::contains_key(2, 2));
-// 			// ...and it should persist until the round is fully paid out
-// 			assert!(<AtStake<Test>>::contains_key(1, 1));
-// 			assert!(<AtStake<Test>>::contains_key(1, 2));
+			// we should have AtStake snapshots as soon as we start a round...
+			assert!(<AtStake<Test>>::contains_key(2, 1));
+			assert!(<AtStake<Test>>::contains_key(2, 2));
+			// ...and it should persist until the round is fully paid out
+			assert!(<AtStake<Test>>::contains_key(1, 1));
+			assert!(<AtStake<Test>>::contains_key(1, 2));
 
-// 			assert!(
-// 				!<DelayedPayouts<Test>>::contains_key(1),
-// 				"DelayedPayouts shouldn't be populated until after RewardPaymentDelay"
-// 			);
-// 			assert!(
-// 				<Points<Test>>::contains_key(1),
-// 				"Points should be populated during current round"
-// 			);
-// 			assert!(
-// 				<Staked<Test>>::contains_key(1),
-// 				"Staked should be populated when round changes"
-// 			);
+			assert!(
+				!<DelayedPayouts<Test>>::contains_key(1),
+				"DelayedPayouts shouldn't be populated until after RewardPaymentDelay"
+			);
+			assert!(
+				<Points<Test>>::contains_key(1),
+				"Points should be populated during current round"
+			);
+			assert!(
+				<Staked<Test>>::contains_key(1),
+				"Staked should be populated when round changes"
+			);
 
-// 			assert!(
-// 				!<Points<Test>>::contains_key(2),
-// 				"Points should not be populated until author noted"
-// 			);
-// 			assert!(
-// 				<Staked<Test>>::contains_key(2),
-// 				"Staked should be populated when round changes"
-// 			);
+			assert!(
+				!<Points<Test>>::contains_key(2),
+				"Points should not be populated until author noted"
+			);
+			assert!(
+				<Staked<Test>>::contains_key(2),
+				"Staked should be populated when round changes"
+			);
 
-// 			// first payout occurs in round 3
-// 			round = 3;
-// 			roll_to_round_begin(round.into());
-// 			expected.append(&mut vec![
-// 				Event::CollatorChosen {
-// 					round: round,
-// 					collator_account: 1,
-// 					total_exposed_amount: 20,
-// 				},
-// 				Event::CollatorChosen {
-// 					round: round,
-// 					collator_account: 2,
-// 					total_exposed_amount: 20,
-// 				},
-// 				Event::NewRound {
-// 					starting_block: 10,
-// 					round: round,
-// 					selected_collators_number: 2,
-// 					total_balance: 40,
-// 				},
-// 				Event::Rewarded {
-// 					account: 1,
-// 					rewards: 1,
-// 				},
-// 			]);
-// 			assert_eq_events!(expected);
+			// first payout occurs in round 3
+			round = 3;
+			roll_to_round_begin(round.into());
+			expected.append(&mut vec![
+				Event::CollatorChosen {
+					round: round,
+					collator_account: 1,
+					total_exposed_amount: 20,
+				},
+				Event::CollatorChosen {
+					round: round,
+					collator_account: 2,
+					total_exposed_amount: 20,
+				},
+				Event::NewRound {
+					starting_block: 10,
+					round: round,
+					selected_collators_number: 2,
+					total_balance: 40,
+				},
+				Event::Rewarded {
+					account: 1,
+					rewards: 1,
+				},
+			]);
+			assert_eq_events!(expected);
 
-// 			// payouts should exist for past rounds that haven't been paid out yet..
-// 			assert!(<AtStake<Test>>::contains_key(3, 1));
-// 			assert!(<AtStake<Test>>::contains_key(3, 2));
-// 			assert!(<AtStake<Test>>::contains_key(2, 1));
-// 			assert!(<AtStake<Test>>::contains_key(2, 2));
+			// payouts should exist for past rounds that haven't been paid out yet..
+			assert!(<AtStake<Test>>::contains_key(3, 1));
+			assert!(<AtStake<Test>>::contains_key(3, 2));
+			assert!(<AtStake<Test>>::contains_key(2, 1));
+			assert!(<AtStake<Test>>::contains_key(2, 2));
 
-// 			assert!(
-// 				<DelayedPayouts<Test>>::contains_key(1),
-// 				"DelayedPayouts should be populated after RewardPaymentDelay"
-// 			);
-// 			assert!(<Points<Test>>::contains_key(1));
-// 			assert!(
-// 				!<Staked<Test>>::contains_key(1),
-// 				"Staked should be cleaned up after round change"
-// 			);
+			assert!(
+				<DelayedPayouts<Test>>::contains_key(1),
+				"DelayedPayouts should be populated after RewardPaymentDelay"
+			);
+			assert!(<Points<Test>>::contains_key(1));
+			assert!(
+				!<Staked<Test>>::contains_key(1),
+				"Staked should be cleaned up after round change"
+			);
 
-// 			assert!(!<DelayedPayouts<Test>>::contains_key(2));
-// 			assert!(
-// 				!<Points<Test>>::contains_key(2),
-// 				"We never rewarded points for round 2"
-// 			);
-// 			assert!(<Staked<Test>>::contains_key(2));
+			assert!(!<DelayedPayouts<Test>>::contains_key(2));
+			assert!(
+				!<Points<Test>>::contains_key(2),
+				"We never rewarded points for round 2"
+			);
+			assert!(<Staked<Test>>::contains_key(2));
 
-// 			assert!(!<DelayedPayouts<Test>>::contains_key(3));
-// 			assert!(
-// 				!<Points<Test>>::contains_key(3),
-// 				"We never awarded points for round 3"
-// 			);
-// 			assert!(<Staked<Test>>::contains_key(3));
+			assert!(!<DelayedPayouts<Test>>::contains_key(3));
+			assert!(
+				!<Points<Test>>::contains_key(3),
+				"We never awarded points for round 3"
+			);
+			assert!(<Staked<Test>>::contains_key(3));
 
-// 			// collator 1 has been paid in this last block and associated storage cleaned up
-// 			assert!(!<AtStake<Test>>::contains_key(1, 1));
-// 			assert!(!<AwardedPts<Test>>::contains_key(1, 1));
+			// collator 1 has been paid in this last block and associated storage cleaned up
+			assert!(!<AtStake<Test>>::contains_key(1, 1));
+			assert!(!<AwardedPts<Test>>::contains_key(1, 1));
 
-// 			// but collator 2 hasn't been paid
-// 			assert!(<AtStake<Test>>::contains_key(1, 2));
-// 			assert!(<AwardedPts<Test>>::contains_key(1, 2));
+			// but collator 2 hasn't been paid
+			assert!(<AtStake<Test>>::contains_key(1, 2));
+			assert!(<AwardedPts<Test>>::contains_key(1, 2));
 
-// 			round = 4;
-// 			roll_to_round_begin(round.into());
-// 			expected.append(&mut vec![
-// 				Event::Rewarded {
-// 					account: 2,
-// 					rewards: 1,
-// 				}, // from previous round
-// 				Event::CollatorChosen {
-// 					round: round,
-// 					collator_account: 1,
-// 					total_exposed_amount: 20,
-// 				},
-// 				Event::CollatorChosen {
-// 					round: round,
-// 					collator_account: 2,
-// 					total_exposed_amount: 20,
-// 				},
-// 				Event::NewRound {
-// 					starting_block: 15,
-// 					round: round,
-// 					selected_collators_number: 2,
-// 					total_balance: 40,
-// 				},
-// 			]);
-// 			assert_eq_events!(expected);
+			round = 4;
+			roll_to_round_begin(round.into());
+			expected.append(&mut vec![
+				Event::Rewarded {
+					account: 2,
+					rewards: 1,
+				}, // from previous round
+				Event::CollatorChosen {
+					round: round,
+					collator_account: 1,
+					total_exposed_amount: 20,
+				},
+				Event::CollatorChosen {
+					round: round,
+					collator_account: 2,
+					total_exposed_amount: 20,
+				},
+				Event::NewRound {
+					starting_block: 15,
+					round: round,
+					selected_collators_number: 2,
+					total_balance: 40,
+				},
+			]);
+			assert_eq_events!(expected);
 
-// 			// collators have both been paid and storage fully cleaned up for round 1
-// 			assert!(!<AtStake<Test>>::contains_key(1, 2));
-// 			assert!(!<AwardedPts<Test>>::contains_key(1, 2));
-// 			assert!(!<Staked<Test>>::contains_key(1));
-// 			assert!(!<Points<Test>>::contains_key(1)); // points should be cleaned up
-// 			assert!(!<DelayedPayouts<Test>>::contains_key(1));
+			// collators have both been paid and storage fully cleaned up for round 1
+			assert!(!<AtStake<Test>>::contains_key(1, 2));
+			assert!(!<AwardedPts<Test>>::contains_key(1, 2));
+			assert!(!<Staked<Test>>::contains_key(1));
+			assert!(!<Points<Test>>::contains_key(1)); // points should be cleaned up
+			assert!(!<DelayedPayouts<Test>>::contains_key(1));
 
-// 			roll_to_round_end(4);
+			roll_to_round_end(4);
 
-// 			// no more events expected
-// 			assert_eq_events!(expected);
-// 		});
-// }
+			// no more events expected
+			assert_eq_events!(expected);
+		});
+}
 
-// Test not designed for new block reward system, can be brought back in follow up
-// #[test]
-// fn deferred_payment_steady_state_event_flow() {
-// 	use frame_support::traits::{Currency, ExistenceRequirement, WithdrawReasons};
-//  use crate::mock::set_points;
+#[test]
+fn deferred_payment_steady_state_event_flow() {
+	use frame_support::traits::{Currency, ExistenceRequirement, WithdrawReasons};
 
-// 	// this test "flows" through a number of rounds, asserting that certain things do/don't happen
-// 	// once the staking pallet is in a "steady state" (specifically, once we are past the first few
-// 	// rounds to clear RewardPaymentDelay)
+	// this test "flows" through a number of rounds, asserting that certain things do/don't happen
+	// once the staking pallet is in a "steady state" (specifically, once we are past the first few
+	// rounds to clear RewardPaymentDelay)
 
-// 	ExtBuilder::default()
-// 		.with_balances(vec![
-// 			// collators
-// 			(1, 200),
-// 			(2, 200),
-// 			(3, 200),
-// 			(4, 200),
-// 			// delegators
-// 			(11, 200),
-// 			(22, 200),
-// 			(33, 200),
-// 			(44, 200),
-// 			// burn account, see `reset_issuance()`
-// 			(111, 1000),
-// 		])
-// 		.with_candidates(vec![(1, 200), (2, 200), (3, 200), (4, 200)])
-// 		.with_delegations(vec![
-// 			// delegator 11 delegates 100 to 1 and 2
-// 			(11, 1, 100),
-// 			(11, 2, 100),
-// 			// delegator 22 delegates 100 to 2 and 3
-// 			(22, 2, 100),
-// 			(22, 3, 100),
-// 			// delegator 33 delegates 100 to 3 and 4
-// 			(33, 3, 100),
-// 			(33, 4, 100),
-// 			// delegator 44 delegates 100 to 4 and 1
-// 			(44, 4, 100),
-// 			(44, 1, 100),
-// 		])
-// 		.build()
-// 		.execute_with(|| {
-// 			// convenience to set the round points consistently
-// 			let set_round_points = |round: u64| {
-// 				set_points(round as u32, 1, 1);
-// 				set_points(round as u32, 2, 1);
-// 				set_points(round as u32, 3, 1);
-// 				set_points(round as u32, 4, 1);
-// 			};
+	ExtBuilder::default()
+		.with_balances(vec![
+			// collators
+			(1, 200),
+			(2, 200),
+			(3, 200),
+			(4, 200),
+			// delegators
+			(11, 200),
+			(22, 200),
+			(33, 200),
+			(44, 200),
+			// burn account, see `reset_issuance()`
+			(111, 1000),
+		])
+		.with_candidates(vec![(1, 200), (2, 200), (3, 200), (4, 200)])
+		.with_delegations(vec![
+			// delegator 11 delegates 100 to 1 and 2
+			(11, 1, 100),
+			(11, 2, 100),
+			// delegator 22 delegates 100 to 2 and 3
+			(22, 2, 100),
+			(22, 3, 100),
+			// delegator 33 delegates 100 to 3 and 4
+			(33, 3, 100),
+			(33, 4, 100),
+			// delegator 44 delegates 100 to 4 and 1
+			(44, 4, 100),
+			(44, 1, 100),
+		])
+		.build()
+		.execute_with(|| {
+			// convenience to set the round points consistently
+			let set_round_points = |round: u64| {
+				set_author(round as u32, 1, 1);
+				set_author(round as u32, 2, 1);
+				set_author(round as u32, 3, 1);
+				set_author(round as u32, 4, 1);
+			};
 
-// 			// grab initial issuance -- we will reset it before round issuance is calculated so that
-// 			// it is consistent every round
-// 			let initial_issuance = Balances::total_issuance();
-// 			let reset_issuance = || {
-// 				let new_issuance = Balances::total_issuance();
-// 				let diff = new_issuance - initial_issuance;
-// 				let burned = Balances::burn(diff);
-// 				Balances::settle(
-// 					&111,
-// 					burned,
-// 					WithdrawReasons::FEE,
-// 					ExistenceRequirement::AllowDeath,
-// 				)
-// 				.expect("Account can absorb burn");
-// 			};
+			// grab initial issuance -- we will reset it before round issuance is calculated so that
+			// it is consistent every round
+			let initial_issuance = Balances::total_issuance();
+			let reset_issuance = || {
+				let new_issuance = Balances::total_issuance();
+				let diff = new_issuance - initial_issuance;
+				let burned = Balances::burn(diff);
+				Balances::settle(
+					&111,
+					burned,
+					WithdrawReasons::FEE,
+					ExistenceRequirement::AllowDeath,
+				)
+				.expect("Account can absorb burn");
+			};
 
-// 			// fn to roll through the first RewardPaymentDelay rounds. returns new round index
-// 			let roll_through_initial_rounds = |mut round: u64| -> u64 {
-// 				while round < crate::mock::RewardPaymentDelay::get() as u64 + 1 {
-// 					set_round_points(round);
+			// fn to roll through the first RewardPaymentDelay rounds. returns new round index
+			let roll_through_initial_rounds = |mut round: u64| -> u64 {
+				while round < crate::mock::RewardPaymentDelay::get() as u64 + 1 {
+					set_round_points(round);
 
-// 					roll_to_round_end(round);
-// 					round += 1;
-// 				}
+					roll_to_round_end(round);
+					round += 1;
+				}
 
-// 				reset_issuance();
+				reset_issuance();
 
-// 				round
-// 			};
+				round
+			};
 
-// 			// roll through a "steady state" round and make all of our assertions
-// 			// returns new round index
-// 			let roll_through_steady_state_round = |round: u64| -> u64 {
-// 				let num_rounds_rolled = roll_to_round_begin(round);
-// 				assert_eq!(
-// 					num_rounds_rolled, 1,
-// 					"expected to be at round begin already"
-// 				);
+			// roll through a "steady state" round and make all of our assertions
+			// returns new round index
+			let roll_through_steady_state_round = |round: u64| -> u64 {
+				let num_rounds_rolled = roll_to_round_begin(round);
+				assert_eq!(
+					num_rounds_rolled, 1,
+					"expected to be at round begin already"
+				);
 
-// 				let expected = vec![
-// 					Event::CollatorChosen {
-// 						round: round as u32,
-// 						collator_account: 1,
-// 						total_exposed_amount: 400,
-// 					},
-// 					Event::CollatorChosen {
-// 						round: round as u32,
-// 						collator_account: 2,
-// 						total_exposed_amount: 400,
-// 					},
-// 					Event::CollatorChosen {
-// 						round: round as u32,
-// 						collator_account: 3,
-// 						total_exposed_amount: 400,
-// 					},
-// 					Event::CollatorChosen {
-// 						round: round as u32,
-// 						collator_account: 4,
-// 						total_exposed_amount: 400,
-// 					},
-// 					Event::NewRound {
-// 						starting_block: (round - 1) * 5,
-// 						round: round as u32,
-// 						selected_collators_number: 4,
-// 						total_balance: 1600,
-// 					},
-// 					// first payout should occur on round change
-// 					Event::Rewarded {
-// 						account: 3,
-// 						rewards: 19,
-// 					},
-// 					Event::Rewarded {
-// 						account: 22,
-// 						rewards: 6,
-// 					},
-// 					Event::Rewarded {
-// 						account: 33,
-// 						rewards: 6,
-// 					},
-// 				];
-// 				assert_eq_last_events!(expected);
+				let expected = vec![
+					Event::CollatorChosen {
+						round: round as u32,
+						collator_account: 1,
+						total_exposed_amount: 400,
+					},
+					Event::CollatorChosen {
+						round: round as u32,
+						collator_account: 2,
+						total_exposed_amount: 400,
+					},
+					Event::CollatorChosen {
+						round: round as u32,
+						collator_account: 3,
+						total_exposed_amount: 400,
+					},
+					Event::CollatorChosen {
+						round: round as u32,
+						collator_account: 4,
+						total_exposed_amount: 400,
+					},
+					Event::NewRound {
+						starting_block: (round - 1) * 5,
+						round: round as u32,
+						selected_collators_number: 4,
+						total_balance: 1600,
+					},
+					// first payout should occur on round change
+					Event::Rewarded {
+						account: 3,
+						rewards: 19,
+					},
+					Event::Rewarded {
+						account: 22,
+						rewards: 6,
+					},
+					Event::Rewarded {
+						account: 33,
+						rewards: 6,
+					},
+				];
+				assert_eq_last_events!(expected);
 
-// 				set_round_points(round);
+				set_round_points(round);
 
-// 				roll_one_block();
-// 				let expected = vec![
-// 					Event::Rewarded {
-// 						account: 4,
-// 						rewards: 19,
-// 					},
-// 					Event::Rewarded {
-// 						account: 33,
-// 						rewards: 6,
-// 					},
-// 					Event::Rewarded {
-// 						account: 44,
-// 						rewards: 6,
-// 					},
-// 				];
-// 				assert_eq_last_events!(expected);
+				roll_one_block();
+				let expected = vec![
+					Event::Rewarded {
+						account: 4,
+						rewards: 19,
+					},
+					Event::Rewarded {
+						account: 33,
+						rewards: 6,
+					},
+					Event::Rewarded {
+						account: 44,
+						rewards: 6,
+					},
+				];
+				assert_eq_last_events!(expected);
 
-// 				roll_one_block();
-// 				let expected = vec![
-// 					Event::Rewarded {
-// 						account: 1,
-// 						rewards: 19,
-// 					},
-// 					Event::Rewarded {
-// 						account: 11,
-// 						rewards: 6,
-// 					},
-// 					Event::Rewarded {
-// 						account: 44,
-// 						rewards: 6,
-// 					},
-// 				];
-// 				assert_eq_last_events!(expected);
+				roll_one_block();
+				let expected = vec![
+					Event::Rewarded {
+						account: 1,
+						rewards: 19,
+					},
+					Event::Rewarded {
+						account: 11,
+						rewards: 6,
+					},
+					Event::Rewarded {
+						account: 44,
+						rewards: 6,
+					},
+				];
+				assert_eq_last_events!(expected);
 
-// 				roll_one_block();
-// 				let expected = vec![
-// 					Event::Rewarded {
-// 						account: 2,
-// 						rewards: 19,
-// 					},
-// 					Event::Rewarded {
-// 						account: 11,
-// 						rewards: 6,
-// 					},
-// 					Event::Rewarded {
-// 						account: 22,
-// 						rewards: 6,
-// 					},
-// 				];
-// 				assert_eq_last_events!(expected);
+				roll_one_block();
+				let expected = vec![
+					Event::Rewarded {
+						account: 2,
+						rewards: 19,
+					},
+					Event::Rewarded {
+						account: 11,
+						rewards: 6,
+					},
+					Event::Rewarded {
+						account: 22,
+						rewards: 6,
+					},
+				];
+				assert_eq_last_events!(expected);
 
-// 				roll_one_block();
-// 				let expected = vec![
-// 					// we paid everyone out by now, should repeat last event
-// 					Event::Rewarded {
-// 						account: 22,
-// 						rewards: 6,
-// 					},
-// 				];
-// 				assert_eq_last_events!(expected);
+				roll_one_block();
+				let expected = vec![
+					// we paid everyone out by now, should repeat last event
+					Event::Rewarded {
+						account: 22,
+						rewards: 6,
+					},
+				];
+				assert_eq_last_events!(expected);
 
-// 				let num_rounds_rolled = roll_to_round_end(round);
-// 				assert_eq!(num_rounds_rolled, 0, "expected to be at round end already");
+				let num_rounds_rolled = roll_to_round_end(round);
+				assert_eq!(num_rounds_rolled, 0, "expected to be at round end already");
 
-// 				reset_issuance();
+				reset_issuance();
 
-// 				round + 1
-// 			};
+				round + 1
+			};
 
-// 			let mut round = 1;
-// 			round = roll_through_initial_rounds(round); // we should be at RewardPaymentDelay
-// 			for _ in 1..5 {
-// 				round = roll_through_steady_state_round(round);
-// 			}
-// 		});
-// }
+			let mut round = 1;
+			round = roll_through_initial_rounds(round); // we should be at RewardPaymentDelay
+			for _ in 1..5 {
+				round = roll_through_steady_state_round(round);
+			}
+		});
+}
 
 // MIGRATION UNIT TESTS
 use frame_support::traits::OnRuntimeUpgrade;
@@ -7716,9 +7670,8 @@ fn test_delegator_scheduled_for_revoke_is_rewarded_for_previous_rounds_but_not_f
 		.with_delegations(vec![(2, 1, 10), (2, 3, 10)])
 		.build()
 		.execute_with(|| {
-			set_author(1);
 			// preset rewards for rounds 1, 2 and 3
-			//(1..=3).for_each(|round| set_author(round, 1, 1));
+			(1..=3).for_each(|round| set_author(round, 1, 1));
 
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
 				Origin::signed(2),
@@ -7787,9 +7740,8 @@ fn test_delegator_scheduled_for_revoke_is_rewarded_when_request_cancelled() {
 		.with_delegations(vec![(2, 1, 10), (2, 3, 10)])
 		.build()
 		.execute_with(|| {
-			set_author(1);
 			// preset rewards for rounds 2, 3 and 4
-			//(2..=4).for_each(|round| set_author(round, 1, 1));
+			(2..=4).for_each(|round| set_author(round, 1, 1));
 
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
 				Origin::signed(2),
@@ -7865,9 +7817,8 @@ fn test_delegator_scheduled_for_bond_decrease_is_rewarded_for_previous_rounds_bu
 		.with_delegations(vec![(2, 1, 20), (2, 3, 10)])
 		.build()
 		.execute_with(|| {
-			set_author(1);
 			// preset rewards for rounds 1, 2 and 3
-			//(1..=3).for_each(|round| set_author(round, 1, 1));
+			(1..=3).for_each(|round| set_author(round, 1, 1));
 
 			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
 				Origin::signed(2),
@@ -7943,9 +7894,8 @@ fn test_delegator_scheduled_for_bond_decrease_is_rewarded_when_request_cancelled
 		.with_delegations(vec![(2, 1, 20), (2, 3, 10)])
 		.build()
 		.execute_with(|| {
-			set_author(1);
 			// preset rewards for rounds 2, 3 and 4
-			//(2..=4).for_each(|round| set_author(round, 1, 1));
+			(2..=4).for_each(|round| set_author(round, 1, 1));
 
 			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
 				Origin::signed(2),
@@ -8027,9 +7977,8 @@ fn test_delegator_scheduled_for_leave_is_rewarded_for_previous_rounds_but_not_fo
 		.with_delegations(vec![(2, 1, 10), (2, 3, 10)])
 		.build()
 		.execute_with(|| {
-			set_author(1);
 			// preset rewards for rounds 1, 2 and 3
-			//(1..=3).for_each(|round| set_author(round, 1, 1));
+			(1..=3).for_each(|round| set_author(round, 1, 1));
 
 			assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(
 				2
@@ -8094,9 +8043,8 @@ fn test_delegator_scheduled_for_leave_is_rewarded_when_request_cancelled() {
 		.with_delegations(vec![(2, 1, 10), (2, 3, 10)])
 		.build()
 		.execute_with(|| {
-			set_author(1);
 			// preset rewards for rounds 2, 3 and 4
-			//(2..=4).for_each(|round| set_author(round, 1, 1));
+			(2..=4).for_each(|round| set_author(round, 1, 1));
 
 			assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(
 				2

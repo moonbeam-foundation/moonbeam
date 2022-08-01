@@ -244,7 +244,6 @@ impl ExtBuilder {
 
 /// Rolls forward one block. Returns the new block number.
 pub(crate) fn roll_one_block() -> u64 {
-	ParachainStaking::on_finalize(System::block_number());
 	Balances::on_finalize(System::block_number());
 	System::on_finalize(System::block_number());
 	System::set_block_number(System::block_number() + 1);
@@ -409,16 +408,10 @@ macro_rules! assert_event_not_emitted {
 	};
 }
 
-// Old `set_author` function for manually setting points
-#[allow(dead_code)]
-pub(crate) fn set_points(round: u32, acc: u64, pts: u32) {
+// Same storage changes as ParachainStaking::on_finalize
+pub(crate) fn set_author(round: u32, acc: u64, pts: u32) {
 	<Points<Test>>::mutate(round, |p| *p += pts);
 	<AwardedPts<Test>>::mutate(round, acc, |p| *p += pts);
-}
-
-// Set the block author until called again
-pub(crate) fn set_author(acc: u64) {
-	block_author::BlockAuthor::<Test>::put(acc);
 }
 
 /// fn to query the lock amount
