@@ -186,6 +186,8 @@ The following pallets are stored in `pallets/`. They are designed for Moonbeam's
 - _Author Inherent_: Allows block authors to include their identity in a block via an inherent
 - _Parachain Staking_: Minimal staking pallet that selects collators by total amount at stake
 
+When modifying the git repository for these dependencies, a tool called [diener](https://github.com/bkchr/diener) can be used to replace the git URL and branch for each reference in all `Cargo.toml` files with a single command. This alleviates a lot of the repetitive modifications necessary when changing dependency versions.
+
 ## Rustdocs
 
 Rustdocs for the Moonbeam codebase are automatically generated and published

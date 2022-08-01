@@ -20,9 +20,7 @@ use frame_support::{
 	weights::{Pays, PostDispatchInfo},
 };
 use sp_runtime::{DispatchError, DispatchErrorWithPostInfo};
-use xcm_primitives::{
-	EthereumXcmFee, EthereumXcmTransaction, EthereumXcmTransactionV1, ManualEthereumXcmFee,
-};
+use xcm_primitives::{EthereumXcmFee, EthereumXcmTransaction, EthereumXcmTransactionV1};
 
 // 	pragma solidity ^0.6.6;
 // 	contract Test {
@@ -43,51 +41,37 @@ const CONTRACT: &str = "608060405234801561001057600080fd5b5061011380610020600039
 						7358221220fde68a3968e0e99b16fabf9b2997a78218b32214031f8e07e2c502daf603a69e\
 						64736f6c63430006060033";
 
-fn xcm_evm_transfer_eip_2930_transaction(destination: H160, value: U256) -> EthereumXcmTransaction {
-	let access_list = Some(vec![(H160::default(), vec![H256::default()])]);
-
+fn xcm_evm_transfer_eip_1559_transaction(destination: H160, value: U256) -> EthereumXcmTransaction {
 	EthereumXcmTransaction::V1(EthereumXcmTransactionV1 {
-		fee_payment: EthereumXcmFee::Manual(ManualEthereumXcmFee {
-			gas_price: Some(U256::from(1)),
-			max_fee_per_gas: None,
-		}),
-		gas_limit: U256::from(0x100000),
+		fee_payment: EthereumXcmFee::Auto,
+		gas_limit: U256::from(0x5208),
 		action: ethereum::TransactionAction::Call(destination),
 		value,
 		input: vec![],
-		access_list,
+		access_list: None,
 	})
 }
 
-fn xcm_evm_call_eip_2930_transaction(destination: H160, input: Vec<u8>) -> EthereumXcmTransaction {
-	let access_list = Some(vec![(H160::default(), vec![H256::default()])]);
-
+fn xcm_evm_call_eip_1559_transaction(destination: H160, input: Vec<u8>) -> EthereumXcmTransaction {
 	EthereumXcmTransaction::V1(EthereumXcmTransactionV1 {
-		fee_payment: EthereumXcmFee::Manual(ManualEthereumXcmFee {
-			gas_price: Some(U256::from(1)),
-			max_fee_per_gas: None,
-		}),
+		fee_payment: EthereumXcmFee::Auto,
 		gas_limit: U256::from(0x100000),
 		action: ethereum::TransactionAction::Call(destination),
 		value: U256::zero(),
 		input,
-		access_list,
+		access_list: None,
 	})
 }
 
-fn xcm_erc20_creation_eip_2930_transaction() -> EthereumXcmTransaction {
-	let access_list = Some(vec![(H160::default(), vec![H256::default()])]);
-
+fn xcm_erc20_creation_eip_1559_transaction() -> EthereumXcmTransaction {
 	EthereumXcmTransaction::V1(EthereumXcmTransactionV1 {
-		fee_payment: EthereumXcmFee::Manual(ManualEthereumXcmFee {
-			gas_price: Some(U256::from(1)),
-			max_fee_per_gas: None,
-		}),
+		fee_payment: EthereumXcmFee::Auto,
+
 		gas_limit: U256::from(0x100000),
 		action: ethereum::TransactionAction::Create,
 		value: U256::zero(),
-		input: hex::decode(ERC20_CONTRACT_BYTECODE.trim_end()).unwrap(),
-		access_list,
+		input: hex::decode(CONTRACT).unwrap(),
+		access_list: None,
 	})
 }
 
@@ -101,7 +85,7 @@ fn test_transact_xcm_evm_transfer() {
 		let balances_before = System::account(&bob.account_id);
 		EthereumXcm::transact(
 			RawOrigin::XcmEthereumTransaction(alice.address).into(),
-			xcm_evm_transfer_eip_2930_transaction(bob.address, U256::from(100)),
+			xcm_evm_transfer_eip_1559_transaction(bob.address, U256::from(100)),
 		)
 		.expect("Failed to execute transaction");
 
@@ -121,7 +105,7 @@ fn test_transact_xcm_create() {
 		assert_noop!(
 			EthereumXcm::transact(
 				RawOrigin::XcmEthereumTransaction(alice.address).into(),
-				xcm_erc20_creation_eip_2930_transaction()
+				xcm_erc20_creation_eip_1559_transaction()
 			),
 			DispatchErrorWithPostInfo {
 				post_info: PostDispatchInfo {
@@ -141,9 +125,10 @@ fn test_transact_xcm_evm_call_works() {
 	let bob = &pairs[1];
 
 	ext.execute_with(|| {
-		let t = EIP2930UnsignedTransaction {
+		let t = EIP1559UnsignedTransaction {
 			nonce: U256::zero(),
-			gas_price: U256::from(1),
+			max_priority_fee_per_gas: U256::from(1),
+			max_fee_per_gas: U256::from(1),
 			gas_limit: U256::from(0x100000),
 			action: ethereum::TransactionAction::Create,
 			value: U256::zero(),
@@ -158,14 +143,14 @@ fn test_transact_xcm_evm_call_works() {
 
 		let _ = EthereumXcm::transact(
 			RawOrigin::XcmEthereumTransaction(bob.address).into(),
-			xcm_evm_call_eip_2930_transaction(H160::from_slice(&contract_address), foo),
+			xcm_evm_call_eip_1559_transaction(H160::from_slice(&contract_address), foo),
 		)
 		.expect("Failed to call `foo`");
 
 		// Evm call failing still succesfully dispatched
 		let _ = EthereumXcm::transact(
 			RawOrigin::XcmEthereumTransaction(bob.address).into(),
-			xcm_evm_call_eip_2930_transaction(H160::from_slice(&contract_address), bar),
+			xcm_evm_call_eip_1559_transaction(H160::from_slice(&contract_address), bar),
 		)
 		.expect("Failed to call `bar`");
 
@@ -175,7 +160,7 @@ fn test_transact_xcm_evm_call_works() {
 		// Transaction is in Pending storage, with nonce 0 and status 1 (evm succeed).
 		let (transaction_0, _, receipt_0) = &pending[0];
 		match (transaction_0, receipt_0) {
-			(&crate::Transaction::EIP2930(ref t), &crate::Receipt::EIP2930(ref r)) => {
+			(&crate::Transaction::EIP1559(ref t), &crate::Receipt::EIP1559(ref r)) => {
 				assert!(t.nonce == U256::from(0u8));
 				assert!(r.status_code == 1u8);
 			}
@@ -185,7 +170,7 @@ fn test_transact_xcm_evm_call_works() {
 		// Transaction is in Pending storage, with nonce 1 and status 0 (evm failed).
 		let (transaction_1, _, receipt_1) = &pending[1];
 		match (transaction_1, receipt_1) {
-			(&crate::Transaction::EIP2930(ref t), &crate::Receipt::EIP2930(ref r)) => {
+			(&crate::Transaction::EIP1559(ref t), &crate::Receipt::EIP1559(ref r)) => {
 				assert!(t.nonce == U256::from(1u8));
 				assert!(r.status_code == 0u8);
 			}
@@ -201,21 +186,7 @@ fn test_transact_xcm_validation_works() {
 	let bob = &pairs[1];
 
 	ext.execute_with(|| {
-		// Not enough balance fails to validate.
-		assert_noop!(
-			EthereumXcm::transact(
-				RawOrigin::XcmEthereumTransaction(alice.address).into(),
-				xcm_evm_transfer_eip_2930_transaction(bob.address, U256::MAX),
-			),
-			DispatchErrorWithPostInfo {
-				post_info: PostDispatchInfo {
-					actual_weight: Some(0),
-					pays_fee: Pays::Yes,
-				},
-				error: DispatchError::Other("Failed to validate ethereum transaction"),
-			}
-		);
-		// Not enough base fee fails to validate.
+		// Not enough gas limit to cover the transaction cost.
 		assert_noop!(
 			EthereumXcm::transact(
 				RawOrigin::XcmEthereumTransaction(alice.address).into(),
@@ -224,11 +195,11 @@ fn test_transact_xcm_validation_works() {
 						gas_price: Some(U256::from(0)),
 						max_fee_per_gas: None,
 					}),
-					gas_limit: U256::from(0x100000),
+					gas_limit: U256::from(0x5207),
 					action: ethereum::TransactionAction::Call(bob.address),
 					value: U256::from(1),
 					input: vec![],
-					access_list: Some(vec![(H160::default(), vec![H256::default()])]),
+					access_list: None,
 				}),
 			),
 			DispatchErrorWithPostInfo {

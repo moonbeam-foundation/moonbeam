@@ -14,5 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-mod v1;
-mod v2;
+use frame_support::assert_ok;
+
+use crate::{mock::*, RawOrigin};
+use ethereum_types::{H160, H256, U256};
+
+mod eip1559;
+mod eip2930;
+mod legacy;

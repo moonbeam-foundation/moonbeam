@@ -476,18 +476,6 @@ pub mod pallet {
 	pub(crate) type Round<T: Config> = StorageValue<_, RoundInfo<T::BlockNumber>, ValueQuery>;
 
 	#[pallet::storage]
-	#[pallet::getter(fn nominator_state2)]
-	/// DEPRECATED in favor of DelegatorState
-	/// Get nominator state associated with an account if account is nominating else None
-	pub(crate) type NominatorState2<T: Config> = StorageMap<
-		_,
-		Twox64Concat,
-		T::AccountId,
-		Nominator2<T::AccountId, BalanceOf<T>>,
-		OptionQuery,
-	>;
-
-	#[pallet::storage]
 	#[pallet::getter(fn delegator_state)]
 	/// Get delegator state associated with an account if account is delegating else None
 	pub(crate) type DelegatorState<T: Config> = StorageMap<
@@ -495,18 +483,6 @@ pub mod pallet {
 		Twox64Concat,
 		T::AccountId,
 		Delegator<T::AccountId, BalanceOf<T>>,
-		OptionQuery,
-	>;
-
-	#[pallet::storage]
-	#[pallet::getter(fn candidate_state)]
-	/// DEPRECATED
-	/// Get collator candidate state associated with an account if account is a candidate else None
-	pub(crate) type CandidateState<T: Config> = StorageMap<
-		_,
-		Twox64Concat,
-		T::AccountId,
-		CollatorCandidate<T::AccountId, BalanceOf<T>>,
 		OptionQuery,
 	>;
 
@@ -556,18 +532,6 @@ pub mod pallet {
 		Twox64Concat,
 		T::AccountId,
 		Delegations<T::AccountId, BalanceOf<T>>,
-		OptionQuery,
-	>;
-
-	#[pallet::storage]
-	#[pallet::getter(fn collator_state2)]
-	/// DEPRECATED in favor of CandidateState
-	/// Get collator state associated with an account if account is collating else None
-	pub(crate) type CollatorState2<T: Config> = StorageMap<
-		_,
-		Twox64Concat,
-		T::AccountId,
-		Collator2<T::AccountId, BalanceOf<T>>,
 		OptionQuery,
 	>;
 

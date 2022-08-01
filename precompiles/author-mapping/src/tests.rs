@@ -108,7 +108,10 @@ fn add_association_works() {
 						keys: expected_nimbus_id.into(),
 					}
 					.into(),
-					EvmEvent::Executed(Precompile.into()).into(),
+					EvmEvent::Executed {
+						address: Precompile.into()
+					}
+					.into(),
 				]
 			);
 		})
@@ -159,7 +162,10 @@ fn update_association_works() {
 						new_keys: second_nimbus_id.into(),
 					}
 					.into(),
-					EvmEvent::Executed(Precompile.into()).into(),
+					EvmEvent::Executed {
+						address: Precompile.into()
+					}
+					.into(),
 				]
 			);
 		})
@@ -211,7 +217,10 @@ fn clear_association_works() {
 						keys: nimbus_id.into(),
 					}
 					.into(),
-					EvmEvent::Executed(Precompile.into()).into(),
+					EvmEvent::Executed {
+						address: Precompile.into()
+					}
+					.into(),
 				]
 			);
 		})
@@ -261,7 +270,10 @@ fn remove_keys_works() {
 						keys: nimbus_id.into(),
 					}
 					.into(),
-					EvmEvent::Executed(Precompile.into()).into(),
+					EvmEvent::Executed {
+						address: Precompile.into()
+					}
+					.into(),
 				]
 			);
 		})
@@ -316,7 +328,10 @@ fn set_keys_works() {
 						new_keys: second_vrf_key.into(),
 					}
 					.into(),
-					EvmEvent::Executed(Precompile.into()).into(),
+					EvmEvent::Executed {
+						address: Precompile.into()
+					}
+					.into(),
 				]
 			);
 		})

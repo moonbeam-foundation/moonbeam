@@ -45,6 +45,7 @@ use nimbus_primitives::NimbusId;
 use pallet_evm::GasWeightMapping;
 use pallet_evm::PrecompileSet;
 use pallet_evm_precompile_author_mapping::Action as AuthorMappingAction;
+use pallet_evm_precompile_batch::Action as BatchAction;
 use pallet_evm_precompile_crowdloan_rewards::Action as CrowdloanAction;
 use pallet_evm_precompile_randomness::{
 	EXECUTE_EXPIRATION_ESTIMATED_COST, FULFILLMENT_OVERHEAD_ESTIMATED_COST,
@@ -178,14 +179,14 @@ fn verify_pallet_prefixes() {
 				pallet_name: b"Balances".to_vec(),
 				storage_name: b"Account".to_vec(),
 				prefix: prefix(b"Balances", b"Account"),
-				max_values: Some(300_000),
+				max_values: None,
 				max_size: Some(100),
 			},
 			StorageInfo {
 				pallet_name: b"Balances".to_vec(),
 				storage_name: b"Locks".to_vec(),
 				prefix: prefix(b"Balances", b"Locks"),
-				max_values: Some(300_000),
+				max_values: None,
 				max_size: Some(1287),
 			},
 			StorageInfo {
@@ -1181,7 +1182,7 @@ fn asset_erc20_precompiles_transfer() {
 						.write(U256::from(400 * UNIT))
 						.build(),
 				)
-				.expect_cost(23518u64)
+				.expect_cost(23652u64)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1233,7 +1234,7 @@ fn asset_erc20_precompiles_approve() {
 						.write(U256::from(400 * UNIT))
 						.build(),
 				)
-				.expect_cost(14006)
+				.expect_cost(14211)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_APPROVAL,
@@ -1254,7 +1255,7 @@ fn asset_erc20_precompiles_approve() {
 						.write(U256::from(400 * UNIT))
 						.build(),
 				)
-				.expect_cost(28967)
+				.expect_cost(29230)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1306,7 +1307,7 @@ fn asset_erc20_precompiles_mint_burn() {
 						.write(U256::from(1000 * UNIT))
 						.build(),
 				)
-				.expect_cost(12795)
+				.expect_cost(12988)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1333,7 +1334,7 @@ fn asset_erc20_precompiles_mint_burn() {
 						.write(U256::from(500 * UNIT))
 						.build(),
 				)
-				.expect_cost(12987)
+				.expect_cost(13164)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1378,7 +1379,7 @@ fn asset_erc20_precompiles_freeze_thaw_account() {
 						.write(Address(ALICE.into()))
 						.build(),
 				)
-				.expect_cost(6735)
+				.expect_cost(6866)
 				.expect_no_logs()
 				.execute_returns(EvmDataWriter::new().write(true).build());
 
@@ -1397,7 +1398,7 @@ fn asset_erc20_precompiles_freeze_thaw_account() {
 						.write(Address(ALICE.into()))
 						.build(),
 				)
-				.expect_cost(6728)
+				.expect_cost(6860)
 				.expect_no_logs()
 				.execute_returns(EvmDataWriter::new().write(true).build());
 
@@ -1432,7 +1433,7 @@ fn asset_erc20_precompiles_freeze_thaw_asset() {
 					asset_precompile_address,
 					EvmDataWriter::new_with_selector(AssetAction::FreezeAsset).build(),
 				)
-				.expect_cost(5595)
+				.expect_cost(5726)
 				.expect_no_logs()
 				.execute_returns(EvmDataWriter::new().write(true).build());
 
@@ -1449,7 +1450,7 @@ fn asset_erc20_precompiles_freeze_thaw_asset() {
 					asset_precompile_address,
 					EvmDataWriter::new_with_selector(AssetAction::ThawAsset).build(),
 				)
-				.expect_cost(5593)
+				.expect_cost(5741)
 				.expect_no_logs()
 				.execute_returns(EvmDataWriter::new().write(true).build());
 		});
@@ -1481,7 +1482,7 @@ fn asset_erc20_precompiles_freeze_transfer_ownership() {
 						.write(Address(BOB.into()))
 						.build(),
 				)
-				.expect_cost(6641)
+				.expect_cost(6794)
 				.expect_no_logs()
 				.execute_returns(EvmDataWriter::new().write(true).build());
 		});
@@ -1515,7 +1516,7 @@ fn asset_erc20_precompiles_freeze_set_team() {
 						.write(Address(BOB.into()))
 						.build(),
 				)
-				.expect_cost(5573)
+				.expect_cost(5721)
 				.expect_no_logs()
 				.execute_returns(EvmDataWriter::new().write(true).build());
 
@@ -1636,7 +1637,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 						.write(U256::from(400 * UNIT))
 						.build(),
 				)
-				.expect_cost(23518)
+				.expect_cost(23652)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1700,7 +1701,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						.write(U256::from(400 * UNIT))
 						.build(),
 				)
-				.expect_cost(14006)
+				.expect_cost(14211)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_APPROVAL,
@@ -1721,7 +1722,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						.write(U256::from(400 * UNIT))
 						.build(),
 				)
-				.expect_cost(28967)
+				.expect_cost(29230)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -2599,4 +2600,82 @@ fn base_fee_should_default_to_associate_type_value() {
 			(1 * GIGAWEI * SUPPLY_FACTOR).into()
 		);
 	});
+}
+
+#[test]
+fn evm_revert_substrate_events() {
+	ExtBuilder::default()
+		.with_balances(vec![(AccountId::from(ALICE), 1_000 * UNIT)])
+		.build()
+		.execute_with(|| {
+			let batch_precompile_address = H160::from_low_u64_be(2056);
+
+			// Batch a transfer followed by an invalid call to batch.
+			// Thus BatchAll will revert the transfer.
+			assert_ok!(Call::EVM(pallet_evm::Call::call {
+				source: ALICE.into(),
+				target: batch_precompile_address,
+				input: EvmDataWriter::new_with_selector(BatchAction::BatchAll)
+					.write(vec![Address(BOB.into()), Address(batch_precompile_address)])
+					.write(vec![U256::from(1 * UNIT), U256::zero()])
+					.write::<Vec<Bytes>>(vec![])
+					.write::<Vec<U256>>(vec![])
+					.build(),
+				value: U256::zero(), // No value sent in EVM
+				gas_limit: 500_000,
+				max_fee_per_gas: U256::from(1 * GIGAWEI),
+				max_priority_fee_per_gas: None,
+				nonce: Some(U256::from(0)),
+				access_list: Vec::new(),
+			})
+			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
+
+			let transfer_count = System::events()
+				.iter()
+				.filter(|r| match r.event {
+					Event::Balances(pallet_balances::Event::Transfer { .. }) => true,
+					_ => false,
+				})
+				.count();
+
+			assert_eq!(transfer_count, 0, "there should be no transfer event");
+		});
+}
+
+#[test]
+fn evm_success_keeps_substrate_events() {
+	ExtBuilder::default()
+		.with_balances(vec![(AccountId::from(ALICE), 1_000 * UNIT)])
+		.build()
+		.execute_with(|| {
+			let batch_precompile_address = H160::from_low_u64_be(2056);
+
+			assert_ok!(Call::EVM(pallet_evm::Call::call {
+				source: ALICE.into(),
+				target: batch_precompile_address,
+				input: EvmDataWriter::new_with_selector(BatchAction::BatchAll)
+					.write(vec![Address(BOB.into())])
+					.write(vec![U256::from(1 * UNIT)])
+					.write::<Vec<Bytes>>(vec![])
+					.write::<Vec<U256>>(vec![])
+					.build(),
+				value: U256::zero(), // No value sent in EVM
+				gas_limit: 500_000,
+				max_fee_per_gas: U256::from(1 * GIGAWEI),
+				max_priority_fee_per_gas: None,
+				nonce: Some(U256::from(0)),
+				access_list: Vec::new(),
+			})
+			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
+
+			let transfer_count = System::events()
+				.iter()
+				.filter(|r| match r.event {
+					Event::Balances(pallet_balances::Event::Transfer { .. }) => true,
+					_ => false,
+				})
+				.count();
+
+			assert_eq!(transfer_count, 1, "there should be 1 transfer event");
+		});
 }

@@ -20,7 +20,7 @@ use crate::pallet::{
 	BalanceOf, CandidateInfo, Config, DelegationScheduledRequests, DelegatorState, Error, Event,
 	Pallet, Round, RoundIndex, Total,
 };
-use crate::Delegator;
+use crate::{Delegator, DelegatorStatus};
 use frame_support::ensure;
 use frame_support::traits::Get;
 use frame_support::{dispatch::DispatchResultWithPostInfo, RuntimeDebug};
@@ -342,6 +342,13 @@ impl<T: Config> Pallet<T> {
 		let now = <Round<T>>::get().current;
 		let when = now.saturating_add(T::LeaveDelegatorsDelay::get());
 
+		// lazy migration for DelegatorStatus::Leaving
+		#[allow(deprecated)]
+		if matches!(state.status, DelegatorStatus::Leaving(_)) {
+			state.status = DelegatorStatus::Active;
+			<DelegatorState<T>>::insert(delegator.clone(), state.clone());
+		}
+
 		// it is assumed that a multiple delegations to the same collator does not exist, else this
 		// will cause a bug - the last duplicate delegation update will be the only one applied.
 		let mut existing_revoke_count = 0;
@@ -398,6 +405,15 @@ impl<T: Config> Pallet<T> {
 		let mut state = <DelegatorState<T>>::get(&delegator).ok_or(<Error<T>>::DelegatorDNE)?;
 		let mut updated_scheduled_requests = vec![];
 
+		// backwards compatible handling for DelegatorStatus::Leaving
+		#[allow(deprecated)]
+		if matches!(state.status, DelegatorStatus::Leaving(_)) {
+			state.status = DelegatorStatus::Active;
+			<DelegatorState<T>>::insert(delegator.clone(), state.clone());
+			Self::deposit_event(Event::DelegatorExitCancelled { delegator });
+			return Ok(().into());
+		}
+
 		// pre-validate that all delegations have a Revoke request.
 		for bond in &state.delegations.0 {
 			let collator = bond.owner.clone();
@@ -443,6 +459,36 @@ impl<T: Config> Pallet<T> {
 			Error::<T>::TooLowDelegationCountToLeaveDelegators
 		);
 		let now = <Round<T>>::get().current;
+
+		// backwards compatible handling for DelegatorStatus::Leaving
+		#[allow(deprecated)]
+		if let DelegatorStatus::Leaving(when) = state.status {
+			ensure!(
+				<Round<T>>::get().current >= when,
+				Error::<T>::DelegatorCannotLeaveYet
+			);
+
+			for bond in state.delegations.0.clone() {
+				if let Err(error) = Self::delegator_leaves_candidate(
+					bond.owner.clone(),
+					delegator.clone(),
+					bond.amount,
+				) {
+					log::warn!(
+						"STORAGE CORRUPTED \nDelegator leaving collator failed with error: {:?}",
+						error
+					);
+				}
+
+				Self::delegation_remove_request_with_state(&bond.owner, &delegator, &mut state);
+			}
+			<DelegatorState<T>>::remove(&delegator);
+			Self::deposit_event(Event::DelegatorLeft {
+				delegator,
+				unstaked_amount: state.total,
+			});
+			return Ok(().into());
+		}
 
 		let mut validated_scheduled_requests = vec![];
 		// pre-validate that all delegations have a Revoke request that can be executed now.
