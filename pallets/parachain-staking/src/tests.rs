@@ -4433,7 +4433,6 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			expected.append(&mut new3);
 			assert_eq_events!(expected.clone());
 			assert_eq!(Balances::free_balance(&11), 115);
-			//set_author(7, 1, 100);
 			roll_to(40);
 			// no more paying 6
 			let mut new4 = vec![
@@ -4488,7 +4487,6 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			expected.append(&mut new4);
 			assert_eq_events!(expected.clone());
 			assert_eq!(Balances::free_balance(&11), 148);
-			//set_author(8, 1, 100);
 			assert_ok!(ParachainStaking::delegate(Origin::signed(8), 1, 10, 10, 10));
 			roll_to(45);
 			// new delegation is not rewarded yet
@@ -4550,8 +4548,6 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			expected.append(&mut new5);
 			assert_eq_events!(expected.clone());
 			assert_eq!(Balances::free_balance(&11), 183);
-			//set_author(9, 1, 100);
-			//set_author(10, 1, 100);
 			roll_to(50);
 			// new delegation is still not rewarded yet
 			let mut new6 = vec![
@@ -4753,7 +4749,6 @@ fn paid_collator_commission_matches_config() {
 			expected.append(&mut new);
 			assert_eq_events!(expected.clone());
 			// only reward author with id 4
-			//set_author(3, 4, 100);
 			roll_to(21);
 			// 20% of 10 is commission + due_portion (0) = 2 + 4 = 6
 			// all delegator payouts are 10-2 = 8 * stake_pct
@@ -5309,7 +5304,6 @@ fn payout_distribution_to_solo_collators() {
 			assert_eq_events!(expected.clone());
 			set_author(1);
 			// ~ set block author as 2 for 2 blocks this round
-			//set_author(4, 2, 40);
 			roll_to(26);
 			// pay 60% total issuance to 1 and 40% total issuance to 2
 			let mut new1 = vec![
@@ -6276,7 +6270,6 @@ fn payouts_follow_delegation_changes() {
 			];
 			expected.append(&mut new3);
 			assert_eq_events!(expected.clone());
-			//set_author(8, 1, 100);
 			roll_to(40);
 			// no more paying 6
 			let mut new4 = vec![
@@ -6326,7 +6319,6 @@ fn payouts_follow_delegation_changes() {
 			];
 			expected.append(&mut new4);
 			assert_eq_events!(expected.clone());
-			//set_author(9, 1, 100);
 			assert_ok!(ParachainStaking::delegate(Origin::signed(8), 1, 10, 10, 10));
 			roll_to(45);
 			// new delegation is not rewarded yet
@@ -6383,7 +6375,6 @@ fn payouts_follow_delegation_changes() {
 			];
 			expected.append(&mut new5);
 			assert_eq_events!(expected.clone());
-			//set_author(10, 1, 100);
 			roll_to(50);
 			// new delegation not rewarded yet
 			let mut new6 = vec![
