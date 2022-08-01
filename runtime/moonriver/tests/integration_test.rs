@@ -462,6 +462,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 		.build()
 		.execute_with(|| {
 			set_parachain_inherent_data();
+			// set ALICE as author
 			assert_ok!(ParachainStaking::set_parachain_bond_account(
 				root_origin(),
 				AccountId::from(CHARLIE),
