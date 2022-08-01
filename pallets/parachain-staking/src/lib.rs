@@ -1697,19 +1697,19 @@ pub mod pallet {
 				collator_count = collator_count.saturating_add(1u32);
 				delegation_count = delegation_count.saturating_add(state.delegation_count);
 				total = total.saturating_add(state.total_counted);
-				let snapshot_total = state.total_counted;
-				let top_rewardable_delegations = Self::get_rewardable_delegators(&account);
+				let (total_counted, top_rewardable_delegations) =
+					Self::get_rewardable_delegators(state.total_counted, &account);
 
 				let snapshot = CollatorSnapshot {
 					bond: state.bond,
 					delegations: top_rewardable_delegations,
-					total: state.total_counted,
+					total: total_counted,
 				};
 				<AtStake<T>>::insert(now, account, snapshot);
 				Self::deposit_event(Event::CollatorChosen {
 					round: now,
 					collator_account: account.clone(),
-					total_exposed_amount: snapshot_total,
+					total_exposed_amount: state.total_counted,
 				});
 			}
 			// insert canonical collator set
@@ -1727,14 +1727,15 @@ pub mod pallet {
 		///
 		/// The intended bond amounts will be used while calculating rewards.
 		fn get_rewardable_delegators(
+			mut total_counted: BalanceOf<T>,
 			collator: &T::AccountId,
-		) -> Vec<Bond<T::AccountId, BalanceOf<T>>> {
+		) -> (BalanceOf<T>, Vec<Bond<T::AccountId, BalanceOf<T>>>) {
 			let requests = <DelegationScheduledRequests<T>>::get(collator)
 				.into_iter()
 				.map(|x| (x.delegator, x.action))
 				.collect::<BTreeMap<_, _>>();
 
-			<TopDelegations<T>>::get(collator)
+			let rewardable_delegations = <TopDelegations<T>>::get(collator)
 				.expect("all members of CandidateQ must be candidates")
 				.delegations
 				.into_iter()
@@ -1747,6 +1748,7 @@ pub mod pallet {
 								revoke request",
 								bond.owner
 							);
+							total_counted = total_counted.saturating_sub(bond.amount);
 							BalanceOf::<T>::zero()
 						}
 						Some(DelegationAction::Decrease(amount)) => {
@@ -1755,13 +1757,15 @@ pub mod pallet {
 								decrease request",
 								bond.owner
 							);
+							total_counted = total_counted.saturating_sub(*amount);
 							bond.amount.saturating_sub(*amount)
 						}
 					};
 
 					bond
 				})
-				.collect()
+				.collect();
+			(total_counted, rewardable_delegations)
 		}
 
 		/// Temporary JIT migration of a single delegator's reserve -> lock. This will query
