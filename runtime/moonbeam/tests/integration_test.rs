@@ -424,7 +424,7 @@ fn reward_block_authors() {
 		.execute_with(|| {
 			set_parachain_inherent_data();
 			for x in 2..3599 {
-				run_to_block(x, NimbusId::from_slice(&ALICE_NIMBUS).unwrap());
+				run_to_block(x, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			}
 			// no rewards doled out yet
 			assert_eq!(
@@ -435,7 +435,7 @@ fn reward_block_authors() {
 				Balances::usable_balance(AccountId::from(BOB)),
 				50_000 * GLMR,
 			);
-			run_to_block(3600, NimbusId::from_slice(&ALICE_NIMBUS).unwrap());
+			run_to_block(3600, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),
@@ -475,7 +475,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 				AccountId::from(CHARLIE),
 			),);
 			for x in 2..3599 {
-				run_to_block(x, NimbusId::from_slice(&ALICE_NIMBUS).unwrap());
+				run_to_block(x, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			}
 			// no rewards doled out yet
 			assert_eq!(
@@ -490,7 +490,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 				Balances::usable_balance(AccountId::from(CHARLIE)),
 				100 * GLMR,
 			);
-			run_to_block(3600, NimbusId::from_slice(&ALICE_NIMBUS).unwrap());
+			run_to_block(3600, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),
@@ -738,7 +738,6 @@ fn claim_via_precompile() {
 		.execute_with(|| {
 			// set parachain inherent data
 			set_parachain_inherent_data();
-			run_to_block(2, NimbusId::from_slice(&ALICE_NIMBUS).unwrap());
 			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
@@ -774,7 +773,7 @@ fn claim_via_precompile() {
 
 			assert!(CrowdloanRewards::initialized());
 
-			run_to_block(4, NimbusId::from_slice(&ALICE_NIMBUS).unwrap());
+			run_to_block(4, None);
 			// 30 percent initial payout
 			assert_eq!(Balances::balance(&AccountId::from(CHARLIE)), 450_000 * GLMR);
 			// 30 percent initial payout

@@ -53,39 +53,29 @@ pub const INVALID_ETH_TX: &str =
 
 /// Utility function that advances the chain to the desired block number.
 /// If an author is provided, that author information is injected to all the blocks in the meantime.
-pub fn run_to_block(n: u32, author: NimbusId) {
-	// Set the new block number and author
-	let set_author = |block_author: NimbusId, next| {
-		let pre_digest = Digest {
-			logs: vec![DigestItem::PreRuntime(
-				NIMBUS_ENGINE_ID,
-				block_author.encode(),
-			)],
-		};
-		System::reset_events();
-		if next {
-			System::initialize(
-				&(System::block_number() + 1),
-				&System::parent_hash(),
-				&pre_digest,
-			);
-		} else {
-			System::initialize(&System::block_number(), &System::parent_hash(), &pre_digest);
-		}
-	};
-	set_author(author.clone(), false);
-	// Initialize the first block
-	AuthorInherent::on_initialize(System::block_number());
-	ParachainStaking::on_initialize(System::block_number());
-	Ethereum::on_initialize(System::block_number());
+pub fn run_to_block(n: u32, author: Option<NimbusId>) {
 	while System::block_number() < n {
 		// Finalize the previous block
 		Ethereum::on_finalize(System::block_number());
 		AuthorInherent::on_finalize(System::block_number());
-		ParachainStaking::on_finalize(System::block_number());
 
 		// Set the new block number and author
-		set_author(author.clone(), true);
+		match author {
+			Some(ref author) => {
+				let pre_digest = Digest {
+					logs: vec![DigestItem::PreRuntime(NIMBUS_ENGINE_ID, author.encode())],
+				};
+				System::reset_events();
+				System::initialize(
+					&(System::block_number() + 1),
+					&System::parent_hash(),
+					&pre_digest,
+				);
+			}
+			None => {
+				System::set_block_number(System::block_number() + 1);
+			}
+		}
 
 		// Initialize the new block
 		AuthorInherent::on_initialize(System::block_number());
