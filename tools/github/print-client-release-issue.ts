@@ -23,7 +23,7 @@ async function main() {
   const newVersion = argv.to;
 
   const template = `
-  - [ ] Create a PR that update the launch.ts configuration (to add client conf for chis version)
+  - [ ] Create a PR that update the launch.ts configuration (to add client conf for this version)
   - [ ] Get that PR approved and merged
   - [ ] Tag master with ${newVersion} and push to github
   - [ ] Start the github action Publish Binary Draft with ${previousVersion} => ${newVersion}
