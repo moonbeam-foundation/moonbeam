@@ -766,7 +766,7 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">alloc::format</span>;
 <span class="kw">use</span> <span class="ident">frame_support</span>::{
-	<span class="ident">migration</span>::{<span class="ident">remove_storage_prefix</span>, <span class="ident">storage_key_iter</span>},
+	<span class="ident">migration::storage_key_iter</span>,
 	<span class="ident">pallet_prelude::PhantomData</span>,
 	<span class="ident">traits</span>::{<span class="ident">Get</span>, <span class="ident">OnRuntimeUpgrade</span>, <span class="ident">ReservableCurrency</span>},
 	<span class="ident">weights::Weight</span>,

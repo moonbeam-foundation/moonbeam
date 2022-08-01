@@ -328,7 +328,7 @@
 
 <span class="kw">use</span> <span class="ident">frame_support</span>::{
 	<span class="ident">parameter_types</span>,
-	<span class="ident">traits</span>::{<span class="ident">ConstU128</span>, <span class="ident">EnsureOneOf</span>},
+	<span class="ident">traits</span>::{<span class="ident">ConstU128</span>, <span class="ident">EitherOfDiverse</span>},
 	<span class="ident">weights</span>::{<span class="ident">GetDispatchInfo</span>, <span class="ident">Weight</span>},
 };
 
@@ -361,7 +361,7 @@
 }
 
 <span class="doccomment">/// We allow root and Chain council to execute privileged asset operations.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">AssetsForceOrigin</span> <span class="op">=</span> <span class="ident">EnsureOneOf</span><span class="op">&lt;</span>
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">AssetsForceOrigin</span> <span class="op">=</span> <span class="ident">EitherOfDiverse</span><span class="op">&lt;</span>
 	<span class="ident">EnsureRoot</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>,
 	<span class="ident">pallet_collective::EnsureProportionMoreThan</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">CouncilInstance</span>, <span class="number">1</span>, <span class="number">2</span><span class="op">&gt;</span>,
 <span class="op">&gt;</span>;

@@ -250,6 +250,14 @@
 <span id="245">245</span>
 <span id="246">246</span>
 <span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -293,9 +301,9 @@
 			<span class="ident">encoded</span>.<span class="ident">push</span>(<span class="number">0u8</span>);
 			<span class="ident">encoded</span>
 		}
-		<span class="ident">NetworkId::Named</span>(<span class="kw-2">mut</span> <span class="ident">name</span>) =&gt; {
+		<span class="ident">NetworkId::Named</span>(<span class="ident">name</span>) =&gt; {
 			<span class="ident">encoded</span>.<span class="ident">push</span>(<span class="number">1u8</span>);
-			<span class="ident">encoded</span>.<span class="ident">append</span>(<span class="kw-2">&amp;mut</span> <span class="ident">name</span>);
+			<span class="ident">encoded</span>.<span class="ident">append</span>(<span class="kw-2">&amp;mut</span> <span class="ident">name</span>.<span class="ident">into_inner</span>());
 			<span class="ident">encoded</span>
 		}
 		<span class="ident">NetworkId::Polkadot</span> =&gt; {
@@ -319,7 +327,11 @@
 	<span class="kw">match</span> <span class="ident">network_selector</span>[<span class="number">0</span>] {
 		<span class="number">0</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">NetworkId::Any</span>),
 		<span class="number">1</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">NetworkId::Named</span>(
-			<span class="ident">encoded_network_id</span>.<span class="ident">read_till_end</span>()<span class="question-mark">?</span>.<span class="ident">to_vec</span>(),
+			<span class="ident">encoded_network_id</span>
+				.<span class="ident">read_till_end</span>()<span class="question-mark">?</span>
+				.<span class="ident">to_vec</span>()
+				.<span class="ident">try_into</span>()
+				.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">revert</span>(<span class="string">&quot;network name is too long&quot;</span>))<span class="question-mark">?</span>,
 		)),
 		<span class="number">2</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">NetworkId::Polkadot</span>),
 		<span class="number">3</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">NetworkId::Kusama</span>),
@@ -395,7 +407,11 @@
 				<span class="prelude-val">Ok</span>(<span class="ident">Junction::GeneralIndex</span>(<span class="ident">u128::from_be_bytes</span>(<span class="ident">general_index</span>)))
 			}
 			<span class="number">6</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Junction::GeneralKey</span>(
-				<span class="ident">encoded_junction</span>.<span class="ident">read_till_end</span>()<span class="question-mark">?</span>.<span class="ident">to_vec</span>(),
+				<span class="ident">encoded_junction</span>
+					.<span class="ident">read_till_end</span>()<span class="question-mark">?</span>
+					.<span class="ident">to_vec</span>()
+					.<span class="ident">try_into</span>()
+					.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">revert</span>(<span class="string">&quot;junction general key is too long&quot;</span>))<span class="question-mark">?</span>,
 			)),
 			<span class="number">7</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Junction::OnlyChild</span>),
 			<span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">revert</span>(<span class="string">&quot;No selector for this&quot;</span>)),
@@ -438,9 +454,9 @@
 				<span class="ident">encoded</span>.<span class="ident">append</span>(<span class="kw-2">&amp;mut</span> <span class="ident">id</span>.<span class="ident">to_be_bytes</span>().<span class="ident">to_vec</span>());
 				<span class="ident">encoded</span>.<span class="ident">as_slice</span>().<span class="ident">into</span>()
 			}
-			<span class="ident">Junction::GeneralKey</span>(<span class="kw-2">mut</span> <span class="ident">key</span>) =&gt; {
+			<span class="ident">Junction::GeneralKey</span>(<span class="ident">key</span>) =&gt; {
 				<span class="ident">encoded</span>.<span class="ident">push</span>(<span class="number">6u8</span>);
-				<span class="ident">encoded</span>.<span class="ident">append</span>(<span class="kw-2">&amp;mut</span> <span class="ident">key</span>);
+				<span class="ident">encoded</span>.<span class="ident">append</span>(<span class="kw-2">&amp;mut</span> <span class="ident">key</span>.<span class="ident">into_inner</span>());
 				<span class="ident">encoded</span>.<span class="ident">as_slice</span>().<span class="ident">into</span>()
 			}
 			<span class="ident">Junction::OnlyChild</span> =&gt; {

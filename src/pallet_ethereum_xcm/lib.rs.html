@@ -216,7 +216,7 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">frame_support::traits::OnRuntimeUpgradeHelpersExt</span>;
 <span class="kw">use</span> <span class="ident">frame_support</span>::{
-	<span class="ident">codec</span>::{<span class="ident">Decode</span>, <span class="ident">Encode</span>},
+	<span class="ident">codec</span>::{<span class="ident">Decode</span>, <span class="ident">Encode</span>, <span class="ident">MaxEncodedLen</span>},
 	<span class="ident">dispatch::DispatchResultWithPostInfo</span>,
 	<span class="ident">scale_info::TypeInfo</span>,
 	<span class="ident">traits</span>::{<span class="ident">EnsureOrigin</span>, <span class="ident">Get</span>},
@@ -234,7 +234,7 @@
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">fp_rpc::TransactionStatus</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">xcm_primitives</span>::{<span class="ident">EthereumXcmTransaction</span>, <span class="ident">XcmToEthereum</span>};
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">RuntimeDebug</span>, <span class="ident">TypeInfo</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">RuntimeDebug</span>, <span class="ident">TypeInfo</span>, <span class="ident">MaxEncodedLen</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">RawOrigin</span> {
 	<span class="ident">XcmEthereumTransaction</span>(<span class="ident">H160</span>),
 }
