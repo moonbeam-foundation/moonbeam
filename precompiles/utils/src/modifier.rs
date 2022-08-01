@@ -18,7 +18,7 @@
 
 use {
 	crate::{revert, EvmResult},
-	evm::Context,
+	fp_evm::Context,
 	sp_core::U256,
 };
 
