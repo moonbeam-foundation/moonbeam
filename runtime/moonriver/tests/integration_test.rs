@@ -419,7 +419,7 @@ fn reward_block_authors() {
 		.execute_with(|| {
 			set_parachain_inherent_data();
 			for x in 2..1199 {
-				run_to_block(x, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
+				run_to_block(x, NimbusId::from_slice(&ALICE_NIMBUS).unwrap());
 			}
 			// no rewards doled out yet
 			assert_eq!(
@@ -427,7 +427,7 @@ fn reward_block_authors() {
 				1_000 * MOVR,
 			);
 			assert_eq!(Balances::usable_balance(AccountId::from(BOB)), 500 * MOVR,);
-			run_to_block(1200, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
+			run_to_block(1200, NimbusId::from_slice(&ALICE_NIMBUS).unwrap());
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),
@@ -468,7 +468,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 				AccountId::from(CHARLIE),
 			),);
 			for x in 2..1199 {
-				run_to_block(x, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
+				run_to_block(x, NimbusId::from_slice(&ALICE_NIMBUS).unwrap());
 			}
 			// no rewards doled out yet
 			assert_eq!(
@@ -477,7 +477,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 			);
 			assert_eq!(Balances::usable_balance(AccountId::from(BOB)), 500 * MOVR,);
 			assert_eq!(Balances::usable_balance(AccountId::from(CHARLIE)), MOVR,);
-			run_to_block(1200, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
+			run_to_block(1200, NimbusId::from_slice(&ALICE_NIMBUS).unwrap());
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),
@@ -723,6 +723,7 @@ fn claim_via_precompile() {
 		.execute_with(|| {
 			// set parachain inherent data
 			set_parachain_inherent_data();
+			run_to_block(1, NimbusId::from_slice(&ALICE_NIMBUS).unwrap());
 			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
@@ -758,7 +759,7 @@ fn claim_via_precompile() {
 
 			assert!(CrowdloanRewards::initialized());
 
-			run_to_block(4, None);
+			run_to_block(4, NimbusId::from_slice(&ALICE_NIMBUS).unwrap());
 			// 30 percent initial payout
 			assert_eq!(Balances::balance(&AccountId::from(CHARLIE)), 450_000 * MOVR);
 			// 30 percent initial payout
