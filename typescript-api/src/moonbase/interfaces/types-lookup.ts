@@ -5,7 +5,7 @@ declare module "@polkadot/types/lookup" {
   import type { Data } from "@polkadot/types";
   import type {
     BTreeMap,
-    BTreeSet,
+    BTreeSet as BTreeSetType,
     Bytes,
     Compact,
     Enum,
@@ -2895,7 +2895,7 @@ declare module "@polkadot/types/lookup" {
    * @name SpTrieStorageProof (168)
    */
   export interface SpTrieStorageProof extends Struct {
-    readonly trieNodes: BTreeSet<Bytes>;
+    readonly trieNodes: BTreeSetType<Bytes>;
   }
 
   /**
@@ -5256,7 +5256,9 @@ declare module "@polkadot/types/lookup" {
    */
   export interface PalletParachainStakingDelegatorStatus extends Enum {
     readonly isActive: boolean;
-    readonly type: "Active";
+    readonly isLeaving: boolean;
+    readonly asLeaving: u32;
+    readonly type: "Active" | "Leaving";
   }
 
   /**

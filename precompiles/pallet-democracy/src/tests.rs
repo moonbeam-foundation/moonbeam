@@ -323,7 +323,10 @@ fn propose_works() {
 						deposit: 100
 					}
 					.into(),
-					EvmEvent::Executed(Precompile.into()).into(),
+					EvmEvent::Executed {
+						address: Precompile.into()
+					}
+					.into(),
 				]
 			);
 		})
@@ -381,7 +384,10 @@ fn second_works() {
 						prop_index: 0
 					}
 					.into(),
-					EvmEvent::Executed(Precompile.into()).into(),
+					EvmEvent::Executed {
+						address: Precompile.into()
+					}
+					.into(),
 				]
 			);
 		})
@@ -434,7 +440,10 @@ fn standard_vote_aye_works() {
 						}
 					}
 					.into(),
-					EvmEvent::Executed(Precompile.into()).into(),
+					EvmEvent::Executed {
+						address: Precompile.into()
+					}
+					.into(),
 				]
 			);
 
@@ -503,7 +512,10 @@ fn standard_vote_nay_conviction_works() {
 						}
 					}
 					.into(),
-					EvmEvent::Executed(Precompile.into()).into(),
+					EvmEvent::Executed {
+						address: Precompile.into()
+					}
+					.into(),
 				]
 			);
 
@@ -587,7 +599,10 @@ fn remove_vote_works() {
 						}
 					}
 					.into(),
-					EvmEvent::Executed(Precompile.into()).into(),
+					EvmEvent::Executed {
+						address: Precompile.into()
+					}
+					.into(),
 				]
 			);
 
@@ -659,7 +674,10 @@ fn delegate_works() {
 						target: Bob
 					}
 					.into(),
-					EvmEvent::Executed(Precompile.into()).into(),
+					EvmEvent::Executed {
+						address: Precompile.into()
+					}
+					.into(),
 				]
 			);
 
@@ -721,7 +739,10 @@ fn undelegate_works() {
 					}
 					.into(),
 					DemocracyEvent::Undelegated { account: Alice }.into(),
-					EvmEvent::Executed(Precompile.into()).into(),
+					EvmEvent::Executed {
+						address: Precompile.into()
+					}
+					.into(),
 				]
 			);
 
@@ -811,7 +832,10 @@ fn unlock_works() {
 					}
 					.into(),
 					DemocracyEvent::Passed { ref_index: 0 }.into(),
-					EvmEvent::Executed(Precompile.into()).into(),
+					EvmEvent::Executed {
+						address: Precompile.into()
+					}
+					.into(),
 				]
 			);
 		})
@@ -834,7 +858,10 @@ fn unlock_with_nothing_locked() {
 			// Assert that the events are as expected
 			assert_eq!(
 				events(),
-				vec![EvmEvent::Executed(Precompile.into()).into(),]
+				vec![EvmEvent::Executed {
+					address: Precompile.into()
+				}
+				.into(),]
 			);
 		})
 }
@@ -889,7 +916,10 @@ fn note_preimage_works() {
 						deposit: expected_deposit
 					}
 					.into(),
-					EvmEvent::Executed(Precompile.into()).into(),
+					EvmEvent::Executed {
+						address: Precompile.into()
+					}
+					.into(),
 				]
 			);
 
@@ -972,7 +1002,10 @@ fn note_preimage_works_with_real_data() {
 						deposit: expected_deposit
 					}
 					.into(),
-					EvmEvent::Executed(Precompile.into()).into(),
+					EvmEvent::Executed {
+						address: Precompile.into()
+					}
+					.into(),
 				]
 			);
 
@@ -1060,8 +1093,14 @@ fn cannot_note_duplicate_preimage() {
 						deposit: expected_deposit
 					}
 					.into(),
-					EvmEvent::Executed(Precompile.into()).into(),
-					EvmEvent::ExecutedFailed(Precompile.into()).into(),
+					EvmEvent::Executed {
+						address: Precompile.into()
+					}
+					.into(),
+					EvmEvent::ExecutedFailed {
+						address: Precompile.into()
+					}
+					.into(),
 				]
 			);
 		})
@@ -1099,7 +1138,10 @@ fn cannot_note_imminent_preimage_before_it_is_actually_imminent() {
 			// Assert that the events are as expected
 			assert_eq!(
 				events(),
-				vec![EvmEvent::ExecutedFailed(Precompile.into()).into()]
+				vec![EvmEvent::ExecutedFailed {
+					address: Precompile.into()
+				}
+				.into()]
 			);
 		})
 }
