@@ -7,7 +7,7 @@ There are 3 types of branches:
 3. Releases branches
 
 If your contribution is a hotfix (bug fix on a release already published), follow the
-[hotfix branches](#hotfix-branches) section.
+[hotfix workflow](#hotfix-workflow) section.
 In all other cases, you must create a development branch, and submit a pull request to
 master (possibly in "draft" state until you are done).
 
