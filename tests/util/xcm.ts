@@ -177,7 +177,6 @@ export async function injectHrmpMessage(
 ) {
   let totalMessage = message != null ? buildXcmpMessage(context, message) : [];
   // Send RPC call to inject XCM message
-  // We will set a specific message knowing that it should mint the statemint asset
   await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [paraId, totalMessage]);
 }
 
