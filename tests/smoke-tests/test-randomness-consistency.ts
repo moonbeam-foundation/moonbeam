@@ -105,8 +105,11 @@ describeSmokeSuite(`Verify number of proxies per account`, { wssUrl, relayWssUrl
 
       const currentOutput = await apiAt.query.randomness.localVrfOutput();
       const previousOutput = await apiAtPrev.query.randomness.localVrfOutput();
-
       expect(currentOutput.eq(previousOutput)).to.be.false;
+
+      // is cleared in on_finalize()
+      const inherentIncluded = (await apiAt.query.randomness.inherentIncluded() as any).isSome;
+      expect(inherentIncluded).to.be.false;
     }
   });
 });
