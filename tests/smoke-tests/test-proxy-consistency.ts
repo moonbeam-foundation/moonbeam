@@ -171,8 +171,13 @@ describeSmokeSuite(`Verify number of proxies per account`, { wssUrl, relayWssUrl
 
 // TEMPLATE: Running the smoke test on stagenet
 //
-// DEBUG=test*,smoke* WSS_URL=wss://wss.api.moondev.network RELAY_WSS_URL=wss://frag-stagenet-relay-rpc-ws.g.moondev.network \
-//   ./node_modules/.bin/mocha -r ts-node/register smoke-tests/test-proxy-consistency.ts
+// DEBUG=test*,smoke* \
+// WSS_URL=wss://wss.api.moondev.network \
+// RELAY_WSS_URL=wss://frag-stagenet-relay-rpc-ws.g.moondev.network \
+// ./node_modules/.bin/mocha -r ts-node/register smoke-tests/test-proxy-consistency.ts
 //
 // Running all tests
-// DEBUG=test*,smoke* WSS_URL=wss://wss.api.moondev.network RELAY_WSS_URL=wss://frag-stagenet-relay-rpc-ws.g.moondev.network npm run smoke-test
+// DEBUG=test*,smoke* \
+// WSS_URL=wss://wss.api.moondev.network \
+// RELAY_WSS_URL=wss://frag-stagenet-relay-rpc-ws.g.moondev.network \
+// npm run smoke-test
