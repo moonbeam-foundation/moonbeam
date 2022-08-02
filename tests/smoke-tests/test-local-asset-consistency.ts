@@ -47,14 +47,15 @@ describeSmokeSuite(
       );
     });
 
-    it("should ensure localAssetCounter is higher than total number of local assets", async function () {
+    it("should ensure localAssetCounter is higher than number of local assets", async function () {
       expect(
         localAssetCounter,
         `Local asset counter lower than total local assets`
       ).to.be.greaterThanOrEqual(localAssetInfo.length);
 
       debug(
-        `Verified local asset counter (${localAssetCounter}) >= total local assets: (${localAssetInfo.length})`
+        `Verified local asset counter (${localAssetCounter}) 
+        >= total local assets: (${localAssetInfo.length})`
       );
     });
 
