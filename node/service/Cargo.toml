@@ -92,15 +92,15 @@ substrate-frame-rpc-system = { git = "https://github.com/paritytech/substrate", 
 substrate-prometheus-endpoint = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
 
 # Frontier
-fc-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.23" }
-fc-db = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.23" }
-fc-mapping-sync = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.23" }
-fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.23", features = [ "rpc_binary_search_estimate" ] }
-fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.23" }
-fp-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.23" }
-fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.23" }
-fp-storage = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.23" }
-pallet-ethereum = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.23" }
+fc-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.23-gaslimit-override" }
+fc-db = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.23-gaslimit-override" }
+fc-mapping-sync = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.23-gaslimit-override" }
+fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.23-gaslimit-override", features = [ "rpc_binary_search_estimate" ] }
+fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.23-gaslimit-override" }
+fp-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.23-gaslimit-override" }
+fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.23-gaslimit-override" }
+fp-storage = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.23-gaslimit-override" }
+pallet-ethereum = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.23-gaslimit-override" }
 
 # Cumulus / Nimbus
 cumulus-client-cli = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.23" }

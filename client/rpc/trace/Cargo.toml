@@ -36,7 +36,7 @@ sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v
 sp-transaction-pool = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
 
 # Frontier
-fc-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.23" }
-fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.23", features = [ "rpc_binary_search_estimate" ] }
-fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.23" }
-fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.23" }
+fc-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.23-gaslimit-override" }
+fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.23-gaslimit-override", features = [ "rpc_binary_search_estimate" ] }
+fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.23-gaslimit-override" }
+fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.23-gaslimit-override" }
