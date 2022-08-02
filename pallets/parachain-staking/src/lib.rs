@@ -1697,12 +1697,15 @@ pub mod pallet {
 				collator_count = collator_count.saturating_add(1u32);
 				delegation_count = delegation_count.saturating_add(state.delegation_count);
 				total = total.saturating_add(state.total_counted);
-				let (total_counted, top_rewardable_delegations) =
-					Self::get_rewardable_delegators(state.total_counted, &account);
+				let CountedDelegations {
+					uncounted_stake,
+					rewardable_delegations,
+				} = Self::get_rewardable_delegators(&account);
+				let total_counted = state.total_counted.saturating_sub(uncounted_stake);
 
 				let snapshot = CollatorSnapshot {
 					bond: state.bond,
-					delegations: top_rewardable_delegations,
+					delegations: rewardable_delegations,
 					total: total_counted,
 				};
 				<AtStake<T>>::insert(now, account, snapshot);
@@ -1726,15 +1729,12 @@ pub mod pallet {
 		/// - else, do nothing
 		///
 		/// The intended bond amounts will be used while calculating rewards.
-		fn get_rewardable_delegators(
-			mut total_counted: BalanceOf<T>,
-			collator: &T::AccountId,
-		) -> (BalanceOf<T>, Vec<Bond<T::AccountId, BalanceOf<T>>>) {
+		fn get_rewardable_delegators(collator: &T::AccountId) -> CountedDelegations<T> {
 			let requests = <DelegationScheduledRequests<T>>::get(collator)
 				.into_iter()
 				.map(|x| (x.delegator, x.action))
 				.collect::<BTreeMap<_, _>>();
-
+			let mut uncounted_stake = BalanceOf::<T>::zero();
 			let rewardable_delegations = <TopDelegations<T>>::get(collator)
 				.expect("all members of CandidateQ must be candidates")
 				.delegations
@@ -1748,7 +1748,7 @@ pub mod pallet {
 								revoke request",
 								bond.owner
 							);
-							total_counted = total_counted.saturating_sub(bond.amount);
+							uncounted_stake = uncounted_stake.saturating_add(bond.amount);
 							BalanceOf::<T>::zero()
 						}
 						Some(DelegationAction::Decrease(amount)) => {
@@ -1757,7 +1757,7 @@ pub mod pallet {
 								decrease request",
 								bond.owner
 							);
-							total_counted = total_counted.saturating_sub(*amount);
+							uncounted_stake = uncounted_stake.saturating_add(*amount);
 							bond.amount.saturating_sub(*amount)
 						}
 					};
@@ -1765,7 +1765,10 @@ pub mod pallet {
 					bond
 				})
 				.collect();
-			(total_counted, rewardable_delegations)
+			CountedDelegations {
+				uncounted_stake,
+				rewardable_delegations,
+			}
 		}
 
 		/// Temporary JIT migration of a single delegator's reserve -> lock. This will query
