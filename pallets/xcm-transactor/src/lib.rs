@@ -321,7 +321,7 @@ pub mod pallet {
 				&fee_location,
 				index,
 				&dest,
-				dest_weight,
+				transact_dest_weight,
 				inner_call
 			)
 		)]
@@ -330,8 +330,10 @@ pub mod pallet {
 			dest: T::Transactor,
 			index: u16,
 			fee_location: Box<VersionedMultiLocation>,
-			dest_weight: Weight,
+			transact_dest_weight: Weight,
 			inner_call: Vec<u8>,
+			fee_amount: Option<u128>,
+			overall_weight: Option<Weight>,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
@@ -355,9 +357,11 @@ pub mod pallet {
 				dest.clone(),
 				who.clone(),
 				fee_location,
-				dest_weight,
+				transact_dest_weight,
 				call_bytes.clone(),
 				OriginKind::SovereignAccount,
+				fee_amount,
+				overall_weight,
 			)?;
 
 			// Deposit event
@@ -378,10 +382,10 @@ pub mod pallet {
 		/// to be a reserve asset for the destination transactor::multilocation.
 		#[pallet::weight(
 			Pallet::<T>::weight_of_transact_through_derivative(
-				&currency_id,
+				&fee_currency_id,
 				index,
 				&dest,
-				dest_weight,
+				transact_dest_weight,
 				inner_call
 			)
 		)]
@@ -389,14 +393,17 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			dest: T::Transactor,
 			index: u16,
-			currency_id: T::CurrencyId,
-			dest_weight: Weight,
+			fee_currency_id: T::CurrencyId,
+			transact_dest_weight: Weight,
 			inner_call: Vec<u8>,
+			fee_amount: Option<u128>,
+			overall_weight: Option<Weight>,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			let fee_location: MultiLocation = T::CurrencyIdToMultiLocation::convert(currency_id)
-				.ok_or(Error::<T>::NotCrossChainTransferableCurrency)?;
+			let fee_location: MultiLocation =
+				T::CurrencyIdToMultiLocation::convert(fee_currency_id)
+					.ok_or(Error::<T>::NotCrossChainTransferableCurrency)?;
 
 			// The index exists
 			let account = IndexToAccount::<T>::get(index).ok_or(Error::<T>::UnclaimedIndex)?;
@@ -416,9 +423,11 @@ pub mod pallet {
 				dest.clone(),
 				who.clone(),
 				fee_location,
-				dest_weight,
+				transact_dest_weight,
 				call_bytes.clone(),
 				OriginKind::SovereignAccount,
+				fee_amount,
+				overall_weight,
 			)?;
 			// Deposit event
 			Self::deposit_event(Event::<T>::TransactedDerivative {
@@ -452,6 +461,8 @@ pub mod pallet {
 			dest_weight: Weight,
 			call: Vec<u8>,
 			origin_kind: OriginKind,
+			fee_amount: Option<u128>,
+			overall_weight: Option<Weight>,
 		) -> DispatchResult {
 			T::SovereignAccountDispatcherOrigin::ensure_origin(origin)?;
 
@@ -467,6 +478,8 @@ pub mod pallet {
 				dest_weight,
 				call.clone(),
 				origin_kind,
+				fee_amount,
+				overall_weight,
 			)?;
 
 			// Deposit event
@@ -535,6 +548,8 @@ pub mod pallet {
 			fee_currency_id: T::CurrencyId,
 			dest_weight: Weight,
 			call: Vec<u8>,
+			fee_amount: Option<u128>,
+			overall_weight: Option<Weight>,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
@@ -552,6 +567,8 @@ pub mod pallet {
 				dest_weight,
 				call.clone(),
 				OriginKind::SovereignAccount,
+				fee_amount,
+				overall_weight,
 			)?;
 
 			// Deposit event
@@ -576,6 +593,8 @@ pub mod pallet {
 			fee_location: Box<VersionedMultiLocation>,
 			dest_weight: Weight,
 			call: Vec<u8>,
+			fee_amount: Option<u128>,
+			overall_weight: Option<Weight>,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
@@ -591,6 +610,8 @@ pub mod pallet {
 				dest_weight,
 				call.clone(),
 				OriginKind::SovereignAccount,
+				fee_amount,
+				overall_weight,
 			)?;
 
 			// Deposit event
@@ -650,24 +671,29 @@ pub mod pallet {
 			dest_weight: Weight,
 			call: Vec<u8>,
 			origin_kind: OriginKind,
+			fee_amount: Option<u128>,
+			overall_weight: Option<Weight>,
 		) -> DispatchResult {
-			// Grab transact info for the fee loation provided
-			let transactor_info = TransactInfoWithWeightLimit::<T>::get(&dest)
-				.ok_or(Error::<T>::TransactorInfoNotSet)?;
-
 			// Calculate the total weight that the xcm message is going to spend in the
 			// destination chain
-			let total_weight = dest_weight
-				.checked_add(transactor_info.transact_extra_weight)
-				.ok_or(Error::<T>::WeightOverflow)?;
+			let total_weight = overall_weight.unwrap_or({
+				// Grab transact info for the fee loation provided
+				let transactor_info = TransactInfoWithWeightLimit::<T>::get(&dest)
+					.ok_or(Error::<T>::TransactorInfoNotSet)?;
 
-			ensure!(
-				total_weight < transactor_info.max_weight,
-				Error::<T>::MaxWeightTransactReached
-			);
+				let total_weight = dest_weight
+					.checked_add(transactor_info.transact_extra_weight)
+					.ok_or(Error::<T>::WeightOverflow)?;
+
+				ensure!(
+					total_weight < transactor_info.max_weight,
+					Error::<T>::MaxWeightTransactReached
+				);
+				total_weight
+			});
 
 			// Calculate fee based on FeePerSecond and total_weight
-			let fee = Self::calculate_fee(fee_location, total_weight)?;
+			let fee = Self::calculate_fee(fee_location, fee_amount, total_weight)?;
 
 			// Ensure the asset is a reserve
 			Self::transfer_allowed(&fee, &dest)?;
@@ -708,30 +734,36 @@ pub mod pallet {
 			dest_weight: Weight,
 			call: Vec<u8>,
 			origin_kind: OriginKind,
+			fee_amount: Option<u128>,
+			overall_weight: Option<Weight>,
 		) -> DispatchResult {
-			// Grab transact info for the fee loation provided
-			let transactor_info = TransactInfoWithWeightLimit::<T>::get(&dest)
-				.ok_or(Error::<T>::TransactorInfoNotSet)?;
-
-			// If this storage item is not set, it means that the destination chain
-			// does not support this kind of transact message
-			let transact_in_dest_as_signed_weight = transactor_info
-				.transact_extra_weight_signed
-				.ok_or(Error::<T>::SignedTransactNotAllowedForDestination)?;
-
 			// Calculate the total weight that the xcm message is going to spend in the
 			// destination chain
-			let total_weight = dest_weight
-				.checked_add(transact_in_dest_as_signed_weight)
-				.ok_or(Error::<T>::WeightOverflow)?;
 
-			ensure!(
-				total_weight < transactor_info.max_weight,
-				Error::<T>::MaxWeightTransactReached
-			);
+			let total_weight = overall_weight.unwrap_or({
+				// Grab transact info for the fee loation provided
+				let transactor_info = TransactInfoWithWeightLimit::<T>::get(&dest)
+					.ok_or(Error::<T>::TransactorInfoNotSet)?;
+
+				// If this storage item is not set, it means that the destination chain
+				// does not support this kind of transact message
+				let transact_in_dest_as_signed_weight = transactor_info
+					.transact_extra_weight_signed
+					.ok_or(Error::<T>::SignedTransactNotAllowedForDestination)?;
+
+				let total_weight = dest_weight
+					.checked_add(transact_in_dest_as_signed_weight)
+					.ok_or(Error::<T>::WeightOverflow)?;
+
+				ensure!(
+					total_weight < transactor_info.max_weight,
+					Error::<T>::MaxWeightTransactReached
+				);
+				total_weight
+			});
 
 			// Calculate fee based on FeePerSecond and total_weight
-			let fee = Self::calculate_fee(fee_location, total_weight)?;
+			let fee = Self::calculate_fee(fee_location, fee_amount, total_weight)?;
 
 			// Convert origin to multilocation
 			let origin_as_mult = T::AccountIdToMultiLocation::convert(fee_payer);
@@ -770,16 +802,18 @@ pub mod pallet {
 		/// the total weight to be spent
 		fn calculate_fee(
 			fee_location: MultiLocation,
+			fee_amount: Option<u128>,
 			total_weight: Weight,
 		) -> Result<MultiAsset, DispatchError> {
-			// Grab how much fee per second the destination chain charges in the fee asset
-			// location
-			let fee_per_second = DestinationAssetFeePerSecond::<T>::get(&fee_location)
-				.ok_or(Error::<T>::FeePerSecondNotSet)?;
-
 			// Multiply weight*destination_units_per_second to see how much we should charge for
 			// this weight execution
-			let amount = Self::calculate_fee_per_second(total_weight, fee_per_second);
+			let amount = fee_amount.unwrap_or({
+				// Grab how much fee per second the destination chain charges in the fee asset
+				// location
+				let fee_per_second = DestinationAssetFeePerSecond::<T>::get(&fee_location)
+					.ok_or(Error::<T>::FeePerSecondNotSet)?;
+				Self::calculate_fee_per_second(total_weight, fee_per_second)
+			});
 
 			// Construct MultiAsset
 			Ok(MultiAsset {

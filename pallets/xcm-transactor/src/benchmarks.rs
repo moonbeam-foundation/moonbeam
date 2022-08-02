@@ -113,7 +113,9 @@ benchmarks! {
 		Box::new(xcm::VersionedMultiLocation::V1(location.clone())),
 		Box::new(xcm::VersionedMultiLocation::V1(location.clone())),
 		dest_weight,
-		call
+		call,
+		None,
+		None
 	)
 }
 
