@@ -109,7 +109,7 @@ fn roll_to_and_author<T: Config>(round_delay: u32, author: T::AccountId) {
 	let mut now = <frame_system::Pallet<T>>::block_number() + 1u32.into();
 	let end = Pallet::<T>::round().first + (round_length * total_rounds.into());
 	while now < end {
-		Pallet::<T>::note_author(author.clone());
+		//Pallet::<T>::note_author(author.clone());
 		<frame_system::Pallet<T>>::on_finalize(<frame_system::Pallet<T>>::block_number());
 		<frame_system::Pallet<T>>::set_block_number(
 			<frame_system::Pallet<T>>::block_number() + 1u32.into(),
@@ -930,7 +930,7 @@ benchmarks! {
 		// SET collators as authors for blocks from now - end
 		while now < end {
 			let author = collators[counter % collators.len()].clone();
-			Pallet::<T>::note_author(author);
+			//Pallet::<T>::note_author(author);
 			<frame_system::Pallet<T>>::on_finalize(<frame_system::Pallet<T>>::block_number());
 			<frame_system::Pallet<T>>::set_block_number(
 				<frame_system::Pallet<T>>::block_number() + 1u32.into()
@@ -940,7 +940,7 @@ benchmarks! {
 			now += 1u32.into();
 			counter += 1usize;
 		}
-		Pallet::<T>::note_author(collators[counter % collators.len()].clone());
+		//Pallet::<T>::note_author(collators[counter % collators.len()].clone());
 		<frame_system::Pallet<T>>::on_finalize(<frame_system::Pallet<T>>::block_number());
 		<frame_system::Pallet<T>>::set_block_number(
 			<frame_system::Pallet<T>>::block_number() + 1u32.into()
@@ -1060,7 +1060,7 @@ benchmarks! {
 			1u32
 		)?;
 		let start = <frame_system::Pallet<T>>::block_number();
-		Pallet::<T>::note_author(collator.clone());
+		//Pallet::<T>::note_author(collator.clone());
 		<frame_system::Pallet<T>>::on_finalize(start);
 		<frame_system::Pallet<T>>::set_block_number(
 			start + 1u32.into()
