@@ -80,9 +80,9 @@ describeSmokeSuite(
       const failedEntries: { accountId: string; nimbusId: string }[] = [];
 
       // Verify that there is a deposit for each nimbus id
-      for (const nimbusId of Object.keys(nimbusIdPerAccount)) {
-        const accountId = nimbusIdPerAccount[nimbusId];
-        let registrationInfo = await apiAt.query.authorMapping.mappingWithDeposit(accountId);
+      for (const accountId of Object.keys(nimbusIdPerAccount)) {
+        const nimbusId = nimbusIdPerAccount[accountId];
+        let registrationInfo = await apiAt.query.authorMapping.mappingWithDeposit(nimbusId);
         if (registrationInfo.isNone || registrationInfo.unwrap().deposit.toBigInt() <= BigInt(0)) {
           failedEntries.push({ accountId, nimbusId });
         }
