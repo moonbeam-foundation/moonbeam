@@ -22,7 +22,7 @@ use frame_support::{
 	weights::constants::WEIGHT_PER_SECOND, Blake2_128Concat,
 };
 use sp_std::boxed::Box;
-use xcm::latest::{Junction, Junctions, MultiLocation, OriginKind};
+use xcm::latest::prelude::*;
 use xcm_primitives::{UtilityAvailableCalls, UtilityEncodeCall};
 #[test]
 fn test_register_address() {
@@ -721,5 +721,58 @@ fn test_signed_weight_and_fee_per_second_migration_works() {
 				XcmTransactor::dest_asset_fee_per_second(MultiLocation::parent()).unwrap(),
 				expected_destination_fee_per_second,
 			);
+		})
+}
+
+#[test]
+fn test_send_through_derivative_with_custom_weight_and_fee() {
+	ExtBuilder::default()
+		.with_balances(vec![])
+		.build()
+		.execute_with(|| {
+			// Root can register
+			assert_ok!(XcmTransactor::register(Origin::root(), 1u64, 1));
+
+			// fee as destination are the same, this time it should work
+			assert_ok!(XcmTransactor::transact_through_derivative(
+				Origin::signed(1u64),
+				Transactors::Relay,
+				1,
+				CurrencyId::OtherReserve(0),
+				100u64,
+				vec![1u8],
+				Some(100),
+				Some(10_100)
+			));
+			let expected = vec![
+				crate::Event::RegisteredDerivative {
+					account_id: 1u64,
+					index: 1,
+				},
+				crate::Event::TransactedDerivative {
+					account_id: 1u64,
+					dest: MultiLocation::parent(),
+					call: Transactors::Relay
+						.encode_call(UtilityAvailableCalls::AsDerivative(1, vec![1u8])),
+					index: 1,
+				},
+			];
+			assert_eq!(events(), expected);
+			let sent_messages = mock::sent_xcm();
+			let (_, sent_message) = sent_messages.first().unwrap();
+			assert!(sent_message
+				.0
+				.contains(&WithdrawAsset((MultiLocation::here(), 100).into())));
+			assert!(sent_message.0.contains(&BuyExecution {
+				fees: (MultiLocation::here(), 100).into(),
+				weight_limit: Limited(10_100),
+			}));
+			assert!(sent_message.0.contains(&Transact {
+				origin_type: OriginKind::SovereignAccount,
+				require_weight_at_most: 100,
+				call: Transactors::Relay
+					.encode_call(UtilityAvailableCalls::AsDerivative(1, vec![1u8]))
+					.into(),
+			}));
 		})
 }

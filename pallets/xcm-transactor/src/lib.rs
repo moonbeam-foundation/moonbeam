@@ -676,21 +676,9 @@ pub mod pallet {
 		) -> DispatchResult {
 			// Calculate the total weight that the xcm message is going to spend in the
 			// destination chain
-			let total_weight = overall_weight.unwrap_or({
-				// Grab transact info for the fee loation provided
-				let transactor_info = TransactInfoWithWeightLimit::<T>::get(&dest)
-					.ok_or(Error::<T>::TransactorInfoNotSet)?;
-
-				let total_weight = dest_weight
-					.checked_add(transactor_info.transact_extra_weight)
-					.ok_or(Error::<T>::WeightOverflow)?;
-
-				ensure!(
-					total_weight < transactor_info.max_weight,
-					Error::<T>::MaxWeightTransactReached
-				);
-				total_weight
-			});
+			let total_weight: u64 = overall_weight
+				.ok_or("")
+				.or_else(|_| Self::take_weight_from_transact_info(dest.clone(), dest_weight))?;
 
 			// Calculate fee based on FeePerSecond and total_weight
 			let fee = Self::calculate_fee(fee_location, fee_amount, total_weight)?;
@@ -807,13 +795,9 @@ pub mod pallet {
 		) -> Result<MultiAsset, DispatchError> {
 			// Multiply weight*destination_units_per_second to see how much we should charge for
 			// this weight execution
-			let amount = fee_amount.unwrap_or({
-				// Grab how much fee per second the destination chain charges in the fee asset
-				// location
-				let fee_per_second = DestinationAssetFeePerSecond::<T>::get(&fee_location)
-					.ok_or(Error::<T>::FeePerSecondNotSet)?;
-				Self::calculate_fee_per_second(total_weight, fee_per_second)
-			});
+			let amount = fee_amount.ok_or("").or_else(|_| {
+				Self::take_fee_per_second_from_storage(fee_location.clone(), total_weight)
+			})?;
 
 			// Construct MultiAsset
 			Ok(MultiAsset {
@@ -1017,6 +1001,34 @@ pub mod pallet {
 				.saturating_add(weight_per_second_u128 - 1);
 
 			fee_mul_rounded_up / weight_per_second_u128
+		}
+
+		pub fn take_weight_from_transact_info(
+			dest: MultiLocation,
+			dest_weight: Weight,
+		) -> Result<Weight, DispatchError> {
+			// Grab transact info for the fee loation provided
+			let transactor_info = TransactInfoWithWeightLimit::<T>::get(&dest)
+				.ok_or(Error::<T>::TransactorInfoNotSet)?;
+
+			let total_weight = dest_weight
+				.checked_add(transactor_info.transact_extra_weight)
+				.ok_or(Error::<T>::WeightOverflow)?;
+
+			ensure!(
+				total_weight < transactor_info.max_weight,
+				Error::<T>::MaxWeightTransactReached
+			);
+			Ok(total_weight)
+		}
+
+		pub fn take_fee_per_second_from_storage(
+			fee_location: MultiLocation,
+			total_weight: Weight,
+		) -> Result<u128, DispatchError> {
+			let fee_per_second = DestinationAssetFeePerSecond::<T>::get(&fee_location)
+				.ok_or(Error::<T>::FeePerSecondNotSet)?;
+			Ok(Self::calculate_fee_per_second(total_weight, fee_per_second))
 		}
 	}
 }
