@@ -36,5 +36,24 @@ describeSmokeSuite(`Verify number of proxies per account`, { wssUrl, relayWssUrl
 
     expect(numOutstandingRequests).to.be.lessThanOrEqual(requestCount);
   });
+
+  it("should have updated VRF output", async function () {
+    this.timeout(10000);
+
+    // we skip on if we aren't past the first block yet
+    const notFirstBlock = (await apiAt.query.randomness.notFirstBlock() as any).isSome;
+    if (notFirstBlock) {
+
+      expect(atBlockNumber).to.be.greaterThan(0); // should be true if notFirstBlock
+      const apiAtPrev = await context.polkadotApi.at(
+        await context.polkadotApi.rpc.chain.getBlockHash(atBlockNumber - 1)
+      );
+
+      const currentOutput = await apiAt.query.randomness.localVrfOutput();
+      const previousOutput = await apiAtPrev.query.randomness.localVrfOutput();
+
+      expect(currentOutput.eq(previousOutput)).to.be.false;
+    }
+  });
 });
 
