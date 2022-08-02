@@ -20,6 +20,7 @@ describeSmokeSuite(`Verify number of proxies per account`, { wssUrl, relayWssUrl
   let apiAt: ApiDecoration<"promise"> = null;
 
   const requestIds: number[] = [];
+  let requestCount: number = 0;
 
   before("Retrieve all requests", async function () {
     // It takes time to load all the proxies.
@@ -78,6 +79,8 @@ describeSmokeSuite(`Verify number of proxies per account`, { wssUrl, relayWssUrl
       }
     }
 
+    requestCount = (await apiAt.query.randomness.requestCount() as any).toNumber();
+
     // TEMPLATE: Adapt proxies
     debug(`Retrieved ${count} total proxies`);
   });
@@ -85,10 +88,33 @@ describeSmokeSuite(`Verify number of proxies per account`, { wssUrl, relayWssUrl
   it("should have fewer Requests than RequestCount", async function () {
     this.timeout(10000);
 
-    const requestCount = (await apiAt.query.randomness.requestCount() as any).toNumber();
     const numOutstandingRequests = requestIds.length;
-
     expect(numOutstandingRequests).to.be.lessThanOrEqual(requestCount);
+  });
+
+  it("should not have requestId above RequestCount", async function () {
+    this.timeout(1000);
+
+    const highestId = requestIds.reduce((prev, id) => Math.max(id, prev), 0);
+    expect(highestId).to.be.lessThanOrEqual(requestCount);
+  });
+
+  it("should not have results without a matching request", async function () {
+    this.timeout(10000);
+
+    let query = await apiAt.query.randomness.randomnessResults.entries();
+    query.forEach(([key, results]) => {
+      console.log(`key: ${key}`);
+      /*
+      let type = ""; // TODO: type must be reconstructed from the "concat" part of the key
+      if (type.isBabeEpoch()) {
+        console.log("ignoring babe epoch request"); // TODO
+      } else if (type.isLocal()) {
+        console.log(`is local: ${type.asLocal()}`);
+      }
+      */
+    });
+
   });
 
   it("should have updated VRF output", async function () {
