@@ -447,6 +447,14 @@ pub mod pallet {
 
 			weight = weight.saturating_add(Self::handle_delayed_payouts(round.current));
 
+			// add on_finalize weight
+			weight = weight.saturating_add(
+				// read Author, Points, AwardedPts
+				// write Points, AwardedPts
+				T::DbWeight::get()
+					.reads(3)
+					.saturating_add(T::DbWeight::get().writes(2)),
+			);
 			weight
 		}
 		fn on_finalize(_n: T::BlockNumber) {
