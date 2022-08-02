@@ -131,6 +131,7 @@ describeSmokeSuite(`Verify number of proxies per account`, { wssUrl, relayWssUrl
   it("should have a maximum allowed proxies of 32", async function () {
     // TEMPLATE: Remove if the value is the same for each runtime
     const runtimeName = context.polkadotApi.runtimeVersion.specName.toString();
+    const networkName = context.polkadotApi.runtimeChain.toString();
 
     // TEMPLATE: Retrieve additional information
     const maxProxies = (await context.polkadotApi.consts.proxy.maxProxies).toNumber();
@@ -138,13 +139,31 @@ describeSmokeSuite(`Verify number of proxies per account`, { wssUrl, relayWssUrl
     switch (runtimeName) {
       case "moonbase":
         expect(maxProxies).to.equal(32);
+        break;
       case "moonriver":
         expect(maxProxies).to.equal(32);
+        break;
       case "moonbeam":
         expect(maxProxies).to.equal(32);
+        break;
       default:
         expect(maxProxies).to.equal(32);
+        break;
     }
+
+    // TEMPLATE: This is redundant but is used to show how to check based on the network
+    switch (networkName) {
+      case "Moonbase Alpha":
+        expect(maxProxies).to.equal(32);
+        break;
+      case "Moonbeam":
+        expect(maxProxies).to.equal(32);
+        break;
+      default:
+        expect(maxProxies).to.equal(32);
+        break;
+    }
+
     // TEMPLATE: Updates the log line
     debug(`Verified maximum allowed proxies constant`);
   });
