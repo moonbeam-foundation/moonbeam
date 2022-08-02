@@ -102,7 +102,7 @@ fn create_funded_collator<T: Config>(
 }
 
 /// Run to end block and author
-fn roll_to_and_author<T: Config>(round_delay: u32, author: T::AccountId) {
+fn roll_to_and_author<T: Config>(round_delay: u32, _author: T::AccountId) {
 	let total_rounds = round_delay + 1u32;
 	let round_length: T::BlockNumber = Pallet::<T>::round().length.into();
 	let mut now = <frame_system::Pallet<T>>::block_number() + 1u32.into();
