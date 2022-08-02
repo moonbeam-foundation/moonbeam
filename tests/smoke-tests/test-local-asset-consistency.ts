@@ -31,10 +31,6 @@ describeSmokeSuite(
       apiAt = await context.polkadotApi.at(
         await context.polkadotApi.rpc.chain.getBlockHash(atBlockNumber)
       );
-      atBlockNumber = (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber();
-      apiAt = await context.polkadotApi.at(
-        await context.polkadotApi.rpc.chain.getBlockHash(atBlockNumber)
-      );
       localAssetDeposits = await apiAt.query.assetManager.localAssetDeposit.entries();
       localAssetCounter = await (await apiAt.query.assetManager.localAssetCounter()).toNumber();
       localAssetInfo = await apiAt.query.localAssets.asset.entries();
