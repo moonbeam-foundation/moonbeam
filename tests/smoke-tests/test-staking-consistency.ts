@@ -278,14 +278,14 @@ describeSmokeSuite(`Verify staking consistency`, { wssUrl, relayWssUrl }, (conte
     ).to.be.greaterThanOrEqual(minSelectedCandidates);
   });
 
-  it("current selected candidates are less than or equal to stored total ", async function () {
+  it("current selected candidates are less than or equal to stored total", async function () {
     expect(
       allSelectedCandidates.length,
       `selected candidate count was less than the minimum allowed of ${minSelectedCandidates}`
     ).to.be.lessThanOrEqual(totalSelectedCandidates);
   });
 
-  it("round length is more that current selected candidates", async function () {
+  it("round length is more than current selected candidates", async function () {
     expect(
       minBlocksPerRound,
       `blocks per round should be equal or more than the current selected candidates`
