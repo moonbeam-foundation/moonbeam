@@ -773,7 +773,6 @@ fn claim_via_precompile() {
 
 			assert!(CrowdloanRewards::initialized());
 
-			run_to_block(4, None);
 			// 30 percent initial payout
 			assert_eq!(Balances::balance(&AccountId::from(CHARLIE)), 450_000 * GLMR);
 			// 30 percent initial payout
