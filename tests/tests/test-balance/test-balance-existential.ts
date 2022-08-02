@@ -11,6 +11,7 @@ import { createTransfer } from "../../util/transactions";
 describeDevMoonbeamAllEthTxTypes("Existential Deposit", (context) => {
   let randomWeb3Account: Account;
   it("setup accounts", async function () {
+    context.web3.eth.sign
     randomWeb3Account = context.web3.eth.accounts.create("random");
     const { result, block } = await context.createBlock(
       createTransfer(context, randomWeb3Account.address, 10n * GLMR, {

@@ -50,6 +50,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@metamask/eth-sig-util": "^4.0.1",
     "@moonbeam-network/api-augment": "^0.1700.0",
     "@polkadot/api": "^8.8.2",
     "@polkadot/keyring": "^9.5.1",
@@ -64,6 +65,7 @@
     "chalk": "^4.0.1",
     "debug": "^4.3.2",
     "eth-object": "github:aurora-is-near/eth-object#master",
+    "eth-sig-util": "^3.0.1",
     "eth-util-lite": "1.0.1",
     "ethers": "^5.4.6",
     "merkle-patricia-tree": "^3.0.0",

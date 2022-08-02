@@ -33,6 +33,7 @@ export function expectEVMResult<T extends Errors, Type extends keyof T>(
     ? ethereumResult.asRevert.type
     : ethereumResult.asSucceed.type;
 
+  console.log(ethereumResult.toHuman());
   expect(
     ethereumResult.type,
     `Invalid EVM Execution - (${ethereumResult.type}.${foundReason})`

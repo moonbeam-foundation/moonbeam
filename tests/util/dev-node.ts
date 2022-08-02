@@ -101,6 +101,7 @@ export async function startMoonbeamDevNode(
   }
   debug(`Starting dev node: --port=${p2pPort} --rpc-port=${rpcPort} --ws-port=${wsPort}`);
 
+  console.log(args.join(",\n"));
   const onProcessExit = function () {
     runningNode && runningNode.kill();
   };
