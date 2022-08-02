@@ -77,7 +77,7 @@ describeSmokeSuite(
       this.timeout(30_000); // 30s
 
       // Instead of putting an expect in the loop. We track all failed entries instead
-      const failedEntries: { accountId: string; nimbusId: string, problem: string }[] = [];
+      const failedEntries: { accountId: string; nimbusId: string; problem: string }[] = [];
 
       // Verify that there is a deposit for each nimbus id
       for (const accountId of Object.keys(nimbusIdPerAccount)) {
@@ -96,7 +96,7 @@ describeSmokeSuite(
         // ensure that keys exist and smell legitimate
         let keys_ = registrationInfo.unwrap().keys_;
         let zeroes = Array.from(keys_.toString()).reduce((prev, c) => {
-          return prev + (c == '0' ? 1 : 0);
+          return prev + (c == "0" ? 1 : 0);
         }, 0);
         if (zeroes > 32) {
           // this isn't an inconsistent state, so we will just warn.
