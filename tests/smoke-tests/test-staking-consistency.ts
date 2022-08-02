@@ -32,6 +32,10 @@ describeSmokeSuite(`Verify staking consistency`, { wssUrl, relayWssUrl }, (conte
       delegation: ParachainStakingBond;
     }[];
   };
+  let minBlocksPerRound: number;
+  let minSelectedCandidates: number;
+  let totalSelectedCandidates: number;
+  let allSelectedCandidates: AccountId20[];
 
   before("Setup apiAt", async function () {
     // It takes time to load all the accounts.
@@ -70,6 +74,11 @@ describeSmokeSuite(`Verify staking consistency`, { wssUrl, relayWssUrl }, (conte
         }[];
       }
     );
+
+    minBlocksPerRound = apiAt.consts.parachainStaking.minBlocksPerRound.toNumber();
+    minSelectedCandidates = apiAt.consts.parachainStaking.minSelectedCandidates.toNumber();
+    totalSelectedCandidates = (await apiAt.query.parachainStaking.totalSelected()).toNumber();
+    allSelectedCandidates = await apiAt.query.parachainStaking.selectedCandidates();
   });
 
   it("candidate totalCounted matches top X delegations", async function () {
@@ -246,5 +255,40 @@ describeSmokeSuite(`Verify staking consistency`, { wssUrl, relayWssUrl }, (conte
         candidatePool.length
       } in the pool`
     );
+  });
+
+  it("round length is more than minimum selected candidate count", async function () {
+    expect(
+      minBlocksPerRound,
+      `blocks per round should be equal or more than the minimum selected candidate count`
+    ).to.be.greaterThanOrEqual(minSelectedCandidates);
+  });
+
+  it("total selected is more than minimum selected candidate count", async function () {
+    expect(
+      totalSelectedCandidates,
+      `blocks per round should be equal or more than the minimum selected candidate count`
+    ).to.be.greaterThanOrEqual(minSelectedCandidates);
+  });
+
+  it.skip("current selected candidates are more than minimum required", async function () {
+    expect(
+      allSelectedCandidates.length,
+      `selected candidate count was less than the minimum allowed of ${minSelectedCandidates}`
+    ).to.be.greaterThanOrEqual(minSelectedCandidates);
+  });
+
+  it("current selected candidates are less than or equal to stored total ", async function () {
+    expect(
+      allSelectedCandidates.length,
+      `selected candidate count was less than the minimum allowed of ${minSelectedCandidates}`
+    ).to.be.lessThanOrEqual(totalSelectedCandidates);
+  });
+
+  it("round length is more that current selected candidates", async function () {
+    expect(
+      minBlocksPerRound,
+      `blocks per round should be equal or more than the current selected candidates`
+    ).to.be.greaterThanOrEqual(allSelectedCandidates.length);
   });
 });
