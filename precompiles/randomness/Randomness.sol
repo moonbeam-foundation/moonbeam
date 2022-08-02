@@ -1,6 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity >=0.8.0;
 
+/**
+ * @author The Moonbeam Team
+ * @title Randomness Interface
+ * @dev The interface that provides different sources of randomness
+ * Address :    0x0000000000000000000000000000000000000809
+ */
+
 /// @dev Maximum number of random words being requested
 uint32 constant MAX_RANDOM_WORDS = 100;
 /// @dev Minimum number of blocks before a request can be fulfilled for Local VRF Request

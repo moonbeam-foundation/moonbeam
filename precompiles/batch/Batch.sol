@@ -1,10 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity >=0.8.0;
 
-/// @title Batch precompile
-/// Allows to perform multiple calls throught one call to the precompile.
-/// Can be used by EOA to do multiple calls in a single transaction.
-/// Address: 0x0000000000000000000000000000000000000808
+/**
+ * @author The Moonbeam Team
+ * @title Batch Precompile
+ * @dev Allows to perform multiple calls throught one call to the precompile. 
+ * Can be used by EOA to do multiple calls in a single transaction
+ * Address :    0x0000000000000000000000000000000000000808
+ */
+
 interface Batch {
     /// @dev Batch multiple calls into a single transaction.
     /// All calls are performed from the address calling this precompile.

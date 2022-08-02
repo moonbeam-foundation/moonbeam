@@ -3,7 +3,8 @@ pragma solidity >=0.8.0;
 
 /**
  * @author The Moonbeam Team
- * @title The interface through which solidity contracts will interact with Crowdloan Rewards
+ * @title Pallet Crowdloan Rewards Interface
+ * @dev The interface through which solidity contracts will interact with Crowdloan Rewards
  * We follow this same interface including four-byte function selectors, in the precompile that
  * wraps the pallet
  * Address :    0x0000000000000000000000000000000000000801

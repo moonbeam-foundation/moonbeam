@@ -2,8 +2,9 @@
 pragma solidity >=0.8.0;
 
 /**
+ * @author The Moonbeam Team
  * @title Xcm Transactor Interface
- * The interface through which solidity contracts will interact with xcm transactor pallet
+ * @dev The interface through which solidity contracts will interact with XCM  transactor pallet
  * Address :    0x0000000000000000000000000000000000000806
  */
 
