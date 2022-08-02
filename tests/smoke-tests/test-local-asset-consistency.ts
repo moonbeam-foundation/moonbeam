@@ -17,8 +17,8 @@ describeSmokeSuite(
   (context) => {
     let atBlockNumber: number = 0;
     let apiAt: ApiDecoration<"promise"> = null;
-    let localAssetDeposits: [StorageKey<[u128]>, Option<PalletAssetManagerAssetInfo>][] = null;
-    let localAssetInfo: [StorageKey<[u128]>, Option<PalletAssetsAssetDetails>][] = null;
+    let localAssetDeposits: StorageKey<[u128]>[] = null;
+    let localAssetInfo: StorageKey<[u128]>[] = null;
     let localAssetCounter: number = 0;
 
     before("Setup api & retrieve data", async function () {
@@ -31,9 +31,9 @@ describeSmokeSuite(
       apiAt = await context.polkadotApi.at(
         await context.polkadotApi.rpc.chain.getBlockHash(atBlockNumber)
       );
-      localAssetDeposits = await apiAt.query.assetManager.localAssetDeposit.entries();
+      localAssetDeposits = await apiAt.query.assetManager.localAssetDeposit.keys();
       localAssetCounter = await (await apiAt.query.assetManager.localAssetCounter()).toNumber();
-      localAssetInfo = await apiAt.query.localAssets.asset.entries();
+      localAssetInfo = await apiAt.query.assetManager.localAssetDeposit.keys();
     });
 
     it("should match asset deposit entries with number of assets", async function () {
@@ -62,8 +62,12 @@ describeSmokeSuite(
       // Instead of putting an expect in the loop. We track all failed entries instead
       const failedLocalAssets: { assetId: string }[] = [];
 
-      for (const assetId of Object.keys(localAssetDeposits)) {
-        if (localAssetInfo[assetId].isNone) {
+      const registeredLocalAssetDeposits = localAssetDeposits.map((set) => set.toHex().slice(-32));
+
+      const registeredLocalAssetInfos = localAssetInfo.map((set) => set.toHex().slice(-32));
+
+      for (const assetId of registeredLocalAssetDeposits) {
+        if (!registeredLocalAssetInfos.includes(assetId)) {
           failedLocalAssets.push({ assetId: assetId });
         }
       }
