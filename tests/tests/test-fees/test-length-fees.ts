@@ -10,7 +10,7 @@ describeDevMoonbeam(
   (context) => {
     it("should have low balance transfer fees", async () => {
       const fee = await testBalanceTransfer(context);
-      expect(fee).to.equal(20628901520875n);
+      expect(fee).to.equal(20958001520875n);
     });
   },
   "Legacy",
