@@ -733,16 +733,24 @@ fn test_send_through_derivative_with_custom_weight_and_fee() {
 			// Root can register
 			assert_ok!(XcmTransactor::register(Origin::root(), 1u64, 1));
 
-			// fee as destination are the same, this time it should work
+			// We are gonna use a total weight of 10_100, a tx weight of 100,
+			// and a total fee of 100
+			let total_weight = 10_100u64;
+			let tx_weight = 100_u64;
+			let total_fee = 100u128;
+
+			// By specifying total fee and total weight, we ensure
+			// that even if the transact_info is not populated,
+			// the message is forged with our parameters
 			assert_ok!(XcmTransactor::transact_through_derivative(
 				Origin::signed(1u64),
 				Transactors::Relay,
 				1,
 				CurrencyId::OtherReserve(0),
-				100u64,
+				tx_weight,
 				vec![1u8],
-				Some(100),
-				Some(10_100)
+				Some(total_fee),
+				Some(total_weight)
 			));
 			let expected = vec![
 				crate::Event::RegisteredDerivative {
@@ -760,19 +768,82 @@ fn test_send_through_derivative_with_custom_weight_and_fee() {
 			assert_eq!(events(), expected);
 			let sent_messages = mock::sent_xcm();
 			let (_, sent_message) = sent_messages.first().unwrap();
+			// Lets make sure the message is as expected
 			assert!(sent_message
 				.0
-				.contains(&WithdrawAsset((MultiLocation::here(), 100).into())));
+				.contains(&WithdrawAsset((MultiLocation::here(), total_fee).into())));
 			assert!(sent_message.0.contains(&BuyExecution {
-				fees: (MultiLocation::here(), 100).into(),
-				weight_limit: Limited(10_100),
+				fees: (MultiLocation::here(), total_fee).into(),
+				weight_limit: Limited(total_weight),
 			}));
 			assert!(sent_message.0.contains(&Transact {
 				origin_type: OriginKind::SovereignAccount,
-				require_weight_at_most: 100,
+				require_weight_at_most: tx_weight,
 				call: Transactors::Relay
 					.encode_call(UtilityAvailableCalls::AsDerivative(1, vec![1u8]))
 					.into(),
+			}));
+		})
+}
+
+#[test]
+fn test_send_through_sovereign_with_custom_weight_and_fee() {
+	ExtBuilder::default()
+		.with_balances(vec![])
+		.build()
+		.execute_with(|| {
+			// Root can register
+			assert_ok!(XcmTransactor::register(Origin::root(), 1u64, 1));
+
+			// We are gonna use a total weight of 10_100, a tx weight of 100,
+			// and a total fee of 100
+			let total_weight = 10_100u64;
+			let tx_weight = 100_u64;
+			let total_fee = 100u128;
+
+			// By specifying total fee and total weight, we ensure
+			// that even if the transact_info is not populated,
+			// the message is forged with our parameters
+
+			// fee as destination are the same, this time it should work
+			assert_ok!(XcmTransactor::transact_through_sovereign(
+				Origin::root(),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				1u64,
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				tx_weight,
+				vec![1u8],
+				OriginKind::SovereignAccount,
+				Some(total_fee),
+				Some(total_weight)
+			));
+
+			let expected = vec![
+				crate::Event::RegisteredDerivative {
+					account_id: 1u64,
+					index: 1,
+				},
+				crate::Event::TransactedSovereign {
+					fee_payer: 1u64,
+					dest: MultiLocation::parent(),
+					call: vec![1u8],
+				},
+			];
+			assert_eq!(events(), expected);
+			let sent_messages = mock::sent_xcm();
+			let (_, sent_message) = sent_messages.first().unwrap();
+			// Lets make sure the message is as expected
+			assert!(sent_message
+				.0
+				.contains(&WithdrawAsset((MultiLocation::here(), total_fee).into())));
+			assert!(sent_message.0.contains(&BuyExecution {
+				fees: (MultiLocation::here(), total_fee).into(),
+				weight_limit: Limited(total_weight),
+			}));
+			assert!(sent_message.0.contains(&Transact {
+				origin_type: OriginKind::SovereignAccount,
+				require_weight_at_most: tx_weight,
+				call: vec![1u8].into(),
 			}));
 		})
 }
