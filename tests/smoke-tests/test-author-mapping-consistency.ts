@@ -77,14 +77,34 @@ describeSmokeSuite(
       this.timeout(30_000); // 30s
 
       // Instead of putting an expect in the loop. We track all failed entries instead
-      const failedEntries: { accountId: string; nimbusId: string }[] = [];
+      const failedEntries: { accountId: string; nimbusId: string, problem: string }[] = [];
 
       // Verify that there is a deposit for each nimbus id
       for (const accountId of Object.keys(nimbusIdPerAccount)) {
         const nimbusId = nimbusIdPerAccount[accountId];
         let registrationInfo = await apiAt.query.authorMapping.mappingWithDeposit(nimbusId);
         if (registrationInfo.isNone || registrationInfo.unwrap().deposit.toBigInt() <= BigInt(0)) {
-          failedEntries.push({ accountId, nimbusId });
+          failedEntries.push({ accountId, nimbusId, problem: "missing deposit" });
+        }
+
+        // ensure each account has reserve >= deposit
+        let account = await apiAt.query.system.account(accountId);
+        if (registrationInfo.unwrap().deposit.toBigInt() > account.data.reserved.toBigInt()) {
+          failedEntries.push({ accountId, nimbusId, problem: "insufficient reserved amount" });
+        }
+
+        // ensure that keys exist and smell legitimate
+        let keys_ = registrationInfo.unwrap().keys_;
+        let zeroes = Array.from(keys_.toString()).reduce((prev, c) => {
+          return prev + (c == '0' ? 1 : 0);
+        }, 0);
+        if (zeroes > 32) {
+          // this isn't an inconsistent state, so we will just warn.
+          //
+          // we could also check whether this account exists as a collator candidate, as the
+          // combination of bogus keys and being an eligible author would mean the candidate could
+          // never produce a block when `pallet_randomness` is enabled for the runtime
+          console.log(`Warning: AuthorMapping ${accountId} exists with suspicious keys: ${keys_}`);
         }
       }
 
@@ -92,9 +112,8 @@ describeSmokeSuite(
       console.log("Failed accounts without deposit:");
       console.log(
         failedEntries
-          .map(({ accountId, nimbusId }) => {
-            return `accountId: ${accountId}
-            not have any deposit for registered association to nimbusId: ${nimbusId}`;
+          .map(({ accountId, nimbusId, problem }) => {
+            return `accountId: ${accountId}, problem: ${problem}`;
           })
           .join(`\n`)
       );
