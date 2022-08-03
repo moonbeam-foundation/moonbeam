@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::{Call, Config, Pallet, TransactWeights};
+use crate::{Call, Config, Currency, CurrencyPayment, Pallet, TransactWeights};
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
 use frame_system::RawOrigin;
 use sp_std::boxed::Box;
@@ -88,7 +88,7 @@ benchmarks! {
 		assert_eq!(Pallet::<T>::dest_asset_fee_per_second(&location), Some(fee_per_second));
 	}
 
-	transact_through_signed_multilocation {
+	transact_through_signed {
 		let fee_per_second = 1;
 		let extra_weight = 300000000u64;
 		let max_weight = 20000000000u64;
@@ -111,9 +111,11 @@ benchmarks! {
 	}: _(
 		RawOrigin::Signed(user.clone()),
 		Box::new(xcm::VersionedMultiLocation::V1(location.clone())),
-		Box::new(xcm::VersionedMultiLocation::V1(location.clone())),
+		CurrencyPayment {
+			currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V1(location.clone()))),
+			fee_amount: None
+		},
 		call,
-		None,
 		TransactWeights { transact_weight: dest_weight, overall_weight: None }
 	)
 }

@@ -57,13 +57,17 @@ fn test_transact_through_derivative_errors() {
 		.execute_with(|| {
 			// Non-claimed index so cannot transfer
 			assert_noop!(
-				XcmTransactor::transact_through_derivative_multilocation(
+				XcmTransactor::transact_through_derivative(
 					Origin::signed(1u64),
 					Transactors::Relay,
 					1,
-					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+					CurrencyPayment {
+						currency: Currency::AsMultiLocation(Box::new(
+							xcm::VersionedMultiLocation::V1(MultiLocation::parent())
+						)),
+						fee_amount: None
+					},
 					vec![0u8],
-					None,
 					TransactWeights {
 						transact_weight: 100u64,
 						overall_weight: None
@@ -77,16 +81,17 @@ fn test_transact_through_derivative_errors() {
 
 			// TransactInfo not yet set
 			assert_noop!(
-				XcmTransactor::transact_through_derivative_multilocation(
+				XcmTransactor::transact_through_derivative(
 					Origin::signed(1u64),
 					Transactors::Relay,
 					1,
-					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::new(
-						1,
-						Junctions::X1(Junction::Parachain(1000))
-					))),
+					CurrencyPayment {
+						currency: Currency::AsMultiLocation(Box::new(
+							xcm::VersionedMultiLocation::V1(MultiLocation::parent())
+						)),
+						fee_amount: None
+					},
 					vec![0u8],
-					None,
 					TransactWeights {
 						transact_weight: 100u64,
 						overall_weight: None
@@ -106,16 +111,17 @@ fn test_transact_through_derivative_errors() {
 
 			// TransactInfo present, but FeePerSecond not set
 			assert_noop!(
-				XcmTransactor::transact_through_derivative_multilocation(
+				XcmTransactor::transact_through_derivative(
 					Origin::signed(1u64),
 					Transactors::Relay,
 					1,
-					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::new(
-						1,
-						Junctions::X1(Junction::Parachain(1000))
-					))),
+					CurrencyPayment {
+						currency: Currency::AsMultiLocation(Box::new(
+							xcm::VersionedMultiLocation::V1(MultiLocation::parent())
+						)),
+						fee_amount: None
+					},
 					vec![0u8],
-					None,
 					TransactWeights {
 						transact_weight: 100u64,
 						overall_weight: None
@@ -136,16 +142,20 @@ fn test_transact_through_derivative_errors() {
 
 			// TransactInfo present, but the asset is not a reserve of dest
 			assert_noop!(
-				XcmTransactor::transact_through_derivative_multilocation(
+				XcmTransactor::transact_through_derivative(
 					Origin::signed(1u64),
 					Transactors::Relay,
 					1,
-					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::new(
-						1,
-						Junctions::X1(Junction::Parachain(1000))
-					))),
+					CurrencyPayment {
+						currency: Currency::AsMultiLocation(Box::new(
+							xcm::VersionedMultiLocation::V1(MultiLocation::new(
+								1,
+								Junctions::X1(Junction::Parachain(1000))
+							))
+						)),
+						fee_amount: None
+					},
 					vec![0u8],
-					None,
 					TransactWeights {
 						transact_weight: 100u64,
 						overall_weight: None
@@ -163,13 +173,17 @@ fn test_transact_through_derivative_errors() {
 
 			// Cannot exceed the max weight
 			assert_noop!(
-				XcmTransactor::transact_through_derivative_multilocation(
+				XcmTransactor::transact_through_derivative(
 					Origin::signed(1u64),
 					Transactors::Relay,
 					1,
-					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+					CurrencyPayment {
+						currency: Currency::AsMultiLocation(Box::new(
+							xcm::VersionedMultiLocation::V1(MultiLocation::parent())
+						)),
+						fee_amount: None
+					},
 					vec![0u8],
-					None,
 					TransactWeights {
 						transact_weight: 10000u64,
 						overall_weight: None
@@ -206,13 +220,17 @@ fn test_transact_through_derivative_multilocation_success() {
 			));
 
 			// fee as destination are the same, this time it should work
-			assert_ok!(XcmTransactor::transact_through_derivative_multilocation(
+			assert_ok!(XcmTransactor::transact_through_derivative(
 				Origin::signed(1u64),
 				Transactors::Relay,
 				1,
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				CurrencyPayment {
+					currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V1(
+						MultiLocation::parent()
+					))),
+					fee_amount: None
+				},
 				vec![1u8],
-				None,
 				TransactWeights {
 					transact_weight: 100u64,
 					overall_weight: None
@@ -277,9 +295,11 @@ fn test_transact_through_derivative_success() {
 				Origin::signed(1u64),
 				Transactors::Relay,
 				1,
-				CurrencyId::OtherReserve(0),
+				CurrencyPayment {
+					currency: Currency::AsCurrencyId(CurrencyId::OtherReserve(0)),
+					fee_amount: None
+				},
 				vec![1u8],
-				None,
 				TransactWeights {
 					transact_weight: 100u64,
 					overall_weight: None
@@ -326,10 +346,14 @@ fn test_root_can_transact_through_sovereign() {
 					Origin::signed(1),
 					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 					1u64,
-					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+					CurrencyPayment {
+						currency: Currency::AsMultiLocation(Box::new(
+							xcm::VersionedMultiLocation::V1(MultiLocation::parent())
+						)),
+						fee_amount: None
+					},
 					vec![1u8],
 					OriginKind::SovereignAccount,
-					None,
 					TransactWeights {
 						transact_weight: 100u64,
 						overall_weight: None
@@ -359,10 +383,14 @@ fn test_root_can_transact_through_sovereign() {
 				Origin::root(),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				1u64,
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				CurrencyPayment {
+					currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V1(
+						MultiLocation::parent()
+					))),
+					fee_amount: None
+				},
 				vec![1u8],
 				OriginKind::SovereignAccount,
-				None,
 				TransactWeights {
 					transact_weight: 100u64,
 					overall_weight: None
@@ -499,9 +527,11 @@ fn test_transact_through_signed_fails_if_transact_info_not_set_at_all() {
 				XcmTransactor::transact_through_signed(
 					Origin::signed(1u64),
 					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-					CurrencyId::OtherReserve(0),
+					CurrencyPayment {
+						currency: Currency::AsCurrencyId(CurrencyId::OtherReserve(0)),
+						fee_amount: None
+					},
 					vec![1u8],
-					None,
 					TransactWeights {
 						transact_weight: 100u64,
 						overall_weight: None
@@ -532,9 +562,11 @@ fn test_transact_through_signed_fails_if_weight_is_not_set() {
 				XcmTransactor::transact_through_signed(
 					Origin::signed(1u64),
 					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-					CurrencyId::OtherReserve(0),
+					CurrencyPayment {
+						currency: Currency::AsCurrencyId(CurrencyId::OtherReserve(0)),
+						fee_amount: None
+					},
 					vec![1u8],
-					None,
 					TransactWeights {
 						transact_weight: 100u64,
 						overall_weight: None
@@ -565,11 +597,13 @@ fn test_transact_through_signed_fails_if_weight_overflows() {
 				XcmTransactor::transact_through_signed(
 					Origin::signed(1u64),
 					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-					CurrencyId::OtherReserve(0),
+					CurrencyPayment {
+						currency: Currency::AsCurrencyId(CurrencyId::OtherReserve(0)),
+						fee_amount: None
+					},
 					vec![1u8],
-					None,
 					TransactWeights {
-						transact_weight: 100u64,
+						transact_weight: 10064,
 						overall_weight: None
 					}
 				),
@@ -598,9 +632,11 @@ fn test_transact_through_signed_fails_if_weight_is_bigger_than_max_weight() {
 				XcmTransactor::transact_through_signed(
 					Origin::signed(1u64),
 					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-					CurrencyId::OtherReserve(0),
+					CurrencyPayment {
+						currency: Currency::AsCurrencyId(CurrencyId::OtherReserve(0)),
+						fee_amount: None
+					},
 					vec![1u8],
-					None,
 					TransactWeights {
 						transact_weight: 100000u64,
 						overall_weight: None
@@ -631,9 +667,11 @@ fn test_transact_through_signed_fails_if_fee_per_second_not_set() {
 				XcmTransactor::transact_through_signed(
 					Origin::signed(1u64),
 					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-					CurrencyId::OtherReserve(0),
+					CurrencyPayment {
+						currency: Currency::AsCurrencyId(CurrencyId::OtherReserve(0)),
+						fee_amount: None
+					},
 					vec![1u8],
-					None,
 					TransactWeights {
 						transact_weight: 100u64,
 						overall_weight: None
@@ -671,9 +709,11 @@ fn test_transact_through_signed_works() {
 			assert_ok!(XcmTransactor::transact_through_signed(
 				Origin::signed(1u64),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-				CurrencyId::OtherReserve(0),
+				CurrencyPayment {
+					currency: Currency::AsCurrencyId(CurrencyId::OtherReserve(0)),
+					fee_amount: None
+				},
 				vec![1u8],
-				None,
 				TransactWeights {
 					transact_weight: 100u64,
 					overall_weight: None
@@ -776,9 +816,11 @@ fn test_send_through_derivative_with_custom_weight_and_fee() {
 				Origin::signed(1u64),
 				Transactors::Relay,
 				1,
-				CurrencyId::OtherReserve(0),
+				CurrencyPayment {
+					currency: Currency::AsCurrencyId(CurrencyId::OtherReserve(0)),
+					fee_amount: Some(total_fee)
+				},
 				vec![1u8],
-				Some(total_fee),
 				TransactWeights {
 					transact_weight: tx_weight,
 					overall_weight: Some(total_weight)
@@ -842,10 +884,14 @@ fn test_send_through_sovereign_with_custom_weight_and_fee() {
 				Origin::root(),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				1u64,
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				CurrencyPayment {
+					currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V1(
+						MultiLocation::parent()
+					))),
+					fee_amount: Some(total_fee)
+				},
 				vec![1u8],
 				OriginKind::SovereignAccount,
-				Some(total_fee),
 				TransactWeights {
 					transact_weight: tx_weight,
 					overall_weight: Some(total_weight)
