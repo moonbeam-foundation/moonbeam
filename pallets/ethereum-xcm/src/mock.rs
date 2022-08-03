@@ -233,15 +233,11 @@ impl pallet_proxy::Config for Test {
 }
 
 pub struct EthereumXcmEnsureProxy;
-impl xcm_primitives::EnsureProxy<AccountId20> for EthereumXcmEnsureProxy {
-	fn ensure_ok(delegator: AccountId20, delegatee: AccountId20) -> Result<(), &'static str> {
-		Proxy::find_proxy(
-			&HashedAddressMapping::into_account_id(delegator.into()),
-			&HashedAddressMapping::into_account_id(delegatee.into()),
-			Some(ProxyType::EthereumXcmProxy),
-		)
-		.map(|_| ())
-		.map_err(|_| "proxy error: expected `ProxyType::EthereumXcmProxy`")
+impl xcm_primitives::EnsureProxy<AccountId32> for EthereumXcmEnsureProxy {
+	fn ensure_ok(delegator: AccountId32, delegatee: AccountId32) -> Result<(), &'static str> {
+		Proxy::find_proxy(&delegator, &delegatee, Some(ProxyType::EthereumXcmProxy))
+			.map(|_| ())
+			.map_err(|_| "proxy error: expected `ProxyType::EthereumXcmProxy`")
 	}
 }
 

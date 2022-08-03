@@ -40,11 +40,10 @@ use frame_support::{
 	weights::{Pays, PostDispatchInfo, Weight},
 };
 use frame_system::pallet_prelude::OriginFor;
-use pallet_evm::GasWeightMapping;
+use pallet_evm::{AddressMapping, GasWeightMapping};
 use sp_runtime::{traits::UniqueSaturatedInto, RuntimeDebug};
 use sp_std::{marker::PhantomData, prelude::*};
 
-use account::AccountId20;
 pub use ethereum::{
 	AccessListItem, BlockV2 as Block, LegacyTransactionMessage, Log, ReceiptV3 as Receipt,
 	TransactionAction, TransactionV2 as Transaction,
@@ -101,7 +100,7 @@ pub mod pallet {
 		/// Maximum Weight reserved for xcm in a block
 		type ReservedXcmpWeight: Get<Weight>;
 		/// Ensure proxy
-		type EnsureProxy: EnsureProxy<AccountId20>;
+		type EnsureProxy: EnsureProxy<Self::AccountId>;
 	}
 
 	#[pallet::pallet]
@@ -145,14 +144,16 @@ pub mod pallet {
 			xcm_transaction: EthereumXcmTransaction,
 		) -> DispatchResultWithPostInfo {
 			let source = T::XcmEthereumOrigin::ensure_origin(origin)?;
-			let _ = T::EnsureProxy::ensure_ok(source.into(), transact_as.into()).map_err(|e| {
-				sp_runtime::DispatchErrorWithPostInfo {
-					post_info: PostDispatchInfo {
-						actual_weight: Some(T::DbWeight::get().reads(1)),
-						pays_fee: Pays::Yes,
-					},
-					error: sp_runtime::DispatchError::Other(e),
-				}
+			let _ = T::EnsureProxy::ensure_ok(
+				T::AddressMapping::into_account_id(source),
+				T::AddressMapping::into_account_id(transact_as),
+			)
+			.map_err(|e| sp_runtime::DispatchErrorWithPostInfo {
+				post_info: PostDispatchInfo {
+					actual_weight: Some(T::DbWeight::get().reads(1)),
+					pays_fee: Pays::Yes,
+				},
+				error: sp_runtime::DispatchError::Other(e),
 			})?;
 
 			Self::validate_and_apply(transact_as, xcm_transaction)
