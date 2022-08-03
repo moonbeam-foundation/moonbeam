@@ -162,6 +162,13 @@ pub mod pallet {
 		pub transact_extra_weight_signed: Option<Weight>,
 	}
 
+	/// Struct tindicating information about transact weights
+	#[derive(Default, Clone, Encode, Decode, RuntimeDebug, PartialEq, scale_info::TypeInfo)]
+	pub struct TransactWeights {
+		pub transact_weight: Weight,
+		pub overall_weight: Option<Weight>,
+	}
+
 	/// Since we are using pallet-utility for account derivation (through AsDerivative),
 	/// we need to provide an index for the account derivation. This storage item stores the index
 	/// assigned for a given local account. These indices are usable as derivative in the relay chain
@@ -321,7 +328,7 @@ pub mod pallet {
 				&fee_location,
 				index,
 				&dest,
-				transact_dest_weight,
+				&weight_info.transact_weight,
 				inner_call
 			)
 		)]
@@ -330,10 +337,9 @@ pub mod pallet {
 			dest: T::Transactor,
 			index: u16,
 			fee_location: Box<VersionedMultiLocation>,
-			transact_dest_weight: Weight,
 			inner_call: Vec<u8>,
 			fee_amount: Option<u128>,
-			overall_weight: Option<Weight>,
+			weight_info: TransactWeights,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
@@ -357,11 +363,10 @@ pub mod pallet {
 				dest.clone(),
 				who.clone(),
 				fee_location,
-				transact_dest_weight,
 				call_bytes.clone(),
 				OriginKind::SovereignAccount,
 				fee_amount,
-				overall_weight,
+				weight_info,
 			)?;
 
 			// Deposit event
@@ -385,7 +390,7 @@ pub mod pallet {
 				&fee_currency_id,
 				index,
 				&dest,
-				transact_dest_weight,
+				&weight_info.transact_weight,
 				inner_call
 			)
 		)]
@@ -394,10 +399,9 @@ pub mod pallet {
 			dest: T::Transactor,
 			index: u16,
 			fee_currency_id: T::CurrencyId,
-			transact_dest_weight: Weight,
 			inner_call: Vec<u8>,
 			fee_amount: Option<u128>,
-			overall_weight: Option<Weight>,
+			weight_info: TransactWeights,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
@@ -423,11 +427,10 @@ pub mod pallet {
 				dest.clone(),
 				who.clone(),
 				fee_location,
-				transact_dest_weight,
 				call_bytes.clone(),
 				OriginKind::SovereignAccount,
 				fee_amount,
-				overall_weight,
+				weight_info,
 			)?;
 			// Deposit event
 			Self::deposit_event(Event::<T>::TransactedDerivative {
@@ -448,7 +451,7 @@ pub mod pallet {
 			Pallet::<T>::weight_of_transact_through_sovereign(
 				&fee_location,
 				&dest,
-				dest_weight,
+				&weight_info.transact_weight,
 				call,
 				*origin_kind
 			)
@@ -458,11 +461,10 @@ pub mod pallet {
 			dest: Box<VersionedMultiLocation>,
 			fee_payer: T::AccountId,
 			fee_location: Box<VersionedMultiLocation>,
-			dest_weight: Weight,
 			call: Vec<u8>,
 			origin_kind: OriginKind,
 			fee_amount: Option<u128>,
-			overall_weight: Option<Weight>,
+			weight_info: TransactWeights,
 		) -> DispatchResult {
 			T::SovereignAccountDispatcherOrigin::ensure_origin(origin)?;
 
@@ -475,11 +477,10 @@ pub mod pallet {
 				dest.clone(),
 				fee_payer.clone(),
 				fee_location,
-				dest_weight,
 				call.clone(),
 				origin_kind,
 				fee_amount,
-				overall_weight,
+				weight_info,
 			)?;
 
 			// Deposit event
@@ -546,10 +547,9 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			dest: Box<VersionedMultiLocation>,
 			fee_currency_id: T::CurrencyId,
-			dest_weight: Weight,
 			call: Vec<u8>,
 			fee_amount: Option<u128>,
-			overall_weight: Option<Weight>,
+			weight_info: TransactWeights,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
@@ -564,11 +564,10 @@ pub mod pallet {
 				dest.clone(),
 				who.clone(),
 				fee_location,
-				dest_weight,
 				call.clone(),
 				OriginKind::SovereignAccount,
 				fee_amount,
-				overall_weight,
+				weight_info,
 			)?;
 
 			// Deposit event
@@ -591,10 +590,9 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			dest: Box<VersionedMultiLocation>,
 			fee_location: Box<VersionedMultiLocation>,
-			dest_weight: Weight,
 			call: Vec<u8>,
 			fee_amount: Option<u128>,
-			overall_weight: Option<Weight>,
+			weight_info: TransactWeights,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
@@ -607,11 +605,10 @@ pub mod pallet {
 				dest.clone(),
 				who.clone(),
 				fee_location,
-				dest_weight,
 				call.clone(),
 				OriginKind::SovereignAccount,
 				fee_amount,
-				overall_weight,
+				weight_info,
 			)?;
 
 			// Deposit event
@@ -668,17 +665,16 @@ pub mod pallet {
 			dest: MultiLocation,
 			fee_payer: T::AccountId,
 			fee_location: MultiLocation,
-			dest_weight: Weight,
 			call: Vec<u8>,
 			origin_kind: OriginKind,
 			fee_amount: Option<u128>,
-			overall_weight: Option<Weight>,
+			weight_info: TransactWeights,
 		) -> DispatchResult {
 			// Calculate the total weight that the xcm message is going to spend in the
 			// destination chain
-			let total_weight: u64 = overall_weight
-				.ok_or("")
-				.or_else(|_| Self::take_weight_from_transact_info(dest.clone(), dest_weight))?;
+			let total_weight: u64 = weight_info.overall_weight.ok_or("").or_else(|_| {
+				Self::take_weight_from_transact_info(dest.clone(), weight_info.transact_weight)
+			})?;
 
 			// Calculate fee based on FeePerSecond and total_weight
 			let fee = Self::calculate_fee(fee_location, fee_amount, total_weight)?;
@@ -705,7 +701,7 @@ pub mod pallet {
 				fee,
 				total_weight,
 				call,
-				dest_weight,
+				weight_info.transact_weight,
 				origin_kind,
 			)?;
 
@@ -719,16 +715,15 @@ pub mod pallet {
 			dest: MultiLocation,
 			fee_payer: T::AccountId,
 			fee_location: MultiLocation,
-			dest_weight: Weight,
 			call: Vec<u8>,
 			origin_kind: OriginKind,
 			fee_amount: Option<u128>,
-			overall_weight: Option<Weight>,
+			weight_info: TransactWeights,
 		) -> DispatchResult {
 			// Calculate the total weight that the xcm message is going to spend in the
 			// destination chain
 
-			let total_weight = overall_weight.unwrap_or({
+			let total_weight = weight_info.overall_weight.unwrap_or({
 				// Grab transact info for the fee loation provided
 				let transactor_info = TransactInfoWithWeightLimit::<T>::get(&dest)
 					.ok_or(Error::<T>::TransactorInfoNotSet)?;
@@ -739,7 +734,8 @@ pub mod pallet {
 					.transact_extra_weight_signed
 					.ok_or(Error::<T>::SignedTransactNotAllowedForDestination)?;
 
-				let total_weight = dest_weight
+				let total_weight = weight_info
+					.transact_weight
 					.checked_add(transact_in_dest_as_signed_weight)
 					.ok_or(Error::<T>::WeightOverflow)?;
 
@@ -767,7 +763,7 @@ pub mod pallet {
 				fee,
 				total_weight,
 				call,
-				dest_weight,
+				weight_info.transact_weight,
 				origin_kind,
 			)?;
 

@@ -62,10 +62,12 @@ fn test_transact_through_derivative_errors() {
 					Transactors::Relay,
 					1,
 					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-					100u64,
 					vec![0u8],
 					None,
-					None
+					TransactWeights {
+						transact_weight: 100u64,
+						overall_weight: None
+					}
 				),
 				Error::<Test>::UnclaimedIndex
 			);
@@ -83,10 +85,12 @@ fn test_transact_through_derivative_errors() {
 						1,
 						Junctions::X1(Junction::Parachain(1000))
 					))),
-					100u64,
 					vec![0u8],
 					None,
-					None
+					TransactWeights {
+						transact_weight: 100u64,
+						overall_weight: None
+					}
 				),
 				Error::<Test>::TransactorInfoNotSet
 			);
@@ -110,10 +114,12 @@ fn test_transact_through_derivative_errors() {
 						1,
 						Junctions::X1(Junction::Parachain(1000))
 					))),
-					100u64,
 					vec![0u8],
 					None,
-					None
+					TransactWeights {
+						transact_weight: 100u64,
+						overall_weight: None
+					}
 				),
 				Error::<Test>::FeePerSecondNotSet
 			);
@@ -138,10 +144,12 @@ fn test_transact_through_derivative_errors() {
 						1,
 						Junctions::X1(Junction::Parachain(1000))
 					))),
-					100u64,
 					vec![0u8],
 					None,
-					None
+					TransactWeights {
+						transact_weight: 100u64,
+						overall_weight: None
+					}
 				),
 				Error::<Test>::AssetIsNotReserveInDestination
 			);
@@ -160,10 +168,12 @@ fn test_transact_through_derivative_errors() {
 					Transactors::Relay,
 					1,
 					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-					10001u64,
 					vec![0u8],
 					None,
-					None
+					TransactWeights {
+						transact_weight: 10000u64,
+						overall_weight: None
+					}
 				),
 				Error::<Test>::MaxWeightTransactReached
 			);
@@ -201,10 +211,12 @@ fn test_transact_through_derivative_multilocation_success() {
 				Transactors::Relay,
 				1,
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-				100u64,
 				vec![1u8],
 				None,
-				None
+				TransactWeights {
+					transact_weight: 100u64,
+					overall_weight: None
+				}
 			));
 			let expected = vec![
 				crate::Event::RegisteredDerivative {
@@ -266,10 +278,12 @@ fn test_transact_through_derivative_success() {
 				Transactors::Relay,
 				1,
 				CurrencyId::OtherReserve(0),
-				100u64,
 				vec![1u8],
 				None,
-				None
+				TransactWeights {
+					transact_weight: 100u64,
+					overall_weight: None
+				}
 			));
 			let expected = vec![
 				crate::Event::RegisteredDerivative {
@@ -313,11 +327,13 @@ fn test_root_can_transact_through_sovereign() {
 					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 					1u64,
 					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-					100u64,
 					vec![1u8],
 					OriginKind::SovereignAccount,
 					None,
-					None
+					TransactWeights {
+						transact_weight: 100u64,
+						overall_weight: None
+					}
 				),
 				DispatchError::BadOrigin
 			);
@@ -344,11 +360,13 @@ fn test_root_can_transact_through_sovereign() {
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				1u64,
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-				100u64,
 				vec![1u8],
 				OriginKind::SovereignAccount,
 				None,
-				None
+				TransactWeights {
+					transact_weight: 100u64,
+					overall_weight: None
+				}
 			));
 
 			let expected = vec![
@@ -482,10 +500,12 @@ fn test_transact_through_signed_fails_if_transact_info_not_set_at_all() {
 					Origin::signed(1u64),
 					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 					CurrencyId::OtherReserve(0),
-					100u64,
 					vec![1u8],
 					None,
-					None
+					TransactWeights {
+						transact_weight: 100u64,
+						overall_weight: None
+					}
 				),
 				Error::<Test>::TransactorInfoNotSet
 			);
@@ -513,10 +533,12 @@ fn test_transact_through_signed_fails_if_weight_is_not_set() {
 					Origin::signed(1u64),
 					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 					CurrencyId::OtherReserve(0),
-					100u64,
 					vec![1u8],
 					None,
-					None
+					TransactWeights {
+						transact_weight: 100u64,
+						overall_weight: None
+					}
 				),
 				Error::<Test>::SignedTransactNotAllowedForDestination
 			);
@@ -544,10 +566,12 @@ fn test_transact_through_signed_fails_if_weight_overflows() {
 					Origin::signed(1u64),
 					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 					CurrencyId::OtherReserve(0),
-					100u64,
 					vec![1u8],
 					None,
-					None
+					TransactWeights {
+						transact_weight: 100u64,
+						overall_weight: None
+					}
 				),
 				Error::<Test>::WeightOverflow
 			);
@@ -575,10 +599,12 @@ fn test_transact_through_signed_fails_if_weight_is_bigger_than_max_weight() {
 					Origin::signed(1u64),
 					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 					CurrencyId::OtherReserve(0),
-					10000u64,
 					vec![1u8],
 					None,
-					None
+					TransactWeights {
+						transact_weight: 100000u64,
+						overall_weight: None
+					}
 				),
 				Error::<Test>::MaxWeightTransactReached
 			);
@@ -606,10 +632,12 @@ fn test_transact_through_signed_fails_if_fee_per_second_not_set() {
 					Origin::signed(1u64),
 					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 					CurrencyId::OtherReserve(0),
-					100u64,
 					vec![1u8],
 					None,
-					None
+					TransactWeights {
+						transact_weight: 100u64,
+						overall_weight: None
+					}
 				),
 				Error::<Test>::FeePerSecondNotSet
 			);
@@ -644,10 +672,12 @@ fn test_transact_through_signed_works() {
 				Origin::signed(1u64),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				CurrencyId::OtherReserve(0),
-				100u64,
 				vec![1u8],
 				None,
-				None
+				TransactWeights {
+					transact_weight: 100u64,
+					overall_weight: None
+				}
 			));
 
 			let expected = vec![
@@ -747,10 +777,12 @@ fn test_send_through_derivative_with_custom_weight_and_fee() {
 				Transactors::Relay,
 				1,
 				CurrencyId::OtherReserve(0),
-				tx_weight,
 				vec![1u8],
 				Some(total_fee),
-				Some(total_weight)
+				TransactWeights {
+					transact_weight: tx_weight,
+					overall_weight: Some(total_weight)
+				}
 			));
 			let expected = vec![
 				crate::Event::RegisteredDerivative {
@@ -811,11 +843,13 @@ fn test_send_through_sovereign_with_custom_weight_and_fee() {
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				1u64,
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-				tx_weight,
 				vec![1u8],
 				OriginKind::SovereignAccount,
 				Some(total_fee),
-				Some(total_weight)
+				TransactWeights {
+					transact_weight: tx_weight,
+					overall_weight: Some(total_weight)
+				}
 			));
 
 			let expected = vec![
