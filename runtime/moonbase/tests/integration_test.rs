@@ -140,6 +140,24 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonbase_runtime::CrowdloanRewards>("CrowdloanRewards");
 	is_pallet_prefix::<moonbase_runtime::AuthorMapping>("AuthorMapping");
 	is_pallet_prefix::<moonbase_runtime::MaintenanceMode>("MaintenanceMode");
+	is_pallet_prefix::<moonbase_runtime::Identity>("Identity");
+	is_pallet_prefix::<moonbase_runtime::XcmpQueue>("XcmpQueue");
+	is_pallet_prefix::<moonbase_runtime::CumulusXcm>("CumulusXcm");
+	is_pallet_prefix::<moonbase_runtime::DmpQueue>("DmpQueue");
+	is_pallet_prefix::<moonbase_runtime::PolkadotXcm>("PolkadotXcm");
+	is_pallet_prefix::<moonbase_runtime::Assets>("Assets");
+	is_pallet_prefix::<moonbase_runtime::XTokens>("XTokens");
+	is_pallet_prefix::<moonbase_runtime::AssetManager>("AssetManager");
+	is_pallet_prefix::<moonbase_runtime::Migrations>("Migrations");
+	is_pallet_prefix::<moonbase_runtime::XcmTransactor>("XcmTransactor");
+	is_pallet_prefix::<moonbase_runtime::ProxyGenesisCompanion>("ProxyGenesisCompanion");
+	is_pallet_prefix::<moonbase_runtime::BaseFee>("BaseFee");
+	is_pallet_prefix::<moonbase_runtime::LocalAssets>("LocalAssets");
+	is_pallet_prefix::<moonbase_runtime::MoonbeamOrbiters>("MoonbeamOrbiters");
+	is_pallet_prefix::<moonbase_runtime::EthereumXcm>("EthereumXcm");
+	is_pallet_prefix::<moonbase_runtime::Randomness>("Randomness");
+	is_pallet_prefix::<moonbase_runtime::TreasuryCouncilCollective>("TreasuryCouncilCollective");
+
 	let prefix = |pallet_name, storage_name| {
 		let mut res = [0u8; 32];
 		res[0..16].copy_from_slice(&Twox128::hash(pallet_name));
@@ -259,6 +277,12 @@ fn test_collectives_storage_item_prefixes() {
 	{
 		assert_eq!(pallet_name, b"TechCommitteeCollective".to_vec());
 	}
+
+	for StorageInfo { pallet_name, .. } in
+		<moonbase_runtime::TreasuryCouncilCollective as StorageInfoTrait>::storage_info()
+	{
+		assert_eq!(pallet_name, b"TreasuryCouncilCollective".to_vec());
+	}
 }
 
 #[test]
@@ -293,6 +317,23 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbase_runtime::AuthorMapping>(21);
 	is_pallet_index::<moonbase_runtime::Proxy>(22);
 	is_pallet_index::<moonbase_runtime::MaintenanceMode>(23);
+	is_pallet_index::<moonbase_runtime::Identity>(24);
+	is_pallet_index::<moonbase_runtime::XcmpQueue>(25);
+	is_pallet_index::<moonbase_runtime::CumulusXcm>(26);
+	is_pallet_index::<moonbase_runtime::DmpQueue>(27);
+	is_pallet_index::<moonbase_runtime::PolkadotXcm>(28);
+	is_pallet_index::<moonbase_runtime::Assets>(29);
+	is_pallet_index::<moonbase_runtime::XTokens>(30);
+	is_pallet_index::<moonbase_runtime::AssetManager>(31);
+	is_pallet_index::<moonbase_runtime::Migrations>(32);
+	is_pallet_index::<moonbase_runtime::XcmTransactor>(33);
+	is_pallet_index::<moonbase_runtime::ProxyGenesisCompanion>(34);
+	is_pallet_index::<moonbase_runtime::BaseFee>(35);
+	is_pallet_index::<moonbase_runtime::LocalAssets>(36);
+	is_pallet_index::<moonbase_runtime::MoonbeamOrbiters>(37);
+	is_pallet_index::<moonbase_runtime::EthereumXcm>(38);
+	is_pallet_index::<moonbase_runtime::Randomness>(39);
+	is_pallet_index::<moonbase_runtime::TreasuryCouncilCollective>(40);
 }
 
 #[test]
