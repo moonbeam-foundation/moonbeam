@@ -103,15 +103,30 @@ describeSmokeSuite(`Verify number of proxies per account`, { wssUrl, relayWssUrl
 
     let query = await apiAt.query.randomness.randomnessResults.entries();
     query.forEach(([key, results]) => {
-      console.log(`key: ${key}`);
-      /*
-      let type = ""; // TODO: type must be reconstructed from the "concat" part of the key
-      if (type.isBabeEpoch()) {
-        console.log("ignoring babe epoch request"); // TODO
-      } else if (type.isLocal()) {
-        console.log(`is local: ${type.asLocal()}`);
+      // offset is:
+      // * 2 for "0x"
+      // * 32 for module
+      // * 32 for method
+      // * 16 for the hashed part of the key: the twox64(someRequestType) part
+      // the remaining substr after offset is the concat part, which we can decode with createType
+      const offset = 2 + 32 + 32 + 16;
+      const requestTypeEncoded = key.toHex().slice(offset);
+      const requestType = context.polkadotApi.registry.createType(`PalletRandomnessRequestType`, "0x"+requestTypeEncoded);
+      
+      // sanity check
+      expect(
+        (requestType as any).isBabeEpoch || (requestType as any).isLocal,
+        "unexpected enum in encoded RequestType string"
+      );
+
+      if ((requestType as any).isBabeEpoch) {
+        let epoch = (requestType as any).asBabeEpoch;
+        console.log(`epoch: ${epoch}`);
+      } else {
+        let block = (requestType as any).asLocal;
+        console.log(`block: ${block}`);
       }
-      */
+
     });
   });
 
