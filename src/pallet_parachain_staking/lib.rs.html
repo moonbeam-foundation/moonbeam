@@ -1839,6 +1839,20 @@
 <span id="1834">1834</span>
 <span id="1835">1835</span>
 <span id="1836">1836</span>
+<span id="1837">1837</span>
+<span id="1838">1838</span>
+<span id="1839">1839</span>
+<span id="1840">1840</span>
+<span id="1841">1841</span>
+<span id="1842">1842</span>
+<span id="1843">1843</span>
+<span id="1844">1844</span>
+<span id="1845">1845</span>
+<span id="1846">1846</span>
+<span id="1847">1847</span>
+<span id="1848">1848</span>
+<span id="1849">1849</span>
+<span id="1850">1850</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -2011,6 +2025,8 @@
 		<span class="doccomment">/// Minimum stake for any registered on-chain account to be a delegator</span>
 		<span class="attribute">#[<span class="ident">pallet::constant</span>]</span>
 		<span class="kw">type</span> <span class="ident">MinDelegatorStk</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+		<span class="doccomment">/// Get the current block author</span>
+		<span class="kw">type</span> <span class="ident">BlockAuthor</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::AccountId</span><span class="op">&gt;</span>;
 		<span class="doccomment">/// Handler to notify the runtime when a collator is paid.</span>
 		<span class="doccomment">/// If you don&#39;t need it, you can specify the type `()`.</span>
 		<span class="kw">type</span> <span class="ident">OnCollatorPayout</span>: <span class="ident">OnCollatorPayout</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>;
@@ -2286,7 +2302,18 @@
 
 			<span class="ident">weight</span> <span class="op">=</span> <span class="ident">weight</span>.<span class="ident">saturating_add</span>(<span class="ident"><span class="self">Self</span>::handle_delayed_payouts</span>(<span class="ident">round</span>.<span class="ident">current</span>));
 
+			<span class="comment">// add on_finalize weight</span>
+			<span class="ident">weight</span> <span class="op">=</span> <span class="ident">weight</span>.<span class="ident">saturating_add</span>(
+				<span class="comment">// read Author, Points, AwardedPts</span>
+				<span class="comment">// write Points, AwardedPts</span>
+				<span class="ident">T::DbWeight::get</span>()
+					.<span class="ident">reads</span>(<span class="number">3</span>)
+					.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">writes</span>(<span class="number">2</span>)),
+			);
 			<span class="ident">weight</span>
+		}
+		<span class="kw">fn</span> <span class="ident">on_finalize</span>(<span class="ident">_n</span>: <span class="ident">T::BlockNumber</span>) {
+			<span class="ident"><span class="self">Self</span>::award_points_to_block_author</span>();
 		}
 	}
 
@@ -3654,8 +3681,9 @@
 
 	<span class="doccomment">/// Add reward points to block authors:</span>
 	<span class="doccomment">/// * 20 points to the block producer for producing a block in the chain</span>
-	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">nimbus_primitives::EventHandler</span><span class="op">&lt;</span><span class="ident">T::AccountId</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-		<span class="kw">fn</span> <span class="ident">note_author</span>(<span class="ident">author</span>: <span class="ident">T::AccountId</span>) {
+	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+		<span class="kw">fn</span> <span class="ident">award_points_to_block_author</span>() {
+			<span class="kw">let</span> <span class="ident">author</span> <span class="op">=</span> <span class="ident">T::BlockAuthor::get</span>();
 			<span class="kw">let</span> <span class="ident">now</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Round</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>().<span class="ident">current</span>;
 			<span class="kw">let</span> <span class="ident">score_plus_20</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">AwardedPts</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="ident">now</span>, <span class="kw-2">&amp;</span><span class="ident">author</span>).<span class="ident">saturating_add</span>(<span class="number">20</span>);
 			<span class="op">&lt;</span><span class="ident">AwardedPts</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="ident">now</span>, <span class="ident">author</span>, <span class="ident">score_plus_20</span>);
