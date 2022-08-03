@@ -253,9 +253,10 @@ fn test_ensure_transact_xcm_trough_proxy_error() {
 
 #[test]
 fn test_ensure_transact_xcm_trough_proxy_ok() {
-	let (pairs, mut ext) = new_test_ext(2);
+	let (pairs, mut ext) = new_test_ext(3);
 	let alice = &pairs[0];
 	let bob = &pairs[1];
+	let charlie = &pairs[2];
 
 	ext.execute_with(|| {
 		let _ = Proxy::add_proxy_delegate(
@@ -264,11 +265,32 @@ fn test_ensure_transact_xcm_trough_proxy_ok() {
 			ProxyType::EthereumXcmProxy,
 			0,
 		);
+		let alice_before = System::account(&alice.account_id);
+		let bob_before = System::account(&bob.account_id);
+		let charlie_before = System::account(&charlie.account_id);
+
 		let r = EthereumXcm::transact_through_proxy(
 			RawOrigin::XcmEthereumTransaction(alice.address).into(),
 			bob.address,
-			xcm_evm_transfer_eip_1559_transaction(bob.address, U256::from(100)),
+			xcm_evm_transfer_eip_1559_transaction(charlie.address, U256::from(100)),
 		);
+		// Transact succeeded
 		assert!(r.is_ok());
+
+		let alice_after = System::account(&alice.account_id);
+		let bob_after = System::account(&bob.account_id);
+		let charlie_after = System::account(&charlie.account_id);
+
+		// Alice remains unchanged
+		assert_eq!(alice_before, alice_after);
+
+		// Bob nonce was increased
+		assert_eq!(bob_after.nonce, bob_before.nonce + 1);
+
+		// Bob sent some funds without paying any fees
+		assert_eq!(bob_after.data.free, bob_before.data.free - 100);
+
+		// Charlie receive some funds
+		assert_eq!(charlie_after.data.free, charlie_before.data.free + 100);
 	});
 }
