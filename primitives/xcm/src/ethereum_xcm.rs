@@ -23,6 +23,10 @@ use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
 use sp_std::vec::Vec;
 
+pub trait EnsureProxy<AccountId> {
+	fn ensure_ok(delegator: AccountId, delegatee: AccountId) -> Result<(), &'static str>;
+}
+
 #[derive(Clone, Debug, Eq, PartialEq, Encode, Decode, TypeInfo)]
 /// Manually sets a gas fee.
 pub struct ManualEthereumXcmFee {

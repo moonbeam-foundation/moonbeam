@@ -204,3 +204,71 @@ fn test_transact_xcm_validation_works() {
 		);
 	});
 }
+
+#[test]
+fn test_ensure_transact_xcm_trough_no_proxy_error() {
+	let (pairs, mut ext) = new_test_ext(2);
+	let alice = &pairs[0];
+	let bob = &pairs[1];
+
+	ext.execute_with(|| {
+		let r = EthereumXcm::transact_through_proxy(
+			RawOrigin::XcmEthereumTransaction(alice.address).into(),
+			bob.address,
+			xcm_evm_transfer_eip_1559_transaction(bob.address, U256::from(100)),
+		);
+		assert!(r.is_err());
+		assert_eq!(
+			r.unwrap_err().error,
+			sp_runtime::DispatchError::Other("proxy error: expected `ProxyType::EthereumXcmProxy`"),
+		);
+	});
+}
+
+#[test]
+fn test_ensure_transact_xcm_trough_proxy_error() {
+	let (pairs, mut ext) = new_test_ext(2);
+	let alice = &pairs[0];
+	let bob = &pairs[1];
+
+	ext.execute_with(|| {
+		let _ = Proxy::add_proxy_delegate(
+			&alice.account_id,
+			bob.account_id.clone(),
+			ProxyType::NotAllowed,
+			0,
+		);
+		let r = EthereumXcm::transact_through_proxy(
+			RawOrigin::XcmEthereumTransaction(alice.address).into(),
+			bob.address,
+			xcm_evm_transfer_eip_1559_transaction(bob.address, U256::from(100)),
+		);
+		assert!(r.is_err());
+		assert_eq!(
+			r.unwrap_err().error,
+			sp_runtime::DispatchError::Other("proxy error: expected `ProxyType::EthereumXcmProxy`"),
+		);
+	});
+}
+
+#[test]
+fn test_ensure_transact_xcm_trough_proxy_ok() {
+	let (pairs, mut ext) = new_test_ext(2);
+	let alice = &pairs[0];
+	let bob = &pairs[1];
+
+	ext.execute_with(|| {
+		let _ = Proxy::add_proxy_delegate(
+			&alice.account_id,
+			bob.account_id.clone(),
+			ProxyType::EthereumXcmProxy,
+			0,
+		);
+		let r = EthereumXcm::transact_through_proxy(
+			RawOrigin::XcmEthereumTransaction(alice.address).into(),
+			bob.address,
+			xcm_evm_transfer_eip_1559_transaction(bob.address, U256::from(100)),
+		);
+		assert!(r.is_ok());
+	});
+}

@@ -11,6 +11,7 @@ version = "1.0.0-dev"
 targets = [ "x86_64-unknown-linux-gnu" ]
 
 [dependencies]
+account = { path = "../../primitives/account/", default-features = false }
 ethereum = { version = "0.12.0", default-features = false, features = [ "with-codec" ] }
 serde = { version = "1.0.137", optional = true }
 
@@ -39,6 +40,7 @@ xcm-primitives = { path = "../../primitives/xcm/", default-features = false }
 [dev-dependencies]
 pallet-ethereum = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.26" }
 pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.26" }
+pallet-proxy = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.26" }
 
 hex = "0.4.3"
 # Parity
