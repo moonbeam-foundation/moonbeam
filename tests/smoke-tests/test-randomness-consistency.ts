@@ -15,7 +15,6 @@ const wssUrl = process.env.WSS_URL || null;
 const relayWssUrl = process.env.RELAY_WSS_URL || null;
 
 describeSmokeSuite(`Verify number of proxies per account`, { wssUrl, relayWssUrl }, (context) => {
-
   let atBlockNumber: number = 0;
   let apiAt: ApiDecoration<"promise"> = null;
 
@@ -53,14 +52,14 @@ describeSmokeSuite(`Verify number of proxies per account`, { wssUrl, relayWssUrl
 
       // TEMPLATE: convert the data into the format you want (usually a dictionary per account)
       for (const request of query) {
-        const key = request[0].toString()
+        const key = request[0].toString();
 
         // requestId will be the last 8 bytes (16) nibbles but we need endianness swap
         expect(key.length >= 18, "storage key should be at least 64 bits"); // assumes "0x"
         const subkey = key.slice(-16);
         let idHex = "";
         for (let i = 0; i < subkey.length; i += 2) {
-          idHex += subkey.charAt(i+1);
+          idHex += subkey.charAt(i + 1);
           idHex += subkey.charAt(i);
         }
         // reverse
@@ -79,7 +78,7 @@ describeSmokeSuite(`Verify number of proxies per account`, { wssUrl, relayWssUrl
       }
     }
 
-    requestCount = (await apiAt.query.randomness.requestCount() as any).toNumber();
+    requestCount = ((await apiAt.query.randomness.requestCount()) as any).toNumber();
 
     // TEMPLATE: Adapt proxies
     debug(`Retrieved ${count} total proxies`);
@@ -114,16 +113,14 @@ describeSmokeSuite(`Verify number of proxies per account`, { wssUrl, relayWssUrl
       }
       */
     });
-
   });
 
   it("should have updated VRF output", async function () {
     this.timeout(10000);
 
     // we skip on if we aren't past the first block yet
-    const notFirstBlock = (await apiAt.query.randomness.notFirstBlock() as any).isSome;
+    const notFirstBlock = ((await apiAt.query.randomness.notFirstBlock()) as any).isSome;
     if (notFirstBlock) {
-
       expect(atBlockNumber).to.be.greaterThan(0); // should be true if notFirstBlock
       const apiAtPrev = await context.polkadotApi.at(
         await context.polkadotApi.rpc.chain.getBlockHash(atBlockNumber - 1)
@@ -134,9 +131,8 @@ describeSmokeSuite(`Verify number of proxies per account`, { wssUrl, relayWssUrl
       expect(currentOutput.eq(previousOutput)).to.be.false;
 
       // is cleared in on_finalize()
-      const inherentIncluded = (await apiAt.query.randomness.inherentIncluded() as any).isSome;
+      const inherentIncluded = ((await apiAt.query.randomness.inherentIncluded()) as any).isSome;
       expect(inherentIncluded).to.be.false;
     }
   });
 });
-
