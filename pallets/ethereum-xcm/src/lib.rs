@@ -145,8 +145,8 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let source = T::XcmEthereumOrigin::ensure_origin(origin)?;
 			let _ = T::EnsureProxy::ensure_ok(
-				T::AddressMapping::into_account_id(source),
 				T::AddressMapping::into_account_id(transact_as),
+				T::AddressMapping::into_account_id(source),
 			)
 			.map_err(|e| sp_runtime::DispatchErrorWithPostInfo {
 				post_info: PostDispatchInfo {

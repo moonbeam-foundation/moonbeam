@@ -253,8 +253,8 @@ fn test_ensure_transact_xcm_trough_proxy_error() {
 
 	ext.execute_with(|| {
 		let _ = Proxy::add_proxy_delegate(
-			&alice.account_id,
-			bob.account_id.clone(),
+			&bob.account_id,
+			alice.account_id.clone(),
 			ProxyType::NotAllowed,
 			0,
 		);
@@ -279,8 +279,8 @@ fn test_ensure_transact_xcm_trough_proxy_ok() {
 
 	ext.execute_with(|| {
 		let _ = Proxy::add_proxy_delegate(
-			&alice.account_id,
-			bob.account_id.clone(),
+			&bob.account_id,
+			alice.account_id.clone(),
 			ProxyType::EthereumXcmProxy,
 			0,
 		);
