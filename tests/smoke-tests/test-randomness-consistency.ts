@@ -1,5 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { ApiDecoration } from "@polkadot/api/types";
+import { hexToBigInt } from "@polkadot/util";
 import chalk from "chalk";
 import { expect } from "chai";
 import { printTokens } from "../util/logging";
@@ -52,21 +53,13 @@ describeSmokeSuite(`Verify number of proxies per account`, { wssUrl, relayWssUrl
 
       // TEMPLATE: convert the data into the format you want (usually a dictionary per account)
       for (const request of query) {
-        const key = request[0].toString();
-
-        // requestId will be the last 8 bytes (16) nibbles but we need endianness swap
+        const key = request[0].toHex();
         expect(key.length >= 18, "storage key should be at least 64 bits"); // assumes "0x"
-        const subkey = key.slice(-16);
-        let idHex = "";
-        for (let i = 0; i < subkey.length; i += 2) {
-          idHex += subkey.charAt(i + 1);
-          idHex += subkey.charAt(i);
-        }
-        // reverse
-        idHex = idHex.split("").reverse().join("");
-        const requestId = parseInt(idHex, 16);
 
-        requestIds.push(requestId);
+        const requestIdEncoded = key.slice(-16);
+        const requestId = hexToBigInt(requestIdEncoded, { isLe: true });
+
+        requestIds.push(Number(requestId));
         last_key = key;
       }
 
