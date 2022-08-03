@@ -479,6 +479,7 @@ impl pallet_scheduler::Config for Runtime {
 
 type CouncilInstance = pallet_collective::Instance1;
 type TechCommitteeInstance = pallet_collective::Instance2;
+type TreasuryCouncilInstance = pallet_collective::Instance3;
 
 impl pallet_collective::Config<CouncilInstance> for Runtime {
 	type Origin = Origin;
@@ -505,6 +506,21 @@ impl pallet_collective::Config<TechCommitteeInstance> for Runtime {
 	/// The maximum number of Proposlas that can be open in the technical committee at once.
 	type MaxProposals = ConstU32<100>;
 	/// The maximum number of technical committee members.
+	type MaxMembers = ConstU32<100>;
+	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
+	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
+}
+
+impl pallet_collective::Config<TreasuryCouncilInstance> for Runtime {
+	type Origin = Origin;
+	type Event = Event;
+	type Proposal = Call;
+	/// The maximum amount of time (in blocks) for treasury council members to vote on motions.
+	/// Motions may end in fewer blocks if enough votes are cast to determine the result.
+	type MotionDuration = ConstU32<{ 3 * DAYS }>;
+	/// The maximum number of Proposlas that can be open in the treasury council at once.
+	type MaxProposals = ConstU32<100>;
+	/// The maximum number of treasury council members.
 	type MaxMembers = ConstU32<100>;
 	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
 	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
@@ -1129,6 +1145,8 @@ construct_runtime! {
 			pallet_collective::<Instance1>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 70,
 		TechCommitteeCollective:
 			pallet_collective::<Instance2>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 71,
+		TreasuryCouncilCollective:
+			pallet_collective::<Instance3>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 72,
 
 		// Treasury stuff.
 		Treasury: pallet_treasury::{Pallet, Storage, Config, Event<T>, Call} = 80,
