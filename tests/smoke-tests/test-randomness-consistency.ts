@@ -111,8 +111,11 @@ describeSmokeSuite(`Verify number of proxies per account`, { wssUrl, relayWssUrl
       // the remaining substr after offset is the concat part, which we can decode with createType
       const offset = 2 + 32 + 32 + 16;
       const requestTypeEncoded = key.toHex().slice(offset);
-      const requestType = context.polkadotApi.registry.createType(`PalletRandomnessRequestType`, "0x"+requestTypeEncoded);
-      
+      const requestType = context.polkadotApi.registry.createType(
+        `PalletRandomnessRequestType`,
+        "0x" + requestTypeEncoded
+      );
+
       // sanity check
       expect(
         (requestType as any).isBabeEpoch || (requestType as any).isLocal,
@@ -126,7 +129,6 @@ describeSmokeSuite(`Verify number of proxies per account`, { wssUrl, relayWssUrl
         let block = (requestType as any).asLocal;
         console.log(`block: ${block}`);
       }
-
     });
   });
 
