@@ -20,7 +20,7 @@ describeSmokeSuite(`Verify number of proxies per account`, { wssUrl, relayWssUrl
   let atBlockNumber: number = 0;
   let apiAt: ApiDecoration<"promise"> = null;
 
-  const requests: { id: number, state: any}[] = [];
+  const requests: { id: number; state: any }[] = [];
   let numRequests: number = 0; // our own count
   let requestCount: number = 0; // from pallet storage
 
@@ -61,7 +61,7 @@ describeSmokeSuite(`Verify number of proxies per account`, { wssUrl, relayWssUrl
         const requestIdEncoded = key.slice(-16);
         const requestId = hexToBigInt(requestIdEncoded, { isLe: true });
 
-        requests.push({id: Number(requestId), state: request[1]});
+        requests.push({ id: Number(requestId), state: request[1] });
         numRequests += 1;
         last_key = key;
       }
@@ -132,7 +132,7 @@ describeSmokeSuite(`Verify number of proxies per account`, { wssUrl, relayWssUrl
           );
           const requestRequest = context.polkadotApi.registry.createType(
             "PalletRandomnessRequest",
-            (requestState as any).request.toHex(),
+            (requestState as any).request.toHex()
           );
           const requestInfo = context.polkadotApi.registry.createType(
             "PalletRandomnessRequestInfo",
