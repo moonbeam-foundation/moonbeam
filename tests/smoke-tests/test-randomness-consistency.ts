@@ -8,6 +8,7 @@ import { describeSmokeSuite } from "../util/setup-smoke-tests";
 
 // TEMPLATE: Remove useless types at the end
 import type { PalletProxyProxyDefinition } from "@polkadot/types/lookup";
+import { InferencePriority } from "typescript";
 
 // TEMPLATE: Replace debug name
 const debug = require("debug")("smoke:randomness");
@@ -19,8 +20,9 @@ describeSmokeSuite(`Verify number of proxies per account`, { wssUrl, relayWssUrl
   let atBlockNumber: number = 0;
   let apiAt: ApiDecoration<"promise"> = null;
 
-  const requestIds: number[] = [];
-  let requestCount: number = 0;
+  const requests: { id: number, state: any}[] = [];
+  let numRequests: number = 0; // our own count
+  let requestCount: number = 0; // from pallet storage
 
   before("Retrieve all requests", async function () {
     // It takes time to load all the proxies.
@@ -59,7 +61,8 @@ describeSmokeSuite(`Verify number of proxies per account`, { wssUrl, relayWssUrl
         const requestIdEncoded = key.slice(-16);
         const requestId = hexToBigInt(requestIdEncoded, { isLe: true });
 
-        requestIds.push(Number(requestId));
+        requests.push({id: Number(requestId), state: request[1]});
+        numRequests += 1;
         last_key = key;
       }
 
@@ -67,7 +70,7 @@ describeSmokeSuite(`Verify number of proxies per account`, { wssUrl, relayWssUrl
       // TEMPLATE: Adapt log line
       if (true || count % (10 * limit) == 0) {
         debug(`Retrieved ${count} requests`);
-        debug(`Array: ${requestIds}`);
+        debug(`Requests: ${requests}`);
       }
     }
 
@@ -80,14 +83,14 @@ describeSmokeSuite(`Verify number of proxies per account`, { wssUrl, relayWssUrl
   it("should have fewer Requests than RequestCount", async function () {
     this.timeout(10000);
 
-    const numOutstandingRequests = requestIds.length;
+    const numOutstandingRequests = numRequests;
     expect(numOutstandingRequests).to.be.lessThanOrEqual(requestCount);
   });
 
   it("should not have requestId above RequestCount", async function () {
     this.timeout(1000);
 
-    const highestId = requestIds.reduce((prev, id) => Math.max(id, prev), 0);
+    const highestId = requests.reduce((prev, request) => Math.max(request.id, prev), 0);
     expect(highestId).to.be.lessThanOrEqual(requestCount);
   });
 
@@ -95,7 +98,7 @@ describeSmokeSuite(`Verify number of proxies per account`, { wssUrl, relayWssUrl
     this.timeout(10000);
 
     let query = await apiAt.query.randomness.randomnessResults.entries();
-    query.forEach(([key, results]) => {
+    await query.forEach(([key, results]) => {
       // offset is:
       // * 2 for "0x"
       // * 32 for module
@@ -117,10 +120,32 @@ describeSmokeSuite(`Verify number of proxies per account`, { wssUrl, relayWssUrl
 
       if ((requestType as any).isBabeEpoch) {
         let epoch = (requestType as any).asBabeEpoch;
-        console.log(`epoch: ${epoch}`);
+        // TODO
       } else {
+        // look for any requests which depend on the "local" block
         let block = (requestType as any).asLocal;
-        console.log(`block: ${block}`);
+        let found = requests.find((request) => {
+          // TODO: can we traverse this hierarchy of types without creating each?
+          const requestState = context.polkadotApi.registry.createType(
+            "PalletRandomnessRequestState",
+            request.state.toHex()
+          );
+          const requestRequest = context.polkadotApi.registry.createType(
+            "PalletRandomnessRequest",
+            (requestState as any).request.toHex(),
+          );
+          const requestInfo = context.polkadotApi.registry.createType(
+            "PalletRandomnessRequestInfo",
+            (requestRequest as any).info
+          );
+          if ((requestInfo as any).isLocal) {
+            const local = (requestInfo as any).asLocal;
+            const requestBlock = local[0];
+            return requestBlock.eq(block);
+          }
+          return false;
+        });
+        expect(found).is.not.undefined;
       }
     });
   });
