@@ -386,6 +386,17 @@ fn set_babe_randomness_results_is_mandatory() {
 	assert_eq!(info.class, DispatchClass::Mandatory);
 }
 
+#[test]
+fn account_id_is_known() {
+	use core::str::FromStr;
+	// also a way to make this value searchable :)
+	assert_eq!(
+		Randomness::account_id(),
+		FromStr::from_str("0x6d6f646c6d6f6f6e72616e640000000000000000").unwrap(),
+	);
+	
+}
+
 // FINISH FULFILLMENT
 
 // finish fulfillment decrements randomness result and will remove it if last
