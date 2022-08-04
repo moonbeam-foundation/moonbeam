@@ -46,6 +46,7 @@ use pallet_parachain_staking::{
 	},
 	Config as ParachainStakingConfig,
 };
+use pallet_randomness::{migrations::RemoveNotFirstBlock, Config as RandomnessConfig};
 use pallet_xcm_transactor::{
 	migrations::TransactSignedWeightAndFeePerSecond, Config as XcmTransactorConfig,
 };
@@ -55,6 +56,30 @@ use xcm::latest::MultiLocation;
 
 /// This module acts as a registry where each migration is defined. Each migration should implement
 /// the "Migration" trait declared in the pallet-migrations crate.
+
+/// A moonbeam migration wrapping the similarly named migration in pallet-author-mapping
+pub struct RandomnessRemoveNotFirstBlock<T>(PhantomData<T>);
+impl<T: RandomnessConfig> Migration for RandomnessRemoveNotFirstBlock<T> {
+	fn friendly_name(&self) -> &str {
+		"MM_Randomness_RemoveNotFirstBlock"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		RemoveNotFirstBlock::<T>::on_runtime_upgrade()
+	}
+
+	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<(), &'static str> {
+		RemoveNotFirstBlock::<T>::pre_upgrade()
+	}
+
+	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self) -> Result<(), &'static str> {
+		RemoveNotFirstBlock::<T>::post_upgrade()
+	}
+}
 
 /// A moonbeam migration wrapping the similarly named migration in pallet-author-mapping
 pub struct AuthorMappingAddAccountIdToNimbusLookup<T>(PhantomData<T>);
@@ -628,6 +653,9 @@ where
 
 		// let xcm_supported_assets = XcmPaymentSupportedAssets::<Runtime>(Default::default());
 
+		let randomness_remove_not_first_block =
+			RandomnessRemoveNotFirstBlock::<Runtime>(Default::default());
+
 		vec![
 			// completed in runtime 800
 			// Box::new(migration_author_mapping_twox_to_blake),
@@ -665,6 +693,7 @@ where
 			// Box::new(migration_author_mapping_add_account_id_to_nimbus_lookup),
 			// completed in runtime 1600
 			// Box::new(xcm_transactor_transact_signed),
+			Box::new(randomness_remove_not_first_block),
 		]
 	}
 }
