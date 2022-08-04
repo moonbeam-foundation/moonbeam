@@ -45,31 +45,35 @@ describeDevMoonbeam("Treasury proposal #2", (context) => {
 });
 
 describeDevMoonbeam("Treasury proposal #3", (context) => {
-  it("should be rejected if three-fifths of the treasury council did not vote in favor", async function () {
-    // Ethan submit a treasurery proposal
+  // prettier-ignore
+  it(
+    "should be rejected if three-fifths of the treasury council did not vote in favor",
+    async function () {
+      // Ethan submit a treasurery proposal
 
-    await context.createBlock(
-      context.polkadotApi.tx.treasury.proposeSpend(10, baltathar.address).signAsync(ethan)
-    );
+      await context.createBlock(
+        context.polkadotApi.tx.treasury.proposeSpend(10, baltathar.address).signAsync(ethan)
+      );
 
-    // Verify that the proposal is submitted
-    let proposalCount = await context.polkadotApi.query.treasury.proposalCount();
-    expect(proposalCount.toHuman() === "1").to.equal(true, "new proposal should have been added");
+      // Verify that the proposal is submitted
+      let proposalCount = await context.polkadotApi.query.treasury.proposalCount();
+      expect(proposalCount.toHuman() === "1").to.equal(true, "new proposal should have been added");
 
-    // A council member attempts to approve the proposal on behalf of the council
-    // (must fail because there is not a quorum)
-    await context.createBlock(
-      context.polkadotApi.tx.treasuryCouncilCollective
-        .propose(1, context.polkadotApi.tx.treasury.approveProposal(0), 1_000)
-        .signAsync(charleth)
-    );
+      // A council member attempts to approve the proposal on behalf of the council
+      // (must fail because there is not a quorum)
+      await context.createBlock(
+        context.polkadotApi.tx.treasuryCouncilCollective
+          .propose(1, context.polkadotApi.tx.treasury.approveProposal(0), 1_000)
+          .signAsync(charleth)
+      );
 
-    // Verify that the proposal is not deleted
-    expect(await context.polkadotApi.query.treasury.proposals(0)).not.equal(
-      null,
-      "The proposal must not have been deleted"
-    );
-  });
+      // Verify that the proposal is not deleted
+      expect(await context.polkadotApi.query.treasury.proposals(0)).not.equal(
+        null,
+        "The proposal must not have been deleted"
+      );
+    }
+  );
 });
 
 describeDevMoonbeam("Treasury proposal #4", (context) => {
