@@ -418,10 +418,6 @@ macro_rules! impl_runtime_apis_plus_common {
 
 			impl session_keys_primitives::VrfApi<Block> for Runtime {
 				fn get_last_vrf_output() -> Option<<Block as BlockT>::Hash> {
-					// TODO: remove in future runtime upgrade along with storage item
-					if pallet_randomness::Pallet::<Self>::not_first_block().is_none() {
-						return None;
-					}
 					pallet_randomness::Pallet::<Self>::local_vrf_output()
 				}
 				fn vrf_key_lookup(
