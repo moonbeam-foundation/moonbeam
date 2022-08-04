@@ -463,24 +463,26 @@ pub mod pallet {
 							collator.clone(),
 							Option::<T::AccountId>::None,
 						);
+						writes += 1;
 						// Insert new current orbiter
 						AccountLookupOverride::<T>::insert(
 							next_orbiter.clone(),
 							Some(collator.clone()),
 						);
+						writes += 1;
 						for i in Zero::zero()..T::RotatePeriod::get() {
 							OrbiterPerRound::<T>::insert(
 								round_index.saturating_add(i),
 								collator.clone(),
 								next_orbiter.clone(),
 							);
+							writes += 1;
 						}
 						Self::deposit_event(Event::OrbiterRotation {
 							collator,
 							old_orbiter: maybe_old_orbiter.map(|orbiter| orbiter.account_id),
 							new_orbiter: Some(next_orbiter),
 						});
-						writes += 3;
 					} else {
 						// If there is no more active orbiter, you have to remove the collator override.
 						AccountLookupOverride::<T>::remove(collator.clone());
