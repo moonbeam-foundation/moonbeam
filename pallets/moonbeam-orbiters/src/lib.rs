@@ -27,6 +27,7 @@
 //! currently selected orbiter.
 
 #![cfg_attr(not(feature = "std"), no_std)]
+#![feature(step_trait)]
 
 pub mod types;
 pub mod weights;
@@ -51,7 +52,7 @@ pub mod pallet {
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{Currency, Imbalance, NamedReservableCurrency};
 	use frame_system::pallet_prelude::*;
-	use sp_runtime::traits::{CheckedSub, One, StaticLookup, Zero};
+	use sp_runtime::traits::{CheckedSub, One, Saturating, StaticLookup, Zero};
 
 	#[pallet::pallet]
 	#[pallet::without_storage_info]
@@ -102,7 +103,8 @@ pub mod pallet {
 			+ Default
 			+ sp_runtime::traits::MaybeDisplay
 			+ sp_runtime::traits::AtLeast32Bit
-			+ Copy;
+			+ Copy
+			+ core::iter::Step;
 
 		/// Weight information for extrinsics in this pallet.
 		type WeightInfo: WeightInfo;
@@ -466,11 +468,13 @@ pub mod pallet {
 							next_orbiter.clone(),
 							Some(collator.clone()),
 						);
-						OrbiterPerRound::<T>::insert(
-							round_index,
-							collator.clone(),
-							next_orbiter.clone(),
-						);
+						for i in Zero::zero()..T::RotatePeriod::get() {
+							OrbiterPerRound::<T>::insert(
+								round_index.saturating_add(i),
+								collator.clone(),
+								next_orbiter.clone(),
+							);
+						}
 						Self::deposit_event(Event::OrbiterRotation {
 							collator,
 							old_orbiter: maybe_old_orbiter.map(|orbiter| orbiter.account_id),
