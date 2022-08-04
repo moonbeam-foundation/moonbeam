@@ -639,9 +639,16 @@ impl pallet_ethereum::Config for Runtime {
 pub struct EthereumXcmEnsureProxy;
 impl xcm_primitives::EnsureProxy<AccountId> for EthereumXcmEnsureProxy {
 	fn ensure_ok(delegator: AccountId, delegatee: AccountId) -> Result<(), &'static str> {
-		Proxy::find_proxy(&delegator, &delegatee, Some(ProxyType::EthereumXcmProxy))
+		let f = |x: &pallet_proxy::ProxyDefinition<AccountId, ProxyType, BlockNumber>| -> bool {
+			x.delegate == delegatee
+				&& (x.proxy_type == ProxyType::Any || x.proxy_type == ProxyType::EthereumXcmProxy)
+		};
+		Ok(Proxy::proxies(delegator)
+			.0
+			.into_iter()
+			.find(f)
 			.map(|_| ())
-			.map_err(|_| "proxy error: expected `ProxyType::EthereumXcmProxy`")
+			.ok_or("proxy error: expected `ProxyType::EthereumXcmProxy | ProxyType::Any`")?)
 	}
 }
 
