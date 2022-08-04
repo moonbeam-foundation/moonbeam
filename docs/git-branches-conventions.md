@@ -28,7 +28,7 @@ release.
 
 To fix a bug in a release already published (in github releases page), please follow these steps:
 
-1. Create a release branche dedicated to the hotfix release, based on the tag of the last published
+1. Create a release branch dedicated to the hotfix release, based on the tag of the last published
 version.
 1. Push a commit that bump the version on the release branch.
 1. Submit a PR against `master` to fix the bug upstream.
