@@ -2414,7 +2414,6 @@ fn transact_through_signed_not_enabled() {
 		.build()
 		.execute_with(|| {
 			let source_location = AssetType::Xcm(MultiLocation::parent());
-			let source_id: moonbeam_runtime::AssetId = source_location.clone().into();
 
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
