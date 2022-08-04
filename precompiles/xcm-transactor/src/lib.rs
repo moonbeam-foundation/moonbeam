@@ -22,7 +22,9 @@
 use fp_evm::PrecompileHandle;
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use pallet_evm::{AddressMapping, PrecompileOutput};
-use pallet_xcm_transactor::RemoteTransactInfoWithMaxWeight;
+use pallet_xcm_transactor::{
+	Currency, CurrencyPayment, RemoteTransactInfoWithMaxWeight, TransactWeights,
+};
 use precompile_utils::prelude::*;
 use sp_core::H160;
 use sp_std::{
@@ -220,14 +222,21 @@ where
 		// Depending on the Runtime, this might involve a DB read. This is not the case in
 		// moonbeam, as we are using IdentityMapping
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call =
-			pallet_xcm_transactor::Call::<Runtime>::transact_through_derivative_multilocation {
-				dest: transactor,
-				index,
-				fee_location: Box::new(xcm::VersionedMultiLocation::V1(fee_multilocation)),
-				dest_weight: weight,
-				inner_call: inner_call.0,
-			};
+		let call = pallet_xcm_transactor::Call::<Runtime>::transact_through_derivative {
+			dest: transactor,
+			index,
+			fee: CurrencyPayment {
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V1(
+					fee_multilocation,
+				))),
+				fee_amount: None,
+			},
+			inner_call: inner_call.0,
+			weight_info: TransactWeights {
+				transact_weight: weight,
+				overall_weight: None,
+			},
+		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
@@ -270,8 +279,14 @@ where
 		let call = pallet_xcm_transactor::Call::<Runtime>::transact_through_derivative {
 			dest: transactor,
 			index,
-			currency_id,
-			dest_weight: weight,
+			fee: CurrencyPayment {
+				currency: Currency::AsCurrencyId(currency_id),
+				fee_amount: None,
+			},
+			weight_info: TransactWeights {
+				transact_weight: weight,
+				overall_weight: None,
+			},
 			inner_call: inner_call.0,
 		};
 
@@ -304,10 +319,18 @@ where
 		// Depending on the Runtime, this might involve a DB read. This is not the case in
 		// moonbeam, as we are using IdentityMapping
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = pallet_xcm_transactor::Call::<Runtime>::transact_through_signed_multilocation {
+		let call = pallet_xcm_transactor::Call::<Runtime>::transact_through_signed {
 			dest: Box::new(xcm::VersionedMultiLocation::V1(dest)),
-			fee_location: Box::new(xcm::VersionedMultiLocation::V1(fee_multilocation)),
-			dest_weight: weight,
+			fee: CurrencyPayment {
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V1(
+					fee_multilocation,
+				))),
+				fee_amount: None,
+			},
+			weight_info: TransactWeights {
+				transact_weight: weight,
+				overall_weight: None,
+			},
 			call: call.0,
 		};
 
@@ -350,8 +373,14 @@ where
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = pallet_xcm_transactor::Call::<Runtime>::transact_through_signed {
 			dest: Box::new(xcm::VersionedMultiLocation::V1(dest)),
-			fee_currency_id: currency_id,
-			dest_weight: weight,
+			fee: CurrencyPayment {
+				currency: Currency::AsCurrencyId(currency_id),
+				fee_amount: None,
+			},
+			weight_info: TransactWeights {
+				transact_weight: weight,
+				overall_weight: None,
+			},
 			call: call.0,
 		};
 
