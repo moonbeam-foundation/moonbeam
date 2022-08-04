@@ -125,7 +125,6 @@ where
 			let address = address.0;
 			let value = value.unwrap_or(U256::zero());
 			let call_data = call_data.unwrap_or(vec![]);
-			// let call_data = call_data.unwrap_or(BoundedBytes(vec![])).0;
 
 			let sub_context = Context {
 				caller: handle.context().caller,

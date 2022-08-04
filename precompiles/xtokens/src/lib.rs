@@ -50,7 +50,6 @@ pub type MaxAssetsForTransfer<Runtime> = <Runtime as orml_xtokens::Config>::MaxA
 
 pub type CurrencyIdOf<Runtime> = <Runtime as orml_xtokens::Config>::CurrencyId;
 
-// pub const ARRAY_LIMIT: usize = 512;
 struct GetMaxAssets<R>(PhantomData<R>);
 
 impl<R> Get<u32> for GetMaxAssets<R>
@@ -284,16 +283,6 @@ where
 		let non_mapped_currencies: BoundedVec<Currency, GetMaxAssets<Runtime>> = input.read()?;
 		let non_mapped_currencies = non_mapped_currencies.into_vec();
 
-		// Now checked using BoundedVec.
-		// TODO: Improve error message customization.
-
-		// // We check this here so that we avoid iterating over the vec
-		// // if the len is more than the max permitted
-		// ensure!(
-		// 	max_assets >= non_mapped_currencies.len(),
-		// 	revert("More than max number of assets given")
-		// );
-
 		let fee_item: u32 = input.read::<u32>()?;
 
 		// read destination
@@ -348,16 +337,6 @@ where
 		input.expect_arguments(4)?;
 		let assets: BoundedVec<EvmMultiAsset, GetMaxAssets<Runtime>> = input.read()?;
 		let assets = assets.into_vec();
-
-		// Now checked using BoundedVec.
-		// TODO: Improve error message customization.
-
-		// // We check this here so that we avoid iterating over the vec
-		// // if the len is more than the max permitted
-		// ensure!(
-		// 	max_assets >= assets.len(),
-		// 	revert("More than max number of assets given")
-		// );
 
 		let fee_item: u32 = input.read::<u32>()?;
 
