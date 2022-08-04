@@ -207,7 +207,45 @@ fn take_fee_per_second() {
 }
 
 #[test]
-fn test_transactor_multilocation() {
+fn test_transact_derivative_multilocation_custom_fee_and_weight() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			// register index
+			assert_ok!(XcmTransactor::register(Origin::root(), Alice.into(), 0));
+
+			// we pay with our current self reserve.
+			let fee_payer_asset = MultiLocation::parent();
+
+			let bytes = Bytes(vec![1u8, 2u8, 3u8]);
+
+			let total_weight = 1_000_000_000u64;
+			// We are transferring asset 0, which we have instructed to be the relay asset
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile,
+					EvmDataWriter::new_with_selector(
+						Action::TransactThroughDerivativeMultiLocationCustomFeeAndWeight,
+					)
+					.write(0u8)
+					.write(0u16)
+					.write(fee_payer_asset)
+					.write(U256::from(4000000))
+					.write(bytes)
+					.write(total_weight as u128)
+					.write(total_weight)
+					.build(),
+				)
+				.expect_cost(4004000)
+				.expect_no_logs()
+				.execute_returns(vec![]);
+		});
+}
+
+#[test]
+fn test_transact_derivative_multilocation() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice, 1000)])
 		.build()
@@ -258,7 +296,7 @@ fn test_transactor_multilocation() {
 }
 
 #[test]
-fn test_transactor() {
+fn test_transact_derivative() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice, 1000)])
 		.build()
@@ -296,6 +334,42 @@ fn test_transactor() {
 						.write(U256::from(4000000))
 						.write(bytes)
 						.build(),
+				)
+				.expect_cost(4004001)
+				.expect_no_logs()
+				.execute_returns(vec![]);
+		});
+}
+
+#[test]
+fn test_transact_derivative_custom_fee_and_weight() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			// register index
+			assert_ok!(XcmTransactor::register(Origin::root(), Alice.into(), 0));
+
+			let bytes = Bytes(vec![1u8, 2u8, 3u8]);
+
+			let total_weight = 1_000_000_000u64;
+
+			// We are transferring asset 0, which we have instructed to be the relay asset
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile,
+					EvmDataWriter::new_with_selector(
+						Action::TransactThroughDerivativeCustomFeeAndWeight,
+					)
+					.write(0u8)
+					.write(0u16)
+					.write(Address(AssetId(0).into()))
+					.write(U256::from(4000000))
+					.write(bytes)
+					.write(total_weight as u128)
+					.write(total_weight)
+					.build(),
 				)
 				.expect_cost(4004001)
 				.expect_no_logs()
@@ -349,6 +423,41 @@ fn test_transact_signed() {
 }
 
 #[test]
+fn test_transact_signed_custom_fee_and_weight() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			// Destination
+			let dest = MultiLocation::parent();
+
+			let bytes: Bytes = vec![1u8, 2u8, 3u8].as_slice().into();
+
+			let total_weight = 1_000_000_000u64;
+
+			// We are transferring asset 0, which we have instructed to be the relay asset
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile,
+					EvmDataWriter::new_with_selector(
+						Action::TransactThroughSignedCustomFeeAndWeight,
+					)
+					.write(dest)
+					.write(Address(AssetId(0).into()))
+					.write(U256::from(4000000))
+					.write(bytes)
+					.write(total_weight as u128)
+					.write(total_weight)
+					.build(),
+				)
+				.expect_cost(428130001)
+				.expect_no_logs()
+				.execute_returns(vec![]);
+		});
+}
+
+#[test]
 fn test_transact_signed_multilocation() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice, 1000)])
@@ -388,6 +497,43 @@ fn test_transact_signed_multilocation() {
 						.write(U256::from(4000000))
 						.write(bytes)
 						.build(),
+				)
+				.expect_cost(428130000)
+				.expect_no_logs()
+				.execute_returns(vec![]);
+		});
+}
+
+#[test]
+fn test_transact_signed_multilocation_custom_fee_and_weight() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			// Destination
+			let dest = MultiLocation::parent();
+
+			let fee_payer_asset = MultiLocation::parent();
+
+			let bytes: Bytes = vec![1u8, 2u8, 3u8].as_slice().into();
+
+			let total_weight = 1_000_000_000u64;
+
+			// We are transferring asset 0, which we have instructed to be the relay asset
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile,
+					EvmDataWriter::new_with_selector(
+						Action::TransactThroughSignedMultiLocationCustomFeeAndWeight,
+					)
+					.write(dest)
+					.write(fee_payer_asset)
+					.write(U256::from(4000000))
+					.write(bytes)
+					.write(total_weight as u128)
+					.write(total_weight)
+					.build(),
 				)
 				.expect_cost(428130000)
 				.expect_no_logs()
