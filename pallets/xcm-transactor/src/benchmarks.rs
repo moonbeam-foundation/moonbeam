@@ -18,6 +18,7 @@ use crate::{Call, Config, Pallet};
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
 use frame_system::RawOrigin;
 use sp_std::boxed::Box;
+use sp_std::vec;
 use xcm::latest::prelude::*;
 
 benchmarks! {
@@ -48,33 +49,72 @@ benchmarks! {
 		RawOrigin::Root,
 		Box::new(xcm::VersionedMultiLocation::V1(location.clone())),
 		extra_weight,
-		fee_per_second,
-		max_weight
+		max_weight,
+		None
 	)
 	verify {
 		assert_eq!(Pallet::<T>::transact_info(&location), Some(crate::RemoteTransactInfoWithMaxWeight {
 			transact_extra_weight: extra_weight,
-			fee_per_second,
-			max_weight
+			max_weight,
+			transact_extra_weight_signed: None
 		}));
 	}
 
 	remove_transact_info {
 		let extra_weight = 300000000u64;
-		let fee_per_second = 1;
 		let max_weight = 20000000000u64;
 		let location = MultiLocation::parent();
 		Pallet::<T>::set_transact_info(
 			RawOrigin::Root.into(),
 			Box::new(xcm::VersionedMultiLocation::V1(location.clone())),
 			extra_weight,
-			fee_per_second,
-			max_weight
+			max_weight,
+			None
 		).unwrap();
 	}: _(RawOrigin::Root, Box::new(xcm::VersionedMultiLocation::V1(location.clone())))
 	verify {
 		assert!(Pallet::<T>::transact_info(&location).is_none());
 	}
+
+	set_fee_per_second {
+		let fee_per_second = 1;
+		let location = MultiLocation::parent();
+	}: _(
+		RawOrigin::Root,
+		Box::new(xcm::VersionedMultiLocation::V1(location.clone())),
+		fee_per_second
+	)
+	verify {
+		assert_eq!(Pallet::<T>::dest_asset_fee_per_second(&location), Some(fee_per_second));
+	}
+
+	transact_through_signed_multilocation {
+		let fee_per_second = 1;
+		let extra_weight = 300000000u64;
+		let max_weight = 20000000000u64;
+		let location = MultiLocation::parent();
+		let call = vec![1u8];
+		let dest_weight = 100u64;
+		let user: T::AccountId  = account("account id", 0u32, 0u32);
+		Pallet::<T>::set_transact_info(
+			RawOrigin::Root.into(),
+			Box::new(xcm::VersionedMultiLocation::V1(location.clone())),
+			extra_weight,
+			max_weight,
+			Some(extra_weight)
+		).unwrap();
+		Pallet::<T>::set_fee_per_second(
+			RawOrigin::Root.into(),
+			Box::new(xcm::VersionedMultiLocation::V1(location.clone())),
+			fee_per_second
+		).unwrap();
+	}: _(
+		RawOrigin::Signed(user.clone()),
+		Box::new(xcm::VersionedMultiLocation::V1(location.clone())),
+		Box::new(xcm::VersionedMultiLocation::V1(location.clone())),
+		dest_weight,
+		call
+	)
 }
 
 #[cfg(test)]

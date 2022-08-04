@@ -3,7 +3,6 @@
 
 import type {
   AccountEthereumSignature,
-  BTreeSet,
   CumulusPalletDmpQueueCall,
   CumulusPalletDmpQueueConfigData,
   CumulusPalletDmpQueueError,
@@ -157,6 +156,11 @@ import type {
   PalletMaintenanceModeError,
   PalletMaintenanceModeEvent,
   PalletMigrationsEvent,
+  PalletMoonbeamOrbitersCall,
+  PalletMoonbeamOrbitersCollatorPoolInfo,
+  PalletMoonbeamOrbitersCurrentOrbiter,
+  PalletMoonbeamOrbitersError,
+  PalletMoonbeamOrbitersEvent,
   PalletProxyAnnouncement,
   PalletProxyCall,
   PalletProxyError,
@@ -192,8 +196,9 @@ import type {
   ParachainStakingCollatorSnapshot,
   ParachainStakingCollatorStatus,
   ParachainStakingDelayedPayout,
-  ParachainStakingDelegationChange,
-  ParachainStakingDelegationRequest,
+  ParachainStakingDelegationRequestsCancelledScheduledRequest,
+  ParachainStakingDelegationRequestsDelegationAction,
+  ParachainStakingDelegationRequestsScheduledRequest,
   ParachainStakingDelegations,
   ParachainStakingDelegator,
   ParachainStakingDelegatorAdded,
@@ -201,11 +206,8 @@ import type {
   ParachainStakingError,
   ParachainStakingEvent,
   ParachainStakingInflationInflationInfo,
-  ParachainStakingInflationRangePerbill,
-  ParachainStakingInflationRangeU128,
   ParachainStakingNominator2,
   ParachainStakingParachainBondConfig,
-  ParachainStakingPendingDelegationRequests,
   ParachainStakingRoundInfo,
   ParachainStakingSetOrderedSetAccountId20,
   ParachainStakingSetOrderedSetBond,
@@ -213,10 +215,11 @@ import type {
   PolkadotCorePrimitivesInboundHrmpMessage,
   PolkadotCorePrimitivesOutboundHrmpMessage,
   PolkadotParachainPrimitivesXcmpMessageFormat,
-  PolkadotPrimitivesV1AbridgedHostConfiguration,
-  PolkadotPrimitivesV1AbridgedHrmpChannel,
-  PolkadotPrimitivesV1PersistedValidationData,
-  PolkadotPrimitivesV1UpgradeRestriction,
+  PolkadotPrimitivesV2AbridgedHostConfiguration,
+  PolkadotPrimitivesV2AbridgedHrmpChannel,
+  PolkadotPrimitivesV2PersistedValidationData,
+  PolkadotPrimitivesV2UpgradeRestriction,
+  SessionKeysPrimitivesVrfVrfCryptoPublic,
   SpCoreEcdsaSignature,
   SpCoreEd25519Signature,
   SpCoreSr25519Public,
@@ -229,6 +232,7 @@ import type {
   SpRuntimeModuleError,
   SpRuntimeMultiSignature,
   SpRuntimeTokenError,
+  SpRuntimeTransactionalError,
   SpTrieStorageProof,
   SpVersionRuntimeVersion,
   XcmDoubleEncoded,
@@ -276,7 +280,6 @@ import type {
 declare module "@polkadot/types/types/registry" {
   export interface InterfaceTypes {
     AccountEthereumSignature: AccountEthereumSignature;
-    BTreeSet: BTreeSet;
     CumulusPalletDmpQueueCall: CumulusPalletDmpQueueCall;
     CumulusPalletDmpQueueConfigData: CumulusPalletDmpQueueConfigData;
     CumulusPalletDmpQueueError: CumulusPalletDmpQueueError;
@@ -430,6 +433,11 @@ declare module "@polkadot/types/types/registry" {
     PalletMaintenanceModeError: PalletMaintenanceModeError;
     PalletMaintenanceModeEvent: PalletMaintenanceModeEvent;
     PalletMigrationsEvent: PalletMigrationsEvent;
+    PalletMoonbeamOrbitersCall: PalletMoonbeamOrbitersCall;
+    PalletMoonbeamOrbitersCollatorPoolInfo: PalletMoonbeamOrbitersCollatorPoolInfo;
+    PalletMoonbeamOrbitersCurrentOrbiter: PalletMoonbeamOrbitersCurrentOrbiter;
+    PalletMoonbeamOrbitersError: PalletMoonbeamOrbitersError;
+    PalletMoonbeamOrbitersEvent: PalletMoonbeamOrbitersEvent;
     PalletProxyAnnouncement: PalletProxyAnnouncement;
     PalletProxyCall: PalletProxyCall;
     PalletProxyError: PalletProxyError;
@@ -465,8 +473,9 @@ declare module "@polkadot/types/types/registry" {
     ParachainStakingCollatorSnapshot: ParachainStakingCollatorSnapshot;
     ParachainStakingCollatorStatus: ParachainStakingCollatorStatus;
     ParachainStakingDelayedPayout: ParachainStakingDelayedPayout;
-    ParachainStakingDelegationChange: ParachainStakingDelegationChange;
-    ParachainStakingDelegationRequest: ParachainStakingDelegationRequest;
+    ParachainStakingDelegationRequestsCancelledScheduledRequest: ParachainStakingDelegationRequestsCancelledScheduledRequest;
+    ParachainStakingDelegationRequestsDelegationAction: ParachainStakingDelegationRequestsDelegationAction;
+    ParachainStakingDelegationRequestsScheduledRequest: ParachainStakingDelegationRequestsScheduledRequest;
     ParachainStakingDelegations: ParachainStakingDelegations;
     ParachainStakingDelegator: ParachainStakingDelegator;
     ParachainStakingDelegatorAdded: ParachainStakingDelegatorAdded;
@@ -474,11 +483,8 @@ declare module "@polkadot/types/types/registry" {
     ParachainStakingError: ParachainStakingError;
     ParachainStakingEvent: ParachainStakingEvent;
     ParachainStakingInflationInflationInfo: ParachainStakingInflationInflationInfo;
-    ParachainStakingInflationRangePerbill: ParachainStakingInflationRangePerbill;
-    ParachainStakingInflationRangeU128: ParachainStakingInflationRangeU128;
     ParachainStakingNominator2: ParachainStakingNominator2;
     ParachainStakingParachainBondConfig: ParachainStakingParachainBondConfig;
-    ParachainStakingPendingDelegationRequests: ParachainStakingPendingDelegationRequests;
     ParachainStakingRoundInfo: ParachainStakingRoundInfo;
     ParachainStakingSetOrderedSetAccountId20: ParachainStakingSetOrderedSetAccountId20;
     ParachainStakingSetOrderedSetBond: ParachainStakingSetOrderedSetBond;
@@ -486,10 +492,11 @@ declare module "@polkadot/types/types/registry" {
     PolkadotCorePrimitivesInboundHrmpMessage: PolkadotCorePrimitivesInboundHrmpMessage;
     PolkadotCorePrimitivesOutboundHrmpMessage: PolkadotCorePrimitivesOutboundHrmpMessage;
     PolkadotParachainPrimitivesXcmpMessageFormat: PolkadotParachainPrimitivesXcmpMessageFormat;
-    PolkadotPrimitivesV1AbridgedHostConfiguration: PolkadotPrimitivesV1AbridgedHostConfiguration;
-    PolkadotPrimitivesV1AbridgedHrmpChannel: PolkadotPrimitivesV1AbridgedHrmpChannel;
-    PolkadotPrimitivesV1PersistedValidationData: PolkadotPrimitivesV1PersistedValidationData;
-    PolkadotPrimitivesV1UpgradeRestriction: PolkadotPrimitivesV1UpgradeRestriction;
+    PolkadotPrimitivesV2AbridgedHostConfiguration: PolkadotPrimitivesV2AbridgedHostConfiguration;
+    PolkadotPrimitivesV2AbridgedHrmpChannel: PolkadotPrimitivesV2AbridgedHrmpChannel;
+    PolkadotPrimitivesV2PersistedValidationData: PolkadotPrimitivesV2PersistedValidationData;
+    PolkadotPrimitivesV2UpgradeRestriction: PolkadotPrimitivesV2UpgradeRestriction;
+    SessionKeysPrimitivesVrfVrfCryptoPublic: SessionKeysPrimitivesVrfVrfCryptoPublic;
     SpCoreEcdsaSignature: SpCoreEcdsaSignature;
     SpCoreEd25519Signature: SpCoreEd25519Signature;
     SpCoreSr25519Public: SpCoreSr25519Public;
@@ -502,6 +509,7 @@ declare module "@polkadot/types/types/registry" {
     SpRuntimeModuleError: SpRuntimeModuleError;
     SpRuntimeMultiSignature: SpRuntimeMultiSignature;
     SpRuntimeTokenError: SpRuntimeTokenError;
+    SpRuntimeTransactionalError: SpRuntimeTransactionalError;
     SpTrieStorageProof: SpTrieStorageProof;
     SpVersionRuntimeVersion: SpVersionRuntimeVersion;
     XcmDoubleEncoded: XcmDoubleEncoded;

@@ -136,7 +136,7 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 						get_from_seed::<NimbusId>("Alice"),
 						1_000 * UNIT,
 					),
-					// Bob -> Baltithar
+					// Bob -> Baltathar
 					(
 						AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
 						get_from_seed::<NimbusId>("Bob"),
@@ -145,9 +145,12 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 				],
 				// Delegations
 				vec![],
+				// Endowed: Alith, Baltathar, Charleth and Dorothy
 				vec![
 					AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
 					AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
+					AccountId::from(hex!("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc")),
+					AccountId::from(hex!("773539d4Ac0e786233D90A233654ccEE26a613D9")),
 				],
 				3_000_000 * UNIT,
 				para_id,
@@ -179,11 +182,14 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 
 pub fn moonbeam_inflation_config() -> InflationInfo<Balance> {
 	fn to_round_inflation(annual: Range<Perbill>) -> Range<Perbill> {
-		use parachain_staking::inflation::{perbill_annual_to_perbill_round, BLOCKS_PER_YEAR};
+		use pallet_parachain_staking::inflation::{
+			perbill_annual_to_perbill_round, BLOCKS_PER_YEAR,
+		};
 		perbill_annual_to_perbill_round(
 			annual,
 			// rounds per year
-			BLOCKS_PER_YEAR / moonbase_runtime::get!(parachain_staking, DefaultBlocksPerRound, u32),
+			BLOCKS_PER_YEAR
+				/ moonbase_runtime::get!(pallet_parachain_staking, DefaultBlocksPerRound, u32),
 		)
 	}
 	let annual = Range {

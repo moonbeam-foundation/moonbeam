@@ -19,8 +19,9 @@
 mod common;
 use common::*;
 
+use fp_evm::GenesisAccount;
 use nimbus_primitives::NimbusId;
-use pallet_evm::{Account as EVMAccount, AddressMapping, FeeCalculator, GenesisAccount};
+use pallet_evm::{Account as EVMAccount, AddressMapping, FeeCalculator};
 use sp_core::{ByteArray, H160, H256, U256};
 
 use fp_rpc::runtime_decl_for_EthereumRuntimeRPCApi::EthereumRuntimeRPCApi;
@@ -53,7 +54,7 @@ fn ethereum_runtime_rpc_api_account_basic() {
 #[test]
 fn ethereum_runtime_rpc_api_gas_price() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_eq!(Runtime::gas_price(), FixedGasPrice::min_gas_price());
+		assert_eq!(Runtime::gas_price(), FixedGasPrice::min_gas_price().0);
 	});
 }
 
@@ -211,7 +212,7 @@ fn ethereum_runtime_rpc_api_current_transaction_statuses() {
 			let result =
 				Executive::apply_extrinsic(unchecked_eth_tx(VALID_ETH_TX)).expect("Apply result.");
 			assert_eq!(result, Ok(()));
-			run_to_block(2, None);
+			rpc_run_to_block(2);
 			let statuses =
 				Runtime::current_transaction_statuses().expect("Transaction statuses result.");
 			assert_eq!(statuses.len(), 1);
@@ -239,7 +240,7 @@ fn ethereum_runtime_rpc_api_current_block() {
 		.execute_with(|| {
 			set_parachain_inherent_data();
 			// set_author(NimbusId::from_slice(&ALICE_NIMBUS));
-			run_to_block(2, None);
+			rpc_run_to_block(2);
 			let block = Runtime::current_block().expect("Block result.");
 			assert_eq!(block.header.number, U256::from(1u8));
 		});
@@ -274,7 +275,7 @@ fn ethereum_runtime_rpc_api_current_receipts() {
 			let result =
 				Executive::apply_extrinsic(unchecked_eth_tx(VALID_ETH_TX)).expect("Apply result.");
 			assert_eq!(result, Ok(()));
-			run_to_block(2, None);
+			rpc_run_to_block(2);
 			let receipts = Runtime::current_receipts().expect("Receipts result.");
 			assert_eq!(receipts.len(), 1);
 		});

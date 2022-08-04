@@ -17,13 +17,11 @@
 //! Test utilities
 use super::*;
 use codec::{Decode, Encode, MaxEncodedLen};
+use frame_support::{construct_runtime, parameter_types};
 use frame_support::{
 	traits::{EnsureOrigin, Everything, OriginTrait, PalletInfo as PalletInfoTrait},
 	weights::Weight,
 };
-
-use frame_support::{construct_runtime, parameter_types};
-
 use orml_traits::{location::AbsoluteReserveProvider, parameter_type_with_key};
 use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet};
 use serde::{Deserialize, Serialize};
@@ -220,18 +218,9 @@ impl<R> PrecompileSet for TestPrecompiles<R>
 where
 	XtokensWrapper<R>: Precompile,
 {
-	fn execute(
-		&self,
-		address: H160,
-		input: &[u8],
-		target_gas: Option<u64>,
-		context: &Context,
-		is_static: bool,
-	) -> Option<EvmResult<PrecompileOutput>> {
-		match address {
-			a if a == precompile_address() => Some(XtokensWrapper::<R>::execute(
-				input, target_gas, context, is_static,
-			)),
+	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<EvmResult<PrecompileOutput>> {
+		match handle.code_address() {
+			a if a == precompile_address() => Some(XtokensWrapper::<R>::execute(handle)),
 			_ => None,
 		}
 	}
@@ -246,6 +235,7 @@ pub fn precompile_address() -> H160 {
 }
 
 parameter_types! {
+	pub BlockGasLimit: U256 = U256::max_value();
 	pub const PrecompilesValue: TestPrecompiles<Runtime> = TestPrecompiles(PhantomData);
 }
 
@@ -262,10 +252,9 @@ impl pallet_evm::Config for Runtime {
 	type PrecompilesValue = PrecompilesValue;
 	type ChainId = ();
 	type OnChargeTransaction = ();
-	type BlockGasLimit = ();
+	type BlockGasLimit = BlockGasLimit;
 	type BlockHashMapping = pallet_evm::SubstrateBlockHashMapping<Self>;
 	type FindAuthor = ();
-	type WeightInfo = ();
 }
 
 parameter_types! {
@@ -368,6 +357,7 @@ impl xcm_executor::Config for XcmConfig {
 	type SubscriptionService = ();
 	type AssetTrap = ();
 	type AssetClaims = ();
+	type CallDispatcher = Call;
 }
 
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
@@ -456,8 +446,8 @@ parameter_types! {
 }
 
 parameter_type_with_key! {
-	pub ParachainMinFee: |_location: MultiLocation| -> u128 {
-		u128::MAX
+	pub ParachainMinFee: |_location: MultiLocation| -> Option<u128> {
+		Some(u128::MAX)
 	};
 }
 
@@ -516,15 +506,4 @@ pub(crate) fn events() -> Vec<Event> {
 		.into_iter()
 		.map(|r| r.event)
 		.collect::<Vec<_>>()
-}
-
-// Helper function to give a simple evm context suitable for tests.
-// We can remove this once https://github.com/rust-blockchain/evm/pull/35
-// is in our dependency graph.
-pub fn evm_test_context() -> fp_evm::Context {
-	fp_evm::Context {
-		address: Default::default(),
-		caller: Default::default(),
-		apparent_value: From::from(0),
-	}
 }

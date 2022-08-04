@@ -28,7 +28,7 @@ use polkadot_parachain::primitives::Id as ParaId;
 use polkadot_runtime_parachains::{configuration, origin, shared, ump};
 use xcm::latest::prelude::*;
 use xcm_builder::{
-	AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
+	Account32Hash, AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
 	AllowTopLevelPaidExecutionFrom, ChildParachainAsNative, ChildParachainConvertsVia,
 	ChildSystemParachainAsSuperuser, CurrencyAdapter as XcmCurrencyAdapter, FixedRateOfFungible,
 	FixedWeightBounds, IsConcrete, LocationInverter, SignedAccountId32AsNative,
@@ -111,6 +111,9 @@ parameter_types! {
 pub type SovereignAccountOf = (
 	ChildParachainConvertsVia<ParaId, AccountId>,
 	AccountId32Aliases<KusamaNetwork, AccountId>,
+	// Not enabled in the relay per se, but we enable it to test
+	// the transact_through_signed extrinsic
+	Account32Hash<KusamaNetwork, AccountId>,
 );
 
 pub type LocalAssetTransactor =
@@ -129,9 +132,67 @@ parameter_types! {
 	pub const MaxInstructions: u32 = 100;
 }
 
+use frame_support::ensure;
+use frame_support::traits::Contains;
+use sp_std::marker::PhantomData;
+use xcm_executor::traits::ShouldExecute;
+/// Allows execution from `origin` if it is contained in `T` (i.e. `T::Contains(origin)`) taking
+/// payments into account.
+///
+/// Only allows for `DescendOrigin` + `WithdrawAsset`, + `BuyExecution`
+pub struct AllowDescendOriginFromLocal<T>(PhantomData<T>);
+impl<T: Contains<MultiLocation>> ShouldExecute for AllowDescendOriginFromLocal<T> {
+	fn should_execute<Call>(
+		origin: &MultiLocation,
+		message: &mut Xcm<Call>,
+		max_weight: Weight,
+		_weight_credit: &mut Weight,
+	) -> Result<(), ()> {
+		log::trace!(
+			target: "xcm::barriers",
+			"AllowTopLevelPaidExecutionFromLocal origin:
+			{:?}, message: {:?}, max_weight: {:?}, weight_credit: {:?}",
+			origin, message, max_weight, _weight_credit,
+		);
+		ensure!(T::contains(origin), ());
+		let mut iter = message.0.iter_mut();
+		let mut i = iter.next().ok_or(())?;
+		match i {
+			DescendOrigin(..) => (),
+			_ => return Err(()),
+		}
+
+		i = iter.next().ok_or(())?;
+		match i {
+			WithdrawAsset(..) => (),
+			_ => return Err(()),
+		}
+
+		i = iter.next().ok_or(())?;
+		match i {
+			BuyExecution {
+				weight_limit: Limited(ref mut weight),
+				..
+			} if *weight >= max_weight => {
+				*weight = max_weight;
+				Ok(())
+			}
+			BuyExecution {
+				ref mut weight_limit,
+				..
+			} if weight_limit == &Unlimited => {
+				*weight_limit = Limited(max_weight);
+				Ok(())
+			}
+			_ => Err(()),
+		}
+	}
+}
+
 pub type XcmRouter = super::RelayChainXcmRouter;
 pub type Barrier = (
 	TakeWeightCredit,
+	AllowDescendOriginFromLocal<Everything>,
 	AllowTopLevelPaidExecutionFrom<Everything>,
 	// Expected responses are OK.
 	AllowKnownQueryResponses<XcmPallet>,
@@ -155,6 +216,7 @@ impl Config for XcmConfig {
 	type AssetTrap = XcmPallet;
 	type AssetClaims = XcmPallet;
 	type SubscriptionService = XcmPallet;
+	type CallDispatcher = Call;
 }
 
 pub type LocalOriginToLocation = SignedToAccountId32<Origin, AccountId, KusamaNetwork>;

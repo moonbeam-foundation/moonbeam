@@ -15,21 +15,16 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use ethereum_types::H160;
-use futures::future::BoxFuture;
-use jsonrpc_derive::rpc;
+use jsonrpsee::{core::RpcResult, proc_macros::rpc};
 use moonbeam_client_evm_tracing::types::block::TransactionTrace;
 use moonbeam_rpc_core_types::RequestBlockId;
 use serde::Deserialize;
 
-pub use rpc_impl_Trace::gen_server::Trace as TraceServer;
-
 #[rpc(server)]
+#[jsonrpsee::core::async_trait]
 pub trait Trace {
-	#[rpc(name = "trace_filter")]
-	fn filter(
-		&self,
-		filter: FilterRequest,
-	) -> BoxFuture<'static, jsonrpc_core::Result<Vec<TransactionTrace>>>;
+	#[method(name = "trace_filter")]
+	async fn filter(&self, filter: FilterRequest) -> RpcResult<Vec<TransactionTrace>>;
 }
 
 #[derive(Clone, Eq, PartialEq, Debug, Deserialize)]

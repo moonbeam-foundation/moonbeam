@@ -21,7 +21,6 @@
 
 use clap::Parser;
 use cli_opt::{account_key::GenerateAccountKey, EthApi, Sealing};
-use perf_test::PerfCmd;
 use sc_cli::{Error as CliError, SubstrateCli};
 use service::chain_spec;
 use std::path::PathBuf;
@@ -58,11 +57,9 @@ pub enum Subcommand {
 	/// Revert the chain to a previous state.
 	Revert(sc_cli::RevertCmd),
 
-	/// Run hardware performance tests.
-	PerfTest(PerfCmd),
-
-	/// The custom benchmark subcommmand benchmarking runtime pallets.
-	#[clap(name = "benchmark", about = "Benchmark runtime pallets.")]
+	/// Sub-commands concerned with benchmarking.
+	/// The pallet benchmarking moved to the `pallet` sub-command.
+	#[clap(subcommand)]
 	Benchmark(frame_benchmarking_cli::BenchmarkCmd),
 
 	/// Try some command against runtime state.
@@ -98,7 +95,7 @@ pub struct BuildSpecCommand {
 #[derive(Debug, Parser)]
 pub struct ExportGenesisStateCommand {
 	/// Output file name or stdout if unspecified.
-	#[clap(parse(from_os_str))]
+	#[clap(value_parser)]
 	pub output: Option<PathBuf>,
 
 	/// Id of the parachain this state is for.
@@ -118,7 +115,7 @@ pub struct ExportGenesisStateCommand {
 #[derive(Debug, Parser)]
 pub struct ExportGenesisWasmCommand {
 	/// Output file name or stdout if unspecified.
-	#[clap(parse(from_os_str))]
+	#[clap(value_parser)]
 	pub output: Option<PathBuf>,
 
 	/// Write output in binary. Default is to write in hex.
@@ -184,6 +181,11 @@ pub struct RunCmd {
 	#[clap(long, default_value = "300000000")]
 	pub eth_statuses_cache: usize,
 
+	/// Size in bytes of data a raw tracing request is allowed to use.
+	/// Bound the size of memory, stack and storage data.
+	#[clap(long, default_value = "20000000")]
+	pub tracing_raw_max_memory_usage: usize,
+
 	/// Maximum number of logs in a query.
 	#[clap(long, default_value = "10000")]
 	pub max_past_logs: u32,
@@ -203,6 +205,16 @@ pub struct RunCmd {
 	/// Maximum fee history cache size.
 	#[clap(long, default_value = "2048")]
 	pub fee_history_limit: u64,
+
+	/// Disable automatic hardware benchmarks.
+	///
+	/// By default these benchmarks are automatically ran at startup and measure
+	/// the CPU speed, the memory bandwidth and the disk speed.
+	///
+	/// The results are then printed out in the logs, and also sent as part of
+	/// telemetry, if telemetry is enabled.
+	#[clap(long)]
+	pub no_hardware_benchmarks: bool,
 }
 
 impl std::ops::Deref for RunCmd {

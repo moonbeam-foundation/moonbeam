@@ -6,6 +6,7 @@ import path from "path";
 import { getCommitAndLabels, getCompareLink } from "./github-utils";
 import { blake2AsHex } from "@polkadot/util-crypto";
 
+const BREAKING_CHANGES_LABEL = "D2-breaksapi";
 const RUNTIME_CHANGES_LABEL = "B7-runtimenoteworthy";
 // `ParachainSystem` is pallet index 6. `authorize_upgrade` is extrinsic index 2.
 const MOONBASE_PREFIX_PARACHAINSYSTEM_AUTHORIZE_UPGRADE = "0x0602";
@@ -102,6 +103,14 @@ async function main() {
   );
   const filteredPr = prByLabels[RUNTIME_CHANGES_LABEL] || [];
 
+  const printPr = (pr) => {
+    if (pr.labels.includes(BREAKING_CHANGES_LABEL)) {
+      return "⚠️ " + pr.title + " (#" + pr.number + ")";
+    } else {
+      return pr.title + " (#" + pr.number + ")";
+    }
+  };
+
   //
 
   const template = `${
@@ -130,7 +139,7 @@ WASM runtime built using \`${runtimes[0]?.srtool.info.rustc}\`
 
 ## Changes
 
-${filteredPr.map((pr) => `* ${pr.title} (#${pr.number})`).join("\n")}
+${filteredPr.map((pr) => `* ${printPr(pr)}`).join("\n")}
 
 ## Dependency changes
 

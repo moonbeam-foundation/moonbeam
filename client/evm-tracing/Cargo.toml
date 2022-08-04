@@ -1,7 +1,7 @@
 [package]
 name = "moonbeam-client-evm-tracing"
 authors = [ "PureStake" ]
-edition = "2018"
+edition = "2021"
 homepage = "https://moonbeam.network"
 license = "GPL-3.0-only"
 repository = "https://github.com/PureStake/moonbeam/"
@@ -19,4 +19,4 @@ moonbeam-rpc-primitives-debug = { path = "../../primitives/rpc/debug" }
 
 # Substrate
 codec = { package = "parity-scale-codec", version = "3.0.0", default-features = false }
-sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18" }
+sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.26" }

@@ -23,12 +23,12 @@ use super::{
 	LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 
-use pallet_evm_precompile_assets_erc20::AccountIdAssetIdConversion;
+use pallet_evm_precompileset_assets_erc20::AccountIdAssetIdConversion;
 use sp_runtime::traits::Hash as THash;
 
 use frame_support::{
 	parameter_types,
-	traits::{ConstU128, EnsureOneOf},
+	traits::{ConstU128, EitherOfDiverse},
 	weights::{GetDispatchInfo, Weight},
 };
 
@@ -61,7 +61,7 @@ parameter_types! {
 }
 
 /// We allow root and Chain council to execute privileged asset operations.
-pub type AssetsForceOrigin = EnsureOneOf<
+pub type AssetsForceOrigin = EitherOfDiverse<
 	EnsureRoot<AccountId>,
 	pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
 >;
@@ -234,8 +234,8 @@ impl pallet_asset_manager::LocalAssetIdCreator<Runtime> for LocalAssetIdCreator 
 		// Our means of converting a local asset counter to an assetId
 		// We basically hash (local asset counter)
 		let mut result: [u8; 16] = [0u8; 16];
-		let to_hash = local_asset_counter.encode();
-		let hash: H256 = to_hash.using_encoded(<Runtime as frame_system::Config>::Hashing::hash);
+		let hash: H256 =
+			local_asset_counter.using_encoded(<Runtime as frame_system::Config>::Hashing::hash);
 		result.copy_from_slice(&hash.as_fixed_bytes()[0..16]);
 		u128::from_le_bytes(result)
 	}

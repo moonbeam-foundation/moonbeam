@@ -24,6 +24,7 @@
 
 use cli_opt::{EthApi as EthApiCmd, RpcConfig};
 use fc_consensus::FrontierBlockImport;
+use fc_db::DatabaseSource;
 use fc_rpc_core::types::{FeeHistoryCache, FilterPool};
 use futures::StreamExt;
 use maplit::hashmap;
@@ -186,7 +187,7 @@ impl IdentifyVariant for Box<dyn ChainSpec> {
 	}
 }
 
-pub fn frontier_database_dir(config: &Configuration) -> std::path::PathBuf {
+pub fn frontier_database_dir(config: &Configuration, path: &str) -> std::path::PathBuf {
 	let config_dir = config
 		.base_path
 		.as_ref()
@@ -194,7 +195,7 @@ pub fn frontier_database_dir(config: &Configuration) -> std::path::PathBuf {
 		.unwrap_or_else(|| {
 			BasePath::from_project("", "", "moonbeam").config_dir(config.chain_spec.id())
 		});
-	config_dir.join("frontier").join("db")
+	config_dir.join("frontier").join(path)
 }
 
 // TODO This is copied from frontier. It should be imported instead after
@@ -202,9 +203,22 @@ pub fn frontier_database_dir(config: &Configuration) -> std::path::PathBuf {
 pub fn open_frontier_backend(config: &Configuration) -> Result<Arc<fc_db::Backend<Block>>, String> {
 	Ok(Arc::new(fc_db::Backend::<Block>::new(
 		&fc_db::DatabaseSettings {
-			source: fc_db::DatabaseSettingsSrc::RocksDb {
-				path: frontier_database_dir(&config),
-				cache_size: 0,
+			source: match config.database {
+				DatabaseSource::RocksDb { .. } => DatabaseSource::RocksDb {
+					path: frontier_database_dir(config, "db"),
+					cache_size: 0,
+				},
+				DatabaseSource::ParityDb { .. } => DatabaseSource::ParityDb {
+					path: frontier_database_dir(config, "paritydb"),
+				},
+				DatabaseSource::Auto { .. } => DatabaseSource::Auto {
+					rocksdb_path: frontier_database_dir(config, "db"),
+					paritydb_path: frontier_database_dir(config, "paritydb"),
+					cache_size: 0,
+				},
+				_ => {
+					return Err("Supported db sources: `rocksdb` | `paritydb` | `auto`".to_string())
+				}
 			},
 		},
 	)?))
@@ -331,6 +345,9 @@ where
 {
 	set_prometheus_registry(config)?;
 
+	// Use ethereum style for subscription ids
+	config.rpc_id_provider = Some(Box::new(fc_rpc::EthereumSubIdProvider));
+
 	let telemetry = config
 		.telemetry_endpoints
 		.clone()
@@ -429,8 +446,9 @@ where
 async fn start_node_impl<RuntimeApi, Executor, BIC>(
 	parachain_config: Configuration,
 	polkadot_config: Configuration,
-	id: polkadot_primitives::v0::Id,
+	id: polkadot_primitives::v2::Id,
 	rpc_config: RpcConfig,
+	hwbench: Option<sc_sysinfo::HwBench>,
 	build_consensus: BIC,
 ) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi, Executor>>)>
 where
@@ -481,6 +499,7 @@ where
 		&parachain_config,
 		telemetry_worker_handle,
 		&mut task_manager,
+		None,
 	)
 	.map_err(|e| match e {
 		RelayChainError::ServiceError(polkadot_service::Error::Sub(x)) => x,
@@ -507,8 +526,6 @@ where
 			warp_sync: None,
 		})?;
 
-	let subscription_task_executor =
-		sc_rpc::SubscriptionTaskExecutor::new(task_manager.spawn_handle());
 	let overrides = crate::rpc::overrides_handle(client.clone());
 	let fee_history_limit = rpc_config.fee_history_limit;
 
@@ -549,8 +566,8 @@ where
 	let block_data_cache = Arc::new(fc_rpc::EthBlockDataCacheTask::new(
 		task_manager.spawn_handle(),
 		overrides.clone(),
-		rpc_config.eth_log_block_cache as u64,
-		rpc_config.eth_statuses_cache as u64,
+		rpc_config.eth_log_block_cache,
+		rpc_config.eth_statuses_cache,
 		prometheus_registry.clone(),
 	));
 
@@ -558,7 +575,7 @@ where
 	// save param `relay_chain_rpc_url` to be able to use it later.
 	let relay_chain_rpc_url = rpc_config.relay_chain_rpc_url.clone();
 
-	let rpc_extensions_builder = {
+	let rpc_builder = {
 		let client = client.clone();
 		let pool = transaction_pool.clone();
 		let network = network.clone();
@@ -571,7 +588,7 @@ where
 		let fee_history_cache = fee_history_cache.clone();
 		let block_data_cache = block_data_cache.clone();
 
-		Box::new(move |deny_unsafe, _| {
+		move |deny_unsafe, subscription_task_executor| {
 			let deps = rpc::FullDeps {
 				backend: backend.clone(),
 				client: client.clone(),
@@ -591,22 +608,24 @@ where
 				block_data_cache: block_data_cache.clone(),
 				overrides: overrides.clone(),
 			};
-			#[allow(unused_mut)]
-			let mut io = rpc::create_full(deps, subscription_task_executor.clone());
 			if ethapi_cmd.contains(&EthApiCmd::Debug) || ethapi_cmd.contains(&EthApiCmd::Trace) {
-				rpc::tracing::extend_with_tracing(
-					client.clone(),
-					tracing_requesters.clone(),
-					rpc_config.ethapi_trace_max_count,
-					&mut io,
-				);
+				rpc::create_full(
+					deps,
+					subscription_task_executor,
+					Some(crate::rpc::TracingConfig {
+						tracing_requesters: tracing_requesters.clone(),
+						trace_filter_max_count: rpc_config.ethapi_trace_max_count,
+					}),
+				)
+				.map_err(Into::into)
+			} else {
+				rpc::create_full(deps, subscription_task_executor, None).map_err(Into::into)
 			}
-			Ok(io)
-		})
+		}
 	};
 
 	sc_service::spawn_tasks(sc_service::SpawnTasksParams {
-		rpc_extensions_builder,
+		rpc_builder: Box::new(rpc_builder),
 		client: client.clone(),
 		transaction_pool: transaction_pool.clone(),
 		task_manager: &mut task_manager,
@@ -617,6 +636,19 @@ where
 		system_rpc_tx,
 		telemetry: telemetry.as_mut(),
 	})?;
+
+	if let Some(hwbench) = hwbench {
+		sc_sysinfo::print_hwbench(&hwbench);
+
+		if let Some(ref mut telemetry) = telemetry {
+			let telemetry_handle = telemetry.handle();
+			task_manager.spawn_handle().spawn(
+				"telemetry_hwbench",
+				None,
+				sc_sysinfo::initialize_hwbench_telemetry(telemetry_handle, hwbench),
+			);
+		}
+	}
 
 	let announce_block = {
 		let network = network.clone();
@@ -685,8 +717,9 @@ where
 pub async fn start_node<RuntimeApi, Executor>(
 	parachain_config: Configuration,
 	polkadot_config: Configuration,
-	id: polkadot_primitives::v0::Id,
+	id: polkadot_primitives::v2::Id,
 	rpc_config: RpcConfig,
+	hwbench: Option<sc_sysinfo::HwBench>,
 ) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi, Executor>>)>
 where
 	RuntimeApi:
@@ -700,6 +733,7 @@ where
 		polkadot_config,
 		id,
 		rpc_config,
+		hwbench,
 		|
 			client,
 			prometheus_registry,
@@ -720,7 +754,7 @@ where
 			);
 			proposer_factory.set_soft_deadline(SOFT_DEADLINE_PERCENT);
 
-			let provider = move |_, (relay_parent, validation_data, author_id)| {
+			let provider = move |_, (relay_parent, validation_data, _author_id)| {
 				let relay_chain_interface = relay_chain_interface.clone();
 				async move {
 					let parachain_inherent =
@@ -740,10 +774,23 @@ where
 						)
 					})?;
 
-					let author = nimbus_primitives::InherentDataProvider::<NimbusId>(author_id);
+					let author = nimbus_primitives::InherentDataProvider;
 
-					Ok((time, parachain_inherent, author))
+					let randomness = session_keys_primitives::InherentDataProvider;
+
+					Ok((time, parachain_inherent, author, randomness))
 				}
+			};
+			let client_clone = client.clone();
+			let keystore_clone = keystore.clone();
+			let maybe_provide_vrf_digest = move |nimbus_id: NimbusId, parent: Hash|
+				-> Option<sp_runtime::generic::DigestItem> {
+				moonbeam_vrf::vrf_pre_digest::<Block, FullClient<RuntimeApi, Executor>>(
+					&client_clone,
+					&keystore_clone,
+					nimbus_id,
+					parent,
+				)
 			};
 
 			Ok(NimbusConsensus::build(BuildNimbusConsensusParams {
@@ -754,6 +801,7 @@ where
 				keystore,
 				skip_prediction: force_authoring,
 				create_inherent_data_providers: provider,
+				additional_digests_provider: maybe_provide_vrf_digest,
 			}))
 		},
 	)
@@ -764,9 +812,10 @@ where
 /// the parachain inherent.
 pub fn new_dev<RuntimeApi, Executor>(
 	mut config: Configuration,
-	_author_id: Option<nimbus_primitives::NimbusId>,
+	_author_id: Option<NimbusId>,
 	sealing: cli_opt::Sealing,
 	rpc_config: RpcConfig,
+	hwbench: Option<sc_sysinfo::HwBench>,
 ) -> Result<TaskManager, ServiceError>
 where
 	RuntimeApi:
@@ -792,7 +841,7 @@ where
 			(
 				block_import,
 				filter_pool,
-				telemetry,
+				mut telemetry,
 				_telemetry_worker_handle,
 				frontier_backend,
 				fee_history_cache,
@@ -820,8 +869,6 @@ where
 	}
 
 	let prometheus_registry = config.prometheus_registry().cloned();
-	let subscription_task_executor =
-		sc_rpc::SubscriptionTaskExecutor::new(task_manager.spawn_handle());
 	let overrides = crate::rpc::overrides_handle(client.clone());
 	let fee_history_limit = rpc_config.fee_history_limit;
 	let mut command_sink = None;
@@ -884,6 +931,18 @@ where
 		let (hrmp_xcm_sender, hrmp_xcm_receiver) = flume::bounded::<(ParaId, Vec<u8>)>(100);
 		xcm_senders = Some((downward_xcm_sender, hrmp_xcm_sender));
 
+		let client_clone = client.clone();
+		let keystore_clone = keystore_container.sync_keystore().clone();
+		let maybe_provide_vrf_digest =
+			move |nimbus_id: NimbusId, parent: Hash| -> Option<sp_runtime::generic::DigestItem> {
+				moonbeam_vrf::vrf_pre_digest::<Block, FullClient<RuntimeApi, Executor>>(
+					&client_clone,
+					&keystore_clone,
+					nimbus_id,
+					parent,
+				)
+			};
+
 		task_manager.spawn_essential_handle().spawn_blocking(
 			"authorship_task",
 			Some("block-authoring"),
@@ -897,6 +956,7 @@ where
 				consensus_data_provider: Some(Box::new(NimbusManualSealConsensusDataProvider {
 					keystore: keystore_container.sync_keystore(),
 					client: client.clone(),
+					additional_digests_provider: maybe_provide_vrf_digest,
 				})),
 				create_inherent_data_providers: move |block: H256, ()| {
 					let current_para_block = client_set_aside_for_cidp
@@ -925,7 +985,9 @@ where
 							raw_horizontal_messages: hrmp_xcm_receiver.drain().collect(),
 						};
 
-						Ok((time, mocked_parachain))
+						let randomness = session_keys_primitives::InherentDataProvider;
+
+						Ok((time, mocked_parachain, randomness))
 					}
 				},
 			}),
@@ -967,12 +1029,12 @@ where
 	let block_data_cache = Arc::new(fc_rpc::EthBlockDataCacheTask::new(
 		task_manager.spawn_handle(),
 		overrides.clone(),
-		rpc_config.eth_log_block_cache as u64,
-		rpc_config.eth_statuses_cache as u64,
+		rpc_config.eth_log_block_cache,
+		rpc_config.eth_statuses_cache,
 		prometheus_registry,
 	));
 
-	let rpc_extensions_builder = {
+	let rpc_builder = {
 		let client = client.clone();
 		let pool = transaction_pool.clone();
 		let backend = backend.clone();
@@ -983,7 +1045,7 @@ where
 		let fee_history_cache = fee_history_cache.clone();
 		let block_data_cache = block_data_cache.clone();
 
-		Box::new(move |deny_unsafe, _| {
+		move |deny_unsafe, subscription_task_executor| {
 			let deps = rpc::FullDeps {
 				backend: backend.clone(),
 				client: client.clone(),
@@ -1003,18 +1065,21 @@ where
 				overrides: overrides.clone(),
 				block_data_cache: block_data_cache.clone(),
 			};
-			#[allow(unused_mut)]
-			let mut io = rpc::create_full(deps, subscription_task_executor.clone());
+
 			if ethapi_cmd.contains(&EthApiCmd::Debug) || ethapi_cmd.contains(&EthApiCmd::Trace) {
-				rpc::tracing::extend_with_tracing(
-					client.clone(),
-					tracing_requesters.clone(),
-					rpc_config.ethapi_trace_max_count,
-					&mut io,
-				);
+				rpc::create_full(
+					deps,
+					subscription_task_executor,
+					Some(crate::rpc::TracingConfig {
+						tracing_requesters: tracing_requesters.clone(),
+						trace_filter_max_count: rpc_config.ethapi_trace_max_count,
+					}),
+				)
+				.map_err(Into::into)
+			} else {
+				rpc::create_full(deps, subscription_task_executor, None).map_err(Into::into)
 			}
-			Ok(io)
-		})
+		}
 	};
 
 	let _rpc_handlers = sc_service::spawn_tasks(sc_service::SpawnTasksParams {
@@ -1023,12 +1088,25 @@ where
 		keystore: keystore_container.sync_keystore(),
 		task_manager: &mut task_manager,
 		transaction_pool,
-		rpc_extensions_builder,
+		rpc_builder: Box::new(rpc_builder),
 		backend,
 		system_rpc_tx,
 		config,
 		telemetry: None,
 	})?;
+
+	if let Some(hwbench) = hwbench {
+		sc_sysinfo::print_hwbench(&hwbench);
+
+		if let Some(ref mut telemetry) = telemetry {
+			let telemetry_handle = telemetry.handle();
+			task_manager.spawn_handle().spawn(
+				"telemetry_hwbench",
+				None,
+				sc_sysinfo::initialize_hwbench_telemetry(telemetry_handle, hwbench),
+			);
+		}
+	}
 
 	log::info!("Development Service Ready");
 
@@ -1169,12 +1247,16 @@ mod tests {
 			wasm_runtime_overrides: Default::default(),
 			execution_strategies: Default::default(),
 			rpc_http: None,
+			rpc_id_provider: None,
 			rpc_ipc: None,
 			rpc_ws: None,
 			rpc_ws_max_connections: None,
 			rpc_cors: None,
 			rpc_methods: Default::default(),
 			rpc_max_payload: None,
+			rpc_max_request_size: None,
+			rpc_max_response_size: None,
+			rpc_max_subs_per_conn: None,
 			ws_max_out_buffer_capacity: None,
 			prometheus_config: None,
 			telemetry_endpoints: None,

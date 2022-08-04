@@ -17,6 +17,7 @@
 #![allow(dead_code)]
 
 use cumulus_primitives_parachain_inherent::ParachainInherentData;
+use fp_evm::GenesisAccount;
 use frame_support::{
 	assert_ok,
 	dispatch::Dispatchable,
@@ -30,7 +31,6 @@ pub use moonbase_runtime::{
 	ParachainStaking, Range, Runtime, System, TransactionConverter, UncheckedExtrinsic, WEEKS,
 };
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
-use pallet_evm::GenesisAccount;
 use sp_core::{Encode, H160};
 use sp_runtime::{Digest, DigestItem, Perbill};
 
@@ -50,14 +50,21 @@ pub const INVALID_ETH_TX: &str =
 	3fd467d4afd7aefb4a34b373314fff470bb9db743a84d674a0aa06e5994f2d07eafe1c37b4ce5471ca\
 	ecec29011f6f5bf0b1a552c55ea348df35f";
 
+pub fn rpc_run_to_block(n: u32) {
+	while System::block_number() < n {
+		Ethereum::on_finalize(System::block_number());
+		System::set_block_number(System::block_number() + 1);
+		Ethereum::on_initialize(System::block_number());
+	}
+}
+
 /// Utility function that advances the chain to the desired block number.
 /// If an author is provided, that author information is injected to all the blocks in the meantime.
 pub fn run_to_block(n: u32, author: Option<NimbusId>) {
+	// Finalize the first block
+	Ethereum::on_finalize(System::block_number());
+	AuthorInherent::on_finalize(System::block_number());
 	while System::block_number() < n {
-		// Finalize the previous block
-		Ethereum::on_finalize(System::block_number());
-		AuthorInherent::on_finalize(System::block_number());
-
 		// Set the new block number and author
 		match author {
 			Some(ref author) => {
@@ -80,22 +87,16 @@ pub fn run_to_block(n: u32, author: Option<NimbusId>) {
 		AuthorInherent::on_initialize(System::block_number());
 		ParachainStaking::on_initialize(System::block_number());
 		Ethereum::on_initialize(System::block_number());
+
+		// Finalize the block
+		Ethereum::on_finalize(System::block_number());
+		AuthorInherent::on_finalize(System::block_number());
+		ParachainStaking::on_finalize(System::block_number());
 	}
 }
 
 pub fn last_event() -> Event {
 	System::events().pop().expect("Event expected").event
-}
-
-// Helper function to give a simple evm context suitable for tests.
-// We can remove this once https://github.com/rust-blockchain/evm/pull/35
-// is in our dependency graph.
-pub fn evm_test_context() -> fp_evm::Context {
-	fp_evm::Context {
-		address: Default::default(),
-		caller: Default::default(),
-		apparent_value: From::from(0),
-	}
 }
 
 // Test struct with the purpose of initializing xcm assets
@@ -233,7 +234,7 @@ impl ExtBuilder {
 		.assimilate_storage(&mut t)
 		.unwrap();
 
-		parachain_staking::GenesisConfig::<Runtime> {
+		pallet_parachain_staking::GenesisConfig::<Runtime> {
 			candidates: self.collators,
 			delegations: self.delegations,
 			inflation_config: self.inflation,

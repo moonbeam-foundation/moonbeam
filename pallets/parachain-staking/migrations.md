@@ -1,5 +1,9 @@
 # Migration History
 
+## Calculate outgoing rewards based on pending revoke and decrease changes
+
+- [Migration PR `#1408`](https://github.com/PureStake/moonbeam/pull/1408)
+
 ## Patch delegations total mismatch
 
 - [Migration PR `#1291`](https://github.com/PureStake/moonbeam/pull/1291)

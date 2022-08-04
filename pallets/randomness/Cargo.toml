@@ -1,0 +1,51 @@
+[package]
+name = "pallet-randomness"
+authors = [ "PureStake" ]
+description = "Provides randomness"
+edition = "2018"
+version = "0.1.0"
+
+[dependencies]
+frame-benchmarking = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.26", optional = true, default-features = false }
+frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
+frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
+log = "0.4"
+nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
+parity-scale-codec = { version = "3.0.0", default-features = false, features = [ "derive" ] }
+scale-info = { version = "2.0", default-features = false, features = [ "derive" ] }
+serde = { version = "1.0.101", optional = true }
+session-keys-primitives = { path = "../../primitives/session-keys", default-features = false }
+sp-consensus-vrf = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
+sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
+sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
+sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
+
+# Frontier
+pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
+
+[dev-dependencies]
+derive_more = "0.99"
+pallet-author-mapping = { path = "../author-mapping" }
+pallet-balances = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.26" }
+
+[features]
+default = [ "std" ]
+std = [
+	"frame-benchmarking/std",
+	"frame-support/std",
+	"frame-system/std",
+	"nimbus-primitives/std",
+	"pallet-evm/std",
+	"parity-scale-codec/std",
+	"scale-info/std",
+	"serde",
+	"session-keys-primitives/std",
+	"sp-consensus-vrf/std",
+	"sp-core/std",
+	"sp-io/std",
+	"sp-runtime/std",
+	"sp-std/std",
+]
+runtime-benchmarks = [ "frame-benchmarking" ]
+# try-runtime = [ "frame-support/try-runtime" ]

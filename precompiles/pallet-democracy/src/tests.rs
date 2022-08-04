@@ -16,23 +16,22 @@
 
 use crate::{
 	mock::{
-		events, evm_test_context, precompile_address, roll_to, Balances, Call, Democracy,
-		ExtBuilder, Origin, Precompiles, PrecompilesValue, Runtime,
-		TestAccount::{self, Alice, Bob, Precompile},
+		events, roll_to,
+		Account::{self, Alice, Bob, Precompile},
+		Balances, Call, Democracy, ExtBuilder, Origin, Precompiles, PrecompilesValue, Runtime,
 	},
 	Action,
 };
-use fp_evm::{PrecompileFailure, PrecompileOutput};
 use frame_support::{assert_ok, dispatch::Dispatchable, traits::Currency};
 use pallet_balances::Event as BalancesEvent;
 use pallet_democracy::{
 	AccountVote, Call as DemocracyCall, Config as DemocracyConfig, Event as DemocracyEvent,
 	PreimageStatus, Vote, VoteThreshold, Voting,
 };
-use pallet_evm::{Call as EvmCall, Event as EvmEvent, ExitSucceed, PrecompileSet};
-use precompile_utils::{Address, Bytes, EvmDataWriter};
+use pallet_evm::{Call as EvmCall, Event as EvmEvent};
+use precompile_utils::{prelude::*, testing::*};
 use sp_core::{H160, U256};
-use std::{assert_matches::assert_matches, convert::TryInto, str::from_utf8};
+use std::{convert::TryInto, str::from_utf8};
 
 fn precompiles() -> Precompiles<Runtime> {
 	PrecompilesValue::get()
@@ -56,38 +55,18 @@ fn evm_call(input: Vec<u8>) -> EvmCall<Runtime> {
 fn selector_less_than_four_bytes() {
 	ExtBuilder::default().build().execute_with(|| {
 		// This selector is only three bytes long when four are required.
-		let bogus_selector = vec![1u8, 2u8, 3u8];
-
-		assert_matches!(
-			precompiles().execute(
-				Precompile.into(),
-				&bogus_selector,
-				None,
-				&evm_test_context(),
-				false,
-			),
-			Some(Err(PrecompileFailure::Revert { output, ..}))
-				if output == b"tried to parse selector out of bounds",
-		);
+		precompiles()
+			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8])
+			.execute_reverts(|output| output == b"tried to parse selector out of bounds");
 	});
 }
 
 #[test]
 fn no_selector_exists_but_length_is_right() {
 	ExtBuilder::default().build().execute_with(|| {
-		let bogus_selector = vec![1u8, 2u8, 3u8, 4u8];
-
-		assert_matches!(
-			precompiles().execute(
-				Precompile.into(),
-				&bogus_selector,
-				None,
-				&evm_test_context(),
-				false,
-			),
-			Some(Err(PrecompileFailure::Revert { output, ..}))
-				if output == b"unknown selector",
-		);
+		precompiles()
+			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8, 4u8])
+			.execute_reverts(|output| output == b"unknown selector");
 	});
 }
 
@@ -112,22 +91,16 @@ fn selectors() {
 #[test]
 fn prop_count_zero() {
 	ExtBuilder::default().build().execute_with(|| {
-		// Construct data to read prop count
-		let input = EvmDataWriter::new_with_selector(Action::PublicPropCount).build();
-
-		// Expected result is zero. because no props are open yet.
-		let expected_zero_result = Some(Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: Vec::from([0u8; 32]),
-			cost: Default::default(),
-			logs: Default::default(),
-		}));
-
 		// Assert that no props have been opened.
-		assert_eq!(
-			precompiles().execute(Precompile.into(), &input, None, &evm_test_context(), false),
-			expected_zero_result
-		);
+		precompiles()
+			.prepare_test(
+				Alice,
+				Precompile,
+				EvmDataWriter::new_with_selector(Action::PublicPropCount).build(),
+			)
+			.expect_cost(0) // TODO: Test db read/write costs
+			.expect_no_logs()
+			.execute_returns([0u8; 32].into())
 	});
 }
 
@@ -144,22 +117,15 @@ fn prop_count_non_zero() {
 			})
 			.dispatch(Origin::signed(Alice)));
 
-			// Construct data to read prop count
-			let input = EvmDataWriter::new_with_selector(Action::PublicPropCount).build();
-
-			// Expected result is one
-			let expected_one_result = Some(Ok(PrecompileOutput {
-				exit_status: ExitSucceed::Returned,
-				output: EvmDataWriter::new().write(1u32).build(),
-				cost: Default::default(),
-				logs: Default::default(),
-			}));
-
-			// Assert that no props have been opened.
-			assert_eq!(
-				precompiles().execute(Precompile.into(), &input, None, &evm_test_context(), false),
-				expected_one_result
-			);
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile,
+					EvmDataWriter::new_with_selector(Action::PublicPropCount).build(),
+				)
+				.expect_cost(0) // TODO: Test db read/write costs
+				.expect_no_logs()
+				.execute_returns(EvmDataWriter::new().write(1u32).build());
 		});
 }
 
@@ -178,60 +144,47 @@ fn deposit_of_non_zero() {
 			})
 			.dispatch(Origin::signed(Alice)));
 
-			// Construct data to read prop count
-			let input = EvmDataWriter::new_with_selector(Action::DepositOf)
-				.write(0u32)
-				.build();
-
-			// Expected result is Alice's deposit of 1000
-			let expected_result = Some(Ok(PrecompileOutput {
-				exit_status: ExitSucceed::Returned,
-				output: EvmDataWriter::new().write(1000u32).build(),
-				cost: Default::default(),
-				logs: Default::default(),
-			}));
-
-			assert_eq!(
-				precompiles().execute(Precompile.into(), &input, None, &evm_test_context(), false),
-				expected_result
-			)
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile,
+					EvmDataWriter::new_with_selector(Action::DepositOf)
+						.write(0u32)
+						.build(),
+				)
+				.expect_cost(0) // TODO: Test db read/write costs
+				.expect_no_logs()
+				.execute_returns(EvmDataWriter::new().write(1000u32).build());
 		});
 }
 
 #[test]
 fn deposit_of_bad_index() {
 	ExtBuilder::default().build().execute_with(|| {
-		// Construct data to read prop count
-		let input = EvmDataWriter::new_with_selector(Action::DepositOf)
-			.write(10u32)
-			.build();
-
-		assert_matches!(
-			precompiles().execute(Precompile.into(), &input, None, &evm_test_context(), false),
-			Some(Err(PrecompileFailure::Revert { output, ..}))
-				if output == b"No such proposal in pallet democracy",
-		);
+		precompiles()
+			.prepare_test(
+				Alice,
+				Precompile,
+				EvmDataWriter::new_with_selector(Action::DepositOf)
+					.write(10u32)
+					.build(),
+			)
+			.execute_reverts(|output| output == b"No such proposal in pallet democracy");
 	});
 }
 
 #[test]
 fn lowest_unbaked_zero() {
 	ExtBuilder::default().build().execute_with(|| {
-		// Construct data to read lowest unbaked referendum index
-		let input = EvmDataWriter::new_with_selector(Action::LowestUnbaked).build();
-
-		// Expected result is zero
-		let expected_zero_result = Some(Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(0u32).build(),
-			cost: Default::default(),
-			logs: Default::default(),
-		}));
-
-		assert_eq!(
-			precompiles().execute(Precompile.into(), &input, None, &evm_test_context(), false),
-			expected_zero_result
-		)
+		precompiles()
+			.prepare_test(
+				Alice,
+				Precompile,
+				EvmDataWriter::new_with_selector(Action::LowestUnbaked).build(),
+			)
+			.expect_cost(0) // TODO: Test db read/write costs
+			.expect_no_logs()
+			.execute_returns(EvmDataWriter::new().write(0u32).build());
 	});
 }
 
@@ -287,21 +240,15 @@ fn lowest_unbaked_non_zero() {
 					+ 1000,
 			);
 
-			// Construct data to read lowest unbaked referendum index
-			let input = EvmDataWriter::new_with_selector(Action::LowestUnbaked).build();
-
-			// Expected result is one
-			let expected_one_result = Some(Ok(PrecompileOutput {
-				exit_status: ExitSucceed::Returned,
-				output: EvmDataWriter::new().write(1u32).build(),
-				cost: Default::default(),
-				logs: Default::default(),
-			}));
-
-			assert_eq!(
-				precompiles().execute(Precompile.into(), &input, None, &evm_test_context(), false),
-				expected_one_result
-			)
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile,
+					EvmDataWriter::new_with_selector(Action::LowestUnbaked).build(),
+				)
+				.expect_cost(0) // TODO: Test db read/write costs
+				.expect_no_logs()
+				.execute_returns(EvmDataWriter::new().write(1u32).build());
 		});
 }
 
@@ -376,7 +323,10 @@ fn propose_works() {
 						deposit: 100
 					}
 					.into(),
-					EvmEvent::Executed(Precompile.into()).into(),
+					EvmEvent::Executed {
+						address: Precompile.into()
+					}
+					.into(),
 				]
 			);
 		})
@@ -434,7 +384,10 @@ fn second_works() {
 						prop_index: 0
 					}
 					.into(),
-					EvmEvent::Executed(Precompile.into()).into(),
+					EvmEvent::Executed {
+						address: Precompile.into()
+					}
+					.into(),
 				]
 			);
 		})
@@ -487,7 +440,10 @@ fn standard_vote_aye_works() {
 						}
 					}
 					.into(),
-					EvmEvent::Executed(Precompile.into()).into(),
+					EvmEvent::Executed {
+						address: Precompile.into()
+					}
+					.into(),
 				]
 			);
 
@@ -556,7 +512,10 @@ fn standard_vote_nay_conviction_works() {
 						}
 					}
 					.into(),
-					EvmEvent::Executed(Precompile.into()).into(),
+					EvmEvent::Executed {
+						address: Precompile.into()
+					}
+					.into(),
 				]
 			);
 
@@ -640,7 +599,10 @@ fn remove_vote_works() {
 						}
 					}
 					.into(),
-					EvmEvent::Executed(Precompile.into()).into(),
+					EvmEvent::Executed {
+						address: Precompile.into()
+					}
+					.into(),
 				]
 			);
 
@@ -675,19 +637,15 @@ fn remove_vote_dne() {
 			// Wait until it becomes a referendum
 			roll_to(<Runtime as DemocracyConfig>::LaunchPeriod::get());
 
-			// Construct input data to remove a non-existant vote
-			let input = EvmDataWriter::new_with_selector(Action::RemoveVote)
-				.write(0u32) // Referendum index 0
-				.build();
-
-			// Expected result is an error from the pallet
-			if let Some(Err(PrecompileFailure::Revert { output: e, .. })) =
-				precompiles().execute(Precompile.into(), &input, None, &evm_test_context(), false)
-			{
-				assert!(from_utf8(&e).unwrap().contains("NotVoter"));
-			} else {
-				panic!("Expected an ExitError, but didn't get one.")
-			}
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile,
+					EvmDataWriter::new_with_selector(Action::RemoveVote)
+						.write(0u32) // Referendum index 0
+						.build(),
+				)
+				.execute_reverts(|output| from_utf8(&output).unwrap().contains("NotVoter"));
 		})
 }
 
@@ -716,7 +674,10 @@ fn delegate_works() {
 						target: Bob
 					}
 					.into(),
-					EvmEvent::Executed(Precompile.into()).into(),
+					EvmEvent::Executed {
+						address: Precompile.into()
+					}
+					.into(),
 				]
 			);
 
@@ -778,7 +739,10 @@ fn undelegate_works() {
 					}
 					.into(),
 					DemocracyEvent::Undelegated { account: Alice }.into(),
-					EvmEvent::Executed(Precompile.into()).into(),
+					EvmEvent::Executed {
+						address: Precompile.into()
+					}
+					.into(),
 				]
 			);
 
@@ -798,17 +762,13 @@ fn undelegate_works() {
 #[test]
 fn undelegate_dne() {
 	ExtBuilder::default().build().execute_with(|| {
-		// Construct input data to un-delegate Alice
-		let input = EvmDataWriter::new_with_selector(Action::UnDelegate).build();
-
-		// Expected result is an error from the pallet
-		if let Some(Err(PrecompileFailure::Revert { output: e, .. })) =
-			precompiles().execute(Precompile.into(), &input, None, &evm_test_context(), false)
-		{
-			assert!(from_utf8(&e).unwrap().contains("NotDelegating"));
-		} else {
-			panic!("Expected an ExitError, but didn't get one.")
-		}
+		precompiles()
+			.prepare_test(
+				Alice,
+				Precompile,
+				EvmDataWriter::new_with_selector(Action::UnDelegate).build(),
+			)
+			.execute_reverts(|output| from_utf8(&output).unwrap().contains("NotDelegating"));
 	})
 }
 
@@ -843,10 +803,7 @@ fn unlock_works() {
 			// One possible way to look further: I just noticed there is a `Locks` storage item in
 			// the pallet.
 			// And also, maybe write a test in the pallet to ensure the locks work as expected.
-			assert_eq!(
-				<Balances as Currency<TestAccount>>::free_balance(&Alice),
-				900
-			);
+			assert_eq!(<Balances as Currency<Account>>::free_balance(&Alice), 900);
 
 			// Let time elapse until she wins the vote and gets her tokens locked
 			roll_to(11);
@@ -875,7 +832,10 @@ fn unlock_works() {
 					}
 					.into(),
 					DemocracyEvent::Passed { ref_index: 0 }.into(),
-					EvmEvent::Executed(Precompile.into()).into(),
+					EvmEvent::Executed {
+						address: Precompile.into()
+					}
+					.into(),
 				]
 			);
 		})
@@ -898,7 +858,10 @@ fn unlock_with_nothing_locked() {
 			// Assert that the events are as expected
 			assert_eq!(
 				events(),
-				vec![EvmEvent::Executed(Precompile.into()).into(),]
+				vec![EvmEvent::Executed {
+					address: Precompile.into()
+				}
+				.into(),]
 			);
 		})
 }
@@ -953,7 +916,10 @@ fn note_preimage_works() {
 						deposit: expected_deposit
 					}
 					.into(),
-					EvmEvent::Executed(Precompile.into()).into(),
+					EvmEvent::Executed {
+						address: Precompile.into()
+					}
+					.into(),
 				]
 			);
 
@@ -1010,7 +976,7 @@ fn note_preimage_works_with_real_data() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(EvmCall::call {
 				source: Alice.into(),
-				target: precompile_address(),
+				target: Precompile.into(),
 				input,
 				value: U256::zero(), // No value sent in EVM
 				gas_limit: u64::max_value(),
@@ -1036,7 +1002,10 @@ fn note_preimage_works_with_real_data() {
 						deposit: expected_deposit
 					}
 					.into(),
-					EvmEvent::Executed(precompile_address()).into(),
+					EvmEvent::Executed {
+						address: Precompile.into()
+					}
+					.into(),
 				]
 			);
 
@@ -1124,8 +1093,14 @@ fn cannot_note_duplicate_preimage() {
 						deposit: expected_deposit
 					}
 					.into(),
-					EvmEvent::Executed(Precompile.into()).into(),
-					EvmEvent::ExecutedFailed(Precompile.into()).into(),
+					EvmEvent::Executed {
+						address: Precompile.into()
+					}
+					.into(),
+					EvmEvent::ExecutedFailed {
+						address: Precompile.into()
+					}
+					.into(),
 				]
 			);
 		})
@@ -1163,7 +1138,10 @@ fn cannot_note_imminent_preimage_before_it_is_actually_imminent() {
 			// Assert that the events are as expected
 			assert_eq!(
 				events(),
-				vec![EvmEvent::ExecutedFailed(Precompile.into()).into()]
+				vec![EvmEvent::ExecutedFailed {
+					address: Precompile.into()
+				}
+				.into()]
 			);
 		})
 }

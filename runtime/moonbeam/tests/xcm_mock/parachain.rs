@@ -317,6 +317,7 @@ parameter_types! {
 	};
 
 }
+
 pub struct XcmConfig;
 impl Config for XcmConfig {
 	type Call = Call;
@@ -342,6 +343,7 @@ impl Config for XcmConfig {
 	type SubscriptionService = PolkadotXcm;
 	type AssetTrap = PolkadotXcm;
 	type AssetClaims = PolkadotXcm;
+	type CallDispatcher = Call;
 }
 
 impl cumulus_pallet_xcm::Config for Runtime {
@@ -393,8 +395,8 @@ parameter_types! {
 }
 
 parameter_type_with_key! {
-	pub ParachainMinFee: |_location: MultiLocation| -> u128 {
-		u128::MAX
+	pub ParachainMinFee: |_location: MultiLocation| -> Option<u128> {
+		Some(u128::MAX)
 	};
 }
 
@@ -441,6 +443,7 @@ impl pallet_treasury::Config for Runtime {
 	type WeightInfo = ();
 	type SpendFunds = ();
 	type ProposalBondMaximum = ();
+	type SpendOrigin = frame_support::traits::NeverEnsureOrigin<Balance>; // Same as Polkadot
 }
 
 #[frame_support::pallet]
@@ -791,8 +794,8 @@ impl pallet_asset_manager::LocalAssetIdCreator<Runtime> for LocalAssetIdCreator 
 		// Our means of converting a local asset counter to an assetId
 		// We basically hash (local asset counter)
 		let mut result: [u8; 16] = [0u8; 16];
-		let to_hash = local_asset_counter.encode();
-		let hash: H256 = to_hash.using_encoded(<Runtime as frame_system::Config>::Hashing::hash);
+		let hash: H256 =
+			local_asset_counter.using_encoded(<Runtime as frame_system::Config>::Hashing::hash);
 		result.copy_from_slice(&hash.as_fixed_bytes()[0..16]);
 		u128::from_le_bytes(result)
 	}
@@ -814,7 +817,7 @@ impl pallet_asset_manager::Config for Runtime {
 	type WeightInfo = ();
 }
 
-impl xcm_transactor::Config for Runtime {
+impl pallet_xcm_transactor::Config for Runtime {
 	type Event = Event;
 	type Balance = Balance;
 	type Transactor = MockTransactors;
@@ -844,6 +847,12 @@ impl pallet_timestamp::Config for Runtime {
 	type WeightInfo = ();
 }
 
+use sp_core::U256;
+
+parameter_types! {
+	pub BlockGasLimit: U256 = U256::max_value();
+}
+
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
 	type GasWeightMapping = ();
@@ -851,7 +860,7 @@ impl pallet_evm::Config for Runtime {
 	type CallOrigin = pallet_evm::EnsureAddressRoot<AccountId>;
 	type WithdrawOrigin = pallet_evm::EnsureAddressNever<AccountId>;
 
-	type AddressMapping = runtime_common::IntoAddressMapping;
+	type AddressMapping = moonbeam_runtime_common::IntoAddressMapping;
 	type Currency = Balances;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
 
@@ -859,11 +868,10 @@ impl pallet_evm::Config for Runtime {
 	type PrecompilesType = ();
 	type PrecompilesValue = ();
 	type ChainId = ();
-	type BlockGasLimit = ();
+	type BlockGasLimit = BlockGasLimit;
 	type OnChargeTransaction = ();
 	type BlockHashMapping = pallet_evm::SubstrateBlockHashMapping<Self>;
 	type FindAuthor = ();
-	type WeightInfo = ();
 }
 
 pub struct NormalFilter;
@@ -917,6 +925,11 @@ impl xcm_primitives::UtilityEncodeCall for MockTransactors {
 	}
 }
 
+impl pallet_ethereum::Config for Runtime {
+	type Event = Event;
+	type StateRoot = pallet_ethereum::IntermediateStateRoot<Self>;
+}
+
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
 type Block = frame_system::mocking::MockBlock<Runtime>;
 
@@ -936,12 +949,13 @@ construct_runtime!(
 		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin},
 		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>},
 		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>},
-		XcmTransactor: xcm_transactor::{Pallet, Call, Storage, Event<T>},
+		XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Storage, Event<T>},
 		Treasury: pallet_treasury::{Pallet, Storage, Config, Event<T>, Call},
 		LocalAssets: pallet_assets::<Instance1>::{Pallet, Call, Storage, Event<T>},
 
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage},
 		EVM: pallet_evm::{Pallet, Call, Storage, Config, Event<T>},
+		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Origin, Config},
 	}
 );
 

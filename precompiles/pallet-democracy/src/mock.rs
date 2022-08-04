@@ -28,14 +28,14 @@ use pallet_evm::{
 };
 use scale_info::TypeInfo;
 use serde::{Deserialize, Serialize};
-use sp_core::H256;
+use sp_core::{H256, U256};
 use sp_io;
 use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 };
 
-pub type AccountId = TestAccount;
+pub type AccountId = Account;
 pub type Balance = u128;
 pub type BlockNumber = u64;
 
@@ -43,11 +43,6 @@ type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>
 type Block = frame_system::mocking::MockBlock<Runtime>;
 
 pub const PRECOMPILE_ADDRESS: u64 = 1;
-
-/// The democracy precompile is available at address one in the mock runtime.
-pub fn precompile_address() -> H160 {
-	H160::from_low_u64_be(1)
-}
 
 #[derive(
 	Eq,
@@ -64,7 +59,7 @@ pub fn precompile_address() -> H160 {
 	derive_more::Display,
 	TypeInfo,
 )]
-pub enum TestAccount {
+pub enum Account {
 	Alice,
 	Bob,
 	Charlie,
@@ -72,14 +67,14 @@ pub enum TestAccount {
 	Precompile,
 }
 
-impl Default for TestAccount {
+impl Default for Account {
 	fn default() -> Self {
 		Self::Bogus
 	}
 }
 
-impl AddressMapping<TestAccount> for TestAccount {
-	fn into_account_id(h160_account: H160) -> TestAccount {
+impl AddressMapping<Account> for Account {
+	fn into_account_id(h160_account: H160) -> Account {
 		match h160_account {
 			a if a == H160::repeat_byte(0xAA) => Self::Alice,
 			a if a == H160::repeat_byte(0xBB) => Self::Bob,
@@ -90,20 +85,20 @@ impl AddressMapping<TestAccount> for TestAccount {
 	}
 }
 
-impl From<H160> for TestAccount {
-	fn from(x: H160) -> TestAccount {
-		TestAccount::into_account_id(x)
+impl From<H160> for Account {
+	fn from(x: H160) -> Account {
+		Account::into_account_id(x)
 	}
 }
 
-impl From<TestAccount> for H160 {
-	fn from(value: TestAccount) -> H160 {
+impl From<Account> for H160 {
+	fn from(value: Account) -> H160 {
 		match value {
-			TestAccount::Alice => H160::repeat_byte(0xAA),
-			TestAccount::Bob => H160::repeat_byte(0xBB),
-			TestAccount::Charlie => H160::repeat_byte(0xCC),
-			TestAccount::Precompile => H160::from_low_u64_be(PRECOMPILE_ADDRESS),
-			TestAccount::Bogus => Default::default(),
+			Account::Alice => H160::repeat_byte(0xAA),
+			Account::Bob => H160::repeat_byte(0xBB),
+			Account::Charlie => H160::repeat_byte(0xCC),
+			Account::Precompile => H160::from_low_u64_be(PRECOMPILE_ADDRESS),
+			Account::Bogus => Default::default(),
 		}
 	}
 }
@@ -137,7 +132,7 @@ impl frame_system::Config for Runtime {
 	type Call = Call;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
-	type AccountId = TestAccount;
+	type AccountId = Account;
 	type Lookup = IdentityLookup<Self::AccountId>;
 	type Header = Header;
 	type Event = Event;
@@ -170,15 +165,16 @@ impl pallet_balances::Config for Runtime {
 }
 
 parameter_types! {
+	pub BlockGasLimit: U256 = U256::max_value();
 	pub const PrecompilesValue: Precompiles<Runtime> = Precompiles(PhantomData);
 }
 
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
 	type GasWeightMapping = ();
-	type CallOrigin = EnsureAddressRoot<TestAccount>;
-	type WithdrawOrigin = EnsureAddressNever<TestAccount>;
-	type AddressMapping = TestAccount;
+	type CallOrigin = EnsureAddressRoot<Account>;
+	type WithdrawOrigin = EnsureAddressNever<Account>;
+	type AddressMapping = Account;
 	type Currency = Balances;
 	type Event = Event;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
@@ -186,10 +182,9 @@ impl pallet_evm::Config for Runtime {
 	type PrecompilesValue = PrecompilesValue;
 	type ChainId = ();
 	type OnChargeTransaction = ();
-	type BlockGasLimit = ();
+	type BlockGasLimit = BlockGasLimit;
 	type BlockHashMapping = SubstrateBlockHashMapping<Self>;
 	type FindAuthor = ();
-	type WeightInfo = ();
 }
 
 parameter_types! {
@@ -252,7 +247,7 @@ impl pallet_scheduler::Config for Runtime {
 	type PalletsOrigin = OriginCaller;
 	type Call = Call;
 	type MaximumWeight = ();
-	type ScheduleOrigin = EnsureRoot<TestAccount>;
+	type ScheduleOrigin = EnsureRoot<Account>;
 	type MaxScheduledPerBlock = ();
 	type WeightInfo = ();
 	type OriginPrivilegeCmp = EqualPrivilegeOnly; // TODO : Simplest type, maybe there is better ?
@@ -267,18 +262,9 @@ impl<R> PrecompileSet for Precompiles<R>
 where
 	DemocracyWrapper<R>: Precompile,
 {
-	fn execute(
-		&self,
-		address: H160,
-		input: &[u8],
-		target_gas: Option<u64>,
-		context: &Context,
-		is_static: bool,
-	) -> Option<EvmResult<PrecompileOutput>> {
-		match address {
-			a if a == hash(PRECOMPILE_ADDRESS) => Some(DemocracyWrapper::<R>::execute(
-				input, target_gas, context, is_static,
-			)),
+	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<EvmResult<PrecompileOutput>> {
+		match handle.code_address() {
+			a if a == hash(PRECOMPILE_ADDRESS) => Some(DemocracyWrapper::<R>::execute(handle)),
 			_ => None,
 		}
 	}
@@ -381,51 +367,31 @@ pub(crate) fn events() -> Vec<Event> {
 		.collect::<Vec<_>>()
 }
 
-// Helper function to give a simple evm context suitable for tests.
-// We can remove this once https://github.com/rust-blockchain/evm/pull/35
-// is in our dependency graph.
-pub fn evm_test_context() -> fp_evm::Context {
-	fp_evm::Context {
-		address: Default::default(),
-		caller: Default::default(),
-		apparent_value: From::from(0),
-	}
-}
-
 #[test]
 fn test_account_id_mapping_works() {
 	// Bidirectional conversions for normal accounts
 	assert_eq!(
-		TestAccount::Alice,
-		TestAccount::into_account_id(TestAccount::Alice.into())
+		Account::Alice,
+		Account::into_account_id(Account::Alice.into())
 	);
+	assert_eq!(Account::Bob, Account::into_account_id(Account::Bob.into()));
 	assert_eq!(
-		TestAccount::Bob,
-		TestAccount::into_account_id(TestAccount::Bob.into())
-	);
-	assert_eq!(
-		TestAccount::Charlie,
-		TestAccount::into_account_id(TestAccount::Charlie.into())
+		Account::Charlie,
+		Account::into_account_id(Account::Charlie.into())
 	);
 
 	// Bidirectional conversion between bogus and default H160
-	assert_eq!(
-		TestAccount::Bogus,
-		TestAccount::into_account_id(H160::default())
-	);
-	assert_eq!(H160::default(), TestAccount::Bogus.into());
+	assert_eq!(Account::Bogus, Account::into_account_id(H160::default()));
+	assert_eq!(H160::default(), Account::Bogus.into());
 
 	// All other H160s map to bogus
+	assert_eq!(Account::Bogus, Account::into_account_id(H160::zero()));
 	assert_eq!(
-		TestAccount::Bogus,
-		TestAccount::into_account_id(H160::zero())
+		Account::Bogus,
+		Account::into_account_id(H160::repeat_byte(0x12))
 	);
 	assert_eq!(
-		TestAccount::Bogus,
-		TestAccount::into_account_id(H160::repeat_byte(0x12))
-	);
-	assert_eq!(
-		TestAccount::Bogus,
-		TestAccount::into_account_id(H160::repeat_byte(0xFF))
+		Account::Bogus,
+		Account::into_account_id(H160::repeat_byte(0xFF))
 	);
 }

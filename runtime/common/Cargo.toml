@@ -1,8 +1,8 @@
 [package]
-name = "runtime-common"
+name = "moonbeam-runtime-common"
 authors = [ "PureStake" ]
 description = "Common code shared between runtimes"
-edition = "2018"
+edition = "2021"
 homepage = "https://moonbeam.network"
 license = "GPL-3.0-only"
 version = "0.8.0-dev"
@@ -12,49 +12,52 @@ impl-trait-for-tuples = "0.2.1"
 log = "0.4"
 
 # Moonbeam
-pallet-asset-manager = { path = "../../pallets/asset-manager", optional = true, default-features = false }
+pallet-asset-manager = { path = "../../pallets/asset-manager", default-features = false }
 pallet-author-mapping = { path = "../../pallets/author-mapping", default-features = false }
 pallet-migrations = { path = "../../pallets/migrations", default-features = false }
-parachain-staking = { path = "../../pallets/parachain-staking", default-features = false }
-xcm-transactor = { path = "../../pallets/xcm-transactor", optional = true, default-features = false }
+pallet-parachain-staking = { path = "../../pallets/parachain-staking", default-features = false }
+pallet-randomness = { path = "../../pallets/randomness", default-features = false }
+pallet-xcm-transactor = { path = "../../pallets/xcm-transactor", default-features = false }
 
 # Substrate
-frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
-frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
-pallet-collective = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
-pallet-scheduler = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
-sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
-sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
-sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
+frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
+frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
+pallet-collective = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
+pallet-scheduler = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
+sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
+sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
 
 # Frontier
-pallet-base-fee = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
-pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
+pallet-base-fee = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
+pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
 
 # Nimbus
-pallet-author-slot-filter = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.18", default-features = false }
+pallet-author-inherent = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
+pallet-author-slot-filter = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
 
 # Polkadot
-xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.18", optional = true, default-features = false }
+xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
 
 [features]
 std = [
 	"frame-support/std",
 	"pallet-asset-manager/std",
+	"pallet-author-inherent/std",
 	"pallet-author-mapping/std",
 	"pallet-base-fee/std",
 	"pallet-evm/std",
 	"pallet-migrations/std",
+	"pallet-parachain-staking/std",
+	"pallet-randomness/std",
 	"pallet-scheduler/std",
-	"parachain-staking/std",
+	"pallet-xcm-transactor/std",
 	"sp-core/std",
 	"sp-runtime/std",
 	"sp-std/std",
-	"xcm-transactor/std",
 	"xcm/std",
 ]
 try-runtime = [
 	"frame-support/try-runtime",
 	"pallet-migrations/try-runtime",
 ]
-xcm-support = [ "pallet-asset-manager", "xcm", "xcm-transactor" ]
