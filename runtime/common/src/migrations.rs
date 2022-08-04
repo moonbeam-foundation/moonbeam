@@ -599,6 +599,7 @@ where
 	Runtime: pallet_scheduler::Config,
 	Runtime: pallet_base_fee::Config,
 	Runtime: AuthorSlotFilterConfig,
+	Runtime: RandomnessConfig,
 	Council: GetStorageVersion + PalletInfoAccess + 'static,
 	Tech: GetStorageVersion + PalletInfoAccess + 'static,
 {
