@@ -29,6 +29,7 @@ use xcm_mock::*;
 use xcm_primitives::UtilityEncodeCall;
 
 use pallet_asset_manager::LocalAssetIdCreator;
+use pallet_xcm_transactor::{Currency, CurrencyPayment, TransactWeights};
 use xcm::latest::prelude::*;
 use xcm_executor::traits::Convert;
 use xcm_simulator::TestExt;
@@ -945,14 +946,22 @@ fn transact_through_derivative_multilocation() {
 	encoded.append(&mut call_bytes);
 
 	ParaA::execute_with(|| {
-		assert_ok!(XcmTransactor::transact_through_derivative_multilocation(
+		assert_ok!(XcmTransactor::transact_through_derivative(
 			parachain::Origin::signed(PARAALICE.into()),
 			parachain::MockTransactors::Relay,
 			0,
-			Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-			// 4000000000 + 3000 we should have taken out 4000003000 tokens from the caller
-			4000000000,
+			CurrencyPayment {
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V1(
+					MultiLocation::parent()
+				))),
+				fee_amount: None
+			},
 			encoded,
+			// 400000000 + 3000 we should have taken out 4000003000 tokens from the caller
+			TransactWeights {
+				transact_weight: 4000000000,
+				overall_weight: None
+			}
 		));
 	});
 
@@ -1106,10 +1115,18 @@ fn transact_through_sovereign() {
 			parachain::Origin::root(),
 			Box::new(xcm::VersionedMultiLocation::V1(dest)),
 			PARAALICE.into(),
-			Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-			4000000000,
+			CurrencyPayment {
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V1(
+					MultiLocation::parent()
+				))),
+				fee_amount: None
+			},
 			utility_bytes,
-			OriginKind::SovereignAccount
+			OriginKind::SovereignAccount,
+			TransactWeights {
+				transact_weight: 4000000000,
+				overall_weight: None
+			}
 		));
 	});
 
@@ -1966,14 +1983,21 @@ fn transact_through_signed_multilocation() {
 	encoded.append(&mut call_bytes);
 
 	ParaA::execute_with(|| {
-		assert_ok!(XcmTransactor::transact_through_signed_multilocation(
+		assert_ok!(XcmTransactor::transact_through_signed(
 			parachain::Origin::signed(PARAALICE.into()),
 			Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-			Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-			// 4000000000 for transfer + 4000 for XCM
-			// 1-1 to fee
-			4000000000,
+			CurrencyPayment {
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V1(
+					MultiLocation::parent()
+				))),
+				fee_amount: None
+			},
 			encoded,
+			// 4000000000 for transfer + 4000 for XCM
+			TransactWeights {
+				transact_weight: 4000000000,
+				overall_weight: None
+			}
 		));
 	});
 

@@ -57,6 +57,7 @@ use pallet_evm_precompileset_assets_erc20::{
 };
 use pallet_randomness::weights::{SubstrateWeight, WeightInfo};
 use pallet_transaction_payment::Multiplier;
+use pallet_xcm_transactor::{Currency, CurrencyPayment, TransactWeights};
 use parity_scale_codec::Encode;
 use sha3::{Digest, Keccak256};
 use sp_core::{crypto::UncheckedFrom, ByteArray, Pair, H160, U256};
@@ -65,7 +66,6 @@ use sp_runtime::{
 	DispatchError, ModuleError, TokenError,
 };
 use xcm::latest::prelude::*;
-
 #[test]
 fn verify_randomness_precompile_gas_constants() {
 	let weight_to_gas = |weight| {
@@ -2352,14 +2352,22 @@ fn transactor_cannot_use_more_than_max_weight() {
 			));
 
 			assert_noop!(
-				XcmTransactor::transact_through_derivative_multilocation(
+				XcmTransactor::transact_through_derivative(
 					origin_of(AccountId::from(ALICE)),
 					moonbase_runtime::xcm_config::Transactors::Relay,
 					0,
-					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-					// 20000the max
-					17000,
+					CurrencyPayment {
+						currency: Currency::AsMultiLocation(Box::new(
+							xcm::VersionedMultiLocation::V1(MultiLocation::parent())
+						)),
+						fee_amount: None
+					},
 					vec![],
+					// 20000 is the max
+					TransactWeights {
+						transact_weight: 17000,
+						overall_weight: None
+					}
 				),
 				pallet_xcm_transactor::Error::<Runtime>::MaxWeightTransactReached
 			);
@@ -2368,10 +2376,18 @@ fn transactor_cannot_use_more_than_max_weight() {
 					origin_of(AccountId::from(ALICE)),
 					moonbase_runtime::xcm_config::Transactors::Relay,
 					0,
-					moonbase_runtime::xcm_config::CurrencyId::ForeignAsset(source_id),
-					// 20000 is the max
-					17000,
+					CurrencyPayment {
+						currency: Currency::AsCurrencyId(
+							moonbase_runtime::xcm_config::CurrencyId::ForeignAsset(source_id)
+						),
+						fee_amount: None
+					},
 					vec![],
+					// 20000 is the max
+					TransactWeights {
+						transact_weight: 17000,
+						overall_weight: None
+					}
 				),
 				pallet_xcm_transactor::Error::<Runtime>::MaxWeightTransactReached
 			);
