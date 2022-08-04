@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! VRF logic
-use crate::{Config, LocalVrfOutput, NotFirstBlock, RandomnessResults, RequestType};
+use crate::{Config, LocalVrfOutput, RandomnessResults, RequestType};
 use frame_support::{pallet_prelude::Weight, traits::Get};
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
 use parity_scale_codec::Decode;
@@ -31,11 +31,11 @@ type Randomness = schnorrkel::Randomness;
 pub(crate) fn set_output<T: Config>() -> Weight {
 	// Do not set the output in the first block (genesis or runtime upgrade)
 	// because we do not have any input for author to sign (which would be set in last block)
-	if NotFirstBlock::<T>::get().is_none() {
-		NotFirstBlock::<T>::put(());
-		LocalVrfOutput::<T>::put(Some(T::Hash::default()));
-		return T::DbWeight::get().read + (T::DbWeight::get().write * 2);
-	}
+	// if NotFirstBlock::<T>::get().is_none() {
+	// 	NotFirstBlock::<T>::put(());
+	// 	LocalVrfOutput::<T>::put(Some(T::Hash::default()));
+	// 	return T::DbWeight::get().read + (T::DbWeight::get().write * 2);
+	// }
 	let mut block_author_vrf_id: Option<VrfId> = None;
 	let PreDigest {
 		vrf_output,

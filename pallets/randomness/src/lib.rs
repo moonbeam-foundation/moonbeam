@@ -27,6 +27,7 @@ mod benchmarks;
 pub mod types;
 pub mod vrf;
 pub use types::*;
+pub mod migrations;
 pub mod weights;
 
 #[cfg(test)]
@@ -179,9 +180,9 @@ pub mod pallet {
 	pub(crate) type InherentIncluded<T: Config> = StorageValue<_, ()>;
 
 	/// Records whether this is the first block (genesis or runtime upgrade)
-	#[pallet::storage]
-	#[pallet::getter(fn not_first_block)]
-	pub type NotFirstBlock<T: Config> = StorageValue<_, ()>;
+	// #[pallet::storage]
+	// #[pallet::getter(fn not_first_block)]
+	// pub type NotFirstBlock<T: Config> = StorageValue<_, ()>;
 
 	/// Snapshot of randomness to fulfill all requests that are for the same raw randomness
 	/// Removed once $value.request_count == 0
