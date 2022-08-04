@@ -16,11 +16,13 @@ const debug = require("debug")("smoke:randomness");
 const wssUrl = process.env.WSS_URL || null;
 const relayWssUrl = process.env.RELAY_WSS_URL || null;
 
+const RANDOMNESS_ACCOUNT_ID = "0x6d6f646c6d6f6f6e72616e640000000000000000";
+
 describeSmokeSuite(`Verify number of proxies per account`, { wssUrl, relayWssUrl }, (context) => {
   let atBlockNumber: number = 0;
   let apiAt: ApiDecoration<"promise"> = null;
 
-  const requests: { id: number; state: any }[] = [];
+  const requestStates: { id: number; state: any }[] = [];
   let numRequests: number = 0; // our own count
   let requestCount: number = 0; // from pallet storage
 
@@ -61,7 +63,7 @@ describeSmokeSuite(`Verify number of proxies per account`, { wssUrl, relayWssUrl
         const requestIdEncoded = key.slice(-16);
         const requestId = hexToBigInt(requestIdEncoded, { isLe: true });
 
-        requests.push({ id: Number(requestId), state: request[1] });
+        requestStates.push({ id: Number(requestId), state: request[1] });
         numRequests += 1;
         last_key = key;
       }
@@ -70,7 +72,7 @@ describeSmokeSuite(`Verify number of proxies per account`, { wssUrl, relayWssUrl
       // TEMPLATE: Adapt log line
       if (true || count % (10 * limit) == 0) {
         debug(`Retrieved ${count} requests`);
-        debug(`Requests: ${requests}`);
+        debug(`Requests: ${requestStates}`);
       }
     }
 
@@ -90,7 +92,7 @@ describeSmokeSuite(`Verify number of proxies per account`, { wssUrl, relayWssUrl
   it("should not have requestId above RequestCount", async function () {
     this.timeout(1000);
 
-    const highestId = requests.reduce((prev, request) => Math.max(request.id, prev), 0);
+    const highestId = requestStates.reduce((prev, request) => Math.max(request.id, prev), 0);
     expect(highestId).to.be.lessThanOrEqual(requestCount);
   });
 
@@ -124,7 +126,7 @@ describeSmokeSuite(`Verify number of proxies per account`, { wssUrl, relayWssUrl
       } else {
         // look for any requests which depend on the "local" block
         let block = (requestType as any).asLocal;
-        let found = requests.find((request) => {
+        let found = requestStates.find((request) => {
           // TODO: can we traverse this hierarchy of types without creating each?
           const requestState = context.polkadotApi.registry.createType(
             "PalletRandomnessRequestState",
@@ -169,5 +171,31 @@ describeSmokeSuite(`Verify number of proxies per account`, { wssUrl, relayWssUrl
       const inherentIncluded = ((await apiAt.query.randomness.inherentIncluded()) as any).isSome;
       expect(inherentIncluded).to.be.false;
     }
+  });
+
+  it("should have correct total deposits", async function () {
+    this.timeout(10000);
+
+    let totalDeposits = 0n;
+    for (const request of requestStates) {
+      // TODO: copied from above -- this could use some DRY
+      const requestState = context.polkadotApi.registry.createType(
+        "PalletRandomnessRequestState",
+        request.state.toHex()
+      );
+      const requestRequest = context.polkadotApi.registry.createType(
+        "PalletRandomnessRequest",
+        (requestState as any).request.toHex()
+      );
+
+      totalDeposits += BigInt((requestRequest as any).fee);
+      totalDeposits += BigInt((requestState as any).deposit);
+    }
+
+    const palletAccountBalance = (
+      await apiAt.query.system.account(RANDOMNESS_ACCOUNT_ID)
+    ).data.free.toBigInt();
+
+    expect(palletAccountBalance >= totalDeposits).to.be.true;
   });
 });
