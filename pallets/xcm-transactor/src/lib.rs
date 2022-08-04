@@ -649,28 +649,12 @@ pub mod pallet {
 			// Calculate the total weight that the xcm message is going to spend in the
 			// destination chain
 
-			let total_weight = weight_info.overall_weight.unwrap_or({
-				// Grab transact info for the fee loation provided
-				let transactor_info = TransactInfoWithWeightLimit::<T>::get(&dest)
-					.ok_or(Error::<T>::TransactorInfoNotSet)?;
-
-				// If this storage item is not set, it means that the destination chain
-				// does not support this kind of transact message
-				let transact_in_dest_as_signed_weight = transactor_info
-					.transact_extra_weight_signed
-					.ok_or(Error::<T>::SignedTransactNotAllowedForDestination)?;
-
-				let total_weight = weight_info
-					.transact_weight
-					.checked_add(transact_in_dest_as_signed_weight)
-					.ok_or(Error::<T>::WeightOverflow)?;
-
-				ensure!(
-					total_weight < transactor_info.max_weight,
-					Error::<T>::MaxWeightTransactReached
-				);
-				total_weight
-			});
+			let total_weight: u64 = weight_info.overall_weight.ok_or("").or_else(|_| {
+				Self::take_weight_from_transact_info_signed(
+					dest.clone(),
+					weight_info.transact_weight,
+				)
+			})?;
 
 			// Calculate fee based on FeePerSecond and total_weight
 			let fee = Self::calculate_fee(fee_location, fee_amount, total_weight)?;
@@ -900,6 +884,31 @@ pub mod pallet {
 
 			let total_weight = dest_weight
 				.checked_add(transactor_info.transact_extra_weight)
+				.ok_or(Error::<T>::WeightOverflow)?;
+
+			ensure!(
+				total_weight < transactor_info.max_weight,
+				Error::<T>::MaxWeightTransactReached
+			);
+			Ok(total_weight)
+		}
+
+		pub fn take_weight_from_transact_info_signed(
+			dest: MultiLocation,
+			dest_weight: Weight,
+		) -> Result<Weight, DispatchError> {
+			// Grab transact info for the fee loation provided
+			let transactor_info = TransactInfoWithWeightLimit::<T>::get(&dest)
+				.ok_or(Error::<T>::TransactorInfoNotSet)?;
+
+			// If this storage item is not set, it means that the destination chain
+			// does not support this kind of transact message
+			let transact_in_dest_as_signed_weight = transactor_info
+				.transact_extra_weight_signed
+				.ok_or(Error::<T>::SignedTransactNotAllowedForDestination)?;
+
+			let total_weight = dest_weight
+				.checked_add(transact_in_dest_as_signed_weight)
 				.ok_or(Error::<T>::WeightOverflow)?;
 
 			ensure!(

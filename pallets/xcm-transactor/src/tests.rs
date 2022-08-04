@@ -927,3 +927,60 @@ fn test_send_through_sovereign_with_custom_weight_and_fee() {
 			}));
 		})
 }
+
+#[test]
+fn test_send_through_signed_with_custom_weight_and_fee() {
+	ExtBuilder::default()
+		.with_balances(vec![])
+		.build()
+		.execute_with(|| {
+			// We are gonna use a total weight of 10_100, a tx weight of 100,
+			// and a total fee of 100
+			let total_weight = 10_100u64;
+			let tx_weight = 100_u64;
+			let total_fee = 100u128;
+
+			// By specifying total fee and total weight, we ensure
+			// that even if the transact_info is not populated,
+			// the message is forged with our parameters
+
+			// fee as destination are the same, this time it should work
+			assert_ok!(XcmTransactor::transact_through_signed(
+				Origin::signed(1u64),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				CurrencyPayment {
+					currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V1(
+						MultiLocation::parent()
+					))),
+					fee_amount: Some(total_fee)
+				},
+				vec![1u8],
+				TransactWeights {
+					transact_weight: tx_weight,
+					overall_weight: Some(total_weight)
+				}
+			));
+
+			let expected = vec![crate::Event::TransactedSigned {
+				fee_payer: 1u64,
+				dest: MultiLocation::parent(),
+				call: vec![1u8],
+			}];
+			assert_eq!(events(), expected);
+			let sent_messages = mock::sent_xcm();
+			let (_, sent_message) = sent_messages.first().unwrap();
+			// Lets make sure the message is as expected
+			assert!(sent_message
+				.0
+				.contains(&WithdrawAsset((MultiLocation::here(), total_fee).into())));
+			assert!(sent_message.0.contains(&BuyExecution {
+				fees: (MultiLocation::here(), total_fee).into(),
+				weight_limit: Limited(total_weight),
+			}));
+			assert!(sent_message.0.contains(&Transact {
+				origin_type: OriginKind::SovereignAccount,
+				require_weight_at_most: tx_weight,
+				call: vec![1u8].into(),
+			}));
+		})
+}
