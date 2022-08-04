@@ -880,6 +880,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (proxy)", (
       // Make sure CHARLETH nonce was increased, as EVM caller.
       const charlethAccountNonce = await context.web3.eth.getTransactionCount(sendingAddress);
       expect(charlethAccountNonce).to.eq(charlethNonce + 1);
+      charlethNonce++;
 
       // The XCM sender (proxy delegatee)
       // Make sure derived / descended account paid the xcm fees only.
@@ -890,7 +891,6 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (proxy)", (
       // Make sure derived / descended account nonce still zero.
       const derivedAccountNonce = await context.web3.eth.getTransactionCount(descendAddress);
       expect(derivedAccountNonce).to.eq(0);
-      charlethNonce++;
     }
   });
 });
