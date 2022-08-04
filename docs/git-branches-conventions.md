@@ -37,7 +37,7 @@ version.
 
 ### Hotfix workflow example runtime hotfix for runtime 1501. 
 
-1. Create the release branche `perm-runtime-1502`, based on tag `runtime-1501`
+1. Create the release branch `perm-runtime-1502`, based on tag `runtime-1501`
 1. Push a commit on `perm-runtime-1502` that bump spec versions from 1501 to 1502.
 1. Submit a PR against `master` to fix the bug upstream.
 1. Once the fix is merged on master, cherry-pick the merge commit on the `perm-runtime-1502` branch.
