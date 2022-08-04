@@ -68,6 +68,28 @@ interface XcmTransactor {
         uint64 weight,
         bytes memory inner_call
     ) external;
+
+     /** Transact through XCM using fee based on its multilocation
+    * Selector 9f89f03e
+    * @dev The token transfer burns/transfers the corresponding amount before sending
+    * @param transactor The transactor to be used
+    * @param index The index to be used
+    * @param fee_asset The asset in which we want to pay fees. 
+    * It has to be a reserve of the destination chain
+    * @param transact_weight The weight we want to buy in the destination chain
+    * @param inner_call The inner call to be executed in the destination chain
+    * @param fee_amount Amount to be used as fee. 
+    * @param overall_weight Overall weight to be used for the xcm message. 
+    */
+    function transact_through_derivative_multilocation_custom_fee_and_weight(
+        uint8 transactor,
+        uint16 index,
+        Multilocation memory fee_asset,
+        uint64 transact_weight,
+        bytes memory inner_call,
+        uint256 fee_amount,
+        uint64 overall_weight
+    ) external;
     
     /** Transact through XCM using fee based on its currency_id
     * Selector 267d4062
@@ -85,6 +107,28 @@ interface XcmTransactor {
         address currency_id,
         uint64 weight,
         bytes memory inner_call
+    ) external;
+
+    /** Transact through XCM using fee based on its currency_id
+    * Selector 267d4062
+    * @dev The token transfer burns/transfers the corresponding amount before sending
+    * @param transactor The transactor to be used
+    * @param index The index to be used
+    * @param currency_id Address of the currencyId of the asset to be used for fees
+    * It has to be a reserve of the destination chain
+    * @param transact_weight The weight we want to buy in the destination chain
+    * @param inner_call The inner call to be executed in the destination chain
+    * @param fee_amount Amount to be used as fee. 
+    * @param overall_weight Overall weight to be used for the xcm message. 
+    */
+    function transact_through_derivative_custom_fee_and_weight(
+        uint8 transactor,
+        uint16 index,
+        address currency_id,
+        uint64 transact_weight,
+        bytes memory inner_call,
+        uint256 fee_amount,
+        uint64 overall_weight
     ) external;
 
     /** Transact through XCM using fee based on its multilocation through signed origins
@@ -105,6 +149,28 @@ interface XcmTransactor {
         bytes memory call
     ) external;
 
+    /** Transact through XCM using fee based on its multilocation through signed origins
+    * Selector 19760407
+    * @dev No token is burnt before sending the message. The caller must ensure the destination
+    * is able to undertand the DescendOrigin message, and create a unique account from which
+    * dispatch the call
+    * @param dest The destination chain (as multilocation) where to send the message
+    * @param fee_location The asset multilocation that indentifies the fee payment currency
+    * It has to be a reserve of the destination chain
+    * @param transact_weight The weight we want to buy in the destination chain for the call to be made
+    * @param call The call to be executed in the destination chain
+    * @param fee_amount Amount to be used as fee. 
+    * @param overall_weight Overall weight to be used for the xcm message. 
+    */
+    function transact_through_signed_multilocation_custom_fee_and_weight(
+        Multilocation memory dest,
+        Multilocation memory fee_location,
+        uint64 transact_weight,
+        bytes memory call,
+        uint256 fee_amount,
+        uint64 overall_weight
+    ) external;
+
     /** Transact through XCM using fee based on its erc20 address through signed origins
     * Selector 0139d697
     * @dev No token is burnt before sending the message. The caller must ensure the destination
@@ -121,5 +187,27 @@ interface XcmTransactor {
         address fee_location_address,
         uint64 weight,
         bytes memory call
+    ) external;
+
+    /** Transact through XCM using fee based on its erc20 address through signed origins
+    * Selector 0139d697
+    * @dev No token is burnt before sending the message. The caller must ensure the destination
+    * is able to undertand the DescendOrigin message, and create a unique account from which
+    * dispatch the call
+    * @param dest The destination chain (as multilocation) where to send the message
+    * @param fee_location_address The ERC20 address of the token we want to use to pay for fees
+    * only callable if such an asset has been BRIDGED to our chain
+    * @param transact_weight The weight we want to buy in the destination chain for the call to be made
+    * @param call The call to be executed in the destination chain
+    * @param fee_amount Amount to be used as fee. 
+    * @param overall_weight Overall weight to be used for the xcm message. 
+    */
+    function transact_through_signed_custom_fee_and_weight(
+        Multilocation memory dest,
+        address fee_location_address,
+        uint64 transact_weight,
+        bytes memory call,
+        uint256 fee_amount,
+        uint64 overall_weight
     ) external;
 }
