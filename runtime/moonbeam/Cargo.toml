@@ -35,6 +35,7 @@ pallet-migrations = { path = "../../pallets/migrations", default-features = fals
 pallet-moonbeam-orbiters = { path = "../../pallets/moonbeam-orbiters", default-features = false }
 pallet-parachain-staking = { path = "../../pallets/parachain-staking", default-features = false }
 pallet-proxy-genesis-companion = { path = "../../pallets/proxy-genesis-companion", default-features = false }
+pallet-randomness = { path = "../../pallets/randomness", default-features = false }
 pallet-xcm-transactor = { path = "../../pallets/xcm-transactor", default-features = false }
 
 # Moonbeam precompiles
@@ -203,6 +204,7 @@ std = [
 	"pallet-proxy-genesis-companion/std",
 	"pallet-proxy/std",
 	"pallet-randomness-collective-flip/std",
+	"pallet-randomness/std",
 	"pallet-scheduler/std",
 	"pallet-society/std",
 	"pallet-timestamp/std",
@@ -261,6 +263,7 @@ runtime-benchmarks = [
 	"pallet-ethereum/runtime-benchmarks",
 	"pallet-moonbeam-orbiters/runtime-benchmarks",
 	"pallet-parachain-staking/runtime-benchmarks",
+	"pallet-randomness/runtime-benchmarks",
 	"pallet-society/runtime-benchmarks",
 	"pallet-timestamp/runtime-benchmarks",
 	"pallet-xcm-transactor/runtime-benchmarks",
@@ -283,6 +286,7 @@ try-runtime = [
 	#"pallet-crowdloan-rewards/try-runtime",
 	"pallet-migrations/try-runtime",
 	"pallet-parachain-staking/try-runtime",
+	"pallet-randomness/try-runtime",
 	"pallet-scheduler/try-runtime",
 	"pallet-society/try-runtime",
 	"pallet-timestamp/try-runtime",
