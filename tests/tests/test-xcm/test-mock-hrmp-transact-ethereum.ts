@@ -4,11 +4,7 @@ import { KeyringPair } from "@polkadot/keyring/types";
 import { BN } from "@polkadot/util";
 import { expect } from "chai";
 
-import {
-  alith,
-  charleth,
-  generateKeyringPair,
-} from "../../util/accounts";
+import { alith, charleth, generateKeyringPair } from "../../util/accounts";
 import {
   descendOriginFromAddress,
   registerForeignAsset,
