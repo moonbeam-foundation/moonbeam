@@ -151,13 +151,11 @@ export function descendOriginFromAddress(context: DevTestContext, address?: stri
 export interface RawXcmMessage {
   type: string;
   payload: any;
+  format?: string;
 }
 
-export function buildXcmpMessage(
-  context: DevTestContext,
-  message: RawXcmMessage,
-  format: string = "ConcatenatedVersionedXcm"
-): number[] {
+export function buildXcmpMessage(context: DevTestContext, message: RawXcmMessage): number[] {
+  const format = message.format != null ? message.format : "ConcatenatedVersionedXcm";
   const xcmpFormat: XcmpMessageFormat = context.polkadotApi.createType(
     "XcmpMessageFormat",
     format

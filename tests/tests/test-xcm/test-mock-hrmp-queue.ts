@@ -7,7 +7,7 @@ import { ChaChaRng } from "randchacha";
 import { customWeb3Request } from "../../util/providers";
 import {
   mockHrmpChannelExistanceTx,
-  buildXcmpMessage,
+  injectHrmpMessageAndSeal,
   RawXcmMessage,
   injectHrmpMessage,
 } from "../../util/xcm";
@@ -570,22 +570,12 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
 describeDevMoonbeam("Mock XCM - receive horizontal suspend", (context) => {
   const suspendedPara = 2023;
   before("Should receive a suspend channel", async function () {
-    // We first simulate a reception for suspending a channel from parachain 1
-    const totalMessage = buildXcmpMessage(
-      context,
-      {
-        type: "u8",
-        payload: 0,
-      } as RawXcmMessage,
-      "Signals"
-    );
-
-    // Send RPC call to inject XCM message
-    // We will set a specific message knowing that it should mint the statemint asset
-    await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [suspendedPara, totalMessage]);
-
-    // Create a block in which the XCM will be executed
-    await context.createBlock();
+    // Send an XCM and create block to execute it
+    await injectHrmpMessageAndSeal(context, suspendedPara, {
+      type: "u8",
+      payload: 0,
+      format: "Signals",
+    } as RawXcmMessage);
 
     // assert channel with para 2023 is suspended
     const status = await context.polkadotApi.query.xcmpQueue.outboundXcmpStatus();
