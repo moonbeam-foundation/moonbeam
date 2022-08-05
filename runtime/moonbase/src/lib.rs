@@ -643,12 +643,12 @@ impl xcm_primitives::EnsureProxy<AccountId> for EthereumXcmEnsureProxy {
 			x.delegate == delegatee
 				&& (x.proxy_type == ProxyType::Any || x.proxy_type == ProxyType::EthereumXcmProxy)
 		};
-		Ok(Proxy::proxies(delegator)
+		Proxy::proxies(delegator)
 			.0
 			.into_iter()
 			.find(f)
 			.map(|_| ())
-			.ok_or("proxy error: expected `ProxyType::EthereumXcmProxy | ProxyType::Any`")?)
+			.ok_or("proxy error: expected `ProxyType::EthereumXcmProxy | ProxyType::Any`")
 	}
 }
 
