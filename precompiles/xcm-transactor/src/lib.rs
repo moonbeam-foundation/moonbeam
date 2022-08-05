@@ -251,7 +251,7 @@ where
 			},
 			inner_call: inner_call.0,
 			weight_info: TransactWeights {
-				transact_weight: weight,
+				transact_require_weight_at_most: weight,
 				overall_weight: None,
 			},
 		};
@@ -305,7 +305,7 @@ where
 			},
 			inner_call: inner_call.0,
 			weight_info: TransactWeights {
-				transact_weight: weight,
+				transact_require_weight_at_most: weight,
 				overall_weight: Some(overall_weight),
 			},
 		};
@@ -356,7 +356,7 @@ where
 				fee_amount: None,
 			},
 			weight_info: TransactWeights {
-				transact_weight: weight,
+				transact_require_weight_at_most: weight,
 				overall_weight: None,
 			},
 			inner_call: inner_call.0,
@@ -414,7 +414,7 @@ where
 				fee_amount: Some(fee_amount),
 			},
 			weight_info: TransactWeights {
-				transact_weight: weight,
+				transact_require_weight_at_most: weight,
 				overall_weight: Some(overall_weight),
 			},
 			inner_call: inner_call.0,
@@ -464,7 +464,7 @@ where
 				fee_amount: Some(fee_amount),
 			},
 			weight_info: TransactWeights {
-				transact_weight: weight,
+				transact_require_weight_at_most: weight,
 				overall_weight: Some(overall_weight),
 			},
 			call: call.0,
@@ -508,7 +508,7 @@ where
 				fee_amount: None,
 			},
 			weight_info: TransactWeights {
-				transact_weight: weight,
+				transact_require_weight_at_most: weight,
 				overall_weight: None,
 			},
 			call: call.0,
@@ -558,7 +558,7 @@ where
 				fee_amount: None,
 			},
 			weight_info: TransactWeights {
-				transact_weight: weight,
+				transact_require_weight_at_most: weight,
 				overall_weight: None,
 			},
 			call: call.0,
@@ -616,7 +616,7 @@ where
 				fee_amount: Some(fee_amount),
 			},
 			weight_info: TransactWeights {
-				transact_weight: weight,
+				transact_require_weight_at_most: weight,
 				overall_weight: Some(overall_weight),
 			},
 			call: call.0,

@@ -2380,7 +2380,7 @@ fn transact_through_signed_mult_not_enabled() {
 						},
 						call: vec![],
 						weight_info: TransactWeights {
-							transact_weight: 11000,
+							transact_require_weight_at_most: 11000,
 							overall_weight: None
 						}
 					}
@@ -2445,7 +2445,7 @@ fn transact_through_signed_not_enabled() {
 						},
 						call: vec![],
 						weight_info: TransactWeights {
-							transact_weight: 11000,
+							transact_require_weight_at_most: 11000,
 							overall_weight: None
 						}
 					}
@@ -2517,7 +2517,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 					vec![],
 					// 2000 is the max
 					TransactWeights {
-						transact_weight: 17000,
+						transact_require_weight_at_most: 17000,
 						overall_weight: None
 					}
 				),
@@ -2535,7 +2535,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 					vec![],
 					// 20000 is the max
 					TransactWeights {
-						transact_weight: 17000,
+						transact_require_weight_at_most: 17000,
 						overall_weight: None
 					}
 				),

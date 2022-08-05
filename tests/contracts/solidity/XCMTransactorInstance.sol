@@ -73,7 +73,7 @@ contract XcmTransactorInstance is XcmTransactor {
         uint8 transactor,
         uint16 index,
         Multilocation memory fee_asset,
-        uint64 transact_weight,
+        uint64 transact_require_weight_at_most,
         bytes memory inner_call,
         uint256 fee_amount,
         uint64 overall_weight
@@ -82,7 +82,7 @@ contract XcmTransactorInstance is XcmTransactor {
             transactor,
             index,
             fee_asset,
-            transact_weight,
+            transact_require_weight_at_most,
             inner_call,
             fee_amount,
             overall_weight
@@ -109,7 +109,7 @@ contract XcmTransactorInstance is XcmTransactor {
         uint8 transactor,
         uint16 index,
         address currency_id,
-        uint64 transact_weight,
+        uint64 transact_require_weight_at_most,
         bytes memory inner_call,
         uint256 fee_amount,
         uint64 overall_weight
@@ -118,7 +118,7 @@ contract XcmTransactorInstance is XcmTransactor {
             transactor,
             index,
             currency_id,
-            transact_weight,
+            transact_require_weight_at_most,
             inner_call,
             fee_amount,
             overall_weight
@@ -142,7 +142,7 @@ contract XcmTransactorInstance is XcmTransactor {
     function transact_through_signed(
         Multilocation memory dest,
         address fee_location_address,
-        uint64 transact_weight,
+        uint64 transact_require_weight_at_most,
         bytes memory call,
         uint256 fee_amount,
         uint64 overall_weight
@@ -150,7 +150,7 @@ contract XcmTransactorInstance is XcmTransactor {
         xcmtransactor.transact_through_signed(
             dest,
             fee_location_address,
-            transact_weight,
+            transact_require_weight_at_most,
             call,
             fee_amount,
             overall_weight
@@ -174,7 +174,7 @@ contract XcmTransactorInstance is XcmTransactor {
     function transact_through_signed_multilocation(
         Multilocation memory dest,
         Multilocation memory fee_location,
-        uint64 transact_weight,
+        uint64 transact_require_weight_at_most,
         bytes memory call,
         uint256 fee_amount,
         uint64 overall_weight
@@ -182,7 +182,7 @@ contract XcmTransactorInstance is XcmTransactor {
         xcmtransactor.transact_through_signed_multilocation(
             dest,
             fee_location,
-            transact_weight,
+            transact_require_weight_at_most,
             call,
             fee_amount,
             overall_weight

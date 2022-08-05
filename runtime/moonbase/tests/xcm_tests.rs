@@ -1068,7 +1068,7 @@ fn transact_through_derivative_multilocation() {
 			// 4000000000 + 3000 we should have taken out 4000003000 tokens from the caller
 			encoded,
 			TransactWeights {
-				transact_weight: 4000000000,
+				transact_require_weight_at_most: 4000000000,
 				overall_weight: None
 			}
 		));
@@ -1222,7 +1222,7 @@ fn transact_through_derivative_with_custom_fee_weight() {
 			// 4000000000 + 3000 we should have taken out 4000003000 tokens from the caller
 			encoded,
 			TransactWeights {
-				transact_weight: 4000000000,
+				transact_require_weight_at_most: 4000000000,
 				overall_weight: Some(overall_weight)
 			}
 		));
@@ -1398,7 +1398,7 @@ fn transact_through_sovereign() {
 			utility_bytes,
 			OriginKind::SovereignAccount,
 			TransactWeights {
-				transact_weight: 4000000000,
+				transact_require_weight_at_most: 4000000000,
 				overall_weight: None
 			}
 		));
@@ -1549,7 +1549,7 @@ fn transact_through_sovereign_with_custom_fee_weight() {
 			utility_bytes,
 			OriginKind::SovereignAccount,
 			TransactWeights {
-				transact_weight: 4000000000,
+				transact_require_weight_at_most: 4000000000,
 				overall_weight: Some(total_weight)
 			}
 		));
@@ -2574,7 +2574,7 @@ fn transact_through_signed_multilocation() {
 			encoded,
 			// 4000000000 for transfer + 4000 for XCM
 			TransactWeights {
-				transact_weight: 4000000000,
+				transact_require_weight_at_most: 4000000000,
 				overall_weight: None
 			}
 		));
@@ -2664,7 +2664,7 @@ fn transact_through_signed_multilocation_custom_fee_and_weight() {
 			encoded,
 			// 4000000000 for transfer + 4000 for XCM
 			TransactWeights {
-				transact_weight: 4000000000,
+				transact_require_weight_at_most: 4000000000,
 				overall_weight: Some(total_weight)
 			}
 		));
@@ -2773,7 +2773,7 @@ fn transact_through_signed_multilocation_para_to_para() {
 			// 4000000000 for transfer + 4000 for XCM
 			// 1-1 to fee
 			TransactWeights {
-				transact_weight: 4000000000,
+				transact_require_weight_at_most: 4000000000,
 				overall_weight: None
 			}
 		));
@@ -2894,7 +2894,7 @@ fn transact_through_signed_multilocation_para_to_para_ethereum() {
 			// 4000000000 for transfer + 4000 for XCM
 			// 1-1 to fee
 			TransactWeights {
-				transact_weight: 4000000000,
+				transact_require_weight_at_most: 4000000000,
 				overall_weight: None
 			}
 		));
