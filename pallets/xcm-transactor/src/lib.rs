@@ -722,7 +722,7 @@ pub mod pallet {
 			origin_kind: OriginKind,
 		) -> Result<Xcm<()>, DispatchError> {
 			Ok(Xcm(vec![
-				Self::sovereign_withdraw(asset.clone(), &dest)?,
+				Self::withdraw_instruction(asset.clone(), &dest)?,
 				Self::buy_execution(asset, &dest, dest_weight)?,
 				Transact {
 					origin_type: origin_kind,
@@ -750,7 +750,7 @@ pub mod pallet {
 		}
 
 		/// Construct a withdraw instruction for the sovereign account
-		fn sovereign_withdraw(
+		fn withdraw_instruction(
 			asset: MultiAsset,
 			at: &MultiLocation,
 		) -> Result<Instruction<()>, DispatchError> {
