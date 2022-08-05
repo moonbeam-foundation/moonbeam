@@ -20,6 +20,7 @@
 extern crate alloc;
 
 pub mod costs;
+pub mod error;
 pub mod handle;
 pub mod logs;
 pub mod modifier;
@@ -36,9 +37,7 @@ pub mod testing;
 mod tests;
 
 use crate::alloc::borrow::ToOwned;
-use fp_evm::{
-	ExitError, ExitRevert, ExitSucceed, PrecompileFailure, PrecompileHandle, PrecompileOutput,
-};
+use fp_evm::{ExitRevert, ExitSucceed, PrecompileFailure, PrecompileHandle, PrecompileOutput};
 
 pub mod data;
 use data::{Bytes, EvmDataWriter};
@@ -47,16 +46,16 @@ use data::{Bytes, EvmDataWriter};
 // pub use fp_evm::Precompile;
 // pub use precompile_utils_macro::{generate_function_selector, keccak256};
 
-/// Return an error with provided (static) text.
-/// Using the `revert` function of `Gasometer` is preferred as erroring
-/// consumed all the gas limit and the error message is not easily
-/// retrievable.
-#[must_use]
-pub fn error<T: Into<alloc::borrow::Cow<'static, str>>>(text: T) -> PrecompileFailure {
-	PrecompileFailure::Error {
-		exit_status: ExitError::Other(text.into()),
-	}
-}
+// /// Return an error with provided (static) text.
+// /// Using the `revert` function of `Gasometer` is preferred as erroring
+// /// consumed all the gas limit and the error message is not easily
+// /// retrievable.
+// #[must_use]
+// pub fn error<T: Into<alloc::borrow::Cow<'static, str>>>(text: T) -> PrecompileFailure {
+// 	PrecompileFailure::Error {
+// 		exit_status: ExitError::Other(text.into()),
+// 	}
+// }
 
 /// Generic error to build abi-encoded revert output.
 /// See: https://docs.soliditylang.org/en/latest/control-structures.html?highlight=revert#revert
@@ -105,7 +104,7 @@ pub mod prelude {
 			data::{
 				Address, BoundedBytes, BoundedVec, Bytes, EvmData, EvmDataReader, EvmDataWriter,
 			},
-			error,
+			error::{Error, ErrorKind, LocationMap},
 			handle::PrecompileHandleExt,
 			logs::{log0, log1, log2, log3, log4, LogExt},
 			modifier::{check_function_modifier, FunctionModifier},

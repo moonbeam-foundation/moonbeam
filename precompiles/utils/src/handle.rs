@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use {
-	crate::{data::EvmDataReader, modifier::FunctionModifier, EvmResult},
+	crate::{data::EvmDataReader, error::Error, modifier::FunctionModifier, EvmResult},
 	fp_evm::{Log, PrecompileHandle},
 };
 
@@ -36,13 +36,13 @@ pub trait PrecompileHandleExt: PrecompileHandle {
 
 	#[must_use]
 	/// Read the selector from the input data.
-	fn read_selector<T>(&self) -> EvmResult<T>
+	fn read_selector<T>(&self) -> Result<T, Error>
 	where
 		T: num_enum::TryFromPrimitive<Primitive = u32>;
 
 	#[must_use]
 	/// Returns a reader of the input, skipping the selector.
-	fn read_input(&self) -> EvmResult<EvmDataReader>;
+	fn read_input(&self) -> Result<EvmDataReader, Error>;
 }
 
 impl<T: PrecompileHandle> PrecompileHandleExt for T {
@@ -74,7 +74,7 @@ impl<T: PrecompileHandle> PrecompileHandleExt for T {
 
 	#[must_use]
 	/// Read the selector from the input data.
-	fn read_selector<S>(&self) -> EvmResult<S>
+	fn read_selector<S>(&self) -> Result<S, Error>
 	where
 		S: num_enum::TryFromPrimitive<Primitive = u32>,
 	{
@@ -83,7 +83,7 @@ impl<T: PrecompileHandle> PrecompileHandleExt for T {
 
 	#[must_use]
 	/// Returns a reader of the input, skipping the selector.
-	fn read_input(&self) -> EvmResult<EvmDataReader> {
+	fn read_input(&self) -> Result<EvmDataReader, Error> {
 		EvmDataReader::new_skip_selector(self.input())
 	}
 }

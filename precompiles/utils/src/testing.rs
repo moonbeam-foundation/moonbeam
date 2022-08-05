@@ -15,7 +15,6 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use {
-	core::assert_matches::assert_matches,
 	fp_evm::{
 		Context, ExitError, ExitReason, ExitSucceed, Log, PrecompileFailure, PrecompileHandle,
 		PrecompileOutput, PrecompileResult, PrecompileSet, Transfer,
@@ -327,11 +326,25 @@ impl<'p, P: PrecompileSet> PrecompilesTester<'p, P> {
 	/// Take a closure allowing to perform custom matching on the output.
 	pub fn execute_reverts(mut self, check: impl Fn(&[u8]) -> bool) {
 		let res = self.execute();
-		assert_matches!(
-			res,
-			Some(Err(PrecompileFailure::Revert { output, ..}))
-				if check(Self::decode_revert_message(&output))
-		);
+
+		match res {
+			Some(Err(PrecompileFailure::Revert { output, .. })) => {
+				let decoded = Self::decode_revert_message(&output);
+				if !check(decoded) {
+					eprintln!(
+						"Revert message (bytes): {:?}",
+						sp_core::hexdisplay::HexDisplay::from(&decoded)
+					);
+					eprintln!(
+						"Revert message (string): {:?}",
+						core::str::from_utf8(decoded).ok()
+					);
+					panic!("Revert reason doesn't match !");
+				}
+			}
+			other => panic!("Didn't revert, instead returned {:?}", other),
+		}
+
 		self.assert_optionals();
 	}
 
