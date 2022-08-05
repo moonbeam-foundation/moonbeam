@@ -774,7 +774,7 @@
 <span class="comment">// Allow paid executions</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">XcmBarrier</span> <span class="op">=</span> (
 	<span class="ident">TakeWeightCredit</span>,
-	<span class="ident">xcm_primitives::AllowDescendOriginFromLocal</span><span class="op">&lt;</span><span class="ident">Everything</span><span class="op">&gt;</span>,
+	<span class="ident">xcm_primitives::AllowTopLevelPaidExecutionDescendOriginFirst</span><span class="op">&lt;</span><span class="ident">Everything</span><span class="op">&gt;</span>,
 	<span class="ident">AllowTopLevelPaidExecutionFrom</span><span class="op">&lt;</span><span class="ident">Everything</span><span class="op">&gt;</span>,
 	<span class="ident">AllowKnownQueryResponses</span><span class="op">&lt;</span><span class="ident">PolkadotXcm</span><span class="op">&gt;</span>,
 	<span class="comment">// Subscriptions for version tracking are OK.</span>
