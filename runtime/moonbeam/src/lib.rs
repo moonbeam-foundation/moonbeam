@@ -488,7 +488,7 @@ impl pallet_collective::Config<CouncilInstance> for Runtime {
 	/// The maximum amount of time (in blocks) for council members to vote on motions.
 	/// Motions may end in fewer blocks if enough votes are cast to determine the result.
 	type MotionDuration = ConstU32<{ 3 * DAYS }>;
-	/// The maximum number of Proposlas that can be open in the council at once.
+	/// The maximum number of proposals that can be open in the council at once.
 	type MaxProposals = ConstU32<100>;
 	/// The maximum number of council members.
 	type MaxMembers = ConstU32<100>;
@@ -503,7 +503,7 @@ impl pallet_collective::Config<TechCommitteeInstance> for Runtime {
 	/// The maximum amount of time (in blocks) for technical committee members to vote on motions.
 	/// Motions may end in fewer blocks if enough votes are cast to determine the result.
 	type MotionDuration = ConstU32<{ 3 * DAYS }>;
-	/// The maximum number of Proposlas that can be open in the technical committee at once.
+	/// The maximum number of proposals that can be open in the technical committee at once.
 	type MaxProposals = ConstU32<100>;
 	/// The maximum number of technical committee members.
 	type MaxMembers = ConstU32<100>;
@@ -518,7 +518,7 @@ impl pallet_collective::Config<TreasuryCouncilInstance> for Runtime {
 	/// The maximum amount of time (in blocks) for treasury council members to vote on motions.
 	/// Motions may end in fewer blocks if enough votes are cast to determine the result.
 	type MotionDuration = ConstU32<{ 3 * DAYS }>;
-	/// The maximum number of Proposlas that can be open in the treasury council at once.
+	/// The maximum number of proposals that can be open in the treasury council at once.
 	type MaxProposals = ConstU32<100>;
 	/// The maximum number of treasury council members.
 	type MaxMembers = ConstU32<100>;
