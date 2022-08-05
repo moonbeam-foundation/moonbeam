@@ -8,6 +8,7 @@ import type {
 import type { AccountId20 } from "@polkadot/types/interfaces";
 
 import { expect } from "chai";
+import { sortObjectByKeys } from "../util/common";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 import { StorageKey } from "@polkadot/types";
 const debug = require("debug")("smoke:orbiter");
@@ -120,8 +121,8 @@ describeSmokeSuite(`Verify orbiters`, { wssUrl, relayWssUrl }, (context) => {
 
   it("should have matching rewards", async function () {
     // Get parent collators
-    const parentCollators = collatorsPools.map((o) => `0x${o[0].toHex().toUpperCase().slice(-40)}`);
-    console.log(parentCollators);
+    const parentCollators = new Set();
+    collatorsPools.forEach((o) => parentCollators.add(o[0].args[0].toHex()));
 
     // Get collators rewards
     let collatorRewards = {};
@@ -131,15 +132,16 @@ describeSmokeSuite(`Verify orbiters`, { wssUrl, relayWssUrl }, (context) => {
         event.section == "parachainStaking" &&
         event.method == "Rewarded"
       ) {
-        const data = event.data.toHuman() as any;
-        console.log(data.account);
-        if (parentCollators.includes(data.account.toString())) {
-          collatorRewards[data.account] = data.rewards;
+        const data = event.data as any;
+        const account = data.account.toHex();
+        const rewards = data.rewards.toBigInt();
+        if (parentCollators.has(account)) {
+          collatorRewards[account] = rewards;
         }
       }
     }
 
-    console.log(collatorRewards);
+    //console.log(collatorRewards);
 
     if (Object.keys(collatorRewards).length > 0) {
       // Compute expected reward for each orbiter
@@ -149,42 +151,35 @@ describeSmokeSuite(`Verify orbiters`, { wssUrl, relayWssUrl }, (context) => {
         let [round, collator] = o[0].args;
         let orbiter = o[1];
 
-        if (round.toNumber() == lastRotateRound) {
+        if (round.toNumber() == lastRotateRound && collatorRewards[collator.toHex()]) {
           expectedOrbiterRewards[orbiter.unwrap().toHex()] = collatorRewards[collator.toHex()];
         }
       });
+      const sortedExpectedOrbiterRewards = sortObjectByKeys(expectedOrbiterRewards);
 
       // Verify orbiters rewards
-      let countRewardedOrbiters = 0;
+      let actualOrbiterRewards = {};
       for (const { event, phase } of events) {
         if (
           phase.isInitialization &&
           event.section == "MoonbeamOrbiters" &&
           event.method == "OrbiterRewarded"
         ) {
-          countRewardedOrbiters += 1;
-          const data = event.data.toHuman() as any;
-          const orbiter = data.account;
-          const rewards = data.rewards;
-
-          expect(
-            Object.keys(expectedOrbiterRewards),
-            `Orbiter ${orbiter} has received unexpected rewards (expect 0).`
-          ).to.include(orbiter);
-
-          expect(
-            expectedOrbiterRewards[orbiter],
-            `Orbiter ${orbiter} rewards for round ${currentRound} doesn't match expectation.`
-          ).to.equal(rewards);
+          const data = event.data as any;
+          const orbiter = data.account.toHex();
+          const rewards = data.rewards.toBigInt();
+          actualOrbiterRewards[orbiter] = rewards;
         }
       }
+      const sortedActualOrbiterRewards = sortObjectByKeys(actualOrbiterRewards);
 
-      console.log(expectedOrbiterRewards);
+      //console.log(sortedExpectedOrbiterRewards);
+      //console.log(sortedActualOrbiterRewards);
 
       expect(
-        countRewardedOrbiters,
-        `The number of rewarded orbiters doesn't match expectation.`
-      ).to.equal(Object.keys(expectedOrbiterRewards).length);
+        sortedActualOrbiterRewards,
+        `Orbiter rewards doesn't match expectation for block #${atBlockNumber}.`
+      ).to.deep.equal(sortedExpectedOrbiterRewards);
     }
   });
 });
