@@ -394,7 +394,6 @@ fn account_id_is_known() {
 		Randomness::account_id(),
 		FromStr::from_str("0x6d6f646c6d6f6f6e72616e640000000000000000").unwrap(),
 	);
-	
 }
 
 // FINISH FULFILLMENT
