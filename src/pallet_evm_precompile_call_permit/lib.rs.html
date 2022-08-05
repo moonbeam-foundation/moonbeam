@@ -279,6 +279,10 @@
 <span id="274">274</span>
 <span id="275">275</span>
 <span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is 	part of Moonbeam.</span>
 
@@ -305,7 +309,7 @@
 <span class="kw">use</span> <span class="ident">frame_support</span>::{
 	<span class="ident">ensure</span>,
 	<span class="ident">storage::types</span>::{<span class="ident">StorageMap</span>, <span class="ident">ValueQuery</span>},
-	<span class="ident">traits</span>::{<span class="ident">Get</span>, <span class="ident">StorageInstance</span>},
+	<span class="ident">traits</span>::{<span class="ident">ConstU32</span>, <span class="ident">Get</span>, <span class="ident">StorageInstance</span>},
 	<span class="ident">Blake2_128Concat</span>,
 };
 <span class="kw">use</span> <span class="ident">precompile_utils</span>::{<span class="ident">costs::call_cost</span>, <span class="ident">prelude</span>::<span class="kw-2">*</span>};
@@ -350,6 +354,8 @@
 <span class="kw">const</span> <span class="ident">PERMIT_DOMAIN</span>: [<span class="ident">u8</span>; <span class="number">32</span>] <span class="op">=</span> <span class="macro">keccak256!</span>(
 	<span class="string">&quot;EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)&quot;</span>
 );
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CALL_DATA_LIMIT</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">2u32</span>.<span class="ident">pow</span>(<span class="number">16</span>);
 
 <span class="attribute">#[<span class="ident">generate_function_selector</span>]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
@@ -452,7 +458,9 @@
 		<span class="kw">let</span> <span class="ident">from</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>;
 		<span class="kw">let</span> <span class="ident">to</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>;
 		<span class="kw">let</span> <span class="ident">value</span>: <span class="ident">U256</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Bytes</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="number">0</span>;
+		<span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">input</span>
+			.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">BoundedBytes</span><span class="op">&lt;</span><span class="ident">ConstU32</span><span class="op">&lt;</span><span class="ident">CALL_DATA_LIMIT</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>
+			.<span class="ident">into_vec</span>();
 		<span class="kw">let</span> <span class="ident">gas_limit</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
 		<span class="kw">let</span> <span class="ident">deadline</span>: <span class="ident">U256</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
 		<span class="kw">let</span> <span class="ident">v</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;

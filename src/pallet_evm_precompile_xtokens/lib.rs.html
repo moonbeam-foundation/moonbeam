@@ -441,10 +441,6 @@
 <span id="436">436</span>
 <span id="437">437</span>
 <span id="438">438</span>
-<span id="439">439</span>
-<span id="440">440</span>
-<span id="441">441</span>
-<span id="442">442</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -469,7 +465,6 @@
 <span class="kw">use</span> <span class="ident">fp_evm</span>::{<span class="ident">PrecompileHandle</span>, <span class="ident">PrecompileOutput</span>};
 <span class="kw">use</span> <span class="ident">frame_support</span>::{
 	<span class="ident">dispatch</span>::{<span class="ident">Dispatchable</span>, <span class="ident">GetDispatchInfo</span>, <span class="ident">PostDispatchInfo</span>},
-	<span class="ident">ensure</span>,
 	<span class="ident">traits::Get</span>,
 };
 <span class="kw">use</span> <span class="ident">pallet_evm</span>::{<span class="ident">AddressMapping</span>, <span class="ident">Precompile</span>};
@@ -497,6 +492,17 @@
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">MaxAssetsForTransfer</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">orml_xtokens::Config</span><span class="op">&gt;</span><span class="ident">::MaxAssetsForTransfer</span>;
 
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">CurrencyIdOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">orml_xtokens::Config</span><span class="op">&gt;</span><span class="ident">::CurrencyId</span>;
+
+<span class="kw">struct</span> <span class="ident">GetMaxAssets</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>);
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">GetMaxAssets</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+	<span class="ident">R</span>: <span class="ident">orml_xtokens::Config</span>,
+{
+	<span class="kw">fn</span> <span class="ident">get</span>() -&gt; <span class="ident">u32</span> {
+		<span class="op">&lt;</span><span class="ident">R</span> <span class="kw">as</span> <span class="ident">orml_xtokens::Config</span><span class="op">&gt;</span><span class="ident">::MaxAssetsForTransfer::get</span>() <span class="kw">as</span> <span class="ident">u32</span>
+	}
+}
 
 <span class="attribute">#[<span class="ident">generate_function_selector</span>]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
@@ -717,15 +723,8 @@
 	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
 		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_input</span>()<span class="question-mark">?</span>;
 		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">4</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">non_mapped_currencies</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Currency</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Currency</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">max_assets</span> <span class="op">=</span> <span class="ident">MaxAssetsForTransfer</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::get</span>();
-
-		<span class="comment">// We check this here so that we avoid iterating over the vec</span>
-		<span class="comment">// if the len is more than the max permitted</span>
-		<span class="macro">ensure!</span>(
-			<span class="ident">max_assets</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">non_mapped_currencies</span>.<span class="ident">len</span>(),
-			<span class="ident">revert</span>(<span class="string">&quot;More than max number of assets given&quot;</span>)
-		);
+		<span class="kw">let</span> <span class="ident">non_mapped_currencies</span>: <span class="ident">BoundedVec</span><span class="op">&lt;</span><span class="ident">Currency</span>, <span class="ident">GetMaxAssets</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">non_mapped_currencies</span> <span class="op">=</span> <span class="ident">non_mapped_currencies</span>.<span class="ident">into_vec</span>();
 
 		<span class="kw">let</span> <span class="ident">fee_item</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
 
@@ -779,15 +778,8 @@
 	<span class="kw">fn</span> <span class="ident">transfer_multi_assets</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
 		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_input</span>()<span class="question-mark">?</span>;
 		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">4</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">assets</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">EvmMultiAsset</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">EvmMultiAsset</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">max_assets</span> <span class="op">=</span> <span class="ident">MaxAssetsForTransfer</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::get</span>();
-
-		<span class="comment">// We check this here so that we avoid iterating over the vec</span>
-		<span class="comment">// if the len is more than the max permitted</span>
-		<span class="macro">ensure!</span>(
-			<span class="ident">max_assets</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">assets</span>.<span class="ident">len</span>(),
-			<span class="ident">revert</span>(<span class="string">&quot;More than max number of assets given&quot;</span>)
-		);
+		<span class="kw">let</span> <span class="ident">assets</span>: <span class="ident">BoundedVec</span><span class="op">&lt;</span><span class="ident">EvmMultiAsset</span>, <span class="ident">GetMaxAssets</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">assets</span> <span class="op">=</span> <span class="ident">assets</span>.<span class="ident">into_vec</span>();
 
 		<span class="kw">let</span> <span class="ident">fee_item</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
 

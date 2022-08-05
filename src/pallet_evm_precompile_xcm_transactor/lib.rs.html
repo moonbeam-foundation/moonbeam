@@ -365,6 +365,12 @@
 <span id="360">360</span>
 <span id="361">361</span>
 <span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -387,7 +393,10 @@
 <span class="attribute">#![<span class="ident">feature</span>(<span class="ident">assert_matches</span>)]</span>
 
 <span class="kw">use</span> <span class="ident">fp_evm::PrecompileHandle</span>;
-<span class="kw">use</span> <span class="ident">frame_support::dispatch</span>::{<span class="ident">Dispatchable</span>, <span class="ident">GetDispatchInfo</span>, <span class="ident">PostDispatchInfo</span>};
+<span class="kw">use</span> <span class="ident">frame_support</span>::{
+	<span class="ident">dispatch</span>::{<span class="ident">Dispatchable</span>, <span class="ident">GetDispatchInfo</span>, <span class="ident">PostDispatchInfo</span>},
+	<span class="ident">traits::ConstU32</span>,
+};
 <span class="kw">use</span> <span class="ident">pallet_evm</span>::{<span class="ident">AddressMapping</span>, <span class="ident">PrecompileOutput</span>};
 <span class="kw">use</span> <span class="ident">pallet_xcm_transactor::RemoteTransactInfoWithMaxWeight</span>;
 <span class="kw">use</span> <span class="ident">precompile_utils::prelude</span>::<span class="kw-2">*</span>;
@@ -408,6 +417,9 @@
 
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">TransactorOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_xcm_transactor::Config</span><span class="op">&gt;</span><span class="ident">::Transactor</span>;
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">CurrencyIdOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_xcm_transactor::Config</span><span class="op">&gt;</span><span class="ident">::CurrencyId</span>;
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CALL_DATA_LIMIT</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">2u32</span>.<span class="ident">pow</span>(<span class="number">16</span>);
+<span class="kw">type</span> <span class="ident">GetDataLimit</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span><span class="ident">CALL_DATA_LIMIT</span><span class="op">&gt;</span>;
 
 <span class="attribute">#[<span class="ident">generate_function_selector</span>]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
@@ -582,7 +594,7 @@
 		<span class="kw">let</span> <span class="ident">weight</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
 
 		<span class="comment">// inner call</span>
-		<span class="kw">let</span> <span class="ident">inner_call</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Bytes</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">inner_call</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">BoundedBytes</span><span class="op">&lt;</span><span class="ident">GetDataLimit</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">into_vec</span>();
 
 		<span class="comment">// Depending on the Runtime, this might involve a DB read. This is not the case in</span>
 		<span class="comment">// moonbeam, as we are using IdentityMapping</span>
@@ -593,7 +605,7 @@
 				<span class="ident">index</span>,
 				<span class="ident">fee_location</span>: <span class="ident">Box::new</span>(<span class="ident">xcm::VersionedMultiLocation::V1</span>(<span class="ident">fee_multilocation</span>)),
 				<span class="ident">dest_weight</span>: <span class="ident">weight</span>,
-				<span class="ident">inner_call</span>: <span class="ident">inner_call</span>.<span class="number">0</span>,
+				<span class="ident">inner_call</span>,
 			};
 
 		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
@@ -620,7 +632,7 @@
 		<span class="kw">let</span> <span class="ident">weight</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
 
 		<span class="comment">// inner call</span>
-		<span class="kw">let</span> <span class="ident">inner_call</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Bytes</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">inner_call</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">BoundedBytes</span><span class="op">&lt;</span><span class="ident">GetDataLimit</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">into_vec</span>();
 
 		<span class="kw">let</span> <span class="ident">to_account</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">to_address</span>);
 
@@ -639,7 +651,7 @@
 			<span class="ident">index</span>,
 			<span class="ident">currency_id</span>,
 			<span class="ident">dest_weight</span>: <span class="ident">weight</span>,
-			<span class="ident">inner_call</span>: <span class="ident">inner_call</span>.<span class="number">0</span>,
+			<span class="ident">inner_call</span>: <span class="ident">inner_call</span>,
 		};
 
 		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
@@ -666,7 +678,7 @@
 		<span class="kw">let</span> <span class="ident">weight</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
 
 		<span class="comment">// call</span>
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Bytes</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">BoundedBytes</span><span class="op">&lt;</span><span class="ident">GetDataLimit</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">into_vec</span>();
 
 		<span class="comment">// Depending on the Runtime, this might involve a DB read. This is not the case in</span>
 		<span class="comment">// moonbeam, as we are using IdentityMapping</span>
@@ -675,7 +687,7 @@
 			<span class="ident">dest</span>: <span class="ident">Box::new</span>(<span class="ident">xcm::VersionedMultiLocation::V1</span>(<span class="ident">dest</span>)),
 			<span class="ident">fee_location</span>: <span class="ident">Box::new</span>(<span class="ident">xcm::VersionedMultiLocation::V1</span>(<span class="ident">fee_multilocation</span>)),
 			<span class="ident">dest_weight</span>: <span class="ident">weight</span>,
-			<span class="ident">call</span>: <span class="ident">call</span>.<span class="number">0</span>,
+			<span class="ident">call</span>,
 		};
 
 		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
@@ -710,7 +722,7 @@
 		<span class="kw">let</span> <span class="ident">weight</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
 
 		<span class="comment">// call</span>
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Bytes</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">BoundedBytes</span><span class="op">&lt;</span><span class="ident">GetDataLimit</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">into_vec</span>();
 
 		<span class="comment">// Depending on the Runtime, this might involve a DB read. This is not the case in</span>
 		<span class="comment">// moonbeam, as we are using IdentityMapping</span>
@@ -719,7 +731,7 @@
 			<span class="ident">dest</span>: <span class="ident">Box::new</span>(<span class="ident">xcm::VersionedMultiLocation::V1</span>(<span class="ident">dest</span>)),
 			<span class="ident">fee_currency_id</span>: <span class="ident">currency_id</span>,
 			<span class="ident">dest_weight</span>: <span class="ident">weight</span>,
-			<span class="ident">call</span>: <span class="ident">call</span>.<span class="number">0</span>,
+			<span class="ident">call</span>,
 		};
 
 		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;

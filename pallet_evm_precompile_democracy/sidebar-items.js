@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["DemocracyWrapper","A precompile to wrap the functionality from pallet democracy."]]});
+initSidebarItems({"constant":[["ENCODED_PROPOSAL_SIZE_LIMIT",""]],"struct":[["DemocracyWrapper","A precompile to wrap the functionality from pallet democracy."]]});

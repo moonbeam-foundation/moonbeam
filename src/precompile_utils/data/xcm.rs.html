@@ -258,6 +258,9 @@
 <span id="253">253</span>
 <span id="254">254</span>
 <span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -278,13 +281,16 @@
 
 <span class="kw">use</span> {
 	<span class="kw">crate</span>::{
-		<span class="ident">data</span>::{<span class="ident">Bytes</span>, <span class="ident">EvmData</span>, <span class="ident">EvmDataReader</span>, <span class="ident">EvmDataWriter</span>},
+		<span class="ident">data</span>::{<span class="ident">BoundedBytes</span>, <span class="ident">Bytes</span>, <span class="ident">EvmData</span>, <span class="ident">EvmDataReader</span>, <span class="ident">EvmDataWriter</span>},
 		<span class="ident">revert</span>, <span class="ident">EvmResult</span>,
 	},
-	<span class="ident">frame_support::ensure</span>,
+	<span class="ident">frame_support</span>::{<span class="ident">ensure</span>, <span class="ident">traits::ConstU32</span>},
 	<span class="ident">sp_std::vec::Vec</span>,
 	<span class="ident">xcm::latest</span>::{<span class="ident">Junction</span>, <span class="ident">Junctions</span>, <span class="ident">MultiLocation</span>, <span class="ident">NetworkId</span>},
 };
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">JUNCTION_SIZE_LIMIT</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">2u32</span>.<span class="ident">pow</span>(<span class="number">16</span>);
+
 <span class="comment">// Function to convert network id to bytes</span>
 <span class="comment">// We don&#39;t implement EVMData here as these bytes will be appended only</span>
 <span class="comment">// to certain Junction variants</span>
@@ -341,8 +347,8 @@
 
 <span class="kw">impl</span> <span class="ident">EvmData</span> <span class="kw">for</span> <span class="ident">Junction</span> {
 	<span class="kw">fn</span> <span class="ident">read</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">junction</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Bytes</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">junction_bytes</span> <span class="op">=</span> <span class="ident">junction</span>.<span class="ident">as_bytes</span>();
+		<span class="kw">let</span> <span class="ident">junction</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">BoundedBytes</span><span class="op">&lt;</span><span class="ident">ConstU32</span><span class="op">&lt;</span><span class="ident">JUNCTION_SIZE_LIMIT</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">junction_bytes</span> <span class="op">=</span> <span class="ident">junction</span>.<span class="ident">into_vec</span>();
 
 		<span class="macro">ensure!</span>(
 			<span class="ident">junction_bytes</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">0</span>,
