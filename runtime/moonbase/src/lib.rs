@@ -724,6 +724,7 @@ impl pallet_parachain_staking::Config for Runtime {
 	type MinDelegation = ConstU128<{ 1 * currency::UNIT * currency::SUPPLY_FACTOR }>;
 	/// Minimum stake required to be reserved to be a delegator
 	type MinDelegatorStk = ConstU128<{ 1 * currency::UNIT * currency::SUPPLY_FACTOR }>;
+	type BlockAuthor = AuthorInherent;
 	type OnCollatorPayout = OnCollatorPayout;
 	type OnNewRound = OnNewRound;
 	type WeightInfo = pallet_parachain_staking::weights::SubstrateWeight<Runtime>;
@@ -732,7 +733,6 @@ impl pallet_parachain_staking::Config for Runtime {
 impl pallet_author_inherent::Config for Runtime {
 	type SlotBeacon = RelaychainBlockNumberProvider<Self>;
 	type AccountLookup = MoonbeamOrbiters;
-	type EventHandler = ParachainStaking;
 	type CanAuthor = AuthorFilter;
 	type WeightInfo = pallet_author_inherent::weights::SubstrateWeight<Runtime>;
 }
@@ -1235,22 +1235,6 @@ pub type Executive = frame_executive::Executive<
 // }
 // ```
 moonbeam_runtime_common::impl_runtime_apis_plus_common! {
-	impl session_keys_primitives::VrfApi<Block> for Runtime {
-		fn get_last_vrf_output() -> Option<<Block as BlockT>::Hash> {
-			// TODO: remove in future runtime upgrade along with storage item
-			if pallet_randomness::Pallet::<Self>::not_first_block().is_none() {
-				return None;
-			}
-			pallet_randomness::Pallet::<Self>::local_vrf_output()
-		}
-		fn vrf_key_lookup(
-			nimbus_id: nimbus_primitives::NimbusId
-		) -> Option<session_keys_primitives::VrfId> {
-			use session_keys_primitives::KeysLookup;
-			AuthorMapping::lookup_keys(&nimbus_id)
-		}
-	}
-
 	impl sp_transaction_pool::runtime_api::TaggedTransactionQueue<Block> for Runtime {
 		fn validate_transaction(
 			source: TransactionSource,

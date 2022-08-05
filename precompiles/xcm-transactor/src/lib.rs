@@ -20,7 +20,10 @@
 #![feature(assert_matches)]
 
 use fp_evm::PrecompileHandle;
-use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
+use frame_support::{
+	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
+	traits::ConstU32,
+};
 use pallet_evm::{AddressMapping, PrecompileOutput};
 use pallet_xcm_transactor::{
 	Currency, CurrencyPayment, RemoteTransactInfoWithMaxWeight, TransactWeights,
@@ -43,6 +46,9 @@ mod tests;
 
 pub type TransactorOf<Runtime> = <Runtime as pallet_xcm_transactor::Config>::Transactor;
 pub type CurrencyIdOf<Runtime> = <Runtime as pallet_xcm_transactor::Config>::CurrencyId;
+
+pub const CALL_DATA_LIMIT: u32 = 2u32.pow(16);
+type GetDataLimit = ConstU32<CALL_DATA_LIMIT>;
 
 #[generate_function_selector]
 #[derive(Debug, PartialEq)]
@@ -235,7 +241,7 @@ where
 		let weight: u64 = input.read::<u64>()?;
 
 		// inner call
-		let inner_call = input.read::<Bytes>()?;
+		let inner_call = input.read::<BoundedBytes<GetDataLimit>>()?.into_vec();
 
 		// Depending on the Runtime, this might involve a DB read. This is not the case in
 		// moonbeam, as we are using IdentityMapping
@@ -249,7 +255,7 @@ where
 				))),
 				fee_amount: None,
 			},
-			inner_call: inner_call.0,
+			inner_call,
 			weight_info: TransactWeights {
 				transact_require_weight_at_most: weight,
 				overall_weight: None,
@@ -283,7 +289,7 @@ where
 		let weight: u64 = input.read::<u64>()?;
 
 		// inner call
-		let inner_call = input.read::<Bytes>()?;
+		let inner_call = input.read::<BoundedBytes<GetDataLimit>>()?.into_vec();
 
 		// overall weight
 		let fee_amount = input.read::<u128>()?;
@@ -303,7 +309,7 @@ where
 				))),
 				fee_amount: Some(fee_amount),
 			},
-			inner_call: inner_call.0,
+			inner_call,
 			weight_info: TransactWeights {
 				transact_require_weight_at_most: weight,
 				overall_weight: Some(overall_weight),
@@ -334,7 +340,7 @@ where
 		let weight: u64 = input.read::<u64>()?;
 
 		// inner call
-		let inner_call = input.read::<Bytes>()?;
+		let inner_call = input.read::<BoundedBytes<GetDataLimit>>()?.into_vec();
 
 		let to_account = Runtime::AddressMapping::into_account_id(to_address);
 
@@ -359,7 +365,7 @@ where
 				transact_require_weight_at_most: weight,
 				overall_weight: None,
 			},
-			inner_call: inner_call.0,
+			inner_call,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -386,7 +392,7 @@ where
 		let weight: u64 = input.read::<u64>()?;
 
 		// inner call
-		let inner_call = input.read::<Bytes>()?;
+		let inner_call = input.read::<BoundedBytes<GetDataLimit>>()?.into_vec();
 
 		// overall weight
 		let fee_amount = input.read::<u128>()?;
@@ -417,7 +423,7 @@ where
 				transact_require_weight_at_most: weight,
 				overall_weight: Some(overall_weight),
 			},
-			inner_call: inner_call.0,
+			inner_call,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -444,7 +450,7 @@ where
 		let weight: u64 = input.read::<u64>()?;
 
 		// call
-		let call = input.read::<Bytes>()?;
+		let call = input.read::<BoundedBytes<GetDataLimit>>()?.into_vec();
 
 		// overall weight
 		let fee_amount = input.read::<u128>()?;
@@ -467,7 +473,7 @@ where
 				transact_require_weight_at_most: weight,
 				overall_weight: Some(overall_weight),
 			},
-			call: call.0,
+			call,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -494,7 +500,7 @@ where
 		let weight: u64 = input.read::<u64>()?;
 
 		// call
-		let call = input.read::<Bytes>()?;
+		let call = input.read::<BoundedBytes<GetDataLimit>>()?.into_vec();
 
 		// Depending on the Runtime, this might involve a DB read. This is not the case in
 		// moonbeam, as we are using IdentityMapping
@@ -511,7 +517,7 @@ where
 				transact_require_weight_at_most: weight,
 				overall_weight: None,
 			},
-			call: call.0,
+			call,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -546,7 +552,7 @@ where
 		let weight: u64 = input.read::<u64>()?;
 
 		// call
-		let call = input.read::<Bytes>()?;
+		let call = input.read::<BoundedBytes<GetDataLimit>>()?.into_vec();
 
 		// Depending on the Runtime, this might involve a DB read. This is not the case in
 		// moonbeam, as we are using IdentityMapping
@@ -561,7 +567,7 @@ where
 				transact_require_weight_at_most: weight,
 				overall_weight: None,
 			},
-			call: call.0,
+			call,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -598,7 +604,7 @@ where
 		let weight: u64 = input.read::<u64>()?;
 
 		// call
-		let call = input.read::<Bytes>()?;
+		let call = input.read::<BoundedBytes<GetDataLimit>>()?.into_vec();
 
 		// overall weight
 		let fee_amount = input.read::<u128>()?;
@@ -619,7 +625,7 @@ where
 				transact_require_weight_at_most: weight,
 				overall_weight: Some(overall_weight),
 			},
-			call: call.0,
+			call,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
