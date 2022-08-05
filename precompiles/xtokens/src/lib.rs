@@ -22,7 +22,6 @@
 use fp_evm::{PrecompileHandle, PrecompileOutput};
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
-	ensure,
 	traits::Get,
 };
 use pallet_evm::{AddressMapping, Precompile};
@@ -50,6 +49,17 @@ pub type XBalanceOf<Runtime> = <Runtime as orml_xtokens::Config>::Balance;
 pub type MaxAssetsForTransfer<Runtime> = <Runtime as orml_xtokens::Config>::MaxAssetsForTransfer;
 
 pub type CurrencyIdOf<Runtime> = <Runtime as orml_xtokens::Config>::CurrencyId;
+
+struct GetMaxAssets<R>(PhantomData<R>);
+
+impl<R> Get<u32> for GetMaxAssets<R>
+where
+	R: orml_xtokens::Config,
+{
+	fn get() -> u32 {
+		<R as orml_xtokens::Config>::MaxAssetsForTransfer::get() as u32
+	}
+}
 
 #[generate_function_selector]
 #[derive(Debug, PartialEq)]
@@ -270,15 +280,8 @@ where
 	) -> EvmResult<PrecompileOutput> {
 		let mut input = handle.read_input()?;
 		input.expect_arguments(4)?;
-		let non_mapped_currencies: Vec<Currency> = input.read::<Vec<Currency>>()?;
-		let max_assets = MaxAssetsForTransfer::<Runtime>::get();
-
-		// We check this here so that we avoid iterating over the vec
-		// if the len is more than the max permitted
-		ensure!(
-			max_assets >= non_mapped_currencies.len(),
-			revert("More than max number of assets given")
-		);
+		let non_mapped_currencies: BoundedVec<Currency, GetMaxAssets<Runtime>> = input.read()?;
+		let non_mapped_currencies = non_mapped_currencies.into_vec();
 
 		let fee_item: u32 = input.read::<u32>()?;
 
@@ -332,15 +335,8 @@ where
 	fn transfer_multi_assets(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		let mut input = handle.read_input()?;
 		input.expect_arguments(4)?;
-		let assets: Vec<EvmMultiAsset> = input.read::<Vec<EvmMultiAsset>>()?;
-		let max_assets = MaxAssetsForTransfer::<Runtime>::get();
-
-		// We check this here so that we avoid iterating over the vec
-		// if the len is more than the max permitted
-		ensure!(
-			max_assets >= assets.len(),
-			revert("More than max number of assets given")
-		);
+		let assets: BoundedVec<EvmMultiAsset, GetMaxAssets<Runtime>> = input.read()?;
+		let assets = assets.into_vec();
 
 		let fee_item: u32 = input.read::<u32>()?;
 

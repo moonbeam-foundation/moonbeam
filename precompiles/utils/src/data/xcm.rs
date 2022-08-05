@@ -18,13 +18,16 @@
 
 use {
 	crate::{
-		data::{Bytes, EvmData, EvmDataReader, EvmDataWriter},
+		data::{BoundedBytes, Bytes, EvmData, EvmDataReader, EvmDataWriter},
 		revert, EvmResult,
 	},
-	frame_support::ensure,
+	frame_support::{ensure, traits::ConstU32},
 	sp_std::vec::Vec,
 	xcm::latest::{Junction, Junctions, MultiLocation, NetworkId},
 };
+
+pub const JUNCTION_SIZE_LIMIT: u32 = 2u32.pow(16);
+
 // Function to convert network id to bytes
 // We don't implement EVMData here as these bytes will be appended only
 // to certain Junction variants
@@ -81,8 +84,8 @@ pub(crate) fn network_id_from_bytes(encoded_bytes: Vec<u8>) -> EvmResult<Network
 
 impl EvmData for Junction {
 	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
-		let junction = reader.read::<Bytes>()?;
-		let junction_bytes = junction.as_bytes();
+		let junction = reader.read::<BoundedBytes<ConstU32<JUNCTION_SIZE_LIMIT>>>()?;
+		let junction_bytes = junction.into_vec();
 
 		ensure!(
 			junction_bytes.len() > 0,
