@@ -166,11 +166,12 @@ pub mod pallet {
 		pub transact_extra_weight_signed: Option<Weight>,
 	}
 
+	/// Enum defining the way to express a Currency.
 	#[derive(Clone, Encode, Decode, Eq, PartialEq, RuntimeDebug, scale_info::TypeInfo)]
 	pub enum Currency<CurrencyId> {
-		#[codec(index = 0)]
+		// Express the Currency as a CurrencyId
 		AsCurrencyId(CurrencyId),
-		#[codec(index = 1)]
+		// Express the Currency as its MultiLOcation
 		AsMultiLocation(Box<VersionedMultiLocation>),
 	}
 
@@ -191,16 +192,35 @@ pub mod pallet {
 		MaxEncodedLen,
 		scale_info::TypeInfo,
 	)]
+
+	/// Struct that defines how to express the payment in a particular currency
+	/// currency is defined by the Currency enum, which can be expressed as:
+	/// - CurrencyId
+	/// - MultiLocation
+	///
+	/// The fee_amount is an option. In case of None, the fee will be tried to
+	/// be calculated from storage. If the storage item for the currency is not
+	/// populated, then it fails
 	pub struct CurrencyPayment<CurrencyId> {
+		// the currency in which we want to express our payment
 		pub currency: Currency<CurrencyId>,
+		// indicates whether we want to specify the fee amount to be used
 		pub fee_amount: Option<u128>,
 	}
 
-	/// Struct tindicating information about transact weights
 	#[derive(Default, Clone, Encode, Decode, RuntimeDebug, PartialEq, scale_info::TypeInfo)]
+	/// Struct tindicating information about transact weights
+	/// It allows to specify:
+	/// - transact_require_weight_at_most: the amount of weight the Transact instruction
+	///   should consume at most
+	/// - overall_weight: the overall weight to be used for the whole XCM message execution.
+	///   If None, then this amount will be tried to be derived from storage.  If the storage item
 	pub struct TransactWeights {
-		// TODO: transact_require_weight_at_most
-		pub transact_weight: Weight,
+		// the amount of weight the Transact instruction should consume at most
+		pub transact_require_weight_at_most: Weight,
+		// the overall weight to be used for the whole XCM message execution. If None,
+		// then this amount will be tried to be derived from storage.  If the storage item
+		// for the chain is not populated, then it fails
 		pub overall_weight: Option<Weight>,
 	}
 
@@ -362,16 +382,22 @@ pub mod pallet {
 			Pallet::<T>::weight_of_transact_through_derivative(
 				index,
 				&dest,
-				&weight_info.transact_weight,
+				&weight_info.transact_require_weight_at_most,
 				inner_call
 			)
 		)]
 		pub fn transact_through_derivative(
 			origin: OriginFor<T>,
+			// destination to which the message should be sent
 			dest: T::Transactor,
+			// derivative index to be used
 			index: u16,
+			// fee to be used
 			fee: CurrencyPayment<CurrencyIdOf<T>>,
+			// inner call to be executed in destination. This wiol
+			// be wrapped into utility.as_derivative
 			inner_call: Vec<u8>,
+			// weight information to be used
 			weight_info: TransactWeights,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
@@ -420,18 +446,24 @@ pub mod pallet {
 		/// SovereignAccountDispatcherOrigin callable only
 		#[pallet::weight(
 			Pallet::<T>::weight_of_transact_through_sovereign(
-				&weight_info.transact_weight,
+				&weight_info.transact_require_weight_at_most,
 				call,
 				*origin_kind
 			)
 		)]
 		pub fn transact_through_sovereign(
 			origin: OriginFor<T>,
+			// destination to which the message should be sent
 			dest: Box<VersionedMultiLocation>,
+			// account paying for fees
 			fee_payer: T::AccountId,
+			// fee to be used
 			fee: CurrencyPayment<CurrencyIdOf<T>>,
+			// call to be executed in destination
 			call: Vec<u8>,
+			// origin kind to be used
 			origin_kind: OriginKind,
+			// weight information to be used
 			weight_info: TransactWeights,
 		) -> DispatchResult {
 			T::SovereignAccountDispatcherOrigin::ensure_origin(origin)?;
@@ -513,9 +545,13 @@ pub mod pallet {
 		#[pallet::weight(T::WeightInfo::transact_through_signed_multilocation())]
 		pub fn transact_through_signed(
 			origin: OriginFor<T>,
+			// destination to which the message should be sent
 			dest: Box<VersionedMultiLocation>,
+			// fee to be used
 			fee: CurrencyPayment<CurrencyIdOf<T>>,
+			// call to be executed in destination
 			call: Vec<u8>,
+			// weight information to be used
 			weight_info: TransactWeights,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
@@ -599,7 +635,10 @@ pub mod pallet {
 			// Calculate the total weight that the xcm message is going to spend in the
 			// destination chain
 			let total_weight: u64 = weight_info.overall_weight.ok_or("").or_else(|_| {
-				Self::take_weight_from_transact_info(dest.clone(), weight_info.transact_weight)
+				Self::take_weight_from_transact_info(
+					dest.clone(),
+					weight_info.transact_require_weight_at_most,
+				)
 			})?;
 
 			// Calculate fee based on FeePerSecond and total_weight
@@ -627,7 +666,7 @@ pub mod pallet {
 				fee,
 				total_weight,
 				call,
-				weight_info.transact_weight,
+				weight_info.transact_require_weight_at_most,
 				origin_kind,
 			)?;
 
@@ -652,7 +691,7 @@ pub mod pallet {
 			let total_weight: u64 = weight_info.overall_weight.ok_or("").or_else(|_| {
 				Self::take_weight_from_transact_info_signed(
 					dest.clone(),
-					weight_info.transact_weight,
+					weight_info.transact_require_weight_at_most,
 				)
 			})?;
 
@@ -673,7 +712,7 @@ pub mod pallet {
 				fee,
 				total_weight,
 				call,
-				weight_info.transact_weight,
+				weight_info.transact_require_weight_at_most,
 				origin_kind,
 			)?;
 
@@ -874,6 +913,8 @@ pub mod pallet {
 			fee_mul_rounded_up / weight_per_second_u128
 		}
 
+		/// Returns the weight information for a destination from storage
+		/// it returns the weight to be used in non-signed cases
 		pub fn take_weight_from_transact_info(
 			dest: MultiLocation,
 			dest_weight: Weight,
@@ -893,6 +934,8 @@ pub mod pallet {
 			Ok(total_weight)
 		}
 
+		/// Returns the weight information for a destination from storage
+		/// it returns the weight to be used in signed cases
 		pub fn take_weight_from_transact_info_signed(
 			dest: MultiLocation,
 			dest_weight: Weight,
@@ -918,6 +961,8 @@ pub mod pallet {
 			Ok(total_weight)
 		}
 
+		/// Returns the fee per second charged by a reserve chain for an asset
+		/// it takes this information from storage
 		pub fn take_fee_per_second_from_storage(
 			fee_location: MultiLocation,
 			total_weight: Weight,
@@ -927,6 +972,7 @@ pub mod pallet {
 			Ok(Self::calculate_fee_per_second(total_weight, fee_per_second))
 		}
 
+		/// Converts Currency to multilocation
 		pub fn currency_to_multilocation(
 			currency: Currency<CurrencyIdOf<T>>,
 		) -> Option<MultiLocation> {
