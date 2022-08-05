@@ -53,7 +53,7 @@ pub enum Action {
 	TransactThroughDerivativeMultiLocation =
 		"transact_through_derivative_multilocation(uint8,uint16,(uint8,bytes[]),uint64,bytes)",
 	TransactThroughDerivative = "transact_through_derivative(uint8,uint16,address,uint64,bytes)",
-	TransactThroughDerivativeCustomFeeAndWeight = "transact_through_derivative_custom_fee_and_weight(uint8,uint16,address,uint64,bytes,uint256,uint64)",
+	TransactThroughDerivativeCustomFeeAndWeight = "transact_through_derivative(uint8,uint16,address,uint64,bytes,uint256,uint64)",
 	TransactThroughDerivativeMultiLocationCustomFeeAndWeight = "transact_through_derivative_multilocation(uint8,uint16,(uint8,bytes[]),uint64,bytes,uint256,uint64)",
 	TransactInfoWithSigned = "transact_info_with_signed((uint8,bytes[]))",
 	FeePerSecond = "fee_per_second((uint8,bytes[]))",

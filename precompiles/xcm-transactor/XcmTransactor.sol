@@ -81,7 +81,7 @@ interface XcmTransactor {
     * @param fee_amount Amount to be used as fee. 
     * @param overall_weight Overall weight to be used for the xcm message. 
     */
-    function transact_through_derivative_multilocation_custom_fee_and_weight(
+    function transact_through_derivative_multilocation(
         uint8 transactor,
         uint16 index,
         Multilocation memory fee_asset,
@@ -121,7 +121,7 @@ interface XcmTransactor {
     * @param fee_amount Amount to be used as fee. 
     * @param overall_weight Overall weight to be used for the xcm message. 
     */
-    function transact_through_derivative_custom_fee_and_weight(
+    function transact_through_derivative(
         uint8 transactor,
         uint16 index,
         address currency_id,
@@ -162,7 +162,7 @@ interface XcmTransactor {
     * @param fee_amount Amount to be used as fee. 
     * @param overall_weight Overall weight to be used for the xcm message. 
     */
-    function transact_through_signed_multilocation_custom_fee_and_weight(
+    function transact_through_signed_multilocation(
         Multilocation memory dest,
         Multilocation memory fee_location,
         uint64 transact_weight,
@@ -202,7 +202,7 @@ interface XcmTransactor {
     * @param fee_amount Amount to be used as fee. 
     * @param overall_weight Overall weight to be used for the xcm message. 
     */
-    function transact_through_signed_custom_fee_and_weight(
+    function transact_through_signed(
         Multilocation memory dest,
         address fee_location_address,
         uint64 transact_weight,

@@ -69,7 +69,7 @@ contract XcmTransactorInstance is XcmTransactor {
         );
     }
 
-    function transact_through_derivative_multilocation_custom_fee_and_weight(
+    function transact_through_derivative_multilocation(
         uint8 transactor,
         uint16 index,
         Multilocation memory fee_asset,
@@ -78,16 +78,15 @@ contract XcmTransactorInstance is XcmTransactor {
         uint256 fee_amount,
         uint64 overall_weight
     ) external override {
-        xcmtransactor
-            .transact_through_derivative_multilocation_custom_fee_and_weight(
-                transactor,
-                index,
-                fee_asset,
-                transact_weight,
-                inner_call,
-                fee_amount,
-                overall_weight
-            );
+        xcmtransactor.transact_through_derivative_multilocation(
+            transactor,
+            index,
+            fee_asset,
+            transact_weight,
+            inner_call,
+            fee_amount,
+            overall_weight
+        );
     }
 
     function transact_through_derivative(
@@ -106,7 +105,7 @@ contract XcmTransactorInstance is XcmTransactor {
         );
     }
 
-    function transact_through_derivative_custom_fee_and_weight(
+    function transact_through_derivative(
         uint8 transactor,
         uint16 index,
         address currency_id,
@@ -115,7 +114,7 @@ contract XcmTransactorInstance is XcmTransactor {
         uint256 fee_amount,
         uint64 overall_weight
     ) external override {
-        xcmtransactor.transact_through_derivative_custom_fee_and_weight(
+        xcmtransactor.transact_through_derivative(
             transactor,
             index,
             currency_id,
@@ -140,7 +139,7 @@ contract XcmTransactorInstance is XcmTransactor {
         );
     }
 
-    function transact_through_signed_custom_fee_and_weight(
+    function transact_through_signed(
         Multilocation memory dest,
         address fee_location_address,
         uint64 transact_weight,
@@ -148,7 +147,7 @@ contract XcmTransactorInstance is XcmTransactor {
         uint256 fee_amount,
         uint64 overall_weight
     ) external override {
-        xcmtransactor.transact_through_signed_custom_fee_and_weight(
+        xcmtransactor.transact_through_signed(
             dest,
             fee_location_address,
             transact_weight,
@@ -172,7 +171,7 @@ contract XcmTransactorInstance is XcmTransactor {
         );
     }
 
-    function transact_through_signed_multilocation_custom_fee_and_weight(
+    function transact_through_signed_multilocation(
         Multilocation memory dest,
         Multilocation memory fee_location,
         uint64 transact_weight,
@@ -180,14 +179,13 @@ contract XcmTransactorInstance is XcmTransactor {
         uint256 fee_amount,
         uint64 overall_weight
     ) external override {
-        xcmtransactor
-            .transact_through_signed_multilocation_custom_fee_and_weight(
-                dest,
-                fee_location,
-                transact_weight,
-                call,
-                fee_amount,
-                overall_weight
-            );
+        xcmtransactor.transact_through_signed_multilocation(
+            dest,
+            fee_location,
+            transact_weight,
+            call,
+            fee_amount,
+            overall_weight
+        );
     }
 }
